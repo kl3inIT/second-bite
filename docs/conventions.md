@@ -117,7 +117,8 @@ The error contract follows [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.htm
 
 - **Problem members.** `type` is `urn:secondbite:failure:<code in kebab case>` and maps one to one to `code`; `title` comes from the category; `detail` is the safe message; `code` and `requestId` are extension members, `requestId` equal to the identifier logged for that request and returned in `X-Request-Id`.
 - **Every error response is `application/problem+json`**: business failures, request validation, unknown routes, authentication refusals and uncaught failures, which answer a generic 500 with no internal detail. A test verifies each kind.
-- **Validation failures** return 400 with an `errors` extension: one entry per violation with `pointer` (a JSON Pointer to the offending member, for example `#/priceVnd`), `detail`, `code` and optional `params` holding only allowlisted numeric bounds such as `min` and `max`. A rejected value is never echoed.
+- **Validation failures** return 400 with an `errors` extension: one entry per violation with `pointer` (a JSON Pointer to the offending body member, for example `#/priceVnd`) or `parameter` (a path, query or header parameter, for example `query.limit`), `detail`, `code` and optional `params` holding only allowlisted numeric bounds such as `min` and `max`. A rejected value is never echoed.
+- **Failures outside any module** (an unknown route, a malformed body, an uncaught failure) have codes beginning `PLATFORM_`, as the shared technical code answers them.
 - **Retry hints.** 429 and 503 responses carry `Retry-After` in whole seconds.
 - **Consumers.** Clients branch on `status` or `code`, never on `title`, `detail` or diagnostic text, and translate codes into the reader's language. A new code arrives with its words in both languages of every client that can meet it.
 - Never put a code into a message string and match the string later.

@@ -59,7 +59,7 @@ A module is a package directly under `internal/`, named after its business conce
 
 ## Boundary verification
 
-The compiler enforces `internal/` visibility and the absence of cycles. What it cannot enforce, which module may depend on which, is checked in continuous integration from a declared list of allowed edges, kept beside the module list in [ARCHITECTURE.md](../../ARCHITECTURE.md). The tool (`go-arch-lint`, `depguard` in golangci-lint, or a test over `go list -deps`) is chosen in the backend foundation increment. A new edge changes the list, the architecture page and, when it is a material change, an ADR, in the same change.
+The compiler enforces `internal/` visibility and the absence of cycles. What it cannot enforce, which module may depend on which, is checked in continuous integration from a declared list of allowed edges, kept beside the module list in [ARCHITECTURE.md](../../ARCHITECTURE.md). The check is a test over `go list` (`backend/internal/boundaries_test.go`) that reads the list from ARCHITECTURE.md, chosen in SEC-10 over go-arch-lint and depguard because it needs no tool and the page and the check cannot disagree. A new edge changes the list, the architecture page and, when it is a material change, an ADR, in the same change.
 
 ## Persistence
 
@@ -95,7 +95,8 @@ Infrastructure the team runs itself in Docker Compose is preferred over managed 
 
 ## Tooling and gates
 
-- The Go version is pinned in `go.mod` with its `toolchain` line; tools (`sqlc`, `goose`, `golangci-lint`) are pinned with `tool` directives so every machine runs the same versions.
-- Before pushing: formatting, `go vet`, golangci-lint, the boundary check, `govulncheck` and the tests, which need Docker for PostgreSQL. The exact commands land in a runbook with the backend foundation.
+- The Go version is pinned in `go.mod`. Code generators (`sqlc`) are pinned with `tool` directives so every machine runs the same version; goose runs as a library inside the binary. golangci-lint is pinned by version in CI and the runbook instead, because its maintainers advise against installing it through `go tool`.
+- golangci-lint runs the recommended configuration of the vendored `golang-lint` skill (`backend/.golangci.yml`). A `//nolint` names its linter and says why.
+- Before pushing: formatting, golangci-lint, the tests (the boundary check, the contract check and the PostgreSQL tests, which need Docker) and `govulncheck`, as the [backend runbook](../runbooks/backend.md) lists.
 
 These library choices come from the [backend stack research](../research/2026-10-16-backend-stack.md); a change of one is an ADR once the backend exists.

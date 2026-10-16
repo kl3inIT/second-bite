@@ -20,10 +20,10 @@ A temporary runtime mode, command or endpoint is not a substitute for a missing 
 ## Implementation boundaries
 
 - Application code owns authorization, input validation, orchestration, transaction boundaries, domain transition decisions and typed failure mapping. It does not build SQL strings, map rows or implement lock mechanics.
-- Persistence lives in the owning module's store. SQL is written as SQL and checked at build time (the backend's choice is in the [backend guideline](backend.md#persistence)).
+- Persistence lives in the owning module's repository. SQL is written as SQL and checked at build time (the backend's choice is in the [backend guideline](backend.md#persistence)).
 - A module has what its screens need, not a fixed set of files: the writes of its create, edit and state-change flows, and read queries that map rows straight to the response a list or detail needs.
-- Group queries by aggregate, use case, projection or consistency boundary, not one store per table. Read projections get their own queries rather than inflating a write path.
-- Do not add an interface in front of a module's own store; its one implementation is tested against PostgreSQL.
+- Group queries by aggregate, use case, projection or consistency boundary, not one repository per table. Read projections get their own queries rather than inflating a write path.
+- Do not add an interface in front of a module's own repository; its one implementation is tested against PostgreSQL.
 - Do not create parallel domain, row, DTO and mapper layers. A row type stays inside its module; a module never holds another module's row type, only its identifier.
 - One transaction per command that coordinates several writes, opened by the application code that owns the command.
 - A quantity that concurrent commands may change, such as the units left on an offer, is changed by a conditional update (`... WHERE units_left >= $n`) or under an explicit row lock, never by reading, computing and writing back.

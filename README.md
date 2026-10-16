@@ -6,7 +6,7 @@ Second Bite is a non-profit, bilingual (Vietnamese and English) platform for gen
 
 ## State of the repository
 
-No application code exists yet. The repository holds the product brief, the vision and roadmap, the engineering conventions, the research done before design, and the first increment: the pilot's domain model, worked through boundary discovery from the founder's requirements.
+The backend's foundation exists: a Go service that migrates its PostgreSQL database and serves an API with no business operation yet ([how to run it](docs/runbooks/backend.md)). The repository also holds the product brief, the vision and roadmap, the engineering conventions, the research done before design, and the pilot's domain model.
 
 | Start here | For |
 | --- | --- |

@@ -2,6 +2,63 @@
 
 Status: being designed, one part at a time ([plan](plan.md)). Each part below is decided with the team before code is written for it.
 
+## Foundation
+
+Built on 16 October 2026 on this increment's branch; how to run and check it is in the [backend runbook](../../../runbooks/backend.md). Each choice below follows a vendored skill, a reference project or a repository rule, named beside it.
+
+### Entry point and lifecycle
+
+- `cmd/secondbite` only assembles: `main` takes the signal context and calls `run(ctx, getenv, stdout)`, which a test calls in-process. `golang-project-layout` keeps business logic out of `main`; taking the environment as an argument is what makes the whole service testable.
+- **Shutdown** follows `golang-design-patterns` (`references/resource-management.md`): `signal.NotifyContext` for SIGINT and SIGTERM, then `http.Server.Shutdown` with 20 seconds for requests in flight, then the pool closes.
+- **Server timeouts** are explicit (`go-code-review`, `references/WEB-SERVER.md`): read header 5 s, read 15 s, write 30 s, idle 60 s.
+- **One process for now.** The `serve` and `worker` roles discussed for River arrive with the first job; until then there is no subcommand.
+
+### Configuration
+
+- Variables prefixed `SECONDBITE_`, read through the standard library: seven values do not need a library, and `golang-popular-libraries` lists env, Koanf and Viper for larger needs.
+- A secret is read from the file named after its variable under `SECONDBITE_SECRETS_DIR` (`/run/secrets` by default), through `os.Root` so a name cannot leave that directory; only when the file is absent does it fall back to the variable, for local development ([data and security](../../../conventions.md#data-and-security)).
+- The database password is a secret of its own; a URL that holds a password is refused.
+- The service fails closed: every missing or malformed value is reported at once and the service does not start.
+
+### Database and migrations
+
+- `pgxpool` with an explicit size (10), connection lifetime (30 minutes) and a 5-second bound on the first connection ([persistence operations](../../../guidelines/persistence.md#operations)). pgxpool has no acquisition timeout of its own; each caller's context bounds it.
+- Migrations are embedded in the binary (`backend/migrations`) and applied by goose's `Provider` at startup, under a PostgreSQL session lock so that several instances can start together, as BeyondPilot applies Flyway at startup.
+- The first migration enables PostGIS (`0001_platform_enable_postgis.sql`); the seller's location is its first user, in this increment.
+
+### HTTP and problems
+
+- huma on the standard library's `ServeMux` (`humago`). The `$schema` member and `Link` header huma adds by default are turned off: the contract is the OpenAPI document.
+- **One mapping for every error**, `mapError` in `internal/platform`. huma lets a service replace how it builds errors only through two package variables (`huma.NewError`, `huma.NewErrorWithContext`); they are set once per process, and the logger comes from the request's context so that tests running in parallel do not race.
+- What huma does by default and the [API errors](../../../conventions.md#api-errors) forbid, the mapping changes:
+  - an uncaught error answered "unexpected error occurred" with the error's own text in `errors`; it now answers a generic 500 and logs the error with the request's identifier;
+  - a validation error echoed the rejected `value`; it is now dropped;
+  - validation answered 422; it now answers 400.
+- A module returns a `*platform.FailureError` declared once with its code, category and safe message (`errname` in the lint configuration asks for the `Error` suffix). The category gives the status and the title; `Retry-After` is sent in whole seconds for a failure that carries a wait.
+- Failures the platform answers itself have codes beginning `PLATFORM_`: `PLATFORM_REQUEST_INVALID`, `PLATFORM_ROUTE_NOT_FOUND`, `PLATFORM_METHOD_NOT_ALLOWED`, `PLATFORM_INTERNAL_FAILURE` and the others in `problem.go`.
+- **Unmatched routes** are answered with a problem too: the mux is asked which handler it would use, and a 404 or a 405 (with `Allow`) is written as `application/problem+json` instead of the mux's plain text.
+- A violation names a body member by JSON Pointer (`#/priceVnd`) or a parameter by its location (`query.limit`). Every violation has the code `PLATFORM_VALUE_INVALID` for now: huma gives a message per violation but no stable reason, and a code per rule (too small, too long, missing) is added when a client needs to tell them apart.
+
+### Request identifier, logs and probes
+
+- Every request gets an identifier from `crypto/rand.Text`, or keeps the caller's when it is 1 to 64 characters of letters, digits, `.`, `_` or `-`, so a proxy's identifier follows the request. It is returned in `X-Request-Id`, carried in every problem as `requestId`, and added as `request_id` to every record logged with the request's context.
+- One access record per request (`platform.request.completed`) with the route pattern rather than the path, the status, the duration and the failure's code, as `golang-error-handling` asks of request logging. The probes log at DEBUG.
+- A panic is recovered into a generic 500 problem and logged with its stack (`platform.request.panicked`); `http.ErrAbortHandler` is left to net/http.
+- `/livez` answers while the process runs; `/readyz` while the database answers within 2 seconds.
+
+### Checks
+
+- **Lint**: the recommended `.golangci.yml` of the vendored `golang-lint` skill, unchanged apart from a renamed gofumpt setting, with golangci-lint v2.14.0 (v2.15.0 was published the same day and is not taken yet).
+- **Boundary check**: a test over `go list` (`backend/internal/boundaries_test.go`), chosen over go-arch-lint and depguard because it needs no tool and reads the allowed edges from [ARCHITECTURE.md](../../../../ARCHITECTURE.md), so the page and the check cannot disagree. It counts test imports too, and was seen to fail on a module importing another without an allowed edge and on one reaching past another's root package.
+- **Contract check**: `api/openapi.yaml` is generated from the registered operations and compared in a test; `-update` rewrites it.
+- **Composition test**: the assembled service against `postgis/postgis:18-3.6` in a container (testcontainers-go): migrations, probes, request identifiers, the contract, problems for an unknown route and a wrong method, and a clean stop.
+- **CI** (`.github/workflows/backend.yml`): lint, `go mod tidy -diff`, tests with the race detector, govulncheck; actions pinned by commit SHA, read-only token, no automatic merge.
+- **Local database**: `compose.yaml` at the repository root. Its health check asks over TCP, because during the image's first start PostGIS is installed on a server that listens only on its Unix socket, and a socket check reports ready too early (seen on the first run).
+
+### Not in the foundation yet
+
+Each arrives with its first user, as the [backend guideline](../../../guidelines/backend.md#self-hosted-infrastructure) asks: River with the first job, sqlc with the first query, Mailpit with email, the `UNAUTHENTICATED` category (401) with `identity`, and the container image and deployment with the first deployment.
+
 ## Email delivery
 
 Decided with the team on 16 October 2026.
