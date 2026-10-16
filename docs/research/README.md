@@ -8,6 +8,7 @@ What the team studied before designing Second Bite, kept so that a later reader 
 | [Backend stack](2026-10-16-backend-stack.md) | Spring Boot or Go, how Go projects draw module boundaries, templates, the libraries chosen with their versions, and the Go agent skills |
 | [Open-source pickup models](2026-10-16-open-source-pickup-models.md) | How Open Food Network, Karrot, foodsharing and Umi Feeds model collection windows, stock holds, confirmation, no-shows, seller approval, sign-in and mobile, and what Second Bite takes from them |
 | [Sharing Excess impact](2026-10-17-sharing-excess-impact.md) | How a food-rescue non-profit derives meals, value and emissions from weight and category, counting only food that reached people; its code is no longer public |
+| [Offer models](2026-10-17-offer-models.md) | How foodsharing, Karrot, Umi Feeds, Open Food Network and Too Good To Go model what is offered: content, stock, windows, changes, search and following |
 
 ## Sources, kept as received
 
