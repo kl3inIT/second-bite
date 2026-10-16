@@ -8,19 +8,28 @@ Decided with the team on 16 October 2026.
 
 ### What is decided
 
-- **Email delivery is a vendor family from the first line**, as [interchangeable implementations](../../../conventions.md#interchangeable-implementations-strategy-behind-a-registry) prescribes: one interface for the function (`EmailSender`), one type per provider, and a registry that resolves the configured provider by key and fails at startup on an unknown or duplicate key. More providers are certain (SES or Resend are likely), so the family is open: a new provider is a new type and a new key, and nothing else changes.
+- **Email delivery is a vendor family from the first line**, as [interchangeable implementations](../../../conventions.md#interchangeable-implementations-strategy-behind-a-registry) prescribes. There is one interface for the function, `EmailSender`, declared in the module that sends, and one type per provider.
+- **Operators choose the provider while the system runs**, as in BeyondPilot's Admin › Email, so the registry is real and not a choice made once at startup:
+  - The family is **closed**: the providers are a persisted enumeration (`brevo`, `smtp`, later `resend` or `ses`).
+  - `cmd/secondbite` builds every implementation once and gives them to a registry keyed by that enumeration, a plain map built at startup with no package-level state. Startup fails when a provider has no implementation or two.
+  - Each send reads the current settings, resolves the provider through the registry and passes it that provider's settings, so a change takes effect on the next email without a restart.
+  - Adding a provider is a new type, a new enumeration value and its settings fields on the screen.
 - **Brevo through its HTTP API is the provider of staging and production** (`BrevoEmailSender`), not its SMTP relay. The API answers a message id, which the delivery reports of Brevo's webhook name, so bounces and complaints can later be matched to the email and the address suppressed, as BeyondPilot does in BEY-128. Its free plan allows 300 emails a day, which covers the pilot's sign-in codes.
 - **SMTP to Mailpit in development and in tests** (`SmtpEmailSender`). Mailpit joins the local Compose file and catches every email, so a developer reads it in Mailpit's web page and a test reads the code that was sent through Mailpit's API. The same type serves any SMTP server later.
 - **Shared mechanics stay outside the providers**: the message type, address validation, the timeout and logging, so each provider only translates a message into its vendor's call. A provider answers a typed failure:
   - refused: the request or the address is wrong, and trying again does not help;
   - rate limited: carries the wait the vendor asks for;
   - unavailable: a network failure or a 5xx.
-- **Configuration from the environment.** The provider key, the sender address and name, and the SMTP host and port come from `SECONDBITE_` variables. Brevo's API key or an SMTP password is read from a file under `/run/secrets` ([data and security](../../../conventions.md#data-and-security)). There is no operator screen for it yet, unlike BeyondPilot's Admin › Email.
+- **Settings live in the database and are kept by operators.** One settings row holds the chosen provider, the sender address and name, and each provider's values (Brevo's API key; an SMTP server's host, port, user and password).
+  - Secrets in that row are sealed field by field with AES-256-GCM (`crypto/cipher` from the standard library) under a key read from a file under `/run/secrets` ([data and security](../../../conventions.md#data-and-security)), the one email value the environment supplies.
+  - The API never returns a secret; it says only whether one is set, and an empty field on save keeps the stored one.
+  - Losing or replacing the key makes the stored secrets unreadable; an operator enters them again.
+  - A fresh database sends no email until an operator chooses a provider. Local setup chooses SMTP to Mailpit, so development works from the first run.
 - **Delivery reports** (Brevo's webhook, suppressed addresses) are a later step of the [plan](plan.md). The message id is kept from the first send so they can attach to it.
 
 ### The sign-in code is sent within the request
 
-Proposed on 16 October 2026; settled with the `identity` step.
+Decided with the team on 16 October 2026.
 
 When a customer asks for a sign-in code, `identity` creates it, stores only its hash, and sends the email before the request is answered. If sending fails, the request answers `503` with `Retry-After` and the customer asks again. No job queue carries the code.
 
@@ -84,6 +93,8 @@ So the shape is common: mail caught locally in development, a provider family on
 
 ### Left for the step that writes the code
 
+- **Who calls whom.** `identity` sends the sign-in code through the email module, and the settings screen is for operators, whose role `identity` owns. BeyondPilot broke the same cycle by having `identity` publish the code as a synchronous event (its ADR 0005). Here the operator check may come from the request's authenticated caller in `internal/platform` instead, so that only one edge exists. This is decided with the `identity` step, against the context map.
+- **The settings screen** belongs to the operators' web application (SEC-17); this increment delivers its API.
 - **Pinned versions** of Mailpit and go-mail, each at least two weeks old when pinned.
 - **Brevo's documented limits and its webhook**, read again on developers.brevo.com when the delivery reports are built.
 
