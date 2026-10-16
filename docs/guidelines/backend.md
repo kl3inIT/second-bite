@@ -30,6 +30,19 @@ A module is a package directly under `internal/`, named after its business conce
 - Interfaces are declared by the code that consumes them, and only for a vendor family ([Strategy behind a registry](../conventions.md#interchangeable-implementations-strategy-behind-a-registry)) or a test that cannot use the real implementation. A module's own store and services are concrete types.
 - Dependencies are passed explicitly through constructors, assembled in `cmd/secondbite`. No dependency injection container and no package-level mutable state.
 
+## Events
+
+[Events between modules](../conventions.md#events-between-modules) in Go:
+
+- An event is a struct in the publishing module's root package, part of its published API: `type PublishedEvent struct { OfferID uuid.UUID }` in package `offer`, read as `offer.PublishedEvent`. Repeating the package in the name (`offer.OfferPublishedEvent`) is the stutter Go's naming guidance warns against.
+- Its key (`offer.published`) is the River job kind that carries it, so a listener is a River worker. It is inserted with `InsertTx` in the transaction that made the change.
+- A listener that needs the event in its own terms translates it at its edge, as the anti-corruption layer of the vendored `golang-design-patterns` skill (`references/ddd.md`) shows.
+- Where that skill differs, this repository wins:
+  - it publishes after saving, through an `EventPublisher` called once the repository has saved; here the event is written in the same transaction, so a crash between the two can neither lose it nor publish a change that was rolled back;
+  - it places a shared event bus under `internal/events/`; here the mechanics (River, the insert in a transaction) live in `internal/platform` and each event type with its publisher;
+  - it splits each context into `domain/`, `application/` and `adapters/` from the start; here a module starts flat ([Modules](#modules)).
+- A message broker (Redis Streams, RabbitMQ, NATS, Kafka) joins only when a listener lives outside this deployable. It is fed from the same transactional records by a relay, so publishers do not change; Watermill, which the vendored `golang-popular-libraries` skill lists, is the library to study first.
+
 ## Boundary verification
 
 The compiler enforces `internal/` visibility and the absence of cycles. What it cannot enforce, which module may depend on which, is checked in continuous integration from a declared list of allowed edges, kept beside the module list in [ARCHITECTURE.md](../../ARCHITECTURE.md). The tool (`go-arch-lint`, `depguard` in golangci-lint, or a test over `go list -deps`) is chosen in the backend foundation increment. A new edge changes the list, the architecture page and, when it is a material change, an ADR, in the same change.

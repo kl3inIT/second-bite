@@ -126,7 +126,7 @@ The error contract follows [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.htm
 
 A module tells others that something happened with an event.
 
-- **The event** is named for a past fact (`OfferPublished`, `OrderCollected`) and carries identifiers only. A listener that needs the state reads it through the publisher's published API, so it always sees the current state and the event store never holds personal data.
+- **The event** is named for a past fact followed by `Event`, and is written with the module that publishes it, so the module is not repeated in the name: `offer.PublishedEvent`, `order.CollectedEvent`, `payment.ReceivedEvent`. Its stable key, used where the event is stored, delivered and logged, is the module and the fact in lower case: `offer.published`, `order.collected`. The domain model may still speak of the fact alone ("offer published"). The event carries identifiers only. A listener that needs the state reads it through the publisher's published API, so it always sees the current state and the event store never holds personal data.
 - **Publishing** happens inside the transaction that made the change, by writing the event or the job that carries it to PostgreSQL in that transaction (a transactional outbox). A rolled-back change publishes nothing; a committed change is never lost by a crash after the commit.
 - **Listening** runs after the commit, in a transaction of its own, so its failure never undoes the change. A listener is idempotent and does not depend on order, because an event can be delivered again.
 - **Within a module**, a side effect after the commit may use a plain job without being part of the module's published API.
