@@ -1,0 +1,742 @@
+# Kickoff meeting about Second Bite — transcript
+
+Automatic transcript of the meeting on 16 October 2026 (10:30 UTC), kept as received in Vietnamese and English apart from the removals marked below: phone numbers, and small talk about participants' ages, schools, families and hobbies. Speaker labels are the transcription tool's; it did not identify speakers reliably.
+
+Participants listed by the tool: Trung, Đạt, Nhật, Việt, Nhật Anh.
+
+- *[00:00–00:32] removed: small talk before the meeting started*
+- [00:33] Người nói 1: Ờ thì hôm nay em chào mọi người ở đây. Em... hôm nay em xin phép nói tiếng Anh tại vì em
+- [00:39] Người nói 1: giỏi tiếng Anh hơn tiếng Việt.
+- [00:41] Người nói 1: Ở đây em có nói tiếng... em có biết tiếng Việt ở đây thì em mong mọi người đọc. Ờ, so you get started with second bite, which is the program that I desire to ask you guys to work on with me. And to
+- [00:55] Người nói 1: create this program with me is that in second bite, we got to visualize a bigger picture of second bite and what it does.
+- [01:02] Người nói 1: So before we get to the project requirement
+- [01:06] Người nói 1: s, we got to know what it does. So what I want to say here is that second bite doesn't sell food, it sells surplus ingredients and food from
+- [01:15] Người nói 1: shops and
+- [01:17] Người nói 1: restaurants where they couldn't store the food anymore, or like at the end of the day where it's where they.
+- [01:23] Người nói 1: .. is where the remaining food they couldn't sell anymore and they're supposed to throw it away. And that becomes zero revenue. And
+- [01:31] Người nói 1: mostly people don't want zero revenue, right? So we tackle the idea of that the platform connects the restaurant to the consumers where
+- [01:38] Người nói 1: food and ingredients with lower price can be sold with the same quality
+- [01:43] Người nói 1: so that the consumers are exposed to food with lower price and therefore it's why they would buy our food in our platform.
+- [01:53] Người nói 1: So three different types of food and ingredients that would be sold in second bite.
+- [01:59] Người nói 1: The first one is that food that hasn't been sold, for example bread, drinks,
+- [02:04] Người nói 1: and
+- [02:05] Người nói 1: the meals that already been prepared but you know they didn't sell. For example
+- [02:11] Người nói 1: phở, kiểu một bát phở mà họ chưa bán hết ấy ạ. Yeah. Also the ingredients that remain. For example kiểu những loại hoa quả, rau củ,
+- [02:20] Người nói 1: kiểu nguyên liệu mà vẫn còn đủ chất lượng để bán nhưng mà ví dụ như là họ không có
+- [02:24] Người nói 1: đủ storage để có thể chứa được cái rau củ quả đấy nữa thì họ sẽ đem lên app để bán nhanh với cái giá thấp hơn ạ. Thì
+- [02:32] Người nói 1: còn
+- [02:33] Người nói 1: tiếp theo là
+- [02:35] Người nói 1: ... so em nghĩ là trải nghiệm của người mua is what, nhưng là một thứ rất là quan trọng ở trong cái app này. Em muốn cái trải nghiệm nó rất là đơn giản và nó có thể súc tích cho người mua để khiến người mua có thể
+- [02:47] Người nói 1: mua một cách nhanh nhất. Thì
+- [02:50] Người nói 1: four basic things that
+- [02:51] Người nói 1: I
+- [02:53] Người nói 1: highly visualize in this is that người mua có thể tìm món này, xong chọn cách nhận, xác nhận đơn và nhận hỗ trợ. Hỗ trợ as in là kiểu nếu mà
+- [03:05] Người nói 1: người
+- [03:06] Người nói 1: consumer người ta có problem gì ấy thì người ta có thể gửi lên
+- [03:10] Người nói 1: bên quản lý và bên quản lý có thể hỗ trợ người ta. Cái đó là basic understanding of it.
+- [03:18] Người nói 1: Một điều mà em muốn cái app của em có là một AI có thể giúp quán đăng hàng rất là nhanh. Ví dụ như là thay vì quán có thể quán viết descriptions
+- [03:28] Người nói 1: như kiểu những
+- [03:29] Người nói 1: cái món ăn mà quán muốn đăng lên thì có thể cái AI nó sẽ nhận diện bằng giọng nói chẳng hạn. Quán nói là tôi có hai quả táo, ba cái vỏ quấn thì AI nó tự đăng lên và
+- [03:39] Người nói 1: nó chỉnh platform và người nhận thì người ta tự đến ạ.
+- [03:43] Người nói 1: Thì cái điều này sẽ rút ngắn cái khoảng thời gian
+- [03:45] Người nói 1: mà quán có thể tiếp cận với khách hàng. Thì em nghĩ là nó sẽ đánh
+- [03:50] Người nói 1: vào cái perspective của quán là kiểu người ta không muốn dành nhiều thời gian để người ta đăng kiểu những cái description lên app ạ.
+- [04:02] Người nói 1: Nhưng mà trước đấy, trước đấy thì AI, dù AI nó có kiểu tốt đến đâu thì em nghĩ là vẫn sẽ có những cái anomalies mà kiểu những cái sai ạ. Thì sau khi con AI nó xác định cái quán nói cái gì thì nó sẽ
+- [04:14] Người nói 1: paraphrase ra một cụm, xong quán sẽ check lại xem kiểu
+- [04:18] Người nói 1: cái mình nói có đúng không và chỉnh sửa bằng tay luôn ạ. Còn nếu mà ví dụ như là
+- [04:23] Người nói 1: cái điện thoại của cái ông chủ quán hỏng microphone chẳng hạn thì quán có thể tự viết, nhưng mà em nghĩ cái điều đấy sẽ lâu hơn ạ.
+- [04:31] Người nói 1: AI cũng có thể
+- [04:33] Người nói 1: giúp khách tìm đúng món ạ. Ví dụ như là khách ở trong web của em, em muốn nói là AI, kiểu khách nói với AI là tôi muốn tìm một món X ở
+- [04:43] Người nói 1: 3 km cách nhà tôi 3 km đúng không, thì giá dưới 60.000 giao đến nhà. Thì kiểu cái AI, con AI nó sẽ tự lọc những cái
+- [04:51] Người nói 1: đồ ăn thức uống mà đã
+- [04:53] Người nói 1: exist sẵn ở trong platform và nó sẽ đưa cho khách hàng những cái
+- [04:57] Người nói 1: đồ ăn mà ở đấy.
+- [05:02] Người nói 1: Thì đầu tiên thì em nghĩ là trước khi mình mở một nơi rất là to thì nên thử nghiệm ở một nơi nhỏ trước. Thì một trong những cái chỗ thử nghiệm của em là Tesco Mall. Thì cái tháng đầu tiên thì nguồn hàng sẽ tập trung riêng ở Tesco Mall thôi, còn khách ở Hà Nội hoặc ở gần đấy thì sẽ đến được, tiếp cận được. Nhưng mà cái nguồn hàng, ví dụ cái supplier thì mình sẽ tập trung riêng ở Tesco Mall, mình sẽ
+- [05:21] Người nói 1: không cho bên nào làm cùng ạ. Mình chỉ tập trung ở Tesco Mall thôi để mọi thứ nó dễ quản lý hơn và mình có thể
+- [05:26] Người nói 1: nhận biết được những cái,
+- [05:30] Người nói 1: mình có thể visualize được trước thì mọi thứ nó sẽ như nào.
+- [05:39] Người nói 1: Cái prototype của em nhờ AI tạo ra là nó sẽ
+- [05:42] Người nói 1: , nó sẽ kiểu kiểu như này ạ.
+- [06:01] Người nói 1: Chưa. Em không share được, tức là em cho mấy anh xem ở máy em được luôn tại em.
+- [06:06] Người nói 2: Được, được.
+- [06:07] Người nói 1: Ok.
+- [06:09] Người nói 1: Thì cái này là em nhờ AI kiểu viết ra cho em. Nó cũng không phải là một cái perfect hoàn toàn nhưng mà nó để mấy anh visualize được là nó sẽ kiểu kiểu như nào. Thì mấy anh dán vào.
+- [06:19] Người nói 2: Ok.
+- [06:21] Người nói 1: Thì kiểu đây là những món ăn, những cái ingredients bình thường ạ. Thì ba cái loại mà lúc nãy em có mention là ingredients, những món ăn đã có sẵn rồi mà không bán được là những cái bánh. Thì
+- [06:32] Người nói 1: bình thường là mình chỉ chọn, mình ấn send xong mình
+- [06:36] Người nói 1: thêm vào giỏ hàng.
+- [06:39] Người nói 1: Ờ, giỏ ở đây, xong tiếp tục đặt món. Xong rồi sẽ có ba cái thanh toán kiểu này. Thì em nghĩ đây là một cách kiểu rất là nhanh nhưng mà ví dụ quán muốn, kiểu người consumer người ta muốn chọn một cái món ăn mà ở một cái địa chỉ mà người ta mong muốn ấy, mà kiểu gần với người ta thì em nghĩ là nên có một con AI kiểu ví dụ đây là visualize nhá. Thì mình nói chuyện với AI đúng không, xong rồi mình sẽ ki
+- [07:01] Người nói 1: ểu tôi muốn quán
+- [07:03] Người nói 1: cách tôi 3 km chẳng hạn, xong có những món gì, tôi muốn có vỏ quấn hay
+- [07:08] Người nói 1: các thứ thì em nghĩ là nó sẽ beneficial ấy, efficient hơn cái việc mà mình đến đấy xong kiểu mình chọn từng quán một để mình xem giống như là trên web hay là ở trên
+- [07:18] Người nói 1: Shopee Food ạ.
+- [07:20] Người nói 1: Thì
+- [07:21] Người nói 1: mình nên tạo luôn kiểu một cái đấy cho cả người quán ăn nữa ạ. Thì quán ăn thì em nghĩ là sẽ có một trợ lý AI mà nó sẽ giúp đăng những cái món ăn lên, kiểu ví dụ như là nói là
+- [07:34] Người nói 1: tôi có ba cái vỏ quấn chẳng hạn, thì cái AI nó sẽ tự paraphrase lại một cái đoạn cho mình, xong nó sẽ confirm là nó sẽ hỏi là kiểu bạn có ba cái vỏ quấn đúng không, xong rồi bạn confirm với tôi đây là đúng, họ confirm, họ đăng lên luôn ạ. Thì nó sẽ rút cái thời gian ra rất là ngắn để đăng lên.
+- [07:49] Người nói 1: Thì nói chung là nó chỉ chỉ như thế thôi. Cho nên là đây là một cái app em nhờ AI làm chứ nó không hoàn hảo ạ. Thì
+- [07:55] Người nói 1: các đơn hàng thì chắc là mình sẽ, nó sẽ tự ghi ở trong cái lịch sử đơn hàng ở website, ở restaurant xong rồi các thứ.
+- [08:02] Người nói 2: Tức là một nền tảng
+- [08:04] Người nói 2: sẽ cho nhiều bên tham gia và
+- [08:06] Người nói 2: nhiều cửa hàng tham gia.
+- [08:07] Người nói 1: Dạ vâng. Thì cái cửa hàng đấy trước đó thì em nghĩ là mình sẽ phải tự, mình phải kiểm định cái cửa hàng đấy trước đã để xem nó có uy tín không để mình còn giao hàng cho khách hàng. Thì hiện tại là mấy cửa hàng đấy thì mình sẽ, mình sẽ
+- [08:20] Người nói 1: ở quy mô nhỏ trước là ở Tesco Mall.
+- [08:26] Người nói 1: Ở
+- [08:27] Người nói 1: đây có ai có câu hỏi gì không?
+- [08:29] Người nói 2: Trong
+- [08:31] Người nói 2: Tesco Mall ấy thì là kiểu trong đấy có là có nhiều cửa hàng hay là cả một cái Tesco Mall to luôn?
+- [08:36] Người nói 1: Có 20 cửa hàng bán đồ ăn F&B ạ.
+- [08:39] Người nói 2: Tức là đầu vào của mình sẽ là 20 cửa hàng và 20 cửa hàng đấy ban đầu cuối ngày hoặc là
+- [08:44] Người nói 2: trong thời gian nào đó họ sẽ đăng những cái đồ ăn thừa lên để họ bán.
+- [08:49] Người nói 2: Và cái
+- [08:51] Người nói 2: phương thức giao hàng ấy thì anh có hỏi là ban đầu là sẽ người ta đến đấy lấy hay là mình sẽ kiểu tích hợp giao hàng?
+- [08:59] Người nói 1: Hiện tại thì em sẽ, người ta sẽ đến đấy lấy nhưng mà trong tương lai thì em
+- [09:04] Người nói 1: mong là sẽ có tích hợp giao hàng với cả web với cả sáng sẻ.
+- [09:09] Người nói 2: 20 cái cửa hàng đó là nó ở Hà Nội hết hay là ở đâu?
+- [09:11] Người nói 1: Nó ở trong Tesco
+- [09:13] Người nói 1: Mall.
+- [09:13] Người nói 2: Trong Tesco Mall.
+- [09:13] Người nói 1: À, Tesco Mall luôn.
+- [09:16] Người nói 1: Trong trung tâm thương mại của hiện tại của bên mình thì đang có lợi thế rằng là trong đấy đã có những cái cửa hàng F&B rồi
+- [09:23] Người nói 1: và mình có thể là tiện là mình có nhà cung cấp rồi, nguồn cung cấp rồi. Khách hàng thì hàng tuần, hàng tháng thì đều có một lượng nhất định.
+- [09:31] Người nói 1: Thì mình có thể thử nghiệm trước sau khi nhân rộng ra
+- [09:35] Người nói 1: mô hình lớn hơn.
+- [09:36] Người nói 2: Thì mình cũng chỉ dám thử nghiệm trên cái phạm vi của khu vực
+- [09:39] Người nói 2: quanh cái Tesco Mall.
+- [09:40] Người nói 1: Khu vực quanh Tesco Mall.
+- [09:42] Người nói 2: Vâng, anh hiểu rồi.
+- [09:43] Người nói 1: Ờ, mấy anh có câu hỏi gì?
+- [09:46] Người nói 2: Tức là share cho anh cái
+- [09:48] Người nói 2: prototype ấy được không?
+- [09:49] Người nói 1: Ờ vâng.
+- [09:51] Người nói 2: Ban đầu là mình tập trung vào bán những cái
+- [09:55] Người nói 2: kiểu bánh với cả đồ ăn sẵn rồi đúng không anh?
+- [09:57] Người nói 1: Đúng rồi. Kiểu như là rau củ quả v
+- [10:00] Người nói 1: ẫn còn đảm bảo chất lượng nhưng mà
+- [10:03] Người nói 1: muốn đẩy nhanh hơn, người mua thì cần muốn mua giá rẻ nhưng vẫn đảm bảo an toàn thực phẩm chẳng hạn như thế. Thì mình, nền tảng của mình là kết hợp
+- [10:11] Người nói 1: , kết nối giữa người bán và người mua.
+- [10:14] Người nói 2: Vâng.
+- [10:23] Người nói 1: Ờ thì tí nữa em sẽ gửi cho mọi anh cái link và bây giờ mình sẽ.
+- [10:25] Người nói 2: Ok.
+- [10:37] Người nói 1: Cái này là về sau.
+- [10:40] Người nói 1: Ờ thì một cái nữa mà em muốn cái app của em có là
+- [10:44] Người nói 1: cái giao hàng với cả bản đồ và tracking system ạ. Thì bản đồ ví dụ như là cái quán cách cái địa chỉ của mình bao nhiêu, bao xa, xong kiểu cái cách mà kiểu bây giờ mình đến quán kiểu gì ấy, một cách nhanh nhất thì nó sẽ hỗ trợ kiểu những người người ta đến nhận, người ta đến luôn quán. Và hơn nữa là em cũng muốn
+- [11:02] Người nói 1: nếu mà có cái giao dịch như là nếu mình có tích hợp với cả web hay là sáng SM ấy ạ, thì em cũng muốn là người
+- [11:08] Người nói 1: nhận người ta phải theo dõi được kiểu cái đơn hàng của mình đang ở đâu ạ.
+- [11:12] Người nói 1: Also like cái tracking system thì em mong là nó sẽ giúp cái việc trao đổi giữa khách hàng với cả
+- [11:17] Người nói 1: cái supplier nó more efficient
+- [11:20] Người nói 1: để giúp kiểu cái việc nhận hàng nó đơn giản hơn ạ.
+- [11:22] Người nói 2: Ok.
+- [11:25] Người nói 2: Thì nó phải là một cái mobile app đúng không?
+- [11:27] Người nói 1: Vâng, nó sẽ là một cái mobile app.
+- [11:30] Người nói 2: Nhưng cái việc tích hợp với Grab, SFM đó chính là cái câu chuyện.
+- [11:34] Người nói 1: Về sau.
+- [11:35] Người nói 2: Về sau thôi chứ cũng
+- [11:38] Người nói 2: .
+- [11:38] Người nói 1: Tức ban đầu em muốn xây dựng web trước hay là mobile trước?
+- [11:41] Người nói 2: Mobile trước.
+- [11:41] Người nói 1: Mobile
+- [11:42] Người nói 1: trước đúng không?
+- [11:43] Người nói 2: Vâng, cả hai.
+- [11:47] Người nói 1: Th
+- [11:49] Người nói 1: ì em nghĩ là kiểu những cái phí và những cái doanh thu quản lý lên nền tảng thì em nghĩ là quán cũng nên thấy và người dùng cũng vậy ạ. Thì quán có thể thấy
+- [11:58] Người nói 1: cái giá bán ở trên web đúng không, là nó trừ đi. Thì em trước đấy em có nhắc đến là cái việc mà quán đăng lên cái app của em nó sẽ giảm đi một cái số nhất định. Thì em mong là sẽ mọi quán thì những cái đồ ăn nó sẽ giảm 50% so với giá gốc chẳng hạn. Thì quán có thể biết được cái giá về sau là gì và
+- [12:13] Người nói 1: cái cách mà cái second buy này nó profit là nó lấy 20% từ cái giá, cái giá mà quán giảm 50% ạ. Có ví dụ như là một cốc nước bán 50.000 đi thì nó giảm 50% lại thành 25.000 đúng không ạ. Thì cái quán đấy nó bán với giá 25.000 thì bọn em sẽ lấy 20% từ cái 25.000 đấy để làm profit ạ. Thì em nghĩ là quán sẽ biết được, quán sẽ phải biết được cái số tiền đấy để họ visualize được là họ sẽ không có kiểu
+- [12:37] Người nói 1: conflict gì.
+- [12:39] Người nói 1: Và khách cũng nên thấy được cái chi phí của đồ ăn trước đây có nghĩa là cái giá original với cả cái giá ở trên app để họ có thể hiểu được.
+- [12:50] Người nói 2: Thì cái giá
+- [12:52] Người nói 2: origin
+- [12:53] Người nói 2: ấy.
+- [12:53] Người nói 1: Vâng.
+- [12:53] Người nói 2: Thì làm sao mà khách biết đó là cái giá thật tại vì.
+- [12:56] Người nói 1: Thì cái đấy là kiểm định, mình kiểm định với cả quán sẵn ở cái app nó sẽ có một cái, nó sẽ kiểm định với quán trước ạ.
+- [13:02] Người nói 2: Nó sẽ tự ấy đầu vào cho mình, mình không lo cái việc đấy. Tức là người quản lý cái đầu vào không phải là bên mình chứ không phải là bên các quán.
+- [13:11] Người nói 1: Bên các quán lẫn bên mình.
+- [13:14] Người nói 2: Là hợp tác với nhau thì phải làm việc với nhau thì ký nó sợ bị tốn kỹ thuật quá không? Tại vì nếu mà bên mình, à tại vì bây giờ nếu bây giờ phạm vi nhỏ là 20
+- [13:23] Người nói 2: cử
+- [13:24] Người nói 2: a hàng thì có thể là có thể có một số nhân sự có thể đi giao tiếp và có thể
+- [13:29] Người nói 2: chứng minh được mà
+- [13:30] Người nói 2: nếu mà.
+- [13:31] Người nói 1: Lớn hơn, nhiều hơn toàn quốc chẳng hạn đấy đúng không? Câu chuyện ví dụ.
+- [13:35] Người nói 2: Không, không, câu chuyện
+- [13:36] Người nói 2: tầm 5 chỗ đi, 5 cái địa điểm khác nhau đi. Tại vì bây giờ tập trung một chỗ thì mình có thể đi nói chuyện với hết 20 khách hàng đó mà bây giờ 5 chỗ đi thì cái effort để cho
+- [13:46] Người nói 2: người bên mình đi nói chuyện với các để validate lại cái
+- [13:49] Người nói 2: giá với các cái bên ấy. Các cái bên nó cũng là một cái
+- [13:53] Người nói 2: rủi ro.
+- [13:54] Người nói 1: Cái việc cái giá mà cái quán nó thay đổi so với cả giá gốc thì em nghĩ cái đấy là cái việc của policies ở giữa quán với cả
+- [14:01] Người nói 1: quán với cả app. Cho nên em nghĩ là nó không, em nghĩ là sẽ không có một khi mà quán nó đã kiểm định lên cái app của em thì em nghĩ là sẽ không có cái vấn đề mà quán kiểu lừa dối khách hàng cái giá để tăng doanh thu đâu. Nhưng mà nếu mà có thì em nghĩ là nó sẽ against the policies và kiểu cái đấy nó sẽ tùy vào
+- [14:16] Người nói 1: policies của bọn em về sau.
+- [14:23] Người nói 1: Thì an toàn thực phẩm trước khi bán thì em nghĩ là quán
+- [14:28] Người nói 1: kiểm tra từ, à cái này là policies ạ, xin lỗi,
+- [14:32] Người nói 1: các mốc xây dựng ban đầu. Thì mốc một em mong mọi người là đây mọi người đọc
+- [14:41] Người nói 1: có estimate về thời gian không? Khoảng tầm
+- [14:46] Người nói 1: 1 tháng là.
+- [14:52] Người nói 2: 1 tháng.
+- [14:54] Người nói 1: Cái đấy tùy của anh là của anh thôi.
+- [14:55] Người nói 2: À tại vì
+- [14:57] Người nói 2: mobile app đúng không, 1 tháng mà để
+- [15:00] Người nói 2: release một cái mobile app thì nó hơi khó tại vì web app thì không vấn đề gì nhưng mà mobile app thì nó dính nhiều về vấn đề là public nên Google Play App Store.
+- [15:10] Người nói 1: Thế thì cái thời gian này các anh có thể tùy trao đổi, trao đổi sau với em cũng được.
+- [15:14] Người nói 2: Ok.
+- [15:15] Người nói 1: Vâng.
+- [15:18] Người nói 2: Vì khó không phải là vấn đề build mà vấn đề làm sao mình publish được cái app của mình lên
+- [15:23] Người nói 2: trên nền tảng.
+- [15:33] Người nói 1: Thì chắc như thế cũng hết rồi. Cái này là một project requirement của em thôi. Thì các anh có những câu hỏi hay là những góp ý gì không?
+- [15:42] Người nói 2: Anh thì chắc không có câu hỏi gì không biết.
+- [15:44] Người nói 1: Thế thì định là acquire người dùng kiểu gì?
+- [15:48] Người nói 2: Acquire người dùng ạ.
+- [15:49] Người nói 1: Kiểu như.
+- [15:50] Người nói 2: À thì ở trên cái nó sẽ có một cái mini app tên là Tasco, một cái mini app Tasco thì ở đấy đã có sẵn 10.000 người dùng hoặc là bao nhiêu, bao nhiêu người dùng nhỉ?
+- [15:59] Người nói 1: Tầm tầm ý.
+- [16:00] Người nói 2: Tầm 10.000 người dùng ạ. Thì kiểu cái app của em nó sẽ tự market ở trên cái mini app đấy xong
+- [16:07] Người nói 2: người dùng người ta sẽ vào đấy. Với cả em nghĩ là
+- [16:11] Người nói 2: sample tầm 100 người dùng đầu tiên thì sẽ phải, sẽ có cái đội ngũ marketing kiểu người ta bảo người ta download app các thứ.
+- [16:22] Người nói 1: Nãy anh có bảo là.
+- [16:23] Người nói 2: Sẽ
+- [16:25] Người nói 2: giảm 50% dựa trên cái giá ban đầu.
+- [16:28] Người nói 1: Vâng.
+- [16:29] Người nói 2: Thế thì cái giá ấy dưới 50% thì nó có cố định hay không? Hay là cái 50% thì có cố định hay không? Và vì tùy thuộc phụ.
+- [16:37] Người nói 1: Đúng rồi, tùy thuộc vào thực phẩm.
+- [16:38] Người nói 2: Cái thực phẩm nó là cái gì thì mình phải bao nhiêu phần trăm đúng không? Thì cái số lượng phần trăm ý thì là do chủ cửa hàng đặt hay là mình làm.
+- [16:44] Người nói 1: Mình, em kiểu như là em muốn cố định là 50% hay là có thể là dao động tùy vào mặt hàng và tùy vào thực phẩm, tùy vào thời điểm.
+- [16:52] Người nói 2: Em nghĩ là ở đây là dao động vào tùy vào mặt hàng và thời điểm.
+- [16:54] Người nói 1: Chứ ví dụ như là kiểu mình fix cố định 50% thì.
+- [16:56] Người nói 2: À cái đấy không ý là mình không fix nhưng mà có nghĩa là làm sao để mình làm được cái
+- [17:00] Người nói 2: đó, có nghĩa là build ra một sản phẩm làm sao để người ta.
+- [17:03] Người nói 1: Cái đấy là chủ cửa hàng người ta sẽ tự phí vào đấy, người ta sẽ fill vào đấy.
+- [17:08] Người nói 2: Vâng.
+- [17:11] Người nói 1: Thì em nghĩ là cái đấy nó tùy vào chủ cửa hàng, tại người ta nghĩ người ta fill tầm giảm bao nhiêu phần trăm thì sẽ có người đến mua ạ.
+- [17:16] Người nói 2: Nhưng mà mình cũng không có chính sách là người ta phải giảm bao nhiêu phần trăm đúng không? Cái đấy là tùy chủ cửa hàng.
+- [17:20] Người nói 1: Giảm, cái đấy là phải giảm ít nhất tầm bao nhiêu phần trăm.
+- [17:22] Người nói 2: T
+- [17:23] Người nói 2: ức là nền tảng của mình sẽ tự quyết định là phải ít nhất là bao nhiêu phần trăm đúng không? Kiểu kiểu ấy.
+- [17:27] Người nói 1: Kiểu kiểu ấy.
+- [17:33] Người nói 2: Trong cái giai đoạn đầu tiên là
+- [17:35] Người nói 2: người ta sẽ đến đấy để người ta lấy hàng đúng không anh?
+- [17:38] Người nói 1: Vâng, người ta sẽ đến đấy để lấy.
+- [17:39] Người nói 2: Thế lỡ người ta đặt xong rồi người ta không đến thì mình
+- [17:42] Người nói 2: sẽ xử lý thế nào?
+- [17:43] Người nói 1: Thanh toán trước à?
+- [17:44] Người nói 2: Thì mình sẽ giảm.
+- [17:46] Người nói 2: Nếu mà người ta không lấy thì.
+- [17:48] Người nói 1: Thì mình sẽ kiểu mình sẽ xử lý làm sao để.
+- [17:50] Người nói 2: Ý anh là.
+- [17:51] Người nói 1: Em nghĩ là vừa đúng.
+- [17:55] Người nói 2: Vừa đúng. Có nghĩa là cũng không bắt người ta thanh toán trước đúng không?
+- [17:57] Người nói 1: Không bắt người ta thanh toán trước, người ta đến đấy người ta giữ hoặc là người ta trả.
+- [18:02] Người nói 1: Có thể là kiểu trong bao nhiêu phút đấy.
+- [18:04] Người nói 2: Trong mình propose một cái thời gian kiểu nhận hàng. Tại vì em không
+- [18:09] Người nói 2: , không, không trong cái lĩnh vực này thì em không biết là thường thì các cái cửa hàng đó sẽ xử lý những cái đồ thừa này như thế nào.
+- [18:15] Người nói 1: Thì thật ra thì anh, khi mà anh tìm hiểu ấy thì có những quán thì họ sẽ kiểu sau, ví dụ trong Tesco Mall đấy có một quán đồ chung ấy là cũng sau 8:30 tối là họ giảm giá 50%. Đấy, những cái đồ quầy line mà họ đã làm sẵn ra rồi. Đấy thì là để ai mà đến mua thì họ sẽ giảm giá cố định 50% luôn. Đấy,
+- [18:37] Người nói 1: thì có thể là hiện tại mình đang có
+- [18:40] Người nói 1: 20 đối tác cung cấp đấy rồi thì mình có thể trao đổi trực tiếp với họ. Đấy, sau đấy thì mình sẽ, ví dụ như là có những quán cà phê, có những quán trà sữa thì mỗi một cái thực phẩm thì nó sẽ có những cái date khác nhau. Đấy, thì chắc chắn là lúc đấy mình sẽ làm cái
+- [18:56] Người nói 1: biểu giá hoặc cái phần trăm giảm ấy nó sẽ khác nhau. Chứ không thể là ông bắt một cái quán ăn đồ ăn kiểu cơm văn phòng đúng không? Ngày họ nấu rồi, nếu mà cuối ngày họ không bán được thì chắc chắn họ phải đổi đi rồi. Còn hoặc là trà sữa hoặc là trà họ ngâm ra rồi chẳng hạn thế, họ pha rồi, nếu mà họ không bán được thì họ cũng sẽ phải đổi đi. Thì mình sẽ có những cái deal cái mức giá là nó phù hợp với
+- [19:16] Người nói 1: phần trăm chiết khấu cho khách hàng.
+- [19:18] Người nói 2: Vâng.
+- [19:22] Người nói 2: Vâng, thì về vấn đề build thì em không vấn đề gì. Em lo ngại nhất là cái vấn đề về public name thôi ạ. Thì cái nó phụ thuộc khá nhiều thời gian tại vì
+- [19:29] Người nói 2: mình không phải là người quyết định mà phải dựa vào bên
+- [19:32] Người nói 2: App Store và Google Play. Google Play thì khá là đơn giản hơn nhưng mà App Store thì
+- [19:37] Người nói 2: cái quy trình nó rất là phức tạp.
+- [19:39] Người nói 1: Nó sẽ mất nhiều thời gian hơn.
+- [19:40] Người nói 2: Có nghĩa là
+- [19:43] Người nói 2: bọn em chưa publish bao giờ thì không biết là bên anh có ai đã publish các cái app tương tự trên App Store thì cái giai đoạn đấy sẽ hỗ trợ bọn em.
+- [19:50] Người nói 1: Ừ, ok. Cái đấy thì phía Tasco hình như là các bạn đã có những cái app để publish rồi.
+- [19:55] Người nói 2: Vâng.
+- [19:56] Người nói 1: Vâng.
+- [19:57] Người nói 2: Th
+- [20:01] Người nói 2: ì câu chuyện là ở bên Tesco Mall thì hiện tại bây giờ mình đang có một trung tâm thương mại. Đấy, như đã trao đổi với các em thì các em cũng hiểu và nắm qua được là mình có một trung tâm thương mại và đâu đấy lượng khách cuối tuần ra vào ấy khoảng 20 đến 30.000 người. Tức là họ ra vào. Đấy, thì mình đang muốn là
+- [20:19] Người nói 2: thử nghiệm ở Tesco Mall trước. Đấy, có thể là lồng ghép cùng với các chương trình của Tesco Mall để có thể tiếp cận marketing cái app đến với nhiều người hơn. Hoặc là có thể là dựa vào cái mini app đấy khi mà tải một cái app của mình và dùng thực tế chẳng hạn ấy thì họ sẽ được nhận một cái mã giảm giá đâu đấy khoảng 100 hoặc 50.000. Đấy, họ có thể chứng minh rằng họ đã có cái app đấy và đến đổi qu
+- [20:39] Người nói 2: à tại quầy của Tesco Mall chẳng hạn. Ví dụ kiểu như thế.
+- [20:42] Người nói 1: Vâng.
+- [20:49] Người nói 2: Thực ra cái mô hình mới để
+- [20:51] Người nói 2: làm nên cái app này thì nó cũng khá đơn giản, nó cũng không, không, em nghĩ là cũng không gặp gì khó khăn đâu. Bọn em chỉ là lo ngại nhất về vấn đề về nghiệp vụ, là nghiệp vụ, nghiệp vụ các cái.
+- [21:01] Người nói 2: Theo em thấy là cũng hơi, cũng khá là phức tạp vì nó
+- [21:06] Người nói 2: không chỉ là
+- [21:08] Người nói 2: trên app mà còn liên quan nhiều đến việc mà mình phải
+- [21:12] Người nói 2: đi nói chuyện với họ. Và thì cái ý là bên anh chắc là cũng có đội ngũ để làm các cái đó trong thời gian.
+- [21:18] Người nói 1: Thực ra giai đoạn đầu thì có thể là bạn ấy trực tiếp hoặc là cả team sẽ phải cùng đi trao đổi trực tiếp với cả. Thật ra 20 cái cửa hàng đấy thì là mình, mình, mình có vậy thôi chứ mình cũng chưa trao đổi trực tiếp của họ. Đấy, tức là đây là đang xây dựng trên cái ý tưởng gọi là kiểu sơ khai ban đầu trước. Đấy.
+- [21:39] Người nói 2: Em có ý kiến gì ở trên. Các anh có thể vào xem.
+- [21:45] Người nói 1: Mở cái đường link.
+- [21:47] Người nói 2: Cái này em vào thử xem nó có công bằng không.
+- [21:49] Người nói 1: Không.
+- [21:54] Người nói 2: Thực ra là
+- [21:56] Người nói 2: bọn anh cũng AI thôi nhưng mà có thể bọn anh
+- [21:59] Người nói 2: có thể là tách ra một chút thì có thể là giai đoạn em có thể soi trực tiếp vào cái dự án thì có thể input cùng. Tại vì nếu mà bọn anh đã xây cái kiến trúc
+- [22:07] Người nói 2: phần dưới nó tốt rồi thì cái việc con AI nó hiểu dự án và nó sẽ làm thì nó rất, rất là dễ thôi.
+- [22:13] Người nói 2: Em có thể soi trực tiếp vào để sửa một số tính năng.
+- [22:16] Người nói 1: Vâng.
+- [22:22] Người nói 2: Cái việc mà em nghĩ cái việc mà sửa thì trước khi có thể, trước khi publish lên Google Play hoặc là App Store thì các anh có thể try xem.
+- [22:30] Người nói 1: Có, có, có, chắc chắn, chắc chắn là.
+- [22:33] Người nói 2: Nó sẽ không lên thẳng vào App Store hoặc là có cài được về máy để dùng trực tiếp luôn. Nhưng mà bạn chỉ là nội bộ thôi. Bọn anh sẽ cài được trên máy của em, riêng máy của em thôi chứ không qua Google Play hoặc là App Store. Hoặc là có thể, có thể
+- [22:46] Người nói 2: public lên một cái nền tảng không phải là App Store mà nền tảng gì đó mà mất 100 đô phí đăng ký cho Google Developer hay sao thì sẽ được khoảng 100 hay 200 user sẽ được dùng ứng dụng.
+- [22:56] Người nói 1: Techfly.
+- [22:57] Người nói 2: Ừ, Techfly đúng rồi.
+- [23:05] Người nói 1: Thì mọi người đã hiểu hết được visual usage chưa?
+- [23:10] Người nói 2: Bọn anh hiểu rồi. Thực ra là ý tưởng này nhưng mà nếu mà trong quá trình làm việc thì nó liên quan đến nhiều các cái bên liên quan ấy thì mình không nghĩ là khó làm gì.
+- [23:18] Người nói 1: Vâng.
+- [23:19] Người nói 2: Anh nghĩ cái này không cần thiết.
+- [23:20] Người nói 1: Thực ra cái việc mà được xây dựng cấu trúc của một cái app thì anh nghĩ với bọn em thì nó không hề là khó. Đấy, vấn đề tiếp theo là kiểu mình là nền tảng kết nối cho mình không phải là.
+- [23:29] Người nói 2: Đúng rồi.
+- [23:30] Người nói 1: Đấy thì mình có.
+- [23:31] Người nói 2: Về acquire người dùng.
+- [23:32] Người nói 1: Ừ, nó còn do đánh giá của người dùng nữa và có thể là giải quyết được nhiều cái nhu cầu của mọi người thật sự hay không đúng không?
+- [23:39] Người nói 2: Vâng.
+- [23:41] Người nói 2: Thì kickback là 1 tháng là phải
+- [23:44] Người nói 2: cho người dùng dùng rồi hay là có cái timeline cụ thể hơn.
+- [23:47] Người nói 1: Chung có cái timeline cụ thể hơn với các anh không?
+- [23:49] Người nói 2: Em nghĩ đây chỉ là một cái
+- [23:51] Người nói 2: phase ban đầu thôi chứ là
+- [23:53] Người nói 2: cái này là b
+- [23:55] Người nói 2: ọn em, bọn anh tùy bọn anh là bọn anh định bao lâu thì bọn anh có thể làm lên.
+- [23:58] Người nói 1: Tức là làm có thể tốt nhất là triển khai xong rồi bao lâu đấy.
+- [24:01] Người nói 2: Tại vì phase đầu chứ em cũng không quan tâm đến thời gian lắm.
+- [24:11] Người nói 2: Thì thì nếu mà dự án bắt đầu start ngay từ bây giờ
+- [24:17] Người nói 2: .
+- [24:17] Người nói 1: Có thể là bắt đầu, bắt đầu bây giờ đã triển khai có thể là
+- [24:21] Người nói 1: bọn anh đang muốn là lấy cả ý kiến kiểu người dùng trước, kiểu những câu hỏi khảo sát là khi mà họ biết đến cái app này họ cảm nghĩ như nào nếu mà cái app này sinh ra đúng không? Và đánh giá xem là ví dụ như là bao nhiêu người
+- [24:33] Người nói 1: kiểu độ tuổi nội trợ này phù hợp với độ tuổi nào, sinh viên rồi nội trợ hay là những người kiểu đi làm hoặc là những người kiểu thu nhập trung bình chẳng hạn ấy. Thì cũng đang bọn anh đang lên một ý tưởng để lấy ý kiến khảo sát kiểu như vậy. Song song đấy thì một bên là đi lấy ý kiến của người dùng và một bên là lấy bên cung cấp. Nếu mà có một mô hình như vậy thì các quán có thật sự hưởng ứng và
+- [24:57] Người nói 1: họ một ngày họ đang dư thừa bao nhiêu và giải quyết được vấn đề của họ hay không.
+- [25:02] Người nói 1: Thì trước mắt là đang là F&B trước, sau đấy có thể các mặt hàng khác, quần áo, giày dép gì đấy chẳng hạn thế.
+- [25:19] Người nói 1: Thì có thể build sớm cái app này thì có thể dùng, dùng thử trước.
+- [25:27] Người nói 2: Ok.
+- [25:28] Người nói 2: Thì thì
+- [25:33] Người nói 2: cái cách làm việc sẽ như thế nào?
+- [25:36] Người nói 2: Cách làm việc của bọn em sẽ phối hợp với bên anh như thế nào?
+- [25:38] Người nói 1: Có thể phối hợp trực tiếp với bạn ý. Có thể phối hợp cùng với nhóm bọn em luôn.
+- [25:42] Người nói 2: Vâng.
+- [25:42] Người nói 1: Dự án là dự án chính của bạn ý.
+- [25:44] Người nói 2: Vâng. Thế có thể tạo một cái group.
+- [25:47] Người nói 1: Group trao đổi với cả
+- [25:49] Người nói 1: các anh.
+- *[25:52–26:14] removed: small talk about the participants' ages and schools*
+- [26:18] Người nói 2: Ok. Thì
+- [26:20] Người nói 2: em không có câu hỏi gì nữa.
+- [26:22] Người nói 1: Ờ, thì ban đầu lúc mà xây dựng app thì cái việc mà phần trăm bị giảm bao nhiêu thì em nghĩ bọn em không phải quan tâm quá đâu. Tại vì hiện tại thì bọn em đang survey sẵn mấy quán rồi. Kiểu ví dụ như là mình hỏi xem họ muốn giảm bao nhiêu phần trăm là kiểu họ cảm thấy bao nhiêu phần trăm là phù hợp, bao nhiêu phần trăm là logical. Thì
+- [26:37] Người nói 1: cái phần về giảm phần trăm về giá các thứ thì bọn anh cũng chưa phải quan tâm lắm.
+- [26:40] Người nói 2: Vâng. Anh nghĩ bọn anh sẽ xây lên một cái nền, một cái flow trước, còn những cái sâu bên trong ấy, thì cái đấy phải quyết định về nghiệp vụ của các cửa hàng nữa là sẽ require bao nhiêu.
+- [26:49] Người nói 1: Dạ vâng.
+- [26:50] Người nói 2: Đúng vậy.
+- [26:51] Người nói 2: Còn về lường thì bọn anh hiểu.
+- [26:52] Người nói 1: Vâng.
+- [26:53] Người nói 2: Hiểu lường.
+- [26:55] Người nói 2: Nhưng mà cái quan trọng nhất là cái app này là em, em cần thấy con AI nó rất là.
+- [27:00] Người nói 1: Vâng.
+- [27:00] Người nói 2: Ok. Cảm ơn em. Thật ra là nếu mà để đáp ứng những cái nghiệp vụ dưới dạng là
+- [27:05] Người nói 2: fill, fill form, à fill cho người dùng thì nó rất là đơn giản thôi. Còn đâu em thấy là em có nêu trong cái brief là một số cái nghiệp vụ liên quan tới việc là gợi ý đúng không?
+- [27:15] Người nói 1: Vâng.
+- [27:15] Người nói 2: Gợi ý thì đấy là phần nền liên quan đến phần dữ liệu. Tại vì
+- [27:19] Người nói 2: những cái phần liên quan đến gợi ý xem là cái này nên là giảm bao nhiêu hay là người ta nên giảm bao nhiêu phần trăm thì là phụ thuộc rất nhiều vào phần dữ liệu đầu vào.
+- [27:28] Người nói 1: Dữ liệu đầu vào nó đã có rồi đúng không?
+- [27:30] Người nói 2: Vâng. Thế thì là dữ liệu đâu về vấn đề mà các vấn đề mà như em bảo là fill vào cho người ta đơn giản, dễ dùng hay là ta có thể hỏi để map đến vị trí bao nhiêu thì thì mới rất là đơn giản. Nó
+- [27:42] Người nói 2: không phức tạp. Còn những cái phức tạp hơn thì sẽ giai đoạn sau là giai đoạn mà
+- [27:47] Người nói 2: .
+- [27:47] Người nói 1: Chính sách.
+- [27:48] Người nói 2: Ừ, những cái về
+- [27:51] Người nói 2: .
+- [27:55] Người nói 1: Xem nào.
+- [28:01] Người nói 2: Ừ
+- [28:02] Người nói 2: , về mặt
+- [28:04] Người nói 2: bọn em, thật ra bọn em là nét tại vì về mặt UI/UX, về mặt branding, bọn em không có kinh nghiệm. Thì thật ra khả năng bọn em dựa vào self, tự mình tự research chứ bọn em không có một cái
+- [28:17] Người nói 2: concept về branding, về làm sao cho UI/UX nó
+- [28:22] Người nói 2: có thể nó sẽ consistency nhưng mà nó sẽ không
+- [28:25] Người nói 2: mang cái branding của
+- [28:27] Người nói 2: cụ thể một cái thương hiệu đó thì không biết là cái gì
+- [28:31] Người nói 2: . Thì bọn em sẽ làm theo cái branding của Tasco hay là sẽ làm theo một cái branding nào đó thì nó là dưới dạng là ví dụ như là một cái bộ
+- [28:41] Người nói 2: , bộ, bộ branding. Anh hiểu cái bộ branding th
+- [28:45] Người nói 2: ì đấy, đấy là, đấy là cái bọn em yếu nhất là phần ý.
+- [28:49] Người nói 1: Thì cái phần đấy thì sẽ có
+- [28:51] Người nói 1: , sẽ có một, một, một team khác hỗ trợ.
+- [28:56] Người nói 1: Có một hai bạn tốt về cái phần đấy nữa.
+- [28:58] Người nói 2: Vâng.
+- [28:59] Người nói 2: Vâng. Branding là kiểu brand của tên.
+- [29:03] Người nói 2: Kiểu là ví dụ một cái app đi là sẽ có màu, tone màu là gì.
+- [29:06] Người nói 1: Tone màu là gì các thứ.
+- [29:07] Người nói 2: Tone màu nó sẽ là, nó sẽ là có.
+- [29:09] Người nói 1: Chọn kiểu em chọn cái tone màu các thứ.
+- [29:11] Người nói 2: Nó dễ thì em nghĩ là bên khác sẽ.
+- [29:15] Người nói 2: Làm sao để consistency với cái trải nghiệm người dùng tốt nhất. Về mặt
+- [29:20] Người nói 2: coding thì không có vấn đề gì.
+- [29:25] Người nói 1: Em lên ý tưởng em có thể
+- [29:28] Người nói 1: chọn màu
+- [29:30] Người nói 1: đấy.
+- [29:34] Người nói 2: Màu thì em nghĩ chủ đạo tông màu xanh lá cây, xanh trắng như lúc nãy kiểu như prototype của em cũng.
+- [29:38] Người nói 1: Vâng.
+- [29:50] Người nói 2: Anh còn câu hỏi gì không?
+- [29:53] Người nói 1: Hiện tại thì vẫn là đang đi khảo sát đúng không?
+- [29:55] Người nói 2: Dạ vâng. Em vẫn đang trong khảo sát. Vậy thì khoảng bao giờ thì mình sẽ.
+- [29:59] Người nói 1: Vâng.
+- [29:59] Người nói 2: Em, em, em sẽ là founder, sẽ là
+- [30:01] Người nói 2: người duy nhất hay là có team em có ai nữa không?
+- [30:03] Người nói 1: Team em vẫn có mình.
+- [30:04] Người nói 2: O
+- [30:07] Người nói 2: k.
+- [30:09] Người nói 1: Thì khảo sát xong thì bọn em có thể cho bọn em có thể rút ngắn thông tin lại và có thể là nói cho bọn anh để kiểu cái việc xây dựng app nó đơn giản hơn và bọn anh có thể hiểu được cái
+- [30:19] Người nói 1: quán người ta bị gì.
+- [30:25] Người nói 2: Ok.
+- [30:25] Người nói 1: Em nghĩ là
+- [30:26] Người nói 1: xong rồi chứ?
+- [30:27] Người nói 2: Vâng. Chắc là xong rồi.
+- [30:28] Người nói 1: Chắc là.
+- [30:29] Người nói 2: Thì sẽ tải.
+- [30:30] Người nói 1: À, chắc là sẽ tải.
+- [30:31] Người nói 2: Thì
+- [30:32] Người nói 2: em hay dùng, có bọn anh có WhatsApp hay không anh?
+- [30:35] Người nói 1: Có. Bọn anh có WhatsApp.
+- [30:36] Người nói 2: WhatsApp.
+- [30:36] Người nói 1: Bọn anh lập group WhatsApp. Em biết tí nữa em sẽ nhờ chị Laura lập group nhé.
+- [30:41] Người nói 2: Ok. Ok.
+- [30:44] Người nói 2: Tí nữa bọn mình hỏi câu
+- [30:47] Người nói 2: nhắn qua câu văn.
+- [30:48] Người nói 1: Bây giờ xuống thôi.
+- [31:18] Người nói 2: Xong gửi cho các bạn anh cái slide này nhé.
+- [31:20] Người nói 1: Dạ vâng.
+- [31:23] Người nói 2: Cứ vào WhatsApp.
+- [31:41] Người nói 1: Có mấy cái phần ở đây mà nó về chính sách thì em nghĩ là bọn anh vẫn chưa phải quan tâm đến cái.
+- [31:45] Người nói 2: Ừ.
+- [31:51] Người nói 2: Ok. B
+- [31:55] Người nói 2: ị build luôn thì khoảng bao lâu là xong cái việc tiếp theo?
+- [32:01] Người nói 1: Nhanh.
+- [32:01] Người nói 2: Nhanh rồi. Tầm này.
+- [32:04] Người nói 2: Về quy luật WhatsApp thì bọn anh sẽ báo cáo cái, có thể là sẽ lên cái.
+- [32:09] Người nói 1: Milestone.
+- [32:10] Người nói 2: Các milestone.
+- [32:11] Người nói 1: Vâng.
+- [32:12] Người nói 2: Milestone về development ở đâu có thể cung cấp cho anh một số những cái thông tin hơn về việc đào tạo.
+- [32:18] Người nói 1: Có câu hỏi gì thì sẽ hỏi.
+- [32:21] Người nói 2: Anh hỏi luôn chứ.
+- [32:23] Người nói 1: Xong rồi.
+- [32:24] Người nói 1: Xong rồi.
+- *[32:46–33:21] removed: small talk while a participant joined*
+- [33:36] Người nói 1: Tóm tắt của bố anh là
+- [33:40] Người nói 1: về tiến độ, về mục tiêu, về tiến độ thôi.
+- [33:44] Người nói 2: Với các anh xem sao.
+- [33:45] Người nói 1: Vì tiến độ thì hiện tại vẫn chưa, con vẫn chưa đặt nặng vấn đề thời gian đúng không? Và tại vì cái việc khảo sát ở thị trường bọn con vẫn chưa xong ấy. Tại vì
+- [33:55] Người nói 1: bọn con mới chỉ lên khai khảo sát thôi. Và khi khảo sát xong thì nó sẽ
+- [33:59] Người nói 1: đưa ra một cái
+- [34:00] Người nói 1: idea tốt hơn về việc làm như nào để
+- [34:04] Người nói 1: các anh có thể
+- [34:06] Người nói 1: kết nối supplier với consumer.
+- [34:09] Người nói 2: Ừ.
+- [34:10] Người nói 1: Thì các anh đã nghe về dự án rồi. Có muốn hỏi gì thêm với em hoặc là hỏi thêm gì chú không?
+- [34:16] Người nói 2: Nãy bọn bọn em cũng hỏi rất nhiều. Hỏi cũng nhiều.
+- [34:20] Người nói 1: T
+- [34:23] Người nói 1: ừ người đầu tiên đi. Đấy. Có câu hỏi gì không?
+- [34:27] Người nói 2: Cho em thấy cái
+- [34:28] Người nói 2: lo ngại lớn nhất mà sau khi em nghe cái. Ừ. Tức là
+- [34:33] Người nói 2: cô Laura có đã gửi cho bọn em cái brief ban đầu thì bọn em thấy lo ngại nhất là về phần nguồn cung thôi. Nhưng mà đã nãy em có hỏi thì cũng đã biết được là sẽ thực hiện trước trên cái Tasco mail.
+- [34:44] Người nói 1: Môn.
+- [34:44] Người nói 2: Môn. Tasco thì
+- [34:47] Người nói 2: thì thấy là em thấy cũng
+- [34:49] Người nói 2: nếu mà đã có ký rồi thì việc build app rất là dễ. Còn đâu các cái vấn đề sau này thì có thể nhờ anh Trung xem là
+- [34:56] Người nói 2: có những vấn đề hơn.
+- *[35:00–35:07] removed: an aside about a participant's hobbies*
+- [35:09] Người nói 3: Em chưa có hỏi.
+- [35:12] Người nói 1: Có gì
+- [35:13] Người nói 1: quan tâm nhất là phần nghiệp vụ. Nghiệp vụ là nhiều, có nhiều cái nghiệp vụ mà
+- [35:20] Người nói 1: kiểu vẫn đến
+- [35:22] Người nói 1: hiện tại mới đầu này thì có thể là chưa có thể
+- [35:26] Người nói 1: đầy đủ hết những cái nghiệp vụ của cái app. Thế nên là phải dần dần, dần dần thì khi có nhiều thông tin hơn thì bọn cháu mới có thể là
+- [35:35] Người nói 1: hoàn thành cái app.
+- [35:37] Người nói 2: Đã, cháu đã đọc bản brief rồi đúng không?
+- [35:39] Người nói 1: Vâng.
+- [35:39] Người nói 2: Đã thử xem một số cái app tương tự như vậy của đối thủ chưa?
+- [35:43] Người nói 1: Cháu xem
+- [35:46] Người nói 1: Too Food, Too Go và
+- [35:48] Người nói 1: có một
+- [35:51] Người nói 1: có một website cũng cùng tên là Second By.
+- [35:54] Người nói 2: Second By.
+- [35:55] Người nói 1: Trong
+- [35:57] Người nói 1: ừ, đấy là website.
+- [35:58] Người nói 2: Thế còn app ở trên thế giới thì sao?
+- [36:00] Người nói 1: App thì cháu chưa,
+- [36:03] Người nói 1: chưa, chưa xem.
+- [36:03] Người nói 2: Thì để
+- [36:05] Người nói 2: chú nghĩ là việc tham khảo những cái gì mà bên ngoài
+- [36:08] Người nói 2: tương tự đã có này, cộng với là AI first á, thì thực ra vấn đề của BA và nghiệp vụ nó sẽ tường minh nhanh. Tất cả cái workflow đấy nó sẽ đơn giản hơn rất nhiều, đúng không? Ngày xưa chúng ta có thể ngồi đi tổng hợp rồi hỏi khách hàng, rồi cần người có kinh nghiệm mất vài ngày, bây giờ chỉ vài phút thôi.
+- [36:27] Người nói 1: Vâng.
+- [36:28] Người nói 2: Vâng.
+- [36:29] Người nói 1: Vâng.
+- [36:29] Người nói 2: Không ngại gì cả. Mời cháu tiếp theo.
+- [36:32] Người nói 1: Các bạn hỏi hết câu hỏi bọn cháu rồi.
+- [36:35] Người nói 2: Nếu mà chú hỏi nhá.
+- [36:36] Người nói 1: Vâng.
+- [36:37] Người nói 2: Thế
+- [36:40] Người nói 2: hỏi chung trước nào.
+- [36:41] Người nói 1: Vâng.
+- [36:41] Người nói 2: Là bây giờ con tập trung cho cái dự án
+- [36:43] Người nói 2: này hay là vẫn còn
+- [36:48] Người nói 2: vẫn còn
+- [36:50] Người nói 2: nghiên cứu một vài cái ý tưởng mới.
+- [36:51] Người nói 1: Tập trung
+- [36:54] Người nói 1: ừ.
+- [36:55] Người nói 2: Trong thực tế thì sự tập trung tốt là không phải là chỉ tập trung làm một thứ đâu nhá. Đôi khi mình vẫn phải
+- [37:01] Người nói 2: để cái
+- [37:03] Người nói 2: mở, đúng không? Cái tư duy của mình mở
+- [37:06] Người nói 2: với
+- [37:07] Người nói 2: ngay cả phim ảnh, bởi vì cái đấy nó mang lại cái mình cảm thụ mà, đúng không? Hay là những môn thể thao khác, thậm chí là ngay cả những ý tưởng về dự án này nó không có mâu thuẫn gì với
+- [37:18] Người nói 2: cái việc mình đang làm cả, thậm chí là cổ.
+- [37:20] Người nói 1: Vâng.
+- [37:21] Người nói 2: Đúng vậy.
+- [37:22] Người nói 1: Chào em.
+- [37:24] Người nói 2: Em mời anh ngồi trong phòng anh đi.
+- [37:25] Người nói 1: Con chào em.
+- [37:31] Người nói 2: Sự tập trung
+- [37:33] Người nói 2: tuyệt đối không có nghĩa và sự tập trung tối ưu không có nghĩa là trên 100% cho việc đấy.
+- [37:41] Người nói 2: Cái thứ hai là là
+- [37:45] Người nói 2: con nghĩ gì về ý nghĩa của dự án.
+- [37:50] Người nói 1: Đến khách hàng, đến nhà hàng, món ăn với cái giá
+- [37:55] Người nói 1: dễ thì gọi là
+- [37:57] Người nói 1: có miễn phí không?
+- [37:59] Người nói 2: Nếu
+- [38:00] Người nói 2: có nghĩa là không miễn phí ạ.
+- [38:02] Người nói 1: Có trường hợp miễn phí chứ.
+- [38:04] Người nói 2: Có nghĩa là sẽ có về sau thì sẽ có trường hợp miễn phí.
+- [38:06] Người nói 1: Miễn phí là những cái consideration trước.
+- [38:10] Người nói 2: Đ
+- [38:11] Người nói 2: iều đấy có làm mình vui không?
+- [38:12] Người nói 1: Có.
+- [38:13] Người nói 2: Tại sao mình thấy vui?
+- [38:15] Người nói 1: Ừ. Giúp đỡ
+- [38:17] Người nói 1: , giúp đỡ khách hàng được mua đồ ăn với giá rẻ hơn. Ta tiếp cận những người không đủ tiền tiếp cận với gi
+- [38:24] Người nói 1: á tốt hơn.
+- [38:26] Người nói 2: Con đã đi ra ngoài đường, đã ngồi nhìn
+- [38:30] Người nói 2: những em bé mà
+- [38:35] Người nói 2: mặt mày nhem nhuốc rồi, rất vất vả để đi
+- [38:38] Người nói 2: bán mấy cái đồ lưu niệm du lịch, xin ăn đã gặp cái hoàn cảnh đấy chưa?
+- [38:42] Người nói 1: Rồi.
+- [38:44] Người nói 2: Có bị xúc động về đấy không?
+- [38:46] Người nói 1: Có.
+- [38:51] Người nói 2: Thứ hai là
+- [38:53] Người nói 2: đã bao giờ quan sát là những cái chú công nhân xây dựng là xây trên nhà mình hoặc những nhà bên cạnh thấy vất vả không?
+- [38:58] Người nói 1: Có.
+- [39:02] Người nói 2: Một ngày người ta kiếm được bao nhiêu tiền đâu? Hay là phải có một số tiền rất lớn để đi mua đồ ăn.
+- [39:10] Người nói 2: Cháu nhìn thấy ngồi trong nhà, trong công trình xây dựng
+- [39:14] Người nói 2: , vừa như vậy vừa ăn.
+- [39:18] Người nói 2: Có thấy như thế không?
+- [39:19] Người nói 1: Có.
+- [39:19] Người nói 2: Chơi game nhiều ý kiểu hay hiện ra cái clip là chúng ta chơi game nhiều về sau đi làm công nhân xây dựng đúng không?
+- [39:25] Người nói 2: Đúng không?
+- [39:26] Người nói 1: Vâng.
+- [39:28] Người nói 2: Những công nhân xây dựng không có gì đâu, không ai cả. Đúng không?
+- [39:33] Người nói 2: Tuy nhiên là mình muốn có một cái giá trị cao hơn thì mình phải
+- [39:38] Người nói 2: tìm kiếm xây dựng năng lực để tìm kiếm cơ hội của mình ở những công việc có giá trị cao hơn. Đúng không? Còn công nhân xây dựng thì không có gì hay, không gì không hay.
+- [39:56] Người nói 2: Cái điều gì mà con ấn tượng nhất mà để muốn làm dự án
+- [40:00] Người nói 2: về những cái nơi tương tự người ta giúp được rất nhiều người hay là mình chỉ giúp một số người
+- [40:07] Người nói 2: ?
+- [40:07] Người nói 1: Giúp được rất nhiều.
+- [40:12] Người nói 2: Về các cháu thì sao? Có thấy cái dự án thực sự nó làm dự án nghĩ là mình làm được điều gì ý nghĩa không?
+- [40:18] Người nói 1: Dự án là dự án ý nghĩa chứ. Cháu thấy là
+- [40:22] Người nói 1: có thể là mang lại
+- [40:24] Người nói 1: những cái đồ ăn với giá rẻ hơn cho người lao động hoặc là học sinh sinh viên chẳng hạn. Hoặc là cuối cuối tuần hoặc là một ngày nào đấy thì mình có thể là có những cái chương trình khuyến mãi để cho
+- [40:36] Người nói 1: bữa ăn không đồng chẳng hạn hay là gì đấy để cho người ta có thể
+- [40:40] Người nói 1: có đồ ăn, có nguyên liệu, có các thứ để nấu ăn.
+- [40:45] Người nói 2: Cháu thích làm.
+- [40:46] Người nói 1: Cháu thấy ý nghĩa và cháu thấy khá là
+- [40:51] Người nói 1: .
+- [40:51] Người nói 2: Cháu thì có những cái bạn bạn của cháu là ví dụ như mình lên một cái app đặt đồ ăn thôi, mình đã luôn muốn chọn những cái ít tiền hơn rồi. Mình luôn tìm những cái voucher ít hơn để mình vào rồi. Thì nếu mà có một cái app này ra thì cứ đúng giờ đấy, đúng 8:00 tối hoặc là 9:00 tối thì cháu nghĩ là sẽ rất ý nghĩa cho người người ta muốn
+- [41:11] Người nói 2: tìm những cái giá tốt hơn là bản thân cháu thì cháu cũng sẽ rất muốn để vào cái app này.
+- [41:17] Người nói 1: Ừ.
+- [41:19] Người nói 2: Về cháu.
+- [41:20] Người nói 1: Cháu thì thấy nó cũng nó vừa giúp
+- [41:23] Người nói 1: kiểu những cái bên cung cấp họ những có cái thức ăn thừa cái thời gian đấy họ có thể bỏ đi mà họ có thể giờ họ có thể tận dụng lại để tối ưu được chi phí
+- [41:33] Người nói 1: cũng như là giúp được vừa giúp được người
+- [41:37] Người nói 1: người mua hàng với giá rẻ vừa giúp được những cái bên cung cấp đấy
+- [41:42] Người nói 1: tránh bị thừa.
+- [41:44] Người nói 2: Ừ.
+- [41:47] Người nói 2: Được.
+- [41:48] Người nói 2: Cháu thì thật ra là trước
+- [41:52] Người nói 2: trước buổi hôm nay cháu tìm hiểu thì cũng thấy là một số tổ chức thi lợi nhuận họ làm những cái mô hình tương tự
+- [41:57] Người nói 2: tương tự rồi. Thì
+- [42:00] Người nói 2: thì
+- [42:02] Người nói 2: theo cháu thì nếu mà cái mô hình này làm dạng phi lợi nhuận thì
+- [42:06] Người nói 2: mình kết quả dùng tiền ra thì nó
+- [42:10] Người nói 2: nó khả thi hơn là việc mình thu phí. Tại vì ở cái
+- [42:16] Người nói 2: nếu người ta đã đi mua hàng rồi nếu thì thức ăn thừa thì như thể là vậy. Thức ăn thừa người ta có thể lo ngại về
+- [42:24] Người nói 2: về thức ăn thừa hay không. Nhưng mà nếu mà những người khó khăn thì họ rất là
+- [42:29] Người nói 2: running ra về đó.
+- [42:33] Người nói 1: Th
+- [42:34] Người nói 1: ứ hai cái góp ý rất hay về mô hình kinh doanh thì ngoài nghiệp vụ ra ngay cả mô hình kinh doanh mình có thể học được
+- [42:40] Người nói 1: những cái bên khác nó không mới đâu. Trước là xã hội cũng có những người người ta làm quán rơm không đồng
+- [42:46] Người nói 1: hay là đâu đó người ta
+- [42:49] Người nói 1: mua hai tặng một hay mua một tặng một đối với từng gọi là happy hour trong khách sạn cũng có mà. Đúng không?
+- [42:57] Người nói 1: Đấy không mới. Chỉ có điều là cái cách làm mới thôi.
+- [43:00] Người nói 1: Và cách làm này cũng không phải không phải là quá mới so với bây giờ mà có thể tham khảo được. Thế thì chúng ta là
+- [43:08] Người nói 1: có quyết tâm không?
+- [43:10] Người nói 2: Có.
+- [43:11] Người nói 1: Có.
+- [43:11] Người nói 2: Có.
+- [43:11] Người nói 1: Có quyết tâm đúng không? Thế còn lại là chúng ta quyết tâm thôi.
+- [43:15] Người nói 2: Vâng.
+- [43:15] Người nói 1: Theo cháu là là nếu mà miêu tả dự án tốt về nghiệp vụ như chú vừa hướng dẫn ấy thì bao nhiêu lâu thì ra được bản prototype?
+- [43:24] Người nói 2: Khoảng một tuần.
+- [43:26] Người nói 1: Chúng ta một tuần
+- [43:28] Người nói 1: có cách nào làm trong hai ngày?
+- [43:30] Người nói 2: Thì
+- [43:31] Người nói 2: hai ngày thì thì
+- [43:34] Người nói 2: nó chỉ giới hạn là
+- [43:36] Người nói 2: tại vì
+- [43:38] Người nói 2: cháu khi mà cháu xây một ứng dụng thì với cái góc nhìn
+- [43:42] Người nói 2: tech một chút thì thật ra là cháu muốn xây dựng cái nền tảng. Nền tảng của nó một tuần hoặc là hai tuần gì đó thì nó
+- [43:50] Người nói 2: ừ tốt một chút để sau này khi mà mình có sử dụng AI thì
+- [43:55] Người nói 2: cái dự án nó sẽ không bị vỡ về giai đoạn sau.
+- [43:57] Người nói 1: Thực ra một tuần thì cũng đã là tốt rồi.
+- [44:00] Người nói 1: Nhưng mà đừng giới hạn. Thực ra có cách làm tốt đúng không? Làm hai ngày. Chú không ép làm hai ngày thì là chú chỉ có thể cởi mở thôi. Tuy nhiên ít nhất phải một tuần. Một tuần cũng đã tốt rồi. Nhưng mà có người là ít nhất phải
+- [44:14] Người nói 1: phải học xong cái trường đại học này một năm.
+- [44:17] Người nói 1: Học xong ba ngày. Nhỡ đâu chưa học xong một tháng được thì sao? Đúng không? Nên mình cởi mở cái cái đổi mới sáng tạo cởi mở.
+- [44:23] Người nói 2: Vâng.
+- [44:24] Người nói 1: Đúng không? Đổi mới kinh doanh.
+- [44:28] Người nói 1: Ok. Thế thì thế còn nói một chút về
+- [44:31] Người nói 1: tổ chức đặt mục tiêu thì sao?
+- [44:34] Người nói 1: Đặt mục tiêu tổ chức
+- [44:37] Người nói 1: lập kế hoạch và tổ chức thực hiện. Tổ chức bộ máy và tổ chức thực hiện. Đấy là bài thứ năm chưa?
+- [44:43] Người nói 2: Có một cái bàn tọa
+- [44:47] Người nói 2: có bàn về BNK với cả BN
+- [44:50] Người nói 2: kiểu những cái survey
+- [44:54] Người nói 2: bàn tọa một tí về chính sách. Về chính sách chưa bàn kỹ. Chính sách thì con vẫn chưa
+- [45:00] Người nói 2: có chính sách.
+- [45:02] Người nói 1: Thế thì đi nghiên cứu đi.
+- [45:04] Người nói 2: Vâng. Nhưng mà ý anh nói vậy ý rất hay. Mình mình không nên thu tiền của cái người mà đã
+- [45:10] Người nói 2: đã cung cấp cái đồ miễn phí hoặc là giảm giá rất nhiều như vậy
+- [45:14] Người nói 2: hoặc là của người khó khăn đã đến đấy. Để lấy được cái đấy thì mình nghĩ phí của họ thì nó không
+- [45:19] Người nói 2: đấy bị lỏng đúng không? Thế nhưng mà không có nghĩa là mình phi lợi nhuận 100%. Mình vẫn có thể có lợi nhuận từ doanh thu từ quảng cáo của các nhãn hàng. Đấy mình có traffic đúng không? Mình có thể có doanh thu từ hỗ trợ của các mạng thương quân. Ờ thấy ông này hay quá. Tôi muốn góp cho ông 10 triệu để ông làm hay hơn.
+- [45:37] Người nói 2: Thế thì nghĩ về mô hình kinh doanh một chút để nó phù hợp với cái tiêu chí của cháu nhưng mà nó vẫn
+- [45:42] Người nói 2: vẫn có thể có thu nhập để đảm bảo cái tính bền vững đúng không?
+- [45:45] Người nói 2: Đấy.
+- [45:47] Người nói 2: Tại sao không có thu nhập thì lại không bền vững?
+- [45:52] Người nói 2: Để thu nhập mới nuôi được đội ngũ. Mới có ngân sách để quảng bá những cái người dùng, mới có ngân sách để làm công nghệ tiếp theo đúng không?
+- [46:01] Người nói 2: Đấy.
+- [46:03] Người nói 2: Và tạo cái động lực để mình suy nghĩ làm tốt hơn. Làm phi lợi nhuận nhiều quá. Nhiều khi nó cũng giống như
+- [46:10] Người nói 2: làm mai một mình không nghĩ ra cái mới.
+- [46:14] Người nói 2: Đúng không?
+- [46:16] Người nói 2: Thụ tây thì cơ bản đâu có thích ăn miễn phí quá.
+- [46:20] Người nói 2: Không thích cho không nhau cái gì.
+- [46:25] Người nói 2: Một ngày nào đó chắc cháu sẽ thấy rằng là cái việc mà
+- [46:29] Người nói 2: cho không nhau rồi không lợi nhuận
+- [46:32] Người nói 2: nó
+- [46:33] Người nói 2: ở một số trường hợp nó không phải về tổng thể
+- [46:36] Người nói 2: kinh doanh thì nó không bền vững
+- [46:38] Người nói 2: và nó cũng tạo ra cái lợi ích lớn.
+- [46:41] Người nói 2: Đúng không?
+- [46:45] Người nói 2: Rồi
+- [46:46] Người nói 2: thế còn bây giờ xem là ở đây thì thiếu những bộ môn gì? Thiếu marketing, survey marketing thế này kia đúng không? Cứ thiếu cái gì thì từ đứng đầu phải làm được.
+- [46:57] Người nói 2: Cái mà em càng có kinh nghiệm thôi. Thế ông đi survey đi,
+- [47:00] Người nói 2: ông học làm marketing đi, đúng không? Lập kế hoạch cái đấy đi.
+- [47:05] Người nói 2: Thế còn thiếu cái gì nữa? Thiếu cái nhóm người là onboard
+- [47:09] Người nói 2: nhà cung cấp đúng không?
+- [47:12] Người nói 2: Đấy. Thiếu digital marketing để onboard khách hàng nữa đúng không?
+- [47:16] Người nói 2: Công nghệ này các bạn nên đủ bộ môn hết gì? Vâng.
+- [47:19] Người nói 1: Không có vấn đề gì đúng không? Thật là
+- [47:22] Người nói 1: là chú cũng không yên tâm rồi. Nếu mà các anh lại còn gần gần không hơn quá tuổi đúng không?
+- *[47:27–47:48] removed: an aside about football*
+- [47:50] Người nói 1: Nghĩ là
+- [47:53] Người nói 1: chưa
+- [47:55] Người nói 1: có mục tiêu cuối cùng nên có một cái mục tiêu định hướng
+- [48:00] Người nói 1: đúng không? Mục tiêu định hướng
+- [48:03] Người nói 1: gồm
+- [48:04] Người nói 1: anh Tùng chung ghi lại
+- [48:06] Người nói 1: để hướng dẫn nhá. Con so
+- [48:09] Người nói 1: một cái mục tiêu định hướng
+- [48:17] Người nói 1: tính từ
+- [48:20] Người nói 1: ngày hôm nay
+- [48:27] Người nói 1: và
+- [48:29] Người nói 1: tiếp tục khảo sát trong vòng ba tuần
+- [48:31] Người nói 1: đúng không?
+- [48:33] Người nói 1: Onboard thử đấy đúng không? Chạy nghiệp vụ thử
+- [48:38] Người nói 1: hoàn thiện
+- [48:41] Người nói 1: bản
+- [48:43] Người nói 1: chạy được
+- [48:45] Người nói 1: bản này các cháu gọi là bản gì? Beta
+- [48:48] Người nói 1: đúng không?
+- [48:49] Người nói 2: Vâng.
+- [48:50] Người nói 2: Vâng.
+- [48:50] Người nói 1: Trong một cái số lượng nhất định
+- [48:53] Người nói 1: . Vào
+- [48:56] Người nói 1: hôm nay là ngày
+- [48:58] Người nói 1: 16
+- [48:59] Người nói 1: thì vào ngày khoảng 16
+- [49:01] Người nói 1: tháng 11
+- [49:04] Người nói 1: . Đấy.
+- [49:05] Người nói 1: Vậy là mình có thể onboard được
+- [49:08] Người nói 1: vài trăm
+- [49:09] Người nói 1: vài nghìn nhà cung cấp và đồng thời cho phép vài nghìn người dùng trên đấy.
+- [49:18] Người nói 1: Định nghĩa lại các cháu ấy định nghĩa lại bản beta cho nó phù hợp nhá.
+- [49:21] Người nói 2: Vâng.
+- [49:23] Người nói 1: Đấy là mục tiêu định hướng.
+- [49:26] Người nói 1: Thì để thực hiện được mục tiêu đấy thì
+- [49:30] Người nói 1: làm gì? Đầu tiên là về phần công nghệ ở đây là ai trưởng nhóm?
+- [49:35] Người nói 2: Em.
+- [49:35] Người nói 1: Đấy trưởng nhóm phụ trách
+- [49:38] Người nói 1: cùng các bạn
+- [49:39] Người nói 1: bắt đầu về cuối tuần là
+- [49:42] Người nói 1: BA rồi dựng các thứ này kia cái workflow xong rồi đúng không? Để làm
+- [49:50] Người nói 1: cái thứ hai là chung phải hoàn thiện cái project requirements
+- [49:54] Người nói 1: đầy đủ để gửi cho các anh ạ.
+- [49:57] Người nói 1: Ba là chung sẽ phải gửi cho anh Tùng ngân hàng
+- [50:02] Người nói 1: cho anh Tùng là ban dự án đúng không? Để làm survey, survey nhà cung cấp, survey người dùng
+- [50:09] Người nói 1: , survey đối thủ cạnh tranh. Đối thủ cạnh tranh gồm app tương tự ở nước ngoài, app tương tự tại Việt Nam
+- [50:15] Người nói 1: . Những cái mô hình khác nó cũng đâu nhất thiết phải app đâu. Zalo nhóm nó cũng làm được cơ mà đúng không? Facebook thì hội nhóm nó cũng làm được cơ mà. Đấy chứ là ở đây tương tự không phải đấy mới là một loại app
+- [50:25] Người nói 1: đúng không?
+- [50:28] Người nói 1: Đối thủ cạnh tranh
+- [50:33] Người nói 1: đấy.
+- [50:35] Người nói 1: Nhiệm vụ
+- [50:37] Người nói 1: ờ survey xong rồi nhiệm vụ tiếp theo là nhiệm vụ onboarding. Onboarding là ví dụ như con với anh Tùng phải có nhiệm vụ onboard được
+- [50:47] Người nói 1: 30 cái cửa hàng ở trong Tascom đấy. Đấy.
+- [50:51] Người nói 1: Và 100
+- [50:53] Người nói 1: cái người có nhu cầu ở khu vực gần đây. Công nhân, bảo vệ
+- [50:58] Người nói 1: đúng không? Người bảo vệ người ta thấy rất vất vả đúng không? Đấy. Vân vân. Đối tượng phù hợp ở gần khu vực đấy người ta tiện lên. Mình quy hoạch luôn cái phường đấy gọi là phường gì?
+- [51:08] Người nói 2: Ờ Việt Hưng ạ.
+- [51:10] Người nói 1: Việt Hưng đúng không? Trong cái phường đấy mà trong cái khu đấy cái zone đấy.
+- [51:17] Người nói 1: Đấy là là chạy bản prototype từ tuần
+- [51:22] Người nói 1: thứ hai trở đi
+- [51:23] Người nói 1: cho đến tuần thứ tư ấy là mình phải onboard được như vậy.
+- [51:32] Người nói 1: Thứ ba là
+- [51:34] Người nói 1: khi mà đến chạy bản beta chuẩn bị thế thì các con phải
+- [51:38] Người nói 1: mở rộng được ra không phải ở mỗi Tascom nữa đúng không? Mà mình phải có năng lực onboard ở những chỗ độc lập nữa. Nhà hàng, quán ăn các thứ này kia thì có thể 30 lên thành
+- [51:48] Người nói 1: 100
+- [51:49] Người nói 1: . Thế còn số người 100 thì lên thành 300 chuẩn bị để
+- [51:54] Người nói 1: theo dõi đánh giá tính
+- [51:58] Người nói 1: đoạn đầu cứ xác định mô hình kinh doanh là miễn phí đấy.
+- [52:01] Người nói 1: Đây
+- [52:04] Người nói 1: xác định mô hình kinh doanh là miễn phí.
+- [52:07] Người nói 1: Đây mời các cái chương trình tài trợ các thứ này kia để làm tài trợ cho dự án. Đấy chú sẽ tài trợ cho ta đoạn đầu.
+- [52:16] Người nói 2: Vâng.
+- [52:16] Người nói 1: Đúng không?
+- [52:18] Người nói 1: Đồng ý tài trợ cho chung 100 triệu trong gì đấy đúng không? Hay có cần lên thế không hay là chỉ cần ít hơn?
+- [52:27] Người nói 2: Cái đấy không biết đâu.
+- [52:28] Người nói 1: Đấy nhưng mà thôi cho đến bản beta
+- [52:31] Người nói 1: ngân sách
+- [52:33] Người nói 1: đúng không?
+- [52:35] Người nói 1: Sau đó chung phải nghĩ về mời những cái nhà mạnh thường quân khác
+- [52:40] Người nói 1: xem ở cái app này thì ai là người quảng cáo
+- [52:44] Người nói 1: chứ tự nhiên người ta lên ô tô lên đây quảng cáo toàn mấy ông đi xin đồ ăn cái này kia ông này còn lâu mới mua ô tô của tôi đúng không? Thế thì ông gì lên đây quảng cáo
+- [52:54] Người nói 1: đúng không?
+- [52:55] Người nói 1: Đấy nhiều khi là ông những ông hội nhóm từ thiện này kia ông lại có nhu cầu bỏ ra 2 triệu quảng cáo trên này một
+- [53:03] Người nói 1: đấy cũng là một lần thì các con phải nghiên cứu thêm.
+- [53:11] Người nói 1: Sponsor dự án thì đề nghị cô Laura là sponsor.
+- [53:15] Người nói 1: Bố là sponsor về tài chính. Đấy cô Laura là sponsor đại diện cho bố tổng thể
+- [53:22] Người nói 1: đúng không?
+- [53:24] Người nói 1: Cái
+- [53:28] Người nói 1: thư ký dự án thì anh Tùng đúng không?
+- [53:33] Người nói 1: Đấy thư ký dự án lập danh sách phân công nhiệm vụ định hướng như vừa rồi. Thế nhưng mà nó lập ngân sách để chi trả tiền
+- [53:44] Người nói 1: thù lao cho các em trong thời gian dự án đúng không? Chúng ta startup tinh gọn nhưng mà cũng có thu nhập
+- [53:51] Người nói 1: dùng cái tiền tài trợ đấy. Hiểu không? Tùng phải hỏi cô Laura là như nào hợp lý.
+- [53:57] Người nói 1: Quy chế dự án là
+- [54:01] Người nói 1: nên có một cái cường độ gọi là họp hàng ngày. 15 hay 30 phút vẫn phải họp với nhau. Update hôm nay tôi làm được cái gì mới thành lập một cái group gọi là group Zalo hoặc là gì đấy để cập nhật trên đấy.
+- [54:14] Người nói 1: Group email quy chế là họp hàng ngày 15 30 phút. Tất nhiên team riêng thì học riêng, team chung team này kia học riêng, team công nghệ học riêng nhưng mà
+- [54:24] Người nói 1: chung là phải họp hàng ngày để đồng bộ với nhau, đồng bộ thông tin với nhau. Quy chế là họp trực tiếp là hàng tuần
+- [54:30] Người nói 1: đúng không? Xong đi đá bóng.
+- [54:32] Người nói 2: Trong ngày nào cũng gặp nhau.
+- [54:34] Người nói 1: Ừ. Nhưng mà với chung với các thầy đúng không? Thì lúc thì ở văn phòng, lúc thì ở chỗ các anh thì chung phải đến chỗ các anh đúng không? Mời các anh sang bên nhà mình phải có quy chế.
+- [54:44] Người nói 1: Quy chế cuối cùng là đã xác định là ý nghĩa thì phải tâm huyết và làm bằng được theo cái deadline đấy.
+- [54:50] Người nói 1: Đấy đúng không ạ? Tất nhiên là đây là chú gợi ý thôi. Còn có thể mấy hôm nữa các cháu cho các cháu từ giờ đến thứ hai để điều chỉnh mục tiêu và deadline.
+- [54:57] Người nói 2: Vâng.
+- [54:58] Người nói 1: Nó phù hợp phân tích.
+- [54:59] Người nói 2: Vâng.
+- [55:00] Người nói 1: Nhưng mà trong tuần đầu tiên mà đã điều chỉnh rồi phải cố gắng làm bằng được chứ không cứ điều chỉnh liên tục toàn điều chỉnh lùi lại thì làm sao mà được được đúng không?
+- [55:07] Người nói 2: Bản đồ.
+- [55:08] Người nói 1: Đúng không? Đã xác định là phải làm như vậy.
+- [55:11] Người nói 1: Đã bảo làm có ý nghĩa thì phải quyết tâm đúng không? Thế không nó thành công trình dở dang hết
+- [55:17] Người nói 1: nhá.
+- [55:20] Người nói 1: Rồi
+- [55:21] Người nói 1: nếu không có câu hỏi gì thêm thì tạm thời kết thúc buổi họp ở đây. Email cho cô Laura. Cô Laura sẽ đại diện cho bố sponsor dự án nhá.
+- [55:29] Người nói 2: Vâng. V
+- *[55:31–58:56] removed: contact details exchanged after the meeting and small talk*

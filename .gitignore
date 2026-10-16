@@ -1,0 +1,20 @@
+# Reference repositories studied for design; never committed
+.tmp/
+
+# Office originals: the Markdown under docs/ is canonical, and the meeting
+# original holds personal contact details
+*.docx
+~$*
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Agent and editor state
+.claude/settings.local.json
+.claude/worktrees/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
