@@ -71,6 +71,7 @@ The compiler enforces `internal/` visibility and the absence of cycles. What it 
 ## HTTP
 
 - The standard library's `net/http` routing, with `huma` to declare operations and generate the OpenAPI 3.1 document from the implemented contract ([published API discovery](../conventions.md#api-discovery-and-product-boundaries)).
+- chi was weighed as the router and left out because it would remove no hand-written code. Its middleware answers in plain text, not problems, and logs without `slog`, so the request identifier, panic recovery and access log stay in `internal/platform` with any router. Its custom 405 handler loses the `Allow` header. Middleware for a group of routes comes from `huma.NewGroup`, which also shows it in the OpenAPI document. Reconsider chi when routing needs something neither `http.ServeMux` nor huma offers, such as path constraints or mounting handlers that are not huma operations.
 - Handlers route thinly: decode, call the module, encode. They never call a repository or another module's internals.
 - One problem mapping in `internal/platform` turns typed failures into RFC 9457 responses ([API errors](../conventions.md#api-errors)).
 - Every request gets an identifier, returned in `X-Request-Id` and logged as `request_id`.
