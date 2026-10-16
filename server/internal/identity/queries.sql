@@ -19,6 +19,11 @@ WHERE email = @email AND created_at > now() - interval '1 day';
 -- name: DeleteOldChallenges :exec
 DELETE FROM identity_sign_in_challenges WHERE created_at < now() - interval '1 day';
 
+-- name: EndLiveChallenges :exec
+-- A new code replaces the address's earlier ones; their wrong guesses still count.
+UPDATE identity_sign_in_challenges SET expires_at = now()
+WHERE email = @email AND expires_at > now();
+
 -- name: InsertChallenge :one
 INSERT INTO identity_sign_in_challenges (id, email, code_hash, expires_at)
 VALUES (@id, @email, @code_hash, now() + make_interval(secs => @lifetime_seconds::integer))

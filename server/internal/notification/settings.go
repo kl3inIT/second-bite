@@ -91,28 +91,18 @@ func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, 
 		}
 
 		params := db.PutEmailSettingsParams{
-			Provider:           string(c.Provider),
-			SenderAddress:      c.SenderAddress,
-			SenderName:         strings.TrimSpace(c.SenderName),
-			SmtpHost:           c.SMTPHost,
-			SmtpPort:           int32(c.SMTPPort), //nolint:gosec // validated to 1..65535 below
-			SmtpSecurity:       string(c.SMTPSecurity),
-			SmtpUsername:       strings.TrimSpace(c.SMTPUsername),
-			SmtpPasswordSealed: current.SmtpPasswordSealed,
-			BrevoApiKeySealed:  current.BrevoApiKeySealed,
-			UpdatedBy:          uuid.NullUUID{UUID: by, Valid: by != uuid.Nil},
+			Provider:      string(c.Provider),
+			SenderAddress: c.SenderAddress,
+			SenderName:    strings.TrimSpace(c.SenderName),
+			SmtpHost:      c.SMTPHost,
+			SmtpPort:      int32(c.SMTPPort), //nolint:gosec // validated to 1..65535 below
+			SmtpSecurity:  string(c.SMTPSecurity),
+			SmtpUsername:  strings.TrimSpace(c.SMTPUsername),
+			UpdatedBy:     uuid.NullUUID{UUID: by, Valid: by != uuid.Nil},
 		}
 
-		if c.SMTPPassword != "" {
-			if params.SmtpPasswordSealed, err = s.seal("smtp_password", c.SMTPPassword); err != nil {
-				return err
-			}
-		}
-
-		if c.BrevoAPIKey != "" {
-			if params.BrevoApiKeySealed, err = s.seal("brevo_api_key", c.BrevoAPIKey); err != nil {
-				return err
-			}
+		if err := s.setSecrets(&params, current, c); err != nil {
+			return err
 		}
 
 		if err := validateSettings(params); err != nil {
@@ -125,6 +115,36 @@ func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, 
 
 		return nil
 	})
+}
+
+// setSecrets seals the secrets of c, or keeps the stored ones. A stored
+// password goes only to the server it was entered for: a change of server,
+// port, security or user drops it unless a new one comes with the change, so
+// a stolen operator session cannot point the password at a server of its own.
+// Brevo's key needs no such rule: its address is fixed in the code.
+func (s *Service) setSecrets(p *db.PutEmailSettingsParams, current db.NotificationEmailSetting, c EmailSettingsChange) error {
+	var err error
+
+	sameServer := current.SmtpHost == p.SmtpHost && current.SmtpPort == p.SmtpPort &&
+		current.SmtpSecurity == p.SmtpSecurity && current.SmtpUsername == p.SmtpUsername
+
+	switch {
+	case c.SMTPPassword != "":
+		if p.SmtpPasswordSealed, err = s.seal("smtp_password", c.SMTPPassword); err != nil {
+			return err
+		}
+	case sameServer:
+		p.SmtpPasswordSealed = current.SmtpPasswordSealed
+	}
+
+	p.BrevoApiKeySealed = current.BrevoApiKeySealed
+	if c.BrevoAPIKey != "" {
+		if p.BrevoApiKeySealed, err = s.seal("brevo_api_key", c.BrevoAPIKey); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func validateSettings(p db.PutEmailSettingsParams) error {
@@ -165,7 +185,11 @@ func providerProblems(p db.PutEmailSettingsParams) []string {
 		}
 
 		if p.SmtpUsername != "" && p.SmtpPasswordSealed == nil {
-			problems = append(problems, "an SMTP user needs a password")
+			problems = append(problems, "an SMTP user needs a password, entered again when the server, port, security or user changes")
+		}
+
+		if p.SmtpUsername != "" && SMTPSecurity(p.SmtpSecurity) == SMTPSecurityNone {
+			problems = append(problems, "a password is never sent without TLS")
 		}
 	case EmailProviderBrevo:
 		if p.BrevoApiKeySealed == nil {

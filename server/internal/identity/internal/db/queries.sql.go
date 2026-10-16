@@ -112,6 +112,17 @@ func (q *Queries) DeleteSession(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const endLiveChallenges = `-- name: EndLiveChallenges :exec
+UPDATE identity_sign_in_challenges SET expires_at = now()
+WHERE email = $1 AND expires_at > now()
+`
+
+// A new code replaces the address's earlier ones; their wrong guesses still count.
+func (q *Queries) EndLiveChallenges(ctx context.Context, email string) error {
+	_, err := q.db.Exec(ctx, endLiveChallenges, email)
+	return err
+}
+
 const findSession = `-- name: FindSession :one
 SELECT s.id, s.account_id, s.last_seen_at, a.role
 FROM identity_sessions s JOIN identity_accounts a ON a.id = s.account_id

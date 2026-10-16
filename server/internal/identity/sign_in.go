@@ -79,6 +79,12 @@ func (s *Service) RequestCode(ctx context.Context, address string) (Challenge, e
 			return fmt.Errorf("deleting old challenges: %w", err)
 		}
 
+		// One live code per address: otherwise codes asked for within the
+		// limits could each take five guesses, past the limits on wrong ones.
+		if err := q.EndLiveChallenges(ctx, email); err != nil {
+			return fmt.Errorf("ending earlier codes: %w", err)
+		}
+
 		expiresAt, err = q.InsertChallenge(ctx, db.InsertChallengeParams{
 			ID:              id,
 			Email:           email,

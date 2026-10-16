@@ -59,11 +59,12 @@ func TestService(t *testing.T) {
 		"a code works once":                                       checkCodeWorksOnce,
 		"an unknown or malformed token is refused with 401":       checkInvalidToken,
 		"only operators read the email settings":                  checkOperatorOnly,
+		"a new code ends the earlier one":                         checkNewCodeEndsEarlier,
 	}
 
+	// The checks run in parallel with one another; this group returns when
+	// they all have, before the checks that change shared settings.
 	t.Run("while running", func(t *testing.T) {
-		t.Parallel()
-
 		for name, check := range checks {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
@@ -72,7 +73,11 @@ func TestService(t *testing.T) {
 		}
 	})
 
-	// Cleanups run after the parallel checks, and before the containers'.
+	t.Run("a stored SMTP password follows only its server", func(t *testing.T) { //nolint:paralleltest // it changes the email settings the other checks send with
+		checkSMTPPasswordFollowsServer(t, svc)
+	})
+
+	// Cleanups run after the checks, and before the containers'.
 	t.Cleanup(func() {
 		if err := stop(); err != nil {
 			t.Errorf("run returned %v after its context ended, want nil", err)
@@ -245,6 +250,27 @@ func checkMigrated(t *testing.T, svc service) {
 	var version string
 	if err := conn.QueryRow(t.Context(), "SELECT postgis_version()").Scan(&version); err != nil {
 		t.Fatalf("PostGIS is not enabled: %v", err)
+	}
+}
+
+// execSQL runs one statement against the service's database, for a check that
+// must move time.
+func execSQL(t *testing.T, svc service, sql string, args ...any) {
+	t.Helper()
+
+	conn, err := pgx.Connect(t.Context(), svc.dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		if err := conn.Close(context.WithoutCancel(t.Context())); err != nil {
+			t.Error(err)
+		}
+	}()
+
+	if _, err := conn.Exec(t.Context(), sql, args...); err != nil {
+		t.Fatal(err)
 	}
 }
 

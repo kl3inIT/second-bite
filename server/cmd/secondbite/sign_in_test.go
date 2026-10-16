@@ -1,6 +1,7 @@
 package main
 
 import (
+	"maps"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -180,6 +181,77 @@ func checkCodeWorksOnce(t *testing.T, svc service) {
 
 	if p := send(t, http.MethodPost, svc.base+"/auth/sessions", nil, body).problem(t, http.StatusGone); p.Code != "IDENTITY_CHALLENGE_GONE" {
 		t.Errorf("code %q", p.Code)
+	}
+}
+
+func checkNewCodeEndsEarlier(t *testing.T, svc service) {
+	t.Helper()
+
+	const email = "replaced@example.com"
+
+	first, firstCode := requestCode(t, svc, email)
+
+	// Move the first code back past the minute between codes.
+	execSQL(t, svc, "UPDATE identity_sign_in_challenges SET created_at = created_at - interval '2 minutes' WHERE id = $1", first)
+
+	second, secondCode := requestCode(t, svc, email)
+	if secondCode == firstCode {
+		t.Skip("the two codes drew the same digits; the email read cannot tell them apart")
+	}
+
+	p := send(t, http.MethodPost, svc.base+"/auth/sessions", nil, codeBody(first, firstCode)).problem(t, http.StatusGone)
+	if p.Code != "IDENTITY_CHALLENGE_GONE" {
+		t.Errorf("the earlier code: %q", p.Code)
+	}
+
+	send(t, http.MethodPost, svc.base+"/auth/sessions", nil, codeBody(second, secondCode)).decode(t, http.StatusCreated, &session{})
+}
+
+func checkSMTPPasswordFollowsServer(t *testing.T, svc service) {
+	t.Helper()
+
+	var current map[string]any
+
+	operator := signIn(t, svc, operatorEmail)
+	auth := bearer(operator.Token)
+	send(t, http.MethodGet, svc.base+"/operator/email-settings", auth, nil).decode(t, http.StatusOK, &current)
+
+	put := func(body map[string]any) response {
+		return send(t, http.MethodPut, svc.base+"/operator/email-settings", auth, body)
+	}
+
+	withPassword := map[string]any{
+		"provider": "smtp", "senderAddress": "no-reply@secondbite.test", "senderName": "Second Bite",
+		"smtpHost": "smtp.example.com", "smtpPort": 587, "smtpSecurity": "starttls",
+		"smtpUsername": "relay-user", "smtpPassword": "relay-password",
+	}
+	if resp := put(withPassword); resp.status != http.StatusNoContent {
+		t.Fatalf("saving with a password: %d %s", resp.status, resp.body)
+	}
+
+	moved := maps.Clone(withPassword)
+	moved["smtpHost"] = "smtp.attacker.example"
+	delete(moved, "smtpPassword")
+
+	if p := put(moved).problem(t, http.StatusBadRequest); p.Code != "NOTIFICATION_EMAIL_SETTINGS_INVALID" {
+		t.Errorf("another server kept the password: %q", p.Code)
+	}
+
+	noTLS := maps.Clone(withPassword)
+	noTLS["smtpSecurity"] = "none"
+
+	if p := put(noTLS).problem(t, http.StatusBadRequest); p.Code != "NOTIFICATION_EMAIL_SETTINGS_INVALID" {
+		t.Errorf("a password without TLS was accepted: %q", p.Code)
+	}
+
+	// Restore what the service was configured with.
+	restore := map[string]any{}
+	for _, k := range []string{"provider", "senderAddress", "senderName", "smtpHost", "smtpPort", "smtpSecurity"} {
+		restore[k] = current[k]
+	}
+
+	if resp := put(restore); resp.status != http.StatusNoContent {
+		t.Fatalf("restoring: %d %s", resp.status, resp.body)
 	}
 }
 

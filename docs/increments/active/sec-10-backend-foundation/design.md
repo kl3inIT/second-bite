@@ -70,6 +70,7 @@ Built on 17 October 2026: sign-in by an emailed code, sessions for the web and m
 - **Stored as HMAC-SHA-256 of the challenge and the code under `SECONDBITE_SIGN_IN_CODE_KEY`**, as Kratos stores its codes. BeyondPilot stores a plain SHA-256 of the challenge and the code; with a million possible codes, a copy of the database would let every live code be found offline, so the key is worth its one secret.
 - **The challenge travels in the body, not in a cookie.** BeyondPilot keeps it in the browser's session; a mobile application has none, so `POST /auth/sessions` takes `challengeId` and `code` together. A code typed with another client's challenge is checked against that challenge, so it neither signs in nor spends a guess of its own.
 - **Each guess is paid before it is compared**: one `UPDATE ... SET failed_attempts = failed_attempts + 1 ... WHERE failed_attempts < 5 RETURNING`, as both references do. A wrong code answers `400 IDENTITY_CODE_INCORRECT`; after five guesses the challenge answers `410 IDENTITY_CODE_ATTEMPTS_EXHAUSTED` even for the right code; an unknown, expired or used one `410 IDENTITY_CHALLENGE_GONE`. A right code deletes the challenge, and only the request whose delete removed the row signs in, so a code works once.
+- **One live code per address.** A new code ends the earlier ones, whose wrong guesses still count. Without it, the ten codes an hour allows could each take five guesses, fifty in all, past the limit on wrong guesses that is checked only when a code is asked for (found by an automated security review of the first version).
 - **Limits per address**, BeyondPilot's values, checked under `pg_advisory_xact_lock` so that requests arriving together cannot all pass: one code a minute, ten an hour, fifteen wrong guesses an hour and thirty a day over the codes sent in that time. A refusal is `429 IDENTITY_CODE_LIMIT_EXCEEDED` with the wait in `Retry-After`. Codes live fifteen minutes and are deleted a day after they were sent.
 - An address is one plain address, stored in lower case; every table keys on that form.
 
@@ -97,19 +98,21 @@ What [email delivery](#email-delivery) decided, as built:
 
 - `notification.Service.SendEmail` reads the settings at each send, so an operator's change applies to the next email. The registry of providers is a map built when the module is assembled; it fails when a provider has no implementation or one too many.
 - `smtpEmailSender` uses go-mail (`starttls`, `tls` or `none`; PLAIN authentication when a user is set). `brevoEmailSender` posts to `/v3/smtp/email` with `net/http`, keeps the message id without angle brackets, and classifies 429 (with `Retry-After`, a minute without it), other 4xx and 5xx or a network failure. Brevo's error text is never logged: it is a third party's and may echo the request.
+- **A stored SMTP password follows only its server.** A change of host, port, security or user drops it unless a new password comes with the change, so a stolen operator session cannot send the stored password to a server of its own; and a password is never accepted with `smtp_security` `none`. Brevo's key needs no such rule: its address is fixed in the code. (Found by the same review.)
 - Settings are one row; the SMTP password and the Brevo API key are sealed field by field with AES-256-GCM, the field's name as additional data so a sealed value cannot be moved to another field. `GET /operator/email-settings` says whether each secret is set and never returns it; `PUT` keeps a stored secret when the field is empty.
 - A send that fails answers `503 NOTIFICATION_EMAIL_UNAVAILABLE` with `Retry-After`; no provider chosen yet answers `503 NOTIFICATION_EMAIL_NOT_CONFIGURED`.
 - Each email sent is recorded with its kind, recipient, provider and the provider's message id, for the delivery reports of step 2.
 
 ### Checks
 
+- The checks of the security review: a new code ends the earlier one (seen to fail with the fix taken out), and a stored SMTP password is refused for another server and without TLS.
 - The composition test runs the assembled service against PostGIS and Mailpit (`axllent/mailpit:v1.31.4`) in containers, configured by the administrative commands, and reads each code from Mailpit's API: sign-in and sign-out, an address typed in mixed case, five wrong guesses ending a code, the minute between codes, a code working once, unknown and malformed tokens, and the email settings refused to a customer and served to the operator.
 - Unit tests: the limits' waits, address normalization, the code hash depending on the challenge and the key, sealing (a value sealed for one field does not open in another; two seals differ), and Brevo's request and the classification of each of its answers against a server answering as Brevo documents.
 - The boundary check refused `identity → notification` until ARCHITECTURE.md listed it.
 
 ### Not yet
 
-- Limits per client address as well as per email address: behind the proxy the client address must be read from a trusted header first, which comes with the first deployment.
+- **Limits per client address as well as per email address.** The limits per address can be used against its owner: anyone can ask for codes for an address and spend wrong guesses on them, which holds that address back for up to a day (the review's third finding). BeyondPilot accepts the same trade. The answer is a limit per client address in front of the one per email address, so one client cannot exhaust an address; behind the proxy the client address must first be read from a trusted header, so it comes with the first deployment, before the pilot opens.
 - A cookie for the web application, with its CSRF defence (SEC-17).
 - Brevo's delivery reports and suppressed addresses (step 2).
 - Retention of the record of emails sent, which holds addresses.
