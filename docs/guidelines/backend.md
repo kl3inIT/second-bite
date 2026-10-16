@@ -20,7 +20,7 @@ The layout follows [Go's official guidance on module layout](https://go.dev/doc/
 
 ## Modules
 
-A module is a package directly under `internal/`, named after its business concept in the singular (`offer`, `reservation`), discovered through [boundary discovery](../conventions.md#boundary-discovery). The skills' layer-first layouts (`internal/entity`, `internal/adapter/handler`) are not used: code is grouped by module first, as in the DDD layout of the vendored `golang-design-patterns` skill.
+A module is a package directly under `internal/`, named after its business concept in the singular (`offer`, `order`), discovered through [boundary discovery](../conventions.md#boundary-discovery). The skills' layer-first layouts (`internal/entity`, `internal/adapter/handler`) are not used: code is grouped by module first, as in the DDD layout of the vendored `golang-design-patterns` skill.
 
 - **The module's root package is its published API**: the exported functions and types other modules call, its events and its failure codes. Keep it narrow.
 - **Everything else is internal to the module**, either unexported in the root package or under `internal/<module>/internal/`, which the Go compiler forbids any other module to import. A module starts flat (`handler.go`, `service.go`, `store.go` in the root package, unexported) and gains `internal/` subpackages only when it grows enough files to need them.

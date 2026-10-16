@@ -11,7 +11,7 @@ A temporary runtime mode, command or endpoint is not a substitute for a missing 
 ## Schema ownership
 
 - Versioned migrations own the schema. Application code never creates or alters tables at runtime.
-- Migrations are numbered, named `<n>_<module>_<description>.sql` in snake case, for example `0003_reservation_create_reservations.sql`, and kept with the backend.
+- Migrations are numbered, named `<n>_<module>_<description>.sql` in snake case, for example `0003_order_create_orders.sql`, and kept with the backend.
 - A version belongs to one migration. Branches open at the same time take the same next number, so the number is settled when the branch takes in `main` before it merges: renumber yours after the highest on `main`, and fix the references to the old name. A check fails on a shared version and on a name outside the rule.
 - Every table has exactly one owning module. Only the owner writes it and only the owner's persistence code reads it; other modules use the owner's published API.
 - A table a library reads and writes (a job queue, a session store) is created by a migration too, in the migration of the module that first needs it, and only the library touches it.
@@ -34,7 +34,7 @@ A temporary runtime mode, command or endpoint is not a substitute for a missing 
 
 ## Deletion
 
-- Soft delete is not a default of every table. A record that others have seen or acted on (a published offer, a reservation, a verified seller) changes status instead of being deleted: it carries the time it was withdrawn, cancelled or closed, keeps its row and its history, and leaves every public read.
+- Soft delete is not a default of every table. A record that others have seen or acted on (a published offer, an order, a verified seller) changes status instead of being deleted: it carries the time it was withdrawn, cancelled or closed, keeps its row and its history, and leaves every public read.
 - A draft nobody else saw, and personal data its owner deletes, are really deleted.
 - Technical data (logs, expired codes, delivered jobs) is deleted by retention, not by a person.
 

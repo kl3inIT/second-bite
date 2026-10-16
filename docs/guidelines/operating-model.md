@@ -62,7 +62,7 @@ If the same statement would appear twice, keep the detailed version in the deepe
 
 An increment is one change that adds or alters a business capability: a module, a user journey or a data lifecycle. Tooling, dependency and documentation changes need only their Linear issue.
 
-1. Create `docs/increments/active/<increment>/design.md` and `plan.md` before implementation, named after the Linear issue (for example `sec-15-reservation-expiry`). A new module starts with [boundary discovery](../conventions.md#boundary-discovery).
+1. Create `docs/increments/active/<increment>/design.md` and `plan.md` before implementation, named after the Linear issue (for example `sec-15-order-expiry`). A new module starts with [boundary discovery](../conventions.md#boundary-discovery).
 2. Define the outcome a customer, a seller or an operator will see, the boundaries, the data lifecycle, the failure behavior and the verification plan.
 3. Implement a complete vertical slice. Do not make incomplete behavior operable through temporary production code ([change design](../conventions.md#change-design)).
 4. Record the commands run and the outcomes observed in `verification.md`; never copy raw logs, secrets or personal data.

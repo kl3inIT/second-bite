@@ -61,7 +61,7 @@ Domain Story
 ```
 
 1. **Domain Story:** record actors, work objects, ordered actions, the outcome, and important failure and recovery paths in the active increment.
-2. **Visual Glossary:** define one term per concept, its relationships and cardinality, and where the same real-world object means different things. Do not proceed while terms such as Seller, Store, Offer, Box, Reservation, Collection or Customer are overloaded.
+2. **Visual Glossary:** define one term per concept, its relationships and cardinality, and where the same real-world object means different things. Do not proceed while terms such as Seller, Store, Offer, Box, Order, Collection or Customer are overloaded.
 3. **Events, Commands, Aggregates and Read Models:** identify intent, observed business facts, consistency boundaries and projections. Distinguish synchronous invariants from asynchronous reactions.
 4. **Data and Invariant Owner:** assign one module as the source of truth for each table, lifecycle and invariant. No two modules write the same table or read each other's persistence code.
 5. **Context Map:** state provided and required APIs, dependency direction, synchronous calls, events, failure and consistency semantics, actors and non-functional requirements. Reject unexplained cycles.
@@ -92,7 +92,7 @@ Domain Story and Consumer
 4. Use resource creation, list and detail where a durable resource is the product concept. Use an explicit POST command for a domain transition on a durable resource; do not label a cancel or withdraw as DELETE when history stays addressable under the same identity.
 5. Keep responses minimal and consumer-owned. Expose internal identifiers, lifecycle facts, authority projections and diagnostic metadata only when a current consumer needs them.
 6. Model asynchronous work as `202 Accepted` plus a durable status resource with a polling and recovery contract. Do not return success or a problem for work that has not completed.
-7. Define idempotency, retries, the concurrency winner, ordering, pagination, bounded filters and sorts, and deletion and retention before publishing an operation. A command a person may send twice, such as a reservation, takes an idempotency key.
+7. Define idempotency, retries, the concurrency winner, ordering, pagination, bounded filters and sorts, and deletion and retention before publishing an operation. A command a person may send twice, such as placing an order, takes an idempotency key.
 8. Every operation in the OpenAPI document has a stable consumer-facing `operationId`, product tags, a summary, its security requirement and explicit success and failure responses.
 9. Generate the specification from the implemented contract, verify it against the API Product Canvas and glossary, regenerate clients, and exercise one real consumer flow.
 
@@ -102,7 +102,7 @@ The error contract follows [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.htm
 
 - **Typed failures.** Each module declares its expected failures as stable codes, each with a category and a safe message for people. Code returns or raises a typed failure carrying the code; the diagnostic message reaches logs only. HTTP types never enter a module's business or persistence code.
 - **One mapping.** One place in the HTTP layer turns a failure into a problem response. Handlers do not write error bodies of their own.
-- **Codes.** Codes are upper snake case, start with the module name, match `[A-Z][A-Z0-9_]+[A-Z0-9]` and are at most 63 characters, for example `RESERVATION_OFFER_SOLD_OUT`. A published code never changes meaning; a new meaning gets a new code.
+- **Codes.** Codes are upper snake case, start with the module name, match `[A-Z][A-Z0-9_]+[A-Z0-9]` and are at most 63 characters, for example `ORDER_OFFER_SOLD_OUT`. A published code never changes meaning; a new meaning gets a new code.
 - **Status by category.**
 
   | Category | HTTP status |
@@ -126,7 +126,7 @@ The error contract follows [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.htm
 
 A module tells others that something happened with an event.
 
-- **The event** is named for a past fact (`OfferPublished`, `ReservationCollected`) and carries identifiers only. A listener that needs the state reads it through the publisher's published API, so it always sees the current state and the event store never holds personal data.
+- **The event** is named for a past fact (`OfferPublished`, `OrderCollected`) and carries identifiers only. A listener that needs the state reads it through the publisher's published API, so it always sees the current state and the event store never holds personal data.
 - **Publishing** happens inside the transaction that made the change, by writing the event or the job that carries it to PostgreSQL in that transaction (a transactional outbox). A rolled-back change publishes nothing; a committed change is never lost by a crash after the commit.
 - **Listening** runs after the commit, in a transaction of its own, so its failure never undoes the change. A listener is idempotent and does not depend on order, because an event can be delivered again.
 - **Within a module**, a side effect after the commit may use a plain job without being part of the module's published API.
@@ -158,7 +158,7 @@ Every test must identify the observable contract and the regression it would cat
 ## Logging
 
 - Logs are structured key and value records.
-- Every log carries `event` named `<module>.<subject>.<outcome>` in snake case, for example `reservation.collection.confirmed`. Failures add `error_type` and `error_code` (the typed code when one exists). A handled failure logs these fields without a stack trace.
+- Every log carries `event` named `<module>.<subject>.<outcome>` in snake case, for example `order.collection.confirmed`. Failures add `error_type` and `error_code` (the typed code when one exists). A handled failure logs these fields without a stack trace.
 - INFO records lifecycle transitions, DEBUG stale or no-op details, WARN handled retries and expected failures worth attention, ERROR unhandled failures.
 - Never log passwords, tokens, secrets, presigned URLs, collection codes, request or response bodies, file or audio contents, personal data such as names, email addresses, phone numbers or precise locations, or a third party's error text.
 - Local development logs readable text; deployed environments log JSON to standard output.
@@ -170,7 +170,7 @@ Every test must identify the observable contract and the regression it would cat
 - Fail closed on missing configuration, invalid credentials, unknown bindings and ownership conflicts.
 - Configuration comes from environment variables prefixed `SECONDBITE_`. Deployed environments mount each secret as a file named after its variable under `/run/secrets`; a secret never sits in a container's environment, where inspection and crash reports show it.
 - Never write passwords, tokens, private keys, authorization codes, secret values or personal data to Git, docs, Linear, logs or command history. The repository is public. Record only where a secret is managed and how to retrieve it.
-- A collection code is a secret of its reservation: random, single use, stored only as a hash, valid only within its collection window, and refused after a bounded number of wrong attempts.
+- A collection code is a secret of its order: random, single use, stored only as a hash, valid only within its collection window, and refused after a bounded number of wrong attempts.
 - A customer's precise location is used to answer a query and is not stored with their account.
 - Administrative or ownership-changing behavior requires an authorization and audit design; never expose an unauthenticated convenience endpoint.
 
