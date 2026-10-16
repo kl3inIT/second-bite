@@ -165,6 +165,36 @@ func (q *Queries) GetAccount(ctx context.Context, id uuid.UUID) (GetAccountRow, 
 	return i, err
 }
 
+const getAccounts = `-- name: GetAccounts :many
+SELECT id, email, role FROM identity_accounts WHERE id = ANY($1::uuid[])
+`
+
+type GetAccountsRow struct {
+	ID    uuid.UUID
+	Email string
+	Role  string
+}
+
+func (q *Queries) GetAccounts(ctx context.Context, ids []uuid.UUID) ([]GetAccountsRow, error) {
+	rows, err := q.db.Query(ctx, getAccounts, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAccountsRow
+	for rows.Next() {
+		var i GetAccountsRow
+		if err := rows.Scan(&i.ID, &i.Email, &i.Role); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const grantRole = `-- name: GrantRole :one
 INSERT INTO identity_accounts (email, role) VALUES ($1, $2)
 ON CONFLICT (email) DO UPDATE SET role = EXCLUDED.role

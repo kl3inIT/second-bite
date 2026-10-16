@@ -81,6 +81,38 @@ func (s *Service) Account(ctx context.Context, id uuid.UUID) (Account, error) {
 	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role)}, nil
 }
 
+// Accounts returns the accounts of ids that exist, keyed by id.
+func (s *Service) Accounts(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Account, error) {
+	rows, err := s.queries.GetAccounts(ctx, ids)
+	if err != nil {
+		return nil, fmt.Errorf("reading the accounts: %w", err)
+	}
+
+	accounts := make(map[uuid.UUID]Account, len(rows))
+	for _, r := range rows {
+		accounts[r.ID] = Account{ID: r.ID, Email: r.Email, Role: platform.Role(r.Role)}
+	}
+
+	return accounts, nil
+}
+
+// EnsureAccount returns the account of email, creating it when the address
+// has never signed in, as Open Food Network creates the user a manager is
+// added for. Its owner signs in with an emailed code like anyone else.
+func (s *Service) EnsureAccount(ctx context.Context, email string) (Account, error) {
+	email, err := normalizeEmail(email)
+	if err != nil {
+		return Account{}, err
+	}
+
+	row, err := s.queries.UpsertAccount(ctx, email)
+	if err != nil {
+		return Account{}, fmt.Errorf("finding the account: %w", err)
+	}
+
+	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role)}, nil
+}
+
 // GrantRole gives the account of email the role, creating the account when
 // the address has never signed in. Only the command line calls it: the first
 // admin exists before anyone can sign in to name one.

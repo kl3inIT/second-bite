@@ -17,6 +17,51 @@ components:
         - email
         - role
       type: object
+    AddSellerStaffRequest:
+      additionalProperties: false
+      properties:
+        email:
+          maxLength: 254
+          minLength: 3
+          type: string
+      required:
+        - email
+      type: object
+    DetailsBody:
+      additionalProperties: false
+      properties:
+        address:
+          description: The address as people write it
+          maxLength: 300
+          minLength: 1
+          type: string
+        latitude:
+          description: Where the seller is, pinned on a map
+          format: double
+          maximum: 90
+          minimum: -90
+          type: number
+        longitude:
+          format: double
+          maximum: 180
+          minimum: -180
+          type: number
+        name:
+          maxLength: 100
+          minLength: 1
+          type: string
+        phone:
+          description: Shown to the seller's members and admins
+          maxLength: 30
+          minLength: 9
+          type: string
+      required:
+        - name
+        - address
+        - latitude
+        - longitude
+        - phone
+      type: object
     EmailSettingsBody:
       additionalProperties: false
       properties:
@@ -69,6 +114,39 @@ components:
         - smtpPasswordSet
         - brevoApiKeySet
         - updatedAt
+      type: object
+    MemberBody:
+      additionalProperties: false
+      properties:
+        accountId:
+          type: string
+        addedAt:
+          format: date-time
+          type: string
+        email:
+          type: string
+        role:
+          enum:
+            - owner
+            - staff
+          type: string
+      required:
+        - accountId
+        - email
+        - role
+        - addedAt
+      type: object
+    MembersOutputBody:
+      additionalProperties: false
+      properties:
+        members:
+          items:
+            $ref: "#/components/schemas/MemberBody"
+          type:
+            - array
+            - "null"
+      required:
+        - members
       type: object
     Problem:
       additionalProperties: false
@@ -171,6 +249,67 @@ components:
         - provider
         - senderAddress
         - senderName
+      type: object
+    SellerBody:
+      additionalProperties: false
+      properties:
+        address:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          type: string
+        latitude:
+          format: double
+          type: number
+        longitude:
+          format: double
+          type: number
+        myRole:
+          description: The caller's role; absent for an admin who is not a member
+          enum:
+            - owner
+            - staff
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        status:
+          enum:
+            - pending
+            - active
+            - blocked
+          type: string
+        statusChangedAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - address
+        - latitude
+        - longitude
+        - phone
+        - status
+        - createdAt
+        - updatedAt
+      type: object
+    SellersOutputBody:
+      additionalProperties: false
+      properties:
+        sellers:
+          items:
+            $ref: "#/components/schemas/SellerBody"
+          type:
+            - array
+            - "null"
+      required:
+        - sellers
       type: object
     SessionOutputBody:
       additionalProperties: false
@@ -294,6 +433,109 @@ paths:
       summary: Choose who delivers email; the next email uses it
       tags:
         - Admins
+  /admin/sellers:
+    get:
+      operationId: listSellersForAdmins
+      parameters:
+        - explode: false
+          in: query
+          name: status
+          schema:
+            default: pending
+            enum:
+              - pending
+              - active
+              - blocked
+            type: string
+        - explode: false
+          in: query
+          name: limit
+          schema:
+            default: 50
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: offset
+          schema:
+            default: 0
+            format: int64
+            minimum: 0
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellersOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Sellers in a status, oldest first
+      tags:
+        - Admin
+  /admin/sellers/{sellerId}/activate:
+    post:
+      operationId: activateSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Let a seller publish; also lifts a block
+      tags:
+        - Admin
+  /admin/sellers/{sellerId}/block:
+    post:
+      operationId: blockSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Stop a seller from publishing
+      tags:
+        - Admin
   /auth/sessions:
     post:
       description: Creates the account on its first sign-in.
@@ -363,3 +605,198 @@ paths:
       summary: Email a six-digit sign-in code
       tags:
         - Sign-in
+  /sellers:
+    post:
+      operationId: openSeller
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DetailsBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerBody"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Open a seller; it waits for an admin to activate it
+      tags:
+        - Sellers
+  /sellers/mine:
+    get:
+      operationId: listMySellers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellersOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: The sellers I own or work for
+      tags:
+        - Sellers
+  /sellers/{sellerId}:
+    get:
+      operationId: getSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: A seller, to its members and admins
+      tags:
+        - Sellers
+    put:
+      operationId: updateSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DetailsBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Change a seller's details; only its owner may
+      tags:
+        - Sellers
+  /sellers/{sellerId}/members:
+    get:
+      operationId: listSellerMembers
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembersOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: The owner and staff of a seller
+      tags:
+        - Sellers
+    post:
+      description: The person is staff at once and signs in with an emailed code to that address.
+      operationId: addSellerStaff
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddSellerStaffRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberBody"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Add a staff member by email; only the owner may
+      tags:
+        - Sellers
+  /sellers/{sellerId}/members/{accountId}:
+    delete:
+      operationId: removeSellerMember
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Remove a staff member, or leave the seller
+      tags:
+        - Sellers

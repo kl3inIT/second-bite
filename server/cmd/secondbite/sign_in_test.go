@@ -31,7 +31,7 @@ func requestCode(t *testing.T, svc service, email string) (string, string) {
 
 	var c challenge
 
-	send(t, http.MethodPost, svc.base+"/auth/sign-in-codes", nil, map[string]string{"email": email}).
+	send(t, http.MethodPost, svc.base+"/auth/sign-in-codes", nil, emailBody(email)).
 		decode(t, http.StatusAccepted, &c)
 
 	return c.ChallengeID, readCode(t, svc, email)
@@ -88,6 +88,10 @@ func signIn(t *testing.T, svc service, email string) session {
 		decode(t, http.StatusCreated, &s)
 
 	return s
+}
+
+func emailBody(email string) map[string]string {
+	return map[string]string{"email": email}
 }
 
 func codeBody(challengeID, code string) map[string]string {
@@ -161,7 +165,7 @@ func checkCodeCooldown(t *testing.T, svc service) {
 
 	requestCode(t, svc, "cooldown@example.com")
 
-	resp := send(t, http.MethodPost, svc.base+"/auth/sign-in-codes", nil, map[string]string{"email": "COOLDOWN@example.com"})
+	resp := send(t, http.MethodPost, svc.base+"/auth/sign-in-codes", nil, emailBody("COOLDOWN@example.com"))
 	if p := resp.problem(t, http.StatusTooManyRequests); p.Code != "IDENTITY_CODE_LIMIT_EXCEEDED" {
 		t.Errorf("code %q", p.Code)
 	}

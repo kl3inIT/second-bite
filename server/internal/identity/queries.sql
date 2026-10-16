@@ -55,6 +55,9 @@ INSERT INTO identity_accounts (email, role) VALUES (@email, @role)
 ON CONFLICT (email) DO UPDATE SET role = EXCLUDED.role
 RETURNING id, email, role;
 
+-- name: GetAccounts :many
+SELECT id, email, role FROM identity_accounts WHERE id = ANY(@ids::uuid[]);
+
 -- name: GetAccount :one
 SELECT id, email, role FROM identity_accounts WHERE id = @id;
 

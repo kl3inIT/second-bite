@@ -26,6 +26,7 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/identity"
 	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
+	"github.com/kl3inIT/second-bite/server/internal/seller"
 	"github.com/kl3inIT/second-bite/server/migrations"
 )
 
@@ -99,6 +100,7 @@ type app struct {
 	pool         *pgxpool.Pool
 	notification *notification.Service
 	identity     *identity.Service
+	seller       *seller.Service
 }
 
 // assemble reads the configuration, opens and migrates the database, and
@@ -141,7 +143,9 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 			return nil, err
 		}
 
-		return &app{cfg: cfg, logger: logger, pool: pool, notification: notifications, identity: identities}, nil
+		sellers := seller.NewService(pool, identities, logger)
+
+		return &app{cfg: cfg, logger: logger, pool: pool, notification: notifications, identity: identities, seller: sellers}, nil
 	}()
 	if err != nil {
 		pool.Close()
@@ -154,7 +158,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 
 func (a *app) serve(ctx context.Context) error {
 	mux := http.NewServeMux()
-	registerOperations(platform.NewAPI(mux), a.notification, a.identity)
+	registerOperations(platform.NewAPI(mux), a.notification, a.identity, a.seller)
 	platform.RegisterHealth(mux, a.pool)
 
 	var lc net.ListenConfig
@@ -169,7 +173,8 @@ func (a *app) serve(ctx context.Context) error {
 
 // registerOperations registers the operations of every module on api. The
 // OpenAPI document in api/openapi.yaml is generated from what it registers.
-func registerOperations(api huma.API, notifications *notification.Service, identities *identity.Service) {
+func registerOperations(api huma.API, notifications *notification.Service, identities *identity.Service, sellers *seller.Service) {
 	identity.RegisterOperations(api, identities)
 	notification.RegisterOperations(api, notifications)
+	seller.RegisterOperations(api, sellers)
 }

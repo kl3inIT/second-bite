@@ -119,7 +119,7 @@ Two levels, as in both references:
 | List all sellers; activate, block | Admins |
 | Publish for a seller | Its owner or staff, while it is `active` |
 
-Admins activate and read; they do not change a seller's content or publish for it. A seller that is not active answers 404 to someone who is not its member, so its existence is not revealed; a member without the right gets 403 (`SELLER_OWNER_REQUIRED`); publishing for a seller that is not active gets 403 (`SELLER_NOT_ACTIVE`).
+Admins activate and read; they do not change a seller's content or publish for it. A seller answers 404 to anyone who is neither its member nor an admin, so its existence is not revealed (what customers see of a seller arrives with `offer`); a member without the right gets 403 (`SELLER_OWNER_REQUIRED`); publishing for a seller that is not active gets 403 (`SELLER_NOT_ACTIVE`).
 
 ### Not a multi-tenant application
 
@@ -139,6 +139,17 @@ Each is ours, not a reference's, and changes when the founder's survey of seller
 - A seller's photo, with offers' photos and object storage (SEC-11).
 - Emails to an owner when the seller is activated or blocked, and to someone added as staff: through River and events, with the first notices to sellers.
 - An admin changing a seller's owner.
+
+### As built
+
+Built on 17 October 2026:
+
+- Tables `seller_sellers` (the location a PostGIS `geography(Point, 4326)` generated from the latitude and longitude, so queries and sqlc read plain numbers) and `seller_members` (one owner per seller, held by a partial unique index). A member's account is identity's identifier, without a foreign key into identity's table.
+- `POST /sellers`, `GET /sellers/mine`, `GET` and `PUT /sellers/{sellerId}`, `GET` and `POST /sellers/{sellerId}/members`, `DELETE /sellers/{sellerId}/members/{accountId}`, `GET /admin/sellers?status=`, `POST /admin/sellers/{sellerId}/activate` and `/block`.
+- The limit of five sellers is checked under an advisory lock on the owner, so sellers opened together cannot pass it. A phone keeps its digits and a leading `+`, 9 to 15 digits.
+- `identity` gained `EnsureAccount` (an address that has never signed in gets its account when it is added as staff) and `Accounts` (the members' addresses in one query): calls, as the [rule](../../../conventions.md#call-or-event) asks when the answer is needed.
+- `seller.CanPublish` and `CollectionPoint` wait for `offer`, their first caller.
+- Tests: the seller's life against PostgreSQL in the module (publishing only for members of an active seller, a block lifted by activation, a removed member losing the right at once; who may do what; five sellers; phones and names), through `internal/platform/platformtest`, which starts PostGIS migrated as the service migrates it; and the flow through the API in the composition test, the staff member signing in through Mailpit. The composition test found that huma does not read path parameters from an unexported embedded struct; each input declares its parameters.
 
 ### Admin, not operator
 

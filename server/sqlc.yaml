@@ -14,6 +14,11 @@ overrides:
           type: NullUUID
       - db_type: timestamptz
         go_type: time.Time
+      - db_type: timestamptz
+        nullable: true
+        go_type:
+          type: time.Time
+          pointer: true
 sql:
   - engine: postgresql
     schema: migrations
@@ -31,5 +36,14 @@ sql:
       go:
         package: db
         out: internal/identity/internal/db
+        sql_package: pgx/v5
+        omit_unused_structs: true
+  - engine: postgresql
+    schema: migrations
+    queries: internal/seller/queries.sql
+    gen:
+      go:
+        package: db
+        out: internal/seller/internal/db
         sql_package: pgx/v5
         omit_unused_structs: true

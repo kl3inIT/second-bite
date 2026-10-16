@@ -60,6 +60,7 @@ func TestService(t *testing.T) {
 		"an unknown or malformed token is refused with 401":       checkInvalidToken,
 		"only admins read the email settings":                     checkAdminOnly,
 		"a new code ends the earlier one":                         checkNewCodeEndsEarlier,
+		"a seller is opened, staffed and activated":               checkSellerFlow,
 	}
 
 	// The checks run in parallel with one another; this group returns when
@@ -110,6 +111,7 @@ func startService(t *testing.T) (service, func() error) {
 			"-smtp-host", smtpHost, "-smtp-port", smtpPort, "-smtp-security", "none",
 		},
 		{"admin", "grant", adminEmail},
+		{"admin", "grant", sellerAdminEmail},
 	}
 	for _, args := range admin {
 		if err := run(ctx, args, getenv, strings.NewReader(""), io.Discard); err != nil {

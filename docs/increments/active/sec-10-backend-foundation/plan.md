@@ -8,4 +8,4 @@ Design: [design.md](design.md). Tracked in Linear as SEC-10.
 | 2 | Brevo's delivery reports: webhook, bounced and complained addresses suppressed | To design |
 | 3 | Foundation: entry point, configuration, database and migrations, RFC 9457 errors, boundary check in CI | Built and verified locally, 16 October 2026 ([design](design.md#foundation)); CI to pass on the branch |
 | 4 | `identity`: sign-in by email with a one-time code | Built and verified locally, 17 October 2026 ([design](design.md#identity)); CI to pass on the branch |
-| 5 | `seller`: boundary discovery, then the module | Flow and authorization decided, 17 October 2026 ([design](design.md#seller)); to build |
+| 5 | `seller`: boundary discovery, then the module | Decided and built, 17 October 2026 ([design](design.md#seller)) |
