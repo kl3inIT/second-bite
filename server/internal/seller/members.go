@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller/internal/db"
@@ -57,29 +58,42 @@ func (s *Service) AddStaff(ctx context.Context, sellerID uuid.UUID, email string
 		return Member{}, err
 	}
 
-	members, err := s.queries.Members(ctx, sellerID)
-	if err != nil {
-		return Member{}, fmt.Errorf("counting the staff: %w", err)
-	}
-
-	if len(members) >= maxMembers {
-		return Member{}, ErrStaffLimitReached
-	}
-
 	account, err := s.accounts.EnsureAccount(ctx, email)
 	if err != nil {
 		return Member{}, err
 	}
 
-	added, err := s.queries.InsertMember(ctx, db.InsertMemberParams{
-		SellerID: sellerID, AccountID: account.ID, Role: string(RoleStaff),
+	// The seller's row is locked while its people are counted and one is
+	// added, so additions arriving together cannot pass the limit.
+	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.queries.WithTx(tx)
+
+		if err := q.LockSeller(ctx, sellerID); err != nil {
+			return fmt.Errorf("locking the seller: %w", err)
+		}
+
+		count, err := q.CountMembers(ctx, sellerID)
+		if err != nil {
+			return fmt.Errorf("counting the people: %w", err)
+		}
+
+		if count >= maxMembers {
+			return ErrStaffLimitReached
+		}
+
+		added, err := q.InsertMember(ctx, db.InsertMemberParams{SellerID: sellerID, AccountID: account.ID, Role: string(RoleStaff)})
+		if err != nil {
+			return fmt.Errorf("adding the staff member: %w", err)
+		}
+
+		if added == 0 {
+			return ErrAlreadyMember
+		}
+
+		return nil
 	})
 	if err != nil {
-		return Member{}, fmt.Errorf("adding the staff member: %w", err)
-	}
-
-	if added == 0 {
-		return Member{}, ErrAlreadyMember
+		return Member{}, err
 	}
 
 	s.logger.InfoContext(ctx, "staff added",

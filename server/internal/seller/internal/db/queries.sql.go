@@ -31,6 +31,17 @@ func (q *Queries) CanPublish(ctx context.Context, arg CanPublishParams) (bool, e
 	return exists, err
 }
 
+const countMembers = `-- name: CountMembers :one
+SELECT count(*)::integer FROM seller_members WHERE seller_id = $1
+`
+
+func (q *Queries) CountMembers(ctx context.Context, sellerID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, countMembers, sellerID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const countOwnedSellers = `-- name: CountOwnedSellers :one
 SELECT count(*)::integer FROM seller_members WHERE account_id = $1 AND role = 'owner'
 `
@@ -151,6 +162,16 @@ SELECT pg_advisory_xact_lock(hashtextextended('seller:owner:' || $1::text, 0))
 // Serializes the sellers an account opens, so the limit holds under concurrency.
 func (q *Queries) LockAccount(ctx context.Context, accountID string) error {
 	_, err := q.db.Exec(ctx, lockAccount, accountID)
+	return err
+}
+
+const lockSeller = `-- name: LockSeller :exec
+SELECT 1 FROM seller_sellers WHERE id = $1 FOR UPDATE
+`
+
+// Serializes changes to a seller's members until the transaction ends.
+func (q *Queries) LockSeller(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, lockSeller, id)
 	return err
 }
 

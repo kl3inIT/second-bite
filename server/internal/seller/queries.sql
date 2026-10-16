@@ -46,6 +46,13 @@ UPDATE seller_sellers
 SET status = @status, status_changed_at = now(), status_changed_by = @changed_by, updated_at = now()
 WHERE id = @id;
 
+-- name: LockSeller :exec
+-- Serializes changes to a seller's members until the transaction ends.
+SELECT 1 FROM seller_sellers WHERE id = @id FOR UPDATE;
+
+-- name: CountMembers :one
+SELECT count(*)::integer FROM seller_members WHERE seller_id = @seller_id;
+
 -- name: Members :many
 SELECT account_id, role, created_at FROM seller_members WHERE seller_id = @seller_id ORDER BY created_at;
 

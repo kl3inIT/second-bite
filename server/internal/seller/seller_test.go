@@ -3,7 +3,9 @@ package seller_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/google/uuid"
@@ -33,6 +35,7 @@ func TestSeller(t *testing.T) {
 		"only the right people act on a seller":    testOnlyTheRightPeopleActOnASeller,
 		"an owner opens at most five sellers":      testAnOwnerOpensAtMostFiveSellers,
 		"details are checked":                      testDetailsAreChecked,
+		"additions arriving together keep the cap": testStaffCapUnderConcurrency,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -221,6 +224,36 @@ func testDetailsAreChecked(t *testing.T, pool *pgxpool.Pool) {
 
 	if _, err := f.sellers.Open(owner, d); !errors.Is(err, seller.ErrDetailsInvalid) {
 		t.Errorf("blank name: %v", err)
+	}
+}
+
+func testStaffCapUnderConcurrency(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+
+	f := newFixture(t, pool)
+	owner := f.as(t, "owner@example.com", platform.RoleCustomer)
+
+	s, err := f.sellers.Open(owner, shop)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// A hundred additions at once to a seller that holds thirty people, the owner
+	// among them.
+	var wg sync.WaitGroup
+	for i := range 100 {
+		wg.Go(func() { _ = addStaff(owner, f, s.ID, f.mail(fmt.Sprintf("staff%d", i))) })
+	}
+
+	wg.Wait()
+
+	members, err := f.sellers.Members(owner, s.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(members) != 30 {
+		t.Fatalf("%d people, want 30", len(members))
 	}
 }
 
