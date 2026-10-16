@@ -59,6 +59,61 @@ Built on 16 October 2026 on this increment's branch; how to run and check it is 
 
 Each arrives with its first user, as the [backend guideline](../../../guidelines/backend.md#self-hosted-infrastructure) asks: River with the first job, sqlc with the first query, Mailpit with email, the `UNAUTHENTICATED` category (401) with `identity`, and the container image and deployment with the first deployment.
 
+## Identity
+
+Built on 17 October 2026: sign-in by an emailed code, sessions for the web and mobile applications, and the caller of each request. Read before designing: BeyondPilot's identity specification (its code sign-in, limits and session), Ory Kratos's code strategy (`selfservice/strategy/code`, `persistence/sql/persister_code.go`) and its session token handling (`session/manager_http.go`).
+
+### Sign-in by code
+
+- `POST /auth/sign-in-codes` with an address answers `202` with a `challengeId`, whether or not the address has an account, so the answer does not tell who has one. The account is created at its first successful sign-in, not when a code is asked for.
+- The code is six digits from `crypto/rand`, sent before the request is answered ([decided above](#the-sign-in-code-is-sent-within-the-request)). A code that could not be sent is deleted, so it neither works nor counts toward the limits.
+- **Stored as HMAC-SHA-256 of the challenge and the code under `SECONDBITE_SIGN_IN_CODE_KEY`**, as Kratos stores its codes. BeyondPilot stores a plain SHA-256 of the challenge and the code; with a million possible codes, a copy of the database would let every live code be found offline, so the key is worth its one secret.
+- **The challenge travels in the body, not in a cookie.** BeyondPilot keeps it in the browser's session; a mobile application has none, so `POST /auth/sessions` takes `challengeId` and `code` together. A code typed with another client's challenge is checked against that challenge, so it neither signs in nor spends a guess of its own.
+- **Each guess is paid before it is compared**: one `UPDATE ... SET failed_attempts = failed_attempts + 1 ... WHERE failed_attempts < 5 RETURNING`, as both references do. A wrong code answers `400 IDENTITY_CODE_INCORRECT`; after five guesses the challenge answers `410 IDENTITY_CODE_ATTEMPTS_EXHAUSTED` even for the right code; an unknown, expired or used one `410 IDENTITY_CHALLENGE_GONE`. A right code deletes the challenge, and only the request whose delete removed the row signs in, so a code works once.
+- **Limits per address**, BeyondPilot's values, checked under `pg_advisory_xact_lock` so that requests arriving together cannot all pass: one code a minute, ten an hour, fifteen wrong guesses an hour and thirty a day over the codes sent in that time. A refusal is `429 IDENTITY_CODE_LIMIT_EXCEEDED` with the wait in `Retry-After`. Codes live fifteen minutes and are deleted a day after they were sent.
+- An address is one plain address, stored in lower case; every table keys on that form.
+
+### Sessions
+
+- **A random token** (`crypto/rand.Text`, 130 bits), shown once in the answer to `POST /auth/sessions`; only its SHA-256 is stored, so a copy of the database holds no usable session. Kratos stores the token itself.
+- **Sent as `Authorization: Bearer <token>`** by the mobile and the web application alike. Kratos also reads `X-Session-Token` and a cookie; one way is enough until the web application decides how it keeps the token (SEC-17), when a cookie and its CSRF defence can be added with that design.
+- **It lasts 30 days from its last use**, as BeyondPilot's does. The end moves at most once an hour, so a busy client does not write on every request. Expired sessions of an account are deleted when it opens a new one.
+- `DELETE /auth/sessions/current` signs out; `GET /accounts/me` answers the account.
+
+### The caller of a request
+
+- `identity.Service.Authenticate`, a middleware run by `platform.NewHandler` before the routes, turns a valid token into a `platform.Caller` (account, session, role) in the request's context. No header means an anonymous request; a header with an unknown, ended or malformed token is refused at once with `401 IDENTITY_SESSION_INVALID` and `WWW-Authenticate: Bearer`.
+- **The caller lives in `platform`, not in `identity`**, with `RequireCaller` (`401 PLATFORM_AUTHENTICATION_REQUIRED`) and `RequireOperator` (`403 PLATFORM_OPERATOR_REQUIRED`). A module authorizes in its own code without depending on `identity`, which is what lets `notification` serve operators while `identity` depends on `notification` to send codes: the cycle BeyondPilot broke with an event (its ADR 0005) does not arise.
+- Roles are the account's: `customer` (everyone) and `operator`. What a person may do for a seller belongs to the `seller` module.
+- Operations that need a caller declare the `bearer` security scheme in the OpenAPI document.
+
+### A fresh installation
+
+The first operator and the first email provider must exist before anyone can sign in, so both are administrative commands of the binary (`secondbite operator grant`, `secondbite email configure`), as the twelve-factor admin processes the `golang-project-layout` skill points to. Secrets reach them on standard input, never as flags. The composition test configures its service through these same commands.
+
+### Email delivery as built
+
+What [email delivery](#email-delivery) decided, as built:
+
+- `notification.Service.SendEmail` reads the settings at each send, so an operator's change applies to the next email. The registry of providers is a map built when the module is assembled; it fails when a provider has no implementation or one too many.
+- `smtpEmailSender` uses go-mail (`starttls`, `tls` or `none`; PLAIN authentication when a user is set). `brevoEmailSender` posts to `/v3/smtp/email` with `net/http`, keeps the message id without angle brackets, and classifies 429 (with `Retry-After`, a minute without it), other 4xx and 5xx or a network failure. Brevo's error text is never logged: it is a third party's and may echo the request.
+- Settings are one row; the SMTP password and the Brevo API key are sealed field by field with AES-256-GCM, the field's name as additional data so a sealed value cannot be moved to another field. `GET /operator/email-settings` says whether each secret is set and never returns it; `PUT` keeps a stored secret when the field is empty.
+- A send that fails answers `503 NOTIFICATION_EMAIL_UNAVAILABLE` with `Retry-After`; no provider chosen yet answers `503 NOTIFICATION_EMAIL_NOT_CONFIGURED`.
+- Each email sent is recorded with its kind, recipient, provider and the provider's message id, for the delivery reports of step 2.
+
+### Checks
+
+- The composition test runs the assembled service against PostGIS and Mailpit (`axllent/mailpit:v1.31.4`) in containers, configured by the administrative commands, and reads each code from Mailpit's API: sign-in and sign-out, an address typed in mixed case, five wrong guesses ending a code, the minute between codes, a code working once, unknown and malformed tokens, and the email settings refused to a customer and served to the operator.
+- Unit tests: the limits' waits, address normalization, the code hash depending on the challenge and the key, sealing (a value sealed for one field does not open in another; two seals differ), and Brevo's request and the classification of each of its answers against a server answering as Brevo documents.
+- The boundary check refused `identity → notification` until ARCHITECTURE.md listed it.
+
+### Not yet
+
+- Limits per client address as well as per email address: behind the proxy the client address must be read from a trusted header first, which comes with the first deployment.
+- A cookie for the web application, with its CSRF defence (SEC-17).
+- Brevo's delivery reports and suppressed addresses (step 2).
+- Retention of the record of emails sent, which holds addresses.
+
 ## Email delivery
 
 Decided with the team on 16 October 2026.

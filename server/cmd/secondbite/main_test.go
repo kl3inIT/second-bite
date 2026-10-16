@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"maps"
@@ -16,20 +19,28 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-// postgisImage is the image of local development and of every test.
-const postgisImage = "postgis/postgis:18-3.6"
+// The images of local development and of every test.
+const (
+	postgisImage = "postgis/postgis:18-3.6"
+	mailpitImage = "axllent/mailpit:v1.31.4"
+)
 
-// service is one run of the assembled service against its database.
+const operatorEmail = "operator@example.com"
+
+// service is one run of the assembled service against its database and
+// Mailpit, which catches every email it sends.
 type service struct {
-	base string
-	dsn  string
+	base    string
+	dsn     string
+	mailpit string
 }
 
-// TestService runs the assembled service against PostgreSQL with PostGIS in a
-// container: it migrates, serves its probes and contract, answers problems,
-// and stops cleanly when its context ends.
+// TestService runs the assembled service against PostgreSQL with PostGIS and
+// Mailpit in containers, configured through its own administrative commands
+// as a fresh installation is: email first, then the first operator.
 func TestService(t *testing.T) {
 	t.Parallel()
 
@@ -42,6 +53,12 @@ func TestService(t *testing.T) {
 		"the contract is served":                                  checkContractServed,
 		"an unknown route is a problem":                           checkUnknownRoute,
 		"another method on a known route is a problem with Allow": checkMethodNotAllowed,
+		"sign in with an emailed code, then sign out":             checkSignInAndOut,
+		"a wrong code spends a guess and the fifth ends the code": checkWrongCodes,
+		"a second code within a minute is refused with a wait":    checkCodeCooldown,
+		"a code works once":                                       checkCodeWorksOnce,
+		"an unknown or malformed token is refused with 401":       checkInvalidToken,
+		"only operators read the email settings":                  checkOperatorOnly,
 	}
 
 	t.Run("while running", func(t *testing.T) {
@@ -55,7 +72,7 @@ func TestService(t *testing.T) {
 		}
 	})
 
-	// Cleanups run after the parallel checks, and before the container's.
+	// Cleanups run after the parallel checks, and before the containers'.
 	t.Cleanup(func() {
 		if err := stop(); err != nil {
 			t.Errorf("run returned %v after its context ended, want nil", err)
@@ -63,9 +80,63 @@ func TestService(t *testing.T) {
 	})
 }
 
-// startService starts a container and the service on a free port, waits until
-// it is ready, and returns a function that stops it and reports how run ended.
+// startService starts the containers, configures email and the first operator
+// with the administrative commands, starts the service on a free port and waits
+// until it is ready. stop ends it and reports how run returned.
 func startService(t *testing.T) (service, func() error) {
+	t.Helper()
+
+	ctx := t.Context()
+	dsn, env := startPostgres(t)
+	smtpAddr, mailpitURL := startMailpit(t)
+
+	addr := freeAddr(t)
+	env["SECONDBITE_HTTP_ADDR"] = addr
+	getenv := func(k string) string { return env[k] }
+
+	smtpHost, smtpPort, err := net.SplitHostPort(smtpAddr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	admin := [][]string{
+		{
+			"email", "configure", "-provider", "smtp", "-sender-address", "no-reply@secondbite.test",
+			"-smtp-host", smtpHost, "-smtp-port", smtpPort, "-smtp-security", "none",
+		},
+		{"operator", "grant", operatorEmail},
+	}
+	for _, args := range admin {
+		if err := run(ctx, args, getenv, strings.NewReader(""), io.Discard); err != nil {
+			t.Fatalf("secondbite %s: %v", strings.Join(args, " "), err)
+		}
+	}
+
+	runCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
+	done := make(chan error, 1)
+
+	go func() { done <- run(runCtx, []string{"serve"}, getenv, strings.NewReader(""), io.Discard) }()
+
+	svc := service{base: "http://" + addr, dsn: dsn, mailpit: mailpitURL}
+	waitReady(t, svc.base+"/readyz", done)
+
+	stop := func() error {
+		cancel()
+
+		select {
+		case err := <-done:
+			return err
+		case <-time.After(30 * time.Second):
+			return context.DeadlineExceeded
+		}
+	}
+
+	return svc, stop
+}
+
+// startPostgres starts PostGIS and returns its URL and the service's
+// environment for it, the password in a secret file.
+func startPostgres(t *testing.T) (string, map[string]string) {
 	t.Helper()
 
 	ctx := t.Context()
@@ -98,38 +169,63 @@ func startService(t *testing.T) (service, func() error) {
 	}
 
 	secrets := t.TempDir()
-	if err := os.WriteFile(filepath.Join(secrets, "SECONDBITE_DATABASE_PASSWORD"), []byte("test-only\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	writeSecret(t, secrets, "SECONDBITE_DATABASE_PASSWORD", "test-only")
+	writeSecret(t, secrets, "SECONDBITE_EMAIL_SETTINGS_KEY", randomKey(t))
+	writeSecret(t, secrets, "SECONDBITE_SIGN_IN_CODE_KEY", randomKey(t))
 
-	addr := freeAddr(t)
-	env := map[string]string{
-		"SECONDBITE_HTTP_ADDR":    addr,
+	return dsn, map[string]string{
 		"SECONDBITE_DATABASE_URL": "postgres://secondbite@" + net.JoinHostPort(host, port.Port()) + "/secondbite?sslmode=disable",
 		"SECONDBITE_SECRETS_DIR":  secrets,
 		"SECONDBITE_LOG_LEVEL":    "debug",
 	}
+}
 
-	runCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
-	done := make(chan error, 1)
+// startMailpit starts Mailpit and returns its SMTP address and its API's URL.
+func startMailpit(t *testing.T) (string, string) {
+	t.Helper()
 
-	go func() { done <- run(runCtx, func(k string) string { return env[k] }, io.Discard) }()
+	ctx := t.Context()
 
-	svc := service{base: "http://" + addr, dsn: dsn}
-	waitReady(t, svc.base+"/readyz", done)
+	c, err := testcontainers.Run(ctx, mailpitImage,
+		testcontainers.WithExposedPorts("1025/tcp", "8025/tcp"),
+		testcontainers.WithWaitStrategy(wait.ForHTTP("/livez").WithPort("8025/tcp")),
+	)
+	testcontainers.CleanupContainer(t, c)
 
-	stop := func() error {
-		cancel()
-
-		select {
-		case err := <-done:
-			return err
-		case <-time.After(30 * time.Second):
-			return context.DeadlineExceeded
-		}
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	return svc, stop
+	smtp, err := c.PortEndpoint(ctx, "1025/tcp", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	api, err := c.PortEndpoint(ctx, "8025/tcp", "http")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return smtp, api
+}
+
+func writeSecret(t *testing.T, dir, name, value string) {
+	t.Helper()
+
+	if err := os.WriteFile(filepath.Join(dir, name), []byte(value+"\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func randomKey(t *testing.T) string {
+	t.Helper()
+
+	key := make([]byte, 32)
+	if _, err := rand.Read(key); err != nil {
+		t.Fatal(err)
+	}
+
+	return base64.StdEncoding.EncodeToString(key)
 }
 
 func checkMigrated(t *testing.T, svc service) {
@@ -156,7 +252,7 @@ func checkProbes(t *testing.T, svc service) {
 	t.Helper()
 
 	for _, path := range []string{"/livez", "/readyz"} {
-		resp := send(t, http.MethodGet, svc.base+path, nil)
+		resp := send(t, http.MethodGet, svc.base+path, nil, nil)
 		if resp.status != http.StatusNoContent {
 			t.Errorf("%s: status %d, want 204", path, resp.status)
 		}
@@ -170,12 +266,12 @@ func checkProbes(t *testing.T, svc service) {
 func checkCallerRequestID(t *testing.T, svc service) {
 	t.Helper()
 
-	resp := send(t, http.MethodGet, svc.base+"/livez", http.Header{"X-Request-Id": {"proxy-abc.123"}})
+	resp := send(t, http.MethodGet, svc.base+"/livez", http.Header{"X-Request-Id": {"proxy-abc.123"}}, nil)
 	if got := resp.header.Get("X-Request-Id"); got != "proxy-abc.123" {
 		t.Errorf("X-Request-Id %q, want the caller's", got)
 	}
 
-	resp = send(t, http.MethodGet, svc.base+"/livez", http.Header{"X-Request-Id": {"not allowed!"}})
+	resp = send(t, http.MethodGet, svc.base+"/livez", http.Header{"X-Request-Id": {"not allowed!"}}, nil)
 	if got := resp.header.Get("X-Request-Id"); got == "not allowed!" || got == "" {
 		t.Errorf("X-Request-Id %q, want a new identifier", got)
 	}
@@ -184,7 +280,7 @@ func checkCallerRequestID(t *testing.T, svc service) {
 func checkContractServed(t *testing.T, svc service) {
 	t.Helper()
 
-	if resp := send(t, http.MethodGet, svc.base+"/openapi.json", nil); resp.status != http.StatusOK {
+	if resp := send(t, http.MethodGet, svc.base+"/openapi.json", nil, nil); resp.status != http.StatusOK {
 		t.Errorf("status %d, want 200", resp.status)
 	}
 }
@@ -192,7 +288,7 @@ func checkContractServed(t *testing.T, svc service) {
 func checkUnknownRoute(t *testing.T, svc service) {
 	t.Helper()
 
-	resp := send(t, http.MethodGet, svc.base+"/nothing-here", nil)
+	resp := send(t, http.MethodGet, svc.base+"/nothing-here", nil, nil)
 	p := resp.problem(t, http.StatusNotFound)
 
 	if p.Code != "PLATFORM_ROUTE_NOT_FOUND" || p.Type != "urn:secondbite:failure:platform-route-not-found" {
@@ -207,7 +303,7 @@ func checkUnknownRoute(t *testing.T, svc service) {
 func checkMethodNotAllowed(t *testing.T, svc service) {
 	t.Helper()
 
-	resp := send(t, http.MethodPost, svc.base+"/livez", nil)
+	resp := send(t, http.MethodPost, svc.base+"/livez", nil, nil)
 
 	if p := resp.problem(t, http.StatusMethodNotAllowed); p.Code != "PLATFORM_METHOD_NOT_ALLOWED" {
 		t.Errorf("code %q", p.Code)
@@ -235,7 +331,7 @@ func (r response) problem(t *testing.T, status int) problem {
 	t.Helper()
 
 	if r.status != status {
-		t.Fatalf("status %d, want %d", r.status, status)
+		t.Fatalf("status %d, want %d; body %s", r.status, status, r.body)
 	}
 
 	if ct := r.header.Get("Content-Type"); ct != "application/problem+json" {
@@ -254,32 +350,62 @@ func (r response) problem(t *testing.T, status int) problem {
 	return p
 }
 
-func send(t *testing.T, method, url string, header http.Header) response {
+// decode reads a successful JSON answer into out.
+func (r response) decode(t *testing.T, status int, out any) {
 	t.Helper()
 
-	req, err := http.NewRequestWithContext(t.Context(), method, url, nil)
+	if r.status != status {
+		t.Fatalf("status %d, want %d; body %s", r.status, status, r.body)
+	}
+
+	if err := json.Unmarshal(r.body, out); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// send sends a request with an optional JSON body.
+func send(t *testing.T, method, url string, header http.Header, body any) response {
+	t.Helper()
+
+	var reader io.Reader
+
+	if body != nil {
+		b, err := json.Marshal(body)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		reader = bytes.NewReader(b)
+	}
+
+	req, err := http.NewRequestWithContext(t.Context(), method, url, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	maps.Copy(req.Header, header)
 
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
 			t.Error(err)
 		}
 	}()
 
-	body, err := io.ReadAll(resp.Body)
+	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return response{status: resp.StatusCode, header: resp.Header, body: body}
+	return response{status: resp.StatusCode, header: resp.Header, body: raw}
 }
 
 // freeAddr returns a loopback address with a port nobody listens on.

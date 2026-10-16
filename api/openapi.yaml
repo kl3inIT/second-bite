@@ -1,7 +1,365 @@
 components:
-  schemas: {}
+  schemas:
+    AccountBody:
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+        id:
+          type: string
+        role:
+          enum:
+            - customer
+            - operator
+          type: string
+      required:
+        - id
+        - email
+        - role
+      type: object
+    EmailSettingsBody:
+      additionalProperties: false
+      properties:
+        brevoApiKeySet:
+          description: Whether a Brevo API key is stored; it is never returned
+          type: boolean
+        provider:
+          enum:
+            - smtp
+            - brevo
+          type: string
+        senderAddress:
+          format: email
+          maxLength: 254
+          type: string
+        senderName:
+          maxLength: 100
+          type: string
+        smtpHost:
+          maxLength: 253
+          type: string
+        smtpPasswordSet:
+          description: Whether an SMTP password is stored; it is never returned
+          type: boolean
+        smtpPort:
+          format: int64
+          maximum: 65535
+          minimum: 0
+          type: integer
+        smtpSecurity:
+          enum:
+            - starttls
+            - tls
+            - none
+          type: string
+        smtpUsername:
+          maxLength: 254
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - provider
+        - senderAddress
+        - senderName
+        - smtpHost
+        - smtpPort
+        - smtpSecurity
+        - smtpUsername
+        - smtpPasswordSet
+        - brevoApiKeySet
+        - updatedAt
+      type: object
+    Problem:
+      additionalProperties: false
+      properties:
+        code:
+          description: Stable machine-readable reason
+          type: string
+        detail:
+          type: string
+        errors:
+          description: One entry per invalid member or parameter
+          items:
+            $ref: "#/components/schemas/Violation"
+          type:
+            - array
+            - "null"
+        requestId:
+          description: The identifier returned in X-Request-Id
+          type: string
+        status:
+          format: int64
+          type: integer
+        title:
+          type: string
+        type:
+          description: urn:secondbite:failure:<code in kebab case>
+          type: string
+      required:
+        - type
+        - title
+        - status
+        - code
+      type: object
+    RequestCodeInputBody:
+      additionalProperties: false
+      properties:
+        email:
+          description: The address to send the code to
+          maxLength: 254
+          minLength: 3
+          type: string
+      required:
+        - email
+      type: object
+    RequestCodeOutputBody:
+      additionalProperties: false
+      properties:
+        challengeId:
+          description: Send it back with the code
+          type: string
+        expiresAt:
+          format: date-time
+          type: string
+      required:
+        - challengeId
+        - expiresAt
+      type: object
+    SaveEmailSettingsInputBody:
+      additionalProperties: false
+      properties:
+        brevoApiKey:
+          description: Empty keeps the stored key
+          maxLength: 1024
+          type: string
+        provider:
+          enum:
+            - smtp
+            - brevo
+          type: string
+        senderAddress:
+          format: email
+          maxLength: 254
+          type: string
+        senderName:
+          maxLength: 100
+          minLength: 1
+          type: string
+        smtpHost:
+          maxLength: 253
+          type: string
+        smtpPassword:
+          description: Empty keeps the stored password
+          maxLength: 1024
+          type: string
+        smtpPort:
+          format: int64
+          maximum: 65535
+          minimum: 0
+          type: integer
+        smtpSecurity:
+          enum:
+            - starttls
+            - tls
+            - none
+          type: string
+        smtpUsername:
+          maxLength: 254
+          type: string
+      required:
+        - provider
+        - senderAddress
+        - senderName
+      type: object
+    SessionOutputBody:
+      additionalProperties: false
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountBody"
+        expiresAt:
+          description: The session ends then unless it is used; each use moves the end 30 days on
+          format: date-time
+          type: string
+        token:
+          description: "Send it as Authorization: Bearer <token>; it is shown only now"
+          type: string
+      required:
+        - token
+        - expiresAt
+        - account
+      type: object
+    SignInInputBody:
+      additionalProperties: false
+      properties:
+        challengeId:
+          type: string
+        code:
+          description: The six digits of the email
+          pattern: ^[0-9]{6}$
+          type: string
+      required:
+        - challengeId
+        - code
+      type: object
+    Violation:
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+        detail:
+          type: string
+        parameter:
+          description: The invalid parameter, for example query.limit
+          type: string
+        pointer:
+          description: "JSON Pointer to the body member, for example #/priceVnd"
+          type: string
+      required:
+        - detail
+        - code
+      type: object
+  securitySchemes:
+    bearer:
+      description: A session token from POST /auth/sessions.
+      scheme: bearer
+      type: http
 info:
   description: The API of Second Bite, a non-profit marketplace for food surplus.
   title: Second Bite API
   version: 0.1.0
 openapi: 3.1.0
+paths:
+  /accounts/me:
+    get:
+      operationId: getMyAccount
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: The signed-in account
+      tags:
+        - Accounts
+  /auth/sessions:
+    post:
+      description: Creates the account on its first sign-in.
+      operationId: signIn
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInInputBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionOutputBody"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Sign in with the emailed code
+      tags:
+        - Sign-in
+  /auth/sessions/current:
+    delete:
+      operationId: signOut
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: "Sign out: end the session of this token"
+      tags:
+        - Sign-in
+  /auth/sign-in-codes:
+    post:
+      description: The answer is the same whether or not the address has an account.
+      operationId: requestSignInCode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestCodeInputBody"
+        required: true
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestCodeOutputBody"
+          description: Accepted
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Email a six-digit sign-in code
+      tags:
+        - Sign-in
+  /operator/email-settings:
+    get:
+      operationId: getEmailSettings
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailSettingsBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Read who delivers email
+      tags:
+        - Operators
+    put:
+      operationId: saveEmailSettings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveEmailSettingsInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Choose who delivers email; the next email uses it
+      tags:
+        - Operators

@@ -11,22 +11,39 @@ How to run the backend on a developer's machine and run the checks CI runs. The 
 
 ## Run locally
 
-From the repository root, start the database:
+From the repository root, start the database and Mailpit:
 
 ```sh
 docker compose up -d --wait
 ```
 
-`SECONDBITE_POSTGRES_PORT=55432 docker compose up -d --wait` publishes it on another port when 5432 is taken. Then, from `server/`:
+`SECONDBITE_POSTGRES_PORT`, `SECONDBITE_MAILPIT_SMTP_PORT` and `SECONDBITE_MAILPIT_WEB_PORT` publish them on other ports when 5432, 1025 or 8025 are taken. Then, from `server/`, set the environment once per shell. The two keys are made up for this machine; keep them for as long as the local database lives, because the email settings are sealed under the first.
 
 ```sh
-SECONDBITE_DATABASE_URL="postgres://secondbite@127.0.0.1:5432/secondbite?sslmode=disable" \
-SECONDBITE_DATABASE_PASSWORD=secondbite-local \
-SECONDBITE_LOG_FORMAT=text \
-go run ./cmd/secondbite
+export SECONDBITE_DATABASE_URL="postgres://secondbite@127.0.0.1:5432/secondbite?sslmode=disable"
+export SECONDBITE_DATABASE_PASSWORD=secondbite-local
+export SECONDBITE_EMAIL_SETTINGS_KEY="$(openssl rand -base64 32)"
+export SECONDBITE_SIGN_IN_CODE_KEY="$(openssl rand -base64 32)"
+export SECONDBITE_LOG_FORMAT=text
 ```
 
-The service migrates the database, then serves on `:8080`:
+A fresh database sends no email and has no operator. Configure email to Mailpit and make yourself an operator, once:
+
+```sh
+go run ./cmd/secondbite email configure -provider smtp -sender-address no-reply@secondbite.local \
+  -smtp-host 127.0.0.1 -smtp-port 1025 -smtp-security none
+go run ./cmd/secondbite operator grant you@example.com
+```
+
+Then serve:
+
+```sh
+go run ./cmd/secondbite serve
+```
+
+Every email the service sends appears in Mailpit at <http://127.0.0.1:8025>. To sign in, `POST /auth/sign-in-codes` with `{"email": "you@example.com"}`, read the code in Mailpit, `POST /auth/sessions` with the `challengeId` and the `code`, and send the `token` it answers as `Authorization: Bearer <token>`.
+
+The service migrates the database at every command, then `serve` listens on `:8080`:
 
 | Path | Answers |
 | --- | --- |
@@ -43,6 +60,8 @@ The service migrates the database, then serves on `:8080`:
 | --- | --- | --- |
 | `SECONDBITE_DATABASE_URL` | required | The PostgreSQL URL, without the password |
 | `SECONDBITE_DATABASE_PASSWORD` | required, a secret | The database password |
+| `SECONDBITE_EMAIL_SETTINGS_KEY` | required, a secret | 32 bytes in standard base64 that seal the email provider's password or API key in the database. Replacing it makes them unreadable: an operator enters them again |
+| `SECONDBITE_SIGN_IN_CODE_KEY` | required, a secret | 32 bytes in standard base64 that key the HMAC of stored sign-in codes. Replacing it voids the codes sent in the last 15 minutes |
 | `SECONDBITE_DATABASE_MAX_CONNS` | `10` | The size of the connection pool |
 | `SECONDBITE_HTTP_ADDR` | `:8080` | Where the API listens |
 | `SECONDBITE_LOG_FORMAT` | `json` | `json`, or `text` for local development |
@@ -75,6 +94,28 @@ The tests include:
   ```
 
 - **The migration names** (`migrations/migrations_test.go`): `<n>_<module>_<description>.sql` with a four-digit version used once ([persistence guideline](../guidelines/persistence.md#schema-ownership)).
+
+## Administrative commands
+
+A fresh installation needs an email provider and a first operator before anyone can sign in, so both are commands of the binary, run where the service runs, with its environment:
+
+| Command | Does |
+| --- | --- |
+| `secondbite email configure -provider smtp -sender-address A -smtp-host H -smtp-port P [-smtp-security starttls\|tls\|none] [-smtp-username U -secret-stdin]` | Delivers email through an SMTP server; the password is read from standard input |
+| `secondbite email configure -provider brevo -sender-address A -secret-stdin` | Delivers email through Brevo's API; the API key is read from standard input |
+| `secondbite operator grant EMAIL` | Makes the account of EMAIL an operator, creating it if the address has never signed in |
+
+A secret is never a flag, so it stays out of the shell's history: `secondbite email configure ... -secret-stdin < /run/secrets/brevo-api-key`. Afterwards operators change the provider in the API (`PUT /operator/email-settings`) and the next email uses it, without a restart.
+
+## Regenerate the queries
+
+Each module's SQL is in `internal/<module>/queries.sql`; sqlc turns it into Go under `internal/<module>/internal/db`, against the schema the migrations build. After changing a query or a migration:
+
+```sh
+go tool sqlc generate
+```
+
+CI runs `go tool sqlc diff` and fails when the generated code is out of date. sqlc is pinned in `go.mod` with a `tool` directive and builds without a C compiler.
 
 ## Add a migration
 

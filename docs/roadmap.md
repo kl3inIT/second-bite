@@ -10,7 +10,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 
 - [SEC-6 — Pilot domain model](increments/active/sec-6-pilot-domain-model/design.md): the pilot's journey worked through boundary discovery from the founder's requirements, ending in candidate modules, their data owners and working assumptions. The one question left for the founder is SEC-7; the reading of comparable products SEC-8.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
-- [SEC-10 — Backend foundation and the `seller` module](increments/active/sec-10-backend-foundation/design.md): the foundation is built (configuration, database and migrations, RFC 9457 problems, request identifiers, boundary and contract checks, CI); email delivery is decided as a provider family operators choose at runtime.
+- [SEC-10 — Backend foundation and the `seller` module](increments/active/sec-10-backend-foundation/design.md): the foundation, sign-in by emailed code with bearer sessions, and email delivery through the provider operators choose (SMTP or Brevo) are built; `seller` is next.
 
 ## Candidates
 

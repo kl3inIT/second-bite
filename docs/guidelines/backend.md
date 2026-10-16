@@ -64,7 +64,7 @@ The compiler enforces `internal/` visibility and the absence of cycles. What it 
 ## Persistence
 
 - PostgreSQL with PostGIS, reached through `pgx`.
-- SQL is written in `.sql` files per module and turned into typed Go by `sqlc`, so a query that does not match the schema fails the build.
+- SQL is written in `internal/<module>/queries.sql` and turned into typed Go by `sqlc` in `internal/<module>/internal/db`, which no other module can import; `omit_unused_structs` keeps another module's row types out of it. A query that does not match the schema the migrations build fails generation, and CI fails when the generated code is out of date.
 - Migrations are plain SQL run by `goose` ([persistence guideline](persistence.md)).
 - Background jobs and the outbox of [events between modules](../conventions.md#events-between-modules) use River, which inserts a job in the same PostgreSQL transaction as the change.
 

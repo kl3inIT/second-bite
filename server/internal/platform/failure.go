@@ -15,6 +15,7 @@ type Category string
 // The categories of the API error contract.
 const (
 	CategoryValidation         Category = "VALIDATION"
+	CategoryUnauthenticated    Category = "UNAUTHENTICATED"
 	CategoryNotPermitted       Category = "NOT_PERMITTED"
 	CategoryNotFound           Category = "NOT_FOUND"
 	CategoryConflict           Category = "CONFLICT"
@@ -28,6 +29,7 @@ var categories = map[Category]struct {
 	title  string
 }{
 	CategoryValidation:         {http.StatusBadRequest, "Invalid request"},
+	CategoryUnauthenticated:    {http.StatusUnauthorized, "Authentication required"},
 	CategoryNotPermitted:       {http.StatusForbidden, "Not permitted"},
 	CategoryNotFound:           {http.StatusNotFound, "Not found"},
 	CategoryConflict:           {http.StatusConflict, "Conflict"},
@@ -102,15 +104,20 @@ func (f *FailureError) Is(target error) bool {
 	return ok && t.Code == f.Code
 }
 
-// GetHeaders lets huma send Retry-After with the problem.
+// GetHeaders lets huma send Retry-After and WWW-Authenticate with the problem.
 func (f *FailureError) GetHeaders() http.Header {
-	if f.RetryAfter <= 0 {
-		return nil
+	h := http.Header{}
+
+	if f.RetryAfter > 0 {
+		seconds := int64((f.RetryAfter + time.Second - 1) / time.Second)
+		h.Set("Retry-After", strconv.FormatInt(seconds, 10))
 	}
 
-	seconds := int64((f.RetryAfter + time.Second - 1) / time.Second)
+	if f.Category == CategoryUnauthenticated {
+		h.Set("WWW-Authenticate", "Bearer")
+	}
 
-	return http.Header{"Retry-After": []string{strconv.FormatInt(seconds, 10)}}
+	return h
 }
 
 // AsFailure finds a FailureError in err's chain.

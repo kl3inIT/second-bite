@@ -1,5 +1,5 @@
 # Local development only: the database the backend runs against on a
-# developer's machine. The password below is a local placeholder, not a secret
+# developer's machine, and Mailpit, which catches every email it sends. The password below is a local placeholder, not a secret
 # of any deployed environment.
 name: secondbite
 
@@ -21,6 +21,12 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+
+  mailpit:
+    image: axllent/mailpit:v1.31.4
+    ports:
+      - "127.0.0.1:${SECONDBITE_MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${SECONDBITE_MAILPIT_WEB_PORT:-8025}:8025"
 
 volumes:
   postgres-data:

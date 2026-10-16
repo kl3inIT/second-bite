@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -33,6 +34,9 @@ func NewAPI(mux *http.ServeMux) huma.API {
 	// No $schema member in bodies and no Link header: the contract is the
 	// OpenAPI document, not a schema link per response.
 	config.CreateHooks = nil
+	config.Components.SecuritySchemes = map[string]*huma.SecurityScheme{
+		SecurityBearer: {Type: "http", Scheme: "bearer", Description: "A session token from POST /auth/sessions."},
+	}
 
 	return humago.New(mux, config)
 }
@@ -62,9 +66,15 @@ func RegisterHealth(mux *http.ServeMux, pool *pgxpool.Pool) {
 }
 
 // NewHandler wraps mux with the request identifier, panic recovery, the access
-// log and problems for unmatched routes.
-func NewHandler(mux *http.ServeMux, logger *slog.Logger) http.Handler {
-	return withRequest(logger, withUnmatched(mux))
+// log and problems for unmatched routes. Each of wraps, such as the module that
+// authenticates callers, runs inside those, in order, before the mux.
+func NewHandler(mux *http.ServeMux, logger *slog.Logger, wraps ...func(http.Handler) http.Handler) http.Handler {
+	h := withUnmatched(mux)
+	for _, wrap := range slices.Backward(wraps) {
+		h = wrap(h)
+	}
+
+	return withRequest(logger, h)
 }
 
 // Serve runs the HTTP server on ln until ctx is cancelled, then stops taking

@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -37,6 +38,7 @@ const (
 	defaultSecretsDir = "/run/secrets"
 	logFormatJSON     = "json"
 	logFormatText     = "text"
+	keyLength         = 32
 )
 
 // LoadConfig reads the configuration through getenv, so tests pass their own
@@ -80,7 +82,7 @@ func LoadConfig(getenv func(string) string) (Config, error) {
 		cfg.Database.MaxConns = int32(n)
 	}
 
-	password, err := readSecret(getenv, "SECONDBITE_DATABASE_PASSWORD")
+	password, err := ReadSecret(getenv, "SECONDBITE_DATABASE_PASSWORD")
 	if err != nil {
 		errs = append(errs, err)
 	}
@@ -90,11 +92,27 @@ func LoadConfig(getenv func(string) string) (Config, error) {
 	return cfg, errors.Join(errs...)
 }
 
-// readSecret reads a secret from the file named after its variable in the
+// ReadKey reads a secret key of 32 bytes, written in standard base64 (as
+// `openssl rand -base64 32` prints it), the way ReadSecret reads a secret.
+func ReadKey(getenv func(string) string, name string) ([]byte, error) {
+	encoded, err := ReadSecret(getenv, name)
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil || len(key) != keyLength {
+		return nil, fmt.Errorf("secret %s must be %d bytes in standard base64", name, keyLength)
+	}
+
+	return key, nil
+}
+
+// ReadSecret reads a secret from the file named after its variable in the
 // secrets directory, as deployed environments mount it. Only when that file
 // does not exist does it fall back to the variable itself, which local
 // development uses.
-func readSecret(getenv func(string) string, name string) (string, error) {
+func ReadSecret(getenv func(string) string, name string) (string, error) {
 	dir := valueOr(getenv("SECONDBITE_SECRETS_DIR"), defaultSecretsDir)
 
 	b, err := readFileIn(dir, name)

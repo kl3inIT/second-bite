@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log/slog"
+	"maps"
 	"net/http"
 	"strings"
 	"sync"
@@ -211,6 +212,16 @@ func jsonPointer(location string) string {
 
 func escapePointer(s string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(s, "~", "~0"), "/", "~1")
+}
+
+// WriteFailure answers a request with the problem of f, for middleware that
+// refuses a request before it reaches an operation.
+func WriteFailure(w http.ResponseWriter, r *http.Request, f *FailureError) {
+	setErrorCode(r.Context(), f.Code)
+
+	maps.Copy(w.Header(), f.GetHeaders())
+
+	writeProblem(w, problemFromFailure(f, RequestID(r.Context())))
 }
 
 // writeProblem writes a problem outside huma: unmatched routes, panics and

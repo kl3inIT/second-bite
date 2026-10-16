@@ -51,6 +51,8 @@ jobs:
           cache-dependency-path: server/go.sum
       - name: Check that go.mod and go.sum are tidy
         run: go mod tidy -diff
+      - name: Check that the code sqlc generates is current
+        run: go tool sqlc diff
       - name: Test, with the race detector and PostgreSQL in containers
         run: go test -race -count=1 ./...
 

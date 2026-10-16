@@ -1,0 +1,35 @@
+# Each module's queries become typed Go in a package under the module's own
+# internal/, which no other module may import. Regenerate with
+# `go tool sqlc generate`; CI fails when the generated code is out of date.
+version: "2"
+overrides:
+  go:
+    overrides:
+      - db_type: uuid
+        go_type: github.com/google/uuid.UUID
+      - db_type: uuid
+        nullable: true
+        go_type:
+          import: github.com/google/uuid
+          type: NullUUID
+      - db_type: timestamptz
+        go_type: time.Time
+sql:
+  - engine: postgresql
+    schema: migrations
+    queries: internal/notification/queries.sql
+    gen:
+      go:
+        package: db
+        out: internal/notification/internal/db
+        sql_package: pgx/v5
+        omit_unused_structs: true
+  - engine: postgresql
+    schema: migrations
+    queries: internal/identity/queries.sql
+    gen:
+      go:
+        package: db
+        out: internal/identity/internal/db
+        sql_package: pgx/v5
+        omit_unused_structs: true
