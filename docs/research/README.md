@@ -6,6 +6,7 @@ What the team studied before designing Second Bite, kept so that a later reader 
 | --- | --- |
 | [Similar products](2026-10-16-similar-products.md) | Commercial food-surplus apps in Europe and Southeast Asia, the absence of a paid one in Vietnam, and the open-source projects nearest to the domain |
 | [Backend stack](2026-10-16-backend-stack.md) | Spring Boot or Go, how Go projects draw module boundaries, templates, the libraries chosen with their versions, and the Go agent skills |
+| [Open-source pickup models](2026-10-16-open-source-pickup-models.md) | How Open Food Network, Karrot, foodsharing and Umi Feeds model collection windows, stock holds, confirmation, no-shows, seller approval, sign-in and mobile, and what Second Bite takes from them |
 
 ## Sources, kept as received
 

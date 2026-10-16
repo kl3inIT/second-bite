@@ -1,8 +1,8 @@
 # Pilot domain model
 
-Status: draft for review, 16 October 2026. No code exists. Tracked in Linear as SEC-6; the open questions are SEC-7.
+Status: draft for review, 16 October 2026. No code exists. Tracked in Linear as SEC-6; the remaining question is SEC-7, the reading of comparable projects SEC-8.
 
-This increment works the pilot's journey through [boundary discovery](../../../conventions.md#boundary-discovery), steps 1 to 5, and proposes the modules the backend starts with. Each module is then built in an increment of its own, which narrows this model to what its first consumer needs. Sources: the [brief](../../../brief/second-bite-project-brief.md), the [kickoff transcript](../../../research/sources/2026-10-16-kickoff-meeting-transcript.md) and [similar products](../../../research/2026-10-16-similar-products.md).
+This increment works the pilot's journey through [boundary discovery](../../../conventions.md#boundary-discovery), steps 1 to 5, and proposes the modules the backend starts with. Each module is then built in an increment of its own, which narrows this model to what its first consumer needs. Sources: the [brief](../../../brief/second-bite-project-brief.md), the [kickoff transcript](../../../research/sources/2026-10-16-kickoff-meeting-transcript.md) , [similar products](../../../research/2026-10-16-similar-products.md) and [how open-source food projects model pickups](../../../research/2026-10-16-open-source-pickup-models.md).
 
 ## What people will be able to do
 
@@ -89,7 +89,7 @@ This increment works the pilot's journey through [boundary discovery](../../../c
 | `identity` | accounts, sign-in challenges, sessions or refresh tokens | One account per verified phone number or email; roles customer, operator |
 | `seller` | sellers, staff memberships, verification history | Verification and suspension; who acts for a seller |
 | `offer` | offers, offer drafts, follows of expected surplus | Units left; kinds of offer; publishing rules; the offer's collection point |
-| `reservation` | reservations, collection codes, collection attempts | Hold, cancellation, expiry, collection and refusal; single-use codes |
+| `reservation` | reservations, collection codes, collection attempts, reservation events (every transition, never a deleted row) | Hold, cancellation, expiry, collection and refusal; single-use codes; no-show recorded when a window closes uncollected |
 | `notification` | device push tokens, sent notifications | What a person is told, once |
 | `support` | support requests and their messages | A request's lifecycle |
 
@@ -141,17 +141,25 @@ The pilot's vendor families, built with [Strategy behind a registry](../../../co
 
 Push goes through Firebase Cloud Messaging alone, which reaches iOS through APNs, so it has no registry.
 
-## Open questions
+## Working assumptions
 
-| # | Question | Who answers | Why it matters to the model |
+Business details wait until the pilot shows what matters, as agreed at the kickoff ([transcript, 26:22–26:40](../../../research/sources/2026-10-16-kickoff-meeting-transcript.md)). Until then the model works to these assumptions, taken from the kickoff and from [how other projects do it](../../../research/2026-10-16-open-source-pickup-models.md). Each is a setting or a small change, not a structural one; a later answer replaces it here.
+
+| # | Topic | Assumption for the pilot | Basis |
 | --- | --- | --- | --- |
-| 1 | The fee after the pilot: 20% of the offer price, as the founder proposed, or another model (sponsorship, advertising), as the sponsor suggested | Founder, sponsor | Whether the fee is stored per reservation now (at 0) |
-| 2 | Does a customer pay in advance, at the counter, or neither during the pilot? | Founder | Payment state on a reservation; no-show handling |
-| 3 | How long is a reservation held: until the window closes, or a set time after it is made? | Founder with sellers | Expiry rule |
-| 4 | Is there a minimum discount the platform requires, and is it per kind of food? | Founder with sellers (survey) | Validation when publishing |
-| 5 | How many units may one customer hold at once, and is a customer who does not come limited? | Founder | Limits on reserving |
-| 6 | How are followers of expected surplus told, and how often at most? | Founder | Follows and notification rules |
-| 7 | Does an offer carry allergens or ingredients beyond its description? | Founder, food-safety advice | Offer fields |
-| 8 | How is avoided disposal measured: units collected, an estimated weight per offer, the seller's own count? | Founder | Measures to store per offer and collection |
-| 9 | How do customers sign in: phone number with a code (SMS or Zalo cost), or email? | Team | `identity` and its cost |
-| 10 | Are offers written in one language and shown as written, or translated? | Founder | Offer text fields |
+| 1 | Fee | None. The platform fee is a setting at 0%; the fee in force is recorded on each reservation | Sponsor at the kickoff: free during the pilot |
+| 2 | Payment | The customer pays the seller at the counter; no payment in the app | Kickoff: no advance payment |
+| 3 | Hold | A reservation holds its units until its collection window closes | Too Good To Go's model; Karrot's activity window |
+| 4 | Minimum discount | A platform setting checked when publishing, at 0% until sellers are surveyed | Kickoff: the platform sets a minimum; the founder surveys sellers |
+| 5 | Limits | A setting for the units one customer may hold per day; no-shows are recorded automatically, without a penalty yet | foodsharing's per-person limits; no-show policy deferred |
+| 6 | Followers of expected surplus | Told once, when the seller confirms it as stock | Simplest rule that serves the brief |
+| 7 | Allergens | Part of the description written by staff; no structured field yet | Staff check suitability at the handover |
+| 8 | Language | Offers are shown as written; the interface is bilingual | Translation needs no change to the model later |
+| 9 | Sign-in | Email with a one-time code, no password; phone number later if customers need it | Every reference signs in by email; no SMS cost; BeyondPilot's code sign-in |
+| 10 | Avoided disposal | Units offered, reserved, collected and expired are recorded per offer; an estimated weight per unit is optional on the offer | The brief measures avoided disposal separately against a baseline |
+
+## Questions that remain
+
+| Question | Who answers | Why it cannot wait for the pilot |
+| --- | --- | --- |
+| What baseline of disposal is measured before the pilot starts, and by whom? | Founder, with the sellers | Avoided disposal is measured against it; a baseline cannot be taken after the pilot begins |
