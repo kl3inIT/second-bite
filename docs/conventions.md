@@ -129,6 +129,24 @@ The error contract follows [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.htm
 
 A module tells others that something happened with an event.
 
+### Call or event
+
+Choose by what the module that acts needs, not by taste. When both seem to fit, the first rule that applies decides.
+
+| Use | When | Pilot examples |
+| --- | --- | --- |
+| **A call** to the other module's published API | The caller needs the answer to go on or to answer its own request: a read, a check, or an action whose success or failure decides what the caller does next | `order` reads an offer's price and units; `identity` sends the sign-in code and answers 503 when it could not leave |
+| **A call** | The data passed is a secret, which must not be stored where events are | The sign-in code |
+| **A call** inside one transaction | Two modules' writes must hold together or not at all | The units an order takes from its offer |
+| **An event** | The publisher's change is complete without the others, and they follow it: a side effect, a notice, another module's state that catches up | `payment.ReceivedEvent` confirms the waiting order; `offer.WithdrawnEvent` cancels its open orders; facts reach `notification` to tell people |
+| **An event** | The reaction may fail, be slow, or be retried without undoing or delaying the change | An email or a push about an order |
+| **An event** | A call would make the publisher depend on a module that already depends on it | `payment` tells `order` about money it received |
+
+- **Never ask through an event and wait for the reply.** A module that needs an answer calls.
+- **An event never carries a command.** It states what happened (`order.CancelledEvent`), not what someone else must do (`SendCancellationEmail`); the listener decides what follows.
+- **Within a module**, prefer the plain call or a job; an event is the boundary between modules.
+- A new event or a new call between modules changes the context map of the domain model and the allowed edges in [ARCHITECTURE.md](../ARCHITECTURE.md): an event adds an edge from the listener to the publisher, whose event type it imports.
+
 - **The event** is named for a past fact followed by `Event`, and is written with the module that publishes it, so the module is not repeated in the name: `offer.PublishedEvent`, `order.CollectedEvent`, `payment.ReceivedEvent`. Its stable key, used where the event is stored, delivered and logged, is the module and the fact in lower case: `offer.published`, `order.collected`. The domain model may still speak of the fact alone ("offer published"). The event carries identifiers only. A listener that needs the state reads it through the publisher's published API, so it always sees the current state and the event store never holds personal data.
 - **Publishing** happens inside the transaction that made the change, by writing the event or the job that carries it to PostgreSQL in that transaction (a transactional outbox). A rolled-back change publishes nothing; a committed change is never lost by a crash after the commit.
 - **Listening** runs after the commit, in a transaction of its own, so its failure never undoes the change. A listener is idempotent and does not depend on order, because an event can be delivered again.
