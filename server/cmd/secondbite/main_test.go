@@ -25,7 +25,7 @@ import (
 // The images of local development and of every test.
 const (
 	postgisImage = "postgis/postgis:18-3.6"
-	mailpitImage = "axllent/mailpit:v1.31.4"
+	mailpitImage = "axllent/mailpit:v1.31.6"
 )
 
 const adminEmail = "admin@example.com"

@@ -23,8 +23,13 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/seller/internal/db"
 )
 
-// maxOwnedSellers is Open Food Network's default enterprise_limit.
-const maxOwnedSellers = 5
+const (
+	// maxOwnedSellers is Open Food Network's default enterprise_limit.
+	maxOwnedSellers = 5
+	// maxMembers bounds the people one seller can add, since they are added
+	// without accepting: an owner cannot attach a seller to many addresses.
+	maxMembers = 30
+)
 
 // Status is where a seller stands with the admins.
 type Status string

@@ -96,6 +96,7 @@ Infrastructure the team runs itself in Docker Compose is preferred over managed 
 
 ## Tooling and gates
 
+- **Everything is on its newest stable version**: Go, every module, the tools, the actions and the images, as of the change that adds or touches them. Dependabot proposes each newer version every week (`.github/dependabot.yml`), and govulncheck fails CI on a known vulnerability the code reaches. A pre-release (PostgreSQL 19 beta) is not taken.
 - The Go version is pinned in `go.mod`. Code generators (`sqlc`) are pinned with `tool` directives so every machine runs the same version; goose runs as a library inside the binary. golangci-lint is pinned by version in CI and the runbook instead, because its maintainers advise against installing it through `go tool`.
 - golangci-lint runs the recommended configuration of the vendored `golang-lint` skill (`server/.golangci.yml`). A `//nolint` names its linter and says why.
 - Before pushing: formatting, golangci-lint, the tests (the boundary check, the contract check and the PostgreSQL tests, which need Docker) and `govulncheck`, as the [backend runbook](../runbooks/backend.md) lists.

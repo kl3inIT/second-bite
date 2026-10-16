@@ -48,7 +48,7 @@ Built on 16 October 2026 on this increment's branch; how to run and check it is 
 
 ### Checks
 
-- **Lint**: the recommended `.golangci.yml` of the vendored `golang-lint` skill, unchanged apart from a renamed gofumpt setting, with golangci-lint v2.14.0 (v2.15.0 was published the same day and is not taken yet).
+- **Lint**: the recommended `.golangci.yml` of the vendored `golang-lint` skill, unchanged apart from a renamed gofumpt setting, with the newest golangci-lint (v2.15.0 on 17 October 2026).
 - **Boundary check**: a test over `go list` (`server/internal/boundaries_test.go`), chosen over go-arch-lint and depguard because it needs no tool and reads the allowed edges from [ARCHITECTURE.md](../../../../ARCHITECTURE.md), so the page and the check cannot disagree. It counts test imports too, and was seen to fail on a module importing another without an allowed edge and on one reaching past another's root package.
 - **Contract check**: `api/openapi.yaml` is generated from the registered operations and compared in a test; `-update` rewrites it.
 - **Composition test**: the assembled service against `postgis/postgis:18-3.6` in a container (testcontainers-go): migrations, probes, request identifiers, the contract, problems for an unknown route and a wrong method, and a clean stop.
@@ -146,6 +146,7 @@ Built on 17 October 2026:
 
 - Tables `seller_sellers` (the location a PostGIS `geography(Point, 4326)` generated from the latitude and longitude, so queries and sqlc read plain numbers) and `seller_members` (one owner per seller, held by a partial unique index). A member's account is identity's identifier, without a foreign key into identity's table.
 - `POST /sellers`, `GET /sellers/mine`, `GET` and `PUT /sellers/{sellerId}`, `GET` and `POST /sellers/{sellerId}/members`, `DELETE /sellers/{sellerId}/members/{accountId}`, `GET /admin/sellers?status=`, `POST /admin/sellers/{sellerId}/activate` and `/block`.
+- **Staff are added without accepting, as in Open Food Network; an automated security review flagged it.** The trade, kept on purpose: a person can find themself on a seller's staff without having asked, and an account row exists for an address that has not signed in yet. Neither gives anyone access: the account opens only with a code emailed to that address, and the person can leave at once. A seller holds at most 30 people, so an owner cannot attach it to many addresses. If sellers misuse it, an acceptance step (Karrot, Gitea, Medusa) replaces it.
 - The limit of five sellers is checked under an advisory lock on the owner, so sellers opened together cannot pass it. A phone keeps its digits and a leading `+`, 9 to 15 digits.
 - `identity` gained `EnsureAccount` (an address that has never signed in gets its account when it is added as staff) and `Accounts` (the members' addresses in one query): calls, as the [rule](../../../conventions.md#call-or-event) asks when the answer is needed.
 - `seller.CanPublish` and `CollectionPoint` wait for `offer`, their first caller.
@@ -169,7 +170,7 @@ What [email delivery](#email-delivery) decided, as built:
 ### Checks
 
 - The checks of the security review: a new code ends the earlier one (seen to fail with the fix taken out), and a stored SMTP password is refused for another server and without TLS.
-- The composition test runs the assembled service against PostGIS and Mailpit (`axllent/mailpit:v1.31.4`) in containers, configured by the administrative commands, and reads each code from Mailpit's API: sign-in and sign-out, an address typed in mixed case, five wrong guesses ending a code, the minute between codes, a code working once, unknown and malformed tokens, and the email settings refused to a customer and served to the admin.
+- The composition test runs the assembled service against PostGIS and Mailpit (`axllent/mailpit:v1.31.6`) in containers, configured by the administrative commands, and reads each code from Mailpit's API: sign-in and sign-out, an address typed in mixed case, five wrong guesses ending a code, the minute between codes, a code working once, unknown and malformed tokens, and the email settings refused to a customer and served to the admin.
 - Unit tests: the limits' waits, address normalization, the code hash depending on the challenge and the key, sealing (a value sealed for one field does not open in another; two seals differ), and Brevo's request and the classification of each of its answers against a server answering as Brevo documents.
 - The boundary check refused `identity → notification` until ARCHITECTURE.md listed it.
 

@@ -3,6 +3,7 @@ package seller_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -17,6 +18,27 @@ import (
 type fixture struct {
 	sellers  *seller.Service
 	accounts *identity.Service
+	prefix   string
+}
+
+// TestSeller runs the module's checks in parallel against one PostgreSQL,
+// each with addresses of its own: one container rather than one per check.
+func TestSeller(t *testing.T) {
+	t.Parallel()
+
+	pool := platformtest.StartPostgres(t)
+
+	for name, check := range map[string]func(*testing.T, *pgxpool.Pool){
+		"publishing follows status and membership": testPublishingFollowsStatusAndMembership,
+		"only the right people act on a seller":    testOnlyTheRightPeopleActOnASeller,
+		"an owner opens at most five sellers":      testAnOwnerOpensAtMostFiveSellers,
+		"details are checked":                      testDetailsAreChecked,
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			check(t, pool)
+		})
+	}
 }
 
 func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
@@ -28,14 +50,21 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 		t.Fatal(err)
 	}
 
-	return fixture{sellers: seller.NewService(pool, accounts, platformtest.Logger()), accounts: accounts}
+	return fixture{sellers: seller.NewService(pool, accounts, platformtest.Logger()), accounts: accounts, prefix: strings.ToLower(t.Name())}
+}
+
+// mail makes an address unique to the test, from its local part.
+func (f fixture) mail(local string) string {
+	name, _, _ := strings.Cut(local, "@")
+
+	return strings.NewReplacer("/", ".", "_", ".").Replace(f.prefix) + "." + name + "@example.com"
 }
 
 // as returns a context whose caller is the account of email.
 func (f fixture) as(t *testing.T, email string, role platform.Role) context.Context {
 	t.Helper()
 
-	a, err := f.accounts.EnsureAccount(t.Context(), email)
+	a, err := f.accounts.EnsureAccount(t.Context(), f.mail(email))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,10 +91,10 @@ func mustCanPublish(ctx context.Context, t *testing.T, f fixture, sellerID uuid.
 
 // TestPublishingFollowsStatusAndMembership walks a seller through its life:
 // rights to publish exist only for its members while it is active.
-func TestPublishingFollowsStatusAndMembership(t *testing.T) {
-	t.Parallel()
+func testPublishingFollowsStatusAndMembership(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
 
-	f := newFixture(t, platformtest.StartPostgres(t))
+	f := newFixture(t, pool)
 	owner := f.as(t, "owner@example.com", platform.RoleCustomer)
 	staff := f.as(t, "staff@example.com", platform.RoleCustomer)
 	stranger := f.as(t, "stranger@example.com", platform.RoleCustomer)
@@ -82,7 +111,7 @@ func TestPublishingFollowsStatusAndMembership(t *testing.T) {
 
 	mustCanPublish(owner, t, f, s.ID, false) // pending
 
-	if _, err := f.sellers.AddStaff(owner, s.ID, "Staff@Example.com"); err != nil {
+	if _, err := f.sellers.AddStaff(owner, s.ID, strings.ToUpper(f.mail("staff"))); err != nil {
 		t.Fatal(err)
 	}
 
@@ -113,10 +142,10 @@ func TestPublishingFollowsStatusAndMembership(t *testing.T) {
 	mustCanPublish(staff, t, f, s.ID, false) // removed: the right ends at once
 }
 
-func TestOnlyTheRightPeopleActOnASeller(t *testing.T) {
-	t.Parallel()
+func testOnlyTheRightPeopleActOnASeller(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
 
-	f := newFixture(t, platformtest.StartPostgres(t))
+	f := newFixture(t, pool)
 	owner := f.as(t, "owner@example.com", platform.RoleCustomer)
 	staff := f.as(t, "staff@example.com", platform.RoleCustomer)
 	stranger := f.as(t, "stranger@example.com", platform.RoleCustomer)
@@ -126,7 +155,7 @@ func TestOnlyTheRightPeopleActOnASeller(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := f.sellers.AddStaff(owner, s.ID, "staff@example.com"); err != nil {
+	if _, err := f.sellers.AddStaff(owner, s.ID, f.mail("staff")); err != nil {
 		t.Fatal(err)
 	}
 
@@ -137,8 +166,8 @@ func TestOnlyTheRightPeopleActOnASeller(t *testing.T) {
 	}{
 		{"a stranger does not see the seller", get(stranger, f, s.ID), seller.ErrNotFound},
 		{"staff do not change it", update(staff, f, s.ID), seller.ErrOwnerRequired},
-		{"staff do not add staff", addStaff(staff, f, s.ID, "other@example.com"), seller.ErrOwnerRequired},
-		{"the same person is not added twice", addStaff(owner, f, s.ID, "STAFF@example.com"), seller.ErrAlreadyMember},
+		{"staff do not add staff", addStaff(staff, f, s.ID, f.mail("other")), seller.ErrOwnerRequired},
+		{"the same person is not added twice", addStaff(owner, f, s.ID, strings.ToUpper(f.mail("staff"))), seller.ErrAlreadyMember},
 		{"a customer does not activate", activate(owner, f, s.ID), platform.ErrAdminRequired},
 		{"the owner does not leave", leave(owner, f, s.ID), seller.ErrOwnerCannotLeave},
 		{"an address must be one address", addStaff(owner, f, s.ID, "not an address"), identity.ErrEmailInvalid},
@@ -155,10 +184,10 @@ func TestOnlyTheRightPeopleActOnASeller(t *testing.T) {
 	}
 }
 
-func TestAnOwnerOpensAtMostFiveSellers(t *testing.T) {
-	t.Parallel()
+func testAnOwnerOpensAtMostFiveSellers(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
 
-	f := newFixture(t, platformtest.StartPostgres(t))
+	f := newFixture(t, pool)
 	owner := f.as(t, "owner@example.com", platform.RoleCustomer)
 
 	for i := range 5 {
@@ -172,10 +201,10 @@ func TestAnOwnerOpensAtMostFiveSellers(t *testing.T) {
 	}
 }
 
-func TestDetailsAreChecked(t *testing.T) {
-	t.Parallel()
+func testDetailsAreChecked(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
 
-	f := newFixture(t, platformtest.StartPostgres(t))
+	f := newFixture(t, pool)
 	owner := f.as(t, "owner@example.com", platform.RoleCustomer)
 
 	for _, phone := range []string{"12345", "0912-abc-678", "1234567890123456", "09+12345678"} {

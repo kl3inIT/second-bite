@@ -6,7 +6,7 @@ How to run the backend on a developer's machine and run the checks CI runs. The 
 
 - Go at the version in `server/go.mod`.
 - Docker, for the local database and for the tests, which start PostgreSQL with PostGIS in containers.
-- golangci-lint v2.14.0, the version CI runs: `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0`. Its maintainers advise against `go tool` for it, so it is not pinned in `go.mod`.
+- golangci-lint v2.15.0, the version CI runs: `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0`. Its maintainers advise against `go tool` for it, so it is not pinned in `go.mod`.
 - govulncheck: `go install golang.org/x/vuln/cmd/govulncheck@latest`.
 
 ## Run locally

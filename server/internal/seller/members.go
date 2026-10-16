@@ -57,6 +57,15 @@ func (s *Service) AddStaff(ctx context.Context, sellerID uuid.UUID, email string
 		return Member{}, err
 	}
 
+	members, err := s.queries.Members(ctx, sellerID)
+	if err != nil {
+		return Member{}, fmt.Errorf("counting the staff: %w", err)
+	}
+
+	if len(members) >= maxMembers {
+		return Member{}, ErrStaffLimitReached
+	}
+
 	account, err := s.accounts.EnsureAccount(ctx, email)
 	if err != nil {
 		return Member{}, err
@@ -80,12 +89,12 @@ func (s *Service) AddStaff(ctx context.Context, sellerID uuid.UUID, email string
 		slog.String("by_account_id", caller.AccountID.String()),
 	)
 
-	members, err := s.Members(ctx, sellerID)
+	all, err := s.Members(ctx, sellerID)
 	if err != nil {
 		return Member{}, err
 	}
 
-	for _, m := range members {
+	for _, m := range all {
 		if m.AccountID == account.ID {
 			return m, nil
 		}
