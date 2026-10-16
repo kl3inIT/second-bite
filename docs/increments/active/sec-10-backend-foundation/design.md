@@ -165,7 +165,7 @@ What [email delivery](#email-delivery) decided, as built:
 - **A stored SMTP password follows only its server.** A change of host, port, security or user drops it unless a new password comes with the change, so a stolen admin session cannot send the stored password to a server of its own; and a password is never accepted with `smtp_security` `none`. Brevo's key needs no such rule: its address is fixed in the code. (Found by the same review.)
 - Settings are one row; the SMTP password and the Brevo API key are sealed field by field with AES-256-GCM, the field's name as additional data so a sealed value cannot be moved to another field. `GET /admin/email-settings` says whether each secret is set and never returns it; `PUT` keeps a stored secret when the field is empty.
 - A send that fails answers `503 NOTIFICATION_EMAIL_UNAVAILABLE` with `Retry-After`; no provider chosen yet answers `503 NOTIFICATION_EMAIL_NOT_CONFIGURED`.
-- Each email sent is recorded with its kind, recipient, provider and the provider's message id, for the delivery reports of step 2.
+- Each email sent is recorded with its kind, recipient, provider and the provider's message id, for the delivery reports of SEC-24.
 
 ### Checks
 
@@ -178,7 +178,7 @@ What [email delivery](#email-delivery) decided, as built:
 
 - **Limits per client address as well as per email address.** The limits per address can be used against its owner: anyone can ask for codes for an address and spend wrong guesses on them, which holds that address back for up to a day (the review's third finding). BeyondPilot accepts the same trade. The answer is a limit per client address in front of the one per email address, so one client cannot exhaust an address; behind the proxy the client address must first be read from a trusted header, so it comes with the first deployment, before the pilot opens.
 - A cookie for the web application, with its CSRF defence (SEC-17).
-- Brevo's delivery reports and suppressed addresses (step 2).
+- Brevo's delivery reports and suppressed addresses (SEC-24).
 - Retention of the record of emails sent, which holds addresses.
 
 ## Email delivery
@@ -204,7 +204,7 @@ Decided with the team on 16 October 2026.
   - The API never returns a secret; it says only whether one is set, and an empty field on save keeps the stored one.
   - Losing or replacing the key makes the stored secrets unreadable; an admin enters them again.
   - A fresh database sends no email until an admin chooses a provider. Local setup chooses SMTP to Mailpit, so development works from the first run.
-- **Delivery reports** (Brevo's webhook, suppressed addresses) are a later step of the [plan](plan.md). The message id is kept from the first send so they can attach to it.
+- **Delivery reports** (Brevo's webhook, suppressed addresses) are SEC-24, built with the first deployment and the real Brevo account. The message id is kept from the first send so they can attach to it.
 
 ### The sign-in code is sent within the request
 
