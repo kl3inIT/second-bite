@@ -1,0 +1,54 @@
+# identity
+
+Owns accounts and their role, emailed sign-in codes and sessions (tables `identity_*`). Decided in the [SEC-10 design](../increments/completed/sec-10-backend-foundation/design.md#identity). Checks: [docs/tests/identity.md](../tests/identity.md).
+
+## Operations
+
+| Operation | Who | Answer |
+| --- | --- | --- |
+| `POST /auth/sign-in-codes` `{email}` | Anyone | `202 {challengeId, expiresAt}`, whether or not the address has an account |
+| `POST /auth/sessions` `{challengeId, code}` | Anyone holding a challenge | `201 {token, expiresAt, account}`; the token is shown only here |
+| `DELETE /auth/sessions/current` | A signed-in caller | `204`; the session ends |
+| `GET /accounts/me` | A signed-in caller | `200 {id, email, role}` |
+
+Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantRole`.
+
+Administrative command: `secondbite admin grant EMAIL` makes an account an admin, creating it if needed.
+
+## Rules
+
+- An address is one plain address, kept in lower case; every table keys on that form. An account is created at its first sign-in, or when `EnsureAccount` is called for it (a seller adding staff).
+- A code is six random digits, emailed before the request is answered, and lives 15 minutes. Only HMAC-SHA-256 of the challenge and the code under `SECONDBITE_SIGN_IN_CODE_KEY` is stored. A code that could not be sent is deleted, so it neither works nor counts toward the limits.
+- One live code per address: asking for a new one ends the earlier ones.
+- Each guess is counted before it is compared; after five wrong guesses the code no longer works, even when right. A right code works once.
+- Limits per address, checked under a lock so that requests arriving together cannot pass them: one code a minute, ten an hour, fifteen wrong guesses an hour and thirty a day.
+- A session token is random (130 bits) and only its SHA-256 is stored. It is sent as `Authorization: Bearer`. A session lasts 30 days from its last use; the end moves at most once an hour. An account's expired sessions are deleted when it opens a new one.
+- A header with an unknown, ended or malformed token is refused at once; it does not fall back to an anonymous request.
+
+## Data
+
+| Table | Holds | Lifecycle |
+| --- | --- | --- |
+| `identity_accounts` | Address (unique, lower case), role (`customer`, `admin`) | Kept |
+| `identity_sign_in_challenges` | Address, code hash, wrong guesses, expiry | Deleted when used, ended by a newer code, or a day after it was sent |
+| `identity_sessions` | Account, token hash, last use, expiry | Deleted on sign-out; expired ones when the account opens a new session |
+
+## Failures
+
+| Code | Status | When |
+| --- | --- | --- |
+| `IDENTITY_EMAIL_INVALID` | 400 | Not one plain address |
+| `IDENTITY_CODE_INCORRECT` | 400 | Wrong code; the guess is spent |
+| `IDENTITY_SESSION_INVALID` | 401 | Unknown, ended or malformed token; with `WWW-Authenticate: Bearer` |
+| `IDENTITY_ACCOUNT_NOT_FOUND` | 404 | The account does not exist |
+| `IDENTITY_CHALLENGE_GONE` | 410 | The code expired, was used or was ended by a newer one |
+| `IDENTITY_CODE_ATTEMPTS_EXHAUSTED` | 410 | Five wrong guesses on this code |
+| `IDENTITY_CODE_LIMIT_EXCEEDED` | 429 | A limit per address; `Retry-After` gives the wait |
+| `IDENTITY_SESSION_UNAVAILABLE` | 503 | The session could not be checked; `Retry-After` 5 seconds |
+
+A code that could not be emailed answers `notification`'s 503 ([notification](notification.md#failures)).
+
+## Not yet
+
+- Limits per client address in front of those per email address, which today can be spent by someone else to hold an address back for up to a day; with the first deployment.
+- A cookie with CSRF defence for the web application (SEC-17).

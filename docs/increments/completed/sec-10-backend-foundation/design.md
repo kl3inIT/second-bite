@@ -1,6 +1,6 @@
 # SEC-10 — Backend foundation and the `seller` module: design
 
-Status: being designed, one part at a time ([plan](plan.md)). Each part below is decided with the team before code is written for it.
+Status: completed on 17 October 2026 ([plan](plan.md), [verification](verification.md)). Each part below was decided with the team before code was written for it. What exists now is in the specs of [platform](../../../specs/platform.md), [identity](../../../specs/identity.md), [notification](../../../specs/notification.md) and [seller](../../../specs/seller.md); this page keeps why.
 
 ## Foundation
 
@@ -274,7 +274,7 @@ So the shape is common: mail caught locally in development, a provider family on
 
 - **Who calls whom.** `identity` sends the sign-in code through the email module, and the settings screen is for admins, whose role `identity` owns. BeyondPilot broke the same cycle by having `identity` publish the code as a synchronous event (its ADR 0005). Here the admin check may come from the request's authenticated caller in `internal/platform` instead, so that only one edge exists. This is decided with the `identity` step, against the context map.
 - **The settings screen** belongs to the admins' web application (SEC-17); this increment delivers its API.
-- **Pinned versions** of Mailpit and go-mail, each at least two weeks old when pinned.
+- **Pinned versions** of Mailpit and go-mail: the newest stable release, as the [backend guideline](../../../guidelines/backend.md) now asks.
 - **Brevo's documented limits and its webhook**, read again on developers.brevo.com when the delivery reports are built.
 
 ### Sources

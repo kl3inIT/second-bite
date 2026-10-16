@@ -20,11 +20,11 @@ The modules under `server/internal/`, found through the [pilot domain model](doc
 
 | Module | Owns | Published API |
 | --- | --- | --- |
-| `identity` | Accounts and their role (customer or admin), emailed sign-in codes, sessions (tables `identity_*`) | `Service`: request a code, sign in, sign out, read an account, grant a role; `Authenticate`, the middleware that puts the caller in each request's context |
-| `seller` | Sellers, their status set by admins (pending, active, blocked), and their owner and staff (tables `seller_*`) | `Service`: open, read and change a seller, add and remove staff, list and activate or block for admins; `CanPublish` and `CollectionPoint` for offers |
-| `notification` | Who delivers email, chosen by admins while the service runs, and the record of emails sent (tables `notification_*`) | `Service`: send an email, read and save the email settings |
+| [`identity`](docs/specs/identity.md) | Accounts and their role (customer or admin), emailed sign-in codes, sessions (tables `identity_*`) | `Service`: request a code, sign in, sign out, read an account, grant a role; `Authenticate`, the middleware that puts the caller in each request's context |
+| [`seller`](docs/specs/seller.md) | Sellers, their status set by admins (pending, active, blocked), and their owner and staff (tables `seller_*`) | `Service`: open, read and change a seller, add and remove staff, list and activate or block for admins; `CanPublish` and `CollectionPoint` for offers |
+| [`notification`](docs/specs/notification.md) | Who delivers email, chosen by admins while the service runs, and the record of emails sent (tables `notification_*`) | `Service`: send an email, read and save the email settings |
 
-`internal/platform` is not a module: it holds the technical code every module uses, including the caller of a request (`platform.CallerFrom`, `RequireCaller`, `RequireAdmin`), so a module authorizes without depending on `identity`.
+`internal/platform` is not a module: it holds the technical code every module uses ([behavior](docs/specs/platform.md)), including the caller of a request (`platform.CallerFrom`, `RequireCaller`, `RequireAdmin`), so a module authorizes without depending on `identity`.
 
 ### Allowed module dependencies
 
@@ -37,7 +37,7 @@ One line per module, naming the modules whose published API it may use, such as 
 
 | Path | Holds today |
 | --- | --- |
-| `docs/` | Brief, vision, roadmap, conventions, guidelines, research and the active increments ([operating model](docs/guidelines/operating-model.md)) |
+| `docs/` | Brief, vision, roadmap, conventions, guidelines, research, module specs (`specs/`) and their test matrices (`tests/`), runbooks, and the increments ([operating model](docs/guidelines/operating-model.md)) |
 | `.claude/skills/` | Go skills vendored from community collections for coding agents ([sources](.claude/skills/SOURCES.md)) |
 | `server/` | The Go service: `cmd/secondbite` assembles it, `internal/platform` holds its technical code, `migrations/` its schema ([backend guideline](docs/guidelines/backend.md)) |
 | `api/` | `openapi.yaml`, the contract generated from the backend's operations and checked by a test |
