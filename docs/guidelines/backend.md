@@ -49,6 +49,18 @@ The compiler enforces `internal/` visibility and the absence of cycles. What it 
 - Every request gets an identifier, returned in `X-Request-Id` and logged as `request_id`.
 - `context.Context` is the first parameter of every function that does I/O, and every outbound call has a timeout.
 
+## Self-hosted infrastructure
+
+Infrastructure the team runs itself in Docker Compose is preferred over managed cloud services; an external service is used only where self-hosting is not possible or not sensible (app stores, push delivery, payment, AI model providers). A component joins the composition with the first increment that needs it, never ahead of it.
+
+| Component | Joins when | Until then |
+| --- | --- | --- |
+| PostgreSQL with PostGIS (`postgis/postgis:18-3.6`) | The backend foundation | — |
+| pgvector, in an image built from the PostGIS one | Search by meaning (SEC-20) | Full text with `unaccent` and `pg_trgm` |
+| MinIO or another S3-compatible store | The first stored image (SEC-11) | A local directory in development |
+| Redis | Realtime fan-out across several instances, rate limits PostgreSQL cannot carry, or a cache justified by a measured slow read | Jobs in River, counts and sessions in PostgreSQL, in-process fan-out on one instance, `LISTEN/NOTIFY` across instances |
+| A reverse proxy (Caddy or Nginx) | The first deployment with the web | — |
+
 ## Logging and errors
 
 - `log/slog` with the fields of [logging](../conventions.md#logging); JSON in deployed environments.
