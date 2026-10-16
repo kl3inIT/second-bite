@@ -23,11 +23,25 @@ The layout follows [Go's official guidance on module layout](https://go.dev/doc/
 A module is a package directly under `internal/`, named after its business concept in the singular (`offer`, `order`), discovered through [boundary discovery](../conventions.md#boundary-discovery). The skills' layer-first layouts (`internal/entity`, `internal/adapter/handler`) are not used: code is grouped by module first, as in the DDD layout of the vendored `golang-design-patterns` skill.
 
 - **The module's root package is its published API**: the exported functions and types other modules call, its events and its failure codes. Keep it narrow.
-- **Everything else is internal to the module**, either unexported in the root package or under `internal/<module>/internal/`, which the Go compiler forbids any other module to import. A module starts flat (`handler.go`, `service.go`, `store.go` in the root package, unexported) and gains `internal/` subpackages only when it grows enough files to need them. This is how Ory Kratos organizes its features (`identity/` holds `handler.go`, `manager.go` and `identity.go` side by side); the layered split of Wild Workouts (`domain/`, `app/command/`, `app/query/`, `adapters/`, `ports/` per context) is a teaching example and is not followed (decided with the team on 16 October 2026). Business rules with a state machine, such as an order's, still live in plain types with no database or HTTP in them, in their own file.
+- **Everything else is internal to the module**, either unexported in the root package or under `internal/<module>/internal/`, which the Go compiler forbids any other module to import. A module is one flat package, sized as the vendored `golang-project-layout` skill asks ("a service gets layers only when justified by actual complexity"), and gains `internal/` subpackages only when it grows enough files to need them. The layered splits of the `golang-design-patterns` skill (`domain/`, `application/`, `adapters/`) and of Wild Workouts are not followed (decided with the team on 16 October 2026).
+
+  ```text
+  internal/order/
+    order.go         the Order type and its rules (its state machine), with no database or HTTP
+    service.go       Service: the use cases other modules and the handlers call;
+                     opens the transaction, applies the rules, saves, publishes events
+    repository.go    Repository: the module's sqlc queries, a concrete type
+    handler.go       the huma operations: decode, call Service, encode
+    events.go        PlacedEvent, CollectedEvent...
+    errors.go        the module's failure codes
+  ```
+
+  - The names follow the skills: `golang-structs-interfaces` starts a repository as a concrete `UserRepository struct` and extracts an interface only when a second implementation needs it; `golang-naming` forbids repeating the package in a name, so the types are `order.Service` and `order.Repository`, not `order.OrderService`; files are lower case with underscores where they need two words (`order_status.go`); tests sit beside the code (`service_test.go`), as `golang-project-layout` places them.
+  - Exported: `Service`, the events and the failure codes, which other modules use, and one function `cmd/secondbite` calls to register the handlers. Unexported: the repository, the handlers themselves and the row types.
 - **Persistence is never shared.** A module's queries and row types are unexported or under its `internal/`; another module calls the published API.
 - **No import cycles**: the compiler refuses them, so a cycle between modules is resolved by an event or by moving the invariant to its owner, never by a shared helper package.
 - `internal/platform` depends on no module. A module depends on `platform` and on the published API of the modules its context map names.
-- Interfaces are declared by the code that consumes them, and only for a vendor family ([Strategy behind a registry](../conventions.md#interchangeable-implementations-strategy-behind-a-registry)) or a test that cannot use the real implementation. A module's own store and services are concrete types.
+- Interfaces are declared by the code that consumes them, and only for a vendor family ([Strategy behind a registry](../conventions.md#interchangeable-implementations-strategy-behind-a-registry)) or a test that cannot use the real implementation. A module's own repository and service are concrete types.
 - Dependencies are passed explicitly through constructors, assembled in `cmd/secondbite`. No dependency injection container and no package-level mutable state.
 
 ## Events
@@ -57,7 +71,7 @@ The compiler enforces `internal/` visibility and the absence of cycles. What it 
 ## HTTP
 
 - The standard library's `net/http` routing, with `huma` to declare operations and generate the OpenAPI 3.1 document from the implemented contract ([published API discovery](../conventions.md#api-discovery-and-product-boundaries)).
-- Handlers route thinly: decode, call the module, encode. They never call a store or another module's internals.
+- Handlers route thinly: decode, call the module, encode. They never call a repository or another module's internals.
 - One problem mapping in `internal/platform` turns typed failures into RFC 9457 responses ([API errors](../conventions.md#api-errors)).
 - Every request gets an identifier, returned in `X-Request-Id` and logged as `request_id`.
 - `context.Context` is the first parameter of every function that does I/O, and every outbound call has a timeout.
