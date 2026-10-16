@@ -28,7 +28,7 @@ Use this pattern when a module performs one function through one of several inte
 - **Naming.** Vendor names are written as words (`OpenAi`, `Claude`, `Minio`), spelled the same everywhere. Type names carry no authentication mode or API version.
 - **Apply it from the first implementation, and only to vendor families.** This pattern is the deliberate exception to the rule against single-implementation interfaces. Do not use it for code that has exactly one implementation by nature, such as a store over the module's own tables, an application service or the push sender.
 
-The pilot's vendor families are listed in the [pilot domain model](increments/active/sb-pilot-domain-model/design.md#interchangeable-implementations).
+The pilot's vendor families are listed in the [pilot domain model](increments/active/sec-6-pilot-domain-model/design.md#interchangeable-implementations).
 
 ## Reference-based design and scope control
 

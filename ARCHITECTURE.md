@@ -8,7 +8,7 @@ Nothing runs yet. No backend, mobile application, administration screen, databas
 
 ## Code and capability boundaries
 
-No module exists. The candidate boundaries of the pilot are being discovered in the [pilot domain model increment](docs/increments/active/sb-pilot-domain-model/design.md); a module appears here only with its first code.
+No module exists. The candidate boundaries of the pilot are being discovered in the [pilot domain model increment](docs/increments/active/sec-6-pilot-domain-model/design.md); a module appears here only with its first code.
 
 ## Repository contents
 

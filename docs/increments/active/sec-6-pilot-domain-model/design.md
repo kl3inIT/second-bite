@@ -1,6 +1,6 @@
 # Pilot domain model
 
-Status: draft for review, 16 October 2026. No code exists. The Linear issue is still to be created; this directory takes its number when it is.
+Status: draft for review, 16 October 2026. No code exists. Tracked in Linear as SEC-6; the open questions are SEC-7.
 
 This increment works the pilot's journey through [boundary discovery](../../../conventions.md#boundary-discovery), steps 1 to 5, and proposes the modules the backend starts with. Each module is then built in an increment of its own, which narrows this model to what its first consumer needs. Sources: the [brief](../../../brief/second-bite-project-brief.md), the [kickoff transcript](../../../research/sources/2026-10-16-kickoff-meeting-transcript.md) and [similar products](../../../research/2026-10-16-similar-products.md).
 
