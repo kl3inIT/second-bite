@@ -8,11 +8,26 @@ Decided with the team on 16 October 2026.
 
 ### What is decided
 
-- **SMTP first, and only SMTP.** The backend sends email over SMTP to whatever server the configuration names. The first emails are the sign-in codes of `identity`.
+- **SMTP is the first way of sending.** The backend sends email over SMTP to whatever server the configuration names. The first emails are the sign-in codes of `identity`.
 - **Mailpit in development and in tests.** Mailpit joins the local Compose file and catches every email, so a developer reads it in Mailpit's web page. Tests use it to read the code that was sent.
-- **Brevo is the first real provider, reached through its SMTP relay.** Its free plan allows 300 emails a day, which covers the pilot's sign-in codes. Changing provider means changing the SMTP host and credentials, not the code.
-- **No provider interface yet.** With one way of sending, an interface would have one implementation ([change design](../../../conventions.md#change-design)). The registry of [interchangeable implementations](../../../conventions.md#interchangeable-implementations-strategy-behind-a-registry) arrives with the first provider that SMTP cannot serve, for example Brevo's HTTP API and its delivery reports, as BeyondPilot added in BEY-128.
-- **Configuration from the environment.** Host, port, user, sender address and name come from `SECONDBITE_` variables. The password is read from a file under `/run/secrets` ([data and security](../../../conventions.md#data-and-security)). There is no operator screen for it yet, unlike BeyondPilot's Admin › Email.
+- **Brevo is the first real provider, reached through its SMTP relay.** Its free plan allows 300 emails a day, which covers the pilot's sign-in codes.
+- **Email delivery is a vendor family from the first line**, as [interchangeable implementations](../../../conventions.md#interchangeable-implementations-strategy-behind-a-registry) prescribes: one interface for the function (`EmailSender`), one type per provider, and a registry that resolves the configured provider by key and fails at startup on an unknown or duplicate key. The first implementation is `SmtpEmailSender`. More providers are certain (the team will add Brevo's API, and SES or Resend are likely), so the family is open: a new provider is a new type and a new key, and nothing else changes.
+- **Shared mechanics stay outside the providers**: the message type, address validation, timeouts and logging, so each provider only translates a message into its vendor's call.
+- **Configuration from the environment.** The provider key, host, port, user, sender address and name come from `SECONDBITE_` variables. The password or API key is read from a file under `/run/secrets` ([data and security](../../../conventions.md#data-and-security)). There is no operator screen for it yet, unlike BeyondPilot's Admin › Email.
+
+### Libraries
+
+Checked on GitHub on 16 October 2026. None of the vendored skills names an email library.
+
+| Use | Library | Why |
+| --- | --- | --- |
+| SMTP | `github.com/wneessen/go-mail` (v0.8.1, July 2026; about 1,500 stars, pushed this week) | Maintained, with context-aware sending, STARTTLS and implicit TLS, SMTP authentication and MIME built in; Kratos sends through a fork of it (`ory/mail/v3`) |
+| Brevo's API, when added | `net/http` against `POST /v3/smtp/email` | Brevo's Go SDK `getbrevo/brevo-go` (v1.1.3) has had no release since February 2025 and has about 30 stars; the call is one JSON request |
+| Resend, if added | `github.com/resend/resend-go` (v4.8.2, October 2026) | The vendor's own SDK, maintained |
+| Amazon SES, if added | `github.com/aws/aws-sdk-go-v2/service/sesv2` | The vendor's own SDK |
+| Local catcher | Mailpit (`axllent/mailpit`, about 10,700 stars, v1.31.6) | Maintained successor of MailHog, which listmonk and Kratos still run; it serves SMTP and a web page and has an API that tests read |
+
+Not chosen: `net/smtp` (the Go team has frozen it; memos uses it), `go-gomail/gomail` (no release since 2016), `knadh/smtppool` (a connection pool built for bulk campaigns; one email at a time needs none).
 
 ### What the references do
 
@@ -29,13 +44,12 @@ The references were read in `.tmp/` and in BeyondPilot on 16 October 2026.
 - **listmonk** sends through `github.com/knadh/smtppool/v2`, a pool of SMTP connections built for bulk campaigns. Its development Compose file runs MailHog.
 - **memos** (`internal/email`) wraps the standard library's `net/smtp` in one concrete `Client`, without any interface, and gives each operation a 15-second timeout.
 
-So the shape is common: start with SMTP and a concrete client, catch mail locally, and add a channel or provider family only when a second way of sending exists.
+So the shape is common: SMTP first, mail caught locally in development, and a channel or provider family once more than one way of sending is wanted, which Second Bite already knows it wants.
 
 ### Left for the step that writes the code
 
-- **The Go library.** The candidates are the standard `net/smtp` (frozen; memos uses it), `github.com/wneessen/go-mail` (maintained; Kratos uses a fork of it) and `smtppool` (built for bulk). The choice is made against the latest releases when the code is written, and recorded here.
 - **How the sign-in code is handed over.** Either it is sent synchronously before answering, as in BeyondPilot, which keeps the code out of the database, or it goes through a River job with retries, as Kratos queues its messages. This is decided with the `identity` step.
-- **Pinned versions** of the Mailpit image and the library.
+- **Pinned versions** of Mailpit and go-mail, each at least two weeks old when pinned.
 
 ### Sources
 
