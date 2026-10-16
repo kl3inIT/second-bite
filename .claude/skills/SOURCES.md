@@ -5,3 +5,7 @@
 
 Bỏ qua có chủ ý: golang-samber-*, dependency-injection (kéo samber/do), cli/cobra/viper, grpc, graphql, wire/fx/dig, swagger (swaggo, dự án dùng huma), benchmark, refactoring, documentation, stay-updated, gopls, how-to.
 Cập nhật: clone lại repo nguồn và chép đè các thư mục trên.
+
+# Figma skills — nguồn
+
+- awdr74100/figwright, chép từ BeyondPilot `3825fc73` (2026-10-01), MIT: figma-build, figma-codegen. Dùng với MCP `figwright` trong `.mcp.json` (`@figwright/mcp@0.6.0`) và plugin Figwright trong Figma desktop, cùng phiên bản. Quy tắc dùng cho Second Bite: [docs/guidelines/figma.md](../../docs/guidelines/figma.md).

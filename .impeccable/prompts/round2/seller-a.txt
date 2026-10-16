@@ -1,0 +1,9 @@
+A high-fidelity mobile app screen, portrait 390x844 viewport: the SELLER screen of "Second Bite", used by a shop's staff at the counter at the end of a busy service to handle pickup orders.
+
+Organisation:
+1. Green top bar: "Bếp Nhà 24" with a small "Đang mở" status dot, and a "VI | EN" toggle.
+2. A row of tabs with counts: "Mới 3" (selected), "Đang chuẩn bị 2", "Sẵn sàng 1", "Đã giao".
+3. Order cards on the kraft ground. Each white card: order code "#A7K2", customer "Chị Hoa", items "2 × Cơm tấm sườn nướng", the pink band across the text column "Lấy 20:00–21:00", total "80.000đ · Chuyển khoản · Đã thanh toán", and one green button "Bắt đầu chuẩn bị". Second card: "#B1Q9 · Anh Nam · 1 × Bánh mì thịt nướng", band "Lấy 20:30–21:30", "25.000đ · Tiền mặt khi lấy", button "Bắt đầu chuẩn bị". Third card shows a warning line in red text with an icon: "Sắp quá giờ lấy".
+4. A section "Món đang bán tối nay" with two compact rows: "Cơm tấm sườn nướng · còn 3" with minus/plus steppers and a "Ngừng bán" text button; "Gỏi cuốn tôm thịt · đã hết".
+5. A large floating green button at the bottom: "+ Đăng món còn dư" with small microphone and camera icons.
+6. Bottom tab bar: "Đơn" (active), "Món", "Chat", "Quán".

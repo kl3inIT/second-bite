@@ -1,0 +1,12 @@
+A high-fidelity mobile app screen, portrait, 390x844 phone viewport rendered edge to edge (no device frame, no hand, no desk). The customer home screen of "Second Bite", an app where nearby Hanoi food shops sell genuine end-of-day surplus food at a discount for pickup.
+
+Structure, top to bottom:
+1. Top app bar, solid near-black (#141414): wordmark "Second Bite" in white on the left; on the right a location chip "Việt Hưng · 2 km" and a small "VI | EN" toggle.
+2. Search field "Search food or shops" and a row of filter chips: "All" (selected), "Meals", "Bakery", "Ingredients", "Closing soon".
+3. A pinned strip "Your order": "Bếp Nhà 24 · Ready · collect by 21:00" with a "Show code" button.
+4. Heading "Tonight near you", "12 offers" right-aligned.
+5. A two-column grid of product cards on a light shelf-grey ground (#E9E9E4), like a supermarket shelf in the evening. Each card: a real appetising food photo (grilled pork rice in a takeaway box; banh mi; spring rolls; a loaf of bread; a bag of fresh vegetables), shop name, dish name, the original price printed small in grey like a thermal shelf label "65.000đ".
+6. THE SIGNATURE: a fluorescent yellow markdown sticker (#FFE14D) slapped slightly askew over each card's corner carrying the new price in big bold black "40.000đ"; cards closing within the hour get an orange sticker (#FF7A1A) reading "Until 21:00". One card shows a grey "Sold out" sticker.
+7. Bottom tab bar: Explore (active), Orders, Saved, Account.
+
+Typography: a sturdy grotesque sans; sticker prices heavy and condensed. Aligned grid, consistent spacing, standard mobile controls, clear hierarchy. No ratings, no invented statistics, no other brands' logos. Render text exactly as written.

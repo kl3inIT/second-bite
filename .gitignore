@@ -18,3 +18,12 @@
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Design exploration that is not ours to publish or is transient: Mobbin
+# screenshots, impeccable's reference images, question-page state, and the
+# generated comps (Figma is the source of truth; prompts and sidecars stay)
+.impeccable/research/screens/
+.impeccable/research/index.html
+.impeccable/qb/
+.impeccable/questions/
+.impeccable/mocks/**/*.png

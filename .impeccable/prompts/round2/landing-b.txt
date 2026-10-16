@@ -1,0 +1,7 @@
+A high-fidelity desktop landing page, landscape 1536x1024 viewport, rendered edge to edge (no browser window): the public website of "Second Bite", a non-profit Hanoi app where nearby shops sell genuine end-of-day surplus food at a lower price for pickup, taking no commission from shops. Show the first viewport and the start of the next section.
+
+Organisation (this variant leads with the live offers themselves instead of a photo):
+1. A full-width deep banana-leaf green header band: wordmark "Second Bite" left, nav "Cách hoạt động", "Cho quán", "Câu hỏi", "VI | EN", and a white button "Mở ứng dụng".
+2. Inside the same green band, centered: headline in very large bold white sans "Món ngon, thêm một cơ hội." and subline "Món còn trong ngày từ các quán quanh bạn, giá thấp hơn, đến lấy bằng mã." with a white search field "Bạn đang ở đâu? Việt Hưng, Long Biên" and a white button with green text "Xem món tối nay".
+3. Overlapping the bottom edge of the green band onto the kraft ground: a horizontal row of four white offer cards in the app's style, each with a food photo, shop name, dish, the thin pink band "20:00–21:00 · còn 3", and price "40.000đ" struck "65.000đ". Small label above the row: "Ví dụ minh hoạ".
+4. On the kraft ground below, two columns: left "Cho người ăn" with three short lines and a link; right "Cho quán" with "Không thu hoa hồng", "Đăng món bằng giọng nói hoặc ảnh", "Giao hàng tại quầy bằng mã", and a green button "Đăng ký cho quán".

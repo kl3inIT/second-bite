@@ -29,3 +29,5 @@
 ## Agent skills
 
 Go skills from community collections are vendored under `.claude/skills/`; their sources and what was left out are in [.claude/skills/SOURCES.md](.claude/skills/SOURCES.md). They describe idiomatic Go. Where a skill asks which architecture or layout to use, the answer is already given: [boundary discovery](docs/conventions.md#boundary-discovery) and the [backend guideline](docs/guidelines/backend.md). Where a skill and this repository disagree, this repository wins.
+
+The Figma skills (`figma-build`, `figma-codegen`) are vendored beside them and work through the Figwright server in `.mcp.json`; design rules are in the [Figma guide](docs/guidelines/figma.md). Design exploration uses the [impeccable](https://impeccable.style/) skill, which is not vendored: each person installs it, and it reads [PRODUCT.md](PRODUCT.md) and `.impeccable/` from this repository.

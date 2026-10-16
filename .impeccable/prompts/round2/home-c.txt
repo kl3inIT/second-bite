@@ -1,0 +1,9 @@
+A high-fidelity mobile app screen, portrait 390x844 viewport: the customer home screen of "Second Bite", a Hanoi app where nearby shops sell genuine end-of-day surplus food for pickup with a one-use code.
+
+Organisation (this variant is a dense list with a segmented control and a section for expected surplus):
+1. Green top bar: "Second Bite", location chip "Việt Hưng · 2 km", "VI | EN".
+2. A segmented control on white: "Đang có (12)" selected, "Dự kiến tối nay (4)".
+3. Search field "Tìm món hoặc quán" with a filter icon button.
+4. Compact list of five rows on white cards stacked tightly on the kraft ground: each row has a square food thumbnail (72px) on the left; on the right the dish "Bánh mì thịt nướng", shop and distance "Bánh Mì Cô Lan · 0,6 km", the thin pink band across the text column "19:30–20:30 · còn 2", and the price "25.000đ" with "40.000đ" struck through right-aligned. One row is sold out: grey band "Đã hết", row dimmed.
+5. Section header "Dự kiến tối nay" with one card: "Lò bánh Phố Huế · Bánh mì cuối ngày · khoảng 21:00", band in outline style (hollow pink, not filled) reading "Chưa xác nhận", and a secondary button "Theo dõi".
+6. White bottom tab bar: "Khám phá" (active), "Đơn", "Đã lưu", "Tài khoản".

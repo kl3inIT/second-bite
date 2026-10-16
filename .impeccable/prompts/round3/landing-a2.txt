@@ -1,0 +1,7 @@
+A high-fidelity desktop web page section, landscape 1536x1024, rendered edge to edge (no browser window): the LOWER part of the "Second Bite" landing page (the hero is above, not shown). Second Bite is a non-profit Hanoi app where nearby shops sell genuine end-of-day surplus food at a lower price for pickup, taking no commission from shops.
+
+Organisation, top to bottom:
+1. A "Cho quán" block on a deep banana-leaf green panel with rounded corners: left, heading "Cho quán: bán nốt món cuối ngày, không mất hoa hồng" in white, three short white lines with check icons "Đăng món bằng giọng nói hoặc ảnh", "Nhận đơn và giao tại quầy bằng mã", "Không thu hoa hồng, tiền về thẳng quán", and a white button "Đăng ký cho quán"; right, a photo of a smiling Vietnamese food-stall worker at a counter holding a phone, with a takeaway box tied with a hot-pink rubber band on the counter.
+2. On the kraft ground, a "Câu hỏi thường gặp" section: four accordion rows on white: "Món có an toàn không?", "Tôi trả tiền thế nào?", "Nếu tôi không đến lấy kịp?", "Second Bite kiếm tiền từ đâu?", the first one open with the answer "Quán tự kiểm tra món trước khi giao. Second Bite không xác nhận độ an toàn thay quán."
+3. A download band: heading "Tải Second Bite", App Store and Google Play badges, and a QR code, next to a phone showing the app's home screen.
+4. Footer on dark ink: "Second Bite" with the small parcel-and-band mark, links "Cách hoạt động", "Cho quán", "Câu hỏi", "Liên hệ", "VI | EN", and the line "Thí điểm tại Tasco Mall, Việt Hưng, Hà Nội".

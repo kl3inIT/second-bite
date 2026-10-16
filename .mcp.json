@@ -3,6 +3,13 @@
     "linear-secondbite": {
       "type": "http",
       "url": "https://mcp.linear.app/mcp"
+    },
+    "figwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@figwright/mcp@0.6.0"
+      ]
     }
   }
 }

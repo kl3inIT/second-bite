@@ -1,0 +1,10 @@
+A high-fidelity mobile app screen, portrait 390x844 viewport: the customer home screen of "Second Bite", a Hanoi app where nearby shops sell genuine end-of-day surplus food for pickup with a one-use code. It must feel instantly familiar to users of ShopeeFood, GrabFood and Too Good To Go: same structure, our own colours.
+
+Organisation:
+1. Green top bar: a location row "📍 Việt Hưng, Long Biên ⌄" with small "VI | EN" on the right; below it a white rounded search field "Tìm món hoặc quán".
+2. A row of category chips on the kraft ground: "Tất cả" (selected, green), "Cơm", "Bánh", "Đồ uống", "Nguyên liệu", "Lấy ngay".
+3. A slim white pinned strip: "Đơn của bạn · Bếp Nhà 24 · Sẵn sàng · lấy trước 21:00" with a green button "Hiện mã".
+4. Section title "Lấy ngay" with "Xem tất cả ›" on the right, then a horizontally scrolling row of cards (one full card and the edge of the next visible). Card anatomy, like Too Good To Go: a photo on top with a small white pill "Còn 3" top-left, a red "-38%" badge top-right, a heart button bottom-right; below the photo the shop name "Bếp Nhà 24", the dish "Cơm tấm sườn nướng", then the thin hot-pink rubber band crossing the card's text area reading "Lấy 20:00–21:00 · 0,8 km", then price row: "65.000đ" struck through small and "40.000đ" large bold.
+5. Section title "Gần bạn" with "Xem tất cả ›", another horizontal row of the same cards (bánh mì, gỏi cuốn).
+6. Section title "Dự kiến tối nay" with one card whose band is hollow (pink outline, not filled) reading "Chưa xác nhận · khoảng 21:00" and a small outlined button "Theo dõi".
+7. White bottom tab bar with 4 tabs: "Khám phá" (active, green), "Đơn", "Đã lưu", "Tài khoản".

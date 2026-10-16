@@ -1,0 +1,11 @@
+A high-fidelity mobile app screen, portrait 390x844 viewport: the CHECKOUT / reservation screen of "Second Bite", a Hanoi food-surplus pickup app. One screen, like Too Good To Go and ShopeeFood "Xác nhận đơn".
+
+Organisation:
+1. Green top bar with a back arrow and the title "Xác nhận đơn".
+2. White card: small food thumbnail, "Cơm tấm sườn nướng · Bếp Nhà 24", and the hot-pink band "Lấy 20:00–21:00 · Hôm nay"; below it "Tầng 4, Tasco Mall".
+3. Section "Số lượng" with a stepper "− 2 +" and the hint "Còn 3 phần".
+4. Section "Cách nhận": a single selected radio "Đến lấy tại quầy" and a disabled row "Giao hàng · sắp có".
+5. Section "Thanh toán" with two radio rows: "Tiền mặt khi đến lấy" and "Chuyển khoản VietQR" (selected) with a small QR icon.
+6. Section "Chi tiết": "Tiền món 2 × 40.000đ = 80.000đ", "Phí dịch vụ 0đ", "Phí chuyển khoản 0đ", and "Tổng cộng 80.000đ" in bold.
+7. Small grey line: "Đơn được giữ 15 phút để bạn chuyển khoản."
+8. Sticky footer: "Tổng 80.000đ" on the left and a big green button "Đặt món" on the right.

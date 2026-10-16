@@ -1,0 +1,130 @@
+{
+  "title": "Second Bite · chọn thế giới hình ảnh",
+  "question": "Một thế giới chung cho trang chủ khách, landing và màn quán. Giữ hướng được tung, lấy hướng khác, hoặc tung lại.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Gói mang về (lá chuối, giấy kraft, dây chun)",
+      "kicker": "THE ROLL",
+      "lineage": "Gói xôi, bánh giò, cơm hộp mang về ở Hà Nội: lá chuối, giấy kraft, dây chun hồng, chữ bút dạ viết trên hộp",
+      "thesis": "Mỗi phần đồ ăn còn dư là một gói mang về đã buộc dây chun, ghi tay giá và giờ lấy.",
+      "palette": ["#C9A274", "#F4ECDF", "#1F5A32", "#E2457A", "#1C1A17"],
+      "materials": ["giấy kraft", "lá chuối", "dây chun hồng", "chữ bút dạ"],
+      "viewport": "Thanh trên xanh lá chuối với vị trí và VI/EN; danh sách thẻ món trắng như nhãn dán trên nền kraft, mỗi thẻ có một dải dây chun hồng chạy ngang mang giờ lấy và số phần còn; thanh tab dưới cùng.",
+      "risk": "Nếu kraft nhạt đi sẽ thành nền kem quen thuộc; giấy kraft phải là màu nâu thật, và nét bút dạ chỉ dùng cho giá và giờ, không cho chữ thường.",
+      "raised": [
+        { "from": "Bảng giờ khởi hành", "raise": "Giờ lấy hàng luôn nằm ở cùng một ô cố định trên mọi thẻ, đọc như một cột giờ: còn mấy phần, lấy từ mấy giờ đến mấy giờ." },
+        { "from": "Bản đồ metro đêm", "raise": "Đơn đang chờ lấy được ghim ở trên cùng khi cuộn, như tuyến đang đi luôn sáng nhất." },
+        { "from": "Catalogue thú bông", "raise": "Mỗi thẻ có cùng một bộ đồ đạc cố định: bảng tên quán và một dòng ghi chú của nhân viên ở cùng vị trí." },
+        { "from": "Specimen chữ variable", "raise": "Thứ bậc của giá chỉ dùng tương phản cỡ chữ: giá mới lớn, giá cũ nhỏ gạch ngang, không thêm huy hiệu." }
+      ],
+      "comp": ".impeccable/mocks/decision/assigned.png"
+    },
+    {
+      "id": "model-pick",
+      "label": "Tem giảm giá buổi tối",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Tem giảm giá vàng, cam dán đè lên giá cũ ở siêu thị và cửa hàng tiện lợi lúc chiều tối",
+      "thesis": "Đúng nghi thức người Hà Nội đã biết: giờ này, hàng ngon được dán tem giá mới.",
+      "palette": ["#FFE14D", "#FF7A1A", "#FFFFFF", "#141414", "#E9E9E4"],
+      "materials": ["tem dán vàng huỳnh quang", "nhãn giá in nhiệt", "nền trắng xám"],
+      "viewport": "Nền trắng xám như kệ hàng; mỗi thẻ món có giá in nhỏ và một tem vàng dán chéo lên với giá mới, tem cam cho món sắp hết giờ; thanh trên đen, tab dưới.",
+      "risk": "Quen thuộc nhất: đây là cách mọi app giảm giá và siêu thị đều làm, nên khó tạo nhận diện riêng; và đẩy mạnh chữ 'giảm giá' dễ làm món ăn trông như hàng thanh lý.",
+      "comp": ".impeccable/mocks/decision/model-pick.png"
+    },
+    {
+      "id": "challenger-timetable",
+      "label": "Bảng giờ khởi hành",
+      "verdict": "competitive",
+      "lineage": "Bảng giờ in trên giấy vàng và bảng khởi hành của bến xe, sân bay",
+      "thesis": "Tối nay là một bảng giờ: mỗi món là một chuyến, giờ lấy là giờ khởi hành.",
+      "palette": ["#E8A818", "#1E2A2A", "#F3EAD3", "#D23B26", "#2E7D4F"],
+      "materials": ["giấy vàng nghệ", "bảng khởi hành than chì", "chữ condensed"],
+      "viewport": "Nền vàng; danh sách món dạng bảng giờ trên tấm than chì: giờ lấy, quán, món, còn mấy phần, trạng thái; một ô trạng thái cố định mỗi dòng, xanh là còn, đỏ là hết.",
+      "case": "Hợp nhất tốt: khung giờ lấy là trục chính của sản phẩm; thua về độ nhận diện vì người dùng không nghĩ đến đồ ăn khi thấy bảng giờ.",
+      "risk": "Dễ thành 'app đặt vé' hơn là 'app đồ ăn'; ảnh món phải đủ lớn để giữ cảm giác ngon.",
+      "comp": ".impeccable/mocks/decision/challenger-timetable.png",
+      "hero": "https://impeccable.style/worlds/cards/rw-timetable-slide-rack-hero.webp"
+    },
+    {
+      "id": "challenger-transit",
+      "label": "Bản đồ metro đêm",
+      "verdict": "declined",
+      "lineage": "Sơ đồ tuyến metro trên nền men xanh đêm",
+      "thesis": "Quán quanh Việt Hưng là các ga trên tuyến đi bộ của bạn.",
+      "palette": ["#0E1B3D", "#F2F2EE", "#D7262E", "#2457C5", "#E8A317"],
+      "materials": ["men xanh đêm", "đường tuyến màu"],
+      "viewport": "Sơ đồ ga trên nền xanh đêm, danh sách bên dưới.",
+      "case": "Hợp nhất kém: khoảng cách đi bộ không cần sơ đồ tuyến, và nền tối làm ảnh món kém ngon.",
+      "risk": "Thành app giao thông.",
+      "kept": "Tuyến đang đi luôn sáng nhất: đơn đang chờ lấy ghim trên cùng.",
+      "hero": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-midnight-transit-diagram-hero.webp"
+    },
+    {
+      "id": "challenger-goods",
+      "label": "Catalogue thú bông",
+      "verdict": "declined",
+      "lineage": "Trang catalogue nhân vật dễ thương xếp hạng trên lưới pastel",
+      "thesis": "Mỗi quán và món là một nhân vật có tên và một dòng tính cách.",
+      "palette": ["#FCE4EC", "#E3F2FD", "#FFF8E1", "#333333"],
+      "materials": ["lưới pastel", "viền trắng"],
+      "viewport": "Lưới thẻ tròn trịa pastel.",
+      "case": "Hợp nhất kém: trẻ con hoá món ăn và làm mất tin cậy khi chuyển khoản.",
+      "risk": "Trông như đồ chơi.",
+      "kept": "Mỗi thẻ có đồ đạc cố định: bảng tên quán và một dòng ghi chú ở cùng chỗ.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-character-goods-catalog-hero.webp"
+    },
+    {
+      "id": "challenger-specimen",
+      "label": "Specimen chữ variable",
+      "verdict": "declined",
+      "lineage": "Trang mẫu chữ tương tác",
+      "thesis": "Chữ là tất cả.",
+      "palette": ["#FAFAF7", "#111111", "#FF4F00"],
+      "materials": ["giấy trắng", "mực đen"],
+      "viewport": "Một con số giá khổng lồ.",
+      "case": "Hợp nhất kém: không phục vụ việc tìm và đặt món.",
+      "risk": "Thành trang trình diễn chữ.",
+      "kept": "Thứ bậc giá chỉ bằng tương phản cỡ chữ."
+    },
+    {
+      "id": "challenger-bitmap",
+      "label": "Specimen chữ bitmap",
+      "verdict": "declined",
+      "lineage": "Mẫu chữ pixel của Emigre",
+      "thesis": "Độ phân giải thấp là thẩm mỹ.",
+      "palette": ["#FFFFFF", "#000000", "#00A651"],
+      "materials": ["chữ pixel", "lưới điểm"],
+      "viewport": "Tiêu đề pixel cực lớn.",
+      "case": "Hợp nhất kém: dấu tiếng Việt vỡ trong chữ pixel; không gợi đồ ăn.",
+      "risk": "Retro, khó đọc.",
+      "kept": "Một con số giá lặp lại ở ba cỡ cố định trên thẻ, chi tiết, thanh toán."
+    },
+    {
+      "id": "challenger-botanical",
+      "label": "Folio thực vật theo mùa",
+      "verdict": "declined",
+      "lineage": "Tập tranh thực vật theo vòng đời",
+      "thesis": "Đơn hàng đi qua các giai đoạn như cây qua mùa.",
+      "palette": ["#F4EEDC", "#3E6B35", "#B3261E", "#6B6B6B"],
+      "materials": ["giấy kem", "nét khắc"],
+      "viewport": "Năm tấm tranh cùng tỉ lệ.",
+      "case": "Hợp nhất kém: đẹp nhưng xa người dùng; nền kem là lối mòn.",
+      "risk": "Thành tạp chí.",
+      "kept": "Trạng thái đơn luôn ở một dải cố định, cùng tỉ lệ, để so được."
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "comp", "toggle": true },
+  "canon": true,
+  "canonCard": {
+    "label": "Chuẩn của ngành",
+    "thesis": "Cách các app chống lãng phí như Too Good To Go làm, ở mức tay nghề cao nhất.",
+    "palette": ["#FFFFFF", "#0F5C4A", "#F6F3EE", "#1A1A1A"],
+    "materials": ["lưới sạch", "ảnh món thật"],
+    "viewport": "Thanh vị trí, hàng thẻ ảnh lớn theo nhóm, nút đặt xanh, tab dưới.",
+    "risk": "Trông giống đối thủ, đúng như thiết kế.",
+    "comp": ".impeccable/mocks/decision/canon.png"
+  },
+  "steer": true
+}

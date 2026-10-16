@@ -1,0 +1,14 @@
+A high-fidelity mobile app screen, portrait 390x844 viewport: the OFFER DETAIL screen of "Second Bite", a Hanoi app where nearby shops sell genuine end-of-day surplus food for pickup. Structured like Too Good To Go's offer page.
+
+Organisation:
+1. A large food photo at the top (cơm tấm sườn nướng in a kraft takeaway box) with round white back and heart buttons over it, and a white pill "Còn 3" at the bottom-left of the photo.
+2. White sheet below: the shop row with a small round shop logo "Bếp Nhà 24" and "0,8 km"; the dish title "Cơm tấm sườn nướng" large; unit line "1 hộp · sườn, cơm, đồ chua, nước mắm".
+3. The hot-pink rubber band across the sheet: "Lấy 20:00–21:00" with a small white pill "Hôm nay".
+4. An address row with a map-pin icon: "Tầng 4, Tasco Mall, Việt Hưng" and a link "Chỉ đường ›".
+5. A short note from the shop in grey: "Nấu lúc 17:30. Mang hộp về ăn trong tối nay."
+6. A row with a bell icon: "Báo tôi khi Bếp Nhà 24 đăng món" with a toggle switch.
+7. A small info line: "Quán kiểm tra món trước khi giao. Second Bite không thu hoa hồng từ quán."
+8. Sticky bottom bar: "65.000đ" struck through, "40.000đ" large bold, and a big green button "Đặt giữ".
+
+
+VISUAL WORLD (fixed, identical on every screen): "Takeaway wrap" from Hanoi street food. Shell and primary colour: deep banana-leaf green #1F5A32 (top bar, primary buttons, active tab). Page ground: light kraft-paper brown #CDAA7D with a very faint paper-fibre texture, used ONLY as the page background. Cards and sheets: clean white #FFFFFF with 16px radius and a soft shadow. Text: near-black ink #1C1A17, secondary grey #6B635A. ONE saturated accent only: a hot-pink rubber band #E2457A. THE SIGNATURE MOVE: each offer or order card carries exactly one thin rubber-band strap (about 28px tall, slightly glossy elastic texture, very slight wrap curve at the card edges) that crosses ONLY the card's text column, never the food photo; the band holds the pickup window and portions left in bold white condensed sans, e.g. "20:00–21:00 · còn 3". When sold out the band is grey and reads "Đã hết". Typography: one clean humanist sans for all UI (Inter-like), prices large and bold with the old price small and struck through, prices formatted like "40.000đ". Standard controls (chips, search field, tabs, buttons, steppers), aligned grid, generous touch targets. Real appetising photos of Vietnamese takeaway food (cơm tấm in a kraft box, bánh mì, gỏi cuốn on banana leaf, xôi, bread). Render the page itself edge to edge: no device frame, no browser window, no hand, no desk. Render all text exactly as written, with correct Vietnamese diacritics. No ratings, no invented statistics, no partner logos, no mascots.
