@@ -41,10 +41,26 @@ These are the sponsor's directional targets from the kickoff; the team may adjus
 
 ## Target architecture
 
-- One backend service in Go whose business capabilities are modules with enforced boundaries ([backend guideline](guidelines/backend.md)).
-- A web application in React, on the stack of BeyondPilot's web, for customers, sellers and operators on a computer and a phone's browser. The native mobile application is still to be decided.
-- PostgreSQL with PostGIS as the system of record, the schema owned by versioned migrations.
-- The backend owns the API contract; clients use code generated from it.
-- Self-hosted where practical; the external services kept are the ones that cannot be avoided: the app stores, push delivery, payment (SePay first), and AI model providers, each vendor family behind interchangeable adapters.
+Agreed with the team on 16 October 2026, after reading how Mattermost organizes a Go server with web, mobile and desktop clients. Technology choices are taken one part at a time and recorded as they are accepted.
 
-Not yet decided, and therefore not part of this target: the native mobile application, delivery partners, whether a customer's transfer goes to the seller's own account or through Second Bite, the minimum discount, and hosting. Each becomes an ADR or a roadmap entry when it is accepted.
+```text
+   Customers / sellers / operators
+       │                 │
+    Web application    Mobile application (iOS, Android)
+    (browser)          (submitted to the stores; until approved,
+       │                 pilot users use the web application)
+       └───────┬─────────┘
+               │  HTTPS, per the OpenAPI contract
+       Backend (Go, one deployable, modules with enforced boundaries)
+          │              │                    │
+     PostgreSQL     Object storage       External services
+     with PostGIS   (S3-compatible)      payment, AI, maps, email, push
+```
+
+- **The backend is the only owner of data and business rules.** Clients show and send; they never decide whether stock is left or who may read an order. This is what lets two clients be built at the same time without drifting apart.
+- **The API contract is the boundary between teams.** The backend generates its OpenAPI document from the implemented contract; the web and mobile applications generate their clients from it, so a client that falls behind a change fails its build.
+- **Web and mobile are built in parallel** against the same API. The web goes first because it needs no store review; the mobile application is submitted to the App Store and Google Play, and pilot users who cannot install it yet use the web.
+- The backend is one Go deployable whose business capabilities are modules with enforced boundaries ([backend guideline](guidelines/backend.md)), with PostgreSQL and PostGIS as the system of record and the schema owned by versioned migrations.
+- Self-hosted where practical; external services are used only where self-hosting is not possible or not sensible (app stores, push delivery, payment, AI model providers, maps), each vendor family behind interchangeable adapters.
+
+Still to decide, one part at a time: one repository or several; the web application's technology; the mobile application's technology; deployment and hosting. Also open: delivery partners, whether a customer's transfer goes to the seller's own account or through Second Bite, and the minimum discount. Each becomes an ADR or a roadmap entry when it is accepted.
