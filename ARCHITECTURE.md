@@ -8,8 +8,8 @@ The backend runs on a developer's machine and in tests; nothing is deployed, and
 
 - One Go binary, `secondbite` (`server/cmd/secondbite`). At startup it reads its configuration, opens a PostgreSQL pool, applies the pending migrations under a lock, and serves the HTTP API until SIGINT or SIGTERM, then lets requests in flight finish ([runbook](docs/runbooks/backend.md)).
 - PostgreSQL 18 with PostGIS 3.6, with the tables of `identity` and `notification`.
-- People sign in with a six-digit code emailed to them and get a session token, sent as `Authorization: Bearer`. Email goes through the provider operators chose (SMTP or Brevo's API); Mailpit catches it in development.
-- Two administrative commands set up a fresh installation: `secondbite email configure` and `secondbite operator grant`.
+- People sign in with a six-digit code emailed to them and get a session token, sent as `Authorization: Bearer`. Email goes through the provider admins chose (SMTP or Brevo's API); Mailpit catches it in development.
+- Two administrative commands set up a fresh installation: `secondbite email configure` and `secondbite admin grant`.
 - The API answers the probes `/livez` and `/readyz`, serves its OpenAPI 3.1 contract, and answers every error, an unknown route included, as an RFC 9457 problem with a `code` and the request's `requestId`.
 - Every request has an identifier, returned in `X-Request-Id` and logged as `request_id`.
 
@@ -19,10 +19,10 @@ The modules under `server/internal/`, found through the [pilot domain model](doc
 
 | Module | Owns | Published API |
 | --- | --- | --- |
-| `identity` | Accounts and their role (customer or operator), emailed sign-in codes, sessions (tables `identity_*`) | `Service`: request a code, sign in, sign out, read an account, grant a role; `Authenticate`, the middleware that puts the caller in each request's context |
-| `notification` | Who delivers email, chosen by operators while the service runs, and the record of emails sent (tables `notification_*`) | `Service`: send an email, read and save the email settings |
+| `identity` | Accounts and their role (customer or admin), emailed sign-in codes, sessions (tables `identity_*`) | `Service`: request a code, sign in, sign out, read an account, grant a role; `Authenticate`, the middleware that puts the caller in each request's context |
+| `notification` | Who delivers email, chosen by admins while the service runs, and the record of emails sent (tables `notification_*`) | `Service`: send an email, read and save the email settings |
 
-`internal/platform` is not a module: it holds the technical code every module uses, including the caller of a request (`platform.CallerFrom`, `RequireCaller`, `RequireOperator`), so a module authorizes without depending on `identity`.
+`internal/platform` is not a module: it holds the technical code every module uses, including the caller of a request (`platform.CallerFrom`, `RequireCaller`, `RequireAdmin`), so a module authorizes without depending on `identity`.
 
 ### Allowed module dependencies
 

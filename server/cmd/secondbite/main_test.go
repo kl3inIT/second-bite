@@ -28,7 +28,7 @@ const (
 	mailpitImage = "axllent/mailpit:v1.31.4"
 )
 
-const operatorEmail = "operator@example.com"
+const adminEmail = "admin@example.com"
 
 // service is one run of the assembled service against its database and
 // Mailpit, which catches every email it sends.
@@ -40,7 +40,7 @@ type service struct {
 
 // TestService runs the assembled service against PostgreSQL with PostGIS and
 // Mailpit in containers, configured through its own administrative commands
-// as a fresh installation is: email first, then the first operator.
+// as a fresh installation is: email first, then the first admin.
 func TestService(t *testing.T) {
 	t.Parallel()
 
@@ -58,7 +58,7 @@ func TestService(t *testing.T) {
 		"a second code within a minute is refused with a wait":    checkCodeCooldown,
 		"a code works once":                                       checkCodeWorksOnce,
 		"an unknown or malformed token is refused with 401":       checkInvalidToken,
-		"only operators read the email settings":                  checkOperatorOnly,
+		"only admins read the email settings":                     checkAdminOnly,
 		"a new code ends the earlier one":                         checkNewCodeEndsEarlier,
 	}
 
@@ -85,7 +85,7 @@ func TestService(t *testing.T) {
 	})
 }
 
-// startService starts the containers, configures email and the first operator
+// startService starts the containers, configures email and the first admin
 // with the administrative commands, starts the service on a free port and waits
 // until it is ready. stop ends it and reports how run returned.
 func startService(t *testing.T) (service, func() error) {
@@ -109,7 +109,7 @@ func startService(t *testing.T) (service, func() error) {
 			"email", "configure", "-provider", "smtp", "-sender-address", "no-reply@secondbite.test",
 			"-smtp-host", smtpHost, "-smtp-port", smtpPort, "-smtp-security", "none",
 		},
-		{"operator", "grant", operatorEmail},
+		{"admin", "grant", adminEmail},
 	}
 	for _, args := range admin {
 		if err := run(ctx, args, getenv, strings.NewReader(""), io.Discard); err != nil {

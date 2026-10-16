@@ -27,12 +27,12 @@ export SECONDBITE_SIGN_IN_CODE_KEY="$(openssl rand -base64 32)"
 export SECONDBITE_LOG_FORMAT=text
 ```
 
-A fresh database sends no email and has no operator. Configure email to Mailpit and make yourself an operator, once:
+A fresh database sends no email and has no admin. Configure email to Mailpit and make yourself an admin, once:
 
 ```sh
 go run ./cmd/secondbite email configure -provider smtp -sender-address no-reply@secondbite.local \
   -smtp-host 127.0.0.1 -smtp-port 1025 -smtp-security none
-go run ./cmd/secondbite operator grant you@example.com
+go run ./cmd/secondbite admin grant you@example.com
 ```
 
 Then serve:
@@ -60,7 +60,7 @@ The service migrates the database at every command, then `serve` listens on `:80
 | --- | --- | --- |
 | `SECONDBITE_DATABASE_URL` | required | The PostgreSQL URL, without the password |
 | `SECONDBITE_DATABASE_PASSWORD` | required, a secret | The database password |
-| `SECONDBITE_EMAIL_SETTINGS_KEY` | required, a secret | 32 bytes in standard base64 that seal the email provider's password or API key in the database. Replacing it makes them unreadable: an operator enters them again |
+| `SECONDBITE_EMAIL_SETTINGS_KEY` | required, a secret | 32 bytes in standard base64 that seal the email provider's password or API key in the database. Replacing it makes them unreadable: an admin enters them again |
 | `SECONDBITE_SIGN_IN_CODE_KEY` | required, a secret | 32 bytes in standard base64 that key the HMAC of stored sign-in codes. Replacing it voids the codes sent in the last 15 minutes |
 | `SECONDBITE_DATABASE_MAX_CONNS` | `10` | The size of the connection pool |
 | `SECONDBITE_HTTP_ADDR` | `:8080` | Where the API listens |
@@ -97,15 +97,15 @@ The tests include:
 
 ## Administrative commands
 
-A fresh installation needs an email provider and a first operator before anyone can sign in, so both are commands of the binary, run where the service runs, with its environment:
+A fresh installation needs an email provider and a first admin before anyone can sign in, so both are commands of the binary, run where the service runs, with its environment:
 
 | Command | Does |
 | --- | --- |
 | `secondbite email configure -provider smtp -sender-address A -smtp-host H -smtp-port P [-smtp-security starttls\|tls\|none] [-smtp-username U -secret-stdin]` | Delivers email through an SMTP server; the password is read from standard input |
 | `secondbite email configure -provider brevo -sender-address A -secret-stdin` | Delivers email through Brevo's API; the API key is read from standard input |
-| `secondbite operator grant EMAIL` | Makes the account of EMAIL an operator, creating it if the address has never signed in |
+| `secondbite admin grant EMAIL` | Makes the account of EMAIL an admin, creating it if the address has never signed in |
 
-A secret is never a flag, so it stays out of the shell's history: `secondbite email configure ... -secret-stdin < /run/secrets/brevo-api-key`. Afterwards operators change the provider in the API (`PUT /operator/email-settings`) and the next email uses it, without a restart.
+A secret is never a flag, so it stays out of the shell's history: `secondbite email configure ... -secret-stdin < /run/secrets/brevo-api-key`. Afterwards admins change the provider in the API (`PUT /admin/email-settings`) and the next email uses it, without a restart.
 
 ## Regenerate the queries
 

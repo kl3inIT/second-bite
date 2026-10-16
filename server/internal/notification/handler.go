@@ -48,12 +48,12 @@ func RegisterOperations(api huma.API, s *Service) {
 	huma.Register(api, huma.Operation{
 		OperationID: "getEmailSettings",
 		Method:      http.MethodGet,
-		Path:        "/operator/email-settings",
+		Path:        "/admin/email-settings",
 		Summary:     "Read who delivers email",
-		Tags:        []string{"Operators"},
+		Tags:        []string{"Admins"},
 		Security:    security,
 	}, func(ctx context.Context, _ *struct{}) (*emailSettingsOutput, error) {
-		if _, err := platform.RequireOperator(ctx); err != nil {
+		if _, err := platform.RequireAdmin(ctx); err != nil {
 			return nil, err
 		}
 
@@ -79,13 +79,13 @@ func RegisterOperations(api huma.API, s *Service) {
 	huma.Register(api, huma.Operation{
 		OperationID:   "saveEmailSettings",
 		Method:        http.MethodPut,
-		Path:          "/operator/email-settings",
+		Path:          "/admin/email-settings",
 		Summary:       "Choose who delivers email; the next email uses it",
-		Tags:          []string{"Operators"},
+		Tags:          []string{"Admins"},
 		Security:      security,
 		DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, in *saveEmailSettingsInput) (*struct{}, error) {
-		caller, err := platform.RequireOperator(ctx)
+		caller, err := platform.RequireAdmin(ctx)
 		if err != nil {
 			return nil, err
 		}

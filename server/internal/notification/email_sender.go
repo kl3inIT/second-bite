@@ -12,7 +12,7 @@ import (
 // the family is closed: a provider is added to this list and to the registry.
 type EmailProvider string
 
-// The providers operators can choose.
+// The providers admins can choose.
 const (
 	EmailProviderSMTP  EmailProvider = "smtp"
 	EmailProviderBrevo EmailProvider = "brevo"

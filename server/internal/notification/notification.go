@@ -1,5 +1,5 @@
 // Package notification tells people what happened: it owns who delivers
-// email, chosen by operators while the service runs, and the emails sent.
+// email, chosen by admins while the service runs, and the emails sent.
 package notification
 
 import (
@@ -70,7 +70,7 @@ func NewService(pool *pgxpool.Pool, cfg Config, logger *slog.Logger) (*Service, 
 	return &Service{pool: pool, queries: db.New(pool), senders: senders, aead: aead, logger: logger}, nil
 }
 
-// SendEmail delivers e through the provider operators chose and records it.
+// SendEmail delivers e through the provider admins chose and records it.
 // It answers ErrEmailNotConfigured or ErrEmailUnavailable; the reason is
 // logged here, never returned.
 func (s *Service) SendEmail(ctx context.Context, e Email) error {

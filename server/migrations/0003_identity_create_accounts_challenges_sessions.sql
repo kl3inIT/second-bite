@@ -3,7 +3,7 @@
 CREATE TABLE identity_accounts (
     id          uuid        PRIMARY KEY DEFAULT uuidv7(),
     email       text        NOT NULL UNIQUE CHECK (email = lower(email)),
-    role        text        NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'operator')),
+    role        text        NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'admin')),
     created_at  timestamptz NOT NULL DEFAULT now()
 );
 

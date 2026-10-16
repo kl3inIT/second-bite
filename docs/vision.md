@@ -15,7 +15,7 @@ The pilot succeeds when the team can show, with real sellers and customers aroun
 - the surplus offered is genuine: food that would otherwise be thrown away, not stock moved from normal sale;
 - avoided disposal is measured against a baseline, separately from sales.
 
-The people it serves are customers nearby (office workers, students, security staff and labourers on modest incomes), the owners and staff of food and beverage sellers, and the Second Bite operators who verify sellers, handle problems and refunds, and report on the pilot.
+The people it serves are customers nearby (office workers, students, security staff and labourers on modest incomes), the owners and staff of food and beverage sellers, and the Second Bite admins who verify sellers, handle problems and refunds, and report on the pilot.
 
 ## Pilot targets set at the kickoff
 
@@ -44,7 +44,7 @@ These are the sponsor's directional targets from the kickoff; the team may adjus
 Agreed with the team on 16 October 2026, after reading how Mattermost organizes a Go server with web, mobile and desktop clients. Technology choices are taken one part at a time and recorded as they are accepted.
 
 ```text
-   Customers / sellers / operators
+   Customers / sellers / admins
        │                 │
     Web application    Mobile application (iOS, Android)
     (browser)          (submitted to the stores; until approved,

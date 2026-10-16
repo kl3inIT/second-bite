@@ -16,7 +16,7 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/notification/internal/db"
 )
 
-// EmailSettings is who delivers email, as operators read it. Secrets are never
+// EmailSettings is who delivers email, as admins read it. Secrets are never
 // returned; the settings say only whether one is stored.
 type EmailSettings struct {
 	Provider         EmailProvider
@@ -32,7 +32,7 @@ type EmailSettings struct {
 	UpdatedByAccount uuid.NullUUID
 }
 
-// EmailSettingsChange is what an operator saves. An empty secret keeps the one
+// EmailSettingsChange is what an admin saves. An empty secret keeps the one
 // stored.
 type EmailSettingsChange struct {
 	Provider      EmailProvider
@@ -73,7 +73,7 @@ func (s *Service) EmailSettings(ctx context.Context) (EmailSettings, error) {
 }
 
 // SaveEmailSettings validates and stores c; the next email uses it. by is the
-// operator who saved it, or uuid.Nil from the command line.
+// admin who saved it, or uuid.Nil from the command line.
 func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, by uuid.UUID) error {
 	c.SenderAddress = strings.TrimSpace(c.SenderAddress)
 	c.SMTPHost = strings.TrimSpace(c.SMTPHost)
@@ -120,7 +120,7 @@ func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, 
 // setSecrets seals the secrets of c, or keeps the stored ones. A stored
 // password goes only to the server it was entered for: a change of server,
 // port, security or user drops it unless a new one comes with the change, so
-// a stolen operator session cannot point the password at a server of its own.
+// a stolen admin session cannot point the password at a server of its own.
 // Brevo's key needs no such rule: its address is fixed in the code.
 func (s *Service) setSecrets(p *db.PutEmailSettingsParams, current db.NotificationEmailSetting, c EmailSettingsChange) error {
 	var err error

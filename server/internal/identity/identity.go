@@ -83,7 +83,7 @@ func (s *Service) Account(ctx context.Context, id uuid.UUID) (Account, error) {
 
 // GrantRole gives the account of email the role, creating the account when
 // the address has never signed in. Only the command line calls it: the first
-// operator exists before anyone can sign in to name one.
+// admin exists before anyone can sign in to name one.
 func (s *Service) GrantRole(ctx context.Context, email string, role platform.Role) (Account, error) {
 	email, err := normalizeEmail(email)
 	if err != nil {

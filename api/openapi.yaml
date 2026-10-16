@@ -10,7 +10,7 @@ components:
         role:
           enum:
             - customer
-            - operator
+            - admin
           type: string
       required:
         - id
@@ -251,6 +251,49 @@ paths:
       summary: The signed-in account
       tags:
         - Accounts
+  /admin/email-settings:
+    get:
+      operationId: getEmailSettings
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailSettingsBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Read who delivers email
+      tags:
+        - Admins
+    put:
+      operationId: saveEmailSettings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveEmailSettingsInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Choose who delivers email; the next email uses it
+      tags:
+        - Admins
   /auth/sessions:
     post:
       description: Creates the account on its first sign-in.
@@ -320,46 +363,3 @@ paths:
       summary: Email a six-digit sign-in code
       tags:
         - Sign-in
-  /operator/email-settings:
-    get:
-      operationId: getEmailSettings
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EmailSettingsBody"
-          description: OK
-        default:
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          description: Error
-      security:
-        - bearer: []
-      summary: Read who delivers email
-      tags:
-        - Operators
-    put:
-      operationId: saveEmailSettings
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SaveEmailSettingsInputBody"
-        required: true
-      responses:
-        "204":
-          description: No Content
-        default:
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          description: Error
-      security:
-        - bearer: []
-      summary: Choose who delivers email; the next email uses it
-      tags:
-        - Operators

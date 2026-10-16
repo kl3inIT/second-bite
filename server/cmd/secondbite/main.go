@@ -1,11 +1,11 @@
 // Command secondbite runs the Second Bite backend.
 //
 //	secondbite serve                      migrate the database, then serve the API
-//	secondbite operator grant EMAIL       make the account of EMAIL an operator
+//	secondbite admin grant EMAIL       make the account of EMAIL an admin
 //	secondbite email configure [flags]    choose who delivers email
 //
 // The last two are the administrative commands of a fresh installation: the
-// first operator and the first email provider exist before anyone can sign in.
+// first admin and the first email provider exist before anyone can sign in.
 package main
 
 import (
@@ -31,7 +31,7 @@ import (
 
 const usage = `usage:
   secondbite serve
-  secondbite operator grant EMAIL
+  secondbite admin grant EMAIL
   secondbite email configure [flags]   (secondbite email configure -h lists them)`
 
 var errUsage = errors.New(usage)
@@ -68,17 +68,17 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdin i
 		}
 
 		return app.serve(ctx)
-	case "operator":
+	case "admin":
 		if len(rest) != 2 || rest[0] != "grant" {
 			return errUsage
 		}
 
-		a, err := app.identity.GrantRole(ctx, rest[1], platform.RoleOperator)
+		a, err := app.identity.GrantRole(ctx, rest[1], platform.RoleAdmin)
 		if err != nil {
 			return err
 		}
 
-		_, err = fmt.Fprintf(stdout, "%s is an operator\n", a.Email)
+		_, err = fmt.Fprintf(stdout, "%s is an admin\n", a.Email)
 
 		return err
 	case "email":

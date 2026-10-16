@@ -34,7 +34,7 @@ type signInInput struct {
 type accountBody struct {
 	ID    uuid.UUID     `json:"id"`
 	Email string        `json:"email"`
-	Role  platform.Role `json:"role" enum:"customer,operator"`
+	Role  platform.Role `json:"role" enum:"customer,admin"`
 }
 
 type sessionOutput struct {

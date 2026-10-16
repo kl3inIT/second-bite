@@ -212,12 +212,12 @@ func checkSMTPPasswordFollowsServer(t *testing.T, svc service) {
 
 	var current map[string]any
 
-	operator := signIn(t, svc, operatorEmail)
-	auth := bearer(operator.Token)
-	send(t, http.MethodGet, svc.base+"/operator/email-settings", auth, nil).decode(t, http.StatusOK, &current)
+	admin := signIn(t, svc, adminEmail)
+	auth := bearer(admin.Token)
+	send(t, http.MethodGet, svc.base+"/admin/email-settings", auth, nil).decode(t, http.StatusOK, &current)
 
 	put := func(body map[string]any) response {
-		return send(t, http.MethodPut, svc.base+"/operator/email-settings", auth, body)
+		return send(t, http.MethodPut, svc.base+"/admin/email-settings", auth, body)
 	}
 
 	withPassword := map[string]any{
@@ -275,19 +275,19 @@ func checkInvalidToken(t *testing.T, svc service) {
 	}
 }
 
-func checkOperatorOnly(t *testing.T, svc service) {
+func checkAdminOnly(t *testing.T, svc service) {
 	t.Helper()
 
-	customer := signIn(t, svc, "not.an.operator@example.com")
+	customer := signIn(t, svc, "not.an.admin@example.com")
 
-	p := send(t, http.MethodGet, svc.base+"/operator/email-settings", bearer(customer.Token), nil).problem(t, http.StatusForbidden)
-	if p.Code != "PLATFORM_OPERATOR_REQUIRED" {
+	p := send(t, http.MethodGet, svc.base+"/admin/email-settings", bearer(customer.Token), nil).problem(t, http.StatusForbidden)
+	if p.Code != "PLATFORM_ADMIN_REQUIRED" {
 		t.Errorf("customer: code %q", p.Code)
 	}
 
-	operator := signIn(t, svc, operatorEmail)
-	if operator.Account.Role != "operator" {
-		t.Fatalf("the granted operator signed in as %q", operator.Account.Role)
+	admin := signIn(t, svc, adminEmail)
+	if admin.Account.Role != "admin" {
+		t.Fatalf("the granted admin signed in as %q", admin.Account.Role)
 	}
 
 	var settings struct {
@@ -295,7 +295,7 @@ func checkOperatorOnly(t *testing.T, svc service) {
 		SMTPPasswordSet bool   `json:"smtpPasswordSet"`
 	}
 
-	send(t, http.MethodGet, svc.base+"/operator/email-settings", bearer(operator.Token), nil).decode(t, http.StatusOK, &settings)
+	send(t, http.MethodGet, svc.base+"/admin/email-settings", bearer(admin.Token), nil).decode(t, http.StatusOK, &settings)
 
 	if settings.Provider != "smtp" || settings.SMTPPasswordSet {
 		t.Errorf("settings %+v", settings)

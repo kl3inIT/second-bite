@@ -17,7 +17,7 @@ type Role string
 // The roles of an account.
 const (
 	RoleCustomer Role = "customer"
-	RoleOperator Role = "operator"
+	RoleAdmin    Role = "admin"
 )
 
 // Caller is the signed-in account a request acts for. The module that signs
@@ -46,7 +46,7 @@ func CallerFrom(ctx context.Context) (Caller, bool) {
 // The failures of authorization every module shares.
 var (
 	ErrAuthenticationRequired = NewFailure("PLATFORM_AUTHENTICATION_REQUIRED", CategoryUnauthenticated, "Sign in to continue.")
-	ErrOperatorRequired       = NewFailure("PLATFORM_OPERATOR_REQUIRED", CategoryNotPermitted, "Only Second Bite operators may do this.")
+	ErrAdminRequired          = NewFailure("PLATFORM_ADMIN_REQUIRED", CategoryNotPermitted, "Only Second Bite admins may do this.")
 )
 
 // RequireCaller returns the caller of ctx, or ErrAuthenticationRequired.
@@ -59,15 +59,15 @@ func RequireCaller(ctx context.Context) (Caller, error) {
 	return c, nil
 }
 
-// RequireOperator returns the caller of ctx when it is an operator.
-func RequireOperator(ctx context.Context) (Caller, error) {
+// RequireAdmin returns the caller of ctx when it is an admin.
+func RequireAdmin(ctx context.Context) (Caller, error) {
 	c, err := RequireCaller(ctx)
 	if err != nil {
 		return Caller{}, err
 	}
 
-	if c.Role != RoleOperator {
-		return Caller{}, ErrOperatorRequired
+	if c.Role != RoleAdmin {
+		return Caller{}, ErrAdminRequired
 	}
 
 	return c, nil

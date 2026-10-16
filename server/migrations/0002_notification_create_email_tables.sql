@@ -1,4 +1,4 @@
--- Who delivers email, chosen by operators while the service runs, and the
+-- Who delivers email, chosen by admins while the service runs, and the
 -- emails sent with the identifier their provider gave them.
 -- +goose Up
 CREATE TABLE notification_email_settings (

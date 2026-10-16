@@ -84,29 +84,81 @@ Built on 17 October 2026: sign-in by an emailed code, sessions for the web and m
 ### The caller of a request
 
 - `identity.Service.Authenticate`, a middleware run by `platform.NewHandler` before the routes, turns a valid token into a `platform.Caller` (account, session, role) in the request's context. No header means an anonymous request; a header with an unknown, ended or malformed token is refused at once with `401 IDENTITY_SESSION_INVALID` and `WWW-Authenticate: Bearer`.
-- **The caller lives in `platform`, not in `identity`**, with `RequireCaller` (`401 PLATFORM_AUTHENTICATION_REQUIRED`) and `RequireOperator` (`403 PLATFORM_OPERATOR_REQUIRED`). A module authorizes in its own code without depending on `identity`, which is what lets `notification` serve operators while `identity` depends on `notification` to send codes: the cycle BeyondPilot broke with an event (its ADR 0005) does not arise.
-- Roles are the account's: `customer` (everyone) and `operator`. What a person may do for a seller belongs to the `seller` module.
+- **The caller lives in `platform`, not in `identity`**, with `RequireCaller` (`401 PLATFORM_AUTHENTICATION_REQUIRED`) and `RequireAdmin` (`403 PLATFORM_ADMIN_REQUIRED`). A module authorizes in its own code without depending on `identity`, which is what lets `notification` serve admins while `identity` depends on `notification` to send codes: the cycle BeyondPilot broke with an event (its ADR 0005) does not arise.
+- Roles are the account's: `customer` (everyone) and `admin`. What a person may do for a seller belongs to the `seller` module.
 - Operations that need a caller declare the `bearer` security scheme in the OpenAPI document.
 
 ### A fresh installation
 
-The first operator and the first email provider must exist before anyone can sign in, so both are administrative commands of the binary (`secondbite operator grant`, `secondbite email configure`), as the twelve-factor admin processes the `golang-project-layout` skill points to. Secrets reach them on standard input, never as flags. The composition test configures its service through these same commands.
+The first admin and the first email provider must exist before anyone can sign in, so both are administrative commands of the binary (`secondbite admin grant`, `secondbite email configure`), as the twelve-factor admin processes the `golang-project-layout` skill points to. Secrets reach them on standard input, never as flags. The composition test configures its service through these same commands.
 
-### Email delivery as built
+### Seller
+
+Decided with the team on 17 October 2026, from the products of the same kind read in `.tmp/`: Open Food Network (`app/models/enterprise.rb`, `enterprise_role.rb`, `app/forms/user_invitation.rb`, `lib/open_food_network/permissions.rb`), Spree multi-vendor (`app/models/spree/vendor.rb`, `vendor_ability.rb`), and the invitations of Karrot, Gitea and Medusa, which were read and not followed.
+
+### The flow
+
+1. **Opening a seller.** Anyone signed in opens a seller with its name, its address as text, its location pinned on a map, and a contact phone; they become its owner. A new seller is `pending`. One account owns at most five sellers. *(Open Food Network: one owner per enterprise, `enterprise_limit` 5 by default.)*
+2. **Activation by an admin.** An admin lists the pending sellers and activates one, or blocks it; a blocked seller is activated again the same way. The seller keeps its current status, who set it and when; there is no history table and no reason is required. *(Spree multi-vendor: `pending`, then `activate` or `block`.)*
+3. **Staff.** The owner adds a staff member by email, who is a member at once; an address that has never signed in gets its account then, and signs in with an emailed code as anyone does. The owner removes staff; staff leave by themselves; the owner cannot leave. *(Open Food Network adds a manager by email in one step, creating the user if needed. Karrot, Gitea and Medusa send a token to accept; they are communities and organizations that strangers ask to join, while a shop adds people it knows.)*
+4. **Publishing** (asked by `offer`): the owner or a staff member of an `active` seller. *(Spree multi-vendor grants a vendor's rights only through `user.vendors.active`.)*
+
+### Authorization
+
+Two levels, as in both references:
+
+- **The account's role**, held by `identity` and carried in `platform.Caller`: `customer` or `admin`.
+- **The role in one seller**, held by `seller` in `seller_members`: `owner` or `staff`. It is read from the database when needed, never kept in the session, so a removed member loses access at once. *(Open Food Network: an admin sees everything, anyone else `user.enterprises`.)*
+
+| Action | Who |
+| --- | --- |
+| Open a seller | Anyone signed in, up to five owned |
+| Read a seller and its members | Its owner and staff; admins |
+| Change a seller; add or remove staff | Its owner |
+| Leave a seller | A staff member |
+| List all sellers; activate, block | Admins |
+| Publish for a seller | Its owner or staff, while it is `active` |
+
+Admins activate and read; they do not change a seller's content or publish for it. A seller that is not active answers 404 to someone who is not its member, so its existence is not revealed; a member without the right gets 403 (`SELLER_OWNER_REQUIRED`); publishing for a seller that is not active gets 403 (`SELLER_NOT_ACTIVE`).
+
+### Not a multi-tenant application
+
+Second Bite is a marketplace of several sellers, like Open Food Network: a customer buys from every seller, and offers of all sellers are searched together by distance. Data that belongs to a seller (its members; later its orders and conversations) is scoped by the seller's identifier and checked in the module's code. There is no tenant column on every table, no schema per seller and no row-level security.
+
+### Working assumptions
+
+Each is ours, not a reference's, and changes when the founder's survey of sellers (SEC-9) says otherwise:
+
+- A change to an active seller's name or location does not send it back to `pending`.
+- A blocked seller's owner still manages its staff.
+- The contact phone is shown to the seller's members and admins; what customers see of a seller arrives with `offer`.
+- The location is a pin with latitude and longitude sent by the client; turning an address into a location (geocoding) comes later.
+
+### Later
+
+- A seller's photo, with offers' photos and object storage (SEC-11).
+- Emails to an owner when the seller is activated or blocked, and to someone added as staff: through River and events, with the first notices to sellers.
+- An admin changing a seller's owner.
+
+### Admin, not operator
+
+The Second Bite team is called **admin** in the code, the API and the documents, as Open Food Network (`admin?`), Spree (`admin` role), Mattermost (`system_admin`) and the founder's deck ("Quản trị") call it. The role is `admin`, the routes are under `/admin/`, and the command is `secondbite admin grant`. A seller's owner is never called admin.
+
+## Email delivery as built
 
 What [email delivery](#email-delivery) decided, as built:
 
-- `notification.Service.SendEmail` reads the settings at each send, so an operator's change applies to the next email. The registry of providers is a map built when the module is assembled; it fails when a provider has no implementation or one too many.
+- `notification.Service.SendEmail` reads the settings at each send, so an admin's change applies to the next email. The registry of providers is a map built when the module is assembled; it fails when a provider has no implementation or one too many.
 - `smtpEmailSender` uses go-mail (`starttls`, `tls` or `none`; PLAIN authentication when a user is set). `brevoEmailSender` posts to `/v3/smtp/email` with `net/http`, keeps the message id without angle brackets, and classifies 429 (with `Retry-After`, a minute without it), other 4xx and 5xx or a network failure. Brevo's error text is never logged: it is a third party's and may echo the request.
-- **A stored SMTP password follows only its server.** A change of host, port, security or user drops it unless a new password comes with the change, so a stolen operator session cannot send the stored password to a server of its own; and a password is never accepted with `smtp_security` `none`. Brevo's key needs no such rule: its address is fixed in the code. (Found by the same review.)
-- Settings are one row; the SMTP password and the Brevo API key are sealed field by field with AES-256-GCM, the field's name as additional data so a sealed value cannot be moved to another field. `GET /operator/email-settings` says whether each secret is set and never returns it; `PUT` keeps a stored secret when the field is empty.
+- **A stored SMTP password follows only its server.** A change of host, port, security or user drops it unless a new password comes with the change, so a stolen admin session cannot send the stored password to a server of its own; and a password is never accepted with `smtp_security` `none`. Brevo's key needs no such rule: its address is fixed in the code. (Found by the same review.)
+- Settings are one row; the SMTP password and the Brevo API key are sealed field by field with AES-256-GCM, the field's name as additional data so a sealed value cannot be moved to another field. `GET /admin/email-settings` says whether each secret is set and never returns it; `PUT` keeps a stored secret when the field is empty.
 - A send that fails answers `503 NOTIFICATION_EMAIL_UNAVAILABLE` with `Retry-After`; no provider chosen yet answers `503 NOTIFICATION_EMAIL_NOT_CONFIGURED`.
 - Each email sent is recorded with its kind, recipient, provider and the provider's message id, for the delivery reports of step 2.
 
 ### Checks
 
 - The checks of the security review: a new code ends the earlier one (seen to fail with the fix taken out), and a stored SMTP password is refused for another server and without TLS.
-- The composition test runs the assembled service against PostGIS and Mailpit (`axllent/mailpit:v1.31.4`) in containers, configured by the administrative commands, and reads each code from Mailpit's API: sign-in and sign-out, an address typed in mixed case, five wrong guesses ending a code, the minute between codes, a code working once, unknown and malformed tokens, and the email settings refused to a customer and served to the operator.
+- The composition test runs the assembled service against PostGIS and Mailpit (`axllent/mailpit:v1.31.4`) in containers, configured by the administrative commands, and reads each code from Mailpit's API: sign-in and sign-out, an address typed in mixed case, five wrong guesses ending a code, the minute between codes, a code working once, unknown and malformed tokens, and the email settings refused to a customer and served to the admin.
 - Unit tests: the limits' waits, address normalization, the code hash depending on the challenge and the key, sealing (a value sealed for one field does not open in another; two seals differ), and Brevo's request and the classification of each of its answers against a server answering as Brevo documents.
 - The boundary check refused `identity → notification` until ARCHITECTURE.md listed it.
 
@@ -124,7 +176,7 @@ Decided with the team on 16 October 2026.
 ### What is decided
 
 - **Email delivery is a vendor family from the first line**, as [interchangeable implementations](../../../conventions.md#interchangeable-implementations-strategy-behind-a-registry) prescribes. There is one interface for the function, `EmailSender`, declared in the module that sends, and one type per provider.
-- **Operators choose the provider while the system runs**, as in BeyondPilot's Admin › Email, so the registry is real and not a choice made once at startup:
+- **Admins choose the provider while the system runs**, as in BeyondPilot's Admin › Email, so the registry is real and not a choice made once at startup:
   - The family is **closed**: the providers are a persisted enumeration (`brevo`, `smtp`, later `resend` or `ses`).
   - `cmd/secondbite` builds every implementation once and gives them to a registry keyed by that enumeration, a plain map built at startup with no package-level state. Startup fails when a provider has no implementation or two.
   - Each send reads the current settings, resolves the provider through the registry and passes it that provider's settings, so a change takes effect on the next email without a restart.
@@ -135,11 +187,11 @@ Decided with the team on 16 October 2026.
   - refused: the request or the address is wrong, and trying again does not help;
   - rate limited: carries the wait the vendor asks for;
   - unavailable: a network failure or a 5xx.
-- **Settings live in the database and are kept by operators.** One settings row holds the chosen provider, the sender address and name, and each provider's values (Brevo's API key; an SMTP server's host, port, user and password).
+- **Settings live in the database and are kept by admins.** One settings row holds the chosen provider, the sender address and name, and each provider's values (Brevo's API key; an SMTP server's host, port, user and password).
   - Secrets in that row are sealed field by field with AES-256-GCM (`crypto/cipher` from the standard library) under a key read from a file under `/run/secrets` ([data and security](../../../conventions.md#data-and-security)), the one email value the environment supplies.
   - The API never returns a secret; it says only whether one is set, and an empty field on save keeps the stored one.
-  - Losing or replacing the key makes the stored secrets unreadable; an operator enters them again.
-  - A fresh database sends no email until an operator chooses a provider. Local setup chooses SMTP to Mailpit, so development works from the first run.
+  - Losing or replacing the key makes the stored secrets unreadable; an admin enters them again.
+  - A fresh database sends no email until an admin chooses a provider. Local setup chooses SMTP to Mailpit, so development works from the first run.
 - **Delivery reports** (Brevo's webhook, suppressed addresses) are a later step of the [plan](plan.md). The message id is kept from the first send so they can attach to it.
 
 ### The sign-in code is sent within the request
@@ -193,7 +245,7 @@ So `BrevoEmailSender`:
 
 The references were read in `.tmp/` and in BeyondPilot on 16 October 2026.
 
-- **BeyondPilot** began with SMTP from the environment. It later moved provider choice into an operator screen with Amazon SES, Resend, SMTP and Brevo behind `EmailAdapterRegistry` (its ADR 0005, BEY-68 and BEY-128).
+- **BeyondPilot** began with SMTP from the environment. It later moved provider choice into an admin screen with Amazon SES, Resend, SMTP and Brevo behind `EmailAdapterRegistry` (its ADR 0005, BEY-68 and BEY-128).
   - `identity` publishes the sign-in code as an event, and `notification` sends it synchronously, so the code in clear is never stored.
   - A failure answers `503` with `Retry-After`.
 - **Ory Kratos** (`courier/`) has a `Channel` interface with two implementations, `smtp` and `http`.
@@ -208,8 +260,8 @@ So the shape is common: mail caught locally in development, a provider family on
 
 ### Left for the step that writes the code
 
-- **Who calls whom.** `identity` sends the sign-in code through the email module, and the settings screen is for operators, whose role `identity` owns. BeyondPilot broke the same cycle by having `identity` publish the code as a synchronous event (its ADR 0005). Here the operator check may come from the request's authenticated caller in `internal/platform` instead, so that only one edge exists. This is decided with the `identity` step, against the context map.
-- **The settings screen** belongs to the operators' web application (SEC-17); this increment delivers its API.
+- **Who calls whom.** `identity` sends the sign-in code through the email module, and the settings screen is for admins, whose role `identity` owns. BeyondPilot broke the same cycle by having `identity` publish the code as a synchronous event (its ADR 0005). Here the admin check may come from the request's authenticated caller in `internal/platform` instead, so that only one edge exists. This is decided with the `identity` step, against the context map.
+- **The settings screen** belongs to the admins' web application (SEC-17); this increment delivers its API.
 - **Pinned versions** of Mailpit and go-mail, each at least two weeks old when pinned.
 - **Brevo's documented limits and its webhook**, read again on developers.brevo.com when the delivery reports are built.
 
