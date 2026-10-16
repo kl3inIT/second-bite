@@ -23,7 +23,7 @@ Built on 16 October 2026 on this increment's branch; how to run and check it is 
 ### Database and migrations
 
 - `pgxpool` with an explicit size (10), connection lifetime (30 minutes) and a 5-second bound on the first connection ([persistence operations](../../../guidelines/persistence.md#operations)). pgxpool has no acquisition timeout of its own; each caller's context bounds it.
-- Migrations are embedded in the binary (`backend/migrations`) and applied by goose's `Provider` at startup, under a PostgreSQL session lock so that several instances can start together, as BeyondPilot applies Flyway at startup.
+- Migrations are embedded in the binary (`server/migrations`) and applied by goose's `Provider` at startup, under a PostgreSQL session lock so that several instances can start together, as BeyondPilot applies Flyway at startup.
 - The first migration enables PostGIS (`0001_platform_enable_postgis.sql`); the seller's location is its first user, in this increment.
 
 ### HTTP and problems
@@ -49,7 +49,7 @@ Built on 16 October 2026 on this increment's branch; how to run and check it is 
 ### Checks
 
 - **Lint**: the recommended `.golangci.yml` of the vendored `golang-lint` skill, unchanged apart from a renamed gofumpt setting, with golangci-lint v2.14.0 (v2.15.0 was published the same day and is not taken yet).
-- **Boundary check**: a test over `go list` (`backend/internal/boundaries_test.go`), chosen over go-arch-lint and depguard because it needs no tool and reads the allowed edges from [ARCHITECTURE.md](../../../../ARCHITECTURE.md), so the page and the check cannot disagree. It counts test imports too, and was seen to fail on a module importing another without an allowed edge and on one reaching past another's root package.
+- **Boundary check**: a test over `go list` (`server/internal/boundaries_test.go`), chosen over go-arch-lint and depguard because it needs no tool and reads the allowed edges from [ARCHITECTURE.md](../../../../ARCHITECTURE.md), so the page and the check cannot disagree. It counts test imports too, and was seen to fail on a module importing another without an allowed edge and on one reaching past another's root package.
 - **Contract check**: `api/openapi.yaml` is generated from the registered operations and compared in a test; `-update` rewrites it.
 - **Composition test**: the assembled service against `postgis/postgis:18-3.6` in a container (testcontainers-go): migrations, probes, request identifiers, the contract, problems for an unknown route and a wrong method, and a clean stop.
 - **CI** (`.github/workflows/backend.yml`): lint, `go mod tidy -diff`, tests with the race detector, govulncheck; actions pinned by commit SHA, read-only token, no automatic merge.

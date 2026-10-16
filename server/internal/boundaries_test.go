@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-const modulePath = "github.com/kl3inIT/second-bite/backend"
+const modulePath = "github.com/kl3inIT/second-bite/server"
 
 // edgePattern reads one line of the allowed dependencies in ARCHITECTURE.md,
 // such as "- `seller` → `identity`, `notification`".

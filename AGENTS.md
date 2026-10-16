@@ -11,7 +11,7 @@
 
 ## Area guides
 
-- Backend work in `backend/`: follow [docs/guidelines/backend.md](docs/guidelines/backend.md).
+- Backend work in `server/`: follow [docs/guidelines/backend.md](docs/guidelines/backend.md).
 
 ## Operating rules
 

@@ -3,13 +3,13 @@ name: Backend
 on:
   push:
     paths:
-      - "backend/**"
+      - "server/**"
       - "api/**"
       - "ARCHITECTURE.md"
       - ".github/workflows/backend.yml"
   pull_request:
     paths:
-      - "backend/**"
+      - "server/**"
       - "api/**"
       - "ARCHITECTURE.md"
       - ".github/workflows/backend.yml"
@@ -23,7 +23,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: backend
+    working-directory: server
 
 jobs:
   lint:
@@ -33,12 +33,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.sum
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
       - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
           version: v2.14.0
-          working-directory: backend
+          working-directory: server
 
   test:
     name: Test
@@ -47,8 +47,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.sum
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
       - name: Check that go.mod and go.sum are tidy
         run: go mod tidy -diff
       - name: Test, with the race detector and PostgreSQL in containers
@@ -60,5 +60,5 @@ jobs:
     steps:
       - uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
         with:
-          go-version-file: backend/go.mod
-          work-dir: backend
+          go-version-file: server/go.mod
+          work-dir: server

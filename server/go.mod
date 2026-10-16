@@ -1,4 +1,4 @@
-module github.com/kl3inIT/second-bite/backend
+module github.com/kl3inIT/second-bite/server
 
 go 1.26.3
 

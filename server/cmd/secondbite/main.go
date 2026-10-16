@@ -14,8 +14,8 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"github.com/kl3inIT/second-bite/backend/internal/platform"
-	"github.com/kl3inIT/second-bite/backend/migrations"
+	"github.com/kl3inIT/second-bite/server/internal/platform"
+	"github.com/kl3inIT/second-bite/server/migrations"
 )
 
 func main() {

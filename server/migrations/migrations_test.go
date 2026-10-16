@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/kl3inIT/second-bite/backend/migrations"
+	"github.com/kl3inIT/second-bite/server/migrations"
 )
 
 var namePattern = regexp.MustCompile(`^(\d{4})_[a-z][a-z0-9]*_[a-z0-9_]+\.sql$`)

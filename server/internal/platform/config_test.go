@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kl3inIT/second-bite/backend/internal/platform"
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 func TestLoadConfig(t *testing.T) {
