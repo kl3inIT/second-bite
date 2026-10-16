@@ -59,7 +59,7 @@ Infrastructure the team runs itself in Docker Compose is preferred over managed 
 | pgvector, in an image built from the PostGIS one | Search by meaning (SEC-20) | Full text with `unaccent` and `pg_trgm` |
 | MinIO or another S3-compatible store | The first stored image (SEC-11) | A local directory in development |
 | Redis | Realtime fan-out across several instances, rate limits PostgreSQL cannot carry, or a cache justified by a measured slow read | Jobs in River, counts and sessions in PostgreSQL, in-process fan-out on one instance, `LISTEN/NOTIFY` across instances |
-| A reverse proxy (Caddy or Nginx) | The first deployment with the web | — |
+| A reverse proxy | The first deployment; on the temporary host it is that host's existing proxy ([vision](../vision.md#target-architecture)) | — |
 
 ## Logging and errors
 
