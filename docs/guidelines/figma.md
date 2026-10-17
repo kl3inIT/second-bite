@@ -1,6 +1,6 @@
 # Figma design guide
 
-Figma is the source of truth for Second Bite's interface: the web application (`web/`, Next.js) and the mobile application (`mobile/`, Flutter) are both built from the same Figma file. Images generated during design exploration (the impeccable comps under `.impeccable/mocks/`) are evidence for a direction, never a specification. Adapted from BeyondPilot's Figma guide (`docs/guidelines/figma.md`, revision `3825fc73`), with a mirror for Flutter added.
+Code is the source of truth for Second Bite's interface: the tokens in [DESIGN.md](../../DESIGN.md) and the components and screens in the web application (`web/`, Next.js) and the mobile application (`mobile/`, Flutter). Figma is where the team visualises a screen and draws it quickly before building it; when Figma and the code disagree, the code wins and the frame is updated or marked out of date. Images generated during design exploration (the impeccable comps under `.impeccable/mocks/`) are evidence for a direction, never a specification. Adapted from BeyondPilot's Figma guide (`docs/guidelines/figma.md`, revision `3825fc73`), with a mirror for Flutter added.
 
 The file is read and written through the Figwright MCP server (`figwright` in `.mcp.json`) and the `figma-build` and `figma-codegen` skills ([sources](../../.claude/skills/SOURCES.md)). Code rules stay canonical in [docs/conventions.md](../conventions.md); when this page and that file disagree, the conventions win.
 
@@ -25,7 +25,7 @@ The third page stays free until a real need appears.
 
 - Every fill, stroke, radius, gap and padding is bound to a variable. A literal colour or spacing value on a screen is a defect.
 - Collection `Theme` holds the semantic roles with their light values; collection `Theme/Dark` holds the same names with dark values (the Starter plan allows one mode per collection). Names are semantic (`background`, `foreground`, `primary`, `primary-foreground`, `muted`, `muted-foreground`, `border`, `card`, `accent`, `destructive`, `success`, `warning`, …), never a colour's name.
-- The same names are mirrored one to one by the frontmatter of [DESIGN.md](../../DESIGN.md) (the written design system that design agents read), by the web's `web/src/styles/tokens.css` (CSS custom properties) and by the Flutter theme (`ThemeExtension` fields in `mobile/`). A token changes in Figma first, then in DESIGN.md, the web and the Flutter theme in the same change.
+- Tokens are defined once, in the frontmatter of [DESIGN.md](../../DESIGN.md) (the written design system that design agents read). The web's `web/src/styles/tokens.css` (CSS custom properties) and the Flutter theme (`ThemeExtension` fields in `mobile/`) follow it with the same names, and the Figma variables mirror it. A token changes in DESIGN.md, the web and the Flutter theme in one change; Figma is updated after.
 - Each `Theme` variable sets its WEB code syntax to its CSS custom property (`var(--primary)`), so code generation emits the token.
 - Collection `Scale` holds radius and spacing on the 4 px scale (`space/1` = 4 px, `space/2` = 8 px, …).
 - Text styles are named after the utilities they produce (`text-sm/font-medium`), and use the product's chosen typeface, which must cover Vietnamese diacritics.
@@ -54,8 +54,7 @@ The third page stays free until a real need appears.
 
 ## From design to code
 
-1. Finish the foundations and the components a screen needs before drawing the screen.
-2. Generate code one section at a time: select the frame and ask for that frame.
-3. Generated web code follows the web rules (semantic tokens only, every string in both catalogs); Flutter code uses the theme extension and its own catalogs.
-4. After a design change, update only the affected code.
-5. Verify the result in the browser (Playwright with axe) and on a device or emulator, against the Figma frame.
+1. Sketch a new screen in Figma from the existing components to agree on its layout and content; a sketch is not a specification.
+2. Build the screen in code, one section at a time; code generated from a frame is a starting point and follows the web rules (semantic tokens only, every string in both catalogs) or, for Flutter, the theme extension and its own catalogs.
+3. Review the running screen, not the frame: in the browser (Playwright with axe) and on a device or emulator.
+4. When the code settles a decision the frame does not show, update the frame or mark it out of date.

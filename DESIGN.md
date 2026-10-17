@@ -103,7 +103,7 @@ components:
     padding: "12px 16px 16px"
 ---
 
-<!-- The Figma file "Second Bite — Product UI" is the source of truth. The frontmatter mirrors its `Theme` and `Scale` variables and text styles one to one; change Figma first, then this file, web/src/styles/tokens.css and the Flutter theme in the same change (docs/guidelines/figma.md). Tracked in SEC-22. -->
+<!-- This frontmatter is the source of the tokens. web/src/styles/tokens.css and the Flutter theme follow it with the same names in the same change; the Figma file "Second Bite — Product UI" mirrors it as `Theme` and `Scale` variables and text styles and is updated after (docs/guidelines/figma.md). Tracked in SEC-22. -->
 
 # Design System: Second Bite
 
