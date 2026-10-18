@@ -6,6 +6,8 @@ import "github.com/kl3inIT/second-bite/server/internal/platform"
 var (
 	ErrNotFound = platform.NewFailure("SELLER_NOT_FOUND", platform.CategoryNotFound,
 		"The seller does not exist.")
+	ErrNotActive = platform.NewFailure("SELLER_NOT_ACTIVE", platform.CategoryNotPermitted,
+		"The seller is not active yet, or has been blocked; it cannot publish.")
 	ErrOwnerRequired = platform.NewFailure("SELLER_OWNER_REQUIRED", platform.CategoryNotPermitted,
 		"Only the seller's owner may do this.")
 	ErrLimitReached = platform.NewFailure("SELLER_LIMIT_REACHED", platform.CategoryConflict,

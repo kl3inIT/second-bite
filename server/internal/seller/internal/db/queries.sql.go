@@ -12,25 +12,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const canPublish = `-- name: CanPublish :one
-SELECT EXISTS (
-    SELECT 1 FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
-    WHERE m.seller_id = $1 AND m.account_id = $2 AND s.status = 'active'
-)
-`
-
-type CanPublishParams struct {
-	SellerID  uuid.UUID
-	AccountID uuid.UUID
-}
-
-func (q *Queries) CanPublish(ctx context.Context, arg CanPublishParams) (bool, error) {
-	row := q.db.QueryRow(ctx, canPublish, arg.SellerID, arg.AccountID)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
-}
-
 const countMembers = `-- name: CountMembers :one
 SELECT count(*)::integer FROM seller_members WHERE seller_id = $1
 `

@@ -252,29 +252,36 @@ func (s *Service) SetPhoto(ctx context.Context, id uuid.UUID, photoID *uuid.UUID
 	return s.Get(ctx, id)
 }
 
-// CanPublish tells whether account may publish offers for the seller: it is
-// the seller's owner or staff, and the seller is active.
-func (s *Service) CanPublish(ctx context.Context, sellerID, accountID uuid.UUID) (bool, error) {
-	ok, err := s.queries.CanPublish(ctx, db.CanPublishParams{SellerID: sellerID, AccountID: accountID})
-	if err != nil {
-		return false, fmt.Errorf("checking the right to publish: %w", err)
-	}
-
-	return ok, nil
+// CollectionPoint is where a seller's offers are collected.
+type CollectionPoint struct {
+	Latitude  float64
+	Longitude float64
+	Address   string
 }
 
-// CollectionPoint returns where the seller's offers are collected.
-func (s *Service) CollectionPoint(ctx context.Context, sellerID uuid.UUID) (latitude, longitude float64, err error) {
-	row, err := s.queries.GetSeller(ctx, sellerID)
+// Publishing returns where the seller's offers are collected, when account
+// may publish for it: ErrNotFound when the account is not the seller's owner
+// or staff, ErrNotActive when the seller is not active.
+func (s *Service) Publishing(ctx context.Context, sellerID, accountID uuid.UUID) (CollectionPoint, error) {
+	_, err := s.queries.MemberRole(ctx, db.MemberRoleParams{SellerID: sellerID, AccountID: accountID})
 	if errors.Is(err, pgx.ErrNoRows) {
-		return 0, 0, ErrNotFound
+		return CollectionPoint{}, ErrNotFound
 	}
 
 	if err != nil {
-		return 0, 0, fmt.Errorf("reading the seller: %w", err)
+		return CollectionPoint{}, fmt.Errorf("reading the caller's role: %w", err)
 	}
 
-	return row.Latitude, row.Longitude, nil
+	row, err := s.queries.GetSeller(ctx, sellerID)
+	if err != nil {
+		return CollectionPoint{}, fmt.Errorf("reading the seller: %w", err)
+	}
+
+	if Status(row.Status) != StatusActive {
+		return CollectionPoint{}, ErrNotActive
+	}
+
+	return CollectionPoint{Latitude: row.Latitude, Longitude: row.Longitude, Address: row.Address}, nil
 }
 
 // roleOf returns the caller's role in the seller, empty for an admin who is

@@ -27,6 +27,22 @@ components:
       required:
         - email
       type: object
+    CollectionPointBody:
+      additionalProperties: false
+      properties:
+        address:
+          type: string
+        latitude:
+          format: double
+          type: number
+        longitude:
+          format: double
+          type: number
+      required:
+        - latitude
+        - longitude
+        - address
+      type: object
     DetailsBody:
       additionalProperties: false
       properties:
@@ -147,6 +163,288 @@ components:
             - "null"
       required:
         - members
+      type: object
+    OfferBody:
+      additionalProperties: false
+      properties:
+        collectionPoint:
+          $ref: "#/components/schemas/CollectionPointBody"
+          description: Where the offer is collected, copied from the seller when it was posted
+        createdAt:
+          format: date-time
+          type: string
+        description:
+          type: string
+        discountPercent:
+          format: int64
+          type: integer
+        id:
+          type: string
+        kind:
+          enum:
+            - bakery
+            - prepared_food
+            - ingredients
+            - drinks
+            - mixed_box
+            - other
+          type: string
+        name:
+          type: string
+        originalPriceVnd:
+          format: int64
+          type: integer
+        photo:
+          $ref: "#/components/schemas/OfferPhotoBody"
+        priceVnd:
+          format: int64
+          type: integer
+        sellerId:
+          type: string
+        status:
+          description: sold_out and closed are read from the units left and the window
+          enum:
+            - on_sale
+            - sold_out
+            - closed
+            - withdrawn
+          type: string
+        unit:
+          type: string
+        units:
+          format: int64
+          type: integer
+        unitsLeft:
+          format: int64
+          type: integer
+        updatedAt:
+          format: date-time
+          type: string
+        weightGrams:
+          format: int64
+          type: integer
+        windowEnd:
+          format: date-time
+          type: string
+        windowStart:
+          format: date-time
+          type: string
+        withdrawnAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - sellerId
+        - status
+        - name
+        - description
+        - kind
+        - unit
+        - units
+        - unitsLeft
+        - priceVnd
+        - originalPriceVnd
+        - discountPercent
+        - photo
+        - windowStart
+        - windowEnd
+        - collectionPoint
+        - createdAt
+        - updatedAt
+      type: object
+    OfferChangeBody:
+      additionalProperties: false
+      properties:
+        description:
+          maxLength: 1000
+          type: string
+        kind:
+          enum:
+            - bakery
+            - prepared_food
+            - ingredients
+            - drinks
+            - mixed_box
+            - other
+          type: string
+        name:
+          maxLength: 80
+          minLength: 1
+          type: string
+        originalPriceVnd:
+          format: int64
+          minimum: 1001
+          type: integer
+        photoId:
+          type: string
+        priceVnd:
+          format: int64
+          minimum: 1000
+          type: integer
+        unit:
+          maxLength: 20
+          type: string
+        units:
+          format: int64
+          maximum: 999
+          minimum: 1
+          type: integer
+        weightGrams:
+          format: int64
+          maximum: 100000
+          minimum: 1
+          type: integer
+        windowEnd:
+          format: date-time
+          type: string
+        windowStart:
+          format: date-time
+          type: string
+      type: object
+    OfferDetailsBody:
+      additionalProperties: false
+      properties:
+        description:
+          description: Required for a mixed_box, which is described by what it may hold; allergens are written here
+          maxLength: 1000
+          type: string
+        kind:
+          enum:
+            - bakery
+            - prepared_food
+            - ingredients
+            - drinks
+            - mixed_box
+            - other
+          type: string
+        name:
+          maxLength: 80
+          minLength: 1
+          type: string
+        originalPriceVnd:
+          description: What one unit normally sells for; the price must be the minimum discount below it
+          format: int64
+          minimum: 1001
+          type: integer
+        photoId:
+          description: From POST /photos, or the photo of an earlier offer of the seller
+          type: string
+        priceVnd:
+          description: Price of one unit, in whole đồng
+          format: int64
+          minimum: 1000
+          type: integer
+        unit:
+          description: What one unit is called; "suất" when empty
+          maxLength: 20
+          type: string
+        units:
+          format: int64
+          maximum: 999
+          minimum: 1
+          type: integer
+        weightGrams:
+          description: Weight of one unit, to measure food saved
+          format: int64
+          maximum: 100000
+          minimum: 1
+          type: integer
+        windowEnd:
+          description: The last handover
+          format: date-time
+          type: string
+        windowStart:
+          description: When the offer is ready to collect
+          format: date-time
+          type: string
+      required:
+        - name
+        - kind
+        - units
+        - priceVnd
+        - originalPriceVnd
+        - photoId
+        - windowStart
+        - windowEnd
+      type: object
+    OfferPhotoBody:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        largePath:
+          type: string
+        smallPath:
+          type: string
+      required:
+        - id
+        - largePath
+        - smallPath
+      type: object
+    OfferSettingsBody:
+      additionalProperties: false
+      properties:
+        defaultRadiusKm:
+          description: The search radius when a customer names none
+          format: int64
+          maximum: 100
+          minimum: 1
+          type: integer
+        maxRadiusKm:
+          format: int64
+          maximum: 100
+          minimum: 1
+          type: integer
+        minDiscountPercent:
+          description: How far below its original price an offer must be priced
+          format: int64
+          maximum: 90
+          minimum: 0
+          type: integer
+        startsWithinHours:
+          description: How far ahead of posting a window may start
+          format: int64
+          maximum: 72
+          minimum: 1
+          type: integer
+        updatedAt:
+          format: date-time
+          readOnly: true
+          type: string
+        updatedBy:
+          readOnly: true
+          type: string
+        windowMaxMinutes:
+          description: The longest collection window
+          format: int64
+          maximum: 1440
+          minimum: 15
+          type: integer
+        windowMinMinutes:
+          description: The shortest collection window
+          format: int64
+          maximum: 1440
+          minimum: 15
+          type: integer
+      required:
+        - minDiscountPercent
+        - defaultRadiusKm
+        - maxRadiusKm
+        - windowMinMinutes
+        - windowMaxMinutes
+        - startsWithinHours
+      type: object
+    OffersOutputBody:
+      additionalProperties: false
+      properties:
+        offers:
+          items:
+            $ref: "#/components/schemas/OfferBody"
+          type:
+            - array
+            - "null"
+      required:
+        - offers
       type: object
     PhotoBody:
       additionalProperties: false
@@ -470,6 +768,54 @@ paths:
       summary: Choose who delivers email; the next email uses it
       tags:
         - Admins
+  /admin/offer-settings:
+    get:
+      operationId: getOfferSettings
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferSettingsBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: The rules every offer follows
+      tags:
+        - Admin
+    put:
+      description: New rules apply to offers posted, and to the prices and windows changed, after they are saved.
+      operationId: saveOfferSettings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OfferSettingsBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferSettingsBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Change the rules every offer follows
+      tags:
+        - Admin
   /admin/sellers:
     get:
       operationId: listSellersForAdmins
@@ -642,6 +988,95 @@ paths:
       summary: Email a six-digit sign-in code
       tags:
         - Sign-in
+  /offers/{offerId}:
+    get:
+      description: Anyone reads an offer while its window is open and it is not withdrawn; its seller's people read it always.
+      operationId: getOffer
+      parameters:
+        - in: path
+          name: offerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+      summary: An offer
+      tags:
+        - Offers
+    patch:
+      description: Once units are ordered, only the description, the photo and the units (never below those ordered) change.
+      operationId: changeOffer
+      parameters:
+        - in: path
+          name: offerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OfferChangeBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Change an offer
+      tags:
+        - Offers
+  /offers/{offerId}/withdraw:
+    post:
+      operationId: withdrawOffer
+      parameters:
+        - in: path
+          name: offerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Take an offer off sale for good
+      tags:
+        - Offers
   /photos:
     post:
       description: "The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG in two sizes, without its metadata. An unused photo is kept for a day."
@@ -911,6 +1346,93 @@ paths:
       summary: Remove a staff member, or leave the seller
       tags:
         - Sellers
+  /sellers/{sellerId}/offers:
+    get:
+      operationId: listSellerOffers
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+        - explode: false
+          in: query
+          name: status
+          schema:
+            enum:
+              - on_sale
+              - sold_out
+              - closed
+              - withdrawn
+            type: string
+        - explode: false
+          in: query
+          name: limit
+          schema:
+            default: 20
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: offset
+          schema:
+            default: 0
+            format: int64
+            minimum: 0
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OffersOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: A seller's offers, newest first, to its people and admins
+      tags:
+        - Offers
+    post:
+      description: "Posting again: send the details of an earlier offer, its photo included, with new units and window."
+      operationId: postOffer
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OfferDetailsBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferBody"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+      summary: Put surplus on sale for a seller you own or work for
+      tags:
+        - Offers
   /sellers/{sellerId}/photo:
     delete:
       operationId: removeSellerPhoto

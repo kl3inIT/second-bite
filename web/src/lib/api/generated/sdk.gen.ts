@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses } from './types.gen';
+import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -42,6 +42,30 @@ export const getEmailSettings = <ThrowOnError extends boolean = true>(options?: 
 export const saveEmailSettings = <ThrowOnError extends boolean = true>(options: Options<SaveEmailSettingsData, ThrowOnError>): RequestResult<SaveEmailSettingsResponses, SaveEmailSettingsErrors, ThrowOnError> => (options.client ?? client).put<SaveEmailSettingsResponses, SaveEmailSettingsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/admin/email-settings',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * The rules every offer follows
+ */
+export const getOfferSettings = <ThrowOnError extends boolean = true>(options?: Options<GetOfferSettingsData, ThrowOnError>): RequestResult<GetOfferSettingsResponses, GetOfferSettingsErrors, ThrowOnError> => (options?.client ?? client).get<GetOfferSettingsResponses, GetOfferSettingsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/offer-settings',
+    ...options
+});
+
+/**
+ * Change the rules every offer follows
+ *
+ * New rules apply to offers posted, and to the prices and windows changed, after they are saved.
+ */
+export const saveOfferSettings = <ThrowOnError extends boolean = true>(options: Options<SaveOfferSettingsData, ThrowOnError>): RequestResult<SaveOfferSettingsResponses, SaveOfferSettingsErrors, ThrowOnError> => (options.client ?? client).put<SaveOfferSettingsResponses, SaveOfferSettingsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/offer-settings',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -111,6 +135,41 @@ export const requestSignInCode = <ThrowOnError extends boolean = true>(options: 
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * An offer
+ *
+ * Anyone reads an offer while its window is open and it is not withdrawn; its seller's people read it always.
+ */
+export const getOffer = <ThrowOnError extends boolean = true>(options: Options<GetOfferData, ThrowOnError>): RequestResult<GetOfferResponses, GetOfferErrors, ThrowOnError> => (options.client ?? client).get<GetOfferResponses, GetOfferErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/offers/{offerId}',
+    ...options
+});
+
+/**
+ * Change an offer
+ *
+ * Once units are ordered, only the description, the photo and the units (never below those ordered) change.
+ */
+export const changeOffer = <ThrowOnError extends boolean = true>(options: Options<ChangeOfferData, ThrowOnError>): RequestResult<ChangeOfferResponses, ChangeOfferErrors, ThrowOnError> => (options.client ?? client).patch<ChangeOfferResponses, ChangeOfferErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/offers/{offerId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Take an offer off sale for good
+ */
+export const withdrawOffer = <ThrowOnError extends boolean = true>(options: Options<WithdrawOfferData, ThrowOnError>): RequestResult<WithdrawOfferResponses, WithdrawOfferErrors, ThrowOnError> => (options.client ?? client).post<WithdrawOfferResponses, WithdrawOfferErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/offers/{offerId}/withdraw',
+    ...options
 });
 
 /**
@@ -209,6 +268,30 @@ export const removeSellerMember = <ThrowOnError extends boolean = true>(options:
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/sellers/{sellerId}/members/{accountId}',
     ...options
+});
+
+/**
+ * A seller's offers, newest first, to its people and admins
+ */
+export const listSellerOffers = <ThrowOnError extends boolean = true>(options: Options<ListSellerOffersData, ThrowOnError>): RequestResult<ListSellerOffersResponses, ListSellerOffersErrors, ThrowOnError> => (options.client ?? client).get<ListSellerOffersResponses, ListSellerOffersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/sellers/{sellerId}/offers',
+    ...options
+});
+
+/**
+ * Put surplus on sale for a seller you own or work for
+ *
+ * Posting again: send the details of an earlier offer, its photo included, with new units and window.
+ */
+export const postOffer = <ThrowOnError extends boolean = true>(options: Options<PostOfferData, ThrowOnError>): RequestResult<PostOfferResponses, PostOfferErrors, ThrowOnError> => (options.client ?? client).post<PostOfferResponses, PostOfferErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/sellers/{sellerId}/offers',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**

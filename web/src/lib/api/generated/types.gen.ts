@@ -14,6 +14,12 @@ export type AddSellerStaffRequest = {
     email: string;
 };
 
+export type CollectionPointBody = {
+    address: string;
+    latitude: number;
+    longitude: number;
+};
+
 export type DetailsBody = {
     /**
      * The address as people write it
@@ -59,6 +65,123 @@ export type MemberBody = {
 
 export type MembersOutputBody = {
     members: Array<MemberBody> | null;
+};
+
+export type OfferBody = {
+    /**
+     * Where the offer is collected, copied from the seller when it was posted
+     */
+    collectionPoint: CollectionPointBody;
+    createdAt: string;
+    description: string;
+    discountPercent: number;
+    id: string;
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    name: string;
+    originalPriceVnd: number;
+    photo: OfferPhotoBody;
+    priceVnd: number;
+    sellerId: string;
+    /**
+     * sold_out and closed are read from the units left and the window
+     */
+    status: 'on_sale' | 'sold_out' | 'closed' | 'withdrawn';
+    unit: string;
+    units: number;
+    unitsLeft: number;
+    updatedAt: string;
+    weightGrams?: number;
+    windowEnd: string;
+    windowStart: string;
+    withdrawnAt?: string;
+};
+
+export type OfferChangeBody = {
+    description?: string;
+    kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    name?: string;
+    originalPriceVnd?: number;
+    photoId?: string;
+    priceVnd?: number;
+    unit?: string;
+    units?: number;
+    weightGrams?: number;
+    windowEnd?: string;
+    windowStart?: string;
+};
+
+export type OfferDetailsBody = {
+    /**
+     * Required for a mixed_box, which is described by what it may hold; allergens are written here
+     */
+    description?: string;
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    name: string;
+    /**
+     * What one unit normally sells for; the price must be the minimum discount below it
+     */
+    originalPriceVnd: number;
+    /**
+     * From POST /photos, or the photo of an earlier offer of the seller
+     */
+    photoId: string;
+    /**
+     * Price of one unit, in whole đồng
+     */
+    priceVnd: number;
+    /**
+     * What one unit is called; "suất" when empty
+     */
+    unit?: string;
+    units: number;
+    /**
+     * Weight of one unit, to measure food saved
+     */
+    weightGrams?: number;
+    /**
+     * The last handover
+     */
+    windowEnd: string;
+    /**
+     * When the offer is ready to collect
+     */
+    windowStart: string;
+};
+
+export type OfferPhotoBody = {
+    id: string;
+    largePath: string;
+    smallPath: string;
+};
+
+export type OfferSettingsBody = {
+    /**
+     * The search radius when a customer names none
+     */
+    defaultRadiusKm: number;
+    maxRadiusKm: number;
+    /**
+     * How far below its original price an offer must be priced
+     */
+    minDiscountPercent: number;
+    /**
+     * How far ahead of posting a window may start
+     */
+    startsWithinHours: number;
+    readonly updatedAt?: string;
+    readonly updatedBy?: string;
+    /**
+     * The longest collection window
+     */
+    windowMaxMinutes: number;
+    /**
+     * The shortest collection window
+     */
+    windowMinMinutes: number;
+};
+
+export type OffersOutputBody = {
+    offers: Array<OfferBody> | null;
 };
 
 export type PhotoBody = {
@@ -198,6 +321,30 @@ export type Violation = {
     pointer?: string;
 };
 
+export type OfferSettingsBodyWritable = {
+    /**
+     * The search radius when a customer names none
+     */
+    defaultRadiusKm: number;
+    maxRadiusKm: number;
+    /**
+     * How far below its original price an offer must be priced
+     */
+    minDiscountPercent: number;
+    /**
+     * How far ahead of posting a window may start
+     */
+    startsWithinHours: number;
+    /**
+     * The longest collection window
+     */
+    windowMaxMinutes: number;
+    /**
+     * The shortest collection window
+     */
+    windowMinMinutes: number;
+};
+
 export type GetMyAccountData = {
     body?: never;
     path?: never;
@@ -272,6 +419,56 @@ export type SaveEmailSettingsResponses = {
 };
 
 export type SaveEmailSettingsResponse = SaveEmailSettingsResponses[keyof SaveEmailSettingsResponses];
+
+export type GetOfferSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/offer-settings';
+};
+
+export type GetOfferSettingsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetOfferSettingsError = GetOfferSettingsErrors[keyof GetOfferSettingsErrors];
+
+export type GetOfferSettingsResponses = {
+    /**
+     * OK
+     */
+    200: OfferSettingsBody;
+};
+
+export type GetOfferSettingsResponse = GetOfferSettingsResponses[keyof GetOfferSettingsResponses];
+
+export type SaveOfferSettingsData = {
+    body: OfferSettingsBodyWritable;
+    path?: never;
+    query?: never;
+    url: '/admin/offer-settings';
+};
+
+export type SaveOfferSettingsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SaveOfferSettingsError = SaveOfferSettingsErrors[keyof SaveOfferSettingsErrors];
+
+export type SaveOfferSettingsResponses = {
+    /**
+     * OK
+     */
+    200: OfferSettingsBody;
+};
+
+export type SaveOfferSettingsResponse = SaveOfferSettingsResponses[keyof SaveOfferSettingsResponses];
 
 export type ListSellersForAdminsData = {
     body?: never;
@@ -430,6 +627,87 @@ export type RequestSignInCodeResponses = {
 };
 
 export type RequestSignInCodeResponse = RequestSignInCodeResponses[keyof RequestSignInCodeResponses];
+
+export type GetOfferData = {
+    body?: never;
+    path: {
+        offerId: string;
+    };
+    query?: never;
+    url: '/offers/{offerId}';
+};
+
+export type GetOfferErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetOfferError = GetOfferErrors[keyof GetOfferErrors];
+
+export type GetOfferResponses = {
+    /**
+     * OK
+     */
+    200: OfferBody;
+};
+
+export type GetOfferResponse = GetOfferResponses[keyof GetOfferResponses];
+
+export type ChangeOfferData = {
+    body: OfferChangeBody;
+    path: {
+        offerId: string;
+    };
+    query?: never;
+    url: '/offers/{offerId}';
+};
+
+export type ChangeOfferErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ChangeOfferError = ChangeOfferErrors[keyof ChangeOfferErrors];
+
+export type ChangeOfferResponses = {
+    /**
+     * OK
+     */
+    200: OfferBody;
+};
+
+export type ChangeOfferResponse = ChangeOfferResponses[keyof ChangeOfferResponses];
+
+export type WithdrawOfferData = {
+    body?: never;
+    path: {
+        offerId: string;
+    };
+    query?: never;
+    url: '/offers/{offerId}/withdraw';
+};
+
+export type WithdrawOfferErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type WithdrawOfferError = WithdrawOfferErrors[keyof WithdrawOfferErrors];
+
+export type WithdrawOfferResponses = {
+    /**
+     * OK
+     */
+    200: OfferBody;
+};
+
+export type WithdrawOfferResponse = WithdrawOfferResponses[keyof WithdrawOfferResponses];
 
 export type UploadPhotoData = {
     body: Blob | File;
@@ -667,6 +945,64 @@ export type RemoveSellerMemberResponses = {
 };
 
 export type RemoveSellerMemberResponse = RemoveSellerMemberResponses[keyof RemoveSellerMemberResponses];
+
+export type ListSellerOffersData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: {
+        status?: 'on_sale' | 'sold_out' | 'closed' | 'withdrawn';
+        limit?: number;
+        offset?: number;
+    };
+    url: '/sellers/{sellerId}/offers';
+};
+
+export type ListSellerOffersErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListSellerOffersError = ListSellerOffersErrors[keyof ListSellerOffersErrors];
+
+export type ListSellerOffersResponses = {
+    /**
+     * OK
+     */
+    200: OffersOutputBody;
+};
+
+export type ListSellerOffersResponse = ListSellerOffersResponses[keyof ListSellerOffersResponses];
+
+export type PostOfferData = {
+    body: OfferDetailsBody;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/offers';
+};
+
+export type PostOfferErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type PostOfferError = PostOfferErrors[keyof PostOfferErrors];
+
+export type PostOfferResponses = {
+    /**
+     * Created
+     */
+    201: OfferBody;
+};
+
+export type PostOfferResponse = PostOfferResponses[keyof PostOfferResponses];
 
 export type RemoveSellerPhotoData = {
     body?: never;

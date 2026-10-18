@@ -56,3 +56,12 @@ sql:
         out: internal/file/internal/db
         sql_package: pgx/v5
         omit_unused_structs: true
+  - engine: postgresql
+    schema: migrations
+    queries: internal/offer/queries.sql
+    gen:
+      go:
+        package: db
+        out: internal/offer/internal/db
+        sql_package: pgx/v5
+        omit_unused_structs: true

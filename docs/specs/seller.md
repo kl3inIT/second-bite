@@ -18,7 +18,7 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `POST /admin/sellers/{sellerId}/activate` | Admins | `200` seller, `active`; also lifts a block |
 | `POST /admin/sellers/{sellerId}/block` | Admins | `200` seller, `blocked` |
 
-Published to other modules: `CanPublish(seller, account)` and `CollectionPoint(seller)`, waiting for `offer`.
+Published to other modules: `Publishing(seller, account)`, which `offer` calls before posting or changing: the collection point when the account is the owner or staff of an active seller, `SELLER_NOT_FOUND` when it is not a member, `SELLER_NOT_ACTIVE` when the seller is not active.
 
 ## Rules
 
@@ -45,6 +45,7 @@ Published to other modules: `CanPublish(seller, account)` and `CollectionPoint(s
 | --- | --- | --- |
 | `SELLER_DETAILS_INVALID` | 400 | Blank name or address |
 | `SELLER_PHONE_INVALID` | 400 | Not 9 to 15 digits |
+| `SELLER_NOT_ACTIVE` | 403 | Publishing for a seller that is pending or blocked |
 | `SELLER_OWNER_REQUIRED` | 403 | A staff member tries what only the owner may |
 | `SELLER_NOT_FOUND` | 404 | No such seller, or the caller is neither a member nor an admin |
 | `SELLER_MEMBER_NOT_FOUND` | 404 | The person is not on the seller's staff |
@@ -59,4 +60,4 @@ An address that is not one plain address answers `IDENTITY_EMAIL_INVALID`.
 
 - Emails to an owner when the seller is activated or blocked, and to someone added as staff.
 - An admin changing a seller's owner.
-- What customers see of a seller, with `offer` (SEC-11).
+- What customers see of a seller, its public page (SEC-11, step 4).

@@ -1,0 +1,101 @@
+package offer
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/kl3inIT/second-bite/server/internal/offer/internal/db"
+	"github.com/kl3inIT/second-bite/server/internal/platform"
+)
+
+// Settings are the rules admins change for every offer, kept in one row.
+type Settings struct {
+	// MinDiscountPercent is how far below its original price an offer must
+	// be priced: 20 to start, as the founder decided on 18 October 2026.
+	MinDiscountPercent int
+	DefaultRadiusKm    int
+	MaxRadiusKm        int
+	WindowMin          time.Duration
+	WindowMax          time.Duration
+	// StartsWithin bounds how far ahead a collection window may start.
+	StartsWithin time.Duration
+	UpdatedAt    time.Time
+	UpdatedBy    *uuid.UUID
+}
+
+// Settings returns the offer settings, to admins.
+func (s *Service) Settings(ctx context.Context) (Settings, error) {
+	if _, err := platform.RequireAdmin(ctx); err != nil {
+		return Settings{}, err
+	}
+
+	return s.settings(ctx)
+}
+
+// SaveSettings replaces the offer settings. Only admins may.
+func (s *Service) SaveSettings(ctx context.Context, in Settings) (Settings, error) {
+	caller, err := platform.RequireAdmin(ctx)
+	if err != nil {
+		return Settings{}, err
+	}
+
+	if !in.valid() {
+		return Settings{}, ErrSettingsInvalid
+	}
+
+	if err := s.queries.PutSettings(ctx, db.PutSettingsParams{
+		MinDiscountPercent: int32(in.MinDiscountPercent), //nolint:gosec // bounded by valid
+		DefaultRadiusKm:    int32(in.DefaultRadiusKm),    //nolint:gosec // likewise
+		MaxRadiusKm:        int32(in.MaxRadiusKm),        //nolint:gosec // likewise
+		WindowMinMinutes:   int32(in.WindowMin.Minutes()),
+		WindowMaxMinutes:   int32(in.WindowMax.Minutes()),
+		StartsWithinHours:  int32(in.StartsWithin.Hours()),
+		UpdatedBy:          uuid.NullUUID{UUID: caller.AccountID, Valid: true},
+	}); err != nil {
+		return Settings{}, fmt.Errorf("saving the offer settings: %w", err)
+	}
+
+	s.logger.InfoContext(ctx, "offer settings changed",
+		slog.String("event", "offer.settings.changed"),
+		slog.String("account_id", caller.AccountID.String()),
+	)
+
+	return s.settings(ctx)
+}
+
+// valid holds the bounds the table's checks hold, so a mistake is a
+// validation failure rather than a database error.
+func (in Settings) valid() bool {
+	return in.MinDiscountPercent >= 0 && in.MinDiscountPercent <= 90 &&
+		in.DefaultRadiusKm >= 1 && in.MaxRadiusKm >= in.DefaultRadiusKm && in.MaxRadiusKm <= 100 &&
+		in.WindowMin >= 15*time.Minute && in.WindowMax >= in.WindowMin && in.WindowMax <= 24*time.Hour &&
+		in.WindowMin%time.Minute == 0 && in.WindowMax%time.Minute == 0 &&
+		in.StartsWithin >= time.Hour && in.StartsWithin <= 72*time.Hour && in.StartsWithin%time.Hour == 0
+}
+
+func (s *Service) settings(ctx context.Context) (Settings, error) {
+	row, err := s.queries.GetSettings(ctx)
+	if err != nil {
+		return Settings{}, fmt.Errorf("reading the offer settings: %w", err)
+	}
+
+	out := Settings{
+		MinDiscountPercent: int(row.MinDiscountPercent),
+		DefaultRadiusKm:    int(row.DefaultRadiusKm),
+		MaxRadiusKm:        int(row.MaxRadiusKm),
+		WindowMin:          time.Duration(row.WindowMinMinutes) * time.Minute,
+		WindowMax:          time.Duration(row.WindowMaxMinutes) * time.Minute,
+		StartsWithin:       time.Duration(row.StartsWithinHours) * time.Hour,
+		UpdatedAt:          row.UpdatedAt,
+	}
+
+	if row.UpdatedBy.Valid {
+		out.UpdatedBy = &row.UpdatedBy.UUID
+	}
+
+	return out, nil
+}

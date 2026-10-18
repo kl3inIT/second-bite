@@ -91,18 +91,18 @@ func (f fixture) as(t *testing.T, email string, role platform.Role) context.Cont
 
 var shop = seller.Details{Name: "Bánh mì Tasco", Address: "Tasco Mall, Việt Hưng", Latitude: 21.0565, Longitude: 105.8964, Phone: "0912 345 678"}
 
-func mustCanPublish(ctx context.Context, t *testing.T, f fixture, sellerID uuid.UUID, want bool) {
+func mustPublish(ctx context.Context, t *testing.T, f fixture, sellerID uuid.UUID, want bool) {
 	t.Helper()
 
 	caller, _ := platform.CallerFrom(ctx)
 
-	got, err := f.sellers.CanPublish(t.Context(), sellerID, caller.AccountID)
-	if err != nil {
+	_, err := f.sellers.Publishing(t.Context(), sellerID, caller.AccountID)
+	if err != nil && !errors.Is(err, seller.ErrNotFound) && !errors.Is(err, seller.ErrNotActive) {
 		t.Fatal(err)
 	}
 
-	if got != want {
-		t.Fatalf("CanPublish %v, want %v", got, want)
+	if got := err == nil; got != want {
+		t.Fatalf("may publish %v, want %v (%v)", got, want, err)
 	}
 }
 
@@ -126,7 +126,7 @@ func testPublishingFollowsStatusAndMembership(t *testing.T, pool *pgxpool.Pool) 
 		t.Fatalf("opened %+v", s)
 	}
 
-	mustCanPublish(owner, t, f, s.ID, false) // pending
+	mustPublish(owner, t, f, s.ID, false) // pending
 
 	if _, err := f.sellers.AddStaff(owner, s.ID, strings.ToUpper(f.mail("staff"))); err != nil {
 		t.Fatal(err)
@@ -136,16 +136,16 @@ func testPublishingFollowsStatusAndMembership(t *testing.T, pool *pgxpool.Pool) 
 		t.Fatal(err)
 	}
 
-	mustCanPublish(owner, t, f, s.ID, true)
-	mustCanPublish(staff, t, f, s.ID, true)
-	mustCanPublish(stranger, t, f, s.ID, false)
+	mustPublish(owner, t, f, s.ID, true)
+	mustPublish(staff, t, f, s.ID, true)
+	mustPublish(stranger, t, f, s.ID, false)
 
 	if _, err := f.sellers.Block(admin, s.ID); err != nil {
 		t.Fatal(err)
 	}
 
-	mustCanPublish(owner, t, f, s.ID, false) // blocked
-	mustCanPublish(staff, t, f, s.ID, false)
+	mustPublish(owner, t, f, s.ID, false) // blocked
+	mustPublish(staff, t, f, s.ID, false)
 
 	if _, err := f.sellers.Activate(admin, s.ID); err != nil { // a block is lifted the same way
 		t.Fatal(err)
@@ -156,7 +156,7 @@ func testPublishingFollowsStatusAndMembership(t *testing.T, pool *pgxpool.Pool) 
 		t.Fatal(err)
 	}
 
-	mustCanPublish(staff, t, f, s.ID, false) // removed: the right ends at once
+	mustPublish(staff, t, f, s.ID, false) // removed: the right ends at once
 }
 
 func testOnlyTheRightPeopleActOnASeller(t *testing.T, pool *pgxpool.Pool) {

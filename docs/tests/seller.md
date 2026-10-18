@@ -4,7 +4,7 @@ Requirements of [docs/specs/seller.md](../specs/seller.md) and the checks that h
 
 | Requirement | Check |
 | --- | --- |
-| A new seller is `pending`, its opener the owner; publishing only for members of an active seller; a block stops it and activation lifts it; a removed member loses the right at once | `TestSeller` › publishing follows status and membership |
+| A new seller is `pending`, its opener the owner; publishing only for members of an active seller; a block stops it and activation lifts it; a removed member loses the right at once | `TestSeller` › publishing follows status and membership (through `Publishing`) |
 | A stranger gets 404; staff neither change the seller nor add staff; nobody is added twice; a customer does not activate; the owner does not leave; staff do leave; an address must be one address | `TestSeller` › only the right people act on a seller |
 | An owner opens at most five sellers | `TestSeller` › an owner opens at most five sellers |
 | Phone and name are checked | `TestSeller` › details are checked |

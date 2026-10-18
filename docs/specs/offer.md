@@ -1,0 +1,53 @@
+# offer
+
+Owns the surplus sellers post and the settings every offer follows (tables `offer_*`). Decided in the [SEC-11 design](../increments/active/sec-11-offer-module/design.md#the-flow). The sources: Open Food Network for units and prices kept on the offer and copied by an order; Too Good To Go for the price against an original price, the kinds and a sold-out offer kept visible; Umi Feeds for a collection window with a start and an end; foodsharing for reading expiry from the window in every query, so nothing waits for a job; Karrot for refusing to move what is booked. Checks: [docs/tests/offer.md](../tests/offer.md).
+
+## Operations
+
+| Operation | Who | Answer |
+| --- | --- | --- |
+| `POST /sellers/{sellerId}/offers` `{name, description, kind, unit, units, priceVnd, originalPriceVnd, weightGrams, photoId, windowStart, windowEnd}` | The owner or staff of an active seller | `201` offer, on sale at once |
+| `PATCH /offers/{offerId}` | The owner or staff of an active seller | `200` offer |
+| `POST /offers/{offerId}/withdraw` | The seller's owner or staff, even when it is blocked | `200` offer, withdrawn; again, the same |
+| `GET /sellers/{sellerId}/offers?status=&limit=&offset=` | Its members; admins | `200` its offers, newest first, at most 100; the list staff post again from |
+| `GET /offers/{offerId}` | Anyone while it is on sale or sold out; its members and admins always | `200` offer |
+| `GET`, `PUT /admin/offer-settings` | Admins | `200` the settings |
+
+An offer carries its status, units left, discount, photo addresses and the collection point copied from the seller when it was posted. Prices are whole đồng; times are RFC 3339.
+
+Published to other modules: `Service` alone; units are taken by `order` (SEC-15) through it.
+
+## Rules
+
+- **Fields**: a name of 1 to 80 characters; a kind among `bakery`, `prepared_food`, `ingredients`, `drinks`, `mixed_box`, `other`; a unit of up to 20 characters, `suất` when empty; 1 to 999 units; a price of at least 1,000 đồng below the original price; an optional weight per unit, 1 g to 100 kg; a description of up to 1,000 characters, required for a `mixed_box`; one photo.
+- **Settings** (admins change them while the service runs; the first values are the team's of 18 October 2026): the price at least 20% below the original price; a window of 30 minutes to 6 hours, not over, starting within 24 hours; a search radius of 5 km by default and 30 at most, read by search (step 4). A setting applies to what is posted, and to a price or window changed, after it is saved.
+- **The photo** is one the poster uploaded, which the offer claims, or one an earlier offer of the same seller shows: that is how staff post again, sending an earlier offer's details with new units and window. Another seller's photo answers `FILE_PHOTO_NOT_FOUND`.
+- **Status**: `on_sale` and `withdrawn` are stored; `sold_out` (no unit left) and `closed` (the window is over) are read in every query. A sold-out offer stays visible; a closed or withdrawn one is seen only by its seller's people and admins.
+- **Changes**: before any unit is ordered, everything but the seller and the collection point; once units are ordered, only the description, the photo and the units, never below the units ordered. Nothing changes once the offer is closed or withdrawn. Changes to one offer are serialized by a row lock.
+- **Withdrawing** keeps the row with when it was withdrawn; a closed offer cannot be withdrawn.
+- Admins neither post nor change offers; a stranger gets 404.
+
+## Data
+
+| Table | Holds | Lifecycle |
+| --- | --- | --- |
+| `offer_offers` | Seller and who posted (no foreign key across modules), state, the fields, units and units left (`0 <= units_left <= units`), photo, window, the copied latitude, longitude, generated location and address, when posted, changed and withdrawn | Kept: orders, measures and the seller's history read it |
+| `offer_settings` | One row: the settings, who changed them and when | Replaced on save |
+
+## Failures
+
+| Code | Status | When |
+| --- | --- | --- |
+| `OFFER_DETAILS_INVALID` | 400 | A field breaks its rule |
+| `OFFER_DISCOUNT_TOO_SMALL` | 400 | The price is not the minimum discount below the original price |
+| `OFFER_WINDOW_INVALID` | 400 | The window is too short, too long, over, or starts too late |
+| `OFFER_SETTINGS_INVALID` | 400 | Settings out of range or contradicting each other |
+| `OFFER_NOT_FOUND` | 404 | No such offer, or one the caller may not see or change |
+| `OFFER_CHANGE_NOT_ALLOWED` | 409 | A change its orders forbid, or any change once it is closed or withdrawn |
+| `SELLER_NOT_ACTIVE` | 403 | Posting or changing for a seller that is not active |
+| `SELLER_NOT_FOUND` | 404 | Posting for a seller the caller is not a member of |
+| `FILE_PHOTO_NOT_FOUND` | 404 | A photo neither the caller's nor the seller's |
+
+## Not yet
+
+Per the [plan](../increments/active/sec-11-offer-module/plan.md): finding offers near a point and the seller's public page; announcements of expected surplus; following, with emails; weekly schedules. Ordering, which takes units, is SEC-15.

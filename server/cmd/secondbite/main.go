@@ -26,6 +26,7 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/identity"
 	"github.com/kl3inIT/second-bite/server/internal/notification"
+	"github.com/kl3inIT/second-bite/server/internal/offer"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller"
 	"github.com/kl3inIT/second-bite/server/migrations"
@@ -103,6 +104,7 @@ type app struct {
 	identity     *identity.Service
 	file         *file.Service
 	seller       *seller.Service
+	offer        *offer.Service
 }
 
 // assemble reads the configuration, opens and migrates the database, and
@@ -156,9 +158,10 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		}
 
 		sellers := seller.NewService(pool, identities, files, logger)
+		offers := offer.NewService(pool, sellers, files, logger)
 
 		return &app{
-			cfg: cfg, logger: logger, pool: pool, notification: notifications, identity: identities, file: files, seller: sellers,
+			cfg: cfg, logger: logger, pool: pool, notification: notifications, identity: identities, file: files, seller: sellers, offer: offers,
 		}, nil
 	}()
 	if err != nil {
@@ -192,6 +195,7 @@ func registerOperations(api huma.API, a *app) {
 	notification.RegisterOperations(api, a.notification)
 	file.RegisterOperations(api, a.file)
 	seller.RegisterOperations(api, a.seller)
+	offer.RegisterOperations(api, a.offer)
 }
 
 // fileConfig reads where files are kept: SECONDBITE_FILE_STORE (postgres by

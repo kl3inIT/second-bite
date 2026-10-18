@@ -59,11 +59,5 @@ SELECT account_id, role, created_at FROM seller_members WHERE seller_id = @selle
 -- name: DeleteStaff :execrows
 DELETE FROM seller_members WHERE seller_id = @seller_id AND account_id = @account_id AND role = 'staff';
 
--- name: CanPublish :one
-SELECT EXISTS (
-    SELECT 1 FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
-    WHERE m.seller_id = @seller_id AND m.account_id = @account_id AND s.status = 'active'
-);
-
 -- name: SetPhoto :exec
 UPDATE seller_sellers SET photo_id = @photo_id, updated_at = now() WHERE id = @id;

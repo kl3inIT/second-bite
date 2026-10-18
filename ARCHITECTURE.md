@@ -23,7 +23,8 @@ The modules under `server/internal/`, found through the [pilot domain model](doc
 | Module | Owns | Published API |
 | --- | --- | --- |
 | [`identity`](docs/specs/identity.md) | Accounts and their role (customer or admin), emailed sign-in codes, sessions (tables `identity_*`) | `Service`: request a code, sign in, sign out, read an account, grant a role; `Authenticate`, the middleware that puts the caller in each request's context |
-| [`seller`](docs/specs/seller.md) | Sellers, their status set by admins (pending, active, blocked), and their owner and staff (tables `seller_*`) | `Service`: open, read and change a seller, add and remove staff, list and activate or block for admins; `CanPublish` and `CollectionPoint` for offers |
+| [`seller`](docs/specs/seller.md) | Sellers, their status set by admins (pending, active, blocked), and their owner and staff (tables `seller_*`) | `Service`: open, read and change a seller, add and remove staff, list and activate or block for admins; `Publishing`, which checks the right to publish and returns the collection point, for offers |
+| [`offer`](docs/specs/offer.md) | The surplus sellers post, and the settings every offer follows (tables `offer_*`) | `Service`: post, change, withdraw and read offers, a seller's list, the settings for admins |
 | [`file`](docs/specs/file.md) | The files the system keeps, in PostgreSQL or an S3-compatible store as configuration chooses, and the photos uploaded for offers and sellers (tables `file_*`) | `Service`: upload a photo, serve it, `Claim` it for an offer or a seller |
 | [`notification`](docs/specs/notification.md) | Who delivers email, chosen by admins while the service runs, and the record of emails sent (tables `notification_*`) | `Service`: send an email, read and save the email settings |
 
@@ -34,6 +35,7 @@ The modules under `server/internal/`, found through the [pilot domain model](doc
 One line per module, naming the modules whose published API it may use, such as "- `seller` → `identity`". A module not listed may use none. `internal/platform` depends on no module, and every module may use it. The boundary test (`server/internal/boundaries_test.go`) reads this list.
 
 - `identity` → `notification`
+- `offer` → `file`, `identity`, `seller`
 - `seller` → `file`, `identity`
 
 ## Repository contents
