@@ -1,6 +1,6 @@
 # SEC-29 — Signing in on the web, with the emailed code and Google: design
 
-Status: proposed on 18 October 2026, waiting for the team's choices in [Decisions](#decisions); not built ([plan](plan.md)). Tracked in Linear as SEC-29, with SEC-27 (the web session in a cookie), which it needs.
+Status: proposed on 18 October 2026; decisions 3 and 4 taken with the team the same day, the others waiting ([Decisions](#decisions)); not built ([plan](plan.md)). Tracked in Linear as SEC-29, with SEC-27 (the web session in a cookie), which it needs.
 
 ## What a person can do
 
@@ -47,14 +47,18 @@ The rest of SEC-27 stands: `HttpOnly; Secure; SameSite=Lax`, the session's 30-da
 
 ### 3. Google signs in by its ID token, posted to one endpoint for the web and the mobile application
 
+Decided with the team on 18 October 2026: option A.
+
 | | Option | For | Against |
 | --- | --- | --- | --- |
-| **A** (proposed) | The page shows Google's own button (Google Identity Services); Google hands the page an ID token, which it posts to `POST /auth/google` | One endpoint serves the web now and the Flutter application later (`google_sign_in` also hands over an ID token); no client secret on the server; Google's button and FedCM, which browsers are moving to | Google's script runs on our page; a popup or the browser's FedCM prompt |
+| **A** (decided) | The page shows Google's own button (Google Identity Services); Google hands the page an ID token, which it posts to `POST /auth/google` | One endpoint serves the web now and the Flutter application later (`google_sign_in` also hands over an ID token); no client secret on the server; Google's button and FedCM, which browsers are moving to | Google's script runs on our page; a popup or the browser's FedCM prompt |
 | B | The server redirects to Google and exchanges the returned code (authorization code with PKCE) | No script of Google's on our pages; works without JavaScript | A client secret to keep; a second flow for the mobile application, which cannot use a redirect the same way |
 
 Supabase Auth (`POST /token?grant_type=id_token`, `internal/api/token_oidc.go`) and Ory Kratos (`id_token` in the login and registration bodies, `selfservice/strategy/oidc/strategy_login.go:79-96`) accept an ID token posted by a native client; BeyondPilot and Miniflux use the redirect (B), having no mobile application.
 
 ### 4. Linking an address that already has an account
+
+Decided with the team on 18 October 2026: link only where Google is authoritative, as Firebase does.
 
 | Product | When Google's address matches an account |
 | --- | --- |
@@ -63,10 +67,14 @@ Supabase Auth (`POST /token?grant_type=id_token`, `internal/api/token_oidc.go`) 
 | Ory Kratos | Refuses by default and asks the person to sign in the existing way first (`strategy.go:139-142`) |
 | Miniflux | Refuses; linking only while signed in (`internal/ui/oauth2_callback.go:125-127`) |
 | Gitea | `ACCOUNT_LINKING = login` by default: sign in the existing way first |
+| Clerk | Links when the provider's address is verified ([account linking](https://clerk.com/docs/guides/configure/auth-strategies/social-connections/account-linking)) |
+| Firebase Authentication | Treats Google as a trusted provider only for `@gmail.com` addresses ([users](https://firebase.google.com/docs/auth/users)) |
+| Auth0 | Advises never to link by address alone, even verified, and to have the person sign in to both first: a former employee's reassigned address would join the wrong account ([email verified](https://auth0.com/docs/users/guides/email-verified)) |
+| Shopee, Grab | Key accounts by phone number. Shopee lets one number belong to one account only and has the person prove the existing account before a number moves ([help 79184](https://help.shopee.vn/portal/4/article/79184), [79292](https://help.shopee.vn/portal/4/article/79292)); neither publishes how it treats a matching email |
 
 Google says when it is authoritative for an address: an address at `gmail.com`, or `email_verified` with `hd` set (a Google Workspace account); for any other address the account's owner may no longer own it ([OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect), [Verify the ID token](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token)).
 
-**Proposed:**
+**Decided:**
 
 - A Google identity is found by Google's `sub`, never by its address, so an address changed at Google keeps its account (Supabase, Kratos, Miniflux and BeyondPilot all do).
 - A first Google sign-in needs `email_verified`. Then:
