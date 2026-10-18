@@ -13,3 +13,12 @@ Cập nhật: clone lại repo nguồn và chép đè các thư mục trên.
 # Web skills — nguồn
 
 - shadcn-ui/ui, chép từ BeyondPilot `5f796557` (2026-10-01), MIT: shadcn. Dùng cho `web/` (registry shadcn, `components.json`).
+
+# Flutter và Dart skills — nguồn
+
+- flutter/agent-plugins @ b60d073 (2026-10-16), BSD-3-Clause, do đội Flutter duy trì; các skill `dart-*` trùng với dart-lang/skills: flutter-add-integration-test, flutter-add-widget-preview, flutter-add-widget-test, flutter-apply-architecture-best-practices, flutter-build-responsive-layout, flutter-fix-layout-issues, dart-add-unit-test, dart-collect-coverage, dart-fix-runtime-errors, dart-resolve-package-conflicts, dart-run-static-analysis, dart-use-pattern-matching, dart-use-primary-constructors, dart-write-documentation.
+
+Chờ quyết định của SEC-12 rồi mới chép: flutter-setup-declarative-routing (phần 3, điều hướng), flutter-use-http-package và flutter-implement-json-serialization (phần 4, client API), flutter-setup-localization (phần 5, song ngữ), dart-generate-test-mocks và dart-migrate-to-checks-package (phần 6, test).
+Bỏ qua có chủ ý: dart-build-cli-app, dart-setup-ffi-assets, dart-use-ffigen, dart-use-doc-examples, dart-use-path-package.
+flutter-apply-architecture-best-practices viết ViewModel bằng `ChangeNotifier`; cách quản lý trạng thái SEC-12 chốt sẽ thay phần đó.
+Cập nhật: clone lại repo nguồn và chép đè các thư mục trên.
