@@ -18,9 +18,9 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
 )
 
-// TestMedia runs the module's checks in parallel against one PostgreSQL,
+// TestFile runs the module's checks in parallel against one PostgreSQL,
 // each with accounts of its own.
-func TestMedia(t *testing.T) {
+func TestFile(t *testing.T) {
 	t.Parallel()
 
 	pool := platformtest.StartPostgres(t)
@@ -33,8 +33,8 @@ func TestMedia(t *testing.T) {
 	for name, check := range map[string]func(*testing.T, *file.Service, *pgxpool.Pool){
 		"an uploaded photo is served in both sizes":       testUploadedPhotoIsServed,
 		"only the uploader claims a photo":                testOnlyTheUploaderClaims,
-		"an account holds at most 20 unused photos":       testUnusedPhotoLimit,
-		"an account uploads at most 100 photos a day":     testDailyPhotoLimit,
+		"an account holds at most 20 unused files":        testUnusedPhotoLimit,
+		"an account uploads at most 100 files a day":      testDailyPhotoLimit,
 		"uploads need a caller and an image within 10 MB": testUploadNeedsCallerAndImage,
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -161,7 +161,7 @@ func testUnusedPhotoLimit(t *testing.T, photos *file.Service, _ *pgxpool.Pool) {
 		}
 	}
 
-	if _, err := photos.Upload(ctx, data); !errors.Is(err, file.ErrUnusedPhotoLimit) {
+	if _, err := photos.Upload(ctx, data); !errors.Is(err, file.ErrUnusedLimit) {
 		t.Fatalf("the 21st unused photo: %v", err)
 	}
 
@@ -192,7 +192,7 @@ func testDailyPhotoLimit(t *testing.T, photos *file.Service, _ *pgxpool.Pool) {
 		}
 	}
 
-	if _, err := photos.Upload(ctx, data); !errors.Is(err, file.ErrDailyPhotoLimit) {
+	if _, err := photos.Upload(ctx, data); !errors.Is(err, file.ErrDailyLimit) {
 		t.Fatalf("the 101st photo of the day: %v", err)
 	}
 }

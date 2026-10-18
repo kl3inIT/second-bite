@@ -8,11 +8,11 @@ Requirements of [docs/specs/file.md](../specs/file.md) and the checks that hold 
 | A small photo is not enlarged; transparency becomes white | `TestRenderKeepsASmallPhotoAndWhitensTransparency` |
 | WebP is read | `TestRenderReadsWebP` |
 | Text, GIF, a truncated JPEG, an image declaring just over 24 megapixels and one with no pixels are refused | `TestRenderRefusesWhatIsNotAPhoto` |
-| An uploaded photo is served in both sizes as JPEG; an unknown one is not found | `TestMedia` › an uploaded photo is served in both sizes (`internal/file/file_test.go`) |
-| Only the uploader claims a photo, and claiming again succeeds | `TestMedia` › only the uploader claims a photo |
-| An account holds at most 20 unused photos; using one frees a place | `TestMedia` › an account holds at most 20 unused photos |
-| An account uploads at most 100 photos a day, even when each is used | `TestMedia` › an account uploads at most 100 photos a day |
-| An upload needs a caller and a non-empty image within 10 MB | `TestMedia` › uploads need a caller and an image within 10 MB |
+| An uploaded photo is served in both sizes as JPEG; an unknown one is not found | `TestFile` › an uploaded photo is served in both sizes (`internal/file/file_test.go`) |
+| Only the uploader claims a photo, and claiming again succeeds | `TestFile` › only the uploader claims a photo |
+| An account holds at most 20 unused files; using one frees a place | `TestFile` › an account holds at most 20 unused files |
+| An account uploads at most 100 files a day, even when each is used | `TestFile` › an account uploads at most 100 files a day |
+| An upload needs a caller and a non-empty image within 10 MB | `TestFile` › uploads need a caller and an image within 10 MB |
 | A store without an implementation stops the service | `TestUnknownStoreIsRefused` |
 | Photos are kept in an S3-compatible store and served from it; a photo kept in PostgreSQL before the switch is still read from there | `TestS3Store` (`internal/file/s3_object_store_test.go`), against VersityGW, an S3 gateway in a container |
 | `s3` chosen without a bucket, or a bucket that does not answer, stops the service | `TestS3StoreMustAnswer` |

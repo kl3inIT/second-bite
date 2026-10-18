@@ -12,10 +12,10 @@ var (
 		"Choose a JPEG, PNG or WebP photo of at most 10 MB.")
 	ErrPhotoNotFound = platform.NewFailure("FILE_PHOTO_NOT_FOUND", platform.CategoryNotFound,
 		"The photo does not exist.")
-	ErrUnusedPhotoLimit = platform.NewFailure("FILE_UNUSED_PHOTO_LIMIT", platform.CategoryLimitExceeded,
-		"You have 20 photos not used yet; use one before uploading more.")
-	ErrDailyPhotoLimit = platform.NewFailure("FILE_DAILY_PHOTO_LIMIT", platform.CategoryLimitExceeded,
-		"You have uploaded 100 photos today; try again tomorrow.").WithRetryAfter(time.Hour)
+	ErrUnusedLimit = platform.NewFailure("FILE_UNUSED_LIMIT", platform.CategoryLimitExceeded,
+		"You have 20 files not used yet; use one before uploading more.")
+	ErrDailyLimit = platform.NewFailure("FILE_DAILY_LIMIT", platform.CategoryLimitExceeded,
+		"You have uploaded 100 files today; try again tomorrow.").WithRetryAfter(time.Hour)
 	ErrStoreUnavailable = platform.NewFailure("FILE_STORE_UNAVAILABLE", platform.CategoryServiceUnavailable,
 		"Photos cannot be stored right now; try again in a minute.").WithRetryAfter(time.Minute)
 )

@@ -115,6 +115,10 @@ The customer's daily limit of units (domain model assumption 4, 10 to start) is 
 
 - One photo per offer, and per seller. JPEG, PNG or WebP, at most 10 MB and 24 megapixels, and at most 100 a day per account (a photo once used is kept). iPhone browsers turn their HEIC photos into JPEG when a page asks for an image, so HEIC is not accepted by the server; this is checked on a device during verification.
 - Every photo is decoded and written again as JPEG in two sizes, 1,600 and 400 pixels on the longer side, so no metadata (location, device) survives and a list loads quickly on a phone. *(Open Food Network resizes to four sizes.)*
+- **One table for every file** (`file_files`) with a purpose, as Open Food Network (Rails' `active_storage_blobs`), Mattermost (`FileInfo`), Memos (`attachment`), listmonk (`media`) and BeyondPilot (`storage_file`, revision `dd79fd86`) keep theirs; only PocketBase keeps files as fields of records. Decided with the team on 18 October 2026, replacing a table for photos alone.
+- **The original is not kept**, only the two sizes. Facebook, Instagram and X strip the location from the copy others see and keep the original; Memos keeps a copy without EXIF. A copy at full size without EXIF is the step to take when a larger size is needed; until then it would hold five to ten times the bytes for no reader.
+- **Not presigned.** BeyondPilot sends an upload straight to the bucket; a photo here must pass through the service to lose its metadata, so a presigned upload would only add a round trip. Reads may move to presigned addresses or a CDN when they load the service, without changing a photo's address.
+- **The web application shrinks a photo before sending it** (about 2,000 pixels, JPEG), so it arrives quickly over 4G; the service still checks and writes it again. *Ours*: no source was found for how mobile applications do it; to be measured with SEC-17.
 - Photos are not reviewed before they are shown; staff answer for them and an admin removes one on a report (founder's requirements, section 10).
 - A photo uploaded and never used by an offer or a seller is deleted after a day.
 - **Anyone signed in may upload**, not only a member of an active seller: `file` cannot ask `seller`, which asks `file` for the seller's photo. A photo is used only by the account that uploaded it (`Claim`), and an account holds at most 20 unused photos until they are deleted after a day. `offer` lets staff post again with a photo an earlier offer of the same seller already uses.
@@ -189,7 +193,8 @@ Prices are whole đồng; times are RFC 3339 with an offset, schedules' times of
 | `OFFER_CHANGE_NOT_ALLOWED` | 409 | A change its orders forbid, or any change once the window has ended or the offer is withdrawn |
 | `FILE_PHOTO_INVALID` | 400 | Not a JPEG, PNG or WebP image, or more than 24 megapixels; over 10 MB is `PLATFORM_BODY_TOO_LARGE` (413) |
 | `FILE_PHOTO_NOT_FOUND` | 404 | No such photo, or one another account uploaded |
-| `FILE_UNUSED_PHOTO_LIMIT` | 429 | The account holds 20 unused photos |
+| `FILE_UNUSED_LIMIT` | 429 | The account holds 20 unused files |
+| `FILE_DAILY_LIMIT` | 429 | The account uploaded 100 files in 24 hours |
 | `SELLER_NOT_ACTIVE` | 403 | Publishing for a seller that is not active |
 
 ## Data
@@ -200,7 +205,7 @@ Prices are whole đồng; times are RFC 3339 with an offset, schedules' times of
 | `offer_schedules` | Seller, the offer's fields, days of the week, estimated units, times of day, paused | Deleted by staff |
 | `offer_seller_follows`, `offer_announcement_follows` | Account and seller, or account and offer, and when | Deleted on unfollow; an announcement's follows are deleted once it is told |
 | `offer_settings` | One row: the settings above, who changed them and when | Replaced on save |
-| `file_photos` | Who uploaded it, the store, its size, when it was first used | Deleted with its files a day after upload when unused |
+| `file_files` | Every file the system keeps: purpose (`photo`), store, key, media type, bytes kept, who uploaded it, a photo's width and height, when it was first used | Deleted with its files a day after upload when unused |
 | `file_blobs` | The PostgreSQL store's files: key and bytes | Deleted with their photo |
 
 The jobs (the day's announcements from schedules, emails to followers, deleting unused photos) run on River, which arrives with this increment: the first job of the service, inserted in the transaction of the change that causes it.

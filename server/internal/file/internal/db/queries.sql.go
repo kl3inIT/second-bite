@@ -10,48 +10,50 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const claimPhoto = `-- name: ClaimPhoto :execrows
-UPDATE file_photos SET used_at = coalesce(used_at, now())
-WHERE id = $1 AND uploaded_by = $2
+const claimFile = `-- name: ClaimFile :execrows
+UPDATE file_files SET used_at = coalesce(used_at, now())
+WHERE id = $1 AND purpose = $2 AND uploaded_by = $3
 `
 
-type ClaimPhotoParams struct {
+type ClaimFileParams struct {
 	ID        uuid.UUID
+	Purpose   string
 	AccountID uuid.UUID
 }
 
-func (q *Queries) ClaimPhoto(ctx context.Context, arg ClaimPhotoParams) (int64, error) {
-	result, err := q.db.Exec(ctx, claimPhoto, arg.ID, arg.AccountID)
+func (q *Queries) ClaimFile(ctx context.Context, arg ClaimFileParams) (int64, error) {
+	result, err := q.db.Exec(ctx, claimFile, arg.ID, arg.Purpose, arg.AccountID)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected(), nil
 }
 
-const countPhotosSince = `-- name: CountPhotosSince :one
-SELECT count(*)::integer FROM file_photos WHERE uploaded_by = $1 AND created_at >= $2
+const countFilesSince = `-- name: CountFilesSince :one
+SELECT count(*)::integer FROM file_files WHERE uploaded_by = $1 AND created_at >= $2
 `
 
-type CountPhotosSinceParams struct {
+type CountFilesSinceParams struct {
 	AccountID uuid.UUID
 	Since     time.Time
 }
 
-func (q *Queries) CountPhotosSince(ctx context.Context, arg CountPhotosSinceParams) (int32, error) {
-	row := q.db.QueryRow(ctx, countPhotosSince, arg.AccountID, arg.Since)
+func (q *Queries) CountFilesSince(ctx context.Context, arg CountFilesSinceParams) (int32, error) {
+	row := q.db.QueryRow(ctx, countFilesSince, arg.AccountID, arg.Since)
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
 }
 
-const countUnusedPhotos = `-- name: CountUnusedPhotos :one
-SELECT count(*)::integer FROM file_photos WHERE uploaded_by = $1 AND used_at IS NULL
+const countUnusedFiles = `-- name: CountUnusedFiles :one
+SELECT count(*)::integer FROM file_files WHERE uploaded_by = $1 AND used_at IS NULL
 `
 
-func (q *Queries) CountUnusedPhotos(ctx context.Context, accountID uuid.UUID) (int32, error) {
-	row := q.db.QueryRow(ctx, countUnusedPhotos, accountID)
+func (q *Queries) CountUnusedFiles(ctx context.Context, accountID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, countUnusedFiles, accountID)
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -82,16 +84,21 @@ func (q *Queries) GetBlob(ctx context.Context, key string) (GetBlobRow, error) {
 	return i, err
 }
 
-const getPhoto = `-- name: GetPhoto :one
-SELECT id, store, uploaded_by, width, height, used_at, created_at FROM file_photos WHERE id = $1
+const getFile = `-- name: GetFile :one
+SELECT id, purpose, store, object_key, media_type, size_bytes, uploaded_by, width, height, used_at, created_at
+FROM file_files WHERE id = $1
 `
 
-func (q *Queries) GetPhoto(ctx context.Context, id uuid.UUID) (FilePhoto, error) {
-	row := q.db.QueryRow(ctx, getPhoto, id)
-	var i FilePhoto
+func (q *Queries) GetFile(ctx context.Context, id uuid.UUID) (FileFile, error) {
+	row := q.db.QueryRow(ctx, getFile, id)
+	var i FileFile
 	err := row.Scan(
 		&i.ID,
+		&i.Purpose,
 		&i.Store,
+		&i.ObjectKey,
+		&i.MediaType,
+		&i.SizeBytes,
 		&i.UploadedBy,
 		&i.Width,
 		&i.Height,
@@ -101,23 +108,31 @@ func (q *Queries) GetPhoto(ctx context.Context, id uuid.UUID) (FilePhoto, error)
 	return i, err
 }
 
-const insertPhoto = `-- name: InsertPhoto :exec
-INSERT INTO file_photos (id, store, uploaded_by, width, height)
-VALUES ($1, $2, $3, $4, $5)
+const insertFile = `-- name: InsertFile :exec
+INSERT INTO file_files (id, purpose, store, object_key, media_type, size_bytes, uploaded_by, width, height)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 `
 
-type InsertPhotoParams struct {
+type InsertFileParams struct {
 	ID         uuid.UUID
+	Purpose    string
 	Store      string
+	ObjectKey  string
+	MediaType  string
+	SizeBytes  int64
 	UploadedBy uuid.UUID
-	Width      int32
-	Height     int32
+	Width      pgtype.Int4
+	Height     pgtype.Int4
 }
 
-func (q *Queries) InsertPhoto(ctx context.Context, arg InsertPhotoParams) error {
-	_, err := q.db.Exec(ctx, insertPhoto,
+func (q *Queries) InsertFile(ctx context.Context, arg InsertFileParams) error {
+	_, err := q.db.Exec(ctx, insertFile,
 		arg.ID,
+		arg.Purpose,
 		arg.Store,
+		arg.ObjectKey,
+		arg.MediaType,
+		arg.SizeBytes,
 		arg.UploadedBy,
 		arg.Width,
 		arg.Height,
@@ -129,7 +144,7 @@ const lockUploader = `-- name: LockUploader :exec
 SELECT pg_advisory_xact_lock(hashtextextended('file:uploader:' || $1::text, 0))
 `
 
-// Serializes an account's uploads, so the limit of unused photos holds.
+// Serializes an account's uploads, so the limit of unused files holds.
 func (q *Queries) LockUploader(ctx context.Context, accountID string) error {
 	_, err := q.db.Exec(ctx, lockUploader, accountID)
 	return err

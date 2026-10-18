@@ -1,23 +1,24 @@
 -- name: LockUploader :exec
--- Serializes an account's uploads, so the limit of unused photos holds.
+-- Serializes an account's uploads, so the limit of unused files holds.
 SELECT pg_advisory_xact_lock(hashtextextended('file:uploader:' || @account_id::text, 0));
 
--- name: CountUnusedPhotos :one
-SELECT count(*)::integer FROM file_photos WHERE uploaded_by = @account_id AND used_at IS NULL;
+-- name: CountUnusedFiles :one
+SELECT count(*)::integer FROM file_files WHERE uploaded_by = @account_id AND used_at IS NULL;
 
--- name: CountPhotosSince :one
-SELECT count(*)::integer FROM file_photos WHERE uploaded_by = @account_id AND created_at >= @since;
+-- name: CountFilesSince :one
+SELECT count(*)::integer FROM file_files WHERE uploaded_by = @account_id AND created_at >= @since;
 
--- name: InsertPhoto :exec
-INSERT INTO file_photos (id, store, uploaded_by, width, height)
-VALUES (@id, @store, @uploaded_by, @width, @height);
+-- name: InsertFile :exec
+INSERT INTO file_files (id, purpose, store, object_key, media_type, size_bytes, uploaded_by, width, height)
+VALUES (@id, @purpose, @store, @object_key, @media_type, @size_bytes, @uploaded_by, @width, @height);
 
--- name: GetPhoto :one
-SELECT id, store, uploaded_by, width, height, used_at, created_at FROM file_photos WHERE id = @id;
+-- name: GetFile :one
+SELECT id, purpose, store, object_key, media_type, size_bytes, uploaded_by, width, height, used_at, created_at
+FROM file_files WHERE id = @id;
 
--- name: ClaimPhoto :execrows
-UPDATE file_photos SET used_at = coalesce(used_at, now())
-WHERE id = @id AND uploaded_by = @account_id;
+-- name: ClaimFile :execrows
+UPDATE file_files SET used_at = coalesce(used_at, now())
+WHERE id = @id AND purpose = @purpose AND uploaded_by = @account_id;
 
 -- name: PutBlob :exec
 INSERT INTO file_blobs (key, content_type, data) VALUES (@key, @content_type, @data)

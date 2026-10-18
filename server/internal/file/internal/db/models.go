@@ -8,14 +8,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type FilePhoto struct {
+type FileFile struct {
 	ID         uuid.UUID
+	Purpose    string
 	Store      string
+	ObjectKey  string
+	MediaType  string
+	SizeBytes  int64
 	UploadedBy uuid.UUID
-	Width      int32
-	Height     int32
+	Width      pgtype.Int4
+	Height     pgtype.Int4
 	UsedAt     *time.Time
 	CreatedAt  time.Time
 }

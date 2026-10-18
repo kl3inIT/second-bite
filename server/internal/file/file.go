@@ -16,6 +16,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kl3inIT/second-bite/server/internal/file/internal/db"
@@ -25,13 +26,13 @@ import (
 const (
 	// MaxUploadBytes bounds one upload; a phone's photo is 3 to 8 MB.
 	MaxUploadBytes = 10 << 20
-	// maxUnusedPhotos bounds the photos an account holds without using them,
-	// until unused photos are deleted after a day.
-	maxUnusedPhotos = 20
-	// maxPhotosPerDay bounds what one account stores, since a photo once
-	// used is kept: an owner setting photo after photo on a seller would
-	// otherwise pass the limit of unused photos.
-	maxPhotosPerDay = 100
+	// maxUnusedFiles bounds the files an account holds without using them,
+	// until unused files are deleted after a day.
+	maxUnusedFiles = 20
+	// maxFilesPerDay bounds what one account stores, since a file once used
+	// is kept: an owner setting photo after photo on a seller would otherwise
+	// pass the limit of unused files.
+	maxFilesPerDay = 100
 	// concurrentRenders bounds the memory decoding takes: about 200 MB for
 	// the largest photo accepted.
 	concurrentRenders = 2
@@ -61,8 +62,21 @@ func fileName(size Size) string {
 	return strconv.Itoa(int(size)) + ".jpg"
 }
 
-func objectKey(id uuid.UUID, size Size) string {
-	return "photos/" + id.String() + "/" + fileName(size)
+// Purpose is what a file is for; it decides the rules of its upload.
+type Purpose string
+
+// The purposes of files.
+const (
+	PurposePhoto Purpose = "photo"
+)
+
+// photoPrefix is the key a photo's sizes are kept under.
+func photoPrefix(id uuid.UUID) string {
+	return "photos/" + id.String()
+}
+
+func sizeKey(prefix string, size Size) string {
+	return prefix + "/" + fileName(size)
 }
 
 // Service is the module's published API.
@@ -122,22 +136,22 @@ func (s *Service) Upload(ctx context.Context, data []byte) (Photo, error) {
 	}
 
 	// Checked first without a lock, so a refused upload costs no decoding.
-	unused, err := s.queries.CountUnusedPhotos(ctx, caller.AccountID)
+	unused, err := s.queries.CountUnusedFiles(ctx, caller.AccountID)
 	if err != nil {
-		return Photo{}, fmt.Errorf("counting unused photos: %w", err)
+		return Photo{}, fmt.Errorf("counting unused files: %w", err)
 	}
 
-	if unused >= maxUnusedPhotos {
-		return Photo{}, ErrUnusedPhotoLimit
+	if unused >= maxUnusedFiles {
+		return Photo{}, ErrUnusedLimit
 	}
 
-	today, err := s.queries.CountPhotosSince(ctx, db.CountPhotosSinceParams{AccountID: caller.AccountID, Since: time.Now().Add(-24 * time.Hour)})
+	today, err := s.queries.CountFilesSince(ctx, db.CountFilesSinceParams{AccountID: caller.AccountID, Since: time.Now().Add(-24 * time.Hour)})
 	if err != nil {
-		return Photo{}, fmt.Errorf("counting the day's photos: %w", err)
+		return Photo{}, fmt.Errorf("counting the day's files: %w", err)
 	}
 
-	if today >= maxPhotosPerDay {
-		return Photo{}, ErrDailyPhotoLimit
+	if today >= maxFilesPerDay {
+		return Photo{}, ErrDailyLimit
 	}
 
 	img, err := s.render(ctx, data)
@@ -169,14 +183,20 @@ func (s *Service) keep(ctx context.Context, uploader uuid.UUID, photo Photo, img
 		return err
 	}
 
-	// The files are stored before the row, which no store's transaction
+	prefix := photoPrefix(photo.ID)
+
+	var total int64
+
+	// The objects are stored before the row, which no store's transaction
 	// covers; when the row is refused, they are deleted again.
-	for size, file := range img.files {
-		if err := store.Put(ctx, objectKey(photo.ID, size), object{contentType: contentTypeJPEG, data: file}); err != nil {
-			s.deleteFiles(ctx, store, photo.ID)
+	for size, data := range img.files {
+		if err := store.Put(ctx, sizeKey(prefix, size), object{contentType: contentTypeJPEG, data: data}); err != nil {
+			s.deleteSizes(ctx, store, prefix)
 
 			return ErrStoreUnavailable.WithCause(err)
 		}
+
+		total += int64(len(data))
 	}
 
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
@@ -186,22 +206,24 @@ func (s *Service) keep(ctx context.Context, uploader uuid.UUID, photo Photo, img
 			return fmt.Errorf("locking the uploader: %w", err)
 		}
 
-		unused, err := q.CountUnusedPhotos(ctx, uploader)
+		unused, err := q.CountUnusedFiles(ctx, uploader)
 		if err != nil {
-			return fmt.Errorf("counting unused photos: %w", err)
+			return fmt.Errorf("counting unused files: %w", err)
 		}
 
-		if unused >= maxUnusedPhotos {
-			return ErrUnusedPhotoLimit
+		if unused >= maxUnusedFiles {
+			return ErrUnusedLimit
 		}
 
-		return q.InsertPhoto(ctx, db.InsertPhotoParams{
-			ID: photo.ID, Store: string(s.store), UploadedBy: uploader,
-			Width: int32(photo.Width), Height: int32(photo.Height), //nolint:gosec // at most maxPixels on a side
+		return q.InsertFile(ctx, db.InsertFileParams{
+			ID: photo.ID, Purpose: string(PurposePhoto), Store: string(s.store), ObjectKey: prefix,
+			MediaType: contentTypeJPEG, SizeBytes: total, UploadedBy: uploader,
+			Width:  pgtype.Int4{Int32: int32(photo.Width), Valid: true},  //nolint:gosec // at most maxPixels on a side
+			Height: pgtype.Int4{Int32: int32(photo.Height), Valid: true}, //nolint:gosec // likewise
 		})
 	})
 	if err != nil {
-		s.deleteFiles(ctx, store, photo.ID)
+		s.deleteSizes(ctx, store, prefix)
 
 		return err
 	}
@@ -214,7 +236,7 @@ func (s *Service) keep(ctx context.Context, uploader uuid.UUID, photo Photo, img
 // ErrPhotoNotFound, as for a photo that does not exist. Claiming again
 // succeeds.
 func (s *Service) Claim(ctx context.Context, photoID, accountID uuid.UUID) error {
-	n, err := s.queries.ClaimPhoto(ctx, db.ClaimPhotoParams{ID: photoID, AccountID: accountID})
+	n, err := s.queries.ClaimFile(ctx, db.ClaimFileParams{ID: photoID, Purpose: string(PurposePhoto), AccountID: accountID})
 	if err != nil {
 		return fmt.Errorf("claiming the photo: %w", err)
 	}
@@ -228,8 +250,8 @@ func (s *Service) Claim(ctx context.Context, photoID, accountID uuid.UUID) error
 
 // File returns a photo in size as JPEG.
 func (s *Service) File(ctx context.Context, photoID uuid.UUID, size Size) ([]byte, error) {
-	row, err := s.queries.GetPhoto(ctx, photoID)
-	if errors.Is(err, pgx.ErrNoRows) {
+	row, err := s.queries.GetFile(ctx, photoID)
+	if errors.Is(err, pgx.ErrNoRows) || err == nil && row.Purpose != string(PurposePhoto) {
 		return nil, ErrPhotoNotFound
 	}
 
@@ -242,7 +264,7 @@ func (s *Service) File(ctx context.Context, photoID uuid.UUID, size Size) ([]byt
 		return nil, err
 	}
 
-	o, err := store.Get(ctx, objectKey(photoID, size))
+	o, err := store.Get(ctx, sizeKey(row.ObjectKey, size))
 	if errors.Is(err, errObjectNotFound) {
 		return nil, ErrPhotoNotFound
 	}
@@ -267,14 +289,14 @@ func (s *Service) render(ctx context.Context, data []byte) (rendered, error) {
 	return render(data)
 }
 
-// deleteFiles removes what an upload stored before it failed. A failure is
-// logged; the files are then left without a photo.
-func (s *Service) deleteFiles(ctx context.Context, store objectStore, id uuid.UUID) {
+// deleteSizes removes what an upload stored before it failed. A failure is
+// logged; the objects are then left without a row.
+func (s *Service) deleteSizes(ctx context.Context, store objectStore, prefix string) {
 	for _, size := range sizes {
-		if err := store.Delete(context.WithoutCancel(ctx), objectKey(id, size)); err != nil {
-			s.logger.WarnContext(ctx, "photo files left after a failed upload",
-				slog.String("event", "file.photo.files_left"),
-				slog.String("photo_id", id.String()),
+		if err := store.Delete(context.WithoutCancel(ctx), sizeKey(prefix, size)); err != nil {
+			s.logger.WarnContext(ctx, "photo objects left after a failed upload",
+				slog.String("event", "file.photo.objects_left"),
+				slog.String("object_key", prefix),
 				slog.String("error", err.Error()),
 			)
 		}
