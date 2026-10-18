@@ -11,7 +11,8 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 
 - [SEC-6 — Pilot domain model](increments/active/sec-6-pilot-domain-model/design.md): the pilot's journey worked through boundary discovery from the founder's requirements, ending in candidate modules, their data owners and working assumptions. The one question left for the founder is SEC-7; the reading of comparable products SEC-8.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
-- [SEC-11 — The `offer` module](increments/active/sec-11-offer-module/design.md): sellers post surplus with a photo and post it again in two fields, announce expected surplus by hand or by a weekly schedule and confirm it; customers find offers near them and follow sellers and announcements by email; photos in a new `media` module. Flow decided on 18 October 2026.
+- [SEC-11 — The `offer` module](increments/active/sec-11-offer-module/design.md): sellers post surplus with a photo and post it again in two fields, announce expected surplus by hand or by a weekly schedule and confirm it; customers find offers near them and follow sellers and announcements by email; photos in a new `file` module. Flow decided on 18 October 2026; steps 2 to 4 built.
+- [SEC-29 — Signing in on the web](increments/active/sec-29-web-sign-in/design.md), with SEC-27: the session in an httpOnly cookie, the sign-in page with the emailed code and Google, linking by Google's authoritative addresses. Proposed on 18 October 2026.
 
 ## Candidates
 
