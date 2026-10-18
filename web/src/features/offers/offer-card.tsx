@@ -3,7 +3,7 @@ import { useFormatter, useTranslations } from "next-intl";
 
 import { Band, type BandState } from "@/components/band";
 
-import { formatPrice, windowTime } from "./format";
+import { formatPrice } from "./format";
 import type { OfferSummary } from "./offer";
 
 // A white label on the kraft ground (DESIGN.md › Components › Offer card): photo, seller and place,
@@ -11,8 +11,8 @@ import type { OfferSummary } from "./offer";
 export function OfferCard({ offer }: { offer: OfferSummary }) {
   const t = useTranslations("OfferCard");
   const format = useFormatter();
-  const from = format.dateTime(new Date(offer.collectFrom), windowTime);
-  const until = format.dateTime(new Date(offer.collectUntil), windowTime);
+  const from = format.dateTime(new Date(offer.collectFrom), "time");
+  const until = format.dateTime(new Date(offer.collectUntil), "time");
   const state: BandState =
     offer.state === "announced" ? "expected" : offer.units > 0 ? "available" : "soldOut";
   const band = {

@@ -8,8 +8,26 @@ import createNextIntlPlugin from "next-intl/plugin";
 const apiOrigin = process.env.SECONDBITE_API_ORIGIN;
 
 const nextConfig: NextConfig = {
+  // The server and only the modules it traces, for the image in web/Dockerfile.
+  output: "standalone",
+  reactCompiler: true,
   cacheComponents: true,
   partialPrefetching: true,
+  // Baseline headers, as BeyondPilot sets them; a Content Security Policy with nonces is a decision of its own.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Location stays allowed for this site alone: finding offers near a point is designed (SEC-11).
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     if (!apiOrigin) {
       if (process.env.NODE_ENV === "development") {

@@ -4,3 +4,8 @@ allowBuilds:
   sharp: false
   "@parcel/watcher": false
   "@swc/core": false
+
+# Scripts run in pnpm's own POSIX-like shell on every system, so `NAME=value command` works on
+# Windows too. knip's script needs it: oxc-parser's raw transfer reserves one buffer of several GB,
+# which a Windows machine with little free memory refuses, and the plain parser is fast enough here.
+shellEmulator: true

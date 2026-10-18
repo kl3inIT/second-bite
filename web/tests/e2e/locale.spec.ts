@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoSeriousA11yViolations } from "./axe";
+import { hydrated } from "./hydration";
 
 test.describe("on a Vietnamese device", () => {
   test.use({ locale: "vi-VN" });
@@ -18,7 +19,7 @@ test.describe("on a Vietnamese device", () => {
 
   test("switches to English and keeps the choice", async ({ page }) => {
     await page.goto("/vi");
-    await page.getByRole("link", { name: "Switch to English" }).click();
+    await (await hydrated(page.getByRole("link", { name: "Switch to English" }))).click();
 
     await expect(page).toHaveURL(/\/en$/);
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
@@ -37,8 +38,18 @@ test.describe("on a Vietnamese device", () => {
     await expect(page.getByRole("heading", { name: "Không tìm thấy trang này" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
-    await page.getByRole("link", { name: "Về trang chủ" }).click();
+    await (await hydrated(page.getByRole("link", { name: "Về trang chủ" }))).click();
     await expect(page).toHaveURL(/\/vi$/);
+  });
+});
+
+test("answers with the baseline security headers", async ({ request }) => {
+  const response = await request.get("/vi");
+
+  expect(response.headers()).toMatchObject({
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "referrer-policy": "strict-origin-when-cross-origin",
   });
 });
 

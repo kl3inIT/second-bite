@@ -25,6 +25,8 @@
   },
   "Error": {
     "title": "Đã có lỗi xảy ra",
+    "body": "Vui lòng thử lại. Nếu vẫn lỗi, hãy báo cho chúng tôi mã bên dưới.",
+    "reference": "Mã tham chiếu: {digest}",
     "retry": "Thử lại"
   },
   "OfferKind": {
@@ -45,5 +47,37 @@
     "title": "Second Bite là gì?",
     "body": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.",
     "dismiss": "Đóng giới thiệu"
+  },
+  "Errors": {
+    "unknown": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+    "PLATFORM_DATABASE_UNAVAILABLE": "Hệ thống đang bận. Vui lòng thử lại sau ít phút.",
+    "PLATFORM_BODY_TOO_LARGE": "Nội dung gửi lên quá lớn.",
+    "IDENTITY_EMAIL_INVALID": "Nhập một địa chỉ email, ví dụ ten@example.com.",
+    "IDENTITY_CODE_LIMIT_EXCEEDED": "Địa chỉ này đã xin quá nhiều mã. Vui lòng chờ rồi xin lại.",
+    "IDENTITY_CHALLENGE_GONE": "Mã này đã hết hạn hoặc đã được dùng. Hãy xin mã mới.",
+    "IDENTITY_CODE_ATTEMPTS_EXHAUSTED": "Nhập sai mã quá nhiều lần. Hãy xin mã mới.",
+    "IDENTITY_CODE_INCORRECT": "Mã chưa đúng. Hãy xem email mới nhất rồi thử lại.",
+    "IDENTITY_SESSION_INVALID": "Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.",
+    "IDENTITY_SESSION_UNAVAILABLE": "Chưa kiểm tra được phiên đăng nhập. Vui lòng thử lại sau ít phút.",
+    "IDENTITY_ACCOUNT_NOT_FOUND": "Không tìm thấy tài khoản này.",
+    "SELLER_NOT_FOUND": "Không tìm thấy cửa hàng này.",
+    "SELLER_OWNER_REQUIRED": "Chỉ chủ cửa hàng mới làm được việc này.",
+    "SELLER_LIMIT_REACHED": "Bạn đã sở hữu 5 cửa hàng, không mở thêm được.",
+    "SELLER_DETAILS_INVALID": "Nhập tên và địa chỉ cửa hàng.",
+    "SELLER_PHONE_INVALID": "Nhập số điện thoại từ 9 đến 15 chữ số, ví dụ 0912 345 678.",
+    "SELLER_STAFF_LIMIT_REACHED": "Một cửa hàng có tối đa 30 người.",
+    "SELLER_ALREADY_MEMBER": "Người này đã làm cho cửa hàng.",
+    "SELLER_MEMBER_NOT_FOUND": "Người này không thuộc cửa hàng.",
+    "SELLER_OWNER_CANNOT_LEAVE": "Chủ cửa hàng không thể rời cửa hàng.",
+    "FILE_PHOTO_INVALID": "Chọn ảnh JPEG, PNG hoặc WebP, tối đa 10 MB.",
+    "FILE_PHOTO_NOT_FOUND": "Không tìm thấy ảnh này.",
+    "FILE_UNUSED_LIMIT": "Bạn có 20 ảnh chưa dùng. Hãy dùng bớt trước khi tải thêm.",
+    "FILE_DAILY_LIMIT": "Hôm nay bạn đã tải lên 100 ảnh. Hãy thử lại vào ngày mai.",
+    "FILE_STORE_UNAVAILABLE": "Chưa lưu được ảnh lúc này. Vui lòng thử lại sau một phút.",
+    "NOTIFICATION_EMAIL_NOT_CONFIGURED": "Chưa gửi được email. Vui lòng thử lại sau.",
+    "NOTIFICATION_EMAIL_UNAVAILABLE": "Không gửi được email. Vui lòng thử lại sau ít phút.",
+    "NOTIFICATION_EMAIL_SETTINGS_INVALID": "Cài đặt email chưa đủ hoặc chưa đúng.",
+    "PLATFORM_AUTHENTICATION_REQUIRED": "Vui lòng đăng nhập để tiếp tục.",
+    "PLATFORM_ADMIN_REQUIRED": "Chỉ quản trị viên mới làm được việc này."
   }
 }

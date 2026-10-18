@@ -4,7 +4,7 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 
 ## Stack
 
-- Next.js 16 App Router with Cache Components, React 19, TypeScript 7 in strict mode, Tailwind CSS 4, shadcn/ui (`base-nova` style on Base UI primitives) and next-intl. Scaffolding comes from the official CLIs (`create-next-app`, `shadcn`).
+- Next.js 16 App Router with Cache Components and the React Compiler, React 19, TypeScript 7 in strict mode, Tailwind CSS 4, shadcn/ui (`base-nova` style on Base UI primitives) and next-intl. Scaffolding comes from the official CLIs (`create-next-app`, `shadcn`).
 - Every dependency is taken at its newest release; Dependabot proposes updates weekly. A dependency held back records why next to it and when it can move (see TypeScript 6 below).
 - pnpm is installed directly, not through Corepack; `packageManager` in `web/package.json` records the version. `web/pnpm-workspace.yaml` denies install scripts unless a package is listed under `allowBuilds`.
 - A library arrives with its first consumer, never ahead of it. TanStack Query arrives with the first screen that keeps server data in the browser; Testing Library and jsdom with the first component test.
@@ -23,14 +23,20 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 
 - The browser calls the Go server as `/api/...` on the web's own origin. In development `next.config.ts` forwards it to `SECONDBITE_API_ORIGIN` (`web/.env.development`) without the prefix; when deployed, the reverse proxy does. Server code calls `SECONDBITE_API_ORIGIN` directly.
 - Every call goes through the generated SDK. A failed call rejects with `ApiError` (`src/lib/api/client.ts`); code branches on `error.code` and shows a translated message, never the problem's own text. `error.requestId` is what a person reports.
+- The words for a failure code live once, as `Errors.<CODE>` in both catalogs, with `Errors.unknown` for a failure that has none. `pnpm check:messages` reads the codes the Go server declares (`NewFailure` calls and the platform's `Code` constants) and fails on a code without words that is not listed in `scripts/check-error-codes.mjs` as one no screen meets, and on words for a code the server no longer raises. The web workflow runs when the server's Go changes, so a new code is worded in the change that adds it.
 - The web session is an httpOnly cookie set by the Go server (SEC-27); a token never sits in browser storage. Access is decided by the backend, never by what a screen shows.
+
+## Errors and logging
+
+- `src/app/[locale]/error.tsx` shows safe words, Next's `digest` as the reference a person reports, and `retry()`, which fetches the page's data again. `src/app/global-error.tsx` replaces the root layout when it fails; it has no translations, so its words are written inline in both languages.
+- `src/instrumentation.ts` logs every server rendering error as one line of JSON (`event` `web.render.failed`, the error's type, its `digest` and the route pattern), never the error's text, the query string or headers, and with no third-party service.
 
 ## Internationalization
 
 - Vietnamese and English on every page. Every address names its language (`/vi/…`, `/en/…`); `/` follows the locale cookie, then the device's language, then Vietnamese. The language icon switches the same page, and the cookie keeps the choice for a year.
 - The locale comes from `next/root-params` in `src/i18n/request.ts`; pages do not call `setRequestLocale`.
 - Every string a person reads is in both `messages/vi.json` and `messages/en.json`. `vi.json` is the reference for the types; `pnpm check:messages` fails on a key missing from one catalog or an empty message.
-- Times are in `Asia/Ho_Chi_Minh`, prices in đồng (`39.000đ`), windows on the 24-hour clock.
+- Times are in `Asia/Ho_Chi_Minh`, prices in đồng (`39.000đ`), windows on the 24-hour clock. A date is formatted by a named format of `src/i18n/formats.ts` (`format.dateTime(at, "time")`), never by options written on a page.
 - Links between pages use `Link` from `@/i18n/navigation`, which keeps the locale.
 
 ## Design tokens and styling
@@ -48,9 +54,14 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 - A link styled as a button is a `Link` with `buttonVariants`, never a `Button` wrapping an anchor.
 - Icons come from `lucide-react` under their Lucide names, as in Figma.
 
+## Building and serving
+
+- `web/Dockerfile` builds the standalone output (`output: "standalone"`) on `node:24-slim`, pinned by digest and kept current by Dependabot, and runs it as the `node` user on port 3000. The image is built from `web/` alone: the API client and `tokens.css` are committed. `SECONDBITE_API_ORIGIN` is set where it runs; the reverse proxy in front routes `/api` to the Go server.
+- `next.config.ts` sets the baseline security headers on every page: `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` and a `Permissions-Policy` that leaves only location to this site. A Content Security Policy with nonces is a decision of its own.
+
 ## Quality gates
 
-- `pnpm check` runs the token, message and API-client drift checks, Oxlint, Prettier, the type check (after `next typegen`) and the unit tests. CI runs it with `pnpm build`.
+- `pnpm check` runs the token, message, failure-code and API-client checks, Oxlint, Prettier, the type check (after `next typegen`), the unit tests and knip, which fails on a file, export or dependency nothing uses. CI runs it with `pnpm build`, and builds the image.
 - Unit tests sit next to what they test as `*.test.ts` and run in Node with Vitest; they cover logic, such as the API client's failures.
-- Browser tests live in `tests/e2e/` and run with Playwright against the production build and a stub backend (`tests/e2e/stub-backend.mjs`, also `pnpm stub:backend` for working on a screen whose endpoint is not built), on a phone (Pixel 7) and a desktop browser. Each page a test opens is checked with `expectNoSeriousA11yViolations` (axe, WCAG 2.2 A and AA; no rule excluded). CI runs them in Microsoft's Playwright image, pinned by digest; bump it with `@playwright/test`.
-- On Windows, `@swc/core` (pulled in by next-intl) refuses its native cache when the user profile lets another account modify it. Point `SWC_NATIVE_BINDING_CACHE` at a folder only you can write.
+- Browser tests live in `tests/e2e/` and run with Playwright against the production build and a stub backend (`tests/e2e/stub-backend.mjs`, also `pnpm stub:backend` for working on a screen whose endpoint is not built), on a phone (Pixel 7) and a desktop browser. Each page a test opens is checked with `expectNoSeriousA11yViolations` (axe, WCAG 2.2 A and AA; no rule excluded). A test waits for `hydrated()` before it presses or types into an element, since the server's HTML takes a press without doing anything until React has hydrated it. CI runs them in Microsoft's Playwright image, pinned by digest; bump it with `@playwright/test`.
+- On Windows, `@swc/core` (pulled in by next-intl) refuses its native cache when the user profile lets another account modify it. Point `SWC_NATIVE_BINDING_CACHE` at a folder only you can write. knip runs with `KNIP_DISABLE_RAW_TRANSFER=1` (pnpm's `shellEmulator` makes that work on Windows), because oxc-parser's raw transfer reserves a buffer of several GB that a machine short of memory refuses.

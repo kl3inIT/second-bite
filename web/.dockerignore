@@ -1,0 +1,7 @@
+# Only what the build reads is sent to the daemon; dependencies and outputs are recreated inside it.
+**/node_modules
+.next
+test-results
+playwright-report
+*.tsbuildinfo
+.env*.local

@@ -45,7 +45,7 @@ One line per module, naming the modules whose published API it may use, such as 
 | `docs/` | Brief, vision, roadmap, conventions, guidelines, research, module specs (`specs/`) and their test matrices (`tests/`), runbooks, and the increments ([operating model](docs/guidelines/operating-model.md)) |
 | `.claude/skills/` | Go, Figma and shadcn skills vendored for coding agents ([sources](.claude/skills/SOURCES.md)) |
 | `server/` | The Go service: `cmd/secondbite` assembles it, `internal/platform` holds its technical code, `migrations/` its schema ([backend guideline](docs/guidelines/backend.md)) |
-| `web/` | The Next.js application: pages under `src/app/[locale]`, tokens generated from `DESIGN.md`, the two message catalogs, the generated API client, and its unit and browser tests ([web guideline](docs/guidelines/web.md)) |
+| `web/` | The Next.js application: pages under `src/app/[locale]`, tokens generated from `DESIGN.md`, the two message catalogs, the generated API client, its unit and browser tests, and the Dockerfile of its image ([web guideline](docs/guidelines/web.md)) |
 | `api/` | `openapi.yaml`, the contract generated from the backend's operations and checked by a test |
 | `compose.yaml` | The local database and Mailpit for development |
-| `.github/workflows/` | CI for the backend (lint, tests, vulnerabilities) and the web (checks, build, browser tests); Dependabot updates for Go, npm, actions and compose |
+| `.github/workflows/` | CI for the backend (lint, tests, vulnerabilities) and the web (checks, build, browser tests, image); Dependabot updates for Go, npm, actions, compose and the web's base image |

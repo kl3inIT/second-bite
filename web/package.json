@@ -11,15 +11,16 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm check:tokens && pnpm check:messages && pnpm check:api && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:unit",
+    "check": "pnpm check:tokens && pnpm check:messages && pnpm check:api && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:unit && pnpm knip",
     "generate:tokens": "node scripts/generate-tokens.mjs",
     "check:tokens": "node scripts/generate-tokens.mjs --check",
-    "check:messages": "node scripts/check-messages.mjs",
+    "check:messages": "node scripts/check-messages.mjs && node scripts/check-error-codes.mjs",
     "generate:api": "pnpm --filter openapi-codegen generate",
     "check:api": "node scripts/check-api.mjs",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
-    "stub:backend": "node tests/e2e/stub-backend.mjs"
+    "stub:backend": "node tests/e2e/stub-backend.mjs",
+    "knip": "KNIP_DISABLE_RAW_TRANSFER=1 knip"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -42,6 +43,8 @@
     "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "knip": "^6.41.0",
     "oxlint": "1.88.0",
     "oxlint-tsgolint": "7.0.2004",
     "prettier": "3.9.10",

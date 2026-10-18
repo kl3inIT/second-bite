@@ -109,6 +109,20 @@ const server = createServer((request, response) => {
     response.writeHead(204).end();
     return;
   }
+  // A search for this word stands for a server that fails, for the error screen's test.
+  if (url.pathname === "/offers" && url.searchParams.get("q") === "loi-may-chu") {
+    response.writeHead(500, { "content-type": "application/problem+json" });
+    response.end(
+      JSON.stringify({
+        type: "urn:secondbite:failure:platform-internal-failure",
+        title: "Internal Server Error",
+        status: 500,
+        code: "PLATFORM_INTERNAL_FAILURE",
+        requestId: "STUB",
+      }),
+    );
+    return;
+  }
   if (request.method === "GET" && url.pathname === "/offers") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(JSON.stringify({ offers: search(url) }));

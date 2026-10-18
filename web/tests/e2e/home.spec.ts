@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoSeriousA11yViolations } from "./axe";
+import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
 
@@ -30,7 +31,7 @@ test.describe("the customer home", () => {
 
   test("filters by kind and offers the whole list back when nothing matches", async ({ page }) => {
     await page.goto("/vi");
-    await page.getByRole("link", { name: "Bánh", exact: true }).click();
+    await (await hydrated(page.getByRole("link", { name: "Bánh", exact: true }))).click();
 
     await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
     await expect(page.getByRole("link", { name: "Bánh", exact: true })).toHaveAttribute(
@@ -42,15 +43,15 @@ test.describe("the customer home", () => {
       "Bánh mì gà xé",
     ]);
 
-    await page.getByRole("link", { name: "Đồ uống" }).click();
+    await (await hydrated(page.getByRole("link", { name: "Đồ uống" }))).click();
     await expect(page.getByText("Không có món nào khớp bộ lọc này.")).toBeVisible();
-    await page.getByRole("link", { name: "Xem tất cả món" }).click();
+    await (await hydrated(page.getByRole("link", { name: "Xem tất cả món" }))).click();
     await expect(page).toHaveURL(/\/vi$/);
   });
 
   test("searches by words without accents", async ({ page }) => {
     await page.goto("/vi");
-    await page.getByRole("searchbox", { name: "Tìm món hoặc quán" }).fill("xoi");
+    await (await hydrated(page.getByRole("searchbox", { name: "Tìm món hoặc quán" }))).fill("xoi");
     await page.keyboard.press("Enter");
 
     await expect(page).toHaveURL(/\/vi\?q=xoi$/);
@@ -63,7 +64,7 @@ test.describe("the customer home", () => {
     await page.goto("/vi");
     await expect(page.getByRole("heading", { name: "Second Bite là gì?" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Đóng giới thiệu" }).click();
+    await (await hydrated(page.getByRole("button", { name: "Đóng giới thiệu" }))).click();
     await expect(page.getByRole("heading", { name: "Second Bite là gì?" })).toBeHidden();
 
     await page.reload();
@@ -71,5 +72,14 @@ test.describe("the customer home", () => {
       page.getByRole("heading", { level: 2, name: "Tối nay ở Tasco Mall" }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Second Bite là gì?" })).toBeHidden();
+  });
+
+  test("says the list could not be loaded, with a reference and a retry", async ({ page }) => {
+    await page.goto("/vi?q=loi-may-chu");
+
+    await expect(page.getByRole("heading", { name: "Đã có lỗi xảy ra" })).toBeVisible();
+    await expect(page.getByText(/^Mã tham chiếu: \S+$/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Thử lại" })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
   });
 });
