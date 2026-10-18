@@ -1,9 +1,10 @@
-// Package media keeps the photos sellers' staff upload for their offers and
-// their sellers: each is written again as JPEG in two sizes without its
-// metadata, kept in a store chosen by configuration, and served through the
-// API. Memos keeps attachments the same way: in its database first, in an
-// S3-compatible store when configured, each attachment recording its store.
-package media
+// Package file keeps the files of the system in the store configuration
+// chooses, PostgreSQL or an S3-compatible store, and serves them through the
+// API. Its first files are photos for offers and sellers: each is written
+// again as JPEG in two sizes without its metadata. Memos keeps attachments
+// the same way: in its database or an S3-compatible store, each attachment
+// recording its store.
+package file
 
 import (
 	"context"
@@ -17,7 +18,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/kl3inIT/second-bite/server/internal/media/internal/db"
+	"github.com/kl3inIT/second-bite/server/internal/file/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
@@ -39,8 +40,9 @@ const (
 
 // Config configures the module.
 type Config struct {
-	// Store keeps the files of new photos.
+	// Store keeps new files; postgres when empty.
 	Store Store
+	S3    S3Config
 }
 
 // Photo is an uploaded photo.
@@ -74,10 +76,13 @@ type Service struct {
 }
 
 // NewService assembles the module. It fails when the configured store is not
-// one the service knows.
-func NewService(pool *pgxpool.Pool, cfg Config, logger *slog.Logger) (*Service, error) {
+// one the service knows, or is S3 and its bucket does not answer.
+func NewService(ctx context.Context, pool *pgxpool.Pool, cfg Config, logger *slog.Logger) (*Service, error) {
+	s3Store := newS3ObjectStore(cfg.S3)
+
 	registry, err := newObjectStores(map[Store]objectStore{
 		StorePostgres: newPostgresObjectStore(pool),
+		StoreS3:       s3Store,
 	})
 	if err != nil {
 		return nil, err
@@ -89,6 +94,14 @@ func NewService(pool *pgxpool.Pool, cfg Config, logger *slog.Logger) (*Service, 
 
 	if _, err := registry.get(cfg.Store); err != nil {
 		return nil, err
+	}
+
+	if cfg.S3.configured() {
+		if err := s3Store.check(ctx); err != nil {
+			return nil, err
+		}
+	} else if cfg.Store == StoreS3 {
+		return nil, errS3NotConfigured
 	}
 
 	return &Service{
@@ -139,7 +152,7 @@ func (s *Service) Upload(ctx context.Context, data []byte) (Photo, error) {
 	}
 
 	s.logger.InfoContext(ctx, "photo uploaded",
-		slog.String("event", "media.photo.uploaded"),
+		slog.String("event", "file.photo.uploaded"),
 		slog.String("photo_id", photo.ID.String()),
 		slog.String("account_id", caller.AccountID.String()),
 		slog.Int("bytes", len(data)),
@@ -260,7 +273,7 @@ func (s *Service) deleteFiles(ctx context.Context, store objectStore, id uuid.UU
 	for _, size := range sizes {
 		if err := store.Delete(context.WithoutCancel(ctx), objectKey(id, size)); err != nil {
 			s.logger.WarnContext(ctx, "photo files left after a failed upload",
-				slog.String("event", "media.photo.files_left"),
+				slog.String("event", "file.photo.files_left"),
 				slog.String("photo_id", id.String()),
 				slog.String("error", err.Error()),
 			)

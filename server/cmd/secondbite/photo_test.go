@@ -64,7 +64,7 @@ func checkPhotoFlow(t *testing.T, svc service) {
 	}
 
 	if p := sendRaw(t, http.MethodPost, svc.base+"/photos", owner, "image/jpeg", []byte("not an image")).
-		problem(t, http.StatusBadRequest); p.Code != "MEDIA_PHOTO_INVALID" {
+		problem(t, http.StatusBadRequest); p.Code != "FILE_PHOTO_INVALID" {
 		t.Errorf("text as a photo: %q", p.Code)
 	}
 

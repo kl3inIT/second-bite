@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type MediaPhoto struct {
+type FilePhoto struct {
 	ID         uuid.UUID
 	Store      string
 	UploadedBy uuid.UUID

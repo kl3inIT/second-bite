@@ -18,8 +18,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/identity"
-	"github.com/kl3inIT/second-bite/server/internal/media"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller/internal/db"
 )
@@ -92,12 +92,12 @@ type Service struct {
 	pool     *pgxpool.Pool
 	queries  *db.Queries
 	accounts *identity.Service
-	photos   *media.Service
+	photos   *file.Service
 	logger   *slog.Logger
 }
 
 // NewService assembles the module.
-func NewService(pool *pgxpool.Pool, accounts *identity.Service, photos *media.Service, logger *slog.Logger) *Service {
+func NewService(pool *pgxpool.Pool, accounts *identity.Service, photos *file.Service, logger *slog.Logger) *Service {
 	return &Service{pool: pool, queries: db.New(pool), accounts: accounts, photos: photos, logger: logger}
 }
 

@@ -1,4 +1,4 @@
-package media_test
+package file_test
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/kl3inIT/second-bite/server/internal/media"
+	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
 )
@@ -25,12 +25,12 @@ func TestMedia(t *testing.T) {
 
 	pool := platformtest.StartPostgres(t)
 
-	photos, err := media.NewService(pool, media.Config{}, platformtest.Logger())
+	photos, err := file.NewService(t.Context(), pool, file.Config{}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for name, check := range map[string]func(*testing.T, *media.Service, *pgxpool.Pool){
+	for name, check := range map[string]func(*testing.T, *file.Service, *pgxpool.Pool){
 		"an uploaded photo is served in both sizes":       testUploadedPhotoIsServed,
 		"only the uploader claims a photo":                testOnlyTheUploaderClaims,
 		"an account holds at most 20 unused photos":       testUnusedPhotoLimit,
@@ -47,7 +47,7 @@ func TestMedia(t *testing.T) {
 func TestUnknownStoreIsRefused(t *testing.T) {
 	t.Parallel()
 
-	if _, err := media.NewService(nil, media.Config{Store: "s3"}, platformtest.Logger()); err == nil {
+	if _, err := file.NewService(t.Context(), nil, file.Config{Store: "ftp"}, platformtest.Logger()); err == nil {
 		t.Fatal("a store without an implementation was accepted")
 	}
 }
@@ -77,7 +77,7 @@ func photoData(t *testing.T) []byte {
 	return buf.Bytes()
 }
 
-func testUploadedPhotoIsServed(t *testing.T, photos *media.Service, _ *pgxpool.Pool) {
+func testUploadedPhotoIsServed(t *testing.T, photos *file.Service, _ *pgxpool.Pool) {
 	t.Helper()
 
 	ctx, _ := as(t)
@@ -91,7 +91,7 @@ func testUploadedPhotoIsServed(t *testing.T, photos *media.Service, _ *pgxpool.P
 		t.Fatalf("uploaded %+v", p)
 	}
 
-	for _, size := range []media.Size{media.SizeLarge, media.SizeSmall} {
+	for _, size := range []file.Size{file.SizeLarge, file.SizeSmall} {
 		data, err := photos.File(t.Context(), p.ID, size)
 		if err != nil {
 			t.Fatal(err)
@@ -107,16 +107,16 @@ func testUploadedPhotoIsServed(t *testing.T, photos *media.Service, _ *pgxpool.P
 		}
 	}
 
-	if _, err := photos.File(t.Context(), uuid.New(), media.SizeSmall); !errors.Is(err, media.ErrPhotoNotFound) {
+	if _, err := photos.File(t.Context(), uuid.New(), file.SizeSmall); !errors.Is(err, file.ErrPhotoNotFound) {
 		t.Fatalf("an unknown photo: %v", err)
 	}
 
-	if got := media.Path(p.ID, media.SizeSmall); got != "/photos/"+p.ID.String()+"/400.jpg" {
+	if got := file.Path(p.ID, file.SizeSmall); got != "/photos/"+p.ID.String()+"/400.jpg" {
 		t.Fatalf("path %s", got)
 	}
 }
 
-func testOnlyTheUploaderClaims(t *testing.T, photos *media.Service, _ *pgxpool.Pool) {
+func testOnlyTheUploaderClaims(t *testing.T, photos *file.Service, _ *pgxpool.Pool) {
 	t.Helper()
 
 	ctx, uploader := as(t)
@@ -127,7 +127,7 @@ func testOnlyTheUploaderClaims(t *testing.T, photos *media.Service, _ *pgxpool.P
 		t.Fatal(err)
 	}
 
-	if err := photos.Claim(t.Context(), p.ID, other); !errors.Is(err, media.ErrPhotoNotFound) {
+	if err := photos.Claim(t.Context(), p.ID, other); !errors.Is(err, file.ErrPhotoNotFound) {
 		t.Fatalf("claimed by another account: %v", err)
 	}
 
@@ -137,18 +137,18 @@ func testOnlyTheUploaderClaims(t *testing.T, photos *media.Service, _ *pgxpool.P
 		}
 	}
 
-	if err := photos.Claim(t.Context(), uuid.New(), uploader); !errors.Is(err, media.ErrPhotoNotFound) {
+	if err := photos.Claim(t.Context(), uuid.New(), uploader); !errors.Is(err, file.ErrPhotoNotFound) {
 		t.Fatalf("an unknown photo claimed: %v", err)
 	}
 }
 
-func testUnusedPhotoLimit(t *testing.T, photos *media.Service, _ *pgxpool.Pool) {
+func testUnusedPhotoLimit(t *testing.T, photos *file.Service, _ *pgxpool.Pool) {
 	t.Helper()
 
 	ctx, uploader := as(t)
 	data := photoData(t)
 
-	var first media.Photo
+	var first file.Photo
 
 	for i := range 20 {
 		p, err := photos.Upload(ctx, data)
@@ -161,7 +161,7 @@ func testUnusedPhotoLimit(t *testing.T, photos *media.Service, _ *pgxpool.Pool) 
 		}
 	}
 
-	if _, err := photos.Upload(ctx, data); !errors.Is(err, media.ErrUnusedPhotoLimit) {
+	if _, err := photos.Upload(ctx, data); !errors.Is(err, file.ErrUnusedPhotoLimit) {
 		t.Fatalf("the 21st unused photo: %v", err)
 	}
 
@@ -174,7 +174,7 @@ func testUnusedPhotoLimit(t *testing.T, photos *media.Service, _ *pgxpool.Pool) 
 	}
 }
 
-func testDailyPhotoLimit(t *testing.T, photos *media.Service, _ *pgxpool.Pool) {
+func testDailyPhotoLimit(t *testing.T, photos *file.Service, _ *pgxpool.Pool) {
 	t.Helper()
 
 	ctx, uploader := as(t)
@@ -192,12 +192,12 @@ func testDailyPhotoLimit(t *testing.T, photos *media.Service, _ *pgxpool.Pool) {
 		}
 	}
 
-	if _, err := photos.Upload(ctx, data); !errors.Is(err, media.ErrDailyPhotoLimit) {
+	if _, err := photos.Upload(ctx, data); !errors.Is(err, file.ErrDailyPhotoLimit) {
 		t.Fatalf("the 101st photo of the day: %v", err)
 	}
 }
 
-func testUploadNeedsCallerAndImage(t *testing.T, photos *media.Service, _ *pgxpool.Pool) {
+func testUploadNeedsCallerAndImage(t *testing.T, photos *file.Service, _ *pgxpool.Pool) {
 	t.Helper()
 
 	if _, err := photos.Upload(t.Context(), photoData(t)); !errors.Is(err, platform.ErrAuthenticationRequired) {
@@ -209,9 +209,9 @@ func testUploadNeedsCallerAndImage(t *testing.T, photos *media.Service, _ *pgxpo
 	for name, data := range map[string][]byte{
 		"empty":   nil,
 		"text":    []byte("hello"),
-		"too big": make([]byte, media.MaxUploadBytes+1),
+		"too big": make([]byte, file.MaxUploadBytes+1),
 	} {
-		if _, err := photos.Upload(ctx, data); !errors.Is(err, media.ErrPhotoInvalid) {
+		if _, err := photos.Upload(ctx, data); !errors.Is(err, file.ErrPhotoInvalid) {
 			t.Errorf("%s: %v", name, err)
 		}
 	}

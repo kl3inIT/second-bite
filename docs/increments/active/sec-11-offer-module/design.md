@@ -117,9 +117,9 @@ The customer's daily limit of units (domain model assumption 4, 10 to start) is 
 - Every photo is decoded and written again as JPEG in two sizes, 1,600 and 400 pixels on the longer side, so no metadata (location, device) survives and a list loads quickly on a phone. *(Open Food Network resizes to four sizes.)*
 - Photos are not reviewed before they are shown; staff answer for them and an admin removes one on a report (founder's requirements, section 10).
 - A photo uploaded and never used by an offer or a seller is deleted after a day.
-- **Anyone signed in may upload**, not only a member of an active seller: `media` cannot ask `seller`, which asks `media` for the seller's photo. A photo is used only by the account that uploaded it (`Claim`), and an account holds at most 20 unused photos until they are deleted after a day. `offer` lets staff post again with a photo an earlier offer of the same seller already uses.
+- **Anyone signed in may upload**, not only a member of an active seller: `file` cannot ask `seller`, which asks `file` for the seller's photo. A photo is used only by the account that uploaded it (`Claim`), and an account holds at most 20 unused photos until they are deleted after a day. `offer` lets staff post again with a photo an earlier offer of the same seller already uses.
 - The image is the request's body, not a multipart form: huma bounds a body's size, not a form's.
-- **Where the files are kept**, a [Strategy behind a registry](../../../conventions.md#interchangeable-implementations-strategy-behind-a-registry) as the domain model asks for storing images: a `Store` that puts, gets and deletes a file by its key. The first implementation keeps files in PostgreSQL (`bytea`), so the pilot runs no other service, and one backup holds data and photos (Memos keeps attachments in its database the same way, with `DATABASE`, `LOCAL` and `S3` stores, each attachment recording its own: `store/storage.go`, column `storage_type`). Files are stored before the photo's row, which no store's transaction covers, and deleted again when the row is refused. The second, when the database grows too large or the service runs on several machines, is any S3-compatible store (AWS S3, Cloudflare R2, Garage, SeaweedFS, MinIO) through one S3 client. The store is chosen by configuration at startup, not by admins at runtime: switching without moving the files would lose photos. Each photo records the store that holds it, so photos already kept stay readable after a switch, and `secondbite media move` copies them across.
+- **Where the files are kept**, a [Strategy behind a registry](../../../conventions.md#interchangeable-implementations-strategy-behind-a-registry) as the domain model asks for storing images: a `Store` that puts, gets and deletes a file by its key. The first implementation keeps files in PostgreSQL (`bytea`), so the pilot runs no other service, and one backup holds data and photos (Memos keeps attachments in its database the same way, with `DATABASE`, `LOCAL` and `S3` stores, each attachment recording its own: `store/storage.go`, column `storage_type`). Files are stored before the photo's row, which no store's transaction covers, and deleted again when the row is refused. The second, built with it on 18 October 2026, is any S3-compatible store (AWS S3, Cloudflare R2, Garage, SeaweedFS, MinIO) through AWS's SDK, to switch to when the database grows too large or the service runs on several machines. The stores keep any file by key, the key starting with what the file is (`photos/...`): the module is the system's file store, and photos are its first kind of file; another kind arrives with the module that needs it, with a table of its own (decided with the team on 18 October 2026, renaming `media` to `file`). The store is chosen by configuration at startup, not by admins at runtime: switching without moving the files would lose photos. Each photo records the store that holds it, so photos already kept stay readable after a switch, and `secondbite file move` copies them across.
 - Customers read photos through the API (`GET /photos/{photoId}/{size}.jpg`), never from the store directly, so a switch changes no address. A photo never changes once written; it is served with a cache of a year.
 - MinIO's community edition is no longer a candidate: it stopped publishing builds in October 2025 and was put in maintenance mode in December 2025.
 
@@ -141,16 +141,16 @@ The [pilot domain model](../sec-6-pilot-domain-model/design.md) holds the story,
 | Module | Owns | Why |
 | --- | --- | --- |
 | `offer` | offers and announcements, schedules, follows, the offer settings | Units, publishing rules and the collection point are its invariants (domain model, section 4); a follow serves only offers |
-| `media` (new) | photos and where their files are kept | `seller` and `offer` both need photos, and `seller` cannot call `offer`, which already calls `seller`; the domain model's registry for storing images moves here from `offer`, with PostgreSQL as its first store instead of a local directory |
+| `file` (new) | the files the system keeps, starting with photos, and where they are kept | `seller` and `offer` both need photos, and `seller` cannot call `offer`, which already calls `seller`; the domain model's registry for storing images moves here from `offer`, with PostgreSQL as its first store instead of a local directory |
 
-**Edges** (the context map gains `media`):
+**Edges** (the context map gains `file`):
 
 | Edge | Why | Consistency | On failure |
 | --- | --- | --- | --- |
 | `offer → seller` | May this person publish for this seller (`CanPublish`); its collection point; its public summary | Read in the publishing transaction | Refused (`SELLER_NOT_ACTIVE`, `SELLER_NOT_FOUND`) |
 | `offer → identity` | Followers' addresses for email | Read by the job | Retried |
 | `offer → notification` | Send the emails | Called by a job after the commit | Retried by the job |
-| `offer → media`, `seller → media` | Is this photo usable here; claim it; its addresses | Same transaction as the change | Refused (`MEDIA_PHOTO_NOT_FOUND`) |
+| `offer → file`, `seller → file` | Is this photo usable here; claim it; its addresses | Same transaction as the change | Refused (`FILE_PHOTO_NOT_FOUND`) |
 
 `offer.PublishedEvent` and `offer.WithdrawnEvent` are added when SEC-15 brings their first listener; following is inside `offer`, which emails through a job of its own ([events](../../../conventions.md#events-between-modules): within a module, a plain job).
 
@@ -187,9 +187,9 @@ Prices are whole đồng; times are RFC 3339 with an offset, schedules' times of
 | `OFFER_SCHEDULE_NOT_FOUND` | 404 | No such schedule for the seller |
 | `OFFER_NOT_ANNOUNCED` | 409 | Confirming or skipping what is not an open announcement |
 | `OFFER_CHANGE_NOT_ALLOWED` | 409 | A change its orders forbid, or any change once the window has ended or the offer is withdrawn |
-| `MEDIA_PHOTO_INVALID` | 400 | Not a JPEG, PNG or WebP image, or more than 24 megapixels; over 10 MB is `PLATFORM_BODY_TOO_LARGE` (413) |
-| `MEDIA_PHOTO_NOT_FOUND` | 404 | No such photo, or one another account uploaded |
-| `MEDIA_UNUSED_PHOTO_LIMIT` | 429 | The account holds 20 unused photos |
+| `FILE_PHOTO_INVALID` | 400 | Not a JPEG, PNG or WebP image, or more than 24 megapixels; over 10 MB is `PLATFORM_BODY_TOO_LARGE` (413) |
+| `FILE_PHOTO_NOT_FOUND` | 404 | No such photo, or one another account uploaded |
+| `FILE_UNUSED_PHOTO_LIMIT` | 429 | The account holds 20 unused photos |
 | `SELLER_NOT_ACTIVE` | 403 | Publishing for a seller that is not active |
 
 ## Data
@@ -200,8 +200,8 @@ Prices are whole đồng; times are RFC 3339 with an offset, schedules' times of
 | `offer_schedules` | Seller, the offer's fields, days of the week, estimated units, times of day, paused | Deleted by staff |
 | `offer_seller_follows`, `offer_announcement_follows` | Account and seller, or account and offer, and when | Deleted on unfollow; an announcement's follows are deleted once it is told |
 | `offer_settings` | One row: the settings above, who changed them and when | Replaced on save |
-| `media_photos` | Who uploaded it, the store, its size, when it was first used | Deleted with its files a day after upload when unused |
-| `media_files` | The PostgreSQL store's files: key and bytes | Deleted with their photo |
+| `file_photos` | Who uploaded it, the store, its size, when it was first used | Deleted with its files a day after upload when unused |
+| `file_blobs` | The PostgreSQL store's files: key and bytes | Deleted with their photo |
 
 The jobs (the day's announcements from schedules, emails to followers, deleting unused photos) run on River, which arrives with this increment: the first job of the service, inserted in the transaction of the change that causes it.
 

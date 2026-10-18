@@ -7,7 +7,7 @@ This page states what is implemented today. Intended outcomes are in [docs/visio
 The backend runs on a developer's machine and in tests; nothing is deployed, and no web or mobile application exists.
 
 - One Go binary, `secondbite` (`server/cmd/secondbite`). At startup it reads its configuration, opens a PostgreSQL pool, applies the pending migrations under a lock, and serves the HTTP API until SIGINT or SIGTERM, then lets requests in flight finish ([runbook](docs/runbooks/backend.md)).
-- PostgreSQL 18 with PostGIS 3.6, with the tables of `identity`, `notification`, `seller` and `media`; photos' files are kept in PostgreSQL too.
+- PostgreSQL 18 with PostGIS 3.6, with the tables of `identity`, `notification`, `seller` and `file`; files are kept in PostgreSQL unless an S3-compatible store is configured.
 - People sign in with a six-digit code emailed to them and get a session token, sent as `Authorization: Bearer`. Email goes through the provider admins chose (SMTP or Brevo's API); Mailpit catches it in development.
 - People open sellers, which wait for an admin to activate them; an owner adds staff by email. Who may publish for a seller is answered by `seller`, for the offers to come.
 - Signed-in people upload photos, which are written again as JPEG in two sizes without their metadata and served to anyone at `/photos/{id}/1600.jpg` and `/400.jpg`; a seller's owner sets one as the seller's photo.
@@ -23,7 +23,7 @@ The modules under `server/internal/`, found through the [pilot domain model](doc
 | --- | --- | --- |
 | [`identity`](docs/specs/identity.md) | Accounts and their role (customer or admin), emailed sign-in codes, sessions (tables `identity_*`) | `Service`: request a code, sign in, sign out, read an account, grant a role; `Authenticate`, the middleware that puts the caller in each request's context |
 | [`seller`](docs/specs/seller.md) | Sellers, their status set by admins (pending, active, blocked), and their owner and staff (tables `seller_*`) | `Service`: open, read and change a seller, add and remove staff, list and activate or block for admins; `CanPublish` and `CollectionPoint` for offers |
-| [`media`](docs/specs/media.md) | Uploaded photos and their files, in the store configuration chooses (only PostgreSQL today) (tables `media_*`) | `Service`: upload a photo, serve it, `Claim` it for an offer or a seller |
+| [`file`](docs/specs/file.md) | The files the system keeps, in PostgreSQL or an S3-compatible store as configuration chooses, and the photos uploaded for offers and sellers (tables `file_*`) | `Service`: upload a photo, serve it, `Claim` it for an offer or a seller |
 | [`notification`](docs/specs/notification.md) | Who delivers email, chosen by admins while the service runs, and the record of emails sent (tables `notification_*`) | `Service`: send an email, read and save the email settings |
 
 `internal/platform` is not a module: it holds the technical code every module uses ([behavior](docs/specs/platform.md)), including the caller of a request (`platform.CallerFrom`, `RequireCaller`, `RequireAdmin`), so a module authorizes without depending on `identity`.
@@ -33,7 +33,7 @@ The modules under `server/internal/`, found through the [pilot domain model](doc
 One line per module, naming the modules whose published API it may use, such as "- `seller` → `identity`". A module not listed may use none. `internal/platform` depends on no module, and every module may use it. The boundary test (`server/internal/boundaries_test.go`) reads this list.
 
 - `identity` → `notification`
-- `seller` → `identity`, `media`
+- `seller` → `file`, `identity`
 
 ## Repository contents
 

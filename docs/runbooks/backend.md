@@ -66,7 +66,13 @@ The service migrates the database at every command, then `serve` listens on `:80
 | `SECONDBITE_HTTP_ADDR` | `:8080` | Where the API listens |
 | `SECONDBITE_LOG_FORMAT` | `json` | `json`, or `text` for local development |
 | `SECONDBITE_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` |
-| `SECONDBITE_MEDIA_STORE` | `postgres` | Where new photos' files are kept; `postgres` is the only store today |
+| `SECONDBITE_FILE_STORE` | `postgres` | Where new files are kept: `postgres`, or `s3` with the S3 settings below |
+| `SECONDBITE_S3_BUCKET` | none | The bucket of an S3-compatible store (AWS S3, Cloudflare R2, Garage, SeaweedFS, MinIO); setting it configures the S3 store, and the service checks at startup that it answers |
+| `SECONDBITE_S3_ENDPOINT` | AWS S3 | The store's URL, such as `https://<account>.r2.cloudflarestorage.com` |
+| `SECONDBITE_S3_REGION` | `us-east-1` | `auto` for R2 |
+| `SECONDBITE_S3_ACCESS_KEY_ID` | required with a bucket | The access key's identifier |
+| `SECONDBITE_S3_SECRET_ACCESS_KEY` | required with a bucket, a secret | The access key's secret |
+| `SECONDBITE_S3_PATH_STYLE` | `true` | `false` addresses the bucket in the host name, as AWS prefers |
 | `SECONDBITE_SECRETS_DIR` | `/run/secrets` | Where secret files are read from |
 
 A secret is read from the file named after its variable in `SECONDBITE_SECRETS_DIR`, as deployed environments mount it. Only when no such file exists is the variable itself read, which is what local development does. The service refuses to start on a missing or malformed value.

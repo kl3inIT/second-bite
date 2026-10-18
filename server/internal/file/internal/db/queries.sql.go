@@ -13,7 +13,7 @@ import (
 )
 
 const claimPhoto = `-- name: ClaimPhoto :execrows
-UPDATE media_photos SET used_at = coalesce(used_at, now())
+UPDATE file_photos SET used_at = coalesce(used_at, now())
 WHERE id = $1 AND uploaded_by = $2
 `
 
@@ -31,7 +31,7 @@ func (q *Queries) ClaimPhoto(ctx context.Context, arg ClaimPhotoParams) (int64, 
 }
 
 const countPhotosSince = `-- name: CountPhotosSince :one
-SELECT count(*)::integer FROM media_photos WHERE uploaded_by = $1 AND created_at >= $2
+SELECT count(*)::integer FROM file_photos WHERE uploaded_by = $1 AND created_at >= $2
 `
 
 type CountPhotosSinceParams struct {
@@ -47,7 +47,7 @@ func (q *Queries) CountPhotosSince(ctx context.Context, arg CountPhotosSincePara
 }
 
 const countUnusedPhotos = `-- name: CountUnusedPhotos :one
-SELECT count(*)::integer FROM media_photos WHERE uploaded_by = $1 AND used_at IS NULL
+SELECT count(*)::integer FROM file_photos WHERE uploaded_by = $1 AND used_at IS NULL
 `
 
 func (q *Queries) CountUnusedPhotos(ctx context.Context, accountID uuid.UUID) (int32, error) {
@@ -57,38 +57,38 @@ func (q *Queries) CountUnusedPhotos(ctx context.Context, accountID uuid.UUID) (i
 	return column_1, err
 }
 
-const deleteFile = `-- name: DeleteFile :exec
-DELETE FROM media_files WHERE key = $1
+const deleteBlob = `-- name: DeleteBlob :exec
+DELETE FROM file_blobs WHERE key = $1
 `
 
-func (q *Queries) DeleteFile(ctx context.Context, key string) error {
-	_, err := q.db.Exec(ctx, deleteFile, key)
+func (q *Queries) DeleteBlob(ctx context.Context, key string) error {
+	_, err := q.db.Exec(ctx, deleteBlob, key)
 	return err
 }
 
-const getFile = `-- name: GetFile :one
-SELECT content_type, data FROM media_files WHERE key = $1
+const getBlob = `-- name: GetBlob :one
+SELECT content_type, data FROM file_blobs WHERE key = $1
 `
 
-type GetFileRow struct {
+type GetBlobRow struct {
 	ContentType string
 	Data        []byte
 }
 
-func (q *Queries) GetFile(ctx context.Context, key string) (GetFileRow, error) {
-	row := q.db.QueryRow(ctx, getFile, key)
-	var i GetFileRow
+func (q *Queries) GetBlob(ctx context.Context, key string) (GetBlobRow, error) {
+	row := q.db.QueryRow(ctx, getBlob, key)
+	var i GetBlobRow
 	err := row.Scan(&i.ContentType, &i.Data)
 	return i, err
 }
 
 const getPhoto = `-- name: GetPhoto :one
-SELECT id, store, uploaded_by, width, height, used_at, created_at FROM media_photos WHERE id = $1
+SELECT id, store, uploaded_by, width, height, used_at, created_at FROM file_photos WHERE id = $1
 `
 
-func (q *Queries) GetPhoto(ctx context.Context, id uuid.UUID) (MediaPhoto, error) {
+func (q *Queries) GetPhoto(ctx context.Context, id uuid.UUID) (FilePhoto, error) {
 	row := q.db.QueryRow(ctx, getPhoto, id)
-	var i MediaPhoto
+	var i FilePhoto
 	err := row.Scan(
 		&i.ID,
 		&i.Store,
@@ -102,7 +102,7 @@ func (q *Queries) GetPhoto(ctx context.Context, id uuid.UUID) (MediaPhoto, error
 }
 
 const insertPhoto = `-- name: InsertPhoto :exec
-INSERT INTO media_photos (id, store, uploaded_by, width, height)
+INSERT INTO file_photos (id, store, uploaded_by, width, height)
 VALUES ($1, $2, $3, $4, $5)
 `
 
@@ -126,7 +126,7 @@ func (q *Queries) InsertPhoto(ctx context.Context, arg InsertPhotoParams) error 
 }
 
 const lockUploader = `-- name: LockUploader :exec
-SELECT pg_advisory_xact_lock(hashtextextended('media:uploader:' || $1::text, 0))
+SELECT pg_advisory_xact_lock(hashtextextended('file:uploader:' || $1::text, 0))
 `
 
 // Serializes an account's uploads, so the limit of unused photos holds.
@@ -135,18 +135,18 @@ func (q *Queries) LockUploader(ctx context.Context, accountID string) error {
 	return err
 }
 
-const putFile = `-- name: PutFile :exec
-INSERT INTO media_files (key, content_type, data) VALUES ($1, $2, $3)
+const putBlob = `-- name: PutBlob :exec
+INSERT INTO file_blobs (key, content_type, data) VALUES ($1, $2, $3)
 ON CONFLICT (key) DO UPDATE SET content_type = EXCLUDED.content_type, data = EXCLUDED.data
 `
 
-type PutFileParams struct {
+type PutBlobParams struct {
 	Key         string
 	ContentType string
 	Data        []byte
 }
 
-func (q *Queries) PutFile(ctx context.Context, arg PutFileParams) error {
-	_, err := q.db.Exec(ctx, putFile, arg.Key, arg.ContentType, arg.Data)
+func (q *Queries) PutBlob(ctx context.Context, arg PutBlobParams) error {
+	_, err := q.db.Exec(ctx, putBlob, arg.Key, arg.ContentType, arg.Data)
 	return err
 }

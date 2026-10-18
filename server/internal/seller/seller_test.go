@@ -14,8 +14,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/identity"
-	"github.com/kl3inIT/second-bite/server/internal/media"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
 	"github.com/kl3inIT/second-bite/server/internal/seller"
@@ -24,7 +24,7 @@ import (
 type fixture struct {
 	sellers  *seller.Service
 	accounts *identity.Service
-	photos   *media.Service
+	photos   *file.Service
 	prefix   string
 }
 
@@ -59,7 +59,7 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 		t.Fatal(err)
 	}
 
-	photos, err := media.NewService(pool, media.Config{}, platformtest.Logger())
+	photos, err := file.NewService(t.Context(), pool, file.Config{}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -336,7 +336,7 @@ func testOwnerSetsAPhoto(t *testing.T, pool *pgxpool.Pool) {
 		t.Fatalf("staff set the photo: %v", err)
 	}
 
-	if _, err := f.sellers.SetPhoto(owner, s.ID, &theirs.ID); !errors.Is(err, media.ErrPhotoNotFound) {
+	if _, err := f.sellers.SetPhoto(owner, s.ID, &theirs.ID); !errors.Is(err, file.ErrPhotoNotFound) {
 		t.Fatalf("the owner used a photo someone else uploaded: %v", err)
 	}
 

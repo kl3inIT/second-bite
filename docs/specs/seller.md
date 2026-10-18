@@ -24,7 +24,7 @@ Published to other modules: `CanPublish(seller, account)` and `CollectionPoint(s
 
 - Statuses: `pending` when opened, `active` or `blocked` as an admin sets them. The seller keeps who set its status and when; there is no history and no reason.
 - One owner per seller; at most 30 people per seller, the owner included; at most five sellers owned per account. Both limits hold under concurrency (a row lock on the seller, an advisory lock on the owner).
-- The photo is one the owner uploaded to `media`, which the seller claims; the seller answers `MEDIA_PHOTO_NOT_FOUND` for a photo someone else uploaded.
+- The photo is one the owner uploaded to `file`, which the seller claims; the seller answers `FILE_PHOTO_NOT_FOUND` for a photo someone else uploaded.
 - Staff are added by email in one step and are members at once; an address that has never signed in gets its account then. The owner cannot leave.
 - The role in a seller is read from the database at each request, never kept in the session, so a removed member loses access at once.
 - Publishing is for the owner or staff of an `active` seller.
@@ -36,7 +36,7 @@ Published to other modules: `CanPublish(seller, account)` and `CollectionPoint(s
 
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
-| `seller_sellers` | Name, address, latitude, longitude, generated location, phone, status, who set it and when, the photo (media's identifier, no foreign key) | Kept |
+| `seller_sellers` | Name, address, latitude, longitude, generated location, phone, status, who set it and when, the photo (file's identifier, no foreign key) | Kept |
 | `seller_members` | Seller, identity's account identifier (no foreign key across modules), role `owner` or `staff`, when added | Deleted when a staff member is removed or leaves |
 
 ## Failures

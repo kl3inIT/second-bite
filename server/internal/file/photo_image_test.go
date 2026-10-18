@@ -1,4 +1,4 @@
-package media
+package file
 
 import (
 	"bytes"
@@ -178,7 +178,7 @@ func TestRenderRefusesWhatIsNotAPhoto(t *testing.T) {
 		"a PNG with no picture": withDeclaredSize(t, small, 0, 10),
 	} {
 		if _, err := render(data); !errors.Is(err, ErrPhotoInvalid) {
-			t.Errorf("%s: %v, want MEDIA_PHOTO_INVALID", name, err)
+			t.Errorf("%s: %v, want FILE_PHOTO_INVALID", name, err)
 		}
 	}
 }

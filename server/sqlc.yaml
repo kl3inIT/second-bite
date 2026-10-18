@@ -49,10 +49,10 @@ sql:
         omit_unused_structs: true
   - engine: postgresql
     schema: migrations
-    queries: internal/media/queries.sql
+    queries: internal/file/queries.sql
     gen:
       go:
         package: db
-        out: internal/media/internal/db
+        out: internal/file/internal/db
         sql_package: pgx/v5
         omit_unused_structs: true

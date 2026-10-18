@@ -23,8 +23,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/identity"
-	"github.com/kl3inIT/second-bite/server/internal/media"
 	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller"
@@ -101,7 +101,7 @@ type app struct {
 	pool         *pgxpool.Pool
 	notification *notification.Service
 	identity     *identity.Service
-	media        *media.Service
+	file         *file.Service
 	seller       *seller.Service
 }
 
@@ -145,17 +145,20 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 			return nil, err
 		}
 
-		// SECONDBITE_MEDIA_STORE chooses where new photos are kept; postgres
-		// until an S3-compatible store is added.
-		photos, err := media.NewService(pool, media.Config{Store: media.Store(getenv("SECONDBITE_MEDIA_STORE"))}, logger)
+		fileCfg, err := fileConfig(getenv)
 		if err != nil {
-			return nil, fmt.Errorf("configuration: SECONDBITE_MEDIA_STORE: %w", err)
+			return nil, fmt.Errorf("configuration: %w", err)
 		}
 
-		sellers := seller.NewService(pool, identities, photos, logger)
+		files, err := file.NewService(ctx, pool, fileCfg, logger)
+		if err != nil {
+			return nil, fmt.Errorf("configuration: file store: %w", err)
+		}
+
+		sellers := seller.NewService(pool, identities, files, logger)
 
 		return &app{
-			cfg: cfg, logger: logger, pool: pool, notification: notifications, identity: identities, media: photos, seller: sellers,
+			cfg: cfg, logger: logger, pool: pool, notification: notifications, identity: identities, file: files, seller: sellers,
 		}, nil
 	}()
 	if err != nil {
@@ -187,6 +190,43 @@ func (a *app) serve(ctx context.Context) error {
 func registerOperations(api huma.API, a *app) {
 	identity.RegisterOperations(api, a.identity)
 	notification.RegisterOperations(api, a.notification)
-	media.RegisterOperations(api, a.media)
+	file.RegisterOperations(api, a.file)
 	seller.RegisterOperations(api, a.seller)
+}
+
+// fileConfig reads where files are kept: SECONDBITE_FILE_STORE (postgres by
+// default, or s3) and, when SECONDBITE_S3_BUCKET is set, the S3-compatible
+// store, its secret key read from the secrets directory.
+func fileConfig(getenv func(string) string) (file.Config, error) {
+	cfg := file.Config{
+		Store: file.Store(getenv("SECONDBITE_FILE_STORE")),
+		S3: file.S3Config{
+			Endpoint:    getenv("SECONDBITE_S3_ENDPOINT"),
+			Region:      getenv("SECONDBITE_S3_REGION"),
+			Bucket:      getenv("SECONDBITE_S3_BUCKET"),
+			AccessKeyID: getenv("SECONDBITE_S3_ACCESS_KEY_ID"),
+			PathStyle:   getenv("SECONDBITE_S3_PATH_STYLE") != "false",
+		},
+	}
+
+	if cfg.S3.Bucket == "" {
+		return cfg, nil
+	}
+
+	if cfg.S3.Region == "" {
+		cfg.S3.Region = "us-east-1"
+	}
+
+	if cfg.S3.AccessKeyID == "" {
+		return file.Config{}, errors.New("SECONDBITE_S3_ACCESS_KEY_ID is required with SECONDBITE_S3_BUCKET")
+	}
+
+	secret, err := platform.ReadSecret(getenv, "SECONDBITE_S3_SECRET_ACCESS_KEY")
+	if err != nil {
+		return file.Config{}, err
+	}
+
+	cfg.S3.SecretAccessKey = secret
+
+	return cfg, nil
 }
