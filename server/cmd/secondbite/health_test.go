@@ -15,7 +15,7 @@ func TestHealth(t *testing.T) {
 		status  int
 		wantErr bool
 	}{
-		{name: "ready", status: http.StatusOK},
+		{name: "ready", status: http.StatusNoContent},
 		{name: "not ready", status: http.StatusServiceUnavailable, wantErr: true},
 	}
 

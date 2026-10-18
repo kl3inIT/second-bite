@@ -293,7 +293,8 @@ func health(ctx context.Context, args []string, getenv func(string) string) erro
 		return fmt.Errorf("health: %w", err)
 	}
 
-	if res.StatusCode != http.StatusOK {
+	// /readyz answers 204 No Content when ready.
+	if res.StatusCode < 200 || res.StatusCode > 299 {
 		return fmt.Errorf("health: /readyz answered %s", res.Status)
 	}
 
