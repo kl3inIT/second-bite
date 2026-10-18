@@ -13,7 +13,7 @@ How the Flutter application in `mobile/` realizes the [conventions](../conventio
 
 ## Platforms
 
-- The app ships to iOS and Android only. `mobile/web/` exists so the team can look at screens in a browser (`flutter run -d chrome`) without an emulator: it is a preview, never deployed, never offered to customers, and no code is changed to make it work on the web. Customers on the web use the Next.js application in `web/`.
+- The app ships to iOS and Android only. `mobile/web/` exists so the team can look at screens in a browser without an emulator: locally with `flutter run -d chrome`, and at `https://preview.secondbite.vadan.app`, which every release of `main` updates (`mobile/preview/`, never indexed). It is a preview for the team, never offered to customers, and no code is changed to make it work on the web. Customers on the web use the Next.js application in `web/`.
 - What the browser does differently is checked on an Android emulator or a device, never in the preview: secure storage (on the web it is browser storage), push, the camera, location and sign-in.
 - The Android build asks Gradle for a 3 GB heap (`android/gradle.properties`) instead of the template's 8 GB, so it builds on a 16 GB laptop beside an emulator.
 
@@ -61,4 +61,4 @@ mobile/
 
 - Lint is `very_good_analysis` with `riverpod_lint`; a warning fails the build.
 - Unit and widget tests with `flutter_test`, mocks with `mocktail`, goldens for `app_ui`'s widgets, integration tests with `integration_test`. There is no coverage threshold.
-- CI runs, on every pull request, the analyzer, the formatter, the tests, the catalog check, the generated-client and token drift checks and an Android build; on `main`, an iOS build on macOS. The Flutter version is pinned there.
+- The Flutter version is pinned once, as `environment.flutter` in `pubspec.yaml`, which every workflow reads. CI runs, on every pull request, the analyzer, the formatter, the tests, the catalog check, the generated-client and token drift checks and an Android build; on `main`, an iOS build on macOS. The Flutter version is pinned there.

@@ -1,7 +1,7 @@
 name: Release
 
-# On a main push that changes what is deployed, builds the server and web images side by side, pushes them, starts
-# them together and exercises their routes, then publishes release-<sha>: images.env naming both images by digest.
+# On a main push that changes what is deployed, builds the server, web and preview images side by side, pushes them,
+# starts them and exercises their routes, then publishes release-<sha>: images.env naming every image by digest.
 # Deploy staging promotes only such a release (docs/runbooks/ci-cd.md). main receives only commits whose checks
 # passed on their branch, so the release does not run the test suites again.
 "on":
@@ -10,6 +10,7 @@ name: Release
     paths:
       - "server/**"
       - "web/**"
+      - "mobile/**"
       - "infrastructure/deployment/**"
       - ".github/workflows/release.yml"
 
@@ -84,9 +85,50 @@ jobs:
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web,ignore-error=true
 
+  # The Flutter app in a browser, for the team only (docs/guidelines/mobile.md, Platforms): built here with the version
+  # pubspec.yaml pins and the action's cache, then copied into a static nginx image.
+  preview:
+    name: Preview image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ghcr.io/kl3init/second-bite-preview@${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version-file: mobile/pubspec.yaml
+          cache: true
+      - name: Build the app for the browser
+        working-directory: mobile
+        run: |
+          flutter pub get
+          flutter build web
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: mobile
+          file: mobile/preview/Dockerfile
+          push: true
+          provenance: false
+          tags: ghcr.io/kl3init/second-bite-preview:sha-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          build-args: VCS_REF=${{ github.sha }}
+
   verify:
     name: Start together and exercise the routes
-    needs: [server, web]
+    needs: [server, web, preview]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -95,6 +137,7 @@ jobs:
     env:
       SECONDBITE_SERVER_IMAGE: ${{ needs.server.outputs.image }}
       SECONDBITE_WEB_IMAGE: ${{ needs.web.outputs.image }}
+      SECONDBITE_PREVIEW_IMAGE: ${{ needs.preview.outputs.image }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -107,8 +150,8 @@ jobs:
       # The pushed bytes, by digest, behind the stand-in of the host's proxy: the server migrates an empty database.
       - name: Start the composition and exercise its routes
         run: |
-          for image in "$SECONDBITE_SERVER_IMAGE" "$SECONDBITE_WEB_IMAGE"; do
-            [[ "$image" =~ ^ghcr\.io/kl3init/second-bite-(server|web)@sha256:[0-9a-f]{64}$ ]]
+          for image in "$SECONDBITE_SERVER_IMAGE" "$SECONDBITE_WEB_IMAGE" "$SECONDBITE_PREVIEW_IMAGE"; do
+            [[ "$image" =~ ^ghcr\.io/kl3init/second-bite-(server|web|preview)@sha256:[0-9a-f]{64}$ ]]
           done
           compose=(docker compose -f infrastructure/deployment/compose.base.yaml -f infrastructure/deployment/compose.local.yaml)
           "${compose[@]}" up --no-build --wait --wait-timeout 240
@@ -128,16 +171,27 @@ jobs:
           answers /robots.txt 200
           answers /api/readyz 204
           answers /api/offers 200
-          for image in "$SECONDBITE_SERVER_IMAGE" "$SECONDBITE_WEB_IMAGE"; do
+          # The preview stands alone: it answers any path with the app and is never indexed.
+          docker run --detach --name preview --publish 127.0.0.1:8100:8080 "$SECONDBITE_PREVIEW_IMAGE"
+          headers=""
+          for _ in 1 2 3 4 5 6 7 8 9 10; do
+            headers=$(curl --silent --fail --head http://127.0.0.1:8100/offers/1 || true)
+            [ -n "$headers" ] && break
+            sleep 2
+          done
+          grep --quiet --ignore-case '^x-robots-tag: noindex' <<<"$headers"
+          for image in "$SECONDBITE_SERVER_IMAGE" "$SECONDBITE_WEB_IMAGE" "$SECONDBITE_PREVIEW_IMAGE"; do
             test "$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")" = "$GITHUB_SHA"
           done
       - name: Show container logs
         if: failure()
-        run: docker compose -f infrastructure/deployment/compose.base.yaml -f infrastructure/deployment/compose.local.yaml logs --no-color --tail 200
+        run: |
+          docker compose -f infrastructure/deployment/compose.base.yaml -f infrastructure/deployment/compose.local.yaml logs --no-color --tail 200
+          docker logs preview --tail 50 || true
 
   release:
     name: Publish release
-    needs: [server, web, verify]
+    needs: [server, web, preview, verify]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -146,12 +200,14 @@ jobs:
         env:
           SERVER_IMAGE: ${{ needs.server.outputs.image }}
           WEB_IMAGE: ${{ needs.web.outputs.image }}
+          PREVIEW_IMAGE: ${{ needs.preview.outputs.image }}
         run: |
           [[ "$SERVER_IMAGE" =~ ^ghcr\.io/kl3init/second-bite-server@sha256:[0-9a-f]{64}$ ]]
           [[ "$WEB_IMAGE" =~ ^ghcr\.io/kl3init/second-bite-web@sha256:[0-9a-f]{64}$ ]]
+          [[ "$PREVIEW_IMAGE" =~ ^ghcr\.io/kl3init/second-bite-preview@sha256:[0-9a-f]{64}$ ]]
           mkdir release
-          printf 'SECONDBITE_SOURCE_SHA=%s\nSECONDBITE_SERVER_IMAGE=%s\nSECONDBITE_WEB_IMAGE=%s\n' \
-            "$GITHUB_SHA" "$SERVER_IMAGE" "$WEB_IMAGE" > release/images.env
+          printf 'SECONDBITE_SOURCE_SHA=%s\nSECONDBITE_SERVER_IMAGE=%s\nSECONDBITE_WEB_IMAGE=%s\nSECONDBITE_PREVIEW_IMAGE=%s\n' \
+            "$GITHUB_SHA" "$SERVER_IMAGE" "$WEB_IMAGE" "$PREVIEW_IMAGE" > release/images.env
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-${{ github.sha }}

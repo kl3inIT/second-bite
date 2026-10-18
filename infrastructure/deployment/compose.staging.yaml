@@ -31,6 +31,15 @@ services:
       - internal
       - proxy
 
+  # The Flutter app in a browser, for the team only, at preview.secondbite.vadan.app (docs/guidelines/mobile.md).
+  # Its image carries its own health check; it reaches nothing but the proxy.
+  preview:
+    container_name: secondbite-staging-preview
+    image: ${SECONDBITE_PREVIEW_IMAGE:?the preview image is named by deploy.sh}
+    restart: unless-stopped
+    networks:
+      - proxy
+
 # Each file is owned by uid 65532, the distroless nonroot user of the server, with mode 0400: Compose mounts it as
 # it is on the host. PostgreSQL reads its own as root.
 secrets:

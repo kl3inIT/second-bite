@@ -25,7 +25,7 @@ jobs:
     timeout-minutes: 10
     strategy:
       matrix:
-        package: [second-bite-server, second-bite-web]
+        package: [second-bite-server, second-bite-web, second-bite-preview]
     steps:
       - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
         with:

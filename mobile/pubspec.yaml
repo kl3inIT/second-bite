@@ -5,6 +5,8 @@ version: 0.1.0+1
 
 environment:
   sdk: ^3.13.5
+  # The one place the Flutter version is pinned; every workflow reads it (flutter-version-file).
+  flutter: 3.47.7
 
 dependencies:
   app_ui:

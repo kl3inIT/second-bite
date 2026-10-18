@@ -1,0 +1,3 @@
+*
+!build/web
+!preview/nginx.conf

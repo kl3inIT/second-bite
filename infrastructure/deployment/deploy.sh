@@ -63,9 +63,11 @@ release_value() {
 }
 server_image=$(release_value SECONDBITE_SERVER_IMAGE)
 web_image=$(release_value SECONDBITE_WEB_IMAGE)
+preview_image=$(release_value SECONDBITE_PREVIEW_IMAGE)
 [[ "$(release_value SECONDBITE_SOURCE_SHA)" == "$sha" ]] || fail "images.env names another revision"
 [[ "$server_image" =~ ^ghcr\.io/kl3init/second-bite-server@sha256:[0-9a-f]{64}$ ]] || fail "unexpected server image"
 [[ "$web_image" =~ ^ghcr\.io/kl3init/second-bite-web@sha256:[0-9a-f]{64}$ ]] || fail "unexpected web image"
+[[ "$preview_image" =~ ^ghcr\.io/kl3init/second-bite-preview@sha256:[0-9a-f]{64}$ ]] || fail "unexpected preview image"
 
 # The workflow's short-lived token pulls the private images; its credential file goes when this script exits.
 registry_token=$(cat)
@@ -75,7 +77,7 @@ export DOCKER_CONFIG
 trap 'rm -rf -- "$DOCKER_CONFIG"' EXIT
 printf '%s' "$registry_token" | docker login ghcr.io --username "$actor" --password-stdin >/dev/null
 unset registry_token
-for image in "$server_image" "$web_image"; do
+for image in "$server_image" "$web_image" "$preview_image"; do
     docker pull --quiet "$image" >/dev/null
     revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
     [[ "$revision" == "$sha" ]] || fail "$image was built from $revision, not $sha"
@@ -99,7 +101,7 @@ fi
 # PostgreSQL first, then the server (it migrates as it starts), then the web once the server is healthy.
 "${compose[@]}" up --detach --wait --wait-timeout 300 --remove-orphans
 
-for container in "$project-server" "$project-web"; do
+for container in "$project-server" "$project-web" "$project-preview"; do
     revision=$(docker inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$container")
     [[ "$revision" == "$sha" ]] || fail "$container runs $revision, not $sha"
 done
@@ -131,9 +133,9 @@ find "$backups" -maxdepth 1 -name 'pre-deploy-*.dump' -printf '%T@ %p\n' | sort 
 
 # Keep the images of the current and previous releases and remove older Second Bite images. Only images of this
 # repository are named: never prune, which would act on the other products of the host.
-keep_images=$(sed --quiet 's/^SECONDBITE_\(SERVER\|WEB\)_IMAGE=//p' "$deployments/current.env" "$deployments/previous.env" 2>/dev/null || true)
+keep_images=$(sed --quiet 's/^SECONDBITE_\(SERVER\|WEB\|PREVIEW\)_IMAGE=//p' "$deployments/current.env" "$deployments/previous.env" 2>/dev/null || true)
 docker image ls --digests --format '{{.Repository}}@{{.Digest}} {{.ID}}' |
-    grep --extended-regexp '^ghcr\.io/kl3init/second-bite-(server|web)@sha256:' |
+    grep --extended-regexp '^ghcr\.io/kl3init/second-bite-(server|web|preview)@sha256:' |
     while read -r reference id; do
         grep --quiet --fixed-strings --line-regexp "$reference" <<<"$keep_images" ||
             docker image rm "$id" >/dev/null 2>&1 || true

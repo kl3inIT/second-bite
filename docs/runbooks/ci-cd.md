@@ -12,23 +12,24 @@ A green deployment means the release is running and healthy. It does not claim t
 
 ## Releases
 
-`main` receives only commits whose checks passed on their branch. A `main` push that changes `server/`, `web/` or `infrastructure/deployment/` starts Release:
+`main` receives only commits whose checks passed on their branch. A `main` push that changes `server/`, `web/`, `mobile/` or `infrastructure/deployment/` starts Release:
 
-1. **Server image and Web image** build side by side, with the GitHub Actions layer cache. Each pushes to GHCR as `ghcr.io/kl3init/second-bite-{server,web}:sha-<sha>-<run>-<attempt>`. A tag names one attempt and is never moved; there is no `latest`.
+1. **Server image, Web image and Preview image** build side by side; the first two use the GitHub Actions layer cache, and the preview builds the Flutter app for the browser with the version `mobile/pubspec.yaml` pins. Each pushes to GHCR as `ghcr.io/kl3init/second-bite-{server,web,preview}:sha-<sha>-<run>-<attempt>`. A tag names one attempt and is never moved; there is no `latest`.
 2. **Start together and exercise the routes** pulls both images by digest and starts them with PostgreSQL behind the local proxy (`compose.local.yaml`, `--no-build`). It then checks:
    - `/vi` and `/robots.txt` answer 200;
    - `/api/readyz` answers 204;
    - `/api/offers` answers 200;
+   - the preview answers any path with the app and `X-Robots-Tag: noindex`;
    - each image's `revision` label is the commit.
 3. **Publish release** runs only after the step above passes. It uploads the artifact `release-<sha>`, kept 30 days, holding `images.env`: the source SHA and both images by digest.
 
-[Clean up images](../../.github/workflows/ghcr-cleanup.yml) keeps the ten newest versions of each image on GHCR, after every Release and weekly. Deploy accepts nothing else. An image that a failed run pushed is named by no `images.env`, so it is never deployed. A push that changes only documents or `mobile/` makes no release and leaves staging as it is.
+[Clean up images](../../.github/workflows/ghcr-cleanup.yml) keeps the ten newest versions of each image on GHCR, after every Release and weekly. Deploy accepts nothing else. An image that a failed run pushed is named by no `images.env`, so it is never deployed. A push that changes only documents makes no release and leaves staging as it is.
 
 ## Deployment
 
 | Environment | Address | Deployed |
 | --- | --- | --- |
-| Staging | `https://secondbite.vadan.app` | After every successful Release run when the repository variable `STAGING_AUTO_DEPLOY` is `true`, and by hand at any time |
+| Staging | `https://secondbite.vadan.app`; the Flutter browser preview at `https://preview.secondbite.vadan.app` | After every successful Release run when the repository variable `STAGING_AUTO_DEPLOY` is `true`, and by hand at any time |
 
 There is no production yet; it is added when its address and host are chosen ([vision](../vision.md)).
 
@@ -68,7 +69,7 @@ The site is down for the few seconds the server takes to restart and migrate. Th
 Staging runs on the host of BeyondPilot's staging, which also runs MemoryOS's production; `beyondpilot.vadan.app` resolves to it. Second Bite has its own:
 - directory;
 - Compose project, `secondbite-staging`;
-- containers, `secondbite-staging-{postgres,server,web}`;
+- containers, `secondbite-staging-{postgres,server,web,preview}`;
 - volume and internal network.
 
 It shares the host's Nginx Proxy Manager, which it reaches through the existing external network `proxy-network`. Never change a container, file or setting of BeyondPilot or MemoryOS from here.
