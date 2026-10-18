@@ -176,6 +176,12 @@ location /api/ {
 }
 ```
 
+Staging's proxy host is id 10, and its certificate is id 11, renewed by Nginx Proxy Manager.
+
+Nginx Proxy Manager 2.13 takes the Let's Encrypt address from its own settings. A certificate requested through its API carries only `{"dns_challenge": false}` in `meta`; it refuses `letsencrypt_agree` or `letsencrypt_email`.
+
+The admin credentials kept at `/apps/proxy/admin-credentials.txt` were out of date on 18 October 2026. Staging's host was therefore created through the API, with an admin token valid ten minutes and signed inside the container with the proxy's own key (`/data/keys.json`). The token was never printed, and no password was changed.
+
 Staging is never indexed: the web answers `robots.txt` with `Disallow: /`.
 
 ### GitHub configuration

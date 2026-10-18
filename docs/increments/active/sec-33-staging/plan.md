@@ -10,5 +10,5 @@ Design: [design.md](design.md). Tracked in Linear as SEC-33.
 | 4 | Release on `main`: images built side by side and pushed, started together and checked, `release-<sha>` published | Agent | Done |
 | 5 | `deploy.sh`, `deploy.yml` and `deploy-staging.yml`; the nightly backup; `robots.txt` closed | Agent | Done |
 | 6 | `docs/runbooks/ci-cd.md`: releases, deployment, host provisioning, proxy, GitHub configuration, failure and recovery; `ARCHITECTURE.md` | Agent | Done |
-| 7 | DNS (done 18 October 2026), host provisioning, GitHub environment, proxy host | Administrator | In progress |
-| 8 | First deployment; the date recorded in the persistence guideline; SEC-24 (Brevo) and SEC-35 (preview) can follow | Team | Not started |
+| 7 | DNS, host provisioning, GitHub environment, proxy host and certificate, nightly backup | Administrator, agent | Done, 18 October 2026 |
+| 8 | First deployment (done 18 October 2026, then automatic); the first admin; the date of the first data recorded in the persistence guideline; SEC-24 (Brevo) and SEC-35 (preview) follow | Team | In progress |
