@@ -32,7 +32,7 @@ export function LegalPage({ namespace }: { namespace: "Terms" | "Privacy" }) {
               <li key={section.title}>
                 <a
                   href={`#section-${index + 1}`}
-                  className="inline-flex min-h-11 items-center text-body text-primary underline"
+                  className="inline-flex min-h-11 items-center text-body text-foreground underline"
                 >
                   {section.title}
                 </a>
