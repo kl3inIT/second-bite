@@ -16,7 +16,7 @@ import (
 const getOffer = `-- name: GetOffer :one
 SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at
+       created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers WHERE id = $1
 `
 
@@ -43,6 +43,7 @@ type GetOfferRow struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	WithdrawnAt      *time.Time
+	SellerName       string
 }
 
 func (q *Queries) GetOffer(ctx context.Context, id uuid.UUID) (GetOfferRow, error) {
@@ -71,6 +72,7 @@ func (q *Queries) GetOffer(ctx context.Context, id uuid.UUID) (GetOfferRow, erro
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.WithdrawnAt,
+		&i.SellerName,
 	)
 	return i, err
 }
@@ -111,10 +113,11 @@ func (q *Queries) GetSettings(ctx context.Context) (GetSettingsRow, error) {
 const insertOffer = `-- name: InsertOffer :one
 INSERT INTO offer_offers (
     seller_id, posted_by, name, description, kind, unit, units, units_left, price_vnd, original_price_vnd,
-    weight_grams, photo_id, window_start, window_end, latitude, longitude, address
+    weight_grams, photo_id, window_start, window_end, latitude, longitude, address, seller_name, search_vector
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $7, $8, $9,
-    $10, $11, $12, $13, $14, $15, $16
+    $10, $11, $12, $13, $14, $15, $16, $17,
+    ($18::text)::tsvector
 )
 RETURNING id
 `
@@ -136,6 +139,8 @@ type InsertOfferParams struct {
 	Latitude         float64
 	Longitude        float64
 	Address          string
+	SellerName       string
+	SearchVector     string
 }
 
 func (q *Queries) InsertOffer(ctx context.Context, arg InsertOfferParams) (uuid.UUID, error) {
@@ -156,6 +161,8 @@ func (q *Queries) InsertOffer(ctx context.Context, arg InsertOfferParams) (uuid.
 		arg.Latitude,
 		arg.Longitude,
 		arg.Address,
+		arg.SellerName,
+		arg.SearchVector,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
@@ -165,7 +172,7 @@ func (q *Queries) InsertOffer(ctx context.Context, arg InsertOfferParams) (uuid.
 const lockOffer = `-- name: LockOffer :one
 SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at
+       created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers WHERE id = $1 FOR UPDATE
 `
 
@@ -192,6 +199,7 @@ type LockOfferRow struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	WithdrawnAt      *time.Time
+	SellerName       string
 }
 
 // Serializes changes to one offer until the transaction ends.
@@ -221,6 +229,7 @@ func (q *Queries) LockOffer(ctx context.Context, id uuid.UUID) (LockOfferRow, er
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.WithdrawnAt,
+		&i.SellerName,
 	)
 	return i, err
 }
@@ -257,10 +266,153 @@ func (q *Queries) PutSettings(ctx context.Context, arg PutSettingsParams) error 
 	return err
 }
 
+const searchOffers = `-- name: SearchOffers :many
+SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+       created_at, updated_at, withdrawn_at, seller_name,
+       COALESCE(distance_m, 0)::float8 AS distance_m, rank::float4 AS rank
+FROM (
+    SELECT o.id, o.seller_id, o.posted_by, o.state, o.name, o.description, o.kind, o.unit, o.units, o.units_left, o.price_vnd, o.original_price_vnd, o.weight_grams, o.photo_id, o.window_start, o.window_end, o.latitude, o.longitude, o.location, o.address, o.created_at, o.updated_at, o.withdrawn_at, o.seller_name, o.search_vector,
+           CASE WHEN $1::float8 IS NULL THEN NULL
+                ELSE ST_Distance(o.location, ST_SetSRID(ST_MakePoint($2::float8, $1::float8), 4326)::geography)
+           END AS distance_m,
+           CASE WHEN $3::text = '' THEN 0 ELSE ts_rank_cd(o.search_vector, ($3::text)::tsquery) END AS rank
+    FROM offer_offers o
+    WHERE o.state = 'on_sale' AND o.window_end > now()
+      -- An empty list arrives as NULL, which ANY would turn into no row at all.
+      AND NOT (o.seller_id = ANY (COALESCE($4::uuid[], '{}')))
+      AND ($3::text = '' OR o.search_vector @@ ($3::text)::tsquery)
+      AND ($1::float8 IS NULL
+           OR ST_DWithin(o.location, ST_SetSRID(ST_MakePoint($2::float8, $1::float8), 4326)::geography, $5::float8))
+      AND (COALESCE(cardinality($6::text[]), 0) = 0 OR o.kind = ANY ($6::text[]))
+      AND ($7::bigint IS NULL OR o.price_vnd <= $7::bigint)
+      AND ($8::timestamptz IS NULL OR o.window_end > $8::timestamptz)
+      AND ($9::timestamptz IS NULL OR o.window_start <= $9::timestamptz)
+      AND ($10::uuid IS NULL OR o.seller_id = $10::uuid)
+      AND (NOT $11::boolean OR o.units_left > 0)
+) found
+ORDER BY
+    CASE WHEN $12::text = 'relevance' THEN rank END DESC,
+    CASE WHEN $12::text IN ('relevance', 'distance') THEN distance_m END ASC NULLS LAST,
+    CASE WHEN $12::text = 'price' THEN price_vnd END ASC,
+    CASE WHEN $12::text = 'discount' THEN (original_price_vnd - price_vnd)::float8 / original_price_vnd END DESC,
+    window_end ASC, id
+LIMIT $14 OFFSET $13
+`
+
+type SearchOffersParams struct {
+	Latitude        pgtype.Float8
+	Longitude       pgtype.Float8
+	Query           string
+	ExcludedSellers []uuid.UUID
+	RadiusM         float64
+	Kinds           []string
+	MaxPrice        pgtype.Int8
+	CollectFrom     *time.Time
+	CollectTo       *time.Time
+	SellerID        uuid.NullUUID
+	AvailableOnly   bool
+	Sort            string
+	SkipRows        int32
+	MaxRows         int32
+}
+
+type SearchOffersRow struct {
+	ID               uuid.UUID
+	SellerID         uuid.UUID
+	PostedBy         uuid.UUID
+	State            string
+	Name             string
+	Description      string
+	Kind             string
+	Unit             string
+	Units            int32
+	UnitsLeft        int32
+	PriceVnd         int64
+	OriginalPriceVnd int64
+	WeightGrams      pgtype.Int4
+	PhotoID          uuid.UUID
+	WindowStart      time.Time
+	WindowEnd        time.Time
+	Latitude         float64
+	Longitude        float64
+	Address          string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	WithdrawnAt      *time.Time
+	SellerName       string
+	DistanceM        float64
+	Rank             float32
+}
+
+// Offers customers may order or see sold out: on sale, the window not over,
+// the seller not blocked; filtered before they are ordered and paged. The
+// query is a tsquery literal built by searchQuery, empty for none.
+func (q *Queries) SearchOffers(ctx context.Context, arg SearchOffersParams) ([]SearchOffersRow, error) {
+	rows, err := q.db.Query(ctx, searchOffers,
+		arg.Latitude,
+		arg.Longitude,
+		arg.Query,
+		arg.ExcludedSellers,
+		arg.RadiusM,
+		arg.Kinds,
+		arg.MaxPrice,
+		arg.CollectFrom,
+		arg.CollectTo,
+		arg.SellerID,
+		arg.AvailableOnly,
+		arg.Sort,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchOffersRow
+	for rows.Next() {
+		var i SearchOffersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SellerID,
+			&i.PostedBy,
+			&i.State,
+			&i.Name,
+			&i.Description,
+			&i.Kind,
+			&i.Unit,
+			&i.Units,
+			&i.UnitsLeft,
+			&i.PriceVnd,
+			&i.OriginalPriceVnd,
+			&i.WeightGrams,
+			&i.PhotoID,
+			&i.WindowStart,
+			&i.WindowEnd,
+			&i.Latitude,
+			&i.Longitude,
+			&i.Address,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.WithdrawnAt,
+			&i.SellerName,
+			&i.DistanceM,
+			&i.Rank,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const sellerOffers = `-- name: SellerOffers :many
 SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at
+       created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers
 WHERE seller_id = $1
   AND ($2::text = ''
@@ -302,6 +454,7 @@ type SellerOffersRow struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	WithdrawnAt      *time.Time
+	SellerName       string
 }
 
 func (q *Queries) SellerOffers(ctx context.Context, arg SellerOffersParams) ([]SellerOffersRow, error) {
@@ -341,6 +494,7 @@ func (q *Queries) SellerOffers(ctx context.Context, arg SellerOffersParams) ([]S
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.WithdrawnAt,
+			&i.SellerName,
 		); err != nil {
 			return nil, err
 		}
@@ -373,8 +527,8 @@ UPDATE offer_offers
 SET name = $1, description = $2, kind = $3, unit = $4, units = $5,
     units_left = $6, price_vnd = $7, original_price_vnd = $8,
     weight_grams = $9, photo_id = $10, window_start = $11, window_end = $12,
-    updated_at = now()
-WHERE id = $13
+    search_vector = ($13::text)::tsvector, updated_at = now()
+WHERE id = $14
 `
 
 type UpdateOfferParams struct {
@@ -390,6 +544,7 @@ type UpdateOfferParams struct {
 	PhotoID          uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
+	SearchVector     string
 	ID               uuid.UUID
 }
 
@@ -407,6 +562,7 @@ func (q *Queries) UpdateOffer(ctx context.Context, arg UpdateOfferParams) error 
 		arg.PhotoID,
 		arg.WindowStart,
 		arg.WindowEnd,
+		arg.SearchVector,
 		arg.ID,
 	)
 	return err

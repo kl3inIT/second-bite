@@ -10,7 +10,8 @@ Owns the surplus sellers post and the settings every offer follows (tables `offe
 | `PATCH /offers/{offerId}` | The owner or staff of an active seller | `200` offer |
 | `POST /offers/{offerId}/withdraw` | The seller's owner or staff, even when it is blocked | `200` offer, withdrawn; again, the same |
 | `GET /sellers/{sellerId}/offers?status=&limit=&offset=` | Its members; admins | `200` its offers, newest first, at most 100; the list staff post again from |
-| `GET /offers/{offerId}` | Anyone while it is on sale or sold out; its members and admins always | `200` offer |
+| `GET /offers?near=&radiusKm=&q=&kind=&maxPrice=&collectFrom=&collectTo=&sellerId=&available=&sort=&limit=&offset=` | Anyone | `200` offers on sale or sold out, each with its seller (name, address, photo) and, near a point, its distance; at most 50 a page |
+| `GET /offers/{offerId}` | Anyone while it is on sale or sold out and its seller active; its members and admins always | `200` offer |
 | `GET`, `PUT /admin/offer-settings` | Admins | `200` the settings |
 
 An offer carries its status, units left, discount, photo addresses and the collection point copied from the seller when it was posted. Prices are whole đồng; times are RFC 3339.
@@ -26,12 +27,14 @@ Published to other modules: `Service` alone; units are taken by `order` (SEC-15)
 - **Changes**: before any unit is ordered, everything but the seller and the collection point; once units are ordered, only the description, the photo and the units, never below the units ordered. Nothing changes once the offer is closed or withdrawn. Changes to one offer are serialized by a row lock.
 - **Withdrawing** keeps the row with when it was withdrawn; a closed offer cannot be withdrawn.
 - Admins neither post nor change offers; a stranger gets 404.
+- **Search** keeps offers on sale and sold out, the window not over, the seller not blocked (the blocked sellers are left out in the query, so a page is never short), then filters: within a radius of a point (the settings' default, at most their maximum), words, kinds, a maximum price, a collection-time range the window overlaps, one seller, and, when asked, nothing sold out. Its orders: `relevance` (default with words), `distance` (default with a point), `ending_soon` (default otherwise), `price`, `discount`.
+- **Words** match the name, the seller's name and the description, weighted in that order, every word required and the last one also as a prefix. Each syllable is indexed under a loose form without marks and an exact form with its marks and its tone as a digit, so a word typed without marks matches any marks ("ca": "cá", "cà") and one typed with marks only those ("cá"); the tone's place ("hòa", "hoà"), the encoding (NFC or decomposed), zero-width characters and a lone "y" after h, k, l, m, s or t ("mỳ", "mì") make no difference. The service writes the `tsvector` itself (`internal/offer/search_text.go`); words side by side rank first ([why](../increments/active/sec-11-offer-module/design.md#vietnamese-words)).
 
 ## Data
 
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
-| `offer_offers` | Seller and who posted (no foreign key across modules), state, the fields, units and units left (`0 <= units_left <= units`), photo, window, the copied latitude, longitude, generated location and address, when posted, changed and withdrawn | Kept: orders, measures and the seller's history read it |
+| `offer_offers` | Seller and who posted (no foreign key across modules), state, the fields, units and units left (`0 <= units_left <= units`), photo, window, the copied latitude, longitude, generated location (GiST index), address and seller's name, the words searched (`search_vector`, GIN index), when posted, changed and withdrawn | Kept: orders, measures and the seller's history read it |
 | `offer_settings` | One row: the settings, who changed them and when | Replaced on save |
 
 ## Failures
@@ -41,6 +44,7 @@ Published to other modules: `Service` alone; units are taken by `order` (SEC-15)
 | `OFFER_DETAILS_INVALID` | 400 | A field breaks its rule |
 | `OFFER_DISCOUNT_TOO_SMALL` | 400 | The price is not the minimum discount below the original price |
 | `OFFER_WINDOW_INVALID` | 400 | The window is too short, too long, over, or starts too late |
+| `OFFER_SEARCH_INVALID` | 400 | A point off the map, a time range ending before it starts, or sorting by distance from no point |
 | `OFFER_SETTINGS_INVALID` | 400 | Settings out of range or contradicting each other |
 | `OFFER_NOT_FOUND` | 404 | No such offer, or one the caller may not see or change |
 | `OFFER_CHANGE_NOT_ALLOWED` | 409 | A change its orders forbid, or any change once it is closed or withdrawn |
@@ -50,4 +54,4 @@ Published to other modules: `Service` alone; units are taken by `order` (SEC-15)
 
 ## Not yet
 
-Per the [plan](../increments/active/sec-11-offer-module/plan.md): finding offers near a point and the seller's public page; announcements of expected surplus; following, with emails; weekly schedules. Ordering, which takes units, is SEC-15.
+Per the [plan](../increments/active/sec-11-offer-module/plan.md): announcements of expected surplus; following, with emails; weekly schedules. Ordering, which takes units, is SEC-15. Search by meaning, forgiving typos and a vegetarian filter wait for the conditions in the [design](../increments/active/sec-11-offer-module/design.md#5-finding-offers).

@@ -131,6 +131,113 @@ components:
         - brevoApiKeySet
         - updatedAt
       type: object
+    FoundBody:
+      additionalProperties: false
+      properties:
+        collectionPoint:
+          $ref: "#/components/schemas/CollectionPointBody"
+          description: Where the offer is collected, copied from the seller when it was posted
+        createdAt:
+          format: date-time
+          type: string
+        description:
+          type: string
+        discountPercent:
+          format: int64
+          type: integer
+        distanceMeters:
+          description: From the point searched near; absent without one
+          format: double
+          type: number
+        id:
+          type: string
+        kind:
+          enum:
+            - bakery
+            - prepared_food
+            - ingredients
+            - drinks
+            - mixed_box
+            - other
+          type: string
+        name:
+          type: string
+        originalPriceVnd:
+          format: int64
+          type: integer
+        photo:
+          $ref: "#/components/schemas/OfferPhotoBody"
+        priceVnd:
+          format: int64
+          type: integer
+        seller:
+          $ref: "#/components/schemas/OfferSellerBody"
+        sellerId:
+          type: string
+        status:
+          description: sold_out and closed are read from the units left and the window
+          enum:
+            - on_sale
+            - sold_out
+            - closed
+            - withdrawn
+          type: string
+        unit:
+          type: string
+        units:
+          format: int64
+          type: integer
+        unitsLeft:
+          format: int64
+          type: integer
+        updatedAt:
+          format: date-time
+          type: string
+        weightGrams:
+          format: int64
+          type: integer
+        windowEnd:
+          format: date-time
+          type: string
+        windowStart:
+          format: date-time
+          type: string
+        withdrawnAt:
+          format: date-time
+          type: string
+      required:
+        - seller
+        - id
+        - sellerId
+        - status
+        - name
+        - description
+        - kind
+        - unit
+        - units
+        - unitsLeft
+        - priceVnd
+        - originalPriceVnd
+        - discountPercent
+        - photo
+        - windowStart
+        - windowEnd
+        - collectionPoint
+        - createdAt
+        - updatedAt
+      type: object
+    FoundOutputBody:
+      additionalProperties: false
+      properties:
+        offers:
+          items:
+            $ref: "#/components/schemas/FoundBody"
+          type:
+            - array
+            - "null"
+      required:
+        - offers
+      type: object
     MemberBody:
       additionalProperties: false
       properties:
@@ -381,6 +488,22 @@ components:
         - largePath
         - smallPath
       type: object
+    OfferSellerBody:
+      additionalProperties: false
+      properties:
+        address:
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        photo:
+          $ref: "#/components/schemas/OfferPhotoBody"
+      required:
+        - id
+        - name
+        - address
+      type: object
     OfferSettingsBody:
       additionalProperties: false
       properties:
@@ -624,6 +747,44 @@ components:
         - status
         - createdAt
         - updatedAt
+      type: object
+    SellerPhotoBody:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        largePath:
+          type: string
+        smallPath:
+          type: string
+      required:
+        - id
+        - largePath
+        - smallPath
+      type: object
+    SellerProfileBody:
+      additionalProperties: false
+      properties:
+        address:
+          type: string
+        id:
+          type: string
+        latitude:
+          format: double
+          type: number
+        longitude:
+          format: double
+          type: number
+        name:
+          type: string
+        photo:
+          $ref: "#/components/schemas/SellerPhotoBody"
+      required:
+        - id
+        - name
+        - address
+        - latitude
+        - longitude
       type: object
     SellersOutputBody:
       additionalProperties: false
@@ -988,6 +1149,141 @@ paths:
       summary: Email a six-digit sign-in code
       tags:
         - Sign-in
+  /offers:
+    get:
+      description: Anyone may search. Offers sold out are included unless available is set; those withdrawn, over or of a blocked seller never are.
+      operationId: searchOffers
+      parameters:
+        - description: latitude,longitude, such as 21.0565,105.8964
+          explode: false
+          in: query
+          name: near
+          schema:
+            description: latitude,longitude, such as 21.0565,105.8964
+            pattern: ^-?[0-9]+(\.[0-9]+)?,-?[0-9]+(\.[0-9]+)?$
+            type: string
+        - description: Around near; the settings' default when absent, never more than their maximum
+          explode: false
+          in: query
+          name: radiusKm
+          schema:
+            description: Around near; the settings' default when absent, never more than their maximum
+            format: int64
+            maximum: 100
+            minimum: 0
+            type: integer
+        - description: Words; typed without marks they match any marks ("ca" finds cá and cà), with marks only those
+          explode: false
+          in: query
+          name: q
+          schema:
+            description: Words; typed without marks they match any marks ("ca" finds cá and cà), with marks only those
+            maxLength: 200
+            type: string
+        - description: One or more kinds, comma-separated
+          explode: false
+          in: query
+          name: kind
+          schema:
+            description: One or more kinds, comma-separated
+            items:
+              enum:
+                - bakery
+                - prepared_food
+                - ingredients
+                - drinks
+                - mixed_box
+                - other
+              type: string
+            type:
+              - array
+              - "null"
+        - description: The highest price of one unit, in đồng
+          explode: false
+          in: query
+          name: maxPrice
+          schema:
+            description: The highest price of one unit, in đồng
+            format: int64
+            minimum: 0
+            type: integer
+        - description: Keep offers whose window overlaps collectFrom to collectTo; both at one moment keep what can be collected then
+          explode: false
+          in: query
+          name: collectFrom
+          schema:
+            description: Keep offers whose window overlaps collectFrom to collectTo; both at one moment keep what can be collected then
+            format: date-time
+            type: string
+        - explode: false
+          in: query
+          name: collectTo
+          schema:
+            format: date-time
+            type: string
+        - description: One seller's offers
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: One seller's offers
+            type: string
+        - description: Leave out what has sold out
+          explode: false
+          in: query
+          name: available
+          schema:
+            description: Leave out what has sold out
+            type: boolean
+        - description: relevance with q, distance with near, ending_soon otherwise, when absent
+          explode: false
+          in: query
+          name: sort
+          schema:
+            description: relevance with q, distance with near, ending_soon otherwise, when absent
+            enum:
+              - relevance
+              - distance
+              - ending_soon
+              - price
+              - discount
+            type: string
+        - explode: false
+          in: query
+          name: limit
+          schema:
+            default: 20
+            format: int64
+            maximum: 50
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: offset
+          schema:
+            default: 0
+            format: int64
+            minimum: 0
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FoundOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+      summary: Find offers on sale or sold out, near a point, by words and filters
+      tags:
+        - Offers
   /offers/{offerId}:
     get:
       description: Anyone reads an offer while its window is open and it is not withdrawn; its seller's people read it always.
@@ -1486,5 +1782,34 @@ paths:
       security:
         - bearer: []
       summary: Set the seller's photo, uploaded by its owner; only the owner may
+      tags:
+        - Sellers
+  /sellers/{sellerId}/profile:
+    get:
+      description: Its offers are GET /offers?sellerId=. A seller pending or blocked answers 404.
+      operationId: getSellerProfile
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerProfileBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+      summary: What anyone sees of an active seller
       tags:
         - Sellers

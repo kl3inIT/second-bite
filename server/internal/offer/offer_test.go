@@ -45,6 +45,9 @@ func TestOffer(t *testing.T) {
 			"a photo is the poster's or the seller's":     testPhotoIsPostersOrSellers,
 			"orders limit what changes":                   testOrdersLimitWhatChanges,
 			"status follows units, window and withdrawal": testStatusFollowsUnitsWindowAndWithdrawal,
+			"search reads Vietnamese as it is typed":      testSearchReadsVietnamese,
+			"search keeps what is near and filtered":      testSearchNearAndFiltered,
+			"a blocked seller's offers leave search":      testBlockedSellerLeavesSearch,
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
@@ -97,8 +100,19 @@ func (f fixture) as(t *testing.T, name string, role platform.Role) context.Conte
 func (f fixture) activeSeller(owner context.Context, t *testing.T, staff ...string) uuid.UUID {
 	t.Helper()
 
+	return f.sellerAt(owner, t, "Quầy Tasco", tasco, staff...)
+}
+
+// tasco is Tasco Mall, Việt Hưng, where the pilot runs.
+var tasco = offer.Point{Latitude: 21.0565, Longitude: 105.8964}
+
+// sellerAt opens a seller of that name at a point, with staff, and has an
+// admin activate it.
+func (f fixture) sellerAt(owner context.Context, t *testing.T, name string, at offer.Point, staff ...string) uuid.UUID {
+	t.Helper()
+
 	s, err := f.sellers.Open(owner, seller.Details{
-		Name: "Bánh mì Tasco", Address: "Tasco Mall, Việt Hưng", Latitude: 21.0565, Longitude: 105.8964, Phone: "0912345678",
+		Name: name, Address: "Tasco Mall, Việt Hưng", Latitude: at.Latitude, Longitude: at.Longitude, Phone: "0912345678",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -140,7 +154,7 @@ func bread(photo uuid.UUID) offer.Details {
 	now := time.Now()
 
 	return offer.Details{
-		Name: "Bánh mì thập cẩm", Kind: offer.KindBakery, Units: 5, PriceVND: 15_000, OriginalPriceVND: 25_000,
+		Name: breadMixed, Kind: offer.KindBakery, Units: 5, PriceVND: 15_000, OriginalPriceVND: 25_000,
 		PhotoID: photo, WindowStart: now, WindowEnd: now.Add(2 * time.Hour),
 	}
 }

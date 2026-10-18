@@ -1,6 +1,6 @@
 # SEC-11 — The `offer` module: design
 
-Status: business flow decided with the team on 18 October 2026; steps 2 and 3 built ([plan](plan.md)). Tracked in Linear as SEC-11.
+Status: business flow decided with the team on 18 October 2026; steps 2 to 4 built ([plan](plan.md)). Tracked in Linear as SEC-11.
 
 The flow below was worked out one part at a time from the products read for the [offer models](../../../research/2026-10-17-offer-models.md) note, the [pilot domain model](../sec-6-pilot-domain-model/design.md) and the founder's requirements. Each rule names its source; a rule marked *ours* has none and is a working assumption.
 
@@ -83,10 +83,26 @@ stateDiagram-v2
 
 ### 5. Finding offers
 
-- Near a point, within a radius ([settings](#settings)), nearest first; without a point, by name or seller, soonest window first. *(foodsharing: a bounding box, then the exact distance, with a default and a maximum radius.)*
-- Filters: words in the name (accents ignored, so "banh mi" finds "bánh mì"), kinds, a maximum price, a collection time the window must include, one seller.
-- Results hold offers on sale and announcements whose window has not ended, each with its photo, name, kind, price, original price and discount, units left (or estimated units), unit, window, the seller's name and photo, and the distance. Sold-out offers are included and marked.
-- A seller's public page: its name, photo, address, location and follower count, and its offers and announcements.
+Decided with the team on 18 October 2026, one part at a time.
+
+- **Anyone searches, without an account** ([vision](../../../vision.md#product-principles): look first, sign in to act).
+- **Near a point**, within a radius ([settings](#settings)): 5 km by default, never more than 30. *(foodsharing: a default and a maximum radius.)*
+- **Words** match an offer's name (weight A), its seller's name (B) and its description (C), all words required, the last one also as a prefix while it is typed. Vietnamese is read as it is typed ([below](#vietnamese-words)).
+- **Filters**: kinds (several), a maximum price, a range of collection time the window must overlap (both ends at one moment for "can be collected now"; Too Good To Go's collection-time slider), one seller, and leaving out what has sold out (shown by default, as Too Good To Go does).
+- **Orders**: `relevance` (default with words; the words' rank, then distance), `distance` (default with a point), `ending_soon` (default otherwise), `price`, `discount`. Too Good To Go sorts by relevance, distance, price and rating; there are no ratings yet, and discount suits surplus (*ours*).
+- **A blocked seller's offers** leave search and every customer's read at once and return when it is activated again: search asks `seller` for the blocked sellers and leaves them out in the query, so pages stay full (option A of three; withdrawing them on a block would not bring them back, and filtering after the query would leave pages short).
+- Results hold offers on sale and sold out whose window has not ended, each with its photo, name, kind, price, original price and discount, units left, unit, window, the seller's name, address and photo, and the distance. Announcements join them with step 5.
+- **A seller's public page** (`GET /sellers/{sellerId}/profile`): its name, photo, address and location, for an active seller only; its offers are a search by seller. The follower count arrives with following (step 6).
+- **Not now**, with what would bring each: meaning (semantic) search, when offers run to hundreds or customers search by need ("đồ ăn sáng") and find nothing; forgiving typos and words typed together ("banhmi"), when searches find nothing for want of them; a vegetarian filter, once the sellers say whether they sell vegetarian food. None of the open-source Go products read (Miniflux, listmonk, Memos, Gitea, Mattermost) search by meaning.
+
+#### Vietnamese words
+
+PostgreSQL has no Vietnamese configuration, and no extension handles Vietnamese spelling (`unaccent` folds "cá" and "cà" into one word; PGroonga, ParadeDB and Hunspell dictionaries add no rule for it). The service writes each offer's `tsvector` itself (Miniflux writes its weighted `document_vectors` the same way), every syllable under two lexemes at one position, as the Vietnamese analyzer of Elasticsearch keeps a folded and an original token (duydo/elasticsearch-analysis-vietnamese):
+
+- the **loose form**, without marks: "bánh" is `banh`, "đậu" is `dau`;
+- the **exact form**, the letters with their marks and the tone as a digit: "bánh" is `banh~2`. The tone is taken off whichever vowel carries it, so "hòa" and "hoà", or "bảo" and the misplaced "baỏ", are one word (underthesea and VietnameseTextNormalizer normalize tone placement).
+
+A word typed **without marks** is looked up by its loose form, so "ca" finds "cá" and "cà"; one typed **with marks** by its exact form, so "cá" does not find "cà phê". Text is put in NFC and stripped of format characters such as the zero-width space (VietnameseTextNormalizer), and a lone "y" after h, k, l, m, s or t reads as "i" ("mì" and "mỳ", "kĩ" and "kỹ"; *ours*, narrower than any source). Ranking by proximity (`ts_rank_cd`) puts "bánh mì" side by side above "mì xào, bánh bao", which stands in for word segmentation (Cốc Cốc's tokenizer, in C++, is not taken).
 
 ### 6. Following
 
@@ -173,7 +189,7 @@ The [pilot domain model](../sec-6-pilot-domain-model/design.md) holds the story,
 | `PATCH /offers/{offerId}` | Its seller's staff | `200` offer |
 | `GET /sellers/{sellerId}/offers?state=&limit=&offset=` | Its staff | `200` its offers and announcements, newest first, with their follower counts; the source for posting again |
 | `GET`, `POST /sellers/{sellerId}/schedules`; `PUT`, `DELETE /schedules/{scheduleId}` | Its staff | `200`, `201`, `200`, `204` |
-| `GET /offers?near=&radiusKm=&q=&kind=&maxPrice=&collectAt=&sellerId=&limit=&offset=` | Anyone | `200` offers and announcements, at most 50 a page |
+| `GET /offers?near=&radiusKm=&q=&kind=&maxPrice=&collectFrom=&collectTo=&sellerId=&available=&sort=&limit=&offset=` | Anyone | `200` offers (announcements with step 5), each with its seller and distance, at most 50 a page |
 | `GET /offers/{offerId}` | Anyone | `200` while it is on sale or announced and its window has not ended; `404` otherwise, except for its seller's staff |
 | `PUT`, `DELETE /sellers/{sellerId}/follow`; `PUT`, `DELETE /offers/{offerId}/follow` | Signed in | `204`, idempotent |
 | `GET /me/follows` | Signed in | `200` the sellers and announcements followed |
@@ -190,6 +206,7 @@ Prices are whole đồng; times are RFC 3339 with an offset, schedules' times of
 | `OFFER_WINDOW_INVALID` | 400 | The window is too short, too long, ended, or starts too late |
 | `OFFER_NOT_FOUND` | 404 | No such offer, or one the caller may not see |
 | `OFFER_SCHEDULE_NOT_FOUND` | 404 | No such schedule for the seller |
+| `OFFER_SEARCH_INVALID` | 400 | A point off the map, a time range ending before it starts, or sorting by distance from no point |
 | `OFFER_NOT_ANNOUNCED` | 409 | Confirming or skipping what is not an open announcement |
 | `OFFER_CHANGE_NOT_ALLOWED` | 409 | A change its orders forbid, or any change once the window has ended or the offer is withdrawn |
 | `FILE_PHOTO_INVALID` | 400 | Not a JPEG, PNG or WebP image, or more than 24 megapixels; over 10 MB is `PLATFORM_BODY_TOO_LARGE` (413) |
@@ -202,7 +219,7 @@ Prices are whole đồng; times are RFC 3339 with an offset, schedules' times of
 
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
-| `offer_offers` | Seller, who posted, state (`announced`, `on_sale`, `skipped`, `withdrawn`), the fields above, estimated units, units, units left (`0 <= units_left <= units` held by the database), the copied location and address, photo, schedule it came from, when it was posted, confirmed, skipped or withdrawn | Kept: orders, measures and the seller's history read it |
+| `offer_offers` | Seller, who posted, state (`announced`, `on_sale`, `skipped`, `withdrawn`), the fields above, estimated units, units, units left (`0 <= units_left <= units` held by the database), the copied location, address and seller's name, the words searched (`search_vector`, GIN) and a GiST index on the location, photo, schedule it came from, when it was posted, confirmed, skipped or withdrawn | Kept: orders, measures and the seller's history read it |
 | `offer_schedules` | Seller, the offer's fields, days of the week, estimated units, times of day, paused | Deleted by staff |
 | `offer_seller_follows`, `offer_announcement_follows` | Account and seller, or account and offer, and when | Deleted on unfollow; an announcement's follows are deleted once it is told |
 | `offer_settings` | One row: the settings above, who changed them and when | Replaced on save |

@@ -54,6 +54,13 @@ type Offer struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	WithdrawnAt     *time.Time
+	// sellerName is copied with the collection point, for search.
+	sellerName string
+}
+
+// searchText is what search finds an offer by.
+func (o Offer) searchText() string {
+	return searchVector(field{o.Name, 'A'}, field{o.sellerName, 'B'}, field{o.Description, 'C'})
 }
 
 // Service is the module's published API.
@@ -80,7 +87,7 @@ func (s *Service) Post(ctx context.Context, sellerID uuid.UUID, d Details) (Offe
 		return Offer{}, err
 	}
 
-	point, err := s.sellers.Publishing(ctx, sellerID, caller.AccountID)
+	publisher, err := s.sellers.Publishing(ctx, sellerID, caller.AccountID)
 	if err != nil {
 		return Offer{}, err
 	}
@@ -112,7 +119,8 @@ func (s *Service) Post(ctx context.Context, sellerID uuid.UUID, d Details) (Offe
 		Kind: string(d.Kind), Unit: d.Unit, Units: int32(d.Units), //nolint:gosec // at most 999
 		PriceVnd: d.PriceVND, OriginalPriceVnd: d.OriginalPriceVND, WeightGrams: weight(d.WeightGrams),
 		PhotoID: d.PhotoID, WindowStart: d.WindowStart, WindowEnd: d.WindowEnd,
-		Latitude: point.Latitude, Longitude: point.Longitude, Address: point.Address,
+		Latitude: publisher.Latitude, Longitude: publisher.Longitude, Address: publisher.Address,
+		SellerName: publisher.Name, SearchVector: Offer{Details: d, sellerName: publisher.Name}.searchText(),
 	})
 	if err != nil {
 		return Offer{}, fmt.Errorf("storing the offer: %w", err)
@@ -128,8 +136,9 @@ func (s *Service) Post(ctx context.Context, sellerID uuid.UUID, d Details) (Offe
 	return s.read(ctx, id)
 }
 
-// Get returns an offer: to anyone while it is on sale or sold out and its
-// window is open, otherwise only to its seller's people and admins.
+// Get returns an offer: to anyone while it is on sale or sold out, its window
+// open and its seller active, otherwise only to its seller's people and
+// admins.
 func (s *Service) Get(ctx context.Context, id uuid.UUID) (Offer, error) {
 	o, err := s.read(ctx, id)
 	if err != nil {
@@ -137,7 +146,14 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID) (Offer, error) {
 	}
 
 	if o.Status == StatusOnSale || o.Status == StatusSoldOut {
-		return o, nil
+		active, err := s.sellers.Publics(ctx, []uuid.UUID{o.SellerID})
+		if err != nil {
+			return Offer{}, err
+		}
+
+		if _, ok := active[o.SellerID]; ok {
+			return o, nil
+		}
 	}
 
 	if _, err := platform.RequireCaller(ctx); err != nil {
@@ -242,6 +258,7 @@ func (s *Service) Change(ctx context.Context, id uuid.UUID, c Change) (Offer, er
 			Units: int32(next.Units), UnitsLeft: int32(next.Units - ordered), //nolint:gosec // at most 999
 			PriceVnd: next.PriceVND, OriginalPriceVnd: next.OriginalPriceVND, WeightGrams: weight(next.WeightGrams),
 			PhotoID: next.PhotoID, WindowStart: next.WindowStart, WindowEnd: next.WindowEnd,
+			SearchVector: Offer{Details: next, sellerName: o.sellerName}.searchText(),
 		})
 	})
 	if err != nil {
@@ -405,6 +422,7 @@ func (s *Service) fromRow(r db.GetOfferRow) Offer {
 		DiscountPercent: discountPercent(r.PriceVnd, r.OriginalPriceVnd),
 		CollectionPoint: seller.CollectionPoint{Latitude: r.Latitude, Longitude: r.Longitude, Address: r.Address},
 		CreatedAt:       r.CreatedAt, UpdatedAt: r.UpdatedAt, WithdrawnAt: r.WithdrawnAt,
+		sellerName: r.SellerName,
 	}
 
 	if r.WeightGrams.Valid {

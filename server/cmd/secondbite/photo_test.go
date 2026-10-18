@@ -37,9 +37,8 @@ func checkPhotoFlow(t *testing.T, svc service) {
 
 	var opened sellerResponse
 
-	send(t, http.MethodPost, svc.base+"/sellers", owner, map[string]any{
-		"name": "Bánh ngọt Tasco", "address": "Tasco Mall, Việt Hưng", "latitude": 21.0565, "longitude": 105.8964, "phone": "0912 345 679",
-	}).decode(t, http.StatusCreated, &opened)
+	send(t, http.MethodPost, svc.base+"/sellers", owner, newSeller("Bánh ngọt Tasco", "0912 345 679")).
+		decode(t, http.StatusCreated, &opened)
 
 	var withPhoto struct {
 		PhotoID string `json:"photoId"`

@@ -8,6 +8,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
+	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
@@ -83,11 +84,14 @@ func RegisterOperations(api huma.API, s *Service) {
 	registerOwnerOperations(api, s)
 	registerMemberOperations(api, s)
 	registerPhotoOperations(api, s)
+	registerPublicOperations(api, s)
 	registerAdminOperations(api, s)
 }
 
 var (
-	security   = []map[string][]string{{platform.SecurityBearer: {}}}
+	security = []map[string][]string{{platform.SecurityBearer: {}}}
+	// optional is for reads anyone may make.
+	optional   = []map[string][]string{{}, {platform.SecurityBearer: {}}}
 	tagSellers = []string{"Sellers"}
 	tagAdmin   = []string{"Admin"}
 )
@@ -144,6 +148,49 @@ func registerOwnerOperations(api huma.API, s *Service) {
 		}
 
 		return &sellerOutput{Body: toBody(seller)}, nil
+	})
+}
+
+type sellerProfileBody struct {
+	ID        uuid.UUID        `json:"id"`
+	Name      string           `json:"name"`
+	Address   string           `json:"address"`
+	Latitude  float64          `json:"latitude"`
+	Longitude float64          `json:"longitude"`
+	Photo     *sellerPhotoBody `json:"photo,omitempty"`
+}
+
+type sellerPhotoBody struct {
+	ID        uuid.UUID `json:"id"`
+	LargePath string    `json:"largePath"`
+	SmallPath string    `json:"smallPath"`
+}
+
+// toProfileBody is what customers read of a seller, here and beside offers.
+func toProfileBody(p Public) sellerProfileBody {
+	b := sellerProfileBody{ID: p.ID, Name: p.Name, Address: p.Address, Latitude: p.Latitude, Longitude: p.Longitude}
+	if p.PhotoID != nil {
+		b.Photo = &sellerPhotoBody{
+			ID: *p.PhotoID, LargePath: file.Path(*p.PhotoID, file.SizeLarge), SmallPath: file.Path(*p.PhotoID, file.SizeSmall),
+		}
+	}
+
+	return b
+}
+
+func registerPublicOperations(api huma.API, s *Service) {
+	huma.Register(api, huma.Operation{
+		OperationID: "getSellerProfile", Method: http.MethodGet, Path: "/sellers/{sellerId}/profile",
+		Summary:     "What anyone sees of an active seller",
+		Description: "Its offers are GET /offers?sellerId=. A seller pending or blocked answers 404.",
+		Tags:        tagSellers, Security: optional,
+	}, func(ctx context.Context, in *sellerPath) (*struct{ Body sellerProfileBody }, error) {
+		p, err := s.PublicOf(ctx, in.SellerID)
+		if err != nil {
+			return nil, err
+		}
+
+		return &struct{ Body sellerProfileBody }{Body: toProfileBody(p)}, nil
 	})
 }
 

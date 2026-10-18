@@ -61,3 +61,10 @@ DELETE FROM seller_members WHERE seller_id = @seller_id AND account_id = @accoun
 
 -- name: SetPhoto :exec
 UPDATE seller_sellers SET photo_id = @photo_id, updated_at = now() WHERE id = @id;
+
+-- name: ActiveSellers :many
+SELECT id, name, address, latitude, longitude, photo_id
+FROM seller_sellers WHERE id = ANY (sqlc.arg(ids)::uuid[]) AND status = 'active';
+
+-- name: BlockedSellers :many
+SELECT id FROM seller_sellers WHERE status = 'blocked';

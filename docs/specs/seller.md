@@ -14,11 +14,12 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `GET /sellers/{sellerId}/members` | Its members; admins | `200` owner and staff with their addresses |
 | `POST /sellers/{sellerId}/members` `{email}` | Its owner | `201` the new staff member |
 | `DELETE /sellers/{sellerId}/members/{accountId}` | Its owner, or a staff member removing themself | `204` |
+| `GET /sellers/{sellerId}/profile` | Anyone | `200` an active seller's name, address, location and photo; `404` for one pending or blocked |
 | `GET /admin/sellers?status=&limit=&offset=` | Admins | `200` sellers in that status, oldest first, at most 100 |
 | `POST /admin/sellers/{sellerId}/activate` | Admins | `200` seller, `active`; also lifts a block |
 | `POST /admin/sellers/{sellerId}/block` | Admins | `200` seller, `blocked` |
 
-Published to other modules: `Publishing(seller, account)`, which `offer` calls before posting or changing: the collection point when the account is the owner or staff of an active seller, `SELLER_NOT_FOUND` when it is not a member, `SELLER_NOT_ACTIVE` when the seller is not active.
+Published to other modules: `Publishing(seller, account)`, which `offer` calls before posting or changing: the seller's name and collection point when the account is the owner or staff of an active seller, `SELLER_NOT_FOUND` when it is not a member, `SELLER_NOT_ACTIVE` when the seller is not active; `Publics(sellers)`, what customers see of the active ones among them; `Blocked()`, the sellers whose offers search leaves out.
 
 ## Rules
 
@@ -60,4 +61,4 @@ An address that is not one plain address answers `IDENTITY_EMAIL_INVALID`.
 
 - Emails to an owner when the seller is activated or blocked, and to someone added as staff.
 - An admin changing a seller's owner.
-- What customers see of a seller, its public page (SEC-11, step 4).
+- The follower count on a seller's page (SEC-11, step 6).

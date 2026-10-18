@@ -259,29 +259,35 @@ type CollectionPoint struct {
 	Address   string
 }
 
-// Publishing returns where the seller's offers are collected, when account
-// may publish for it: ErrNotFound when the account is not the seller's owner
-// or staff, ErrNotActive when the seller is not active.
-func (s *Service) Publishing(ctx context.Context, sellerID, accountID uuid.UUID) (CollectionPoint, error) {
+// Publisher is what an offer copies from its seller when it is posted.
+type Publisher struct {
+	Name string
+	CollectionPoint
+}
+
+// Publishing returns the seller's name and where its offers are collected,
+// when account may publish for it: ErrNotFound when the account is not the
+// seller's owner or staff, ErrNotActive when the seller is not active.
+func (s *Service) Publishing(ctx context.Context, sellerID, accountID uuid.UUID) (Publisher, error) {
 	_, err := s.queries.MemberRole(ctx, db.MemberRoleParams{SellerID: sellerID, AccountID: accountID})
 	if errors.Is(err, pgx.ErrNoRows) {
-		return CollectionPoint{}, ErrNotFound
+		return Publisher{}, ErrNotFound
 	}
 
 	if err != nil {
-		return CollectionPoint{}, fmt.Errorf("reading the caller's role: %w", err)
+		return Publisher{}, fmt.Errorf("reading the caller's role: %w", err)
 	}
 
 	row, err := s.queries.GetSeller(ctx, sellerID)
 	if err != nil {
-		return CollectionPoint{}, fmt.Errorf("reading the seller: %w", err)
+		return Publisher{}, fmt.Errorf("reading the seller: %w", err)
 	}
 
 	if Status(row.Status) != StatusActive {
-		return CollectionPoint{}, ErrNotActive
+		return Publisher{}, ErrNotActive
 	}
 
-	return CollectionPoint{Latitude: row.Latitude, Longitude: row.Longitude, Address: row.Address}, nil
+	return Publisher{Name: row.Name, Latitude: row.Latitude, Longitude: row.Longitude, Address: row.Address}, nil
 }
 
 // roleOf returns the caller's role in the seller, empty for an admin who is

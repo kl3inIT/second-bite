@@ -58,6 +58,7 @@ func TestService(t *testing.T) {
 		"a new code ends the earlier one":                         checkNewCodeEndsEarlier,
 		"a seller is opened, staffed and activated":               checkSellerFlow,
 		"a photo is uploaded, set on a seller and served":         checkPhotoFlow,
+		"an offer is posted and found near Tasco Mall":            checkOfferFlow,
 	}
 
 	// The checks run in parallel with one another; this group returns when
@@ -107,9 +108,11 @@ func startService(t *testing.T) (service, func() error) {
 			"email", "configure", "-provider", "smtp", "-sender-address", "no-reply@secondbite.test",
 			"-smtp-host", smtpHost, "-smtp-port", smtpPort, "-smtp-security", "none",
 		},
-		{"admin", "grant", adminEmail},
-		{"admin", "grant", sellerAdminEmail},
 	}
+	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail} {
+		admin = append(admin, []string{"admin", "grant", email})
+	}
+
 	for _, args := range admin {
 		if err := run(ctx, args, getenv, strings.NewReader(""), io.Discard); err != nil {
 			t.Fatalf("secondbite %s: %v", strings.Join(args, " "), err)

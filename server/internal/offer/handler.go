@@ -146,6 +146,7 @@ var (
 func RegisterOperations(api huma.API, s *Service) {
 	registerStaffOperations(api, s)
 	registerReadOperations(api, s)
+	registerSearchOperations(api, s)
 	registerAdminOperations(api, s)
 }
 

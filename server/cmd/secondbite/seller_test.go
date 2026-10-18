@@ -15,6 +15,13 @@ type sellerResponse struct {
 	MyRole string `json:"myRole"`
 }
 
+// newSeller is the body that opens a seller at Tasco Mall.
+func newSeller(name, phone string) map[string]any {
+	return map[string]any{
+		"name": name, "address": "Tasco Mall, Việt Hưng", "latitude": 21.0565, "longitude": 105.8964, "phone": phone,
+	}
+}
+
 // checkSellerFlow opens a seller, adds staff who sign in through Mailpit, and
 // has an admin activate it, through the API as the clients will.
 func checkSellerFlow(t *testing.T, svc service) {
@@ -24,9 +31,8 @@ func checkSellerFlow(t *testing.T, svc service) {
 
 	var opened sellerResponse
 
-	send(t, http.MethodPost, svc.base+"/sellers", owner, map[string]any{
-		"name": "Bánh mì Tasco", "address": "Tasco Mall, Việt Hưng", "latitude": 21.0565, "longitude": 105.8964, "phone": "0912 345 678",
-	}).decode(t, http.StatusCreated, &opened)
+	send(t, http.MethodPost, svc.base+"/sellers", owner, newSeller("Bánh mì Tasco", "0912 345 678")).
+		decode(t, http.StatusCreated, &opened)
 
 	if opened.Status != "pending" || opened.MyRole != "owner" {
 		t.Fatalf("opened %+v", opened)

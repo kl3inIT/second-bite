@@ -12,6 +12,71 @@ import (
 	"github.com/google/uuid"
 )
 
+const activeSellers = `-- name: ActiveSellers :many
+SELECT id, name, address, latitude, longitude, photo_id
+FROM seller_sellers WHERE id = ANY ($1::uuid[]) AND status = 'active'
+`
+
+type ActiveSellersRow struct {
+	ID        uuid.UUID
+	Name      string
+	Address   string
+	Latitude  float64
+	Longitude float64
+	PhotoID   uuid.NullUUID
+}
+
+func (q *Queries) ActiveSellers(ctx context.Context, ids []uuid.UUID) ([]ActiveSellersRow, error) {
+	rows, err := q.db.Query(ctx, activeSellers, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ActiveSellersRow
+	for rows.Next() {
+		var i ActiveSellersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Address,
+			&i.Latitude,
+			&i.Longitude,
+			&i.PhotoID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const blockedSellers = `-- name: BlockedSellers :many
+SELECT id FROM seller_sellers WHERE status = 'blocked'
+`
+
+func (q *Queries) BlockedSellers(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, blockedSellers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const countMembers = `-- name: CountMembers :one
 SELECT count(*)::integer FROM seller_members WHERE seller_id = $1
 `
