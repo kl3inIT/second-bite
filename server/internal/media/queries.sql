@@ -5,6 +5,9 @@ SELECT pg_advisory_xact_lock(hashtextextended('media:uploader:' || @account_id::
 -- name: CountUnusedPhotos :one
 SELECT count(*)::integer FROM media_photos WHERE uploaded_by = @account_id AND used_at IS NULL;
 
+-- name: CountPhotosSince :one
+SELECT count(*)::integer FROM media_photos WHERE uploaded_by = @account_id AND created_at >= @since;
+
 -- name: InsertPhoto :exec
 INSERT INTO media_photos (id, store, uploaded_by, width, height)
 VALUES (@id, @store, @uploaded_by, @width, @height);

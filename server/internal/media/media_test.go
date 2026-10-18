@@ -34,6 +34,7 @@ func TestMedia(t *testing.T) {
 		"an uploaded photo is served in both sizes":       testUploadedPhotoIsServed,
 		"only the uploader claims a photo":                testOnlyTheUploaderClaims,
 		"an account holds at most 20 unused photos":       testUnusedPhotoLimit,
+		"an account uploads at most 100 photos a day":     testDailyPhotoLimit,
 		"uploads need a caller and an image within 10 MB": testUploadNeedsCallerAndImage,
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -170,6 +171,29 @@ func testUnusedPhotoLimit(t *testing.T, photos *media.Service, _ *pgxpool.Pool) 
 
 	if _, err := photos.Upload(ctx, data); err != nil {
 		t.Fatalf("after using one: %v", err)
+	}
+}
+
+func testDailyPhotoLimit(t *testing.T, photos *media.Service, _ *pgxpool.Pool) {
+	t.Helper()
+
+	ctx, uploader := as(t)
+	data := photoData(t)
+
+	// Each is used at once, as an owner setting photo after photo on a seller.
+	for i := range 100 {
+		p, err := photos.Upload(ctx, data)
+		if err != nil {
+			t.Fatalf("upload %d: %v", i+1, err)
+		}
+
+		if err := photos.Claim(t.Context(), p.ID, uploader); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if _, err := photos.Upload(ctx, data); !errors.Is(err, media.ErrDailyPhotoLimit) {
+		t.Fatalf("the 101st photo of the day: %v", err)
 	}
 }
 

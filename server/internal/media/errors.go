@@ -14,6 +14,8 @@ var (
 		"The photo does not exist.")
 	ErrUnusedPhotoLimit = platform.NewFailure("MEDIA_UNUSED_PHOTO_LIMIT", platform.CategoryLimitExceeded,
 		"You have 20 photos not used yet; use one before uploading more.")
+	ErrDailyPhotoLimit = platform.NewFailure("MEDIA_DAILY_PHOTO_LIMIT", platform.CategoryLimitExceeded,
+		"You have uploaded 100 photos today; try again tomorrow.").WithRetryAfter(time.Hour)
 	ErrStoreUnavailable = platform.NewFailure("MEDIA_STORE_UNAVAILABLE", platform.CategoryServiceUnavailable,
 		"Photos cannot be stored right now; try again in a minute.").WithRetryAfter(time.Minute)
 )

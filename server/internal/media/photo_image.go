@@ -14,9 +14,10 @@ import (
 
 const (
 	// maxPixels refuses an image that would take too much memory to decode,
-	// such as a small file that declares an enormous size. A 50-megapixel
-	// phone photo still passes.
-	maxPixels = 50_000_000
+	// such as a small file that declares an enormous size. Decoding and
+	// turning a photo hold two copies of 4 bytes a pixel, about 200 MB at
+	// this bound; phones save 12-megapixel photos unless told otherwise.
+	maxPixels = 24_000_000
 	// jpegQuality keeps a photo of food sharp at a fraction of its size.
 	jpegQuality = 82
 )
@@ -63,15 +64,12 @@ func render(data []byte) (rendered, error) {
 		return rendered{}, ErrPhotoInvalid
 	}
 
-	// A transparent PNG or WebP is laid on white: JPEG has no transparency.
 	bounds := img.Bounds()
-	img = imaging.Overlay(imaging.New(bounds.Dx(), bounds.Dy(), color.White), img, image.Point{}, 1)
-
 	out := rendered{width: bounds.Dx(), height: bounds.Dy(), files: make(map[Size][]byte, len(sizes))}
 
 	for _, size := range sizes {
 		// Fit only shrinks: a small image keeps its size.
-		resized := imaging.Fit(img, int(size), int(size), imaging.Lanczos)
+		resized := flattened(imaging.Fit(img, int(size), int(size), imaging.Lanczos))
 
 		var buf bytes.Buffer
 		if err := jpeg.Encode(&buf, resized, &jpeg.Options{Quality: jpegQuality}); err != nil {
@@ -82,4 +80,16 @@ func render(data []byte) (rendered, error) {
 	}
 
 	return out, nil
+}
+
+// flattened lays a transparent image on white, since JPEG has no
+// transparency. It runs on the resized image, so it copies little.
+func flattened(img *image.NRGBA) image.Image {
+	if img.Opaque() {
+		return img
+	}
+
+	b := img.Bounds()
+
+	return imaging.Overlay(imaging.New(b.Dx(), b.Dy(), color.White), img, image.Point{}, 1)
 }

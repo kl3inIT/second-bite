@@ -174,7 +174,7 @@ func TestRenderRefusesWhatIsNotAPhoto(t *testing.T) {
 		"text":                  []byte("not an image"),
 		"GIF":                   gifData.Bytes(),
 		"a truncated JPEG":      jpegWithExif(t, 50, 50)[:200],
-		"too many pixels":       withDeclaredSize(t, small, 10_000, 10_000),
+		"too many pixels":       withDeclaredSize(t, small, 6_000, 4_001),
 		"a PNG with no picture": withDeclaredSize(t, small, 0, 10),
 	} {
 		if _, err := render(data); !errors.Is(err, ErrPhotoInvalid) {

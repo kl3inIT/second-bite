@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -27,6 +28,22 @@ func (q *Queries) ClaimPhoto(ctx context.Context, arg ClaimPhotoParams) (int64, 
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const countPhotosSince = `-- name: CountPhotosSince :one
+SELECT count(*)::integer FROM media_photos WHERE uploaded_by = $1 AND created_at >= $2
+`
+
+type CountPhotosSinceParams struct {
+	AccountID uuid.UUID
+	Since     time.Time
+}
+
+func (q *Queries) CountPhotosSince(ctx context.Context, arg CountPhotosSinceParams) (int32, error) {
+	row := q.db.QueryRow(ctx, countPhotosSince, arg.AccountID, arg.Since)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const countUnusedPhotos = `-- name: CountUnusedPhotos :one

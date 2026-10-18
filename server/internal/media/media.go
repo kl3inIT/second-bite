@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -26,8 +27,12 @@ const (
 	// maxUnusedPhotos bounds the photos an account holds without using them,
 	// until unused photos are deleted after a day.
 	maxUnusedPhotos = 20
-	// concurrentRenders bounds the memory decoding takes: a 50-megapixel
-	// photo needs about 200 MB.
+	// maxPhotosPerDay bounds what one account stores, since a photo once
+	// used is kept: an owner setting photo after photo on a seller would
+	// otherwise pass the limit of unused photos.
+	maxPhotosPerDay = 100
+	// concurrentRenders bounds the memory decoding takes: about 200 MB for
+	// the largest photo accepted.
 	concurrentRenders = 2
 	contentTypeJPEG   = "image/jpeg"
 )
@@ -111,6 +116,15 @@ func (s *Service) Upload(ctx context.Context, data []byte) (Photo, error) {
 
 	if unused >= maxUnusedPhotos {
 		return Photo{}, ErrUnusedPhotoLimit
+	}
+
+	today, err := s.queries.CountPhotosSince(ctx, db.CountPhotosSinceParams{AccountID: caller.AccountID, Since: time.Now().Add(-24 * time.Hour)})
+	if err != nil {
+		return Photo{}, fmt.Errorf("counting the day's photos: %w", err)
+	}
+
+	if today >= maxPhotosPerDay {
+		return Photo{}, ErrDailyPhotoLimit
 	}
 
 	img, err := s.render(ctx, data)

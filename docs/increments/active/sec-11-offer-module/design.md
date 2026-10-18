@@ -113,7 +113,7 @@ The customer's daily limit of units (domain model assumption 4, 10 to start) is 
 
 ## Photos
 
-- One photo per offer, and per seller. JPEG, PNG or WebP, at most 10 MB. iPhone browsers turn their HEIC photos into JPEG when a page asks for an image, so HEIC is not accepted by the server; this is checked on a device during verification.
+- One photo per offer, and per seller. JPEG, PNG or WebP, at most 10 MB and 24 megapixels, and at most 100 a day per account (a photo once used is kept). iPhone browsers turn their HEIC photos into JPEG when a page asks for an image, so HEIC is not accepted by the server; this is checked on a device during verification.
 - Every photo is decoded and written again as JPEG in two sizes, 1,600 and 400 pixels on the longer side, so no metadata (location, device) survives and a list loads quickly on a phone. *(Open Food Network resizes to four sizes.)*
 - Photos are not reviewed before they are shown; staff answer for them and an admin removes one on a report (founder's requirements, section 10).
 - A photo uploaded and never used by an offer or a seller is deleted after a day.
@@ -187,7 +187,7 @@ Prices are whole đồng; times are RFC 3339 with an offset, schedules' times of
 | `OFFER_SCHEDULE_NOT_FOUND` | 404 | No such schedule for the seller |
 | `OFFER_NOT_ANNOUNCED` | 409 | Confirming or skipping what is not an open announcement |
 | `OFFER_CHANGE_NOT_ALLOWED` | 409 | A change its orders forbid, or any change once the window has ended or the offer is withdrawn |
-| `MEDIA_PHOTO_INVALID` | 400 | Not a JPEG, PNG or WebP image, or more than 50 megapixels; over 10 MB is `PLATFORM_BODY_TOO_LARGE` (413) |
+| `MEDIA_PHOTO_INVALID` | 400 | Not a JPEG, PNG or WebP image, or more than 24 megapixels; over 10 MB is `PLATFORM_BODY_TOO_LARGE` (413) |
 | `MEDIA_PHOTO_NOT_FOUND` | 404 | No such photo, or one another account uploaded |
 | `MEDIA_UNUSED_PHOTO_LIMIT` | 429 | The account holds 20 unused photos |
 | `SELLER_NOT_ACTIVE` | 403 | Publishing for a seller that is not active |

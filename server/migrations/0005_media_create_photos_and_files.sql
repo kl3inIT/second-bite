@@ -14,6 +14,7 @@ CREATE TABLE media_photos (
 );
 
 CREATE INDEX media_photos_unused ON media_photos (uploaded_by) WHERE used_at IS NULL;
+CREATE INDEX media_photos_uploaded_by ON media_photos (uploaded_by, created_at);
 
 CREATE TABLE media_files (
     key           text        PRIMARY KEY,

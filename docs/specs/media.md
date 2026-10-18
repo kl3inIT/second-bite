@@ -13,11 +13,11 @@ Published to other modules: `Claim(photo, account)`, which marks a photo used; o
 
 ## Rules
 
-- A photo is a JPEG, PNG or WebP of at most 10 MB and 50 megapixels. Its orientation from EXIF is applied, a transparent background becomes white, and it is written again as JPEG (quality 82) fitted within 1,600 and within 400 pixels, never enlarged. Writing it again drops every metadata, the location included.
-- At most two photos are decoded at once. An upload may take two minutes to arrive.
+- A photo is a JPEG, PNG or WebP of at most 10 MB and 24 megapixels (phones save 12 unless told otherwise). Its orientation from EXIF is applied, a transparent background becomes white after resizing, and it is written again as JPEG (quality 82) fitted within 1,600 and within 400 pixels, never enlarged. Writing it again drops every metadata, the location included.
+- At most two photos are decoded at once, each holding about 200 MB at the largest. An upload may take two minutes to arrive.
 - The store for new photos is chosen at startup by `SECONDBITE_MEDIA_STORE` (`postgres`, the default and the only store today). Each photo records its store and is read from it. The service does not start with a store it does not know.
 - Files are stored before the photo's row; when the row is refused, they are deleted again.
-- An account holds at most 20 photos it has not used; the check holds under concurrency (an advisory lock on the account).
+- An account holds at most 20 photos it has not used, the check holding under concurrency (an advisory lock on the account), and uploads at most 100 photos in 24 hours: a photo once used is kept, so an owner setting photo after photo on a seller would otherwise store without bound.
 
 ## Data
 
@@ -30,9 +30,10 @@ Published to other modules: `Claim(photo, account)`, which marks a photo used; o
 
 | Code | Status | When |
 | --- | --- | --- |
-| `MEDIA_PHOTO_INVALID` | 400 | Empty, not a JPEG, PNG or WebP, unreadable, or more than 50 megapixels |
+| `MEDIA_PHOTO_INVALID` | 400 | Empty, not a JPEG, PNG or WebP, unreadable, or more than 24 megapixels |
 | `MEDIA_PHOTO_NOT_FOUND` | 404 | No such photo; or, when claiming, one another account uploaded |
 | `MEDIA_UNUSED_PHOTO_LIMIT` | 429 | The account already holds 20 unused photos |
+| `MEDIA_DAILY_PHOTO_LIMIT` | 429 | The account uploaded 100 photos in the last 24 hours; `Retry-After` 3600 |
 | `MEDIA_STORE_UNAVAILABLE` | 503 | The store failed; `Retry-After` 60 |
 
 A body over 10 MB answers `PLATFORM_BODY_TOO_LARGE` (413).
