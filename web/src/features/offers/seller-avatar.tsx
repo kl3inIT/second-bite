@@ -10,9 +10,9 @@ const avatarVariants = cva(
   {
     variants: {
       size: {
-        md: "size-9 text-body-sm",
+        md: "size-9 text-body-13",
         // Figma draws two letters at 6px here; one letter at 11px is the smallest that can still be read.
-        sm: "size-4.5 border text-micro leading-none",
+        sm: "size-4.5 border text-micro-11 leading-none",
       },
       tone: {
         clay: "bg-avatar-clay",

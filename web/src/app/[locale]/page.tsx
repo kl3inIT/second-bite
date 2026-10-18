@@ -17,9 +17,9 @@ export default function Home({ searchParams }: PageProps<"/[locale]">) {
     <>
       <AppHeader>
         <div className="flex flex-col gap-2">
-          <h1 className="font-display text-h2">{t("title")}</h1>
+          <h1 className="font-display text-h2-22">{t("title")}</h1>
           <p className="flex">
-            <span className="inline-flex items-center gap-1 rounded-full bg-shell-raised px-2.5 py-1.5 text-caption font-semibold text-shell-raised-foreground">
+            <span className="inline-flex items-center gap-1 rounded-full bg-shell-raised px-2.5 py-1.5 text-caption-12 font-semibold text-shell-raised-foreground">
               <MapPinIcon aria-hidden className="size-3.5 text-highlight" />
               <span className="sr-only">{t("placeLabel")}: </span>
               {t("place")}

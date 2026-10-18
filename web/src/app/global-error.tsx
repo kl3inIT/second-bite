@@ -15,9 +15,9 @@ export default function GlobalError({ error, retry }: { error: unknown; retry: (
       <body className="flex min-h-full flex-col bg-background font-sans text-foreground antialiased">
         <title>Second Bite</title>
         <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-4 p-4">
-          <h1 className="font-display text-h1">Đã có lỗi xảy ra · Something went wrong</h1>
-          <p className="text-body">Vui lòng thử lại. · Please try again.</p>
-          {digest && <p className="text-body-sm">Mã tham chiếu · Reference: {digest}</p>}
+          <h1 className="font-display text-h1-28">Đã có lỗi xảy ra · Something went wrong</h1>
+          <p className="text-body-14">Vui lòng thử lại. · Please try again.</p>
+          {digest && <p className="text-body-13">Mã tham chiếu · Reference: {digest}</p>}
           <button
             type="button"
             className="h-11 w-fit rounded-md bg-primary px-4 font-semibold text-primary-foreground hover:bg-primary-hover"

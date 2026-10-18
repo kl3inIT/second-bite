@@ -63,7 +63,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
             action={
               <a
                 href="#all-offers"
-                className="-my-3 py-3 text-body-sm font-semibold text-primary underline-offset-4 hover:underline"
+                className="-my-3 py-3 text-body-13 font-semibold text-primary underline-offset-4 hover:underline"
               >
                 {t("seeAll")}
               </a>
@@ -92,9 +92,9 @@ async function OfferGrid({ offers, filtered }: { offers: OfferSummary[]; filtere
   if (offers.length === 0) {
     return (
       <div className="mx-4 flex flex-col items-start gap-3 rounded-2xl bg-card p-4 text-card-foreground">
-        <p className="text-body">{filtered ? t("emptyFiltered") : t("empty")}</p>
+        <p className="text-body-14">{filtered ? t("emptyFiltered") : t("empty")}</p>
         {filtered && (
-          <Link href="/" className="text-body-sm font-semibold text-primary underline">
+          <Link href="/" className="text-body-13 font-semibold text-primary underline">
             {t("showAll")}
           </Link>
         )}

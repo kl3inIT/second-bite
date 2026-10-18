@@ -11,7 +11,7 @@ export function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between gap-4 px-4">
-      <h2 id={id} className="scroll-mt-4 font-display text-h3 text-foreground">
+      <h2 id={id} className="scroll-mt-4 font-display text-h3-20 text-foreground">
         {title}
       </h2>
       {action}

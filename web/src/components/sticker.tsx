@@ -3,7 +3,7 @@ import { cn } from "cn";
 
 // The amber pill on a photograph (DESIGN.md › Components › Sticker): stock or the collection window, always as text.
 const stickerVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-1 text-caption font-bold whitespace-nowrap",
+  "inline-flex items-center rounded-full px-2.5 py-1 text-caption-12 font-bold whitespace-nowrap",
   {
     variants: {
       tone: {

@@ -22,10 +22,10 @@ export function OfferBanner({ offer }: { offer: OfferSummary }) {
       />
       <Sticker className="absolute top-4 left-4">{t("window", { from, until })}</Sticker>
       <div className="absolute inset-x-4 bottom-6 flex flex-col gap-1">
-        <p className="truncate text-caption font-semibold text-primary-foreground">
+        <p className="truncate text-caption-12 font-semibold text-primary-foreground">
           {offer.seller.name}
         </p>
-        <h3 className="line-clamp-2 font-display text-banner text-primary-foreground">
+        <h3 className="line-clamp-2 font-display text-banner-24 text-primary-foreground">
           {offer.name}
         </h3>
       </div>

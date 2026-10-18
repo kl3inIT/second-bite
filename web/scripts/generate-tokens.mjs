@@ -1,5 +1,7 @@
 // Writes src/styles/tokens.css from the frontmatter of DESIGN.md, the one source of the design
-// tokens (docs/guidelines/figma.md › Tokens). It refuses tokens whose text would be hard to read:
+// tokens (docs/guidelines/figma.md › Tokens). The palette mirrors the Figma variables under their own names;
+// a colour role either takes a palette colour (`"{palette.brand-800}"`, written as `var(--brand-800)`) or a
+// literal hex. It refuses tokens whose text would be hard to read:
 // every `x` with an `x-foreground`, and every `x-hover` against `x-foreground`, must reach 4.5:1
 // (WCAG 2.2 AA for body text). With --check it writes nothing and fails when the file on disk
 // differs, so a hand edit to tokens.css or a forgotten regeneration stops `pnpm check`.
@@ -14,7 +16,22 @@ const tokensPath = new URL("../src/styles/tokens.css", import.meta.url);
 const design = await readFile(designPath, "utf8");
 const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(design);
 if (!frontmatter) throw new Error("DESIGN.md has no frontmatter");
-const { colors, typography, rounded, elevation } = parse(frontmatter[1]);
+const { palette, colors: roles, typography, rounded, elevation } = parse(frontmatter[1]);
+
+// Each role as a hex, for the contrast checks, and as the CSS it is written with.
+const alias = /^\{palette\.([\w-]+)\}$/;
+const colors = {};
+const roleCss = {};
+for (const [name, value] of Object.entries(roles)) {
+  const reference = alias.exec(value)?.[1];
+  if (reference && !(reference in palette)) {
+    throw new Error(
+      `DESIGN.md colour ${name} refers to {palette.${reference}}, which does not exist`,
+    );
+  }
+  colors[name] = reference ? palette[reference] : value;
+  roleCss[name] = reference ? `var(--${reference})` : value;
+}
 
 // Relative luminance and contrast ratio as WCAG 2.2 defines them.
 function luminance(hex) {
@@ -78,7 +95,9 @@ const lines = [
   "/* Generated from DESIGN.md by scripts/generate-tokens.mjs; do not edit. Run `pnpm generate:tokens`. */",
   "",
   ":root {",
-  ...Object.entries(colors).map(([name, value]) => `  --${name}: ${value};`),
+  ...Object.entries(palette).map(([name, value]) => `  --${name}: ${value};`),
+  "",
+  ...Object.entries(roleCss).map(([name, value]) => `  --${name}: ${value};`),
   "}",
   "",
   "@theme inline {",

@@ -19,7 +19,7 @@ export function SearchField({ value }: { value?: string }) {
           type="search"
           defaultValue={value}
           placeholder={t("searchPlaceholder")}
-          className="h-full min-w-0 flex-1 bg-transparent text-body placeholder:text-muted-foreground focus-visible:outline-none"
+          className="h-full min-w-0 flex-1 bg-transparent text-body-14 placeholder:text-muted-foreground focus-visible:outline-none"
         />
       </form>
     </search>

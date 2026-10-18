@@ -1,121 +1,151 @@
 ---
 name: Second Bite
 description: A second chance for good food.
+palette:
+  # The Figma variables of the `SecondBite` collection, one for one: `brand/800` in Figma is `brand-800` here and
+  # `--brand-800` in tokens.css. Change a value in Figma and here together; screens never use these directly.
+  brand-900: "#062F27"
+  brand-800: "#0B4A3D"
+  brand-700: "#155E4E"
+  brand-500: "#3F7D6D"
+  brand-300: "#8FB3A7"
+  brand-200: "#C7DCD4"
+  brand-100: "#E2EDE8"
+  brand-50: "#F2F7F5"
+  base-white: "#FFFFFF"
+  text-ink: "#0E1D19"
+  text-ink-2: "#30423D"
+  text-muted: "#5A6B66"
+  text-faint: "#7D8C87"
+  text-on-brand: "#CBE0D8"
+  border-line: "#E0E8E4"
+  accent-amber: "#F5CF5C"
+  accent-amber-ink: "#4A3600"
+  rating-star: "#D99A12"
+  alert-bg: "#FFF6E5"
+  alert-line: "#F0DBA8"
+  alert-ink: "#5E4200"
+  logo-clay: "#A4512A"
+  logo-rose: "#B03B4E"
+  logo-indigo: "#3A4F9A"
+  logo-olive: "#5E6B1F"
 colors:
-  # Every `x` with an `x-foreground` is checked at 4.5:1 or more by web/scripts/generate-tokens.mjs, and so is
-  # each `x-hover` against `x-foreground`; the ratios noted are the foreground on the colour. Values are the
-  # Figma variables of the `SecondBite` collection, named here by role (Figma name in the comment).
-  background: "#F2F7F5" # brand/50, the mint ground; ink on it 16.8:1
-  foreground: "#0E1D19" # text/ink
-  soft-foreground: "#30423D" # text/ink-2, labels under pictures; 10.4:1 on the ground
-  card: "#FFFFFF"
-  card-foreground: "#0E1D19"
-  popover: "#FFFFFF" # menus, selects and dialogs
-  popover-foreground: "#0E1D19"
-  primary: "#0B4A3D" # brand/800, deep leaf, 10.1:1
-  primary-foreground: "#FFFFFF"
-  primary-hover: "#062F27" # brand/900, darker under the pointer so the text gains contrast, 14.4:1
-  shell: "#0B4A3D" # brand/800, the header
-  shell-foreground: "#FFFFFF"
-  shell-raised: "#155E4E" # brand/700, chips and the capsule on the shell, 7.6:1
-  shell-raised-foreground: "#FFFFFF"
-  shell-border: "#3F7D6D" # brand/500, the capsule's edge and divider on the shell
-  secondary: "#E2EDE8" # brand/100, soft buttons, the discount chip, the active tab
-  secondary-foreground: "#0B4A3D"
-  secondary-hover: "#C7DCD4" # brand/200
-  muted: "#F2F7F5" # brand/50
-  muted-foreground: "#5A6B66" # text/muted: 5.6:1 on white, 5.2:1 on the ground
-  accent: "#E2EDE8"
-  accent-foreground: "#0B4A3D"
-  highlight: "#F5CF5C" # accent/amber, the sticker for stock and the collection window
-  highlight-foreground: "#4A3600" # accent/amber-ink, 8.0:1
-  destructive: "#B42318" # errors, cancelled and refused states, 6.6:1
-  destructive-foreground: "#FFFFFF"
+  # The roles screens use, each taking a palette colour. Every `x` with an `x-foreground` is checked at 4.5:1 or
+  # more by web/scripts/generate-tokens.mjs, and so is each `x-hover` against `x-foreground`; the ratios noted
+  # are the foreground on the colour.
+  background: "{palette.brand-50}" # the mint ground; ink on it 16.8:1
+  foreground: "{palette.text-ink}"
+  soft-foreground: "{palette.text-ink-2}" # labels under pictures; 10.4:1 on the ground
+  card: "{palette.base-white}"
+  card-foreground: "{palette.text-ink}"
+  popover: "{palette.base-white}" # menus, selects and dialogs
+  popover-foreground: "{palette.text-ink}"
+  primary: "{palette.brand-800}" # deep leaf, 10.1:1
+  primary-foreground: "{palette.base-white}"
+  primary-hover: "{palette.brand-900}" # darker under the pointer so the text gains contrast, 14.4:1
+  shell: "{palette.brand-800}" # the header
+  shell-foreground: "{palette.base-white}"
+  shell-raised: "{palette.brand-700}" # chips and the capsule on the shell, 7.6:1
+  shell-raised-foreground: "{palette.base-white}"
+  shell-border: "{palette.brand-500}" # the capsule's edge and divider on the shell
+  secondary: "{palette.brand-100}" # soft buttons, the discount chip, the active tab
+  secondary-foreground: "{palette.brand-800}"
+  secondary-hover: "{palette.brand-200}"
+  muted: "{palette.brand-50}"
+  muted-foreground: "{palette.text-muted}" # 5.6:1 on white, 5.2:1 on the ground
+  accent: "{palette.brand-100}"
+  accent-foreground: "{palette.brand-800}"
+  highlight: "{palette.accent-amber}" # the sticker for stock and the collection window
+  highlight-foreground: "{palette.accent-amber-ink}" # 8.0:1
+  destructive: "#B42318" # not in Figma yet: errors, cancelled and refused states, 6.6:1
+  destructive-foreground: "{palette.base-white}"
   destructive-hover: "#912018" # 8.7:1
-  success: "#155E4E" # paid, ready, collected; always with an icon or label, 7.6:1
-  success-foreground: "#FFFFFF"
-  warning: "#FFF6E5" # alert/bg, allergens and waiting states; always with an icon
-  warning-foreground: "#5E4200" # alert/ink, 8.5:1
-  border: "#E0E8E4" # border/line
-  input: "#7D8C87" # text/faint as a field edge, 3.6:1 on white (3:1 needed for a control)
-  ring: "#0B4A3D" # focus ring, 10.1:1 on white
-  avatar-foreground: "#FFFFFF" # initials on a seller's avatar; each avatar-* is checked against it
-  avatar-clay: "#A4512A" # logo/clay, 5.8:1
-  avatar-rose: "#B03B4E" # logo/rose, 5.9:1
-  avatar-indigo: "#3A4F9A" # logo/indigo, 7.6:1
-  avatar-olive: "#5E6B1F" # logo/olive, 6.0:1
+  success: "{palette.brand-700}" # paid, ready, collected; always with an icon or label, 7.6:1
+  success-foreground: "{palette.base-white}"
+  warning: "{palette.alert-bg}" # allergens and waiting states; always with an icon
+  warning-foreground: "{palette.alert-ink}" # 8.5:1
+  border: "{palette.border-line}"
+  input: "{palette.text-faint}" # a field edge, 3.6:1 on white (3:1 needed for a control)
+  ring: "{palette.brand-800}" # focus ring, 10.1:1 on white
+  avatar-foreground: "{palette.base-white}" # initials on a seller's avatar; each avatar-* is checked against it
+  avatar-clay: "{palette.logo-clay}" # 5.8:1
+  avatar-rose: "{palette.logo-rose}" # 5.9:1
+  avatar-indigo: "{palette.logo-indigo}" # 7.6:1
+  avatar-olive: "{palette.logo-olive}" # 6.0:1
 typography:
-  # Bricolage Grotesque for titles and prices (`font-display`), Be Vietnam Pro for everything else (`font-sans`);
-  # both variable, with the Vietnamese subset, served from our own origin. Chosen with the Figma identity on
-  # 18 October 2026, replacing Inter. Names follow the Figma text styles.
-  display:
+  # The Figma text styles, named by their role and size: `Tiêu đề/H1 28` is `h1-28` and the utility `text-h1-28`.
+  # Bricolage Grotesque (`font-display`) for titles and prices, Be Vietnam Pro (`font-sans`) for the rest; both
+  # variable, with the Vietnamese subset, served from our own origin. Chosen with the Figma identity on 18 October
+  # 2026, replacing Inter. `banner-24`, `price-18`, `body-13` and `micro-11` are sizes the Figma screens use
+  # without a style.
+  display-40: # Tiêu đề/Display 40
     fontFamily: "Bricolage Grotesque"
     fontSize: "40px"
     fontWeight: 800
     lineHeight: "1.1"
     letterSpacing: "-0.01em"
-  h1:
+  h1-28: # Tiêu đề/H1 28
     fontFamily: "Bricolage Grotesque"
     fontSize: "28px"
     fontWeight: 700
     lineHeight: "1.15"
     letterSpacing: "-0.01em"
-  banner:
+  banner-24:
     fontFamily: "Bricolage Grotesque"
     fontSize: "24px"
     fontWeight: 700
     lineHeight: "1.1"
     letterSpacing: "-0.01em"
-  h2:
+  h2-22: # Tiêu đề/H2 22
     fontFamily: "Bricolage Grotesque"
     fontSize: "22px"
     fontWeight: 700
     lineHeight: "1.15"
     letterSpacing: "-0.01em"
-  h3:
+  h3-20: # Tiêu đề/H3 20
     fontFamily: "Bricolage Grotesque"
     fontSize: "20px"
     fontWeight: 600
     lineHeight: "1.2"
     letterSpacing: "-0.01em"
-  price-lg:
+  price-18:
     fontFamily: "Bricolage Grotesque"
     fontSize: "18px"
     fontWeight: 700
     lineHeight: "1.2"
     letterSpacing: "-0.01em"
-  price:
+  price-16: # Tiêu đề/Giá 16
     fontFamily: "Bricolage Grotesque"
     fontSize: "16px"
     fontWeight: 700
     lineHeight: "1.15"
     letterSpacing: "-0.01em"
-  button:
+  button-16: # Nội dung/Nút 16
     fontFamily: "Be Vietnam Pro"
     fontSize: "16px"
     fontWeight: 600
     lineHeight: "1.2"
-  title:
+  title-15: # Nội dung/Tiêu đề 15
     fontFamily: "Be Vietnam Pro"
     fontSize: "15px"
     fontWeight: 600
     lineHeight: "1.4"
-  body:
+  body-14: # Nội dung/Thân 14
     fontFamily: "Be Vietnam Pro"
     fontSize: "14px"
     fontWeight: 400
     lineHeight: "1.5"
-  body-sm:
+  body-13:
     fontFamily: "Be Vietnam Pro"
     fontSize: "13px"
     fontWeight: 400
     lineHeight: "1.4"
-  caption:
+  caption-12: # Nội dung/Chú thích 12
     fontFamily: "Be Vietnam Pro"
     fontSize: "12px"
     fontWeight: 400
     lineHeight: "1.4"
-  micro:
+  micro-11:
     fontFamily: "Be Vietnam Pro"
     fontSize: "11px"
     fontWeight: 500
@@ -144,21 +174,21 @@ components:
   button-primary:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.primary-foreground}"
-    typography: "{typography.button}"
+    typography: "{typography.button-16}"
     rounded: "{rounded.xl}"
     height: "52px"
     padding: "0 24px"
   button-secondary:
     backgroundColor: "{colors.secondary}"
     textColor: "{colors.secondary-foreground}"
-    typography: "{typography.button}"
+    typography: "{typography.button-16}"
     rounded: "{rounded.xl}"
     height: "52px"
     padding: "0 24px"
   sticker:
     backgroundColor: "{colors.highlight}"
     textColor: "{colors.highlight-foreground}"
-    typography: "{typography.caption}"
+    typography: "{typography.caption-12}"
     rounded: "{rounded.full}"
     padding: "4px 10px"
   offer-card:
@@ -191,6 +221,8 @@ The interface is a calm, deep-leaf green shell over a pale mint ground, with whi
 ## Colors
 
 A green family from deep leaf to mint, warm amber for attention, and ink text.
+
+Two layers, as in Figma. The **palette** is the `SecondBite` collection under the same names (`brand-50` to `brand-900`, `text-ink`, `accent-amber`, `logo-clay`…), and only the roles refer to it. The **roles** below (`primary`, `shell`, `highlight`…) are what screens use, so a role can move to another palette colour without touching a screen.
 
 ### Primary
 
@@ -238,18 +270,18 @@ A green family from deep leaf to mint, warm amber for attention, and ink text.
 
 ### Hierarchy
 
-- **Display** (Bricolage 800, 40px): rare, large statements.
-- **H1** (Bricolage 700, 28px): screen titles.
-- **Banner** (Bricolage 700, 24px): the title on a banner photograph.
-- **H2** (Bricolage 700, 22px): the heading inside the header.
-- **H3** (Bricolage 600, 20px): section titles.
-- **Price large** (Bricolage 700, 18px) and **Price** (Bricolage 700, 16px): the new price.
-- **Button** (600, 16px).
-- **Title** (600, 15px): seller name or dish name on a card.
-- **Body** (400, 14px): running text and the search field.
-- **Body small** (400, 13px): the dish under the seller, the old price, links beside a section title.
-- **Caption** (400, 12px): meta lines; with weight 500 to 700 for chips, stickers and labels.
-- **Micro** (500, 11px): tab labels, the deal strip, the seller under a compact card.
+- **Display** (`display-40`, Bricolage 800, 40px): rare, large statements.
+- **H1** (`h1-28`, Bricolage 700): screen titles.
+- **Banner** (`banner-24`, Bricolage 700): the title on a banner photograph.
+- **H2** (`h2-22`, Bricolage 700): the heading inside the header.
+- **H3** (`h3-20`, Bricolage 600): section titles.
+- **Price** (`price-18` on an offer card, `price-16` on a compact card, Bricolage 700): the new price.
+- **Button** (`button-16`, 600).
+- **Title** (`title-15`, 600): seller name or dish name on a card.
+- **Body** (`body-14`, 400): running text and the search field.
+- **Body small** (`body-13`, 400): the dish under the seller, the old price, links beside a section title.
+- **Caption** (`caption-12`, 400): meta lines; with weight 500 to 700 for chips, stickers and labels.
+- **Micro** (`micro-11`, 500): tab labels, the deal strip, the seller under a compact card.
 
 ### Named Rules
 

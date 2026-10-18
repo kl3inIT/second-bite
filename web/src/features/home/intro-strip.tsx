@@ -51,10 +51,10 @@ export function IntroStrip() {
       className="flex items-start gap-2 rounded-2xl bg-card p-4 text-card-foreground"
     >
       <div className="flex flex-1 flex-col gap-1">
-        <h2 id="intro-title" className="text-title">
+        <h2 id="intro-title" className="text-title-15">
           {t("title")}
         </h2>
-        <p className="text-body text-muted-foreground">{t("body")}</p>
+        <p className="text-body-14 text-muted-foreground">{t("body")}</p>
       </div>
       <Button
         variant="ghost"
