@@ -20,7 +20,7 @@ export function LegalPage({ namespace }: { namespace: "Terms" | "Privacy" }) {
           <p role="note" className="rounded-xl bg-card p-4 text-body-sm text-card-foreground">
             {legal("draft")}
           </p>
-          <p className="text-label text-muted-foreground">{legal("updated")}</p>
+          <p className="text-label text-foreground">{legal("updated")}</p>
           <p className="text-body text-foreground">{t("intro")}</p>
         </header>
         <nav aria-labelledby="legal-contents">
