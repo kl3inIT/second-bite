@@ -7,8 +7,8 @@ Owns accounts and their role, emailed sign-in codes and sessions (tables `identi
 | Operation | Who | Answer |
 | --- | --- | --- |
 | `POST /auth/sign-in-codes` `{email}` | Anyone | `202 {challengeId, expiresAt}`, whether or not the address has an account |
-| `POST /auth/sessions` `{challengeId, code}` | Anyone holding a challenge | `201 {token, expiresAt, account}`; the token is shown only here |
-| `DELETE /auth/sessions/current` | A signed-in caller | `204`; the session ends |
+| `POST /auth/sessions` `{challengeId, code, session}` | Anyone holding a challenge | `201 {token, expiresAt, account}`; the token is shown only here. With `"session": "cookie"` (the web) the token is in the session cookie instead of the body |
+| `DELETE /auth/sessions/current` | A signed-in caller | `204`; the session ends and its cookie is cleared |
 | `GET /accounts/me` | A signed-in caller | `200 {id, email, role}` |
 
 Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantRole`.
@@ -22,7 +22,7 @@ Administrative command: `secondbite admin grant EMAIL` makes an account an admin
 - One live code per address: asking for a new one ends the earlier ones.
 - Each guess is counted before it is compared; after five wrong guesses the code no longer works, even when right. A right code works once.
 - Limits per address, checked under a lock so that requests arriving together cannot pass them: one code a minute, ten an hour, fifteen wrong guesses an hour and thirty a day.
-- A session token is random (130 bits) and only its SHA-256 is stored. It is sent as `Authorization: Bearer`. A session lasts 30 days from its last use; the end moves at most once an hour. An account's expired sessions are deleted when it opens a new one.
+- A session token is random (130 bits) and only its SHA-256 is stored. It is sent as `Authorization: Bearer` (the mobile application) or in the cookie `secondbite_session` (the web; `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/`, kept by the browser up to 400 days while the session's own end stays the server's). The header wins when both are sent. A cookie of an ended session is ignored, so the request goes on anonymously. A session lasts 30 days from its last use; the end moves at most once an hour. An account's expired sessions are deleted when it opens a new one.
 - A header with an unknown, ended or malformed token is refused at once; it does not fall back to an anonymous request.
 
 ## Data

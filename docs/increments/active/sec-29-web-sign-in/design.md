@@ -49,6 +49,11 @@ SEC-27 wrote `Path=/api`. The web renders pages on its server (`/vi/...`), and a
 
 The rest of SEC-27 stands: `HttpOnly; Secure; SameSite=Lax`, the session's 30-day sliding life, Bearer read first and the cookie only without it, and Go's `http.CrossOriginProtection` (the `Sec-Fetch-Site` and `Origin` headers) on requests authenticated by the cookie that change state. The cookie is named `secondbite_session`; the token in it is the session token SEC-10 already issues, and one session record serves both clients.
 
+Two details settled while building it:
+
+- **The browser keeps the cookie up to 400 days, the most browsers allow.** The 30-day sliding end stays the server's. A cookie that lasted only as long as the session would have to be set again each time the end moves, and pages the web renders on its server cannot pass a new cookie on to the browser; a person active every day would be signed out after 30 days.
+- **A cookie of an ended session is ignored, and the request goes on anonymously.** A Bearer token that fails is refused with 401. The web's server forwards the cookie to public operations too, such as `GET /offers`, and a refusal there would break the home page for anyone whose session ended.
+
 ### 3. Google signs in by its ID token, posted to one endpoint for the web and the mobile application
 
 Decided with the team on 18 October 2026: option A.

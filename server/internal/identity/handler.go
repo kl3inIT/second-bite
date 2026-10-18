@@ -24,10 +24,15 @@ type requestCodeOutput struct {
 	}
 }
 
+// sessionAsCookie asks a sign-in for the session in the cookie (the web)
+// rather than as a token in the body (the mobile application).
+const sessionAsCookie = "cookie"
+
 type signInInput struct {
 	Body struct {
 		ChallengeID uuid.UUID `json:"challengeId"`
-		Code        string    `json:"code"        pattern:"^[0-9]{6}$" doc:"The six digits of the email"`
+		Code        string    `json:"code"              pattern:"^[0-9]{6}$" doc:"The six digits of the email"`
+		Session     string    `json:"session,omitempty" enum:"token,cookie" default:"token" doc:"token: the token in the body (the mobile application); cookie: the session cookie instead (the web)"`
 	}
 }
 
@@ -38,11 +43,28 @@ type accountBody struct {
 }
 
 type sessionOutput struct {
-	Body struct {
-		Token     string      `json:"token"     doc:"Send it as Authorization: Bearer <token>; it is shown only now"`
-		ExpiresAt time.Time   `json:"expiresAt" doc:"The session ends then unless it is used; each use moves the end 30 days on"`
+	SetCookie []http.Cookie `header:"Set-Cookie" doc:"The session cookie, when it was asked for"`
+	Body      struct {
+		Token     string      `json:"token,omitempty" doc:"Send it as Authorization: Bearer <token>; it is shown only now, and not when the cookie was asked for"`
+		ExpiresAt time.Time   `json:"expiresAt"       doc:"The session ends then unless it is used; each use moves the end 30 days on"`
 		Account   accountBody `json:"account"`
 	}
+}
+
+type signOutOutput struct {
+	SetCookie []http.Cookie `header:"Set-Cookie" doc:"Clears the session cookie"`
+}
+
+// handOver puts session in out: in the cookie when asked, otherwise in the body.
+func handOver(out *sessionOutput, session Session, as string) {
+	if as == sessionAsCookie {
+		out.SetCookie = []http.Cookie{sessionCookie(session.Token)}
+	} else {
+		out.Body.Token = session.Token
+	}
+
+	out.Body.ExpiresAt = session.ExpiresAt
+	out.Body.Account = toAccountBody(session.Account)
 }
 
 type accountOutput struct {
@@ -55,7 +77,7 @@ func toAccountBody(a Account) accountBody {
 
 // RegisterOperations adds the module's operations to api.
 func RegisterOperations(api huma.API, s *Service) {
-	security := []map[string][]string{{platform.SecurityBearer: {}}}
+	security := platform.SignedIn()
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "requestSignInCode",
@@ -83,7 +105,7 @@ func RegisterOperations(api huma.API, s *Service) {
 		Method:        http.MethodPost,
 		Path:          "/auth/sessions",
 		Summary:       "Sign in with the emailed code",
-		Description:   "Creates the account on its first sign-in.",
+		Description:   "Creates the account on its first sign-in. The web asks for the session in a cookie.",
 		Tags:          []string{"Sign-in"},
 		DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, in *signInInput) (*sessionOutput, error) {
@@ -93,9 +115,7 @@ func RegisterOperations(api huma.API, s *Service) {
 		}
 
 		out := &sessionOutput{}
-		out.Body.Token = session.Token
-		out.Body.ExpiresAt = session.ExpiresAt
-		out.Body.Account = toAccountBody(session.Account)
+		handOver(out, session, in.Body.Session)
 
 		return out, nil
 	})
@@ -104,12 +124,16 @@ func RegisterOperations(api huma.API, s *Service) {
 		OperationID:   "signOut",
 		Method:        http.MethodDelete,
 		Path:          "/auth/sessions/current",
-		Summary:       "Sign out: end the session of this token",
+		Summary:       "Sign out: end this session and clear its cookie",
 		Tags:          []string{"Sign-in"},
 		Security:      security,
 		DefaultStatus: http.StatusNoContent,
-	}, func(ctx context.Context, _ *struct{}) (*struct{}, error) {
-		return nil, s.SignOut(ctx)
+	}, func(ctx context.Context, _ *struct{}) (*signOutOutput, error) {
+		if err := s.SignOut(ctx); err != nil {
+			return nil, err
+		}
+
+		return &signOutOutput{SetCookie: []http.Cookie{clearedCookie()}}, nil
 	})
 
 	huma.Register(api, huma.Operation{

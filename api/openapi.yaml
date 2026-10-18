@@ -804,10 +804,9 @@ components:
           format: date-time
           type: string
         token:
-          description: "Send it as Authorization: Bearer <token>; it is shown only now"
+          description: "Send it as Authorization: Bearer <token>; it is shown only now, and not when the cookie was asked for"
           type: string
       required:
-        - token
         - expiresAt
         - account
       type: object
@@ -828,6 +827,13 @@ components:
         code:
           description: The six digits of the email
           pattern: ^[0-9]{6}$
+          type: string
+        session:
+          default: token
+          description: "token: the token in the body (the mobile application); cookie: the session cookie instead (the web)"
+          enum:
+            - token
+            - cookie
           type: string
       required:
         - challengeId
@@ -855,6 +861,11 @@ components:
       description: A session token from POST /auth/sessions.
       scheme: bearer
       type: http
+    cookie:
+      description: "The web's session, set by signing in with \"session\": \"cookie\"."
+      in: cookie
+      name: secondbite_session
+      type: apiKey
 info:
   description: The API of Second Bite, a non-profit marketplace for food surplus.
   title: Second Bite API
@@ -879,6 +890,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: The signed-in account
       tags:
         - Accounts
@@ -900,6 +912,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Read who delivers email
       tags:
         - Admins
@@ -922,6 +935,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Choose who delivers email; the next email uses it
       tags:
         - Admins
@@ -943,6 +957,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: The rules every offer follows
       tags:
         - Admin
@@ -970,6 +985,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Change the rules every offer follows
       tags:
         - Admin
@@ -1019,6 +1035,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Sellers in a status, oldest first
       tags:
         - Admin
@@ -1046,6 +1063,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Let a seller publish; also lifts a block
       tags:
         - Admin
@@ -1073,12 +1091,13 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Stop a seller from publishing
       tags:
         - Admin
   /auth/sessions:
     post:
-      description: Creates the account on its first sign-in.
+      description: Creates the account on its first sign-in. The web asks for the session in a cookie.
       operationId: signIn
       requestBody:
         content:
@@ -1093,6 +1112,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/SessionOutputBody"
           description: Created
+          headers:
+            Set-Cookie:
+              schema:
+                description: The session cookie, when it was asked for
+                type: string
         default:
           content:
             application/problem+json:
@@ -1108,6 +1132,11 @@ paths:
       responses:
         "204":
           description: No Content
+          headers:
+            Set-Cookie:
+              schema:
+                description: Clears the session cookie
+                type: string
         default:
           content:
             application/problem+json:
@@ -1116,7 +1145,8 @@ paths:
           description: Error
       security:
         - bearer: []
-      summary: "Sign out: end the session of this token"
+        - cookie: []
+      summary: "Sign out: end this session and clear its cookie"
       tags:
         - Sign-in
   /auth/sign-in-codes:
@@ -1277,6 +1307,7 @@ paths:
       security:
         - {}
         - bearer: []
+        - cookie: []
       summary: Find offers on sale or sold out, near a point, by words and filters
       tags:
         - Offers
@@ -1306,6 +1337,7 @@ paths:
       security:
         - {}
         - bearer: []
+        - cookie: []
       summary: An offer
       tags:
         - Offers
@@ -1339,6 +1371,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Change an offer
       tags:
         - Offers
@@ -1366,6 +1399,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Take an offer off sale for good
       tags:
         - Offers
@@ -1396,6 +1430,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Upload a photo for an offer or a seller
       tags:
         - Photos
@@ -1467,6 +1502,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Open a seller; it waits for an admin to activate it
       tags:
         - Sellers
@@ -1488,6 +1524,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: The sellers I own or work for
       tags:
         - Sellers
@@ -1515,6 +1552,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: A seller, to its members and admins
       tags:
         - Sellers
@@ -1547,6 +1585,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Change a seller's details; only its owner may
       tags:
         - Sellers
@@ -1574,6 +1613,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: The owner and staff of a seller
       tags:
         - Sellers
@@ -1607,6 +1647,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Add a staff member by email; only the owner may
       tags:
         - Sellers
@@ -1635,6 +1676,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Remove a staff member, or leave the seller
       tags:
         - Sellers
@@ -1689,6 +1731,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: A seller's offers, newest first, to its people and admins
       tags:
         - Offers
@@ -1722,6 +1765,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Put surplus on sale for a seller you own or work for
       tags:
         - Offers
@@ -1745,6 +1789,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Remove the seller's photo; only the owner may
       tags:
         - Sellers
@@ -1777,6 +1822,7 @@ paths:
           description: Error
       security:
         - bearer: []
+        - cookie: []
       summary: Set the seller's photo, uploaded by its owner; only the owner may
       tags:
         - Sellers
@@ -1806,6 +1852,7 @@ paths:
       security:
         - {}
         - bearer: []
+        - cookie: []
       summary: What anyone sees of an active seller
       tags:
         - Sellers

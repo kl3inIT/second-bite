@@ -348,9 +348,9 @@ export type SessionOutputBody = {
      */
     expiresAt: string;
     /**
-     * Send it as Authorization: Bearer <token>; it is shown only now
+     * Send it as Authorization: Bearer <token>; it is shown only now, and not when the cookie was asked for
      */
-    token: string;
+    token?: string;
 };
 
 export type SetSellerPhotoRequest = {
@@ -366,6 +366,10 @@ export type SignInInputBody = {
      * The six digits of the email
      */
     code: string;
+    /**
+     * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
+     */
+    session?: 'token' | 'cookie';
 };
 
 export type Violation = {

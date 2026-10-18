@@ -22,7 +22,11 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  * The signed-in account
  */
 export const getMyAccount = <ThrowOnError extends boolean = true>(options?: Options<GetMyAccountData, ThrowOnError>): RequestResult<GetMyAccountResponses, GetMyAccountErrors, ThrowOnError> => (options?.client ?? client).get<GetMyAccountResponses, GetMyAccountErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/accounts/me',
     ...options
 });
@@ -31,7 +35,11 @@ export const getMyAccount = <ThrowOnError extends boolean = true>(options?: Opti
  * Read who delivers email
  */
 export const getEmailSettings = <ThrowOnError extends boolean = true>(options?: Options<GetEmailSettingsData, ThrowOnError>): RequestResult<GetEmailSettingsResponses, GetEmailSettingsErrors, ThrowOnError> => (options?.client ?? client).get<GetEmailSettingsResponses, GetEmailSettingsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/admin/email-settings',
     ...options
 });
@@ -40,7 +48,11 @@ export const getEmailSettings = <ThrowOnError extends boolean = true>(options?: 
  * Choose who delivers email; the next email uses it
  */
 export const saveEmailSettings = <ThrowOnError extends boolean = true>(options: Options<SaveEmailSettingsData, ThrowOnError>): RequestResult<SaveEmailSettingsResponses, SaveEmailSettingsErrors, ThrowOnError> => (options.client ?? client).put<SaveEmailSettingsResponses, SaveEmailSettingsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/admin/email-settings',
     ...options,
     headers: {
@@ -53,7 +65,11 @@ export const saveEmailSettings = <ThrowOnError extends boolean = true>(options: 
  * The rules every offer follows
  */
 export const getOfferSettings = <ThrowOnError extends boolean = true>(options?: Options<GetOfferSettingsData, ThrowOnError>): RequestResult<GetOfferSettingsResponses, GetOfferSettingsErrors, ThrowOnError> => (options?.client ?? client).get<GetOfferSettingsResponses, GetOfferSettingsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/admin/offer-settings',
     ...options
 });
@@ -64,7 +80,11 @@ export const getOfferSettings = <ThrowOnError extends boolean = true>(options?: 
  * New rules apply to offers posted, and to the prices and windows changed, after they are saved.
  */
 export const saveOfferSettings = <ThrowOnError extends boolean = true>(options: Options<SaveOfferSettingsData, ThrowOnError>): RequestResult<SaveOfferSettingsResponses, SaveOfferSettingsErrors, ThrowOnError> => (options.client ?? client).put<SaveOfferSettingsResponses, SaveOfferSettingsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/admin/offer-settings',
     ...options,
     headers: {
@@ -77,7 +97,11 @@ export const saveOfferSettings = <ThrowOnError extends boolean = true>(options: 
  * Sellers in a status, oldest first
  */
 export const listSellersForAdmins = <ThrowOnError extends boolean = true>(options?: Options<ListSellersForAdminsData, ThrowOnError>): RequestResult<ListSellersForAdminsResponses, ListSellersForAdminsErrors, ThrowOnError> => (options?.client ?? client).get<ListSellersForAdminsResponses, ListSellersForAdminsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/admin/sellers',
     ...options
 });
@@ -86,7 +110,11 @@ export const listSellersForAdmins = <ThrowOnError extends boolean = true>(option
  * Let a seller publish; also lifts a block
  */
 export const activateSeller = <ThrowOnError extends boolean = true>(options: Options<ActivateSellerData, ThrowOnError>): RequestResult<ActivateSellerResponses, ActivateSellerErrors, ThrowOnError> => (options.client ?? client).post<ActivateSellerResponses, ActivateSellerErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/admin/sellers/{sellerId}/activate',
     ...options
 });
@@ -95,7 +123,11 @@ export const activateSeller = <ThrowOnError extends boolean = true>(options: Opt
  * Stop a seller from publishing
  */
 export const blockSeller = <ThrowOnError extends boolean = true>(options: Options<BlockSellerData, ThrowOnError>): RequestResult<BlockSellerResponses, BlockSellerErrors, ThrowOnError> => (options.client ?? client).post<BlockSellerResponses, BlockSellerErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/admin/sellers/{sellerId}/block',
     ...options
 });
@@ -103,7 +135,7 @@ export const blockSeller = <ThrowOnError extends boolean = true>(options: Option
 /**
  * Sign in with the emailed code
  *
- * Creates the account on its first sign-in.
+ * Creates the account on its first sign-in. The web asks for the session in a cookie.
  */
 export const signIn = <ThrowOnError extends boolean = true>(options: Options<SignInData, ThrowOnError>): RequestResult<SignInResponses, SignInErrors, ThrowOnError> => (options.client ?? client).post<SignInResponses, SignInErrors, ThrowOnError>({
     url: '/auth/sessions',
@@ -115,10 +147,14 @@ export const signIn = <ThrowOnError extends boolean = true>(options: Options<Sig
 });
 
 /**
- * Sign out: end the session of this token
+ * Sign out: end this session and clear its cookie
  */
 export const signOut = <ThrowOnError extends boolean = true>(options?: Options<SignOutData, ThrowOnError>): RequestResult<SignOutResponses, SignOutErrors, ThrowOnError> => (options?.client ?? client).delete<SignOutResponses, SignOutErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/auth/sessions/current',
     ...options
 });
@@ -143,7 +179,11 @@ export const requestSignInCode = <ThrowOnError extends boolean = true>(options: 
  * Anyone may search. Offers sold out are included unless available is set; those withdrawn, over or of a blocked seller never are.
  */
 export const searchOffers = <ThrowOnError extends boolean = true>(options?: Options<SearchOffersData, ThrowOnError>): RequestResult<SearchOffersResponses, SearchOffersErrors, ThrowOnError> => (options?.client ?? client).get<SearchOffersResponses, SearchOffersErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/offers',
     ...options
 });
@@ -154,7 +194,11 @@ export const searchOffers = <ThrowOnError extends boolean = true>(options?: Opti
  * Anyone reads an offer while its window is open and it is not withdrawn; its seller's people read it always.
  */
 export const getOffer = <ThrowOnError extends boolean = true>(options: Options<GetOfferData, ThrowOnError>): RequestResult<GetOfferResponses, GetOfferErrors, ThrowOnError> => (options.client ?? client).get<GetOfferResponses, GetOfferErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/offers/{offerId}',
     ...options
 });
@@ -165,7 +209,11 @@ export const getOffer = <ThrowOnError extends boolean = true>(options: Options<G
  * Once units are ordered, only the description, the photo and the units (never below those ordered) change.
  */
 export const changeOffer = <ThrowOnError extends boolean = true>(options: Options<ChangeOfferData, ThrowOnError>): RequestResult<ChangeOfferResponses, ChangeOfferErrors, ThrowOnError> => (options.client ?? client).patch<ChangeOfferResponses, ChangeOfferErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/offers/{offerId}',
     ...options,
     headers: {
@@ -178,7 +226,11 @@ export const changeOffer = <ThrowOnError extends boolean = true>(options: Option
  * Take an offer off sale for good
  */
 export const withdrawOffer = <ThrowOnError extends boolean = true>(options: Options<WithdrawOfferData, ThrowOnError>): RequestResult<WithdrawOfferResponses, WithdrawOfferErrors, ThrowOnError> => (options.client ?? client).post<WithdrawOfferResponses, WithdrawOfferErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/offers/{offerId}/withdraw',
     ...options
 });
@@ -190,7 +242,11 @@ export const withdrawOffer = <ThrowOnError extends boolean = true>(options: Opti
  */
 export const uploadPhoto = <ThrowOnError extends boolean = true>(options: Options<UploadPhotoData, ThrowOnError>): RequestResult<UploadPhotoResponses, UploadPhotoErrors, ThrowOnError> => (options.client ?? client).post<UploadPhotoResponses, UploadPhotoErrors, ThrowOnError>({
     bodySerializer: null,
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/photos',
     ...options,
     headers: {
@@ -208,7 +264,11 @@ export const getPhoto = <ThrowOnError extends boolean = true>(options: Options<G
  * Open a seller; it waits for an admin to activate it
  */
 export const openSeller = <ThrowOnError extends boolean = true>(options: Options<OpenSellerData, ThrowOnError>): RequestResult<OpenSellerResponses, OpenSellerErrors, ThrowOnError> => (options.client ?? client).post<OpenSellerResponses, OpenSellerErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers',
     ...options,
     headers: {
@@ -221,7 +281,11 @@ export const openSeller = <ThrowOnError extends boolean = true>(options: Options
  * The sellers I own or work for
  */
 export const listMySellers = <ThrowOnError extends boolean = true>(options?: Options<ListMySellersData, ThrowOnError>): RequestResult<ListMySellersResponses, ListMySellersErrors, ThrowOnError> => (options?.client ?? client).get<ListMySellersResponses, ListMySellersErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers/mine',
     ...options
 });
@@ -230,7 +294,11 @@ export const listMySellers = <ThrowOnError extends boolean = true>(options?: Opt
  * A seller, to its members and admins
  */
 export const getSeller = <ThrowOnError extends boolean = true>(options: Options<GetSellerData, ThrowOnError>): RequestResult<GetSellerResponses, GetSellerErrors, ThrowOnError> => (options.client ?? client).get<GetSellerResponses, GetSellerErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers/{sellerId}',
     ...options
 });
@@ -239,7 +307,11 @@ export const getSeller = <ThrowOnError extends boolean = true>(options: Options<
  * Change a seller's details; only its owner may
  */
 export const updateSeller = <ThrowOnError extends boolean = true>(options: Options<UpdateSellerData, ThrowOnError>): RequestResult<UpdateSellerResponses, UpdateSellerErrors, ThrowOnError> => (options.client ?? client).put<UpdateSellerResponses, UpdateSellerErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers/{sellerId}',
     ...options,
     headers: {
@@ -252,7 +324,11 @@ export const updateSeller = <ThrowOnError extends boolean = true>(options: Optio
  * The owner and staff of a seller
  */
 export const listSellerMembers = <ThrowOnError extends boolean = true>(options: Options<ListSellerMembersData, ThrowOnError>): RequestResult<ListSellerMembersResponses, ListSellerMembersErrors, ThrowOnError> => (options.client ?? client).get<ListSellerMembersResponses, ListSellerMembersErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers/{sellerId}/members',
     ...options
 });
@@ -263,7 +339,11 @@ export const listSellerMembers = <ThrowOnError extends boolean = true>(options: 
  * The person is staff at once and signs in with an emailed code to that address.
  */
 export const addSellerStaff = <ThrowOnError extends boolean = true>(options: Options<AddSellerStaffData, ThrowOnError>): RequestResult<AddSellerStaffResponses, AddSellerStaffErrors, ThrowOnError> => (options.client ?? client).post<AddSellerStaffResponses, AddSellerStaffErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers/{sellerId}/members',
     ...options,
     headers: {
@@ -276,7 +356,11 @@ export const addSellerStaff = <ThrowOnError extends boolean = true>(options: Opt
  * Remove a staff member, or leave the seller
  */
 export const removeSellerMember = <ThrowOnError extends boolean = true>(options: Options<RemoveSellerMemberData, ThrowOnError>): RequestResult<RemoveSellerMemberResponses, RemoveSellerMemberErrors, ThrowOnError> => (options.client ?? client).delete<RemoveSellerMemberResponses, RemoveSellerMemberErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers/{sellerId}/members/{accountId}',
     ...options
 });
@@ -285,7 +369,11 @@ export const removeSellerMember = <ThrowOnError extends boolean = true>(options:
  * A seller's offers, newest first, to its people and admins
  */
 export const listSellerOffers = <ThrowOnError extends boolean = true>(options: Options<ListSellerOffersData, ThrowOnError>): RequestResult<ListSellerOffersResponses, ListSellerOffersErrors, ThrowOnError> => (options.client ?? client).get<ListSellerOffersResponses, ListSellerOffersErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers/{sellerId}/offers',
     ...options
 });
@@ -296,7 +384,11 @@ export const listSellerOffers = <ThrowOnError extends boolean = true>(options: O
  * Posting again: send the details of an earlier offer, its photo included, with new units and window.
  */
 export const postOffer = <ThrowOnError extends boolean = true>(options: Options<PostOfferData, ThrowOnError>): RequestResult<PostOfferResponses, PostOfferErrors, ThrowOnError> => (options.client ?? client).post<PostOfferResponses, PostOfferErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers/{sellerId}/offers',
     ...options,
     headers: {
@@ -309,7 +401,11 @@ export const postOffer = <ThrowOnError extends boolean = true>(options: Options<
  * Remove the seller's photo; only the owner may
  */
 export const removeSellerPhoto = <ThrowOnError extends boolean = true>(options: Options<RemoveSellerPhotoData, ThrowOnError>): RequestResult<RemoveSellerPhotoResponses, RemoveSellerPhotoErrors, ThrowOnError> => (options.client ?? client).delete<RemoveSellerPhotoResponses, RemoveSellerPhotoErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers/{sellerId}/photo',
     ...options
 });
@@ -318,7 +414,11 @@ export const removeSellerPhoto = <ThrowOnError extends boolean = true>(options: 
  * Set the seller's photo, uploaded by its owner; only the owner may
  */
 export const setSellerPhoto = <ThrowOnError extends boolean = true>(options: Options<SetSellerPhotoData, ThrowOnError>): RequestResult<SetSellerPhotoResponses, SetSellerPhotoErrors, ThrowOnError> => (options.client ?? client).put<SetSellerPhotoResponses, SetSellerPhotoErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers/{sellerId}/photo',
     ...options,
     headers: {
@@ -333,7 +433,11 @@ export const setSellerPhoto = <ThrowOnError extends boolean = true>(options: Opt
  * Its offers are GET /offers?sellerId=. A seller pending or blocked answers 404.
  */
 export const getSellerProfile = <ThrowOnError extends boolean = true>(options: Options<GetSellerProfileData, ThrowOnError>): RequestResult<GetSellerProfileResponses, GetSellerProfileErrors, ThrowOnError> => (options.client ?? client).get<GetSellerProfileResponses, GetSellerProfileErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
     url: '/sellers/{sellerId}/profile',
     ...options
 });

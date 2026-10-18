@@ -36,6 +36,10 @@ func NewAPI(mux *http.ServeMux) huma.API {
 	config.CreateHooks = nil
 	config.Components.SecuritySchemes = map[string]*huma.SecurityScheme{
 		SecurityBearer: {Type: "http", Scheme: "bearer", Description: "A session token from POST /auth/sessions."},
+		SecurityCookie: {
+			Type: "apiKey", In: "cookie", Name: SessionCookie,
+			Description: "The web's session, set by signing in with \"session\": \"cookie\".",
+		},
 	}
 
 	return humago.New(mux, config)

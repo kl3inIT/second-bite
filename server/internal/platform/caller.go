@@ -6,9 +6,25 @@ import (
 	"github.com/google/uuid"
 )
 
-// SecurityBearer names the session token scheme in the OpenAPI document; an
-// operation that needs a signed-in caller lists it in its Security.
-const SecurityBearer = "bearer"
+// The session's schemes in the OpenAPI document: the token as Bearer, which
+// the mobile application sends, or the cookie the web keeps (SEC-27).
+const (
+	SecurityBearer = "bearer"
+	SecurityCookie = "cookie"
+	// SessionCookie is the cookie that holds the web's session token.
+	SessionCookie = "secondbite_session"
+)
+
+// SignedIn is the Security of an operation that needs a signed-in caller.
+func SignedIn() []map[string][]string {
+	return []map[string][]string{{SecurityBearer: {}}, {SecurityCookie: {}}}
+}
+
+// MaybeSignedIn is the Security of an operation anyone may call, which shows
+// a signed-in caller more.
+func MaybeSignedIn() []map[string][]string {
+	return []map[string][]string{{}, {SecurityBearer: {}}, {SecurityCookie: {}}}
+}
 
 // Role is what an account may do across the product. Rights tied to one seller
 // are the seller module's, not a role.
@@ -47,6 +63,8 @@ func CallerFrom(ctx context.Context) (Caller, bool) {
 var (
 	ErrAuthenticationRequired = NewFailure("PLATFORM_AUTHENTICATION_REQUIRED", CategoryUnauthenticated, "Sign in to continue.")
 	ErrAdminRequired          = NewFailure("PLATFORM_ADMIN_REQUIRED", CategoryNotPermitted, "Only Second Bite admins may do this.")
+	ErrCrossOriginRefused     = NewFailure("PLATFORM_CROSS_ORIGIN_REFUSED", CategoryNotPermitted,
+		"A change signed in by the session cookie must come from Second Bite's own pages.")
 )
 
 // RequireCaller returns the caller of ctx, or ErrAuthenticationRequired.

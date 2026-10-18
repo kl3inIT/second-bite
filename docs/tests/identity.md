@@ -5,6 +5,7 @@ Requirements of [docs/specs/identity.md](../specs/identity.md) and the checks th
 | Requirement | Check |
 | --- | --- |
 | A code is emailed and signs in; the session reads the account; sign-out ends it; an address in mixed case is the same account | `TestService` › sign in with an emailed code, then sign out |
+| The web's sign-in puts the session in an `HttpOnly`, `Secure`, `SameSite=Lax` cookie and not in the body; the cookie alone reads the account; a Bearer header beside it wins; a cross-site sign-out is refused and a same-origin one clears the cookie; an ended cookie is ignored | `TestService` › sign in with the session in a cookie, as the web does |
 | A wrong code spends a guess; the fifth ends the code | `TestService` › a wrong code spends a guess and the fifth ends the code |
 | A second code within a minute is refused with the wait | `TestService` › a second code within a minute is refused with a wait |
 | A code works once | `TestService` › a code works once |

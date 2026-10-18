@@ -89,9 +89,9 @@ func RegisterOperations(api huma.API, s *Service) {
 }
 
 var (
-	security = []map[string][]string{{platform.SecurityBearer: {}}}
+	security = platform.SignedIn()
 	// optional is for reads anyone may make.
-	optional   = []map[string][]string{{}, {platform.SecurityBearer: {}}}
+	optional   = platform.MaybeSignedIn()
 	tagSellers = []string{"Sellers"}
 	tagAdmin   = []string{"Admin"}
 )

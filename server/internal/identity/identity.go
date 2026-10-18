@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/mail"
 	"strings"
 	"time"
@@ -56,6 +57,8 @@ type Service struct {
 	email   *notification.Service
 	codeKey []byte
 	logger  *slog.Logger
+	// crossOrigin refuses changes signed in by the cookie from other origins.
+	crossOrigin *http.CrossOriginProtection
 }
 
 // NewService assembles the module.
@@ -64,7 +67,10 @@ func NewService(pool *pgxpool.Pool, email *notification.Service, cfg Config, log
 		return nil, errors.New("the sign-in code key must be 32 bytes")
 	}
 
-	return &Service{pool: pool, queries: db.New(pool), email: email, codeKey: cfg.CodeKey, logger: logger}, nil
+	return &Service{
+		pool: pool, queries: db.New(pool), email: email, codeKey: cfg.CodeKey, logger: logger,
+		crossOrigin: http.NewCrossOriginProtection(),
+	}, nil
 }
 
 // Account returns the account id.

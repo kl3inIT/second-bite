@@ -131,6 +131,111 @@ func checkSignInAndOut(t *testing.T, svc service) {
 	}
 }
 
+// checkCookieSession signs in as the web does, with the session in the cookie
+// (SEC-27), and uses it without a token.
+func checkCookieSession(t *testing.T, svc service) {
+	t.Helper()
+
+	jar := signInWithCookie(t, svc, "cookie.user@example.com")
+
+	var me struct {
+		Email string `json:"email"`
+	}
+
+	send(t, http.MethodGet, svc.base+"/accounts/me", jar, nil).decode(t, http.StatusOK, &me)
+
+	if me.Email != "cookie.user@example.com" {
+		t.Errorf("me %+v", me)
+	}
+
+	// A Bearer header wins over the cookie.
+	both := jar.Clone()
+	both.Set("Authorization", "Bearer not-a-session")
+
+	if p := send(t, http.MethodGet, svc.base+"/accounts/me", both, nil).problem(t, http.StatusUnauthorized); p.Code != "IDENTITY_SESSION_INVALID" {
+		t.Errorf("Bearer beside the cookie: %q", p.Code)
+	}
+
+	checkCookieSignOut(t, svc, jar)
+}
+
+// signInWithCookie signs email in with the session in the cookie, checks the
+// cookie's attributes and returns the header that sends it back.
+func signInWithCookie(t *testing.T, svc service, email string) http.Header {
+	t.Helper()
+
+	id, code := requestCode(t, svc, email)
+	body := codeBody(id, code)
+	body["session"] = "cookie"
+
+	resp := send(t, http.MethodPost, svc.base+"/auth/sessions", nil, body)
+
+	var s session
+	resp.decode(t, http.StatusCreated, &s)
+
+	if s.Token != "" {
+		t.Error("the token is in the body as well as in the cookie")
+	}
+
+	c := sessionCookieOf(t, resp)
+	if !c.HttpOnly || !c.Secure || c.SameSite != http.SameSiteLaxMode || c.Path != "/" || c.MaxAge <= 0 || c.Value == "" {
+		t.Fatalf("cookie %+v", c)
+	}
+
+	return http.Header{"Cookie": {c.Name + "=" + c.Value}}
+}
+
+// checkCookieSignOut signs out with the cookie: refused from another site,
+// accepted from our own, and the ended cookie ignored afterwards.
+func checkCookieSignOut(t *testing.T, svc service, jar http.Header) {
+	t.Helper()
+
+	// Another site's page cannot change anything with the cookie; our own can.
+	crossSite := jar.Clone()
+	crossSite.Set("Sec-Fetch-Site", "cross-site")
+
+	p := send(t, http.MethodDelete, svc.base+"/auth/sessions/current", crossSite, nil).problem(t, http.StatusForbidden)
+	if p.Code != "PLATFORM_CROSS_ORIGIN_REFUSED" {
+		t.Errorf("cross-site sign-out: %q", p.Code)
+	}
+
+	sameOrigin := jar.Clone()
+	sameOrigin.Set("Sec-Fetch-Site", "same-origin")
+
+	out := send(t, http.MethodDelete, svc.base+"/auth/sessions/current", sameOrigin, nil)
+	if out.status != http.StatusNoContent {
+		t.Fatalf("sign out: %d %s", out.status, out.body)
+	}
+
+	if cleared := sessionCookieOf(t, out); cleared.MaxAge >= 0 || cleared.Value != "" {
+		t.Errorf("the cookie was not cleared: %+v", cleared)
+	}
+
+	// A cookie of an ended session is ignored: public pages still answer, and
+	// what needs a caller asks for sign-in.
+	if r := send(t, http.MethodGet, svc.base+"/offers", jar, nil); r.status != http.StatusOK {
+		t.Errorf("offers with an ended cookie: %d %s", r.status, r.body)
+	}
+
+	if p := send(t, http.MethodGet, svc.base+"/accounts/me", jar, nil).problem(t, http.StatusUnauthorized); p.Code != "PLATFORM_AUTHENTICATION_REQUIRED" {
+		t.Errorf("me with an ended cookie: %q", p.Code)
+	}
+}
+
+func sessionCookieOf(t *testing.T, r response) *http.Cookie {
+	t.Helper()
+
+	for _, c := range (&http.Response{Header: r.header}).Cookies() {
+		if c.Name == "secondbite_session" {
+			return c
+		}
+	}
+
+	t.Fatalf("no session cookie in %v", r.header.Values("Set-Cookie"))
+
+	return nil
+}
+
 func checkWrongCodes(t *testing.T, svc service) {
 	t.Helper()
 

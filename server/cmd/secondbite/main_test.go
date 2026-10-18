@@ -50,6 +50,7 @@ func TestService(t *testing.T) {
 		"an unknown route is a problem":                           checkUnknownRoute,
 		"another method on a known route is a problem with Allow": checkMethodNotAllowed,
 		"sign in with an emailed code, then sign out":             checkSignInAndOut,
+		"sign in with the session in a cookie, as the web does":   checkCookieSession,
 		"a wrong code spends a guess and the fifth ends the code": checkWrongCodes,
 		"a second code within a minute is refused with a wait":    checkCodeCooldown,
 		"a code works once":                                       checkCodeWorksOnce,
