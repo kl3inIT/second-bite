@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit reviews code only. Documents, vendored agent skills, design exploration and generated
+# files are left out: documents are merged at once (AGENTS.md), skills are copied from upstream
+# (.claude/skills/SOURCES.md), and generated files are checked by CI against their source.
+reviews:
+  path_filters:
+    - "!**/*.md"
+    - "!docs/**"
+    - "!.claude/**"
+    - "!.impeccable/**"
+    - "!**/*.docx"
+    - "!**/pnpm-lock.yaml"
+    - "!**/go.sum"
+    - "!server/**/internal/db/*.go"
+    - "!web/src/styles/tokens.css"
