@@ -105,6 +105,9 @@ VALUES (@account_id, @provider, @subject, @linked_email, @email_trusted, @name, 
 -- Supabase Auth do.
 DELETE FROM identity_external_logins WHERE account_id = @account_id AND NOT email_trusted;
 
+-- name: DeleteAccountSessions :exec
+DELETE FROM identity_sessions WHERE account_id = @account_id;
+
 -- name: FindAccountByEmail :one
 SELECT id, email, role, display_name FROM identity_accounts WHERE email = @email;
 

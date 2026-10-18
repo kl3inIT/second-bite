@@ -73,6 +73,15 @@ func (q *Queries) ChallengeUsage(ctx context.Context, email string) (ChallengeUs
 	return i, err
 }
 
+const deleteAccountSessions = `-- name: DeleteAccountSessions :exec
+DELETE FROM identity_sessions WHERE account_id = $1
+`
+
+func (q *Queries) DeleteAccountSessions(ctx context.Context, accountID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteAccountSessions, accountID)
+	return err
+}
+
 const deleteChallenge = `-- name: DeleteChallenge :execrows
 DELETE FROM identity_sign_in_challenges WHERE id = $1
 `

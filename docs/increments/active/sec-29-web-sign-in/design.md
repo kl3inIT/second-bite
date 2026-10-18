@@ -97,7 +97,7 @@ Google says when it is authoritative for an address: an address at `gmail.com`, 
 - Firebase: "The trusted provider overwrites the untrusted provider", after which signing in with the untrusted one asks for linking ([users](https://firebase.google.com/docs/auth/users)).
 - Supabase Auth: removes the unconfirmed identities once the address is confirmed (`internal/api/external.go:412-419`).
 
-**Decided:** each link records whether Google speaks for its address (`email_trusted`). A sign-in with the emailed code proves the address and removes the account's links that are not trusted. Signing in with that Google account again is then refused with `IDENTITY_GOOGLE_LINK_REQUIRED`. Links at `gmail.com` and Workspace addresses are never removed. Refusing to create accounts from Google for outside addresses was weighed too and left out, as no comparable product was found to do it.
+**Decided:** each link records whether Google speaks for its address (`email_trusted`). A sign-in with the emailed code proves the address and removes the account's links that are not trusted, and with them the account's sessions, which may have been opened through those links (the same study's "unexpired session" case); the owner's new session is opened after. Signing in with that Google account again is then refused with `IDENTITY_GOOGLE_LINK_REQUIRED`. Links at `gmail.com` and Workspace addresses are never removed. Refusing to create accounts from Google for outside addresses was weighed too and left out, as no comparable product was found to do it.
 
 ### 5. What is kept from Google
 

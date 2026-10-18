@@ -389,6 +389,15 @@ func testCodeRemovesUntrustedLinks(t *testing.T, s *Service, iss issuer) {
 		t.Fatalf("the code reached another account")
 	}
 
+	// The session opened through the removed link ends with it; the owner's stays.
+	if _, err := s.findCaller(t.Context(), planted.Token); !errors.Is(err, ErrSessionInvalid) {
+		t.Errorf("the planted session still works: %v", err)
+	}
+
+	if _, err := s.findCaller(t.Context(), owner.Token); err != nil {
+		t.Errorf("the owner's session: %v", err)
+	}
+
 	if _, err := s.SignInWithGoogle(t.Context(), iss.token(t, outsideSub, outside, nil), ""); !errors.Is(err, ErrGoogleLinkRequired) {
 		t.Errorf("Google after the owner's code: err %v, want %v", err, ErrGoogleLinkRequired)
 	}
