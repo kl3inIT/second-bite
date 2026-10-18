@@ -96,7 +96,15 @@ Infrastructure the team runs itself in Docker Compose is preferred over managed 
 
 ## Tooling and gates
 
-- **Everything is on its newest stable version**: Go, every module, the tools, the actions and the images, as of the change that adds or touches them. Dependabot proposes each newer version every week (`.github/dependabot.yml`), and govulncheck fails CI on a known vulnerability the code reaches. A pre-release (PostgreSQL 19 beta) is not taken.
+- **Everything is on its newest stable version**: Go, every module, the tools, the actions and the images, as of the change that adds or touches them. Dependabot proposes each newer version every week (`.github/dependabot.yml`) of the Go modules, the web packages, the actions and the images in `compose.yaml`, which the tests also start (`platformtest.Image`); govulncheck fails CI on a known vulnerability the code reaches. A pre-release (PostgreSQL 19 beta) is not taken.
+- **Raised by hand**, because Dependabot does not update them; check each when a module or the web application is touched, and at least once a month:
+
+  | What | Where its version is written | Newest from |
+  | --- | --- | --- |
+  | Go | `go` in `server/go.mod`; CI reads it | [go.dev/dl](https://go.dev/dl/) |
+  | golangci-lint | `version` in `.github/workflows/backend.yml`, and each developer's own install | [its releases](https://github.com/golangci/golangci-lint/releases) |
+  | pnpm | `packageManager` in `web/package.json` | `npm view pnpm version` |
+  | Node, its major version | `node-version` in `.github/workflows/web.yml` and `engines` in `web/package.json`; CI takes the newest release of that major version | [the LTS schedule](https://nodejs.org/en/about/previous-releases); 24 until the team moves |
 - The Go version is pinned in `go.mod`. Code generators (`sqlc`) are pinned with `tool` directives so every machine runs the same version; goose runs as a library inside the binary. golangci-lint is pinned by version in CI and the runbook instead, because its maintainers advise against installing it through `go tool`.
 - golangci-lint runs the recommended configuration of the vendored `golang-lint` skill (`server/.golangci.yml`). A `//nolint` names its linter and says why.
 - Before pushing: formatting, golangci-lint, the tests (the boundary check, the contract check and the PostgreSQL tests, which need Docker) and `govulncheck`, as the [backend runbook](../runbooks/backend.md) lists.
