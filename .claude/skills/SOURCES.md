@@ -16,18 +16,19 @@ Cập nhật: clone lại repo nguồn và chép đè các thư mục trên.
 
 # Flutter và Dart skills — nguồn
 
-- flutter/agent-plugins @ b60d073 (2026-10-16), BSD-3-Clause, do đội Flutter duy trì; các skill `dart-*` trùng với dart-lang/skills: flutter-add-integration-test, flutter-add-widget-preview, flutter-add-widget-test, flutter-apply-architecture-best-practices, flutter-build-responsive-layout, flutter-fix-layout-issues, dart-add-unit-test, dart-collect-coverage, dart-fix-runtime-errors, dart-resolve-package-conflicts, dart-run-static-analysis, dart-use-pattern-matching, dart-use-primary-constructors, dart-write-documentation.
+- flutter/agent-plugins @ b60d073 (2026-10-16), BSD-3-Clause, do đội Flutter duy trì; các skill `dart-*` trùng với dart-lang/skills: flutter-add-integration-test, flutter-add-widget-preview, flutter-setup-localization (chốt phần 5), flutter-add-widget-test, flutter-apply-architecture-best-practices, flutter-build-responsive-layout, flutter-fix-layout-issues, dart-add-unit-test, dart-collect-coverage, dart-fix-runtime-errors, dart-resolve-package-conflicts, dart-run-static-analysis, dart-use-pattern-matching, dart-use-primary-constructors, dart-write-documentation.
 
-- VeryGoodOpenSource/vgv-ai-flutter-plugin @ 75b2512 (2026-10-13), MIT, Very Good Ventures: material-theming, ui-package, accessibility, static-security, testing, navigation (go_router với go_router_builder, chốt phần 3). Chỉ chép skill, không cài plugin (hook và agent của nó phụ thuộc Very Good CLI).
+- VeryGoodOpenSource/vgv-ai-flutter-plugin @ 75b2512 (2026-10-13), MIT, Very Good Ventures: material-theming, ui-package, accessibility, static-security, testing, navigation (go_router với go_router_builder, chốt phần 3), internationalization (gen-l10n, chốt phần 5). Chỉ chép skill, không cài plugin (hook và agent của nó phụ thuộc Very Good CLI).
 - evanca/flutter-ai-rules @ 30f908d (2026-10-10), MIT: riverpod.
 
 Mỗi chủ đề lấy một nguồn (quyết định ngày 18/10/2026, SEC-12): kiến trúc theo skill chính thức; trạng thái theo riverpod (evanca); giao diện, trợ năng, bảo mật và mock/golden theo VGV.
-Chờ quyết định của SEC-12 rồi mới chép: flutter-use-http-package và flutter-implement-json-serialization (phần 4, client API), flutter-setup-localization chính thức cùng internationalization của VGV (phần 5, song ngữ).
+Không chép flutter-use-http-package và flutter-implement-json-serialization: client và model được sinh từ api/openapi.yaml bằng swagger_parser (chốt phần 4).
 Không chép vì trùng nguồn đã chọn: flutter-setup-declarative-routing, dart-generate-test-mocks (mockito; dùng mocktail của VGV testing), dart-migrate-to-checks-package, bloc và layered-architecture của VGV.
 Bỏ qua của VGV: create-project, green-gate (đòi 100% độ phủ), license-compliance, dart-flutter-sdk-upgrade, very-good-analysis-upgrade, agent flutter-reviewer, các hook.
 Bỏ qua có chủ ý: dart-build-cli-app, dart-setup-ffi-assets, dart-use-ffigen, dart-use-doc-examples, dart-use-path-package.
 Khi skill nói khác quyết định của repo, repo thắng:
 - flutter-apply-architecture-best-practices viết ViewModel bằng `ChangeNotifier`: dùng Notifier của Riverpod (`@riverpod`) thay vào.
 - material-theming đòi giao diện tối từ đầu: chưa làm, vì DESIGN.md chưa có giao diện tối. Màu không viết tay trong `AppColors`: token sinh từ frontmatter của DESIGN.md.
+- internationalization: câu báo lỗi lấy từ `detail` của Go theo `Accept-Language` (SEC-28), không dịch mã lỗi trong file ARB.
 - ui-package và testing gọi Very Good CLI (`very_good create app_ui_package`, `mcp__very-good-cli__*`): không bắt buộc; dùng `flutter test` và cấu trúc `mobile/` do SEC-12 phần 7 chốt.
 Cập nhật: clone lại repo nguồn và chép đè các thư mục trên.

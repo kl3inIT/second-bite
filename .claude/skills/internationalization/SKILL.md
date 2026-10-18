@@ -1,0 +1,137 @@
+---
+name: internationalization
+description: >
+  Best practices for internationalization (i18n) and localization (l10n) in Flutter, using the
+  built-in `flutter_localizations` and `intl` setup with ARB files as the single source of
+  truth. Use when adding, modifying, or reviewing ARB translations, locale setup (`l10n.yaml`,
+  `generate: true` in `pubspec.yaml`, `flutter gen-l10n`, `localizationsDelegates`,
+  `supportedLocales`), BuildContext l10n extensions such as `context.l10n`, hardcoded
+  user-facing strings that should be localized, localized strings passed into shared or
+  reusable widgets, or RTL/directional layout support with `EdgeInsetsDirectional`. Also use
+  when asked to add or configure any third-party i18n or translation package
+  (easy_localization, slang, flutter_i18n, or intl_utils), and when shipping or fixing a
+  screen for a right-to-left language such as Arabic, Hebrew, Farsi, or Urdu,
+  including mirroring padding, alignment, icons, or images, and replacing `EdgeInsets`
+  left/right.
+allowed-tools: Read Glob Grep
+---
+
+# Internationalization
+
+Internationalization (i18n) and localization (l10n) best practices for Flutter applications using Flutter's built-in localization system with ARB files as the single source of truth.
+
+## Core Standards
+
+Apply these standards to all internationalization work:
+
+- **Never hardcode user-facing strings** — all text must go through the l10n system
+- **Use Flutter's built-in localization system** — `flutter_localizations` + `intl`, never third-party i18n libraries
+- **ARB files are the single source of truth** for all translations
+- **`BuildContext` extension for cleaner l10n access** — use `context.l10n` instead of `AppLocalizations.of(context)`
+- **Pass localized strings as parameters to reusable widgets** — never couple shared widgets directly to `AppLocalizations`
+- **Use `EdgeInsetsDirectional` (start/end) instead of `EdgeInsets` (left/right)** — ensures correct layout in RTL languages
+- **Handle RTL layout properly** — use directional widgets for padding, positioning, and alignment
+- **Implement i18n early** — even if only one language is planned initially, the overhead is small and the long-term benefit is significant
+- **Dart 3.13 primary constructors** — on a Dart 3.13+ baseline, declare a reusable widget's localized-string fields as primary-constructor declaring parameters (`class const ConfirmDialog({required final String title, super.key}) extends StatelessWidget`) rather than `this.field`; keep the classic form only below 3.13
+
+## Setup Pipeline and ARB File Format
+
+Add `flutter_localizations` and `intl` as dependencies, enable `generate: true` in `pubspec.yaml`, configure `l10n.yaml`, create ARB files in `lib/l10n/arb/`, run `flutter gen-l10n`, and wire up `MaterialApp` with `localizationsDelegates` and `supportedLocales`. ARB files support simple strings, placeholders, and ICU plural syntax.
+
+## BuildContext Extension
+
+Create an extension for ergonomic l10n access throughout the codebase:
+
+```dart
+extension AppLocalizationsX on BuildContext {
+  AppLocalizations get l10n => AppLocalizations.of(this);
+}
+```
+
+Usage:
+
+```dart
+// Preferred
+Text(context.l10n.helloWorld);
+
+// Avoid
+Text(AppLocalizations.of(context).helloWorld);
+```
+
+## Reusable Widget Strategy
+
+Shared widgets that live in separate packages should not depend on `AppLocalizations` directly. Instead, pass localized strings as constructor parameters:
+
+When someone asks to add `AppLocalizations` to a shared package, decline and say why — the package would carry its own translations and every consuming app would be locked to them — then rewrite their widget with the label as a `final String` constructor parameter and show the call site supplying `context.l10n`. Give both as Dart code; describing the change in prose leaves the caller to guess the signature.
+
+```dart
+// Shared widget — no l10n dependency
+class const ConfirmDialog({
+  required final String title,
+  required final String message,
+  required final String confirmLabel,
+  required final String cancelLabel,
+  super.key,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(cancelLabel)),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(confirmLabel)),
+      ],
+    );
+  }
+}
+
+// App-level usage — passes localized strings
+showDialog<bool>(
+  context: context,
+  builder: (_) => ConfirmDialog(
+    title: context.l10n.deleteTitle,
+    message: context.l10n.deleteMessage,
+    confirmLabel: context.l10n.confirm,
+    cancelLabel: context.l10n.cancel,
+  ),
+);
+```
+
+## Text Directionality
+
+Use `EdgeInsetsDirectional` (start/end) instead of `EdgeInsets` (left/right) for all padding and margins. Use directional widget variants (`PositionedDirectional`, `AlignDirectional`, `BorderDirectional`) for RTL-aware layouts. Icons mirror automatically in RTL; images require `matchTextDirection: true`.
+
+## Backend Considerations
+
+Store backend content with per-locale translations and require clients to transmit the user's locale. For error messages, map HTTP status codes or custom backend error constants to l10n keys on the frontend.
+
+## Common Patterns
+
+### Adding a New Locale
+
+1. Create `app_<locale>.arb` in `lib/l10n/arb/` (e.g., `app_fr.arb`)
+2. Add translations for all keys from the template ARB file
+3. Run `flutter gen-l10n`
+4. The new locale is automatically available through `AppLocalizations.supportedLocales`
+
+### Adding a New String
+
+1. Add the key-value pair to the template ARB file (`app_en.arb`)
+2. Add the `@key` metadata with description and placeholders if needed
+3. Add translations in all other ARB files
+4. Run `flutter gen-l10n`
+5. Use via `context.l10n.newKey`
+
+### Pluralization
+
+1. Define the plural string in the template ARB file using ICU message syntax
+2. Provide placeholder metadata with `"type": "int"`
+3. Add plural forms in all locale ARB files
+4. Use via `context.l10n.itemCount(items.length)`
+
+## Additional Resources
+
+- [references/setup.md](references/setup.md) — full step-by-step setup pipeline and ARB file format examples
+- [references/directionality.md](references/directionality.md) — visual vs directional widgets, icon/image mirroring, Material bidirectionality standards
+- [references/backend.md](references/backend.md) — multi-language content storage and error message localization
