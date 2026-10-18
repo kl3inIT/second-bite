@@ -34,6 +34,7 @@ type sellerBody struct {
 	StatusChangedAt *time.Time `json:"statusChangedAt,omitempty"`
 	CreatedAt       time.Time  `json:"createdAt"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
+	PhotoID         *uuid.UUID `json:"photoId,omitempty"         doc:"Served at /photos/{photoId}/1600.jpg and /400.jpg"`
 	MyRole          Role       `json:"myRole,omitempty"          enum:"owner,staff" doc:"The caller's role; absent for an admin who is not a member"`
 }
 
@@ -81,6 +82,7 @@ func toMemberBody(m Member) memberBody {
 func RegisterOperations(api huma.API, s *Service) {
 	registerOwnerOperations(api, s)
 	registerMemberOperations(api, s)
+	registerPhotoOperations(api, s)
 	registerAdminOperations(api, s)
 }
 
@@ -142,6 +144,38 @@ func registerOwnerOperations(api huma.API, s *Service) {
 		}
 
 		return &sellerOutput{Body: toBody(seller)}, nil
+	})
+}
+
+func registerPhotoOperations(api huma.API, s *Service) {
+	huma.Register(api, huma.Operation{
+		OperationID: "setSellerPhoto", Method: http.MethodPut, Path: "/sellers/{sellerId}/photo",
+		Summary: "Set the seller's photo, uploaded by its owner; only the owner may", Tags: tagSellers, Security: security,
+	}, func(ctx context.Context, in *struct {
+		SellerID uuid.UUID `path:"sellerId"`
+		Body     struct {
+			PhotoID uuid.UUID `json:"photoId" doc:"From POST /photos"`
+		}
+	},
+	) (*sellerOutput, error) {
+		seller, err := s.SetPhoto(ctx, in.SellerID, &in.Body.PhotoID)
+		if err != nil {
+			return nil, err
+		}
+
+		return &sellerOutput{Body: toBody(seller)}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "removeSellerPhoto", Method: http.MethodDelete, Path: "/sellers/{sellerId}/photo",
+		Summary: "Remove the seller's photo; only the owner may", Tags: tagSellers,
+		Security: security, DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *sellerPath) (*struct{}, error) {
+		if _, err := s.SetPhoto(ctx, in.SellerID, nil); err != nil {
+			return nil, err
+		}
+
+		return &struct{}{}, nil
 	})
 }
 

@@ -28,7 +28,7 @@ func TestOpenAPIDocumentIsCurrent(t *testing.T) {
 	t.Parallel()
 
 	api := platform.NewAPI(http.NewServeMux())
-	registerOperations(api, nil, nil, nil)
+	registerOperations(api, &app{})
 
 	got, err := api.OpenAPI().YAML()
 	if err != nil {

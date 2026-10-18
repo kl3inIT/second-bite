@@ -24,6 +24,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kl3inIT/second-bite/server/internal/identity"
+	"github.com/kl3inIT/second-bite/server/internal/media"
 	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller"
@@ -100,6 +101,7 @@ type app struct {
 	pool         *pgxpool.Pool
 	notification *notification.Service
 	identity     *identity.Service
+	media        *media.Service
 	seller       *seller.Service
 }
 
@@ -143,9 +145,18 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 			return nil, err
 		}
 
-		sellers := seller.NewService(pool, identities, logger)
+		// SECONDBITE_MEDIA_STORE chooses where new photos are kept; postgres
+		// until an S3-compatible store is added.
+		photos, err := media.NewService(pool, media.Config{Store: media.Store(getenv("SECONDBITE_MEDIA_STORE"))}, logger)
+		if err != nil {
+			return nil, fmt.Errorf("configuration: SECONDBITE_MEDIA_STORE: %w", err)
+		}
 
-		return &app{cfg: cfg, logger: logger, pool: pool, notification: notifications, identity: identities, seller: sellers}, nil
+		sellers := seller.NewService(pool, identities, photos, logger)
+
+		return &app{
+			cfg: cfg, logger: logger, pool: pool, notification: notifications, identity: identities, media: photos, seller: sellers,
+		}, nil
 	}()
 	if err != nil {
 		pool.Close()
@@ -158,7 +169,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 
 func (a *app) serve(ctx context.Context) error {
 	mux := http.NewServeMux()
-	registerOperations(platform.NewAPI(mux), a.notification, a.identity, a.seller)
+	registerOperations(platform.NewAPI(mux), a)
 	platform.RegisterHealth(mux, a.pool)
 
 	var lc net.ListenConfig
@@ -173,8 +184,9 @@ func (a *app) serve(ctx context.Context) error {
 
 // registerOperations registers the operations of every module on api. The
 // OpenAPI document in api/openapi.yaml is generated from what it registers.
-func registerOperations(api huma.API, notifications *notification.Service, identities *identity.Service, sellers *seller.Service) {
-	identity.RegisterOperations(api, identities)
-	notification.RegisterOperations(api, notifications)
-	seller.RegisterOperations(api, sellers)
+func registerOperations(api huma.API, a *app) {
+	identity.RegisterOperations(api, a.identity)
+	notification.RegisterOperations(api, a.notification)
+	media.RegisterOperations(api, a.media)
+	seller.RegisterOperations(api, a.seller)
 }

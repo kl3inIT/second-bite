@@ -61,6 +61,7 @@ func TestService(t *testing.T) {
 		"only admins read the email settings":                     checkAdminOnly,
 		"a new code ends the earlier one":                         checkNewCodeEndsEarlier,
 		"a seller is opened, staffed and activated":               checkSellerFlow,
+		"a photo is uploaded, set on a seller and served":         checkPhotoFlow,
 	}
 
 	// The checks run in parallel with one another; this group returns when

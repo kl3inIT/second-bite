@@ -1,9 +1,12 @@
 package seller_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"image"
+	"image/png"
 	"strings"
 	"sync"
 	"testing"
@@ -12,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kl3inIT/second-bite/server/internal/identity"
+	"github.com/kl3inIT/second-bite/server/internal/media"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
 	"github.com/kl3inIT/second-bite/server/internal/seller"
@@ -20,6 +24,7 @@ import (
 type fixture struct {
 	sellers  *seller.Service
 	accounts *identity.Service
+	photos   *media.Service
 	prefix   string
 }
 
@@ -36,6 +41,7 @@ func TestSeller(t *testing.T) {
 		"an owner opens at most five sellers":      testAnOwnerOpensAtMostFiveSellers,
 		"details are checked":                      testDetailsAreChecked,
 		"additions arriving together keep the cap": testStaffCapUnderConcurrency,
+		"the owner sets a photo they uploaded":     testOwnerSetsAPhoto,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -53,7 +59,15 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 		t.Fatal(err)
 	}
 
-	return fixture{sellers: seller.NewService(pool, accounts, platformtest.Logger()), accounts: accounts, prefix: strings.ToLower(t.Name())}
+	photos, err := media.NewService(pool, media.Config{}, platformtest.Logger())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return fixture{
+		sellers: seller.NewService(pool, accounts, photos, platformtest.Logger()), accounts: accounts, photos: photos,
+		prefix: strings.ToLower(t.Name()),
+	}
 }
 
 // mail makes an address unique to the test, from its local part.
@@ -285,4 +299,54 @@ func leave(ctx context.Context, f fixture, id uuid.UUID) error {
 	caller, _ := platform.CallerFrom(ctx)
 
 	return f.sellers.RemoveMember(ctx, id, caller.AccountID)
+}
+
+func testOwnerSetsAPhoto(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+
+	f := newFixture(t, pool)
+	owner := f.as(t, "owner@example.com", platform.RoleCustomer)
+	staff := f.as(t, "staff@example.com", platform.RoleCustomer)
+
+	s, err := f.sellers.Open(owner, shop)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.sellers.AddStaff(owner, s.ID, f.mail("staff")); err != nil {
+		t.Fatal(err)
+	}
+
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, image.NewGray(image.Rect(0, 0, 8, 8))); err != nil {
+		t.Fatal(err)
+	}
+
+	mine, err := f.photos.Upload(owner, buf.Bytes())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	theirs, err := f.photos.Upload(staff, buf.Bytes())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.sellers.SetPhoto(staff, s.ID, &theirs.ID); !errors.Is(err, seller.ErrOwnerRequired) {
+		t.Fatalf("staff set the photo: %v", err)
+	}
+
+	if _, err := f.sellers.SetPhoto(owner, s.ID, &theirs.ID); !errors.Is(err, media.ErrPhotoNotFound) {
+		t.Fatalf("the owner used a photo someone else uploaded: %v", err)
+	}
+
+	got, err := f.sellers.SetPhoto(owner, s.ID, &mine.ID)
+	if err != nil || got.PhotoID == nil || *got.PhotoID != mine.ID {
+		t.Fatalf("set %+v, %v", got, err)
+	}
+
+	got, err = f.sellers.SetPhoto(owner, s.ID, nil)
+	if err != nil || got.PhotoID != nil {
+		t.Fatalf("removed %+v, %v", got, err)
+	}
 }

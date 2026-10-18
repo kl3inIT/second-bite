@@ -10,5 +10,6 @@ Requirements of [docs/specs/seller.md](../specs/seller.md) and the checks that h
 | Phone and name are checked | `TestSeller` › details are checked |
 | A hundred additions at once leave exactly 30 people | `TestSeller` › additions arriving together keep the cap (the first version left 98) |
 | The flow through the API: open, add staff who then signs in by code and finds the seller; staff refused a change; a stranger answered 404; a customer refused activation; the admin lists pending sellers and activates | `TestService` › a seller is opened, staffed and activated (`cmd/secondbite/seller_test.go`) |
+| The owner sets only a photo they uploaded; staff cannot; the photo is removed | `TestSeller` › the owner sets a photo they uploaded; through the API, `TestService` › a photo is uploaded, set on a seller and served |
 
 Not covered by a test: the limit of five under concurrency (held by the same kind of lock as the staff cap), and pagination of the admins' list.

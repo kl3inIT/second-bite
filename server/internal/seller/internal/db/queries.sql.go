@@ -71,7 +71,7 @@ func (q *Queries) DeleteStaff(ctx context.Context, arg DeleteStaffParams) (int64
 }
 
 const getSeller = `-- name: GetSeller :one
-SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at
+SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at, photo_id
 FROM seller_sellers WHERE id = $1
 `
 
@@ -87,6 +87,7 @@ type GetSellerRow struct {
 	StatusChangedBy uuid.NullUUID
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	PhotoID         uuid.NullUUID
 }
 
 func (q *Queries) GetSeller(ctx context.Context, id uuid.UUID) (GetSellerRow, error) {
@@ -104,6 +105,7 @@ func (q *Queries) GetSeller(ctx context.Context, id uuid.UUID) (GetSellerRow, er
 		&i.StatusChangedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PhotoID,
 	)
 	return i, err
 }
@@ -222,7 +224,7 @@ func (q *Queries) Members(ctx context.Context, sellerID uuid.UUID) ([]MembersRow
 }
 
 const sellersByStatus = `-- name: SellersByStatus :many
-SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at
+SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at, photo_id
 FROM seller_sellers
 WHERE status = $1
 ORDER BY created_at, id
@@ -247,6 +249,7 @@ type SellersByStatusRow struct {
 	StatusChangedBy uuid.NullUUID
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	PhotoID         uuid.NullUUID
 }
 
 func (q *Queries) SellersByStatus(ctx context.Context, arg SellersByStatusParams) ([]SellersByStatusRow, error) {
@@ -270,6 +273,7 @@ func (q *Queries) SellersByStatus(ctx context.Context, arg SellersByStatusParams
 			&i.StatusChangedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PhotoID,
 		); err != nil {
 			return nil, err
 		}
@@ -283,7 +287,7 @@ func (q *Queries) SellersByStatus(ctx context.Context, arg SellersByStatusParams
 
 const sellersOfAccount = `-- name: SellersOfAccount :many
 SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.phone, s.status, s.status_changed_at, s.status_changed_by,
-       s.created_at, s.updated_at, m.role
+       s.created_at, s.updated_at, s.photo_id, m.role
 FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
 WHERE m.account_id = $1
 ORDER BY s.created_at
@@ -301,6 +305,7 @@ type SellersOfAccountRow struct {
 	StatusChangedBy uuid.NullUUID
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	PhotoID         uuid.NullUUID
 	Role            string
 }
 
@@ -325,6 +330,7 @@ func (q *Queries) SellersOfAccount(ctx context.Context, accountID uuid.UUID) ([]
 			&i.StatusChangedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PhotoID,
 			&i.Role,
 		); err != nil {
 			return nil, err
@@ -335,6 +341,20 @@ func (q *Queries) SellersOfAccount(ctx context.Context, accountID uuid.UUID) ([]
 		return nil, err
 	}
 	return items, nil
+}
+
+const setPhoto = `-- name: SetPhoto :exec
+UPDATE seller_sellers SET photo_id = $1, updated_at = now() WHERE id = $2
+`
+
+type SetPhotoParams struct {
+	PhotoID uuid.NullUUID
+	ID      uuid.UUID
+}
+
+func (q *Queries) SetPhoto(ctx context.Context, arg SetPhotoParams) error {
+	_, err := q.db.Exec(ctx, setPhoto, arg.PhotoID, arg.ID)
+	return err
 }
 
 const setStatus = `-- name: SetStatus :execrows

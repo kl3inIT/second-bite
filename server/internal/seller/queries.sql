@@ -16,18 +16,18 @@ VALUES (@seller_id, @account_id, @role)
 ON CONFLICT (seller_id, account_id) DO NOTHING;
 
 -- name: GetSeller :one
-SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at
+SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at, photo_id
 FROM seller_sellers WHERE id = @id;
 
 -- name: SellersOfAccount :many
 SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.phone, s.status, s.status_changed_at, s.status_changed_by,
-       s.created_at, s.updated_at, m.role
+       s.created_at, s.updated_at, s.photo_id, m.role
 FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
 WHERE m.account_id = @account_id
 ORDER BY s.created_at;
 
 -- name: SellersByStatus :many
-SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at
+SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at, photo_id
 FROM seller_sellers
 WHERE status = @status
 ORDER BY created_at, id
@@ -64,3 +64,6 @@ SELECT EXISTS (
     SELECT 1 FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
     WHERE m.seller_id = @seller_id AND m.account_id = @account_id AND s.status = 'active'
 );
+
+-- name: SetPhoto :exec
+UPDATE seller_sellers SET photo_id = @photo_id, updated_at = now() WHERE id = @id;

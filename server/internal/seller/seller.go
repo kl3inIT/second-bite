@@ -19,6 +19,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kl3inIT/second-bite/server/internal/identity"
+	"github.com/kl3inIT/second-bite/server/internal/media"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller/internal/db"
 )
@@ -62,6 +63,8 @@ type Seller struct {
 	StatusChangedAt *time.Time
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	// PhotoID is the seller's photo, kept by media; nil when it has none.
+	PhotoID *uuid.UUID
 	// MyRole is the caller's role in the seller; empty for an admin who is
 	// not a member.
 	MyRole Role
@@ -89,12 +92,13 @@ type Service struct {
 	pool     *pgxpool.Pool
 	queries  *db.Queries
 	accounts *identity.Service
+	photos   *media.Service
 	logger   *slog.Logger
 }
 
 // NewService assembles the module.
-func NewService(pool *pgxpool.Pool, accounts *identity.Service, logger *slog.Logger) *Service {
-	return &Service{pool: pool, queries: db.New(pool), accounts: accounts, logger: logger}
+func NewService(pool *pgxpool.Pool, accounts *identity.Service, photos *media.Service, logger *slog.Logger) *Service {
+	return &Service{pool: pool, queries: db.New(pool), accounts: accounts, photos: photos, logger: logger}
 }
 
 // Open opens a seller for the caller, who becomes its owner. It is pending
@@ -171,7 +175,7 @@ func (s *Service) Mine(ctx context.Context) ([]Seller, error) {
 		sellers = append(sellers, Seller{
 			ID: r.ID, Name: r.Name, Address: r.Address, Latitude: r.Latitude, Longitude: r.Longitude, Phone: r.Phone,
 			Status: Status(r.Status), StatusChangedAt: r.StatusChangedAt, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
-			MyRole: Role(r.Role),
+			PhotoID: nullUUID(r.PhotoID), MyRole: Role(r.Role),
 		})
 	}
 
@@ -218,6 +222,31 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, d Details) (Seller, 
 		ID: id, Name: d.Name, Address: d.Address, Latitude: d.Latitude, Longitude: d.Longitude, Phone: d.Phone,
 	}); err != nil {
 		return Seller{}, fmt.Errorf("changing the seller: %w", err)
+	}
+
+	return s.Get(ctx, id)
+}
+
+// SetPhoto sets the seller's photo, one the owner uploaded, or removes it
+// when photoID is nil. Only its owner may.
+func (s *Service) SetPhoto(ctx context.Context, id uuid.UUID, photoID *uuid.UUID) (Seller, error) {
+	caller, err := s.requireOwner(ctx, id)
+	if err != nil {
+		return Seller{}, err
+	}
+
+	photo := uuid.NullUUID{}
+
+	if photoID != nil {
+		if err := s.photos.Claim(ctx, *photoID, caller.AccountID); err != nil {
+			return Seller{}, err
+		}
+
+		photo = uuid.NullUUID{UUID: *photoID, Valid: true}
+	}
+
+	if err := s.queries.SetPhoto(ctx, db.SetPhotoParams{ID: id, PhotoID: photo}); err != nil {
+		return Seller{}, fmt.Errorf("setting the seller's photo: %w", err)
 	}
 
 	return s.Get(ctx, id)
@@ -288,8 +317,16 @@ func fromRow(r db.GetSellerRow, role Role) Seller {
 	return Seller{
 		ID: r.ID, Name: r.Name, Address: r.Address, Latitude: r.Latitude, Longitude: r.Longitude, Phone: r.Phone,
 		Status: Status(r.Status), StatusChangedAt: r.StatusChangedAt, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
-		MyRole: role,
+		PhotoID: nullUUID(r.PhotoID), MyRole: role,
 	}
+}
+
+func nullUUID(id uuid.NullUUID) *uuid.UUID {
+	if !id.Valid {
+		return nil
+	}
+
+	return &id.UUID
 }
 
 // normalized trims the details and normalizes the phone.

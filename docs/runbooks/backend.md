@@ -66,6 +66,7 @@ The service migrates the database at every command, then `serve` listens on `:80
 | `SECONDBITE_HTTP_ADDR` | `:8080` | Where the API listens |
 | `SECONDBITE_LOG_FORMAT` | `json` | `json`, or `text` for local development |
 | `SECONDBITE_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` |
+| `SECONDBITE_MEDIA_STORE` | `postgres` | Where new photos' files are kept; `postgres` is the only store today |
 | `SECONDBITE_SECRETS_DIR` | `/run/secrets` | Where secret files are read from |
 
 A secret is read from the file named after its variable in `SECONDBITE_SECRETS_DIR`, as deployed environments mount it. Only when no such file exists is the variable itself read, which is what local development does. The service refuses to start on a missing or malformed value.
