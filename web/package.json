@@ -14,7 +14,7 @@
     "check": "pnpm check:tokens && pnpm check:messages && pnpm check:api && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:unit && pnpm knip",
     "generate:tokens": "node scripts/generate-tokens.mjs",
     "check:tokens": "node scripts/generate-tokens.mjs --check",
-    "check:messages": "node scripts/check-messages.mjs && node scripts/check-error-codes.mjs",
+    "check:messages": "node scripts/check-messages.mjs",
     "generate:api": "pnpm --filter openapi-codegen generate",
     "check:api": "node scripts/check-api.mjs",
     "test:unit": "vitest run",

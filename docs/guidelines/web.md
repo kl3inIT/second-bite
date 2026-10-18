@@ -22,8 +22,8 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 ## Data and the backend
 
 - The browser calls the Go server as `/api/...` on the web's own origin. In development `next.config.ts` forwards it to `SECONDBITE_API_ORIGIN` (`web/.env.development`) without the prefix; when deployed, the reverse proxy does. Server code calls `SECONDBITE_API_ORIGIN` directly.
-- Every call goes through the generated SDK. A failed call rejects with `ApiError` (`src/lib/api/client.ts`); code branches on `error.code` and shows a translated message, never the problem's own text. `error.requestId` is what a person reports.
-- The words for a failure code live once, as `Errors.<CODE>` in both catalogs, with `Errors.unknown` for a failure that has none. `pnpm check:messages` reads the codes the Go server declares (`NewFailure` calls and the platform's `Code` constants) and fails on a code without words that is not listed in `scripts/check-error-codes.mjs` as one no screen meets, and on words for a code the server no longer raises. The web workflow runs when the server's Go changes, so a new code is worded in the change that adds it.
+- Every call goes through the generated SDK. A failed call rejects with `ApiError` (`src/lib/api/client.ts`); code branches on `error.code` only where the screen does something different, such as showing the failure at a field. `error.requestId` is what a person reports.
+- The words for a failure are the Go server's, not the web's: the web and the Flutter app call the same API, and one place keeps a code's words in step for both (decided 18 October 2026; Mattermost and Karrot translate on the server too). Until the server answers in the request's language (SEC-28), a failure is shown in the general words of the error screen; the catalogs word no failure code.
 - The web session is an httpOnly cookie set by the Go server (SEC-27); a token never sits in browser storage. Access is decided by the backend, never by what a screen shows.
 
 ## Errors and logging
@@ -61,7 +61,7 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 
 ## Quality gates
 
-- `pnpm check` runs the token, message, failure-code and API-client checks, Oxlint, Prettier, the type check (after `next typegen`), the unit tests and knip, which fails on a file, export or dependency nothing uses. CI runs it with `pnpm build`, and builds the image.
+- `pnpm check` runs the token, message and API-client checks, Oxlint, Prettier, the type check (after `next typegen`), the unit tests and knip, which fails on a file, export or dependency nothing uses. CI runs it with `pnpm build`, and builds the image.
 - Unit tests sit next to what they test as `*.test.ts` and run in Node with Vitest; they cover logic, such as the API client's failures.
 - Browser tests live in `tests/e2e/` and run with Playwright against the production build and a stub backend (`tests/e2e/stub-backend.mjs`, also `pnpm stub:backend` for working on a screen whose endpoint is not built), on a phone (Pixel 7) and a desktop browser. Each page a test opens is checked with `expectNoSeriousA11yViolations` (axe, WCAG 2.2 A and AA; no rule excluded). A test waits for `hydrated()` before it presses or types into an element, since the server's HTML takes a press without doing anything until React has hydrated it. CI runs them in Microsoft's Playwright image, pinned by digest; bump it with `@playwright/test`.
 - On Windows, `@swc/core` (pulled in by next-intl) refuses its native cache when the user profile lets another account modify it. Point `SWC_NATIVE_BINDING_CACHE` at a folder only you can write. knip runs with `KNIP_DISABLE_RAW_TRANSFER=1` (pnpm's `shellEmulator` makes that work on Windows), because oxc-parser's raw transfer reserves a buffer of several GB that a machine short of memory refuses.

@@ -5,17 +5,15 @@ on:
     paths:
       - "web/**"
       - "DESIGN.md"
-      # check:api reads the contract and check:messages the server's failure codes.
+      # check:api compares the generated client with the contract.
       - "api/openapi.yaml"
-      - "server/internal/**/*.go"
       - ".github/workflows/web.yml"
   pull_request:
     paths:
       - "web/**"
       - "DESIGN.md"
-      # check:api reads the contract and check:messages the server's failure codes.
+      # check:api compares the generated client with the contract.
       - "api/openapi.yaml"
-      - "server/internal/**/*.go"
       - ".github/workflows/web.yml"
 
 permissions:
