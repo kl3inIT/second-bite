@@ -2,27 +2,36 @@
 name: Second Bite
 description: A second chance for good food.
 colors:
-  background: "#CDAA7D"
+  # Every `x` with an `x-foreground` is checked at 4.5:1 or more by web/scripts/generate-tokens.mjs, and so is
+  # each `x-hover` against `x-foreground`; the ratios noted are white or ink text on the colour.
+  background: "#CDAA7D" # kraft ground; ink on it 8.0:1
   foreground: "#1C1A17"
   card: "#FFFFFF"
   card-foreground: "#1C1A17"
-  primary: "#1F5A32"
+  popover: "#FFFFFF" # menus, selects and dialogs, a label like the card
+  popover-foreground: "#1C1A17"
+  primary: "#1F5A32" # banana leaf, 8.2:1
   primary-foreground: "#FFFFFF"
-  primary-hover: "#184A28"
+  primary-hover: "#184A28" # darker under the pointer so the text gains contrast, 10.3:1
   shell: "#1F5A32"
   shell-foreground: "#FFFFFF"
   secondary: "#E6EFE8"
   secondary-foreground: "#1C1A17"
   muted: "#F4EEE6"
-  muted-foreground: "#6B635A"
+  muted-foreground: "#6B635A" # pencil: 5.9:1 on card, 5.1:1 on muted, only 2.7:1 on kraft
   accent: "#E6EFE8"
   accent-foreground: "#1C1A17"
-  destructive: "#B42318"
+  destructive: "#B42318" # stamp red, 6.6:1
   destructive-foreground: "#FFFFFF"
+  destructive-hover: "#912018" # 8.7:1
+  success: "#2E6B3F" # paid, ready, collected; always with an icon or label, 6.4:1
+  success-foreground: "#FFFFFF"
+  warning: "#E8A33D" # window closing, payment waiting; ink on amber, 8.1:1
+  warning-foreground: "#1C1A17"
   border: "#E4D7C5"
-  input: "#857A6E"
-  ring: "#1F5A32"
-  signature: "#C93468"
+  input: "#857A6E" # field edge, 4.2:1 on white (3:1 needed for a control)
+  ring: "#1F5A32" # focus ring, 8.2:1 on white, 3.8:1 on kraft
+  signature: "#C93468" # the rubber band, 5.0:1
   signature-foreground: "#FFFFFF"
 typography:
   # Inter, chosen on 18 October 2026 over Geist and Be Vietnam Pro (SEC-22); one variable file with the Vietnamese subset, bundled on web and Flutter.
@@ -67,10 +76,15 @@ typography:
     fontWeight: 700
     lineHeight: "32px"
 rounded:
-  sm: "6px"
-  md: "10px"
-  lg: "16px"
-  full: "9999px"
+  # Named like Tailwind and shadcn: `lg` is the base radius shadcn's controls use, `xl` its cards.
+  sm: "6px" # the band
+  md: "8px"
+  lg: "10px" # buttons, inputs, chips that are not pills
+  xl: "16px" # cards and sheets
+  2xl: "20px"
+  3xl: "24px"
+  4xl: "32px"
+  full: "9999px" # pills and chips
 spacing:
   "1": "4px"
   "2": "8px"
@@ -78,6 +92,13 @@ spacing:
   "4": "16px"
   "6": "24px"
   "8": "32px"
+elevation:
+  # Shadow layers, outermost first; a colour with alpha is #RRGGBBAA. Only the card and the band cast one.
+  card:
+    - { x: 0, y: 2, blur: 6, spread: 0, color: "#5C3C142E" }
+  band:
+    - { x: 0, y: 1, blur: 2, spread: 0, color: "#5C0F2E40" }
+    - { x: 0, y: 1, blur: 0, spread: 0, color: "#FFFFFF38", inset: true }
 components:
   band:
     backgroundColor: "{colors.signature}"
@@ -99,7 +120,7 @@ components:
   offer-card:
     backgroundColor: "{colors.card}"
     textColor: "{colors.card-foreground}"
-    rounded: "{rounded.lg}"
+    rounded: "{rounded.xl}"
     padding: "12px 16px 16px"
 ---
 
@@ -144,6 +165,11 @@ Warm, material colours taken from the parcel: leaf, paper, band and ink.
 - **Tissue** (`muted`): quiet fills inside cards.
 - **Stamp Red** (`destructive`): errors, cancelled and refused states, always with an icon or label.
 
+### Status
+- **Leaf Stamp** (`success`): paid, ready and collected orders. It sits close to Banana Leaf on purpose, so it always comes with an icon or a label.
+- **Amber Sticker** (`warning`): a window about to close, a transfer still waiting. Ink text, never white.
+- **Label White** again (`popover`): menus, selects and dialogs are labels too.
+
 ### Named Rules
 **The Label Rule.** Secondary text (`muted-foreground`) sits only on white; on kraft it falls to 2.7:1. Text placed directly on kraft is `foreground` ink.
 
@@ -175,11 +201,11 @@ Mobile at 390px is the source frame for app screens; desktop is derived from it.
 
 ## Elevation & Depth
 
-Depth is a label stuck on paper: cards lift slightly off the kraft with one soft warm shadow (0 2px 6px, brown at 18%). The band has its own small shadow and a 1px highlight on its top edge, so it reads as rubber wrapped over the card. Nothing else casts a shadow.
+Depth is a label stuck on paper: cards lift slightly off the kraft with one soft warm shadow (0 2px 6px, brown at 18%). The band has its own small shadow and a 1px highlight on its top edge, so it reads as rubber wrapped over the card. Nothing else casts a shadow. Both are tokens (`elevation.card`, `elevation.band`, the `shadow-card` and `shadow-band` utilities on the web).
 
 ## Shapes
 
-Generous rounding on cards (`rounded.lg`, 16px), small rounding on the band (`rounded.sm`, 6px), full rounding on chips. Photographs fill the top of a card and share its top corners.
+Generous rounding on cards (`rounded.xl`, 16px), the base `rounded.lg` (10px) on buttons and inputs, small rounding on the band (`rounded.sm`, 6px), full rounding on chips. Photographs fill the top of a card and share its top corners.
 
 ## Components
 
