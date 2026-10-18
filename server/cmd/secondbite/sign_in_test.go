@@ -236,6 +236,26 @@ func sessionCookieOf(t *testing.T, r response) *http.Cookie {
 	return nil
 }
 
+// checkGoogleOff: without client IDs the service offers no Google button
+// and refuses Google's tokens with a 503 that names it.
+func checkGoogleOff(t *testing.T, svc service) {
+	t.Helper()
+
+	var methods map[string]any
+
+	send(t, http.MethodGet, svc.base+"/auth/methods", nil, nil).decode(t, http.StatusOK, &methods)
+
+	if _, ok := methods["google"]; ok {
+		t.Errorf("methods %v offer Google", methods)
+	}
+
+	p := send(t, http.MethodPost, svc.base+"/auth/google", nil, map[string]string{"idToken": "a.b.c"}).
+		problem(t, http.StatusServiceUnavailable)
+	if p.Code != "IDENTITY_GOOGLE_NOT_CONFIGURED" {
+		t.Errorf("code %q", p.Code)
+	}
+}
+
 func checkWrongCodes(t *testing.T, svc service) {
 	t.Helper()
 

@@ -22,6 +22,14 @@ var (
 		"Your session has ended. Sign in again.")
 	ErrSessionUnavailable = platform.NewFailure("IDENTITY_SESSION_UNAVAILABLE", platform.CategoryServiceUnavailable,
 		"Your session could not be checked. Try again shortly.").WithRetryAfter(5 * time.Second)
+	ErrGoogleNotConfigured = platform.NewFailure("IDENTITY_GOOGLE_NOT_CONFIGURED", platform.CategoryServiceUnavailable,
+		"Signing in with Google is not available; sign in with an emailed code.")
+	ErrGoogleTokenInvalid = platform.NewFailure("IDENTITY_GOOGLE_TOKEN_INVALID", platform.CategoryUnauthenticated,
+		"Google's sign-in could not be confirmed; try again.")
+	ErrEmailNotVerified = platform.NewFailure("IDENTITY_EMAIL_NOT_VERIFIED", platform.CategoryNotPermitted,
+		"Google has not confirmed this address; sign in with an emailed code.")
+	ErrGoogleLinkRequired = platform.NewFailure("IDENTITY_GOOGLE_LINK_REQUIRED", platform.CategoryConflict,
+		"This address already has an account; sign in with the code we email to it.")
 	ErrAccountNotFound = platform.NewFailure("IDENTITY_ACCOUNT_NOT_FOUND", platform.CategoryNotFound,
 		"The account does not exist.")
 )

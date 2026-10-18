@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -142,7 +143,9 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 			return nil, err
 		}
 
-		identities, err := identity.NewService(pool, notifications, identity.Config{CodeKey: codeKey}, logger)
+		identities, err := identity.NewService(pool, notifications, identity.Config{
+			CodeKey: codeKey, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")),
+		}, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -233,4 +236,17 @@ func fileConfig(getenv func(string) string) (file.Config, error) {
 	cfg.S3.SecretAccessKey = secret
 
 	return cfg, nil
+}
+
+// listOf splits a comma-separated setting into its non-empty, trimmed parts.
+func listOf(setting string) []string {
+	var parts []string
+
+	for part := range strings.SplitSeq(setting, ",") {
+		if part = strings.TrimSpace(part); part != "" {
+			parts = append(parts, part)
+		}
+	}
+
+	return parts
 }

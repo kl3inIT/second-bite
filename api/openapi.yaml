@@ -3,6 +3,9 @@ components:
     AccountBody:
       additionalProperties: false
       properties:
+        displayName:
+          description: Empty until Google gives one or the person sets it
+          type: string
         email:
           type: string
         id:
@@ -16,6 +19,7 @@ components:
         - id
         - email
         - role
+        - displayName
       type: object
     AddSellerStaffRequest:
       additionalProperties: false
@@ -236,6 +240,37 @@ components:
       required:
         - offers
       type: object
+    GoogleMethodBody:
+      additionalProperties: false
+      properties:
+        clientId:
+          description: The OAuth client ID the web's Google button uses
+          type: string
+      required:
+        - clientId
+      type: object
+    GoogleSignInInputBody:
+      additionalProperties: false
+      properties:
+        idToken:
+          description: The ID token Google's sign-in handed the page or the application
+          maxLength: 8192
+          minLength: 1
+          type: string
+        nonce:
+          description: The value whose SHA-256 was given to Google as the nonce; required when the token carries one
+          maxLength: 256
+          type: string
+        session:
+          default: token
+          description: "token: the token in the body (the mobile application); cookie: the session cookie instead (the web)"
+          enum:
+            - token
+            - cookie
+          type: string
+      required:
+        - idToken
+      type: object
     MemberBody:
       additionalProperties: false
       properties:
@@ -268,6 +303,13 @@ components:
             - "null"
       required:
         - members
+      type: object
+    MethodsOutputBody:
+      additionalProperties: false
+      properties:
+        google:
+          $ref: "#/components/schemas/GoogleMethodBody"
+          description: Present when signing in with Google is available
       type: object
     OfferBody:
       additionalProperties: false
@@ -1095,6 +1137,56 @@ paths:
       summary: Stop a seller from publishing
       tags:
         - Admin
+  /auth/google:
+    post:
+      description: Creates the account on a first sign-in with a verified address, or links an account with the address when Google speaks for it (gmail.com or a Google Workspace account); otherwise the person signs in with an emailed code.
+      operationId: signInWithGoogle
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleSignInInputBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionOutputBody"
+          description: Created
+          headers:
+            Set-Cookie:
+              schema:
+                description: The session cookie, when it was asked for
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Sign in with Google's ID token
+      tags:
+        - Sign-in
+  /auth/methods:
+    get:
+      operationId: getSignInMethods
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MethodsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: The ways to sign in besides the emailed code
+      tags:
+        - Sign-in
   /auth/sessions:
     post:
       description: Creates the account on its first sign-in. The web asks for the session in a cookie.

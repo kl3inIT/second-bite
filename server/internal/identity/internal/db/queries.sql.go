@@ -123,6 +123,77 @@ func (q *Queries) EndLiveChallenges(ctx context.Context, email string) error {
 	return err
 }
 
+const fillDisplayName = `-- name: FillDisplayName :one
+UPDATE identity_accounts
+SET display_name = CASE WHEN display_name = '' THEN $1 ELSE display_name END
+WHERE id = $2
+RETURNING id, email, role, display_name
+`
+
+type FillDisplayNameParams struct {
+	DisplayName string
+	ID          uuid.UUID
+}
+
+type FillDisplayNameRow struct {
+	ID          uuid.UUID
+	Email       string
+	Role        string
+	DisplayName string
+}
+
+// Gives the account a name when it has none; one the person chose is kept.
+func (q *Queries) FillDisplayName(ctx context.Context, arg FillDisplayNameParams) (FillDisplayNameRow, error) {
+	row := q.db.QueryRow(ctx, fillDisplayName, arg.DisplayName, arg.ID)
+	var i FillDisplayNameRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Role,
+		&i.DisplayName,
+	)
+	return i, err
+}
+
+const findAccountByEmail = `-- name: FindAccountByEmail :one
+SELECT id, email, role, display_name FROM identity_accounts WHERE email = $1
+`
+
+type FindAccountByEmailRow struct {
+	ID          uuid.UUID
+	Email       string
+	Role        string
+	DisplayName string
+}
+
+func (q *Queries) FindAccountByEmail(ctx context.Context, email string) (FindAccountByEmailRow, error) {
+	row := q.db.QueryRow(ctx, findAccountByEmail, email)
+	var i FindAccountByEmailRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Role,
+		&i.DisplayName,
+	)
+	return i, err
+}
+
+const findExternalLogin = `-- name: FindExternalLogin :one
+SELECT account_id FROM identity_external_logins WHERE provider = $1 AND subject = $2
+`
+
+type FindExternalLoginParams struct {
+	Provider string
+	Subject  string
+}
+
+func (q *Queries) FindExternalLogin(ctx context.Context, arg FindExternalLoginParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, findExternalLogin, arg.Provider, arg.Subject)
+	var account_id uuid.UUID
+	err := row.Scan(&account_id)
+	return account_id, err
+}
+
 const findSession = `-- name: FindSession :one
 SELECT s.id, s.account_id, s.last_seen_at, a.role
 FROM identity_sessions s JOIN identity_accounts a ON a.id = s.account_id
@@ -149,30 +220,37 @@ func (q *Queries) FindSession(ctx context.Context, tokenHash []byte) (FindSessio
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, email, role FROM identity_accounts WHERE id = $1
+SELECT id, email, role, display_name FROM identity_accounts WHERE id = $1
 `
 
 type GetAccountRow struct {
-	ID    uuid.UUID
-	Email string
-	Role  string
+	ID          uuid.UUID
+	Email       string
+	Role        string
+	DisplayName string
 }
 
 func (q *Queries) GetAccount(ctx context.Context, id uuid.UUID) (GetAccountRow, error) {
 	row := q.db.QueryRow(ctx, getAccount, id)
 	var i GetAccountRow
-	err := row.Scan(&i.ID, &i.Email, &i.Role)
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Role,
+		&i.DisplayName,
+	)
 	return i, err
 }
 
 const getAccounts = `-- name: GetAccounts :many
-SELECT id, email, role FROM identity_accounts WHERE id = ANY($1::uuid[])
+SELECT id, email, role, display_name FROM identity_accounts WHERE id = ANY($1::uuid[])
 `
 
 type GetAccountsRow struct {
-	ID    uuid.UUID
-	Email string
-	Role  string
+	ID          uuid.UUID
+	Email       string
+	Role        string
+	DisplayName string
 }
 
 func (q *Queries) GetAccounts(ctx context.Context, ids []uuid.UUID) ([]GetAccountsRow, error) {
@@ -184,7 +262,12 @@ func (q *Queries) GetAccounts(ctx context.Context, ids []uuid.UUID) ([]GetAccoun
 	var items []GetAccountsRow
 	for rows.Next() {
 		var i GetAccountsRow
-		if err := rows.Scan(&i.ID, &i.Email, &i.Role); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.Role,
+			&i.DisplayName,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -198,7 +281,7 @@ func (q *Queries) GetAccounts(ctx context.Context, ids []uuid.UUID) ([]GetAccoun
 const grantRole = `-- name: GrantRole :one
 INSERT INTO identity_accounts (email, role) VALUES ($1, $2)
 ON CONFLICT (email) DO UPDATE SET role = EXCLUDED.role
-RETURNING id, email, role
+RETURNING id, email, role, display_name
 `
 
 type GrantRoleParams struct {
@@ -207,15 +290,45 @@ type GrantRoleParams struct {
 }
 
 type GrantRoleRow struct {
-	ID    uuid.UUID
-	Email string
-	Role  string
+	ID          uuid.UUID
+	Email       string
+	Role        string
+	DisplayName string
 }
 
 func (q *Queries) GrantRole(ctx context.Context, arg GrantRoleParams) (GrantRoleRow, error) {
 	row := q.db.QueryRow(ctx, grantRole, arg.Email, arg.Role)
 	var i GrantRoleRow
-	err := row.Scan(&i.ID, &i.Email, &i.Role)
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Role,
+		&i.DisplayName,
+	)
+	return i, err
+}
+
+const insertAccount = `-- name: InsertAccount :one
+INSERT INTO identity_accounts (email) VALUES ($1)
+RETURNING id, email, role, display_name
+`
+
+type InsertAccountRow struct {
+	ID          uuid.UUID
+	Email       string
+	Role        string
+	DisplayName string
+}
+
+func (q *Queries) InsertAccount(ctx context.Context, email string) (InsertAccountRow, error) {
+	row := q.db.QueryRow(ctx, insertAccount, email)
+	var i InsertAccountRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Role,
+		&i.DisplayName,
+	)
 	return i, err
 }
 
@@ -242,6 +355,32 @@ func (q *Queries) InsertChallenge(ctx context.Context, arg InsertChallengeParams
 	var expires_at time.Time
 	err := row.Scan(&expires_at)
 	return expires_at, err
+}
+
+const insertExternalLogin = `-- name: InsertExternalLogin :exec
+INSERT INTO identity_external_logins (account_id, provider, subject, linked_email, name, picture_url)
+VALUES ($1, $2, $3, $4, $5, $6)
+`
+
+type InsertExternalLoginParams struct {
+	AccountID   uuid.UUID
+	Provider    string
+	Subject     string
+	LinkedEmail string
+	Name        string
+	PictureUrl  string
+}
+
+func (q *Queries) InsertExternalLogin(ctx context.Context, arg InsertExternalLoginParams) error {
+	_, err := q.db.Exec(ctx, insertExternalLogin,
+		arg.AccountID,
+		arg.Provider,
+		arg.Subject,
+		arg.LinkedEmail,
+		arg.Name,
+		arg.PictureUrl,
+	)
+	return err
 }
 
 const insertSession = `-- name: InsertSession :one
@@ -275,6 +414,45 @@ SELECT pg_advisory_xact_lock(hashtextextended('identity:' || $1::text, 0))
 // Serializes the requests for one address until the transaction ends.
 func (q *Queries) LockEmail(ctx context.Context, email string) error {
 	_, err := q.db.Exec(ctx, lockEmail, email)
+	return err
+}
+
+const lockSubject = `-- name: LockSubject :exec
+SELECT pg_advisory_xact_lock(hashtextextended('identity:' || $1::text || ':' || $2::text, 0))
+`
+
+type LockSubjectParams struct {
+	Provider string
+	Subject  string
+}
+
+// Serializes the sign-ins of one external identity until the transaction ends.
+func (q *Queries) LockSubject(ctx context.Context, arg LockSubjectParams) error {
+	_, err := q.db.Exec(ctx, lockSubject, arg.Provider, arg.Subject)
+	return err
+}
+
+const refreshExternalLogin = `-- name: RefreshExternalLogin :exec
+UPDATE identity_external_logins
+SET name = $1, picture_url = $2, last_used_at = now()
+WHERE provider = $3 AND subject = $4
+`
+
+type RefreshExternalLoginParams struct {
+	Name       string
+	PictureUrl string
+	Provider   string
+	Subject    string
+}
+
+// The name and the picture follow the provider's at each sign-in.
+func (q *Queries) RefreshExternalLogin(ctx context.Context, arg RefreshExternalLoginParams) error {
+	_, err := q.db.Exec(ctx, refreshExternalLogin,
+		arg.Name,
+		arg.PictureUrl,
+		arg.Provider,
+		arg.Subject,
+	)
 	return err
 }
 
@@ -322,18 +500,24 @@ func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) erro
 const upsertAccount = `-- name: UpsertAccount :one
 INSERT INTO identity_accounts (email) VALUES ($1)
 ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
-RETURNING id, email, role
+RETURNING id, email, role, display_name
 `
 
 type UpsertAccountRow struct {
-	ID    uuid.UUID
-	Email string
-	Role  string
+	ID          uuid.UUID
+	Email       string
+	Role        string
+	DisplayName string
 }
 
 func (q *Queries) UpsertAccount(ctx context.Context, email string) (UpsertAccountRow, error) {
 	row := q.db.QueryRow(ctx, upsertAccount, email)
 	var i UpsertAccountRow
-	err := row.Scan(&i.ID, &i.Email, &i.Role)
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Role,
+		&i.DisplayName,
+	)
 	return i, err
 }

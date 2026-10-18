@@ -6,6 +6,10 @@ Requirements of [docs/specs/identity.md](../specs/identity.md) and the checks th
 | --- | --- |
 | A code is emailed and signs in; the session reads the account; sign-out ends it; an address in mixed case is the same account | `TestService` › sign in with an emailed code, then sign out |
 | The web's sign-in puts the session in an `HttpOnly`, `Secure`, `SameSite=Lax` cookie and not in the body; the cookie alone reads the account; a Bearer header beside it wins; a cross-site sign-out is refused and a same-origin one clears the cookie; an ended cookie is ignored | `TestService` › sign in with the session in a cookie, as the web does |
+| Google's token is refused for a wrong signature, issuer, audience or expiry, a missing subject, or a nonce on one side only or not matching; both issuer forms and any configured client ID pass | `internal/identity` `TestGoogleVerify` |
+| Google speaks for `gmail.com` and for a Workspace account (`hd`), not for an outside address | `TestGoogleAuthoritative` |
+| A first Google sign-in creates the account with Google's name; a returning subject keeps its account and address and refreshes the identity's name; an account is linked at `gmail.com` and with `hd`; an outside address with an account is refused (seen to fail with the rule taken out); an unverified address is refused; four first sign-ins at once make one link; without client IDs Google is off | `TestSignInWithGoogle` |
+| Without client IDs the API offers no Google method and answers `IDENTITY_GOOGLE_NOT_CONFIGURED` | `TestService` › without client IDs Google is offered nowhere |
 | A wrong code spends a guess; the fifth ends the code | `TestService` › a wrong code spends a guess and the fifth ends the code |
 | A second code within a minute is refused with the wait | `TestService` › a second code within a minute is refused with a wait |
 | A code works once | `TestService` › a code works once |

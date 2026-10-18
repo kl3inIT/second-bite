@@ -198,7 +198,7 @@ func (s *Service) SignIn(ctx context.Context, challengeID uuid.UUID, code string
 			return fmt.Errorf("finding the account: %w", err)
 		}
 
-		session, err = s.openSession(ctx, q, Account{ID: account.ID, Email: account.Email, Role: platform.Role(account.Role)})
+		session, err = s.openSession(ctx, q, Account{ID: account.ID, Email: account.Email, Role: platform.Role(account.Role), DisplayName: account.DisplayName})
 
 		return err
 	})
