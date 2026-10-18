@@ -1,6 +1,6 @@
 # SEC-33 — Staging at secondbite.vadan.app: design
 
-Status: proposed on 18 October 2026. The team decided the same day to deploy staging now, at `secondbite.vadan.app`; the production address is not chosen. The open choices are in [Decisions](#decisions). Not built ([plan](plan.md)). Tracked in Linear as SEC-33, with SEC-35 (the Flutter browser preview) and SEC-34 (mobile CI).
+Status: proposed on 18 October 2026. The team decided the same day to deploy staging now, at `secondbite.vadan.app`, automatically after every green `main`; the production address is not chosen. The open choices are in [Decisions](#decisions). Not built ([plan](plan.md)). Tracked in Linear as SEC-33, with SEC-35 (the Flutter browser preview) and SEC-34 (mobile CI).
 
 ## What the team gets
 
@@ -97,7 +97,7 @@ Proposed: the same host, the same proxy and the same release-by-artifact and SSH
 
 ### 2. Automatic deployment after every green `main`
 
-Proposed: `STAGING_AUTO_DEPLOY=true` from the first deployment, as BeyondPilot's staging does. The pilot needs the newest build in front of the founder and the sellers. The server stops for a few seconds while it migrates.
+Decided with the team on 18 October 2026: `STAGING_AUTO_DEPLOY=true` from the first deployment, as BeyondPilot's staging does. The pilot needs the newest build in front of the founder and the sellers. The server stops for a few seconds while it migrates.
 
 ### 3. Files in PostgreSQL on staging
 

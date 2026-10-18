@@ -3,6 +3,7 @@
 //	secondbite serve                      migrate the database, then serve the API
 //	secondbite admin grant EMAIL       make the account of EMAIL an admin
 //	secondbite email configure [flags]    choose who delivers email
+//	secondbite health                     exit 0 when the local server is ready
 //
 // The last two are the administrative commands of a fresh installation: the
 // first admin and the first email provider exist before anyone can sign in.
@@ -20,6 +21,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -36,7 +38,8 @@ import (
 const usage = `usage:
   secondbite serve
   secondbite admin grant EMAIL
-  secondbite email configure [flags]   (secondbite email configure -h lists them)`
+  secondbite email configure [flags]   (secondbite email configure -h lists them)
+  secondbite health`
 
 var errUsage = errors.New(usage)
 
@@ -57,6 +60,12 @@ func main() {
 func run(ctx context.Context, args []string, getenv func(string) string, stdin io.Reader, stdout io.Writer) error {
 	if len(args) == 0 {
 		return errUsage
+	}
+
+	// health needs no database: the container's health check runs it beside a
+	// serving process, in an image that has no shell or HTTP client.
+	if args[0] == "health" {
+		return health(ctx, args[1:], getenv)
 	}
 
 	app, err := assemble(ctx, getenv, stdout)
@@ -249,4 +258,44 @@ func listOf(setting string) []string {
 	}
 
 	return parts
+}
+
+// health asks the server on this host's SECONDBITE_HTTP_ADDR whether it is
+// ready, as Docker's health check does.
+func health(ctx context.Context, args []string, getenv func(string) string) error {
+	if len(args) != 0 {
+		return errUsage
+	}
+
+	host, port, err := net.SplitHostPort(getenv("SECONDBITE_HTTP_ADDR"))
+	if err != nil {
+		host, port = "", "8080"
+	}
+
+	if host == "" {
+		host = "127.0.0.1"
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+net.JoinHostPort(host, port)+"/readyz", nil)
+	if err != nil {
+		return err
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("health: %w", err)
+	}
+
+	if err := res.Body.Close(); err != nil {
+		return fmt.Errorf("health: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("health: /readyz answered %s", res.Status)
+	}
+
+	return nil
 }

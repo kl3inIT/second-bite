@@ -41,3 +41,7 @@ updates:
     groups:
       pub:
         patterns: ["*"]
+  - package-ecosystem: docker
+    directory: /server
+    schedule:
+      interval: weekly
