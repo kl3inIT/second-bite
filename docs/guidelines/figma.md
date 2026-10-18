@@ -21,7 +21,7 @@ One file, `Second Bite — Product UI`.
 
 The third page stays free until a real need appears.
 
-The file in use today is `Secondbite`, with the pages `Mobile · Khách` (the customer screens and the `Button` and `Bottom nav` components), `Brand · 3 hướng` and `Brand`. Its one variable collection, `SecondBite`, holds the identity's primitives (`brand/50`–`brand/900`, `text/*`, `accent/amber`, `logo/*`) rather than the semantic `Theme` and `Scale` collections described below. [DESIGN.md](../../DESIGN.md) mirrors it as its `palette`, under the same names (`brand/800` is `brand-800`), and its colour roles take palette colours; its text styles are named after the Figma ones (`Tiêu đề/H1 28` is `h1-28`).
+The file in use today is `Secondbite`, with the pages `Mobile · Khách` (the customer screens and the `Button` and `Bottom nav` components; the home follows the `Mobile v2` section), `Brand · 3 hướng` and `Brand`. Its one variable collection, `SecondBite`, holds the identity's primitives (`brand/50`–`brand/900`, `text/*`, `accent/amber`, `accent/lime-*`, `status/error*`, `logo/*`) rather than the semantic `Theme` and `Scale` collections described below. [DESIGN.md](../../DESIGN.md) mirrors it as its `palette`, under the same names (`brand/800` is `brand-800`), and its colour roles take palette colours; its text styles are named after the Figma ones (`Tiêu đề/H1 28` is `h1-28`).
 
 ## Tokens
 

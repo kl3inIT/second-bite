@@ -1,18 +1,21 @@
-import { useTranslations } from "next-intl";
+import { HeaderSweep } from "./header-sweep";
+import { LanguageSwitcher } from "./language-switcher";
 
-import { LanguageSwitcher } from "@/components/language-switcher";
-import { Wordmark } from "@/components/wordmark";
-
-// The deep-leaf header of every customer page (Figma header): the wordmark and the language capsule, then
-// what the page puts under them, on a shell with rounded bottom corners.
-export function AppHeader({ children }: { children: React.ReactNode }) {
-  const t = useTranslations("Metadata");
-
+// The lime header of every customer page (Figma header): what the page names itself with and the language
+// capsule, then what the page puts under them, under the leaf sweep and with rounded bottom corners.
+export function AppHeader({
+  title,
+  children,
+}: {
+  title: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <header className="rounded-b-3xl bg-shell text-shell-foreground">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-3.5 px-4 pt-3.5 pb-5">
-        <div className="flex items-center justify-between gap-4">
-          <Wordmark label={t("title")} className="block h-6 w-38" />
+    <header className="relative overflow-hidden rounded-b-3xl bg-shell text-shell-foreground">
+      <HeaderSweep />
+      <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 pt-4 pb-3">
+        <div className="flex items-start justify-between gap-4">
+          {title}
           <LanguageSwitcher />
         </div>
         {children}

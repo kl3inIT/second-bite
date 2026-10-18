@@ -26,6 +26,12 @@
   --logo-rose: #B03B4E;
   --logo-indigo: #3A4F9A;
   --logo-olive: #5E6B1F;
+  --accent-lime-500: #8DC63F;
+  --accent-lime-300: #C6E67A;
+  --accent-lime-100: #EEF7D9;
+  --accent-lime-ink: #2C4709;
+  --status-error: #B42318;
+  --status-error-bg: #FEF3F2;
 
   --background: var(--brand-50);
   --foreground: var(--text-ink);
@@ -37,11 +43,13 @@
   --primary: var(--brand-800);
   --primary-foreground: var(--base-white);
   --primary-hover: var(--brand-900);
-  --shell: var(--brand-800);
-  --shell-foreground: var(--base-white);
-  --shell-raised: var(--brand-700);
-  --shell-raised-foreground: var(--base-white);
-  --shell-border: var(--brand-500);
+  --shell: var(--accent-lime-300);
+  --shell-foreground: var(--brand-900);
+  --shell-raised: var(--base-white);
+  --shell-raised-foreground: var(--text-ink);
+  --shell-border: var(--border-line);
+  --sweep: var(--brand-700);
+  --sweep-edge: var(--brand-500);
   --secondary: var(--brand-100);
   --secondary-foreground: var(--brand-800);
   --secondary-hover: var(--brand-200);
@@ -51,7 +59,10 @@
   --accent-foreground: var(--brand-800);
   --highlight: var(--accent-amber);
   --highlight-foreground: var(--accent-amber-ink);
-  --destructive: #B42318;
+  --fresh: var(--accent-lime-300);
+  --fresh-foreground: var(--accent-lime-ink);
+  --sale: var(--logo-rose);
+  --destructive: var(--status-error);
   --destructive-foreground: var(--base-white);
   --destructive-hover: #912018;
   --success: var(--brand-700);
@@ -84,6 +95,8 @@
   --color-shell-raised: var(--shell-raised);
   --color-shell-raised-foreground: var(--shell-raised-foreground);
   --color-shell-border: var(--shell-border);
+  --color-sweep: var(--sweep);
+  --color-sweep-edge: var(--sweep-edge);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary-hover: var(--secondary-hover);
@@ -93,6 +106,9 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
+  --color-fresh: var(--fresh);
+  --color-fresh-foreground: var(--fresh-foreground);
+  --color-sale: var(--sale);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive-hover: var(--destructive-hover);
@@ -126,10 +142,10 @@
   --text-h1-28--line-height: 1.15;
   --text-h1-28--font-weight: 700;
   --text-h1-28--letter-spacing: -0.01em;
-  --text-banner-24: 24px;
-  --text-banner-24--line-height: 1.1;
-  --text-banner-24--font-weight: 700;
-  --text-banner-24--letter-spacing: -0.01em;
+  --text-deal-34: 34px;
+  --text-deal-34--line-height: 1.05;
+  --text-deal-34--font-weight: 700;
+  --text-deal-34--letter-spacing: -0.02em;
   --text-h2-22: 22px;
   --text-h2-22--line-height: 1.15;
   --text-h2-22--font-weight: 700;
@@ -146,6 +162,9 @@
   --text-price-16--line-height: 1.15;
   --text-price-16--font-weight: 700;
   --text-price-16--letter-spacing: -0.01em;
+  --text-place-16: 16px;
+  --text-place-16--line-height: 1.35;
+  --text-place-16--font-weight: 700;
   --text-button-16: 16px;
   --text-button-16--line-height: 1.2;
   --text-button-16--font-weight: 600;
@@ -164,4 +183,8 @@
   --text-micro-11: 11px;
   --text-micro-11--line-height: 1.4;
   --text-micro-11--font-weight: 500;
+  --text-overline-11: 11px;
+  --text-overline-11--line-height: 1.3;
+  --text-overline-11--font-weight: 600;
+  --text-overline-11--letter-spacing: 0.04em;
 }

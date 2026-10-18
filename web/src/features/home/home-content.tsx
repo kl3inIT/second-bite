@@ -1,16 +1,9 @@
 import { getTranslations } from "next-intl/server";
 
-import { Carousel } from "@/components/carousel";
 import { ScrollRow } from "@/components/scroll-row";
 import { SectionHeader } from "@/components/section-header";
 import { listOffers } from "@/features/offers/list-offers";
-import {
-  closingFirst,
-  inShowingOrder,
-  openingFirst,
-  type OfferSummary,
-} from "@/features/offers/offer";
-import { OfferBanner } from "@/features/offers/offer-banner";
+import { closingFirst, inShowingOrder, type OfferSummary } from "@/features/offers/offer";
 import { OfferCard } from "@/features/offers/offer-card";
 import { OfferTile } from "@/features/offers/offer-tile";
 import { Link } from "@/i18n/navigation";
@@ -19,12 +12,10 @@ import type { HomeQuery } from "./home-query";
 import { IntroStrip } from "./intro-strip";
 import { KindPicker } from "./kind-picker";
 
-const BANNER_COUNT = 3;
 const CLOSING_COUNT = 6;
 
-// Everything under the header for what the address asks (Figma content). Without a filter: banners for
-// the windows opening first, the kinds, the windows closing first, then every offer. With one: the kinds
-// and the matching offers.
+// Everything under the header for what the address asks (Figma content). Without a filter: the kinds, the
+// windows closing first, then every offer. With one: the kinds and the matching offers.
 export async function HomeContent({ query: pending }: { query: Promise<HomeQuery> }) {
   const query = await pending;
   const [t, offers] = await Promise.all([
@@ -32,23 +23,10 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
     listOffers({ q: query.q, kind: query.kind, collectNow: query.now }),
   ]);
   const filtered = Boolean(query.q || query.kind || query.now);
-  const banners = filtered ? [] : openingFirst(offers).slice(0, BANNER_COUNT);
   const closing = filtered ? [] : closingFirst(offers).slice(0, CLOSING_COUNT);
 
   return (
-    <div className="flex flex-col gap-4.5 py-4">
-      {banners.length > 0 && (
-        <Carousel
-          label={t("bannersLabel")}
-          slideLabels={banners.map((_, index) =>
-            t("slide", { position: index + 1, count: banners.length }),
-          )}
-        >
-          {banners.map((offer) => (
-            <OfferBanner key={offer.id} offer={offer} />
-          ))}
-        </Carousel>
-      )}
+    <div className="flex flex-col gap-3 pt-1 pb-4">
       <KindPicker query={query} />
       {!filtered && (
         <div className="px-4">
@@ -56,7 +34,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
         </div>
       )}
       {closing.length > 0 && (
-        <section aria-labelledby="closing-soon" className="flex flex-col gap-4.5">
+        <section aria-labelledby="closing-soon" className="flex flex-col gap-3">
           <SectionHeader
             id="closing-soon"
             title={t("closingSoon")}
@@ -78,7 +56,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
           </ScrollRow>
         </section>
       )}
-      <section aria-labelledby="all-offers" className="flex flex-col gap-4.5">
+      <section aria-labelledby="all-offers" className="flex flex-col gap-3">
         <SectionHeader id="all-offers" title={filtered ? t("results") : t("allOffers")} />
         <OfferGrid offers={offers} filtered={filtered} />
       </section>

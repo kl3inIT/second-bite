@@ -19,13 +19,13 @@ export function OfferCard({ offer }: { offer: OfferSummary }) {
 
   return (
     <article className="relative flex w-66 flex-col overflow-hidden rounded-2xl bg-card text-card-foreground">
-      <div className="relative h-37">
+      <div className="relative h-23">
         <OfferPhoto offer={offer} dimmed={!available} />
         <div
           aria-hidden
           className="absolute inset-0 bg-linear-to-b from-transparent to-primary-hover/35"
         />
-        <Sticker tone={available ? "highlight" : "soldOut"} className="absolute top-3 left-3">
+        <Sticker tone={available ? "fresh" : "soldOut"} className="absolute top-3 left-3">
           {available ? t("stock", { units: offer.unitsLeft }) : t("soldOut")}
         </Sticker>
         <SellerAvatar seller={offer.seller} size="md" className="absolute bottom-3 left-3" />

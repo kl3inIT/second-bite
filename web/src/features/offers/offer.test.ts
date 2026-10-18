@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  biggestDiscountFirst,
   closingFirst,
   inShowingOrder,
   isAvailable,
-  openingFirst,
+  openBags,
   type OfferSummary,
 } from "./offer";
 
@@ -13,6 +14,7 @@ function offer(
   status: OfferSummary["status"],
   unitsLeft: number,
   window: { start: string; end: string } = { start: "21:00", end: "21:45" },
+  discountPercent = 50,
 ): OfferSummary {
   return {
     id,
@@ -26,7 +28,7 @@ function offer(
     unitsLeft,
     priceVnd: 20_000,
     originalPriceVnd: 40_000,
-    discountPercent: 50,
+    discountPercent,
     photo: { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` },
     windowStart: `2026-10-18T${window.start}:00+07:00`,
     windowEnd: `2026-10-18T${window.end}:00+07:00`,
@@ -76,7 +78,21 @@ describe("the home's rows", () => {
     expect(closingFirst(list).map((o) => o.id)).toEqual(["soon", "late"]);
   });
 
-  it("puts the window that opens first at the top, leaving out what cannot be ordered", () => {
-    expect(openingFirst(list).map((o) => o.id)).toEqual(["late", "soon"]);
+  it("puts the biggest discount at the top, leaving out what cannot be ordered", () => {
+    const discounts = [
+      offer("half", "on_sale", 1, undefined, 50),
+      offer("sold-out", "sold_out", 0, undefined, 80),
+      offer("most", "on_sale", 2, undefined, 63),
+    ];
+
+    expect(biggestDiscountFirst(discounts).map((o) => o.id)).toEqual(["most", "half"]);
+  });
+
+  it("counts the bags still open and finds the window that closes last", () => {
+    expect(openBags(list)).toEqual({ bags: 3, lastWindowEnd: "2026-10-18T22:00:00+07:00" });
+  });
+
+  it("has no open bags when nothing can be ordered", () => {
+    expect(openBags([offer("sold-out", "sold_out", 0)])).toBeUndefined();
   });
 });

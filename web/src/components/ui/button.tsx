@@ -20,8 +20,8 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
-        // Second Bite: an icon or text action on the green shell of the top bar.
-        shell: "text-shell-foreground hover:bg-primary-hover",
+        // Second Bite: an icon or text action on the lime shell of the header.
+        shell: "text-shell-foreground hover:bg-shell-raised",
       },
       size: {
         // Second Bite: 44px targets for one-handed use (PRODUCT.md › Accessibility).

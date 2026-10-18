@@ -68,6 +68,10 @@ const pairs = [
   ["input", "card", 3],
   ["ring", "card", 3],
   ["ring", "background", 3],
+  ["ring", "shell", 3],
+  // The deal card: its lime title on Deep Leaf and the rose discounts on its white tickets.
+  ["fresh", "primary", MIN_TEXT_CONTRAST],
+  ["sale", "card", MIN_TEXT_CONTRAST],
   // Every seller avatar colour carries the one avatar ink.
   ...Object.keys(colors)
     .filter((name) => name.startsWith("avatar-") && name !== "avatar-foreground")

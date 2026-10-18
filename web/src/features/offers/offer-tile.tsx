@@ -20,7 +20,7 @@ export function OfferTile({ offer }: { offer: OfferSummary }) {
     <article className="relative flex w-full flex-col overflow-hidden rounded-tile bg-card text-card-foreground">
       <div className="relative h-33">
         <OfferPhoto offer={offer} dimmed={!available} />
-        <Sticker tone={available ? "highlight" : "soldOut"} className="absolute top-2.5 left-2.5">
+        <Sticker tone={available ? "fresh" : "soldOut"} className="absolute top-2.5 left-2.5">
           {available ? t("stock", { units: offer.unitsLeft }) : t("soldOut")}
         </Sticker>
         <div className="absolute inset-x-0 bottom-0 flex pr-4">

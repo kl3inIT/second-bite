@@ -1,17 +1,17 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 
-// The amber pill on a photograph (DESIGN.md › Components › Sticker): stock or the collection window, always as text.
+// The lime pill on a photograph (DESIGN.md › Components › Sticker): how many are left, always as text.
 const stickerVariants = cva(
   "inline-flex items-center rounded-full px-2.5 py-1 text-caption-12 font-bold whitespace-nowrap",
   {
     variants: {
       tone: {
-        highlight: "bg-highlight text-highlight-foreground",
+        fresh: "bg-fresh text-fresh-foreground",
         soldOut: "bg-muted-foreground text-card",
       },
     },
-    defaultVariants: { tone: "highlight" },
+    defaultVariants: { tone: "fresh" },
   },
 );
 

@@ -6,19 +6,25 @@ import { hydrated } from "./hydration";
 test.use({ locale: "vi-VN" });
 
 test.describe("the customer home", () => {
-  test("shows tonight's offers: banners, what closes first, then every offer", async ({ page }) => {
+  test("shows tonight's offers: the deal card, what closes first, then every offer", async ({
+    page,
+  }) => {
     await page.goto("/vi");
 
     await expect(
       page.getByRole("heading", { level: 1, name: "Tối nay ở Tasco Mall" }),
     ).toBeVisible();
 
-    const banners = page.getByRole("region", { name: "Món mở giờ lấy sớm nhất" });
-    await expect(banners.getByRole("heading", { level: 3 })).toHaveText([
-      "Túi bánh mì và croissant, 4 chiếc",
-      "Xôi thập cẩm, 1 hộp",
-    ]);
-    await expect(banners.getByText("Lấy 21:00–21:45")).toBeVisible();
+    const deals = page.getByRole("region", { name: "Túi ngon tối nay ở Tasco Mall" });
+    await expect(deals.getByText("58%", { exact: true })).toBeVisible();
+    await expect(deals.getByRole("listitem")).toHaveCount(2);
+    const firstTicket = deals.getByRole("listitem").first();
+    await expect(firstTicket.getByText("Giảm 58%")).toBeAttached();
+    await expect(firstTicket.getByText("Tiệm bánh Pháp")).toBeVisible();
+    await expect(firstTicket.getByText("Lấy 21:00")).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "8 túi đang mở · túi cuối lúc 21:45" }),
+    ).toHaveAttribute("href", "#all-offers");
 
     const closing = page.getByRole("region", { name: "Sắp hết giờ lấy" });
     await expect(closing.getByRole("heading", { level: 3 })).toHaveText([
@@ -57,6 +63,7 @@ test.describe("the customer home", () => {
       "Túi bánh mì và croissant, 4 chiếc",
     ]);
     await expect(page.getByRole("region", { name: "Sắp hết giờ lấy" })).toBeHidden();
+    await expect(page.getByRole("region", { name: "Túi ngon tối nay ở Tasco Mall" })).toBeHidden();
 
     await (await hydrated(page.getByRole("link", { name: "Bánh", exact: true }))).click();
     await expect(page).toHaveURL(/\/vi$/);
