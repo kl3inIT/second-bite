@@ -1,6 +1,6 @@
 # SEC-29 — Signing in on the web, with the emailed code and Google: design
 
-Status: proposed on 18 October 2026; decisions 3, 4 and 5 taken with the team the same day, the others waiting ([Decisions](#decisions)); not built ([plan](plan.md)). Tracked in Linear as SEC-29, with SEC-27 (the web session in a cookie), which it needs.
+Status: proposed on 18 October 2026; decisions taken with the team the same day ([Decisions](#decisions)); not built ([plan](plan.md)). Tracked in Linear as SEC-29, with SEC-27 (the web session in a cookie), which it needs.
 
 ## What a person can do
 
@@ -33,13 +33,17 @@ The emailed code takes the same last steps: `POST /api/auth/sessions` answers wi
 
 ## Decisions
 
-Each is proposed with its sources; the team chooses before anything is built.
+Each was proposed with its sources and chosen by the team on 18 October 2026.
 
 ### 1. SEC-27 and SEC-29 are built as one increment
+
+Decided with the team on 18 October 2026.
 
 SEC-27 (the session in an httpOnly cookie, decided on 17 October 2026 as option B) has no screen to serve until sign-in exists, and sign-in on the web cannot keep a session without it. Building them together tests the whole path once.
 
 ### 2. The cookie's path is `/`, not `/api`
+
+Decided with the team on 18 October 2026, as Gitea (`modules/setting/session.go:63`), Mattermost (`channels/web/context.go:186`), Kratos and BeyondPilot keep theirs at the site's root.
 
 SEC-27 wrote `Path=/api`. The web renders pages on its server (`/vi/...`), and a page that shows what a signed-in person may do must send the person's cookie to the API; a browser sends a cookie only to paths under its own, so with `/api` no page would ever receive it. BeyondPilot's web forwards the cookie from its server components the same way (`web/src/lib/auth/session.ts`: `headers: { cookie: (await cookies()).toString() }`).
 
@@ -92,7 +96,7 @@ Decided with the team on 18 October 2026: the `sub`, the address at the time of 
 
 ### 6. The nonce
 
-The page draws a random value, gives Google its SHA-256, and posts the value itself; the service accepts the token only when its `nonce` is the SHA-256 of what was posted, as Supabase Auth does (`token_oidc.go:298-305`). A token copied from elsewhere cannot be replayed without the value, which never leaves the page. Kratos leaves the nonce optional for Google (`provider_google.go:86-89`); the mobile Google libraries send one too, so it can be required from the start.
+Decided with the team on 18 October 2026: optional, as Supabase Auth has it. The page draws a random value, gives Google its SHA-256, and posts the value itself. When the token carries a `nonce`, the service accepts it only if that nonce is the SHA-256 of what was posted, and a nonce on one side without the other is refused (`token_oidc.go:298-305`); a token with no nonce, posted with none, passes on its signature, audience and expiry alone. Kratos leaves it optional for Google too (`provider_google.go:86-89`), Firebase requires it only for Apple, and Google's button takes it as an optional parameter. A token copied from elsewhere cannot be replayed through our web page, which always sends one.
 
 ## Boundary
 
@@ -114,7 +118,7 @@ The OpenAPI document declares the cookie as a second security scheme beside Bear
 | Code | Status | When |
 | --- | --- | --- |
 | `IDENTITY_GOOGLE_NOT_CONFIGURED` | 503 | No Google client is configured |
-| `IDENTITY_GOOGLE_TOKEN_INVALID` | 401 | The signature, issuer, audience, expiry or nonce does not hold |
+| `IDENTITY_GOOGLE_TOKEN_INVALID` | 401 | The signature, issuer, audience or expiry does not hold, or a nonce sent does not match |
 | `IDENTITY_EMAIL_NOT_VERIFIED` | 403 | A first Google sign-in whose address Google has not verified |
 | `IDENTITY_GOOGLE_LINK_REQUIRED` | 409 | The address has an account and Google is not authoritative for it |
 | `PLATFORM_CROSS_ORIGIN_REFUSED` | 403 | A cookie-authenticated change from another origin |
