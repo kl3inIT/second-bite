@@ -89,7 +89,7 @@ SELECT pg_advisory_xact_lock(hashtextextended('identity:' || @provider::text || 
 -- name: FindExternalLogin :one
 SELECT account_id FROM identity_external_logins WHERE provider = @provider AND subject = @subject;
 
--- name: RefreshExternalLogin :exec
+-- name: RefreshExternalLogin :execrows
 -- The name and the picture follow the provider's at each sign-in.
 UPDATE identity_external_logins
 SET name = @name, picture_url = @picture_url, last_used_at = now()

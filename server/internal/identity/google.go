@@ -200,10 +200,17 @@ func (s *Service) googleAccount(ctx context.Context, q *db.Queries, c googleClai
 
 	switch {
 	case err == nil:
-		if err := q.RefreshExternalLogin(ctx, db.RefreshExternalLoginParams{
+		refreshed, err := q.RefreshExternalLogin(ctx, db.RefreshExternalLoginParams{
 			Name: c.Name, PictureUrl: c.Picture, Provider: providerGoogle, Subject: c.Subject,
-		}); err != nil {
+		})
+		if err != nil {
 			return Account{}, fmt.Errorf("refreshing the identity: %w", err)
+		}
+
+		// An emailed code removed the link while this sign-in was reading it,
+		// and ended the account's sessions: the identity is unlinked again.
+		if refreshed == 0 {
+			return s.linkGoogle(ctx, q, c)
 		}
 
 		return fillName(ctx, q, accountID, c.Name)

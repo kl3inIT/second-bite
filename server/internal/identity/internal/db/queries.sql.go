@@ -458,7 +458,7 @@ func (q *Queries) LockSubject(ctx context.Context, arg LockSubjectParams) error 
 	return err
 }
 
-const refreshExternalLogin = `-- name: RefreshExternalLogin :exec
+const refreshExternalLogin = `-- name: RefreshExternalLogin :execrows
 UPDATE identity_external_logins
 SET name = $1, picture_url = $2, last_used_at = now()
 WHERE provider = $3 AND subject = $4
@@ -472,14 +472,17 @@ type RefreshExternalLoginParams struct {
 }
 
 // The name and the picture follow the provider's at each sign-in.
-func (q *Queries) RefreshExternalLogin(ctx context.Context, arg RefreshExternalLoginParams) error {
-	_, err := q.db.Exec(ctx, refreshExternalLogin,
+func (q *Queries) RefreshExternalLogin(ctx context.Context, arg RefreshExternalLoginParams) (int64, error) {
+	result, err := q.db.Exec(ctx, refreshExternalLogin,
 		arg.Name,
 		arg.PictureUrl,
 		arg.Provider,
 		arg.Subject,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const spendAttempt = `-- name: SpendAttempt :one
