@@ -1,0 +1,9 @@
+# gen-l10n (flutter_localizations + intl), as docs/guidelines/mobile.md decides. Vietnamese is the
+# template, as vi.json is on the web. Flutter no longer generates a synthetic package, so the
+# classes are written under lib/l10n/gen and committed with the catalogs.
+arb-dir: lib/l10n/arb
+template-arb-file: app_vi.arb
+output-dir: lib/l10n/gen
+output-localization-file: app_localizations.dart
+nullable-getter: false
+preferred-supported-locales: [vi, en]

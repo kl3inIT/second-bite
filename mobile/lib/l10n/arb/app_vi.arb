@@ -1,0 +1,11 @@
+{
+  "@@locale": "vi",
+  "appTitle": "Second Bite",
+  "@appTitle": {
+    "description": "The app's name, shown by the system and in the top bar"
+  },
+  "homeTitle": "Tối nay ở Tasco Mall",
+  "@homeTitle": {
+    "description": "Heading of the customer home, the list of tonight's offers"
+  }
+}

@@ -11,6 +11,12 @@ How the Flutter application in `mobile/` realizes the [conventions](../conventio
 - The session's Bearer tokens (SEC-27) live in the Keychain or Keystore through `flutter_secure_storage`, never in `shared_preferences`.
 - A package arrives with its first consumer, never ahead of it. Patrol arrives with the first screen that meets a system permission dialog.
 
+## Platforms
+
+- The app ships to iOS and Android only. `mobile/web/` exists so the team can look at screens in a browser (`flutter run -d chrome`) without an emulator: it is a preview, never deployed, never offered to customers, and no code is changed to make it work on the web. Customers on the web use the Next.js application in `web/`.
+- What the browser does differently is checked on an Android emulator or a device, never in the preview: secure storage (on the web it is browser storage), push, the camera, location and sign-in.
+- The Android build asks Gradle for a 3 GB heap (`android/gradle.properties`) instead of the template's 8 GB, so it builds on a 16 GB laptop beside an emulator.
+
 ## Agent skills and documentation
 
 - The skills vendored in `.claude/skills/` come from the Flutter team (`flutter-*`, `dart-*`) and from Very Good Ventures (`material-theming`, `ui-package`, `accessibility`, `static-security`, `testing`, `navigation`, `internationalization`); [SOURCES.md](../../.claude/skills/SOURCES.md) lists them and where each yields to this guideline. A change follows the skill of its topic.
@@ -28,7 +34,7 @@ mobile/
 │  │  ├─ data/               repositories over the generated client
 │  │  ├─ domain/             freezed models; use cases only when logic outgrows a notifier
 │  │  └─ ui/                 screens, their widgets and their Riverpod notifiers
-│  └─ l10n/                  app_vi.arb, app_en.arb
+│  └─ l10n/                  arb/app_vi.arb and app_en.arb; gen/ is written by gen-l10n
 ├─ packages/app_ui/          the design system: tokens, ThemeData, shared widgets
 ├─ test/  integration_test/
 └─ AGENTS.md                 the checklist before finishing a change
