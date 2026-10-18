@@ -13,9 +13,10 @@ on:
 permissions:
   contents: read
 
+# A newer push to a branch replaces its run; every run on main finishes, since main deploys.
 concurrency:
   group: mobile-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   # The one place the Flutter version is pinned (docs/guidelines/mobile.md); every job reads it.
@@ -62,13 +63,11 @@ jobs:
           flutter test
           (cd packages/app_ui && flutter test)
 
+  # The builds do not wait for Check: the three jobs run side by side, so a run takes as long as
+  # the slowest of them.
   android:
-    name: Android build and preview
-    needs: check
+    name: Android build
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -87,43 +86,70 @@ jobs:
       - run: flutter pub get
       - name: Debug APK
         run: flutter build apk --debug
-      # The browser preview is for the team only (docs/guidelines/mobile.md, Platforms).
-      - name: Browser preview
-        run: flutter build web
       - id: apk
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: second-bite-debug-apk
           path: mobile/build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 14
+      - name: Link in the summary
+        env:
+          APK_URL: ${{ steps.apk.outputs.artifact-url }}
+        run: |
+          echo "- [Debug APK]($APK_URL): unzip, then install on an Android phone." >> "$GITHUB_STEP_SUMMARY"
+    outputs:
+      url: ${{ steps.apk.outputs.artifact-url }}
+
+  # The browser preview is for the team only (docs/guidelines/mobile.md, Platforms).
+  preview:
+    name: Browser preview
+    runs-on: ubuntu-24.04
+    outputs:
+      url: ${{ steps.preview.outputs.artifact-url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter build web
       - id: preview
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: second-bite-browser-preview
           path: mobile/build/web
           retention-days: 14
-      - name: Links in the summary
-        env:
-          APK_URL: ${{ steps.apk.outputs.artifact-url }}
-          PREVIEW_URL: ${{ steps.preview.outputs.artifact-url }}
+
+  # As Immich's build-mobile.yml: one comment per pull request, edited on each run. A fork's token
+  # cannot comment, so its links stay in the run's summary.
+  links:
+    name: Links on the pull request
+    needs: [android, preview]
+    if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          APK_URL: ${{ needs.android.outputs.url }}
+          PREVIEW_URL: ${{ needs.preview.outputs.url }}
+        working-directory: .
         run: |
           {
             echo "### Try this build"
             echo "- [Debug APK]($APK_URL): unzip, then install on an Android phone."
-            echo "- [Browser preview]($PREVIEW_URL): unzip, then serve the folder (\`python -m http.server\`)."
-          } | tee -a "$GITHUB_STEP_SUMMARY" > "$RUNNER_TEMP/links.md"
-      # As Immich's build-mobile.yml: one comment per pull request, edited on each run. A fork's
-      # token cannot comment, so its links stay in the summary.
-      - name: Links on the pull request
-        if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-        run: gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/links.md" --edit-last --create-if-none
+            echo "- [Browser preview]($PREVIEW_URL): unzip, then serve the folder (python -m http.server)."
+          } > links.md
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file links.md --edit-last --create-if-none
 
   ios:
     name: iOS build
-    needs: check
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: macos-15
     steps:
