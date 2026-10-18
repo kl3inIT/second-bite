@@ -119,7 +119,7 @@ The shape follows Supabase's `identities` (`UNIQUE(provider_id, provider)`) and 
 ## Configuration
 
 - `SECONDBITE_GOOGLE_CLIENT_IDS`: the client IDs whose tokens are accepted, comma-separated (the web's now; iOS and Android later), as Supabase and Kratos accept several audiences. Client IDs are public; there is no secret. Without it, Google is off.
-- The Google Cloud project and its OAuth consent screen belong to a Google account of Second Bite, not a person's, and need the privacy policy's address. [Open question](#open-questions).
+- **For now** (decided with the team on 18 October 2026), the Google Cloud project and its OAuth client are the tech lead's own development client, set only in each environment's configuration, never in Git. Before the beta, they move to a Google account of Second Bite with the privacy policy's address on the consent screen; a new client ID is then added to `SECONDBITE_GOOGLE_CLIENT_IDS` beside the old one, so both work during the change. The consent screen asks only for `openid`, `email` and `profile`, which Google publishes without a verification review; while it stays in testing mode, only the test users it lists can sign in.
 
 ## Libraries
 
@@ -154,4 +154,4 @@ The shape follows Supabase's `identities` (`UNIQUE(provider_id, provider)`) and 
 
 | Question | Who answers | What it changes |
 | --- | --- | --- |
-| Which Google account of Second Bite owns the Google Cloud project, and where the privacy policy is published | Founder | Google's consent screen needs both before Google sign-in leaves testing mode |
+| Which Google account of Second Bite owns the Google Cloud project from the beta, and where the privacy policy is published | Founder, before the beta | The client is moved to it (the tech lead's development client serves until then) |
