@@ -16,12 +16,9 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
 )
 
-// versityImage is an S3 gateway over a directory: a small S3-compatible store
-// written in Go, standing in for R2, Garage or AWS S3.
-const versityImage = "versity/versitygw:v1.9.0"
-
-// startS3 starts an S3-compatible store with one bucket and returns its
-// configuration.
+// startS3 starts the S3-compatible store of compose.yaml, VersityGW, an S3
+// gateway over a directory standing in for R2, Garage or AWS S3, with one
+// bucket, and returns its configuration.
 func startS3(t *testing.T) file.S3Config {
 	t.Helper()
 
@@ -30,7 +27,7 @@ func startS3(t *testing.T) file.S3Config {
 		PathStyle: true,
 	}
 
-	gw, err := testcontainers.Run(t.Context(), versityImage,
+	gw, err := testcontainers.Run(t.Context(), platformtest.Image(t, "s3"),
 		testcontainers.WithExposedPorts("7070/tcp"),
 		testcontainers.WithCmd("--access", cfg.AccessKeyID, "--secret", cfg.SecretAccessKey, "--port", ":7070", "posix", "/tmp"),
 		testcontainers.WithWaitStrategy(wait.ForListeningPort("7070/tcp")),

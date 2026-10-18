@@ -1,5 +1,7 @@
 # Local development only: the database the backend runs against on a
-# developer's machine, and Mailpit, which catches every email it sends. The password below is a local placeholder, not a secret
+# developer's machine, Mailpit, which catches every email it sends, and, with
+# `--profile s3`, an S3-compatible store for SECONDBITE_FILE_STORE=s3. The
+# tests start the same images, read from this file. The password below is a local placeholder, not a secret
 # of any deployed environment.
 name: secondbite
 
@@ -28,5 +30,17 @@ services:
       - "127.0.0.1:${SECONDBITE_MAILPIT_SMTP_PORT:-1025}:1025"
       - "127.0.0.1:${SECONDBITE_MAILPIT_WEB_PORT:-8025}:8025"
 
+  s3:
+    # VersityGW, an S3 gateway over a directory, standing in for R2, Garage or
+    # AWS S3. The keys are local placeholders, like the password above.
+    image: versity/versitygw:v1.9.0
+    profiles: ["s3"]
+    command: ["--access", "secondbite-local", "--secret", "secondbite-local-secret", "--port", ":7070", "posix", "/data"]
+    ports:
+      - "127.0.0.1:${SECONDBITE_S3_PORT:-7070}:7070"
+    volumes:
+      - s3-data:/data
+
 volumes:
   postgres-data:
+  s3-data:

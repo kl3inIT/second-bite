@@ -20,12 +20,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-)
 
-// The images of local development and of every test.
-const (
-	postgisImage = "postgis/postgis:18-3.6"
-	mailpitImage = "axllent/mailpit:v1.31.6"
+	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
 )
 
 const adminEmail = "admin@example.com"
@@ -149,7 +145,7 @@ func startPostgres(t *testing.T) (string, map[string]string) {
 
 	ctx := t.Context()
 
-	pg, err := postgres.Run(ctx, postgisImage,
+	pg, err := postgres.Run(ctx, platformtest.Image(t, "postgres"),
 		postgres.WithDatabase("secondbite"),
 		postgres.WithUsername("secondbite"),
 		postgres.WithPassword("test-only"),
@@ -194,7 +190,7 @@ func startMailpit(t *testing.T) (string, string) {
 
 	ctx := t.Context()
 
-	c, err := testcontainers.Run(ctx, mailpitImage,
+	c, err := testcontainers.Run(ctx, platformtest.Image(t, "mailpit"),
 		testcontainers.WithExposedPorts("1025/tcp", "8025/tcp"),
 		testcontainers.WithWaitStrategy(wait.ForHTTP("/livez").WithPort("8025/tcp")),
 	)

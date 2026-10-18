@@ -6,12 +6,14 @@ on:
       - "server/**"
       - "api/**"
       - "ARCHITECTURE.md"
+      - "compose.yaml"
       - ".github/workflows/backend.yml"
   pull_request:
     paths:
       - "server/**"
       - "api/**"
       - "ARCHITECTURE.md"
+      - "compose.yaml"
       - ".github/workflows/backend.yml"
 
 permissions:

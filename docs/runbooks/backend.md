@@ -54,6 +54,21 @@ The service migrates the database at every command, then `serve` listens on `:80
 
 `docker compose down` stops the database and keeps its data; `docker compose down -v` deletes it.
 
+To keep files in an S3-compatible store rather than PostgreSQL, start VersityGW as well, create a bucket once, and point the service at it:
+
+```bash
+docker compose --profile s3 up -d --wait
+# once: create the bucket with any S3 client, for example
+#   aws --endpoint-url http://127.0.0.1:7070 s3 mb s3://secondbite   (keys below)
+export SECONDBITE_FILE_STORE=s3
+export SECONDBITE_S3_ENDPOINT=http://127.0.0.1:7070
+export SECONDBITE_S3_BUCKET=secondbite
+export SECONDBITE_S3_ACCESS_KEY_ID=secondbite-local
+export SECONDBITE_S3_SECRET_ACCESS_KEY=secondbite-local-secret
+```
+
+The tests start the images `compose.yaml` names, so Dependabot's updates of that file are what move the tests to newer images.
+
 ## Configuration
 
 | Variable | Default | Holds |

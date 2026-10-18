@@ -14,9 +14,6 @@ import (
 	"github.com/kl3inIT/second-bite/server/migrations"
 )
 
-// PostgisImage is the image of local development and of every test.
-const PostgisImage = "postgis/postgis:18-3.6"
-
 // StartPostgres starts PostgreSQL with PostGIS, applies the migrations and
 // returns a pool on it; both end with the test.
 func StartPostgres(t *testing.T) *pgxpool.Pool {
@@ -24,7 +21,7 @@ func StartPostgres(t *testing.T) *pgxpool.Pool {
 
 	ctx := t.Context()
 
-	pg, err := postgres.Run(ctx, PostgisImage,
+	pg, err := postgres.Run(ctx, Image(t, "postgres"),
 		postgres.WithDatabase("secondbite"),
 		postgres.WithUsername("secondbite"),
 		postgres.WithPassword("test-only"),
