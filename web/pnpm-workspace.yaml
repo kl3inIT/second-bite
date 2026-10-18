@@ -1,2 +1,4 @@
 allowBuilds:
   sharp: false
+  "@parcel/watcher": false
+  "@swc/core": false

@@ -1,0 +1,20 @@
+{
+  "Metadata": {
+    "title": "Second Bite",
+    "description": "A second chance for good food."
+  },
+  "Home": {
+    "tagline": "A second chance for good food."
+  },
+  "LanguageSwitcher": {
+    "label": "Chuyển sang tiếng Việt"
+  },
+  "NotFound": {
+    "title": "This page could not be found",
+    "back": "Back to home"
+  },
+  "Error": {
+    "title": "Something went wrong",
+    "retry": "Try again"
+  }
+}

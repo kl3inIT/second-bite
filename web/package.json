@@ -11,9 +11,10 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm check:tokens && pnpm lint && pnpm format:check && pnpm typecheck",
+    "check": "pnpm check:tokens && pnpm check:messages && pnpm lint && pnpm format:check && pnpm typecheck",
     "generate:tokens": "node scripts/generate-tokens.mjs",
-    "check:tokens": "node scripts/generate-tokens.mjs --check"
+    "check:tokens": "node scripts/generate-tokens.mjs --check",
+    "check:messages": "node scripts/check-messages.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -21,6 +22,7 @@
     "cn": "^0.5.0",
     "lucide-react": "^1.59.0",
     "next": "16.4.2",
+    "next-intl": "^4.14.9",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "shadcn": "^4.22.0",

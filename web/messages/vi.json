@@ -1,0 +1,20 @@
+{
+  "Metadata": {
+    "title": "Second Bite",
+    "description": "Thêm một cơ hội cho món ngon."
+  },
+  "Home": {
+    "tagline": "Thêm một cơ hội cho món ngon."
+  },
+  "LanguageSwitcher": {
+    "label": "Switch to English"
+  },
+  "NotFound": {
+    "title": "Không tìm thấy trang này",
+    "back": "Về trang chủ"
+  },
+  "Error": {
+    "title": "Đã có lỗi xảy ra",
+    "retry": "Thử lại"
+  }
+}
