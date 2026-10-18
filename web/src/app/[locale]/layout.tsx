@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Be_Vietnam_Pro, Bricolage_Grotesque } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 
@@ -8,10 +8,16 @@ import { routing } from "@/i18n/routing";
 
 import "../globals.css";
 
-// Inter is the typeface (DESIGN.md); next/font serves it from our own origin, Latin and Vietnamese only.
-const inter = Inter({
+// The typefaces of DESIGN.md, served by next/font from our own origin, Latin and Vietnamese only: Be
+// Vietnam Pro for reading, Bricolage Grotesque for big titles, prices and figures.
+const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-be-vietnam-pro",
+});
+const bricolageGrotesque = Bricolage_Grotesque({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-bricolage-grotesque",
 });
 
 export function generateStaticParams() {
@@ -30,7 +36,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
   return (
     <html
       lang={hasLocale(routing.locales, locale) ? locale : routing.defaultLocale}
-      className={`${inter.variable} h-full antialiased`}
+      className={`${beVietnamPro.variable} ${bricolageGrotesque.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider>

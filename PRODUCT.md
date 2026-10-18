@@ -44,8 +44,8 @@ Second Bite connects sellers that have genuine edible surplus with nearby people
 - States an order passes through: awaiting payment, confirmed, ready, collected, or cancelled / expired / refused with a reason. An order never looks successful before it is.
 - Delivery through a partner (Grab, Xanh SM) is not in the pilot; it appears only when an agreement and a working integration exist.
 - Pilot timeline: a running prototype with 30 sellers in Tasco Mall and 100 customers, then a beta around 16 November 2026 with 100 sellers and 300 customers.
-- **Visual world:** "Gói mang về", the take-away parcel (kraft ground, banana-leaf green, one pink rubber band per card); its tokens are in [DESIGN.md](DESIGN.md).
-- **Typeface:** Inter ([DESIGN.md](DESIGN.md)).
+- **Visual world:** "Bữa tối còn nóng" (tonight's food, still warm): a pale mint wash, white cards with one bitten corner, deep green actions and young-rice lime accents, adopted on 19 October 2026 from the team's Mobile v2 design; its tokens are in [DESIGN.md](DESIGN.md).
+- **Typefaces:** Be Vietnam Pro, with Bricolage Grotesque for big titles, prices and figures ([DESIGN.md](DESIGN.md)).
 - **Undecided:** the tone of voice, the logo, the Vietnamese form of the tagline.
 
 ## Brand Commitments

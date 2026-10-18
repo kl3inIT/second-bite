@@ -5,8 +5,9 @@
 @import "../styles/tokens.css";
 
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-be-vietnam-pro), ui-sans-serif, system-ui, sans-serif;
+  /* Big titles, prices and figures (DESIGN.md › Typography). */
+  --font-heading: var(--font-bricolage-grotesque), var(--font-sans);
 }
 
 @layer base {

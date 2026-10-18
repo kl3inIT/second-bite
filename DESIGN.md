@@ -2,89 +2,94 @@
 name: Second Bite
 description: A second chance for good food.
 colors:
+  # Taken from the Figma file "Secondbite", section "Mobile v2", on 19 October 2026 (its variable in brackets).
   # Every `x` with an `x-foreground` is checked at 4.5:1 or more by web/scripts/generate-tokens.mjs, and so is
-  # each `x-hover` against `x-foreground`; the ratios noted are white or ink text on the colour.
-  background: "#CDAA7D" # kraft ground; ink on it 8.0:1
-  foreground: "#1C1A17"
-  card: "#FFFFFF"
-  card-foreground: "#1C1A17"
-  popover: "#FFFFFF" # menus, selects and dialogs, a label like the card
-  popover-foreground: "#1C1A17"
-  primary: "#1F5A32" # banana leaf, 8.2:1
+  # each `x-hover` against `x-foreground`; the ratios noted are measured.
+  background: "#F2F7F5" # mint wash [brand/50]; ink on it 16:1
+  foreground: "#0E1D19" # [text/ink]
+  card: "#FFFFFF" # [base/white]
+  card-foreground: "#0E1D19"
+  popover: "#FFFFFF" # menus, selects and dialogs
+  popover-foreground: "#0E1D19"
+  primary: "#0B4A3D" # deep green [brand/800]: primary buttons, white on it 10.2:1
   primary-foreground: "#FFFFFF"
-  primary-hover: "#184A28" # darker under the pointer so the text gains contrast, 10.3:1
-  shell: "#1F5A32"
-  shell-foreground: "#FFFFFF"
-  secondary: "#E6EFE8"
-  secondary-foreground: "#1C1A17"
-  muted: "#F4EEE6"
-  muted-foreground: "#6B635A" # pencil: 5.9:1 on card, 5.1:1 on muted, only 2.7:1 on kraft
-  accent: "#E6EFE8"
-  accent-foreground: "#1C1A17"
-  destructive: "#B42318" # stamp red, 6.6:1
+  primary-hover: "#062F27" # [brand/900], 14.5:1
+  shell: "#FFFFFF" # the top bar: white with a hairline below
+  shell-foreground: "#0E1D19"
+  secondary: "#E2EDE8" # [brand/100]: segmented controls, quiet buttons, chips; deep green on it 8.5:1
+  secondary-foreground: "#0B4A3D"
+  muted: "#E2EDE8" # [brand/100]
+  muted-foreground: "#5A6B66" # [text/muted]: 5.6:1 on white, 5.2:1 on the wash, 4.7:1 on muted
+  accent: "#E2EDE8" # shadcn's hover and selected fill [brand/100]
+  accent-foreground: "#0B4A3D"
+  link: "#155E4E" # [brand/700]: text links and secondary actions, 7.7:1 on white, 7.1:1 on the wash
+  destructive: "#B42318" # [status/error], 6.6:1 on white
   destructive-foreground: "#FFFFFF"
   destructive-hover: "#912018" # 8.7:1
-  success: "#2E6B3F" # paid, ready, collected; always with an icon or label, 6.4:1
+  success: "#155E4E" # [brand/700]: ready and collected; always with an icon or label, 7.7:1
   success-foreground: "#FFFFFF"
-  warning: "#E8A33D" # window closing, payment waiting; ink on amber, 8.1:1
-  warning-foreground: "#1C1A17"
-  border: "#E4D7C5"
-  input: "#857A6E" # field edge, 4.2:1 on white (3:1 needed for a control)
-  ring: "#1F5A32" # focus ring, 8.2:1 on white, 3.8:1 on kraft
-  signature: "#C93468" # the rubber band, 5.0:1
-  signature-foreground: "#FFFFFF"
+  warning: "#FFF6E5" # [alert/bg]: notices such as "this address already has an account"
+  warning-foreground: "#5E4200" # [alert/ink], 8.7:1
+  warning-border: "#F0DBA8" # [alert/line]
+  border: "#E0E8E4" # [border/line]: hairlines and card edges, decoration only
+  input: "#7D8C87" # [text/faint]: field edges, 3.5:1 on white (3:1 needed for a control); never text
+  ring: "#155E4E" # focus ring, 7.1:1 on the wash
+  signature: "#C6E67A" # young rice [accent/lime-300]: the active tab, discount and stock chips, the step in progress
+  signature-foreground: "#2C4709" # [accent/lime-ink], 7.5:1
 typography:
-  # Inter, chosen on 18 October 2026 over Geist and Be Vietnam Pro (SEC-22); one variable file with the Vietnamese subset, bundled on web and Flutter.
+  # Be Vietnam Pro for everything people read; Bricolage Grotesque for big titles, prices and figures
+  # (70%, -63%, 45.000đ). Both cover Vietnamese; chosen on 19 October 2026 with the Mobile v2 design,
+  # replacing Inter (SEC-22).
   label:
-    fontFamily: "Inter"
+    fontFamily: "Be Vietnam Pro"
     fontSize: "12px"
-    fontWeight: 500
-    lineHeight: "18px"
+    fontWeight: 400
+    lineHeight: "17px"
   body-sm:
-    fontFamily: "Inter"
+    fontFamily: "Be Vietnam Pro"
     fontSize: "14px"
     fontWeight: 400
-    lineHeight: "20px"
+    lineHeight: "21px"
   body-sm-strong:
-    fontFamily: "Inter"
+    fontFamily: "Be Vietnam Pro"
     fontSize: "14px"
     fontWeight: 600
-    lineHeight: "20px"
+    lineHeight: "21px"
   body:
-    fontFamily: "Inter"
+    fontFamily: "Be Vietnam Pro"
     fontSize: "16px"
     fontWeight: 400
     lineHeight: "24px"
   title:
-    fontFamily: "Inter"
+    fontFamily: "Be Vietnam Pro"
     fontSize: "16px"
     fontWeight: 600
-    lineHeight: "24px"
+    lineHeight: "22px"
+  headline:
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "18px"
+    fontWeight: 600
+    lineHeight: "25px"
   price:
-    fontFamily: "Inter"
+    fontFamily: "Bricolage Grotesque"
     fontSize: "18px"
     fontWeight: 700
-    lineHeight: "26px"
-  headline:
-    fontFamily: "Inter"
-    fontSize: "20px"
-    fontWeight: 700
-    lineHeight: "28px"
+    lineHeight: "24px"
   display:
-    fontFamily: "Inter"
-    fontSize: "24px"
+    fontFamily: "Bricolage Grotesque"
+    fontSize: "28px"
     fontWeight: 700
-    lineHeight: "32px"
+    lineHeight: "34px"
 rounded:
   # Named like Tailwind and shadcn: `lg` is the base radius shadcn's controls use, `xl` its cards.
-  sm: "6px" # the band
-  md: "8px"
-  lg: "10px" # buttons, inputs, chips that are not pills
-  xl: "16px" # cards and sheets
-  2xl: "20px"
+  sm: "8px"
+  md: "12px" # thumbnails, small icon tiles
+  lg: "14px" # inputs, segmented controls
+  xl: "16px" # buttons, small cards
+  2xl: "20px" # cards and sheets
   3xl: "24px"
   4xl: "32px"
-  full: "9999px" # pills and chips
+  full: "9999px" # pills, chips and round icon buttons
 spacing:
   "1": "4px"
   "2": "8px"
@@ -93,137 +98,134 @@ spacing:
   "6": "24px"
   "8": "32px"
 elevation:
-  # Shadow layers, outermost first; a colour with alpha is #RRGGBBAA. Only the card and the band cast one.
+  # Shadow layers, outermost first; a colour with alpha is #RRGGBBAA. White cards on the wash need none:
+  # only what floats over content casts one.
   card:
-    - { x: 0, y: 2, blur: 6, spread: 0, color: "#5C3C142E" }
-  band:
-    - { x: 0, y: 1, blur: 2, spread: 0, color: "#5C0F2E40" }
-    - { x: 0, y: 1, blur: 0, spread: 0, color: "#FFFFFF38", inset: true }
+    - { x: 0, y: 1, blur: 2, spread: 0, color: "#0E1D190A" }
+  sheet:
+    - { x: 0, y: -4, blur: 24, spread: 0, color: "#0E1D191F" }
 components:
   band:
     backgroundColor: "{colors.signature}"
     textColor: "{colors.signature-foreground}"
     typography: "{typography.body-sm-strong}"
-    rounded: "{rounded.sm}"
-    padding: "4px 12px"
+    rounded: "{rounded.full}"
+    padding: "4px 10px"
   band-sold-out:
-    backgroundColor: "{colors.muted-foreground}"
-    textColor: "{colors.card}"
+    backgroundColor: "{colors.muted}"
+    textColor: "{colors.muted-foreground}"
     typography: "{typography.body-sm-strong}"
-    rounded: "{rounded.sm}"
-    padding: "4px 12px"
+    rounded: "{rounded.full}"
+    padding: "4px 10px"
   band-expected:
-    textColor: "{colors.signature}"
+    textColor: "{colors.link}"
     typography: "{typography.body-sm-strong}"
-    rounded: "{rounded.sm}"
-    padding: "4px 12px"
+    rounded: "{rounded.full}"
+    padding: "4px 10px"
   offer-card:
     backgroundColor: "{colors.card}"
     textColor: "{colors.card-foreground}"
+    rounded: "{rounded.2xl}"
+    padding: "14px"
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.primary-foreground}"
     rounded: "{rounded.xl}"
-    padding: "12px 16px 16px"
+    height: "52px"
 ---
 
-<!-- This frontmatter is the source of the tokens. web/src/styles/tokens.css and the Flutter theme follow it with the same names in the same change; the Figma file "Second Bite — Product UI" mirrors it as `Theme` and `Scale` variables and text styles and is updated after (docs/guidelines/figma.md). Tracked in SEC-22. -->
+<!-- This frontmatter is the source of the tokens. web/src/styles/tokens.css and the Flutter theme follow it with the same names in the same change; the Figma file mirrors it and is updated after (docs/guidelines/figma.md). Tracked in SEC-22. -->
 
 # Design System: Second Bite
 
 ## Overview
 
-**Creative North Star: "Gói mang về" (the take-away parcel)**
+**Creative North Star: "Bữa tối còn nóng" (tonight's food, still warm)**
 
-Every portion of surplus food is a Hanoi take-away parcel: wrapped in banana leaf or kraft paper, tied with a pink rubber band, price and pickup time written on it by hand. The world borrows from xôi, bánh giò and cơm hộp sold to go, so food looks like food someone packed for you tonight, never like stock on clearance.
-
-The interface is calm and dense enough for one-handed use at the end of a shift. A banana-leaf green shell frames the screen; white cards sit on a real kraft-brown ground like labels stuck on a parcel; one pink band per card carries the two facts that matter most, the pickup window and how many portions are left.
+Adopted on 19 October 2026 from the Mobile v2 design in the team's Figma file ("Secondbite"), which replaced the earlier kraft-and-rubber-band direction. The interface borrows what Vietnamese customers already know from ShopeeFood, foodpanda and Grab, so nothing has to be learnt: a white top bar, white cards on a pale mint wash, one deep green for actions, and young-rice lime only where the eye should land.
 
 **Key Characteristics:**
-- Kraft-brown ground, white cards, banana-leaf green shell and actions.
-- One pink rubber band per card, always in the same place, carrying window and stock.
-- Real photographs of the food, never illustrations.
-- Price hierarchy by size alone: new price large, old price small and struck through.
+- Pale mint ground, white cards, deep green actions, lime accents used sparingly.
+- Each offer card has one bitten corner at its top right, the product's mark, and never more than one.
+- Real photographs of the food, never illustrations or decorative stickers.
+- Price hierarchy: new price large in Bricolage Grotesque, old price small and struck through, the discount in a lime chip.
 
 ## Colors
 
-Warm, material colours taken from the parcel: leaf, paper, band and ink.
-
 ### Primary
-- **Banana Leaf** (`primary`, `shell`): the top bar and bottom tab bar, primary buttons, prices, links and the focus ring. `primary-hover` is the pressed or hovered leaf.
+- **Deep Green** (`primary`): primary buttons and the bottom bar's active label. `primary-hover` is the pressed button.
+- **Leaf Link** (`link`, `success`, `ring`): text links, secondary actions ("Đổi", "Chỉ đường"), completed steps, the focus ring.
 
-### Secondary
-- **Leaf Wash** (`secondary`, `accent`): selected chips and soft highlights behind ink text.
-
-### Tertiary
-- **Rubber Band Pink** (`signature`): the band on each offer card and nothing else. White text on it reaches 5:1.
+### Accent
+- **Young Rice** (`signature`): the active tab of the bottom bar, the step in progress, discount and stock chips, the send button. Never a large fill.
 
 ### Neutral
-- **Kraft Paper** (`background`): the page ground under the cards. It is a real brown, not a cream.
-- **Label White** (`card`): cards, sheets, inputs, dialogs.
-- **Marker Ink** (`foreground`, `card-foreground`): all body text.
-- **Pencil** (`muted-foreground`): secondary text, on white only.
-- **Paper Fold** (`border`): hairlines and dividers on white.
-- **Field Edge** (`input`): input outlines, 4:1 against white.
-- **Tissue** (`muted`): quiet fills inside cards.
-- **Stamp Red** (`destructive`): errors, cancelled and refused states, always with an icon or label.
+- **Mint Wash** (`background`): the page ground.
+- **White** (`card`, `shell`, `popover`): cards, the top bar, sheets, inputs, dialogs.
+- **Ink** (`foreground`): all body text.
+- **Muted** (`muted-foreground`): secondary text, on white, the wash or `muted`.
+- **Quiet Green** (`secondary`, `muted`, `accent`): segmented controls, chips, quiet buttons, and the hover fill of menus and outline buttons.
+- **Hairline** (`border`): dividers and card edges, decoration only.
+- **Field Edge** (`input`): input outlines. It is too weak for text, placeholders included; they use `muted-foreground`.
 
 ### Status
-- **Leaf Stamp** (`success`): paid, ready and collected orders. It sits close to Banana Leaf on purpose, so it always comes with an icon or a label.
-- **Amber Sticker** (`warning`): a window about to close, a transfer still waiting. Ink text, never white.
-- **Label White** again (`popover`): menus, selects and dialogs are labels too.
+- **Error** (`destructive`): wrong codes, refused and cancelled states, always with an icon or label.
+- **Notice** (`warning`, `warning-foreground`, `warning-border`): explanations the person must read before going on.
 
 ### Named Rules
-**The Label Rule.** Secondary text (`muted-foreground`) sits only on white; on kraft it falls to 2.7:1. Text placed directly on kraft is `foreground` ink.
+**The Lime Rule.** Lime marks the one thing to look at; it never covers a large area.
 
-**The One Band Rule.** Pink appears once per card, as the band. Never as a button, a link, a badge or a text colour on kraft.
-
-**The Real Kraft Rule.** The ground stays a true kraft brown. Lightening it toward cream turns the world into the generic warm-beige app.
+**The Faint Rule.** `input` (the Figma `text/faint`) reaches only 3.5:1 on white: field edges only, never text.
 
 ## Typography
 
-**Body Font:** Inter, one variable font (weight and optical size) with the Latin and Vietnamese subsets, served from our own origin on the web and bundled in the Flutter app
-
-**Character:** a plain, legible sans that lets the photographs and the band carry the personality.
+**Body Font:** Be Vietnam Pro, static weights 400, 500, 600 and 700 with the Vietnamese subset.
+**Display Font:** Bricolage Grotesque, variable, for big titles, prices and figures.
 
 ### Hierarchy
-- **Display** (700, 24px, 32px): screen titles.
-- **Headline** (700, 20px, 28px): section titles on home and order screens.
-- **Price** (700, 18px, 26px): the new price on a card, in Banana Leaf.
-- **Title** (600, 16px, 24px): the dish name, at most two lines.
-- **Body** (400, 16px, 24px): running text.
-- **Body small** (400 or 600, 14px, 20px): the old price, the band label, supporting lines.
-- **Label** (500, 12px, 18px): the seller name and floor above the dish name.
+- **Display** (Bricolage 700, 28px, 34px): screen titles such as "Đăng nhập để đặt món".
+- **Headline** (600, 18px, 25px): section titles; the top bar's title.
+- **Price** (Bricolage 700, 18px, 24px): the new price.
+- **Title** (600, 16px, 22px): the dish name, at most two lines.
+- **Body** (400, 16px, 24px): running text and input values.
+- **Body small** (400 or 600, 14px, 21px): supporting lines, the old price, chip labels.
+- **Label** (400, 12px, 17px): helper text, timestamps, the legal line.
 
 ### Named Rules
 **The Diacritics Rule.** Line height is at least 1.4 for running text, and no text box clips stacked marks (Ầ, Ẫ, Ổ).
 
 ## Layout
 
-Mobile at 390px is the source frame for app screens; desktop is derived from it. Spacing follows a 4px scale (`spacing` 1–8). Text layers hug or fill and never take a fixed width, because Vietnamese runs 20–30% longer than English. Touch targets are at least 44px.
+Mobile at 390px is the source frame; desktop is derived from it. Side margins 16px (20px on forms), 12–14px between blocks. Spacing follows a 4px scale. Text layers hug or fill and never take a fixed width, because Vietnamese runs 20–30% longer than English. Touch targets are at least 44px; primary buttons are 52px tall and full width.
 
 ## Elevation & Depth
 
-Depth is a label stuck on paper: cards lift slightly off the kraft with one soft warm shadow (0 2px 6px, brown at 18%). The band has its own small shadow and a 1px highlight on its top edge, so it reads as rubber wrapped over the card. Nothing else casts a shadow. Both are tokens (`elevation.card`, `elevation.band`, the `shadow-card` and `shadow-band` utilities on the web).
+Flat: white cards on the mint wash need no shadow beyond a 1px hint (`elevation.card`). Only what floats over content, a bottom sheet, casts a real one (`elevation.sheet`).
 
 ## Shapes
 
-Generous rounding on cards (`rounded.xl`, 16px), the base `rounded.lg` (10px) on buttons and inputs, small rounding on the band (`rounded.sm`, 6px), full rounding on chips. Photographs fill the top of a card and share its top corners.
+Cards and sheets 20px (`rounded.2xl`), buttons 16px (`rounded.xl`), inputs and segmented controls 14px (`rounded.lg`), chips and icon buttons fully round.
 
 ## Components
 
-### Band (signature)
-The rubber band on an offer card. Variants: **Available** (pink, white text: "Lấy 21:00–21:45 · còn 3"), **Sold out** (Pencil fill, white text: "Đã hết"), **Expected** (dashed pink outline, pink text on white: the seller has announced surplus that cannot be ordered yet). The label is always text, never colour alone.
+### Band (stock chip)
+The lime chip on an offer card. Variants: **Available** ("Còn 2"), **Sold out** (quiet green, muted text: "Đã hết"), **Expected** (link-coloured text: the seller has announced surplus that cannot be ordered yet). The label is always text, never colour alone.
 
 ### Offer card
-White card on kraft: photograph (150px tall), then seller and floor (Label, Pencil), dish name (Title, two lines at most), price row (Price in Banana Leaf, old price struck through), and the Band. Padding 12px top, 16px sides and bottom; 8px between rows.
+White card, 20px corners, one bitten corner at the top right: photograph with the discount chip, seller with a round avatar and rating, dish name (Title), pickup window and floor (Body small, Muted), price row (Price, old price struck through), and the Band.
+
+### Primary button
+Deep green, white label, 52px tall, full width, 16px corners. One per screen, in the content or in a white bottom bar.
 
 ## Do's and Don'ts
 
 ### Do:
 - **Do** bind every colour, radius and gap to a token; a literal value on a screen is a defect.
-- **Do** keep window and stock in the band, in the same place on every card.
+- **Do** give every seller a round avatar, never initials alone where a photo exists.
 - **Do** use real photographs of real kinds of food from the pilot's sellers, labelled as samples until the pilot has its own.
 
 ### Don't:
-- **Don't** put `muted-foreground` text, `primary` body text or anything pink on the kraft ground.
-- **Don't** use more than one band per card, or pink for anything but the band.
-- **Don't** show discount badges or "save X%"; the struck-through old price is enough.
+- **Don't** set text in `input` (`text/faint`).
+- **Don't** cover large areas in lime, or put more than one bitten corner on a card.
+- **Don't** use decorative stickers, dotted textures or busy patterns.
 - **Don't** describe food as thừa, tồn, thanh lý or giải cứu anywhere in the interface.

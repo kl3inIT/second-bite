@@ -6,7 +6,7 @@ import { Band, type BandState } from "@/components/band";
 import { formatPrice } from "./format";
 import { isAvailable, type OfferSummary } from "./offer";
 
-// A white label on the kraft ground (DESIGN.md › Components › Offer card): photo, seller and place,
+// A white card on the mint wash (DESIGN.md › Components › Offer card): photo, seller and place,
 // name, price against the original, and the band.
 export function OfferCard({ offer }: { offer: OfferSummary }) {
   const t = useTranslations("OfferCard");
@@ -20,7 +20,7 @@ export function OfferCard({ offer }: { offer: OfferSummary }) {
       : t("soldOut", { from, until });
 
   return (
-    <article className="flex w-full flex-col overflow-hidden rounded-xl bg-card text-card-foreground shadow-card">
+    <article className="flex w-full flex-col overflow-hidden rounded-2xl bg-card text-card-foreground shadow-card">
       <Image
         src={`/api${offer.photo.smallPath}`}
         alt={offer.name}
@@ -40,7 +40,9 @@ export function OfferCard({ offer }: { offer: OfferSummary }) {
         </p>
         <h3 className="line-clamp-2 text-title">{offer.name}</h3>
         <p className="flex items-baseline gap-2">
-          <span className="text-price text-primary">{formatPrice(offer.priceVnd)}</span>
+          <span className="font-heading text-price text-foreground">
+            {formatPrice(offer.priceVnd)}
+          </span>
           <s aria-hidden className="text-body-sm text-muted-foreground">
             {formatPrice(offer.originalPriceVnd)}
           </s>
