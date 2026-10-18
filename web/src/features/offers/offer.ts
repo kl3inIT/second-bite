@@ -25,3 +25,17 @@ export function isAvailable(offer: OfferSummary): boolean {
 export function inShowingOrder(offers: readonly OfferSummary[]): OfferSummary[] {
   return [...offers.filter(isAvailable), ...offers.filter((offer) => !isAvailable(offer))];
 }
+
+/** What can still be ordered, the window that closes first at the top: the home's "Sắp hết giờ lấy". */
+export function closingFirst(offers: readonly OfferSummary[]): OfferSummary[] {
+  return offers
+    .filter(isAvailable)
+    .toSorted((a, b) => Date.parse(a.windowEnd) - Date.parse(b.windowEnd));
+}
+
+/** What can still be ordered, the window that opens first at the top: the home's banners. */
+export function openingFirst(offers: readonly OfferSummary[]): OfferSummary[] {
+  return offers
+    .filter(isAvailable)
+    .toSorted((a, b) => Date.parse(a.windowStart) - Date.parse(b.windowStart));
+}

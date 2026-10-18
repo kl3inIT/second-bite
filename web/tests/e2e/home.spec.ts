@@ -6,26 +6,44 @@ import { hydrated } from "./hydration";
 test.use({ locale: "vi-VN" });
 
 test.describe("the customer home", () => {
-  test("lists tonight's offers: what can be ordered, then what has sold out", async ({ page }) => {
+  test("shows tonight's offers: banners, what closes first, then every offer", async ({ page }) => {
     await page.goto("/vi");
 
     await expect(
-      page.getByRole("heading", { level: 2, name: "Tối nay ở Tasco Mall" }),
+      page.getByRole("heading", { level: 1, name: "Tối nay ở Tasco Mall" }),
     ).toBeVisible();
-    const names = page.getByRole("listitem").getByRole("heading", { level: 3 });
-    await expect(names).toHaveText([
+
+    const banners = page.getByRole("region", { name: "Món mở giờ lấy sớm nhất" });
+    await expect(banners.getByRole("heading", { level: 3 })).toHaveText([
+      "Túi bánh mì và croissant, 4 chiếc",
+      "Xôi thập cẩm, 1 hộp",
+    ]);
+    await expect(banners.getByText("Lấy 21:00–21:45")).toBeVisible();
+
+    const closing = page.getByRole("region", { name: "Sắp hết giờ lấy" });
+    await expect(closing.getByRole("heading", { level: 3 })).toHaveText([
+      "Túi bánh mì và croissant, 4 chiếc",
+      "Xôi thập cẩm, 1 hộp",
+    ]);
+
+    const all = page.getByRole("region", { name: "Quanh bạn ở Tasco Mall" });
+    await expect(all.getByRole("heading", { level: 3 })).toHaveText([
       "Túi bánh mì và croissant, 4 chiếc",
       "Xôi thập cẩm, 1 hộp",
       "Cơm sườn nướng, 1 suất",
     ]);
-    await expect(page.getByText("Lấy 21:00–21:45 · còn 3")).toBeVisible();
-    await expect(page.getByText("Đã hết · lấy 21:00–21:30")).toBeVisible();
-    await expect(page.getByText("39.000đ")).toBeVisible();
-    await expect(page.getByText("Giá gốc 95.000đ")).toBeAttached();
+    const bread = all.getByRole("listitem").first();
+    await expect(bread.getByText("Còn 3")).toBeVisible();
+    await expect(bread.getByText("39.000đ")).toBeVisible();
+    await expect(bread.getByText("Giá gốc 95.000đ")).toBeAttached();
+    await expect(bread.getByText("Giảm 58%")).toBeAttached();
+    await expect(all.getByRole("listitem").last().getByText("Đã hết")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
   });
 
-  test("filters by kind and offers the whole list back when nothing matches", async ({ page }) => {
+  test("filters by kind, back to every offer from the chosen kind or when nothing matches", async ({
+    page,
+  }) => {
     await page.goto("/vi");
     await (await hydrated(page.getByRole("link", { name: "Bánh", exact: true }))).click();
 
@@ -34,9 +52,14 @@ test.describe("the customer home", () => {
       "aria-current",
       "page",
     );
-    await expect(page.getByRole("listitem").getByRole("heading", { level: 3 })).toHaveText([
+    const results = page.getByRole("region", { name: "Kết quả" });
+    await expect(results.getByRole("heading", { level: 3 })).toHaveText([
       "Túi bánh mì và croissant, 4 chiếc",
     ]);
+    await expect(page.getByRole("region", { name: "Sắp hết giờ lấy" })).toBeHidden();
+
+    await (await hydrated(page.getByRole("link", { name: "Bánh", exact: true }))).click();
+    await expect(page).toHaveURL(/\/vi$/);
 
     await (await hydrated(page.getByRole("link", { name: "Đồ uống" }))).click();
     await expect(page.getByText("Không có món nào khớp bộ lọc này.")).toBeVisible();
@@ -50,9 +73,10 @@ test.describe("the customer home", () => {
     await page.keyboard.press("Enter");
 
     await expect(page).toHaveURL(/\/vi\?q=xoi$/);
-    await expect(page.getByRole("listitem").getByRole("heading", { level: 3 })).toHaveText([
-      "Xôi thập cẩm, 1 hộp",
-    ]);
+    await expect(page.getByRole("searchbox", { name: "Tìm món hoặc quán" })).toHaveValue("xoi");
+    await expect(
+      page.getByRole("region", { name: "Kết quả" }).getByRole("heading", { level: 3 }),
+    ).toHaveText(["Xôi thập cẩm, 1 hộp"]);
   });
 
   test("introduces Second Bite on a first visit until it is closed", async ({ page }) => {
@@ -64,7 +88,7 @@ test.describe("the customer home", () => {
 
     await page.reload();
     await expect(
-      page.getByRole("heading", { level: 2, name: "Tối nay ở Tasco Mall" }),
+      page.getByRole("heading", { level: 1, name: "Tối nay ở Tasco Mall" }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Second Bite là gì?" })).toBeHidden();
   });

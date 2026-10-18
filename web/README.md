@@ -12,4 +12,4 @@ pnpm generate:tokens   # rewrite src/styles/tokens.css after DESIGN.md changes
 pnpm build
 ```
 
-Inter is loaded through `next/font` with the Latin and Vietnamese subsets and served from our own origin.
+Be Vietnam Pro and Bricolage Grotesque are loaded through `next/font` with the Latin and Vietnamese subsets and served from our own origin.

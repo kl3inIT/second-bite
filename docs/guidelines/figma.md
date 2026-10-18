@@ -14,12 +14,14 @@ The file is read and written through the Figwright MCP server (`figwright` in `.
 
 One file, `Second Bite — Product UI`.
 
-| Page | Holds |
-| --- | --- |
-| `Foundations & Components` | Variable collections, text styles, and one component set per code component |
-| `Screens` | One section per area (`Customer`, `Seller`, `Admin`, `Landing`); every app screen at 390 mobile and 1440 desktop width, the landing also at 1024 |
+| Page                       | Holds                                                                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Foundations & Components` | Variable collections, text styles, and one component set per code component                                                                      |
+| `Screens`                  | One section per area (`Customer`, `Seller`, `Admin`, `Landing`); every app screen at 390 mobile and 1440 desktop width, the landing also at 1024 |
 
 The third page stays free until a real need appears.
+
+The file in use today is `Secondbite`, with the pages `Mobile · Khách` (the customer screens and the `Button` and `Bottom nav` components), `Brand · 3 hướng` and `Brand`. Its one variable collection, `SecondBite`, holds the identity's primitives (`brand/50`–`brand/900`, `text/*`, `accent/amber`, `logo/*`) rather than the semantic `Theme` and `Scale` collections described below; the comment beside each colour in [DESIGN.md](../../DESIGN.md) names the Figma variable that role takes.
 
 ## Tokens
 
@@ -29,7 +31,7 @@ The third page stays free until a real need appears.
 - Each `Theme` variable sets its WEB code syntax to its CSS custom property (`var(--primary)`), so code generation emits the token.
 - Collection `Scale` holds radius and spacing on the 4 px scale (`space/1` = 4 px, `space/2` = 8 px, …).
 - Text styles are named after the utilities they produce (`text-sm/font-medium`), and use the product's chosen typeface, which must cover Vietnamese diacritics.
-- Paint that no variable can express (a texture, the rubber-band strap) is a named paint or component (`texture/kraft`, `Band`), never a literal fill on a screen.
+- Paint that no variable can express (a photograph's scrim, the bitten corner) is a named paint or component (`góc bị cắn`), never a literal fill on a screen.
 
 ## Components
 
@@ -41,7 +43,7 @@ The third page stays free until a real need appears.
 ## Layout
 
 - Every frame uses auto layout; Fill for content that stretches, Hug for controls, fixed sizes only for icons, avatars and media.
-- Layers are named by meaning (`OfferCard`, `PickupBand`), never `Frame 12`.
+- Layers are named by meaning (`OfferCard`, `Sticker`), never `Frame 12`.
 - Mobile (390) is the source frame for app screens; desktop is derived from it. The landing is designed at 1440 first.
 - Touch targets are at least 44 px, even when drawn smaller.
 

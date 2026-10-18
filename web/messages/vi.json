@@ -7,11 +7,16 @@
     "place": "Tasco Mall Long Biên",
     "placeLabel": "Khu vực",
     "searchLabel": "Tìm món hoặc quán",
-    "searchPlaceholder": "Tìm món, quán…",
-    "filtersLabel": "Lọc món",
-    "all": "Tất cả",
+    "searchPlaceholder": "Tìm bánh, gỏi cuốn, rau củ…",
+    "kindsLabel": "Loại món",
     "collectNow": "Lấy ngay",
     "title": "Tối nay ở Tasco Mall",
+    "bannersLabel": "Món mở giờ lấy sớm nhất",
+    "slide": "{position} / {count}",
+    "closingSoon": "Sắp hết giờ lấy",
+    "seeAll": "Xem tất cả",
+    "allOffers": "Quanh bạn ở Tasco Mall",
+    "results": "Kết quả",
     "empty": "Tối nay chưa có món nào.",
     "emptyFiltered": "Không có món nào khớp bộ lọc này.",
     "showAll": "Xem tất cả món"
@@ -38,8 +43,12 @@
     "other": "Khác"
   },
   "OfferCard": {
-    "available": "Lấy {from}–{until} · còn {units}",
-    "soldOut": "Đã hết · lấy {from}–{until}",
+    "stock": "Còn {units}",
+    "soldOut": "Đã hết",
+    "window": "Lấy {from}–{until}",
+    "windowAt": "{from}–{until} · {place}",
+    "discount": "-{percent}%",
+    "discountLabel": "Giảm {percent}%",
     "originalPrice": "Giá gốc {price}"
   },
   "Intro": {

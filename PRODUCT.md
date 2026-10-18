@@ -44,15 +44,15 @@ Second Bite connects sellers that have genuine edible surplus with nearby people
 - States an order passes through: awaiting payment, confirmed, ready, collected, or cancelled / expired / refused with a reason. An order never looks successful before it is.
 - Delivery through a partner (Grab, Xanh SM) is not in the pilot; it appears only when an agreement and a working integration exist.
 - Pilot timeline: a running prototype with 30 sellers in Tasco Mall and 100 customers, then a beta around 16 November 2026 with 100 sellers and 300 customers.
-- **Visual world:** "Gói mang về", the take-away parcel (kraft ground, banana-leaf green, one pink rubber band per card); its tokens are in [DESIGN.md](DESIGN.md).
-- **Typeface:** Inter ([DESIGN.md](DESIGN.md)).
-- **Undecided:** the tone of voice, the logo, the Vietnamese form of the tagline.
+- **Visual world:** "Miếng cắn thứ hai", the second bite (a deep-leaf green shell, a mint ground, white cards with a bitten corner, amber stickers), taken from the Figma file "Secondbite" on 18 October 2026; its tokens are in [DESIGN.md](DESIGN.md).
+- **Typefaces:** Be Vietnam Pro for text and Bricolage Grotesque for titles and prices ([DESIGN.md](DESIGN.md)).
+- **Undecided:** the tone of voice, the Vietnamese form of the tagline.
 
 ## Brand Commitments
 
 - **Name:** "Second Bite", in both languages.
 - **Tagline:** "A second chance for good food." Its Vietnamese form is still to be chosen.
-- **Logo:** none yet; it is designed with the identity.
+- **Logo:** the "second bite" wordmark, its "o" a bitten cookie (Figma "Secondbite", `logo/wordmark`).
 - **Not inherited:** the founder's prototype is a reference for features and roles only. Its interface, colours, layout, font and "s." mark are not part of the identity.
 - **Voice:** to be chosen from research (how Vietnamese apps address customers and merchants, and how the words for surplus food are received).
 

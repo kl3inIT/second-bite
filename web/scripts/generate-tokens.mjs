@@ -45,11 +45,16 @@ for (const [name, value] of Object.entries(colors)) {
 // DESIGN.md allows it on (The Label Rule), and control outlines and focus rings at 3:1 (WCAG 1.4.11).
 const pairs = [
   ["foreground", "background", MIN_TEXT_CONTRAST],
+  ["soft-foreground", "background", MIN_TEXT_CONTRAST],
   ["muted-foreground", "card", MIN_TEXT_CONTRAST],
   ["muted-foreground", "muted", MIN_TEXT_CONTRAST],
   ["input", "card", 3],
   ["ring", "card", 3],
   ["ring", "background", 3],
+  // Every seller avatar colour carries the one avatar ink.
+  ...Object.keys(colors)
+    .filter((name) => name.startsWith("avatar-") && name !== "avatar-foreground")
+    .map((name) => ["avatar-foreground", name, MIN_TEXT_CONTRAST]),
 ];
 for (const [fore, back, minimum] of pairs) {
   const ratio = contrast(colors[fore], colors[back]);
@@ -84,6 +89,7 @@ const lines = [
     `  --text-${name}: ${style.fontSize};`,
     `  --text-${name}--line-height: ${style.lineHeight};`,
     `  --text-${name}--font-weight: ${style.fontWeight};`,
+    ...(style.letterSpacing ? [`  --text-${name}--letter-spacing: ${style.letterSpacing};`] : []),
   ]),
   "}",
   "",

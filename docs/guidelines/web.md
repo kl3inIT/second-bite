@@ -14,7 +14,7 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 ## Structure
 
 - Every page lives under `src/app/[locale]/`, the root layout; there is no `src/app/layout.tsx`.
-- `src/components/ui` holds shadcn primitives, which are our source code; `src/components` holds Second Bite's own components shared across areas (`Band`, `TopBar`), built on those primitives.
+- `src/components/ui` holds shadcn primitives, which are our source code; `src/components` holds Second Bite's own components shared across areas (`AppHeader`, `Sticker`, `Carousel`), built on those primitives.
 - `src/lib/api` holds the generated client (`generated/`, never edited) and its configuration; `src/i18n` the locale routing; `src/styles/tokens.css` the design tokens; `messages/` the two catalogs.
 - `src/features/<area>` holds what one area of the product needs: its components, its reads from the API and their tests (`features/offers`, `features/home`).
 - Pages are thin: metadata, one data read, then one page component.

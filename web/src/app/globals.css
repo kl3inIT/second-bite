@@ -5,8 +5,9 @@
 @import "../styles/tokens.css";
 
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-be-vietnam-pro), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-sans);
+  --font-heading: var(--font-display);
 }
 
 @layer base {
@@ -18,5 +19,8 @@
   }
   html {
     @apply font-sans;
+  }
+  ::selection {
+    @apply bg-secondary-hover text-foreground;
   }
 }

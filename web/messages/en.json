@@ -7,11 +7,16 @@
     "place": "Tasco Mall Long Biên",
     "placeLabel": "Area",
     "searchLabel": "Search dishes or sellers",
-    "searchPlaceholder": "Search dishes, sellers…",
-    "filtersLabel": "Filter dishes",
-    "all": "All",
+    "searchPlaceholder": "Search pastries, rolls, vegetables…",
+    "kindsLabel": "Kinds of food",
     "collectNow": "Collect now",
     "title": "Tonight at Tasco Mall",
+    "bannersLabel": "Opening for collection first",
+    "slide": "{position} of {count}",
+    "closingSoon": "Closing soon",
+    "seeAll": "See all",
+    "allOffers": "Around you at Tasco Mall",
+    "results": "Results",
     "empty": "Nothing has been posted for tonight yet.",
     "emptyFiltered": "Nothing matches this filter.",
     "showAll": "See every dish"
@@ -38,8 +43,12 @@
     "other": "Other"
   },
   "OfferCard": {
-    "available": "Collect {from}–{until} · {units} left",
-    "soldOut": "Sold out · collect {from}–{until}",
+    "stock": "{units} left",
+    "soldOut": "Sold out",
+    "window": "Collect {from}–{until}",
+    "windowAt": "{from}–{until} · {place}",
+    "discount": "-{percent}%",
+    "discountLabel": "{percent}% off",
     "originalPrice": "Was {price}"
   },
   "Intro": {
