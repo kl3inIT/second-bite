@@ -4,7 +4,17 @@
     "description": "A second chance for good food."
   },
   "Home": {
-    "tagline": "A second chance for good food."
+    "place": "Tasco Mall Long Biên",
+    "placeLabel": "Area",
+    "searchLabel": "Search dishes or sellers",
+    "searchPlaceholder": "Search dishes, sellers…",
+    "filtersLabel": "Filter dishes",
+    "all": "All",
+    "collectNow": "Collect now",
+    "title": "Tonight at Tasco Mall",
+    "empty": "Nothing has been posted for tonight yet.",
+    "emptyFiltered": "Nothing matches this filter.",
+    "showAll": "See every dish"
   },
   "LanguageSwitcher": {
     "label": "Chuyển sang tiếng Việt"
@@ -16,5 +26,24 @@
   "Error": {
     "title": "Something went wrong",
     "retry": "Try again"
+  },
+  "OfferKind": {
+    "bakery": "Bakery",
+    "prepared_food": "Cooked food",
+    "ingredients": "Ingredients",
+    "drinks": "Drinks",
+    "mixed_box": "Mixed box",
+    "other": "Other"
+  },
+  "OfferCard": {
+    "available": "Collect {from}–{until} · {units} left",
+    "soldOut": "Sold out · collect {from}–{until}",
+    "expected": "Expected around {from} · not yet on sale",
+    "originalPrice": "Was {price}"
+  },
+  "Intro": {
+    "title": "What is Second Bite?",
+    "body": "Good food left at the end of the day by sellers in Tasco Mall, at a lower price. Order ahead, then collect it at the counter within the dish's window.",
+    "dismiss": "Close the introduction"
   }
 }

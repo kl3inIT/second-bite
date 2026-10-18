@@ -14,8 +14,9 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 ## Structure
 
 - Every page lives under `src/app/[locale]/`, the root layout; there is no `src/app/layout.tsx`.
-- `src/components/ui` holds shadcn primitives, which are our source code; `src/components` holds Second Bite's own components (`Band`, `OfferCard`, `TopBar`), built on those primitives.
+- `src/components/ui` holds shadcn primitives, which are our source code; `src/components` holds Second Bite's own components shared across areas (`Band`, `TopBar`), built on those primitives.
 - `src/lib/api` holds the generated client (`generated/`, never edited) and its configuration; `src/i18n` the locale routing; `src/styles/tokens.css` the design tokens; `messages/` the two catalogs.
+- `src/features/<area>` holds what one area of the product needs: its components, its reads from the API and their tests (`features/offers`, `features/home`).
 - Pages are thin: metadata, one data read, then one page component.
 
 ## Data and the backend
@@ -51,5 +52,5 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 
 - `pnpm check` runs the token, message and API-client drift checks, Oxlint, Prettier, the type check (after `next typegen`) and the unit tests. CI runs it with `pnpm build`.
 - Unit tests sit next to what they test as `*.test.ts` and run in Node with Vitest; they cover logic, such as the API client's failures.
-- Browser tests live in `tests/e2e/` and run with Playwright against the production build, on a phone (Pixel 7) and a desktop browser. Each page a test opens is checked with `expectNoSeriousA11yViolations` (axe, WCAG 2.2 A and AA; no rule excluded). CI runs them in Microsoft's Playwright image, pinned by digest; bump it with `@playwright/test`.
+- Browser tests live in `tests/e2e/` and run with Playwright against the production build and a stub backend (`tests/e2e/stub-backend.mjs`, also `pnpm stub:backend` for working on a screen whose endpoint is not built), on a phone (Pixel 7) and a desktop browser. Each page a test opens is checked with `expectNoSeriousA11yViolations` (axe, WCAG 2.2 A and AA; no rule excluded). CI runs them in Microsoft's Playwright image, pinned by digest; bump it with `@playwright/test`.
 - On Windows, `@swc/core` (pulled in by next-intl) refuses its native cache when the user profile lets another account modify it. Point `SWC_NATIVE_BINDING_CACHE` at a folder only you can write.

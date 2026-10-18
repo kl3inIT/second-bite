@@ -19,7 +19,7 @@ export function LanguageSwitcher() {
       locale={other}
       aria-label={t("label")}
       title={t("label")}
-      className={buttonVariants({ variant: "ghost", size: "icon" })}
+      className={buttonVariants({ variant: "shell", size: "icon" })}
     >
       <LanguagesIcon aria-hidden />
     </Link>

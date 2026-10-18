@@ -4,7 +4,17 @@
     "description": "Thêm một cơ hội cho món ngon."
   },
   "Home": {
-    "tagline": "Thêm một cơ hội cho món ngon."
+    "place": "Tasco Mall Long Biên",
+    "placeLabel": "Khu vực",
+    "searchLabel": "Tìm món hoặc quán",
+    "searchPlaceholder": "Tìm món, quán…",
+    "filtersLabel": "Lọc món",
+    "all": "Tất cả",
+    "collectNow": "Lấy ngay",
+    "title": "Tối nay ở Tasco Mall",
+    "empty": "Tối nay chưa có món nào.",
+    "emptyFiltered": "Không có món nào khớp bộ lọc này.",
+    "showAll": "Xem tất cả món"
   },
   "LanguageSwitcher": {
     "label": "Switch to English"
@@ -16,5 +26,24 @@
   "Error": {
     "title": "Đã có lỗi xảy ra",
     "retry": "Thử lại"
+  },
+  "OfferKind": {
+    "bakery": "Bánh",
+    "prepared_food": "Món chín",
+    "ingredients": "Nguyên liệu",
+    "drinks": "Đồ uống",
+    "mixed_box": "Hộp tổng hợp",
+    "other": "Khác"
+  },
+  "OfferCard": {
+    "available": "Lấy {from}–{until} · còn {units}",
+    "soldOut": "Đã hết · lấy {from}–{until}",
+    "expected": "Dự kiến khoảng {from} · chưa đặt được",
+    "originalPrice": "Giá gốc {price}"
+  },
+  "Intro": {
+    "title": "Second Bite là gì?",
+    "body": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.",
+    "dismiss": "Đóng giới thiệu"
   }
 }
