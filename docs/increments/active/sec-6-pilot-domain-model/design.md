@@ -191,7 +191,7 @@ Business details wait until the pilot shows what matters, as agreed at the kicko
 | --- | --- | --- | --- |
 | 1 | Hold | A confirmed order holds its units until its collection window closes | Too Good To Go's model; Karrot's activity window |
 | 2 | Payment wait | An order paid by transfer waits a set time (a setting, 15 minutes to start) for its payment | Bounded holds; nothing reserved forever |
-| 3 | Minimum discount | A platform setting checked when publishing, at 0% until sellers are surveyed | Kickoff: the platform sets a minimum; the founder surveys sellers |
+| 3 | Minimum discount | A platform setting checked when publishing, at 20%; a seller may give more | Founder, 18 October 2026 (it was 0% until then); kickoff: the platform sets a minimum |
 | 4 | Limits | A setting for the units one customer may hold per day; orders not collected are recorded, without a penalty yet | foodsharing's per-person limits; no-show policy deferred |
 | 5 | Followers of expected surplus | Told once, when the seller confirms it as stock | Simplest rule that serves the brief |
 | 6 | Allergens | Part of the description written by staff; no structured field yet | Staff check suitability at the handover |
