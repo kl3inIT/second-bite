@@ -31,3 +31,13 @@ updates:
     directory: /web
     schedule:
       interval: weekly
+  - package-ecosystem: pub
+    directories:
+      - /mobile
+      - /mobile/packages/app_ui
+      - /mobile/packages/app_ui/widgetbook
+    schedule:
+      interval: weekly
+    groups:
+      pub:
+        patterns: ["*"]

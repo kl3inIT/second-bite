@@ -1,0 +1,140 @@
+name: Mobile
+
+on:
+  push:
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile.yml"
+  pull_request:
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The one place the Flutter version is pinned (docs/guidelines/mobile.md); every job reads it.
+  FLUTTER_VERSION: 3.47.7
+
+defaults:
+  run:
+    working-directory: mobile
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter pub get
+        working-directory: mobile/packages/app_ui
+      - name: Format
+        run: dart format --set-exit-if-changed .
+      - name: Generated code matches its sources
+        run: |
+          flutter gen-l10n
+          dart run build_runner build --delete-conflicting-outputs
+          git diff --exit-code -- . || { echo "::error::Generated code is stale: run gen-l10n and build_runner, then commit."; exit 1; }
+      - name: Every key is in both catalogs
+        run: |
+          if [ "$(tr -d '[:space:]' < build/untranslated-messages.json)" != "{}" ]; then
+            echo "::error::Keys missing from a catalog:"; cat build/untranslated-messages.json; exit 1
+          fi
+      - name: Analyze
+        run: |
+          flutter analyze --fatal-infos
+          (cd packages/app_ui && flutter analyze --fatal-infos)
+      - name: Test
+        run: |
+          flutter test
+          (cd packages/app_ui && flutter test)
+
+  android:
+    name: Android build and preview
+    needs: check
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+          cache-dependency-path: mobile/android/**/*.gradle*
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: Debug APK
+        run: flutter build apk --debug
+      # The browser preview is for the team only (docs/guidelines/mobile.md, Platforms).
+      - name: Browser preview
+        run: flutter build web
+      - id: apk
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: second-bite-debug-apk
+          path: mobile/build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 14
+      - id: preview
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: second-bite-browser-preview
+          path: mobile/build/web
+          retention-days: 14
+      - name: Links in the summary
+        env:
+          APK_URL: ${{ steps.apk.outputs.artifact-url }}
+          PREVIEW_URL: ${{ steps.preview.outputs.artifact-url }}
+        run: |
+          {
+            echo "### Try this build"
+            echo "- [Debug APK]($APK_URL): unzip, then install on an Android phone."
+            echo "- [Browser preview]($PREVIEW_URL): unzip, then serve the folder (\`python -m http.server\`)."
+          } | tee -a "$GITHUB_STEP_SUMMARY" > "$RUNNER_TEMP/links.md"
+      # As Immich's build-mobile.yml: one comment per pull request, edited on each run. A fork's
+      # token cannot comment, so its links stay in the summary.
+      - name: Links on the pull request
+        if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/links.md" --edit-last --create-if-none
+
+  ios:
+    name: iOS build
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      # Unsigned until SEC-14 brings the Apple account.
+      - run: flutter build ios --release --no-codesign

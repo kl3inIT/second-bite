@@ -7,3 +7,4 @@ output-dir: lib/l10n/gen
 output-localization-file: app_localizations.dart
 nullable-getter: false
 preferred-supported-locales: [vi, en]
+untranslated-messages-file: build/untranslated-messages.json
