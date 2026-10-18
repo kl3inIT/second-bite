@@ -4,7 +4,7 @@ This page states what is implemented today. Intended outcomes are in [docs/visio
 
 ## Runtime overview
 
-The backend and the web application run on a developer's machine and in tests; nothing is deployed, and no mobile application exists.
+The backend and the web application run on a developer's machine, in tests, and as container images (`server/Dockerfile`, `web/Dockerfile`) that a release deploys to staging with Docker Compose on a shared host ([releases and delivery](docs/runbooks/ci-cd.md)). The Flutter application in `mobile/` is a skeleton, built in CI.
 
 - One Go binary, `secondbite` (`server/cmd/secondbite`). At startup it reads its configuration, opens a PostgreSQL pool, applies the pending migrations under a lock, and serves the HTTP API until SIGINT or SIGTERM, then lets requests in flight finish ([runbook](docs/runbooks/backend.md)).
 - PostgreSQL 18 with PostGIS 3.6, with the tables of `identity`, `notification`, `seller` and `file`; files are kept in PostgreSQL unless an S3-compatible store is configured.

@@ -1,14 +1,15 @@
 # The whole stack on a workstation, built from this checkout, in one command from the repository root:
 #   docker compose -f infrastructure/deployment/compose.base.yaml -f infrastructure/deployment/compose.local.yaml up --build --wait
-# then http://localhost:8000. CI starts the same composition from the images it is about to push. The password and
-# keys below are local placeholders, not the secrets of any deployed environment.
+# then http://localhost:8000. The Release workflow starts the same composition from the images it has just pushed,
+# named by SECONDBITE_SERVER_IMAGE and SECONDBITE_WEB_IMAGE, with --no-build. The password and keys below are local
+# placeholders, not the secrets of any deployed environment.
 services:
   postgres:
     environment:
       POSTGRES_PASSWORD: secondbite-local
 
   server:
-    image: second-bite-server:local
+    image: ${SECONDBITE_SERVER_IMAGE:-second-bite-server:local}
     build:
       context: ../../server
     environment:
@@ -17,7 +18,7 @@ services:
       SECONDBITE_SIGN_IN_CODE_KEY: bG9jYWwtb25seS1zaWduLWluLWNvZGUta2V5LTAwMDA=
 
   web:
-    image: second-bite-web:local
+    image: ${SECONDBITE_WEB_IMAGE:-second-bite-web:local}
     build:
       context: ../../web
 

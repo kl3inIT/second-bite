@@ -1,0 +1,40 @@
+name: Deploy staging
+
+# Staging takes every release that a successful main Release run published: automatically when STAGING_AUTO_DEPLOY is
+# true, or by hand for a chosen run. The delivery itself is the shared Deploy workflow (docs/runbooks/ci-cd.md).
+"on":
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: Successful main Release run whose release to deploy
+        required: true
+        type: string
+
+permissions:
+  contents: read # Check out the deployment files of the release.
+  actions: read # Verify the Release run and download its release.
+  packages: read # Let the server pull the private images.
+
+# A running deployment always finishes; the next one waits behind it.
+concurrency:
+  group: secondbite-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (vars.STAGING_AUTO_DEPLOY == 'true' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
+       github.event.workflow_run.head_branch == 'main')
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+      ci_run_id: ${{ inputs.ci_run_id }}
+    secrets: inherit

@@ -93,7 +93,7 @@ These steps are written as commands in the runbook. The agent has no access to t
 
 ### 1. Copy BeyondPilot's deployment rather than design a new one
 
-Proposed: the same host, the same proxy and the same release-by-artifact and SSH-with-one-sudo-rule model that BeyondPilot already runs there. The team operates one way of deploying, not two.
+Decided with the team on 18 October 2026, after comparing how others deploy: Activepieces and Blackcandy run Kamal over SSH from Actions; Coolify's own guide calls its webhook; many small projects run `appleboy/ssh-action` with `docker compose up`, often without checking the host key; Immich runs Flux on k3s. Kamal's proxy and Coolify both want ports 80 and 443 the shared host's Nginx Proxy Manager holds, and Kamal and a Docker context over SSH both give CI the Docker socket, root on a host shared with other products. The choice: the same host, the same proxy and the same release-by-artifact and SSH-with-one-sudo-rule model that BeyondPilot already runs there. The team operates one way of deploying, not two.
 
 ### 2. Automatic deployment after every green `main`
 

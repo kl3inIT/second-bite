@@ -1,0 +1,142 @@
+name: Deploy
+
+# One delivery path for every environment (docs/runbooks/ci-cd.md), copied from BeyondPilot's Deploy workflow. Callers name the environment; its host, user,
+# host key and deployment key belong to the GitHub environment of that name, which only main may use.
+"on":
+  workflow_call:
+    inputs:
+      environment:
+        description: staging, the only environment so far; selects the GitHub environment, the server directory and the overlay
+        required: true
+        type: string
+      ci_run_id:
+        description: Successful main Release run whose release to deploy; empty takes the run that triggered the caller
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read # Check out the deployment files of the release.
+  actions: read # Verify the Release run and download its release.
+  packages: read # Let the server pull the private images.
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: ${{ inputs.environment }}
+      url: https://secondbite.vadan.app
+    steps:
+      - name: Resolve a successful main release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI_RUN_ID: ${{ inputs.ci_run_id || github.event.workflow_run.id }}
+          EVENT_NAME: ${{ github.event_name }}
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          [[ "$CI_RUN_ID" =~ ^[1-9][0-9]*$ ]]
+          base="repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN_ID"
+          gh api "$base" > "$RUNNER_TEMP/ci-run.json"
+          jq --exit-status --arg repo "$GITHUB_REPOSITORY" '
+            .repository.full_name == $repo and .head_repository.full_name == $repo
+            and .head_branch == "main" and .event == "push" and .status == "completed"
+            and .conclusion == "success" and .path == ".github/workflows/release.yml"
+          ' "$RUNNER_TEMP/ci-run.json" > /dev/null
+          sha=$(jq --raw-output .head_sha "$RUNNER_TEMP/ci-run.json")
+          attempt=$(jq --raw-output .run_attempt "$RUNNER_TEMP/ci-run.json")
+          [[ "$sha" =~ ^[0-9a-f]{40}$ && "$attempt" =~ ^[1-9][0-9]*$ ]]
+          gh api "$base/attempts/$attempt/jobs?per_page=100" | jq --exit-status '
+            [.jobs[] | select(.name == "Publish release")] | length == 1 and all(.[]; .conclusion == "success")
+          ' > /dev/null
+          # A newer release of main is running or done, and deploys after it; promoting this one would be undone.
+          # Only commits that change what is deployed make a release, so the newest Release run is compared, not main.
+          newest=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/release.yml/runs?branch=main&event=push&per_page=1"             --jq '.workflow_runs[0].head_sha')
+          if [[ "$DEPLOY_ENVIRONMENT" == staging && "$EVENT_NAME" == workflow_run && "$newest" != "$sha" ]]; then
+            echo "Release $sha skipped: a newer release, $newest, follows it." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          printf 'sha=%s\nrun_id=%s\nrelease=%s-%s-%s\nready=true\n' \
+            "$sha" "$CI_RUN_ID" "$sha" "$CI_RUN_ID" "$attempt" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the deployment files of the release
+        if: steps.release.outputs.ready == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.release.outputs.sha }}
+          persist-credentials: false
+
+      - name: Download the release
+        if: steps.release.outputs.ready == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-${{ steps.release.outputs.sha }}
+          path: release
+          run-id: ${{ steps.release.outputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare the deployment identity and the trusted host key
+        if: steps.release.outputs.ready == 'true'
+        env:
+          # A caller cannot read the values of the environment it enters, so they are chosen here, inside it.
+          DEPLOY_HOST: ${{ vars.STAGING_HOST }}
+          DEPLOY_USER: ${{ vars.STAGING_USER }}
+          KNOWN_HOSTS: ${{ vars.STAGING_KNOWN_HOSTS }}
+          DEPLOY_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]+$ ]]
+          [[ "$DEPLOY_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          test -n "$KNOWN_HOSTS"
+          test -n "$DEPLOY_KEY"
+          umask 077
+          mkdir "$RUNNER_TEMP/deploy-ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$RUNNER_TEMP/deploy-ssh/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/deploy-ssh/known_hosts"
+          cat > "$RUNNER_TEMP/deploy-ssh/config" <<EOF
+          Host deploy-target
+            HostName $DEPLOY_HOST
+            User $DEPLOY_USER
+            IdentityFile $RUNNER_TEMP/deploy-ssh/key
+            IdentitiesOnly yes
+            UserKnownHostsFile $RUNNER_TEMP/deploy-ssh/known_hosts
+            StrictHostKeyChecking yes
+            BatchMode yes
+            ConnectTimeout 15
+            ServerAliveInterval 15
+            ServerAliveCountMax 4
+          EOF
+
+      - name: Upload the release and roll it out
+        if: steps.release.outputs.ready == 'true'
+        env:
+          RELEASE: ${{ steps.release.outputs.release }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          case "$DEPLOY_ENVIRONMENT" in
+            staging) root=/apps/secondbite-staging url=https://secondbite.vadan.app ;;
+            *) echo "unknown environment $DEPLOY_ENVIRONMENT" >&2; exit 1 ;;
+          esac
+          ssh_config="$RUNNER_TEMP/deploy-ssh/config"
+          remote="$root/incoming/$RELEASE"
+          cp infrastructure/deployment/{deploy.sh,compose.base.yaml,"compose.$DEPLOY_ENVIRONMENT.yaml"} release/
+          ssh -F "$ssh_config" deploy-target "mkdir -m 0700 '$remote'"
+          scp -F "$ssh_config" release/* "deploy-target:$remote/"
+          printf '%s' "$REGISTRY_TOKEN" | ssh -F "$ssh_config" deploy-target \
+            "sudo -n bash '$remote/deploy.sh' '$DEPLOY_ENVIRONMENT' '$RELEASE' '$GITHUB_ACTOR'"
+          echo "Release $RELEASE is running on $url." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Report an interrupted deployment
+        if: ${{ failure() || cancelled() }}
+        run: |
+          echo 'The deployment did not finish. Nothing was rolled back; follow docs/runbooks/ci-cd.md.' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove the deployment identity
+        if: ${{ always() }}
+        run: rm -rf -- "$RUNNER_TEMP/deploy-ssh"
