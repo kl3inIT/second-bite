@@ -13,6 +13,7 @@
 
 - Backend work in `server/`: follow [docs/guidelines/backend.md](docs/guidelines/backend.md).
 - Web work in `web/`: follow [docs/guidelines/web.md](docs/guidelines/web.md) and the checklist in [web/AGENTS.md](web/AGENTS.md).
+- Mobile work in `mobile/`: follow [docs/guidelines/mobile.md](docs/guidelines/mobile.md).
 
 ## Operating rules
 
@@ -31,6 +32,6 @@
 
 Go skills from community collections are vendored under `.claude/skills/`; their sources and what was left out are in [.claude/skills/SOURCES.md](.claude/skills/SOURCES.md). They describe idiomatic Go. Where a skill asks which architecture or layout to use, the answer is already given: [boundary discovery](docs/conventions.md#boundary-discovery) and the [backend guideline](docs/guidelines/backend.md). Where a skill and this repository disagree, this repository wins.
 
-The Figma skills (`figma-build`, `figma-codegen`) are vendored beside them and work through the Figwright server in `.mcp.json`; design rules are in the [Figma guide](docs/guidelines/figma.md). The Flutter team's skills (`flutter-*`, `dart-*`) are vendored for `mobile/`; where they assume a state-management or networking package, the choice recorded on SEC-12 and in the mobile guideline wins.
+The Figma skills (`figma-build`, `figma-codegen`) are vendored beside them and work through the Figwright server in `.mcp.json`; design rules are in the [Figma guide](docs/guidelines/figma.md). The Flutter team's skills (`flutter-*`, `dart-*`) are vendored for `mobile/`; where they assume a state-management or networking package, the [mobile guideline](docs/guidelines/mobile.md) wins. Only skills from a package's own maintainers and from Very Good Ventures are vendored.
 
 Design exploration uses the [impeccable](https://impeccable.style/) skill, which is not vendored: each person installs it, and it reads [PRODUCT.md](PRODUCT.md) and `.impeccable/` from this repository.
