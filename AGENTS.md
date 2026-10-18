@@ -12,6 +12,7 @@
 ## Area guides
 
 - Backend work in `server/`: follow [docs/guidelines/backend.md](docs/guidelines/backend.md).
+- Web work in `web/`: follow [docs/guidelines/web.md](docs/guidelines/web.md) and the checklist in [web/AGENTS.md](web/AGENTS.md).
 
 ## Operating rules
 

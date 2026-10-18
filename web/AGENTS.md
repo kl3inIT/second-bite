@@ -1,3 +1,14 @@
+# Web application
+
+Rules for `web/` are in the [web guideline](../docs/guidelines/web.md); design in [DESIGN.md](../DESIGN.md). Before finishing a change here:
+
+- [ ] Every string is in `messages/vi.json` and `messages/en.json`; links use `Link` from `@/i18n/navigation`.
+- [ ] Styling uses semantic tokens only; a new value went into DESIGN.md and `pnpm generate:tokens`, never into `src/styles/tokens.css` by hand.
+- [ ] API calls go through the generated SDK; after the backend's contract changed, `pnpm generate:api` was run and its output committed.
+- [ ] Targets are 44 px or more, status carries a label or icon, icon-only controls have an accessible name.
+- [ ] A changed page has a Playwright test that opens it and checks it with `expectNoSeriousA11yViolations`.
+- [ ] `pnpm check` and `pnpm test:e2e` pass.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know

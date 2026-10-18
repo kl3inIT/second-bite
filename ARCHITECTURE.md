@@ -4,7 +4,7 @@ This page states what is implemented today. Intended outcomes are in [docs/visio
 
 ## Runtime overview
 
-The backend runs on a developer's machine and in tests; nothing is deployed, and no web or mobile application exists.
+The backend and the web application run on a developer's machine and in tests; nothing is deployed, and no mobile application exists.
 
 - One Go binary, `secondbite` (`server/cmd/secondbite`). At startup it reads its configuration, opens a PostgreSQL pool, applies the pending migrations under a lock, and serves the HTTP API until SIGINT or SIGTERM, then lets requests in flight finish ([runbook](docs/runbooks/backend.md)).
 - PostgreSQL 18 with PostGIS 3.6, with the tables of `identity`, `notification`, `seller` and `file`; files are kept in PostgreSQL unless an S3-compatible store is configured.
@@ -14,6 +14,7 @@ The backend runs on a developer's machine and in tests; nothing is deployed, and
 - Two administrative commands set up a fresh installation: `secondbite email configure` and `secondbite admin grant`.
 - The API answers the probes `/livez` and `/readyz`, serves its OpenAPI 3.1 contract, and answers every error, an unknown route included, as an RFC 9457 problem with a `code` and the request's `requestId`.
 - Every request has an identifier, returned in `X-Request-Id` and logged as `request_id`.
+- The web application (`web/`, Next.js) has no screen of the product yet: a home page, a language switch and not-found and error pages, in Vietnamese under `/vi` and English under `/en`. It calls the API as `/api/...` on its own origin through a client generated from `api/openapi.yaml`; in development Next.js forwards those calls to the Go server ([web guideline](docs/guidelines/web.md)).
 
 ## Code and capability boundaries
 
@@ -40,8 +41,9 @@ One line per module, naming the modules whose published API it may use, such as 
 | Path | Holds today |
 | --- | --- |
 | `docs/` | Brief, vision, roadmap, conventions, guidelines, research, module specs (`specs/`) and their test matrices (`tests/`), runbooks, and the increments ([operating model](docs/guidelines/operating-model.md)) |
-| `.claude/skills/` | Go skills vendored from community collections for coding agents ([sources](.claude/skills/SOURCES.md)) |
+| `.claude/skills/` | Go, Figma and shadcn skills vendored for coding agents ([sources](.claude/skills/SOURCES.md)) |
 | `server/` | The Go service: `cmd/secondbite` assembles it, `internal/platform` holds its technical code, `migrations/` its schema ([backend guideline](docs/guidelines/backend.md)) |
+| `web/` | The Next.js application: pages under `src/app/[locale]`, tokens generated from `DESIGN.md`, the two message catalogs, the generated API client, and its unit and browser tests ([web guideline](docs/guidelines/web.md)) |
 | `api/` | `openapi.yaml`, the contract generated from the backend's operations and checked by a test |
 | `compose.yaml` | The local database and Mailpit for development |
-| `.github/workflows/` | CI for the backend: lint, tests, vulnerabilities |
+| `.github/workflows/` | CI for the backend (lint, tests, vulnerabilities) and the web (checks, build, browser tests); Dependabot updates for Go, npm, actions and compose |

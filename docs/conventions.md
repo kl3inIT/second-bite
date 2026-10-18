@@ -1,6 +1,6 @@
 # Engineering conventions
 
-These conventions apply across Second Bite, whatever the language or framework. How the backend realizes them in Go is in the [backend guideline](guidelines/backend.md); module-specific behavior belongs in `docs/specs/`; change-local reasoning belongs in the active increment ([operating model](guidelines/operating-model.md)).
+These conventions apply across Second Bite, whatever the language or framework. How the backend realizes them in Go is in the [backend guideline](guidelines/backend.md), and the web application in the [web guideline](guidelines/web.md); module-specific behavior belongs in `docs/specs/`; change-local reasoning belongs in the active increment ([operating model](guidelines/operating-model.md)).
 
 The conventions are adapted from the BeyondPilot repository (GenAI Fund), revision `173f8789` of 16 October 2026, with everything specific to Spring, Java and Next.js removed.
 
@@ -164,6 +164,8 @@ Every test must identify the observable contract and the regression it would cat
 | SQL, migration, locking, transaction or constraint | Integration test against PostgreSQL with the real migrations, in a container |
 | Module boundary and events between modules | The boundary check for the structure; an integration test for the event's delivery |
 | Composition of the whole service, background lifecycle | The assembled service against its real dependencies in containers |
+| Web logic, such as the API client | A Vitest unit test in Node, next to the code |
+| Web page: routing, language, content, accessibility | A Playwright test against the production build on a phone and a desktop, with axe |
 | Mobile interaction | A widget test for one screen's behavior; an integration test on a device or emulator for navigation and the session |
 | Deployed feature acceptance | A smoke test against the deployed release and its real dependencies |
 
