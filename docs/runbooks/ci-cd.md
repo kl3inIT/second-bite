@@ -88,10 +88,11 @@ Under `/apps/secondbite-staging`:
 - `A secondbite` points to the host;
 - `A preview.secondbite` points to the host too, for the Flutter browser preview (SEC-35).
 
-**The host.** In a session as an administrator of the host, create the deployment user and the directories. The user has no password, is not in the `docker` group, and has one sudo rule.
+**The host.** In a session as an administrator of the host, create the deployment user and the directories. The user has no password, is not in the `docker` group, and has one sudo rule. It needs a home directory: `--system` alone gives it `/nonexistent`, and SSH then finds no `authorized_keys`.
 
 ```sh
-sudo adduser --system --group --shell /bin/bash secondbite-ci
+sudo adduser --system --group --home /home/secondbite-ci --shell /bin/bash secondbite-ci
+sudo chmod 0750 /home/secondbite-ci
 root=/apps/secondbite-staging
 sudo install -d -o root -g root -m 0755 "$root"
 sudo install -d -o secondbite-ci -g secondbite-ci -m 0700 "$root/incoming"
