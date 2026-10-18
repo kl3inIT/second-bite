@@ -45,7 +45,8 @@ Second Bite connects sellers that have genuine edible surplus with nearby people
 - Delivery through a partner (Grab, Xanh SM) is not in the pilot; it appears only when an agreement and a working integration exist.
 - Pilot timeline: a running prototype with 30 sellers in Tasco Mall and 100 customers, then a beta around 16 November 2026 with 100 sellers and 300 customers.
 - **Visual world:** "Gói mang về", the take-away parcel (kraft ground, banana-leaf green, one pink rubber band per card); its tokens are in [DESIGN.md](DESIGN.md).
-- **Undecided:** the typeface, the tone of voice, the logo, the Vietnamese form of the tagline.
+- **Typeface:** Inter ([DESIGN.md](DESIGN.md)).
+- **Undecided:** the tone of voice, the logo, the Vietnamese form of the tagline.
 
 ## Brand Commitments
 

@@ -25,7 +25,7 @@ colors:
   signature: "#C93468"
   signature-foreground: "#FFFFFF"
 typography:
-  # Inter is a stand-in until the typeface is chosen (SEC-22); it covers Vietnamese.
+  # Inter, chosen on 18 October 2026 over Geist and Be Vietnam Pro (SEC-22); one variable file with the Vietnamese subset, bundled on web and Flutter.
   label:
     fontFamily: "Inter"
     fontSize: "12px"
@@ -153,7 +153,7 @@ Warm, material colours taken from the parcel: leaf, paper, band and ink.
 
 ## Typography
 
-**Body Font:** Inter (stand-in until the typeface is chosen; it must cover Vietnamese diacritics)
+**Body Font:** Inter, one variable font (weight and optical size) with the Latin and Vietnamese subsets, served from our own origin on the web and bundled in the Flutter app
 
 **Character:** a plain, legible sans that lets the photographs and the band carry the personality.
 
