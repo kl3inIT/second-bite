@@ -92,6 +92,13 @@ Google says when it is authoritative for an address: an address at `gmail.com`, 
   - **an account has it and Google is not authoritative** (an outside address kept on a Google account): refused with `IDENTITY_GOOGLE_LINK_REQUIRED`; the person signs in with the emailed code, which proves the address today. Linking Google from a signed-in session is added when someone needs it.
 - The account's address never changes when Google's does, as in Supabase.
 
+**Added on 18 October 2026, after a security review of the first build and agreed with the team.** Creating an account from Google for an outside address left a way in for someone else: whoever held a Google account with that address (a former owner of a reassigned address, for instance) could sign in first, and the address's owner, arriving later with the emailed code, would share the account with them. This is the "federated merge" form of account pre-hijacking (Sudhodanan and Paverd, Microsoft MSRC, 2022, who found a pre-hijacking flaw in more than 35 of the 75 most popular sites). The fix follows the products that link this way:
+
+- Firebase: "The trusted provider overwrites the untrusted provider", after which signing in with the untrusted one asks for linking ([users](https://firebase.google.com/docs/auth/users)).
+- Supabase Auth: removes the unconfirmed identities once the address is confirmed (`internal/api/external.go:412-419`).
+
+**Decided:** each link records whether Google speaks for its address (`email_trusted`). A sign-in with the emailed code proves the address and removes the account's links that are not trusted. Signing in with that Google account again is then refused with `IDENTITY_GOOGLE_LINK_REQUIRED`. Links at `gmail.com` and Workspace addresses are never removed. Refusing to create accounts from Google for outside addresses was weighed too and left out, as no comparable product was found to do it.
+
 ### 5. What is kept from Google
 
 Decided with the team on 18 October 2026: the `sub`, the address at the time of linking, the name and the picture's address, and when the identity was linked and last used. Google asks only for `openid`, `email` and `profile`, which it grants without a verification review and which its consent screen already names to the person. The name and the picture are refreshed at each Google sign-in, as Supabase Auth refreshes `identity_data` (`internal/api/external.go:384-397`); Miniflux and BeyondPilot keep only the subject.

@@ -112,6 +112,21 @@ func (q *Queries) DeleteSession(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const deleteUntrustedLogins = `-- name: DeleteUntrustedLogins :execrows
+DELETE FROM identity_external_logins WHERE account_id = $1 AND NOT email_trusted
+`
+
+// An emailed code proved the address: links whose provider does not speak
+// for it may belong to someone else and are removed, as Firebase and
+// Supabase Auth do.
+func (q *Queries) DeleteUntrustedLogins(ctx context.Context, accountID uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUntrustedLogins, accountID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const endLiveChallenges = `-- name: EndLiveChallenges :exec
 UPDATE identity_sign_in_challenges SET expires_at = now()
 WHERE email = $1 AND expires_at > now()
@@ -358,17 +373,18 @@ func (q *Queries) InsertChallenge(ctx context.Context, arg InsertChallengeParams
 }
 
 const insertExternalLogin = `-- name: InsertExternalLogin :exec
-INSERT INTO identity_external_logins (account_id, provider, subject, linked_email, name, picture_url)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO identity_external_logins (account_id, provider, subject, linked_email, email_trusted, name, picture_url)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type InsertExternalLoginParams struct {
-	AccountID   uuid.UUID
-	Provider    string
-	Subject     string
-	LinkedEmail string
-	Name        string
-	PictureUrl  string
+	AccountID    uuid.UUID
+	Provider     string
+	Subject      string
+	LinkedEmail  string
+	EmailTrusted bool
+	Name         string
+	PictureUrl   string
 }
 
 func (q *Queries) InsertExternalLogin(ctx context.Context, arg InsertExternalLoginParams) error {
@@ -377,6 +393,7 @@ func (q *Queries) InsertExternalLogin(ctx context.Context, arg InsertExternalLog
 		arg.Provider,
 		arg.Subject,
 		arg.LinkedEmail,
+		arg.EmailTrusted,
 		arg.Name,
 		arg.PictureUrl,
 	)

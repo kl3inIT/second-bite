@@ -18,10 +18,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/identity/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
 )
 
-const testClientID = "web-client.apps.googleusercontent.com"
+const (
+	testClientID = "web-client.apps.googleusercontent.com"
+	// workspaceDomain is a Google Workspace domain, which Google speaks for.
+	workspaceDomain = "school.edu.vn"
+)
 
 // issuer signs ID tokens as Google would, with a key the verifier is given.
 type issuer struct {
@@ -129,7 +134,7 @@ func TestGoogleVerify(t *testing.T) {
 func TestGoogleAuthoritative(t *testing.T) {
 	t.Parallel()
 
-	for email, hd := range map[string]string{"lan@gmail.com": "", "lan@school.edu.vn": "school.edu.vn"} {
+	for email, hd := range map[string]string{"lan@gmail.com": "", "lan@" + workspaceDomain: workspaceDomain} {
 		if !(googleClaims{Email: email, HostedDomain: hd}).authoritative() {
 			t.Errorf("%s with hd %q: not authoritative", email, hd)
 		}
@@ -147,13 +152,14 @@ func TestSignInWithGoogle(t *testing.T) {
 	iss := newIssuer(t)
 
 	for name, check := range map[string]func(*testing.T, *Service, issuer){
-		"a first sign-in creates the account with Google's name": testGoogleCreatesAccount,
-		"a returning subject keeps its account":                  testGoogleReturningSubject,
-		"Google links an account when it speaks for the address": testGoogleLinksAuthoritative,
-		"an outside address with an account asks for the code":   testGoogleLinkRequired,
-		"an unverified address is refused on a first sign-in":    testGoogleUnverified,
-		"two first sign-ins at once make one link":               testGoogleConcurrentFirstSignIns,
-		"without client IDs Google is off":                       testGoogleOff,
+		"a first sign-in creates the account with Google's name":      testGoogleCreatesAccount,
+		"a returning subject keeps its account":                       testGoogleReturningSubject,
+		"Google links an account when it speaks for the address":      testGoogleLinksAuthoritative,
+		"an outside address with an account asks for the code":        testGoogleLinkRequired,
+		"an unverified address is refused on a first sign-in":         testGoogleUnverified,
+		"two first sign-ins at once make one link":                    testGoogleConcurrentFirstSignIns,
+		"an emailed code removes the links Google does not vouch for": testCodeRemovesUntrustedLinks,
+		"without client IDs Google is off":                            testGoogleOff,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -238,7 +244,7 @@ func testGoogleLinksAuthoritative(t *testing.T, s *Service, iss issuer) {
 	for _, tc := range []struct {
 		domain string
 		hd     string
-	}{{"gmail.com", ""}, {"school.edu.vn", "school.edu.vn"}} {
+	}{{"gmail.com", ""}, {workspaceDomain, workspaceDomain}} {
 		sub, p := unique()
 		email := p + "@" + tc.domain
 
@@ -343,5 +349,69 @@ func testGoogleOff(t *testing.T, s *Service, iss issuer) {
 
 	if s.GoogleClientID() != "" {
 		t.Error("a client ID while Google is off")
+	}
+}
+
+// signInWithCode signs in to email with the emailed code, the challenge put
+// in place of the email the test does not send.
+func signInWithCode(t *testing.T, s *Service, email string) Session {
+	t.Helper()
+
+	id := uuid.New()
+
+	const code = "123456"
+
+	if _, err := s.queries.InsertChallenge(t.Context(), db.InsertChallengeParams{
+		ID: id, Email: email, CodeHash: s.codeHash(id, code), LifetimeSeconds: 60,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	session, err := s.SignIn(t.Context(), id, code)
+	if err != nil {
+		t.Fatalf("signing in with the code: %v", err)
+	}
+
+	return session
+}
+
+func testCodeRemovesUntrustedLinks(t *testing.T, s *Service, iss issuer) {
+	t.Helper()
+
+	// Someone links their Google account to an outside address before its
+	// owner arrives; the owner then proves the address with the code.
+	outsideSub, p := unique()
+	outside := p + "@congtycu.vn"
+	planted := signInGoogle(t, s, iss.token(t, outsideSub, outside, nil))
+
+	owner := signInWithCode(t, s, outside)
+	if owner.Account.ID != planted.Account.ID {
+		t.Fatalf("the code reached another account")
+	}
+
+	if _, err := s.SignInWithGoogle(t.Context(), iss.token(t, outsideSub, outside, nil), ""); !errors.Is(err, ErrGoogleLinkRequired) {
+		t.Errorf("Google after the owner's code: err %v, want %v", err, ErrGoogleLinkRequired)
+	}
+
+	// Google speaks for gmail.com and Workspace addresses: their links stay.
+	for _, hd := range []string{"", workspaceDomain} {
+		sub, q := unique()
+
+		email := q + "@gmail.com"
+		if hd != "" {
+			email = q + "@" + hd
+		}
+
+		token := iss.token(t, sub, email, func(c map[string]any) {
+			if hd != "" {
+				c["hd"] = hd
+			}
+		})
+		first := signInGoogle(t, s, token)
+		signInWithCode(t, s, email)
+
+		if again := signInGoogle(t, s, token); again.Account.ID != first.Account.ID {
+			t.Errorf("%s: Google reached another account after the code", email)
+		}
 	}
 }

@@ -252,7 +252,7 @@ func (s *Service) linkGoogle(ctx context.Context, q *db.Queries, c googleClaims)
 
 	if err := q.InsertExternalLogin(ctx, db.InsertExternalLoginParams{
 		AccountID: accountID, Provider: providerGoogle, Subject: c.Subject,
-		LinkedEmail: email, Name: c.Name, PictureUrl: c.Picture,
+		LinkedEmail: email, EmailTrusted: c.authoritative(), Name: c.Name, PictureUrl: c.Picture,
 	}); err != nil {
 		return Account{}, fmt.Errorf("linking the identity: %w", err)
 	}

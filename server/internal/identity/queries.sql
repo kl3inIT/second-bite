@@ -96,8 +96,14 @@ SET name = @name, picture_url = @picture_url, last_used_at = now()
 WHERE provider = @provider AND subject = @subject;
 
 -- name: InsertExternalLogin :exec
-INSERT INTO identity_external_logins (account_id, provider, subject, linked_email, name, picture_url)
-VALUES (@account_id, @provider, @subject, @linked_email, @name, @picture_url);
+INSERT INTO identity_external_logins (account_id, provider, subject, linked_email, email_trusted, name, picture_url)
+VALUES (@account_id, @provider, @subject, @linked_email, @email_trusted, @name, @picture_url);
+
+-- name: DeleteUntrustedLogins :execrows
+-- An emailed code proved the address: links whose provider does not speak
+-- for it may belong to someone else and are removed, as Firebase and
+-- Supabase Auth do.
+DELETE FROM identity_external_logins WHERE account_id = @account_id AND NOT email_trusted;
 
 -- name: FindAccountByEmail :one
 SELECT id, email, role, display_name FROM identity_accounts WHERE email = @email;
