@@ -40,7 +40,6 @@
   "OfferCard": {
     "available": "Lấy {from}–{until} · còn {units}",
     "soldOut": "Đã hết · lấy {from}–{until}",
-    "expected": "Dự kiến khoảng {from} · chưa đặt được",
     "originalPrice": "Giá gốc {price}"
   },
   "Intro": {

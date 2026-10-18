@@ -1,11 +1,11 @@
 import "server-only";
 
-import { client } from "@/lib/api/generated/client.gen";
+import { searchOffers } from "@/lib/api/generated";
 
 import type { OfferKind, OfferSummary } from "./offer";
 
 export type OfferFilters = {
-  /** Words in the name; the backend ignores accents. */
+  /** Words in the name, the seller's name or the description; typed without marks they match any marks. */
   q?: string;
   kind?: OfferKind;
   /** Only what can be collected now: the window must include this moment. */
@@ -13,17 +13,18 @@ export type OfferFilters = {
 };
 
 /**
- * Tonight's offers and announcements, soonest window first (SEC-11 › Finding offers). Called from
- * Server Components; a failure rejects with ApiError and reaches the page's error boundary. The body's
- * shape follows the SEC-11 design until the generated SDK has the operation.
+ * Tonight's offers, soonest window first, or best match first when words are given (SEC-11 › Finding
+ * offers). Called from Server Components; a failure rejects with ApiError and reaches the page's
+ * error boundary.
  */
 export async function listOffers(filters: OfferFilters): Promise<OfferSummary[]> {
-  const { data } = await client.get<{ 200: { offers: OfferSummary[] } }, unknown, true>({
-    url: "/offers",
+  const now = filters.collectNow ? new Date().toISOString() : undefined;
+  const { data } = await searchOffers({
     query: {
       q: filters.q || undefined,
-      kind: filters.kind,
-      collectAt: filters.collectNow ? new Date().toISOString() : undefined,
+      kind: filters.kind ? [filters.kind] : undefined,
+      collectFrom: now,
+      collectTo: now,
       limit: 50,
     },
   });

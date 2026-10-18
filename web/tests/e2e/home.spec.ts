@@ -6,9 +6,7 @@ import { hydrated } from "./hydration";
 test.use({ locale: "vi-VN" });
 
 test.describe("the customer home", () => {
-  test("lists tonight's offers: what can be ordered, then what is expected, then what has sold out", async ({
-    page,
-  }) => {
+  test("lists tonight's offers: what can be ordered, then what has sold out", async ({ page }) => {
     await page.goto("/vi");
 
     await expect(
@@ -18,11 +16,9 @@ test.describe("the customer home", () => {
     await expect(names).toHaveText([
       "Túi bánh mì và croissant, 4 chiếc",
       "Xôi thập cẩm, 1 hộp",
-      "Bánh mì gà xé",
       "Cơm sườn nướng, 1 suất",
     ]);
     await expect(page.getByText("Lấy 21:00–21:45 · còn 3")).toBeVisible();
-    await expect(page.getByText("Dự kiến khoảng 21:00 · chưa đặt được")).toBeVisible();
     await expect(page.getByText("Đã hết · lấy 21:00–21:30")).toBeVisible();
     await expect(page.getByText("39.000đ")).toBeVisible();
     await expect(page.getByText("Giá gốc 95.000đ")).toBeAttached();
@@ -40,7 +36,6 @@ test.describe("the customer home", () => {
     );
     await expect(page.getByRole("listitem").getByRole("heading", { level: 3 })).toHaveText([
       "Túi bánh mì và croissant, 4 chiếc",
-      "Bánh mì gà xé",
     ]);
 
     await (await hydrated(page.getByRole("link", { name: "Đồ uống" }))).click();

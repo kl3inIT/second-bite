@@ -201,7 +201,7 @@ func registerStaffOperations(api huma.API, s *Service) {
 
 	type offersOutput struct {
 		Body struct {
-			Offers []offerBody `json:"offers"`
+			Offers []offerBody `json:"offers" nullable:"false"`
 		}
 	}
 

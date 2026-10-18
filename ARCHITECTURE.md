@@ -14,7 +14,7 @@ The backend and the web application run on a developer's machine and in tests; n
 - Two administrative commands set up a fresh installation: `secondbite email configure` and `secondbite admin grant`.
 - The API answers the probes `/livez` and `/readyz`, serves its OpenAPI 3.1 contract, and answers every error, an unknown route included, as an RFC 9457 problem with a `code` and the request's `requestId`.
 - Every request has an identifier, returned in `X-Request-Id` and logged as `request_id`.
-- The web application (`web/`, Next.js) has one screen of the product: the customer home, tonight's offers at Tasco Mall with search and filters by kind, read from `GET /offers` as SEC-11 designs it (not built in the backend yet). Besides it, a language switch and not-found and error pages, in Vietnamese under `/vi` and English under `/en`. It calls the API as `/api/...` on its own origin through a client generated from `api/openapi.yaml`; in development Next.js forwards those calls to the Go server ([web guideline](docs/guidelines/web.md)).
+- The web application (`web/`, Next.js) has one screen of the product: the customer home, tonight's offers at Tasco Mall with search and filters by kind, read from `GET /offers` through the generated SDK; the cards show what can be ordered, then what has sold out. Besides it, a language switch and not-found and error pages, in Vietnamese under `/vi` and English under `/en`. It calls the API as `/api/...` on its own origin through a client generated from `api/openapi.yaml`; in development Next.js forwards those calls to the Go server ([web guideline](docs/guidelines/web.md)).
 
 ## Code and capability boundaries
 

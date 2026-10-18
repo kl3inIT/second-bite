@@ -40,7 +40,6 @@
   "OfferCard": {
     "available": "Collect {from}–{until} · {units} left",
     "soldOut": "Sold out · collect {from}–{until}",
-    "expected": "Expected around {from} · not yet on sale",
     "originalPrice": "Was {price}"
   },
   "Intro": {

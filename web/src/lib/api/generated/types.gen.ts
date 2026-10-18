@@ -56,6 +56,44 @@ export type EmailSettingsBody = {
     updatedAt: string;
 };
 
+export type FoundBody = {
+    /**
+     * Where the offer is collected, copied from the seller when it was posted
+     */
+    collectionPoint: CollectionPointBody;
+    createdAt: string;
+    description: string;
+    discountPercent: number;
+    /**
+     * From the point searched near; absent without one
+     */
+    distanceMeters?: number;
+    id: string;
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    name: string;
+    originalPriceVnd: number;
+    photo: OfferPhotoBody;
+    priceVnd: number;
+    seller: OfferSellerBody;
+    sellerId: string;
+    /**
+     * sold_out and closed are read from the units left and the window
+     */
+    status: 'on_sale' | 'sold_out' | 'closed' | 'withdrawn';
+    unit: string;
+    units: number;
+    unitsLeft: number;
+    updatedAt: string;
+    weightGrams?: number;
+    windowEnd: string;
+    windowStart: string;
+    withdrawnAt?: string;
+};
+
+export type FoundOutputBody = {
+    offers: Array<FoundBody>;
+};
+
 export type MemberBody = {
     accountId: string;
     addedAt: string;
@@ -154,6 +192,13 @@ export type OfferPhotoBody = {
     smallPath: string;
 };
 
+export type OfferSellerBody = {
+    address: string;
+    id: string;
+    name: string;
+    photo?: OfferPhotoBody;
+};
+
 export type OfferSettingsBody = {
     /**
      * The search radius when a customer names none
@@ -181,7 +226,7 @@ export type OfferSettingsBody = {
 };
 
 export type OffersOutputBody = {
-    offers: Array<OfferBody> | null;
+    offers: Array<OfferBody>;
 };
 
 export type PhotoBody = {
@@ -275,6 +320,21 @@ export type SellerBody = {
     status: 'pending' | 'active' | 'blocked';
     statusChangedAt?: string;
     updatedAt: string;
+};
+
+export type SellerPhotoBody = {
+    id: string;
+    largePath: string;
+    smallPath: string;
+};
+
+export type SellerProfileBody = {
+    address: string;
+    id: string;
+    latitude: number;
+    longitude: number;
+    name: string;
+    photo?: SellerPhotoBody;
 };
 
 export type SellersOutputBody = {
@@ -627,6 +687,71 @@ export type RequestSignInCodeResponses = {
 };
 
 export type RequestSignInCodeResponse = RequestSignInCodeResponses[keyof RequestSignInCodeResponses];
+
+export type SearchOffersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * latitude,longitude, such as 21.0565,105.8964
+         */
+        near?: string;
+        /**
+         * Around near; the settings' default when absent, never more than their maximum
+         */
+        radiusKm?: number;
+        /**
+         * Words; typed without marks they match any marks ("ca" finds cá and cà), with marks only those
+         */
+        q?: string;
+        /**
+         * One or more kinds, comma-separated
+         */
+        kind?: Array<'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other'> | null;
+        /**
+         * The highest price of one unit, in đồng
+         */
+        maxPrice?: number;
+        /**
+         * Keep offers whose window overlaps collectFrom to collectTo; both at one moment keep what can be collected then
+         */
+        collectFrom?: string;
+        collectTo?: string;
+        /**
+         * One seller's offers
+         */
+        sellerId?: string;
+        /**
+         * Leave out what has sold out
+         */
+        available?: boolean;
+        /**
+         * relevance with q, distance with near, ending_soon otherwise, when absent
+         */
+        sort?: 'relevance' | 'distance' | 'ending_soon' | 'price' | 'discount';
+        limit?: number;
+        offset?: number;
+    };
+    url: '/offers';
+};
+
+export type SearchOffersErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SearchOffersError = SearchOffersErrors[keyof SearchOffersErrors];
+
+export type SearchOffersResponses = {
+    /**
+     * OK
+     */
+    200: FoundOutputBody;
+};
+
+export type SearchOffersResponse = SearchOffersResponses[keyof SearchOffersResponses];
 
 export type GetOfferData = {
     body?: never;
@@ -1057,3 +1182,30 @@ export type SetSellerPhotoResponses = {
 };
 
 export type SetSellerPhotoResponse = SetSellerPhotoResponses[keyof SetSellerPhotoResponses];
+
+export type GetSellerProfileData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/profile';
+};
+
+export type GetSellerProfileErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetSellerProfileError = GetSellerProfileErrors[keyof GetSellerProfileErrors];
+
+export type GetSellerProfileResponses = {
+    /**
+     * OK
+     */
+    200: SellerProfileBody;
+};
+
+export type GetSellerProfileResponse = GetSellerProfileResponses[keyof GetSellerProfileResponses];

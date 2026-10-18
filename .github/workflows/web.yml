@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "web/**"
+      - "api/openapi.yaml"
       - "DESIGN.md"
       # check:api compares the generated client with the contract.
       - "api/openapi.yaml"
@@ -11,6 +12,7 @@ on:
   pull_request:
     paths:
       - "web/**"
+      - "api/openapi.yaml"
       - "DESIGN.md"
       # check:api compares the generated client with the contract.
       - "api/openapi.yaml"

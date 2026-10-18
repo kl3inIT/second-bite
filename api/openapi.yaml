@@ -232,9 +232,7 @@ components:
         offers:
           items:
             $ref: "#/components/schemas/FoundBody"
-          type:
-            - array
-            - "null"
+          type: array
       required:
         - offers
       type: object
@@ -563,9 +561,7 @@ components:
         offers:
           items:
             $ref: "#/components/schemas/OfferBody"
-          type:
-            - array
-            - "null"
+          type: array
       required:
         - offers
       type: object

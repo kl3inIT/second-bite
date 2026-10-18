@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
+import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -135,6 +135,17 @@ export const requestSignInCode = <ThrowOnError extends boolean = true>(options: 
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Find offers on sale or sold out, near a point, by words and filters
+ *
+ * Anyone may search. Offers sold out are included unless available is set; those withdrawn, over or of a blocked seller never are.
+ */
+export const searchOffers = <ThrowOnError extends boolean = true>(options?: Options<SearchOffersData, ThrowOnError>): RequestResult<SearchOffersResponses, SearchOffersErrors, ThrowOnError> => (options?.client ?? client).get<SearchOffersResponses, SearchOffersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/offers',
+    ...options
 });
 
 /**
@@ -314,4 +325,15 @@ export const setSellerPhoto = <ThrowOnError extends boolean = true>(options: Opt
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * What anyone sees of an active seller
+ *
+ * Its offers are GET /offers?sellerId=. A seller pending or blocked answers 404.
+ */
+export const getSellerProfile = <ThrowOnError extends boolean = true>(options: Options<GetSellerProfileData, ThrowOnError>): RequestResult<GetSellerProfileResponses, GetSellerProfileErrors, ThrowOnError> => (options.client ?? client).get<GetSellerProfileResponses, GetSellerProfileErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/sellers/{sellerId}/profile',
+    ...options
 });

@@ -102,7 +102,7 @@ func (in searchInput) query() (Query, error) {
 func registerSearchOperations(api huma.API, s *Service) {
 	type foundOutput struct {
 		Body struct {
-			Offers []foundBody `json:"offers"`
+			Offers []foundBody `json:"offers" nullable:"false"`
 		}
 	}
 

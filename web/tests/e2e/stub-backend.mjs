@@ -1,6 +1,6 @@
 // What the web asks the Go server, answered for the browser tests and for local work on screens whose
 // endpoint is not built yet (`pnpm stub:backend`, then SECONDBITE_API_ORIGIN=http://localhost:3190).
-// GET /offers follows the SEC-11 design; the sellers and dishes are sample kinds of food from Tasco
+// GET /offers answers as api/openapi.yaml describes it; the sellers and dishes are sample kinds of food from Tasco
 // Mall, labelled as samples (docs/guidelines/figma.md › Content). Adapted from BeyondPilot's
 // web/tests/e2e/stub-backend.mjs.
 import { createServer } from "node:http";
@@ -13,70 +13,86 @@ function tonight(hour, minute) {
   return `${day}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00+07:00`;
 }
 
+/** An offer as `GET /offers` answers (api/openapi.yaml › FoundBody), at Tasco Mall. */
+function sample({ id, name, kind, price, originalPrice, unitsLeft, unit, from, until, seller }) {
+  const status = unitsLeft > 0 ? "on_sale" : "sold_out";
+  const photo = `ph-${id.slice(3)}`;
+  return {
+    id,
+    sellerId: seller.id,
+    status,
+    name,
+    description: "",
+    kind,
+    unit,
+    units: Math.max(unitsLeft, 1),
+    unitsLeft,
+    priceVnd: price,
+    originalPriceVnd: originalPrice,
+    discountPercent: Math.floor(((originalPrice - price) * 100) / originalPrice),
+    photo: {
+      id: photo,
+      largePath: `/photos/${photo}/1600.jpg`,
+      smallPath: `/photos/${photo}/400.jpg`,
+    },
+    windowStart: from,
+    windowEnd: until,
+    collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
+    createdAt: from,
+    updatedAt: from,
+    seller,
+  };
+}
+
+const sellers = {
+  bakery: { id: "se-bakery", name: "Tiệm bánh Pháp", address: "Tầng 1" },
+  rice: { id: "se-rice", name: "Quầy cơm", address: "Tầng hầm" },
+  deli: { id: "se-deli", name: "Quầy deli siêu thị", address: "Tầng hầm" },
+};
+
 const offers = [
-  {
+  sample({
     id: "of-bread",
-    state: "on_sale",
     name: "Túi bánh mì và croissant, 4 chiếc",
     kind: "bakery",
     price: 39000,
     originalPrice: 95000,
-    units: 3,
+    unitsLeft: 3,
     unit: "túi",
-    collectFrom: tonight(21, 0),
-    collectUntil: tonight(21, 45),
-    photo: "/photos/ph-bread/400.jpg",
-    seller: { id: "se-bakery", name: "Tiệm bánh Pháp", place: "Tầng 1" },
-  },
-  {
+    from: tonight(21, 0),
+    until: tonight(21, 45),
+    seller: sellers.bakery,
+  }),
+  sample({
     id: "of-com-tam",
-    state: "on_sale",
     name: "Cơm sườn nướng, 1 suất",
     kind: "prepared_food",
     price: 30000,
     originalPrice: 50000,
-    units: 0,
+    unitsLeft: 0,
     unit: "suất",
-    collectFrom: tonight(21, 0),
-    collectUntil: tonight(21, 30),
-    photo: "/photos/ph-com-tam/400.jpg",
-    seller: { id: "se-rice", name: "Quầy cơm", place: "Tầng hầm" },
-  },
-  {
+    from: tonight(21, 0),
+    until: tonight(21, 30),
+    seller: sellers.rice,
+  }),
+  sample({
     id: "of-xoi",
-    state: "on_sale",
     name: "Xôi thập cẩm, 1 hộp",
     kind: "prepared_food",
     price: 20000,
     originalPrice: 35000,
-    units: 5,
+    unitsLeft: 5,
     unit: "hộp",
-    collectFrom: tonight(21, 15),
-    collectUntil: tonight(21, 45),
-    photo: "/photos/ph-xoi/400.jpg",
-    seller: { id: "se-deli", name: "Quầy deli siêu thị", place: "Tầng hầm" },
-  },
-  {
-    id: "of-banh-mi",
-    state: "announced",
-    name: "Bánh mì gà xé",
-    kind: "bakery",
-    price: 18000,
-    originalPrice: 32000,
-    units: 6,
-    unit: "ổ",
-    collectFrom: tonight(21, 0),
-    collectUntil: tonight(21, 45),
-    photo: "/photos/ph-banh-mi/400.jpg",
-    seller: { id: "se-cafe", name: "Quầy cà phê", place: "Tầng 1" },
-  },
+    from: tonight(21, 15),
+    until: tonight(21, 45),
+    seller: sellers.deli,
+  }),
 ];
 
 const photoColours = {
   "ph-bread": ["#C8935A", "#E9C99A"],
   "ph-com-tam": ["#B9763E", "#F1D7A8"],
   "ph-xoi": ["#D9B45A", "#F6E7B8"],
-  "ph-banh-mi": ["#A86B3C", "#E8C08A"],
 };
 
 /** A placeholder in the dish's colours: the stub serves no real photographs. */
@@ -92,14 +108,14 @@ function fold(text) {
 function search(url) {
   const q = url.searchParams.get("q");
   const kind = url.searchParams.get("kind");
-  const at = url.searchParams.get("collectAt");
+  const from = url.searchParams.get("collectFrom");
+  const to = url.searchParams.get("collectTo");
   return offers.filter(
     (offer) =>
       (!q || fold(offer.name).includes(fold(q)) || fold(offer.seller.name).includes(fold(q))) &&
-      (!kind || offer.kind === kind) &&
-      (!at ||
-        (new Date(offer.collectFrom) <= new Date(at) &&
-          new Date(at) < new Date(offer.collectUntil))),
+      (!kind || kind.split(",").includes(offer.kind)) &&
+      (!to || new Date(offer.windowStart) <= new Date(to)) &&
+      (!from || new Date(from) < new Date(offer.windowEnd)),
   );
 }
 
