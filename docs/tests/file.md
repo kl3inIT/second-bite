@@ -7,6 +7,7 @@ Requirements of [docs/specs/file.md](../specs/file.md) and the checks that hold 
 | The EXIF orientation is applied, and no EXIF (location included) survives; both sizes fit 1,600 and 400 pixels | `TestRenderTurnsThePhotoAndDropsItsMetadata` (`internal/file/photo_image_test.go`), on a JPEG carrying orientation 6 and a GPS block |
 | A small photo is not enlarged; transparency becomes white | `TestRenderKeepsASmallPhotoAndWhitensTransparency` |
 | WebP is read | `TestRenderReadsWebP` |
+| Each of the eight EXIF orientations turns the photo as EXIF defines | `TestOrientationTurnsAsExifDefines` |
 | Text, GIF, a truncated JPEG, an image declaring just over 24 megapixels and one with no pixels are refused | `TestRenderRefusesWhatIsNotAPhoto` |
 | An uploaded photo is served in both sizes as JPEG; an unknown one is not found | `TestFile` › an uploaded photo is served in both sizes (`internal/file/file_test.go`) |
 | Only the uploader claims a photo, and claiming again succeeds | `TestFile` › only the uploader claims a photo |

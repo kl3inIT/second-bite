@@ -182,3 +182,32 @@ func TestRenderRefusesWhatIsNotAPhoto(t *testing.T) {
 		}
 	}
 }
+
+// TestOrientationTurnsAsExifDefines marks the stored top-left pixel and checks
+// the corner it lands on for each of the eight EXIF orientations.
+func TestOrientationTurnsAsExifDefines(t *testing.T) {
+	t.Parallel()
+
+	const w, h = 3, 2
+
+	stored := image.NewRGBA(image.Rect(0, 0, w, h))
+	stored.Set(0, 0, color.RGBA{255, 0, 0, 255})
+
+	for o, want := range map[orientation]image.Point{
+		1: {0, 0}, 2: {w - 1, 0}, 3: {w - 1, h - 1}, 4: {0, h - 1},
+		5: {0, 0}, 6: {h - 1, 0}, 7: {h - 1, w - 1}, 8: {0, w - 1},
+	} {
+		turned := o.apply(stored)
+
+		ww, wh := o.size(w, h)
+		if got := turned.Bounds().Size(); got != (image.Point{ww, wh}) {
+			t.Errorf("orientation %d: size %v, want %dx%d", o, got, ww, wh)
+
+			continue
+		}
+
+		if r, _, _, _ := turned.At(want.X, want.Y).RGBA(); r>>8 != 255 {
+			t.Errorf("orientation %d: the top-left pixel is not at %v", o, want)
+		}
+	}
+}

@@ -1,6 +1,6 @@
 # file
 
-Owns the files the system keeps, one row each in `file_files` whatever they are for, in the store configuration chooses; photos for offers and sellers are its first purpose (tables `file_*`). Decided in the [SEC-11 design](../increments/active/sec-11-offer-module/design.md#photos). The sources: Memos for the stores (its database or an S3-compatible store, each attachment recording its own: `store/storage.go`) and for applying the EXIF orientation before writing a photo again (`server/api/attachment_service_image.go`); PocketBase for serving files through the API; listmonk for one store interface of Put, Get and Delete (`internal/media/media.go`); Open Food Network for fixed sizes; and one table for every file, with a purpose and the key it is stored under, as Rails' `active_storage_blobs` (Open Food Network), Mattermost's `FileInfo` (a photo's width and height as columns other files leave empty) and BeyondPilot's `storage_file` (a purpose deciding the rules of its upload) keep theirs. Checks: [docs/tests/file.md](../tests/file.md).
+Owns the files the system keeps, one row each in `file_files` whatever they are for, in the store configuration chooses; photos for offers and sellers are its first purpose (tables `file_*`). Decided in the [SEC-11 design](../increments/active/sec-11-offer-module/design.md#photos). The sources: Memos for the stores (its database or an S3-compatible store, each attachment recording its own: `store/storage.go`) and for writing a photo again without its EXIF (`server/api/attachment_service_image.go`); PhotoPrism, Gitea and Miniflux for resizing with `golang.org/x/image/draw` rather than a third-party imaging library (PhotoPrism `internal/thumb/README.md`); Mattermost for reading the orientation with `bep/imagemeta` (`channels/app/imaging/orientation.go`); PocketBase for serving files through the API; listmonk for one store interface of Put, Get and Delete (`internal/media/media.go`); Open Food Network for fixed sizes; and one table for every file, with a purpose and the key it is stored under, as Rails' `active_storage_blobs` (Open Food Network), Mattermost's `FileInfo` (a photo's width and height as columns other files leave empty) and BeyondPilot's `storage_file` (a purpose deciding the rules of its upload) keep theirs. Checks: [docs/tests/file.md](../tests/file.md).
 
 ## Operations
 
@@ -21,8 +21,8 @@ Published to other modules: `Claim(photo, account)`, which marks a photo used; o
 
 ## Photos
 
-- A photo is a JPEG, PNG or WebP of at most 10 MB and 24 megapixels (phones save 12 unless told otherwise). Its orientation from EXIF is applied, a transparent background becomes white after resizing, and it is written again as JPEG (quality 82) fitted within 1,600 and within 400 pixels, never enlarged. Writing it again drops every metadata, the location included; the original is not kept.
-- At most two photos are decoded at once, each holding about 200 MB at the largest. An upload may take two minutes to arrive.
+- A photo is a JPEG, PNG or WebP of at most 10 MB and 24 megapixels (phones save 12 unless told otherwise). It is resized with Catmull-Rom over a white background (JPEG has no transparency), fitted within 1,600 and within 400 pixels and never enlarged, then turned the way its EXIF orientation says (all eight values) and written again as JPEG (quality 82). TIFF, BMP and GIF decoders are not registered. Writing it again drops every metadata, the location included; the original is not kept.
+- At most two photos are decoded at once, a PNG at the largest holding about 100 MB. An upload may take two minutes to arrive.
 - An account holds at most 20 files it has not used, the check holding under concurrency (an advisory lock on the account), and uploads at most 100 files in 24 hours: a file once used is kept, so an owner setting photo after photo on a seller would otherwise store without bound.
 
 ## Data
@@ -45,6 +45,9 @@ Published to other modules: `Claim(photo, account)`, which marks a photo used; o
 A body over 10 MB answers `PLATFORM_BODY_TOO_LARGE` (413).
 
 ## Not yet
+
+Photo upgrades left for after the pilot, each with when to take it, are in SEC-26: the colour profile (iPhone photos look duller without it), HEIC, libvips, a full-size copy, delivery from S3 or a CDN, review.
+
 
 - Deleting photos unused after a day, with the first background job (SEC-11, step 6).
 - `secondbite file move`, copying files from one store to another.
