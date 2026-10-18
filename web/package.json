@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "oxlint --deny-warnings",
     "lint:fix": "oxlint --fix",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm check:tokens && pnpm lint && pnpm format:check && pnpm typecheck",
