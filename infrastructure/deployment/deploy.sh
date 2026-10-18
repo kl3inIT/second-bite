@@ -129,4 +129,14 @@ done
 find "$backups" -maxdepth 1 -name 'pre-deploy-*.dump' -printf '%T@ %p\n' | sort --numeric-sort --reverse |
     tail --lines=+6 | cut --delimiter=' ' --fields=2- | xargs --no-run-if-empty rm -f --
 
+# Keep the images of the current and previous releases and remove older Second Bite images. Only images of this
+# repository are named: never prune, which would act on the other products of the host.
+keep_images=$(sed --quiet 's/^SECONDBITE_\(SERVER\|WEB\)_IMAGE=//p' "$deployments/current.env" "$deployments/previous.env" 2>/dev/null || true)
+docker image ls --digests --format '{{.Repository}}@{{.Digest}} {{.ID}}' |
+    grep --extended-regexp '^ghcr\.io/kl3init/second-bite-(server|web)@sha256:' |
+    while read -r reference id; do
+        grep --quiet --fixed-strings --line-regexp "$reference" <<<"$keep_images" ||
+            docker image rm "$id" >/dev/null 2>&1 || true
+    done || true
+
 echo "deploy: $release is running on $environment"

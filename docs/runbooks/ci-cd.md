@@ -22,7 +22,7 @@ A green deployment means the release is running and healthy. It does not claim t
    - each image's `revision` label is the commit.
 3. **Publish release** runs only after the step above passes. It uploads the artifact `release-<sha>`, kept 30 days, holding `images.env`: the source SHA and both images by digest.
 
-Deploy accepts nothing else. An image that a failed run pushed is named by no `images.env`, so it is never deployed. A push that changes only documents or `mobile/` makes no release and leaves staging as it is.
+[Clean up images](../../.github/workflows/ghcr-cleanup.yml) keeps the ten newest versions of each image on GHCR, after every Release and weekly. Deploy accepts nothing else. An image that a failed run pushed is named by no `images.env`, so it is never deployed. A push that changes only documents or `mobile/` makes no release and leaves staging as it is.
 
 ## Deployment
 
@@ -59,6 +59,7 @@ Deploy does the following:
 - **Saves the database:** when a database is running, stops the server and saves a `pg_dump` that `pg_restore --list` can read, to `backups/pre-deploy-<release>.dump`.
 - **Starts the composition** with `up --wait`: PostgreSQL first, then the server, which migrates as it starts, then the web once the server is healthy.
 - **Records the release:** checks the running revisions and writes the release to `deployments/current.env`, and the one before it to `previous.env`.
+- **Removes old images:** removes every Second Bite image except those of the current and previous releases. It never prunes, which would remove BeyondPilot's and MemoryOS's images too.
 
 The site is down for the few seconds the server takes to restart and migrate. There is no zero-downtime rollout.
 
