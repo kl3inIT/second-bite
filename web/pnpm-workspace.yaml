@@ -1,3 +1,5 @@
+packages:
+  - tools/*
 allowBuilds:
   sharp: false
   "@parcel/watcher": false

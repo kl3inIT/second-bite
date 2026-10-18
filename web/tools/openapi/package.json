@@ -1,0 +1,13 @@
+{
+  "name": "openapi-codegen",
+  "private": true,
+  "description": "Generates web/src/lib/api/generated from api/openapi.yaml. Hey API 0.99.0 needs the TypeScript compiler API, which TypeScript 7 no longer has (hey-api/hey-api#4235), so this package takes Microsoft's @typescript/typescript6 under the name typescript, as VS Code, Grafana, Immich's docs and AFFiNE's tools do, while web/ uses TypeScript 7. Remove it once Hey API supports TypeScript 7.",
+  "type": "module",
+  "scripts": {
+    "generate": "openapi-ts"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.99.0",
+    "typescript": "npm:@typescript/typescript6@6.0.2"
+  }
+}

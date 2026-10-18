@@ -1,7 +1,12 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "react", "jsx-a11y", "nextjs", "import", "oxc"],
-  "jsPlugins": [{ "name": "shadcn", "specifier": "@shadcn/lint" }],
+  "jsPlugins": [
+    {
+      "name": "shadcn",
+      "specifier": "@shadcn/lint"
+    }
+  ],
   "categories": {
     "correctness": "error"
   },
@@ -12,7 +17,7 @@
     "browser": true,
     "node": true
   },
-  "ignorePatterns": [".next/**", "out/**", "build/**", "next-env.d.ts"],
+  "ignorePatterns": [".next/**", "out/**", "build/**", "next-env.d.ts", "src/lib/api/generated/**"],
   "rules": {
     "react/rules-of-hooks": "error",
     "react/react-in-jsx-scope": "off",
@@ -25,14 +30,23 @@
     "typescript/await-thenable": "error",
     "no-unused-vars": [
       "error",
-      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" }
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
     ],
     "shadcn/no-raw-colors": "error",
     "shadcn/no-inline-styles": "error",
     "shadcn/no-arbitrary-values": "error",
     "shadcn/no-unknown-classes": "error",
     "shadcn/require-static-classes": "error",
-    "shadcn/no-restyle": ["error", { "allow": ["layout"] }]
+    "shadcn/no-restyle": [
+      "error",
+      {
+        "allow": ["layout"]
+      }
+    ]
   },
   "overrides": [
     {
@@ -48,7 +62,9 @@
     },
     {
       "files": ["next.config.ts", "*.config.{ts,mjs}"],
-      "rules": { "import/no-anonymous-default-export": "off" }
+      "rules": {
+        "import/no-anonymous-default-export": "off"
+      }
     }
   ]
 }

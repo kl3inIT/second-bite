@@ -4,3 +4,4 @@ build/
 next-env.d.ts
 pnpm-lock.yaml
 src/styles/tokens.css
+src/lib/api/generated/
