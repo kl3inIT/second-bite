@@ -117,6 +117,9 @@ The customer's daily limit of units (domain model assumption 4, 10 to start) is 
 - Every photo is decoded and written again as JPEG in two sizes, 1,600 and 400 pixels on the longer side, so no metadata (location, device) survives and a list loads quickly on a phone. *(Open Food Network resizes to four sizes.)*
 - Photos are not reviewed before they are shown; staff answer for them and an admin removes one on a report (founder's requirements, section 10).
 - A photo uploaded and never used by an offer or a seller is deleted after a day.
+- **Where the files are kept**, a [Strategy behind a registry](../../../conventions.md#interchangeable-implementations-strategy-behind-a-registry) as the domain model asks for storing images: a `Store` that puts, gets and deletes a file by its key. The first implementation keeps files in PostgreSQL (`bytea`), so the pilot runs no other service, one backup holds data and photos, and a photo and its row are written in one transaction. The second, when the database grows too large or the service runs on several machines, is any S3-compatible store (AWS S3, Cloudflare R2, Garage, SeaweedFS, MinIO) through one S3 client. The store is chosen by configuration at startup, not by admins at runtime: switching without moving the files would lose photos. Each photo records the store that holds it, so photos already kept stay readable after a switch, and `secondbite media move` copies them across.
+- Customers read photos through the API (`GET /photos/{photoId}/{size}.jpg`), never from the store directly, so a switch changes no address. A photo never changes once written; it is served with a cache of a year.
+- MinIO's community edition is no longer a candidate: it stopped publishing builds in October 2025 and was put in maintenance mode in December 2025.
 
 ## Boundary discovery
 
@@ -136,7 +139,7 @@ The [pilot domain model](../sec-6-pilot-domain-model/design.md) holds the story,
 | Module | Owns | Why |
 | --- | --- | --- |
 | `offer` | offers and announcements, schedules, follows, the offer settings | Units, publishing rules and the collection point are its invariants (domain model, section 4); a follow serves only offers |
-| `media` (new) | photos and where their files are kept | `seller` and `offer` both need photos, and `seller` cannot call `offer`, which already calls `seller`; the domain model's registry for storing images ("local directory in development, MinIO or an S3-compatible store when deployed") moves here from `offer` |
+| `media` (new) | photos and where their files are kept | `seller` and `offer` both need photos, and `seller` cannot call `offer`, which already calls `seller`; the domain model's registry for storing images moves here from `offer`, with PostgreSQL as its first store instead of a local directory |
 
 **Edges** (the context map gains `media`):
 
@@ -154,6 +157,7 @@ The [pilot domain model](../sec-6-pilot-domain-model/design.md) holds the story,
 | Operation | Who | Answer |
 | --- | --- | --- |
 | `POST /photos` (multipart, one file) | A member of any active seller | `201` photo id and its two addresses |
+| `GET /photos/{photoId}/{size}.jpg` (`1600` or `400`) | Anyone | `200` the image |
 | `PUT /sellers/{sellerId}/photo` `{photoId}`, `DELETE` | Its owner | `200` seller, `204` |
 | `GET /sellers/{sellerId}/profile` | Anyone | `200` the public page's seller: name, photo, address, location, follower count |
 | `POST /sellers/{sellerId}/offers` | Its staff | `201` offer on sale |
@@ -193,7 +197,8 @@ Prices are whole đồng; times are RFC 3339 with an offset, schedules' times of
 | `offer_schedules` | Seller, the offer's fields, days of the week, estimated units, times of day, paused | Deleted by staff |
 | `offer_seller_follows`, `offer_announcement_follows` | Account and seller, or account and offer, and when | Deleted on unfollow; an announcement's follows are deleted once it is told |
 | `offer_settings` | One row: the settings above, who changed them and when | Replaced on save |
-| `media_photos` | Seller it was uploaded for, who uploaded it, the stored files' keys, whether it is used, when | Deleted with its files a day after upload when unused |
+| `media_photos` | Seller it was uploaded for, who uploaded it, the store and the keys of its two files, whether it is used, when | Deleted with its files a day after upload when unused |
+| `media_files` | The PostgreSQL store's files: key and bytes | Deleted with their photo |
 
 The jobs (the day's announcements from schedules, emails to followers, deleting unused photos) run on River, which arrives with this increment: the first job of the service, inserted in the transaction of the change that causes it.
 

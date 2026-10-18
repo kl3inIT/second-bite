@@ -5,7 +5,7 @@ Design: [design.md](design.md). Tracked in Linear as SEC-11.
 | # | Step | State |
 | --- | --- | --- |
 | 1 | Research and the business flow | Decided, 18 October 2026 ([research](../../../research/2026-10-17-offer-models.md), [design](design.md#the-flow)) |
-| 2 | `media`: photo upload, two sizes without metadata, a local directory and an S3-compatible store behind a registry, unused photos removed; the seller's photo | Not started |
+| 2 | `media`: photo upload, two sizes without metadata, kept in PostgreSQL behind a store registry that an S3-compatible store joins later, unused photos removed; the seller's photo | Not started |
 | 3 | `offer`: posting, changing, withdrawing, the seller's list, the settings | Not started |
 | 4 | Finding offers and the seller's public page | Not started |
 | 5 | Announcements: announce, confirm, skip, not confirmed | Not started |
