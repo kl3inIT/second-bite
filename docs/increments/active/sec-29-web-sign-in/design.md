@@ -1,6 +1,6 @@
 # SEC-29 — Signing in on the web, with the emailed code and Google: design
 
-Status: proposed on 18 October 2026; decisions 3 and 4 taken with the team the same day, the others waiting ([Decisions](#decisions)); not built ([plan](plan.md)). Tracked in Linear as SEC-29, with SEC-27 (the web session in a cookie), which it needs.
+Status: proposed on 18 October 2026; decisions 3, 4 and 5 taken with the team the same day, the others waiting ([Decisions](#decisions)); not built ([plan](plan.md)). Tracked in Linear as SEC-29, with SEC-27 (the web session in a cookie), which it needs.
 
 ## What a person can do
 
@@ -85,7 +85,10 @@ Google says when it is authoritative for an address: an address at `gmail.com`, 
 
 ### 5. What is kept from Google
 
-The `sub`, the address at the time of linking, and when the identity was linked and last used. Not the name or the picture: the product shows neither, and Decree 13/2023 asks for no more personal data than the purpose needs.
+Decided with the team on 18 October 2026: the `sub`, the address at the time of linking, the name and the picture's address, and when the identity was linked and last used. Google asks only for `openid`, `email` and `profile`, which it grants without a verification review and which its consent screen already names to the person. The name and the picture are refreshed at each Google sign-in, as Supabase Auth refreshes `identity_data` (`internal/api/external.go:384-397`); Miniflux and BeyondPilot keep only the subject.
+
+- The account gains a **display name**, filled from Google's name when it is empty and changed by the person afterwards. A seller calls the customer by it at the handover, and the page greets them by it. An account signed in by the emailed code has none until the person gives one (asked at the first order, SEC-15).
+- The privacy policy names both and why: shown to the person and, for an order, to the seller's staff (Decree 13/2023 asks that each purpose be stated).
 
 ### 6. The nonce
 
@@ -120,7 +123,8 @@ The OpenAPI document declares the cookie as a second security scheme beside Bear
 
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
-| `identity_external_logins` (new) | `provider` (`google`; `apple` later), `subject` exactly as issued, account, the address when linked, when linked and last used; unique on `(provider, subject)` | Deleted with the account |
+| `identity_external_logins` (new) | `provider` (`google`; `apple` later), `subject` exactly as issued, account, the address when linked, the name and the picture's address as last sent, when linked and last used; unique on `(provider, subject)` | Deleted with the account |
+| `identity_accounts` | Gains `display_name`, empty until Google fills it or the person sets it | Kept |
 
 The shape follows Supabase's `identities` (`UNIQUE(provider_id, provider)`) and BeyondPilot's table with `provider` and `subject`.
 
