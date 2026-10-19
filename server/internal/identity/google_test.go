@@ -153,15 +153,15 @@ func TestSignInWithGoogle(t *testing.T) {
 	iss := newIssuer(t)
 
 	for name, check := range map[string]func(*testing.T, *Service, issuer){
-		"a first sign-in creates the account with Google's name":      testGoogleCreatesAccount,
-		"a returning subject keeps its account":                       testGoogleReturningSubject,
-		"Google links an account when it speaks for the address":      testGoogleLinksAuthoritative,
-		"an outside address with an account asks for the code":        testGoogleLinkRequired,
-		"an unverified address is refused on a first sign-in":         testGoogleUnverified,
-		"two first sign-ins at once make one link":                    testGoogleConcurrentFirstSignIns,
-		"an emailed code removes the links Google does not vouch for": testCodeRemovesUntrustedLinks,
+		"a first sign-in creates the account with Google's name":                 testGoogleCreatesAccount,
+		"a returning subject keeps its account":                                  testGoogleReturningSubject,
+		"Google links an account when it speaks for the address":                 testGoogleLinksAuthoritative,
+		"an outside address with an account asks for the code":                   testGoogleLinkRequired,
+		"an unverified address is refused on a first sign-in":                    testGoogleUnverified,
+		"two first sign-ins at once make one link":                               testGoogleConcurrentFirstSignIns,
+		"an emailed code removes the links Google does not vouch for":            testCodeRemovesUntrustedLinks,
 		"privileges given by address remove the links Google does not vouch for": testPrivilegeRemovesUntrustedLinks,
-		"without client IDs Google is off":                            testGoogleOff,
+		"without client IDs Google is off":                                       testGoogleOff,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

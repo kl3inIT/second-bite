@@ -116,42 +116,79 @@ func (s *Service) Accounts(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]
 
 // EnsureAccount returns the account of email, creating it when the address
 // has never signed in, as Open Food Network creates the user a manager is
-// added for. Its owner signs in with an emailed code like anyone else.
+// added for. Its owner signs in with an emailed code like anyone else. The
+// account is about to be given something by its address, so the links Google
+// does not vouch for are removed first (giveByAddress).
 func (s *Service) EnsureAccount(ctx context.Context, email string) (Account, error) {
-	email, err := normalizeEmail(email)
-	if err != nil {
-		return Account{}, err
-	}
+	return s.giveByAddress(ctx, email, func(q *db.Queries, email string) (Account, error) {
+		row, err := q.UpsertAccount(ctx, email)
+		if err != nil {
+			return Account{}, fmt.Errorf("finding the account: %w", err)
+		}
 
-	row, err := s.queries.UpsertAccount(ctx, email)
-	if err != nil {
-		return Account{}, fmt.Errorf("finding the account: %w", err)
-	}
-
-	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
+		return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
+	})
 }
 
 // GrantRole gives the account of email the role, creating the account when
 // the address has never signed in. Only the command line calls it: the first
 // admin exists before anyone can sign in to name one.
 func (s *Service) GrantRole(ctx context.Context, email string, role platform.Role) (Account, error) {
+	a, err := s.giveByAddress(ctx, email, func(q *db.Queries, email string) (Account, error) {
+		row, err := q.GrantRole(ctx, db.GrantRoleParams{Email: email, Role: string(role)})
+		if err != nil {
+			return Account{}, fmt.Errorf("granting the role: %w", err)
+		}
+
+		return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
+	})
+	if err != nil {
+		return Account{}, err
+	}
+
+	s.logger.InfoContext(ctx, "role granted",
+		slog.String("event", "identity.role.granted"),
+		slog.String("account_id", a.ID.String()),
+		slog.String("role", string(a.Role)),
+	)
+
+	return a, nil
+}
+
+// giveByAddress finds or changes the account of email with find, then removes
+// the account's links that Google does not vouch for and their sessions. A
+// role or a seller membership given by address must reach the address's owner,
+// not whoever linked a Google account to it first (design of SEC-29, decision
+// 4, and SEC-39). The address stays locked meanwhile, so a Google sign-in
+// cannot link it halfway through.
+func (s *Service) giveByAddress(
+	ctx context.Context, email string, find func(*db.Queries, string) (Account, error),
+) (Account, error) {
 	email, err := normalizeEmail(email)
 	if err != nil {
 		return Account{}, err
 	}
 
-	row, err := s.queries.GrantRole(ctx, db.GrantRoleParams{Email: email, Role: string(role)})
+	var account Account
+
+	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.queries.WithTx(tx)
+
+		if err := q.LockEmail(ctx, email); err != nil {
+			return fmt.Errorf("locking the address: %w", err)
+		}
+
+		if account, err = find(q, email); err != nil {
+			return err
+		}
+
+		return s.dropUntrustedLogins(ctx, q, account.ID)
+	})
 	if err != nil {
-		return Account{}, fmt.Errorf("granting the role: %w", err)
+		return Account{}, err
 	}
 
-	s.logger.InfoContext(ctx, "role granted",
-		slog.String("event", "identity.role.granted"),
-		slog.String("account_id", row.ID.String()),
-		slog.String("role", row.Role),
-	)
-
-	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
+	return account, nil
 }
 
 // normalizeEmail accepts one plain address and returns it in lower case, the
