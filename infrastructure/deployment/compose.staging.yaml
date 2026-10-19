@@ -12,6 +12,9 @@ services:
   server:
     container_name: secondbite-staging-server
     image: ${SECONDBITE_SERVER_IMAGE:?the server image is named by deploy.sh}
+    environment:
+      # Google's OAuth client IDs whose tokens are accepted, from .env.staging; empty leaves Google off.
+      SECONDBITE_GOOGLE_CLIENT_IDS: ${SECONDBITE_GOOGLE_CLIENT_IDS:-}
     # Each secret is mounted as a file named after the variable it replaces, which the server reads from /run/secrets.
     secrets:
       - source: database_password

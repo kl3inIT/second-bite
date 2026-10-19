@@ -150,6 +150,8 @@ sudo docker exec -it secondbite-staging-server secondbite email configure ...
 
 The grant is refused with `IDENTITY_ADDRESS_UNPROVEN` when someone has already signed in with Google to that address and Google does not speak for it (an address outside `gmail.com` and Google Workspace); the address's owner signs in once with the emailed code, which removes that link, and the grant then succeeds.
 
+**Signing in with Google.** Put the web client's ID in `.env.staging` as `SECONDBITE_GOOGLE_CLIENT_IDS=<client ID>` (`sudoedit /apps/secondbite-staging/.env.staging`), then dispatch Deploy staging with the current Release run so the server restarts with it. The client is of type "Web application", with `https://secondbite.vadan.app` among its authorised JavaScript origins and no redirect URI: the web takes Google's ID token in a popup. While its consent screen is in testing mode, only its test users can sign in. Its client secret is not used anywhere; keep it out of the host. An empty value leaves Google off, and `GET /api/auth/methods` then answers `{}`.
+
 Then record the date of that first deployment in the [persistence guideline](../guidelines/persistence.md). From that date on, migrations are forward-only.
 
 ### The reverse proxy
