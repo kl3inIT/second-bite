@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 // What Second Bite is, for a first visit (no landing page in the first version, SEC-23). Closing it
 // is remembered in this browser only; when storage is unavailable it simply shows again.
@@ -46,25 +47,26 @@ export function IntroStrip() {
   if (hidden) return null;
 
   return (
-    <section
-      aria-labelledby="intro-title"
-      className="flex items-start gap-2 rounded-2xl bg-card p-4 text-card-foreground"
-    >
-      <div className="flex flex-1 flex-col gap-1">
-        <h2 id="intro-title" className="text-title">
-          {t("title")}
-        </h2>
-        <p className="text-body-sm text-muted-foreground">{t("body")}</p>
-      </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label={t("dismiss")}
-        onClick={dismiss}
-        className="-mt-2 -mr-2"
-      >
-        <XIcon aria-hidden />
-      </Button>
+    <section aria-labelledby="intro-title">
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2 id="intro-title">{t("title")}</h2>
+          </CardTitle>
+          <CardDescription>{t("body")}</CardDescription>
+          <CardAction>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("dismiss")}
+              onClick={dismiss}
+              className="-mt-2 -mr-2"
+            >
+              <XIcon aria-hidden />
+            </Button>
+          </CardAction>
+        </CardHeader>
+      </Card>
     </section>
   );
 }

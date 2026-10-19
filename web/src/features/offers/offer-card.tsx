@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
-import { Sticker } from "@/components/sticker";
+import { Badge } from "@/components/ui/badge";
 
 import { isAvailable, type OfferSummary } from "./offer";
 import { DiscountChip, Price } from "./price";
@@ -18,16 +18,16 @@ export function OfferCard({ offer }: { offer: OfferSummary }) {
   const available = isAvailable(offer);
 
   return (
-    <article className="relative flex w-66 flex-col overflow-hidden rounded-2xl bg-card text-card-foreground">
+    <article className="relative flex w-66 flex-col overflow-hidden rounded-2xl bg-card text-card-foreground lg:w-full">
       <div className="relative h-23">
         <OfferPhoto offer={offer} dimmed={!available} />
         <div
           aria-hidden
           className="absolute inset-0 bg-linear-to-b from-transparent to-primary-hover/35"
         />
-        <Sticker tone={available ? "fresh" : "soldOut"} className="absolute top-3 left-3">
+        <Badge variant={available ? "fresh" : "soldOut"} className="absolute top-3 left-3">
           {available ? t("stock", { units: offer.unitsLeft }) : t("soldOut")}
-        </Sticker>
+        </Badge>
         <SellerAvatar seller={offer.seller} size="md" className="absolute bottom-3 left-3" />
       </div>
       <div className="flex flex-col gap-1.5 px-3.5 pt-3 pb-3.5">

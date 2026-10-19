@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
-import { Sticker } from "@/components/sticker";
+import { Badge } from "@/components/ui/badge";
 
 import { OfferPhoto } from "./offer-card";
 import { isAvailable, type OfferSummary } from "./offer";
@@ -20,9 +20,9 @@ export function OfferTile({ offer }: { offer: OfferSummary }) {
     <article className="relative flex w-full flex-col overflow-hidden rounded-2xl bg-card text-card-foreground">
       <div className="relative h-33">
         <OfferPhoto offer={offer} dimmed={!available} />
-        <Sticker tone={available ? "fresh" : "soldOut"} className="absolute top-2.5 left-2.5">
+        <Badge variant={available ? "fresh" : "soldOut"} className="absolute top-2.5 left-2.5">
           {available ? t("stock", { units: offer.unitsLeft }) : t("soldOut")}
-        </Sticker>
+        </Badge>
         <div className="absolute inset-x-0 bottom-0 flex pr-4">
           <p className="flex min-w-0 items-center gap-1.5 rounded-tr-lg bg-primary px-2.5 py-1">
             <span className="font-display text-figure-sm text-fresh">

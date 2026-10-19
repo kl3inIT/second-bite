@@ -1,6 +1,9 @@
 import { getTranslations } from "next-intl/server";
 
 import { ScrollRow } from "@/components/scroll-row";
+import { buttonVariants } from "@/components/ui/button";
+import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SectionHeader } from "@/components/section-header";
 import { listOffers } from "@/features/offers/list-offers";
 import { closingFirst, inShowingOrder, type OfferSummary } from "@/features/offers/offer";
@@ -26,7 +29,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
   const closing = filtered ? [] : closingFirst(offers).slice(0, CLOSING_COUNT);
 
   return (
-    <div className="flex flex-col gap-3 pt-1 pb-4">
+    <div className="flex flex-col gap-3 pt-3 pb-4">
       <KindPicker query={query} />
       {!filtered && (
         <div className="px-4">
@@ -47,9 +50,13 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
               </a>
             }
           />
-          <ScrollRow label={t("closingSoon")}>
+          {/* Sideways on a phone; a grid on a wide screen, where a row would leave most of it empty. */}
+          <ScrollRow
+            label={t("closingSoon")}
+            className="lg:grid lg:snap-none lg:grid-cols-3 lg:overflow-visible lg:pb-0"
+          >
             {closing.map((offer) => (
-              <li key={offer.id} className="flex shrink-0 snap-start">
+              <li key={offer.id} className="flex shrink-0 snap-start lg:shrink">
                 <OfferCard offer={offer} />
               </li>
             ))}
@@ -69,14 +76,18 @@ async function OfferGrid({ offers, filtered }: { offers: OfferSummary[]; filtere
 
   if (offers.length === 0) {
     return (
-      <div className="mx-4 flex flex-col items-start gap-3 rounded-2xl bg-card p-4 text-card-foreground">
-        <p className="text-body-sm">{filtered ? t("emptyFiltered") : t("empty")}</p>
+      <Empty surface="card" className="mx-4 w-auto">
+        <EmptyHeader>
+          <EmptyTitle>{filtered ? t("emptyFiltered") : t("empty")}</EmptyTitle>
+        </EmptyHeader>
         {filtered && (
-          <Link href="/" className="text-body-sm-strong text-primary underline">
-            {t("showAll")}
-          </Link>
+          <EmptyContent>
+            <Link href="/" className={buttonVariants({ variant: "secondary" })}>
+              {t("showAll")}
+            </Link>
+          </EmptyContent>
         )}
-      </div>
+      </Empty>
     );
   }
   return (
@@ -87,5 +98,24 @@ async function OfferGrid({ offers, filtered }: { offers: OfferSummary[]; filtere
         </li>
       ))}
     </ul>
+  );
+}
+
+/** What the list looks like while it loads: the kinds' row and a grid of cards in their final sizes. */
+export function HomeContentSkeleton() {
+  return (
+    <div aria-hidden className="flex flex-col gap-3 px-4 pt-1 pb-4">
+      <div className="flex gap-2.5">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Skeleton key={i} shape="circle" className="size-15 shrink-0" />
+        ))}
+      </div>
+      <Skeleton className="h-7 w-48" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <Skeleton key={i} shape="card" className="h-60" />
+        ))}
+      </div>
+    </div>
   );
 }

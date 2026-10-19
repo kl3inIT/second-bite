@@ -51,7 +51,7 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
             {tickets.map((offer) => (
               <li
                 key={offer.id}
-                className="flex min-w-0 flex-1 flex-col gap-1 rounded-xl bg-card py-2.5 pr-1 pl-1.75 text-card-foreground"
+                className="flex min-w-0 flex-1 flex-col gap-1 rounded-xl bg-card py-2.5 pr-1 pl-1.75 text-card-foreground sm:max-w-44"
               >
                 <span className="flex">
                   <DiscountChip percent={offer.discountPercent} />

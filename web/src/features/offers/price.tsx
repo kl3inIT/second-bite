@@ -1,5 +1,7 @@
 import { useTranslations } from "next-intl";
 
+import { Badge } from "@/components/ui/badge";
+
 import { formatPrice } from "./format";
 import type { OfferSummary } from "./offer";
 
@@ -42,9 +44,9 @@ export function DiscountChip({ percent }: { percent: number }) {
   const t = useTranslations("OfferCard");
 
   return (
-    <span className="rounded-full bg-fresh px-2 py-0.5 font-display text-figure-sm text-fresh-foreground">
+    <Badge variant="discount">
       <span aria-hidden>{t("discount", { percent })}</span>
       <span className="sr-only">{t("discountLabel", { percent })}</span>
-    </span>
+    </Badge>
   );
 }
