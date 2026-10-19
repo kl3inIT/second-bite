@@ -332,6 +332,24 @@ func (q *Queries) GrantRole(ctx context.Context, arg GrantRoleParams) (GrantRole
 	return i, err
 }
 
+const hasUntrustedLogin = `-- name: HasUntrustedLogin :one
+SELECT EXISTS (
+    SELECT 1 FROM identity_external_logins l
+    JOIN identity_accounts a ON a.id = l.account_id
+    WHERE a.email = $1 AND NOT l.email_trusted
+)
+`
+
+// Whether the account of the address holds a link its provider does not speak
+// for: someone linked Google to an outside address and no emailed code has
+// proved it since.
+func (q *Queries) HasUntrustedLogin(ctx context.Context, email string) (bool, error) {
+	row := q.db.QueryRow(ctx, hasUntrustedLogin, email)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const insertAccount = `-- name: InsertAccount :one
 INSERT INTO identity_accounts (email) VALUES ($1)
 RETURNING id, email, role, display_name

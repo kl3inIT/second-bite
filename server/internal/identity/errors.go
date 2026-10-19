@@ -30,6 +30,8 @@ var (
 		"Google has not confirmed this address; sign in with an emailed code.")
 	ErrGoogleLinkRequired = platform.NewFailure("IDENTITY_GOOGLE_LINK_REQUIRED", platform.CategoryConflict,
 		"This address already has an account; sign in with the code we email to it.")
+	ErrAddressUnproven = platform.NewFailure("IDENTITY_ADDRESS_UNPROVEN", platform.CategoryConflict,
+		"This address is not confirmed yet: its owner signs in once with the code we email to it, then try again.")
 	ErrAccountNotFound = platform.NewFailure("IDENTITY_ACCOUNT_NOT_FOUND", platform.CategoryNotFound,
 		"The account does not exist.")
 )
