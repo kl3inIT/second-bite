@@ -19,6 +19,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kl3inIT/second-bite/server/internal/identity/internal/db"
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
 )
 
@@ -159,6 +160,7 @@ func TestSignInWithGoogle(t *testing.T) {
 		"an unverified address is refused on a first sign-in":         testGoogleUnverified,
 		"two first sign-ins at once make one link":                    testGoogleConcurrentFirstSignIns,
 		"an emailed code removes the links Google does not vouch for": testCodeRemovesUntrustedLinks,
+		"privileges given by address remove the links Google does not vouch for": testPrivilegeRemovesUntrustedLinks,
 		"without client IDs Google is off":                            testGoogleOff,
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -421,6 +423,52 @@ func testCodeRemovesUntrustedLinks(t *testing.T, s *Service, iss issuer) {
 
 		if again := signInGoogle(t, s, token); again.Account.ID != first.Account.ID {
 			t.Errorf("%s: Google reached another account after the code", email)
+		}
+	}
+}
+
+func testPrivilegeRemovesUntrustedLinks(t *testing.T, s *Service, iss issuer) {
+	t.Helper()
+
+	for name, give := range map[string]func(email string) (Account, error){
+		"a seller membership": func(email string) (Account, error) { return s.EnsureAccount(t.Context(), email) },
+		"a role": func(email string) (Account, error) {
+			return s.GrantRole(t.Context(), email, platform.RoleAdmin)
+		},
+	} {
+		// Someone links their Google account to an outside address; the
+		// address is then given a privilege, which must not reach them.
+		outsideSub, p := unique()
+		outside := p + "@congtycu.vn"
+		planted := signInGoogle(t, s, iss.token(t, outsideSub, outside, nil))
+
+		account, err := give(outside)
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+
+		if account.ID != planted.Account.ID {
+			t.Fatalf("%s: given to another account", name)
+		}
+
+		if _, err := s.findCaller(t.Context(), planted.Token); !errors.Is(err, ErrSessionInvalid) {
+			t.Errorf("%s: the planted session still works: %v", name, err)
+		}
+
+		if _, err := s.SignInWithGoogle(t.Context(), iss.token(t, outsideSub, outside, nil), ""); !errors.Is(err, ErrGoogleLinkRequired) {
+			t.Errorf("%s: Google afterwards: err %v, want %v", name, err, ErrGoogleLinkRequired)
+		}
+
+		// Google speaks for gmail.com: that link and its session stay.
+		trustedSub, q := unique()
+		trusted := signInGoogle(t, s, iss.token(t, trustedSub, q+"@gmail.com", nil))
+
+		if _, err := give(q + "@gmail.com"); err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+
+		if _, err := s.findCaller(t.Context(), trusted.Token); err != nil {
+			t.Errorf("%s: the trusted session ended: %v", name, err)
 		}
 	}
 }
