@@ -15,9 +15,9 @@ export default function ErrorPage({ error, retry }: { error: unknown; retry: () 
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-4 text-center">
-      <h1 className="font-display text-h1-28 text-foreground">{t("title")}</h1>
-      <p className="text-body-14 text-foreground">{t("body")}</p>
-      {digest && <p className="text-body-13 text-foreground">{t("reference", { digest })}</p>}
+      <h1 className="text-headline text-foreground">{t("title")}</h1>
+      <p className="text-body-sm text-foreground">{t("body")}</p>
+      {digest && <p className="text-label text-foreground">{t("reference", { digest })}</p>}
       <Button onClick={() => retry()}>{t("retry")}</Button>
     </main>
   );

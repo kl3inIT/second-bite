@@ -8,7 +8,7 @@ export default function NotFound() {
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-4">
-      <h1 className="font-display text-h1-28 text-foreground">{t("title")}</h1>
+      <h1 className="text-headline text-foreground">{t("title")}</h1>
       <Link href="/" className={buttonVariants({ variant: "outline" })}>
         {t("back")}
       </Link>

@@ -41,7 +41,6 @@ colors:
   # are the foreground on the colour.
   background: "{palette.brand-50}" # the mint ground; ink on it 16.8:1
   foreground: "{palette.text-ink}"
-  soft-foreground: "{palette.text-ink-2}" # labels under pictures; 10.4:1 on the ground
   card: "{palette.base-white}"
   card-foreground: "{palette.text-ink}"
   popover: "{palette.base-white}" # menus, selects and dialogs
@@ -49,14 +48,17 @@ colors:
   primary: "{palette.brand-800}" # deep leaf, 10.1:1
   primary-foreground: "{palette.base-white}"
   primary-hover: "{palette.brand-900}" # darker under the pointer so the text gains contrast, 14.4:1
-  shell: "{palette.accent-lime-300}" # the header, under the leaf sweep
-  shell-foreground: "{palette.brand-900}" # the place on the header, 11.1:1
-  shell-raised: "{palette.base-white}" # the capsule and the search field on the header
-  shell-raised-foreground: "{palette.text-ink}"
-  shell-border: "{palette.border-line}" # the capsule's edge
+  inverse-muted: "{palette.text-on-brand}" # secondary text on deep leaf or a dark photo scrim
+  shell: "{palette.base-white}" # the top bar of every screen but the home: white with a hairline below
+  shell-foreground: "{palette.text-ink}"
+  header: "{palette.accent-lime-300}" # the home's header, under the leaf sweep
+  header-foreground: "{palette.brand-900}" # the place on the header, 11.1:1
+  header-raised: "{palette.base-white}" # the capsule and the search field on the header
+  header-raised-foreground: "{palette.text-ink}"
+  header-border: "{palette.border-line}" # the capsule's edge
   sweep: "{palette.brand-700}" # the leaf that sweeps across the header's top right
   sweep-edge: "{palette.brand-500}" # the lighter band between the leaf and the lime
-  secondary: "{palette.brand-100}" # soft buttons, the discount chip, the active tab
+  secondary: "{palette.brand-100}" # soft buttons, segmented controls, the active tab
   secondary-foreground: "{palette.brand-800}"
   secondary-hover: "{palette.brand-200}"
   muted: "{palette.brand-50}"
@@ -64,11 +66,10 @@ colors:
   accent: "{palette.brand-100}"
   accent-foreground: "{palette.brand-800}"
   link: "{palette.brand-700}" # text links and secondary actions ("Đổi", "Chỉ đường"), 7.7:1 on white, 7.1:1 on the ground
-  highlight: "{palette.accent-amber}" # the discount inside a deal strip
-  highlight-foreground: "{palette.accent-amber-ink}" # 8.0:1
-  fresh: "{palette.accent-lime-300}" # the stock sticker; the deal card's title on Deep Leaf
+  fresh: "{palette.accent-lime-300}" # young rice: the stock sticker, the discount chip, the deal card's figures
   fresh-foreground: "{palette.accent-lime-ink}" # 7.4:1
-  sale: "{palette.logo-rose}" # a discount written large on white, the deal card's tickets; 5.9:1 on white
+  fresh-muted: "{palette.accent-lime-100}" # a quiet lime surface, such as the pickup place on a seller's draft
+  rating: "{palette.rating-star}" # the star beside a rating, always next to the figure
   destructive: "{palette.status-error}" # errors, cancelled and refused states, 6.6:1
   destructive-foreground: "{palette.base-white}"
   destructive-hover: "#912018" # 8.7:1
@@ -78,114 +79,98 @@ colors:
   warning-foreground: "{palette.alert-ink}" # 8.5:1
   warning-border: "{palette.alert-line}" # the edge of a notice
   border: "{palette.border-line}"
-  input: "{palette.text-faint}" # a field edge, 3.6:1 on white (3:1 needed for a control)
+  input: "{palette.text-faint}" # a field edge, 3.6:1 on white (3:1 needed for a control); never text
   ring: "{palette.brand-800}" # focus ring, 10.1:1 on white
-  avatar-foreground: "{palette.base-white}" # initials on a seller's avatar; each avatar-* is checked against it
+  avatar-foreground: "{palette.base-white}" # initials of a seller without a photo; each avatar-* is checked against it
   avatar-clay: "{palette.logo-clay}" # 5.8:1
   avatar-rose: "{palette.logo-rose}" # 5.9:1
   avatar-indigo: "{palette.logo-indigo}" # 7.6:1
   avatar-olive: "{palette.logo-olive}" # 6.0:1
 typography:
-  # The Figma text styles, named by their role and size: `Tiêu đề/H1 28` is `h1-28` and the utility `text-h1-28`.
-  # Bricolage Grotesque (`font-display`) for titles and prices, Be Vietnam Pro (`font-sans`) for the rest; both
-  # variable, with the Vietnamese subset, served from our own origin. Chosen with the Figma identity on 18 October
-  # 2026, replacing Inter. `deal-34`, `price-18`, `place-16`, `body-13`, `micro-11` and `overline-11` are sizes the Figma screens use
-  # without a style.
-  display-40: # Tiêu đề/Display 40
-    fontFamily: "Bricolage Grotesque"
-    fontSize: "40px"
-    fontWeight: 800
-    lineHeight: "1.1"
-    letterSpacing: "-0.01em"
-  h1-28: # Tiêu đề/H1 28
-    fontFamily: "Bricolage Grotesque"
-    fontSize: "28px"
-    fontWeight: 700
-    lineHeight: "1.15"
-    letterSpacing: "-0.01em"
-  deal-34: # the largest discount on the deal card, "70%"
-    fontFamily: "Bricolage Grotesque"
-    fontSize: "34px"
-    fontWeight: 700
-    lineHeight: "1.05"
-    letterSpacing: "-0.02em"
-  h2-22: # Tiêu đề/H2 22
-    fontFamily: "Bricolage Grotesque"
-    fontSize: "22px"
-    fontWeight: 700
-    lineHeight: "1.15"
-    letterSpacing: "-0.01em"
-  h3-20: # Tiêu đề/H3 20
-    fontFamily: "Bricolage Grotesque"
-    fontSize: "20px"
-    fontWeight: 600
-    lineHeight: "1.2"
-    letterSpacing: "-0.01em"
-  price-18:
-    fontFamily: "Bricolage Grotesque"
-    fontSize: "18px"
-    fontWeight: 700
-    lineHeight: "1.2"
-    letterSpacing: "-0.01em"
-  price-16: # Tiêu đề/Giá 16
-    fontFamily: "Bricolage Grotesque"
-    fontSize: "16px"
-    fontWeight: 700
-    lineHeight: "1.15"
-    letterSpacing: "-0.01em"
-  place-16: # the place on the header, "Tasco Mall"
-    fontFamily: "Be Vietnam Pro"
-    fontSize: "16px"
-    fontWeight: 700
-    lineHeight: "1.35"
-  button-16: # Nội dung/Nút 16
-    fontFamily: "Be Vietnam Pro"
-    fontSize: "16px"
-    fontWeight: 600
-    lineHeight: "1.2"
-  title-15: # Nội dung/Tiêu đề 15
-    fontFamily: "Be Vietnam Pro"
-    fontSize: "15px"
-    fontWeight: 600
-    lineHeight: "1.4"
-  body-14: # Nội dung/Thân 14
-    fontFamily: "Be Vietnam Pro"
-    fontSize: "14px"
-    fontWeight: 400
-    lineHeight: "1.5"
-  body-13:
-    fontFamily: "Be Vietnam Pro"
-    fontSize: "13px"
-    fontWeight: 400
-    lineHeight: "1.4"
-  caption-12: # Nội dung/Chú thích 12
+  # Thirteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
+  # "Mobile v2" frames used (SEC-22). Named by purpose, not size; each has a Figma text style of the same name.
+  # Be Vietnam Pro (`font-sans`) for everything people read; Bricolage Grotesque (`font-display`) only for
+  # prices and figures, tracked -1%. Nothing is set below 12px.
+  label: # times, ratings, helper and legal lines, tab labels
     fontFamily: "Be Vietnam Pro"
     fontSize: "12px"
     fontWeight: 400
-    lineHeight: "1.4"
-  micro-11:
+    lineHeight: "17px"
+  label-strong: # stock and status chips, the active tab, counters, initials
     fontFamily: "Be Vietnam Pro"
-    fontSize: "11px"
-    fontWeight: 500
-    lineHeight: "1.4"
-  overline-11: # the label over the deal card's figure, "GIẢM ĐẾN"
-    fontFamily: "Be Vietnam Pro"
-    fontSize: "11px"
+    fontSize: "12px"
     fontWeight: 600
-    lineHeight: "1.3"
-    letterSpacing: "0.04em"
+    lineHeight: "17px"
+  body-sm: # supporting lines, item details, messages
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: "21px"
+  body-sm-strong: # names in lists, small actions ("Đổi", "Xem tất cả")
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "14px"
+    fontWeight: 600
+    lineHeight: "21px"
+  body: # running text and input values
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "16px"
+    fontWeight: 400
+    lineHeight: "24px"
+  title: # field labels, block titles, the name on a card, the place on the header
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "15px"
+    fontWeight: 600
+    lineHeight: "21px"
+  button: # button labels
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "16px"
+    fontWeight: 600
+    lineHeight: "20px"
+  bar-title: # the title in the top bar
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "17px"
+    fontWeight: 600
+    lineHeight: "22px"
+  headline: # section and sheet titles, a page's heading
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "18px"
+    fontWeight: 600
+    lineHeight: "25px"
+  figure-sm: # the discount chip (-63%)
+    fontFamily: "Bricolage Grotesque"
+    fontSize: "12px"
+    fontWeight: 700
+    lineHeight: "16px"
+    letterSpacing: "-0.01em"
+  price: # the price on a card
+    fontFamily: "Bricolage Grotesque"
+    fontSize: "16px"
+    fontWeight: 700
+    lineHeight: "18px"
+    letterSpacing: "-0.01em"
+  price-lg: # the price on an offer and at checkout, totals, the digits of the sign-in code
+    fontFamily: "Bricolage Grotesque"
+    fontSize: "22px"
+    fontWeight: 700
+    lineHeight: "25px"
+    letterSpacing: "-0.01em"
+  display: # big figures only: the pickup code, the best discount tonight
+    fontFamily: "Bricolage Grotesque"
+    fontSize: "36px"
+    fontWeight: 700
+    lineHeight: "40px"
+    letterSpacing: "-0.01em"
 rounded:
-  # Named like Tailwind and shadcn: `lg` is the base radius shadcn's controls use.
-  sm: "6px"
-  md: "8px" # the discount chip
-  lg: "10px" # small controls inside a field
-  field: "14px" # the search field and thumbnails
+  # Named like Tailwind and shadcn: `lg` is the base radius shadcn's controls use. No other radius is used; in
+  # Figma each is a `radius/*` variable of the `Scale` collection, bound on every frame.
+  sm: "8px" # small badges
+  md: "12px" # photo thumbnails, small tiles
+  lg: "14px" # inputs, the search field, segmented controls
   xl: "16px" # buttons
-  tile: "18px" # the compact offer card of a grid
-  2xl: "20px" # offer cards, the deal card and list rows
-  3xl: "24px" # the bottom edge of the header
+  2xl: "20px" # cards, the deal card, sheets and list rows
+  3xl: "24px" # the bottom edge of the header, a sheet's top corners
   4xl: "32px"
-  full: "9999px" # pills, stickers, avatars
+  full: "9999px" # pills, stickers, chips, avatars, icon buttons
 spacing:
   "1": "4px"
   "2": "8px"
@@ -193,26 +178,29 @@ spacing:
   "4": "16px"
   "6": "24px"
   "8": "32px"
-elevation: {}
+elevation:
+  # Cards are flat on the mint ground; only what floats over content, a sheet or a dialog, casts a shadow.
+  sheet:
+    - { x: 0, y: -4, blur: 24, spread: 0, color: "#0E1D191F" }
 components:
   button-primary:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.primary-foreground}"
-    typography: "{typography.button-16}"
+    typography: "{typography.button}"
     rounded: "{rounded.xl}"
     height: "52px"
     padding: "0 24px"
   button-secondary:
     backgroundColor: "{colors.secondary}"
     textColor: "{colors.secondary-foreground}"
-    typography: "{typography.button-16}"
+    typography: "{typography.button}"
     rounded: "{rounded.xl}"
     height: "52px"
     padding: "0 24px"
   sticker:
     backgroundColor: "{colors.fresh}"
     textColor: "{colors.fresh-foreground}"
-    typography: "{typography.caption-12}"
+    typography: "{typography.label-strong}"
     rounded: "{rounded.full}"
     padding: "4px 10px"
   offer-card:
@@ -238,42 +226,43 @@ The interface opens on a fresh lime header swept by a deep-leaf green, over a pa
 
 - Lime header under a deep-leaf sweep, holding the place, the search, the language and tonight's deal card.
 - Mint ground, white cards with a bitten top right corner.
-- Lime stickers for stock on the photograph; amber only for the discount in a deal strip.
+- Lime for stock and discounts: one sticker on the photograph, one discount chip; amber only in alerts.
 - Real photographs of the food, never illustrations.
-- Price hierarchy by size and face: new price in Bricolage, old price small and struck through, and the discount as a soft chip.
+- Price hierarchy by size and face: new price in Bricolage, old price small and struck through, and the discount as a lime chip.
 
 ## Colors
 
-A green family from deep leaf to mint, a fresh lime for the header and stock, warm amber and rose for discounts, and ink text.
+A green family from deep leaf to mint, a fresh lime for the header, stock and discounts, amber only for alerts, and ink text.
 
-Two layers, as in Figma. The **palette** is the `SecondBite` collection under the same names (`brand-50` to `brand-900`, `text-ink`, `accent-amber`, `logo-clay`…), and only the roles refer to it. The **roles** below (`primary`, `shell`, `highlight`…) are what screens use, so a role can move to another palette colour without touching a screen.
+Two layers, as in Figma. The **palette** is the `SecondBite` collection under the same names (`brand-50` to `brand-900`, `text-ink`, `accent-amber`, `logo-clay`…), and only the roles refer to it. The **roles** below (`primary`, `header`, `fresh`…) are what screens use, so a role can move to another palette colour without touching a screen.
 
 ### Primary
 
 - **Deep Leaf** (`primary`): primary buttons, the deal card, prices, links and the focus ring. `primary-hover` is the pressed leaf.
-- **Lime Shell** (`shell`, `shell-foreground`): the header, with the place in the darkest leaf. **Leaf Sweep** (`sweep`, `sweep-edge`) crosses its top right.
-- **Raised** (`shell-raised`, `shell-border`): the white capsule and search field on the header.
+- **Lime Header** (`header`, `header-foreground`): the home's header, with the place in the darkest leaf. **Leaf Sweep** (`sweep`, `sweep-edge`) crosses its top right.
+- **Raised** (`header-raised`, `header-border`): the white capsule and search field on the header.
+- **White Shell** (`shell`, `shell-foreground`): the top bar of every other screen, white with a hairline below.
+- **Soft on Leaf** (`inverse-muted`): secondary text on Deep Leaf or a dark photo scrim.
 - **Leaf Link** (`link`): text links and secondary actions, on white or the ground.
 
 ### Secondary
 
-- **Leaf Wash** (`secondary`, `accent`): soft buttons, the discount chip, the active tab indicator and quiet controls. Text on it is Deep Leaf.
+- **Leaf Wash** (`secondary`, `accent`): soft buttons, segmented controls, the active tab indicator and quiet controls. Text on it is Deep Leaf.
 
-### Highlight
+### Fresh
 
-- **Lime Sticker** (`fresh`): stock ("Còn 2") on a photograph, with lime ink text; the deal card's title and figure on Deep Leaf.
-- **Amber** (`highlight`): the discount inside a deal strip on Deep Leaf.
-- **Rose** (`sale`): a discount written large on white, the deal card's tickets.
+- **Lime** (`fresh`, `fresh-foreground`): the stock sticker on a photograph and the discount chip, with lime ink text; the deal card's title and figures on Deep Leaf. `fresh-muted` is its quiet surface.
+- **Star** (`rating`): the star beside a rating, never on its own.
 
 ### Neutral
 
 - **Mint Ground** (`background`, `muted`): the page under the cards. The bite of each card is cut in this colour.
 - **White** (`card`): cards, sheets, the search field, dialogs.
-- **Ink** (`foreground`): body text; **Soft Ink** (`soft-foreground`) for labels under pictures.
+- **Ink** (`foreground`): body text and labels under pictures.
 - **Muted** (`muted-foreground`): secondary text, old prices and placeholders.
 - **Line** (`border`): hairlines and dividers.
-- **Field Edge** (`input`): input outlines, 3.6:1 against white.
-- **Seller avatars** (`avatar-clay`, `avatar-rose`, `avatar-indigo`, `avatar-olive`): a seller without a logo gets their initials on one of these, chosen from the seller's id so it never changes.
+- **Field Edge** (`input`): input outlines, 3.6:1 against white; never text, placeholders included.
+- **Seller avatars** (`avatar-clay`, `avatar-rose`, `avatar-indigo`, `avatar-olive`): a seller without a photo gets their initials on one of these, chosen from the seller's id so it never changes; a seller's photo replaces them.
 
 ### Status
 
@@ -285,37 +274,46 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 **The One Sticker Rule.** A card carries one lime sticker, on its photograph: how many are left.
 
+**The One Discount Rule.** A discount is always the lime chip (`figure-sm` on `fresh`); the best discount tonight may be written large in lime on Deep Leaf (`display`). No amber, rose or soft-green discount.
+
+**The Faint Rule.** `input` reaches only 3.6:1 on white: field edges only, never text.
+
 **The Bite Rule.** The bitten corner is cut in the colour of what is behind the card. It sits on cards on the mint ground, never on a control.
 
 **The Honest Number Rule.** No figure appears that the product did not measure: no invented counters, ratings or "meals saved" until the pilot produces them.
 
 ## Typography
 
-**Display Font:** Bricolage Grotesque (titles, prices, initials), `font-display`.
-**Body Font:** Be Vietnam Pro, `font-sans`, drawn for Vietnamese.
-
-**Character:** a characterful grotesque for what should be read first, and a sturdy Vietnamese-first sans for everything else.
+**Body Font:** Be Vietnam Pro, `font-sans`, drawn for Vietnamese, weights 400, 600 and 700.
+**Figure Font:** Bricolage Grotesque, `font-display`, for prices and figures only, tracked -1%.
 
 ### Hierarchy
 
-- **Display** (`display-40`, Bricolage 800, 40px): rare, large statements.
-- **H1** (`h1-28`, Bricolage 700): screen titles.
-- **Deal** (`deal-34`, Bricolage 700): the largest discount on the deal card.
-- **H2** (`h2-22`, Bricolage 700): large headings.
-- **Place** (`place-16`, 700): the place on the header.
-- **H3** (`h3-20`, Bricolage 600): section titles.
-- **Price** (`price-18` on an offer card, `price-16` on a compact card, Bricolage 700): the new price.
-- **Button** (`button-16`, 600).
-- **Title** (`title-15`, 600): seller name or dish name on a card.
-- **Body** (`body-14`, 400): running text and the search field.
-- **Body small** (`body-13`, 400): the dish under the seller, the old price, links beside a section title.
-- **Caption** (`caption-12`, 400): meta lines; with weight 500 to 700 for chips, stickers and labels.
-- **Micro** (`micro-11`, 500): tab labels, the deal strip, the seller under a compact card, the deal card's tickets.
-- **Overline** (`overline-11`, 600, tracked, upper case): the label over the deal card's figure.
+Thirteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
+
+| Role             | Face          | Size / line | Use                                                                                |
+| ---------------- | ------------- | ----------- | ---------------------------------------------------------------------------------- |
+| `display`        | Bricolage 700 | 36 / 40     | Big figures only: the pickup code, the best discount tonight                       |
+| `price-lg`       | Bricolage 700 | 22 / 25     | The price on an offer card and at checkout, totals, the digits of the sign-in code |
+| `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                        |
+| `figure-sm`      | Bricolage 700 | 12 / 16     | The discount chip                                                                  |
+| `headline`       | 600           | 18 / 25     | Section and sheet titles, a page's heading                                         |
+| `bar-title`      | 600           | 17 / 22     | The top bar's title                                                                |
+| `button`         | 600           | 16 / 20     | Button labels                                                                      |
+| `title`          | 600           | 15 / 21     | Field labels, block titles, the name on a card, the place on the header            |
+| `body`           | 400           | 16 / 24     | Running text and input values                                                      |
+| `body-sm-strong` | 600           | 14 / 21     | Names in lists, small actions                                                      |
+| `body-sm`        | 400           | 14 / 21     | Supporting lines, item details, messages                                           |
+| `label-strong`   | 600           | 12 / 17     | Stock and status chips, the active tab, counters, initials                         |
+| `label`          | 400           | 12 / 17     | Times, ratings, helper and legal lines, tab labels                                 |
 
 ### Named Rules
 
-**The Diacritics Rule.** Running text has a line height of at least 1.4; titles may go to 1.1 only where no text box clips stacked marks (Ầ, Ẫ, Ổ).
+**The Diacritics Rule.** Running text has a line height of at least 1.4, and no text box clips stacked marks (Ầ, Ẫ, Ổ).
+
+**The Floor Rule.** Nothing is set below 12px, for modest phones read in the evening.
+
+**The Figure Rule.** Bricolage sets prices and figures only; a dish, a seller, initials or a screen title are Be Vietnam Pro. Screens carry no large titles: the top bar names the screen.
 
 ## Layout
 
@@ -323,11 +321,11 @@ Mobile at 390px is the source frame for app screens; desktop is derived from it.
 
 ## Elevation & Depth
 
-Flat. Cards separate from the mint ground by colour alone; photographs get a soft dark scrim where text sits on them. Nothing casts a shadow.
+Flat. Cards separate from the mint ground by colour alone; photographs get a soft dark scrim where text sits on them. Only what floats over content, a sheet or a dialog, casts a shadow (`elevation.sheet`).
 
 ## Shapes
 
-Generous rounding: 20px on cards, the deal card and list rows, 18px on compact grid cards, 16px on buttons, 14px on the search field and thumbnails, 24px on the bottom of the header, full rounding on stickers, chips and avatars. Photographs fill the top of a card and share its corners.
+Generous rounding from one scale: 20px (`2xl`) on cards, the deal card, sheets and list rows; 16px (`xl`) on buttons; 14px (`lg`) on inputs, the search field and segmented controls; 12px (`md`) on thumbnails; 24px (`3xl`) on the bottom of the header and a sheet's top corners; full rounding on stickers, chips, avatars and icon buttons. Photographs fill the top of a card and share its corners. No other radius is used.
 
 ## Components
 
@@ -341,15 +339,15 @@ A lime pill on a photograph: stock ("Còn 2", or "Đã hết" on muted when sold
 
 ### Offer card
 
-White, 20px radius, bitten corner. Photograph (92px) with the stock sticker and the seller's avatar, then the seller (Title), the dish (Body small, muted), the window and place with a clock, and the price row: the discount chip on the left, the old price struck through and the new price (Price large, Deep Leaf) on the right.
+White, 20px radius, bitten corner. Photograph (92px) with the stock sticker and the seller's avatar, then the seller (`title`), the dish (`body-sm`, muted), the window and place with a clock (`label`), and the price row: the discount chip on the left, the old price struck through and the new price (`price-lg`, Deep Leaf) on the right.
 
 ### Compact offer card
 
-For two-column grids: 18px radius, photograph (132px) with the stock sticker and a Deep Leaf deal strip ("-58%" in amber, "Lấy 19:30–20:30" in white), then the dish, the price, and the seller with a small avatar.
+For two-column grids: 20px radius, photograph (132px) with the stock sticker and a Deep Leaf deal strip ("-58%" in lime, "Lấy 19:30–20:30" in white), then the dish, the price, and the seller with a small avatar.
 
 ### Deal card
 
-Deep Leaf, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (Deal, lime), and up to three white tickets with the discount in rose, the seller and when collection opens. Under it, a white strip with how many bags are open and when the last window closes links to the list. A mint sheet with rounded top corners rises behind their lower half to start the page.
+Deep Leaf, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and up to three white tickets with the discount chip, the seller and when collection opens. Under it, a white strip with how many bags are open and when the last window closes links to the list. A mint sheet with rounded top corners rises behind their lower half to start the page.
 
 ## Do's and Don'ts
 
@@ -362,5 +360,6 @@ Deep Leaf, 20px radius, at the bottom of the header without a filter: the title 
 ### Don't:
 
 - **Don't** show a rating, a counter or any figure the product has not measured.
-- **Don't** put amber anywhere but the discount inside a deal strip and the alert box, or lime anywhere but the header, stickers and the deal card.
+- **Don't** put amber anywhere but the alert box, or lime anywhere but the header, stickers, discount chips and the deal card.
+- **Don't** set text below 12px, or a title in Bricolage.
 - **Don't** describe food as thừa, tồn, thanh lý or giải cứu anywhere in the interface.

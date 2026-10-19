@@ -59,8 +59,8 @@ export function KindPicker({ query }: { query: HomeQuery }) {
               <KindPicture picture={item.picture} active={item.active} />
               <span
                 className={cn(
-                  "text-center text-caption-12",
-                  item.active ? "font-semibold text-primary" : "font-medium text-soft-foreground",
+                  "text-center",
+                  item.active ? "text-label-strong text-primary" : "text-label text-foreground",
                 )}
               >
                 {item.label}

@@ -31,9 +31,9 @@ export function OfferCard({ offer }: { offer: OfferSummary }) {
         <SellerAvatar seller={offer.seller} size="md" className="absolute bottom-3 left-3" />
       </div>
       <div className="flex flex-col gap-1.5 px-3.5 pt-3 pb-3.5">
-        <p className="truncate text-title-15 text-foreground">{offer.seller.name}</p>
-        <h3 className="truncate text-body-13 text-muted-foreground">{offer.name}</h3>
-        <p className="flex items-center gap-1.5 text-caption-12 text-muted-foreground">
+        <p className="truncate text-title text-foreground">{offer.seller.name}</p>
+        <h3 className="truncate text-body-sm text-muted-foreground">{offer.name}</h3>
+        <p className="flex items-center gap-1.5 text-label text-muted-foreground">
           <ClockIcon aria-hidden className="size-3.5 shrink-0" />
           <span className="truncate">
             {t("windowAt", { from, until, place: offer.seller.address })}

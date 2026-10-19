@@ -16,10 +16,10 @@ describe("class merging", () => {
   });
 
   it("keeps a text colour beside a type style", () => {
-    expect(cn("text-body-13 text-avatar-foreground")).toBe("text-body-13 text-avatar-foreground");
+    expect(cn("text-body-sm text-avatar-foreground")).toBe("text-body-sm text-avatar-foreground");
   });
 
   it("lets a later type style replace an earlier one", () => {
-    expect(cn("text-body-13", "text-micro-11")).toBe("text-micro-11");
+    expect(cn("text-body-sm", "text-label")).toBe("text-label");
   });
 });

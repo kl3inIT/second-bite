@@ -12,7 +12,7 @@ export function HeaderSweep() {
         d="M0 0H362C292 30 246 82 226 132C210 172 150 214 0 262V0Z"
         className="fill-sweep-edge"
       />
-      <path d="M0 0H332C262 30 216 80 196 128C180 168 120 208 0 236V0Z" className="fill-shell" />
+      <path d="M0 0H332C262 30 216 80 196 128C180 168 120 208 0 236V0Z" className="fill-header" />
     </svg>
   );
 }

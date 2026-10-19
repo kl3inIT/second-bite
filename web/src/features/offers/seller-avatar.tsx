@@ -6,13 +6,13 @@ import { avatarTone, initials } from "./seller";
 // A seller's initials in a white-ringed circle (Figma "store logo"). It repeats the name beside it, so
 // it is hidden from assistive technology.
 const avatarVariants = cva(
-  "inline-flex shrink-0 items-center justify-center rounded-full border-2 border-card font-display font-bold text-avatar-foreground",
+  "inline-flex shrink-0 items-center justify-center rounded-full border-2 border-card text-label-strong text-avatar-foreground",
   {
     variants: {
       size: {
-        md: "size-9 text-body-13",
-        // Figma draws two letters at 6px here; one letter at 11px is the smallest that can still be read.
-        sm: "size-4.5 border text-micro-11 leading-none",
+        md: "size-9",
+        // Figma draws two letters at 6px here; one letter at 12px is the smallest that can still be read.
+        sm: "size-4.5 border leading-none",
       },
       tone: {
         clay: "bg-avatar-clay",

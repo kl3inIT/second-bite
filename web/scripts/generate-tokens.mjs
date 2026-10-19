@@ -62,7 +62,6 @@ for (const [name, value] of Object.entries(colors)) {
 // DESIGN.md allows it on (The Label Rule), and control outlines and focus rings at 3:1 (WCAG 1.4.11).
 const pairs = [
   ["foreground", "background", MIN_TEXT_CONTRAST],
-  ["soft-foreground", "background", MIN_TEXT_CONTRAST],
   ["muted-foreground", "card", MIN_TEXT_CONTRAST],
   ["muted-foreground", "muted", MIN_TEXT_CONTRAST],
   ["muted-foreground", "background", MIN_TEXT_CONTRAST],
@@ -72,10 +71,11 @@ const pairs = [
   ["input", "card", 3],
   ["ring", "card", 3],
   ["ring", "background", 3],
-  ["ring", "shell", 3],
-  // The deal card: its lime title on Deep Leaf and the rose discounts on its white tickets.
+  ["ring", "header", 3],
+  // Lime figures and soft text on Deep Leaf (the deal card), and lime ink on the quiet lime surface.
   ["fresh", "primary", MIN_TEXT_CONTRAST],
-  ["sale", "card", MIN_TEXT_CONTRAST],
+  ["inverse-muted", "primary", MIN_TEXT_CONTRAST],
+  ["fresh-foreground", "fresh-muted", MIN_TEXT_CONTRAST],
   // Every seller avatar colour carries the one avatar ink.
   ...Object.keys(colors)
     .filter((name) => name.startsWith("avatar-") && name !== "avatar-foreground")

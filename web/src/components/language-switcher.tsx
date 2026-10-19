@@ -21,7 +21,7 @@ export function LanguageSwitcher() {
       title={t("label")}
       className="group/language -my-1.5 flex size-11 items-center justify-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card focus-visible:outline-none"
     >
-      <span className="flex h-8 items-center rounded-full border border-shell-border bg-shell-raised px-2.5 text-shell-raised-foreground transition-colors group-hover/language:bg-secondary">
+      <span className="flex h-8 items-center rounded-full border border-header-border bg-header-raised px-2.5 text-header-raised-foreground transition-colors group-hover/language:bg-secondary">
         <LanguagesIcon aria-hidden className="size-4" />
       </span>
     </Link>

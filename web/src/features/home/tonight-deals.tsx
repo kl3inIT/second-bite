@@ -3,6 +3,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 
 import { listOffers } from "@/features/offers/list-offers";
 import { biggestDiscountFirst, openBags } from "@/features/offers/offer";
+import { DiscountChip } from "@/features/offers/price";
 
 import type { HomeQuery } from "./home-query";
 
@@ -16,9 +17,8 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
   const query = await pending;
   if (query.q || query.kind || query.now) return null;
 
-  const [t, offerCard, format, offers] = await Promise.all([
+  const [t, format, offers] = await Promise.all([
     getTranslations("Home"),
-    getTranslations("OfferCard"),
     getFormatter(),
     listOffers({}),
   ]);
@@ -37,13 +37,13 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
         aria-labelledby="tonight-deals"
         className="relative flex flex-col gap-2.5 rounded-2xl bg-primary px-3.5 pt-3.5 pb-3 text-primary-foreground"
       >
-        <h2 id="tonight-deals" className="text-body-13 font-semibold text-fresh">
+        <h2 id="tonight-deals" className="text-body-sm-strong text-fresh">
           {t("dealsTitle")}
         </h2>
         <div className="flex items-center gap-2.5">
           <p className="flex shrink-0 flex-col">
-            <span className="text-overline-11 uppercase">{t("upTo")}</span>
-            <span className="font-display text-deal-34 text-fresh">
+            <span className="text-label-strong text-inverse-muted">{t("upTo")}</span>
+            <span className="font-display text-display text-fresh">
               {t("upToPercent", { percent: tickets[0].discountPercent })}
             </span>
           </p>
@@ -51,18 +51,13 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
             {tickets.map((offer) => (
               <li
                 key={offer.id}
-                className="flex min-w-0 flex-1 flex-col gap-px rounded-xl bg-card py-2.5 pr-1 pl-1.75 text-card-foreground"
+                className="flex min-w-0 flex-1 flex-col gap-1 rounded-xl bg-card py-2.5 pr-1 pl-1.75 text-card-foreground"
               >
-                <span className="font-display text-price-18 text-sale">
-                  <span aria-hidden>
-                    {offerCard("discount", { percent: offer.discountPercent })}
-                  </span>
-                  <span className="sr-only">
-                    {offerCard("discountLabel", { percent: offer.discountPercent })}
-                  </span>
+                <span className="flex">
+                  <DiscountChip percent={offer.discountPercent} />
                 </span>
-                <span className="truncate text-micro-11 font-semibold">{offer.seller.name}</span>
-                <span className="truncate text-micro-11 font-normal text-muted-foreground">
+                <span className="truncate text-label-strong">{offer.seller.name}</span>
+                <span className="truncate text-label text-muted-foreground">
                   {t("ticketWindow", { from: time(offer.windowStart) })}
                 </span>
               </li>
@@ -72,7 +67,7 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
       </section>
       <a
         href="#all-offers"
-        className="relative flex items-center gap-2 rounded-xl border border-border bg-card py-2 pr-2.5 pl-3 text-body-13 font-semibold text-soft-foreground transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+        className="relative flex items-center gap-2 rounded-xl border border-border bg-card py-2 pr-2.5 pl-3 text-body-sm-strong text-foreground transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
       >
         <ClockIcon aria-hidden strokeWidth={2.2} className="size-4.5 shrink-0 text-primary" />
         <span className="min-w-0 flex-1">

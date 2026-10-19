@@ -14,7 +14,7 @@ export function SiteFooter() {
           <li>
             <Link
               href="/terms"
-              className="inline-flex min-h-11 items-center text-body-14 text-foreground underline"
+              className="inline-flex min-h-11 items-center text-body-sm text-foreground underline"
             >
               {t("terms")}
             </Link>
@@ -22,7 +22,7 @@ export function SiteFooter() {
           <li>
             <Link
               href="/privacy"
-              className="inline-flex min-h-11 items-center text-body-14 text-foreground underline"
+              className="inline-flex min-h-11 items-center text-body-sm text-foreground underline"
             >
               {t("privacy")}
             </Link>

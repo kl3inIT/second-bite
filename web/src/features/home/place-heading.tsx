@@ -10,10 +10,10 @@ export function PlaceHeading() {
     <div className="flex gap-2 pt-0.75">
       <MapPinIcon aria-hidden strokeWidth={2.2} className="size-4.5 shrink-0" />
       <div className="flex flex-col">
-        <h1 className="text-place-16">
+        <h1 className="text-title">
           {t.rich("title", { hidden: (chunks) => <span className="sr-only">{chunks}</span> })}
         </h1>
-        <p className="text-caption-12 text-soft-foreground">{t("area")}</p>
+        <p className="text-label text-header-foreground">{t("area")}</p>
       </div>
     </div>
   );

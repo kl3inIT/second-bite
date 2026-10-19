@@ -42,7 +42,7 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 ## Design tokens and styling
 
 - Tokens are defined once, in the frontmatter of `DESIGN.md`. `pnpm generate:tokens` writes `src/styles/tokens.css`; never edit that file. The generator refuses a colour pair under 4.5:1 for text or 3:1 for an outline or focus ring, and `pnpm check:tokens` fails when the file falls behind.
-- Components use semantic tokens only (`bg-primary`, `text-muted-foreground`, `rounded-2xl`, `text-price-18`); the palette under them (`--brand-800`) is for DESIGN.md's roles, never for a screen. Raw colours, inline styles, arbitrary values, unknown classes and dynamically built class names are lint errors outside `src/components/ui`, through `@shadcn/lint`. A value several components repeat becomes a token in DESIGN.md.
+- Components use semantic tokens only (`bg-primary`, `text-muted-foreground`, `rounded-2xl`, `text-price`); the palette under them (`--brand-800`) is for DESIGN.md's roles, never for a screen. Raw colours, inline styles, arbitrary values, unknown classes and dynamically built class names are lint errors outside `src/components/ui`, through `@shadcn/lint`. A value several components repeat becomes a token in DESIGN.md.
 - A solid action darkens under the pointer, to its `*-hover` token, so its text keeps its contrast; a fill is never lightened by lowering its opacity.
 - shadcn primitives are adapted to DESIGN.md in place (targets, hover, variants), with a short comment on each change. `shadcn init` or `shadcn add` writes its own palette, radius formula and fonts into `globals.css`; remove them, so DESIGN.md stays the only source.
 

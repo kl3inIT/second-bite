@@ -9,9 +9,9 @@ import { routing } from "@/i18n/routing";
 import "../globals.css";
 
 // The typefaces of DESIGN.md, served by next/font from our own origin, Latin and Vietnamese only:
-// Be Vietnam Pro for text, Bricolage Grotesque for titles and prices.
+// Be Vietnam Pro for text, Bricolage Grotesque for prices and figures only.
 const beVietnamPro = Be_Vietnam_Pro({
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600", "700"],
   subsets: ["latin", "vietnamese"],
   variable: "--font-be-vietnam-pro",
 });

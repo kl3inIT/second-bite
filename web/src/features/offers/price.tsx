@@ -18,8 +18,8 @@ export function Price({ offer, size }: { offer: OfferSummary; size: "lg" | "md" 
       <span
         className={
           size === "lg"
-            ? "font-display text-price-18 text-primary"
-            : "font-display text-price-16 text-primary"
+            ? "font-display text-price-lg text-primary"
+            : "font-display text-price text-primary"
         }
       >
         {formatPrice(offer.priceVnd)}
@@ -27,9 +27,7 @@ export function Price({ offer, size }: { offer: OfferSummary; size: "lg" | "md" 
       <s
         aria-hidden
         className={
-          size === "lg"
-            ? "text-body-13 text-muted-foreground"
-            : "text-caption-12 text-muted-foreground"
+          size === "lg" ? "text-body-sm text-muted-foreground" : "text-label text-muted-foreground"
         }
       >
         {original}
@@ -39,12 +37,12 @@ export function Price({ offer, size }: { offer: OfferSummary; size: "lg" | "md" 
   );
 }
 
-/** The discount as a soft chip, "-63%" (Figma "off"). */
+/** The discount as the one lime chip, "-63%" (DESIGN.md › Offer card). */
 export function DiscountChip({ percent }: { percent: number }) {
   const t = useTranslations("OfferCard");
 
   return (
-    <span className="rounded-md bg-secondary px-2 py-0.5 text-caption-12 font-bold text-secondary-foreground">
+    <span className="rounded-full bg-fresh px-2 py-0.5 font-display text-figure-sm text-fresh-foreground">
       <span aria-hidden>{t("discount", { percent })}</span>
       <span className="sr-only">{t("discountLabel", { percent })}</span>
     </span>

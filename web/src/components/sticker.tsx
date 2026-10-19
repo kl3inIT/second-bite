@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 // The lime pill on a photograph (DESIGN.md › Components › Sticker): how many are left, always as text.
 const stickerVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-1 text-caption-12 font-bold whitespace-nowrap",
+  "inline-flex items-center rounded-full px-2.5 py-1 text-label-strong whitespace-nowrap",
   {
     variants: {
       tone: {

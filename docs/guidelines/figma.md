@@ -21,7 +21,7 @@ One file, `Second Bite — Product UI`.
 
 The third page stays free until a real need appears.
 
-The file in use today is `Secondbite`, with the pages `Mobile · Khách` (the customer screens and the `Button` and `Bottom nav` components; the home follows the `Mobile v2` section), `Brand · 3 hướng` and `Brand`. Its one variable collection, `SecondBite`, holds the identity's primitives (`brand/50`–`brand/900`, `text/*`, `accent/amber`, `accent/lime-*`, `status/error*`, `logo/*`) rather than the semantic `Theme` and `Scale` collections described below. [DESIGN.md](../../DESIGN.md) mirrors it as its `palette`, under the same names (`brand/800` is `brand-800`), and its colour roles take palette colours; its text styles are named after the Figma ones (`Tiêu đề/H1 28` is `h1-28`).
+The file in use today is `Secondbite`, with the pages `Mobile · Khách` (the customer screens and the `Button` and `Bottom nav` components; the home follows the `Mobile v2` section), `Brand · 3 hướng` and `Brand`. Its collection `SecondBite` holds the identity's primitives (`brand/50`–`brand/900`, `text/*`, `accent/*`, `status/error*`, `logo/*`), which [DESIGN.md](../../DESIGN.md) mirrors as its `palette` under the same names (`brand/800` is `brand-800`). Screens bind the `Theme` collection instead: one variable per DESIGN.md colour role, each an alias of a primitive, with its web code syntax. The `Scale` collection holds the radii (`radius/sm` … `radius/full`). The text styles carry DESIGN.md's role names (`label`, `title`, `price-lg`…), normalised on 19 October 2026 from the sizes the Mobile v2 frames had used.
 
 ## Tokens
 
