@@ -116,9 +116,14 @@ test.describe("the customer home", () => {
     await page.goto("/vi");
     const search = page.getByRole("searchbox", { name: "Tìm món hoặc quán" });
     await expect(search).toHaveCount(1);
-
-    await page.mouse.wheel(0, 900);
-    await expect(search).toHaveCount(2);
+    // Scroll only once the page has hydrated, so the header is watching; then scroll again until it shows,
+    // as a scroll made while the list is still streaming in can leave the row on screen.
+    await hydrated(search);
+    await expect(async () => {
+      await page.getByRole("heading", { name: "Quanh bạn ở Tasco Mall" }).scrollIntoViewIfNeeded();
+      await page.mouse.wheel(0, 400);
+      await expect(search).toHaveCount(2, { timeout: 1000 });
+    }).toPass();
     await expect(search.last()).toBeInViewport();
     await expect(
       page.getByRole("link", { name: "Second Bite, về trang chủ" }).last(),
