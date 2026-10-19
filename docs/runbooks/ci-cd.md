@@ -150,7 +150,15 @@ sudo docker exec -it secondbite-staging-server secondbite email configure ...
 
 The grant is refused with `IDENTITY_ADDRESS_UNPROVEN` when someone has already signed in with Google to that address and Google does not speak for it (an address outside `gmail.com` and Google Workspace); the address's owner signs in once with the emailed code, which removes that link, and the grant then succeeds.
 
-**Signing in with Google.** Put the web client's ID in `.env.staging` as `SECONDBITE_GOOGLE_CLIENT_IDS=<client ID>` (`sudoedit /apps/secondbite-staging/.env.staging`), then dispatch Deploy staging with the current Release run so the server restarts with it. The client is of type "Web application", with `https://secondbite.vadan.app` among its authorised JavaScript origins and no redirect URI: the web takes Google's ID token in a popup. While its consent screen is in testing mode, only its test users can sign in. Its client secret is not used anywhere; keep it out of the host. An empty value leaves Google off, and `GET /api/auth/methods` then answers `{}`.
+**Signing in with Google.** Put the web client's ID in `.env.staging` as `SECONDBITE_GOOGLE_CLIENT_IDS=<client ID>` (`sudoedit /apps/secondbite-staging/.env.staging`), then restart the server with the release that is running. Deploy staging refuses a release it has already uploaded, so recreate the server with the same files `deploy.sh` used:
+
+```sh
+root=/apps/secondbite-staging
+release=$(sudo sed --quiet 's/^SECONDBITE_RELEASE=//p' "$root/deployments/current.env")
+sudo docker compose --project-name secondbite-staging --env-file "$root/.env.staging"   --env-file "$root/incoming/$release/images.env" --file "$root/incoming/$release/compose.base.yaml"   --file "$root/incoming/$release/compose.staging.yaml" up --detach --wait server
+```
+
+Later deployments read the same `.env.staging`, so the value stays. The client is of type "Web application", with `https://secondbite.vadan.app` among its authorised JavaScript origins and no redirect URI: the web takes Google's ID token in a popup. While its consent screen is in testing mode, only its test users can sign in. Its client secret is not used anywhere; keep it out of the host. An empty value leaves Google off, and `GET /api/auth/methods` then answers `{}`.
 
 Then record the date of that first deployment in the [persistence guideline](../guidelines/persistence.md). From that date on, migrations are forward-only.
 
