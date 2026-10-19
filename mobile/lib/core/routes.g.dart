@@ -15,10 +15,23 @@ RouteBase get $homeRoute => GoRouteData.$route(
 );
 
 mixin $HomeRoute on GoRouteData {
-  static HomeRoute _fromState(GoRouterState state) => const HomeRoute();
+  static HomeRoute _fromState(GoRouterState state) => HomeRoute(
+    q: state.uri.queryParameters['q'],
+    kind: state.uri.queryParameters['kind'],
+    now: state.uri.queryParameters['now'],
+  );
+
+  HomeRoute get _self => this as HomeRoute;
 
   @override
-  String get location => GoRouteData.$location('/');
+  String get location => GoRouteData.$location(
+    '/',
+    queryParams: {
+      if (_self.q != null) 'q': _self.q,
+      if (_self.kind != null) 'kind': _self.kind,
+      if (_self.now != null) 'now': _self.now,
+    },
+  );
 
   @override
   void go(BuildContext context) => context.go(location);

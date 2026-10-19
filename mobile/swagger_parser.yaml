@@ -1,0 +1,11 @@
+# The API client, generated from the contract by swagger_parser (docs/guidelines/mobile.md › Stack):
+# `dart run swagger_parser`, then build_runner. Never edited by hand.
+swagger_parser:
+  schema_path: ../api/openapi.yaml
+  output_directory: lib/core/api
+  name: second_bite_api
+  json_serializer: freezed
+  use_freezed3: true
+  root_client: true
+  root_client_name: SecondBiteApi
+  put_clients_in_folder: true

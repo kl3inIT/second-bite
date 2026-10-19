@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
@@ -7,10 +8,17 @@ import 'package:second_bite/l10n/l10n.dart';
 /// skill asks, instead of an inline `MaterialApp` in each test.
 extension PumpApp on WidgetTester {
   /// Pumps [widget] with [AppTheme.light], both catalogs and [locale]
-  /// (Vietnamese unless given), under a [ProviderScope].
-  Future<void> pumpApp(Widget widget, {Locale locale = const Locale('vi')}) {
+  /// (Vietnamese unless given), under a [ProviderScope] with [overrides]
+  /// that never retries a failed provider, so a failure shows at once.
+  Future<void> pumpApp(
+    Widget widget, {
+    Locale locale = const Locale('vi'),
+    List<Override> overrides = const [],
+  }) {
     return pumpWidget(
       ProviderScope(
+        overrides: overrides,
+        retry: (_, _) => null,
         child: MaterialApp(
           theme: AppTheme.light,
           locale: locale,

@@ -98,17 +98,233 @@ abstract class AppLocalizations {
     Locale('en'),
   ];
 
-  /// The app's name, shown by the system and in the top bar
+  /// The app's name, shown by the system and read for the wordmark
   ///
   /// In vi, this message translates to:
   /// **'Second Bite'**
   String get appTitle;
 
-  /// Heading of the customer home, the list of tonight's offers
+  /// The home's heading as a screen reader hears it; on screen only the place shows
   ///
   /// In vi, this message translates to:
   /// **'Tối nay ở Tasco Mall'**
   String get homeTitle;
+
+  /// The place on the home's header
+  ///
+  /// In vi, this message translates to:
+  /// **'Tasco Mall'**
+  String get homePlace;
+
+  /// The district under the place on the header
+  ///
+  /// In vi, this message translates to:
+  /// **'Long Biên, Hà Nội'**
+  String get homeArea;
+
+  /// What the search field is for, read by a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm món hoặc quán'**
+  String get homeSearchLabel;
+
+  /// Hint in the empty search field
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm bánh, gỏi cuốn, rau củ…'**
+  String get homeSearchPlaceholder;
+
+  /// Name of the row of kinds of food
+  ///
+  /// In vi, this message translates to:
+  /// **'Loại món'**
+  String get homeKindsLabel;
+
+  /// The first item of the kinds row: only what can be collected now
+  ///
+  /// In vi, this message translates to:
+  /// **'Lấy ngay'**
+  String get homeCollectNow;
+
+  /// Title of the deal card on the header
+  ///
+  /// In vi, this message translates to:
+  /// **'Túi ngon tối nay ở Tasco Mall'**
+  String get homeDealsTitle;
+
+  /// Above the biggest discount on the deal card
+  ///
+  /// In vi, this message translates to:
+  /// **'Giảm đến'**
+  String get homeUpTo;
+
+  /// The biggest discount tonight, written large
+  ///
+  /// In vi, this message translates to:
+  /// **'{percent}%'**
+  String homeUpToPercent(int percent);
+
+  /// When collection opens, on a ticket of the deal card
+  ///
+  /// In vi, this message translates to:
+  /// **'Lấy {from}'**
+  String homeTicketWindow(String from);
+
+  /// The strip under the deal card: bags still open and when the last window closes
+  ///
+  /// In vi, this message translates to:
+  /// **'{bags} túi đang mở · túi cuối lúc {last}'**
+  String homeOpenBags(int bags, String last);
+
+  /// Title of the row of offers whose windows close first
+  ///
+  /// In vi, this message translates to:
+  /// **'Sắp hết giờ lấy'**
+  String get homeClosingSoon;
+
+  /// Action beside a section title that goes to the whole list
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem tất cả'**
+  String get homeSeeAll;
+
+  /// Title of the grid of every offer
+  ///
+  /// In vi, this message translates to:
+  /// **'Quanh bạn ở Tasco Mall'**
+  String get homeAllOffers;
+
+  /// Title of the grid when a filter or a search is applied
+  ///
+  /// In vi, this message translates to:
+  /// **'Kết quả'**
+  String get homeResults;
+
+  /// Shown when no offer has been posted tonight
+  ///
+  /// In vi, this message translates to:
+  /// **'Tối nay chưa có món nào.'**
+  String get homeEmpty;
+
+  /// Shown when nothing matches the filter or the search
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có món nào khớp bộ lọc này.'**
+  String get homeEmptyFiltered;
+
+  /// Clears the filter
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem tất cả món'**
+  String get homeShowAll;
+
+  /// Read by a screen reader while the offers load
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang tải món…'**
+  String get homeLoading;
+
+  /// The sticker on a photograph: units left
+  ///
+  /// In vi, this message translates to:
+  /// **'Còn {units}'**
+  String offerStock(int units);
+
+  /// The sticker of an offer with nothing left
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã hết'**
+  String get offerSoldOut;
+
+  /// The collection window on a compact card
+  ///
+  /// In vi, this message translates to:
+  /// **'Lấy {from}–{until}'**
+  String offerWindow(String from, String until);
+
+  /// The collection window and place on an offer card
+  ///
+  /// In vi, this message translates to:
+  /// **'{from}–{until} · {place}'**
+  String offerWindowAt(String from, String until, String place);
+
+  /// The discount as written on the chip
+  ///
+  /// In vi, this message translates to:
+  /// **'-{percent}%'**
+  String offerDiscount(int percent);
+
+  /// The discount as a screen reader says it
+  ///
+  /// In vi, this message translates to:
+  /// **'Giảm {percent}%'**
+  String offerDiscountLabel(int percent);
+
+  /// The struck-through price as a screen reader says it
+  ///
+  /// In vi, this message translates to:
+  /// **'Giá gốc {price}'**
+  String offerOriginalPrice(String price);
+
+  /// A kind of food, by the API's name for it
+  ///
+  /// In vi, this message translates to:
+  /// **'{kind, select, bakery{Bánh} prepared_food{Món chín} ingredients{Nguyên liệu} drinks{Đồ uống} mixed_box{Hộp tổng hợp} other{Khác}}'**
+  String offerKind(String kind);
+
+  /// Title of the introduction for a first visit
+  ///
+  /// In vi, this message translates to:
+  /// **'Second Bite là gì?'**
+  String get introTitle;
+
+  /// What Second Bite is, in two sentences
+  ///
+  /// In vi, this message translates to:
+  /// **'Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.'**
+  String get introBody;
+
+  /// Closes the introduction
+  ///
+  /// In vi, this message translates to:
+  /// **'Đóng giới thiệu'**
+  String get introDismiss;
+
+  /// The language button on the header, in the language it switches to
+  ///
+  /// In vi, this message translates to:
+  /// **'Switch to English'**
+  String get languageSwitch;
+
+  /// Title when the offers could not be loaded
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã có lỗi xảy ra'**
+  String get errorTitle;
+
+  /// Shown when the server could not be reached
+  ///
+  /// In vi, this message translates to:
+  /// **'Không kết nối được. Vui lòng kiểm tra mạng rồi thử lại.'**
+  String get errorOffline;
+
+  /// Shown when the server failed without words of its own
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng thử lại. Nếu vẫn lỗi, hãy báo cho chúng tôi mã bên dưới.'**
+  String get errorBody;
+
+  /// The request's id, for the person to report
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã tham chiếu: {reference}'**
+  String errorReference(String reference);
+
+  /// Asks for the offers again
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử lại'**
+  String get errorRetry;
 }
 
 class _AppLocalizationsDelegate

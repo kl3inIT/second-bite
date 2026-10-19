@@ -3,6 +3,9 @@ include: package:very_good_analysis/analysis_options.yaml
 analyzer:
   exclude:
     - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    # The client swagger_parser writes from api/openapi.yaml.
+    - lib/core/api/**
     - lib/l10n/gen/**
     - packages/**
     - build/**

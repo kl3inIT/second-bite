@@ -176,6 +176,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.14"
+  dio:
+    dependency: "direct main"
+    description:
+      name: dio
+      sha256: "852ec3b48cc431ac04fff978413c541502b67ffc3e26921e74e3d994694192c1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.11.1"
+  dio_web_adapter:
+    dependency: transitive
+    description:
+      name: dio_web_adapter
+      sha256: "3a1b2cd7be71086f38504956e3ebcd2837288d231ff454bafa78021244102bfc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.2"
   fake_async:
     dependency: transitive
     description:
@@ -218,6 +234,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.3"
+  flutter_svg:
+    dependency: transitive
+    description:
+      name: flutter_svg
+      sha256: "35882981abcbfb8c15b286f0cd690ff25bac12d95eff3e25ee207f37d4c42e7f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -228,8 +252,16 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  freezed:
+    dependency: "direct dev"
+    description:
+      name: freezed
+      sha256: cb910646cb09265d49077b63b600ef1f5a718c1d6031836432237ddeabae1b12
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.3"
   freezed_annotation:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: freezed_annotation
       sha256: "7294967ff0a6d98638e7acb774aac3af2550777accd8149c90af5b014e6d44d8"
@@ -268,6 +300,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  http:
+    dependency: transitive
+    description:
+      name: http
+      sha256: "87721a4a50b19c7f1d49001e51409bddc46303966ce89a65af4f4e6004896412"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.6.0"
   http_multi_server:
     dependency: transitive
     description:
@@ -301,13 +341,21 @@ packages:
     source: hosted
     version: "1.1.0"
   json_annotation:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: json_annotation
       sha256: "2a743920d81b7910627f68ee2c9ac1fc0bfee32b9fc3403587d7c6791ca12f80"
       url: "https://pub.dev"
     source: hosted
     version: "4.12.0"
+  json_serializable:
+    dependency: "direct dev"
+    description:
+      name: json_serializable
+      sha256: e45aefa0324f08c683caafbb94b72837aa6193c61822799c916e45f4a263113d
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.14.1"
   leak_tracker:
     dependency: transitive
     description:
@@ -420,6 +468,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.1"
+  path_parsing:
+    dependency: transitive
+    description:
+      name: path_parsing
+      sha256: "883402936929eac138ee0a45da5b0f2c80f89913e6dc3bf77eb65b84b409c6ca"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
+  petitparser:
+    dependency: transitive
+    description:
+      name: petitparser
+      sha256: "91bd59303e9f769f108f8df05e371341b15d59e995e6806aefab827b58336675"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.2"
   pool:
     dependency: transitive
     description:
@@ -428,6 +492,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.3"
+  protobuf:
+    dependency: transitive
+    description:
+      name: protobuf
+      sha256: "13b6717366aa7ec3792dd62c19c7d33a785708224365f2db23c5ca01f1c1a0f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
   pub_semver:
     dependency: transitive
     description:
@@ -444,6 +516,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.6.0"
+  retrofit:
+    dependency: "direct main"
+    description:
+      name: retrofit
+      sha256: d700c1e7599bc6327cbe19ec7a2c87b595f6063ce888e8015f30cab655972331
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.10.0"
+  retrofit_generator:
+    dependency: "direct dev"
+    description:
+      name: retrofit_generator
+      sha256: "4524b2074e42304f8183a81ad4169783d1d0363d18a2029aa9250b4ac596c664"
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.2.12"
   riverpod:
     dependency: transitive
     description:
@@ -561,6 +649,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
+  swagger_parser:
+    dependency: "direct dev"
+    description:
+      name: swagger_parser
+      sha256: "9cfecfad00a2671c35b66ccde7a38435bc9099f58891d4feba4f6ecc03b440b6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.45.0"
   term_glyph:
     dependency: transitive
     description:
@@ -593,6 +689,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.6.0"
+  vector_graphics:
+    dependency: transitive
+    description:
+      name: vector_graphics
+      sha256: "9d0e3b9cb16542ad660daee871e726a10d13a93b7b5391677c3160e8f5e83935"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.3"
+  vector_graphics_codec:
+    dependency: transitive
+    description:
+      name: vector_graphics_codec
+      sha256: "99fd9fbd34d9f9a32efd7b6a6aae14125d8237b10403b422a6a6dfeac2806146"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.13"
+  vector_graphics_compiler:
+    dependency: transitive
+    description:
+      name: vector_graphics_compiler
+      sha256: a8e2c19796144da2f81bcc96dad1bb19c4677b561c452081b97ee737b9faed65
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.2"
   vector_math:
     dependency: transitive
     description:
@@ -649,6 +769,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.3"
+  xml:
+    dependency: transitive
+    description:
+      name: xml
+      sha256: "67f0aff7be013d107995e9b75bf4e7f2c3ef2dfdb2c8e68024bba0a7fd5756a4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.1"
   yaml:
     dependency: transitive
     description:

@@ -1,0 +1,8 @@
+# freezed, then json_serializable, then retrofit, as swagger_parser's README asks for the generated client.
+global_options:
+  freezed:
+    runs_before:
+      - json_serializable
+  json_serializable:
+    runs_before:
+      - retrofit_generator

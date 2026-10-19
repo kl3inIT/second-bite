@@ -4,10 +4,14 @@ on:
   push:
     paths:
       - "mobile/**"
+      # The API client is generated from the contract.
+      - "api/openapi.yaml"
       - ".github/workflows/mobile.yml"
   pull_request:
     paths:
       - "mobile/**"
+      # The API client is generated from the contract.
+      - "api/openapi.yaml"
       - ".github/workflows/mobile.yml"
 
 permissions:
@@ -43,8 +47,10 @@ jobs:
       - name: Generated code matches its sources
         run: |
           flutter gen-l10n
+          dart run swagger_parser
           dart run build_runner build --delete-conflicting-outputs
-          git diff --exit-code -- . || { echo "::error::Generated code is stale: run gen-l10n and build_runner, then commit."; exit 1; }
+          dart format lib/core/api
+          git diff --exit-code -- . || { echo "::error::Generated code is stale: run gen-l10n, swagger_parser (then dart format lib/core/api) and build_runner, then commit."; exit 1; }
       - name: Every key is in both catalogs
         run: |
           if [ "$(tr -d '[:space:]' < build/untranslated-messages.json)" != "{}" ]; then

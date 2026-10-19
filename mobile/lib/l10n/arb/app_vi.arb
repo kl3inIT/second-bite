@@ -2,10 +2,229 @@
   "@@locale": "vi",
   "appTitle": "Second Bite",
   "@appTitle": {
-    "description": "The app's name, shown by the system and in the top bar"
+    "description": "The app's name, shown by the system and read for the wordmark"
   },
   "homeTitle": "Tối nay ở Tasco Mall",
   "@homeTitle": {
-    "description": "Heading of the customer home, the list of tonight's offers"
+    "description": "The home's heading as a screen reader hears it; on screen only the place shows"
+  },
+  "homePlace": "Tasco Mall",
+  "@homePlace": {
+    "description": "The place on the home's header"
+  },
+  "homeArea": "Long Biên, Hà Nội",
+  "@homeArea": {
+    "description": "The district under the place on the header"
+  },
+  "homeSearchLabel": "Tìm món hoặc quán",
+  "@homeSearchLabel": {
+    "description": "What the search field is for, read by a screen reader"
+  },
+  "homeSearchPlaceholder": "Tìm bánh, gỏi cuốn, rau củ…",
+  "@homeSearchPlaceholder": {
+    "description": "Hint in the empty search field"
+  },
+  "homeKindsLabel": "Loại món",
+  "@homeKindsLabel": {
+    "description": "Name of the row of kinds of food"
+  },
+  "homeCollectNow": "Lấy ngay",
+  "@homeCollectNow": {
+    "description": "The first item of the kinds row: only what can be collected now"
+  },
+  "homeDealsTitle": "Túi ngon tối nay ở Tasco Mall",
+  "@homeDealsTitle": {
+    "description": "Title of the deal card on the header"
+  },
+  "homeUpTo": "Giảm đến",
+  "@homeUpTo": {
+    "description": "Above the biggest discount on the deal card"
+  },
+  "homeUpToPercent": "{percent}%",
+  "@homeUpToPercent": {
+    "description": "The biggest discount tonight, written large",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTicketWindow": "Lấy {from}",
+  "@homeTicketWindow": {
+    "description": "When collection opens, on a ticket of the deal card",
+    "placeholders": {
+      "from": {
+        "type": "String",
+        "example": "21:00"
+      }
+    }
+  },
+  "homeOpenBags": "{bags} túi đang mở · túi cuối lúc {last}",
+  "@homeOpenBags": {
+    "description": "The strip under the deal card: bags still open and when the last window closes",
+    "placeholders": {
+      "bags": {
+        "type": "int"
+      },
+      "last": {
+        "type": "String",
+        "example": "21:45"
+      }
+    }
+  },
+  "homeClosingSoon": "Sắp hết giờ lấy",
+  "@homeClosingSoon": {
+    "description": "Title of the row of offers whose windows close first"
+  },
+  "homeSeeAll": "Xem tất cả",
+  "@homeSeeAll": {
+    "description": "Action beside a section title that goes to the whole list"
+  },
+  "homeAllOffers": "Quanh bạn ở Tasco Mall",
+  "@homeAllOffers": {
+    "description": "Title of the grid of every offer"
+  },
+  "homeResults": "Kết quả",
+  "@homeResults": {
+    "description": "Title of the grid when a filter or a search is applied"
+  },
+  "homeEmpty": "Tối nay chưa có món nào.",
+  "@homeEmpty": {
+    "description": "Shown when no offer has been posted tonight"
+  },
+  "homeEmptyFiltered": "Không có món nào khớp bộ lọc này.",
+  "@homeEmptyFiltered": {
+    "description": "Shown when nothing matches the filter or the search"
+  },
+  "homeShowAll": "Xem tất cả món",
+  "@homeShowAll": {
+    "description": "Clears the filter"
+  },
+  "homeLoading": "Đang tải món…",
+  "@homeLoading": {
+    "description": "Read by a screen reader while the offers load"
+  },
+  "offerStock": "Còn {units}",
+  "@offerStock": {
+    "description": "The sticker on a photograph: units left",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "offerSoldOut": "Đã hết",
+  "@offerSoldOut": {
+    "description": "The sticker of an offer with nothing left"
+  },
+  "offerWindow": "Lấy {from}–{until}",
+  "@offerWindow": {
+    "description": "The collection window on a compact card",
+    "placeholders": {
+      "from": {
+        "type": "String",
+        "example": "21:00"
+      },
+      "until": {
+        "type": "String",
+        "example": "21:45"
+      }
+    }
+  },
+  "offerWindowAt": "{from}–{until} · {place}",
+  "@offerWindowAt": {
+    "description": "The collection window and place on an offer card",
+    "placeholders": {
+      "from": {
+        "type": "String",
+        "example": "21:00"
+      },
+      "until": {
+        "type": "String",
+        "example": "21:45"
+      },
+      "place": {
+        "type": "String",
+        "example": "Tầng 1"
+      }
+    }
+  },
+  "offerDiscount": "-{percent}%",
+  "@offerDiscount": {
+    "description": "The discount as written on the chip",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "offerDiscountLabel": "Giảm {percent}%",
+  "@offerDiscountLabel": {
+    "description": "The discount as a screen reader says it",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "offerOriginalPrice": "Giá gốc {price}",
+  "@offerOriginalPrice": {
+    "description": "The struck-through price as a screen reader says it",
+    "placeholders": {
+      "price": {
+        "type": "String",
+        "example": "95.000đ"
+      }
+    }
+  },
+  "offerKind": "{kind, select, bakery{Bánh} prepared_food{Món chín} ingredients{Nguyên liệu} drinks{Đồ uống} mixed_box{Hộp tổng hợp} other{Khác}}",
+  "@offerKind": {
+    "description": "A kind of food, by the API's name for it",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "introTitle": "Second Bite là gì?",
+  "@introTitle": {
+    "description": "Title of the introduction for a first visit"
+  },
+  "introBody": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.",
+  "@introBody": {
+    "description": "What Second Bite is, in two sentences"
+  },
+  "introDismiss": "Đóng giới thiệu",
+  "@introDismiss": {
+    "description": "Closes the introduction"
+  },
+  "languageSwitch": "Switch to English",
+  "@languageSwitch": {
+    "description": "The language button on the header, in the language it switches to"
+  },
+  "errorTitle": "Đã có lỗi xảy ra",
+  "@errorTitle": {
+    "description": "Title when the offers could not be loaded"
+  },
+  "errorOffline": "Không kết nối được. Vui lòng kiểm tra mạng rồi thử lại.",
+  "@errorOffline": {
+    "description": "Shown when the server could not be reached"
+  },
+  "errorBody": "Vui lòng thử lại. Nếu vẫn lỗi, hãy báo cho chúng tôi mã bên dưới.",
+  "@errorBody": {
+    "description": "Shown when the server failed without words of its own"
+  },
+  "errorReference": "Mã tham chiếu: {reference}",
+  "@errorReference": {
+    "description": "The request's id, for the person to report",
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "errorRetry": "Thử lại",
+  "@errorRetry": {
+    "description": "Asks for the offers again"
   }
 }

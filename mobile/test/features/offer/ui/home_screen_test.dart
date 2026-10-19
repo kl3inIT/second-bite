@@ -1,23 +1,175 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:second_bite/features/offer/data/offer_repository.dart';
+import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/home_screen.dart';
 
 import '../../../helpers/helpers.dart';
 
+class _MockOfferRepository extends Mock implements OfferRepository;
+
 void main() {
   group(HomeScreen, () {
-    group('renders', () {
-      testWidgets('the heading in Vietnamese', (tester) async {
-        await tester.pumpApp(const HomeScreen());
+    late OfferRepository repository;
 
-        expect(find.text('Tối nay ở Tasco Mall'), findsOneWidget);
-        expect(find.text('Second Bite'), findsOneWidget);
+    setUpAll(() => registerFallbackValue(everyOffer));
+
+    setUp(() => repository = _MockOfferRepository());
+
+    Future<void> pumpHome(
+      WidgetTester tester, {
+      HomeQuery query = everyOffer,
+      Locale locale = const Locale('vi'),
+    }) async {
+      // A tall phone, so the whole list is laid out.
+      tester.view.physicalSize = const Size(1170, 6000);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpApp(
+        HomeScreen(query: query),
+        locale: locale,
+        overrides: [offerRepositoryProvider.overrideWithValue(repository)],
+      );
+    }
+
+    group('renders', () {
+      testWidgets('the header with the place and the search field', (
+        tester,
+      ) async {
+        when(() => repository.search(any())).thenAnswer((_) async => []);
+        await pumpHome(tester);
+        await tester.pump();
+
+        expect(find.text('Tasco Mall'), findsOneWidget);
+        expect(find.byType(TextField), findsOneWidget);
       });
 
-      testWidgets('the heading in English', (tester) async {
-        await tester.pumpApp(const HomeScreen(), locale: const Locale('en'));
+      testWidgets('a loading state until the offers arrive', (tester) async {
+        final semantics = tester.ensureSemantics();
+        when(() => repository.search(any())).thenAnswer(
+          (_) => Future.delayed(const Duration(seconds: 1), () => []),
+        );
+        await pumpHome(tester);
 
-        expect(find.text('Tonight at Tasco Mall'), findsOneWidget);
+        expect(find.bySemanticsLabel('Đang tải món…'), findsOneWidget);
+        await tester.pump(const Duration(seconds: 1));
+        semantics.dispose();
+      });
+
+      testWidgets("tonight's deals, the closing row and the grid", (
+        tester,
+      ) async {
+        when(() => repository.search(any())).thenAnswer(
+          (_) async => [
+            sampleOffer(),
+            sampleOffer(
+              id: 'of-com',
+              name: 'Cơm sườn nướng, 1 suất',
+              sellerId: 'se-rice',
+              sellerName: 'Quầy cơm',
+              unitsLeft: 0,
+              discountPercent: 40,
+            ),
+          ],
+        );
+        await pumpHome(tester);
+        await tester.pump();
+
+        expect(find.text('Túi ngon tối nay ở Tasco Mall'), findsOneWidget);
+        expect(find.text('58%'), findsOneWidget);
+        expect(find.text('3 túi đang mở · túi cuối lúc 21:45'), findsOneWidget);
+        expect(find.text('Sắp hết giờ lấy'), findsOneWidget);
+        expect(find.byType(AppOfferCard), findsOneWidget);
+        expect(find.text('Quanh bạn ở Tasco Mall'), findsOneWidget);
+        expect(find.byType(AppOfferTile), findsNWidgets(2));
+        expect(find.text('Đã hết'), findsOneWidget);
+      });
+
+      testWidgets('the results of a filter without the deals', (tester) async {
+        when(() => repository.search(any()))
+            .thenAnswer((_) async => [sampleOffer()]);
+        await pumpHome(tester, query: (q: 'bánh', kind: null, now: false));
+        await tester.pump();
+
+        expect(find.text('Kết quả'), findsOneWidget);
+        expect(find.text('Túi ngon tối nay ở Tasco Mall'), findsNothing);
+        expect(find.text('Sắp hết giờ lấy'), findsNothing);
+      });
+
+      testWidgets('an empty evening', (tester) async {
+        when(() => repository.search(any())).thenAnswer((_) async => []);
+        await pumpHome(tester);
+        await tester.pump();
+
+        expect(find.text('Tối nay chưa có món nào.'), findsOneWidget);
+      });
+
+      testWidgets('the strings in English', (tester) async {
+        when(() => repository.search(any()))
+            .thenAnswer((_) async => [sampleOffer()]);
+        await pumpHome(tester, locale: const Locale('en'));
+        await tester.pump();
+
+        expect(find.text('Closing soon'), findsOneWidget);
+        expect(find.text('3 left'), findsNWidgets(2));
+      });
+    });
+
+    group('on failure', () {
+      testWidgets("shows the server's reference and retries", (tester) async {
+        var calls = 0;
+        when(() => repository.search(any())).thenAnswer((_) async {
+          calls++;
+          if (calls == 1) {
+            throw DioException(
+              requestOptions: RequestOptions(path: '/offers'),
+              response: Response(
+                requestOptions: RequestOptions(path: '/offers'),
+                statusCode: 500,
+                data: <String, Object?>{
+                  'type': 'urn:secondbite:failure:platform-internal-failure',
+                  'title': 'Internal Server Error',
+                  'status': 500,
+                  'code': 'PLATFORM_INTERNAL_FAILURE',
+                  'requestId': 'STUB',
+                },
+              ),
+            );
+          }
+          return [sampleOffer()];
+        });
+        await pumpHome(tester);
+        await tester.pump();
+
+        expect(find.text('Đã có lỗi xảy ra'), findsOneWidget);
+        expect(find.text('Mã tham chiếu: STUB'), findsOneWidget);
+
+        await tester.tap(find.text('Thử lại'));
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text('Đã có lỗi xảy ra'), findsNothing);
+        expect(find.byType(AppOfferTile), findsOneWidget);
+      });
+
+      testWidgets('asks to check the connection without a server answer', (
+        tester,
+      ) async {
+        when(() => repository.search(any())).thenThrow(
+          DioException.connectionError(
+            requestOptions: RequestOptions(path: '/offers'),
+            reason: 'unreachable',
+          ),
+        );
+        await pumpHome(tester);
+        await tester.pump();
+
+        expect(
+          find.text('Không kết nối được. Vui lòng kiểm tra mạng rồi thử lại.'),
+          findsOneWidget,
+        );
       });
     });
   });
