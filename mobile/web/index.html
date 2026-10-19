@@ -1,23 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
   <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
+    The base href is replaced by the `--base-href` argument of `flutter build`; it must start and end with "/".
   -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="A preview of the Second Bite app in a browser, for the team only.">
 
   <!-- iOS meta tags & icons -->
@@ -25,22 +15,126 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Second Bite">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>Second Bite (preview)</title>
   <link rel="manifest" href="manifest.json">
+
+  <!--
+    The preview runs the app inside a device-sized frame, as the Flutter team's element_embedding_demo does
+    (flutter/samples, web_embedding): a host element for the engine, sized by plain HTML controls outside the
+    app. The app's code is not changed for the browser (docs/guidelines/mobile.md, Platforms). On a real phone
+    the frame fills the screen and the controls are hidden.
+  -->
+  <style>
+    :root {
+      --ground: #E2EDE8;
+      --bar: #FFFFFF;
+      --ink: #0E1D19;
+      --muted: #5A6B66;
+      --line: #C7DCD4;
+      --chosen: #0B4A3D;
+      --chosen-ink: #FFFFFF;
+      --bezel: #0E1D19;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    html, body { margin: 0; height: 100%; background: var(--ground); color: var(--ink); }
+    body { display: flex; flex-direction: column; }
+    #devices {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+      padding: 10px 16px; background: var(--bar); border-bottom: 1px solid var(--line);
+    }
+    #devices strong { font-size: 14px; margin-right: 8px; }
+    #devices button {
+      font: inherit; font-size: 13px; min-height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--bar); color: var(--ink);
+    }
+    #devices button[aria-pressed="true"] { background: var(--chosen); border-color: var(--chosen); color: var(--chosen-ink); }
+    #devices button:focus-visible { outline: 3px solid var(--chosen); outline-offset: 2px; }
+    #devices .size { margin-left: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    main { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 24px 16px 48px; overflow: auto; }
+    #frame {
+      width: 390px; height: 844px; flex-shrink: 0; position: relative; overflow: hidden;
+      border: 10px solid var(--bezel); border-radius: 44px; background: #FFFFFF;
+      box-shadow: 0 20px 50px rgba(14, 29, 25, 0.25);
+    }
+    #frame.tablet { border-radius: 28px; }
+    #frame > div { position: absolute; inset: 0; }
+    /* A real phone: the app is the page. */
+    @media (max-width: 600px) {
+      #devices { display: none; }
+      main { padding: 0; overflow: hidden; }
+      #frame { width: 100vw !important; height: 100dvh !important; border: 0; border-radius: 0; box-shadow: none; }
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <nav id="devices" aria-label="Kích thước màn hình">
+    <strong>Second Bite · preview</strong>
+    <button type="button" data-device="iphone">iPhone 390×844</button>
+    <button type="button" data-device="android">Android 360×800</button>
+    <button type="button" data-device="small">Máy nhỏ 320×568</button>
+    <button type="button" data-device="tablet">Tablet 820×1180</button>
+    <button type="button" id="rotate" aria-pressed="false">Xoay ngang</button>
+    <span class="size" id="size"></span>
+  </nav>
+  <main>
+    <div id="frame"><div id="app"></div></div>
+  </main>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
-  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    (function () {
+      const devices = {
+        iphone: [390, 844],
+        android: [360, 800],
+        small: [320, 568],
+        tablet: [820, 1180],
+      };
+      const frame = document.getElementById('frame');
+      const rotate = document.getElementById('rotate');
+      const size = document.getElementById('size');
+      const read = (key, fallback) => {
+        try { return localStorage.getItem(key) || fallback; } catch (_) { return fallback; }
+      };
+      const keep = (key, value) => {
+        try { localStorage.setItem(key, value); } catch (_) { /* storage blocked: the choice lasts this visit */ }
+      };
+      let device = devices[read('preview-device', 'iphone')] ? read('preview-device', 'iphone') : 'iphone';
+      let landscape = read('preview-landscape', 'false') === 'true';
+
+      function apply() {
+        const [w, h] = devices[device];
+        const [width, height] = landscape ? [h, w] : [w, h];
+        frame.style.width = width + 'px';
+        frame.style.height = height + 'px';
+        frame.classList.toggle('tablet', device === 'tablet');
+        size.textContent = width + ' × ' + height;
+        for (const button of document.querySelectorAll('[data-device]')) {
+          button.setAttribute('aria-pressed', String(button.dataset.device === device));
+        }
+        rotate.setAttribute('aria-pressed', String(landscape));
+        keep('preview-device', device);
+        keep('preview-landscape', String(landscape));
+      }
+      for (const button of document.querySelectorAll('[data-device]')) {
+        button.addEventListener('click', () => { device = button.dataset.device; apply(); });
+      }
+      rotate.addEventListener('click', () => { landscape = !landscape; apply(); });
+      apply();
+    })();
+  </script>
+  <script>
+    {{flutter_js}}
+    {{flutter_build_config}}
+
+    _flutter.loader.load({
+      onEntrypointLoaded: async function (engineInitializer) {
+        const appRunner = await engineInitializer.initializeEngine({
+          hostElement: document.getElementById('app'),
+        });
+        await appRunner.runApp();
+      },
+    });
+  </script>
 </body>
 </html>
