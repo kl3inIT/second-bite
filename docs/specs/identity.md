@@ -49,6 +49,7 @@ Administrative command: `secondbite admin grant EMAIL` makes an account an admin
 | `IDENTITY_GOOGLE_TOKEN_INVALID` | 401 | Google's token fails its signature, issuer, audience, expiry or nonce, or Google's keys cannot be fetched |
 | `IDENTITY_EMAIL_NOT_VERIFIED` | 403 | A first Google sign-in whose address Google has not verified |
 | `IDENTITY_GOOGLE_LINK_REQUIRED` | 409 | The address has an account and Google does not speak for it |
+| `IDENTITY_ADDRESS_UNPROVEN` | 409 | A role or a seller membership is given by address while the address's account holds a Google link Google does not speak for; the owner signs in once with the emailed code, then it succeeds (SEC-39) |
 | `IDENTITY_ACCOUNT_NOT_FOUND` | 404 | The account does not exist |
 | `IDENTITY_CHALLENGE_GONE` | 410 | The code expired, was used or was ended by a newer one |
 | `IDENTITY_CODE_ATTEMPTS_EXHAUSTED` | 410 | Five wrong guesses on this code |

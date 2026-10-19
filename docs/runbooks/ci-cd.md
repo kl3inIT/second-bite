@@ -148,6 +148,8 @@ sudo docker exec -it secondbite-staging-server secondbite admin grant <address>
 sudo docker exec -it secondbite-staging-server secondbite email configure ...
 ```
 
+The grant is refused with `IDENTITY_ADDRESS_UNPROVEN` when someone has already signed in with Google to that address and Google does not speak for it (an address outside `gmail.com` and Google Workspace); the address's owner signs in once with the emailed code, which removes that link, and the grant then succeeds.
+
 Then record the date of that first deployment in the [persistence guideline](../guidelines/persistence.md). From that date on, migrations are forward-only.
 
 ### The reverse proxy

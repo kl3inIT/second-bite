@@ -55,7 +55,7 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 | `SELLER_ALREADY_MEMBER` | 409 | The person already works for the seller |
 | `SELLER_OWNER_CANNOT_LEAVE` | 409 | The owner tries to leave |
 
-An address that is not one plain address answers `IDENTITY_EMAIL_INVALID`.
+An address that is not one plain address answers `IDENTITY_EMAIL_INVALID`. Adding staff by an address whose account holds a Google link Google does not speak for answers `IDENTITY_ADDRESS_UNPROVEN` (409) until the address's owner has signed in once with the emailed code (SEC-39).
 
 ## Not yet
 
