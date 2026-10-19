@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_svg: ^2.3.0
   material_ui: ^1.1.1
 
 dev_dependencies:
@@ -20,7 +21,10 @@ dev_dependencies:
 
 flutter:
   # The licences of the typefaces, shown on the app's licence page.
+  # The wordmark, "second bite" with the bitten "o", as Figma's logo/wordmark
+  # (node 7:5639) exports it; the launch screens' rasters are drawn from it.
   assets:
+    - assets/brand/wordmark.svg
     - assets/fonts/BeVietnamPro-OFL.txt
     - assets/fonts/BricolageGrotesque-OFL.txt
   # DESIGN.md's typefaces with the Vietnamese marks, from Google Fonts under the
