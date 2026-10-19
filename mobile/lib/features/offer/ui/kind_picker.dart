@@ -40,7 +40,7 @@ class KindPicker extends StatelessWidget {
           children: [
             _KindItem(
               label: l10n.homeCollectNow,
-              icon: Icons.schedule,
+              icon: LucideIcons.clock,
               active: query.now,
               onTap: () =>
                   (query.now ? const HomeRoute() : const HomeRoute(now: '1'))
@@ -50,7 +50,7 @@ class KindPicker extends StatelessWidget {
               _KindItem(
                 label: l10n.offerKind(kind.json!),
                 picture: _pictures[kind],
-                icon: Icons.restaurant,
+                icon: LucideIcons.utensilsCrossed,
                 active: query.kind == kind,
                 onTap: () =>
                     (query.kind == kind

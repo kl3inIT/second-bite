@@ -53,7 +53,7 @@ class AccountScreen extends StatelessWidget {
                           radius: SpacingTokens.space6,
                           backgroundColor: scheme.secondary,
                           foregroundColor: scheme.onSecondary,
-                          child: const Icon(Icons.person_outline),
+                          child: const Icon(LucideIcons.userRound),
                         ),
                         Expanded(
                           child: Column(
@@ -100,7 +100,7 @@ class AccountScreen extends StatelessWidget {
                               ),
                               title: Text(title, style: text.body),
                               trailing: Icon(
-                                Icons.chevron_right,
+                                LucideIcons.chevronRight,
                                 size: 16,
                                 color: scheme.onSurfaceVariant,
                               ),

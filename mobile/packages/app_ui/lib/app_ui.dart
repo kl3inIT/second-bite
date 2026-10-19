@@ -2,6 +2,7 @@
 /// its typefaces and the shared widgets.
 library;
 
+export 'package:lucide_icons_flutter/lucide_icons.dart';
 export 'package:material_ui/material_ui.dart';
 
 export 'src/extensions/build_context_extensions.dart';

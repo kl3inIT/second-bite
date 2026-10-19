@@ -57,7 +57,7 @@ class _IntroCardState extends State<IntroCard> {
               child: IconButton(
                 tooltip: l10n.introDismiss,
                 onPressed: () => setState(() => _dismissed = true),
-                icon: const Icon(Icons.close),
+                icon: const Icon(LucideIcons.x, size: 16),
               ),
             ),
           ],

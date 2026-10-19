@@ -150,7 +150,7 @@ class TonightDeals extends StatelessWidget {
                           spacing: SpacingTokens.space2,
                           children: [
                             Icon(
-                              Icons.schedule,
+                              LucideIcons.clock,
                               size: 18,
                               color: scheme.primary,
                             ),
@@ -164,7 +164,7 @@ class TonightDeals extends StatelessWidget {
                               ),
                             ),
                             Icon(
-                              Icons.chevron_right,
+                              LucideIcons.chevronRight,
                               size: 16,
                               color: Theme.of(context)
                                   .colorScheme

@@ -47,25 +47,25 @@ class AppShell extends StatelessWidget {
             },
             destinations: [
               NavigationDestination(
-                icon: const Icon(Icons.home_outlined),
+                icon: const Icon(LucideIcons.house),
                 label: l10n.navHome,
               ),
               soon(
                 NavigationDestination(
-                  icon: const Icon(Icons.receipt_long_outlined),
+                  icon: const Icon(LucideIcons.receiptText),
                   label: l10n.navOrders,
                   enabled: false,
                 ),
               ),
               soon(
                 NavigationDestination(
-                  icon: const Icon(Icons.favorite_border),
+                  icon: const Icon(LucideIcons.heart),
                   label: l10n.navSaved,
                   enabled: false,
                 ),
               ),
               NavigationDestination(
-                icon: const Icon(Icons.person_outline),
+                icon: const Icon(LucideIcons.userRound),
                 label: l10n.navAccount,
               ),
             ],
