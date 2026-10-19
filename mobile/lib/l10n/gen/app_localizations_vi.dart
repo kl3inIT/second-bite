@@ -191,4 +191,129 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get legalPrivacy => 'Chính sách quyền riêng tư';
+
+  @override
+  String get topBarBack => 'Quay lại';
+
+  @override
+  String get accountSignIn => 'Đăng nhập';
+
+  @override
+  String accountMenu(String email) {
+    return 'Tài khoản $email';
+  }
+
+  @override
+  String accountSignedInAs(String email) {
+    return 'Đã đăng nhập: $email';
+  }
+
+  @override
+  String get accountSignOut => 'Đăng xuất';
+
+  @override
+  String get accountSignedIn => 'Đã đăng nhập';
+
+  @override
+  String get signInTitle => 'Đăng nhập';
+
+  @override
+  String get signInHeading => 'Đăng nhập để đặt món';
+
+  @override
+  String get signInOr => 'hoặc dùng email';
+
+  @override
+  String get signInGoogle => 'Tiếp tục với Google';
+
+  @override
+  String get signInEmailLabel => 'Email';
+
+  @override
+  String get signInEmailPlaceholder => 'ten@gmail.com';
+
+  @override
+  String get signInSendCode => 'Gửi mã';
+
+  @override
+  String get signInSendCodeHere => 'Gửi mã đến email này';
+
+  @override
+  String get signInSending => 'Đang gửi mã…';
+
+  @override
+  String signInLegal(String terms, String privacy) {
+    return 'Khi tiếp tục, bạn đồng ý với $terms và $privacy.';
+  }
+
+  @override
+  String get signInCodeHeading => 'Kiểm tra email của bạn';
+
+  @override
+  String signInCodeSent(String email) {
+    return 'Mã đăng nhập 6 số đã gửi đến $email.';
+  }
+
+  @override
+  String get signInChangeEmail => 'Đổi email';
+
+  @override
+  String get signInCodeLabel => 'Mã đăng nhập 6 số';
+
+  @override
+  String get signInConfirm => 'Xác nhận';
+
+  @override
+  String get signInConfirming => 'Đang xác nhận…';
+
+  @override
+  String signInResendIn(String time) {
+    return 'Gửi lại mã sau $time';
+  }
+
+  @override
+  String get signInResend => 'Gửi lại mã';
+
+  @override
+  String get signInGoogleNeedsCodeTitle => 'Email này đã có tài khoản';
+
+  @override
+  String signInGoogleNeedsCodeBody(String email) {
+    return '$email đã có tài khoản Second Bite. Nhận mã qua email này để đăng nhập.';
+  }
+
+  @override
+  String get signInGoogleNeedsCodeBodyNoAddress =>
+      'Email của tài khoản Google này đã có tài khoản Second Bite. Nhận mã qua email để đăng nhập.';
+
+  @override
+  String get signInEmailInvalid =>
+      'Nhập một địa chỉ email, ví dụ ten@gmail.com.';
+
+  @override
+  String get signInCodeLimit =>
+      'Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.';
+
+  @override
+  String get signInCodeIncorrect =>
+      'Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.';
+
+  @override
+  String get signInCodeGone =>
+      'Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.';
+
+  @override
+  String get signInGoogleUnverified =>
+      'Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.';
+
+  @override
+  String get signInFailed => 'Chưa đăng nhập được. Vui lòng thử lại.';
+
+  @override
+  String signInFailedWithReference(String reference) {
+    return 'Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: $reference';
+  }
+
+  @override
+  String get signInNotArrived => 'Chưa thấy email? Xem trong thư rác (Spam).';
 }

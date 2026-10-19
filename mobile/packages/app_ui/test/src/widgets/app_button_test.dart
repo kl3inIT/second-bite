@@ -105,5 +105,26 @@ void main() {
 
       expect(tester.getSize(find.byType(FilledButton)).height, 52);
     });
+
+    testWidgets('draws its icon before the label, in every variant', (
+      tester,
+    ) async {
+      for (final variant in AppButtonVariant.values) {
+        await tester.pumpApp(
+          AppButton(
+            onPressed: () {},
+            variant: variant,
+            icon: Icon(LucideIcons.logOut),
+            child: Text('Đăng xuất'),
+          ),
+        );
+
+        expect(find.byIcon(LucideIcons.logOut), findsOneWidget);
+        expect(
+          tester.getCenter(find.byIcon(LucideIcons.logOut)).dx,
+          lessThan(tester.getCenter(find.text('Đăng xuất')).dx),
+        );
+      }
+    });
   });
 }

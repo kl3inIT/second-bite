@@ -26,6 +26,8 @@ Flutter/flutter_assets/
 Flutter/flutter_export_environment.sh
 ServiceDefinitions.json
 Runner/GeneratedPluginRegistrant.*
+# Google sign-in's iOS client (mobile/README.md, Signing in with Google); the example is committed.
+Flutter/GoogleSignIn.xcconfig
 
 # Exceptions to above rules.
 !default.mode1v3

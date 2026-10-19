@@ -274,5 +274,191 @@
   "legalPrivacy": "Chính sách quyền riêng tư",
   "@legalPrivacy": {
     "description": "Opens the privacy policy on the web"
+  },
+  "topBarBack": "Quay lại",
+  "@topBarBack": {
+    "description": "The top bar's back button, read by a screen reader"
+  },
+  "accountSignIn": "Đăng nhập",
+  "@accountSignIn": {
+    "description": "The header capsule and the account tab's button that open sign-in"
+  },
+  "accountMenu": "Tài khoản {email}",
+  "@accountMenu": {
+    "description": "The header's account button, read by a screen reader",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "ten@gmail.com"
+      }
+    }
+  },
+  "accountSignedInAs": "Đã đăng nhập: {email}",
+  "@accountSignedInAs": {
+    "description": "At the top of the header's account menu",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "ten@gmail.com"
+      }
+    }
+  },
+  "accountSignOut": "Đăng xuất",
+  "@accountSignOut": {
+    "description": "Ends the session"
+  },
+  "accountSignedIn": "Đã đăng nhập",
+  "@accountSignedIn": {
+    "description": "Under the address on the account tab"
+  },
+  "signInTitle": "Đăng nhập",
+  "@signInTitle": {
+    "description": "The sign-in screen's top bar"
+  },
+  "signInHeading": "Đăng nhập để đặt món",
+  "@signInHeading": {
+    "description": "The sign-in screen's heading"
+  },
+  "signInOr": "hoặc dùng email",
+  "@signInOr": {
+    "description": "The divider between Google and the email field"
+  },
+  "signInGoogle": "Tiếp tục với Google",
+  "@signInGoogle": {
+    "description": "Google's button, in Google's own wording"
+  },
+  "signInEmailLabel": "Email",
+  "@signInEmailLabel": {
+    "description": "The email field's label"
+  },
+  "signInEmailPlaceholder": "ten@gmail.com",
+  "@signInEmailPlaceholder": {
+    "description": "Hint in the empty email field"
+  },
+  "signInSendCode": "Gửi mã",
+  "@signInSendCode": {
+    "description": "Sends a code to the address"
+  },
+  "signInSendCodeHere": "Gửi mã đến email này",
+  "@signInSendCodeHere": {
+    "description": "Sends a code to the address Google gave"
+  },
+  "signInSending": "Đang gửi mã…",
+  "@signInSending": {
+    "description": "The send button while the code is sent"
+  },
+  "signInLegal": "Khi tiếp tục, bạn đồng ý với {terms} và {privacy}.",
+  "@signInLegal": {
+    "description": "Under the form; terms and privacy are links named by legalTerms and legalPrivacy",
+    "placeholders": {
+      "terms": {
+        "type": "String",
+        "example": "Điều khoản sử dụng"
+      },
+      "privacy": {
+        "type": "String",
+        "example": "Chính sách quyền riêng tư"
+      }
+    }
+  },
+  "signInCodeHeading": "Kiểm tra email của bạn",
+  "@signInCodeHeading": {
+    "description": "The code step's heading"
+  },
+  "signInCodeSent": "Mã đăng nhập 6 số đã gửi đến {email}.",
+  "@signInCodeSent": {
+    "description": "Where the code was sent; the address is bold",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "ten@gmail.com"
+      }
+    }
+  },
+  "signInChangeEmail": "Đổi email",
+  "@signInChangeEmail": {
+    "description": "Goes back to the email step"
+  },
+  "signInCodeLabel": "Mã đăng nhập 6 số",
+  "@signInCodeLabel": {
+    "description": "The code field, read by a screen reader"
+  },
+  "signInConfirm": "Xác nhận",
+  "@signInConfirm": {
+    "description": "Confirms the code"
+  },
+  "signInConfirming": "Đang xác nhận…",
+  "@signInConfirming": {
+    "description": "The confirm button while the code is checked"
+  },
+  "signInResendIn": "Gửi lại mã sau {time}",
+  "@signInResendIn": {
+    "description": "The wait before a new code can be sent",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "0:28"
+      }
+    }
+  },
+  "signInResend": "Gửi lại mã",
+  "@signInResend": {
+    "description": "Sends a new code"
+  },
+  "signInGoogleNeedsCodeTitle": "Email này đã có tài khoản",
+  "@signInGoogleNeedsCodeTitle": {
+    "description": "When Google cannot sign in to an existing account"
+  },
+  "signInGoogleNeedsCodeBody": "{email} đã có tài khoản Second Bite. Nhận mã qua email này để đăng nhập.",
+  "@signInGoogleNeedsCodeBody": {
+    "description": "Asks for the emailed code instead of Google",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "ten@gmail.com"
+      }
+    }
+  },
+  "signInGoogleNeedsCodeBodyNoAddress": "Email của tài khoản Google này đã có tài khoản Second Bite. Nhận mã qua email để đăng nhập.",
+  "@signInGoogleNeedsCodeBodyNoAddress": {
+    "description": "As signInGoogleNeedsCodeBody when the address is not known"
+  },
+  "signInEmailInvalid": "Nhập một địa chỉ email, ví dụ ten@gmail.com.",
+  "@signInEmailInvalid": {
+    "description": "The address is not one"
+  },
+  "signInCodeLimit": "Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.",
+  "@signInCodeLimit": {
+    "description": "Too many codes for the address"
+  },
+  "signInCodeIncorrect": "Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.",
+  "@signInCodeIncorrect": {
+    "description": "A wrong code"
+  },
+  "signInCodeGone": "Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.",
+  "@signInCodeGone": {
+    "description": "An expired or used code"
+  },
+  "signInGoogleUnverified": "Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.",
+  "@signInGoogleUnverified": {
+    "description": "Google has not verified the address"
+  },
+  "signInFailed": "Chưa đăng nhập được. Vui lòng thử lại.",
+  "@signInFailed": {
+    "description": "Any other failure"
+  },
+  "signInFailedWithReference": "Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: {reference}",
+  "@signInFailedWithReference": {
+    "description": "Any other failure, with the request's reference",
+    "placeholders": {
+      "reference": {
+        "type": "String",
+        "example": "01J…"
+      }
+    }
+  },
+  "signInNotArrived": "Chưa thấy email? Xem trong thư rác (Spam).",
+  "@signInNotArrived": {
+    "description": "Under the code field"
   }
 }

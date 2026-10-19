@@ -1,7 +1,9 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:second_bite/core/app_shell.dart';
+import 'package:second_bite/features/identity/domain/return_to.dart';
 import 'package:second_bite/features/identity/ui/account_screen.dart';
+import 'package:second_bite/features/identity/ui/sign_in_screen.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/home_screen.dart';
 
@@ -73,4 +75,20 @@ class AccountRoute extends GoRouteData with $AccountRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const AccountScreen();
+}
+
+/// The sign-in screen at `/sign-in?returnTo=`, as on the web: over the
+/// tabs, and back to `returnTo` afterwards, kept only when it is a path of
+/// the app.
+@TypedGoRoute<SignInRoute>(path: '/sign-in')
+class SignInRoute extends GoRouteData with $SignInRoute {
+  /// The route to sign in, then back to [returnTo].
+  const new({this.returnTo});
+
+  /// Where to go once signed in.
+  final String? returnTo;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      SignInScreen(returnTo: readReturnTo(returnTo));
 }

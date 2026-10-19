@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:second_bite/core/api.dart';
 import 'package:second_bite/features/offer/data/offer_repository.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/home_screen.dart';
@@ -22,6 +23,7 @@ void main() {
       WidgetTester tester, {
       HomeQuery query = everyOffer,
       Locale locale = const Locale('vi'),
+      AccountBody? account,
     }) async {
       // A tall phone, so the whole list is laid out.
       tester.view.physicalSize = const Size(1170, 6000);
@@ -31,10 +33,33 @@ void main() {
         HomeScreen(query: query),
         locale: locale,
         overrides: [offerRepositoryProvider.overrideWithValue(repository)],
+        auth: signedInAs(account),
       );
     }
 
     group('renders', () {
+      testWidgets('the sign-in capsule for someone signed out', (tester) async {
+        when(() => repository.search(any())).thenAnswer((_) async => []);
+        await pumpHome(tester);
+        await tester.pump();
+
+        expect(find.text('Đăng nhập'), findsOneWidget);
+        expect(find.byTooltip('Tài khoản lan@gmail.com'), findsNothing);
+      });
+
+      testWidgets('the account button, whose menu signs out', (tester) async {
+        when(() => repository.search(any())).thenAnswer((_) async => []);
+        await pumpHome(tester, account: sampleAccount);
+        await tester.pump();
+
+        expect(find.text('Đăng nhập'), findsNothing);
+        await tester.tap(find.byTooltip('Tài khoản lan@gmail.com'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Đã đăng nhập: lan@gmail.com'), findsOneWidget);
+        expect(find.text('Đăng xuất'), findsOneWidget);
+      });
+
       testWidgets('the header with the place and the search field', (
         tester,
       ) async {

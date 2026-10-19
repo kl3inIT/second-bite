@@ -22,6 +22,7 @@ class AppButton extends StatelessWidget {
     required this.onPressed,
     required this.child,
     this.variant = AppButtonVariant.primary,
+    this.icon,
     super.key,
   });
 
@@ -34,21 +35,42 @@ class AppButton extends StatelessWidget {
   /// The visual variant of the button.
   final AppButtonVariant variant;
 
+  /// Drawn before [child], such as an icon or a spinner while it works.
+  final Widget? icon;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
 
+    final icon = this.icon;
     return switch (variant) {
+      AppButtonVariant.primary when icon != null => FilledButton.icon(
+        onPressed: onPressed,
+        style: _pressedStyle(scheme.primary, colors.primaryHover),
+        icon: icon,
+        label: child,
+      ),
       AppButtonVariant.primary => FilledButton(
         onPressed: onPressed,
         style: _pressedStyle(scheme.primary, colors.primaryHover),
         child: child,
       ),
+      AppButtonVariant.secondary when icon != null => FilledButton.tonalIcon(
+        onPressed: onPressed,
+        style: _pressedStyle(scheme.secondaryContainer, colors.secondaryHover),
+        icon: icon,
+        label: child,
+      ),
       AppButtonVariant.secondary => FilledButton.tonal(
         onPressed: onPressed,
         style: _pressedStyle(scheme.secondaryContainer, colors.secondaryHover),
         child: child,
+      ),
+      AppButtonVariant.outline when icon != null => OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: icon,
+        label: child,
       ),
       AppButtonVariant.outline => OutlinedButton(
         onPressed: onPressed,

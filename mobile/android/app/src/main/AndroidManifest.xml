@@ -1,8 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- No backup: the session token (flutter_secure_storage) is encrypted with a Keystore key that
+         never leaves the phone, so a restored copy could not be read, and a session stays on its phone. -->
     <application
         android:label="Second Bite"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,1 +1,4 @@
 #include "Generated.xcconfig"
+// Google sign-in's iOS client, kept out of Git (mobile/README.md, Signing in with Google).
+// Without the file the app builds, and offers no Google sign-in on iOS.
+#include? "GoogleSignIn.xcconfig"

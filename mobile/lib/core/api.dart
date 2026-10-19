@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:second_bite/core/api/export.dart';
 import 'package:second_bite/core/app_locale.dart';
+import 'package:second_bite/core/session.dart';
 
 export 'package:second_bite/core/api/export.dart';
 
@@ -20,23 +21,24 @@ const apiOrigin = String.fromEnvironment(
 
 /// The generated client of `api/openapi.yaml`, configured once: the origin,
 /// lists sent comma-separated as the contract asks (`kind=bakery,drinks`),
-/// and the reader's language on every call so the server's words come back
-/// in it.
+/// the reader's language on every call so the server's words come back in
+/// it, and the session's token while someone is signed in.
 @Riverpod(keepAlive: true)
 SecondBiteApi api(Ref ref) {
-  final dio = Dio(BaseOptions(baseUrl: apiOrigin, listFormat: ListFormat.csv))
-    ..interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) {
-          final chosen = ref.read(appLocaleProvider);
-          final language =
-              chosen?.languageCode ??
-              PlatformDispatcher.instance.locale.languageCode;
-          options.headers['Accept-Language'] = language == 'en' ? 'en' : 'vi';
-          handler.next(options);
-        },
-      ),
-    );
+  final dio = Dio(BaseOptions(baseUrl: apiOrigin, listFormat: ListFormat.csv));
+  dio.interceptors.addAll([
+    InterceptorsWrapper(
+      onRequest: (options, handler) {
+        final chosen = ref.read(appLocaleProvider);
+        final language =
+            chosen?.languageCode ??
+            PlatformDispatcher.instance.locale.languageCode;
+        options.headers['Accept-Language'] = language == 'en' ? 'en' : 'vi';
+        handler.next(options);
+      },
+    ),
+    SessionInterceptor(ref.watch(sessionStoreProvider), dio),
+  ]);
   ref.onDispose(dio.close);
   return SecondBiteApi(dio);
 }
