@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 // The lime pill on a photograph (DESIGN.md › Components › Sticker): how many are left, always as text.
 const stickerVariants = cva(

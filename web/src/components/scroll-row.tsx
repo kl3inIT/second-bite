@@ -1,4 +1,4 @@
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 // A row that scrolls sideways to the screen's edge, 16px in from it, snapping to each item (Figma carousel,
 // categories). It takes keyboard focus so a row without links can still be scrolled (WCAG 2.1.1).

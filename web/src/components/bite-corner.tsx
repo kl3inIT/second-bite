@@ -1,4 +1,4 @@
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 // The bitten top right corner of a card or banner (Figma "góc bị cắn", DESIGN.md › The Bite Rule): three
 // bites cut in the colour of the ground behind the card. The parent clips it and sets its size.

@@ -1,4 +1,4 @@
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { ClockIcon, UtensilsCrossedIcon, type LucideIcon } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import { useTranslations } from "next-intl";
