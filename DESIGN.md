@@ -4,20 +4,20 @@ description: A second chance for good food.
 palette:
   # The Figma variables of the `SecondBite` collection, one for one: `brand/800` in Figma is `brand-800` here and
   # `--brand-800` in tokens.css. Change a value in Figma and here together; screens never use these directly.
-  brand-900: "#062F27"
-  brand-800: "#0B4A3D"
-  brand-700: "#155E4E"
-  brand-500: "#3F7D6D"
-  brand-300: "#8FB3A7"
-  brand-200: "#C7DCD4"
-  brand-100: "#E2EDE8"
-  brand-50: "#F2F7F5"
+  brand-900: "#004E8C"
+  brand-800: "#0061AF"
+  brand-700: "#1A88C9"
+  brand-500: "#3CB4E7"
+  brand-300: "#9EDAF3"
+  brand-200: "#B1E1F5"
+  brand-100: "#D8F0FA"
+  brand-50: "#EEF8FD"
   base-white: "#FFFFFF"
   text-ink: "#0E1D19"
   text-ink-2: "#30423D"
   text-muted: "#5A6B66"
   text-faint: "#7D8C87"
-  text-on-brand: "#CBE0D8"
+  text-on-brand: "#D8F0FA"
   border-line: "#E0E8E4"
   accent-amber: "#F5CF5C"
   accent-amber-ink: "#4A3600"
@@ -33,39 +33,40 @@ palette:
   accent-lime-300: "#C6E67A"
   accent-lime-100: "#EEF7D9"
   accent-lime-ink: "#2C4709"
+  status-success: "#2E6B3F"
   status-error: "#B42318"
   status-error-bg: "#FEF3F2"
 colors:
   # The roles screens use, each taking a palette colour. Every `x` with an `x-foreground` is checked at 4.5:1 or
   # more by web/scripts/generate-tokens.mjs, and so is each `x-hover` against `x-foreground`; the ratios noted
   # are the foreground on the colour.
-  background: "{palette.brand-50}" # the mint ground; ink on it 16.8:1
+  background: "{palette.brand-50}" # the pale-sky ground; ink on it 16.8:1
   foreground: "{palette.text-ink}"
   card: "{palette.base-white}"
   card-foreground: "{palette.text-ink}"
   popover: "{palette.base-white}" # menus, selects and dialogs
   popover-foreground: "{palette.text-ink}"
-  primary: "{palette.brand-800}" # deep leaf, 10.1:1
+  primary: "{palette.brand-800}" # deep blue, 10.1:1
   primary-foreground: "{palette.base-white}"
   primary-hover: "{palette.brand-900}" # darker under the pointer so the text gains contrast, 14.4:1
-  inverse-muted: "{palette.text-on-brand}" # secondary text on deep leaf or a dark photo scrim
+  inverse-muted: "{palette.text-on-brand}" # secondary text on deep blue or a dark photo scrim
   shell: "{palette.base-white}" # the top bar of every screen but the home: white with a hairline below
   shell-foreground: "{palette.text-ink}"
-  header: "{palette.accent-lime-300}" # the home's header, under the leaf sweep
+  header: "{palette.brand-300}" # the home's header, under the leaf sweep
   header-foreground: "{palette.brand-900}" # the place on the header, 11.1:1
   header-raised: "{palette.base-white}" # the capsule and the search field on the header
   header-raised-foreground: "{palette.text-ink}"
   header-border: "{palette.border-line}" # the capsule's edge
-  sweep: "{palette.brand-700}" # the leaf that sweeps across the header's top right
+  sweep: "{palette.brand-800}" # the leaf that sweeps across the header's top right
   sweep-edge: "{palette.brand-500}" # the lighter band between the leaf and the lime
   secondary: "{palette.brand-100}" # soft buttons, segmented controls, the active tab
-  secondary-foreground: "{palette.brand-800}"
+  secondary-foreground: "{palette.brand-900}"
   secondary-hover: "{palette.brand-200}"
   muted: "{palette.brand-50}"
   muted-foreground: "{palette.text-muted}" # 5.6:1 on white, 5.2:1 on the ground
   accent: "{palette.brand-100}"
   accent-foreground: "{palette.brand-800}"
-  link: "{palette.brand-700}" # text links and secondary actions ("Đổi", "Chỉ đường"), 7.7:1 on white, 7.1:1 on the ground
+  link: "{palette.brand-800}" # text links and secondary actions ("Đổi", "Chỉ đường"), 7.7:1 on white, 7.1:1 on the ground
   fresh: "{palette.accent-lime-300}" # young rice: the stock sticker, the discount chip, the deal card's figures
   fresh-foreground: "{palette.accent-lime-ink}" # 7.4:1
   fresh-muted: "{palette.accent-lime-100}" # a quiet lime surface, such as the pickup place on a seller's draft
@@ -73,7 +74,7 @@ colors:
   destructive: "{palette.status-error}" # errors, cancelled and refused states, 6.6:1
   destructive-foreground: "{palette.base-white}"
   destructive-hover: "#912018" # 8.7:1
-  success: "{palette.brand-700}" # paid, ready, collected; always with an icon or label, 7.6:1
+  success: "{palette.status-success}" # paid, ready, collected; always with an icon or label, 7.6:1
   success-foreground: "{palette.base-white}"
   warning: "{palette.alert-bg}" # allergens and waiting states; always with an icon
   warning-foreground: "{palette.alert-ink}" # 8.5:1
@@ -179,7 +180,7 @@ spacing:
   "6": "24px"
   "8": "32px"
 elevation:
-  # Cards are flat on the mint ground; only what floats over content, a sheet or a dialog, casts a shadow.
+  # Cards are flat on the pale-sky ground; only what floats over content, a sheet or a dialog, casts a shadow.
   sheet:
     - { x: 0, y: -4, blur: 24, spread: 0, color: "#0E1D191F" }
 components:
@@ -232,7 +233,7 @@ The interface opens on a fresh lime header swept by a deep-leaf green, over a pa
 
 ## Colors
 
-A green family from deep leaf to mint, a fresh lime for the header, stock and discounts, amber only for alerts, and ink text.
+A green family from deep blue to mint, a fresh lime for the header, stock and discounts, amber only for alerts, and ink text.
 
 Two layers, as in Figma. The **palette** is the `SecondBite` collection under the same names (`brand-50` to `brand-900`, `text-ink`, `accent-amber`, `logo-clay`…), and only the roles refer to it. The **roles** below (`primary`, `header`, `fresh`…) are what screens use, so a role can move to another palette colour without touching a screen.
 
@@ -278,7 +279,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 **The Faint Rule.** `input` reaches only 3.6:1 on white: field edges only, never text.
 
-**The Bite Rule.** The bitten corner is cut in the colour of what is behind the card. It sits on cards on the mint ground, never on a control.
+**The Bite Rule.** The bitten corner is cut in the colour of what is behind the card. It sits on cards on the pale-sky ground, never on a control.
 
 **The Honest Number Rule.** No figure appears that the product did not measure: no invented counters, ratings or "meals saved" until the pilot produces them.
 
@@ -321,7 +322,7 @@ Mobile at 390px is the source frame for app screens; desktop is derived from it.
 
 ## Elevation & Depth
 
-Flat. Cards separate from the mint ground by colour alone; photographs get a soft dark scrim where text sits on them. Only what floats over content, a sheet or a dialog, casts a shadow (`elevation.sheet`).
+Flat. Cards separate from the pale-sky ground by colour alone; photographs get a soft dark scrim where text sits on them. Only what floats over content, a sheet or a dialog, casts a shadow (`elevation.sheet`).
 
 ## Shapes
 

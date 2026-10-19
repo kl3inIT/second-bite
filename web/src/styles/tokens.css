@@ -1,20 +1,20 @@
 /* Generated from DESIGN.md by scripts/generate-tokens.mjs; do not edit. Run `pnpm generate:tokens`. */
 
 :root {
-  --brand-900: #062F27;
-  --brand-800: #0B4A3D;
-  --brand-700: #155E4E;
-  --brand-500: #3F7D6D;
-  --brand-300: #8FB3A7;
-  --brand-200: #C7DCD4;
-  --brand-100: #E2EDE8;
-  --brand-50: #F2F7F5;
+  --brand-900: #004E8C;
+  --brand-800: #0061AF;
+  --brand-700: #1A88C9;
+  --brand-500: #3CB4E7;
+  --brand-300: #9EDAF3;
+  --brand-200: #B1E1F5;
+  --brand-100: #D8F0FA;
+  --brand-50: #EEF8FD;
   --base-white: #FFFFFF;
   --text-ink: #0E1D19;
   --text-ink-2: #30423D;
   --text-muted: #5A6B66;
   --text-faint: #7D8C87;
-  --text-on-brand: #CBE0D8;
+  --text-on-brand: #D8F0FA;
   --border-line: #E0E8E4;
   --accent-amber: #F5CF5C;
   --accent-amber-ink: #4A3600;
@@ -30,6 +30,7 @@
   --accent-lime-300: #C6E67A;
   --accent-lime-100: #EEF7D9;
   --accent-lime-ink: #2C4709;
+  --status-success: #2E6B3F;
   --status-error: #B42318;
   --status-error-bg: #FEF3F2;
 
@@ -45,21 +46,21 @@
   --inverse-muted: var(--text-on-brand);
   --shell: var(--base-white);
   --shell-foreground: var(--text-ink);
-  --header: var(--accent-lime-300);
+  --header: var(--brand-300);
   --header-foreground: var(--brand-900);
   --header-raised: var(--base-white);
   --header-raised-foreground: var(--text-ink);
   --header-border: var(--border-line);
-  --sweep: var(--brand-700);
+  --sweep: var(--brand-800);
   --sweep-edge: var(--brand-500);
   --secondary: var(--brand-100);
-  --secondary-foreground: var(--brand-800);
+  --secondary-foreground: var(--brand-900);
   --secondary-hover: var(--brand-200);
   --muted: var(--brand-50);
   --muted-foreground: var(--text-muted);
   --accent: var(--brand-100);
   --accent-foreground: var(--brand-800);
-  --link: var(--brand-700);
+  --link: var(--brand-800);
   --fresh: var(--accent-lime-300);
   --fresh-foreground: var(--accent-lime-ink);
   --fresh-muted: var(--accent-lime-100);
@@ -67,7 +68,7 @@
   --destructive: var(--status-error);
   --destructive-foreground: var(--base-white);
   --destructive-hover: #912018;
-  --success: var(--brand-700);
+  --success: var(--status-success);
   --success-foreground: var(--base-white);
   --warning: var(--alert-bg);
   --warning-foreground: var(--alert-ink);
