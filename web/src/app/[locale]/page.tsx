@@ -29,12 +29,24 @@ export default function Home({ searchParams }: PageProps<"/[locale]">) {
             <HomeAccount query={query} />
           </Suspense>
         }
+        sticky={{
+          search: (
+            <Suspense fallback={<SearchField id="offer-search-sticky" />}>
+              <AddressSearchField query={query} id="offer-search-sticky" />
+            </Suspense>
+          ),
+          account: (
+            <Suspense>
+              <HomeAccount query={query} />
+            </Suspense>
+          ),
+        }}
       >
         <Suspense>
           <TonightDeals query={query} />
         </Suspense>
       </AppHeader>
-      <main className="mx-auto w-full max-w-5xl flex-1 pb-20 md:pb-0">
+      <main className="mx-auto w-full max-w-5xl flex-1 pb-20 md:pb-0 xl:max-w-300">
         <Suspense fallback={<HomeContentSkeleton />}>
           <HomeContent query={query} />
         </Suspense>
@@ -48,7 +60,7 @@ async function HomeAccount({ query }: { query: Promise<HomeQuery> }) {
   return <AccountAction returnTo={homePath(await query)} />;
 }
 
-async function AddressSearchField({ query }: { query: Promise<HomeQuery> }) {
+async function AddressSearchField({ query, id }: { query: Promise<HomeQuery>; id?: string }) {
   const { q } = await query;
-  return <SearchField value={q} />;
+  return <SearchField value={q} id={id} />;
 }

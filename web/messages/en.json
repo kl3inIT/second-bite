@@ -56,12 +56,19 @@
   "Intro": {
     "title": "What is Second Bite?",
     "body": "Good food left at the end of the day by sellers in Tasco Mall, at a lower price. Order ahead, then collect it at the counter within the dish's window.",
-    "dismiss": "Close the introduction"
+    "dismiss": "Close the introduction",
+    "tagline": "End-of-day food from the counters at Tasco Mall, for less.",
+    "step1": "Pick and reserve",
+    "step2": "Come to the counter in its window",
+    "step3": "Collect"
   },
   "Footer": {
     "label": "Legal",
     "terms": "Terms of use",
-    "privacy": "Privacy policy"
+    "privacy": "Privacy policy",
+    "tagline": "End-of-day food from the counters at Tasco Mall, for less.",
+    "help": "Help",
+    "home": "Second Bite, home"
   },
   "Legal": {
     "draft": "Draft, waiting for review by the founder and a lawyer. It may change before Second Bite opens to everyone; the parts marked “to be added” will be filled in.",

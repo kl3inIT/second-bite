@@ -56,12 +56,19 @@
   "Intro": {
     "title": "Second Bite là gì?",
     "body": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.",
-    "dismiss": "Đóng giới thiệu"
+    "dismiss": "Đóng giới thiệu",
+    "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
+    "step1": "Chọn món, đặt trước",
+    "step2": "Đến quầy trong giờ lấy",
+    "step3": "Nhận món"
   },
   "Footer": {
     "label": "Thông tin pháp lý",
     "terms": "Điều khoản sử dụng",
-    "privacy": "Chính sách quyền riêng tư"
+    "privacy": "Chính sách quyền riêng tư",
+    "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
+    "help": "Hỗ trợ",
+    "home": "Second Bite, về trang chủ"
   },
   "Legal": {
     "draft": "Bản nháp, đang chờ người sáng lập và luật sư xem xét. Nội dung có thể thay đổi trước khi Second Bite mở cho mọi người; những chỗ ghi “đang cập nhật” sẽ được bổ sung.",

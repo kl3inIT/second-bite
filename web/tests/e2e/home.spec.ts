@@ -86,8 +86,16 @@ test.describe("the customer home", () => {
     ).toHaveText(["Xôi thập cẩm, 1 hộp"]);
   });
 
-  test("introduces Second Bite on a first visit until it is closed", async ({ page }) => {
+  test("introduces Second Bite on a first visit until it is closed", async ({ page, isMobile }) => {
     await page.goto("/vi");
+    if (!isMobile) {
+      // A wide screen keeps one line and the three steps in view, with nothing to close.
+      const line = "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.";
+      await expect(page.getByRole("heading", { name: line })).toBeVisible();
+      await expect(page.getByText("Đến quầy trong giờ lấy")).toBeVisible();
+      await expect(page.getByRole("button", { name: "Đóng giới thiệu" })).toBeHidden();
+      return;
+    }
     await expect(page.getByRole("heading", { name: "Second Bite là gì?" })).toBeVisible();
 
     await (await hydrated(page.getByRole("button", { name: "Đóng giới thiệu" }))).click();
@@ -98,6 +106,23 @@ test.describe("the customer home", () => {
       page.getByRole("heading", { level: 1, name: "Tối nay ở Tasco Mall" }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Second Bite là gì?" })).toBeHidden();
+  });
+
+  test("keeps the search and the account in reach once the header scrolls away on a wide screen", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "A phone has the bottom bar instead.");
+    await page.goto("/vi");
+    const search = page.getByRole("searchbox", { name: "Tìm món hoặc quán" });
+    await expect(search).toHaveCount(1);
+
+    await page.mouse.wheel(0, 900);
+    await expect(search).toHaveCount(2);
+    await expect(search.last()).toBeInViewport();
+    await expect(
+      page.getByRole("link", { name: "Second Bite, về trang chủ" }).last(),
+    ).toBeInViewport();
   });
 
   test("says the list could not be loaded, with a reference and a retry", async ({ page }) => {

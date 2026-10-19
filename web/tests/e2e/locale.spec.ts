@@ -38,7 +38,7 @@ test.describe("on a Vietnamese device", () => {
     await expect(page.getByRole("heading", { name: "Không tìm thấy trang này" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
-    await (await hydrated(page.getByRole("link", { name: "Về trang chủ" }))).click();
+    await (await hydrated(page.getByRole("link", { name: "Về trang chủ", exact: true }))).click();
     await expect(page).toHaveURL(/\/vi$/);
   });
 });

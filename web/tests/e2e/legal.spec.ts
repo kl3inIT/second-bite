@@ -9,7 +9,7 @@ test.describe("the terms and the privacy policy", () => {
     isMobile,
   }) => {
     await page.goto(isMobile ? "/vi/account" : "/vi");
-    const links = page.getByRole("navigation", { name: "Thông tin pháp lý" });
+    const links = page.getByRole("navigation", { name: isMobile ? "Thông tin pháp lý" : "Hỗ trợ" });
     await (await hydrated(links.getByRole("link", { name: "Chính sách quyền riêng tư" }))).click();
 
     await expect(page).toHaveURL(/\/vi\/privacy$/);

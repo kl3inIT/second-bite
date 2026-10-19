@@ -12,6 +12,7 @@ import { OfferTile } from "@/features/offers/offer-tile";
 import { Link } from "@/i18n/navigation";
 
 import type { HomeQuery } from "./home-query";
+import { HowItWorks } from "./how-it-works";
 import { IntroStrip } from "./intro-strip";
 import { KindPicker } from "./kind-picker";
 
@@ -33,7 +34,10 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
       <KindPicker query={query} />
       {!filtered && (
         <div className="px-4">
-          <IntroStrip />
+          <div className="lg:hidden">
+            <IntroStrip />
+          </div>
+          <HowItWorks />
         </div>
       )}
       {closing.length > 0 && (
@@ -53,10 +57,10 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
           {/* Sideways on a phone; a grid on a wide screen, where a row would leave most of it empty. */}
           <ScrollRow
             label={t("closingSoon")}
-            className="lg:grid lg:snap-none lg:grid-cols-3 lg:overflow-visible lg:pb-0"
+            className="lg:grid lg:snap-none lg:grid-cols-3 lg:overflow-visible lg:pb-0 xl:grid-cols-4"
           >
             {closing.map((offer) => (
-              <li key={offer.id} className="flex shrink-0 snap-start lg:shrink">
+              <li key={offer.id} className="flex shrink-0 snap-start lg:shrink xl:nth-[n+5]:hidden">
                 <OfferCard offer={offer} />
               </li>
             ))}
@@ -91,7 +95,7 @@ async function OfferGrid({ offers, filtered }: { offers: OfferSummary[]; filtere
     );
   }
   return (
-    <ul className="grid grid-cols-2 gap-3 px-4 sm:grid-cols-3 lg:grid-cols-4">
+    <ul className="grid grid-cols-2 gap-3 px-4 sm:grid-cols-3 xl:grid-cols-4">
       {inShowingOrder(offers).map((offer) => (
         <li key={offer.id} className="flex">
           <OfferTile offer={offer} />
@@ -111,7 +115,7 @@ export function HomeContentSkeleton() {
         ))}
       </div>
       <Skeleton className="h-7 w-48" />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
           <Skeleton key={i} shape="card" className="h-60" />
         ))}
