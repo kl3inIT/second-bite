@@ -1,5 +1,4 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:app_ui/src/theme/tokens.g.dart';
 
 /// {@template app_offer_card}
 /// The large card of a sideways row (DESIGN.md › Offer card): the photograph

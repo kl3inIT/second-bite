@@ -1,5 +1,4 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:app_ui/src/theme/tokens.g.dart';
 
 /// {@template app_discount_chip}
 /// The discount as the one lime chip, "-63%" (DESIGN.md › The One Discount

@@ -1,5 +1,4 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:app_ui/src/theme/tokens.g.dart';
 
 /// {@template app_home_header}
 /// The lime header of the home (DESIGN.md › Lime Header): [title] and

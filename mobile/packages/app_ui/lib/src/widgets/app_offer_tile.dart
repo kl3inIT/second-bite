@@ -1,5 +1,4 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:app_ui/src/theme/tokens.g.dart';
 
 /// {@template app_offer_tile}
 /// The compact card of a grid (DESIGN.md › Compact offer card): the

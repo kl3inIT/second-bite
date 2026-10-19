@@ -1,5 +1,4 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:app_ui/src/theme/tokens.g.dart';
 
 /// {@template app_section_header}
 /// A section's title, announced as a heading, with an optional short action

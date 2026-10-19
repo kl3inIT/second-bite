@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:app_ui/app_ui.dart';
-import 'package:app_ui/src/theme/tokens.g.dart';
 
 /// {@template app_spacing}
 /// DESIGN.md's spacing steps, named as the web's Tailwind steps: [space4] is
