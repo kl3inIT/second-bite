@@ -31,16 +31,3 @@ Widget outline(BuildContext context) => Center(
 @widgetbook.UseCase(name: 'disabled', type: AppButton)
 Widget disabled(BuildContext context) =>
     const Center(child: AppButton(onPressed: null, child: Text('Disabled')));
-
-/// All sizes [AppButton] use case.
-@widgetbook.UseCase(name: 'all sizes', type: AppButton)
-Widget allSizes(BuildContext context) => Center(
-  child: Column(
-    mainAxisSize: MainAxisSize.min,
-    spacing: 8,
-    children: [
-      for (final size in AppButtonSize.values)
-        AppButton(onPressed: () {}, size: size, child: Text(size.name)),
-    ],
-  ),
-);

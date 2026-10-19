@@ -1,111 +1,29 @@
-# App Ui
+# app_ui
 
-[![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
-[![Powered by Mason](https://img.shields.io/endpoint?url=https%3A%2F%2Ftinyurl.com%2Fmason-badge)](https://github.com/felangel/mason)
-[![License: MIT][license_badge]][license_link]
+Second Bite's design system for Flutter, built from the tokens in [DESIGN.md](../../../DESIGN.md). The rules are in the [mobile guideline](../../../docs/guidelines/mobile.md#design-tokens-and-theming).
 
-A Very Good Project created by Very Good CLI.
+## What it holds
 
-## Installation 💻
+- `lib/src/theme/tokens.g.dart`: DESIGN.md's colour roles, type roles, radii, spacing and shadows as constants. It is written by `web/scripts/generate-tokens.mjs` (`pnpm generate:tokens` in `web/`) and checked by the web's `pnpm check`; never edit it.
+- `AppTheme.light`, the app's one theme. Material's `ColorScheme` and `TextTheme` take the roles they have a slot for, and the component themes follow DESIGN.md's components. There is no dark theme until DESIGN.md defines one.
+- Theme extensions, read from the context:
+  - `context.appColors`: the colour roles Material has no slot for (`fresh`, `link`, `header`, the `*-hover` colours…).
+  - `context.appTextStyles`: the thirteen type roles under the web's names (`bodySm`, `price`…).
+  - `context.appSpacing`: the spacing steps (`space4` is the web's `p-4`).
+- Be Vietnam Pro and Bricolage Grotesque, with the Vietnamese marks, under the SIL Open Font License. `registerFontLicenses()` adds their licences to the app's licence page.
+- `AppButton`, DESIGN.md's button.
 
-**❗ In order to start using App Ui you must have the [Flutter SDK][flutter_install_link] installed on your machine.**
-
-Install via `flutter pub add`:
-
-```sh
-dart pub add app_ui
-```
-
----
-
-## Features ✨
-
-- **ThemeExtension-based theming** — light and dark theme variants with custom color and spacing tokens via `ThemeExtension<T>`
-- **Custom color tokens** — semantic colors for success, warning, and info states via `AppColors`
-- **Spacing scale** — consistent spacing tokens from xxs to xxlg via `AppSpacing`
-- **BuildContext extensions** — shorthand `context.appColors` and `context.appSpacing`
-- **Example widget** — `AppButton` composing Material's `FilledButton` and `OutlinedButton` with app-specific sizing
-
-## Usage 🚀
-
-Wrap your app with the theme:
+## Usage
 
 ```dart
-import 'package:app_ui/app_ui.dart';
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      home: const MyHomePage(),
-    );
-  }
+void main() {
+  registerFontLicenses();
+  runApp(MaterialApp(theme: AppTheme.light, home: const HomeScreen()));
 }
 ```
 
-Use widgets and tokens in your app:
-
-```dart
-AppButton(
-  onPressed: () {},
-  child: const Text('Click me'),
-);
-```
-
-Access custom tokens via context extensions:
-
-```dart
-final colors = context.appColors;
-final spacing = context.appSpacing;
-```
-
----
-
-## Continuous Integration 🤖
-
-App Ui comes with a built-in [GitHub Actions workflow][github_actions_link] powered by [Very Good Workflows][very_good_workflows_link] but you can also add your preferred CI/CD solution.
-
-Out of the box, on each pull request and push, the CI `formats`, `lints`, and `tests` the code. This ensures the code remains consistent and behaves correctly as you add functionality or make changes. The project uses [Very Good Analysis][very_good_analysis_link] for a strict set of analysis options used by our team. Code coverage is enforced using the [Very Good Workflows][very_good_workflows_link].
-
----
-
-## Running Tests 🧪
-
-For first time users, install the [very_good_cli][very_good_cli_link]:
+## Tests
 
 ```sh
-dart pub global activate very_good_cli
+flutter test
 ```
-
-To run all unit tests:
-
-```sh
-very_good test --coverage
-```
-
-To view the generated coverage report you can use [lcov](https://github.com/linux-test-project/lcov).
-
-```sh
-# Generate Coverage Report
-genhtml coverage/lcov.info -o coverage/
-
-# Open Coverage Report
-open coverage/index.html
-```
-
-[flutter_install_link]: https://docs.flutter.dev/get-started/install
-[github_actions_link]: https://docs.github.com/en/actions/learn-github-actions
-[license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
-[license_link]: https://opensource.org/licenses/MIT
-[logo_black]: https://raw.githubusercontent.com/VGVentures/very_good_brand/main/styles/README/vgv_logo_black.png#gh-light-mode-only
-[logo_white]: https://raw.githubusercontent.com/VGVentures/very_good_brand/main/styles/README/vgv_logo_white.png#gh-dark-mode-only
-[mason_link]: https://github.com/felangel/mason
-[very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
-[very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
-[very_good_cli_link]: https://pub.dev/packages/very_good_cli
-[very_good_ventures_link]: https://verygood.ventures
-[very_good_ventures_link_light]: https://verygood.ventures#gh-light-mode-only
-[very_good_ventures_link_dark]: https://verygood.ventures#gh-dark-mode-only
-[very_good_workflows_link]: https://github.com/VeryGoodOpenSource/very_good_workflows

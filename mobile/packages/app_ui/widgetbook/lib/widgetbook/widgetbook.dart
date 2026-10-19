@@ -22,10 +22,7 @@ class WidgetbookApp extends StatelessWidget {
           },
         ),
         ThemeAddon(
-          themes: [
-            WidgetbookTheme(name: 'Light', data: AppTheme.light),
-            WidgetbookTheme(name: 'Dark', data: AppTheme.dark),
-          ],
+          themes: [WidgetbookTheme(name: 'Light', data: AppTheme.light)],
           themeBuilder: (context, theme, child) {
             return Theme(
               data: theme,

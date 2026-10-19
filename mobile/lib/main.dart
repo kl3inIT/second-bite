@@ -3,5 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:second_bite/core/app.dart';
 
 void main() {
+  registerFontLicenses();
   runApp(const ProviderScope(child: App()));
 }

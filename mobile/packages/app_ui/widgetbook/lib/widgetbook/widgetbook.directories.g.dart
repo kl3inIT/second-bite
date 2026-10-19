@@ -22,11 +22,6 @@ final directories = <_widgetbook.WidgetbookNode>[
         name: 'AppButton',
         useCases: [
           _widgetbook.WidgetbookUseCase(
-            name: 'all sizes',
-            builder:
-                _widgetbook_catalog_widgetbook_use_cases_app_button.allSizes,
-          ),
-          _widgetbook.WidgetbookUseCase(
             name: 'disabled',
             builder:
                 _widgetbook_catalog_widgetbook_use_cases_app_button.disabled,

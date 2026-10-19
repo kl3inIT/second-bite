@@ -2,31 +2,19 @@ import 'package:app_ui/app_ui.dart';
 
 /// Visual variants for [AppButton].
 enum AppButtonVariant {
-  /// A filled button with the primary color.
+  /// Deep Leaf, the one main action of a screen.
   primary,
 
-  /// A tonal filled button with a secondary color.
+  /// The leaf wash, a soft secondary action.
   secondary,
 
   /// An outlined button.
   outline,
 }
 
-/// Size variants for [AppButton].
-enum AppButtonSize {
-  /// A small button.
-  small,
-
-  /// A medium button.
-  medium,
-
-  /// A large button.
-  large,
-}
-
 /// {@template app_button}
-/// A styled button that composes Material's [FilledButton] and
-/// [OutlinedButton] with app-specific sizing and theming.
+/// DESIGN.md's button: Material's [FilledButton] and [OutlinedButton], shaped
+/// and sized by [AppTheme], that darken to their `*-hover` colour when pressed.
 /// {@endtemplate}
 class AppButton extends StatelessWidget {
   /// {@macro app_button}
@@ -34,7 +22,6 @@ class AppButton extends StatelessWidget {
     required this.onPressed,
     required this.child,
     this.variant = AppButtonVariant.primary,
-    this.size = AppButtonSize.medium,
     super.key,
   });
 
@@ -47,46 +34,42 @@ class AppButton extends StatelessWidget {
   /// The visual variant of the button.
   final AppButtonVariant variant;
 
-  /// The size of the button.
-  final AppButtonSize size;
-
   @override
   Widget build(BuildContext context) {
-    final spacing = context.appSpacing;
-
-    final padding = switch (size) {
-      AppButtonSize.small => EdgeInsets.symmetric(
-        horizontal: spacing.sm,
-        vertical: spacing.xxs,
-      ),
-      AppButtonSize.medium => EdgeInsets.symmetric(
-        horizontal: spacing.md,
-        vertical: spacing.xs,
-      ),
-      AppButtonSize.large => EdgeInsets.symmetric(
-        horizontal: spacing.lg,
-        vertical: spacing.sm,
-      ),
-    };
-
-    final style = ButtonStyle(padding: WidgetStatePropertyAll(padding));
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
 
     return switch (variant) {
       AppButtonVariant.primary => FilledButton(
         onPressed: onPressed,
-        style: style,
+        style: _pressedStyle(scheme.primary, colors.primaryHover),
         child: child,
       ),
       AppButtonVariant.secondary => FilledButton.tonal(
         onPressed: onPressed,
-        style: style,
+        style: _pressedStyle(scheme.secondaryContainer, colors.secondaryHover),
         child: child,
       ),
       AppButtonVariant.outline => OutlinedButton(
         onPressed: onPressed,
-        style: style,
         child: child,
       ),
     };
+  }
+
+  /// [rest] normally and [pressed] under the finger or the pointer; a disabled
+  /// button keeps the theme's disabled colour.
+  static ButtonStyle _pressedStyle(Color rest, Color pressed) {
+    return ButtonStyle(
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) return null;
+        if (states.contains(WidgetState.pressed) ||
+            states.contains(WidgetState.hovered)) {
+          return pressed;
+        }
+        return rest;
+      }),
+      overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+    );
   }
 }

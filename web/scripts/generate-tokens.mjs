@@ -1,10 +1,10 @@
-// Writes src/styles/tokens.css from the frontmatter of DESIGN.md, the one source of the design
-// tokens (docs/guidelines/figma.md › Tokens). The palette mirrors the Figma variables under their own names;
+// Writes src/styles/tokens.css and the Flutter app_ui package's tokens.g.dart from the frontmatter of
+// DESIGN.md, the one source of the design tokens (docs/guidelines/figma.md › Tokens). The palette mirrors the Figma variables under their own names;
 // a colour role either takes a palette colour (`"{palette.brand-800}"`, written as `var(--brand-800)`) or a
 // literal hex. It refuses tokens whose text would be hard to read:
 // every `x` with an `x-foreground`, and every `x-hover` against `x-foreground`, must reach 4.5:1
-// (WCAG 2.2 AA for body text). With --check it writes nothing and fails when the file on disk
-// differs, so a hand edit to tokens.css or a forgotten regeneration stops `pnpm check`.
+// (WCAG 2.2 AA for body text). With --check it writes nothing and fails when a file on disk
+// differs, so a hand edit to either file or a forgotten regeneration stops `pnpm check`.
 import { readFile, writeFile } from "node:fs/promises";
 import { parse } from "yaml";
 
@@ -12,11 +12,15 @@ const MIN_TEXT_CONTRAST = 4.5;
 
 const designPath = new URL("../../DESIGN.md", import.meta.url);
 const tokensPath = new URL("../src/styles/tokens.css", import.meta.url);
+const dartPath = new URL(
+  "../../mobile/packages/app_ui/lib/src/theme/tokens.g.dart",
+  import.meta.url,
+);
 
 const design = await readFile(designPath, "utf8");
 const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(design);
 if (!frontmatter) throw new Error("DESIGN.md has no frontmatter");
-const { palette, colors: roles, typography, rounded, elevation } = parse(frontmatter[1]);
+const { palette, colors: roles, typography, rounded, spacing, elevation } = parse(frontmatter[1]);
 
 // Each role as a hex, for the contrast checks, and as the CSS it is written with.
 const alias = /^\{palette\.([\w-]+)\}$/;
@@ -123,14 +127,131 @@ const lines = [
 ];
 const css = lines.join("\n");
 
+// The Dart file holds the same roles as constants, written as `dart format` would write them; app_ui's
+// theme maps them onto Material (docs/guidelines/mobile.md › Design tokens and theming).
+const DART_WIDTH = 80;
+const DART_PACKAGE = "app_ui";
+
+// `primary-foreground` becomes `primaryForeground`; a name starting with a digit takes its group's name
+// first, so the radius `2xl` becomes `radius2xl` and the spacing step `4` becomes `space4`.
+function dartName(group, name) {
+  const camel = name.replace(/-(\w)/g, (_, c) => c.toUpperCase());
+  return /^\d/.test(camel) ? `${group}${camel}` : camel;
+}
+
+// `#RRGGBB` or `#RRGGBBAA` as Flutter's `Color(0xAARRGGBB)`.
+function dartColor(hex) {
+  const digits = hex.slice(1).toUpperCase();
+  const alpha = digits.length === 8 ? digits.slice(6) : "FF";
+  return `Color(0x${alpha}${digits.slice(0, 6)})`;
+}
+
+const pixels = (value) => Number.parseFloat(value);
+
+// A call on one line when it fits, otherwise one argument per line with a trailing comma.
+function dartCall(indent, head, args, tail) {
+  const flat = `${indent}${head}(${args.join(", ")})${tail}`;
+  if (flat.length <= DART_WIDTH) return [flat];
+  return [`${indent}${head}(`, ...args.map((arg) => `${indent}  ${arg},`), `${indent})${tail}`];
+}
+
+function dartTextStyle(name, style) {
+  const size = pixels(style.fontSize);
+  // A CSS line height in px is a multiple of the font size in Flutter; the even split matches CSS.
+  const height = style.lineHeight.endsWith("px")
+    ? `${pixels(style.lineHeight)} / ${size}`
+    : `${style.lineHeight}`;
+  const args = [
+    `fontFamily: '${style.fontFamily}'`,
+    `package: '${DART_PACKAGE}'`,
+    `fontSize: ${size}`,
+    `fontWeight: FontWeight.w${style.fontWeight}`,
+    // Bricolage Grotesque ships as a variable font, whose weight is an axis; a static face ignores it.
+    `fontVariations: [FontVariation('wght', ${style.fontWeight})]`,
+    `height: ${height}`,
+    ...(style.letterSpacing
+      ? [`letterSpacing: ${Number((Number.parseFloat(style.letterSpacing) * size).toFixed(4))}`]
+      : []),
+    "leadingDistribution: TextLeadingDistribution.even",
+  ];
+  return dartCall("  ", `static const ${dartName("type", name)} = TextStyle`, args, ";");
+}
+
+function dartShadow(name, layers) {
+  const shadows = layers.map(({ x, y, blur, spread, color }) => [
+    `color: ${dartColor(color)}`,
+    `offset: Offset(${x}, ${y})`,
+    ...(blur ? [`blurRadius: ${blur}`] : []),
+    ...(spread ? [`spreadRadius: ${spread}`] : []),
+  ]);
+  const head = `  static const ${dartName("shadow", name)} = [`;
+  const single = shadows.length === 1 && dartCall("", "BoxShadow", shadows[0], "")[0];
+  if (single && `${head}${single}];`.length <= DART_WIDTH) return [`${head}${single}];`];
+  return [head, ...shadows.flatMap((args) => dartCall("    ", "BoxShadow", args, ",")), "  ];"];
+}
+
+function dartClass(doc, name, members) {
+  return [`/// ${doc}`, `abstract final class ${name} {`, ...members, "}", ""];
+}
+
+const dart = [
+  "// Generated from DESIGN.md by web/scripts/generate-tokens.mjs; do not edit.",
+  "// Run `pnpm generate:tokens` in web/.",
+  "",
+  "import 'package:flutter/painting.dart';",
+  "",
+  ...dartClass(
+    "The colour roles of DESIGN.md.",
+    "ColorTokens",
+    Object.entries(colors).map(
+      ([name, hex]) => `  static const ${dartName("color", name)} = ${dartColor(hex)};`,
+    ),
+  ),
+  ...dartClass(
+    "The type roles of DESIGN.md.",
+    "TypeTokens",
+    Object.entries(typography).flatMap(([name, style]) => dartTextStyle(name, style)),
+  ),
+  ...dartClass(
+    "The corner radii of DESIGN.md, in logical pixels.",
+    "RadiusTokens",
+    Object.entries(rounded).map(
+      ([name, value]) => `  static const double ${dartName("radius", name)} = ${pixels(value)};`,
+    ),
+  ),
+  ...dartClass(
+    "The spacing steps of DESIGN.md, in logical pixels.",
+    "SpacingTokens",
+    Object.entries(spacing).map(
+      ([name, value]) => `  static const double ${dartName("space", name)} = ${pixels(value)};`,
+    ),
+  ),
+  ...dartClass(
+    "The shadows of DESIGN.md.",
+    "ShadowTokens",
+    Object.entries(elevation).flatMap(([name, layers]) => dartShadow(name, layers)),
+  ),
+]
+  .join("\n")
+  .replace(/\n$/, "");
+
+const outputs = [
+  [tokensPath, css, "web/src/styles/tokens.css"],
+  [dartPath, `${dart}\n`, "mobile/packages/app_ui/lib/src/theme/tokens.g.dart"],
+];
+
 if (process.argv.includes("--check")) {
-  const current = await readFile(tokensPath, "utf8").catch(() => "");
-  if (current !== css) {
+  const stale = [];
+  for (const [path, content, label] of outputs) {
+    const current = await readFile(path, "utf8").catch(() => "");
+    if (current !== content) stale.push(label);
+  }
+  if (stale.length > 0) {
     console.error(
-      "src/styles/tokens.css is out of date with DESIGN.md: run `pnpm generate:tokens`.",
+      `${stale.join(" and ")} out of date with DESIGN.md: run \`pnpm generate:tokens\`.`,
     );
     process.exit(1);
   }
 } else {
-  await writeFile(tokensPath, css);
+  for (const [path, content] of outputs) await writeFile(path, content);
 }

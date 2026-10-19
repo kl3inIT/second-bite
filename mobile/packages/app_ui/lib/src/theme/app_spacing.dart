@@ -1,61 +1,57 @@
 import 'dart:ui';
 
 import 'package:app_ui/app_ui.dart';
+import 'package:app_ui/src/theme/tokens.g.dart';
 
 /// {@template app_spacing}
-/// Spacing scale tokens for consistent layout throughout the app.
+/// DESIGN.md's spacing steps, named as the web's Tailwind steps: [space4] is
+/// the web's `p-4`, 16 logical pixels.
 /// {@endtemplate}
 class AppSpacing extends ThemeExtension<AppSpacing> {
   /// {@macro app_spacing}
   const new({
-    this.xxs = 4,
-    this.xs = 8,
-    this.sm = 12,
-    this.md = 16,
-    this.lg = 24,
-    this.xlg = 32,
-    this.xxlg = 48,
+    this.space1 = SpacingTokens.space1,
+    this.space2 = SpacingTokens.space2,
+    this.space3 = SpacingTokens.space3,
+    this.space4 = SpacingTokens.space4,
+    this.space6 = SpacingTokens.space6,
+    this.space8 = SpacingTokens.space8,
   });
 
-  /// Extra extra small spacing: 4px.
-  final double xxs;
+  /// 4 logical pixels.
+  final double space1;
 
-  /// Extra small spacing: 8px.
-  final double xs;
+  /// 8 logical pixels.
+  final double space2;
 
-  /// Small spacing: 12px.
-  final double sm;
+  /// 12 logical pixels.
+  final double space3;
 
-  /// Medium spacing: 16px.
-  final double md;
+  /// 16 logical pixels.
+  final double space4;
 
-  /// Large spacing: 24px.
-  final double lg;
+  /// 24 logical pixels.
+  final double space6;
 
-  /// Extra large spacing: 32px.
-  final double xlg;
-
-  /// Extra extra large spacing: 48px.
-  final double xxlg;
+  /// 32 logical pixels.
+  final double space8;
 
   @override
   AppSpacing copyWith({
-    double? xxs,
-    double? xs,
-    double? sm,
-    double? md,
-    double? lg,
-    double? xlg,
-    double? xxlg,
+    double? space1,
+    double? space2,
+    double? space3,
+    double? space4,
+    double? space6,
+    double? space8,
   }) {
     return AppSpacing(
-      xxs: xxs ?? this.xxs,
-      xs: xs ?? this.xs,
-      sm: sm ?? this.sm,
-      md: md ?? this.md,
-      lg: lg ?? this.lg,
-      xlg: xlg ?? this.xlg,
-      xxlg: xxlg ?? this.xxlg,
+      space1: space1 ?? this.space1,
+      space2: space2 ?? this.space2,
+      space3: space3 ?? this.space3,
+      space4: space4 ?? this.space4,
+      space6: space6 ?? this.space6,
+      space8: space8 ?? this.space8,
     );
   }
 
@@ -63,13 +59,12 @@ class AppSpacing extends ThemeExtension<AppSpacing> {
   AppSpacing lerp(AppSpacing? other, double t) {
     if (other is! AppSpacing) return this;
     return AppSpacing(
-      xxs: lerpDouble(xxs, other.xxs, t)!,
-      xs: lerpDouble(xs, other.xs, t)!,
-      sm: lerpDouble(sm, other.sm, t)!,
-      md: lerpDouble(md, other.md, t)!,
-      lg: lerpDouble(lg, other.lg, t)!,
-      xlg: lerpDouble(xlg, other.xlg, t)!,
-      xxlg: lerpDouble(xxlg, other.xxlg, t)!,
+      space1: lerpDouble(space1, other.space1, t)!,
+      space2: lerpDouble(space2, other.space2, t)!,
+      space3: lerpDouble(space3, other.space3, t)!,
+      space4: lerpDouble(space4, other.space4, t)!,
+      space6: lerpDouble(space6, other.space6, t)!,
+      space8: lerpDouble(space8, other.space8, t)!,
     );
   }
 }

@@ -62,28 +62,48 @@ void main() {
       expect(find.byType(OutlinedButton), findsOneWidget);
     });
 
-    testWidgets('renders with small size', (tester) async {
-      await tester.pumpApp(
-        AppButton(
-          onPressed: () {},
-          size: AppButtonSize.small,
-          child: Text('Small'),
-        ),
-      );
+    testWidgets('darkens the primary button to primary-hover when pressed', (
+      tester,
+    ) async {
+      await tester.pumpApp(AppButton(onPressed: () {}, child: Text('Primary')));
 
-      expect(find.text('Small'), findsOneWidget);
+      final button = tester.widget<FilledButton>(find.byType(FilledButton));
+      final background = button.style!.backgroundColor!;
+      expect(background.resolve({}), AppTheme.light.colorScheme.primary);
+      expect(
+        background.resolve({WidgetState.pressed}),
+        AppColors.light.primaryHover,
+      );
+      expect(background.resolve({WidgetState.disabled}), isNull);
     });
 
-    testWidgets('renders with large size', (tester) async {
+    testWidgets(
+      'darkens the secondary button to secondary-hover when pressed',
+      (tester) async {
+        await tester.pumpApp(
+          AppButton(
+            onPressed: () {},
+            variant: AppButtonVariant.secondary,
+            child: Text('Secondary'),
+          ),
+        );
+
+        final button = tester.widget<FilledButton>(find.byType(FilledButton));
+        expect(
+          button.style!.backgroundColor!.resolve({WidgetState.pressed}),
+          AppColors.light.secondaryHover,
+        );
+      },
+    );
+
+    testWidgets("is as tall as DESIGN.md's button", (tester) async {
       await tester.pumpApp(
-        AppButton(
-          onPressed: () {},
-          size: AppButtonSize.large,
-          child: Text('Large'),
+        Center(
+          child: AppButton(onPressed: () {}, child: Text('Tall')),
         ),
       );
 
-      expect(find.text('Large'), findsOneWidget);
+      expect(tester.getSize(find.byType(FilledButton)).height, 52);
     });
   });
 }

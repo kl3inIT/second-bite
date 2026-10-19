@@ -6,6 +6,8 @@ on:
       - "web/**"
       - "api/openapi.yaml"
       - "DESIGN.md"
+      # check:tokens compares the Flutter tokens with DESIGN.md too.
+      - "mobile/packages/app_ui/lib/src/theme/tokens.g.dart"
       # check:api compares the generated client with the contract.
       - "api/openapi.yaml"
       - ".github/workflows/web.yml"
@@ -14,6 +16,8 @@ on:
       - "web/**"
       - "api/openapi.yaml"
       - "DESIGN.md"
+      # check:tokens compares the Flutter tokens with DESIGN.md too.
+      - "mobile/packages/app_ui/lib/src/theme/tokens.g.dart"
       # check:api compares the generated client with the contract.
       - "api/openapi.yaml"
       - ".github/workflows/web.yml"

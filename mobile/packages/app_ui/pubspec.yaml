@@ -1,5 +1,5 @@
 name: app_ui
-description: A Very Good Project created by Very Good CLI.
+description: Second Bite's design system for Flutter, built from DESIGN.md.
 version: 0.1.0+1
 publish_to: none
 
@@ -17,3 +17,23 @@ dev_dependencies:
     sdk: flutter
   mocktail: ^1.0.5
   very_good_analysis: ^11.0.0
+
+flutter:
+  # The licences of the typefaces, shown on the app's licence page.
+  assets:
+    - assets/fonts/BeVietnamPro-OFL.txt
+    - assets/fonts/BricolageGrotesque-OFL.txt
+  # DESIGN.md's typefaces with the Vietnamese marks, from Google Fonts under the
+  # SIL Open Font License. Bricolage Grotesque is the variable font.
+  fonts:
+    - family: Be Vietnam Pro
+      fonts:
+        - asset: assets/fonts/BeVietnamPro-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/BeVietnamPro-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BeVietnamPro-Bold.ttf
+          weight: 700
+    - family: Bricolage Grotesque
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque-Variable.ttf
