@@ -166,7 +166,7 @@ class AppOfferCard extends StatelessWidget {
                         spacing: _gap,
                         children: [
                           Icon(
-                            Icons.schedule,
+                            LucideIcons.clock,
                             size: 14,
                             color: Theme.of(context)
                                 .colorScheme

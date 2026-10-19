@@ -25,7 +25,7 @@ class LanguageButton extends ConsumerWidget {
         foregroundColor: colors.headerRaisedForeground,
         side: BorderSide(color: colors.headerBorder),
       ),
-      icon: const Icon(Icons.translate, size: 16),
+      icon: const Icon(LucideIcons.languages, size: 16),
     );
   }
 }

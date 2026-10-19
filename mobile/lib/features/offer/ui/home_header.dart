@@ -23,7 +23,7 @@ class PlaceHeading extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(top: SpacingTokens.space1 / 2),
           child: Icon(
-            Icons.location_on_outlined,
+            LucideIcons.mapPin,
             size: 18,
             color: colors.headerForeground,
           ),
@@ -116,7 +116,7 @@ class _SearchFieldState extends State<SearchField> {
               width: 2,
             ),
           ),
-          prefixIcon: const Icon(Icons.search),
+          prefixIcon: const Icon(LucideIcons.search, size: 20),
         ),
         onSubmitted: (words) => HomeRoute(q: words).go(context),
       ),

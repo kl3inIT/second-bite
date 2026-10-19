@@ -10,13 +10,13 @@ void main() {
         await tester.pumpApp(
           const AppHomeHeader(
             title: Text('Tasco Mall'),
-            action: Icon(Icons.translate),
+            action: Icon(LucideIcons.languages),
             children: [Text('Tìm món')],
           ),
         );
 
         expect(find.text('Tasco Mall'), findsOneWidget);
-        expect(find.byIcon(Icons.translate), findsOneWidget);
+        expect(find.byIcon(LucideIcons.languages), findsOneWidget);
         expect(find.text('Tìm món'), findsOneWidget);
       });
     });
