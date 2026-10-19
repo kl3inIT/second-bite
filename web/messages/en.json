@@ -212,5 +212,44 @@
         ]
       }
     ]
+  },
+  "SignIn": {
+    "title": "Sign in",
+    "heading": "Sign in to order",
+    "or": "or use your email",
+    "emailLabel": "Email",
+    "emailPlaceholder": "name@gmail.com",
+    "sendCode": "Send code",
+    "sendCodeHere": "Send a code to this address",
+    "sending": "Sending the code…",
+    "legal": "By continuing, you agree to the <terms>Terms of use</terms> and the <privacy>Privacy policy</privacy>.",
+    "codeHeading": "Check your email",
+    "codeSent": "We sent a 6-digit code to <strong>{email}</strong>.",
+    "changeEmail": "Change email",
+    "codeLabel": "The 6-digit code in the email",
+    "confirm": "Confirm",
+    "confirming": "Confirming…",
+    "resendIn": "Send a new code in {time}",
+    "resend": "Send a new code",
+    "googleNeedsCodeTitle": "This address already has an account",
+    "googleNeedsCodeBody": "{email} already has a Second Bite account. Get a code at this address to sign in.",
+    "googleNeedsCodeBodyNoAddress": "This Google account's address already has a Second Bite account. Get a code by email to sign in.",
+    "emailInvalid": "Enter one email address, such as name@gmail.com.",
+    "codeLimit": "Too many codes were asked for this address. Wait a while, then try again.",
+    "codeIncorrect": "The code is not right. Check the latest email and enter it again.",
+    "codeGone": "This code has expired or was already used. Send a new code.",
+    "googleUnverified": "Google has not confirmed this address. Sign in with a code sent by email.",
+    "failed": "You could not be signed in. Please try again.",
+    "failedWithReference": "You could not be signed in. Please try again. Reference: {reference}"
+  },
+  "Account": {
+    "signIn": "Sign in",
+    "menu": "Account {email}",
+    "signedInAs": "Signed in as {email}",
+    "signOut": "Sign out"
+  },
+  "TopBar": {
+    "back": "Back",
+    "home": "Second Bite, back to the home"
   }
 }

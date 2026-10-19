@@ -2,7 +2,8 @@ import { Suspense } from "react";
 
 import { AppHeader } from "@/components/app-header";
 import { HomeContent, HomeContentSkeleton } from "@/features/home/home-content";
-import { readHomeQuery, type HomeQuery } from "@/features/home/home-query";
+import { homePath, readHomeQuery, type HomeQuery } from "@/features/home/home-query";
+import { AccountAction } from "@/features/identity/account-action";
 import { PlaceHeading } from "@/features/home/place-heading";
 import { SearchField } from "@/features/home/search-field";
 import { TonightDeals } from "@/features/home/tonight-deals";
@@ -22,6 +23,11 @@ export default function Home({ searchParams }: PageProps<"/[locale]">) {
             <AddressSearchField query={query} />
           </Suspense>
         }
+        account={
+          <Suspense>
+            <HomeAccount query={query} />
+          </Suspense>
+        }
       >
         <Suspense>
           <TonightDeals query={query} />
@@ -34,6 +40,10 @@ export default function Home({ searchParams }: PageProps<"/[locale]">) {
       </main>
     </>
   );
+}
+
+async function HomeAccount({ query }: { query: Promise<HomeQuery> }) {
+  return <AccountAction returnTo={homePath(await query)} />;
 }
 
 async function AddressSearchField({ query }: { query: Promise<HomeQuery> }) {

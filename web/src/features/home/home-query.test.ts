@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readHomeQuery } from "./home-query";
+import { homePath, readHomeQuery } from "./home-query";
 
 describe("the home's address", () => {
   it("reads words, a known kind and the collect-now switch", () => {
@@ -17,5 +17,14 @@ describe("the home's address", () => {
       kind: undefined,
       now: undefined,
     });
+  });
+});
+
+describe("the home's path, which sign-in returns to", () => {
+  it("is the root without a query, and keeps each filter", () => {
+    expect(homePath({})).toBe("/");
+    expect(homePath({ q: "bánh mì", kind: "bakery", now: true })).toBe(
+      "/?q=b%C3%A1nh+m%C3%AC&kind=bakery&now=1",
+    );
   });
 });

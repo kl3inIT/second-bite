@@ -1,16 +1,18 @@
 import { HeaderSweep } from "./header-sweep";
 import { LanguageSwitcher } from "./language-switcher";
 
-// The lime header of the home (Figma header): what the page names itself with, an optional search field
-// and the language capsule, then what the page puts under them, under the leaf sweep and with rounded
+// The lime header of the home (Figma header): what the page names itself with, an optional search field,
+// the account and the language capsules, then what the page puts under them, under the leaf sweep and with rounded
 // bottom corners. On a phone the search field takes its own row; from `lg` the three share one.
 export function AppHeader({
   title,
   search,
+  account,
   children,
 }: {
   title: React.ReactNode;
   search?: React.ReactNode;
+  account?: React.ReactNode;
   children?: React.ReactNode;
 }) {
   return (
@@ -22,7 +24,10 @@ export function AppHeader({
           {search && (
             <div className="order-last w-full lg:order-none lg:max-w-xl lg:flex-1">{search}</div>
           )}
-          <LanguageSwitcher />
+          <div className="flex items-center gap-1">
+            {account}
+            <LanguageSwitcher />
+          </div>
         </div>
         {children}
       </div>

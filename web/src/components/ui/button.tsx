@@ -31,6 +31,8 @@ const buttonVariants = cva(
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         // Second Bite: Figma Button/Primary and Button/Secondary, 52px high, 16px radius, 24px sides.
         lg: "h-13 gap-2 rounded-xl px-6 has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5",
+        // Second Bite: a text action inside a sentence ("Đổi email", "Gửi lại mã"), sized by the line it sits in.
+        inline: "h-auto p-0 text-body-sm-strong",
         icon: "size-11",
         "icon-xs":
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",

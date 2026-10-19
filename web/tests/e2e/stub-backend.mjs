@@ -119,7 +119,102 @@ function search(url) {
   );
 }
 
-const server = createServer((request, response) => {
+// Signing in (SEC-29), as api/openapi.yaml describes it: the code 123456 is right and any other is not; the
+// address limit@example.com has asked for too many codes. A right code sets the session cookie, as the Go
+// server does for the web, and GET /accounts/me reads it. Google is off unless STUB_GOOGLE_CLIENT_ID is set.
+const sessionCookie = "secondbite_session";
+// One session per address, so tests running side by side do not sign each other out.
+const accounts = new Map();
+
+function problem(response, status, code) {
+  response.writeHead(status, { "content-type": "application/problem+json" });
+  response.end(
+    JSON.stringify({
+      type: `urn:secondbite:failure:${code.toLowerCase()}`,
+      status,
+      code,
+      requestId: "STUB",
+    }),
+  );
+}
+
+function json(response, status, body, headers = {}) {
+  response.writeHead(status, { "content-type": "application/json", ...headers });
+  response.end(JSON.stringify(body));
+}
+
+async function readBody(request) {
+  let text = "";
+  for await (const chunk of request) text += chunk;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
+}
+
+function tokenOf(request) {
+  const cookie = request.headers.cookie ?? "";
+  return new RegExp(`(?:^|; )${sessionCookie}=([^;]+)`).exec(cookie)?.[1];
+}
+
+async function auth(request, response, url) {
+  if (request.method === "GET" && url.pathname === "/auth/methods") {
+    const clientId = process.env.STUB_GOOGLE_CLIENT_ID;
+    json(response, 200, clientId ? { google: { clientId } } : {});
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/auth/sign-in-codes") {
+    const { email } = await readBody(request);
+    if (typeof email !== "string" || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      problem(response, 422, "IDENTITY_EMAIL_INVALID");
+    } else if (email === "limit@example.com") {
+      problem(response, 429, "IDENTITY_CODE_LIMIT_EXCEEDED");
+    } else {
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+      json(response, 202, { challengeId: `ch-${encodeURIComponent(email)}`, expiresAt });
+    }
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/auth/sessions") {
+    const { challengeId, code } = await readBody(request);
+    if (code !== "123456") {
+      problem(response, 422, "IDENTITY_CODE_INCORRECT");
+      return true;
+    }
+    const email = decodeURIComponent(String(challengeId).slice(3));
+    const account = { id: "ac-stub", email, displayName: "", role: "customer" };
+    const token = `stub-${Buffer.from(email).toString("hex")}`;
+    accounts.set(token, account);
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    json(
+      response,
+      201,
+      { account, expiresAt },
+      {
+        "set-cookie": `${sessionCookie}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=34560000`,
+      },
+    );
+    return true;
+  }
+  if (request.method === "DELETE" && url.pathname === "/auth/sessions/current") {
+    accounts.delete(tokenOf(request));
+    response.writeHead(204, {
+      "set-cookie": `${sessionCookie}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
+    });
+    response.end();
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/accounts/me") {
+    const account = accounts.get(tokenOf(request));
+    if (account) json(response, 200, account);
+    else problem(response, 401, "IDENTITY_SESSION_INVALID");
+    return true;
+  }
+  return false;
+}
+
+const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
     response.writeHead(204).end();
@@ -144,6 +239,7 @@ const server = createServer((request, response) => {
     response.end(JSON.stringify({ offers: search(url) }));
     return;
   }
+  if (await auth(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {
     response.writeHead(200, { "content-type": "image/svg+xml" });

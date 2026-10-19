@@ -212,5 +212,44 @@
         ]
       }
     ]
+  },
+  "SignIn": {
+    "title": "Đăng nhập",
+    "heading": "Đăng nhập để đặt món",
+    "or": "hoặc dùng email",
+    "emailLabel": "Email",
+    "emailPlaceholder": "ten@gmail.com",
+    "sendCode": "Gửi mã",
+    "sendCodeHere": "Gửi mã đến email này",
+    "sending": "Đang gửi mã…",
+    "legal": "Khi tiếp tục, bạn đồng ý với <terms>Điều khoản sử dụng</terms> và <privacy>Chính sách quyền riêng tư</privacy>.",
+    "codeHeading": "Kiểm tra email của bạn",
+    "codeSent": "Mã 6 số đã gửi đến <strong>{email}</strong>.",
+    "changeEmail": "Đổi email",
+    "codeLabel": "Mã 6 số trong email",
+    "confirm": "Xác nhận",
+    "confirming": "Đang xác nhận…",
+    "resendIn": "Gửi lại mã sau {time}",
+    "resend": "Gửi lại mã",
+    "googleNeedsCodeTitle": "Email này đã có tài khoản",
+    "googleNeedsCodeBody": "{email} đã có tài khoản Second Bite. Nhận mã qua email này để đăng nhập.",
+    "googleNeedsCodeBodyNoAddress": "Email của tài khoản Google này đã có tài khoản Second Bite. Nhận mã qua email để đăng nhập.",
+    "emailInvalid": "Nhập một địa chỉ email, ví dụ ten@gmail.com.",
+    "codeLimit": "Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.",
+    "codeIncorrect": "Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.",
+    "codeGone": "Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.",
+    "googleUnverified": "Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.",
+    "failed": "Chưa đăng nhập được. Vui lòng thử lại.",
+    "failedWithReference": "Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: {reference}"
+  },
+  "Account": {
+    "signIn": "Đăng nhập",
+    "menu": "Tài khoản {email}",
+    "signedInAs": "Đã đăng nhập: {email}",
+    "signOut": "Đăng xuất"
+  },
+  "TopBar": {
+    "back": "Quay lại",
+    "home": "Second Bite, về trang chủ"
   }
 }
