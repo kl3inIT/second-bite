@@ -169,9 +169,9 @@ function dartTextStyle(name, style) {
     // Bricolage Grotesque ships as a variable font, whose weight is an axis; a static face ignores it.
     `fontVariations: [FontVariation('wght', ${style.fontWeight})]`,
     `height: ${height}`,
-    ...(style.letterSpacing
-      ? [`letterSpacing: ${Number((Number.parseFloat(style.letterSpacing) * size).toFixed(4))}`]
-      : []),
+    // Always set: a role without tracking is 0, as in CSS. Left null, ThemeData merges it over
+    // Material 3's typography, which spaces body text 0.25 to 0.5 px wider than the web.
+    `letterSpacing: ${style.letterSpacing ? Number((Number.parseFloat(style.letterSpacing) * size).toFixed(4)) : 0}`,
     "leadingDistribution: TextLeadingDistribution.even",
   ];
   return dartCall("  ", `static const ${dartName("type", name)} = TextStyle`, args, ";");

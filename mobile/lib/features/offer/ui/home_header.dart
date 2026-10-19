@@ -99,6 +99,23 @@ class _SearchFieldState extends State<SearchField> {
           hintStyle: context.appTextStyles.bodySm.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
+          // On the lime header the field's edge is white like the field,
+          // as on the web; focus draws the ring.
+          enabledBorder: OutlineInputBorder(
+            borderRadius: const BorderRadius.all(
+              Radius.circular(RadiusTokens.lg),
+            ),
+            borderSide: BorderSide(color: context.appColors.headerRaised),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: const BorderRadius.all(
+              Radius.circular(RadiusTokens.lg),
+            ),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+              width: 2,
+            ),
+          ),
           prefixIcon: const Icon(Icons.search),
         ),
         onSubmitted: (words) => HomeRoute(q: words).go(context),

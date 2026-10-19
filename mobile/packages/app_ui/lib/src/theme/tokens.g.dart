@@ -63,6 +63,7 @@ abstract final class TypeTokens {
     fontWeight: FontWeight.w400,
     fontVariations: [FontVariation('wght', 400)],
     height: 17 / 12,
+    letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
   static const labelStrong = TextStyle(
@@ -72,6 +73,7 @@ abstract final class TypeTokens {
     fontWeight: FontWeight.w600,
     fontVariations: [FontVariation('wght', 600)],
     height: 17 / 12,
+    letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
   static const bodySm = TextStyle(
@@ -81,6 +83,7 @@ abstract final class TypeTokens {
     fontWeight: FontWeight.w400,
     fontVariations: [FontVariation('wght', 400)],
     height: 21 / 14,
+    letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
   static const bodySmStrong = TextStyle(
@@ -90,6 +93,7 @@ abstract final class TypeTokens {
     fontWeight: FontWeight.w600,
     fontVariations: [FontVariation('wght', 600)],
     height: 21 / 14,
+    letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
   static const body = TextStyle(
@@ -99,6 +103,7 @@ abstract final class TypeTokens {
     fontWeight: FontWeight.w400,
     fontVariations: [FontVariation('wght', 400)],
     height: 24 / 16,
+    letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
   static const title = TextStyle(
@@ -108,6 +113,7 @@ abstract final class TypeTokens {
     fontWeight: FontWeight.w600,
     fontVariations: [FontVariation('wght', 600)],
     height: 21 / 15,
+    letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
   static const button = TextStyle(
@@ -117,6 +123,7 @@ abstract final class TypeTokens {
     fontWeight: FontWeight.w600,
     fontVariations: [FontVariation('wght', 600)],
     height: 20 / 16,
+    letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
   static const barTitle = TextStyle(
@@ -126,6 +133,7 @@ abstract final class TypeTokens {
     fontWeight: FontWeight.w600,
     fontVariations: [FontVariation('wght', 600)],
     height: 22 / 17,
+    letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
   static const headline = TextStyle(
@@ -135,6 +143,7 @@ abstract final class TypeTokens {
     fontWeight: FontWeight.w600,
     fontVariations: [FontVariation('wght', 600)],
     height: 25 / 18,
+    letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
   static const figureSm = TextStyle(
