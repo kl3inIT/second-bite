@@ -9,6 +9,8 @@ What the team studied before designing Second Bite, kept so that a later reader 
 | [Open-source pickup models](2026-10-16-open-source-pickup-models.md) | How Open Food Network, Karrot, foodsharing and Umi Feeds model collection windows, stock holds, confirmation, no-shows, seller approval, sign-in and mobile, and what Second Bite takes from them |
 | [Sharing Excess impact](2026-10-17-sharing-excess-impact.md) | How a food-rescue non-profit derives meals, value and emissions from weight and category, counting only food that reached people; its code is no longer public |
 | [Offer models](2026-10-17-offer-models.md) | How foodsharing, Karrot, Umi Feeds, Open Food Network and Too Good To Go model what is offered: content, stock, windows, changes, search and following |
+| [Desktop home](2026-10-19-desktop-home.md) | How ShopeeFood, GrabFood, beFood, Bách Hóa Xanh and Tiki lay out their home at 1440 px (container width, header, grids, deals, categories, footer); that surplus-food peers have no web home; NN/g and Baymard on carousels, sticky headers and taglines |
+| [Sign-in and code](2026-10-19-sign-in-and-code.md) | How Vietnamese apps and passwordless peers sign people in, and what GOV.UK One Login, WCAG 2.2, web.dev, OWASP, Apple and Google say about an emailed code: one field or boxes, paste, auto-submit, resend, spam, the order of buttons |
 
 ## Sources, kept as received
 
