@@ -224,9 +224,9 @@
     "sending": "Đang gửi mã…",
     "legal": "Khi tiếp tục, bạn đồng ý với <terms>Điều khoản sử dụng</terms> và <privacy>Chính sách quyền riêng tư</privacy>.",
     "codeHeading": "Kiểm tra email của bạn",
-    "codeSent": "Mã 6 số đã gửi đến <strong>{email}</strong>.",
+    "codeSent": "Mã đăng nhập 6 số đã gửi đến <strong>{email}</strong>.",
     "changeEmail": "Đổi email",
-    "codeLabel": "Mã 6 số trong email",
+    "codeLabel": "Mã đăng nhập 6 số",
     "confirm": "Xác nhận",
     "confirming": "Đang xác nhận…",
     "resendIn": "Gửi lại mã sau {time}",
@@ -240,16 +240,29 @@
     "codeGone": "Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.",
     "googleUnverified": "Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.",
     "failed": "Chưa đăng nhập được. Vui lòng thử lại.",
-    "failedWithReference": "Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: {reference}"
+    "failedWithReference": "Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: {reference}",
+    "notArrived": "Chưa thấy email? Xem trong thư rác (Spam)."
   },
   "Account": {
     "signIn": "Đăng nhập",
     "menu": "Tài khoản {email}",
     "signedInAs": "Đã đăng nhập: {email}",
-    "signOut": "Đăng xuất"
+    "signOut": "Đăng xuất",
+    "title": "Tài khoản",
+    "guestTitle": "Bạn chưa đăng nhập",
+    "guestBody": "Đăng nhập để đặt món và theo dõi đơn.",
+    "signedIn": "Đã đăng nhập"
   },
   "TopBar": {
     "back": "Quay lại",
     "home": "Second Bite, về trang chủ"
+  },
+  "BottomNav": {
+    "label": "Điều hướng chính",
+    "home": "Trang chủ",
+    "orders": "Đơn của tôi",
+    "saved": "Yêu thích",
+    "account": "Tài khoản",
+    "soon": "(sắp có)"
   }
 }

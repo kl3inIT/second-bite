@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { AppHeader } from "@/components/app-header";
+import { BottomNav } from "@/components/bottom-nav";
 import { HomeContent, HomeContentSkeleton } from "@/features/home/home-content";
 import { homePath, readHomeQuery, type HomeQuery } from "@/features/home/home-query";
 import { AccountAction } from "@/features/identity/account-action";
@@ -33,11 +34,12 @@ export default function Home({ searchParams }: PageProps<"/[locale]">) {
           <TonightDeals query={query} />
         </Suspense>
       </AppHeader>
-      <main className="mx-auto w-full max-w-5xl flex-1">
+      <main className="mx-auto w-full max-w-5xl flex-1 pb-20 md:pb-0">
         <Suspense fallback={<HomeContentSkeleton />}>
           <HomeContent query={query} />
         </Suspense>
       </main>
+      <BottomNav />
     </>
   );
 }

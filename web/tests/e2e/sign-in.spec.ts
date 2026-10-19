@@ -29,16 +29,25 @@ test.describe("signing in on the web", () => {
       page.getByRole("heading", { level: 1, name: "Kiểm tra email của bạn" }),
     ).toBeVisible();
     await expect(page.getByText(email)).toBeVisible();
-    await expect(page.getByText(/Gửi lại mã sau 0:\d\d/)).toBeVisible();
+    await expect(page.getByText("Gửi lại mã sau 1:00")).toBeVisible();
+    await expect(page.getByText("Chưa thấy email? Xem trong thư rác (Spam).")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
-    await page.getByLabel("Mã 6 số trong email").fill("111111");
+    await page.getByLabel("Mã đăng nhập 6 số").fill("111111");
     await expect(
       page.getByText("Mã chưa đúng. Xem lại email mới nhất rồi nhập lại."),
     ).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
-    await page.getByLabel("Mã 6 số trong email").fill("123456");
+    // A code copied from the email with spaces and a line break still goes in.
+    await page.getByLabel("Mã đăng nhập 6 số").focus();
+    await page.evaluate(() => {
+      const data = new DataTransfer();
+      data.setData("text/plain", " 123 456\n");
+      document.activeElement?.dispatchEvent(
+        new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }),
+      );
+    });
     await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
     const account = page.getByRole("button", { name: `Tài khoản ${email}` });
     await expect(account).toBeVisible();
@@ -67,7 +76,7 @@ test.describe("signing in on the web", () => {
       await hydrated(page.getByLabel("Email"))
     ).fill(`binh.${testInfo.project.name}@example.com`);
     await page.getByRole("button", { name: "Gửi mã" }).click();
-    await page.getByLabel("Mã 6 số trong email").fill("123456");
+    await page.getByLabel("Mã đăng nhập 6 số").fill("123456");
     await expect(page).toHaveURL(/\/vi$/);
   });
 });

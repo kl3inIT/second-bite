@@ -24,3 +24,8 @@
     @apply bg-secondary-hover text-foreground;
   }
 }
+
+/* Clears a phone's home indicator under anything fixed to the bottom of the screen, such as the bottom bar. */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

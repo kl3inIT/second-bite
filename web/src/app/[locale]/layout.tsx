@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Be_Vietnam_Pro, Bricolage_Grotesque } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -23,6 +23,9 @@ const bricolage = Bricolage_Grotesque({
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
+
+// The page runs under a phone's home indicator, so the bottom bar can pad itself clear of it (pb-safe).
+export const viewport: Viewport = { viewportFit: "cover" };
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Metadata");

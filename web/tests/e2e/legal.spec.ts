@@ -4,10 +4,13 @@ import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.describe("the terms and the privacy policy", () => {
-  test("are reached from the foot of the home and say they are drafts", async ({ page }) => {
-    await page.goto("/vi");
-    const footer = page.getByRole("navigation", { name: "Thông tin pháp lý" });
-    await (await hydrated(footer.getByRole("link", { name: "Chính sách quyền riêng tư" }))).click();
+  test("are reached from the foot of the home, or the account tab on a phone, and say they are drafts", async ({
+    page,
+    isMobile,
+  }) => {
+    await page.goto(isMobile ? "/vi/account" : "/vi");
+    const links = page.getByRole("navigation", { name: "Thông tin pháp lý" });
+    await (await hydrated(links.getByRole("link", { name: "Chính sách quyền riêng tư" }))).click();
 
     await expect(page).toHaveURL(/\/vi\/privacy$/);
     await expect(

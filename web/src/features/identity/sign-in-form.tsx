@@ -25,8 +25,9 @@ import { requestSignInCode, signIn, signInWithGoogle } from "@/lib/api/generated
 import { emailInToken, GoogleButton } from "./google-button";
 
 const CODE_LENGTH = 6;
-/** How long "Gửi lại mã" waits after a code is sent, so a slow email is not sent twice. */
-const RESEND_AFTER_SECONDS = 30;
+/** How long "Gửi lại mã" waits after a code is sent: the server refuses a new code for a minute
+ * (server/internal/identity, codeCooldown), so the button never offers what would be refused. */
+const RESEND_AFTER_SECONDS = 60;
 
 /**
  * What the screen shows after a failure. The server's code decides it only where the screen does something
@@ -183,6 +184,9 @@ export function SignInForm({
               id="sign-in-code"
               maxLength={CODE_LENGTH}
               pattern={REGEXP_ONLY_DIGITS}
+              // A code copied from a mail app often carries spaces or a line break; keep its digits, as
+              // GOV.UK asks, rather than drop the paste (WCAG 2.2, 3.3.8).
+              pasteTransformer={(pasted: string) => pasted.replace(/\D/g, "")}
               inputMode="numeric"
               autoComplete="one-time-code"
               value={code}
@@ -206,6 +210,7 @@ export function SignInForm({
                 </span>
               </FieldError>
             )}
+            <FieldDescription>{t("notArrived")}</FieldDescription>
             <ResendCode
               key={step.resendAt}
               resendAt={problem?.kind === "codeGone" ? 0 : step.resendAt}
