@@ -150,7 +150,7 @@ sudo docker exec -it secondbite-staging-server secondbite email configure ...
 
 The grant is refused with `IDENTITY_ADDRESS_UNPROVEN` when someone has already signed in with Google to that address and Google does not speak for it (an address outside `gmail.com` and Google Workspace); the address's owner signs in once with the emailed code, which removes that link, and the grant then succeeds.
 
-**Signing in with Google.** Put the web client's ID in `.env.staging` as `SECONDBITE_GOOGLE_CLIENT_IDS=<client ID>` (`sudoedit /apps/secondbite-staging/.env.staging`), then restart the server with the release that is running. Deploy staging refuses a release it has already uploaded, so recreate the server with the same files `deploy.sh` used:
+**Signing in with Google.** Put the client IDs in `.env.staging` as `SECONDBITE_GOOGLE_CLIENT_IDS=<web>,<iOS>,<Android>`, the web's first: `/auth/methods` offers the first, and the app's tokens name their own client (`sudoedit /apps/secondbite-staging/.env.staging`), then restart the server with the release that is running. Deploy staging refuses a release it has already uploaded, so recreate the server with the same files `deploy.sh` used:
 
 ```sh
 root=/apps/secondbite-staging
