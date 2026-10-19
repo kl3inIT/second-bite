@@ -3,7 +3,8 @@ import 'package:second_bite/core/routes.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
 /// {@template place_heading}
-/// The page's title on the header: the place with its district below. A
+/// The page's title on the header: a lime pin, the place, and its district
+/// below in the soft text for Tasco blue. A
 /// screen reader hears "Tối nay ở Tasco Mall" as the heading.
 /// {@endtemplate}
 class PlaceHeading extends StatelessWidget {
@@ -22,11 +23,7 @@ class PlaceHeading extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: SpacingTokens.space1 / 2),
-          child: Icon(
-            LucideIcons.mapPin,
-            size: 18,
-            color: colors.headerForeground,
-          ),
+          child: Icon(LucideIcons.mapPin, size: 18, color: colors.fresh),
         ),
         Expanded(
           child: Column(
@@ -43,7 +40,7 @@ class PlaceHeading extends StatelessWidget {
               ),
               Text(
                 l10n.homeArea,
-                style: text.label.copyWith(color: colors.headerForeground),
+                style: text.label.copyWith(color: colors.inverseMuted),
               ),
             ],
           ),
@@ -99,7 +96,7 @@ class _SearchFieldState extends State<SearchField> {
           hintStyle: context.appTextStyles.bodySm.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          // On the lime header the field's edge is white like the field,
+          // On the blue header the field's edge is white like the field,
           // as on the web; focus draws the ring.
           enabledBorder: OutlineInputBorder(
             borderRadius: const BorderRadius.all(

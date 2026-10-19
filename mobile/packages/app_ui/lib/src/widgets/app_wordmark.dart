@@ -2,8 +2,8 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// {@template app_wordmark}
-/// The wordmark, "second bite" with the bitten "o", in one colour: Deep Leaf
-/// unless [color] is given, as white on Deep Leaf while the app loads. A
+/// The wordmark, "second bite" with the bitten "o", in one colour: Tasco blue
+/// unless [color] is given, as white on Tasco blue while the app loads. A
 /// screen reader hears [semanticLabel], the product's name.
 /// {@endtemplate}
 class AppWordmark extends StatelessWidget {

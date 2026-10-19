@@ -63,7 +63,7 @@ class AppOfferCard extends StatelessWidget {
   /// Whether nothing is left: the photograph fades and the sticker says so.
   final bool soldOut;
 
-  /// The dish's photograph; a leaf wash without one.
+  /// The dish's photograph; a pale blue wash without one.
   final ImageProvider? photo;
 
   @override

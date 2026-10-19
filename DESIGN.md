@@ -4,6 +4,7 @@ description: A second chance for good food.
 palette:
   # The Figma variables of the `SecondBite` collection, one for one: `brand/800` in Figma is `brand-800` here and
   # `--brand-800` in tokens.css. Change a value in Figma and here together; screens never use these directly.
+  # Since 19 October 2026 the brand is Tasco Mall's blue: in Figma `brand/*` alias the `tasco/*` primitives.
   brand-900: "#004E8C"
   brand-800: "#0061AF"
   brand-700: "#1A88C9"
@@ -33,40 +34,41 @@ palette:
   accent-lime-300: "#C6E67A"
   accent-lime-100: "#EEF7D9"
   accent-lime-ink: "#2C4709"
-  status-success: "#2E6B3F"
   status-error: "#B42318"
   status-error-bg: "#FEF3F2"
 colors:
   # The roles screens use, each taking a palette colour. Every `x` with an `x-foreground` is checked at 4.5:1 or
   # more by web/scripts/generate-tokens.mjs, and so is each `x-hover` against `x-foreground`; the ratios noted
   # are the foreground on the colour.
-  background: "{palette.brand-50}" # the pale-sky ground; ink on it 16.8:1
+  background: "{palette.brand-50}" # the pale sky ground; ink on it 16.2:1
   foreground: "{palette.text-ink}"
   card: "{palette.base-white}"
   card-foreground: "{palette.text-ink}"
   popover: "{palette.base-white}" # menus, selects and dialogs
   popover-foreground: "{palette.text-ink}"
-  primary: "{palette.brand-800}" # deep blue, 10.1:1
+  primary: "{palette.brand-800}" # Tasco blue, 6.3:1
   primary-foreground: "{palette.base-white}"
-  primary-hover: "{palette.brand-900}" # darker under the pointer so the text gains contrast, 14.4:1
-  inverse-muted: "{palette.text-on-brand}" # secondary text on deep blue or a dark photo scrim
+  primary-hover: "{palette.brand-900}" # darker under the pointer so the text gains contrast, 8.5:1
+  inverse-muted: "{palette.text-on-brand}" # secondary text on Tasco blue or a dark photo scrim, 5.3:1 on primary
   shell: "{palette.base-white}" # the top bar of every screen but the home: white with a hairline below
   shell-foreground: "{palette.text-ink}"
-  header: "{palette.brand-300}" # the home's header, under the leaf sweep
-  header-foreground: "{palette.brand-900}" # the place on the header, 11.1:1
+  header: "{palette.brand-800}" # the home's header, under the light sweep; Figma v3's sky #3CB4E7 held white at 2.4:1
+  header-foreground: "{palette.base-white}" # the place on the header, 6.3:1
   header-raised: "{palette.base-white}" # the capsule and the search field on the header
   header-raised-foreground: "{palette.text-ink}"
   header-border: "{palette.border-line}" # the capsule's edge
-  sweep: "{palette.brand-800}" # the leaf that sweeps across the header's top right
-  sweep-edge: "{palette.brand-500}" # the lighter band between the leaf and the lime
+  sweep: "#1C77BB" # the sweep across the header's top right: brand-300 at 18% over the header
+  sweep-edge: "#4395CC" # the brighter band at its edge: brand-300 at 30% more
+  deal: "{palette.brand-900}" # the deal card on the header, a step deeper than it
+  deal-foreground: "{palette.base-white}" # 8.5:1; the title and figures are in `fresh`, 6.1:1
   secondary: "{palette.brand-100}" # soft buttons, segmented controls, the active tab
-  secondary-foreground: "{palette.brand-900}"
+  secondary-foreground: "{palette.brand-900}" # 7.2:1, and 6.1:1 on the hover
   secondary-hover: "{palette.brand-200}"
   muted: "{palette.brand-50}"
   muted-foreground: "{palette.text-muted}" # 5.6:1 on white, 5.2:1 on the ground
   accent: "{palette.brand-100}"
   accent-foreground: "{palette.brand-800}"
-  link: "{palette.brand-800}" # text links and secondary actions ("Đổi", "Chỉ đường"), 7.7:1 on white, 7.1:1 on the ground
+  link: "{palette.brand-800}" # text links and secondary actions ("Đổi", "Chỉ đường"), 6.3:1 on white, 5.9:1 on the ground
   fresh: "{palette.accent-lime-300}" # young rice: the stock sticker, the discount chip, the deal card's figures
   fresh-foreground: "{palette.accent-lime-ink}" # 7.4:1
   fresh-muted: "{palette.accent-lime-100}" # a quiet lime surface, such as the pickup place on a seller's draft
@@ -74,14 +76,14 @@ colors:
   destructive: "{palette.status-error}" # errors, cancelled and refused states, 6.6:1
   destructive-foreground: "{palette.base-white}"
   destructive-hover: "#912018" # 8.7:1
-  success: "{palette.status-success}" # paid, ready, collected; always with an icon or label, 7.6:1
+  success: "{palette.brand-800}" # paid, ready, collected; always with an icon or label, 6.3:1
   success-foreground: "{palette.base-white}"
   warning: "{palette.alert-bg}" # allergens and waiting states; always with an icon
   warning-foreground: "{palette.alert-ink}" # 8.5:1
   warning-border: "{palette.alert-line}" # the edge of a notice
   border: "{palette.border-line}"
   input: "{palette.text-faint}" # a field edge, 3.6:1 on white (3:1 needed for a control); never text
-  ring: "{palette.brand-800}" # focus ring, 10.1:1 on white
+  ring: "{palette.brand-800}" # focus ring, 6.3:1 on white
   avatar-foreground: "{palette.base-white}" # initials of a seller without a photo; each avatar-* is checked against it
   avatar-clay: "{palette.logo-clay}" # 5.8:1
   avatar-rose: "{palette.logo-rose}" # 5.9:1
@@ -132,11 +134,11 @@ typography:
     fontSize: "17px"
     fontWeight: 600
     lineHeight: "22px"
-  headline: # section and sheet titles, a page's heading
+  headline: # section and sheet titles, a page's heading; 20/28 bold since Mobile v3
     fontFamily: "Be Vietnam Pro"
-    fontSize: "18px"
-    fontWeight: 600
-    lineHeight: "25px"
+    fontSize: "20px"
+    fontWeight: 700
+    lineHeight: "28px"
   figure-sm: # the discount chip (-63%)
     fontFamily: "Bricolage Grotesque"
     fontSize: "12px"
@@ -180,7 +182,7 @@ spacing:
   "6": "24px"
   "8": "32px"
 elevation:
-  # Cards are flat on the pale-sky ground; only what floats over content, a sheet or a dialog, casts a shadow.
+  # Cards are flat on the sky ground; only what floats over content, a sheet or a dialog, casts a shadow.
   sheet:
     - { x: 0, y: -4, blur: 24, spread: 0, color: "#0E1D191F" }
 components:
@@ -211,7 +213,7 @@ components:
     padding: "12px 14px 14px"
 ---
 
-<!-- This frontmatter is the source of the tokens. web/src/styles/tokens.css and the Flutter theme follow it with the same names in the same change; the Figma file "Secondbite" holds the same values as the `SecondBite` variables and text styles (docs/guidelines/figma.md). Changed to the Figma identity on 18 October 2026, replacing "Gói mang về". -->
+<!-- This frontmatter is the source of the tokens. web/src/styles/tokens.css and the Flutter theme follow it with the same names in the same change; the Figma file "Secondbite" holds the same values as the `SecondBite` variables and text styles (docs/guidelines/figma.md). Changed to the Figma identity on 18 October 2026, replacing "Gói mang về"; turned from green to Tasco Mall's blue on 19 October 2026 after Figma "Mobile v3" (SEC-48). -->
 
 # Design System: Second Bite
 
@@ -221,43 +223,44 @@ components:
 
 Good food that someone has already started to love: a cookie with a bite taken out of it. The bite is the brand's mark, in the "o" of the wordmark and on the top right corner of every card, cut out in the colour of the ground as if the food had been tasted.
 
-The interface opens on a fresh lime header swept by a deep-leaf green, over a pale mint ground, with white cards that carry real photographs of the food. One lime sticker per card says how many are left at a glance. Dense enough for one-handed use at the end of a shift, generous with photographs so food looks like food.
+The interface opens on a Tasco blue header crossed by a light sweep, over a pale sky ground, with white cards that carry real photographs of the food. One lime sticker per card says how many are left at a glance. Dense enough for one-handed use at the end of a shift, generous with photographs so food looks like food.
 
 **Key Characteristics:**
 
-- Lime header under a deep-leaf sweep, holding the place, the search, the language and tonight's deal card.
-- Mint ground, white cards with a bitten top right corner.
+- Tasco blue header under a light sweep, holding the place, the search, the language and tonight's deal card on a deeper blue.
+- Pale sky ground, white cards with a bitten top right corner.
 - Lime for stock and discounts: one sticker on the photograph, one discount chip; amber only in alerts.
 - Real photographs of the food, never illustrations.
 - Price hierarchy by size and face: new price in Bricolage, old price small and struck through, and the discount as a lime chip.
 
 ## Colors
 
-A green family from deep blue to mint, a fresh lime for the header, stock and discounts, amber only for alerts, and ink text.
+A blue family from Tasco Mall's deep blue to a pale sky, a fresh lime for stock, discounts and the figures on blue, amber only for alerts, and ink text. The blues are Tasco Mall's own (tascomall.com), so the app reads as part of the mall.
 
 Two layers, as in Figma. The **palette** is the `SecondBite` collection under the same names (`brand-50` to `brand-900`, `text-ink`, `accent-amber`, `logo-clay`…), and only the roles refer to it. The **roles** below (`primary`, `header`, `fresh`…) are what screens use, so a role can move to another palette colour without touching a screen.
 
 ### Primary
 
-- **Deep Leaf** (`primary`): primary buttons, the deal card, prices, links and the focus ring. `primary-hover` is the pressed leaf.
-- **Lime Header** (`header`, `header-foreground`): the home's header, with the place in the darkest leaf. **Leaf Sweep** (`sweep`, `sweep-edge`) crosses its top right.
+- **Tasco Blue** (`primary`): primary buttons, prices, links and the focus ring. `primary-hover` is the pressed, deeper blue.
+- **Blue Header** (`header`, `header-foreground`): the home's header, the same blue as `primary`, with the place in white, a lime pin and the district in `inverse-muted`. **Light Sweep** (`sweep`, `sweep-edge`) crosses its top right: Figma draws it as `brand-300` at 18% and 30% over the header, written here as the solid colours that makes. Figma v3 had a sky header (`brand-500`), but white on it reaches only 2.4:1.
+- **Deal Blue** (`deal`, `deal-foreground`): the deal card on the header, one step deeper than it so it stands apart.
 - **Raised** (`header-raised`, `header-border`): the white capsule and search field on the header.
 - **White Shell** (`shell`, `shell-foreground`): the top bar of every other screen, white with a hairline below.
-- **Soft on Leaf** (`inverse-muted`): secondary text on Deep Leaf or a dark photo scrim.
-- **Leaf Link** (`link`): text links and secondary actions, on white or the ground.
+- **Soft on Blue** (`inverse-muted`): secondary text on Tasco blue, the deal card or a dark photo scrim.
+- **Blue Link** (`link`): text links and secondary actions, on white or the ground. Figma v3 uses `brand-700`, which reaches only 3.9:1 on white, so links take `brand-800`.
 
 ### Secondary
 
-- **Leaf Wash** (`secondary`, `accent`): soft buttons, segmented controls, the active tab indicator and quiet controls. Text on it is Deep Leaf.
+- **Blue Wash** (`secondary`, `accent`): soft buttons, segmented controls, the active tab indicator and quiet controls. Text on it is Tasco blue, and the deepest blue on a soft button.
 
 ### Fresh
 
-- **Lime** (`fresh`, `fresh-foreground`): the stock sticker on a photograph and the discount chip, with lime ink text; the deal card's title and figures on Deep Leaf. `fresh-muted` is its quiet surface.
+- **Lime** (`fresh`, `fresh-foreground`): the stock sticker on a photograph and the discount chip, with lime ink text; the pin on the header and the deal card's title and figures. `fresh-muted` is its quiet surface.
 - **Star** (`rating`): the star beside a rating, never on its own.
 
 ### Neutral
 
-- **Mint Ground** (`background`, `muted`): the page under the cards. The bite of each card is cut in this colour.
+- **Sky Ground** (`background`, `muted`): the page under the cards. The bite of each card is cut in this colour.
 - **White** (`card`): cards, sheets, the search field, dialogs.
 - **Ink** (`foreground`): body text and labels under pictures.
 - **Muted** (`muted-foreground`): secondary text, old prices and placeholders.
@@ -268,18 +271,18 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 ### Status
 
 - **Stamp Red** (`destructive`): errors, cancelled and refused states, always with an icon or label.
-- **Leaf Stamp** (`success`): paid, ready and collected orders, always with an icon or label.
+- **Blue Stamp** (`success`): paid, ready and collected orders, always with an icon or label.
 - **Alert** (`warning`, `warning-border`): allergens, waiting states and notices to read before going on, a pale amber box with amber ink, its edge and an icon.
 
 ### Named Rules
 
 **The One Sticker Rule.** A card carries one lime sticker, on its photograph: how many are left.
 
-**The One Discount Rule.** A discount is always the lime chip (`figure-sm` on `fresh`); the best discount tonight may be written large in lime on Deep Leaf (`display`). No amber, rose or soft-green discount.
+**The One Discount Rule.** A discount is always the lime chip (`figure-sm` on `fresh`); the best discount tonight may be written large in lime on the deal card (`display`). No amber, rose or soft-green discount.
 
 **The Faint Rule.** `input` reaches only 3.6:1 on white: field edges only, never text.
 
-**The Bite Rule.** The bitten corner is cut in the colour of what is behind the card. It sits on cards on the pale-sky ground, never on a control.
+**The Bite Rule.** The bitten corner is cut in the colour of what is behind the card. It sits on cards on the sky ground, never on a control.
 
 **The Honest Number Rule.** No figure appears that the product did not measure: no invented counters, ratings or "meals saved" until the pilot produces them.
 
@@ -290,7 +293,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 ### Hierarchy
 
-Thirteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
+Thirteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `headline` grew to 20/28 bold with Mobile v3 (SEC-48). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
 
 | Role             | Face          | Size / line | Use                                                                                |
 | ---------------- | ------------- | ----------- | ---------------------------------------------------------------------------------- |
@@ -298,7 +301,7 @@ Thirteen roles, normalised on 19 October 2026 from the 45 size, weight and leadi
 | `price-lg`       | Bricolage 700 | 22 / 25     | The price on an offer card and at checkout, totals, the digits of the sign-in code |
 | `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                        |
 | `figure-sm`      | Bricolage 700 | 12 / 16     | The discount chip                                                                  |
-| `headline`       | 600           | 18 / 25     | Section and sheet titles, a page's heading                                         |
+| `headline`       | 700           | 20 / 28     | Section and sheet titles, a page's heading                                         |
 | `bar-title`      | 600           | 17 / 22     | The top bar's title                                                                |
 | `button`         | 600           | 16 / 20     | Button labels                                                                      |
 | `title`          | 600           | 15 / 21     | Field labels, block titles, the name on a card, the place on the header            |
@@ -322,7 +325,7 @@ Mobile at 390px is the source frame for app screens; desktop is derived from it.
 
 ## Elevation & Depth
 
-Flat. Cards separate from the pale-sky ground by colour alone; photographs get a soft dark scrim where text sits on them. Only what floats over content, a sheet or a dialog, casts a shadow (`elevation.sheet`).
+Flat. Cards separate from the sky ground by colour alone; photographs get a soft dark scrim where text sits on them. Only what floats over content, a sheet or a dialog, casts a shadow (`elevation.sheet`).
 
 ## Shapes
 
@@ -332,7 +335,7 @@ Generous rounding from one scale: 20px (`2xl`) on cards, the deal card, sheets a
 
 ### Button
 
-Primary (Deep Leaf, white text) and Secondary (Leaf Wash, Deep Leaf text), 52px high, 16px radius, 24px sides. The 44px default stays for compact actions.
+Primary (Tasco blue, white text) and Secondary (Blue Wash, deepest blue text), 52px high, 16px radius, 24px sides. The 44px default stays for compact actions.
 
 ### Sticker
 
@@ -340,15 +343,15 @@ A lime pill on a photograph: stock ("Còn 2", or "Đã hết" on muted when sold
 
 ### Offer card
 
-White, 20px radius, bitten corner. Photograph (92px) with the stock sticker and the seller's avatar, then the seller (`title`), the dish (`body-sm`, muted), the window and place with a clock (`label`), and the price row: the discount chip on the left, the old price struck through and the new price (`price-lg`, Deep Leaf) on the right.
+White, 20px radius, bitten corner. Photograph (92px) with the stock sticker and the seller's avatar, then the seller (`title`), the dish (`body-sm`, muted), the window and place with a clock (`label`), and the price row: the discount chip on the left, the old price struck through and the new price (`price-lg`, Tasco blue) on the right.
 
 ### Compact offer card
 
-For two-column grids: 20px radius, photograph (132px) with the stock sticker and a Deep Leaf deal strip ("-58%" in lime, "Lấy 19:30–20:30" in white), then the dish, the price, and the seller with a small avatar.
+For two-column grids: 20px radius, photograph (132px) with the stock sticker and a Tasco blue deal strip ("-58%" in lime, "Lấy 19:30–20:30" in white), then the dish, the price, and the seller with a small avatar.
 
 ### Deal card
 
-Deep Leaf, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and up to three white tickets with the discount chip, the seller and when collection opens. Under it, a white strip with how many bags are open and when the last window closes links to the list. A mint sheet with rounded top corners rises behind their lower half to start the page.
+Deal Blue, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and up to three white tickets with the discount chip, the seller and when collection opens. Under it, a white strip with how many bags are open and when the last window closes links to the list. A sky sheet with rounded top corners rises behind their lower half to start the page.
 
 ## Do's and Don'ts
 
@@ -361,6 +364,6 @@ Deep Leaf, 20px radius, at the bottom of the header without a filter: the title 
 ### Don't:
 
 - **Don't** show a rating, a counter or any figure the product has not measured.
-- **Don't** put amber anywhere but the alert box, or lime anywhere but the header, stickers, discount chips and the deal card.
+- **Don't** put amber anywhere but the alert box, or lime anywhere but the header's pin, stickers, discount chips and the deal card.
 - **Don't** set text below 12px, or a title in Bricolage.
 - **Don't** describe food as thừa, tồn, thanh lý or giải cứu anywhere in the interface.

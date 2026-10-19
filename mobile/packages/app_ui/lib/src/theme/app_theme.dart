@@ -19,7 +19,7 @@ abstract final class AppTheme {
     return ThemeData(
       colorScheme: _colorScheme,
       // Material puts the scaffold on `surface`, the white of the cards; the
-      // page is the mint ground under them.
+      // page is the pale sky ground under them.
       scaffoldBackgroundColor: ColorTokens.background,
       textTheme: _textTheme(textStyles),
       // Pressed controls darken to their `*-hover` colour instead of rippling.

@@ -10,8 +10,8 @@ import type { HomeQuery } from "./home-query";
 const TICKET_COUNT = 3;
 
 // The bottom of the header without a filter (Figma deal card, perk strip): the biggest discounts tonight
-// as tickets on Deep Leaf, then how many bags are open and when the last window closes, linking to the
-// list. Every figure comes from the offers; with nothing to order, neither shows. The mint sheet behind
+// as tickets on the deep blue deal card, then how many bags are open and when the last window closes, linking to the
+// list. Every figure comes from the offers; with nothing to order, neither shows. The pale sheet behind
 // their lower half starts the page under the header.
 export async function TonightDeals({ query: pending }: { query: Promise<HomeQuery> }) {
   const query = await pending;
@@ -35,7 +35,7 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
       />
       <section
         aria-labelledby="tonight-deals"
-        className="relative flex flex-col gap-2.5 rounded-2xl bg-primary px-3.5 pt-3.5 pb-3 text-primary-foreground"
+        className="relative flex flex-col gap-2.5 rounded-2xl bg-deal px-3.5 pt-3.5 pb-3 text-deal-foreground"
       >
         <h2 id="tonight-deals" className="text-body-sm-strong text-fresh">
           {t("dealsTitle")}

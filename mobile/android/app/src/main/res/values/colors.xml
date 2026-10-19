@@ -2,5 +2,5 @@
 <resources>
     <!-- DESIGN.md `primary` (palette brand-800). Native resources cannot read the generated tokens:
          change it here and in ios/Runner/Base.lproj/LaunchScreen.storyboard with DESIGN.md. -->
-    <color name="launch_background">#0B4A3D</color>
+    <color name="launch_background">#0061AF</color>
 </resources>

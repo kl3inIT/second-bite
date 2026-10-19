@@ -13,7 +13,7 @@ function DropdownMenuPortal({ ...props }: MenuPrimitive.Portal.Props) {
   return <MenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />;
 }
 
-// Second Bite: "header" is a 44px round target for a capsule on the lime header, its focus ring Deep Leaf
+// Second Bite: "header" is a 44px round target for a capsule on the blue header, its focus ring Tasco blue
 // with a white gap, as the language capsule beside it.
 function DropdownMenuTrigger({
   className,

@@ -1,5 +1,6 @@
-// The leaf that sweeps across the header's top right over the lime (Figma header › sweep). It keeps its
-// drawn size and stays pinned to the right, so a wide header shows more lime instead of a stretched leaf.
+// The light sweep across the header's top right (Figma header › sweep): two bands of the pale blue over the
+// header's own blue. It keeps its drawn size and stays pinned to the right, so a wide header shows more plain
+// blue instead of a stretched sweep.
 export function HeaderSweep() {
   return (
     <svg

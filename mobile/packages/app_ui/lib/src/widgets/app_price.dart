@@ -10,7 +10,7 @@ enum AppPriceSize {
 }
 
 /// {@template app_price}
-/// The new price in Deep Leaf beside the old one struck through (DESIGN.md ›
+/// The new price in Tasco blue beside the old one struck through (DESIGN.md ›
 /// Offer card). A screen reader hears the new price, then
 /// [originalPriceLabel] ("Giá gốc 95.000đ"), never the struck figure itself.
 /// {@endtemplate}

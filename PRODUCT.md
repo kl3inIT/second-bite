@@ -44,7 +44,7 @@ Second Bite connects sellers that have genuine edible surplus with nearby people
 - States an order passes through: awaiting payment, confirmed, ready, collected, or cancelled / expired / refused with a reason. An order never looks successful before it is.
 - Delivery through a partner (Grab, Xanh SM) is not in the pilot; it appears only when an agreement and a working integration exist.
 - Pilot timeline: a running prototype with 30 sellers in Tasco Mall and 100 customers, then a beta around 16 November 2026 with 100 sellers and 300 customers.
-- **Visual world:** "Miếng cắn thứ hai", the second bite (a lime header swept by deep-leaf green, a mint ground, white cards with a bitten corner, lime stickers), taken from the Figma file "Secondbite" on 18 October 2026 and its "Mobile v2" home the same day; its tokens are in [DESIGN.md](DESIGN.md).
+- **Visual world:** "Miếng cắn thứ hai", the second bite (a Tasco blue header under a light sweep, a pale sky ground, white cards with a bitten corner, lime stickers), taken from the Figma file "Secondbite" on 18 October 2026, its "Mobile v2" home the same day and the blue of its "Mobile v3" on 19 October 2026; its tokens are in [DESIGN.md](DESIGN.md).
 - **Typefaces:** Be Vietnam Pro for text, Bricolage Grotesque for prices and figures only ([DESIGN.md](DESIGN.md)).
 - **Undecided:** the tone of voice, the Vietnamese form of the tagline.
 

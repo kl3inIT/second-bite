@@ -2,7 +2,7 @@ import 'package:app_ui/app_ui.dart';
 
 /// {@template app_offer_tile}
 /// The compact card of a grid (DESIGN.md › Compact offer card): the
-/// photograph with the stock sticker and a Deep Leaf deal strip of discount
+/// photograph with the stock sticker and a Tasco blue deal strip of discount
 /// and window, then the dish, the price and the seller, under a bitten
 /// corner. Every word is passed in, already in the reader's language.
 /// {@endtemplate}
@@ -61,7 +61,7 @@ class AppOfferTile extends StatelessWidget {
   /// Whether nothing is left: the photograph fades and the sticker says so.
   final bool soldOut;
 
-  /// The dish's photograph; a leaf wash without one.
+  /// The dish's photograph; a pale blue wash without one.
   final ImageProvider? photo;
 
   @override
@@ -180,7 +180,7 @@ class AppOfferTile extends StatelessWidget {
   }
 }
 
-/// The Deep Leaf strip at the foot of the photograph: the discount in lime
+/// The Tasco blue strip at the foot of the photograph: the discount in lime
 /// and the window in white.
 class _DealStrip extends StatelessWidget {
   const new({

@@ -2,10 +2,10 @@ import 'package:app_ui/app_ui.dart';
 
 /// Visual variants for [AppButton].
 enum AppButtonVariant {
-  /// Deep Leaf, the one main action of a screen.
+  /// Tasco blue, the one main action of a screen.
   primary,
 
-  /// The leaf wash, a soft secondary action.
+  /// The pale blue wash, a soft secondary action.
   secondary,
 
   /// An outlined button.

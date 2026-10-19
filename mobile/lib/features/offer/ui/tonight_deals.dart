@@ -5,10 +5,10 @@ import 'package:second_bite/l10n/l10n.dart';
 
 /// {@template tonight_deals}
 /// The bottom of the header without a filter (DESIGN.md › Deal card): the
-/// biggest discounts tonight as tickets on Deep Leaf, then how many bags are
-/// open and when the last window closes, leading to the list. Every figure
-/// comes from [offers]; with nothing to order, nothing shows. The mint sheet
-/// behind their lower half starts the page under the header.
+/// biggest discounts tonight as tickets on the deep blue card, then how many
+/// bags are open and when the last window closes, leading to the list. Every
+/// figure comes from [offers]; with nothing to order, nothing shows. The pale
+/// sheet behind their lower half starts the page under the header.
 /// {@endtemplate}
 class TonightDeals extends StatelessWidget {
   /// {@macro tonight_deals}
@@ -22,7 +22,7 @@ class TonightDeals extends StatelessWidget {
 
   static const _ticketCount = 3;
 
-  // Where the mint sheet starts: about half way down the deal card, as the
+  // Where the pale sheet starts: about half way down the deal card, as the
   // web's top-19.
   static const double _sheetTop = SpacingTokens.space4 * 4.75;
 
@@ -65,7 +65,7 @@ class TonightDeals extends StatelessWidget {
               children: [
                 DecoratedBox(
                   decoration: BoxDecoration(
-                    color: scheme.primary,
+                    color: colors.deal,
                     borderRadius: BorderRadius.circular(RadiusTokens.radius2xl),
                   ),
                   child: Padding(
