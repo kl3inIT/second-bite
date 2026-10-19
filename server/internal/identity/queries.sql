@@ -105,6 +105,16 @@ VALUES (@account_id, @provider, @subject, @linked_email, @email_trusted, @name, 
 -- Supabase Auth do.
 DELETE FROM identity_external_logins WHERE account_id = @account_id AND NOT email_trusted;
 
+-- name: HasUntrustedLogin :one
+-- Whether the account of the address holds a link its provider does not speak
+-- for: someone linked Google to an outside address and no emailed code has
+-- proved it since.
+SELECT EXISTS (
+    SELECT 1 FROM identity_external_logins l
+    JOIN identity_accounts a ON a.id = l.account_id
+    WHERE a.email = @email AND NOT l.email_trusted
+);
+
 -- name: DeleteAccountSessions :exec
 DELETE FROM identity_sessions WHERE account_id = @account_id;
 

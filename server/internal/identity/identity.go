@@ -116,9 +116,8 @@ func (s *Service) Accounts(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]
 
 // EnsureAccount returns the account of email, creating it when the address
 // has never signed in, as Open Food Network creates the user a manager is
-// added for. Its owner signs in with an emailed code like anyone else. The
-// account is about to be given something by its address, so the links Google
-// does not vouch for are removed first (giveByAddress).
+// added for. Its owner signs in with an emailed code like anyone else. It is
+// refused while the address is unproven (giveByAddress).
 func (s *Service) EnsureAccount(ctx context.Context, email string) (Account, error) {
 	return s.giveByAddress(ctx, email, func(q *db.Queries, email string) (Account, error) {
 		row, err := q.UpsertAccount(ctx, email)
@@ -155,12 +154,14 @@ func (s *Service) GrantRole(ctx context.Context, email string, role platform.Rol
 	return a, nil
 }
 
-// giveByAddress finds or changes the account of email with find, then removes
-// the account's links that Google does not vouch for and their sessions. A
-// role or a seller membership given by address must reach the address's owner,
-// not whoever linked a Google account to it first (design of SEC-29, decision
-// 4, and SEC-39). The address stays locked meanwhile, so a Google sign-in
-// cannot link it halfway through.
+// giveByAddress finds or changes the account of email with find, unless the
+// account holds a Google link Google does not vouch for: then the address is
+// unproven, since a stranger may have linked it before its owner arrived, and
+// a role or a seller membership given by address would reach them (design of
+// SEC-29, decision 4, and SEC-39). It is refused instead; the owner's emailed
+// code removes such links, after which it succeeds. Nothing here ends anyone's
+// sessions, so whoever gives by address cannot sign someone out. The address
+// stays locked meanwhile, so a Google sign-in cannot link it halfway through.
 func (s *Service) giveByAddress(
 	ctx context.Context, email string, find func(*db.Queries, string) (Account, error),
 ) (Account, error) {
@@ -178,11 +179,18 @@ func (s *Service) giveByAddress(
 			return fmt.Errorf("locking the address: %w", err)
 		}
 
-		if account, err = find(q, email); err != nil {
-			return err
+		unproven, err := q.HasUntrustedLogin(ctx, email)
+		if err != nil {
+			return fmt.Errorf("checking the address's links: %w", err)
 		}
 
-		return s.dropUntrustedLogins(ctx, q, account.ID)
+		if unproven {
+			return ErrAddressUnproven
+		}
+
+		account, err = find(q, email)
+
+		return err
 	})
 	if err != nil {
 		return Account{}, err

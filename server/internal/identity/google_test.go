@@ -153,15 +153,15 @@ func TestSignInWithGoogle(t *testing.T) {
 	iss := newIssuer(t)
 
 	for name, check := range map[string]func(*testing.T, *Service, issuer){
-		"a first sign-in creates the account with Google's name":                 testGoogleCreatesAccount,
-		"a returning subject keeps its account":                                  testGoogleReturningSubject,
-		"Google links an account when it speaks for the address":                 testGoogleLinksAuthoritative,
-		"an outside address with an account asks for the code":                   testGoogleLinkRequired,
-		"an unverified address is refused on a first sign-in":                    testGoogleUnverified,
-		"two first sign-ins at once make one link":                               testGoogleConcurrentFirstSignIns,
-		"an emailed code removes the links Google does not vouch for":            testCodeRemovesUntrustedLinks,
-		"privileges given by address remove the links Google does not vouch for": testPrivilegeRemovesUntrustedLinks,
-		"without client IDs Google is off":                                       testGoogleOff,
+		"a first sign-in creates the account with Google's name":      testGoogleCreatesAccount,
+		"a returning subject keeps its account":                       testGoogleReturningSubject,
+		"Google links an account when it speaks for the address":      testGoogleLinksAuthoritative,
+		"an outside address with an account asks for the code":        testGoogleLinkRequired,
+		"an unverified address is refused on a first sign-in":         testGoogleUnverified,
+		"two first sign-ins at once make one link":                    testGoogleConcurrentFirstSignIns,
+		"an emailed code removes the links Google does not vouch for": testCodeRemovesUntrustedLinks,
+		"privileges given by address wait for the owner's code":       testPrivilegeWaitsForProof,
+		"without client IDs Google is off":                            testGoogleOff,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -427,7 +427,7 @@ func testCodeRemovesUntrustedLinks(t *testing.T, s *Service, iss issuer) {
 	}
 }
 
-func testPrivilegeRemovesUntrustedLinks(t *testing.T, s *Service, iss issuer) {
+func testPrivilegeWaitsForProof(t *testing.T, s *Service, iss issuer) {
 	t.Helper()
 
 	for name, give := range map[string]func(email string) (Account, error){
@@ -436,35 +436,42 @@ func testPrivilegeRemovesUntrustedLinks(t *testing.T, s *Service, iss issuer) {
 			return s.GrantRole(t.Context(), email, platform.RoleAdmin)
 		},
 	} {
-		// Someone links their Google account to an outside address; the
-		// address is then given a privilege, which must not reach them.
+		// Someone links their Google account to an outside address; giving the
+		// address something waits until its owner proves it with the code.
 		outsideSub, p := unique()
 		outside := p + "@congtycu.vn"
 		planted := signInGoogle(t, s, iss.token(t, outsideSub, outside, nil))
 
+		if _, err := give(outside); !errors.Is(err, ErrAddressUnproven) {
+			t.Fatalf("%s before the code: err %v, want %v", name, err, ErrAddressUnproven)
+		}
+
+		if a, err := s.Account(t.Context(), planted.Account.ID); err != nil || a.Role == platform.RoleAdmin {
+			t.Errorf("%s: the refused grant changed the account: %+v, %v", name, a, err)
+		}
+
+		// Refusing signs no one out.
+		if _, err := s.findCaller(t.Context(), planted.Token); err != nil {
+			t.Errorf("%s: a refused grant ended a session: %v", name, err)
+		}
+
+		owner := signInWithCode(t, s, outside)
+
 		account, err := give(outside)
 		if err != nil {
-			t.Fatalf("%s: %v", name, err)
+			t.Fatalf("%s after the code: %v", name, err)
 		}
 
-		if account.ID != planted.Account.ID {
-			t.Fatalf("%s: given to another account", name)
+		if account.ID != owner.Account.ID {
+			t.Errorf("%s: given to another account", name)
 		}
 
-		if _, err := s.findCaller(t.Context(), planted.Token); !errors.Is(err, ErrSessionInvalid) {
-			t.Errorf("%s: the planted session still works: %v", name, err)
-		}
-
-		if _, err := s.SignInWithGoogle(t.Context(), iss.token(t, outsideSub, outside, nil), ""); !errors.Is(err, ErrGoogleLinkRequired) {
-			t.Errorf("%s: Google afterwards: err %v, want %v", name, err, ErrGoogleLinkRequired)
-		}
-
-		// Google speaks for gmail.com: that link and its session stay.
+		// Google speaks for gmail.com: giving goes ahead and the session stays.
 		trustedSub, q := unique()
 		trusted := signInGoogle(t, s, iss.token(t, trustedSub, q+"@gmail.com", nil))
 
 		if _, err := give(q + "@gmail.com"); err != nil {
-			t.Fatalf("%s: %v", name, err)
+			t.Fatalf("%s for a gmail.com address: %v", name, err)
 		}
 
 		if _, err := s.findCaller(t.Context(), trusted.Token); err != nil {
