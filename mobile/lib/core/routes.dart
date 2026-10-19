@@ -1,14 +1,51 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:second_bite/core/app_shell.dart';
+import 'package:second_bite/features/identity/ui/account_screen.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/home_screen.dart';
 
 part 'routes.g.dart';
 
-/// The customer home at `/`, the root of the route tree. Paths match the
-/// web's, so a shared link opens the same place in both apps: `?q=` words,
-/// `?kind=` one kind, `?now=1` what can be collected now.
-@TypedGoRoute<HomeRoute>(path: '/')
+/// The customer screens under the bottom bar, one branch per tab that has a
+/// screen, so each tab keeps its place when another is opened. Paths match
+/// the web's, so a shared link opens the same place in both apps.
+@TypedStatefulShellRoute<AppShellRoute>(
+  branches: [
+    TypedStatefulShellBranch<HomeBranch>(
+      routes: [TypedGoRoute<HomeRoute>(path: '/')],
+    ),
+    TypedStatefulShellBranch<AccountBranch>(
+      routes: [TypedGoRoute<AccountRoute>(path: '/account')],
+    ),
+  ],
+)
+class AppShellRoute extends StatefulShellRouteData {
+  /// The shell of the customer screens.
+  const new();
+
+  @override
+  Widget builder(
+    BuildContext context,
+    GoRouterState state,
+    StatefulNavigationShell navigationShell,
+  ) => AppShell(navigationShell: navigationShell);
+}
+
+/// The home tab.
+class HomeBranch extends StatefulShellBranchData {
+  /// The home tab.
+  const new();
+}
+
+/// The account tab.
+class AccountBranch extends StatefulShellBranchData {
+  /// The account tab.
+  const new();
+}
+
+/// The customer home at `/`: `?q=` words, `?kind=` one kind, `?now=1` what
+/// can be collected now, as on the web.
 class HomeRoute extends GoRouteData with $HomeRoute {
   /// The route to the home, filtered by what is given.
   const new({this.q, this.kind, this.now});
@@ -26,4 +63,14 @@ class HomeRoute extends GoRouteData with $HomeRoute {
   Widget build(BuildContext context, GoRouterState state) => HomeScreen(
     query: readHomeQuery(q: q, kind: kind, now: now),
   );
+}
+
+/// The account tab at `/account`, as on the web.
+class AccountRoute extends GoRouteData with $AccountRoute {
+  /// The route to the account tab.
+  const new();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const AccountScreen();
 }

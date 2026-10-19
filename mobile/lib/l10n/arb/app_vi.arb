@@ -226,5 +226,53 @@
   "errorRetry": "Thử lại",
   "@errorRetry": {
     "description": "Asks for the offers again"
+  },
+  "navLabel": "Điều hướng chính",
+  "@navLabel": {
+    "description": "The bottom bar, as a screen reader names it"
+  },
+  "navHome": "Trang chủ",
+  "@navHome": {
+    "description": "The home tab"
+  },
+  "navOrders": "Đơn của tôi",
+  "@navOrders": {
+    "description": "The orders tab, not open yet"
+  },
+  "navSaved": "Yêu thích",
+  "@navSaved": {
+    "description": "The saved sellers tab, not open yet"
+  },
+  "navAccount": "Tài khoản",
+  "@navAccount": {
+    "description": "The account tab"
+  },
+  "navSoon": "(sắp có)",
+  "@navSoon": {
+    "description": "Read after a tab that has no screen yet"
+  },
+  "accountTitle": "Tài khoản",
+  "@accountTitle": {
+    "description": "The account tab's title"
+  },
+  "accountGuestTitle": "Bạn chưa đăng nhập",
+  "@accountGuestTitle": {
+    "description": "The account card of someone signed out"
+  },
+  "accountGuestBody": "Đăng nhập để đặt món và theo dõi đơn.",
+  "@accountGuestBody": {
+    "description": "Under the signed-out title"
+  },
+  "legalLabel": "Thông tin pháp lý",
+  "@legalLabel": {
+    "description": "The list of legal pages, as a screen reader names it"
+  },
+  "legalTerms": "Điều khoản sử dụng",
+  "@legalTerms": {
+    "description": "Opens the terms of use on the web"
+  },
+  "legalPrivacy": "Chính sách quyền riêng tư",
+  "@legalPrivacy": {
+    "description": "Opens the privacy policy on the web"
   }
 }

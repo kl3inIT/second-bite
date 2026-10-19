@@ -161,4 +161,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorRetry => 'Try again';
+
+  @override
+  String get navLabel => 'Main navigation';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navOrders => 'My orders';
+
+  @override
+  String get navSaved => 'Saved';
+
+  @override
+  String get navAccount => 'Account';
+
+  @override
+  String get navSoon => '(coming soon)';
+
+  @override
+  String get accountTitle => 'Account';
+
+  @override
+  String get accountGuestTitle => 'You are not signed in';
+
+  @override
+  String get accountGuestBody => 'Sign in to order and follow your orders.';
+
+  @override
+  String get legalLabel => 'Legal';
+
+  @override
+  String get legalTerms => 'Terms of use';
+
+  @override
+  String get legalPrivacy => 'Privacy policy';
 }

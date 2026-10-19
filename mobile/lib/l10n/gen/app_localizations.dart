@@ -325,6 +325,78 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Thử lại'**
   String get errorRetry;
+
+  /// The bottom bar, as a screen reader names it
+  ///
+  /// In vi, this message translates to:
+  /// **'Điều hướng chính'**
+  String get navLabel;
+
+  /// The home tab
+  ///
+  /// In vi, this message translates to:
+  /// **'Trang chủ'**
+  String get navHome;
+
+  /// The orders tab, not open yet
+  ///
+  /// In vi, this message translates to:
+  /// **'Đơn của tôi'**
+  String get navOrders;
+
+  /// The saved sellers tab, not open yet
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu thích'**
+  String get navSaved;
+
+  /// The account tab
+  ///
+  /// In vi, this message translates to:
+  /// **'Tài khoản'**
+  String get navAccount;
+
+  /// Read after a tab that has no screen yet
+  ///
+  /// In vi, this message translates to:
+  /// **'(sắp có)'**
+  String get navSoon;
+
+  /// The account tab's title
+  ///
+  /// In vi, this message translates to:
+  /// **'Tài khoản'**
+  String get accountTitle;
+
+  /// The account card of someone signed out
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn chưa đăng nhập'**
+  String get accountGuestTitle;
+
+  /// Under the signed-out title
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập để đặt món và theo dõi đơn.'**
+  String get accountGuestBody;
+
+  /// The list of legal pages, as a screen reader names it
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin pháp lý'**
+  String get legalLabel;
+
+  /// Opens the terms of use on the web
+  ///
+  /// In vi, this message translates to:
+  /// **'Điều khoản sử dụng'**
+  String get legalTerms;
+
+  /// Opens the privacy policy on the web
+  ///
+  /// In vi, this message translates to:
+  /// **'Chính sách quyền riêng tư'**
+  String get legalPrivacy;
 }
 
 class _AppLocalizationsDelegate

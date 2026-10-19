@@ -93,6 +93,30 @@ abstract final class AppTheme {
           ),
         ),
       ),
+      // The bottom bar (Figma "Bottom nav"): white, the active tab's icon in a
+      // lime pill, its label strong; the others muted.
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: ColorTokens.shell,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        height: 64,
+        indicatorColor: ColorTokens.fresh,
+        indicatorShape: const StadiumBorder(),
+        // A tab without a screen yet is muted at half strength, as on the web.
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? textStyles.labelStrong.copyWith(color: ColorTokens.foreground)
+              : textStyles.label.copyWith(color: _navigationMuted(states)),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            size: 20,
+            color: states.contains(WidgetState.selected)
+                ? ColorTokens.freshForeground
+                : _navigationMuted(states),
+          ),
+        ),
+      ),
       dividerTheme: const DividerThemeData(
         color: ColorTokens.border,
         thickness: 1,
@@ -176,6 +200,11 @@ abstract final class AppTheme {
       elevation: const WidgetStatePropertyAll(0),
     );
   }
+
+  static Color _navigationMuted(Set<WidgetState> states) =>
+      states.contains(WidgetState.disabled)
+      ? ColorTokens.mutedForeground.withValues(alpha: 0.5)
+      : ColorTokens.mutedForeground;
 
   static OutlineInputBorder _fieldBorder(Color color, {double width = 1}) {
     return OutlineInputBorder(

@@ -155,4 +155,40 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get errorRetry => 'Thử lại';
+
+  @override
+  String get navLabel => 'Điều hướng chính';
+
+  @override
+  String get navHome => 'Trang chủ';
+
+  @override
+  String get navOrders => 'Đơn của tôi';
+
+  @override
+  String get navSaved => 'Yêu thích';
+
+  @override
+  String get navAccount => 'Tài khoản';
+
+  @override
+  String get navSoon => '(sắp có)';
+
+  @override
+  String get accountTitle => 'Tài khoản';
+
+  @override
+  String get accountGuestTitle => 'Bạn chưa đăng nhập';
+
+  @override
+  String get accountGuestBody => 'Đăng nhập để đặt món và theo dõi đơn.';
+
+  @override
+  String get legalLabel => 'Thông tin pháp lý';
+
+  @override
+  String get legalTerms => 'Điều khoản sử dụng';
+
+  @override
+  String get legalPrivacy => 'Chính sách quyền riêng tư';
 }
