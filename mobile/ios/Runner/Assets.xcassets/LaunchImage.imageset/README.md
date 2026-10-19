@@ -1,5 +1,6 @@
 # Launch Screen Assets
 
-You can customize the launch screen with your own desired assets by replacing the image files in this directory.
-
-You can also do it by opening your Flutter project's Xcode project with `open ios/Runner.xcworkspace`, selecting `Runner/Assets.xcassets` in the Project Navigator and dropping in the desired images.
+The wordmark in white, 200 points wide, centred on Deep Leaf by `Base.lproj/LaunchScreen.storyboard`. The images
+are rendered from `packages/app_ui/assets/brand/wordmark.svg` (Figma logo/wordmark, node 7:5639) with its fill set
+to white, at 1x, 2x and 3x on a transparent ground, by taking a Chromium screenshot of the SVG (Playwright's
+`locator.screenshot({ omitBackground: true })`). Render them again the same way when the wordmark changes.

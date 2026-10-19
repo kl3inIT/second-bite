@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
+    <!-- Theme applied to the Android Window while the process is starting: the white wordmark on
+         Deep Leaf (drawable/launch_background.xml). Android 12 and later use values-v31. There is
+         no dark variant until DESIGN.md defines one. -->
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <!-- Show a splash screen on the activity. Automatically removed when
              the Flutter engine draws its first frame -->
