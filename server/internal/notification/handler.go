@@ -43,7 +43,7 @@ type saveEmailSettingsInput struct {
 
 // RegisterOperations adds the module's operations to api.
 func RegisterOperations(api huma.API, s *Service) {
-	security := []map[string][]string{{platform.SecurityBearer: {}}}
+	security := platform.SignedIn()
 
 	huma.Register(api, huma.Operation{
 		OperationID: "getEmailSettings",

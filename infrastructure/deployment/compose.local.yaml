@@ -1,0 +1,37 @@
+# The whole stack on a workstation, built from this checkout, in one command from the repository root:
+#   docker compose -f infrastructure/deployment/compose.base.yaml -f infrastructure/deployment/compose.local.yaml up --build --wait
+# then http://localhost:8000. The Release workflow starts the same composition from the images it has just pushed,
+# named by SECONDBITE_SERVER_IMAGE and SECONDBITE_WEB_IMAGE, with --no-build. The password and keys below are local
+# placeholders, not the secrets of any deployed environment.
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: secondbite-local
+
+  server:
+    image: ${SECONDBITE_SERVER_IMAGE:-second-bite-server:local}
+    build:
+      context: ../../server
+    environment:
+      SECONDBITE_DATABASE_PASSWORD: secondbite-local
+      SECONDBITE_EMAIL_SETTINGS_KEY: bG9jYWwtb25seS1lbWFpbC1zZXR0aW5ncy1rZXktMDA=
+      SECONDBITE_SIGN_IN_CODE_KEY: bG9jYWwtb25seS1zaWduLWluLWNvZGUta2V5LTAwMDA=
+
+  web:
+    image: ${SECONDBITE_WEB_IMAGE:-second-bite-web:local}
+    build:
+      context: ../../web
+
+  # Stands in for the host's reverse proxy: /api goes to the server without its prefix, the rest to the web.
+  proxy:
+    image: nginx:1.31-alpine@sha256:892bb2152464f0c5d8972593a5f5afaf8054552580b699d95f8ff4af08c2d33d
+    restart: unless-stopped
+    volumes:
+      - ./local-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "127.0.0.1:8000:80"
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - internal

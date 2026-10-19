@@ -1,0 +1,34 @@
+name: Clean up images
+
+# GHCR keeps every image a Release pushes. The ten newest versions of each image stay: they cover the running and
+# previous releases, which deploy.sh keeps on the host for a rollback, with room to spare.
+"on":
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  packages: write
+
+concurrency:
+  group: ghcr-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    name: Keep the ten newest versions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        package: [second-bite-server, second-bite-web, second-bite-preview]
+    steps:
+      - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
+        with:
+          package-name: ${{ matrix.package }}
+          package-type: container
+          min-versions-to-keep: 10

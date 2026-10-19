@@ -3,6 +3,7 @@
 //	secondbite serve                      migrate the database, then serve the API
 //	secondbite admin grant EMAIL       make the account of EMAIL an admin
 //	secondbite email configure [flags]    choose who delivers email
+//	secondbite health                     exit 0 when the local server is ready
 //
 // The last two are the administrative commands of a fresh installation: the
 // first admin and the first email provider exist before anyone can sign in.
@@ -18,7 +19,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -35,7 +38,8 @@ import (
 const usage = `usage:
   secondbite serve
   secondbite admin grant EMAIL
-  secondbite email configure [flags]   (secondbite email configure -h lists them)`
+  secondbite email configure [flags]   (secondbite email configure -h lists them)
+  secondbite health`
 
 var errUsage = errors.New(usage)
 
@@ -56,6 +60,12 @@ func main() {
 func run(ctx context.Context, args []string, getenv func(string) string, stdin io.Reader, stdout io.Writer) error {
 	if len(args) == 0 {
 		return errUsage
+	}
+
+	// health needs no database: the container's health check runs it beside a
+	// serving process, in an image that has no shell or HTTP client.
+	if args[0] == "health" {
+		return health(ctx, args[1:], getenv)
 	}
 
 	app, err := assemble(ctx, getenv, stdout)
@@ -142,7 +152,9 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 			return nil, err
 		}
 
-		identities, err := identity.NewService(pool, notifications, identity.Config{CodeKey: codeKey}, logger)
+		identities, err := identity.NewService(pool, notifications, identity.Config{
+			CodeKey: codeKey, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")),
+		}, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -233,4 +245,58 @@ func fileConfig(getenv func(string) string) (file.Config, error) {
 	cfg.S3.SecretAccessKey = secret
 
 	return cfg, nil
+}
+
+// listOf splits a comma-separated setting into its non-empty, trimmed parts.
+func listOf(setting string) []string {
+	var parts []string
+
+	for part := range strings.SplitSeq(setting, ",") {
+		if part = strings.TrimSpace(part); part != "" {
+			parts = append(parts, part)
+		}
+	}
+
+	return parts
+}
+
+// health asks the server on this host's SECONDBITE_HTTP_ADDR whether it is
+// ready, as Docker's health check does.
+func health(ctx context.Context, args []string, getenv func(string) string) error {
+	if len(args) != 0 {
+		return errUsage
+	}
+
+	host, port, err := net.SplitHostPort(getenv("SECONDBITE_HTTP_ADDR"))
+	if err != nil {
+		host, port = "", "8080"
+	}
+
+	if host == "" {
+		host = "127.0.0.1"
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+net.JoinHostPort(host, port)+"/readyz", nil)
+	if err != nil {
+		return err
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("health: %w", err)
+	}
+
+	if err := res.Body.Close(); err != nil {
+		return fmt.Errorf("health: %w", err)
+	}
+
+	// /readyz answers 204 No Content when ready.
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		return fmt.Errorf("health: /readyz answered %s", res.Status)
+	}
+
+	return nil
 }

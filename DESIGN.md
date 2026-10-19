@@ -63,6 +63,7 @@ colors:
   muted-foreground: "{palette.text-muted}" # 5.6:1 on white, 5.2:1 on the ground
   accent: "{palette.brand-100}"
   accent-foreground: "{palette.brand-800}"
+  link: "{palette.brand-700}" # text links and secondary actions ("Đổi", "Chỉ đường"), 7.7:1 on white, 7.1:1 on the ground
   highlight: "{palette.accent-amber}" # the discount inside a deal strip
   highlight-foreground: "{palette.accent-amber-ink}" # 8.0:1
   fresh: "{palette.accent-lime-300}" # the stock sticker; the deal card's title on Deep Leaf
@@ -75,6 +76,7 @@ colors:
   success-foreground: "{palette.base-white}"
   warning: "{palette.alert-bg}" # allergens and waiting states; always with an icon
   warning-foreground: "{palette.alert-ink}" # 8.5:1
+  warning-border: "{palette.alert-line}" # the edge of a notice
   border: "{palette.border-line}"
   input: "{palette.text-faint}" # a field edge, 3.6:1 on white (3:1 needed for a control)
   ring: "{palette.brand-800}" # focus ring, 10.1:1 on white
@@ -251,6 +253,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 - **Deep Leaf** (`primary`): primary buttons, the deal card, prices, links and the focus ring. `primary-hover` is the pressed leaf.
 - **Lime Shell** (`shell`, `shell-foreground`): the header, with the place in the darkest leaf. **Leaf Sweep** (`sweep`, `sweep-edge`) crosses its top right.
 - **Raised** (`shell-raised`, `shell-border`): the white capsule and search field on the header.
+- **Leaf Link** (`link`): text links and secondary actions, on white or the ground.
 
 ### Secondary
 
@@ -276,7 +279,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 - **Stamp Red** (`destructive`): errors, cancelled and refused states, always with an icon or label.
 - **Leaf Stamp** (`success`): paid, ready and collected orders, always with an icon or label.
-- **Alert** (`warning`): allergens and waiting states, a pale amber box with amber ink and an icon.
+- **Alert** (`warning`, `warning-border`): allergens, waiting states and notices to read before going on, a pale amber box with amber ink, its edge and an icon.
 
 ### Named Rules
 

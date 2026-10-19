@@ -49,6 +49,11 @@ SEC-27 wrote `Path=/api`. The web renders pages on its server (`/vi/...`), and a
 
 The rest of SEC-27 stands: `HttpOnly; Secure; SameSite=Lax`, the session's 30-day sliding life, Bearer read first and the cookie only without it, and Go's `http.CrossOriginProtection` (the `Sec-Fetch-Site` and `Origin` headers) on requests authenticated by the cookie that change state. The cookie is named `secondbite_session`; the token in it is the session token SEC-10 already issues, and one session record serves both clients.
 
+Two details settled while building it:
+
+- **The browser keeps the cookie up to 400 days, the most browsers allow.** The 30-day sliding end stays the server's. A cookie that lasted only as long as the session would have to be set again each time the end moves, and pages the web renders on its server cannot pass a new cookie on to the browser; a person active every day would be signed out after 30 days.
+- **A cookie of an ended session is ignored, and the request goes on anonymously.** A Bearer token that fails is refused with 401. The web's server forwards the cookie to public operations too, such as `GET /offers`, and a refusal there would break the home page for anyone whose session ended.
+
 ### 3. Google signs in by its ID token, posted to one endpoint for the web and the mobile application
 
 Decided with the team on 18 October 2026: option A.
@@ -86,6 +91,13 @@ Google says when it is authoritative for an address: an address at `gmail.com`, 
   - **an account has it and Google is authoritative for it** (`gmail.com`, or `hd` set): the identity is linked to that account. Every way into an account here proves the address (a code sent to it), so no one can have prepared an account to catch the owner's;
   - **an account has it and Google is not authoritative** (an outside address kept on a Google account): refused with `IDENTITY_GOOGLE_LINK_REQUIRED`; the person signs in with the emailed code, which proves the address today. Linking Google from a signed-in session is added when someone needs it.
 - The account's address never changes when Google's does, as in Supabase.
+
+**Added on 18 October 2026, after a security review of the first build and agreed with the team.** Creating an account from Google for an outside address left a way in for someone else: whoever held a Google account with that address (a former owner of a reassigned address, for instance) could sign in first, and the address's owner, arriving later with the emailed code, would share the account with them. This is the "federated merge" form of account pre-hijacking (Sudhodanan and Paverd, Microsoft MSRC, 2022, who found a pre-hijacking flaw in more than 35 of the 75 most popular sites). The fix follows the products that link this way:
+
+- Firebase: "The trusted provider overwrites the untrusted provider", after which signing in with the untrusted one asks for linking ([users](https://firebase.google.com/docs/auth/users)).
+- Supabase Auth: removes the unconfirmed identities once the address is confirmed (`internal/api/external.go:412-419`).
+
+**Decided:** each link records whether Google speaks for its address (`email_trusted`). A sign-in with the emailed code proves the address and removes the account's links that are not trusted, and with them the account's sessions, which may have been opened through those links (the same study's "unexpired session" case); the owner's new session is opened after. Signing in with that Google account again is then refused with `IDENTITY_GOOGLE_LINK_REQUIRED`. Links at `gmail.com` and Workspace addresses are never removed. Refusing to create accounts from Google for outside addresses was weighed too and left out, as no comparable product was found to do it.
 
 ### 5. What is kept from Google
 

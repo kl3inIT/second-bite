@@ -21,7 +21,7 @@ permissions:
 
 concurrency:
   group: backend-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 defaults:
   run:
@@ -66,3 +66,27 @@ jobs:
         with:
           go-version-file: server/go.mod
           work-dir: server
+
+  image:
+    name: Image
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      # Layers cached in GitHub's cache, one scope per image, as BeyondPilot's CI does; a miss never fails the build.
+      - name: Build the image the server is deployed from
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: server
+          load: true
+          provenance: false
+          tags: second-bite-server
+          build-args: VCS_REF=${{ github.sha }}
+          cache-from: type=gha,scope=server
+          cache-to: type=gha,mode=max,scope=server,ignore-error=true
+      - name: The image carries its revision and refuses to start unconfigured
+        run: |
+          test "$(docker image inspect second-bite-server --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" = "${{ github.sha }}"
+          ! docker run --rm second-bite-server

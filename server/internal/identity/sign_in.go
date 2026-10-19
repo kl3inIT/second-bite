@@ -198,7 +198,11 @@ func (s *Service) SignIn(ctx context.Context, challengeID uuid.UUID, code string
 			return fmt.Errorf("finding the account: %w", err)
 		}
 
-		session, err = s.openSession(ctx, q, Account{ID: account.ID, Email: account.Email, Role: platform.Role(account.Role)})
+		if err := s.dropUntrustedLogins(ctx, q, account.ID); err != nil {
+			return err
+		}
+
+		session, err = s.openSession(ctx, q, Account{ID: account.ID, Email: account.Email, Role: platform.Role(account.Role), DisplayName: account.DisplayName})
 
 		return err
 	})
@@ -213,6 +217,34 @@ func (s *Service) SignIn(ctx context.Context, challengeID uuid.UUID, code string
 	)
 
 	return session, nil
+}
+
+// dropUntrustedLogins removes the account's links to identities whose
+// provider does not speak for the address, now that the code proved who owns
+// it. Otherwise someone who linked their Google account to the address before
+// its owner arrived would keep a way into the owner's account (account
+// pre-hijacking, design of SEC-29, decision 4). When it removes any, it ends
+// the account's sessions too, since those may be theirs; the owner's new
+// session is opened after.
+func (s *Service) dropUntrustedLogins(ctx context.Context, q *db.Queries, accountID uuid.UUID) error {
+	removed, err := q.DeleteUntrustedLogins(ctx, accountID)
+	if err != nil {
+		return fmt.Errorf("removing untrusted links: %w", err)
+	}
+
+	if removed > 0 {
+		if err := q.DeleteAccountSessions(ctx, accountID); err != nil {
+			return fmt.Errorf("ending the sessions of removed links: %w", err)
+		}
+
+		s.logger.InfoContext(ctx, "untrusted links removed",
+			slog.String("event", "identity.external_login.removed"),
+			slog.String("account_id", accountID.String()),
+			slog.Int64("count", removed),
+		)
+	}
+
+	return nil
 }
 
 func (s *Service) openSession(ctx context.Context, q *db.Queries, a Account) (Session, error) {

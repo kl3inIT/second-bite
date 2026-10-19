@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/mail"
 	"strings"
 	"time"
@@ -40,6 +41,9 @@ type Config struct {
 	// CodeKey keys the HMAC that stores sign-in codes: 32 bytes. Without it a
 	// copy of the database would let six digits be tried offline.
 	CodeKey []byte
+	// GoogleClientIDs are the OAuth client IDs whose Google ID tokens are
+	// accepted, the web's first; without any, Google is off.
+	GoogleClientIDs []string
 }
 
 // Account is a person who has signed in at least once.
@@ -47,6 +51,8 @@ type Account struct {
 	ID    uuid.UUID
 	Email string
 	Role  platform.Role
+	// DisplayName is empty until Google gives one or the person sets it.
+	DisplayName string
 }
 
 // Service is the module's published API.
@@ -56,6 +62,10 @@ type Service struct {
 	email   *notification.Service
 	codeKey []byte
 	logger  *slog.Logger
+	// crossOrigin refuses changes signed in by the cookie from other origins.
+	crossOrigin *http.CrossOriginProtection
+	// google verifies Google's ID tokens; nil when Google is off.
+	google *google
 }
 
 // NewService assembles the module.
@@ -64,7 +74,15 @@ func NewService(pool *pgxpool.Pool, email *notification.Service, cfg Config, log
 		return nil, errors.New("the sign-in code key must be 32 bytes")
 	}
 
-	return &Service{pool: pool, queries: db.New(pool), email: email, codeKey: cfg.CodeKey, logger: logger}, nil
+	s := &Service{
+		pool: pool, queries: db.New(pool), email: email, codeKey: cfg.CodeKey, logger: logger,
+		crossOrigin: http.NewCrossOriginProtection(),
+	}
+	if len(cfg.GoogleClientIDs) > 0 {
+		s.google = newGoogle(cfg.GoogleClientIDs, remoteGoogleKeys())
+	}
+
+	return s, nil
 }
 
 // Account returns the account id.
@@ -78,7 +96,7 @@ func (s *Service) Account(ctx context.Context, id uuid.UUID) (Account, error) {
 		return Account{}, fmt.Errorf("reading the account: %w", err)
 	}
 
-	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role)}, nil
+	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
 }
 
 // Accounts returns the accounts of ids that exist, keyed by id.
@@ -90,7 +108,7 @@ func (s *Service) Accounts(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]
 
 	accounts := make(map[uuid.UUID]Account, len(rows))
 	for _, r := range rows {
-		accounts[r.ID] = Account{ID: r.ID, Email: r.Email, Role: platform.Role(r.Role)}
+		accounts[r.ID] = Account{ID: r.ID, Email: r.Email, Role: platform.Role(r.Role), DisplayName: r.DisplayName}
 	}
 
 	return accounts, nil
@@ -110,7 +128,7 @@ func (s *Service) EnsureAccount(ctx context.Context, email string) (Account, err
 		return Account{}, fmt.Errorf("finding the account: %w", err)
 	}
 
-	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role)}, nil
+	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
 }
 
 // GrantRole gives the account of email the role, creating the account when
@@ -133,7 +151,7 @@ func (s *Service) GrantRole(ctx context.Context, email string, role platform.Rol
 		slog.String("role", row.Role),
 	)
 
-	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role)}, nil
+	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
 }
 
 // normalizeEmail accepts one plain address and returns it in lower case, the

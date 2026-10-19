@@ -38,12 +38,15 @@ Failures the platform answers itself:
 | `PLATFORM_REQUEST_INVALID` | 400 | The body or a parameter breaks the contract, or the body is not JSON |
 | `PLATFORM_AUTHENTICATION_REQUIRED` | 401 | An operation that needs a caller is called without one |
 | `PLATFORM_ADMIN_REQUIRED` | 403 | An admin operation is called by someone else |
+| `PLATFORM_CROSS_ORIGIN_REFUSED` | 403 | A change of state authenticated by the session cookie comes from another origin |
 | `PLATFORM_ROUTE_NOT_FOUND` | 404 | No route matches the path |
 | `PLATFORM_METHOD_NOT_ALLOWED` | 405 | The path exists for other methods, listed in `Allow` |
 | `PLATFORM_INTERNAL_FAILURE` | 500 | An uncaught error or a panic; the cause is logged with the request's identifier, never answered |
 
 ## The caller
 
-- A request with `Authorization: Bearer <token>` is authenticated by `identity` before it reaches its route, and its caller (account, session, role) is put in the request's context. Without the header the request is anonymous.
+- A request with `Authorization: Bearer <token>`, or without it the session cookie `secondbite_session`, is authenticated by `identity` before it reaches its route, and its caller (account, session, role) is put in the request's context. Without either the request is anonymous.
+- A change of state (any method but `GET`, `HEAD` and `OPTIONS`) authenticated by the cookie must come from the same origin, judged by `Sec-Fetch-Site` and `Origin` with Go's `http.CrossOriginProtection`; a request without those headers, such as the web's server, passes.
+- The contract declares both schemes, `bearer` and `cookie`; an operation that needs a caller lists either (`platform.SignedIn`), one open to anyone lists none as well (`platform.MaybeSignedIn`).
 - A module reads the caller through `platform.CallerFrom`, `RequireCaller` and `RequireAdmin`, so it authorizes without depending on `identity`.
 - Roles are `customer` and `admin`.

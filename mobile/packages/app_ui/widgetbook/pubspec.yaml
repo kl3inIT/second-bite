@@ -1,0 +1,27 @@
+name: widgetbook_catalog
+description: "Widgetbook catalog for App Ui"
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.0
+  flutter: ^3.47.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  material_ui: ^1.1.1
+  app_ui:
+    path: ..
+  widgetbook: ^3.25.0
+  widgetbook_annotation: ^3.11.0
+
+dev_dependencies:
+  build_runner: ^2.16.1
+  flutter_test:
+    sdk: flutter
+  very_good_analysis: ^11.0.0
+  widgetbook_generator: ^3.24.0
+
+flutter:
+  uses-material-design: true

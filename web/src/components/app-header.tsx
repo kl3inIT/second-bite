@@ -8,7 +8,7 @@ export function AppHeader({
   children,
 }: {
   title: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }) {
   return (
     <header className="relative overflow-hidden rounded-b-3xl bg-shell text-shell-foreground">

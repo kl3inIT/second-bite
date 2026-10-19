@@ -135,9 +135,9 @@ func (b offerSettingsBody) settings() Settings {
 }
 
 var (
-	security = []map[string][]string{{platform.SecurityBearer: {}}}
+	security = platform.SignedIn()
 	// optional is for reads anyone may make; a signed-in caller may see more.
-	optional  = []map[string][]string{{}, {platform.SecurityBearer: {}}}
+	optional  = platform.MaybeSignedIn()
 	tagOffers = []string{"Offers"}
 	tagAdmin  = []string{"Admin"}
 )

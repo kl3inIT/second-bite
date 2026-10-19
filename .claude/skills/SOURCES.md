@@ -29,5 +29,7 @@ Khi skill nói khác quyết định của repo, repo thắng:
 - flutter-apply-architecture-best-practices viết ViewModel bằng `ChangeNotifier`: dùng Notifier của Riverpod 3 (`@riverpod`) thay vào. Riverpod không có skill chính thức và repo chỉ vendor skill của đội Flutter và Very Good Ventures, nên code Riverpod theo tài liệu chính thức riverpod.dev (tra qua Context7).
 - material-theming đòi giao diện tối từ đầu: chưa làm, vì DESIGN.md chưa có giao diện tối. Màu không viết tay trong `AppColors`: token sinh từ frontmatter của DESIGN.md.
 - internationalization: câu báo lỗi lấy từ `detail` của Go theo `Accept-Language` (SEC-28), không dịch mã lỗi trong file ARB.
+- flutter-setup-localization dùng gói ảo `flutter_gen` (`synthetic-package: true`): Flutter đã bỏ gói này; file sinh vào `output-dir` trong mã nguồn (`lib/l10n/gen`) và import trực tiếp.
+- Danh sách delegate mà gen-l10n sinh ra lấy `GlobalMaterialLocalizations` của `flutter_localizations`, không có tiếng Việt cho Material của `material_ui`: dùng `GlobalMaterialLocalizations.delegates` của `material_ui` (README của material_ui, bước 2).
 - ui-package và testing gọi Very Good CLI (`very_good create app_ui_package`, `mcp__very-good-cli__*`): không bắt buộc; dùng `flutter test` và cấu trúc `mobile/` do SEC-12 phần 7 chốt.
 Cập nhật: clone lại repo nguồn và chép đè các thư mục trên.

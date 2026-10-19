@@ -13,7 +13,7 @@
 
 - Backend work in `server/`: follow [docs/guidelines/backend.md](docs/guidelines/backend.md).
 - Web work in `web/`: follow [docs/guidelines/web.md](docs/guidelines/web.md) and the checklist in [web/AGENTS.md](web/AGENTS.md).
-- Mobile work in `mobile/`: follow [docs/guidelines/mobile.md](docs/guidelines/mobile.md).
+- Mobile work in `mobile/`: follow [docs/guidelines/mobile.md](docs/guidelines/mobile.md) and the checklist in [mobile/AGENTS.md](mobile/AGENTS.md).
 
 ## Operating rules
 

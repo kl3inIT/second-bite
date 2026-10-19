@@ -5,6 +5,10 @@ export type ClientOptions = {
 };
 
 export type AccountBody = {
+    /**
+     * Empty until Google gives one or the person sets it
+     */
+    displayName: string;
     email: string;
     id: string;
     role: 'customer' | 'admin';
@@ -94,6 +98,28 @@ export type FoundOutputBody = {
     offers: Array<FoundBody>;
 };
 
+export type GoogleMethodBody = {
+    /**
+     * The OAuth client ID the web's Google button uses
+     */
+    clientId: string;
+};
+
+export type GoogleSignInInputBody = {
+    /**
+     * The ID token Google's sign-in handed the page or the application
+     */
+    idToken: string;
+    /**
+     * The value whose SHA-256 was given to Google as the nonce; required when the token carries one
+     */
+    nonce?: string;
+    /**
+     * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
+     */
+    session?: 'token' | 'cookie';
+};
+
 export type MemberBody = {
     accountId: string;
     addedAt: string;
@@ -103,6 +129,13 @@ export type MemberBody = {
 
 export type MembersOutputBody = {
     members: Array<MemberBody> | null;
+};
+
+export type MethodsOutputBody = {
+    /**
+     * Present when signing in with Google is available
+     */
+    google?: GoogleMethodBody;
 };
 
 export type OfferBody = {
@@ -348,9 +381,9 @@ export type SessionOutputBody = {
      */
     expiresAt: string;
     /**
-     * Send it as Authorization: Bearer <token>; it is shown only now
+     * Send it as Authorization: Bearer <token>; it is shown only now, and not when the cookie was asked for
      */
-    token: string;
+    token?: string;
 };
 
 export type SetSellerPhotoRequest = {
@@ -366,6 +399,10 @@ export type SignInInputBody = {
      * The six digits of the email
      */
     code: string;
+    /**
+     * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
+     */
+    session?: 'token' | 'cookie';
 };
 
 export type Violation = {
@@ -612,6 +649,56 @@ export type BlockSellerResponses = {
 };
 
 export type BlockSellerResponse = BlockSellerResponses[keyof BlockSellerResponses];
+
+export type SignInWithGoogleData = {
+    body: GoogleSignInInputBody;
+    path?: never;
+    query?: never;
+    url: '/auth/google';
+};
+
+export type SignInWithGoogleErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SignInWithGoogleError = SignInWithGoogleErrors[keyof SignInWithGoogleErrors];
+
+export type SignInWithGoogleResponses = {
+    /**
+     * Created
+     */
+    201: SessionOutputBody;
+};
+
+export type SignInWithGoogleResponse = SignInWithGoogleResponses[keyof SignInWithGoogleResponses];
+
+export type GetSignInMethodsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/methods';
+};
+
+export type GetSignInMethodsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetSignInMethodsError = GetSignInMethodsErrors[keyof GetSignInMethodsErrors];
+
+export type GetSignInMethodsResponses = {
+    /**
+     * OK
+     */
+    200: MethodsOutputBody;
+};
+
+export type GetSignInMethodsResponse = GetSignInMethodsResponses[keyof GetSignInMethodsResponses];
 
 export type SignInData = {
     body: SignInInputBody;

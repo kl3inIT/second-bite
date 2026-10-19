@@ -48,18 +48,18 @@ SELECT EXISTS (
 -- name: UpsertAccount :one
 INSERT INTO identity_accounts (email) VALUES (@email)
 ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
-RETURNING id, email, role;
+RETURNING id, email, role, display_name;
 
 -- name: GrantRole :one
 INSERT INTO identity_accounts (email, role) VALUES (@email, @role)
 ON CONFLICT (email) DO UPDATE SET role = EXCLUDED.role
-RETURNING id, email, role;
+RETURNING id, email, role, display_name;
 
 -- name: GetAccounts :many
-SELECT id, email, role FROM identity_accounts WHERE id = ANY(@ids::uuid[]);
+SELECT id, email, role, display_name FROM identity_accounts WHERE id = ANY(@ids::uuid[]);
 
 -- name: GetAccount :one
-SELECT id, email, role FROM identity_accounts WHERE id = @id;
+SELECT id, email, role, display_name FROM identity_accounts WHERE id = @id;
 
 -- name: InsertSession :one
 INSERT INTO identity_sessions (account_id, token_hash, expires_at)
@@ -81,3 +81,43 @@ DELETE FROM identity_sessions WHERE id = @id;
 
 -- name: DeleteExpiredSessions :exec
 DELETE FROM identity_sessions WHERE account_id = @account_id AND expires_at <= now();
+
+-- name: LockSubject :exec
+-- Serializes the sign-ins of one external identity until the transaction ends.
+SELECT pg_advisory_xact_lock(hashtextextended('identity:' || @provider::text || ':' || @subject::text, 0));
+
+-- name: FindExternalLogin :one
+SELECT account_id FROM identity_external_logins WHERE provider = @provider AND subject = @subject;
+
+-- name: RefreshExternalLogin :execrows
+-- The name and the picture follow the provider's at each sign-in.
+UPDATE identity_external_logins
+SET name = @name, picture_url = @picture_url, last_used_at = now()
+WHERE provider = @provider AND subject = @subject;
+
+-- name: InsertExternalLogin :exec
+INSERT INTO identity_external_logins (account_id, provider, subject, linked_email, email_trusted, name, picture_url)
+VALUES (@account_id, @provider, @subject, @linked_email, @email_trusted, @name, @picture_url);
+
+-- name: DeleteUntrustedLogins :execrows
+-- An emailed code proved the address: links whose provider does not speak
+-- for it may belong to someone else and are removed, as Firebase and
+-- Supabase Auth do.
+DELETE FROM identity_external_logins WHERE account_id = @account_id AND NOT email_trusted;
+
+-- name: DeleteAccountSessions :exec
+DELETE FROM identity_sessions WHERE account_id = @account_id;
+
+-- name: FindAccountByEmail :one
+SELECT id, email, role, display_name FROM identity_accounts WHERE email = @email;
+
+-- name: InsertAccount :one
+INSERT INTO identity_accounts (email) VALUES (@email)
+RETURNING id, email, role, display_name;
+
+-- name: FillDisplayName :one
+-- Gives the account a name when it has none; one the person chose is kept.
+UPDATE identity_accounts
+SET display_name = CASE WHEN display_name = '' THEN @display_name ELSE display_name END
+WHERE id = @id
+RETURNING id, email, role, display_name;

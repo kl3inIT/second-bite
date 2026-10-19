@@ -1,0 +1,58 @@
+# Staging on the shared host (docs/runbooks/ci-cd.md), the overlay of compose.base.yaml. deploy.sh names the images
+# by digest; secrets are files under /apps/secondbite-staging/secrets. The host's Nginx Proxy Manager, on the external
+# proxy-network, reaches the web and the server by their container names; nothing publishes a host port.
+services:
+  postgres:
+    container_name: secondbite-staging-postgres
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/database_password
+    secrets:
+      - database_password
+
+  server:
+    container_name: secondbite-staging-server
+    image: ${SECONDBITE_SERVER_IMAGE:?the server image is named by deploy.sh}
+    # Each secret is mounted as a file named after the variable it replaces, which the server reads from /run/secrets.
+    secrets:
+      - source: database_password
+        target: SECONDBITE_DATABASE_PASSWORD
+      - source: email_settings_key
+        target: SECONDBITE_EMAIL_SETTINGS_KEY
+      - source: sign_in_code_key
+        target: SECONDBITE_SIGN_IN_CODE_KEY
+    networks:
+      - internal
+      - proxy
+
+  web:
+    container_name: secondbite-staging-web
+    image: ${SECONDBITE_WEB_IMAGE:?the web image is named by deploy.sh}
+    networks:
+      - internal
+      - proxy
+
+  # The Flutter app in a browser, for the team only, at preview.secondbite.vadan.app (docs/guidelines/mobile.md).
+  # Its image carries its own health check; it reaches nothing but the proxy.
+  preview:
+    container_name: secondbite-staging-preview
+    image: ${SECONDBITE_PREVIEW_IMAGE:?the preview image is named by deploy.sh}
+    restart: unless-stopped
+    networks:
+      - proxy
+
+# Each file is owned by uid 65532, the distroless nonroot user of the server, with mode 0400: Compose mounts it as
+# it is on the host. PostgreSQL reads its own as root.
+secrets:
+  database_password:
+    file: /apps/secondbite-staging/secrets/database-password
+  # 32 random bytes in base64 that seal the email provider's key in the database.
+  email_settings_key:
+    file: /apps/secondbite-staging/secrets/email-settings-key
+  # 32 random bytes in base64 that key the HMAC of stored sign-in codes.
+  sign_in_code_key:
+    file: /apps/secondbite-staging/secrets/sign-in-code-key
+
+networks:
+  proxy:
+    external: true
+    name: proxy-network

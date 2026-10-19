@@ -4,7 +4,7 @@ This page states what is implemented today. Intended outcomes are in [docs/visio
 
 ## Runtime overview
 
-The backend and the web application run on a developer's machine and in tests; nothing is deployed, and no mobile application exists.
+The backend and the web application run on a developer's machine, in tests, and as container images (`server/Dockerfile`, `web/Dockerfile`) that a release deploys to staging with Docker Compose on a shared host ([releases and delivery](docs/runbooks/ci-cd.md)). The Flutter application in `mobile/` is a skeleton, built in CI.
 
 - One Go binary, `secondbite` (`server/cmd/secondbite`). At startup it reads its configuration, opens a PostgreSQL pool, applies the pending migrations under a lock, and serves the HTTP API until SIGINT or SIGTERM, then lets requests in flight finish ([runbook](docs/runbooks/backend.md)).
 - PostgreSQL 18 with PostGIS 3.6, with the tables of `identity`, `notification`, `seller` and `file`; files are kept in PostgreSQL unless an S3-compatible store is configured.
@@ -14,7 +14,7 @@ The backend and the web application run on a developer's machine and in tests; n
 - Two administrative commands set up a fresh installation: `secondbite email configure` and `secondbite admin grant`.
 - The API answers the probes `/livez` and `/readyz`, serves its OpenAPI 3.1 contract, and answers every error, an unknown route included, as an RFC 9457 problem with a `code` and the request's `requestId`.
 - Every request has an identifier, returned in `X-Request-Id` and logged as `request_id`.
-- The web application (`web/`, Next.js) has one screen of the product: the customer home, tonight's offers at Tasco Mall with search and filters by kind, read from `GET /offers` through the generated SDK; the cards show what can be ordered, then what has sold out. Besides it, a language switch and not-found and error pages, in Vietnamese under `/vi` and English under `/en`. It calls the API as `/api/...` on its own origin through a client generated from `api/openapi.yaml`; in development Next.js forwards those calls to the Go server ([web guideline](docs/guidelines/web.md)).
+- The web application (`web/`, Next.js) has one screen of the product: the customer home, tonight's offers at Tasco Mall with search and filters by kind, read from `GET /offers` through the generated SDK; the cards show what can be ordered, then what has sold out. Besides it, the terms of use and the privacy policy (`/terms`, `/privacy`, drafts until the founder and a lawyer review them, linked from every page's foot), a language switch and not-found and error pages, in Vietnamese under `/vi` and English under `/en`. It calls the API as `/api/...` on its own origin through a client generated from `api/openapi.yaml`; in development Next.js forwards those calls to the Go server ([web guideline](docs/guidelines/web.md)).
 
 ## Code and capability boundaries
 

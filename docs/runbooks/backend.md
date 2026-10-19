@@ -41,6 +41,12 @@ Then serve:
 go run ./cmd/secondbite serve
 ```
 
+To offer signing in with Google, set the OAuth client IDs whose tokens are accepted, the web's first, comma-separated. A client ID is public, but it belongs to whoever owns the Google Cloud project, so it lives in each environment's configuration and never in Git. Create a client of type "Web application" in that project, with `http://localhost:3000` among its authorised JavaScript origins, and while its consent screen is in testing mode add each person who signs in as a test user.
+
+```sh
+export SECONDBITE_GOOGLE_CLIENT_IDS="<the web client's ID>"
+```
+
 Every email the service sends appears in Mailpit at <http://127.0.0.1:8025>. To sign in, `POST /auth/sign-in-codes` with `{"email": "you@example.com"}`, read the code in Mailpit, `POST /auth/sessions` with the `challengeId` and the `code`, and send the `token` it answers as `Authorization: Bearer <token>`.
 
 The service migrates the database at every command, then `serve` listens on `:8080`:
