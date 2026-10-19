@@ -197,4 +197,130 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get legalPrivacy => 'Privacy policy';
+
+  @override
+  String get topBarBack => 'Back';
+
+  @override
+  String get accountSignIn => 'Sign in';
+
+  @override
+  String accountMenu(String email) {
+    return 'Account $email';
+  }
+
+  @override
+  String accountSignedInAs(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
+  String get accountSignOut => 'Sign out';
+
+  @override
+  String get accountSignedIn => 'Signed in';
+
+  @override
+  String get signInTitle => 'Sign in';
+
+  @override
+  String get signInHeading => 'Sign in to order';
+
+  @override
+  String get signInOr => 'or use your email';
+
+  @override
+  String get signInGoogle => 'Continue with Google';
+
+  @override
+  String get signInEmailLabel => 'Email';
+
+  @override
+  String get signInEmailPlaceholder => 'name@gmail.com';
+
+  @override
+  String get signInSendCode => 'Send code';
+
+  @override
+  String get signInSendCodeHere => 'Send a code to this address';
+
+  @override
+  String get signInSending => 'Sending the code…';
+
+  @override
+  String signInLegal(String terms, String privacy) {
+    return 'By continuing, you agree to the $terms and the $privacy.';
+  }
+
+  @override
+  String get signInCodeHeading => 'Check your email';
+
+  @override
+  String signInCodeSent(String email) {
+    return 'We sent a 6-digit sign-in code to $email.';
+  }
+
+  @override
+  String get signInChangeEmail => 'Change email';
+
+  @override
+  String get signInCodeLabel => 'The 6-digit sign-in code';
+
+  @override
+  String get signInConfirm => 'Confirm';
+
+  @override
+  String get signInConfirming => 'Confirming…';
+
+  @override
+  String signInResendIn(String time) {
+    return 'Send a new code in $time';
+  }
+
+  @override
+  String get signInResend => 'Send a new code';
+
+  @override
+  String get signInGoogleNeedsCodeTitle =>
+      'This address already has an account';
+
+  @override
+  String signInGoogleNeedsCodeBody(String email) {
+    return '$email already has a Second Bite account. Get a code at this address to sign in.';
+  }
+
+  @override
+  String get signInGoogleNeedsCodeBodyNoAddress =>
+      'This Google account\'s address already has a Second Bite account. Get a code by email to sign in.';
+
+  @override
+  String get signInEmailInvalid =>
+      'Enter one email address, such as name@gmail.com.';
+
+  @override
+  String get signInCodeLimit =>
+      'Too many codes were asked for this address. Wait a while, then try again.';
+
+  @override
+  String get signInCodeIncorrect =>
+      'The code is not right. Check the latest email and enter it again.';
+
+  @override
+  String get signInCodeGone =>
+      'This code has expired or was already used. Send a new code.';
+
+  @override
+  String get signInGoogleUnverified =>
+      'Google has not confirmed this address. Sign in with a code sent by email.';
+
+  @override
+  String get signInFailed => 'You could not be signed in. Please try again.';
+
+  @override
+  String signInFailedWithReference(String reference) {
+    return 'You could not be signed in. Please try again. Reference: $reference';
+  }
+
+  @override
+  String get signInNotArrived => 'No email yet? Check your spam folder.';
 }

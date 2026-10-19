@@ -13,6 +13,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
 - [SEC-11 — The `offer` module](increments/active/sec-11-offer-module/design.md): sellers post surplus with a photo and post it again in two fields, announce expected surplus by hand or by a weekly schedule and confirm it; customers find offers near them and follow sellers and announcements by email; photos in a new `file` module. Flow decided on 18 October 2026; steps 2 to 4 built.
 - [SEC-29 — Signing in on the web](increments/active/sec-29-web-sign-in/design.md), with SEC-27: the session in an httpOnly cookie, the sign-in page with the emailed code and Google, linking by Google's authoritative addresses. Proposed on 18 October 2026.
+- [SEC-43 — Signing in on the app](increments/active/sec-43-app-sign-in/design.md): the Flutter application's sign-in with the emailed code and Google, the session as a Bearer token in the platform's secure store, and the web's Lucide icons. Built on 19 October 2026; checked on a device before the beta.
 
 ## Candidates
 

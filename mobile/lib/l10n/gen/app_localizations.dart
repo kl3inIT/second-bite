@@ -397,6 +397,216 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Chính sách quyền riêng tư'**
   String get legalPrivacy;
+
+  /// The top bar's back button, read by a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Quay lại'**
+  String get topBarBack;
+
+  /// The header capsule and the account tab's button that open sign-in
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập'**
+  String get accountSignIn;
+
+  /// The header's account button, read by a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Tài khoản {email}'**
+  String accountMenu(String email);
+
+  /// At the top of the header's account menu
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã đăng nhập: {email}'**
+  String accountSignedInAs(String email);
+
+  /// Ends the session
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng xuất'**
+  String get accountSignOut;
+
+  /// Under the address on the account tab
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã đăng nhập'**
+  String get accountSignedIn;
+
+  /// The sign-in screen's top bar
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập'**
+  String get signInTitle;
+
+  /// The sign-in screen's heading
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập để đặt món'**
+  String get signInHeading;
+
+  /// The divider between Google and the email field
+  ///
+  /// In vi, this message translates to:
+  /// **'hoặc dùng email'**
+  String get signInOr;
+
+  /// Google's button, in Google's own wording
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiếp tục với Google'**
+  String get signInGoogle;
+
+  /// The email field's label
+  ///
+  /// In vi, this message translates to:
+  /// **'Email'**
+  String get signInEmailLabel;
+
+  /// Hint in the empty email field
+  ///
+  /// In vi, this message translates to:
+  /// **'ten@gmail.com'**
+  String get signInEmailPlaceholder;
+
+  /// Sends a code to the address
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi mã'**
+  String get signInSendCode;
+
+  /// Sends a code to the address Google gave
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi mã đến email này'**
+  String get signInSendCodeHere;
+
+  /// The send button while the code is sent
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang gửi mã…'**
+  String get signInSending;
+
+  /// Under the form; terms and privacy are links named by legalTerms and legalPrivacy
+  ///
+  /// In vi, this message translates to:
+  /// **'Khi tiếp tục, bạn đồng ý với {terms} và {privacy}.'**
+  String signInLegal(String terms, String privacy);
+
+  /// The code step's heading
+  ///
+  /// In vi, this message translates to:
+  /// **'Kiểm tra email của bạn'**
+  String get signInCodeHeading;
+
+  /// Where the code was sent; the address is bold
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã đăng nhập 6 số đã gửi đến {email}.'**
+  String signInCodeSent(String email);
+
+  /// Goes back to the email step
+  ///
+  /// In vi, this message translates to:
+  /// **'Đổi email'**
+  String get signInChangeEmail;
+
+  /// The code field, read by a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã đăng nhập 6 số'**
+  String get signInCodeLabel;
+
+  /// Confirms the code
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác nhận'**
+  String get signInConfirm;
+
+  /// The confirm button while the code is checked
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang xác nhận…'**
+  String get signInConfirming;
+
+  /// The wait before a new code can be sent
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi lại mã sau {time}'**
+  String signInResendIn(String time);
+
+  /// Sends a new code
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi lại mã'**
+  String get signInResend;
+
+  /// When Google cannot sign in to an existing account
+  ///
+  /// In vi, this message translates to:
+  /// **'Email này đã có tài khoản'**
+  String get signInGoogleNeedsCodeTitle;
+
+  /// Asks for the emailed code instead of Google
+  ///
+  /// In vi, this message translates to:
+  /// **'{email} đã có tài khoản Second Bite. Nhận mã qua email này để đăng nhập.'**
+  String signInGoogleNeedsCodeBody(String email);
+
+  /// As signInGoogleNeedsCodeBody when the address is not known
+  ///
+  /// In vi, this message translates to:
+  /// **'Email của tài khoản Google này đã có tài khoản Second Bite. Nhận mã qua email để đăng nhập.'**
+  String get signInGoogleNeedsCodeBodyNoAddress;
+
+  /// The address is not one
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập một địa chỉ email, ví dụ ten@gmail.com.'**
+  String get signInEmailInvalid;
+
+  /// Too many codes for the address
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.'**
+  String get signInCodeLimit;
+
+  /// A wrong code
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.'**
+  String get signInCodeIncorrect;
+
+  /// An expired or used code
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.'**
+  String get signInCodeGone;
+
+  /// Google has not verified the address
+  ///
+  /// In vi, this message translates to:
+  /// **'Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.'**
+  String get signInGoogleUnverified;
+
+  /// Any other failure
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa đăng nhập được. Vui lòng thử lại.'**
+  String get signInFailed;
+
+  /// Any other failure, with the request's reference
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: {reference}'**
+  String signInFailedWithReference(String reference);
+
+  /// Under the code field
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa thấy email? Xem trong thư rác (Spam).'**
+  String get signInNotArrived;
 }
 
 class _AppLocalizationsDelegate

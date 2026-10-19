@@ -120,8 +120,9 @@ function search(url) {
 }
 
 // Signing in (SEC-29), as api/openapi.yaml describes it: the code 123456 is right and any other is not; the
-// address limit@example.com has asked for too many codes. A right code sets the session cookie, as the Go
-// server does for the web, and GET /accounts/me reads it. Google is off unless STUB_GOOGLE_CLIENT_ID is set.
+// address limit@example.com has asked for too many codes. A right code sets the session cookie when the web
+// asks for it ("session": "cookie"), and otherwise answers the token for the app's Bearer header, as the Go
+// server does; GET /accounts/me and sign-out read either, the header first. Google is off unless STUB_GOOGLE_CLIENT_ID is set.
 const sessionCookie = "secondbite_session";
 // One session per address, so tests running side by side do not sign each other out.
 const accounts = new Map();
@@ -154,6 +155,8 @@ async function readBody(request) {
 }
 
 function tokenOf(request) {
+  const bearer = /^Bearer (.+)$/.exec(request.headers.authorization ?? "")?.[1];
+  if (bearer) return bearer;
   const cookie = request.headers.cookie ?? "";
   return new RegExp(`(?:^|; )${sessionCookie}=([^;]+)`).exec(cookie)?.[1];
 }
@@ -177,7 +180,7 @@ async function auth(request, response, url) {
     return true;
   }
   if (request.method === "POST" && url.pathname === "/auth/sessions") {
-    const { challengeId, code } = await readBody(request);
+    const { challengeId, code, session } = await readBody(request);
     if (code !== "123456") {
       problem(response, 422, "IDENTITY_CODE_INCORRECT");
       return true;
@@ -187,14 +190,18 @@ async function auth(request, response, url) {
     const token = `stub-${Buffer.from(email).toString("hex")}`;
     accounts.set(token, account);
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    json(
-      response,
-      201,
-      { account, expiresAt },
-      {
-        "set-cookie": `${sessionCookie}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=34560000`,
-      },
-    );
+    if (session === "cookie") {
+      json(
+        response,
+        201,
+        { account, expiresAt },
+        {
+          "set-cookie": `${sessionCookie}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=34560000`,
+        },
+      );
+    } else {
+      json(response, 201, { account, expiresAt, token });
+    }
     return true;
   }
   if (request.method === "DELETE" && url.pathname === "/auth/sessions/current") {

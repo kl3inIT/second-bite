@@ -29,6 +29,8 @@ flutter:
   # (node 7:5639) exports it; the launch screens' rasters are drawn from it.
   assets:
     - assets/brand/wordmark.svg
+    # Google's "G" from its sign-in branding kit, for AppGoogleButton.
+    - assets/brand/google-g.svg
     - assets/fonts/BeVietnamPro-OFL.txt
     - assets/fonts/BricolageGrotesque-OFL.txt
   # DESIGN.md's typefaces with the Vietnamese marks, from Google Fonts under the

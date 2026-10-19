@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:second_bite/core/api.dart';
 import 'package:second_bite/core/language_button.dart';
 import 'package:second_bite/core/routes.dart';
+import 'package:second_bite/features/identity/ui/account_action.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/home_header.dart';
 import 'package:second_bite/features/offer/ui/home_offers.dart';
@@ -67,7 +68,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: AppHomeHeader(
                   maxContentWidth: _maxContentWidth,
                   title: const PlaceHeading(),
-                  action: const LanguageButton(),
+                  action: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: SpacingTokens.space1,
+                    children: [
+                      AccountAction(
+                        returnTo: HomeRoute(
+                          q: query.q,
+                          kind: query.kind?.json,
+                          now: query.now ? '1' : null,
+                        ).location,
+                      ),
+                      const LanguageButton(),
+                    ],
+                  ),
                   children: [
                     SearchField(value: query.q),
                     if (tonight != null)

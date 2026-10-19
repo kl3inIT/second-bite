@@ -1,0 +1,2 @@
+GOOGLE_IOS_CLIENT_ID=<the iOS OAuth client ID>.apps.googleusercontent.com
+GOOGLE_REVERSED_CLIENT_ID=com.googleusercontent.apps.<the iOS OAuth client ID without .apps.googleusercontent.com>
