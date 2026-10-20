@@ -296,7 +296,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get legalPrivacySection3Body =>
-      'Sign-in codes: deleted once used, when a newer one is requested, or a day after they were sent at the latest.\n\nSessions: end after 30 days without use; deleted when you sign out.\n\nPhotos uploaded but never used for a dish or a shop: deleted after a day.\n\nAccounts, shops, posted dishes and orders: kept until you ask us to delete them, except what the law requires us to keep longer.';
+      'Sign-in codes: deleted once used, when a newer one is requested, or a day after they were sent at the latest.\n\nSessions: end after 30 days without use; deleted when you sign out.\n\nPhotos uploaded but never used for a dish or a shop: deleted after a day.\n\nAccounts, shops, posted dishes and orders: kept until you delete your account or ask us to delete them, except what the law requires us to keep longer.\n\nWhen you delete your account: the account, its sessions, its Google link, sign-in codes and the record of the emails we sent you are deleted at once; your place in shops and the photos you never used go within minutes. Posted dishes, their photos and shop photos belong to the shop and stay, no longer linked to you; a shop you own is closed.';
 
   @override
   String get legalPrivacySection4Title => '4. Who can see your data';
@@ -310,7 +310,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get legalPrivacySection5Body =>
-      'You may know about, see, correct and ask us to delete your data; withdraw your consent; ask us to restrict processing; and complain, under the Personal Data Protection Law 2025.\n\nYou can change your display name yourself. For anything else, write to the contact in section 1; we answer within the time the law sets, and if we cannot delete something for a legitimate reason, we tell you why.';
+      'You may know about, see, correct and ask us to delete your data; withdraw your consent; ask us to restrict processing; and complain, under the Personal Data Protection Law 2025.\n\nYou can delete your account yourself in the app (Account → Delete account) or on the web at /delete-account, after typing the code we email to the account\'s address.\n\nYou can change your display name yourself. For anything else, write to the contact in section 1; we answer within the time the law sets, and if we cannot delete something for a legitimate reason, we tell you why.';
 
   @override
   String get legalPrivacySection6Title => '6. Cookies and browser storage';
