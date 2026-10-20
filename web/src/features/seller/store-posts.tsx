@@ -66,7 +66,7 @@ export async function StorePosts({
         aria-labelledby="store-posts"
         className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground"
       >
-        <h2 id="store-posts" className="text-title-lg">
+        <h2 id="store-posts" className="text-card-title">
           {t("today")}
         </h2>
         <nav aria-label={t("tabs")}>
@@ -83,10 +83,10 @@ export async function StorePosts({
                 >
                   <span
                     className={cn(
-                      "flex h-9 items-center rounded-full border px-3.5 text-label-strong whitespace-nowrap transition-colors",
+                      "flex h-9.5 items-center rounded-full border px-4 whitespace-nowrap transition-colors",
                       name === tab
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-card text-foreground group-hover/chip:bg-secondary",
+                        ? "border-primary bg-primary text-body-sm-strong text-primary-foreground"
+                        : "border-border bg-card text-body-sm text-foreground group-hover/chip:bg-secondary",
                     )}
                   >
                     {t(`tab.${name}`, { count: groups[name].length })}
