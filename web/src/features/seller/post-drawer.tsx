@@ -19,6 +19,7 @@ import { changeOffer, postOffer, uploadPhoto, type OfferBody } from "@/lib/api/g
 import { cn } from "@/lib/utils";
 
 import { Chip } from "./chip";
+import { NumberInput } from "./number-input";
 import {
   clock,
   type Dish,
@@ -94,9 +95,7 @@ function startingPrice(original: number | undefined): string {
   return suggested ? String(suggested) : "";
 }
 
-const digits = (value: string) => value.replace(/\D/g, "");
 const grouped = new Intl.NumberFormat("vi-VN");
-const shown = (value: string) => (value ? grouped.format(Number(value)) : "");
 
 // The drawer that posts a dish (SEC-57, Figma P1 to P3, P2b, P3b, P3e, R1): the kind of post, the dish, then how
 // it sells. Posting again from a closed post (`again`) starts at the last step with that dish filled in.
@@ -514,24 +513,23 @@ export function PostDrawer({
               <div className="grid grid-cols-3 gap-3">
                 <Field data-invalid={(tried && !unitsValid) || undefined}>
                   <FieldLabel htmlFor="post-units">{t("units")}</FieldLabel>
-                  <Input
+                  <NumberInput
                     id="post-units"
-                    inputMode="numeric"
                     value={units}
-                    onChange={(event) => setUnits(digits(event.target.value).slice(0, 3))}
+                    max={3}
+                    onValueChange={setUnits}
                     aria-invalid={(tried && !unitsValid) || undefined}
                     aria-describedby={ordered > 0 ? "post-units-note" : undefined}
                   />
                 </Field>
                 <Field data-invalid={(tried && priceIssue === "missing" && !original) || undefined}>
                   <FieldLabel htmlFor="post-original">{t("original")}</FieldLabel>
-                  <Input
+                  <NumberInput
                     id="post-original"
-                    inputMode="numeric"
-                    value={shown(original)}
+                    value={original}
+                    grouped
                     disabled={locked}
-                    onChange={(event) => {
-                      const next = digits(event.target.value).slice(0, 9);
+                    onValueChange={(next) => {
                       setOriginal(next);
                       if (!priceTouched) setPrice(startingPrice(Number(next)));
                     }}
@@ -539,13 +537,13 @@ export function PostDrawer({
                 </Field>
                 <Field data-invalid={showPriceError || undefined}>
                   <FieldLabel htmlFor="post-price">{t("price")}</FieldLabel>
-                  <Input
+                  <NumberInput
                     id="post-price"
-                    inputMode="numeric"
-                    value={shown(price)}
+                    value={price}
+                    grouped
                     disabled={locked}
-                    onChange={(event) => {
-                      setPrice(digits(event.target.value).slice(0, 9));
+                    onValueChange={(next) => {
+                      setPrice(next);
                       setPriceTouched(true);
                     }}
                     aria-invalid={showPriceError || undefined}
