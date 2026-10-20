@@ -64,6 +64,11 @@ type dishOutput struct {
 	Body dishBody
 }
 
+type addDishInput struct {
+	SellerID uuid.UUID `path:"sellerId"`
+	Body     dishDetailsBody
+}
+
 var tagCatalog = []string{"Catalog"}
 
 func registerCatalogOperations(api huma.API, s *Service) {
@@ -105,11 +110,7 @@ func registerCatalogOperations(api huma.API, s *Service) {
 		Summary:     "Add a dish to a seller's catalog",
 		Description: "The stable base of a dish. A post copies it; a later change to the dish does not change a post.",
 		Tags:        tagCatalog, Security: security, DefaultStatus: http.StatusCreated,
-	}, func(ctx context.Context, in *struct {
-		SellerID uuid.UUID `path:"sellerId"`
-		Body     dishDetailsBody
-	},
-	) (*dishOutput, error) {
+	}, func(ctx context.Context, in *addDishInput) (*dishOutput, error) {
 		d, err := s.AddDish(ctx, in.SellerID, in.Body.details())
 		if err != nil {
 			return nil, err
