@@ -10,38 +10,49 @@ import { PostToast } from "./post-toast";
 import { requireStore } from "./require-store";
 import { groupByTab, postTabs, readPostTab } from "./store-offers";
 
+/** The line at the foot for what was just done, or nothing when the address carries nothing known. */
+function noticeMessage(
+  notice: string | undefined,
+  t: Awaited<ReturnType<typeof getTranslations<"StorePosts">>>,
+): string | undefined {
+  if (notice === "saved") return t("saved");
+  if (notice === "withdrawn") return t("withdrawn");
+  const units = Number(/^posted:(\d+)$/.exec(notice ?? "")?.[1]);
+  return units > 0 ? t("posted", { count: units }) : undefined;
+}
+
 // The store's post tab (SEC-57, Figma Q2, S1, S2): "Đăng món", then one card holding the three lists as
 // chips with their counts: on sale, sold out, and over (closed or withdrawn). A row has what the person can do
 // with it: change it, or post it again once it is over. It reads the session, so it renders inside Suspense.
 export async function StorePosts({
   sellerId: pendingId,
   tab: pendingTab,
-  posted: pendingPosted,
+  notice: pendingNotice,
 }: {
   sellerId: Promise<string>;
   tab: Promise<string | undefined>;
-  /** How many units were just posted, from the address; the line at the foot says so once. */
-  posted?: Promise<string | undefined>;
+  /** What was just done, from the address (`posted:3`, `saved`, `withdrawn`); the line at the foot says so once. */
+  notice?: Promise<string | undefined>;
 }) {
   const sellerId = await pendingId;
-  const [t, tabName, posted, offers] = await Promise.all([
+  const [t, tabName, notice, offers] = await Promise.all([
     getTranslations("StorePosts"),
     pendingTab,
-    pendingPosted,
+    pendingNotice,
     requireStore(sellerId, `/stores/${sellerId}/offers`).then(() => getStoreOffers(sellerId)),
   ]);
   const tab = readPostTab(tabName);
   const groups = groupByTab(offers);
   const shown = groups[tab];
 
-  const postedUnits = Number(posted);
+  const message = noticeMessage(notice, t);
 
   return (
     <>
-      {Number.isInteger(postedUnits) && postedUnits > 0 && (
+      {message && (
         <PostToast
-          message={t("posted", { count: postedUnits })}
-          to={`/stores/${sellerId}/offers`}
+          message={message}
+          to={`/stores/${sellerId}/offers${tab === "on_sale" ? "" : `?tab=${tab}`}`}
         />
       )}
       <div className="flex items-center justify-between gap-4">

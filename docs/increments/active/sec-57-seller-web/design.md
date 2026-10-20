@@ -23,6 +23,7 @@ Build the seller's side of the web, screen by screen as Figma draws it, for what
 - **Expected surplus and the morning prompt** (P4, P7 to P9, Q1b, Q2c, Q2d, D2, D3, E4, R2): the backend has no announcement yet (SEC-54).
 - **The catalog** (Q3, Q3b, Q3c, C1, C2, D1, the dish step of P2): no catalog yet (SEC-55). Until then the dish step offers the seller's earlier posts and the one-off dish; the Danh mục tab is a plain "coming soon".
 - **The Đơn tab** (Q4) and "withdraw refused once ordered": the `order` module (SEC-15, SEC-51). Until it lands, a post never has orders, so E2, E2e, E3b are built and tried against a stub in tests only.
+- **In the edit and withdraw drawers** (E1 to E3b): "Hết hàng ngay" (the backend has no way to set the units left to zero while nothing is ordered), the reasons for withdrawing (the backend keeps none), and changing the hours once units are ordered (the backend allows only more units; the design of SEC-54 lifts it). The drawers lock the price and the hours then, and say so.
 - The calendar and the custom time (P6, T1) were lost from Figma and are to be redrawn.
 
 ## Rules the screens follow

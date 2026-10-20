@@ -15,7 +15,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
-import { postOffer, uploadPhoto, type OfferBody } from "@/lib/api/generated";
+import { changeOffer, postOffer, uploadPhoto, type OfferBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
 
 import { Chip } from "./chip";
@@ -23,6 +23,7 @@ import {
   clock,
   type Dish,
   discountPercent,
+  type EditTarget,
   lengthIsAllowed,
   MAX_WINDOW_MINUTES,
   maxPrice,
@@ -60,6 +61,7 @@ type Problem =
   | { kind: "window" }
   | { kind: "details" }
   | { kind: "inactive" }
+  | { kind: "locked" }
   | { kind: "failed"; reference?: string };
 
 function problemOf(error: unknown): Problem {
@@ -73,6 +75,8 @@ function problemOf(error: unknown): Problem {
       return { kind: "details" };
     case "SELLER_NOT_ACTIVE":
       return { kind: "inactive" };
+    case "OFFER_CHANGE_NOT_ALLOWED":
+      return { kind: "locked" };
     default:
       return { kind: "failed", reference: error instanceof ApiError ? error.requestId : undefined };
   }
@@ -95,10 +99,13 @@ export function PostDrawer({
   sellerId,
   dishes,
   again,
+  edit,
 }: {
   sellerId: string;
   dishes: Dish[];
   again?: Dish;
+  /** A live post being changed (Figma E1, E2): the drawer starts at the last step, with its details. */
+  edit?: EditTarget;
 }) {
   const t = useTranslations("PostDrawer");
   const kindName = useTranslations("OfferKind");
@@ -106,24 +113,39 @@ export function PostDrawer({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [now] = useState(currentTime);
+  const base = edit?.dish ?? again;
+  const ordered = edit?.ordered ?? 0;
+  // Once units are ordered the price and the hours stay as they were: the backend takes only more units.
+  const locked = ordered > 0;
 
-  const [step, setStep] = useState<1 | 2 | 3>(again ? 3 : 1);
+  const [step, setStep] = useState<1 | 2 | 3>(base ? 3 : 1);
   const [source, setSource] = useState<"earlier" | "oneoff">(
     dishes.length > 0 ? "earlier" : "oneoff",
   );
-  const [chosen, setChosen] = useState<Dish | undefined>(again);
+  const [chosen, setChosen] = useState<Dish | undefined>(base);
   const [photo, setPhoto] = useState<File>();
   const [preview, setPreview] = useState<string>();
   const [name, setName] = useState("");
   const [kind, setKind] = useState<OfferBody["kind"]>("bakery");
   const [description, setDescription] = useState("");
-  const [units, setUnits] = useState(again ? String(again.units) : "");
-  const [original, setOriginal] = useState(again ? String(again.originalPriceVnd) : "");
-  const [price, setPrice] = useState(again ? String(again.priceVnd) : "");
+  const [units, setUnits] = useState(base ? String(base.units) : "");
+  const [original, setOriginal] = useState(base ? String(base.originalPriceVnd) : "");
+  const [price, setPrice] = useState(base ? String(base.priceVnd) : "");
   const [startKey, setStartKey] = useState<StartKey>("usual");
   const [customStart, setCustomStart] = useState(DEFAULT_USUAL);
-  const [length, setLength] = useState<number | "custom">(60);
-  const [customLength, setCustomLength] = useState(90);
+  const [length, setLength] = useState<number | "custom">(
+    edit && !(LENGTHS as readonly number[]).includes(edit.minutes)
+      ? "custom"
+      : (edit?.minutes ?? 60),
+  );
+  const [customLength, setCustomLength] = useState(
+    edit
+      ? Math.min(
+          MAX_WINDOW_MINUTES,
+          Math.max(MIN_WINDOW_MINUTES, Math.round(edit.minutes / 30) * 30),
+        )
+      : 90,
+  );
   const [tried, setTried] = useState(false);
   const [problem, setProblem] = useState<Problem>();
 
@@ -149,7 +171,8 @@ export function PostDrawer({
   const priceNumber = Number(price);
   const priceIssue = priceProblem(originalNumber, priceNumber);
   const unitsNumber = Number(units);
-  const unitsValid = Number.isInteger(unitsNumber) && unitsNumber >= 1 && unitsNumber <= 999;
+  const unitsValid =
+    Number.isInteger(unitsNumber) && unitsNumber >= Math.max(1, ordered) && unitsNumber <= 999;
   const dishName = chosen?.name ?? name.trim();
   const dishKind = chosen?.kind ?? kind;
   const dishReady =
@@ -174,6 +197,40 @@ export function PostDrawer({
     setProblem(undefined);
     const at = currentTime();
     const finalWindow = windowOf(start, minutes, at);
+    const windowChanged = startKey !== "usual" || minutes !== edit?.minutes;
+    if (edit) {
+      // A change that leaves the hours as they were does not send them, so a post made on another day is not moved to today.
+      if (!unitsValid || (!locked && priceIssue)) return;
+      if (!locked && windowChanged && (windowIsOver(finalWindow, at) || !lengthIsAllowed(minutes)))
+        return;
+      startTransition(async () => {
+        try {
+          await changeOffer({
+            path: { offerId: edit.offerId },
+            body: {
+              units: unitsNumber,
+              ...(locked
+                ? {}
+                : {
+                    originalPriceVnd: originalNumber,
+                    priceVnd: priceNumber,
+                    ...(windowChanged
+                      ? {
+                          windowStart: finalWindow.start.toISOString(),
+                          windowEnd: finalWindow.end.toISOString(),
+                        }
+                      : {}),
+                  }),
+            },
+          });
+          router.push({ pathname: `/stores/${sellerId}/offers`, query: { notice: "saved" } });
+          router.refresh();
+        } catch (error) {
+          setProblem(problemOf(error));
+        }
+      });
+      return;
+    }
     if (!unitsValid || priceIssue || windowIsOver(finalWindow, at) || !lengthIsAllowed(minutes)) {
       return;
     }
@@ -199,7 +256,7 @@ export function PostDrawer({
         });
         router.push({
           pathname: `/stores/${sellerId}/offers`,
-          query: { posted: String(unitsNumber) },
+          query: { notice: `posted:${unitsNumber}` },
         });
         router.refresh();
       } catch (error) {
@@ -214,9 +271,15 @@ export function PostDrawer({
     <Sheet open onOpenChange={(open) => !open && close()}>
       <SheetContent size="wide" showCloseButton={false}>
         <SheetHeader variant="bar">
-          <SheetTitle variant="headline">{again ? t("againTitle") : t("title")}</SheetTitle>
+          <SheetTitle variant="headline">
+            {edit ? t("editTitle") : again ? t("againTitle") : t("title")}
+          </SheetTitle>
           <span className="text-body-sm text-muted-foreground">
-            {again ? t("againFrom") : t("step", { step })}
+            {edit
+              ? `${t(`editStatus.${edit.status}`)}${ordered > 0 ? `, ${t("editOrdered", { count: ordered })}` : ""}`
+              : again
+                ? t("againFrom")
+                : t("step", { step })}
           </span>
         </SheetHeader>
 
@@ -373,7 +436,7 @@ export function PostDrawer({
           {step === 3 && (
             <>
               <h3 className="border-b border-border pb-3 text-title">
-                {again ? t("againQuestion") : t("sellQuestion")}
+                {edit ? t("editQuestion") : again ? t("againQuestion") : t("sellQuestion")}
               </h3>
               <div className="flex items-center gap-4">
                 <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -407,6 +470,7 @@ export function PostDrawer({
                     value={units}
                     onChange={(event) => setUnits(digits(event.target.value).slice(0, 3))}
                     aria-invalid={(tried && !unitsValid) || undefined}
+                    aria-describedby={ordered > 0 ? "post-units-note" : undefined}
                   />
                 </Field>
                 <Field data-invalid={(tried && priceIssue === "missing" && !original) || undefined}>
@@ -415,6 +479,7 @@ export function PostDrawer({
                     id="post-original"
                     inputMode="numeric"
                     value={shown(original)}
+                    disabled={locked}
                     onChange={(event) => setOriginal(digits(event.target.value).slice(0, 9))}
                   />
                 </Field>
@@ -424,13 +489,23 @@ export function PostDrawer({
                     id="post-price"
                     inputMode="numeric"
                     value={shown(price)}
+                    disabled={locked}
                     onChange={(event) => setPrice(digits(event.target.value).slice(0, 9))}
                     aria-invalid={showPriceError || undefined}
                     aria-describedby="post-price-note"
                   />
                 </Field>
               </div>
-              {showPriceError && priceIssue === "tooHigh" ? (
+              {edit && tried && !unitsValid && ordered > 0 && (
+                <FieldError id="post-units-note">
+                  {t("unitsBelowOrdered", { count: ordered })}
+                </FieldError>
+              )}
+              {locked ? (
+                <p id="post-price-note" className="-mt-2 text-label text-muted-foreground">
+                  {t("editLocked", { count: ordered })}
+                </p>
+              ) : showPriceError && priceIssue === "tooHigh" ? (
                 <FieldError id="post-price-note">
                   {t("priceTooHigh", {
                     min: MIN_DISCOUNT_PERCENT,
@@ -441,6 +516,7 @@ export function PostDrawer({
                 <FieldError id="post-price-note">{t("priceMissing")}</FieldError>
               ) : (
                 <p id="post-price-note" className="-mt-2 text-label text-muted-foreground">
+                  {edit && !priceIssue ? `${t("editFree")} ` : ""}
                   {priceIssue
                     ? t("discountHint", { min: MIN_DISCOUNT_PERCENT })
                     : t("discount", {
@@ -450,7 +526,7 @@ export function PostDrawer({
                 </p>
               )}
 
-              <fieldset className="flex flex-col gap-2">
+              <fieldset disabled={locked} className="flex flex-col gap-2">
                 <legend className="mb-2 text-title">{t("startQuestion")}</legend>
                 <div className="-my-1 flex flex-wrap gap-x-2">
                   <Chip selected={startKey === "usual"} onClick={() => setStartKey("usual")}>
@@ -506,7 +582,7 @@ export function PostDrawer({
                 )}
               </fieldset>
 
-              <fieldset className="flex flex-col gap-2">
+              <fieldset disabled={locked} className="flex flex-col gap-2">
                 <legend className="mb-2 text-title">{t("lengthQuestion")}</legend>
                 <div className="-my-1 flex flex-wrap gap-x-2">
                   {LENGTHS.map((value) => (
@@ -591,13 +667,21 @@ export function PostDrawer({
                 variant="outline"
                 size="lg"
                 disabled={pending}
-                onClick={again ? close : () => setStep(2)}
+                onClick={
+                  edit
+                    ? locked
+                      ? close
+                      : () => router.push(`/stores/${sellerId}/offers/${edit.offerId}/withdraw`)
+                    : again
+                      ? close
+                      : () => setStep(2)
+                }
               >
-                {t("back")}
+                {edit && !locked ? t("withdraw") : t("back")}
               </Button>
               <Button type="button" size="lg" disabled={pending} onClick={post}>
                 {pending && <Spinner data-icon="inline-start" />}
-                {t("post")}
+                {edit ? t("save") : t("post")}
               </Button>
             </>
           )}

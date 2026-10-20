@@ -4,6 +4,8 @@ import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
+// Each test signs in and opens a store first, which takes a while when the projects run side by side.
+test.setTimeout(90_000);
 
 /** Signs in with the stub's right code and lands on `returnTo`. */
 async function signIn(page: Page, email: string, returnTo: string) {
@@ -130,9 +132,14 @@ test.describe("opening a store on the web", () => {
 // SEC-57 › Posting (Figma P1 to P3, P2b, P3e, P5, R1).
 test.describe("posting a dish on the web", () => {
   /** A store named like the Figma sample, which the stub gives four earlier posts. */
-  async function sampleStore(page: Page, who: string, testInfo: { project: { name: string } }) {
+  async function sampleStore(
+    page: Page,
+    who: string,
+    testInfo: { project: { name: string } },
+    name = "Tiệm bánh Pháp",
+  ) {
     await signIn(page, `${who}.${testInfo.project.name}@example.com`, "/open-store");
-    await (await hydrated(page.getByLabel("Tên quán"))).fill("Tiệm bánh Pháp");
+    await (await hydrated(page.getByLabel("Tên quán"))).fill(name);
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
     await page.getByRole("button", { name: "Tạo quán" }).click();
@@ -173,7 +180,9 @@ test.describe("posting a dish on the web", () => {
 
     await drawer.getByLabel("Giá bán (đồng)").fill("70000");
     await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
-    await expect(page.getByText("Đã đăng 3 suất. Khách đặt được ngay.")).toBeVisible();
+    await expect(page.getByText("Đã đăng 3 suất. Khách đặt được ngay.")).toBeVisible({
+      timeout: 15_000,
+    });
     await expect(page.getByRole("link", { name: "Đang bán · 2" })).toBeVisible();
   });
 
@@ -214,7 +223,9 @@ test.describe("posting a dish on the web", () => {
     ).toBeVisible();
     await expectNoSeriousA11yViolations(page);
     await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
-    await expect(page.getByText("Đã đăng 6 suất. Khách đặt được ngay.")).toBeVisible();
+    await expect(page.getByText("Đã đăng 6 suất. Khách đặt được ngay.")).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test("posts a closed post again, from the last step", async ({ page }, testInfo) => {
@@ -230,5 +241,110 @@ test.describe("posting a dish on the web", () => {
     await drawer.getByRole("button", { name: "Ngay bây giờ" }).click();
     await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
     await expect(page.getByText(/Đã đăng \d suất\. Khách đặt được ngay\./)).toBeVisible();
+  });
+});
+
+// SEC-57 › Changing and withdrawing a live post (Figma E1, E2, E2e, E3, E3b, K1).
+test.describe("changing a post on the web", () => {
+  async function storeNamed(
+    page: Page,
+    who: string,
+    testInfo: { project: { name: string } },
+    name: string,
+  ) {
+    await signIn(page, `${who}.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByLabel("Tên quán"))).fill(name);
+    await page.getByLabel("Số điện thoại").fill("0912345678");
+    await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await page.getByRole("button", { name: "Tạo quán" }).click();
+    await expect(page).toHaveURL(/\/vi\/stores\/se-1-/);
+    return page.url().split("/").pop() ?? "";
+  }
+
+  test("changes the units and the price of a post nobody has ordered", async ({
+    page,
+  }, testInfo) => {
+    const store = await storeNamed(page, "vy", testInfo, "Tiệm bánh Pháp");
+    await page.goto(`/vi/stores/${store}/offers`);
+    await page.getByRole("link", { name: "Sửa" }).click();
+
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByText("Sửa bài đăng")).toBeVisible();
+    await expect(drawer.getByText("Đang bán", { exact: true })).toBeVisible();
+    await expect(
+      drawer.getByText(/Chưa ai đặt, nên bạn sửa được số suất, giá và giờ lấy\./),
+    ).toBeVisible();
+    await expect(drawer.getByLabel("Số lượng")).toHaveValue("3");
+    await expectNoSeriousA11yViolations(page);
+
+    await drawer.getByLabel("Số lượng").fill("5");
+    await drawer.getByLabel("Giá bán (đồng)").fill("70000");
+    await drawer.getByRole("button", { name: "Lưu thay đổi" }).click();
+    await expect(page.getByText("Đã lưu.")).toBeVisible({ timeout: 15_000 });
+    await expect(
+      page.getByRole("listitem").filter({ hasText: /Còn 5\/5 suất · 70\.000đ/ }),
+    ).toBeVisible();
+  });
+
+  test("locks the price and the hours once units are ordered, and refuses fewer units", async ({
+    page,
+  }, testInfo) => {
+    const store = await storeNamed(page, "bao", testInfo, "Tiệm có đơn");
+    await page.goto(`/vi/stores/${store}/offers`);
+    await page.getByRole("link", { name: "Sửa" }).click();
+
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByText("Đang bán, đã có 2 suất được đặt")).toBeVisible();
+    await expect(drawer.getByLabel("Giá bán (đồng)")).toBeDisabled();
+    await expect(drawer.getByLabel("Giá gốc (đồng)")).toBeDisabled();
+    await expect(drawer.getByRole("button", { name: "Ngay bây giờ" })).toBeDisabled();
+    await expect(drawer.getByRole("button", { name: "Rút bài" })).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+
+    await drawer.getByLabel("Số lượng").fill("1");
+    await drawer.getByRole("button", { name: "Lưu thay đổi" }).click();
+    await expect(
+      drawer.getByText("Số suất không được thấp hơn 2, vì đã có 2 suất được đặt."),
+    ).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await drawer.getByLabel("Số lượng").fill("4");
+    await drawer.getByRole("button", { name: "Lưu thay đổi" }).click();
+    await expect(page.getByText("Đã lưu.")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("listitem").filter({ hasText: /Còn 2\/4 suất/ })).toBeVisible();
+  });
+
+  test("withdraws a post nobody has ordered into Đã đóng", async ({ page }, testInfo) => {
+    const store = await storeNamed(page, "khoa", testInfo, "Tiệm bánh Pháp");
+    await page.goto(`/vi/stores/${store}/offers`);
+    await page.getByRole("link", { name: "Sửa" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Rút bài" }).click();
+
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByText("Rút bài này?")).toBeVisible();
+    await expect(drawer.getByText("Bài rút vẫn lưu ở tab Đã đóng, đăng lại được.")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+    await drawer.getByRole("button", { name: "Rút bài" }).click();
+
+    await expect(page.getByText(/Đã rút bài\. Bài nằm ở tab Đã đóng/)).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole("link", { name: "Đã đóng · 3" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
+  test("does not withdraw a post that has orders", async ({ page }, testInfo) => {
+    const store = await storeNamed(page, "tam", testInfo, "Tiệm có đơn");
+    await page.goto(`/vi/stores/${store}/offers/of-1-${store}/withdraw`);
+
+    const drawer = page.getByRole("dialog");
+    await expect(
+      drawer.getByText(/Bài này đã có 2 suất được đặt nên chưa rút được\./),
+    ).toBeVisible();
+    await expect(drawer.getByRole("button", { name: "Rút bài" })).toHaveCount(0);
+    await expect(drawer.getByRole("link", { name: "Đến tab Đơn" })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
   });
 });

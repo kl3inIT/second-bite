@@ -367,10 +367,31 @@ async function auth(request, response, url) {
 // The seller's side (SEC-57), as api/openapi.yaml describes it: a person opens stores, at most five, each active
 // at once, and reads the ones they own. Kept per session, like the accounts above.
 const storesOf = new Map();
-/** What each store has posted through POST /sellers/{id}/offers, the newest first. */
-const postedBy = new Map();
+/** Each store's posts, the newest first: the sample ones of a store named like Figma's, then what it posts. */
+const postsBy = new Map();
+
+function postsFor(seller) {
+  if (!postsBy.has(seller.id)) {
+    postsBy.set(
+      seller.id,
+      seller.name === "Tiệm bánh Pháp"
+        ? postsOf(seller)
+        : seller.name === "Tiệm có đơn"
+          ? postsWithOrders(seller)
+          : [],
+    );
+  }
+  return postsBy.get(seller.id);
+}
 
 /** A store's posts as GET /sellers/{id}/offers answers: one on sale, one sold out, one over, one withdrawn. */
+/** A store with one live post of which units are ordered, for the screens that lock the price and the hours. */
+function postsWithOrders(seller) {
+  return postsOf(seller)
+    .slice(0, 1)
+    .map((post) => ({ ...post, name: "Bánh mì que, 3 chiếc", units: 3, unitsLeft: 1 }));
+}
+
 function postsOf(seller) {
   const post = (n, status, name, units, unitsLeft, from, until, extra = {}) => ({
     id: `of-${n}-${seller.id}`,
@@ -413,7 +434,8 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers" ||
     url.pathname === "/sellers/mine" ||
     url.pathname === "/photos" ||
-    /^\/sellers\/[\w-]+(\/photo|\/offers)?$/.test(url.pathname);
+    /^\/sellers\/[\w-]+(\/photo|\/offers)?$/.test(url.pathname) ||
+    /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname);
   if (!isSellerRoute) return false;
   if (!accounts.has(token)) {
     problem(response, 401, "IDENTITY_SESSION_INVALID");
@@ -469,10 +491,7 @@ async function sellerRoutes(request, response, url) {
     if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
     else if (one[2]) {
       // A store named like the Figma sample has its posts; any other starts empty.
-      const posted = postedBy.get(seller.id) ?? [];
-      json(response, 200, {
-        offers: [...posted, ...(seller.name === "Tiệm bánh Pháp" ? postsOf(seller) : [])],
-      });
+      json(response, 200, { offers: postsFor(seller) });
     } else json(response, 200, seller);
     return true;
   }
@@ -488,7 +507,7 @@ async function sellerRoutes(request, response, url) {
     } else if (Date.parse(body.windowEnd) <= Date.now()) {
       problem(response, 422, "OFFER_WINDOW_INVALID");
     } else {
-      const posted = postedBy.get(seller.id) ?? [];
+      const posted = postsFor(seller);
       const now = new Date().toISOString();
       const offer = {
         ...body,
@@ -510,10 +529,51 @@ async function sellerRoutes(request, response, url) {
         createdAt: now,
         updatedAt: now,
       };
-      postedBy.set(seller.id, [offer, ...posted]);
+      posted.unshift(offer);
       json(response, 201, offer);
     }
     return true;
+  }
+  const change = /^\/offers\/([\w-]+)(\/withdraw)?$/.exec(url.pathname);
+  if (change) {
+    const offer = mine.flatMap((store) => postsFor(store)).find((post) => post.id === change[1]);
+    if (!offer) {
+      problem(response, 404, "OFFER_NOT_FOUND");
+      return true;
+    }
+    const ordered = offer.units - offer.unitsLeft;
+    if (request.method === "POST" && change[2]) {
+      if (ordered > 0 || offer.status === "closed") {
+        problem(response, 409, "OFFER_CHANGE_NOT_ALLOWED");
+      } else {
+        offer.status = "withdrawn";
+        offer.withdrawnAt = new Date().toISOString();
+        json(response, 200, offer);
+      }
+      return true;
+    }
+    if (request.method === "PATCH") {
+      const body = await readBody(request);
+      const priceOrHours = ["priceVnd", "originalPriceVnd", "windowStart", "windowEnd"].some(
+        (key) => key in body,
+      );
+      if (ordered > 0 && priceOrHours) {
+        problem(response, 409, "OFFER_CHANGE_NOT_ALLOWED");
+      } else if (body.units !== undefined && body.units < ordered) {
+        problem(response, 422, "OFFER_DETAILS_INVALID");
+      } else if (
+        body.priceVnd !== undefined &&
+        body.priceVnd > Math.floor(((body.originalPriceVnd ?? offer.originalPriceVnd) * 80) / 100)
+      ) {
+        problem(response, 422, "OFFER_DISCOUNT_TOO_SMALL");
+      } else {
+        Object.assign(offer, body, { updatedAt: new Date().toISOString() });
+        if (body.units !== undefined) offer.unitsLeft = body.units - ordered;
+        if (offer.unitsLeft > 0 && offer.status === "sold_out") offer.status = "on_sale";
+        json(response, 200, offer);
+      }
+      return true;
+    }
   }
   if (request.method === "PUT") {
     const id = url.pathname.split("/")[2];

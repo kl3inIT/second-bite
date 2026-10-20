@@ -113,3 +113,31 @@ export function dishesOf(offers: readonly OfferBody[]): Dish[] {
   }
   return dishes;
 }
+
+/** Units already taken by customers: the post's units less what is left. */
+export function orderedOf(offer: OfferBody): number {
+  return offer.units - offer.unitsLeft;
+}
+
+/** A live post being changed (Figma E1, E2): what the drawer starts from, and how far it may go. */
+export type EditTarget = {
+  offerId: string;
+  status: "on_sale" | "sold_out";
+  /** Units ordered; the price and the hours are fixed once there are any, and the units cannot go below them. */
+  ordered: number;
+  /** The length of its collection window, in minutes. */
+  minutes: number;
+  dish: Dish;
+};
+
+/** The post as something to change; nothing for one that is over or withdrawn, which no longer changes. */
+export function editTargetOf(offer: OfferBody): EditTarget | undefined {
+  if (offer.status !== "on_sale" && offer.status !== "sold_out") return undefined;
+  return {
+    offerId: offer.id,
+    status: offer.status,
+    ordered: orderedOf(offer),
+    minutes: Math.round((Date.parse(offer.windowEnd) - Date.parse(offer.windowStart)) / 60_000),
+    dish: dishOf(offer),
+  };
+}

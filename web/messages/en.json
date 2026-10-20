@@ -403,7 +403,9 @@
     },
     "edit": "Edit",
     "postAgain": "Post again",
-    "posted": "Posted {count, plural, one {# unit} other {# units}}. Customers can order now."
+    "posted": "Posted {count, plural, one {# unit} other {# units}}. Customers can order now.",
+    "saved": "Saved.",
+    "withdrawn": "Withdrawn. It is in Closed, and can be posted again."
   },
   "PostRow": {
     "onSale": "Pick-up {from}–{until} · {left}/{units} {unit} left · {price}",
@@ -477,13 +479,40 @@
       "discount": "The price is not low enough against the original price. Lower it and try again.",
       "window": "The collection window is not valid: 30 minutes to 6 hours, and not over.",
       "details": "Check the dish's name, units and prices.",
-      "inactive": "The store is not active or is blocked, so it cannot post."
+      "inactive": "The store is not active or is blocked, so it cannot post.",
+      "locked": "This post can no longer be changed: units are ordered, its hours are over, or it was withdrawn."
     },
     "failed": "Could not post. Try again in a few minutes.",
     "reference": "Reference: {id}",
     "cancel": "Cancel",
     "back": "Back",
     "next": "Next",
-    "post": "Post"
+    "post": "Post",
+    "editTitle": "Edit post",
+    "editStatus": {
+      "on_sale": "On sale",
+      "sold_out": "Sold out"
+    },
+    "editOrdered": "{count, plural, one {# unit} other {# units}} ordered",
+    "editQuestion": "What to change?",
+    "editFree": "Nobody has ordered, so you can change the units, the price and the hours.",
+    "editLocked": "{count, plural, one {# unit is} other {# units are}} ordered, so the price and the hours stay. You can change the units, not below {count}.",
+    "unitsBelowOrdered": "The units cannot go below {count}, which are ordered.",
+    "withdraw": "Withdraw",
+    "save": "Save changes"
+  },
+  "WithdrawDrawer": {
+    "title": "Withdraw",
+    "question": "Withdraw this post?",
+    "explain": "Only possible while nothing is ordered. A withdrawn post leaves customers' pages at once and stays in Closed.",
+    "keptNote": "A withdrawn post stays in Closed, and can be posted again.",
+    "blocked": "{count, plural, one {# unit is} other {# units are}} ordered, so this cannot be withdrawn. Cancel each order in Orders first.",
+    "blockedNote": "{count, plural, one {# unit is} other {# units are}} waiting to be collected.",
+    "keep": "Keep",
+    "close": "Close",
+    "withdraw": "Withdraw",
+    "toOrders": "Go to Orders",
+    "failed": "Could not withdraw. Try again in a few minutes.",
+    "reference": "Reference: {id}"
   }
 }

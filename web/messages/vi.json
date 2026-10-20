@@ -403,7 +403,9 @@
     },
     "edit": "Sửa",
     "postAgain": "Đăng lại",
-    "posted": "Đã đăng {count} suất. Khách đặt được ngay."
+    "posted": "Đã đăng {count} suất. Khách đặt được ngay.",
+    "saved": "Đã lưu.",
+    "withdrawn": "Đã rút bài. Bài nằm ở tab Đã đóng, đăng lại được."
   },
   "PostRow": {
     "onSale": "Lấy {from}–{until} · Còn {left}/{units} {unit} · {price}",
@@ -477,13 +479,40 @@
       "discount": "Giá bán chưa đủ thấp so với giá gốc. Hạ giá rồi thử lại.",
       "window": "Khung giờ lấy chưa hợp lệ: từ 30 phút đến 6 giờ, và chưa qua.",
       "details": "Kiểm tra lại tên món, số lượng và giá.",
-      "inactive": "Quán chưa được kích hoạt hoặc đang bị khóa nên chưa đăng được."
+      "inactive": "Quán chưa được kích hoạt hoặc đang bị khóa nên chưa đăng được.",
+      "locked": "Bài này không sửa được nữa: đã có suất được đặt, đã hết giờ lấy hoặc đã rút."
     },
     "failed": "Chưa đăng được. Thử lại sau ít phút.",
     "reference": "Mã tham chiếu: {id}",
     "cancel": "Hủy",
     "back": "Quay lại",
     "next": "Tiếp tục",
-    "post": "Đăng"
+    "post": "Đăng",
+    "editTitle": "Sửa bài đăng",
+    "editStatus": {
+      "on_sale": "Đang bán",
+      "sold_out": "Đã hết"
+    },
+    "editOrdered": "đã có {count} suất được đặt",
+    "editQuestion": "Sửa thế nào?",
+    "editFree": "Chưa ai đặt, nên bạn sửa được số suất, giá và giờ lấy.",
+    "editLocked": "Đã có {count} suất được đặt nên giá và giờ lấy giữ nguyên. Bạn sửa được số suất, không thấp hơn {count}.",
+    "unitsBelowOrdered": "Số suất không được thấp hơn {count}, vì đã có {count} suất được đặt.",
+    "withdraw": "Rút bài",
+    "save": "Lưu thay đổi"
+  },
+  "WithdrawDrawer": {
+    "title": "Rút bài",
+    "question": "Rút bài này?",
+    "explain": "Chỉ rút được khi chưa có đơn. Bài rút sẽ biến mất khỏi trang khách ngay và nằm ở tab Đã đóng.",
+    "keptNote": "Bài rút vẫn lưu ở tab Đã đóng, đăng lại được.",
+    "blocked": "Bài này đã có {count} suất được đặt nên chưa rút được. Hãy huỷ từng đơn ở tab Đơn trước.",
+    "blockedNote": "Đã có {count} suất đang chờ lấy.",
+    "keep": "Giữ lại",
+    "close": "Đóng",
+    "withdraw": "Rút bài",
+    "toOrders": "Đến tab Đơn",
+    "failed": "Chưa rút được. Thử lại sau ít phút.",
+    "reference": "Mã tham chiếu: {id}"
   }
 }
