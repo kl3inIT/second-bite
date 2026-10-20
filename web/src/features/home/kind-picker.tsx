@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { ScrollHint } from "@/components/scroll-hint";
 import { ScrollRow } from "@/components/scroll-row";
-import { offerKinds, type OfferKind } from "@/features/offers/offer";
+import type { OfferKind } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
 
 import bakery from "./kinds/bakery.jpg";
@@ -19,6 +19,15 @@ import type { HomeQuery } from "./home-query";
 // The round pictures at the top of the content (Figma K1 kind picker): one per kind the API can filter by,
 // with a short scroll hint under them. Each is a link over the address; the chosen one links back to the
 // whole list. Collecting now is a chip of the search (Figma K2).
+// In Figma's order, with Figma's photographs (each layer is named after the kind it stands for, kind/Bánh…).
+const order: readonly OfferKind[] = [
+  "bakery",
+  "prepared_food",
+  "mixed_box",
+  "ingredients",
+  "drinks",
+  "other",
+];
 const pictures: Record<OfferKind, StaticImageData | LucideIcon> = {
   bakery,
   prepared_food: preparedFood,
@@ -33,7 +42,7 @@ export function KindPicker({ query }: { query: HomeQuery }) {
   const kinds = useTranslations("OfferKind");
   // A kind narrows the place being shown; it does not move back to Tasco Mall.
   const keep = query.near ? { near: query.near } : {};
-  const items = offerKinds.map((kind) => ({
+  const items = order.map((kind) => ({
     key: kind,
     label: kinds(kind),
     picture: pictures[kind],

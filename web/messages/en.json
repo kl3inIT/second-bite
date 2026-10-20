@@ -5,7 +5,7 @@
   },
   "Home": {
     "searchLabel": "Search dishes or sellers",
-    "searchPlaceholder": "Search pastries, rolls, vegetables…",
+    "searchPlaceholder": "Search pastries, fried chicken, pizza…",
     "kindsLabel": "Kinds of food",
     "dealsTitle": "Good food tonight at Tasco Mall",
     "upTo": "Up to",
@@ -14,7 +14,7 @@
     "title": "<hidden>Tonight at </hidden>Tasco Mall",
     "area": "Long Biên, Hanoi",
     "closingSoon": "Closing soon",
-    "seeAll": "See all",
+    "seeAll": "See all ›",
     "allOffers": "Every dish around you",
     "results": "Results",
     "empty": "Nothing has been posted for tonight yet.",

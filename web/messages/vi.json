@@ -5,7 +5,7 @@
   },
   "Home": {
     "searchLabel": "Tìm món hoặc quán",
-    "searchPlaceholder": "Tìm bánh, gỏi cuốn, rau củ…",
+    "searchPlaceholder": "Tìm bánh, gà rán, pizza…",
     "kindsLabel": "Loại món",
     "dealsTitle": "Món ngon tối nay ở Tasco Mall",
     "upTo": "Giảm đến",
@@ -14,7 +14,7 @@
     "title": "<hidden>Tối nay ở </hidden>Tasco Mall",
     "area": "Long Biên, Hà Nội",
     "closingSoon": "Sắp hết giờ nhận",
-    "seeAll": "Xem tất cả",
+    "seeAll": "Xem tất cả ›",
     "allOffers": "Tất cả món quanh đây",
     "results": "Kết quả",
     "empty": "Tối nay chưa có món nào.",
