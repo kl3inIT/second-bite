@@ -7,6 +7,7 @@ import { type ReactNode, useId } from "react";
 import type { DateRange as DayRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
+import { formatDayMonth } from "@/i18n/day-month";
 import { Calendar } from "@/components/ui/calendar";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -125,10 +126,17 @@ export function DateRangeFilter({
 }) {
   const t = useTranslations("admin.shell.dateRange");
   const format = useFormatter();
-  const locale = useLocale() === "vi" ? vi : enUS;
+  const localeCode = useLocale();
+  const locale = localeCode === "vi" ? vi : enUS;
+  // Each end on its own, as Figma writes it ("21/09 – 20/10/2026"): Intl's own range drops the two-digit month in
+  // Vietnamese ("22/9/2026 – 21/10/2026"). The start loses its year when both ends share one.
   const shown =
     value.from && value.to
-      ? format.dateTimeRange(value.from, value.to, "day")
+      ? `${
+          value.from.getFullYear() === value.to.getFullYear()
+            ? formatDayMonth(value.from, localeCode)
+            : format.dateTime(value.from, "day")
+        } – ${format.dateTime(value.to, "day")}`
       : value.from
         ? format.dateTime(value.from, "day")
         : t("any");
