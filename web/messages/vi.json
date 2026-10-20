@@ -9,6 +9,14 @@
     "searchLabel": "Tìm món hoặc quán",
     "searchPlaceholder": "Tìm bánh, gà rán, pizza…",
     "kindsLabel": "Loại món",
+    "dishes": {
+      "pho": "Phở",
+      "noodles": "Mì",
+      "sushi": "Sushi",
+      "cakes": "Bánh ngọt",
+      "vegetables": "Rau củ",
+      "fruit": "Trái cây"
+    },
     "dealsTitle": "Món ngon tối nay ở Tasco Mall",
     "upTo": "Giảm đến",
     "upToPercent": "{percent}%",

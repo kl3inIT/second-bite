@@ -4,18 +4,21 @@ import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-// A row that runs on its own when its items do not fit (the home's deal tickets): the list, then a copy of it
+// A row that runs on its own when its items do not fit (the home's deal tickets and kinds): the list, then a copy of it
 // for the eye only, sliding left and starting over without a seam. It stops under the pointer or the keyboard's
 // focus, and stays still for reduced motion, where it scrolls by hand instead. When everything fits it is a
 // plain row.
 export function Marquee({
   label,
   count,
+  spacing = { gap: "gap-2 lg:gap-3", seam: "pr-2 lg:pr-3" },
   children,
 }: {
   label: string;
   /** How many items the list holds, to set the pace. */
   count: number;
+  /** The space between items, and the same space after the last one so the copy follows without a seam. */
+  spacing?: { gap: string; seam: string };
   children: React.ReactNode;
 }) {
   const box = useRef<HTMLDivElement>(null);
@@ -34,7 +37,7 @@ export function Marquee({
     return () => observer.disconnect();
   }, []);
 
-  const row = cn("flex shrink-0 gap-2 lg:gap-3", moving && "pr-2 lg:pr-3");
+  const row = cn("flex shrink-0", spacing.gap, moving && spacing.seam);
 
   return (
     <div

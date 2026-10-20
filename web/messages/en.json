@@ -9,6 +9,14 @@
     "searchLabel": "Search dishes or sellers",
     "searchPlaceholder": "Search pastries, fried chicken, pizza…",
     "kindsLabel": "Kinds of food",
+    "dishes": {
+      "pho": "Phở",
+      "noodles": "Noodles",
+      "sushi": "Sushi",
+      "cakes": "Cakes",
+      "vegetables": "Vegetables",
+      "fruit": "Fruit"
+    },
     "dealsTitle": "Good food tonight at Tasco Mall",
     "upTo": "Up to",
     "upToPercent": "{percent}%",

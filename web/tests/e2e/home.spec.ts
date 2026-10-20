@@ -87,6 +87,12 @@ test.describe("the customer home", () => {
     await expect(page).toHaveURL(/\/vi$/);
   });
 
+  test("searches a dish from the row of kinds", async ({ page }) => {
+    await page.goto("/vi");
+    await (await hydrated(page.getByRole("link", { name: "Mì", exact: true }))).click();
+    await expect(page).toHaveURL(/\/vi\/search\?q=m%C3%AC$/);
+  });
+
   test("takes the words typed in the header to the search", async ({ page }) => {
     await page.goto("/vi");
     await (
