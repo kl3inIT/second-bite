@@ -31,7 +31,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get homeKindsLabel => 'Loại món';
 
   @override
-  String get homeCollectNow => 'Lấy ngay';
+  String get homeCollectNow => 'Nhận ngay';
 
   @override
   String get homeDealsTitle => 'Túi ngon tối nay ở Tasco Mall';
@@ -46,7 +46,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String homeTicketWindow(String from) {
-    return 'Lấy $from';
+    return 'Nhận $from';
   }
 
   @override
@@ -55,7 +55,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get homeClosingSoon => 'Sắp hết giờ lấy';
+  String get homeClosingSoon => 'Sắp hết giờ nhận';
 
   @override
   String get homeSeeAll => 'Xem tất cả';
@@ -88,7 +88,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String offerWindow(String from, String until) {
-    return 'Lấy $from–$until';
+    return 'Nhận $from–$until';
   }
 
   @override
@@ -129,7 +129,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get introBody =>
-      'Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.';
+      'Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy nhận trong khung giờ của món.';
 
   @override
   String get introDismiss => 'Đóng giới thiệu';

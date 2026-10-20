@@ -134,7 +134,7 @@ test.describe("the customer home", () => {
     await page.goto("/vi");
     const line = "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.";
     await expect(page.getByRole("heading", { name: line })).toBeVisible();
-    await expect(page.getByText("Đến quầy trong giờ lấy")).toBeVisible();
+    await expect(page.getByText("Đến quầy trong giờ nhận")).toBeVisible();
   });
 
   test("keeps the search and the account in reach once the header scrolls away on a wide screen", async ({

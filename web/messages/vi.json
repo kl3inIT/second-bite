@@ -1,7 +1,7 @@
 {
   "Metadata": {
     "title": "Second Bite",
-    "description": "Món ngon còn dư cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Đặt trước, đến quầy lấy trong khung giờ. Phi lợi nhuận, không thu hoa hồng.",
+    "description": "Món ngon còn dư cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Đặt trước, đến quầy nhận trong khung giờ. Phi lợi nhuận, không thu hoa hồng.",
     "organization": "Nền tảng phi lợi nhuận giúp các quán bán món ngon còn dư cuối ngày với giá thấp hơn, không thu hoa hồng của quán.",
     "area": "Tasco Mall, Long Biên, Hà Nội"
   },
@@ -119,7 +119,7 @@
   "Intro": {
     "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
     "step1": "Chọn món, đặt trước",
-    "step2": "Đến quầy trong giờ lấy",
+    "step2": "Đến quầy trong giờ nhận",
     "step3": "Nhận món"
   },
   "Footer": {

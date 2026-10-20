@@ -143,7 +143,7 @@ abstract class AppLocalizations {
   /// The first item of the kinds row: only what can be collected now
   ///
   /// In vi, this message translates to:
-  /// **'Lấy ngay'**
+  /// **'Nhận ngay'**
   String get homeCollectNow;
 
   /// Title of the deal card on the header
@@ -167,7 +167,7 @@ abstract class AppLocalizations {
   /// When collection opens, on a ticket of the deal card
   ///
   /// In vi, this message translates to:
-  /// **'Lấy {from}'**
+  /// **'Nhận {from}'**
   String homeTicketWindow(String from);
 
   /// The strip under the deal card: bags still open and when the last window closes
@@ -179,7 +179,7 @@ abstract class AppLocalizations {
   /// Title of the row of offers whose windows close first
   ///
   /// In vi, this message translates to:
-  /// **'Sắp hết giờ lấy'**
+  /// **'Sắp hết giờ nhận'**
   String get homeClosingSoon;
 
   /// Action beside a section title that goes to the whole list
@@ -239,7 +239,7 @@ abstract class AppLocalizations {
   /// The collection window on a compact card
   ///
   /// In vi, this message translates to:
-  /// **'Lấy {from}–{until}'**
+  /// **'Nhận {from}–{until}'**
   String offerWindow(String from, String until);
 
   /// The collection window and place on an offer card
@@ -281,7 +281,7 @@ abstract class AppLocalizations {
   /// What Second Bite is, in two sentences
   ///
   /// In vi, this message translates to:
-  /// **'Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.'**
+  /// **'Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy nhận trong khung giờ của món.'**
   String get introBody;
 
   /// Closes the introduction

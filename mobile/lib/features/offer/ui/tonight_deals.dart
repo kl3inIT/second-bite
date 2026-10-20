@@ -7,8 +7,8 @@ import 'package:second_bite/l10n/l10n.dart';
 /// The bottom of the header without a filter (DESIGN.md › Deal card): the
 /// biggest discounts tonight as tickets on the deep blue card, then how many
 /// bags are open and when the last window closes, leading to the list. Every
-/// figure comes from [offers]; with nothing to order, nothing shows. The pale
-/// sheet behind their lower half starts the page under the header.
+/// figure comes from [offers]; with nothing to order, nothing shows. They sit
+/// on the header's blue, above the sheet of AppHomeHeader, as on the web.
 /// {@endtemplate}
 class TonightDeals extends StatelessWidget {
   /// {@macro tonight_deals}
@@ -22,10 +22,6 @@ class TonightDeals extends StatelessWidget {
 
   static const _ticketCount = 3;
 
-  // Where the pale sheet starts: about half way down the deal card, as the
-  // web's top-19.
-  static const double _sheetTop = SpacingTokens.space4 * 4.75;
-
   @override
   Widget build(BuildContext context) {
     final open = openBags(offers);
@@ -35,152 +31,113 @@ class TonightDeals extends StatelessWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final tickets = biggestDiscountFirst(offers).take(_ticketCount).toList();
-    final screenWidth = MediaQuery.sizeOf(context).width;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // The sheet reaches the screen's edges, past the header's padding.
-        final edge = -(screenWidth - constraints.maxWidth) / 2;
-
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned(
-              top: _sheetTop,
-              bottom: -SpacingTokens.space3,
-              left: edge,
-              right: edge,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(RadiusTokens.radius3xl),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: SpacingTokens.space3,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.deal,
+            borderRadius: BorderRadius.circular(RadiusTokens.radius2xl),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: SpacingTokens.space3,
+              right: SpacingTokens.space3,
+              top: SpacingTokens.space3,
+              bottom: SpacingTokens.space3,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: SpacingTokens.space2,
+              children: [
+                Semantics(
+                  header: true,
+                  child: Text(
+                    l10n.homeDealsTitle,
+                    style: text.bodySmStrong.copyWith(color: colors.fresh),
                   ),
                 ),
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: SpacingTokens.space3,
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: colors.deal,
-                    borderRadius: BorderRadius.circular(RadiusTokens.radius2xl),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: SpacingTokens.space3,
-                      right: SpacingTokens.space3,
-                      top: SpacingTokens.space3,
-                      bottom: SpacingTokens.space3,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: SpacingTokens.space2,
-                      children: [
-                        Semantics(
-                          header: true,
-                          child: Text(
-                            l10n.homeDealsTitle,
-                            style: text.bodySmStrong.copyWith(
-                              color: colors.fresh,
+                Row(
+                  spacing: SpacingTokens.space2,
+                  children: [
+                    MergeSemantics(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.homeUpTo,
+                            style: text.labelStrong.copyWith(
+                              color: colors.inverseMuted,
                             ),
                           ),
-                        ),
-                        Row(
-                          spacing: SpacingTokens.space2,
-                          children: [
-                            MergeSemantics(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.homeUpTo,
-                                    style: text.labelStrong.copyWith(
-                                      color: colors.inverseMuted,
-                                    ),
-                                  ),
-                                  Text(
-                                    l10n.homeUpToPercent(
-                                      tickets.first.discountPercent,
-                                    ),
-                                    style: text.display.copyWith(
-                                      color: colors.fresh,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                spacing: SpacingTokens.space1,
-                                children: [
-                                  for (final offer in tickets)
-                                    Expanded(child: _Ticket(offer)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Material(
-                  color: scheme.surface,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                    ),
-                    borderRadius: BorderRadius.circular(RadiusTokens.xl),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: onOpenList,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 44),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: SpacingTokens.space3,
-                          vertical: SpacingTokens.space2,
-                        ),
-                        child: Row(
-                          spacing: SpacingTokens.space2,
-                          children: [
-                            Icon(
-                              LucideIcons.clock,
-                              size: 18,
-                              color: scheme.primary,
-                            ),
-                            Expanded(
-                              child: Text(
-                                l10n.homeOpenBags(
-                                  open.bags,
-                                  formatTime(open.lastWindowEnd),
-                                ),
-                                style: text.bodySmStrong,
-                              ),
-                            ),
-                            Icon(
-                              LucideIcons.chevronRight,
-                              size: 16,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
-                          ],
-                        ),
+                          Text(
+                            l10n.homeUpToPercent(tickets.first.discountPercent),
+                            style: text.display.copyWith(color: colors.fresh),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: SpacingTokens.space1,
+                        children: [
+                          for (final offer in tickets)
+                            Expanded(child: _Ticket(offer)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        );
-      },
+          ),
+        ),
+        Material(
+          color: scheme.surface,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+            borderRadius: BorderRadius.circular(RadiusTokens.xl),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onOpenList,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 44),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SpacingTokens.space3,
+                  vertical: SpacingTokens.space2,
+                ),
+                child: Row(
+                  spacing: SpacingTokens.space2,
+                  children: [
+                    Icon(LucideIcons.clock, size: 18, color: scheme.primary),
+                    Expanded(
+                      child: Text(
+                        l10n.homeOpenBags(
+                          open.bags,
+                          formatTime(open.lastWindowEnd),
+                        ),
+                        style: text.bodySmStrong,
+                      ),
+                    ),
+                    Icon(
+                      LucideIcons.chevronRight,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
