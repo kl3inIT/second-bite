@@ -50,6 +50,8 @@ func TestOffer(t *testing.T) {
 			"search keeps what is near and filtered":      testSearchNearAndFiltered,
 			"a blocked seller's offers leave search":      testBlockedSellerLeavesSearch,
 			"a seller keeps its dishes in a catalog":      testCatalogKeepsTheStableBase,
+			"a catalog is private to its sellers people":  testCatalogIsPrivateToTheSellersPeople,
+			"a post copies its dish":                      testPostsCopyTheirDish,
 			"a catalog holds a hundred dishes":            testCatalogHoldsAHundredDishes,
 		} {
 			t.Run(name, func(t *testing.T) {
@@ -469,18 +471,28 @@ func testSettingsBoundEveryPost(t *testing.T, f fixture) {
 	mustFail(t, "a customer saving the settings", err, platform.ErrAdminRequired)
 }
 
-func testCatalogKeepsTheStableBase(t *testing.T, f fixture) {
+// catalogWorld is a seller with its people and one dish in its catalog, which the catalog's checks start from.
+type catalogWorld struct {
+	owner, staff, stranger, admin context.Context
+	sellerID                      uuid.UUID
+	photo                         uuid.UUID
+	dish                          offer.Dish
+}
+
+func newCatalogWorld(t *testing.T, f fixture) catalogWorld {
 	t.Helper()
 
-	owner := f.as(t, "owner", platform.RoleCustomer)
-	staff := f.as(t, "staff", platform.RoleCustomer)
-	stranger := f.as(t, "stranger", platform.RoleCustomer)
-	admin := f.as(t, "admin", platform.RoleAdmin)
-	sellerID := f.activeSeller(owner, t, "staff")
-	photo := f.photo(owner, t)
+	w := catalogWorld{
+		owner:    f.as(t, "owner", platform.RoleCustomer),
+		staff:    f.as(t, "staff", platform.RoleCustomer),
+		stranger: f.as(t, "stranger", platform.RoleCustomer),
+		admin:    f.as(t, "admin", platform.RoleAdmin),
+	}
+	w.sellerID = f.activeSeller(w.owner, t, "staff")
+	w.photo = f.photo(w.owner, t)
 
-	dish, err := f.offers.AddDish(owner, sellerID, offer.DishDetails{
-		Name: "  Túi bánh mì  ", Kind: offer.KindBakery, Ingredients: "bột mì, trứng, sữa", PhotoID: photo,
+	dish, err := f.offers.AddDish(w.owner, w.sellerID, offer.DishDetails{
+		Name: "  Túi bánh mì  ", Kind: offer.KindBakery, Ingredients: "bột mì, trứng, sữa", PhotoID: w.photo,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -489,6 +501,16 @@ func testCatalogKeepsTheStableBase(t *testing.T, f fixture) {
 	if dish.Name != "Túi bánh mì" || dish.Unit != "suất" || dish.Hidden || dish.Ingredients != "bột mì, trứng, sữa" {
 		t.Fatalf("added %+v", dish)
 	}
+
+	w.dish = dish
+
+	return w
+}
+
+func testCatalogKeepsTheStableBase(t *testing.T, f fixture) {
+	t.Helper()
+
+	w := newCatalogWorld(t, f)
 
 	for name, change := range map[string]func(*offer.DishDetails){
 		"a blank name":             func(d *offer.DishDetails) { d.Name = " " },
@@ -499,53 +521,64 @@ func testCatalogKeepsTheStableBase(t *testing.T, f fixture) {
 		"no photo":                 func(d *offer.DishDetails) { d.PhotoID = uuid.Nil },
 		"a description too long":   func(d *offer.DishDetails) { d.Description = strings.Repeat("x", 1001) },
 	} {
-		d := offer.DishDetails{Name: "Xôi", Kind: offer.KindPreparedFood, PhotoID: photo}
+		d := offer.DishDetails{Name: "Xôi", Kind: offer.KindPreparedFood, PhotoID: w.photo}
 		change(&d)
-		_, err := f.offers.AddDish(owner, sellerID, d)
+		_, err := f.offers.AddDish(w.owner, w.sellerID, d)
 		mustFail(t, name, err, offer.ErrDetailsInvalid)
 	}
 
 	// The original price is optional, and taken away by sending 0.
 	price := int64(95_000)
 
-	priced, err := f.offers.AddDish(owner, sellerID, offer.DishDetails{
-		Name: "Xôi thập cẩm", Kind: offer.KindPreparedFood, PhotoID: photo, OriginalPriceVND: &price,
+	priced, err := f.offers.AddDish(w.owner, w.sellerID, offer.DishDetails{
+		Name: "Xôi thập cẩm", Kind: offer.KindPreparedFood, PhotoID: w.photo, OriginalPriceVND: &price,
 	})
-	if err != nil || priced.OriginalPriceVND == nil || *priced.OriginalPriceVND != 95_000 || dish.OriginalPriceVND != nil {
+	if err != nil || priced.OriginalPriceVND == nil || *priced.OriginalPriceVND != 95_000 || w.dish.OriginalPriceVND != nil {
 		t.Fatalf("priced %+v, %v", priced, err)
 	}
 
 	zero := int64(0)
 
-	if cleared, err := f.offers.ChangeDish(owner, priced.ID, offer.DishChange{OriginalPriceVND: &zero}); err != nil || cleared.OriginalPriceVND != nil {
+	if cleared, err := f.offers.ChangeDish(w.owner, priced.ID, offer.DishChange{OriginalPriceVND: &zero}); err != nil || cleared.OriginalPriceVND != nil {
 		t.Fatalf("cleared %+v, %v", cleared, err)
 	}
 
-	if err := f.offers.RemoveDish(owner, priced.ID); err != nil {
+	if err := f.offers.RemoveDish(w.owner, priced.ID); err != nil {
 		t.Fatal(err)
 	}
+}
 
-	// The catalog is private to the seller's people.
-	if got, err := f.offers.Dishes(staff, sellerID); err != nil || len(got) != 1 {
+func testCatalogIsPrivateToTheSellersPeople(t *testing.T, f fixture) {
+	t.Helper()
+
+	w := newCatalogWorld(t, f)
+
+	if got, err := f.offers.Dishes(w.staff, w.sellerID); err != nil || len(got) != 1 {
 		t.Errorf("staff reading: %v, %v", got, err)
 	}
 
-	_, err = f.offers.Dishes(stranger, sellerID)
+	_, err := f.offers.Dishes(w.stranger, w.sellerID)
 	mustFail(t, "a stranger reading", err, seller.ErrNotFound)
 
-	_, err = f.offers.Dishes(admin, sellerID)
+	_, err = f.offers.Dishes(w.admin, w.sellerID)
 	mustFail(t, "an admin, who does not publish", err, seller.ErrNotFound)
 
-	_, err = f.offers.AddDish(stranger, sellerID, offer.DishDetails{Name: "Xôi", Kind: offer.KindPreparedFood, PhotoID: photo})
+	_, err = f.offers.AddDish(w.stranger, w.sellerID, offer.DishDetails{Name: "Xôi", Kind: offer.KindPreparedFood, PhotoID: w.photo})
 	mustFail(t, "a stranger adding", err, seller.ErrNotFound)
 
-	_, err = f.offers.ChangeDish(stranger, dish.ID, offer.DishChange{})
+	_, err = f.offers.ChangeDish(w.stranger, w.dish.ID, offer.DishChange{})
 	mustFail(t, "a stranger changing", err, offer.ErrDishNotFound)
+}
+
+func testPostsCopyTheirDish(t *testing.T, f fixture) {
+	t.Helper()
+
+	w := newCatalogWorld(t, f)
 
 	// A post copies the dish, and may show its photo; changing the dish later leaves the post alone.
-	posted, err := f.offers.Post(staff, sellerID, offer.Details{
-		Name: dish.Name, Kind: dish.Kind, Units: 3, PriceVND: 15_000, OriginalPriceVND: 25_000,
-		PhotoID: dish.PhotoID, WindowStart: time.Now(), WindowEnd: time.Now().Add(time.Hour),
+	posted, err := f.offers.Post(w.staff, w.sellerID, offer.Details{
+		Name: w.dish.Name, Kind: w.dish.Kind, Units: 3, PriceVND: 15_000, OriginalPriceVND: 25_000,
+		PhotoID: w.dish.PhotoID, WindowStart: time.Now(), WindowEnd: time.Now().Add(time.Hour),
 	})
 	if err != nil {
 		t.Fatalf("posting from the dish: %v", err)
@@ -553,26 +586,26 @@ func testCatalogKeepsTheStableBase(t *testing.T, f fixture) {
 
 	name, hidden := "Túi bánh mì lớn", true
 
-	changed, err := f.offers.ChangeDish(staff, dish.ID, offer.DishChange{Name: &name, Hidden: &hidden})
+	changed, err := f.offers.ChangeDish(w.staff, w.dish.ID, offer.DishChange{Name: &name, Hidden: &hidden})
 	if err != nil || changed.Name != name || !changed.Hidden || changed.Unit != "suất" {
 		t.Fatalf("changed %+v, %v", changed, err)
 	}
 
-	if got, err := f.offers.Get(owner, posted.ID); err != nil || got.Name != "Túi bánh mì" {
+	if got, err := f.offers.Get(w.owner, posted.ID); err != nil || got.Name != "Túi bánh mì" {
 		t.Errorf("the offer after the dish changed: %+v, %v", got, err)
 	}
 
-	if err := f.offers.RemoveDish(owner, dish.ID); err != nil {
+	if err := f.offers.RemoveDish(w.owner, w.dish.ID); err != nil {
 		t.Fatal(err)
 	}
 
-	if got, err := f.offers.Get(owner, posted.ID); err != nil || got.Name != "Túi bánh mì" {
+	if got, err := f.offers.Get(w.owner, posted.ID); err != nil || got.Name != "Túi bánh mì" {
 		t.Errorf("the offer after the dish was deleted: %+v, %v", got, err)
 	}
 
-	mustFail(t, "deleting twice", f.offers.RemoveDish(owner, dish.ID), offer.ErrDishNotFound)
+	mustFail(t, "deleting twice", f.offers.RemoveDish(w.owner, w.dish.ID), offer.ErrDishNotFound)
 
-	if got, err := f.offers.Dishes(owner, sellerID); err != nil || len(got) != 0 {
+	if got, err := f.offers.Dishes(w.owner, w.sellerID); err != nil || len(got) != 0 {
 		t.Errorf("the catalog after deleting: %v, %v", got, err)
 	}
 }
