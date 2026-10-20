@@ -7,9 +7,10 @@ This page states what is implemented today. Intended outcomes are in [docs/visio
 The backend and the web application run on a developer's machine, in tests, and as container images (`server/Dockerfile`, `web/Dockerfile`) that a release deploys to staging with Docker Compose on a shared host ([releases and delivery](docs/runbooks/ci-cd.md)). The Flutter application in `mobile/` shows the customer home and the account tab, reading offers through a client generated from `api/openapi.yaml`, signs in with the emailed code or Google and keeps the session's Bearer token in the platform's secure store (Keychain, Keystore), and is built in CI.
 
 - One Go binary, `secondbite` (`server/cmd/secondbite`). At startup it reads its configuration, opens a PostgreSQL pool, applies the pending migrations under a lock, and serves the HTTP API until SIGINT or SIGTERM, then lets requests in flight finish ([runbook](docs/runbooks/backend.md)).
-- PostgreSQL 18 with PostGIS 3.6, with the tables of `identity`, `notification`, `seller` and `file`; files are kept in PostgreSQL unless an S3-compatible store is configured.
+- PostgreSQL 18 with PostGIS 3.6, with the tables of `identity`, `notification`, `seller`, `file`, `offer` and `order`; files are kept in PostgreSQL unless an S3-compatible store is configured.
 - People sign in with a six-digit code emailed to them and get a session token, sent as `Authorization: Bearer`. Email goes through the provider admins chose (SMTP or Brevo's API); Mailpit catches it in development.
 - People open sellers, which wait for an admin to activate them; an owner adds staff by email. Who may publish for a seller is answered by `seller`, for the offers to come.
+- Signed-in customers order units of one seller's offers, confirmed at once and collected at the counter within one window against a four-digit code derived from the order under `SECONDBITE_COLLECTION_CODE_KEY` and never stored; the seller's people mark orders ready, hand them over and refuse them; the customer pays the seller at the counter.
 - Signed-in people upload photos, which are written again as JPEG in two sizes without their metadata and served to anyone at `/photos/{id}/1600.jpg` and `/400.jpg`; a seller's owner sets one as the seller's photo.
 - Two administrative commands set up a fresh installation: `secondbite email configure` and `secondbite admin grant`.
 - The API answers the probes `/livez` and `/readyz`, serves its OpenAPI 3.1 contract, and answers every error, an unknown route included, as an RFC 9457 problem with a `code` and the request's `requestId`.
@@ -25,6 +26,7 @@ The modules under `server/internal/`, found through the [pilot domain model](doc
 | [`identity`](docs/specs/identity.md) | Accounts and their role (customer or admin), emailed sign-in codes, sessions (tables `identity_*`) | `Service`: request a code, sign in, sign out, read an account, grant a role; `Authenticate`, the middleware that puts the caller in each request's context |
 | [`seller`](docs/specs/seller.md) | Sellers, their status set by admins (pending, active, blocked), and their owner and staff (tables `seller_*`) | `Service`: open, read and change a seller, add and remove staff, list and activate or block for admins; `Publishing`, which checks the right to publish and returns the seller's name and collection point, `Publics` and `Blocked`, for offers |
 | [`offer`](docs/specs/offer.md) | The surplus sellers post, and the settings every offer follows (tables `offer_*`) | `Service`: post, change, withdraw and read offers, search them near a point by Vietnamese words and filters, a seller's list, the settings for admins |
+| [`order`](docs/specs/order.md) | Orders for units of one seller's offers, their lines and every transition (tables `order_*`) | `Service`: place, read and list a customer's orders, cancel; a seller's orders of a day, ready, hand over against the code, refuse |
 | [`file`](docs/specs/file.md) | The files the system keeps, in PostgreSQL or an S3-compatible store as configuration chooses, and the photos uploaded for offers and sellers (tables `file_*`) | `Service`: upload a photo, serve it, `Claim` it for an offer or a seller |
 | [`notification`](docs/specs/notification.md) | Who delivers email, chosen by admins while the service runs, and the record of emails sent (tables `notification_*`) | `Service`: send an email, read and save the email settings |
 
@@ -36,6 +38,7 @@ One line per module, naming the modules whose published API it may use, such as 
 
 - `identity` → `notification`
 - `offer` → `file`, `identity`, `seller`
+- `order` → `file`, `identity`, `offer`, `seller`
 - `seller` → `file`, `identity`
 
 ## Repository contents

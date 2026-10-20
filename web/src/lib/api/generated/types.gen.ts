@@ -18,6 +18,10 @@ export type AddSellerStaffRequest = {
     email: string;
 };
 
+export type CancelOrderRequest = {
+    reason?: string;
+};
+
 export type CollectionPointBody = {
     address: string;
     latitude: number;
@@ -118,6 +122,10 @@ export type GoogleSignInInputBody = {
      * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
      */
     session?: 'token' | 'cookie';
+};
+
+export type HandOverOrderRequest = {
+    code: string;
 };
 
 export type MemberBody = {
@@ -262,6 +270,78 @@ export type OffersOutputBody = {
     offers: Array<OfferBody>;
 };
 
+export type OrderBody = {
+    cancelReason?: string;
+    cancelledAt?: string;
+    /**
+     * The collection code, to its customer once the order is ready or its window has opened
+     */
+    code?: string;
+    /**
+     * How many wrong codes staff may still enter
+     */
+    codeAttemptsLeft: number;
+    collectedAt?: string;
+    createdAt: string;
+    id: string;
+    lines: Array<OrderLineBody>;
+    /**
+     * What people read aloud, SB- and a number
+     */
+    number: string;
+    readyAt?: string;
+    refuseNote?: string;
+    refuseReason?: 'not_suitable' | 'wrong_items' | 'other';
+    refusedAt?: string;
+    /**
+     * Where the order is collected, copied when it was placed
+     */
+    seller: OrderSellerBody;
+    /**
+     * expired is read from the window's end
+     */
+    status: 'confirmed' | 'ready' | 'collected' | 'cancelled' | 'refused' | 'expired';
+    /**
+     * Paid to the seller at the counter
+     */
+    totalVnd: number;
+    windowEnd: string;
+    windowStart: string;
+};
+
+export type OrderLineBody = {
+    name: string;
+    offerId: string;
+    originalPriceVnd: number;
+    photo: OrderLinePhotoBody;
+    priceVnd: number;
+    unit: string;
+    units: number;
+};
+
+export type OrderLinePhotoBody = {
+    id: string;
+    largePath: string;
+    smallPath: string;
+};
+
+export type OrderSellerBody = {
+    address: string;
+    id: string;
+    latitude: number;
+    longitude: number;
+    name: string;
+};
+
+export type OrderWantedBody = {
+    offerId: string;
+    units: number;
+};
+
+export type OrdersOutputBody = {
+    orders: Array<OrderBody>;
+};
+
 export type PhotoBody = {
     height: number;
     id: string;
@@ -277,6 +357,13 @@ export type PhotoBody = {
      * Of the photo as uploaded, turned the way it was taken
      */
     width: number;
+};
+
+export type PlaceOrderBody = {
+    /**
+     * One to ten different offers of one seller
+     */
+    lines: Array<OrderWantedBody> | null;
 };
 
 export type Problem = {
@@ -299,6 +386,11 @@ export type Problem = {
      * urn:secondbite:failure:<code in kebab case>
      */
     type: string;
+};
+
+export type RefuseOrderRequest = {
+    note?: string;
+    reason: 'not_suitable' | 'wrong_items' | 'other';
 };
 
 export type RequestCodeInputBody = {
@@ -921,6 +1013,201 @@ export type WithdrawOfferResponses = {
 
 export type WithdrawOfferResponse = WithdrawOfferResponses[keyof WithdrawOfferResponses];
 
+export type ListMyOrdersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * open: still to collect; ended: every other
+         */
+        state?: 'open' | 'ended';
+        limit?: number;
+        offset?: number;
+    };
+    url: '/orders';
+};
+
+export type ListMyOrdersErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListMyOrdersError = ListMyOrdersErrors[keyof ListMyOrdersErrors];
+
+export type ListMyOrdersResponses = {
+    /**
+     * OK
+     */
+    200: OrdersOutputBody;
+};
+
+export type ListMyOrdersResponse = ListMyOrdersResponses[keyof ListMyOrdersResponses];
+
+export type PlaceOrderData = {
+    body: PlaceOrderBody;
+    headers: {
+        'Idempotency-Key': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/orders';
+};
+
+export type PlaceOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type PlaceOrderError = PlaceOrderErrors[keyof PlaceOrderErrors];
+
+export type PlaceOrderResponses = {
+    /**
+     * Created
+     */
+    201: OrderBody;
+};
+
+export type PlaceOrderResponse = PlaceOrderResponses[keyof PlaceOrderResponses];
+
+export type GetOrderData = {
+    body?: never;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}';
+};
+
+export type GetOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetOrderError = GetOrderErrors[keyof GetOrderErrors];
+
+export type GetOrderResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type GetOrderResponse = GetOrderResponses[keyof GetOrderResponses];
+
+export type CancelOrderData = {
+    body: CancelOrderRequest;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/cancel';
+};
+
+export type CancelOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type CancelOrderError = CancelOrderErrors[keyof CancelOrderErrors];
+
+export type CancelOrderResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type CancelOrderResponse = CancelOrderResponses[keyof CancelOrderResponses];
+
+export type HandOverOrderData = {
+    body: HandOverOrderRequest;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/hand-over';
+};
+
+export type HandOverOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type HandOverOrderError = HandOverOrderErrors[keyof HandOverOrderErrors];
+
+export type HandOverOrderResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type HandOverOrderResponse = HandOverOrderResponses[keyof HandOverOrderResponses];
+
+export type MarkOrderReadyData = {
+    body?: never;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/ready';
+};
+
+export type MarkOrderReadyErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type MarkOrderReadyError = MarkOrderReadyErrors[keyof MarkOrderReadyErrors];
+
+export type MarkOrderReadyResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type MarkOrderReadyResponse = MarkOrderReadyResponses[keyof MarkOrderReadyResponses];
+
+export type RefuseOrderData = {
+    body: RefuseOrderRequest;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/refuse';
+};
+
+export type RefuseOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RefuseOrderError = RefuseOrderErrors[keyof RefuseOrderErrors];
+
+export type RefuseOrderResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type RefuseOrderResponse = RefuseOrderResponses[keyof RefuseOrderResponses];
+
 export type UploadPhotoData = {
     body: Blob | File;
     path?: never;
@@ -1215,6 +1502,38 @@ export type PostOfferResponses = {
 };
 
 export type PostOfferResponse = PostOfferResponses[keyof PostOfferResponses];
+
+export type ListSellerOrdersData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: {
+        /**
+         * A day in Vietnam time, YYYY-MM-DD; today when empty
+         */
+        day?: string;
+    };
+    url: '/sellers/{sellerId}/orders';
+};
+
+export type ListSellerOrdersErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListSellerOrdersError = ListSellerOrdersErrors[keyof ListSellerOrdersErrors];
+
+export type ListSellerOrdersResponses = {
+    /**
+     * OK
+     */
+    200: OrdersOutputBody;
+};
+
+export type ListSellerOrdersResponse = ListSellerOrdersResponses[keyof ListSellerOrdersResponses];
 
 export type RemoveSellerPhotoData = {
     body?: never;

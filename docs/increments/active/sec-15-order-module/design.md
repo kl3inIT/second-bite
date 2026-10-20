@@ -116,12 +116,15 @@ An order carries its number, status (`confirmed`, `ready`, `collected`, `cancell
 | Code | Status | When |
 | --- | --- | --- |
 | `ORDER_LINES_INVALID` | 400 | No line, more than ten, a repeated offer, or offers of different sellers |
+| `ORDER_IDEMPOTENCY_KEY_INVALID` | 400 | No key, or one of more than 255 characters |
 | `ORDER_WINDOWS_DO_NOT_MEET` | 400 | The offers' windows share no time still to come |
+| `ORDER_DAY_INVALID` | 400 | A seller's list asked for a day that does not exist |
+| `ORDER_REFUSAL_INVALID` | 400 | An unknown refusal reason, or a note of more than 200 characters |
 | `ORDER_OFFER_SOLD_OUT` | 409 | An offer has fewer units left than asked; nothing is taken |
 | `ORDER_OFFER_UNAVAILABLE` | 409 | An offer is withdrawn, closed, or its seller not active |
 | `ORDER_NOT_FOUND` | 404 | No such order, or one the caller may not see |
 | `ORDER_CANCEL_TOO_LATE` | 409 | The window has opened, or the order has ended |
-| `ORDER_TRANSITION_NOT_ALLOWED` | 409 | Ready, hand over or refuse an order that has ended, or ready one already ready |
+| `ORDER_TRANSITION_NOT_ALLOWED` | 409 | Ready, hand over or refuse an order that has ended; ready again answers the order as it is, so a double tap is harmless |
 | `ORDER_OUTSIDE_WINDOW` | 409 | Handing over before the window opens |
 | `ORDER_CODE_WRONG` | 409 | A wrong code; the order says how many attempts remain |
 | `ORDER_CODE_LOCKED` | 409 | Three wrong codes were given; staff call support |
