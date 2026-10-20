@@ -201,14 +201,15 @@ function Rail({ account }: { account: Account }) {
         <button
           type="button"
           onClick={toggleSidebar}
-          aria-label={t("sidebar.expand")}
           title={t("sidebar.expand")}
           className={cn(
             "flex size-11 shrink-0 items-center justify-center rounded-xl bg-sidebar-accent text-title-lg text-sidebar-accent-foreground",
             focusRing,
           )}
         >
+          {/* Named by the hidden words, not aria-label, so the "sb" on show is not taken for its name. */}
           <span aria-hidden>sb</span>
+          <span className="sr-only">{t("sidebar.expand")}</span>
         </button>
         <nav
           aria-label={t("sidebar.label")}
@@ -271,11 +272,9 @@ function Rail({ account }: { account: Account }) {
           </span>
         </LanguageLink>
         <DropdownMenu>
-          <DropdownMenuTrigger
-            variant="sidebar"
-            aria-label={t("sidebar.account", { email: account.email })}
-          >
+          <DropdownMenuTrigger variant="sidebar">
             <Avatar account={account} />
+            <span className="sr-only">{t("sidebar.account", { email: account.email })}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right" align="end" className="min-w-56">
             <DropdownMenuGroup>
