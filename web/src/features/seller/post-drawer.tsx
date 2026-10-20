@@ -30,6 +30,7 @@ import {
   MIN_DISCOUNT_PERCENT,
   MIN_WINDOW_MINUTES,
   priceProblem,
+  suggestedPrice,
   type Start,
   windowIsOver,
   windowOf,
@@ -87,6 +88,12 @@ function currentTime(): Date {
   return new Date();
 }
 
+/** The price a post starts from, as the form holds it: the suggested one for an original price, or empty. */
+function startingPrice(original: number | undefined): string {
+  const suggested = original ? suggestedPrice(original) : undefined;
+  return suggested ? String(suggested) : "";
+}
+
 const digits = (value: string) => value.replace(/\D/g, "");
 const grouped = new Intl.NumberFormat("vi-VN");
 const shown = (value: string) => (value ? grouped.format(Number(value)) : "");
@@ -139,7 +146,11 @@ export function PostDrawer({
   const [original, setOriginal] = useState(
     base?.originalPriceVnd ? String(base.originalPriceVnd) : "",
   );
-  const [price, setPrice] = useState(base?.priceVnd ? String(base.priceVnd) : "");
+  const [price, setPrice] = useState(
+    base?.priceVnd ? String(base.priceVnd) : startingPrice(base?.originalPriceVnd),
+  );
+  // Until the person types a price, the one the platform's minimum discount allows follows the original price.
+  const [priceTouched, setPriceTouched] = useState(Boolean(base?.priceVnd) || Boolean(edit));
   const [startKey, setStartKey] = useState<StartKey>("usual");
   const [customStart, setCustomStart] = useState(DEFAULT_USUAL);
   const [length, setLength] = useState<number | "custom">(
@@ -390,7 +401,12 @@ export function PostDrawer({
                               setOriginal(
                                 dish.originalPriceVnd ? String(dish.originalPriceVnd) : "",
                               );
-                              setPrice(dish.priceVnd ? String(dish.priceVnd) : "");
+                              setPrice(
+                                dish.priceVnd
+                                  ? String(dish.priceVnd)
+                                  : startingPrice(dish.originalPriceVnd),
+                              );
+                              setPriceTouched(Boolean(dish.priceVnd));
                             }}
                           >
                             {chosen?.id === dish.id ? t("chosen") : t("choose")}
@@ -514,7 +530,11 @@ export function PostDrawer({
                     inputMode="numeric"
                     value={shown(original)}
                     disabled={locked}
-                    onChange={(event) => setOriginal(digits(event.target.value).slice(0, 9))}
+                    onChange={(event) => {
+                      const next = digits(event.target.value).slice(0, 9);
+                      setOriginal(next);
+                      if (!priceTouched) setPrice(startingPrice(Number(next)));
+                    }}
                   />
                 </Field>
                 <Field data-invalid={showPriceError || undefined}>
@@ -524,7 +544,10 @@ export function PostDrawer({
                     inputMode="numeric"
                     value={shown(price)}
                     disabled={locked}
-                    onChange={(event) => setPrice(digits(event.target.value).slice(0, 9))}
+                    onChange={(event) => {
+                      setPrice(digits(event.target.value).slice(0, 9));
+                      setPriceTouched(true);
+                    }}
                     aria-invalid={showPriceError || undefined}
                     aria-describedby="post-price-note"
                   />
