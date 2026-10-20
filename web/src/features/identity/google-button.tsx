@@ -79,7 +79,7 @@ export function GoogleButton({
         callback: (response) => callback.current(response.credential, nonce),
         ux_mode: "popup",
         context: "signin",
-        use_fedcm_for_button: true,
+        use_fedcm_for_button: false,
       });
       google.accounts.id.renderButton(parent, {
         type: "standard",
@@ -100,7 +100,7 @@ export function GoogleButton({
   return (
     <>
       <Script src="https://accounts.google.com/gsi/client" onReady={() => setLoaded(true)} />
-      <div className="relative h-13 w-full overflow-hidden rounded-full border border-border bg-card">
+      <div className="relative h-13 w-full cursor-pointer overflow-hidden rounded-full border border-border bg-card transition-colors focus-within:ring-3 focus-within:ring-ring hover:bg-secondary active:bg-secondary-hover">
         <span
           aria-hidden
           className="pointer-events-none flex h-full items-center justify-center gap-2.5 text-body-sm-strong text-foreground"
