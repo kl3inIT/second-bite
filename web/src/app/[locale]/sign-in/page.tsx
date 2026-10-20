@@ -31,7 +31,10 @@ export default async function SignInPage({ searchParams }: PageProps<"/[locale]/
           <BackToReturn title={t("title")} returnTo={returnTo} />
         </Suspense>
       </div>
-      <main className="flex flex-1 justify-center bg-card sm:bg-background sm:px-4 sm:py-10 lg:grid lg:grid-cols-5 lg:p-0">
+      <main
+        data-no-footer
+        className="flex flex-1 justify-center bg-card sm:bg-background sm:px-4 sm:py-10 lg:grid lg:min-h-svh lg:grid-cols-5 lg:p-0"
+      >
         <SignInHero />
         <div className="w-full px-4 py-6 sm:h-fit sm:max-w-110 sm:rounded-2xl sm:bg-card sm:p-8 lg:col-span-3 lg:m-auto lg:max-w-100 lg:rounded-none lg:bg-transparent lg:p-0">
           <Suspense fallback={<SignInSkeleton />}>

@@ -7,14 +7,7 @@ import { useEffect, useState, useTransition } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Spinner } from "@/components/ui/spinner";
@@ -155,7 +148,7 @@ export function SignInForm({
       >
         <FieldGroup>
           <header className="flex flex-col gap-1">
-            <h1 className="text-headline text-foreground">{t("codeHeading")}</h1>
+            <h1 className="text-page-title text-foreground">{t("codeHeading")}</h1>
             <p className="text-body-sm text-muted-foreground">
               {t.rich("codeSent", {
                 email,
@@ -236,7 +229,7 @@ export function SignInForm({
       }}
     >
       <FieldGroup>
-        <h1 className="text-headline text-foreground">{t("heading")}</h1>
+        <h1 className="text-page-title text-foreground">{t("heading")}</h1>
         {step.googleNeedsCode !== undefined && (
           <Alert variant="warning">
             <MailWarningIcon aria-hidden />
@@ -251,7 +244,11 @@ export function SignInForm({
         {googleClientId && step.googleNeedsCode === undefined && (
           <>
             <GoogleButton clientId={googleClientId} onCredential={continueWithGoogle} />
-            <FieldSeparator>{t("or")}</FieldSeparator>
+            <div className="flex items-center gap-3 text-label text-muted-foreground">
+              <span aria-hidden className="h-px flex-1 bg-border" />
+              {t("or")}
+              <span aria-hidden className="h-px flex-1 bg-border" />
+            </div>
           </>
         )}
         <Field data-invalid={emailInvalid || undefined}>
@@ -291,8 +288,17 @@ export function SignInForm({
         </Button>
         <FieldDescription className="text-center">
           {t.rich("legal", {
-            terms: (chunks) => <Link href="/terms">{chunks}</Link>,
-            privacy: (chunks) => <Link href="/privacy">{chunks}</Link>,
+            terms: (chunks) => (
+              <Link href="/terms" className="text-link">
+                {chunks}
+              </Link>
+            ),
+            privacy: (chunks) => (
+              <Link href="/privacy" className="text-link">
+                {chunks}
+              </Link>
+            ),
+            br: () => <br />,
           })}
         </FieldDescription>
       </FieldGroup>
