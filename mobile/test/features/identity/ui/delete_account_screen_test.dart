@@ -14,7 +14,11 @@ DioException _problem(String code, int status) {
     response: Response(
       requestOptions: options,
       statusCode: status,
-      data: <String, Object?>{'status': status, 'code': code},
+      data: <String, Object?>{
+        'status': status,
+        'detail': 'Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.',
+        'code': code,
+      },
     ),
   );
 }

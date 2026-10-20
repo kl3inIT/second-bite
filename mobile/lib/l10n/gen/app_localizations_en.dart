@@ -442,32 +442,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'This Google account\'s address already has a Second Bite account. Get a code by email to sign in.';
 
   @override
-  String get signInEmailInvalid =>
-      'Enter one email address, such as name@gmail.com.';
-
-  @override
-  String get signInCodeLimit =>
-      'Too many codes were asked for this address. Wait a while, then try again.';
-
-  @override
-  String get signInCodeIncorrect =>
-      'The code is not right. Check the latest email and enter it again.';
-
-  @override
-  String get signInCodeGone =>
-      'This code has expired or was already used. Send a new code.';
-
-  @override
-  String get signInGoogleUnverified =>
-      'Google has not confirmed this address. Sign in with a code sent by email.';
-
-  @override
   String get signInFailed => 'You could not be signed in. Please try again.';
-
-  @override
-  String signInFailedWithReference(String reference) {
-    return 'You could not be signed in. Please try again. Reference: $reference';
-  }
 
   @override
   String get signInNotArrived => 'No email yet? Check your spam folder.';
@@ -566,11 +541,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your account could not be deleted. Please try again.';
 
   @override
-  String deleteAccountFailedWithReference(String reference) {
-    return 'Your account could not be deleted. Please try again. Reference: $reference';
-  }
-
-  @override
   String get deleteAccountDoneTitle => 'Your account is deleted';
 
   @override
@@ -619,4 +589,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountSettingsDeleteAction => 'Delete account';
+
+  @override
+  String problemReference(String reference) {
+    return 'Reference: $reference';
+  }
+
+  @override
+  String get accountSettingsEditName => 'Edit the display name';
+
+  @override
+  String get accountSettingsSave => 'Save';
+
+  @override
+  String get accountSettingsSaving => 'Saving…';
+
+  @override
+  String get accountSettingsCancel => 'Cancel';
+
+  @override
+  String get accountSettingsNameFailed =>
+      'The name was not saved. Try again in a few minutes.';
 }

@@ -20,6 +20,8 @@
 
 Every error is an RFC 9457 problem (`application/problem+json`) with `type` (`urn:secondbite:failure:<code in kebab case>`), `title`, `status`, `detail`, `code` and `requestId`, as the [API errors convention](../conventions.md#api-errors) asks.
 
+`detail` is written for people in the request's language (SEC-28). `Accept-Language` is matched against Vietnamese and English, quality values honoured, and Vietnamese answers when it asks for neither. Every problem carries `Content-Language` and `Vary: Accept-Language`. Each failure declares its words in both languages beside its code (`platform.Words`); a failure missing one stops its package from loading. Violations keep huma's English and are translated into Vietnamese by recognising huma's sentence, with "Giá trị không hợp lệ." when none is recognised. `title` stays the category's English.
+
 | Category | Status | Notes |
 | --- | --- | --- |
 | `VALIDATION` | 400 | Violations in `errors[]`, each naming a body member by JSON Pointer (`pointer`) or a parameter by location (`parameter`, such as `query.limit`), with code `PLATFORM_VALUE_INVALID`; the rejected value is never echoed. A module's failure names the parameter at fault with `AtParameter`, under its own code |

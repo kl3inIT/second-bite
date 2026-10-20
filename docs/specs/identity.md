@@ -12,6 +12,7 @@ Owns accounts and their role, emailed sign-in codes, Google sign-in and sessions
 | `GET /auth/methods` | Anyone | `200 {google: {clientId}}` when Google is configured, `200 {}` otherwise |
 | `DELETE /auth/sessions/current` | A signed-in caller | `204`; the session ends and its cookie is cleared |
 | `GET /accounts/me` | A signed-in caller | `200 {id, email, role, displayName}` |
+| `PUT /accounts/me` `{displayName}` | A signed-in caller | `200` the account, its name trimmed (SEC-61) |
 | `POST /accounts/me/deletion-codes` | A signed-in caller | `202 {challengeId, expiresAt}`; a code that only confirms the deletion is emailed to the account's address (SEC-37) |
 | `POST /accounts/me/deletion` `{challengeId, code}` | A signed-in caller holding a deletion code of their own address | `204`; the account is deleted and the session cookie cleared |
 
@@ -30,7 +31,7 @@ Administrative command: `secondbite admin grant EMAIL` makes an account an admin
 - A header with an unknown, ended or malformed token is refused at once; it does not fall back to an anonymous request.
 - Google's ID token is verified with go-oidc against Google's published keys (fetched within 5 seconds, then kept): the signature, an issuer of `https://accounts.google.com` or `accounts.google.com`, an audience among `SECONDBITE_GOOGLE_CLIENT_IDS` (comma-separated, the web's first) and the expiry. When a nonce is in the token or posted, the token's must be the hex SHA-256 of the one posted. Without client IDs Google is off.
 - A Google identity is found by Google's subject, never by address. A first sign-in needs `email_verified`; it creates the account when no account has the address, links the account that has it when Google speaks for the address (`gmail.com`, or `hd` set), and otherwise is refused so that the person signs in with the code. The account's address never follows Google's. Each link records whether Google speaks for its address; a sign-in with the emailed code removes the account's links that it does not, and when it removes any, ends the account's earlier sessions (a Google sign-in racing it either finishes first, and its session is ended, or finds its link gone and is treated as unlinked), so that a Google account linked to an outside address before its owner arrived loses its way in (account pre-hijacking). Giving something by address waits for that proof: while the address's account holds such a link, `EnsureAccount` (a seller adding staff) and `GrantRole` are refused with `IDENTITY_ADDRESS_UNPROVEN`, under the address lock a Google sign-in takes, so that a role or a membership reaches the address's owner and not whoever linked Google to it first; once the owner has signed in with the code, they succeed. They end no one's sessions (SEC-39). The sign-ins of one identity run under a lock, so two first sign-ins make one link.
-- An account's display name is empty until a Google sign-in fills it with Google's name; a name it already has is kept. The identity's name and picture follow Google's at each sign-in.
+- An account's display name is empty until a Google sign-in fills it with Google's name, or its owner sets one; a name it already has is kept, so Google never replaces the one the person chose. The owner sets it from account settings: trimmed, 1 to 50 characters, no control character (SEC-61). The identity's name and picture follow Google's at each sign-in.
 - A code carries its purpose: a sign-in code only signs in, a deletion code only deletes. Both share an address's limits and its one live code (SEC-37).
 - Deleting an account (SEC-37): the signed-in person asks for a deletion code, emailed to the account's address, and sends it back. The records of emails sent to the address are forgotten first (`notification`), since afterwards no one knows the address; then, in one transaction, the address's codes and the account are deleted, its sessions and external logins with it, and `AccountDeletedEvent` is written to the outbox. Signing in again with the address makes a new account. An admin may delete their own account like anyone.
 
@@ -54,6 +55,7 @@ Administrative command: `secondbite admin grant EMAIL` makes an account an admin
 | `IDENTITY_EMAIL_NOT_VERIFIED` | 403 | A first Google sign-in whose address Google has not verified |
 | `IDENTITY_GOOGLE_LINK_REQUIRED` | 409 | The address has an account and Google does not speak for it |
 | `IDENTITY_ADDRESS_UNPROVEN` | 409 | A role or a seller membership is given by address while the address's account holds a Google link Google does not speak for; the owner signs in once with the emailed code, then it succeeds (SEC-39) |
+| `IDENTITY_DISPLAY_NAME_INVALID` | 400 | A display name empty once trimmed, longer than 50 characters, or holding a control character |
 | `IDENTITY_ACCOUNT_NOT_FOUND` | 404 | The account does not exist |
 | `IDENTITY_CHALLENGE_GONE` | 410 | The code expired, was used or was ended by a newer one; also a code of the other purpose, or a deletion code of another address, so a challenge tells nothing of who asked for it |
 | `IDENTITY_CODE_ATTEMPTS_EXHAUSTED` | 410 | Five wrong guesses on this code |
@@ -66,4 +68,4 @@ A code that could not be emailed answers `notification`'s 503 ([notification](no
 ## Not yet
 
 - Limits per client address in front of those per email address, which today can be spent by someone else to hold an address back for up to a day; with the first deployment.
-- Linking Google from a signed-in session, and changing the display name; when someone needs them.
+- Linking Google from a signed-in session; when someone needs it.

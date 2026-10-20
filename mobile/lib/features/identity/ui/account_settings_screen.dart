@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:second_bite/core/app_locale.dart';
 import 'package:second_bite/core/routes.dart';
 import 'package:second_bite/features/identity/ui/current_account.dart';
+import 'package:second_bite/features/identity/ui/sign_in_problem.dart';
 import 'package:second_bite/features/seller/data/seller_repository.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
@@ -108,6 +109,15 @@ class AccountSettingsScreen extends ConsumerWidget {
                                   value: account.displayName.isEmpty
                                       ? l10n.accountSettingsNoDisplayName
                                       : account.displayName,
+                                  tooltip: l10n.accountSettingsEditName,
+                                  onTap: () => showModalBottomSheet<void>(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    showDragHandle: true,
+                                    builder: (_) => _DisplayNameSheet(
+                                      name: account.displayName,
+                                    ),
+                                  ),
                                 ),
                                 const _Sellers(),
                                 _Row(
@@ -239,6 +249,111 @@ class _Row extends StatelessWidget {
         ),
       ),
       onTap: onTap,
+    );
+  }
+}
+
+/// The display name in a field (SEC-61): the server trims it and says in its
+/// own words when it refuses one (SEC-28); the sheet closes once it is saved.
+class _DisplayNameSheet extends ConsumerStatefulWidget {
+  const new({required this.name});
+
+  final String name;
+
+  @override
+  ConsumerState<_DisplayNameSheet> createState() => _DisplayNameSheetState();
+}
+
+class _DisplayNameSheetState extends ConsumerState<_DisplayNameSheet> {
+  /// As the server keeps it (server/internal/identity, maxDisplayNameLength).
+  static const _maxLength = 50;
+
+  late final _name = TextEditingController(text: widget.name);
+  String? _problem;
+  bool _pending = false;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() {
+      _pending = true;
+      _problem = null;
+    });
+    try {
+      await ref
+          .read(currentAccountProvider.notifier)
+          .setDisplayName(_name.text);
+      if (mounted) Navigator.of(context).pop();
+    } on Object catch (error) {
+      if (!mounted) return;
+      final l10n = context.l10n;
+      final problem = SignInProblem.of(error);
+      // A refused name is expected: its words alone, without the reference
+      // a person quotes only for a failure nobody planned for.
+      setState(
+        () => _problem = problemCode(error) == 'IDENTITY_DISPLAY_NAME_INVALID'
+            ? problem.detail ?? l10n.accountSettingsNameFailed
+            : problem.text(l10n, failed: l10n.accountSettingsNameFailed),
+      );
+    } finally {
+      if (mounted) setState(() => _pending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        SpacingTokens.space4,
+        0,
+        SpacingTokens.space4,
+        SpacingTokens.space4 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: SpacingTokens.space3,
+        children: [
+          Semantics(
+            header: true,
+            child: Text(
+              l10n.accountSettingsEditName,
+              style: context.appTextStyles.title,
+            ),
+          ),
+          TextField(
+            controller: _name,
+            autofocus: true,
+            enabled: !_pending,
+            maxLength: _maxLength,
+            textCapitalization: TextCapitalization.words,
+            autofillHints: const [AutofillHints.name],
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => unawaited(_save()),
+            decoration: InputDecoration(
+              labelText: l10n.accountSettingsDisplayName,
+              errorText: _problem,
+              errorMaxLines: 3,
+            ),
+          ),
+          AppButton(
+            onPressed: _pending ? null : () => unawaited(_save()),
+            child: Text(
+              _pending ? l10n.accountSettingsSaving : l10n.accountSettingsSave,
+            ),
+          ),
+          AppButton(
+            variant: AppButtonVariant.outline,
+            onPressed: _pending ? null : () => Navigator.of(context).pop(),
+            child: Text(l10n.accountSettingsCancel),
+          ),
+        ],
+      ),
     );
   }
 }

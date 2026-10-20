@@ -53,6 +53,7 @@ export 'models/seller_profile_body.dart';
 export 'models/sellers_output_body.dart';
 export 'models/sellers_summary_body.dart';
 export 'models/session_output_body.dart';
+export 'models/set_display_name_input_body.dart';
 export 'models/set_seller_photo_request.dart';
 export 'models/sign_in_input_body.dart';
 export 'models/top_seller_body.dart';

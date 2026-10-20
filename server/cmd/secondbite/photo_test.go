@@ -73,7 +73,7 @@ func checkPhotoFlow(t *testing.T, svc service) {
 	}
 
 	if p := sendRaw(t, http.MethodPost, svc.base+"/photos", nil, "image/png", buf.Bytes()).
-		problem(t, http.StatusUnauthorized); p.Code != "PLATFORM_AUTHENTICATION_REQUIRED" {
+		problem(t, http.StatusUnauthorized); p.Code != codeAuthenticationRequired {
 		t.Errorf("uploading without signing in: %q", p.Code)
 	}
 }

@@ -8,6 +8,7 @@ import 'package:retrofit/retrofit.dart';
 import '../models/account_body.dart';
 import '../models/delete_account_input_body.dart';
 import '../models/request_code_output_body.dart';
+import '../models/set_display_name_input_body.dart';
 
 part 'accounts_client.g.dart';
 
@@ -18,6 +19,14 @@ abstract class AccountsClient {
   /// The signed-in account
   @GET('/accounts/me')
   Future<AccountBody> getMyAccount();
+
+  /// Set the signed-in account's display name.
+  ///
+  /// Trimmed, it holds 1 to 50 characters and no control character. Google's sign-in fills a name only while it is empty, so the chosen one stays.
+  @PUT('/accounts/me')
+  Future<AccountBody> setMyDisplayName({
+    @Body() required SetDisplayNameInputBody body,
+  });
 
   /// Delete the signed-in account with the emailed code.
   ///

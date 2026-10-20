@@ -569,6 +569,36 @@ func (q *Queries) RefreshExternalLogin(ctx context.Context, arg RefreshExternalL
 	return result.RowsAffected(), nil
 }
 
+const setDisplayName = `-- name: SetDisplayName :one
+UPDATE identity_accounts SET display_name = $1 WHERE id = $2
+RETURNING id, email, role, display_name
+`
+
+type SetDisplayNameParams struct {
+	DisplayName string
+	ID          uuid.UUID
+}
+
+type SetDisplayNameRow struct {
+	ID          uuid.UUID
+	Email       string
+	Role        string
+	DisplayName string
+}
+
+// The name the person chose (SEC-61).
+func (q *Queries) SetDisplayName(ctx context.Context, arg SetDisplayNameParams) (SetDisplayNameRow, error) {
+	row := q.db.QueryRow(ctx, setDisplayName, arg.DisplayName, arg.ID)
+	var i SetDisplayNameRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Role,
+		&i.DisplayName,
+	)
+	return i, err
+}
+
 const spendAttempt = `-- name: SpendAttempt :one
 UPDATE identity_sign_in_challenges
 SET failed_attempts = failed_attempts + 1

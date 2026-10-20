@@ -143,7 +143,7 @@ abstract class AppLocalizations {
   /// The first item of the kinds row: only what can be collected now
   ///
   /// In vi, this message translates to:
-  /// **'Lấy ngay'**
+  /// **'Nhận ngay'**
   String get homeCollectNow;
 
   /// Title of the deal card on the header
@@ -167,7 +167,7 @@ abstract class AppLocalizations {
   /// When collection opens, on a ticket of the deal card
   ///
   /// In vi, this message translates to:
-  /// **'Lấy {from}'**
+  /// **'Nhận {from}'**
   String homeTicketWindow(String from);
 
   /// The strip under the deal card: bags still open and when the last window closes
@@ -179,7 +179,7 @@ abstract class AppLocalizations {
   /// Title of the row of offers whose windows close first
   ///
   /// In vi, this message translates to:
-  /// **'Sắp hết giờ lấy'**
+  /// **'Sắp hết giờ nhận'**
   String get homeClosingSoon;
 
   /// Action beside a section title that goes to the whole list
@@ -239,7 +239,7 @@ abstract class AppLocalizations {
   /// The collection window on a compact card
   ///
   /// In vi, this message translates to:
-  /// **'Lấy {from}–{until}'**
+  /// **'Nhận {from}–{until}'**
   String offerWindow(String from, String until);
 
   /// The collection window and place on an offer card
@@ -281,7 +281,7 @@ abstract class AppLocalizations {
   /// What Second Bite is, in two sentences
   ///
   /// In vi, this message translates to:
-  /// **'Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.'**
+  /// **'Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy nhận trong khung giờ của món.'**
   String get introBody;
 
   /// Closes the introduction
@@ -806,47 +806,11 @@ abstract class AppLocalizations {
   /// **'Email của tài khoản Google này đã có tài khoản Second Bite. Nhận mã qua email để đăng nhập.'**
   String get signInGoogleNeedsCodeBodyNoAddress;
 
-  /// The address is not one
-  ///
-  /// In vi, this message translates to:
-  /// **'Nhập một địa chỉ email, ví dụ ten@gmail.com.'**
-  String get signInEmailInvalid;
-
-  /// Too many codes for the address
-  ///
-  /// In vi, this message translates to:
-  /// **'Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.'**
-  String get signInCodeLimit;
-
-  /// A wrong code
-  ///
-  /// In vi, this message translates to:
-  /// **'Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.'**
-  String get signInCodeIncorrect;
-
-  /// An expired or used code
-  ///
-  /// In vi, this message translates to:
-  /// **'Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.'**
-  String get signInCodeGone;
-
-  /// Google has not verified the address
-  ///
-  /// In vi, this message translates to:
-  /// **'Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.'**
-  String get signInGoogleUnverified;
-
   /// Any other failure
   ///
   /// In vi, this message translates to:
   /// **'Chưa đăng nhập được. Vui lòng thử lại.'**
   String get signInFailed;
-
-  /// Any other failure, with the request's reference
-  ///
-  /// In vi, this message translates to:
-  /// **'Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: {reference}'**
-  String signInFailedWithReference(String reference);
 
   /// Under the code field
   ///
@@ -1010,12 +974,6 @@ abstract class AppLocalizations {
   /// **'Chưa xoá được tài khoản. Vui lòng thử lại.'**
   String get deleteAccountFailed;
 
-  /// Any other failure, with the reference to report
-  ///
-  /// In vi, this message translates to:
-  /// **'Chưa xoá được tài khoản. Vui lòng thử lại. Mã tham chiếu: {reference}'**
-  String deleteAccountFailedWithReference(String reference);
-
   /// Shown once the account is deleted
   ///
   /// In vi, this message translates to:
@@ -1111,6 +1069,42 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Xoá tài khoản'**
   String get accountSettingsDeleteAction;
+
+  /// The request's reference after the server's words, quoted when a person reports a failure
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã tham chiếu: {reference}'**
+  String problemReference(String reference);
+
+  /// The heading of the sheet that changes the display name, and the row's hint
+  ///
+  /// In vi, this message translates to:
+  /// **'Sửa tên hiển thị'**
+  String get accountSettingsEditName;
+
+  /// Saves the display name
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu'**
+  String get accountSettingsSave;
+
+  /// While the display name is saved
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang lưu…'**
+  String get accountSettingsSaving;
+
+  /// Closes the sheet without saving
+  ///
+  /// In vi, this message translates to:
+  /// **'Huỷ'**
+  String get accountSettingsCancel;
+
+  /// When saving the name got no answer
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa lưu được tên. Thử lại sau ít phút.'**
+  String get accountSettingsNameFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -50,3 +50,22 @@ The two legal pages are the same page with other words, so the spread on mobile 
 | `flutter test` in `packages/app_ui` | 76 passed, among them the blue top bar and its white back disc. |
 
 Not checked on a device or emulator: nothing here needs the phone's own services, but the blue top bar's status bar icons are worth a look on Android and iOS before the beta.
+
+## Staging after the deployment
+
+Measured again on 20 October 2026 with PageSpeed Insights' API on staging, deployed from `main` at `73e92b7`, which carries SEC-52 and SEC-37.
+
+| Page | Mobile: performance, accessibility, best practices, SEO | Desktop | Mobile LCP | Before (mobile performance) |
+| --- | --- | --- | --- | --- |
+| `/vi/terms` | 77, 100, 100, 66 | 100, 100, 100, 66 | 4.5 s | 87 |
+| `/en/privacy` | 91, 100, 100, 66 | 100, 100, 100, 66 | 3.0 s | 75 |
+| `/vi/account` | 78, 100, 100, 63 | 100, 100, 100, 63 | 4.7 s | 92 |
+| `/vi` | 78, 100, 100, 69 | 100, 100, 100, 69 | 3.9 s | 79 |
+| `/vi/delete-account` (new) | 78, 100, 96, 92 | 100, 100, 100, 66 | 4.5 s | — |
+
+- **Desktop:** 100 in every category on every page, as before.
+- **Mobile:** performance moves within the spread PSI's simulated slow 4G showed before (75 to 92). The legal pages traded places, so the change is the network, not the pages.
+- **SEO:**
+  - Still held only by `is-crawlable`: robots stay closed until the production address is chosen.
+  - It rose from 63 to 66 on the legal pages and to 69 on the home.
+- **Two flags on `/vi/delete-account`.** One mobile run flagged `errors-in-console` and `robots-txt`. A real browser on staging then found no console error on a Pixel 7 or a desktop, and `robots.txt` answered 200, so both were a one-off in Google's fetch.

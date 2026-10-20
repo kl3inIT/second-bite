@@ -17,9 +17,11 @@ var requestIDPattern = regexp.MustCompile(`^[A-Za-z0-9._-]{1,64}$`)
 type requestKey struct{}
 
 // requestInfo is what the platform remembers about one request: its
-// identifier, and the code of the failure it answered, for the access log.
+// identifier, the language its problems answer in, and the code of the
+// failure it answered, for the access log.
 type requestInfo struct {
 	id        string
+	language  Language
 	errorCode string
 	logger    *slog.Logger
 }
@@ -47,16 +49,19 @@ func setErrorCode(ctx context.Context, code string) {
 	}
 }
 
-// statusRecorder remembers the status a handler wrote.
+// statusRecorder remembers the status a handler wrote, and marks a problem
+// with the language its words are in, whoever wrote it.
 type statusRecorder struct {
 	http.ResponseWriter
 
-	status int
+	status   int
+	language Language
 }
 
 func (r *statusRecorder) WriteHeader(status int) {
 	if r.status == 0 {
 		r.status = status
+		r.markProblem()
 	}
 
 	r.ResponseWriter.WriteHeader(status)
@@ -68,6 +73,16 @@ func (r *statusRecorder) Write(b []byte) (int, error) {
 	}
 
 	return r.ResponseWriter.Write(b)
+}
+
+func (r *statusRecorder) markProblem() {
+	h := r.Header()
+	if h.Get("Content-Type") != problemContentType {
+		return
+	}
+
+	h.Set("Content-Language", string(r.language))
+	h.Add("Vary", "Accept-Language")
 }
 
 // Unwrap lets http.ResponseController reach the underlying writer.
@@ -86,12 +101,12 @@ func withRequest(logger *slog.Logger, next http.Handler) http.Handler {
 			id = rand.Text()
 		}
 
-		info := &requestInfo{id: id, logger: logger}
+		info := &requestInfo{id: id, language: languageOfHeader(r.Header.Get("Accept-Language")), logger: logger}
 		r = r.WithContext(context.WithValue(r.Context(), requestKey{}, info))
 
 		w.Header().Set(requestIDHeader, id)
 
-		rec := &statusRecorder{ResponseWriter: w}
+		rec := &statusRecorder{ResponseWriter: w, language: info.language}
 
 		defer func() {
 			if v := recover(); v != nil {
@@ -108,8 +123,7 @@ func withRequest(logger *slog.Logger, next http.Handler) http.Handler {
 				)
 
 				if rec.status == 0 {
-					writeProblem(rec, newProblem(http.StatusInternalServerError, CodeInternalFailure,
-						http.StatusText(http.StatusInternalServerError), internalDetail, id))
+					writeProblem(rec, platformProblem(r.Context(), http.StatusInternalServerError, CodeInternalFailure))
 				}
 			}
 
@@ -178,6 +192,6 @@ func withUnmatched(mux *http.ServeMux) http.Handler {
 		}
 
 		setErrorCode(r.Context(), code)
-		writeProblem(w, newProblem(status, code, http.StatusText(status), "", RequestID(r.Context())))
+		writeProblem(w, platformProblem(r.Context(), status, code))
 	})
 }

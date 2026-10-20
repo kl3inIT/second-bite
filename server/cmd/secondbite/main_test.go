@@ -63,6 +63,7 @@ func TestService(t *testing.T) {
 		"an offer is posted and found near Tasco Mall":             checkOfferFlow,
 		"an owner deletes their account; the others forget it":     checkAccountDeletion,
 		"admins read the dashboard's summary over a range of days": checkAdminSummary,
+		"a person names their account":                             checkDisplayName,
 	}
 
 	// The checks run in parallel with one another; this group returns when
@@ -355,6 +356,7 @@ type response struct {
 type problem struct {
 	Type      string `json:"type"`
 	Status    int    `json:"status"`
+	Detail    string `json:"detail"`
 	Code      string `json:"code"`
 	RequestID string `json:"requestId"`
 	Errors    []struct {

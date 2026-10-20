@@ -399,7 +399,7 @@ class _ProblemText extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              problem.text(context.l10n),
+              problem.text(context.l10n, failed: context.l10n.signInFailed),
               style: context.appTextStyles.bodySm.copyWith(color: error),
             ),
           ),

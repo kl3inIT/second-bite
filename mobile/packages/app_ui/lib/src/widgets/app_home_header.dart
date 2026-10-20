@@ -2,9 +2,11 @@ import 'package:app_ui/app_ui.dart';
 
 /// {@template app_home_header}
 /// The blue header of the home (DESIGN.md › Blue Header): [title] and
-/// [action] on the first line, then [children], under the light sweep and
-/// with rounded bottom corners. The blue runs under the status bar; the
-/// content stays below it and no wider than [maxContentWidth].
+/// [action] on the first line, then [children], under the light sweep. The
+/// page's pale ground rises over its foot as a 28 point sheet with 24 point
+/// top corners (DESIGN.md › Header foot; Figma header › sheet), as the web's
+/// `AppHeader`. The blue runs under the status bar; the content stays below
+/// it and no wider than [maxContentWidth].
 /// {@endtemplate}
 class AppHomeHeader extends StatelessWidget {
   /// {@macro app_home_header}
@@ -28,71 +30,95 @@ class AppHomeHeader extends StatelessWidget {
   /// How wide the content may grow on a large screen.
   final double maxContentWidth;
 
+  /// How far the page's ground rises over the header, as the web's `h-7`.
+  static const double sheetHeight = 28;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(
-        bottom: Radius.circular(RadiusTokens.radius3xl),
-      ),
-      child: ColoredBox(
-        color: colors.header,
-        child: Stack(
-          children: [
-            // The sweep keeps its drawn size pinned to the right, so a wide
-            // header shows more plain blue instead of a stretched sweep.
-            Positioned(
-              top: 0,
-              right: 0,
-              child: IgnorePointer(
-                child: CustomPaint(
-                  size: _SweepPainter.viewBox,
-                  painter: _SweepPainter(
-                    sweep: colors.sweep,
-                    edge: colors.sweepEdge,
-                    header: colors.header,
-                  ),
-                ),
-              ),
-            ),
-            SafeArea(
-              bottom: false,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: maxContentWidth),
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: SpacingTokens.space4,
-                      right: SpacingTokens.space4,
-                      top: SpacingTokens.space4,
-                      bottom: SpacingTokens.space3,
-                    ),
-                    child: DefaultTextStyle.merge(
-                      style: TextStyle(color: colors.headerForeground),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        spacing: SpacingTokens.space3,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: SpacingTokens.space4,
-                            children: [
-                              Expanded(child: title),
-                              action,
-                            ],
-                          ),
-                          ...children,
-                        ],
+    return Stack(
+      children: [
+        // The blue stops halfway down the sheet, so no hairline of it shows
+        // under the sheet's foot where the two edges meet.
+        Positioned.fill(
+          bottom: sheetHeight / 2,
+          child: ColoredBox(
+            color: colors.header,
+            child: Stack(
+              children: [
+                // The sweep keeps its drawn width pinned to the right, so a
+                // wide header shows more plain blue instead of a stretched
+                // sweep; it scales with the header's height, so its pale
+                // bands always reach the foot (DESIGN.md › Header foot).
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  width: _SweepPainter.viewBox.width,
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: _SweepPainter(
+                        sweep: colors.sweep,
+                        edge: colors.sweepEdge,
+                        header: colors.header,
                       ),
                     ),
                   ),
                 ),
+              ],
+            ),
+          ),
+        ),
+        SafeArea(
+          bottom: false,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxContentWidth),
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: SpacingTokens.space4,
+                  right: SpacingTokens.space4,
+                  top: SpacingTokens.space4,
+                  bottom: SpacingTokens.space3 + sheetHeight,
+                ),
+                child: DefaultTextStyle.merge(
+                  style: TextStyle(color: colors.headerForeground),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: SpacingTokens.space3,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: SpacingTokens.space4,
+                        children: [
+                          Expanded(child: title),
+                          action,
+                        ],
+                      ),
+                      ...children,
+                    ],
+                  ),
+                ),
               ),
             ),
-          ],
+          ),
         ),
-      ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: sheetHeight,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(RadiusTokens.radius3xl),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -111,6 +137,7 @@ class _SweepPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.scale(size.width / viewBox.width, size.height / viewBox.height);
     final band = Path()
       ..moveTo(0, 0)
       ..lineTo(362, 0)

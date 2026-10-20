@@ -116,26 +116,27 @@ abstract final class AppTheme {
           ),
         ),
       ),
-      // The bottom bar (Figma "Bottom nav"): white, the active tab's icon in a
-      // lime pill, its label strong; the others muted.
+      // The tabs of the bottom bar (DESIGN.md › Bottom bar, Figma "Bottom
+      // nav"), on the glass of AppBottomBar: the active tab's icon in a Blue
+      // Wash pill, it and its label in Tasco blue; the others muted.
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: ColorTokens.shell,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        height: 64,
-        indicatorColor: ColorTokens.fresh,
+        // The 64 point bar less the glass's 5 point edge on each side.
+        height: 54,
+        indicatorColor: ColorTokens.secondary,
         indicatorShape: const StadiumBorder(),
-        // A tab without a screen yet is muted at half strength, as on the web.
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? textStyles.labelStrong.copyWith(color: ColorTokens.foreground)
+              ? textStyles.labelStrong.copyWith(color: ColorTokens.primary)
               : textStyles.label.copyWith(color: _navigationMuted(states)),
         ),
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             size: 20,
             color: states.contains(WidgetState.selected)
-                ? ColorTokens.freshForeground
+                ? ColorTokens.primary
                 : _navigationMuted(states),
           ),
         ),
@@ -224,9 +225,10 @@ abstract final class AppTheme {
     );
   }
 
+  // A tab without a screen yet is shown at 85%, as on the web.
   static Color _navigationMuted(Set<WidgetState> states) =>
       states.contains(WidgetState.disabled)
-      ? ColorTokens.mutedForeground.withValues(alpha: 0.5)
+      ? ColorTokens.mutedForeground.withValues(alpha: 0.85)
       : ColorTokens.mutedForeground;
 
   static OutlineInputBorder _fieldBorder(Color color, {double width = 1}) {

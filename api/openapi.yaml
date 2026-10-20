@@ -145,7 +145,6 @@ components:
         phone:
           description: Shown to the seller's members and admins
           maxLength: 30
-          minLength: 9
           type: string
       required:
         - name
@@ -1172,6 +1171,16 @@ components:
         - expiresAt
         - account
       type: object
+    SetDisplayNameInputBody:
+      additionalProperties: false
+      properties:
+        displayName:
+          description: 1 to 50 characters once trimmed; Google never replaces it
+          maxLength: 200
+          type: string
+      required:
+        - displayName
+      type: object
     SetSellerPhotoRequest:
       additionalProperties: false
       properties:
@@ -1271,6 +1280,34 @@ paths:
         - bearer: []
         - cookie: []
       summary: The signed-in account
+      tags:
+        - Accounts
+    put:
+      description: Trimmed, it holds 1 to 50 characters and no control character. Google's sign-in fills a name only while it is empty, so the chosen one stays.
+      operationId: setMyDisplayName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetDisplayNameInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Set the signed-in account's display name
       tags:
         - Accounts
   /accounts/me/deletion:

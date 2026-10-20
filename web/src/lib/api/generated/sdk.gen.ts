@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddDishData, AddDishErrors, AddDishResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, GetAdminSummaryData, GetAdminSummaryErrors, GetAdminSummaryResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
+import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddDishData, AddDishErrors, AddDishResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, GetAdminSummaryData, GetAdminSummaryErrors, GetAdminSummaryResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -29,6 +29,25 @@ export const getMyAccount = <ThrowOnError extends boolean = true>(options?: Opti
         }],
     url: '/accounts/me',
     ...options
+});
+
+/**
+ * Set the signed-in account's display name
+ *
+ * Trimmed, it holds 1 to 50 characters and no control character. Google's sign-in fills a name only while it is empty, so the chosen one stays.
+ */
+export const setMyDisplayName = <ThrowOnError extends boolean = true>(options: Options<SetMyDisplayNameData, ThrowOnError>): RequestResult<SetMyDisplayNameResponses, SetMyDisplayNameErrors, ThrowOnError> => (options.client ?? client).put<SetMyDisplayNameResponses, SetMyDisplayNameErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/accounts/me',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**

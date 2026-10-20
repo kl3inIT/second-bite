@@ -81,6 +81,11 @@ class AuthRepository {
     }
   }
 
+  /// Gives the signed-in account the display name it chose (SEC-61); the
+  /// account as the server keeps it, the name trimmed.
+  Future<AccountBody> setDisplayName(String name) => _api.accounts
+      .setMyDisplayName(body: SetDisplayNameInputBody(displayName: name));
+
   /// Emails the signed-in account's address a code that only confirms its
   /// deletion (SEC-37); the challenge to confirm it against.
   Future<String> requestDeletionCode() async {

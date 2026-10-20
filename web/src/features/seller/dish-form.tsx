@@ -20,7 +20,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Link, useRouter } from "@/i18n/navigation";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, failureOf } from "@/lib/api/client";
 import { addDish, changeDish, type DishBody, removeDish, uploadPhoto } from "@/lib/api/generated";
 
 import { Chip } from "./chip";
@@ -36,17 +36,17 @@ const kinds = [
   "other",
 ] as const satisfies readonly DishBody["kind"][];
 
-type Problem = { kind: "details" } | { kind: "limit" } | { kind: "failed"; reference?: string };
+type Problem = { kind: "details" | "limit" | "failed"; detail?: string; reference?: string };
 
 function problemOf(error: unknown): Problem {
-  const code = error instanceof ApiError ? error.code : undefined;
-  switch (code) {
+  const failure = failureOf(error);
+  switch (error instanceof ApiError ? error.code : undefined) {
     case "OFFER_DETAILS_INVALID":
-      return { kind: "details" };
+      return { kind: "details", ...failure };
     case "OFFER_DISH_LIMIT_REACHED":
-      return { kind: "limit" };
+      return { kind: "limit", ...failure };
     default:
-      return { kind: "failed", reference: error instanceof ApiError ? error.requestId : undefined };
+      return { kind: "failed", ...failure };
   }
 }
 
@@ -159,15 +159,17 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
         {problem?.kind === "limit" && (
           <Alert variant="destructive">
             <CircleAlertIcon aria-hidden />
-            <AlertDescription>{t("limit")}</AlertDescription>
+            <AlertDescription>{problem.detail ?? t("failed")}</AlertDescription>
           </Alert>
         )}
         {problem?.kind === "failed" && (
           <Alert variant="destructive">
             <CircleAlertIcon aria-hidden />
             <AlertDescription>
-              {t("failed")}
-              {problem.reference && <> {t("reference", { id: problem.reference })}</>}
+              {problem.detail ?? t("failed")}
+              {problem.detail && problem.reference && (
+                <> {t("reference", { id: problem.reference })}</>
+              )}
             </AlertDescription>
           </Alert>
         )}

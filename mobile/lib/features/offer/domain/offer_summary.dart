@@ -43,7 +43,7 @@ List<OfferSummary> inShowingOrder(List<OfferSummary> offers) => [
 ];
 
 /// What can still be ordered, the window that closes first at the top: the
-/// home's "Sắp hết giờ lấy".
+/// home's "Sắp hết giờ nhận".
 List<OfferSummary> closingFirst(List<OfferSummary> offers) =>
     offers.where((offer) => offer.isAvailable).toList()
       ..sort((a, b) => a.windowEnd.compareTo(b.windowEnd));

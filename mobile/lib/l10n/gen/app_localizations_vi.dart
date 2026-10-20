@@ -31,7 +31,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get homeKindsLabel => 'Loại món';
 
   @override
-  String get homeCollectNow => 'Lấy ngay';
+  String get homeCollectNow => 'Nhận ngay';
 
   @override
   String get homeDealsTitle => 'Túi ngon tối nay ở Tasco Mall';
@@ -46,7 +46,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String homeTicketWindow(String from) {
-    return 'Lấy $from';
+    return 'Nhận $from';
   }
 
   @override
@@ -55,7 +55,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get homeClosingSoon => 'Sắp hết giờ lấy';
+  String get homeClosingSoon => 'Sắp hết giờ nhận';
 
   @override
   String get homeSeeAll => 'Xem tất cả';
@@ -88,7 +88,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String offerWindow(String from, String until) {
-    return 'Lấy $from–$until';
+    return 'Nhận $from–$until';
   }
 
   @override
@@ -129,7 +129,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get introBody =>
-      'Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.';
+      'Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy nhận trong khung giờ của món.';
 
   @override
   String get introDismiss => 'Đóng giới thiệu';
@@ -439,32 +439,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Email của tài khoản Google này đã có tài khoản Second Bite. Nhận mã qua email để đăng nhập.';
 
   @override
-  String get signInEmailInvalid =>
-      'Nhập một địa chỉ email, ví dụ ten@gmail.com.';
-
-  @override
-  String get signInCodeLimit =>
-      'Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.';
-
-  @override
-  String get signInCodeIncorrect =>
-      'Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.';
-
-  @override
-  String get signInCodeGone =>
-      'Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.';
-
-  @override
-  String get signInGoogleUnverified =>
-      'Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.';
-
-  @override
   String get signInFailed => 'Chưa đăng nhập được. Vui lòng thử lại.';
-
-  @override
-  String signInFailedWithReference(String reference) {
-    return 'Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: $reference';
-  }
 
   @override
   String get signInNotArrived => 'Chưa thấy email? Xem trong thư rác (Spam).';
@@ -564,11 +539,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Chưa xoá được tài khoản. Vui lòng thử lại.';
 
   @override
-  String deleteAccountFailedWithReference(String reference) {
-    return 'Chưa xoá được tài khoản. Vui lòng thử lại. Mã tham chiếu: $reference';
-  }
-
-  @override
   String get deleteAccountDoneTitle => 'Đã xoá tài khoản';
 
   @override
@@ -617,4 +587,25 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get accountSettingsDeleteAction => 'Xoá tài khoản';
+
+  @override
+  String problemReference(String reference) {
+    return 'Mã tham chiếu: $reference';
+  }
+
+  @override
+  String get accountSettingsEditName => 'Sửa tên hiển thị';
+
+  @override
+  String get accountSettingsSave => 'Lưu';
+
+  @override
+  String get accountSettingsSaving => 'Đang lưu…';
+
+  @override
+  String get accountSettingsCancel => 'Huỷ';
+
+  @override
+  String get accountSettingsNameFailed =>
+      'Chưa lưu được tên. Thử lại sau ít phút.';
 }

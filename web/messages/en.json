@@ -308,14 +308,9 @@
     "googleNeedsCodeTitle": "This address already has an account",
     "googleNeedsCodeBody": "{email} already has a Second Bite account. Get a code at this address to sign in.",
     "googleNeedsCodeBodyNoAddress": "This Google account's address already has a Second Bite account. Get a code by email to sign in.",
-    "emailInvalid": "Enter one email address, such as name@gmail.com.",
-    "codeLimit": "Too many codes were asked for this address. Wait a while, then try again.",
-    "codeIncorrect": "The code is not right. Check the latest email and enter it again.",
-    "codeGone": "This code has expired or was already used. Send a new code.",
-    "googleUnverified": "Google has not confirmed this address. Sign in with a code sent by email.",
     "failed": "You could not be signed in. Please try again.",
-    "failedWithReference": "You could not be signed in. Please try again. Reference: {reference}",
-    "notArrived": "No email yet? Check your spam folder."
+    "notArrived": "No email yet? Check your spam folder.",
+    "reference": "Reference: {reference}"
   },
   "Account": {
     "signIn": "Sign in",
@@ -343,7 +338,13 @@
     "switchLanguage": "Switch to Tiếng Việt",
     "deleteTitle": "Delete your account",
     "deleteBody": "Permanently delete your account and your personal data. This cannot be undone; a shop you own will be closed.",
-    "deleteAction": "Delete account"
+    "deleteAction": "Delete account",
+    "edit": "Edit",
+    "editName": "Edit the display name",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "nameFailed": "The name was not saved. Try again in a few minutes."
   },
   "TopBar": {
     "back": "Back",
@@ -395,14 +396,11 @@
     "confirm": "Delete my account for good",
     "deleting": "Deleting…",
     "cancel": "Keep my account",
-    "codeLimit": "Too many codes were asked for this address. Wait a while, then try again.",
-    "codeIncorrect": "That code is not right. Check the latest email and type it again.",
-    "codeGone": "This code has expired or was already used. Send a new code.",
     "failed": "Your account could not be deleted. Please try again.",
-    "failedWithReference": "Your account could not be deleted. Please try again. Reference: {reference}",
     "doneTitle": "Your account is deleted",
     "doneBody": "Your account and your personal data are deleted. You can still sign in with this address at any time, as a new account.",
-    "home": "Back to home"
+    "home": "Back to home",
+    "reference": "Reference: {reference}"
   },
   "OpenStore": {
     "title": "Open a store",
@@ -418,9 +416,6 @@
     "choosePhoto": "Choose a photo",
     "photoHint": "A photo helps customers recognise your store.",
     "submit": "Create store",
-    "detailsInvalid": "Enter the store's name and address.",
-    "phoneInvalid": "Enter a phone number of 9 to 15 digits, such as 0912 345 678.",
-    "limit": "You already have five stores. Use one of them.",
     "failed": "The store was not created. Try again in a few minutes.",
     "reference": "Reference: {id}"
   },
@@ -533,13 +528,6 @@
     "minutes": "{minutes} minutes",
     "window": "Customers collect from {from} to {until} today",
     "windowOver": "That time has passed. Choose a time from now on.",
-    "problem": {
-      "discount": "The price is not low enough against the original price. Lower it and try again.",
-      "window": "The collection window is not valid: 30 minutes to 6 hours, and not over.",
-      "details": "Check the dish's name, units and prices.",
-      "inactive": "The store is not active or is blocked, so it cannot post.",
-      "locked": "This post can no longer be changed: units are ordered, its hours are over, or it was withdrawn."
-    },
     "failed": "Could not post. Try again in a few minutes.",
     "reference": "Reference: {id}",
     "cancel": "Cancel",
@@ -616,7 +604,6 @@
     "deleteTitle": "Delete this dish?",
     "deleteBody": "The dish is deleted from the catalog. Posts already made are not affected.",
     "keep": "Keep",
-    "limit": "The catalog already holds 100 dishes. Delete one before adding.",
     "failed": "Could not save the dish. Try again in a few minutes.",
     "reference": "Reference: {id}",
     "original": "Original price (VND, optional)",

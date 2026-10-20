@@ -3,10 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
 /// {@template app_shell}
-/// The customer screens with the bottom bar, as the web's on a phone: home,
-/// orders, saved and account. Orders and saved sellers have no screen yet
-/// (SEC-15), so their tabs are shown but cannot be pressed, and a screen
-/// reader hears that they are coming.
+/// The customer screens with the floating bottom bar, as the web's on a
+/// phone (DESIGN.md › Bottom bar): home, orders, saved and account. Orders
+/// and saved sellers have no screen yet (SEC-15), so their tabs are shown
+/// but cannot be pressed, and a screen reader hears that they are coming.
 /// {@endtemplate}
 class AppShell extends StatelessWidget {
   /// {@macro app_shell}
@@ -22,16 +22,15 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final scheme = Theme.of(context).colorScheme;
     Widget soon(Widget destination) =>
         Semantics(hint: l10n.navSoon, child: destination);
 
+    // The page runs under the floating bar; its scroll views keep their end
+    // clear of it through the padding the scaffold adds below.
     return Scaffold(
+      extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: scheme.outlineVariant)),
-        ),
+      bottomNavigationBar: AppBottomBar(
         child: Semantics(
           container: true,
           label: l10n.navLabel,
