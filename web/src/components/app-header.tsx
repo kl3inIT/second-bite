@@ -11,7 +11,7 @@ import { Wordmark } from "./wordmark";
 // the account and the language capsules, then what the page puts under them, under the light sweep; the
 // page's pale ground rises over its foot with rounded corners (Figma header › sheet). On a phone the search field takes its own row; from `lg` the wordmark leads the row and
 // the three share it, and `sticky` (a second search field and account) stays at the top once the row has
-// scrolled away. From `xl` it is 1200px wide, as Vietnamese food sites are
+// scrolled away, on a phone the search field alone. From `xl` it is 1200px wide, as Vietnamese food sites are
 // (docs/research/2026-10-19-desktop-home.md).
 export async function AppHeader({
   title,
@@ -61,7 +61,7 @@ export async function AppHeader({
         <StickyHeader>
           {home}
           <div className="max-w-xl flex-1">{sticky.search}</div>
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto hidden items-center gap-1 lg:flex">
             {sticky.account}
             <LanguageSwitcher />
           </div>

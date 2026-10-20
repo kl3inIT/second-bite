@@ -159,7 +159,10 @@ async function NearbyEmpty() {
           <EmptyDescription>{t("nearbyEmptyHint")}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Link href="/" className={buttonVariants({ variant: "secondary", size: "lg" })}>
+          <Link
+            href="/"
+            className={buttonVariants({ variant: "secondary", size: "lg", className: "w-full" })}
+          >
             {t("seeMall")}
           </Link>
         </EmptyContent>

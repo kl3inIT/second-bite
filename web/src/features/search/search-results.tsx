@@ -36,13 +36,14 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
   const groups = groupBySeller(offers);
   const sellersTab = query.tab === "sellers";
   const count = sellersTab ? groups.length : offers.length;
+  const place = query.near ? "near" : "mall";
   const summary = sellersTab
     ? query.q
       ? t("sellersFor", { count, q: query.q })
-      : t("sellersHere", { count })
+      : t("sellersHere", { count, place })
     : query.q
       ? t("dishesFor", { count, q: query.q })
-      : t("dishesHere", { count });
+      : t("dishesHere", { count, place });
 
   return (
     <div className="flex flex-col gap-3 pb-6">
@@ -69,7 +70,7 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
       ) : !sellersTab && query.q ? (
         <OfferList offers={offers} showSeller />
       ) : (
-        <ul className="grid gap-3 px-4 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-3 px-4 sm:grid-cols-2 xl:grid-cols-3">
           {groups.map((group) => (
             <li key={group.seller.id}>
               <SellerGroup

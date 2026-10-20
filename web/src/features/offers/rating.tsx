@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 
 const ONE_DECIMAL = { minimumFractionDigits: 1, maximumFractionDigits: 1 } as const;
 
-// The seller's rating, "4,7 ★" (Figma "rating"). `badge` is the blue tag on a small card's photograph,
-// ringed in white; otherwise it sits on a photograph's scrim, the star in `rating`.
+// The seller's rating, "4,7 ★" (Figma "rating"). `badge` is the white tag on a small card's photograph
+// (Figma K1b); otherwise it sits on a photograph's scrim. The star is in `rating` either way.
 export function Rating({
   rating,
   badge = false,
@@ -24,13 +24,13 @@ export function Rating({
     <span
       className={cn(
         "flex shrink-0 items-center gap-0.5 text-label-strong",
-        badge && "rounded-sm bg-primary px-1.5 text-primary-foreground ring-2 ring-card",
+        badge && "rounded-sm bg-card px-1.5 text-foreground",
         className,
       )}
     >
       {!badge && <StarIcon aria-hidden className="size-3 fill-rating text-rating" />}
       <span aria-hidden>{value}</span>
-      {badge && <StarIcon aria-hidden className="size-3 fill-current" />}
+      {badge && <StarIcon aria-hidden className="size-3 fill-rating text-rating" />}
       <span className="sr-only">{t("rating", { rating: value })}</span>
     </span>
   );

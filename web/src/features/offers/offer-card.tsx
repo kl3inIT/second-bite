@@ -77,15 +77,26 @@ export function OfferCard({
         )}
       </div>
       <div className={cn("flex flex-col gap-1 pt-2.5 pb-3", compact ? "px-2.5" : "px-3.5")}>
-        <h3 className={cn("truncate text-foreground", compact ? "text-title" : "text-title-lg")}>
-          {offer.name}
-        </h3>
-        {showSeller && (
-          <p className="truncate text-label text-muted-foreground">
-            {distance
-              ? t("sellerAway", { seller: offer.seller.name, distance })
-              : t("seller", { seller: offer.seller.name })}
-          </p>
+        {showSeller ? (
+          // The seller under the dish, the portions left under the price (Figma K1f).
+          <>
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="min-w-0 truncate text-title-lg text-foreground">{offer.name}</h3>
+              <Price offer={offer} />
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <p className="min-w-0 truncate text-label text-muted-foreground">
+                {distance
+                  ? t("sellerAway", { seller: offer.seller.name, distance })
+                  : t("seller", { seller: offer.seller.name })}
+              </p>
+              <UnitsLeft offer={offer} />
+            </div>
+          </>
+        ) : (
+          <h3 className={cn("truncate text-foreground", compact ? "text-title" : "text-title-lg")}>
+            {offer.name}
+          </h3>
         )}
         {compact ? (
           <>
@@ -93,10 +104,12 @@ export function OfferCard({
             <UnitsLeft offer={offer} />
           </>
         ) : (
-          <div className="flex items-center justify-between gap-2">
-            <UnitsLeft offer={offer} />
-            <Price offer={offer} />
-          </div>
+          !showSeller && (
+            <div className="flex items-center justify-between gap-2">
+              <UnitsLeft offer={offer} />
+              <Price offer={offer} />
+            </div>
+          )
         )}
       </div>
       {!compact && <BiteCorner className="size-14" />}
