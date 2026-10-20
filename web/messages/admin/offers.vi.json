@@ -1,1 +1,71 @@
-{}
+{
+  "status": {
+    "on_sale": "Đang bán",
+    "sold_out": "Hết hàng",
+    "closed": "Đã đóng",
+    "withdrawn": "Đã gỡ",
+    "removed": "Gỡ do vi phạm"
+  },
+  "cards": "Bài đăng theo trạng thái",
+  "filters": {
+    "search": "Tìm bài đăng",
+    "searchPlaceholder": "Tìm theo tên món",
+    "seller": "Cửa hàng",
+    "kind": "Danh mục",
+    "posted": "Ngày đăng",
+    "all": "Tất cả"
+  },
+  "columns": {
+    "name": "Món",
+    "seller": "Cửa hàng",
+    "price": "Giá",
+    "left": "Còn",
+    "window": "Khung nhận",
+    "status": "Trạng thái",
+    "actions": "Thao tác"
+  },
+  "left": "{left}/{units} {unit}",
+  "window": "{start}–{end}",
+  "originalPrice": "Giá gốc {price}",
+  "view": "Xem chi tiết",
+  "remove": "Gỡ bài vi phạm…",
+  "summary": "Hiển thị {from}–{to} trên {total} bài đăng",
+  "empty": "Chưa có bài đăng nào",
+  "sheet": {
+    "title": "Chi tiết bài đăng",
+    "discount": "-{percent}%",
+    "info": "Thông tin bài",
+    "kind": "Danh mục",
+    "left": "Còn lại",
+    "leftValue": "{left}/{units} {unit}",
+    "held": "{count} {unit} đang được giữ",
+    "window": "Khung nhận",
+    "windowValue": "{start}–{end}, {day}",
+    "weight": "Khối lượng mỗi {unit}",
+    "weightValue": "{grams} g",
+    "posted": "Đăng lúc",
+    "postedValue": "{time}, {day}",
+    "description": "Mô tả",
+    "store": "Xem trang cửa hàng",
+    "remove": "Gỡ bài vi phạm"
+  },
+  "removeDialog": {
+    "title": "Gỡ bài vi phạm này?",
+    "after": "Sau khi gỡ:",
+    "consequences": {
+      "hidden": "Bài biến mất ngay khỏi tìm kiếm và trang cửa hàng của khách.",
+      "store": "Cửa hàng thấy bài ở trạng thái “Gỡ do vi phạm” kèm lý do, không sửa hay bán lại bài này.",
+      "orders": "Đơn khách đang giữ vẫn được giữ đến hết khung nhận."
+    },
+    "reason": "Lý do gỡ bài",
+    "reasons": {
+      "food_safety": "Không an toàn thực phẩm (hỏng, ôi, quá hạn)",
+      "price": "Giá gốc không đúng (không khớp giá đã kiểm định)",
+      "misleading": "Nội dung hoặc ảnh sai với món thật",
+      "other": "Lý do khác (ghi rõ bên dưới)"
+    },
+    "note": "Ghi chú gửi cửa hàng",
+    "confirm": "Gỡ bài vi phạm"
+  },
+  "soon": "Sắp có"
+}

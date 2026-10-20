@@ -1,1 +1,71 @@
-{}
+{
+  "status": {
+    "on_sale": "On sale",
+    "sold_out": "Sold out",
+    "closed": "Closed",
+    "withdrawn": "Withdrawn",
+    "removed": "Removed for a violation"
+  },
+  "cards": "Posts by status",
+  "filters": {
+    "search": "Search posts",
+    "searchPlaceholder": "Search by dish name",
+    "seller": "Store",
+    "kind": "Category",
+    "posted": "Posted",
+    "all": "All"
+  },
+  "columns": {
+    "name": "Dish",
+    "seller": "Store",
+    "price": "Price",
+    "left": "Left",
+    "window": "Pickup window",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "left": "{left}/{units} {unit}",
+  "window": "{start}–{end}",
+  "originalPrice": "Original price {price}",
+  "view": "View details",
+  "remove": "Remove for a violation…",
+  "summary": "Showing {from}–{to} of {total} posts",
+  "empty": "No posts yet",
+  "sheet": {
+    "title": "Post details",
+    "discount": "-{percent}%",
+    "info": "About the post",
+    "kind": "Category",
+    "left": "Left",
+    "leftValue": "{left}/{units} {unit}",
+    "held": "{count} {unit} held",
+    "window": "Pickup window",
+    "windowValue": "{start}–{end}, {day}",
+    "weight": "Weight per {unit}",
+    "weightValue": "{grams} g",
+    "posted": "Posted",
+    "postedValue": "{time}, {day}",
+    "description": "Description",
+    "store": "View the store",
+    "remove": "Remove for a violation"
+  },
+  "removeDialog": {
+    "title": "Remove this post for a violation?",
+    "after": "Once removed:",
+    "consequences": {
+      "hidden": "The post leaves search and the store's page at once.",
+      "store": "The store sees the post as “Removed for a violation” with the reason, and cannot change or sell it again.",
+      "orders": "Orders customers hold stay held until the pickup window ends."
+    },
+    "reason": "Reason",
+    "reasons": {
+      "food_safety": "Not safe to eat (spoiled, stale, past its date)",
+      "price": "Wrong original price (not the verified price)",
+      "misleading": "Text or photo unlike the real dish",
+      "other": "Another reason (write it below)"
+    },
+    "note": "Note to the store",
+    "confirm": "Remove for a violation"
+  },
+  "soon": "Coming soon"
+}
