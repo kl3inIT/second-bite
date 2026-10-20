@@ -1,15 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Script from "next/script";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
-// Google's own button (Google Identity Services, SEC-29 › decision 3), drawn by Google's script. Google draws
-// it 40 px high, and Figma L6 asks for 52, so the button a person sees is ours, with Google's mark and its
-// approved wording, and Google's own button lies over it, unseen, stretched to the same height and taking the
-// click. If Google's branding rules rule that out, the visible button goes and the 40 px one stays. Google hands back an ID token; the page posts it with the
-// random value whose SHA-256 it gave Google as the nonce (decision 6).
+// Google's own button (Google Identity Services, SEC-29 › decision 3), drawn by Google's script: a pill, as wide
+// as the form up to 400 px, 40 px high, which is the one height Google draws it (Figma L6 draws 52; a button of
+// ours with Google's laid over it unseen did not take the click on staging, SEC-60). Google hands back an ID
+// token; the page posts it with the random value whose SHA-256 it gave Google as the nonce (decision 6).
 
 type CredentialResponse = { credential: string };
 type GoogleIdentity = {
@@ -57,7 +55,6 @@ export function GoogleButton({
   onCredential: (idToken: string, nonce: string) => void;
 }) {
   const locale = useLocale();
-  const t = useTranslations("SignIn");
   const slot = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
   const callback = useRef(onCredential);
@@ -100,19 +97,7 @@ export function GoogleButton({
   return (
     <>
       <Script src="https://accounts.google.com/gsi/client" onReady={() => setLoaded(true)} />
-      <div className="relative h-13 w-full overflow-hidden rounded-full border border-border bg-card">
-        <span
-          aria-hidden
-          className="pointer-events-none flex h-full items-center justify-center gap-2.5 text-body-sm-strong text-foreground"
-        >
-          <Image src="/google-g.svg" alt="" width={20} height={20} unoptimized />
-          {t("google")}
-        </span>
-        <div
-          ref={slot}
-          className="absolute inset-x-0 top-0 flex origin-top scale-y-130 justify-center opacity-0"
-        />
-      </div>
+      <div ref={slot} className="flex h-10 w-full justify-center" />
     </>
   );
 }
