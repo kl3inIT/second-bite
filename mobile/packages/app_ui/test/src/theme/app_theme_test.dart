@@ -32,7 +32,7 @@ void main() {
       expect(scheme.surfaceTint, Colors.transparent);
     });
 
-    test('puts screens on the mint ground', () {
+    test('puts screens on the pale sky ground', () {
       expect(theme.scaffoldBackgroundColor, ColorTokens.background);
     });
 
@@ -93,7 +93,7 @@ void main() {
       expect(style.backgroundColor, isNull);
     });
 
-    test('outlines fields and rings them in Deep Leaf on focus', () {
+    test('outlines fields and rings them in Tasco blue on focus', () {
       final input = theme.inputDecorationTheme;
       expect(input.fillColor, ColorTokens.card);
       expect(input.enabledBorder?.borderSide.color, ColorTokens.input);

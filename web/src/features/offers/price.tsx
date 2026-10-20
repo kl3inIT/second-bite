@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "./format";
 import type { OfferSummary } from "./offer";
 
-// The new price in deep leaf against the old one struck through (DESIGN.md › Offer card). A reader hears
+// The new price in Tasco blue against the old one struck through (DESIGN.md › Offer card). A reader hears
 // the new price, then "Giá gốc …"; the struck figure itself is not read twice.
 export function Price({ offer, size }: { offer: OfferSummary; size: "lg" | "md" }) {
   const t = useTranslations("OfferCard");

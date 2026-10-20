@@ -16,7 +16,7 @@ import 'package:second_bite/l10n/l10n.dart';
 
 /// {@template home_screen}
 /// The customer home: tonight's offers at Tasco Mall, as the web's `/`.
-/// Under the lime header, the kinds, then without a filter the introduction
+/// Under the blue header, the kinds, then without a filter the introduction
 /// and the windows closing first, then every offer; with a filter, the kinds
 /// and what matches.
 /// {@endtemplate}

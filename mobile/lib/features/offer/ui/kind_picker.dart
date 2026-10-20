@@ -110,7 +110,7 @@ class _KindItem extends StatelessWidget {
           child: Column(
             spacing: SpacingTokens.space1,
             children: [
-              // The chosen kind wears a Deep Leaf ring with a gap of ground,
+              // The chosen kind wears a Tasco blue ring with a gap of ground,
               // inside its frame so nothing around it moves.
               DecoratedBox(
                 position: DecorationPosition.foreground,

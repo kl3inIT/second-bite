@@ -12,7 +12,7 @@ Second Bite's design system for Flutter, built from the tokens in [DESIGN.md](..
   - `context.appSpacing`: the spacing steps (`space4` is the web's `p-4`).
 - Be Vietnam Pro and Bricolage Grotesque, with the Vietnamese marks, under the SIL Open Font License. `registerFontLicenses()` adds their licences to the app's licence page.
 - `RadiusTokens` and `SpacingTokens` from the barrel, for sizes a screen needs as constants.
-- The shared widgets, each taking its words as parameters: `AppButton`, DESIGN.md's button; `AppOfferCard` and `AppOfferTile`, the offer cards, with `AppSticker`, `AppDiscountChip`, `AppPrice`, `AppSellerAvatar` and `AppBiteCorner`; `AppHomeHeader`, the lime header under the leaf sweep; `AppSectionHeader`; and `AppWordmark`, the logo from `assets/brand/wordmark.svg`.
+- The shared widgets, each taking its words as parameters: `AppButton`, DESIGN.md's button; `AppOfferCard` and `AppOfferTile`, the offer cards, with `AppSticker`, `AppDiscountChip`, `AppPrice`, `AppSellerAvatar` and `AppBiteCorner`; `AppHomeHeader`, the blue header under the light sweep; `AppSectionHeader`; and `AppWordmark`, the logo from `assets/brand/wordmark.svg`.
 - The bottom bar's look, in the theme's `navigationBarTheme`.
 
 ## Usage

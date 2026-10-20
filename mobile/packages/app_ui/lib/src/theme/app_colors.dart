@@ -19,6 +19,8 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.headerBorder,
     required this.sweep,
     required this.sweepEdge,
+    required this.deal,
+    required this.dealForeground,
     required this.link,
     required this.fresh,
     required this.freshForeground,
@@ -49,6 +51,8 @@ class AppColors extends ThemeExtension<AppColors> {
     headerBorder: ColorTokens.headerBorder,
     sweep: ColorTokens.sweep,
     sweepEdge: ColorTokens.sweepEdge,
+    deal: ColorTokens.deal,
+    dealForeground: ColorTokens.dealForeground,
     link: ColorTokens.link,
     fresh: ColorTokens.fresh,
     freshForeground: ColorTokens.freshForeground,
@@ -66,19 +70,19 @@ class AppColors extends ThemeExtension<AppColors> {
     avatarOlive: ColorTokens.avatarOlive,
   );
 
-  /// Deep Leaf under the finger, on a primary button.
+  /// Tasco blue under the finger, on a primary button.
   final Color primaryHover;
 
-  /// The leaf wash under the finger, on a soft button.
+  /// The pale blue wash under the finger, on a soft button.
   final Color secondaryHover;
 
   /// Stamp Red under the finger.
   final Color destructiveHover;
 
-  /// Secondary text on Deep Leaf or a dark photo scrim.
+  /// Secondary text on Tasco blue or a dark photo scrim.
   final Color inverseMuted;
 
-  /// The home's lime header, under the leaf sweep.
+  /// The home's blue header, under the light sweep.
   final Color header;
 
   /// The place on the header.
@@ -93,16 +97,22 @@ class AppColors extends ThemeExtension<AppColors> {
   /// The capsule's edge.
   final Color headerBorder;
 
-  /// The leaf that sweeps across the header's top right.
+  /// The light sweep across the header's top right.
   final Color sweep;
 
-  /// The lighter band between the leaf and the lime.
+  /// The brighter band at the sweep's edge.
   final Color sweepEdge;
+
+  /// The deal card on the header, a step deeper than it.
+  final Color deal;
+
+  /// Text on [deal]; its title and figures are [fresh].
+  final Color dealForeground;
 
   /// Text links and secondary actions.
   final Color link;
 
-  /// Lime: the stock sticker, the discount chip, figures on Deep Leaf.
+  /// Lime: the stock sticker, the discount chip, figures on Tasco blue.
   final Color fresh;
 
   /// Lime ink, on [fresh] and [freshMuted].
@@ -157,6 +167,8 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? headerBorder,
     Color? sweep,
     Color? sweepEdge,
+    Color? deal,
+    Color? dealForeground,
     Color? link,
     Color? fresh,
     Color? freshForeground,
@@ -186,6 +198,8 @@ class AppColors extends ThemeExtension<AppColors> {
       headerBorder: headerBorder ?? this.headerBorder,
       sweep: sweep ?? this.sweep,
       sweepEdge: sweepEdge ?? this.sweepEdge,
+      deal: deal ?? this.deal,
+      dealForeground: dealForeground ?? this.dealForeground,
       link: link ?? this.link,
       fresh: fresh ?? this.fresh,
       freshForeground: freshForeground ?? this.freshForeground,
@@ -231,6 +245,8 @@ class AppColors extends ThemeExtension<AppColors> {
       headerBorder: Color.lerp(headerBorder, other.headerBorder, t)!,
       sweep: Color.lerp(sweep, other.sweep, t)!,
       sweepEdge: Color.lerp(sweepEdge, other.sweepEdge, t)!,
+      deal: Color.lerp(deal, other.deal, t)!,
+      dealForeground: Color.lerp(dealForeground, other.dealForeground, t)!,
       link: Color.lerp(link, other.link, t)!,
       fresh: Color.lerp(fresh, other.fresh, t)!,
       freshForeground: Color.lerp(freshForeground, other.freshForeground, t)!,

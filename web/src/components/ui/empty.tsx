@@ -11,7 +11,7 @@ function Empty({
       data-slot="empty"
       data-surface={surface}
       className={cn(
-        // Second Bite: on the mint ground an empty list sits on a white card.
+        // Second Bite: on the pale sky ground an empty list sits on a white card.
         "data-[surface=card]:bg-card data-[surface=card]:text-card-foreground",
         "flex w-full min-w-0 flex-1 flex-col items-center justify-center gap-4 rounded-2xl border-dashed p-6 text-center text-balance",
         className,

@@ -17,13 +17,15 @@ abstract final class ColorTokens {
   static const inverseMuted = Color(0xFFD8F0FA);
   static const shell = Color(0xFFFFFFFF);
   static const shellForeground = Color(0xFF0E1D19);
-  static const header = Color(0xFF9EDAF3);
-  static const headerForeground = Color(0xFF004E8C);
+  static const header = Color(0xFF0061AF);
+  static const headerForeground = Color(0xFFFFFFFF);
   static const headerRaised = Color(0xFFFFFFFF);
   static const headerRaisedForeground = Color(0xFF0E1D19);
   static const headerBorder = Color(0xFFE0E8E4);
-  static const sweep = Color(0xFF0061AF);
-  static const sweepEdge = Color(0xFF3CB4E7);
+  static const sweep = Color(0xFF1C77BB);
+  static const sweepEdge = Color(0xFF4395CC);
+  static const deal = Color(0xFF004E8C);
+  static const dealForeground = Color(0xFFFFFFFF);
   static const secondary = Color(0xFFD8F0FA);
   static const secondaryForeground = Color(0xFF004E8C);
   static const secondaryHover = Color(0xFFB1E1F5);
@@ -139,10 +141,10 @@ abstract final class TypeTokens {
   static const headline = TextStyle(
     fontFamily: 'Be Vietnam Pro',
     package: 'app_ui',
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    fontVariations: [FontVariation('wght', 600)],
-    height: 25 / 18,
+    fontSize: 20,
+    fontWeight: FontWeight.w700,
+    fontVariations: [FontVariation('wght', 700)],
+    height: 28 / 20,
     letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );

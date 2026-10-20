@@ -7,8 +7,8 @@ import { LanguageSwitcher } from "./language-switcher";
 import { StickyHeader } from "./sticky-header";
 import { Wordmark } from "./wordmark";
 
-// The lime header of the home (Figma header): what the page names itself with, an optional search field,
-// the account and the language capsules, then what the page puts under them, under the leaf sweep and with rounded
+// The blue header of the home (Figma header): what the page names itself with, an optional search field,
+// the account and the language capsules, then what the page puts under them, under the light sweep and with rounded
 // bottom corners. On a phone the search field takes its own row; from `lg` the wordmark leads the row and
 // the three share it, and `sticky` (a second search field and account) stays at the top once the row has
 // scrolled away. From `xl` it is 1200px wide, as Vietnamese food sites are
@@ -30,7 +30,7 @@ export async function AppHeader({
   const home = (
     <Link
       href="/"
-      className="hidden shrink-0 items-center rounded-lg text-primary focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none lg:flex"
+      className="hidden shrink-0 items-center rounded-lg focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card focus-visible:outline-none lg:flex"
     >
       <Wordmark />
       <span className="sr-only">{t("home")}</span>

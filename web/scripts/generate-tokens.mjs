@@ -75,8 +75,14 @@ const pairs = [
   ["input", "card", 3],
   ["ring", "card", 3],
   ["ring", "background", 3],
-  ["ring", "header", 3],
-  // Lime figures and soft text on Deep Leaf (the deal card), and lime ink on the quiet lime surface.
+  // A focus ring on the header keeps a white gap (`ring-offset-card`), and the gap must show on the header.
+  ["card", "header", 3],
+  // Lime figures and soft text on Tasco blue: the header, the deal card and primary surfaces; and lime ink
+  // on the quiet lime surface.
+  ["fresh", "header", MIN_TEXT_CONTRAST],
+  ["inverse-muted", "header", MIN_TEXT_CONTRAST],
+  ["fresh", "deal", MIN_TEXT_CONTRAST],
+  ["inverse-muted", "deal", MIN_TEXT_CONTRAST],
   ["fresh", "primary", MIN_TEXT_CONTRAST],
   ["inverse-muted", "primary", MIN_TEXT_CONTRAST],
   ["fresh-foreground", "fresh-muted", MIN_TEXT_CONTRAST],

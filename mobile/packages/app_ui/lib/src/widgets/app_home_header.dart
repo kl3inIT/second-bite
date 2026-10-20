@@ -1,9 +1,9 @@
 import 'package:app_ui/app_ui.dart';
 
 /// {@template app_home_header}
-/// The lime header of the home (DESIGN.md › Lime Header): [title] and
-/// [action] on the first line, then [children], under the leaf sweep and
-/// with rounded bottom corners. The lime runs under the status bar; the
+/// The blue header of the home (DESIGN.md › Blue Header): [title] and
+/// [action] on the first line, then [children], under the light sweep and
+/// with rounded bottom corners. The blue runs under the status bar; the
 /// content stays below it and no wider than [maxContentWidth].
 /// {@endtemplate}
 class AppHomeHeader extends StatelessWidget {
@@ -40,8 +40,8 @@ class AppHomeHeader extends StatelessWidget {
         color: colors.header,
         child: Stack(
           children: [
-            // The leaf keeps its drawn size pinned to the right, so a wide
-            // header shows more lime instead of a stretched leaf.
+            // The sweep keeps its drawn size pinned to the right, so a wide
+            // header shows more plain blue instead of a stretched sweep.
             Positioned(
               top: 0,
               right: 0,
@@ -98,8 +98,8 @@ class AppHomeHeader extends StatelessWidget {
 }
 
 /// The paths of the web's `header-sweep.tsx`, in its 390 by 260 view box:
-/// the leaf, the lighter band at its edge, and the lime that curves under
-/// both.
+/// the sweep, the brighter band at its edge, and the header's blue that
+/// curves under both.
 class _SweepPainter extends CustomPainter {
   new({required this.sweep, required this.edge, required this.header});
 
@@ -117,7 +117,7 @@ class _SweepPainter extends CustomPainter {
       ..cubicTo(292, 30, 246, 82, 226, 132)
       ..cubicTo(210, 172, 150, 214, 0, 262)
       ..close();
-    final lime = Path()
+    final plain = Path()
       ..moveTo(0, 0)
       ..lineTo(332, 0)
       ..cubicTo(262, 30, 216, 80, 196, 128)
@@ -126,7 +126,7 @@ class _SweepPainter extends CustomPainter {
     canvas
       ..drawRect(Offset.zero & viewBox, Paint()..color = sweep)
       ..drawPath(band, Paint()..color = edge)
-      ..drawPath(lime, Paint()..color = header);
+      ..drawPath(plain, Paint()..color = header);
   }
 
   @override

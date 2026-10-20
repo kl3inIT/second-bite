@@ -11,6 +11,8 @@ void main() {
       expect(colors.freshForeground, ColorTokens.freshForeground);
       expect(colors.primaryHover, ColorTokens.primaryHover);
       expect(colors.header, ColorTokens.header);
+      expect(colors.deal, ColorTokens.deal);
+      expect(colors.dealForeground, ColorTokens.dealForeground);
       expect(colors.link, ColorTokens.link);
       expect(colors.avatarOlive, ColorTokens.avatarOlive);
     });
