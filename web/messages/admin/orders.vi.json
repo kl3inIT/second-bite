@@ -1,1 +1,133 @@
-{}
+{
+  "status": {
+    "confirmed": "Đã xác nhận",
+    "ready": "Sẵn sàng",
+    "collected": "Đã nhận",
+    "cancelled": "Đã huỷ",
+    "expired": "Hết hạn",
+    "rejected": "Bị từ chối"
+  },
+  "cards": {
+    "label": "Đơn theo trạng thái",
+    "collectedToday": "Đã nhận hôm nay",
+    "waiting": "Đang chờ nhận",
+    "noShow": "Khách không đến",
+    "none": "—"
+  },
+  "filters": {
+    "search": "Tìm đơn",
+    "searchPlaceholder": "Tìm mã đơn, tên khách hoặc cửa hàng",
+    "seller": "Cửa hàng",
+    "status": "Trạng thái",
+    "day": "Ngày",
+    "all": "Tất cả"
+  },
+  "columns": {
+    "code": "Mã đơn",
+    "customer": "Khách",
+    "seller": "Cửa hàng",
+    "items": "Món",
+    "total": "Tổng tiền",
+    "pickup": "Khung nhận",
+    "status": "Trạng thái"
+  },
+  "table": "Danh sách đơn hàng",
+  "code": "#{code}",
+  "item": "{name} × {quantity}",
+  "window": "{start}–{end}",
+  "empty": "Chưa có đơn nào",
+  "emptyFiltered": "Không có đơn nào khớp bộ lọc",
+  "summary": "Hiển thị {from}–{to} trên {total} đơn",
+  "actions": {
+    "view": "Xem chi tiết",
+    "viewSeller": "Xem cửa hàng",
+    "cancel": "Huỷ đơn…"
+  },
+  "detail": {
+    "viewSeller": "Xem cửa hàng",
+    "cancel": "Huỷ đơn",
+    "recordNoShow": "Ghi nhận vi phạm",
+    "recorded": "Đã ghi nhận vi phạm cho đơn #{code}",
+    "failed": "Chưa lưu được, thử lại sau",
+    "strip": {
+      "totalCollect": "Tổng thu tại quầy",
+      "totalNotCollected": "Tổng tiền (không thu)",
+      "quantity": "Số phần",
+      "window": "Khung nhận {day}",
+      "minutesLeft": "Còn {minutes} phút",
+      "heldUntil": "Giữ hàng đến {time}",
+      "overdue": "Đã hết giờ",
+      "closedAt": "Lúc {time}",
+      "expiredAt": "Hết hạn lúc {time}"
+    },
+    "items": {
+      "title": "Món trong đơn",
+      "viewPosts": "Xem bài đăng",
+      "originalPrice": "Giá gốc {price}",
+      "quantity": "{quantity} phần",
+      "payBy": "Cách trả",
+      "payByValue": "Tiền mặt hoặc VietQR của cửa hàng, khi nhận"
+    },
+    "history": {
+      "title": "Lịch sử đơn",
+      "placed": "Khách đặt món",
+      "confirmed": "Hệ thống xác nhận đơn",
+      "ready": "Cửa hàng báo sẵn sàng",
+      "collected": "Khách nhận món bằng mã",
+      "cancelled": "Đơn bị huỷ",
+      "rejected": "Cửa hàng từ chối giao",
+      "expired": "Hết hạn · khách không đến",
+      "awaiting": "Chờ khách nhận bằng mã"
+    },
+    "customer": {
+      "title": "Khách",
+      "name": "Tên",
+      "phone": "Số điện thoại",
+      "email": "Email",
+      "previous": "Đơn trước đó",
+      "previousValue": "{collected} đã nhận · {noShow} không đến"
+    },
+    "seller": {
+      "title": "Cửa hàng",
+      "name": "Tên cửa hàng",
+      "location": "Vị trí",
+      "phone": "Số điện thoại",
+      "status": "Trạng thái cửa hàng"
+    },
+    "pickup": {
+      "title": "Nhận và trả tiền",
+      "method": "Cách nhận",
+      "methodValue": "Tự đến lấy tại quầy",
+      "payment": "Thanh toán",
+      "paymentOpen": "Trả tại quầy · chưa thu",
+      "paymentCollected": "Đã thu tại quầy",
+      "paymentNone": "Không thu tiền",
+      "code": "Mã nhận",
+      "codeOpen": "4 số · chỉ khách thấy",
+      "codeUsed": "Đã dùng",
+      "codeVoid": "Đã hết hiệu lực",
+      "attempts": "Nhập sai mã",
+      "attemptsValue": "{count}/{max} lần"
+    },
+    "noShow": {
+      "title": "Khách không đến nhận",
+      "noCharge": "Không thu tiền, phần không bán lại",
+      "repeat": "Lần thứ {count} trong 30 ngày của khách",
+      "canRecord": "Có thể ghi nhận vi phạm"
+    }
+  },
+  "cancel": {
+    "title": "Huỷ đơn #{code}?",
+    "reason": "Lý do huỷ (bắt buộc)",
+    "reasons": {
+      "sellerOutOfStock": "Cửa hàng hết hàng hoặc món không còn đạt",
+      "customerAsked": "Khách yêu cầu huỷ qua hỗ trợ",
+      "other": "Lý do khác"
+    },
+    "note": "Ghi chú cho khách và cửa hàng",
+    "keep": "Giữ đơn",
+    "confirm": "Huỷ đơn",
+    "done": "Đã huỷ đơn #{code}",
+    "failed": "Chưa huỷ được đơn #{code}"
+  }
+}

@@ -1,1 +1,133 @@
-{}
+{
+  "status": {
+    "confirmed": "Confirmed",
+    "ready": "Ready",
+    "collected": "Collected",
+    "cancelled": "Cancelled",
+    "expired": "Expired",
+    "rejected": "Refused"
+  },
+  "cards": {
+    "label": "Orders by status",
+    "collectedToday": "Collected today",
+    "waiting": "Waiting for pickup",
+    "noShow": "No-shows",
+    "none": "—"
+  },
+  "filters": {
+    "search": "Search orders",
+    "searchPlaceholder": "Search an order code, a customer or a store",
+    "seller": "Store",
+    "status": "Status",
+    "day": "Day",
+    "all": "All"
+  },
+  "columns": {
+    "code": "Order",
+    "customer": "Customer",
+    "seller": "Store",
+    "items": "Items",
+    "total": "Total",
+    "pickup": "Pickup",
+    "status": "Status"
+  },
+  "table": "Orders",
+  "code": "#{code}",
+  "item": "{name} × {quantity}",
+  "window": "{start}–{end}",
+  "empty": "No orders yet",
+  "emptyFiltered": "No orders match the filters",
+  "summary": "Showing {from}–{to} of {total} orders",
+  "actions": {
+    "view": "View details",
+    "viewSeller": "View store",
+    "cancel": "Cancel order…"
+  },
+  "detail": {
+    "viewSeller": "View store",
+    "cancel": "Cancel order",
+    "recordNoShow": "Record a violation",
+    "recorded": "Violation recorded for order #{code}",
+    "failed": "Not saved, try again later",
+    "strip": {
+      "totalCollect": "To collect at the counter",
+      "totalNotCollected": "Total (not collected)",
+      "quantity": "Portions",
+      "window": "Pickup on {day}",
+      "minutesLeft": "{minutes} min left",
+      "heldUntil": "Held until {time}",
+      "overdue": "Time is up",
+      "closedAt": "At {time}",
+      "expiredAt": "Expired at {time}"
+    },
+    "items": {
+      "title": "Items in the order",
+      "viewPosts": "View posts",
+      "originalPrice": "Original price {price}",
+      "quantity": "{quantity} portions",
+      "payBy": "Payment",
+      "payByValue": "Cash or the store's VietQR, at pickup"
+    },
+    "history": {
+      "title": "Order history",
+      "placed": "The customer ordered",
+      "confirmed": "The system confirmed the order",
+      "ready": "The store marked it ready",
+      "collected": "The customer collected it with the code",
+      "cancelled": "The order was cancelled",
+      "rejected": "The store refused to hand it over",
+      "expired": "Expired · the customer did not come",
+      "awaiting": "Waiting for the customer's code"
+    },
+    "customer": {
+      "title": "Customer",
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email",
+      "previous": "Earlier orders",
+      "previousValue": "{collected} collected · {noShow} no-shows"
+    },
+    "seller": {
+      "title": "Store",
+      "name": "Store name",
+      "location": "Location",
+      "phone": "Phone",
+      "status": "Store status"
+    },
+    "pickup": {
+      "title": "Pickup and payment",
+      "method": "Pickup",
+      "methodValue": "Collected at the counter",
+      "payment": "Payment",
+      "paymentOpen": "Paid at the counter · not yet",
+      "paymentCollected": "Paid at the counter",
+      "paymentNone": "Nothing collected",
+      "code": "Pickup code",
+      "codeOpen": "4 digits · only the customer sees it",
+      "codeUsed": "Used",
+      "codeVoid": "No longer valid",
+      "attempts": "Wrong codes",
+      "attemptsValue": "{count}/{max} tries"
+    },
+    "noShow": {
+      "title": "The customer did not come",
+      "noCharge": "Nothing collected, the portions are not resold",
+      "repeat": "Time {count} in the customer's last 30 days",
+      "canRecord": "A violation can be recorded"
+    }
+  },
+  "cancel": {
+    "title": "Cancel order #{code}?",
+    "reason": "Reason (required)",
+    "reasons": {
+      "sellerOutOfStock": "The store ran out or the item is no longer good",
+      "customerAsked": "The customer asked support to cancel",
+      "other": "Another reason"
+    },
+    "note": "Note for the customer and the store",
+    "keep": "Keep the order",
+    "confirm": "Cancel order",
+    "done": "Order #{code} cancelled",
+    "failed": "Order #{code} was not cancelled"
+  }
+}
