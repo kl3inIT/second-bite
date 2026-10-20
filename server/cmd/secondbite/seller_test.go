@@ -71,10 +71,16 @@ func checkSellerFlow(t *testing.T, svc service) {
 	}
 
 	admin := bearer(signIn(t, svc, sellerAdminEmail).Token)
+	checkAdminBlocksAndLifts(t, svc, admin, opened.ID)
+}
+
+// checkAdminBlocksAndLifts has an admin block the seller, find it in the blocked list, and lift the block.
+func checkAdminBlocksAndLifts(t *testing.T, svc service, admin http.Header, sellerID string) {
+	t.Helper()
 
 	var blocked sellerResponse
 
-	send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/block", admin, nil).decode(t, http.StatusOK, &blocked)
+	send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/block", admin, nil).decode(t, http.StatusOK, &blocked)
 
 	if blocked.Status != "blocked" {
 		t.Errorf("blocked %+v", blocked)
@@ -88,7 +94,7 @@ func checkSellerFlow(t *testing.T, svc service) {
 
 	found := false
 	for _, s := range listed.Sellers {
-		found = found || s.ID == opened.ID
+		found = found || s.ID == sellerID
 	}
 
 	if !found {
@@ -97,7 +103,7 @@ func checkSellerFlow(t *testing.T, svc service) {
 
 	var activated sellerResponse
 
-	send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/activate", admin, nil).decode(t, http.StatusOK, &activated)
+	send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/activate", admin, nil).decode(t, http.StatusOK, &activated)
 
 	if activated.Status != "active" {
 		t.Errorf("activated %+v", activated)
