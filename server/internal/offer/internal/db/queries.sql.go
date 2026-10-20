@@ -271,6 +271,44 @@ func (q *Queries) InsertOffer(ctx context.Context, arg InsertOfferParams) (uuid.
 	return id, err
 }
 
+const latestOffers = `-- name: LatestOffers :many
+SELECT id, name, seller_id, seller_name, created_at FROM offer_offers ORDER BY created_at DESC, id DESC LIMIT $1
+`
+
+type LatestOffersRow struct {
+	ID         uuid.UUID
+	Name       string
+	SellerID   uuid.UUID
+	SellerName string
+	CreatedAt  time.Time
+}
+
+func (q *Queries) LatestOffers(ctx context.Context, maxRows int32) ([]LatestOffersRow, error) {
+	rows, err := q.db.Query(ctx, latestOffers, maxRows)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LatestOffersRow
+	for rows.Next() {
+		var i LatestOffersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.SellerID,
+			&i.SellerName,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockDishes = `-- name: LockDishes :exec
 SELECT pg_advisory_xact_lock(hashtextextended('offer:dishes:' || $1::text, 0))
 `
@@ -344,6 +382,46 @@ func (q *Queries) LockOffer(ctx context.Context, id uuid.UUID) (LockOfferRow, er
 		&i.SellerName,
 	)
 	return i, err
+}
+
+const postedPerDay = `-- name: PostedPerDay :many
+SELECT date_trunc('day', created_at, 'Asia/Ho_Chi_Minh')::timestamptz AS day, count(*)::integer AS posted
+FROM offer_offers
+WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz
+GROUP BY 1
+ORDER BY 1
+`
+
+type PostedPerDayParams struct {
+	RangeStart time.Time
+	RangeEnd   time.Time
+}
+
+type PostedPerDayRow struct {
+	Day    time.Time
+	Posted int32
+}
+
+// The offers posted on each day of a range in Vietnam time; a day without
+// any is absent.
+func (q *Queries) PostedPerDay(ctx context.Context, arg PostedPerDayParams) ([]PostedPerDayRow, error) {
+	rows, err := q.db.Query(ctx, postedPerDay, arg.RangeStart, arg.RangeEnd)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PostedPerDayRow
+	for rows.Next() {
+		var i PostedPerDayRow
+		if err := rows.Scan(&i.Day, &i.Posted); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const putSettings = `-- name: PutSettings :exec
@@ -689,6 +767,95 @@ func (q *Queries) SellerUsesPhoto(ctx context.Context, arg SellerUsesPhotoParams
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const summarizeOpen = `-- name: SummarizeOpen :one
+SELECT count(*) FILTER (WHERE units_left > 0)::integer AS on_sale,
+       count(*) FILTER (WHERE units_left = 0)::integer AS sold_out
+FROM offer_offers
+WHERE state = 'on_sale' AND window_end > now()
+  AND NOT (seller_id = ANY (COALESCE($1::uuid[], '{}')))
+`
+
+type SummarizeOpenRow struct {
+	OnSale  int32
+	SoldOut int32
+}
+
+// The offers customers can order now and those they see sold out now; as in
+// search, the blocked sellers' are left out.
+func (q *Queries) SummarizeOpen(ctx context.Context, excludedSellers []uuid.UUID) (SummarizeOpenRow, error) {
+	row := q.db.QueryRow(ctx, summarizeOpen, excludedSellers)
+	var i SummarizeOpenRow
+	err := row.Scan(&i.OnSale, &i.SoldOut)
+	return i, err
+}
+
+const summarizePosted = `-- name: SummarizePosted :one
+SELECT count(*)::integer AS posted, COALESCE(sum(units), 0)::bigint AS units
+FROM offer_offers
+WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz
+`
+
+type SummarizePostedParams struct {
+	RangeStart time.Time
+	RangeEnd   time.Time
+}
+
+type SummarizePostedRow struct {
+	Posted int32
+	Units  int64
+}
+
+// The offers posted in a range, and the units they put up, for admins.
+func (q *Queries) SummarizePosted(ctx context.Context, arg SummarizePostedParams) (SummarizePostedRow, error) {
+	row := q.db.QueryRow(ctx, summarizePosted, arg.RangeStart, arg.RangeEnd)
+	var i SummarizePostedRow
+	err := row.Scan(&i.Posted, &i.Units)
+	return i, err
+}
+
+const topPosters = `-- name: TopPosters :many
+SELECT seller_id, (array_agg(seller_name ORDER BY created_at DESC))[1]::text AS seller_name, count(*)::integer AS posted
+FROM offer_offers
+WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz
+GROUP BY seller_id
+ORDER BY posted DESC, seller_name, seller_id
+LIMIT $3
+`
+
+type TopPostersParams struct {
+	RangeStart time.Time
+	RangeEnd   time.Time
+	MaxRows    int32
+}
+
+type TopPostersRow struct {
+	SellerID   uuid.UUID
+	SellerName string
+	Posted     int32
+}
+
+// The sellers that posted most in a range, under the name their newest
+// offer copied.
+func (q *Queries) TopPosters(ctx context.Context, arg TopPostersParams) ([]TopPostersRow, error) {
+	rows, err := q.db.Query(ctx, topPosters, arg.RangeStart, arg.RangeEnd, arg.MaxRows)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TopPostersRow
+	for rows.Next() {
+		var i TopPostersRow
+		if err := rows.Scan(&i.SellerID, &i.SellerName, &i.Posted); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateDish = `-- name: UpdateDish :exec

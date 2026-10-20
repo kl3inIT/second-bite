@@ -232,6 +232,36 @@ func (q *Queries) InsertSeller(ctx context.Context, arg InsertSellerParams) (uui
 	return id, err
 }
 
+const latestSellers = `-- name: LatestSellers :many
+SELECT id, name, created_at FROM seller_sellers ORDER BY created_at DESC, id DESC LIMIT $1
+`
+
+type LatestSellersRow struct {
+	ID        uuid.UUID
+	Name      string
+	CreatedAt time.Time
+}
+
+func (q *Queries) LatestSellers(ctx context.Context, maxRows int32) ([]LatestSellersRow, error) {
+	rows, err := q.db.Query(ctx, latestSellers, maxRows)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LatestSellersRow
+	for rows.Next() {
+		var i LatestSellersRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockAccount = `-- name: LockAccount :exec
 SELECT pg_advisory_xact_lock(hashtextextended('seller:owner:' || $1::text, 0))
 `
@@ -474,6 +504,39 @@ func (q *Queries) SetStatus(ctx context.Context, arg SetStatusParams) (int64, er
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const summarizeSellers = `-- name: SummarizeSellers :one
+SELECT count(*) FILTER (WHERE status = 'active')::integer AS active,
+       count(*) FILTER (WHERE status = 'pending')::integer AS pending,
+       count(*) FILTER (WHERE status = 'blocked')::integer AS blocked,
+       count(*) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz)::integer AS opened
+FROM seller_sellers
+`
+
+type SummarizeSellersParams struct {
+	RangeStart time.Time
+	RangeEnd   time.Time
+}
+
+type SummarizeSellersRow struct {
+	Active  int32
+	Pending int32
+	Blocked int32
+	Opened  int32
+}
+
+// The sellers in each status now, and those opened in a range, for admins.
+func (q *Queries) SummarizeSellers(ctx context.Context, arg SummarizeSellersParams) (SummarizeSellersRow, error) {
+	row := q.db.QueryRow(ctx, summarizeSellers, arg.RangeStart, arg.RangeEnd)
+	var i SummarizeSellersRow
+	err := row.Scan(
+		&i.Active,
+		&i.Pending,
+		&i.Blocked,
+		&i.Opened,
+	)
+	return i, err
 }
 
 const updateSeller = `-- name: UpdateSeller :exec

@@ -74,6 +74,46 @@ func (q *Queries) ChallengeUsage(ctx context.Context, email string) (ChallengeUs
 	return i, err
 }
 
+const createdPerDay = `-- name: CreatedPerDay :many
+SELECT date_trunc('day', created_at, 'Asia/Ho_Chi_Minh')::timestamptz AS day, count(*)::integer AS created
+FROM identity_accounts
+WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz
+GROUP BY 1
+ORDER BY 1
+`
+
+type CreatedPerDayParams struct {
+	RangeStart time.Time
+	RangeEnd   time.Time
+}
+
+type CreatedPerDayRow struct {
+	Day     time.Time
+	Created int32
+}
+
+// The accounts created on each day of a range in Vietnam time; a day without
+// any is absent.
+func (q *Queries) CreatedPerDay(ctx context.Context, arg CreatedPerDayParams) ([]CreatedPerDayRow, error) {
+	rows, err := q.db.Query(ctx, createdPerDay, arg.RangeStart, arg.RangeEnd)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CreatedPerDayRow
+	for rows.Next() {
+		var i CreatedPerDayRow
+		if err := rows.Scan(&i.Day, &i.Created); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const deleteAccount = `-- name: DeleteAccount :execrows
 DELETE FROM identity_accounts WHERE id = $1
 `
@@ -553,6 +593,30 @@ func (q *Queries) SpendAttempt(ctx context.Context, arg SpendAttemptParams) (Spe
 	row := q.db.QueryRow(ctx, spendAttempt, arg.ID, arg.Purpose, arg.MaxAttempts)
 	var i SpendAttemptRow
 	err := row.Scan(&i.Email, &i.CodeHash)
+	return i, err
+}
+
+const summarizeAccounts = `-- name: SummarizeAccounts :one
+SELECT count(*)::integer AS total,
+       count(*) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz)::integer AS created
+FROM identity_accounts
+`
+
+type SummarizeAccountsParams struct {
+	RangeStart time.Time
+	RangeEnd   time.Time
+}
+
+type SummarizeAccountsRow struct {
+	Total   int32
+	Created int32
+}
+
+// Every account, and those created in a range, for admins.
+func (q *Queries) SummarizeAccounts(ctx context.Context, arg SummarizeAccountsParams) (SummarizeAccountsRow, error) {
+	row := q.db.QueryRow(ctx, summarizeAccounts, arg.RangeStart, arg.RangeEnd)
+	var i SummarizeAccountsRow
+	err := row.Scan(&i.Total, &i.Created)
 	return i, err
 }
 

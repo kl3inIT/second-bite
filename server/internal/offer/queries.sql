@@ -130,3 +130,40 @@ WHERE id = @id;
 
 -- name: DeleteDish :execrows
 DELETE FROM offer_dishes WHERE id = @id;
+
+-- name: SummarizePosted :one
+-- The offers posted in a range, and the units they put up, for admins.
+SELECT count(*)::integer AS posted, COALESCE(sum(units), 0)::bigint AS units
+FROM offer_offers
+WHERE created_at >= @range_start::timestamptz AND created_at < @range_end::timestamptz;
+
+-- name: SummarizeOpen :one
+-- The offers customers can order now and those they see sold out now; as in
+-- search, the blocked sellers' are left out.
+SELECT count(*) FILTER (WHERE units_left > 0)::integer AS on_sale,
+       count(*) FILTER (WHERE units_left = 0)::integer AS sold_out
+FROM offer_offers
+WHERE state = 'on_sale' AND window_end > now()
+  AND NOT (seller_id = ANY (COALESCE(sqlc.arg(excluded_sellers)::uuid[], '{}')));
+
+-- name: PostedPerDay :many
+-- The offers posted on each day of a range in Vietnam time; a day without
+-- any is absent.
+SELECT date_trunc('day', created_at, 'Asia/Ho_Chi_Minh')::timestamptz AS day, count(*)::integer AS posted
+FROM offer_offers
+WHERE created_at >= @range_start::timestamptz AND created_at < @range_end::timestamptz
+GROUP BY 1
+ORDER BY 1;
+
+-- name: TopPosters :many
+-- The sellers that posted most in a range, under the name their newest
+-- offer copied.
+SELECT seller_id, (array_agg(seller_name ORDER BY created_at DESC))[1]::text AS seller_name, count(*)::integer AS posted
+FROM offer_offers
+WHERE created_at >= @range_start::timestamptz AND created_at < @range_end::timestamptz
+GROUP BY seller_id
+ORDER BY posted DESC, seller_name, seller_id
+LIMIT @max_rows;
+
+-- name: LatestOffers :many
+SELECT id, name, seller_id, seller_name, created_at FROM offer_offers ORDER BY created_at DESC, id DESC LIMIT @max_rows;

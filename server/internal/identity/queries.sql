@@ -140,3 +140,18 @@ DELETE FROM identity_sign_in_challenges WHERE email = @email;
 -- name: DeleteAccount :execrows
 -- Its sessions and its external logins go with it (ON DELETE CASCADE).
 DELETE FROM identity_accounts WHERE id = @id;
+
+-- name: SummarizeAccounts :one
+-- Every account, and those created in a range, for admins.
+SELECT count(*)::integer AS total,
+       count(*) FILTER (WHERE created_at >= @range_start::timestamptz AND created_at < @range_end::timestamptz)::integer AS created
+FROM identity_accounts;
+
+-- name: CreatedPerDay :many
+-- The accounts created on each day of a range in Vietnam time; a day without
+-- any is absent.
+SELECT date_trunc('day', created_at, 'Asia/Ho_Chi_Minh')::timestamptz AS day, count(*)::integer AS created
+FROM identity_accounts
+WHERE created_at >= @range_start::timestamptz AND created_at < @range_end::timestamptz
+GROUP BY 1
+ORDER BY 1;

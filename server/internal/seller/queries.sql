@@ -82,3 +82,14 @@ DELETE FROM seller_members WHERE account_id = @account_id;
 UPDATE seller_sellers
 SET status = 'blocked', status_changed_at = now(), status_changed_by = NULL, updated_at = now()
 WHERE id = ANY (sqlc.arg(ids)::uuid[]) AND status <> 'blocked';
+
+-- name: SummarizeSellers :one
+-- The sellers in each status now, and those opened in a range, for admins.
+SELECT count(*) FILTER (WHERE status = 'active')::integer AS active,
+       count(*) FILTER (WHERE status = 'pending')::integer AS pending,
+       count(*) FILTER (WHERE status = 'blocked')::integer AS blocked,
+       count(*) FILTER (WHERE created_at >= @range_start::timestamptz AND created_at < @range_end::timestamptz)::integer AS opened
+FROM seller_sellers;
+
+-- name: LatestSellers :many
+SELECT id, name, created_at FROM seller_sellers ORDER BY created_at DESC, id DESC LIMIT @max_rows;
