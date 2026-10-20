@@ -1,1 +1,163 @@
-{}
+{
+  "tabs": {
+    "label": "Thanh toán và hoàn tiền",
+    "transactions": "Giao dịch",
+    "refunds": "Hoàn tiền"
+  },
+  "none": "—",
+  "order": "#{code}",
+  "at": "{time}, {day}",
+  "method": {
+    "cash": "Tiền mặt",
+    "vietqr": "VietQR"
+  },
+  "filters": {
+    "all": "Tất cả",
+    "method": "Phương thức",
+    "status": "Trạng thái",
+    "seller": "Cửa hàng",
+    "day": "Ngày"
+  },
+  "actions": {
+    "view": "Xem chi tiết",
+    "viewOrder": "Xem đơn"
+  },
+  "transactions": {
+    "table": "Danh sách giao dịch",
+    "cards": "Giao dịch theo trạng thái",
+    "status": {
+      "confirmed": "Đã xác nhận",
+      "awaitingSepay": "Chờ SePay",
+      "mismatch": "Không khớp"
+    },
+    "search": "Tìm giao dịch",
+    "searchPlaceholder": "Tìm theo mã giao dịch, mã đơn hoặc cửa hàng",
+    "columns": {
+      "code": "Mã GD",
+      "order": "Đơn",
+      "seller": "Cửa hàng",
+      "customer": "Khách",
+      "amount": "Số tiền",
+      "method": "Phương thức",
+      "status": "Trạng thái",
+      "at": "Thời gian"
+    },
+    "empty": "Chưa có giao dịch nào",
+    "emptyFiltered": "Không có giao dịch nào khớp bộ lọc",
+    "summary": "Hiển thị {from}–{to} trên {total} giao dịch",
+    "sheet": {
+      "title": "Giao dịch {code}",
+      "mismatch": "Số tiền chuyển không khớp đơn.",
+      "sepay": "Đối chiếu SePay",
+      "reference": "Mã tham chiếu SePay",
+      "content": "Nội dung chuyển khoản",
+      "account": "Tài khoản nhận (của cửa hàng)",
+      "accountValue": "{bank} · ****{last4}",
+      "orderAmount": "Số tiền đơn",
+      "received": "Số tiền nhận",
+      "difference": "Chênh lệch",
+      "short": "Thiếu {amount}",
+      "over": "Thừa {amount}",
+      "even": "Khớp",
+      "order": "Đơn liên quan",
+      "orderCode": "Mã đơn",
+      "seller": "Cửa hàng",
+      "customer": "Khách",
+      "customerValue": "{name} · {phone}",
+      "orderStatus": "Trạng thái đơn",
+      "heldUntil": "{status}, giữ đến {time}",
+      "history": "Lịch sử",
+      "events": {
+        "orderPlaced": "Khách đặt giữ đơn #{order}, chọn trả bằng {method}",
+        "qrCreated": "Tạo mã VietQR {amount} vào tài khoản của cửa hàng",
+        "sepayReceived": "SePay báo nhận {amount}",
+        "cashCollected": "Cửa hàng thu tiền mặt {amount} tại quầy",
+        "confirmed": "Hệ thống xác nhận thanh toán",
+        "flaggedMismatch": "Hệ thống đánh dấu Không khớp và báo quản trị viên"
+      },
+      "addNote": "Thêm ghi chú",
+      "resolve": "Đánh dấu đã xử lý",
+      "resolved": "Đã đánh dấu giao dịch {code} là đã xử lý",
+      "failed": "Chưa lưu được, thử lại sau"
+    }
+  },
+  "refunds": {
+    "table": "Danh sách yêu cầu hoàn tiền",
+    "cards": "Yêu cầu theo trạng thái",
+    "approved7Days": "Đã duyệt (7 ngày)",
+    "pendingCard": "Chờ duyệt",
+    "rejected7Days": "Từ chối (7 ngày)",
+    "status": {
+      "pending": "Chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối"
+    },
+    "search": "Tìm yêu cầu",
+    "searchPlaceholder": "Tìm theo mã yêu cầu, mã đơn hoặc khách",
+    "columns": {
+      "code": "Mã YC",
+      "order": "Đơn",
+      "seller": "Cửa hàng",
+      "customer": "Khách",
+      "amount": "Số tiền",
+      "reason": "Lý do khách nêu",
+      "status": "Trạng thái",
+      "requestedAt": "Ngày gửi"
+    },
+    "empty": "Chưa có yêu cầu hoàn tiền nào",
+    "emptyFiltered": "Không có yêu cầu nào khớp bộ lọc",
+    "summary": "Hiển thị {from}–{to} trên {total} yêu cầu",
+    "sheet": {
+      "title": "Yêu cầu hoàn tiền {code}",
+      "paidToSeller": "Tiền khách đã trả thẳng cho cửa hàng.",
+      "request": "Yêu cầu của khách",
+      "order": "Đơn",
+      "seller": "Cửa hàng",
+      "payment": "Thanh toán",
+      "paymentValue": "{method} · {transaction} · {status}",
+      "orderAmount": "Số tiền đơn",
+      "asked": "Khách đề nghị hoàn",
+      "reason": "Lý do khách nêu",
+      "quote": "“{text}”",
+      "photos": "Ảnh khách gửi",
+      "photo": "Ảnh {n} của khách",
+      "sellerView": "Ý kiến cửa hàng",
+      "respondedBy": "Người phản hồi",
+      "respondedAt": "Lúc",
+      "history": "Lịch sử",
+      "events": {
+        "orderPlaced": "Khách đặt giữ đơn #{order}",
+        "paymentConfirmedVietqr": "SePay xác nhận VietQR {amount} vào tài khoản của cửa hàng, khách nhận món",
+        "paymentConfirmedCash": "Khách trả tiền mặt {amount} tại quầy, nhận món",
+        "requested": "{photos, plural, =0 {Khách gửi yêu cầu hoàn tiền} other {Khách gửi yêu cầu hoàn tiền kèm # ảnh}}",
+        "sellerResponded": "Cửa hàng gửi ý kiến, chờ quản trị viên quyết định",
+        "approved": "Quản trị viên duyệt hoàn {amount}",
+        "rejected": "Quản trị viên từ chối yêu cầu"
+      },
+      "reject": "Từ chối",
+      "approve": "Duyệt hoàn tiền"
+    },
+    "approve": {
+      "title": "Duyệt hoàn tiền cho {code}?",
+      "amount": "Số tiền hoàn",
+      "way": "Cách hoàn",
+      "ways": {
+        "atCounter": "Cửa hàng hoàn tại quầy",
+        "transfer": "Cửa hàng chuyển khoản"
+      },
+      "note": "Ghi chú cho khách",
+      "cancel": "Huỷ",
+      "confirm": "Xác nhận duyệt",
+      "done": "Đã duyệt hoàn tiền {code}",
+      "failed": "Chưa duyệt được {code}"
+    },
+    "reject": {
+      "title": "Từ chối yêu cầu {code}?",
+      "reason": "Lý do từ chối (bắt buộc)",
+      "cancel": "Huỷ",
+      "confirm": "Từ chối yêu cầu",
+      "done": "Đã từ chối yêu cầu {code}",
+      "failed": "Chưa từ chối được {code}"
+    }
+  }
+}

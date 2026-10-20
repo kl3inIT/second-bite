@@ -1,1 +1,163 @@
-{}
+{
+  "tabs": {
+    "label": "Payments and refunds",
+    "transactions": "Transactions",
+    "refunds": "Refunds"
+  },
+  "none": "—",
+  "order": "#{code}",
+  "at": "{time}, {day}",
+  "method": {
+    "cash": "Cash",
+    "vietqr": "VietQR"
+  },
+  "filters": {
+    "all": "All",
+    "method": "Method",
+    "status": "Status",
+    "seller": "Store",
+    "day": "Day"
+  },
+  "actions": {
+    "view": "View details",
+    "viewOrder": "View order"
+  },
+  "transactions": {
+    "table": "Transactions",
+    "cards": "Transactions by status",
+    "status": {
+      "confirmed": "Confirmed",
+      "awaitingSepay": "Waiting for SePay",
+      "mismatch": "Mismatch"
+    },
+    "search": "Search transactions",
+    "searchPlaceholder": "Search a transaction code, an order code or a store",
+    "columns": {
+      "code": "Transaction",
+      "order": "Order",
+      "seller": "Store",
+      "customer": "Customer",
+      "amount": "Amount",
+      "method": "Method",
+      "status": "Status",
+      "at": "Time"
+    },
+    "empty": "No transactions yet",
+    "emptyFiltered": "No transactions match the filters",
+    "summary": "Showing {from}–{to} of {total} transactions",
+    "sheet": {
+      "title": "Transaction {code}",
+      "mismatch": "The amount transferred does not match the order.",
+      "sepay": "SePay check",
+      "reference": "SePay reference",
+      "content": "Transfer message",
+      "account": "Receiving account (the store's)",
+      "accountValue": "{bank} · ****{last4}",
+      "orderAmount": "Order amount",
+      "received": "Amount received",
+      "difference": "Difference",
+      "short": "{amount} short",
+      "over": "{amount} over",
+      "even": "Matches",
+      "order": "The order",
+      "orderCode": "Order",
+      "seller": "Store",
+      "customer": "Customer",
+      "customerValue": "{name} · {phone}",
+      "orderStatus": "Order status",
+      "heldUntil": "{status}, held until {time}",
+      "history": "History",
+      "events": {
+        "orderPlaced": "The customer held order #{order} and chose {method}",
+        "qrCreated": "A VietQR code for {amount} into the store's account was made",
+        "sepayReceived": "SePay reported {amount} received",
+        "cashCollected": "The store took {amount} in cash at the counter",
+        "confirmed": "The system confirmed the payment",
+        "flaggedMismatch": "The system marked it a mismatch and told the admins"
+      },
+      "addNote": "Add a note",
+      "resolve": "Mark as handled",
+      "resolved": "Transaction {code} marked as handled",
+      "failed": "Not saved, try again later"
+    }
+  },
+  "refunds": {
+    "table": "Refund requests",
+    "cards": "Requests by status",
+    "approved7Days": "Approved (7 days)",
+    "pendingCard": "Waiting",
+    "rejected7Days": "Refused (7 days)",
+    "status": {
+      "pending": "Waiting",
+      "approved": "Approved",
+      "rejected": "Refused"
+    },
+    "search": "Search requests",
+    "searchPlaceholder": "Search a request code, an order code or a customer",
+    "columns": {
+      "code": "Request",
+      "order": "Order",
+      "seller": "Store",
+      "customer": "Customer",
+      "amount": "Amount",
+      "reason": "The customer's reason",
+      "status": "Status",
+      "requestedAt": "Sent"
+    },
+    "empty": "No refund requests yet",
+    "emptyFiltered": "No requests match the filters",
+    "summary": "Showing {from}–{to} of {total} requests",
+    "sheet": {
+      "title": "Refund request {code}",
+      "paidToSeller": "The customer paid the store directly.",
+      "request": "The customer's request",
+      "order": "Order",
+      "seller": "Store",
+      "payment": "Payment",
+      "paymentValue": "{method} · {transaction} · {status}",
+      "orderAmount": "Order amount",
+      "asked": "Asked back",
+      "reason": "The customer's reason",
+      "quote": "“{text}”",
+      "photos": "The customer's photos",
+      "photo": "The customer's photo {n}",
+      "sellerView": "The store's view",
+      "respondedBy": "Answered by",
+      "respondedAt": "At",
+      "history": "History",
+      "events": {
+        "orderPlaced": "The customer held order #{order}",
+        "paymentConfirmedVietqr": "SePay confirmed {amount} by VietQR into the store's account; the customer collected it",
+        "paymentConfirmedCash": "The customer paid {amount} in cash at the counter and collected it",
+        "requested": "{photos, plural, =0 {The customer asked for a refund} one {The customer asked for a refund with # photo} other {The customer asked for a refund with # photos}}",
+        "sellerResponded": "The store gave its view; an admin decides",
+        "approved": "An admin approved a refund of {amount}",
+        "rejected": "An admin refused the request"
+      },
+      "reject": "Refuse",
+      "approve": "Approve the refund"
+    },
+    "approve": {
+      "title": "Approve a refund for {code}?",
+      "amount": "Amount to refund",
+      "way": "How it is refunded",
+      "ways": {
+        "atCounter": "The store refunds at the counter",
+        "transfer": "The store transfers it"
+      },
+      "note": "Note for the customer",
+      "cancel": "Cancel",
+      "confirm": "Approve",
+      "done": "Refund {code} approved",
+      "failed": "{code} was not approved"
+    },
+    "reject": {
+      "title": "Refuse request {code}?",
+      "reason": "Reason (required)",
+      "cancel": "Cancel",
+      "confirm": "Refuse the request",
+      "done": "Request {code} refused",
+      "failed": "{code} was not refused"
+    }
+  }
+}
