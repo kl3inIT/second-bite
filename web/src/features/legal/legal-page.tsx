@@ -40,7 +40,7 @@ export function LegalPage({ namespace }: { namespace: Namespace }) {
   return (
     <>
       <AppHeader />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 pt-6 pb-12 md:gap-6 md:pt-10">
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 pt-2 pb-12 md:gap-6 md:pt-6">
         <header className="flex flex-col gap-4">
           <h1 className="text-headline text-foreground">{t("title")}</h1>
           <p

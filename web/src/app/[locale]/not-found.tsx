@@ -12,7 +12,7 @@ export default function NotFound() {
   return (
     <>
       <AppHeader />
-      <main className="flex flex-1 flex-col items-center px-4 pt-6 pb-12 md:pt-10">
+      <main className="flex flex-1 flex-col items-center px-4 pt-2 pb-12 md:pt-6">
         <div className="flex w-full max-w-136 flex-col items-center gap-4 rounded-2xl border border-border bg-card px-5 py-7 text-center text-card-foreground md:px-7 md:py-8">
           <h1 className="text-headline">{t("title")}</h1>
           <Link href="/" className={buttonVariants({ variant: "outline" })}>
