@@ -389,7 +389,7 @@ The search's own bar (Figma K2): white with a hairline below, a plain back arrow
 
 ### Filter chip
 
-A 34px pill on the sky ground without an edge (`body-sm`, ink, a small chevron), with a 44px target around it; once chosen it shows its value on Blue Wash in Tasco blue (`body-sm-strong`). Each opens its options as a menu, and every option is a link over the address. A suggestion chip (the kinds in Figma K2a) has the same shape without the chevron. On the sky ground itself, over the home's grid, a chip is white with a 1px `secondary` edge (Figma K1b).
+A 34px pill on the sky ground without an edge (`body-sm`, ink, a small chevron), with a 44px target around it; once chosen it shows its value on Blue Wash in Tasco blue (`body-sm-strong`). Each opens its options as a menu, and every option is a link over the address. The price and the time to collect open a small form instead, "Từ" and "Đến" side by side, either one may stay empty, with "Bỏ lọc" beside "Áp dụng"; the time adds "Nhận ngay" above them. A chosen range shows on the chip ("20.000đ–30.000đ", "Từ 20:00"). A suggestion chip (the kinds in Figma K2a) has the same shape without the chevron. On the sky ground itself, over the home's grid, a chip is white with a 1px `secondary` edge (Figma K1b).
 
 ### Result tabs
 

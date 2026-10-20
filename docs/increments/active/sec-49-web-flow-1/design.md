@@ -29,3 +29,8 @@ The screens are composed from shared pieces: `OfferCard` (with `showSeller`), `O
 ### 5. The rest of flow 1 is drawn against the test backend
 
 Decided with the owner on 20 October 2026, replacing decision 2 for these parts: "Sắp có tối nay" with its bell and the K1d sheet, "Gợi ý cho bạn", the rating, the heart and the seller's place on a search card. The contract is generated from the Go server, so the web does not add to it: the fields the backend lacks are one hand-written type, `features/offers/proposed.ts`, as SEC-11 already describes them (announcements join `GET /offers` with `status: "announced"` and `estimatedUnits`; a seller's `rating` has no step yet). The stub backend returns them. Every element they feed shows only when its field is there, so staging and production show none of it until the backend returns them, and the Honest Number Rule holds. Following an announcement and hearting a dish are kept in the browser until SEC-11 step 6 and accounts keep them. "Gợi ý cho bạn" is the best-rated sellers' dishes that can still be ordered. The seller's place is the `address` `GET /offers` already returns. The home's chips are the search's own, and each choice opens the search.
+
+### 6. Price and time are ranges
+
+Decided with the owner on 20 October 2026: fixed price steps ("Dưới 30.000đ") are not how people choose. The price and the time to collect are each a range, "từ … đến …", either end optional. `GET /offers` gained `minPrice` beside `maxPrice` (SEC-11's search, 400 when the lowest is above the highest). The times are times of day tonight in Vietnam, sent as `collectFrom` and `collectTo`. In the address they are `minPrice`, `maxPrice`, `from` and `to`; a range out of order is ignored.
+

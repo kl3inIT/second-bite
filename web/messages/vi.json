@@ -71,10 +71,7 @@
     "anyDistance": "Mọi khoảng cách",
     "within": "Trong {distance}",
     "price": "Giá",
-    "anyPrice": "Mọi giá",
-    "under": "Dưới {price}",
     "when": "Giờ nhận",
-    "anyTime": "Mọi giờ",
     "now": "Nhận ngay",
     "kind": "Loại món",
     "anyKind": "Mọi loại",
@@ -92,7 +89,17 @@
     "sellerWindow": "Nhận {from}–{until}",
     "nothing": "Không tìm thấy món nào khớp.",
     "everything": "Xem tất cả món",
-    "sortBy": "Sắp xếp"
+    "sortBy": "Sắp xếp",
+    "from": "Từ",
+    "to": "Đến",
+    "range": "{from}–{to}",
+    "rangeFrom": "Từ {from}",
+    "rangeTo": "Đến {to}",
+    "inDong": "Giá một phần, tính bằng đồng.",
+    "priceOrder": "Giá “từ” cần thấp hơn giá “đến”.",
+    "timeOrder": "Giờ “từ” cần sớm hơn giờ “đến”.",
+    "apply": "Áp dụng",
+    "clearFilter": "Bỏ lọc"
   },
   "LanguageSwitcher": {
     "label": "Switch to English"

@@ -4,16 +4,12 @@ import { formatPrice } from "@/features/offers/format";
 import { offerKinds } from "@/features/offers/offer";
 
 import { FilterMenu, type FilterOption } from "./filter-menu";
-import {
-  maxPriceChoices,
-  radiusChoices,
-  searchParams,
-  sortChoices,
-  type SearchQuery,
-} from "./search-query";
+import { RangeFilter } from "./range-filter";
+import { radiusChoices, searchParams, sortChoices, type SearchQuery } from "./search-query";
 
 // The search's chips (Figma K2 chip lọc), each a filter `GET /offers` takes: how far around the person's
-// place (only with one), the highest price, collectable now, and the kind. Choosing one keeps the others.
+// place (only with one), the price from and to, the time to collect from and to (or now), and the kind.
+// Choosing one keeps the others.
 // The home shows them over "Tất cả món quanh đây" (Figma K1b), `raised` on its sky ground, with the order
 // as a chip and `before` them a link to the search; each choice opens the search.
 export function SearchFilters({
@@ -33,6 +29,15 @@ export function SearchFilters({
     change: Parameters<typeof searchParams>[1],
     current: boolean,
   ): FilterOption => ({ label, query: searchParams(query, change), current });
+  const range = (from?: string, to?: string) =>
+    from && to
+      ? t("range", { from, to })
+      : from
+        ? t("rangeFrom", { from })
+        : to
+          ? t("rangeTo", { to })
+          : undefined;
+  const timeKeep = searchParams(query, { from: undefined, to: undefined, now: undefined });
 
   return (
     <ul
@@ -65,31 +70,31 @@ export function SearchFilters({
         </li>
       )}
       <li>
-        <FilterMenu
-          variant="chip"
+        <RangeFilter
+          type="price"
           raised={raised}
           name={t("price")}
-          options={[
-            option(t("anyPrice"), { maxPrice: undefined }, !query.maxPrice),
-            ...maxPriceChoices.map((price) =>
-              option(
-                t("under", { price: formatPrice(price) }),
-                { maxPrice: price },
-                query.maxPrice === price,
-              ),
-            ),
-          ]}
+          chosen={range(
+            query.minPrice ? formatPrice(query.minPrice) : undefined,
+            query.maxPrice ? formatPrice(query.maxPrice) : undefined,
+          )}
+          from={query.minPrice?.toString()}
+          to={query.maxPrice?.toString()}
+          keep={searchParams(query, { minPrice: undefined, maxPrice: undefined })}
+          params={["minPrice", "maxPrice"]}
         />
       </li>
       <li>
-        <FilterMenu
-          variant="chip"
+        <RangeFilter
+          type="time"
           raised={raised}
           name={t("when")}
-          options={[
-            option(t("anyTime"), { now: undefined }, !query.now),
-            option(t("now"), { now: true }, Boolean(query.now)),
-          ]}
+          chosen={query.now ? t("now") : range(query.from, query.to)}
+          from={query.from}
+          to={query.to}
+          keep={timeKeep}
+          params={["from", "to"]}
+          now={{ query: { ...timeKeep, now: "1" }, current: Boolean(query.now) }}
         />
       </li>
       <li>

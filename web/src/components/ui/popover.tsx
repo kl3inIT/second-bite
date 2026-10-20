@@ -8,8 +8,27 @@ function Popover({ ...props }: PopoverPrimitive.Root.Props) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />;
 }
 
-function PopoverTrigger({ ...props }: PopoverPrimitive.Trigger.Props) {
-  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
+// Second Bite: "chip" is the search's filter chip, as DropdownMenuTrigger's, for a filter that opens a form
+// rather than a list (Figma K2 chip lọc); `raised` sits it on the sky ground itself (Figma K1b).
+function PopoverTrigger({
+  className,
+  variant = "plain",
+  raised = false,
+  ...props
+}: PopoverPrimitive.Trigger.Props & { variant?: "plain" | "chip"; raised?: boolean }) {
+  return (
+    <PopoverPrimitive.Trigger
+      data-slot="popover-trigger"
+      data-variant={variant}
+      data-raised={raised ? "" : undefined}
+      className={cn(
+        "data-[variant=chip]:relative data-[variant=chip]:flex data-[variant=chip]:h-8.5 data-[variant=chip]:shrink-0 data-[variant=chip]:items-center data-[variant=chip]:gap-1.5 data-[variant=chip]:rounded-full data-[variant=chip]:bg-muted data-[variant=chip]:px-3.5 data-[variant=chip]:text-body-sm data-[variant=chip]:whitespace-nowrap data-[variant=chip]:text-foreground data-[variant=chip]:transition-colors data-[variant=chip]:after:absolute data-[variant=chip]:after:inset-x-0 data-[variant=chip]:after:-inset-y-1.25 data-[variant=chip]:hover:bg-secondary data-[variant=chip]:focus-visible:ring-3 data-[variant=chip]:focus-visible:ring-ring/50 data-[variant=chip]:focus-visible:outline-none data-[variant=chip]:data-active:bg-secondary data-[variant=chip]:data-active:text-body-sm-strong data-[variant=chip]:data-active:text-primary",
+        "data-raised:data-[variant=chip]:bg-card data-raised:data-[variant=chip]:ring-1 data-raised:data-[variant=chip]:ring-secondary data-raised:data-[variant=chip]:ring-inset data-raised:data-[variant=chip]:hover:bg-secondary data-raised:data-[variant=chip]:data-active:bg-secondary",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 function PopoverContent({

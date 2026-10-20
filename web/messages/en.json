@@ -71,10 +71,7 @@
     "anyDistance": "Any distance",
     "within": "Within {distance}",
     "price": "Price",
-    "anyPrice": "Any price",
-    "under": "Under {price}",
     "when": "Collection time",
-    "anyTime": "Any time",
     "now": "Collect now",
     "kind": "Kind",
     "anyKind": "Any kind",
@@ -92,7 +89,17 @@
     "sellerWindow": "Collect {from}–{until}",
     "nothing": "No dish matches.",
     "everything": "See every dish",
-    "sortBy": "Sort"
+    "sortBy": "Sort",
+    "from": "From",
+    "to": "To",
+    "range": "{from}–{to}",
+    "rangeFrom": "From {from}",
+    "rangeTo": "Up to {to}",
+    "inDong": "The price of one portion, in đồng.",
+    "priceOrder": "The lowest price must be below the highest.",
+    "timeOrder": "The start must be before the end.",
+    "apply": "Apply",
+    "clearFilter": "Clear"
   },
   "LanguageSwitcher": {
     "label": "Chuyển sang tiếng Việt"

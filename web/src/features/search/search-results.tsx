@@ -25,7 +25,10 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
       collectNow: query.now,
       near: query.near,
       radiusKm: query.radiusKm,
+      minPrice: query.minPrice,
       maxPrice: query.maxPrice,
+      collectFrom: query.from,
+      collectTo: query.to,
       sort: query.sort,
     }),
   ]);

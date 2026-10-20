@@ -108,9 +108,14 @@ test.describe("the customer home", () => {
       "true",
     );
 
-    await (await hydrated(all.getByRole("button", { name: "Giá" }))).click();
-    await page.getByRole("menuitem", { name: "Dưới 30.000đ" }).click();
-    await expect(page).toHaveURL(/\/vi\/search\?maxPrice=30000$/);
+    await (await hydrated(all.getByRole("button", { name: "Giờ nhận" }))).click();
+    await page.getByLabel("Từ").fill("21:00");
+    await page.getByLabel("Đến").fill("20:00");
+    await page.getByRole("button", { name: "Áp dụng" }).click();
+    await expect(page.getByRole("alert")).toHaveText("Giờ “từ” cần sớm hơn giờ “đến”.");
+    await page.getByLabel("Đến").fill("21:30");
+    await page.getByRole("button", { name: "Áp dụng" }).click();
+    await expect(page).toHaveURL(/\/vi\/search\?from=21%3A00&to=21%3A30$/);
   });
 
   test("filters by kind, back to every offer from the chosen kind or when nothing matches", async ({
