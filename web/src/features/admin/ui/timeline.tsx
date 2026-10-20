@@ -6,14 +6,15 @@ export type TimelineEvent = {
   key: string;
   title: string;
   at: Date | string;
-  /** The dot's colour: done in green, an ordinary step in blue, a step not taken yet in grey. */
-  tone?: "done" | "step" | "pending";
+  /** The dot's colour: done in green, an ordinary step in blue, a step not taken yet in grey, a failure in red. */
+  tone?: "done" | "step" | "pending" | "error";
 };
 
 const dots = {
   done: "bg-success",
   step: "bg-primary",
   pending: "bg-muted-foreground",
+  error: "bg-destructive",
 };
 
 /**

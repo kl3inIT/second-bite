@@ -27,21 +27,31 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   confirmLabel,
+  cancelLabel,
   confirmIcon: ConfirmIcon,
+  confirmDisabled = false,
   onConfirm,
   destructive = false,
   pending = false,
   children,
+  form,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   confirmLabel: string;
+  /** "Huỷ" by default; "Giữ lại" where it reads better. */
+  cancelLabel?: string;
   confirmIcon?: LucideIcon;
+  /** The action waits for the form to be filled, such as a reason chosen. */
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   destructive?: boolean;
   pending?: boolean;
+  /** What the dialog says it will do (a ConsequenceList, a line); read out as its description. */
   children?: ReactNode;
+  /** Fields the action needs, under what it says: a reason to pick, a note to type, each with its label. */
+  form?: ReactNode;
 }) {
   const t = useTranslations("admin.shell.confirm");
 
@@ -52,13 +62,14 @@ export function ConfirmDialog({
           <AlertDialogTitle>{title}</AlertDialogTitle>
         </AlertDialogHeader>
         {children && <AlertDialogDescription render={<div />}>{children}</AlertDialogDescription>}
+        {form && <div className="flex flex-col gap-4">{form}</div>}
         <AlertDialogFooter>
           <AlertDialogCancel variant="neutral" disabled={pending}>
-            {t("cancel")}
+            {cancelLabel ?? t("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
             variant={destructive ? "danger" : "default"}
-            disabled={pending}
+            disabled={pending || confirmDisabled}
             onClick={onConfirm}
           >
             {pending ? (
