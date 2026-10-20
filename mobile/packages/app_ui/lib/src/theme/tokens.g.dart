@@ -41,7 +41,7 @@ abstract final class ColorTokens {
   static const destructive = Color(0xFFB42318);
   static const destructiveForeground = Color(0xFFFFFFFF);
   static const destructiveHover = Color(0xFF912018);
-  static const success = Color(0xFF0061AF);
+  static const success = Color(0xFF2E6B3F);
   static const successForeground = Color(0xFFFFFFFF);
   static const warning = Color(0xFFFFF6E5);
   static const warningForeground = Color(0xFF5E4200);

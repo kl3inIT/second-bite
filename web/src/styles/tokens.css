@@ -30,6 +30,7 @@
   --accent-lime-300: #C6E67A;
   --accent-lime-100: #EEF7D9;
   --accent-lime-ink: #2C4709;
+  --status-success: #2E6B3F;
   --status-error: #B42318;
   --status-error-bg: #FEF3F2;
 
@@ -69,7 +70,7 @@
   --destructive: var(--status-error);
   --destructive-foreground: var(--base-white);
   --destructive-hover: #912018;
-  --success: var(--brand-800);
+  --success: var(--status-success);
   --success-foreground: var(--base-white);
   --warning: var(--alert-bg);
   --warning-foreground: var(--alert-ink);

@@ -34,6 +34,7 @@ palette:
   accent-lime-300: "#C6E67A"
   accent-lime-100: "#EEF7D9"
   accent-lime-ink: "#2C4709"
+  status-success: "#2E6B3F"
   status-error: "#B42318"
   status-error-bg: "#FEF3F2"
 colors:
@@ -76,7 +77,7 @@ colors:
   destructive: "{palette.status-error}" # errors, cancelled and refused states, 6.6:1
   destructive-foreground: "{palette.base-white}"
   destructive-hover: "#912018" # 8.7:1
-  success: "{palette.brand-800}" # paid, ready, collected; always with an icon or label, 6.3:1
+  success: "{palette.status-success}" # paid, ready, collected; always with an icon or label, 7.6:1
   success-foreground: "{palette.base-white}"
   warning: "{palette.alert-bg}" # allergens and waiting states; always with an icon
   warning-foreground: "{palette.alert-ink}" # 8.5:1
@@ -271,7 +272,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 ### Status
 
 - **Stamp Red** (`destructive`): errors, cancelled and refused states, always with an icon or label.
-- **Blue Stamp** (`success`): paid, ready and collected orders, always with an icon or label.
+- **Leaf Stamp** (`success`): paid, ready and collected orders, always with an icon or label.
 - **Alert** (`warning`, `warning-border`): allergens, waiting states and notices to read before going on, a pale amber box with amber ink, its edge and an icon.
 
 ### Named Rules
