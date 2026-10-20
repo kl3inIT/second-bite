@@ -44,7 +44,7 @@ function useDuration() {
 }
 
 /**
- * An order still to collect (Figma W2 confirmed, W3 ready): the blue band with the window in large figures,
+ * An order still to collect (Figma W2 confirmed, W3 ready): the blue card with the window in large figures,
  * how long until it opens or closes and the steps, the code ticket beside it; then how to collect, a change
  * of mind while it is free, the facts and the way to the counter.
  */
@@ -66,8 +66,11 @@ export function OpenOrder({
 
   return (
     <>
-      <section aria-labelledby="order-status" className="bg-primary text-primary-foreground">
-        <div className="mx-auto grid w-full max-w-5xl gap-6 px-4 py-8 md:grid-cols-5 md:items-center xl:max-w-300">
+      <div className="mx-auto w-full max-w-5xl px-4 pt-6 xl:max-w-300">
+        <section
+          aria-labelledby="order-status"
+          className="grid gap-6 rounded-3xl bg-primary p-5 text-primary-foreground md:grid-cols-5 md:items-center md:p-8"
+        >
           <div className="flex flex-col gap-2 md:col-span-3">
             <OrderMeta order={order} className="text-inverse-muted" />
             <h1 id="order-status" className="text-body-sm-strong text-fresh">
@@ -92,10 +95,10 @@ export function OpenOrder({
           <div className="md:col-span-2">
             <CodeTicket order={order} />
           </div>
-        </div>
-      </section>
-      <div className="mx-auto grid w-full max-w-5xl gap-4 px-4 py-6 md:grid-cols-5 md:items-start xl:max-w-300">
-        <div className="flex flex-col gap-4 md:col-span-3">
+        </section>
+      </div>
+      <div className="mx-auto grid w-full max-w-5xl gap-4 px-4 py-6 lg:grid-cols-5 lg:items-start xl:max-w-300">
+        <div className="flex flex-col gap-4 lg:col-span-3">
           <HowToCollect order={order} />
           {cancellable ? (
             <section
@@ -122,7 +125,7 @@ export function OpenOrder({
             </section>
           ) : null}
         </div>
-        <div className="flex flex-col gap-4 md:col-span-2">
+        <div className="flex flex-col gap-4 lg:col-span-2">
           <OrderDetails order={order} />
           <Directions order={order} />
         </div>
@@ -222,7 +225,7 @@ function EndedTimeline({ order }: { order: Order & { status: Ended } }) {
 }
 
 /**
- * An order that has ended (Figma W4 cancelled, W5 refused, W6 expired, and collected): a tinted band with
+ * An order that has ended (Figma W4 cancelled, W5 refused, W6 expired, and collected): a tinted card with
  * its status large and what it meant, the ticket with its status on a ribbon, and what happened.
  */
 export function EndedOrder({ order }: { order: Order & { status: Ended } }) {
@@ -233,8 +236,14 @@ export function EndedOrder({ order }: { order: Order & { status: Ended } }) {
 
   return (
     <>
-      <section aria-labelledby="order-status" className={look.band}>
-        <div className="mx-auto grid w-full max-w-5xl gap-6 px-4 py-8 md:grid-cols-5 md:items-center xl:max-w-300">
+      <div className="mx-auto w-full max-w-5xl px-4 pt-6 xl:max-w-300">
+        <section
+          aria-labelledby="order-status"
+          className={cn(
+            "grid gap-6 rounded-3xl p-5 md:grid-cols-5 md:items-center md:p-8",
+            look.band,
+          )}
+        >
           <div className="flex flex-col gap-2 md:col-span-3">
             <OrderMeta order={order} className="text-muted-foreground" />
             <h1 id="order-status" className={cn("text-display", look.title)}>
@@ -253,13 +262,13 @@ export function EndedOrder({ order }: { order: Order & { status: Ended } }) {
               {t("seeOthers")}
             </Link>
           </div>
-        </div>
-      </section>
-      <div className="mx-auto grid w-full max-w-5xl gap-4 px-4 py-6 md:grid-cols-5 md:items-start xl:max-w-300">
+        </section>
+      </div>
+      <div className="mx-auto grid w-full max-w-5xl gap-4 px-4 py-6 lg:grid-cols-5 lg:items-start xl:max-w-300">
         <section
           aria-label={t("details")}
           className={cn(
-            "overflow-hidden rounded-3xl text-card-foreground md:col-span-3",
+            "overflow-hidden rounded-3xl text-card-foreground lg:col-span-3",
             look.ribbon,
           )}
         >
@@ -269,10 +278,10 @@ export function EndedOrder({ order }: { order: Order & { status: Ended } }) {
           </p>
           <div className="mx-1 mb-1 flex flex-col gap-4 rounded-3xl bg-card p-5 text-card-foreground">
             <SellerRow order={order} />
-            <OrderFacts order={order} />
+            <OrderFacts order={order} className="border-t border-border pt-4" />
           </div>
         </section>
-        <div className="md:col-span-2">
+        <div className="lg:col-span-2">
           <EndedTimeline order={order} />
         </div>
       </div>

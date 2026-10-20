@@ -75,8 +75,8 @@ async function Confirm({ query }: { query: PageProps<"/[locale]/orders/new">["se
   const seller = (await listOffers({})).find((found) => found.id === offer.id)?.seller.name;
 
   return (
-    <div className="grid gap-6 md:grid-cols-5 md:items-start">
-      <div className="flex flex-col gap-6 md:col-span-3">
+    <div className="grid gap-6 lg:grid-cols-5 lg:items-start">
+      <div className="flex flex-col gap-6 lg:col-span-3">
         <CollectAt offer={offer} seller={seller} />
         <Payment />
         <div>
@@ -84,7 +84,7 @@ async function Confirm({ query }: { query: PageProps<"/[locale]/orders/new">["se
           <PolicyLine offer={offer} />
         </div>
       </div>
-      <div className="md:col-span-2">
+      <div className="lg:col-span-2">
         <PlaceOrder
           offer={offer}
           initialUnits={clampUnits(units, offer.unitsLeft)}

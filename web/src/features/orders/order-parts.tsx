@@ -117,7 +117,7 @@ export function useOrderDate() {
 }
 
 /** The facts of the order in two columns (Figma W2 › chi tiết): day, window, what, total, number, payment. */
-export function OrderFacts({ order }: { order: Order }) {
+export function OrderFacts({ order, className }: { order: Order; className?: string }) {
   const t = useTranslations("Orders.facts");
   const date = useOrderDate();
   const format = useFormatter();
@@ -134,7 +134,7 @@ export function OrderFacts({ order }: { order: Order }) {
   ];
 
   return (
-    <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-t border-border pt-4">
+    <dl className={cn("grid grid-cols-2 gap-x-4 gap-y-3", className)}>
       {facts.map(([label, value], index) => (
         <div key={label} className={cn("flex flex-col", index % 2 === 1 && "items-end text-right")}>
           <dt className="text-label text-muted-foreground uppercase">{label}</dt>
@@ -145,7 +145,7 @@ export function OrderFacts({ order }: { order: Order }) {
   );
 }
 
-/** The seller's row and the facts, on one card. */
+/** The facts of an open order, on one card; the code ticket above names the seller. */
 export function OrderDetails({ order }: { order: Order }) {
   const t = useTranslations("Orders");
 
@@ -154,7 +154,6 @@ export function OrderDetails({ order }: { order: Order }) {
       aria-label={t("details")}
       className="flex flex-col gap-4 rounded-3xl bg-card p-5 text-card-foreground"
     >
-      <SellerRow order={order} />
       <OrderFacts order={order} />
     </section>
   );
@@ -234,7 +233,7 @@ export function HowToCollect({ order }: { order: Order }) {
 
 type Step = { label: string; state: "done" | "now" | "later" };
 
-/** The steps of an open order on the blue band: placed, preparing, ready, collected (Figma W2, W3). */
+/** The steps of an open order on the blue card: placed, preparing, ready, collected (Figma W2, W3). */
 export function OrderSteps({ order }: { order: Order }) {
   const t = useTranslations("Orders.steps");
   const format = useFormatter();
@@ -255,7 +254,10 @@ export function OrderSteps({ order }: { order: Order }) {
   ];
 
   return (
-    <ol aria-label={t("label")} className="flex flex-wrap gap-x-5 gap-y-1">
+    <ol
+      aria-label={t("label")}
+      className="grid grid-cols-2 gap-x-4 gap-y-1.5 sm:flex sm:flex-wrap sm:gap-x-5"
+    >
       {steps.map(({ label, state }) => {
         const Icon = state === "done" ? CheckIcon : state === "now" ? CircleDotIcon : CircleIcon;
         return (

@@ -125,8 +125,8 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
   const ended = which === "open" ? done.value.slice(0, 3) : done.value;
 
   return (
-    <div className="grid gap-6 md:grid-cols-5 md:items-start">
-      <div className="flex flex-col gap-4 md:col-span-3">
+    <div className="grid gap-6 lg:grid-cols-5 lg:items-start">
+      <div className="flex flex-col gap-4 lg:col-span-3">
         <nav
           aria-label={t("lists")}
           className="grid grid-cols-2 gap-1 rounded-2xl bg-secondary p-1"
@@ -173,7 +173,7 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
           </p>
         ) : null}
       </div>
-      <aside className="flex items-start gap-3 rounded-3xl bg-primary p-5 text-primary-foreground md:col-span-2">
+      <aside className="flex items-start gap-3 rounded-3xl bg-primary p-5 text-primary-foreground lg:col-span-2">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-fresh text-fresh-foreground">
           <LeafIcon aria-hidden className="size-5" />
         </span>
