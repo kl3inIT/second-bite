@@ -424,7 +424,7 @@ One seller's dishes in the search, white, 20px radius, bitten corner. Either the
 
 ### Deal card
 
-Deal Blue, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and two white coupons 72px high (Figma 105:2666): the discount in red (`price-lg` in `sale`), a dashed cut with a 10px notch in the deal card's blue at each edge, then the seller (`body-sm-strong`, one line). A sky sheet with rounded top corners rises behind its lower half to start the page.
+Deal Blue, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and two white coupons 72px high (Figma 105:2666): the discount in red (`price-lg` in `sale`), a dashed cut with a 10px notch in the deal card's blue at each edge, then the seller (`body-sm-strong`, one line). It sits on the header's blue; the header's foot (below) starts the page under it.
 
 ## Do's and Don'ts
 

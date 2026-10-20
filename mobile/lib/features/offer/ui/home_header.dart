@@ -96,17 +96,18 @@ class _SearchFieldState extends State<SearchField> {
           hintStyle: context.appTextStyles.bodySm.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          // On the blue header the field's edge is white like the field,
-          // as on the web; focus draws the ring.
+          // Fully rounded (DESIGN.md › Shape). On the blue header the
+          // field's edge is white like the field, as on the web; focus draws
+          // the ring.
           enabledBorder: OutlineInputBorder(
             borderRadius: const BorderRadius.all(
-              Radius.circular(RadiusTokens.lg),
+              Radius.circular(RadiusTokens.full),
             ),
             borderSide: BorderSide(color: context.appColors.headerRaised),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: const BorderRadius.all(
-              Radius.circular(RadiusTokens.lg),
+              Radius.circular(RadiusTokens.full),
             ),
             borderSide: BorderSide(
               color: Theme.of(context).colorScheme.primary,

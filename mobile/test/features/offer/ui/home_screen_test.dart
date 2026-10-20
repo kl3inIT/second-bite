@@ -47,12 +47,14 @@ void main() {
         expect(find.byTooltip('Tài khoản lan@gmail.com'), findsNothing);
       });
 
-      testWidgets('the account button, whose menu signs out', (tester) async {
+      testWidgets('the account capsule, whose menu signs out', (tester) async {
         when(() => repository.search(any())).thenAnswer((_) async => []);
         await pumpHome(tester, account: sampleAccount);
         await tester.pump();
 
         expect(find.text('Đăng nhập'), findsNothing);
+        // Without a display name, the start of the address.
+        expect(find.text('lan'), findsOneWidget);
         await tester.tap(find.byTooltip('Tài khoản lan@gmail.com'));
         await tester.pumpAndSettle();
 
@@ -105,7 +107,7 @@ void main() {
         expect(find.text('Túi ngon tối nay ở Tasco Mall'), findsOneWidget);
         expect(find.text('58%'), findsOneWidget);
         expect(find.text('3 túi đang mở · túi cuối lúc 21:45'), findsOneWidget);
-        expect(find.text('Sắp hết giờ lấy'), findsOneWidget);
+        expect(find.text('Sắp hết giờ nhận'), findsOneWidget);
         expect(find.byType(AppOfferCard), findsOneWidget);
         expect(find.text('Quanh bạn ở Tasco Mall'), findsOneWidget);
         expect(find.byType(AppOfferTile), findsNWidgets(2));
@@ -120,7 +122,7 @@ void main() {
 
         expect(find.text('Kết quả'), findsOneWidget);
         expect(find.text('Túi ngon tối nay ở Tasco Mall'), findsNothing);
-        expect(find.text('Sắp hết giờ lấy'), findsNothing);
+        expect(find.text('Sắp hết giờ nhận'), findsNothing);
       });
 
       testWidgets('an empty evening', (tester) async {

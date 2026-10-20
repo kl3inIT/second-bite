@@ -9,8 +9,9 @@ import 'package:second_bite/l10n/l10n.dart';
 /// {@template account_action}
 /// The header's account capsule, as the web's `AccountAction`: "Đăng nhập"
 /// for anyone, back to [returnTo] afterwards, or the signed-in account's
-/// button, whose menu names the address and signs out. While the kept
-/// session is read, nothing shows in its place.
+/// capsule with its display name, else the start of its address, whose menu
+/// names the address and signs out. While the kept session is read, nothing
+/// shows in its place.
 /// {@endtemplate}
 class AccountAction extends ConsumerWidget {
   /// {@macro account_action}
@@ -23,9 +24,14 @@ class AccountAction extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final account = ref.watch(currentAccountProvider);
     if (account.isLoading && !account.hasValue) return const SizedBox.shrink();
-    final email = account.value?.email;
-    if (email == null) return _SignInCapsule(returnTo: returnTo);
-    return _AccountMenu(email: email);
+    final value = account.value;
+    if (value == null) return _SignInCapsule(returnTo: returnTo);
+    return _AccountMenu(
+      email: value.email,
+      name: value.displayName.isEmpty
+          ? value.email.split('@').first
+          : value.displayName,
+    );
   }
 }
 
@@ -36,68 +42,25 @@ class _SignInCapsule extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Semantics(
-      button: true,
-      child: InkWell(
-        onTap: () => unawaited(SignInRoute(returnTo: returnTo).push(context)),
-        customBorder: const StadiumBorder(),
-        // The 32 point capsule inside a 44 point target, as on the web.
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 44),
-          child: Center(
-            widthFactor: 1,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: colors.headerRaised,
-                border: Border.all(color: colors.headerBorder),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(RadiusTokens.full),
-                ),
-              ),
-              child: SizedBox(
-                height: 32,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: SpacingTokens.space3,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 6,
-                    children: [
-                      Icon(
-                        LucideIcons.userRound,
-                        size: 16,
-                        color: colors.headerRaisedForeground,
-                      ),
-                      Text(
-                        context.l10n.accountSignIn,
-                        style: context.appTextStyles.labelStrong.copyWith(
-                          color: colors.headerRaisedForeground,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+    return AppHeaderCapsule(
+      icon: LucideIcons.userRound,
+      label: context.l10n.accountSignIn,
+      onPressed: () => unawaited(SignInRoute(returnTo: returnTo).push(context)),
     );
   }
 }
 
 class _AccountMenu extends ConsumerWidget {
-  const new({required this.email});
+  const new({required this.email, required this.name});
 
   final String email;
+
+  /// What the capsule shows.
+  final String name;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final colors = context.appColors;
     final text = context.appTextStyles;
 
     return MenuAnchor(
@@ -122,16 +85,12 @@ class _AccountMenu extends ConsumerWidget {
           child: Text(l10n.accountSignOut, style: text.body),
         ),
       ],
-      builder: (context, controller, _) => IconButton(
+      builder: (context, controller, _) => AppHeaderCapsule(
+        icon: LucideIcons.userRound,
+        label: name,
         tooltip: l10n.accountMenu(email),
         onPressed: () =>
             controller.isOpen ? controller.close() : controller.open(),
-        style: IconButton.styleFrom(
-          backgroundColor: colors.headerRaised,
-          foregroundColor: colors.headerRaisedForeground,
-          side: BorderSide(color: colors.headerBorder),
-        ),
-        icon: const Icon(LucideIcons.userRound, size: 16),
       ),
     );
   }
