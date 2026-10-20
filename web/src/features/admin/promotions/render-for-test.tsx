@@ -28,13 +28,14 @@ export const navigationMock = {
 /** The element's HTML in Vietnamese, inside the admin's messages and formats. */
 export function renderAdmin(element: ReactElement): string {
   return renderToStaticMarkup(
-    createElement(NextIntlClientProvider, {
-      locale: "vi",
-      timeZone: "Asia/Ho_Chi_Minh",
-      formats,
-      messages: { admin: { shell, promotions, content, notifications, sponsors } },
-      children: element,
-    }),
+    <NextIntlClientProvider
+      locale="vi"
+      timeZone="Asia/Ho_Chi_Minh"
+      formats={formats}
+      messages={{ admin: { shell, promotions, content, notifications, sponsors } }}
+    >
+      {element}
+    </NextIntlClientProvider>,
   );
 }
 

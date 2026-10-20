@@ -1,1 +1,63 @@
-{}
+{
+  "title": "Banners & content",
+  "addBanner": "Add banner",
+  "placementLabel": "Banner placement",
+  "placementCount": "{place} · {count}",
+  "placements": {
+    "home": "Home",
+    "search": "Search",
+    "orders": "Orders"
+  },
+  "bannersOf": {
+    "home": "Home banners",
+    "search": "Search banners",
+    "orders": "Order page banners"
+  },
+  "emptyBanners": {
+    "home": "No banners on the home page yet",
+    "search": "No banners on the search page yet",
+    "orders": "No banners on the order page yet"
+  },
+  "collections": "Featured collections",
+  "addCollection": "Add collection",
+  "emptyCollections": "No collections yet",
+  "bannerName": "{position} · {title}",
+  "actions": {
+    "edit": "Edit",
+    "pause": "Pause",
+    "delete": "Delete banner"
+  },
+  "editor": {
+    "newCrumb": "New banner",
+    "newTitle": "Add banner",
+    "editTitle": "Edit banner",
+    "cancel": "Cancel",
+    "save": "Save banner",
+    "formTitle": "Banner details",
+    "previewTitle": "Preview in the app",
+    "image": "Banner image",
+    "imageChoose": "Drop an image here or press to choose one",
+    "imageChange": "Drop an image here or press to change it",
+    "titlePlaceholder": "Banner title",
+    "title": "Title",
+    "titleProblem": "A banner needs a title",
+    "subtitle": "Second line",
+    "placement": "Placement",
+    "placementField": "Place",
+    "place": "{place} · position {position}",
+    "link": "Opens",
+    "linkKinds": {
+      "store": "Store",
+      "collection": "Collection",
+      "url": "URL"
+    },
+    "url": "Link address",
+    "urlProblem": "The address must start with http:// or https://",
+    "noTarget": "None chosen",
+    "startsAt": "Shows from",
+    "endsAt": "Until",
+    "visible": "Show in the app during this time",
+    "previewSearch": "Search dishes and stores…",
+    "previewShelf": "Near you at Tasco Mall"
+  }
+}

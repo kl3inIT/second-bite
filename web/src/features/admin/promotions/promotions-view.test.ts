@@ -64,12 +64,11 @@ describe("the promotions list", () => {
     expect(text).toContain("Đang chạy 4");
     expect(text).toContain("Lên lịch 2");
     expect(text).toContain("Hết hạn · Tạm dừng 6");
-    // The day and month alone read "01/10" in Figma; the shared "dayMonth" format decides its separator.
     expect(text).toMatch(
-      /TASCO20 Giảm 20% cho 100 khách đầu trên mini app Tasco 20% 63 \/ 100 01.10 – 31\/10\/2026 Tất cả cửa hàng Đang chạy/,
+      /TASCO20 Giảm 20% cho 100 khách đầu trên mini app Tasco 20% 63 \/ 100 01\/10 – 31\/10\/2026 Tất cả cửa hàng Đang chạy/,
     );
     expect(text).toMatch(
-      /QUAY15K Giảm 15\.000đ khi đổi tại quầy 15\.000đ 41 \/ 200 15.10 – 15\/11\/2026 3 cửa hàng Lên lịch/,
+      /QUAY15K Giảm 15\.000đ khi đổi tại quầy 15\.000đ 41 \/ 200 15\/10 – 15\/11\/2026 3 cửa hàng Lên lịch/,
     );
     expect(text).toContain("1 cửa hàng Tạm dừng");
     expect(text).toContain("Hiển thị 1–10 trên 12 mã");

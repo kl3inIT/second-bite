@@ -1,1 +1,63 @@
-{}
+{
+  "title": "Banner & nội dung",
+  "addBanner": "Thêm banner",
+  "placementLabel": "Vị trí banner",
+  "placementCount": "{place} · {count}",
+  "placements": {
+    "home": "Trang chủ",
+    "search": "Tìm kiếm",
+    "orders": "Trang đơn"
+  },
+  "bannersOf": {
+    "home": "Banner trang chủ",
+    "search": "Banner tìm kiếm",
+    "orders": "Banner trang đơn"
+  },
+  "emptyBanners": {
+    "home": "Chưa có banner nào ở trang chủ",
+    "search": "Chưa có banner nào ở trang tìm kiếm",
+    "orders": "Chưa có banner nào ở trang đơn"
+  },
+  "collections": "Bộ sưu tập nổi bật",
+  "addCollection": "Thêm bộ sưu tập",
+  "emptyCollections": "Chưa có bộ sưu tập nào",
+  "bannerName": "{position} · {title}",
+  "actions": {
+    "edit": "Sửa",
+    "pause": "Tạm dừng",
+    "delete": "Xoá banner"
+  },
+  "editor": {
+    "newCrumb": "Banner mới",
+    "newTitle": "Thêm banner",
+    "editTitle": "Sửa banner",
+    "cancel": "Huỷ",
+    "save": "Lưu banner",
+    "formTitle": "Thông tin banner",
+    "previewTitle": "Xem trước trên app",
+    "image": "Ảnh banner",
+    "imageChoose": "Kéo thả ảnh vào đây hoặc bấm để chọn ảnh",
+    "imageChange": "Kéo thả ảnh vào đây hoặc bấm để đổi ảnh",
+    "titlePlaceholder": "Tiêu đề banner",
+    "title": "Tiêu đề",
+    "titleProblem": "Banner cần có tiêu đề",
+    "subtitle": "Dòng phụ",
+    "placement": "Vị trí hiển thị",
+    "placementField": "Vị trí",
+    "place": "{place} · vị trí {position}",
+    "link": "Link tới",
+    "linkKinds": {
+      "store": "Cửa hàng",
+      "collection": "Bộ sưu tập",
+      "url": "URL"
+    },
+    "url": "Địa chỉ liên kết",
+    "urlProblem": "Địa chỉ cần bắt đầu bằng http:// hoặc https://",
+    "noTarget": "Chưa chọn",
+    "startsAt": "Bắt đầu hiển thị",
+    "endsAt": "Kết thúc",
+    "visible": "Hiển thị trên app trong thời gian đã hẹn",
+    "previewSearch": "Tìm món, tìm cửa hàng…",
+    "previewShelf": "Gần bạn ở Tasco Mall"
+  }
+}

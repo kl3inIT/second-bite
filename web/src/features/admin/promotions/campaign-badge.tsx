@@ -1,5 +1,7 @@
 import { ClockIcon } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
+
+import { formatDayMonth } from "@/i18n/day-month";
 
 import { AdminBadge, type BadgeTone } from "../ui/badge";
 import type { CampaignStatus } from "./promotion";
@@ -31,13 +33,14 @@ export function CampaignBadge({ status }: { status: CampaignStatus }) {
  */
 export function PeriodText({ start, end }: { start: string; end: string }) {
   const format = useFormatter();
+  const locale = useLocale();
   const from = new Date(start);
   const to = new Date(end);
   const sameYear = vietnamDay(from).slice(0, 4) === vietnamDay(to).slice(0, 4);
   return (
     <span className="text-body-sm whitespace-nowrap text-foreground">
       <time dateTime={from.toISOString()}>
-        {format.dateTime(from, sameYear ? "dayMonth" : "day")}
+        {sameYear ? formatDayMonth(from, locale) : format.dateTime(from, "day")}
       </time>
       {" – "}
       <time dateTime={to.toISOString()}>{format.dateTime(to, "day")}</time>

@@ -46,7 +46,8 @@ export function searchOf(value: string | undefined): string {
 }
 
 /**
- * The search string of a list after `change`: a change to anything but the page goes back to the first page,
+ * The search string of a list after `change`: a change to anything but the page goes back to the first page
+ * (when the list has pages),
  * and a value equal to its default, or empty, is left out. "" when nothing is left.
  */
 export function listSearch<Query extends Record<string, ListQueryValue>>(
@@ -56,7 +57,7 @@ export function listSearch<Query extends Record<string, ListQueryValue>>(
 ): string {
   const next: Record<string, ListQueryValue> = { ...query, ...change };
   const movesPage = Object.keys(change).some((key) => key !== "page" && change[key] !== query[key]);
-  if (movesPage) next.page = 1;
+  if (movesPage && "page" in query) next.page = 1;
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(next)) {
     if (value === "" || value === defaults[key]) continue;

@@ -46,6 +46,9 @@ describe("a marketing list's address", () => {
     expect(listSearch(query, { page: 4 }, promotionDefaults)).toBe("?page=4");
     expect(listSearch(promotionDefaults, { page: 1 }, promotionDefaults)).toBe("");
     expect(listSearch(query, { q: "tasco", size: 20 }, promotionDefaults)).toBe("?q=tasco&size=20");
+    expect(listSearch({ placement: "home" }, { placement: "search" }, { placement: "home" })).toBe(
+      "?placement=search",
+    );
   });
 
   it("turns a sorted column around and starts another with its own direction", () => {
