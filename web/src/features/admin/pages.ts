@@ -54,7 +54,9 @@ type AdminPageKey =
   | "accountDetail"
   | "promotions"
   | "content"
+  | "bannerDetail"
   | "notifications"
+  | "notificationsCompose"
   | "sponsors"
   | "reports"
   | "settings"
@@ -170,11 +172,25 @@ export const adminPages = {
     nav: "marketing",
     released: true,
   },
+  bannerDetail: {
+    path: "/admin/content/banners/[bannerId]",
+    section: "marketing",
+    icon: ImageIcon,
+    parent: "content",
+    released: true,
+  },
   notifications: {
     path: "/admin/notifications",
     section: "marketing",
     icon: MegaphoneIcon,
     nav: "marketing",
+    released: true,
+  },
+  notificationsCompose: {
+    path: "/admin/notifications/new",
+    section: "marketing",
+    icon: MegaphoneIcon,
+    parent: "notifications",
     released: true,
   },
   sponsors: {

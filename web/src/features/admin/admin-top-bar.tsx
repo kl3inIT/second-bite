@@ -43,7 +43,15 @@ export function AdminTopBar() {
     for (const key of named) {
       crumbs.push({ label: t(`pages.${key}.label`), href: adminHref(key) });
     }
-    if (current.endsWith("Detail") && trail.last) crumbs.push({ label: trail.last });
+    if (current.endsWith("Detail")) {
+      // A detail page names itself through AdminCrumb; until it does, its name in the catalog stands in
+      // ("Sửa banner"), when it has one.
+      // Only some detail pages have such a name, so the key is checked at run time.
+      const loose = t as unknown as { has(key: string): boolean; (key: string): string };
+      const fallback = `pages.${current}.label`;
+      const last = trail.last ?? (loose.has(fallback) ? loose(fallback) : undefined);
+      if (last) crumbs.push({ label: last });
+    }
   }
   const last = crumbs.length - 1;
 

@@ -41,6 +41,8 @@ describe("the admin page registry", () => {
     expect(matchAdminPage("/admin/sellers")).toBe("sellers");
     expect(matchAdminPage("/admin/sellers/se-1")).toBe("sellerDetail");
     expect(matchAdminPage("/admin/settings/audit-log")).toBe("settingsAuditLog");
+    expect(matchAdminPage("/admin/content/banners/bn-1")).toBe("bannerDetail");
+    expect(matchAdminPage("/admin/notifications/new")).toBe("notificationsCompose");
     expect(matchAdminPage("/admin/sellers/se-1/extra")).toBeUndefined();
     expect(matchAdminPage("/admin/nothing")).toBeUndefined();
   });

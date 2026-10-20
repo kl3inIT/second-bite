@@ -47,9 +47,17 @@
       "label": "Banner & nội dung",
       "short": "Banner"
     },
+    "bannerDetail": {
+      "label": "Sửa banner",
+      "short": "Banner"
+    },
     "notifications": {
       "label": "Thông báo",
       "short": "Thông báo"
+    },
+    "notificationsCompose": {
+      "label": "Soạn thông báo",
+      "short": "Soạn"
     },
     "sponsors": {
       "label": "Tài trợ",

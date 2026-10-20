@@ -47,9 +47,17 @@
       "label": "Banners & content",
       "short": "Banners"
     },
+    "bannerDetail": {
+      "label": "Edit banner",
+      "short": "Banner"
+    },
     "notifications": {
       "label": "Notifications",
       "short": "Notify"
+    },
+    "notificationsCompose": {
+      "label": "Compose notification",
+      "short": "Compose"
     },
     "sponsors": {
       "label": "Sponsors",
