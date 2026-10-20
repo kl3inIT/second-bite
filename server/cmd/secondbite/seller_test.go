@@ -38,6 +38,20 @@ func checkSellerFlow(t *testing.T, svc service) {
 		t.Fatalf("opened %+v", opened)
 	}
 
+	// A phone too short reaches the module's rule and its words, in the request's language (SEC-28).
+	short := newSeller("Quán thử", "12")
+	if p := send(t, http.MethodPost, svc.base+"/sellers", owner, short).problem(t, http.StatusBadRequest); p.Code != "SELLER_PHONE_INVALID" ||
+		p.Detail != "Nhập số điện thoại 9 đến 15 chữ số, ví dụ 0912 345 678." {
+		t.Errorf("a short phone: %q %q", p.Code, p.Detail)
+	}
+
+	inEnglish := owner.Clone()
+	inEnglish.Set("Accept-Language", "en")
+
+	if p := send(t, http.MethodPost, svc.base+"/sellers", inEnglish, short).problem(t, http.StatusBadRequest); p.Detail != "Enter a phone number of 9 to 15 digits, such as 0912 345 678." {
+		t.Errorf("a short phone in English: %q", p.Detail)
+	}
+
 	sellerURL := svc.base + "/sellers/" + opened.ID
 
 	send(t, http.MethodPost, sellerURL+"/members", owner, emailBody("seller.staff@example.com")).

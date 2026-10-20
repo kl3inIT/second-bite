@@ -17,7 +17,7 @@ type detailsBody struct {
 	Address   string  `json:"address"   maxLength:"300" minLength:"1" doc:"The address as people write it"`
 	Latitude  float64 `json:"latitude"  maximum:"90"    minimum:"-90" doc:"Where the seller is, pinned on a map"`
 	Longitude float64 `json:"longitude" maximum:"180"   minimum:"-180"`
-	Phone     string  `json:"phone"     maxLength:"30"  minLength:"9" doc:"Shown to the seller's members and admins"`
+	Phone     string  `json:"phone"     maxLength:"30" doc:"Shown to the seller's members and admins"`
 }
 
 func (b detailsBody) details() Details {

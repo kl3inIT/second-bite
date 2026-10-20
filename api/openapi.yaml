@@ -86,7 +86,6 @@ components:
         phone:
           description: Shown to the seller's members and admins
           maxLength: 30
-          minLength: 9
           type: string
       required:
         - name
