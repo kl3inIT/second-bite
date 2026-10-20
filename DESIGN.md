@@ -146,7 +146,7 @@ typography:
     fontSize: "20px"
     fontWeight: 700
     lineHeight: "28px"
-  figure-sm: # a ticket's discount on the deal card (-63%)
+  figure-sm: # small figures on lime: the discount badge, the steps' numbers
     fontFamily: "Bricolage Grotesque"
     fontSize: "12px"
     fontWeight: 700
@@ -293,7 +293,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 **The One Label Rule.** A card's photograph carries one label, at its top left in Deal Blue: the discount ("Giảm 55%"). How many portions are left is written under the photograph in Sale Red, as words ("Còn 2 phần"), never as a colour alone. Taken from Figma Mobile v3 with the owner on 20 October 2026, in place of the lime stock sticker (SEC-49).
 
-**The One Discount Rule.** On a card the discount is the Deal Blue label; on a deal card's ticket it is a red figure (`figure-sm` in `sale`); the best discount tonight may be written large in lime on the deal card (`display`). No amber, rose or soft-green discount.
+**The One Discount Rule.** On a card the discount is the Deal Blue label; on a deal card's ticket it is a red figure (`price-lg` in `sale`); the best discount tonight may be written large in lime on the deal card (`display`). No amber, rose or soft-green discount.
 
 **The Faint Rule.** `input` reaches only 3.6:1 on white: field edges only, never text.
 
@@ -315,7 +315,7 @@ Fourteen roles, normalised on 19 October 2026 from the 45 size, weight and leadi
 | `display`        | Bricolage 700 | 36 / 40     | Big figures only: the pickup code, the best discount tonight                      |
 | `price-lg`       | Bricolage 700 | 20 / 24     | The price on a large card and at checkout, totals, the digits of the sign-in code |
 | `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                       |
-| `figure-sm`      | Bricolage 700 | 12 / 16     | A ticket's discount on the deal card                                              |
+| `figure-sm`      | Bricolage 700 | 12 / 16     | Small figures on lime: the discount badge, the steps' numbers                     |
 | `headline`       | 700           | 20 / 28     | Section and sheet titles, a page's heading                                        |
 | `bar-title`      | 600           | 17 / 22     | The top bar's title                                                               |
 | `button`         | 600           | 16 / 20     | Button labels                                                                     |
@@ -399,7 +399,7 @@ One seller's dishes in the search, white, 20px radius, bitten corner. Either the
 
 ### Deal card
 
-Deal Blue, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and up to three white tickets with the discount in red (`figure-sm` in `sale`), the seller and when collection opens ("Nhận 20:30"). A sky sheet with rounded top corners rises behind its lower half to start the page.
+Deal Blue, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and two white coupons 72px high (Figma 105:2666): the discount in red (`price-lg` in `sale`) with "Giờ nhận" (`label`, muted) over the time collection opens (`label-strong`) at its right, a dashed cut with a 10px notch in the deal card's blue at each edge, then the seller (`body-sm-strong`, one line). A sky sheet with rounded top corners rises behind its lower half to start the page.
 
 ## Do's and Don'ts
 

@@ -10,8 +10,9 @@ import type { HomeQuery } from "./home-query";
 const TICKET_COUNT = 2;
 
 // The bottom of the header without a filter (Figma Mobile v3 deal card): the biggest discounts tonight as
-// tickets on the deep blue deal card. Every figure comes from the offers; with nothing to order, it does not
-// show. A bowl of food sits in its corner (Figma bát món).
+// coupons on the deep blue deal card (Figma 105:2666): the discount and the time to collect, a dashed cut
+// with a notch at each edge, then the seller. Every figure comes from the offers; with nothing to order, it
+// does not show. A bowl of food sits in its corner (Figma bát món).
 export async function TonightDeals({ query: pending }: { query: Promise<HomeQuery> }) {
   const query = await pending;
   // Tonight's deals are Tasco Mall's, so they are not shown around the person's own place (Figma K1e).
@@ -42,22 +43,36 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
             {t("upToPercent", { percent: tickets[0].discountPercent })}
           </span>
         </p>
-        <ul className="flex min-w-0 flex-1 gap-1.25">
+        <ul className="flex min-w-0 flex-1 gap-2">
           {tickets.map((offer) => (
             <li
               key={offer.id}
-              className="relative flex min-w-0 flex-1 flex-col gap-1 rounded-xl bg-card py-2.5 pr-1 pl-1.75 text-card-foreground sm:max-w-44"
+              className="relative flex h-18 min-w-0 flex-1 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:max-w-44"
             >
-              <span className="font-display text-figure-sm text-sale">
-                <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
-                <span className="sr-only">
-                  {t("ticketDiscountLabel", { percent: offer.discountPercent })}
+              <div className="flex items-center justify-between gap-0.5">
+                <span className="font-display text-price-lg text-sale">
+                  <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
+                  <span className="sr-only">
+                    {t("ticketDiscountLabel", { percent: offer.discountPercent })}
+                  </span>
                 </span>
-              </span>
-              <span className="truncate text-label-strong">{offer.seller.name}</span>
-              <span className="truncate text-label text-muted-foreground">
-                {t("ticketWindow", { from: time(offer.windowStart) })}
-              </span>
+                <span className="flex flex-col items-end">
+                  <span className="text-label whitespace-nowrap text-muted-foreground">
+                    {t("ticketCollect")}
+                  </span>
+                  <span className="text-label-strong">{time(offer.windowStart)}</span>
+                </span>
+              </div>
+              <hr className="border-t border-dashed border-border" />
+              <span className="truncate text-body-sm-strong">{offer.seller.name}</span>
+              <span
+                aria-hidden
+                className="absolute top-9 -left-1.25 size-2.5 rounded-full bg-deal"
+              />
+              <span
+                aria-hidden
+                className="absolute top-9 -right-1.25 size-2.5 rounded-full bg-deal"
+              />
             </li>
           ))}
         </ul>
