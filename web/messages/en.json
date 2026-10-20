@@ -369,5 +369,56 @@
     "create": "Open a new store",
     "owner": "Owner",
     "staff": "Staff"
+  },
+  "StoreNav": {
+    "label": "Store",
+    "home": "Home",
+    "posts": "Posts",
+    "catalog": "Catalog",
+    "orders": "Orders"
+  },
+  "StoreHome": {
+    "title": "Store home",
+    "startTitle": "Start selling",
+    "startBody": "Post your first dish so customers see your store.",
+    "post": "Post a dish",
+    "todayTitle": "Today's posts",
+    "todayEmpty": "No posts today yet."
+  },
+  "StorePosts": {
+    "title": "Posts",
+    "post": "Post a dish",
+    "today": "Today and coming up",
+    "tabs": "Groups of posts",
+    "tab": {
+      "on_sale": "On sale · {count}",
+      "sold_out": "Sold out · {count}",
+      "closed": "Closed · {count}"
+    },
+    "emptyAll": "No posts yet. Press Post a dish to add one.",
+    "empty": {
+      "on_sale": "Nothing on sale.",
+      "sold_out": "Nothing has sold out.",
+      "closed": "Nothing has closed."
+    },
+    "edit": "Edit",
+    "postAgain": "Post again"
+  },
+  "PostRow": {
+    "onSale": "Pick-up {from}–{until} · {left}/{units} {unit} left · {price}",
+    "soldOut": "Pick-up {from}–{until} · Sold out {units}/{units} {unit} · {price}",
+    "closed": "Pick-up over · sold {sold}/{units} {unit} · {price}",
+    "withdrawn": "Withdrawn · {price}"
+  },
+  "StoreSoon": {
+    "soon": "Coming soon",
+    "catalog": {
+      "title": "Catalog",
+      "body": "The store's catalog of dishes comes in a later version."
+    },
+    "orders": {
+      "title": "Orders",
+      "body": "Customers' orders will show here once ordering is ready."
+    }
   }
 }

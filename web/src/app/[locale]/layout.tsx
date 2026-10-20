@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Be_Vietnam_Pro, Bricolage_Grotesque } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { JsonLd } from "@/components/json-ld";
@@ -94,7 +95,10 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
           <Splash />
           {children}
           <SiteFooter />
-          <BottomNav />
+          {/* Its tabs read the address, which a page with a parameter (a store) only knows at request time. */}
+          <Suspense>
+            <BottomNav />
+          </Suspense>
         </NextIntlClientProvider>
       </body>
     </html>

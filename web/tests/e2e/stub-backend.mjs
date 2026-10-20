@@ -368,13 +368,50 @@ async function auth(request, response, url) {
 // at once, and reads the ones they own. Kept per session, like the accounts above.
 const storesOf = new Map();
 
+/** A store's posts as GET /sellers/{id}/offers answers: one on sale, one sold out, one over, one withdrawn. */
+function postsOf(seller) {
+  const post = (n, status, name, units, unitsLeft, from, until, extra = {}) => ({
+    id: `of-${n}-${seller.id}`,
+    sellerId: seller.id,
+    status,
+    name,
+    description: "",
+    kind: "bakery",
+    unit: "suất",
+    units,
+    unitsLeft,
+    priceVnd: 57000,
+    originalPriceVnd: 95000,
+    discountPercent: 40,
+    photo: {
+      id: `ph-${n}`,
+      largePath: `/photos/ph-${n}/1600.jpg`,
+      smallPath: `/photos/ph-${n}/400.jpg`,
+    },
+    windowStart: tonight(...from),
+    windowEnd: tonight(...until),
+    collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...extra,
+  });
+  return [
+    post(1, "on_sale", "Túi bánh mì và croissant, 4 chiếc", 3, 3, [20, 30], [21, 30]),
+    post(2, "sold_out", "Xôi thập cẩm, 1 hộp", 4, 0, [20, 0], [21, 0]),
+    post(3, "closed", "Bánh su kem, 6 cái", 3, 1, [18, 0], [19, 0]),
+    post(4, "withdrawn", "Cơm sườn nướng, 1 suất", 2, 2, [18, 0], [19, 0], {
+      withdrawnAt: new Date().toISOString(),
+    }),
+  ];
+}
+
 async function sellerRoutes(request, response, url) {
   const token = tokenOf(request);
   const isSellerRoute =
     url.pathname === "/sellers" ||
     url.pathname === "/sellers/mine" ||
     url.pathname === "/photos" ||
-    /^\/sellers\/[\w-]+\/photo$/.test(url.pathname);
+    /^\/sellers\/[\w-]+(\/photo|\/offers)?$/.test(url.pathname);
   if (!isSellerRoute) return false;
   if (!accounts.has(token)) {
     problem(response, 401, "IDENTITY_SESSION_INVALID");
@@ -422,6 +459,16 @@ async function sellerRoutes(request, response, url) {
       largePath: "/photos/ph-upload/1600.jpg",
       smallPath: "/photos/ph-upload/400.jpg",
     });
+    return true;
+  }
+  const one = /^\/sellers\/([\w-]+)(\/offers)?$/.exec(url.pathname);
+  if (request.method === "GET" && one) {
+    const seller = mine.find((candidate) => candidate.id === one[1]);
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else if (one[2]) {
+      // A store named like the Figma sample has its posts; any other starts empty.
+      json(response, 200, { offers: seller.name === "Tiệm bánh Pháp" ? postsOf(seller) : [] });
+    } else json(response, 200, seller);
     return true;
   }
   if (request.method === "PUT") {

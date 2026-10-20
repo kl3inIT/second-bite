@@ -369,5 +369,56 @@
     "create": "Tạo quán mới",
     "owner": "Chủ quán",
     "staff": "Nhân viên"
+  },
+  "StoreNav": {
+    "label": "Quán",
+    "home": "Trang chủ",
+    "posts": "Bài đăng",
+    "catalog": "Danh mục",
+    "orders": "Đơn"
+  },
+  "StoreHome": {
+    "title": "Trang chủ quán",
+    "startTitle": "Bắt đầu bán",
+    "startBody": "Đăng món đầu tiên để khách thấy quán của bạn.",
+    "post": "Đăng món",
+    "todayTitle": "Bài đăng hôm nay",
+    "todayEmpty": "Chưa có bài đăng nào hôm nay."
+  },
+  "StorePosts": {
+    "title": "Bài đăng",
+    "post": "Đăng món",
+    "today": "Hôm nay và sắp tới",
+    "tabs": "Nhóm bài đăng",
+    "tab": {
+      "on_sale": "Đang bán · {count}",
+      "sold_out": "Đã hết · {count}",
+      "closed": "Đã đóng · {count}"
+    },
+    "emptyAll": "Chưa có bài đăng nào. Bấm Đăng món để thêm.",
+    "empty": {
+      "on_sale": "Chưa có bài nào đang bán.",
+      "sold_out": "Chưa có bài nào đã hết.",
+      "closed": "Chưa có bài nào đã đóng."
+    },
+    "edit": "Sửa",
+    "postAgain": "Đăng lại"
+  },
+  "PostRow": {
+    "onSale": "Lấy {from}–{until} · Còn {left}/{units} {unit} · {price}",
+    "soldOut": "Lấy {from}–{until} · Hết {units}/{units} {unit} · {price}",
+    "closed": "Hết giờ lấy · bán {sold}/{units} {unit} · {price}",
+    "withdrawn": "Đã rút · {price}"
+  },
+  "StoreSoon": {
+    "soon": "Sắp có",
+    "catalog": {
+      "title": "Danh mục",
+      "body": "Danh mục món của quán sẽ có ở bản sau."
+    },
+    "orders": {
+      "title": "Đơn",
+      "body": "Đơn của khách sẽ hiện ở đây khi tính năng đặt món sẵn sàng."
+    }
   }
 }

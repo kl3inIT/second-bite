@@ -78,7 +78,7 @@ export function OpenStoreForm() {
           // The store exists; its photo can be set again later.
         }
       }
-      router.replace("/stores");
+      router.replace(`/stores/${sellerId}`);
       router.refresh();
     });
   }

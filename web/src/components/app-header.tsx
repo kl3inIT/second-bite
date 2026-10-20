@@ -17,12 +17,15 @@ import { Wordmark } from "./wordmark";
 // seller screens), the wordmark leads the row at every width (SEC-52).
 export function AppHeader({
   title,
+  nav,
   search,
   account,
   sticky,
   children,
 }: {
   title?: React.ReactNode;
+  /** The seller's tabs (Figma Q1): centred between the wordmark and the capsules; on a phone, a row of its own. */
+  nav?: React.ReactNode;
   search?: React.ReactNode;
   account?: React.ReactNode;
   sticky?: { search: React.ReactNode; account: React.ReactNode };
@@ -57,6 +60,11 @@ export function AppHeader({
             {home}
             {title && <div className="lg:border-l lg:border-header-border lg:pl-5">{title}</div>}
           </div>
+          {nav && (
+            <div className="order-last w-full overflow-x-auto lg:order-none lg:w-auto lg:overflow-visible">
+              {nav}
+            </div>
+          )}
           {search && (
             <div className="order-last w-full lg:order-none lg:max-w-xl lg:flex-1">{search}</div>
           )}
