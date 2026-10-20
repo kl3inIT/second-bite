@@ -1,11 +1,12 @@
 "use client";
 
 import { ChevronRightIcon } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import { type ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { adminHref } from "@/features/admin/pages";
+import { formatDayMonth } from "@/i18n/day-month";
 import { EmptyState } from "@/features/admin/ui/empty-state";
 import { Link } from "@/i18n/navigation";
 
@@ -26,9 +27,10 @@ export function DailyChart({ points }: { points: DailyPoint[] }) {
   const t = useTranslations("admin.overview.chart");
   const empty = useTranslations("admin.shell");
   const format = useFormatter();
+  const locale = useLocale();
   const data = points.map((point) => ({
     ...point,
-    label: format.dateTime(dayToDate(point.date), "dayMonth"),
+    label: formatDayMonth(dayToDate(point.date), locale),
   }));
   const last = data.length - 1;
   const ticks = axisTicks(Math.max(0, ...points.map((point) => point.posts)));
@@ -141,7 +143,7 @@ function DayTooltip({ active, point }: { active?: boolean; point?: DailyPoint })
   return (
     <div className="flex flex-col gap-1 rounded-md border border-border bg-card px-3.5 py-3 shadow-lg">
       <p className="text-label-strong text-muted-foreground">
-        {format.dateTime(dayToDate(point.date), "day")}
+        {format.dateTime(dayToDate(point.date), "weekdayDay")}
       </p>
       <p className="flex items-center gap-2 text-body-sm-strong text-foreground">
         <span aria-hidden className="h-0.75 w-3.5 rounded-full bg-primary" />
