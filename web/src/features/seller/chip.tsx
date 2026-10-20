@@ -1,13 +1,14 @@
 import { cn } from "@/lib/utils";
 
 // A choice drawn as a pill (Figma P2, P3: the kind of a dish, the hour, the length): the chosen one is blue, the
-// others white with an edge. The target is 44 px high though the pill is 36, as everywhere else on the web.
+// others white with an edge. The target is 44 px high though the pill may be 38, as everywhere else on the web.
 export function Chip({
   selected,
+  size = "md",
   className,
   children,
   ...props
-}: React.ComponentProps<"button"> & { selected: boolean }) {
+}: React.ComponentProps<"button"> & { selected: boolean; size?: "md" | "lg" }) {
   return (
     <button
       type="button"
@@ -20,10 +21,12 @@ export function Chip({
     >
       <span
         className={cn(
-          "flex h-9 items-center rounded-full border px-3.5 text-label-strong whitespace-nowrap transition-colors",
+          "flex items-center rounded-full border whitespace-nowrap transition-colors",
+          // 38 px high with 16 px sides, or 44 px with 18 px, as Figma draws the two (Q2, P2b and P3).
+          size === "lg" ? "h-11 px-4.5" : "h-9.5 px-4",
           selected
-            ? "border-primary bg-primary text-primary-foreground"
-            : "border-border bg-card text-foreground group-hover/chip:bg-secondary",
+            ? "border-primary bg-primary text-body-sm-strong text-primary-foreground"
+            : "border-border bg-card text-body-sm text-foreground group-hover/chip:bg-secondary",
         )}
       >
         {children}
