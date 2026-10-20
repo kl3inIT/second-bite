@@ -42,7 +42,7 @@ export async function PostRow({ offer, action }: { offer: OfferBody; action?: Re
         />
       </span>
       <div className="flex min-w-0 flex-1 flex-col">
-        <h3 className="truncate text-title">{offer.name}</h3>
+        <h3 className="truncate text-title-lg">{offer.name}</h3>
         <p className="text-body-sm text-muted-foreground">{line}</p>
       </div>
       {action}
