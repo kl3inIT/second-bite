@@ -122,7 +122,15 @@ export function RangeFilter({
         <ChevronDownIcon aria-hidden className="size-3.5" />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72">
-        <form action={apply} className="flex flex-col gap-2.5 p-1">
+        <form
+          // Not `action`: React resets a form after its action, which would clear the range a person must
+          // correct when it is out of order.
+          onSubmit={(event) => {
+            event.preventDefault();
+            apply(new FormData(event.currentTarget));
+          }}
+          className="flex flex-col gap-2.5 p-1"
+        >
           <PopoverTitle>{name}</PopoverTitle>
           <ul aria-label={t("quick")} className="flex flex-wrap gap-1.5">
             {presets.map((preset) => (

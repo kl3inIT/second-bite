@@ -11,7 +11,9 @@ test.describe("a dish, its seller and the cart", () => {
     await (await hydrated(page.getByRole("link", { name: "Bánh Croissant Truyền Thống" }))).click();
 
     await expect(page).toHaveURL(/\/vi\/offers\/of-croissant$/);
-    await expect(page.getByRole("heading", { level: 1, name: "Bánh Croissant Truyền Thống" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Bánh Croissant Truyền Thống" }),
+    ).toBeVisible();
     await expect(page.getByText("Nhận hôm nay 21:00 – 21:45")).toBeVisible();
     await expect(page.getByText("Giảm 56% · còn 3 phần")).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toBeHidden();
@@ -28,7 +30,9 @@ test.describe("a dish, its seller and the cart", () => {
     page,
   }) => {
     await page.goto("/vi/sellers/se-la-paris");
-    const add = await hydrated(page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }));
+    const add = await hydrated(
+      page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }),
+    );
     await add.click();
     await add.click();
     await add.click();
@@ -41,7 +45,9 @@ test.describe("a dish, its seller and the cart", () => {
     await page.goto("/vi/offers/of-ha-cao");
     await (await hydrated(page.getByRole("button", { name: "Thêm vào giỏ" }))).click();
     const sheet = page.getByRole("dialog", { name: "Bắt đầu giỏ mới?" });
-    await expect(sheet.getByText("Giỏ của bạn đang có 3 phần của La Paris.", { exact: false })).toBeVisible();
+    await expect(
+      sheet.getByText("Giỏ của bạn đang có 3 phần của La Paris.", { exact: false }),
+    ).toBeVisible();
     await sheet.getByRole("button", { name: "Giữ giỏ hiện tại" }).click();
     await expect(sheet).toBeHidden();
 
