@@ -45,7 +45,7 @@ export function EmailSettingsForm({ settings }: { settings: EmailSettingsBody | 
   useEffect(() => {
     if (settings) return;
     // Once, when the page opens, after the layout's effects, so the toaster around the page already listens.
-    const timer = setTimeout(() => showAdminToast(t("email.notConfigured"), "info"));
+    const timer = setTimeout(() => showAdminToast(t("email.notConfigured"), "warning"));
     return () => clearTimeout(timer);
   }, [settings, t]);
 
@@ -59,7 +59,7 @@ export function EmailSettingsForm({ settings }: { settings: EmailSettingsBody | 
   function edit(next: Partial<EmailDraft>) {
     const changed = { ...draft, ...next };
     if (!passwordWillBeLost(draft, saved) && passwordWillBeLost(changed, saved)) {
-      showAdminToast(passwordLost, "info");
+      showAdminToast(passwordLost, "warning");
     }
     setDraft(changed);
     setRefused((current) => current.filter((field) => !(field in next)));
@@ -67,7 +67,7 @@ export function EmailSettingsForm({ settings }: { settings: EmailSettingsBody | 
 
   function save() {
     if (passwordWillBeLost(draft, saved)) {
-      showAdminToast(passwordLost, "info");
+      showAdminToast(passwordLost, "warning");
       document.getElementById("email-smtpPassword")?.focus();
       return;
     }
