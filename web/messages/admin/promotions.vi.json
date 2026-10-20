@@ -1,1 +1,91 @@
-{}
+{
+  "title": "Mã giảm giá",
+  "create": "Tạo mã",
+  "cards": {
+    "running": "Đang chạy",
+    "scheduled": "Lên lịch",
+    "inactive": "Hết hạn · Tạm dừng"
+  },
+  "status": {
+    "running": "Đang chạy",
+    "scheduled": "Lên lịch",
+    "paused": "Tạm dừng",
+    "ended": "Hết hạn"
+  },
+  "filters": {
+    "search": "Tìm mã giảm giá",
+    "searchPlaceholder": "Tìm theo mã hoặc mô tả",
+    "status": "Trạng thái",
+    "statuses": {
+      "all": "Tất cả",
+      "running": "Đang chạy",
+      "scheduled": "Lên lịch",
+      "inactive": "Hết hạn · Tạm dừng"
+    },
+    "scope": "Áp dụng",
+    "scopes": {
+      "all": "Mọi cửa hàng",
+      "everyStore": "Tất cả cửa hàng",
+      "someStores": "Một số cửa hàng"
+    },
+    "size": "Số dòng"
+  },
+  "columns": {
+    "code": "Mã",
+    "description": "Mô tả",
+    "discount": "Giảm",
+    "uses": "Lượt dùng",
+    "period": "Hiệu lực",
+    "stores": "Áp dụng",
+    "status": "Trạng thái"
+  },
+  "uses": "{used} / {limit}",
+  "storesAll": "Tất cả cửa hàng",
+  "storesSome": "{count} cửa hàng",
+  "summary": "Hiển thị {from}–{to} trên {total} mã",
+  "empty": "Chưa có mã giảm giá nào",
+  "emptyFiltered": "Không có mã nào khớp bộ lọc",
+  "actions": {
+    "edit": "Sửa",
+    "copy": "Sao chép mã",
+    "pause": "Tạm dừng",
+    "delete": "Xoá mã"
+  },
+  "copied": "Đã sao chép mã {code}",
+  "copyFailed": "Không sao chép được mã {code}",
+  "sheet": {
+    "createTitle": "Tạo mã giảm giá",
+    "editTitle": "Sửa mã giảm giá",
+    "code": "Mã (tự sinh, có thể sửa)",
+    "regenerate": "Tạo lại",
+    "codeProblem": "Mã cần ít nhất 4 ký tự",
+    "kind": "Loại giảm",
+    "kinds": {
+      "percent": "Phần trăm (%)",
+      "amount": "Số tiền (đ)"
+    },
+    "value": "Giá trị",
+    "cap": "Giảm tối đa",
+    "limit": "Tổng số lượt",
+    "perUser": "Mỗi người dùng",
+    "usesUnit": "lượt",
+    "startsAt": "Bắt đầu",
+    "endsAt": "Kết thúc",
+    "allStores": "Áp dụng cho tất cả cửa hàng",
+    "stores": "Cửa hàng áp dụng · {count} cửa hàng",
+    "storesField": "Cửa hàng",
+    "storesChosen": "{count} cửa hàng đã chọn",
+    "storesNone": "Chưa chọn",
+    "storesEmpty": "Chưa có cửa hàng nào",
+    "storesProblem": "Chọn ít nhất một cửa hàng",
+    "channel": "Kênh đổi mã",
+    "channels": {
+      "app": "Mini app Tasco",
+      "both": "Cả hai kênh",
+      "counter": "Quầy Tasco Mall"
+    },
+    "cancel": "Huỷ",
+    "create": "Tạo mã",
+    "save": "Lưu mã"
+  }
+}

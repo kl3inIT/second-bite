@@ -1,1 +1,91 @@
-{}
+{
+  "title": "Promotion codes",
+  "create": "Create code",
+  "cards": {
+    "running": "Running",
+    "scheduled": "Scheduled",
+    "inactive": "Ended · Paused"
+  },
+  "status": {
+    "running": "Running",
+    "scheduled": "Scheduled",
+    "paused": "Paused",
+    "ended": "Ended"
+  },
+  "filters": {
+    "search": "Search promotion codes",
+    "searchPlaceholder": "Search by code or description",
+    "status": "Status",
+    "statuses": {
+      "all": "All",
+      "running": "Running",
+      "scheduled": "Scheduled",
+      "inactive": "Ended · Paused"
+    },
+    "scope": "Stores",
+    "scopes": {
+      "all": "Any store",
+      "everyStore": "Every store",
+      "someStores": "Some stores"
+    },
+    "size": "Rows"
+  },
+  "columns": {
+    "code": "Code",
+    "description": "Description",
+    "discount": "Discount",
+    "uses": "Uses",
+    "period": "Valid",
+    "stores": "Stores",
+    "status": "Status"
+  },
+  "uses": "{used} / {limit}",
+  "storesAll": "Every store",
+  "storesSome": "{count, plural, one {# store} other {# stores}}",
+  "summary": "Showing {from}–{to} of {total} codes",
+  "empty": "No promotion codes yet",
+  "emptyFiltered": "No codes match these filters",
+  "actions": {
+    "edit": "Edit",
+    "copy": "Copy code",
+    "pause": "Pause",
+    "delete": "Delete code"
+  },
+  "copied": "Copied code {code}",
+  "copyFailed": "Could not copy code {code}",
+  "sheet": {
+    "createTitle": "Create a promotion code",
+    "editTitle": "Edit the promotion code",
+    "code": "Code (generated, editable)",
+    "regenerate": "Generate again",
+    "codeProblem": "A code needs at least 4 characters",
+    "kind": "Discount type",
+    "kinds": {
+      "percent": "Percentage (%)",
+      "amount": "Amount (đ)"
+    },
+    "value": "Value",
+    "cap": "Maximum discount",
+    "limit": "Total uses",
+    "perUser": "Per person",
+    "usesUnit": "uses",
+    "startsAt": "Starts",
+    "endsAt": "Ends",
+    "allStores": "For every store",
+    "stores": "Stores · {count, plural, one {# store} other {# stores}}",
+    "storesField": "Stores",
+    "storesChosen": "{count, plural, one {# store chosen} other {# stores chosen}}",
+    "storesNone": "None chosen",
+    "storesEmpty": "No stores yet",
+    "storesProblem": "Choose at least one store",
+    "channel": "Where it is redeemed",
+    "channels": {
+      "app": "Tasco mini app",
+      "both": "Both",
+      "counter": "Tasco Mall counter"
+    },
+    "cancel": "Cancel",
+    "create": "Create code",
+    "save": "Save code"
+  }
+}
