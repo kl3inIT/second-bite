@@ -71,6 +71,8 @@ const pairs = [
   ["muted-foreground", "background", MIN_TEXT_CONTRAST],
   ["link", "card", MIN_TEXT_CONTRAST],
   ["link", "background", MIN_TEXT_CONTRAST],
+  // The portions left in red words on a card (The One Label Rule).
+  ["sale", "card", MIN_TEXT_CONTRAST],
   ["primary", "secondary", MIN_TEXT_CONTRAST],
   ["input", "card", 3],
   ["ring", "card", 3],

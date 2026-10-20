@@ -11,6 +11,7 @@ export const typeStyles = [
   "body-sm-strong",
   "body",
   "title",
+  "title-lg",
   "button",
   "bar-title",
   "headline",

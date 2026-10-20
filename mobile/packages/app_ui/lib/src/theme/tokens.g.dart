@@ -38,6 +38,7 @@ abstract final class ColorTokens {
   static const freshForeground = Color(0xFF2C4709);
   static const freshMuted = Color(0xFFEEF7D9);
   static const rating = Color(0xFFD99A12);
+  static const sale = Color(0xFFB42318);
   static const destructive = Color(0xFFB42318);
   static const destructiveForeground = Color(0xFFFFFFFF);
   static const destructiveHover = Color(0xFF912018);
@@ -118,6 +119,16 @@ abstract final class TypeTokens {
     letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
+  static const titleLg = TextStyle(
+    fontFamily: 'Be Vietnam Pro',
+    package: 'app_ui',
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    fontVariations: [FontVariation('wght', 600)],
+    height: 22 / 16,
+    letterSpacing: 0,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
   static const button = TextStyle(
     fontFamily: 'Be Vietnam Pro',
     package: 'app_ui',
@@ -171,11 +182,11 @@ abstract final class TypeTokens {
   static const priceLg = TextStyle(
     fontFamily: 'Bricolage Grotesque',
     package: 'app_ui',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: FontWeight.w700,
     fontVariations: [FontVariation('wght', 700)],
-    height: 25 / 22,
-    letterSpacing: -0.22,
+    height: 24 / 20,
+    letterSpacing: -0.2,
     leadingDistribution: TextLeadingDistribution.even,
   );
   static const display = TextStyle(
@@ -216,5 +227,8 @@ abstract final class SpacingTokens {
 abstract final class ShadowTokens {
   static const sheet = [
     BoxShadow(color: Color(0x1F0E1D19), offset: Offset(0, -4), blurRadius: 24),
+  ];
+  static const nav = [
+    BoxShadow(color: Color(0x24051229), offset: Offset(0, 8), blurRadius: 24),
   ];
 }

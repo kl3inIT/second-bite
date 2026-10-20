@@ -11,7 +11,7 @@ test.describe("ordering, following and cancelling an order", () => {
     page,
   }, testInfo) => {
     const email = `dat.${testInfo.project.name}@example.com`;
-    await page.goto("/vi/orders/new?offer=of-banh-bao&units=2");
+    await page.goto("/vi/orders/new?offer=of-banh-bao-thit&units=2");
 
     await expect(page.getByRole("heading", { name: "Xác nhận đơn", level: 1 })).toBeVisible();
     await expect(page.getByText("Trả tiền tại quầy", { exact: true })).toBeVisible();
@@ -22,7 +22,7 @@ test.describe("ordering, following and cancelling an order", () => {
     await page.getByRole("button", { name: "Gửi mã" }).click();
     await page.getByLabel("Mã đăng nhập 6 số").fill("123456");
 
-    await expect(page).toHaveURL(/\/vi\/orders\/new\?offer=of-banh-bao&units=2$/);
+    await expect(page).toHaveURL(/\/vi\/orders\/new\?offer=of-banh-bao-thit&units=2$/);
     await (await hydrated(page.getByRole("button", { name: "Đặt món", exact: true }))).click();
 
     await expect(page).toHaveURL(/\/vi\/orders\/or-\d+$/);
@@ -49,7 +49,7 @@ test.describe("ordering, following and cancelling an order", () => {
   });
 
   test("an offer that has sold out cannot be ordered", async ({ page }) => {
-    await page.goto("/vi/orders/new?offer=of-com-tam");
+    await page.goto("/vi/orders/new?offer=of-banh-mi");
     await expect(page.getByRole("heading", { name: "Món vừa hết" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Xem món khác" })).toHaveAttribute("href", "/vi");
     await expectNoSeriousA11yViolations(page);

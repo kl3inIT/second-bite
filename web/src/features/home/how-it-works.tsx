@@ -1,8 +1,8 @@
 import { useTranslations } from "next-intl";
 
-// What Second Bite is, kept in view on a wide screen: one line and the three steps, where a phone has the
-// card that can be closed (IntroStrip). A first visit learns it without a landing page (SEC-23), and it never
-// needs closing (docs/research/2026-10-19-desktop-home.md).
+// What Second Bite is, kept in view on a wide screen: one line and the three steps; a phone follows Figma K1,
+// which goes straight from the kinds to the dishes. A first visit learns it without a landing page (SEC-23),
+// and it never needs closing (docs/research/2026-10-19-desktop-home.md).
 export function HowItWorks() {
   const t = useTranslations("Intro");
   const steps = [t("step1"), t("step2"), t("step3")];

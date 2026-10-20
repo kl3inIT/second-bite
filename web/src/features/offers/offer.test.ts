@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   biggestDiscountFirst,
   closingFirst,
+  groupBySeller,
   inShowingOrder,
   isAvailable,
-  openBags,
   type OfferSummary,
 } from "./offer";
 
@@ -87,12 +87,22 @@ describe("the home's rows", () => {
 
     expect(biggestDiscountFirst(discounts).map((o) => o.id)).toEqual(["most", "half"]);
   });
+});
 
-  it("counts the bags still open and finds the window that closes last", () => {
-    expect(openBags(list)).toEqual({ bags: 3, lastWindowEnd: "2026-10-18T22:00:00+07:00" });
-  });
+describe("the search's sellers", () => {
+  it("groups the offers by seller, in the order each seller first appears", () => {
+    const fromSeller = (id: string, sellerId: string): OfferSummary => ({
+      ...offer(id, "on_sale", 1),
+      sellerId,
+      seller: { id: sellerId, name: sellerId, address: "" },
+    });
+    const list = [fromSeller("a", "s2"), fromSeller("b", "s1"), fromSeller("c", "s2")];
 
-  it("has no open bags when nothing can be ordered", () => {
-    expect(openBags([offer("sold-out", "sold_out", 0)])).toBeUndefined();
+    expect(
+      groupBySeller(list).map((group) => [group.seller.id, group.offers.map((o) => o.id)]),
+    ).toEqual([
+      ["s2", ["a", "c"]],
+      ["s1", ["b"]],
+    ]);
   });
 });
