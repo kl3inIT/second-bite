@@ -31,7 +31,7 @@ Tracked in Linear as SEC-28.
   - `Accept-Language` matching (`vi`, `en-US`, `fr`, none, quality values);
   - a module failure, a platform failure, an unknown route and a panic in both languages with `Content-Language` and `Vary`;
   - violations translated and the generic fallback;
-  - the composition test asks once in each language.
+  - all of it through the platform's real handler, middleware and problem mapping (`httptest`), and the existing composition test unchanged in Vietnamese.
 - **Web:**
   - the client sends the page's locale;
   - forms show the server's sentence at the same place as before (unit and browser tests against the stub backend, which answers in the asked language).
