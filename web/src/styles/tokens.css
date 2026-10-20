@@ -170,6 +170,12 @@
   --text-title-lg: 16px;
   --text-title-lg--line-height: 22px;
   --text-title-lg--font-weight: 600;
+  --text-card-title: 18px;
+  --text-card-title--line-height: 25px;
+  --text-card-title--font-weight: 600;
+  --text-note: 13px;
+  --text-note--line-height: 19px;
+  --text-note--font-weight: 400;
   --text-button: 16px;
   --text-button--line-height: 20px;
   --text-button--font-weight: 600;
