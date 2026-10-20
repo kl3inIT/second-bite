@@ -34,6 +34,7 @@ The modules under `server/internal/`, found through the [pilot domain model](doc
 
 One line per module, naming the modules whose published API it may use, such as "- `seller` → `identity`". A module not listed may use none. `internal/platform` depends on no module, and every module may use it. The boundary test (`server/internal/boundaries_test.go`) reads this list.
 
+- `file` → `identity`
 - `identity` → `notification`
 - `offer` → `file`, `identity`, `seller`
 - `seller` → `file`, `identity`

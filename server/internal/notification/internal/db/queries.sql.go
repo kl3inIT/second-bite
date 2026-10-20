@@ -11,6 +11,19 @@ import (
 	"github.com/google/uuid"
 )
 
+const deleteEmailsTo = `-- name: DeleteEmailsTo :execrows
+DELETE FROM notification_emails WHERE lower(recipient) = lower($1)
+`
+
+// Forgets every email sent to an address, once its account is deleted.
+func (q *Queries) DeleteEmailsTo(ctx context.Context, recipient string) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteEmailsTo, recipient)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getEmailSettings = `-- name: GetEmailSettings :one
 SELECT id, provider, sender_address, sender_name, smtp_host, smtp_port, smtp_security, smtp_username, smtp_password_sealed, brevo_api_key_sealed, updated_at, updated_by FROM notification_email_settings WHERE id = 1
 `

@@ -39,6 +39,13 @@ type signInInput struct {
 	}
 }
 
+type deleteAccountInput struct {
+	Body struct {
+		ChallengeID uuid.UUID `json:"challengeId"`
+		Code        string    `json:"code"        pattern:"^[0-9]{6}$" doc:"The six digits of the deletion email"`
+	}
+}
+
 type accountBody struct {
 	ID          uuid.UUID     `json:"id"`
 	Email       string        `json:"email"`
@@ -194,6 +201,8 @@ func RegisterOperations(api huma.API, s *Service) {
 		return &signOutOutput{SetCookie: []http.Cookie{clearedCookie()}}, nil
 	})
 
+	registerAccountOperations(api, s, security)
+
 	huma.Register(api, huma.Operation{
 		OperationID: "getMyAccount",
 		Method:      http.MethodGet,
@@ -213,5 +222,50 @@ func RegisterOperations(api huma.API, s *Service) {
 		}
 
 		return &accountOutput{Body: toAccountBody(a)}, nil
+	})
+}
+
+// registerAccountOperations adds the operations that delete the signed-in
+// account (SEC-37).
+func registerAccountOperations(api huma.API, s *Service, security []map[string][]string) {
+	huma.Register(api, huma.Operation{
+		OperationID:   "requestAccountDeletionCode",
+		Method:        http.MethodPost,
+		Path:          "/accounts/me/deletion-codes",
+		Summary:       "Email the signed-in account's address a code that confirms its deletion",
+		Description:   "The code confirms the deletion only; it cannot sign in. It shares the address's limits with the sign-in codes.",
+		Tags:          []string{"Accounts"},
+		Security:      security,
+		DefaultStatus: http.StatusAccepted,
+	}, func(ctx context.Context, _ *struct{}) (*requestCodeOutput, error) {
+		c, err := s.RequestDeletionCode(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &requestCodeOutput{}
+		out.Body.ChallengeID = c.ID
+		out.Body.ExpiresAt = c.ExpiresAt
+
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "deleteMyAccount",
+		Method:      http.MethodPost,
+		Path:        "/accounts/me/deletion",
+		Summary:     "Delete the signed-in account with the emailed code",
+		Description: "Deletes the account, its sessions, its Google link and the codes and emails sent to its address at once; " +
+			"its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. " +
+			"A seller the account owned is blocked. The session cookie is cleared.",
+		Tags:          []string{"Accounts"},
+		Security:      security,
+		DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *deleteAccountInput) (*signOutOutput, error) {
+		if err := s.DeleteAccount(ctx, in.Body.ChallengeID, in.Body.Code); err != nil {
+			return nil, err
+		}
+
+		return &signOutOutput{SetCookie: []http.Cookie{clearedCookie()}}, nil
 	})
 }

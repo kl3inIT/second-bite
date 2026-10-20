@@ -122,6 +122,23 @@ func (s *Service) SendEmail(ctx context.Context, e Email) error {
 	return nil
 }
 
+// ForgetRecipient deletes the record of every email sent to address, when
+// the account of the address is deleted (SEC-37). Forgetting twice does
+// nothing more.
+func (s *Service) ForgetRecipient(ctx context.Context, address string) error {
+	n, err := s.queries.DeleteEmailsTo(ctx, address)
+	if err != nil {
+		return fmt.Errorf("forgetting the emails sent to an address: %w", err)
+	}
+
+	s.logger.InfoContext(ctx, "emails to a recipient forgotten",
+		slog.String("event", "notification.recipient.forgotten"),
+		slog.Int64("emails", n),
+	)
+
+	return nil
+}
+
 func (s *Service) sendFailed(ctx context.Context, e Email, provider EmailProvider, err error) error {
 	failure := ErrEmailUnavailable
 

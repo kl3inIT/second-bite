@@ -54,7 +54,7 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 	t.Helper()
 
 	// Sending sign-in codes is not exercised here, so identity has no email.
-	accounts, err := identity.NewService(pool, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
+	accounts, err := identity.NewService(pool, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
