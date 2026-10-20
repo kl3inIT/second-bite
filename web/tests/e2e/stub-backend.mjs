@@ -364,8 +364,10 @@ async function ordersApi(request, response, url) {
       problem(response, 409, "ORDER_CANCEL_TOO_LATE");
       return true;
     }
+    const { reason } = await readBody(request);
     order.status = "cancelled";
     order.cancelledAt = new Date().toISOString();
+    if (typeof reason === "string" && reason) order.cancelReason = reason;
     json(response, 200, shown(order));
     return true;
   }

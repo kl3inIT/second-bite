@@ -29,10 +29,22 @@ export type OrderableOffer = {
   unitsLeft: number;
 };
 
-// The order panel of the confirm page (Figma W1, Mobbin: Instacart's and Shop's panels): how many units, the
-// total on the button, and "Đặt món". One key per visit is sent with every press, so a second press or a
-// retried request returns the order placed first (SEC-15 › Idempotency). Someone signed out is sent to
-// sign in and comes back here with the same units.
+/** A row of the summary: what on the left, how much on the right. */
+function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <span className={strong ? "text-body-sm-strong" : "text-body-sm text-muted-foreground"}>
+        {label}
+      </span>
+      <span className={strong ? "font-display text-price" : "text-body-sm"}>{value}</span>
+    </div>
+  );
+}
+
+// The order summary of the confirm page (Figma W1 › Tóm tắt đơn; Mobbin: Instacart's and Shop's panels): the
+// line with its units, what it costs, no fee and no commission, then the total and "Đặt món". One key per
+// visit goes with every press, so a second press or a retried request returns the order placed first
+// (SEC-15 › Idempotency). Someone signed out is sent to sign in and comes back with the same units.
 export function PlaceOrder({
   offer,
   initialUnits,
@@ -49,7 +61,7 @@ export function PlaceOrder({
   const [problem, setProblem] = useState<Problem>();
   const [pending, startTransition] = useTransition();
   const total = offer.priceVnd * units;
-  const saving = (offer.originalPriceVnd - offer.priceVnd) * units;
+  const original = offer.originalPriceVnd * units;
 
   function place() {
     setProblem(undefined);
@@ -69,19 +81,19 @@ export function PlaceOrder({
   return (
     <section
       aria-labelledby="place-order"
-      className="flex flex-col gap-4 rounded-2xl bg-card p-5 text-card-foreground"
+      className="flex flex-col gap-3 rounded-3xl bg-card p-5 text-card-foreground"
     >
       <h2 id="place-order" className="text-title">
-        {t("title")}
+        {t("summary")}
       </h2>
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 flex-col">
-          <p className="text-body-sm-strong">{offer.name}</p>
+          <p className="text-body-sm">{offer.name}</p>
           <p className="text-label text-muted-foreground">
             {t("left", { units: offer.unitsLeft })}
           </p>
         </div>
-        <fieldset className="flex items-center gap-1">
+        <fieldset className="flex shrink-0 items-center gap-1">
           <legend className="sr-only">{t("units")}</legend>
           <Button
             variant="secondary"
@@ -92,7 +104,7 @@ export function PlaceOrder({
           >
             <MinusIcon />
           </Button>
-          <output aria-live="polite" className="w-8 text-center font-display text-price">
+          <output aria-live="polite" className="w-7 text-center font-display text-price">
             {units}
           </output>
           <Button
@@ -106,15 +118,16 @@ export function PlaceOrder({
           </Button>
         </fieldset>
       </div>
-      <div className="flex items-baseline justify-between gap-3 border-t border-border pt-3">
-        <span className="text-body-sm-strong">{t("total")}</span>
-        <span className="font-display text-price-lg text-primary">{formatPrice(total)}</span>
+      <div className="flex flex-col gap-2 border-t border-border pt-3">
+        <Row label={t("subtotal", { units })} value={formatPrice(total)} />
+        <Row label={t("fee")} value={t("none")} />
+        <Row label={t("total")} value={formatPrice(total)} strong />
+        <p className="text-label text-muted-foreground">
+          {t("noCommission", { total: formatPrice(total) })}
+        </p>
       </div>
-      <p className="text-label text-muted-foreground">
-        {t("payAtCounter", { saving: formatPrice(saving) })}
-      </p>
       {problem ? (
-        <div role="alert" className="flex flex-col gap-2 rounded-xl bg-muted p-3">
+        <div role="alert" className="flex flex-col gap-2 rounded-2xl bg-muted p-3">
           <p className="text-body-sm-strong">
             {problem.kind === "gone" ? t("goneTitle") : t("failedTitle")}
           </p>
@@ -130,13 +143,24 @@ export function PlaceOrder({
           ) : null}
         </div>
       ) : null}
-      {signedIn ? (
-        <Button size="lg" disabled={pending || problem?.kind === "gone"} onClick={place}>
-          {pending ? <Spinner data-icon="inline-start" /> : null}
-          {t("submit", { total: formatPrice(total) })}
-        </Button>
-      ) : (
-        <>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+        <div className="flex flex-col">
+          <p className="flex items-baseline gap-2">
+            <span className="font-display text-price-lg text-primary">{formatPrice(total)}</span>
+            <s aria-hidden className="text-label text-muted-foreground">
+              {formatPrice(original)}
+            </s>
+          </p>
+          <p className="text-label-strong">
+            {t("saving", { units, saving: formatPrice(original - total) })}
+          </p>
+        </div>
+        {signedIn ? (
+          <Button size="lg" disabled={pending || problem?.kind === "gone"} onClick={place}>
+            {pending ? <Spinner data-icon="inline-start" /> : null}
+            {t("submit")}
+          </Button>
+        ) : (
           <Link
             href={{
               pathname: "/sign-in",
@@ -146,9 +170,9 @@ export function PlaceOrder({
           >
             {t("signInFirst")}
           </Link>
-          <p className="text-label text-muted-foreground">{t("signInWhy")}</p>
-        </>
-      )}
+        )}
+      </div>
+      {signedIn ? null : <p className="text-label text-muted-foreground">{t("signInWhy")}</p>}
     </section>
   );
 }

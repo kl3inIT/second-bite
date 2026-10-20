@@ -38,13 +38,14 @@ export const readOrder = cache(async (orderId: string): Promise<Read<Order | nul
  */
 export async function readOrderView(
   orderId: string,
-): Promise<Read<{ order: Order; cancellable: boolean } | null>> {
+): Promise<Read<{ order: Order; cancellable: boolean; now: number } | null>> {
   const read = await readOrder(orderId);
   if (!read.signedIn) return read;
   if (!read.value) return { signedIn: true, value: null };
+  const now = Date.now();
   return {
     signedIn: true,
-    value: { order: read.value, cancellable: canCancel(read.value, Date.now()) },
+    value: { order: read.value, cancellable: canCancel(read.value, now), now },
   };
 }
 

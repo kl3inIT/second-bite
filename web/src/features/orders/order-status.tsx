@@ -7,11 +7,11 @@ import {
   TimerOffIcon,
   type LucideIcon,
 } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 
-import type { Order, OrderStatus } from "./order";
+import type { OrderStatus } from "./order";
 
 // Each status with its icon and its tone, so it is never told by colour alone (web guideline › Components):
 // Figma W2 confirmed, W3 ready, W4 cancelled, W5 refused, W6 expired.
@@ -39,46 +39,5 @@ export function OrderStatusChip({ status }: { status: OrderStatus }) {
       <Icon aria-hidden className="size-3.5" />
       {t(status)}
     </span>
-  );
-}
-
-/** The head of the order page: what is happening to the order, and what the customer does next. */
-export function OrderStatusBanner({ order }: { order: Order }) {
-  const t = useTranslations("Orders");
-  const format = useFormatter();
-  const { icon: Icon, tone } = looks[order.status];
-  const from = format.dateTime(new Date(order.windowStart), "time");
-  const until = format.dateTime(new Date(order.windowEnd), "time");
-
-  return (
-    <section
-      aria-labelledby="order-status"
-      className="flex flex-col gap-3 rounded-2xl bg-card p-5 text-card-foreground"
-    >
-      <p className="text-label text-muted-foreground">
-        {t("numberAt", { number: order.number, seller: order.seller.name })}
-      </p>
-      <div className="flex items-start gap-3">
-        <span
-          className={cn("flex size-11 shrink-0 items-center justify-center rounded-full", tone)}
-        >
-          <Icon aria-hidden className="size-6" />
-        </span>
-        <div className="flex min-w-0 flex-col gap-1">
-          <h1 id="order-status" className="text-headline">
-            {t(`status.${order.status}`)}
-          </h1>
-          <p className="text-body-sm text-muted-foreground">
-            {t(`next.${order.status}`, { from, until, seller: order.seller.name })}
-          </p>
-        </div>
-      </div>
-      {order.status === "refused" && order.refuseReason ? (
-        <p className="rounded-xl bg-muted p-3 text-body-sm">
-          {t(`refuseReason.${order.refuseReason}`)}
-          {order.refuseNote ? ` · ${order.refuseNote}` : null}
-        </p>
-      ) : null}
-    </section>
   );
 }

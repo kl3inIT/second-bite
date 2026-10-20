@@ -1,11 +1,13 @@
-import { ChevronRightIcon } from "lucide-react";
+import { ChevronRightIcon, LeafIcon } from "lucide-react";
+import Image from "next/image";
 import { getFormatter, getTranslations } from "next-intl/server";
 
+import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-import { unitsOf } from "./order";
+import { savingOf, type Order } from "./order";
 import { OrderStatusChip } from "./order-status";
 import { readMyOrders } from "./read-orders";
 import { SignInPrompt } from "./sign-in-prompt";
@@ -17,80 +19,175 @@ export function readWhich(value: unknown): Which {
   return value === "ended" ? "ended" : "open";
 }
 
-/** "Đang chờ nhận" and "Đã xong" as two links, so each list has an address of its own (Figma W7). */
-export async function OrdersTabs({ which: pending }: { which: Promise<Which> }) {
-  const [t, which] = await Promise.all([getTranslations("Orders"), pending]);
-
+function Thumb({ order, size }: { order: Order; size: "md" | "sm" }) {
+  const photo = order.lines[0]?.photo;
   return (
-    <nav aria-label={t("lists")} className="grid grid-cols-2 gap-1 rounded-xl bg-secondary p-1">
-      {(["open", "ended"] as const).map((tab) => (
-        <Link
-          key={tab}
-          href={tab === "open" ? "/orders" : { pathname: "/orders", query: { state: "ended" } }}
-          aria-current={tab === which ? "page" : undefined}
-          className={cn(
-            "flex min-h-11 items-center justify-center rounded-lg text-body-sm-strong focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
-            tab === which ? "bg-card text-primary" : "text-secondary-foreground",
-          )}
-        >
-          {t(tab === "open" ? "tabOpen" : "tabEnded")}
-        </Link>
-      ))}
-    </nav>
+    <span
+      className={cn(
+        "relative shrink-0 overflow-hidden bg-muted",
+        size === "md" ? "size-18 rounded-2xl" : "size-12 rounded-xl",
+      )}
+    >
+      {photo ? (
+        <Image
+          src={`/api${photo.smallPath}`}
+          alt=""
+          fill
+          sizes={size === "md" ? "72px" : "48px"}
+          unoptimized
+          className="object-cover"
+        />
+      ) : null}
+    </span>
   );
 }
 
-/** The orders of one list, newest first, each leading to its page. */
-export async function OrdersList({ which: pending }: { which: Promise<Which> }) {
-  const which = await pending;
-  const [t, format, read] = await Promise.all([
-    getTranslations("Orders"),
-    getFormatter(),
-    readMyOrders(which),
-  ]);
-  if (!read.signedIn) {
-    return (
-      <div className="mt-4">
-        <SignInPrompt returnTo="/orders" />
-      </div>
-    );
-  }
-  if (read.value.length === 0) {
-    return (
-      <p className="mt-4 rounded-2xl bg-card p-6 text-center text-body-sm text-muted-foreground">
-        {t(which === "open" ? "noneOpen" : "noneEnded")}
-      </p>
-    );
-  }
+/** An order still to collect, with the way to its code (Figma W7 › đơn đang chờ). */
+async function OpenOrderCard({ order }: { order: Order }) {
+  const [t, format] = await Promise.all([getTranslations("Orders"), getFormatter()]);
+  const until = format.dateTime(new Date(order.windowEnd), "time");
+  const from = format.dateTime(new Date(order.windowStart), "time");
 
   return (
-    <ul className="mt-4 flex flex-col gap-3">
-      {read.value.map((order) => (
-        <li key={order.id}>
-          <Link
-            href={`/orders/${order.id}`}
-            className="flex items-center gap-3 rounded-2xl bg-card p-4 text-card-foreground focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-          >
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <OrderStatusChip status={order.status} />
-              <p className="truncate text-body-sm-strong">
-                {order.lines.map((line) => line.name).join(", ")}
-              </p>
-              <p className="text-label text-muted-foreground">
-                {t("listLine", {
-                  seller: order.seller.name,
-                  number: order.number,
-                  units: unitsOf(order),
-                  total: formatPrice(order.totalVnd),
-                  from: format.dateTime(new Date(order.windowStart), "time"),
-                  until: format.dateTime(new Date(order.windowEnd), "time"),
-                })}
-              </p>
-            </div>
-            <ChevronRightIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <article className="flex flex-col gap-3 rounded-3xl bg-card p-4 text-card-foreground">
+      <div className="flex items-start gap-3">
+        <Thumb order={order} size="md" />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-label text-muted-foreground">{order.seller.name}</p>
+            <span className="rounded-full bg-secondary px-2.5 py-0.5 text-label-strong text-secondary-foreground">
+              {order.status === "ready" ? t("readyUntil", { until }) : t("collectFrom", { from })}
+            </span>
+          </div>
+          <h3 className="truncate text-body-sm-strong">
+            {order.lines.map((line) => line.name).join(", ")}
+          </h3>
+          <p className="text-label text-muted-foreground">
+            {t("cardLine", { number: order.number, total: formatPrice(order.totalVnd) })}
+          </p>
+        </div>
+      </div>
+      <Link
+        href={`/orders/${order.id}`}
+        className={buttonVariants({ variant: "secondary", size: "lg" })}
+      >
+        {order.code ? t("seeCode", { code: order.code }) : t("seeOrder")}
+      </Link>
+    </article>
+  );
+}
+
+/** An order that has ended, on one line (Figma W7 › Trước đó). */
+async function EndedOrderRow({ order }: { order: Order }) {
+  const [t, format] = await Promise.all([getTranslations("Orders"), getFormatter()]);
+  const at = new Date(order.windowStart);
+
+  return (
+    <li>
+      <Link
+        href={`/orders/${order.id}`}
+        className="flex items-center gap-3 rounded-2xl bg-card p-3 text-card-foreground focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+      >
+        <Thumb order={order} size="sm" />
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <p className="truncate text-body-sm-strong">
+            {order.lines.map((line) => line.name).join(", ")}
+          </p>
+          <p className="flex flex-wrap items-center gap-2 text-label text-muted-foreground">
+            {t("date", {
+              day: format.dateTime(at, "dayOfMonth"),
+              month: format.dateTime(at, "monthOfYear"),
+            })}
+            <OrderStatusChip status={order.status} />
+          </p>
+        </div>
+        <ChevronRightIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+      </Link>
+    </li>
+  );
+}
+
+/**
+ * "Đơn của tôi" (Figma W7): the two lists as tabs with their counts; the orders to collect as cards with the
+ * way to their code, then the latest that have ended; beside them, what the customer's collected orders saved.
+ */
+export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
+  const which = await pending;
+  const [t, open, done] = await Promise.all([
+    getTranslations("Orders"),
+    readMyOrders("open"),
+    readMyOrders("ended"),
+  ]);
+  if (!open.signedIn || !done.signedIn) return <SignInPrompt returnTo="/orders" />;
+
+  const collected = done.value.filter((order) => order.status === "collected");
+  const saved = collected.reduce((sum, order) => sum + savingOf(order), 0);
+  const ended = which === "open" ? done.value.slice(0, 3) : done.value;
+
+  return (
+    <div className="grid gap-6 md:grid-cols-5 md:items-start">
+      <div className="flex flex-col gap-4 md:col-span-3">
+        <nav
+          aria-label={t("lists")}
+          className="grid grid-cols-2 gap-1 rounded-2xl bg-secondary p-1"
+        >
+          {(["open", "ended"] as const).map((tab) => (
+            <Link
+              key={tab}
+              href={tab === "open" ? "/orders" : { pathname: "/orders", query: { state: "ended" } }}
+              aria-current={tab === which ? "page" : undefined}
+              className={cn(
+                "flex min-h-11 items-center justify-center rounded-xl text-body-sm-strong focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
+                tab === which ? "bg-card text-primary" : "text-secondary-foreground",
+              )}
+            >
+              {tab === "open"
+                ? t("tabOpen", { count: open.value.length })
+                : t("tabEnded", { count: done.value.length })}
+            </Link>
+          ))}
+        </nav>
+        {which === "open" ? (
+          open.value.length > 0 ? (
+            open.value.map((order) => <OpenOrderCard key={order.id} order={order} />)
+          ) : (
+            <p className="rounded-3xl bg-card p-6 text-center text-body-sm text-muted-foreground">
+              {t("noneOpen")}
+            </p>
+          )
+        ) : null}
+        {ended.length > 0 ? (
+          <section aria-labelledby="orders-ended" className="flex flex-col gap-2">
+            <h2 id="orders-ended" className={which === "open" ? "text-body-sm-strong" : "sr-only"}>
+              {t("before")}
+            </h2>
+            <ul className="flex flex-col gap-2">
+              {ended.map((order) => (
+                <EndedOrderRow key={order.id} order={order} />
+              ))}
+            </ul>
+          </section>
+        ) : which === "ended" ? (
+          <p className="rounded-3xl bg-card p-6 text-center text-body-sm text-muted-foreground">
+            {t("noneEnded")}
+          </p>
+        ) : null}
+      </div>
+      <aside className="flex items-start gap-3 rounded-3xl bg-primary p-5 text-primary-foreground md:col-span-2">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-fresh text-fresh-foreground">
+          <LeafIcon aria-hidden className="size-5" />
+        </span>
+        <div className="flex flex-col gap-1">
+          <p className="text-title">
+            {collected.length > 0 ? t("impact", { meals: collected.length }) : t("impactNone")}
+          </p>
+          <p className="text-body-sm text-inverse-muted">
+            {collected.length > 0
+              ? t("impactSaved", { saved: formatPrice(saved) })
+              : t("impactNoneBody")}
+          </p>
+        </div>
+      </aside>
+    </div>
   );
 }

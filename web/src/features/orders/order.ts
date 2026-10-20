@@ -34,3 +34,23 @@ export function clampUnits(value: unknown, unitsLeft: number): number {
   if (!Number.isFinite(wanted) || wanted < 1) return 1;
   return Math.min(wanted, Math.max(unitsLeft, 1));
 }
+
+/** A span of time as whole hours and minutes, for "còn 1 giờ 12 phút"; never below zero. */
+export function hoursAndMinutes(milliseconds: number): { hours: number; minutes: number } {
+  const minutes = Math.max(Math.ceil(milliseconds / 60000), 0);
+  return { hours: Math.floor(minutes / 60), minutes: minutes % 60 };
+}
+
+/** Where the order stands against its window at a moment: before it opens, while it is open, or after. */
+export function windowPhase(
+  order: Pick<Order, "windowStart" | "windowEnd">,
+  now: number,
+): "before" | "open" | "over" {
+  if (now < Date.parse(order.windowStart)) return "before";
+  return now < Date.parse(order.windowEnd) ? "open" : "over";
+}
+
+/** A link that opens the way to the collection point in Google Maps. */
+export function directionsTo(seller: Pick<Order["seller"], "latitude" | "longitude">): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${seller.latitude},${seller.longitude}`;
+}

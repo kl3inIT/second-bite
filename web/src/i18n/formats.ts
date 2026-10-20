@@ -9,5 +9,8 @@ export const formats = {
   dateTime: {
     /** "21:45": an edge of a collection window. */
     time: { hour: "2-digit", minute: "2-digit", hourCycle: "h23" },
+    /** "20" and "10": the day and month an order is collected, joined as "20/10" by the catalogs. */
+    dayOfMonth: { day: "2-digit" },
+    monthOfYear: { month: "2-digit" },
   },
 } as const satisfies Formats;

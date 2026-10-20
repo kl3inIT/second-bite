@@ -23,7 +23,7 @@ test.describe("ordering, following and cancelling an order", () => {
     await page.getByLabel("Mã đăng nhập 6 số").fill("123456");
 
     await expect(page).toHaveURL(/\/vi\/orders\/new\?offer=of-banh-bao&units=2$/);
-    await (await hydrated(page.getByRole("button", { name: "Đặt món · 50.000đ" }))).click();
+    await (await hydrated(page.getByRole("button", { name: "Đặt món", exact: true }))).click();
 
     await expect(page).toHaveURL(/\/vi\/orders\/or-\d+$/);
     await expect(page.getByRole("heading", { name: "Đã xác nhận" })).toBeVisible();
@@ -31,11 +31,13 @@ test.describe("ordering, following and cancelling an order", () => {
     await expectNoSeriousA11yViolations(page);
 
     await (await hydrated(page.getByRole("button", { name: "Huỷ đơn" }))).click();
-    const dialog = page.getByRole("alertdialog", { name: "Huỷ đơn này?" });
+    const dialog = page.getByRole("alertdialog", { name: /Huỷ đơn SB-\d+\?/ });
     await expect(dialog).toBeVisible();
     await expectNoSeriousA11yViolations(page);
+    await dialog.getByRole("button", { name: "Không đến kịp" }).click();
     await dialog.getByRole("button", { name: "Huỷ đơn" }).click();
-    await expect(page.getByRole("heading", { name: "Đã huỷ" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Đã huỷ đơn" })).toBeVisible();
+    await expect(page.getByText(/Không đến kịp/)).toBeVisible();
     await expect(page.getByRole("button", { name: "Huỷ đơn" })).toHaveCount(0);
 
     await page.goto("/vi/orders");
@@ -57,10 +59,9 @@ test.describe("ordering, following and cancelling an order", () => {
     await page.goto("/vi/orders");
     await expect(page.getByRole("heading", { name: "Đơn của tôi", level: 1 })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Đăng nhập để xem đơn" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Đăng nhập", exact: true })).toHaveAttribute(
-      "href",
-      "/vi/sign-in?returnTo=%2Forders",
-    );
+    await expect(
+      page.getByRole("main").getByRole("link", { name: "Đăng nhập", exact: true }),
+    ).toHaveAttribute("href", "/vi/sign-in?returnTo=%2Forders");
     await expectNoSeriousA11yViolations(page);
   });
 });
