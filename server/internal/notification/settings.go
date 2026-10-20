@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/kl3inIT/second-bite/server/internal/notification/internal/db"
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 // EmailSettings is who delivers email, as admins read it. Secrets are never
@@ -46,8 +47,13 @@ type EmailSettingsChange struct {
 	BrevoAPIKey   string
 }
 
-// EmailSettings returns the current settings, or ErrEmailNotConfigured.
+// EmailSettings returns the current settings to an admin, or
+// ErrEmailNotConfigured.
 func (s *Service) EmailSettings(ctx context.Context) (EmailSettings, error) {
+	if _, err := platform.RequireAdmin(ctx); err != nil {
+		return EmailSettings{}, err
+	}
+
 	row, err := s.queries.GetEmailSettings(ctx)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return EmailSettings{}, ErrEmailNotConfigured
@@ -72,9 +78,26 @@ func (s *Service) EmailSettings(ctx context.Context) (EmailSettings, error) {
 	}, nil
 }
 
-// SaveEmailSettings validates and stores c; the next email uses it. by is the
-// admin who saved it, or uuid.Nil from the command line.
-func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, by uuid.UUID) error {
+// SaveEmailSettings validates and stores c for the admin of ctx; the next
+// email uses it.
+func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange) error {
+	caller, err := platform.RequireAdmin(ctx)
+	if err != nil {
+		return err
+	}
+
+	return s.saveEmailSettings(ctx, c, caller.AccountID)
+}
+
+// SaveEmailSettingsAsSystem stores c with no admin behind it. Only the command
+// line calls it: whoever runs it already has the server's own access.
+func (s *Service) SaveEmailSettingsAsSystem(ctx context.Context, c EmailSettingsChange) error {
+	return s.saveEmailSettings(ctx, c, uuid.Nil)
+}
+
+// saveEmailSettings validates and stores c; by is the admin who saved it, or
+// uuid.Nil for the command line.
+func (s *Service) saveEmailSettings(ctx context.Context, c EmailSettingsChange, by uuid.UUID) error {
 	c.SenderAddress = strings.TrimSpace(c.SenderAddress)
 	c.SMTPHost = strings.TrimSpace(c.SMTPHost)
 

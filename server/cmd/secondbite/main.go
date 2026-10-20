@@ -230,10 +230,16 @@ const eventsStopTimeout = 10 * time.Second
 // OpenAPI document in api/openapi.yaml is generated from what it registers.
 func registerOperations(api huma.API, a *app) {
 	identity.RegisterOperations(api, a.identity)
-	notification.RegisterOperations(api, a.notification)
 	file.RegisterOperations(api, a.file)
 	seller.RegisterOperations(api, a.seller)
 	offer.RegisterOperations(api, a.offer)
+
+	// Every admin operation is registered on one group, so the contract test
+	// finds them all under its prefix (SEC-75).
+	admin := platform.NewAdminGroup(api)
+	notification.RegisterAdminOperations(admin, a.notification)
+	seller.RegisterAdminOperations(admin, a.seller)
+	offer.RegisterAdminOperations(admin, a.offer)
 }
 
 // fileConfig reads where files are kept: SECONDBITE_FILE_STORE (postgres by

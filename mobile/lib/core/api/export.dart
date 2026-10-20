@@ -4,7 +4,6 @@
 
 // Clients
 export 'clients/accounts_client.dart';
-export 'clients/admins_client.dart';
 export 'clients/admin_client.dart';
 export 'clients/sign_in_client.dart';
 export 'clients/catalog_client.dart';

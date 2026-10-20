@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
-
-	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 type emailSettingsBody struct {
@@ -41,22 +39,15 @@ type saveEmailSettingsInput struct {
 	}
 }
 
-// RegisterOperations adds the module's operations to api.
-func RegisterOperations(api huma.API, s *Service) {
-	security := platform.SignedIn()
-
-	huma.Register(api, huma.Operation{
+// RegisterAdminOperations adds the module's admin operations to admin, the
+// group platform.NewAdminGroup returns; their paths omit its prefix.
+func RegisterAdminOperations(admin huma.API, s *Service) {
+	huma.Register(admin, huma.Operation{
 		OperationID: "getEmailSettings",
 		Method:      http.MethodGet,
-		Path:        "/admin/email-settings",
+		Path:        "/email-settings",
 		Summary:     "Read who delivers email",
-		Tags:        []string{"Admins"},
-		Security:    security,
 	}, func(ctx context.Context, _ *struct{}) (*emailSettingsOutput, error) {
-		if _, err := platform.RequireAdmin(ctx); err != nil {
-			return nil, err
-		}
-
 		settings, err := s.EmailSettings(ctx)
 		if err != nil {
 			return nil, err
@@ -76,26 +67,19 @@ func RegisterOperations(api huma.API, s *Service) {
 		}}, nil
 	})
 
-	huma.Register(api, huma.Operation{
+	huma.Register(admin, huma.Operation{
 		OperationID:   "saveEmailSettings",
 		Method:        http.MethodPut,
-		Path:          "/admin/email-settings",
+		Path:          "/email-settings",
 		Summary:       "Choose who delivers email; the next email uses it",
-		Tags:          []string{"Admins"},
-		Security:      security,
 		DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, in *saveEmailSettingsInput) (*struct{}, error) {
-		caller, err := platform.RequireAdmin(ctx)
-		if err != nil {
-			return nil, err
-		}
-
 		b := in.Body
 
 		return nil, s.SaveEmailSettings(ctx, EmailSettingsChange{
 			Provider: b.Provider, SenderAddress: b.SenderAddress, SenderName: b.SenderName,
 			SMTPHost: b.SMTPHost, SMTPPort: b.SMTPPort, SMTPSecurity: b.SMTPSecurity,
 			SMTPUsername: b.SMTPUsername, SMTPPassword: b.SMTPPassword, BrevoAPIKey: b.BrevoAPIKey,
-		}, caller.AccountID)
+		})
 	})
 }

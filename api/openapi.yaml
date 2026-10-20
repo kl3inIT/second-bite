@@ -1197,7 +1197,7 @@ paths:
         - cookie: []
       summary: Read who delivers email
       tags:
-        - Admins
+        - Admin
     put:
       operationId: saveEmailSettings
       requestBody:
@@ -1220,7 +1220,7 @@ paths:
         - cookie: []
       summary: Choose who delivers email; the next email uses it
       tags:
-        - Admins
+        - Admin
   /admin/offer-settings:
     get:
       operationId: getOfferSettings

@@ -5,7 +5,9 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../models/email_settings_body.dart';
 import '../models/offer_settings_body.dart';
+import '../models/save_email_settings_input_body.dart';
 import '../models/seller_body.dart';
 import '../models/sellers_output_body.dart';
 import '../models/status.dart';
@@ -15,6 +17,16 @@ part 'admin_client.g.dart';
 @RestApi()
 abstract class AdminClient {
   factory AdminClient(Dio dio, {String? baseUrl}) = _AdminClient;
+
+  /// Read who delivers email
+  @GET('/admin/email-settings')
+  Future<EmailSettingsBody> getEmailSettings();
+
+  /// Choose who delivers email; the next email uses it
+  @PUT('/admin/email-settings')
+  Future<void> saveEmailSettings({
+    @Body() required SaveEmailSettingsInputBody body,
+  });
 
   /// The rules every offer follows
   @GET('/admin/offer-settings')

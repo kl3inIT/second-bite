@@ -52,6 +52,7 @@ Failures the platform answers itself:
 - The contract declares both schemes, `bearer` and `cookie`; an operation that needs a caller lists either (`platform.SignedIn`), one open to anyone lists none as well (`platform.MaybeSignedIn`).
 - A module reads the caller through `platform.CallerFrom`, `RequireCaller` and `RequireAdmin`, so it authorizes without depending on `identity`.
 - Roles are `customer` and `admin`.
+- Every admin operation is registered on the group `platform.NewAdminGroup` returns, under `/admin` (SEC-75). The group tags it `Admin`, documents that it needs a session, and refuses anyone but an admin before the request is read: 401 `PLATFORM_AUTHENTICATION_REQUIRED` signed out, 403 `PLATFORM_ADMIN_REQUIRED` otherwise. The service checks `RequireAdmin` as well. A test calls every operation under `/admin` both ways.
 
 ## Events between modules
 

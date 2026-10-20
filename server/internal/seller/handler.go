@@ -85,7 +85,6 @@ func RegisterOperations(api huma.API, s *Service) {
 	registerMemberOperations(api, s)
 	registerPhotoOperations(api, s)
 	registerPublicOperations(api, s)
-	registerAdminOperations(api, s)
 }
 
 var (
@@ -93,7 +92,6 @@ var (
 	// optional is for reads anyone may make.
 	optional   = platform.MaybeSignedIn()
 	tagSellers = []string{"Sellers"}
-	tagAdmin   = []string{"Admin"}
 )
 
 func registerOwnerOperations(api huma.API, s *Service) {
@@ -285,10 +283,12 @@ func registerMemberOperations(api huma.API, s *Service) {
 	})
 }
 
-func registerAdminOperations(api huma.API, s *Service) {
-	huma.Register(api, huma.Operation{
-		OperationID: "listSellersForAdmins", Method: http.MethodGet, Path: "/admin/sellers",
-		Summary: "Sellers in a status, oldest first", Tags: tagAdmin, Security: security,
+// RegisterAdminOperations adds the module's admin operations to admin, the
+// group platform.NewAdminGroup returns; their paths omit its prefix.
+func RegisterAdminOperations(admin huma.API, s *Service) {
+	huma.Register(admin, huma.Operation{
+		OperationID: "listSellersForAdmins", Method: http.MethodGet, Path: "/sellers",
+		Summary: "Sellers in a status, oldest first",
 	}, func(ctx context.Context, in *struct {
 		Status Status `query:"status" default:"pending" enum:"pending,active,blocked"`
 		Limit  int    `query:"limit"  default:"50"      maximum:"100"                  minimum:"1"`
@@ -307,12 +307,12 @@ func registerAdminOperations(api huma.API, s *Service) {
 		id, path, summary string
 		do                func(context.Context, uuid.UUID) (Seller, error)
 	}{
-		{"activateSeller", "/admin/sellers/{sellerId}/activate", "Let a seller publish; also lifts a block", s.Activate},
-		{"blockSeller", "/admin/sellers/{sellerId}/block", "Stop a seller from publishing", s.Block},
+		{"activateSeller", "/sellers/{sellerId}/activate", "Let a seller publish; also lifts a block", s.Activate},
+		{"blockSeller", "/sellers/{sellerId}/block", "Stop a seller from publishing", s.Block},
 	} {
-		huma.Register(api, huma.Operation{
+		huma.Register(admin, huma.Operation{
 			OperationID: action.id, Method: http.MethodPost, Path: action.path,
-			Summary: action.summary, Tags: tagAdmin, Security: security,
+			Summary: action.summary,
 		}, func(ctx context.Context, in *sellerPath) (*sellerOutput, error) {
 			seller, err := action.do(ctx, in.SellerID)
 			if err != nil {

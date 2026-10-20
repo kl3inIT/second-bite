@@ -139,7 +139,6 @@ var (
 	// optional is for reads anyone may make; a signed-in caller may see more.
 	optional  = platform.MaybeSignedIn()
 	tagOffers = []string{"Offers"}
-	tagAdmin  = []string{"Admin"}
 )
 
 // RegisterOperations adds the module's operations to api.
@@ -148,7 +147,6 @@ func RegisterOperations(api huma.API, s *Service) {
 	registerReadOperations(api, s)
 	registerCatalogOperations(api, s)
 	registerSearchOperations(api, s)
-	registerAdminOperations(api, s)
 }
 
 func registerStaffOperations(api huma.API, s *Service) {
@@ -248,10 +246,12 @@ func registerReadOperations(api huma.API, s *Service) {
 	})
 }
 
-func registerAdminOperations(api huma.API, s *Service) {
-	huma.Register(api, huma.Operation{
-		OperationID: "getOfferSettings", Method: http.MethodGet, Path: "/admin/offer-settings",
-		Summary: "The rules every offer follows", Tags: tagAdmin, Security: security,
+// RegisterAdminOperations adds the module's admin operations to admin, the
+// group platform.NewAdminGroup returns; their paths omit its prefix.
+func RegisterAdminOperations(admin huma.API, s *Service) {
+	huma.Register(admin, huma.Operation{
+		OperationID: "getOfferSettings", Method: http.MethodGet, Path: "/offer-settings",
+		Summary: "The rules every offer follows",
 	}, func(ctx context.Context, _ *struct{}) (*struct{ Body offerSettingsBody }, error) {
 		set, err := s.Settings(ctx)
 		if err != nil {
@@ -261,11 +261,10 @@ func registerAdminOperations(api huma.API, s *Service) {
 		return &struct{ Body offerSettingsBody }{Body: toOfferSettingsBody(set)}, nil
 	})
 
-	huma.Register(api, huma.Operation{
-		OperationID: "saveOfferSettings", Method: http.MethodPut, Path: "/admin/offer-settings",
+	huma.Register(admin, huma.Operation{
+		OperationID: "saveOfferSettings", Method: http.MethodPut, Path: "/offer-settings",
 		Summary:     "Change the rules every offer follows",
 		Description: "New rules apply to offers posted, and to the prices and windows changed, after they are saved.",
-		Tags:        tagAdmin, Security: security,
 	}, func(ctx context.Context, in *struct{ Body offerSettingsBody }) (*struct{ Body offerSettingsBody }, error) {
 		set, err := s.SaveSettings(ctx, in.Body.settings())
 		if err != nil {
