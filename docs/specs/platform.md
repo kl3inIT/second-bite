@@ -47,7 +47,7 @@ Failures the platform answers itself:
 
 ## The caller
 
-- A request with `Authorization: Bearer <token>`, or without it the session cookie `secondbite_session`, is authenticated by `identity` before it reaches its route, and its caller (account, session, role) is put in the request's context. Without either the request is anonymous.
+- A request with `Authorization: Bearer <token>`, or without it the session cookie `secondbite_session`, is authenticated by `identity` before it reaches its route, and its caller (account, session, role, and the account's address as its label for the audit trail, never logged) is put in the request's context. Without either the request is anonymous.
 - A change of state (any method but `GET`, `HEAD` and `OPTIONS`) authenticated by the cookie must come from the same origin, judged by `Sec-Fetch-Site` and `Origin` with Go's `http.CrossOriginProtection`; a request without those headers, such as the web's server, passes.
 - The contract declares both schemes, `bearer` and `cookie`; an operation that needs a caller lists either (`platform.SignedIn`), one open to anyone lists none as well (`platform.MaybeSignedIn`).
 - A module reads the caller through `platform.CallerFrom`, `RequireCaller` and `RequireAdmin`, so it authorizes without depending on `identity`.

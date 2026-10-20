@@ -43,6 +43,9 @@ type Caller struct {
 	AccountID uuid.UUID
 	SessionID uuid.UUID
 	Role      Role
+	// Label names the account as people read it, its address, for the audit
+	// trail only; it is never logged.
+	Label string
 }
 
 type callerKey struct{}

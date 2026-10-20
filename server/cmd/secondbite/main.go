@@ -26,6 +26,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/identity"
 	"github.com/kl3inIT/second-bite/server/internal/notification"
@@ -158,7 +159,9 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 			return nil, err
 		}
 
-		identities, err := identity.NewService(pool, notifications, events, identity.Config{
+		trail := audit.NewService(pool, logger)
+
+		identities, err := identity.NewService(pool, notifications, events, trail, identity.Config{
 			CodeKey: codeKey, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")),
 		}, logger)
 		if err != nil {

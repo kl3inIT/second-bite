@@ -243,7 +243,7 @@ func (q *Queries) FindExternalLogin(ctx context.Context, arg FindExternalLoginPa
 }
 
 const findSession = `-- name: FindSession :one
-SELECT s.id, s.account_id, s.last_seen_at, a.role
+SELECT s.id, s.account_id, s.last_seen_at, a.role, a.email
 FROM identity_sessions s JOIN identity_accounts a ON a.id = s.account_id
 WHERE s.token_hash = $1 AND s.expires_at > now()
 `
@@ -253,6 +253,7 @@ type FindSessionRow struct {
 	AccountID  uuid.UUID
 	LastSeenAt time.Time
 	Role       string
+	Email      string
 }
 
 func (q *Queries) FindSession(ctx context.Context, tokenHash []byte) (FindSessionRow, error) {
@@ -263,6 +264,7 @@ func (q *Queries) FindSession(ctx context.Context, tokenHash []byte) (FindSessio
 		&i.AccountID,
 		&i.LastSeenAt,
 		&i.Role,
+		&i.Email,
 	)
 	return i, err
 }

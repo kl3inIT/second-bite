@@ -173,7 +173,7 @@ func TestSignInWithGoogle(t *testing.T) {
 func newGoogleService(t *testing.T, pool *pgxpool.Pool, iss issuer) *Service {
 	t.Helper()
 
-	s, err := NewService(pool, nil, nil, Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
+	s, err := NewService(pool, nil, nil, nil, Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}

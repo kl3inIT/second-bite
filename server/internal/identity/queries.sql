@@ -68,7 +68,7 @@ VALUES (@account_id, @token_hash, now() + make_interval(secs => @lifetime_second
 RETURNING id, expires_at;
 
 -- name: FindSession :one
-SELECT s.id, s.account_id, s.last_seen_at, a.role
+SELECT s.id, s.account_id, s.last_seen_at, a.role, a.email
 FROM identity_sessions s JOIN identity_accounts a ON a.id = s.account_id
 WHERE s.token_hash = @token_hash AND s.expires_at > now();
 

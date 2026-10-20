@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/identity/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
@@ -61,6 +62,8 @@ type Service struct {
 	queries *db.Queries
 	email   *notification.Service
 	events  *platform.Events
+	// trail forgets the account's name in the audit when it is deleted.
+	trail   *audit.Service
 	codeKey []byte
 	logger  *slog.Logger
 	// crossOrigin refuses changes signed in by the cookie from other origins.
@@ -71,14 +74,16 @@ type Service struct {
 
 // NewService assembles the module.
 func NewService(
-	pool *pgxpool.Pool, email *notification.Service, events *platform.Events, cfg Config, logger *slog.Logger,
+	pool *pgxpool.Pool, email *notification.Service, events *platform.Events, trail *audit.Service, cfg Config,
+	logger *slog.Logger,
 ) (*Service, error) {
 	if len(cfg.CodeKey) != 32 {
 		return nil, errors.New("the sign-in code key must be 32 bytes")
 	}
 
 	s := &Service{
-		pool: pool, queries: db.New(pool), email: email, events: events, codeKey: cfg.CodeKey, logger: logger,
+		pool: pool, queries: db.New(pool), email: email, events: events, trail: trail, codeKey: cfg.CodeKey,
+		logger:      logger,
 		crossOrigin: http.NewCrossOriginProtection(),
 	}
 	if len(cfg.GoogleClientIDs) > 0 {
