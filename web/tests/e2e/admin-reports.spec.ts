@@ -46,15 +46,13 @@ test("the reports show what the summary gives and leave the orders empty", async
   await expect(page.getByRole("heading", { level: 1, name: "Báo cáo" })).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 
-  // The 30 days that end today, every store.
-  // Intl may drop a leading zero within a range ("22/9/2026"), so either way is read.
-  const toDay = (at: Date) =>
-    `0?${at.getUTCDate()}/0?${at.getUTCMonth() + 1}/${at.getUTCFullYear()}`.replace(
-      /0\?(\d\d)/g,
-      "$1",
-    );
+  // The 30 days that end today, every store: "21/09 – 20/10/2026", the start without its year when it is the same.
+  const [start, end] = [day(29), day(0)];
+  const dayMonth = (at: Date) =>
+    `${String(at.getUTCDate()).padStart(2, "0")}/${String(at.getUTCMonth() + 1).padStart(2, "0")}`;
+  const sameYear = start.getUTCFullYear() === end.getUTCFullYear();
   await expect(page.getByRole("button", { name: /Khoảng ngày/ })).toContainText(
-    new RegExp(`${toDay(day(29))} – ${toDay(day(0))}`),
+    `${dayMonth(start)}${sameYear ? "" : `/${start.getUTCFullYear()}`} – ${dayMonth(end)}/${end.getUTCFullYear()}`,
   );
   await expect(page.getByRole("combobox", { name: "Cửa hàng" })).toContainText(
     "Tất cả 34 cửa hàng",
