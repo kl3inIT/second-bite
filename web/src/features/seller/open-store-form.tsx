@@ -96,7 +96,7 @@ export function OpenStoreForm() {
     >
       <FieldGroup>
         <header className="flex flex-col gap-1">
-          <h1 className="text-title-lg text-foreground">{t("heading")}</h1>
+          <h1 className="text-card-title text-foreground">{t("heading")}</h1>
           <p className="text-body-sm text-muted-foreground">{t("intro")}</p>
         </header>
 
@@ -183,10 +183,10 @@ export function OpenStoreForm() {
                 className="size-16 rounded-lg object-cover"
               />
             )}
-            <span className="text-label-strong text-link">
+            <span className="text-body-sm-strong text-link">
               {photo ? photo.name : t("choosePhoto")}
             </span>
-            <span className="text-label text-muted-foreground">{t("photoHint")}</span>
+            <span className="text-note text-muted-foreground">{t("photoHint")}</span>
             <input
               id="store-photo"
               type="file"
