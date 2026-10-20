@@ -21,11 +21,13 @@ describe("the price of a post", () => {
     expect(priceProblem(95_000, 80_000)).toBe("tooHigh");
   });
 
-  it("suggests the dearest whole-thousand price within the minimum discount", () => {
+  it("suggests the dearest whole-hundred price within the minimum discount", () => {
     expect(suggestedPrice(95_000)).toBe(76_000);
     expect(suggestedPrice(30_000)).toBe(24_000);
-    expect(suggestedPrice(1_500)).toBe(1_000);
-    expect(suggestedPrice(1_000)).toBeUndefined();
+    expect(suggestedPrice(9_990)).toBe(7_900);
+    expect(discountPercent(9_990, 7_900)).toBe(20);
+    expect(suggestedPrice(1_500)).toBe(1_200);
+    expect(suggestedPrice(1_200)).toBeUndefined();
     expect(suggestedPrice(Number.NaN)).toBeUndefined();
     expect(priceProblem(95_000, suggestedPrice(95_000) ?? 0)).toBeUndefined();
   });
