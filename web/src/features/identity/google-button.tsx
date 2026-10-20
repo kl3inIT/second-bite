@@ -79,7 +79,7 @@ export function GoogleButton({
         callback: (response) => callback.current(response.credential, nonce),
         ux_mode: "popup",
         context: "signin",
-        use_fedcm_for_button: true,
+        use_fedcm_for_button: false,
       });
       google.accounts.id.renderButton(parent, {
         type: "standard",
