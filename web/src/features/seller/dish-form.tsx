@@ -24,6 +24,7 @@ import { ApiError } from "@/lib/api/client";
 import { addDish, changeDish, type DishBody, removeDish, uploadPhoto } from "@/lib/api/generated";
 
 import { Chip } from "./chip";
+import { useRemountKey } from "./remount-key";
 import { NumberInput } from "./number-input";
 
 const kinds = [
@@ -51,7 +52,7 @@ function problemOf(error: unknown): Problem {
 
 // The form of a dish of the catalog (SEC-55, Figma Q3c "Thêm món", C1 "Sửa món"): its photo, name, kind, unit,
 // description, and ingredients and allergens, and, once it exists, "Xoá món", which asks first (C2). A mixed box needs its description, as a post of it does.
-export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody }) {
+function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody }) {
   const t = useTranslations("DishForm");
   const kindName = useTranslations("OfferKind");
   const router = useRouter();
@@ -330,4 +331,9 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
       </AlertDialog>
     </form>
   );
+}
+
+// Each visit starts with an empty form (or the dish as it now is), not with what was typed the last time.
+export function DishForm(props: React.ComponentProps<typeof DishFormBody>) {
+  return <DishFormBody key={useRemountKey()} {...props} />;
 }
