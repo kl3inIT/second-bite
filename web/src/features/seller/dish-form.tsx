@@ -248,21 +248,15 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
               onChange={(event) => setOriginal(event.target.value.replace(/\D/g, "").slice(0, 9))}
               placeholder={t("originalPlaceholder")}
               aria-invalid={(tried && originalInvalid) || undefined}
-              aria-describedby={
-                tried && originalInvalid ? "dish-original-problem" : "dish-original-note"
-              }
+              aria-describedby={tried && originalInvalid ? "dish-original-problem" : undefined}
               disabled={pending}
             />
           </Field>
         </div>
-        {tried && originalInvalid ? (
+        {tried && originalInvalid && (
           <FieldError id="dish-original-problem" className="-mt-4">
             {t("originalInvalid")}
           </FieldError>
-        ) : (
-          <p id="dish-original-note" className="-mt-4 text-label text-muted-foreground">
-            {t("originalNote")}
-          </p>
         )}
 
         <Field data-invalid={(tried && descriptionMissing) || undefined}>
