@@ -19,7 +19,7 @@ export function PostToast({ message, to }: { message: string; to: string }) {
 
   return (
     <div className="pointer-events-none fixed inset-x-4 bottom-8 z-40 flex justify-center">
-      <output className="rounded-xl bg-primary px-5 py-3 text-title text-primary-foreground shadow-lg">
+      <output className="rounded-xl bg-primary px-5 py-4 text-body-sm-strong text-primary-foreground shadow-lg">
         {message}
       </output>
     </div>
