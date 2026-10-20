@@ -10,7 +10,7 @@ import type { HomeQuery } from "./home-query";
 const TICKET_COUNT = 2;
 
 // The bottom of the header without a filter (Figma Mobile v3 deal card): the biggest discounts tonight as
-// coupons on the deep blue deal card (Figma 105:2666): the discount and the time to collect, a dashed cut
+// coupons on the deep blue deal card (Figma 105:2666): the discount and, in grey on its baseline, the time to collect, a dashed cut
 // with a notch at each edge, then the seller. Every figure comes from the offers; with nothing to order, it
 // does not show. A bowl of food sits in its corner (Figma bát món).
 export async function TonightDeals({ query: pending }: { query: Promise<HomeQuery> }) {
@@ -49,18 +49,16 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
               key={offer.id}
               className="relative flex h-18 min-w-0 flex-1 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:max-w-44"
             >
-              <div className="flex items-center justify-between gap-0.5">
+              <div className="flex items-baseline justify-between gap-1">
                 <span className="font-display text-price-lg text-sale">
                   <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
                   <span className="sr-only">
                     {t("ticketDiscountLabel", { percent: offer.discountPercent })}
                   </span>
                 </span>
-                <span className="flex flex-col items-end">
-                  <span className="text-label whitespace-nowrap text-muted-foreground">
-                    {t("ticketCollect")}
-                  </span>
-                  <span className="text-label-strong">{time(offer.windowStart)}</span>
+                <span className="text-label-strong text-muted-foreground">
+                  <span className="sr-only">{t("ticketCollect")} </span>
+                  {time(offer.windowStart)}
                 </span>
               </div>
               <hr className="border-t border-dashed border-border" />
