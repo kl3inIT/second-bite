@@ -61,7 +61,7 @@ export function DataTable<Row>({
 
   return (
     <div className="overflow-hidden rounded-md border border-border bg-card">
-      <Table variant="admin">
+      <Table variant="admin" scrollLabel={caption}>
         <caption className="sr-only">{caption}</caption>
         <TableHeader>
           <TableRow>

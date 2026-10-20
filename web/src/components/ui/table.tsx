@@ -5,13 +5,20 @@ import { cn } from "@/lib/utils";
 
 // Second Bite: `admin` is the admin's table (Figma Admin/TableRow 228:5353): a 44px header on the sky ground in
 // muted 12px words, 64px rows that turn sky under the pointer, 16px between cells and at the ends.
+// Second Bite: `scrollLabel` names the sideways-scrolling box and lets the keyboard reach it, so a narrow screen
+// can scroll a table that holds nothing to focus (axe scrollable-region-focusable).
 function Table({
   className,
   variant = "default",
+  scrollLabel,
   ...props
-}: React.ComponentProps<"table"> & { variant?: "default" | "admin" }) {
+}: React.ComponentProps<"table"> & { variant?: "default" | "admin"; scrollLabel?: string }) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <div
+      data-slot="table-container"
+      className="relative w-full overflow-x-auto outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      {...(scrollLabel ? { role: "region", "aria-label": scrollLabel, tabIndex: 0 } : {})}
+    >
       <table
         data-slot="table"
         data-table={variant}
