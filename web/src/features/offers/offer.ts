@@ -63,3 +63,8 @@ export function kindsByCount(
     .map(([kind, count]) => ({ kind, count }))
     .toSorted((a, b) => b.count - a.count);
 }
+
+/** Directions to where the offer is collected, in the phone's maps (Figma K4b, K5 "Chỉ đường"). */
+export function directionsHref({ latitude, longitude }: OfferSummary["collectionPoint"]): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+}

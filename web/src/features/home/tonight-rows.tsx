@@ -91,6 +91,7 @@ function RecommendedCard({ offer }: { offer: OfferSummary }) {
   return (
     <MiniCard
       offer={offer}
+      linked
       label={<DiscountLabel percent={offer.discountPercent} className="rounded-tl-lg" />}
       badge={rating !== undefined && <Rating rating={rating} badge />}
       meta={t("window", { from, until })}

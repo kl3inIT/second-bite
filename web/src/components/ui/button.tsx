@@ -24,6 +24,8 @@ const buttonVariants = cva(
         shell: "text-shell-foreground hover:bg-muted",
         // Second Bite (Figma K2a): a suggestion chip on the sky ground, without an edge.
         chip: "bg-muted text-foreground hover:bg-secondary aria-pressed:bg-secondary aria-pressed:text-body-sm-strong aria-pressed:text-primary",
+        // Second Bite (Figma K4, K4b, K5): a white round button over a photograph or the blue top, its icon in Tasco blue.
+        float: "bg-card text-primary shadow-card hover:bg-muted",
       },
       size: {
         // Second Bite: 44px targets for one-handed use (PRODUCT.md › Accessibility).
@@ -41,6 +43,9 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-12",
+        // Second Bite: a 40px round button with a 44px target around it (Figma K4 back, share, heart).
+        float:
+          "relative size-10 after:absolute after:-inset-0.5 [&_svg:not([class*='size-'])]:size-5",
         // Second Bite: a 34px chip with a 44px target around it.
         chip: "relative h-8.5 px-3.5 text-body-sm after:absolute after:inset-x-0 after:-inset-y-1.25",
         // Second Bite: a quick choice in a small panel, 28px with 12px text, still a 44px target.

@@ -17,7 +17,19 @@ function tonight(hour, minute) {
 }
 
 /** An offer as `GET /offers` answers (api/openapi.yaml › FoundBody), at Tasco Mall. */
-function sample({ id, name, kind, price, originalPrice, unitsLeft, unit, from, until, seller }) {
+function sample({
+  id,
+  name,
+  description = "",
+  kind,
+  price,
+  originalPrice,
+  unitsLeft,
+  unit,
+  from,
+  until,
+  seller,
+}) {
   const status = unitsLeft > 0 ? "on_sale" : "sold_out";
   const photo = `ph-${id.slice(3)}`;
   return {
@@ -25,7 +37,7 @@ function sample({ id, name, kind, price, originalPrice, unitsLeft, unit, from, u
     sellerId: seller.id,
     status,
     name,
-    description: "",
+    description,
     kind,
     unit,
     units: Math.max(unitsLeft, 1),
@@ -68,6 +80,8 @@ const offers = [
   sample({
     id: "of-croissant",
     name: "Bánh Croissant Truyền Thống",
+    description:
+      "Bánh làm trong ngày, ngon nhất khi dùng trước 24 giờ. Nếu bạn dị ứng món nào, hãy hỏi quán khi đến nhận.",
     kind: "bakery",
     price: 22000,
     originalPrice: 50000,
@@ -91,7 +105,7 @@ const offers = [
   }),
   sample({
     id: "of-banh-mi",
-    name: "Bánh Mì Mềm Chà Bông",
+    name: "Bánh mì mềm chà bông",
     kind: "bakery",
     price: 35000,
     originalPrice: 75000,
@@ -287,10 +301,12 @@ function search(url) {
   const radiusKm = Number(url.searchParams.get("radiusKm") ?? DEFAULT_RADIUS_KM);
   const minPrice = url.searchParams.get("minPrice");
   const maxPrice = url.searchParams.get("maxPrice");
+  const sellerId = url.searchParams.get("sellerId");
   const found = offers.filter(
     (offer) =>
       (!q || fold(offer.name).includes(fold(q)) || fold(offer.seller.name).includes(fold(q))) &&
       (!kind || kind.split(",").includes(offer.kind)) &&
+      (!sellerId || offer.sellerId === sellerId) &&
       (!minPrice || offer.priceVnd >= Number(minPrice)) &&
       (!maxPrice || offer.priceVnd <= Number(maxPrice)) &&
       (!to || new Date(offer.windowStart) <= new Date(to)) &&
@@ -436,6 +452,14 @@ const server = createServer(async (request, response) => {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(JSON.stringify({ offers: search(url) }));
     return;
+  }
+  // GET /offers/{id} answers OfferBody: the offer without its seller or distance.
+  const offerMatch = /^\/offers\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "GET" && offerMatch) {
+    const found = offers.find((offer) => offer.id === offerMatch[1]);
+    if (!found) return problem(response, 404, "OFFER_NOT_FOUND");
+    const { seller: _seller, ...offer } = found;
+    return json(response, 200, offer);
   }
   if (await auth(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);

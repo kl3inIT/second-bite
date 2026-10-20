@@ -25,6 +25,8 @@ type Tab = {
 // following), so their tabs are shown dimmed and cannot be pressed. Every page has it, after a space as
 // tall as the bar so the bar never covers the page's end. From `md` the header and the footer take over,
 // and the bar is not shown.
+const screensOfTheirOwn = ["/search", "/offers", "/sellers", "/cart"];
+
 const tabs: Tab[] = [
   { key: "home", icon: HouseIcon, href: "/", within: ["/search"] },
   { key: "orders", icon: ReceiptTextIcon },
@@ -35,8 +37,13 @@ const tabs: Tab[] = [
 export function BottomNav() {
   const t = useTranslations("BottomNav");
   const pathname = usePathname();
-  // The search is a screen of its own, left by its back arrow (Figma K1f, K2).
-  if (pathname === "/search") return null;
+  // The search, a dish, a seller and the cart are screens of their own, left by their back arrow, the last
+  // three with a bar of their own at the bottom (Figma K1f, K2, K4, K4b, K5).
+  if (
+    screensOfTheirOwn.some((screen) => pathname === screen || pathname.startsWith(`${screen}/`))
+  ) {
+    return null;
+  }
 
   return (
     <>

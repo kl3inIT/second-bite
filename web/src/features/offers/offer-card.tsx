@@ -5,6 +5,7 @@ import { BiteCorner } from "@/components/bite-corner";
 import { cn } from "@/lib/utils";
 
 import { DiscountLabel } from "./discount-label";
+import { DishLink, SellerLink } from "./dish-link";
 import { HeartButton } from "./heart-button";
 import { isAvailable, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
@@ -84,14 +85,18 @@ export function OfferCard({
           // The seller under the dish, the portions left under the price (Figma K1f).
           <>
             <div className="flex items-center justify-between gap-2">
-              <h3 className="min-w-0 truncate text-title-lg text-foreground">{offer.name}</h3>
+              <h3 className="min-w-0 truncate text-title-lg text-foreground">
+                <DishLink offerId={offer.id}>{offer.name}</DishLink>
+              </h3>
               <Price offer={offer} />
             </div>
             <div className="flex items-center justify-between gap-2">
               <p className="min-w-0 truncate text-label text-muted-foreground">
-                {distance
-                  ? t("sellerAway", { seller: offer.seller.name, distance })
-                  : t("seller", { seller: offer.seller.name })}
+                <SellerLink sellerId={offer.sellerId}>
+                  {distance
+                    ? t("sellerAway", { seller: offer.seller.name, distance })
+                    : t("seller", { seller: offer.seller.name })}
+                </SellerLink>
               </p>
               <UnitsLeft offer={offer} />
             </div>
@@ -101,11 +106,13 @@ export function OfferCard({
             <h3
               className={cn("truncate text-foreground", compact ? "text-title" : "text-title-lg")}
             >
-              {offer.name}
+              <DishLink offerId={offer.id}>{offer.name}</DishLink>
             </h3>
             {showSeller && (
               <p className="truncate text-label text-muted-foreground">
-                {t("seller", { seller: offer.seller.name })}
+                <SellerLink sellerId={offer.sellerId}>
+                  {t("seller", { seller: offer.seller.name })}
+                </SellerLink>
               </p>
             )}
           </>

@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 
+import { DishLink } from "./dish-link";
 import { formatPrice } from "./format";
 import { isAvailable, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
@@ -11,7 +12,7 @@ export function DishTile({ offer }: { offer: OfferSummary }) {
   const original = formatPrice(offer.originalPriceVnd);
 
   return (
-    <article className="flex min-w-0 flex-col gap-1">
+    <article className="relative flex min-w-0 flex-col gap-1">
       <div className="relative h-21 overflow-hidden rounded-md">
         <OfferPhoto offer={offer} dimmed={!isAvailable(offer)} sizes="120px" />
       </div>
@@ -24,7 +25,9 @@ export function DishTile({ offer }: { offer: OfferSummary }) {
         </s>
         <span className="sr-only">{t("originalPrice", { price: original })}</span>
       </p>
-      <h4 className="truncate text-label text-foreground">{offer.name}</h4>
+      <h4 className="truncate text-label text-foreground">
+        <DishLink offerId={offer.id}>{offer.name}</DishLink>
+      </h4>
     </article>
   );
 }

@@ -26,6 +26,8 @@ export type OfferFilters = {
   /** Collected from and to tonight, "20:00" and "21:30"; `collectNow` takes their place. */
   collectFrom?: string;
   collectTo?: string;
+  /** One seller's offers only: the dish page's other dishes and the seller's page. */
+  sellerId?: string;
   /** The backend's own order when absent: best match with words, nearest with a place, soonest otherwise. */
   sort?: OfferSort;
 };
@@ -57,6 +59,7 @@ function key(filters: OfferFilters): string {
     filters.collectFrom,
     filters.collectTo,
     filters.sort,
+    filters.sellerId,
   ]);
 }
 
@@ -64,18 +67,20 @@ function key(filters: OfferFilters): string {
 const search = cache(async (filters: string) => {
   // JSON writes an absent filter as null; the query leaves it out only when it is undefined.
   const values = (JSON.parse(filters) as unknown[]).map((value) => value ?? undefined);
-  const [q, kind, collectNow, near, radiusKm, minPrice, maxPrice, from, to, sort] = values as [
-    string | undefined,
-    OfferKind | undefined,
-    boolean,
-    string | undefined,
-    number | undefined,
-    number | undefined,
-    number | undefined,
-    string | undefined,
-    string | undefined,
-    OfferSort | undefined,
-  ];
+  const [q, kind, collectNow, near, radiusKm, minPrice, maxPrice, from, to, sort, sellerId] =
+    values as [
+      string | undefined,
+      OfferKind | undefined,
+      boolean,
+      string | undefined,
+      number | undefined,
+      number | undefined,
+      number | undefined,
+      string | undefined,
+      string | undefined,
+      OfferSort | undefined,
+      string | undefined,
+    ];
   const now = collectNow ? new Date().toISOString() : undefined;
   const { data } = await searchOffers({
     query: {
@@ -88,6 +93,7 @@ const search = cache(async (filters: string) => {
       minPrice,
       maxPrice,
       sort,
+      sellerId,
       limit: 50,
     },
   });

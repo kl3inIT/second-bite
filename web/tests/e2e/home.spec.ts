@@ -45,7 +45,7 @@ test.describe("the customer home", () => {
       "Bạc Xỉu Đá",
       "Combo Nhóm 3 Tụ Tập",
       "Pizza Thập Cẩm",
-      "Bánh Mì Mềm Chà Bông",
+      "Bánh mì mềm chà bông",
     ]);
     const croissant = all.getByRole("article").first();
     await expect(croissant.getByText("Còn 3 phần")).toBeVisible();
@@ -133,7 +133,7 @@ test.describe("the customer home", () => {
     await expect(results.getByRole("heading", { level: 3 })).toHaveText([
       "Bánh Croissant Truyền Thống",
       "Bánh Eclair Socola",
-      "Bánh Mì Mềm Chà Bông",
+      "Bánh mì mềm chà bông",
     ]);
     await expect(page.getByRole("region", { name: "Sắp hết giờ nhận" })).toBeHidden();
     await expect(page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" })).toBeHidden();
@@ -183,7 +183,7 @@ test.describe("the customer home", () => {
     await expect(mall.getByRole("heading", { level: 3 }).first()).toHaveText(
       "Cơm Thịt Kho Nước Dừa",
     );
-    await expect(mall.getByText("Bánh Mì Mềm Chà Bông")).toBeHidden();
+    await expect(mall.getByText("Bánh mì mềm chà bông")).toBeHidden();
     await expectNoSeriousA11yViolations(page);
   });
 

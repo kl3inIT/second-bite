@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 
+import { DishLink } from "@/features/offers/dish-link";
 import { listOffers } from "@/features/offers/list-offers";
 import { biggestDiscountFirst } from "@/features/offers/offer";
 
@@ -51,7 +52,9 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
                 </span>
               </span>
               <hr className="border-t border-dashed border-border" />
-              <span className="truncate text-body-sm-strong">{offer.seller.name}</span>
+              <span className="truncate text-body-sm-strong">
+                <DishLink offerId={offer.id}>{offer.seller.name}</DishLink>
+              </span>
               <span
                 aria-hidden
                 className="absolute top-8 -left-1.25 size-2.5 rounded-full bg-deal"

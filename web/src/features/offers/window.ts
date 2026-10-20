@@ -15,8 +15,12 @@ export function useCollectionWindow(offer: OfferSummary): { from: string; until:
 
 /** How far the offer is from the place searched near, "350 m" or "1,2 km"; undefined without one. */
 export function useDistance(offer: OfferSummary): string | undefined {
+  return useMeters(offer.distanceMeters);
+}
+
+/** A distance in metres as the cards write it, "350 m" or "1,2 km"; undefined without one. */
+export function useMeters(meters: number | undefined): string | undefined {
   const format = useFormatter();
-  const meters = offer.distanceMeters;
   if (meters === undefined) return undefined;
   return meters < METERS_PER_KM
     ? format.number(meters, "meters")

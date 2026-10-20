@@ -2,8 +2,9 @@
 
 import { LocateFixedIcon, StoreIcon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useId, useState } from "react";
+import { useState } from "react";
 
+import { ChoiceOption } from "@/components/choice-option";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -12,7 +13,7 @@ import {
   DrawerDescription,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -100,8 +101,8 @@ export function AreaSheet({
             onValueChange={(value) => setArea(value as Area)}
             aria-label={t("title")}
           >
-            <AreaOption value="mall" icon={StoreIcon} title={t("mall")} hint={t("mallHint")} />
-            <AreaOption
+            <ChoiceOption value="mall" icon={StoreIcon} title={t("mall")} hint={t("mallHint")} />
+            <ChoiceOption
               value="nearby"
               icon={LocateFixedIcon}
               title={t("nearby")}
@@ -119,38 +120,5 @@ export function AreaSheet({
         </div>
       </DrawerContent>
     </Drawer>
-  );
-}
-
-function AreaOption({
-  value,
-  icon: Icon,
-  title,
-  hint,
-}: {
-  value: Area;
-  icon: typeof StoreIcon;
-  title: string;
-  hint: string;
-}) {
-  const id = useId();
-
-  return (
-    // The chosen option shows its radio, the other its icon in the radio's place (Figma K1a).
-    <label
-      htmlFor={id}
-      className="group flex min-h-16 cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-3 transition-colors has-focus-visible:ring-3 has-focus-visible:ring-ring/50 has-data-checked:border-primary"
-    >
-      <span className="relative flex size-5 shrink-0 items-center justify-center">
-        <span className="opacity-0 group-has-data-checked:opacity-100">
-          <RadioGroupItem id={id} value={value} />
-        </span>
-        <Icon aria-hidden className="absolute size-5 text-primary group-has-data-checked:hidden" />
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-body-sm-strong text-foreground">{title}</span>
-        <span className="text-label text-muted-foreground">{hint}</span>
-      </span>
-    </label>
   );
 }
