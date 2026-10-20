@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { BrandLoader } from "@/components/brand-loader";
@@ -8,6 +10,14 @@ import { AccountAction } from "@/features/identity/account-action";
 import { PlaceHeading } from "@/features/home/place-heading";
 import { SearchField } from "@/features/home/search-field";
 import { TonightDeals } from "@/features/home/tonight-deals";
+import { pageMetadata } from "@/lib/seo";
+
+// The home keeps the site's title and description, with its canonical address and its other language for
+// search engines (SEC-52).
+export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
+  const t = await getTranslations("Metadata");
+  return pageMetadata({ locale: (await params).locale, description: t("description") });
+}
 
 // The customer home: tonight's offers at Tasco Mall, with no landing page in front (SEC-23), drawn as the
 // Figma home (Secondbite › Mobile v3 › K1 · Trang chủ).

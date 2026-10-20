@@ -39,6 +39,15 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 - Times are in `Asia/Ho_Chi_Minh`, prices in đồng (`39.000đ`), windows on the 24-hour clock. A date is formatted by a named format of `src/i18n/formats.ts` (`format.dateTime(at, "time")`), never by options written on a page.
 - Links between pages use `Link` from `@/i18n/navigation`, which keeps the locale.
 
+## Search and answer engines
+
+- Every page's metadata comes from `pageMetadata` (`src/lib/seo.ts`): its title, which the layout's template ends in "· Second Bite", its description, its canonical address and the same page in the other language with `x-default` the Vietnamese one, and Open Graph. A page that is someone's own or passing (account, sign-in, errors) passes `index: false` and gets `noindex` instead.
+- Absolute addresses are built on `SECONDBITE_SITE_ORIGIN`, read at build time; until the production address exists it falls back to staging's.
+- Structured data is JSON-LD through `JsonLd` (`src/components/json-ld.tsx`), escaped as the Next.js guide shows. The layout describes the `Organization` and the `WebSite`; a page adds what it is, as the legal pages add a `WebPage` with its sections as parts an answer engine can cite.
+- A page with sections gives each a heading and an `id`, lists them in a contents `nav`, and marks dates with `<time datetime>`.
+- `src/app/sitemap.ts` lists the public pages in both languages with their alternates; `src/app/robots.ts` names it and keeps crawlers out until the production address is chosen.
+- Measure with Lighthouse, the engine of PageSpeed Insights, on the production build and on staging (docs/increments/completed/sec-52-legal-error-account-screens/verification.md shows how).
+
 ## Design tokens and styling
 
 - Tokens are defined once, in the frontmatter of `DESIGN.md`. `pnpm generate:tokens` writes `src/styles/tokens.css`; never edit that file. The generator refuses a colour pair under 4.5:1 for text or 3:1 for an outline or focus ring, and `pnpm check:tokens` fails when the file falls behind.

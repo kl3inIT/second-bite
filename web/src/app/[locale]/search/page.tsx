@@ -6,10 +6,14 @@ import { BrandLoader } from "@/components/brand-loader";
 import { SearchBar } from "@/features/search/search-bar";
 import { readSearchQuery, type SearchQuery } from "@/features/search/search-query";
 import { SearchResults } from "@/features/search/search-results";
+import { pageMetadata } from "@/lib/seo";
 
-export async function generateMetadata(): Promise<Metadata> {
+// A page of results is no page to index; the layout's template adds the name (SEC-52).
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/search">): Promise<Metadata> {
   const t = await getTranslations("Search");
-  return { title: `${t("title")} · Second Bite`, robots: { index: false } };
+  return pageMetadata({ locale: (await params).locale, title: t("title"), index: false });
 }
 
 // The search (Figma Mobile v3 K2, K2a, K2c and K1f): a white top bar with the field, then the dishes or the

@@ -1,6 +1,7 @@
 "use client";
 
 import { LogOutIcon, UserRoundIcon } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 
@@ -19,7 +20,7 @@ import { signOut } from "@/lib/api/generated";
 // The signed-in account's capsule on the header: the address it is signed in with, and sign-out, which ends
 // the session on the server and leaves the person on the page they were reading (SEC-29 › What a person
 // can do).
-export function AccountMenu({ email }: { email: string }) {
+export function AccountMenu({ email, displayName }: { email: string; displayName: string }) {
   const t = useTranslations("Account");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -42,8 +43,17 @@ export function AccountMenu({ email }: { email: string }) {
         aria-label={t("menu", { email })}
         className="group/account"
       >
-        <span className="flex size-8 items-center justify-center rounded-full border border-header-border bg-header-raised text-header-raised-foreground transition-colors group-hover/account:bg-secondary">
-          <UserRoundIcon aria-hidden className="size-4" />
+        <span className="flex h-8 items-center gap-1.5 rounded-full border border-header-border bg-header-raised px-2.5 text-label-strong text-header-raised-foreground transition-colors group-hover/account:bg-secondary">
+          {/* Google gives a name; an address signed in with the emailed code has none, and shows the person icon
+              with the start of the address. */}
+          {displayName ? (
+            <Image src="/google-g.svg" alt="" width={16} height={16} unoptimized />
+          ) : (
+            <UserRoundIcon aria-hidden className="size-4" />
+          )}
+          <span className="hidden max-w-28 truncate sm:inline">
+            {displayName || email.split("@")[0]}
+          </span>
         </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-56">

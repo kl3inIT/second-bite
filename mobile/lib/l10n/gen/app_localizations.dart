@@ -386,17 +386,263 @@ abstract class AppLocalizations {
   /// **'Thông tin pháp lý'**
   String get legalLabel;
 
-  /// Opens the terms of use on the web
+  /// Opens the terms of use
   ///
   /// In vi, this message translates to:
   /// **'Điều khoản sử dụng'**
   String get legalTerms;
 
-  /// Opens the privacy policy on the web
+  /// Opens the privacy policy
   ///
   /// In vi, this message translates to:
   /// **'Chính sách quyền riêng tư'**
   String get legalPrivacy;
+
+  /// The notice that the legal pages are drafts, as the web's Legal.draft
+  ///
+  /// In vi, this message translates to:
+  /// **'Bản nháp, đang chờ người sáng lập và luật sư xem xét. Nội dung có thể thay đổi trước khi Second Bite mở cho mọi người; những chỗ ghi “đang cập nhật” sẽ được bổ sung.'**
+  String get legalDraft;
+
+  /// When the legal pages last changed
+  ///
+  /// In vi, this message translates to:
+  /// **'Cập nhật lần cuối: {date}'**
+  String legalUpdated(DateTime date);
+
+  /// The heading of the list of sections
+  ///
+  /// In vi, this message translates to:
+  /// **'Các mục'**
+  String get legalContents;
+
+  /// The opening paragraph, as the web's Terms.intro
+  ///
+  /// In vi, this message translates to:
+  /// **'Điều khoản này là thỏa thuận giữa bạn và Second Bite khi bạn dùng trang web và ứng dụng Second Bite, với tư cách khách hàng hay người bán.'**
+  String get legalTermsIntro;
+
+  /// Section 1's heading, as the web's Terms.sections[0].title
+  ///
+  /// In vi, this message translates to:
+  /// **'1. Second Bite là gì'**
+  String get legalTermsSection1Title;
+
+  /// Section 1's paragraphs, one blank line apart, as the web's Terms.sections[0].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Second Bite là nền tảng phi lợi nhuận kết nối các quán còn món dư cuối ngày với khách muốn mua với giá thấp hơn. Second Bite không lấy hoa hồng trên doanh thu của quán.\n\nĐơn vị vận hành: đang cập nhật (tên, địa chỉ, mã số và giấy phép nếu có).\n\nMua bán món diễn ra giữa khách và quán. Second Bite cung cấp nơi đăng, tìm và đặt món; Second Bite không bán món và không kiểm tra món.'**
+  String get legalTermsSection1Body;
+
+  /// Section 2's heading, as the web's Terms.sections[1].title
+  ///
+  /// In vi, this message translates to:
+  /// **'2. Tài khoản'**
+  String get legalTermsSection2Title;
+
+  /// Section 2's paragraphs, one blank line apart, as the web's Terms.sections[1].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn xem và tìm món mà không cần tài khoản. Bạn cần đăng nhập để đặt món, theo dõi quán, hoặc đăng món cho một quán.\n\nHãy giữ an toàn hộp thư và tài khoản Google bạn dùng để đăng nhập, và không đăng nhập thay người khác.'**
+  String get legalTermsSection2Body;
+
+  /// Section 3's heading, as the web's Terms.sections[2].title
+  ///
+  /// In vi, this message translates to:
+  /// **'3. Trách nhiệm của người bán'**
+  String get legalTermsSection3Title;
+
+  /// Section 3's paragraphs, one blank line apart, as the web's Terms.sections[2].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ đăng món thật sự còn dư, không phải món vẫn cần cho việc bán hàng bình thường.\n\nMô tả trung thực món, số lượng, giá gốc và giá bán; giá bán phải thấp hơn giá gốc ít nhất mức giảm tối thiểu do Second Bite quy định (hiện là 20%).\n\nChịu trách nhiệm về chất lượng, an toàn thực phẩm và thông tin về chất gây dị ứng của món, và kiểm tra món khi giao cho khách.\n\nẢnh và nội dung bạn đăng phải là của bạn hoặc bạn được phép dùng; bạn cho phép Second Bite hiển thị chúng trên nền tảng.'**
+  String get legalTermsSection3Body;
+
+  /// Section 4's heading, as the web's Terms.sections[3].title
+  ///
+  /// In vi, this message translates to:
+  /// **'4. Trách nhiệm của khách'**
+  String get legalTermsSection4Title;
+
+  /// Section 4's paragraphs, one blank line apart, as the web's Terms.sections[3].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Đến lấy món trong khung giờ của món; đơn không đến lấy có thể bị ghi nhận và ảnh hưởng tới việc đặt món về sau.\n\nĐọc kỹ mô tả món, đặc biệt là thông tin về chất gây dị ứng, và hỏi quán khi chưa rõ. Món dư có thể khác chút ít so với ảnh.\n\nMỗi người được đặt một số lượng món giới hạn mỗi ngày, để món dư đến được với nhiều người.'**
+  String get legalTermsSection4Body;
+
+  /// Section 5's heading, as the web's Terms.sections[4].title
+  ///
+  /// In vi, this message translates to:
+  /// **'5. Giá, thanh toán và hủy đơn'**
+  String get legalTermsSection5Title;
+
+  /// Section 5's paragraphs, one blank line apart, as the web's Terms.sections[4].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Giá hiển thị là giá của quán; phí của bên thứ ba, nếu có, được ghi riêng trước khi bạn đặt.\n\nỞ giai đoạn thử nghiệm, bạn thanh toán trực tiếp cho quán khi đến lấy món. Hủy đơn và hoàn tiền: đang cập nhật, sẽ có khi tính năng đặt món mở.'**
+  String get legalTermsSection5Body;
+
+  /// Section 6's heading, as the web's Terms.sections[5].title
+  ///
+  /// In vi, this message translates to:
+  /// **'6. Hành vi không được phép'**
+  String get legalTermsSection6Title;
+
+  /// Section 6's paragraphs, one blank line apart, as the web's Terms.sections[5].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nội dung sai sự thật, vi phạm pháp luật hoặc của người khác; đặt món mà không có ý định lấy; can thiệp vào hệ thống hoặc dùng tài khoản của người khác.\n\nSecond Bite có thể ẩn món, tạm khóa quán hoặc tài khoản vi phạm điều khoản này.'**
+  String get legalTermsSection6Body;
+
+  /// Section 7's heading, as the web's Terms.sections[6].title
+  ///
+  /// In vi, this message translates to:
+  /// **'7. Giới hạn trách nhiệm'**
+  String get legalTermsSection7Title;
+
+  /// Section 7's paragraphs, one blank line apart, as the web's Terms.sections[6].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Second Bite cố gắng giữ dịch vụ hoạt động ổn định nhưng không bảo đảm dịch vụ luôn sẵn sàng. Trong phạm vi pháp luật cho phép, Second Bite không chịu trách nhiệm về chất lượng món do quán bán; khiếu nại về món được gửi tới quán, và Second Bite hỗ trợ hai bên giải quyết.'**
+  String get legalTermsSection7Body;
+
+  /// Section 8's heading, as the web's Terms.sections[7].title
+  ///
+  /// In vi, this message translates to:
+  /// **'8. Thay đổi điều khoản và luật áp dụng'**
+  String get legalTermsSection8Title;
+
+  /// Section 8's paragraphs, one blank line apart, as the web's Terms.sections[7].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Khi điều khoản thay đổi, chúng tôi cập nhật ngày ở đầu trang và báo trước nếu thay đổi ảnh hưởng tới quyền của bạn.\n\nĐiều khoản này theo pháp luật Việt Nam. Tranh chấp được giải quyết bằng thương lượng trước, sau đó theo quy định của pháp luật.\n\nLiên hệ: đang cập nhật.'**
+  String get legalTermsSection8Body;
+
+  /// The opening paragraph, as the web's Privacy.intro
+  ///
+  /// In vi, this message translates to:
+  /// **'Second Bite là nền tảng phi lợi nhuận giúp các quán bán món còn dư cuối ngày với giá thấp hơn. Trang này cho biết chúng tôi thu dữ liệu cá nhân nào, để làm gì, lưu bao lâu, ai được xem, và bạn có những quyền gì, theo Luật Bảo vệ dữ liệu cá nhân 2025 và Nghị định 52/2013/NĐ-CP.'**
+  String get legalPrivacyIntro;
+
+  /// Section 1's heading, as the web's Privacy.sections[0].title
+  ///
+  /// In vi, this message translates to:
+  /// **'1. Ai chịu trách nhiệm về dữ liệu của bạn'**
+  String get legalPrivacySection1Title;
+
+  /// Section 1's paragraphs, one blank line apart, as the web's Privacy.sections[0].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Bên kiểm soát dữ liệu cá nhân: đang cập nhật (tên tổ chức hoặc cá nhân, địa chỉ).\n\nLiên hệ về quyền riêng tư: đang cập nhật.'**
+  String get legalPrivacySection1Body;
+
+  /// Section 2's heading, as the web's Privacy.sections[1].title
+  ///
+  /// In vi, this message translates to:
+  /// **'2. Dữ liệu chúng tôi thu và để làm gì'**
+  String get legalPrivacySection2Title;
+
+  /// Section 2's paragraphs, one blank line apart, as the web's Privacy.sections[1].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem món và tìm kiếm không cần tài khoản. Khi bạn tìm món quanh một vị trí, vị trí đó chỉ được dùng để tính khoảng cách trong lần tìm ấy và không được lưu.\n\nTài khoản: địa chỉ email của bạn, để gửi mã đăng nhập và nhận ra bạn ở lần sau; tên hiển thị, để quán gọi bạn khi giao món.\n\nĐăng nhập bằng Google (sắp có): mã định danh Google của bạn, địa chỉ email, tên và ảnh đại diện mà Google chia sẻ khi bạn đồng ý, để đăng nhập và hiển thị tên của bạn.\n\nPhiên đăng nhập: một mã ngẫu nhiên giữ bạn đăng nhập; chúng tôi chỉ lưu bản băm của nó cùng thời điểm dùng gần nhất.\n\nNgười bán: tên quán, địa chỉ, vị trí trên bản đồ, số điện thoại của quán và email của chủ quán, nhân viên, để quán đăng món và khách tìm đến lấy.\n\nẢnh: ảnh món và ảnh quán do người bán tải lên. Ảnh được ghi lại ở hai kích thước và bỏ toàn bộ thông tin đi kèm như vị trí chụp hay loại máy.\n\nĐơn hàng (sắp có): món, số lượng, giờ lấy, trạng thái đơn, để quán chuẩn bị món và giới hạn số món mỗi người được đặt trong ngày.\n\nEmail đã gửi: người nhận, loại email và mã của nhà cung cấp, để biết email có tới được không.\n\nNhật ký kỹ thuật: thời điểm, đường dẫn và kết quả của từng yêu cầu, để tìm và sửa lỗi; nhật ký không ghi email, mã đăng nhập hay mật khẩu.'**
+  String get legalPrivacySection2Body;
+
+  /// Section 3's heading, as the web's Privacy.sections[2].title
+  ///
+  /// In vi, this message translates to:
+  /// **'3. Lưu bao lâu'**
+  String get legalPrivacySection3Title;
+
+  /// Section 3's paragraphs, one blank line apart, as the web's Privacy.sections[2].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã đăng nhập: xóa khi dùng xong, khi bạn xin mã mới, hoặc muộn nhất một ngày sau khi gửi.\n\nPhiên đăng nhập: hết hạn sau 30 ngày không dùng; xóa khi bạn đăng xuất.\n\nẢnh tải lên nhưng không dùng cho món hay quán nào: xóa sau một ngày.\n\nTài khoản, quán, món đã đăng và đơn hàng: giữ cho tới khi bạn yêu cầu xóa, trừ phần pháp luật buộc phải giữ lâu hơn.'**
+  String get legalPrivacySection3Body;
+
+  /// Section 4's heading, as the web's Privacy.sections[3].title
+  ///
+  /// In vi, this message translates to:
+  /// **'4. Ai được xem dữ liệu của bạn'**
+  String get legalPrivacySection4Title;
+
+  /// Section 4's paragraphs, one blank line apart, as the web's Privacy.sections[3].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Người bán thấy tên hiển thị và đơn hàng của bạn với quán của họ; không thấy email của bạn. Khách thấy thông tin công khai của quán và món.\n\nQuản trị viên của Second Bite xem dữ liệu khi cần để vận hành và hỗ trợ.\n\nCác bên xử lý dữ liệu thay chúng tôi: nhà cung cấp máy chủ (Amazon Web Services; nơi đặt máy chủ: đang cập nhật), nhà cung cấp dịch vụ email (Brevo), và Google khi bạn chọn đăng nhập bằng Google. Nếu dữ liệu được lưu ở nước ngoài, chúng tôi sẽ nêu rõ tại đây.\n\nChúng tôi không bán dữ liệu của bạn và không dùng nó để quảng cáo.'**
+  String get legalPrivacySection4Body;
+
+  /// Section 5's heading, as the web's Privacy.sections[4].title
+  ///
+  /// In vi, this message translates to:
+  /// **'5. Quyền của bạn'**
+  String get legalPrivacySection5Title;
+
+  /// Section 5's paragraphs, one blank line apart, as the web's Privacy.sections[4].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.'**
+  String get legalPrivacySection5Body;
+
+  /// Section 6's heading, as the web's Privacy.sections[5].title
+  ///
+  /// In vi, this message translates to:
+  /// **'6. Cookie và lưu trữ trên trình duyệt'**
+  String get legalPrivacySection6Title;
+
+  /// Section 6's paragraphs, one blank line apart, as the web's Privacy.sections[5].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Cookie phiên đăng nhập (sắp có), để giữ bạn đăng nhập.\n\nCookie ngôn ngữ, nhớ bạn chọn tiếng Việt hay tiếng Anh trong một năm.\n\nMột dấu trong bộ nhớ trình duyệt, nhớ bạn đã đóng phần giới thiệu.\n\nChúng tôi không dùng cookie quảng cáo hay công cụ theo dõi của bên thứ ba.'**
+  String get legalPrivacySection6Body;
+
+  /// Section 7's heading, as the web's Privacy.sections[6].title
+  ///
+  /// In vi, this message translates to:
+  /// **'7. Bảo vệ dữ liệu'**
+  String get legalPrivacySection7Title;
+
+  /// Section 7's paragraphs, one blank line apart, as the web's Privacy.sections[6].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Kết nối được mã hóa; mã đăng nhập và phiên đăng nhập chỉ được lưu dưới dạng băm; quyền truy cập được kiểm tra ở máy chủ cho từng yêu cầu. Nếu xảy ra sự cố lộ dữ liệu, chúng tôi sẽ thông báo theo quy định của pháp luật.'**
+  String get legalPrivacySection7Body;
+
+  /// Section 8's heading, as the web's Privacy.sections[7].title
+  ///
+  /// In vi, this message translates to:
+  /// **'8. Trẻ em'**
+  String get legalPrivacySection8Title;
+
+  /// Section 8's paragraphs, one blank line apart, as the web's Privacy.sections[7].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Second Bite dành cho người từ 16 tuổi. Nếu bạn dưới 16 tuổi, hãy dùng cùng cha mẹ hoặc người giám hộ.'**
+  String get legalPrivacySection8Body;
+
+  /// Section 9's heading, as the web's Privacy.sections[8].title
+  ///
+  /// In vi, this message translates to:
+  /// **'9. Thay đổi chính sách'**
+  String get legalPrivacySection9Title;
+
+  /// Section 9's paragraphs, one blank line apart, as the web's Privacy.sections[8].paragraphs
+  ///
+  /// In vi, this message translates to:
+  /// **'Khi chính sách thay đổi, chúng tôi cập nhật ngày ở đầu trang và báo cho bạn trước khi thay đổi có hiệu lực nếu nó ảnh hưởng tới quyền của bạn.'**
+  String get legalPrivacySection9Body;
+
+  /// An address the app does not know, as the web's NotFound.title
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy trang này'**
+  String get notFoundTitle;
+
+  /// The button back to the home from the not-found screen
+  ///
+  /// In vi, this message translates to:
+  /// **'Về trang chủ'**
+  String get notFoundBack;
 
   /// The top bar's back button, read by a screen reader
   ///

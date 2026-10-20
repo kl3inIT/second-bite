@@ -1,7 +1,9 @@
 {
   "Metadata": {
     "title": "Second Bite",
-    "description": "Thêm một cơ hội cho món ngon."
+    "description": "Món ngon còn dư cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Đặt trước, đến quầy lấy trong khung giờ. Phi lợi nhuận, không thu hoa hồng.",
+    "organization": "Nền tảng phi lợi nhuận giúp các quán bán món ngon còn dư cuối ngày với giá thấp hơn, không thu hoa hồng của quán.",
+    "area": "Tasco Mall, Long Biên, Hà Nội"
   },
   "Home": {
     "searchLabel": "Tìm món hoặc quán",
@@ -130,7 +132,7 @@
   },
   "Legal": {
     "draft": "Bản nháp, đang chờ người sáng lập và luật sư xem xét. Nội dung có thể thay đổi trước khi Second Bite mở cho mọi người; những chỗ ghi “đang cập nhật” sẽ được bổ sung.",
-    "updated": "Cập nhật lần cuối: 18/10/2026",
+    "updated": "Cập nhật lần cuối: <time>{date}</time>",
     "contents": "Các mục"
   },
   "Privacy": {
@@ -210,7 +212,8 @@
           "Khi chính sách thay đổi, chúng tôi cập nhật ngày ở đầu trang và báo cho bạn trước khi thay đổi có hiệu lực nếu nó ảnh hưởng tới quyền của bạn."
         ]
       }
-    ]
+    ],
+    "description": "Second Bite thu dữ liệu cá nhân nào, để làm gì, lưu bao lâu, ai được xem và bạn có những quyền gì, theo Luật Bảo vệ dữ liệu cá nhân 2025."
   },
   "Terms": {
     "title": "Điều khoản sử dụng",
@@ -276,19 +279,23 @@
           "Liên hệ: đang cập nhật."
         ]
       }
-    ]
+    ],
+    "description": "Điều khoản sử dụng Second Bite: tài khoản, trách nhiệm của người bán và của khách, giá, thanh toán, hủy đơn và giới hạn trách nhiệm."
   },
   "SignIn": {
     "title": "Đăng nhập",
-    "heading": "Đăng nhập để đặt món",
+    "heading": "Đăng nhập",
+    "heroLine1": "LOG IN",
+    "heroLine2": "TO SECOND BITE",
     "or": "hoặc dùng email",
+    "google": "Tiếp tục với Google",
     "emailLabel": "Email",
     "emailPlaceholder": "ten@gmail.com",
     "sendCode": "Gửi mã",
     "sendCodeHere": "Gửi mã đến email này",
     "sending": "Đang gửi mã…",
-    "legal": "Khi tiếp tục, bạn đồng ý với <terms>Điều khoản sử dụng</terms> và <privacy>Chính sách quyền riêng tư</privacy>.",
-    "codeHeading": "Kiểm tra email của bạn",
+    "legal": "Khi tiếp tục, bạn đồng ý với <terms>Điều khoản sử dụng</terms><br></br>và <privacy>Chính sách quyền riêng tư</privacy>.",
+    "codeHeading": "Nhập mã",
     "codeSent": "Mã đăng nhập 6 số đã gửi đến <strong>{email}</strong>.",
     "changeEmail": "Đổi email",
     "codeLabel": "Mã đăng nhập 6 số",
@@ -310,6 +317,7 @@
   },
   "Account": {
     "signIn": "Đăng nhập",
+    "openStore": "Mở quán",
     "menu": "Tài khoản {email}",
     "signedInAs": "Đã đăng nhập: {email}",
     "signOut": "Đăng xuất",

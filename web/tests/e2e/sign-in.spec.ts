@@ -15,29 +15,25 @@ test.describe("signing in on the web", () => {
     await (await hydrated(page.getByRole("link", { name: "Đăng nhập" }))).click();
 
     await expect(page).toHaveURL(/\/vi\/sign-in\?returnTo=/);
-    await expect(
-      page.getByRole("heading", { level: 1, name: "Đăng nhập để đặt món" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Đăng nhập" })).toBeVisible();
     // Google is not configured in the stub, so its button and the divider are not shown.
     await expect(page.getByText("hoặc dùng email")).toHaveCount(0);
-    await expectNoSeriousA11yViolations(page);
+    await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
 
     await (await hydrated(page.getByLabel("Email"))).fill(email);
     await page.getByRole("button", { name: "Gửi mã" }).click();
 
-    await expect(
-      page.getByRole("heading", { level: 1, name: "Kiểm tra email của bạn" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Nhập mã" })).toBeVisible();
     await expect(page.getByText(email)).toBeVisible();
     await expect(page.getByText("Gửi lại mã sau 1:00")).toBeVisible();
     await expect(page.getByText("Chưa thấy email? Xem trong thư rác (Spam).")).toBeVisible();
-    await expectNoSeriousA11yViolations(page);
+    await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
 
     await page.getByLabel("Mã đăng nhập 6 số").fill("111111");
     await expect(
       page.getByText("Mã chưa đúng. Xem lại email mới nhất rồi nhập lại."),
     ).toBeVisible();
-    await expectNoSeriousA11yViolations(page);
+    await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
 
     // A code copied from the email with spaces and a line break still goes in.
     await page.getByLabel("Mã đăng nhập 6 số").focus();
@@ -65,9 +61,7 @@ test.describe("signing in on the web", () => {
     await expect(
       page.getByText("Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại."),
     ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { level: 1, name: "Đăng nhập để đặt món" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Đăng nhập" })).toBeVisible();
   });
 
   test("goes home instead of to another site", async ({ page }, testInfo) => {

@@ -4,6 +4,16 @@
 /* Colours, radii, shadows and type styles, generated from DESIGN.md (pnpm generate:tokens). */
 @import "../styles/tokens.css";
 
+/* The design has no dark theme: `dark:` classes apply only under a `.dark` ancestor, never to a device set to
+   dark (the shadcn defaults turned the sign-in field grey there). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* A page that is a screen of its own, such as the sign-in screen, marks itself `data-no-footer` and the site
+   footer in the root layout stays out of it. */
+body:has([data-no-footer]) > footer {
+  display: none;
+}
+
 @theme inline {
   --font-sans: var(--font-be-vietnam-pro), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-bricolage), var(--font-sans);

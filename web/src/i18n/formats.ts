@@ -12,6 +12,8 @@ export const formats = {
     /** "20" and "10": the day and month an order is collected, joined as "20/10" by the catalogs. */
     dayOfMonth: { day: "2-digit" },
     monthOfYear: { month: "2-digit" },
+    /** "18 tháng 10, 2026", "October 18, 2026": the day a document changed. */
+    date: { day: "numeric", month: "long", year: "numeric" },
   },
   number: {
     /** "350 m": how far a seller is, under a kilometre. */

@@ -6,6 +6,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 
 - SEC-5 — Repository foundation, 16 October 2026: brief, vision, conventions, guidelines, the research done before design, the Go agent skills and the Linear MCP server.
 - [SEC-10 — Backend foundation and the `seller` module](increments/completed/sec-10-backend-foundation/design.md), 17 October 2026: the Go service with its checks in CI, sign-in by emailed code with bearer sessions, email through the provider admins choose (SMTP or Brevo), and `seller` (opened by anyone, activated by admins, staffed by its owner). Specs and test matrices under `docs/specs/` and `docs/tests/`; Brevo's delivery reports moved to SEC-24.
+- [SEC-52 — Legal, error and account screens](increments/completed/sec-52-legal-error-account-screens/design.md), 20 October 2026: redrawn in Figma as web desktop and mobile app; on the web under the seller header and findable by search and answer engines (metadata, language alternates, JSON-LD, sitemap); in the app the legal pages open inside it and every screen but the home has the blue top bar (PR #30). Staging to be measured again with PageSpeed once deployed.
 
 ## Active
 

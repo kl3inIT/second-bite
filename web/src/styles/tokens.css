@@ -46,6 +46,7 @@
   --inverse-muted: var(--text-on-brand);
   --shell: var(--base-white);
   --shell-foreground: var(--text-ink);
+  --sky: var(--brand-500);
   --header: var(--brand-800);
   --header-foreground: var(--base-white);
   --header-raised: var(--base-white);
@@ -99,6 +100,7 @@
   --color-inverse-muted: var(--inverse-muted);
   --color-shell: var(--shell);
   --color-shell-foreground: var(--shell-foreground);
+  --color-sky: var(--sky);
   --color-header: var(--header);
   --color-header-foreground: var(--header-foreground);
   --color-header-raised: var(--header-raised);
@@ -177,6 +179,12 @@
   --text-headline: 20px;
   --text-headline--line-height: 28px;
   --text-headline--font-weight: 700;
+  --text-page-title: 28px;
+  --text-page-title--line-height: 36px;
+  --text-page-title--font-weight: 600;
+  --text-hero: 44px;
+  --text-hero--line-height: 54px;
+  --text-hero--font-weight: 700;
   --text-figure-sm: 12px;
   --text-figure-sm--line-height: 16px;
   --text-figure-sm--font-weight: 700;
