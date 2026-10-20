@@ -22,9 +22,14 @@ abstract class AdminClient {
   @GET('/admin/email-settings')
   Future<EmailSettingsBody> getEmailSettings();
 
-  /// Choose who delivers email; the next email uses it
+  /// Choose who delivers email; the next email uses it.
+  ///
+  /// If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes. The first settings are saved with `secondbite email configure`.
+  ///
+  /// [ifMatch] - The ETag of the settings read.
   @PUT('/admin/email-settings')
   Future<void> saveEmailSettings({
+    @Header('If-Match') required String ifMatch,
     @Body() required SaveEmailSettingsInputBody body,
   });
 
@@ -34,9 +39,12 @@ abstract class AdminClient {
 
   /// Change the rules every offer follows.
   ///
-  /// New rules apply to offers posted, and to the prices and windows changed, after they are saved.
+  /// New rules apply to offers posted, and to the prices and windows changed, after they are saved. If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes.
+  ///
+  /// [ifMatch] - The ETag of the settings read.
   @PUT('/admin/offer-settings')
   Future<OfferSettingsBody> saveOfferSettings({
+    @Header('If-Match') required String ifMatch,
     @Body() required OfferSettingsBody body,
   });
 

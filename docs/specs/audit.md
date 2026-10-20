@@ -18,6 +18,13 @@ Published to other modules: `Record(ctx, tx, resource, action)`, which writes on
 - The table is append-only by the module's code: it only inserts, and only nulls labels. Nothing else touches it.
 - When an account is deleted, the labels naming it, as the actor or as the resource, are nulled; its identifier and its actions stay. A store's name stays, since it names a store, not a person.
 
+## Catalog
+
+| Action | Resource | Details | Recorded by |
+| --- | --- | --- | --- |
+| `offer_settings.change` | `offer_settings`, `current` | `fields`: the settings changed, as the API names them | `offer` |
+| `email_settings.change` | `email_settings`, `current` | `provider`; `fields`: the settings changed, a secret by name only | `notification` |
+
 ## Data
 
 | Table | Holds | Lifecycle |

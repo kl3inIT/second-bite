@@ -140,7 +140,7 @@ type SellerRejected struct{ Reason string `json:"reason"` }
 type SellerBlocked struct{ Reason string `json:"reason"` }
 type SellerUnblocked struct{}
 type OfferSettingsChanged struct{ Fields []string `json:"fields"` }
-type EmailSettingsChanged struct{ Provider string `json:"provider"` } // never a secret
+type EmailSettingsChanged struct{ Provider string `json:"provider"`; Fields []string `json:"fields"` } // names, never a secret
 type AdminGranted struct{ Source string `json:"source"` }            // "admin" or "command_line"
 type AdminRevoked struct{ Source string `json:"source"` }
 ```

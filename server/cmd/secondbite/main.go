@@ -154,12 +154,12 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 			return nil, err
 		}
 
-		notifications, err := notification.NewService(pool, notification.Config{SettingsKey: settingsKey}, logger)
+		trail := audit.NewService(pool, logger)
+
+		notifications, err := notification.NewService(pool, trail, notification.Config{SettingsKey: settingsKey}, logger)
 		if err != nil {
 			return nil, err
 		}
-
-		trail := audit.NewService(pool, logger)
 
 		identities, err := identity.NewService(pool, notifications, events, trail, identity.Config{
 			CodeKey: codeKey, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")),
@@ -179,7 +179,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		}
 
 		sellers := seller.NewService(pool, identities, files, logger)
-		offers := offer.NewService(pool, sellers, files, logger)
+		offers := offer.NewService(pool, sellers, files, trail, logger)
 
 		// The listeners are known before anything publishes; they run only in
 		// serve.

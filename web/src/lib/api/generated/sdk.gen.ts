@@ -99,6 +99,8 @@ export const getEmailSettings = <ThrowOnError extends boolean = true>(options?: 
 
 /**
  * Choose who delivers email; the next email uses it
+ *
+ * If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes. The first settings are saved with `secondbite email configure`.
  */
 export const saveEmailSettings = <ThrowOnError extends boolean = true>(options: Options<SaveEmailSettingsData, ThrowOnError>): RequestResult<SaveEmailSettingsResponses, SaveEmailSettingsErrors, ThrowOnError> => (options.client ?? client).put<SaveEmailSettingsResponses, SaveEmailSettingsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -130,7 +132,7 @@ export const getOfferSettings = <ThrowOnError extends boolean = true>(options?: 
 /**
  * Change the rules every offer follows
  *
- * New rules apply to offers posted, and to the prices and windows changed, after they are saved.
+ * New rules apply to offers posted, and to the prices and windows changed, after they are saved. If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes.
  */
 export const saveOfferSettings = <ThrowOnError extends boolean = true>(options: Options<SaveOfferSettingsData, ThrowOnError>): RequestResult<SaveOfferSettingsResponses, SaveOfferSettingsErrors, ThrowOnError> => (options.client ?? client).put<SaveOfferSettingsResponses, SaveOfferSettingsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {

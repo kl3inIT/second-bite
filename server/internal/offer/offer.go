@@ -19,6 +19,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/offer/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
@@ -69,13 +70,18 @@ type Service struct {
 	queries *db.Queries
 	sellers *seller.Service
 	files   *file.Service
+	trail   *audit.Service
 	logger  *slog.Logger
 	now     func() time.Time
 }
 
 // NewService assembles the module.
-func NewService(pool *pgxpool.Pool, sellers *seller.Service, files *file.Service, logger *slog.Logger) *Service {
-	return &Service{pool: pool, queries: db.New(pool), sellers: sellers, files: files, logger: logger, now: time.Now}
+func NewService(
+	pool *pgxpool.Pool, sellers *seller.Service, files *file.Service, trail *audit.Service, logger *slog.Logger,
+) *Service {
+	return &Service{
+		pool: pool, queries: db.New(pool), sellers: sellers, files: files, trail: trail, logger: logger, now: time.Now,
+	}
 }
 
 // Post puts an offer on sale for a seller the caller owns or works for, at

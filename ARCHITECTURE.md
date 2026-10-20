@@ -39,7 +39,8 @@ One line per module, naming the modules whose published API it may use, such as 
 
 - `file` → `identity`
 - `identity` → `audit`, `notification`
-- `offer` → `file`, `identity`, `seller`
+- `notification` → `audit`
+- `offer` → `audit`, `file`, `identity`, `seller`
 - `seller` → `file`, `identity`
 
 ## Repository contents

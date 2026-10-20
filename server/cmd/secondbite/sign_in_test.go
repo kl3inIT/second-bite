@@ -346,8 +346,12 @@ func checkSMTPPasswordFollowsServer(t *testing.T, svc service) {
 	send(t, http.MethodGet, svc.base+"/admin/email-settings", auth, nil).decode(t, http.StatusOK, &current)
 
 	put := func(body map[string]any) response {
-		return send(t, http.MethodPut, svc.base+"/admin/email-settings", auth, body)
+		_, etag := readSettings(t, svc, auth, "/admin/email-settings")
+
+		return saveSettings(t, svc, auth, "/admin/email-settings", etag, body)
 	}
+
+	checkStaleSettingsRefused(t, svc, auth)
 
 	withPassword := map[string]any{
 		"provider": "smtp", "senderAddress": "no-reply@secondbite.test", "senderName": "Second Bite",
@@ -428,5 +432,34 @@ func checkAdminOnly(t *testing.T, svc service) {
 
 	if settings.Provider != "smtp" || settings.SMTPPasswordSet {
 		t.Errorf("settings %+v", settings)
+	}
+}
+
+// checkStaleSettingsRefused saves the email settings with a version from
+// before a change, and with none: neither is saved (SEC-75).
+func checkStaleSettingsRefused(t *testing.T, svc service, auth http.Header) {
+	t.Helper()
+
+	const path = "/admin/email-settings"
+
+	settings, before := readSettings(t, svc, auth, path)
+
+	renamed := maps.Clone(settings)
+	renamed["senderName"] = "Second Bite (lần 1)"
+
+	if resp := saveSettings(t, svc, auth, path, before, renamed); resp.status != http.StatusNoContent {
+		t.Fatalf("saving: %d %s", resp.status, resp.body)
+	}
+
+	renamed["senderName"] = "Second Bite (lần 2)"
+	if p := saveSettings(t, svc, auth, path, before, renamed).problem(t, http.StatusPreconditionFailed); p.Code != "PLATFORM_CHANGED_SINCE_READ" {
+		t.Errorf("saving over a change made since reading: %q", p.Code)
+	}
+
+	send(t, http.MethodPut, svc.base+path, auth, renamed).problem(t, http.StatusBadRequest)
+
+	_, now := readSettings(t, svc, auth, path)
+	if resp := saveSettings(t, svc, auth, path, now, settings); resp.status != http.StatusNoContent {
+		t.Fatalf("restoring: %d %s", resp.status, resp.body)
 	}
 }

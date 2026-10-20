@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
+
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 type emailSettingsBody struct {
@@ -22,11 +24,13 @@ type emailSettingsBody struct {
 }
 
 type emailSettingsOutput struct {
+	ETag string `header:"ETag" doc:"The settings' version, sent back in If-Match to save them"`
 	Body emailSettingsBody
 }
 
 type saveEmailSettingsInput struct {
-	Body struct {
+	IfMatch string `header:"If-Match" doc:"The ETag of the settings read" required:"true"`
+	Body    struct {
 		Provider      EmailProvider `json:"provider"               enum:"smtp,brevo"`
 		SenderAddress string        `json:"senderAddress"          format:"email" maxLength:"254"`
 		SenderName    string        `json:"senderName"             maxLength:"100" minLength:"1"`
@@ -53,7 +57,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 			return nil, err
 		}
 
-		return &emailSettingsOutput{Body: emailSettingsBody{
+		return &emailSettingsOutput{ETag: platform.ETag(settings.UpdatedAt), Body: emailSettingsBody{
 			Provider:        settings.Provider,
 			SenderAddress:   settings.SenderAddress,
 			SenderName:      settings.SenderName,
@@ -68,18 +72,25 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 	})
 
 	huma.Register(admin, huma.Operation{
-		OperationID:   "saveEmailSettings",
-		Method:        http.MethodPut,
-		Path:          "/email-settings",
-		Summary:       "Choose who delivers email; the next email uses it",
+		OperationID: "saveEmailSettings",
+		Method:      http.MethodPut,
+		Path:        "/email-settings",
+		Summary:     "Choose who delivers email; the next email uses it",
+		Description: "If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes. " +
+			"The first settings are saved with `secondbite email configure`.",
 		DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, in *saveEmailSettingsInput) (*struct{}, error) {
+		version, ok := platform.VersionOf(in.IfMatch)
+		if !ok {
+			return nil, platform.ErrChangedSinceRead
+		}
+
 		b := in.Body
 
 		return nil, s.SaveEmailSettings(ctx, EmailSettingsChange{
 			Provider: b.Provider, SenderAddress: b.SenderAddress, SenderName: b.SenderName,
 			SMTPHost: b.SMTPHost, SMTPPort: b.SMTPPort, SMTPSecurity: b.SMTPSecurity,
 			SMTPUsername: b.SMTPUsername, SMTPPassword: b.SMTPPassword, BrevoAPIKey: b.BrevoAPIKey,
-		})
+		}, version)
 	})
 }

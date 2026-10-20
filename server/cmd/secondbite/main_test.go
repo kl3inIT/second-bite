@@ -81,6 +81,10 @@ func TestService(t *testing.T) {
 		checkSMTPPasswordFollowsServer(t, svc)
 	})
 
+	t.Run("every admin change is audited", func(t *testing.T) { //nolint:paralleltest // it changes the settings the other checks use
+		checkAdminChangesAreAudited(t, svc)
+	})
+
 	// Cleanups run after the checks, and before the containers'.
 	t.Cleanup(func() {
 		if err := stop(); err != nil {

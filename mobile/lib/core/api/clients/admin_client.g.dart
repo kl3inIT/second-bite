@@ -49,11 +49,13 @@ class _AdminClient implements AdminClient {
 
   @override
   Future<void> saveEmailSettings({
+    required String ifMatch,
     required SaveEmailSettingsInputBody body,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'If-Match': ifMatch};
+    _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
     final _options = _setStreamType<void>(
@@ -98,11 +100,13 @@ class _AdminClient implements AdminClient {
 
   @override
   Future<OfferSettingsBody> saveOfferSettings({
+    required String ifMatch,
     required OfferSettingsBody body,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'If-Match': ifMatch};
+    _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
     final _options = _setStreamType<OfferSettingsBody>(

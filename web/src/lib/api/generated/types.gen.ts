@@ -640,6 +640,12 @@ export type GetEmailSettingsResponse = GetEmailSettingsResponses[keyof GetEmailS
 
 export type SaveEmailSettingsData = {
     body: SaveEmailSettingsInputBody;
+    headers: {
+        /**
+         * The ETag of the settings read
+         */
+        'If-Match': string;
+    };
     path?: never;
     query?: never;
     url: '/admin/email-settings';
@@ -690,6 +696,12 @@ export type GetOfferSettingsResponse = GetOfferSettingsResponses[keyof GetOfferS
 
 export type SaveOfferSettingsData = {
     body: OfferSettingsBodyWritable;
+    headers: {
+        /**
+         * The ETag of the settings read
+         */
+        'If-Match': string;
+    };
     path?: never;
     query?: never;
     url: '/admin/offer-settings';

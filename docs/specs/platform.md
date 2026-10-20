@@ -29,6 +29,7 @@ Every error is an RFC 9457 problem (`application/problem+json`) with `type` (`ur
 | `NOT_PERMITTED` | 403 | |
 | `NOT_FOUND` | 404 | |
 | `CONFLICT` | 409 | |
+| `STALE` | 412 | A change sent with a version that is no longer the current one (SEC-75) |
 | `GONE` | 410 | |
 | `LIMIT_EXCEEDED` | 429 | `Retry-After` in whole seconds when the failure carries a wait |
 | `SERVICE_UNAVAILABLE` | 503 | `Retry-After` likewise |
@@ -41,6 +42,7 @@ Failures the platform answers itself:
 | `PLATFORM_AUTHENTICATION_REQUIRED` | 401 | An operation that needs a caller is called without one |
 | `PLATFORM_ADMIN_REQUIRED` | 403 | An admin operation is called by someone else |
 | `PLATFORM_CROSS_ORIGIN_REFUSED` | 403 | A change of state authenticated by the session cookie comes from another origin |
+| `PLATFORM_CHANGED_SINCE_READ` | 412 | `If-Match` names a version that is no longer the current one, or none |
 | `PLATFORM_ROUTE_NOT_FOUND` | 404 | No route matches the path |
 | `PLATFORM_METHOD_NOT_ALLOWED` | 405 | The path exists for other methods, listed in `Allow` |
 | `PLATFORM_INTERNAL_FAILURE` | 500 | An uncaught error or a panic; the cause is logged with the request's identifier, never answered |
@@ -52,6 +54,10 @@ Failures the platform answers itself:
 - The contract declares both schemes, `bearer` and `cookie`; an operation that needs a caller lists either (`platform.SignedIn`), one open to anyone lists none as well (`platform.MaybeSignedIn`).
 - A module reads the caller through `platform.CallerFrom`, `RequireCaller` and `RequireAdmin`, so it authorizes without depending on `identity`.
 - Roles are `customer` and `admin`.
+
+## Versions
+
+- A setting kept in one row is changed only at the version read (SEC-75). Its read answers `ETag`, a strong tag of the row's `updated_at` in microseconds (`platform.ETag`). A save requires `If-Match` with that tag. The service locks the row, compares, and answers 412 `PLATFORM_CHANGED_SINCE_READ` when someone saved since. A weak tag, `*` or several tags name no version.
 - Every admin operation is registered on the group `platform.NewAdminGroup` returns, under `/admin` (SEC-75). The group tags it `Admin`, documents that it needs a session, and refuses anyone but an admin before the request is read: 401 `PLATFORM_AUTHENTICATION_REQUIRED` signed out, 403 `PLATFORM_ADMIN_REQUIRED` otherwise. The service checks `RequireAdmin` as well. A test calls every operation under `/admin` both ways.
 
 ## Events between modules
