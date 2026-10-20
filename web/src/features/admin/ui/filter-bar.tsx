@@ -3,7 +3,7 @@
 import { enUS, vi } from "date-fns/locale";
 import { CalendarIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 import type { DateRange as DayRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,8 @@ export type FilterOption = { value: string; label: string };
 
 /**
  * A select of a filter bar (Figma Admin/Select 228:5658): "Khu vực: Tất cả", its name muted and its value
- * strong.
+ * strong. The trigger is a combobox, which takes no name from what it holds, so it is named by its label;
+ * the value is read out as the combobox's own.
  */
 export function FilterSelect({
   label,
@@ -79,6 +80,7 @@ export function FilterSelect({
   options: FilterOption[];
   onChange: (value: string) => void;
 }) {
+  const labelId = useId();
   return (
     <Select
       value={value}
@@ -87,8 +89,10 @@ export function FilterSelect({
         if (typeof next === "string") onChange(next);
       }}
     >
-      <SelectTrigger size="admin">
-        <span className="text-muted-foreground">{label}:</span>
+      <SelectTrigger size="admin" aria-labelledby={labelId}>
+        <span id={labelId} className="text-muted-foreground">
+          {label}:
+        </span>
         <span className="text-body-sm-strong text-foreground">
           <SelectValue />
         </span>

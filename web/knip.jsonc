@@ -12,6 +12,7 @@
         "scripts/*.mjs",
         "src/features/admin/ui/**/*.tsx",
         "src/features/admin/{admin-page,admin-crumbs,admin-toast,session}.{ts,tsx}",
+        "src/i18n/day-month.ts",
       ],
     },
     "tools/openapi": {},

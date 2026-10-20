@@ -30,6 +30,7 @@ export function ConfirmDialog({
   cancelLabel,
   confirmIcon: ConfirmIcon,
   confirmDisabled = false,
+  confirmTitle,
   onConfirm,
   destructive = false,
   pending = false,
@@ -45,6 +46,8 @@ export function ConfirmDialog({
   confirmIcon?: LucideIcon;
   /** The action waits for the form to be filled, such as a reason chosen. */
   confirmDisabled?: boolean;
+  /** The action's hint under the pointer, such as "Sắp có" on one whose API is not built yet. */
+  confirmTitle?: string;
   onConfirm: () => void;
   destructive?: boolean;
   pending?: boolean;
@@ -70,6 +73,7 @@ export function ConfirmDialog({
           <AlertDialogAction
             variant={destructive ? "danger" : "default"}
             disabled={pending || confirmDisabled}
+            title={confirmTitle}
             onClick={onConfirm}
           >
             {pending ? (

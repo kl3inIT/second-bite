@@ -13,8 +13,7 @@ export const formats = {
     date: { day: "numeric", month: "long", year: "numeric" },
     /** "20/10/2026": a day in an admin table or filter (SEC-62). */
     day: { day: "2-digit", month: "2-digit", year: "numeric" },
-    /** "20/10": a day on an admin chart's axis. */
-    dayMonth: { day: "2-digit", month: "2-digit" },
+    // A day and its month alone ("20/10") is formatDayMonth (./day-month.ts): Intl writes it "20-10" in Vietnamese.
     /** "Thứ Ba, 20/10/2026": the day under the pointer on an admin chart (Figma AD-TQ2). */
     weekdayDay: { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" },
   },
