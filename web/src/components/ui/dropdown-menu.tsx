@@ -19,12 +19,17 @@ function DropdownMenuTrigger({
   className,
   variant = "plain",
   ...props
-}: MenuPrimitive.Trigger.Props & { variant?: "plain" | "header" }) {
+}: MenuPrimitive.Trigger.Props & { variant?: "plain" | "header" | "chip" | "inline" }) {
   return (
     <MenuPrimitive.Trigger
       data-slot="dropdown-menu-trigger"
       data-variant={variant}
       className={cn(
+        // Second Bite (Figma K2 chip lọc): a filter chip, fully rounded on the sky ground without an edge, its
+        // value shown once chosen (`data-active`), and a 44px target around its 34px.
+        "data-[variant=chip]:relative data-[variant=chip]:flex data-[variant=chip]:h-8.5 data-[variant=chip]:shrink-0 data-[variant=chip]:items-center data-[variant=chip]:gap-1.5 data-[variant=chip]:rounded-full data-[variant=chip]:bg-muted data-[variant=chip]:px-3.5 data-[variant=chip]:text-body-sm data-[variant=chip]:text-foreground data-[variant=chip]:transition-colors data-[variant=chip]:after:absolute data-[variant=chip]:after:inset-x-0 data-[variant=chip]:after:-inset-y-1.25 data-[variant=chip]:hover:bg-secondary data-[variant=chip]:focus-visible:ring-3 data-[variant=chip]:focus-visible:ring-ring/50 data-[variant=chip]:focus-visible:outline-none data-[variant=chip]:data-active:bg-secondary data-[variant=chip]:data-active:text-body-sm-strong data-[variant=chip]:data-active:text-primary",
+        // Second Bite (Figma K2 tóm tắt): a menu opened from a short link in a line, such as "Gần nhất".
+        "data-[variant=inline]:-my-3 data-[variant=inline]:flex data-[variant=inline]:min-h-11 data-[variant=inline]:items-center data-[variant=inline]:gap-1 data-[variant=inline]:text-label-strong data-[variant=inline]:text-link data-[variant=inline]:focus-visible:ring-3 data-[variant=inline]:focus-visible:ring-ring/50 data-[variant=inline]:focus-visible:outline-none",
         "data-[variant=header]:-my-1.5 data-[variant=header]:flex data-[variant=header]:size-11 data-[variant=header]:items-center data-[variant=header]:justify-center data-[variant=header]:rounded-full data-[variant=header]:focus-visible:ring-3 data-[variant=header]:focus-visible:ring-ring data-[variant=header]:focus-visible:ring-offset-2 data-[variant=header]:focus-visible:ring-offset-card data-[variant=header]:focus-visible:outline-none",
         className,
       )}

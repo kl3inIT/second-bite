@@ -67,6 +67,7 @@
   --fresh-foreground: var(--accent-lime-ink);
   --fresh-muted: var(--accent-lime-100);
   --rating: var(--rating-star);
+  --sale: var(--status-error);
   --destructive: var(--status-error);
   --destructive-foreground: var(--base-white);
   --destructive-hover: #912018;
@@ -119,6 +120,7 @@
   --color-fresh-foreground: var(--fresh-foreground);
   --color-fresh-muted: var(--fresh-muted);
   --color-rating: var(--rating);
+  --color-sale: var(--sale);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive-hover: var(--destructive-hover);
@@ -144,6 +146,7 @@
   --radius-4xl: 32px;
   --radius-full: 9999px;
   --shadow-sheet: 0px -4px 24px 0px #0E1D191F;
+  --shadow-nav: 0px 8px 24px 0px #05122924;
   --text-label: 12px;
   --text-label--line-height: 17px;
   --text-label--font-weight: 400;
@@ -162,6 +165,9 @@
   --text-title: 15px;
   --text-title--line-height: 21px;
   --text-title--font-weight: 600;
+  --text-title-lg: 16px;
+  --text-title-lg--line-height: 22px;
+  --text-title-lg--font-weight: 600;
   --text-button: 16px;
   --text-button--line-height: 20px;
   --text-button--font-weight: 600;
@@ -182,8 +188,8 @@
   --text-price--line-height: 18px;
   --text-price--font-weight: 700;
   --text-price--letter-spacing: -0.01em;
-  --text-price-lg: 22px;
-  --text-price-lg--line-height: 25px;
+  --text-price-lg: 20px;
+  --text-price-lg--line-height: 24px;
   --text-price-lg--font-weight: 700;
   --text-price-lg--letter-spacing: -0.01em;
   --text-display: 36px;
