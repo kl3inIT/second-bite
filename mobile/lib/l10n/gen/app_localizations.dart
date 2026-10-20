@@ -853,6 +853,186 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Chưa thấy email? Xem trong thư rác (Spam).'**
   String get signInNotArrived;
+
+  /// The deletion screen's title and the account tab's entry
+  ///
+  /// In vi, this message translates to:
+  /// **'Xoá tài khoản'**
+  String get deleteAccountTitle;
+
+  /// What deleting means, first on the screen
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn có thể xoá tài khoản Second Bite bất cứ lúc nào, trong ứng dụng hoặc tại trang này. Việc xoá là vĩnh viễn và không thể hoàn tác.'**
+  String get deleteAccountIntro;
+
+  /// The heading of what goes at once
+  ///
+  /// In vi, this message translates to:
+  /// **'Bị xoá ngay khi bạn xác nhận'**
+  String get deleteAccountDeletedTitle;
+
+  /// Something deleted at once
+  ///
+  /// In vi, this message translates to:
+  /// **'Tài khoản của bạn: địa chỉ email và tên hiển thị.'**
+  String get deleteAccountDeleted1;
+
+  /// Something deleted at once
+  ///
+  /// In vi, this message translates to:
+  /// **'Mọi phiên đăng nhập trên mọi thiết bị, và liên kết với tài khoản Google.'**
+  String get deleteAccountDeleted2;
+
+  /// Something deleted at once
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã đăng nhập và bản ghi các email chúng tôi đã gửi cho bạn.'**
+  String get deleteAccountDeleted3;
+
+  /// The heading of what goes within minutes
+  ///
+  /// In vi, this message translates to:
+  /// **'Bị xoá trong vài phút sau đó'**
+  String get deleteAccountLaterTitle;
+
+  /// Something deleted within minutes
+  ///
+  /// In vi, this message translates to:
+  /// **'Tư cách chủ quán hoặc nhân viên của bạn ở các quán.'**
+  String get deleteAccountLater1;
+
+  /// Something deleted within minutes
+  ///
+  /// In vi, this message translates to:
+  /// **'Ảnh bạn đã tải lên nhưng chưa dùng cho món hay quán nào.'**
+  String get deleteAccountLater2;
+
+  /// The heading of what is kept
+  ///
+  /// In vi, this message translates to:
+  /// **'Được giữ lại, không còn gắn với bạn'**
+  String get deleteAccountKeptTitle;
+
+  /// Something kept, no longer linked to the person
+  ///
+  /// In vi, this message translates to:
+  /// **'Món đã đăng, ảnh món và ảnh quán: chúng thuộc về quán.'**
+  String get deleteAccountKept1;
+
+  /// Something kept, no longer linked to the person
+  ///
+  /// In vi, this message translates to:
+  /// **'Đơn hàng và thanh toán mà pháp luật buộc phải giữ, khi tính năng đặt món mở; thời hạn giữ đang cập nhật.'**
+  String get deleteAccountKept2;
+
+  /// The warning to the owner of a seller
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đang là chủ quán'**
+  String get deleteAccountOwnerTitle;
+
+  /// What happens to the sellers the person owns
+  ///
+  /// In vi, this message translates to:
+  /// **'Xoá tài khoản sẽ đóng {sellers}: quán ngừng hiển thị với khách và nhân viên không quản lý được nữa, cho tới khi Second Bite xử lý.'**
+  String deleteAccountOwnerBody(String sellers);
+
+  /// Shown to someone signed out
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập để xoá tài khoản'**
+  String get deleteAccountSignedOutTitle;
+
+  /// Why signing in comes first
+  ///
+  /// In vi, this message translates to:
+  /// **'Để chắc người xoá là chủ tài khoản, bạn đăng nhập rồi nhập mã chúng tôi gửi đến email của tài khoản.'**
+  String get deleteAccountSignedOutBody;
+
+  /// The button that emails the deletion code
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi mã xác nhận'**
+  String get deleteAccountSendCode;
+
+  /// The button while the code is sent
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang gửi mã…'**
+  String get deleteAccountSending;
+
+  /// Where the code will go
+  ///
+  /// In vi, this message translates to:
+  /// **'Chúng tôi sẽ gửi mã 6 số đến {email} để xác nhận bạn muốn xoá tài khoản.'**
+  String deleteAccountConfirmBody(String email);
+
+  /// The heading of the code step
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập mã xác nhận'**
+  String get deleteAccountCodeHeading;
+
+  /// Where the code went
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã 6 số đã gửi đến {email}. Mã chỉ dùng để xoá tài khoản.'**
+  String deleteAccountCodeSent(String email);
+
+  /// The code field, as a screen reader names it
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã xác nhận 6 số'**
+  String get deleteAccountCodeLabel;
+
+  /// The button that deletes the account
+  ///
+  /// In vi, this message translates to:
+  /// **'Xoá vĩnh viễn tài khoản'**
+  String get deleteAccountConfirm;
+
+  /// The button while the account is deleted
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang xoá…'**
+  String get deleteAccountDeleting;
+
+  /// The way back without deleting
+  ///
+  /// In vi, this message translates to:
+  /// **'Giữ tài khoản'**
+  String get deleteAccountCancel;
+
+  /// Any other failure
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa xoá được tài khoản. Vui lòng thử lại.'**
+  String get deleteAccountFailed;
+
+  /// Any other failure, with the reference to report
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa xoá được tài khoản. Vui lòng thử lại. Mã tham chiếu: {reference}'**
+  String deleteAccountFailedWithReference(String reference);
+
+  /// Shown once the account is deleted
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã xoá tài khoản'**
+  String get deleteAccountDoneTitle;
+
+  /// What the deletion did, and that the address can sign in again
+  ///
+  /// In vi, this message translates to:
+  /// **'Tài khoản và dữ liệu cá nhân của bạn đã được xoá. Bạn vẫn có thể đăng nhập lại bằng email này bất cứ lúc nào, như một tài khoản mới.'**
+  String get deleteAccountDoneBody;
+
+  /// The button home after the deletion
+  ///
+  /// In vi, this message translates to:
+  /// **'Về trang chủ'**
+  String get deleteAccountHome;
 }
 
 class _AppLocalizationsDelegate

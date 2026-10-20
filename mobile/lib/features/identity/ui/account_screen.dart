@@ -166,6 +166,37 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     ),
                   ),
                 ),
+                // Deleting the account, where the stores ask for it: in the
+                // account's own settings (SEC-37).
+                if (account != null)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(SpacingTokens.space1),
+                      child: ListTile(
+                        minTileHeight: 48,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(RadiusTokens.xl),
+                        ),
+                        leading: Icon(
+                          LucideIcons.trash2,
+                          size: 18,
+                          color: scheme.error,
+                        ),
+                        title: Text(
+                          l10n.deleteAccountTitle,
+                          style: text.body.copyWith(color: scheme.error),
+                        ),
+                        trailing: Icon(
+                          LucideIcons.chevronRight,
+                          size: 16,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        onTap: () => unawaited(
+                          const DeleteAccountRoute().push<void>(context),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

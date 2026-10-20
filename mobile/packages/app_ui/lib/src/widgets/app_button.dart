@@ -10,6 +10,10 @@ enum AppButtonVariant {
 
   /// An outlined button.
   outline,
+
+  /// The danger red, for an action that cannot be undone, such as deleting
+  /// the account.
+  destructive,
 }
 
 /// {@template app_button}
@@ -76,7 +80,27 @@ class AppButton extends StatelessWidget {
         onPressed: onPressed,
         child: child,
       ),
+      AppButtonVariant.destructive when icon != null => FilledButton.icon(
+        onPressed: onPressed,
+        style: _destructiveStyle(scheme, colors),
+        icon: icon,
+        label: child,
+      ),
+      AppButtonVariant.destructive => FilledButton(
+        onPressed: onPressed,
+        style: _destructiveStyle(scheme, colors),
+        child: child,
+      ),
     };
+  }
+
+  static ButtonStyle _destructiveStyle(ColorScheme scheme, AppColors colors) {
+    return _pressedStyle(scheme.error, colors.destructiveHover).copyWith(
+      foregroundColor: WidgetStateProperty.resolveWith(
+        (states) =>
+            states.contains(WidgetState.disabled) ? null : scheme.onError,
+      ),
+    );
   }
 
   /// [rest] normally and [pressed] under the finger or the pointer; a disabled

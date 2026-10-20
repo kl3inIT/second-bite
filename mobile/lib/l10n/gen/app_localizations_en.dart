@@ -471,4 +471,112 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signInNotArrived => 'No email yet? Check your spam folder.';
+
+  @override
+  String get deleteAccountTitle => 'Delete your account';
+
+  @override
+  String get deleteAccountIntro =>
+      'You can delete your Second Bite account at any time, in the app or on this page. Deleting it is permanent and cannot be undone.';
+
+  @override
+  String get deleteAccountDeletedTitle => 'Deleted as soon as you confirm';
+
+  @override
+  String get deleteAccountDeleted1 =>
+      'Your account: your email address and display name.';
+
+  @override
+  String get deleteAccountDeleted2 =>
+      'Every session on every device, and the link to your Google account.';
+
+  @override
+  String get deleteAccountDeleted3 =>
+      'Sign-in codes and the record of the emails we sent you.';
+
+  @override
+  String get deleteAccountLaterTitle => 'Deleted within a few minutes';
+
+  @override
+  String get deleteAccountLater1 => 'Your place as a seller\'s owner or staff.';
+
+  @override
+  String get deleteAccountLater2 =>
+      'Photos you uploaded that no dish or seller uses.';
+
+  @override
+  String get deleteAccountKeptTitle => 'Kept, no longer linked to you';
+
+  @override
+  String get deleteAccountKept1 =>
+      'Dishes posted, their photos and sellers\' photos: they belong to the seller.';
+
+  @override
+  String get deleteAccountKept2 =>
+      'Orders and payments the law requires us to keep, once ordering opens; how long is to be added.';
+
+  @override
+  String get deleteAccountOwnerTitle => 'You own a seller';
+
+  @override
+  String deleteAccountOwnerBody(String sellers) {
+    return 'Deleting your account closes $sellers: it stops showing to customers and its staff can no longer manage it, until Second Bite steps in.';
+  }
+
+  @override
+  String get deleteAccountSignedOutTitle => 'Sign in to delete your account';
+
+  @override
+  String get deleteAccountSignedOutBody =>
+      'To be sure the account is yours, you sign in, then type the code we email to the account\'s address.';
+
+  @override
+  String get deleteAccountSendCode => 'Send the code';
+
+  @override
+  String get deleteAccountSending => 'Sending the code…';
+
+  @override
+  String deleteAccountConfirmBody(String email) {
+    return 'We will email a six-digit code to $email to confirm that you want to delete your account.';
+  }
+
+  @override
+  String get deleteAccountCodeHeading => 'Enter the code';
+
+  @override
+  String deleteAccountCodeSent(String email) {
+    return 'A six-digit code was sent to $email. It only deletes the account.';
+  }
+
+  @override
+  String get deleteAccountCodeLabel => 'Six-digit confirmation code';
+
+  @override
+  String get deleteAccountConfirm => 'Delete my account for good';
+
+  @override
+  String get deleteAccountDeleting => 'Deleting…';
+
+  @override
+  String get deleteAccountCancel => 'Keep my account';
+
+  @override
+  String get deleteAccountFailed =>
+      'Your account could not be deleted. Please try again.';
+
+  @override
+  String deleteAccountFailedWithReference(String reference) {
+    return 'Your account could not be deleted. Please try again. Reference: $reference';
+  }
+
+  @override
+  String get deleteAccountDoneTitle => 'Your account is deleted';
+
+  @override
+  String get deleteAccountDoneBody =>
+      'Your account and your personal data are deleted. You can still sign in with this address at any time, as a new account.';
+
+  @override
+  String get deleteAccountHome => 'Back to home';
 }

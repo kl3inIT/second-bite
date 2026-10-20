@@ -468,4 +468,113 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get signInNotArrived => 'Chưa thấy email? Xem trong thư rác (Spam).';
+
+  @override
+  String get deleteAccountTitle => 'Xoá tài khoản';
+
+  @override
+  String get deleteAccountIntro =>
+      'Bạn có thể xoá tài khoản Second Bite bất cứ lúc nào, trong ứng dụng hoặc tại trang này. Việc xoá là vĩnh viễn và không thể hoàn tác.';
+
+  @override
+  String get deleteAccountDeletedTitle => 'Bị xoá ngay khi bạn xác nhận';
+
+  @override
+  String get deleteAccountDeleted1 =>
+      'Tài khoản của bạn: địa chỉ email và tên hiển thị.';
+
+  @override
+  String get deleteAccountDeleted2 =>
+      'Mọi phiên đăng nhập trên mọi thiết bị, và liên kết với tài khoản Google.';
+
+  @override
+  String get deleteAccountDeleted3 =>
+      'Mã đăng nhập và bản ghi các email chúng tôi đã gửi cho bạn.';
+
+  @override
+  String get deleteAccountLaterTitle => 'Bị xoá trong vài phút sau đó';
+
+  @override
+  String get deleteAccountLater1 =>
+      'Tư cách chủ quán hoặc nhân viên của bạn ở các quán.';
+
+  @override
+  String get deleteAccountLater2 =>
+      'Ảnh bạn đã tải lên nhưng chưa dùng cho món hay quán nào.';
+
+  @override
+  String get deleteAccountKeptTitle => 'Được giữ lại, không còn gắn với bạn';
+
+  @override
+  String get deleteAccountKept1 =>
+      'Món đã đăng, ảnh món và ảnh quán: chúng thuộc về quán.';
+
+  @override
+  String get deleteAccountKept2 =>
+      'Đơn hàng và thanh toán mà pháp luật buộc phải giữ, khi tính năng đặt món mở; thời hạn giữ đang cập nhật.';
+
+  @override
+  String get deleteAccountOwnerTitle => 'Bạn đang là chủ quán';
+
+  @override
+  String deleteAccountOwnerBody(String sellers) {
+    return 'Xoá tài khoản sẽ đóng $sellers: quán ngừng hiển thị với khách và nhân viên không quản lý được nữa, cho tới khi Second Bite xử lý.';
+  }
+
+  @override
+  String get deleteAccountSignedOutTitle => 'Đăng nhập để xoá tài khoản';
+
+  @override
+  String get deleteAccountSignedOutBody =>
+      'Để chắc người xoá là chủ tài khoản, bạn đăng nhập rồi nhập mã chúng tôi gửi đến email của tài khoản.';
+
+  @override
+  String get deleteAccountSendCode => 'Gửi mã xác nhận';
+
+  @override
+  String get deleteAccountSending => 'Đang gửi mã…';
+
+  @override
+  String deleteAccountConfirmBody(String email) {
+    return 'Chúng tôi sẽ gửi mã 6 số đến $email để xác nhận bạn muốn xoá tài khoản.';
+  }
+
+  @override
+  String get deleteAccountCodeHeading => 'Nhập mã xác nhận';
+
+  @override
+  String deleteAccountCodeSent(String email) {
+    return 'Mã 6 số đã gửi đến $email. Mã chỉ dùng để xoá tài khoản.';
+  }
+
+  @override
+  String get deleteAccountCodeLabel => 'Mã xác nhận 6 số';
+
+  @override
+  String get deleteAccountConfirm => 'Xoá vĩnh viễn tài khoản';
+
+  @override
+  String get deleteAccountDeleting => 'Đang xoá…';
+
+  @override
+  String get deleteAccountCancel => 'Giữ tài khoản';
+
+  @override
+  String get deleteAccountFailed =>
+      'Chưa xoá được tài khoản. Vui lòng thử lại.';
+
+  @override
+  String deleteAccountFailedWithReference(String reference) {
+    return 'Chưa xoá được tài khoản. Vui lòng thử lại. Mã tham chiếu: $reference';
+  }
+
+  @override
+  String get deleteAccountDoneTitle => 'Đã xoá tài khoản';
+
+  @override
+  String get deleteAccountDoneBody =>
+      'Tài khoản và dữ liệu cá nhân của bạn đã được xoá. Bạn vẫn có thể đăng nhập lại bằng email này bất cứ lúc nào, như một tài khoản mới.';
+
+  @override
+  String get deleteAccountHome => 'Về trang chủ';
 }

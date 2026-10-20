@@ -2,6 +2,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:app_ui/app_ui.dart';
+import 'package:app_ui/src/theme/tokens.g.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/helpers.dart';
@@ -125,6 +126,26 @@ void main() {
           lessThan(tester.getCenter(find.text('Đăng xuất')).dx),
         );
       }
+    });
+
+    testWidgets('renders the destructive variant in the danger red', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        AppButton(
+          onPressed: () {},
+          variant: AppButtonVariant.destructive,
+          child: Text('Delete'),
+        ),
+      );
+
+      final button = tester.widget<FilledButton>(find.byType(FilledButton));
+      final style = button.style!;
+      expect(style.backgroundColor?.resolve({}), ColorTokens.destructive);
+      expect(
+        style.foregroundColor?.resolve({}),
+        ColorTokens.destructiveForeground,
+      );
     });
   });
 }

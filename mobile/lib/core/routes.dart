@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:second_bite/core/app_shell.dart';
 import 'package:second_bite/features/identity/domain/return_to.dart';
 import 'package:second_bite/features/identity/ui/account_screen.dart';
+import 'package:second_bite/features/identity/ui/delete_account_screen.dart';
 import 'package:second_bite/features/identity/ui/sign_in_screen.dart';
 import 'package:second_bite/features/legal/ui/legal_screen.dart';
 import 'package:second_bite/features/legal/ui/legal_text.dart';
@@ -77,6 +78,18 @@ class AccountRoute extends GoRouteData with $AccountRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const AccountScreen();
+}
+
+/// Deleting the account at `/delete-account`, as on the web (SEC-37): over
+/// the tabs, from the account tab.
+@TypedGoRoute<DeleteAccountRoute>(path: '/delete-account')
+class DeleteAccountRoute extends GoRouteData with $DeleteAccountRoute {
+  /// The route to delete the account.
+  const new();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const DeleteAccountScreen();
 }
 
 /// The terms of use at `/terms`, as on the web: over the tabs, read inside

@@ -46,6 +46,21 @@ void main() {
       });
     });
 
+    testWidgets('offers the deletion to someone signed in only', (
+      tester,
+    ) async {
+      await tester.pumpApp(const AccountScreen());
+      await tester.pump();
+      expect(find.text('Xoá tài khoản'), findsNothing);
+
+      await tester.pumpApp(
+        const AccountScreen(),
+        auth: signedInAs(sampleAccount),
+      );
+      await tester.pump();
+      expect(find.text('Xoá tài khoản'), findsOneWidget);
+    });
+
     testWidgets('opens the terms inside the app, as /terms', (tester) async {
       await tester.pumpRouterApp(
         GoRouter(
