@@ -200,10 +200,10 @@ export const adminPages = {
     nav: "marketing",
     released: true,
   },
-  // Figma AD-BC1 heads the reports with "Vận hành / Báo cáo".
+  // "Quản trị / Báo cáo": the reports sit on their own at the sidebar's foot, outside Vận hành.
   reports: {
     path: "/admin/reports",
-    section: "operations",
+    section: "admin",
     icon: ChartColumnIcon,
     nav: "bottom",
     released: true,

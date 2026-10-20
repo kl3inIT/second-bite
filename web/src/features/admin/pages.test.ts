@@ -47,6 +47,13 @@ describe("the admin page registry", () => {
     expect(matchAdminPage("/admin/nothing")).toBeUndefined();
   });
 
+  it("heads a page outside the sidebar's groups with the admin itself", () => {
+    expect(adminPages.overview.section).toBe("admin");
+    expect(adminPages.reports.section).toBe("admin");
+    expect(adminPages.settings.section).toBe("admin");
+    expect(adminPages.sellers.section).toBe("operations");
+  });
+
   it("builds an address with its parameters", () => {
     expect(adminHref("sellerDetail", { sellerId: "se 1" })).toBe("/admin/sellers/se%201");
     expect(() => adminHref("orderDetail")).toThrow(/orderId/);

@@ -45,6 +45,10 @@ test("the reports show what the summary gives and leave the orders empty", async
   await signInTo(page, "/admin/reports", testInfo, { who: "baocao" });
   await expect(page.getByRole("heading", { level: 1, name: "Báo cáo" })).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  // The reports sit on their own in the sidebar, under the admin rather than Vận hành.
+  await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toHaveText(
+    /^Quản trị\s*\/\s*Báo cáo$/,
+  );
 
   // The 30 days that end today, every store: "21/09 – 20/10/2026", the start without its year when it is the same.
   const [start, end] = [day(29), day(0)];
