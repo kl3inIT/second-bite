@@ -38,7 +38,11 @@ function BreadcrumbLink({ className, render, ...props }: useRender.ComponentProp
     defaultTagName: "a",
     props: mergeProps<"a">(
       {
-        className: cn("transition-colors hover:text-foreground", className),
+        // Second Bite: a crumb that links shows where the keyboard is, as every other link does.
+        className: cn(
+          "rounded-sm transition-colors outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
+          className,
+        ),
       },
       props,
     ),
@@ -49,13 +53,22 @@ function BreadcrumbLink({ className, render, ...props }: useRender.ComponentProp
   });
 }
 
-function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
+function BreadcrumbPage({
+  className,
+  variant = "default",
+  ...props
+}: React.ComponentProps<"span"> & { variant?: "default" | "strong" }) {
   return (
     <span
       data-slot="breadcrumb-page"
       // Second Bite: the current page is not a link, so it is not announced as one.
       aria-current="page"
-      className={cn("font-normal text-foreground", className)}
+      className={cn(
+        "text-foreground",
+        // Second Bite (Figma Admin/TopBar): the admin's current crumb is set strong.
+        variant === "strong" ? "text-body-sm-strong" : "font-normal",
+        className,
+      )}
       {...props}
     />
   );

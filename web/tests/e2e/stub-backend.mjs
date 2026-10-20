@@ -329,7 +329,9 @@ async function auth(request, response, url) {
       return true;
     }
     const email = decodeURIComponent(String(challengeId).slice(3));
-    const account = { id: "ac-stub", email, displayName: "", role: "customer" };
+    // An address starting with "admin." is a platform admin (SEC-62), as `secondbite admin grant` makes one.
+    const role = email.startsWith("admin.") ? "admin" : "customer";
+    const account = { id: "ac-stub", email, displayName: "", role };
     const token = `stub-${Buffer.from(email).toString("hex")}`;
     accounts.set(token, account);
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();

@@ -72,6 +72,7 @@
   --destructive: var(--status-error);
   --destructive-foreground: var(--base-white);
   --destructive-hover: #912018;
+  --destructive-muted: var(--status-error-bg);
   --success: var(--status-success);
   --success-foreground: var(--base-white);
   --warning: var(--alert-bg);
@@ -85,6 +86,17 @@
   --avatar-rose: var(--logo-rose);
   --avatar-indigo: var(--logo-indigo);
   --avatar-olive: var(--logo-olive);
+  --sidebar: var(--brand-800);
+  --sidebar-foreground: var(--base-white);
+  --sidebar-muted-foreground: var(--text-on-brand);
+  --sidebar-accent: var(--brand-900);
+  --sidebar-accent-foreground: var(--base-white);
+  --sidebar-primary: var(--base-white);
+  --sidebar-primary-foreground: var(--brand-800);
+  --sidebar-border: var(--brand-900);
+  --sidebar-ring: var(--base-white);
+  --toast: var(--brand-900);
+  --toast-foreground: var(--base-white);
 }
 
 @theme inline {
@@ -126,6 +138,7 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-muted: var(--destructive-muted);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -139,6 +152,17 @@
   --color-avatar-rose: var(--avatar-rose);
   --color-avatar-indigo: var(--avatar-indigo);
   --color-avatar-olive: var(--avatar-olive);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-toast: var(--toast);
+  --color-toast-foreground: var(--toast-foreground);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 14px;
@@ -149,6 +173,7 @@
   --radius-full: 9999px;
   --shadow-sheet: 0px -4px 24px 0px #0E1D191F;
   --shadow-nav: 0px 8px 24px 0px #05122924;
+  --shadow-toast: 0px 8px 24px 0px #004E8C40;
   --text-label: 12px;
   --text-label--line-height: 17px;
   --text-label--font-weight: 400;

@@ -37,10 +37,15 @@ function ToastViewport({ className, ...props }: ToastPrimitive.Viewport.Props) {
   );
 }
 
-function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
+function Toast({
+  className,
+  variant = "default",
+  ...props
+}: ToastPrimitive.Root.Props & { variant?: "default" | "admin" }) {
   return (
     <ToastPrimitive.Root
       data-slot="toast"
+      data-variant={variant}
       className={cn(
         "group/toast pointer-events-auto absolute right-0 bottom-0 z-[calc(1000-var(--toast-index))] w-full origin-bottom rounded-2xl border bg-popover text-popover-foreground shadow-lg will-change-transform outline-none select-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
         "[--gap:0.75rem] [--height:var(--toast-frontmost-height,var(--toast-height))] [--offset-y:calc(var(--toast-offset-y)*-1+calc(var(--toast-index)*var(--gap)*-1)+var(--toast-swipe-movement-y))] [--peek:0.75rem] [--scale:calc(max(0,1-(var(--toast-index)*0.1)))] [--shrink:calc(1-var(--scale))]",
@@ -57,6 +62,8 @@ function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
         "data-expanded:data-ending-style:data-[swipe-direction=left]:[transform:translateX(calc(var(--toast-swipe-movement-x)-150%))_translateY(var(--offset-y))]",
         "data-expanded:data-ending-style:data-[swipe-direction=right]:[transform:translateX(calc(var(--toast-swipe-movement-x)+150%))_translateY(var(--offset-y))]",
         "data-expanded:data-ending-style:data-[swipe-direction=up]:[transform:translateY(calc(var(--toast-swipe-movement-y)-150%))]",
+        // Second Bite (Figma Admin/Toast 228:5568): the admin's notice, deep blue with white words.
+        variant === "admin" && "rounded-lg border-0 bg-toast text-toast-foreground shadow-toast",
         className,
       )}
       {...props}
@@ -64,12 +71,18 @@ function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
   );
 }
 
-function ToastContent({ className, ...props }: ToastPrimitive.Content.Props) {
+function ToastContent({
+  className,
+  variant = "default",
+  ...props
+}: ToastPrimitive.Content.Props & { variant?: "default" | "admin" }) {
   return (
     <ToastPrimitive.Content
       data-slot="toast-content"
       className={cn(
         "flex h-full items-center gap-3 overflow-hidden p-4 transition-opacity duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] data-behind:opacity-0 data-expanded:opacity-100",
+        // Second Bite (Figma Admin/Toast): 14px by 18px around one line.
+        variant === "admin" && "px-4.5 py-3.5",
         className,
       )}
       {...props}
@@ -77,11 +90,20 @@ function ToastContent({ className, ...props }: ToastPrimitive.Content.Props) {
   );
 }
 
-function ToastTitle({ className, ...props }: ToastPrimitive.Title.Props) {
+function ToastTitle({
+  className,
+  variant = "default",
+  ...props
+}: ToastPrimitive.Title.Props & { variant?: "default" | "line" }) {
   return (
     <ToastPrimitive.Title
       data-slot="toast-title"
-      className={cn("text-body-sm-strong", className)}
+      // Second Bite: `line` keeps an admin notice to its one line (Figma Admin/Toast).
+      className={cn(
+        "text-body-sm-strong",
+        variant === "line" && "min-w-0 flex-1 truncate",
+        className,
+      )}
       {...props}
     />
   );

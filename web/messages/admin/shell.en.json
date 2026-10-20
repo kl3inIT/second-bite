@@ -7,28 +7,94 @@
     "settings": "Settings"
   },
   "pages": {
-    "overview": { "label": "Overview", "short": "Overview" },
-    "sellers": { "label": "Stores", "short": "Stores" },
-    "offers": { "label": "Posts", "short": "Posts" },
-    "orders": { "label": "Orders", "short": "Orders" },
-    "payments": { "label": "Payments & refunds", "short": "Payments" },
-    "issues": { "label": "Problem reports", "short": "Reports" },
-    "reviews": { "label": "Reviews", "short": "Reviews" },
-    "accounts": { "label": "Accounts", "short": "Accounts" },
-    "promotions": { "label": "Promo codes", "short": "Promos" },
-    "content": { "label": "Banners & content", "short": "Banners" },
-    "notifications": { "label": "Notifications", "short": "Notify" },
-    "sponsors": { "label": "Sponsors", "short": "Sponsors" },
-    "reports": { "label": "Reports", "short": "Reports" },
-    "settings": { "label": "Settings", "short": "Settings" },
-    "settingsOffers": { "label": "Posts", "short": "Posts" },
-    "settingsEmail": { "label": "Email", "short": "Email" },
-    "settingsCategories": { "label": "Categories", "short": "Categories" },
-    "settingsAreas": { "label": "Areas", "short": "Areas" },
-    "settingsAdmins": { "label": "Admins", "short": "Admins" },
-    "settingsAuditLog": { "label": "Audit log", "short": "Audit log" },
-    "settingsLegal": { "label": "Legal content", "short": "Legal" },
-    "settingsIntegrations": { "label": "Integrations", "short": "Integrations" }
+    "overview": {
+      "label": "Overview",
+      "short": "Overview"
+    },
+    "sellers": {
+      "label": "Stores",
+      "short": "Stores"
+    },
+    "offers": {
+      "label": "Posts",
+      "short": "Posts"
+    },
+    "orders": {
+      "label": "Orders",
+      "short": "Orders"
+    },
+    "payments": {
+      "label": "Payments & refunds",
+      "short": "Payments"
+    },
+    "issues": {
+      "label": "Problem reports",
+      "short": "Reports"
+    },
+    "reviews": {
+      "label": "Reviews",
+      "short": "Reviews"
+    },
+    "accounts": {
+      "label": "Accounts",
+      "short": "Accounts"
+    },
+    "promotions": {
+      "label": "Promo codes",
+      "short": "Promos"
+    },
+    "content": {
+      "label": "Banners & content",
+      "short": "Banners"
+    },
+    "notifications": {
+      "label": "Notifications",
+      "short": "Notify"
+    },
+    "sponsors": {
+      "label": "Sponsors",
+      "short": "Sponsors"
+    },
+    "reports": {
+      "label": "Reports",
+      "short": "Reports"
+    },
+    "settings": {
+      "label": "Settings",
+      "short": "Settings"
+    },
+    "settingsOffers": {
+      "label": "Posts",
+      "short": "Posts"
+    },
+    "settingsEmail": {
+      "label": "Email",
+      "short": "Email"
+    },
+    "settingsCategories": {
+      "label": "Categories",
+      "short": "Categories"
+    },
+    "settingsAreas": {
+      "label": "Areas",
+      "short": "Areas"
+    },
+    "settingsAdmins": {
+      "label": "Admins",
+      "short": "Admins"
+    },
+    "settingsAuditLog": {
+      "label": "Audit log",
+      "short": "Audit log"
+    },
+    "settingsLegal": {
+      "label": "Legal content",
+      "short": "Legal"
+    },
+    "settingsIntegrations": {
+      "label": "Integrations",
+      "short": "Integrations"
+    }
   },
   "sidebar": {
     "label": "Admin navigation",
@@ -51,5 +117,10 @@
   },
   "toast": {
     "close": "Close the notice"
+  },
+  "status": {
+    "active": "Active",
+    "pending": "Pending",
+    "blocked": "Blocked"
   }
 }
