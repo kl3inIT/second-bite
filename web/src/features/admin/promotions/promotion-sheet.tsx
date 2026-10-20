@@ -52,6 +52,7 @@ export function PromotionSheet({
   stores: StoreOption[];
 }) {
   const t = useTranslations("admin.promotions.sheet");
+  const tShell = useTranslations("admin.shell");
   const id = useId();
   const [form, setForm] = useState(initial);
 
@@ -66,7 +67,7 @@ export function PromotionSheet({
             {t("cancel")}
           </Button>
           <SoonBadge id={`${id}-soon`} />
-          <Button disabled aria-describedby={`${id}-soon`}>
+          <Button disabled title={tShell("soon")} aria-describedby={`${id}-soon`}>
             <CheckIcon data-icon="inline-start" aria-hidden />
             {editing ? t("save") : t("create")}
           </Button>
