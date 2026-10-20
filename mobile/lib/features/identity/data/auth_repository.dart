@@ -81,6 +81,25 @@ class AuthRepository {
     }
   }
 
+  /// Emails the signed-in account's address a code that only confirms its
+  /// deletion (SEC-37); the challenge to confirm it against.
+  Future<String> requestDeletionCode() async {
+    final answer = await _api.accounts.requestAccountDeletionCode();
+    return answer.challengeId;
+  }
+
+  /// Deletes the signed-in account with [code] for [challengeId]; the server
+  /// ends every session, so the kept one is forgotten here.
+  Future<void> deleteAccount({
+    required String challengeId,
+    required String code,
+  }) async {
+    await _api.accounts.deleteMyAccount(
+      body: DeleteAccountInputBody(challengeId: challengeId, code: code),
+    );
+    await _store.clear();
+  }
+
   Future<AccountBody> _keep(SessionOutputBody session) async {
     final token = session.token;
     if (token == null) {
@@ -91,7 +110,8 @@ class AuthRepository {
   }
 }
 
-/// The [AuthRepository] over the app's one client and session store.
-@riverpod
+/// The [AuthRepository] over the app's one client and session store, kept
+/// for the app's life as they are, since the signed-in account follows it.
+@Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) =>
     AuthRepository(ref.watch(apiProvider), ref.watch(sessionStoreProvider));

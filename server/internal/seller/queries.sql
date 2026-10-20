@@ -68,3 +68,17 @@ FROM seller_sellers WHERE id = ANY (sqlc.arg(ids)::uuid[]) AND status = 'active'
 
 -- name: BlockedSellers :many
 SELECT id FROM seller_sellers WHERE status = 'blocked';
+
+-- name: SellersOwnedBy :many
+SELECT seller_id FROM seller_members WHERE account_id = @account_id AND role = 'owner';
+
+-- name: DeleteMembershipsOf :execrows
+-- Every membership of an account, once the account is deleted (SEC-37).
+DELETE FROM seller_members WHERE account_id = @account_id;
+
+-- name: BlockOwnerless :execrows
+-- A seller whose owner's account was deleted stops showing until admins decide;
+-- no one set the status, so it names no one.
+UPDATE seller_sellers
+SET status = 'blocked', status_changed_at = now(), status_changed_by = NULL, updated_at = now()
+WHERE id = ANY (sqlc.arg(ids)::uuid[]) AND status <> 'blocked';

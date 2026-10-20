@@ -61,6 +61,7 @@ func TestService(t *testing.T) {
 		"a seller is opened active, staffed and blocked":          checkSellerFlow,
 		"a photo is uploaded, set on a seller and served":         checkPhotoFlow,
 		"an offer is posted and found near Tasco Mall":            checkOfferFlow,
+		"an owner deletes their account; the others forget it":    checkAccountDeletion,
 	}
 
 	// The checks run in parallel with one another; this group returns when

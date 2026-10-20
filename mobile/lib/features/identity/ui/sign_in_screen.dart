@@ -10,6 +10,7 @@ import 'package:second_bite/core/routes.dart';
 import 'package:second_bite/features/identity/data/auth_repository.dart';
 import 'package:second_bite/features/identity/data/google_auth.dart';
 import 'package:second_bite/features/identity/ui/current_account.dart';
+import 'package:second_bite/features/identity/ui/resend_code.dart';
 import 'package:second_bite/features/identity/ui/sign_in_problem.dart';
 import 'package:second_bite/features/legal/ui/legal_text.dart';
 import 'package:second_bite/l10n/l10n.dart';
@@ -326,7 +327,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               l10n.signInNotArrived,
               style: text.label.copyWith(color: scheme.onSurfaceVariant),
             ),
-            _ResendCode(
+            ResendCode(
               key: ValueKey(_sent),
               wait: problem?.kind == SignInProblemKind.codeGone
                   ? 0
@@ -540,81 +541,6 @@ class _LegalLineState extends State<_LegalLine> {
         children: spans,
       ),
       textAlign: TextAlign.center,
-    );
-  }
-}
-
-/// "Gửi lại mã sau 0:28", then the button itself once the wait is over.
-class _ResendCode extends StatefulWidget {
-  const new({
-    required this.wait,
-    required this.enabled,
-    required this.onResend,
-    super.key,
-  });
-
-  /// Seconds to wait before a new code can be asked for.
-  final int wait;
-  final bool enabled;
-  final VoidCallback onResend;
-
-  @override
-  State<_ResendCode> createState() => _ResendCodeState();
-}
-
-class _ResendCodeState extends State<_ResendCode> {
-  late int _left = widget.wait;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _start();
-  }
-
-  @override
-  void didUpdateWidget(_ResendCode oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.wait == 0 && _left > 0) {
-      _timer?.cancel();
-      _left = 0;
-    }
-  }
-
-  void _start() {
-    if (_left == 0) return;
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() => _left--);
-      if (_left <= 0) timer.cancel();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    if (_left > 0) {
-      final time = '${_left ~/ 60}:${(_left % 60).toString().padLeft(2, '0')}';
-      return Text(
-        l10n.signInResendIn(time),
-        style: context.appTextStyles.label.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      );
-    }
-    return TextButton(
-      onPressed: widget.enabled ? widget.onResend : null,
-      style: TextButton.styleFrom(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size(0, 44),
-        foregroundColor: Theme.of(context).colorScheme.primary,
-      ),
-      child: Text(l10n.signInResend),
     );
   }
 }

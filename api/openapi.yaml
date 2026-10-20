@@ -47,6 +47,19 @@ components:
         - longitude
         - address
       type: object
+    DeleteAccountInputBody:
+      additionalProperties: false
+      properties:
+        challengeId:
+          type: string
+        code:
+          description: The six digits of the deletion email
+          pattern: ^[0-9]{6}$
+          type: string
+      required:
+        - challengeId
+        - code
+      type: object
     DetailsBody:
       additionalProperties: false
       properties:
@@ -1071,6 +1084,59 @@ paths:
         - bearer: []
         - cookie: []
       summary: The signed-in account
+      tags:
+        - Accounts
+  /accounts/me/deletion:
+    post:
+      description: Deletes the account, its sessions, its Google link and the codes and emails sent to its address at once; its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. A seller the account owned is blocked. The session cookie is cleared.
+      operationId: deleteMyAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteAccountInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+          headers:
+            Set-Cookie:
+              schema:
+                description: Clears the session cookie
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Delete the signed-in account with the emailed code
+      tags:
+        - Accounts
+  /accounts/me/deletion-codes:
+    post:
+      description: The code confirms the deletion only; it cannot sign in. It shares the address's limits with the sign-in codes.
+      operationId: requestAccountDeletionCode
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestCodeOutputBody"
+          description: Accepted
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Email the signed-in account's address a code that confirms its deletion
       tags:
         - Accounts
   /admin/email-settings:

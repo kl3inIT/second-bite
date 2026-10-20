@@ -69,7 +69,7 @@ func TestOffer(t *testing.T) {
 func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 	t.Helper()
 
-	accounts, err := identity.NewService(pool, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
+	accounts, err := identity.NewService(pool, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}

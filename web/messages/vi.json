@@ -166,7 +166,8 @@
           "Mã đăng nhập: xóa khi dùng xong, khi bạn xin mã mới, hoặc muộn nhất một ngày sau khi gửi.",
           "Phiên đăng nhập: hết hạn sau 30 ngày không dùng; xóa khi bạn đăng xuất.",
           "Ảnh tải lên nhưng không dùng cho món hay quán nào: xóa sau một ngày.",
-          "Tài khoản, quán, món đã đăng và đơn hàng: giữ cho tới khi bạn yêu cầu xóa, trừ phần pháp luật buộc phải giữ lâu hơn."
+          "Tài khoản, quán, món đã đăng và đơn hàng: giữ cho tới khi bạn xóa tài khoản hoặc yêu cầu xóa, trừ phần pháp luật buộc phải giữ lâu hơn.",
+          "Khi bạn xóa tài khoản: tài khoản, phiên đăng nhập, liên kết Google, mã đăng nhập và bản ghi các email gửi cho bạn bị xóa ngay; tư cách thành viên ở các quán và ảnh chưa dùng bị xóa trong vài phút sau đó. Món đã đăng, ảnh món và ảnh quán thuộc về quán nên được giữ, không còn gắn với bạn; quán bạn là chủ sẽ bị đóng."
         ]
       },
       {
@@ -182,6 +183,7 @@
         "title": "5. Quyền của bạn",
         "paragraphs": [
           "Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.",
+          "Bạn tự xóa được tài khoản trong ứng dụng (Tài khoản → Cài đặt tài khoản → Xóa tài khoản) hoặc trên trang web tại /delete-account, sau khi nhập mã chúng tôi gửi đến email của tài khoản.",
           "Bạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do."
         ]
       },
@@ -324,7 +326,24 @@
     "title": "Tài khoản",
     "guestTitle": "Bạn chưa đăng nhập",
     "guestBody": "Đăng nhập để đặt món và theo dõi đơn.",
-    "signedIn": "Đã đăng nhập"
+    "signedIn": "Đã đăng nhập",
+    "settings": "Cài đặt tài khoản"
+  },
+  "AccountSettings": {
+    "title": "Cài đặt tài khoản",
+    "details": "Thông tin tài khoản",
+    "email": "Email",
+    "displayName": "Tên hiển thị",
+    "noDisplayName": "Chưa có",
+    "sellers": "Quán của bạn",
+    "owner": "Chủ quán",
+    "staff": "Nhân viên",
+    "language": "Ngôn ngữ",
+    "languageName": "Tiếng Việt",
+    "switchLanguage": "Đổi sang English",
+    "deleteTitle": "Xoá tài khoản",
+    "deleteBody": "Xoá vĩnh viễn tài khoản và dữ liệu cá nhân của bạn. Việc xoá không thể hoàn tác; quán bạn là chủ sẽ bị đóng.",
+    "deleteAction": "Xoá tài khoản"
   },
   "TopBar": {
     "back": "Quay lại",
@@ -341,6 +360,49 @@
   "Splash": {
     "tagline": "Món ngon còn lại cuối ngày, giá tốt hơn",
     "loading": "Đang tải…"
+  },
+  "DeleteAccount": {
+    "title": "Xoá tài khoản",
+    "description": "Cách xoá tài khoản Second Bite: xác nhận bằng mã gửi qua email; những gì bị xoá ngay, những gì xoá sau vài phút và những gì được giữ lại.",
+    "intro": "Bạn có thể xoá tài khoản Second Bite bất cứ lúc nào, trong ứng dụng hoặc tại trang này. Việc xoá là vĩnh viễn và không thể hoàn tác.",
+    "deletedTitle": "Bị xoá ngay khi bạn xác nhận",
+    "deleted": [
+      "Tài khoản của bạn: địa chỉ email và tên hiển thị.",
+      "Mọi phiên đăng nhập trên mọi thiết bị, và liên kết với tài khoản Google.",
+      "Mã đăng nhập và bản ghi các email chúng tôi đã gửi cho bạn."
+    ],
+    "laterTitle": "Bị xoá trong vài phút sau đó",
+    "later": [
+      "Tư cách chủ quán hoặc nhân viên của bạn ở các quán.",
+      "Ảnh bạn đã tải lên nhưng chưa dùng cho món hay quán nào."
+    ],
+    "keptTitle": "Được giữ lại, không còn gắn với bạn",
+    "kept": [
+      "Món đã đăng, ảnh món và ảnh quán: chúng thuộc về quán.",
+      "Đơn hàng và thanh toán mà pháp luật buộc phải giữ, khi tính năng đặt món mở; thời hạn giữ đang cập nhật."
+    ],
+    "ownerTitle": "Bạn đang là chủ quán",
+    "ownerBody": "Xoá tài khoản sẽ đóng {sellers}: quán ngừng hiển thị với khách và nhân viên không quản lý được nữa, cho tới khi Second Bite xử lý.",
+    "signedOutTitle": "Đăng nhập để xoá tài khoản",
+    "signedOutBody": "Để chắc người xoá là chủ tài khoản, bạn đăng nhập rồi nhập mã chúng tôi gửi đến email của tài khoản.",
+    "signIn": "Đăng nhập",
+    "confirmBody": "Chúng tôi sẽ gửi mã 6 số đến <strong>{email}</strong> để xác nhận bạn muốn xoá tài khoản.",
+    "sendCode": "Gửi mã xác nhận",
+    "sending": "Đang gửi mã…",
+    "codeHeading": "Nhập mã xác nhận",
+    "codeSent": "Mã 6 số đã gửi đến <strong>{email}</strong>. Mã chỉ dùng để xoá tài khoản.",
+    "codeLabel": "Mã xác nhận 6 số",
+    "confirm": "Xoá vĩnh viễn tài khoản",
+    "deleting": "Đang xoá…",
+    "cancel": "Giữ tài khoản",
+    "codeLimit": "Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.",
+    "codeIncorrect": "Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.",
+    "codeGone": "Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.",
+    "failed": "Chưa xoá được tài khoản. Vui lòng thử lại.",
+    "failedWithReference": "Chưa xoá được tài khoản. Vui lòng thử lại. Mã tham chiếu: {reference}",
+    "doneTitle": "Đã xoá tài khoản",
+    "doneBody": "Tài khoản và dữ liệu cá nhân của bạn đã được xoá. Bạn vẫn có thể đăng nhập lại bằng email này bất cứ lúc nào, như một tài khoản mới.",
+    "home": "Về trang chủ"
   },
   "OpenStore": {
     "title": "Mở quán",

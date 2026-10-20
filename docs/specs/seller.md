@@ -32,13 +32,14 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 - A seller answers 404 to anyone who is neither its member nor an admin. Admins read and set the status; they do not change a seller's details.
 - The phone keeps its digits and a leading `+`, 9 to 15 digits. The location is the latitude and longitude the client pins; PostGIS keeps it as a `geography(Point, 4326)` generated from them.
 - Working assumptions until the sellers' survey (SEC-9): changing an active seller's details does not send it back to `pending`; a blocked seller's owner still manages its staff.
+- When identity deletes an account (`identity.AccountDeletedEvent`, listener `seller.forget_account`), the module removes its memberships. A seller it owned would be left without an owner, so it is blocked with no one named as having blocked it: it stops showing and publishing until admins decide (SEC-37). Running it again changes nothing.
 
 ## Data
 
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
 | `seller_sellers` | Name, address, latitude, longitude, generated location, phone, status, who set it and when, the photo (file's identifier, no foreign key) | Kept |
-| `seller_members` | Seller, identity's account identifier (no foreign key across modules), role `owner` or `staff`, when added | Deleted when a staff member is removed or leaves |
+| `seller_members` | Seller, identity's account identifier (no foreign key across modules), role `owner` or `staff`, when added | Deleted when a staff member is removed or leaves, and every membership of an account when identity deletes it |
 
 ## Failures
 

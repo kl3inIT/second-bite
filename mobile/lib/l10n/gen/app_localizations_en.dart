@@ -296,7 +296,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get legalPrivacySection3Body =>
-      'Sign-in codes: deleted once used, when a newer one is requested, or a day after they were sent at the latest.\n\nSessions: end after 30 days without use; deleted when you sign out.\n\nPhotos uploaded but never used for a dish or a shop: deleted after a day.\n\nAccounts, shops, posted dishes and orders: kept until you ask us to delete them, except what the law requires us to keep longer.';
+      'Sign-in codes: deleted once used, when a newer one is requested, or a day after they were sent at the latest.\n\nSessions: end after 30 days without use; deleted when you sign out.\n\nPhotos uploaded but never used for a dish or a shop: deleted after a day.\n\nAccounts, shops, posted dishes and orders: kept until you delete your account or ask us to delete them, except what the law requires us to keep longer.\n\nWhen you delete your account: the account, its sessions, its Google link, sign-in codes and the record of the emails we sent you are deleted at once; your place in shops and the photos you never used go within minutes. Posted dishes, their photos and shop photos belong to the shop and stay, no longer linked to you; a shop you own is closed.';
 
   @override
   String get legalPrivacySection4Title => '4. Who can see your data';
@@ -310,7 +310,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get legalPrivacySection5Body =>
-      'You may know about, see, correct and ask us to delete your data; withdraw your consent; ask us to restrict processing; and complain, under the Personal Data Protection Law 2025.\n\nYou can change your display name yourself. For anything else, write to the contact in section 1; we answer within the time the law sets, and if we cannot delete something for a legitimate reason, we tell you why.';
+      'You may know about, see, correct and ask us to delete your data; withdraw your consent; ask us to restrict processing; and complain, under the Personal Data Protection Law 2025.\n\nYou can delete your account yourself in the app (Account → Account settings → Delete account) or on the web at /delete-account, after typing the code we email to the account\'s address.\n\nYou can change your display name yourself. For anything else, write to the contact in section 1; we answer within the time the law sets, and if we cannot delete something for a legitimate reason, we tell you why.';
 
   @override
   String get legalPrivacySection6Title => '6. Cookies and browser storage';
@@ -471,4 +471,152 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signInNotArrived => 'No email yet? Check your spam folder.';
+
+  @override
+  String get deleteAccountTitle => 'Delete your account';
+
+  @override
+  String get deleteAccountIntro =>
+      'You can delete your Second Bite account at any time, in the app or on this page. Deleting it is permanent and cannot be undone.';
+
+  @override
+  String get deleteAccountDeletedTitle => 'Deleted as soon as you confirm';
+
+  @override
+  String get deleteAccountDeleted1 =>
+      'Your account: your email address and display name.';
+
+  @override
+  String get deleteAccountDeleted2 =>
+      'Every session on every device, and the link to your Google account.';
+
+  @override
+  String get deleteAccountDeleted3 =>
+      'Sign-in codes and the record of the emails we sent you.';
+
+  @override
+  String get deleteAccountLaterTitle => 'Deleted within a few minutes';
+
+  @override
+  String get deleteAccountLater1 => 'Your place as a seller\'s owner or staff.';
+
+  @override
+  String get deleteAccountLater2 =>
+      'Photos you uploaded that no dish or seller uses.';
+
+  @override
+  String get deleteAccountKeptTitle => 'Kept, no longer linked to you';
+
+  @override
+  String get deleteAccountKept1 =>
+      'Dishes posted, their photos and sellers\' photos: they belong to the seller.';
+
+  @override
+  String get deleteAccountKept2 =>
+      'Orders and payments the law requires us to keep, once ordering opens; how long is to be added.';
+
+  @override
+  String get deleteAccountOwnerTitle => 'You own a seller';
+
+  @override
+  String deleteAccountOwnerBody(String sellers) {
+    return 'Deleting your account closes $sellers: it stops showing to customers and its staff can no longer manage it, until Second Bite steps in.';
+  }
+
+  @override
+  String get deleteAccountSignedOutTitle => 'Sign in to delete your account';
+
+  @override
+  String get deleteAccountSignedOutBody =>
+      'To be sure the account is yours, you sign in, then type the code we email to the account\'s address.';
+
+  @override
+  String get deleteAccountSendCode => 'Send the code';
+
+  @override
+  String get deleteAccountSending => 'Sending the code…';
+
+  @override
+  String deleteAccountConfirmBody(String email) {
+    return 'We will email a six-digit code to $email to confirm that you want to delete your account.';
+  }
+
+  @override
+  String get deleteAccountCodeHeading => 'Enter the code';
+
+  @override
+  String deleteAccountCodeSent(String email) {
+    return 'A six-digit code was sent to $email. It only deletes the account.';
+  }
+
+  @override
+  String get deleteAccountCodeLabel => 'Six-digit confirmation code';
+
+  @override
+  String get deleteAccountConfirm => 'Delete my account for good';
+
+  @override
+  String get deleteAccountDeleting => 'Deleting…';
+
+  @override
+  String get deleteAccountCancel => 'Keep my account';
+
+  @override
+  String get deleteAccountFailed =>
+      'Your account could not be deleted. Please try again.';
+
+  @override
+  String deleteAccountFailedWithReference(String reference) {
+    return 'Your account could not be deleted. Please try again. Reference: $reference';
+  }
+
+  @override
+  String get deleteAccountDoneTitle => 'Your account is deleted';
+
+  @override
+  String get deleteAccountDoneBody =>
+      'Your account and your personal data are deleted. You can still sign in with this address at any time, as a new account.';
+
+  @override
+  String get deleteAccountHome => 'Back to home';
+
+  @override
+  String get accountSettingsTitle => 'Account settings';
+
+  @override
+  String get accountSettingsDetails => 'Account details';
+
+  @override
+  String get accountSettingsEmail => 'Email';
+
+  @override
+  String get accountSettingsDisplayName => 'Display name';
+
+  @override
+  String get accountSettingsNoDisplayName => 'Not set';
+
+  @override
+  String get accountSettingsSellers => 'Your shops';
+
+  @override
+  String get accountSettingsOwner => 'Owner';
+
+  @override
+  String get accountSettingsStaff => 'Staff';
+
+  @override
+  String get accountSettingsLanguage => 'Language';
+
+  @override
+  String get accountSettingsLanguageName => 'English';
+
+  @override
+  String get accountSettingsDeleteTitle => 'Delete your account';
+
+  @override
+  String get accountSettingsDeleteBody =>
+      'Permanently delete your account and your personal data. This cannot be undone; a shop you own will be closed.';
+
+  @override
+  String get accountSettingsDeleteAction => 'Delete account';
 }

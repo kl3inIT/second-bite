@@ -50,3 +50,12 @@ Failures the platform answers itself:
 - The contract declares both schemes, `bearer` and `cookie`; an operation that needs a caller lists either (`platform.SignedIn`), one open to anyone lists none as well (`platform.MaybeSignedIn`).
 - A module reads the caller through `platform.CallerFrom`, `RequireCaller` and `RequireAdmin`, so it authorizes without depending on `identity`.
 - Roles are `customer` and `admin`.
+
+## Events between modules
+
+Introduced with SEC-37 ([design](../increments/active/sec-37-account-deletion/design.md#the-outbox)).
+
+- River (v0.49) on the service's PostgreSQL carries events as a transactional outbox. Its tables are River's own, created by its migrations after goose at start-up while a session lock lets one instance migrate at a time.
+- `Publish` writes an event inside the publisher's transaction, one job per listener; a rolled-back change publishes nothing. `Listen` registers a listener under a stable name before the service runs.
+- Every event travels as one job kind, `platform.event`, with its key (`identity.account_deleted`) and its listener's name inside, since River binds one worker to a kind.
+- `serve` runs the listeners, at most ten at once and each within a minute, retried with River's backoff; a job whose listener no longer exists is cancelled; they stop after the HTTP server, with ten seconds to finish. The command-line commands only write events.

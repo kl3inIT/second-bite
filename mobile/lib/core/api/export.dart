@@ -15,6 +15,7 @@ export 'clients/sellers_client.dart';
 export 'models/account_body.dart';
 export 'models/add_seller_staff_request.dart';
 export 'models/collection_point_body.dart';
+export 'models/delete_account_input_body.dart';
 export 'models/details_body.dart';
 export 'models/dish_body.dart';
 export 'models/dish_change_body.dart';

@@ -5,7 +5,7 @@ import { routing } from "@/i18n/routing";
 /**
  * The public origin the absolute addresses of search engines are built on: canonical and alternate links,
  * Open Graph and the sitemap. Set at build time; until a production address is chosen it is staging's, the
- * only public host (docs/increments/active/sec-52-legal-error-account-screens/design.md).
+ * only public host (docs/increments/completed/sec-52-legal-error-account-screens/design.md).
  */
 export const siteOrigin = new URL(
   process.env.SECONDBITE_SITE_ORIGIN ?? "https://secondbite.vadan.app",

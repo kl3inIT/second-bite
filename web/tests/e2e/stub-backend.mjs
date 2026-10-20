@@ -361,6 +361,39 @@ async function auth(request, response, url) {
     else problem(response, 401, "IDENTITY_SESSION_INVALID");
     return true;
   }
+  return deletion(request, response, url);
+}
+
+// Deleting an account (SEC-37): the deletion code goes to the signed-in account's address; 123456 is right and
+// any other is not, and a sign-in challenge cannot delete. A right code ends the session and clears the cookie.
+// An address starting with "owner." owns a seller besides those it opened (sellerRoutes), for the warning
+// before the deletion and for account settings.
+async function deletion(request, response, url) {
+  const token = tokenOf(request);
+  const account = accounts.get(token);
+  if (request.method === "POST" && url.pathname === "/accounts/me/deletion-codes") {
+    if (!account) problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    else {
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      json(response, 202, { challengeId: `del-${encodeURIComponent(account.email)}`, expiresAt });
+    }
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/accounts/me/deletion") {
+    const { challengeId, code } = await readBody(request);
+    if (!account) problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    else if (challengeId !== `del-${encodeURIComponent(account.email)}`) {
+      problem(response, 410, "IDENTITY_CHALLENGE_GONE");
+    } else if (code !== "123456") problem(response, 422, "IDENTITY_CODE_INCORRECT");
+    else {
+      accounts.delete(token);
+      response.writeHead(204, {
+        "set-cookie": `${sessionCookie}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
+      });
+      response.end();
+    }
+    return true;
+  }
   return false;
 }
 
@@ -467,6 +500,22 @@ function postsOf(seller) {
   ];
 }
 
+// The seller an address starting with "owner." owns (SEC-37).
+function ownerSeller() {
+  return {
+    id: "se-stub",
+    name: "Bánh mì Tasco",
+    address: "Tasco Mall, Việt Hưng",
+    latitude: 21.0565,
+    longitude: 105.8964,
+    phone: "0912 345 678",
+    status: "active",
+    myRole: "owner",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 async function sellerRoutes(request, response, url) {
   const token = tokenOf(request);
   const isSellerRoute =
@@ -483,7 +532,8 @@ async function sellerRoutes(request, response, url) {
   }
   const mine = storesOf.get(token) ?? [];
   if (request.method === "GET" && url.pathname === "/sellers/mine") {
-    json(response, 200, { sellers: mine });
+    const owned = accounts.get(token).email.startsWith("owner.") ? [ownerSeller()] : [];
+    json(response, 200, { sellers: [...owned, ...mine] });
     return true;
   }
   if (request.method === "POST" && url.pathname === "/sellers") {

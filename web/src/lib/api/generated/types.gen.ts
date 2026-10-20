@@ -24,6 +24,14 @@ export type CollectionPointBody = {
     longitude: number;
 };
 
+export type DeleteAccountInputBody = {
+    challengeId: string;
+    /**
+     * The six digits of the deletion email
+     */
+    code: string;
+};
+
 export type DetailsBody = {
     /**
      * The address as people write it
@@ -522,6 +530,56 @@ export type GetMyAccountResponses = {
 };
 
 export type GetMyAccountResponse = GetMyAccountResponses[keyof GetMyAccountResponses];
+
+export type DeleteMyAccountData = {
+    body: DeleteAccountInputBody;
+    path?: never;
+    query?: never;
+    url: '/accounts/me/deletion';
+};
+
+export type DeleteMyAccountErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type DeleteMyAccountError = DeleteMyAccountErrors[keyof DeleteMyAccountErrors];
+
+export type DeleteMyAccountResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type DeleteMyAccountResponse = DeleteMyAccountResponses[keyof DeleteMyAccountResponses];
+
+export type RequestAccountDeletionCodeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/accounts/me/deletion-codes';
+};
+
+export type RequestAccountDeletionCodeErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RequestAccountDeletionCodeError = RequestAccountDeletionCodeErrors[keyof RequestAccountDeletionCodeErrors];
+
+export type RequestAccountDeletionCodeResponses = {
+    /**
+     * Accepted
+     */
+    202: RequestCodeOutputBody;
+};
+
+export type RequestAccountDeletionCodeResponse = RequestAccountDeletionCodeResponses[keyof RequestAccountDeletionCodeResponses];
 
 export type GetEmailSettingsData = {
     body?: never;

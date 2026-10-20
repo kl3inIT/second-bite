@@ -46,6 +46,23 @@ void main() {
       });
     });
 
+    testWidgets(
+      'offers account settings to someone signed in, and never deletion',
+      (tester) async {
+        await tester.pumpApp(const AccountScreen());
+        await tester.pump();
+        expect(find.text('Cài đặt tài khoản'), findsNothing);
+
+        await tester.pumpApp(
+          const AccountScreen(),
+          auth: signedInAs(sampleAccount),
+        );
+        await tester.pump();
+        expect(find.text('Cài đặt tài khoản'), findsOneWidget);
+        expect(find.text('Xoá tài khoản'), findsNothing);
+      },
+    );
+
     testWidgets('opens the terms inside the app, as /terms', (tester) async {
       await tester.pumpRouterApp(
         GoRouter(

@@ -134,6 +134,33 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     ),
                   ),
                 ),
+                // Account settings, where the account is managed and, at its
+                // foot, deleted (SEC-37): never beside sign-out.
+                if (account != null)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(SpacingTokens.space1),
+                      child: ListTile(
+                        minTileHeight: 48,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(RadiusTokens.xl),
+                        ),
+                        leading: const Icon(LucideIcons.settings, size: 18),
+                        title: Text(
+                          l10n.accountSettingsTitle,
+                          style: text.body,
+                        ),
+                        trailing: Icon(
+                          LucideIcons.chevronRight,
+                          size: 16,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        onTap: () => unawaited(
+                          const AccountSettingsRoute().push<void>(context),
+                        ),
+                      ),
+                    ),
+                  ),
                 Semantics(
                   container: true,
                   label: l10n.legalLabel,
