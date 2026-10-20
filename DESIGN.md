@@ -168,12 +168,12 @@ rounded:
   # Figma each is a `radius/*` variable of the `Scale` collection, bound on every frame.
   sm: "8px" # small badges
   md: "12px" # photo thumbnails, small tiles
-  lg: "14px" # inputs, the search field, segmented controls
+  lg: "14px" # inputs, segmented controls
   xl: "16px"
   2xl: "20px" # cards, the deal card, sheets and list rows
   3xl: "24px" # the bottom edge of the header, a sheet's top corners
   4xl: "32px"
-  full: "9999px" # buttons, pills, stickers, chips, avatars, icon buttons
+  full: "9999px" # buttons, the search field, pills, stickers, chips, avatars, icon buttons
 spacing:
   "1": "4px"
   "2": "8px"
@@ -329,7 +329,7 @@ Flat. Cards separate from the sky ground by colour alone; photographs get a soft
 
 ## Shapes
 
-Generous rounding from one scale: 20px (`2xl`) on cards, the deal card, sheets and list rows; 14px (`lg`) on inputs, the search field and segmented controls; 12px (`md`) on thumbnails; 24px (`3xl`) on the bottom of the header and a sheet's top corners; full rounding on buttons, stickers, chips, avatars and icon buttons. Photographs fill the top of a card and share its corners. No other radius is used.
+Generous rounding from one scale: 20px (`2xl`) on cards, the deal card, sheets and list rows; 14px (`lg`) on inputs and segmented controls; 12px (`md`) on thumbnails; 24px (`3xl`) on the bottom of the header and a sheet's top corners; full rounding on buttons, the search field and its filter button, stickers, chips, avatars and icon buttons. Photographs fill the top of a card and share its corners. No other radius is used.
 
 ## Components
 
