@@ -1,4 +1,4 @@
-import { ChevronRightIcon, UserRoundIcon } from "lucide-react";
+import { ChevronRightIcon, Trash2Icon, UserRoundIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -70,6 +70,24 @@ export async function AccountPanel() {
           ))}
         </ul>
       </nav>
+      {/* Deleting the account, where the stores ask for it: in the account's own settings (SEC-37). */}
+      {account && (
+        <div className="rounded-2xl bg-card p-1 text-card-foreground">
+          <Item render={<Link href="/delete-account" />} className="min-h-12">
+            <ItemContent>
+              <ItemTitle>
+                <span className="flex items-center gap-2 text-destructive">
+                  <Trash2Icon aria-hidden className="size-4" />
+                  {t("delete")}
+                </span>
+              </ItemTitle>
+            </ItemContent>
+            <ItemActions>
+              <ChevronRightIcon aria-hidden className="size-4 text-muted-foreground" />
+            </ItemActions>
+          </Item>
+        </div>
+      )}
     </div>
   );
 }

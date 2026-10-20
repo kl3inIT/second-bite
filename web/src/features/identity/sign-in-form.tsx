@@ -17,10 +17,10 @@ import { requestSignInCode, signIn, signInWithGoogle } from "@/lib/api/generated
 
 import { emailInToken, GoogleButton } from "./google-button";
 
-const CODE_LENGTH = 6;
+export const CODE_LENGTH = 6;
 /** How long "Gửi lại mã" waits after a code is sent: the server refuses a new code for a minute
  * (server/internal/identity, codeCooldown), so the button never offers what would be refused. */
-const RESEND_AFTER_SECONDS = 60;
+export const RESEND_AFTER_SECONDS = 60;
 
 /**
  * What the screen shows after a failure. The server's code decides it only where the screen does something
@@ -316,7 +316,7 @@ function problemText(t: ReturnType<typeof useTranslations<"SignIn">>, problem: P
 }
 
 /** "Gửi lại mã sau 0:28", then the button itself once the wait is over. */
-function ResendCode({
+export function ResendCode({
   resendAt,
   disabled,
   onResend,

@@ -14,6 +14,7 @@ const pages: {
   { path: "", changeFrequency: "daily" },
   { path: "/terms", lastModified: legalUpdated, changeFrequency: "yearly" },
   { path: "/privacy", lastModified: legalUpdated, changeFrequency: "yearly" },
+  { path: "/delete-account", changeFrequency: "yearly" },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

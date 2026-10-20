@@ -324,7 +324,8 @@
     "title": "Account",
     "guestTitle": "You are not signed in",
     "guestBody": "Sign in to order and follow your orders.",
-    "signedIn": "Signed in"
+    "signedIn": "Signed in",
+    "delete": "Delete account"
   },
   "TopBar": {
     "back": "Back",
@@ -341,5 +342,48 @@
   "Splash": {
     "tagline": "Good food left at the end of the day, for less",
     "loading": "Loading…"
+  },
+  "DeleteAccount": {
+    "title": "Delete your account",
+    "description": "How to delete your Second Bite account: confirm with an emailed code; what is deleted at once, what goes a few minutes later and what is kept.",
+    "intro": "You can delete your Second Bite account at any time, in the app or on this page. Deleting it is permanent and cannot be undone.",
+    "deletedTitle": "Deleted as soon as you confirm",
+    "deleted": [
+      "Your account: your email address and display name.",
+      "Every session on every device, and the link to your Google account.",
+      "Sign-in codes and the record of the emails we sent you."
+    ],
+    "laterTitle": "Deleted within a few minutes",
+    "later": [
+      "Your place as a seller's owner or staff.",
+      "Photos you uploaded that no dish or seller uses."
+    ],
+    "keptTitle": "Kept, no longer linked to you",
+    "kept": [
+      "Dishes posted, their photos and sellers' photos: they belong to the seller.",
+      "Orders and payments the law requires us to keep, once ordering opens; how long is to be added."
+    ],
+    "ownerTitle": "You own a seller",
+    "ownerBody": "Deleting your account closes {sellers}: it stops showing to customers and its staff can no longer manage it, until Second Bite steps in.",
+    "signedOutTitle": "Sign in to delete your account",
+    "signedOutBody": "To be sure the account is yours, you sign in, then type the code we email to the account's address.",
+    "signIn": "Sign in",
+    "confirmBody": "We will email a six-digit code to <strong>{email}</strong> to confirm that you want to delete your account.",
+    "sendCode": "Send the code",
+    "sending": "Sending the code…",
+    "codeHeading": "Enter the code",
+    "codeSent": "A six-digit code was sent to <strong>{email}</strong>. It only deletes the account.",
+    "codeLabel": "Six-digit confirmation code",
+    "confirm": "Delete my account for good",
+    "deleting": "Deleting…",
+    "cancel": "Keep my account",
+    "codeLimit": "Too many codes were asked for this address. Wait a while, then try again.",
+    "codeIncorrect": "That code is not right. Check the latest email and type it again.",
+    "codeGone": "This code has expired or was already used. Send a new code.",
+    "failed": "Your account could not be deleted. Please try again.",
+    "failedWithReference": "Your account could not be deleted. Please try again. Reference: {reference}",
+    "doneTitle": "Your account is deleted",
+    "doneBody": "Your account and your personal data are deleted. You can still sign in with this address at any time, as a new account.",
+    "home": "Back to home"
   }
 }
