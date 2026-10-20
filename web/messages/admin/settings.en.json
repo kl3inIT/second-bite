@@ -49,5 +49,157 @@
     "notConfigured": "No email provider is set up, so no one can sign in with a code yet.",
     "passwordLost": "Changing the server removes the saved password. Enter it again to stay connected.",
     "saved": "Email settings saved."
+  },
+  "categories": {
+    "add": "Add category",
+    "caption": "Categories",
+    "empty": "No categories yet",
+    "columns": {
+      "name": "Category",
+      "posts": "Posts on sale",
+      "visible": "Shown to customers"
+    },
+    "posts": "{count, plural, one {# post} other {# posts}}",
+    "opening": "Opening soon",
+    "shown": "Shown",
+    "hidden": "Hidden",
+    "toggle": "Show {name} to customers",
+    "edit": "Edit category",
+    "addChild": "Add subcategory",
+    "delete": "Delete category"
+  },
+  "areas": {
+    "add": "Add area",
+    "caption": "Areas",
+    "empty": "No areas yet",
+    "columns": {
+      "name": "Area / floor",
+      "sellers": "Stores in it",
+      "open": "Takes new stores"
+    },
+    "sellers": "{count, plural, one {# store} other {# stores}}",
+    "open": "Open",
+    "paused": "Paused",
+    "toggle": "{name} takes new stores",
+    "edit": "Edit area",
+    "addFloor": "Add floor"
+  },
+  "admins": {
+    "invite": "Invite an admin",
+    "caption": "Admins",
+    "empty": "No admins yet",
+    "columns": {
+      "name": "Admin",
+      "role": "Role",
+      "lastSignIn": "Last signed in",
+      "status": "Status"
+    },
+    "you": "{name} (you)",
+    "roles": {
+      "owner": "Full admin",
+      "operations": "Operations",
+      "support": "Customer care",
+      "finance": "Finance"
+    },
+    "statuses": {
+      "active": "Active",
+      "disabled": "Turned off",
+      "invited": "Invitation pending"
+    },
+    "today": "Today, {time}",
+    "yesterday": "Yesterday, {time}",
+    "neverSignedIn": "Never signed in",
+    "changeRole": "Change role",
+    "resend": "Send the invitation again",
+    "disable": "Turn off admin access",
+    "email": "Email",
+    "role": "Role",
+    "send": "Send invitation"
+  },
+  "auditLog": {
+    "export": "Download CSV",
+    "caption": "Audit log",
+    "empty": "No actions yet",
+    "search": "Search the audit log",
+    "searchPlaceholder": "Search stores, post codes",
+    "actor": "By",
+    "action": "Action",
+    "day": "Day",
+    "all": "All",
+    "columns": {
+      "at": "Time",
+      "actor": "By",
+      "action": "Action",
+      "target": "Subject",
+      "change": "Change (before → after)"
+    },
+    "to": "to",
+    "actions": {
+      "sellerBlocked": "Store blocked",
+      "sellerUnblocked": "Store unblocked",
+      "offerRemoved": "Post removed for a violation",
+      "offerSettingsChanged": "Post settings changed",
+      "emailSettingsChanged": "Email settings changed",
+      "categoryChanged": "Category changed",
+      "reviewHidden": "Review hidden",
+      "adminInvited": "Admin invited"
+    },
+    "summary": "Showing {from}–{to} of {total} actions"
+  },
+  "legal": {
+    "newVersion": "New version",
+    "caption": "Legal content",
+    "empty": "No legal documents yet",
+    "columns": {
+      "document": "Document",
+      "effectiveFrom": "Effective from",
+      "status": "Status"
+    },
+    "kinds": {
+      "terms": "Terms of use",
+      "privacy": "Privacy policy",
+      "sellerRules": "Rules for stores"
+    },
+    "versionOf": "{name} {version}",
+    "noDay": "Not set",
+    "statuses": {
+      "active": "In effect",
+      "draft": "Draft",
+      "replaced": "Replaced"
+    },
+    "view": "View",
+    "copy": "New version from this one",
+    "draftTitle": "Drafting · {name} {version}",
+    "draftSaved": "Draft saved at {time}",
+    "body": "Text",
+    "tools": {
+      "label": "Formatting",
+      "heading": "Heading",
+      "bold": "Bold",
+      "italic": "Italic",
+      "list": "List",
+      "link": "Link"
+    },
+    "reconsent": "Ask people to agree again",
+    "saveDraft": "Save draft",
+    "publish": "Publish"
+  },
+  "integrations": {
+    "addWebhook": "Add webhook",
+    "sepay": "SePay (VietQR)",
+    "email": "Brevo / SMTP",
+    "tasco": "Tasco mini app",
+    "webhook": "Webhook",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "apiKey": "API key",
+    "smtpPassword": "SMTP password",
+    "appId": "App ID",
+    "webhookUrl": "Event URL",
+    "kept": "Saved · leave empty to keep it",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "openEmail": "Open the email settings",
+    "test": "Send a test"
   }
 }

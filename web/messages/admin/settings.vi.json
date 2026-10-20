@@ -49,5 +49,157 @@
     "notConfigured": "Chưa có nhà cung cấp email nên chưa ai đăng nhập được bằng mã.",
     "passwordLost": "Đổi máy chủ sẽ xoá mật khẩu đã lưu. Nhập lại mật khẩu để giữ kết nối.",
     "saved": "Đã lưu cài đặt email."
+  },
+  "categories": {
+    "add": "Thêm danh mục",
+    "caption": "Danh mục",
+    "empty": "Chưa có danh mục nào",
+    "columns": {
+      "name": "Danh mục",
+      "posts": "Bài đang đăng",
+      "visible": "Hiển thị cho khách"
+    },
+    "posts": "{count} bài",
+    "opening": "Sắp mở",
+    "shown": "Đang hiện",
+    "hidden": "Đang ẩn",
+    "toggle": "Hiển thị {name} cho khách",
+    "edit": "Sửa danh mục",
+    "addChild": "Thêm danh mục con",
+    "delete": "Xoá danh mục"
+  },
+  "areas": {
+    "add": "Thêm khu vực",
+    "caption": "Khu vực",
+    "empty": "Chưa có khu vực nào",
+    "columns": {
+      "name": "Khu vực / tầng",
+      "sellers": "Cửa hàng tham gia",
+      "open": "Nhận cửa hàng mới"
+    },
+    "sellers": "{count} cửa hàng",
+    "open": "Đang mở",
+    "paused": "Tạm dừng",
+    "toggle": "{name} nhận cửa hàng mới",
+    "edit": "Sửa khu vực",
+    "addFloor": "Thêm tầng"
+  },
+  "admins": {
+    "invite": "Mời quản trị viên",
+    "caption": "Quản trị viên",
+    "empty": "Chưa có quản trị viên nào",
+    "columns": {
+      "name": "Quản trị viên",
+      "role": "Vai trò",
+      "lastSignIn": "Đăng nhập lần cuối",
+      "status": "Trạng thái"
+    },
+    "you": "{name} (bạn)",
+    "roles": {
+      "owner": "Quản trị toàn quyền",
+      "operations": "Vận hành",
+      "support": "Chăm sóc khách",
+      "finance": "Tài chính"
+    },
+    "statuses": {
+      "active": "Đang hoạt động",
+      "disabled": "Đã tắt",
+      "invited": "Chờ nhận lời mời"
+    },
+    "today": "Hôm nay, {time}",
+    "yesterday": "Hôm qua, {time}",
+    "neverSignedIn": "Chưa đăng nhập",
+    "changeRole": "Đổi vai trò",
+    "resend": "Gửi lại lời mời",
+    "disable": "Tắt quyền quản trị",
+    "email": "Email",
+    "role": "Vai trò",
+    "send": "Gửi lời mời"
+  },
+  "auditLog": {
+    "export": "Tải CSV",
+    "caption": "Nhật ký thao tác",
+    "empty": "Chưa có thao tác nào",
+    "search": "Tìm trong nhật ký",
+    "searchPlaceholder": "Tìm cửa hàng, mã bài",
+    "actor": "Người làm",
+    "action": "Hành động",
+    "day": "Ngày",
+    "all": "Tất cả",
+    "columns": {
+      "at": "Thời gian",
+      "actor": "Người làm",
+      "action": "Hành động",
+      "target": "Đối tượng",
+      "change": "Thay đổi (trước → sau)"
+    },
+    "to": "thành",
+    "actions": {
+      "sellerBlocked": "Chặn cửa hàng",
+      "sellerUnblocked": "Gỡ chặn",
+      "offerRemoved": "Gỡ bài vi phạm",
+      "offerSettingsChanged": "Sửa cài đặt bài đăng",
+      "emailSettingsChanged": "Sửa cài đặt email",
+      "categoryChanged": "Sửa danh mục",
+      "reviewHidden": "Ẩn đánh giá",
+      "adminInvited": "Mời quản trị viên"
+    },
+    "summary": "Hiển thị {from}–{to} trên {total} thao tác"
+  },
+  "legal": {
+    "newVersion": "Tạo phiên bản mới",
+    "caption": "Nội dung pháp lý",
+    "empty": "Chưa có tài liệu pháp lý nào",
+    "columns": {
+      "document": "Tài liệu",
+      "effectiveFrom": "Ngày hiệu lực",
+      "status": "Trạng thái"
+    },
+    "kinds": {
+      "terms": "Điều khoản sử dụng",
+      "privacy": "Chính sách bảo mật",
+      "sellerRules": "Quy định cho cửa hàng"
+    },
+    "versionOf": "{name} {version}",
+    "noDay": "Chưa đặt",
+    "statuses": {
+      "active": "Đang áp dụng",
+      "draft": "Bản nháp",
+      "replaced": "Đã thay thế"
+    },
+    "view": "Xem",
+    "copy": "Tạo bản mới từ bản này",
+    "draftTitle": "Soạn thảo · {name} {version}",
+    "draftSaved": "Đã lưu nháp lúc {time}",
+    "body": "Nội dung",
+    "tools": {
+      "label": "Định dạng",
+      "heading": "Tiêu đề",
+      "bold": "In đậm",
+      "italic": "In nghiêng",
+      "list": "Danh sách",
+      "link": "Liên kết"
+    },
+    "reconsent": "Yêu cầu đồng ý lại",
+    "saveDraft": "Lưu nháp",
+    "publish": "Xuất bản"
+  },
+  "integrations": {
+    "addWebhook": "Thêm webhook",
+    "sepay": "SePay (VietQR)",
+    "email": "Brevo / SMTP",
+    "tasco": "Mini app Tasco",
+    "webhook": "Webhook",
+    "connected": "Đã kết nối",
+    "notConnected": "Chưa kết nối",
+    "apiKey": "Khoá API",
+    "smtpPassword": "Mật khẩu SMTP",
+    "appId": "Mã ứng dụng (App ID)",
+    "webhookUrl": "URL nhận sự kiện",
+    "kept": "Đã lưu · để trống để giữ nguyên",
+    "connect": "Kết nối",
+    "disconnect": "Ngắt kết nối",
+    "openEmail": "Mở Cài đặt email",
+    "test": "Gửi thử"
   }
 }

@@ -1,0 +1,118 @@
+import { expect, type Page, test } from "@playwright/test";
+
+import { signInTo } from "./admin";
+import { expectNoSeriousA11yViolations } from "./axe";
+import { hydrated } from "./hydration";
+
+test.use({ locale: "vi-VN" });
+// Each test signs in first, which takes a while when the projects run side by side.
+test.setTimeout(90_000);
+
+async function expectSettingsPage(page: Page, title: string) {
+  await expect(page.getByRole("heading", { level: 1, name: "Cài đặt" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: title })).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Mục cài đặt" }).getByRole("link", { name: title }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+}
+
+// SEC-62 › The settings pages without a backend (Figma AD-CD1 to AD-CD7): built in full, empty until their backend
+// exists, their actions off with "Sắp có". Their rows are checked with sample data in settings-lists.test.ts.
+test.describe("the settings pages without a backend", () => {
+  test("categories and areas are empty, and cannot be added to yet", async ({ page }, testInfo) => {
+    await signInTo(page, "/admin/settings/categories", testInfo, { who: "danhmuc" });
+    await expectSettingsPage(page, "Danh mục");
+    await expect(page.getByText("Chưa có danh mục nào")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Thêm danh mục" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Thêm danh mục" })).toHaveAttribute(
+      "title",
+      "Sắp có",
+    );
+    await expectNoSeriousA11yViolations(page);
+
+    await page.goto("/vi/admin/settings/areas");
+    await expectSettingsPage(page, "Khu vực");
+    await expect(page.getByText("Chưa có khu vực nào")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Thêm khu vực" })).toBeDisabled();
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  test("admins are empty, and the invitation opens but cannot be sent yet (AD-CD4)", async ({
+    page,
+  }, testInfo) => {
+    await signInTo(page, "/admin/settings/admins", testInfo, { who: "quantrivien" });
+    await expectSettingsPage(page, "Quản trị viên");
+    await expect(page.getByText("Chưa có quản trị viên nào")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await (await hydrated(page.getByRole("button", { name: "Mời quản trị viên" }))).click();
+    const dialog = page.getByRole("alertdialog", { name: "Mời quản trị viên" });
+    await expect(dialog).toBeVisible();
+    await dialog.getByLabel("Email").fill("ngocmai@example.com");
+    await expect(dialog.getByRole("radio", { name: "Vận hành" })).toBeChecked();
+    await dialog.getByText("Chăm sóc khách").click();
+    await expect(dialog.getByRole("radio", { name: "Chăm sóc khách" })).toBeChecked();
+    await expect(dialog.getByRole("button", { name: "Gửi lời mời" })).toBeDisabled();
+    await expectNoSeriousA11yViolations(page);
+    await dialog.getByRole("button", { name: "Huỷ" }).click();
+    await expect(dialog).toBeHidden();
+  });
+
+  test("the audit log is empty, and its filters live in the address", async ({
+    page,
+  }, testInfo) => {
+    await signInTo(page, "/admin/settings/audit-log?action=sellerBlocked", testInfo, {
+      who: "nhatky",
+    });
+    await expectSettingsPage(page, "Nhật ký thao tác");
+    await expect(page.getByText("Chưa có thao tác nào")).toBeVisible();
+    await expect(page.getByText("Hành động:")).toBeVisible();
+    await expect(page.getByRole("combobox", { name: /Hành động/ })).toContainText("Chặn cửa hàng");
+    await expect(page.getByRole("button", { name: "Tải CSV" })).toBeDisabled();
+    await expectNoSeriousA11yViolations(page);
+
+    await (
+      await hydrated(page.getByRole("searchbox", { name: "Tìm trong nhật ký" }))
+    ).fill("Bún chả");
+    await expect(page).toHaveURL(
+      /\/vi\/admin\/settings\/audit-log\?q=B%C3%BAn\+ch%E1%BA%A3&action=sellerBlocked$/,
+    );
+  });
+
+  test("legal content is empty, and a new version cannot be made yet", async ({
+    page,
+  }, testInfo) => {
+    await signInTo(page, "/admin/settings/legal", testInfo, { who: "phaply" });
+    await expectSettingsPage(page, "Nội dung pháp lý");
+    await expect(page.getByText("Chưa có tài liệu pháp lý nào")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Tạo phiên bản mới" })).toBeDisabled();
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  test("integrations read email from its settings and lead there", async ({ page }, testInfo) => {
+    await signInTo(page, "/admin/settings/integrations", testInfo, { who: "tichhop" });
+    await expectSettingsPage(page, "Tích hợp");
+
+    const email = page.getByRole("region", { name: "Brevo / SMTP" });
+    await expect(email.getByText("Đã kết nối")).toBeVisible();
+    for (const name of ["SePay (VietQR)", "Mini app Tasco", "Webhook"]) {
+      await expect(page.getByRole("region", { name }).getByText("Chưa kết nối")).toBeVisible();
+    }
+    await expect(page.getByRole("button", { name: "Thêm webhook" })).toBeDisabled();
+    await expectNoSeriousA11yViolations(page);
+
+    await email.getByRole("link", { name: "Mở Cài đặt email" }).click();
+    await expect(page).toHaveURL(/\/vi\/admin\/settings\/email$/);
+  });
+
+  test("integrations show email as not connected when it is not set up", async ({
+    page,
+  }, testInfo) => {
+    // The stub has no email settings for an admin whose address starts with "admin.trong.".
+    await signInTo(page, "/admin/settings/integrations", testInfo, { who: "trong" });
+    await expect(
+      page.getByRole("region", { name: "Brevo / SMTP" }).getByText("Chưa kết nối"),
+    ).toBeVisible();
+  });
+});

@@ -1,0 +1,252 @@
+import { createElement } from "react";
+import { describe, expect, it, vi } from "vitest";
+
+import { AdminsTable } from "./admins-table";
+import { AreasTable } from "./areas-table";
+import { AuditLogTable } from "./audit-log-table";
+import { CategoriesTable } from "./categories-table";
+import { Integrations } from "./integrations";
+import { LegalDocuments } from "./legal-documents";
+import { renderSettings, textOf } from "./render-for-test";
+
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, ...props }: { href: string }) => createElement("a", { href, ...props }),
+  usePathname: () => "/admin/settings",
+  useRouter: () => ({ push: () => undefined, replace: () => undefined, refresh: () => undefined }),
+}));
+
+// The settings pages whose backend does not exist yet are empty in the browser; here they are filled with sample
+// rows, so their columns, badges and words are checked (admin-qa › Cách test màn chưa có backend).
+
+describe("the categories (AD-CD1)", () => {
+  const rows = [
+    { id: "c2", name: "Bánh mì", parentId: "c1", postsOnSale: 18, visible: true },
+    { id: "c1", name: "Bánh", icon: "bakery" as const, postsOnSale: 46, visible: true },
+    {
+      id: "c3",
+      name: "Nguyên liệu",
+      icon: "ingredients" as const,
+      postsOnSale: 0,
+      visible: false,
+      opening: true,
+    },
+  ];
+
+  it("show each group over its categories, with posts and whether customers see them", () => {
+    const text = textOf(renderSettings(createElement(CategoriesTable, { rows })));
+    expect(text).toContain("Danh mục Bài đang đăng Hiển thị cho khách");
+    expect(text.indexOf("Bánh 46 bài")).toBeLessThan(text.indexOf("Bánh mì 18 bài"));
+    expect(text).toContain("Nguyên liệu Sắp mở 0 bài");
+    expect(text).toContain("Đang hiện");
+    expect(text).toContain("Đang ẩn");
+  });
+
+  it("cannot be switched or changed until there is a backend", () => {
+    const html = renderSettings(createElement(CategoriesTable, { rows }));
+    expect(html).toContain('aria-label="Hiển thị Bánh cho khách"');
+    expect(html).toContain('title="Sắp có"');
+    expect(html).toMatch(
+      /role="switch"[^>]*aria-disabled="true"|aria-disabled="true"[^>]*role="switch"/,
+    );
+  });
+
+  it("are an empty state with no rows", () => {
+    expect(textOf(renderSettings(createElement(CategoriesTable, { rows: [] })))).toContain(
+      "Chưa có danh mục nào",
+    );
+  });
+});
+
+describe("the areas (AD-CD2)", () => {
+  it("show the mall over its floors, the stores in each and whether it takes new ones", () => {
+    const text = textOf(
+      renderSettings(
+        createElement(AreasTable, {
+          rows: [
+            { id: "m", name: "Tasco Mall Việt Hưng", sellers: 10, open: true },
+            { id: "f2", name: "Tầng 2 · thời trang", parentId: "m", sellers: 1, open: false },
+          ],
+        }),
+      ),
+    );
+    expect(text).toContain("Khu vực / tầng Cửa hàng tham gia Nhận cửa hàng mới");
+    expect(text).toContain("Tasco Mall Việt Hưng 10 cửa hàng Đang mở");
+    expect(text).toContain("Tầng 2 · thời trang 1 cửa hàng Tạm dừng");
+  });
+});
+
+describe("the admins (AD-CD3)", () => {
+  it("show who, their role, when they last signed in and their status", () => {
+    const text = textOf(
+      renderSettings(
+        createElement(AdminsTable, {
+          rows: [
+            {
+              id: "a1",
+              name: "Minh Anh",
+              email: "minhanh@example.com",
+              role: "owner" as const,
+              lastSignInAt: "2026-10-20T02:12:00Z",
+              status: "active" as const,
+              you: true,
+            },
+            {
+              id: "a2",
+              name: "Văn Toàn",
+              email: "vantoan@example.com",
+              role: "operations" as const,
+              lastSignInAt: "2026-09-02T07:20:00Z",
+              status: "disabled" as const,
+              you: false,
+            },
+            {
+              id: "a3",
+              name: "Gia Linh",
+              email: "gialinh@example.com",
+              role: "finance" as const,
+              status: "invited" as const,
+              you: false,
+            },
+          ],
+        }),
+      ),
+    );
+    expect(text).toContain("MA Minh Anh (bạn) Quản trị toàn quyền Hôm nay, 09:12 Đang hoạt động");
+    expect(text).toContain("VT Văn Toàn Vận hành 02/09/2026, 14:20 Đã tắt");
+    expect(text).toContain("GL Gia Linh Tài chính Chưa đăng nhập Chờ nhận lời mời");
+  });
+});
+
+describe("the audit log (AD-CD5)", () => {
+  const query = { q: "", actor: "all", action: "all" as const, page: 1 };
+
+  it("shows each action with its time, who, a badge, what it was done to and the change", () => {
+    const html = renderSettings(
+      createElement(AuditLogTable, {
+        query,
+        pageSize: 10,
+        total: 24,
+        actors: ["Minh Anh"],
+        rows: [
+          {
+            id: "e1",
+            at: "2026-10-20T02:41:00Z",
+            actor: "Minh Anh",
+            action: "sellerBlocked" as const,
+            target: { label: "Bún chả Phố Hàng", href: "/admin/sellers/s1" },
+            change: { before: "Đang hoạt động", after: "Bị chặn" },
+          },
+          {
+            id: "e2",
+            at: "2026-10-19T08:20:00Z",
+            actor: "Minh Anh",
+            action: "adminInvited" as const,
+            target: { label: "ngocmai@example.com" },
+            change: { after: "Chăm sóc khách" },
+          },
+        ],
+      }),
+    );
+    const text = textOf(html);
+    expect(text).toContain("Thời gian Người làm Hành động Đối tượng Thay đổi (trước → sau)");
+    expect(text).toContain(
+      "20/10/2026 09:41 Minh Anh Chặn cửa hàng Bún chả Phố Hàng Đang hoạt động",
+    );
+    expect(text).toContain("Mời quản trị viên ngocmai@example.com — Chăm sóc khách");
+    expect(html).toContain('href="/admin/sellers/s1"');
+    expect(text).toContain("Hiển thị 1–10 trên 24 thao tác");
+  });
+
+  it("has its filters, and is an empty state with nothing in it", () => {
+    const text = textOf(
+      renderSettings(
+        createElement(AuditLogTable, { query, pageSize: 10, total: 0, actors: [], rows: [] }),
+      ),
+    );
+    expect(text).toContain("Người làm: Tất cả");
+    expect(text).toContain("Hành động: Tất cả");
+    expect(text).toContain("Ngày: Mọi lúc");
+    expect(text).toContain("Chưa có thao tác nào");
+    expect(text).not.toContain("Hiển thị");
+  });
+});
+
+describe("the legal content (AD-CD6)", () => {
+  it("lists each version with the day it takes effect and whether it applies, then the draft", () => {
+    const html = renderSettings(
+      createElement(LegalDocuments, {
+        documents: [
+          {
+            id: "d1",
+            kind: "terms" as const,
+            version: "1.2",
+            effectiveFrom: "2026-09-01",
+            status: "active" as const,
+          },
+          {
+            id: "d2",
+            kind: "privacy" as const,
+            version: "1.0",
+            effectiveFrom: "2026-07-15",
+            status: "replaced" as const,
+          },
+          { id: "d3", kind: "sellerRules" as const, version: "1.1", status: "draft" as const },
+        ],
+        draft: {
+          kind: "terms" as const,
+          version: "1.3",
+          body: "1. Phạm vi áp dụng",
+          effectiveFrom: "2026-11-01",
+          savedAt: "2026-10-20T02:30:00Z",
+          reconsent: true,
+        },
+      }),
+    );
+    const text = textOf(html);
+    expect(text).toContain("Điều khoản sử dụng 1.2 01/09/2026 Đang áp dụng");
+    expect(text).toContain("Chính sách bảo mật 1.0 15/07/2026 Đã thay thế");
+    expect(text).toContain("Quy định cho cửa hàng 1.1 Chưa đặt Bản nháp");
+    expect(text).toContain("Soạn thảo · Điều khoản sử dụng 1.3 Đã lưu nháp lúc 09:30");
+    expect(html).toContain("1. Phạm vi áp dụng");
+    expect(html).toContain('value="2026-11-01"');
+    expect(text).toContain("Yêu cầu đồng ý lại");
+    // Neither kept nor published until there is a backend.
+    expect(html).toMatch(
+      /disabled=""[^>]*title="Sắp có"[^>]*>Xuất bản|title="Sắp có"[^>]*disabled=""[^>]*>Xuất bản/,
+    );
+  });
+});
+
+describe("the integrations (AD-CD7)", () => {
+  it("read whether email is connected from its settings, and open them", () => {
+    const html = renderSettings(
+      createElement(Integrations, {
+        email: {
+          provider: "smtp" as const,
+          senderAddress: "noreply@example.com",
+          senderName: "Second Bite",
+          smtpHost: "smtp.example.com",
+          smtpPort: 587,
+          smtpSecurity: "starttls" as const,
+          smtpUsername: "mailer@example.com",
+          smtpPasswordSet: true,
+          brevoApiKeySet: false,
+          updatedAt: "2026-10-19T07:20:00Z",
+        },
+      }),
+    );
+    const text = textOf(html);
+    expect(text).toContain("Brevo / SMTP Đã kết nối Mật khẩu SMTP");
+    expect(html).toContain('placeholder="Đã lưu · để trống để giữ nguyên"');
+    expect(html).toContain('href="/admin/settings/email"');
+    expect(text).toContain("SePay (VietQR) Chưa kết nối");
+    expect(text).toContain("Mini app Tasco Chưa kết nối");
+    expect(text).toContain("Webhook Chưa kết nối");
+  });
+
+  it("show email as not connected when nothing is saved", () => {
+    const text = textOf(renderSettings(createElement(Integrations, { email: null })));
+    expect(text).toContain("Brevo / SMTP Chưa kết nối");
+    expect(text).not.toContain("Ngắt kết nối");
+  });
+});
