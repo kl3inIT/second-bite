@@ -27,6 +27,13 @@
   ::selection {
     @apply bg-secondary-hover text-foreground;
   }
+  /* Whatever can be pressed shows the hand; Tailwind v4 leaves buttons with the arrow (DESIGN.md › Do's). */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label:has(input:not(:disabled)) {
+    cursor: pointer;
+  }
 }
 
 /* Figma K0: the bitten "o" drops into the wordmark, the tagline follows, then the splash fades and stops

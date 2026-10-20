@@ -420,6 +420,7 @@ Deal Blue, 20px radius, at the bottom of the header without a filter: the title 
 - **Do** bind every colour, radius and gap to a token; a literal value on a screen is a defect.
 - **Do** keep the discount on the label and the portions left under the photograph, in the same place on every card.
 - **Do** use real photographs of real kinds of food, labelled as samples until the pilot has its own.
+- **Do** show the hand pointer over everything that can be pressed, and the arrow over what cannot.
 
 ### Don't:
 
