@@ -19,3 +19,6 @@ Requirements of [docs/specs/platform.md](../specs/platform.md) and the checks th
 | Generated queries match `queries.sql`; modules are tidy | CI: `go tool sqlc diff`, `go mod tidy -diff` |
 | Lint and reachable vulnerabilities | CI: golangci-lint, govulncheck |
 | An event reaches every listener once the change commits; a change that rolls back writes no job and no listener hears it | `internal/platform` `TestEvents` |
+| A failure answers `detail` in the language `Accept-Language` asks for: Vietnamese, English, an English variant, quality values, Vietnamese for an unknown or unreadable header or none; an unknown route, a panic and a malformed body likewise; every problem carries `Content-Language` and `Vary: Accept-Language` | `internal/platform` `TestProblemsAnswerInTheRequestsLanguage` |
+| A violation is huma's sentence in English and its Vietnamese otherwise, with huma's values kept; a sentence no template matches answers the generic one; no template uses a value huma does not give | `TestViolationsAreTranslated`, `TestViolationDetail`, `TestViolationWordsKeepHumasValues` |
+| A failure cannot be declared without its words in both languages; every platform code has words | `TestAFailureNeedsItsWordsInEveryLanguage`, `TestEveryPlatformCodeHasWords` |

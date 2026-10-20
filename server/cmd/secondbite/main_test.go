@@ -354,6 +354,7 @@ type response struct {
 type problem struct {
 	Type      string `json:"type"`
 	Status    int    `json:"status"`
+	Detail    string `json:"detail"`
 	Code      string `json:"code"`
 	RequestID string `json:"requestId"`
 }

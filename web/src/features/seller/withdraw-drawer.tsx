@@ -10,7 +10,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
 import { Link, useRouter } from "@/i18n/navigation";
-import { ApiError } from "@/lib/api/client";
+import { failureOf } from "@/lib/api/client";
 import { withdrawOffer } from "@/lib/api/generated";
 
 import type { EditTarget } from "./post-draft";
@@ -24,7 +24,7 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
   const status = useTranslations("PostDrawer");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [failed, setFailed] = useState<{ reference?: string }>();
+  const [failed, setFailed] = useState<{ detail?: string; reference?: string }>();
   const { dish, ordered } = target;
   const blocked = ordered > 0;
 
@@ -43,7 +43,7 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
         });
         router.refresh();
       } catch (error) {
-        setFailed({ reference: error instanceof ApiError ? error.requestId : undefined });
+        setFailed(failureOf(error));
       }
     });
   }
@@ -88,8 +88,10 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
             <Alert variant="destructive">
               <CircleAlertIcon aria-hidden />
               <AlertDescription>
-                {t("failed")}
-                {failed.reference && <> {t("reference", { id: failed.reference })}</>}
+                {failed.detail ?? t("failed")}
+                {failed.detail && failed.reference && (
+                  <> {t("reference", { id: failed.reference })}</>
+                )}
               </AlertDescription>
             </Alert>
           )}

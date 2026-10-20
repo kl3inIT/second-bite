@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, createClientConfig } from "./client";
+import { ApiError, createClientConfig, failureOf } from "./client";
 
 const problem = {
   type: "urn:secondbite:failure:platform-request-invalid",
@@ -74,6 +74,50 @@ describe("the client's fetch", () => {
     expect(error).toBeInstanceOf(ApiError);
     expect(error.status).toBeUndefined();
     expect(error.cause).toBe(offline);
+  });
+});
+
+describe("the language of the backend's words (SEC-28)", () => {
+  function sentHeaders(fetchMock: ReturnType<typeof vi.fn>) {
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit | undefined;
+    return new Headers(init?.headers);
+  }
+
+  it("asks in the page's language in the browser", async () => {
+    const fetchMock = vi.fn(async () => Response.json({}));
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("document", { documentElement: { lang: "en" } });
+
+    await apiFetch()("/offers");
+
+    expect(sentHeaders(fetchMock).get("accept-language")).toBe("en");
+  });
+
+  it("keeps a language the caller chose", async () => {
+    const fetchMock = vi.fn(async () => Response.json({}));
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("document", { documentElement: { lang: "en" } });
+
+    await apiFetch()("/offers", { headers: { "Accept-Language": "vi" } });
+
+    expect(sentHeaders(fetchMock).get("accept-language")).toBe("vi");
+  });
+
+  it("gives a screen the server's sentence and the request's reference", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({ ...problem, detail: "Yêu cầu chưa hợp lệ." }, { status: 400 }),
+      ),
+    );
+
+    const error = await apiFetch()("/sellers").catch((e: unknown) => e);
+
+    expect((error as ApiError).detail).toBe("Yêu cầu chưa hợp lệ.");
+    expect(failureOf(error)).toEqual({ detail: "Yêu cầu chưa hợp lệ.", reference: "REQ1" });
+    expect(failureOf(new TypeError("fetch failed"))).toEqual({});
   });
 });
 

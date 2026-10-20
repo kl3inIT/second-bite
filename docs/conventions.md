@@ -103,7 +103,7 @@ Domain Story and Consumer
 
 The error contract follows [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html) and the machine-readable-reason guidance of [Google AIP-193](https://google.aip.dev/193).
 
-- **Typed failures.** Each module declares its expected failures as stable codes, each with a category and a safe message for people. Code returns or raises a typed failure carrying the code; the diagnostic message reaches logs only. HTTP types never enter a module's business or persistence code.
+- **Typed failures.** Each module declares its expected failures as stable codes, each with a category and a safe message for people in every language of the service, written beside the code. Code returns or raises a typed failure carrying the code; the diagnostic message reaches logs only. HTTP types never enter a module's business or persistence code.
 - **One mapping.** One place in the HTTP layer turns a failure into a problem response. Handlers do not write error bodies of their own.
 - **Codes.** Codes are upper snake case, start with the module name, match `[A-Z][A-Z0-9_]+[A-Z0-9]` and are at most 63 characters, for example `ORDER_OFFER_SOLD_OUT`. A published code never changes meaning; a new meaning gets a new code.
 - **Status by category.**
@@ -118,12 +118,12 @@ The error contract follows [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.htm
   | `LIMIT_EXCEEDED` | 429 |
   | `SERVICE_UNAVAILABLE` | 503 |
 
-- **Problem members.** `type` is `urn:secondbite:failure:<code in kebab case>` and maps one to one to `code`; `title` comes from the category; `detail` is the safe message; `code` and `requestId` are extension members, `requestId` equal to the identifier logged for that request and returned in `X-Request-Id`.
+- **Problem members.** `type` is `urn:secondbite:failure:<code in kebab case>` and maps one to one to `code`; `title` comes from the category; `detail` is the safe message, in the language `Accept-Language` asks for (Vietnamese when it asks for neither), with `Content-Language` and `Vary: Accept-Language`; `code` and `requestId` are extension members, `requestId` equal to the identifier logged for that request and returned in `X-Request-Id`.
 - **Every error response is `application/problem+json`**: business failures, request validation, unknown routes, authentication refusals and uncaught failures, which answer a generic 500 with no internal detail. A test verifies each kind.
-- **Validation failures** return 400 with an `errors` extension: one entry per violation with `pointer` (a JSON Pointer to the offending body member, for example `#/priceVnd`) or `parameter` (a path, query or header parameter, for example `query.limit`), `detail`, `code` and optional `params` holding only allowlisted numeric bounds such as `min` and `max`. A rejected value is never echoed.
+- **Validation failures** return 400 with an `errors` extension: one entry per violation with `pointer` (a JSON Pointer to the offending body member, for example `#/priceVnd`) or `parameter` (a path, query or header parameter, for example `query.limit`), `detail` in the request's language, `code` and optional `params` holding only allowlisted numeric bounds such as `min` and `max`. A rejected value is never echoed.
 - **Failures outside any module** (an unknown route, a malformed body, an uncaught failure) have codes beginning `PLATFORM_`, as the shared technical code answers them.
 - **Retry hints.** 429 and 503 responses carry `Retry-After` in whole seconds.
-- **Consumers.** Clients branch on `status` or `code`, never on `title`, `detail` or diagnostic text, and translate codes into the reader's language. A new code arrives with its words in both languages of every client that can meet it.
+- **Consumers.** Clients send the reader's language as `Accept-Language` and show `detail` as it comes: the words are written once, on the server, for every client (SEC-28). They branch on `status` or `code`, never on `title`, `detail` or diagnostic text, and only to act differently, such as marking a field; they keep words of their own only for a request that got no answer. A new code arrives with its words in both languages on the server.
 - Never put a code into a message string and match the string later.
 
 ## Events between modules

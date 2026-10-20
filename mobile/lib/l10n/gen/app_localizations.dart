@@ -806,47 +806,11 @@ abstract class AppLocalizations {
   /// **'Email của tài khoản Google này đã có tài khoản Second Bite. Nhận mã qua email để đăng nhập.'**
   String get signInGoogleNeedsCodeBodyNoAddress;
 
-  /// The address is not one
-  ///
-  /// In vi, this message translates to:
-  /// **'Nhập một địa chỉ email, ví dụ ten@gmail.com.'**
-  String get signInEmailInvalid;
-
-  /// Too many codes for the address
-  ///
-  /// In vi, this message translates to:
-  /// **'Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.'**
-  String get signInCodeLimit;
-
-  /// A wrong code
-  ///
-  /// In vi, this message translates to:
-  /// **'Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.'**
-  String get signInCodeIncorrect;
-
-  /// An expired or used code
-  ///
-  /// In vi, this message translates to:
-  /// **'Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.'**
-  String get signInCodeGone;
-
-  /// Google has not verified the address
-  ///
-  /// In vi, this message translates to:
-  /// **'Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.'**
-  String get signInGoogleUnverified;
-
   /// Any other failure
   ///
   /// In vi, this message translates to:
   /// **'Chưa đăng nhập được. Vui lòng thử lại.'**
   String get signInFailed;
-
-  /// Any other failure, with the request's reference
-  ///
-  /// In vi, this message translates to:
-  /// **'Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: {reference}'**
-  String signInFailedWithReference(String reference);
 
   /// Under the code field
   ///
@@ -1010,12 +974,6 @@ abstract class AppLocalizations {
   /// **'Chưa xoá được tài khoản. Vui lòng thử lại.'**
   String get deleteAccountFailed;
 
-  /// Any other failure, with the reference to report
-  ///
-  /// In vi, this message translates to:
-  /// **'Chưa xoá được tài khoản. Vui lòng thử lại. Mã tham chiếu: {reference}'**
-  String deleteAccountFailedWithReference(String reference);
-
   /// Shown once the account is deleted
   ///
   /// In vi, this message translates to:
@@ -1111,6 +1069,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Xoá tài khoản'**
   String get accountSettingsDeleteAction;
+
+  /// The request's reference after the server's words, quoted when a person reports a failure
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã tham chiếu: {reference}'**
+  String problemReference(String reference);
 }
 
 class _AppLocalizationsDelegate

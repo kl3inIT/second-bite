@@ -13,6 +13,17 @@ import '../../../helpers/helpers.dart';
 
 class _MockGoogleAuth extends Mock implements GoogleAuth;
 
+/// The words the server answers with, in Vietnamese (server/internal/*/errors.go).
+const _serverWords = {
+  'IDENTITY_EMAIL_INVALID': 'Nhập một địa chỉ email, ví dụ ten@gmail.com.',
+  'IDENTITY_CODE_LIMIT_EXCEEDED':
+      'Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.',
+  'IDENTITY_CODE_INCORRECT':
+      'Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.',
+  'IDENTITY_CHALLENGE_GONE': 'Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.',
+  'PLATFORM_INTERNAL_FAILURE': 'Đã có lỗi ngoài ý muốn. Thử lại sau ít phút.',
+};
+
 /// The client's failure for a problem the server answered with.
 DioException _problem(String code, int status, {String? requestId}) {
   final options = RequestOptions(path: '/auth');
@@ -25,6 +36,7 @@ DioException _problem(String code, int status, {String? requestId}) {
         'type': 'urn:secondbite:failure:x',
         'title': 'x',
         'status': status,
+        'detail': ?_serverWords[code],
         'code': code,
         'requestId': ?requestId,
       },
@@ -161,8 +173,9 @@ void main() {
       });
 
       testWidgets('gives the reference of any other failure', (tester) async {
-        when(() => auth.requestCode(any()))
-            .thenThrow(_problem('PLATFORM_INTERNAL', 500, requestId: 'REQ-9'));
+        when(() => auth.requestCode(any())).thenThrow(
+          _problem('PLATFORM_INTERNAL_FAILURE', 500, requestId: 'REQ-9'),
+        );
         await pumpSignIn(tester);
 
         await tester.enterText(find.byType(TextField), 'lan@gmail.com');
@@ -171,8 +184,26 @@ void main() {
 
         expect(
           find.text(
-            'Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: REQ-9',
+            'Đã có lỗi ngoài ý muốn. Thử lại sau ít phút. Mã tham chiếu: REQ-9',
           ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('says it in its own words when no answer came', (
+        tester,
+      ) async {
+        when(() => auth.requestCode(any())).thenThrow(
+          DioException(requestOptions: RequestOptions(path: '/auth')),
+        );
+        await pumpSignIn(tester);
+
+        await tester.enterText(find.byType(TextField), 'lan@gmail.com');
+        await tester.tap(find.text('Gửi mã'));
+        await tester.pump();
+
+        expect(
+          find.text('Chưa đăng nhập được. Vui lòng thử lại.'),
           findsOneWidget,
         );
       });

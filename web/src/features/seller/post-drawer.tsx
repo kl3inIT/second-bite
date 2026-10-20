@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/com
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "@/i18n/navigation";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, failureOf } from "@/lib/api/client";
 import { changeOffer, postOffer, uploadPhoto, type OfferBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
 
@@ -59,30 +59,23 @@ const LENGTHS = [60, 30, 90, 120] as const;
 const DEFAULT_USUAL = { hour: 20, minute: 30 };
 
 type StartKey = "usual" | "now" | `${number}:${number}` | "custom";
-type Problem =
-  | { kind: "discount" }
-  | { kind: "window" }
-  | { kind: "details" }
-  | { kind: "inactive" }
-  | { kind: "locked" }
-  | { kind: "failed"; reference?: string };
+/**
+ * A failure of posting or changing an offer. Every code reads the same way, in one alert with the server's
+ * words (SEC-28); the request's reference follows a failure the form does not expect.
+ */
+type Problem = { expected: boolean; detail?: string; reference?: string };
+
+const expectedCodes = new Set([
+  "OFFER_DISCOUNT_TOO_SMALL",
+  "OFFER_WINDOW_INVALID",
+  "OFFER_DETAILS_INVALID",
+  "SELLER_NOT_ACTIVE",
+  "OFFER_CHANGE_NOT_ALLOWED",
+]);
 
 function problemOf(error: unknown): Problem {
   const code = error instanceof ApiError ? error.code : undefined;
-  switch (code) {
-    case "OFFER_DISCOUNT_TOO_SMALL":
-      return { kind: "discount" };
-    case "OFFER_WINDOW_INVALID":
-      return { kind: "window" };
-    case "OFFER_DETAILS_INVALID":
-      return { kind: "details" };
-    case "SELLER_NOT_ACTIVE":
-      return { kind: "inactive" };
-    case "OFFER_CHANGE_NOT_ALLOWED":
-      return { kind: "locked" };
-    default:
-      return { kind: "failed", reference: error instanceof ApiError ? error.requestId : undefined };
-  }
+  return { expected: code !== undefined && expectedCodes.has(code), ...failureOf(error) };
 }
 
 /** The moment of opening, read once; a function of its own so that rendering stays free of the clock. */
@@ -707,9 +700,11 @@ function PostDrawerBody({
                 <Alert variant="destructive">
                   <CircleAlertIcon aria-hidden />
                   <AlertDescription>
-                    {problem.kind === "failed"
-                      ? `${t("failed")}${problem.reference ? ` ${t("reference", { id: problem.reference })}` : ""}`
-                      : t(`problem.${problem.kind}`)}
+                    {!problem.detail
+                      ? t("failed")
+                      : !problem.expected && problem.reference
+                        ? `${problem.detail} ${t("reference", { id: problem.reference })}`
+                        : problem.detail}
                   </AlertDescription>
                 </Alert>
               )}

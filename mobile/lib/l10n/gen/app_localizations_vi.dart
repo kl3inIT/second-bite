@@ -439,32 +439,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Email của tài khoản Google này đã có tài khoản Second Bite. Nhận mã qua email để đăng nhập.';
 
   @override
-  String get signInEmailInvalid =>
-      'Nhập một địa chỉ email, ví dụ ten@gmail.com.';
-
-  @override
-  String get signInCodeLimit =>
-      'Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.';
-
-  @override
-  String get signInCodeIncorrect =>
-      'Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.';
-
-  @override
-  String get signInCodeGone =>
-      'Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.';
-
-  @override
-  String get signInGoogleUnverified =>
-      'Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.';
-
-  @override
   String get signInFailed => 'Chưa đăng nhập được. Vui lòng thử lại.';
-
-  @override
-  String signInFailedWithReference(String reference) {
-    return 'Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: $reference';
-  }
 
   @override
   String get signInNotArrived => 'Chưa thấy email? Xem trong thư rác (Spam).';
@@ -564,11 +539,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Chưa xoá được tài khoản. Vui lòng thử lại.';
 
   @override
-  String deleteAccountFailedWithReference(String reference) {
-    return 'Chưa xoá được tài khoản. Vui lòng thử lại. Mã tham chiếu: $reference';
-  }
-
-  @override
   String get deleteAccountDoneTitle => 'Đã xoá tài khoản';
 
   @override
@@ -617,4 +587,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get accountSettingsDeleteAction => 'Xoá tài khoản';
+
+  @override
+  String problemReference(String reference) {
+    return 'Mã tham chiếu: $reference';
+  }
 }

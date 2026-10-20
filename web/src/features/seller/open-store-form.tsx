@@ -11,7 +11,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, failureOf } from "@/lib/api/client";
 import { openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
 
 import { useRemountKey } from "./remount-key";
@@ -19,23 +19,23 @@ import { useRemountKey } from "./remount-key";
 /** Tasco Mall Long Biên, where every store of the pilot is: the form has no map (Figma O1), so a store is pinned here. */
 const MALL = { latitude: 21.0565, longitude: 105.8964 };
 
-type Problem =
-  | { kind: "details" }
-  | { kind: "phone" }
-  | { kind: "limit" }
-  | { kind: "failed"; reference?: string };
+type Problem = {
+  kind: "details" | "phone" | "limit" | "failed";
+  detail?: string;
+  reference?: string;
+};
 
 function problemOf(error: unknown): Problem {
-  const code = error instanceof ApiError ? error.code : undefined;
-  switch (code) {
+  const failure = failureOf(error);
+  switch (error instanceof ApiError ? error.code : undefined) {
     case "SELLER_DETAILS_INVALID":
-      return { kind: "details" };
+      return { kind: "details", ...failure };
     case "SELLER_PHONE_INVALID":
-      return { kind: "phone" };
+      return { kind: "phone", ...failure };
     case "SELLER_LIMIT_REACHED":
-      return { kind: "limit" };
+      return { kind: "limit", ...failure };
     default:
-      return { kind: "failed", reference: error instanceof ApiError ? error.requestId : undefined };
+      return { kind: "failed", ...failure };
   }
 }
 
@@ -105,15 +105,17 @@ function OpenStoreFormBody() {
         {problem?.kind === "limit" && (
           <Alert variant="destructive">
             <CircleAlertIcon aria-hidden />
-            <AlertDescription>{t("limit")}</AlertDescription>
+            <AlertDescription>{problem.detail ?? t("failed")}</AlertDescription>
           </Alert>
         )}
         {problem?.kind === "failed" && (
           <Alert variant="destructive">
             <CircleAlertIcon aria-hidden />
             <AlertDescription>
-              {t("failed")}
-              {problem.reference && <> {t("reference", { id: problem.reference })}</>}
+              {problem.detail ?? t("failed")}
+              {problem.detail && problem.reference && (
+                <> {t("reference", { id: problem.reference })}</>
+              )}
             </AlertDescription>
           </Alert>
         )}
@@ -148,7 +150,7 @@ function OpenStoreFormBody() {
             aria-describedby={phoneInvalid ? "store-phone-problem" : undefined}
             disabled={pending}
           />
-          {phoneInvalid && <FieldError id="store-phone-problem">{t("phoneInvalid")}</FieldError>}
+          {phoneInvalid && <FieldError id="store-phone-problem">{problem.detail}</FieldError>}
         </Field>
 
         <Field data-invalid={detailsInvalid || undefined}>
@@ -164,9 +166,7 @@ function OpenStoreFormBody() {
             aria-describedby={detailsInvalid ? "store-details-problem" : undefined}
             disabled={pending}
           />
-          {detailsInvalid && (
-            <FieldError id="store-details-problem">{t("detailsInvalid")}</FieldError>
-          )}
+          {detailsInvalid && <FieldError id="store-details-problem">{problem.detail}</FieldError>}
         </Field>
 
         <Field>

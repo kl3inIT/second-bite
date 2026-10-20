@@ -593,39 +593,9 @@
   "@signInGoogleNeedsCodeBodyNoAddress": {
     "description": "As signInGoogleNeedsCodeBody when the address is not known"
   },
-  "signInEmailInvalid": "Nhập một địa chỉ email, ví dụ ten@gmail.com.",
-  "@signInEmailInvalid": {
-    "description": "The address is not one"
-  },
-  "signInCodeLimit": "Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.",
-  "@signInCodeLimit": {
-    "description": "Too many codes for the address"
-  },
-  "signInCodeIncorrect": "Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.",
-  "@signInCodeIncorrect": {
-    "description": "A wrong code"
-  },
-  "signInCodeGone": "Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.",
-  "@signInCodeGone": {
-    "description": "An expired or used code"
-  },
-  "signInGoogleUnverified": "Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.",
-  "@signInGoogleUnverified": {
-    "description": "Google has not verified the address"
-  },
   "signInFailed": "Chưa đăng nhập được. Vui lòng thử lại.",
   "@signInFailed": {
     "description": "Any other failure"
-  },
-  "signInFailedWithReference": "Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: {reference}",
-  "@signInFailedWithReference": {
-    "description": "Any other failure, with the request's reference",
-    "placeholders": {
-      "reference": {
-        "type": "String",
-        "example": "01J…"
-      }
-    }
   },
   "signInNotArrived": "Chưa thấy email? Xem trong thư rác (Spam).",
   "@signInNotArrived": {
@@ -753,16 +723,6 @@
   "@deleteAccountFailed": {
     "description": "Any other failure"
   },
-  "deleteAccountFailedWithReference": "Chưa xoá được tài khoản. Vui lòng thử lại. Mã tham chiếu: {reference}",
-  "@deleteAccountFailedWithReference": {
-    "description": "Any other failure, with the reference to report",
-    "placeholders": {
-      "reference": {
-        "type": "String",
-        "example": "01JC2Y"
-      }
-    }
-  },
   "deleteAccountDoneTitle": "Đã xoá tài khoản",
   "@deleteAccountDoneTitle": {
     "description": "Shown once the account is deleted"
@@ -826,5 +786,14 @@
   "accountSettingsDeleteAction": "Xoá tài khoản",
   "@accountSettingsDeleteAction": {
     "description": "The button that opens the deletion"
+  },
+  "problemReference": "Mã tham chiếu: {reference}",
+  "@problemReference": {
+    "description": "The request's reference after the server's words, quoted when a person reports a failure",
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
   }
 }

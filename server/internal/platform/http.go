@@ -59,8 +59,7 @@ func RegisterHealth(mux *http.ServeMux, pool *pgxpool.Pool) {
 		if err := pool.Ping(ctx); err != nil {
 			setErrorCode(r.Context(), CodeDatabaseUnavailable)
 			w.Header().Set("Retry-After", "5")
-			writeProblem(w, newProblem(http.StatusServiceUnavailable, CodeDatabaseUnavailable,
-				http.StatusText(http.StatusServiceUnavailable), "The database does not answer.", RequestID(r.Context())))
+			writeProblem(w, platformProblem(r.Context(), http.StatusServiceUnavailable, CodeDatabaseUnavailable))
 
 			return
 		}
