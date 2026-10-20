@@ -406,7 +406,9 @@ test.describe("the catalog on the web", () => {
     await expect(row(page, /Hộp bánh cuối ngày/)).toContainText("Hộp tổng hợp · 1 suất");
   });
 
-  test("hides a dish, shows it again, and deletes one after asking", async ({ page }, testInfo) => {
+  test("changes a dish, shows a hidden one again, and deletes one after asking", async ({
+    page,
+  }, testInfo) => {
     const store = await catalogStore(page, "kiet", testInfo);
     await page.goto(`/vi/stores/${store}/catalog`);
     await row(page, /Xôi thập cẩm/)
@@ -415,14 +417,14 @@ test.describe("the catalog on the web", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Sửa món" })).toBeVisible();
     await expect(page.getByLabel("Tên món")).toHaveValue("Xôi thập cẩm, 1 hộp");
     await expectNoSeriousA11yViolations(page);
-    await (await hydrated(page.getByRole("button", { name: "Ẩn", exact: true }))).click();
+    await (await hydrated(page.getByLabel("Tên món"))).fill("Xôi thập cẩm lớn");
     await page.getByRole("button", { name: "Lưu thay đổi" }).click();
-    await expect(row(page, /Xôi thập cẩm/)).toContainText("Đang ẩn", { timeout: 15_000 });
+    await expect(row(page, /Xôi thập cẩm lớn/)).toBeVisible({ timeout: 15_000 });
 
-    await row(page, /Xôi thập cẩm/)
+    await row(page, /Cơm sườn nướng/)
       .getByRole("button", { name: "Hiện lại" })
       .click();
-    await expect(row(page, /Xôi thập cẩm/).getByRole("link", { name: "Đăng ngay" })).toBeVisible({
+    await expect(row(page, /Cơm sườn nướng/).getByRole("link", { name: "Đăng ngay" })).toBeVisible({
       timeout: 15_000,
     });
 
