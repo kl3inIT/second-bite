@@ -57,6 +57,7 @@ mobile/
 - Repositories call the generated client; the client is configured once in `core/` with the API's address and the session's token. A failure's words are the server's `detail` (SEC-28); the app branches on its `code` only where the screen does something different.
 - Vietnamese and English through gen-l10n (`flutter_localizations`, `intl`, ARB files), read as `context.l10n`. The first language follows the device; a choice made in the app is kept in `shared_preferences` and sent as `Accept-Language` on every call. Every key is in both catalogs.
 - Times are shown in `Asia/Ho_Chi_Minh` on the 24-hour clock, prices in đồng (`39.000đ`), as on the web.
+- The terms and the privacy policy are read inside the app from a copy of the web's text in the ARB catalogs (`legalTerms*`, `legalPrivacy*`); `test/features/legal/legal_text_test.dart` reads `web/messages` and fails when the two differ, so a change to the legal text is made on the web and copied here in the same change (SEC-52).
 
 ## Quality gates
 
