@@ -6,7 +6,6 @@ import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import { useRouter } from "@/i18n/navigation";
@@ -123,7 +122,7 @@ export function RangeFilter({
         <ChevronDownIcon aria-hidden className="size-3.5" />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-80">
-        <form action={apply} className="flex flex-col gap-4 p-1.5">
+        <form action={apply} className="flex flex-col gap-3 p-1.5">
           <PopoverTitle>{name}</PopoverTitle>
           <ul aria-label={t("quick")} className="flex flex-wrap gap-2">
             {presets.map((preset) => (
@@ -142,11 +141,15 @@ export function RangeFilter({
           </ul>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor={`${id}-from`}>{t("from")}</Label>
+              <label htmlFor={`${id}-from`} className="text-label text-muted-foreground">
+                {t("from")}
+              </label>
               {field("from", from)}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor={`${id}-to`}>{t("to")}</Label>
+              <label htmlFor={`${id}-to`} className="text-label text-muted-foreground">
+                {t("to")}
+              </label>
               {field("to", to)}
             </div>
           </div>
@@ -156,10 +159,10 @@ export function RangeFilter({
             </p>
           )}
           <div className="grid grid-cols-2 gap-3">
-            <Button type="button" variant="secondary" size="lg" onClick={() => show(keep)}>
+            <Button type="button" variant="secondary" size="panel" onClick={() => show(keep)}>
               {t("clearFilter")}
             </Button>
-            <Button type="submit" size="lg">
+            <Button type="submit" size="panel">
               {t("apply")}
             </Button>
           </div>
@@ -184,7 +187,7 @@ function PriceInput({
   const [digits, setDigits] = useState(value ?? "");
 
   return (
-    <InputGroup>
+    <InputGroup surface="panel">
       <InputGroupInput
         id={id}
         name={name}
