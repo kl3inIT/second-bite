@@ -51,13 +51,14 @@ export function OfferCard({
         className,
       )}
     >
-      <div className={cn("relative", compact ? "h-30" : "h-34")}>
+      <div className={cn("relative", compact ? "h-30" : showSeller ? "h-37" : "h-34")}>
         <OfferPhoto
           offer={offer}
           dimmed={!available}
           sizes={compact ? "(min-width: 640px) 25vw, 50vw" : "(min-width: 640px) 50vw, 100vw"}
         />
-        <DiscountLabel percent={offer.discountPercent} className="rounded-tl-xl" />
+        {/* In the search the heart takes the label's corner; the struck price still shows the saving (Figma K1f). */}
+        {!showSeller && <DiscountLabel percent={offer.discountPercent} className="rounded-tl-xl" />}
         <p
           className={cn(
             "absolute inset-x-0 bottom-0 flex items-end bg-linear-to-b from-transparent to-foreground/60 text-label-strong text-card",
@@ -72,7 +73,7 @@ export function OfferCard({
           <HeartButton
             offerId={offer.id}
             name={offer.name}
-            className={compact ? "top-0 right-0" : "top-7 left-0"}
+            className={compact ? "top-0 right-0" : "top-0.5 left-0.5"}
           />
         )}
       </div>

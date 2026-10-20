@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftIcon, HistoryIcon, SearchIcon, XIcon } from "lucide-react";
+import { ChevronLeftIcon, HistoryIcon, SearchIcon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -61,7 +61,7 @@ export function SearchBar({
           aria-label={t("back")}
           className={buttonVariants({ variant: "ghost", size: "icon" })}
         >
-          <ArrowLeftIcon aria-hidden className="size-5" />
+          <ChevronLeftIcon aria-hidden className="size-6" />
         </Link>
         <search className="min-w-0 flex-1 search-cancel-none">
           <form>

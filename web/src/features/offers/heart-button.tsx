@@ -37,7 +37,7 @@ export function HeartButton({
       <HeartIcon
         aria-hidden
         strokeWidth={2}
-        className={cn("size-5.5 drop-shadow-sm", kept && "fill-current")}
+        className={cn("size-5.5 drop-shadow-md", kept && "fill-current")}
       />
     </button>
   );

@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
+import { cn } from "@/lib/utils";
 
 import { DishTile } from "./dish-tile";
 import type { OfferSummary } from "./offer";
@@ -37,7 +38,13 @@ export function SellerGroup({
         <SellerHeading seller={seller} offer={first} />
       )}
       {tiles.length > 0 && (
-        <div className="grid grid-cols-3 gap-2.25 px-3.5 pt-3 pb-3.5">
+        // Under a dish card the tiles follow its body 12px below (Figma K1f hàng túi), under a seller its heading.
+        <div
+          className={cn(
+            "grid grid-cols-3 gap-2.25 px-3.5 pb-3.5",
+            lead === "dish" ? "pt-0" : "pt-3",
+          )}
+        >
           {tiles.map((offer) => (
             <DishTile key={offer.id} offer={offer} />
           ))}

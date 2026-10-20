@@ -35,6 +35,8 @@ const tabs: Tab[] = [
 export function BottomNav() {
   const t = useTranslations("BottomNav");
   const pathname = usePathname();
+  // The search is a screen of its own, left by its back arrow (Figma K1f, K2).
+  if (pathname === "/search") return null;
 
   return (
     <>
