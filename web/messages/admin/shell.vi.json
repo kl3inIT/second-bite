@@ -122,5 +122,29 @@
     "active": "Đang hoạt động",
     "pending": "Chờ duyệt",
     "blocked": "Bị chặn"
+  },
+  "empty": "Chưa có dữ liệu",
+  "rowActions": "Thao tác với {name}",
+  "sheetClose": "Đóng",
+  "settingsNav": "Mục cài đặt",
+  "pagination": {
+    "label": "Phân trang",
+    "previous": "Trang trước",
+    "next": "Trang sau",
+    "page": "Trang {page}"
+  },
+  "confirm": {
+    "cancel": "Huỷ"
+  },
+  "form": {
+    "cancel": "Huỷ",
+    "save": "Lưu thay đổi",
+    "savingButton": "Đang lưu…",
+    "saving": "Đang lưu thay đổi…",
+    "dirty": "Bạn có thay đổi chưa lưu"
+  },
+  "dateRange": {
+    "any": "Mọi lúc",
+    "clear": "Mọi lúc"
   }
 }

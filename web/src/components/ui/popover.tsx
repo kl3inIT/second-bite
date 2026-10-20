@@ -8,8 +8,24 @@ function Popover({ ...props }: PopoverPrimitive.Root.Props) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />;
 }
 
-function PopoverTrigger({ ...props }: PopoverPrimitive.Trigger.Props) {
-  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
+function PopoverTrigger({
+  className,
+  variant = "plain",
+  ...props
+}: PopoverPrimitive.Trigger.Props & { variant?: "plain" | "field" }) {
+  return (
+    <PopoverPrimitive.Trigger
+      data-slot="popover-trigger"
+      data-variant={variant}
+      className={cn(
+        // Second Bite (Figma Admin/DateRange 238:55307): a filter of the admin's filter bar that opens a
+        // calendar, drawn as the admin's select.
+        "data-[variant=field]:flex data-[variant=field]:h-11 data-[variant=field]:items-center data-[variant=field]:gap-2 data-[variant=field]:rounded-md data-[variant=field]:border data-[variant=field]:border-input data-[variant=field]:bg-card data-[variant=field]:pr-3 data-[variant=field]:pl-3.5 data-[variant=field]:text-body-sm data-[variant=field]:whitespace-nowrap data-[variant=field]:transition-colors data-[variant=field]:outline-none data-[variant=field]:hover:bg-muted data-[variant=field]:focus-visible:border-ring data-[variant=field]:focus-visible:ring-3 data-[variant=field]:focus-visible:ring-ring/50",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 function PopoverContent({

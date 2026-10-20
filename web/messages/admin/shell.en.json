@@ -122,5 +122,29 @@
     "active": "Active",
     "pending": "Pending",
     "blocked": "Blocked"
+  },
+  "empty": "No data yet",
+  "rowActions": "Actions for {name}",
+  "sheetClose": "Close",
+  "settingsNav": "Settings sections",
+  "pagination": {
+    "label": "Pages",
+    "previous": "Previous page",
+    "next": "Next page",
+    "page": "Page {page}"
+  },
+  "confirm": {
+    "cancel": "Cancel"
+  },
+  "form": {
+    "cancel": "Cancel",
+    "save": "Save changes",
+    "savingButton": "Saving…",
+    "saving": "Saving your changes…",
+    "dirty": "You have unsaved changes"
+  },
+  "dateRange": {
+    "any": "Any time",
+    "clear": "Any time"
   }
 }

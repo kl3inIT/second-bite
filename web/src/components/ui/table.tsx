@@ -3,11 +3,18 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+// Second Bite: `admin` is the admin's table (Figma Admin/TableRow 228:5353): a 44px header on the sky ground in
+// muted 12px words, 64px rows that turn sky under the pointer, 16px between cells and at the ends.
+function Table({
+  className,
+  variant = "default",
+  ...props
+}: React.ComponentProps<"table"> & { variant?: "default" | "admin" }) {
   return (
     <div data-slot="table-container" className="relative w-full overflow-x-auto">
       <table
         data-slot="table"
+        data-table={variant}
         className={cn("w-full caption-bottom text-body-sm", className)}
         {...props}
       />
@@ -16,7 +23,16 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
 }
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
-  return <thead data-slot="table-header" className={cn("[&_tr]:border-b", className)} {...props} />;
+  return (
+    <thead
+      data-slot="table-header"
+      className={cn(
+        "in-data-[table=admin]:bg-muted [&_tr]:border-b in-data-[table=admin]:[&_tr]:hover:bg-muted",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
@@ -45,6 +61,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
       data-slot="table-row"
       className={cn(
         "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+        "in-data-[table=admin]:hover:bg-muted in-data-[table=admin]:has-aria-expanded:bg-muted",
         className,
       )}
       {...props}
@@ -58,6 +75,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
       data-slot="table-head"
       className={cn(
         "h-10 px-2 text-left align-middle whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        "in-data-[table=admin]:h-11 in-data-[table=admin]:text-label-strong in-data-[table=admin]:text-muted-foreground in-data-[table=admin]:first:pl-4 in-data-[table=admin]:last:pr-4",
         className,
       )}
       {...props}
@@ -69,7 +87,11 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
       data-slot="table-cell"
-      className={cn("p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0", className)}
+      className={cn(
+        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        "in-data-[table=admin]:h-16 in-data-[table=admin]:py-0 in-data-[table=admin]:first:pl-4 in-data-[table=admin]:last:pr-4",
+        className,
+      )}
       {...props}
     />
   );
