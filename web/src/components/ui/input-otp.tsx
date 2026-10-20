@@ -30,7 +30,7 @@ function InputOTPGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="input-otp-group"
       className={cn(
-        "flex items-center gap-2 rounded-lg has-aria-invalid:border-destructive has-aria-invalid:ring-3 has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40",
+        "flex items-center gap-2.5 rounded-lg has-aria-invalid:border-destructive has-aria-invalid:ring-3 has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40",
         className,
       )}
       {...props}
@@ -38,7 +38,7 @@ function InputOTPGroup({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-// Second Bite: six separate 48×56 slots, the digits in Bricolage (DESIGN.md › price-lg), as the Figma L2 frame.
+// Second Bite: six separate 56×64 slots, 16px radius, the digits in Bricolage (DESIGN.md › price-lg), as the Figma L9 frame.
 function InputOTPSlot({
   index,
   className,
@@ -54,7 +54,7 @@ function InputOTPSlot({
       data-slot="input-otp-slot"
       data-active={isActive}
       className={cn(
-        "relative flex h-14 w-12 items-center justify-center rounded-lg border border-input bg-card font-display text-price-lg transition-all outline-none aria-invalid:border-destructive aria-invalid:bg-destructive/5 data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-3 data-[active=true]:ring-ring/50 data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/20 dark:bg-input/30 dark:data-[active=true]:aria-invalid:ring-destructive/40",
+        "relative flex h-16 w-14 items-center justify-center rounded-2xl border border-input bg-card font-display text-price-lg transition-all outline-none aria-invalid:border-destructive aria-invalid:bg-destructive/5 data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-3 data-[active=true]:ring-ring/50 data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/20 dark:bg-input/30 dark:data-[active=true]:aria-invalid:ring-destructive/40",
         className,
       )}
       {...props}

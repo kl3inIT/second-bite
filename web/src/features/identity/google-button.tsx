@@ -27,7 +27,7 @@ type GoogleIdentity = {
           theme: "outline";
           size: "large";
           text: "continue_with";
-          shape: "rectangular";
+          shape: "pill";
           logo_alignment: "center";
           width: number;
           locale: string;
@@ -82,7 +82,7 @@ export function GoogleButton({
         theme: "outline",
         size: "large",
         text: "continue_with",
-        shape: "rectangular",
+        shape: "pill",
         logo_alignment: "center",
         width: Math.min(parent.offsetWidth, MAX_WIDTH),
         locale,

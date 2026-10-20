@@ -148,6 +148,16 @@ abstract final class TypeTokens {
     letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
+  static const hero = TextStyle(
+    fontFamily: 'Be Vietnam Pro',
+    package: 'app_ui',
+    fontSize: 44,
+    fontWeight: FontWeight.w700,
+    fontVariations: [FontVariation('wght', 700)],
+    height: 54 / 44,
+    letterSpacing: 0,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
   static const figureSm = TextStyle(
     fontFamily: 'Bricolage Grotesque',
     package: 'app_ui',

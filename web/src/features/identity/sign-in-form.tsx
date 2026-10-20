@@ -265,6 +265,7 @@ export function SignInForm({
             autoCapitalize="none"
             spellCheck={false}
             required
+            variant="pill"
             placeholder={t("emailPlaceholder")}
             value={email}
             onChange={(event) => setEmail(event.target.value)}

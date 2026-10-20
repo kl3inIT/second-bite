@@ -91,7 +91,7 @@ colors:
   avatar-indigo: "{palette.logo-indigo}" # 7.6:1
   avatar-olive: "{palette.logo-olive}" # 6.0:1
 typography:
-  # Thirteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
+  # Fourteen roles, 13 normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
   # "Mobile v2" frames used (SEC-22). Named by purpose, not size; each has a Figma text style of the same name.
   # Be Vietnam Pro (`font-sans`) for everything people read; Bricolage Grotesque (`font-display`) only for
   # prices and figures, tracked -1%. Nothing is set below 12px.
@@ -140,6 +140,11 @@ typography:
     fontSize: "20px"
     fontWeight: 700
     lineHeight: "28px"
+  hero: # the headline of a panel that carries no other content, such as the sign-in screen's on a wide screen
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "44px"
+    fontWeight: 700
+    lineHeight: "54px"
   figure-sm: # the discount chip (-63%)
     fontFamily: "Bricolage Grotesque"
     fontSize: "12px"
@@ -294,7 +299,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 ### Hierarchy
 
-Thirteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `headline` grew to 20/28 bold with Mobile v3 (SEC-48). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
+Fourteen roles, thirteen of them normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `headline` grew to 20/28 bold with Mobile v3 (SEC-48); `hero` was added for the sign-in panel (SEC-56). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
 
 | Role             | Face          | Size / line | Use                                                                                |
 | ---------------- | ------------- | ----------- | ---------------------------------------------------------------------------------- |
@@ -302,6 +307,7 @@ Thirteen roles, normalised on 19 October 2026 from the 45 size, weight and leadi
 | `price-lg`       | Bricolage 700 | 22 / 25     | The price on an offer card and at checkout, totals, the digits of the sign-in code |
 | `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                        |
 | `figure-sm`      | Bricolage 700 | 12 / 16     | The discount chip                                                                  |
+| `hero`           | 700           | 44 / 54     | The headline of a panel with no other content, the wide sign-in screen's            |
 | `headline`       | 700           | 20 / 28     | Section and sheet titles, a page's heading                                         |
 | `bar-title`      | 600           | 17 / 22     | The top bar's title                                                                |
 | `button`         | 600           | 16 / 20     | Button labels                                                                      |
