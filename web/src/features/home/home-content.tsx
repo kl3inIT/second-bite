@@ -20,7 +20,6 @@ import { Link } from "@/i18n/navigation";
 
 import { homeSearch, type HomeQuery } from "./home-query";
 import { HowItWorks } from "./how-it-works";
-import { IntroStrip } from "./intro-strip";
 import { KindPicker } from "./kind-picker";
 
 const CLOSING_COUNT = 6;
@@ -39,13 +38,10 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
   const closing = filtered ? [] : closingFirst(offers).slice(0, CLOSING_COUNT);
 
   return (
-    <div className="flex flex-col gap-3 pt-3 pb-4">
+    <div className="flex flex-col gap-3 pb-4">
       <KindPicker query={query} />
       {!filtered && !query.near && (
         <div className="px-4">
-          <div className="lg:hidden">
-            <IntroStrip />
-          </div>
           <HowItWorks />
         </div>
       )}

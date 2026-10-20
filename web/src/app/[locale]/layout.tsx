@@ -4,6 +4,7 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import { SiteFooter } from "@/components/site-footer";
+import { Splash } from "@/components/splash";
 import { routing } from "@/i18n/routing";
 
 import "../globals.css";
@@ -40,9 +41,12 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
     <html
       lang={hasLocale(routing.locales, locale) ? locale : routing.defaultLocale}
       className={`${beVietnamPro.variable} ${bricolage.variable} h-full antialiased`}
+      // The splash's script marks a visit's later pages before React hydrates.
+      suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider>
+          <Splash />
           {children}
           <SiteFooter />
         </NextIntlClientProvider>

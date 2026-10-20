@@ -7,7 +7,6 @@
     "searchLabel": "Search dishes or sellers",
     "searchPlaceholder": "Search pastries, rolls, vegetables…",
     "kindsLabel": "Kinds of food",
-    "collectNow": "Collect now",
     "dealsTitle": "Good food tonight at Tasco Mall",
     "upTo": "Up to",
     "upToPercent": "{percent}%",
@@ -28,7 +27,8 @@
     "nearbyEmpty": "Nothing around here yet",
     "nearbyEmptyHint": "The sellers near you have posted nothing tonight. You can see what is on at Tasco Mall.",
     "seeMall": "See dishes at Tasco Mall",
-    "mallOffers": "On now at Tasco Mall"
+    "mallOffers": "On now at Tasco Mall",
+    "filters": "Filter dishes"
   },
   "Area": {
     "open": "Choose where to look",
@@ -116,9 +116,6 @@
     "sellerAway": "{seller} · {distance} away"
   },
   "Intro": {
-    "title": "What is Second Bite?",
-    "body": "Good food left at the end of the day by sellers in Tasco Mall, at a lower price. Order ahead, then collect it at the counter within the dish's window.",
-    "dismiss": "Close the introduction",
     "tagline": "End-of-day food from the counters at Tasco Mall, for less.",
     "step1": "Pick and reserve",
     "step2": "Come to the counter in its window",
@@ -333,5 +330,8 @@
     "saved": "Saved",
     "account": "Account",
     "soon": "(coming soon)"
+  },
+  "Splash": {
+    "tagline": "Good food left at the end of the day, for less"
   }
 }

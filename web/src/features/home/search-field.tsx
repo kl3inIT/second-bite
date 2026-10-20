@@ -1,10 +1,11 @@
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, Settings2Icon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { Link } from "@/i18n/navigation";
 
 // The search field of the header (Figma search): a GET form to the search page (Figma K2), so a search can
-// be shared and works before JavaScript.
+// be shared and works before JavaScript. Its round button opens the search with its filters (Figma nút lọc).
 export function SearchField({
   value,
   near,
@@ -33,6 +34,15 @@ export function SearchField({
           />
           <InputGroupAddon>
             <SearchIcon aria-hidden className="size-5" />
+          </InputGroupAddon>
+          <InputGroupAddon align="inline-end">
+            <Link
+              href={{ pathname: "/search", query: near ? { near } : {} }}
+              aria-label={t("filters")}
+              className="flex size-9 items-center justify-center rounded-full bg-secondary text-primary transition-colors hover:bg-secondary-hover focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+            >
+              <Settings2Icon aria-hidden className="size-5" />
+            </Link>
           </InputGroupAddon>
         </InputGroup>
       </form>

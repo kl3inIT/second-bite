@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils";
-import { ClockIcon, UtensilsCrossedIcon, type LucideIcon } from "lucide-react";
+import { UtensilsCrossedIcon, type LucideIcon } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import { useTranslations } from "next-intl";
 
+import { ScrollHint } from "@/components/scroll-hint";
 import { ScrollRow } from "@/components/scroll-row";
 import { offerKinds, type OfferKind } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
@@ -15,8 +16,9 @@ import preparedFood from "./kinds/prepared-food.jpg";
 
 import type { HomeQuery } from "./home-query";
 
-// The round pictures under the banners (Figma categories): "collect now" and one per kind the API can
-// filter by. Each is a link over the address; the chosen one links back to the whole list.
+// The round pictures at the top of the content (Figma K1 kind picker): one per kind the API can filter by,
+// with a short scroll hint under them. Each is a link over the address; the chosen one links back to the
+// whole list. Collecting now is a chip of the search (Figma K2).
 const pictures: Record<OfferKind, StaticImageData | LucideIcon> = {
   bakery,
   prepared_food: preparedFood,
@@ -31,37 +33,28 @@ export function KindPicker({ query }: { query: HomeQuery }) {
   const kinds = useTranslations("OfferKind");
   // A kind narrows the place being shown; it does not move back to Tasco Mall.
   const keep = query.near ? { near: query.near } : {};
-  const items = [
-    {
-      key: "now",
-      label: t("collectNow"),
-      picture: ClockIcon,
-      active: !!query.now,
-      href: { now: "1" },
-    },
-    ...offerKinds.map((kind) => ({
-      key: kind,
-      label: kinds(kind),
-      picture: pictures[kind],
-      active: query.kind === kind,
-      href: { kind },
-    })),
-  ];
+  const items = offerKinds.map((kind) => ({
+    key: kind,
+    label: kinds(kind),
+    picture: pictures[kind],
+    active: query.kind === kind,
+    href: { kind },
+  }));
 
   return (
-    <nav aria-label={t("kindsLabel")}>
-      <ScrollRow label={t("kindsLabel")} className="gap-2.5 sm:justify-start">
+    <nav aria-label={t("kindsLabel")} className="flex flex-col gap-2.5">
+      <ScrollRow id="kind-picker" label={t("kindsLabel")} className="gap-2.5 pb-0 sm:justify-start">
         {items.map((item) => (
           <li key={item.key} className="shrink-0 snap-start">
             <Link
               href={{ pathname: "/", query: item.active ? keep : { ...keep, ...item.href } }}
               aria-current={item.active ? "page" : undefined}
-              className="group/kind flex w-16 flex-col items-center gap-1.5 rounded-xl focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+              className="group/kind flex min-w-16 flex-col items-center gap-1.5 rounded-xl focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
             >
               <KindPicture picture={item.picture} active={item.active} />
               <span
                 className={cn(
-                  "text-center",
+                  "text-center whitespace-nowrap",
                   item.active ? "text-label-strong text-primary" : "text-label text-foreground",
                 )}
               >
@@ -71,6 +64,7 @@ export function KindPicker({ query }: { query: HomeQuery }) {
           </li>
         ))}
       </ScrollRow>
+      <ScrollHint target="kind-picker" />
     </nav>
   );
 }

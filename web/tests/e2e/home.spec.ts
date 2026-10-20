@@ -110,26 +110,15 @@ test.describe("the customer home", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
-  test("introduces Second Bite on a first visit until it is closed", async ({ page, isMobile }) => {
+  test("says what Second Bite is on a wide screen, where a phone goes straight to the dishes", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "A phone follows Figma K1, without the line and the steps.");
     await page.goto("/vi");
-    if (!isMobile) {
-      // A wide screen keeps one line and the three steps in view, with nothing to close.
-      const line = "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.";
-      await expect(page.getByRole("heading", { name: line })).toBeVisible();
-      await expect(page.getByText("Đến quầy trong giờ lấy")).toBeVisible();
-      await expect(page.getByRole("button", { name: "Đóng giới thiệu" })).toBeHidden();
-      return;
-    }
-    await expect(page.getByRole("heading", { name: "Second Bite là gì?" })).toBeVisible();
-
-    await (await hydrated(page.getByRole("button", { name: "Đóng giới thiệu" }))).click();
-    await expect(page.getByRole("heading", { name: "Second Bite là gì?" })).toBeHidden();
-
-    await page.reload();
-    await expect(
-      page.getByRole("heading", { level: 1, name: "Tối nay ở Tasco Mall" }),
-    ).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Second Bite là gì?" })).toBeHidden();
+    const line = "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.";
+    await expect(page.getByRole("heading", { name: line })).toBeVisible();
+    await expect(page.getByText("Đến quầy trong giờ lấy")).toBeVisible();
   });
 
   test("keeps the search and the account in reach once the header scrolls away on a wide screen", async ({

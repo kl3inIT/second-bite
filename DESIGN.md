@@ -369,6 +369,14 @@ The small card of the sideways rows (Figma `rec/…`): 132px wide with no surfac
 
 The four tabs on a phone (Figma Bottom nav, 105:2515), floating 16px from the sides and the bottom: 64px high, fully rounded, frosted white with a hairline of white and `elevation.nav`. The active tab is a Blue Wash pill with its icon and label in Tasco blue (`label-strong`); the others are muted (`label`). A tab without a screen yet is shown dimmed and cannot be pressed.
 
+### Splash
+
+The first page of a visit on a phone opens on the splash (Figma K0): the white wordmark, 48px high, over the tagline (`body-sm-strong`, white at 80%) on the header's blue. It holds for 0.7 seconds, then fades in 0.3 seconds to the page already drawn beneath it. With reduced motion it is gone at once, and a wide screen does not show it.
+
+### Header foot and kind picker
+
+The page's pale ground rises over the header's foot as a 28px sheet with 24px top corners (Figma header › sheet); the sweep scales with the header, so its pale bands always reach that foot. Under it, the kinds are 60px round photographs with their names (`label`) on one line, and a short track (36px, `secondary-hover`, its blue half following the row) replaces the browser's scrollbar on every row that scrolls sideways.
+
 ### Search top bar
 
 The search's own bar (Figma K2): white with a hairline below, a plain back arrow, and the search field fully rounded on the sky ground (`muted`) without an edge. While the field is focused and empty, the recent searches (kept in the browser) and the kinds open under it as a white panel (Figma K2a).

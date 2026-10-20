@@ -8,8 +8,8 @@ import { StickyHeader } from "./sticky-header";
 import { Wordmark } from "./wordmark";
 
 // The blue header of the home (Figma header): what the page names itself with, an optional search field,
-// the account and the language capsules, then what the page puts under them, under the light sweep and with rounded
-// bottom corners. On a phone the search field takes its own row; from `lg` the wordmark leads the row and
+// the account and the language capsules, then what the page puts under them, under the light sweep; the
+// page's pale ground rises over its foot with rounded corners (Figma header › sheet). On a phone the search field takes its own row; from `lg` the wordmark leads the row and
 // the three share it, and `sticky` (a second search field and account) stays at the top once the row has
 // scrolled away. From `xl` it is 1200px wide, as Vietnamese food sites are
 // (docs/research/2026-10-19-desktop-home.md).
@@ -38,9 +38,9 @@ export async function AppHeader({
   );
 
   return (
-    <header className="relative overflow-hidden rounded-b-3xl bg-header text-header-foreground">
+    <header className="relative overflow-hidden bg-header text-header-foreground">
       <HeaderSweep />
-      <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 pt-4 pb-3 xl:max-w-300">
+      <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 pt-4 pb-9.75 xl:max-w-300">
         <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 lg:flex-nowrap lg:items-center">
           <div className="flex items-center gap-5">
             {home}
@@ -56,6 +56,7 @@ export async function AppHeader({
         </div>
         {children}
       </div>
+      <div aria-hidden className="absolute inset-x-0 bottom-0 h-7 rounded-t-3xl bg-background" />
       {sticky && (
         <StickyHeader>
           {home}

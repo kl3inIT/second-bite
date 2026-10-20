@@ -7,7 +7,6 @@
     "searchLabel": "Tìm món hoặc quán",
     "searchPlaceholder": "Tìm bánh, gỏi cuốn, rau củ…",
     "kindsLabel": "Loại món",
-    "collectNow": "Lấy ngay",
     "dealsTitle": "Món ngon tối nay ở Tasco Mall",
     "upTo": "Giảm đến",
     "upToPercent": "{percent}%",
@@ -28,7 +27,8 @@
     "nearbyEmpty": "Chưa có món nào quanh đây",
     "nearbyEmptyHint": "Các quán gần bạn chưa đăng món nào tối nay. Bạn có thể xem món đang bán ở Tasco Mall.",
     "seeMall": "Xem món ở Tasco Mall",
-    "mallOffers": "Đang bán ở Tasco Mall"
+    "mallOffers": "Đang bán ở Tasco Mall",
+    "filters": "Lọc món"
   },
   "Area": {
     "open": "Chọn nơi xem món",
@@ -116,9 +116,6 @@
     "sellerAway": "{seller} · cách {distance}"
   },
   "Intro": {
-    "title": "Second Bite là gì?",
-    "body": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.",
-    "dismiss": "Đóng giới thiệu",
     "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
     "step1": "Chọn món, đặt trước",
     "step2": "Đến quầy trong giờ lấy",
@@ -333,5 +330,8 @@
     "saved": "Yêu thích",
     "account": "Tài khoản",
     "soon": "(sắp có)"
+  },
+  "Splash": {
+    "tagline": "Món ngon còn lại cuối ngày, giá tốt hơn"
   }
 }

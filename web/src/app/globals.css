@@ -25,6 +25,33 @@
   }
 }
 
+/* Figma K0: the splash holds for a moment, then fades and stops catching the pointer; once per visit. */
+@utility splash {
+  animation: splash-out 300ms ease-in 700ms forwards;
+  :root[data-splash="seen"] & {
+    display: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation-delay: 0ms;
+    animation-duration: 1ms;
+  }
+}
+
+@keyframes splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* A row that scrolls sideways shows a short hint of its own (ScrollHint) instead of the browser's bar. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Floats the bottom bar 16px above the screen's foot, or clear of a phone's home indicator when that is taller. */
 @utility bottom-safe-4 {
   bottom: max(calc(var(--spacing) * 4), env(safe-area-inset-bottom, 0px));
