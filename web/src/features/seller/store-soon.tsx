@@ -21,7 +21,7 @@ export async function StoreSoon({
     <>
       <h1 className="text-page-title text-foreground">{t(`${tab}.title`)}</h1>
       <section className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-5 text-card-foreground">
-        <h2 className="text-title-lg">{t("soon")}</h2>
+        <h2 className="text-card-title">{t("soon")}</h2>
         <p className="text-body-sm text-muted-foreground">{t(`${tab}.body`)}</p>
       </section>
     </>

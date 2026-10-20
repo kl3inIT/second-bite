@@ -30,7 +30,7 @@ export async function StoreHome({ sellerId: pendingId }: { sellerId: Promise<str
           className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground"
         >
           <div className="flex flex-col gap-1">
-            <h2 id="store-start" className="text-title-lg">
+            <h2 id="store-start" className="text-card-title">
               {t("startTitle")}
             </h2>
             <p className="text-body-sm text-muted-foreground">{t("startBody")}</p>
@@ -45,7 +45,7 @@ export async function StoreHome({ sellerId: pendingId }: { sellerId: Promise<str
         aria-labelledby="store-today"
         className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground"
       >
-        <h2 id="store-today" className="text-title-lg">
+        <h2 id="store-today" className="text-card-title">
           {t("todayTitle")}
         </h2>
         {today.length === 0 ? (
