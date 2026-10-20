@@ -46,7 +46,8 @@ type Query struct {
 	RadiusKm int
 	Words    string
 	Kinds    []Kind
-	// MaxPriceVND bounds the price of one unit.
+	// MinPriceVND and MaxPriceVND bound the price of one unit.
+	MinPriceVND int64
 	MaxPriceVND int64
 	// CollectFrom and CollectTo keep offers whose window overlaps them; both
 	// at one moment keep what can be collected then.
@@ -151,6 +152,10 @@ func (s *Service) searchParams(ctx context.Context, q Query) (db.SearchOffersPar
 		p.Longitude = pgtype.Float8{Float64: q.Near.Longitude, Valid: true}
 	}
 
+	if q.MinPriceVND > 0 {
+		p.MinPrice = pgtype.Int8{Int64: q.MinPriceVND, Valid: true}
+	}
+
 	if q.MaxPriceVND > 0 {
 		p.MaxPrice = pgtype.Int8{Int64: q.MaxPriceVND, Valid: true}
 	}
@@ -163,13 +168,18 @@ func (s *Service) searchParams(ctx context.Context, q Query) (db.SearchOffersPar
 }
 
 // valid refuses a point off the map, a time range that ends before it
-// starts, an unknown kind or order, and an order by distance from no point.
+// starts, a price range whose lowest is above its highest, an unknown kind or
+// order, and an order by distance from no point.
 func (q Query) valid() bool {
 	if q.Near != nil && (q.Near.Latitude < -90 || q.Near.Latitude > 90 || q.Near.Longitude < -180 || q.Near.Longitude > 180) {
 		return false
 	}
 
 	if q.CollectFrom != nil && q.CollectTo != nil && q.CollectTo.Before(*q.CollectFrom) {
+		return false
+	}
+
+	if q.MinPriceVND > 0 && q.MaxPriceVND > 0 && q.MinPriceVND > q.MaxPriceVND {
 		return false
 	}
 

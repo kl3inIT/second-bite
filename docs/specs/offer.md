@@ -10,7 +10,7 @@ Owns the surplus sellers post and the settings every offer follows (tables `offe
 | `PATCH /offers/{offerId}` | The owner or staff of an active seller | `200` offer |
 | `POST /offers/{offerId}/withdraw` | The seller's owner or staff, even when it is blocked | `200` offer, withdrawn; again, the same |
 | `GET /sellers/{sellerId}/offers?status=&limit=&offset=` | Its members; admins | `200` its offers, newest first, at most 100; the list staff post again from |
-| `GET /offers?near=&radiusKm=&q=&kind=&maxPrice=&collectFrom=&collectTo=&sellerId=&available=&sort=&limit=&offset=` | Anyone | `200` offers on sale or sold out, each with its seller (name, address, photo) and, near a point, its distance; at most 50 a page |
+| `GET /offers?near=&radiusKm=&q=&kind=&minPrice=&maxPrice=&collectFrom=&collectTo=&sellerId=&available=&sort=&limit=&offset=` | Anyone | `200` offers on sale or sold out, each with its seller (name, address, photo) and, near a point, its distance; at most 50 a page |
 | `GET /offers/{offerId}` | Anyone while it is on sale or sold out and its seller active; its members and admins always | `200` offer |
 | `GET`, `PUT /admin/offer-settings` | Admins | `200` the settings |
 
@@ -44,7 +44,7 @@ Published to other modules: `Service` alone; units are taken by `order` (SEC-15)
 | `OFFER_DETAILS_INVALID` | 400 | A field breaks its rule |
 | `OFFER_DISCOUNT_TOO_SMALL` | 400 | The price is not the minimum discount below the original price |
 | `OFFER_WINDOW_INVALID` | 400 | The window is too short, too long, over, or starts too late |
-| `OFFER_SEARCH_INVALID` | 400 | A point off the map, a time range ending before it starts, or sorting by distance from no point |
+| `OFFER_SEARCH_INVALID` | 400 | A point off the map, a time range ending before it starts, a lowest price above the highest, or sorting by distance from no point |
 | `OFFER_SETTINGS_INVALID` | 400 | Settings out of range or contradicting each other |
 | `OFFER_NOT_FOUND` | 404 | No such offer, or one the caller may not see or change |
 | `OFFER_CHANGE_NOT_ALLOWED` | 409 | A change its orders forbid, or any change once it is closed or withdrawn |

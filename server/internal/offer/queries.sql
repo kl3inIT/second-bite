@@ -86,6 +86,7 @@ FROM (
       AND (sqlc.narg(latitude)::float8 IS NULL
            OR ST_DWithin(o.location, ST_SetSRID(ST_MakePoint(sqlc.narg(longitude)::float8, sqlc.narg(latitude)::float8), 4326)::geography, sqlc.arg(radius_m)::float8))
       AND (COALESCE(cardinality(sqlc.arg(kinds)::text[]), 0) = 0 OR o.kind = ANY (sqlc.arg(kinds)::text[]))
+      AND (sqlc.narg(min_price)::bigint IS NULL OR o.price_vnd >= sqlc.narg(min_price)::bigint)
       AND (sqlc.narg(max_price)::bigint IS NULL OR o.price_vnd <= sqlc.narg(max_price)::bigint)
       AND (sqlc.narg(collect_from)::timestamptz IS NULL OR o.window_end > sqlc.narg(collect_from)::timestamptz)
       AND (sqlc.narg(collect_to)::timestamptz IS NULL OR o.window_start <= sqlc.narg(collect_to)::timestamptz)

@@ -1316,6 +1316,15 @@ paths:
             type:
               - array
               - "null"
+        - description: The lowest price of one unit, in đồng
+          explode: false
+          in: query
+          name: minPrice
+          schema:
+            description: The lowest price of one unit, in đồng
+            format: int64
+            minimum: 0
+            type: integer
         - description: The highest price of one unit, in đồng
           explode: false
           in: query

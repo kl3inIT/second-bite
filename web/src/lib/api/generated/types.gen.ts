@@ -796,6 +796,10 @@ export type SearchOffersData = {
          */
         kind?: Array<'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other'> | null;
         /**
+         * The lowest price of one unit, in đồng
+         */
+        minPrice?: number;
+        /**
          * The highest price of one unit, in đồng
          */
         maxPrice?: number;
