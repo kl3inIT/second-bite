@@ -22,12 +22,12 @@ import {
   type ReviewSeller,
   type ReviewStatus,
   type ReviewTab,
-  pageSizes,
   reviewTabs,
   reviewsHref,
   starChoices,
   statusLook,
 } from "./review";
+import { pageSizes } from "../list-query";
 
 /** Moves the list to a new state through its address, back on the first page. */
 function useReviewFilters(query: ReviewQuery) {

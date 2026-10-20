@@ -1,14 +1,11 @@
 import { createElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { renderAdmin, textOf } from "../promotions/render-for-test";
+import { renderAdmin, textOf } from "../testing/render";
 import { clickRateText, sponsorDefaults, sponsorQueryOf, type SponsorRow } from "./sponsor";
 import { SponsorsView } from "./sponsors-view";
 
-vi.mock(
-  "@/i18n/navigation",
-  async () => (await import("../promotions/render-for-test")).navigationMock,
-);
+vi.mock("@/i18n/navigation", async () => (await import("../testing/render")).navigationMock);
 
 // Sample places, as Figma AD-MK7 draws them; the page itself has none until a backend sells places.
 const rows: SponsorRow[] = [

@@ -1,8 +1,7 @@
 import { createElement, type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
-import accounts from "../../../../messages/admin/accounts.vi.json";
-import { renderAdmin } from "../issues/render-for-tests";
+import { renderAdmin } from "../testing/render";
 import { type AdminAccount, type AdminAccountRow, readAccountQuery } from "./account";
 import { AccountDetail } from "./account-detail";
 import { AccountsList } from "./accounts-list";
@@ -16,7 +15,7 @@ vi.mock("@/i18n/navigation", () => ({
 }));
 
 function render(node: ReactNode) {
-  return renderAdmin(node, { accounts });
+  return renderAdmin(node);
 }
 
 const rows: AdminAccountRow[] = [

@@ -1,6 +1,7 @@
 import { BanIcon, EyeIcon, type LucideIcon, TriangleAlertIcon } from "lucide-react";
 
 import type { BadgeTone } from "../ui/badge";
+import { pageSizes } from "../list-query";
 
 // A customer's review of a store, as the admin moderates it (docs: admin-web-flow › Đánh giá, Figma AD-DG1 to
 // AD-DG3). No module keeps reviews yet; these are the shapes the screens are drawn for.
@@ -43,7 +44,6 @@ export function statusLook(status: ReviewStatus): BadgeLook {
   return statusLooks[status];
 }
 
-export const pageSizes = [10, 20, 50] as const;
 export const starChoices = [5, 4, 3, 2, 1] as const;
 
 export type ReviewQuery = {

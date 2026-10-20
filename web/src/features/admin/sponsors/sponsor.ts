@@ -7,7 +7,7 @@ import {
   type SearchParams,
   searchOf,
   type SortDirection,
-} from "../promotions/list-query";
+} from "../list-query";
 import {
   type CampaignCounts,
   type CampaignFilter,

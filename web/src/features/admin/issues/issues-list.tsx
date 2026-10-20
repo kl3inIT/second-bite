@@ -22,9 +22,9 @@ import {
   issueKinds,
   issueStatuses,
   issuesHref,
-  pageSizes,
 } from "./issue";
 import { HandlerCell, IssueKindBadge } from "./issue-badges";
+import { pageSizes } from "../list-query";
 
 /** Moves the list to a new state through its address, back on the first page. */
 function useIssueFilters(query: IssueQuery) {

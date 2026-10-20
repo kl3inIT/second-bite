@@ -1,11 +1,10 @@
 import { createElement, type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
-import issues from "../../../../messages/admin/issues.vi.json";
 import { type AdminIssue, type AdminIssueRow, readIssueQuery } from "./issue";
 import { IssueDetail } from "./issue-detail";
 import { IssuesList } from "./issues-list";
-import { renderAdmin } from "./render-for-tests";
+import { renderAdmin } from "../testing/render";
 
 // The screens with sample reports, as SEC-13's backend will give them; the page itself has none yet.
 vi.mock("@/i18n/navigation", () => ({
@@ -16,7 +15,7 @@ vi.mock("@/i18n/navigation", () => ({
 }));
 
 function render(node: ReactNode) {
-  return renderAdmin(node, { issues });
+  return renderAdmin(node);
 }
 
 const rows: AdminIssueRow[] = [

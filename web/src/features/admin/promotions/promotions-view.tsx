@@ -25,7 +25,7 @@ import { Pagination } from "../ui/pagination";
 import { RowActionMenu } from "../ui/row-action-menu";
 import { StatCard } from "../ui/stat-card";
 import { CampaignBadge, FigureText, PeriodText } from "./campaign-badge";
-import { pageSizes, toggledSort } from "./list-query";
+import { pageSizes, toggledSort } from "../list-query";
 import {
   campaignFilters,
   type Discount,
@@ -44,7 +44,7 @@ import {
   type StoreOption,
 } from "./promotion-form";
 import { PromotionSheet } from "./promotion-sheet";
-import { useListQuery } from "./use-list-query";
+import { useListQuery } from "../use-list-query";
 
 /**
  * The promotion codes (Figma AD-MK1): "Tạo mã", three cards that filter by status, the filter bar, the table of

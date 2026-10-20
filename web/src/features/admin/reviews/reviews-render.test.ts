@@ -1,8 +1,7 @@
 import { createElement, type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
-import reviews from "../../../../messages/admin/reviews.vi.json";
-import { renderAdmin } from "../issues/render-for-tests";
+import { renderAdmin } from "../testing/render";
 import { type AdminReviewRow, readReviewQuery } from "./review";
 import { ReviewsList } from "./reviews-list";
 
@@ -57,7 +56,6 @@ describe("the reviews (AD-DG1)", () => {
         counts: { all: 214, reported: 2, hidden: 5 },
         sellers: [{ id: "s-1", name: "Tiệm bánh Pháp" }],
       }),
-      { reviews },
     );
     expect(html).toContain("<h1");
     expect(html).toContain("Đánh giá");
@@ -83,7 +81,6 @@ describe("the reviews (AD-DG1)", () => {
         total: 0,
         sellers: [],
       }),
-      { reviews },
     );
     expect(html).toContain("Không có đánh giá bị báo cáo");
   });

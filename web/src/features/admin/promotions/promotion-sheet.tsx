@@ -16,7 +16,7 @@ import {
   ManyPicker,
   SwitchField,
   TextField,
-} from "./form-fields";
+} from "../ui/form-fields";
 import {
   codeOf,
   newPromotionCode,
@@ -30,7 +30,7 @@ import {
   withLimit,
   withStart,
 } from "./promotion-form";
-import { SoonBadge } from "./soon-badge";
+import { SoonBadge } from "../ui/soon-badge";
 
 /**
  * Creating a code, or changing one, in the side sheet (Figma AD-MK2): the code (made up, and made up again with

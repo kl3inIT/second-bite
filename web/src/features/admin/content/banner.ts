@@ -1,4 +1,4 @@
-import { first, oneOf, type SearchParams } from "../promotions/list-query";
+import { first, oneOf, type SearchParams } from "../list-query";
 import type { CampaignStatus } from "../promotions/promotion";
 import { addDays, endAfter, vietnamDateTime, vietnamDay } from "../promotions/schedule";
 

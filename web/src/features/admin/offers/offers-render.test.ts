@@ -1,9 +1,8 @@
 import { createElement, type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
-import offers from "../../../../messages/admin/offers.vi.json";
 import site from "../../../../messages/vi.json";
-import { renderAdmin } from "../issues/render-for-tests";
+import { renderAdmin } from "../testing/render";
 import { type AdminOfferRow, readOfferQuery } from "./offer";
 import { OfferFacts } from "./offer-sheet";
 import { OffersList } from "./offers-list";
@@ -18,7 +17,7 @@ vi.mock("@/i18n/navigation", () => ({
 }));
 
 function render(node: ReactNode) {
-  return renderAdmin(node, { offers }, { OfferKind: site.OfferKind });
+  return renderAdmin(node, { messages: { OfferKind: site.OfferKind } });
 }
 
 const comTam: AdminOfferRow = {

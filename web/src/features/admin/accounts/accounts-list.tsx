@@ -23,12 +23,12 @@ import {
   accountStatuses,
   accountTabs,
   accountsHref,
-  pageSizes,
   sellersLabel,
   toggleSort,
 } from "./account";
 import { AccountAvatar, AccountRoleBadge, AccountStatusBadge } from "./account-badges";
 import { LockAccountDialog } from "./lock-account-dialog";
+import { pageSizes } from "../list-query";
 
 /** Moves the list to a new state through its address, back on the first page. */
 function useAccountFilters(query: AccountQuery) {

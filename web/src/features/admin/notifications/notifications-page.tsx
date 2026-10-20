@@ -1,4 +1,4 @@
-import type { SearchParams } from "../promotions/list-query";
+import type { SearchParams } from "../list-query";
 import { campaignQueryOf } from "./campaign";
 import { listCampaigns } from "./notifications-source";
 import { NotificationsView } from "./notifications-view";

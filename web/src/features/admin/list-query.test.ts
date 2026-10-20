@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { listSearch, oneOf, pageOf, pageSizeOf, searchOf, toggledSort } from "./list-query";
-import { promotionDefaults, promotionQueryOf } from "./promotion";
+import { promotionDefaults, promotionQueryOf } from "./promotions/promotion";
 
 describe("a marketing list's address", () => {
   it("reads what it knows and falls back to the defaults", () => {

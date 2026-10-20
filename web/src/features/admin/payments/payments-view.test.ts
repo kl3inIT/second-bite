@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { renderAdmin, textOf } from "../orders/test-render";
+import { renderAdmin, textOf } from "../testing/render";
 import { ApproveRefundFields, RejectRefundFields } from "./refund-dialogs";
 import { RefundDetails } from "./refund-sheet";
 import { RefundsView } from "./refunds-view";

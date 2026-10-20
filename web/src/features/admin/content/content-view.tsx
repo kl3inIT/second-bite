@@ -17,8 +17,8 @@ import { Link } from "@/i18n/navigation";
 
 import { adminHref } from "../pages";
 import { CampaignBadge } from "../promotions/campaign-badge";
-import { SoonBadge } from "../promotions/soon-badge";
-import { useListQuery } from "../promotions/use-list-query";
+import { SoonBadge } from "../ui/soon-badge";
+import { useListQuery } from "../use-list-query";
 import { EmptyState } from "../ui/empty-state";
 import { PageHeader } from "../ui/page-header";
 import { RowActionMenu } from "../ui/row-action-menu";

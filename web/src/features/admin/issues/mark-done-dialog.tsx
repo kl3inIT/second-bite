@@ -7,7 +7,7 @@ import { useId, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 
 import { ConfirmDialog } from "../ui/confirm-dialog";
-import { ChoiceCards } from "./choice-cards";
+import { ChoiceCards } from "../ui/choice-cards";
 
 const outcomes = ["refunded", "replaced", "explained", "invalid"] as const;
 type Outcome = (typeof outcomes)[number];

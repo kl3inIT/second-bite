@@ -7,7 +7,7 @@ import {
   type SearchParams,
   searchOf,
   type SortDirection,
-} from "../promotions/list-query";
+} from "../list-query";
 import { vietnamDateTime, vietnamDay } from "../promotions/schedule";
 
 /** How a notification reaches people (Figma AD-MK5 › Kênh): a push notification or an email. */

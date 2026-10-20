@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import type { SearchParams } from "../promotions/list-query";
+import type { SearchParams } from "../list-query";
 import { bannerFormOf, placementOf } from "./banner";
 import { BannerEditor } from "./banner-editor";
 import { getBanner, getContent, listBannerStores } from "./content-source";

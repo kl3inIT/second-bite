@@ -1,4 +1,4 @@
-import type { SearchParams } from "./list-query";
+import type { SearchParams } from "../list-query";
 import { promotionQueryOf } from "./promotion";
 import { PromotionsView } from "./promotions-view";
 import { listPromotions, listPromotionStores } from "./promotions-source";

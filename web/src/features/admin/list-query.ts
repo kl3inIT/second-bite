@@ -1,7 +1,7 @@
 /**
  * A marketing list's filters, sort and page in its address (`?status=running&page=2`), so a filtered list can be
  * shared and the back button returns to it. Each list names its own keys and defaults; what is left at its
- * default stays out of the address. Used by the promotions, notifications and sponsors lists (SEC-62).
+ * default stays out of the address. Used by the marketing lists: promotions, banners, notifications and sponsors (SEC-62).
  */
 
 export type SearchParams = Record<string, string | string[] | undefined>;

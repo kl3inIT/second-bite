@@ -6,7 +6,7 @@ import { useId, useState } from "react";
 
 import { Textarea } from "@/components/ui/textarea";
 
-import { ChoiceCards } from "../issues/choice-cards";
+import { ChoiceCards } from "../ui/choice-cards";
 import { ConfirmDialog } from "../ui/confirm-dialog";
 import { type HideReason, hideReasons } from "./review";
 

@@ -27,7 +27,6 @@ import {
   areasOf,
   isFiltered,
   type ListQuery,
-  pageSizes,
   type SellerStatus,
   type SortKey,
   toggleSort,
@@ -35,6 +34,7 @@ import {
 import type { SellerCounts } from "./sellers-source";
 import { sellerPhoto } from "./seller-photo";
 import { statusHref, useListQuery } from "./use-list-query";
+import { pageSizes } from "../list-query";
 
 const cards: { status: SellerStatus; tone: BadgeTone; icon: LucideIcon }[] = [
   { status: "active", tone: "success", icon: CircleCheckIcon },

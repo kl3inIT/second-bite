@@ -1,4 +1,5 @@
 import type { SellerBody } from "@/lib/api/generated";
+import { type PageSize, pageSizes } from "../list-query";
 
 /**
  * The stores list's state, kept in its address so it can be shared and survives a reload (docs: admin-web-flow ›
@@ -9,9 +10,6 @@ import type { SellerBody } from "@/lib/api/generated";
 export type SellerStatus = SellerBody["status"];
 export type SortKey = "name" | "address" | "updatedAt";
 export type SortDirection = "asc" | "desc";
-
-export const pageSizes = [10, 20, 50] as const;
-export type PageSize = (typeof pageSizes)[number];
 
 export type ListQuery = {
   status: SellerStatus;

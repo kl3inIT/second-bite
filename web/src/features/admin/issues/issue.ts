@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import type { BadgeTone } from "../ui/badge";
+import { pageSizes } from "../list-query";
 
 // A problem report as the admin sees it (docs: admin-web-flow › Báo lỗi, Figma AD-BL1 to AD-BL4). SEC-13 has
 // not built the reports yet; these are the shapes the screens are drawn for.
@@ -101,8 +102,6 @@ export function kindLook(kind: IssueKind): BadgeLook {
 export function statusLook(status: IssueStatus): BadgeLook {
   return statusLooks[status];
 }
-
-export const pageSizes = [10, 20, 50] as const;
 
 export type IssueQuery = {
   tab: IssueStatus;

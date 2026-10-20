@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 
-import { AdminBadge } from "../ui/badge";
+import { AdminBadge } from "./badge";
 
 /**
  * "Sắp có" beside an action whose backend does not exist yet: the form is built in full, its save or send button

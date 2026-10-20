@@ -1,4 +1,4 @@
-import type { SearchParams } from "../promotions/list-query";
+import type { SearchParams } from "../list-query";
 import { sponsorQueryOf } from "./sponsor";
 import { listSponsors } from "./sponsors-source";
 import { SponsorsView } from "./sponsors-view";

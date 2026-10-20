@@ -14,9 +14,9 @@ import {
   GroupLabel,
   SwitchField,
   TextField,
-} from "../promotions/form-fields";
+} from "../ui/form-fields";
 import { vietnamDay } from "../promotions/schedule";
-import { SoonBadge } from "../promotions/soon-badge";
+import { SoonBadge } from "../ui/soon-badge";
 import { PageHeader } from "../ui/page-header";
 import { SegmentedControl } from "../ui/segmented-control";
 import {

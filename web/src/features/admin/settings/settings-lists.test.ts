@@ -1,4 +1,4 @@
-import { createElement } from "react";
+import { createElement, type ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { AdminsTable } from "./admins-table";
@@ -7,7 +7,7 @@ import { AuditLogTable } from "./audit-log-table";
 import { CategoriesTable } from "./categories-table";
 import { Integrations } from "./integrations";
 import { LegalDocuments } from "./legal-documents";
-import { renderSettings, textOf } from "./render-for-test";
+import { renderAdmin, textOf } from "../testing/render";
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ href, ...props }: { href: string }) => createElement("a", { href, ...props }),
@@ -17,6 +17,11 @@ vi.mock("@/i18n/navigation", () => ({
 
 // The settings pages whose backend does not exist yet are empty in the browser; here they are filled with sample
 // rows, so their columns, badges and words are checked (admin-qa › Cách test màn chưa có backend).
+
+/** A settings list's HTML, its relative days counted from 20/10/2026, 10:00 in Vietnam. */
+function renderSettings(element: ReactElement) {
+  return renderAdmin(element, { now: new Date("2026-10-20T03:00:00Z") });
+}
 
 describe("the categories (AD-CD1)", () => {
   const rows = [

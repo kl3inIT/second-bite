@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { OrdersView } from "./orders-view";
-import { renderAdmin, textOf } from "./test-render";
+import { renderAdmin, textOf } from "../testing/render";
 import { sampleRows } from "./test-samples";
 
 vi.mock("@/i18n/navigation", async () => {

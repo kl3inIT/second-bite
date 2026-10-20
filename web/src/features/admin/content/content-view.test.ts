@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { renderAdmin, textOf } from "../promotions/render-for-test";
+import { renderAdmin, textOf } from "../testing/render";
 import {
   type BannerRow,
   bannerFormOf,
@@ -17,10 +17,7 @@ import {
 import { BannerFields, BannerPreview } from "./banner-editor";
 import { ContentView } from "./content-view";
 
-vi.mock(
-  "@/i18n/navigation",
-  async () => (await import("../promotions/render-for-test")).navigationMock,
-);
+vi.mock("@/i18n/navigation", async () => (await import("../testing/render")).navigationMock);
 
 // Sample banners and collections, as Figma AD-MK3 draws them; the page itself has none until a backend keeps them.
 const banner = (

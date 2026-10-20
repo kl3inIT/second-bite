@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { CancelOrderFields } from "./cancel-order-dialog";
 import { OrderDetail } from "./order-detail";
-import { renderAdmin, textOf } from "./test-render";
+import { renderAdmin, textOf } from "../testing/render";
 import { sampleExpiredOrder, sampleOrder } from "./test-samples";
 
 vi.mock("@/i18n/navigation", async () => {

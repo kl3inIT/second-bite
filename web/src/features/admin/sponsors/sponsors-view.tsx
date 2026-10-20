@@ -16,10 +16,10 @@ import { Button } from "@/components/ui/button";
 
 import { adminHref } from "../pages";
 import { CampaignBadge, FigureText, PeriodText } from "../promotions/campaign-badge";
-import { pageSizes } from "../promotions/list-query";
+import { pageSizes } from "../list-query";
 import { isFiltered } from "../promotions/promotion";
-import { SoonBadge } from "../promotions/soon-badge";
-import { useListQuery } from "../promotions/use-list-query";
+import { SoonBadge } from "../ui/soon-badge";
+import { useListQuery } from "../use-list-query";
 import { type Column, DataTable, StrongCell, TextCell } from "../ui/data-table";
 import { EmptyState } from "../ui/empty-state";
 import { FilterBar, FilterSelect, SearchField } from "../ui/filter-bar";

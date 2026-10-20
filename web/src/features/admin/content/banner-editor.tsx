@@ -10,9 +10,9 @@ import { Link } from "@/i18n/navigation";
 
 import { AdminCrumb } from "../admin-crumbs";
 import { adminHref } from "../pages";
-import { ChoiceRow, GroupLabel, SwitchField, TextField } from "../promotions/form-fields";
+import { ChoiceRow, GroupLabel, SwitchField, TextField } from "../ui/form-fields";
 import type { StoreOption } from "../promotions/promotion-form";
-import { SoonBadge } from "../promotions/soon-badge";
+import { SoonBadge } from "../ui/soon-badge";
 import { FilterSelect } from "../ui/filter-bar";
 import { PageHeader } from "../ui/page-header";
 import { SegmentedControl } from "../ui/segmented-control";

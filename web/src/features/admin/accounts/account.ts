@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import type { BadgeTone } from "../ui/badge";
+import { pageSizes } from "../list-query";
 
 // An account as the admin looks it up and locks it (docs: admin-web-flow › Tài khoản, Figma AD-TK1 to AD-TK4).
 // The identity module has no admin list of accounts and no locking yet; these are the shapes the screens are
@@ -121,8 +122,6 @@ export function sellersLabel(sellers: AccountSeller[]): string | undefined {
   if (sellers.length === 0) return undefined;
   return sellers.length === 1 ? sellers[0].name : `${sellers[0].name} +${sellers.length - 1}`;
 }
-
-export const pageSizes = [10, 20, 50] as const;
 
 export type AccountSortKey = "name" | "orders" | "createdAt";
 

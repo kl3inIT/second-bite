@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { renderAdmin, textOf } from "../promotions/render-for-test";
+import { renderAdmin, textOf } from "../testing/render";
 import {
   blankCompose,
   campaignDefaults,
@@ -18,10 +18,7 @@ import { ComposeFields } from "./compose";
 import { NotificationPreview } from "./notification-preview";
 import { CampaignDetails, NotificationsView } from "./notifications-view";
 
-vi.mock(
-  "@/i18n/navigation",
-  async () => (await import("../promotions/render-for-test")).navigationMock,
-);
+vi.mock("@/i18n/navigation", async () => (await import("../testing/render")).navigationMock);
 
 // Sample campaigns, as Figma AD-MK5 draws them; the page itself has none until a backend sends to groups.
 const rows: CampaignRow[] = [

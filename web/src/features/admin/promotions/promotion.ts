@@ -7,7 +7,7 @@ import {
   type SearchParams,
   searchOf,
   type SortDirection,
-} from "./list-query";
+} from "../list-query";
 
 /**
  * Where a code, a banner or a sponsored place stands in its run (Figma AD-MK1, AD-MK3, AD-MK7): "Đang chạy",

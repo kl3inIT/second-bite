@@ -5,9 +5,9 @@ import { type PromotionRow, promotionDefaults } from "./promotion";
 import { blankPromotion } from "./promotion-form";
 import { PromotionFields, PromotionSheet } from "./promotion-sheet";
 import { PromotionsView } from "./promotions-view";
-import { renderAdmin, textOf } from "./render-for-test";
+import { renderAdmin, textOf } from "../testing/render";
 
-vi.mock("@/i18n/navigation", async () => (await import("./render-for-test")).navigationMock);
+vi.mock("@/i18n/navigation", async () => (await import("../testing/render")).navigationMock);
 
 // Sample codes, as Figma AD-MK1 draws them; the page itself has none until a backend keeps codes.
 const rows: PromotionRow[] = [

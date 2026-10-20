@@ -10,10 +10,10 @@ import { Link } from "@/i18n/navigation";
 
 import { adminHref } from "../pages";
 import { FigureText } from "../promotions/campaign-badge";
-import { pageSizes } from "../promotions/list-query";
+import { pageSizes } from "../list-query";
 import { isFiltered } from "../promotions/promotion";
 import { vietnamDateTime } from "../promotions/schedule";
-import { useListQuery } from "../promotions/use-list-query";
+import { useListQuery } from "../use-list-query";
 import { AdminBadge, type BadgeTone } from "../ui/badge";
 import { type Column, DataTable, StrongCell, TextCell } from "../ui/data-table";
 import { EmptyState } from "../ui/empty-state";
