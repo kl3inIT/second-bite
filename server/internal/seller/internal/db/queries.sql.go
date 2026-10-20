@@ -177,8 +177,8 @@ func (q *Queries) InsertMember(ctx context.Context, arg InsertMemberParams) (int
 }
 
 const insertSeller = `-- name: InsertSeller :one
-INSERT INTO seller_sellers (name, address, latitude, longitude, phone)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO seller_sellers (name, address, latitude, longitude, phone, status)
+VALUES ($1, $2, $3, $4, $5, 'active')
 RETURNING id
 `
 
