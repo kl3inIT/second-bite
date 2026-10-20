@@ -1,1 +1,46 @@
-{}
+{
+  "title": "Tài trợ",
+  "add": "Thêm tài trợ",
+  "cards": {
+    "running": "Đang chạy",
+    "scheduled": "Lên lịch",
+    "inactive": "Hết hạn · Tạm dừng"
+  },
+  "kinds": {
+    "featuredStore": "Cửa hàng được đẩy",
+    "sponsor": "Nhà tài trợ"
+  },
+  "placements": {
+    "homeTop": "Trang chủ · đầu trang",
+    "homeBanner": "Trang chủ · banner",
+    "searchSuggest": "Tìm kiếm · gợi ý",
+    "ordersThanks": "Trang đơn · lời cảm ơn",
+    "collection": "Bộ sưu tập"
+  },
+  "filters": {
+    "search": "Tìm tài trợ",
+    "searchPlaceholder": "Tìm theo tên cửa hàng hoặc nhà tài trợ",
+    "kind": "Loại",
+    "placement": "Vị trí",
+    "all": "Tất cả",
+    "size": "Số dòng"
+  },
+  "columns": {
+    "name": "Tên",
+    "kind": "Loại",
+    "placement": "Vị trí",
+    "period": "Thời gian",
+    "impressions": "Lượt hiển thị",
+    "clicks": "Lượt bấm",
+    "status": "Trạng thái"
+  },
+  "summary": "Hiển thị {from}–{to} trên {total} vị trí",
+  "empty": "Chưa có vị trí tài trợ nào",
+  "emptyFiltered": "Không có vị trí nào khớp bộ lọc",
+  "actions": {
+    "store": "Xem cửa hàng",
+    "edit": "Sửa",
+    "pause": "Tạm dừng",
+    "end": "Kết thúc"
+  }
+}

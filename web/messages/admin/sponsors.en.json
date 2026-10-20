@@ -1,1 +1,46 @@
-{}
+{
+  "title": "Sponsorships",
+  "add": "Add sponsorship",
+  "cards": {
+    "running": "Running",
+    "scheduled": "Scheduled",
+    "inactive": "Ended · Paused"
+  },
+  "kinds": {
+    "featuredStore": "Featured store",
+    "sponsor": "Sponsor"
+  },
+  "placements": {
+    "homeTop": "Home · top",
+    "homeBanner": "Home · banner",
+    "searchSuggest": "Search · suggestions",
+    "ordersThanks": "Orders · thank-you",
+    "collection": "Collection"
+  },
+  "filters": {
+    "search": "Search sponsorships",
+    "searchPlaceholder": "Search by store or sponsor name",
+    "kind": "Type",
+    "placement": "Placement",
+    "all": "All",
+    "size": "Rows"
+  },
+  "columns": {
+    "name": "Name",
+    "kind": "Type",
+    "placement": "Placement",
+    "period": "Period",
+    "impressions": "Impressions",
+    "clicks": "Click rate",
+    "status": "Status"
+  },
+  "summary": "Showing {from}–{to} of {total} placements",
+  "empty": "No sponsored placements yet",
+  "emptyFiltered": "No placements match these filters",
+  "actions": {
+    "store": "View store",
+    "edit": "Edit",
+    "pause": "Pause",
+    "end": "End"
+  }
+}
