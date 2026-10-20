@@ -53,7 +53,7 @@ Failures the platform answers itself:
 
 ## Events between modules
 
-Introduced with SEC-37 ([design](../increments/active/sec-37-account-deletion/design.md#the-outbox)).
+Introduced with SEC-37 ([design](../increments/completed/sec-37-account-deletion/design.md#the-outbox)).
 
 - River (v0.49) on the service's PostgreSQL carries events as a transactional outbox. Its tables are River's own, created by its migrations after goose at start-up while a session lock lets one instance migrate at a time.
 - `Publish` writes an event inside the publisher's transaction, one job per listener; a rolled-back change publishes nothing. `Listen` registers a listener under a stable name before the service runs.
