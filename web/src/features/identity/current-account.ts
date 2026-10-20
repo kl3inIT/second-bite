@@ -1,13 +1,11 @@
 import "server-only";
 
-import { cookies } from "next/headers";
 import { cache } from "react";
 
 import { ApiError } from "@/lib/api/client";
 import { getMyAccount } from "@/lib/api/generated";
 
-/** The session cookie the Go server sets on sign-in (SEC-27; server/internal/platform/caller.go). */
-const sessionCookie = "secondbite_session";
+import { sessionHeaders } from "./session";
 
 export type CurrentAccount = { email: string; displayName: string };
 
@@ -17,12 +15,10 @@ export type CurrentAccount = { email: string; displayName: string };
  * Suspense boundary; one render asks once.
  */
 export const getCurrentAccount = cache(async (): Promise<CurrentAccount | null> => {
-  const session = (await cookies()).get(sessionCookie);
-  if (!session) return null;
+  const headers = await sessionHeaders();
+  if (!headers) return null;
   try {
-    const { data } = await getMyAccount({
-      headers: { cookie: `${sessionCookie}=${session.value}` },
-    });
+    const { data } = await getMyAccount({ headers });
     return { email: data.email, displayName: data.displayName };
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) return null;

@@ -89,6 +89,26 @@ const offers = [
   }),
 ];
 
+/** In hours from now, as RFC 3339: a window that has not opened yet, whatever the time of the test. */
+function hoursFromNow(hours) {
+  return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+}
+
+// An offer reached only by its page, never in the home's list: its window opens three hours from now, so an
+// order of it can always be cancelled free of charge in the tests.
+const laterOffer = sample({
+  id: "of-banh-bao",
+  name: "Bánh bao nhân thịt, 2 chiếc",
+  kind: "bakery",
+  price: 25000,
+  originalPrice: 50000,
+  unitsLeft: 6,
+  unit: "túi",
+  from: hoursFromNow(3),
+  until: hoursFromNow(4),
+  seller: sellers.bakery,
+});
+
 const photoColours = {
   "ph-bread": ["#C8935A", "#E9C99A"],
   "ph-com-tam": ["#B9763E", "#F1D7A8"],
@@ -221,6 +241,137 @@ async function auth(request, response, url) {
   return false;
 }
 
+// Orders (SEC-15), as api/openapi.yaml describes them: placed by a signed-in account with an Idempotency-Key,
+// read and listed by it alone, and cancelled until the window opens. The stub takes no units away, so the
+// home's tests keep their counts.
+const ordersByEmail = new Map();
+const ordersByKey = new Map();
+let nextOrder = 10001;
+
+function offerById(id) {
+  return [...offers, laterOffer].find((offer) => offer.id === id);
+}
+
+function shown(order) {
+  const open = order.status === "confirmed" || order.status === "ready";
+  const expired = open && new Date(order.windowEnd) <= new Date();
+  const status = expired ? "expired" : order.status;
+  const codeShown =
+    (status === "confirmed" || status === "ready") &&
+    (status === "ready" || new Date(order.windowStart) <= new Date());
+  const { code, ...rest } = order;
+  return { ...rest, status, ...(codeShown ? { code } : {}) };
+}
+
+async function ordersApi(request, response, url) {
+  const offerMatch = /^\/offers\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "GET" && offerMatch) {
+    const offer = offerById(offerMatch[1]);
+    if (!offer) problem(response, 404, "OFFER_NOT_FOUND");
+    else {
+      const { seller: _seller, ...body } = offer;
+      json(response, 200, body);
+    }
+    return true;
+  }
+  if (!url.pathname.startsWith("/orders")) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account) {
+    problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    return true;
+  }
+  const mine = ordersByEmail.get(account.email) ?? [];
+  ordersByEmail.set(account.email, mine);
+
+  if (request.method === "POST" && url.pathname === "/orders") {
+    const key = `${account.email} ${request.headers["idempotency-key"] ?? ""}`;
+    const earlier = ordersByKey.get(key);
+    if (earlier) {
+      json(response, 201, shown(earlier));
+      return true;
+    }
+    const { lines } = await readBody(request);
+    const wanted = Array.isArray(lines) ? lines[0] : undefined;
+    const offer = wanted ? offerById(wanted.offerId) : undefined;
+    if (!offer || offer.status !== "on_sale") {
+      problem(response, 409, "ORDER_OFFER_UNAVAILABLE");
+      return true;
+    }
+    if (wanted.units > offer.unitsLeft) {
+      problem(response, 409, "ORDER_OFFER_SOLD_OUT");
+      return true;
+    }
+    const number = nextOrder++;
+    const order = {
+      id: `or-${number}`,
+      number: `SB-${number}`,
+      status: "confirmed",
+      seller: {
+        id: offer.seller.id,
+        name: offer.seller.name,
+        address: offer.seller.address,
+        latitude: 21.0565,
+        longitude: 105.8964,
+      },
+      lines: [
+        {
+          offerId: offer.id,
+          name: offer.name,
+          unit: offer.unit,
+          priceVnd: offer.priceVnd,
+          originalPriceVnd: offer.originalPriceVnd,
+          units: wanted.units,
+          photo: offer.photo,
+        },
+      ],
+      totalVnd: offer.priceVnd * wanted.units,
+      windowStart: offer.windowStart,
+      windowEnd: offer.windowEnd,
+      createdAt: new Date().toISOString(),
+      codeAttemptsLeft: 3,
+      code: String(number % 10000).padStart(4, "0"),
+    };
+    mine.unshift(order);
+    ordersByKey.set(key, order);
+    json(response, 201, shown(order));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/orders") {
+    const state = url.searchParams.get("state");
+    const all = mine.map(shown);
+    const open = (order) => order.status === "confirmed" || order.status === "ready";
+    json(response, 200, {
+      orders: all.filter((order) => !state || (state === "open" ? open(order) : !open(order))),
+    });
+    return true;
+  }
+  const orderMatch = /^\/orders\/([\w-]+)(\/cancel)?$/.exec(url.pathname);
+  const order = orderMatch ? mine.find((found) => found.id === orderMatch[1]) : undefined;
+  if (orderMatch && !order) {
+    problem(response, 404, "ORDER_NOT_FOUND");
+    return true;
+  }
+  if (request.method === "GET" && orderMatch && !orderMatch[2]) {
+    json(response, 200, shown(order));
+    return true;
+  }
+  if (request.method === "POST" && orderMatch?.[2]) {
+    const status = shown(order).status;
+    if (
+      (status !== "confirmed" && status !== "ready") ||
+      new Date(order.windowStart) <= new Date()
+    ) {
+      problem(response, 409, "ORDER_CANCEL_TOO_LATE");
+      return true;
+    }
+    order.status = "cancelled";
+    order.cancelledAt = new Date().toISOString();
+    json(response, 200, shown(order));
+    return true;
+  }
+  return false;
+}
+
 const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
@@ -247,6 +398,7 @@ const server = createServer(async (request, response) => {
     return;
   }
   if (await auth(request, response, url)) return;
+  if (await ordersApi(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {
     response.writeHead(200, { "content-type": "image/svg+xml" });

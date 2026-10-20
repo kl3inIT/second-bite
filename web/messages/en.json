@@ -271,5 +271,79 @@
     "saved": "Saved",
     "account": "Account",
     "soon": "(coming soon)"
+  },
+  "Orders": {
+    "orderTitle": "Your order",
+    "mine": "My orders",
+    "lists": "Order lists",
+    "tabOpen": "To collect",
+    "tabEnded": "Done",
+    "noneOpen": "You have no orders to collect.",
+    "noneEnded": "No finished orders yet.",
+    "listLine": "{seller} · {number} · {units, plural, one {# portion} other {# portions}} · {total} · collect {from}–{until}",
+    "numberAt": "Order {number} · {seller}",
+    "status": {
+      "confirmed": "Confirmed",
+      "ready": "Ready to collect",
+      "collected": "Collected",
+      "cancelled": "Cancelled",
+      "refused": "Refused by the shop",
+      "expired": "Expired"
+    },
+    "next": {
+      "confirmed": "The shop is preparing it. Come to the {seller} counter between {from} and {until}, and pay when you collect.",
+      "ready": "Come to the {seller} counter before {until} and read the code to the staff.",
+      "collected": "You collected it. Thank you for saving a good meal.",
+      "cancelled": "The order was cancelled free of charge. Its portions are back on sale.",
+      "refused": "The shop did not hand this order over. You pay nothing.",
+      "expired": "The collection window {from}–{until} passed without the order being collected."
+    },
+    "refuseReason": {
+      "not_suitable": "Reason: the food was no longer fit to hand over.",
+      "wrong_items": "Reason: the food did not match the order.",
+      "other": "Reason: another reason."
+    },
+    "collectAt": "Collect at",
+    "windowToday": "Collect today {from}–{until}",
+    "summary": "Order summary",
+    "line": "{units}× {name}",
+    "total": "Total",
+    "payAtCounter": "Pay at the counter when you collect.",
+    "payAtCounterSaving": "Pay at the counter when you collect · you save {saving}.",
+    "code": "Collection code",
+    "codeHint": "Read this code to the counter staff. It works once.",
+    "signInTitle": "Sign in to see your orders",
+    "signInBody": "Orders belong to your account. Once signed in, you come back to this page.",
+    "signIn": "Sign in",
+    "cancel": {
+      "open": "Cancel order",
+      "title": "Cancel this order?",
+      "body": "Free of charge before {until}. Its portions go back on sale for someone else.",
+      "keep": "Keep order",
+      "confirm": "Cancel order",
+      "tooLate": "Too late to cancel free of charge: the collection window has opened.",
+      "failed": "The order was not cancelled. Try again, or report the reference {reference}."
+    },
+    "place": {
+      "pageTitle": "Confirm order",
+      "title": "Your order",
+      "left": "{units, plural, one {# portion} other {# portions}} left",
+      "units": "Portions",
+      "fewer": "One portion fewer",
+      "more": "One portion more",
+      "total": "Total",
+      "payAtCounter": "Pay at the counter when you collect · you save {saving}.",
+      "submit": "Order · {total}",
+      "signInFirst": "Sign in to order",
+      "signInWhy": "Once signed in, you come back here with the portions you chose.",
+      "goneTitle": "Just sold out",
+      "goneBody": "This offer has sold out or closed. Nothing was ordered.",
+      "other": "See other offers",
+      "failedTitle": "Not ordered yet",
+      "failedBody": "Try again, or report the reference {reference}.",
+      "payment": "Payment",
+      "cash": "Pay at the counter",
+      "cashHint": "You pay the shop when you collect. Second Bite takes no commission."
+    }
   }
 }

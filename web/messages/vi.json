@@ -271,5 +271,79 @@
     "saved": "Yêu thích",
     "account": "Tài khoản",
     "soon": "(sắp có)"
+  },
+  "Orders": {
+    "orderTitle": "Đơn của bạn",
+    "mine": "Đơn của tôi",
+    "lists": "Danh sách đơn",
+    "tabOpen": "Đang chờ nhận",
+    "tabEnded": "Đã xong",
+    "noneOpen": "Bạn chưa có đơn nào đang chờ nhận.",
+    "noneEnded": "Chưa có đơn nào đã xong.",
+    "listLine": "{seller} · {number} · {units} phần · {total} · nhận {from}–{until}",
+    "numberAt": "Đơn {number} · {seller}",
+    "status": {
+      "confirmed": "Đã xác nhận",
+      "ready": "Món đã sẵn sàng",
+      "collected": "Đã nhận món",
+      "cancelled": "Đã huỷ",
+      "refused": "Quán không giao đơn",
+      "expired": "Đơn đã hết hạn"
+    },
+    "next": {
+      "confirmed": "Quán đang chuẩn bị. Đến quầy {seller} trong khung {from}–{until}, trả tiền khi nhận.",
+      "ready": "Đến quầy {seller} trước {until} và đọc mã cho nhân viên.",
+      "collected": "Bạn đã nhận món. Cảm ơn bạn đã cứu một bữa ngon.",
+      "cancelled": "Đơn đã huỷ, không mất phí. Các phần đã được bán lại.",
+      "refused": "Quán không giao đơn này. Bạn không phải trả tiền.",
+      "expired": "Khung nhận {from}–{until} đã qua mà đơn chưa được nhận."
+    },
+    "refuseReason": {
+      "not_suitable": "Lý do: món không còn phù hợp để giao.",
+      "wrong_items": "Lý do: món không đúng với đơn.",
+      "other": "Lý do: lý do khác."
+    },
+    "collectAt": "Nhận món tại",
+    "windowToday": "Nhận hôm nay {from}–{until}",
+    "summary": "Tóm tắt đơn",
+    "line": "{units}× {name}",
+    "total": "Tổng tiền",
+    "payAtCounter": "Trả tiền tại quầy khi nhận món.",
+    "payAtCounterSaving": "Trả tiền tại quầy khi nhận món · tiết kiệm {saving}.",
+    "code": "Mã nhận món",
+    "codeHint": "Đọc mã này cho nhân viên quầy. Mã chỉ dùng một lần.",
+    "signInTitle": "Đăng nhập để xem đơn",
+    "signInBody": "Đơn gắn với tài khoản của bạn. Đăng nhập xong, bạn quay lại đúng trang này.",
+    "signIn": "Đăng nhập",
+    "cancel": {
+      "open": "Huỷ đơn",
+      "title": "Huỷ đơn này?",
+      "body": "Huỷ miễn phí trước {until}. Các phần sẽ được bán lại cho người khác.",
+      "keep": "Giữ đơn",
+      "confirm": "Huỷ đơn",
+      "tooLate": "Đã quá giờ huỷ miễn phí: khung nhận đã mở.",
+      "failed": "Chưa huỷ được đơn. Thử lại, hoặc báo mã tham chiếu {reference}."
+    },
+    "place": {
+      "pageTitle": "Xác nhận đơn",
+      "title": "Đơn của bạn",
+      "left": "Còn {units} phần",
+      "units": "Số phần",
+      "fewer": "Bớt một phần",
+      "more": "Thêm một phần",
+      "total": "Tổng tiền",
+      "payAtCounter": "Trả tiền tại quầy khi nhận · tiết kiệm {saving}.",
+      "submit": "Đặt món · {total}",
+      "signInFirst": "Đăng nhập để đặt món",
+      "signInWhy": "Đăng nhập xong, bạn quay lại đây với đúng số phần đã chọn.",
+      "goneTitle": "Món vừa hết",
+      "goneBody": "Món này đã hết phần hoặc đã đóng. Chưa có gì được đặt.",
+      "other": "Xem món khác",
+      "failedTitle": "Chưa đặt được món",
+      "failedBody": "Thử lại, hoặc báo mã tham chiếu {reference}.",
+      "payment": "Thanh toán",
+      "cash": "Trả tiền tại quầy",
+      "cashHint": "Bạn trả cho quán khi nhận món. Second Bite không thu hoa hồng."
+    }
   }
 }

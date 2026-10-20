@@ -15,15 +15,15 @@ import { cn } from "@/lib/utils";
 type Tab = {
   key: "home" | "orders" | "saved" | "account";
   icon: LucideIcon;
-  href?: "/" | "/account";
+  href?: "/" | "/orders" | "/account";
 };
 
-// The four tabs of the customer screens on a phone (Figma "Bottom nav", 51:2501). Orders and saved sellers
-// have no screen yet (SEC-15, following), so their tabs are shown but cannot be pressed. From `md` the
-// header and the footer take over, and the bar is not shown.
+// The four tabs of the customer screens on a phone (Figma "Bottom nav", 51:2501). Saved sellers have no
+// screen yet, so their tab is shown but cannot be pressed. From `md` the header and the footer take over,
+// and the bar is not shown.
 const tabs: Tab[] = [
   { key: "home", icon: HouseIcon, href: "/" },
-  { key: "orders", icon: ReceiptTextIcon },
+  { key: "orders", icon: ReceiptTextIcon, href: "/orders" },
   { key: "saved", icon: HeartIcon },
   { key: "account", icon: UserRoundIcon, href: "/account" },
 ];
@@ -39,7 +39,8 @@ export function BottomNav() {
     >
       <ul className="mx-auto grid h-16 max-w-md grid-cols-4">
         {tabs.map(({ key, icon: Icon, href }) => {
-          const active = href === pathname;
+          const active =
+            href === "/" ? pathname === "/" : href !== undefined && pathname.startsWith(href);
           const body = (
             <>
               <span
