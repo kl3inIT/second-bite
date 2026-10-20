@@ -19,6 +19,7 @@ import { changeOffer, postOffer, uploadPhoto, type OfferBody } from "@/lib/api/g
 import { cn } from "@/lib/utils";
 
 import { Chip } from "./chip";
+import { useRemountKey } from "./remount-key";
 import { NumberInput } from "./number-input";
 import {
   clock,
@@ -101,7 +102,7 @@ const grouped = new Intl.NumberFormat("vi-VN");
 // it sells. Posting again from a closed post (`again`) starts at the last step with that dish filled in.
 // "Báo trước dự kiến dư" (Figma P4) is shown as coming, and the dish step offers the store's earlier dishes
 // instead of the catalog, until SEC-54 and SEC-55 give the backend what those need.
-export function PostDrawer({
+function PostDrawerBody({
   sellerId,
   dishes,
   catalog,
@@ -766,4 +767,10 @@ export function PostDrawer({
       </SheetContent>
     </Sheet>
   );
+}
+
+// The drawer starts again from its first step each time it is opened: once a dish is posted, the next "Đăng món"
+// does not find the last one's answers (the page that held it is kept hidden, with its state).
+export function PostDrawer(props: React.ComponentProps<typeof PostDrawerBody>) {
+  return <PostDrawerBody key={useRemountKey()} {...props} />;
 }
