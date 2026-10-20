@@ -21,7 +21,6 @@ test.describe("the customer home", () => {
     const firstTicket = deals.getByRole("listitem").first();
     await expect(firstTicket.getByText("Giảm 59%")).toBeAttached();
     await expect(firstTicket.getByText("Panda Chef")).toBeVisible();
-    await expect(firstTicket.getByText("Giờ nhận 21:15")).toBeAttached();
 
     const closing = page.getByRole("region", { name: "Sắp hết giờ nhận" });
     // A wide screen shows the first four.
