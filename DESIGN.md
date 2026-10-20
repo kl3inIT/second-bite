@@ -53,6 +53,7 @@ colors:
   inverse-muted: "{palette.text-on-brand}" # secondary text on Tasco blue or a dark photo scrim, 5.3:1 on primary
   shell: "{palette.base-white}" # the top bar of every screen but the home: white with a hairline below
   shell-foreground: "{palette.text-ink}"
+  sky: "{palette.brand-500}" # the sign-in screen's side panel, Figma L6; white on it is 2.4:1, so only large decorative type goes there, never text a person must read
   header: "{palette.brand-800}" # the home's header, under the light sweep; Figma v3's sky #3CB4E7 held white at 2.4:1
   header-foreground: "{palette.base-white}" # the place on the header, 6.3:1
   header-raised: "{palette.base-white}" # the capsule and the search field on the header
@@ -92,7 +93,7 @@ colors:
   avatar-indigo: "{palette.logo-indigo}" # 7.6:1
   avatar-olive: "{palette.logo-olive}" # 6.0:1
 typography:
-  # Fourteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
+  # Sixteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
   # "Mobile v2" frames used (SEC-22). Named by purpose, not size; each has a Figma text style of the same name.
   # Be Vietnam Pro (`font-sans`) for everything people read; Bricolage Grotesque (`font-display`) only for
   # prices and figures, tracked -1%. Nothing is set below 12px.
@@ -146,6 +147,16 @@ typography:
     fontSize: "20px"
     fontWeight: 700
     lineHeight: "28px"
+  page-title: # the heading of a form page, such as the sign-in screen's
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "28px"
+    fontWeight: 600
+    lineHeight: "36px"
+  hero: # the headline of a panel that carries no other content, such as the sign-in screen's on a wide screen
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "44px"
+    fontWeight: 700
+    lineHeight: "54px"
   figure-sm: # small figures on lime: the discount badge, the steps' numbers
     fontFamily: "Bricolage Grotesque"
     fontSize: "12px"
@@ -308,7 +319,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 ### Hierarchy
 
-Fourteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `headline` grew to 20/28 bold with Mobile v3 (SEC-48), when `price-lg` became 20/24 and `title-lg` was added (SEC-49). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
+Sixteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `hero` and `page-title` were added for the sign-in screen (SEC-56); `headline` grew to 20/28 bold with Mobile v3 (SEC-48), when `price-lg` became 20/24 and `title-lg` was added (SEC-49). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
 
 | Role             | Face          | Size / line | Use                                                                               |
 | ---------------- | ------------- | ----------- | --------------------------------------------------------------------------------- |
@@ -316,6 +327,8 @@ Fourteen roles, normalised on 19 October 2026 from the 45 size, weight and leadi
 | `price-lg`       | Bricolage 700 | 20 / 24     | The price on a large card and at checkout, totals, the digits of the sign-in code |
 | `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                       |
 | `figure-sm`      | Bricolage 700 | 12 / 16     | Small figures on lime: the discount badge, the steps' numbers                     |
+| `page-title`     | 600           | 28 / 36     | The heading of a form page, the sign-in screen's                                  |
+| `hero`           | 700           | 44 / 54     | The headline of a panel with no other content, the wide sign-in screen's           |
 | `headline`       | 700           | 20 / 28     | Section and sheet titles, a page's heading                                        |
 | `bar-title`      | 600           | 17 / 22     | The top bar's title                                                               |
 | `button`         | 600           | 16 / 20     | Button labels                                                                     |

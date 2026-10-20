@@ -15,6 +15,8 @@ export const typeStyles = [
   "button",
   "bar-title",
   "headline",
+  "hero",
+  "page-title",
   "figure-sm",
   "price",
   "price-lg",

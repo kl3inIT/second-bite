@@ -49,7 +49,7 @@ export async function AppHeader({
           {search && (
             <div className="order-last w-full lg:order-none lg:max-w-xl lg:flex-1">{search}</div>
           )}
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-2">
             {account}
             <LanguageSwitcher />
           </div>
@@ -61,7 +61,7 @@ export async function AppHeader({
         <StickyHeader>
           {home}
           <div className="max-w-xl flex-1">{sticky.search}</div>
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-2">
             {sticky.account}
             <LanguageSwitcher />
           </div>
