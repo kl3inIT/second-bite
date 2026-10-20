@@ -1,4 +1,4 @@
-import { getFormatter, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 
 import { listOffers } from "@/features/offers/list-offers";
@@ -10,7 +10,7 @@ import type { HomeQuery } from "./home-query";
 const TICKET_COUNT = 2;
 
 // The bottom of the header without a filter (Figma Mobile v3 deal card): the biggest discounts tonight as
-// coupons on the deep blue deal card (Figma 105:2666): the discount and, in grey on its baseline, the time to collect, a dashed cut
+// coupons on the deep blue deal card (Figma 105:2666): the discount, a dashed cut
 // with a notch at each edge, then the seller. Every figure comes from the offers; with nothing to order, it
 // does not show. A bowl of food sits in its corner (Figma bát món).
 export async function TonightDeals({ query: pending }: { query: Promise<HomeQuery> }) {
@@ -18,14 +18,9 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
   // Tonight's deals are Tasco Mall's, so they are not shown around the person's own place (Figma K1e).
   if (query.q || query.kind || query.now || query.near) return null;
 
-  const [t, format, offers] = await Promise.all([
-    getTranslations("Home"),
-    getFormatter(),
-    listOffers({}),
-  ]);
+  const [t, offers] = await Promise.all([getTranslations("Home"), listOffers({})]);
   const tickets = biggestDiscountFirst(offers).slice(0, TICKET_COUNT);
   if (tickets.length === 0) return null;
-  const time = (iso: string) => format.dateTime(new Date(iso), "time");
 
   return (
     <section
@@ -49,27 +44,21 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
               key={offer.id}
               className="relative flex h-18 min-w-0 flex-1 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:max-w-44"
             >
-              <div className="flex items-baseline justify-between gap-1">
-                <span className="font-display text-price-lg text-sale">
-                  <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
-                  <span className="sr-only">
-                    {t("ticketDiscountLabel", { percent: offer.discountPercent })}
-                  </span>
+              <span className="font-display text-price-lg text-sale">
+                <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
+                <span className="sr-only">
+                  {t("ticketDiscountLabel", { percent: offer.discountPercent })}
                 </span>
-                <span className="text-label-strong text-muted-foreground">
-                  <span className="sr-only">{t("ticketCollect")} </span>
-                  {time(offer.windowStart)}
-                </span>
-              </div>
+              </span>
               <hr className="border-t border-dashed border-border" />
               <span className="truncate text-body-sm-strong">{offer.seller.name}</span>
               <span
                 aria-hidden
-                className="absolute top-9 -left-1.25 size-2.5 rounded-full bg-deal"
+                className="absolute top-8 -left-1.25 size-2.5 rounded-full bg-deal"
               />
               <span
                 aria-hidden
-                className="absolute top-9 -right-1.25 size-2.5 rounded-full bg-deal"
+                className="absolute top-8 -right-1.25 size-2.5 rounded-full bg-deal"
               />
             </li>
           ))}
