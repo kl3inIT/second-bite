@@ -457,9 +457,9 @@ test.describe("the catalog on the web", () => {
     const drawer = page.getByRole("dialog");
     await expect(drawer.getByText("Bước 3 / 3")).toBeVisible();
     await expect(drawer.getByText("Túi bánh mì và croissant, 4 chiếc")).toBeVisible();
-    // The dish brings its original price; the post asks for the units and the price.
+    // The dish brings its original price, and the price starts at the most the minimum discount allows.
     await expect(drawer.getByLabel("Giá gốc (đồng)")).toHaveValue("95.000");
-    await expect(drawer.getByLabel("Giá bán (đồng)")).toHaveValue("");
+    await expect(drawer.getByLabel("Giá bán (đồng)")).toHaveValue("76.000");
     await expectNoSeriousA11yViolations(page);
     await drawer.getByLabel("Số lượng").fill("3");
     await drawer.getByLabel("Giá bán (đồng)").fill("57000");
