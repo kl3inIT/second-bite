@@ -203,6 +203,7 @@ abstract final class TypeTokens {
 
 /// The corner radii of DESIGN.md, in logical pixels.
 abstract final class RadiusTokens {
+  static const double xs = 4;
   static const double sm = 8;
   static const double md = 12;
   static const double lg = 14;
