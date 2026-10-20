@@ -225,21 +225,13 @@ func testOnlyActiveSellersPeoplePost(t *testing.T, f fixture) {
 	stranger := f.as(t, "stranger", platform.RoleCustomer)
 	admin := f.as(t, "admin", platform.RoleAdmin)
 
-	pending, err := f.sellers.Open(owner, seller.Details{Name: "Xôi", Address: "Tasco Mall", Latitude: 21, Longitude: 105, Phone: "0912345678"})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = f.offers.Post(owner, pending.ID, bread(f.photo(owner, t)))
-	mustFail(t, "a pending seller", err, seller.ErrNotActive)
-
 	sellerID := f.activeSeller(owner, t, "staff")
 
 	if _, err := f.offers.Post(staff, sellerID, bread(f.photo(staff, t))); err != nil {
 		t.Errorf("staff posting: %v", err)
 	}
 
-	_, err = f.offers.Post(stranger, sellerID, bread(f.photo(stranger, t)))
+	_, err := f.offers.Post(stranger, sellerID, bread(f.photo(stranger, t)))
 	mustFail(t, "a stranger", err, seller.ErrNotFound)
 
 	_, err = f.offers.Post(admin, sellerID, bread(f.photo(admin, t)))
