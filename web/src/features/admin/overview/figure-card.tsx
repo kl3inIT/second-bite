@@ -19,8 +19,8 @@ export function FigureCard({
 }) {
   const missing = value === null;
   return (
-    <div className="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border bg-card p-5">
-      <p className="truncate text-body-sm text-muted-foreground">{label}</p>
+    <div className="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border bg-card p-4 sm:p-5">
+      <p className="text-body-sm text-muted-foreground">{label}</p>
       <p className="flex flex-wrap items-baseline gap-x-1.5">
         <span className="font-display text-display text-foreground">{missing ? "—" : value}</span>
         <span

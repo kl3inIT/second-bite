@@ -37,7 +37,7 @@ export async function OverviewPage({ query }: { query: Promise<Record<string, un
       <PageHeader title={shell("pages.overview.label")} actions={<RangeControl />} />
       <section
         aria-label={t("figures.label")}
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4"
       >
         <FigureCard
           label={t("figures.orders")}
