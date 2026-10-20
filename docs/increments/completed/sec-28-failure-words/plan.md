@@ -9,3 +9,4 @@ Design: [design.md](design.md). Tracked in Linear as SEC-28.
 | 3 | Web: `Accept-Language` from the page's locale; forms show `detail`; per-code messages removed; stub backend in both languages | Done, 20 October 2026 |
 | 4 | App: screens show `detail`; per-code `.arb` keys removed | Done, 20 October 2026 |
 | 5 | Conventions, guidelines, platform spec, test matrices; verification | Done, 20 October 2026 |
+| 6 | Proof against the real service; review, then merge through a pull request and move this increment to `completed/` | Done, 20 October 2026 (PR #38) |
