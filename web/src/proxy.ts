@@ -2,8 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
 
 import { routing } from "@/i18n/routing";
-import { ApiError } from "@/lib/api/client";
-import { getMyAccount } from "@/lib/api/generated";
+import type { AccountBody } from "@/lib/api/generated";
 
 // Sends an address without a language to /vi or /en: the locale cookie first, then the device's
 // language, then Vietnamese.
@@ -23,15 +22,19 @@ const adminAddress = new RegExp(`^/(${routing.locales.join("|")})/admin(?:/|$)`)
 async function signedInNonAdmin(request: NextRequest): Promise<boolean> {
   const session = request.cookies.get(sessionCookie);
   if (!session) return false;
+  // A plain fetch, not the generated client: the client asks next-intl for the page's language (SEC-28),
+  // which the proxy's bundle cannot load. The proxy needs no words, only the role.
+  let response: Response;
   try {
-    const { data } = await getMyAccount({
+    response = await fetch(`${process.env.SECONDBITE_API_ORIGIN ?? ""}/accounts/me`, {
       headers: { cookie: `${sessionCookie}=${session.value}` },
     });
-    return data.role !== "admin";
-  } catch (error) {
-    if (error instanceof ApiError) return false;
-    throw error;
+  } catch {
+    return false;
   }
+  if (!response.ok) return false;
+  const account = (await response.json()) as Pick<AccountBody, "role">;
+  return account.role !== "admin";
 }
 
 export default async function proxy(request: NextRequest) {
