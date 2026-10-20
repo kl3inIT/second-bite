@@ -132,8 +132,9 @@ func newProblem(status int, code, title, detail, requestID string) *Problem {
 
 func problemFromFailure(ctx context.Context, f *FailureError) *Problem {
 	c := categories[f.Category]
-	p := newProblem(c.status, f.Code, c.title, f.Words.In(LanguageOf(ctx)), RequestID(ctx))
-	p.Errors = f.violations
+	lang := LanguageOf(ctx)
+	p := newProblem(c.status, f.Code, c.title, f.Words.In(lang), RequestID(ctx))
+	p.Errors = f.violationsIn(lang)
 
 	return p
 }

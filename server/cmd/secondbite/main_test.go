@@ -361,6 +361,7 @@ type problem struct {
 	RequestID string `json:"requestId"`
 	Errors    []struct {
 		Parameter string `json:"parameter"`
+		Detail    string `json:"detail"`
 		Code      string `json:"code"`
 	} `json:"errors"`
 }

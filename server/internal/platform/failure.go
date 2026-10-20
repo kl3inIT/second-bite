@@ -58,7 +58,14 @@ type FailureError struct {
 	RetryAfter time.Duration
 	cause      error
 	// violations name what in the request is invalid, for errors[].
-	violations []Violation
+	violations []parameterViolation
+}
+
+// parameterViolation is a parameter a failure names, with its words in every
+// language; the problem says them in the request's.
+type parameterViolation struct {
+	parameter string
+	words     Words
 }
 
 // NewFailure declares a failure. It panics on a malformed code, an unknown
@@ -99,12 +106,31 @@ func (f *FailureError) WithRetryAfter(d time.Duration) *FailureError {
 
 // AtParameter returns a copy of a validation failure that names the request
 // parameter at fault, such as query.from; the problem lists it in errors[]
-// with the failure's code. The rejected value is never carried.
-func (f *FailureError) AtParameter(parameter, detail string) *FailureError {
+// with the failure's code and the words in the request's language (SEC-28).
+// The rejected value is never carried. It panics on words missing a language.
+func (f *FailureError) AtParameter(parameter string, words Words) *FailureError {
+	if !words.complete() {
+		panic("platform: parameter " + parameter + " of " + f.Code + " lacks its words in a language")
+	}
+
 	c := *f
-	c.violations = append(slices.Clone(f.violations), Violation{Parameter: parameter, Detail: detail, Code: f.Code})
+	c.violations = append(slices.Clone(f.violations), parameterViolation{parameter: parameter, words: words})
 
 	return &c
+}
+
+// violationsIn lists the parameters the failure names, in lang.
+func (f *FailureError) violationsIn(lang Language) []Violation {
+	if len(f.violations) == 0 {
+		return nil
+	}
+
+	out := make([]Violation, 0, len(f.violations))
+	for _, v := range f.violations {
+		out = append(out, Violation{Parameter: v.parameter, Detail: v.words.In(lang), Code: f.Code})
+	}
+
+	return out
 }
 
 func (f *FailureError) Error() string {

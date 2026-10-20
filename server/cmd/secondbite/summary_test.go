@@ -77,4 +77,15 @@ func checkSummaryRangeRefused(t *testing.T, svc service, admin http.Header) {
 			t.Errorf("%s: %+v, want %s naming query.from", query, p, code)
 		}
 	}
+
+	// The words come in the language asked for, the parameter's too (SEC-28).
+	inEnglish := admin.Clone()
+	inEnglish.Set("Accept-Language", "en")
+
+	p := send(t, http.MethodGet, svc.base+"/admin/summary?from=2026-10-10&to=2026-10-01", inEnglish, nil).
+		problem(t, http.StatusBadRequest)
+	if p.Detail != "The range must start on or before the day it ends." || len(p.Errors) != 1 ||
+		p.Errors[0].Detail != "Must not be after to." {
+		t.Errorf("in English: %+v", p)
+	}
 }

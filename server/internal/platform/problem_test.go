@@ -63,7 +63,10 @@ func newTestHandler(t *testing.T) (http.Handler, *bytes.Buffer) {
 		return nil, fmt.Errorf("ordering: %w", errSoldOut.WithCause(errors.New("units_left is 0")))
 	})
 	huma.Get(api, "/range", func(_ context.Context, _ *struct{}) (*struct{}, error) {
-		return nil, errRange.AtParameter("query.from", "Must not be after to.")
+		return nil, errRange.AtParameter("query.from", platform.Words{
+			VI: "Không được sau ngày kết thúc.",
+			EN: "Must not be after to.",
+		})
 	})
 	huma.Get(api, "/busy", func(_ context.Context, _ *struct{}) (*struct{}, error) {
 		return nil, errBusy.WithRetryAfter(2500 * time.Millisecond)
@@ -224,16 +227,35 @@ func TestFailureNamesItsParameter(t *testing.T) {
 	t.Parallel()
 
 	h, _ := newTestHandler(t)
-	p := decode(t, serve(t, h, http.MethodGet, "/range", ""), http.StatusBadRequest)
 
-	want := []platform.Violation{{Parameter: "query.from", Detail: "Must not be after to.", Code: "TEST_RANGE_REVERSED"}}
-	if p.Code != "TEST_RANGE_REVERSED" || fmt.Sprint(p.Errors) != fmt.Sprint(want) {
-		t.Errorf("problem %+v", p)
+	for lang, detail := range map[string]string{
+		"":   "Không được sau ngày kết thúc.",
+		"vi": "Không được sau ngày kết thúc.",
+		"en": "Must not be after to.",
+	} {
+		p := decode(t, serveIn(t, h, http.MethodGet, "/range", "", lang), http.StatusBadRequest)
+
+		want := []platform.Violation{{Parameter: "query.from", Detail: detail, Code: "TEST_RANGE_REVERSED"}}
+		if p.Code != "TEST_RANGE_REVERSED" || fmt.Sprint(p.Errors) != fmt.Sprint(want) {
+			t.Errorf("Accept-Language %q: problem %+v", lang, p)
+		}
 	}
 
 	if p := decode(t, serve(t, h, http.MethodGet, "/range", ""), http.StatusBadRequest); len(p.Errors) != 1 {
 		t.Errorf("a second answer holds %d violations, want 1", len(p.Errors))
 	}
+}
+
+func TestParameterNeedsWordsInEveryLanguage(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if recover() == nil {
+			t.Error("AtParameter accepted words missing a language")
+		}
+	}()
+
+	_ = errRange.AtParameter("query.from", platform.Words{EN: "Must not be after to."})
 }
 
 func TestMalformedBodyIsAProblem(t *testing.T) {

@@ -49,13 +49,19 @@ func (in summaryInput) summaryRange(now time.Time) (summaryRange, error) {
 	}
 
 	if first.After(last) {
-		return summaryRange{}, ErrSummaryRangeReversed.AtParameter("query.from", "Must not be after to.")
+		return summaryRange{}, ErrSummaryRangeReversed.AtParameter("query.from", platform.Words{
+			VI: "Không được sau ngày kết thúc.",
+			EN: "Must not be after to.",
+		})
 	}
 
 	// Vietnam has no daylight saving, so every day lasts 24 hours.
 	days := int(last.Sub(first)/(24*time.Hour)) + 1
 	if days > maxSummaryDays {
-		return summaryRange{}, ErrSummaryRangeTooLong.AtParameter("query.from", "Must be at most 90 days before to.")
+		return summaryRange{}, ErrSummaryRangeTooLong.AtParameter("query.from", platform.Words{
+			VI: "Không được sớm hơn ngày kết thúc quá 90 ngày.",
+			EN: "Must be at most 90 days before to.",
+		})
 	}
 
 	return summaryRange{start: first, end: last.AddDate(0, 0, 1), days: days}, nil

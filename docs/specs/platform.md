@@ -24,7 +24,7 @@ Every error is an RFC 9457 problem (`application/problem+json`) with `type` (`ur
 
 | Category | Status | Notes |
 | --- | --- | --- |
-| `VALIDATION` | 400 | Violations in `errors[]`, each naming a body member by JSON Pointer (`pointer`) or a parameter by location (`parameter`, such as `query.limit`), with code `PLATFORM_VALUE_INVALID`; the rejected value is never echoed. A module's failure names the parameter at fault with `AtParameter`, under its own code |
+| `VALIDATION` | 400 | Violations in `errors[]`, each naming a body member by JSON Pointer (`pointer`) or a parameter by location (`parameter`, such as `query.limit`), with code `PLATFORM_VALUE_INVALID`; the rejected value is never echoed. A module's failure names the parameter at fault with `AtParameter`, under its own code, with its words in both languages, the request's said |
 | `UNAUTHENTICATED` | 401 | Sends `WWW-Authenticate: Bearer` |
 | `NOT_PERMITTED` | 403 | |
 | `NOT_FOUND` | 404 | |
