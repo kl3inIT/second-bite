@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const port = 3100;
-const stubBackendPort = 3190;
+// Ports can be moved so that several worktrees run their suites side by side.
+const port = Number(process.env.E2E_PORT ?? 3100);
+const stubBackendPort = Number(process.env.E2E_STUB_PORT ?? 3190);
 
 // The production build in a phone and a desktop browser. Adapted from BeyondPilot's
 // web/playwright.config.ts. The backend is a stub (tests/e2e/stub-backend.mjs).
