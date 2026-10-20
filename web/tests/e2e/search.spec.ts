@@ -57,7 +57,7 @@ test.describe("the search", () => {
 
   test("goes back to the home from its arrow", async ({ page }) => {
     await page.goto("/vi/search?q=xoi");
-    await (await hydrated(page.getByRole("link", { name: "Về trang chủ" }))).click();
+    await (await hydrated(page.getByRole("link", { name: "Về trang chủ", exact: true }))).click();
     await expect(page).toHaveURL(/\/vi$/);
   });
 });
