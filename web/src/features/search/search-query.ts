@@ -18,12 +18,10 @@ const PRICE_LIMIT = 10_000_000;
 const timeOfDay = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 /**
- * What the search's address asks for: the home's words, kind, collect-now and place, which tab is open
- * (`?tab=sellers`, dishes otherwise), and the chips' radius, price range, collection times and order.
+ * What the search's address asks for: the home's words, kind, collect-now and place, and the chips' radius, price range, collection times and order.
  */
 export type SearchQuery = {
   q?: string;
-  tab?: "sellers";
   kind?: OfferKind;
   now?: boolean;
   near?: string;
@@ -48,7 +46,6 @@ export function readSearchQuery(
   const time = readRange(readTime(first(params.from)), readTime(first(params.to)));
   return {
     q,
-    tab: first(params.tab) === "sellers" ? "sellers" : undefined,
     kind,
     // Collecting now and a range of times are one filter; the range wins.
     now: time.from || time.to ? undefined : now,

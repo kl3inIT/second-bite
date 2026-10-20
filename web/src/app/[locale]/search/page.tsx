@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: `${t("title")} · Second Bite`, robots: { index: false } };
 }
 
-// The search (Figma Mobile v3 K2, K2a, K2c and K1f): a white top bar with the field, then the dishes or the
+// The search (Figma Mobile v3 K2a and K1f): a white top bar with the field, then the dishes or the
 // sellers that match, with the chips that narrow them.
 export default async function SearchPage({ searchParams }: PageProps<"/[locale]/search">) {
   const t = await getTranslations("Search");
@@ -41,9 +41,9 @@ export default async function SearchPage({ searchParams }: PageProps<"/[locale]/
 }
 
 async function AddressSearchBar({ query }: { query: Promise<SearchQuery> }) {
-  const { q, near, tab } = await query;
+  const { q, near } = await query;
   // The suggestions are a convenience: without the offers the field still searches.
   const offers = await listOffers({ near }).catch(() => []);
   // A new address starts the field afresh, with its own words.
-  return <SearchBar key={q ?? ""} value={q} near={near} tab={tab} kinds={kindsByCount(offers)} />;
+  return <SearchBar key={q ?? ""} value={q} near={near} kinds={kindsByCount(offers)} />;
 }

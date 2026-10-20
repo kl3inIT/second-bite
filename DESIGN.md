@@ -395,7 +395,7 @@ The page's pale ground rises over the header's foot as a 28px sheet with 24px to
 
 ### Search top bar
 
-The search's own bar (Figma K2, K1f): white, a plain back chevron, and the search field fully rounded on the sky ground (`muted`) without an edge. The white goes on under it with the tabs "Món / Quán" once words are searched, then the chips and, while browsing without words, the summary ("12 món đang bán ở Tasco Mall", K1f has no tabs); a hairline closes it. While the field is focused and empty, the recent searches (kept in the browser) and "Món phổ biến ở Tasco Mall" cover the page and its bottom bar in white until the field is left (Figma K2a), each titled in `headline`. The popular kinds are the kinds on sale, the most first, each a 56px row: its round 40px picture, the kind (`body-sm`) and "3 món đang giảm" (`label`, muted) at the right.
+The search's own bar (Figma K2, K1f): white, a plain back chevron, and the search field fully rounded on the sky ground (`muted`) without an edge. The white goes on under it with the chips and the summary ("12 món đang bán ở Tasco Mall", "1 món cho “bánh bao”"), without tabs, with or without words; a hairline closes it. While the field is focused and empty, the recent searches (kept in the browser) and "Món phổ biến ở Tasco Mall" cover the page and its bottom bar in white until the field is left (Figma K2a), each titled in `headline`. The popular kinds are the kinds on sale, the most first, each a 56px row: its round 40px picture, the kind (`body-sm`) and "3 món đang giảm" (`label`, muted) at the right.
 
 ### Filter chip
 
@@ -407,7 +407,7 @@ Two halves over a hairline (Figma K2 "Món (12)" / "Quán (2)"): the open one in
 
 ### Seller block
 
-One seller's dishes in the search, white, 20px radius, bitten corner. A seller with a single dish shows it as the grid card instead, with the seller (`label`, muted) under the dish, two to a row; a seller with more spans the row. Either the seller's avatar, name (`title-lg`) and window (`label`, muted) (Figma K2c), or their first dish as an offer card (Figma K1f); then up to three dish tiles: a photograph 84px high with a 12px radius, the price (`price-sm`) 3px beside the old one struck through, and the dish (`label`) on one line.
+One seller's dishes in the search, white, 20px radius, bitten corner. A seller with a single dish shows it as the grid card instead, with the seller (`label`, muted) under the dish, two to a row; a seller with more spans the row: their first dish as an offer card (Figma K1f), then up to three dish tiles: a photograph 84px high with a 12px radius, the price (`price-sm`) 3px beside the old one struck through, and the dish (`label`) on one line.
 
 ### Deal card
 

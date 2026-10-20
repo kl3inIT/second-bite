@@ -19,18 +19,16 @@ import { Link } from "@/i18n/navigation";
 import { clearSearches, forgetSearch, rememberSearch, useRecentSearches } from "./recent-searches";
 
 // The search's top bar (Figma K2 đầu trang tìm kiếm): a plain back arrow and a fully rounded field on the
-// sky ground, a GET form over the address that keeps the place and the tab. While the field is focused and
+// sky ground, a GET form over the address that keeps the place. While the field is focused and
 // empty, the recent searches and the popular kinds, each with how many dishes are on sale, cover the page
 // under it and its bottom bar (Figma K2a).
 export function SearchBar({
   value,
   near,
-  tab,
   kinds: popular = [],
 }: {
   value?: string;
   near?: string;
-  tab?: string;
   /** The kinds on sale here, the most first. */
   kinds?: readonly { kind: OfferKind; count: number }[];
 }) {
@@ -66,7 +64,6 @@ export function SearchBar({
         <search className="min-w-0 flex-1 search-cancel-none">
           <form>
             {near && <input type="hidden" name="near" value={near} />}
-            {tab && <input type="hidden" name="tab" value={tab} />}
             <InputGroup surface="sky">
               <InputGroupAddon>
                 <SearchIcon aria-hidden className="size-5" />

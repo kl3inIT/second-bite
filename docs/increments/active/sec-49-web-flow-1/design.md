@@ -6,7 +6,7 @@ Status: decided with the owner on 20 October 2026 and built the same day ([plan]
 
 - **Open the home** and see tonight's dishes at Tasco Mall: the deal card, "Sắp hết giờ nhận" as a row of large cards, then "Tất cả món quanh đây". Each card names the dish, never the seller (Figma Mobile v3 K1, K1b).
 - **Choose where to look** from the place on the header (Figma K1a): Tasco Mall, the default, or their own place. The browser asks permission itself; on the phone this is the system prompt of Figma K1c. Around their place the cards show how far each dish is, and when nothing is posted there the home says so and shows what Tasco Mall has (Figma K1e).
-- **Search** on a page of its own (`/search`, Figma K2): the words typed in the header land there. Dishes with words are large cards naming their seller; without words they are grouped by seller, one large card and three more (Figma K1f); the "Quán" tab opens each seller's block (Figma K2c). Chips narrow by distance (around their place only), highest price, collect now and kind, and a short link changes the order. While the field is empty and focused, the recent searches and the kinds open under it (Figma K2a).
+- **Search** on a page of its own (`/search`, Figma K2): the words typed in the header land there. Dishes are grouped by seller, with or without words, one large card and three more, a seller with one dish a small card two to a row (Figma K1f); there are no "Món / Quán" tabs (owner, 20 October 2026). Chips narrow by distance (around their place only), a price range, a time range or collect now, and kind, and a short link changes the order. While the field is empty and focused, the recent searches and the kinds open under it (Figma K2a).
 
 ## Decisions
 
