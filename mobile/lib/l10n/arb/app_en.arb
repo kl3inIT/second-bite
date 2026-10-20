@@ -162,5 +162,10 @@
   "accountSettingsDeleteTitle": "Delete your account",
   "accountSettingsDeleteBody": "Permanently delete your account and your personal data. This cannot be undone; a shop you own will be closed.",
   "accountSettingsDeleteAction": "Delete account",
-  "problemReference": "Reference: {reference}"
+  "problemReference": "Reference: {reference}",
+  "accountSettingsEditName": "Edit the display name",
+  "accountSettingsSave": "Save",
+  "accountSettingsSaving": "Saving…",
+  "accountSettingsCancel": "Cancel",
+  "accountSettingsNameFailed": "The name was not saved. Try again in a few minutes."
 }

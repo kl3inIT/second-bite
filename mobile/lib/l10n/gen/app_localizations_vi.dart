@@ -592,4 +592,20 @@ class AppLocalizationsVi extends AppLocalizations {
   String problemReference(String reference) {
     return 'Mã tham chiếu: $reference';
   }
+
+  @override
+  String get accountSettingsEditName => 'Sửa tên hiển thị';
+
+  @override
+  String get accountSettingsSave => 'Lưu';
+
+  @override
+  String get accountSettingsSaving => 'Đang lưu…';
+
+  @override
+  String get accountSettingsCancel => 'Huỷ';
+
+  @override
+  String get accountSettingsNameFailed =>
+      'Chưa lưu được tên. Thử lại sau ít phút.';
 }

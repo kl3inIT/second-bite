@@ -795,5 +795,25 @@
         "type": "String"
       }
     }
+  },
+  "accountSettingsEditName": "Sửa tên hiển thị",
+  "@accountSettingsEditName": {
+    "description": "The heading of the sheet that changes the display name, and the row's hint"
+  },
+  "accountSettingsSave": "Lưu",
+  "@accountSettingsSave": {
+    "description": "Saves the display name"
+  },
+  "accountSettingsSaving": "Đang lưu…",
+  "@accountSettingsSaving": {
+    "description": "While the display name is saved"
+  },
+  "accountSettingsCancel": "Huỷ",
+  "@accountSettingsCancel": {
+    "description": "Closes the sheet without saving"
+  },
+  "accountSettingsNameFailed": "Chưa lưu được tên. Thử lại sau ít phút.",
+  "@accountSettingsNameFailed": {
+    "description": "When saving the name got no answer"
   }
 }

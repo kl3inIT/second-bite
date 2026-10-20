@@ -48,7 +48,7 @@ final class CurrentAccountProvider
   CurrentAccount create() => CurrentAccount();
 }
 
-String _$currentAccountHash() => r'2291519b8ecccdcb242f32dabac90189437689ef';
+String _$currentAccountHash() => r'40b3de106039bfd496a4e86a19c0819808a00342';
 
 /// {@template current_account}
 /// Who is signed in, for every screen: null for no one. It reads the kept

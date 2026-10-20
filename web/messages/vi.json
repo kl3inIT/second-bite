@@ -338,7 +338,13 @@
     "switchLanguage": "Đổi sang English",
     "deleteTitle": "Xoá tài khoản",
     "deleteBody": "Xoá vĩnh viễn tài khoản và dữ liệu cá nhân của bạn. Việc xoá không thể hoàn tác; quán bạn là chủ sẽ bị đóng.",
-    "deleteAction": "Xoá tài khoản"
+    "deleteAction": "Xoá tài khoản",
+    "edit": "Sửa",
+    "editName": "Sửa tên hiển thị",
+    "save": "Lưu",
+    "saving": "Đang lưu…",
+    "cancel": "Huỷ",
+    "nameFailed": "Chưa lưu được tên. Thử lại sau ít phút."
   },
   "TopBar": {
     "back": "Quay lại",

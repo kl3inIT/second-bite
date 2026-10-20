@@ -450,6 +450,13 @@ export type SessionOutputBody = {
     token?: string;
 };
 
+export type SetDisplayNameInputBody = {
+    /**
+     * 1 to 50 characters once trimmed; Google never replaces it
+     */
+    displayName: string;
+};
+
 export type SetSellerPhotoRequest = {
     /**
      * From POST /photos
@@ -530,6 +537,31 @@ export type GetMyAccountResponses = {
 };
 
 export type GetMyAccountResponse = GetMyAccountResponses[keyof GetMyAccountResponses];
+
+export type SetMyDisplayNameData = {
+    body: SetDisplayNameInputBody;
+    path?: never;
+    query?: never;
+    url: '/accounts/me';
+};
+
+export type SetMyDisplayNameErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SetMyDisplayNameError = SetMyDisplayNameErrors[keyof SetMyDisplayNameErrors];
+
+export type SetMyDisplayNameResponses = {
+    /**
+     * OK
+     */
+    200: AccountBody;
+};
+
+export type SetMyDisplayNameResponse = SetMyDisplayNameResponses[keyof SetMyDisplayNameResponses];
 
 export type DeleteMyAccountData = {
     body: DeleteAccountInputBody;

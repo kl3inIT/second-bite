@@ -23,5 +23,7 @@ Requirements of [docs/specs/identity.md](../specs/identity.md) and the checks th
 | An account is created for an address added as staff | `TestSeller` › publishing follows status and membership (`internal/seller/seller_test.go`) |
 | A deletion code is emailed to the signed-in account's address and asked for only signed in; it cannot sign in and a sign-in code cannot delete; a wrong code is refused; the right one deletes the account, its sessions, its codes and the emails to its address, clears the cookie and ends the session; the address then signs in as a new account | `TestService` › an owner deletes their account; the others forget it |
 | A deletion code of another address deletes nothing; a deletion takes the sessions, the Google links and the codes, keeps the other accounts, and writes the event once for its one listener | `internal/identity` `TestDeleteAccount` |
+| The signed-in person sets their display name; it comes back trimmed and the account reads it; a name too long is refused with `IDENTITY_DISPLAY_NAME_INVALID` in the request's language and changes nothing; someone signed out is refused | `TestService` › a person names their account |
+| A display name is 1 to 50 characters once trimmed, with no control character and valid UTF-8; a later Google sign-in keeps the chosen name | `internal/identity` `TestNormalizeDisplayName`, `TestSetDisplayName` |
 
 Not covered by a test: the limits of ten codes an hour and of wrong guesses per hour and per day through the API (their waits are unit-tested), and the expiry of a session after 30 days.

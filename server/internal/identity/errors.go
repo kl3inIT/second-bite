@@ -56,6 +56,10 @@ var (
 		VI: "Email này chưa được xác nhận: chủ email cần đăng nhập một lần bằng mã gửi qua email, rồi thử lại.",
 		EN: "This address is not confirmed yet: its owner signs in once with the code we email to it, then try again.",
 	})
+	ErrDisplayNameInvalid = platform.NewFailure("IDENTITY_DISPLAY_NAME_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Nhập tên hiển thị từ 1 đến 50 ký tự.",
+		EN: "Enter a display name of 1 to 50 characters.",
+	})
 	ErrAccountNotFound = platform.NewFailure("IDENTITY_ACCOUNT_NOT_FOUND", platform.CategoryNotFound, platform.Words{
 		VI: "Không tìm thấy tài khoản này.",
 		EN: "The account does not exist.",

@@ -133,6 +133,11 @@ SET display_name = CASE WHEN display_name = '' THEN @display_name ELSE display_n
 WHERE id = @id
 RETURNING id, email, role, display_name;
 
+-- name: SetDisplayName :one
+-- The name the person chose (SEC-61).
+UPDATE identity_accounts SET display_name = @display_name WHERE id = @id
+RETURNING id, email, role, display_name;
+
 -- name: DeleteChallengesOf :exec
 -- Every code sent to the address, once its account is deleted.
 DELETE FROM identity_sign_in_challenges WHERE email = @email;
