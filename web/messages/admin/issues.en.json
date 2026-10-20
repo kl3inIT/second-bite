@@ -1,1 +1,103 @@
-{}
+{
+  "tabs": {
+    "label": "Problem reports by status",
+    "new": "New",
+    "in_progress": "In progress",
+    "done": "Done"
+  },
+  "kind": {
+    "food_problem": "Food problem",
+    "refund": "Refund request",
+    "store_closed": "Store closed",
+    "cancel": "Cancellation",
+    "other": "Other"
+  },
+  "status": {
+    "new": "New",
+    "in_progress": "In progress",
+    "done": "Done"
+  },
+  "filters": {
+    "search": "Search reports",
+    "searchPlaceholder": "Search by report number, order number, customer or store",
+    "kind": "Type",
+    "handler": "Handler",
+    "size": "Rows",
+    "all": "All",
+    "unassigned": "Unassigned"
+  },
+  "columns": {
+    "code": "Number",
+    "kind": "Type",
+    "sender": "Sent by",
+    "related": "Order / store",
+    "handler": "Handler",
+    "updatedAt": "Updated",
+    "resolvedAt": "Done at",
+    "actions": "Actions"
+  },
+  "relatedOrder": "Order #{code}",
+  "unassigned": "Unassigned",
+  "at": "{day} · {time}",
+  "view": "View details",
+  "summary": {
+    "new": "Showing {from}–{to} of {total} new reports",
+    "in_progress": "Showing {from}–{to} of {total} reports in progress",
+    "done": "Showing {from}–{to} of {total} done reports"
+  },
+  "empty": {
+    "new": "No new reports",
+    "in_progress": "No reports in progress",
+    "done": "No done reports yet"
+  },
+  "detail": {
+    "title": "{code} · {title}",
+    "photos": "Attached photos · {count}",
+    "photo": "Attached photo {index}",
+    "thread": "Conversation",
+    "role": {
+      "customer": "Customer",
+      "seller": "Store",
+      "admin": "Admin"
+    },
+    "author": "{name} · {role}",
+    "internalOnly": "Admins only",
+    "internalNote": "Internal note · {name}",
+    "composer": "Write in the conversation",
+    "reply": "Reply to customer",
+    "note": "Internal note",
+    "replyPlaceholder": "Write a reply to {name}…",
+    "notePlaceholder": "A note for the other admins…",
+    "send": "Send",
+    "handling": "Handling",
+    "status": "Status",
+    "handler": "Handler",
+    "related": "Related order",
+    "order": "Order",
+    "store": "Store",
+    "item": "Item",
+    "amount": "Amount",
+    "payment": "Payment",
+    "collectedAt": "Collected",
+    "paymentMethod": {
+      "cash": "Cash at the counter",
+      "vietqr": "VietQR at the counter"
+    },
+    "paid": "{method} · paid",
+    "unpaid": "{method} · not paid",
+    "refund": "Create a refund request"
+  },
+  "done": {
+    "title": "Mark {code} as done",
+    "outcome": "Outcome",
+    "outcomes": {
+      "refunded": "Refunded the customer",
+      "replaced": "The store replaced or made up the item",
+      "explained": "Explained, no refund needed",
+      "invalid": "Could not be handled (duplicate, wrong details)"
+    },
+    "note": "Note to the customer",
+    "confirm": "Mark as done"
+  },
+  "soon": "Coming soon"
+}

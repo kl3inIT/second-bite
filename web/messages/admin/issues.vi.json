@@ -1,1 +1,103 @@
-{}
+{
+  "tabs": {
+    "label": "Báo lỗi theo trạng thái",
+    "new": "Mới",
+    "in_progress": "Đang xử lý",
+    "done": "Đã xong"
+  },
+  "kind": {
+    "food_problem": "Món có vấn đề",
+    "refund": "Xin hoàn tiền",
+    "store_closed": "Cửa hàng đóng cửa",
+    "cancel": "Xin huỷ",
+    "other": "Khác"
+  },
+  "status": {
+    "new": "Mới",
+    "in_progress": "Đang xử lý",
+    "done": "Đã xong"
+  },
+  "filters": {
+    "search": "Tìm báo lỗi",
+    "searchPlaceholder": "Tìm theo mã báo lỗi, mã đơn, tên khách hoặc cửa hàng",
+    "kind": "Loại",
+    "handler": "Người xử lý",
+    "size": "Số dòng",
+    "all": "Tất cả",
+    "unassigned": "Chưa nhận"
+  },
+  "columns": {
+    "code": "Mã",
+    "kind": "Loại",
+    "sender": "Người gửi",
+    "related": "Đơn / cửa hàng liên quan",
+    "handler": "Người xử lý",
+    "updatedAt": "Cập nhật lúc",
+    "resolvedAt": "Xong lúc",
+    "actions": "Thao tác"
+  },
+  "relatedOrder": "Đơn #{code}",
+  "unassigned": "Chưa nhận",
+  "at": "{day} · {time}",
+  "view": "Xem chi tiết",
+  "summary": {
+    "new": "Hiển thị {from}–{to} trên {total} báo lỗi mới",
+    "in_progress": "Hiển thị {from}–{to} trên {total} báo lỗi đang xử lý",
+    "done": "Hiển thị {from}–{to} trên {total} báo lỗi đã xong"
+  },
+  "empty": {
+    "new": "Không có báo lỗi mới",
+    "in_progress": "Không có báo lỗi đang xử lý",
+    "done": "Chưa có báo lỗi đã xong"
+  },
+  "detail": {
+    "title": "{code} · {title}",
+    "photos": "Ảnh đính kèm · {count}",
+    "photo": "Ảnh đính kèm {index}",
+    "thread": "Trao đổi",
+    "role": {
+      "customer": "Khách",
+      "seller": "Cửa hàng",
+      "admin": "Quản trị"
+    },
+    "author": "{name} · {role}",
+    "internalOnly": "Chỉ admin thấy",
+    "internalNote": "Ghi chú nội bộ · {name}",
+    "composer": "Viết vào trao đổi",
+    "reply": "Trả lời khách",
+    "note": "Ghi chú nội bộ",
+    "replyPlaceholder": "Viết trả lời cho {name}…",
+    "notePlaceholder": "Ghi chú cho quản trị viên khác…",
+    "send": "Gửi",
+    "handling": "Xử lý",
+    "status": "Trạng thái",
+    "handler": "Người xử lý",
+    "related": "Đơn liên quan",
+    "order": "Đơn",
+    "store": "Cửa hàng",
+    "item": "Món",
+    "amount": "Số tiền",
+    "payment": "Thanh toán",
+    "collectedAt": "Nhận món",
+    "paymentMethod": {
+      "cash": "Tiền mặt tại quầy",
+      "vietqr": "VietQR tại quầy"
+    },
+    "paid": "{method} · đã trả",
+    "unpaid": "{method} · chưa trả",
+    "refund": "Tạo yêu cầu hoàn tiền"
+  },
+  "done": {
+    "title": "Đánh dấu {code} đã xong",
+    "outcome": "Kết quả xử lý",
+    "outcomes": {
+      "refunded": "Đã hoàn tiền cho khách",
+      "replaced": "Cửa hàng đã đổi hoặc bù món",
+      "explained": "Đã giải thích, không cần hoàn tiền",
+      "invalid": "Không xử lý được (trùng, sai thông tin)"
+    },
+    "note": "Ghi chú gửi khách",
+    "confirm": "Đánh dấu đã xong"
+  },
+  "soon": "Sắp có"
+}
