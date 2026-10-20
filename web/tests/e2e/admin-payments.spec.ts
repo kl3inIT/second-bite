@@ -1,12 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-import { signInTo } from "./admin";
+import { isReleased, signInTo } from "./admin";
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
 // Each test signs in first, which takes a while when the projects run side by side.
 test.setTimeout(90_000);
+// The page shows "Sắp ra mắt" until its backend exists (pages.ts); these run again once it is released.
+test.skip(!isReleased("payments"), "not released yet");
 
 // SEC-62 › Payments and refunds (Figma AD-HT1 to AD-HT7). SEC-18 has not built payments yet, so both tabs
 // show their empty state; the tables, sheets and dialogs with sample data are checked by the unit tests in

@@ -1,12 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-import { signInTo } from "./admin";
+import { isReleased, signInTo } from "./admin";
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
 // Each test signs in first, which takes a while when the projects run side by side.
 test.setTimeout(90_000);
+// The page shows "Sắp ra mắt" until its backend exists (pages.ts); these run again once it is released.
+test.skip(!isReleased("promotions"), "not released yet");
 
 // SEC-62 › Marketing › Mã giảm giá (Figma AD-MK1, AD-MK2). No backend keeps codes yet: the list is empty and
 // the sheet cannot save. The list with codes is checked with sample rows in promotions-view.test.ts.

@@ -33,8 +33,8 @@ type PageSpec = {
   parent?: AdminPageKey;
   /**
    * Whether the page is open. An unreleased page keeps its code, its route shows the shared coming-soon page
-   * and its sidebar item carries "Sắp có" (docs: admin-web-flow › Menu đầy đủ và trang Sắp ra mắt). Every page
-   * is open until the founder names the ones to hide.
+   * and its sidebar or settings-menu item carries "Sắp có" (docs: admin-web-flow › Menu đầy đủ và trang Sắp ra
+   * mắt). A page is open once its backend exists; the others are built in full and wait behind the flag.
    */
   released: boolean;
 };
@@ -100,105 +100,105 @@ export const adminPages = {
     section: "operations",
     icon: PackageIcon,
     nav: "operations",
-    released: true,
+    released: false,
   },
   orders: {
     path: "/admin/orders",
     section: "operations",
     icon: ReceiptIcon,
     nav: "operations",
-    released: true,
+    released: false,
   },
   orderDetail: {
     path: "/admin/orders/[orderId]",
     section: "operations",
     icon: ReceiptIcon,
     parent: "orders",
-    released: true,
+    released: false,
   },
   payments: {
     path: "/admin/payments",
     section: "operations",
     icon: WalletIcon,
     nav: "operations",
-    released: true,
+    released: false,
   },
   issues: {
     path: "/admin/issues",
     section: "operations",
     icon: LifeBuoyIcon,
     nav: "operations",
-    released: true,
+    released: false,
   },
   issueDetail: {
     path: "/admin/issues/[issueId]",
     section: "operations",
     icon: LifeBuoyIcon,
     parent: "issues",
-    released: true,
+    released: false,
   },
   reviews: {
     path: "/admin/reviews",
     section: "operations",
     icon: StarIcon,
     nav: "operations",
-    released: true,
+    released: false,
   },
   accounts: {
     path: "/admin/accounts",
     section: "users",
     icon: UsersIcon,
     nav: "users",
-    released: true,
+    released: false,
   },
   accountDetail: {
     path: "/admin/accounts/[accountId]",
     section: "users",
     icon: UsersIcon,
     parent: "accounts",
-    released: true,
+    released: false,
   },
   promotions: {
     path: "/admin/promotions",
     section: "marketing",
     icon: TicketPercentIcon,
     nav: "marketing",
-    released: true,
+    released: false,
   },
   content: {
     path: "/admin/content",
     section: "marketing",
     icon: ImageIcon,
     nav: "marketing",
-    released: true,
+    released: false,
   },
   bannerDetail: {
     path: "/admin/content/banners/[bannerId]",
     section: "marketing",
     icon: ImageIcon,
     parent: "content",
-    released: true,
+    released: false,
   },
   notifications: {
     path: "/admin/notifications",
     section: "marketing",
     icon: MegaphoneIcon,
     nav: "marketing",
-    released: true,
+    released: false,
   },
   notificationsCompose: {
     path: "/admin/notifications/new",
     section: "marketing",
     icon: MegaphoneIcon,
     parent: "notifications",
-    released: true,
+    released: false,
   },
   sponsors: {
     path: "/admin/sponsors",
     section: "marketing",
     icon: HandshakeIcon,
     nav: "marketing",
-    released: true,
+    released: false,
   },
   // "Quản trị / Báo cáo": the reports sit on their own at the sidebar's foot, outside Vận hành.
   reports: {
@@ -206,7 +206,7 @@ export const adminPages = {
     section: "admin",
     icon: ChartColumnIcon,
     nav: "bottom",
-    released: true,
+    released: false,
   },
   settings: {
     path: "/admin/settings",
@@ -234,42 +234,42 @@ export const adminPages = {
     section: "settings",
     icon: SettingsIcon,
     parent: "settings",
-    released: true,
+    released: false,
   },
   settingsAreas: {
     path: "/admin/settings/areas",
     section: "settings",
     icon: SettingsIcon,
     parent: "settings",
-    released: true,
+    released: false,
   },
   settingsAdmins: {
     path: "/admin/settings/admins",
     section: "settings",
     icon: SettingsIcon,
     parent: "settings",
-    released: true,
+    released: false,
   },
   settingsAuditLog: {
     path: "/admin/settings/audit-log",
     section: "settings",
     icon: SettingsIcon,
     parent: "settings",
-    released: true,
+    released: false,
   },
   settingsLegal: {
     path: "/admin/settings/legal",
     section: "settings",
     icon: SettingsIcon,
     parent: "settings",
-    released: true,
+    released: false,
   },
   settingsIntegrations: {
     path: "/admin/settings/integrations",
     section: "settings",
     icon: SettingsIcon,
     parent: "settings",
-    released: true,
+    released: false,
   },
 } as const satisfies Record<AdminPageKey, PageSpec>;
 

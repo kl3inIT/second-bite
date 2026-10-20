@@ -1,11 +1,13 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { signInTo } from "./admin";
+import { isReleased, signInTo } from "./admin";
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN", timezoneId: "Asia/Ho_Chi_Minh" });
 test.setTimeout(90_000);
+// The page shows "Sắp ra mắt" until its backend exists (pages.ts); these run again once it is released.
+test.skip(!isReleased("reports"), "not released yet");
 
 // The stub's summary (stub-backend.mjs › adminSummaryRoutes): new accounts are the day of the month modulo 3.
 function day(back: number) {

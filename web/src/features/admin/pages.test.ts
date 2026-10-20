@@ -66,10 +66,19 @@ describe("the admin page registry", () => {
     }
   });
 
-  it("opens every page for now, a detail page through its parent", () => {
+  it("opens only the pages whose backend exists, a detail page through its parent", () => {
     expect(lineage("sellerDetail")).toEqual(["sellerDetail", "sellers"]);
-    for (const key of Object.keys(adminPages) as (keyof typeof adminPages)[]) {
-      expect(isReleased(key), key).toBe(true);
-    }
+    const open = (Object.keys(adminPages) as (keyof typeof adminPages)[]).filter((key) =>
+      isReleased(key),
+    );
+    expect(open).toEqual([
+      "overview",
+      "sellers",
+      "sellerDetail",
+      "settings",
+      "settingsOffers",
+      "settingsEmail",
+    ]);
+    expect(isReleased("orderDetail")).toBe(false);
   });
 });

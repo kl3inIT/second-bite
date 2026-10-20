@@ -1,12 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-import { signInTo } from "./admin";
+import { isReleased, signInTo } from "./admin";
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
 // Each test signs in first, which takes a while when the projects run side by side.
 test.setTimeout(90_000);
+// The page shows "Sắp ra mắt" until its backend exists (pages.ts); these run again once it is released.
+test.skip(!isReleased("orders"), "not released yet");
 
 // SEC-62 › Orders (Figma AD-DH1 to AD-DH5). SEC-15 has not built the orders yet, so the pages show their empty
 // and not-found states; the screens with sample orders are checked by the unit tests in features/admin/orders.

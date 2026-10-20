@@ -1,12 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-import { adminSidebar, openAdminMenu, signInTo } from "./admin";
+import { adminSidebar, isReleased, openAdminMenu, signInTo } from "./admin";
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
 // Each test signs in first, which takes a while when the projects run side by side.
 test.setTimeout(90_000);
+// The page shows "Sắp ra mắt" until its backend exists (pages.ts); these run again once it is released.
+test.skip(!isReleased("accounts"), "not released yet");
 
 // SEC-62 › Accounts (Figma AD-TK1 to AD-TK4). The identity module has no admin list of accounts yet, so the list
 // is empty and no account is found; the screens with sample accounts are checked in accounts-render.test.ts.

@@ -13,5 +13,5 @@ Design: [design.md](design.md). Tracked in Linear as SEC-62. Each step is one or
 | 7 | Orders, payments and refunds, empty until SEC-15 and SEC-18 | To do |
 | 8 | Problem reports, reviews, all posts, accounts, empty until their backend exists | To do |
 | 9 | Marketing: promotions, banners and content, notifications, sponsors, empty until their backend exists | To do |
-| 10 | Coming-soon flags: the shared coming-soon page; the pages without a backend are switched to it | To do |
+| 10 | Coming-soon flags: the shared coming-soon page; the pages without a backend are switched to it | Done, 21 October 2026: only the overview, the stores and the offer and email settings are released |
 | 11 | Verification: `pnpm check`, the backend gates, Playwright with axe on desktop and phone; `verification.md`; pull request | To do |

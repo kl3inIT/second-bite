@@ -1,12 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-import { adminSidebar, openAdminMenu, signInTo } from "./admin";
+import { adminSidebar, isReleased, openAdminMenu, signInTo } from "./admin";
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
 // Each test signs in first, which takes a while when the projects run side by side.
 test.setTimeout(90_000);
+// The page shows "Sắp ra mắt" until its backend exists (pages.ts); these run again once it is released.
+test.skip(!isReleased("offers"), "not released yet");
 
 // SEC-62 › Every post (Figma AD-BD1 to AD-BD4). The offer module has no admin list across stores yet, so the list
 // is empty and the cards have no figure; the list and the panel with sample posts are checked in

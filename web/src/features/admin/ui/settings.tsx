@@ -8,7 +8,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-import { adminHref, settingsPages } from "../pages";
+import { adminHref, isReleased, settingsPages } from "../pages";
 import { PageHeader } from "./page-header";
 
 /**
@@ -68,13 +68,19 @@ export function SettingsNav() {
                 href={href}
                 aria-current={open ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center rounded-xl px-3 text-body-sm transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+                  "flex min-h-11 items-center gap-2 rounded-xl px-3 text-body-sm transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
                   open
                     ? "bg-secondary text-body-sm-strong text-primary"
                     : "text-foreground hover:bg-muted",
                 )}
               >
-                {t(`pages.${key}.label`)}
+                <span className="min-w-0 flex-1 truncate">{t(`pages.${key}.label`)}</span>
+                {/* As in the sidebar. */}
+                {!isReleased(key) && (
+                  <span className="shrink-0 rounded-full bg-fresh px-2 py-0.5 text-label-strong text-fresh-foreground">
+                    {t("soon")}
+                  </span>
+                )}
               </Link>
             </li>
           );

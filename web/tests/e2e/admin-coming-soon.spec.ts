@@ -1,0 +1,92 @@
+import { expect, type Page, test } from "@playwright/test";
+
+import { adminSidebar, isReleased, openAdminMenu, signInTo } from "./admin";
+import { expectNoSeriousA11yViolations } from "./axe";
+
+test.use({ locale: "vi-VN" });
+// Each test signs in first, which takes a while when the projects run side by side.
+test.setTimeout(90_000);
+
+/** The coming-soon page (Figma AD-TT6): the page's name and "Sắp có" in one card, nothing to press. */
+async function expectComingSoon(page: Page, name: string) {
+  const heading = page.getByRole("heading", { level: 1, name });
+  await expect(heading).toBeVisible();
+  const card = page.getByRole("main").locator("section", { has: heading });
+  await expect(card.getByText("Sắp có", { exact: true })).toBeVisible();
+  await expect(card.getByRole("button")).toHaveCount(0);
+  await expect(card.getByRole("link")).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+}
+
+// SEC-62 › Menu đầy đủ và trang Sắp ra mắt (docs: admin-web-flow): a page whose backend does not exist yet keeps
+// its place in the menu with "Sắp có" and shows the coming-soon page, its code kept behind its flag (pages.ts).
+test.describe("the pages that are not released yet", () => {
+  test.skip(isReleased("orders") && isReleased("reports"), "Every page here is released.");
+
+  test("the sidebar marks them and a page shows its name and Sắp có", async ({
+    page,
+    isMobile,
+  }, testInfo) => {
+    await signInTo(page, "/admin/orders", testInfo, { who: "sapco" });
+
+    await expectComingSoon(page, "Đơn hàng");
+    const crumbs = page.getByRole("navigation", { name: "Đường dẫn" });
+    await expect(crumbs).toContainText("Vận hành");
+    await expect(crumbs).toContainText("Đơn hàng");
+
+    if (isMobile) await openAdminMenu(page);
+    await expect(
+      adminSidebar(page).getByRole("link", { name: /^Đơn hàng\s*Sắp có$/ }),
+    ).toBeVisible();
+    await expect(
+      adminSidebar(page).getByRole("link", { name: /^Báo cáo\s*Sắp có$/ }),
+    ).toBeVisible();
+    // A released page carries no mark.
+    await expect(
+      adminSidebar(page).getByRole("link", { name: "Cửa hàng", exact: true }),
+    ).toBeVisible();
+    await expect(
+      adminSidebar(page).getByRole("link", { name: "Tổng quan", exact: true }),
+    ).toBeVisible();
+    await expect(adminSidebar(page).getByText("Sắp có")).toHaveCount(11);
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  test("a detail page shows the coming-soon page of its list", async ({ page }, testInfo) => {
+    await signInTo(page, "/admin/orders/SB-24817", testInfo, { who: "sapco-don" });
+    await expectComingSoon(page, "Đơn hàng");
+  });
+
+  test("the reports read Quản trị / Báo cáo", async ({ page }, testInfo) => {
+    await signInTo(page, "/admin/reports", testInfo, { who: "sapco-baocao" });
+    await expectComingSoon(page, "Báo cáo");
+    await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toHaveText(
+      /^Quản trị\s*\/\s*Báo cáo$/,
+    );
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  test("a marketing page and a settings page show it too", async ({ page }, testInfo) => {
+    await signInTo(page, "/admin/promotions", testInfo, { who: "sapco-mk" });
+    await expectComingSoon(page, "Mã giảm giá");
+    await expectNoSeriousA11yViolations(page);
+
+    await page.goto("/vi/admin/settings/categories");
+    await expectComingSoon(page, "Danh mục");
+    await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText("Cài đặt");
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  test("the settings menu marks the settings pages that are not released", async ({
+    page,
+  }, testInfo) => {
+    await signInTo(page, "/admin/settings/offers", testInfo, { who: "sapco-cd" });
+    const menu = page.getByRole("navigation", { name: "Mục cài đặt" });
+    await expect(menu.getByRole("link")).toHaveCount(8);
+    await expect(menu.getByRole("link", { name: /^Danh mục\s*Sắp có$/ })).toBeVisible();
+    await expect(menu.getByRole("link", { name: /^Tích hợp\s*Sắp có$/ })).toBeVisible();
+    await expect(menu.getByRole("link", { name: "Email", exact: true })).toBeVisible();
+    await expect(menu.getByText("Sắp có")).toHaveCount(6);
+    await expectNoSeriousA11yViolations(page);
+  });
+});

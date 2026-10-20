@@ -1,12 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-import { signInTo } from "./admin";
+import { isReleased, signInTo } from "./admin";
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
 // Each test signs in first, which takes a while when the projects run side by side.
 test.setTimeout(90_000);
+// The page shows "Sắp ra mắt" until its backend exists (pages.ts); these run again once it is released.
+test.skip(!isReleased("notifications"), "not released yet");
 
 // SEC-62 › Marketing › Thông báo (Figma AD-MK5, AD-MK6). Nothing sends to groups yet: the history is empty and
 // the composer cannot send. Campaigns with data are checked with sample rows in notifications-view.test.ts.

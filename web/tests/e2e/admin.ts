@@ -3,6 +3,12 @@ import { expect, type Page, type TestInfo } from "@playwright/test";
 import { hydrated } from "./hydration";
 
 /**
+ * Whether an admin page is released (src/features/admin/pages.ts). A page that is not shows "Sắp ra mắt", so its
+ * own tests skip themselves with `test.skip(!isReleased("orders"), …)` and run again once its flag is on.
+ */
+export { isReleased } from "../../src/features/admin/pages";
+
+/**
  * Signs in with the stub's right code as `who`, then lands on `path` (an admin address without the language,
  * "/admin/sellers"). An address starting with "admin." is an admin in the stub (stub-backend.mjs); pass
  * `admin: false` for a customer. Each test gets its own address, so tests running side by side keep their own
