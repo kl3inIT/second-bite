@@ -68,7 +68,7 @@ test.describe("the admin's orders", () => {
       page.getByRole("heading", { level: 1, name: "Không tìm thấy trang này" }),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Về Tổng quan", exact: true })).toBeVisible();
-    // The not-found page carries the layout's robots line and its own; both say noindex.
+    // The page's robots line and the ones Next.js adds for notFound() all say noindex.
     await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
     await expectNoSeriousA11yViolations(page);
   });

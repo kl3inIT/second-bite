@@ -13,7 +13,9 @@ test.describe("who may open the admin", () => {
   test("someone not signed in signs in and comes back to the admin page", async ({
     page,
   }, testInfo) => {
-    await page.goto("/vi/admin/khong-co?tab=1");
+    const response = await page.goto("/vi/admin/khong-co?tab=1");
+    // The blank page on the way to sign in is not indexed either.
+    expect(response?.headers()["x-robots-tag"]).toBe("noindex, nofollow");
     await expect(page).toHaveURL(/\/vi\/sign-in\?returnTo=%2Fadmin%2Fkhong-co%3Ftab%3D1$/);
 
     await (
@@ -61,6 +63,8 @@ test.describe("the admin shell", () => {
     isMobile,
   }, testInfo) => {
     await signInTo(page, "/admin/khong-co", testInfo, { who: "lac" });
+    const response = await page.reload();
+    expect(response?.headers()["x-robots-tag"]).toBe("noindex, nofollow");
 
     const crumbs = page.getByRole("navigation", { name: "Đường dẫn" });
     await expect(crumbs).toContainText("Quản trị");
@@ -75,7 +79,9 @@ test.describe("the admin shell", () => {
       "href",
       "/vi/admin/overview",
     );
-    await expect(page.locator('meta[name="robots"][content*="noindex"]').first()).toBeAttached();
+    // One robots tag: the page's own, none added by the layout or by Next.js.
+    await expect(page.locator('meta[name="robots"]')).toHaveCount(1);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     // The customer site's footer and bottom bar stay out of the admin.
     await expect(page.getByRole("contentinfo")).toBeHidden();
     await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toHaveCount(0);

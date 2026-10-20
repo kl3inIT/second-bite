@@ -26,6 +26,13 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
         ],
       },
+      {
+        // The admin pages are never indexed, whoever asks and whatever the page renders (SEC-62). A header
+        // rather than the layout's metadata, which would add a second robots tag beside the one Next.js writes
+        // on a not-found page.
+        source: "/:locale(vi|en)/admin/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
     ];
   },
   async rewrites() {
