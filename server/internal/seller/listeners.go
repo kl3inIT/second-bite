@@ -6,16 +6,22 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/kl3inIT/second-bite/server/internal/identity"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
+	"github.com/kl3inIT/second-bite/server/internal/seller/internal/db"
 )
 
 // RegisterListeners makes the module follow the events of the modules it
 // depends on.
 func RegisterListeners(events *platform.Events, s *Service) {
 	platform.Listen(events, "seller.forget_account", s.forgetAccount)
+	platform.Listen(events, "seller.tell_owner", s.tellOwner)
 }
+
+// ownerlessReason is what a seller blocked for want of an owner says to admins.
+const ownerlessReason = "Chủ cửa hàng đã xoá tài khoản"
 
 // forgetAccount removes a deleted account's memberships. A seller it owned
 // would be left without an owner, so it is blocked: it stops showing and
@@ -37,7 +43,9 @@ func (s *Service) forgetAccount(ctx context.Context, e identity.AccountDeletedEv
 		}
 
 		if len(owned) > 0 {
-			if blocked, err = q.BlockOwnerless(ctx, owned); err != nil {
+			if blocked, err = q.BlockOwnerless(ctx, db.BlockOwnerlessParams{
+				Ids: owned, Reason: pgtype.Text{String: ownerlessReason, Valid: true},
+			}); err != nil {
 				return fmt.Errorf("blocking the sellers left without an owner: %w", err)
 			}
 		}

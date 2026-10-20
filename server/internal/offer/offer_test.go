@@ -80,11 +80,18 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 		t.Fatal(err)
 	}
 
-	sellers := seller.NewService(pool, accounts, files, platformtest.Logger())
+	trail := audit.NewService(pool, platformtest.Logger())
+
+	events, err := platform.NewEvents(pool, platformtest.Logger())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sellers := seller.NewService(pool, accounts, files, nil, events, trail, platformtest.Logger()) // its listeners do not run here
 
 	return fixture{
 		pool: pool, accounts: accounts, files: files, sellers: sellers,
-		offers: offer.NewService(pool, sellers, files, audit.NewService(pool, platformtest.Logger()), platformtest.Logger()),
+		offers: offer.NewService(pool, sellers, files, trail, platformtest.Logger()),
 		prefix: "offer." + strings.ReplaceAll(uuid.NewString(), "-", ""),
 	}
 }
@@ -128,10 +135,6 @@ func (f fixture) sellerAt(owner context.Context, t *testing.T, name string, at o
 		if _, err := f.sellers.AddStaff(owner, s.ID, f.prefix+"."+name+"@example.com"); err != nil {
 			t.Fatal(err)
 		}
-	}
-
-	if _, err := f.sellers.Activate(f.as(t, "admin", platform.RoleAdmin), s.ID); err != nil {
-		t.Fatal(err)
 	}
 
 	return s.ID
@@ -246,7 +249,7 @@ func testOnlyActiveSellersPeoplePost(t *testing.T, f fixture) {
 	_, err = f.offers.Post(t.Context(), sellerID, bread(uuid.New()))
 	mustFail(t, "nobody signed in", err, platform.ErrAuthenticationRequired)
 
-	if _, err := f.sellers.Block(admin, sellerID); err != nil {
+	if _, err := f.sellers.Block(admin, sellerID, "Bán món đã quá hạn sử dụng"); err != nil {
 		t.Fatal(err)
 	}
 

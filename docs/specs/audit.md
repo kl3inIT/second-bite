@@ -24,6 +24,10 @@ Published to other modules: `Record(ctx, tx, resource, action)`, which writes on
 | --- | --- | --- | --- |
 | `offer_settings.change` | `offer_settings`, `current` | `fields`: the settings changed, as the API names them | `offer` |
 | `email_settings.change` | `email_settings`, `current` | `provider`; `fields`: the settings changed, a secret by name only | `notification` |
+| `seller.approve` | `seller`, its identifier, its name | none | `seller` |
+| `seller.reject` | `seller`, its identifier, its name | `reason` | `seller` |
+| `seller.block` | `seller`, its identifier, its name | `reason` | `seller` |
+| `seller.unblock` | `seller`, its identifier, its name | none | `seller` |
 | `admin.grant` | `account`, its identifier, its address | `source`: `admin` or `command_line` | `identity` |
 | `admin.revoke` | `account`, its identifier, its address | `source`: `admin` or `command_line` | `identity` |
 

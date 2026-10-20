@@ -6,13 +6,15 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/account_body.dart';
+import '../models/admin_sellers_output_body.dart';
 import '../models/admins_output_body.dart';
+import '../models/block_seller_request.dart';
 import '../models/email_settings_body.dart';
 import '../models/grant_admin_request.dart';
 import '../models/offer_settings_body.dart';
+import '../models/reject_seller_request.dart';
 import '../models/save_email_settings_input_body.dart';
 import '../models/seller_body.dart';
-import '../models/sellers_output_body.dart';
 import '../models/status.dart';
 
 part 'admin_client.g.dart';
@@ -69,21 +71,38 @@ abstract class AdminClient {
     @Body() required OfferSettingsBody body,
   });
 
-  /// Sellers in a status, oldest first
+  /// Sellers by status and words, pending ones first.
+  ///
+  /// Pending sellers come first, the oldest first; then the latest change first. q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.
+  ///
+  /// [status] - Keep these statuses; every status when absent.
+  ///
+  /// [q] - Words of the name, address or phone.
   @GET('/admin/sellers')
-  Future<SellersOutputBody> listSellersForAdmins({
-    @Query('status') Status? status = Status.pending,
-    @Query('limit') int? limit = 50,
-    @Query('offset') int? offset = 0,
+  Future<AdminSellersOutputBody> listSellersForAdmins({
+    @Query('page') int? page = 1,
+    @Query('size') int? size = 25,
+    @Query('status') List<Status>? status,
+    @Query('q') String? q,
   });
 
-  /// Let a seller publish; also lifts a block
-  @POST('/admin/sellers/{sellerId}/activate')
-  Future<SellerBody> activateSeller({
+  /// Let a pending, rejected or blocked seller publish; its owner is emailed
+  @POST('/admin/sellers/{sellerId}/approve')
+  Future<SellerBody> approveSeller({
     @Path('sellerId') required String sellerId,
   });
 
-  /// Stop a seller from publishing
+  /// Stop an active seller; its owner is emailed the reason
   @POST('/admin/sellers/{sellerId}/block')
-  Future<SellerBody> blockSeller({@Path('sellerId') required String sellerId});
+  Future<SellerBody> blockSeller({
+    @Path('sellerId') required String sellerId,
+    @Body() required BlockSellerRequest body,
+  });
+
+  /// Refuse a pending seller; its owner is emailed the reason
+  @POST('/admin/sellers/{sellerId}/reject')
+  Future<SellerBody> rejectSeller({
+    @Path('sellerId') required String sellerId,
+    @Body() required RejectSellerRequest body,
+  });
 }

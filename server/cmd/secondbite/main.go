@@ -170,7 +170,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 			return nil, fmt.Errorf("configuration: file store: %w", err)
 		}
 
-		sellers := seller.NewService(pool, identities, files, logger)
+		sellers := seller.NewService(pool, identities, files, notifications, events, trail, logger)
 		offers := offer.NewService(pool, sellers, files, trail, logger)
 
 		// The listeners are known before anything publishes; they run only in

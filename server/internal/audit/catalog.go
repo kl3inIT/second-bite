@@ -47,3 +47,27 @@ type AdminRevoked struct {
 }
 
 func (AdminRevoked) action() string { return "admin.revoke" }
+
+// SellerApproved is a pending or rejected seller let publish.
+type SellerApproved struct{}
+
+func (SellerApproved) action() string { return "seller.approve" }
+
+// SellerRejected is a pending seller refused, with what the owner is told.
+type SellerRejected struct {
+	Reason string `json:"reason"`
+}
+
+func (SellerRejected) action() string { return "seller.reject" }
+
+// SellerBlocked is an active seller stopped, with what the owner is told.
+type SellerBlocked struct {
+	Reason string `json:"reason"`
+}
+
+func (SellerBlocked) action() string { return "seller.block" }
+
+// SellerUnblocked is a blocked seller let publish again.
+type SellerUnblocked struct{}
+
+func (SellerUnblocked) action() string { return "seller.unblock" }

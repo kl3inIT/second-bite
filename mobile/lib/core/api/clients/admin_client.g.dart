@@ -213,21 +213,23 @@ class _AdminClient implements AdminClient {
   }
 
   @override
-  Future<SellersOutputBody> listSellersForAdmins({
-    Status? status = Status.pending,
-    int? limit = 50,
-    int? offset = 0,
+  Future<AdminSellersOutputBody> listSellersForAdmins({
+    int? page = 1,
+    int? size = 25,
+    List<Status>? status,
+    String? q,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
+      r'page': page,
+      r'size': size,
       r'status': status,
-      r'limit': limit,
-      r'offset': offset,
+      r'q': q,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<SellersOutputBody>(
+    final _options = _setStreamType<AdminSellersOutputBody>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -238,9 +240,9 @@ class _AdminClient implements AdminClient {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, Object?>>(_options);
-    late SellersOutputBody _value;
+    late AdminSellersOutputBody _value;
     try {
-      _value = SellersOutputBody.fromJson(_result.data!);
+      _value = AdminSellersOutputBody.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
@@ -249,7 +251,7 @@ class _AdminClient implements AdminClient {
   }
 
   @override
-  Future<SellerBody> activateSeller({required String sellerId}) async {
+  Future<SellerBody> approveSeller({required String sellerId}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -258,7 +260,7 @@ class _AdminClient implements AdminClient {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/admin/sellers/${sellerId}/activate',
+            '/admin/sellers/${sellerId}/approve',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -276,16 +278,51 @@ class _AdminClient implements AdminClient {
   }
 
   @override
-  Future<SellerBody> blockSeller({required String sellerId}) async {
+  Future<SellerBody> blockSeller({
+    required String sellerId,
+    required BlockSellerRequest body,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
+    final _data = <String, dynamic>{};
+    _data.addAll(body.toJson());
     final _options = _setStreamType<SellerBody>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
             '/admin/sellers/${sellerId}/block',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late SellerBody _value;
+    try {
+      _value = SellerBody.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<SellerBody> rejectSeller({
+    required String sellerId,
+    required RejectSellerRequest body,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body.toJson());
+    final _options = _setStreamType<SellerBody>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/admin/sellers/${sellerId}/reject',
             queryParameters: queryParameters,
             data: _data,
           )

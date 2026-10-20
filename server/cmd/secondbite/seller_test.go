@@ -2,7 +2,9 @@ package main
 
 import (
 	"net/http"
+	"strings"
 	"testing"
+	"time"
 )
 
 // sellerAdminEmail is a second admin, so this check signs in apart from the
@@ -10,9 +12,10 @@ import (
 const sellerAdminEmail = "seller.admin@example.com"
 
 type sellerResponse struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
-	MyRole string `json:"myRole"`
+	ID           string `json:"id"`
+	Status       string `json:"status"`
+	StatusReason string `json:"statusReason"`
+	MyRole       string `json:"myRole"`
 }
 
 // newSeller is the body that opens a seller at Tasco Mall.
@@ -80,7 +83,7 @@ func checkSellerFlow(t *testing.T, svc service) {
 		t.Errorf("a stranger reading the seller: %q", p.Code)
 	}
 
-	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/block", owner, nil).problem(t, http.StatusForbidden); p.Code != codeAdminRequired {
+	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/block", owner, reasonBody(testReason)).problem(t, http.StatusForbidden); p.Code != codeAdminRequired {
 		t.Errorf("the owner blocking: %q", p.Code)
 	}
 
@@ -88,38 +91,92 @@ func checkSellerFlow(t *testing.T, svc service) {
 	checkAdminBlocksAndLifts(t, svc, admin, opened.ID)
 }
 
-// checkAdminBlocksAndLifts has an admin block the seller, find it in the blocked list, and lift the block.
+// checkAdminBlocksAndLifts has an admin block the seller with a reason, find
+// it among the blocked sellers by words without marks, see its owner emailed
+// the reason, and approve it again (SEC-75).
 func checkAdminBlocksAndLifts(t *testing.T, svc service, admin http.Header, sellerID string) {
 	t.Helper()
 
 	var blocked sellerResponse
 
-	send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/block", admin, nil).decode(t, http.StatusOK, &blocked)
+	send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/block", admin, reasonBody(testReason)).
+		decode(t, http.StatusOK, &blocked)
 
-	if blocked.Status != "blocked" {
+	if blocked.Status != "blocked" || blocked.StatusReason != testReason {
 		t.Errorf("blocked %+v", blocked)
 	}
 
 	var listed struct {
-		Sellers []sellerResponse `json:"sellers"`
+		Items []struct {
+			sellerResponse
+
+			OwnerEmail string `json:"ownerEmail"`
+		} `json:"items"`
+		Total int `json:"total"`
 	}
 
-	send(t, http.MethodGet, svc.base+"/admin/sellers?status=blocked", admin, nil).decode(t, http.StatusOK, &listed)
+	send(t, http.MethodGet, svc.base+"/admin/sellers?status=blocked&q=banh+mi+tasco", admin, nil).decode(t, http.StatusOK, &listed)
 
-	found := false
-	for _, s := range listed.Sellers {
-		found = found || s.ID == sellerID
+	if listed.Total != 1 || len(listed.Items) != 1 || listed.Items[0].ID != sellerID || listed.Items[0].OwnerEmail != "seller.owner@example.com" {
+		t.Fatalf("the blocked sellers named Bánh mì Tasco: %+v", listed)
 	}
 
-	if !found {
-		t.Fatalf("the blocked list lacks the seller: %+v", listed)
+	email := waitEmail(t, svc, "seller.owner@example.com", "đã bị tạm khoá")
+	if !strings.Contains(email, testReason) {
+		t.Errorf("the owner's email lacks the reason: %q", email)
 	}
 
-	var activated sellerResponse
-
-	send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/activate", admin, nil).decode(t, http.StatusOK, &activated)
-
-	if activated.Status != "active" {
-		t.Errorf("activated %+v", activated)
+	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/block", admin, reasonBody(testReason)).
+		problem(t, http.StatusConflict); p.Code != "SELLER_STATUS_CHANGE_NOT_ALLOWED" {
+		t.Errorf("blocking a blocked seller: %q", p.Code)
 	}
+
+	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/block", admin, reasonBody("ngắn")).
+		problem(t, http.StatusBadRequest); p.Code != "PLATFORM_REQUEST_INVALID" {
+		t.Errorf("a reason too short: %q", p.Code)
+	}
+
+	var approved sellerResponse
+
+	send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/approve", admin, nil).decode(t, http.StatusOK, &approved)
+
+	if approved.Status != "active" || approved.StatusReason != "" {
+		t.Errorf("approved %+v", approved)
+	}
+}
+
+// testReason is what an admin tells an owner in these checks.
+const testReason = "Bán món đã quá hạn sử dụng"
+
+func reasonBody(reason string) map[string]string {
+	return map[string]string{"reason": reason}
+}
+
+// waitEmail waits for an email to address whose subject holds subject, and
+// answers its text.
+func waitEmail(t *testing.T, svc service, address, subject string) string {
+	t.Helper()
+
+	deadline := time.Now().Add(15 * time.Second)
+
+	for time.Now().Before(deadline) {
+		if id, ok := newestEmailTo(t, svc, address); ok {
+			var msg struct {
+				Subject string `json:"Subject"`
+				Text    string `json:"Text"`
+			}
+
+			send(t, http.MethodGet, svc.mailpit+"/api/v1/message/"+id, nil, nil).decode(t, http.StatusOK, &msg)
+
+			if strings.Contains(msg.Subject, subject) {
+				return msg.Text
+			}
+		}
+
+		time.Sleep(200 * time.Millisecond)
+	}
+
+	t.Fatalf("no email to %s about %q", address, subject)
+
+	return ""
 }

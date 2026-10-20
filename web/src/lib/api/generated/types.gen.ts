@@ -18,11 +18,32 @@ export type AddSellerStaffRequest = {
     email: string;
 };
 
+export type AdminSellerBody = {
+    /**
+     * Absent when the owner deleted their account
+     */
+    ownerEmail?: string;
+};
+
+export type AdminSellersOutputBody = {
+    items: Array<AdminSellerBody> | null;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
 export type AdminsOutputBody = {
     /**
      * Every admin, by address
      */
     admins: Array<AccountBody> | null;
+};
+
+export type BlockSellerRequest = {
+    /**
+     * What the owner is told, 10 to 500 characters
+     */
+    reason: string;
 };
 
 export type CollectionPointBody = {
@@ -379,6 +400,13 @@ export type Problem = {
     type: string;
 };
 
+export type RejectSellerRequest = {
+    /**
+     * What the owner is told, 10 to 500 characters
+     */
+    reason: string;
+};
+
 export type RequestCodeInputBody = {
     /**
      * The address to send the code to
@@ -428,8 +456,12 @@ export type SellerBody = {
      * Served at /photos/{photoId}/1600.jpg and /400.jpg
      */
     photoId?: string;
-    status: 'pending' | 'active' | 'blocked';
+    status: 'pending' | 'active' | 'rejected' | 'blocked';
     statusChangedAt?: string;
+    /**
+     * Why an admin rejected or blocked the seller, as the owner is told
+     */
+    statusReason?: string;
     updatedAt: string;
 };
 
@@ -820,9 +852,16 @@ export type ListSellersForAdminsData = {
     body?: never;
     path?: never;
     query?: {
-        status?: 'pending' | 'active' | 'blocked';
-        limit?: number;
-        offset?: number;
+        /**
+         * Keep these statuses; every status when absent
+         */
+        status?: Array<'pending' | 'active' | 'rejected' | 'blocked'> | null;
+        /**
+         * Words of the name, address or phone
+         */
+        q?: string;
+        page?: number;
+        size?: number;
     };
     url: '/admin/sellers';
 };
@@ -840,40 +879,40 @@ export type ListSellersForAdminsResponses = {
     /**
      * OK
      */
-    200: SellersOutputBody;
+    200: AdminSellersOutputBody;
 };
 
 export type ListSellersForAdminsResponse = ListSellersForAdminsResponses[keyof ListSellersForAdminsResponses];
 
-export type ActivateSellerData = {
+export type ApproveSellerData = {
     body?: never;
     path: {
         sellerId: string;
     };
     query?: never;
-    url: '/admin/sellers/{sellerId}/activate';
+    url: '/admin/sellers/{sellerId}/approve';
 };
 
-export type ActivateSellerErrors = {
+export type ApproveSellerErrors = {
     /**
      * Error
      */
     default: Problem;
 };
 
-export type ActivateSellerError = ActivateSellerErrors[keyof ActivateSellerErrors];
+export type ApproveSellerError = ApproveSellerErrors[keyof ApproveSellerErrors];
 
-export type ActivateSellerResponses = {
+export type ApproveSellerResponses = {
     /**
      * OK
      */
     200: SellerBody;
 };
 
-export type ActivateSellerResponse = ActivateSellerResponses[keyof ActivateSellerResponses];
+export type ApproveSellerResponse = ApproveSellerResponses[keyof ApproveSellerResponses];
 
 export type BlockSellerData = {
-    body?: never;
+    body: BlockSellerRequest;
     path: {
         sellerId: string;
     };
@@ -898,6 +937,33 @@ export type BlockSellerResponses = {
 };
 
 export type BlockSellerResponse = BlockSellerResponses[keyof BlockSellerResponses];
+
+export type RejectSellerData = {
+    body: RejectSellerRequest;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/admin/sellers/{sellerId}/reject';
+};
+
+export type RejectSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RejectSellerError = RejectSellerErrors[keyof RejectSellerErrors];
+
+export type RejectSellerResponses = {
+    /**
+     * OK
+     */
+    200: SellerBody;
+};
+
+export type RejectSellerResponse = RejectSellerResponses[keyof RejectSellerResponses];
 
 export type SignInWithGoogleData = {
     body: GoogleSignInInputBody;

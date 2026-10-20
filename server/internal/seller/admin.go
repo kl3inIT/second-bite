@@ -2,71 +2,297 @@ package seller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
+	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller/internal/db"
 )
 
-// maxListed bounds one page of the admins' list.
-const maxListed = 100
+const (
+	// maxPageSize bounds one page of the admins' list.
+	maxPageSize = 100
+	// maxQueryRunes bounds what an admin searches for.
+	maxQueryRunes = 100
+	// The bounds of a reason, as the table checks the upper one.
+	minReasonRunes = 10
+	maxReasonRunes = 500
+)
 
-// ByStatus lists sellers in a status, oldest first, for admins.
-func (s *Service) ByStatus(ctx context.Context, status Status, limit, offset int) ([]Seller, error) {
+// The statuses an admin may list.
+var statuses = []Status{StatusPending, StatusActive, StatusRejected, StatusBlocked}
+
+// Filter is what an admin lists sellers by.
+type Filter struct {
+	// Statuses keeps the sellers in these; all when empty.
+	Statuses []Status
+	// Query keeps the sellers whose name, address or phone holds it, marks
+	// ignored.
+	Query string
+	// Page counts from 1; Size runs from 1 to 100.
+	Page, Size int
+}
+
+// Listed is a seller as admins list it, with its owner's address.
+type Listed struct {
+	Seller
+	// OwnerEmail is empty when the owner deleted their account.
+	OwnerEmail string
+}
+
+// Page is one page of the admins' list and how many sellers match in all.
+type Page struct {
+	Sellers []Listed
+	Total   int
+}
+
+// List answers one page of the sellers matching f, to an admin: pending
+// ones first, the oldest first, then the latest change first.
+func (s *Service) List(ctx context.Context, f Filter) (Page, error) {
 	if _, err := platform.RequireAdmin(ctx); err != nil {
+		return Page{}, err
+	}
+
+	params, err := f.params()
+	if err != nil {
+		return Page{}, err
+	}
+
+	rows, err := s.queries.SellersForAdmins(ctx, params)
+	if err != nil {
+		return Page{}, fmt.Errorf("listing the sellers: %w", err)
+	}
+
+	page := Page{Sellers: make([]Listed, 0, len(rows))}
+
+	if len(rows) > 0 {
+		page.Total = int(rows[0].Total)
+	} else if params.SkipRows > 0 {
+		// Past the end the window counts nothing; the total is still asked.
+		total, err := s.queries.CountSellersForAdmins(ctx, db.CountSellersForAdminsParams{
+			Statuses: params.Statuses, Query: params.Query,
+		})
+		if err != nil {
+			return Page{}, fmt.Errorf("counting the sellers: %w", err)
+		}
+
+		page.Total = int(total)
+	}
+
+	owners, err := s.ownerEmails(ctx, rows)
+	if err != nil {
+		return Page{}, err
+	}
+
+	for _, r := range rows {
+		page.Sellers = append(page.Sellers, Listed{
+			Seller: fromRow(db.GetSellerRow{
+				ID: r.ID, Name: r.Name, Address: r.Address, Latitude: r.Latitude, Longitude: r.Longitude, Phone: r.Phone,
+				Status: r.Status, StatusReason: r.StatusReason, StatusChangedAt: r.StatusChangedAt,
+				StatusChangedBy: r.StatusChangedBy, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt, PhotoID: r.PhotoID,
+			}, ""),
+			OwnerEmail: owners[r.ID],
+		})
+	}
+
+	return page, nil
+}
+
+func (f Filter) params() (db.SellersForAdminsParams, error) {
+	if f.Page < 1 || f.Size < 1 || f.Size > maxPageSize {
+		return db.SellersForAdminsParams{}, ErrListInvalid
+	}
+
+	query := strings.TrimSpace(f.Query)
+	if utf8.RuneCountInString(query) > maxQueryRunes {
+		return db.SellersForAdminsParams{}, ErrListInvalid
+	}
+
+	wanted := make([]string, 0, len(f.Statuses))
+
+	for _, st := range f.Statuses {
+		if !slices.Contains(statuses, st) {
+			return db.SellersForAdminsParams{}, ErrListInvalid
+		}
+
+		wanted = append(wanted, string(st))
+	}
+
+	return db.SellersForAdminsParams{
+		Statuses: wanted,
+		Query:    escapeLike(query),
+		MaxRows:  int32(f.Size),
+		SkipRows: int32((f.Page - 1) * f.Size), //nolint:gosec // a page past int32 finds nothing anyway
+	}, nil
+}
+
+// escapeLike makes the characters LIKE reads as patterns plain.
+func escapeLike(s string) string {
+	return strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(s)
+}
+
+// ownerEmails answers the address of each listed seller's owner.
+func (s *Service) ownerEmails(ctx context.Context, rows []db.SellersForAdminsRow) (map[uuid.UUID]string, error) {
+	sellerIDs := make([]uuid.UUID, 0, len(rows))
+	for _, r := range rows {
+		sellerIDs = append(sellerIDs, r.ID)
+	}
+
+	owners, err := s.queries.OwnersOf(ctx, sellerIDs)
+	if err != nil {
+		return nil, fmt.Errorf("reading the owners: %w", err)
+	}
+
+	accountIDs := make([]uuid.UUID, 0, len(owners))
+	for _, o := range owners {
+		accountIDs = append(accountIDs, o.AccountID)
+	}
+
+	accounts, err := s.accounts.Accounts(ctx, accountIDs)
+	if err != nil {
 		return nil, err
 	}
 
-	rows, err := s.queries.SellersByStatus(ctx, db.SellersByStatusParams{
-		Status: string(status), MaxRows: int32(min(max(limit, 1), maxListed)), SkipRows: int32(max(offset, 0)), //nolint:gosec // bounded above
-	})
+	emails := make(map[uuid.UUID]string, len(owners))
+	for _, o := range owners {
+		emails[o.SellerID] = accounts[o.AccountID].Email
+	}
+
+	return emails, nil
+}
+
+// Approve lets a pending, rejected or blocked seller publish, for an admin,
+// and tells its owner.
+func (s *Service) Approve(ctx context.Context, id uuid.UUID) (Seller, error) {
+	return s.changeStatus(ctx, id, StatusActive, []Status{StatusPending, StatusRejected, StatusBlocked}, "",
+		func(was Status) audit.Action {
+			if was == StatusBlocked {
+				return audit.SellerUnblocked{}
+			}
+
+			return audit.SellerApproved{}
+		})
+}
+
+// Reject refuses a pending seller, for an admin, telling its owner why.
+func (s *Service) Reject(ctx context.Context, id uuid.UUID, reason string) (Seller, error) {
+	reason, err := normalizedReason(reason)
 	if err != nil {
-		return nil, fmt.Errorf("listing the sellers: %w", err)
+		return Seller{}, err
 	}
 
-	sellers := make([]Seller, 0, len(rows))
-	for _, r := range rows {
-		sellers = append(sellers, fromRow(db.GetSellerRow(r), ""))
+	return s.changeStatus(ctx, id, StatusRejected, []Status{StatusPending}, reason,
+		func(Status) audit.Action { return audit.SellerRejected{Reason: reason} })
+}
+
+// Block stops an active seller from publishing and showing, for an admin,
+// telling its owner why.
+func (s *Service) Block(ctx context.Context, id uuid.UUID, reason string) (Seller, error) {
+	reason, err := normalizedReason(reason)
+	if err != nil {
+		return Seller{}, err
 	}
 
-	return sellers, nil
+	return s.changeStatus(ctx, id, StatusBlocked, []Status{StatusActive}, reason,
+		func(Status) audit.Action { return audit.SellerBlocked{Reason: reason} })
 }
 
-// Activate lets a seller publish; it also lifts a block.
-func (s *Service) Activate(ctx context.Context, id uuid.UUID) (Seller, error) {
-	return s.setStatus(ctx, id, StatusActive)
+// normalizedReason trims a reason and checks its length; line breaks are
+// kept, other control characters refused.
+func normalizedReason(reason string) (string, error) {
+	reason = strings.TrimSpace(strings.ReplaceAll(reason, "\r\n", "\n"))
+
+	n := utf8.RuneCountInString(reason)
+	if n < minReasonRunes || n > maxReasonRunes || !utf8.ValidString(reason) ||
+		strings.ContainsFunc(reason, func(r rune) bool { return unicode.IsControl(r) && r != '\n' }) {
+		return "", ErrReasonInvalid
+	}
+
+	return reason, nil
 }
 
-// Block stops a seller from publishing.
-func (s *Service) Block(ctx context.Context, id uuid.UUID) (Seller, error) {
-	return s.setStatus(ctx, id, StatusBlocked)
-}
-
-func (s *Service) setStatus(ctx context.Context, id uuid.UUID, status Status) (Seller, error) {
+// changeStatus moves the seller to status when it stands in one of from, in
+// one transaction with its audit event and the event that tells its owner.
+func (s *Service) changeStatus(
+	ctx context.Context, id uuid.UUID, status Status, from []Status, reason string, action func(was Status) audit.Action,
+) (Seller, error) {
 	caller, err := platform.RequireAdmin(ctx)
 	if err != nil {
 		return Seller{}, err
 	}
 
-	changed, err := s.queries.SetStatus(ctx, db.SetStatusParams{
-		ID: id, Status: string(status), ChangedBy: uuid.NullUUID{UUID: caller.AccountID, Valid: true},
+	fromStatuses := make([]string, 0, len(from))
+	for _, f := range from {
+		fromStatuses = append(fromStatuses, string(f))
+	}
+
+	var was Status
+
+	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.queries.WithTx(tx)
+
+		left, err := q.ChangeStatus(ctx, db.ChangeStatusParams{
+			ID: id, Status: string(status), FromStatuses: fromStatuses,
+			Reason:    pgtype.Text{String: reason, Valid: reason != ""},
+			ChangedBy: uuid.NullUUID{UUID: caller.AccountID, Valid: true},
+		})
+		if errors.Is(err, pgx.ErrNoRows) {
+			return s.refusedChange(ctx, q, id)
+		}
+
+		if err != nil {
+			return fmt.Errorf("changing the status: %w", err)
+		}
+
+		was = Status(left)
+
+		row, err := q.GetSeller(ctx, id)
+		if err != nil {
+			return fmt.Errorf("reading the seller: %w", err)
+		}
+
+		if err := s.trail.Record(ctx, tx,
+			audit.Resource{Type: audit.ResourceSeller, ID: id.String(), Label: row.Name}, action(was)); err != nil {
+			return err
+		}
+
+		return platform.Publish(ctx, tx, s.events, StatusChangedEvent{SellerID: id, Status: status})
 	})
 	if err != nil {
-		return Seller{}, fmt.Errorf("setting the status: %w", err)
+		return Seller{}, err
 	}
 
-	if changed == 0 {
-		return Seller{}, ErrNotFound
-	}
-
-	s.logger.InfoContext(ctx, "seller status set",
-		slog.String("event", "seller.status."+string(status)),
+	s.logger.InfoContext(ctx, "seller status changed",
+		slog.String("event", "seller.status.changed"),
 		slog.String("seller_id", id.String()),
+		slog.String("from", string(was)),
+		slog.String("to", string(status)),
 		slog.String("by_account_id", caller.AccountID.String()),
 	)
 
 	return s.Get(ctx, id)
+}
+
+// refusedChange tells a seller that does not exist from one in another state.
+func (s *Service) refusedChange(ctx context.Context, q *db.Queries, id uuid.UUID) error {
+	exists, err := q.SellerExists(ctx, id)
+	if err != nil {
+		return fmt.Errorf("reading the seller: %w", err)
+	}
+
+	if !exists {
+		return ErrNotFound
+	}
+
+	return ErrStatusChangeNotAllowed
 }

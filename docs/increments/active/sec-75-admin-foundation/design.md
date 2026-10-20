@@ -214,7 +214,7 @@ func (s *Service) ForgetAccount(ctx context.Context, tx pgx.Tx, accountID uuid.U
 - **Telling the owner:**
   - Each change publishes `seller.StatusChangedEvent{SellerID, Status}` in the transaction. Its listener `seller.tell_owner` reads the owner's address through `identity.Accounts` and sends the email through `notification.SendEmail`.
   - The new edge is `seller → notification`. `notification` cannot listen to `seller` itself, since notification → seller → identity → notification would be a cycle.
-  - When email is not configured the job ends (`river.JobCancel`) rather than retrying. Delivery is at least once, so an owner may rarely get the same email twice.
+  - When email is not configured the job ends, the listener returning without an error, rather than retrying. Delivery is at least once, so an owner may rarely get the same email twice.
   - The email's words: "Cửa hàng {name} đã được duyệt", "chưa được duyệt: {reason}", "đã bị tạm khoá: {reason}", in both languages.
 - **The blocked owner-less seller of SEC-37:** its block keeps the reason "Chủ cửa hàng đã xoá tài khoản" and no actor. SEC-65 then refuses to approve it while it has no owner.
 
@@ -225,11 +225,11 @@ func (s *Service) ForgetAccount(ctx context.Context, tx pgx.Tx, accountID uuid.U
   - `q` matches a store's name, address or phone.
   - `page` starts at 1; `size` runs from 1 to 100, 25 by default.
 - **Answer:** `{items, page, pageSize, total}`.
-- **Order:** fixed, pending first, then the newest change, then `id`. A page past the end is empty, not an error.
+- **Order:** fixed: pending first, the oldest first as a queue; then the newest change; then `id`. A page past the end is empty, not an error.
 - **In sqlc** (research › The admin API):
   - `status = ANY(sqlc.narg(statuses)::text[])` when the list is given, and `count(*) OVER () AS total`;
   - when a page past the first comes back empty, a separate count, so the total is never a wrong 0.
-- **Search** without accents works as offer search does: the store's name and address are folded by `offer/search_text.go`'s rule into a generated column. If sharing that rule would need a new edge, the rule moves to `platform`.
+- **Search** without accents: a SQL function, `seller_fold`, folds the store's name, address and phone into a generated column, and the query by the same function (changed while building: offer's Go rule indexes lexemes for ranking, which a list of stores does not need).
 - **Each item** carries the store's name, address, phone, location, status, reason, created and changed times, and its owner's email for admins.
 
 ## Settings

@@ -31,7 +31,8 @@ type sellerBody struct {
 	Latitude        float64    `json:"latitude"`
 	Longitude       float64    `json:"longitude"`
 	Phone           string     `json:"phone"`
-	Status          Status     `json:"status"                    enum:"pending,active,blocked"`
+	Status          Status     `json:"status"                    enum:"pending,active,rejected,blocked"`
+	StatusReason    string     `json:"statusReason,omitempty"    doc:"Why an admin rejected or blocked the seller, as the owner is told"`
 	StatusChangedAt *time.Time `json:"statusChangedAt,omitempty"`
 	CreatedAt       time.Time  `json:"createdAt"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
@@ -288,38 +289,81 @@ func registerMemberOperations(api huma.API, s *Service) {
 func RegisterAdminOperations(admin huma.API, s *Service) {
 	huma.Register(admin, huma.Operation{
 		OperationID: "listSellersForAdmins", Method: http.MethodGet, Path: "/sellers",
-		Summary: "Sellers in a status, oldest first",
+		Summary: "Sellers by status and words, pending ones first",
+		Description: "Pending sellers come first, the oldest first; then the latest change first. " +
+			"q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.",
 	}, func(ctx context.Context, in *struct {
-		Status Status `query:"status" default:"pending" enum:"pending,active,blocked"`
-		Limit  int    `query:"limit"  default:"50"      maximum:"100"                  minimum:"1"`
-		Offset int    `query:"offset" default:"0"       minimum:"0"`
+		Status []Status `query:"status" doc:"Keep these statuses; every status when absent" enum:"pending,active,rejected,blocked"`
+		Q      string   `query:"q"      doc:"Words of the name, address or phone"           maxLength:"100"`
+		Page   int      `query:"page"   default:"1"                                         minimum:"1"`
+		Size   int      `query:"size"   default:"25"                                        maximum:"100" minimum:"1"`
 	},
-	) (*sellersOutput, error) {
-		sellers, err := s.ByStatus(ctx, in.Status, in.Limit, in.Offset)
+	) (*adminSellersOutput, error) {
+		page, err := s.List(ctx, Filter{Statuses: in.Status, Query: in.Q, Page: in.Page, Size: in.Size})
 		if err != nil {
 			return nil, err
 		}
 
-		return toSellersOutput(sellers), nil
+		out := &adminSellersOutput{}
+		out.Body.Items = make([]adminSellerBody, 0, len(page.Sellers))
+		out.Body.Page, out.Body.PageSize, out.Body.Total = in.Page, in.Size, page.Total
+
+		for _, l := range page.Sellers {
+			out.Body.Items = append(out.Body.Items, adminSellerBody{sellerBody: toBody(l.Seller), OwnerEmail: l.OwnerEmail})
+		}
+
+		return out, nil
+	})
+
+	huma.Register(admin, huma.Operation{
+		OperationID: "approveSeller", Method: http.MethodPost, Path: "/sellers/{sellerId}/approve",
+		Summary: "Let a pending, rejected or blocked seller publish; its owner is emailed",
+	}, func(ctx context.Context, in *sellerPath) (*sellerOutput, error) {
+		seller, err := s.Approve(ctx, in.SellerID)
+		if err != nil {
+			return nil, err
+		}
+
+		return &sellerOutput{Body: toBody(seller)}, nil
 	})
 
 	for _, action := range []struct {
 		id, path, summary string
-		do                func(context.Context, uuid.UUID) (Seller, error)
+		do                func(context.Context, uuid.UUID, string) (Seller, error)
 	}{
-		{"activateSeller", "/sellers/{sellerId}/activate", "Let a seller publish; also lifts a block", s.Activate},
-		{"blockSeller", "/sellers/{sellerId}/block", "Stop a seller from publishing", s.Block},
+		{"rejectSeller", "/sellers/{sellerId}/reject", "Refuse a pending seller; its owner is emailed the reason", s.Reject},
+		{"blockSeller", "/sellers/{sellerId}/block", "Stop an active seller; its owner is emailed the reason", s.Block},
 	} {
 		huma.Register(admin, huma.Operation{
-			OperationID: action.id, Method: http.MethodPost, Path: action.path,
-			Summary: action.summary,
-		}, func(ctx context.Context, in *sellerPath) (*sellerOutput, error) {
-			seller, err := action.do(ctx, in.SellerID)
+			OperationID: action.id, Method: http.MethodPost, Path: action.path, Summary: action.summary,
+		}, func(ctx context.Context, in *struct {
+			SellerID uuid.UUID `path:"sellerId"`
+			Body     struct {
+				Reason string `json:"reason" doc:"What the owner is told, 10 to 500 characters" maxLength:"500" minLength:"10"`
+			}
+		},
+		) (*sellerOutput, error) {
+			seller, err := action.do(ctx, in.SellerID, in.Body.Reason)
 			if err != nil {
 				return nil, err
 			}
 
 			return &sellerOutput{Body: toBody(seller)}, nil
 		})
+	}
+}
+
+type adminSellerBody struct {
+	sellerBody
+
+	OwnerEmail string `json:"ownerEmail,omitempty" doc:"Absent when the owner deleted their account"`
+}
+
+type adminSellersOutput struct {
+	Body struct {
+		Items    []adminSellerBody `json:"items"`
+		Page     int               `json:"page"`
+		PageSize int               `json:"pageSize"`
+		Total    int               `json:"total"`
 	}
 }

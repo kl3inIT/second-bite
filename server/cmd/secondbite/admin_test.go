@@ -147,26 +147,27 @@ var adminChanges = map[string]adminChange{
 
 		return send(t, http.MethodPost, svc.base+"/admin/admins/"+id+"/revoke", admin, nil), func() {}
 	}},
-	"blockSeller": {
-		call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
-			t.Helper()
+	"approveSeller": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
 
-			id := openSeller(t, svc, "audit.block.owner@example.com")
+		id := sellerInStatus(t, svc, "audit.approve.owner@example.com", "pending")
 
-			return send(t, http.MethodPost, svc.base+"/admin/sellers/"+id+"/block", admin, nil), func() {}
-		},
-		notAudited: "a store's states are recorded once they take a reason (SEC-75 plan, step 6)",
-	},
-	"activateSeller": {
-		call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
-			t.Helper()
+		return send(t, http.MethodPost, svc.base+"/admin/sellers/"+id+"/approve", admin, nil), func() {}
+	}},
+	"rejectSeller": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
 
-			id := openSeller(t, svc, "audit.activate.owner@example.com")
+		id := sellerInStatus(t, svc, "audit.reject.owner@example.com", "pending")
 
-			return send(t, http.MethodPost, svc.base+"/admin/sellers/"+id+"/activate", admin, nil), func() {}
-		},
-		notAudited: "a store's states are recorded once they take a reason (SEC-75 plan, step 6)",
-	},
+		return send(t, http.MethodPost, svc.base+"/admin/sellers/"+id+"/reject", admin, reasonBody(testReason)), func() {}
+	}},
+	"blockSeller": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		id := sellerInStatus(t, svc, "audit.block.owner@example.com", "active")
+
+		return send(t, http.MethodPost, svc.base+"/admin/sellers/"+id+"/block", admin, reasonBody(testReason)), func() {}
+	}},
 }
 
 // checkAdminChangesAreAudited makes every admin change through the API and
@@ -255,6 +256,17 @@ func saveSettings(t *testing.T, svc service, admin http.Header, path, etag strin
 	header.Set("If-Match", etag)
 
 	return send(t, http.MethodPut, svc.base+path, header, settings)
+}
+
+// sellerInStatus opens a seller for a new owner and puts it in status, as an
+// earlier step would have, answering its identifier.
+func sellerInStatus(t *testing.T, svc service, owner, status string) string {
+	t.Helper()
+
+	id := openSeller(t, svc, owner)
+	execSQL(t, svc, "UPDATE seller_sellers SET status = $2 WHERE id = $1", id, status)
+
+	return id
 }
 
 // openSeller opens a seller for a new owner and answers its identifier.

@@ -11,6 +11,10 @@ var catalog = []Action{
 	EmailSettingsChanged{},
 	AdminGranted{},
 	AdminRevoked{},
+	SellerApproved{},
+	SellerRejected{},
+	SellerBlocked{},
+	SellerUnblocked{},
 }
 
 var actionName = regexp.MustCompile(`^[a-z_]+\.[a-z_]+$`)

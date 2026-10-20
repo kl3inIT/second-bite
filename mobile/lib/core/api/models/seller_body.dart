@@ -29,6 +29,9 @@ abstract class SellerBody with _$SellerBody {
     /// Served at /photos/{photoId}/1600.jpg and /400.jpg
     String? photoId,
     DateTime? statusChangedAt,
+
+    /// Why an admin rejected or blocked the seller, as the owner is told
+    String? statusReason,
   }) = _SellerBody;
 
   factory SellerBody.fromJson(Map<String, Object?> json) =>
