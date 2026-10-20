@@ -1,1 +1,54 @@
-{}
+{
+  "tabs": {
+    "label": "Đánh giá theo trạng thái",
+    "all": "Tất cả",
+    "reported": "Bị báo cáo",
+    "hidden": "Đã ẩn"
+  },
+  "status": {
+    "shown": "Hiển thị",
+    "reported": "Bị báo cáo",
+    "hidden": "Đã ẩn"
+  },
+  "filters": {
+    "search": "Tìm đánh giá",
+    "searchPlaceholder": "Tìm theo nội dung, tên khách hoặc mã đơn",
+    "stars": "Số sao",
+    "starsValue": "{stars} sao",
+    "seller": "Cửa hàng",
+    "size": "Số dòng",
+    "all": "Tất cả"
+  },
+  "columns": {
+    "stars": "Số sao",
+    "seller": "Cửa hàng",
+    "customer": "Khách",
+    "body": "Nội dung",
+    "status": "Trạng thái",
+    "createdAt": "Ngày",
+    "actions": "Thao tác"
+  },
+  "starsLabel": "{stars} trên 5 sao",
+  "quoted": "“{body}”",
+  "rowName": "đánh giá của {name}",
+  "hide": "Ẩn đánh giá…",
+  "show": "Hiện lại",
+  "summary": "Hiển thị {from}–{to} trên {total} đánh giá",
+  "empty": {
+    "all": "Chưa có đánh giá nào",
+    "reported": "Không có đánh giá bị báo cáo",
+    "hidden": "Chưa ẩn đánh giá nào"
+  },
+  "hideDialog": {
+    "title": "Ẩn đánh giá của {name}?",
+    "reason": "Lý do ẩn",
+    "reasons": {
+      "language": "Ngôn từ không phù hợp",
+      "off_topic": "Không liên quan đến món hoặc cửa hàng",
+      "spam": "Spam hoặc quảng cáo"
+    },
+    "note": "Ghi chú nội bộ (không bắt buộc)",
+    "confirm": "Ẩn đánh giá"
+  },
+  "soon": "Sắp có"
+}

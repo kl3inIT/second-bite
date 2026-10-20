@@ -1,1 +1,54 @@
-{}
+{
+  "tabs": {
+    "label": "Reviews by status",
+    "all": "All",
+    "reported": "Reported",
+    "hidden": "Hidden"
+  },
+  "status": {
+    "shown": "Shown",
+    "reported": "Reported",
+    "hidden": "Hidden"
+  },
+  "filters": {
+    "search": "Search reviews",
+    "searchPlaceholder": "Search by text, customer name or order number",
+    "stars": "Stars",
+    "starsValue": "{stars} stars",
+    "seller": "Store",
+    "size": "Rows",
+    "all": "All"
+  },
+  "columns": {
+    "stars": "Stars",
+    "seller": "Store",
+    "customer": "Customer",
+    "body": "Review",
+    "status": "Status",
+    "createdAt": "Date",
+    "actions": "Actions"
+  },
+  "starsLabel": "{stars} out of 5 stars",
+  "quoted": "“{body}”",
+  "rowName": "{name}'s review",
+  "hide": "Hide review…",
+  "show": "Show again",
+  "summary": "Showing {from}–{to} of {total} reviews",
+  "empty": {
+    "all": "No reviews yet",
+    "reported": "No reported reviews",
+    "hidden": "No hidden reviews yet"
+  },
+  "hideDialog": {
+    "title": "Hide {name}'s review?",
+    "reason": "Reason",
+    "reasons": {
+      "language": "Inappropriate language",
+      "off_topic": "Not about the food or the store",
+      "spam": "Spam or advertising"
+    },
+    "note": "Internal note (optional)",
+    "confirm": "Hide review"
+  },
+  "soon": "Coming soon"
+}
