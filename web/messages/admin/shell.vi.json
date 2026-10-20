@@ -154,5 +154,9 @@
   "dateRange": {
     "any": "Mọi lúc",
     "clear": "Mọi lúc"
+  },
+  "error": {
+    "title": "Không tải được dữ liệu",
+    "retry": "Thử lại"
   }
 }

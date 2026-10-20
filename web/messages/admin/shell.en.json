@@ -154,5 +154,9 @@
   "dateRange": {
     "any": "Any time",
     "clear": "Any time"
+  },
+  "error": {
+    "title": "The data could not be loaded",
+    "retry": "Try again"
   }
 }
