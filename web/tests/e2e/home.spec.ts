@@ -6,7 +6,7 @@ import { hydrated } from "./hydration";
 test.use({ locale: "vi-VN" });
 
 test.describe("the customer home", () => {
-  test("shows tonight's offers: the deal card, what closes first, then every offer", async ({
+  test("shows tonight's offers: the deal card, what closes first, then every dish by its name", async ({
     page,
   }) => {
     await page.goto("/vi");
@@ -15,34 +15,32 @@ test.describe("the customer home", () => {
       page.getByRole("heading", { level: 1, name: "Tối nay ở Tasco Mall" }),
     ).toBeVisible();
 
-    const deals = page.getByRole("region", { name: "Túi ngon tối nay ở Tasco Mall" });
+    const deals = page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" });
     await expect(deals.getByText("58%", { exact: true })).toBeVisible();
     await expect(deals.getByRole("listitem")).toHaveCount(2);
     const firstTicket = deals.getByRole("listitem").first();
     await expect(firstTicket.getByText("Giảm 58%")).toBeAttached();
     await expect(firstTicket.getByText("Tiệm bánh Pháp")).toBeVisible();
-    await expect(firstTicket.getByText("Lấy 21:00")).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: "8 túi đang mở · túi cuối lúc 21:45" }),
-    ).toHaveAttribute("href", "#all-offers");
+    await expect(firstTicket.getByText("Nhận 21:00")).toBeVisible();
 
-    const closing = page.getByRole("region", { name: "Sắp hết giờ lấy" });
+    const closing = page.getByRole("region", { name: "Sắp hết giờ nhận" });
     await expect(closing.getByRole("heading", { level: 3 })).toHaveText([
       "Túi bánh mì và croissant, 4 chiếc",
       "Xôi thập cẩm, 1 hộp",
     ]);
 
-    const all = page.getByRole("region", { name: "Quanh bạn ở Tasco Mall" });
+    const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
     await expect(all.getByRole("heading", { level: 3 })).toHaveText([
       "Túi bánh mì và croissant, 4 chiếc",
       "Xôi thập cẩm, 1 hộp",
       "Cơm sườn nướng, 1 suất",
     ]);
     const bread = all.getByRole("listitem").first();
-    await expect(bread.getByText("Còn 3")).toBeVisible();
+    await expect(bread.getByText("Còn 3 phần")).toBeVisible();
     await expect(bread.getByText("39.000đ")).toBeVisible();
     await expect(bread.getByText("Giá gốc 95.000đ")).toBeAttached();
-    await expect(bread.getByText("Giảm 58%")).toBeAttached();
+    await expect(bread.getByText("Giảm 58%")).toBeVisible();
+    await expect(bread.getByText("Tiệm bánh Pháp")).toBeHidden();
     await expect(all.getByRole("listitem").last().getByText("Đã hết")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
   });
@@ -62,8 +60,8 @@ test.describe("the customer home", () => {
     await expect(results.getByRole("heading", { level: 3 })).toHaveText([
       "Túi bánh mì và croissant, 4 chiếc",
     ]);
-    await expect(page.getByRole("region", { name: "Sắp hết giờ lấy" })).toBeHidden();
-    await expect(page.getByRole("region", { name: "Túi ngon tối nay ở Tasco Mall" })).toBeHidden();
+    await expect(page.getByRole("region", { name: "Sắp hết giờ nhận" })).toBeHidden();
+    await expect(page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" })).toBeHidden();
 
     await (await hydrated(page.getByRole("link", { name: "Bánh", exact: true }))).click();
     await expect(page).toHaveURL(/\/vi$/);
@@ -120,7 +118,7 @@ test.describe("the customer home", () => {
     // as a scroll made while the list is still streaming in can leave the row on screen.
     await hydrated(search);
     await expect(async () => {
-      await page.getByRole("heading", { name: "Quanh bạn ở Tasco Mall" }).scrollIntoViewIfNeeded();
+      await page.getByRole("heading", { name: "Tất cả món quanh đây" }).scrollIntoViewIfNeeded();
       await page.mouse.wheel(0, 400);
       await expect(search).toHaveCount(2, { timeout: 1000 });
     }).toPass();

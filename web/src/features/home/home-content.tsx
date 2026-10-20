@@ -8,7 +8,6 @@ import { SectionHeader } from "@/components/section-header";
 import { listOffers } from "@/features/offers/list-offers";
 import { closingFirst, inShowingOrder, type OfferSummary } from "@/features/offers/offer";
 import { OfferCard } from "@/features/offers/offer-card";
-import { OfferTile } from "@/features/offers/offer-tile";
 import { Link } from "@/i18n/navigation";
 
 import type { HomeQuery } from "./home-query";
@@ -18,8 +17,8 @@ import { KindPicker } from "./kind-picker";
 
 const CLOSING_COUNT = 6;
 
-// Everything under the header for what the address asks (Figma content). Without a filter: the kinds, the
-// windows closing first, then every offer. With one: the kinds and the matching offers.
+// Everything under the header for what the address asks (Figma Mobile v3 content). Without a filter: the
+// kinds, the windows closing first, then every offer as large cards. With one: the kinds and the matching offers.
 export async function HomeContent({ query: pending }: { query: Promise<HomeQuery> }) {
   const query = await pending;
   const [t, offers] = await Promise.all([
@@ -61,7 +60,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
           >
             {closing.map((offer) => (
               <li key={offer.id} className="flex shrink-0 snap-start lg:shrink xl:nth-[n+5]:hidden">
-                <OfferCard offer={offer} />
+                <OfferCard offer={offer} className="w-66 lg:w-full" />
               </li>
             ))}
           </ScrollRow>
@@ -95,10 +94,10 @@ async function OfferGrid({ offers, filtered }: { offers: OfferSummary[]; filtere
     );
   }
   return (
-    <ul className="grid grid-cols-2 gap-3 px-4 sm:grid-cols-3 xl:grid-cols-4">
+    <ul className="grid gap-3 px-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {inShowingOrder(offers).map((offer) => (
         <li key={offer.id} className="flex">
-          <OfferTile offer={offer} />
+          <OfferCard offer={offer} className="w-full" />
         </li>
       ))}
     </ul>
@@ -115,9 +114,9 @@ export function HomeContentSkeleton() {
         ))}
       </div>
       <Skeleton className="h-7 w-48" />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
-          <Skeleton key={i} shape="card" className="h-60" />
+          <Skeleton key={i} shape="card" className="h-52" />
         ))}
       </div>
     </div>

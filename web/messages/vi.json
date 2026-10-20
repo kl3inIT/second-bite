@@ -8,20 +8,21 @@
     "searchPlaceholder": "Tìm bánh, gỏi cuốn, rau củ…",
     "kindsLabel": "Loại món",
     "collectNow": "Lấy ngay",
-    "dealsTitle": "Túi ngon tối nay ở Tasco Mall",
+    "dealsTitle": "Món ngon tối nay ở Tasco Mall",
     "upTo": "Giảm đến",
     "upToPercent": "{percent}%",
-    "ticketWindow": "Lấy {from}",
-    "openBags": "{bags} túi đang mở · túi cuối lúc {last}",
+    "ticketWindow": "Nhận {from}",
     "title": "<hidden>Tối nay ở </hidden>Tasco Mall",
     "area": "Long Biên, Hà Nội",
-    "closingSoon": "Sắp hết giờ lấy",
+    "closingSoon": "Sắp hết giờ nhận",
     "seeAll": "Xem tất cả",
-    "allOffers": "Quanh bạn ở Tasco Mall",
+    "allOffers": "Tất cả món quanh đây",
     "results": "Kết quả",
     "empty": "Tối nay chưa có món nào.",
     "emptyFiltered": "Không có món nào khớp bộ lọc này.",
-    "showAll": "Xem tất cả món"
+    "showAll": "Xem tất cả món",
+    "ticketDiscount": "-{percent}%",
+    "ticketDiscountLabel": "Giảm {percent}%"
   },
   "LanguageSwitcher": {
     "label": "Switch to English"
@@ -45,13 +46,11 @@
     "other": "Khác"
   },
   "OfferCard": {
-    "stock": "Còn {units}",
     "soldOut": "Đã hết",
-    "window": "Lấy {from}–{until}",
-    "windowAt": "{from}–{until} · {place}",
-    "discount": "-{percent}%",
-    "discountLabel": "Giảm {percent}%",
-    "originalPrice": "Giá gốc {price}"
+    "window": "{from}–{until}",
+    "discount": "Giảm {percent}%",
+    "originalPrice": "Giá gốc {price}",
+    "left": "Còn {units} phần"
   },
   "Intro": {
     "title": "Second Bite là gì?",

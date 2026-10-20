@@ -1,18 +1,15 @@
-import { ChevronRightIcon, ClockIcon } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import { listOffers } from "@/features/offers/list-offers";
-import { biggestDiscountFirst, openBags } from "@/features/offers/offer";
-import { DiscountChip } from "@/features/offers/price";
+import { biggestDiscountFirst } from "@/features/offers/offer";
 
 import type { HomeQuery } from "./home-query";
 
 const TICKET_COUNT = 3;
 
-// The bottom of the header without a filter (Figma deal card, perk strip): the biggest discounts tonight
-// as tickets on the deep blue deal card, then how many bags are open and when the last window closes, linking to the
-// list. Every figure comes from the offers; with nothing to order, neither shows. The pale sheet behind
-// their lower half starts the page under the header.
+// The bottom of the header without a filter (Figma Mobile v3 deal card): the biggest discounts tonight as
+// tickets on the deep blue deal card. Every figure comes from the offers; with nothing to order, it does not
+// show. The pale sheet behind its lower half starts the page under the header.
 export async function TonightDeals({ query: pending }: { query: Promise<HomeQuery> }) {
   const query = await pending;
   if (query.q || query.kind || query.now) return null;
@@ -22,13 +19,12 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
     getFormatter(),
     listOffers({}),
   ]);
-  const open = openBags(offers);
-  if (!open) return null;
   const tickets = biggestDiscountFirst(offers).slice(0, TICKET_COUNT);
+  if (tickets.length === 0) return null;
   const time = (iso: string) => format.dateTime(new Date(iso), "time");
 
   return (
-    <div className="relative flex flex-col gap-3">
+    <div className="relative">
       <div
         aria-hidden
         className="absolute top-19 -bottom-3 left-1/2 w-screen -translate-x-1/2 rounded-t-3xl bg-background"
@@ -53,8 +49,11 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
                 key={offer.id}
                 className="flex min-w-0 flex-1 flex-col gap-1 rounded-xl bg-card py-2.5 pr-1 pl-1.75 text-card-foreground sm:max-w-44"
               >
-                <span className="flex">
-                  <DiscountChip percent={offer.discountPercent} />
+                <span className="font-display text-figure-sm text-sale">
+                  <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
+                  <span className="sr-only">
+                    {t("ticketDiscountLabel", { percent: offer.discountPercent })}
+                  </span>
                 </span>
                 <span className="truncate text-label-strong">{offer.seller.name}</span>
                 <span className="truncate text-label text-muted-foreground">
@@ -65,16 +64,6 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
           </ul>
         </div>
       </section>
-      <a
-        href="#all-offers"
-        className="relative flex items-center gap-2 rounded-xl border border-border bg-card py-2 pr-2.5 pl-3 text-body-sm-strong text-foreground transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-      >
-        <ClockIcon aria-hidden strokeWidth={2.2} className="size-4.5 shrink-0 text-primary" />
-        <span className="min-w-0 flex-1">
-          {t("openBags", { bags: open.bags, last: time(open.lastWindowEnd) })}
-        </span>
-        <ChevronRightIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-      </a>
     </div>
   );
 }

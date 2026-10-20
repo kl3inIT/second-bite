@@ -24,7 +24,7 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-// The page runs under a phone's home indicator, so the bottom bar can pad itself clear of it (pb-safe).
+// The page runs under a phone's home indicator, so the bottom bar can float clear of it (bottom-safe-4).
 export const viewport: Viewport = { viewportFit: "cover" };
 
 export async function generateMetadata(): Promise<Metadata> {

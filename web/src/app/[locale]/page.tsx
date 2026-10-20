@@ -46,7 +46,7 @@ export default function Home({ searchParams }: PageProps<"/[locale]">) {
           <TonightDeals query={query} />
         </Suspense>
       </AppHeader>
-      <main className="mx-auto w-full max-w-5xl flex-1 pb-20 md:pb-0 xl:max-w-300">
+      <main className="mx-auto w-full max-w-5xl flex-1 pb-24 md:pb-0 xl:max-w-300">
         <Suspense fallback={<HomeContentSkeleton />}>
           <HomeContent query={query} />
         </Suspense>

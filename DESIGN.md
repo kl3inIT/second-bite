@@ -70,10 +70,11 @@ colors:
   accent: "{palette.brand-100}"
   accent-foreground: "{palette.brand-800}"
   link: "{palette.brand-800}" # text links and secondary actions ("Đổi", "Chỉ đường"), 6.3:1 on white, 5.9:1 on the ground
-  fresh: "{palette.accent-lime-300}" # young rice: the stock sticker, the discount chip, the deal card's figures
+  fresh: "{palette.accent-lime-300}" # young rice: the pin on the header and the deal card's title and figures
   fresh-foreground: "{palette.accent-lime-ink}" # 7.4:1
   fresh-muted: "{palette.accent-lime-100}" # a quiet lime surface, such as the pickup place on a seller's draft
   rating: "{palette.rating-star}" # the star beside a rating, always next to the figure
+  sale: "{palette.status-error}" # the portions left on a card and a ticket's discount, always in words, 6.6:1 on white
   destructive: "{palette.status-error}" # errors, cancelled and refused states, 6.6:1
   destructive-foreground: "{palette.base-white}"
   destructive-hover: "#912018" # 8.7:1
@@ -91,7 +92,7 @@ colors:
   avatar-indigo: "{palette.logo-indigo}" # 7.6:1
   avatar-olive: "{palette.logo-olive}" # 6.0:1
 typography:
-  # Thirteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
+  # Fourteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
   # "Mobile v2" frames used (SEC-22). Named by purpose, not size; each has a Figma text style of the same name.
   # Be Vietnam Pro (`font-sans`) for everything people read; Bricolage Grotesque (`font-display`) only for
   # prices and figures, tracked -1%. Nothing is set below 12px.
@@ -120,11 +121,16 @@ typography:
     fontSize: "16px"
     fontWeight: 400
     lineHeight: "24px"
-  title: # field labels, block titles, the name on a card, the place on the header
+  title: # field labels, block titles, the place on the header
     fontFamily: "Be Vietnam Pro"
     fontSize: "15px"
     fontWeight: 600
     lineHeight: "21px"
+  title-lg: # the dish on a large card
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "16px"
+    fontWeight: 600
+    lineHeight: "22px"
   button: # button labels
     fontFamily: "Be Vietnam Pro"
     fontSize: "16px"
@@ -140,7 +146,7 @@ typography:
     fontSize: "20px"
     fontWeight: 700
     lineHeight: "28px"
-  figure-sm: # the discount chip (-63%)
+  figure-sm: # a ticket's discount on the deal card (-63%)
     fontFamily: "Bricolage Grotesque"
     fontSize: "12px"
     fontWeight: 700
@@ -152,11 +158,11 @@ typography:
     fontWeight: 700
     lineHeight: "18px"
     letterSpacing: "-0.01em"
-  price-lg: # the price on an offer and at checkout, totals, the digits of the sign-in code
+  price-lg: # the price on a large card and at checkout, totals, the digits of the sign-in code; 20/24 since Mobile v3
     fontFamily: "Bricolage Grotesque"
-    fontSize: "22px"
+    fontSize: "20px"
     fontWeight: 700
-    lineHeight: "25px"
+    lineHeight: "24px"
     letterSpacing: "-0.01em"
   display: # big figures only: the pickup code, the best discount tonight
     fontFamily: "Bricolage Grotesque"
@@ -174,7 +180,7 @@ rounded:
   2xl: "20px" # cards, the deal card, sheets and list rows
   3xl: "24px" # the bottom edge of the header, a sheet's top corners
   4xl: "32px"
-  full: "9999px" # buttons, the search field, pills, stickers, chips, avatars, icon buttons
+  full: "9999px" # buttons, the search field, the bottom bar, pills, chips, avatars, icon buttons
 spacing:
   "1": "4px"
   "2": "8px"
@@ -183,9 +189,11 @@ spacing:
   "6": "24px"
   "8": "32px"
 elevation:
-  # Cards are flat on the sky ground; only what floats over content, a sheet or a dialog, casts a shadow.
+  # Cards are flat on the sky ground; only what floats over content, a sheet, a dialog or the bottom bar, casts a shadow.
   sheet:
     - { x: 0, y: -4, blur: 24, spread: 0, color: "#0E1D191F" }
+  nav: # the floating bottom bar (Figma Bottom nav, 105:2515)
+    - { x: 0, y: 8, blur: 24, spread: 0, color: "#05122924" }
 components:
   button-primary:
     backgroundColor: "{colors.primary}"
@@ -201,17 +209,22 @@ components:
     rounded: "{rounded.full}"
     height: "52px"
     padding: "0 24px"
-  sticker:
-    backgroundColor: "{colors.fresh}"
-    textColor: "{colors.fresh-foreground}"
+  deal-label:
+    backgroundColor: "{colors.deal}"
+    textColor: "{colors.deal-foreground}"
     typography: "{typography.label-strong}"
-    rounded: "{rounded.full}"
     padding: "4px 10px"
   offer-card:
     backgroundColor: "{colors.card}"
     textColor: "{colors.card-foreground}"
-    rounded: "{rounded.2xl}"
-    padding: "12px 14px 14px"
+    rounded: "{rounded.xl}"
+    padding: "10px 14px 12px"
+  dish-card:
+    width: "132px"
+    rounded: "{rounded.lg}"
+  bottom-nav:
+    height: "64px"
+    rounded: "{rounded.full}"
 ---
 
 <!-- This frontmatter is the source of the tokens. web/src/styles/tokens.css and the Flutter theme follow it with the same names in the same change; the Figma file "Secondbite" holds the same values as the `SecondBite` variables and text styles (docs/guidelines/figma.md). Changed to the Figma identity on 18 October 2026, replacing "Gói mang về"; turned from green to Tasco Mall's blue on 19 October 2026 after Figma "Mobile v3" (SEC-48). -->
@@ -224,15 +237,15 @@ components:
 
 Good food that someone has already started to love: a cookie with a bite taken out of it. The bite is the brand's mark, in the "o" of the wordmark and on the top right corner of every card, cut out in the colour of the ground as if the food had been tasted.
 
-The interface opens on a Tasco blue header crossed by a light sweep, over a pale sky ground, with white cards that carry real photographs of the food. One lime sticker per card says how many are left at a glance. Dense enough for one-handed use at the end of a shift, generous with photographs so food looks like food.
+The interface opens on a Tasco blue header crossed by a light sweep, over a pale sky ground, with white cards that carry real photographs of the food. One blue label on each photograph gives the discount, and red words under it say how many portions are left. Dense enough for one-handed use at the end of a shift, generous with photographs so food looks like food.
 
 **Key Characteristics:**
 
 - Tasco blue header under a light sweep, holding the place, the search, the language and tonight's deal card on a deeper blue.
 - Pale sky ground, white cards with a bitten top right corner.
-- Lime for stock and discounts: one sticker on the photograph, one discount chip; amber only in alerts.
+- A Deal Blue discount label on the photograph and the portions left in red words; lime for the figures on blue; amber only in alerts.
 - Real photographs of the food, never illustrations.
-- Price hierarchy by size and face: new price in Bricolage, old price small and struck through, and the discount as a lime chip.
+- Price hierarchy by size and face: new price in Bricolage, old price small and struck through, and the discount as the label on the photograph.
 
 ## Colors
 
@@ -256,7 +269,8 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 ### Fresh
 
-- **Lime** (`fresh`, `fresh-foreground`): the stock sticker on a photograph and the discount chip, with lime ink text; the pin on the header and the deal card's title and figures. `fresh-muted` is its quiet surface.
+- **Lime** (`fresh`, `fresh-foreground`): the pin on the header and the deal card's title and figures. `fresh-muted` is its quiet surface, with lime ink text.
+- **Sale Red** (`sale`): the portions left on a card ("Còn 2 phần") and a ticket's discount on the deal card, always as words or figures, never as a dot or a fill.
 - **Star** (`rating`): the star beside a rating, never on its own.
 
 ### Neutral
@@ -277,9 +291,9 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 ### Named Rules
 
-**The One Sticker Rule.** A card carries one lime sticker, on its photograph: how many are left.
+**The One Label Rule.** A card's photograph carries one label, at its top left in Deal Blue: the discount ("Giảm 55%"). How many portions are left is written under the photograph in Sale Red, as words ("Còn 2 phần"), never as a colour alone. Taken from Figma Mobile v3 with the owner on 20 October 2026, in place of the lime stock sticker (SEC-49).
 
-**The One Discount Rule.** A discount is always the lime chip (`figure-sm` on `fresh`); the best discount tonight may be written large in lime on the deal card (`display`). No amber, rose or soft-green discount.
+**The One Discount Rule.** On a card the discount is the Deal Blue label; on a deal card's ticket it is a red figure (`figure-sm` in `sale`); the best discount tonight may be written large in lime on the deal card (`display`). No amber, rose or soft-green discount.
 
 **The Faint Rule.** `input` reaches only 3.6:1 on white: field edges only, never text.
 
@@ -294,23 +308,24 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 ### Hierarchy
 
-Thirteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `headline` grew to 20/28 bold with Mobile v3 (SEC-48). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
+Fourteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `headline` grew to 20/28 bold with Mobile v3 (SEC-48), when `price-lg` became 20/24 and `title-lg` was added (SEC-49). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
 
-| Role             | Face          | Size / line | Use                                                                                |
-| ---------------- | ------------- | ----------- | ---------------------------------------------------------------------------------- |
-| `display`        | Bricolage 700 | 36 / 40     | Big figures only: the pickup code, the best discount tonight                       |
-| `price-lg`       | Bricolage 700 | 22 / 25     | The price on an offer card and at checkout, totals, the digits of the sign-in code |
-| `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                        |
-| `figure-sm`      | Bricolage 700 | 12 / 16     | The discount chip                                                                  |
-| `headline`       | 700           | 20 / 28     | Section and sheet titles, a page's heading                                         |
-| `bar-title`      | 600           | 17 / 22     | The top bar's title                                                                |
-| `button`         | 600           | 16 / 20     | Button labels                                                                      |
-| `title`          | 600           | 15 / 21     | Field labels, block titles, the name on a card, the place on the header            |
-| `body`           | 400           | 16 / 24     | Running text and input values                                                      |
-| `body-sm-strong` | 600           | 14 / 21     | Names in lists, small actions                                                      |
-| `body-sm`        | 400           | 14 / 21     | Supporting lines, item details, messages                                           |
-| `label-strong`   | 600           | 12 / 17     | Stock and status chips, the active tab, counters, initials                         |
-| `label`          | 400           | 12 / 17     | Times, ratings, helper and legal lines, tab labels                                 |
+| Role             | Face          | Size / line | Use                                                                               |
+| ---------------- | ------------- | ----------- | --------------------------------------------------------------------------------- |
+| `display`        | Bricolage 700 | 36 / 40     | Big figures only: the pickup code, the best discount tonight                      |
+| `price-lg`       | Bricolage 700 | 20 / 24     | The price on a large card and at checkout, totals, the digits of the sign-in code |
+| `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                       |
+| `figure-sm`      | Bricolage 700 | 12 / 16     | A ticket's discount on the deal card                                              |
+| `headline`       | 700           | 20 / 28     | Section and sheet titles, a page's heading                                        |
+| `bar-title`      | 600           | 17 / 22     | The top bar's title                                                               |
+| `button`         | 600           | 16 / 20     | Button labels                                                                     |
+| `title-lg`       | 600           | 16 / 22     | The dish on a large card                                                          |
+| `title`          | 600           | 15 / 21     | Field labels, block titles, the place on the header                               |
+| `body`           | 400           | 16 / 24     | Running text and input values                                                     |
+| `body-sm-strong` | 600           | 14 / 21     | Names in lists, small actions                                                     |
+| `body-sm`        | 400           | 14 / 21     | Supporting lines, item details, messages                                          |
+| `label-strong`   | 600           | 12 / 17     | The discount label, portions left, status chips, the active tab, initials         |
+| `label`          | 400           | 12 / 17     | Times, ratings, helper and legal lines, tab labels                                |
 
 ### Named Rules
 
@@ -326,11 +341,11 @@ Mobile at 390px is the source frame for app screens; desktop is derived from it.
 
 ## Elevation & Depth
 
-Flat. Cards separate from the sky ground by colour alone; photographs get a soft dark scrim where text sits on them. Only what floats over content, a sheet or a dialog, casts a shadow (`elevation.sheet`).
+Flat. Cards separate from the sky ground by colour alone; photographs get a soft dark scrim where text sits on them. Only what floats over content casts a shadow: a sheet or a dialog (`elevation.sheet`), and the bottom bar (`elevation.nav`).
 
 ## Shapes
 
-Generous rounding from one scale: 20px (`2xl`) on cards, the deal card, sheets and list rows; 14px (`lg`) on inputs and segmented controls; 12px (`md`) on thumbnails; 24px (`3xl`) on the bottom of the header and a sheet's top corners; full rounding on buttons, the search field and its filter button, stickers, chips, avatars and icon buttons. Photographs fill the top of a card and share its corners. No other radius is used.
+Generous rounding from one scale: 20px (`2xl`) on the deal card, sheets and list rows; 16px (`xl`) on offer cards; 14px (`lg`) on inputs, segmented controls and a dish card's photograph; 12px (`md`) on thumbnails and the inner corner of a discount label; 24px (`3xl`) on the bottom of the header and a sheet's top corners; full rounding on buttons, the search field and its filter button, the bottom bar, chips, avatars and icon buttons. Photographs fill the top of a card and share its corners. No other radius is used.
 
 ## Components
 
@@ -338,33 +353,37 @@ Generous rounding from one scale: 20px (`2xl`) on cards, the deal card, sheets a
 
 Primary (Tasco blue, white text) and Secondary (Blue Wash, deepest blue text), 52px high, fully rounded, 24px sides. The 44px default, also fully rounded, stays for compact actions.
 
-### Sticker
+### Discount label
 
-A lime pill on a photograph: stock ("Còn 2", or "Đã hết" on muted when sold out).
+Deal Blue with white `label-strong` ("Giảm 55%"), in the photograph's top left corner: that corner takes the photograph's radius, the opposite one 12px (`md`), the other two are square.
 
 ### Offer card
 
-White, 20px radius, bitten corner. Photograph (92px) with the stock sticker and the seller's avatar, then the seller (`title`), the dish (`body-sm`, muted), the window and place with a clock (`label`), and the price row: the discount chip on the left, the old price struck through and the new price (`price-lg`, Tasco blue) on the right.
+The large card of "Sắp hết giờ nhận" (264px wide in a row) and of the list (the full width), after Figma Mobile v3 (`card/…`, `thẻ nổi bật`). White, 16px radius, bitten corner. A photograph 136px high with the discount label, and a dark scrim along its foot carrying the window with a clock, and the distance when a place is known, in white `label-strong` ("20:30–21:30 · 350 m"). Under it, 10px 14px 12px: the dish only, never the seller (`title-lg`, one line, cut with "…"), then a row with the portions left in Sale Red (`label-strong`, "Còn 2 phần", or "Đã hết" muted) on the left, and the old price struck through (`label`, muted) beside the new price (`price-lg`, Tasco blue) on the right. A sold out card dims its photograph.
 
-### Compact offer card
+### Dish card
 
-For two-column grids: 20px radius, photograph (132px) with the stock sticker and a Tasco blue deal strip ("-58%" in lime, "Lấy 19:30–20:30" in white), then the dish, the price, and the seller with a small avatar.
+The small card of the sideways rows (Figma `rec/…`): 132px wide with no surface of its own. A photograph 96px high with a 14px radius and the discount label; 8px under it the dish (`body-sm-strong`, one line, cut with "…"), then 2px under that a clock and the window (`label`, muted, "20:00–21:00"). It names the dish only, never the seller.
+
+### Bottom bar
+
+The four tabs on a phone (Figma Bottom nav, 105:2515), floating 16px from the sides and the bottom: 64px high, fully rounded, frosted white with a hairline of white and `elevation.nav`. The active tab is a Blue Wash pill with its icon and label in Tasco blue (`label-strong`); the others are muted (`label`). A tab without a screen yet is shown dimmed and cannot be pressed.
 
 ### Deal card
 
-Deal Blue, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and up to three white tickets with the discount chip, the seller and when collection opens. Under it, a white strip with how many bags are open and when the last window closes links to the list. A sky sheet with rounded top corners rises behind their lower half to start the page.
+Deal Blue, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and up to three white tickets with the discount in red (`figure-sm` in `sale`), the seller and when collection opens ("Nhận 20:30"). A sky sheet with rounded top corners rises behind its lower half to start the page.
 
 ## Do's and Don'ts
 
 ### Do:
 
 - **Do** bind every colour, radius and gap to a token; a literal value on a screen is a defect.
-- **Do** keep stock or the window on the sticker, in the same place on every card.
+- **Do** keep the discount on the label and the portions left under the photograph, in the same place on every card.
 - **Do** use real photographs of real kinds of food, labelled as samples until the pilot has its own.
 
 ### Don't:
 
 - **Don't** show a rating, a counter or any figure the product has not measured.
-- **Don't** put amber anywhere but the alert box, or lime anywhere but the header's pin, stickers, discount chips and the deal card.
+- **Don't** put amber anywhere but the alert box, lime anywhere but the header's pin and the deal card, or red anywhere on a card but the portions left.
 - **Don't** set text below 12px, or a title in Bricolage.
 - **Don't** describe food as thừa, tồn, thanh lý or giải cứu anywhere in the interface.

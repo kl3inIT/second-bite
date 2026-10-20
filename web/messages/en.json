@@ -8,20 +8,21 @@
     "searchPlaceholder": "Search pastries, rolls, vegetables…",
     "kindsLabel": "Kinds of food",
     "collectNow": "Collect now",
-    "dealsTitle": "Good bags tonight at Tasco Mall",
+    "dealsTitle": "Good food tonight at Tasco Mall",
     "upTo": "Up to",
     "upToPercent": "{percent}%",
     "ticketWindow": "Collect {from}",
-    "openBags": "{bags, plural, one {# bag} other {# bags}} open · last collection at {last}",
     "title": "<hidden>Tonight at </hidden>Tasco Mall",
     "area": "Long Biên, Hanoi",
     "closingSoon": "Closing soon",
     "seeAll": "See all",
-    "allOffers": "Around you at Tasco Mall",
+    "allOffers": "Every dish around you",
     "results": "Results",
     "empty": "Nothing has been posted for tonight yet.",
     "emptyFiltered": "Nothing matches this filter.",
-    "showAll": "See every dish"
+    "showAll": "See every dish",
+    "ticketDiscount": "-{percent}%",
+    "ticketDiscountLabel": "{percent}% off"
   },
   "LanguageSwitcher": {
     "label": "Chuyển sang tiếng Việt"
@@ -45,13 +46,11 @@
     "other": "Other"
   },
   "OfferCard": {
-    "stock": "{units} left",
     "soldOut": "Sold out",
-    "window": "Collect {from}–{until}",
-    "windowAt": "{from}–{until} · {place}",
-    "discount": "-{percent}%",
-    "discountLabel": "{percent}% off",
-    "originalPrice": "Was {price}"
+    "window": "{from}–{until}",
+    "discount": "{percent}% off",
+    "originalPrice": "Was {price}",
+    "left": "{units} left"
   },
   "Intro": {
     "title": "What is Second Bite?",

@@ -37,20 +37,3 @@ export function closingFirst(offers: readonly OfferSummary[]): OfferSummary[] {
 export function biggestDiscountFirst(offers: readonly OfferSummary[]): OfferSummary[] {
   return offers.filter(isAvailable).toSorted((a, b) => b.discountPercent - a.discountPercent);
 }
-
-/**
- * The bags still open tonight, as units left across what can be ordered, and the end of the window that
- * closes last; undefined when nothing can be ordered.
- */
-export function openBags(
-  offers: readonly OfferSummary[],
-): { bags: number; lastWindowEnd: string } | undefined {
-  const available = offers.filter(isAvailable);
-  if (available.length === 0) return undefined;
-  return {
-    bags: available.reduce((sum, offer) => sum + offer.unitsLeft, 0),
-    lastWindowEnd: available.reduce((last, offer) =>
-      Date.parse(offer.windowEnd) > Date.parse(last.windowEnd) ? offer : last,
-    ).windowEnd,
-  };
-}

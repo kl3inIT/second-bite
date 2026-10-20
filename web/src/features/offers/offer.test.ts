@@ -5,7 +5,6 @@ import {
   closingFirst,
   inShowingOrder,
   isAvailable,
-  openBags,
   type OfferSummary,
 } from "./offer";
 
@@ -86,13 +85,5 @@ describe("the home's rows", () => {
     ];
 
     expect(biggestDiscountFirst(discounts).map((o) => o.id)).toEqual(["most", "half"]);
-  });
-
-  it("counts the bags still open and finds the window that closes last", () => {
-    expect(openBags(list)).toEqual({ bags: 3, lastWindowEnd: "2026-10-18T22:00:00+07:00" });
-  });
-
-  it("has no open bags when nothing can be ordered", () => {
-    expect(openBags([offer("sold-out", "sold_out", 0)])).toBeUndefined();
   });
 });
