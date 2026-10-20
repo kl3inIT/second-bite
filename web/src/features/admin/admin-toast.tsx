@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheckIcon, InfoIcon, OctagonXIcon } from "lucide-react";
+import { CircleCheckIcon, InfoIcon, OctagonXIcon, TriangleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -14,7 +14,7 @@ import {
   useToastManager,
 } from "@/components/ui/toast";
 
-type Tone = "success" | "error" | "info";
+type Tone = "success" | "error" | "info" | "warning";
 
 const manager = createToastManager();
 const SHOWN_FOR_MS = 5000;
@@ -32,6 +32,8 @@ const icons: Record<Tone, ReactNode> = {
   success: <CircleCheckIcon aria-hidden className="size-5 shrink-0" />,
   info: <InfoIcon aria-hidden className="size-5 shrink-0" />,
   error: <OctagonXIcon aria-hidden className="size-5 shrink-0" />,
+  // "Chưa có nhà cung cấp email" (Figma AD-CS6, AD-CS7).
+  warning: <TriangleAlertIcon aria-hidden className="size-5 shrink-0" />,
 };
 
 /** Shows the admin's toasts; the admin layout renders it once. */

@@ -13,9 +13,18 @@ import { PageHeader } from "./page-header";
 
 /**
  * A settings page (Figma AD-CS1): "Cài đặt" over the settings menu on the left and the page's own title and
- * cards on the right. `title` is the open page's name ("Bài đăng"). On a phone the menu sits above.
+ * cards on the right. `title` is the open page's name ("Bài đăng"); `actions` sit on its right ("Thêm danh mục"),
+ * under it on a phone. On a phone the menu sits above.
  */
-export function SettingsLayout({ title, children }: { title: string; children: ReactNode }) {
+export function SettingsLayout({
+  title,
+  actions,
+  children,
+}: {
+  title: string;
+  actions?: ReactNode;
+  children: ReactNode;
+}) {
   const t = useTranslations("admin.shell");
   return (
     <>
@@ -23,9 +32,12 @@ export function SettingsLayout({ title, children }: { title: string; children: R
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-4">
         <SettingsNav />
         <section aria-labelledby="settings-title" className="flex min-w-0 flex-1 flex-col gap-4">
-          <h2 id="settings-title" className="text-card-title text-foreground">
-            {title}
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="settings-title" className="text-card-title text-foreground">
+              {title}
+            </h2>
+            {actions && <div className="flex flex-wrap items-center gap-3">{actions}</div>}
+          </div>
           {children}
         </section>
       </div>
