@@ -1,0 +1,55 @@
+{
+  "title": "Quản trị",
+  "groups": {
+    "operations": "Vận hành",
+    "users": "Người dùng",
+    "marketing": "Marketing",
+    "settings": "Cài đặt"
+  },
+  "pages": {
+    "overview": { "label": "Tổng quan", "short": "Tổng quan" },
+    "sellers": { "label": "Cửa hàng", "short": "Cửa hàng" },
+    "offers": { "label": "Bài đăng", "short": "Bài đăng" },
+    "orders": { "label": "Đơn hàng", "short": "Đơn hàng" },
+    "payments": { "label": "Thanh toán & Hoàn tiền", "short": "Thanh toán" },
+    "issues": { "label": "Báo lỗi", "short": "Báo lỗi" },
+    "reviews": { "label": "Đánh giá", "short": "Đánh giá" },
+    "accounts": { "label": "Tài khoản", "short": "Tài khoản" },
+    "promotions": { "label": "Mã giảm giá", "short": "Giảm giá" },
+    "content": { "label": "Banner & nội dung", "short": "Banner" },
+    "notifications": { "label": "Thông báo", "short": "Thông báo" },
+    "sponsors": { "label": "Tài trợ", "short": "Tài trợ" },
+    "reports": { "label": "Báo cáo", "short": "Báo cáo" },
+    "settings": { "label": "Cài đặt", "short": "Cài đặt" },
+    "settingsOffers": { "label": "Bài đăng", "short": "Bài đăng" },
+    "settingsEmail": { "label": "Email", "short": "Email" },
+    "settingsCategories": { "label": "Danh mục", "short": "Danh mục" },
+    "settingsAreas": { "label": "Khu vực", "short": "Khu vực" },
+    "settingsAdmins": { "label": "Quản trị viên", "short": "Quản trị viên" },
+    "settingsAuditLog": { "label": "Nhật ký thao tác", "short": "Nhật ký" },
+    "settingsLegal": { "label": "Nội dung pháp lý", "short": "Pháp lý" },
+    "settingsIntegrations": { "label": "Tích hợp", "short": "Tích hợp" }
+  },
+  "sidebar": {
+    "label": "Điều hướng quản trị",
+    "home": "Second Bite Quản trị, về Tổng quan",
+    "collapse": "Thu gọn thanh bên",
+    "expand": "Mở rộng thanh bên",
+    "open": "Mở menu quản trị",
+    "close": "Đóng menu",
+    "language": "Tiếng Việt",
+    "switchLanguage": "Chuyển sang English",
+    "account": "Tài khoản {email}",
+    "signOut": "Đăng xuất"
+  },
+  "breadcrumb": "Đường dẫn",
+  "soon": "Sắp có",
+  "notFound": {
+    "crumb": "Không tìm thấy",
+    "title": "Không tìm thấy trang này",
+    "back": "Về Tổng quan"
+  },
+  "toast": {
+    "close": "Đóng thông báo"
+  }
+}

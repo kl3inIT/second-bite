@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Be_Vietnam_Pro, Bricolage_Grotesque } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { BottomNav } from "@/components/bottom-nav";
@@ -48,6 +48,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function LocaleLayout({ children }: LayoutProps<"/[locale]">) {
   const locale = await getLocale();
   const t = await getTranslations("Metadata");
+  // The admin's catalogs reach the browser only under the admin layout, which has its own provider.
+  const { admin: _admin, ...messages } = await getMessages();
   const lang = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
 
   return (
@@ -91,7 +93,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
             ],
           }}
         />
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
           <Splash />
           {children}
           <SiteFooter />

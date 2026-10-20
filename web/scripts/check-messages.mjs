@@ -1,7 +1,8 @@
 // Fails when the Vietnamese and English message catalogs do not have exactly the same keys, or when a
-// message is empty: every string is shown in both languages (PRODUCT.md › Product Principles).
+// message is empty: every string is shown in both languages (PRODUCT.md › Product Principles). The admin's
+// catalogs, one pair per page in messages/admin/ (SEC-62), are checked pair by pair the same way.
 // Adapted from BeyondPilot's web/scripts/check-messages.mjs.
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 
 const locales = ["vi", "en"];
 
@@ -12,31 +13,47 @@ function entriesOf(value, prefix = "") {
   });
 }
 
-const catalogs = Object.fromEntries(
-  await Promise.all(
-    locales.map(async (locale) => {
-      const text = await readFile(new URL(`../messages/${locale}.json`, import.meta.url), "utf8");
-      return [locale, new Map(entriesOf(JSON.parse(text)))];
-    }),
-  ),
-);
-
 const problems = [];
-for (const locale of locales) {
-  for (const [key, message] of catalogs[locale]) {
-    if (typeof message !== "string" || message.trim() === "") {
-      problems.push(`messages/${locale}.json has an empty message at "${key}"`);
+let keys = 0;
+
+/** Compares one catalog in both languages: `file(locale)` names its file under messages/. */
+async function check(file) {
+  const catalogs = {};
+  for (const locale of locales) {
+    let text;
+    try {
+      text = await readFile(new URL(`../messages/${file(locale)}`, import.meta.url), "utf8");
+    } catch {
+      problems.push(`messages/${file(locale)} is missing`);
+      return;
     }
-    for (const other of locales) {
-      if (!catalogs[other].has(key)) {
-        problems.push(`messages/${other}.json is missing "${key}" (present in ${locale}.json)`);
+    catalogs[locale] = new Map(entriesOf(JSON.parse(text)));
+  }
+  for (const locale of locales) {
+    for (const [key, message] of catalogs[locale]) {
+      if (typeof message !== "string" || message.trim() === "") {
+        problems.push(`messages/${file(locale)} has an empty message at "${key}"`);
+      }
+      for (const other of locales) {
+        if (!catalogs[other].has(key)) {
+          problems.push(`messages/${file(other)} is missing "${key}" (present in ${file(locale)})`);
+        }
       }
     }
   }
+  keys += catalogs.vi.size;
 }
+
+await check((locale) => `${locale}.json`);
+const admin = new Set(
+  (await readdir(new URL("../messages/admin/", import.meta.url)))
+    .map((name) => /^([\w-]+)\.(?:vi|en)\.json$/.exec(name)?.[1])
+    .filter(Boolean),
+);
+for (const name of admin) await check((locale) => `admin/${name}.${locale}.json`);
 
 if (problems.length > 0) {
   console.error(problems.join("\n"));
   process.exit(1);
 }
-console.log(`Message catalogs match (${catalogs.vi.size} keys).`);
+console.log(`Message catalogs match (${keys} keys, ${admin.size} admin catalogs).`);

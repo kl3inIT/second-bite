@@ -1,0 +1,55 @@
+{
+  "title": "Admin",
+  "groups": {
+    "operations": "Operations",
+    "users": "Users",
+    "marketing": "Marketing",
+    "settings": "Settings"
+  },
+  "pages": {
+    "overview": { "label": "Overview", "short": "Overview" },
+    "sellers": { "label": "Stores", "short": "Stores" },
+    "offers": { "label": "Posts", "short": "Posts" },
+    "orders": { "label": "Orders", "short": "Orders" },
+    "payments": { "label": "Payments & refunds", "short": "Payments" },
+    "issues": { "label": "Problem reports", "short": "Reports" },
+    "reviews": { "label": "Reviews", "short": "Reviews" },
+    "accounts": { "label": "Accounts", "short": "Accounts" },
+    "promotions": { "label": "Promo codes", "short": "Promos" },
+    "content": { "label": "Banners & content", "short": "Banners" },
+    "notifications": { "label": "Notifications", "short": "Notify" },
+    "sponsors": { "label": "Sponsors", "short": "Sponsors" },
+    "reports": { "label": "Reports", "short": "Reports" },
+    "settings": { "label": "Settings", "short": "Settings" },
+    "settingsOffers": { "label": "Posts", "short": "Posts" },
+    "settingsEmail": { "label": "Email", "short": "Email" },
+    "settingsCategories": { "label": "Categories", "short": "Categories" },
+    "settingsAreas": { "label": "Areas", "short": "Areas" },
+    "settingsAdmins": { "label": "Admins", "short": "Admins" },
+    "settingsAuditLog": { "label": "Audit log", "short": "Audit log" },
+    "settingsLegal": { "label": "Legal content", "short": "Legal" },
+    "settingsIntegrations": { "label": "Integrations", "short": "Integrations" }
+  },
+  "sidebar": {
+    "label": "Admin navigation",
+    "home": "Second Bite Admin, go to the overview",
+    "collapse": "Collapse the sidebar",
+    "expand": "Expand the sidebar",
+    "open": "Open the admin menu",
+    "close": "Close the menu",
+    "language": "English",
+    "switchLanguage": "Chuyển sang tiếng Việt",
+    "account": "Account {email}",
+    "signOut": "Sign out"
+  },
+  "breadcrumb": "Breadcrumb",
+  "soon": "Coming soon",
+  "notFound": {
+    "crumb": "Not found",
+    "title": "This page was not found",
+    "back": "Back to the overview"
+  },
+  "toast": {
+    "close": "Close the notice"
+  }
+}
