@@ -18,8 +18,8 @@ import { useCollectionWindow, useDistance } from "./window";
 // the seller's rating; then the dish, the portions left in red words and the price, under a bitten corner.
 // A card names the dish only; where the seller is not otherwise shown, as in search results, `showSeller`
 // adds them, with their place on the scrim ("Tầng 3", Figma K1f) and a heart.
-// `compact` is the card of the home's two-column grid (Figma "lưới món"): a 120px photograph, then the dish,
-// the price on its own line and the portions left under it, a heart instead of the bitten corner and no
+// `compact` is the card of the home's two-column grid (Figma "lưới món"): a 120px photograph, then the dish
+// (with `showSeller` the seller under it), the price on its own line and the portions left under it, a heart instead of the bitten corner and no
 // rating, which would cut the window short.
 export function OfferCard({
   offer,
@@ -58,7 +58,9 @@ export function OfferCard({
           sizes={compact ? "(min-width: 640px) 25vw, 50vw" : "(min-width: 640px) 50vw, 100vw"}
         />
         {/* In the search the heart takes the label's corner; the struck price still shows the saving (Figma K1f). */}
-        {!showSeller && <DiscountLabel percent={offer.discountPercent} className="rounded-tl-xl" />}
+        {(compact || !showSeller) && (
+          <DiscountLabel percent={offer.discountPercent} className="rounded-tl-xl" />
+        )}
         <p
           className={cn(
             "absolute inset-x-0 bottom-0 flex items-end bg-linear-to-b from-transparent to-foreground/60 text-label-strong text-card",
@@ -78,7 +80,7 @@ export function OfferCard({
         )}
       </div>
       <div className={cn("flex flex-col gap-1 pt-2.5 pb-3", compact ? "px-2.5" : "px-3.5")}>
-        {showSeller ? (
+        {showSeller && !compact ? (
           // The seller under the dish, the portions left under the price (Figma K1f).
           <>
             <div className="flex items-center justify-between gap-2">
@@ -95,9 +97,18 @@ export function OfferCard({
             </div>
           </>
         ) : (
-          <h3 className={cn("truncate text-foreground", compact ? "text-title" : "text-title-lg")}>
-            {offer.name}
-          </h3>
+          <>
+            <h3
+              className={cn("truncate text-foreground", compact ? "text-title" : "text-title-lg")}
+            >
+              {offer.name}
+            </h3>
+            {showSeller && (
+              <p className="truncate text-label text-muted-foreground">
+                {t("seller", { seller: offer.seller.name })}
+              </p>
+            )}
+          </>
         )}
         {compact ? (
           <>

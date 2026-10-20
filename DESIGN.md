@@ -398,7 +398,7 @@ Two halves over a hairline (Figma K2 "Món (12)" / "Quán (2)"): the open one in
 
 ### Seller block
 
-One seller's dishes in the search, white, 20px radius, bitten corner. Either the seller's avatar, name (`title-lg`) and window (`label`, muted) (Figma K2c), or their first dish as an offer card (Figma K1f); then up to three dish tiles: a photograph 84px high with a 12px radius, the price (`price`) beside the old one struck through, and the dish (`label`) on one line.
+One seller's dishes in the search, white, 20px radius, bitten corner. A seller with a single dish shows it as the grid card instead, with the seller (`label`, muted) under the dish, two to a row; a seller with more spans the row. Either the seller's avatar, name (`title-lg`) and window (`label`, muted) (Figma K2c), or their first dish as an offer card (Figma K1f); then up to three dish tiles: a photograph 84px high with a 12px radius, the price (`price`) beside the old one struck through, and the dish (`label`) on one line.
 
 ### Deal card
 

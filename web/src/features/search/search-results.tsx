@@ -5,6 +5,7 @@ import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/em
 import { listOffers } from "@/features/offers/list-offers";
 import { groupBySeller, inShowingOrder } from "@/features/offers/offer";
 import { OfferList } from "@/features/offers/offer-list";
+import { OfferCard } from "@/features/offers/offer-card";
 import { SellerGroup } from "@/features/offers/seller-group";
 import { Link } from "@/i18n/navigation";
 
@@ -80,16 +81,25 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
       ) : !sellersTab && query.q ? (
         <OfferList offers={offers} showSeller />
       ) : (
-        <ul className="grid grid-cols-1 gap-3 px-4 sm:grid-cols-2 xl:grid-cols-3">
-          {groups.map((group) => (
-            <li key={group.seller.id}>
-              <SellerGroup
-                seller={group.seller}
-                offers={group.offers}
-                lead={sellersTab ? "seller" : "dish"}
-              />
-            </li>
-          ))}
+        // A seller with one dish is a small card, two to a row; a seller with more spans the row with their
+        // tiles (Figma K1f).
+        <ul className="grid grid-cols-2 gap-3 px-4 xl:grid-cols-3">
+          {groups.map(({ seller, offers: dishes }) => {
+            const [only] = dishes;
+            return !sellersTab && dishes.length === 1 && only ? (
+              <li key={seller.id} className="min-w-0">
+                <OfferCard offer={only} compact showSeller className="h-full" />
+              </li>
+            ) : (
+              <li key={seller.id} className="col-span-2 min-w-0">
+                <SellerGroup
+                  seller={seller}
+                  offers={dishes}
+                  lead={sellersTab ? "seller" : "dish"}
+                />
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
