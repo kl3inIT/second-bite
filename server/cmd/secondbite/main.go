@@ -1,12 +1,14 @@
 // Command secondbite runs the Second Bite backend.
 //
 //	secondbite serve                      migrate the database, then serve the API
-//	secondbite admin grant EMAIL       make the account of EMAIL an admin
+//	secondbite admin grant EMAIL          make the account of EMAIL an admin
+//	secondbite admin revoke EMAIL         make the admin EMAIL a customer again
 //	secondbite email configure [flags]    choose who delivers email
 //	secondbite health                     exit 0 when the local server is ready
 //
-// The last two are the administrative commands of a fresh installation: the
-// first admin and the first email provider exist before anyone can sign in.
+// Granting an admin and configuring email are the administrative commands of
+// a fresh installation: the first admin and the first email provider exist
+// before anyone can sign in.
 package main
 
 import (
@@ -39,6 +41,7 @@ import (
 const usage = `usage:
   secondbite serve
   secondbite admin grant EMAIL
+  secondbite admin revoke EMAIL
   secondbite email configure [flags]   (secondbite email configure -h lists them)
   secondbite health`
 
@@ -83,18 +86,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdin i
 
 		return app.serve(ctx)
 	case "admin":
-		if len(rest) != 2 || rest[0] != "grant" {
-			return errUsage
-		}
-
-		a, err := app.identity.GrantRole(ctx, rest[1], platform.RoleAdmin)
-		if err != nil {
-			return err
-		}
-
-		_, err = fmt.Fprintf(stdout, "%s is an admin\n", a.Email)
-
-		return err
+		return runAdmin(ctx, app.identity, rest, stdout)
 	case "email":
 		if len(rest) == 0 || rest[0] != "configure" {
 			return errUsage
@@ -240,6 +232,7 @@ func registerOperations(api huma.API, a *app) {
 	// Every admin operation is registered on one group, so the contract test
 	// finds them all under its prefix (SEC-75).
 	admin := platform.NewAdminGroup(api)
+	identity.RegisterAdminOperations(admin, a.identity)
 	notification.RegisterAdminOperations(admin, a.notification)
 	seller.RegisterAdminOperations(admin, a.seller)
 	offer.RegisterAdminOperations(admin, a.offer)

@@ -5,7 +5,10 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../models/account_body.dart';
+import '../models/admins_output_body.dart';
 import '../models/email_settings_body.dart';
+import '../models/grant_admin_request.dart';
 import '../models/offer_settings_body.dart';
 import '../models/save_email_settings_input_body.dart';
 import '../models/seller_body.dart';
@@ -17,6 +20,24 @@ part 'admin_client.g.dart';
 @RestApi()
 abstract class AdminClient {
   factory AdminClient(Dio dio, {String? baseUrl}) = _AdminClient;
+
+  /// Every admin, by address
+  @GET('/admin/admins')
+  Future<AdminsOutputBody> listAdmins();
+
+  /// Make the account of an address an admin.
+  ///
+  /// Creates the account when the address has never signed in; its owner signs in with an emailed code. Granting an admin again changes nothing.
+  @POST('/admin/admins')
+  Future<AccountBody> grantAdmin({@Body() required GrantAdminRequest body});
+
+  /// Make an admin a customer again; never oneself nor the last admin.
+  ///
+  /// The account's next request is a customer's; its sessions stay. Revoking a customer changes nothing.
+  @POST('/admin/admins/{accountId}/revoke')
+  Future<AccountBody> revokeAdmin({
+    @Path('accountId') required String accountId,
+  });
 
   /// Read who delivers email
   @GET('/admin/email-settings')

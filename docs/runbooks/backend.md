@@ -132,8 +132,9 @@ A fresh installation needs an email provider and a first admin before anyone can
 | `secondbite email configure -provider smtp -sender-address A -smtp-host H -smtp-port P [-smtp-security starttls\|tls\|none] [-smtp-username U -secret-stdin]` | Delivers email through an SMTP server; the password is read from standard input |
 | `secondbite email configure -provider brevo -sender-address A -secret-stdin` | Delivers email through Brevo's API; the API key is read from standard input |
 | `secondbite admin grant EMAIL` | Makes the account of EMAIL an admin, creating it if the address has never signed in; refused with `IDENTITY_ADDRESS_UNPROVEN` while the account holds a Google link to an address Google does not speak for: have the owner sign in once with the emailed code, then run it again |
+| `secondbite admin revoke EMAIL` | Makes the admin EMAIL a customer again; refused with `IDENTITY_LAST_ADMIN` when no other admin is left. Their next request is a customer's |
 
-A secret is never a flag, so it stays out of the shell's history: `secondbite email configure ... -secret-stdin < /run/secrets/brevo-api-key`. Afterwards admins change the provider in the API (`PUT /admin/email-settings`) and the next email uses it, without a restart.
+A secret is never a flag, so it stays out of the shell's history: `secondbite email configure ... -secret-stdin < /run/secrets/brevo-api-key`. Afterwards admins change the provider in the API (`PUT /admin/email-settings`) and the next email uses it, without a restart; they grant and revoke admins there too (`/admin/admins`). Every one of these changes, by command or by API, is recorded in the audit trail (`audit_events`), a command's without an actor.
 
 ## Regenerate the queries
 

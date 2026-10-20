@@ -32,6 +32,8 @@ type service struct {
 	base    string
 	dsn     string
 	mailpit string
+	// getenv is the service's environment, for running its commands.
+	getenv func(string) string
 }
 
 // TestService runs the assembled service against PostgreSQL with PostGIS and
@@ -58,6 +60,8 @@ func TestService(t *testing.T) {
 		"an unknown or malformed token is refused with 401":          checkInvalidToken,
 		"only admins read the email settings":                        checkAdminOnly,
 		"every admin operation refuses the signed out and customers": checkAdminOperationsRefuseOthers,
+		"a revoked admin is refused at the next request":             checkRevokedAdminRefused,
+		"the command line grants and revokes an admin":               checkAdminCommands,
 		"a new code ends the earlier one":                            checkNewCodeEndsEarlier,
 		"a seller is opened active, staffed and blocked":             checkSellerFlow,
 		"a photo is uploaded, set on a seller and served":            checkPhotoFlow,
@@ -118,8 +122,8 @@ func startService(t *testing.T) (service, func() error) {
 			"-smtp-host", smtpHost, "-smtp-port", smtpPort, "-smtp-security", "none",
 		},
 	}
-	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail} {
-		admin = append(admin, []string{"admin", "grant", email})
+	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail, grantingAdminEmail, auditAdminEmail} {
+		admin = append(admin, []string{commandAdmin, "grant", email})
 	}
 
 	for _, args := range admin {
@@ -133,7 +137,7 @@ func startService(t *testing.T) (service, func() error) {
 
 	go func() { done <- run(runCtx, []string{"serve"}, getenv, strings.NewReader(""), io.Discard) }()
 
-	svc := service{base: "http://" + addr, dsn: dsn, mailpit: mailpitURL}
+	svc := service{base: "http://" + addr, dsn: dsn, mailpit: mailpitURL, getenv: getenv}
 	waitReady(t, svc.base+"/readyz", done)
 
 	stop := func() error {

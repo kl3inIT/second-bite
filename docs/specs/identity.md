@@ -15,10 +15,15 @@ Owns accounts and their role, emailed sign-in codes, Google sign-in and sessions
 | `PUT /accounts/me` `{displayName}` | A signed-in caller | `200` the account, its name trimmed (SEC-61) |
 | `POST /accounts/me/deletion-codes` | A signed-in caller | `202 {challengeId, expiresAt}`; a code that only confirms the deletion is emailed to the account's address (SEC-37) |
 | `POST /accounts/me/deletion` `{challengeId, code}` | A signed-in caller holding a deletion code of their own address | `204`; the account is deleted and the session cookie cleared |
+| `GET /admin/admins` | Admins | `200 {admins}`, by address (SEC-75) |
+| `POST /admin/admins` `{email}` | Admins | `200` the account, an admin; created when the address has never signed in; again, the same, recording nothing |
+| `POST /admin/admins/{accountId}/revoke` | Admins, never for themselves | `200` the account, a customer; a customer again, the same; refused for the last admin |
 
-Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantRole`, and the event `AccountDeletedEvent` (`identity.account_deleted`, the account's identifier only), which `seller` and `file` follow.
+Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantAdmin`, `RevokeAdmin` and their command-line forms, and the event `AccountDeletedEvent` (`identity.account_deleted`, the account's identifier only), which `seller` and `file` follow.
 
-Administrative command: `secondbite admin grant EMAIL` makes an account an admin, creating it if needed.
+Administrative commands: `secondbite admin grant EMAIL` makes an account an admin, creating it if needed; `secondbite admin revoke EMAIL` makes it a customer again, never the last admin.
+
+**Admins** (SEC-75). Changes of who is an admin are serialized by an advisory lock (`identity:admins`); a revoke counts the admins under it, so two admins revoking each other at once leave one. An admin cannot revoke themselves. Sessions are not ended: the role is read with the session on every request, so a revoked admin's next request is a customer's. Each grant and revoke is recorded in the audit trail with its source, `admin` or `command_line`; granting an admin or revoking a customer records nothing. Granting an address an unvouched Google link holds waits for its owner's code, as any gift by address does.
 
 ## Rules
 
@@ -57,6 +62,8 @@ Administrative command: `secondbite admin grant EMAIL` makes an account an admin
 | `IDENTITY_ADDRESS_UNPROVEN` | 409 | A role or a seller membership is given by address while the address's account holds a Google link Google does not speak for; the owner signs in once with the emailed code, then it succeeds (SEC-39) |
 | `IDENTITY_DISPLAY_NAME_INVALID` | 400 | A display name empty once trimmed, longer than 50 characters, or holding a control character |
 | `IDENTITY_ACCOUNT_NOT_FOUND` | 404 | The account does not exist |
+| `IDENTITY_ADMIN_SELF` | 409 | An admin revokes their own account |
+| `IDENTITY_LAST_ADMIN` | 409 | The revoke would leave no admin |
 | `IDENTITY_CHALLENGE_GONE` | 410 | The code expired, was used or was ended by a newer one; also a code of the other purpose, or a deletion code of another address, so a challenge tells nothing of who asked for it |
 | `IDENTITY_CODE_ATTEMPTS_EXHAUSTED` | 410 | Five wrong guesses on this code |
 | `IDENTITY_CODE_LIMIT_EXCEEDED` | 429 | A limit per address; `Retry-After` gives the wait |

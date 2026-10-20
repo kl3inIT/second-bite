@@ -74,6 +74,17 @@ func (q *Queries) ChallengeUsage(ctx context.Context, email string) (ChallengeUs
 	return i, err
 }
 
+const countAdmins = `-- name: CountAdmins :one
+SELECT count(*) FROM identity_accounts WHERE role = 'admin'
+`
+
+func (q *Queries) CountAdmins(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countAdmins)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const deleteAccount = `-- name: DeleteAccount :execrows
 DELETE FROM identity_accounts WHERE id = $1
 `
@@ -479,6 +490,53 @@ func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) (I
 	return i, err
 }
 
+const listAdmins = `-- name: ListAdmins :many
+SELECT id, email, role, display_name FROM identity_accounts WHERE role = 'admin' ORDER BY email
+`
+
+type ListAdminsRow struct {
+	ID          uuid.UUID
+	Email       string
+	Role        string
+	DisplayName string
+}
+
+func (q *Queries) ListAdmins(ctx context.Context) ([]ListAdminsRow, error) {
+	rows, err := q.db.Query(ctx, listAdmins)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAdminsRow
+	for rows.Next() {
+		var i ListAdminsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.Role,
+			&i.DisplayName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lockAdmins = `-- name: LockAdmins :exec
+SELECT pg_advisory_xact_lock(hashtextextended('identity:admins', 0))
+`
+
+// Serializes the changes of who is an admin until the transaction ends, so
+// two revokes cannot both leave the other one the last admin.
+func (q *Queries) LockAdmins(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, lockAdmins)
+	return err
+}
+
 const lockEmail = `-- name: LockEmail :exec
 SELECT pg_advisory_xact_lock(hashtextextended('identity:' || $1::text, 0))
 `
@@ -552,6 +610,35 @@ type SetDisplayNameRow struct {
 func (q *Queries) SetDisplayName(ctx context.Context, arg SetDisplayNameParams) (SetDisplayNameRow, error) {
 	row := q.db.QueryRow(ctx, setDisplayName, arg.DisplayName, arg.ID)
 	var i SetDisplayNameRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Role,
+		&i.DisplayName,
+	)
+	return i, err
+}
+
+const setRole = `-- name: SetRole :one
+UPDATE identity_accounts SET role = $1 WHERE id = $2
+RETURNING id, email, role, display_name
+`
+
+type SetRoleParams struct {
+	Role string
+	ID   uuid.UUID
+}
+
+type SetRoleRow struct {
+	ID          uuid.UUID
+	Email       string
+	Role        string
+	DisplayName string
+}
+
+func (q *Queries) SetRole(ctx context.Context, arg SetRoleParams) (SetRoleRow, error) {
+	row := q.db.QueryRow(ctx, setRole, arg.Role, arg.ID)
+	var i SetRoleRow
 	err := row.Scan(
 		&i.ID,
 		&i.Email,

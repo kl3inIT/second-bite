@@ -56,6 +56,21 @@ INSERT INTO identity_accounts (email, role) VALUES (@email, @role)
 ON CONFLICT (email) DO UPDATE SET role = EXCLUDED.role
 RETURNING id, email, role, display_name;
 
+-- name: LockAdmins :exec
+-- Serializes the changes of who is an admin until the transaction ends, so
+-- two revokes cannot both leave the other one the last admin.
+SELECT pg_advisory_xact_lock(hashtextextended('identity:admins', 0));
+
+-- name: CountAdmins :one
+SELECT count(*) FROM identity_accounts WHERE role = 'admin';
+
+-- name: ListAdmins :many
+SELECT id, email, role, display_name FROM identity_accounts WHERE role = 'admin' ORDER BY email;
+
+-- name: SetRole :one
+UPDATE identity_accounts SET role = @role WHERE id = @id
+RETURNING id, email, role, display_name;
+
 -- name: GetAccounts :many
 SELECT id, email, role, display_name FROM identity_accounts WHERE id = ANY(@ids::uuid[]);
 

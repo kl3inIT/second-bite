@@ -38,27 +38,20 @@ func requestCode(t *testing.T, svc service, email string) (string, string) {
 }
 
 // readCode polls Mailpit for the newest email to address and returns its code.
+// Mailpit's search matches part of an address (admin@example.com finds
+// seller.admin@example.com too), so the recipient is compared whole.
 func readCode(t *testing.T, svc service, address string) string {
 	t.Helper()
 
 	deadline := time.Now().Add(10 * time.Second)
 
 	for time.Now().Before(deadline) {
-		var found struct {
-			Messages []struct {
-				ID string `json:"ID"`
-			} `json:"messages"`
-		}
-
-		send(t, http.MethodGet, svc.mailpit+"/api/v1/search?query="+url.QueryEscape("to:"+address), nil, nil).
-			decode(t, http.StatusOK, &found)
-
-		if len(found.Messages) > 0 {
+		if id, ok := newestEmailTo(t, svc, address); ok {
 			var msg struct {
 				Text string `json:"Text"`
 			}
 
-			send(t, http.MethodGet, svc.mailpit+"/api/v1/message/"+found.Messages[0].ID, nil, nil).
+			send(t, http.MethodGet, svc.mailpit+"/api/v1/message/"+id, nil, nil).
 				decode(t, http.StatusOK, &msg)
 
 			m := codePattern.FindStringSubmatch(msg.Text)
@@ -75,6 +68,34 @@ func readCode(t *testing.T, svc service, address string) string {
 	t.Fatalf("no email reached %s", address)
 
 	return ""
+}
+
+// newestEmailTo answers the identifier of the newest email Mailpit caught
+// for exactly address; Mailpit lists the newest first.
+func newestEmailTo(t *testing.T, svc service, address string) (string, bool) {
+	t.Helper()
+
+	var found struct {
+		Messages []struct {
+			ID string `json:"ID"`
+			To []struct {
+				Address string `json:"Address"`
+			} `json:"To"`
+		} `json:"messages"`
+	}
+
+	send(t, http.MethodGet, svc.mailpit+"/api/v1/search?query="+url.QueryEscape("to:"+address), nil, nil).
+		decode(t, http.StatusOK, &found)
+
+	for _, m := range found.Messages {
+		for _, to := range m.To {
+			if strings.EqualFold(to.Address, address) {
+				return m.ID, true
+			}
+		}
+	}
+
+	return "", false
 }
 
 func signIn(t *testing.T, svc service, email string) session {
@@ -414,12 +435,12 @@ func checkAdminOnly(t *testing.T, svc service) {
 	customer := signIn(t, svc, "not.an.admin@example.com")
 
 	p := send(t, http.MethodGet, svc.base+"/admin/email-settings", bearer(customer.Token), nil).problem(t, http.StatusForbidden)
-	if p.Code != "PLATFORM_ADMIN_REQUIRED" {
+	if p.Code != codeAdminRequired {
 		t.Errorf("customer: code %q", p.Code)
 	}
 
 	admin := signIn(t, svc, adminEmail)
-	if admin.Account.Role != "admin" {
+	if admin.Account.Role != roleAdmin {
 		t.Fatalf("the granted admin signed in as %q", admin.Account.Role)
 	}
 

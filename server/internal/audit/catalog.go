@@ -27,3 +27,23 @@ type EmailSettingsChanged struct {
 }
 
 func (EmailSettingsChanged) action() string { return "email_settings.change" }
+
+// Where a change of who is an admin came from.
+const (
+	SourceAdmin       = "admin"
+	SourceCommandLine = "command_line"
+)
+
+// AdminGranted is an account made an admin.
+type AdminGranted struct {
+	Source string `json:"source"`
+}
+
+func (AdminGranted) action() string { return "admin.grant" }
+
+// AdminRevoked is an admin made a customer again.
+type AdminRevoked struct {
+	Source string `json:"source"`
+}
+
+func (AdminRevoked) action() string { return "admin.revoke" }

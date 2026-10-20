@@ -25,5 +25,8 @@ Requirements of [docs/specs/identity.md](../specs/identity.md) and the checks th
 | A deletion code of another address deletes nothing; a deletion takes the sessions, the Google links and the codes, keeps the other accounts, forgets the account's address in the audit trail while keeping its identifier, and writes the event once for its one listener | `internal/identity` `TestDeleteAccount` |
 | The signed-in person sets their display name; it comes back trimmed and the account reads it; a name too long is refused with `IDENTITY_DISPLAY_NAME_INVALID` in the request's language and changes nothing; someone signed out is refused | `TestService` › a person names their account |
 | A display name is 1 to 50 characters once trimmed, with no control character and valid UTF-8; a later Google sign-in keeps the chosen name | `internal/identity` `TestNormalizeDisplayName`, `TestSetDisplayName` |
+| The last admin cannot be revoked, nor an admin by themselves; an admin grants a new address once, recorded once; customers can do neither; two admins revoking each other at once leave one; revoking a customer changes nothing; an unknown account is not found | `TestAdmins` (`internal/identity/admins_test.go`) |
+| A revoked admin's session is refused at its next admin request; revoking oneself answers `IDENTITY_ADMIN_SELF` | `TestService` › a revoked admin is refused at the next request (`cmd/secondbite/admin_test.go`) |
+| `secondbite admin grant` and `revoke` change the role and are recorded without an actor | `TestService` › the command line grants and revokes an admin |
 
 Not covered by a test: the limits of ten codes an hour and of wrong guesses per hour and per day through the API (their waits are unit-tested), and the expiry of a session after 30 days.

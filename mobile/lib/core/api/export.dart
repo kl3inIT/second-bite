@@ -13,6 +13,7 @@ export 'clients/sellers_client.dart';
 // Data classes
 export 'models/account_body.dart';
 export 'models/add_seller_staff_request.dart';
+export 'models/admins_output_body.dart';
 export 'models/collection_point_body.dart';
 export 'models/delete_account_input_body.dart';
 export 'models/details_body.dart';
@@ -24,6 +25,7 @@ export 'models/found_body.dart';
 export 'models/found_output_body.dart';
 export 'models/google_method_body.dart';
 export 'models/google_sign_in_input_body.dart';
+export 'models/grant_admin_request.dart';
 export 'models/list_dishes_response.dart';
 export 'models/member_body.dart';
 export 'models/members_output_body.dart';

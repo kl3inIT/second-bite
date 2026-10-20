@@ -18,6 +18,13 @@ export type AddSellerStaffRequest = {
     email: string;
 };
 
+export type AdminsOutputBody = {
+    /**
+     * Every admin, by address
+     */
+    admins: Array<AccountBody> | null;
+};
+
 export type CollectionPointBody = {
     address: string;
     latitude: number;
@@ -178,6 +185,13 @@ export type GoogleSignInInputBody = {
      * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
      */
     session?: 'token' | 'cookie';
+};
+
+export type GrantAdminRequest = {
+    /**
+     * The address of the account
+     */
+    email: string;
 };
 
 export type ListDishesResponse = {
@@ -612,6 +626,83 @@ export type RequestAccountDeletionCodeResponses = {
 };
 
 export type RequestAccountDeletionCodeResponse = RequestAccountDeletionCodeResponses[keyof RequestAccountDeletionCodeResponses];
+
+export type ListAdminsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/admins';
+};
+
+export type ListAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListAdminsError = ListAdminsErrors[keyof ListAdminsErrors];
+
+export type ListAdminsResponses = {
+    /**
+     * OK
+     */
+    200: AdminsOutputBody;
+};
+
+export type ListAdminsResponse = ListAdminsResponses[keyof ListAdminsResponses];
+
+export type GrantAdminData = {
+    body: GrantAdminRequest;
+    path?: never;
+    query?: never;
+    url: '/admin/admins';
+};
+
+export type GrantAdminErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GrantAdminError = GrantAdminErrors[keyof GrantAdminErrors];
+
+export type GrantAdminResponses = {
+    /**
+     * OK
+     */
+    200: AccountBody;
+};
+
+export type GrantAdminResponse = GrantAdminResponses[keyof GrantAdminResponses];
+
+export type RevokeAdminData = {
+    body?: never;
+    path: {
+        accountId: string;
+    };
+    query?: never;
+    url: '/admin/admins/{accountId}/revoke';
+};
+
+export type RevokeAdminErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RevokeAdminError = RevokeAdminErrors[keyof RevokeAdminErrors];
+
+export type RevokeAdminResponses = {
+    /**
+     * OK
+     */
+    200: AccountBody;
+};
+
+export type RevokeAdminResponse = RevokeAdminResponses[keyof RevokeAdminResponses];
 
 export type GetEmailSettingsData = {
     body?: never;

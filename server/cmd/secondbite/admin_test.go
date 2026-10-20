@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"io"
 	"maps"
 	"net/http"
 	"regexp"
@@ -11,6 +13,20 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/kl3inIT/second-bite/server/internal/platform"
+)
+
+// Admins of their own, so the checks that sign them in do not end one
+// another's codes: grantingAdminEmail grants and revokes beside the other
+// checks, auditAdminEmail makes every change after them.
+const (
+	grantingAdminEmail = "granting.admin@example.com"
+	auditAdminEmail    = "audit.admin@example.com"
+)
+
+const (
+	roleAdmin         = "admin"
+	commandAdmin      = "admin"
+	codeAdminRequired = "PLATFORM_ADMIN_REQUIRED"
 )
 
 // adminOperation is one operation of the contract under the admin prefix.
@@ -74,7 +90,7 @@ func checkAdminOperationsRefuseOthers(t *testing.T, svc service) {
 				code   string
 			}{
 				{"signed out", nil, http.StatusUnauthorized, "PLATFORM_AUTHENTICATION_REQUIRED"},
-				{"as a customer", customer, http.StatusForbidden, "PLATFORM_ADMIN_REQUIRED"},
+				{"as a customer", customer, http.StatusForbidden, codeAdminRequired},
 			} {
 				// No body: a refusal must come before the request is read, so a
 				// customer cannot learn how an admin operation validates.
@@ -119,6 +135,18 @@ var adminChanges = map[string]adminChange{
 			s["senderName"] = "Second Bite (kiểm tra)"
 		})
 	}},
+	"grantAdmin": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		return send(t, http.MethodPost, svc.base+"/admin/admins", admin, emailBody("audit.granted@example.com")), func() {}
+	}},
+	"revokeAdmin": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		id := grantAdmin(t, svc, admin, "audit.revoked@example.com")
+
+		return send(t, http.MethodPost, svc.base+"/admin/admins/"+id+"/revoke", admin, nil), func() {}
+	}},
 	"blockSeller": {
 		call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
 			t.Helper()
@@ -148,7 +176,7 @@ var adminChanges = map[string]adminChange{
 func checkAdminChangesAreAudited(t *testing.T, svc service) {
 	t.Helper()
 
-	admin := bearer(signIn(t, svc, adminEmail).Token)
+	admin := bearer(signIn(t, svc, auditAdminEmail).Token)
 
 	for _, op := range adminOperations(t) {
 		if op.method == http.MethodGet {
@@ -239,4 +267,83 @@ func openSeller(t *testing.T, svc service, owner string) string {
 		decode(t, http.StatusCreated, &opened)
 
 	return opened.ID
+}
+
+// grantAdmin makes the account of email an admin through the API and answers
+// its identifier.
+func grantAdmin(t *testing.T, svc service, admin http.Header, email string) string {
+	t.Helper()
+
+	var granted struct {
+		ID   string `json:"id"`
+		Role string `json:"role"`
+	}
+
+	send(t, http.MethodPost, svc.base+"/admin/admins", admin, emailBody(email)).decode(t, http.StatusOK, &granted)
+
+	if granted.Role != roleAdmin {
+		t.Fatalf("granted %s: role %q", email, granted.Role)
+	}
+
+	return granted.ID
+}
+
+// checkRevokedAdminRefused grants an admin, who signs in and reads the
+// admins; once revoked, the same session is refused (SEC-75). Revoking
+// oneself is refused.
+func checkRevokedAdminRefused(t *testing.T, svc service) {
+	t.Helper()
+
+	const email = "revoked.admin@example.com"
+
+	admin := bearer(signIn(t, svc, grantingAdminEmail).Token)
+	id := grantAdmin(t, svc, admin, email)
+
+	revoked := signIn(t, svc, email)
+	if revoked.Account.Role != roleAdmin {
+		t.Fatalf("the granted admin signed in as %q", revoked.Account.Role)
+	}
+
+	theirs := bearer(revoked.Token)
+	send(t, http.MethodGet, svc.base+"/admin/admins", theirs, nil).decode(t, http.StatusOK, &struct{}{})
+
+	if p := send(t, http.MethodPost, svc.base+"/admin/admins/"+id+"/revoke", theirs, nil).problem(t, http.StatusConflict); p.Code != "IDENTITY_ADMIN_SELF" {
+		t.Errorf("revoking oneself: %q", p.Code)
+	}
+
+	send(t, http.MethodPost, svc.base+"/admin/admins/"+id+"/revoke", admin, nil).decode(t, http.StatusOK, &struct{}{})
+
+	if p := send(t, http.MethodGet, svc.base+"/admin/admins", theirs, nil).problem(t, http.StatusForbidden); p.Code != codeAdminRequired {
+		t.Errorf("the revoked admin's session: %q", p.Code)
+	}
+}
+
+// checkAdminCommands grants and revokes an admin with the commands, as an
+// operator does, and finds each change in the audit trail without an actor.
+func checkAdminCommands(t *testing.T, svc service) {
+	t.Helper()
+
+	const email = "command.admin@example.com"
+
+	for _, args := range [][]string{{commandAdmin, "grant", email}, {commandAdmin, "revoke", email}} {
+		var out strings.Builder
+		if err := run(t.Context(), args, svc.getenv, strings.NewReader(""), &out); err != nil {
+			t.Fatalf("secondbite %s: %v", strings.Join(args, " "), err)
+		}
+	}
+
+	if signIn(t, svc, email).Account.Role != "customer" {
+		t.Error("the revoked admin signs in as an admin")
+	}
+
+	events := countRows(t, svc, `SELECT count(*) FROM audit_events
+		WHERE resource_label = $1 AND action IN ('admin.grant', 'admin.revoke')
+		AND actor_id IS NULL AND details->>'source' = 'command_line'`, email)
+	if events != 2 {
+		t.Errorf("%d command-line changes of %s recorded, want 2", events, email)
+	}
+
+	if err := run(t.Context(), []string{commandAdmin, "demote", email}, svc.getenv, strings.NewReader(""), io.Discard); !errors.Is(err, errUsage) {
+		t.Errorf("an unknown admin command: %v, want the usage", err)
+	}
 }

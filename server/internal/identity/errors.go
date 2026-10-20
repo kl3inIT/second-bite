@@ -64,4 +64,12 @@ var (
 		VI: "Không tìm thấy tài khoản này.",
 		EN: "The account does not exist.",
 	})
+	ErrAdminSelf = platform.NewFailure("IDENTITY_ADMIN_SELF", platform.CategoryConflict, platform.Words{
+		VI: "Bạn không tự thu hồi quyền quản trị của mình được. Nhờ một quản trị viên khác làm việc này.",
+		EN: "You cannot revoke your own admin rights. Ask another admin to.",
+	})
+	ErrLastAdmin = platform.NewFailure("IDENTITY_LAST_ADMIN", platform.CategoryConflict, platform.Words{
+		VI: "Đây là quản trị viên cuối cùng. Cấp quyền cho một người khác trước khi thu hồi.",
+		EN: "This is the last admin. Make someone else an admin before revoking.",
+	})
 )

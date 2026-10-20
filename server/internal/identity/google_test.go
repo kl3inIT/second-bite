@@ -18,6 +18,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/identity/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
@@ -173,7 +174,7 @@ func TestSignInWithGoogle(t *testing.T) {
 func newGoogleService(t *testing.T, pool *pgxpool.Pool, iss issuer) *Service {
 	t.Helper()
 
-	s, err := NewService(pool, nil, nil, nil, Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
+	s, err := NewService(pool, nil, nil, audit.NewService(pool, platformtest.Logger()), Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -433,7 +434,7 @@ func testPrivilegeWaitsForProof(t *testing.T, s *Service, iss issuer) {
 	for name, give := range map[string]func(email string) (Account, error){
 		"a seller membership": func(email string) (Account, error) { return s.EnsureAccount(t.Context(), email) },
 		"a role": func(email string) (Account, error) {
-			return s.GrantRole(t.Context(), email, platform.RoleAdmin)
+			return s.GrantAdminAsSystem(t.Context(), email)
 		},
 	} {
 		// Someone links their Google account to an outside address; giving the

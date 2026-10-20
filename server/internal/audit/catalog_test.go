@@ -9,6 +9,8 @@ import (
 var catalog = []Action{
 	OfferSettingsChanged{},
 	EmailSettingsChanged{},
+	AdminGranted{},
+	AdminRevoked{},
 }
 
 var actionName = regexp.MustCompile(`^[a-z_]+\.[a-z_]+$`)

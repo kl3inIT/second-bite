@@ -80,7 +80,7 @@ func checkSellerFlow(t *testing.T, svc service) {
 		t.Errorf("a stranger reading the seller: %q", p.Code)
 	}
 
-	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/block", owner, nil).problem(t, http.StatusForbidden); p.Code != "PLATFORM_ADMIN_REQUIRED" {
+	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/block", owner, nil).problem(t, http.StatusForbidden); p.Code != codeAdminRequired {
 		t.Errorf("the owner blocking: %q", p.Code)
 	}
 

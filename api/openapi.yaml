@@ -31,6 +31,19 @@ components:
       required:
         - email
       type: object
+    AdminsOutputBody:
+      additionalProperties: false
+      properties:
+        admins:
+          description: Every admin, by address
+          items:
+            $ref: "#/components/schemas/AccountBody"
+          type:
+            - array
+            - "null"
+      required:
+        - admins
+      type: object
     CollectionPointBody:
       additionalProperties: false
       properties:
@@ -409,6 +422,17 @@ components:
           type: string
       required:
         - idToken
+      type: object
+    GrantAdminRequest:
+      additionalProperties: false
+      properties:
+        email:
+          description: The address of the account
+          maxLength: 254
+          minLength: 3
+          type: string
+      required:
+        - email
       type: object
     ListDishesResponse:
       additionalProperties: false
@@ -1176,6 +1200,85 @@ paths:
       summary: Email the signed-in account's address a code that confirms its deletion
       tags:
         - Accounts
+  /admin/admins:
+    get:
+      operationId: listAdmins
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Every admin, by address
+      tags:
+        - Admin
+    post:
+      description: Creates the account when the address has never signed in; its owner signs in with an emailed code. Granting an admin again changes nothing.
+      operationId: grantAdmin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrantAdminRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Make the account of an address an admin
+      tags:
+        - Admin
+  /admin/admins/{accountId}/revoke:
+    post:
+      description: The account's next request is a customer's; its sessions stay. Revoking a customer changes nothing.
+      operationId: revokeAdmin
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Make an admin a customer again; never oneself nor the last admin
+      tags:
+        - Admin
   /admin/email-settings:
     get:
       operationId: getEmailSettings

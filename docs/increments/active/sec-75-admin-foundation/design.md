@@ -181,8 +181,8 @@ func (s *Service) ForgetAccount(ctx context.Context, tx pgx.Tx, accountID uuid.U
 - **The command line:** `secondbite admin grant EMAIL` stays, and `secondbite admin revoke EMAIL` is new. Both record `AdminGranted` or `AdminRevoked` with `Source: "command_line"` and no actor.
 - **The API**, for SEC-62's "Quản trị viên" screen; built here, with no screen yet:
   - `GET /admin/admins`;
-  - `POST /admin/accounts/{accountId}/grant-admin`;
-  - `POST /admin/accounts/{accountId}/revoke-admin`.
+  - `POST /admin/admins {email}`, granting by address, so a person who never signed in can be named (changed while building, 21 October 2026);
+  - `POST /admin/admins/{accountId}/revoke`.
 
   These are commands, not `DELETE`, after BeyondPilot.
 - **Granting** an address that has no account creates the account, waiting for that address's code (SEC-39).
