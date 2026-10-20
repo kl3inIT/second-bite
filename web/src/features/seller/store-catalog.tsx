@@ -55,7 +55,7 @@ export async function StoreCatalog({
         aria-labelledby="store-dishes"
         className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground"
       >
-        <h2 id="store-dishes" className="text-title-lg">
+        <h2 id="store-dishes" className="text-card-title">
           {dishes.length === 0 ? t("emptyTitle") : t("count", { count: dishes.length })}
         </h2>
         {dishes.length === 0 ? (
@@ -83,7 +83,9 @@ export async function StoreCatalog({
                   />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <h3 className={cn("truncate text-title", dish.hidden && "text-muted-foreground")}>
+                  <h3
+                    className={cn("truncate text-title-lg", dish.hidden && "text-muted-foreground")}
+                  >
                     {dish.name}
                   </h3>
                   <p className="text-body-sm text-muted-foreground">{meta(dish)}</p>
