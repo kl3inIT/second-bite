@@ -25,7 +25,115 @@
   }
 }
 
-/* Clears a phone's home indicator under anything fixed to the bottom of the screen, such as the bottom bar. */
-@utility pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+/* Figma K0: the bitten "o" drops into the wordmark, the tagline follows, then the splash fades and stops
+   catching the pointer; once per visit. */
+@utility splash {
+  animation: splash-out 300ms ease-in 1700ms forwards;
+  :root[data-splash="seen"] & {
+    display: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation-delay: 0ms;
+    animation-duration: 1ms;
+  }
+}
+
+@keyframes splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* The bitten "o" of the wordmark, its fourth letter, falls from the top of the screen into its place, turning
+   as it falls, and bounces twice before it settles. */
+@utility bite-drop {
+  & path:nth-child(4) {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: bite-drop 1000ms linear 150ms both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    & path:nth-child(4) {
+      animation: none;
+    }
+  }
+}
+
+@keyframes bite-drop {
+  from {
+    transform: translateY(-60vh) rotate(-240deg);
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  55% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1);
+  }
+  72% {
+    transform: translateY(-45%);
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  86% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1);
+  }
+  93% {
+    transform: translateY(-12%);
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@utility fade-in-late {
+  animation: fade-in 400ms ease-out 1000ms both;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+/* The loading screen: the letters hop in a wave, over and over. Still for reduced motion. */
+@utility letters-wave {
+  & path {
+    transform-box: fill-box;
+    animation: letter-wave 1200ms ease-in-out infinite;
+    animation-delay: calc(var(--letter) * 80ms);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    & path {
+      animation: none;
+    }
+  }
+}
+
+@keyframes letter-wave {
+  0%,
+  50%,
+  100% {
+    transform: none;
+  }
+  25% {
+    transform: translateY(-30%);
+  }
+}
+
+/* A row that scrolls sideways shows a short hint of its own (ScrollRow `hint`) instead of the browser's bar. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Floats the bottom bar 16px above the screen's foot, or clear of a phone's home indicator when that is taller. */
+@utility bottom-safe-4 {
+  bottom: max(calc(var(--spacing) * 4), env(safe-area-inset-bottom, 0px));
 }

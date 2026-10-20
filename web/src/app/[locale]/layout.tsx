@@ -3,7 +3,9 @@ import { Be_Vietnam_Pro, Bricolage_Grotesque } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 
+import { BottomNav } from "@/components/bottom-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { Splash } from "@/components/splash";
 import { routing } from "@/i18n/routing";
 
 import "../globals.css";
@@ -24,7 +26,7 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-// The page runs under a phone's home indicator, so the bottom bar can pad itself clear of it (pb-safe).
+// The page runs under a phone's home indicator, so the bottom bar can float clear of it (bottom-safe-4).
 export const viewport: Viewport = { viewportFit: "cover" };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -40,11 +42,15 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
     <html
       lang={hasLocale(routing.locales, locale) ? locale : routing.defaultLocale}
       className={`${beVietnamPro.variable} ${bricolage.variable} h-full antialiased`}
+      // The splash's script marks a visit's later pages before React hydrates.
+      suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider>
+          <Splash />
           {children}
           <SiteFooter />
+          <BottomNav />
         </NextIntlClientProvider>
       </body>
     </html>

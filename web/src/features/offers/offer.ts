@@ -38,19 +38,15 @@ export function biggestDiscountFirst(offers: readonly OfferSummary[]): OfferSumm
   return offers.filter(isAvailable).toSorted((a, b) => b.discountPercent - a.discountPercent);
 }
 
-/**
- * The bags still open tonight, as units left across what can be ordered, and the end of the window that
- * closes last; undefined when nothing can be ordered.
- */
-export function openBags(
+/** The offers by seller, in the order each seller first appears, each seller's in the order given. */
+export function groupBySeller(
   offers: readonly OfferSummary[],
-): { bags: number; lastWindowEnd: string } | undefined {
-  const available = offers.filter(isAvailable);
-  if (available.length === 0) return undefined;
-  return {
-    bags: available.reduce((sum, offer) => sum + offer.unitsLeft, 0),
-    lastWindowEnd: available.reduce((last, offer) =>
-      Date.parse(offer.windowEnd) > Date.parse(last.windowEnd) ? offer : last,
-    ).windowEnd,
-  };
+): { seller: OfferSummary["seller"]; offers: OfferSummary[] }[] {
+  const groups = new Map<string, { seller: OfferSummary["seller"]; offers: OfferSummary[] }>();
+  for (const offer of offers) {
+    const group = groups.get(offer.sellerId);
+    if (group) group.offers.push(offer);
+    else groups.set(offer.sellerId, { seller: offer.seller, offers: [offer] });
+  }
+  return [...groups.values()];
 }

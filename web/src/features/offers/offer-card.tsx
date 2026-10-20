@@ -1,65 +1,99 @@
 import { ClockIcon } from "lucide-react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
+import { DiscountLabel } from "./discount-label";
 import { isAvailable, type OfferSummary } from "./offer";
-import { DiscountChip, Price } from "./price";
-import { SellerAvatar } from "./seller-avatar";
-import { useCollectionWindow } from "./window";
+import { OfferPhoto } from "./offer-photo";
+import { Price } from "./price";
+import { useCollectionWindow, useDistance } from "./window";
 
-// The large card of a sideways row (DESIGN.md › Offer card, Figma card/…): photograph with stock and the
-// seller's avatar, then seller, dish, window and place, and the price row, under a bitten corner.
-export function OfferCard({ offer }: { offer: OfferSummary }) {
+// The large card of "Sắp hết giờ nhận", the lists and the search (DESIGN.md › Offer card, Figma Mobile v3
+// card/…): the photograph with the discount label and, on a scrim at its foot, the window and how far it
+// is; then the dish, the portions left in red words and the price, under a bitten corner. A card names the
+// dish only; where the seller is not otherwise shown, as in search results, `showSeller` adds them.
+// `compact` is the card of the home's two-column grid (Figma "lưới món"): a 120px photograph, then the dish,
+// the price on its own line and the portions left under it, without the bitten corner.
+export function OfferCard({
+  offer,
+  showSeller = false,
+  compact = false,
+  className,
+}: {
+  offer: OfferSummary;
+  showSeller?: boolean;
+  compact?: boolean;
+  className?: string;
+}) {
   const t = useTranslations("OfferCard");
   const { from, until } = useCollectionWindow(offer);
+  const distance = useDistance(offer);
   const available = isAvailable(offer);
+  const window = t("window", { from, until });
 
   return (
-    <article className="relative flex w-66 flex-col overflow-hidden rounded-2xl bg-card text-card-foreground lg:w-full">
-      <div className="relative h-23">
-        <OfferPhoto offer={offer} dimmed={!available} />
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-linear-to-b from-transparent to-primary-hover/35"
+    <article
+      className={cn(
+        "relative flex flex-col overflow-hidden rounded-xl bg-card text-card-foreground",
+        className,
+      )}
+    >
+      <div className={cn("relative", compact ? "h-30" : "h-34")}>
+        <OfferPhoto
+          offer={offer}
+          dimmed={!available}
+          sizes={compact ? "(min-width: 640px) 25vw, 50vw" : "(min-width: 640px) 50vw, 100vw"}
         />
-        <Badge variant={available ? "fresh" : "soldOut"} className="absolute top-3 left-3">
-          {available ? t("stock", { units: offer.unitsLeft }) : t("soldOut")}
-        </Badge>
-        <SellerAvatar seller={offer.seller} size="md" className="absolute bottom-3 left-3" />
-      </div>
-      <div className="flex flex-col gap-1.5 px-3.5 pt-3 pb-3.5">
-        <p className="truncate text-title text-foreground">{offer.seller.name}</p>
-        <h3 className="truncate text-body-sm text-muted-foreground">{offer.name}</h3>
-        <p className="flex items-center gap-1.5 text-label text-muted-foreground">
-          <ClockIcon aria-hidden className="size-3.5 shrink-0" />
+        <DiscountLabel percent={offer.discountPercent} className="rounded-tl-xl" />
+        <p
+          className={cn(
+            "absolute inset-x-0 bottom-0 flex items-end bg-linear-to-b from-transparent to-foreground/60 text-label-strong text-card",
+            compact ? "h-11 gap-1.25 px-2.5 pb-2" : "h-13 gap-1.75 px-3.25 pb-2.5",
+          )}
+        >
+          <ClockIcon aria-hidden strokeWidth={2.2} className="mb-0.5 size-3.5 shrink-0" />
           <span className="truncate">
-            {t("windowAt", { from, until, place: offer.seller.address })}
+            {distance ? t("windowAway", { window, distance }) : window}
           </span>
         </p>
-        <div className="flex items-center justify-between gap-2">
-          <DiscountChip percent={offer.discountPercent} />
-          <Price offer={offer} size="lg" />
-        </div>
       </div>
-      <BiteCorner className="size-14" />
+      <div className={cn("flex flex-col gap-1 pt-2.5 pb-3", compact ? "px-2.5" : "px-3.5")}>
+        <h3 className={cn("truncate text-foreground", compact ? "text-title" : "text-title-lg")}>
+          {offer.name}
+        </h3>
+        {showSeller && (
+          <p className="truncate text-label text-muted-foreground">
+            {distance
+              ? t("sellerAway", { seller: offer.seller.name, distance })
+              : t("seller", { seller: offer.seller.name })}
+          </p>
+        )}
+        {compact ? (
+          <>
+            <Price offer={offer} className="justify-end" />
+            <UnitsLeft offer={offer} />
+          </>
+        ) : (
+          <div className="flex items-center justify-between gap-2">
+            <UnitsLeft offer={offer} />
+            <Price offer={offer} />
+          </div>
+        )}
+      </div>
+      {!compact && <BiteCorner className="size-14" />}
     </article>
   );
 }
 
-/** The offer's photograph filling its frame; faded once it has sold out. */
-export function OfferPhoto({ offer, dimmed = false }: { offer: OfferSummary; dimmed?: boolean }) {
-  return (
-    <Image
-      src={`/api${offer.photo.smallPath}`}
-      alt=""
-      fill
-      sizes="(min-width: 640px) 50vw, 100vw"
-      // The backend already writes each photo at 400 px without metadata.
-      unoptimized
-      className={dimmed ? "object-cover opacity-45" : "object-cover"}
-    />
+/** "Còn 2 phần" in red words, or "Đã hết" in muted once nothing is left (The One Label Rule). */
+export function UnitsLeft({ offer }: { offer: OfferSummary }) {
+  const t = useTranslations("OfferCard");
+
+  return isAvailable(offer) ? (
+    <p className="text-label-strong text-sale">{t("left", { units: offer.unitsLeft })}</p>
+  ) : (
+    <p className="text-label-strong text-muted-foreground">{t("soldOut")}</p>
   );
 }

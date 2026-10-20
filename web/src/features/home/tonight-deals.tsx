@@ -1,80 +1,82 @@
-import { ChevronRightIcon, ClockIcon } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
+import Image from "next/image";
 
 import { listOffers } from "@/features/offers/list-offers";
-import { biggestDiscountFirst, openBags } from "@/features/offers/offer";
-import { DiscountChip } from "@/features/offers/price";
+import { biggestDiscountFirst } from "@/features/offers/offer";
 
+import bowl from "./tonight-bowl.webp";
 import type { HomeQuery } from "./home-query";
 
-const TICKET_COUNT = 3;
+const TICKET_COUNT = 2;
 
-// The bottom of the header without a filter (Figma deal card, perk strip): the biggest discounts tonight
-// as tickets on the deep blue deal card, then how many bags are open and when the last window closes, linking to the
-// list. Every figure comes from the offers; with nothing to order, neither shows. The pale sheet behind
-// their lower half starts the page under the header.
+// The bottom of the header without a filter (Figma Mobile v3 deal card): the biggest discounts tonight as
+// coupons on the deep blue deal card (Figma 105:2666): the discount and the time to collect, a dashed cut
+// with a notch at each edge, then the seller. Every figure comes from the offers; with nothing to order, it
+// does not show. A bowl of food sits in its corner (Figma bát món).
 export async function TonightDeals({ query: pending }: { query: Promise<HomeQuery> }) {
   const query = await pending;
-  if (query.q || query.kind || query.now) return null;
+  // Tonight's deals are Tasco Mall's, so they are not shown around the person's own place (Figma K1e).
+  if (query.q || query.kind || query.now || query.near) return null;
 
   const [t, format, offers] = await Promise.all([
     getTranslations("Home"),
     getFormatter(),
     listOffers({}),
   ]);
-  const open = openBags(offers);
-  if (!open) return null;
   const tickets = biggestDiscountFirst(offers).slice(0, TICKET_COUNT);
+  if (tickets.length === 0) return null;
   const time = (iso: string) => format.dateTime(new Date(iso), "time");
 
   return (
-    <div className="relative flex flex-col gap-3">
-      <div
-        aria-hidden
-        className="absolute top-19 -bottom-3 left-1/2 w-screen -translate-x-1/2 rounded-t-3xl bg-background"
-      />
-      <section
-        aria-labelledby="tonight-deals"
-        className="relative flex flex-col gap-2.5 rounded-2xl bg-deal px-3.5 pt-3.5 pb-3 text-deal-foreground"
-      >
-        <h2 id="tonight-deals" className="text-body-sm-strong text-fresh">
-          {t("dealsTitle")}
-        </h2>
-        <div className="flex items-center gap-2.5">
-          <p className="flex shrink-0 flex-col">
-            <span className="text-label-strong text-inverse-muted">{t("upTo")}</span>
-            <span className="font-display text-display text-fresh">
-              {t("upToPercent", { percent: tickets[0].discountPercent })}
-            </span>
-          </p>
-          <ul className="flex min-w-0 flex-1 gap-1.25">
-            {tickets.map((offer) => (
-              <li
-                key={offer.id}
-                className="flex min-w-0 flex-1 flex-col gap-1 rounded-xl bg-card py-2.5 pr-1 pl-1.75 text-card-foreground sm:max-w-44"
-              >
-                <span className="flex">
-                  <DiscountChip percent={offer.discountPercent} />
+    <section
+      aria-labelledby="tonight-deals"
+      className="relative flex flex-col gap-2.5 overflow-hidden rounded-2xl bg-deal px-3.5 pt-3.5 pb-3 text-deal-foreground"
+    >
+      <Image src={bowl} alt="" sizes="60px" className="absolute top-1.5 right-3 size-15" />
+      <h2 id="tonight-deals" className="text-body-sm-strong text-fresh">
+        {t("dealsTitle")}
+      </h2>
+      <div className="flex items-center gap-2.5">
+        <p className="flex shrink-0 flex-col">
+          <span className="text-label-strong text-deal-foreground uppercase">{t("upTo")}</span>
+          <span className="font-display text-display text-fresh">
+            {t("upToPercent", { percent: tickets[0].discountPercent })}
+          </span>
+        </p>
+        <ul className="flex min-w-0 flex-1 gap-2">
+          {tickets.map((offer) => (
+            <li
+              key={offer.id}
+              className="relative flex h-18 min-w-0 flex-1 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:max-w-44"
+            >
+              <div className="flex items-center justify-between gap-0.5">
+                <span className="font-display text-price-lg text-sale">
+                  <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
+                  <span className="sr-only">
+                    {t("ticketDiscountLabel", { percent: offer.discountPercent })}
+                  </span>
                 </span>
-                <span className="truncate text-label-strong">{offer.seller.name}</span>
-                <span className="truncate text-label text-muted-foreground">
-                  {t("ticketWindow", { from: time(offer.windowStart) })}
+                <span className="flex flex-col items-end">
+                  <span className="text-label whitespace-nowrap text-muted-foreground">
+                    {t("ticketCollect")}
+                  </span>
+                  <span className="text-label-strong">{time(offer.windowStart)}</span>
                 </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-      <a
-        href="#all-offers"
-        className="relative flex items-center gap-2 rounded-xl border border-border bg-card py-2 pr-2.5 pl-3 text-body-sm-strong text-foreground transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-      >
-        <ClockIcon aria-hidden strokeWidth={2.2} className="size-4.5 shrink-0 text-primary" />
-        <span className="min-w-0 flex-1">
-          {t("openBags", { bags: open.bags, last: time(open.lastWindowEnd) })}
-        </span>
-        <ChevronRightIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-      </a>
-    </div>
+              </div>
+              <hr className="border-t border-dashed border-border" />
+              <span className="truncate text-body-sm-strong">{offer.seller.name}</span>
+              <span
+                aria-hidden
+                className="absolute top-9 -left-1.25 size-2.5 rounded-full bg-deal"
+              />
+              <span
+                aria-hidden
+                className="absolute top-9 -right-1.25 size-2.5 rounded-full bg-deal"
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
