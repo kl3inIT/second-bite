@@ -4,13 +4,15 @@ Status: proposed and built on 20 October 2026 on the branch `tuandev2111/sec-37-
 
 ## What a person can do
 
-- **A customer or a seller member, in the app or on the web,** opens Account → Delete account, reads what is deleted and what is kept, asks for a code emailed to their address, types it, and their account is gone: they are signed out everywhere, cannot sign in with it again, and their address, name, sessions, Google link, unused photos and the record of emails sent to them no longer exist. Signing in again later with the same address makes a new, empty account.
+- **A customer or a seller member, in the app or on the web,** opens Account → Delete account (on a desktop, from the account menu in the header, under sign-out), reads what is deleted and what is kept, asks for a code emailed to their address, types it, and their account is gone: they are signed out everywhere, cannot sign in with it again, and their address, name, sessions, Google link, unused photos and the record of emails sent to them no longer exist. Signing in again later with the same address makes a new, empty account.
 - **Anyone, on the web,** opens `/delete-account` without an app (Google Play's "web link"), reads the same explanation and how long it takes (at once, the rest within minutes), and signs in to start the same flow.
 - **The owner of a seller** is told before they confirm that deleting their account closes the seller they own: its staff lose it and it stops showing to customers until admins decide what becomes of it.
 
 ## What the stores ask
 
 Read on 19 October 2026 and summarised on SEC-37: Apple (Guideline 5.1.1(v), "Offering account deletion in your app") asks for deletion started in the app, the whole account deleted, legal retention explained, a stated time and a confirmation; Google Play asks for an in-app path and a web link. Both are met above; Sign in with Apple does not exist yet (SEC-38 revokes its tokens when it is built).
+
+Designed in Figma, section "Xoá tài khoản (SEC-37)" of the Secondbite file: X0a, the app's account tab, and X0, the desktop account menu.
 
 ## Boundary discovery
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOutIcon, UserRoundIcon } from "lucide-react";
+import { LogOutIcon, Trash2Icon, UserRoundIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useTransition } from "react";
@@ -14,12 +14,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { signOut } from "@/lib/api/generated";
 
 // The signed-in account's capsule on the header: the address it is signed in with, and sign-out, which ends
 // the session on the server and leaves the person on the page they were reading (SEC-29 › What a person
-// can do).
+// can do); then deleting the account, which a desktop reaches here rather than from the phone's account
+// tab (SEC-37).
 export function AccountMenu({ email, displayName }: { email: string; displayName: string }) {
   const t = useTranslations("Account");
   const router = useRouter();
@@ -65,6 +66,13 @@ export function AccountMenu({ email, displayName }: { email: string; displayName
           <DropdownMenuItem disabled={pending} onClick={signOutHere}>
             <LogOutIcon aria-hidden />
             {t("signOut")}
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem variant="destructive" render={<Link href="/delete-account" />}>
+            <Trash2Icon aria-hidden />
+            {t("delete")}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

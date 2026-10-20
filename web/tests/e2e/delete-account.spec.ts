@@ -69,6 +69,21 @@ test.describe("deleting an account on the web", () => {
     await expect(page.getByRole("heading", { name: "Bạn chưa đăng nhập" })).toBeVisible();
   });
 
+  test("from the account menu on a desktop", async ({ page, isMobile }, testInfo) => {
+    test.skip(isMobile, "A phone reaches it from the account tab.");
+    const email = `menu.${testInfo.project.name}@example.com`;
+    await signIn(page, email);
+
+    await page.goto("/vi");
+    await (await hydrated(page.getByRole("button", { name: `Tài khoản ${email}` }))).click();
+    await expect(page.getByRole("menuitem", { name: "Đăng xuất" })).toBeVisible();
+    await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
+    await page.getByRole("menuitem", { name: "Xoá tài khoản" }).click();
+
+    await expect(page).toHaveURL(/\/vi\/delete-account$/);
+    await expect(page.getByText(`Chúng tôi sẽ gửi mã 6 số đến ${email}`)).toBeVisible();
+  });
+
   test("warns the owner of a seller that it closes", async ({ page }, testInfo) => {
     await signIn(page, `owner.${testInfo.project.name}@example.com`);
 
