@@ -1,1 +1,62 @@
-{}
+{
+  "range": {
+    "label": "Period",
+    "today": "Today",
+    "7d": "7 days",
+    "30d": "30 days"
+  },
+  "figures": {
+    "label": "Figures",
+    "noData": "No data yet",
+    "orders": "Held orders",
+    "portionsSaved": "Portions saved",
+    "collected": "Customers who came",
+    "activeSellers": "Active stores",
+    "posted": "Posts",
+    "unitsPosted": "Units posted",
+    "onSale": "On sale",
+    "newAccounts": "New accounts"
+  },
+  "units": {
+    "orders": "{count, plural, one {order} other {orders}}",
+    "portions": "{count, plural, one {portion} other {portions}}",
+    "collectedOf": "{count} / {of} orders",
+    "sellersOf": "/ {total} stores",
+    "posts": "{count, plural, one {post} other {posts}}",
+    "units": "{count, plural, one {unit} other {units}}",
+    "accounts": "{count, plural, one {account} other {accounts}}"
+  },
+  "chart": {
+    "title": "Posts by day",
+    "report": "See reports",
+    "posts": "{count, plural, one {# post} other {# posts}}",
+    "accounts": "{count, plural, one {# new account} other {# new accounts}}",
+    "table": "Posts and new accounts by day",
+    "day": "Day",
+    "postsColumn": "Posts",
+    "accountsColumn": "New accounts"
+  },
+  "todo": {
+    "title": "To do",
+    "issues": "Open problem reports",
+    "refunds": "Refunds to approve",
+    "pendingSellers": "Stores awaiting approval",
+    "blockedSellers": "Blocked stores",
+    "documents": "Documents about to expire",
+    "view": "View",
+    "viewLabel": "View {name}"
+  },
+  "top": {
+    "title": "Top stores",
+    "rank": "#",
+    "seller": "Store",
+    "posts": "Posts",
+    "empty": "No posts in this period"
+  },
+  "activity": {
+    "title": "Recent activity",
+    "sellerOpened": "{seller} opened a store on Second Bite",
+    "offerPosted": "{seller} posted {offer}",
+    "empty": "No activity yet"
+  }
+}

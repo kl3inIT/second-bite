@@ -1,1 +1,62 @@
-{}
+{
+  "range": {
+    "label": "Khoảng thời gian",
+    "today": "Hôm nay",
+    "7d": "7 ngày",
+    "30d": "30 ngày"
+  },
+  "figures": {
+    "label": "Số liệu",
+    "noData": "Chưa có dữ liệu",
+    "orders": "Đơn giữ hàng",
+    "portionsSaved": "Phần ăn được cứu",
+    "collected": "Khách đến lấy",
+    "activeSellers": "Cửa hàng đang hoạt động",
+    "posted": "Bài đăng",
+    "unitsPosted": "Suất đăng",
+    "onSale": "Đang bán",
+    "newAccounts": "Tài khoản mới"
+  },
+  "units": {
+    "orders": "{count, plural, other {đơn}}",
+    "portions": "{count, plural, other {phần}}",
+    "collectedOf": "{count} / {of} đơn",
+    "sellersOf": "/ {total} cửa hàng",
+    "posts": "{count, plural, other {bài}}",
+    "units": "{count, plural, other {suất}}",
+    "accounts": "{count, plural, other {tài khoản}}"
+  },
+  "chart": {
+    "title": "Bài đăng theo ngày",
+    "report": "Xem báo cáo",
+    "posts": "{count} bài đăng",
+    "accounts": "{count} tài khoản mới",
+    "table": "Bài đăng và tài khoản mới theo ngày",
+    "day": "Ngày",
+    "postsColumn": "Bài đăng",
+    "accountsColumn": "Tài khoản mới"
+  },
+  "todo": {
+    "title": "Cần xử lý",
+    "issues": "Báo lỗi chưa xử lý",
+    "refunds": "Hoàn tiền chờ duyệt",
+    "pendingSellers": "Cửa hàng chờ duyệt",
+    "blockedSellers": "Cửa hàng bị chặn",
+    "documents": "Giấy tờ sắp hết hạn",
+    "view": "Xem",
+    "viewLabel": "Xem {name}"
+  },
+  "top": {
+    "title": "Cửa hàng nổi bật",
+    "rank": "#",
+    "seller": "Cửa hàng",
+    "posts": "Bài đăng",
+    "empty": "Chưa có bài đăng trong khoảng này"
+  },
+  "activity": {
+    "title": "Hoạt động gần đây",
+    "sellerOpened": "{seller} mở cửa hàng trên Second Bite",
+    "offerPosted": "{seller} đăng {offer}",
+    "empty": "Chưa có hoạt động"
+  }
+}

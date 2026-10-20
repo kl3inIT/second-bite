@@ -749,6 +749,98 @@ async function sellerRoutes(request, response, url) {
   return false;
 }
 
+// --- Admin: Tổng quan and Báo cáo (SEC-62, overview worktree) ---
+// GET /admin/summary as api/openapi.yaml › AdminSummaryBody describes it, for the dashboard and the reports. The
+// range defaults to the 30 days that end today in Vietnam, at most 90; every day of it is in the per-day series,
+// its count made up from the day so a test can expect it. An admin only, as the backend answers.
+function vietnamDay(date) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(date);
+}
+
+function shiftDay(day, count) {
+  const at = new Date(`${day}T00:00:00Z`);
+  at.setUTCDate(at.getUTCDate() + count);
+  return at.toISOString().slice(0, 10);
+}
+
+/** Posts on a day: 1 to 5, from its day of the month. */
+function postsOn(day) {
+  return (Number(day.slice(8)) % 5) + 1;
+}
+
+async function adminSummaryRoutes(request, response, url) {
+  if (request.method !== "GET" || url.pathname !== "/admin/summary") return false;
+  if (accounts.get(tokenOf(request))?.role !== "admin") {
+    problem(response, 403, "PLATFORM_ADMIN_REQUIRED");
+    return true;
+  }
+  const to = url.searchParams.get("to") ?? vietnamDay(new Date());
+  const from = url.searchParams.get("from") ?? shiftDay(to, -29);
+  const length = Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000) + 1;
+  if (length < 1) {
+    problem(response, 400, "OFFER_SUMMARY_RANGE_REVERSED");
+    return true;
+  }
+  if (length > 90) {
+    problem(response, 400, "OFFER_SUMMARY_RANGE_TOO_LONG");
+    return true;
+  }
+  const days = Array.from({ length }, (_, index) => shiftDay(from, index));
+  const postedPerDay = days.map((date) => ({ date, count: postsOn(date) }));
+  const newPerDay = days.map((date) => ({ date, count: Number(date.slice(8)) % 3 }));
+  const posted = postedPerDay.reduce((sum, day) => sum + day.count, 0);
+  const at = (hour, minute) => `${to}T${String(hour).padStart(2, "0")}:${minute}:00+07:00`;
+  json(response, 200, {
+    from,
+    to,
+    sellers: {
+      active: 32,
+      pending: 0,
+      blocked: 2,
+      openedInRange: Math.min(length, 4),
+      latest: [
+        { id: "sl-rau-cu", name: "Rau củ sạch Việt Hưng", openedAt: at(8, "47") },
+        { id: "sl-tra-sua", name: "Trà sữa Mây", openedAt: `${shiftDay(to, -2)}T09:30:00+07:00` },
+      ],
+    },
+    offers: {
+      postedInRange: posted,
+      unitsPostedInRange: posted * 6,
+      onSaleNow: 12,
+      soldOutNow: 3,
+      postedPerDay,
+      topSellers: [
+        { sellerId: "sl-banh-phap", name: "Tiệm bánh Pháp", offers: Math.ceil(posted / 3) },
+        { sellerId: "sl-com-hanh", name: "Cơm nhà Hạnh", offers: Math.ceil(posted / 5) },
+        { sellerId: "sl-banh-mi", name: "Bánh mì Hội An", offers: Math.ceil(posted / 8) },
+      ],
+      latest: [
+        {
+          id: "of-com-trua",
+          name: "Cơm trưa văn phòng",
+          postedAt: at(10, "15"),
+          sellerId: "sl-com-hanh",
+          sellerName: "Cơm nhà Hạnh",
+        },
+        {
+          id: "of-banh-sung-bo",
+          name: "Bánh sừng bò",
+          postedAt: at(7, "05"),
+          sellerId: "sl-banh-phap",
+          sellerName: "Tiệm bánh Pháp",
+        },
+      ],
+    },
+    accounts: {
+      total: 284,
+      newInRange: newPerDay.reduce((sum, day) => sum + day.count, 0),
+      newPerDay,
+    },
+  });
+  return true;
+}
+// --- end Admin: Tổng quan and Báo cáo ---
+
 const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
@@ -776,6 +868,7 @@ const server = createServer(async (request, response) => {
   }
   if (await auth(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
+  if (await adminSummaryRoutes(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {
     const { type, body } = await photo(photoMatch[1]);
