@@ -123,6 +123,7 @@ void main() {
               'status': 400,
               'detail': 'Nhập tên hiển thị từ 1 đến 50 ký tự.',
               'code': 'IDENTITY_DISPLAY_NAME_INVALID',
+              'requestId': 'REQ-7',
             },
           ),
         ),

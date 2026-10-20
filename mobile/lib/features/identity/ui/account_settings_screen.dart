@@ -290,9 +290,14 @@ class _DisplayNameSheetState extends ConsumerState<_DisplayNameSheet> {
       if (mounted) Navigator.of(context).pop();
     } on Object catch (error) {
       if (!mounted) return;
+      final l10n = context.l10n;
+      final problem = SignInProblem.of(error);
+      // A refused name is expected: its words alone, without the reference
+      // a person quotes only for a failure nobody planned for.
       setState(
-        () => _problem = SignInProblem.of(error)
-            .text(context.l10n, failed: context.l10n.accountSettingsNameFailed),
+        () => _problem = problemCode(error) == 'IDENTITY_DISPLAY_NAME_INVALID'
+            ? problem.detail ?? l10n.accountSettingsNameFailed
+            : problem.text(l10n, failed: l10n.accountSettingsNameFailed),
       );
     } finally {
       if (mounted) setState(() => _pending = false);
