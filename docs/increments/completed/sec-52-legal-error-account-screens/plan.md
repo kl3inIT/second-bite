@@ -11,4 +11,4 @@ Design: [design.md](design.md). Tracked in Linear as SEC-52.
 | 5 | Mobile: the legal screens in the app, the not-found screen, the account tab opening them | Built, 20 October 2026 |
 | 6 | Verification: checks, browser and widget tests, Lighthouse and PageSpeed; [verification.md](verification.md) | Done, 20 October 2026; staging to be measured again once deployed |
 | 7 | Architecture, DESIGN.md, guidelines and roadmap | Done, 20 October 2026 |
-| 8 | Review, then merge through a pull request and move this increment to `completed/` | Waiting for review |
+| 8 | Review, then merge through a pull request and move this increment to `completed/` | Done, 20 October 2026 (PR #30) |

@@ -1,6 +1,6 @@
 # SEC-52 — Legal, error and account screens: design
 
-Status: proposed on 20 October 2026, built on the branch `tuandev2111/sec-52-figma-legal-error-and-account-screens-as-web-desktop-and` for review. Tracked in Linear as SEC-52; follows SEC-32 (the legal text), SEC-40 (the account tab) and SEC-29 (signing in).
+Status: delivered on 20 October 2026 through PR #30, after review. Tracked in Linear as SEC-52; follows SEC-32 (the legal text), SEC-40 (the account tab) and SEC-29 (signing in).
 
 The screens were redrawn in Figma first (`Secondbite`, page `Mobile · Khách`, sections "Pháp lý, lỗi, tài khoản · Web desktop 1440" and "Pháp lý, lỗi, tài khoản · Mobile app"). This change makes the code follow them, and makes the web's public pages findable and quotable by search engines and answer engines.
 
