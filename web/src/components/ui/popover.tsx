@@ -77,7 +77,7 @@ function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
     // Second Bite: a panel's title, as a sheet's.
     <PopoverPrimitive.Title
       data-slot="popover-title"
-      className={cn("text-title text-foreground", className)}
+      className={cn("text-body-sm-strong text-foreground", className)}
       {...props}
     />
   );

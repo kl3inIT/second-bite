@@ -43,8 +43,12 @@ const buttonVariants = cva(
         "icon-lg": "size-12",
         // Second Bite: a 34px chip with a 44px target around it.
         chip: "relative h-8.5 px-3.5 text-body-sm after:absolute after:inset-x-0 after:-inset-y-1.25",
-        // Second Bite: a 44px button in a small panel, its text on the panel's 14px scale.
-        panel: "h-11 gap-1.5 px-4 text-body-sm-strong",
+        // Second Bite: a quick choice in a small panel, 28px with 12px text, still a 44px target.
+        "chip-sm":
+          "relative h-7 px-3 text-label after:absolute after:inset-x-0 after:-inset-y-2 aria-pressed:text-label-strong",
+        // Second Bite: a 36px button in a small panel, still a 44px target.
+        panel:
+          "relative h-9 gap-1.5 px-4 text-body-sm-strong after:absolute after:inset-x-0 after:-inset-y-1",
       },
     },
     defaultVariants: {

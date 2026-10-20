@@ -121,16 +121,16 @@ export function RangeFilter({
         {chosen ?? name}
         <ChevronDownIcon aria-hidden className="size-3.5" />
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-80">
-        <form action={apply} className="flex flex-col gap-3 p-1.5">
+      <PopoverContent align="start" className="w-72">
+        <form action={apply} className="flex flex-col gap-2.5 p-1">
           <PopoverTitle>{name}</PopoverTitle>
-          <ul aria-label={t("quick")} className="flex flex-wrap gap-2">
+          <ul aria-label={t("quick")} className="flex flex-wrap gap-1.5">
             {presets.map((preset) => (
               <li key={preset.label}>
                 <Button
                   type="button"
                   variant="chip"
-                  size="chip"
+                  size="chip-sm"
                   aria-pressed={preset.current}
                   onClick={() => show(preset.query)}
                 >
@@ -139,14 +139,14 @@ export function RangeFilter({
               </li>
             ))}
           </ul>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col gap-1">
               <label htmlFor={`${id}-from`} className="text-label text-muted-foreground">
                 {t("from")}
               </label>
               {field("from", from)}
             </div>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1">
               <label htmlFor={`${id}-to`} className="text-label text-muted-foreground">
                 {t("to")}
               </label>
@@ -158,7 +158,7 @@ export function RangeFilter({
               {t(type === "price" ? "priceOrder" : "timeOrder")}
             </p>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <Button type="button" variant="secondary" size="panel" onClick={() => show(keep)}>
               {t("clearFilter")}
             </Button>
