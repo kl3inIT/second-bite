@@ -16,6 +16,7 @@ export const typeStyles = [
   "bar-title",
   "headline",
   "figure-sm",
+  "price-sm",
   "price",
   "price-lg",
   "display",

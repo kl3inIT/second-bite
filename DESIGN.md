@@ -92,7 +92,7 @@ colors:
   avatar-indigo: "{palette.logo-indigo}" # 7.6:1
   avatar-olive: "{palette.logo-olive}" # 6.0:1
 typography:
-  # Fourteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
+  # Fifteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
   # "Mobile v2" frames used (SEC-22). Named by purpose, not size; each has a Figma text style of the same name.
   # Be Vietnam Pro (`font-sans`) for everything people read; Bricolage Grotesque (`font-display`) only for
   # prices and figures, tracked -1%. Nothing is set below 12px.
@@ -152,6 +152,12 @@ typography:
     fontWeight: 700
     lineHeight: "16px"
     letterSpacing: "-0.01em"
+  price-sm: # the price on a dish tile, where two prices share 104px (Figma K1f hàng túi), since 20 October 2026
+    fontFamily: "Bricolage Grotesque"
+    fontSize: "14px"
+    fontWeight: 700
+    lineHeight: "17px"
+    letterSpacing: "-0.01em"
   price: # the price on a card
     fontFamily: "Bricolage Grotesque"
     fontSize: "16px"
@@ -190,7 +196,10 @@ spacing:
   "6": "24px"
   "8": "32px"
 elevation:
-  # Cards are flat on the sky ground; only what floats over content, a sheet, a dialog or the bottom bar, casts a shadow.
+  # Cards lift off the sky ground by a faint blue shadow, lighter than Figma's (owner, 20 October 2026); what floats
+  # over content, a sheet, a dialog or the bottom bar, casts a stronger one.
+  card: # offer cards, a seller's dishes in the search (Figma thẻ nổi bật, softened)
+    - { x: 0, y: 4, blur: 14, spread: 0, color: "#004E8C0F" }
   sheet:
     - { x: 0, y: -4, blur: 24, spread: 0, color: "#0E1D191F" }
   nav: # the floating bottom bar (Figma Bottom nav, 105:2515)
@@ -309,7 +318,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 ### Hierarchy
 
-Fourteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `headline` grew to 20/28 bold with Mobile v3 (SEC-48), when `price-lg` became 20/24 and `title-lg` was added (SEC-49). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
+Fifteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `headline` grew to 20/28 bold with Mobile v3 (SEC-48), when `price-lg` became 20/24 and `title-lg` was added (SEC-49); `price-sm` (14/17) followed for the dish tiles, the fifteenth. A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
 
 | Role             | Face          | Size / line | Use                                                                               |
 | ---------------- | ------------- | ----------- | --------------------------------------------------------------------------------- |
@@ -342,7 +351,7 @@ Mobile at 390px is the source frame for app screens; desktop is derived from it.
 
 ## Elevation & Depth
 
-Flat. Cards separate from the sky ground by colour alone; photographs get a soft dark scrim where text sits on them. Only what floats over content casts a shadow: a sheet or a dialog (`elevation.sheet`), and the bottom bar (`elevation.nav`).
+Nearly flat. Cards lift off the sky ground by a faint blue shadow (`elevation.card`); photographs get a soft dark scrim where text sits on them. What floats over content casts a stronger shadow: a sheet or a dialog (`elevation.sheet`), and the bottom bar (`elevation.nav`).
 
 ## Shapes
 
@@ -398,7 +407,7 @@ Two halves over a hairline (Figma K2 "Món (12)" / "Quán (2)"): the open one in
 
 ### Seller block
 
-One seller's dishes in the search, white, 20px radius, bitten corner. A seller with a single dish shows it as the grid card instead, with the seller (`label`, muted) under the dish, two to a row; a seller with more spans the row. Either the seller's avatar, name (`title-lg`) and window (`label`, muted) (Figma K2c), or their first dish as an offer card (Figma K1f); then up to three dish tiles: a photograph 84px high with a 12px radius, the price (`price`) beside the old one struck through, and the dish (`label`) on one line.
+One seller's dishes in the search, white, 20px radius, bitten corner. A seller with a single dish shows it as the grid card instead, with the seller (`label`, muted) under the dish, two to a row; a seller with more spans the row. Either the seller's avatar, name (`title-lg`) and window (`label`, muted) (Figma K2c), or their first dish as an offer card (Figma K1f); then up to three dish tiles: a photograph 84px high with a 12px radius, the price (`price-sm`) 3px beside the old one struck through, and the dish (`label`) on one line.
 
 ### Deal card
 

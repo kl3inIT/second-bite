@@ -58,6 +58,14 @@ const buttonVariants = cva(
   },
 );
 
+// Second Bite (Figma K2 chip lọc): the filter chip on a trigger, a menu's or a panel's, set by
+// `data-variant="chip"`: fully rounded on the sky fill without an edge, its value shown once chosen
+// (`data-active`), a 44px target around its 34px; `data-raised` sets it on the sky ground itself (Figma K1b).
+const chipTrigger = cn(
+  "data-[variant=chip]:relative data-[variant=chip]:flex data-[variant=chip]:h-8.5 data-[variant=chip]:shrink-0 data-[variant=chip]:items-center data-[variant=chip]:gap-1.5 data-[variant=chip]:rounded-full data-[variant=chip]:bg-muted data-[variant=chip]:px-3.5 data-[variant=chip]:text-body-sm data-[variant=chip]:whitespace-nowrap data-[variant=chip]:text-foreground data-[variant=chip]:transition-colors data-[variant=chip]:after:absolute data-[variant=chip]:after:inset-x-0 data-[variant=chip]:after:-inset-y-1.25 data-[variant=chip]:hover:bg-secondary data-[variant=chip]:focus-visible:ring-3 data-[variant=chip]:focus-visible:ring-ring/50 data-[variant=chip]:focus-visible:outline-none data-[variant=chip]:data-active:bg-secondary data-[variant=chip]:data-active:text-body-sm-strong data-[variant=chip]:data-active:text-primary",
+  "data-raised:data-[variant=chip]:bg-card data-raised:data-[variant=chip]:ring-1 data-raised:data-[variant=chip]:ring-secondary data-raised:data-[variant=chip]:ring-inset data-raised:data-[variant=chip]:hover:bg-secondary data-raised:data-[variant=chip]:data-active:bg-secondary",
+);
+
 function Button({
   className,
   variant = "default",
@@ -73,4 +81,4 @@ function Button({
   );
 }
 
-export { Button, buttonVariants };
+export { Button, buttonVariants, chipTrigger };

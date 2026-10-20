@@ -47,7 +47,7 @@ export function OfferCard({
   return (
     <article
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-xl bg-card text-card-foreground",
+        "relative flex flex-col overflow-hidden rounded-xl bg-card text-card-foreground shadow-card",
         className,
       )}
     >

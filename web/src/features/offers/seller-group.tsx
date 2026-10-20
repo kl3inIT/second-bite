@@ -30,10 +30,10 @@ export function SellerGroup({
   return (
     <section
       aria-label={seller.name}
-      className="relative flex flex-col overflow-hidden rounded-2xl bg-card text-card-foreground"
+      className="relative flex flex-col overflow-hidden rounded-2xl bg-card text-card-foreground shadow-card"
     >
       {lead === "dish" ? (
-        <OfferCard offer={first} showSeller className="rounded-none" />
+        <OfferCard offer={first} showSeller className="rounded-none shadow-none" />
       ) : (
         <SellerHeading seller={seller} offer={first} />
       )}
