@@ -24,6 +24,7 @@ import { ApiError } from "@/lib/api/client";
 import { addDish, changeDish, type DishBody, removeDish, uploadPhoto } from "@/lib/api/generated";
 
 import { Chip } from "./chip";
+import { NumberInput } from "./number-input";
 
 const kinds = [
   "bakery",
@@ -241,11 +242,11 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
 
           <Field data-invalid={(tried && originalInvalid) || undefined}>
             <FieldLabel htmlFor="dish-original">{t("original")}</FieldLabel>
-            <Input
+            <NumberInput
               id="dish-original"
-              inputMode="numeric"
-              value={original ? new Intl.NumberFormat("vi-VN").format(Number(original)) : ""}
-              onChange={(event) => setOriginal(event.target.value.replace(/\D/g, "").slice(0, 9))}
+              value={original}
+              grouped
+              onValueChange={setOriginal}
               placeholder={t("originalPlaceholder")}
               aria-invalid={(tried && originalInvalid) || undefined}
               aria-describedby={tried && originalInvalid ? "dish-original-problem" : undefined}
