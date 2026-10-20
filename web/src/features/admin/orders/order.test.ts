@@ -7,6 +7,8 @@ import {
   filterOrders,
   inRange,
   orderClock,
+  orderSearch,
+  ordersHref,
   orderStatusFilter,
   orderSteps,
   pageOf,
@@ -45,6 +47,24 @@ describe("the orders' filters", () => {
     ]);
     expect(filterOrders(sampleRows, { ...all, search: "minh anh" })).toHaveLength(1);
     expect(filterOrders(sampleRows, { ...all, search: "tiem banh" })).toHaveLength(3);
+  });
+
+  it("finds a customer's orders by email, as an account's page opens the list (?q=)", () => {
+    expect(orderSearch(["khach3@example.com", "x"])).toBe("khach3@example.com");
+    expect(orderSearch(undefined)).toBe("");
+    expect(
+      filterOrders(sampleRows, { ...all, search: "khach3@example.com" }).map((r) => r.id),
+    ).toEqual(["o-3"]);
+  });
+
+  it("writes the list's address with only the filters set", () => {
+    expect(ordersHref("/admin/orders", { status: "all", q: "" })).toBe("/admin/orders");
+    expect(ordersHref("/admin/orders", { status: "expired", q: " " })).toBe(
+      "/admin/orders?status=expired",
+    );
+    expect(ordersHref("/admin/orders", { status: "waiting", q: "an@example.com" })).toBe(
+      "/admin/orders?status=waiting&q=an%40example.com",
+    );
   });
 
   it("keeps one store's orders", () => {

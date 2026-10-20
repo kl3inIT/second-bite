@@ -30,6 +30,8 @@ export type AdminOrderRow = {
   /** "SB-24831", shown with a "#". */
   code: string;
   customerName: string;
+  /** Searched but not shown: an account's page opens the list on it (`?q=`). */
+  customerEmail?: string;
   sellerId: string;
   sellerName: string;
   sellerPhotoUrl?: string;
@@ -165,6 +167,20 @@ export function orderStatusFilter(value: string | string[] | undefined): OrderSt
     : "all";
 }
 
+/** The search from the address (`?q=`): an account's page links "Xem đơn hàng" here with the email. */
+export function orderSearch(value: string | string[] | undefined): string {
+  return (Array.isArray(value) ? value[0] : value) ?? "";
+}
+
+/** The list's address for a status filter and a search, leaving out what is not set. */
+export function ordersHref(list: string, { status, q }: { status: OrderStatusFilter; q: string }) {
+  const params = new URLSearchParams();
+  if (status !== "all") params.set("status", status);
+  if (q.trim() !== "") params.set("q", q);
+  const query = params.toString();
+  return query ? `${list}?${query}` : list;
+}
+
 export type OrderFilters = {
   search: string;
   sellerId: string;
@@ -212,7 +228,9 @@ export function filterOrders(rows: AdminOrderRow[], filters: OrderFilters): Admi
       (filters.sellerId === "all" || row.sellerId === filters.sellerId) &&
       inRange(row.pickupStart, filters.range) &&
       (needle === "" ||
-        [row.code, row.customerName, row.sellerName].some((text) => folded(text).includes(needle))),
+        [row.code, row.customerName, row.customerEmail ?? "", row.sellerName].some((text) =>
+          folded(text).includes(needle),
+        )),
   );
 }
 

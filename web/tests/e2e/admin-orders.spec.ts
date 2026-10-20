@@ -46,6 +46,19 @@ test.describe("the admin's orders", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
+  test("the search reads and writes ?q=, as an account's page links here with its email", async ({
+    page,
+  }, testInfo) => {
+    await signInTo(page, "/admin/orders?q=khach%40example.com", testInfo, { who: "tim" });
+
+    const search = await hydrated(page.getByRole("searchbox", { name: "Tìm đơn" }));
+    await expect(search).toHaveValue("khach@example.com");
+    await search.fill("SB-24817");
+    await expect(page).toHaveURL(/\/vi\/admin\/orders\?q=SB-24817$/);
+    await search.fill("");
+    await expect(page).toHaveURL(/\/vi\/admin\/orders$/);
+  });
+
   test("an order that does not exist gets the admin's not-found page", async ({
     page,
   }, testInfo) => {

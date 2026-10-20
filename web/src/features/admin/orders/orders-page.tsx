@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
 import { PageHeader } from "../ui/page-header";
-import { orderStatusFilter } from "./order";
+import { orderSearch, orderStatusFilter } from "./order";
 import { listAdminOrders } from "./orders-source";
 import { OrdersView } from "./orders-view";
 
@@ -11,7 +11,7 @@ export async function OrdersPage({
 }: {
   query: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [{ status }, t, orders] = await Promise.all([
+  const [{ status, q }, t, orders] = await Promise.all([
     query,
     getTranslations("admin.shell.pages.orders"),
     listAdminOrders(),
@@ -20,7 +20,12 @@ export async function OrdersPage({
   return (
     <>
       <PageHeader title={t("label")} />
-      <OrdersView rows={orders.items} summary={orders.summary} status={orderStatusFilter(status)} />
+      <OrdersView
+        rows={orders.items}
+        summary={orders.summary}
+        status={orderStatusFilter(status)}
+        search={orderSearch(q)}
+      />
     </>
   );
 }

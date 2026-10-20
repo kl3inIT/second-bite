@@ -33,6 +33,7 @@ export const sampleRows: AdminOrderRow[] = statuses.map((status, n) => {
     id: `o-${n}`,
     code: `SB-${24831 - n}`,
     customerName: n === 0 ? "Minh Anh" : `Khách ${n}`,
+    customerEmail: `khach${n}@example.com`,
     sellerId,
     sellerName,
     items:

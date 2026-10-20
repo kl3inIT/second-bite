@@ -33,6 +33,7 @@ import {
   type OrderStatusFilter,
   type OrderSummary,
   orderStatuses,
+  ordersHref,
   pageOf,
   sellersOf,
   type Sort,
@@ -53,18 +54,21 @@ export function OrdersView({
   rows,
   summary,
   status,
+  search = "",
   onCancel,
 }: {
   rows: AdminOrderRow[];
   summary?: OrderSummary;
   status: OrderStatusFilter;
+  /** The search from the address (`?q=`), such as an account's email from its page. */
+  search?: string;
   onCancel?: (orderId: string, request: CancelRequest) => Promise<void>;
 }) {
   const t = useTranslations("admin.orders");
   const format = useFormatter();
   const router = useRouter();
   const [filters, setFilters] = useState<Omit<OrderFilters, "status">>({
-    search: "",
+    search,
     sellerId: "all",
     range: {},
   });
@@ -75,8 +79,9 @@ export function OrdersView({
   const shown = sortOrders(filterOrders(rows, { ...filters, status }), sort);
   const current = pageOf(shown, page, PAGE_SIZE);
   const list = adminHref("orders");
+  // A card pressed again turns its filter off; the search stays in the address either way.
   const statusHref = (next: OrderStatusFilter) =>
-    next === "all" || next === status ? list : `${list}?status=${next}`;
+    ordersHref(list, { status: next === status ? "all" : next, q: filters.search });
 
   const change = (next: Partial<Omit<OrderFilters, "status">>) => {
     setFilters({ ...filters, ...next });
@@ -208,7 +213,10 @@ export function OrdersView({
           label={t("filters.search")}
           placeholder={t("filters.searchPlaceholder")}
           value={filters.search}
-          onChange={(search) => change({ search })}
+          onChange={(next) => {
+            change({ search: next });
+            router.replace(ordersHref(list, { status, q: next }), { scroll: false });
+          }}
         />
         <FilterSelect
           label={t("filters.seller")}
@@ -229,7 +237,10 @@ export function OrdersView({
           ]}
           onChange={(next) => {
             setPage(1);
-            router.replace(statusHref(next as OrderStatusFilter), { scroll: false });
+            router.replace(
+              ordersHref(list, { status: next as OrderStatusFilter, q: filters.search }),
+              { scroll: false },
+            );
           }}
         />
         <DateRangeFilter

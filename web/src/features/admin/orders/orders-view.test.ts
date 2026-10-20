@@ -67,6 +67,19 @@ describe("the orders list (AD-DH1)", () => {
     }
   });
 
+  it("starts the search from the address and keeps it in the cards' links", () => {
+    const html = renderAdmin(
+      createElement(OrdersView, {
+        rows: sampleRows,
+        status: "all",
+        search: "khach3@example.com",
+      }),
+    );
+    expect(html).toContain('value="khach3@example.com"');
+    expect(textOf(html)).toContain("Hiển thị 1–1 trên 1 đơn");
+    expect(html).toContain('href="/admin/orders?status=expired&amp;q=khach3%40example.com"');
+  });
+
   it("filters by the card the address names, and marks that card", () => {
     const html = renderAdmin(createElement(OrdersView, { rows: sampleRows, status: "expired" }));
     expect(textOf(html)).toContain("Hiển thị 1–2 trên 2 đơn");
