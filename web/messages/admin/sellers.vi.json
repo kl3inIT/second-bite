@@ -1,1 +1,50 @@
-{}
+{
+  "caption": "Cửa hàng {status}",
+  "loading": "Đang tải danh sách cửa hàng",
+  "search": {
+    "label": "Tìm cửa hàng",
+    "placeholder": "Tìm cửa hàng theo tên hoặc địa chỉ"
+  },
+  "filters": {
+    "area": "Khu vực",
+    "all": "Tất cả",
+    "changed": "Sửa đổi",
+    "size": "Số dòng"
+  },
+  "columns": {
+    "name": "Cửa hàng",
+    "address": "Địa chỉ",
+    "phone": "Số điện thoại",
+    "status": "Trạng thái",
+    "updatedAt": "Ngày sửa đổi"
+  },
+  "summary": "Hiển thị {from}–{to} trên {total} cửa hàng",
+  "empty": {
+    "active": "Không có cửa hàng nào đang hoạt động.",
+    "pending": "Không có cửa hàng nào chờ duyệt.",
+    "blocked": "Không có cửa hàng nào bị chặn.",
+    "filtered": "Không có cửa hàng nào khớp với tìm kiếm",
+    "clear": "Xoá bộ lọc"
+  },
+  "actions": {
+    "view": "Xem chi tiết",
+    "block": "Chặn cửa hàng",
+    "blockMenu": "Chặn cửa hàng…",
+    "unblock": "Gỡ chặn",
+    "approve": "Duyệt",
+    "done": {
+      "block": "Đã chặn {name}",
+      "unblock": "Đã gỡ chặn {name}",
+      "approve": "Đã duyệt {name}"
+    },
+    "failed": "Chưa đổi được trạng thái của {name}, hãy thử lại",
+    "confirm": {
+      "title": "Chặn cửa hàng {name}?",
+      "when": "Khi bị chặn:",
+      "noPosting": "Cửa hàng không đăng bài mới hay sửa bài được.",
+      "hidden": "Cửa hàng và mọi bài biến mất khỏi tìm kiếm của khách ngay, trang cửa hàng không mở được.",
+      "kept": "Cửa hàng vẫn gỡ bài và quản lý nhân viên được.",
+      "undo": "Có thể gỡ chặn bất cứ lúc nào."
+    }
+  }
+}

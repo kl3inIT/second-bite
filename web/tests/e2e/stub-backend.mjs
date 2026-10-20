@@ -785,6 +785,8 @@ async function adminSummaryRoutes(request, response, url) {
     problem(response, 400, "OFFER_SUMMARY_RANGE_TOO_LONG");
     return true;
   }
+  const stores = adminStores(tokenOf(request));
+  const storesWith = (status) => stores.filter((seller) => seller.status === status).length;
   const days = Array.from({ length }, (_, index) => shiftDay(from, index));
   const postedPerDay = days.map((date) => ({ date, count: postsOn(date) }));
   const newPerDay = days.map((date) => ({ date, count: Number(date.slice(8)) % 3 }));
@@ -794,9 +796,10 @@ async function adminSummaryRoutes(request, response, url) {
     from,
     to,
     sellers: {
-      active: 32,
-      pending: 0,
-      blocked: 2,
+      // The same stores the admin's list holds (Admin › Cửa hàng below), so the cards and the list agree.
+      active: storesWith("active"),
+      pending: storesWith("pending"),
+      blocked: storesWith("blocked"),
       openedInRange: Math.min(length, 4),
       latest: [
         { id: "sl-rau-cu", name: "Rau củ sạch Việt Hưng", openedAt: at(8, "47") },
@@ -990,6 +993,184 @@ async function adminSettingsRoutes(request, response, url) {
   }
   return false;
 }
+// ── Admin › Cửa hàng (SEC-62, the stores screens) ──────────────────────────────────────────────────────────
+// What an admin reads and does with stores, as api/openapi.yaml describes it: GET /admin/sellers by status
+// (oldest first), POST /admin/sellers/{id}/block and /activate (GET /admin/summary above counts these stores), and a
+// store's page as an admin reads it (GET /sellers/{id}, /members, /offers, GET /offers/{id}). Each admin
+// session has its own copy of the stores below, so tests running side by side do not change each other's.
+// Names, phone numbers (0900 000 1xx) and addresses are made up, after Figma AD-Q1. An admin address with
+// ".trong." has no stores, one with ".loi." gets a failing list, and one with ".cham." a list that is slow.
+const adminStoresOf = new Map();
+
+function adminStores(token) {
+  if (!adminStoresOf.has(token)) {
+    const email = accounts.get(token)?.email ?? "";
+    const daysAgo = (days, hour = 10) => {
+      const at = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      at.setUTCHours(hour - 7, 0, 0, 0);
+      return at.toISOString();
+    };
+    const store = (n, name, address, status, changed, photoId) => ({
+      id: `se-admin-${n}`,
+      name,
+      address,
+      phone: `0900 000 ${String(100 + n)}`,
+      latitude: 21.0565,
+      longitude: 105.8964,
+      status,
+      ...(photoId ? { photoId } : {}),
+      ...(status === "active" ? {} : { statusChangedAt: daysAgo(changed, 21) }),
+      createdAt: daysAgo(20 + n),
+      updatedAt: daysAgo(changed, 10 + (n % 8)),
+    });
+    adminStoresOf.set(
+      token,
+      email.includes(".trong.")
+        ? []
+        : [
+            store(
+              1,
+              "Tiệm bánh Pháp",
+              "Tầng 1, Tasco Mall, Việt Hưng",
+              "active",
+              0,
+              "ph-croissant",
+            ),
+            store(
+              2,
+              "Cơm nhà Hạnh",
+              "Tầng 3, khu ẩm thực, Tasco Mall",
+              "active",
+              0,
+              "ph-com-thit-kho",
+            ),
+            store(3, "Trà sữa Mây", "Tầng 1, Tasco Mall, Việt Hưng", "active", 0, "ph-tra-sua"),
+            store(
+              4,
+              "Bún chả Phố Hàng",
+              "Tầng 3, khu ẩm thực, Tasco Mall",
+              "active",
+              1,
+              "ph-banh-bao",
+            ),
+            store(5, "Xôi xéo Bà Tư", "Tầng B1, Tasco Mall", "active", 1, "ph-pizza"),
+            store(6, "Bánh mì Hội An", "Tầng 1, Tasco Mall, Việt Hưng", "active", 2, "ph-banh-mi"),
+            store(7, "Nước ép Xanh", "Tầng 2, Tasco Mall", "active", 2, "ph-bac-xiu"),
+            store(8, "Rau củ sạch Việt Hưng", "Tầng B1, Tasco Mall", "active", 3),
+            store(9, "Há cảo Panda", "Tầng 3, khu ẩm thực, Tasco Mall", "active", 4, "ph-ha-cao"),
+            store(10, "Gà rán Tasco", "Tầng 2, Tasco Mall", "active", 5, "ph-combo-nhom"),
+            store(
+              11,
+              "Bánh ngọt Eclair",
+              "Tầng 1, Tasco Mall, Việt Hưng",
+              "active",
+              6,
+              "ph-eclair",
+            ),
+            store(12, "Phở bò Gánh", "Tầng 3, khu ẩm thực, Tasco Mall", "pending", 10),
+            store(13, "Cơm tấm Sài Gòn", "Tầng 3, khu ẩm thực, Tasco Mall", "pending", 12),
+            store(14, "Chè Thái Lan", "Tầng 2, Tasco Mall", "blocked", 1, "ph-tra-sua"),
+          ],
+    );
+  }
+  return adminStoresOf.get(token);
+}
+
+/** The people of a store an admin opens: its owner, and a staff member for the first one. */
+function adminMembers(seller) {
+  const addedAt = seller.createdAt;
+  const owner = {
+    accountId: `ac-owner-${seller.id}`,
+    email: "chu.cua.hang@example.com",
+    role: "owner",
+    addedAt,
+  };
+  return seller.id === "se-admin-1"
+    ? [owner, { accountId: "ac-staff-1", email: "nhan.vien@example.com", role: "staff", addedAt }]
+    : [owner];
+}
+
+/** A store's posts as an admin reads them: the Figma sample's four for the first store, none for the others. */
+function adminPosts(seller) {
+  return seller.id === "se-admin-1" ? postsFor(seller) : [];
+}
+
+async function adminSellerRoutes(request, response, url) {
+  const isAdminRoute = url.pathname.startsWith("/admin/sellers");
+  const isStoreRead =
+    request.method === "GET" &&
+    (/^\/sellers\/se-admin-[\w-]+(\/members|\/offers)?$/.test(url.pathname) ||
+      /^\/offers\/of-\d+-se-admin-[\w-]+$/.test(url.pathname));
+  if (!isAdminRoute && !isStoreRead) return false;
+  const token = tokenOf(request);
+  const account = accounts.get(token);
+  if (!account) {
+    problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    return true;
+  }
+  if (account.role !== "admin") {
+    if (isAdminRoute) problem(response, 403, "PLATFORM_ADMIN_REQUIRED");
+    else
+      problem(
+        response,
+        404,
+        url.pathname.startsWith("/offers") ? "OFFER_NOT_FOUND" : "SELLER_NOT_FOUND",
+      );
+    return true;
+  }
+  const stores = adminStores(token);
+  if (request.method === "GET" && url.pathname === "/admin/sellers") {
+    if (account.email.includes(".loi.")) {
+      problem(response, 500, "PLATFORM_INTERNAL_FAILURE");
+      return true;
+    }
+    if (account.email.includes(".cham.")) await new Promise((resolve) => setTimeout(resolve, 3000));
+    const status = url.searchParams.get("status") ?? "pending";
+    const limit = Number(url.searchParams.get("limit") ?? 50);
+    const offset = Number(url.searchParams.get("offset") ?? 0);
+    const sellers = stores
+      .filter((seller) => seller.status === status)
+      .toSorted((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt))
+      .slice(offset, offset + limit);
+    json(response, 200, { sellers });
+    return true;
+  }
+  const change = /^\/admin\/sellers\/([\w-]+)\/(block|activate)$/.exec(url.pathname);
+  if (request.method === "POST" && change) {
+    const seller = stores.find((candidate) => candidate.id === change[1]);
+    if (!seller) {
+      problem(response, 404, "SELLER_NOT_FOUND");
+      return true;
+    }
+    const now = new Date().toISOString();
+    Object.assign(seller, {
+      status: change[2] === "block" ? "blocked" : "active",
+      statusChangedAt: now,
+      updatedAt: now,
+    });
+    json(response, 200, seller);
+    return true;
+  }
+  const read = /^\/sellers\/([\w-]+)(\/members|\/offers)?$/.exec(url.pathname);
+  if (read) {
+    const seller = stores.find((candidate) => candidate.id === read[1]);
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else if (read[2] === "/members") json(response, 200, { members: adminMembers(seller) });
+    else if (read[2] === "/offers") {
+      const status = url.searchParams.get("status");
+      json(response, 200, {
+        offers: adminPosts(seller).filter((offer) => !status || offer.status === status),
+      });
+    } else json(response, 200, seller);
+    return true;
+  }
+  const offerId = url.pathname.split("/")[2];
+  const offer = stores.flatMap(adminPosts).find((post) => post.id === offerId);
+  if (offer) json(response, 200, offer);
+  else problem(response, 404, "OFFER_NOT_FOUND");
+  return true;
+}
+// ── end of Admin › Cửa hàng ──────────────────────────────────────────────────────────────────────────────
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
@@ -1017,6 +1198,7 @@ const server = createServer(async (request, response) => {
     return;
   }
   if (await auth(request, response, url)) return;
+  if (await adminSellerRoutes(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await adminSummaryRoutes(request, response, url)) return;
   if (await adminSettingsRoutes(request, response, url)) return;

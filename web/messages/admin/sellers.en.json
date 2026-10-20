@@ -1,1 +1,50 @@
-{}
+{
+  "caption": "Stores {status}",
+  "loading": "Loading the stores",
+  "search": {
+    "label": "Search stores",
+    "placeholder": "Search stores by name or address"
+  },
+  "filters": {
+    "area": "Area",
+    "all": "All",
+    "changed": "Changed",
+    "size": "Rows"
+  },
+  "columns": {
+    "name": "Store",
+    "address": "Address",
+    "phone": "Phone number",
+    "status": "Status",
+    "updatedAt": "Changed on"
+  },
+  "summary": "Showing {from}–{to} of {total} stores",
+  "empty": {
+    "active": "No store is active.",
+    "pending": "No store is waiting for approval.",
+    "blocked": "No store is blocked.",
+    "filtered": "No store matches the search",
+    "clear": "Clear filters"
+  },
+  "actions": {
+    "view": "View details",
+    "block": "Block store",
+    "blockMenu": "Block store…",
+    "unblock": "Unblock",
+    "approve": "Approve",
+    "done": {
+      "block": "Blocked {name}",
+      "unblock": "Unblocked {name}",
+      "approve": "Approved {name}"
+    },
+    "failed": "The status of {name} did not change, please try again",
+    "confirm": {
+      "title": "Block the store {name}?",
+      "when": "While it is blocked:",
+      "noPosting": "The store cannot post or change posts.",
+      "hidden": "The store and all its posts leave customers' search at once, and its page no longer opens.",
+      "kept": "The store can still withdraw posts and manage its staff.",
+      "undo": "You can unblock it at any time."
+    }
+  }
+}

@@ -39,7 +39,7 @@ test("the dashboard shows the summary's figures and leaves the orders' empty", a
 
   // Today is chosen; the figures the summary gives are measured, the ones that need orders are not.
   await expect(page.getByRole("radio", { name: "Hôm nay" })).toBeChecked();
-  await expect(figure(page, "Cửa hàng đang hoạt động")).toContainText("32/ 34 cửa hàng");
+  await expect(figure(page, "Cửa hàng đang hoạt động")).toContainText("11/ 14 cửa hàng");
   await expect(figure(page, "Bài đăng")).toContainText(`${postsOver(1)}bài`);
   await expect(figure(page, "Đang bán")).toContainText("12bài");
   for (const name of ["Đơn giữ hàng", "Phần ăn được cứu", "Khách đến lấy"]) {
@@ -50,7 +50,7 @@ test("the dashboard shows the summary's figures and leaves the orders' empty", a
   const todo = page.getByRole("region", { name: "Cần xử lý" });
   await expect(todo.getByRole("listitem")).toHaveCount(2);
   await expect(todo.getByRole("listitem").filter({ hasText: "Cửa hàng bị chặn" })).toContainText(
-    "2",
+    "1",
   );
   await expect(todo.getByRole("link", { name: "Xem Cửa hàng bị chặn" })).toHaveAttribute(
     "href",

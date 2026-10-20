@@ -55,7 +55,7 @@ test("the reports show what the summary gives and leave the orders empty", async
     `${dayMonth(start)}${sameYear ? "" : `/${start.getUTCFullYear()}`} – ${dayMonth(end)}/${end.getUTCFullYear()}`,
   );
   await expect(page.getByRole("combobox", { name: "Cửa hàng" })).toContainText(
-    "Tất cả 34 cửa hàng",
+    "Tất cả 14 cửa hàng",
   );
 
   for (const name of [
