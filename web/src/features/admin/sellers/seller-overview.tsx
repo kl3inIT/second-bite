@@ -38,7 +38,7 @@ export function SellerOverview({
   const people = <MembersCard members={members} title={t("overview.members")} />;
 
   return (
-    <div className="grid items-start gap-5 lg:grid-cols-3">
+    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
       <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
         <Card
           title={t("overview.onSale")}
@@ -65,7 +65,7 @@ export function SellerOverview({
         </Card>
         {blocked && people}
       </div>
-      <div className="flex flex-col gap-5">
+      <div className="flex min-w-0 flex-col gap-5">
         {blocked && (
           <StatusCard
             title={t("blocked.title")}

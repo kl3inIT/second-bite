@@ -51,11 +51,11 @@ export function SellerHeader({ seller, cover }: { seller: SellerBody; cover: str
             <StoreIcon aria-hidden className="size-6" />
           )}
         </span>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+        <div className="flex min-w-0 flex-1 basis-48 flex-wrap items-center gap-3">
           <h1 className="text-headline text-foreground">{seller.name}</h1>
           <StatusBadge status={seller.status} />
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="ml-auto flex items-center gap-2.5">
           <RowActionMenu
             name={seller.name}
             actions={[

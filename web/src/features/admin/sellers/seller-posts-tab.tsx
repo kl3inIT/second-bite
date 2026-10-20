@@ -51,15 +51,18 @@ export function SellerPosts({ offers }: { offers: OfferBody[] }) {
 
   return (
     <>
-      <SegmentedControl
-        label={t("filter")}
-        value={status}
-        onChange={choose}
-        segments={postStatuses.map((each) => ({
-          value: each,
-          label: t("segment", { label: t(`status.${each}`), count: counts[each] }),
-        }))}
-      />
+      {/* Four statuses are wider than a phone: the row scrolls sideways there. */}
+      <div className="max-w-full overflow-x-auto whitespace-nowrap">
+        <SegmentedControl
+          label={t("filter")}
+          value={status}
+          onChange={choose}
+          segments={postStatuses.map((each) => ({
+            value: each,
+            label: t("segment", { label: t(`status.${each}`), count: counts[each] }),
+          }))}
+        />
+      </div>
       {shown.length === 0 ? (
         <div className="rounded-md border border-border bg-card">
           <EmptyState title={t(`empty.${status}`)} />
