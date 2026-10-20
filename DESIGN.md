@@ -169,11 +169,11 @@ rounded:
   sm: "8px" # small badges
   md: "12px" # photo thumbnails, small tiles
   lg: "14px" # inputs, the search field, segmented controls
-  xl: "16px" # buttons
+  xl: "16px"
   2xl: "20px" # cards, the deal card, sheets and list rows
   3xl: "24px" # the bottom edge of the header, a sheet's top corners
   4xl: "32px"
-  full: "9999px" # pills, stickers, chips, avatars, icon buttons
+  full: "9999px" # buttons, pills, stickers, chips, avatars, icon buttons
 spacing:
   "1": "4px"
   "2": "8px"
@@ -190,14 +190,14 @@ components:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.primary-foreground}"
     typography: "{typography.button}"
-    rounded: "{rounded.xl}"
+    rounded: "{rounded.full}"
     height: "52px"
     padding: "0 24px"
   button-secondary:
     backgroundColor: "{colors.secondary}"
     textColor: "{colors.secondary-foreground}"
     typography: "{typography.button}"
-    rounded: "{rounded.xl}"
+    rounded: "{rounded.full}"
     height: "52px"
     padding: "0 24px"
   sticker:
@@ -329,13 +329,13 @@ Flat. Cards separate from the sky ground by colour alone; photographs get a soft
 
 ## Shapes
 
-Generous rounding from one scale: 20px (`2xl`) on cards, the deal card, sheets and list rows; 16px (`xl`) on buttons; 14px (`lg`) on inputs, the search field and segmented controls; 12px (`md`) on thumbnails; 24px (`3xl`) on the bottom of the header and a sheet's top corners; full rounding on stickers, chips, avatars and icon buttons. Photographs fill the top of a card and share its corners. No other radius is used.
+Generous rounding from one scale: 20px (`2xl`) on cards, the deal card, sheets and list rows; 14px (`lg`) on inputs, the search field and segmented controls; 12px (`md`) on thumbnails; 24px (`3xl`) on the bottom of the header and a sheet's top corners; full rounding on buttons, stickers, chips, avatars and icon buttons. Photographs fill the top of a card and share its corners. No other radius is used.
 
 ## Components
 
 ### Button
 
-Primary (Tasco blue, white text) and Secondary (Blue Wash, deepest blue text), 52px high, 16px radius, 24px sides. The 44px default stays for compact actions.
+Primary (Tasco blue, white text) and Secondary (Blue Wash, deepest blue text), 52px high, fully rounded, 24px sides. The 44px default, also fully rounded, stays for compact actions.
 
 ### Sticker
 
