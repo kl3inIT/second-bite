@@ -14,6 +14,8 @@ import { useRouter } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
 import { openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
 
+import { useRemountKey } from "./remount-key";
+
 /** Tasco Mall Long Biên, where every store of the pilot is: the form has no map (Figma O1), so a store is pinned here. */
 const MALL = { latitude: 21.0565, longitude: 105.8964 };
 
@@ -40,7 +42,7 @@ function problemOf(error: unknown): Problem {
 // The form that opens a store (SEC-57, Figma O1, O1b, O1c): name, phone, address and a photo, then "Tạo quán".
 // The store is active at once and the person goes on to its home. The photo is a second step, so a store whose
 // photo failed to upload is still opened.
-export function OpenStoreForm() {
+function OpenStoreFormBody() {
   const t = useTranslations("OpenStore");
   const router = useRouter();
   const [name, setName] = useState("");
@@ -205,4 +207,9 @@ export function OpenStoreForm() {
       </FieldGroup>
     </form>
   );
+}
+
+// Each visit starts with an empty form: once a store is opened, the next one does not find the last one's answers.
+export function OpenStoreForm() {
+  return <OpenStoreFormBody key={useRemountKey()} />;
 }
