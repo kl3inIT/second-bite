@@ -1,4 +1,4 @@
-import type { OfferSummary } from "./offer";
+import { isAvailable, type OfferSummary } from "./offer";
 
 // Fields the stub backend returns ahead of the contract, so the last parts of flow 1 can be drawn (SEC-49
 // decision 5). Every element they feed shows only when its field is there, so nothing appears against the
@@ -19,4 +19,11 @@ export function isAnnouncement(offer: OfferSummary | Announcement): offer is Ann
 export function sellerRating(offer: Pick<OfferSummary, "seller">): number | undefined {
   const { rating } = offer.seller as { rating?: unknown };
   return typeof rating === "number" ? rating : undefined;
+}
+
+/** What can still be ordered from rated sellers, the best-rated first: the home's "Gợi ý cho bạn". */
+export function bestRatedFirst(offers: readonly OfferSummary[]): OfferSummary[] {
+  return offers
+    .filter((offer) => isAvailable(offer) && sellerRating(offer) !== undefined)
+    .toSorted((a, b) => (sellerRating(b) ?? 0) - (sellerRating(a) ?? 0));
 }

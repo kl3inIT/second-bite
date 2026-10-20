@@ -4,8 +4,8 @@ import { ScrollRow } from "@/components/scroll-row";
 import { SectionHeader } from "@/components/section-header";
 import { DiscountLabel, PhotoLabel } from "@/features/offers/discount-label";
 import { MiniCard } from "@/features/offers/mini-card";
-import { isAvailable, type OfferSummary } from "@/features/offers/offer";
-import { sellerRating, type Announcement } from "@/features/offers/proposed";
+import type { OfferSummary } from "@/features/offers/offer";
+import { bestRatedFirst, sellerRating, type Announcement } from "@/features/offers/proposed";
 import { Rating } from "@/features/offers/rating";
 import { useCollectionWindow } from "@/features/offers/window";
 
@@ -66,10 +66,7 @@ function UpcomingCard({ announcement }: { announcement: Announcement }) {
 
 export function RecommendedSection({ offers }: { offers: readonly OfferSummary[] }) {
   const t = useTranslations("Home");
-  const rated = offers
-    .filter((offer) => isAvailable(offer) && sellerRating(offer) !== undefined)
-    .toSorted((a, b) => (sellerRating(b) ?? 0) - (sellerRating(a) ?? 0))
-    .slice(0, ROW_COUNT);
+  const rated = bestRatedFirst(offers).slice(0, ROW_COUNT);
   if (rated.length === 0) return null;
 
   return (

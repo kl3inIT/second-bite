@@ -19,7 +19,8 @@ import { useCollectionWindow, useDistance } from "./window";
 // A card names the dish only; where the seller is not otherwise shown, as in search results, `showSeller`
 // adds them, with their place on the scrim ("Tầng 3", Figma K1f) and a heart.
 // `compact` is the card of the home's two-column grid (Figma "lưới món"): a 120px photograph, then the dish,
-// the price on its own line and the portions left under it, a heart instead of the bitten corner.
+// the price on its own line and the portions left under it, a heart instead of the bitten corner and no
+// rating, which would cut the window short.
 export function OfferCard({
   offer,
   showSeller = false,
@@ -65,7 +66,7 @@ export function OfferCard({
         >
           <ClockIcon aria-hidden strokeWidth={2.2} className="mb-0.5 size-3.5 shrink-0" />
           <span className="truncate">{where}</span>
-          {rating !== undefined && <Rating rating={rating} className="ml-auto" />}
+          {!compact && rating !== undefined && <Rating rating={rating} className="ml-auto" />}
         </p>
         {(compact || showSeller) && (
           <HeartButton

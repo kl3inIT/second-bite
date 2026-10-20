@@ -13,7 +13,6 @@ import {
 import { SectionHeader } from "@/components/section-header";
 import { listAnnouncements, listOffers } from "@/features/offers/list-offers";
 import { closingFirst, inShowingOrder } from "@/features/offers/offer";
-import type { Announcement } from "@/features/offers/proposed";
 import { OfferList } from "@/features/offers/offer-list";
 import { OfferRow } from "@/features/offers/offer-row";
 import { SearchFilters } from "@/features/search/search-filters";
@@ -51,7 +50,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
         </div>
       )}
       {query.near && !filtered && offers.length === 0 ? (
-        <NearbyEmpty announcements={announcements} />
+        <NearbyEmpty />
       ) : (
         <>
           {closing.length > 0 && (
@@ -140,8 +139,13 @@ async function NothingFound({ filtered, near }: { filtered: boolean; near?: stri
 }
 
 // Nothing posted around the person's own place (Figma K1e): say so, offer Tasco Mall, and show what it has.
-async function NearbyEmpty({ announcements }: { announcements: readonly Announcement[] }) {
-  const [t, mall] = await Promise.all([getTranslations("Home"), listOffers({})]);
+async function NearbyEmpty() {
+  // What Tasco Mall expects tonight, since nothing around the person's place is expected either.
+  const [t, mall, mallAnnouncements] = await Promise.all([
+    getTranslations("Home"),
+    listOffers({}),
+    listAnnouncements({}),
+  ]);
   const onSale = closingFirst(mall);
 
   return (
@@ -160,7 +164,7 @@ async function NearbyEmpty({ announcements }: { announcements: readonly Announce
           </Link>
         </EmptyContent>
       </Empty>
-      <UpcomingSection announcements={announcements} />
+      <UpcomingSection announcements={mallAnnouncements} />
       {onSale.length > 0 && (
         <section aria-labelledby="mall-offers" className="flex flex-col gap-3">
           <SectionHeader
