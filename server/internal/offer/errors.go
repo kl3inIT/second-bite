@@ -18,4 +18,8 @@ var (
 		"Check the search: a point on the map, a time range that ends after it starts, known kinds, and a point to sort by distance.")
 	ErrSettingsInvalid = platform.NewFailure("OFFER_SETTINGS_INVALID", platform.CategoryValidation,
 		"The offer settings are out of range or contradict each other.")
+	ErrSoldOut = platform.NewFailure("OFFER_SOLD_OUT", platform.CategoryConflict,
+		"The offer has fewer units left than were asked for.")
+	ErrUnavailable = platform.NewFailure("OFFER_UNAVAILABLE", platform.CategoryConflict,
+		"The offer is no longer on sale: it was withdrawn or its window is over.")
 )

@@ -99,3 +99,17 @@ ORDER BY
     CASE WHEN sqlc.arg(sort)::text = 'discount' THEN (original_price_vnd - price_vnd)::float8 / original_price_vnd END DESC,
     window_end ASC, id
 LIMIT @max_rows OFFSET @skip_rows;
+
+-- name: TakeUnits :one
+-- Takes units for an order in the order's transaction: only from an offer on
+-- sale whose window is not over and that has them, so the last unit goes to
+-- one order.
+UPDATE offer_offers SET units_left = units_left - @units, updated_at = now()
+WHERE id = @id AND state = 'on_sale' AND window_end > now() AND units_left >= @units
+RETURNING id, seller_id, name, unit, price_vnd, original_price_vnd, photo_id, window_start, window_end,
+          latitude, longitude, address, seller_name;
+
+-- name: ReturnUnits :exec
+-- Gives back the units of a cancelled order, never above the offer's units.
+UPDATE offer_offers SET units_left = LEAST(units, units_left + @units), updated_at = now()
+WHERE id = @id;

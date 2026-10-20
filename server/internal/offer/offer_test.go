@@ -48,6 +48,7 @@ func TestOffer(t *testing.T) {
 			"search reads Vietnamese as it is typed":      testSearchReadsVietnamese,
 			"search keeps what is near and filtered":      testSearchNearAndFiltered,
 			"a blocked seller's offers leave search":      testBlockedSellerLeavesSearch,
+			"orders take and return units":                testOrdersTakeAndReturnUnits,
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
