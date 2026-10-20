@@ -1,1 +1,105 @@
-{}
+{
+  "tabs": {
+    "label": "Accounts by role",
+    "all": "All",
+    "customer": "Customers",
+    "seller": "Store owners/Staff",
+    "admin": "Admins"
+  },
+  "role": {
+    "customer": "Customer",
+    "owner": "Store owner",
+    "staff": "Staff",
+    "admin": "Admin"
+  },
+  "status": {
+    "active": "Active",
+    "locked": "Locked"
+  },
+  "orderStatus": {
+    "held": "Held",
+    "collected": "Collected",
+    "no_show": "No-show",
+    "cancelled": "Cancelled"
+  },
+  "signIn": {
+    "email_code": "Email code",
+    "google": "Google"
+  },
+  "filters": {
+    "search": "Search accounts",
+    "searchPlaceholder": "Search by name or email",
+    "status": "Status",
+    "created": "Created",
+    "size": "Rows",
+    "all": "All"
+  },
+  "columns": {
+    "name": "Account",
+    "role": "Role",
+    "sellers": "Stores",
+    "orders": "Orders",
+    "createdAt": "Created",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "view": "View details",
+  "lockMenu": "Lock account…",
+  "unlock": "Unlock account",
+  "summary": "Showing {from}–{to} of {total} accounts",
+  "empty": {
+    "all": "No accounts yet",
+    "customer": "No customers yet",
+    "seller": "No store owners or staff yet",
+    "admin": "No admins yet"
+  },
+  "detail": {
+    "allOrders": "View orders",
+    "lock": "Lock account",
+    "unlock": "Unlock account",
+    "orders": "Orders placed",
+    "pickupRate": "Pickup rate",
+    "issues": "Reports sent",
+    "joined": "Joined",
+    "tabs": {
+      "label": "About the account",
+      "orders": "Recent orders",
+      "stores": "Stores",
+      "issues": "Reports"
+    },
+    "seeAll": "See all {count} orders",
+    "orderLine": "{item} · {seller}",
+    "issueLine": "{code} · {title}",
+    "noOrders": "No orders yet.",
+    "noIssues": "No reports sent yet.",
+    "noSellers": "Not the owner or staff of any store.",
+    "info": "About the account",
+    "role": "Role",
+    "signIn": "Signs in with",
+    "lastActive": "Last active",
+    "sellers": "Stores",
+    "previous": "Previous account",
+    "next": "Next account",
+    "position": "{index} / {total}"
+  },
+  "locked": {
+    "title": "This account is locked",
+    "signIn": "Cannot sign in",
+    "orders": "Held orders cancelled, customers told",
+    "history": "Order and report history kept"
+  },
+  "lockDialog": {
+    "title": "Lock {name}'s account?",
+    "after": "Once locked:",
+    "consequences": {
+      "signIn": "It can no longer sign in; its open sessions end at once.",
+      "orders": "Orders it holds are cancelled and the customers told.",
+      "heldOrders": "Orders it holds ({orders}) are cancelled and the customers told.",
+      "history": "Its order and report history is kept; it can be unlocked."
+    },
+    "heldOrder": "#{code}, {seller}",
+    "reason": "Reason for locking (admins only)",
+    "confirm": "Lock account"
+  },
+  "soon": "Coming soon"
+}

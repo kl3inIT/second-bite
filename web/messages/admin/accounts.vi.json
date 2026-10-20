@@ -1,1 +1,105 @@
-{}
+{
+  "tabs": {
+    "label": "Tài khoản theo vai trò",
+    "all": "Tất cả",
+    "customer": "Khách",
+    "seller": "Chủ cửa hàng/Nhân viên",
+    "admin": "Quản trị"
+  },
+  "role": {
+    "customer": "Khách",
+    "owner": "Chủ cửa hàng",
+    "staff": "Nhân viên",
+    "admin": "Quản trị"
+  },
+  "status": {
+    "active": "Hoạt động",
+    "locked": "Đã khoá"
+  },
+  "orderStatus": {
+    "held": "Đang giữ",
+    "collected": "Đã lấy",
+    "no_show": "Không đến",
+    "cancelled": "Đã huỷ"
+  },
+  "signIn": {
+    "email_code": "Mã qua email",
+    "google": "Google"
+  },
+  "filters": {
+    "search": "Tìm tài khoản",
+    "searchPlaceholder": "Tìm theo tên hoặc email",
+    "status": "Trạng thái",
+    "created": "Ngày tạo",
+    "size": "Số dòng",
+    "all": "Tất cả"
+  },
+  "columns": {
+    "name": "Tài khoản",
+    "role": "Vai trò",
+    "sellers": "Cửa hàng liên quan",
+    "orders": "Số đơn",
+    "createdAt": "Ngày tạo",
+    "status": "Trạng thái",
+    "actions": "Thao tác"
+  },
+  "view": "Xem chi tiết",
+  "lockMenu": "Khoá tài khoản…",
+  "unlock": "Mở khoá tài khoản",
+  "summary": "Hiển thị {from}–{to} trên {total} tài khoản",
+  "empty": {
+    "all": "Chưa có tài khoản nào",
+    "customer": "Chưa có khách nào",
+    "seller": "Chưa có chủ cửa hàng hay nhân viên nào",
+    "admin": "Chưa có quản trị viên nào"
+  },
+  "detail": {
+    "allOrders": "Xem đơn hàng",
+    "lock": "Khoá tài khoản",
+    "unlock": "Mở khoá tài khoản",
+    "orders": "Đơn đã đặt",
+    "pickupRate": "Tỉ lệ đến lấy",
+    "issues": "Báo lỗi đã gửi",
+    "joined": "Ngày tham gia",
+    "tabs": {
+      "label": "Nội dung tài khoản",
+      "orders": "Đơn gần đây",
+      "stores": "Cửa hàng",
+      "issues": "Báo lỗi"
+    },
+    "seeAll": "Xem tất cả {count} đơn",
+    "orderLine": "{item} · {seller}",
+    "issueLine": "{code} · {title}",
+    "noOrders": "Chưa đặt đơn nào.",
+    "noIssues": "Chưa gửi báo lỗi nào.",
+    "noSellers": "Chưa là chủ cửa hàng hay nhân viên của cửa hàng nào.",
+    "info": "Thông tin tài khoản",
+    "role": "Vai trò",
+    "signIn": "Đăng nhập bằng",
+    "lastActive": "Hoạt động lần cuối",
+    "sellers": "Cửa hàng liên quan",
+    "previous": "Tài khoản trước",
+    "next": "Tài khoản sau",
+    "position": "{index} / {total}"
+  },
+  "locked": {
+    "title": "Tài khoản đang bị khoá",
+    "signIn": "Không đăng nhập được",
+    "orders": "Đơn đang giữ bị huỷ, khách được báo",
+    "history": "Lịch sử đơn và báo lỗi vẫn được giữ"
+  },
+  "lockDialog": {
+    "title": "Khoá tài khoản {name}?",
+    "after": "Sau khi khoá:",
+    "consequences": {
+      "signIn": "Không đăng nhập được nữa; các phiên đang mở bị đăng xuất ngay.",
+      "orders": "Đơn khách đang giữ bị huỷ và khách được báo.",
+      "heldOrders": "Đơn khách đang giữ ({orders}) bị huỷ và khách được báo.",
+      "history": "Lịch sử đơn và báo lỗi được giữ; có thể mở khoá lại."
+    },
+    "heldOrder": "#{code}, {seller}",
+    "reason": "Lý do khoá (chỉ quản trị thấy)",
+    "confirm": "Khoá tài khoản"
+  },
+  "soon": "Sắp có"
+}
