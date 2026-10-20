@@ -1,5 +1,7 @@
 import "server-only";
 
+import { connection } from "next/server";
+
 import { adminRead } from "@/features/admin/session";
 import { type AdminSummaryBody, getAdminSummary } from "@/lib/api/generated";
 
@@ -36,8 +38,10 @@ export type Overview = {
 };
 
 /** The dashboard's data for a span ending today: one summary, and a second for the chart when the span is today. */
-export async function readOverview(range: OverviewRange, now = new Date()): Promise<Overview> {
-  const today = dayInVietnam(now);
+export async function readOverview(range: OverviewRange): Promise<Overview> {
+  // Today is the request's, never a prerender's.
+  await connection();
+  const today = dayInVietnam(new Date());
   const read = (query: { from: string; to: string }) =>
     adminRead((headers) => getAdminSummary({ query, headers }));
   const [summary, chart] = await Promise.all([
