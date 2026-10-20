@@ -371,11 +371,13 @@ The four tabs on a phone (Figma Bottom nav, 105:2515), floating 16px from the si
 
 ### Splash
 
-The first page of a visit on a phone opens on the splash (Figma K0): the white wordmark, 48px high, over the tagline (`body-sm-strong`, white at 80%) on the header's blue. It holds for 0.7 seconds, then fades in 0.3 seconds to the page already drawn beneath it. With reduced motion it is gone at once, and a wide screen does not show it.
+The first page of a visit on a phone opens on the splash (Figma K0): the white wordmark, 48px high, over the tagline (`body-sm-strong`, white at 80%) on the header's blue. The other letters stand still while the bitten "o" falls into its place from above the screen, turning as it falls and bouncing twice (1 second); the tagline rises in after it. At 1.7 seconds the splash fades in 0.3 seconds to the page already drawn beneath it. With reduced motion it is gone at once, and a wide screen does not show it.
+
+While a page's list is fetched, the pale ground covers the screen with the blue wordmark (40px) in its middle, its letters hopping in a wave, still for reduced motion.
 
 ### Header foot and kind picker
 
-The page's pale ground rises over the header's foot as a 28px sheet with 24px top corners (Figma header › sheet); the sweep scales with the header, so its pale bands always reach that foot. Under it, the kinds are 60px round photographs with their names (`label`) on one line, and a short track (36px, `secondary-hover`, its blue half following the row) replaces the browser's scrollbar on every row that scrolls sideways.
+The page's pale ground rises over the header's foot as a 28px sheet with 24px top corners (Figma header › sheet); the sweep scales with the header, so its pale bands always reach that foot. Under it, the kinds are 60px round photographs, each a dish of a Tasco Mall shop cropped so the food fills the circle, with their names (`label`) on one line, and a short track (36px, `secondary-hover`, its blue half following the row) replaces the browser's scrollbar on every row that scrolls sideways.
 
 ### Search top bar
 

@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { UtensilsCrossedIcon, type LucideIcon } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import { useTranslations } from "next-intl";
 
@@ -11,6 +10,7 @@ import bakery from "./kinds/bakery.jpg";
 import drinks from "./kinds/drinks.jpg";
 import ingredients from "./kinds/ingredients.jpg";
 import mixedBox from "./kinds/mixed-box.jpg";
+import other from "./kinds/other.jpg";
 import preparedFood from "./kinds/prepared-food.jpg";
 
 import type { HomeQuery } from "./home-query";
@@ -18,7 +18,7 @@ import type { HomeQuery } from "./home-query";
 // The round pictures at the top of the content (Figma K1 kind picker): one per kind the API can filter by,
 // with a short scroll hint under them. Each is a link over the address; the chosen one links back to the
 // whole list. Collecting now is a chip of the search (Figma K2).
-// In Figma's order, with Figma's photographs (each layer is named after the kind it stands for, kind/Bánh…).
+// In Figma's order (its layers are named after the kinds, kind/Bánh…), each a dish of a Tasco Mall shop.
 const order: readonly OfferKind[] = [
   "bakery",
   "prepared_food",
@@ -27,13 +27,13 @@ const order: readonly OfferKind[] = [
   "drinks",
   "other",
 ];
-const pictures: Record<OfferKind, StaticImageData | LucideIcon> = {
+const pictures: Record<OfferKind, StaticImageData> = {
   bakery,
   prepared_food: preparedFood,
   ingredients,
   drinks,
   mixed_box: mixedBox,
-  other: UtensilsCrossedIcon,
+  other,
 };
 
 export function KindPicker({ query }: { query: HomeQuery }) {
@@ -76,25 +76,11 @@ export function KindPicker({ query }: { query: HomeQuery }) {
   );
 }
 
-function KindPicture({
-  picture,
-  active,
-}: {
-  picture: StaticImageData | LucideIcon;
-  active: boolean;
-}) {
+function KindPicture({ picture, active }: { picture: StaticImageData; active: boolean }) {
   const frame = cn(
     "size-15 rounded-full transition-shadow group-hover/kind:ring-2 group-hover/kind:ring-secondary-hover",
     active &&
       "ring-3 ring-primary ring-offset-2 ring-offset-background group-hover/kind:ring-primary",
   );
-  if (!("src" in picture)) {
-    const Icon = picture;
-    return (
-      <span className={cn(frame, "flex items-center justify-center bg-secondary text-primary")}>
-        <Icon aria-hidden className="size-6" />
-      </span>
-    );
-  }
   return <Image src={picture} alt="" sizes="60px" className={cn(frame, "object-cover")} />;
 }

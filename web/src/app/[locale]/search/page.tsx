@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
+import { BrandLoader } from "@/components/brand-loader";
 import { SearchBar } from "@/features/search/search-bar";
 import { readSearchQuery, type SearchQuery } from "@/features/search/search-query";
-import { SearchResults, SearchResultsSkeleton } from "@/features/search/search-results";
+import { SearchResults } from "@/features/search/search-results";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Search");
@@ -28,7 +29,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/[locale]/
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 pt-1">
         <h1 className="sr-only">{t("title")}</h1>
-        <Suspense fallback={<SearchResultsSkeleton />}>
+        <Suspense fallback={<BrandLoader />}>
           <SearchResults query={query} />
         </Suspense>
       </main>

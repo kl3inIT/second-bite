@@ -2,7 +2,6 @@ import { getTranslations } from "next-intl/server";
 
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { Skeleton } from "@/components/ui/skeleton";
 import { listOffers } from "@/features/offers/list-offers";
 import { groupBySeller, inShowingOrder } from "@/features/offers/offer";
 import { OfferList } from "@/features/offers/offer-list";
@@ -79,23 +78,6 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
           ))}
         </ul>
       )}
-    </div>
-  );
-}
-
-/** What the results look like while they load: the tabs, the chips and two blocks in their final sizes. */
-export function SearchResultsSkeleton() {
-  return (
-    <div aria-hidden className="flex flex-col gap-3 px-4 pt-1 pb-6">
-      <Skeleton className="h-11" />
-      <div className="flex gap-2">
-        {Array.from({ length: 3 }, (_, i) => (
-          <Skeleton key={i} shape="circle" className="h-8.5 w-20" />
-        ))}
-      </div>
-      {Array.from({ length: 2 }, (_, i) => (
-        <Skeleton key={i} shape="card" className="h-80" />
-      ))}
     </div>
   );
 }

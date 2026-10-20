@@ -10,7 +10,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SectionHeader } from "@/components/section-header";
 import { listOffers } from "@/features/offers/list-offers";
 import { closingFirst, inShowingOrder } from "@/features/offers/offer";
@@ -142,24 +141,5 @@ async function NearbyEmpty() {
         </section>
       )}
     </>
-  );
-}
-
-/** What the list looks like while it loads: the kinds' row and a grid of cards in their final sizes. */
-export function HomeContentSkeleton() {
-  return (
-    <div aria-hidden className="flex flex-col gap-3 px-4 pt-1 pb-4">
-      <div className="flex gap-2.5">
-        {Array.from({ length: 5 }, (_, i) => (
-          <Skeleton key={i} shape="circle" className="size-15 shrink-0" />
-        ))}
-      </div>
-      <Skeleton className="h-7 w-48" />
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {Array.from({ length: 4 }, (_, i) => (
-          <Skeleton key={i} shape="card" className="h-52" />
-        ))}
-      </div>
-    </div>
   );
 }

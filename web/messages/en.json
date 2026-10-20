@@ -332,6 +332,7 @@
     "soon": "(coming soon)"
   },
   "Splash": {
-    "tagline": "Good food left at the end of the day, for less"
+    "tagline": "Good food left at the end of the day, for less",
+    "loading": "Loading…"
   }
 }
