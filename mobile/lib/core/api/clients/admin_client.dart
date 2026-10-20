@@ -5,6 +5,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../models/admin_summary_body.dart';
 import '../models/offer_settings_body.dart';
 import '../models/seller_body.dart';
 import '../models/sellers_output_body.dart';
@@ -45,4 +46,17 @@ abstract class AdminClient {
   /// Stop a seller from publishing
   @POST('/admin/sellers/{sellerId}/block')
   Future<SellerBody> blockSeller({@Path('sellerId') required String sellerId});
+
+  /// The figures of the admins' dashboard over a range of days.
+  ///
+  /// Sellers by status now and opened in the range; offers posted in the range, per day and by seller, and open now; accounts in all and created in the range, per day. Days are in Vietnam time; the range is at most 90 days and the last 30 without one. Orders and payments are not counted yet.
+  ///
+  /// [from] - The range's first day in Vietnam time; 29 days before to when absent.
+  ///
+  /// [to] - The range's last day in Vietnam time, included; today when absent.
+  @GET('/admin/summary')
+  Future<AdminSummaryBody> getAdminSummary({
+    @Query('from') DateTime? from,
+    @Query('to') DateTime? to,
+  });
 }
