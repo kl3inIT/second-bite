@@ -10,15 +10,17 @@ import { radiusChoices, searchParams, sortChoices, type SearchQuery } from "./se
 // The search's chips (Figma K2 chip lọc), each a filter `GET /offers` takes: how far around the person's
 // place (only with one), the price from and to, the time to collect from and to (or now), and the kind.
 // Choosing one keeps the others.
-// The home shows them over "Tất cả món quanh đây" (Figma K1b), `raised` on its sky ground, with the order
-// as a chip and `before` them a link to the search; each choice opens the search.
+// `raised` sets them on the sky ground. The home shows them over "Tất cả món quanh đây" (Figma K1b) with the
+// order as a chip (`sort`) and `before` them a link to the search; each choice opens the search.
 export function SearchFilters({
   query,
   raised,
+  sort,
   before,
 }: {
   query: SearchQuery;
   raised?: boolean;
+  sort?: boolean;
   before?: React.ReactNode;
 }) {
   const t = useTranslations("Search");
@@ -61,7 +63,7 @@ export function SearchFilters({
       className="scrollbar-none flex gap-2 overflow-x-auto px-4 py-1.25 *:shrink-0"
     >
       {before && <li>{before}</li>}
-      {raised && (
+      {sort && (
         <li>
           <SearchOrder query={query} chip />
         </li>

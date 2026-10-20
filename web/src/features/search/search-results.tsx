@@ -48,7 +48,7 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
   return (
     <div className="flex flex-col gap-3 pb-6">
       <ResultTabs query={query} dishes={offers.length} sellers={groups.length} />
-      <SearchFilters query={query} />
+      <SearchFilters raised query={query} />
       <div className="flex items-center justify-between gap-3 px-4">
         <output className="text-label text-muted-foreground">{summary}</output>
         {offers.length > 1 && <SearchOrder query={query} />}

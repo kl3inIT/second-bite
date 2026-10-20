@@ -63,7 +63,7 @@ export function SearchBar({
         >
           <ArrowLeftIcon aria-hidden className="size-5" />
         </Link>
-        <search className="min-w-0 flex-1">
+        <search className="min-w-0 flex-1 search-cancel-none">
           <form>
             {near && <input type="hidden" name="near" value={near} />}
             {tab && <input type="hidden" name="tab" value={tab} />}

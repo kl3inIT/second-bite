@@ -75,6 +75,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
               <SearchFilters
                 query={{ near: query.near }}
                 raised
+                sort
                 before={<FiltersLink near={query.near} label={t("filters")} />}
               />
             )}
