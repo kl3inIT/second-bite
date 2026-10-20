@@ -24,7 +24,7 @@ export function Rating({
     <span
       className={cn(
         "flex shrink-0 items-center gap-0.5 text-label-strong",
-        badge && "rounded-sm bg-card px-1.5 text-foreground",
+        badge && "rounded-xs bg-card px-1 py-px text-foreground",
         className,
       )}
     >

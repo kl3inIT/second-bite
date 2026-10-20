@@ -23,14 +23,14 @@ export default async function SearchPage({ searchParams }: PageProps<"/[locale]/
   return (
     <>
       {/* Above the bottom bar, which the search's suggestions cover (Figma K2a). */}
-      <header className="sticky top-0 z-50 border-b border-border bg-shell text-shell-foreground">
+      <header className="sticky top-0 z-50 bg-shell text-shell-foreground">
         <div className="mx-auto w-full max-w-5xl">
           <Suspense fallback={<SearchBar />}>
             <AddressSearchBar query={query} />
           </Suspense>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 pt-1">
+      <main className="mx-auto w-full max-w-5xl flex-1">
         <h1 className="sr-only">{t("title")}</h1>
         <Suspense fallback={<BrandLoader />}>
           <SearchResults query={query} />

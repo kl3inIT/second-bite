@@ -34,7 +34,9 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
   ]);
   const offers = inShowingOrder(found);
   const groups = groupBySeller(offers);
-  const sellersTab = query.tab === "sellers";
+  // Browsing without words (Figma K1f) lists the dishes alone; the tabs come with a search (Figma K2).
+  const browsing = !query.q;
+  const sellersTab = !browsing && query.tab === "sellers";
   const count = sellersTab ? groups.length : offers.length;
   const place = query.near ? "near" : "mall";
   const summary = sellersTab
@@ -45,14 +47,22 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
       ? t("dishesFor", { count, q: query.q })
       : t("dishesHere", { count, place });
 
+  const heading = (
+    <div className="flex items-center justify-between gap-3 px-4">
+      <output className="text-label text-muted-foreground">{summary}</output>
+      {offers.length > 1 && <SearchOrder query={query} />}
+    </div>
+  );
+
   return (
     <div className="flex flex-col gap-3 pb-6">
-      <ResultTabs query={query} dishes={offers.length} sellers={groups.length} />
-      <SearchFilters raised query={query} />
-      <div className="flex items-center justify-between gap-3 px-4">
-        <output className="text-label text-muted-foreground">{summary}</output>
-        {offers.length > 1 && <SearchOrder query={query} />}
+      {/* The white top goes on under the field with the chips, and while browsing the summary (Figma K1f). */}
+      <div className="flex flex-col gap-3 border-b border-border bg-shell pb-3">
+        {!browsing && <ResultTabs query={query} dishes={offers.length} sellers={groups.length} />}
+        <SearchFilters query={query} />
+        {browsing && heading}
       </div>
+      {!browsing && heading}
       {offers.length === 0 ? (
         <Empty surface="card" className="mx-4 w-auto">
           <EmptyHeader>

@@ -24,7 +24,7 @@ export function MiniCard({
       <div className="relative mb-1.5 h-24 overflow-hidden rounded-lg">
         <OfferPhoto offer={offer} sizes="132px" />
         {label}
-        {badge && <div className="absolute bottom-2 left-2">{badge}</div>}
+        {badge && <div className="absolute bottom-1.5 left-1.5">{badge}</div>}
         {action && <div className="absolute right-1.5 bottom-1.5">{action}</div>}
       </div>
       <h3 className="truncate text-body-sm-strong text-foreground">{offer.name}</h3>

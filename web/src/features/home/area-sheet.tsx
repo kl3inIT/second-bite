@@ -136,16 +136,21 @@ function AreaOption({
   const id = useId();
 
   return (
+    // The chosen option shows its radio, the other its icon in the radio's place (Figma K1a).
     <label
       htmlFor={id}
-      className="flex min-h-16 cursor-pointer items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 transition-colors has-data-checked:border-primary has-data-checked:bg-secondary"
+      className="group flex min-h-16 cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-3 transition-colors has-focus-visible:ring-3 has-focus-visible:ring-ring/50 has-data-checked:border-primary"
     >
-      <RadioGroupItem id={id} value={value} />
+      <span className="relative flex size-5 shrink-0 items-center justify-center">
+        <span className="opacity-0 group-has-data-checked:opacity-100">
+          <RadioGroupItem id={id} value={value} />
+        </span>
+        <Icon aria-hidden className="absolute size-5 text-primary group-has-data-checked:hidden" />
+      </span>
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="text-body-sm-strong text-foreground">{title}</span>
         <span className="text-label text-muted-foreground">{hint}</span>
       </span>
-      <Icon aria-hidden className="size-5 shrink-0 text-primary" />
     </label>
   );
 }
