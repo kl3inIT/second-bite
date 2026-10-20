@@ -369,6 +369,22 @@ The small card of the sideways rows (Figma `rec/…`): 132px wide with no surfac
 
 The four tabs on a phone (Figma Bottom nav, 105:2515), floating 16px from the sides and the bottom: 64px high, fully rounded, frosted white with a hairline of white and `elevation.nav`. The active tab is a Blue Wash pill with its icon and label in Tasco blue (`label-strong`); the others are muted (`label`). A tab without a screen yet is shown dimmed and cannot be pressed.
 
+### Search top bar
+
+The search's own bar (Figma K2): white with a hairline below, a plain back arrow, and the search field fully rounded on the sky ground (`muted`) without an edge. While the field is focused and empty, the recent searches (kept in the browser) and the kinds open under it as a white panel (Figma K2a).
+
+### Filter chip
+
+A 34px pill on the sky ground without an edge (`body-sm`, ink, a small chevron), with a 44px target around it; once chosen it shows its value on Blue Wash in Tasco blue (`body-sm-strong`). Each opens its options as a menu, and every option is a link over the address. A suggestion chip (the kinds in Figma K2a) has the same shape without the chevron.
+
+### Result tabs
+
+Two halves over a hairline (Figma K2 "Món (12)" / "Quán (2)"): the open one in Tasco blue over a 3px line, the other muted, both `title`.
+
+### Seller block
+
+One seller's dishes in the search, white, 20px radius, bitten corner. Either the seller's avatar, name (`title-lg`) and window (`label`, muted) (Figma K2c), or their first dish as an offer card (Figma K1f); then up to three dish tiles: a photograph 84px high with a 12px radius, the price (`price`) beside the old one struck through, and the dish (`label`) on one line.
+
 ### Deal card
 
 Deal Blue, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and up to three white tickets with the discount in red (`figure-sm` in `sale`), the seller and when collection opens ("Nhận 20:30"). A sky sheet with rounded top corners rises behind its lower half to start the page.

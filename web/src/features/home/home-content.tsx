@@ -58,17 +58,19 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
               <SectionHeader
                 id="closing-soon"
                 title={t("closingSoon")}
-                action={
-                  <a href="#all-offers" className={seeAllClass}>
-                    {t("seeAll")}
-                  </a>
-                }
+                action={<SeeAll near={query.near} label={t("seeAll")} />}
               />
               <OfferRow label={t("closingSoon")} offers={closing} />
             </section>
           )}
           <section aria-labelledby="all-offers" className="flex flex-col gap-3">
-            <SectionHeader id="all-offers" title={filtered ? t("results") : t("allOffers")} />
+            <SectionHeader
+              id="all-offers"
+              title={filtered ? t("results") : t("allOffers")}
+              action={
+                !filtered && offers.length > 0 && <SeeAll near={query.near} label={t("seeAll")} />
+              }
+            />
             {offers.length > 0 ? (
               <OfferList offers={inShowingOrder(offers)} />
             ) : (
@@ -78,6 +80,15 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
         </>
       )}
     </div>
+  );
+}
+
+/** "Xem tất cả": every dish, by seller, on the search page (Figma K1f). */
+function SeeAll({ near, label }: { near?: string; label: string }) {
+  return (
+    <Link href={{ pathname: "/search", query: homeSearch({ near }) }} className={seeAllClass}>
+      {label}
+    </Link>
   );
 }
 
@@ -129,11 +140,7 @@ async function NearbyEmpty() {
           <SectionHeader
             id="mall-offers"
             title={t("mallOffers")}
-            action={
-              <Link href="/" className={seeAllClass}>
-                {t("seeAll")}
-              </Link>
-            }
+            action={<SeeAll label={t("seeAll")} />}
           />
           <OfferRow label={t("mallOffers")} offers={onSale} />
         </section>

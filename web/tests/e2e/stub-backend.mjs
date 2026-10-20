@@ -124,10 +124,12 @@ function search(url) {
   const to = url.searchParams.get("collectTo");
   const near = url.searchParams.get("near")?.split(",").map(Number);
   const radiusKm = Number(url.searchParams.get("radiusKm") ?? DEFAULT_RADIUS_KM);
+  const maxPrice = url.searchParams.get("maxPrice");
   const found = offers.filter(
     (offer) =>
       (!q || fold(offer.name).includes(fold(q)) || fold(offer.seller.name).includes(fold(q))) &&
       (!kind || kind.split(",").includes(offer.kind)) &&
+      (!maxPrice || offer.priceVnd <= Number(maxPrice)) &&
       (!to || new Date(offer.windowStart) <= new Date(to)) &&
       (!from || new Date(from) < new Date(offer.windowEnd)),
   );

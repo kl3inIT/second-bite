@@ -1,10 +1,10 @@
 import { SearchIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 
-// The search field of the header (Figma search): a GET form over the address, so a search can be shared
-// and works before JavaScript.
+// The search field of the header (Figma search): a GET form to the search page (Figma K2), so a search can
+// be shared and works before JavaScript.
 export function SearchField({
   value,
   near,
@@ -16,10 +16,11 @@ export function SearchField({
   id?: string;
 }) {
   const t = useTranslations("Home");
+  const locale = useLocale();
 
   return (
     <search>
-      <form>
+      <form action={`/${locale}/search`}>
         {near && <input type="hidden" name="near" value={near} />}
         <InputGroup surface="header">
           <InputGroupInput

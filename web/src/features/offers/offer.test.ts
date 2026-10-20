@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   biggestDiscountFirst,
   closingFirst,
+  groupBySeller,
   inShowingOrder,
   isAvailable,
   type OfferSummary,
@@ -85,5 +86,23 @@ describe("the home's rows", () => {
     ];
 
     expect(biggestDiscountFirst(discounts).map((o) => o.id)).toEqual(["most", "half"]);
+  });
+});
+
+describe("the search's sellers", () => {
+  it("groups the offers by seller, in the order each seller first appears", () => {
+    const fromSeller = (id: string, sellerId: string): OfferSummary => ({
+      ...offer(id, "on_sale", 1),
+      sellerId,
+      seller: { id: sellerId, name: sellerId, address: "" },
+    });
+    const list = [fromSeller("a", "s2"), fromSeller("b", "s1"), fromSeller("c", "s2")];
+
+    expect(
+      groupBySeller(list).map((group) => [group.seller.id, group.offers.map((o) => o.id)]),
+    ).toEqual([
+      ["s2", ["a", "c"]],
+      ["s1", ["b"]],
+    ]);
   });
 });

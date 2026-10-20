@@ -72,16 +72,42 @@ test.describe("the customer home", () => {
     await expect(page).toHaveURL(/\/vi$/);
   });
 
-  test("searches by words without accents", async ({ page }) => {
+  test("takes the words typed in the header to the search", async ({ page }) => {
     await page.goto("/vi");
     await (await hydrated(page.getByRole("searchbox", { name: "Tìm món hoặc quán" }))).fill("xoi");
     await page.keyboard.press("Enter");
 
-    await expect(page).toHaveURL(/\/vi\?q=xoi$/);
-    await expect(page.getByRole("searchbox", { name: "Tìm món hoặc quán" })).toHaveValue("xoi");
+    await expect(page).toHaveURL(/\/vi\/search\?q=xoi$/);
+  });
+
+  test("shows the dishes around the person's place, nearest first, and Tasco Mall's when there are none", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["geolocation"]);
+    await context.setGeolocation({ latitude: 21.0571, longitude: 105.8969 });
+    await page.goto("/vi");
+    await (await hydrated(page.getByRole("button", { name: "Chọn nơi xem món" }))).click();
+    await expectNoSeriousA11yViolations(page);
+    await page.getByText("Dùng vị trí của tôi").click();
+    await page.getByRole("button", { name: "Xem món quanh đây" }).click();
+
+    await expect(page).toHaveURL(/\/vi\?near=21\.057%2C105\.897$/);
     await expect(
-      page.getByRole("region", { name: "Kết quả" }).getByRole("heading", { level: 3 }),
-    ).toHaveText(["Xôi thập cẩm, 1 hộp"]);
+      page.getByRole("heading", { level: 1, name: "Tối nay quanh Vị trí của tôi" }),
+    ).toBeVisible();
+    await expect(page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" })).toBeHidden();
+    const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
+    await expect(all.getByText(/^21:00–21:45 · \d+ m$/).first()).toBeVisible();
+
+    await page.goto("/vi?near=10.762,106.660");
+    await expect(page.getByText("Chưa có món nào quanh đây")).toBeVisible();
+    await expect(
+      page
+        .getByRole("region", { name: "Đang bán ở Tasco Mall" })
+        .getByRole("heading", { level: 3 }),
+    ).toHaveText(["Túi bánh mì và croissant, 4 chiếc", "Xôi thập cẩm, 1 hộp"]);
+    await expectNoSeriousA11yViolations(page);
   });
 
   test("introduces Second Bite on a first visit until it is closed", async ({ page, isMobile }) => {

@@ -37,3 +37,16 @@ export function closingFirst(offers: readonly OfferSummary[]): OfferSummary[] {
 export function biggestDiscountFirst(offers: readonly OfferSummary[]): OfferSummary[] {
   return offers.filter(isAvailable).toSorted((a, b) => b.discountPercent - a.discountPercent);
 }
+
+/** The offers by seller, in the order each seller first appears, each seller's in the order given. */
+export function groupBySeller(
+  offers: readonly OfferSummary[],
+): { seller: OfferSummary["seller"]; offers: OfferSummary[] }[] {
+  const groups = new Map<string, { seller: OfferSummary["seller"]; offers: OfferSummary[] }>();
+  for (const offer of offers) {
+    const group = groups.get(offer.sellerId);
+    if (group) group.offers.push(offer);
+    else groups.set(offer.sellerId, { seller: offer.seller, offers: [offer] });
+  }
+  return [...groups.values()];
+}
