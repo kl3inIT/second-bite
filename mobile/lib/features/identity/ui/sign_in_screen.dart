@@ -6,11 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:second_bite/core/api.dart';
 import 'package:second_bite/core/language_button.dart';
-import 'package:second_bite/core/web_pages.dart';
+import 'package:second_bite/core/routes.dart';
 import 'package:second_bite/features/identity/data/auth_repository.dart';
 import 'package:second_bite/features/identity/data/google_auth.dart';
 import 'package:second_bite/features/identity/ui/current_account.dart';
 import 'package:second_bite/features/identity/ui/sign_in_problem.dart';
+import 'package:second_bite/features/legal/ui/legal_text.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
 /// How many digits the emailed code has.
@@ -176,7 +177,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           tooltip: l10n.topBarBack,
           onPressed: () =>
               context.canPop() ? context.pop() : context.go(widget.returnTo),
-          icon: const Icon(LucideIcons.chevronLeft, size: 24),
+          icon: const BackButtonIcon(),
         ),
         title: Text(l10n.signInTitle),
         actions: const [
@@ -473,7 +474,7 @@ class _CodeSentState extends State<_CodeSent> {
 }
 
 /// "Khi tiếp tục, bạn đồng ý với Điều khoản sử dụng và Chính sách quyền
-/// riêng tư.", the two pages opening on the web as on the account tab.
+/// riêng tư.", the two pages opening inside the app as on the account tab.
 class _LegalLine extends StatefulWidget {
   const new();
 
@@ -482,8 +483,8 @@ class _LegalLine extends StatefulWidget {
 }
 
 class _LegalLineState extends State<_LegalLine> {
-  final Map<LegalPage, TapGestureRecognizer> _links = {
-    for (final page in LegalPage.values) page: TapGestureRecognizer(),
+  final Map<LegalDocument, TapGestureRecognizer> _links = {
+    for (final page in LegalDocument.values) page: TapGestureRecognizer(),
   };
 
   @override
@@ -499,7 +500,6 @@ class _LegalLineState extends State<_LegalLine> {
     final l10n = context.l10n;
     final text = context.appTextStyles;
     final scheme = Theme.of(context).colorScheme;
-    final language = Localizations.localeOf(context).languageCode;
     const terms = '\u0000';
     const privacy = '\u0001';
     final sentence = l10n.signInLegal(terms, privacy);
@@ -517,13 +517,18 @@ class _LegalLineState extends State<_LegalLine> {
         break;
       }
       if (at > 0) spans.add(TextSpan(text: rest.substring(0, at)));
-      final page = rest[at] == terms ? LegalPage.terms : LegalPage.privacy;
+      final page = rest[at] == terms
+          ? LegalDocument.terms
+          : LegalDocument.privacy;
       spans.add(
         TextSpan(
-          text: page == LegalPage.terms ? l10n.legalTerms : l10n.legalPrivacy,
+          text: page.title(l10n),
           style: link,
           recognizer: _links[page]!
-            ..onTap = () => openLegalPage(page, language),
+            ..onTap = () => unawaited(switch (page) {
+              LegalDocument.terms => const TermsRoute().push<void>(context),
+              LegalDocument.privacy => const PrivacyRoute().push<void>(context),
+            }),
         ),
       );
       rest = rest.substring(at + 1);

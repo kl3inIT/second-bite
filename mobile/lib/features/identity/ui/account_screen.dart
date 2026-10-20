@@ -4,14 +4,13 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:second_bite/core/language_button.dart';
 import 'package:second_bite/core/routes.dart';
-import 'package:second_bite/core/web_pages.dart';
 import 'package:second_bite/features/identity/ui/current_account.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
 /// {@template account_screen}
 /// The account tab, as the web's `/account`: who is signed in and sign-out,
 /// or a way to sign in; then the terms and the privacy policy (Decree
-/// 52/2013, SEC-32), which open on the web.
+/// 52/2013, SEC-32), which open inside the app (SEC-52).
 /// {@endtemplate}
 class AccountScreen extends ConsumerStatefulWidget {
   /// {@macro account_screen}
@@ -41,7 +40,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     final l10n = context.l10n;
     final text = context.appTextStyles;
     final scheme = Theme.of(context).colorScheme;
-    final language = Localizations.localeOf(context).languageCode;
     final account = ref.watch(currentAccountProvider).value;
     final name = account?.displayName ?? '';
 
@@ -144,9 +142,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       padding: const EdgeInsets.all(SpacingTokens.space1),
                       child: Column(
                         children: [
-                          for (final (page, title) in [
-                            (LegalPage.terms, l10n.legalTerms),
-                            (LegalPage.privacy, l10n.legalPrivacy),
+                          for (final (route, title) in [
+                            (const TermsRoute(), l10n.legalTerms),
+                            (const PrivacyRoute(), l10n.legalPrivacy),
                           ])
                             ListTile(
                               minTileHeight: 48,
@@ -161,7 +159,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                                 size: 16,
                                 color: scheme.onSurfaceVariant,
                               ),
-                              onTap: () => openLegalPage(page, language),
+                              onTap: () => unawaited(route.push<void>(context)),
                             ),
                         ],
                       ),

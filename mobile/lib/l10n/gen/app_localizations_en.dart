@@ -199,6 +199,154 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legalPrivacy => 'Privacy policy';
 
   @override
+  String get legalDraft =>
+      'Draft, waiting for review by the founder and a lawyer. It may change before Second Bite opens to everyone; the parts marked “to be added” will be filled in.';
+
+  @override
+  String legalUpdated(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat.yMMMMd(localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'Last updated: $dateString';
+  }
+
+  @override
+  String get legalContents => 'Sections';
+
+  @override
+  String get legalTermsIntro =>
+      'These terms are the agreement between you and Second Bite when you use Second Bite\'s website and app, as a customer or as a seller.';
+
+  @override
+  String get legalTermsSection1Title => '1. What Second Bite is';
+
+  @override
+  String get legalTermsSection1Body =>
+      'Second Bite is a non-profit platform connecting shops with end-of-day surplus to customers who want it at a lower price. Second Bite takes no commission on a shop\'s sales.\n\nOperator: to be added (name, address, registration and licence if any).\n\nThe sale of food is between the customer and the shop. Second Bite provides the place to post, find and order; it neither sells nor inspects food.';
+
+  @override
+  String get legalTermsSection2Title => '2. Accounts';
+
+  @override
+  String get legalTermsSection2Body =>
+      'You can browse and search without an account. You sign in to order, to follow a shop, or to post for a shop.\n\nKeep the mailbox and Google account you sign in with secure, and do not sign in for someone else.';
+
+  @override
+  String get legalTermsSection3Title => '3. Sellers\' responsibilities';
+
+  @override
+  String get legalTermsSection3Body =>
+      'Post only genuine surplus, never food still needed for normal service.\n\nDescribe the food, quantity, original price and price truthfully; the price must be at least Second Bite\'s minimum discount below the original price (20% at present).\n\nYou are responsible for the food\'s quality, safety and allergen information, and for checking it at the handover.\n\nPhotos and text you post must be yours or yours to use; you allow Second Bite to show them on the platform.';
+
+  @override
+  String get legalTermsSection4Title => '4. Customers\' responsibilities';
+
+  @override
+  String get legalTermsSection4Body =>
+      'Collect within the dish\'s window; an order not collected may be recorded and affect later orders.\n\nRead the description, especially allergen information, and ask the shop when unsure. Surplus food may differ slightly from its photo.\n\nEach person may order a limited number of items a day, so surplus reaches more people.';
+
+  @override
+  String get legalTermsSection5Title => '5. Prices, payment and cancellation';
+
+  @override
+  String get legalTermsSection5Body =>
+      'Prices shown are the shop\'s; third-party fees, if any, are shown separately before you order.\n\nDuring the pilot, you pay the shop directly when you collect. Cancellation and refunds: to be added when ordering opens.';
+
+  @override
+  String get legalTermsSection6Title => '6. What is not allowed';
+
+  @override
+  String get legalTermsSection6Body =>
+      'Posting false, unlawful or someone else\'s content; ordering without meaning to collect; interfering with the system or using someone else\'s account.\n\nSecond Bite may hide a dish, or suspend a shop or an account that breaks these terms.';
+
+  @override
+  String get legalTermsSection7Title => '7. Limits of liability';
+
+  @override
+  String get legalTermsSection7Body =>
+      'Second Bite works to keep the service running but does not promise it is always available. To the extent the law allows, Second Bite is not responsible for the quality of food a shop sells; complaints about food go to the shop, and Second Bite helps both sides resolve them.';
+
+  @override
+  String get legalTermsSection8Title => '8. Changes and governing law';
+
+  @override
+  String get legalTermsSection8Body =>
+      'When these terms change, we update the date at the top and tell you beforehand if a change affects your rights.\n\nThese terms are governed by Vietnamese law. Disputes are first settled by negotiation, then as the law provides.\n\nContact: to be added.';
+
+  @override
+  String get legalPrivacyIntro =>
+      'Second Bite is a non-profit platform that helps shops sell their end-of-day surplus at a lower price. This page says what personal data we collect, why, how long we keep it, who can see it and what your rights are, under Vietnam\'s Personal Data Protection Law 2025 and Decree 52/2013/NĐ-CP.';
+
+  @override
+  String get legalPrivacySection1Title => '1. Who is responsible for your data';
+
+  @override
+  String get legalPrivacySection1Body =>
+      'Data controller: to be added (name of the organisation or person, address).\n\nPrivacy contact: to be added.';
+
+  @override
+  String get legalPrivacySection2Title => '2. What we collect and why';
+
+  @override
+  String get legalPrivacySection2Body =>
+      'Browsing and searching need no account. When you search around a place, it is used only to work out distances for that search and is not stored.\n\nAccount: your email address, to send you sign-in codes and recognise you next time; a display name, so the shop can call you at the handover.\n\nSigning in with Google (coming soon): your Google identifier, email address, name and profile picture, which Google shares when you agree, to sign you in and show your name.\n\nSign-in session: a random token that keeps you signed in; we store only its hash and when it was last used.\n\nSellers: the shop\'s name, address, map location and phone, and the email addresses of its owner and staff, so the shop can post and customers can find it.\n\nPhotos: dish and shop photos uploaded by sellers. Each is written again in two sizes without any embedded information such as where it was taken or the camera.\n\nOrders (coming soon): dishes, quantities, collection time and status, so the shop can prepare them and each person\'s daily limit can be kept.\n\nEmails sent: recipient, kind of email and the provider\'s message id, to know whether an email arrived.\n\nTechnical logs: the time, path and result of each request, to find and fix faults; they never hold email addresses, codes or passwords.';
+
+  @override
+  String get legalPrivacySection3Title => '3. How long we keep it';
+
+  @override
+  String get legalPrivacySection3Body =>
+      'Sign-in codes: deleted once used, when a newer one is requested, or a day after they were sent at the latest.\n\nSessions: end after 30 days without use; deleted when you sign out.\n\nPhotos uploaded but never used for a dish or a shop: deleted after a day.\n\nAccounts, shops, posted dishes and orders: kept until you ask us to delete them, except what the law requires us to keep longer.';
+
+  @override
+  String get legalPrivacySection4Title => '4. Who can see your data';
+
+  @override
+  String get legalPrivacySection4Body =>
+      'Sellers see your display name and your orders with their shop, never your email address. Customers see a shop\'s and its dishes\' public details.\n\nSecond Bite\'s admins see data when operating and supporting the service requires it.\n\nProcessors acting for us: our hosting provider (Amazon Web Services; server location: to be added), our email provider (Brevo), and Google when you choose to sign in with Google. If data is kept outside Vietnam, we will say so here.\n\nWe do not sell your data or use it for advertising.';
+
+  @override
+  String get legalPrivacySection5Title => '5. Your rights';
+
+  @override
+  String get legalPrivacySection5Body =>
+      'You may know about, see, correct and ask us to delete your data; withdraw your consent; ask us to restrict processing; and complain, under the Personal Data Protection Law 2025.\n\nYou can change your display name yourself. For anything else, write to the contact in section 1; we answer within the time the law sets, and if we cannot delete something for a legitimate reason, we tell you why.';
+
+  @override
+  String get legalPrivacySection6Title => '6. Cookies and browser storage';
+
+  @override
+  String get legalPrivacySection6Body =>
+      'A session cookie (coming soon), to keep you signed in.\n\nA language cookie, remembering Vietnamese or English for a year.\n\nA mark in the browser\'s storage, remembering that you closed the introduction.\n\nWe use no advertising cookies and no third-party tracking.';
+
+  @override
+  String get legalPrivacySection7Title => '7. Protecting your data';
+
+  @override
+  String get legalPrivacySection7Body =>
+      'Connections are encrypted; sign-in codes and sessions are stored only as hashes; access is checked on the server for every request. If a breach occurs, we will notify as the law requires.';
+
+  @override
+  String get legalPrivacySection8Title => '8. Children';
+
+  @override
+  String get legalPrivacySection8Body =>
+      'Second Bite is for people aged 16 and over. If you are younger, use it with a parent or guardian.';
+
+  @override
+  String get legalPrivacySection9Title => '9. Changes to this policy';
+
+  @override
+  String get legalPrivacySection9Body =>
+      'When the policy changes, we update the date at the top and tell you before a change that affects your rights takes effect.';
+
+  @override
+  String get notFoundTitle => 'This page could not be found';
+
+  @override
+  String get notFoundBack => 'Back to home';
+
+  @override
   String get topBarBack => 'Back';
 
   @override

@@ -4,6 +4,8 @@ import 'package:second_bite/core/app_shell.dart';
 import 'package:second_bite/features/identity/domain/return_to.dart';
 import 'package:second_bite/features/identity/ui/account_screen.dart';
 import 'package:second_bite/features/identity/ui/sign_in_screen.dart';
+import 'package:second_bite/features/legal/ui/legal_screen.dart';
+import 'package:second_bite/features/legal/ui/legal_text.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/home_screen.dart';
 
@@ -75,6 +77,30 @@ class AccountRoute extends GoRouteData with $AccountRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const AccountScreen();
+}
+
+/// The terms of use at `/terms`, as on the web: over the tabs, read inside
+/// the app (SEC-52).
+@TypedGoRoute<TermsRoute>(path: '/terms')
+class TermsRoute extends GoRouteData with $TermsRoute {
+  /// The route to the terms of use.
+  const new();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const LegalScreen(document: LegalDocument.terms);
+}
+
+/// The privacy policy at `/privacy`, as on the web: over the tabs, read
+/// inside the app (SEC-52).
+@TypedGoRoute<PrivacyRoute>(path: '/privacy')
+class PrivacyRoute extends GoRouteData with $PrivacyRoute {
+  /// The route to the privacy policy.
+  const new();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const LegalScreen(document: LegalDocument.privacy);
 }
 
 /// The sign-in screen at `/sign-in?returnTo=`, as on the web: over the

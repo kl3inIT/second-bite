@@ -8,17 +8,20 @@ part of 'router.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The app's [GoRouter], built once and kept for the app's life.
+/// The app's [GoRouter], built once and kept for the app's life. An address
+/// it does not know shows the not-found screen, as the web's.
 
 @ProviderFor(router)
 final routerProvider = RouterProvider._();
 
-/// The app's [GoRouter], built once and kept for the app's life.
+/// The app's [GoRouter], built once and kept for the app's life. An address
+/// it does not know shows the not-found screen, as the web's.
 
 final class RouterProvider
     extends $FunctionalProvider<GoRouter, GoRouter, GoRouter>
     with $Provider<GoRouter> {
-  /// The app's [GoRouter], built once and kept for the app's life.
+  /// The app's [GoRouter], built once and kept for the app's life. An address
+  /// it does not know shows the not-found screen, as the web's.
   RouterProvider._()
     : super(
         from: null,
@@ -52,4 +55,4 @@ final class RouterProvider
   }
 }
 
-String _$routerHash() => r'6d1797c7ba7380280d3a38c2f60aa7ad2c5800de';
+String _$routerHash() => r'c523f5aefaedbdb55601a35709498b2c9efbb4a2';
