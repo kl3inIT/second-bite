@@ -16,7 +16,8 @@ const sidebarCookie = "sidebar_state";
  * comes back; someone signed in who is not an admin gets the customer's not-found page, so nothing says the
  * admin exists; an admin gets the shell. The backend still refuses every admin call to a non-admin
  * (`PLATFORM_ADMIN_REQUIRED`), and admin reads go through `adminRead`, which does the same. It reads the
- * request, so the layout renders it inside Suspense.
+ * request, so the layout renders it inside Suspense, after the status has gone out; proxy.ts asks first, so
+ * that someone signed in who is not an admin gets a real 404.
  */
 export async function AdminGate({ children }: { children: ReactNode }) {
   const [account, store] = await Promise.all([getCurrentAccount(), cookies()]);

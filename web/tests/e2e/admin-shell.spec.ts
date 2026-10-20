@@ -29,8 +29,10 @@ test.describe("who may open the admin", () => {
     page,
   }, testInfo) => {
     await signInTo(page, "/account", testInfo, { who: "khach", admin: false });
-    await page.goto("/vi/admin/overview");
+    const response = await page.goto("/vi/admin/overview");
 
+    expect(response?.status()).toBe(404);
+    await expect(page).toHaveURL(/\/vi\/admin\/overview$/);
     await expect(
       page.getByRole("heading", { level: 1, name: "Không tìm thấy trang này" }),
     ).toBeVisible();
@@ -39,6 +41,10 @@ test.describe("who may open the admin", () => {
     await expect(page.getByText("Quản trị")).toHaveCount(0);
     await expect(page.locator('meta[name="robots"][content*="noindex"]').first()).toBeAttached();
     await expectNoSeriousA11yViolations(page);
+
+    // Every admin address answers them the same, /admin itself included.
+    expect((await page.goto("/vi/admin"))?.status()).toBe(404);
+    expect((await page.goto("/en/admin/sellers?status=pending"))?.status()).toBe(404);
   });
 
   test("an admin opens /admin on the overview", async ({ page }, testInfo) => {
