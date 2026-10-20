@@ -50,8 +50,8 @@ export function KindPicker({ query }: { query: HomeQuery }) {
   }));
 
   return (
-    <nav aria-label={t("kindsLabel")} className="flex flex-col gap-2.5">
-      <ScrollRow hint label={t("kindsLabel")} className="gap-2.5 pb-0 sm:justify-start">
+    <nav aria-label={t("kindsLabel")} className="flex flex-col gap-1">
+      <ScrollRow hint label={t("kindsLabel")} className="gap-2.5 py-1.5 sm:justify-start">
         {items.map((item) => (
           <li key={item.key} className="shrink-0 snap-start">
             <Link

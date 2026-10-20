@@ -59,15 +59,9 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
             </section>
           )}
           <section aria-labelledby="all-offers" className="flex flex-col gap-3">
-            <SectionHeader
-              id="all-offers"
-              title={filtered ? t("results") : t("allOffers")}
-              action={
-                !filtered && offers.length > 0 && <SeeAll near={query.near} label={t("seeAll")} />
-              }
-            />
+            <SectionHeader id="all-offers" title={filtered ? t("results") : t("allOffers")} />
             {offers.length > 0 ? (
-              <OfferList offers={inShowingOrder(offers)} />
+              <OfferList offers={inShowingOrder(offers)} compact />
             ) : (
               <NothingFound filtered={filtered} near={query.near} />
             )}

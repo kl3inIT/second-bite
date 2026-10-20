@@ -361,6 +361,8 @@ Deal Blue with white `label-strong` ("Giảm 55%"), in the photograph's top left
 
 The large card of "Sắp hết giờ nhận" (264px wide in a row) and of the list (the full width), after Figma Mobile v3 (`card/…`, `thẻ nổi bật`). White, 16px radius, bitten corner. A photograph 136px high with the discount label, and a dark scrim along its foot carrying the window with a clock, and the distance when a place is known, in white `label-strong` ("20:30–21:30 · 350 m"). Under it, 10px 14px 12px: the dish only, never the seller (`title-lg`, one line, cut with "…"), then a row with the portions left in Sale Red (`label-strong`, "Còn 2 phần", or "Đã hết" muted) on the left, and the old price struck through (`label`, muted) beside the new price (`price-lg`, Tasco blue) on the right. A sold out card dims its photograph.
 
+The home's "Tất cả món quanh đây" lays its cards two abreast (Figma `lưới món`, K1b, K1b2, K1d): 12px apart both ways, three columns from `sm`, four from `lg`, five from `xl`. A grid card keeps the white, the 16px radius and the label, but its photograph is 120px high with a 44px scrim, and under it, 10px 10px 12px: the dish (`title`, one line, cut with "…"), the old price struck through beside the new one (`price-lg`) on their own line, then the portions left; it has no bitten corner, no seller and no rating. Its heart waits for Yêu thích.
+
 ### Dish card
 
 The small card of the sideways rows (Figma `rec/…`): 132px wide with no surface of its own. A photograph 96px high with a 14px radius and the discount label; 8px under it the dish (`body-sm-strong`, one line, cut with "…"), then 2px under that a clock and the window (`label`, muted, "20:00–21:00"). It names the dish only, never the seller.

@@ -17,7 +17,7 @@ test.describe("the customer home", () => {
 
     const deals = page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" });
     await expect(deals.getByText("59%", { exact: true })).toBeVisible();
-    await expect(deals.getByRole("listitem")).toHaveCount(3);
+    await expect(deals.getByRole("listitem")).toHaveCount(2);
     const firstTicket = deals.getByRole("listitem").first();
     await expect(firstTicket.getByText("Giảm 59%")).toBeAttached();
     await expect(firstTicket.getByText("Panda Chef")).toBeVisible();

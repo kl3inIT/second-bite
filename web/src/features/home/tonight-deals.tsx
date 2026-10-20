@@ -7,7 +7,7 @@ import { biggestDiscountFirst } from "@/features/offers/offer";
 import bowl from "./tonight-bowl.webp";
 import type { HomeQuery } from "./home-query";
 
-const TICKET_COUNT = 3;
+const TICKET_COUNT = 2;
 
 // The bottom of the header without a filter (Figma Mobile v3 deal card): the biggest discounts tonight as
 // tickets on the deep blue deal card. Every figure comes from the offers; with nothing to order, it does not
