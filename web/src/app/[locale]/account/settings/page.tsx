@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/app-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentAccount } from "@/features/identity/current-account";
+import { DisplayNameRow } from "@/features/identity/display-name-row";
 import { getMySellers } from "@/features/identity/my-sellers";
 import { Link, redirect } from "@/i18n/navigation";
 import { pageMetadata } from "@/lib/seo";
@@ -19,7 +20,7 @@ export async function generateMetadata({
   return pageMetadata({ locale: (await params).locale, title: t("title"), index: false });
 }
 
-// Account settings (SEC-37, Figma Q2): the account's own data, read-only, then at its foot the way to delete
+// Account settings (SEC-37, Figma Q2): the account's own data, its display name editable (SEC-61), then at its foot the way to delete
 // it, which is not offered beside sign-out. The account menu and the account tab lead here. It is someone's
 // own, so it is not indexed.
 export default async function AccountSettingsPage() {
@@ -82,7 +83,7 @@ async function Settings() {
         </h2>
         <dl className="flex flex-col">
           <Row label={t("email")}>{account.email}</Row>
-          <Row label={t("displayName")}>{account.displayName || t("noDisplayName")}</Row>
+          <DisplayNameRow name={account.displayName} />
           {sellers.length > 0 && (
             <Row label={t("sellers")}>
               {sellers.map((seller) => `${seller.name} · ${t(seller.role)}`).join(", ")}

@@ -413,6 +413,22 @@ async function auth(request, response, url) {
     else problem(response, 401, "IDENTITY_SESSION_INVALID");
     return true;
   }
+  // The display name (SEC-61), as the server keeps it: trimmed, 1 to 50 characters.
+  if (request.method === "PUT" && url.pathname === "/accounts/me") {
+    const account = accounts.get(tokenOf(request));
+    if (!account) {
+      problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+      return true;
+    }
+    const name = String((await readBody(request)).displayName ?? "").trim();
+    if (name === "" || Array.from(name).length > 50) {
+      problem(response, 400, "IDENTITY_DISPLAY_NAME_INVALID");
+      return true;
+    }
+    account.displayName = name;
+    json(response, 200, account);
+    return true;
+  }
   return deletion(request, response, url);
 }
 
