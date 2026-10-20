@@ -1,5 +1,5 @@
-import { getStoreOffers } from "./my-sellers";
-import { dishOf, dishesOf } from "./post-draft";
+import { getStoreDishes, getStoreOffers } from "./my-sellers";
+import { catalogDishOf, dishOf, dishesOf } from "./post-draft";
 import { PostDrawer } from "./post-drawer";
 import { requireStore } from "./require-store";
 import { StorePosts } from "./store-posts";
@@ -16,7 +16,7 @@ export async function PostNew({
 }) {
   const [sellerId, from] = await Promise.all([pendingId, pendingFrom]);
   await requireStore(sellerId, `/stores/${sellerId}/offers/new`);
-  const offers = await getStoreOffers(sellerId);
+  const [offers, catalog] = await Promise.all([getStoreOffers(sellerId), getStoreDishes(sellerId)]);
   const earlier = from ? offers.find((offer) => offer.id === from) : undefined;
 
   return (
@@ -28,6 +28,7 @@ export async function PostNew({
       <PostDrawer
         sellerId={sellerId}
         dishes={dishesOf(offers)}
+        catalog={catalog.filter((dish) => !dish.hidden).map(catalogDishOf)}
         again={earlier ? dishOf(earlier) : undefined}
       />
     </>

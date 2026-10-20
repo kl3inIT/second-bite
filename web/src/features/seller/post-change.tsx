@@ -33,7 +33,7 @@ export async function PostChange({
         tab={Promise.resolve(target.status === "sold_out" ? "sold_out" : undefined)}
       />
       {mode === "edit" ? (
-        <PostDrawer sellerId={sellerId} dishes={dishesOf(offers)} edit={target} />
+        <PostDrawer sellerId={sellerId} dishes={dishesOf(offers)} catalog={[]} edit={target} />
       ) : (
         <WithdrawDrawer sellerId={sellerId} target={target} />
       )}

@@ -1,4 +1,4 @@
-import type { OfferBody } from "@/lib/api/generated";
+import type { DishBody, OfferBody } from "@/lib/api/generated";
 
 // What posting a dish asks of the person (SEC-57, Figma P3, P3e): the price against the original price, and the
 // hour the dish is ready and how long customers have to collect it. The backend decides in the end
@@ -65,17 +65,20 @@ export function lengthIsAllowed(minutes: number): boolean {
 
 /** A dish a store has posted before, with what it was posted with: the next post starts from it. */
 export type Dish = {
+  /** Which post or catalog dish it comes from, to tell dishes of the same name apart. */
+  id: string;
   name: string;
   kind: OfferBody["kind"];
   description: string;
   unit: string;
-  units: number;
-  originalPriceVnd: number;
-  priceVnd: number;
+  /** What the last post of it had; a catalog dish has none, so the post form starts empty. */
+  units?: number;
+  originalPriceVnd?: number;
+  priceVnd?: number;
   photoId: string;
   photoPath: string;
   /** The hour of day it was last put on sale, "the usual time" of Figma P3. */
-  usual: { hour: number; minute: number };
+  usual?: { hour: number; minute: number };
 };
 
 const hourInVietnam = new Intl.DateTimeFormat("en-GB", {
@@ -89,6 +92,7 @@ export function dishOf(offer: OfferBody): Dish {
   const parts = hourInVietnam.formatToParts(new Date(offer.windowStart));
   const part = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
   return {
+    id: offer.id,
     name: offer.name,
     kind: offer.kind,
     description: offer.description,
@@ -139,5 +143,23 @@ export function editTargetOf(offer: OfferBody): EditTarget | undefined {
     ordered: orderedOf(offer),
     minutes: Math.round((Date.parse(offer.windowEnd) - Date.parse(offer.windowStart)) / 60_000),
     dish: dishOf(offer),
+  };
+}
+
+/** What a post says of a dish from the catalog: its description, then its ingredients and allergens (at most 1,000 characters). */
+function describeDish(dish: DishBody): string {
+  return [dish.description, dish.ingredients].filter(Boolean).join(". ").slice(0, 1000);
+}
+
+/** A dish of the catalog as the post form starts from it: its base, with no units, price or hours. */
+export function catalogDishOf(dish: DishBody): Dish {
+  return {
+    id: dish.id,
+    name: dish.name,
+    kind: dish.kind,
+    description: describeDish(dish),
+    unit: dish.unit,
+    photoId: dish.photo.id,
+    photoPath: dish.photo.smallPath,
   };
 }

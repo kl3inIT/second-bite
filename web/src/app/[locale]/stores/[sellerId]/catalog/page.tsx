@@ -3,25 +3,29 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { StoreSoon } from "@/features/seller/store-soon";
+import { StoreCatalog } from "@/features/seller/store-catalog";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/stores/[sellerId]/catalog">): Promise<Metadata> {
-  const t = await getTranslations("StoreSoon");
-  return pageMetadata({ locale: (await params).locale, title: t("catalog.title"), index: false });
+  const t = await getTranslations("StoreCatalog");
+  return pageMetadata({ locale: (await params).locale, title: t("title"), index: false });
 }
 
-// The store's catalog tab (SEC-57, Figma Q3): built when its backend is (SEC-55).
+// The store's catalog tab (SEC-55, Figma Q3, Q3b): the dishes it sells, each posted in one press.
 export default function StoreCatalogPage({
   params,
+  searchParams,
 }: PageProps<"/[locale]/stores/[sellerId]/catalog">) {
   const sellerId = params.then((p) => p.sellerId);
+  const notice = searchParams.then((query) =>
+    typeof query.notice === "string" ? query.notice : undefined,
+  );
 
   return (
-    <Suspense fallback={<Skeleton shape="card" className="h-36" />}>
-      <StoreSoon sellerId={sellerId} tab="catalog" />
+    <Suspense fallback={<Skeleton shape="card" className="h-60" />}>
+      <StoreCatalog sellerId={sellerId} notice={notice} />
     </Suspense>
   );
 }

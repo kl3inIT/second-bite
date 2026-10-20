@@ -41,6 +41,52 @@ export type DetailsBody = {
     phone: string;
 };
 
+export type DishBody = {
+    createdAt: string;
+    description: string;
+    hidden: boolean;
+    id: string;
+    ingredients: string;
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    name: string;
+    photo: OfferPhotoBody;
+    sellerId: string;
+    unit: string;
+    updatedAt: string;
+};
+
+export type DishChangeBody = {
+    description?: string;
+    hidden?: boolean;
+    ingredients?: string;
+    kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    name?: string;
+    photoId?: string;
+    unit?: string;
+};
+
+export type DishDetailsBody = {
+    description?: string;
+    /**
+     * Keeps the dish out of the list a post is picked from
+     */
+    hidden?: boolean;
+    /**
+     * What the dish is made of and may contain, allergens included
+     */
+    ingredients?: string;
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    name: string;
+    /**
+     * From POST /photos, or a photo the seller already shows
+     */
+    photoId: string;
+    /**
+     * What one unit is called; "suất" when empty
+     */
+    unit?: string;
+};
+
 export type EmailSettingsBody = {
     /**
      * Whether a Brevo API key is stored; it is never returned
@@ -118,6 +164,10 @@ export type GoogleSignInInputBody = {
      * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
      */
     session?: 'token' | 'cookie';
+};
+
+export type ListDishesResponse = {
+    dishes: Array<DishBody>;
 };
 
 export type MemberBody = {
@@ -775,6 +825,60 @@ export type RequestSignInCodeResponses = {
 
 export type RequestSignInCodeResponse = RequestSignInCodeResponses[keyof RequestSignInCodeResponses];
 
+export type RemoveDishData = {
+    body?: never;
+    path: {
+        dishId: string;
+    };
+    query?: never;
+    url: '/dishes/{dishId}';
+};
+
+export type RemoveDishErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RemoveDishError = RemoveDishErrors[keyof RemoveDishErrors];
+
+export type RemoveDishResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type RemoveDishResponse = RemoveDishResponses[keyof RemoveDishResponses];
+
+export type ChangeDishData = {
+    body: DishChangeBody;
+    path: {
+        dishId: string;
+    };
+    query?: never;
+    url: '/dishes/{dishId}';
+};
+
+export type ChangeDishErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ChangeDishError = ChangeDishErrors[keyof ChangeDishErrors];
+
+export type ChangeDishResponses = {
+    /**
+     * OK
+     */
+    200: DishBody;
+};
+
+export type ChangeDishResponse = ChangeDishResponses[keyof ChangeDishResponses];
+
 export type SearchOffersData = {
     body?: never;
     path?: never;
@@ -1075,6 +1179,60 @@ export type UpdateSellerResponses = {
 };
 
 export type UpdateSellerResponse = UpdateSellerResponses[keyof UpdateSellerResponses];
+
+export type ListDishesData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/dishes';
+};
+
+export type ListDishesErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListDishesError = ListDishesErrors[keyof ListDishesErrors];
+
+export type ListDishesResponses = {
+    /**
+     * OK
+     */
+    200: ListDishesResponse;
+};
+
+export type ListDishesResponse2 = ListDishesResponses[keyof ListDishesResponses];
+
+export type AddDishData = {
+    body: DishDetailsBody;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/dishes';
+};
+
+export type AddDishErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type AddDishError = AddDishErrors[keyof AddDishErrors];
+
+export type AddDishResponses = {
+    /**
+     * Created
+     */
+    201: DishBody;
+};
+
+export type AddDishResponse = AddDishResponses[keyof AddDishResponses];
 
 export type ListSellerMembersData = {
     body?: never;

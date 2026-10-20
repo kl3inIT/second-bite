@@ -98,12 +98,19 @@ const shown = (value: string) => (value ? grouped.format(Number(value)) : "");
 export function PostDrawer({
   sellerId,
   dishes,
+  catalog,
   again,
+  fromDish,
   edit,
 }: {
   sellerId: string;
+  /** The dishes of the store's earlier posts. */
   dishes: Dish[];
+  /** The dishes of its catalog that are shown. */
+  catalog: Dish[];
   again?: Dish;
+  /** A dish of the catalog posted straight from its row (Figma D1): the drawer starts at the last step. */
+  fromDish?: Dish;
   /** A live post being changed (Figma E1, E2): the drawer starts at the last step, with its details. */
   edit?: EditTarget;
 }) {
@@ -113,14 +120,14 @@ export function PostDrawer({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [now] = useState(currentTime);
-  const base = edit?.dish ?? again;
+  const base = edit?.dish ?? again ?? fromDish;
   const ordered = edit?.ordered ?? 0;
   // Once units are ordered the price and the hours stay as they were: the backend takes only more units.
   const locked = ordered > 0;
 
   const [step, setStep] = useState<1 | 2 | 3>(base ? 3 : 1);
-  const [source, setSource] = useState<"earlier" | "oneoff">(
-    dishes.length > 0 ? "earlier" : "oneoff",
+  const [source, setSource] = useState<"catalog" | "earlier" | "oneoff">(
+    catalog.length > 0 ? "catalog" : dishes.length > 0 ? "earlier" : "oneoff",
   );
   const [chosen, setChosen] = useState<Dish | undefined>(base);
   const [photo, setPhoto] = useState<File>();
@@ -128,9 +135,11 @@ export function PostDrawer({
   const [name, setName] = useState("");
   const [kind, setKind] = useState<OfferBody["kind"]>("bakery");
   const [description, setDescription] = useState("");
-  const [units, setUnits] = useState(base ? String(base.units) : "");
-  const [original, setOriginal] = useState(base ? String(base.originalPriceVnd) : "");
-  const [price, setPrice] = useState(base ? String(base.priceVnd) : "");
+  const [units, setUnits] = useState(base?.units ? String(base.units) : "");
+  const [original, setOriginal] = useState(
+    base?.originalPriceVnd ? String(base.originalPriceVnd) : "",
+  );
+  const [price, setPrice] = useState(base?.priceVnd ? String(base.priceVnd) : "");
   const [startKey, setStartKey] = useState<StartKey>("usual");
   const [customStart, setCustomStart] = useState(DEFAULT_USUAL);
   const [length, setLength] = useState<number | "custom">(
@@ -150,6 +159,7 @@ export function PostDrawer({
   const [problem, setProblem] = useState<Problem>();
 
   const usual = chosen?.usual ?? dishes[0]?.usual ?? DEFAULT_USUAL;
+  const listed = source === "catalog" ? catalog : dishes;
   const start: Start =
     startKey === "now"
       ? { kind: "now" }
@@ -176,14 +186,15 @@ export function PostDrawer({
   const dishName = chosen?.name ?? name.trim();
   const dishKind = chosen?.kind ?? kind;
   const dishReady =
-    source === "earlier"
+    source !== "oneoff"
       ? chosen !== undefined
       : name.trim() !== "" &&
         photo !== undefined &&
         (kind !== "mixed_box" || description.trim() !== "");
 
   function close() {
-    router.push(`/stores/${sellerId}/offers`);
+    // Posted from the catalog, a closed drawer leaves the person where they were.
+    router.push(`/stores/${sellerId}/${fromDish ? "catalog" : "offers"}`);
   }
 
   function choosePhoto(file: File | undefined) {
@@ -308,28 +319,49 @@ export function PostDrawer({
           {step === 2 && (
             <>
               <div className="flex gap-2">
-                <Chip selected={source === "earlier"} onClick={() => setSource("earlier")}>
+                <Chip
+                  selected={source === "catalog"}
+                  onClick={() => {
+                    setSource("catalog");
+                    setChosen(undefined);
+                  }}
+                >
+                  {t("sourceCatalog")}
+                </Chip>
+                <Chip
+                  selected={source === "earlier"}
+                  onClick={() => {
+                    setSource("earlier");
+                    setChosen(undefined);
+                  }}
+                >
                   {t("sourceEarlier")}
                 </Chip>
-                <Chip selected={source === "oneoff"} onClick={() => setSource("oneoff")}>
+                <Chip
+                  selected={source === "oneoff"}
+                  onClick={() => {
+                    setSource("oneoff");
+                    setChosen(undefined);
+                  }}
+                >
                   {t("sourceOneOff")}
                 </Chip>
               </div>
 
-              {source === "earlier" ? (
+              {source !== "oneoff" ? (
                 <section aria-labelledby="post-dishes" className="flex flex-col">
                   <h3 id="post-dishes" className="pb-2 text-title">
                     {t("chooseDish")}
                   </h3>
-                  {dishes.length === 0 ? (
+                  {listed.length === 0 ? (
                     <p className="border-t border-border pt-3 text-body-sm text-muted-foreground">
-                      {t("noDishes")}
+                      {source === "catalog" ? t("noCatalog") : t("noDishes")}
                     </p>
                   ) : (
                     <ul className="flex flex-col border-t border-border">
-                      {dishes.map((dish) => (
+                      {listed.map((dish) => (
                         <li
-                          key={dish.name}
+                          key={dish.id}
                           className="flex items-center gap-4 border-b border-border py-3 last:border-b-0"
                         >
                           <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -350,16 +382,18 @@ export function PostDrawer({
                           </span>
                           <Button
                             type="button"
-                            variant={chosen?.name === dish.name ? "default" : "outline"}
-                            aria-pressed={chosen?.name === dish.name}
+                            variant={chosen?.id === dish.id ? "default" : "outline"}
+                            aria-pressed={chosen?.id === dish.id}
                             onClick={() => {
                               setChosen(dish);
-                              setUnits(String(dish.units));
-                              setOriginal(String(dish.originalPriceVnd));
-                              setPrice(String(dish.priceVnd));
+                              setUnits(dish.units ? String(dish.units) : "");
+                              setOriginal(
+                                dish.originalPriceVnd ? String(dish.originalPriceVnd) : "",
+                              );
+                              setPrice(dish.priceVnd ? String(dish.priceVnd) : "");
                             }}
                           >
-                            {chosen?.name === dish.name ? t("chosen") : t("choose")}
+                            {chosen?.id === dish.id ? t("chosen") : t("choose")}
                           </Button>
                         </li>
                       ))}
@@ -672,7 +706,7 @@ export function PostDrawer({
                     ? locked
                       ? close
                       : () => router.push(`/stores/${sellerId}/offers/${edit.offerId}/withdraw`)
-                    : again
+                    : again || fromDish
                       ? close
                       : () => setStep(2)
                 }
