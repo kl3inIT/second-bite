@@ -74,7 +74,12 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
 
 function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
   return (
-    <PopoverPrimitive.Title data-slot="popover-title" className={cn("", className)} {...props} />
+    // Second Bite: a panel's title, as a sheet's.
+    <PopoverPrimitive.Title
+      data-slot="popover-title"
+      className={cn("text-title text-foreground", className)}
+      {...props}
+    />
   );
 }
 

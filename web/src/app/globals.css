@@ -4,6 +4,10 @@
 /* Colours, radii, shadows and type styles, generated from DESIGN.md (pnpm generate:tokens). */
 @import "../styles/tokens.css";
 
+/* There is no dark theme yet: the components' dark: styles apply only under a .dark class, never because the
+   system is set to dark, which turned fields grey on a light page. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --font-sans: var(--font-be-vietnam-pro), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-bricolage), var(--font-sans);

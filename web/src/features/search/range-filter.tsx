@@ -5,17 +5,26 @@ import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import { useRouter } from "@/i18n/navigation";
 
-const PRICE_STEP = 1000;
-const TIME_STEP_SECONDS = 15 * 60;
+const HALF_HOUR = 30;
+// Every half hour of the day, "00:00" to "23:30", for the times to collect.
+const times = Array.from({ length: (24 * 60) / HALF_HOUR }, (_, index) => {
+  const minutes = index * HALF_HOUR;
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+});
+const thousands = new Intl.NumberFormat("vi-VN");
 
-// A filter chip over a range, the price or the time to collect, "từ … đến …": either end may stay empty.
-// Applying it opens the search with the range in the address, keeping every other filter in `keep`; for
-// the times, "Nhận ngay" is a shortcut beside the range.
+/** A choice applied in one press, such as "Dưới 20.000đ" or "Nhận ngay". */
+export type RangePreset = { label: string; query: Record<string, string>; current: boolean };
+
+// A filter chip over a range, the price or the time to collect, "từ … đến …" (Shopee's "Khoảng giá", Too
+// Good To Go's pickup window): quick choices first, then the two ends, either of which may stay empty.
+// Applying opens the search with the range in the address, keeping every other filter in `keep`.
 export function RangeFilter({
   type,
   name,
@@ -24,11 +33,11 @@ export function RangeFilter({
   to,
   keep,
   params,
-  now,
+  presets,
   raised = false,
 }: {
   type: "price" | "time";
-  /** What the chip filters by, shown until a range is chosen. */
+  /** What the chip filters by, shown until a range is chosen, and the panel's title. */
   name: string;
   /** The chosen range in words, such as "20.000đ–50.000đ". */
   chosen?: string;
@@ -38,8 +47,7 @@ export function RangeFilter({
   keep: Record<string, string>;
   /** The address's keys for the two ends. */
   params: readonly [string, string];
-  /** The query for collecting now, offered beside a range of times. */
-  now?: { query: Record<string, string>; current: boolean };
+  presets: readonly RangePreset[];
   raised?: boolean;
 }) {
   const t = useTranslations("Search");
@@ -47,7 +55,6 @@ export function RangeFilter({
   const id = useId();
   const [open, setOpen] = useState(false);
   const [invalid, setInvalid] = useState(false);
-  const active = Boolean(chosen);
 
   function show(query: Record<string, string>) {
     router.push({ pathname: "/search", query });
@@ -55,8 +62,13 @@ export function RangeFilter({
   }
 
   function apply(form: FormData) {
-    const start = text(form.get("from"));
-    const end = text(form.get("to"));
+    const read = (key: string) => {
+      const value = form.get(key);
+      const text = typeof value === "string" ? value : "";
+      return type === "price" ? text.replace(/\D/g, "") : text;
+    };
+    const start = read("from");
+    const end = read("to");
     const outOfOrder =
       start !== "" && end !== "" && (type === "price" ? Number(start) > Number(end) : start > end);
     setInvalid(outOfOrder);
@@ -67,10 +79,30 @@ export function RangeFilter({
     show(query);
   }
 
-  const input =
-    type === "price"
-      ? { type: "number", inputMode: "numeric" as const, min: 0, step: PRICE_STEP }
-      : { type: "time", step: TIME_STEP_SECONDS };
+  const field = (end: "from" | "to", value?: string) =>
+    type === "price" ? (
+      <PriceInput
+        id={`${id}-${end}`}
+        name={end}
+        value={value}
+        placeholder={t(end === "from" ? "lowest" : "highest")}
+      />
+    ) : (
+      <NativeSelect
+        id={`${id}-${end}`}
+        name={end}
+        defaultValue={value ?? ""}
+        size="lg"
+        className="w-full"
+      >
+        <NativeSelectOption value="">{t("anyTime")}</NativeSelectOption>
+        {times.map((time) => (
+          <NativeSelectOption key={time} value={time}>
+            {time}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
+    );
 
   return (
     <Popover
@@ -81,56 +113,53 @@ export function RangeFilter({
       }}
     >
       <PopoverTrigger
-        data-active={active ? "" : undefined}
-        // A chip showing its range still says what it filters by.
-        aria-label={chosen ? `${name}: ${chosen}` : undefined}
         variant="chip"
         raised={raised}
+        data-active={chosen ? "" : undefined}
+        // A chip showing its range still says what it filters by.
+        aria-label={chosen ? `${name}: ${chosen}` : undefined}
       >
         {chosen ?? name}
         <ChevronDownIcon aria-hidden className="size-3.5" />
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-76">
-        <form action={apply} className="flex flex-col gap-3">
-          <div className="flex items-end gap-2">
-            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+      <PopoverContent align="start" className="w-80">
+        <form action={apply} className="flex flex-col gap-4 p-1.5">
+          <PopoverTitle>{name}</PopoverTitle>
+          <ul aria-label={t("quick")} className="flex flex-wrap gap-2">
+            {presets.map((preset) => (
+              <li key={preset.label}>
+                <Button
+                  type="button"
+                  variant="chip"
+                  size="chip"
+                  aria-pressed={preset.current}
+                  onClick={() => show(preset.query)}
+                >
+                  {preset.label}
+                </Button>
+              </li>
+            ))}
+          </ul>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor={`${id}-from`}>{t("from")}</Label>
-              <Input id={`${id}-from`} name="from" defaultValue={from} {...input} />
+              {field("from", from)}
             </div>
-            <span aria-hidden className="pb-2.5 text-muted-foreground">
-              –
-            </span>
-            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor={`${id}-to`}>{t("to")}</Label>
-              <Input id={`${id}-to`} name="to" defaultValue={to} {...input} />
+              {field("to", to)}
             </div>
           </div>
-          {type === "price" && <p className="text-label text-muted-foreground">{t("inDong")}</p>}
           {invalid && (
-            <p role="alert" className="text-label text-destructive">
+            <p role="alert" className="-mt-2 text-label text-destructive">
               {t(type === "price" ? "priceOrder" : "timeOrder")}
             </p>
           )}
-          {now && (
-            <Button
-              type="button"
-              variant={now.current ? "default" : "secondary"}
-              onClick={() => show(now.query)}
-            >
-              {t("now")}
-            </Button>
-          )}
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              className="flex-1"
-              disabled={!active && !now?.current}
-              onClick={() => show(keep)}
-            >
+          <div className="grid grid-cols-2 gap-3">
+            <Button type="button" variant="secondary" size="lg" onClick={() => show(keep)}>
               {t("clearFilter")}
             </Button>
-            <Button type="submit" className="flex-1">
+            <Button type="submit" size="lg">
               {t("apply")}
             </Button>
           </div>
@@ -140,6 +169,32 @@ export function RangeFilter({
   );
 }
 
-function text(value: FormDataEntryValue | null): string {
-  return typeof value === "string" ? value.trim() : "";
+/** A price in đồng, its thousands marked as it is typed ("20.000"), with "đ" after it. */
+function PriceInput({
+  id,
+  name,
+  value,
+  placeholder,
+}: {
+  id: string;
+  name: string;
+  value?: string;
+  placeholder: string;
+}) {
+  const [digits, setDigits] = useState(value ?? "");
+
+  return (
+    <InputGroup>
+      <InputGroupInput
+        id={id}
+        name={name}
+        inputMode="numeric"
+        autoComplete="off"
+        placeholder={placeholder}
+        value={digits ? thousands.format(Number(digits)) : ""}
+        onChange={(event) => setDigits(event.target.value.replace(/\D/g, "").slice(0, 8))}
+      />
+      <InputGroupAddon align="inline-end">đ</InputGroupAddon>
+    </InputGroup>
+  );
 }

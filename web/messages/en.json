@@ -95,11 +95,14 @@
     "range": "{from}–{to}",
     "rangeFrom": "From {from}",
     "rangeTo": "Up to {to}",
-    "inDong": "The price of one portion, in đồng.",
     "priceOrder": "The lowest price must be below the highest.",
     "timeOrder": "The start must be before the end.",
     "apply": "Apply",
-    "clearFilter": "Clear"
+    "clearFilter": "Clear",
+    "quick": "Quick picks",
+    "anyTime": "Any time",
+    "lowest": "Lowest",
+    "highest": "Highest"
   },
   "LanguageSwitcher": {
     "label": "Chuyển sang tiếng Việt"

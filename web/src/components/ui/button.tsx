@@ -23,7 +23,7 @@ const buttonVariants = cva(
         // Second Bite: an icon or text action on the white top bar.
         shell: "text-shell-foreground hover:bg-muted",
         // Second Bite (Figma K2a): a suggestion chip on the sky ground, without an edge.
-        chip: "bg-muted text-foreground hover:bg-secondary",
+        chip: "bg-muted text-foreground hover:bg-secondary aria-pressed:bg-secondary aria-pressed:text-body-sm-strong aria-pressed:text-primary",
       },
       size: {
         // Second Bite: 44px targets for one-handed use (PRODUCT.md › Accessibility).

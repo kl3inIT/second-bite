@@ -109,11 +109,11 @@ test.describe("the customer home", () => {
     );
 
     await (await hydrated(all.getByRole("button", { name: "Giờ nhận" }))).click();
-    await page.getByLabel("Từ").fill("21:00");
-    await page.getByLabel("Đến").fill("20:00");
+    await page.getByLabel("Từ").selectOption("21:00");
+    await page.getByLabel("Đến").selectOption("20:00");
     await page.getByRole("button", { name: "Áp dụng" }).click();
     await expect(page.getByRole("alert")).toHaveText("Giờ “từ” cần sớm hơn giờ “đến”.");
-    await page.getByLabel("Đến").fill("21:30");
+    await page.getByLabel("Đến").selectOption("21:30");
     await page.getByRole("button", { name: "Áp dụng" }).click();
     await expect(page).toHaveURL(/\/vi\/search\?from=21%3A00&to=21%3A30$/);
   });

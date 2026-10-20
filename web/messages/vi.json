@@ -95,11 +95,14 @@
     "range": "{from}–{to}",
     "rangeFrom": "Từ {from}",
     "rangeTo": "Đến {to}",
-    "inDong": "Giá một phần, tính bằng đồng.",
     "priceOrder": "Giá “từ” cần thấp hơn giá “đến”.",
     "timeOrder": "Giờ “từ” cần sớm hơn giờ “đến”.",
     "apply": "Áp dụng",
-    "clearFilter": "Bỏ lọc"
+    "clearFilter": "Bỏ lọc",
+    "quick": "Chọn nhanh",
+    "anyTime": "Bất kỳ",
+    "lowest": "Thấp nhất",
+    "highest": "Cao nhất"
   },
   "LanguageSwitcher": {
     "label": "Switch to English"

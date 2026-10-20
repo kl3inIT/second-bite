@@ -4,7 +4,7 @@ import { formatPrice } from "@/features/offers/format";
 import { offerKinds } from "@/features/offers/offer";
 
 import { FilterMenu, type FilterOption } from "./filter-menu";
-import { RangeFilter } from "./range-filter";
+import { RangeFilter, type RangePreset } from "./range-filter";
 import { radiusChoices, searchParams, sortChoices, type SearchQuery } from "./search-query";
 
 // The search's chips (Figma K2 chip lọc), each a filter `GET /offers` takes: how far around the person's
@@ -37,7 +37,23 @@ export function SearchFilters({
         : to
           ? t("rangeTo", { to })
           : undefined;
+  const priceKeep = searchParams(query, { minPrice: undefined, maxPrice: undefined });
   const timeKeep = searchParams(query, { from: undefined, to: undefined, now: undefined });
+  // Quick choices: a range in one press (Shopee's price steps, Too Good To Go's pickup windows).
+  const pricePreset = (minPrice?: number, maxPrice?: number): RangePreset => ({
+    label:
+      range(
+        minPrice ? formatPrice(minPrice) : undefined,
+        maxPrice ? formatPrice(maxPrice) : undefined,
+      ) ?? "",
+    query: { ...priceKeep, ...searchParams({}, { minPrice, maxPrice }) },
+    current: query.minPrice === minPrice && query.maxPrice === maxPrice,
+  });
+  const timePreset = (from?: string, to?: string): RangePreset => ({
+    label: range(from, to) ?? "",
+    query: { ...timeKeep, ...searchParams({}, { from, to }) },
+    current: query.from === from && query.to === to,
+  });
 
   return (
     <ul
@@ -80,8 +96,13 @@ export function SearchFilters({
           )}
           from={query.minPrice?.toString()}
           to={query.maxPrice?.toString()}
-          keep={searchParams(query, { minPrice: undefined, maxPrice: undefined })}
+          keep={priceKeep}
           params={["minPrice", "maxPrice"]}
+          presets={[
+            pricePreset(undefined, 20_000),
+            pricePreset(20_000, 40_000),
+            pricePreset(40_000, undefined),
+          ]}
         />
       </li>
       <li>
@@ -94,7 +115,12 @@ export function SearchFilters({
           to={query.to}
           keep={timeKeep}
           params={["from", "to"]}
-          now={{ query: { ...timeKeep, now: "1" }, current: Boolean(query.now) }}
+          presets={[
+            { label: t("now"), query: { ...timeKeep, now: "1" }, current: Boolean(query.now) },
+            timePreset(undefined, "21:00"),
+            timePreset("21:00", "22:00"),
+            timePreset("22:00", undefined),
+          ]}
         />
       </li>
       <li>
