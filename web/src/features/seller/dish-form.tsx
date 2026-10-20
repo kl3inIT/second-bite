@@ -244,39 +244,43 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
           </fieldset>
         )}
 
-        <Field>
-          <FieldLabel htmlFor="dish-unit">{t("unit")}</FieldLabel>
-          <Input
-            id="dish-unit"
-            value={unit}
-            maxLength={20}
-            onChange={(event) => setUnit(event.target.value)}
-            disabled={pending}
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field>
+            <FieldLabel htmlFor="dish-unit">{t("unit")}</FieldLabel>
+            <Input
+              id="dish-unit"
+              value={unit}
+              maxLength={20}
+              onChange={(event) => setUnit(event.target.value)}
+              disabled={pending}
+            />
+          </Field>
 
-        <Field data-invalid={(tried && originalInvalid) || undefined}>
-          <FieldLabel htmlFor="dish-original">{t("original")}</FieldLabel>
-          <Input
-            id="dish-original"
-            inputMode="numeric"
-            value={original ? new Intl.NumberFormat("vi-VN").format(Number(original)) : ""}
-            onChange={(event) => setOriginal(event.target.value.replace(/D/g, "").slice(0, 9))}
-            placeholder={t("originalPlaceholder")}
-            aria-invalid={(tried && originalInvalid) || undefined}
-            aria-describedby={
-              tried && originalInvalid ? "dish-original-problem" : "dish-original-note"
-            }
-            disabled={pending}
-          />
-          {tried && originalInvalid ? (
-            <FieldError id="dish-original-problem">{t("originalInvalid")}</FieldError>
-          ) : (
-            <p id="dish-original-note" className="text-label text-muted-foreground">
-              {t("originalNote")}
-            </p>
-          )}
-        </Field>
+          <Field data-invalid={(tried && originalInvalid) || undefined}>
+            <FieldLabel htmlFor="dish-original">{t("original")}</FieldLabel>
+            <Input
+              id="dish-original"
+              inputMode="numeric"
+              value={original ? new Intl.NumberFormat("vi-VN").format(Number(original)) : ""}
+              onChange={(event) => setOriginal(event.target.value.replace(/\D/g, "").slice(0, 9))}
+              placeholder={t("originalPlaceholder")}
+              aria-invalid={(tried && originalInvalid) || undefined}
+              aria-describedby={
+                tried && originalInvalid ? "dish-original-problem" : "dish-original-note"
+              }
+              disabled={pending}
+            />
+          </Field>
+        </div>
+        {tried && originalInvalid ? (
+          <FieldError id="dish-original-problem" className="-mt-4">
+            {t("originalInvalid")}
+          </FieldError>
+        ) : (
+          <p id="dish-original-note" className="-mt-4 text-label text-muted-foreground">
+            {t("originalNote")}
+          </p>
+        )}
 
         <Field data-invalid={(tried && descriptionMissing) || undefined}>
           <FieldLabel htmlFor="dish-description">
