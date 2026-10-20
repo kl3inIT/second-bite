@@ -594,4 +594,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String problemReference(String reference) {
     return 'Reference: $reference';
   }
+
+  @override
+  String get accountSettingsEditName => 'Edit the display name';
+
+  @override
+  String get accountSettingsSave => 'Save';
+
+  @override
+  String get accountSettingsSaving => 'Saving…';
+
+  @override
+  String get accountSettingsCancel => 'Cancel';
+
+  @override
+  String get accountSettingsNameFailed =>
+      'The name was not saved. Try again in a few minutes.';
 }

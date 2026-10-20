@@ -1075,6 +1075,36 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Mã tham chiếu: {reference}'**
   String problemReference(String reference);
+
+  /// The heading of the sheet that changes the display name, and the row's hint
+  ///
+  /// In vi, this message translates to:
+  /// **'Sửa tên hiển thị'**
+  String get accountSettingsEditName;
+
+  /// Saves the display name
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu'**
+  String get accountSettingsSave;
+
+  /// While the display name is saved
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang lưu…'**
+  String get accountSettingsSaving;
+
+  /// Closes the sheet without saving
+  ///
+  /// In vi, this message translates to:
+  /// **'Huỷ'**
+  String get accountSettingsCancel;
+
+  /// When saving the name got no answer
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa lưu được tên. Thử lại sau ít phút.'**
+  String get accountSettingsNameFailed;
 }
 
 class _AppLocalizationsDelegate
