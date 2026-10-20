@@ -385,7 +385,7 @@ export function PostDrawer({
                             />
                           </span>
                           <span className="flex min-w-0 flex-1 flex-col">
-                            <span className="truncate text-title">{dish.name}</span>
+                            <span className="truncate text-title-lg">{dish.name}</span>
                             <span className="text-body-sm text-muted-foreground">
                               {kindName(dish.kind)} · {dish.unit}
                             </span>
@@ -433,10 +433,10 @@ export function PostDrawer({
                           className="size-16 rounded-lg object-cover"
                         />
                       )}
-                      <span className="text-label-strong text-link">
+                      <span className="text-body-sm-strong text-link">
                         {photo ? photo.name : t("choosePhoto")}
                       </span>
-                      <span className="text-label text-muted-foreground">{t("photoHint")}</span>
+                      <span className="text-note text-muted-foreground">{t("photoHint")}</span>
                       <input
                         id="dish-photo"
                         type="file"
@@ -484,7 +484,7 @@ export function PostDrawer({
 
           {step === 3 && (
             <>
-              <h3 className="border-b border-border pb-3 text-title">
+              <h3 className="border-b border-border pb-3 text-title-lg">
                 {edit ? t("editQuestion") : again ? t("againQuestion") : t("sellQuestion")}
               </h3>
               <div className="flex items-center gap-4">
@@ -501,7 +501,7 @@ export function PostDrawer({
                   )}
                 </span>
                 <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-title">{dishName}</span>
+                  <span className="truncate text-title-lg">{dishName}</span>
                   <span className="text-body-sm text-muted-foreground">
                     {chosen
                       ? `${kindName(chosen.kind)} · ${chosen.unit}`
@@ -557,7 +557,7 @@ export function PostDrawer({
                 </FieldError>
               )}
               {locked ? (
-                <p id="post-price-note" className="-mt-2 text-label text-muted-foreground">
+                <p id="post-price-note" className="-mt-2 text-note text-muted-foreground">
                   {t("editLocked", { count: ordered })}
                 </p>
               ) : showPriceError && priceIssue === "tooHigh" ? (
@@ -570,7 +570,7 @@ export function PostDrawer({
               ) : showPriceError ? (
                 <FieldError id="post-price-note">{t("priceMissing")}</FieldError>
               ) : (
-                <p id="post-price-note" className="-mt-2 text-label text-muted-foreground">
+                <p id="post-price-note" className="-mt-2 text-note text-muted-foreground">
                   {edit && !priceIssue ? `${t("editFree")} ` : ""}
                   {priceIssue
                     ? t("discountHint", { min: MIN_DISCOUNT_PERCENT })
@@ -584,10 +584,14 @@ export function PostDrawer({
               <fieldset disabled={locked} className="flex flex-col gap-2">
                 <legend className="mb-2 text-title">{t("startQuestion")}</legend>
                 <div className="-my-1 flex flex-wrap gap-x-2">
-                  <Chip selected={startKey === "usual"} onClick={() => setStartKey("usual")}>
+                  <Chip
+                    size="lg"
+                    selected={startKey === "usual"}
+                    onClick={() => setStartKey("usual")}
+                  >
                     {t("usual", { time: clock(usual.hour, usual.minute) })}
                   </Chip>
-                  <Chip selected={startKey === "now"} onClick={() => setStartKey("now")}>
+                  <Chip size="lg" selected={startKey === "now"} onClick={() => setStartKey("now")}>
                     {t("now")}
                   </Chip>
                   {FIXED_STARTS.filter(
@@ -595,12 +599,21 @@ export function PostDrawer({
                   ).map((fixed) => {
                     const key = `${fixed.hour}:${fixed.minute}` as const;
                     return (
-                      <Chip key={key} selected={startKey === key} onClick={() => setStartKey(key)}>
+                      <Chip
+                        size="lg"
+                        key={key}
+                        selected={startKey === key}
+                        onClick={() => setStartKey(key)}
+                      >
                         {clock(fixed.hour, fixed.minute)}
                       </Chip>
                     );
                   })}
-                  <Chip selected={startKey === "custom"} onClick={() => setStartKey("custom")}>
+                  <Chip
+                    size="lg"
+                    selected={startKey === "custom"}
+                    onClick={() => setStartKey("custom")}
+                  >
                     {t("otherTime")}
                   </Chip>
                 </div>
@@ -641,11 +654,20 @@ export function PostDrawer({
                 <legend className="mb-2 text-title">{t("lengthQuestion")}</legend>
                 <div className="-my-1 flex flex-wrap gap-x-2">
                   {LENGTHS.map((value) => (
-                    <Chip key={value} selected={length === value} onClick={() => setLength(value)}>
+                    <Chip
+                      size="lg"
+                      key={value}
+                      selected={length === value}
+                      onClick={() => setLength(value)}
+                    >
                       {t(`length.${value}`)}
                     </Chip>
                   ))}
-                  <Chip selected={length === "custom"} onClick={() => setLength("custom")}>
+                  <Chip
+                    size="lg"
+                    selected={length === "custom"}
+                    onClick={() => setLength("custom")}
+                  >
                     {t("otherLength")}
                   </Chip>
                 </div>
@@ -669,7 +691,7 @@ export function PostDrawer({
 
               <output
                 className={cn(
-                  "rounded-xl px-4 py-3 text-title",
+                  "rounded-xl px-4 py-3 text-title-lg",
                   over
                     ? "border border-warning-border bg-warning text-warning-foreground"
                     : "bg-secondary text-secondary-foreground",
