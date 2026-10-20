@@ -341,5 +341,178 @@
   "Splash": {
     "tagline": "Món ngon còn lại cuối ngày, giá tốt hơn",
     "loading": "Đang tải…"
+  },
+  "OpenStore": {
+    "title": "Mở quán",
+    "heading": "Mở quán của bạn",
+    "intro": "Chỉ cần vài thông tin. Bạn có thể sửa sau.",
+    "name": "Tên quán",
+    "namePlaceholder": "Ví dụ: Tiệm bánh Pháp",
+    "phone": "Số điện thoại",
+    "phonePlaceholder": "09xx xxx xxx",
+    "address": "Địa chỉ quán",
+    "addressPlaceholder": "Số nhà, đường, phường, quận",
+    "photo": "Ảnh đại diện quán",
+    "choosePhoto": "Chọn ảnh từ máy",
+    "photoHint": "Một ảnh giúp khách nhận ra quán của bạn.",
+    "submit": "Tạo quán",
+    "detailsInvalid": "Nhập tên và địa chỉ của quán.",
+    "phoneInvalid": "Nhập số điện thoại 9 đến 15 chữ số, ví dụ 0912 345 678.",
+    "limit": "Bạn đã có đủ 5 quán. Hãy dùng một trong số đó.",
+    "failed": "Chưa tạo được quán. Thử lại sau ít phút.",
+    "reference": "Mã tham chiếu: {id}"
+  },
+  "Stores": {
+    "title": "Quán của tôi",
+    "noneTitle": "Bạn chưa có quán",
+    "noneBody": "Mở quán để đăng món còn lại cuối ngày.",
+    "create": "Tạo quán mới",
+    "owner": "Chủ quán",
+    "staff": "Nhân viên"
+  },
+  "StoreNav": {
+    "label": "Quán",
+    "home": "Trang chủ",
+    "posts": "Bài đăng",
+    "catalog": "Danh mục",
+    "orders": "Đơn"
+  },
+  "StoreHome": {
+    "title": "Trang chủ quán",
+    "startTitle": "Bắt đầu bán",
+    "startBody": "Đăng món đầu tiên để khách thấy quán của bạn.",
+    "post": "Đăng món",
+    "todayTitle": "Bài đăng hôm nay",
+    "todayEmpty": "Chưa có bài đăng nào hôm nay."
+  },
+  "StorePosts": {
+    "title": "Bài đăng",
+    "post": "Đăng món",
+    "today": "Hôm nay và sắp tới",
+    "tabs": "Nhóm bài đăng",
+    "tab": {
+      "on_sale": "Đang bán · {count}",
+      "sold_out": "Đã hết · {count}",
+      "closed": "Đã đóng · {count}"
+    },
+    "emptyAll": "Chưa có bài đăng nào. Bấm Đăng món để thêm.",
+    "empty": {
+      "on_sale": "Chưa có bài nào đang bán.",
+      "sold_out": "Chưa có bài nào đã hết.",
+      "closed": "Chưa có bài nào đã đóng."
+    },
+    "edit": "Sửa",
+    "postAgain": "Đăng lại",
+    "posted": "Đã đăng {count} suất. Khách đặt được ngay.",
+    "saved": "Đã lưu.",
+    "withdrawn": "Đã rút bài. Bài nằm ở tab Đã đóng, đăng lại được."
+  },
+  "PostRow": {
+    "onSale": "Lấy {from}–{until} · Còn {left}/{units} {unit} · {price}",
+    "soldOut": "Lấy {from}–{until} · Hết {units}/{units} {unit} · {price}",
+    "closed": "Hết giờ lấy · bán {sold}/{units} {unit} · {price}",
+    "withdrawn": "Đã rút · {price}"
+  },
+  "StoreSoon": {
+    "soon": "Sắp có",
+    "catalog": {
+      "title": "Danh mục",
+      "body": "Danh mục món của quán sẽ có ở bản sau."
+    },
+    "orders": {
+      "title": "Đơn",
+      "body": "Đơn của khách sẽ hiện ở đây khi tính năng đặt món sẵn sàng."
+    }
+  },
+  "PostDrawer": {
+    "title": "Đăng món",
+    "step": "Bước {step} / 3",
+    "againTitle": "Đăng lại",
+    "againFrom": "Từ bài đã đóng",
+    "kindQuestion": "Bạn đăng món này theo kiểu nào?",
+    "todayTitle": "Đang dư hôm nay",
+    "todayBody": "Hàng đã có. Khách đặt được ngay và đến lấy trong khung giờ bạn chọn.",
+    "expectedTitle": "Báo trước dự kiến dư",
+    "expectedBody": "Chưa chắc có hàng. Khách theo dõi, bạn xác nhận số suất sau.",
+    "soon": "Sắp có",
+    "sourceEarlier": "Món đã đăng",
+    "sourceOneOff": "Món đột xuất",
+    "chooseDish": "Chọn món để đăng",
+    "noDishes": "Chưa có món nào đã đăng. Dùng Món đột xuất để đăng món đầu tiên.",
+    "choose": "Chọn",
+    "chosen": "Đã chọn",
+    "photo": "Ảnh món",
+    "choosePhoto": "Chọn ảnh từ máy",
+    "photoHint": "Một ảnh giúp khách nhận ra món của bạn.",
+    "name": "Tên món",
+    "namePlaceholder": "Ví dụ: Túi bánh mì và croissant, 4 chiếc",
+    "kind": "Loại",
+    "description": "Hộp gồm những gì",
+    "descriptionPlaceholder": "Ví dụ: bánh mì, bánh ngọt, có thể có trứng và sữa",
+    "sellQuestion": "Bán thế nào?",
+    "againQuestion": "Bán lại thế nào?",
+    "units": "Số lượng",
+    "original": "Giá gốc (đồng)",
+    "price": "Giá bán (đồng)",
+    "discount": "Giảm {percent}% so với giá gốc. Mức giảm tối thiểu là {min}%.",
+    "discountHint": "Mức giảm tối thiểu so với giá gốc là {min}%.",
+    "priceTooHigh": "Giá bán phải thấp hơn giá gốc ít nhất {min}%, tức tối đa {max}.",
+    "priceMissing": "Nhập giá gốc và giá bán, mỗi giá từ 1.000đ.",
+    "startQuestion": "Từ mấy giờ?",
+    "usual": "Giờ quen {time}",
+    "now": "Ngay bây giờ",
+    "otherTime": "Giờ khác",
+    "hour": "Giờ",
+    "minute": "Phút",
+    "lengthQuestion": "Khách lấy trong bao lâu?",
+    "length": {
+      "30": "30 phút",
+      "60": "1 giờ",
+      "90": "1 tiếng rưỡi",
+      "120": "2 giờ"
+    },
+    "otherLength": "Khác",
+    "minutes": "{minutes} phút",
+    "window": "Khách đến lấy từ {from} đến {until} hôm nay",
+    "windowOver": "Giờ lấy đã qua. Chọn giờ từ bây giờ trở đi.",
+    "problem": {
+      "discount": "Giá bán chưa đủ thấp so với giá gốc. Hạ giá rồi thử lại.",
+      "window": "Khung giờ lấy chưa hợp lệ: từ 30 phút đến 6 giờ, và chưa qua.",
+      "details": "Kiểm tra lại tên món, số lượng và giá.",
+      "inactive": "Quán chưa được kích hoạt hoặc đang bị khóa nên chưa đăng được.",
+      "locked": "Bài này không sửa được nữa: đã có suất được đặt, đã hết giờ lấy hoặc đã rút."
+    },
+    "failed": "Chưa đăng được. Thử lại sau ít phút.",
+    "reference": "Mã tham chiếu: {id}",
+    "cancel": "Hủy",
+    "back": "Quay lại",
+    "next": "Tiếp tục",
+    "post": "Đăng",
+    "editTitle": "Sửa bài đăng",
+    "editStatus": {
+      "on_sale": "Đang bán",
+      "sold_out": "Đã hết"
+    },
+    "editOrdered": "đã có {count} suất được đặt",
+    "editQuestion": "Sửa thế nào?",
+    "editFree": "Chưa ai đặt, nên bạn sửa được số suất, giá và giờ lấy.",
+    "editLocked": "Đã có {count} suất được đặt nên giá và giờ lấy giữ nguyên. Bạn sửa được số suất, không thấp hơn {count}.",
+    "unitsBelowOrdered": "Số suất không được thấp hơn {count}, vì đã có {count} suất được đặt.",
+    "withdraw": "Rút bài",
+    "save": "Lưu thay đổi"
+  },
+  "WithdrawDrawer": {
+    "title": "Rút bài",
+    "question": "Rút bài này?",
+    "explain": "Chỉ rút được khi chưa có đơn. Bài rút sẽ biến mất khỏi trang khách ngay và nằm ở tab Đã đóng.",
+    "keptNote": "Bài rút vẫn lưu ở tab Đã đóng, đăng lại được.",
+    "blocked": "Bài này đã có {count} suất được đặt nên chưa rút được. Hãy huỷ từng đơn ở tab Đơn trước.",
+    "blockedNote": "Đã có {count} suất đang chờ lấy.",
+    "keep": "Giữ lại",
+    "close": "Đóng",
+    "withdraw": "Rút bài",
+    "toOrders": "Đến tab Đơn",
+    "failed": "Chưa rút được. Thử lại sau ít phút.",
+    "reference": "Mã tham chiếu: {id}"
   }
 }
