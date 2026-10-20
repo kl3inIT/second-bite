@@ -41,7 +41,7 @@ export function BottomNav() {
       <div aria-hidden className="h-24 shrink-0 md:hidden" />
       <nav
         aria-label={t("label")}
-        className="fixed inset-x-4 bottom-safe-4 z-40 mx-auto max-w-md rounded-full border border-card/90 bg-linear-to-b from-card/80 to-card/60 p-1.25 text-shell-foreground shadow-nav backdrop-blur-xl md:hidden"
+        className="fixed inset-x-4 bottom-safe-4 z-40 mx-auto max-w-md rounded-full border border-card/60 bg-card/45 p-1.25 text-shell-foreground shadow-nav backdrop-blur-xl backdrop-saturate-180 md:hidden"
       >
         <ul className="grid h-13.5 grid-cols-4">
           {tabs.map(({ key, icon: Icon, href, within = [] }) => {
@@ -70,7 +70,7 @@ export function BottomNav() {
                 ) : (
                   <span
                     aria-disabled="true"
-                    className="flex flex-1 cursor-not-allowed flex-col items-center justify-center gap-1 text-muted-foreground opacity-60"
+                    className="flex flex-1 cursor-not-allowed flex-col items-center justify-center gap-1 text-muted-foreground opacity-85"
                   >
                     {body}
                     <span className="sr-only">{t("soon")}</span>
