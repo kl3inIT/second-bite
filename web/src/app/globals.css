@@ -147,3 +147,40 @@ body:has([data-no-footer]) > footer {
 @utility bottom-safe-4 {
   bottom: max(calc(var(--spacing) * 4), env(safe-area-inset-bottom, 0px));
 }
+
+/* A row that runs on its own (Marquee): the list and its copy slide by half their width, then start over. It
+   stops under the pointer or the focus, and takes the pace of its number of items (--marquee-items); for reduced motion it stays still and scrolls by hand. */
+@utility marquee-box {
+  overflow: hidden;
+  /* While it runs, the tickets fade in and out at the edges instead of being cut. */
+  &:has(.marquee) {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 1.5rem,
+      black calc(100% - 1.5rem),
+      transparent
+    );
+  }
+  @media (prefers-reduced-motion: reduce) {
+    overflow-x: auto;
+  }
+}
+
+@utility marquee {
+  /* Four seconds for each item to pass, so a longer row runs at the same pace. */
+  animation: marquee calc(var(--marquee-items, 6) * 4s) linear infinite;
+  .marquee-box:hover &,
+  .marquee-box:focus-within & {
+    animation-play-state: paused;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}

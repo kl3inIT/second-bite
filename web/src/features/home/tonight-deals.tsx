@@ -3,13 +3,13 @@ import Image from "next/image";
 
 import { listOffers } from "@/features/offers/list-offers";
 import { biggestDiscountFirst } from "@/features/offers/offer";
-import { cn } from "@/lib/utils";
+import { Marquee } from "@/components/marquee";
 
 import bowl from "./tonight-bowl.webp";
 import type { HomeQuery } from "./home-query";
 
-// Two on a phone; a wider screen shows more of tonight's biggest discounts instead of an empty card.
-const TICKET_COUNT = 4;
+// Tonight's biggest discounts; when they do not fit the card's width, phone or desktop, the row runs on its own.
+const TICKET_COUNT = 8;
 
 // The bottom of the header without a filter (Figma Mobile v3 deal card): the biggest discounts tonight as
 // coupons on the deep blue deal card (Figma 105:2666): the discount, a dashed cut
@@ -40,35 +40,33 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
             {t("upToPercent", { percent: tickets[0].discountPercent })}
           </span>
         </p>
-        <ul className="flex min-w-0 flex-1 gap-2 sm:pr-16 lg:gap-3">
-          {tickets.map((offer, index) => (
-            <li
-              key={offer.id}
-              className={cn(
-                "relative flex h-18 min-w-0 flex-1 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:max-w-52 lg:max-w-60 lg:px-3",
-                index === 2 && "hidden sm:flex",
-                index === 3 && "hidden lg:flex",
-              )}
-            >
-              <span className="font-display text-price-lg text-sale">
-                <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
-                <span className="sr-only">
-                  {t("ticketDiscountLabel", { percent: offer.discountPercent })}
+        <div className="flex min-w-0 flex-1 sm:mr-16">
+          <Marquee label={t("dealsTitle")} count={tickets.length}>
+            {tickets.map((offer) => (
+              <li
+                key={offer.id}
+                className="relative flex h-18 w-36 shrink-0 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:w-44 lg:w-52 lg:px-3"
+              >
+                <span className="font-display text-price-lg text-sale">
+                  <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
+                  <span className="sr-only">
+                    {t("ticketDiscountLabel", { percent: offer.discountPercent })}
+                  </span>
                 </span>
-              </span>
-              <hr className="border-t border-dashed border-border" />
-              <span className="truncate text-body-sm-strong">{offer.seller.name}</span>
-              <span
-                aria-hidden
-                className="absolute top-8 -left-1.25 size-2.5 rounded-full bg-deal"
-              />
-              <span
-                aria-hidden
-                className="absolute top-8 -right-1.25 size-2.5 rounded-full bg-deal"
-              />
-            </li>
-          ))}
-        </ul>
+                <hr className="border-t border-dashed border-border" />
+                <span className="truncate text-body-sm-strong">{offer.seller.name}</span>
+                <span
+                  aria-hidden
+                  className="absolute top-8 -left-1.25 size-2.5 rounded-full bg-deal"
+                />
+                <span
+                  aria-hidden
+                  className="absolute top-8 -right-1.25 size-2.5 rounded-full bg-deal"
+                />
+              </li>
+            ))}
+          </Marquee>
+        </div>
       </div>
     </section>
   );

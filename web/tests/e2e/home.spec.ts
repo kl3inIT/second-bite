@@ -8,7 +8,7 @@ test.use({ locale: "vi-VN" });
 test.describe("the customer home", () => {
   test("shows tonight's offers: the deal card, what closes first, then every dish by its name", async ({
     page,
-  }, testInfo) => {
+  }) => {
     await page.goto("/vi");
 
     await expect(
@@ -17,10 +17,8 @@ test.describe("the customer home", () => {
 
     const deals = page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" });
     await expect(deals.getByText("59%", { exact: true })).toBeVisible();
-    // Two tickets on a phone; a wide screen shows four rather than leave the card empty.
-    await expect(deals.getByRole("listitem")).toHaveCount(
-      testInfo.project.name === "mobile" ? 2 : 4,
-    );
+    // Up to eight tickets; the copy that keeps a running row seamless is hidden from assistive technology.
+    await expect(deals.getByRole("listitem")).toHaveCount(8);
     const firstTicket = deals.getByRole("listitem").first();
     await expect(firstTicket.getByText("Giảm 59%")).toBeAttached();
     await expect(firstTicket.getByText("Panda Chef")).toBeVisible();

@@ -16,7 +16,7 @@ import preparedFood from "./kinds/prepared-food.jpg";
 import type { HomeQuery } from "./home-query";
 
 // The round pictures at the top of the content (Figma K1 kind picker): one per kind the API can filter by,
-// with a short scroll hint under them. On a wide screen they are larger and spread across the row. Each is a link over the address; the chosen one links back to the
+// with a short scroll hint under them. On a wide screen they are larger. Each is a link over the address; the chosen one links back to the
 // whole list. Collecting now is a chip of the search (Figma K2).
 // In Figma's order (its layers are named after the kinds, kind/Bánh…), each a dish of a Tasco Mall shop.
 const order: readonly OfferKind[] = [
@@ -51,11 +51,7 @@ export function KindPicker({ query }: { query: HomeQuery }) {
 
   return (
     <nav aria-label={t("kindsLabel")} className="flex flex-col gap-1">
-      <ScrollRow
-        hint
-        label={t("kindsLabel")}
-        className="gap-2.5 py-1.5 sm:justify-start md:justify-between"
-      >
+      <ScrollRow hint label={t("kindsLabel")} className="gap-2.5 py-1.5 sm:justify-start lg:gap-6">
         {items.map((item) => (
           <li key={item.key} className="shrink-0 snap-start">
             <Link
