@@ -6,6 +6,7 @@ import {
   groupBySeller,
   inShowingOrder,
   isAvailable,
+  kindsByCount,
   type OfferSummary,
 } from "./offer";
 
@@ -103,6 +104,27 @@ describe("the search's sellers", () => {
     ).toEqual([
       ["s2", ["a", "c"]],
       ["s1", ["b"]],
+    ]);
+  });
+});
+
+describe("the search's popular kinds", () => {
+  it("counts what can still be ordered by kind, the most offers first", () => {
+    const ofKind = (id: string, kind: OfferSummary["kind"], unitsLeft = 1): OfferSummary => ({
+      ...offer(id, "on_sale", unitsLeft),
+      kind,
+    });
+    const list = [
+      ofKind("a", "bakery"),
+      ofKind("b", "drinks"),
+      ofKind("c", "drinks"),
+      ofKind("d", "bakery", 0),
+      ofKind("e", "other", 0),
+    ];
+
+    expect(kindsByCount(list)).toEqual([
+      { kind: "drinks", count: 2 },
+      { kind: "bakery", count: 1 },
     ]);
   });
 });

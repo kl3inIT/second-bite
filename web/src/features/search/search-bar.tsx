@@ -2,6 +2,7 @@
 
 import { ArrowLeftIcon, HistoryIcon, SearchIcon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -11,16 +12,28 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { offerKinds } from "@/features/offers/offer";
+import { kindPictures } from "@/features/offers/kind-pictures";
+import type { OfferKind } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
 
 import { clearSearches, forgetSearch, rememberSearch, useRecentSearches } from "./recent-searches";
 
 // The search's top bar (Figma K2 đầu trang tìm kiếm): a plain back arrow and a fully rounded field on the
 // sky ground, a GET form over the address that keeps the place and the tab. While the field is focused and
-// empty, the recent searches and the kinds cover the page under it (Figma K2a), as Shopee's and Grab's
-// search do, rather than floating over the results.
-export function SearchBar({ value, near, tab }: { value?: string; near?: string; tab?: string }) {
+// empty, the recent searches and the popular kinds, each with how many dishes are on sale, cover the page
+// under it and its bottom bar (Figma K2a).
+export function SearchBar({
+  value,
+  near,
+  tab,
+  kinds: popular = [],
+}: {
+  value?: string;
+  near?: string;
+  tab?: string;
+  /** The kinds on sale here, the most first. */
+  kinds?: readonly { kind: OfferKind; count: number }[];
+}) {
   const t = useTranslations("Search");
   const kinds = useTranslations("OfferKind");
   const recent = useRecentSearches();
@@ -86,11 +99,11 @@ export function SearchBar({ value, near, tab }: { value?: string; near?: string;
         </search>
       </div>
       {focused && !words && (
-        <div className="absolute inset-x-0 top-full z-30 flex h-dvh flex-col gap-6 border-t border-border bg-card px-4 pt-4">
+        <div className="absolute inset-x-0 top-full flex h-dvh flex-col gap-4 bg-card px-4 pt-4">
           {recent.length > 0 && (
             <section aria-labelledby="recent-searches" className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <h2 id="recent-searches" className="text-title-lg text-foreground">
+                <h2 id="recent-searches" className="text-headline text-foreground">
                   {t("recent")}
                 </h2>
                 <button
@@ -127,23 +140,34 @@ export function SearchBar({ value, near, tab }: { value?: string; near?: string;
               </ul>
             </section>
           )}
-          <section aria-labelledby="search-kinds" className="flex flex-col gap-3">
-            <h2 id="search-kinds" className="text-title-lg text-foreground">
-              {t("kinds")}
-            </h2>
-            <ul className="flex flex-wrap gap-2">
-              {offerKinds.map((kind) => (
-                <li key={kind}>
-                  <Link
-                    href={{ pathname: "/search", query: { ...place, kind } }}
-                    className={buttonVariants({ variant: "chip", size: "chip" })}
-                  >
-                    {kinds(kind)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {popular.length > 0 && (
+            <section aria-labelledby="search-kinds" className="flex flex-col">
+              <h2 id="search-kinds" className="text-headline text-foreground">
+                {t("popular")}
+              </h2>
+              <ul>
+                {popular.map(({ kind, count }) => (
+                  <li key={kind}>
+                    <Link
+                      href={{ pathname: "/search", query: { ...place, kind } }}
+                      className="flex min-h-14 items-center gap-3 text-body-sm text-foreground"
+                    >
+                      <Image
+                        src={kindPictures[kind]}
+                        alt=""
+                        sizes="40px"
+                        className="size-10 shrink-0 rounded-full object-cover"
+                      />
+                      <span className="min-w-0 flex-1 truncate">{kinds(kind)}</span>
+                      <span className="text-label text-muted-foreground">
+                        {t("onSale", { count })}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       )}
     </div>

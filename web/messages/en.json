@@ -62,7 +62,6 @@
     "recent": "Recent searches",
     "clearRecent": "Clear",
     "forget": "Remove “{words}” from recent searches",
-    "kinds": "Search by kind",
     "tabs": "Dishes or sellers",
     "dishesTab": "Dishes ({count})",
     "sellersTab": "Sellers ({count})",
@@ -102,7 +101,9 @@
     "quick": "Quick picks",
     "anyTime": "Any time",
     "lowest": "Lowest",
-    "highest": "Highest"
+    "highest": "Highest",
+    "popular": "Popular at Tasco Mall",
+    "onSale": "{count, plural, one {# dish} other {# dishes}} on sale"
   },
   "LanguageSwitcher": {
     "label": "Chuyển sang tiếng Việt"

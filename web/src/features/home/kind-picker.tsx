@@ -3,15 +3,9 @@ import Image, { type StaticImageData } from "next/image";
 import { useTranslations } from "next-intl";
 
 import { ScrollRow } from "@/components/scroll-row";
+import { kindPictures as pictures } from "@/features/offers/kind-pictures";
 import type { OfferKind } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
-
-import bakery from "./kinds/bakery.jpg";
-import drinks from "./kinds/drinks.jpg";
-import ingredients from "./kinds/ingredients.jpg";
-import mixedBox from "./kinds/mixed-box.jpg";
-import other from "./kinds/other.jpg";
-import preparedFood from "./kinds/prepared-food.jpg";
 
 import type { HomeQuery } from "./home-query";
 
@@ -27,15 +21,6 @@ const order: readonly OfferKind[] = [
   "drinks",
   "other",
 ];
-const pictures: Record<OfferKind, StaticImageData> = {
-  bakery,
-  prepared_food: preparedFood,
-  ingredients,
-  drinks,
-  mixed_box: mixedBox,
-  other,
-};
-
 export function KindPicker({ query }: { query: HomeQuery }) {
   const t = useTranslations("Home");
   const kinds = useTranslations("OfferKind");

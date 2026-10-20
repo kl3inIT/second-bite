@@ -62,7 +62,6 @@
     "recent": "Tìm gần đây",
     "clearRecent": "Xoá",
     "forget": "Xoá “{words}” khỏi tìm gần đây",
-    "kinds": "Tìm theo loại món",
     "tabs": "Món hoặc quán",
     "dishesTab": "Món ({count})",
     "sellersTab": "Quán ({count})",
@@ -102,7 +101,9 @@
     "quick": "Chọn nhanh",
     "anyTime": "Bất kỳ",
     "lowest": "Thấp nhất",
-    "highest": "Cao nhất"
+    "highest": "Cao nhất",
+    "popular": "Món phổ biến ở Tasco Mall",
+    "onSale": "{count} món đang giảm"
   },
   "LanguageSwitcher": {
     "label": "Switch to English"

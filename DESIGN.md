@@ -385,7 +385,7 @@ The page's pale ground rises over the header's foot as a 28px sheet with 24px to
 
 ### Search top bar
 
-The search's own bar (Figma K2): white with a hairline below, a plain back arrow, and the search field fully rounded on the sky ground (`muted`) without an edge. While the field is focused and empty, the recent searches (kept in the browser) and the kinds cover the page under it in white, the results hidden until the field is left (Figma K2a); their titles are `title-lg`.
+The search's own bar (Figma K2): white with a hairline below, a plain back arrow, and the search field fully rounded on the sky ground (`muted`) without an edge. While the field is focused and empty, the recent searches (kept in the browser) and "Món phổ biến ở Tasco Mall" cover the page and its bottom bar in white until the field is left (Figma K2a), each titled in `headline`. The popular kinds are the kinds on sale, the most first, each a 56px row: its round 40px picture, the kind (`body-sm`) and "3 món đang giảm" (`label`, muted) at the right.
 
 ### Filter chip
 
