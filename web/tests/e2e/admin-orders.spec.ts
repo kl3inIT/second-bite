@@ -55,7 +55,8 @@ test.describe("the admin's orders", () => {
       page.getByRole("heading", { level: 1, name: "Không tìm thấy trang này" }),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Về Tổng quan", exact: true })).toBeVisible();
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    // The not-found page carries the layout's robots line and its own; both say noindex.
+    await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
     await expectNoSeriousA11yViolations(page);
   });
 });

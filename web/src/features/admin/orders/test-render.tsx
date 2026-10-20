@@ -4,6 +4,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { formats } from "@/i18n/formats";
 
+import { AdminCrumbsProvider } from "../admin-crumbs";
+
 import orders from "../../../../messages/admin/orders.vi.json";
 import payments from "../../../../messages/admin/payments.vi.json";
 import shell from "../../../../messages/admin/shell.vi.json";
@@ -22,7 +24,8 @@ export function renderAdmin(element: ReactElement): string {
       formats={formats}
       messages={{ admin: { shell, orders, payments } }}
     >
-      {element}
+      {/* A detail page names its last crumb, which the admin layout's provider holds. */}
+      <AdminCrumbsProvider>{element}</AdminCrumbsProvider>
     </NextIntlClientProvider>,
   );
 }

@@ -8,12 +8,13 @@ import {
   inRange,
   orderClock,
   orderStatusFilter,
+  orderSteps,
   pageOf,
   sellersOf,
   sortOrders,
   toggleSort,
 } from "./order";
-import { sampleOrder, sampleRows } from "./test-samples";
+import { sampleExpiredOrder, sampleOrder, sampleRows } from "./test-samples";
 
 const all = { search: "", sellerId: "all", status: "all", range: {} } as const;
 
@@ -106,6 +107,32 @@ describe("an order", () => {
       kind: "closed",
       status: "expired",
     });
+  });
+
+  it("lists its steps, then the one to come while it is held", () => {
+    expect(orderSteps(sampleOrder).map((step) => [step.kind, step.tone])).toEqual([
+      ["placed", "done"],
+      ["confirmed", "done"],
+      ["ready", "done"],
+      ["awaiting", "pending"],
+    ]);
+    expect(orderSteps(sampleOrder).at(-1)?.at).toBe(sampleOrder.pickupEnd);
+    expect(
+      orderSteps(sampleExpiredOrder)
+        .map((step) => [step.kind, step.tone])
+        .at(-1),
+    ).toEqual(["expired", "pending"]);
+    const cancelled = {
+      ...sampleOrder,
+      status: "cancelled" as const,
+      history: [...sampleOrder.history, { kind: "cancelled" as const, at: "2026-10-20T13:40:00Z" }],
+    };
+    expect(orderSteps(cancelled).map((step) => step.tone)).toEqual([
+      "done",
+      "done",
+      "done",
+      "error",
+    ]);
   });
 
   it("needs a reason to be cancelled, and a note for another reason", () => {

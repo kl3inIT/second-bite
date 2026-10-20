@@ -88,6 +88,38 @@ export type AdminOrder = {
   history: { kind: OrderEventKind; at: string }[];
 };
 
+export type OrderStep = {
+  key: string;
+  kind: OrderEventKind;
+  at: string;
+  tone: "done" | "pending" | "error";
+};
+
+/**
+ * The order's history as its timeline shows it (AD-DH3, AD-DH5): each step taken in green, a cancellation or
+ * a refusal in red, the expiry in grey; an order still held ends with the step to come, "Chờ khách nhận bằng
+ * mã", due when its window closes.
+ */
+export function orderSteps(
+  order: Pick<AdminOrder, "status" | "pickupEnd" | "history">,
+): OrderStep[] {
+  const steps: OrderStep[] = order.history.map((event, index) => ({
+    key: `${event.kind}-${index}`,
+    kind: event.kind,
+    at: event.at,
+    tone:
+      event.kind === "cancelled" || event.kind === "rejected"
+        ? "error"
+        : event.kind === "expired"
+          ? "pending"
+          : "done",
+  }));
+  if (isOpen(order.status)) {
+    steps.push({ key: "awaiting", kind: "awaiting", at: order.pickupEnd, tone: "pending" });
+  }
+  return steps;
+}
+
 /** Why an admin cancels an order (AD-DH4); "other" needs a note. */
 export type CancelReason = "sellerOutOfStock" | "customerAsked" | "other";
 

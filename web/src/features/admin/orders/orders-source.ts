@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { AdminOrderRow, OrderSummary } from "./order";
+import type { AdminOrder, AdminOrderRow, OrderSummary } from "./order";
 
 export type OrderList = { items: AdminOrderRow[]; summary?: OrderSummary };
 
@@ -10,4 +10,12 @@ export type OrderList = { items: AdminOrderRow[]; summary?: OrderSummary };
  */
 export async function listAdminOrders(): Promise<OrderList> {
   return { items: [] };
+}
+
+/**
+ * One order (AD-DH3). Nothing until SEC-15 builds `GET /admin/orders/{id}`, so every address gets the admin's
+ * not-found page (ORDER_NOT_FOUND once the API answers).
+ */
+export async function getAdminOrder(_orderId: string): Promise<AdminOrder | undefined> {
+  return undefined;
 }

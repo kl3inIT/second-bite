@@ -89,3 +89,29 @@ export const sampleOrder: AdminOrder = {
     { kind: "ready", at: "2026-10-20T13:24:00Z" },
   ],
 };
+
+/** Order #SB-24824, expired: the customer did not come (AD-DH5). */
+export const sampleExpiredOrder: AdminOrder = {
+  ...sampleOrder,
+  id: "o-24824",
+  code: "SB-24824",
+  status: "expired",
+  closedAt: "2026-10-20T13:31:00Z",
+  pickupStart: "2026-10-20T12:30:00Z",
+  pickupEnd: "2026-10-20T13:30:00Z",
+  totalVnd: 30_000,
+  customer: {
+    name: "Hoàng Nam",
+    phone: "0900 000 124",
+    email: "hoang.nam@example.com",
+    collectedBefore: 3,
+    noShowBefore: 2,
+    noShowsIn30Days: 2,
+  },
+  history: [
+    { kind: "placed", at: "2026-10-20T11:47:00Z" },
+    { kind: "confirmed", at: "2026-10-20T11:47:00Z" },
+    { kind: "ready", at: "2026-10-20T12:28:00Z" },
+    { kind: "expired", at: "2026-10-20T13:31:00Z" },
+  ],
+};

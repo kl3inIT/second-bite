@@ -27,6 +27,7 @@ export function CancelOrderDialog({
   onCancel?: (request: CancelRequest) => Promise<void>;
 }) {
   const t = useTranslations("admin.orders.cancel");
+  const soon = useTranslations("admin.shell");
   const [reason, setReason] = useState<CancelReason>();
   const [note, setNote] = useState("");
   const [pending, setPending] = useState(false);
@@ -56,6 +57,7 @@ export function CancelOrderDialog({
       confirmLabel={t("confirm")}
       destructive
       confirmDisabled={!onCancel || !canCancel(reason, note)}
+      confirmTitle={onCancel ? undefined : soon("soon")}
       pending={pending}
       onConfirm={() => void confirm()}
       form={<CancelOrderFields reason={reason} onReason={setReason} note={note} onNote={setNote} />}
