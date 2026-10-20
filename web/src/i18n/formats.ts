@@ -15,6 +15,8 @@ export const formats = {
     day: { day: "2-digit", month: "2-digit", year: "numeric" },
     /** "20/10": a day on an admin chart's axis. */
     dayMonth: { day: "2-digit", month: "2-digit" },
+    /** "Thứ Ba, 20/10/2026": the day under the pointer on an admin chart (Figma AD-TQ2). */
+    weekdayDay: { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" },
   },
   number: {
     /** "350 m": how far a seller is, under a kilometre. */
