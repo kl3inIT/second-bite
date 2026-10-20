@@ -105,18 +105,44 @@ function fold(text) {
   return text.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").toLowerCase();
 }
 
+const DEFAULT_RADIUS_KM = 5;
+const EARTH_RADIUS_M = 6_371_000;
+
+/** Metres between two points on the Earth, by the haversine formula. */
+function metresBetween([lat1, lon1], [lat2, lon2]) {
+  const rad = (degrees) => (degrees * Math.PI) / 180;
+  const h =
+    Math.sin(rad(lat2 - lat1) / 2) ** 2 +
+    Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lon2 - lon1) / 2) ** 2;
+  return Math.round(2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h)));
+}
+
 function search(url) {
   const q = url.searchParams.get("q");
   const kind = url.searchParams.get("kind");
   const from = url.searchParams.get("collectFrom");
   const to = url.searchParams.get("collectTo");
-  return offers.filter(
+  const near = url.searchParams.get("near")?.split(",").map(Number);
+  const radiusKm = Number(url.searchParams.get("radiusKm") ?? DEFAULT_RADIUS_KM);
+  const found = offers.filter(
     (offer) =>
       (!q || fold(offer.name).includes(fold(q)) || fold(offer.seller.name).includes(fold(q))) &&
       (!kind || kind.split(",").includes(offer.kind)) &&
       (!to || new Date(offer.windowStart) <= new Date(to)) &&
       (!from || new Date(from) < new Date(offer.windowEnd)),
   );
+  if (!near) return found;
+  // Around a point: only what lies within the radius, nearest first, each with its distance.
+  return found
+    .map((offer) => ({
+      ...offer,
+      distanceMeters: metresBetween(near, [
+        offer.collectionPoint.latitude,
+        offer.collectionPoint.longitude,
+      ]),
+    }))
+    .filter((offer) => offer.distanceMeters <= radiusKm * 1000)
+    .toSorted((a, b) => a.distanceMeters - b.distanceMeters);
 }
 
 // Signing in (SEC-29), as api/openapi.yaml describes it: the code 123456 is right and any other is not; the

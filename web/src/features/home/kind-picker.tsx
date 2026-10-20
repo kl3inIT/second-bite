@@ -29,6 +29,8 @@ const pictures: Record<OfferKind, StaticImageData | LucideIcon> = {
 export function KindPicker({ query }: { query: HomeQuery }) {
   const t = useTranslations("Home");
   const kinds = useTranslations("OfferKind");
+  // A kind narrows the place being shown; it does not move back to Tasco Mall.
+  const keep = query.near ? { near: query.near } : {};
   const items = [
     {
       key: "now",
@@ -52,7 +54,7 @@ export function KindPicker({ query }: { query: HomeQuery }) {
         {items.map((item) => (
           <li key={item.key} className="shrink-0 snap-start">
             <Link
-              href={{ pathname: "/", query: item.active ? {} : item.href }}
+              href={{ pathname: "/", query: item.active ? keep : { ...keep, ...item.href } }}
               aria-current={item.active ? "page" : undefined}
               className="group/kind flex w-16 flex-col items-center gap-1.5 rounded-xl focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
             >

@@ -22,7 +22,27 @@
     "emptyFiltered": "Không có món nào khớp bộ lọc này.",
     "showAll": "Xem tất cả món",
     "ticketDiscount": "-{percent}%",
-    "ticketDiscountLabel": "Giảm {percent}%"
+    "ticketDiscountLabel": "Giảm {percent}%",
+    "titleNearby": "<hidden>Tối nay quanh </hidden>Vị trí của tôi",
+    "areaNearby": "Các quán gần bạn",
+    "nearbyEmpty": "Chưa có món nào quanh đây",
+    "nearbyEmptyHint": "Các quán gần bạn chưa đăng món nào tối nay. Bạn có thể xem món đang bán ở Tasco Mall.",
+    "seeMall": "Xem món ở Tasco Mall",
+    "mallOffers": "Đang bán ở Tasco Mall"
+  },
+  "Area": {
+    "open": "Chọn nơi xem món",
+    "title": "Xem món ở đâu?",
+    "description": "Xem món ở Tasco Mall hoặc quanh vị trí của bạn.",
+    "close": "Đóng",
+    "mall": "Tasco Mall Long Biên",
+    "mallHint": "Mặc định · các quán trong trung tâm",
+    "nearby": "Dùng vị trí của tôi",
+    "nearbyHint": "Cho phép định vị để thấy quán gần bạn",
+    "apply": "Xem món quanh đây",
+    "locating": "Đang tìm vị trí của bạn…",
+    "denied": "Trình duyệt đang chặn định vị. Bật lại trong cài đặt của trang, hoặc xem món ở Tasco Mall.",
+    "failed": "Chưa tìm được vị trí của bạn. Thử lại sau, hoặc xem món ở Tasco Mall."
   },
   "LanguageSwitcher": {
     "label": "Switch to English"
@@ -50,7 +70,10 @@
     "window": "{from}–{until}",
     "discount": "Giảm {percent}%",
     "originalPrice": "Giá gốc {price}",
-    "left": "Còn {units} phần"
+    "left": "Còn {units} phần",
+    "windowAway": "{window} · {distance}",
+    "seller": "{seller}",
+    "sellerAway": "{seller} · cách {distance}"
   },
   "Intro": {
     "title": "Second Bite là gì?",

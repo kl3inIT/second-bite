@@ -12,6 +12,8 @@ export type OfferFilters = {
   kind?: OfferKind;
   /** Only what can be collected now: the window must include this moment. */
   collectNow?: boolean;
+  /** "latitude,longitude": only sellers around it, nearest first, each with its distance. */
+  near?: string;
 };
 
 /**
@@ -20,15 +22,27 @@ export type OfferFilters = {
  * error boundary. The header and the list ask for the same offers, so one render makes one request.
  */
 export function listOffers(filters: OfferFilters): Promise<OfferSummary[]> {
-  return search(filters.q || undefined, filters.kind, Boolean(filters.collectNow));
+  return search(filters.q || undefined, filters.kind, Boolean(filters.collectNow), filters.near);
 }
 
 // React's cache compares arguments by identity, so the filters are passed as primitives.
 const search = cache(
-  async (q: string | undefined, kind: OfferKind | undefined, collectNow: boolean) => {
+  async (
+    q: string | undefined,
+    kind: OfferKind | undefined,
+    collectNow: boolean,
+    near: string | undefined,
+  ) => {
     const now = collectNow ? new Date().toISOString() : undefined;
     const { data } = await searchOffers({
-      query: { q, kind: kind ? [kind] : undefined, collectFrom: now, collectTo: now, limit: 50 },
+      query: {
+        q,
+        kind: kind ? [kind] : undefined,
+        collectFrom: now,
+        collectTo: now,
+        near,
+        limit: 50,
+      },
     });
     return data.offers;
   },

@@ -10,7 +10,7 @@ import { SearchField } from "@/features/home/search-field";
 import { TonightDeals } from "@/features/home/tonight-deals";
 
 // The customer home: tonight's offers at Tasco Mall, with no landing page in front (SEC-23), drawn as the
-// Figma home (Secondbite › Mobile v2 › 1 · Trang chủ · Header mới).
+// Figma home (Secondbite › Mobile v3 › K1 · Trang chủ).
 export default function Home({ searchParams }: PageProps<"/[locale]">) {
   const query = searchParams.then(readHomeQuery);
 
@@ -18,7 +18,11 @@ export default function Home({ searchParams }: PageProps<"/[locale]">) {
     <>
       {/* The field, the deals and the list read the address, so they stream in after the static shell. */}
       <AppHeader
-        title={<PlaceHeading />}
+        title={
+          <Suspense fallback={<PlaceHeading />}>
+            <AddressPlaceHeading query={query} />
+          </Suspense>
+        }
         search={
           <Suspense fallback={<SearchField />}>
             <AddressSearchField query={query} />
@@ -56,11 +60,15 @@ export default function Home({ searchParams }: PageProps<"/[locale]">) {
   );
 }
 
+async function AddressPlaceHeading({ query }: { query: Promise<HomeQuery> }) {
+  return <PlaceHeading query={await query} />;
+}
+
 async function HomeAccount({ query }: { query: Promise<HomeQuery> }) {
   return <AccountAction returnTo={homePath(await query)} />;
 }
 
 async function AddressSearchField({ query, id }: { query: Promise<HomeQuery>; id?: string }) {
-  const { q } = await query;
-  return <SearchField value={q} id={id} />;
+  const { q, near } = await query;
+  return <SearchField value={q} near={near} id={id} />;
 }

@@ -22,7 +22,27 @@
     "emptyFiltered": "Nothing matches this filter.",
     "showAll": "See every dish",
     "ticketDiscount": "-{percent}%",
-    "ticketDiscountLabel": "{percent}% off"
+    "ticketDiscountLabel": "{percent}% off",
+    "titleNearby": "<hidden>Tonight around </hidden>My location",
+    "areaNearby": "Sellers near you",
+    "nearbyEmpty": "Nothing around here yet",
+    "nearbyEmptyHint": "The sellers near you have posted nothing tonight. You can see what is on at Tasco Mall.",
+    "seeMall": "See dishes at Tasco Mall",
+    "mallOffers": "On now at Tasco Mall"
+  },
+  "Area": {
+    "open": "Choose where to look",
+    "title": "Where should we look?",
+    "description": "See dishes at Tasco Mall or around where you are.",
+    "close": "Close",
+    "mall": "Tasco Mall Long Biên",
+    "mallHint": "Default · the sellers in the mall",
+    "nearby": "Use my location",
+    "nearbyHint": "Allow location to see sellers near you",
+    "apply": "Show dishes around here",
+    "locating": "Finding where you are…",
+    "denied": "Your browser is blocking location. Allow it in the site settings, or see dishes at Tasco Mall.",
+    "failed": "We could not find where you are. Try again later, or see dishes at Tasco Mall."
   },
   "LanguageSwitcher": {
     "label": "Chuyển sang tiếng Việt"
@@ -50,7 +70,10 @@
     "window": "{from}–{until}",
     "discount": "{percent}% off",
     "originalPrice": "Was {price}",
-    "left": "{units} left"
+    "left": "{units} left",
+    "windowAway": "{window} · {distance}",
+    "seller": "{seller}",
+    "sellerAway": "{seller} · {distance} away"
   },
   "Intro": {
     "title": "What is Second Bite?",

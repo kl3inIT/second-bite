@@ -12,7 +12,8 @@ const TICKET_COUNT = 3;
 // show. The pale sheet behind its lower half starts the page under the header.
 export async function TonightDeals({ query: pending }: { query: Promise<HomeQuery> }) {
   const query = await pending;
-  if (query.q || query.kind || query.now) return null;
+  // Tonight's deals are Tasco Mall's, so they are not shown around the person's own place (Figma K1e).
+  if (query.q || query.kind || query.now || query.near) return null;
 
   const [t, format, offers] = await Promise.all([
     getTranslations("Home"),

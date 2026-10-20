@@ -5,12 +5,22 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/in
 
 // The search field of the header (Figma search): a GET form over the address, so a search can be shared
 // and works before JavaScript.
-export function SearchField({ value, id = "offer-search" }: { value?: string; id?: string }) {
+export function SearchField({
+  value,
+  near,
+  id = "offer-search",
+}: {
+  value?: string;
+  /** The place the home is showing, kept by the search. */
+  near?: string;
+  id?: string;
+}) {
   const t = useTranslations("Home");
 
   return (
     <search>
       <form>
+        {near && <input type="hidden" name="near" value={near} />}
         <InputGroup surface="header">
           <InputGroupInput
             id={id}
