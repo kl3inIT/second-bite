@@ -1,4 +1,4 @@
-import { ApiError } from "@/lib/api/client";
+import { ApiError, failureOf } from "@/lib/api/client";
 
 /**
  * What a refused save says about the form (docs: admin-web-flow › Lỗi ở form): the fields the backend points at
@@ -16,7 +16,19 @@ export function refusedFields<Field extends string>(
   return fields.filter((field) => named.includes(field));
 }
 
-/** The reference a person reports for a failure, when the backend answered with one. */
-export function referenceOf(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.requestId : undefined;
+/** The words a page's toast says of a refused save. */
+type RefusalWords = {
+  failed: string;
+  failedWithReference: (reference: string) => string;
+  reference: (reference: string) => string;
+};
+
+/**
+ * What the toast says of a refused save (SEC-28): the server's sentence, written in the page's language, with
+ * the reference a person reports; the form's own words only when no answer came or it carried no sentence.
+ */
+export function refusalSentence(error: unknown, words: RefusalWords): string {
+  const { detail, reference } = failureOf(error);
+  if (detail) return reference ? `${detail} ${words.reference(reference)}` : detail;
+  return reference ? words.failedWithReference(reference) : words.failed;
 }

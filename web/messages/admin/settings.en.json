@@ -4,7 +4,8 @@
     "neverSaved": "Never saved",
     "refused": "This value was not accepted.",
     "failed": "Not saved. Try again later.",
-    "failedWithReference": "Not saved. Reference: {reference}"
+    "failedWithReference": "Not saved. Reference: {reference}",
+    "reference": "Reference: {reference}"
   },
   "units": {
     "percent": "%",

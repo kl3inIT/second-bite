@@ -9,7 +9,7 @@ import { type OfferSettingsBody, saveOfferSettings } from "@/lib/api/generated";
 import { showAdminToast } from "../admin-toast";
 import { NumberField } from "../ui/number-field";
 import { FormFooter, SettingsCard } from "../ui/settings";
-import { referenceOf, refusedFields } from "./field-errors";
+import { refusalSentence, refusedFields } from "./field-errors";
 import {
   changeOfferSetting,
   offerBounds,
@@ -71,11 +71,13 @@ export function OfferSettingsForm({ settings }: { settings: OfferSettingsBody })
       } catch (error) {
         const fields = refusedFields(error, "OFFER_SETTINGS_INVALID", offerSettingKeys);
         setRefused(fields);
-        const reference = referenceOf(error);
-        // Said in the general words: the backend's own words for a code reach the web with SEC-28.
         if (fields.length === 0) {
           showAdminToast(
-            reference ? t("form.failedWithReference", { reference }) : t("form.failed"),
+            refusalSentence(error, {
+              failed: t("form.failed"),
+              failedWithReference: (reference) => t("form.failedWithReference", { reference }),
+              reference: (reference) => t("form.reference", { reference }),
+            }),
             "error",
           );
         }

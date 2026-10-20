@@ -2,13 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import { ApiError } from "@/lib/api/client";
 
-import { referenceOf, refusedFields } from "./field-errors";
+import { refusalSentence, refusedFields } from "./field-errors";
 
 const fields = ["windowMinMinutes", "windowMaxMinutes", "maxRadiusKm"] as const;
 
-function refusal(code: string, pointers: string[], status = 400) {
+function refusal(code: string, pointers: string[], status = 400, detail?: string) {
   return new ApiError(status, {
     status,
+    detail,
     code,
     requestId: "req-1",
     errors: pointers.map((pointer) => ({ pointer, code, detail: "" })),
@@ -37,9 +38,31 @@ describe("the fields a refused save points at", () => {
     expect(refusedFields(other, "OFFER_SETTINGS_INVALID", fields)).toEqual([]);
     expect(refusedFields(new Error("offline"), "OFFER_SETTINGS_INVALID", fields)).toEqual([]);
   });
+});
 
-  it("come with the reference a person reports", () => {
-    expect(referenceOf(refusal("OFFER_SETTINGS_INVALID", []))).toBe("req-1");
-    expect(referenceOf(new Error("offline"))).toBeUndefined();
+describe("the toast of a refused save", () => {
+  const words = {
+    failed: "Not saved.",
+    failedWithReference: (reference: string) => `Not saved. Reference: ${reference}`,
+    reference: (reference: string) => `Reference: ${reference}`,
+  };
+
+  it("says the server's sentence with the reference a person reports", () => {
+    const error = refusal(
+      "OFFER_SETTINGS_INVALID",
+      [],
+      400,
+      "The offer settings are out of range.",
+    );
+    expect(refusalSentence(error, words)).toBe(
+      "The offer settings are out of range. Reference: req-1",
+    );
+  });
+
+  it("keeps the form's own words when the answer carried no sentence or none came", () => {
+    expect(refusalSentence(refusal("OFFER_SETTINGS_INVALID", []), words)).toBe(
+      "Not saved. Reference: req-1",
+    );
+    expect(refusalSentence(new Error("offline"), words)).toBe("Not saved.");
   });
 });

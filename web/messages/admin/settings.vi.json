@@ -4,7 +4,8 @@
     "neverSaved": "Chưa lưu lần nào",
     "refused": "Giá trị này chưa được chấp nhận.",
     "failed": "Chưa lưu được. Thử lại sau.",
-    "failedWithReference": "Chưa lưu được. Mã tham chiếu: {reference}"
+    "failedWithReference": "Chưa lưu được. Mã tham chiếu: {reference}",
+    "reference": "Mã tham chiếu: {reference}"
   },
   "units": {
     "percent": "%",

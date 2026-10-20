@@ -23,7 +23,7 @@ import {
   signInLocked,
   type SmtpSecurity,
 } from "./email-draft";
-import { referenceOf, refusedFields } from "./field-errors";
+import { refusalSentence, refusedFields } from "./field-errors";
 import { useSavedStatus } from "./saved-status";
 import { TextField } from "./text-field";
 
@@ -83,11 +83,13 @@ export function EmailSettingsForm({ settings }: { settings: EmailSettingsBody | 
       } catch (error) {
         const fields = refusedFields(error, "NOTIFICATION_EMAIL_SETTINGS_INVALID", emailFields);
         setRefused(fields);
-        const reference = referenceOf(error);
-        // Said in the general words: the backend's own words for a code reach the web with SEC-28.
         if (fields.length === 0) {
           showAdminToast(
-            reference ? t("form.failedWithReference", { reference }) : t("form.failed"),
+            refusalSentence(error, {
+              failed: t("form.failed"),
+              failedWithReference: (reference) => t("form.failedWithReference", { reference }),
+              reference: (reference) => t("form.reference", { reference }),
+            }),
             "error",
           );
         }
