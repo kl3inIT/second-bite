@@ -291,11 +291,8 @@ func (s *Service) dish(ctx context.Context, id uuid.UUID) (Dish, error) {
 
 func dishFromRow(r db.GetDishRow) Dish {
 	return Dish{
-		ID: r.ID, SellerID: r.SellerID,
-		DishDetails: DishDetails{
-			Name: r.Name, Kind: Kind(r.Kind), Unit: r.Unit, Description: r.Description,
-			Ingredients: r.Ingredients, OriginalPriceVND: pricePtr(r.OriginalPriceVnd), PhotoID: r.PhotoID, Hidden: r.Hidden,
-		},
+		ID: r.ID, SellerID: r.SellerID, Name: r.Name, Kind: Kind(r.Kind), Unit: r.Unit, Description: r.Description,
+		Ingredients: r.Ingredients, OriginalPriceVND: pricePtr(r.OriginalPriceVnd), PhotoID: r.PhotoID, Hidden: r.Hidden,
 		CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
 	}
 }
