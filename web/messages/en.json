@@ -402,7 +402,8 @@
       "closed": "Nothing has closed."
     },
     "edit": "Edit",
-    "postAgain": "Post again"
+    "postAgain": "Post again",
+    "posted": "Posted {count, plural, one {# unit} other {# units}}. Customers can order now."
   },
   "PostRow": {
     "onSale": "Pick-up {from}–{until} · {left}/{units} {unit} left · {price}",
@@ -420,5 +421,69 @@
       "title": "Orders",
       "body": "Customers' orders will show here once ordering is ready."
     }
+  },
+  "PostDrawer": {
+    "title": "Post a dish",
+    "step": "Step {step} / 3",
+    "againTitle": "Post again",
+    "againFrom": "From a closed post",
+    "kindQuestion": "How are you posting this dish?",
+    "todayTitle": "Surplus today",
+    "todayBody": "The food is ready. Customers order at once and collect in the hours you choose.",
+    "expectedTitle": "Announce expected surplus",
+    "expectedBody": "Not sure there will be any. Customers follow, and you confirm the units later.",
+    "soon": "Coming soon",
+    "sourceEarlier": "Earlier dishes",
+    "sourceOneOff": "One-off dish",
+    "chooseDish": "Choose a dish to post",
+    "noDishes": "No earlier dishes. Use One-off dish to post the first.",
+    "choose": "Choose",
+    "chosen": "Chosen",
+    "photo": "Dish photo",
+    "choosePhoto": "Choose a photo",
+    "photoHint": "A photo helps customers recognise your dish.",
+    "name": "Dish name",
+    "namePlaceholder": "For example: Bread and croissant bag, 4 pieces",
+    "kind": "Kind",
+    "description": "What the box holds",
+    "descriptionPlaceholder": "For example: bread and pastries, may contain egg and milk",
+    "sellQuestion": "How does it sell?",
+    "againQuestion": "How does it sell again?",
+    "units": "Units",
+    "original": "Original price (VND)",
+    "price": "Price (VND)",
+    "discount": "{percent}% off the original price. The minimum discount is {min}%.",
+    "discountHint": "The minimum discount off the original price is {min}%.",
+    "priceTooHigh": "The price must be at least {min}% below the original price, so at most {max}.",
+    "priceMissing": "Enter the original price and the price, each from 1.000đ.",
+    "startQuestion": "From what time?",
+    "usual": "Usual {time}",
+    "now": "Right now",
+    "otherTime": "Other time",
+    "hour": "Hour",
+    "minute": "Minute",
+    "lengthQuestion": "How long can customers collect?",
+    "length": {
+      "30": "30 minutes",
+      "60": "1 hour",
+      "90": "1.5 hours",
+      "120": "2 hours"
+    },
+    "otherLength": "Other",
+    "minutes": "{minutes} minutes",
+    "window": "Customers collect from {from} to {until} today",
+    "windowOver": "That time has passed. Choose a time from now on.",
+    "problem": {
+      "discount": "The price is not low enough against the original price. Lower it and try again.",
+      "window": "The collection window is not valid: 30 minutes to 6 hours, and not over.",
+      "details": "Check the dish's name, units and prices.",
+      "inactive": "The store is not active or is blocked, so it cannot post."
+    },
+    "failed": "Could not post. Try again in a few minutes.",
+    "reference": "Reference: {id}",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "post": "Post"
   }
 }

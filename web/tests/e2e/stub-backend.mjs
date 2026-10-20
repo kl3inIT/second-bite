@@ -367,6 +367,8 @@ async function auth(request, response, url) {
 // The seller's side (SEC-57), as api/openapi.yaml describes it: a person opens stores, at most five, each active
 // at once, and reads the ones they own. Kept per session, like the accounts above.
 const storesOf = new Map();
+/** What each store has posted through POST /sellers/{id}/offers, the newest first. */
+const postedBy = new Map();
 
 /** A store's posts as GET /sellers/{id}/offers answers: one on sale, one sold out, one over, one withdrawn. */
 function postsOf(seller) {
@@ -434,7 +436,7 @@ async function sellerRoutes(request, response, url) {
     } else {
       const now = new Date().toISOString();
       const seller = {
-        id: `se-${mine.length + 1}-${token.slice(-6)}`,
+        id: `se-${mine.length + 1}-${token.slice(5)}`,
         name: body.name.trim(),
         address: body.address.trim(),
         phone: digits,
@@ -467,8 +469,50 @@ async function sellerRoutes(request, response, url) {
     if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
     else if (one[2]) {
       // A store named like the Figma sample has its posts; any other starts empty.
-      json(response, 200, { offers: seller.name === "Tiệm bánh Pháp" ? postsOf(seller) : [] });
+      const posted = postedBy.get(seller.id) ?? [];
+      json(response, 200, {
+        offers: [...posted, ...(seller.name === "Tiệm bánh Pháp" ? postsOf(seller) : [])],
+      });
     } else json(response, 200, seller);
+    return true;
+  }
+  if (request.method === "POST" && one?.[2]) {
+    const seller = mine.find((candidate) => candidate.id === one[1]);
+    if (!seller) {
+      problem(response, 404, "SELLER_NOT_FOUND");
+      return true;
+    }
+    const body = await readBody(request);
+    if (body.priceVnd > Math.floor((body.originalPriceVnd * 80) / 100)) {
+      problem(response, 422, "OFFER_DISCOUNT_TOO_SMALL");
+    } else if (Date.parse(body.windowEnd) <= Date.now()) {
+      problem(response, 422, "OFFER_WINDOW_INVALID");
+    } else {
+      const posted = postedBy.get(seller.id) ?? [];
+      const now = new Date().toISOString();
+      const offer = {
+        ...body,
+        id: `of-new-${posted.length + 1}-${seller.id}`,
+        sellerId: seller.id,
+        status: "on_sale",
+        description: body.description ?? "",
+        unit: body.unit || "suất",
+        unitsLeft: body.units,
+        discountPercent: Math.floor(
+          ((body.originalPriceVnd - body.priceVnd) * 100) / body.originalPriceVnd,
+        ),
+        photo: {
+          id: body.photoId,
+          largePath: `/photos/${body.photoId}/1600.jpg`,
+          smallPath: `/photos/${body.photoId}/400.jpg`,
+        },
+        collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
+        createdAt: now,
+        updatedAt: now,
+      };
+      postedBy.set(seller.id, [offer, ...posted]);
+      json(response, 201, offer);
+    }
     return true;
   }
   if (request.method === "PUT") {

@@ -126,3 +126,109 @@ test.describe("opening a store on the web", () => {
     await expect(page.getByText("Bạn đã có đủ 5 quán. Hãy dùng một trong số đó.")).toBeVisible();
   });
 });
+
+// SEC-57 › Posting (Figma P1 to P3, P2b, P3e, P5, R1).
+test.describe("posting a dish on the web", () => {
+  /** A store named like the Figma sample, which the stub gives four earlier posts. */
+  async function sampleStore(page: Page, who: string, testInfo: { project: { name: string } }) {
+    await signIn(page, `${who}.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByLabel("Tên quán"))).fill("Tiệm bánh Pháp");
+    await page.getByLabel("Số điện thoại").fill("0912345678");
+    await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await page.getByRole("button", { name: "Tạo quán" }).click();
+    await expect(page).toHaveURL(/\/vi\/stores\/se-1-/);
+    return page.url().split("/").pop() ?? "";
+  }
+
+  test("posts an earlier dish, with the price refused first", async ({ page }, testInfo) => {
+    const store = await sampleStore(page, "thao", testInfo);
+    await page.goto(`/vi/stores/${store}/offers`);
+    await page.getByRole("link", { name: "Đăng món" }).click();
+
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByText("Bước 1 / 3")).toBeVisible();
+    await expect(drawer.getByText("Báo trước dự kiến dư")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+
+    await expect(drawer.getByText("Bước 2 / 3")).toBeVisible();
+    await expect(drawer.getByRole("button", { name: "Tiếp tục" })).toBeDisabled();
+    await drawer
+      .getByRole("listitem")
+      .filter({ hasText: "Túi bánh mì và croissant, 4 chiếc" })
+      .getByRole("button", { name: "Chọn" })
+      .click();
+    await expectNoSeriousA11yViolations(page);
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+
+    await expect(drawer.getByText("Bán thế nào?")).toBeVisible();
+    await expect(drawer.getByLabel("Giá bán (đồng)")).toHaveValue("57.000");
+    await drawer.getByRole("button", { name: "Ngay bây giờ" }).click();
+    await drawer.getByLabel("Giá bán (đồng)").fill("80000");
+    await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
+    await expect(
+      drawer.getByText("Giá bán phải thấp hơn giá gốc ít nhất 20%, tức tối đa 76.000đ."),
+    ).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await drawer.getByLabel("Giá bán (đồng)").fill("70000");
+    await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
+    await expect(page.getByText("Đã đăng 3 suất. Khách đặt được ngay.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Đang bán · 2" })).toBeVisible();
+  });
+
+  test("posts a one-off dish with a photo, and a mixed box says what it holds", async ({
+    page,
+  }, testInfo) => {
+    const store = await sampleStore(page, "quynh", testInfo);
+    await page.goto(`/vi/stores/${store}/offers/new`);
+    const drawer = page.getByRole("dialog");
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+    await drawer.getByRole("button", { name: "Món đột xuất" }).click();
+    await drawer.getByLabel("Ảnh món").setInputFiles({
+      name: "flan.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+        "base64",
+      ),
+    });
+    await drawer.getByLabel("Tên món").fill("Hộp bánh cuối ngày");
+    await drawer.getByRole("button", { name: "Hộp tổng hợp" }).click();
+    await expect(drawer.getByLabel("Hộp gồm những gì")).toBeVisible();
+    await expect(drawer.getByRole("button", { name: "Tiếp tục" })).toBeDisabled();
+    await drawer.getByLabel("Hộp gồm những gì").fill("Bánh mì và bánh ngọt, có trứng");
+    await expectNoSeriousA11yViolations(page);
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+
+    await drawer.getByLabel("Số lượng").fill("6");
+    await drawer.getByLabel("Giá gốc (đồng)").fill("60000");
+    await drawer.getByLabel("Giá bán (đồng)").fill("36000");
+    await expect(
+      drawer.getByText("Giảm 40% so với giá gốc. Mức giảm tối thiểu là 20%."),
+    ).toBeVisible();
+    await drawer.getByRole("button", { name: "Ngay bây giờ" }).click();
+    await drawer.getByRole("button", { name: "1 tiếng rưỡi" }).click();
+    await expect(
+      drawer.getByText(/Khách đến lấy từ \d\d:\d\d đến \d\d:\d\d hôm nay/),
+    ).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+    await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
+    await expect(page.getByText("Đã đăng 6 suất. Khách đặt được ngay.")).toBeVisible();
+  });
+
+  test("posts a closed post again, from the last step", async ({ page }, testInfo) => {
+    const store = await sampleStore(page, "uyen", testInfo);
+    await page.goto(`/vi/stores/${store}/offers?tab=closed`);
+    await page.getByRole("link", { name: "Đăng lại" }).first().click();
+
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByText("Từ bài đã đóng")).toBeVisible();
+    await expect(drawer.getByText("Bán lại thế nào?")).toBeVisible();
+    await expect(drawer.getByLabel("Số lượng")).not.toHaveValue("");
+    await expectNoSeriousA11yViolations(page);
+    await drawer.getByRole("button", { name: "Ngay bây giờ" }).click();
+    await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
+    await expect(page.getByText(/Đã đăng \d suất\. Khách đặt được ngay\./)).toBeVisible();
+  });
+});

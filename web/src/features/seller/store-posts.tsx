@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 import { getStoreOffers } from "./my-sellers";
 import { PostRow } from "./post-row";
+import { PostToast } from "./post-toast";
 import { requireStore } from "./require-store";
 import { groupByTab, postTabs, readPostTab } from "./store-offers";
 
@@ -15,22 +16,34 @@ import { groupByTab, postTabs, readPostTab } from "./store-offers";
 export async function StorePosts({
   sellerId: pendingId,
   tab: pendingTab,
+  posted: pendingPosted,
 }: {
   sellerId: Promise<string>;
   tab: Promise<string | undefined>;
+  /** How many units were just posted, from the address; the line at the foot says so once. */
+  posted?: Promise<string | undefined>;
 }) {
   const sellerId = await pendingId;
-  const [t, tabName, offers] = await Promise.all([
+  const [t, tabName, posted, offers] = await Promise.all([
     getTranslations("StorePosts"),
     pendingTab,
+    pendingPosted,
     requireStore(sellerId, `/stores/${sellerId}/offers`).then(() => getStoreOffers(sellerId)),
   ]);
   const tab = readPostTab(tabName);
   const groups = groupByTab(offers);
   const shown = groups[tab];
 
+  const postedUnits = Number(posted);
+
   return (
     <>
+      {Number.isInteger(postedUnits) && postedUnits > 0 && (
+        <PostToast
+          message={t("posted", { count: postedUnits })}
+          to={`/stores/${sellerId}/offers`}
+        />
+      )}
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-page-title text-foreground">{t("title")}</h1>
         <Link href={`/stores/${sellerId}/offers/new`} className={buttonVariants({ size: "lg" })}>

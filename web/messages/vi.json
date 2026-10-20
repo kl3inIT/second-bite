@@ -402,7 +402,8 @@
       "closed": "Chưa có bài nào đã đóng."
     },
     "edit": "Sửa",
-    "postAgain": "Đăng lại"
+    "postAgain": "Đăng lại",
+    "posted": "Đã đăng {count} suất. Khách đặt được ngay."
   },
   "PostRow": {
     "onSale": "Lấy {from}–{until} · Còn {left}/{units} {unit} · {price}",
@@ -420,5 +421,69 @@
       "title": "Đơn",
       "body": "Đơn của khách sẽ hiện ở đây khi tính năng đặt món sẵn sàng."
     }
+  },
+  "PostDrawer": {
+    "title": "Đăng món",
+    "step": "Bước {step} / 3",
+    "againTitle": "Đăng lại",
+    "againFrom": "Từ bài đã đóng",
+    "kindQuestion": "Bạn đăng món này theo kiểu nào?",
+    "todayTitle": "Đang dư hôm nay",
+    "todayBody": "Hàng đã có. Khách đặt được ngay và đến lấy trong khung giờ bạn chọn.",
+    "expectedTitle": "Báo trước dự kiến dư",
+    "expectedBody": "Chưa chắc có hàng. Khách theo dõi, bạn xác nhận số suất sau.",
+    "soon": "Sắp có",
+    "sourceEarlier": "Món đã đăng",
+    "sourceOneOff": "Món đột xuất",
+    "chooseDish": "Chọn món để đăng",
+    "noDishes": "Chưa có món nào đã đăng. Dùng Món đột xuất để đăng món đầu tiên.",
+    "choose": "Chọn",
+    "chosen": "Đã chọn",
+    "photo": "Ảnh món",
+    "choosePhoto": "Chọn ảnh từ máy",
+    "photoHint": "Một ảnh giúp khách nhận ra món của bạn.",
+    "name": "Tên món",
+    "namePlaceholder": "Ví dụ: Túi bánh mì và croissant, 4 chiếc",
+    "kind": "Loại",
+    "description": "Hộp gồm những gì",
+    "descriptionPlaceholder": "Ví dụ: bánh mì, bánh ngọt, có thể có trứng và sữa",
+    "sellQuestion": "Bán thế nào?",
+    "againQuestion": "Bán lại thế nào?",
+    "units": "Số lượng",
+    "original": "Giá gốc (đồng)",
+    "price": "Giá bán (đồng)",
+    "discount": "Giảm {percent}% so với giá gốc. Mức giảm tối thiểu là {min}%.",
+    "discountHint": "Mức giảm tối thiểu so với giá gốc là {min}%.",
+    "priceTooHigh": "Giá bán phải thấp hơn giá gốc ít nhất {min}%, tức tối đa {max}.",
+    "priceMissing": "Nhập giá gốc và giá bán, mỗi giá từ 1.000đ.",
+    "startQuestion": "Từ mấy giờ?",
+    "usual": "Giờ quen {time}",
+    "now": "Ngay bây giờ",
+    "otherTime": "Giờ khác",
+    "hour": "Giờ",
+    "minute": "Phút",
+    "lengthQuestion": "Khách lấy trong bao lâu?",
+    "length": {
+      "30": "30 phút",
+      "60": "1 giờ",
+      "90": "1 tiếng rưỡi",
+      "120": "2 giờ"
+    },
+    "otherLength": "Khác",
+    "minutes": "{minutes} phút",
+    "window": "Khách đến lấy từ {from} đến {until} hôm nay",
+    "windowOver": "Giờ lấy đã qua. Chọn giờ từ bây giờ trở đi.",
+    "problem": {
+      "discount": "Giá bán chưa đủ thấp so với giá gốc. Hạ giá rồi thử lại.",
+      "window": "Khung giờ lấy chưa hợp lệ: từ 30 phút đến 6 giờ, và chưa qua.",
+      "details": "Kiểm tra lại tên món, số lượng và giá.",
+      "inactive": "Quán chưa được kích hoạt hoặc đang bị khóa nên chưa đăng được."
+    },
+    "failed": "Chưa đăng được. Thử lại sau ít phút.",
+    "reference": "Mã tham chiếu: {id}",
+    "cancel": "Hủy",
+    "back": "Quay lại",
+    "next": "Tiếp tục",
+    "post": "Đăng"
   }
 }
