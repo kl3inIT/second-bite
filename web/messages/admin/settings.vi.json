@@ -1,1 +1,27 @@
-{}
+{
+  "form": {
+    "updated": "Cập nhật lần cuối lúc {time}, {day}",
+    "neverSaved": "Chưa lưu lần nào",
+    "refused": "Giá trị này chưa được chấp nhận.",
+    "failed": "Chưa lưu được. Thử lại sau.",
+    "failedWithReference": "Chưa lưu được. Mã tham chiếu: {reference}"
+  },
+  "units": {
+    "percent": "%",
+    "minutes": "phút",
+    "hours": "giờ",
+    "km": "km"
+  },
+  "offers": {
+    "price": "Giá",
+    "window": "Khung nhận",
+    "search": "Tìm kiếm",
+    "minDiscountPercent": "Giảm tối thiểu",
+    "windowMinMinutes": "Ngắn nhất",
+    "windowMaxMinutes": "Dài nhất",
+    "startsWithinHours": "Bắt đầu trong vòng",
+    "defaultRadiusKm": "Bán kính mặc định",
+    "maxRadiusKm": "Bán kính tối đa",
+    "saved": "Đã lưu. Áp dụng cho bài đăng mới."
+  }
+}

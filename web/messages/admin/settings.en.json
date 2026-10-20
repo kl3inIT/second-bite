@@ -1,1 +1,27 @@
-{}
+{
+  "form": {
+    "updated": "Last updated at {time}, {day}",
+    "neverSaved": "Never saved",
+    "refused": "This value was not accepted.",
+    "failed": "Not saved. Try again later.",
+    "failedWithReference": "Not saved. Reference: {reference}"
+  },
+  "units": {
+    "percent": "%",
+    "minutes": "min",
+    "hours": "h",
+    "km": "km"
+  },
+  "offers": {
+    "price": "Price",
+    "window": "Pickup window",
+    "search": "Search",
+    "minDiscountPercent": "Minimum discount",
+    "windowMinMinutes": "Shortest",
+    "windowMaxMinutes": "Longest",
+    "startsWithinHours": "Starts within",
+    "defaultRadiusKm": "Default radius",
+    "maxRadiusKm": "Largest radius",
+    "saved": "Saved. Applies to new posts."
+  }
+}

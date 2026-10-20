@@ -840,6 +840,156 @@ async function adminSummaryRoutes(request, response, url) {
   return true;
 }
 // --- end Admin: Tổng quan and Báo cáo ---
+// Admin settings (SEC-62, the settings screens): GET and PUT /admin/offer-settings and /admin/email-settings, as
+// the offer and notification modules answer them. Each admin has settings of their own, so tests running side by
+// side do not change each other's. An admin whose address starts with "admin.trong." has no email settings yet
+// (503 NOTIFICATION_EMAIL_NOT_CONFIGURED). A minimum discount of 77 and the sender name "Từ chối" stand for
+// values the backend refuses at a field; the checks the modules make (settings.go) are made here too.
+const offerSettingsOf = new Map();
+const emailSettingsOf = new Map();
+
+function refusedAt(response, code, pointers) {
+  response.writeHead(400, { "content-type": "application/problem+json" });
+  response.end(
+    JSON.stringify({
+      type: `urn:secondbite:failure:${code.toLowerCase().replaceAll("_", "-")}`,
+      status: 400,
+      code,
+      requestId: "STUB",
+      errors: pointers.map((pointer) => ({ pointer, code, detail: "Refused." })),
+    }),
+  );
+}
+
+function emailSettingsFor(account) {
+  if (!emailSettingsOf.has(account.email)) {
+    emailSettingsOf.set(
+      account.email,
+      account.email.startsWith("admin.trong.")
+        ? null
+        : {
+            provider: "smtp",
+            senderAddress: "noreply@example.com",
+            senderName: "Second Bite",
+            smtpHost: "smtp.example.com",
+            smtpPort: 587,
+            smtpSecurity: "starttls",
+            smtpUsername: "mailer@example.com",
+            smtpPasswordSet: true,
+            brevoApiKeySet: false,
+            updatedAt: "2026-10-19T07:20:00Z",
+          },
+    );
+  }
+  return emailSettingsOf.get(account.email);
+}
+
+async function adminSettingsRoutes(request, response, url) {
+  if (url.pathname !== "/admin/offer-settings" && url.pathname !== "/admin/email-settings") {
+    return false;
+  }
+  const account = accounts.get(tokenOf(request));
+  if (!account) {
+    problem(response, 401, "IDENTITY_SESSION_INVALID");
+    return true;
+  }
+  if (account.role !== "admin") {
+    problem(response, 403, "PLATFORM_ADMIN_REQUIRED");
+    return true;
+  }
+
+  if (url.pathname === "/admin/offer-settings") {
+    if (!offerSettingsOf.has(account.email)) {
+      offerSettingsOf.set(account.email, {
+        minDiscountPercent: 20,
+        windowMinMinutes: 30,
+        windowMaxMinutes: 360,
+        startsWithinHours: 24,
+        defaultRadiusKm: 5,
+        maxRadiusKm: 30,
+        updatedAt: "2026-10-18T02:15:00Z",
+        updatedBy: "ac-stub",
+      });
+    }
+    if (request.method === "PUT") {
+      const body = await readBody(request);
+      if (body.minDiscountPercent === 77) {
+        refusedAt(response, "OFFER_SETTINGS_INVALID", ["#/minDiscountPercent"]);
+        return true;
+      }
+      const valid =
+        body.minDiscountPercent >= 0 &&
+        body.minDiscountPercent <= 90 &&
+        body.defaultRadiusKm >= 1 &&
+        body.maxRadiusKm >= body.defaultRadiusKm &&
+        body.maxRadiusKm <= 100 &&
+        body.windowMinMinutes >= 15 &&
+        body.windowMaxMinutes >= body.windowMinMinutes &&
+        body.windowMaxMinutes <= 1440 &&
+        body.startsWithinHours >= 1 &&
+        body.startsWithinHours <= 72;
+      if (!valid) {
+        refusedAt(response, "OFFER_SETTINGS_INVALID", []);
+        return true;
+      }
+      offerSettingsOf.set(account.email, {
+        ...body,
+        updatedAt: new Date().toISOString(),
+        updatedBy: "ac-stub",
+      });
+    }
+    json(response, 200, offerSettingsOf.get(account.email));
+    return true;
+  }
+
+  const current = emailSettingsFor(account);
+  if (request.method === "GET") {
+    if (current) json(response, 200, current);
+    else problem(response, 503, "NOTIFICATION_EMAIL_NOT_CONFIGURED");
+    return true;
+  }
+  if (request.method === "PUT") {
+    const body = await readBody(request);
+    if (body.senderName === "Từ chối") {
+      refusedAt(response, "NOTIFICATION_EMAIL_SETTINGS_INVALID", ["#/senderName"]);
+      return true;
+    }
+    const next = {
+      provider: body.provider,
+      senderAddress: body.senderAddress ?? "",
+      senderName: body.senderName ?? "",
+      smtpHost: body.smtpHost ?? "",
+      smtpPort: body.smtpPort ?? 0,
+      smtpSecurity: body.smtpSecurity || "starttls",
+      smtpUsername: body.smtpUsername ?? "",
+    };
+    // A stored password goes only to the server it was entered for (notification/settings.go › setSecrets).
+    const sameServer =
+      current &&
+      ["smtpHost", "smtpPort", "smtpSecurity", "smtpUsername"].every(
+        (key) => current[key] === next[key],
+      );
+    next.smtpPasswordSet =
+      Boolean(body.smtpPassword) || Boolean(sameServer && current.smtpPasswordSet);
+    next.brevoApiKeySet = Boolean(body.brevoApiKey) || Boolean(current?.brevoApiKeySet);
+    const valid =
+      /^[^@\s]+@[^@\s]+$/.test(next.senderAddress) &&
+      next.senderName !== "" &&
+      (next.provider === "smtp"
+        ? next.smtpHost !== "" &&
+          next.smtpPort >= 1 &&
+          (next.smtpUsername === "" || (next.smtpPasswordSet && next.smtpSecurity !== "none"))
+        : next.provider === "brevo" && next.brevoApiKeySet);
+    if (!valid) {
+      refusedAt(response, "NOTIFICATION_EMAIL_SETTINGS_INVALID", []);
+      return true;
+    }
+    emailSettingsOf.set(account.email, { ...next, updatedAt: new Date().toISOString() });
+    response.writeHead(204).end();
+    return true;
+  }
+  return false;
+}
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
@@ -869,6 +1019,7 @@ const server = createServer(async (request, response) => {
   if (await auth(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await adminSummaryRoutes(request, response, url)) return;
+  if (await adminSettingsRoutes(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {
     const { type, body } = await photo(photoMatch[1]);
