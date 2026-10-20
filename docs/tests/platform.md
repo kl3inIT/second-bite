@@ -18,3 +18,4 @@ Requirements of [docs/specs/platform.md](../specs/platform.md) and the checks th
 | A module uses only the modules ARCHITECTURE.md allows, and only their root package | `TestModuleBoundaries` (`internal/boundaries_test.go`) |
 | Generated queries match `queries.sql`; modules are tidy | CI: `go tool sqlc diff`, `go mod tidy -diff` |
 | Lint and reachable vulnerabilities | CI: golangci-lint, govulncheck |
+| An event reaches every listener once the change commits; a change that rolls back writes no job and no listener hears it | `internal/platform` `TestEvents` |

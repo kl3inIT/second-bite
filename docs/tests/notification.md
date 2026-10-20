@@ -11,5 +11,6 @@ Requirements of [docs/specs/notification.md](../specs/notification.md) and the c
 | Brevo's request (path, `api-key`, body, tag) and the message id kept without angle brackets | `TestBrevoEmailSender` (`internal/notification/brevo_email_sender_test.go`) |
 | Brevo's answers classified: 429 with and without `Retry-After`, other 4xx, 5xx | `TestBrevoEmailSender` |
 | An unreachable Brevo is unavailable | `TestBrevoUnreachable` |
+| The records of emails to a deleted account's address are gone | `TestService` › an owner deletes their account; the others forget it |
 
 Not covered by a test: Brevo's real API (only a server answering as Brevo documents), and `NOTIFICATION_EMAIL_NOT_CONFIGURED` through the API.

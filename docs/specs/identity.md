@@ -12,8 +12,10 @@ Owns accounts and their role, emailed sign-in codes, Google sign-in and sessions
 | `GET /auth/methods` | Anyone | `200 {google: {clientId}}` when Google is configured, `200 {}` otherwise |
 | `DELETE /auth/sessions/current` | A signed-in caller | `204`; the session ends and its cookie is cleared |
 | `GET /accounts/me` | A signed-in caller | `200 {id, email, role, displayName}` |
+| `POST /accounts/me/deletion-codes` | A signed-in caller | `202 {challengeId, expiresAt}`; a code that only confirms the deletion is emailed to the account's address (SEC-37) |
+| `POST /accounts/me/deletion` `{challengeId, code}` | A signed-in caller holding a deletion code of their own address | `204`; the account is deleted and the session cookie cleared |
 
-Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantRole`.
+Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantRole`, and the event `AccountDeletedEvent` (`identity.account_deleted`, the account's identifier only), which `seller` and `file` follow.
 
 Administrative command: `secondbite admin grant EMAIL` makes an account an admin, creating it if needed.
 
@@ -29,14 +31,16 @@ Administrative command: `secondbite admin grant EMAIL` makes an account an admin
 - Google's ID token is verified with go-oidc against Google's published keys (fetched within 5 seconds, then kept): the signature, an issuer of `https://accounts.google.com` or `accounts.google.com`, an audience among `SECONDBITE_GOOGLE_CLIENT_IDS` (comma-separated, the web's first) and the expiry. When a nonce is in the token or posted, the token's must be the hex SHA-256 of the one posted. Without client IDs Google is off.
 - A Google identity is found by Google's subject, never by address. A first sign-in needs `email_verified`; it creates the account when no account has the address, links the account that has it when Google speaks for the address (`gmail.com`, or `hd` set), and otherwise is refused so that the person signs in with the code. The account's address never follows Google's. Each link records whether Google speaks for its address; a sign-in with the emailed code removes the account's links that it does not, and when it removes any, ends the account's earlier sessions (a Google sign-in racing it either finishes first, and its session is ended, or finds its link gone and is treated as unlinked), so that a Google account linked to an outside address before its owner arrived loses its way in (account pre-hijacking). Giving something by address waits for that proof: while the address's account holds such a link, `EnsureAccount` (a seller adding staff) and `GrantRole` are refused with `IDENTITY_ADDRESS_UNPROVEN`, under the address lock a Google sign-in takes, so that a role or a membership reaches the address's owner and not whoever linked Google to it first; once the owner has signed in with the code, they succeed. They end no one's sessions (SEC-39). The sign-ins of one identity run under a lock, so two first sign-ins make one link.
 - An account's display name is empty until a Google sign-in fills it with Google's name; a name it already has is kept. The identity's name and picture follow Google's at each sign-in.
+- A code carries its purpose: a sign-in code only signs in, a deletion code only deletes. Both share an address's limits and its one live code (SEC-37).
+- Deleting an account (SEC-37): the signed-in person asks for a deletion code, emailed to the account's address, and sends it back. The records of emails sent to the address are forgotten first (`notification`), since afterwards no one knows the address; then, in one transaction, the address's codes and the account are deleted, its sessions and external logins with it, and `AccountDeletedEvent` is written to the outbox. Signing in again with the address makes a new account. An admin may delete their own account like anyone.
 
 ## Data
 
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
-| `identity_accounts` | Address (unique, lower case), role (`customer`, `admin`), display name | Kept |
+| `identity_accounts` | Address (unique, lower case), role (`customer`, `admin`), display name | Kept until its owner deletes it |
 | `identity_external_logins` | Provider (`google`), subject (unique with the provider), account, the address when linked and whether Google speaks for it, name and picture as last sent, when linked and last used | Deleted with the account, or by a sign-in with the emailed code when Google does not speak for its address |
-| `identity_sign_in_challenges` | Address, code hash, wrong guesses, expiry | Deleted when used, ended by a newer code, or a day after it was sent |
+| `identity_sign_in_challenges` | Address, code hash, purpose (`sign_in` or `delete_account`), wrong guesses, expiry | Deleted when used, ended by a newer code, a day after it was sent, or with the address's account |
 | `identity_sessions` | Account, token hash, last use, expiry | Deleted on sign-out; expired ones when the account opens a new session |
 
 ## Failures
@@ -51,7 +55,7 @@ Administrative command: `secondbite admin grant EMAIL` makes an account an admin
 | `IDENTITY_GOOGLE_LINK_REQUIRED` | 409 | The address has an account and Google does not speak for it |
 | `IDENTITY_ADDRESS_UNPROVEN` | 409 | A role or a seller membership is given by address while the address's account holds a Google link Google does not speak for; the owner signs in once with the emailed code, then it succeeds (SEC-39) |
 | `IDENTITY_ACCOUNT_NOT_FOUND` | 404 | The account does not exist |
-| `IDENTITY_CHALLENGE_GONE` | 410 | The code expired, was used or was ended by a newer one |
+| `IDENTITY_CHALLENGE_GONE` | 410 | The code expired, was used or was ended by a newer one; also a code of the other purpose, or a deletion code of another address, so a challenge tells nothing of who asked for it |
 | `IDENTITY_CODE_ATTEMPTS_EXHAUSTED` | 410 | Five wrong guesses on this code |
 | `IDENTITY_CODE_LIMIT_EXCEEDED` | 429 | A limit per address; `Retry-After` gives the wait |
 | `IDENTITY_SESSION_UNAVAILABLE` | 503 | The session could not be checked; `Retry-After` 5 seconds |
