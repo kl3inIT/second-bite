@@ -92,8 +92,10 @@ func newProblem(status int, code, title, detail, requestID string) *Problem {
 
 func problemFromFailure(f *FailureError, requestID string) *Problem {
 	c := categories[f.Category]
+	p := newProblem(c.status, f.Code, c.title, f.Detail, requestID)
+	p.Errors = f.violations
 
-	return newProblem(c.status, f.Code, c.title, f.Detail, requestID)
+	return p
 }
 
 var installOnce sync.Once

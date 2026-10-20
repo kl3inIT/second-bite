@@ -233,7 +233,7 @@ func registerOperations(api huma.API, a *app) {
 	notification.RegisterOperations(api, a.notification)
 	file.RegisterOperations(api, a.file)
 	seller.RegisterOperations(api, a.seller)
-	offer.RegisterOperations(api, a.offer)
+	offer.RegisterOperations(api, a.offer, a.identity)
 }
 
 // fileConfig reads where files are kept: SECONDBITE_FILE_STORE (postgres by

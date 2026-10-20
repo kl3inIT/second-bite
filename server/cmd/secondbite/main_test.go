@@ -43,25 +43,26 @@ func TestService(t *testing.T) {
 	svc, stop := startService(t)
 
 	checks := map[string]func(*testing.T, service){
-		"migrations applied":                                      checkMigrated,
-		"probes answer and carry a request id":                    checkProbes,
-		"a well-formed request id from the caller is kept":        checkCallerRequestID,
-		"the contract is served":                                  checkContractServed,
-		"an unknown route is a problem":                           checkUnknownRoute,
-		"another method on a known route is a problem with Allow": checkMethodNotAllowed,
-		"sign in with an emailed code, then sign out":             checkSignInAndOut,
-		"sign in with the session in a cookie, as the web does":   checkCookieSession,
-		"without client IDs Google is offered nowhere":            checkGoogleOff,
-		"a wrong code spends a guess and the fifth ends the code": checkWrongCodes,
-		"a second code within a minute is refused with a wait":    checkCodeCooldown,
-		"a code works once":                                       checkCodeWorksOnce,
-		"an unknown or malformed token is refused with 401":       checkInvalidToken,
-		"only admins read the email settings":                     checkAdminOnly,
-		"a new code ends the earlier one":                         checkNewCodeEndsEarlier,
-		"a seller is opened active, staffed and blocked":          checkSellerFlow,
-		"a photo is uploaded, set on a seller and served":         checkPhotoFlow,
-		"an offer is posted and found near Tasco Mall":            checkOfferFlow,
-		"an owner deletes their account; the others forget it":    checkAccountDeletion,
+		"migrations applied":                                       checkMigrated,
+		"probes answer and carry a request id":                     checkProbes,
+		"a well-formed request id from the caller is kept":         checkCallerRequestID,
+		"the contract is served":                                   checkContractServed,
+		"an unknown route is a problem":                            checkUnknownRoute,
+		"another method on a known route is a problem with Allow":  checkMethodNotAllowed,
+		"sign in with an emailed code, then sign out":              checkSignInAndOut,
+		"sign in with the session in a cookie, as the web does":    checkCookieSession,
+		"without client IDs Google is offered nowhere":             checkGoogleOff,
+		"a wrong code spends a guess and the fifth ends the code":  checkWrongCodes,
+		"a second code within a minute is refused with a wait":     checkCodeCooldown,
+		"a code works once":                                        checkCodeWorksOnce,
+		"an unknown or malformed token is refused with 401":        checkInvalidToken,
+		"only admins read the email settings":                      checkAdminOnly,
+		"a new code ends the earlier one":                          checkNewCodeEndsEarlier,
+		"a seller is opened active, staffed and blocked":           checkSellerFlow,
+		"a photo is uploaded, set on a seller and served":          checkPhotoFlow,
+		"an offer is posted and found near Tasco Mall":             checkOfferFlow,
+		"an owner deletes their account; the others forget it":     checkAccountDeletion,
+		"admins read the dashboard's summary over a range of days": checkAdminSummary,
 	}
 
 	// The checks run in parallel with one another; this group returns when
@@ -112,7 +113,7 @@ func startService(t *testing.T) (service, func() error) {
 			"-smtp-host", smtpHost, "-smtp-port", smtpPort, "-smtp-security", "none",
 		},
 	}
-	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail} {
+	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail, summaryAdminEmail} {
 		admin = append(admin, []string{"admin", "grant", email})
 	}
 
@@ -356,6 +357,10 @@ type problem struct {
 	Status    int    `json:"status"`
 	Code      string `json:"code"`
 	RequestID string `json:"requestId"`
+	Errors    []struct {
+		Parameter string `json:"parameter"`
+		Code      string `json:"code"`
+	} `json:"errors"`
 }
 
 func (r response) problem(t *testing.T, status int) problem {

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/kl3inIT/second-bite/server/internal/file"
+	"github.com/kl3inIT/second-bite/server/internal/identity"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
@@ -142,13 +143,16 @@ var (
 	tagAdmin  = []string{"Admin"}
 )
 
-// RegisterOperations adds the module's operations to api.
-func RegisterOperations(api huma.API, s *Service) {
+// RegisterOperations adds the module's operations to api. accounts serves
+// the admins' summary, which composes the summaries of identity, seller and
+// this module.
+func RegisterOperations(api huma.API, s *Service, accounts *identity.Service) {
 	registerStaffOperations(api, s)
 	registerReadOperations(api, s)
 	registerCatalogOperations(api, s)
 	registerSearchOperations(api, s)
 	registerAdminOperations(api, s)
+	registerSummaryOperations(api, s, accounts)
 }
 
 func registerStaffOperations(api huma.API, s *Service) {

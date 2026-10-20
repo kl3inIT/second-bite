@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"regexp"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -54,6 +55,8 @@ type FailureError struct {
 	Detail     string
 	RetryAfter time.Duration
 	cause      error
+	// violations name what in the request is invalid, for errors[].
+	violations []Violation
 }
 
 // NewFailure declares a failure. It panics on a malformed code or an unknown
@@ -83,6 +86,16 @@ func (f *FailureError) WithCause(err error) *FailureError {
 func (f *FailureError) WithRetryAfter(d time.Duration) *FailureError {
 	c := *f
 	c.RetryAfter = d
+
+	return &c
+}
+
+// AtParameter returns a copy of a validation failure that names the request
+// parameter at fault, such as query.from; the problem lists it in errors[]
+// with the failure's code. The rejected value is never carried.
+func (f *FailureError) AtParameter(parameter, detail string) *FailureError {
+	c := *f
+	c.violations = append(slices.Clone(f.violations), Violation{Parameter: parameter, Detail: detail, Code: f.Code})
 
 	return &c
 }

@@ -19,7 +19,7 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `POST /admin/sellers/{sellerId}/activate` | Admins | `200` seller, `active`; also lifts a block |
 | `POST /admin/sellers/{sellerId}/block` | Admins | `200` seller, `blocked` |
 
-Published to other modules: `Publishing(seller, account)`, which `offer` calls before posting or changing: the seller's name and collection point when the account is the owner or staff of an active seller, `SELLER_NOT_FOUND` when it is not a member, `SELLER_NOT_ACTIVE` when the seller is not active; `Publics(sellers)`, what customers see of the active ones among them; `Blocked()`, the sellers whose offers search leaves out.
+Published to other modules: `Publishing(seller, account)`, which `offer` calls before posting or changing: the seller's name and collection point when the account is the owner or staff of an active seller, `SELLER_NOT_FOUND` when it is not a member, `SELLER_NOT_ACTIVE` when the seller is not active; `Publics(sellers)`, what customers see of the active ones among them; `Blocked()`, the sellers whose offers search leaves out; `Summary(from, to)`, for admins, which `offer` lays out in the admins' dashboard (`GET /admin/summary`): the sellers in each status now, those opened in the range whatever their status, and the five opened last.
 
 ## Rules
 

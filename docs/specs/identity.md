@@ -15,7 +15,7 @@ Owns accounts and their role, emailed sign-in codes, Google sign-in and sessions
 | `POST /accounts/me/deletion-codes` | A signed-in caller | `202 {challengeId, expiresAt}`; a code that only confirms the deletion is emailed to the account's address (SEC-37) |
 | `POST /accounts/me/deletion` `{challengeId, code}` | A signed-in caller holding a deletion code of their own address | `204`; the account is deleted and the session cookie cleared |
 
-Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantRole`, and the event `AccountDeletedEvent` (`identity.account_deleted`, the account's identifier only), which `seller` and `file` follow.
+Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantRole`, `Summary(from, to)` for admins (every account now, admins included, and those created in the range, per day in Vietnam time; a deleted account is gone from both), which `offer` lays out in the admins' dashboard (`GET /admin/summary`), and the event `AccountDeletedEvent` (`identity.account_deleted`, the account's identifier only), which `seller` and `file` follow.
 
 Administrative command: `secondbite admin grant EMAIL` makes an account an admin, creating it if needed.
 

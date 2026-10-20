@@ -21,6 +21,27 @@ components:
         - role
         - displayName
       type: object
+    AccountsSummaryBody:
+      additionalProperties: false
+      properties:
+        newInRange:
+          description: Accounts created in the range that still exist
+          format: int64
+          type: integer
+        newPerDay:
+          description: Accounts created on every day of the range, in order
+          items:
+            $ref: "#/components/schemas/DayCountBody"
+          type: array
+        total:
+          description: Every account now, admins included
+          format: int64
+          type: integer
+      required:
+        - total
+        - newInRange
+        - newPerDay
+      type: object
     AddSellerStaffRequest:
       additionalProperties: false
       properties:
@@ -30,6 +51,30 @@ components:
           type: string
       required:
         - email
+      type: object
+    AdminSummaryBody:
+      additionalProperties: false
+      properties:
+        accounts:
+          $ref: "#/components/schemas/AccountsSummaryBody"
+        from:
+          description: The range's first day in Vietnam time
+          format: date
+          type: string
+        offers:
+          $ref: "#/components/schemas/OffersSummaryBody"
+        sellers:
+          $ref: "#/components/schemas/SellersSummaryBody"
+        to:
+          description: The range's last day in Vietnam time, included
+          format: date
+          type: string
+      required:
+        - from
+        - to
+        - sellers
+        - offers
+        - accounts
       type: object
     CollectionPointBody:
       additionalProperties: false
@@ -46,6 +91,20 @@ components:
         - latitude
         - longitude
         - address
+      type: object
+    DayCountBody:
+      additionalProperties: false
+      properties:
+        count:
+          format: int64
+          type: integer
+        date:
+          description: A day in Vietnam time
+          format: date
+          type: string
+      required:
+        - date
+        - count
       type: object
     DeleteAccountInputBody:
       additionalProperties: false
@@ -411,6 +470,28 @@ components:
       required:
         - idToken
       type: object
+    LatestOfferBody:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        postedAt:
+          format: date-time
+          type: string
+        sellerId:
+          type: string
+        sellerName:
+          description: As the offer copied it when posted
+          type: string
+      required:
+        - id
+        - name
+        - sellerId
+        - sellerName
+        - postedAt
+      type: object
     ListDishesResponse:
       additionalProperties: false
       properties:
@@ -757,6 +838,64 @@ components:
       required:
         - offers
       type: object
+    OffersSummaryBody:
+      additionalProperties: false
+      properties:
+        latest:
+          description: The five offers posted last, newest first, whenever that was
+          items:
+            $ref: "#/components/schemas/LatestOfferBody"
+          type: array
+        onSaleNow:
+          description: Offers customers can order now; a blocked seller's are left out
+          format: int64
+          type: integer
+        postedInRange:
+          description: Offers posted in the range, whatever became of them
+          format: int64
+          type: integer
+        postedPerDay:
+          description: Offers posted on every day of the range, in order
+          items:
+            $ref: "#/components/schemas/DayCountBody"
+          type: array
+        soldOutNow:
+          description: Offers customers see sold out now; a blocked seller's are left out
+          format: int64
+          type: integer
+        topSellers:
+          description: The five sellers that posted most in the range
+          items:
+            $ref: "#/components/schemas/TopSellerBody"
+          type: array
+        unitsPostedInRange:
+          description: The units those offers put up
+          format: int64
+          type: integer
+      required:
+        - postedInRange
+        - unitsPostedInRange
+        - onSaleNow
+        - soldOutNow
+        - postedPerDay
+        - topSellers
+        - latest
+      type: object
+    OpenedSellerBody:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        openedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - openedAt
+      type: object
     PhotoBody:
       additionalProperties: false
       properties:
@@ -986,6 +1125,37 @@ components:
       required:
         - sellers
       type: object
+    SellersSummaryBody:
+      additionalProperties: false
+      properties:
+        active:
+          description: Sellers active now
+          format: int64
+          type: integer
+        blocked:
+          description: Sellers blocked now
+          format: int64
+          type: integer
+        latest:
+          description: The five sellers opened last, newest first, whenever that was
+          items:
+            $ref: "#/components/schemas/OpenedSellerBody"
+          type: array
+        openedInRange:
+          description: Sellers opened in the range, whatever their status
+          format: int64
+          type: integer
+        pending:
+          description: Sellers pending now
+          format: int64
+          type: integer
+      required:
+        - active
+        - pending
+        - blocked
+        - openedInRange
+        - latest
+      type: object
     SessionOutputBody:
       additionalProperties: false
       properties:
@@ -1030,6 +1200,23 @@ components:
       required:
         - challengeId
         - code
+      type: object
+    TopSellerBody:
+      additionalProperties: false
+      properties:
+        name:
+          description: As the seller's newest offer in the range copied it
+          type: string
+        offers:
+          description: Offers it posted in the range
+          format: int64
+          type: integer
+        sellerId:
+          type: string
+      required:
+        - sellerId
+        - name
+        - offers
       type: object
     Violation:
       additionalProperties: false
@@ -1338,6 +1525,46 @@ paths:
         - bearer: []
         - cookie: []
       summary: Stop a seller from publishing
+      tags:
+        - Admin
+  /admin/summary:
+    get:
+      description: Sellers by status now and opened in the range; offers posted in the range, per day and by seller, and open now; accounts in all and created in the range, per day. Days are in Vietnam time; the range is at most 90 days and the last 30 without one. Orders and payments are not counted yet.
+      operationId: getAdminSummary
+      parameters:
+        - description: The range's first day in Vietnam time; 29 days before to when absent
+          explode: false
+          in: query
+          name: from
+          schema:
+            description: The range's first day in Vietnam time; 29 days before to when absent
+            format: date
+            type: string
+        - description: The range's last day in Vietnam time, included; today when absent
+          explode: false
+          in: query
+          name: to
+          schema:
+            description: The range's last day in Vietnam time, included; today when absent
+            format: date
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSummaryBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The figures of the admins' dashboard over a range of days
       tags:
         - Admin
   /auth/google:

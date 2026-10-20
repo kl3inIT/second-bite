@@ -23,5 +23,6 @@ Requirements of [docs/specs/identity.md](../specs/identity.md) and the checks th
 | An account is created for an address added as staff | `TestSeller` › publishing follows status and membership (`internal/seller/seller_test.go`) |
 | A deletion code is emailed to the signed-in account's address and asked for only signed in; it cannot sign in and a sign-in code cannot delete; a wrong code is refused; the right one deletes the account, its sessions, its codes and the emails to its address, clears the cookie and ends the session; the address then signs in as a new account | `TestService` › an owner deletes their account; the others forget it |
 | A deletion code of another address deletes nothing; a deletion takes the sessions, the Google links and the codes, keeps the other accounts, and writes the event once for its one listener | `internal/identity` `TestDeleteAccount` |
+| The summary counts every account and those created in the range, per day in Vietnam time, the range's end left out; admins alone read it | `TestSummary` (`internal/identity/summary_test.go`), on a database of its own |
 
 Not covered by a test: the limits of ten codes an hour and of wrong guesses per hour and per day through the API (their waits are unit-tested), and the expiry of a session after 30 days.

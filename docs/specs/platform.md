@@ -22,7 +22,7 @@ Every error is an RFC 9457 problem (`application/problem+json`) with `type` (`ur
 
 | Category | Status | Notes |
 | --- | --- | --- |
-| `VALIDATION` | 400 | Violations in `errors[]`, each naming a body member by JSON Pointer (`pointer`) or a parameter by location (`parameter`, such as `query.limit`), with code `PLATFORM_VALUE_INVALID`; the rejected value is never echoed |
+| `VALIDATION` | 400 | Violations in `errors[]`, each naming a body member by JSON Pointer (`pointer`) or a parameter by location (`parameter`, such as `query.limit`), with code `PLATFORM_VALUE_INVALID`; the rejected value is never echoed. A module's failure names the parameter at fault with `AtParameter`, under its own code |
 | `UNAUTHENTICATED` | 401 | Sends `WWW-Authenticate: Bearer` |
 | `NOT_PERMITTED` | 403 | |
 | `NOT_FOUND` | 404 | |
@@ -42,6 +42,10 @@ Failures the platform answers itself:
 | `PLATFORM_ROUTE_NOT_FOUND` | 404 | No route matches the path |
 | `PLATFORM_METHOD_NOT_ALLOWED` | 405 | The path exists for other methods, listed in `Allow` |
 | `PLATFORM_INTERNAL_FAILURE` | 500 | An uncaught error or a panic; the cause is logged with the request's identifier, never answered |
+
+## Time
+
+- Times are stored as `timestamptz` and shown in Vietnam time. `platform.Vietnam` is that zone, UTC+7 without daylight saving, so it needs no time zone database; PostgreSQL names it `Asia/Ho_Chi_Minh`. `platform.DayCount` is a count on one day in Vietnam time, which the modules' summaries for admins share.
 
 ## The caller
 

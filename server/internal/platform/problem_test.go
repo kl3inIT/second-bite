@@ -20,6 +20,7 @@ import (
 var (
 	errSoldOut = platform.NewFailure("TEST_OFFER_SOLD_OUT", platform.CategoryConflict, "The offer is sold out.")
 	errBusy    = platform.NewFailure("TEST_PROVIDER_BUSY", platform.CategoryServiceUnavailable, "Try again shortly.")
+	errRange   = platform.NewFailure("TEST_RANGE_REVERSED", platform.CategoryValidation, "The range is reversed.")
 )
 
 type priceInput struct {
@@ -44,6 +45,9 @@ func newTestHandler(t *testing.T) (http.Handler, *bytes.Buffer) {
 	})
 	huma.Get(api, "/sold-out", func(_ context.Context, _ *struct{}) (*struct{}, error) {
 		return nil, fmt.Errorf("ordering: %w", errSoldOut.WithCause(errors.New("units_left is 0")))
+	})
+	huma.Get(api, "/range", func(_ context.Context, _ *struct{}) (*struct{}, error) {
+		return nil, errRange.AtParameter("query.from", "Must not be after to.")
 	})
 	huma.Get(api, "/busy", func(_ context.Context, _ *struct{}) (*struct{}, error) {
 		return nil, errBusy.WithRetryAfter(2500 * time.Millisecond)
@@ -183,6 +187,24 @@ func TestInvalidBodyNamesTheMemberWithoutItsValue(t *testing.T) {
 
 	if strings.Contains(rec.Body.String(), "987654") {
 		t.Error("the rejected value is echoed")
+	}
+}
+
+// A module's validation failure names the parameter at fault with its own
+// code, and the failure it was made from names none.
+func TestFailureNamesItsParameter(t *testing.T) {
+	t.Parallel()
+
+	h, _ := newTestHandler(t)
+	p := decode(t, serve(t, h, http.MethodGet, "/range", ""), http.StatusBadRequest)
+
+	want := []platform.Violation{{Parameter: "query.from", Detail: "Must not be after to.", Code: "TEST_RANGE_REVERSED"}}
+	if p.Code != "TEST_RANGE_REVERSED" || fmt.Sprint(p.Errors) != fmt.Sprint(want) {
+		t.Errorf("problem %+v", p)
+	}
+
+	if p := decode(t, serve(t, h, http.MethodGet, "/range", ""), http.StatusBadRequest); len(p.Errors) != 1 {
+		t.Errorf("a second answer holds %d violations, want 1", len(p.Errors))
 	}
 }
 

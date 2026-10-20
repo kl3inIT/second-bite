@@ -14,14 +14,51 @@ export type AccountBody = {
     role: 'customer' | 'admin';
 };
 
+export type AccountsSummaryBody = {
+    /**
+     * Accounts created in the range that still exist
+     */
+    newInRange: number;
+    /**
+     * Accounts created on every day of the range, in order
+     */
+    newPerDay: Array<DayCountBody>;
+    /**
+     * Every account now, admins included
+     */
+    total: number;
+};
+
 export type AddSellerStaffRequest = {
     email: string;
+};
+
+export type AdminSummaryBody = {
+    accounts: AccountsSummaryBody;
+    /**
+     * The range's first day in Vietnam time
+     */
+    from: string;
+    offers: OffersSummaryBody;
+    sellers: SellersSummaryBody;
+    /**
+     * The range's last day in Vietnam time, included
+     */
+    to: string;
 };
 
 export type CollectionPointBody = {
     address: string;
     latitude: number;
     longitude: number;
+};
+
+export type DayCountBody = {
+    count: number;
+    /**
+     * A day in Vietnam time
+     */
+    date: string;
 };
 
 export type DeleteAccountInputBody = {
@@ -180,6 +217,17 @@ export type GoogleSignInInputBody = {
     session?: 'token' | 'cookie';
 };
 
+export type LatestOfferBody = {
+    id: string;
+    name: string;
+    postedAt: string;
+    sellerId: string;
+    /**
+     * As the offer copied it when posted
+     */
+    sellerName: string;
+};
+
 export type ListDishesResponse = {
     dishes: Array<DishBody>;
 };
@@ -326,6 +374,43 @@ export type OffersOutputBody = {
     offers: Array<OfferBody>;
 };
 
+export type OffersSummaryBody = {
+    /**
+     * The five offers posted last, newest first, whenever that was
+     */
+    latest: Array<LatestOfferBody>;
+    /**
+     * Offers customers can order now; a blocked seller's are left out
+     */
+    onSaleNow: number;
+    /**
+     * Offers posted in the range, whatever became of them
+     */
+    postedInRange: number;
+    /**
+     * Offers posted on every day of the range, in order
+     */
+    postedPerDay: Array<DayCountBody>;
+    /**
+     * Offers customers see sold out now; a blocked seller's are left out
+     */
+    soldOutNow: number;
+    /**
+     * The five sellers that posted most in the range
+     */
+    topSellers: Array<TopSellerBody>;
+    /**
+     * The units those offers put up
+     */
+    unitsPostedInRange: number;
+};
+
+export type OpenedSellerBody = {
+    id: string;
+    name: string;
+    openedAt: string;
+};
+
 export type PhotoBody = {
     height: number;
     id: string;
@@ -438,6 +523,29 @@ export type SellersOutputBody = {
     sellers: Array<SellerBody> | null;
 };
 
+export type SellersSummaryBody = {
+    /**
+     * Sellers active now
+     */
+    active: number;
+    /**
+     * Sellers blocked now
+     */
+    blocked: number;
+    /**
+     * The five sellers opened last, newest first, whenever that was
+     */
+    latest: Array<OpenedSellerBody>;
+    /**
+     * Sellers opened in the range, whatever their status
+     */
+    openedInRange: number;
+    /**
+     * Sellers pending now
+     */
+    pending: number;
+};
+
 export type SessionOutputBody = {
     account: AccountBody;
     /**
@@ -467,6 +575,18 @@ export type SignInInputBody = {
      * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
      */
     session?: 'token' | 'cookie';
+};
+
+export type TopSellerBody = {
+    /**
+     * As the seller's newest offer in the range copied it
+     */
+    name: string;
+    /**
+     * Offers it posted in the range
+     */
+    offers: number;
+    sellerId: string;
 };
 
 export type Violation = {
@@ -763,6 +883,40 @@ export type BlockSellerResponses = {
 };
 
 export type BlockSellerResponse = BlockSellerResponses[keyof BlockSellerResponses];
+
+export type GetAdminSummaryData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The range's first day in Vietnam time; 29 days before to when absent
+         */
+        from?: string;
+        /**
+         * The range's last day in Vietnam time, included; today when absent
+         */
+        to?: string;
+    };
+    url: '/admin/summary';
+};
+
+export type GetAdminSummaryErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetAdminSummaryError = GetAdminSummaryErrors[keyof GetAdminSummaryErrors];
+
+export type GetAdminSummaryResponses = {
+    /**
+     * OK
+     */
+    200: AdminSummaryBody;
+};
+
+export type GetAdminSummaryResponse = GetAdminSummaryResponses[keyof GetAdminSummaryResponses];
 
 export type SignInWithGoogleData = {
     body: GoogleSignInInputBody;

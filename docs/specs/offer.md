@@ -15,10 +15,11 @@ Owns the surplus sellers post and the settings every offer follows (tables `offe
 | `GET`, `POST /sellers/{sellerId}/dishes` `{name, kind, unit, description, ingredients, originalPriceVnd, photoId, hidden}` | The owner or staff of an active seller | `200` the catalog, newest first, hidden dishes included; `201` the dish |
 | `PATCH`, `DELETE /dishes/{dishId}` | Same, through the dish's seller | `200` the dish; `204` |
 | `GET`, `PUT /admin/offer-settings` | Admins | `200` the settings |
+| `GET /admin/summary?from=&to=` | Admins | `200` the dashboard's figures over a range of days, composed from the summaries of `seller`, `offer` and `identity` (below) |
 
 An offer carries its status, units left, discount, photo addresses and the collection point copied from the seller when it was posted. Prices are whole đồng; times are RFC 3339.
 
-Published to other modules: `Service` alone; units are taken by `order` (SEC-15) through it.
+Published to other modules: `Service` alone; units are taken by `order` (SEC-15) through it. Its `Summary(from, to)`, for admins, counts the offers posted in the range and their units, per day in Vietnam time, the five sellers that posted most (under the name their newest offer in the range copied) and the five offers posted last, and the offers on sale and sold out now, a blocked seller's left out as search leaves them.
 
 ## Rules
 
@@ -31,13 +32,14 @@ Published to other modules: `Service` alone; units are taken by `order` (SEC-15)
 - Admins neither post nor change offers; a stranger gets 404.
 - **The catalog** ([SEC-55 design](../increments/completed/sec-55-seller-catalog/design.md)) holds the stable base of a dish: a photo, a name of 1 to 80 characters, a kind, a unit (`suất` when empty), a description, the ingredients and allergens (up to 500 characters), an original price (optional, from 1,001 đồng; `0` in a change takes it away), and whether it is hidden from the list a post is picked from. It has no selling price, hours or units; its original price is only where a post starts from. It is private to the seller's people; an admin or a stranger gets 404. At most 100 dishes per seller, the limit holding under concurrency (an advisory lock). A post copies the dish, so changing or deleting a dish never touches an offer; a dish's photo counts as one the seller shows, so a post may use it.
 - **Search** keeps offers on sale and sold out, the window not over, the seller not blocked (the blocked sellers are left out in the query, so a page is never short), then filters: within a radius of a point (the settings' default, at most their maximum), words, kinds, a maximum price, a collection-time range the window overlaps, one seller, and, when asked, nothing sold out. Its orders: `relevance` (default with words), `distance` (default with a point), `ending_soon` (default otherwise), `price`, `discount`.
+- **The admins' summary** (`GET /admin/summary`, [SEC-62 design](../increments/active/sec-62-admin-web/design.md#the-dashboard-read-api)) lives here because `offer` is the one module allowed to read both `seller` and `identity`; each of the three counts its own tables through its `Summary`, and the handler only lays them out. `from` and `to` are days (`YYYY-MM-DD`) in Vietnam time, both included; `to` defaults to today and `from` to 29 days before `to`; the range is at most 90 days. The answer repeats the range and holds `sellers` (`active`, `pending`, `blocked` now; `openedInRange`; `latest`, the five opened last), `offers` (`postedInRange`, `unitsPostedInRange`, `onSaleNow`, `soldOutNow`, `postedPerDay` for every day of the range with zeros, `topSellers`, `latest`) and `accounts` (`total`, `newInRange`, `newPerDay`). The newest lists ignore the range. It counts no orders, payments or reports: their modules do not exist.
 - **Words** match the name, the seller's name and the description, weighted in that order, every word required and the last one also as a prefix. Each syllable is indexed under a loose form without marks and an exact form with its marks and its tone as a digit, so a word typed without marks matches any marks ("ca": "cá", "cà") and one typed with marks only those ("cá"); the tone's place ("hòa", "hoà"), the encoding (NFC or decomposed), zero-width characters and a lone "y" after h, k, l, m, s or t ("mỳ", "mì") make no difference. The service writes the `tsvector` itself (`internal/offer/search_text.go`); words side by side rank first ([why](../increments/active/sec-11-offer-module/design.md#vietnamese-words)).
 
 ## Data
 
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
-| `offer_offers` | Seller and who posted (no foreign key across modules), state, the fields, units and units left (`0 <= units_left <= units`), photo, window, the copied latitude, longitude, generated location (GiST index), address and seller's name, the words searched (`search_vector`, GIN index), when posted, changed and withdrawn | Kept: orders, measures and the seller's history read it |
+| `offer_offers` | Seller and who posted (no foreign key across modules), state, the fields, units and units left (`0 <= units_left <= units`), photo, window, the copied latitude, longitude, generated location (GiST index), address and seller's name, the words searched (`search_vector`, GIN index), when posted (indexed for the summary), changed and withdrawn; the window's end of those on sale is indexed for what is open now | Kept: orders, measures and the seller's history read it |
 | `offer_dishes` | Seller, who added it (no foreign keys across modules), the dish's fields, hidden or not, photo | Kept until the seller deletes it |
 | `offer_settings` | One row: the settings, who changed them and when | Replaced on save |
 
@@ -50,6 +52,8 @@ Published to other modules: `Service` alone; units are taken by `order` (SEC-15)
 | `OFFER_WINDOW_INVALID` | 400 | The window is too short, too long, over, or starts too late |
 | `OFFER_SEARCH_INVALID` | 400 | A point off the map, a time range ending before it starts, or sorting by distance from no point |
 | `OFFER_SETTINGS_INVALID` | 400 | Settings out of range or contradicting each other |
+| `OFFER_SUMMARY_RANGE_REVERSED` | 400 | The summary's `from` is after its `to`; `errors[]` names `query.from` |
+| `OFFER_SUMMARY_RANGE_TOO_LONG` | 400 | The summary's range is longer than 90 days; `errors[]` names `query.from` |
 | `OFFER_DISH_LIMIT_REACHED` | 409 | A seller already holds 100 dishes |
 | `OFFER_DISH_NOT_FOUND` | 404 | No such dish, or one of another seller |
 | `OFFER_NOT_FOUND` | 404 | No such offer, or one the caller may not see or change |

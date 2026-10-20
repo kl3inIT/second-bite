@@ -22,4 +22,8 @@ var (
 		"Check the search: a point on the map, a time range that ends after it starts, known kinds, and a point to sort by distance.")
 	ErrSettingsInvalid = platform.NewFailure("OFFER_SETTINGS_INVALID", platform.CategoryValidation,
 		"The offer settings are out of range or contradict each other.")
+	ErrSummaryRangeReversed = platform.NewFailure("OFFER_SUMMARY_RANGE_REVERSED", platform.CategoryValidation,
+		"The range must start on or before the day it ends.")
+	ErrSummaryRangeTooLong = platform.NewFailure("OFFER_SUMMARY_RANGE_TOO_LONG", platform.CategoryValidation,
+		"The range is at most 90 days.")
 )

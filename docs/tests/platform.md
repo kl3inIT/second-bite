@@ -15,6 +15,7 @@ Requirements of [docs/specs/platform.md](../specs/platform.md) and the checks th
 | An uncaught error or a panic is a generic 500, logged with the request identifier, never answered | `TestUncaughtErrorIsAGeneric500`, `TestPanicIsAGeneric500` |
 | A violation names the member without echoing its value; validation answers 400 | `TestInvalidBodyNamesTheMemberWithoutItsValue` |
 | A malformed body is a problem | `TestMalformedBodyIsAProblem` |
+| A module's validation failure names the parameter at fault under its own code, and the failure it was made from stays without it | `TestFailureNamesItsParameter` |
 | A module uses only the modules ARCHITECTURE.md allows, and only their root package | `TestModuleBoundaries` (`internal/boundaries_test.go`) |
 | Generated queries match `queries.sql`; modules are tidy | CI: `go tool sqlc diff`, `go mod tidy -diff` |
 | Lint and reachable vulnerabilities | CI: golangci-lint, govulncheck |
