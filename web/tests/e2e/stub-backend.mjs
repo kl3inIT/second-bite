@@ -3,12 +3,58 @@
 // GET /offers answers as api/openapi.yaml describes it, with real shops of Tasco Mall and dishes from their menus;
 // tonight's prices and windows are made up. Adapted from BeyondPilot's
 // web/tests/e2e/stub-backend.mjs.
+import { AsyncLocalStorage } from "node:async_hooks";
+import { readdirSync, readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const port = Number(process.env.STUB_BACKEND_PORT ?? 3190);
+
+/**
+ * The words of every failure in both languages, read from the Go server's own declarations (SEC-28:
+ * `NewFailure(…, platform.Words{VI, EN})` in each module's errors.go, the platform's own in problem.go), so
+ * the stub says what the server says and a sentence is written once.
+ */
+const failureWords = readFailureWords();
+
+function readFailureWords() {
+  const internal = fileURLToPath(new URL("../../../server/internal/", import.meta.url));
+  const words = new Map();
+  const quoted = String.raw`"((?:[^"\\]|\\.)*)"`;
+  const declared = new RegExp(
+    String.raw`NewFailure\("([A-Z0-9_]+)",[^{]*Words\{\s*VI:\s*${quoted},\s*EN:\s*${quoted}`,
+    "g",
+  );
+  for (const entry of readdirSync(internal, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    for (const file of ["errors.go", "caller.go"]) {
+      let source;
+      try {
+        source = readFileSync(join(internal, entry.name, file), "utf8");
+      } catch {
+        continue;
+      }
+      for (const [, code, vi, en] of source.matchAll(declared)) words.set(code, { vi, en });
+    }
+  }
+  const problem = readFileSync(join(internal, "platform", "problem.go"), "utf8");
+  const codes = new Map(
+    [...problem.matchAll(/(Code\w+)\s*=\s*"([A-Z_]+)"/g)].map(([, name, code]) => [name, code]),
+  );
+  const platform = new RegExp(String.raw`(Code\w+): \{\s*VI:\s*${quoted},\s*EN:\s*${quoted}`, "g");
+  for (const [, name, vi, en] of problem.matchAll(platform)) words.set(codes.get(name), { vi, en });
+  return words;
+}
+
+/** The language of the request being answered, as the server reads Accept-Language: English or Vietnamese. */
+const requestLanguage = new AsyncLocalStorage();
+
+function languageOf(header) {
+  const first = (header ?? "").split(",")[0].trim().toLowerCase();
+  return first.startsWith("en") ? "en" : "vi";
+}
 
 /** Today at hh:mm in Vietnam time, as RFC 3339 with its offset. */
 function tonight(hour, minute) {
@@ -271,11 +317,17 @@ const sessionCookie = "secondbite_session";
 const accounts = new Map();
 
 function problem(response, status, code) {
-  response.writeHead(status, { "content-type": "application/problem+json" });
+  const language = requestLanguage.getStore() ?? "vi";
+  response.writeHead(status, {
+    "content-type": "application/problem+json",
+    "content-language": language,
+    vary: "Accept-Language",
+  });
   response.end(
     JSON.stringify({
-      type: `urn:secondbite:failure:${code.toLowerCase()}`,
+      type: `urn:secondbite:failure:${code.toLowerCase().replaceAll("_", "-")}`,
       status,
+      detail: failureWords.get(code)?.[language],
       code,
       requestId: "STUB",
     }),
@@ -747,7 +799,13 @@ async function sellerRoutes(request, response, url) {
   return false;
 }
 
-const server = createServer(async (request, response) => {
+const server = createServer((request, response) =>
+  requestLanguage.run(languageOf(request.headers["accept-language"]), () =>
+    answer(request, response),
+  ),
+);
+
+async function answer(request, response) {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
     response.writeHead(204).end();
@@ -755,16 +813,7 @@ const server = createServer(async (request, response) => {
   }
   // A search for this word stands for a server that fails, for the error screen's test.
   if (url.pathname === "/offers" && url.searchParams.get("q") === "loi-may-chu") {
-    response.writeHead(500, { "content-type": "application/problem+json" });
-    response.end(
-      JSON.stringify({
-        type: "urn:secondbite:failure:platform-internal-failure",
-        title: "Internal Server Error",
-        status: 500,
-        code: "PLATFORM_INTERNAL_FAILURE",
-        requestId: "STUB",
-      }),
-    );
+    problem(response, 500, "PLATFORM_INTERNAL_FAILURE");
     return;
   }
   if (request.method === "GET" && url.pathname === "/offers") {
@@ -781,16 +830,7 @@ const server = createServer(async (request, response) => {
     response.end(body);
     return;
   }
-  response.writeHead(404, { "content-type": "application/problem+json" });
-  response.end(
-    JSON.stringify({
-      type: "urn:secondbite:failure:platform-route-not-found",
-      title: "Not Found",
-      status: 404,
-      code: "PLATFORM_ROUTE_NOT_FOUND",
-      requestId: "STUB",
-    }),
-  );
-});
+  problem(response, 404, "PLATFORM_ROUTE_NOT_FOUND");
+}
 
 server.listen(port, () => console.log(`Stub backend on http://localhost:${port}`));

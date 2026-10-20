@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Spinner } from "@/components/ui/spinner";
 import { Link, useRouter } from "@/i18n/navigation";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, failureOf } from "@/lib/api/client";
 import { requestSignInCode, signIn, signInWithGoogle } from "@/lib/api/generated";
 
 import { emailInToken, GoogleButton } from "./google-button";
@@ -25,32 +25,31 @@ export const RESEND_AFTER_SECONDS = 60;
 /**
  * What the screen shows after a failure. The server's code decides it only where the screen does something
  * different (web guideline › Data and the backend): a field turns red, a new code is offered, or Google gives
- * way to the emailed code. Everything else is "failed", with the request's reference.
+ * way to the emailed code. Everything else is "failed", with the request's reference. The words are the
+ * server's (SEC-28).
  */
-type Problem =
-  | { kind: "emailInvalid" }
-  | { kind: "codeLimit" }
-  | { kind: "codeIncorrect" }
-  | { kind: "codeGone" }
-  | { kind: "googleUnverified" }
-  | { kind: "failed"; reference?: string };
+type Problem = {
+  kind: "emailInvalid" | "codeLimit" | "codeIncorrect" | "codeGone" | "googleUnverified" | "failed";
+  detail?: string;
+  reference?: string;
+};
 
 function problemOf(error: unknown): Problem {
-  const code = error instanceof ApiError ? error.code : undefined;
-  switch (code) {
+  const failure = failureOf(error);
+  switch (error instanceof ApiError ? error.code : undefined) {
     case "IDENTITY_EMAIL_INVALID":
-      return { kind: "emailInvalid" };
+      return { kind: "emailInvalid", ...failure };
     case "IDENTITY_CODE_LIMIT_EXCEEDED":
-      return { kind: "codeLimit" };
+      return { kind: "codeLimit", ...failure };
     case "IDENTITY_CODE_INCORRECT":
-      return { kind: "codeIncorrect" };
+      return { kind: "codeIncorrect", ...failure };
     case "IDENTITY_CHALLENGE_GONE":
     case "IDENTITY_CODE_ATTEMPTS_EXHAUSTED":
-      return { kind: "codeGone" };
+      return { kind: "codeGone", ...failure };
     case "IDENTITY_EMAIL_NOT_VERIFIED":
-      return { kind: "googleUnverified" };
+      return { kind: "googleUnverified", ...failure };
     default:
-      return { kind: "failed", reference: error instanceof ApiError ? error.requestId : undefined };
+      return { kind: "failed", ...failure };
   }
 }
 
@@ -306,13 +305,12 @@ export function SignInForm({
   );
 }
 
+/** The server's sentence, with the reference of a failure the screen does not expect; its own without an answer. */
 function problemText(t: ReturnType<typeof useTranslations<"SignIn">>, problem: Problem): string {
-  if (problem.kind === "failed") {
-    return problem.reference
-      ? t("failedWithReference", { reference: problem.reference })
-      : t("failed");
-  }
-  return t(problem.kind);
+  if (!problem.detail) return t("failed");
+  return problem.kind === "failed" && problem.reference
+    ? `${problem.detail} ${t("reference", { reference: problem.reference })}`
+    : problem.detail;
 }
 
 /** "Gửi lại mã sau 0:28", then the button itself once the wait is over. */

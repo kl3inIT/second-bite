@@ -10,7 +10,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Spinner } from "@/components/ui/spinner";
 import { Link, useRouter } from "@/i18n/navigation";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, failureOf } from "@/lib/api/client";
 import { deleteMyAccount, requestAccountDeletionCode } from "@/lib/api/generated";
 
 import { CODE_LENGTH, RESEND_AFTER_SECONDS, ResendCode } from "./sign-in-form";
@@ -19,24 +19,24 @@ import { CODE_LENGTH, RESEND_AFTER_SECONDS, ResendCode } from "./sign-in-form";
  * What the form shows after a failure; the server's code decides it only where the form does something
  * different (web guideline › Data and the backend).
  */
-type Problem =
-  | { kind: "codeLimit" }
-  | { kind: "codeIncorrect" }
-  | { kind: "codeGone" }
-  | { kind: "failed"; reference?: string };
+type Problem = {
+  kind: "codeLimit" | "codeIncorrect" | "codeGone" | "failed";
+  detail?: string;
+  reference?: string;
+};
 
 function problemOf(error: unknown): Problem {
-  const code = error instanceof ApiError ? error.code : undefined;
-  switch (code) {
+  const failure = failureOf(error);
+  switch (error instanceof ApiError ? error.code : undefined) {
     case "IDENTITY_CODE_LIMIT_EXCEEDED":
-      return { kind: "codeLimit" };
+      return { kind: "codeLimit", ...failure };
     case "IDENTITY_CODE_INCORRECT":
-      return { kind: "codeIncorrect" };
+      return { kind: "codeIncorrect", ...failure };
     case "IDENTITY_CHALLENGE_GONE":
     case "IDENTITY_CODE_ATTEMPTS_EXHAUSTED":
-      return { kind: "codeGone" };
+      return { kind: "codeGone", ...failure };
     default:
-      return { kind: "failed", reference: error instanceof ApiError ? error.requestId : undefined };
+      return { kind: "failed", ...failure };
   }
 }
 
@@ -96,11 +96,11 @@ export function DeleteAccountForm({ email }: { email: string }) {
       <span className="flex items-start gap-1.5">
         <CircleAlertIcon aria-hidden className="mt-0.5 size-4 shrink-0" />
         <span>
-          {problem.kind === "failed"
-            ? problem.reference
-              ? t("failedWithReference", { reference: problem.reference })
-              : t("failed")
-            : t(problem.kind)}
+          {!problem.detail
+            ? t("failed")
+            : problem.kind === "failed" && problem.reference
+              ? `${problem.detail} ${t("reference", { reference: problem.reference })}`
+              : problem.detail}
         </span>
       </span>
     </FieldError>

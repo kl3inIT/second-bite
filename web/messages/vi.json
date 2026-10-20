@@ -308,14 +308,9 @@
     "googleNeedsCodeTitle": "Email này đã có tài khoản",
     "googleNeedsCodeBody": "{email} đã có tài khoản Second Bite. Nhận mã qua email này để đăng nhập.",
     "googleNeedsCodeBodyNoAddress": "Email của tài khoản Google này đã có tài khoản Second Bite. Nhận mã qua email để đăng nhập.",
-    "emailInvalid": "Nhập một địa chỉ email, ví dụ ten@gmail.com.",
-    "codeLimit": "Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.",
-    "codeIncorrect": "Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.",
-    "codeGone": "Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.",
-    "googleUnverified": "Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.",
     "failed": "Chưa đăng nhập được. Vui lòng thử lại.",
-    "failedWithReference": "Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: {reference}",
-    "notArrived": "Chưa thấy email? Xem trong thư rác (Spam)."
+    "notArrived": "Chưa thấy email? Xem trong thư rác (Spam).",
+    "reference": "Mã tham chiếu: {reference}"
   },
   "Account": {
     "signIn": "Đăng nhập",
@@ -395,14 +390,11 @@
     "confirm": "Xoá vĩnh viễn tài khoản",
     "deleting": "Đang xoá…",
     "cancel": "Giữ tài khoản",
-    "codeLimit": "Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.",
-    "codeIncorrect": "Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.",
-    "codeGone": "Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.",
     "failed": "Chưa xoá được tài khoản. Vui lòng thử lại.",
-    "failedWithReference": "Chưa xoá được tài khoản. Vui lòng thử lại. Mã tham chiếu: {reference}",
     "doneTitle": "Đã xoá tài khoản",
     "doneBody": "Tài khoản và dữ liệu cá nhân của bạn đã được xoá. Bạn vẫn có thể đăng nhập lại bằng email này bất cứ lúc nào, như một tài khoản mới.",
-    "home": "Về trang chủ"
+    "home": "Về trang chủ",
+    "reference": "Mã tham chiếu: {reference}"
   },
   "OpenStore": {
     "title": "Mở quán",
@@ -418,9 +410,6 @@
     "choosePhoto": "Chọn ảnh từ máy",
     "photoHint": "Một ảnh giúp khách nhận ra quán của bạn.",
     "submit": "Tạo quán",
-    "detailsInvalid": "Nhập tên và địa chỉ của quán.",
-    "phoneInvalid": "Nhập số điện thoại 9 đến 15 chữ số, ví dụ 0912 345 678.",
-    "limit": "Bạn đã có đủ 5 quán. Hãy dùng một trong số đó.",
     "failed": "Chưa tạo được quán. Thử lại sau ít phút.",
     "reference": "Mã tham chiếu: {id}"
   },
@@ -533,13 +522,6 @@
     "minutes": "{minutes} phút",
     "window": "Khách đến lấy từ {from} đến {until} hôm nay",
     "windowOver": "Giờ lấy đã qua. Chọn giờ từ bây giờ trở đi.",
-    "problem": {
-      "discount": "Giá bán chưa đủ thấp so với giá gốc. Hạ giá rồi thử lại.",
-      "window": "Khung giờ lấy chưa hợp lệ: từ 30 phút đến 6 giờ, và chưa qua.",
-      "details": "Kiểm tra lại tên món, số lượng và giá.",
-      "inactive": "Quán chưa được kích hoạt hoặc đang bị khóa nên chưa đăng được.",
-      "locked": "Bài này không sửa được nữa: đã có suất được đặt, đã hết giờ lấy hoặc đã rút."
-    },
     "failed": "Chưa đăng được. Thử lại sau ít phút.",
     "reference": "Mã tham chiếu: {id}",
     "cancel": "Hủy",
@@ -616,7 +598,6 @@
     "deleteTitle": "Xoá món này?",
     "deleteBody": "Món sẽ bị xoá khỏi danh mục. Các bài đã đăng trước đó không bị ảnh hưởng.",
     "keep": "Giữ lại",
-    "limit": "Danh mục đã có 100 món. Xoá bớt một món trước khi thêm.",
     "failed": "Chưa lưu được món. Thử lại sau ít phút.",
     "reference": "Mã tham chiếu: {id}",
     "original": "Giá gốc (đồng, tùy chọn)",

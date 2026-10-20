@@ -64,6 +64,16 @@ test.describe("signing in on the web", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Đăng nhập" })).toBeVisible();
   });
 
+  // SEC-28: the words are the server's, in the page's language, whatever the browser's own.
+  test("says it in English on the English page", async ({ page }) => {
+    await page.goto("/en/sign-in");
+    await (await hydrated(page.getByLabel("Email"))).fill("limit@example.com");
+    await page.getByRole("button", { name: "Send code" }).click();
+    await expect(
+      page.getByText("Too many codes were asked for this address. Wait before asking again."),
+    ).toBeVisible();
+  });
+
   test("goes home instead of to another site", async ({ page }, testInfo) => {
     await page.goto("/vi/sign-in?returnTo=//evil.example/");
     await (
