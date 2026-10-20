@@ -21,6 +21,55 @@ test.describe("the terms and the privacy policy", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
+  test("tell search and answer engines their address, their translation and their sections", async ({
+    page,
+  }) => {
+    await page.goto("/vi/terms");
+
+    await expect(page).toHaveTitle("Điều khoản sử dụng · Second Bite");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/vi\/terms$/);
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(
+      "href",
+      /\/en\/terms$/,
+    );
+    await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute(
+      "href",
+      /\/vi\/terms$/,
+    );
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      "content",
+      /trách nhiệm của người bán/,
+    );
+    await expect(page.locator("time")).toHaveAttribute("datetime", "2026-10-18");
+
+    const structured = await page
+      .locator('script[type="application/ld+json"]')
+      .evaluateAll((scripts) => scripts.map((script) => JSON.parse(script.textContent ?? "")));
+    const webPage = structured.find((data) => data["@type"] === "WebPage");
+    expect(webPage).toMatchObject({
+      name: "Điều khoản sử dụng",
+      inLanguage: "vi",
+      dateModified: "2026-10-18",
+    });
+    expect(webPage.hasPart).toHaveLength(8);
+    expect(webPage.hasPart[0].url).toMatch(/\/vi\/terms#section-1$/);
+    expect(structured.some((data) => data["@graph"]?.[0]?.["@type"] === "Organization")).toBe(true);
+  });
+
+  test("are listed in the sitemap in both languages, while robots stay closed", async ({
+    request,
+  }) => {
+    const sitemap = await (await request.get("/sitemap.xml")).text();
+    expect(sitemap).toContain("/vi/terms</loc>");
+    expect(sitemap).toContain("/en/privacy</loc>");
+    expect(sitemap).toMatch(/hreflang="en"\s+href="[^"]*\/en\/terms"/);
+    expect(sitemap).not.toContain("/account");
+
+    const robots = await (await request.get("/robots.txt")).text();
+    expect(robots).toContain("Disallow: /");
+    expect(robots).toMatch(/Sitemap: \S+\/sitemap\.xml/);
+  });
+
   test("are in English under /en", async ({ page }) => {
     await page.goto("/en/terms");
 

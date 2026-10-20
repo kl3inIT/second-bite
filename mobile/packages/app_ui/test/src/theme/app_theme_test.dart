@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:app_ui/src/theme/tokens.g.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -69,15 +70,40 @@ void main() {
       );
     });
 
-    test('draws the top bar as the white shell with a hairline', () {
+    test('draws the top bar in the header blue, with light status icons', () {
       final appBar = theme.appBarTheme;
-      expect(appBar.backgroundColor, ColorTokens.shell);
-      expect(appBar.foregroundColor, ColorTokens.shellForeground);
+      expect(appBar.backgroundColor, ColorTokens.header);
+      expect(appBar.foregroundColor, ColorTokens.headerForeground);
+      expect(appBar.titleTextStyle?.color, ColorTokens.headerForeground);
       expect(appBar.scrolledUnderElevation, 0);
-      expect(
-        appBar.shape,
-        const Border(bottom: BorderSide(color: ColorTokens.border)),
+      expect(appBar.systemOverlayStyle, SystemUiOverlayStyle.light);
+      expect(appBar.shape, isNull);
+    });
+
+    testWidgets('draws the back button as a white disc with a blue arrow', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(appBar: AppBar(leading: const BackButton())),
+        ),
       );
+
+      final disc = tester.widget<DecoratedBox>(
+        find
+            .descendant(
+              of: find.byType(BackButton),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      expect(
+        (disc.decoration as BoxDecoration).color,
+        ColorTokens.headerRaised,
+      );
+      final arrow = tester.widget<Icon>(find.byIcon(LucideIcons.chevronLeft));
+      expect(arrow.color, ColorTokens.primary);
     });
 
     test('shapes buttons as DESIGN.md does, without colours', () {

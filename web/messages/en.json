@@ -1,7 +1,9 @@
 {
   "Metadata": {
     "title": "Second Bite",
-    "description": "A second chance for good food."
+    "description": "Good food left at the end of the day at Tasco Mall's counters, for less. Order ahead and collect it in its window. Non-profit, no commission.",
+    "organization": "A non-profit platform that helps food sellers sell good end-of-day surplus for less, taking no commission.",
+    "area": "Tasco Mall, Long Biên, Hanoi"
   },
   "Home": {
     "searchLabel": "Search dishes or sellers",
@@ -130,7 +132,7 @@
   },
   "Legal": {
     "draft": "Draft, waiting for review by the founder and a lawyer. It may change before Second Bite opens to everyone; the parts marked “to be added” will be filled in.",
-    "updated": "Last updated: 18 October 2026",
+    "updated": "Last updated: <time>{date}</time>",
     "contents": "Sections"
   },
   "Privacy": {
@@ -210,7 +212,8 @@
           "When the policy changes, we update the date at the top and tell you before a change that affects your rights takes effect."
         ]
       }
-    ]
+    ],
+    "description": "What personal data Second Bite collects, why, for how long, who sees it and your rights, under Vietnam's 2025 Personal Data Protection Law."
   },
   "Terms": {
     "title": "Terms of use",
@@ -276,7 +279,8 @@
           "Contact: to be added."
         ]
       }
-    ]
+    ],
+    "description": "Second Bite's terms of use: accounts, what sellers and customers agree to, prices, payment, cancellation and the limits of liability."
   },
   "SignIn": {
     "title": "Sign in",

@@ -10,10 +10,13 @@ import { SignInForm } from "@/features/identity/sign-in-form";
 import { SignInHero } from "@/features/identity/sign-in-hero";
 import { redirect } from "@/i18n/navigation";
 import { getSignInMethods } from "@/lib/api/generated";
+import { pageMetadata } from "@/lib/seo";
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/sign-in">): Promise<Metadata> {
   const t = await getTranslations("SignIn");
-  return { title: `${t("title")} · Second Bite`, robots: { index: false } };
+  return pageMetadata({ locale: (await params).locale, title: t("title"), index: false });
 }
 
 // The sign-in screen (SEC-29 › Web), reached when an action needs an account, with `returnTo` naming the

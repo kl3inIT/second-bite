@@ -47,6 +47,17 @@ test.describe("the bottom bar and the account tab", () => {
     await expect(page.getByRole("heading", { name: "Bạn chưa đăng nhập" })).toBeVisible();
   });
 
+  test("the account tab carries the header and is kept out of search engines", async ({ page }) => {
+    await page.goto("/vi/account");
+
+    await expect(
+      page.getByRole("banner").getByRole("link", { name: /về trang chủ/ }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Tài khoản" })).toBeAttached();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    await expectNoSeriousA11yViolations(page);
+  });
+
   test("on a wide screen, the footer keeps the terms and there is no bottom bar", async ({
     page,
     isMobile,
