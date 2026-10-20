@@ -1,1 +1,75 @@
-{}
+{
+  "title": "Thông báo",
+  "composeAction": "Soạn thông báo",
+  "channels": {
+    "push": "Đẩy",
+    "email": "Email"
+  },
+  "audiences": {
+    "all": "Tất cả khách",
+    "nearby": "Khách gần Việt Hưng",
+    "sellers": "Chủ cửa hàng"
+  },
+  "states": {
+    "sent": "Đã gửi",
+    "scheduled": "Lên lịch",
+    "draft": "Nháp"
+  },
+  "filters": {
+    "search": "Tìm chiến dịch",
+    "searchPlaceholder": "Tìm chiến dịch theo tiêu đề",
+    "channel": "Kênh",
+    "state": "Trạng thái",
+    "all": "Tất cả",
+    "size": "Số dòng"
+  },
+  "columns": {
+    "title": "Tiêu đề",
+    "channel": "Kênh",
+    "audience": "Nhóm nhận",
+    "sent": "Đã gửi",
+    "opened": "Mở",
+    "at": "Thời gian",
+    "state": "Trạng thái"
+  },
+  "unscheduled": "Chưa hẹn giờ",
+  "summary": "Hiển thị {from}–{to} trên {total} chiến dịch",
+  "empty": "Chưa gửi thông báo nào",
+  "emptyFiltered": "Không có chiến dịch nào khớp bộ lọc",
+  "actions": {
+    "view": "Xem nội dung",
+    "cancel": "Huỷ lịch gửi",
+    "delete": "Xoá chiến dịch"
+  },
+  "preview": {
+    "pushFrom": "Second Bite · bây giờ",
+    "emailFrom": "Second Bite · Email",
+    "titlePlaceholder": "Tiêu đề thông báo",
+    "bodyPlaceholder": "Nội dung thông báo"
+  },
+  "compose": {
+    "title": "Soạn thông báo",
+    "test": "Gửi thử",
+    "schedule": "Lên lịch",
+    "formTitle": "Nội dung thông báo",
+    "previewTitle": "Xem trước thông báo",
+    "channel": "Kênh gửi",
+    "channels": {
+      "push": "Thông báo đẩy",
+      "email": "Email"
+    },
+    "audience": "Nhóm nhận",
+    "audiences": {
+      "all": "Tất cả khách",
+      "nearby": "Khách gần Việt Hưng",
+      "sellers": "Chủ cửa hàng"
+    },
+    "titleField": "Tiêu đề",
+    "titleProblem": "Thông báo cần có tiêu đề",
+    "body": "Nội dung",
+    "bodyProblem": "Thông báo cần có nội dung",
+    "day": "Ngày gửi",
+    "time": "Giờ gửi (giờ Việt Nam)",
+    "quiet": "Không gửi trong giờ yên lặng (22:00 – 07:00)"
+  }
+}

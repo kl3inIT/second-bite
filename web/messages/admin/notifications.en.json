@@ -1,1 +1,75 @@
-{}
+{
+  "title": "Notifications",
+  "composeAction": "Write a notification",
+  "channels": {
+    "push": "Push",
+    "email": "Email"
+  },
+  "audiences": {
+    "all": "All customers",
+    "nearby": "Customers near Việt Hưng",
+    "sellers": "Store owners"
+  },
+  "states": {
+    "sent": "Sent",
+    "scheduled": "Scheduled",
+    "draft": "Draft"
+  },
+  "filters": {
+    "search": "Search campaigns",
+    "searchPlaceholder": "Search campaigns by title",
+    "channel": "Channel",
+    "state": "Status",
+    "all": "All",
+    "size": "Rows"
+  },
+  "columns": {
+    "title": "Title",
+    "channel": "Channel",
+    "audience": "Audience",
+    "sent": "Sent",
+    "opened": "Opened",
+    "at": "Time",
+    "state": "Status"
+  },
+  "unscheduled": "No time set",
+  "summary": "Showing {from}–{to} of {total} campaigns",
+  "empty": "No notifications sent yet",
+  "emptyFiltered": "No campaigns match these filters",
+  "actions": {
+    "view": "View content",
+    "cancel": "Cancel the schedule",
+    "delete": "Delete campaign"
+  },
+  "preview": {
+    "pushFrom": "Second Bite · now",
+    "emailFrom": "Second Bite · Email",
+    "titlePlaceholder": "Notification title",
+    "bodyPlaceholder": "Notification text"
+  },
+  "compose": {
+    "title": "Write a notification",
+    "test": "Send a test",
+    "schedule": "Schedule",
+    "formTitle": "Notification content",
+    "previewTitle": "Notification preview",
+    "channel": "Channel",
+    "channels": {
+      "push": "Push notification",
+      "email": "Email"
+    },
+    "audience": "Audience",
+    "audiences": {
+      "all": "All customers",
+      "nearby": "Customers near Việt Hưng",
+      "sellers": "Store owners"
+    },
+    "titleField": "Title",
+    "titleProblem": "A notification needs a title",
+    "body": "Text",
+    "bodyProblem": "A notification needs a text",
+    "day": "Day",
+    "time": "Time (Vietnam time)",
+    "quiet": "Not during quiet hours (22:00 – 07:00)"
+  }
+}
