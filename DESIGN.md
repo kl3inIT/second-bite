@@ -369,7 +369,7 @@ The small card of the sideways rows (Figma `rec/…`): 132px wide with no surfac
 
 ### Bottom bar
 
-The four tabs on a phone (Figma Bottom nav, 105:2515), floating 16px from the sides and the bottom: 64px high, fully rounded, frosted white with a hairline of white and `elevation.nav`. The active tab is a Blue Wash pill with its icon and label in Tasco blue (`label-strong`); the others are muted (`label`). A tab without a screen yet is shown dimmed and cannot be pressed.
+The four tabs on a phone (Figma Bottom nav, 105:2515), floating 16px from the sides and the bottom: 64px high, fully rounded, frosted white with a hairline of white and `elevation.nav`. The active tab is a Blue Wash pill with its icon and label in Tasco blue (`label-strong`); the others are muted (`label`). A tab without a screen yet is shown dimmed and cannot be pressed. Every page shows the bar, the search lighting the home's tab, and ends with a space as tall as the bar so nothing is left under it.
 
 ### Splash
 

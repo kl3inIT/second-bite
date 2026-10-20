@@ -3,6 +3,7 @@ import { Be_Vietnam_Pro, Bricolage_Grotesque } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 
+import { BottomNav } from "@/components/bottom-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { Splash } from "@/components/splash";
 import { routing } from "@/i18n/routing";
@@ -49,6 +50,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
           <Splash />
           {children}
           <SiteFooter />
+          <BottomNav />
         </NextIntlClientProvider>
       </body>
     </html>

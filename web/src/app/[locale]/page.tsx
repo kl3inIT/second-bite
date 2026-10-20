@@ -2,7 +2,6 @@ import { Suspense } from "react";
 
 import { BrandLoader } from "@/components/brand-loader";
 import { AppHeader } from "@/components/app-header";
-import { BottomNav } from "@/components/bottom-nav";
 import { HomeContent } from "@/features/home/home-content";
 import { homePath, readHomeQuery, type HomeQuery } from "@/features/home/home-query";
 import { AccountAction } from "@/features/identity/account-action";
@@ -51,12 +50,11 @@ export default function Home({ searchParams }: PageProps<"/[locale]">) {
           <TonightDeals query={query} />
         </Suspense>
       </AppHeader>
-      <main className="mx-auto w-full max-w-5xl flex-1 pb-24 md:pb-0 xl:max-w-300">
+      <main className="mx-auto w-full max-w-5xl flex-1 xl:max-w-300">
         <Suspense fallback={<BrandLoader />}>
           <HomeContent query={query} />
         </Suspense>
       </main>
-      <BottomNav />
     </>
   );
 }
