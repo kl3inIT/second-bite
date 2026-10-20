@@ -385,7 +385,7 @@ The page's pale ground rises over the header's foot as a 28px sheet with 24px to
 
 ### Search top bar
 
-The search's own bar (Figma K2): white with a hairline below, a plain back arrow, and the search field fully rounded on the sky ground (`muted`) without an edge. While the field is focused and empty, the recent searches (kept in the browser) and the kinds open under it as a white panel (Figma K2a).
+The search's own bar (Figma K2): white with a hairline below, a plain back arrow, and the search field fully rounded on the sky ground (`muted`) without an edge. While the field is focused and empty, the recent searches (kept in the browser) and the kinds cover the page under it in white, the results hidden until the field is left (Figma K2a); their titles are `title-lg`.
 
 ### Filter chip
 

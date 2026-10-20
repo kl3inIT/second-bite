@@ -18,7 +18,8 @@ import { clearSearches, forgetSearch, rememberSearch, useRecentSearches } from "
 
 // The search's top bar (Figma K2 đầu trang tìm kiếm): a plain back arrow and a fully rounded field on the
 // sky ground, a GET form over the address that keeps the place and the tab. While the field is focused and
-// empty, the recent searches and the kinds open under it (Figma K2a).
+// empty, the recent searches and the kinds cover the page under it (Figma K2a), as Shopee's and Grab's
+// search do, rather than floating over the results.
 export function SearchBar({ value, near, tab }: { value?: string; near?: string; tab?: string }) {
   const t = useTranslations("Search");
   const kinds = useTranslations("OfferKind");
@@ -85,11 +86,11 @@ export function SearchBar({ value, near, tab }: { value?: string; near?: string;
         </search>
       </div>
       {focused && !words && (
-        <div className="absolute inset-x-0 top-full z-30 flex flex-col gap-5 bg-card px-4 pt-2 pb-6 shadow-sheet">
+        <div className="absolute inset-x-0 top-full z-30 flex h-dvh flex-col gap-6 border-t border-border bg-card px-4 pt-4">
           {recent.length > 0 && (
             <section aria-labelledby="recent-searches" className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <h2 id="recent-searches" className="text-headline text-foreground">
+                <h2 id="recent-searches" className="text-title-lg text-foreground">
                   {t("recent")}
                 </h2>
                 <button
@@ -127,7 +128,7 @@ export function SearchBar({ value, near, tab }: { value?: string; near?: string;
             </section>
           )}
           <section aria-labelledby="search-kinds" className="flex flex-col gap-3">
-            <h2 id="search-kinds" className="text-headline text-foreground">
+            <h2 id="search-kinds" className="text-title-lg text-foreground">
               {t("kinds")}
             </h2>
             <ul className="flex flex-wrap gap-2">
