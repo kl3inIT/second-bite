@@ -1003,8 +1003,10 @@ async function adminSettingsRoutes(request, response, url) {
 const adminStoresOf = new Map();
 
 function adminStores(token) {
-  if (!adminStoresOf.has(token)) {
-    const email = accounts.get(token)?.email ?? "";
+  // A new sign-in starts from the same stores again, so a test run after another finds them as they were.
+  const account = accounts.get(token);
+  if (adminStoresOf.get(token)?.account !== account) {
+    const email = account?.email ?? "";
     const daysAgo = (days, hour = 10) => {
       const at = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
       at.setUTCHours(hour - 7, 0, 0, 0);
@@ -1023,9 +1025,9 @@ function adminStores(token) {
       createdAt: daysAgo(20 + n),
       updatedAt: daysAgo(changed, 10 + (n % 8)),
     });
-    adminStoresOf.set(
-      token,
-      email.includes(".trong.")
+    adminStoresOf.set(token, {
+      account,
+      stores: email.includes(".trong.")
         ? []
         : [
             store(
@@ -1071,9 +1073,9 @@ function adminStores(token) {
             store(13, "Cơm tấm Sài Gòn", "Tầng 3, khu ẩm thực, Tasco Mall", "pending", 12),
             store(14, "Chè Thái Lan", "Tầng 2, Tasco Mall", "blocked", 1, "ph-tra-sua"),
           ],
-    );
+    });
   }
-  return adminStoresOf.get(token);
+  return adminStoresOf.get(token).stores;
 }
 
 /** The people of a store an admin opens: its owner, and a staff member for the first one. */

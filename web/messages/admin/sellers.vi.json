@@ -46,5 +46,128 @@
       "kept": "Cửa hàng vẫn gỡ bài và quản lý nhân viên được.",
       "undo": "Có thể gỡ chặn bất cứ lúc nào."
     }
+  },
+  "detail": {
+    "loading": "Đang tải cửa hàng",
+    "pager": {
+      "previous": "Cửa hàng trước",
+      "next": "Cửa hàng sau",
+      "position": "{position} / {total}"
+    },
+    "menu": {
+      "posts": "Xem bài đăng",
+      "members": "Xem thành viên"
+    },
+    "info": {
+      "posts": "Bài đang bán",
+      "staff": "Nhân viên",
+      "joined": "Ngày tham gia",
+      "changed": "Ngày sửa đổi"
+    },
+    "tabs": {
+      "label": "Mục của cửa hàng",
+      "overview": "Tổng quan",
+      "posts": "Bài đăng · {count}",
+      "members": "Thành viên · {count}",
+      "documents": "Kiểm định"
+    },
+    "overview": {
+      "onSale": "Bài đang bán",
+      "seeAll": "Xem tất cả",
+      "noneOnSale": "Không có bài đang bán.",
+      "discount": "-{percent}% · còn {left}/{units} {unit}",
+      "pickup": "Lấy {from}–{until}",
+      "info": "Thông tin",
+      "address": "Địa chỉ",
+      "phone": "Số điện thoại",
+      "statusChanged": "Đổi trạng thái",
+      "members": "Thành viên"
+    },
+    "blocked": {
+      "title": "Cửa hàng đang bị chặn",
+      "noPosting": "Không đăng hay sửa bài được",
+      "hidden": "Không hiện với khách",
+      "kept": "Bài đăng và nhân viên vẫn được giữ"
+    },
+    "roles": {
+      "owner": "Chủ cửa hàng",
+      "staff": "Nhân viên"
+    },
+    "posts": {
+      "filter": "Trạng thái bài đăng",
+      "segment": "{label} · {count}",
+      "status": {
+        "on_sale": "Đang bán",
+        "sold_out": "Hết hàng",
+        "closed": "Đã đóng",
+        "withdrawn": "Đã gỡ"
+      },
+      "caption": "Bài đăng {status}",
+      "columns": {
+        "name": "Bài đăng",
+        "price": "Giá bán",
+        "discount": "Giảm",
+        "left": "Còn lại",
+        "units": "Số suất",
+        "window": "Khung nhận",
+        "postedAt": "Đăng lúc",
+        "withdrawnAt": "Gỡ lúc"
+      },
+      "discount": "-{percent}%",
+      "left": "{left}/{units} {unit}",
+      "units": "{units} {unit}",
+      "view": "Xem {name}",
+      "summary": "Hiển thị {from}–{to} trên {total} bài đăng",
+      "empty": {
+        "on_sale": "Không có bài đang bán.",
+        "sold_out": "Không có bài hết hàng.",
+        "closed": "Không có bài đã đóng.",
+        "withdrawn": "Không có bài đã gỡ."
+      }
+    },
+    "sheet": {
+      "title": "Chi tiết bài đăng",
+      "loading": "Đang tải bài đăng",
+      "failed": "Không tải được bài đăng",
+      "description": "Mô tả",
+      "status": "Trạng thái",
+      "units": "Số phần",
+      "unitsValue": "Còn {left}/{units} {unit} · đã giữ {held}",
+      "weight": "Khối lượng mỗi suất",
+      "weightValue": "{grams} g",
+      "window": "Khung nhận",
+      "place": "Nơi nhận",
+      "created": "Tạo lúc",
+      "updated": "Sửa lần cuối"
+    },
+    "members": {
+      "caption": "Thành viên của cửa hàng",
+      "columns": {
+        "member": "Thành viên",
+        "role": "Vai trò",
+        "added": "Ngày tham gia"
+      },
+      "empty": "Cửa hàng chưa có thành viên."
+    },
+    "documents": {
+      "caption": "Giấy tờ kiểm định",
+      "columns": {
+        "name": "Giấy tờ",
+        "number": "Số hiệu",
+        "issued": "Ngày cấp",
+        "expires": "Hết hạn",
+        "status": "Trạng thái",
+        "file": "Tệp"
+      },
+      "status": {
+        "valid": "Hợp lệ",
+        "expiring": "Sắp hết hạn",
+        "missing": "Chưa nộp"
+      },
+      "noExpiry": "Không thời hạn",
+      "view": "Xem tệp",
+      "noFile": "Chưa có tệp",
+      "empty": "Chưa có giấy tờ kiểm định."
+    }
   }
 }

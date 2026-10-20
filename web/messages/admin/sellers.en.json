@@ -46,5 +46,128 @@
       "kept": "The store can still withdraw posts and manage its staff.",
       "undo": "You can unblock it at any time."
     }
+  },
+  "detail": {
+    "loading": "Loading the store",
+    "pager": {
+      "previous": "Previous store",
+      "next": "Next store",
+      "position": "{position} / {total}"
+    },
+    "menu": {
+      "posts": "View posts",
+      "members": "View members"
+    },
+    "info": {
+      "posts": "Posts on sale",
+      "staff": "Staff",
+      "joined": "Joined on",
+      "changed": "Changed on"
+    },
+    "tabs": {
+      "label": "Store sections",
+      "overview": "Overview",
+      "posts": "Posts · {count}",
+      "members": "Members · {count}",
+      "documents": "Verification"
+    },
+    "overview": {
+      "onSale": "Posts on sale",
+      "seeAll": "See all",
+      "noneOnSale": "No post is on sale.",
+      "discount": "-{percent}% · {left}/{units} {unit} left",
+      "pickup": "Pick up {from}–{until}",
+      "info": "Details",
+      "address": "Address",
+      "phone": "Phone number",
+      "statusChanged": "Status changed",
+      "members": "Members"
+    },
+    "blocked": {
+      "title": "This store is blocked",
+      "noPosting": "It cannot post or change posts",
+      "hidden": "Customers do not see it",
+      "kept": "Its posts and staff are kept"
+    },
+    "roles": {
+      "owner": "Owner",
+      "staff": "Staff"
+    },
+    "posts": {
+      "filter": "Post status",
+      "segment": "{label} · {count}",
+      "status": {
+        "on_sale": "On sale",
+        "sold_out": "Sold out",
+        "closed": "Closed",
+        "withdrawn": "Withdrawn"
+      },
+      "caption": "Posts {status}",
+      "columns": {
+        "name": "Post",
+        "price": "Price",
+        "discount": "Off",
+        "left": "Left",
+        "units": "Units",
+        "window": "Pickup window",
+        "postedAt": "Posted at",
+        "withdrawnAt": "Withdrawn at"
+      },
+      "discount": "-{percent}%",
+      "left": "{left}/{units} {unit}",
+      "units": "{units} {unit}",
+      "view": "View {name}",
+      "summary": "Showing {from}–{to} of {total} posts",
+      "empty": {
+        "on_sale": "No post is on sale.",
+        "sold_out": "No post is sold out.",
+        "closed": "No post is closed.",
+        "withdrawn": "No post was withdrawn."
+      }
+    },
+    "sheet": {
+      "title": "Post details",
+      "loading": "Loading the post",
+      "failed": "The post could not be loaded",
+      "description": "Description",
+      "status": "Status",
+      "units": "Units",
+      "unitsValue": "{left}/{units} {unit} left · {held} held",
+      "weight": "Weight per unit",
+      "weightValue": "{grams} g",
+      "window": "Pickup window",
+      "place": "Pickup place",
+      "created": "Created at",
+      "updated": "Last changed"
+    },
+    "members": {
+      "caption": "The store's members",
+      "columns": {
+        "member": "Member",
+        "role": "Role",
+        "added": "Joined on"
+      },
+      "empty": "The store has no members."
+    },
+    "documents": {
+      "caption": "Verification documents",
+      "columns": {
+        "name": "Document",
+        "number": "Number",
+        "issued": "Issued on",
+        "expires": "Expires on",
+        "status": "Status",
+        "file": "File"
+      },
+      "status": {
+        "valid": "Valid",
+        "expiring": "Expiring soon",
+        "missing": "Not handed in"
+      },
+      "noExpiry": "No expiry",
+      "view": "View file",
+      "noFile": "No file yet",
+      "empty": "No verification document yet."
+    }
   }
 }
