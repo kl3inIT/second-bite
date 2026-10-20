@@ -14,6 +14,15 @@ export function maxPrice(original: number, minDiscountPercent = MIN_DISCOUNT_PER
   return Math.floor((original * (100 - minDiscountPercent)) / 100);
 }
 
+/**
+ * The price a post starts from once the original price is known: the dearest one that keeps the minimum
+ * discount, in whole thousands of đồng (76.000đ for 95.000đ); nothing while the original price is not one.
+ */
+export function suggestedPrice(original: number): number | undefined {
+  if (!Number.isFinite(original) || original <= 1000) return undefined;
+  return Math.max(1000, Math.floor(maxPrice(original) / 1000) * 1000);
+}
+
 /** The discount of a price, in whole percent, rounded down. */
 export function discountPercent(original: number, price: number): number {
   return original > 0 ? Math.floor(((original - price) * 100) / original) : 0;
