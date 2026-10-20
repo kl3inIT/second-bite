@@ -23,7 +23,7 @@ func newSeller(name, phone string) map[string]any {
 }
 
 // checkSellerFlow opens a seller, adds staff who sign in through Mailpit, and
-// has an admin activate it, through the API as the clients will.
+// has an admin block it and lift the block, through the API as the clients will.
 func checkSellerFlow(t *testing.T, svc service) {
 	t.Helper()
 
@@ -34,7 +34,7 @@ func checkSellerFlow(t *testing.T, svc service) {
 	send(t, http.MethodPost, svc.base+"/sellers", owner, newSeller("Bánh mì Tasco", "0912 345 678")).
 		decode(t, http.StatusCreated, &opened)
 
-	if opened.Status != "pending" || opened.MyRole != "owner" {
+	if opened.Status != "active" || opened.MyRole != "owner" {
 		t.Fatalf("opened %+v", opened)
 	}
 
@@ -66,25 +66,33 @@ func checkSellerFlow(t *testing.T, svc service) {
 		t.Errorf("a stranger reading the seller: %q", p.Code)
 	}
 
-	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/activate", owner, nil).problem(t, http.StatusForbidden); p.Code != "PLATFORM_ADMIN_REQUIRED" {
-		t.Errorf("the owner activating: %q", p.Code)
+	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/block", owner, nil).problem(t, http.StatusForbidden); p.Code != "PLATFORM_ADMIN_REQUIRED" {
+		t.Errorf("the owner blocking: %q", p.Code)
 	}
 
 	admin := bearer(signIn(t, svc, sellerAdminEmail).Token)
 
-	var pending struct {
+	var blocked sellerResponse
+
+	send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/block", admin, nil).decode(t, http.StatusOK, &blocked)
+
+	if blocked.Status != "blocked" {
+		t.Errorf("blocked %+v", blocked)
+	}
+
+	var listed struct {
 		Sellers []sellerResponse `json:"sellers"`
 	}
 
-	send(t, http.MethodGet, svc.base+"/admin/sellers?status=pending", admin, nil).decode(t, http.StatusOK, &pending)
+	send(t, http.MethodGet, svc.base+"/admin/sellers?status=blocked", admin, nil).decode(t, http.StatusOK, &listed)
 
 	found := false
-	for _, s := range pending.Sellers {
+	for _, s := range listed.Sellers {
 		found = found || s.ID == opened.ID
 	}
 
 	if !found {
-		t.Fatalf("the pending list lacks the seller: %+v", pending)
+		t.Fatalf("the blocked list lacks the seller: %+v", listed)
 	}
 
 	var activated sellerResponse
