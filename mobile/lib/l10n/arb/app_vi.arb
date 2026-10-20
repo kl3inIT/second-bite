@@ -28,7 +28,7 @@
   "@homeKindsLabel": {
     "description": "Name of the row of kinds of food"
   },
-  "homeCollectNow": "Lấy ngay",
+  "homeCollectNow": "Nhận ngay",
   "@homeCollectNow": {
     "description": "The first item of the kinds row: only what can be collected now"
   },
@@ -49,7 +49,7 @@
       }
     }
   },
-  "homeTicketWindow": "Lấy {from}",
+  "homeTicketWindow": "Nhận {from}",
   "@homeTicketWindow": {
     "description": "When collection opens, on a ticket of the deal card",
     "placeholders": {
@@ -72,7 +72,7 @@
       }
     }
   },
-  "homeClosingSoon": "Sắp hết giờ lấy",
+  "homeClosingSoon": "Sắp hết giờ nhận",
   "@homeClosingSoon": {
     "description": "Title of the row of offers whose windows close first"
   },
@@ -117,7 +117,7 @@
   "@offerSoldOut": {
     "description": "The sticker of an offer with nothing left"
   },
-  "offerWindow": "Lấy {from}–{until}",
+  "offerWindow": "Nhận {from}–{until}",
   "@offerWindow": {
     "description": "The collection window on a compact card",
     "placeholders": {
@@ -190,7 +190,7 @@
   "@introTitle": {
     "description": "Title of the introduction for a first visit"
   },
-  "introBody": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.",
+  "introBody": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy nhận trong khung giờ của món.",
   "@introBody": {
     "description": "What Second Bite is, in two sentences"
   },
