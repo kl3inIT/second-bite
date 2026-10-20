@@ -398,15 +398,7 @@ class _ProblemText extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final error = Theme.of(context).colorScheme.error;
-    final message = switch (problem.kind) {
-      SignInProblemKind.codeLimit => l10n.signInCodeLimit,
-      SignInProblemKind.codeIncorrect => l10n.signInCodeIncorrect,
-      SignInProblemKind.codeGone => l10n.signInCodeGone,
-      _ =>
-        problem.reference == null
-            ? l10n.deleteAccountFailed
-            : l10n.deleteAccountFailedWithReference(problem.reference!),
-    };
+    final message = problem.text(l10n, failed: l10n.deleteAccountFailed);
 
     return Semantics(
       liveRegion: true,
