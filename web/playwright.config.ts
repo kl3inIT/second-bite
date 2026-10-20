@@ -8,6 +8,8 @@ const stubBackendPort = 3190;
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
+  // The seller's tests sign in and open a store before they begin, and the two browsers run side by side.
+  expect: { timeout: 10_000 },
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: process.env.CI ? [["html", { open: "never" }], ["list"]] : "list",

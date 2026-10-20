@@ -385,6 +385,45 @@ function postsFor(seller) {
 }
 
 /** A store's posts as GET /sellers/{id}/offers answers: one on sale, one sold out, one over, one withdrawn. */
+/** Each store's catalog, the newest dish first: a store named "Tiệm danh mục" starts with the three of Figma Q3b. */
+const dishesBy = new Map();
+
+function dishesFor(seller) {
+  if (!dishesBy.has(seller.id)) {
+    const dish = (n, name, kind, unit, hidden = false) => ({
+      id: `di-${n}-${seller.id}`,
+      sellerId: seller.id,
+      name,
+      kind,
+      unit,
+      description: "",
+      ingredients: "",
+      photo: {
+        id: `ph-${n}`,
+        largePath: `/photos/ph-${n}/1600.jpg`,
+        smallPath: `/photos/ph-${n}/400.jpg`,
+      },
+      hidden,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    dishesBy.set(
+      seller.id,
+      seller.name === "Tiệm danh mục"
+        ? [
+            {
+              ...dish(1, "Túi bánh mì và croissant, 4 chiếc", "bakery", "túi"),
+              originalPriceVnd: 95000,
+            },
+            dish(2, "Cơm sườn nướng, 1 suất", "prepared_food", "suất", true),
+            dish(3, "Xôi thập cẩm, 1 hộp", "prepared_food", "hộp"),
+          ]
+        : [],
+    );
+  }
+  return dishesBy.get(seller.id);
+}
+
 /** A store with one live post of which units are ordered, for the screens that lock the price and the hours. */
 function postsWithOrders(seller) {
   return postsOf(seller)
@@ -434,8 +473,9 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers" ||
     url.pathname === "/sellers/mine" ||
     url.pathname === "/photos" ||
-    /^\/sellers\/[\w-]+(\/photo|\/offers)?$/.test(url.pathname) ||
-    /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname);
+    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes)?$/.test(url.pathname) ||
+    /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname) ||
+    /^\/dishes\/[\w-]+$/.test(url.pathname);
   if (!isSellerRoute) return false;
   if (!accounts.has(token)) {
     problem(response, 401, "IDENTITY_SESSION_INVALID");
@@ -483,6 +523,74 @@ async function sellerRoutes(request, response, url) {
       largePath: "/photos/ph-upload/1600.jpg",
       smallPath: "/photos/ph-upload/400.jpg",
     });
+    return true;
+  }
+  const catalog = /^\/sellers\/([\w-]+)\/dishes$/.exec(url.pathname);
+  if (catalog) {
+    const seller = mine.find((candidate) => candidate.id === catalog[1]);
+    if (!seller) {
+      problem(response, 404, "SELLER_NOT_FOUND");
+    } else if (request.method === "GET") {
+      json(response, 200, { dishes: dishesFor(seller) });
+    } else if (request.method === "POST") {
+      const body = await readBody(request);
+      const dishes = dishesFor(seller);
+      if (!String(body.name ?? "").trim()) {
+        problem(response, 422, "OFFER_DETAILS_INVALID");
+      } else if (dishes.length >= 100) {
+        problem(response, 409, "OFFER_DISH_LIMIT_REACHED");
+      } else {
+        const now = new Date().toISOString();
+        const dish = {
+          id: `di-new-${dishes.length + 1}-${seller.id}`,
+          sellerId: seller.id,
+          name: body.name.trim(),
+          kind: body.kind,
+          unit: body.unit || "suất",
+          description: body.description ?? "",
+          ingredients: body.ingredients ?? "",
+          ...(body.originalPriceVnd ? { originalPriceVnd: body.originalPriceVnd } : {}),
+          photo: {
+            id: body.photoId,
+            largePath: `/photos/${body.photoId}/1600.jpg`,
+            smallPath: `/photos/${body.photoId}/400.jpg`,
+          },
+          hidden: Boolean(body.hidden),
+          createdAt: now,
+          updatedAt: now,
+        };
+        dishes.unshift(dish);
+        json(response, 201, dish);
+      }
+    }
+    return true;
+  }
+  const dishRoute = /^\/dishes\/([\w-]+)$/.exec(url.pathname);
+  if (dishRoute) {
+    const own = mine.find((store) => dishesFor(store).some((d) => d.id === dishRoute[1]));
+    if (!own) {
+      problem(response, 404, "OFFER_DISH_NOT_FOUND");
+      return true;
+    }
+    const dishes = dishesFor(own);
+    const dish = dishes.find((d) => d.id === dishRoute[1]);
+    if (request.method === "DELETE") {
+      dishes.splice(dishes.indexOf(dish), 1);
+      response.writeHead(204).end();
+    } else if (request.method === "PATCH") {
+      const { photoId, ...body } = await readBody(request);
+      Object.assign(dish, body, { updatedAt: new Date().toISOString() });
+      // 0 takes the original price away.
+      if (body.originalPriceVnd === 0) delete dish.originalPriceVnd;
+      if (photoId) {
+        dish.photo = {
+          id: photoId,
+          largePath: `/photos/${photoId}/1600.jpg`,
+          smallPath: `/photos/${photoId}/400.jpg`,
+        };
+      }
+      json(response, 200, dish);
+    }
     return true;
   }
   const one = /^\/sellers\/([\w-]+)(\/offers)?$/.exec(url.pathname);

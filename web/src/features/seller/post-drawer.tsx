@@ -19,6 +19,8 @@ import { changeOffer, postOffer, uploadPhoto, type OfferBody } from "@/lib/api/g
 import { cn } from "@/lib/utils";
 
 import { Chip } from "./chip";
+import { useRemountKey } from "./remount-key";
+import { NumberInput } from "./number-input";
 import {
   clock,
   type Dish,
@@ -30,6 +32,7 @@ import {
   MIN_DISCOUNT_PERCENT,
   MIN_WINDOW_MINUTES,
   priceProblem,
+  suggestedPrice,
   type Start,
   windowIsOver,
   windowOf,
@@ -87,23 +90,34 @@ function currentTime(): Date {
   return new Date();
 }
 
-const digits = (value: string) => value.replace(/\D/g, "");
+/** The price a post starts from, as the form holds it: the suggested one for an original price, or empty. */
+function startingPrice(original: number | undefined): string {
+  const suggested = original ? suggestedPrice(original) : undefined;
+  return suggested ? String(suggested) : "";
+}
+
 const grouped = new Intl.NumberFormat("vi-VN");
-const shown = (value: string) => (value ? grouped.format(Number(value)) : "");
 
 // The drawer that posts a dish (SEC-57, Figma P1 to P3, P2b, P3b, P3e, R1): the kind of post, the dish, then how
 // it sells. Posting again from a closed post (`again`) starts at the last step with that dish filled in.
 // "Báo trước dự kiến dư" (Figma P4) is shown as coming, and the dish step offers the store's earlier dishes
 // instead of the catalog, until SEC-54 and SEC-55 give the backend what those need.
-export function PostDrawer({
+function PostDrawerBody({
   sellerId,
   dishes,
+  catalog,
   again,
+  fromDish,
   edit,
 }: {
   sellerId: string;
+  /** The dishes of the store's earlier posts. */
   dishes: Dish[];
+  /** The dishes of its catalog that are shown. */
+  catalog: Dish[];
   again?: Dish;
+  /** A dish of the catalog posted straight from its row (Figma D1): the drawer starts at the last step. */
+  fromDish?: Dish;
   /** A live post being changed (Figma E1, E2): the drawer starts at the last step, with its details. */
   edit?: EditTarget;
 }) {
@@ -113,14 +127,14 @@ export function PostDrawer({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [now] = useState(currentTime);
-  const base = edit?.dish ?? again;
+  const base = edit?.dish ?? again ?? fromDish;
   const ordered = edit?.ordered ?? 0;
   // Once units are ordered the price and the hours stay as they were: the backend takes only more units.
   const locked = ordered > 0;
 
   const [step, setStep] = useState<1 | 2 | 3>(base ? 3 : 1);
-  const [source, setSource] = useState<"earlier" | "oneoff">(
-    dishes.length > 0 ? "earlier" : "oneoff",
+  const [source, setSource] = useState<"catalog" | "earlier" | "oneoff">(
+    catalog.length > 0 ? "catalog" : dishes.length > 0 ? "earlier" : "oneoff",
   );
   const [chosen, setChosen] = useState<Dish | undefined>(base);
   const [photo, setPhoto] = useState<File>();
@@ -128,9 +142,15 @@ export function PostDrawer({
   const [name, setName] = useState("");
   const [kind, setKind] = useState<OfferBody["kind"]>("bakery");
   const [description, setDescription] = useState("");
-  const [units, setUnits] = useState(base ? String(base.units) : "");
-  const [original, setOriginal] = useState(base ? String(base.originalPriceVnd) : "");
-  const [price, setPrice] = useState(base ? String(base.priceVnd) : "");
+  const [units, setUnits] = useState(base?.units ? String(base.units) : "");
+  const [original, setOriginal] = useState(
+    base?.originalPriceVnd ? String(base.originalPriceVnd) : "",
+  );
+  const [price, setPrice] = useState(
+    base?.priceVnd ? String(base.priceVnd) : startingPrice(base?.originalPriceVnd),
+  );
+  // Until the person types a price, the one the platform's minimum discount allows follows the original price.
+  const [priceTouched, setPriceTouched] = useState(Boolean(base?.priceVnd) || Boolean(edit));
   const [startKey, setStartKey] = useState<StartKey>("usual");
   const [customStart, setCustomStart] = useState(DEFAULT_USUAL);
   const [length, setLength] = useState<number | "custom">(
@@ -150,6 +170,7 @@ export function PostDrawer({
   const [problem, setProblem] = useState<Problem>();
 
   const usual = chosen?.usual ?? dishes[0]?.usual ?? DEFAULT_USUAL;
+  const listed = source === "catalog" ? catalog : dishes;
   const start: Start =
     startKey === "now"
       ? { kind: "now" }
@@ -176,14 +197,15 @@ export function PostDrawer({
   const dishName = chosen?.name ?? name.trim();
   const dishKind = chosen?.kind ?? kind;
   const dishReady =
-    source === "earlier"
+    source !== "oneoff"
       ? chosen !== undefined
       : name.trim() !== "" &&
         photo !== undefined &&
         (kind !== "mixed_box" || description.trim() !== "");
 
   function close() {
-    router.push(`/stores/${sellerId}/offers`);
+    // Posted from the catalog, a closed drawer leaves the person where they were.
+    router.push(`/stores/${sellerId}/${fromDish ? "catalog" : "offers"}`);
   }
 
   function choosePhoto(file: File | undefined) {
@@ -308,28 +330,49 @@ export function PostDrawer({
           {step === 2 && (
             <>
               <div className="flex gap-2">
-                <Chip selected={source === "earlier"} onClick={() => setSource("earlier")}>
+                <Chip
+                  selected={source === "catalog"}
+                  onClick={() => {
+                    setSource("catalog");
+                    setChosen(undefined);
+                  }}
+                >
+                  {t("sourceCatalog")}
+                </Chip>
+                <Chip
+                  selected={source === "earlier"}
+                  onClick={() => {
+                    setSource("earlier");
+                    setChosen(undefined);
+                  }}
+                >
                   {t("sourceEarlier")}
                 </Chip>
-                <Chip selected={source === "oneoff"} onClick={() => setSource("oneoff")}>
+                <Chip
+                  selected={source === "oneoff"}
+                  onClick={() => {
+                    setSource("oneoff");
+                    setChosen(undefined);
+                  }}
+                >
                   {t("sourceOneOff")}
                 </Chip>
               </div>
 
-              {source === "earlier" ? (
+              {source !== "oneoff" ? (
                 <section aria-labelledby="post-dishes" className="flex flex-col">
                   <h3 id="post-dishes" className="pb-2 text-title">
                     {t("chooseDish")}
                   </h3>
-                  {dishes.length === 0 ? (
+                  {listed.length === 0 ? (
                     <p className="border-t border-border pt-3 text-body-sm text-muted-foreground">
-                      {t("noDishes")}
+                      {source === "catalog" ? t("noCatalog") : t("noDishes")}
                     </p>
                   ) : (
                     <ul className="flex flex-col border-t border-border">
-                      {dishes.map((dish) => (
+                      {listed.map((dish) => (
                         <li
-                          key={dish.name}
+                          key={dish.id}
                           className="flex items-center gap-4 border-b border-border py-3 last:border-b-0"
                         >
                           <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -343,23 +386,30 @@ export function PostDrawer({
                             />
                           </span>
                           <span className="flex min-w-0 flex-1 flex-col">
-                            <span className="truncate text-title">{dish.name}</span>
+                            <span className="truncate text-title-lg">{dish.name}</span>
                             <span className="text-body-sm text-muted-foreground">
                               {kindName(dish.kind)} · {dish.unit}
                             </span>
                           </span>
                           <Button
                             type="button"
-                            variant={chosen?.name === dish.name ? "default" : "outline"}
-                            aria-pressed={chosen?.name === dish.name}
+                            variant={chosen?.id === dish.id ? "default" : "outline"}
+                            aria-pressed={chosen?.id === dish.id}
                             onClick={() => {
                               setChosen(dish);
-                              setUnits(String(dish.units));
-                              setOriginal(String(dish.originalPriceVnd));
-                              setPrice(String(dish.priceVnd));
+                              setUnits(dish.units ? String(dish.units) : "");
+                              setOriginal(
+                                dish.originalPriceVnd ? String(dish.originalPriceVnd) : "",
+                              );
+                              setPrice(
+                                dish.priceVnd
+                                  ? String(dish.priceVnd)
+                                  : startingPrice(dish.originalPriceVnd),
+                              );
+                              setPriceTouched(Boolean(dish.priceVnd));
                             }}
                           >
-                            {chosen?.name === dish.name ? t("chosen") : t("choose")}
+                            {chosen?.id === dish.id ? t("chosen") : t("choose")}
                           </Button>
                         </li>
                       ))}
@@ -384,10 +434,10 @@ export function PostDrawer({
                           className="size-16 rounded-lg object-cover"
                         />
                       )}
-                      <span className="text-label-strong text-link">
+                      <span className="text-body-sm-strong text-link">
                         {photo ? photo.name : t("choosePhoto")}
                       </span>
-                      <span className="text-label text-muted-foreground">{t("photoHint")}</span>
+                      <span className="text-note text-muted-foreground">{t("photoHint")}</span>
                       <input
                         id="dish-photo"
                         type="file"
@@ -435,7 +485,7 @@ export function PostDrawer({
 
           {step === 3 && (
             <>
-              <h3 className="border-b border-border pb-3 text-title">
+              <h3 className="border-b border-border pb-3 text-title-lg">
                 {edit ? t("editQuestion") : again ? t("againQuestion") : t("sellQuestion")}
               </h3>
               <div className="flex items-center gap-4">
@@ -452,7 +502,7 @@ export function PostDrawer({
                   )}
                 </span>
                 <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-title">{dishName}</span>
+                  <span className="truncate text-title-lg">{dishName}</span>
                   <span className="text-body-sm text-muted-foreground">
                     {chosen
                       ? `${kindName(chosen.kind)} · ${chosen.unit}`
@@ -464,33 +514,39 @@ export function PostDrawer({
               <div className="grid grid-cols-3 gap-3">
                 <Field data-invalid={(tried && !unitsValid) || undefined}>
                   <FieldLabel htmlFor="post-units">{t("units")}</FieldLabel>
-                  <Input
+                  <NumberInput
                     id="post-units"
-                    inputMode="numeric"
                     value={units}
-                    onChange={(event) => setUnits(digits(event.target.value).slice(0, 3))}
+                    max={3}
+                    onValueChange={setUnits}
                     aria-invalid={(tried && !unitsValid) || undefined}
                     aria-describedby={ordered > 0 ? "post-units-note" : undefined}
                   />
                 </Field>
                 <Field data-invalid={(tried && priceIssue === "missing" && !original) || undefined}>
                   <FieldLabel htmlFor="post-original">{t("original")}</FieldLabel>
-                  <Input
+                  <NumberInput
                     id="post-original"
-                    inputMode="numeric"
-                    value={shown(original)}
+                    value={original}
+                    grouped
                     disabled={locked}
-                    onChange={(event) => setOriginal(digits(event.target.value).slice(0, 9))}
+                    onValueChange={(next) => {
+                      setOriginal(next);
+                      if (!priceTouched) setPrice(startingPrice(Number(next)));
+                    }}
                   />
                 </Field>
                 <Field data-invalid={showPriceError || undefined}>
                   <FieldLabel htmlFor="post-price">{t("price")}</FieldLabel>
-                  <Input
+                  <NumberInput
                     id="post-price"
-                    inputMode="numeric"
-                    value={shown(price)}
+                    value={price}
+                    grouped
                     disabled={locked}
-                    onChange={(event) => setPrice(digits(event.target.value).slice(0, 9))}
+                    onValueChange={(next) => {
+                      setPrice(next);
+                      setPriceTouched(true);
+                    }}
                     aria-invalid={showPriceError || undefined}
                     aria-describedby="post-price-note"
                   />
@@ -502,7 +558,7 @@ export function PostDrawer({
                 </FieldError>
               )}
               {locked ? (
-                <p id="post-price-note" className="-mt-2 text-label text-muted-foreground">
+                <p id="post-price-note" className="-mt-2 text-note text-muted-foreground">
                   {t("editLocked", { count: ordered })}
                 </p>
               ) : showPriceError && priceIssue === "tooHigh" ? (
@@ -515,7 +571,7 @@ export function PostDrawer({
               ) : showPriceError ? (
                 <FieldError id="post-price-note">{t("priceMissing")}</FieldError>
               ) : (
-                <p id="post-price-note" className="-mt-2 text-label text-muted-foreground">
+                <p id="post-price-note" className="-mt-2 text-note text-muted-foreground">
                   {edit && !priceIssue ? `${t("editFree")} ` : ""}
                   {priceIssue
                     ? t("discountHint", { min: MIN_DISCOUNT_PERCENT })
@@ -529,10 +585,14 @@ export function PostDrawer({
               <fieldset disabled={locked} className="flex flex-col gap-2">
                 <legend className="mb-2 text-title">{t("startQuestion")}</legend>
                 <div className="-my-1 flex flex-wrap gap-x-2">
-                  <Chip selected={startKey === "usual"} onClick={() => setStartKey("usual")}>
+                  <Chip
+                    size="lg"
+                    selected={startKey === "usual"}
+                    onClick={() => setStartKey("usual")}
+                  >
                     {t("usual", { time: clock(usual.hour, usual.minute) })}
                   </Chip>
-                  <Chip selected={startKey === "now"} onClick={() => setStartKey("now")}>
+                  <Chip size="lg" selected={startKey === "now"} onClick={() => setStartKey("now")}>
                     {t("now")}
                   </Chip>
                   {FIXED_STARTS.filter(
@@ -540,12 +600,21 @@ export function PostDrawer({
                   ).map((fixed) => {
                     const key = `${fixed.hour}:${fixed.minute}` as const;
                     return (
-                      <Chip key={key} selected={startKey === key} onClick={() => setStartKey(key)}>
+                      <Chip
+                        size="lg"
+                        key={key}
+                        selected={startKey === key}
+                        onClick={() => setStartKey(key)}
+                      >
                         {clock(fixed.hour, fixed.minute)}
                       </Chip>
                     );
                   })}
-                  <Chip selected={startKey === "custom"} onClick={() => setStartKey("custom")}>
+                  <Chip
+                    size="lg"
+                    selected={startKey === "custom"}
+                    onClick={() => setStartKey("custom")}
+                  >
                     {t("otherTime")}
                   </Chip>
                 </div>
@@ -586,11 +655,20 @@ export function PostDrawer({
                 <legend className="mb-2 text-title">{t("lengthQuestion")}</legend>
                 <div className="-my-1 flex flex-wrap gap-x-2">
                   {LENGTHS.map((value) => (
-                    <Chip key={value} selected={length === value} onClick={() => setLength(value)}>
+                    <Chip
+                      size="lg"
+                      key={value}
+                      selected={length === value}
+                      onClick={() => setLength(value)}
+                    >
                       {t(`length.${value}`)}
                     </Chip>
                   ))}
-                  <Chip selected={length === "custom"} onClick={() => setLength("custom")}>
+                  <Chip
+                    size="lg"
+                    selected={length === "custom"}
+                    onClick={() => setLength("custom")}
+                  >
                     {t("otherLength")}
                   </Chip>
                 </div>
@@ -614,7 +692,7 @@ export function PostDrawer({
 
               <output
                 className={cn(
-                  "rounded-xl px-4 py-3 text-title",
+                  "rounded-xl px-4 py-3 text-title-lg",
                   over
                     ? "border border-warning-border bg-warning text-warning-foreground"
                     : "bg-secondary text-secondary-foreground",
@@ -672,7 +750,7 @@ export function PostDrawer({
                     ? locked
                       ? close
                       : () => router.push(`/stores/${sellerId}/offers/${edit.offerId}/withdraw`)
-                    : again
+                    : again || fromDish
                       ? close
                       : () => setStep(2)
                 }
@@ -689,4 +767,10 @@ export function PostDrawer({
       </SheetContent>
     </Sheet>
   );
+}
+
+// The drawer starts again from its first step each time it is opened: once a dish is posted, the next "Đăng món"
+// does not find the last one's answers (the page that held it is kept hidden, with its state).
+export function PostDrawer(props: React.ComponentProps<typeof PostDrawerBody>) {
+  return <PostDrawerBody key={useRemountKey()} {...props} />;
 }

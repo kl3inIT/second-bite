@@ -30,14 +30,18 @@ export function StoreNav({ sellerId }: { sellerId: string }) {
               <Link
                 href={href}
                 aria-current={open ? "page" : undefined}
-                className={cn(
-                  "flex min-h-11 items-center rounded-full px-4 text-label-strong whitespace-nowrap transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
-                  open
-                    ? "bg-card text-primary"
-                    : "text-header-foreground hover:bg-header-raised/20",
-                )}
+                className="group/tab flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
               >
-                {t(key)}
+                <span
+                  className={cn(
+                    "flex h-9 items-center rounded-full px-4 text-body-sm-strong whitespace-nowrap transition-colors",
+                    open
+                      ? "bg-card text-primary"
+                      : "text-header-foreground group-hover/tab:bg-header-raised/20",
+                  )}
+                >
+                  {t(key)}
+                </span>
               </Link>
             </li>
           );

@@ -59,7 +59,7 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
         </SheetHeader>
 
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 pb-4">
-          <h3 className="border-b border-border pb-3 text-title">{t("question")}</h3>
+          <h3 className="border-b border-border pb-3 text-title-lg">{t("question")}</h3>
           <div className="flex items-center gap-4">
             <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
               <Image
@@ -72,16 +72,16 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
               />
             </span>
             <span className="flex min-w-0 flex-col">
-              <span className="truncate text-title">{dish.name}</span>
+              <span className="truncate text-title-lg">{dish.name}</span>
               <span className="text-body-sm text-muted-foreground">
                 {kindName(dish.kind)} · {dish.unit}
               </span>
             </span>
           </div>
-          <p className="text-label text-muted-foreground">
+          <p className="text-note text-muted-foreground">
             {blocked ? t("blocked", { count: ordered }) : t("explain")}
           </p>
-          <output className="rounded-xl bg-secondary px-4 py-3 text-title text-secondary-foreground">
+          <output className="rounded-xl bg-secondary px-4 py-3 text-title-lg text-secondary-foreground">
             {blocked ? t("blockedNote", { count: ordered }) : t("keptNote")}
           </output>
           {failed && (

@@ -8,6 +8,7 @@ import {
   dishesOf,
   lengthIsAllowed,
   maxPrice,
+  suggestedPrice,
   priceProblem,
   windowIsOver,
   windowOf,
@@ -18,6 +19,17 @@ describe("the price of a post", () => {
     expect(maxPrice(95_000)).toBe(76_000);
     expect(priceProblem(95_000, 76_000)).toBeUndefined();
     expect(priceProblem(95_000, 80_000)).toBe("tooHigh");
+  });
+
+  it("suggests the dearest whole-hundred price within the minimum discount", () => {
+    expect(suggestedPrice(95_000)).toBe(76_000);
+    expect(suggestedPrice(30_000)).toBe(24_000);
+    expect(suggestedPrice(9_990)).toBe(7_900);
+    expect(discountPercent(9_990, 7_900)).toBe(20);
+    expect(suggestedPrice(1_500)).toBe(1_200);
+    expect(suggestedPrice(1_200)).toBeUndefined();
+    expect(suggestedPrice(Number.NaN)).toBeUndefined();
+    expect(priceProblem(95_000, suggestedPrice(95_000) ?? 0)).toBeUndefined();
   });
 
   it("asks for both prices, each at least 1.000đ", () => {

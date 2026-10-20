@@ -4,7 +4,9 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 
 import {
+  type DishBody,
   getSeller,
+  listDishes,
   listMySellers,
   listSellerOffers,
   type OfferBody,
@@ -45,4 +47,10 @@ export const getStoreOffers = cache(async (sellerId: string): Promise<OfferBody[
     headers: await sessionHeaders(),
   });
   return data.offers ?? [];
+});
+
+/** A store's catalog, the newest dish first, hidden ones included. */
+export const getStoreDishes = cache(async (sellerId: string): Promise<DishBody[]> => {
+  const { data } = await listDishes({ path: { sellerId }, headers: await sessionHeaders() });
+  return data.dishes;
 });

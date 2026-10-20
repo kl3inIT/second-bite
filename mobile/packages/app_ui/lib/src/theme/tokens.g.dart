@@ -130,6 +130,26 @@ abstract final class TypeTokens {
     letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
+  static const cardTitle = TextStyle(
+    fontFamily: 'Be Vietnam Pro',
+    package: 'app_ui',
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    fontVariations: [FontVariation('wght', 600)],
+    height: 25 / 18,
+    letterSpacing: 0,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
+  static const note = TextStyle(
+    fontFamily: 'Be Vietnam Pro',
+    package: 'app_ui',
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    fontVariations: [FontVariation('wght', 400)],
+    height: 19 / 13,
+    letterSpacing: 0,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
   static const button = TextStyle(
     fontFamily: 'Be Vietnam Pro',
     package: 'app_ui',

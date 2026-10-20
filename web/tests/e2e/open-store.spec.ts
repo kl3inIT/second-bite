@@ -348,3 +348,141 @@ test.describe("changing a post on the web", () => {
     await expectNoSeriousA11yViolations(page);
   });
 });
+
+// SEC-55 › The catalog (Figma Q3, Q3b, Q3c, C1, C2, D1, and the dish step of P2).
+test.describe("the catalog on the web", () => {
+  async function catalogStore(page: Page, who: string, testInfo: { project: { name: string } }) {
+    await signIn(page, `${who}.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByLabel("Tên quán"))).fill("Tiệm danh mục");
+    await page.getByLabel("Số điện thoại").fill("0912345678");
+    await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await page.getByRole("button", { name: "Tạo quán" }).click();
+    await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
+    return page.url().split("/").pop() ?? "";
+  }
+
+  const row = (page: Page, text: RegExp | string) =>
+    page.getByRole("listitem").filter({ hasText: text });
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    "base64",
+  );
+
+  test("lists the dishes, a hidden one dimmed", async ({ page }, testInfo) => {
+    const store = await catalogStore(page, "dao", testInfo);
+    await page.goto(`/vi/stores/${store}/catalog`);
+    await expect(page.getByRole("heading", { level: 1, name: "Danh mục" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "3 món" })).toBeVisible();
+    await expect(row(page, /Túi bánh mì và croissant, 4 chiếc/)).toContainText("Bánh · 1 túi");
+    await expect(row(page, /Cơm sườn nướng/)).toContainText("Món chín · 1 suất · Đang ẩn");
+    await expect(
+      row(page, /Cơm sườn nướng/).getByRole("button", { name: "Hiện lại" }),
+    ).toBeVisible();
+    await expect(row(page, /Xôi thập cẩm/).getByRole("link", { name: "Đăng ngay" })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  test("adds a dish, a mixed box needing what it holds", async ({ page }, testInfo) => {
+    const store = await catalogStore(page, "hanh", testInfo);
+    await page.goto(`/vi/stores/${store}/catalog`);
+    await page.getByRole("link", { name: "Thêm món" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Thêm món" })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await (await hydrated(page.getByLabel("Tên món"))).fill("Hộp bánh cuối ngày");
+    await page.getByRole("button", { name: "Hộp tổng hợp" }).click();
+    await page.getByRole("button", { name: "Lưu món" }).click();
+    await expect(page.getByText("Chọn một ảnh cho món.")).toBeVisible();
+    await expect(page.getByText(/Hộp tổng hợp cần nói hộp gồm những gì/)).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await page
+      .getByLabel("Ảnh món")
+      .setInputFiles({ name: "hop.png", mimeType: "image/png", buffer: png });
+    await page.getByLabel("Mô tả").fill("Bánh mì và bánh ngọt, có trứng");
+    await page.getByRole("button", { name: "Lưu món" }).click();
+    await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { level: 2, name: "4 món" })).toBeVisible();
+    await expect(row(page, /Hộp bánh cuối ngày/)).toContainText("Hộp tổng hợp · 1 suất");
+  });
+
+  test("changes a dish, shows a hidden one again, and deletes one after asking", async ({
+    page,
+  }, testInfo) => {
+    const store = await catalogStore(page, "kiet", testInfo);
+    await page.goto(`/vi/stores/${store}/catalog`);
+    await row(page, /Xôi thập cẩm/)
+      .getByRole("link", { name: "Sửa" })
+      .click();
+    await expect(page.getByRole("heading", { level: 1, name: "Sửa món" })).toBeVisible();
+    await expect(page.getByLabel("Tên món")).toHaveValue("Xôi thập cẩm, 1 hộp");
+    await expectNoSeriousA11yViolations(page);
+    await (await hydrated(page.getByLabel("Tên món"))).fill("Xôi thập cẩm lớn");
+    await page.getByRole("button", { name: "Lưu thay đổi" }).click();
+    await expect(row(page, /Xôi thập cẩm lớn/)).toBeVisible({ timeout: 15_000 });
+
+    await row(page, /Cơm sườn nướng/)
+      .getByRole("button", { name: "Hiện lại" })
+      .click();
+    await expect(row(page, /Cơm sườn nướng/).getByRole("link", { name: "Đăng ngay" })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await row(page, /Cơm sườn nướng/)
+      .getByRole("link", { name: "Sửa" })
+      .click();
+    await (await hydrated(page.getByRole("button", { name: "Xoá món" }))).click();
+    const dialog = page.getByRole("alertdialog");
+    await expect(dialog.getByText("Xoá món này?")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+    await dialog.getByRole("button", { name: "Giữ lại" }).click();
+    await expect(dialog).toHaveCount(0);
+    await page.getByRole("button", { name: "Xoá món" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Xoá món" }).click();
+    await expect(page.getByRole("heading", { level: 2, name: "2 món" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(row(page, /Cơm sườn nướng/)).toHaveCount(0);
+  });
+
+  test("posts a dish from its row, and picks one from the catalog in the drawer", async ({
+    page,
+  }, testInfo) => {
+    const store = await catalogStore(page, "loc", testInfo);
+    await page.goto(`/vi/stores/${store}/catalog`);
+    await row(page, /Túi bánh mì và croissant/)
+      .getByRole("link", { name: "Đăng ngay" })
+      .click();
+
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByText("Bước 3 / 3")).toBeVisible();
+    await expect(drawer.getByText("Túi bánh mì và croissant, 4 chiếc")).toBeVisible();
+    // The dish brings its original price, and the price starts at the most the minimum discount allows.
+    await expect(drawer.getByLabel("Giá gốc (đồng)")).toHaveValue("95.000");
+    await expect(drawer.getByLabel("Giá bán (đồng)")).toHaveValue("76.000");
+    await expectNoSeriousA11yViolations(page);
+    await drawer.getByLabel("Số lượng").fill("3");
+    await drawer.getByLabel("Giá bán (đồng)").fill("57000");
+    await drawer.getByRole("button", { name: "Ngay bây giờ" }).click();
+    await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
+    await expect(page.getByText("Đã đăng 3 suất. Khách đặt được ngay.")).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await page.goto(`/vi/stores/${store}/offers/new`);
+    const step = page.getByRole("dialog");
+    await step.getByRole("button", { name: "Tiếp tục" }).click();
+    await expect(step.getByRole("button", { name: "Từ danh mục" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(row(page, /Cơm sườn nướng/)).toHaveCount(0);
+    await row(page, /Xôi thập cẩm/)
+      .getByRole("button", { name: "Chọn" })
+      .click();
+    await expectNoSeriousA11yViolations(page);
+    await step.getByRole("button", { name: "Tiếp tục" }).click();
+    await expect(step.getByText("Xôi thập cẩm, 1 hộp")).toBeVisible();
+    await expect(step.getByText("Món chín · hộp")).toBeVisible();
+  });
+});

@@ -1,4 +1,4 @@
-import type { OfferBody } from "@/lib/api/generated";
+import type { DishBody, OfferBody } from "@/lib/api/generated";
 
 // What posting a dish asks of the person (SEC-57, Figma P3, P3e): the price against the original price, and the
 // hour the dish is ready and how long customers have to collect it. The backend decides in the end
@@ -12,6 +12,17 @@ export const MAX_WINDOW_MINUTES = 360;
 /** The dearest price that is still the minimum discount below the original price. */
 export function maxPrice(original: number, minDiscountPercent = MIN_DISCOUNT_PERCENT): number {
   return Math.floor((original * (100 - minDiscountPercent)) / 100);
+}
+
+/**
+ * The price a post starts from once the original price is known: the dearest one that keeps the minimum
+ * discount, in whole hundreds of đồng (76.000đ for 95.000đ, 7.900đ for 9.990đ, which is 20% off, not 29%); nothing
+ * while no price of at least 1.000đ keeps the discount.
+ */
+export function suggestedPrice(original: number): number | undefined {
+  if (!Number.isFinite(original)) return undefined;
+  const price = Math.floor(maxPrice(original) / 100) * 100;
+  return price >= 1000 ? price : undefined;
 }
 
 /** The discount of a price, in whole percent, rounded down. */
@@ -65,17 +76,20 @@ export function lengthIsAllowed(minutes: number): boolean {
 
 /** A dish a store has posted before, with what it was posted with: the next post starts from it. */
 export type Dish = {
+  /** Which post or catalog dish it comes from, to tell dishes of the same name apart. */
+  id: string;
   name: string;
   kind: OfferBody["kind"];
   description: string;
   unit: string;
-  units: number;
-  originalPriceVnd: number;
-  priceVnd: number;
+  /** What the last post of it had; a catalog dish has none, so the post form starts empty. */
+  units?: number;
+  originalPriceVnd?: number;
+  priceVnd?: number;
   photoId: string;
   photoPath: string;
   /** The hour of day it was last put on sale, "the usual time" of Figma P3. */
-  usual: { hour: number; minute: number };
+  usual?: { hour: number; minute: number };
 };
 
 const hourInVietnam = new Intl.DateTimeFormat("en-GB", {
@@ -89,6 +103,7 @@ export function dishOf(offer: OfferBody): Dish {
   const parts = hourInVietnam.formatToParts(new Date(offer.windowStart));
   const part = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
   return {
+    id: offer.id,
     name: offer.name,
     kind: offer.kind,
     description: offer.description,
@@ -139,5 +154,24 @@ export function editTargetOf(offer: OfferBody): EditTarget | undefined {
     ordered: orderedOf(offer),
     minutes: Math.round((Date.parse(offer.windowEnd) - Date.parse(offer.windowStart)) / 60_000),
     dish: dishOf(offer),
+  };
+}
+
+/** What a post says of a dish from the catalog: its description, then its ingredients and allergens (at most 1,000 characters). */
+function describeDish(dish: DishBody): string {
+  return [dish.description, dish.ingredients].filter(Boolean).join(". ").slice(0, 1000);
+}
+
+/** A dish of the catalog as the post form starts from it: its base, with no units, price or hours. */
+export function catalogDishOf(dish: DishBody): Dish {
+  return {
+    id: dish.id,
+    name: dish.name,
+    kind: dish.kind,
+    description: describeDish(dish),
+    unit: dish.unit,
+    originalPriceVnd: dish.originalPriceVnd,
+    photoId: dish.photo.id,
+    photoPath: dish.photo.smallPath,
   };
 }

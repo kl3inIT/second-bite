@@ -415,10 +415,6 @@
   },
   "StoreSoon": {
     "soon": "Sắp có",
-    "catalog": {
-      "title": "Danh mục",
-      "body": "Danh mục món của quán sẽ có ở bản sau."
-    },
     "orders": {
       "title": "Đơn",
       "body": "Đơn của khách sẽ hiện ở đây khi tính năng đặt món sẵn sàng."
@@ -499,7 +495,9 @@
     "editLocked": "Đã có {count} suất được đặt nên giá và giờ lấy giữ nguyên. Bạn sửa được số suất, không thấp hơn {count}.",
     "unitsBelowOrdered": "Số suất không được thấp hơn {count}, vì đã có {count} suất được đặt.",
     "withdraw": "Rút bài",
-    "save": "Lưu thay đổi"
+    "save": "Lưu thay đổi",
+    "sourceCatalog": "Từ danh mục",
+    "noCatalog": "Danh mục chưa có món nào đang hiện. Thêm món ở tab Danh mục."
   },
   "WithdrawDrawer": {
     "title": "Rút bài",
@@ -514,5 +512,53 @@
     "toOrders": "Đến tab Đơn",
     "failed": "Chưa rút được. Thử lại sau ít phút.",
     "reference": "Mã tham chiếu: {id}"
+  },
+  "StoreCatalog": {
+    "title": "Danh mục",
+    "add": "Thêm món",
+    "count": "{count} món",
+    "emptyTitle": "Món trong danh mục",
+    "empty": "Chưa có món nào. Thêm món quán thường bán để đăng nhanh hơn.",
+    "edit": "Sửa",
+    "postNow": "Đăng ngay",
+    "show": "Hiện lại",
+    "hidden": "Đang ẩn",
+    "notice": {
+      "saved": "Đã lưu món.",
+      "deleted": "Đã xoá món khỏi danh mục.",
+      "shown": "Món đã hiện lại."
+    }
+  },
+  "DishForm": {
+    "addTitle": "Thêm món",
+    "editTitle": "Sửa món",
+    "photo": "Ảnh món",
+    "choosePhoto": "Chọn ảnh từ máy",
+    "photoHint": "Một ảnh giúp khách nhận ra món của bạn.",
+    "photoMissing": "Chọn một ảnh cho món.",
+    "name": "Tên món",
+    "namePlaceholder": "Ví dụ: Túi bánh mì và croissant, 4 chiếc",
+    "nameMissing": "Nhập tên món.",
+    "kind": "Loại",
+    "unit": "Đơn vị",
+    "description": "Mô tả (tùy chọn)",
+    "descriptionRequired": "Mô tả",
+    "descriptionPlaceholder": "Ví dụ: Món thay đổi theo ngày. Mỗi túi khoảng 1 kg.",
+    "descriptionMissing": "Hộp tổng hợp cần nói hộp gồm những gì: nhập mô tả hoặc thành phần.",
+    "ingredients": "Thành phần và dị ứng (tùy chọn)",
+    "ingredientsPlaceholder": "Ví dụ: bột mì, trứng, sữa. Có thể chứa gluten, hạt.",
+    "cancel": "Hủy",
+    "save": "Lưu món",
+    "saveChanges": "Lưu thay đổi",
+    "delete": "Xoá món",
+    "deleteTitle": "Xoá món này?",
+    "deleteBody": "Món sẽ bị xoá khỏi danh mục. Các bài đã đăng trước đó không bị ảnh hưởng.",
+    "keep": "Giữ lại",
+    "limit": "Danh mục đã có 100 món. Xoá bớt một món trước khi thêm.",
+    "failed": "Chưa lưu được món. Thử lại sau ít phút.",
+    "reference": "Mã tham chiếu: {id}",
+    "original": "Giá gốc (đồng, tùy chọn)",
+    "originalPlaceholder": "Ví dụ: 95.000",
+    "originalInvalid": "Giá gốc từ 1.001đ trở lên, hoặc để trống."
   }
 }

@@ -82,6 +82,133 @@ components:
         - longitude
         - phone
       type: object
+    DishBody:
+      additionalProperties: false
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        description:
+          type: string
+        hidden:
+          type: boolean
+        id:
+          type: string
+        ingredients:
+          type: string
+        kind:
+          enum:
+            - bakery
+            - prepared_food
+            - ingredients
+            - drinks
+            - mixed_box
+            - other
+          type: string
+        name:
+          type: string
+        originalPriceVnd:
+          format: int64
+          type: integer
+        photo:
+          $ref: "#/components/schemas/OfferPhotoBody"
+        sellerId:
+          type: string
+        unit:
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - sellerId
+        - name
+        - kind
+        - unit
+        - description
+        - ingredients
+        - photo
+        - hidden
+        - createdAt
+        - updatedAt
+      type: object
+    DishChangeBody:
+      additionalProperties: false
+      properties:
+        description:
+          maxLength: 1000
+          type: string
+        hidden:
+          type: boolean
+        ingredients:
+          maxLength: 500
+          type: string
+        kind:
+          enum:
+            - bakery
+            - prepared_food
+            - ingredients
+            - drinks
+            - mixed_box
+            - other
+          type: string
+        name:
+          maxLength: 80
+          minLength: 1
+          type: string
+        originalPriceVnd:
+          format: int64
+          minimum: 0
+          type: integer
+        photoId:
+          type: string
+        unit:
+          maxLength: 20
+          type: string
+      type: object
+    DishDetailsBody:
+      additionalProperties: false
+      properties:
+        description:
+          maxLength: 1000
+          type: string
+        hidden:
+          description: Keeps the dish out of the list a post is picked from
+          type: boolean
+        ingredients:
+          description: What the dish is made of and may contain, allergens included
+          maxLength: 500
+          type: string
+        kind:
+          enum:
+            - bakery
+            - prepared_food
+            - ingredients
+            - drinks
+            - mixed_box
+            - other
+          type: string
+        name:
+          maxLength: 80
+          minLength: 1
+          type: string
+        originalPriceVnd:
+          description: What one unit normally sells for; a post starts from it
+          format: int64
+          minimum: 1001
+          type: integer
+        photoId:
+          description: From POST /photos, or a photo the seller already shows
+          type: string
+        unit:
+          description: What one unit is called; "suất" when empty
+          maxLength: 20
+          type: string
+      required:
+        - name
+        - kind
+        - photoId
+      type: object
     EmailSettingsBody:
       additionalProperties: false
       properties:
@@ -270,6 +397,16 @@ components:
           type: string
       required:
         - idToken
+      type: object
+    ListDishesResponse:
+      additionalProperties: false
+      properties:
+        dishes:
+          items:
+            $ref: "#/components/schemas/DishBody"
+          type: array
+      required:
+        - dishes
       type: object
     MemberBody:
       additionalProperties: false
@@ -1267,6 +1404,64 @@ paths:
       summary: Email a six-digit sign-in code
       tags:
         - Sign-in
+  /dishes/{dishId}:
+    delete:
+      description: The offers posted from it are not affected.
+      operationId: removeDish
+      parameters:
+        - in: path
+          name: dishId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Delete a dish from the catalog
+      tags:
+        - Catalog
+    patch:
+      operationId: changeDish
+      parameters:
+        - in: path
+          name: dishId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DishChangeBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DishBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Change a dish, or show or hide it
+      tags:
+        - Catalog
   /offers:
     get:
       description: Anyone may search. Offers sold out are included unless available is set; those withdrawn, over or of a blocked seller never are.
@@ -1681,6 +1876,69 @@ paths:
       summary: Change a seller's details; only its owner may
       tags:
         - Sellers
+  /sellers/{sellerId}/dishes:
+    get:
+      description: For the seller's owner and staff; customers see offers, never the catalog.
+      operationId: listDishes
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListDishesResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: A seller's catalog, the newest dish first, hidden ones included
+      tags:
+        - Catalog
+    post:
+      description: The stable base of a dish. A post copies it; a later change to the dish does not change a post.
+      operationId: addDish
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DishDetailsBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DishBody"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Add a dish to a seller's catalog
+      tags:
+        - Catalog
   /sellers/{sellerId}/members:
     get:
       operationId: listSellerMembers
