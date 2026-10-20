@@ -23,5 +23,31 @@
     "defaultRadiusKm": "Default radius",
     "maxRadiusKm": "Largest radius",
     "saved": "Saved. Applies to new posts."
+  },
+  "email": {
+    "provider": "Provider",
+    "smtp": "SMTP",
+    "brevo": "Brevo",
+    "using": "Using {provider}",
+    "notSet": "Not set up",
+    "sender": "Sender",
+    "senderAddress": "Sender address",
+    "senderName": "Sender name",
+    "server": "SMTP server",
+    "host": "Host",
+    "port": "Port",
+    "security": "Security",
+    "none": "No encryption",
+    "starttls": "STARTTLS",
+    "tls": "TLS",
+    "user": "User",
+    "password": "Password",
+    "kept": "Saved · leave empty to keep it",
+    "keySaved": "API key saved",
+    "keyMissing": "No API key yet",
+    "apiKey": "API key",
+    "notConfigured": "No email provider is set up, so no one can sign in with a code yet.",
+    "passwordLost": "Changing the server removes the saved password. Enter it again to stay connected.",
+    "saved": "Email settings saved."
   }
 }

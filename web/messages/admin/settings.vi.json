@@ -23,5 +23,31 @@
     "defaultRadiusKm": "Bán kính mặc định",
     "maxRadiusKm": "Bán kính tối đa",
     "saved": "Đã lưu. Áp dụng cho bài đăng mới."
+  },
+  "email": {
+    "provider": "Nhà cung cấp",
+    "smtp": "SMTP",
+    "brevo": "Brevo",
+    "using": "Đang dùng {provider}",
+    "notSet": "Chưa cấu hình",
+    "sender": "Người gửi",
+    "senderAddress": "Địa chỉ gửi",
+    "senderName": "Tên người gửi",
+    "server": "Máy chủ SMTP",
+    "host": "Host",
+    "port": "Port",
+    "security": "Bảo mật",
+    "none": "Không mã hoá",
+    "starttls": "STARTTLS",
+    "tls": "TLS",
+    "user": "User",
+    "password": "Mật khẩu",
+    "kept": "Đã lưu · để trống để giữ nguyên",
+    "keySaved": "API key đã lưu",
+    "keyMissing": "Chưa có API key",
+    "apiKey": "API key",
+    "notConfigured": "Chưa có nhà cung cấp email nên chưa ai đăng nhập được bằng mã.",
+    "passwordLost": "Đổi máy chủ sẽ xoá mật khẩu đã lưu. Nhập lại mật khẩu để giữ kết nối.",
+    "saved": "Đã lưu cài đặt email."
   }
 }
