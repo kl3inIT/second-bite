@@ -1,1 +1,60 @@
-{}
+{
+  "filters": {
+    "range": "Dates",
+    "seller": "Store",
+    "allSellers": "All {count} stores",
+    "export": "Export report"
+  },
+  "figures": {
+    "label": "Figures",
+    "noData": "No data yet",
+    "orders": "Held orders",
+    "portionsSaved": "Portions saved",
+    "kilogramsSaved": "Kilograms of food saved",
+    "noShowRate": "Customers who did not come",
+    "newAccounts": "New users"
+  },
+  "units": {
+    "orders": "{count, plural, one {order} other {orders}}",
+    "portions": "{count, plural, one {portion} other {portions}}",
+    "kilograms": "kg",
+    "people": "{count, plural, one {person} other {people}}"
+  },
+  "chart": {
+    "title": "Posts by week",
+    "posts": "{count, plural, one {# post} other {# posts}}",
+    "postsLong": "{count, plural, one {# post} other {# posts}}",
+    "days": "{from} – {to}",
+    "running": "{from} – {to} · under way",
+    "week": "Week",
+    "postsColumn": "Posts"
+  },
+  "table": {
+    "caption": "Report by store",
+    "seller": "Store",
+    "orders": "Orders",
+    "portionsSaved": "Portions saved",
+    "collectionRate": "Collected",
+    "revenue": "Taken at the counter (estimate)",
+    "empty": "No orders in this period yet",
+    "summary": "Showing {from}–{to} of {total} stores with orders"
+  },
+  "export": {
+    "title": "Export report",
+    "kind": "Data",
+    "kinds": {
+      "orders": "Held orders",
+      "sellers": "Stores",
+      "accounts": "Users"
+    },
+    "range": "Dates",
+    "rangeField": "From – to",
+    "format": "File format",
+    "formats": {
+      "xlsx": "Excel (.xlsx)",
+      "csv": "CSV (.csv)"
+    },
+    "download": "Download",
+    "soon": "Coming soon"
+  }
+}

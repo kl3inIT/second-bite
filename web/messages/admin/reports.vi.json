@@ -1,1 +1,60 @@
-{}
+{
+  "filters": {
+    "range": "Khoảng ngày",
+    "seller": "Cửa hàng",
+    "allSellers": "Tất cả {count} cửa hàng",
+    "export": "Xuất báo cáo"
+  },
+  "figures": {
+    "label": "Số liệu",
+    "noData": "Chưa có dữ liệu",
+    "orders": "Đơn giữ hàng",
+    "portionsSaved": "Phần ăn được cứu",
+    "kilogramsSaved": "Kg thực phẩm cứu được",
+    "noShowRate": "Tỉ lệ khách không đến",
+    "newAccounts": "Người dùng mới"
+  },
+  "units": {
+    "orders": "{count, plural, other {đơn}}",
+    "portions": "{count, plural, other {phần}}",
+    "kilograms": "kg",
+    "people": "{count, plural, other {người}}"
+  },
+  "chart": {
+    "title": "Bài đăng theo tuần",
+    "posts": "{count} bài",
+    "postsLong": "{count} bài đăng",
+    "days": "{from} – {to}",
+    "running": "{from} – {to} · đang diễn ra",
+    "week": "Tuần",
+    "postsColumn": "Bài đăng"
+  },
+  "table": {
+    "caption": "Báo cáo theo cửa hàng",
+    "seller": "Cửa hàng",
+    "orders": "Đơn",
+    "portionsSaved": "Phần cứu",
+    "collectionRate": "Tỉ lệ nhận",
+    "revenue": "Doanh thu tại quầy (ước tính)",
+    "empty": "Chưa có đơn nào trong khoảng này",
+    "summary": "Hiển thị {from}–{to} trên {total} cửa hàng có đơn"
+  },
+  "export": {
+    "title": "Xuất báo cáo",
+    "kind": "Loại dữ liệu",
+    "kinds": {
+      "orders": "Đơn giữ hàng",
+      "sellers": "Cửa hàng",
+      "accounts": "Người dùng"
+    },
+    "range": "Khoảng ngày",
+    "rangeField": "Từ – đến",
+    "format": "Định dạng tệp",
+    "formats": {
+      "xlsx": "Excel (.xlsx)",
+      "csv": "CSV (.csv)"
+    },
+    "download": "Tải về",
+    "soon": "Sắp có"
+  }
+}
