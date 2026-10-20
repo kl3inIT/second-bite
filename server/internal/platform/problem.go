@@ -30,8 +30,48 @@ const (
 const (
 	problemTypePrefix  = "urn:secondbite:failure:"
 	problemContentType = "application/problem+json"
-	internalDetail     = "An unexpected error occurred."
 )
+
+// platformWords are the details of the failures the platform answers itself,
+// in every language of the service (SEC-28).
+var platformWords = map[string]Words{
+	CodeRequestInvalid: {
+		VI: "Yêu cầu chưa hợp lệ. Kiểm tra lại thông tin rồi thử lại.",
+		EN: "The request is not valid. Check what was sent and try again.",
+	},
+	CodeRouteNotFound: {
+		VI: "Không có địa chỉ này.",
+		EN: "This address does not exist.",
+	},
+	CodeMethodNotAllowed: {
+		VI: "Địa chỉ này không nhận cách gọi này.",
+		EN: "This address does not accept this method.",
+	},
+	CodeNotAcceptable: {
+		VI: "Không trả lời được theo định dạng được yêu cầu.",
+		EN: "The answer cannot be given in the format asked for.",
+	},
+	CodeBodyTooLarge: {
+		VI: "Nội dung gửi lên quá lớn.",
+		EN: "What was sent is too large.",
+	},
+	CodeMediaTypeUnsupported: {
+		VI: "Không nhận nội dung theo định dạng này.",
+		EN: "Content of this type is not accepted.",
+	},
+	CodeRequestRefused: {
+		VI: "Yêu cầu không được chấp nhận.",
+		EN: "The request was refused.",
+	},
+	CodeDatabaseUnavailable: {
+		VI: "Hệ thống đang tạm gián đoạn. Thử lại sau ít phút.",
+		EN: "The service is briefly unavailable. Try again in a few minutes.",
+	},
+	CodeInternalFailure: {
+		VI: "Đã có lỗi ngoài ý muốn. Thử lại sau ít phút.",
+		EN: "Something went wrong on our side. Try again in a few minutes.",
+	},
+}
 
 var platformStatusCodes = map[int]string{
 	http.StatusBadRequest:            CodeRequestInvalid,
@@ -90,10 +130,16 @@ func newProblem(status int, code, title, detail, requestID string) *Problem {
 	}
 }
 
-func problemFromFailure(f *FailureError, requestID string) *Problem {
+func problemFromFailure(ctx context.Context, f *FailureError) *Problem {
 	c := categories[f.Category]
 
-	return newProblem(c.status, f.Code, c.title, f.Detail, requestID)
+	return newProblem(c.status, f.Code, c.title, f.Words.In(LanguageOf(ctx)), RequestID(ctx))
+}
+
+// platformProblem is the problem of a failure the platform answers itself, in
+// the request's language.
+func platformProblem(ctx context.Context, status int, code string) *Problem {
+	return newProblem(status, code, http.StatusText(status), platformWords[code].In(LanguageOf(ctx)), RequestID(ctx))
 }
 
 var installOnce sync.Once
@@ -118,14 +164,14 @@ func installErrorMapping() {
 	})
 }
 
-func mapError(ctx context.Context, status int, msg string, errs []error) *Problem {
-	requestID := RequestID(ctx)
-
+// huma's own sentence for the status is English; the platform's words replace
+// it, so it is not read.
+func mapError(ctx context.Context, status int, _ string, errs []error) *Problem {
 	for _, err := range errs {
 		if f, ok := AsFailure(err); ok {
 			setErrorCode(ctx, f.Code)
 
-			return problemFromFailure(f, requestID)
+			return problemFromFailure(ctx, f)
 		}
 	}
 
@@ -149,18 +195,18 @@ func mapError(ctx context.Context, status int, msg string, errs []error) *Proble
 			)
 		}
 
-		return newProblem(status, code, http.StatusText(status), internalDetail, requestID)
+		return platformProblem(ctx, status, code)
 	}
 
-	p := newProblem(status, code, http.StatusText(status), msg, requestID)
-	p.Errors = violations(errs)
+	p := platformProblem(ctx, status, code)
+	p.Errors = violations(errs, LanguageOf(ctx))
 
 	return p
 }
 
-// violations keeps the location and message of huma's details and drops the
-// value, which may be personal data or a secret.
-func violations(errs []error) []Violation {
+// violations keeps the location and message of huma's details, the message
+// in lang, and drops the value, which may be personal data or a secret.
+func violations(errs []error, lang Language) []Violation {
 	var out []Violation
 
 	for _, err := range errs {
@@ -170,7 +216,7 @@ func violations(errs []error) []Violation {
 		}
 
 		detail := d.ErrorDetail()
-		v := Violation{Detail: detail.Message, Code: CodeValueInvalid}
+		v := Violation{Detail: violationDetail(detail.Message, lang), Code: CodeValueInvalid}
 
 		if rest, isBody := strings.CutPrefix(detail.Location, "body"); isBody {
 			v.Pointer = jsonPointer(rest)
@@ -221,7 +267,7 @@ func WriteFailure(w http.ResponseWriter, r *http.Request, f *FailureError) {
 
 	maps.Copy(w.Header(), f.GetHeaders())
 
-	writeProblem(w, problemFromFailure(f, RequestID(r.Context())))
+	writeProblem(w, problemFromFailure(r.Context(), f))
 }
 
 // writeProblem writes a problem outside huma: unmatched routes, panics and
