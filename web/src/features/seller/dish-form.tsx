@@ -187,10 +187,10 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
                 className="size-16 rounded-lg object-cover"
               />
             )}
-            <span className="text-label-strong text-link">
+            <span className="text-body-sm-strong text-link">
               {photo ? photo.name : t("choosePhoto")}
             </span>
-            <span className="text-label text-muted-foreground">{t("photoHint")}</span>
+            <span className="text-note text-muted-foreground">{t("photoHint")}</span>
             <input
               id="dish-photo"
               type="file"
