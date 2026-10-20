@@ -8,7 +8,7 @@ Second Bite's design system for Flutter, built from the tokens in [DESIGN.md](..
 - `AppTheme.light`, the app's one theme. Material's `ColorScheme` and `TextTheme` take the roles they have a slot for, and the component themes follow DESIGN.md's components. There is no dark theme until DESIGN.md defines one.
 - Theme extensions, read from the context:
   - `context.appColors`: the colour roles Material has no slot for (`fresh`, `link`, `header`, the `*-hover` colours…).
-  - `context.appTextStyles`: the fifteen type roles under the web's names (`bodySm`, `price`…).
+  - `context.appTextStyles`: the sixteen type roles under the web's names (`bodySm`, `price`…).
   - `context.appSpacing`: the spacing steps (`space4` is the web's `p-4`).
 - Be Vietnam Pro and Bricolage Grotesque, with the Vietnamese marks, under the SIL Open Font License. `registerFontLicenses()` adds their licences to the app's licence page.
 - `RadiusTokens` and `SpacingTokens` from the barrel, for sizes a screen needs as constants.
