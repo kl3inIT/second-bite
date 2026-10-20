@@ -44,17 +44,21 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-/** The recent searches, newest first, and ways to add, remove and clear them. */
-export function useRecentSearches() {
-  const list = useSyncExternalStore(subscribe, read, () => none);
-  return {
-    list,
-    remember: (words: string) => {
-      const current = read();
-      if (current[0] === words) return;
-      write([words, ...current.filter((item) => item !== words)].slice(0, LIMIT));
-    },
-    forget: (words: string) => write(read().filter((item) => item !== words)),
-    clear: () => write([]),
-  };
+/** The recent searches, newest first. */
+export function useRecentSearches(): readonly string[] {
+  return useSyncExternalStore(subscribe, read, () => none);
+}
+
+export function rememberSearch(words: string) {
+  const current = read();
+  if (current[0] === words) return;
+  write([words, ...current.filter((item) => item !== words)].slice(0, LIMIT));
+}
+
+export function forgetSearch(words: string) {
+  write(read().filter((item) => item !== words));
+}
+
+export function clearSearches() {
+  write([]);
 }
