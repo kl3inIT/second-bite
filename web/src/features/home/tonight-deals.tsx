@@ -3,11 +3,13 @@ import Image from "next/image";
 
 import { listOffers } from "@/features/offers/list-offers";
 import { biggestDiscountFirst } from "@/features/offers/offer";
+import { cn } from "@/lib/utils";
 
 import bowl from "./tonight-bowl.webp";
 import type { HomeQuery } from "./home-query";
 
-const TICKET_COUNT = 2;
+// Two on a phone; a wider screen shows more of tonight's biggest discounts instead of an empty card.
+const TICKET_COUNT = 4;
 
 // The bottom of the header without a filter (Figma Mobile v3 deal card): the biggest discounts tonight as
 // coupons on the deep blue deal card (Figma 105:2666): the discount, a dashed cut
@@ -38,11 +40,15 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
             {t("upToPercent", { percent: tickets[0].discountPercent })}
           </span>
         </p>
-        <ul className="flex min-w-0 flex-1 gap-2">
-          {tickets.map((offer) => (
+        <ul className="flex min-w-0 flex-1 gap-2 sm:pr-16 lg:gap-3">
+          {tickets.map((offer, index) => (
             <li
               key={offer.id}
-              className="relative flex h-18 min-w-0 flex-1 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:max-w-44"
+              className={cn(
+                "relative flex h-18 min-w-0 flex-1 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:max-w-52 lg:max-w-60 lg:px-3",
+                index === 2 && "hidden sm:flex",
+                index === 3 && "hidden lg:flex",
+              )}
             >
               <span className="font-display text-price-lg text-sale">
                 <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
