@@ -44,3 +44,10 @@ The server built from the branch, on its own PostGIS and Mailpit (`docker compos
 - The account tab leads to `/delete-account`, which names the seller in the owner's warning. The deletion email is a separate message ("Mã xác nhận xoá tài khoản Second Bite"); a sign-in code is refused while it is live (429).
 - A wrong code is refused; the right one deletes; `GET /accounts/me` then answers 401, no session cookie is left, and the account tab is signed out.
 - In the database: no account, code or session for the address, no record of the emails to it, the seller `blocked` with no one in `status_changed_by` and no members; River ran `seller.forget_account` and `file.forget_uploader` once each, both `completed` at the first attempt.
+
+The app, as a debug APK built against the same server, on an Android 16 emulator (Pixel 7, system image `android-36.1` with Google APIs, in Vietnamese), driven through `adb` and the accessibility tree:
+
+- A new address signs in from the account tab with the emailed code.
+- Tài khoản → Xoá tài khoản names the address and warns the owner of the seller made for it.
+- The emailed deletion code deletes the account and shows "Đã xoá tài khoản". Another session of the same account then answers 401, and the account tab is signed out.
+- In the database the seller is `blocked` and both listeners completed, as on the web.
