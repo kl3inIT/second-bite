@@ -3,7 +3,6 @@ import { UtensilsCrossedIcon, type LucideIcon } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import { useTranslations } from "next-intl";
 
-import { ScrollHint } from "@/components/scroll-hint";
 import { ScrollRow } from "@/components/scroll-row";
 import type { OfferKind } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
@@ -52,7 +51,7 @@ export function KindPicker({ query }: { query: HomeQuery }) {
 
   return (
     <nav aria-label={t("kindsLabel")} className="flex flex-col gap-2.5">
-      <ScrollRow id="kind-picker" label={t("kindsLabel")} className="gap-2.5 pb-0 sm:justify-start">
+      <ScrollRow hint label={t("kindsLabel")} className="gap-2.5 pb-0 sm:justify-start">
         {items.map((item) => (
           <li key={item.key} className="shrink-0 snap-start">
             <Link
@@ -73,7 +72,6 @@ export function KindPicker({ query }: { query: HomeQuery }) {
           </li>
         ))}
       </ScrollRow>
-      <ScrollHint target="kind-picker" />
     </nav>
   );
 }
