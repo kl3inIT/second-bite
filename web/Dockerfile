@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # Build from web/: docker build -t second-bite-web web. Adapted from BeyondPilot's web/Dockerfile.
 
-FROM node:24-slim@sha256:a5f4366e834695d5f363b920c104953a535d3a9864d1bdf74566a0ebe01daee5 AS build
+FROM node:26-slim@sha256:0d1e33586362bb9e608c4e751e7a9e7edb55c9ac11461ed5666af696cc461dd4 AS build
 
 # pnpm at the version package.json records, installed directly rather than through Corepack.
 RUN npm install --global pnpm@12.14.0
@@ -16,7 +16,7 @@ COPY . ./
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
-FROM node:24-slim@sha256:a5f4366e834695d5f363b920c104953a535d3a9864d1bdf74566a0ebe01daee5
+FROM node:26-slim@sha256:0d1e33586362bb9e608c4e751e7a9e7edb55c9ac11461ed5666af696cc461dd4
 
 ARG VCS_REF=unknown
 LABEL org.opencontainers.image.title="Second Bite Web" \
