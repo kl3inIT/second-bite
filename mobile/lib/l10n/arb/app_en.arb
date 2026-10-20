@@ -80,7 +80,7 @@
   "legalPrivacySection4Title": "4. Who can see your data",
   "legalPrivacySection4Body": "Sellers see your display name and your orders with their shop, never your email address. Customers see a shop's and its dishes' public details.\n\nSecond Bite's admins see data when operating and supporting the service requires it.\n\nProcessors acting for us: our hosting provider (Amazon Web Services; server location: to be added), our email provider (Brevo), and Google when you choose to sign in with Google. If data is kept outside Vietnam, we will say so here.\n\nWe do not sell your data or use it for advertising.",
   "legalPrivacySection5Title": "5. Your rights",
-  "legalPrivacySection5Body": "You may know about, see, correct and ask us to delete your data; withdraw your consent; ask us to restrict processing; and complain, under the Personal Data Protection Law 2025.\n\nYou can delete your account yourself in the app (Account → Delete account) or on the web at /delete-account, after typing the code we email to the account's address.\n\nYou can change your display name yourself. For anything else, write to the contact in section 1; we answer within the time the law sets, and if we cannot delete something for a legitimate reason, we tell you why.",
+  "legalPrivacySection5Body": "You may know about, see, correct and ask us to delete your data; withdraw your consent; ask us to restrict processing; and complain, under the Personal Data Protection Law 2025.\n\nYou can delete your account yourself in the app (Account → Account settings → Delete account) or on the web at /delete-account, after typing the code we email to the account's address.\n\nYou can change your display name yourself. For anything else, write to the contact in section 1; we answer within the time the law sets, and if we cannot delete something for a legitimate reason, we tell you why.",
   "legalPrivacySection6Title": "6. Cookies and browser storage",
   "legalPrivacySection6Body": "A session cookie (coming soon), to keep you signed in.\n\nA language cookie, remembering Vietnamese or English for a year.\n\nA mark in the browser's storage, remembering that you closed the introduction.\n\nWe use no advertising cookies and no third-party tracking.",
   "legalPrivacySection7Title": "7. Protecting your data",
@@ -155,5 +155,18 @@
   "deleteAccountFailedWithReference": "Your account could not be deleted. Please try again. Reference: {reference}",
   "deleteAccountDoneTitle": "Your account is deleted",
   "deleteAccountDoneBody": "Your account and your personal data are deleted. You can still sign in with this address at any time, as a new account.",
-  "deleteAccountHome": "Back to home"
+  "deleteAccountHome": "Back to home",
+  "accountSettingsTitle": "Account settings",
+  "accountSettingsDetails": "Account details",
+  "accountSettingsEmail": "Email",
+  "accountSettingsDisplayName": "Display name",
+  "accountSettingsNoDisplayName": "Not set",
+  "accountSettingsSellers": "Your shops",
+  "accountSettingsOwner": "Owner",
+  "accountSettingsStaff": "Staff",
+  "accountSettingsLanguage": "Language",
+  "accountSettingsLanguageName": "English",
+  "accountSettingsDeleteTitle": "Delete your account",
+  "accountSettingsDeleteBody": "Permanently delete your account and your personal data. This cannot be undone; a shop you own will be closed.",
+  "accountSettingsDeleteAction": "Delete account"
 }

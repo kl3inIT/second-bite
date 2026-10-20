@@ -11,3 +11,4 @@ Design: [design.md](design.md). Tracked in Linear as SEC-37.
 | 5 | Web: the account tab's entry and `/delete-account` | Done, 20 October 2026 |
 | 6 | Mobile: the account tab's entry and the deletion screen | Done, 20 October 2026 |
 | 7 | Privacy policy, specs, test matrices, architecture, guidelines; verification | Done, 20 October 2026; review pending |
+| 8 | Account settings: the account menu and tab lead to it, deletion at its foot (web and app) | Done, 20 October 2026 |

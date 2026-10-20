@@ -192,7 +192,10 @@ export function DeleteAccountForm({ email }: { email: string }) {
               )}
               {pending ? t("deleting") : t("confirm")}
             </Button>
-            <Link href="/account" className={buttonVariants({ variant: "outline", size: "lg" })}>
+            <Link
+              href="/account/settings"
+              className={buttonVariants({ variant: "outline", size: "lg" })}
+            >
               {t("cancel")}
             </Link>
           </div>

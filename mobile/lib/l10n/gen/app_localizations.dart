@@ -581,7 +581,7 @@ abstract class AppLocalizations {
   /// Section 5's paragraphs, one blank line apart, as the web's Privacy.sections[4].paragraphs
   ///
   /// In vi, this message translates to:
-  /// **'Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự xóa được tài khoản trong ứng dụng (Tài khoản → Xóa tài khoản) hoặc trên trang web tại /delete-account, sau khi nhập mã chúng tôi gửi đến email của tài khoản.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.'**
+  /// **'Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự xóa được tài khoản trong ứng dụng (Tài khoản → Cài đặt tài khoản → Xóa tài khoản) hoặc trên trang web tại /delete-account, sau khi nhập mã chúng tôi gửi đến email của tài khoản.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.'**
   String get legalPrivacySection5Body;
 
   /// Section 6's heading, as the web's Privacy.sections[5].title
@@ -1033,6 +1033,84 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Về trang chủ'**
   String get deleteAccountHome;
+
+  /// The account tab's row and the title of account settings
+  ///
+  /// In vi, this message translates to:
+  /// **'Cài đặt tài khoản'**
+  String get accountSettingsTitle;
+
+  /// The label of the account's details, for screen readers
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin tài khoản'**
+  String get accountSettingsDetails;
+
+  /// The row of the account's address
+  ///
+  /// In vi, this message translates to:
+  /// **'Email'**
+  String get accountSettingsEmail;
+
+  /// The row of the account's display name
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên hiển thị'**
+  String get accountSettingsDisplayName;
+
+  /// The display name when there is none
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có'**
+  String get accountSettingsNoDisplayName;
+
+  /// The row of the sellers the person owns or works for
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán của bạn'**
+  String get accountSettingsSellers;
+
+  /// The role of an owner of a seller
+  ///
+  /// In vi, this message translates to:
+  /// **'Chủ quán'**
+  String get accountSettingsOwner;
+
+  /// The role of a staff member of a seller
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhân viên'**
+  String get accountSettingsStaff;
+
+  /// The row of the app's language
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngôn ngữ'**
+  String get accountSettingsLanguage;
+
+  /// The name of the language on screen
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiếng Việt'**
+  String get accountSettingsLanguageName;
+
+  /// The heading at the foot of account settings
+  ///
+  /// In vi, this message translates to:
+  /// **'Xoá tài khoản'**
+  String get accountSettingsDeleteTitle;
+
+  /// What deleting the account means, at the foot of account settings
+  ///
+  /// In vi, this message translates to:
+  /// **'Xoá vĩnh viễn tài khoản và dữ liệu cá nhân của bạn. Việc xoá không thể hoàn tác; quán bạn là chủ sẽ bị đóng.'**
+  String get accountSettingsDeleteBody;
+
+  /// The button that opens the deletion
+  ///
+  /// In vi, this message translates to:
+  /// **'Xoá tài khoản'**
+  String get accountSettingsDeleteAction;
 }
 
 class _AppLocalizationsDelegate

@@ -147,5 +147,22 @@ void main() {
         ColorTokens.destructiveForeground,
       );
     });
+
+    testWidgets('renders the destructive outline in the danger red', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        AppButton(
+          onPressed: () {},
+          variant: AppButtonVariant.destructiveOutline,
+          child: Text('Delete account'),
+        ),
+      );
+
+      final button = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
+      final style = button.style!;
+      expect(style.foregroundColor?.resolve({}), ColorTokens.destructive);
+      expect(style.side?.resolve({})?.color, ColorTokens.destructive);
+    });
   });
 }

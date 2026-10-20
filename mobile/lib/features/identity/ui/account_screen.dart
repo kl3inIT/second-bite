@@ -134,6 +134,33 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     ),
                   ),
                 ),
+                // Account settings, where the account is managed and, at its
+                // foot, deleted (SEC-37): never beside sign-out.
+                if (account != null)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(SpacingTokens.space1),
+                      child: ListTile(
+                        minTileHeight: 48,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(RadiusTokens.xl),
+                        ),
+                        leading: const Icon(LucideIcons.settings, size: 18),
+                        title: Text(
+                          l10n.accountSettingsTitle,
+                          style: text.body,
+                        ),
+                        trailing: Icon(
+                          LucideIcons.chevronRight,
+                          size: 16,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        onTap: () => unawaited(
+                          const AccountSettingsRoute().push<void>(context),
+                        ),
+                      ),
+                    ),
+                  ),
                 Semantics(
                   container: true,
                   label: l10n.legalLabel,
@@ -166,37 +193,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     ),
                   ),
                 ),
-                // Deleting the account, where the stores ask for it: in the
-                // account's own settings (SEC-37).
-                if (account != null)
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(SpacingTokens.space1),
-                      child: ListTile(
-                        minTileHeight: 48,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(RadiusTokens.xl),
-                        ),
-                        leading: Icon(
-                          LucideIcons.trash2,
-                          size: 18,
-                          color: scheme.error,
-                        ),
-                        title: Text(
-                          l10n.deleteAccountTitle,
-                          style: text.body.copyWith(color: scheme.error),
-                        ),
-                        trailing: Icon(
-                          LucideIcons.chevronRight,
-                          size: 16,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        onTap: () => unawaited(
-                          const DeleteAccountRoute().push<void>(context),
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),

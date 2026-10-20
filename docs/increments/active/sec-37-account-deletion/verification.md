@@ -51,3 +51,16 @@ The app, as a debug APK built against the same server, on an Android 16 emulator
 - Tài khoản → Xoá tài khoản names the address and warns the owner of the seller made for it.
 - The emailed deletion code deletes the account and shows "Đã xoá tài khoản". Another session of the same account then answers 401, and the account tab is signed out.
 - In the database the seller is `blocked` and both listeners completed, as on the web.
+
+## Account settings, added during review
+
+The deletion moved under account settings: the account menu and the account tab lead to settings, and settings leads to the deletion at its foot. The runs below replace the counts above.
+
+| Command | Outcome |
+| --- | --- |
+| `pnpm check` | Catalogs (283 keys) match; lint, format, types, 30 unit tests and knip pass |
+| `CI=1 pnpm test:e2e` | 58 passed, 6 skipped (the phone-only and desktop-only cases), with axe. New or changed in `tests/e2e/delete-account.spec.ts`: the account tab and the desktop menu lead to settings and never straight to deletion; settings shows the address, "Chưa có" for a missing display name, an owner's shop with its role, and is not indexed; signed out, it sends to sign-in and back |
+| `flutter analyze --fatal-infos`, `flutter test` | No issues. App: 95 passed, among them the account tab offering settings and not deletion, and settings showing the account, its shops (owner and staff), the language and the way to deletion, or the sign-in when signed out. `app_ui`: 78 passed, with the destructive outline button |
+
+The web's settings page and desktop menu were screenshot at 1440 px and on a Pixel 7 against the stub backend and compared with Figma Q1 and Q2. The bottom bar keeps the account tab lit on settings and on the deletion.
+

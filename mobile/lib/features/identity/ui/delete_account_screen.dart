@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:second_bite/core/routes.dart';
 import 'package:second_bite/features/identity/data/auth_repository.dart';
@@ -230,7 +231,10 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
       ),
       AppButton(
         variant: AppButtonVariant.outline,
-        onPressed: () => const AccountRoute().go(context),
+        // Back to account settings, which led here.
+        onPressed: () => context.canPop()
+            ? context.pop()
+            : const AccountSettingsRoute().go(context),
         child: Text(l10n.deleteAccountCancel),
       ),
     ];

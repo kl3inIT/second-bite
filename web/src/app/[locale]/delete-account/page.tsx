@@ -9,7 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentAccount } from "@/features/identity/current-account";
 import { DeleteAccountForm } from "@/features/identity/delete-account-form";
-import { getOwnedSellerNames } from "@/features/identity/owned-sellers";
+import { getOwnedSellerNames } from "@/features/identity/my-sellers";
 import { Link } from "@/i18n/navigation";
 import { pageMetadata } from "@/lib/seo";
 
@@ -27,7 +27,7 @@ export async function generateMetadata({
 
 // Deleting an account (SEC-37): what goes at once, what follows within minutes and what is kept, readable by
 // anyone at this address, the web link Google Play asks for; then, for the signed-in person, the deletion
-// itself, or the way to sign in first. The account tab of the web and of the app leads here.
+// itself, or the way to sign in first. Account settings, on the web and in the app, leads here.
 export default async function DeleteAccountPage() {
   const t = await getTranslations("DeleteAccount");
 

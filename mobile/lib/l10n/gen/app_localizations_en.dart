@@ -310,7 +310,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get legalPrivacySection5Body =>
-      'You may know about, see, correct and ask us to delete your data; withdraw your consent; ask us to restrict processing; and complain, under the Personal Data Protection Law 2025.\n\nYou can delete your account yourself in the app (Account → Delete account) or on the web at /delete-account, after typing the code we email to the account\'s address.\n\nYou can change your display name yourself. For anything else, write to the contact in section 1; we answer within the time the law sets, and if we cannot delete something for a legitimate reason, we tell you why.';
+      'You may know about, see, correct and ask us to delete your data; withdraw your consent; ask us to restrict processing; and complain, under the Personal Data Protection Law 2025.\n\nYou can delete your account yourself in the app (Account → Account settings → Delete account) or on the web at /delete-account, after typing the code we email to the account\'s address.\n\nYou can change your display name yourself. For anything else, write to the contact in section 1; we answer within the time the law sets, and if we cannot delete something for a legitimate reason, we tell you why.';
 
   @override
   String get legalPrivacySection6Title => '6. Cookies and browser storage';
@@ -579,4 +579,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountHome => 'Back to home';
+
+  @override
+  String get accountSettingsTitle => 'Account settings';
+
+  @override
+  String get accountSettingsDetails => 'Account details';
+
+  @override
+  String get accountSettingsEmail => 'Email';
+
+  @override
+  String get accountSettingsDisplayName => 'Display name';
+
+  @override
+  String get accountSettingsNoDisplayName => 'Not set';
+
+  @override
+  String get accountSettingsSellers => 'Your shops';
+
+  @override
+  String get accountSettingsOwner => 'Owner';
+
+  @override
+  String get accountSettingsStaff => 'Staff';
+
+  @override
+  String get accountSettingsLanguage => 'Language';
+
+  @override
+  String get accountSettingsLanguageName => 'English';
+
+  @override
+  String get accountSettingsDeleteTitle => 'Delete your account';
+
+  @override
+  String get accountSettingsDeleteBody =>
+      'Permanently delete your account and your personal data. This cannot be undone; a shop you own will be closed.';
+
+  @override
+  String get accountSettingsDeleteAction => 'Delete account';
 }

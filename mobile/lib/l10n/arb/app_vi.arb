@@ -401,7 +401,7 @@
   "@legalPrivacySection5Title": {
     "description": "Section 5's heading, as the web's Privacy.sections[4].title"
   },
-  "legalPrivacySection5Body": "Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự xóa được tài khoản trong ứng dụng (Tài khoản → Xóa tài khoản) hoặc trên trang web tại /delete-account, sau khi nhập mã chúng tôi gửi đến email của tài khoản.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.",
+  "legalPrivacySection5Body": "Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự xóa được tài khoản trong ứng dụng (Tài khoản → Cài đặt tài khoản → Xóa tài khoản) hoặc trên trang web tại /delete-account, sau khi nhập mã chúng tôi gửi đến email của tài khoản.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.",
   "@legalPrivacySection5Body": {
     "description": "Section 5's paragraphs, one blank line apart, as the web's Privacy.sections[4].paragraphs"
   },
@@ -774,5 +774,57 @@
   "deleteAccountHome": "Về trang chủ",
   "@deleteAccountHome": {
     "description": "The button home after the deletion"
+  },
+  "accountSettingsTitle": "Cài đặt tài khoản",
+  "@accountSettingsTitle": {
+    "description": "The account tab's row and the title of account settings"
+  },
+  "accountSettingsDetails": "Thông tin tài khoản",
+  "@accountSettingsDetails": {
+    "description": "The label of the account's details, for screen readers"
+  },
+  "accountSettingsEmail": "Email",
+  "@accountSettingsEmail": {
+    "description": "The row of the account's address"
+  },
+  "accountSettingsDisplayName": "Tên hiển thị",
+  "@accountSettingsDisplayName": {
+    "description": "The row of the account's display name"
+  },
+  "accountSettingsNoDisplayName": "Chưa có",
+  "@accountSettingsNoDisplayName": {
+    "description": "The display name when there is none"
+  },
+  "accountSettingsSellers": "Quán của bạn",
+  "@accountSettingsSellers": {
+    "description": "The row of the sellers the person owns or works for"
+  },
+  "accountSettingsOwner": "Chủ quán",
+  "@accountSettingsOwner": {
+    "description": "The role of an owner of a seller"
+  },
+  "accountSettingsStaff": "Nhân viên",
+  "@accountSettingsStaff": {
+    "description": "The role of a staff member of a seller"
+  },
+  "accountSettingsLanguage": "Ngôn ngữ",
+  "@accountSettingsLanguage": {
+    "description": "The row of the app's language"
+  },
+  "accountSettingsLanguageName": "Tiếng Việt",
+  "@accountSettingsLanguageName": {
+    "description": "The name of the language on screen"
+  },
+  "accountSettingsDeleteTitle": "Xoá tài khoản",
+  "@accountSettingsDeleteTitle": {
+    "description": "The heading at the foot of account settings"
+  },
+  "accountSettingsDeleteBody": "Xoá vĩnh viễn tài khoản và dữ liệu cá nhân của bạn. Việc xoá không thể hoàn tác; quán bạn là chủ sẽ bị đóng.",
+  "@accountSettingsDeleteBody": {
+    "description": "What deleting the account means, at the foot of account settings"
+  },
+  "accountSettingsDeleteAction": "Xoá tài khoản",
+  "@accountSettingsDeleteAction": {
+    "description": "The button that opens the deletion"
   }
 }

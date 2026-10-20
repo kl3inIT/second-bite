@@ -14,6 +14,10 @@ enum AppButtonVariant {
   /// The danger red, for an action that cannot be undone, such as deleting
   /// the account.
   destructive,
+
+  /// An outline in the danger red, for the way into such an action, such as
+  /// the button at the foot of account settings.
+  destructiveOutline,
 }
 
 /// {@template app_button}
@@ -91,7 +95,26 @@ class AppButton extends StatelessWidget {
         style: _destructiveStyle(scheme, colors),
         child: child,
       ),
+      AppButtonVariant.destructiveOutline when icon != null =>
+        OutlinedButton.icon(
+          onPressed: onPressed,
+          style: _destructiveOutlineStyle(scheme),
+          icon: icon,
+          label: child,
+        ),
+      AppButtonVariant.destructiveOutline => OutlinedButton(
+        onPressed: onPressed,
+        style: _destructiveOutlineStyle(scheme),
+        child: child,
+      ),
     };
+  }
+
+  static ButtonStyle _destructiveOutlineStyle(ColorScheme scheme) {
+    return OutlinedButton.styleFrom(
+      foregroundColor: scheme.error,
+      side: BorderSide(color: scheme.error),
+    );
   }
 
   static ButtonStyle _destructiveStyle(ColorScheme scheme, AppColors colors) {

@@ -34,7 +34,7 @@ test.describe("deleting an account on the web", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
-  test("from the account tab, with the emailed code, then signed out", async ({
+  test("from the account tab through account settings, with the emailed code, then signed out", async ({
     page,
     isMobile,
   }, testInfo) => {
@@ -43,6 +43,10 @@ test.describe("deleting an account on the web", () => {
     await signIn(page, email);
 
     await page.goto("/vi/account");
+    // Deletion is not offered beside sign-out, only at the foot of account settings.
+    await expect(page.getByRole("link", { name: "Xoá tài khoản" })).toHaveCount(0);
+    await (await hydrated(page.getByRole("link", { name: "Cài đặt tài khoản" }))).click();
+    await expect(page).toHaveURL(/\/vi\/account\/settings$/);
     await (await hydrated(page.getByRole("link", { name: "Xoá tài khoản" }))).click();
     await expect(page).toHaveURL(/\/vi\/delete-account$/);
     await expect(page.getByText(`Chúng tôi sẽ gửi mã 6 số đến ${email}`)).toBeVisible();
@@ -69,7 +73,10 @@ test.describe("deleting an account on the web", () => {
     await expect(page.getByRole("heading", { name: "Bạn chưa đăng nhập" })).toBeVisible();
   });
 
-  test("from the account menu on a desktop", async ({ page, isMobile }, testInfo) => {
+  test("from the account menu on a desktop, through account settings", async ({
+    page,
+    isMobile,
+  }, testInfo) => {
     test.skip(isMobile, "A phone reaches it from the account tab.");
     const email = `menu.${testInfo.project.name}@example.com`;
     await signIn(page, email);
@@ -77,11 +84,31 @@ test.describe("deleting an account on the web", () => {
     await page.goto("/vi");
     await (await hydrated(page.getByRole("button", { name: `Tài khoản ${email}` }))).click();
     await expect(page.getByRole("menuitem", { name: "Đăng xuất" })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: "Xoá tài khoản" })).toHaveCount(0);
     await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
-    await page.getByRole("menuitem", { name: "Xoá tài khoản" }).click();
+    await page.getByRole("menuitem", { name: "Cài đặt tài khoản" }).click();
+
+    await expect(page).toHaveURL(/\/vi\/account\/settings$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Cài đặt tài khoản" })).toBeVisible();
+    await expect(page.getByRole("definition").filter({ hasText: email })).toBeVisible();
+    await expect(page.getByText("Chưa có")).toBeVisible();
+    await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
+    await page.getByRole("link", { name: "Xoá tài khoản" }).click();
 
     await expect(page).toHaveURL(/\/vi\/delete-account$/);
     await expect(page.getByText(`Chúng tôi sẽ gửi mã 6 số đến ${email}`)).toBeVisible();
+  });
+
+  test("account settings names the shops of an owner, and is not for someone signed out", async ({
+    page,
+  }, testInfo) => {
+    await page.goto("/vi/account/settings");
+    await expect(page).toHaveURL(/\/vi\/sign-in\?returnTo=%2Faccount%2Fsettings$/);
+
+    await signIn(page, `owner.settings.${testInfo.project.name}@example.com`);
+    await page.goto("/vi/account/settings");
+    await expect(page.getByText("Bánh mì Tasco · Chủ quán")).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   });
 
   test("warns the owner of a seller that it closes", async ({ page }, testInfo) => {

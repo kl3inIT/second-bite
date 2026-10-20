@@ -307,7 +307,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get legalPrivacySection5Body =>
-      'Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự xóa được tài khoản trong ứng dụng (Tài khoản → Xóa tài khoản) hoặc trên trang web tại /delete-account, sau khi nhập mã chúng tôi gửi đến email của tài khoản.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.';
+      'Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự xóa được tài khoản trong ứng dụng (Tài khoản → Cài đặt tài khoản → Xóa tài khoản) hoặc trên trang web tại /delete-account, sau khi nhập mã chúng tôi gửi đến email của tài khoản.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.';
 
   @override
   String get legalPrivacySection6Title =>
@@ -577,4 +577,44 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get deleteAccountHome => 'Về trang chủ';
+
+  @override
+  String get accountSettingsTitle => 'Cài đặt tài khoản';
+
+  @override
+  String get accountSettingsDetails => 'Thông tin tài khoản';
+
+  @override
+  String get accountSettingsEmail => 'Email';
+
+  @override
+  String get accountSettingsDisplayName => 'Tên hiển thị';
+
+  @override
+  String get accountSettingsNoDisplayName => 'Chưa có';
+
+  @override
+  String get accountSettingsSellers => 'Quán của bạn';
+
+  @override
+  String get accountSettingsOwner => 'Chủ quán';
+
+  @override
+  String get accountSettingsStaff => 'Nhân viên';
+
+  @override
+  String get accountSettingsLanguage => 'Ngôn ngữ';
+
+  @override
+  String get accountSettingsLanguageName => 'Tiếng Việt';
+
+  @override
+  String get accountSettingsDeleteTitle => 'Xoá tài khoản';
+
+  @override
+  String get accountSettingsDeleteBody =>
+      'Xoá vĩnh viễn tài khoản và dữ liệu cá nhân của bạn. Việc xoá không thể hoàn tác; quán bạn là chủ sẽ bị đóng.';
+
+  @override
+  String get accountSettingsDeleteAction => 'Xoá tài khoản';
 }
