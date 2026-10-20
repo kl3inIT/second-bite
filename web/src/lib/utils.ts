@@ -12,6 +12,8 @@ export const typeStyles = [
   "body",
   "title",
   "title-lg",
+  "card-title",
+  "note",
   "button",
   "bar-title",
   "headline",

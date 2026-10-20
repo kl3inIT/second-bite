@@ -6,8 +6,8 @@ SELECT pg_advisory_xact_lock(hashtextextended('seller:owner:' || @account_id::te
 SELECT count(*)::integer FROM seller_members WHERE account_id = @account_id AND role = 'owner';
 
 -- name: InsertSeller :one
-INSERT INTO seller_sellers (name, address, latitude, longitude, phone)
-VALUES (@name, @address, @latitude, @longitude, @phone)
+INSERT INTO seller_sellers (name, address, latitude, longitude, phone, status)
+VALUES (@name, @address, @latitude, @longitude, @phone, 'active')
 RETURNING id;
 
 -- name: InsertMember :execrows

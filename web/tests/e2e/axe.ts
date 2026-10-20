@@ -11,6 +11,13 @@ async function seriousViolations(page: Page, exclude: string[]) {
     "wcag22aa",
   ]);
   for (const selector of exclude) builder.exclude(selector);
+  // A colour read halfway through a transition (a drawer fading in, a button turning blue) is no colour the
+  // person ends up seeing, so the scan waits until the page's animations are over.
+  await page.evaluate(() =>
+    Promise.all(
+      document.getAnimations().map((animation) => animation.finished.catch(() => undefined)),
+    ),
+  );
   const results = await builder.analyze();
   return results.violations.filter(
     (violation) => violation.impact === "serious" || violation.impact === "critical",

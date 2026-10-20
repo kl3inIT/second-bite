@@ -93,7 +93,7 @@ colors:
   avatar-indigo: "{palette.logo-indigo}" # 7.6:1
   avatar-olive: "{palette.logo-olive}" # 6.0:1
 typography:
-  # Sixteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
+  # Eighteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
   # "Mobile v2" frames used (SEC-22). Named by purpose, not size; each has a Figma text style of the same name.
   # Be Vietnam Pro (`font-sans`) for everything people read; Bricolage Grotesque (`font-display`) only for
   # prices and figures, tracked -1%. Nothing is set below 12px.
@@ -132,6 +132,16 @@ typography:
     fontSize: "16px"
     fontWeight: 600
     lineHeight: "22px"
+  card-title: # the heading of a card on the seller's screens, and of the open-store form
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "18px"
+    fontWeight: 600
+    lineHeight: "25px"
+  note: # a hint under a field, and what a photo box says under its call
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: "19px"
   button: # button labels
     fontFamily: "Be Vietnam Pro"
     fontSize: "16px"
@@ -319,7 +329,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 ### Hierarchy
 
-Sixteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `hero` and `page-title` were added for the sign-in screen (SEC-56); `headline` grew to 20/28 bold with Mobile v3 (SEC-48), when `price-lg` became 20/24 and `title-lg` was added (SEC-49). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
+Eighteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `hero` and `page-title` were added for the sign-in screen (SEC-56); `headline` grew to 20/28 bold with Mobile v3 (SEC-48), when `price-lg` became 20/24 and `title-lg` was added (SEC-49); `card-title` and `note` were added for the seller's screens (SEC-57), whose Figma frames use 18/25 and 13/19. A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
 
 | Role             | Face          | Size / line | Use                                                                               |
 | ---------------- | ------------- | ----------- | --------------------------------------------------------------------------------- |
@@ -333,6 +343,8 @@ Sixteen roles, normalised on 19 October 2026 from the 45 size, weight and leadin
 | `bar-title`      | 600           | 17 / 22     | The top bar's title                                                               |
 | `button`         | 600           | 16 / 20     | Button labels                                                                     |
 | `title-lg`       | 600           | 16 / 22     | The dish on a large card                                                          |
+| `card-title`     | 600           | 18 / 25     | The heading of a card on the seller's screens, and of the open-store form         |
+| `note`           | 400           | 13 / 19     | A hint under a field, and what a photo box says under its call                    |
 | `title`          | 600           | 15 / 21     | Field labels, block titles, the place on the header                               |
 | `body`           | 400           | 16 / 24     | Running text and input values                                                     |
 | `body-sm-strong` | 600           | 14 / 21     | Names in lists, small actions                                                     |

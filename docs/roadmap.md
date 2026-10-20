@@ -17,6 +17,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 - [SEC-37 — Account deletion](increments/active/sec-37-account-deletion/design.md): a person deletes their account in the app or on the web (`/delete-account`, Google Play's web link) with an emailed code; the first events between modules, through a River outbox. Built on 20 October 2026, waiting for review.
 - [SEC-43 — Signing in on the app](increments/active/sec-43-app-sign-in/design.md): the Flutter application's sign-in with the emailed code and Google, the session as a Bearer token in the platform's secure store, and the web's Lucide icons. Built on 19 October 2026; checked on a device before the beta.
 - [SEC-53 — The seller's web screens in Figma](increments/active/sec-53-seller-web-design/design.md): sign-in and opening a store, the four tabs, posting, expected surplus, managing and editing posts, the catalog; designed on 20 October 2026, no code. The rules go to SEC-54 and SEC-55.
+- [SEC-57 — The seller's web screens](increments/active/sec-57-seller-web/design.md): open a store, my stores, the store's tabs, posting, editing and withdrawing, for what the backend does today; expected surplus, the catalog and orders wait for their issues.
 
 ## Candidates
 

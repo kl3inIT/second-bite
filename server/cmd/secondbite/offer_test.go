@@ -46,11 +46,14 @@ func checkOfferFlow(t *testing.T, svc service) {
 	}
 
 	offersURL := svc.base + "/sellers/" + opened.ID + "/offers"
+	// A seller is active as soon as it is opened; an admin may block it, and then it cannot post.
+	admin := bearer(signIn(t, svc, offerAdminEmail).Token)
+	send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/block", admin, nil).decode(t, http.StatusOK, &struct{}{})
+
 	if p := send(t, http.MethodPost, offersURL, owner, details).problem(t, http.StatusForbidden); p.Code != "SELLER_NOT_ACTIVE" {
-		t.Errorf("posting for a pending seller: %q", p.Code)
+		t.Errorf("posting for a blocked seller: %q", p.Code)
 	}
 
-	admin := bearer(signIn(t, svc, offerAdminEmail).Token)
 	send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/activate", admin, nil).decode(t, http.StatusOK, &struct{}{})
 
 	var posted struct {
