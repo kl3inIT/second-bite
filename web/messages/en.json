@@ -341,5 +341,33 @@
   "Splash": {
     "tagline": "Good food left at the end of the day, for less",
     "loading": "Loading…"
+  },
+  "OpenStore": {
+    "title": "Open a store",
+    "heading": "Open your store",
+    "intro": "Just a few details. You can change them later.",
+    "name": "Store name",
+    "namePlaceholder": "For example: Tiệm bánh Pháp",
+    "phone": "Phone number",
+    "phonePlaceholder": "09xx xxx xxx",
+    "address": "Store address",
+    "addressPlaceholder": "Number, street, ward, district",
+    "photo": "Store photo",
+    "choosePhoto": "Choose a photo",
+    "photoHint": "A photo helps customers recognise your store.",
+    "submit": "Create store",
+    "detailsInvalid": "Enter the store's name and address.",
+    "phoneInvalid": "Enter a phone number of 9 to 15 digits, such as 0912 345 678.",
+    "limit": "You already have five stores. Use one of them.",
+    "failed": "The store was not created. Try again in a few minutes.",
+    "reference": "Reference: {id}"
+  },
+  "Stores": {
+    "title": "My stores",
+    "noneTitle": "You have no store yet",
+    "noneBody": "Open a store to post what is left at the end of the day.",
+    "create": "Open a new store",
+    "owner": "Owner",
+    "staff": "Staff"
   }
 }

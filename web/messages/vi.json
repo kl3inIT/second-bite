@@ -341,5 +341,33 @@
   "Splash": {
     "tagline": "Món ngon còn lại cuối ngày, giá tốt hơn",
     "loading": "Đang tải…"
+  },
+  "OpenStore": {
+    "title": "Mở quán",
+    "heading": "Mở quán của bạn",
+    "intro": "Chỉ cần vài thông tin. Bạn có thể sửa sau.",
+    "name": "Tên quán",
+    "namePlaceholder": "Ví dụ: Tiệm bánh Pháp",
+    "phone": "Số điện thoại",
+    "phonePlaceholder": "09xx xxx xxx",
+    "address": "Địa chỉ quán",
+    "addressPlaceholder": "Số nhà, đường, phường, quận",
+    "photo": "Ảnh đại diện quán",
+    "choosePhoto": "Chọn ảnh từ máy",
+    "photoHint": "Một ảnh giúp khách nhận ra quán của bạn.",
+    "submit": "Tạo quán",
+    "detailsInvalid": "Nhập tên và địa chỉ của quán.",
+    "phoneInvalid": "Nhập số điện thoại 9 đến 15 chữ số, ví dụ 0912 345 678.",
+    "limit": "Bạn đã có đủ 5 quán. Hãy dùng một trong số đó.",
+    "failed": "Chưa tạo được quán. Thử lại sau ít phút.",
+    "reference": "Mã tham chiếu: {id}"
+  },
+  "Stores": {
+    "title": "Quán của tôi",
+    "noneTitle": "Bạn chưa có quán",
+    "noneBody": "Mở quán để đăng món còn lại cuối ngày.",
+    "create": "Tạo quán mới",
+    "owner": "Chủ quán",
+    "staff": "Nhân viên"
   }
 }

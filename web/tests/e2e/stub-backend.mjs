@@ -364,6 +364,80 @@ async function auth(request, response, url) {
   return false;
 }
 
+// The seller's side (SEC-57), as api/openapi.yaml describes it: a person opens stores, at most five, each active
+// at once, and reads the ones they own. Kept per session, like the accounts above.
+const storesOf = new Map();
+
+async function sellerRoutes(request, response, url) {
+  const token = tokenOf(request);
+  const isSellerRoute =
+    url.pathname === "/sellers" ||
+    url.pathname === "/sellers/mine" ||
+    url.pathname === "/photos" ||
+    /^\/sellers\/[\w-]+\/photo$/.test(url.pathname);
+  if (!isSellerRoute) return false;
+  if (!accounts.has(token)) {
+    problem(response, 401, "IDENTITY_SESSION_INVALID");
+    return true;
+  }
+  const mine = storesOf.get(token) ?? [];
+  if (request.method === "GET" && url.pathname === "/sellers/mine") {
+    json(response, 200, { sellers: mine });
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/sellers") {
+    const body = await readBody(request);
+    const digits = String(body.phone ?? "").replace(/\D/g, "");
+    if (!String(body.name ?? "").trim() || !String(body.address ?? "").trim()) {
+      problem(response, 422, "SELLER_DETAILS_INVALID");
+    } else if (digits.length < 9 || digits.length > 15) {
+      problem(response, 422, "SELLER_PHONE_INVALID");
+    } else if (mine.length >= 5) {
+      problem(response, 409, "SELLER_LIMIT_REACHED");
+    } else {
+      const now = new Date().toISOString();
+      const seller = {
+        id: `se-${mine.length + 1}-${token.slice(-6)}`,
+        name: body.name.trim(),
+        address: body.address.trim(),
+        phone: digits,
+        latitude: body.latitude,
+        longitude: body.longitude,
+        status: "active",
+        myRole: "owner",
+        createdAt: now,
+        updatedAt: now,
+      };
+      storesOf.set(token, [...mine, seller]);
+      json(response, 201, seller);
+    }
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/photos") {
+    for await (const chunk of request) void chunk;
+    json(response, 201, {
+      id: "ph-upload",
+      width: 400,
+      height: 400,
+      largePath: "/photos/ph-upload/1600.jpg",
+      smallPath: "/photos/ph-upload/400.jpg",
+    });
+    return true;
+  }
+  if (request.method === "PUT") {
+    const id = url.pathname.split("/")[2];
+    const seller = mine.find((candidate) => candidate.id === id);
+    if (!seller) {
+      problem(response, 404, "SELLER_NOT_FOUND");
+    } else {
+      seller.photoId = (await readBody(request)).photoId;
+      json(response, 200, seller);
+    }
+    return true;
+  }
+  return false;
+}
+
 const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
@@ -390,6 +464,7 @@ const server = createServer(async (request, response) => {
     return;
   }
   if (await auth(request, response, url)) return;
+  if (await sellerRoutes(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {
     const { type, body } = await photo(photoMatch[1]);
