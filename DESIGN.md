@@ -299,7 +299,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 **The Bite Rule.** The bitten corner is cut in the colour of what is behind the card. It sits on cards on the sky ground, never on a control.
 
-**The Honest Number Rule.** No figure appears that the product did not measure: no invented counters, ratings or "meals saved" until the pilot produces them.
+**The Honest Number Rule.** No figure appears that the product did not measure: no invented counters, ratings or "meals saved" until the pilot produces them. A seller's rating is drawn only when the backend returns one; until then it shows only against the test backend.
 
 ## Typography
 
@@ -359,13 +359,15 @@ Deal Blue with white `label-strong` ("Giảm 55%"), in the photograph's top left
 
 ### Offer card
 
-The large card of "Sắp hết giờ nhận" (264px wide in a row) and of the list (the full width), after Figma Mobile v3 (`card/…`, `thẻ nổi bật`). White, 16px radius, bitten corner. A photograph 136px high with the discount label, and a dark scrim along its foot carrying the window with a clock, and the distance when a place is known, in white `label-strong` ("20:30–21:30 · 350 m"). Under it, 10px 14px 12px: the dish only, never the seller (`title-lg`, one line, cut with "…"), then a row with the portions left in Sale Red (`label-strong`, "Còn 2 phần", or "Đã hết" muted) on the left, and the old price struck through (`label`, muted) beside the new price (`price-lg`, Tasco blue) on the right. A sold out card dims its photograph.
+The large card of "Sắp hết giờ nhận" (264px wide in a row) and of the list (the full width), after Figma Mobile v3 (`card/…`, `thẻ nổi bật`). White, 16px radius, bitten corner. A photograph 136px high with the discount label, and a dark scrim along its foot carrying the window with a clock, and the distance when a place is known, in white `label-strong` ("20:30–21:30 · 350 m"), and at its right the seller's rating once there is one ("★ 4,8", the star in `rating`). Where the card names its seller, in the search (Figma K1f), the scrim carries the seller's place instead of the distance ("20:00–21:00 · Tầng 3") and a white heart sits under the label. Under it, 10px 14px 12px: the dish only, never the seller (`title-lg`, one line, cut with "…"), then a row with the portions left in Sale Red (`label-strong`, "Còn 2 phần", or "Đã hết" muted) on the left, and the old price struck through (`label`, muted) beside the new price (`price-lg`, Tasco blue) on the right. A sold out card dims its photograph.
 
-The home's "Tất cả món quanh đây" lays its cards two abreast (Figma `lưới món`, K1b, K1b2, K1d): 12px apart both ways, three columns from `sm`, four from `lg`, five from `xl`. A grid card keeps the white, the 16px radius and the label, but its photograph is 120px high with a 44px scrim, and under it, 10px 10px 12px: the dish (`title`, one line, cut with "…"), the old price struck through beside the new one (`price-lg`) on their own line, then the portions left; it has no bitten corner, no seller and no rating. Its heart waits for Yêu thích.
+The home's "Tất cả món quanh đây" lays its cards two abreast (Figma `lưới món`, K1b, K1b2, K1d): 12px apart both ways, three columns from `sm`, four from `lg`, five from `xl`. A grid card keeps the white, the 16px radius and the label, but its photograph is 120px high with a 44px scrim, and under it, 10px 10px 12px: the dish (`title`, one line, cut with "…"), the old price struck through beside the new one (`price-lg`) on their own line, then the portions left; it has no bitten corner and no seller. A white heart (22px, a 44px target) sits in the photograph's top right corner, filled once the dish is kept; the browser keeps it until accounts keep favourites. Over the grid, the search's filter chips start with a round button to the search (Figma `chip lọc`).
 
 ### Dish card
 
 The small card of the sideways rows (Figma `rec/…`): 132px wide with no surface of its own. A photograph 96px high with a 14px radius and the discount label; 8px under it the dish (`body-sm-strong`, one line, cut with "…"), then 2px under that a clock and the window (`label`, muted, "20:00–21:00"). It names the dish only, never the seller.
+
+"Gợi ý cho bạn" adds the seller's rating as a badge at the photograph's bottom left: Tasco blue with white `label-strong` ("4,7 ★"), 8px radius, ringed in 2px of white (Figma's lighter `tasco/700` held white at 3.6:1). "Sắp có tối nay" fills the label with the portions expected ("Dự kiến 6 phần"), puts a 28px white bell in Tasco blue at the photograph's bottom right, and shows the time it goes on sale under the dish ("Mở bán 22:00"). The bell asks first in a sheet (Figma K1d: "Báo bạn khi Nét Huế mở bán?", "Bật thông báo" over "Để sau"); once followed the bell turns Tasco blue and rings.
 
 ### Bottom bar
 
@@ -387,7 +389,7 @@ The search's own bar (Figma K2): white with a hairline below, a plain back arrow
 
 ### Filter chip
 
-A 34px pill on the sky ground without an edge (`body-sm`, ink, a small chevron), with a 44px target around it; once chosen it shows its value on Blue Wash in Tasco blue (`body-sm-strong`). Each opens its options as a menu, and every option is a link over the address. A suggestion chip (the kinds in Figma K2a) has the same shape without the chevron.
+A 34px pill on the sky ground without an edge (`body-sm`, ink, a small chevron), with a 44px target around it; once chosen it shows its value on Blue Wash in Tasco blue (`body-sm-strong`). Each opens its options as a menu, and every option is a link over the address. A suggestion chip (the kinds in Figma K2a) has the same shape without the chevron. On the sky ground itself, over the home's grid, a chip is white with a 1px `secondary` edge (Figma K1b).
 
 ### Result tabs
 

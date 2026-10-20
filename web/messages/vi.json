@@ -27,7 +27,17 @@
     "nearbyEmptyHint": "Các quán gần bạn chưa đăng món nào tối nay. Bạn có thể xem món đang bán ở Tasco Mall.",
     "seeMall": "Xem món ở Tasco Mall",
     "mallOffers": "Đang bán ở Tasco Mall",
-    "filters": "Lọc món"
+    "filters": "Lọc món",
+    "upcoming": "Sắp có tối nay",
+    "recommended": "Gợi ý cho bạn",
+    "expected": "Dự kiến {units} phần",
+    "opensAt": "Mở bán {time}",
+    "follow": "Báo khi {dish} mở bán",
+    "followTitle": "Báo bạn khi {seller} mở bán?",
+    "followBody": "{seller} dự kiến còn {units} phần mẻ sau, mở bán lúc {time} tối nay. Bật thông báo để biết ngay khi món lên, trước khi hết phần.",
+    "followOn": "Bật thông báo",
+    "followLater": "Để sau",
+    "close": "Đóng"
   },
   "Area": {
     "open": "Chọn nơi xem món",
@@ -81,7 +91,8 @@
     "sellersHere": "{count} quán đang bán",
     "sellerWindow": "Nhận {from}–{until}",
     "nothing": "Không tìm thấy món nào khớp.",
-    "everything": "Xem tất cả món"
+    "everything": "Xem tất cả món",
+    "sortBy": "Sắp xếp"
   },
   "LanguageSwitcher": {
     "label": "Switch to English"
@@ -112,7 +123,10 @@
     "left": "Còn {units} phần",
     "windowAway": "{window} · {distance}",
     "seller": "{seller}",
-    "sellerAway": "{seller} · cách {distance}"
+    "sellerAway": "{seller} · cách {distance}",
+    "windowAt": "{window} · {place}",
+    "rating": "Quán được chấm {rating} trên 5",
+    "heart": "Yêu thích {name}"
   },
   "Intro": {
     "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",

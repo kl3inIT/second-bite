@@ -11,7 +11,7 @@ export function OfferPhoto({
   sizes,
   className,
 }: {
-  offer: OfferSummary;
+  offer: Pick<OfferSummary, "photo">;
   dimmed?: boolean;
   /** How wide the frame is drawn, for the browser to pick its source. */
   sizes: string;

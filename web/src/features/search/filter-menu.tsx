@@ -22,12 +22,14 @@ export function FilterMenu({
   name,
   options,
   variant,
+  raised,
 }: {
   /** What the menu filters by, shown until an option other than the first is chosen. */
   name: string;
   /** The first option is the one without a filter. */
   options: readonly FilterOption[];
   variant: "chip" | "inline";
+  raised?: boolean;
 }) {
   const chosen = options.slice(1).find((option) => option.current);
 
@@ -35,6 +37,7 @@ export function FilterMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         variant={variant}
+        raised={raised}
         data-active={chosen ? "" : undefined}
         // A chip showing its choice still says what it filters by.
         aria-label={chosen ? `${name}: ${chosen.label}` : undefined}

@@ -5,6 +5,7 @@ import { cache } from "react";
 import { searchOffers, type SearchOffersData } from "@/lib/api/generated";
 
 import type { OfferKind, OfferSummary } from "./offer";
+import { isAnnouncement, type Announcement } from "./proposed";
 
 export type OfferSort = NonNullable<NonNullable<SearchOffersData["query"]>["sort"]>;
 
@@ -25,28 +26,36 @@ export type OfferFilters = {
 };
 
 /**
- * Tonight's offers for the filters (SEC-11 › Finding offers). Called from Server Components; a failure
- * rejects with ApiError and reaches the page's error boundary. The header and the list ask for the same
- * offers, so one render makes one request.
+ * Tonight's offers for the filters (SEC-11 › Finding offers), without the announcements. Called from Server
+ * Components; a failure rejects with ApiError and reaches the page's error boundary. The header and the
+ * list ask for the same offers, so one render makes one request.
  */
-export function listOffers(filters: OfferFilters): Promise<OfferSummary[]> {
-  return search(
-    JSON.stringify([
-      filters.q || undefined,
-      filters.kind,
-      Boolean(filters.collectNow),
-      filters.near,
-      filters.radiusKm,
-      filters.maxPrice,
-      filters.sort,
-    ]),
-  );
+export async function listOffers(filters: OfferFilters): Promise<OfferSummary[]> {
+  const found = await search(key(filters));
+  return found.filter((offer): offer is OfferSummary => !isAnnouncement(offer));
+}
+
+/** The announcements among tonight's results for the filters: the home's "Sắp có tối nay". */
+export async function listAnnouncements(filters: OfferFilters): Promise<Announcement[]> {
+  return (await search(key(filters))).filter(isAnnouncement);
+}
+
+function key(filters: OfferFilters): string {
+  return JSON.stringify([
+    filters.q || undefined,
+    filters.kind,
+    Boolean(filters.collectNow),
+    filters.near,
+    filters.radiusKm,
+    filters.maxPrice,
+    filters.sort,
+  ]);
 }
 
 // React's cache compares arguments by identity, so the filters arrive as one string.
-const search = cache(async (key: string) => {
+const search = cache(async (filters: string) => {
   // JSON writes an absent filter as null; the query leaves it out only when it is undefined.
-  const values = (JSON.parse(key) as unknown[]).map((value) => value ?? undefined);
+  const values = (JSON.parse(filters) as unknown[]).map((value) => value ?? undefined);
   const [q, kind, collectNow, near, radiusKm, maxPrice, sort] = values as [
     string | undefined,
     OfferKind | undefined,
@@ -70,5 +79,6 @@ const search = cache(async (key: string) => {
       limit: 50,
     },
   });
-  return data.offers;
+  // Announcements join the results with SEC-11 step 5; the stub returns them already (proposed.ts).
+  return data.offers as (OfferSummary | Announcement)[];
 });

@@ -27,7 +27,17 @@
     "nearbyEmptyHint": "The sellers near you have posted nothing tonight. You can see what is on at Tasco Mall.",
     "seeMall": "See dishes at Tasco Mall",
     "mallOffers": "On now at Tasco Mall",
-    "filters": "Filter dishes"
+    "filters": "Filter dishes",
+    "upcoming": "Coming tonight",
+    "recommended": "Picked for you",
+    "expected": "{units} expected",
+    "opensAt": "On sale at {time}",
+    "follow": "Tell me when {dish} goes on sale",
+    "followTitle": "Tell you when {seller} starts selling?",
+    "followBody": "{seller} expects {units} more portions, on sale at {time} tonight. Turn on alerts to hear the moment they are up, before they run out.",
+    "followOn": "Turn on alerts",
+    "followLater": "Not now",
+    "close": "Close"
   },
   "Area": {
     "open": "Choose where to look",
@@ -81,7 +91,8 @@
     "sellersHere": "{count, plural, one {# seller} other {# sellers}} on sale",
     "sellerWindow": "Collect {from}–{until}",
     "nothing": "No dish matches.",
-    "everything": "See every dish"
+    "everything": "See every dish",
+    "sortBy": "Sort"
   },
   "LanguageSwitcher": {
     "label": "Chuyển sang tiếng Việt"
@@ -112,7 +123,10 @@
     "left": "{units} left",
     "windowAway": "{window} · {distance}",
     "seller": "{seller}",
-    "sellerAway": "{seller} · {distance} away"
+    "sellerAway": "{seller} · {distance} away",
+    "windowAt": "{window} · {place}",
+    "rating": "Seller rated {rating} out of 5",
+    "heart": "Favourite {name}"
   },
   "Intro": {
     "tagline": "End-of-day food from the counters at Tasco Mall, for less.",

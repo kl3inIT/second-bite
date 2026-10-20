@@ -14,7 +14,17 @@ import {
 
 // The search's chips (Figma K2 chip lọc), each a filter `GET /offers` takes: how far around the person's
 // place (only with one), the highest price, collectable now, and the kind. Choosing one keeps the others.
-export function SearchFilters({ query }: { query: SearchQuery }) {
+// The home shows them over "Tất cả món quanh đây" (Figma K1b), `raised` on its sky ground, with the order
+// as a chip and `before` them a link to the search; each choice opens the search.
+export function SearchFilters({
+  query,
+  raised,
+  before,
+}: {
+  query: SearchQuery;
+  raised?: boolean;
+  before?: React.ReactNode;
+}) {
   const t = useTranslations("Search");
   const kinds = useTranslations("OfferKind");
   const format = useFormatter();
@@ -26,10 +36,17 @@ export function SearchFilters({ query }: { query: SearchQuery }) {
 
   return (
     <ul aria-label={t("filters")} className="flex gap-2 overflow-x-auto px-4 py-1.25">
+      {before && <li>{before}</li>}
+      {raised && (
+        <li>
+          <SearchOrder query={query} chip />
+        </li>
+      )}
       {query.near && (
         <li>
           <FilterMenu
             variant="chip"
+            raised={raised}
             name={t("distance")}
             options={[
               option(t("anyDistance"), { radiusKm: undefined }, !query.radiusKm),
@@ -47,6 +64,7 @@ export function SearchFilters({ query }: { query: SearchQuery }) {
       <li>
         <FilterMenu
           variant="chip"
+          raised={raised}
           name={t("price")}
           options={[
             option(t("anyPrice"), { maxPrice: undefined }, !query.maxPrice),
@@ -63,6 +81,7 @@ export function SearchFilters({ query }: { query: SearchQuery }) {
       <li>
         <FilterMenu
           variant="chip"
+          raised={raised}
           name={t("when")}
           options={[
             option(t("anyTime"), { now: undefined }, !query.now),
@@ -73,6 +92,7 @@ export function SearchFilters({ query }: { query: SearchQuery }) {
       <li>
         <FilterMenu
           variant="chip"
+          raised={raised}
           name={t("kind")}
           options={[
             option(t("anyKind"), { kind: undefined }, !query.kind),
@@ -84,8 +104,11 @@ export function SearchFilters({ query }: { query: SearchQuery }) {
   );
 }
 
-/** The order of the results ("Gần nhất ▾"): the backend's own first, then each other one it takes. */
-export function SearchOrder({ query }: { query: SearchQuery }) {
+/**
+ * The order of the results ("Gần nhất ▾"): the backend's own first, then each other one it takes. As a
+ * `chip` it is the home's "Sắp xếp ▾".
+ */
+export function SearchOrder({ query, chip = false }: { query: SearchQuery; chip?: boolean }) {
   const t = useTranslations("Search");
   const natural = query.q ? "relevance" : query.near ? "distance" : "ending_soon";
   const others = sortChoices.filter(
@@ -95,8 +118,9 @@ export function SearchOrder({ query }: { query: SearchQuery }) {
 
   return (
     <FilterMenu
-      variant="inline"
-      name={t(`sort.${natural}`)}
+      variant={chip ? "chip" : "inline"}
+      raised={chip}
+      name={chip ? t("sortBy") : t(`sort.${natural}`)}
       options={[
         {
           label: t(`sort.${natural}`),

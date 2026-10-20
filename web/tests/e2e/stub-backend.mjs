@@ -47,11 +47,17 @@ function sample({ id, name, kind, price, originalPrice, unitsLeft, unit, from, u
   };
 }
 
+/** Surplus expected later tonight: an offer with estimated units instead of units, which nobody can order. */
+function announce({ estimatedUnits, ...fields }) {
+  const { units: _units, unitsLeft: _unitsLeft, ...offer } = sample({ ...fields, unitsLeft: 0 });
+  return { ...offer, status: "announced", estimatedUnits };
+}
+
 const sellers = {
-  laParis: { id: "se-la-paris", name: "La Paris", address: "Tầng 1" },
-  pandaChef: { id: "se-panda-chef", name: "Panda Chef", address: "Tầng 3" },
-  netHue: { id: "se-net-hue", name: "Nét Huế", address: "Tầng 3" },
-  phucLong: { id: "se-phuc-long", name: "Phúc Long", address: "Tầng 1" },
+  laParis: { id: "se-la-paris", name: "La Paris", address: "Tầng 1", rating: 4.8 },
+  pandaChef: { id: "se-panda-chef", name: "Panda Chef", address: "Tầng 3", rating: 4.6 },
+  netHue: { id: "se-net-hue", name: "Nét Huế", address: "Tầng 3", rating: 4.7 },
+  phucLong: { id: "se-phuc-long", name: "Phúc Long", address: "Tầng 1", rating: 4.5 },
   highlands: { id: "se-highlands", name: "Highlands Coffee", address: "Tầng 1" },
   kfc: { id: "se-kfc", name: "KFC", address: "Tầng hầm" },
   pizzaHut: { id: "se-pizza-hut", name: "Pizza Hut", address: "Tầng 3" },
@@ -179,6 +185,43 @@ const offers = [
     until: tonight(22, 0),
     seller: sellers.pizzaHut,
   }),
+  // Announcements, ahead of the contract (SEC-11 step 5; web/src/features/offers/proposed.ts).
+  announce({
+    id: "an-com-bo",
+    name: "Cơm Bò Rang Giòn",
+    kind: "prepared_food",
+    price: 32000,
+    originalPrice: 72000,
+    estimatedUnits: 6,
+    unit: "suất",
+    from: tonight(22, 0),
+    until: tonight(22, 45),
+    seller: sellers.netHue,
+  }),
+  announce({
+    id: "an-xiu-mai",
+    name: "Xíu Mại Hấp",
+    kind: "prepared_food",
+    price: 24000,
+    originalPrice: 55000,
+    estimatedUnits: 8,
+    unit: "phần",
+    from: tonight(22, 30),
+    until: tonight(23, 0),
+    seller: sellers.pandaChef,
+  }),
+  announce({
+    id: "an-ga-ran",
+    name: "3 Miếng Gà Rán",
+    kind: "prepared_food",
+    price: 45000,
+    originalPrice: 99000,
+    estimatedUnits: 5,
+    unit: "phần",
+    from: tonight(21, 45),
+    until: tonight(22, 15),
+    seller: sellers.kfc,
+  }),
 ];
 
 // Each dish's photograph from the shop's own menu, in the git-ignored copy of Tasco Mall's food directory
@@ -197,6 +240,9 @@ const photoFiles = {
   "ph-bac-xiu": "highlands-coffee-2/01-bac-xiu-da.jpg",
   "ph-combo-nhom": "kfc/10-combo-nhom-3-tu-tap.jpg",
   "ph-pizza": "pizza-hut/02-pizza-thap-cam.webp",
+  "ph-com-bo": "net-hue/08-com-bo-rang-gion.jpg",
+  "ph-xiu-mai": "panda-chef/02-xiu-mai-hap.png",
+  "ph-ga-ran": "kfc/01-3-mieng-ga-ran.jpg",
 };
 const imageTypes = { ".jpg": "image/jpeg", ".png": "image/png", ".webp": "image/webp" };
 

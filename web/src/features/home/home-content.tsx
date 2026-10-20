@@ -1,4 +1,4 @@
-import { StoreIcon } from "lucide-react";
+import { SlidersHorizontalIcon, StoreIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -11,27 +11,33 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { SectionHeader } from "@/components/section-header";
-import { listOffers } from "@/features/offers/list-offers";
+import { listAnnouncements, listOffers } from "@/features/offers/list-offers";
 import { closingFirst, inShowingOrder } from "@/features/offers/offer";
+import type { Announcement } from "@/features/offers/proposed";
 import { OfferList } from "@/features/offers/offer-list";
 import { OfferRow } from "@/features/offers/offer-row";
+import { SearchFilters } from "@/features/search/search-filters";
 import { Link } from "@/i18n/navigation";
 
 import { homeSearch, type HomeQuery } from "./home-query";
 import { HowItWorks } from "./how-it-works";
 import { KindPicker } from "./kind-picker";
+import { RecommendedSection, UpcomingSection } from "./tonight-rows";
 
 const CLOSING_COUNT = 6;
 const seeAllClass = "-my-3 py-3 text-body-sm-strong text-link underline-offset-4 hover:underline";
 
 // Everything under the header for what the address asks (Figma Mobile v3 content). Without a filter: the
-// kinds, the windows closing first, then every offer as large cards. With one: the kinds and the matching
-// offers. Around the person's own place with nothing posted: what Tasco Mall has instead (Figma K1e).
+// kinds, the windows closing first, what is coming tonight, the recommendations, then every offer in a grid
+// under the search's chips (Figma K1, K1b). With one: the kinds and the matching offers. Around the person's
+// own place with nothing posted: what is coming and what Tasco Mall has instead (Figma K1e).
 export async function HomeContent({ query: pending }: { query: Promise<HomeQuery> }) {
   const query = await pending;
-  const [t, offers] = await Promise.all([
+  const filters = { q: query.q, kind: query.kind, collectNow: query.now, near: query.near };
+  const [t, offers, announcements] = await Promise.all([
     getTranslations("Home"),
-    listOffers({ q: query.q, kind: query.kind, collectNow: query.now, near: query.near }),
+    listOffers(filters),
+    listAnnouncements(filters),
   ]);
   const filtered = Boolean(query.q || query.kind || query.now);
   const closing = filtered ? [] : closingFirst(offers).slice(0, CLOSING_COUNT);
@@ -45,7 +51,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
         </div>
       )}
       {query.near && !filtered && offers.length === 0 ? (
-        <NearbyEmpty />
+        <NearbyEmpty announcements={announcements} />
       ) : (
         <>
           {closing.length > 0 && (
@@ -58,8 +64,21 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
               <OfferRow label={t("closingSoon")} offers={closing} />
             </section>
           )}
+          {!filtered && (
+            <>
+              <UpcomingSection announcements={announcements} />
+              <RecommendedSection offers={offers} />
+            </>
+          )}
           <section aria-labelledby="all-offers" className="flex flex-col gap-3">
             <SectionHeader id="all-offers" title={filtered ? t("results") : t("allOffers")} />
+            {!filtered && offers.length > 1 && (
+              <SearchFilters
+                query={{ near: query.near }}
+                raised
+                before={<FiltersLink near={query.near} label={t("filters")} />}
+              />
+            )}
             {offers.length > 0 ? (
               <OfferList offers={inShowingOrder(offers)} compact />
             ) : (
@@ -77,6 +96,23 @@ function SeeAll({ near, label }: { near?: string; label: string }) {
   return (
     <Link href={{ pathname: "/search", query: homeSearch({ near }) }} className={seeAllClass}>
       {label}
+    </Link>
+  );
+}
+
+/** The chips' leading button: the search, where every filter is (Figma K1b "nút lọc"). */
+function FiltersLink({ near, label }: { near?: string; label: string }) {
+  return (
+    <Link
+      href={{ pathname: "/search", query: homeSearch({ near }) }}
+      aria-label={label}
+      className={buttonVariants({
+        variant: "chip",
+        size: "chip",
+        className: "bg-card ring-1 ring-secondary ring-inset",
+      })}
+    >
+      <SlidersHorizontalIcon aria-hidden className="size-4.5 text-primary" />
     </Link>
   );
 }
@@ -104,7 +140,7 @@ async function NothingFound({ filtered, near }: { filtered: boolean; near?: stri
 }
 
 // Nothing posted around the person's own place (Figma K1e): say so, offer Tasco Mall, and show what it has.
-async function NearbyEmpty() {
+async function NearbyEmpty({ announcements }: { announcements: readonly Announcement[] }) {
   const [t, mall] = await Promise.all([getTranslations("Home"), listOffers({})]);
   const onSale = closingFirst(mall);
 
@@ -124,6 +160,7 @@ async function NearbyEmpty() {
           </Link>
         </EmptyContent>
       </Empty>
+      <UpcomingSection announcements={announcements} />
       {onSale.length > 0 && (
         <section aria-labelledby="mall-offers" className="flex flex-col gap-3">
           <SectionHeader

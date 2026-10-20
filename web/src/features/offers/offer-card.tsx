@@ -5,17 +5,21 @@ import { BiteCorner } from "@/components/bite-corner";
 import { cn } from "@/lib/utils";
 
 import { DiscountLabel } from "./discount-label";
+import { HeartButton } from "./heart-button";
 import { isAvailable, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
 import { Price } from "./price";
+import { sellerRating } from "./proposed";
+import { Rating } from "./rating";
 import { useCollectionWindow, useDistance } from "./window";
 
 // The large card of "Sắp hết giờ nhận", the lists and the search (DESIGN.md › Offer card, Figma Mobile v3
-// card/…): the photograph with the discount label and, on a scrim at its foot, the window and how far it
-// is; then the dish, the portions left in red words and the price, under a bitten corner. A card names the
-// dish only; where the seller is not otherwise shown, as in search results, `showSeller` adds them.
+// card/…): the photograph with the discount label and, on a scrim at its foot, the window, how far it is and
+// the seller's rating; then the dish, the portions left in red words and the price, under a bitten corner.
+// A card names the dish only; where the seller is not otherwise shown, as in search results, `showSeller`
+// adds them, with their place on the scrim ("Tầng 3", Figma K1f) and a heart.
 // `compact` is the card of the home's two-column grid (Figma "lưới món"): a 120px photograph, then the dish,
-// the price on its own line and the portions left under it, without the bitten corner.
+// the price on its own line and the portions left under it, a heart instead of the bitten corner.
 export function OfferCard({
   offer,
   showSeller = false,
@@ -32,6 +36,12 @@ export function OfferCard({
   const distance = useDistance(offer);
   const available = isAvailable(offer);
   const window = t("window", { from, until });
+  const rating = sellerRating(offer);
+  const where = showSeller
+    ? t("windowAt", { window, place: offer.seller.address })
+    : distance
+      ? t("windowAway", { window, distance })
+      : window;
 
   return (
     <article
@@ -54,10 +64,16 @@ export function OfferCard({
           )}
         >
           <ClockIcon aria-hidden strokeWidth={2.2} className="mb-0.5 size-3.5 shrink-0" />
-          <span className="truncate">
-            {distance ? t("windowAway", { window, distance }) : window}
-          </span>
+          <span className="truncate">{where}</span>
+          {rating !== undefined && <Rating rating={rating} className="ml-auto" />}
         </p>
+        {(compact || showSeller) && (
+          <HeartButton
+            offerId={offer.id}
+            name={offer.name}
+            className={compact ? "top-0 right-0" : "top-7 left-0"}
+          />
+        )}
       </div>
       <div className={cn("flex flex-col gap-1 pt-2.5 pb-3", compact ? "px-2.5" : "px-3.5")}>
         <h3 className={cn("truncate text-foreground", compact ? "text-title" : "text-title-lg")}>
