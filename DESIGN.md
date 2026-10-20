@@ -51,7 +51,7 @@ colors:
   primary-foreground: "{palette.base-white}"
   primary-hover: "{palette.brand-900}" # darker under the pointer so the text gains contrast, 8.5:1
   inverse-muted: "{palette.text-on-brand}" # secondary text on Tasco blue or a dark photo scrim, 5.3:1 on primary
-  shell: "{palette.base-white}" # the top bar of every screen but the home: white with a hairline below
+  shell: "{palette.base-white}" # the web's top bar of every screen but the home: white with a hairline below
   shell-foreground: "{palette.text-ink}"
   header: "{palette.brand-800}" # the home's header, under the light sweep; Figma v3's sky #3CB4E7 held white at 2.4:1
   header-foreground: "{palette.base-white}" # the place on the header, 6.3:1
@@ -259,7 +259,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 - **Blue Header** (`header`, `header-foreground`): the home's header, the same blue as `primary`, with the place in white, a lime pin and the district in `inverse-muted`. **Light Sweep** (`sweep`, `sweep-edge`) crosses its top right: Figma draws it as `brand-300` at 18% and 30% over the header, written here as the solid colours that makes. Figma v3 had a sky header (`brand-500`), but white on it reaches only 2.4:1.
 - **Deal Blue** (`deal`, `deal-foreground`): the deal card on the header, one step deeper than it so it stands apart.
 - **Raised** (`header-raised`, `header-border`): the white capsule and search field on the header.
-- **White Shell** (`shell`, `shell-foreground`): the top bar of every other screen, white with a hairline below.
+- **White Shell** (`shell`, `shell-foreground`): on the web, the top bar of every other screen, white with a hairline below, and the bottom bar. In the app, every screen but the home has the Blue Header's colours instead, its name in `header-foreground` and the back button a `header-raised` disc with the arrow in `primary`, as Figma Mobile v3 draws it (K5); decided by the team on 20 October 2026 (SEC-52).
 - **Soft on Blue** (`inverse-muted`): secondary text on Tasco blue, the deal card or a dark photo scrim.
 - **Blue Link** (`link`): text links and secondary actions, on white or the ground. Figma v3 uses `brand-700`, which reaches only 3.9:1 on white, so links take `brand-800`.
 
