@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"image"
 	"image/png"
 	"strings"
@@ -48,6 +49,8 @@ func TestOffer(t *testing.T) {
 			"search reads Vietnamese as it is typed":      testSearchReadsVietnamese,
 			"search keeps what is near and filtered":      testSearchNearAndFiltered,
 			"a blocked seller's offers leave search":      testBlockedSellerLeavesSearch,
+			"a seller keeps its dishes in a catalog":      testCatalogKeepsTheStableBase,
+			"a catalog holds a hundred dishes":            testCatalogHoldsAHundredDishes,
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
@@ -464,4 +467,109 @@ func testSettingsBoundEveryPost(t *testing.T, f fixture) {
 
 	_, err = f.offers.SaveSettings(owner, set)
 	mustFail(t, "a customer saving the settings", err, platform.ErrAdminRequired)
+}
+
+func testCatalogKeepsTheStableBase(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	staff := f.as(t, "staff", platform.RoleCustomer)
+	stranger := f.as(t, "stranger", platform.RoleCustomer)
+	admin := f.as(t, "admin", platform.RoleAdmin)
+	sellerID := f.activeSeller(owner, t, "staff")
+	photo := f.photo(owner, t)
+
+	dish, err := f.offers.AddDish(owner, sellerID, offer.DishDetails{
+		Name: "  Túi bánh mì  ", Kind: offer.KindBakery, Ingredients: "bột mì, trứng, sữa", PhotoID: photo,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if dish.Name != "Túi bánh mì" || dish.Unit != "suất" || dish.Hidden || dish.Ingredients != "bột mì, trứng, sữa" {
+		t.Fatalf("added %+v", dish)
+	}
+
+	for name, change := range map[string]func(*offer.DishDetails){
+		"a blank name":           func(d *offer.DishDetails) { d.Name = " " },
+		"an unknown kind":        func(d *offer.DishDetails) { d.Kind = "fruit" },
+		"too many ingredients":   func(d *offer.DishDetails) { d.Ingredients = strings.Repeat("x", 501) },
+		"a unit of 21 letters":   func(d *offer.DishDetails) { d.Unit = strings.Repeat("x", 21) },
+		"no photo":               func(d *offer.DishDetails) { d.PhotoID = uuid.Nil },
+		"a description too long": func(d *offer.DishDetails) { d.Description = strings.Repeat("x", 1001) },
+	} {
+		d := offer.DishDetails{Name: "Xôi", Kind: offer.KindPreparedFood, PhotoID: photo}
+		change(&d)
+		_, err := f.offers.AddDish(owner, sellerID, d)
+		mustFail(t, name, err, offer.ErrDetailsInvalid)
+	}
+
+	// The catalog is private to the seller's people.
+	if got, err := f.offers.Dishes(staff, sellerID); err != nil || len(got) != 1 {
+		t.Errorf("staff reading: %v, %v", got, err)
+	}
+
+	_, err = f.offers.Dishes(stranger, sellerID)
+	mustFail(t, "a stranger reading", err, seller.ErrNotFound)
+
+	_, err = f.offers.Dishes(admin, sellerID)
+	mustFail(t, "an admin, who does not publish", err, seller.ErrNotFound)
+
+	_, err = f.offers.AddDish(stranger, sellerID, offer.DishDetails{Name: "Xôi", Kind: offer.KindPreparedFood, PhotoID: photo})
+	mustFail(t, "a stranger adding", err, seller.ErrNotFound)
+
+	_, err = f.offers.ChangeDish(stranger, dish.ID, offer.DishChange{})
+	mustFail(t, "a stranger changing", err, offer.ErrDishNotFound)
+
+	// A post copies the dish, and may show its photo; changing the dish later leaves the post alone.
+	posted, err := f.offers.Post(staff, sellerID, offer.Details{
+		Name: dish.Name, Kind: dish.Kind, Units: 3, PriceVND: 15_000, OriginalPriceVND: 25_000,
+		PhotoID: dish.PhotoID, WindowStart: time.Now(), WindowEnd: time.Now().Add(time.Hour),
+	})
+	if err != nil {
+		t.Fatalf("posting from the dish: %v", err)
+	}
+
+	name, hidden := "Túi bánh mì lớn", true
+
+	changed, err := f.offers.ChangeDish(staff, dish.ID, offer.DishChange{Name: &name, Hidden: &hidden})
+	if err != nil || changed.Name != name || !changed.Hidden || changed.Unit != "suất" {
+		t.Fatalf("changed %+v, %v", changed, err)
+	}
+
+	if got, err := f.offers.Get(owner, posted.ID); err != nil || got.Name != "Túi bánh mì" {
+		t.Errorf("the offer after the dish changed: %+v, %v", got, err)
+	}
+
+	if err := f.offers.RemoveDish(owner, dish.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	if got, err := f.offers.Get(owner, posted.ID); err != nil || got.Name != "Túi bánh mì" {
+		t.Errorf("the offer after the dish was deleted: %+v, %v", got, err)
+	}
+
+	mustFail(t, "deleting twice", f.offers.RemoveDish(owner, dish.ID), offer.ErrDishNotFound)
+
+	if got, err := f.offers.Dishes(owner, sellerID); err != nil || len(got) != 0 {
+		t.Errorf("the catalog after deleting: %v, %v", got, err)
+	}
+}
+
+func testCatalogHoldsAHundredDishes(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	sellerID := f.activeSeller(owner, t)
+	photo := f.photo(owner, t)
+
+	for n := range 100 {
+		d := offer.DishDetails{Name: fmt.Sprintf("Món %d", n), Kind: offer.KindOther, PhotoID: photo}
+		if _, err := f.offers.AddDish(owner, sellerID, d); err != nil {
+			t.Fatalf("dish %d: %v", n, err)
+		}
+	}
+
+	_, err := f.offers.AddDish(owner, sellerID, offer.DishDetails{Name: "Một món nữa", Kind: offer.KindOther, PhotoID: photo})
+	mustFail(t, "the 101st dish", err, offer.ErrDishLimitReached)
 }
