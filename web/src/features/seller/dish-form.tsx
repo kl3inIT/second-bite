@@ -49,8 +49,7 @@ function problemOf(error: unknown): Problem {
 }
 
 // The form of a dish of the catalog (SEC-55, Figma Q3c "Thêm món", C1 "Sửa món"): its photo, name, kind, unit,
-// description, and ingredients and allergens; once it exists, whether it is shown in the list a post is picked
-// from, and "Xoá món", which asks first (C2). A mixed box needs its description, as a post of it does.
+// description, and ingredients and allergens, and, once it exists, "Xoá món", which asks first (C2). A mixed box needs its description, as a post of it does.
 export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody }) {
   const t = useTranslations("DishForm");
   const kindName = useTranslations("OfferKind");
@@ -60,7 +59,6 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
   const [preview, setPreview] = useState<string>();
   const [name, setName] = useState(dish?.name ?? "");
   const [kind, setKind] = useState<DishBody["kind"]>(dish?.kind ?? "bakery");
-  const [hidden, setHidden] = useState(dish?.hidden ?? false);
   const [unit, setUnit] = useState(dish?.unit ?? "suất");
   const [original, setOriginal] = useState(
     dish?.originalPriceVnd ? String(dish.originalPriceVnd) : "",
@@ -103,7 +101,6 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
           unit: unit.trim(),
           description: description.trim(),
           ingredients: ingredients.trim(),
-          hidden,
         };
         if (dish) {
           // Emptying the price takes it away (the backend reads 0 so).
@@ -229,20 +226,6 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
             ))}
           </div>
         </fieldset>
-
-        {dish && (
-          <fieldset className="flex flex-col gap-2">
-            <legend className="mb-2 text-title">{t("status")}</legend>
-            <div className="-my-1 flex flex-wrap gap-x-2">
-              <Chip selected={!hidden} onClick={() => setHidden(false)}>
-                {t("shown")}
-              </Chip>
-              <Chip selected={hidden} onClick={() => setHidden(true)}>
-                {t("hiddenLabel")}
-              </Chip>
-            </div>
-          </fieldset>
-        )}
 
         <div className="grid grid-cols-2 gap-3">
           <Field>
