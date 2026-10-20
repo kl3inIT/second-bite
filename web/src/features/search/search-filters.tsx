@@ -35,7 +35,10 @@ export function SearchFilters({
   ): FilterOption => ({ label, query: searchParams(query, change), current });
 
   return (
-    <ul aria-label={t("filters")} className="flex gap-2 overflow-x-auto px-4 py-1.25">
+    <ul
+      aria-label={t("filters")}
+      className="scrollbar-none flex gap-2 overflow-x-auto px-4 py-1.25 *:shrink-0"
+    >
       {before && <li>{before}</li>}
       {raised && (
         <li>
