@@ -28,6 +28,17 @@ PageSpeed Insights' API answered "Quota exceeded … Queries per day" without a 
 - `/vi/khong-co` cannot be scored: Lighthouse refuses a 404 answer.
 - Staging's own numbers were measured before the change; measure it again once the branch is deployed.
 
+PageSpeed Insights itself, with an API key the team keeps outside the repository, on staging as deployed from `main` (the baseline, before this change):
+
+| Page | Mobile: performance, accessibility, best practices, SEO | Desktop | Mobile LCP |
+| --- | --- | --- | --- |
+| `/vi/terms` | 87, 100, 100, 63 | 100, 100, 100, 63 | 3.2 s |
+| `/en/privacy` | 75, 100, 100, 63 | 100, 100, 100, 63 | 5.0 s |
+| `/vi/account` | 92, 100, 100, 63 | 100, 100, 100, 63 | 3.2 s |
+| `/vi` | 79, 100, 100, 66 | 100, 100, 100, 66 | 4.1 s |
+
+The two legal pages are the same page with other words, so the spread on mobile (75 to 87) is the run-to-run variance of PSI's simulated slow 4G from Google's servers, not a difference between them. SEO fails only `is-crawlable`, from the closed robots. No field data (Chrome UX Report) exists yet for the site.
+
 ## Mobile
 
 | Command | Outcome |
