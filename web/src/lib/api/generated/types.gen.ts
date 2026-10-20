@@ -49,6 +49,7 @@ export type DishBody = {
     ingredients: string;
     kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
     name: string;
+    originalPriceVnd?: number;
     photo: OfferPhotoBody;
     sellerId: string;
     unit: string;
@@ -61,6 +62,7 @@ export type DishChangeBody = {
     ingredients?: string;
     kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
     name?: string;
+    originalPriceVnd?: number;
     photoId?: string;
     unit?: string;
 };
@@ -77,6 +79,10 @@ export type DishDetailsBody = {
     ingredients?: string;
     kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
     name: string;
+    /**
+     * What one unit normally sells for; a post starts from it
+     */
+    originalPriceVnd?: number;
     /**
      * From POST /photos, or a photo the seller already shows
      */

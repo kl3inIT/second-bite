@@ -559,6 +559,10 @@
     "keep": "Giữ lại",
     "limit": "Danh mục đã có 100 món. Xoá bớt một món trước khi thêm.",
     "failed": "Chưa lưu được món. Thử lại sau ít phút.",
-    "reference": "Mã tham chiếu: {id}"
+    "reference": "Mã tham chiếu: {id}",
+    "original": "Giá gốc (đồng, tùy chọn)",
+    "originalPlaceholder": "Ví dụ: 95.000",
+    "originalNote": "Nhập sẵn để lúc đăng món điền luôn giá gốc. Giá bán vẫn nhập khi đăng.",
+    "originalInvalid": "Giá gốc từ 1.001đ trở lên, hoặc để trống."
   }
 }

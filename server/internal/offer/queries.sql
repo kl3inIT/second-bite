@@ -109,23 +109,23 @@ SELECT pg_advisory_xact_lock(hashtextextended('offer:dishes:' || @seller_id::tex
 SELECT count(*)::integer FROM offer_dishes WHERE seller_id = @seller_id;
 
 -- name: InsertDish :one
-INSERT INTO offer_dishes (seller_id, created_by, name, kind, unit, description, ingredients, photo_id, hidden)
-VALUES (@seller_id, @created_by, @name, @kind, @unit, @description, @ingredients, @photo_id, @hidden)
+INSERT INTO offer_dishes (seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden)
+VALUES (@seller_id, @created_by, @name, @kind, @unit, @description, @ingredients, @original_price_vnd, @photo_id, @hidden)
 RETURNING id;
 
 -- name: GetDish :one
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, photo_id, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
 FROM offer_dishes WHERE id = @id;
 
 -- name: SellerDishes :many
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, photo_id, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
 FROM offer_dishes WHERE seller_id = @seller_id
 ORDER BY created_at DESC, id DESC;
 
 -- name: UpdateDish :exec
 UPDATE offer_dishes
 SET name = @name, kind = @kind, unit = @unit, description = @description, ingredients = @ingredients,
-    photo_id = @photo_id, hidden = @hidden, updated_at = now()
+    original_price_vnd = @original_price_vnd, photo_id = @photo_id, hidden = @hidden, updated_at = now()
 WHERE id = @id;
 
 -- name: DeleteDish :execrows

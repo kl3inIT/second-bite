@@ -15,8 +15,8 @@ The three questions SEC-55 left open, answered:
 The stable base of a dish only, as Karma's items and Too Good To Go's listings split it from the daily post:
 
 - Required: a photo, a name (1 to 80 characters), a kind (the offer's six kinds).
-- Optional: a unit (up to 20 characters, `suất` when empty), a description (up to 1,000), the ingredients and allergens (one text, up to 500, Figma "Thành phần và dị ứng"), and whether it is shown or hidden in the list the post form picks from.
-- No price, hours, units or status: those belong to the post. Portion, "usually in the bag", diet and notes for use, which SEC-55 listed, are left out until a seller asks for them.
+- Optional: a unit (up to 20 characters, `suất` when empty), a description (up to 1,000), the ingredients and allergens (one text, up to 500, Figma "Thành phần và dị ứng"), and an original price (what one unit normally sells for, from 1,001 đồng; a post starts from it and still sets its own), and whether it is shown or hidden in the list the post form picks from.
+- No selling price, hours, units or status: those belong to the post. Portion, "usually in the bag", diet and notes for use, which SEC-55 listed, are left out until a seller asks for them.
 
 A seller has at most 100 dishes.
 

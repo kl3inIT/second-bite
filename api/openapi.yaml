@@ -107,6 +107,9 @@ components:
           type: string
         name:
           type: string
+        originalPriceVnd:
+          format: int64
+          type: integer
         photo:
           $ref: "#/components/schemas/OfferPhotoBody"
         sellerId:
@@ -153,6 +156,10 @@ components:
           maxLength: 80
           minLength: 1
           type: string
+        originalPriceVnd:
+          format: int64
+          minimum: 0
+          type: integer
         photoId:
           type: string
         unit:
@@ -185,6 +192,11 @@ components:
           maxLength: 80
           minLength: 1
           type: string
+        originalPriceVnd:
+          description: What one unit normally sells for; a post starts from it
+          format: int64
+          minimum: 1001
+          type: integer
         photoId:
           description: From POST /photos, or a photo the seller already shows
           type: string

@@ -491,17 +491,38 @@ func testCatalogKeepsTheStableBase(t *testing.T, f fixture) {
 	}
 
 	for name, change := range map[string]func(*offer.DishDetails){
-		"a blank name":           func(d *offer.DishDetails) { d.Name = " " },
-		"an unknown kind":        func(d *offer.DishDetails) { d.Kind = "fruit" },
-		"too many ingredients":   func(d *offer.DishDetails) { d.Ingredients = strings.Repeat("x", 501) },
-		"a unit of 21 letters":   func(d *offer.DishDetails) { d.Unit = strings.Repeat("x", 21) },
-		"no photo":               func(d *offer.DishDetails) { d.PhotoID = uuid.Nil },
-		"a description too long": func(d *offer.DishDetails) { d.Description = strings.Repeat("x", 1001) },
+		"a blank name":             func(d *offer.DishDetails) { d.Name = " " },
+		"an unknown kind":          func(d *offer.DishDetails) { d.Kind = "fruit" },
+		"too many ingredients":     func(d *offer.DishDetails) { d.Ingredients = strings.Repeat("x", 501) },
+		"a unit of 21 letters":     func(d *offer.DishDetails) { d.Unit = strings.Repeat("x", 21) },
+		"an original price of 500": func(d *offer.DishDetails) { p := int64(500); d.OriginalPriceVND = &p },
+		"no photo":                 func(d *offer.DishDetails) { d.PhotoID = uuid.Nil },
+		"a description too long":   func(d *offer.DishDetails) { d.Description = strings.Repeat("x", 1001) },
 	} {
 		d := offer.DishDetails{Name: "Xôi", Kind: offer.KindPreparedFood, PhotoID: photo}
 		change(&d)
 		_, err := f.offers.AddDish(owner, sellerID, d)
 		mustFail(t, name, err, offer.ErrDetailsInvalid)
+	}
+
+	// The original price is optional, and taken away by sending 0.
+	price := int64(95_000)
+
+	priced, err := f.offers.AddDish(owner, sellerID, offer.DishDetails{
+		Name: "Xôi thập cẩm", Kind: offer.KindPreparedFood, PhotoID: photo, OriginalPriceVND: &price,
+	})
+	if err != nil || priced.OriginalPriceVND == nil || *priced.OriginalPriceVND != 95_000 || dish.OriginalPriceVND != nil {
+		t.Fatalf("priced %+v, %v", priced, err)
+	}
+
+	zero := int64(0)
+
+	if cleared, err := f.offers.ChangeDish(owner, priced.ID, offer.DishChange{OriginalPriceVND: &zero}); err != nil || cleared.OriginalPriceVND != nil {
+		t.Fatalf("cleared %+v, %v", cleared, err)
+	}
+
+	if err := f.offers.RemoveDish(owner, priced.ID); err != nil {
+		t.Fatal(err)
 	}
 
 	// The catalog is private to the seller's people.

@@ -3,24 +3,3 @@
 //   sqlc v1.31.1
 
 package db
-
-import (
-	"time"
-
-	"github.com/google/uuid"
-)
-
-type OfferDish struct {
-	ID          uuid.UUID
-	SellerID    uuid.UUID
-	CreatedBy   uuid.UUID
-	Name        string
-	Kind        string
-	Unit        string
-	Description string
-	Ingredients string
-	PhotoID     uuid.UUID
-	Hidden      bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-}

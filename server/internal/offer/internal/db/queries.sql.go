@@ -37,13 +37,29 @@ func (q *Queries) DeleteDish(ctx context.Context, id uuid.UUID) (int64, error) {
 }
 
 const getDish = `-- name: GetDish :one
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, photo_id, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
 FROM offer_dishes WHERE id = $1
 `
 
-func (q *Queries) GetDish(ctx context.Context, id uuid.UUID) (OfferDish, error) {
+type GetDishRow struct {
+	ID               uuid.UUID
+	SellerID         uuid.UUID
+	CreatedBy        uuid.UUID
+	Name             string
+	Kind             string
+	Unit             string
+	Description      string
+	Ingredients      string
+	OriginalPriceVnd pgtype.Int8
+	PhotoID          uuid.UUID
+	Hidden           bool
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
+func (q *Queries) GetDish(ctx context.Context, id uuid.UUID) (GetDishRow, error) {
 	row := q.db.QueryRow(ctx, getDish, id)
-	var i OfferDish
+	var i GetDishRow
 	err := row.Scan(
 		&i.ID,
 		&i.SellerID,
@@ -53,6 +69,7 @@ func (q *Queries) GetDish(ctx context.Context, id uuid.UUID) (OfferDish, error) 
 		&i.Unit,
 		&i.Description,
 		&i.Ingredients,
+		&i.OriginalPriceVnd,
 		&i.PhotoID,
 		&i.Hidden,
 		&i.CreatedAt,
@@ -159,21 +176,22 @@ func (q *Queries) GetSettings(ctx context.Context) (GetSettingsRow, error) {
 }
 
 const insertDish = `-- name: InsertDish :one
-INSERT INTO offer_dishes (seller_id, created_by, name, kind, unit, description, ingredients, photo_id, hidden)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+INSERT INTO offer_dishes (seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING id
 `
 
 type InsertDishParams struct {
-	SellerID    uuid.UUID
-	CreatedBy   uuid.UUID
-	Name        string
-	Kind        string
-	Unit        string
-	Description string
-	Ingredients string
-	PhotoID     uuid.UUID
-	Hidden      bool
+	SellerID         uuid.UUID
+	CreatedBy        uuid.UUID
+	Name             string
+	Kind             string
+	Unit             string
+	Description      string
+	Ingredients      string
+	OriginalPriceVnd pgtype.Int8
+	PhotoID          uuid.UUID
+	Hidden           bool
 }
 
 func (q *Queries) InsertDish(ctx context.Context, arg InsertDishParams) (uuid.UUID, error) {
@@ -185,6 +203,7 @@ func (q *Queries) InsertDish(ctx context.Context, arg InsertDishParams) (uuid.UU
 		arg.Unit,
 		arg.Description,
 		arg.Ingredients,
+		arg.OriginalPriceVnd,
 		arg.PhotoID,
 		arg.Hidden,
 	)
@@ -503,20 +522,36 @@ func (q *Queries) SearchOffers(ctx context.Context, arg SearchOffersParams) ([]S
 }
 
 const sellerDishes = `-- name: SellerDishes :many
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, photo_id, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
 FROM offer_dishes WHERE seller_id = $1
 ORDER BY created_at DESC, id DESC
 `
 
-func (q *Queries) SellerDishes(ctx context.Context, sellerID uuid.UUID) ([]OfferDish, error) {
+type SellerDishesRow struct {
+	ID               uuid.UUID
+	SellerID         uuid.UUID
+	CreatedBy        uuid.UUID
+	Name             string
+	Kind             string
+	Unit             string
+	Description      string
+	Ingredients      string
+	OriginalPriceVnd pgtype.Int8
+	PhotoID          uuid.UUID
+	Hidden           bool
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
+func (q *Queries) SellerDishes(ctx context.Context, sellerID uuid.UUID) ([]SellerDishesRow, error) {
 	rows, err := q.db.Query(ctx, sellerDishes, sellerID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []OfferDish
+	var items []SellerDishesRow
 	for rows.Next() {
-		var i OfferDish
+		var i SellerDishesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.SellerID,
@@ -526,6 +561,7 @@ func (q *Queries) SellerDishes(ctx context.Context, sellerID uuid.UUID) ([]Offer
 			&i.Unit,
 			&i.Description,
 			&i.Ingredients,
+			&i.OriginalPriceVnd,
 			&i.PhotoID,
 			&i.Hidden,
 			&i.CreatedAt,
@@ -658,19 +694,20 @@ func (q *Queries) SellerUsesPhoto(ctx context.Context, arg SellerUsesPhotoParams
 const updateDish = `-- name: UpdateDish :exec
 UPDATE offer_dishes
 SET name = $1, kind = $2, unit = $3, description = $4, ingredients = $5,
-    photo_id = $6, hidden = $7, updated_at = now()
-WHERE id = $8
+    original_price_vnd = $6, photo_id = $7, hidden = $8, updated_at = now()
+WHERE id = $9
 `
 
 type UpdateDishParams struct {
-	Name        string
-	Kind        string
-	Unit        string
-	Description string
-	Ingredients string
-	PhotoID     uuid.UUID
-	Hidden      bool
-	ID          uuid.UUID
+	Name             string
+	Kind             string
+	Unit             string
+	Description      string
+	Ingredients      string
+	OriginalPriceVnd pgtype.Int8
+	PhotoID          uuid.UUID
+	Hidden           bool
+	ID               uuid.UUID
 }
 
 func (q *Queries) UpdateDish(ctx context.Context, arg UpdateDishParams) error {
@@ -680,6 +717,7 @@ func (q *Queries) UpdateDish(ctx context.Context, arg UpdateDishParams) error {
 		arg.Unit,
 		arg.Description,
 		arg.Ingredients,
+		arg.OriginalPriceVnd,
 		arg.PhotoID,
 		arg.Hidden,
 		arg.ID,

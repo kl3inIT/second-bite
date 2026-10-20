@@ -455,10 +455,11 @@ test.describe("the catalog on the web", () => {
     const drawer = page.getByRole("dialog");
     await expect(drawer.getByText("Bước 3 / 3")).toBeVisible();
     await expect(drawer.getByText("Túi bánh mì và croissant, 4 chiếc")).toBeVisible();
+    // The dish brings its original price; the post asks for the units and the price.
+    await expect(drawer.getByLabel("Giá gốc (đồng)")).toHaveValue("95.000");
     await expect(drawer.getByLabel("Giá bán (đồng)")).toHaveValue("");
     await expectNoSeriousA11yViolations(page);
     await drawer.getByLabel("Số lượng").fill("3");
-    await drawer.getByLabel("Giá gốc (đồng)").fill("95000");
     await drawer.getByLabel("Giá bán (đồng)").fill("57000");
     await drawer.getByRole("button", { name: "Ngay bây giờ" }).click();
     await drawer.getByRole("button", { name: "Đăng", exact: true }).click();

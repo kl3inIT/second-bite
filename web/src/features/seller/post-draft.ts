@@ -159,6 +159,7 @@ export function catalogDishOf(dish: DishBody): Dish {
     kind: dish.kind,
     description: describeDish(dish),
     unit: dish.unit,
+    originalPriceVnd: dish.originalPriceVnd,
     photoId: dish.photo.id,
     photoPath: dish.photo.smallPath,
   };

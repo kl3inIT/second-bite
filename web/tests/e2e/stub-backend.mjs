@@ -411,7 +411,10 @@ function dishesFor(seller) {
       seller.id,
       seller.name === "Tiệm danh mục"
         ? [
-            dish(1, "Túi bánh mì và croissant, 4 chiếc", "bakery", "túi"),
+            {
+              ...dish(1, "Túi bánh mì và croissant, 4 chiếc", "bakery", "túi"),
+              originalPriceVnd: 95000,
+            },
             dish(2, "Cơm sườn nướng, 1 suất", "prepared_food", "suất", true),
             dish(3, "Xôi thập cẩm, 1 hộp", "prepared_food", "hộp"),
           ]
@@ -546,6 +549,7 @@ async function sellerRoutes(request, response, url) {
           unit: body.unit || "suất",
           description: body.description ?? "",
           ingredients: body.ingredients ?? "",
+          ...(body.originalPriceVnd ? { originalPriceVnd: body.originalPriceVnd } : {}),
           photo: {
             id: body.photoId,
             largePath: `/photos/${body.photoId}/1600.jpg`,
@@ -576,6 +580,8 @@ async function sellerRoutes(request, response, url) {
     } else if (request.method === "PATCH") {
       const { photoId, ...body } = await readBody(request);
       Object.assign(dish, body, { updatedAt: new Date().toISOString() });
+      // 0 takes the original price away.
+      if (body.originalPriceVnd === 0) delete dish.originalPriceVnd;
       if (photoId) {
         dish.photo = {
           id: photoId,

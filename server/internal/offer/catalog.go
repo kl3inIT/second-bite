@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/kl3inIT/second-bite/server/internal/offer/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
@@ -31,7 +32,10 @@ type DishDetails struct {
 	// Ingredients is one text of what the dish is made of and what it may
 	// contain, which allergy sufferers read.
 	Ingredients string
-	PhotoID     uuid.UUID
+	// OriginalPriceVND is what the dish normally sells for, optional: a post starts from
+	// it, and still sets its own.
+	OriginalPriceVND *int64
+	PhotoID          uuid.UUID
 	// Hidden keeps the dish out of the list a post is picked from, without
 	// deleting it.
 	Hidden bool
@@ -53,8 +57,10 @@ type DishChange struct {
 	Unit        *string
 	Description *string
 	Ingredients *string
-	PhotoID     *uuid.UUID
-	Hidden      *bool
+	// OriginalPriceVND of 0 takes the price away.
+	OriginalPriceVND *int64
+	PhotoID          *uuid.UUID
+	Hidden           *bool
 }
 
 // normalized trims the details, names the unit when the seller named none, and
@@ -71,7 +77,7 @@ func (d DishDetails) normalized() (DishDetails, error) {
 
 	if !between(utf8.RuneCountInString(d.Name), 1, 80) || !between(utf8.RuneCountInString(d.Unit), 1, 20) ||
 		utf8.RuneCountInString(d.Description) > 1000 || utf8.RuneCountInString(d.Ingredients) > 500 ||
-		!knownKind(d.Kind) || d.PhotoID == uuid.Nil {
+		!knownKind(d.Kind) || d.PhotoID == uuid.Nil || (d.OriginalPriceVND != nil && *d.OriginalPriceVND <= 1000) {
 		return DishDetails{}, ErrDetailsInvalid
 	}
 
@@ -85,6 +91,14 @@ func (d DishDetails) apply(c DishChange) DishDetails {
 	replace(&d.Unit, c.Unit)
 	replace(&d.Description, c.Description)
 	replace(&d.Ingredients, c.Ingredients)
+
+	if c.OriginalPriceVND != nil {
+		d.OriginalPriceVND = c.OriginalPriceVND
+		if *c.OriginalPriceVND == 0 {
+			d.OriginalPriceVND = nil
+		}
+	}
+
 	replace(&d.PhotoID, c.PhotoID)
 	replace(&d.Hidden, c.Hidden)
 
@@ -132,7 +146,8 @@ func (s *Service) AddDish(ctx context.Context, sellerID uuid.UUID, d DishDetails
 
 		id, err = q.InsertDish(ctx, db.InsertDishParams{
 			SellerID: sellerID, CreatedBy: caller.AccountID, Name: d.Name, Kind: string(d.Kind), Unit: d.Unit,
-			Description: d.Description, Ingredients: d.Ingredients, PhotoID: d.PhotoID, Hidden: d.Hidden,
+			Description: d.Description, Ingredients: d.Ingredients, OriginalPriceVnd: originalPrice(d.OriginalPriceVND),
+			PhotoID: d.PhotoID, Hidden: d.Hidden,
 		})
 		if err != nil {
 			return fmt.Errorf("storing the dish: %w", err)
@@ -173,7 +188,7 @@ func (s *Service) Dishes(ctx context.Context, sellerID uuid.UUID) ([]Dish, error
 
 	dishes := make([]Dish, 0, len(rows))
 	for _, r := range rows {
-		dishes = append(dishes, dishFromRow(db.OfferDish(r)))
+		dishes = append(dishes, dishFromRow(db.GetDishRow(r)))
 	}
 
 	return dishes, nil
@@ -205,7 +220,8 @@ func (s *Service) ChangeDish(ctx context.Context, id uuid.UUID, c DishChange) (D
 
 	err = s.queries.UpdateDish(ctx, db.UpdateDishParams{
 		ID: id, Name: next.Name, Kind: string(next.Kind), Unit: next.Unit, Description: next.Description,
-		Ingredients: next.Ingredients, PhotoID: next.PhotoID, Hidden: next.Hidden,
+		Ingredients: next.Ingredients, OriginalPriceVnd: originalPrice(next.OriginalPriceVND), PhotoID: next.PhotoID,
+		Hidden: next.Hidden,
 	})
 	if err != nil {
 		return Dish{}, fmt.Errorf("storing the dish: %w", err)
@@ -273,13 +289,30 @@ func (s *Service) dish(ctx context.Context, id uuid.UUID) (Dish, error) {
 	return dishFromRow(row), nil
 }
 
-func dishFromRow(r db.OfferDish) Dish {
+func dishFromRow(r db.GetDishRow) Dish {
 	return Dish{
 		ID: r.ID, SellerID: r.SellerID,
 		DishDetails: DishDetails{
 			Name: r.Name, Kind: Kind(r.Kind), Unit: r.Unit, Description: r.Description,
-			Ingredients: r.Ingredients, PhotoID: r.PhotoID, Hidden: r.Hidden,
+			Ingredients: r.Ingredients, OriginalPriceVND: pricePtr(r.OriginalPriceVnd), PhotoID: r.PhotoID, Hidden: r.Hidden,
 		},
 		CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
 	}
+}
+
+// originalPrice is a dish's optional original price as the database takes it.
+func originalPrice(p *int64) pgtype.Int8 {
+	if p == nil {
+		return pgtype.Int8{}
+	}
+
+	return pgtype.Int8{Int64: *p, Valid: true}
+}
+
+func pricePtr(v pgtype.Int8) *int64 {
+	if !v.Valid {
+		return nil
+	}
+
+	return &v.Int64
 }

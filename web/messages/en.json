@@ -559,6 +559,10 @@
     "keep": "Keep",
     "limit": "The catalog already holds 100 dishes. Delete one before adding.",
     "failed": "Could not save the dish. Try again in a few minutes.",
-    "reference": "Reference: {id}"
+    "reference": "Reference: {id}",
+    "original": "Original price (VND, optional)",
+    "originalPlaceholder": "For example: 95.000",
+    "originalNote": "Fill it in so posting starts from it. The price is still set when posting.",
+    "originalInvalid": "An original price from 1.001đ, or leave it empty."
   }
 }

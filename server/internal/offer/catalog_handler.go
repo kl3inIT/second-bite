@@ -10,47 +10,52 @@ import (
 )
 
 type dishDetailsBody struct {
-	Name        string    `json:"name"                  maxLength:"80"   minLength:"1"`
-	Kind        Kind      `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
-	Unit        string    `json:"unit,omitempty"        doc:"What one unit is called; \"suất\" when empty" maxLength:"20"`
-	Description string    `json:"description,omitempty" maxLength:"1000"`
-	Ingredients string    `json:"ingredients,omitempty" doc:"What the dish is made of and may contain, allergens included" maxLength:"500"`
-	PhotoID     uuid.UUID `json:"photoId"               doc:"From POST /photos, or a photo the seller already shows"`
-	Hidden      bool      `json:"hidden,omitempty"      doc:"Keeps the dish out of the list a post is picked from"`
+	Name        string `json:"name"                  maxLength:"80"   minLength:"1"`
+	Kind        Kind   `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Unit        string `json:"unit,omitempty"        doc:"What one unit is called; \"suất\" when empty" maxLength:"20"`
+	Description string `json:"description,omitempty" maxLength:"1000"`
+	Ingredients string `json:"ingredients,omitempty" doc:"What the dish is made of and may contain, allergens included" maxLength:"500"`
+	// OriginalPriceVND is only a start for a post; the post sets its own.
+	OriginalPriceVND *int64    `json:"originalPriceVnd,omitempty" doc:"What one unit normally sells for; a post starts from it" minimum:"1001"`
+	PhotoID          uuid.UUID `json:"photoId"               doc:"From POST /photos, or a photo the seller already shows"`
+	Hidden           bool      `json:"hidden,omitempty"      doc:"Keeps the dish out of the list a post is picked from"`
 }
 
 func (b dishDetailsBody) details() DishDetails { return DishDetails(b) }
 
 type dishChangeBody struct {
-	Name        *string    `json:"name,omitempty"        maxLength:"80" minLength:"1"`
-	Kind        *Kind      `json:"kind,omitempty"        enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
-	Unit        *string    `json:"unit,omitempty"        maxLength:"20"`
-	Description *string    `json:"description,omitempty" maxLength:"1000"`
-	Ingredients *string    `json:"ingredients,omitempty" maxLength:"500"`
-	PhotoID     *uuid.UUID `json:"photoId,omitempty"`
-	Hidden      *bool      `json:"hidden,omitempty"`
+	Name        *string `json:"name,omitempty"        maxLength:"80" minLength:"1"`
+	Kind        *Kind   `json:"kind,omitempty"        enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Unit        *string `json:"unit,omitempty"        maxLength:"20"`
+	Description *string `json:"description,omitempty" maxLength:"1000"`
+	Ingredients *string `json:"ingredients,omitempty" maxLength:"500"`
+	// 0 takes the original price away.
+	OriginalPriceVND *int64     `json:"originalPriceVnd,omitempty" minimum:"0"`
+	PhotoID          *uuid.UUID `json:"photoId,omitempty"`
+	Hidden           *bool      `json:"hidden,omitempty"`
 }
 
 func (b dishChangeBody) change() DishChange { return DishChange(b) }
 
 type dishBody struct {
-	ID          uuid.UUID      `json:"id"`
-	SellerID    uuid.UUID      `json:"sellerId"`
-	Name        string         `json:"name"`
-	Kind        Kind           `json:"kind"        enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
-	Unit        string         `json:"unit"`
-	Description string         `json:"description"`
-	Ingredients string         `json:"ingredients"`
-	Photo       offerPhotoBody `json:"photo"`
-	Hidden      bool           `json:"hidden"`
-	CreatedAt   time.Time      `json:"createdAt"`
-	UpdatedAt   time.Time      `json:"updatedAt"`
+	ID               uuid.UUID      `json:"id"`
+	SellerID         uuid.UUID      `json:"sellerId"`
+	Name             string         `json:"name"`
+	Kind             Kind           `json:"kind"        enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Unit             string         `json:"unit"`
+	Description      string         `json:"description"`
+	Ingredients      string         `json:"ingredients"`
+	OriginalPriceVND *int64         `json:"originalPriceVnd,omitempty"`
+	Photo            offerPhotoBody `json:"photo"`
+	Hidden           bool           `json:"hidden"`
+	CreatedAt        time.Time      `json:"createdAt"`
+	UpdatedAt        time.Time      `json:"updatedAt"`
 }
 
 func toDishBody(d Dish) dishBody {
 	return dishBody{
 		ID: d.ID, SellerID: d.SellerID, Name: d.Name, Kind: d.Kind, Unit: d.Unit, Description: d.Description,
-		Ingredients: d.Ingredients, Photo: *photoOf(d.PhotoID), Hidden: d.Hidden,
+		Ingredients: d.Ingredients, OriginalPriceVND: d.OriginalPriceVND, Photo: *photoOf(d.PhotoID), Hidden: d.Hidden,
 		CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt,
 	}
 }

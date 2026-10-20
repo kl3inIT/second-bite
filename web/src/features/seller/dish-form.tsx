@@ -62,6 +62,9 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
   const [kind, setKind] = useState<DishBody["kind"]>(dish?.kind ?? "bakery");
   const [hidden, setHidden] = useState(dish?.hidden ?? false);
   const [unit, setUnit] = useState(dish?.unit ?? "suất");
+  const [original, setOriginal] = useState(
+    dish?.originalPriceVnd ? String(dish.originalPriceVnd) : "",
+  );
   const [description, setDescription] = useState(dish?.description ?? "");
   const [ingredients, setIngredients] = useState(dish?.ingredients ?? "");
   const [tried, setTried] = useState(false);
@@ -72,6 +75,8 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
   const photoMissing = !dish && !photo;
   const descriptionMissing =
     kind === "mixed_box" && description.trim() === "" && ingredients.trim() === "";
+  // The original price is optional; a price, when given, is from 1.001đ, as the backend asks.
+  const originalInvalid = original !== "" && Number(original) <= 1000;
   const back = `/stores/${sellerId}/catalog`;
 
   function choosePhoto(file: File | undefined) {
@@ -88,7 +93,7 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
   function save() {
     setTried(true);
     setProblem(undefined);
-    if (nameMissing || photoMissing || descriptionMissing) return;
+    if (nameMissing || photoMissing || descriptionMissing || originalInvalid) return;
     startTransition(async () => {
       try {
         const photoId = photo ? (await uploadPhoto({ body: photo })).data.id : undefined;
@@ -101,12 +106,24 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
           hidden,
         };
         if (dish) {
+          // Emptying the price takes it away (the backend reads 0 so).
           await changeDish({
             path: { dishId: dish.id },
-            body: { ...fields, ...(photoId ? { photoId } : {}) },
+            body: {
+              ...fields,
+              originalPriceVnd: Number(original),
+              ...(photoId ? { photoId } : {}),
+            },
           });
         } else if (photoId) {
-          await addDish({ path: { sellerId }, body: { ...fields, photoId } });
+          await addDish({
+            path: { sellerId },
+            body: {
+              ...fields,
+              ...(original ? { originalPriceVnd: Number(original) } : {}),
+              photoId,
+            },
+          });
         }
         done("saved");
       } catch (error) {
@@ -236,6 +253,29 @@ export function DishForm({ sellerId, dish }: { sellerId: string; dish?: DishBody
             onChange={(event) => setUnit(event.target.value)}
             disabled={pending}
           />
+        </Field>
+
+        <Field data-invalid={(tried && originalInvalid) || undefined}>
+          <FieldLabel htmlFor="dish-original">{t("original")}</FieldLabel>
+          <Input
+            id="dish-original"
+            inputMode="numeric"
+            value={original ? new Intl.NumberFormat("vi-VN").format(Number(original)) : ""}
+            onChange={(event) => setOriginal(event.target.value.replace(/D/g, "").slice(0, 9))}
+            placeholder={t("originalPlaceholder")}
+            aria-invalid={(tried && originalInvalid) || undefined}
+            aria-describedby={
+              tried && originalInvalid ? "dish-original-problem" : "dish-original-note"
+            }
+            disabled={pending}
+          />
+          {tried && originalInvalid ? (
+            <FieldError id="dish-original-problem">{t("originalInvalid")}</FieldError>
+          ) : (
+            <p id="dish-original-note" className="text-label text-muted-foreground">
+              {t("originalNote")}
+            </p>
+          )}
         </Field>
 
         <Field data-invalid={(tried && descriptionMissing) || undefined}>
