@@ -5,6 +5,8 @@
     "refunds": "Refunds"
   },
   "none": "—",
+  "filtering": "Filtering",
+  "pages": "{page} / {pages}",
   "order": "#{code}",
   "at": "{time}, {day}",
   "method": {

@@ -5,6 +5,8 @@
     "refunds": "Hoàn tiền"
   },
   "none": "—",
+  "filtering": "Đang lọc",
+  "pages": "{page} / {pages}",
   "order": "#{code}",
   "at": "{time}, {day}",
   "method": {

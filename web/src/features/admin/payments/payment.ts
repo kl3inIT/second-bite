@@ -1,5 +1,15 @@
-import { folded, inRange, type OrderStatus, type Sort } from "../orders/order";
-import type { DateRangeValue } from "../ui/filter-bar";
+import type { VariantProps } from "class-variance-authority";
+import {
+  CircleCheckIcon,
+  CircleXIcon,
+  ClockIcon,
+  type LucideIcon,
+  TriangleAlertIcon,
+} from "lucide-react";
+
+import type { badgeVariants } from "@/components/ui/badge";
+
+import { type DateRangeValue, folded, inRange, type OrderStatus, type Sort } from "../orders/order";
 
 // The admin's payments and refunds (SEC-62, Figma AD-HT1 to AD-HT7). SEC-18 has not built the `payment` module
 // yet (roadmap: cash at the counter and VietQR transfers confirmed through SePay; refunds decided by admins),
@@ -213,3 +223,52 @@ export function sellerNames(rows: { sellerName: string }[]): string[] {
     a.localeCompare(b, "vi"),
   );
 }
+
+/**
+ * A day filter's range in words (Figma Admin/DateRange 238:55307): "01/10 – 20/10/2026", or `any` ("Mọi lúc")
+ * when none is chosen. Each end is written on its own, as Figma writes it, since Intl's own range drops the
+ * two-digit month in Vietnamese; the start loses its year when both ends share one.
+ */
+export function dayRangeLabel(
+  { from, to }: DateRangeValue,
+  words: { day: (at: Date) => string; dayMonth: (at: Date) => string; any: string },
+): string {
+  if (from && to) {
+    const start = from.getFullYear() === to.getFullYear() ? words.dayMonth(from) : words.day(from);
+    return `${start} – ${words.day(to)}`;
+  }
+  return from ? words.day(from) : words.any;
+}
+
+/** How a state shows in the shared Badge: the variant of its tone and its icon, beside its words. */
+type BadgeLook = {
+  variant: NonNullable<VariantProps<typeof badgeVariants>["variant"]>;
+  icon: LucideIcon | null;
+};
+
+/** How it was paid, in words only (Figma AD-HT1 › Phương thức): "VietQR" in blue, "Tiền mặt" in grey. */
+export const methodLooks: Record<PaymentMethod, BadgeLook> = {
+  vietqr: { variant: "secondary", icon: null },
+  cash: { variant: "outline", icon: null },
+};
+
+/** A payment's state (AD-HT1): "Đã xác nhận", "Chờ SePay", "Không khớp". */
+export const transactionStatusLooks: Record<TransactionStatus, BadgeLook> = {
+  confirmed: { variant: "fresh", icon: CircleCheckIcon },
+  awaitingSepay: { variant: "outline", icon: ClockIcon },
+  mismatch: { variant: "outline", icon: TriangleAlertIcon },
+};
+
+/** A refund request's state (AD-HT3): "Chờ duyệt", "Đã duyệt", "Từ chối". */
+export const refundStatusLooks: Record<RefundStatus, BadgeLook> = {
+  pending: { variant: "outline", icon: ClockIcon },
+  approved: { variant: "fresh", icon: CircleCheckIcon },
+  rejected: { variant: "destructive", icon: CircleXIcon },
+};
+
+/** A step's dot in a history (Figma Admin/Timeline): done in green, a step in blue, a failure in red. */
+export const eventDots: Record<"done" | "step" | "error", string> = {
+  done: "bg-success",
+  step: "bg-primary",
+  error: "bg-destructive",
+};
