@@ -14,7 +14,7 @@ export function StorePushedBar() {
   const catalog = pathname.split("/").slice(0, 4).join("/");
 
   return (
-    <div className="hidden group-data-[screen=push]/store:max-md:block">
+    <div className="hidden group-has-[[data-pushed]]/store:max-md:block">
       <TopBarView
         title={pathname.endsWith("/new") ? t("addTitle") : t("editTitle")}
         back={catalog}

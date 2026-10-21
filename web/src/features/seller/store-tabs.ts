@@ -11,8 +11,3 @@ export function isTabOpen(pathname: string, base: string, path: string): boolean
   const href = `${base}${path}`;
   return path === "" ? pathname === href : pathname.startsWith(href);
 }
-
-/** The screens that push onto a tab on a phone (a dish form), with a back button and no tab bar. */
-export function isPushedScreen(pathname: string): boolean {
-  return /\/stores\/[^/]+\/catalog\/(new|[^/]+\/edit)$/.test(pathname);
-}

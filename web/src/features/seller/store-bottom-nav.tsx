@@ -30,7 +30,7 @@ export function StoreBottomNav() {
   const base = pathname.split("/").slice(0, 3).join("/");
 
   return (
-    <div className="group-data-[screen=push]/store:hidden md:hidden">
+    <div className="group-has-[[data-pushed]]/store:hidden md:hidden">
       <div aria-hidden className="h-24 shrink-0" />
       <nav
         aria-label={t("label")}

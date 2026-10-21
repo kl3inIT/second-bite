@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { CatalogDish } from "@/features/seller/catalog-dish";
+import { PushedMarker } from "@/features/seller/pushed-marker";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -21,8 +22,11 @@ export default function CatalogEditPage({
   const dishId = params.then((p) => p.dishId);
 
   return (
-    <Suspense fallback={<Skeleton shape="card" className="mx-auto h-130 max-w-xl" />}>
-      <CatalogDish sellerId={sellerId} dishId={dishId} />
-    </Suspense>
+    <>
+      <PushedMarker />
+      <Suspense fallback={<Skeleton shape="card" className="mx-auto h-130 max-w-xl" />}>
+        <CatalogDish sellerId={sellerId} dishId={dishId} />
+      </Suspense>
+    </>
   );
 }

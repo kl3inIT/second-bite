@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 
 import { StoreBottomNav } from "@/features/seller/store-bottom-nav";
-import { StoreFrame } from "@/features/seller/store-frame";
 import { StoreHeader } from "@/features/seller/store-header";
 import { StorePushedBar } from "@/features/seller/store-pushed-bar";
 
@@ -17,19 +16,19 @@ export default function StoreLayout({
   const sellerId = params.then((p) => p.sellerId);
 
   return (
-    <StoreFrame>
+    <div className="group/store contents">
       <Suspense fallback={null}>
         <StorePushedBar />
       </Suspense>
       <Suspense fallback={<header aria-hidden className="h-16 rounded-b-3xl bg-header" />}>
         <StoreHeader sellerId={sellerId} />
       </Suspense>
-      <main className="relative isolate mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 pt-2 pb-14 group-data-[screen=tab]/store:max-md:-mt-25 group-data-[screen=tab]/store:max-md:pt-0 group-data-[screen=tab]/store:max-md:before:absolute group-data-[screen=tab]/store:max-md:before:inset-x-0 group-data-[screen=tab]/store:max-md:before:top-19 group-data-[screen=tab]/store:max-md:before:bottom-0 group-data-[screen=tab]/store:max-md:before:-z-10 group-data-[screen=tab]/store:max-md:before:rounded-t-3xl group-data-[screen=tab]/store:max-md:before:bg-background md:pt-6 xl:max-w-300">
+      <main className="relative isolate mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 pt-2 pb-14 max-md:-mt-25 max-md:pt-0 group-has-[[data-pushed]]/store:max-md:mt-0 group-has-[[data-pushed]]/store:max-md:pt-2 max-md:before:absolute max-md:before:inset-x-0 max-md:before:top-19 max-md:before:bottom-0 max-md:before:-z-10 max-md:before:rounded-t-3xl max-md:before:bg-background group-has-[[data-pushed]]/store:max-md:before:hidden md:pt-6 xl:max-w-300">
         {children}
       </main>
       <Suspense fallback={null}>
         <StoreBottomNav />
       </Suspense>
-    </StoreFrame>
+    </div>
   );
 }

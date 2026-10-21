@@ -39,7 +39,7 @@ export async function StoreHeader({ sellerId: pendingId }: { sellerId: Promise<s
         />
       </div>
 
-      <header className="relative overflow-hidden bg-header text-header-foreground group-data-[screen=push]/store:hidden md:hidden">
+      <header className="relative overflow-hidden bg-header text-header-foreground group-has-[[data-pushed]]/store:hidden md:hidden">
         <HeaderSweep />
         <div className="relative flex flex-col gap-4 px-4 pt-4 pb-12">
           <div className="flex items-center justify-between gap-3">
