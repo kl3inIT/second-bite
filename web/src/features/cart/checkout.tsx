@@ -1,6 +1,5 @@
 "use client";
 
-import { MapPinIcon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -10,6 +9,7 @@ import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/em
 import { RadioGroup } from "@/components/ui/radio-group";
 import { formatPrice } from "@/features/offers/format";
 import { directionsHref } from "@/features/offers/offer";
+import { SellerLogo } from "@/features/offers/seller-logo";
 import { useMeters } from "@/features/offers/window";
 import { Link } from "@/i18n/navigation";
 
@@ -67,9 +67,7 @@ function Confirmation({ cart, ...asking }: { cart: Cart } & Asking) {
             {t("collectAt")}
           </h2>
           <div className="flex items-center gap-3 rounded-lg border border-border px-3.5 py-3">
-            <span className="flex size-16 shrink-0 items-center justify-center rounded-md bg-muted text-primary">
-              <MapPinIcon aria-hidden strokeWidth={1.8} className="size-6" />
-            </span>
+            <SellerLogo seller={cart.seller} size="lg" />
             <div className="flex min-w-0 flex-col gap-0.5">
               <p className="text-body-sm-strong text-foreground">
                 {t("place", { seller: cart.seller.name, place: cart.seller.address })}

@@ -9,7 +9,7 @@ export type CartLine = Pick<
 > & { quantity: number };
 
 export type Cart = {
-  seller: Pick<OfferSummary["seller"], "id" | "name" | "address">;
+  seller: Pick<OfferSummary["seller"], "id" | "name" | "address" | "photo">;
   collectionPoint: OfferSummary["collectionPoint"];
   distanceMeters?: number;
   lines: CartLine[];
@@ -38,7 +38,12 @@ export function addOne(
 /** A new cart holding one portion of the dish, in place of whatever was there. */
 export function startWith(offer: OfferSummary): Cart {
   return {
-    seller: { id: offer.seller.id, name: offer.seller.name, address: offer.seller.address },
+    seller: {
+      id: offer.seller.id,
+      name: offer.seller.name,
+      address: offer.seller.address,
+      photo: offer.seller.photo,
+    },
     collectionPoint: offer.collectionPoint,
     distanceMeters: offer.distanceMeters,
     lines: [{ ...lineOf(offer), quantity: Math.min(1, offer.unitsLeft) }],
