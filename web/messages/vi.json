@@ -765,10 +765,10 @@
     "searchCount": "{count} kết quả",
     "tabs": "Nhóm đơn",
     "tab": {
-      "preparing": "Chuẩn bị · {count}",
-      "ready": "Sẵn sàng · {count}",
-      "delivered": "Đã giao · {count}",
-      "cancelled": "Đã hủy · {count}"
+      "preparing": "Chuẩn bị",
+      "ready": "Sẵn sàng",
+      "delivered": "Đã giao",
+      "cancelled": "Đã hủy"
     },
     "empty": {
       "preparing": "Chưa có đơn nào đang chuẩn bị ngày này. Khi khách đặt món, tên và số điện thoại hiện ở đây.",

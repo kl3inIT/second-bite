@@ -67,6 +67,7 @@ test.describe("the order tab of a store", () => {
 
     const held = row(page, "Lê Thu Hà · 0905111222");
     await expect(held).toContainText("Cơm sườn nướng");
+    await expect(held).toContainText(/#SB-\d+/);
     await expect(held).toContainText("1 suất");
     await expect(held).toContainText("30.000đ");
     await expect(
