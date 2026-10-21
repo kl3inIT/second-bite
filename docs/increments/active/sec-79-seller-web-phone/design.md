@@ -22,9 +22,9 @@ The sources of the layout are the customer app's own frames (K1 home, Q2a settin
 | Dialogs | Centred, 16 px from each side, the two buttons equal width |
 | Calendar | A sheet from the bottom |
 | Toasts | 16 px from the sides, above the bottom bar |
-| Forms (open a store, add or edit a dish) | A pushed screen: the app's Top bar with a back button, fields 16 px from the sides, the buttons fixed at the foot |
-| Sign-in | The app's 7a and 7b, without the dish card of the customer's order flow |
-| Entry | A row "Mở quán" on the account screen leads to "Quán của tôi": the list of the person's stores, or the empty card |
+| Forms (open a store, add or edit a dish), and my stores | A pushed screen: the web's white top bar with a back button (DESIGN.md › White Shell; the app's blue Top bar of the Figma frames is the app's own), fields 16 px from the sides, the buttons fixed at the foot, equal width |
+| Sign-in | Unchanged: the web's own phone layout (SEC-56) already is a top bar, the title and the form; the app's 7a and 7b are the same flow |
+| Entry | A row "Mở quán" on the account screen (from  the header's capsule does it) leads to "Quán của tôi": the list of the person's stores, or the empty card |
 
 Touch targets stay 44 px or more; the bottom bar and its labels follow `DESIGN.md › Bottom bar`.
 
