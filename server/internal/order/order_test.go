@@ -818,11 +818,11 @@ func testRateOnce(t *testing.T, f fixture) {
 	_, err = f.orders.Rate(owner, o.ID, "", good)
 	mustFail(t, "the seller", err, order.ErrNotFound)
 
-	invalid(t, f, customer, o.ID, order.Review{Stars: 0})
-	invalid(t, f, customer, o.ID, order.Review{Stars: 6})
-	invalid(t, f, customer, o.ID, order.Review{Stars: 4, Tags: []order.Tag{"cheap"}})
-	invalid(t, f, customer, o.ID, order.Review{Stars: 4, Tags: []order.Tag{order.TagGoodVariety, order.TagGoodVariety}})
-	invalid(t, f, customer, o.ID, order.Review{Stars: 4, Comment: strings.Repeat("ế", 501)})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 0})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 6})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 4, Tags: []order.Tag{"cheap"}})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 4, Tags: []order.Tag{order.TagGoodVariety, order.TagGoodVariety}})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 4, Comment: strings.Repeat("ế", 501)})
 
 	rated, err := f.orders.Rate(customer, o.ID, "", good)
 	if err != nil || rated.Review == nil || rated.Review.Stars != 5 || rated.Review.Comment != "Ngon" ||
@@ -838,11 +838,11 @@ func testRateOnce(t *testing.T, f fixture) {
 		t.Fatalf("listed %+v, %v", listed, err)
 	}
 
-	rateWithAccess(t, f, owner, croissant.ID, good)
+	rateWithAccess(owner, t, f, croissant.ID, good)
 }
 
 // invalid rates o with review, which is refused.
-func invalid(t *testing.T, f fixture, customer context.Context, id uuid.UUID, review order.Review) {
+func invalid(customer context.Context, t *testing.T, f fixture, id uuid.UUID, review order.Review) {
 	t.Helper()
 
 	_, err := f.orders.Rate(customer, id, "", review)
@@ -851,7 +851,7 @@ func invalid(t *testing.T, f fixture, customer context.Context, id uuid.UUID, re
 
 // rateWithAccess rates a collected order placed without an account: with
 // nothing it is not found, with its access it is rated.
-func rateWithAccess(t *testing.T, f fixture, owner context.Context, offerID uuid.UUID, review order.Review) {
+func rateWithAccess(owner context.Context, t *testing.T, f fixture, offerID uuid.UUID, review order.Review) {
 	t.Helper()
 
 	guest := t.Context()
