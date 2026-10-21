@@ -88,6 +88,7 @@ const pairs = [
   ["fresh", "primary", MIN_TEXT_CONTRAST],
   ["inverse-muted", "primary", MIN_TEXT_CONTRAST],
   ["fresh-foreground", "fresh-muted", MIN_TEXT_CONTRAST],
+  ["destructive", "destructive-muted", MIN_TEXT_CONTRAST],
   // The admin's sidebar: group names on it, the account at its foot, and its focus ring.
   ["sidebar-muted", "sidebar", MIN_TEXT_CONTRAST],
   ["sidebar-foreground", "sidebar-raised", MIN_TEXT_CONTRAST],

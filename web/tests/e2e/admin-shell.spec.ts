@@ -16,21 +16,19 @@ async function signIn(page: Page, email: string) {
 // SEC-75 › Guard and Shell.
 test.describe("the admin's frame", () => {
   test("someone signed out is sent to sign in and back, with a real redirect", async ({ page }) => {
-    const response = await page.request.get("/vi/admin/settings?tab=email", { maxRedirects: 0 });
+    const response = await page.request.get("/vi/admin/audit?page=2", { maxRedirects: 0 });
     expect(response.status()).toBe(307);
-    expect(response.headers().location).toBe(
-      "/vi/sign-in?returnTo=%2Fadmin%2Fsettings%3Ftab%3Demail",
-    );
+    expect(response.headers().location).toBe("/vi/sign-in?returnTo=%2Fadmin%2Faudit%3Fpage%3D2");
   });
 
   test("a customer sees the site's not-found page and no admin menu", async ({
     page,
   }, testInfo) => {
     await signIn(page, `khach.${testInfo.project.name}@example.com`);
-    await page.goto("/vi/admin/settings");
+    await page.goto("/vi/admin/audit");
 
     await expect(page.getByRole("heading", { name: "Không tìm thấy trang này" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Cài đặt" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Nhật ký thao tác" })).toHaveCount(0);
     await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
   });
 
@@ -54,8 +52,7 @@ test.describe("the admin's frame", () => {
     const menu = isMobile
       ? page.getByRole("dialog", { name: "Menu quản trị" })
       : page.locator('[data-slot="sidebar"]');
-    await expect(menu.getByRole("link", { name: "Tài khoản" })).toBeVisible();
-    await expect(menu.getByRole("link", { name: "Cài đặt" })).toBeVisible();
+    await expect(menu.getByRole("link", { name: "Nhật ký thao tác" })).toBeVisible();
     await expect(menu.getByText(`admin.${testInfo.project.name}@example.com`)).toBeVisible();
     await expectNoSeriousA11yViolations(page);
   });
@@ -67,7 +64,9 @@ test.describe("the admin's frame", () => {
 
     await (await hydrated(page.getByRole("button", { name: "Thu gọn thanh bên" }))).click();
     await expect(page.getByRole("button", { name: "Mở rộng thanh bên" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Tài khoản" }).getByText("Tài khoản")).toBeHidden();
+    await expect(
+      page.getByRole("link", { name: "Nhật ký thao tác" }).getByText("Nhật ký thao tác"),
+    ).toBeHidden();
     await expectNoSeriousA11yViolations(page);
 
     await page.reload();

@@ -24,6 +24,9 @@ const buttonVariants = cva(
         shell: "text-shell-foreground hover:bg-muted",
         // Second Bite (Figma K2a): a suggestion chip on the sky ground, without an edge.
         chip: "bg-muted text-foreground hover:bg-secondary",
+        // Second Bite: a control that opens a choice, drawn as a field (Figma Admin/FilterBar's date range).
+        field:
+          "rounded-md border-input bg-card px-3 text-body-sm text-foreground hover:bg-muted aria-expanded:bg-muted",
         // Second Bite: an icon action on the admin's blue sidebar (Figma SidebarTrigger, Đăng xuất).
         sidebar:
           "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-sidebar-ring",

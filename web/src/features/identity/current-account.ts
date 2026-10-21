@@ -50,3 +50,12 @@ export async function requireAdmin(returnTo: string): Promise<CurrentAccount> {
   if (account.role !== "admin") notFound();
   return account;
 }
+
+/**
+ * The session of the request, as the headers a server-side API call forwards so the backend sees the same
+ * caller; none when no one is signed in. It reads the request, so it runs inside Suspense.
+ */
+export async function sessionHeaders(): Promise<Record<string, string>> {
+  const session = (await cookies()).get(sessionCookie);
+  return session ? { cookie: `${sessionCookie}=${session.value}` } : {};
+}

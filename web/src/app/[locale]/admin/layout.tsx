@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -16,9 +17,12 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 export default function AdminLayout({ children }: LayoutProps<"/[locale]/admin">) {
   return (
     <div data-no-footer className="flex flex-1 flex-col">
-      <Suspense>
-        <AdminFrame>{children}</AdminFrame>
-      </Suspense>
+      {/* The lists keep their filters in the address (SEC-75 › Lists). */}
+      <NuqsAdapter>
+        <Suspense>
+          <AdminFrame>{children}</AdminFrame>
+        </Suspense>
+      </NuqsAdapter>
     </div>
   );
 }

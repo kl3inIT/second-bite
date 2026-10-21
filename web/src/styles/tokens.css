@@ -82,6 +82,7 @@
   --destructive: var(--status-error);
   --destructive-foreground: var(--base-white);
   --destructive-hover: #912018;
+  --destructive-muted: var(--status-error-bg);
   --success: var(--status-success);
   --success-foreground: var(--base-white);
   --warning: var(--alert-bg);
@@ -146,6 +147,7 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-muted: var(--destructive-muted);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);

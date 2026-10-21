@@ -1,8 +1,8 @@
-import { SettingsIcon, UsersRoundIcon, type LucideIcon } from "lucide-react";
+import { HistoryIcon, type LucideIcon } from "lucide-react";
 
 export type AdminNavItem = {
-  key: "accounts" | "settings";
-  href: "/admin/accounts" | "/admin/settings";
+  key: "audit";
+  href: "/admin/audit";
   icon: LucideIcon;
 };
 
@@ -13,13 +13,10 @@ export type AdminNavGroup = {
 };
 
 // The admin's menu, in the order of Figma's Admin/Sidebar (SEC-75 › Shell). An entry joins the menu with
-// its screen, never before: an entry that opens nothing reads as a fault.
+// its screen, never before: an entry that opens nothing reads as a fault. The log is an entry of its own,
+// not a page of the settings: it records far more than settings, and is read on its own.
 export const adminNav: AdminNavGroup[] = [
-  {
-    key: "users",
-    items: [{ key: "accounts", href: "/admin/accounts", icon: UsersRoundIcon }],
-  },
-  { items: [{ key: "settings", href: "/admin/settings", icon: SettingsIcon }] },
+  { items: [{ key: "audit", href: "/admin/audit", icon: HistoryIcon }] },
 ];
 
 /** Whether an entry is the page open: its own address or one under it. */

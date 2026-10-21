@@ -89,6 +89,7 @@ colors:
   destructive: "{palette.status-error}" # errors, cancelled and refused states, 6.6:1
   destructive-foreground: "{palette.base-white}"
   destructive-hover: "#912018" # 8.7:1
+  destructive-muted: "{palette.status-error-bg}" # a refusal's quiet surface, a block in the admin's trail, its text in destructive
   success: "{palette.status-success}" # paid, ready, collected; always with an icon or label, 7.6:1
   success-foreground: "{palette.base-white}"
   warning: "{palette.alert-bg}" # allergens and waiting states; always with an icon

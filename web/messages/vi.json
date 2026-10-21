@@ -619,12 +619,8 @@
     "signOut": "Đăng xuất",
     "skip": "Bỏ qua thanh bên",
     "breadcrumb": "Vị trí trang",
-    "group": {
-      "users": "Người dùng"
-    },
     "nav": {
-      "accounts": "Tài khoản",
-      "settings": "Cài đặt"
+      "audit": "Nhật ký thao tác"
     },
     "notFound": {
       "crumb": "Không tìm thấy",
@@ -632,6 +628,95 @@
       "body": "Địa chỉ này không có trong trang quản trị.",
       "back": "Về trang quản trị"
     },
-    "menu": "Menu quản trị"
+    "menu": "Menu quản trị",
+    "list": {
+      "range": "Hiển thị {first}–{last} trên {total} {noun}",
+      "pages": "Trang",
+      "previous": "Trước",
+      "next": "Sau"
+    },
+    "audit": {
+      "title": "Nhật ký thao tác",
+      "noun": "thao tác",
+      "filter": {
+        "search": "Tìm cửa hàng, email",
+        "actor": "Người làm",
+        "anyone": "Tất cả",
+        "action": "Hành động",
+        "anything": "Tất cả",
+        "days": "Ngày",
+        "anytime": "Mọi lúc"
+      },
+      "column": {
+        "time": "Thời gian",
+        "actor": "Người làm",
+        "action": "Hành động",
+        "resource": "Đối tượng",
+        "change": "Thay đổi (trước → sau)"
+      },
+      "action": {
+        "sellerApprove": "Duyệt cửa hàng",
+        "sellerReject": "Từ chối cửa hàng",
+        "sellerBlock": "Chặn cửa hàng",
+        "sellerUnblock": "Gỡ chặn",
+        "adminGrant": "Cấp quản trị viên",
+        "adminRevoke": "Thu hồi quản trị viên",
+        "offerSettingsChange": "Sửa cài đặt bài đăng",
+        "emailSettingsChange": "Sửa cài đặt email"
+      },
+      "resource": {
+        "seller": "Cửa hàng",
+        "account": "Tài khoản",
+        "offer_settings": "Cài đặt bài đăng",
+        "email_settings": "Cài đặt email"
+      },
+      "commandLine": "Dòng lệnh",
+      "deletedAccount": "Tài khoản đã xoá",
+      "change": {
+        "approved": "→ Đang hoạt động",
+        "rejected": "Chờ duyệt → Bị từ chối",
+        "blocked": "Đang hoạt động → Bị chặn",
+        "unblocked": "Bị chặn → Đang hoạt động",
+        "granted": "Khách → Quản trị viên",
+        "revoked": "Quản trị viên → Khách",
+        "fromCommandLine": "Từ dòng lệnh trên máy chủ",
+        "reason": "Lý do: {reason}",
+        "value": "{field}: {from} → {to}",
+        "secret": "{field}: đã đổi",
+        "empty": "trống"
+      },
+      "field": {
+        "minDiscountPercent": "Giảm tối thiểu",
+        "defaultRadiusKm": "Bán kính mặc định",
+        "maxRadiusKm": "Bán kính tối đa",
+        "windowMinMinutes": "Khung lấy ngắn nhất",
+        "windowMaxMinutes": "Khung lấy dài nhất",
+        "startsWithinHours": "Bắt đầu trong vòng",
+        "provider": "Nhà cung cấp",
+        "senderAddress": "Địa chỉ gửi",
+        "senderName": "Tên người gửi",
+        "smtpHost": "Máy chủ SMTP",
+        "smtpPort": "Cổng SMTP",
+        "smtpSecurity": "Bảo mật SMTP",
+        "smtpUsername": "User SMTP",
+        "smtpPassword": "Mật khẩu SMTP",
+        "brevoApiKey": "Khoá API Brevo"
+      },
+      "unit": {
+        "percent": "{value}%",
+        "km": "{value} km",
+        "minutes": "{value} phút",
+        "hours": "{value} giờ"
+      },
+      "empty": {
+        "title": "Chưa có thao tác nào",
+        "body": "Khi quản trị viên duyệt, chặn cửa hàng hay sửa cài đặt, thao tác sẽ hiện ở đây."
+      },
+      "noResults": {
+        "title": "Không tìm thấy thao tác",
+        "body": "Không có thao tác nào khớp bộ lọc.",
+        "clear": "Xoá bộ lọc"
+      }
+    }
   }
 }
