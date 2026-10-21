@@ -122,7 +122,7 @@ function PostDrawerBody({
   const [now] = useState(currentTime);
   const base = edit?.dish ?? again ?? fromDish;
   const ordered = edit?.ordered ?? 0;
-  // Once units are ordered the price and the hours stay as they were: the backend takes only more units.
+  // Once units are ordered the price stays as it was, since an order keeps it; the hours may move, and the orders follow them.
   const locked = ordered > 0;
 
   const [step, setStep] = useState<1 | 2 | 3>(base ? 3 : 1);
@@ -216,26 +216,20 @@ function PostDrawerBody({
     if (edit) {
       // A change that leaves the hours as they were does not send them, so a post made on another day is not moved to today.
       if (!unitsValid || (!locked && priceIssue)) return;
-      if (!locked && windowChanged && (windowIsOver(finalWindow, at) || !lengthIsAllowed(minutes)))
-        return;
+      if (windowChanged && (windowIsOver(finalWindow, at) || !lengthIsAllowed(minutes))) return;
       startTransition(async () => {
         try {
           await changeOffer({
             path: { offerId: edit.offerId },
             body: {
               units: unitsNumber,
-              ...(locked
-                ? {}
-                : {
-                    originalPriceVnd: originalNumber,
-                    priceVnd: priceNumber,
-                    ...(windowChanged
-                      ? {
-                          windowStart: finalWindow.start.toISOString(),
-                          windowEnd: finalWindow.end.toISOString(),
-                        }
-                      : {}),
-                  }),
+              ...(locked ? {} : { originalPriceVnd: originalNumber, priceVnd: priceNumber }),
+              ...(windowChanged
+                ? {
+                    windowStart: finalWindow.start.toISOString(),
+                    windowEnd: finalWindow.end.toISOString(),
+                  }
+                : {}),
             },
           });
           router.push({ pathname: `/stores/${sellerId}/offers`, query: { notice: "saved" } });
@@ -578,7 +572,7 @@ function PostDrawerBody({
                 </p>
               )}
 
-              <fieldset disabled={locked} className="flex flex-col gap-2">
+              <fieldset className="flex flex-col gap-2">
                 <legend className="mb-2 text-title">{t("startQuestion")}</legend>
                 <div className="-my-1 flex flex-wrap gap-x-2">
                   <Chip
@@ -647,7 +641,7 @@ function PostDrawerBody({
                 )}
               </fieldset>
 
-              <fieldset disabled={locked} className="flex flex-col gap-2">
+              <fieldset className="flex flex-col gap-2">
                 <legend className="mb-2 text-title">{t("lengthQuestion")}</legend>
                 <div className="-my-1 flex flex-wrap gap-x-2">
                   {LENGTHS.map((value) => (
@@ -698,6 +692,11 @@ function PostDrawerBody({
                   ? t("windowOver")
                   : t("window", { from: time(window.start), until: time(window.end) })}
               </output>
+              {edit && ordered > 0 && (
+                <p className="-mt-2 text-note text-muted-foreground">
+                  {t("editHoursNote", { count: ordered })}
+                </p>
+              )}
 
               {problem && (
                 <Alert variant="destructive">

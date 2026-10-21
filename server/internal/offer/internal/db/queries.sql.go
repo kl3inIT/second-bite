@@ -876,6 +876,36 @@ func (q *Queries) UpdateOffer(ctx context.Context, arg UpdateOfferParams) error 
 	return err
 }
 
+const windowsOf = `-- name: WindowsOf :many
+SELECT id, window_start, window_end FROM offer_offers WHERE id = ANY ($1::uuid[])
+`
+
+type WindowsOfRow struct {
+	ID          uuid.UUID
+	WindowStart time.Time
+	WindowEnd   time.Time
+}
+
+func (q *Queries) WindowsOf(ctx context.Context, ids []uuid.UUID) ([]WindowsOfRow, error) {
+	rows, err := q.db.Query(ctx, windowsOf, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []WindowsOfRow
+	for rows.Next() {
+		var i WindowsOfRow
+		if err := rows.Scan(&i.ID, &i.WindowStart, &i.WindowEnd); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const withdrawOffer = `-- name: WithdrawOffer :exec
 UPDATE offer_offers SET state = 'withdrawn', withdrawn_at = now(), updated_at = now()
 WHERE id = $1 AND state = 'on_sale'

@@ -95,3 +95,15 @@ SELECT count(*) AS placed,
        count(*) FILTER (WHERE (state IN ('confirmed', 'ready') AND window_end <= now())
                            OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late'))) AS missed
 FROM order_orders WHERE customer_id = @customer_id;
+
+-- name: OpenOrdersOfOffer :many
+-- The orders still to collect that hold units of an offer.
+SELECT DISTINCT o.id
+FROM order_orders AS o
+JOIN order_lines AS l ON l.order_id = o.id
+WHERE l.offer_id = @offer_id AND o.state IN ('confirmed', 'ready');
+
+-- name: SetWindow :exec
+-- Moves an order still to collect to a new window; one that ended stays as it was.
+UPDATE order_orders SET window_start = @window_start, window_end = @window_end
+WHERE id = @id AND state IN ('confirmed', 'ready');

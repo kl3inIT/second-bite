@@ -21,8 +21,8 @@ var (
 		EN: "The offer does not exist.",
 	})
 	ErrChangeNotAllowed = platform.NewFailure("OFFER_CHANGE_NOT_ALLOWED", platform.CategoryConflict, platform.Words{
-		VI: "Món đăng này không sửa theo cách này được nữa: đã có người đặt, đã hết giờ lấy, hoặc đã rút.",
-		EN: "This offer can no longer be changed this way: units have been ordered, its window is over, or it was withdrawn.",
+		VI: "Món đăng này không sửa theo cách này được nữa: đã có người đặt (khi đó chỉ đổi được mô tả, ảnh, số suất và giờ lấy), đã hết giờ lấy, hoặc đã rút.",
+		EN: "This offer can no longer be changed this way: units have been ordered (then only the description, the photo, the units and the collection window change), its window is over, or it was withdrawn.",
 	})
 	ErrDishNotFound = platform.NewFailure("OFFER_DISH_NOT_FOUND", platform.CategoryNotFound, platform.Words{
 		VI: "Không tìm thấy món này trong danh mục.",

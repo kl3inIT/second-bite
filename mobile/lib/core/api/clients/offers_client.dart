@@ -68,7 +68,7 @@ abstract class OffersClient {
 
   /// Change an offer.
   ///
-  /// Once units are ordered, only the description, the photo and the units (never below those ordered) change.
+  /// Once units are ordered, only the description, the photo, the units (never below those ordered) and the collection window change; the orders still to collect follow the new window.
   @PATCH('/offers/{offerId}')
   Future<OfferBody> changeOffer({
     @Path('offerId') required String offerId,
