@@ -31,6 +31,15 @@ components:
       required:
         - email
       type: object
+    AddressOutputBody:
+      additionalProperties: false
+      properties:
+        address:
+          description: As people write it; empty when the point has no known address
+          type: string
+      required:
+        - address
+      type: object
     AdminAccountsOutputBody:
       additionalProperties: false
       properties:
@@ -3264,6 +3273,47 @@ paths:
         - bearer: []
         - cookie: []
       summary: Open a seller; it waits for an admin to activate it
+      tags:
+        - Sellers
+  /sellers/address:
+    get:
+      operationId: addressAt
+      parameters:
+        - explode: false
+          in: query
+          name: latitude
+          required: true
+          schema:
+            format: double
+            maximum: 90
+            minimum: -90
+            type: number
+        - explode: false
+          in: query
+          name: longitude
+          required: true
+          schema:
+            format: double
+            maximum: 180
+            minimum: -180
+            type: number
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The address at a point, to fill the form that opens a store; empty when it is not known
       tags:
         - Sellers
   /sellers/mine:
