@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { AppHeader } from "@/components/app-header";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AccountAction } from "@/features/identity/account-action";
 import { AccountPanel } from "@/features/identity/account-panel";
 import { pageMetadata } from "@/lib/seo";
 
@@ -21,8 +22,14 @@ export default async function AccountPage() {
 
   return (
     <>
-      <AppHeader />
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 pt-2 pb-8 md:pt-6">
+      <AppHeader
+        account={
+          <Suspense>
+            <AccountAction returnTo="/account" />
+          </Suspense>
+        }
+      />
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 pt-2 pb-8 md:max-w-292 md:pt-6">
         <h1 className="text-headline text-foreground md:sr-only">{t("title")}</h1>
         <Suspense fallback={<Skeleton shape="card" className="h-36" />}>
           <AccountPanel />

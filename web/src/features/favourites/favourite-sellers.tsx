@@ -43,7 +43,7 @@ export function FavouriteSellers({ offers }: { offers: readonly OfferSummary[] }
   return (
     <>
       <p className="text-body-sm text-muted-foreground">{t("intro")}</p>
-      <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
         {ids.map((id) => {
           const own = inShowingOrder(offers.filter((offer) => offer.sellerId === id));
           const seller = own[0]?.seller ?? profiles.get(id);
