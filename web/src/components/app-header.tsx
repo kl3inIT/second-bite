@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { Suspense } from "react";
 
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -70,7 +71,9 @@ export function AppHeader({
           )}
           <div className="flex shrink-0 items-center gap-2">
             {account}
-            <LanguageSwitcher />
+            <Suspense fallback={<LanguagePlace />}>
+              <LanguageSwitcher />
+            </Suspense>
           </div>
         </div>
         {children}
@@ -82,10 +85,20 @@ export function AppHeader({
           <div className="max-w-xl flex-1">{sticky.search}</div>
           <div className="ml-auto hidden shrink-0 items-center gap-2 lg:flex">
             {sticky.account}
-            <LanguageSwitcher />
+            <Suspense fallback={<LanguagePlace />}>
+              <LanguageSwitcher />
+            </Suspense>
           </div>
         </StickyHeader>
       )}
     </header>
   );
+}
+
+/**
+ * The language capsule reads the page's address, which on a page with a parameter in its address is known only at
+ * request time; until then its place keeps its size, so the header neither blanks nor moves.
+ */
+function LanguagePlace() {
+  return <span aria-hidden className="-my-1.5 block size-11" />;
 }
