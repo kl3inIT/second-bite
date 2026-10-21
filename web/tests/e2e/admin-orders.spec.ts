@@ -23,9 +23,13 @@ test.describe("the admin's orders", () => {
     await signInAsAdmin(page, `orders.${testInfo.project.name}.${testInfo.title.length}`);
   });
 
-  test("the menu opens every store's orders, with three cards", async ({ page }) => {
+  test("the menu opens every store's orders, with three cards", async ({ page, isMobile }) => {
     await page.goto("/vi/admin/sellers");
-    await (await hydrated(page.getByRole("link", { name: "Đơn hàng" }))).click();
+    // On a phone the menu is a sheet opened from the top bar (admin-shell.spec.ts).
+    if (isMobile)
+      await (await hydrated(page.getByRole("button", { name: "Menu quản trị" }))).click();
+    const menu = isMobile ? page.getByRole("dialog", { name: "Menu quản trị" }) : page;
+    await (await hydrated(menu.getByRole("link", { name: "Đơn hàng" }))).click();
     await expect(page).toHaveURL(/\/vi\/admin\/orders$/);
 
     await expect(page.getByRole("heading", { level: 1, name: "Đơn hàng" })).toBeVisible();
@@ -80,7 +84,9 @@ test.describe("the admin's orders", () => {
     await expect(strip).toBeVisible();
     await expect(page.getByText("Tổng thu tại quầy")).toBeVisible();
     await expect(page.getByText("3 món · 4 phần")).toBeVisible();
-    await expect(page.getByText("Túi bánh mì và croissant, 4 chiếc")).toBeVisible();
+    await expect(
+      page.getByText("Túi bánh mì và croissant, 4 chiếc", { exact: true }).first(),
+    ).toBeVisible();
     await expect(page.getByText("Tổng tiền (trả tại quầy)")).toBeVisible();
     await expect(page.getByText("228.000đ").first()).toBeVisible();
     await expect(page.getByRole("link", { name: "Xem cửa hàng" })).toHaveAttribute(

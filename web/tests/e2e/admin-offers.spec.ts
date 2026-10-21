@@ -23,9 +23,13 @@ test.describe("the admin's posts", () => {
     await signInAsAdmin(page, `offers.${testInfo.project.name}.${testInfo.title.length}`);
   });
 
-  test("the menu opens every store's posts, with a card per status", async ({ page }) => {
+  test("the menu opens every store's posts, with a card per status", async ({ page, isMobile }) => {
     await page.goto("/vi/admin/sellers");
-    await (await hydrated(page.getByRole("link", { name: "Bài đăng" }))).click();
+    // On a phone the menu is a sheet opened from the top bar (admin-shell.spec.ts).
+    if (isMobile)
+      await (await hydrated(page.getByRole("button", { name: "Menu quản trị" }))).click();
+    const menu = isMobile ? page.getByRole("dialog", { name: "Menu quản trị" }) : page;
+    await (await hydrated(menu.getByRole("link", { name: "Bài đăng" }))).click();
     await expect(page).toHaveURL(/\/vi\/admin\/offers$/);
 
     await expect(page.getByRole("heading", { level: 1, name: "Bài đăng" })).toBeVisible();
@@ -72,7 +76,7 @@ test.describe("the admin's posts", () => {
       )
     ).click();
     const panel = page.getByRole("dialog", { name: "Chi tiết bài đăng" });
-    await expect(panel.getByText("Còn 3/3 suất")).toBeVisible();
+    await expect(panel.getByText("Còn 3/3 suất", { exact: true })).toBeVisible();
     await expect(panel.getByRole("link", { name: "Xem trang cửa hàng" })).toHaveAttribute(
       "href",
       /\/vi\/admin\/sellers\/se-admin-\d+$/,
