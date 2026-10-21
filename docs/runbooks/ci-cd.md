@@ -132,6 +132,14 @@ What each secret does ([backend runbook](backend.md)):
 - Replacing `email-settings-key` makes the stored email provider key unreadable until an admin enters it again.
 - Replacing `sign-in-code-key` voids the codes sent in the last 15 minutes.
 
+**Email.** Staging sends real email through Brevo's API, from `noreply@vadan.app` as "Second Bite (staging)", since 21 October 2026. There is no Mailpit on staging: a sign-in code goes to the inbox that was typed, so test with an address you can read. The Brevo API key is sealed in the database under `email-settings-key`, never in a file or the environment. An admin changes the provider, the sender or the key on the site at `/vi/admin/settings/email` (`PUT /admin/email-settings`); from the host, the same is a command reading the key from standard input:
+
+```sh
+docker exec -i secondbite-staging-server secondbite email configure -provider brevo   -sender-address noreply@vadan.app -sender-name "Second Bite (staging)" -secret-stdin
+```
+
+Paste the key and press Ctrl-D, so it stays out of the shell's history.
+
 **The nightly backup.** Install it from a checkout of this repository:
 
 ```sh
