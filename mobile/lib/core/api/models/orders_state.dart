@@ -6,7 +6,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 /// open: still to collect; ended: every other
 @JsonEnum()
-enum State {
+enum OrdersState {
   @JsonValue('open')
   open('open'),
   @JsonValue('ended')
@@ -15,9 +15,9 @@ enum State {
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);
 
-  const State(this.json);
+  const OrdersState(this.json);
 
-  factory State.fromJson(String json) =>
+  factory OrdersState.fromJson(String json) =>
       values.firstWhere((e) => e.json == json, orElse: () => $unknown);
 
   final String? json;
@@ -26,6 +26,6 @@ enum State {
   String toString() => json?.toString() ?? super.toString();
 
   /// Returns all defined enum values excluding the $unknown value.
-  static List<State> get $valuesDefined =>
+  static List<OrdersState> get $valuesDefined =>
       values.where((value) => value != $unknown).toList();
 }
