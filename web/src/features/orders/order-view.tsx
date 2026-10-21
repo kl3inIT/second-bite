@@ -174,7 +174,6 @@ export function OpenOrder({
                   number={order.number}
                   seller={order.seller.name}
                   units={unitsOf(order)}
-                  freeUntil={from}
                 />
               </div>
             ) : null}

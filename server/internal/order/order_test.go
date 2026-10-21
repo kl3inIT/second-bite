@@ -45,7 +45,7 @@ func TestOrder(t *testing.T) {
 		"a cart refused takes nothing":             testRefusedCartTakesNothing,
 		"two customers race for the last unit":     testRaceForTheLastUnit,
 		"who reads an order":                       testWhoReadsAnOrder,
-		"cancelling until the window opens":        testCancelUntilTheWindowOpens,
+		"cancelling until the order is ready":      testCancelUntilReady,
 		"handing over":                             testHandOver,
 		"a collected order is rated once":          testRateOnce,
 		"staff refuse an order":                    testStaffRefuse,
@@ -424,7 +424,7 @@ func testWhoReadsAnOrder(t *testing.T, f fixture) {
 	mustFail(t, "an admin acting for the seller", err, order.ErrNotFound)
 }
 
-func testCancelUntilTheWindowOpens(t *testing.T, f fixture) {
+func testCancelUntilReady(t *testing.T, f fixture) {
 	t.Helper()
 
 	owner := f.as(t, "owner", platform.RoleCustomer)
@@ -458,8 +458,22 @@ func testCancelUntilTheWindowOpens(t *testing.T, f fixture) {
 		t.Fatal(err)
 	}
 
-	_, err = f.orders.Cancel(customer, open.ID, "", "")
-	mustFail(t, "cancelling once the window has opened", err, order.ErrCancelTooLate)
+	// Until the seller marks it ready, the window's opening does not stop the customer (SEC-121).
+	if _, err := f.orders.Cancel(customer, open.ID, "", ""); err != nil {
+		t.Fatalf("cancelling once the window has opened, before ready: %v", err)
+	}
+
+	ready, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{now.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.orders.Ready(owner, ready.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Cancel(customer, ready.ID, "", "")
+	mustFail(t, "cancelling once ready", err, order.ErrCancelTooLate)
 }
 
 func testHandOver(t *testing.T, f fixture) {

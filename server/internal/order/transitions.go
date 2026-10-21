@@ -19,7 +19,7 @@ import (
 )
 
 // Cancel cancels an order for its customer, signed in or holding its access,
-// free of charge until its window opens, and gives its units back to their
+// until the seller marks it ready, and gives its units back to their
 // offers in the same transaction.
 func (s *Service) Cancel(ctx context.Context, id uuid.UUID, access, reason string) (Order, error) {
 	caller, signedIn := platform.CallerFrom(ctx)
@@ -34,7 +34,8 @@ func (s *Service) Cancel(ctx context.Context, id uuid.UUID, access, reason strin
 			return ErrNotFound
 		}
 
-		if !o.Status.open() || !s.now().Before(o.WindowStart) {
+		// Until the seller marks it ready, even once the window has opened (SEC-121); an expired order reads as expired.
+		if o.Status != StatusConfirmed {
 			return ErrCancelTooLate
 		}
 

@@ -89,4 +89,41 @@ test.describe("a phone's large text, as Zalo shows it", () => {
     );
     expect(cut).toBe(0);
   });
+
+  test("the cart's order button stays whole, and the order page keeps its number on one line", async ({
+    page,
+  }) => {
+    await page.goto("/vi/sellers/se-la-paris");
+    await (
+      await hydrated(
+        page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }),
+      )
+    ).click();
+    await page.goto("/vi/cart");
+    const order = await hydrated(page.getByRole("button", { name: "Đặt món" }));
+    await expectNoSidewaysScroll(page);
+    const box = await order.boundingBox();
+    expect(box && box.x + box.width).toBeLessThanOrEqual(360);
+
+    await order.click();
+    const sheet = page.getByRole("dialog", { name: "Người đến nhận" });
+    await sheet.getByLabel("Tên").fill("Lan");
+    await sheet.getByLabel("Số điện thoại").fill("0900000000");
+    await sheet.getByRole("button", { name: "Tiếp tục" }).click();
+    await page
+      .getByRole("alertdialog", { name: "Xác nhận đặt đơn với số điện thoại" })
+      .getByRole("button", { name: "Đúng, đặt món" })
+      .click();
+    await expect(page).toHaveURL(/\/vi\/orders\/[0-9a-f-]{36}$/);
+
+    const number = page.getByText(/^#SB-\d+$/);
+    await expect(number).toBeVisible();
+    await expectNoSidewaysScroll(page);
+    // One line: no taller than its own line height.
+    const { height, lineHeight } = await number.evaluate((element) => ({
+      height: element.getBoundingClientRect().height,
+      lineHeight: parseFloat(getComputedStyle(element).lineHeight),
+    }));
+    expect(height).toBeLessThanOrEqual(lineHeight + 1);
+  });
 });
