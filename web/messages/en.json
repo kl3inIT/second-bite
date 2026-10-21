@@ -377,7 +377,7 @@
     "before": "Earlier",
     "readyUntil": "Ready · until {until}",
     "collectFrom": "Collect from {from}",
-    "cardLine": "{number} · {total} · pay when you collect",
+    "payOnCollect": "Pay when you collect",
     "seeCode": "See collection code {code}",
     "seeOrder": "See order",
     "impact": "{meals, plural, one {# good meal} other {# good meals}}, eaten to the last bite",

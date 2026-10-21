@@ -44,6 +44,8 @@ async function portionsLeft(basket: Basket): Promise<Record<string, number>> {
 export function usePlaceCart() {
   const router = useRouter();
   const [key] = useState(() => crypto.randomUUID());
+  // Apart from the key: the seller's people see the checkout, so it must never rebuild an Idempotency-Key.
+  const [checkoutId] = useState(() => crypto.randomUUID());
   const placed = useRef<string[]>([]);
   const [problem, setProblem] = useState<PlaceProblem>();
   const [pending, startTransition] = useTransition();
@@ -59,7 +61,7 @@ export function usePlaceCart() {
             body: {
               lines: basket.lines.map(({ id, quantity }) => ({ offerId: id, units: quantity })),
               ...contact,
-              checkoutId: key,
+              checkoutId,
             },
           });
           if (data.access) await keepOrder(data.id, data.access);
@@ -78,7 +80,7 @@ export function usePlaceCart() {
           return;
         }
       }
-      // The orders of one cart share the visit's key as their checkout, so the first opens them all.
+      // The orders of one cart share the visit's checkout, so the first opens them all.
       router.push(`/orders/${placed.current[0]}`);
     });
   }

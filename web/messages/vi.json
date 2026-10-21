@@ -377,7 +377,7 @@
     "before": "Trước đó",
     "readyUntil": "Sẵn sàng · đến {until}",
     "collectFrom": "Nhận từ {from}",
-    "cardLine": "{number} · {total} · trả khi nhận",
+    "payOnCollect": "Thanh toán khi nhận hàng",
     "seeCode": "Xem mã nhận {code}",
     "seeOrder": "Xem đơn",
     "impact": "{meals} bữa ngon, trọn đến miếng cuối",

@@ -38,7 +38,7 @@ Against Figma sections 4, 5 and 10, as of 21 October 2026:
    - **Removed:** `/orders/new`, SEC-51's one-offer confirmation, which nothing linked to once K5 ordered the cart.
    - **Also dropped:** K5's "Second Bite không thu hoa hồng" and "Phí bên thứ ba · Không có" lines (the owner, 21 October 2026).
 8. **The orders of one cart show as one order** (the owner, 21 October 2026). The server still keeps one order per seller, so each seller marks it ready, hands it over against its own code and sees only its own number.
-   - **The checkout:** `POST /orders` takes an optional `checkoutId`, and the web sends the visit's key, the same one its Idempotency-Keys start with. Orders return it; without one the server gives the order a new one. `GET /orders?checkout=` lists the caller's orders of one checkout.
+   - **The checkout:** `POST /orders` takes an optional `checkoutId`, and the web sends one random identifier per visit, apart from its Idempotency-Keys: the seller's people see the checkout, so it must never rebuild a key that would replay a guest's order and its access. Orders return it; without one the server gives the order a new one. `GET /orders?checkout=` lists the caller's orders of one checkout.
    - **Siblings come only from the reader's own orders:** the account's list, or the orders this browser keeps. The client chooses the identifier, so no endpoint returns orders by checkout alone.
    - **The order page** of any part shows them all under "Đơn ở 2 quán", with the sellers and the total; each seller's part keeps its number, window, code and free cancel. After ordering, the first part's page opens.
    - **"Đơn của tôi"** groups across both lists. A group is still to collect while any part is; the tab counts count groups.

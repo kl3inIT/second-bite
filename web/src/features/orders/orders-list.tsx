@@ -84,8 +84,10 @@ async function OpenOrderCard({ orders }: { orders: Order[] }) {
               </span>
             ))}
           </h3>
-          <p className="text-label text-muted-foreground">
-            {t("cardLine", { number: numbers, total: formatPrice(total) })}
+          <p className="text-label text-muted-foreground">{numbers}</p>
+          <p className="flex items-baseline gap-1.5 text-label text-muted-foreground">
+            <span className="font-display text-price text-foreground">{formatPrice(total)}</span>
+            {t("payOnCollect")}
           </p>
         </div>
       </div>
