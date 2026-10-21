@@ -5,7 +5,7 @@ import { BackButton } from "./back-button";
 export function PageBar({ title, back }: { title: string; back?: string }) {
   return (
     <header className="bg-header text-header-foreground">
-      <div className="mx-auto flex h-16 w-full max-w-xl items-center gap-3 px-4">
+      <div className="mx-auto flex h-16 w-full max-w-xl items-center gap-3 px-4 md:max-w-292">
         {back ? <BackButton fallback={back} /> : null}
         <h1 className="truncate text-bar-title">{title}</h1>
       </div>

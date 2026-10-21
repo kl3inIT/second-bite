@@ -3,6 +3,9 @@ import { expect, test } from "@playwright/test";
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
+// The customer web's content column from 768px (DESIGN.md › Layout).
+const CONTENT_WIDTH = 1168;
+
 test.use({ locale: "vi-VN" });
 
 test.describe("the search", () => {
@@ -65,5 +68,54 @@ test.describe("the search", () => {
     await page.goto("/vi/search?q=banh+bao");
     await (await hydrated(page.getByRole("link", { name: "Về trang chủ", exact: true }))).click();
     await expect(page).toHaveURL(/\/vi$/);
+  });
+
+  test("does not scroll sideways at 360px", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await page.goto("/vi/search");
+    await expect(page.getByRole("region", { name: "La Paris" })).toBeVisible();
+
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  for (const width of [768, 1024, 1440]) {
+    test(`fills the content column at ${width}px, its chips on the page's ground`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/vi/search");
+
+      const results = page.getByRole("region", { name: "La Paris" });
+      await expect(results).toBeVisible();
+      const grid = page.getByRole("main").getByRole("list").last();
+      const box = await grid.boundingBox();
+      const pageWidth = await page.evaluate(() => document.documentElement.clientWidth);
+      // The 1168px column, centred; a narrower screen uses all of its width.
+      expect(box?.width).toBeCloseTo(Math.min(pageWidth, CONTENT_WIDTH), 0);
+      expect(box?.x).toBeCloseTo((pageWidth - (box?.width ?? 0)) / 2, 0);
+
+      const chips = page.getByRole("list", { name: "Bộ lọc" });
+      await expect(chips.getByRole("button", { name: "Giá" })).toBeVisible();
+      // A white chip with its edge, not a strip of white under the field.
+      await expect(chips.getByRole("button", { name: "Giá" })).toHaveCSS(
+        "background-color",
+        "rgb(255, 255, 255)",
+      );
+    });
+  }
+
+  test("centres an empty result in the content column from 768px", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/vi/search?q=khong+co+mon+nay");
+
+    const empty = page.locator("[data-slot=empty]");
+    await expect(empty).toBeVisible();
+    const box = await empty.boundingBox();
+    const pageWidth = await page.evaluate(() => document.documentElement.clientWidth);
+    expect(box?.x).toBeCloseTo((pageWidth - (box?.width ?? 0)) / 2, 0);
+    await expect(page.getByRole("link", { name: "Xem tất cả món" })).toBeVisible();
   });
 });

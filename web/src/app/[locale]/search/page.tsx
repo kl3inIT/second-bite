@@ -8,7 +8,9 @@ import { listOffers } from "@/features/offers/list-offers";
 import { SearchBar } from "@/features/search/search-bar";
 import { readSearchQuery, type SearchQuery } from "@/features/search/search-query";
 import { SearchResults } from "@/features/search/search-results";
+import { contentWidth } from "@/lib/layout";
 import { pageMetadata } from "@/lib/seo";
+import { cn } from "@/lib/utils";
 
 // A page of results is no page to index; the layout's template adds the name (SEC-52).
 export async function generateMetadata({
@@ -28,13 +30,13 @@ export default async function SearchPage({ searchParams }: PageProps<"/[locale]/
     <>
       {/* Above the bottom bar, which the search's suggestions cover (Figma K2a). */}
       <header className="sticky top-0 z-50 bg-shell text-shell-foreground">
-        <div className="mx-auto w-full max-w-5xl">
+        <div className={contentWidth}>
           <Suspense fallback={<SearchBar />}>
             <AddressSearchBar query={query} />
           </Suspense>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1">
+      <main className={cn(contentWidth, "flex-1")}>
         <h1 className="sr-only">{t("title")}</h1>
         <Suspense fallback={<BrandLoader />}>
           <SearchResults query={query} />

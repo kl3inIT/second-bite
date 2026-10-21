@@ -1,6 +1,8 @@
 import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
+import { contentWidth } from "@/lib/layout";
+import { cn } from "@/lib/utils";
 
 import { Wordmark } from "./wordmark";
 
@@ -15,7 +17,7 @@ export function SiteFooter() {
     // A page that is a screen of its own (the sign-in screen, the admin's frame) marks itself
     // `data-no-footer`, and the footer stays out of it.
     <footer className="mt-8 border-t border-border group-has-[[data-no-footer]]/body:hidden max-md:hidden">
-      <div className="mx-auto flex w-full max-w-5xl justify-between gap-8 px-4 pt-8 pb-6 xl:max-w-300">
+      <div className={cn(contentWidth, "flex justify-between gap-8 px-4 pt-8 pb-6")}>
         <div className="flex max-w-sm flex-col gap-2">
           <Link
             href="/"

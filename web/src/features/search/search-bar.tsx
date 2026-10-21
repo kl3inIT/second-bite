@@ -61,7 +61,7 @@ export function SearchBar({
         >
           <ChevronLeftIcon aria-hidden className="size-6" />
         </Link>
-        <search className="min-w-0 flex-1 search-cancel-none">
+        <search className="min-w-0 flex-1 search-cancel-none md:max-w-xl">
           <form>
             {near && <input type="hidden" name="near" value={near} />}
             <InputGroup surface="sky">

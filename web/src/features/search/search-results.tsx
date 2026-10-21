@@ -46,14 +46,20 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
   );
 
   return (
-    <div className="flex flex-col gap-3 pb-6">
-      {/* The white top goes on under the field with the chips and the summary (Figma K1f). */}
-      <div className="flex flex-col gap-3 border-b border-border bg-shell pb-3">
-        <SearchFilters query={query} />
+    <div className="flex flex-col gap-3 pb-6 md:pt-4">
+      {/* On a phone the white top goes on under the field with the chips and the summary (Figma K1f); from
+          `md` they sit on the page's ground, the chips with their own white and edge (Figma WK2). */}
+      <div className="flex flex-col gap-3 border-b border-border bg-shell pb-3 md:border-b-0 md:bg-transparent md:pb-0">
+        <SearchFilters query={query} className="md:hidden" />
+        <SearchFilters
+          query={query}
+          raised
+          className="hidden md:flex md:flex-wrap md:overflow-visible"
+        />
         {heading}
       </div>
       {offers.length === 0 ? (
-        <Empty surface="card" className="mx-4 w-auto">
+        <Empty surface="card" className="mx-4 w-auto md:mx-auto md:my-12 md:w-full md:max-w-lg">
           <EmptyHeader>
             <EmptyTitle>{t("nothing")}</EmptyTitle>
           </EmptyHeader>
@@ -68,8 +74,9 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
         </Empty>
       ) : (
         // A seller with one dish is a small card, two to a row; a seller with more spans the row with their
-        // tiles (Figma K1f).
-        <ul className="grid grid-cols-2 gap-3 px-4 xl:grid-cols-3">
+        // tiles (Figma K1f). From `md` the cards are four across, six from `lg`, and a seller's group takes
+        // two of them, so every card is about as wide as on a phone.
+        <ul className="grid grid-cols-2 gap-3 px-4 md:grid-flow-dense md:grid-cols-4 lg:grid-cols-6">
           {groups.map(({ seller, offers: dishes }) => {
             const [only] = dishes;
             return dishes.length === 1 && only ? (
