@@ -467,6 +467,10 @@
       "reason": {
         "not_suitable": "the food was no longer fit",
         "wrong_items": "the food did not match the order",
+        "no_answer": "the shop could not reach you by phone",
+        "no_show": "you did not come to collect",
+        "late": "the collection time had passed",
+        "sold_out": "the food ran out",
         "other": "another reason"
       },
       "expired": "Collection time over",
@@ -712,11 +716,69 @@
     "closed": "Pick-up over · sold {sold}/{units} {unit} · {price}",
     "withdrawn": "Withdrawn · {price}"
   },
-  "StoreSoon": {
-    "soon": "Coming soon",
-    "orders": {
-      "title": "Orders",
-      "body": "Customers' orders will show here once ordering is ready."
+  "StoreOrders": {
+    "title": "Orders",
+    "portions": "portions",
+    "summaryHolding": "Holding {units} portions · {people} customers",
+    "summaryDelivered": "Today {count} orders · {amount}",
+    "summaryCancelled": "Today {count} cancelled",
+    "searchLabel": "Search orders",
+    "searchPlaceholder": "Search by name, phone number or dish",
+    "searchCount": "{count} results",
+    "tabs": "Order groups",
+    "tab": {
+      "holding": "Holding · {count}",
+      "delivered": "Delivered · {count}",
+      "cancelled": "Cancelled · {count}"
+    },
+    "empty": {
+      "holding": "Nobody holds a dish on this day. When a customer does, their name and phone number show here.",
+      "delivered": "Nothing was delivered on this day.",
+      "cancelled": "No order was cancelled on this day."
+    },
+    "emptySearch": "No order matches “{query}”.",
+    "amount": "Amount",
+    "units": "{count} {unit}",
+    "copyPhone": "Copy the phone number {phone}",
+    "copied": "Phone number copied.",
+    "deliver": "Delivered",
+    "cancel": "Cancel order",
+    "reopen": "Undo",
+    "deliveredTo": "Delivered to {name}",
+    "failed": "That did not work. Try again.",
+    "reference": "Reference: {id}",
+    "reasonLabel": "Reason for cancelling",
+    "reason": {
+      "no_answer": "No answer",
+      "no_show": "Did not come",
+      "late": "Too late",
+      "sold_out": "Out of food",
+      "other": "Another reason",
+      "not_suitable": "Food no longer suitable",
+      "wrong_items": "Wrong dish"
+    },
+    "ended": {
+      "customer": "Cancelled by the customer on the customer site",
+      "expired": "Collection time ran out",
+      "reason": "Reason: {reason}",
+      "note": "Reason: {reason} · {note}"
+    },
+    "cancelDialog": {
+      "title": "Cancel {name}'s order?",
+      "body": "Choose a reason. When the customer did not come, the portions go back on sale.",
+      "note": "Write the reason",
+      "back": "Go back",
+      "confirm": "Cancel order"
+    },
+    "day": {
+      "label": "Day shown",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "dayBefore": "Two days ago",
+      "previous": "Previous day",
+      "next": "Next day",
+      "pick": "Pick a day",
+      "quick": "Quick choice"
     }
   },
   "PostDrawer": {
