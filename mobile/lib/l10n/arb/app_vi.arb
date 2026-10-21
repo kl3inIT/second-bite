@@ -28,7 +28,7 @@
   "@homeKindsLabel": {
     "description": "Name of the row of kinds of food"
   },
-  "homeCollectNow": "Lấy ngay",
+  "homeCollectNow": "Nhận ngay",
   "@homeCollectNow": {
     "description": "The first item of the kinds row: only what can be collected now"
   },
@@ -49,7 +49,7 @@
       }
     }
   },
-  "homeTicketWindow": "Lấy {from}",
+  "homeTicketWindow": "Nhận {from}",
   "@homeTicketWindow": {
     "description": "When collection opens, on a ticket of the deal card",
     "placeholders": {
@@ -72,7 +72,7 @@
       }
     }
   },
-  "homeClosingSoon": "Sắp hết giờ lấy",
+  "homeClosingSoon": "Sắp hết giờ nhận",
   "@homeClosingSoon": {
     "description": "Title of the row of offers whose windows close first"
   },
@@ -117,7 +117,7 @@
   "@offerSoldOut": {
     "description": "The sticker of an offer with nothing left"
   },
-  "offerWindow": "Lấy {from}–{until}",
+  "offerWindow": "Nhận {from}–{until}",
   "@offerWindow": {
     "description": "The collection window on a compact card",
     "placeholders": {
@@ -190,7 +190,7 @@
   "@introTitle": {
     "description": "Title of the introduction for a first visit"
   },
-  "introBody": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.",
+  "introBody": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy nhận trong khung giờ của món.",
   "@introBody": {
     "description": "What Second Bite is, in two sentences"
   },
@@ -385,7 +385,7 @@
   "@legalPrivacySection3Title": {
     "description": "Section 3's heading, as the web's Privacy.sections[2].title"
   },
-  "legalPrivacySection3Body": "Mã đăng nhập: xóa khi dùng xong, khi bạn xin mã mới, hoặc muộn nhất một ngày sau khi gửi.\n\nPhiên đăng nhập: hết hạn sau 30 ngày không dùng; xóa khi bạn đăng xuất.\n\nẢnh tải lên nhưng không dùng cho món hay quán nào: xóa sau một ngày.\n\nTài khoản, quán, món đã đăng và đơn hàng: giữ cho tới khi bạn yêu cầu xóa, trừ phần pháp luật buộc phải giữ lâu hơn.",
+  "legalPrivacySection3Body": "Mã đăng nhập: xóa khi dùng xong, khi bạn xin mã mới, hoặc muộn nhất một ngày sau khi gửi.\n\nPhiên đăng nhập: hết hạn sau 30 ngày không dùng; xóa khi bạn đăng xuất.\n\nẢnh tải lên nhưng không dùng cho món hay quán nào: xóa sau một ngày.\n\nTài khoản, quán, món đã đăng và đơn hàng: giữ cho tới khi bạn xóa tài khoản hoặc yêu cầu xóa, trừ phần pháp luật buộc phải giữ lâu hơn.\n\nKhi bạn xóa tài khoản: tài khoản, phiên đăng nhập, liên kết Google, mã đăng nhập và bản ghi các email gửi cho bạn bị xóa ngay; tư cách thành viên ở các quán và ảnh chưa dùng bị xóa trong vài phút sau đó. Món đã đăng, ảnh món và ảnh quán thuộc về quán nên được giữ, không còn gắn với bạn; quán bạn là chủ sẽ bị đóng.",
   "@legalPrivacySection3Body": {
     "description": "Section 3's paragraphs, one blank line apart, as the web's Privacy.sections[2].paragraphs"
   },
@@ -401,7 +401,7 @@
   "@legalPrivacySection5Title": {
     "description": "Section 5's heading, as the web's Privacy.sections[4].title"
   },
-  "legalPrivacySection5Body": "Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.",
+  "legalPrivacySection5Body": "Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự xóa được tài khoản trong ứng dụng (Tài khoản → Cài đặt tài khoản → Xóa tài khoản) hoặc trên trang web tại /delete-account, sau khi nhập mã chúng tôi gửi đến email của tài khoản.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.",
   "@legalPrivacySection5Body": {
     "description": "Section 5's paragraphs, one blank line apart, as the web's Privacy.sections[4].paragraphs"
   },
@@ -593,42 +593,227 @@
   "@signInGoogleNeedsCodeBodyNoAddress": {
     "description": "As signInGoogleNeedsCodeBody when the address is not known"
   },
-  "signInEmailInvalid": "Nhập một địa chỉ email, ví dụ ten@gmail.com.",
-  "@signInEmailInvalid": {
-    "description": "The address is not one"
-  },
-  "signInCodeLimit": "Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.",
-  "@signInCodeLimit": {
-    "description": "Too many codes for the address"
-  },
-  "signInCodeIncorrect": "Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.",
-  "@signInCodeIncorrect": {
-    "description": "A wrong code"
-  },
-  "signInCodeGone": "Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.",
-  "@signInCodeGone": {
-    "description": "An expired or used code"
-  },
-  "signInGoogleUnverified": "Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.",
-  "@signInGoogleUnverified": {
-    "description": "Google has not verified the address"
-  },
   "signInFailed": "Chưa đăng nhập được. Vui lòng thử lại.",
   "@signInFailed": {
     "description": "Any other failure"
   },
-  "signInFailedWithReference": "Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: {reference}",
-  "@signInFailedWithReference": {
-    "description": "Any other failure, with the request's reference",
-    "placeholders": {
-      "reference": {
-        "type": "String",
-        "example": "01J…"
-      }
-    }
-  },
   "signInNotArrived": "Chưa thấy email? Xem trong thư rác (Spam).",
   "@signInNotArrived": {
     "description": "Under the code field"
+  },
+  "deleteAccountTitle": "Xoá tài khoản",
+  "@deleteAccountTitle": {
+    "description": "The deletion screen's title and the account tab's entry"
+  },
+  "deleteAccountIntro": "Bạn có thể xoá tài khoản Second Bite bất cứ lúc nào, trong ứng dụng hoặc tại trang này. Việc xoá là vĩnh viễn và không thể hoàn tác.",
+  "@deleteAccountIntro": {
+    "description": "What deleting means, first on the screen"
+  },
+  "deleteAccountDeletedTitle": "Bị xoá ngay khi bạn xác nhận",
+  "@deleteAccountDeletedTitle": {
+    "description": "The heading of what goes at once"
+  },
+  "deleteAccountDeleted1": "Tài khoản của bạn: địa chỉ email và tên hiển thị.",
+  "@deleteAccountDeleted1": {
+    "description": "Something deleted at once"
+  },
+  "deleteAccountDeleted2": "Mọi phiên đăng nhập trên mọi thiết bị, và liên kết với tài khoản Google.",
+  "@deleteAccountDeleted2": {
+    "description": "Something deleted at once"
+  },
+  "deleteAccountDeleted3": "Mã đăng nhập và bản ghi các email chúng tôi đã gửi cho bạn.",
+  "@deleteAccountDeleted3": {
+    "description": "Something deleted at once"
+  },
+  "deleteAccountLaterTitle": "Bị xoá trong vài phút sau đó",
+  "@deleteAccountLaterTitle": {
+    "description": "The heading of what goes within minutes"
+  },
+  "deleteAccountLater1": "Tư cách chủ quán hoặc nhân viên của bạn ở các quán.",
+  "@deleteAccountLater1": {
+    "description": "Something deleted within minutes"
+  },
+  "deleteAccountLater2": "Ảnh bạn đã tải lên nhưng chưa dùng cho món hay quán nào.",
+  "@deleteAccountLater2": {
+    "description": "Something deleted within minutes"
+  },
+  "deleteAccountKeptTitle": "Được giữ lại, không còn gắn với bạn",
+  "@deleteAccountKeptTitle": {
+    "description": "The heading of what is kept"
+  },
+  "deleteAccountKept1": "Món đã đăng, ảnh món và ảnh quán: chúng thuộc về quán.",
+  "@deleteAccountKept1": {
+    "description": "Something kept, no longer linked to the person"
+  },
+  "deleteAccountKept2": "Đơn hàng và thanh toán mà pháp luật buộc phải giữ, khi tính năng đặt món mở; thời hạn giữ đang cập nhật.",
+  "@deleteAccountKept2": {
+    "description": "Something kept, no longer linked to the person"
+  },
+  "deleteAccountOwnerTitle": "Bạn đang là chủ quán",
+  "@deleteAccountOwnerTitle": {
+    "description": "The warning to the owner of a seller"
+  },
+  "deleteAccountOwnerBody": "Xoá tài khoản sẽ đóng {sellers}: quán ngừng hiển thị với khách và nhân viên không quản lý được nữa, cho tới khi Second Bite xử lý.",
+  "@deleteAccountOwnerBody": {
+    "description": "What happens to the sellers the person owns",
+    "placeholders": {
+      "sellers": {
+        "type": "String",
+        "example": "Bánh mì Tasco"
+      }
+    }
+  },
+  "deleteAccountSignedOutTitle": "Đăng nhập để xoá tài khoản",
+  "@deleteAccountSignedOutTitle": {
+    "description": "Shown to someone signed out"
+  },
+  "deleteAccountSignedOutBody": "Để chắc người xoá là chủ tài khoản, bạn đăng nhập rồi nhập mã chúng tôi gửi đến email của tài khoản.",
+  "@deleteAccountSignedOutBody": {
+    "description": "Why signing in comes first"
+  },
+  "deleteAccountSendCode": "Gửi mã xác nhận",
+  "@deleteAccountSendCode": {
+    "description": "The button that emails the deletion code"
+  },
+  "deleteAccountSending": "Đang gửi mã…",
+  "@deleteAccountSending": {
+    "description": "The button while the code is sent"
+  },
+  "deleteAccountConfirmBody": "Chúng tôi sẽ gửi mã 6 số đến {email} để xác nhận bạn muốn xoá tài khoản.",
+  "@deleteAccountConfirmBody": {
+    "description": "Where the code will go",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "lan@gmail.com"
+      }
+    }
+  },
+  "deleteAccountCodeHeading": "Nhập mã xác nhận",
+  "@deleteAccountCodeHeading": {
+    "description": "The heading of the code step"
+  },
+  "deleteAccountCodeSent": "Mã 6 số đã gửi đến {email}. Mã chỉ dùng để xoá tài khoản.",
+  "@deleteAccountCodeSent": {
+    "description": "Where the code went",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "lan@gmail.com"
+      }
+    }
+  },
+  "deleteAccountCodeLabel": "Mã xác nhận 6 số",
+  "@deleteAccountCodeLabel": {
+    "description": "The code field, as a screen reader names it"
+  },
+  "deleteAccountConfirm": "Xoá vĩnh viễn tài khoản",
+  "@deleteAccountConfirm": {
+    "description": "The button that deletes the account"
+  },
+  "deleteAccountDeleting": "Đang xoá…",
+  "@deleteAccountDeleting": {
+    "description": "The button while the account is deleted"
+  },
+  "deleteAccountCancel": "Giữ tài khoản",
+  "@deleteAccountCancel": {
+    "description": "The way back without deleting"
+  },
+  "deleteAccountFailed": "Chưa xoá được tài khoản. Vui lòng thử lại.",
+  "@deleteAccountFailed": {
+    "description": "Any other failure"
+  },
+  "deleteAccountDoneTitle": "Đã xoá tài khoản",
+  "@deleteAccountDoneTitle": {
+    "description": "Shown once the account is deleted"
+  },
+  "deleteAccountDoneBody": "Tài khoản và dữ liệu cá nhân của bạn đã được xoá. Bạn vẫn có thể đăng nhập lại bằng email này bất cứ lúc nào, như một tài khoản mới.",
+  "@deleteAccountDoneBody": {
+    "description": "What the deletion did, and that the address can sign in again"
+  },
+  "deleteAccountHome": "Về trang chủ",
+  "@deleteAccountHome": {
+    "description": "The button home after the deletion"
+  },
+  "accountSettingsTitle": "Cài đặt tài khoản",
+  "@accountSettingsTitle": {
+    "description": "The account tab's row and the title of account settings"
+  },
+  "accountSettingsDetails": "Thông tin tài khoản",
+  "@accountSettingsDetails": {
+    "description": "The label of the account's details, for screen readers"
+  },
+  "accountSettingsEmail": "Email",
+  "@accountSettingsEmail": {
+    "description": "The row of the account's address"
+  },
+  "accountSettingsDisplayName": "Tên hiển thị",
+  "@accountSettingsDisplayName": {
+    "description": "The row of the account's display name"
+  },
+  "accountSettingsNoDisplayName": "Chưa có",
+  "@accountSettingsNoDisplayName": {
+    "description": "The display name when there is none"
+  },
+  "accountSettingsSellers": "Quán của bạn",
+  "@accountSettingsSellers": {
+    "description": "The row of the sellers the person owns or works for"
+  },
+  "accountSettingsOwner": "Chủ quán",
+  "@accountSettingsOwner": {
+    "description": "The role of an owner of a seller"
+  },
+  "accountSettingsStaff": "Nhân viên",
+  "@accountSettingsStaff": {
+    "description": "The role of a staff member of a seller"
+  },
+  "accountSettingsLanguage": "Ngôn ngữ",
+  "@accountSettingsLanguage": {
+    "description": "The row of the app's language"
+  },
+  "accountSettingsLanguageName": "Tiếng Việt",
+  "@accountSettingsLanguageName": {
+    "description": "The name of the language on screen"
+  },
+  "accountSettingsDeleteTitle": "Xoá tài khoản",
+  "@accountSettingsDeleteTitle": {
+    "description": "The heading at the foot of account settings"
+  },
+  "accountSettingsDeleteBody": "Xoá vĩnh viễn tài khoản và dữ liệu cá nhân của bạn. Việc xoá không thể hoàn tác; quán bạn là chủ sẽ bị đóng.",
+  "@accountSettingsDeleteBody": {
+    "description": "What deleting the account means, at the foot of account settings"
+  },
+  "accountSettingsDeleteAction": "Xoá tài khoản",
+  "@accountSettingsDeleteAction": {
+    "description": "The button that opens the deletion"
+  },
+  "problemReference": "Mã tham chiếu: {reference}",
+  "@problemReference": {
+    "description": "The request's reference after the server's words, quoted when a person reports a failure",
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "accountSettingsEditName": "Sửa tên hiển thị",
+  "@accountSettingsEditName": {
+    "description": "The heading of the sheet that changes the display name, and the row's hint"
+  },
+  "accountSettingsSave": "Lưu",
+  "@accountSettingsSave": {
+    "description": "Saves the display name"
+  },
+  "accountSettingsSaving": "Đang lưu…",
+  "@accountSettingsSaving": {
+    "description": "While the display name is saved"
+  },
+  "accountSettingsCancel": "Huỷ",
+  "@accountSettingsCancel": {
+    "description": "Closes the sheet without saving"
+  },
+  "accountSettingsNameFailed": "Chưa lưu được tên. Thử lại sau ít phút.",
+  "@accountSettingsNameFailed": {
+    "description": "When saving the name got no answer"
   }
 }

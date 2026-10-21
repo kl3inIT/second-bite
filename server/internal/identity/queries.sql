@@ -25,24 +25,25 @@ UPDATE identity_sign_in_challenges SET expires_at = now()
 WHERE email = @email AND expires_at > now();
 
 -- name: InsertChallenge :one
-INSERT INTO identity_sign_in_challenges (id, email, code_hash, expires_at)
-VALUES (@id, @email, @code_hash, now() + make_interval(secs => @lifetime_seconds::integer))
+INSERT INTO identity_sign_in_challenges (id, email, code_hash, purpose, expires_at)
+VALUES (@id, @email, @code_hash, @purpose, now() + make_interval(secs => @lifetime_seconds::integer))
 RETURNING expires_at;
 
 -- name: DeleteChallenge :execrows
 DELETE FROM identity_sign_in_challenges WHERE id = @id;
 
 -- name: SpendAttempt :one
--- Pays for a guess before the code is compared, so every guess is counted.
+-- Pays for a guess before the code is compared, so every guess is counted. A
+-- code of another purpose is not found, so it can neither sign in nor delete.
 UPDATE identity_sign_in_challenges
 SET failed_attempts = failed_attempts + 1
-WHERE id = @id AND expires_at > now() AND failed_attempts < @max_attempts::integer
+WHERE id = @id AND purpose = @purpose AND expires_at > now() AND failed_attempts < @max_attempts::integer
 RETURNING email, code_hash;
 
 -- name: ChallengeExhausted :one
 SELECT EXISTS (
     SELECT 1 FROM identity_sign_in_challenges
-    WHERE id = @id AND expires_at > now() AND failed_attempts >= @max_attempts::integer
+    WHERE id = @id AND purpose = @purpose AND expires_at > now() AND failed_attempts >= @max_attempts::integer
 );
 
 -- name: UpsertAccount :one
@@ -131,3 +132,16 @@ UPDATE identity_accounts
 SET display_name = CASE WHEN display_name = '' THEN @display_name ELSE display_name END
 WHERE id = @id
 RETURNING id, email, role, display_name;
+
+-- name: SetDisplayName :one
+-- The name the person chose (SEC-61).
+UPDATE identity_accounts SET display_name = @display_name WHERE id = @id
+RETURNING id, email, role, display_name;
+
+-- name: DeleteChallengesOf :exec
+-- Every code sent to the address, once its account is deleted.
+DELETE FROM identity_sign_in_challenges WHERE email = @email;
+
+-- name: DeleteAccount :execrows
+-- Its sessions and its external logins go with it (ON DELETE CASCADE).
+DELETE FROM identity_accounts WHERE id = @id;

@@ -26,7 +26,7 @@ export function inShowingOrder(offers: readonly OfferSummary[]): OfferSummary[] 
   return [...offers.filter(isAvailable), ...offers.filter((offer) => !isAvailable(offer))];
 }
 
-/** What can still be ordered, the window that closes first at the top: the home's "Sắp hết giờ lấy". */
+/** What can still be ordered, the window that closes first at the top: the home's "Sắp hết giờ nhận". */
 export function closingFirst(offers: readonly OfferSummary[]): OfferSummary[] {
   return offers
     .filter(isAvailable)
@@ -49,4 +49,22 @@ export function groupBySeller(
     else groups.set(offer.sellerId, { seller: offer.seller, offers: [offer] });
   }
   return [...groups.values()];
+}
+
+/** The kinds that can still be ordered, the one with the most offers first: the search's popular kinds. */
+export function kindsByCount(
+  offers: readonly OfferSummary[],
+): { kind: OfferKind; count: number }[] {
+  const counts = new Map<OfferKind, number>();
+  for (const offer of offers.filter(isAvailable)) {
+    counts.set(offer.kind, (counts.get(offer.kind) ?? 0) + 1);
+  }
+  return [...counts]
+    .map(([kind, count]) => ({ kind, count }))
+    .toSorted((a, b) => b.count - a.count);
+}
+
+/** Directions to where the offer is collected, in the phone's maps (Figma K4b, K5 "Chỉ đường"). */
+export function directionsHref({ latitude, longitude }: OfferSummary["collectionPoint"]): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
 }

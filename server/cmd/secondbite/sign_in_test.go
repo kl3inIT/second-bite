@@ -217,7 +217,7 @@ func checkCookieSignOut(t *testing.T, svc service, jar http.Header) {
 		t.Errorf("offers with an ended cookie: %d %s", r.status, r.body)
 	}
 
-	if p := send(t, http.MethodGet, svc.base+"/accounts/me", jar, nil).problem(t, http.StatusUnauthorized); p.Code != "PLATFORM_AUTHENTICATION_REQUIRED" {
+	if p := send(t, http.MethodGet, svc.base+"/accounts/me", jar, nil).problem(t, http.StatusUnauthorized); p.Code != codeAuthenticationRequired {
 		t.Errorf("me with an ended cookie: %q", p.Code)
 	}
 }
@@ -399,7 +399,7 @@ func checkInvalidToken(t *testing.T, svc service) {
 	}
 
 	p := send(t, http.MethodGet, svc.base+"/accounts/me", nil, nil).problem(t, http.StatusUnauthorized)
-	if p.Code != "PLATFORM_AUTHENTICATION_REQUIRED" {
+	if p.Code != codeAuthenticationRequired {
 		t.Errorf("anonymous: code %q", p.Code)
 	}
 }

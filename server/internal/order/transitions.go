@@ -16,21 +16,19 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
-// Cancel cancels the caller's order free of charge until its window opens,
-// and gives its units back to their offers in the same transaction.
-func (s *Service) Cancel(ctx context.Context, id uuid.UUID, reason string) (Order, error) {
-	caller, err := platform.RequireCaller(ctx)
-	if err != nil {
-		return Order{}, err
-	}
+// Cancel cancels an order for its customer, signed in or holding its access,
+// free of charge until its window opens, and gives its units back to their
+// offers in the same transaction.
+func (s *Service) Cancel(ctx context.Context, id uuid.UUID, access, reason string) (Order, error) {
+	caller, signedIn := platform.CallerFrom(ctx)
 
 	reason = strings.TrimSpace(reason)
 	if utf8.RuneCountInString(reason) > 200 {
 		reason = string([]rune(reason)[:200])
 	}
 
-	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
-		if o.CustomerID != caller.AccountID {
+	err := s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
+		if !s.isCustomer(ctx, o, access) {
 			return ErrNotFound
 		}
 
@@ -48,7 +46,9 @@ func (s *Service) Cancel(ctx context.Context, id uuid.UUID, reason string) (Orde
 			}
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "cancelled", ActorID: caller.AccountID})
+		return q.InsertEvent(ctx, db.InsertEventParams{
+			OrderID: id, Kind: "cancelled", ActorID: uuid.NullUUID{UUID: caller.AccountID, Valid: signedIn},
+		})
 	})
 	if err != nil {
 		return Order{}, err
@@ -56,7 +56,7 @@ func (s *Service) Cancel(ctx context.Context, id uuid.UUID, reason string) (Orde
 
 	s.logged(ctx, "order cancelled", "order.order.cancelled", id, caller)
 
-	return s.Get(ctx, id)
+	return s.Get(ctx, id, access)
 }
 
 // Ready marks an order ready for collection, which shows its customer the
@@ -80,7 +80,7 @@ func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 			return fmt.Errorf("marking the order ready: %w", err)
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "ready", ActorID: caller.AccountID})
+		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "ready", ActorID: actor(caller)})
 	})
 	if err != nil {
 		return Order{}, err
@@ -88,7 +88,7 @@ func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 
 	s.logged(ctx, "order ready", "order.order.ready", id, caller)
 
-	return s.Get(ctx, id)
+	return s.Get(ctx, id, "")
 }
 
 // HandOver hands an order over when the collector gives its code within the
@@ -123,14 +123,14 @@ func (s *Service) HandOver(ctx context.Context, id uuid.UUID, code string) (Orde
 			}
 
 			// The wrong attempt is kept: the transaction commits.
-			return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "code_wrong", ActorID: caller.AccountID})
+			return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "code_wrong", ActorID: actor(caller)})
 		}
 
 		if err := q.MarkCollected(ctx, id); err != nil {
 			return fmt.Errorf("handing the order over: %w", err)
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "collected", ActorID: caller.AccountID})
+		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "collected", ActorID: actor(caller)})
 	})
 	if err != nil {
 		return Order{}, err
@@ -149,7 +149,7 @@ func (s *Service) HandOver(ctx context.Context, id uuid.UUID, code string) (Orde
 
 	s.logged(ctx, "order collected", "order.collection.confirmed", id, caller)
 
-	return s.Get(ctx, id)
+	return s.Get(ctx, id, "")
 }
 
 // Refuse ends an order staff will not hand over: the food is no longer
@@ -174,7 +174,7 @@ func (s *Service) Refuse(ctx context.Context, id uuid.UUID, reason RefuseReason,
 			return fmt.Errorf("refusing the order: %w", err)
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "refused", ActorID: caller.AccountID})
+		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "refused", ActorID: actor(caller)})
 	})
 	if err != nil {
 		return Order{}, err
@@ -182,7 +182,7 @@ func (s *Service) Refuse(ctx context.Context, id uuid.UUID, reason RefuseReason,
 
 	s.logged(ctx, "order refused", "order.order.refused", id, caller)
 
-	return s.Get(ctx, id)
+	return s.Get(ctx, id, "")
 }
 
 // staffOf returns the caller when they are one of the order's seller's people;
@@ -242,9 +242,15 @@ func failureCode(err error) string {
 func textOf(s string) pgtype.Text { return pgtype.Text{String: s, Valid: s != ""} }
 
 func (s *Service) logged(ctx context.Context, msg, event string, id uuid.UUID, caller platform.Caller) {
-	s.logger.InfoContext(ctx, msg,
-		slog.String("event", event),
-		slog.String("order_id", id.String()),
-		slog.String("account_id", caller.AccountID.String()),
-	)
+	attrs := []any{slog.String("event", event), slog.String("order_id", id.String())}
+	if caller.AccountID != uuid.Nil {
+		attrs = append(attrs, slog.String("account_id", caller.AccountID.String()))
+	}
+
+	s.logger.InfoContext(ctx, msg, attrs...)
+}
+
+// actor is who made a transition, as order_events keeps them.
+func actor(caller platform.Caller) uuid.NullUUID {
+	return uuid.NullUUID{UUID: caller.AccountID, Valid: true}
 }

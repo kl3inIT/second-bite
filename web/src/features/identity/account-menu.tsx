@@ -1,7 +1,6 @@
 "use client";
 
-import { LogOutIcon, UserRoundIcon } from "lucide-react";
-import Image from "next/image";
+import { LogOutIcon, SettingsIcon, UserRoundIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 
@@ -14,12 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { signOut } from "@/lib/api/generated";
 
 // The signed-in account's capsule on the header: the address it is signed in with, and sign-out, which ends
 // the session on the server and leaves the person on the page they were reading (SEC-29 › What a person
-// can do).
+// can do); before it, account settings, where the account is managed and deleted (SEC-37). Deletion is not
+// offered here, beside sign-out.
 export function AccountMenu({ email, displayName }: { email: string; displayName: string }) {
   const t = useTranslations("Account");
   const router = useRouter();
@@ -44,13 +44,9 @@ export function AccountMenu({ email, displayName }: { email: string; displayName
         className="group/account"
       >
         <span className="flex h-8 items-center gap-1.5 rounded-full border border-header-border bg-header-raised px-2.5 text-label-strong text-header-raised-foreground transition-colors group-hover/account:bg-secondary">
-          {/* Google gives a name; an address signed in with the emailed code has none, and shows the person icon
-              with the start of the address. */}
-          {displayName ? (
-            <Image src="/google-g.svg" alt="" width={16} height={16} unoptimized />
-          ) : (
-            <UserRoundIcon aria-hidden className="size-4" />
-          )}
+          {/* The person icon, with the display name or the start of the address. A name no longer means
+              Google: the person may have chosen it (SEC-61), and the account does not say how it signed in. */}
+          <UserRoundIcon aria-hidden className="size-4" />
           <span className="hidden max-w-28 truncate sm:inline">
             {displayName || email.split("@")[0]}
           </span>
@@ -59,6 +55,13 @@ export function AccountMenu({ email, displayName }: { email: string; displayName
       <DropdownMenuContent align="end" className="min-w-56">
         <DropdownMenuGroup>
           <DropdownMenuLabel>{t("signedInAs", { email })}</DropdownMenuLabel>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem render={<Link href="/account/settings" />}>
+            <SettingsIcon aria-hidden />
+            {t("settings")}
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

@@ -139,6 +139,7 @@
   --color-avatar-rose: var(--avatar-rose);
   --color-avatar-indigo: var(--avatar-indigo);
   --color-avatar-olive: var(--avatar-olive);
+  --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 14px;
@@ -147,6 +148,7 @@
   --radius-3xl: 24px;
   --radius-4xl: 32px;
   --radius-full: 9999px;
+  --shadow-card: 0px 4px 14px 0px #004E8C0F;
   --shadow-sheet: 0px -4px 24px 0px #0E1D191F;
   --shadow-nav: 0px 8px 24px 0px #05122924;
   --text-label: 12px;
@@ -170,6 +172,12 @@
   --text-title-lg: 16px;
   --text-title-lg--line-height: 22px;
   --text-title-lg--font-weight: 600;
+  --text-card-title: 18px;
+  --text-card-title--line-height: 25px;
+  --text-card-title--font-weight: 600;
+  --text-note: 13px;
+  --text-note--line-height: 19px;
+  --text-note--font-weight: 400;
   --text-button: 16px;
   --text-button--line-height: 20px;
   --text-button--font-weight: 600;
@@ -189,6 +197,10 @@
   --text-figure-sm--line-height: 16px;
   --text-figure-sm--font-weight: 700;
   --text-figure-sm--letter-spacing: -0.01em;
+  --text-price-sm: 14px;
+  --text-price-sm--line-height: 17px;
+  --text-price-sm--font-weight: 700;
+  --text-price-sm--letter-spacing: -0.01em;
   --text-price: 16px;
   --text-price--line-height: 18px;
   --text-price--font-weight: 700;

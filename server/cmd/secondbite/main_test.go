@@ -58,9 +58,11 @@ func TestService(t *testing.T) {
 		"an unknown or malformed token is refused with 401":       checkInvalidToken,
 		"only admins read the email settings":                     checkAdminOnly,
 		"a new code ends the earlier one":                         checkNewCodeEndsEarlier,
-		"a seller is opened, staffed and activated":               checkSellerFlow,
+		"a seller is opened active, staffed and blocked":          checkSellerFlow,
 		"a photo is uploaded, set on a seller and served":         checkPhotoFlow,
 		"an offer is posted and found near Tasco Mall":            checkOfferFlow,
+		"an owner deletes their account; the others forget it":    checkAccountDeletion,
+		"a person names their account":                            checkDisplayName,
 		"an order is placed, made ready and handed over":          checkOrderFlow,
 	}
 
@@ -355,6 +357,7 @@ type response struct {
 type problem struct {
 	Type      string `json:"type"`
 	Status    int    `json:"status"`
+	Detail    string `json:"detail"`
 	Code      string `json:"code"`
 	RequestID string `json:"requestId"`
 }

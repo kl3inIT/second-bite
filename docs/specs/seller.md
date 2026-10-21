@@ -6,7 +6,7 @@ Owns sellers, their status set by admins, and the people who act for them (table
 
 | Operation | Who | Answer |
 | --- | --- | --- |
-| `POST /sellers` `{name, address, latitude, longitude, phone}` | Anyone signed in, owning fewer than five sellers | `201` seller, `pending`, the caller its owner |
+| `POST /sellers` `{name, address, latitude, longitude, phone}` | Anyone signed in, owning fewer than five sellers | `201` seller, `active` at once, the caller its owner |
 | `GET /sellers/mine` | Anyone signed in | `200` the sellers they own or work for, with their role |
 | `GET /sellers/{sellerId}` | Its members; admins | `200` seller |
 | `PUT /sellers/{sellerId}` | Its owner | `200` seller |
@@ -14,7 +14,7 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `GET /sellers/{sellerId}/members` | Its members; admins | `200` owner and staff with their addresses |
 | `POST /sellers/{sellerId}/members` `{email}` | Its owner | `201` the new staff member |
 | `DELETE /sellers/{sellerId}/members/{accountId}` | Its owner, or a staff member removing themself | `204` |
-| `GET /sellers/{sellerId}/profile` | Anyone | `200` an active seller's name, address, location and photo; `404` for one pending or blocked |
+| `GET /sellers/{sellerId}/profile` | Anyone | `200` an active seller's name, address, location and photo; `404` for one blocked |
 | `GET /admin/sellers?status=&limit=&offset=` | Admins | `200` sellers in that status, oldest first, at most 100 |
 | `POST /admin/sellers/{sellerId}/activate` | Admins | `200` seller, `active`; also lifts a block |
 | `POST /admin/sellers/{sellerId}/block` | Admins | `200` seller, `blocked` |
@@ -23,7 +23,7 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 
 ## Rules
 
-- Statuses: `pending` when opened, `active` or `blocked` as an admin sets them. The seller keeps who set its status and when; there is no history and no reason.
+- Statuses: `active` when opened (the pilot has no approval step, SEC-57), `blocked` or `active` again as an admin sets them; `pending` stays in the schema for a later approval step. The seller keeps who set its status and when; there is no history and no reason.
 - One owner per seller; at most 30 people per seller, the owner included; at most five sellers owned per account. Both limits hold under concurrency (a row lock on the seller, an advisory lock on the owner).
 - The photo is one the owner uploaded to `file`, which the seller claims; the seller answers `FILE_PHOTO_NOT_FOUND` for a photo someone else uploaded.
 - Staff are added by email in one step and are members at once; an address that has never signed in gets its account then. The owner cannot leave.
@@ -32,13 +32,14 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 - A seller answers 404 to anyone who is neither its member nor an admin. Admins read and set the status; they do not change a seller's details.
 - The phone keeps its digits and a leading `+`, 9 to 15 digits. The location is the latitude and longitude the client pins; PostGIS keeps it as a `geography(Point, 4326)` generated from them.
 - Working assumptions until the sellers' survey (SEC-9): changing an active seller's details does not send it back to `pending`; a blocked seller's owner still manages its staff.
+- When identity deletes an account (`identity.AccountDeletedEvent`, listener `seller.forget_account`), the module removes its memberships. A seller it owned would be left without an owner, so it is blocked with no one named as having blocked it: it stops showing and publishing until admins decide (SEC-37). Running it again changes nothing.
 
 ## Data
 
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
 | `seller_sellers` | Name, address, latitude, longitude, generated location, phone, status, who set it and when, the photo (file's identifier, no foreign key) | Kept |
-| `seller_members` | Seller, identity's account identifier (no foreign key across modules), role `owner` or `staff`, when added | Deleted when a staff member is removed or leaves |
+| `seller_members` | Seller, identity's account identifier (no foreign key across modules), role `owner` or `staff`, when added | Deleted when a staff member is removed or leaves, and every membership of an account when identity deletes it |
 
 ## Failures
 

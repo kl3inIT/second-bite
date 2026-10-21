@@ -24,9 +24,11 @@ LABEL org.opencontainers.image.title="Second Bite Web" \
       org.opencontainers.image.revision="${VCS_REF}"
 
 WORKDIR /application
-# The standalone output holds the server and the modules it traces; static files go beside it.
+# The standalone output holds the server and the modules it traces; static files and the public folder (the
+# Google mark of the sign-in screen) go beside it, which Next.js does not do itself.
 COPY --from=build --chown=1000:1000 /workspace/web/.next/standalone ./
 COPY --from=build --chown=1000:1000 /workspace/web/.next/static ./.next/static
+COPY --from=build --chown=1000:1000 /workspace/web/public ./public
 
 # SECONDBITE_API_ORIGIN, the Go server the pages render against, is set where the image runs.
 ENV NODE_ENV=production \

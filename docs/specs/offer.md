@@ -10,8 +10,10 @@ Owns the surplus sellers post and the settings every offer follows (tables `offe
 | `PATCH /offers/{offerId}` | The owner or staff of an active seller | `200` offer |
 | `POST /offers/{offerId}/withdraw` | The seller's owner or staff, even when it is blocked | `200` offer, withdrawn; again, the same |
 | `GET /sellers/{sellerId}/offers?status=&limit=&offset=` | Its members; admins | `200` its offers, newest first, at most 100; the list staff post again from |
-| `GET /offers?near=&radiusKm=&q=&kind=&maxPrice=&collectFrom=&collectTo=&sellerId=&available=&sort=&limit=&offset=` | Anyone | `200` offers on sale or sold out, each with its seller (name, address, photo) and, near a point, its distance; at most 50 a page |
+| `GET /offers?near=&radiusKm=&q=&kind=&minPrice=&maxPrice=&collectFrom=&collectTo=&sellerId=&available=&sort=&limit=&offset=` | Anyone | `200` offers on sale or sold out, each with its seller (name, address, photo) and, near a point, its distance; at most 50 a page |
 | `GET /offers/{offerId}` | Anyone while it is on sale or sold out and its seller active; its members and admins always | `200` offer |
+| `GET`, `POST /sellers/{sellerId}/dishes` `{name, kind, unit, description, ingredients, originalPriceVnd, photoId, hidden}` | The owner or staff of an active seller | `200` the catalog, newest first, hidden dishes included; `201` the dish |
+| `PATCH`, `DELETE /dishes/{dishId}` | Same, through the dish's seller | `200` the dish; `204` |
 | `GET`, `PUT /admin/offer-settings` | Admins | `200` the settings |
 
 An offer carries its status, units left, discount, photo addresses and the collection point copied from the seller when it was posted. Prices are whole đồng; times are RFC 3339.
@@ -28,6 +30,7 @@ Published to other modules: `Service` alone. `order` takes units with `Take` and
 - **Withdrawing** keeps the row with when it was withdrawn; a closed offer cannot be withdrawn. Orders already placed stand ([SEC-15 design](../increments/active/sec-15-order-module/design.md#5-context-map)).
 - **Taking units** for an order is one conditional update: only an offer on sale, its window not over, with the units left; when two orders want the last unit, one gets it. Units come back when an order is cancelled, never above the units posted.
 - Admins neither post nor change offers; a stranger gets 404.
+- **The catalog** ([SEC-55 design](../increments/completed/sec-55-seller-catalog/design.md)) holds the stable base of a dish: a photo, a name of 1 to 80 characters, a kind, a unit (`suất` when empty), a description, the ingredients and allergens (up to 500 characters), an original price (optional, from 1,001 đồng; `0` in a change takes it away), and whether it is hidden from the list a post is picked from. It has no selling price, hours or units; its original price is only where a post starts from. It is private to the seller's people; an admin or a stranger gets 404. At most 100 dishes per seller, the limit holding under concurrency (an advisory lock). A post copies the dish, so changing or deleting a dish never touches an offer; a dish's photo counts as one the seller shows, so a post may use it.
 - **Search** keeps offers on sale and sold out, the window not over, the seller not blocked (the blocked sellers are left out in the query, so a page is never short), then filters: within a radius of a point (the settings' default, at most their maximum), words, kinds, a maximum price, a collection-time range the window overlaps, one seller, and, when asked, nothing sold out. Its orders: `relevance` (default with words), `distance` (default with a point), `ending_soon` (default otherwise), `price`, `discount`.
 - **Words** match the name, the seller's name and the description, weighted in that order, every word required and the last one also as a prefix. Each syllable is indexed under a loose form without marks and an exact form with its marks and its tone as a digit, so a word typed without marks matches any marks ("ca": "cá", "cà") and one typed with marks only those ("cá"); the tone's place ("hòa", "hoà"), the encoding (NFC or decomposed), zero-width characters and a lone "y" after h, k, l, m, s or t ("mỳ", "mì") make no difference. The service writes the `tsvector` itself (`internal/offer/search_text.go`); words side by side rank first ([why](../increments/active/sec-11-offer-module/design.md#vietnamese-words)).
 
@@ -36,6 +39,7 @@ Published to other modules: `Service` alone. `order` takes units with `Take` and
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
 | `offer_offers` | Seller and who posted (no foreign key across modules), state, the fields, units and units left (`0 <= units_left <= units`), photo, window, the copied latitude, longitude, generated location (GiST index), address and seller's name, the words searched (`search_vector`, GIN index), when posted, changed and withdrawn | Kept: orders, measures and the seller's history read it |
+| `offer_dishes` | Seller, who added it (no foreign keys across modules), the dish's fields, hidden or not, photo | Kept until the seller deletes it |
 | `offer_settings` | One row: the settings, who changed them and when | Replaced on save |
 
 ## Failures
@@ -45,8 +49,10 @@ Published to other modules: `Service` alone. `order` takes units with `Take` and
 | `OFFER_DETAILS_INVALID` | 400 | A field breaks its rule |
 | `OFFER_DISCOUNT_TOO_SMALL` | 400 | The price is not the minimum discount below the original price |
 | `OFFER_WINDOW_INVALID` | 400 | The window is too short, too long, over, or starts too late |
-| `OFFER_SEARCH_INVALID` | 400 | A point off the map, a time range ending before it starts, or sorting by distance from no point |
+| `OFFER_SEARCH_INVALID` | 400 | A point off the map, a time range ending before it starts, a lowest price above the highest, or sorting by distance from no point |
 | `OFFER_SETTINGS_INVALID` | 400 | Settings out of range or contradicting each other |
+| `OFFER_DISH_LIMIT_REACHED` | 409 | A seller already holds 100 dishes |
+| `OFFER_DISH_NOT_FOUND` | 404 | No such dish, or one of another seller |
 | `OFFER_NOT_FOUND` | 404 | No such offer, or one the caller may not see or change |
 | `OFFER_CHANGE_NOT_ALLOWED` | 409 | A change its orders forbid, or any change once it is closed or withdrawn |
 | `OFFER_SOLD_OUT` | 409 | `Take`: fewer units left than an order asks; `order` answers it as its own code |

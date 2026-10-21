@@ -25,16 +25,30 @@ type Tab = {
 // dimmed and cannot be pressed. A tab is also active on the pages under it, as an order under the orders. Every page has it, after a space as
 // tall as the bar so the bar never covers the page's end. From `md` the header and the footer take over,
 // and the bar is not shown.
+const screensOfTheirOwn = ["/search", "/offers", "/sellers", "/cart"];
+
 const tabs: Tab[] = [
   { key: "home", icon: HouseIcon, href: "/", within: ["/search"] },
   { key: "orders", icon: ReceiptTextIcon, href: "/orders" },
   { key: "saved", icon: HeartIcon },
-  { key: "account", icon: UserRoundIcon, href: "/account" },
+  {
+    key: "account",
+    icon: UserRoundIcon,
+    href: "/account",
+    within: ["/account/settings", "/delete-account"],
+  },
 ];
 
 export function BottomNav() {
   const t = useTranslations("BottomNav");
   const pathname = usePathname();
+  // The search, a dish, a seller and the cart are screens of their own, left by their back arrow, the last
+  // three with a bar of their own at the bottom (Figma K1f, K2, K4, K4b, K5).
+  if (
+    screensOfTheirOwn.some((screen) => pathname === screen || pathname.startsWith(`${screen}/`))
+  ) {
+    return null;
+  }
 
   return (
     <>

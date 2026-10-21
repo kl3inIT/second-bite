@@ -54,6 +54,19 @@ components:
         - longitude
         - address
       type: object
+    DeleteAccountInputBody:
+      additionalProperties: false
+      properties:
+        challengeId:
+          type: string
+        code:
+          description: The six digits of the deletion email
+          pattern: ^[0-9]{6}$
+          type: string
+      required:
+        - challengeId
+        - code
+      type: object
     DetailsBody:
       additionalProperties: false
       properties:
@@ -80,7 +93,6 @@ components:
         phone:
           description: Shown to the seller's members and admins
           maxLength: 30
-          minLength: 9
           type: string
       required:
         - name
@@ -88,6 +100,133 @@ components:
         - latitude
         - longitude
         - phone
+      type: object
+    DishBody:
+      additionalProperties: false
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        description:
+          type: string
+        hidden:
+          type: boolean
+        id:
+          type: string
+        ingredients:
+          type: string
+        kind:
+          enum:
+            - bakery
+            - prepared_food
+            - ingredients
+            - drinks
+            - mixed_box
+            - other
+          type: string
+        name:
+          type: string
+        originalPriceVnd:
+          format: int64
+          type: integer
+        photo:
+          $ref: "#/components/schemas/OfferPhotoBody"
+        sellerId:
+          type: string
+        unit:
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - sellerId
+        - name
+        - kind
+        - unit
+        - description
+        - ingredients
+        - photo
+        - hidden
+        - createdAt
+        - updatedAt
+      type: object
+    DishChangeBody:
+      additionalProperties: false
+      properties:
+        description:
+          maxLength: 1000
+          type: string
+        hidden:
+          type: boolean
+        ingredients:
+          maxLength: 500
+          type: string
+        kind:
+          enum:
+            - bakery
+            - prepared_food
+            - ingredients
+            - drinks
+            - mixed_box
+            - other
+          type: string
+        name:
+          maxLength: 80
+          minLength: 1
+          type: string
+        originalPriceVnd:
+          format: int64
+          minimum: 0
+          type: integer
+        photoId:
+          type: string
+        unit:
+          maxLength: 20
+          type: string
+      type: object
+    DishDetailsBody:
+      additionalProperties: false
+      properties:
+        description:
+          maxLength: 1000
+          type: string
+        hidden:
+          description: Keeps the dish out of the list a post is picked from
+          type: boolean
+        ingredients:
+          description: What the dish is made of and may contain, allergens included
+          maxLength: 500
+          type: string
+        kind:
+          enum:
+            - bakery
+            - prepared_food
+            - ingredients
+            - drinks
+            - mixed_box
+            - other
+          type: string
+        name:
+          maxLength: 80
+          minLength: 1
+          type: string
+        originalPriceVnd:
+          description: What one unit normally sells for; a post starts from it
+          format: int64
+          minimum: 1001
+          type: integer
+        photoId:
+          description: From POST /photos, or a photo the seller already shows
+          type: string
+        unit:
+          description: What one unit is called; "suất" when empty
+          maxLength: 20
+          type: string
+      required:
+        - name
+        - kind
+        - photoId
       type: object
     EmailSettingsBody:
       additionalProperties: false
@@ -286,6 +425,16 @@ components:
           type: string
       required:
         - code
+      type: object
+    ListDishesResponse:
+      additionalProperties: false
+      properties:
+        dishes:
+          items:
+            $ref: "#/components/schemas/DishBody"
+          type: array
+      required:
+        - dishes
       type: object
     MemberBody:
       additionalProperties: false
@@ -626,10 +775,16 @@ components:
     OrderBody:
       additionalProperties: false
       properties:
+        access:
+          description: "To its customer: proves the order is theirs without signing in, sent back as Order-Access"
+          type: string
         cancelReason:
           type: string
         cancelledAt:
           format: date-time
+          type: string
+        checkoutId:
+          description: Shared by the orders placed together from one cart
           type: string
         code:
           description: The collection code, to its customer once the order is ready or its window has opened
@@ -643,6 +798,12 @@ components:
           type: string
         createdAt:
           format: date-time
+          type: string
+        customerName:
+          description: Who collects, as given with the order
+          type: string
+        customerPhone:
+          description: Their phone number, 0 and nine digits
           type: string
         id:
           type: string
@@ -701,6 +862,9 @@ components:
         - windowEnd
         - createdAt
         - codeAttemptsLeft
+        - checkoutId
+        - customerName
+        - customerPhone
       type: object
     OrderLineBody:
       additionalProperties: false
@@ -819,6 +983,9 @@ components:
     PlaceOrderBody:
       additionalProperties: false
       properties:
+        checkoutId:
+          description: Shared by the orders placed together from one cart, one per seller; a new one when omitted
+          type: string
         lines:
           description: One to ten different offers of one seller
           items:
@@ -828,8 +995,20 @@ components:
           type:
             - array
             - "null"
+        name:
+          description: The name the seller calls at the counter
+          maxLength: 50
+          minLength: 1
+          type: string
+        phone:
+          description: A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted
+          maxLength: 20
+          minLength: 1
+          type: string
       required:
         - lines
+        - name
+        - phone
       type: object
     Problem:
       additionalProperties: false
@@ -1066,6 +1245,16 @@ components:
         - expiresAt
         - account
       type: object
+    SetDisplayNameInputBody:
+      additionalProperties: false
+      properties:
+        displayName:
+          description: 1 to 50 characters once trimmed; Google never replaces it
+          maxLength: 200
+          type: string
+      required:
+        - displayName
+      type: object
     SetSellerPhotoRequest:
       additionalProperties: false
       properties:
@@ -1148,6 +1337,87 @@ paths:
         - bearer: []
         - cookie: []
       summary: The signed-in account
+      tags:
+        - Accounts
+    put:
+      description: Trimmed, it holds 1 to 50 characters and no control character. Google's sign-in fills a name only while it is empty, so the chosen one stays.
+      operationId: setMyDisplayName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetDisplayNameInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Set the signed-in account's display name
+      tags:
+        - Accounts
+  /accounts/me/deletion:
+    post:
+      description: Deletes the account, its sessions, its Google link and the codes and emails sent to its address at once; its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. A seller the account owned is blocked. The session cookie is cleared.
+      operationId: deleteMyAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteAccountInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+          headers:
+            Set-Cookie:
+              schema:
+                description: Clears the session cookie
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Delete the signed-in account with the emailed code
+      tags:
+        - Accounts
+  /accounts/me/deletion-codes:
+    post:
+      description: The code confirms the deletion only; it cannot sign in. It shares the address's limits with the sign-in codes.
+      operationId: requestAccountDeletionCode
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestCodeOutputBody"
+          description: Accepted
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Email the signed-in account's address a code that confirms its deletion
       tags:
         - Accounts
   /admin/email-settings:
@@ -1481,6 +1751,64 @@ paths:
       summary: Email a six-digit sign-in code
       tags:
         - Sign-in
+  /dishes/{dishId}:
+    delete:
+      description: The offers posted from it are not affected.
+      operationId: removeDish
+      parameters:
+        - in: path
+          name: dishId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Delete a dish from the catalog
+      tags:
+        - Catalog
+    patch:
+      operationId: changeDish
+      parameters:
+        - in: path
+          name: dishId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DishChangeBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DishBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Change a dish, or show or hide it
+      tags:
+        - Catalog
   /offers:
     get:
       description: Anyone may search. Offers sold out are included unless available is set; those withdrawn, over or of a blocked seller never are.
@@ -1530,6 +1858,15 @@ paths:
             type:
               - array
               - "null"
+        - description: The lowest price of one unit, in đồng
+          explode: false
+          in: query
+          name: minPrice
+          schema:
+            description: The lowest price of one unit, in đồng
+            format: int64
+            minimum: 0
+            type: integer
         - description: The highest price of one unit, in đồng
           explode: false
           in: query
@@ -1723,6 +2060,13 @@ paths:
               - open
               - ended
             type: string
+        - description: Only the orders placed together from this cart
+          explode: false
+          in: query
+          name: checkout
+          schema:
+            description: Only the orders placed together from this cart
+            type: string
         - explode: false
           in: query
           name: limit
@@ -1760,7 +2104,7 @@ paths:
       tags:
         - Orders
     post:
-      description: Confirmed at once. Sending the same Idempotency-Key again returns the order placed first.
+      description: Confirmed at once, signed in or not; for the account when someone is signed in. Sending the same Idempotency-Key again, without an account with the same phone number, returns the order placed first.
       operationId: placeOrder
       parameters:
         - in: header
@@ -1790,6 +2134,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
           description: Error
       security:
+        - {}
         - bearer: []
         - cookie: []
       summary: Order units of one seller's offers, collected at the counter
@@ -1797,13 +2142,20 @@ paths:
         - Orders
   /orders/{orderId}:
     get:
-      description: To its customer, with the code once it may be shown, to the seller's people and to admins.
+      description: To its customer, signed in or sending its access, with the code once it may be shown; to the seller's people and to admins.
       operationId: getOrder
       parameters:
         - in: path
           name: orderId
           required: true
           schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
             type: string
       responses:
         "200":
@@ -1819,6 +2171,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
           description: Error
       security:
+        - {}
         - bearer: []
         - cookie: []
       summary: An order
@@ -1826,13 +2179,20 @@ paths:
         - Orders
   /orders/{orderId}/cancel:
     post:
-      description: Its units go back on sale.
+      description: By its customer, signed in or sending its access. Its units go back on sale.
       operationId: cancelOrder
       parameters:
         - in: path
           name: orderId
           required: true
           schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
             type: string
       requestBody:
         content:
@@ -1854,6 +2214,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
           description: Error
       security:
+        - {}
         - bearer: []
         - cookie: []
       summary: Cancel your order, free of charge until its window opens
@@ -2142,6 +2503,69 @@ paths:
       summary: Change a seller's details; only its owner may
       tags:
         - Sellers
+  /sellers/{sellerId}/dishes:
+    get:
+      description: For the seller's owner and staff; customers see offers, never the catalog.
+      operationId: listDishes
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListDishesResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: A seller's catalog, the newest dish first, hidden ones included
+      tags:
+        - Catalog
+    post:
+      description: The stable base of a dish. A post copies it; a later change to the dish does not change a post.
+      operationId: addDish
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DishDetailsBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DishBody"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Add a dish to a seller's catalog
+      tags:
+        - Catalog
   /sellers/{sellerId}/members:
     get:
       operationId: listSellerMembers

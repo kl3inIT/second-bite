@@ -21,6 +21,7 @@ Administrative command: `secondbite email configure` with `-provider`, `-sender-
 - A stored SMTP password follows only its server: changing the host, port, security or user drops it unless a new password comes with the change. A password is refused with security `none`.
 - A send has a 10-second bound. A provider's failure is classified as refused, rate limited (with the wait it asks for) or unavailable; a provider's error text is never logged.
 - Each email sent is recorded with its kind, recipient, provider and the provider's message id.
+- `ForgetRecipient` deletes the record of every email sent to an address, which identity calls when it deletes the address's account (SEC-37).
 
 ## Data
 

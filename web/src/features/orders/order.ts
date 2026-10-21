@@ -54,3 +54,17 @@ export function windowPhase(
 export function directionsTo(seller: Pick<Order["seller"], "latitude" | "longitude">): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${seller.latitude},${seller.longitude}`;
 }
+
+/**
+ * Orders placed together from one cart, one per seller (SEC-76 › decision 8), as one: each group in the order
+ * its sellers' orders were placed, the groups newest first.
+ */
+export function byCheckout(orders: Order[]): Order[][] {
+  const groups = new Map<string, Order[]>();
+  for (const order of orders)
+    groups.set(order.checkoutId, [...(groups.get(order.checkoutId) ?? []), order]);
+  const placed = (order: Order) => Date.parse(order.createdAt);
+  return [...groups.values()]
+    .map((group) => group.toSorted((a, b) => placed(a) - placed(b)))
+    .toSorted((a, b) => placed(b.at(-1)!) - placed(a.at(-1)!));
+}

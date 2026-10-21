@@ -13,6 +13,71 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countDishes = `-- name: CountDishes :one
+SELECT count(*)::integer FROM offer_dishes WHERE seller_id = $1
+`
+
+func (q *Queries) CountDishes(ctx context.Context, sellerID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, countDishes, sellerID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const deleteDish = `-- name: DeleteDish :execrows
+DELETE FROM offer_dishes WHERE id = $1
+`
+
+func (q *Queries) DeleteDish(ctx context.Context, id uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteDish, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const getDish = `-- name: GetDish :one
+SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
+FROM offer_dishes WHERE id = $1
+`
+
+type GetDishRow struct {
+	ID               uuid.UUID
+	SellerID         uuid.UUID
+	CreatedBy        uuid.UUID
+	Name             string
+	Kind             string
+	Unit             string
+	Description      string
+	Ingredients      string
+	OriginalPriceVnd pgtype.Int8
+	PhotoID          uuid.UUID
+	Hidden           bool
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
+func (q *Queries) GetDish(ctx context.Context, id uuid.UUID) (GetDishRow, error) {
+	row := q.db.QueryRow(ctx, getDish, id)
+	var i GetDishRow
+	err := row.Scan(
+		&i.ID,
+		&i.SellerID,
+		&i.CreatedBy,
+		&i.Name,
+		&i.Kind,
+		&i.Unit,
+		&i.Description,
+		&i.Ingredients,
+		&i.OriginalPriceVnd,
+		&i.PhotoID,
+		&i.Hidden,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getOffer = `-- name: GetOffer :one
 SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
@@ -110,6 +175,43 @@ func (q *Queries) GetSettings(ctx context.Context) (GetSettingsRow, error) {
 	return i, err
 }
 
+const insertDish = `-- name: InsertDish :one
+INSERT INTO offer_dishes (seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id
+`
+
+type InsertDishParams struct {
+	SellerID         uuid.UUID
+	CreatedBy        uuid.UUID
+	Name             string
+	Kind             string
+	Unit             string
+	Description      string
+	Ingredients      string
+	OriginalPriceVnd pgtype.Int8
+	PhotoID          uuid.UUID
+	Hidden           bool
+}
+
+func (q *Queries) InsertDish(ctx context.Context, arg InsertDishParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, insertDish,
+		arg.SellerID,
+		arg.CreatedBy,
+		arg.Name,
+		arg.Kind,
+		arg.Unit,
+		arg.Description,
+		arg.Ingredients,
+		arg.OriginalPriceVnd,
+		arg.PhotoID,
+		arg.Hidden,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const insertOffer = `-- name: InsertOffer :one
 INSERT INTO offer_offers (
     seller_id, posted_by, name, description, kind, unit, units, units_left, price_vnd, original_price_vnd,
@@ -167,6 +269,16 @@ func (q *Queries) InsertOffer(ctx context.Context, arg InsertOfferParams) (uuid.
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const lockDishes = `-- name: LockDishes :exec
+SELECT pg_advisory_xact_lock(hashtextextended('offer:dishes:' || $1::text, 0))
+`
+
+// Serializes the dishes a seller adds, so the limit holds under concurrency.
+func (q *Queries) LockDishes(ctx context.Context, sellerID string) error {
+	_, err := q.db.Exec(ctx, lockDishes, sellerID)
+	return err
 }
 
 const lockOffer = `-- name: LockOffer :one
@@ -301,19 +413,20 @@ FROM (
       AND ($1::float8 IS NULL
            OR ST_DWithin(o.location, ST_SetSRID(ST_MakePoint($2::float8, $1::float8), 4326)::geography, $5::float8))
       AND (COALESCE(cardinality($6::text[]), 0) = 0 OR o.kind = ANY ($6::text[]))
-      AND ($7::bigint IS NULL OR o.price_vnd <= $7::bigint)
-      AND ($8::timestamptz IS NULL OR o.window_end > $8::timestamptz)
-      AND ($9::timestamptz IS NULL OR o.window_start <= $9::timestamptz)
-      AND ($10::uuid IS NULL OR o.seller_id = $10::uuid)
-      AND (NOT $11::boolean OR o.units_left > 0)
+      AND ($7::bigint IS NULL OR o.price_vnd >= $7::bigint)
+      AND ($8::bigint IS NULL OR o.price_vnd <= $8::bigint)
+      AND ($9::timestamptz IS NULL OR o.window_end > $9::timestamptz)
+      AND ($10::timestamptz IS NULL OR o.window_start <= $10::timestamptz)
+      AND ($11::uuid IS NULL OR o.seller_id = $11::uuid)
+      AND (NOT $12::boolean OR o.units_left > 0)
 ) found
 ORDER BY
-    CASE WHEN $12::text = 'relevance' THEN rank END DESC,
-    CASE WHEN $12::text IN ('relevance', 'distance') THEN distance_m END ASC NULLS LAST,
-    CASE WHEN $12::text = 'price' THEN price_vnd END ASC,
-    CASE WHEN $12::text = 'discount' THEN (original_price_vnd - price_vnd)::float8 / original_price_vnd END DESC,
+    CASE WHEN $13::text = 'relevance' THEN rank END DESC,
+    CASE WHEN $13::text IN ('relevance', 'distance') THEN distance_m END ASC NULLS LAST,
+    CASE WHEN $13::text = 'price' THEN price_vnd END ASC,
+    CASE WHEN $13::text = 'discount' THEN (original_price_vnd - price_vnd)::float8 / original_price_vnd END DESC,
     window_end ASC, id
-LIMIT $14 OFFSET $13
+LIMIT $15 OFFSET $14
 `
 
 type SearchOffersParams struct {
@@ -323,6 +436,7 @@ type SearchOffersParams struct {
 	ExcludedSellers []uuid.UUID
 	RadiusM         float64
 	Kinds           []string
+	MinPrice        pgtype.Int8
 	MaxPrice        pgtype.Int8
 	CollectFrom     *time.Time
 	CollectTo       *time.Time
@@ -372,6 +486,7 @@ func (q *Queries) SearchOffers(ctx context.Context, arg SearchOffersParams) ([]S
 		arg.ExcludedSellers,
 		arg.RadiusM,
 		arg.Kinds,
+		arg.MinPrice,
 		arg.MaxPrice,
 		arg.CollectFrom,
 		arg.CollectTo,
@@ -414,6 +529,62 @@ func (q *Queries) SearchOffers(ctx context.Context, arg SearchOffersParams) ([]S
 			&i.SellerName,
 			&i.DistanceM,
 			&i.Rank,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const sellerDishes = `-- name: SellerDishes :many
+SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
+FROM offer_dishes WHERE seller_id = $1
+ORDER BY created_at DESC, id DESC
+`
+
+type SellerDishesRow struct {
+	ID               uuid.UUID
+	SellerID         uuid.UUID
+	CreatedBy        uuid.UUID
+	Name             string
+	Kind             string
+	Unit             string
+	Description      string
+	Ingredients      string
+	OriginalPriceVnd pgtype.Int8
+	PhotoID          uuid.UUID
+	Hidden           bool
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
+func (q *Queries) SellerDishes(ctx context.Context, sellerID uuid.UUID) ([]SellerDishesRow, error) {
+	rows, err := q.db.Query(ctx, sellerDishes, sellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SellerDishesRow
+	for rows.Next() {
+		var i SellerDishesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SellerID,
+			&i.CreatedBy,
+			&i.Name,
+			&i.Kind,
+			&i.Unit,
+			&i.Description,
+			&i.Ingredients,
+			&i.OriginalPriceVnd,
+			&i.PhotoID,
+			&i.Hidden,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -523,7 +694,8 @@ func (q *Queries) SellerOffers(ctx context.Context, arg SellerOffersParams) ([]S
 }
 
 const sellerUsesPhoto = `-- name: SellerUsesPhoto :one
-SELECT EXISTS (SELECT 1 FROM offer_offers WHERE seller_id = $1 AND photo_id = $2)
+SELECT (EXISTS (SELECT 1 FROM offer_offers AS o WHERE o.seller_id = $1 AND o.photo_id = $2)
+    OR EXISTS (SELECT 1 FROM offer_dishes AS d WHERE d.seller_id = $1 AND d.photo_id = $2))::boolean
 `
 
 type SellerUsesPhotoParams struct {
@@ -533,9 +705,9 @@ type SellerUsesPhotoParams struct {
 
 func (q *Queries) SellerUsesPhoto(ctx context.Context, arg SellerUsesPhotoParams) (bool, error) {
 	row := q.db.QueryRow(ctx, sellerUsesPhoto, arg.SellerID, arg.PhotoID)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const takeUnits = `-- name: TakeUnits :one
@@ -588,6 +760,40 @@ func (q *Queries) TakeUnits(ctx context.Context, arg TakeUnitsParams) (TakeUnits
 		&i.SellerName,
 	)
 	return i, err
+}
+
+const updateDish = `-- name: UpdateDish :exec
+UPDATE offer_dishes
+SET name = $1, kind = $2, unit = $3, description = $4, ingredients = $5,
+    original_price_vnd = $6, photo_id = $7, hidden = $8, updated_at = now()
+WHERE id = $9
+`
+
+type UpdateDishParams struct {
+	Name             string
+	Kind             string
+	Unit             string
+	Description      string
+	Ingredients      string
+	OriginalPriceVnd pgtype.Int8
+	PhotoID          uuid.UUID
+	Hidden           bool
+	ID               uuid.UUID
+}
+
+func (q *Queries) UpdateDish(ctx context.Context, arg UpdateDishParams) error {
+	_, err := q.db.Exec(ctx, updateDish,
+		arg.Name,
+		arg.Kind,
+		arg.Unit,
+		arg.Description,
+		arg.Ingredients,
+		arg.OriginalPriceVnd,
+		arg.PhotoID,
+		arg.Hidden,
+		arg.ID,
+	)
+	return err
 }
 
 const updateOffer = `-- name: UpdateOffer :exec

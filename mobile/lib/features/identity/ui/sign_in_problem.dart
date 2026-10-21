@@ -23,13 +23,14 @@ enum SignInProblemKind {
 }
 
 /// {@template sign_in_problem}
-/// A failure as the sign-in screen shows it, as the web's `problemOf`: the
-/// server's code decides only where the screen does something different
-/// (mobile guideline › Data, session and language).
+/// A failure as the sign-in and deletion screens show it, as the web's
+/// `problemOf`: the server's code decides only where the screen does
+/// something different (mobile guideline › Data, session and language), and
+/// its words are the server's, in the app's language (SEC-28).
 /// {@endtemplate}
 class SignInProblem {
   /// {@macro sign_in_problem}
-  const new(this.kind, {this.reference});
+  const new(this.kind, {this.detail, this.reference});
 
   /// Reads [error], a `DioException` from the client or anything else.
   factory of(Object error) {
@@ -48,6 +49,7 @@ class SignInProblem {
         : null;
     return SignInProblem(
       kind,
+      detail: error is DioException ? _field(error, 'detail') : null,
       reference: kind == SignInProblemKind.failed ? reference : null,
     );
   }
@@ -55,21 +57,23 @@ class SignInProblem {
   /// What the screen does.
   final SignInProblemKind kind;
 
+  /// The server's sentence for people, missing when no answer came.
+  final String? detail;
+
   /// The request's reference, for "failed".
   final String? reference;
 
-  /// The words shown for it.
-  String text(AppLocalizations l10n) => switch (kind) {
-    SignInProblemKind.emailInvalid => l10n.signInEmailInvalid,
-    SignInProblemKind.codeLimit => l10n.signInCodeLimit,
-    SignInProblemKind.codeIncorrect => l10n.signInCodeIncorrect,
-    SignInProblemKind.codeGone => l10n.signInCodeGone,
-    SignInProblemKind.googleUnverified => l10n.signInGoogleUnverified,
-    SignInProblemKind.failed =>
-      reference == null
-          ? l10n.signInFailed
-          : l10n.signInFailedWithReference(reference!),
-  };
+  /// The words shown for it: the server's, with the reference of a failure
+  /// the screen does not expect; [failed], the screen's own, without an
+  /// answer.
+  String text(AppLocalizations l10n, {required String failed}) {
+    final detail = this.detail;
+    if (detail == null || detail.isEmpty) return failed;
+    final reference = this.reference;
+    return reference == null
+        ? detail
+        : '$detail ${l10n.problemReference(reference)}';
+  }
 }
 
 /// The `code` of the problem the server answered with (RFC 9457, SEC-28),

@@ -27,3 +27,7 @@ ON CONFLICT (id) DO UPDATE SET
 -- name: RecordEmail :exec
 INSERT INTO notification_emails (kind, recipient, provider, provider_message_id)
 VALUES (@kind, @recipient, @provider, @provider_message_id);
+
+-- name: DeleteEmailsTo :execrows
+-- Forgets every email sent to an address, once its account is deleted.
+DELETE FROM notification_emails WHERE lower(recipient) = lower(@recipient);

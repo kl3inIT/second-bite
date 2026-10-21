@@ -46,16 +46,77 @@ test.describe("the customer home", () => {
       "Bạc Xỉu Đá",
       "Combo Nhóm 3 Tụ Tập",
       "Pizza Thập Cẩm",
-      "Bánh Mì Mềm Chà Bông",
+      "Bánh mì mềm chà bông",
     ]);
-    const croissant = all.getByRole("listitem").first();
+    const croissant = all.getByRole("article").first();
     await expect(croissant.getByText("Còn 3 phần")).toBeVisible();
     await expect(croissant.getByText("22.000đ")).toBeVisible();
     await expect(croissant.getByText("Giá gốc 50.000đ")).toBeAttached();
     await expect(croissant.getByText("Giảm 56%")).toBeVisible();
     await expect(croissant.getByText("La Paris")).toBeHidden();
-    await expect(all.getByRole("listitem").last().getByText("Đã hết")).toBeVisible();
+    await expect(all.getByRole("article").last().getByText("Đã hết")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
+  });
+
+  test("shows what is coming tonight and asks before following it, then the best-rated dishes", async ({
+    page,
+  }) => {
+    await page.goto("/vi");
+
+    const upcoming = page.getByRole("region", { name: "Sắp có tối nay" });
+    await expect(upcoming.getByRole("heading", { level: 3 })).toHaveText([
+      "3 Miếng Gà Rán",
+      "Cơm Bò Rang Giòn",
+      "Xíu Mại Hấp",
+    ]);
+    const comBo = upcoming.getByRole("article").filter({ hasText: "Cơm Bò Rang Giòn" });
+    await expect(comBo.getByText("Dự kiến 6 phần")).toBeVisible();
+    await expect(comBo.getByText("Mở bán 22:00")).toBeVisible();
+
+    const bell = comBo.getByRole("button", { name: "Báo khi Cơm Bò Rang Giòn mở bán" });
+    await (await hydrated(bell)).click();
+    const sheet = page.getByRole("dialog", { name: "Báo bạn khi Nét Huế mở bán?" });
+    await expect(
+      sheet.getByText("Nét Huế dự kiến còn 6 phần mẻ sau, mở bán lúc 22:00"),
+    ).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+    await sheet.getByRole("button", { name: "Bật thông báo" }).click();
+    await expect(sheet).toBeHidden();
+    await expect(bell).toHaveAttribute("aria-pressed", "true");
+
+    const recommended = page.getByRole("region", { name: "Gợi ý cho bạn" });
+    const best = recommended.getByRole("article").first();
+    await expect(best.getByRole("heading", { level: 3 })).toHaveText("Bánh Croissant Truyền Thống");
+    await expect(best.getByText("Quán được chấm 4,8 trên 5")).toBeAttached();
+    // Announcements are followed, never listed among what can be ordered.
+    await expect(
+      page.getByRole("region", { name: "Tất cả món quanh đây" }).getByText("Cơm Bò Rang Giòn"),
+    ).toBeHidden();
+  });
+
+  test("keeps a hearted dish in this browser and opens the search from the chips", async ({
+    page,
+  }) => {
+    await page.goto("/vi");
+
+    const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
+    const heart = all.getByRole("button", { name: "Yêu thích Bánh Eclair Socola" });
+    await (await hydrated(heart)).click();
+    await expect(heart).toHaveAttribute("aria-pressed", "true");
+    await page.reload();
+    await expect(all.getByRole("button", { name: "Yêu thích Bánh Eclair Socola" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await (await hydrated(all.getByRole("button", { name: "Giờ nhận" }))).click();
+    await page.getByLabel("Từ").selectOption("21:00");
+    await page.getByLabel("Đến").selectOption("20:00");
+    await page.getByRole("button", { name: "Áp dụng" }).click();
+    await expect(page.getByText("Giờ “từ” cần sớm hơn giờ “đến”.")).toHaveRole("alert");
+    await page.getByLabel("Đến").selectOption("21:30");
+    await page.getByRole("button", { name: "Áp dụng" }).click();
+    await expect(page).toHaveURL(/\/vi\/search\?from=21%3A00&to=21%3A30$/);
   });
 
   test("filters by kind, back to every offer from the chosen kind or when nothing matches", async ({
@@ -73,7 +134,7 @@ test.describe("the customer home", () => {
     await expect(results.getByRole("heading", { level: 3 })).toHaveText([
       "Bánh Croissant Truyền Thống",
       "Bánh Eclair Socola",
-      "Bánh Mì Mềm Chà Bông",
+      "Bánh mì mềm chà bông",
     ]);
     await expect(page.getByRole("region", { name: "Sắp hết giờ nhận" })).toBeHidden();
     await expect(page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" })).toBeHidden();
@@ -129,7 +190,7 @@ test.describe("the customer home", () => {
     await expect(mall.getByRole("heading", { level: 3 }).first()).toHaveText(
       "Cơm Thịt Kho Nước Dừa",
     );
-    await expect(mall.getByText("Bánh Mì Mềm Chà Bông")).toBeHidden();
+    await expect(mall.getByText("Bánh mì mềm chà bông")).toBeHidden();
     await expectNoSeriousA11yViolations(page);
   });
 
@@ -141,7 +202,7 @@ test.describe("the customer home", () => {
     await page.goto("/vi");
     const line = "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.";
     await expect(page.getByRole("heading", { name: line })).toBeVisible();
-    await expect(page.getByText("Đến quầy trong giờ lấy")).toBeVisible();
+    await expect(page.getByText("Đến quầy trong giờ nhận")).toBeVisible();
   });
 
   test("keeps the search and the account in reach once the header scrolls away on a wide screen", async ({

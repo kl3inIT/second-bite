@@ -28,6 +28,9 @@ type requestCodeOutput struct {
 // rather than as a token in the body (the mobile application).
 const sessionAsCookie = "cookie"
 
+// tagAccounts groups the operations on the signed-in account in the contract.
+var tagAccounts = []string{"Accounts"}
+
 // tagSignIn groups the sign-in operations in the contract.
 var tagSignIn = []string{"Sign-in"}
 
@@ -36,6 +39,19 @@ type signInInput struct {
 		ChallengeID uuid.UUID `json:"challengeId"`
 		Code        string    `json:"code"              pattern:"^[0-9]{6}$" doc:"The six digits of the email"`
 		Session     string    `json:"session,omitempty" enum:"token,cookie" default:"token" doc:"token: the token in the body (the mobile application); cookie: the session cookie instead (the web)"`
+	}
+}
+
+type deleteAccountInput struct {
+	Body struct {
+		ChallengeID uuid.UUID `json:"challengeId"`
+		Code        string    `json:"code"        pattern:"^[0-9]{6}$" doc:"The six digits of the deletion email"`
+	}
+}
+
+type setDisplayNameInput struct {
+	Body struct {
+		DisplayName string `json:"displayName" maxLength:"200" doc:"1 to 50 characters once trimmed; Google never replaces it"`
 	}
 }
 
@@ -194,12 +210,14 @@ func RegisterOperations(api huma.API, s *Service) {
 		return &signOutOutput{SetCookie: []http.Cookie{clearedCookie()}}, nil
 	})
 
+	registerAccountOperations(api, s, security)
+
 	huma.Register(api, huma.Operation{
 		OperationID: "getMyAccount",
 		Method:      http.MethodGet,
 		Path:        "/accounts/me",
 		Summary:     "The signed-in account",
-		Tags:        []string{"Accounts"},
+		Tags:        tagAccounts,
 		Security:    security,
 	}, func(ctx context.Context, _ *struct{}) (*accountOutput, error) {
 		caller, err := platform.RequireCaller(ctx)
@@ -213,5 +231,68 @@ func RegisterOperations(api huma.API, s *Service) {
 		}
 
 		return &accountOutput{Body: toAccountBody(a)}, nil
+	})
+}
+
+// registerAccountOperations adds the operations that name (SEC-61) and delete
+// (SEC-37) the signed-in account.
+func registerAccountOperations(api huma.API, s *Service, security []map[string][]string) {
+	huma.Register(api, huma.Operation{
+		OperationID: "setMyDisplayName",
+		Method:      http.MethodPut,
+		Path:        "/accounts/me",
+		Summary:     "Set the signed-in account's display name",
+		Description: "Trimmed, it holds 1 to 50 characters and no control character. " +
+			"Google's sign-in fills a name only while it is empty, so the chosen one stays.",
+		Tags:     tagAccounts,
+		Security: security,
+	}, func(ctx context.Context, in *setDisplayNameInput) (*accountOutput, error) {
+		a, err := s.SetDisplayName(ctx, in.Body.DisplayName)
+		if err != nil {
+			return nil, err
+		}
+
+		return &accountOutput{Body: toAccountBody(a)}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "requestAccountDeletionCode",
+		Method:        http.MethodPost,
+		Path:          "/accounts/me/deletion-codes",
+		Summary:       "Email the signed-in account's address a code that confirms its deletion",
+		Description:   "The code confirms the deletion only; it cannot sign in. It shares the address's limits with the sign-in codes.",
+		Tags:          tagAccounts,
+		Security:      security,
+		DefaultStatus: http.StatusAccepted,
+	}, func(ctx context.Context, _ *struct{}) (*requestCodeOutput, error) {
+		c, err := s.RequestDeletionCode(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &requestCodeOutput{}
+		out.Body.ChallengeID = c.ID
+		out.Body.ExpiresAt = c.ExpiresAt
+
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "deleteMyAccount",
+		Method:      http.MethodPost,
+		Path:        "/accounts/me/deletion",
+		Summary:     "Delete the signed-in account with the emailed code",
+		Description: "Deletes the account, its sessions, its Google link and the codes and emails sent to its address at once; " +
+			"its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. " +
+			"A seller the account owned is blocked. The session cookie is cleared.",
+		Tags:          tagAccounts,
+		Security:      security,
+		DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *deleteAccountInput) (*signOutOutput, error) {
+		if err := s.DeleteAccount(ctx, in.Body.ChallengeID, in.Body.Code); err != nil {
+			return nil, err
+		}
+
+		return &signOutOutput{SetCookie: []http.Cookie{clearedCookie()}}, nil
 	})
 }

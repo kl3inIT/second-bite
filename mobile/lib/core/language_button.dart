@@ -13,19 +13,12 @@ class LanguageButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.appColors;
-
-    return IconButton(
+    return AppHeaderCapsule(
+      icon: LucideIcons.languages,
       tooltip: context.l10n.languageSwitch,
       onPressed: () => ref
           .read(appLocaleProvider.notifier)
           .switchFrom(Localizations.localeOf(context)),
-      style: IconButton.styleFrom(
-        backgroundColor: colors.headerRaised,
-        foregroundColor: colors.headerRaisedForeground,
-        side: BorderSide(color: colors.headerBorder),
-      ),
-      icon: const Icon(LucideIcons.languages, size: 16),
     );
   }
 }

@@ -41,24 +41,27 @@ var categories = map[Category]struct {
 var codePattern = regexp.MustCompile(`^[A-Z][A-Z0-9_]{0,61}[A-Z0-9]$`)
 
 // FailureError is an expected failure of a module: a stable code, its category and
-// a message safe to show people. A module declares each failure once and
-// returns it, optionally with the cause that only logs see:
+// a message safe to show people, in every language of the service (SEC-28). A
+// module declares each failure once and returns it, optionally with the cause
+// that only logs see:
 //
-//	var ErrSellerNotFound = platform.NewFailure("SELLER_NOT_FOUND", platform.CategoryNotFound, "The seller does not exist.")
+//	var ErrSellerNotFound = platform.NewFailure("SELLER_NOT_FOUND", platform.CategoryNotFound,
+//		platform.Words{VI: "Không tìm thấy quán này.", EN: "The seller does not exist."})
 //	return ErrSellerNotFound.WithCause(err)
 //
 // Two failures are equal for errors.Is when their codes are equal.
 type FailureError struct {
 	Code       string
 	Category   Category
-	Detail     string
+	Words      Words
 	RetryAfter time.Duration
 	cause      error
 }
 
-// NewFailure declares a failure. It panics on a malformed code or an unknown
-// category, which are programming errors found when the package loads.
-func NewFailure(code string, category Category, detail string) *FailureError {
+// NewFailure declares a failure. It panics on a malformed code, an unknown
+// category or words missing a language, which are programming errors found
+// when the package loads, so no test of a module runs with one.
+func NewFailure(code string, category Category, words Words) *FailureError {
 	if !codePattern.MatchString(code) {
 		panic("platform: malformed failure code " + strconv.Quote(code))
 	}
@@ -67,7 +70,11 @@ func NewFailure(code string, category Category, detail string) *FailureError {
 		panic("platform: unknown failure category " + strconv.Quote(string(category)))
 	}
 
-	return &FailureError{Code: code, Category: category, Detail: detail}
+	if !words.complete() {
+		panic("platform: failure " + code + " lacks its words in a language")
+	}
+
+	return &FailureError{Code: code, Category: category, Words: words}
 }
 
 // WithCause returns a copy of the failure carrying the diagnostic cause.

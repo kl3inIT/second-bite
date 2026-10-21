@@ -8,6 +8,8 @@ part of 'routes.dart';
 
 List<RouteBase> get $appRoutes => [
   $appShellRoute,
+  $accountSettingsRoute,
+  $deleteAccountRoute,
   $termsRoute,
   $privacyRoute,
   $signInRoute,
@@ -79,6 +81,60 @@ mixin $AccountRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/account');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $accountSettingsRoute => GoRouteData.$route(
+  path: '/account-settings',
+  hasOverriddenOnExit: false,
+  factory: $AccountSettingsRoute._fromState,
+);
+
+mixin $AccountSettingsRoute on GoRouteData {
+  static AccountSettingsRoute _fromState(GoRouterState state) =>
+      const AccountSettingsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/account-settings');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $deleteAccountRoute => GoRouteData.$route(
+  path: '/delete-account',
+  hasOverriddenOnExit: false,
+  factory: $DeleteAccountRoute._fromState,
+);
+
+mixin $DeleteAccountRoute on GoRouteData {
+  static DeleteAccountRoute _fromState(GoRouterState state) =>
+      const DeleteAccountRoute();
+
+  @override
+  String get location => GoRouteData.$location('/delete-account');
 
   @override
   void go(BuildContext context) => context.go(location);

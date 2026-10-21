@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, CancelOrderData, CancelOrderErrors, CancelOrderResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetOrderData, GetOrderErrors, GetOrderResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, HandOverOrderData, HandOverOrderErrors, HandOverOrderResponses, ListMyOrdersData, ListMyOrdersErrors, ListMyOrdersResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellerOrdersData, ListSellerOrdersErrors, ListSellerOrdersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, MarkOrderReadyData, MarkOrderReadyErrors, MarkOrderReadyResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PlaceOrderData, PlaceOrderErrors, PlaceOrderResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RefuseOrderData, RefuseOrderErrors, RefuseOrderResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
+import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddDishData, AddDishErrors, AddDishResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, CancelOrderData, CancelOrderErrors, CancelOrderResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetOrderData, GetOrderErrors, GetOrderResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, HandOverOrderData, HandOverOrderErrors, HandOverOrderResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListMyOrdersData, ListMyOrdersErrors, ListMyOrdersResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellerOrdersData, ListSellerOrdersErrors, ListSellerOrdersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, MarkOrderReadyData, MarkOrderReadyErrors, MarkOrderReadyResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PlaceOrderData, PlaceOrderErrors, PlaceOrderResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RefuseOrderData, RefuseOrderErrors, RefuseOrderResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -28,6 +28,59 @@ export const getMyAccount = <ThrowOnError extends boolean = true>(options?: Opti
             type: 'apiKey'
         }],
     url: '/accounts/me',
+    ...options
+});
+
+/**
+ * Set the signed-in account's display name
+ *
+ * Trimmed, it holds 1 to 50 characters and no control character. Google's sign-in fills a name only while it is empty, so the chosen one stays.
+ */
+export const setMyDisplayName = <ThrowOnError extends boolean = true>(options: Options<SetMyDisplayNameData, ThrowOnError>): RequestResult<SetMyDisplayNameResponses, SetMyDisplayNameErrors, ThrowOnError> => (options.client ?? client).put<SetMyDisplayNameResponses, SetMyDisplayNameErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/accounts/me',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete the signed-in account with the emailed code
+ *
+ * Deletes the account, its sessions, its Google link and the codes and emails sent to its address at once; its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. A seller the account owned is blocked. The session cookie is cleared.
+ */
+export const deleteMyAccount = <ThrowOnError extends boolean = true>(options: Options<DeleteMyAccountData, ThrowOnError>): RequestResult<DeleteMyAccountResponses, DeleteMyAccountErrors, ThrowOnError> => (options.client ?? client).post<DeleteMyAccountResponses, DeleteMyAccountErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/accounts/me/deletion',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Email the signed-in account's address a code that confirms its deletion
+ *
+ * The code confirms the deletion only; it cannot sign in. It shares the address's limits with the sign-in codes.
+ */
+export const requestAccountDeletionCode = <ThrowOnError extends boolean = true>(options?: Options<RequestAccountDeletionCodeData, ThrowOnError>): RequestResult<RequestAccountDeletionCodeResponses, RequestAccountDeletionCodeErrors, ThrowOnError> => (options?.client ?? client).post<RequestAccountDeletionCodeResponses, RequestAccountDeletionCodeErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/accounts/me/deletion-codes',
     ...options
 });
 
@@ -193,6 +246,38 @@ export const requestSignInCode = <ThrowOnError extends boolean = true>(options: 
 });
 
 /**
+ * Delete a dish from the catalog
+ *
+ * The offers posted from it are not affected.
+ */
+export const removeDish = <ThrowOnError extends boolean = true>(options: Options<RemoveDishData, ThrowOnError>): RequestResult<RemoveDishResponses, RemoveDishErrors, ThrowOnError> => (options.client ?? client).delete<RemoveDishResponses, RemoveDishErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/dishes/{dishId}',
+    ...options
+});
+
+/**
+ * Change a dish, or show or hide it
+ */
+export const changeDish = <ThrowOnError extends boolean = true>(options: Options<ChangeDishData, ThrowOnError>): RequestResult<ChangeDishResponses, ChangeDishErrors, ThrowOnError> => (options.client ?? client).patch<ChangeDishResponses, ChangeDishErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/dishes/{dishId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Find offers on sale or sold out, near a point, by words and filters
  *
  * Anyone may search. Offers sold out are included unless available is set; those withdrawn, over or of a blocked seller never are.
@@ -270,7 +355,7 @@ export const listMyOrders = <ThrowOnError extends boolean = true>(options?: Opti
 /**
  * Order units of one seller's offers, collected at the counter
  *
- * Confirmed at once. Sending the same Idempotency-Key again returns the order placed first.
+ * Confirmed at once, signed in or not; for the account when someone is signed in. Sending the same Idempotency-Key again, without an account with the same phone number, returns the order placed first.
  */
 export const placeOrder = <ThrowOnError extends boolean = true>(options: Options<PlaceOrderData, ThrowOnError>): RequestResult<PlaceOrderResponses, PlaceOrderErrors, ThrowOnError> => (options.client ?? client).post<PlaceOrderResponses, PlaceOrderErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -289,7 +374,7 @@ export const placeOrder = <ThrowOnError extends boolean = true>(options: Options
 /**
  * An order
  *
- * To its customer, with the code once it may be shown, to the seller's people and to admins.
+ * To its customer, signed in or sending its access, with the code once it may be shown; to the seller's people and to admins.
  */
 export const getOrder = <ThrowOnError extends boolean = true>(options: Options<GetOrderData, ThrowOnError>): RequestResult<GetOrderResponses, GetOrderErrors, ThrowOnError> => (options.client ?? client).get<GetOrderResponses, GetOrderErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -304,7 +389,7 @@ export const getOrder = <ThrowOnError extends boolean = true>(options: Options<G
 /**
  * Cancel your order, free of charge until its window opens
  *
- * Its units go back on sale.
+ * By its customer, signed in or sending its access. Its units go back on sale.
  */
 export const cancelOrder = <ThrowOnError extends boolean = true>(options: Options<CancelOrderData, ThrowOnError>): RequestResult<CancelOrderResponses, CancelOrderErrors, ThrowOnError> => (options.client ?? client).post<CancelOrderResponses, CancelOrderErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -447,6 +532,40 @@ export const updateSeller = <ThrowOnError extends boolean = true>(options: Optio
             type: 'apiKey'
         }],
     url: '/sellers/{sellerId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * A seller's catalog, the newest dish first, hidden ones included
+ *
+ * For the seller's owner and staff; customers see offers, never the catalog.
+ */
+export const listDishes = <ThrowOnError extends boolean = true>(options: Options<ListDishesData, ThrowOnError>): RequestResult<ListDishesResponses, ListDishesErrors, ThrowOnError> => (options.client ?? client).get<ListDishesResponses, ListDishesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/{sellerId}/dishes',
+    ...options
+});
+
+/**
+ * Add a dish to a seller's catalog
+ *
+ * The stable base of a dish. A post copies it; a later change to the dish does not change a post.
+ */
+export const addDish = <ThrowOnError extends boolean = true>(options: Options<AddDishData, ThrowOnError>): RequestResult<AddDishResponses, AddDishErrors, ThrowOnError> => (options.client ?? client).post<AddDishResponses, AddDishErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/{sellerId}/dishes',
     ...options,
     headers: {
         'Content-Type': 'application/json',

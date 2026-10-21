@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"slices"
 	"time"
 	"unicode/utf8"
@@ -28,22 +27,31 @@ type Wanted struct {
 	Units   int
 }
 
-// Place orders units of one seller's offers for the caller, confirmed at once.
-// The units are taken from each offer in the order's transaction, so when
-// one offer has too few nothing is taken. The same key from the same customer
-// returns the order it placed first, so a second tap orders nothing more.
-func (s *Service) Place(ctx context.Context, key string, wanted []Wanted) (Order, error) {
-	caller, err := platform.RequireCaller(ctx)
-	if err != nil {
-		return Order{}, err
-	}
+// Place orders units of one seller's offers for contact, confirmed at once,
+// for the caller's account when someone is signed in. The units are taken
+// from each offer in the order's transaction, so when one offer has too few
+// nothing is taken. The same key from the same customer, or without an account
+// from the same phone number, returns the order it placed first, so a second
+// tap orders nothing more. The orders of one cart share checkout, a new one
+// when it is nil. The order comes back with its access, which proves it is
+// theirs without signing in.
+func (s *Service) Place(ctx context.Context, key string, checkout uuid.UUID, contact Contact, wanted []Wanted) (Order, error) {
+	caller, signedIn := platform.CallerFrom(ctx)
+	customer := uuid.NullUUID{UUID: caller.AccountID, Valid: signedIn}
 
 	if n := utf8.RuneCountInString(key); n < 1 || n > 255 {
 		return Order{}, ErrIdempotencyKeyInvalid
 	}
 
-	if id, err := s.queries.OrderOfKey(ctx, db.OrderOfKeyParams{CustomerID: caller.AccountID, IdempotencyKey: key}); err == nil {
-		return s.Get(ctx, id)
+	contact, err := contact.normalized()
+	if err != nil {
+		return Order{}, err
+	}
+
+	if id, err := s.queries.OrderOfKey(ctx, db.OrderOfKeyParams{
+		CustomerID: customer, IdempotencyKey: key, CustomerPhone: contact.Phone,
+	}); err == nil {
+		return s.placed(ctx, id)
 	} else if !errors.Is(err, pgx.ErrNoRows) {
 		return Order{}, fmt.Errorf("reading an earlier order: %w", err)
 	}
@@ -59,7 +67,7 @@ func (s *Service) Place(ctx context.Context, key string, wanted []Wanted) (Order
 	var id uuid.UUID
 
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
-		id, err = s.place(ctx, tx, caller.AccountID, key, wanted)
+		id, err = s.place(ctx, tx, customer, cmp.Or(checkout, uuid.New()), contact, key, wanted)
 
 		return err
 	})
@@ -67,29 +75,40 @@ func (s *Service) Place(ctx context.Context, key string, wanted []Wanted) (Order
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 		// The same key arrived twice at once; the first order stands.
-		earlier, err := s.queries.OrderOfKey(ctx, db.OrderOfKeyParams{CustomerID: caller.AccountID, IdempotencyKey: key})
+		earlier, err := s.queries.OrderOfKey(ctx, db.OrderOfKeyParams{
+			CustomerID: customer, IdempotencyKey: key, CustomerPhone: contact.Phone,
+		})
 		if err != nil {
 			return Order{}, fmt.Errorf("reading the order placed with the key: %w", err)
 		}
 
-		return s.Get(ctx, earlier)
+		return s.placed(ctx, earlier)
 	}
 
 	if err != nil {
 		return Order{}, err
 	}
 
-	s.logger.InfoContext(ctx, "order placed",
-		slog.String("event", "order.order.placed"),
-		slog.String("order_id", id.String()),
-		slog.String("account_id", caller.AccountID.String()),
-	)
+	s.logged(ctx, "order placed", "order.order.placed", id, caller)
 
-	return s.Get(ctx, id)
+	return s.placed(ctx, id)
+}
+
+// placed is an order as whoever placed it sees it, with its access.
+func (s *Service) placed(ctx context.Context, id uuid.UUID) (Order, error) {
+	o, err := s.read(ctx, id)
+	if err != nil {
+		return Order{}, err
+	}
+
+	return s.shown(o, true), nil
 }
 
 // place takes the units and writes the order inside tx.
-func (s *Service) place(ctx context.Context, tx pgx.Tx, customerID uuid.UUID, key string, wanted []Wanted) (uuid.UUID, error) {
+func (s *Service) place(
+	ctx context.Context, tx pgx.Tx, customer uuid.NullUUID, checkout uuid.UUID, contact Contact, key string,
+	wanted []Wanted,
+) (uuid.UUID, error) {
 	taken := make([]offer.Taken, 0, len(wanted))
 
 	for _, w := range wanted {
@@ -131,7 +150,8 @@ func (s *Service) place(ctx context.Context, tx pgx.Tx, customerID uuid.UUID, ke
 	q := s.queries.WithTx(tx)
 
 	id, err := q.InsertOrder(ctx, db.InsertOrderParams{
-		CustomerID: customerID, SellerID: first.SellerID, SellerName: first.SellerName,
+		CustomerID: customer, CustomerName: contact.Name, CustomerPhone: contact.Phone,
+		SellerID: first.SellerID, CheckoutID: checkout, SellerName: first.SellerName,
 		Latitude: first.CollectionPoint.Latitude, Longitude: first.CollectionPoint.Longitude, Address: first.CollectionPoint.Address,
 		WindowStart: start, WindowEnd: end, TotalVnd: total, IdempotencyKey: key,
 	})
@@ -148,7 +168,7 @@ func (s *Service) place(ctx context.Context, tx pgx.Tx, customerID uuid.UUID, ke
 		}
 	}
 
-	if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "placed", ActorID: customerID}); err != nil {
+	if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "placed", ActorID: customer}); err != nil {
 		return uuid.Nil, fmt.Errorf("recording the order: %w", err)
 	}
 

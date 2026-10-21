@@ -51,6 +51,7 @@ func TestOrder(t *testing.T) {
 		"expiry is read from the window":           testExpiryReadFromTheWindow,
 		"a seller lists the orders of a day":       testSellerListsADay,
 		"the customer lists open and ended orders": testCustomerLists,
+		"an order without an account":              testOrderWithoutAccount,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -62,7 +63,7 @@ func TestOrder(t *testing.T) {
 func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 	t.Helper()
 
-	accounts, err := identity.NewService(pool, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
+	accounts, err := identity.NewService(pool, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,6 +182,9 @@ func mustFail(t *testing.T, what string, err, want error) {
 
 func key() string { return uuid.NewString() }
 
+// someone is who collects the orders of these checks.
+var someone = order.Contact{Name: "Minh Anh", Phone: "0900000000"}
+
 func testPlacingTakesUnits(t *testing.T, f fixture) {
 	t.Helper()
 
@@ -193,7 +197,7 @@ func testPlacingTakesUnits(t *testing.T, f fixture) {
 
 	k := key()
 
-	o, err := f.orders.Place(customer, k, []order.Wanted{{OfferID: croissant.ID, Units: 2}, {OfferID: bread.ID, Units: 1}})
+	o, err := f.orders.Place(customer, k, uuid.Nil, someone, []order.Wanted{{OfferID: croissant.ID, Units: 2}, {OfferID: bread.ID, Units: 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,7 +215,7 @@ func testPlacingTakesUnits(t *testing.T, f fixture) {
 		t.Errorf("croissants left: %d", got)
 	}
 
-	again, err := f.orders.Place(customer, k, []order.Wanted{{OfferID: croissant.ID, Units: 2}})
+	again, err := f.orders.Place(customer, k, uuid.Nil, someone, []order.Wanted{{OfferID: croissant.ID, Units: 2}})
 	if err != nil || again.ID != o.ID {
 		t.Errorf("the same key again: %v, %v", again.ID, err)
 	}
@@ -220,19 +224,80 @@ func testPlacingTakesUnits(t *testing.T, f fixture) {
 		t.Errorf("croissants left after the same key again: %d", got)
 	}
 
-	keyAndCallerRequired(customer, t, f, croissant.ID)
+	keyAndContactRequired(customer, t, f, croissant.ID)
 }
 
-// keyAndCallerRequired places an order without a key, then with nobody
-// signed in.
-func keyAndCallerRequired(customer context.Context, t *testing.T, f fixture, offerID uuid.UUID) {
+// keyAndContactRequired places an order without a key, then without a name
+// or with a phone number that is not Vietnamese.
+func keyAndContactRequired(customer context.Context, t *testing.T, f fixture, offerID uuid.UUID) {
 	t.Helper()
 
-	_, err := f.orders.Place(customer, "", []order.Wanted{{OfferID: offerID, Units: 1}})
+	_, err := f.orders.Place(customer, "", uuid.Nil, someone, []order.Wanted{{OfferID: offerID, Units: 1}})
 	mustFail(t, "no key", err, order.ErrIdempotencyKeyInvalid)
 
-	_, err = f.orders.Place(t.Context(), key(), []order.Wanted{{OfferID: offerID, Units: 1}})
-	mustFail(t, "nobody signed in", err, platform.ErrAuthenticationRequired)
+	for _, c := range []order.Contact{{Name: " ", Phone: "0900000000"}, {Name: "Minh Anh", Phone: "12345"}} {
+		_, err = f.orders.Place(customer, key(), uuid.Nil, c, []order.Wanted{{OfferID: offerID, Units: 1}})
+		mustFail(t, "contact "+c.Name+" "+c.Phone, err, order.ErrContactInvalid)
+	}
+}
+
+// testOrderWithoutAccount places an order with nobody signed in: it is read
+// and cancelled with its access only, and the same key from another phone
+// number places another order.
+func testOrderWithoutAccount(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	shop := f.shop(owner, t, "Panda Chef")
+	later := f.post(owner, t, shop, "Bánh bao", 5, 20_000, time.Now().Add(2*time.Hour))
+	guest := t.Context()
+	k := key()
+
+	o, err := f.orders.Place(guest, k, uuid.Nil, order.Contact{Name: " Hà ", Phone: "+84 900 000 001"}, []order.Wanted{{later.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if o.CustomerID.Valid || o.Contact != (order.Contact{Name: "Hà", Phone: "0900000001"}) || o.Access == "" {
+		t.Fatalf("placed without an account: %+v", o)
+	}
+
+	again, err := f.orders.Place(guest, k, uuid.Nil, order.Contact{Name: "Hà", Phone: "0900000001"}, []order.Wanted{{later.ID, 1}})
+	if err != nil || again.ID != o.ID {
+		t.Fatalf("the same key and phone again: %v, %v", again.ID, err)
+	}
+
+	other, err := f.orders.Place(guest, k, uuid.Nil, order.Contact{Name: "Lan", Phone: "0900000002"}, []order.Wanted{{later.ID, 1}})
+	if err != nil || other.ID == o.ID || other.Access == o.Access {
+		t.Fatalf("the same key from another phone: %v, %v", other.ID, err)
+	}
+
+	readAndCancelWithAccess(guest, t, f, o, other.Access)
+}
+
+// readAndCancelWithAccess reads and cancels o, placed without an account,
+// with nothing, another order's access, then its own.
+func readAndCancelWithAccess(guest context.Context, t *testing.T, f fixture, o order.Order, another string) {
+	t.Helper()
+
+	_, err := f.orders.Get(guest, o.ID, "")
+	mustFail(t, "reading without the access", err, order.ErrNotFound)
+
+	_, err = f.orders.Get(guest, o.ID, another)
+	mustFail(t, "reading with another order's access", err, order.ErrNotFound)
+
+	read, err := f.orders.Get(guest, o.ID, o.Access)
+	if err != nil || read.Access != o.Access {
+		t.Fatalf("reading with the access: %+v, %v", read, err)
+	}
+
+	_, err = f.orders.Cancel(guest, o.ID, "", "")
+	mustFail(t, "cancelling without the access", err, order.ErrNotFound)
+
+	cancelled, err := f.orders.Cancel(guest, o.ID, o.Access, "")
+	if err != nil || cancelled.Status != order.StatusCancelled {
+		t.Fatalf("cancelling with the access: %+v, %v", cancelled, err)
+	}
 }
 
 func testRefusedCartTakesNothing(t *testing.T, f fixture) {
@@ -261,7 +326,7 @@ func testRefusedCartTakesNothing(t *testing.T, f fixture) {
 		"windows that do not meet":   {[]order.Wanted{{croissant.ID, 1}, {late.ID, 1}}, order.ErrWindowsDoNotMeet},
 		"an offer that is not there": {[]order.Wanted{{uuid.New(), 1}}, order.ErrOfferUnavailable},
 	} {
-		_, err := f.orders.Place(customer, key(), c.wanted)
+		_, err := f.orders.Place(customer, key(), uuid.Nil, someone, c.wanted)
 		mustFail(t, name, err, c.want)
 	}
 
@@ -273,14 +338,14 @@ func testRefusedCartTakesNothing(t *testing.T, f fixture) {
 		t.Fatal(err)
 	}
 
-	_, err := f.orders.Place(customer, key(), []order.Wanted{{bread.ID, 1}})
+	_, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{bread.ID, 1}})
 	mustFail(t, "a withdrawn offer", err, order.ErrOfferUnavailable)
 
 	if _, err := f.sellers.Block(f.as(t, "admin", platform.RoleAdmin), shop); err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = f.orders.Place(customer, key(), []order.Wanted{{croissant.ID, 1}})
+	_, err = f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
 	mustFail(t, "a blocked seller", err, order.ErrOfferUnavailable)
 }
 
@@ -296,7 +361,7 @@ func testRaceForTheLastUnit(t *testing.T, f fixture) {
 
 	for _, customer := range []context.Context{first, second} {
 		go func() {
-			_, err := f.orders.Place(customer, key(), []order.Wanted{{last.ID, 1}})
+			_, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{last.ID, 1}})
 			errs <- err
 		}()
 	}
@@ -320,7 +385,7 @@ func testWhoReadsAnOrder(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris", "staff")
 	later := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now().Add(time.Hour))
 
-	o, err := f.orders.Place(customer, key(), []order.Wanted{{later.ID, 1}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{later.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -330,24 +395,24 @@ func testWhoReadsAnOrder(t *testing.T, f fixture) {
 	}
 
 	for name, reader := range map[string]context.Context{"its seller's staff": staff, "an admin": admin} {
-		if _, err := f.orders.Get(reader, o.ID); err != nil {
+		if _, err := f.orders.Get(reader, o.ID, ""); err != nil {
 			t.Errorf("%s: %v", name, err)
 		}
 	}
 
-	_, err = f.orders.Get(stranger, o.ID)
+	_, err = f.orders.Get(stranger, o.ID, "")
 	mustFail(t, "a stranger", err, order.ErrNotFound)
 
 	if _, err := f.orders.Ready(staff, o.ID); err != nil {
 		t.Fatal(err)
 	}
 
-	mine, err := f.orders.Get(customer, o.ID)
+	mine, err := f.orders.Get(customer, o.ID, "")
 	if err != nil || len(mine.Code) != 4 {
 		t.Fatalf("the customer's code once ready: %q, %v", mine.Code, err)
 	}
 
-	if theirs, _ := f.orders.Get(staff, o.ID); theirs.Code != "" {
+	if theirs, _ := f.orders.Get(staff, o.ID, ""); theirs.Code != "" {
 		t.Errorf("staff were shown the code")
 	}
 
@@ -364,15 +429,15 @@ func testCancelUntilTheWindowOpens(t *testing.T, f fixture) {
 	later := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now().Add(time.Hour))
 	now := f.post(owner, t, shop, "Bánh mì", 5, 20_000, time.Now())
 
-	o, err := f.orders.Place(customer, key(), []order.Wanted{{later.ID, 3}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{later.ID, 3}})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = f.orders.Cancel(owner, o.ID, "")
+	_, err = f.orders.Cancel(owner, o.ID, "", "")
 	mustFail(t, "the seller cancelling", err, order.ErrNotFound)
 
-	cancelled, err := f.orders.Cancel(customer, o.ID, "không đến kịp")
+	cancelled, err := f.orders.Cancel(customer, o.ID, "", "không đến kịp")
 	if err != nil || cancelled.Status != order.StatusCancelled || cancelled.CancelReason != "không đến kịp" {
 		t.Fatalf("cancelled %+v, %v", cancelled, err)
 	}
@@ -381,15 +446,15 @@ func testCancelUntilTheWindowOpens(t *testing.T, f fixture) {
 		t.Errorf("units back after cancelling: %d", got)
 	}
 
-	_, err = f.orders.Cancel(customer, o.ID, "")
+	_, err = f.orders.Cancel(customer, o.ID, "", "")
 	mustFail(t, "cancelling twice", err, order.ErrCancelTooLate)
 
-	open, err := f.orders.Place(customer, key(), []order.Wanted{{now.ID, 1}})
+	open, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{now.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = f.orders.Cancel(customer, open.ID, "")
+	_, err = f.orders.Cancel(customer, open.ID, "", "")
 	mustFail(t, "cancelling once the window has opened", err, order.ErrCancelTooLate)
 }
 
@@ -403,7 +468,7 @@ func testHandOverAgainstTheCode(t *testing.T, f fixture) {
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 	later := f.post(owner, t, shop, "Bánh mì", 5, 20_000, time.Now().Add(time.Hour))
 
-	o, err := f.orders.Place(customer, key(), []order.Wanted{{croissant.ID, 1}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -420,7 +485,7 @@ func testHandOverAgainstTheCode(t *testing.T, f fixture) {
 	_, err = f.orders.HandOver(owner, o.ID, wrong(code))
 	mustFail(t, "a wrong code", err, order.ErrCodeWrong)
 
-	if got, _ := f.orders.Get(owner, o.ID); got.CodeAttemptsLeft != 2 {
+	if got, _ := f.orders.Get(owner, o.ID, ""); got.CodeAttemptsLeft != 2 {
 		t.Errorf("attempts left after a wrong code: %d", got.CodeAttemptsLeft)
 	}
 
@@ -435,7 +500,7 @@ func testHandOverAgainstTheCode(t *testing.T, f fixture) {
 	_, err = f.orders.Refuse(owner, o.ID, order.RefuseOther, "")
 	mustFail(t, "refusing a collected order", err, order.ErrTransitionNotAllowed)
 
-	early, err := f.orders.Place(customer, key(), []order.Wanted{{later.ID, 1}})
+	early, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{later.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -461,7 +526,7 @@ func testWrongCodesLock(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris")
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
-	o, err := f.orders.Place(customer, key(), []order.Wanted{{croissant.ID, 1}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -474,7 +539,7 @@ func testWrongCodesLock(t *testing.T, f fixture) {
 	_, err = f.orders.HandOver(owner, o.ID, o.Code)
 	mustFail(t, "the right code once locked", err, order.ErrCodeLocked)
 
-	if locked, _ := f.orders.Get(customer, o.ID); locked.Code != "" || locked.CodeAttemptsLeft != 0 {
+	if locked, _ := f.orders.Get(customer, o.ID, ""); locked.Code != "" || locked.CodeAttemptsLeft != 0 {
 		t.Errorf("a locked order: code %q, attempts %d", locked.Code, locked.CodeAttemptsLeft)
 	}
 }
@@ -488,7 +553,7 @@ func testStaffRefuse(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris", "staff")
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
-	o, err := f.orders.Place(customer, key(), []order.Wanted{{croissant.ID, 2}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 2}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -521,14 +586,14 @@ func testExpiryReadFromTheWindow(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris")
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
-	o, err := f.orders.Place(customer, key(), []order.Wanted{{croissant.ID, 1}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	f.shift(t, o.ID, -3*time.Hour)
 
-	expired, err := f.orders.Get(customer, o.ID)
+	expired, err := f.orders.Get(customer, o.ID, "")
 	if err != nil || expired.Status != order.StatusExpired || expired.Code != "" {
 		t.Fatalf("after the window: %+v, %v", expired, err)
 	}
@@ -539,7 +604,7 @@ func testExpiryReadFromTheWindow(t *testing.T, f fixture) {
 	_, err = f.orders.Ready(owner, o.ID)
 	mustFail(t, "ready once expired", err, order.ErrTransitionNotAllowed)
 
-	_, err = f.orders.Cancel(customer, o.ID, "")
+	_, err = f.orders.Cancel(customer, o.ID, "", "")
 	mustFail(t, "cancelling once expired", err, order.ErrCancelTooLate)
 }
 
@@ -552,7 +617,7 @@ func testSellerListsADay(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris")
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
-	o, err := f.orders.Place(customer, key(), []order.Wanted{{croissant.ID, 1}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -578,24 +643,28 @@ func testCustomerLists(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris")
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
-	ended, err := f.orders.Place(customer, key(), []order.Wanted{{croissant.ID, 1}})
+	ended, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	f.shift(t, ended.ID, -3*time.Hour)
 
-	open, err := f.orders.Place(customer, key(), []order.Wanted{{croissant.ID, 1}})
+	cart := uuid.New()
+
+	open, err := f.orders.Place(customer, key(), cart, someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	checkoutKept(owner, customer, t, f, croissant.ID, open, ended)
 
 	for which, want := range map[order.Which][]uuid.UUID{
 		order.WhichAll:   {open.ID, ended.ID},
 		order.WhichOpen:  {open.ID},
 		order.WhichEnded: {ended.ID},
 	} {
-		got, err := f.orders.Mine(customer, which, 20, 0)
+		got, err := f.orders.Mine(customer, which, uuid.Nil, 20, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -610,7 +679,28 @@ func testCustomerLists(t *testing.T, f fixture) {
 		}
 	}
 
-	if others, _ := f.orders.Mine(owner, order.WhichAll, 20, 0); len(others) != 0 {
-		t.Errorf("another account's orders: %d", len(others))
+	if others, _ := f.orders.Mine(owner, order.WhichAll, uuid.Nil, 20, 0); len(others) != 1 {
+		t.Errorf("the owner's own orders, not the customer's: %d", len(others))
+	}
+}
+
+// checkoutKept checks open was placed under the checkout given and ended
+// under a new one, and that someone else naming the same checkout never joins
+// the customer's.
+func checkoutKept(owner, customer context.Context, t *testing.T, f fixture, offerID uuid.UUID, open, ended order.Order) {
+	t.Helper()
+
+	cart := open.CheckoutID
+	if cart == uuid.Nil || ended.CheckoutID == uuid.Nil || ended.CheckoutID == cart {
+		t.Errorf("checkouts: given %v; a new one %v", cart, ended.CheckoutID)
+	}
+
+	if _, err := f.orders.Place(owner, key(), cart, someone, []order.Wanted{{offerID, 1}}); err != nil {
+		t.Fatal(err)
+	}
+
+	mine, err := f.orders.Mine(customer, order.WhichAll, cart, 20, 0)
+	if err != nil || len(mine) != 1 || mine[0].ID != open.ID {
+		t.Errorf("the customer's orders of one checkout: %v, %v", mine, err)
 	}
 }

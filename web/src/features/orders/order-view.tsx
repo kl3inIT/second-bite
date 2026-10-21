@@ -43,6 +43,9 @@ function useDuration() {
   };
 }
 
+/** An order's title: the page's own, or one seller's part under a title of orders placed together. */
+type Level = { level?: "page" | "part" };
+
 /**
  * An order still to collect (Figma W2 confirmed, W3 ready): the blue card with the window in large figures,
  * how long until it opens or closes and the steps, the code ticket beside it; then how to collect, a change
@@ -52,11 +55,13 @@ export function OpenOrder({
   order,
   cancellable,
   now,
+  level = "page",
 }: {
   order: Order;
   cancellable: boolean;
   now: number;
-}) {
+} & Level) {
+  const Title = level === "page" ? "h1" : "h2";
   const t = useTranslations("Orders");
   const format = useFormatter();
   const duration = useDuration();
@@ -68,14 +73,14 @@ export function OpenOrder({
     <>
       <div className="mx-auto w-full max-w-5xl px-4 pt-6 xl:max-w-300">
         <section
-          aria-labelledby="order-status"
+          aria-labelledby={`order-status-${order.id}`}
           className="grid gap-6 rounded-3xl bg-primary p-5 text-primary-foreground md:grid-cols-5 md:items-center md:p-8"
         >
           <div className="flex flex-col gap-2 md:col-span-3">
             <OrderMeta order={order} className="text-inverse-muted" />
-            <h1 id="order-status" className="text-body-sm-strong text-fresh">
+            <Title id={`order-status-${order.id}`} className="text-body-sm-strong text-fresh">
               {t(`headline.${order.status === "ready" ? "ready" : "confirmed"}`)}
-            </h1>
+            </Title>
             <p className="font-display text-display">
               {from} – {until}
             </p>
@@ -102,14 +107,14 @@ export function OpenOrder({
           <HowToCollect order={order} />
           {cancellable ? (
             <section
-              aria-labelledby="change-of-mind"
+              aria-labelledby={`change-of-mind-${order.id}`}
               className="flex flex-wrap items-center gap-4 rounded-3xl bg-card p-5 text-card-foreground"
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
                 <CircleXIcon aria-hidden className="size-5" />
               </span>
               <div className="flex min-w-0 flex-1 flex-col">
-                <h2 id="change-of-mind" className="text-body-sm-strong">
+                <h2 id={`change-of-mind-${order.id}`} className="text-body-sm-strong">
                   {t("changeOfMind")}
                 </h2>
                 <p className="text-label text-muted-foreground">
@@ -118,6 +123,7 @@ export function OpenOrder({
               </div>
               <CancelOrder
                 orderId={order.id}
+                access={order.access}
                 number={order.number}
                 seller={order.seller.name}
                 units={unitsOf(order)}
@@ -200,10 +206,10 @@ function EndedTimeline({ order }: { order: Order & { status: Ended } }) {
 
   return (
     <section
-      aria-labelledby="order-timeline"
+      aria-labelledby={`order-timeline-${order.id}`}
       className="flex flex-col gap-3 rounded-3xl bg-card p-5 text-card-foreground"
     >
-      <h2 id="order-timeline" className="text-label text-muted-foreground uppercase">
+      <h2 id={`order-timeline-${order.id}`} className="text-label text-muted-foreground uppercase">
         {t("title")}
       </h2>
       <p className="text-body-sm">{t(`summary.${order.status}`)}</p>
@@ -228,7 +234,11 @@ function EndedTimeline({ order }: { order: Order & { status: Ended } }) {
  * An order that has ended (Figma W4 cancelled, W5 refused, W6 expired, and collected): a tinted card with
  * its status large and what it meant, the ticket with its status on a ribbon, and what happened.
  */
-export function EndedOrder({ order }: { order: Order & { status: Ended } }) {
+export function EndedOrder({
+  order,
+  level = "page",
+}: { order: Order & { status: Ended } } & Level) {
+  const Title = level === "page" ? "h1" : "h2";
   const t = useTranslations("Orders");
   const format = useFormatter();
   const look = ended[order.status];
@@ -238,7 +248,7 @@ export function EndedOrder({ order }: { order: Order & { status: Ended } }) {
     <>
       <div className="mx-auto w-full max-w-5xl px-4 pt-6 xl:max-w-300">
         <section
-          aria-labelledby="order-status"
+          aria-labelledby={`order-status-${order.id}`}
           className={cn(
             "grid gap-6 rounded-3xl p-5 md:grid-cols-5 md:items-center md:p-8",
             look.band,
@@ -246,9 +256,9 @@ export function EndedOrder({ order }: { order: Order & { status: Ended } }) {
         >
           <div className="flex flex-col gap-2 md:col-span-3">
             <OrderMeta order={order} className="text-muted-foreground" />
-            <h1 id="order-status" className={cn("text-display", look.title)}>
+            <Title id={`order-status-${order.id}`} className={cn("text-display", look.title)}>
               {t(`ended.${order.status}`)}
-            </h1>
+            </Title>
             <p className="text-body-sm">
               {t(`endedBody.${order.status}`, {
                 until: format.dateTime(new Date(order.windowEnd), "time"),

@@ -15,17 +15,18 @@ import (
 const challengeExhausted = `-- name: ChallengeExhausted :one
 SELECT EXISTS (
     SELECT 1 FROM identity_sign_in_challenges
-    WHERE id = $1 AND expires_at > now() AND failed_attempts >= $2::integer
+    WHERE id = $1 AND purpose = $2 AND expires_at > now() AND failed_attempts >= $3::integer
 )
 `
 
 type ChallengeExhaustedParams struct {
 	ID          uuid.UUID
+	Purpose     string
 	MaxAttempts int32
 }
 
 func (q *Queries) ChallengeExhausted(ctx context.Context, arg ChallengeExhaustedParams) (bool, error) {
-	row := q.db.QueryRow(ctx, challengeExhausted, arg.ID, arg.MaxAttempts)
+	row := q.db.QueryRow(ctx, challengeExhausted, arg.ID, arg.Purpose, arg.MaxAttempts)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -73,6 +74,19 @@ func (q *Queries) ChallengeUsage(ctx context.Context, email string) (ChallengeUs
 	return i, err
 }
 
+const deleteAccount = `-- name: DeleteAccount :execrows
+DELETE FROM identity_accounts WHERE id = $1
+`
+
+// Its sessions and its external logins go with it (ON DELETE CASCADE).
+func (q *Queries) DeleteAccount(ctx context.Context, id uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteAccount, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deleteAccountSessions = `-- name: DeleteAccountSessions :exec
 DELETE FROM identity_sessions WHERE account_id = $1
 `
@@ -92,6 +106,16 @@ func (q *Queries) DeleteChallenge(ctx context.Context, id uuid.UUID) (int64, err
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const deleteChallengesOf = `-- name: DeleteChallengesOf :exec
+DELETE FROM identity_sign_in_challenges WHERE email = $1
+`
+
+// Every code sent to the address, once its account is deleted.
+func (q *Queries) DeleteChallengesOf(ctx context.Context, email string) error {
+	_, err := q.db.Exec(ctx, deleteChallengesOf, email)
+	return err
 }
 
 const deleteExpiredSessions = `-- name: DeleteExpiredSessions :exec
@@ -375,8 +399,8 @@ func (q *Queries) InsertAccount(ctx context.Context, email string) (InsertAccoun
 }
 
 const insertChallenge = `-- name: InsertChallenge :one
-INSERT INTO identity_sign_in_challenges (id, email, code_hash, expires_at)
-VALUES ($1, $2, $3, now() + make_interval(secs => $4::integer))
+INSERT INTO identity_sign_in_challenges (id, email, code_hash, purpose, expires_at)
+VALUES ($1, $2, $3, $4, now() + make_interval(secs => $5::integer))
 RETURNING expires_at
 `
 
@@ -384,6 +408,7 @@ type InsertChallengeParams struct {
 	ID              uuid.UUID
 	Email           string
 	CodeHash        []byte
+	Purpose         string
 	LifetimeSeconds int32
 }
 
@@ -392,6 +417,7 @@ func (q *Queries) InsertChallenge(ctx context.Context, arg InsertChallengeParams
 		arg.ID,
 		arg.Email,
 		arg.CodeHash,
+		arg.Purpose,
 		arg.LifetimeSeconds,
 	)
 	var expires_at time.Time
@@ -503,15 +529,46 @@ func (q *Queries) RefreshExternalLogin(ctx context.Context, arg RefreshExternalL
 	return result.RowsAffected(), nil
 }
 
+const setDisplayName = `-- name: SetDisplayName :one
+UPDATE identity_accounts SET display_name = $1 WHERE id = $2
+RETURNING id, email, role, display_name
+`
+
+type SetDisplayNameParams struct {
+	DisplayName string
+	ID          uuid.UUID
+}
+
+type SetDisplayNameRow struct {
+	ID          uuid.UUID
+	Email       string
+	Role        string
+	DisplayName string
+}
+
+// The name the person chose (SEC-61).
+func (q *Queries) SetDisplayName(ctx context.Context, arg SetDisplayNameParams) (SetDisplayNameRow, error) {
+	row := q.db.QueryRow(ctx, setDisplayName, arg.DisplayName, arg.ID)
+	var i SetDisplayNameRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Role,
+		&i.DisplayName,
+	)
+	return i, err
+}
+
 const spendAttempt = `-- name: SpendAttempt :one
 UPDATE identity_sign_in_challenges
 SET failed_attempts = failed_attempts + 1
-WHERE id = $1 AND expires_at > now() AND failed_attempts < $2::integer
+WHERE id = $1 AND purpose = $2 AND expires_at > now() AND failed_attempts < $3::integer
 RETURNING email, code_hash
 `
 
 type SpendAttemptParams struct {
 	ID          uuid.UUID
+	Purpose     string
 	MaxAttempts int32
 }
 
@@ -520,9 +577,10 @@ type SpendAttemptRow struct {
 	CodeHash []byte
 }
 
-// Pays for a guess before the code is compared, so every guess is counted.
+// Pays for a guess before the code is compared, so every guess is counted. A
+// code of another purpose is not found, so it can neither sign in nor delete.
 func (q *Queries) SpendAttempt(ctx context.Context, arg SpendAttemptParams) (SpendAttemptRow, error) {
-	row := q.db.QueryRow(ctx, spendAttempt, arg.ID, arg.MaxAttempts)
+	row := q.db.QueryRow(ctx, spendAttempt, arg.ID, arg.Purpose, arg.MaxAttempts)
 	var i SpendAttemptRow
 	err := row.Scan(&i.Email, &i.CodeHash)
 	return i, err

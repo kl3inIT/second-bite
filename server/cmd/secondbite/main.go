@@ -111,6 +111,7 @@ type app struct {
 	cfg          platform.Config
 	logger       *slog.Logger
 	pool         *pgxpool.Pool
+	events       *platform.Events
 	notification *notification.Service
 	identity     *identity.Service
 	file         *file.Service
@@ -127,17 +128,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		return nil, fmt.Errorf("configuration: %w", err)
 	}
 
-	settingsKey, err := platform.ReadKey(getenv, "SECONDBITE_EMAIL_SETTINGS_KEY")
-	if err != nil {
-		return nil, fmt.Errorf("configuration: %w", err)
-	}
-
-	codeKey, err := platform.ReadKey(getenv, "SECONDBITE_SIGN_IN_CODE_KEY")
-	if err != nil {
-		return nil, fmt.Errorf("configuration: %w", err)
-	}
-
-	collectionKey, err := platform.ReadKey(getenv, "SECONDBITE_COLLECTION_CODE_KEY")
+	k, err := readKeys(getenv)
 	if err != nil {
 		return nil, fmt.Errorf("configuration: %w", err)
 	}
@@ -154,13 +145,18 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 			return nil, err
 		}
 
-		notifications, err := notification.NewService(pool, notification.Config{SettingsKey: settingsKey}, logger)
+		events, err := platform.NewEvents(pool, logger)
 		if err != nil {
 			return nil, err
 		}
 
-		identities, err := identity.NewService(pool, notifications, identity.Config{
-			CodeKey: codeKey, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")),
+		notifications, err := notification.NewService(pool, notification.Config{SettingsKey: k.settings}, logger)
+		if err != nil {
+			return nil, err
+		}
+
+		identities, err := identity.NewService(pool, notifications, events, identity.Config{
+			CodeKey: k.signInCode, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")),
 		}, logger)
 		if err != nil {
 			return nil, err
@@ -179,14 +175,19 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		sellers := seller.NewService(pool, identities, files, logger)
 		offers := offer.NewService(pool, sellers, files, logger)
 
-		orders, err := order.NewService(pool, offers, sellers, collectionKey, logger)
+		orders, err := order.NewService(pool, offers, sellers, k.collectionCode, logger)
 		if err != nil {
 			return nil, err
 		}
 
+		// The listeners are known before anything publishes; they run only in
+		// serve.
+		file.RegisterListeners(events, files)
+		seller.RegisterListeners(events, sellers)
+
 		return &app{
-			cfg: cfg, logger: logger, pool: pool, notification: notifications, identity: identities, file: files, seller: sellers,
-			offer: offers, order: orders,
+			cfg: cfg, logger: logger, pool: pool, events: events, notification: notifications, identity: identities,
+			file: files, seller: sellers, offer: offers, order: orders,
 		}, nil
 	}()
 	if err != nil {
@@ -196,6 +197,33 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 	}
 
 	return a, nil
+}
+
+// keys are the secrets the modules derive values from.
+type keys struct {
+	settings, signInCode, collectionCode []byte
+}
+
+func readKeys(getenv func(string) string) (keys, error) {
+	var k keys
+
+	for _, each := range []struct {
+		name string
+		key  *[]byte
+	}{
+		{"SECONDBITE_EMAIL_SETTINGS_KEY", &k.settings},
+		{"SECONDBITE_SIGN_IN_CODE_KEY", &k.signInCode},
+		{"SECONDBITE_COLLECTION_CODE_KEY", &k.collectionCode},
+	} {
+		value, err := platform.ReadKey(getenv, each.name)
+		if err != nil {
+			return keys{}, err
+		}
+
+		*each.key = value
+	}
+
+	return k, nil
 }
 
 func (a *app) serve(ctx context.Context) error {
@@ -210,8 +238,22 @@ func (a *app) serve(ctx context.Context) error {
 		return fmt.Errorf("listening on %s: %w", a.cfg.HTTPAddr, err)
 	}
 
-	return platform.Serve(ctx, ln, platform.NewHandler(mux, a.logger, a.identity.Authenticate), a.logger)
+	if err := a.events.Start(ctx); err != nil {
+		return err
+	}
+
+	serveErr := platform.Serve(ctx, ln, platform.NewHandler(mux, a.logger, a.identity.Authenticate), a.logger)
+
+	// The listeners stop after the requests that may publish, with time to
+	// finish what they run; what is left runs at the next start.
+	stopCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), eventsStopTimeout)
+	defer cancel()
+
+	return errors.Join(serveErr, a.events.Stop(stopCtx))
 }
+
+// eventsStopTimeout bounds how long serve waits for running listeners.
+const eventsStopTimeout = 10 * time.Second
 
 // registerOperations registers the operations of every module on api. The
 // OpenAPI document in api/openapi.yaml is generated from what it registers.

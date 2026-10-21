@@ -22,14 +22,17 @@ import { cancelOrder } from "@/lib/api/generated";
 const reasons = ["late", "mistake", "other"] as const;
 
 // Cancelling an order, asked once more first (Figma W2b): its units go back to the seller, nothing was paid,
-// and a reason may be chosen. The page reads the order again afterwards and shows it cancelled (W4).
+// and a reason may be chosen. The page reads the order again afterwards and shows it cancelled (W4). An order
+// placed without signing in is cancelled with its access (SEC-76 › decision 7).
 export function CancelOrder({
   orderId,
+  access,
   number,
   seller,
   units,
 }: {
   orderId: string;
+  access?: string;
   number: string;
   seller: string;
   units: number;
@@ -47,6 +50,7 @@ export function CancelOrder({
       try {
         await cancelOrder({
           path: { orderId },
+          headers: access ? { "Order-Access": access } : undefined,
           body: reason ? { reason: t(`reasons.${reason}`) } : {},
         });
         setOpen(false);

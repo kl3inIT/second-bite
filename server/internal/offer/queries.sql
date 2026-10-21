@@ -48,7 +48,8 @@ UPDATE offer_offers SET state = 'withdrawn', withdrawn_at = now(), updated_at = 
 WHERE id = @id AND state = 'on_sale';
 
 -- name: SellerUsesPhoto :one
-SELECT EXISTS (SELECT 1 FROM offer_offers WHERE seller_id = @seller_id AND photo_id = @photo_id);
+SELECT (EXISTS (SELECT 1 FROM offer_offers AS o WHERE o.seller_id = @seller_id AND o.photo_id = @photo_id)
+    OR EXISTS (SELECT 1 FROM offer_dishes AS d WHERE d.seller_id = @seller_id AND d.photo_id = @photo_id))::boolean;
 
 -- name: SellerOffers :many
 SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
@@ -86,6 +87,7 @@ FROM (
       AND (sqlc.narg(latitude)::float8 IS NULL
            OR ST_DWithin(o.location, ST_SetSRID(ST_MakePoint(sqlc.narg(longitude)::float8, sqlc.narg(latitude)::float8), 4326)::geography, sqlc.arg(radius_m)::float8))
       AND (COALESCE(cardinality(sqlc.arg(kinds)::text[]), 0) = 0 OR o.kind = ANY (sqlc.arg(kinds)::text[]))
+      AND (sqlc.narg(min_price)::bigint IS NULL OR o.price_vnd >= sqlc.narg(min_price)::bigint)
       AND (sqlc.narg(max_price)::bigint IS NULL OR o.price_vnd <= sqlc.narg(max_price)::bigint)
       AND (sqlc.narg(collect_from)::timestamptz IS NULL OR o.window_end > sqlc.narg(collect_from)::timestamptz)
       AND (sqlc.narg(collect_to)::timestamptz IS NULL OR o.window_start <= sqlc.narg(collect_to)::timestamptz)
@@ -99,6 +101,36 @@ ORDER BY
     CASE WHEN sqlc.arg(sort)::text = 'discount' THEN (original_price_vnd - price_vnd)::float8 / original_price_vnd END DESC,
     window_end ASC, id
 LIMIT @max_rows OFFSET @skip_rows;
+
+-- name: LockDishes :exec
+-- Serializes the dishes a seller adds, so the limit holds under concurrency.
+SELECT pg_advisory_xact_lock(hashtextextended('offer:dishes:' || @seller_id::text, 0));
+
+-- name: CountDishes :one
+SELECT count(*)::integer FROM offer_dishes WHERE seller_id = @seller_id;
+
+-- name: InsertDish :one
+INSERT INTO offer_dishes (seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden)
+VALUES (@seller_id, @created_by, @name, @kind, @unit, @description, @ingredients, @original_price_vnd, @photo_id, @hidden)
+RETURNING id;
+
+-- name: GetDish :one
+SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
+FROM offer_dishes WHERE id = @id;
+
+-- name: SellerDishes :many
+SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
+FROM offer_dishes WHERE seller_id = @seller_id
+ORDER BY created_at DESC, id DESC;
+
+-- name: UpdateDish :exec
+UPDATE offer_dishes
+SET name = @name, kind = @kind, unit = @unit, description = @description, ingredients = @ingredients,
+    original_price_vnd = @original_price_vnd, photo_id = @photo_id, hidden = @hidden, updated_at = now()
+WHERE id = @id;
+
+-- name: DeleteDish :execrows
+DELETE FROM offer_dishes WHERE id = @id;
 
 -- name: TakeUnits :one
 -- Takes units for an order in the order's transaction: only from an offer on

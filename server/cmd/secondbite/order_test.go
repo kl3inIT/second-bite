@@ -20,6 +20,8 @@ type orderResponse struct {
 	TotalVND         int64  `json:"totalVnd"`
 	Code             string `json:"code"`
 	CodeAttemptsLeft int    `json:"codeAttemptsLeft"`
+	CustomerPhone    string `json:"customerPhone"`
+	Access           string `json:"access"`
 	Lines            []struct {
 		Name  string `json:"name"`
 		Units int    `json:"units"`
@@ -33,6 +35,13 @@ type cartLine struct {
 
 type cart struct {
 	Lines []cartLine `json:"lines"`
+	Name  string     `json:"name"`
+	Phone string     `json:"phone"`
+}
+
+// cartOf is lines for the customer of these checks.
+func cartOf(lines ...cartLine) cart {
+	return cart{Lines: lines, Name: "Minh Anh", Phone: "0900000000"}
 }
 
 // checkOrderFlow has a customer order an offer of an active seller through
@@ -50,11 +59,12 @@ func checkOrderFlow(t *testing.T, svc service) {
 	placing := customer.Clone()
 	placing.Set("Idempotency-Key", "order-flow-2")
 
-	if p := send(t, http.MethodPost, svc.base+"/orders", placing, cart{[]cartLine{{offerID, 4}}}).
+	if p := send(t, http.MethodPost, svc.base+"/orders", placing, cartOf(cartLine{offerID, 4})).
 		problem(t, http.StatusConflict); p.Code != "ORDER_OFFER_SOLD_OUT" {
 		t.Errorf("more units than are left: %q", p.Code)
 	}
 
+	placeWithoutAccount(t, svc, offerID)
 	handOver(t, svc, owner, placed)
 
 	var mine struct {
@@ -73,7 +83,7 @@ func checkOrderFlow(t *testing.T, svc service) {
 func placeTwice(t *testing.T, svc service, customer http.Header, offerID string) orderResponse {
 	t.Helper()
 
-	twoUnits := cart{[]cartLine{{offerID, 2}}}
+	twoUnits := cartOf(cartLine{offerID, 2})
 
 	if p := send(t, http.MethodPost, svc.base+"/orders", customer, twoUnits).problem(t, http.StatusBadRequest); p.Code != "PLATFORM_REQUEST_INVALID" {
 		t.Errorf("placing without an Idempotency-Key: %q", p.Code)
@@ -100,6 +110,38 @@ func placeTwice(t *testing.T, svc service, customer http.Header, offerID string)
 	return placed
 }
 
+// placeWithoutAccount orders a unit with nobody signed in, then reads the
+// order with its access, which nothing else replaces.
+func placeWithoutAccount(t *testing.T, svc service, offerID string) {
+	t.Helper()
+
+	placing := http.Header{}
+	placing.Set("Idempotency-Key", "order-flow-guest")
+
+	var placed, read orderResponse
+
+	send(t, http.MethodPost, svc.base+"/orders", placing, cart{[]cartLine{{offerID, 1}}, "Hà", "+84 900 000 001"}).
+		decode(t, http.StatusCreated, &placed)
+
+	if placed.Access == "" || placed.CustomerPhone != "0900000001" {
+		t.Fatalf("placed without an account: %+v", placed)
+	}
+
+	orderURL := svc.base + "/orders/" + placed.ID
+
+	if p := send(t, http.MethodGet, orderURL, nil, nil).problem(t, http.StatusNotFound); p.Code != "ORDER_NOT_FOUND" {
+		t.Errorf("reading without the access: %q", p.Code)
+	}
+
+	reading := http.Header{}
+	reading.Set("Order-Access", placed.Access)
+	send(t, http.MethodGet, orderURL, reading, nil).decode(t, http.StatusOK, &read)
+
+	if read.ID != placed.ID {
+		t.Errorf("read with the access: %+v", read)
+	}
+}
+
 // handOver has the seller's owner give a wrong code, mark the order ready,
 // then hand it over against the code the customer was shown.
 func handOver(t *testing.T, svc service, owner http.Header, placed orderResponse) {
@@ -107,7 +149,7 @@ func handOver(t *testing.T, svc service, owner http.Header, placed orderResponse
 
 	orderURL := svc.base + "/orders/" + placed.ID
 
-	if p := send(t, http.MethodPost, orderURL+"/hand-over", owner, map[string]string{"code": wrongCode(placed.Code)}).
+	if p := send(t, http.MethodPost, orderURL+"/hand-over", owner, map[string]string{"code": wrongCollectionCode(placed.Code)}).
 		problem(t, http.StatusConflict); p.Code != "ORDER_CODE_WRONG" {
 		t.Errorf("a wrong code: %q", p.Code)
 	}
@@ -168,8 +210,8 @@ func postedOffer(t *testing.T, svc service, owner http.Header) string {
 	return posted.ID
 }
 
-// wrongCode is a four-digit code other than code.
-func wrongCode(code string) string {
+// wrongCollectionCode is a four-digit code other than code.
+func wrongCollectionCode(code string) string {
 	if code == "0000" {
 		return "0001"
 	}

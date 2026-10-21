@@ -206,7 +206,7 @@ Prices are whole đồng; times are RFC 3339 with an offset, schedules' times of
 | `OFFER_WINDOW_INVALID` | 400 | The window is too short, too long, ended, or starts too late |
 | `OFFER_NOT_FOUND` | 404 | No such offer, or one the caller may not see |
 | `OFFER_SCHEDULE_NOT_FOUND` | 404 | No such schedule for the seller |
-| `OFFER_SEARCH_INVALID` | 400 | A point off the map, a time range ending before it starts, or sorting by distance from no point |
+| `OFFER_SEARCH_INVALID` | 400 | A point off the map, a time range ending before it starts, a lowest price above the highest, or sorting by distance from no point |
 | `OFFER_NOT_ANNOUNCED` | 409 | Confirming or skipping what is not an open announcement |
 | `OFFER_CHANGE_NOT_ALLOWED` | 409 | A change its orders forbid, or any change once the window has ended or the offer is withdrawn |
 | `FILE_PHOTO_INVALID` | 400 | Not a JPEG, PNG or WebP image, or more than 24 megapixels; over 10 MB is `PLATFORM_BODY_TOO_LARGE` (413) |

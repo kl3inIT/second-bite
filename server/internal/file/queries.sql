@@ -29,3 +29,11 @@ SELECT content_type, data FROM file_blobs WHERE key = @key;
 
 -- name: DeleteBlob :exec
 DELETE FROM file_blobs WHERE key = @key;
+
+-- name: UnusedFilesOf :many
+-- The files an account uploaded that no offer or seller uses, to delete once
+-- the account is deleted (SEC-37).
+SELECT id, store, object_key FROM file_files WHERE uploaded_by = @account_id AND used_at IS NULL;
+
+-- name: DeleteUnusedFile :exec
+DELETE FROM file_files WHERE id = @id AND used_at IS NULL;

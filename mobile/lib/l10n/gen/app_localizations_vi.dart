@@ -31,7 +31,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get homeKindsLabel => 'Loại món';
 
   @override
-  String get homeCollectNow => 'Lấy ngay';
+  String get homeCollectNow => 'Nhận ngay';
 
   @override
   String get homeDealsTitle => 'Túi ngon tối nay ở Tasco Mall';
@@ -46,7 +46,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String homeTicketWindow(String from) {
-    return 'Lấy $from';
+    return 'Nhận $from';
   }
 
   @override
@@ -55,7 +55,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get homeClosingSoon => 'Sắp hết giờ lấy';
+  String get homeClosingSoon => 'Sắp hết giờ nhận';
 
   @override
   String get homeSeeAll => 'Xem tất cả';
@@ -88,7 +88,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String offerWindow(String from, String until) {
-    return 'Lấy $from–$until';
+    return 'Nhận $from–$until';
   }
 
   @override
@@ -129,7 +129,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get introBody =>
-      'Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.';
+      'Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy nhận trong khung giờ của món.';
 
   @override
   String get introDismiss => 'Đóng giới thiệu';
@@ -293,7 +293,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get legalPrivacySection3Body =>
-      'Mã đăng nhập: xóa khi dùng xong, khi bạn xin mã mới, hoặc muộn nhất một ngày sau khi gửi.\n\nPhiên đăng nhập: hết hạn sau 30 ngày không dùng; xóa khi bạn đăng xuất.\n\nẢnh tải lên nhưng không dùng cho món hay quán nào: xóa sau một ngày.\n\nTài khoản, quán, món đã đăng và đơn hàng: giữ cho tới khi bạn yêu cầu xóa, trừ phần pháp luật buộc phải giữ lâu hơn.';
+      'Mã đăng nhập: xóa khi dùng xong, khi bạn xin mã mới, hoặc muộn nhất một ngày sau khi gửi.\n\nPhiên đăng nhập: hết hạn sau 30 ngày không dùng; xóa khi bạn đăng xuất.\n\nẢnh tải lên nhưng không dùng cho món hay quán nào: xóa sau một ngày.\n\nTài khoản, quán, món đã đăng và đơn hàng: giữ cho tới khi bạn xóa tài khoản hoặc yêu cầu xóa, trừ phần pháp luật buộc phải giữ lâu hơn.\n\nKhi bạn xóa tài khoản: tài khoản, phiên đăng nhập, liên kết Google, mã đăng nhập và bản ghi các email gửi cho bạn bị xóa ngay; tư cách thành viên ở các quán và ảnh chưa dùng bị xóa trong vài phút sau đó. Món đã đăng, ảnh món và ảnh quán thuộc về quán nên được giữ, không còn gắn với bạn; quán bạn là chủ sẽ bị đóng.';
 
   @override
   String get legalPrivacySection4Title => '4. Ai được xem dữ liệu của bạn';
@@ -307,7 +307,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get legalPrivacySection5Body =>
-      'Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.';
+      'Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự xóa được tài khoản trong ứng dụng (Tài khoản → Cài đặt tài khoản → Xóa tài khoản) hoặc trên trang web tại /delete-account, sau khi nhập mã chúng tôi gửi đến email của tài khoản.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.';
 
   @override
   String get legalPrivacySection6Title =>
@@ -439,33 +439,173 @@ class AppLocalizationsVi extends AppLocalizations {
       'Email của tài khoản Google này đã có tài khoản Second Bite. Nhận mã qua email để đăng nhập.';
 
   @override
-  String get signInEmailInvalid =>
-      'Nhập một địa chỉ email, ví dụ ten@gmail.com.';
-
-  @override
-  String get signInCodeLimit =>
-      'Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.';
-
-  @override
-  String get signInCodeIncorrect =>
-      'Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.';
-
-  @override
-  String get signInCodeGone =>
-      'Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.';
-
-  @override
-  String get signInGoogleUnverified =>
-      'Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.';
-
-  @override
   String get signInFailed => 'Chưa đăng nhập được. Vui lòng thử lại.';
 
   @override
-  String signInFailedWithReference(String reference) {
-    return 'Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: $reference';
+  String get signInNotArrived => 'Chưa thấy email? Xem trong thư rác (Spam).';
+
+  @override
+  String get deleteAccountTitle => 'Xoá tài khoản';
+
+  @override
+  String get deleteAccountIntro =>
+      'Bạn có thể xoá tài khoản Second Bite bất cứ lúc nào, trong ứng dụng hoặc tại trang này. Việc xoá là vĩnh viễn và không thể hoàn tác.';
+
+  @override
+  String get deleteAccountDeletedTitle => 'Bị xoá ngay khi bạn xác nhận';
+
+  @override
+  String get deleteAccountDeleted1 =>
+      'Tài khoản của bạn: địa chỉ email và tên hiển thị.';
+
+  @override
+  String get deleteAccountDeleted2 =>
+      'Mọi phiên đăng nhập trên mọi thiết bị, và liên kết với tài khoản Google.';
+
+  @override
+  String get deleteAccountDeleted3 =>
+      'Mã đăng nhập và bản ghi các email chúng tôi đã gửi cho bạn.';
+
+  @override
+  String get deleteAccountLaterTitle => 'Bị xoá trong vài phút sau đó';
+
+  @override
+  String get deleteAccountLater1 =>
+      'Tư cách chủ quán hoặc nhân viên của bạn ở các quán.';
+
+  @override
+  String get deleteAccountLater2 =>
+      'Ảnh bạn đã tải lên nhưng chưa dùng cho món hay quán nào.';
+
+  @override
+  String get deleteAccountKeptTitle => 'Được giữ lại, không còn gắn với bạn';
+
+  @override
+  String get deleteAccountKept1 =>
+      'Món đã đăng, ảnh món và ảnh quán: chúng thuộc về quán.';
+
+  @override
+  String get deleteAccountKept2 =>
+      'Đơn hàng và thanh toán mà pháp luật buộc phải giữ, khi tính năng đặt món mở; thời hạn giữ đang cập nhật.';
+
+  @override
+  String get deleteAccountOwnerTitle => 'Bạn đang là chủ quán';
+
+  @override
+  String deleteAccountOwnerBody(String sellers) {
+    return 'Xoá tài khoản sẽ đóng $sellers: quán ngừng hiển thị với khách và nhân viên không quản lý được nữa, cho tới khi Second Bite xử lý.';
   }
 
   @override
-  String get signInNotArrived => 'Chưa thấy email? Xem trong thư rác (Spam).';
+  String get deleteAccountSignedOutTitle => 'Đăng nhập để xoá tài khoản';
+
+  @override
+  String get deleteAccountSignedOutBody =>
+      'Để chắc người xoá là chủ tài khoản, bạn đăng nhập rồi nhập mã chúng tôi gửi đến email của tài khoản.';
+
+  @override
+  String get deleteAccountSendCode => 'Gửi mã xác nhận';
+
+  @override
+  String get deleteAccountSending => 'Đang gửi mã…';
+
+  @override
+  String deleteAccountConfirmBody(String email) {
+    return 'Chúng tôi sẽ gửi mã 6 số đến $email để xác nhận bạn muốn xoá tài khoản.';
+  }
+
+  @override
+  String get deleteAccountCodeHeading => 'Nhập mã xác nhận';
+
+  @override
+  String deleteAccountCodeSent(String email) {
+    return 'Mã 6 số đã gửi đến $email. Mã chỉ dùng để xoá tài khoản.';
+  }
+
+  @override
+  String get deleteAccountCodeLabel => 'Mã xác nhận 6 số';
+
+  @override
+  String get deleteAccountConfirm => 'Xoá vĩnh viễn tài khoản';
+
+  @override
+  String get deleteAccountDeleting => 'Đang xoá…';
+
+  @override
+  String get deleteAccountCancel => 'Giữ tài khoản';
+
+  @override
+  String get deleteAccountFailed =>
+      'Chưa xoá được tài khoản. Vui lòng thử lại.';
+
+  @override
+  String get deleteAccountDoneTitle => 'Đã xoá tài khoản';
+
+  @override
+  String get deleteAccountDoneBody =>
+      'Tài khoản và dữ liệu cá nhân của bạn đã được xoá. Bạn vẫn có thể đăng nhập lại bằng email này bất cứ lúc nào, như một tài khoản mới.';
+
+  @override
+  String get deleteAccountHome => 'Về trang chủ';
+
+  @override
+  String get accountSettingsTitle => 'Cài đặt tài khoản';
+
+  @override
+  String get accountSettingsDetails => 'Thông tin tài khoản';
+
+  @override
+  String get accountSettingsEmail => 'Email';
+
+  @override
+  String get accountSettingsDisplayName => 'Tên hiển thị';
+
+  @override
+  String get accountSettingsNoDisplayName => 'Chưa có';
+
+  @override
+  String get accountSettingsSellers => 'Quán của bạn';
+
+  @override
+  String get accountSettingsOwner => 'Chủ quán';
+
+  @override
+  String get accountSettingsStaff => 'Nhân viên';
+
+  @override
+  String get accountSettingsLanguage => 'Ngôn ngữ';
+
+  @override
+  String get accountSettingsLanguageName => 'Tiếng Việt';
+
+  @override
+  String get accountSettingsDeleteTitle => 'Xoá tài khoản';
+
+  @override
+  String get accountSettingsDeleteBody =>
+      'Xoá vĩnh viễn tài khoản và dữ liệu cá nhân của bạn. Việc xoá không thể hoàn tác; quán bạn là chủ sẽ bị đóng.';
+
+  @override
+  String get accountSettingsDeleteAction => 'Xoá tài khoản';
+
+  @override
+  String problemReference(String reference) {
+    return 'Mã tham chiếu: $reference';
+  }
+
+  @override
+  String get accountSettingsEditName => 'Sửa tên hiển thị';
+
+  @override
+  String get accountSettingsSave => 'Lưu';
+
+  @override
+  String get accountSettingsSaving => 'Đang lưu…';
+
+  @override
+  String get accountSettingsCancel => 'Huỷ';
+
+  @override
+  String get accountSettingsNameFailed =>
+      'Chưa lưu được tên. Thử lại sau ít phút.';
 }

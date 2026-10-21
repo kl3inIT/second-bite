@@ -7,7 +7,7 @@ import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-import { savingOf, type Order } from "./order";
+import { byCheckout, isOpen, savingOf, type Order } from "./order";
 import { OrderStatusChip } from "./order-status";
 import { readMyOrders } from "./read-orders";
 import { SignInPrompt } from "./sign-in-prompt";
@@ -42,11 +42,29 @@ function Thumb({ order, size }: { order: Order; size: "md" | "sm" }) {
   );
 }
 
-/** An order still to collect, with the way to its code (Figma W7 › đơn đang chờ). */
-async function OpenOrderCard({ order }: { order: Order }) {
+/** What a group of orders placed together shows as one: its sellers, dishes, numbers and total. */
+function together(orders: Order[]) {
+  return {
+    sellers: orders.map((order) => order.seller.name).join(", "),
+    dishes: orders.flatMap((order) => order.lines.map((line) => line.name)),
+    numbers: orders.map((order) => order.number).join(", "),
+    total: orders.reduce((sum, order) => sum + order.totalVnd, 0),
+  };
+}
+
+/**
+ * Orders still to collect, placed together from one cart (SEC-76 › decision 8), with the way to them (Figma W7
+ * › đơn đang chờ): the soonest part decides the time shown, and one order alone shows its code.
+ */
+async function OpenOrderCard({ orders }: { orders: Order[] }) {
   const [t, format] = await Promise.all([getTranslations("Orders"), getFormatter()]);
+  const [order] = orders
+    .filter(isOpen)
+    .toSorted((a, b) => Date.parse(a.windowStart) - Date.parse(b.windowStart));
   const until = format.dateTime(new Date(order.windowEnd), "time");
   const from = format.dateTime(new Date(order.windowStart), "time");
+  const { sellers, dishes, numbers, total } = together(orders);
+  const code = orders.length === 1 ? order.code : undefined;
 
   return (
     <article className="flex flex-col gap-3 rounded-3xl bg-card p-4 text-card-foreground">
@@ -54,33 +72,41 @@ async function OpenOrderCard({ order }: { order: Order }) {
         <Thumb order={order} size="md" />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-label text-muted-foreground">{order.seller.name}</p>
+            <p className="text-label text-muted-foreground">{sellers}</p>
             <span className="rounded-full bg-secondary px-2.5 py-0.5 text-label-strong text-secondary-foreground">
               {order.status === "ready" ? t("readyUntil", { until }) : t("collectFrom", { from })}
             </span>
           </div>
-          <h3 className="truncate text-body-sm-strong">
-            {order.lines.map((line) => line.name).join(", ")}
+          <h3 className="flex flex-col text-body-sm-strong">
+            {dishes.map((dish, index) => (
+              <span key={index} className="truncate">
+                {dish}
+              </span>
+            ))}
           </h3>
-          <p className="text-label text-muted-foreground">
-            {t("cardLine", { number: order.number, total: formatPrice(order.totalVnd) })}
+          <p className="text-label text-muted-foreground">{numbers}</p>
+          <p className="flex items-baseline gap-1.5 text-label text-muted-foreground">
+            <span className="font-display text-price text-foreground">{formatPrice(total)}</span>
+            {t("payOnCollect")}
           </p>
         </div>
       </div>
       <Link
-        href={`/orders/${order.id}`}
+        href={`/orders/${orders[0].id}`}
         className={buttonVariants({ variant: "secondary", size: "lg" })}
       >
-        {order.code ? t("seeCode", { code: order.code }) : t("seeOrder")}
+        {code ? t("seeCode", { code }) : t("seeOrder")}
       </Link>
     </article>
   );
 }
 
-/** An order that has ended, on one line (Figma W7 › Trước đó). */
-async function EndedOrderRow({ order }: { order: Order }) {
+/** Orders placed together that have all ended, on one line (Figma W7 › Trước đó), with each status once. */
+async function EndedOrderRow({ orders }: { orders: Order[] }) {
   const [t, format] = await Promise.all([getTranslations("Orders"), getFormatter()]);
+  const [order] = orders;
   const at = new Date(order.windowStart);
+  const statuses = [...new Set(orders.map(({ status }) => status))];
 
   return (
     <li>
@@ -90,15 +116,21 @@ async function EndedOrderRow({ order }: { order: Order }) {
       >
         <Thumb order={order} size="sm" />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <p className="truncate text-body-sm-strong">
-            {order.lines.map((line) => line.name).join(", ")}
+          <p className="flex flex-col text-body-sm-strong">
+            {together(orders).dishes.map((dish, index) => (
+              <span key={index} className="truncate">
+                {dish}
+              </span>
+            ))}
           </p>
           <p className="flex flex-wrap items-center gap-2 text-label text-muted-foreground">
             {t("date", {
               day: format.dateTime(at, "dayOfMonth"),
               month: format.dateTime(at, "monthOfYear"),
             })}
-            <OrderStatusChip status={order.status} />
+            {statuses.map((status) => (
+              <OrderStatusChip key={status} status={status} />
+            ))}
           </p>
         </div>
         <ChevronRightIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
@@ -109,7 +141,7 @@ async function EndedOrderRow({ order }: { order: Order }) {
 
 /**
  * "Đơn của tôi" (Figma W7): the two lists as tabs with their counts; the orders to collect as cards with the
- * way to their code, then the latest that have ended; beside them, what the customer's collected orders saved.
+ * way to their code, then the latest that have ended; beside them, once some were collected, what they saved.
  */
 export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
   const which = await pending;
@@ -118,15 +150,19 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
     readMyOrders("open"),
     readMyOrders("ended"),
   ]);
-  if (!open.signedIn || !done.signedIn) return <SignInPrompt returnTo="/orders" />;
+  if (!open.known || !done.known) return <SignInPrompt returnTo="/orders" />;
 
+  // Orders placed together are one, still to collect while any of them is (SEC-76 › decision 8).
+  const groups = byCheckout([...open.value, ...done.value]);
+  const openGroups = groups.filter((group) => group.some(isOpen));
+  const endedGroups = groups.filter((group) => !group.some(isOpen));
   const collected = done.value.filter((order) => order.status === "collected");
   const saved = collected.reduce((sum, order) => sum + savingOf(order), 0);
-  const ended = which === "open" ? done.value.slice(0, 3) : done.value;
+  const ended = which === "open" ? endedGroups.slice(0, 3) : endedGroups;
 
   return (
     <div className="grid gap-6 lg:grid-cols-5 lg:items-start">
-      <div className="flex flex-col gap-4 lg:col-span-3">
+      <div className="flex min-w-0 flex-col gap-4 lg:col-span-3">
         <nav
           aria-label={t("lists")}
           className="grid grid-cols-2 gap-1 rounded-2xl bg-secondary p-1"
@@ -142,14 +178,14 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
               )}
             >
               {tab === "open"
-                ? t("tabOpen", { count: open.value.length })
-                : t("tabEnded", { count: done.value.length })}
+                ? t("tabOpen", { count: openGroups.length })
+                : t("tabEnded", { count: endedGroups.length })}
             </Link>
           ))}
         </nav>
         {which === "open" ? (
-          open.value.length > 0 ? (
-            open.value.map((order) => <OpenOrderCard key={order.id} order={order} />)
+          openGroups.length > 0 ? (
+            openGroups.map((group) => <OpenOrderCard key={group[0].id} orders={group} />)
           ) : (
             <p className="rounded-3xl bg-card p-6 text-center text-body-sm text-muted-foreground">
               {t("noneOpen")}
@@ -162,8 +198,8 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
               {t("before")}
             </h2>
             <ul className="flex flex-col gap-2">
-              {ended.map((order) => (
-                <EndedOrderRow key={order.id} order={order} />
+              {ended.map((group) => (
+                <EndedOrderRow key={group[0].id} orders={group} />
               ))}
             </ul>
           </section>
@@ -173,21 +209,19 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
           </p>
         ) : null}
       </div>
-      <aside className="flex items-start gap-3 rounded-3xl bg-primary p-5 text-primary-foreground lg:col-span-2">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-fresh text-fresh-foreground">
-          <LeafIcon aria-hidden className="size-5" />
-        </span>
-        <div className="flex flex-col gap-1">
-          <p className="text-title">
-            {collected.length > 0 ? t("impact", { meals: collected.length }) : t("impactNone")}
-          </p>
-          <p className="text-body-sm text-inverse-muted">
-            {collected.length > 0
-              ? t("impactSaved", { saved: formatPrice(saved) })
-              : t("impactNoneBody")}
-          </p>
-        </div>
-      </aside>
+      {collected.length > 0 ? (
+        <aside className="flex items-start gap-3 rounded-3xl bg-primary p-5 text-primary-foreground lg:col-span-2">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-fresh text-fresh-foreground">
+            <LeafIcon aria-hidden className="size-5" />
+          </span>
+          <div className="flex flex-col gap-1">
+            <p className="text-title">{t("impact", { meals: collected.length })}</p>
+            <p className="text-body-sm text-inverse-muted">
+              {t("impactSaved", { saved: formatPrice(saved) })}
+            </p>
+          </div>
+        </aside>
+      ) : null}
     </div>
   );
 }

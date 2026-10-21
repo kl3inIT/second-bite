@@ -68,6 +68,15 @@ func (q *Queries) DeleteBlob(ctx context.Context, key string) error {
 	return err
 }
 
+const deleteUnusedFile = `-- name: DeleteUnusedFile :exec
+DELETE FROM file_files WHERE id = $1 AND used_at IS NULL
+`
+
+func (q *Queries) DeleteUnusedFile(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUnusedFile, id)
+	return err
+}
+
 const getBlob = `-- name: GetBlob :one
 SELECT content_type, data FROM file_blobs WHERE key = $1
 `
@@ -164,4 +173,36 @@ type PutBlobParams struct {
 func (q *Queries) PutBlob(ctx context.Context, arg PutBlobParams) error {
 	_, err := q.db.Exec(ctx, putBlob, arg.Key, arg.ContentType, arg.Data)
 	return err
+}
+
+const unusedFilesOf = `-- name: UnusedFilesOf :many
+SELECT id, store, object_key FROM file_files WHERE uploaded_by = $1 AND used_at IS NULL
+`
+
+type UnusedFilesOfRow struct {
+	ID        uuid.UUID
+	Store     string
+	ObjectKey string
+}
+
+// The files an account uploaded that no offer or seller uses, to delete once
+// the account is deleted (SEC-37).
+func (q *Queries) UnusedFilesOf(ctx context.Context, accountID uuid.UUID) ([]UnusedFilesOfRow, error) {
+	rows, err := q.db.Query(ctx, unusedFilesOf, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UnusedFilesOfRow
+	for rows.Next() {
+		var i UnusedFilesOfRow
+		if err := rows.Scan(&i.ID, &i.Store, &i.ObjectKey); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

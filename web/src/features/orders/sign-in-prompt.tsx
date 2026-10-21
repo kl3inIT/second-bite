@@ -4,7 +4,8 @@ import { useTranslations } from "next-intl";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 
-// What an order screen shows someone signed out: orders belong to an account, so sign in, then come back here.
+// What an order screen shows when no one is signed in and this browser placed no such order: sign in, then come
+// back here.
 export function SignInPrompt({ returnTo }: { returnTo: string }) {
   const t = useTranslations("Orders");
 

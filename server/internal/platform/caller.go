@@ -61,10 +61,18 @@ func CallerFrom(ctx context.Context) (Caller, bool) {
 
 // The failures of authorization every module shares.
 var (
-	ErrAuthenticationRequired = NewFailure("PLATFORM_AUTHENTICATION_REQUIRED", CategoryUnauthenticated, "Sign in to continue.")
-	ErrAdminRequired          = NewFailure("PLATFORM_ADMIN_REQUIRED", CategoryNotPermitted, "Only Second Bite admins may do this.")
-	ErrCrossOriginRefused     = NewFailure("PLATFORM_CROSS_ORIGIN_REFUSED", CategoryNotPermitted,
-		"A change signed in by the session cookie must come from Second Bite's own pages.")
+	ErrAuthenticationRequired = NewFailure("PLATFORM_AUTHENTICATION_REQUIRED", CategoryUnauthenticated, Words{
+		VI: "Đăng nhập để tiếp tục.",
+		EN: "Sign in to continue.",
+	})
+	ErrAdminRequired = NewFailure("PLATFORM_ADMIN_REQUIRED", CategoryNotPermitted, Words{
+		VI: "Chỉ quản trị viên Second Bite mới làm được việc này.",
+		EN: "Only Second Bite admins may do this.",
+	})
+	ErrCrossOriginRefused = NewFailure("PLATFORM_CROSS_ORIGIN_REFUSED", CategoryNotPermitted, Words{
+		VI: "Thay đổi bằng phiên đăng nhập trên trình duyệt phải đến từ chính trang Second Bite.",
+		EN: "A change signed in by the session cookie must come from Second Bite's own pages.",
+	})
 )
 
 // RequireCaller returns the caller of ctx, or ErrAuthenticationRequired.

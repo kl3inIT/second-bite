@@ -26,20 +26,22 @@ func (q *Queries) CountWrongCode(ctx context.Context, id uuid.UUID) (int32, erro
 }
 
 const customerOrders = `-- name: CustomerOrders :many
-SELECT id, number, customer_id, seller_id, seller_name, latitude, longitude, address, state, window_start,
-       window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note, created_at, ready_at,
-       collected_at, cancelled_at, refused_at
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
+       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders
 WHERE customer_id = $1
-  AND ($2::text = ''
-       OR ($2 = 'open' AND state IN ('confirmed', 'ready') AND window_end > now())
-       OR ($2 = 'ended' AND NOT (state IN ('confirmed', 'ready') AND window_end > now())))
+  AND ($2::uuid IS NULL OR checkout_id = $2)
+  AND ($3::text = ''
+       OR ($3 = 'open' AND state IN ('confirmed', 'ready') AND window_end > now())
+       OR ($3 = 'ended' AND NOT (state IN ('confirmed', 'ready') AND window_end > now())))
 ORDER BY created_at DESC, id
-LIMIT $4 OFFSET $3
+LIMIT $5 OFFSET $4
 `
 
 type CustomerOrdersParams struct {
-	CustomerID uuid.UUID
+	CustomerID uuid.NullUUID
+	CheckoutID uuid.NullUUID
 	Which      string
 	SkipRows   int32
 	MaxRows    int32
@@ -48,8 +50,11 @@ type CustomerOrdersParams struct {
 type CustomerOrdersRow struct {
 	ID                uuid.UUID
 	Number            pgtype.Int8
-	CustomerID        uuid.UUID
+	CustomerID        uuid.NullUUID
+	CustomerName      string
+	CustomerPhone     string
 	SellerID          uuid.UUID
+	CheckoutID        uuid.UUID
 	SellerName        string
 	Latitude          float64
 	Longitude         float64
@@ -70,10 +75,12 @@ type CustomerOrdersRow struct {
 }
 
 // A customer's orders, newest first: open ones are confirmed or ready with
-// their window not over; ended ones are every other.
+// their window not over; ended ones are every other; those of one checkout
+// when it is given.
 func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) ([]CustomerOrdersRow, error) {
 	rows, err := q.db.Query(ctx, customerOrders,
 		arg.CustomerID,
+		arg.CheckoutID,
 		arg.Which,
 		arg.SkipRows,
 		arg.MaxRows,
@@ -89,7 +96,10 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 			&i.ID,
 			&i.Number,
 			&i.CustomerID,
+			&i.CustomerName,
+			&i.CustomerPhone,
 			&i.SellerID,
+			&i.CheckoutID,
 			&i.SellerName,
 			&i.Latitude,
 			&i.Longitude,
@@ -119,17 +129,20 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 }
 
 const getOrder = `-- name: GetOrder :one
-SELECT id, number, customer_id, seller_id, seller_name, latitude, longitude, address, state, window_start,
-       window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note, created_at, ready_at,
-       collected_at, cancelled_at, refused_at
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
+       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders WHERE id = $1
 `
 
 type GetOrderRow struct {
 	ID                uuid.UUID
 	Number            pgtype.Int8
-	CustomerID        uuid.UUID
+	CustomerID        uuid.NullUUID
+	CustomerName      string
+	CustomerPhone     string
 	SellerID          uuid.UUID
+	CheckoutID        uuid.UUID
 	SellerName        string
 	Latitude          float64
 	Longitude         float64
@@ -156,7 +169,10 @@ func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, erro
 		&i.ID,
 		&i.Number,
 		&i.CustomerID,
+		&i.CustomerName,
+		&i.CustomerPhone,
 		&i.SellerID,
+		&i.CheckoutID,
 		&i.SellerName,
 		&i.Latitude,
 		&i.Longitude,
@@ -185,7 +201,7 @@ INSERT INTO order_events (order_id, kind, actor_id) VALUES ($1, $2, $3)
 type InsertEventParams struct {
 	OrderID uuid.UUID
 	Kind    string
-	ActorID uuid.UUID
+	ActorID uuid.NullUUID
 }
 
 func (q *Queries) InsertEvent(ctx context.Context, arg InsertEventParams) error {
@@ -225,18 +241,21 @@ func (q *Queries) InsertLine(ctx context.Context, arg InsertLineParams) error {
 
 const insertOrder = `-- name: InsertOrder :one
 INSERT INTO order_orders (
-    customer_id, seller_id, seller_name, latitude, longitude, address, window_start, window_end, total_vnd,
-    idempotency_key
+    customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude, longitude, address,
+    window_start, window_end, total_vnd, idempotency_key
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9,
-    $10
+    $1, $2, $3, $4, $5, $6, $7, $8,
+    $9, $10, $11, $12, $13
 )
 RETURNING id
 `
 
 type InsertOrderParams struct {
-	CustomerID     uuid.UUID
+	CustomerID     uuid.NullUUID
+	CustomerName   string
+	CustomerPhone  string
 	SellerID       uuid.UUID
+	CheckoutID     uuid.UUID
 	SellerName     string
 	Latitude       float64
 	Longitude      float64
@@ -250,7 +269,10 @@ type InsertOrderParams struct {
 func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, insertOrder,
 		arg.CustomerID,
+		arg.CustomerName,
+		arg.CustomerPhone,
 		arg.SellerID,
+		arg.CheckoutID,
 		arg.SellerName,
 		arg.Latitude,
 		arg.Longitude,
@@ -301,17 +323,20 @@ func (q *Queries) LinesOf(ctx context.Context, orderIds []uuid.UUID) ([]OrderLin
 }
 
 const lockOrder = `-- name: LockOrder :one
-SELECT id, number, customer_id, seller_id, seller_name, latitude, longitude, address, state, window_start,
-       window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note, created_at, ready_at,
-       collected_at, cancelled_at, refused_at
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
+       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders WHERE id = $1 FOR UPDATE
 `
 
 type LockOrderRow struct {
 	ID                uuid.UUID
 	Number            pgtype.Int8
-	CustomerID        uuid.UUID
+	CustomerID        uuid.NullUUID
+	CustomerName      string
+	CustomerPhone     string
 	SellerID          uuid.UUID
+	CheckoutID        uuid.UUID
 	SellerName        string
 	Latitude          float64
 	Longitude         float64
@@ -339,7 +364,10 @@ func (q *Queries) LockOrder(ctx context.Context, id uuid.UUID) (LockOrderRow, er
 		&i.ID,
 		&i.Number,
 		&i.CustomerID,
+		&i.CustomerName,
+		&i.CustomerPhone,
 		&i.SellerID,
+		&i.CheckoutID,
 		&i.SellerName,
 		&i.Latitude,
 		&i.Longitude,
@@ -411,26 +439,30 @@ func (q *Queries) MarkRefused(ctx context.Context, arg MarkRefusedParams) error 
 }
 
 const orderOfKey = `-- name: OrderOfKey :one
-SELECT id FROM order_orders WHERE customer_id = $1 AND idempotency_key = $2
+SELECT id FROM order_orders
+WHERE customer_id IS NOT DISTINCT FROM $1::uuid AND idempotency_key = $2
+  AND (customer_id IS NOT NULL OR customer_phone = $3)
 `
 
 type OrderOfKeyParams struct {
-	CustomerID     uuid.UUID
+	CustomerID     uuid.NullUUID
 	IdempotencyKey string
+	CustomerPhone  string
 }
 
-// The order a customer already placed with this idempotency key.
+// The order a customer already placed with this idempotency key; without an
+// account, only with the same phone number.
 func (q *Queries) OrderOfKey(ctx context.Context, arg OrderOfKeyParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, orderOfKey, arg.CustomerID, arg.IdempotencyKey)
+	row := q.db.QueryRow(ctx, orderOfKey, arg.CustomerID, arg.IdempotencyKey, arg.CustomerPhone)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
 }
 
 const sellerOrders = `-- name: SellerOrders :many
-SELECT id, number, customer_id, seller_id, seller_name, latitude, longitude, address, state, window_start,
-       window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note, created_at, ready_at,
-       collected_at, cancelled_at, refused_at
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
+       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders
 WHERE seller_id = $1 AND window_start >= $2 AND window_start < $3
 ORDER BY window_start, number
@@ -446,8 +478,11 @@ type SellerOrdersParams struct {
 type SellerOrdersRow struct {
 	ID                uuid.UUID
 	Number            pgtype.Int8
-	CustomerID        uuid.UUID
+	CustomerID        uuid.NullUUID
+	CustomerName      string
+	CustomerPhone     string
 	SellerID          uuid.UUID
+	CheckoutID        uuid.UUID
 	SellerName        string
 	Latitude          float64
 	Longitude         float64
@@ -482,7 +517,10 @@ func (q *Queries) SellerOrders(ctx context.Context, arg SellerOrdersParams) ([]S
 			&i.ID,
 			&i.Number,
 			&i.CustomerID,
+			&i.CustomerName,
+			&i.CustomerPhone,
 			&i.SellerID,
+			&i.CheckoutID,
 			&i.SellerName,
 			&i.Latitude,
 			&i.Longitude,

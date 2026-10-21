@@ -3,21 +3,15 @@ import Image, { type StaticImageData } from "next/image";
 import { useTranslations } from "next-intl";
 
 import { Marquee } from "@/components/marquee";
+import { kindPictures as pictures } from "@/features/offers/kind-pictures";
+import cakes from "@/features/offers/kinds/cakes.jpg";
+import fruit from "@/features/offers/kinds/fruit.jpg";
+import noodles from "@/features/offers/kinds/noodles.jpg";
+import pho from "@/features/offers/kinds/pho.jpg";
+import sushi from "@/features/offers/kinds/sushi.jpg";
+import vegetables from "@/features/offers/kinds/vegetables.jpg";
 import type { OfferKind } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
-
-import bakery from "./kinds/bakery.jpg";
-import cakes from "./kinds/cakes.jpg";
-import drinks from "./kinds/drinks.jpg";
-import fruit from "./kinds/fruit.jpg";
-import ingredients from "./kinds/ingredients.jpg";
-import mixedBox from "./kinds/mixed-box.jpg";
-import noodles from "./kinds/noodles.jpg";
-import other from "./kinds/other.jpg";
-import pho from "./kinds/pho.jpg";
-import preparedFood from "./kinds/prepared-food.jpg";
-import sushi from "./kinds/sushi.jpg";
-import vegetables from "./kinds/vegetables.jpg";
 
 import type { HomeQuery } from "./home-query";
 
@@ -34,15 +28,6 @@ const order: readonly OfferKind[] = [
   "drinks",
   "other",
 ];
-const pictures: Record<OfferKind, StaticImageData> = {
-  bakery,
-  prepared_food: preparedFood,
-  ingredients,
-  drinks,
-  mixed_box: mixedBox,
-  other,
-};
-
 // The words searched are the dishes' Vietnamese names, as the offers are named, whatever the language shown.
 const dishes = [
   { key: "pho", words: "phở", picture: pho },
