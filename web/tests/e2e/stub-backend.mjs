@@ -658,6 +658,138 @@ function dishesFor(seller) {
   return dishesBy.get(seller.id);
 }
 
+/**
+ * A store's orders (SEC-78), as GET /sellers/{id}/orders answers for today: a store named "Tiệm có đơn" holds
+ * four and has handed over one and had one cancelled by its customer (Figma Q5, Q5e, Q5f); any other starts empty.
+ * The windows run from an hour ago to three hours on, so none reads as expired.
+ */
+const sellerOrdersBy = new Map();
+
+function sellerOrdersFor(seller) {
+  if (!sellerOrdersBy.has(seller.id)) {
+    const order = (n, status, name, phone, dish, unit, units, price, extra = {}) => ({
+      id: `or-${n}-${seller.id}`,
+      number: `SB-${10100 + n}`,
+      checkoutId: `ch-${n}-${seller.id}`,
+      codeAttemptsLeft: 3,
+      status,
+      customerName: name,
+      customerPhone: phone,
+      seller: {
+        id: seller.id,
+        name: seller.name,
+        address: seller.address,
+        latitude: 21.0565,
+        longitude: 105.8964,
+      },
+      lines: [
+        {
+          offerId: `of-${n}-${seller.id}`,
+          name: dish,
+          unit,
+          units,
+          priceVnd: price,
+          originalPriceVnd: price * 2,
+          photo: {
+            id: "ph-1",
+            largePath: "/photos/ph-1/1600.jpg",
+            smallPath: "/photos/ph-1/400.jpg",
+          },
+        },
+      ],
+      totalVnd: price * units,
+      windowStart: new Date(Date.now() - 3_600_000).toISOString(),
+      windowEnd: new Date(Date.now() + 3 * 3_600_000).toISOString(),
+      createdAt: new Date().toISOString(),
+      ...extra,
+    });
+    sellerOrdersBy.set(
+      seller.id,
+      seller.name === "Tiệm có đơn"
+        ? [
+            order(1, "confirmed", "Lê Thu Hà", "0905111222", "Cơm sườn nướng", "suất", 1, 30000),
+            order(
+              2,
+              "confirmed",
+              "Nguyễn An",
+              "0912345678",
+              "Túi bánh mì và croissant",
+              "túi",
+              2,
+              57000,
+            ),
+            order(3, "confirmed", "Trần Minh", "0987654321", "Xôi thập cẩm", "hộp", 1, 30000),
+            order(
+              4,
+              "collected",
+              "Phạm Quốc Bảo",
+              "0933222888",
+              "Túi bánh mì và croissant",
+              "túi",
+              1,
+              57000,
+              {
+                collectedAt: new Date().toISOString(),
+              },
+            ),
+            order(5, "cancelled", "Võ Lan", "0900123456", "Xôi thập cẩm", "hộp", 1, 30000, {
+              cancelledAt: new Date().toISOString(),
+            }),
+          ]
+        : [],
+    );
+  }
+  return sellerOrdersBy.get(seller.id);
+}
+
+/** What the seller's people do with an order: hand it over, refuse it with a reason, or take either back. */
+const REFUSALS = [
+  "not_suitable",
+  "wrong_items",
+  "no_answer",
+  "no_show",
+  "late",
+  "sold_out",
+  "other",
+];
+
+async function staffOrderAction(request, response, mine, id, action) {
+  const order = mine.flatMap((seller) => sellerOrdersFor(seller)).find((found) => found.id === id);
+  if (!order) {
+    problem(response, 404, "ORDER_NOT_FOUND");
+    return;
+  }
+  const open = order.status === "confirmed" || order.status === "ready";
+  if (action === "reopen") {
+    if (order.status !== "collected" && order.status !== "refused") {
+      problem(response, 409, "ORDER_TRANSITION_NOT_ALLOWED");
+      return;
+    }
+    order.status = "confirmed";
+    delete order.collectedAt;
+    delete order.refusedAt;
+    delete order.refuseReason;
+    delete order.refuseNote;
+  } else if (!open) {
+    problem(response, 409, "ORDER_TRANSITION_NOT_ALLOWED");
+    return;
+  } else if (action === "deliver") {
+    order.status = "collected";
+    order.collectedAt = new Date().toISOString();
+  } else {
+    const { reason, note } = await readBody(request);
+    if (!REFUSALS.includes(reason)) {
+      problem(response, 400, "ORDER_REFUSAL_INVALID");
+      return;
+    }
+    order.status = "refused";
+    order.refusedAt = new Date().toISOString();
+    order.refuseReason = reason;
+    if (typeof note === "string" && note) order.refuseNote = note;
+  }
+  json(response, 200, order);
+}
+
 /** A store with one live post of which units are ordered, for the screens that lock the price and the hours. */
 function postsWithOrders(seller) {
   return postsOf(seller)
@@ -723,7 +855,8 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers" ||
     url.pathname === "/sellers/mine" ||
     url.pathname === "/photos" ||
-    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes)?$/.test(url.pathname) ||
+    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
+    /^\/orders\/[\w-]+\/(deliver|reopen|refuse)$/.test(url.pathname) ||
     /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname) ||
     /^\/dishes\/[\w-]+$/.test(url.pathname);
   if (!isSellerRoute) return false;
@@ -774,6 +907,26 @@ async function sellerRoutes(request, response, url) {
       largePath: "/photos/ph-upload/1600.jpg",
       smallPath: "/photos/ph-upload/400.jpg",
     });
+    return true;
+  }
+  const staffAction = /^\/orders\/([\w-]+)\/(deliver|reopen|refuse)$/.exec(url.pathname);
+  if (request.method === "POST" && staffAction) {
+    await staffOrderAction(request, response, mine, staffAction[1], staffAction[2]);
+    return true;
+  }
+  const ordersOfStore = /^\/sellers\/([\w-]+)\/orders$/.exec(url.pathname);
+  if (request.method === "GET" && ordersOfStore) {
+    const seller = mine.find((candidate) => candidate.id === ordersOfStore[1]);
+    if (!seller) {
+      problem(response, 404, "SELLER_NOT_FOUND");
+      return true;
+    }
+    // The stub keeps the orders of today only; any other day is empty.
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(
+      new Date(),
+    );
+    const day = url.searchParams.get("day") || today;
+    json(response, 200, { orders: day === today ? sellerOrdersFor(seller) : [] });
     return true;
   }
   const catalog = /^\/sellers\/([\w-]+)\/dishes$/.exec(url.pathname);
