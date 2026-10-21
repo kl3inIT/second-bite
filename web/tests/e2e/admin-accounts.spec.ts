@@ -86,14 +86,14 @@ test.describe("the accounts", () => {
     await expect(page).toHaveURL(/\/vi\/admin\/accounts\/ac-bao$/);
 
     await expect(page.getByRole("heading", { level: 1, name: "Quốc Bảo" })).toBeVisible();
-    await expect(page.getByText("bao@example.com")).toBeVisible();
+    await expect(page.getByRole("paragraph").filter({ hasText: "bao@example.com" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toContainText("Tài khoản");
     await expect(page.getByRole("definition").filter({ hasText: "83%" })).toBeVisible();
     await expect(page.getByRole("term").filter({ hasText: "Tỉ lệ đến lấy" })).toBeVisible();
     const recent = page.getByRole("list").filter({ hasText: "Không đến" });
     await expect(recent.getByRole("listitem")).toHaveCount(5);
     await expect(recent).toContainText("Đang giữ");
-    await expect(page.getByText("Google", { exact: true })).toBeVisible();
+    await expect(page.getByText("Google", { exact: true }).filter({ visible: true })).toBeVisible();
     await expect(page.getByText("Chủ cửa hàng")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
   });

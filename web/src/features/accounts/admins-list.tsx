@@ -7,17 +7,6 @@ import { useState } from "react";
 import { z } from "zod";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +25,7 @@ import { toast } from "@/components/ui/toast";
 import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError, failureOf } from "@/lib/api/client";
-import { grantAdmin, revokeAdmin, type RecordBody } from "@/lib/api/generated";
+import { grantAdmin, type RecordBody } from "@/lib/api/generated";
 
 import { AccountAvatar, nameOf, SignedIn } from "./account-parts";
 import { RoleAction } from "./role-action";

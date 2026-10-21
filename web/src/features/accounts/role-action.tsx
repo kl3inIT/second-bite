@@ -40,11 +40,13 @@ export function RoleAction({
 }) {
   const t = useTranslations("Admin.admins.revoke");
 
-  if (account.role === "customer") return <ChangeRole account={account} change="grant" />;
+  // Keyed by the change, so a grant that turns the account into an admin starts the revoke afresh.
+  if (account.role === "customer")
+    return <ChangeRole key="grant" account={account} change="grant" />;
   if (account.id === myId)
     return <span className="text-label text-muted-foreground">{t("self")}</span>;
   if (adminCount <= 1) return <span className="text-label text-muted-foreground">{t("last")}</span>;
-  return <ChangeRole account={account} change="revoke" />;
+  return <ChangeRole key="revoke" account={account} change="revoke" />;
 }
 
 function ChangeRole({ account, change }: { account: RecordBody; change: "grant" | "revoke" }) {
@@ -52,6 +54,7 @@ function ChangeRole({ account, change }: { account: RecordBody; change: "grant" 
   const revoke = useTranslations("Admin.admins.revoke");
   const t = change === "grant" ? promote : revoke;
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const name = nameOf(account);
   const Icon = change === "grant" ? ShieldPlusIcon : ShieldMinusIcon;
@@ -62,6 +65,7 @@ function ChangeRole({ account, change }: { account: RecordBody; change: "grant" 
       if (change === "grant") await grantAdmin({ body: { email: account.email } });
       else await revokeAdmin({ path: { accountId: account.id } });
       toast.add({ type: "success", title: t("done", { name, email: account.email }) });
+      setOpen(false);
       router.refresh();
     } catch (error) {
       const { detail, reference } = failureOf(error);
@@ -78,7 +82,7 @@ function ChangeRole({ account, change }: { account: RecordBody; change: "grant" 
   };
 
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger render={<Button variant="outline" />}>
         <Icon data-icon="inline-start" aria-hidden />
         {t("open")}

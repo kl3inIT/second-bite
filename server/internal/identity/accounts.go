@@ -155,7 +155,7 @@ func escapeLike(s string) string {
 
 func recordOf(r db.GetAccountForAdminsRow) Record {
 	return Record{
-		Account:          Account{ID: r.ID, Email: r.Email, Role: platform.Role(r.Role), DisplayName: r.DisplayName},
+		ID: r.ID, Email: r.Email, Role: platform.Role(r.Role), DisplayName: r.DisplayName,
 		CreatedAt:        r.CreatedAt,
 		LastSignedInAt:   r.LastSignedInAt,
 		LastSignInMethod: textOf(r.LastSignInMethod),

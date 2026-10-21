@@ -1,17 +1,27 @@
 package identity
 
 import (
+	"context"
 	"errors"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/identity/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
 )
+
+// people are the accounts of TestAccountsForAdmins: an admin who never signed
+// in, An by Google, Bình by code, and an address without a name that never
+// signed in.
+type people struct {
+	admin, an, binh Account
+	unnamed         string
+}
 
 // TestAccountsForAdmins checks the admins' list of accounts and the sign-in
 // it shows (SEC-75) on a database of its own, since the list counts every
@@ -27,6 +37,25 @@ func TestAccountsForAdmins(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	p := seedPeople(t, s, pool)
+	asAdmin := adminCtx(t.Context(), p.admin)
+
+	for name, check := range map[string]func(context.Context, *testing.T, *Service, people){
+		"an account shows its last sign-in":                       checkLastSignIn,
+		"the list finds words without marks and counts the roles": checkSearch,
+		"the list sorts, those never signed in last":              checkSorts,
+		"the list pages and refuses bad filters and customers":    checkPagingAndRefusals,
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			check(asAdmin, t, s, p)
+		})
+	}
+}
+
+func seedPeople(t *testing.T, s *Service, pool *pgxpool.Pool) people {
+	t.Helper()
+
 	ctx := t.Context()
 
 	admin, err := s.GrantAdminAsSystem(ctx, "quan.tri@example.com")
@@ -34,17 +63,16 @@ func TestAccountsForAdmins(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	an := insertAccount(t, s, "an@example.com", "Nguyễn Văn An")
-	binh := insertAccount(t, s, "binh@example.com", "Trần Thị Bình")
-	insertAccount(t, s, "dong.lan@example.com", "")
+	p := people{
+		admin:   admin,
+		an:      insertAccount(t, s, "an@example.com", "Nguyễn Văn An"),
+		binh:    insertAccount(t, s, "binh@example.com", "Trần Thị Bình"),
+		unnamed: insertAccount(t, s, "dong.lan@example.com", "").Email,
+	}
 
-	// An signs in by Google, Bình by code; the others never have.
-	for _, signIn := range []struct {
-		a      Account
-		method string
-	}{{an, methodGoogle}, {binh, methodCode}} {
+	for a, method := range map[Account]string{p.an: methodGoogle, p.binh: methodCode} {
 		if err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
-			_, err := s.openSession(ctx, s.queries.WithTx(tx), signIn.a, signIn.method)
+			_, err := s.openSession(ctx, s.queries.WithTx(tx), a, method)
 
 			return err
 		}); err != nil {
@@ -52,92 +80,95 @@ func TestAccountsForAdmins(t *testing.T) {
 		}
 	}
 
-	asAdmin := adminCtx(ctx, admin)
+	return p
+}
 
-	t.Run("an account shows its last sign-in", func(t *testing.T) {
-		t.Parallel()
+func checkLastSignIn(asAdmin context.Context, t *testing.T, s *Service, p people) {
+	t.Helper()
 
-		got, err := s.AccountForAdmins(asAdmin, an.ID)
-		if err != nil || got.LastSignedInAt == nil || got.LastSignInMethod != methodGoogle || got.CreatedAt.IsZero() {
-			t.Errorf("An: %+v, %v; want a Google sign-in", got, err)
+	got, err := s.AccountForAdmins(asAdmin, p.an.ID)
+	if err != nil || got.LastSignedInAt == nil || got.LastSignInMethod != methodGoogle || got.CreatedAt.IsZero() {
+		t.Errorf("An: %+v, %v; want a Google sign-in", got, err)
+	}
+
+	never, err := s.AccountForAdmins(asAdmin, p.admin.ID)
+	if err != nil || never.LastSignedInAt != nil || never.LastSignInMethod != "" {
+		t.Errorf("an admin never signed in: %+v, %v", never, err)
+	}
+
+	if _, err := s.AccountForAdmins(asAdmin, uuid.New()); !errors.Is(err, ErrAccountNotFound) {
+		t.Errorf("an unknown account: %v, want ErrAccountNotFound", err)
+	}
+}
+
+func checkSearch(asAdmin context.Context, t *testing.T, s *Service, p people) {
+	t.Helper()
+
+	for query, want := range map[string]string{"van an": p.an.Email, "BINH": p.binh.Email, "dong.lan": p.unnamed} {
+		page, err := s.ListAccounts(asAdmin, AccountFilter{Query: query, Page: 1, Size: 25})
+		if err != nil || len(page.Accounts) != 1 || page.Accounts[0].Email != want || page.Total != 1 {
+			t.Errorf("q=%q: %+v, %v; want %s alone", query, page, err, want)
+		}
+	}
+
+	page, err := s.ListAccounts(asAdmin, AccountFilter{Role: platform.RoleAdmin, Page: 1, Size: 25})
+	if err != nil || page.Total != 1 || page.Accounts[0].ID != p.admin.ID ||
+		page.Counts[platform.RoleAdmin] != 1 || page.Counts[platform.RoleCustomer] != 3 {
+		t.Errorf("the admins: %+v, %v", page, err)
+	}
+}
+
+func checkSorts(asAdmin context.Context, t *testing.T, s *Service, p people) {
+	t.Helper()
+
+	for sort, want := range map[string][]string{
+		"":          {p.unnamed, p.binh.Email, p.an.Email, p.admin.Email},
+		"signedIn":  {p.an.Email, p.binh.Email},
+		"-signedIn": {p.binh.Email, p.an.Email},
+		"name":      {p.unnamed, p.an.Email, p.admin.Email, p.binh.Email},
+	} {
+		page, err := s.ListAccounts(asAdmin, AccountFilter{Sort: sort, Page: 1, Size: 25})
+		if err != nil || len(page.Accounts) != 4 {
+			t.Fatalf("sort=%q: %+v, %v", sort, page, err)
 		}
 
-		never, err := s.AccountForAdmins(asAdmin, admin.ID)
-		if err != nil || never.LastSignedInAt != nil || never.LastSignInMethod != "" {
-			t.Errorf("an admin never signed in: %+v, %v", never, err)
-		}
-
-		if _, err := s.AccountForAdmins(asAdmin, uuid.New()); !errors.Is(err, ErrAccountNotFound) {
-			t.Errorf("an unknown account: %v, want ErrAccountNotFound", err)
-		}
-	})
-
-	t.Run("the list finds words without marks and counts the roles", func(t *testing.T) {
-		t.Parallel()
-
-		for query, want := range map[string]string{"van an": an.Email, "BINH": binh.Email, "dong.lan": "dong.lan@example.com"} {
-			page, err := s.ListAccounts(asAdmin, AccountFilter{Query: query, Page: 1, Size: 25})
-			if err != nil || len(page.Accounts) != 1 || page.Accounts[0].Email != want || page.Total != 1 {
-				t.Errorf("q=%q: %+v, %v; want %s alone", query, page, err, want)
+		for i, email := range want {
+			if page.Accounts[i].Email != email {
+				t.Errorf("sort=%q: #%d is %s, want %s", sort, i, page.Accounts[i].Email, email)
 			}
 		}
+	}
+}
 
-		page, err := s.ListAccounts(asAdmin, AccountFilter{Role: platform.RoleAdmin, Page: 1, Size: 25})
-		if err != nil || page.Total != 1 || page.Accounts[0].ID != admin.ID ||
-			page.Counts[platform.RoleAdmin] != 1 || page.Counts[platform.RoleCustomer] != 3 {
-			t.Errorf("the admins: %+v, %v", page, err)
+func checkPagingAndRefusals(asAdmin context.Context, t *testing.T, s *Service, p people) {
+	t.Helper()
+
+	second, err := s.ListAccounts(asAdmin, AccountFilter{Page: 2, Size: 3})
+	if err != nil || len(second.Accounts) != 1 || second.Total != 4 {
+		t.Errorf("page 2 of 3: %+v, %v", second, err)
+	}
+
+	past, err := s.ListAccounts(asAdmin, AccountFilter{Page: 9, Size: 3})
+	if err != nil || len(past.Accounts) != 0 || past.Total != 4 {
+		t.Errorf("past the end: %+v, %v; want none of 4", past, err)
+	}
+
+	for _, f := range []AccountFilter{
+		{Page: 0, Size: 25},
+		{Page: 1, Size: 101},
+		{Page: 1, Size: 25, Sort: "email"},
+		{Page: 1, Size: 25, Role: "owner"},
+		{Page: 1, Size: 25, Query: string(make([]rune, 101))},
+	} {
+		if _, err := s.ListAccounts(asAdmin, f); !errors.Is(err, ErrAccountListInvalid) {
+			t.Errorf("%+v: %v, want ErrAccountListInvalid", f, err)
 		}
-	})
+	}
 
-	t.Run("the list sorts, those never signed in last", func(t *testing.T) {
-		t.Parallel()
-
-		for sort, want := range map[string][]string{
-			"":          {"dong.lan@example.com", binh.Email, an.Email, admin.Email},
-			"signedIn":  {an.Email, binh.Email},
-			"-signedIn": {binh.Email, an.Email},
-			"name":      {"dong.lan@example.com", an.Email, admin.Email, binh.Email},
-		} {
-			page, err := s.ListAccounts(asAdmin, AccountFilter{Sort: sort, Page: 1, Size: 25})
-			if err != nil || len(page.Accounts) != 4 {
-				t.Fatalf("sort=%q: %+v, %v", sort, page, err)
-			}
-
-			for i, email := range want {
-				if page.Accounts[i].Email != email {
-					t.Errorf("sort=%q: #%d is %s, want %s", sort, i, page.Accounts[i].Email, email)
-				}
-			}
-		}
-	})
-
-	t.Run("the list pages and refuses bad filters", func(t *testing.T) {
-		t.Parallel()
-
-		second, err := s.ListAccounts(asAdmin, AccountFilter{Page: 2, Size: 3})
-		if err != nil || len(second.Accounts) != 1 || second.Total != 4 {
-			t.Errorf("page 2 of 3: %+v, %v", second, err)
-		}
-
-		past, err := s.ListAccounts(asAdmin, AccountFilter{Page: 9, Size: 3})
-		if err != nil || len(past.Accounts) != 0 || past.Total != 4 {
-			t.Errorf("past the end: %+v, %v; want none of 4", past, err)
-		}
-
-		for _, f := range []AccountFilter{
-			{Page: 0, Size: 25}, {Page: 1, Size: 101}, {Page: 1, Size: 25, Sort: "email"},
-			{Page: 1, Size: 25, Role: "owner"}, {Page: 1, Size: 25, Query: string(make([]rune, 101))},
-		} {
-			if _, err := s.ListAccounts(asAdmin, f); !errors.Is(err, ErrAccountListInvalid) {
-				t.Errorf("%+v: %v, want ErrAccountListInvalid", f, err)
-			}
-		}
-
-		customer := platform.WithCaller(ctx, platform.Caller{AccountID: an.ID, Role: platform.RoleCustomer})
-		if _, err := s.ListAccounts(customer, AccountFilter{Page: 1, Size: 25}); !errors.Is(err, platform.ErrAdminRequired) {
-			t.Errorf("a customer listing: %v, want ErrAdminRequired", err)
-		}
-	})
+	customer := platform.WithCaller(t.Context(), platform.Caller{AccountID: p.an.ID, Role: platform.RoleCustomer})
+	if _, err := s.ListAccounts(customer, AccountFilter{Page: 1, Size: 25}); !errors.Is(err, platform.ErrAdminRequired) {
+		t.Errorf("a customer listing: %v, want ErrAdminRequired", err)
+	}
 }
 
 // insertAccount makes an account of email with a name, as a first sign-in

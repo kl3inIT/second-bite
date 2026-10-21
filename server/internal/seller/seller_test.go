@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -398,26 +399,21 @@ func testMembershipsForAdmins(t *testing.T, pool *pgxpool.Pool) {
 		t.Fatal(err)
 	}
 
-	want := map[uuid.UUID][]seller.Role{ownerID: {seller.RoleOwner, seller.RoleStaff}, strangerID: {seller.RoleOwner}}
-	for _, m := range got {
-		roles := want[m.AccountID]
-		if len(roles) == 0 || m.Role != roles[0] {
-			t.Errorf("unexpected membership %+v", m)
-
-			continue
-		}
-
-		want[m.AccountID] = roles[1:]
-
-		if m.AccountID == ownerID && m.Role == seller.RoleOwner && (m.SellerID != first.ID || m.SellerName != first.Name) {
-			t.Errorf("the owner's seller: %+v, want %s", m, first.Name)
-		}
+	// Accounts in the order they were made, an account's owners first.
+	type held struct {
+		account uuid.UUID
+		role    seller.Role
+		seller  uuid.UUID
 	}
 
-	for id, left := range want {
-		if len(left) > 0 {
-			t.Errorf("%s misses %v", id, left)
-		}
+	gotHeld := make([]held, 0, len(got))
+	for _, m := range got {
+		gotHeld = append(gotHeld, held{m.AccountID, m.Role, m.SellerID})
+	}
+
+	want := []held{{ownerID, seller.RoleOwner, first.ID}, {ownerID, seller.RoleStaff, second.ID}, {strangerID, seller.RoleOwner, second.ID}}
+	if !slices.Equal(gotHeld, want) || got[0].SellerName != first.Name || got[0].SellerStatus != seller.StatusActive {
+		t.Errorf("memberships: %+v; want %+v", got, want)
 	}
 
 	if _, err := f.sellers.MembershipsForAdmins(owner, []uuid.UUID{ownerID}); !errors.Is(err, platform.ErrAdminRequired) {

@@ -793,42 +793,9 @@ func checkoutKept(owner, customer context.Context, t *testing.T, f fixture, offe
 func testHistoryForAdmins(t *testing.T, f fixture) {
 	t.Helper()
 
-	owner := f.as(t, "owner", platform.RoleCustomer)
 	customer := f.as(t, "customer", platform.RoleCustomer)
 	admin := f.as(t, "admin", platform.RoleAdmin)
-	shop := f.shop(owner, t, "La Paris")
-	croissant := f.post(owner, t, shop, "Croissant", 9, 20_000, time.Now())
-
-	place := func() order.Order {
-		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		return o
-	}
-
-	collected := place()
-	if _, err := f.orders.HandOver(owner, collected.ID); err != nil {
-		t.Fatal(err)
-	}
-
-	noShow := place()
-	if _, err := f.orders.Refuse(owner, noShow.ID, order.RefuseNoShow, ""); err != nil {
-		t.Fatal(err)
-	}
-
-	soldOut := place()
-	if _, err := f.orders.Refuse(owner, soldOut.ID, order.RefuseSoldOut, ""); err != nil {
-		t.Fatal(err)
-	}
-
-	expired := place()
-	f.shift(t, expired.ID, -3*time.Hour)
-
-	for range 3 {
-		place()
-	}
+	orderSevenWays(customer, t, f)
 
 	caller, _ := platform.CallerFrom(customer)
 
@@ -844,4 +811,40 @@ func testHistoryForAdmins(t *testing.T, f fixture) {
 
 	_, err = f.orders.HistoryForAdmins(customer, caller.AccountID)
 	mustFail(t, "a customer reading a history", err, platform.ErrAdminRequired)
+}
+
+// orderSevenWays has customer place seven orders at one seller: one handed
+// over, one refused as a no-show, one refused as sold out, one whose window
+// ended, and three still open.
+func orderSevenWays(customer context.Context, t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 9, 20_000, time.Now())
+
+	place := func() uuid.UUID {
+		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		return o.ID
+	}
+
+	if _, err := f.orders.HandOver(owner, place()); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, reason := range []order.RefuseReason{order.RefuseNoShow, order.RefuseSoldOut} {
+		if _, err := f.orders.Refuse(owner, place(), reason, ""); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	f.shift(t, place(), -3*time.Hour)
+
+	for range 3 {
+		place()
+	}
 }
