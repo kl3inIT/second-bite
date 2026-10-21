@@ -9,11 +9,7 @@ import { AccountAction } from "@/features/identity/account-action";
 import { kindsByCount } from "@/features/offers/offer";
 import { listOffers } from "@/features/offers/list-offers";
 import { SearchBar } from "@/features/search/search-bar";
-import {
-  readSearchQuery,
-  searchParams as searchAddress,
-  type SearchQuery,
-} from "@/features/search/search-query";
+import { readSearchQuery, searchHref, type SearchQuery } from "@/features/search/search-query";
 import { SearchResults } from "@/features/search/search-results";
 import { contentWidth } from "@/lib/layout";
 import { pageMetadata } from "@/lib/seo";
@@ -77,8 +73,7 @@ async function AddressPlaceHeading({ query }: { query: Promise<SearchQuery> }) {
 }
 
 async function SearchAccount({ query }: { query: Promise<SearchQuery> }) {
-  const search = new URLSearchParams(searchAddress(await query)).toString();
-  return <AccountAction returnTo={search ? `/search?${search}` : "/search"} />;
+  return <AccountAction returnTo={searchHref(await query)} />;
 }
 
 async function AddressSearchBar({

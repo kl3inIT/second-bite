@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 import { FilterMenu, type FilterOption } from "./filter-menu";
 import { RangeFilter, type RangePreset } from "./range-filter";
-import { radiusChoices, searchParams, sortChoices, type SearchQuery } from "./search-query";
+import { radiusChoices, searchHref, sortChoices, type SearchQuery } from "./search-query";
 
 // The search's chips (Figma K2 chip lọc), each a filter `GET /offers` takes: how far around the person's
 // place (only with one), the price from and to, the time to collect from and to (or now), and the kind.
@@ -29,11 +29,11 @@ export function SearchFilters({
   const t = useTranslations("Search");
   const kinds = useTranslations("OfferKind");
   const format = useFormatter();
-  const option = (
-    label: string,
-    change: Parameters<typeof searchParams>[1],
-    current: boolean,
-  ): FilterOption => ({ label, query: searchParams(query, change), current });
+  const option = (label: string, change: Partial<SearchQuery>, current: boolean): FilterOption => ({
+    label,
+    href: searchHref(query, change),
+    current,
+  });
   const range = (from?: string, to?: string) =>
     from && to
       ? t("range", { from, to })
@@ -42,8 +42,8 @@ export function SearchFilters({
         : to
           ? t("rangeTo", { to })
           : undefined;
-  const priceKeep = searchParams(query, { minPrice: undefined, maxPrice: undefined });
-  const timeKeep = searchParams(query, { from: undefined, to: undefined, now: undefined });
+  const priceKeep: SearchQuery = { ...query, minPrice: undefined, maxPrice: undefined };
+  const timeKeep: SearchQuery = { ...query, from: undefined, to: undefined, now: undefined };
   // Quick choices: a range in one press (Shopee's price steps, Too Good To Go's pickup windows).
   const pricePreset = (minPrice?: number, maxPrice?: number): RangePreset => ({
     label:
@@ -51,12 +51,12 @@ export function SearchFilters({
         minPrice ? formatPrice(minPrice) : undefined,
         maxPrice ? formatPrice(maxPrice) : undefined,
       ) ?? "",
-    query: { ...priceKeep, ...searchParams({}, { minPrice, maxPrice }) },
+    href: searchHref(priceKeep, { minPrice, maxPrice }),
     current: query.minPrice === minPrice && query.maxPrice === maxPrice,
   });
   const timePreset = (from?: string, to?: string): RangePreset => ({
     label: range(from, to) ?? "",
-    query: { ...timeKeep, ...searchParams({}, { from, to }) },
+    href: searchHref(timeKeep, { from, to }),
     current: query.from === from && query.to === to,
   });
 
@@ -121,7 +121,11 @@ export function SearchFilters({
           keep={timeKeep}
           params={["from", "to"]}
           presets={[
-            { label: t("now"), query: { ...timeKeep, now: "1" }, current: Boolean(query.now) },
+            {
+              label: t("now"),
+              href: searchHref(timeKeep, { now: true }),
+              current: Boolean(query.now),
+            },
             timePreset(undefined, "21:00"),
             timePreset("21:00", "22:00"),
             timePreset("22:00", undefined),
@@ -163,12 +167,12 @@ export function SearchOrder({ query, chip = false }: { query: SearchQuery; chip?
       options={[
         {
           label: t(`sort.${natural}`),
-          query: searchParams(query, { sort: undefined }),
+          href: searchHref(query, { sort: undefined }),
           current: !query.sort,
         },
         ...others.map((sort) => ({
           label: t(`sort.${sort}`),
-          query: searchParams(query, { sort }),
+          href: searchHref(query, { sort }),
           current: query.sort === sort,
         })),
       ]}

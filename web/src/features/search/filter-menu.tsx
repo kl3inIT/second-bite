@@ -10,8 +10,8 @@ import { Link } from "@/i18n/navigation";
 
 export type FilterOption = {
   label: string;
-  /** The search's query once this option is chosen. */
-  query: Record<string, string>;
+  /** The search's address once this option is chosen. */
+  href: string;
   current: boolean;
 };
 
@@ -47,10 +47,7 @@ export function FilterMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         {options.map((option) => (
-          <DropdownMenuItem
-            key={option.label}
-            render={<Link href={{ pathname: "/search", query: option.query }} />}
-          >
+          <DropdownMenuItem key={option.label} render={<Link href={option.href} />}>
             <span className="flex-1">{option.label}</span>
             {option.current && <CheckIcon aria-hidden className="text-primary" />}
           </DropdownMenuItem>
