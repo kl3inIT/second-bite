@@ -734,10 +734,10 @@
     "ordersOn": "Orders on {date}",
     "orderTabs": "Order groups",
     "orderTab": {
-      "preparing": "Preparing · {count}",
-      "ready": "Ready · {count}",
-      "delivered": "Handed over · {count}",
-      "cancelled": "Cancelled · {count}"
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
     },
     "ordersEmpty": "No orders being prepared.",
     "postsToday": "Today's posts",
