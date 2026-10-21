@@ -620,7 +620,8 @@
     "skip": "Skip the sidebar",
     "breadcrumb": "Where you are",
     "nav": {
-      "audit": "Activity log"
+      "audit": "Activity log",
+      "settings": "Settings"
     },
     "notFound": {
       "crumb": "Not found",
@@ -716,6 +717,88 @@
         "title": "No actions found",
         "body": "No action matches the filters.",
         "clear": "Clear the filters"
+      }
+    },
+    "closeToast": "Close notification",
+    "settings": {
+      "title": "Settings",
+      "nav": "Settings pages",
+      "email": "Email"
+    },
+    "email": {
+      "title": "Email",
+      "provider": {
+        "title": "Provider",
+        "label": "Email provider",
+        "smtp": "SMTP",
+        "brevo": "Brevo",
+        "using": "Using {provider}",
+        "notConfigured": "Not set up"
+      },
+      "sender": {
+        "title": "Sender",
+        "address": "Sender address",
+        "name": "Sender name"
+      },
+      "smtp": {
+        "title": "SMTP server",
+        "host": "Host",
+        "port": "Port",
+        "security": "Security",
+        "none": "No encryption",
+        "starttls": "STARTTLS",
+        "tls": "TLS",
+        "user": "User",
+        "password": "Password",
+        "passwordNew": "Enter the password"
+      },
+      "brevo": {
+        "title": "Brevo",
+        "key": "API key",
+        "keyNew": "Paste Brevo's API key"
+      },
+      "kept": "Saved · leave empty to keep it",
+      "test": {
+        "title": "Test email",
+        "to": "Send to",
+        "hint": "Uses the saved settings. Your own address by default; change it to try another mailbox (Gmail, Outlook…).",
+        "saveFirst": "Save your changes before testing: the test email uses the saved settings.",
+        "notConfigured": "Save the settings first, then send a test.",
+        "invalid": "Enter a valid email address.",
+        "send": "Send test email",
+        "sent": "Test email sent to {to}",
+        "sentHint": "Check the mailbox; if it is not there, look in Spam.",
+        "failed": "Could not send to {to}",
+        "unknown": "Not sent yet. Try again shortly.",
+        "reference": "reference {reference}"
+      },
+      "footer": {
+        "updated": "Last updated at {time}, {day}",
+        "never": "Never saved",
+        "dirty": "You have unsaved changes",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "create": "Save settings",
+        "saved": "Email settings saved",
+        "savedHint": "The next email uses them."
+      },
+      "conflict": {
+        "title": "Someone just saved the email settings",
+        "body": "Your changes are not saved. Reload to see the new version, then edit again.",
+        "reload": "Reload"
+      },
+      "refused": "Not saved",
+      "failed": "Not saved yet. Try again shortly.",
+      "reference": "reference {reference}",
+      "errors": {
+        "senderAddress": "Enter a valid email address.",
+        "senderName": "Enter the sender name, up to 100 characters.",
+        "smtpHost": "Enter the SMTP server's host.",
+        "smtpPort": "The port is a number from 1 to 65535.",
+        "passwordNeeded": "Enter the password for this user.",
+        "passwordDropped": "The server changed, so the saved password will be dropped. Enter the password for the new server.",
+        "noTls": "With a user and password, use STARTTLS or TLS.",
+        "brevoKey": "Enter Brevo's API key."
       }
     }
   }

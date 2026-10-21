@@ -8,8 +8,9 @@ const alertVariants = cva(
     variants: {
       variant: {
         default: "bg-card text-card-foreground",
+        // Second Bite (Figma Admin/Alert tone=error): a pale red box with red ink, no edge.
         destructive:
-          "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
+          "border-transparent bg-destructive-muted text-destructive *:data-[slot=alert-description]:text-destructive *:[svg]:text-current",
         // Second Bite (DESIGN.md › Alert): a pale amber box with amber ink, its edge and an icon.
         warning:
           "border-warning-border bg-warning text-warning-foreground *:data-[slot=alert-description]:text-warning-foreground",

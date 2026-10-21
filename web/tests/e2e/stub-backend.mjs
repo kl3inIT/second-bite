@@ -943,6 +943,94 @@ function adminRoutes(request, response, url) {
   return false;
 }
 
+// The email settings, one per admin so tests side by side keep apart. An admin whose address names "unset"
+// starts with none saved (Figma AD-CS6); the others with SMTP saved (AD-E1). The version is the time saved.
+const emailSettings = new Map();
+
+function emailSettingsOf(account) {
+  if (!emailSettings.has(account.email)) {
+    emailSettings.set(
+      account.email,
+      account.email.includes("unset")
+        ? undefined
+        : {
+            provider: "smtp",
+            senderAddress: "noreply@example.com",
+            senderName: "Second Bite",
+            smtpHost: "smtp.example.com",
+            smtpPort: 587,
+            smtpSecurity: "starttls",
+            smtpUsername: "mailer@example.com",
+            smtpPasswordSet: true,
+            brevoApiKeySet: false,
+            updatedAt: "2026-10-19T07:20:00.000Z",
+          },
+    );
+  }
+  return emailSettings.get(account.email);
+}
+
+const etagOf = (settings) => `"${settings.updatedAt}"`;
+
+async function emailSettingsRoutes(request, response, url) {
+  if (!url.pathname.startsWith("/admin/email-settings")) return false;
+  const account = accounts.get(tokenOf(request));
+  if (account?.role !== "admin") return false;
+  const current = emailSettingsOf(account);
+
+  if (request.method === "GET" && url.pathname === "/admin/email-settings") {
+    if (!current) problem(response, 503, "NOTIFICATION_EMAIL_NOT_CONFIGURED");
+    else json(response, 200, current, { etag: etagOf(current) });
+    return true;
+  }
+  if (request.method === "PUT" && url.pathname === "/admin/email-settings") {
+    const ifMatch = request.headers["if-match"];
+    const ifNoneMatch = request.headers["if-none-match"];
+    if (!ifMatch && ifNoneMatch !== "*") {
+      problem(response, 400, "PLATFORM_VERSION_REQUIRED");
+      return true;
+    }
+    if (
+      (ifMatch && (!current || ifMatch !== etagOf(current))) ||
+      (ifNoneMatch === "*" && current)
+    ) {
+      problem(response, 412, "PLATFORM_CHANGED_SINCE_READ");
+      return true;
+    }
+    const body = await readBody(request);
+    const sameServer =
+      current &&
+      current.smtpHost === (body.smtpHost ?? "") &&
+      current.smtpPort === (body.smtpPort ?? 0) &&
+      current.smtpSecurity === (body.smtpSecurity ?? "starttls") &&
+      current.smtpUsername === (body.smtpUsername ?? "");
+    emailSettings.set(account.email, {
+      provider: body.provider,
+      senderAddress: body.senderAddress,
+      senderName: body.senderName,
+      smtpHost: body.smtpHost ?? "",
+      smtpPort: body.smtpPort ?? 0,
+      smtpSecurity: body.smtpSecurity ?? "starttls",
+      smtpUsername: body.smtpUsername ?? "",
+      smtpPasswordSet: Boolean(body.smtpPassword) || Boolean(sameServer && current.smtpPasswordSet),
+      brevoApiKeySet: Boolean(body.brevoApiKey) || Boolean(current?.brevoApiKeySet),
+      updatedAt: new Date().toISOString(),
+    });
+    response.writeHead(204).end();
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/admin/email-settings/test") {
+    const { to } = await readBody(request);
+    if (!current) problem(response, 503, "NOTIFICATION_EMAIL_NOT_CONFIGURED");
+    // A mailbox whose address names "refused" stands for a provider that refuses the settings.
+    else if ((to ?? "").includes("refused"))
+      problem(response, 409, "NOTIFICATION_TEST_EMAIL_REFUSED");
+    else response.writeHead(204).end();
+    return true;
+  }
+  return false;
+}
+
 async function answer(request, response) {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
@@ -961,6 +1049,7 @@ async function answer(request, response) {
   }
   if (await auth(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
+  if (await emailSettingsRoutes(request, response, url)) return;
   if (adminRoutes(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {

@@ -12,7 +12,7 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Link } from "@/i18n/navigation";
 
-export type Crumb = { label: string; href?: "/admin/audit" };
+export type Crumb = { label: string; href?: "/admin/audit" | "/admin/settings" };
 
 // The bar over every admin page (Figma Admin/TopBar, 228:6039): white with a hairline below, and where the
 // page sits, its own name last. On a phone the sidebar is a sheet, so the bar carries its trigger.

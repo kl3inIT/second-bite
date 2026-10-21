@@ -11,6 +11,9 @@ const toggleVariants = cva(
       variant: {
         default: "bg-transparent",
         outline: "border border-input bg-transparent hover:bg-muted",
+        // Second Bite: one choice of Figma's Admin/SegmentedControl, white when chosen on the muted track.
+        segment:
+          "h-9 px-3.5 text-muted-foreground hover:bg-transparent hover:text-foreground aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-sm data-[state=on]:bg-card",
       },
       size: {
         default:

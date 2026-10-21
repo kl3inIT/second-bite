@@ -1,8 +1,8 @@
-import { HistoryIcon, type LucideIcon } from "lucide-react";
+import { HistoryIcon, SettingsIcon, type LucideIcon } from "lucide-react";
 
 export type AdminNavItem = {
-  key: "audit";
-  href: "/admin/audit";
+  key: "audit" | "settings";
+  href: "/admin/audit" | "/admin/settings";
   icon: LucideIcon;
 };
 
@@ -16,7 +16,12 @@ export type AdminNavGroup = {
 // its screen, never before: an entry that opens nothing reads as a fault. The log is an entry of its own,
 // not a page of the settings: it records far more than settings, and is read on its own.
 export const adminNav: AdminNavGroup[] = [
-  { items: [{ key: "audit", href: "/admin/audit", icon: HistoryIcon }] },
+  {
+    items: [
+      { key: "audit", href: "/admin/audit", icon: HistoryIcon },
+      { key: "settings", href: "/admin/settings", icon: SettingsIcon },
+    ],
+  },
 ];
 
 /** Whether an entry is the page open: its own address or one under it. */
