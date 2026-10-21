@@ -139,7 +139,7 @@ async function EndedOrderRow({ orders }: { orders: Order[] }) {
 
 /**
  * "Đơn của tôi" (Figma W7): the two lists as tabs with their counts; the orders to collect as cards with the
- * way to their code, then the latest that have ended; beside them, what the customer's collected orders saved.
+ * way to their code, then the latest that have ended; beside them, once some were collected, what they saved.
  */
 export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
   const which = await pending;
@@ -207,21 +207,19 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
           </p>
         ) : null}
       </div>
-      <aside className="flex items-start gap-3 rounded-3xl bg-primary p-5 text-primary-foreground lg:col-span-2">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-fresh text-fresh-foreground">
-          <LeafIcon aria-hidden className="size-5" />
-        </span>
-        <div className="flex flex-col gap-1">
-          <p className="text-title">
-            {collected.length > 0 ? t("impact", { meals: collected.length }) : t("impactNone")}
-          </p>
-          <p className="text-body-sm text-inverse-muted">
-            {collected.length > 0
-              ? t("impactSaved", { saved: formatPrice(saved) })
-              : t("impactNoneBody")}
-          </p>
-        </div>
-      </aside>
+      {collected.length > 0 ? (
+        <aside className="flex items-start gap-3 rounded-3xl bg-primary p-5 text-primary-foreground lg:col-span-2">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-fresh text-fresh-foreground">
+            <LeafIcon aria-hidden className="size-5" />
+          </span>
+          <div className="flex flex-col gap-1">
+            <p className="text-title">{t("impact", { meals: collected.length })}</p>
+            <p className="text-body-sm text-inverse-muted">
+              {t("impactSaved", { saved: formatPrice(saved) })}
+            </p>
+          </div>
+        </aside>
+      ) : null}
     </div>
   );
 }

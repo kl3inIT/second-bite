@@ -382,8 +382,6 @@
     "seeOrder": "See order",
     "impact": "{meals, plural, one {# good meal} other {# good meals}}, eaten to the last bite",
     "impactSaved": "You saved {saved} on the original prices",
-    "impactNone": "Your first good meal is waiting",
-    "impactNoneBody": "What Tasco Mall's shops have left at the end of the day, for less.",
     "status": {
       "confirmed": "Confirmed",
       "ready": "Ready",
