@@ -11,21 +11,33 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-import { type OrderTab, shiftDay } from "./store-orders";
+import { shiftDay } from "./store-day";
 
 const SEARCH_WAIT_MS = 300;
 
-type View = { sellerId: string; day: string; today: string; tab: OrderTab; q: string };
+type View = {
+  /** The page the filter belongs to, as an address without its language: `/stores/{id}/orders`. */
+  pathname: string;
+  day: string;
+  today: string;
+  /** The tab shown, and the one the page opens on, which the address leaves out. */
+  tab: string;
+  defaultTab: string;
+  q: string;
+  /** What the search field is called, and what it says it searches by. */
+  label: string;
+  placeholder: string;
+};
 
-/** The address of the order list for a view, without what is as it opens: today, the held tab, no search. */
+/** The address of the page for a view, without what is as it opens: today, the first tab, no search. */
 function hrefFor(view: View, change: Partial<Pick<View, "day" | "q">> = {}) {
-  const { sellerId, today, tab } = view;
+  const { pathname, today, tab, defaultTab } = view;
   const { day, q } = { ...view, ...change };
   return {
-    pathname: `/stores/${sellerId}/orders`,
+    pathname,
     query: {
       ...(day === today ? {} : { day }),
-      ...(tab === "holding" ? {} : { tab }),
+      ...(tab === defaultTab ? {} : { tab }),
       ...(q ? { q } : {}),
     },
   };
@@ -51,20 +63,19 @@ function dayOf(date: Date): string {
 const squareControl =
   "relative flex size-11 shrink-0 items-center justify-center rounded-xl border border-input bg-card text-foreground transition-colors outline-none hover:bg-secondary focus-visible:ring-3 focus-visible:ring-ring/50";
 
-// The search and the day of the order list (Figma Q5, Q5b, Q5g): a search by name, phone number or dish that
+// The search and the day of a store's list, orders or posts (Figma Q5, Q5b, Q5g, Q2): a search by name, phone number or dish that
 // reads as you type, and the day shown with a step to the day before and after, and a month to pick from. Orders
 // belong to a day, so the page shows one. The view is the address, so it is shared and survives a reload.
-export function OrdersFilter(view: View) {
+export function DayFilter(view: View) {
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <OrderSearch {...view} />
+      <Search {...view} />
       <DayBar {...view} />
     </div>
   );
 }
 
-function OrderSearch(view: View) {
-  const t = useTranslations("StoreOrders");
+function Search(view: View) {
   const router = useRouter();
   const [text, setText] = useState(view.q);
 
@@ -84,8 +95,8 @@ function OrderSearch(view: View) {
       </InputGroupAddon>
       <InputGroupInput
         type="search"
-        aria-label={t("searchLabel")}
-        placeholder={t("searchPlaceholder")}
+        aria-label={view.label}
+        placeholder={view.placeholder}
         value={text}
         onChange={(event) => setText(event.target.value)}
       />
@@ -94,7 +105,7 @@ function OrderSearch(view: View) {
 }
 
 function DayBar(view: View) {
-  const t = useTranslations("StoreOrders");
+  const t = useTranslations("DayFilter");
   const format = useFormatter();
   const router = useRouter();
   const language = useLocale();
@@ -103,20 +114,20 @@ function DayBar(view: View) {
 
   const written = format.dateTime(dateOf(day), { day: "2-digit", month: "2-digit" });
   let label = written;
-  if (day === today) label = `${t("day.today")} · ${written}`;
-  else if (day === shiftDay(today, -1)) label = `${t("day.yesterday")} · ${written}`;
+  if (day === today) label = `${t("today")} · ${written}`;
+  else if (day === shiftDay(today, -1)) label = `${t("yesterday")} · ${written}`;
 
   const quick = [
-    { name: t("day.today"), day: today },
-    { name: t("day.yesterday"), day: shiftDay(today, -1) },
-    { name: t("day.dayBefore"), day: shiftDay(today, -2) },
+    { name: t("today"), day: today },
+    { name: t("yesterday"), day: shiftDay(today, -1) },
+    { name: t("dayBefore"), day: shiftDay(today, -2) },
   ];
 
   return (
     <div className="flex items-center gap-2 max-md:w-full">
       <Link
         href={hrefFor(view, { day: shiftDay(day, -1) })}
-        aria-label={t("day.previous")}
+        aria-label={t("previous")}
         className={squareControl}
       >
         <ChevronLeftIcon aria-hidden className="size-5" />
@@ -125,13 +136,13 @@ function DayBar(view: View) {
         <PopoverTrigger
           variant="field"
           className="max-md:flex-1"
-          aria-label={`${t("day.pick")}: ${label}`}
+          aria-label={`${t("pick")}: ${label}`}
         >
           <CalendarIcon aria-hidden className="size-5 text-muted-foreground" />
           {label}
         </PopoverTrigger>
         <PopoverContent align="end" sheet>
-          <p className="sr-only">{t("day.quick")}</p>
+          <p className="sr-only">{t("quick")}</p>
           <ul className="grid grid-cols-3 gap-2">
             {quick.map((choice) => (
               <li key={choice.day}>
@@ -171,7 +182,7 @@ function DayBar(view: View) {
       </Popover>
       <Link
         href={hrefFor(view, { day: shiftDay(day, 1) })}
-        aria-label={t("day.next")}
+        aria-label={t("next")}
         className={squareControl}
       >
         <ChevronRightIcon aria-hidden className="size-5" />

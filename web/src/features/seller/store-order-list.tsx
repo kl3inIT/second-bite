@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 import { getStoreOrders } from "./my-sellers";
 import { OrderRow } from "./order-row";
-import { OrdersFilter } from "./orders-filter";
+import { DayFilter } from "./day-filter";
 import { requireStore } from "./require-store";
 import {
   deliveredTotal,
@@ -14,11 +14,10 @@ import {
   matchesQuery,
   type OrderTab,
   orderTabs,
-  readDay,
   readOrderTab,
   unitsOf,
-  vietnamToday,
 } from "./store-orders";
+import { readDay, vietnamToday } from "./store-day";
 import { StoreTitleRow } from "./store-title-row";
 import { UndoToast } from "./undo-toast";
 
@@ -97,7 +96,16 @@ export async function StoreOrders({
         }
       />
 
-      <OrdersFilter sellerId={sellerId} day={day} today={today} tab={tab} q={search} />
+      <DayFilter
+        pathname={`/stores/${sellerId}/orders`}
+        day={day}
+        today={today}
+        tab={tab}
+        defaultTab="holding"
+        q={search}
+        label={t("searchLabel")}
+        placeholder={t("searchPlaceholder")}
+      />
 
       <section
         aria-label={t("title")}

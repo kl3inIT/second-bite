@@ -1,5 +1,7 @@
 import type { OrderBody } from "@/lib/api/generated";
 
+import { plain } from "./store-day";
+
 /**
  * The tabs of a store's order list (Figma Q5, Q5e, Q5f): what customers hold and the seller still has to hand
  * over, what was handed over, and what ended without a hand-over. A customer cancelling, the seller refusing
@@ -63,16 +65,6 @@ export function unitsOf(order: OrderBody): number {
   return order.lines.reduce((sum, line) => sum + line.units, 0);
 }
 
-/** Lower case without accents, so "Bánh" is found by "banh" and "Đạt" by "dat". */
-function plain(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replaceAll("đ", "d")
-    .replaceAll("Đ", "d")
-    .toLowerCase();
-}
-
 /** Whether an order answers a search: by the customer's name, a part of their phone number, or a dish. */
 export function matchesQuery(order: OrderBody, query: string): boolean {
   const wanted = plain(query.trim());
@@ -82,32 +74,4 @@ export function matchesQuery(order: OrderBody, query: string): boolean {
   return [order.customerName, ...order.lines.map((line) => line.name)].some((text) =>
     plain(text).includes(wanted),
   );
-}
-
-const vietnamDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
-
-/** Today in Vietnam's time as `2026-10-21`, the day the order list opens on. */
-export function vietnamToday(now: Date = new Date()): string {
-  return vietnamDay.format(now);
-}
-
-const dayPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
-
-/** The day in the address when it is a real one, today otherwise. */
-export function readDay(value: string | undefined, today: string = vietnamToday()): string {
-  const match = dayPattern.exec(value ?? "");
-  if (!match) return today;
-  const [, year, month, date] = match.map(Number);
-  const moment = new Date(Date.UTC(year, month - 1, date));
-  const real =
-    moment.getUTCFullYear() === year &&
-    moment.getUTCMonth() === month - 1 &&
-    moment.getUTCDate() === date;
-  return real ? (value as string) : today;
-}
-
-/** The day `by` days after (or before) another, as `YYYY-MM-DD`. */
-export function shiftDay(day: string, by: number): string {
-  const [year, month, date] = day.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, date + by)).toISOString().slice(0, 10);
 }
