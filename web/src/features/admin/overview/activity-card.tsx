@@ -1,7 +1,9 @@
-import { useTranslations } from "next-intl";
+import { InboxIcon } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 
-import { EmptyState } from "@/features/admin/ui/empty-state";
-import { Timeline } from "@/features/admin/ui/timeline";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Item, ItemActions, ItemContent, ItemGroup, ItemTitle } from "@/components/ui/item";
 
 import type { Activity } from "./activity";
 
@@ -11,29 +13,54 @@ import type { Activity } from "./activity";
  */
 export function ActivityCard({ activity }: { activity: Activity[] }) {
   const t = useTranslations("admin.overview.activity");
+  const format = useFormatter();
 
   return (
-    <section
-      aria-labelledby="overview-activity"
-      className="flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-card px-6 pt-6 pb-5"
-    >
-      <h2 id="overview-activity" className="text-title-lg text-foreground">
-        {t("title")}
-      </h2>
-      {activity.length === 0 ? (
-        <EmptyState title={t("empty")} />
-      ) : (
-        <Timeline
-          events={activity.map((item) => ({
-            key: item.key,
-            at: item.at,
-            title:
-              item.kind === "sellerOpened"
-                ? t("sellerOpened", { seller: item.sellerName })
-                : t("offerPosted", { seller: item.sellerName, offer: item.offerName }),
-          }))}
-        />
-      )}
+    <section aria-labelledby="overview-activity" className="min-w-0">
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle>
+            <h2 id="overview-activity">{t("title")}</h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {activity.length === 0 ? (
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <InboxIcon aria-hidden />
+                </EmptyMedia>
+                <EmptyTitle>{t("empty")}</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            <ItemGroup>
+              {activity.map((item) => {
+                const at = new Date(item.at);
+                return (
+                  <Item key={item.key} render={<li />} size="sm">
+                    <ItemContent>
+                      <ItemTitle>
+                        {item.kind === "sellerOpened"
+                          ? t("sellerOpened", { seller: item.sellerName })
+                          : t("offerPosted", { seller: item.sellerName, offer: item.offerName })}
+                      </ItemTitle>
+                    </ItemContent>
+                    <ItemActions>
+                      <time
+                        dateTime={at.toISOString()}
+                        className="text-label text-muted-foreground"
+                      >
+                        {format.dateTime(at, "time")}, {format.dateTime(at, "day")}
+                      </time>
+                    </ItemActions>
+                  </Item>
+                );
+              })}
+            </ItemGroup>
+          )}
+        </CardContent>
+      </Card>
     </section>
   );
 }

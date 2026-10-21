@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useOptimistic, useTransition } from "react";
 
-import { SegmentedControl } from "@/features/admin/ui/segmented-control";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { usePathname, useRouter } from "@/i18n/navigation";
 
 import { type OverviewRange, overviewRanges, readOverviewRange } from "./overview-range";
@@ -40,11 +40,21 @@ export function RangeControl() {
   const { range, setRange } = useOverviewRange();
 
   return (
-    <SegmentedControl
-      label={t("label")}
-      value={range}
-      onChange={setRange}
-      segments={overviewRanges.map((value) => ({ value, label: t(value) }))}
-    />
+    <ToggleGroup
+      aria-label={t("label")}
+      variant="outline"
+      value={[range]}
+      // One span is always chosen: pressing the chosen one again keeps it.
+      onValueChange={(next) => {
+        const chosen = next.find((value) => value !== range) ?? next[0];
+        if (chosen) setRange(readOverviewRange(chosen));
+      }}
+    >
+      {overviewRanges.map((value) => (
+        <ToggleGroupItem key={value} value={value}>
+          {t(value)}
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
   );
 }

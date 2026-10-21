@@ -1,12 +1,12 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import type { ReactNode } from "react";
 
-import { PageHeader } from "@/features/admin/ui/page-header";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 
 import { mergeActivity } from "./activity";
 import { ActivityCard } from "./activity-card";
 import { DailyChart } from "./daily-chart";
 import { dailySeries } from "./daily-series";
-import { FigureCard } from "./figure-card";
 import { readOverviewRange } from "./overview-range";
 import { readOverview } from "./overview-source";
 import { RangeControl } from "./range-control";
@@ -15,6 +15,8 @@ import { TopSellersCard } from "./top-sellers-card";
 
 /** How many of the newest stores and posts the recent activity lists (Figma AD-TQ1 draws five). */
 const activityLength = 5;
+
+type Figure = { label: string; value: ReactNode | null; unit?: ReactNode };
 
 /**
  * The dashboard (Figma AD-TQ1, AD-TQ2) on `GET /admin/summary`: the span, the figures, posts by day, what waits,
@@ -32,67 +34,89 @@ export async function OverviewPage({ query }: { query: Promise<Record<string, un
   const noData = t("figures.noData");
   const number = (value: number) => format.number(value);
 
+  // Each figure's name, then its number with its unit beside it ("42 đơn"). A figure the backend cannot give
+  // yet (`value` null) shows "—" and the words for no data, never a zero that reads as a measurement.
+  const figures: Figure[] = [
+    {
+      label: t("figures.orders"),
+      value: orders.orders === null ? null : number(orders.orders),
+      unit: t("units.orders", { count: orders.orders ?? 0 }),
+    },
+    {
+      label: t("figures.portionsSaved"),
+      value: orders.portionsSaved === null ? null : number(orders.portionsSaved),
+      unit: t("units.portions", { count: orders.portionsSaved ?? 0 }),
+    },
+    {
+      label: t("figures.collected"),
+      value:
+        orders.collected === null || orders.collected.of === 0
+          ? null
+          : `${Math.round((orders.collected.count / orders.collected.of) * 100)}%`,
+      unit: orders.collected && t("units.collectedOf", orders.collected),
+    },
+    {
+      label: t("figures.activeSellers"),
+      value: number(sellers.active),
+      unit: t("units.sellersOf", {
+        total: number(sellers.active + sellers.pending + sellers.blocked),
+      }),
+    },
+    {
+      label: t("figures.posted"),
+      value: number(offers.postedInRange),
+      unit: t("units.posts", { count: offers.postedInRange }),
+    },
+    {
+      label: t("figures.unitsPosted"),
+      value: number(offers.unitsPostedInRange),
+      unit: t("units.units", { count: offers.unitsPostedInRange }),
+    },
+    {
+      label: t("figures.onSale"),
+      value: number(offers.onSaleNow),
+      unit: t("units.posts", { count: offers.onSaleNow }),
+    },
+    {
+      label: t("figures.newAccounts"),
+      value: number(accounts.newInRange),
+      unit: t("units.accounts", { count: accounts.newInRange }),
+    },
+  ];
+
   return (
     <>
-      <PageHeader title={shell("pages.overview.label")} actions={<RangeControl />} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-page-title text-foreground">{shell("pages.overview.label")}</h1>
+        <RangeControl />
+      </div>
       <section
         aria-label={t("figures.label")}
         className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4"
       >
-        <FigureCard
-          label={t("figures.orders")}
-          value={orders.orders === null ? null : number(orders.orders)}
-          unit={t("units.orders", { count: orders.orders ?? 0 })}
-          noData={noData}
-        />
-        <FigureCard
-          label={t("figures.portionsSaved")}
-          value={orders.portionsSaved === null ? null : number(orders.portionsSaved)}
-          unit={t("units.portions", { count: orders.portionsSaved ?? 0 })}
-          noData={noData}
-        />
-        <FigureCard
-          label={t("figures.collected")}
-          value={
-            orders.collected === null || orders.collected.of === 0
-              ? null
-              : `${Math.round((orders.collected.count / orders.collected.of) * 100)}%`
-          }
-          unit={orders.collected && t("units.collectedOf", orders.collected)}
-          noData={noData}
-        />
-        <FigureCard
-          label={t("figures.activeSellers")}
-          value={number(sellers.active)}
-          unit={t("units.sellersOf", {
-            total: number(sellers.active + sellers.pending + sellers.blocked),
-          })}
-          noData={noData}
-        />
-        <FigureCard
-          label={t("figures.posted")}
-          value={number(offers.postedInRange)}
-          unit={t("units.posts", { count: offers.postedInRange })}
-          noData={noData}
-        />
-        <FigureCard
-          label={t("figures.unitsPosted")}
-          value={number(offers.unitsPostedInRange)}
-          unit={t("units.units", { count: offers.unitsPostedInRange })}
-          noData={noData}
-        />
-        <FigureCard
-          label={t("figures.onSale")}
-          value={number(offers.onSaleNow)}
-          unit={t("units.posts", { count: offers.onSaleNow })}
-          noData={noData}
-        />
-        <FigureCard
-          label={t("figures.newAccounts")}
-          value={number(accounts.newInRange)}
-          unit={t("units.accounts", { count: accounts.newInRange })}
-          noData={noData}
-        />
+        {figures.map(({ label, value, unit }) => (
+          <Card key={label} className="min-w-0">
+            <CardHeader>
+              <CardDescription>{label}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="flex flex-wrap items-baseline gap-x-1.5">
+                <span className="font-display text-display text-foreground">
+                  {value === null ? "—" : value}
+                </span>
+                <span
+                  className={
+                    value === null
+                      ? "text-body-sm text-muted-foreground"
+                      : "text-body-sm-strong text-foreground"
+                  }
+                >
+                  {value === null ? noData : unit}
+                </span>
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </section>
       <div className="flex flex-col gap-4 lg:flex-row">
         <DailyChart points={dailySeries(chart.offers.postedPerDay, chart.accounts.newPerDay)} />

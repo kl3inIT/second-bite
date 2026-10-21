@@ -26,7 +26,7 @@ function postsOver(days: number) {
 function figure(page: Page, name: string) {
   return page
     .getByRole("region", { name: "Số liệu" })
-    .locator("div")
+    .locator("[data-slot=card]")
     .filter({ has: page.getByText(name, { exact: true }) });
 }
 
@@ -38,7 +38,10 @@ test("the dashboard shows the summary's figures and leaves the orders' empty", a
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 
   // Today is chosen; the figures the summary gives are measured, the ones that need orders are not.
-  await expect(page.getByRole("radio", { name: "Hôm nay" })).toBeChecked();
+  await expect(page.getByRole("button", { name: "Hôm nay" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await expect(figure(page, "Cửa hàng đang hoạt động")).toContainText("11/ 14 cửa hàng");
   await expect(figure(page, "Bài đăng")).toContainText(`${postsOver(1)}bài`);
   await expect(figure(page, "Đang bán")).toContainText("12bài");
@@ -80,12 +83,15 @@ test("the dashboard shows the summary's figures and leaves the orders' empty", a
 
 test("the span is in the address and changes every figure", async ({ page }, testInfo) => {
   await signInTo(page, "/admin/overview", testInfo, { who: "tongquan-khoang" });
-  await (await hydrated(page.getByRole("radio", { name: "7 ngày" }))).check({ force: true });
+  await (await hydrated(page.getByRole("button", { name: "7 ngày" }))).click();
   await expect(page).toHaveURL(/\/vi\/admin\/overview\?range=7d$/);
   await expect(figure(page, "Bài đăng")).toContainText(`${postsOver(7)}bài`);
 
   await page.goto("/vi/admin/overview?range=30d");
-  await expect(page.getByRole("radio", { name: "30 ngày" })).toBeChecked();
+  await expect(page.getByRole("button", { name: "30 ngày" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await expect(figure(page, "Bài đăng")).toContainText(`${postsOver(30)}bài`);
   await expect(
     page.getByRole("table", { name: "Bài đăng và tài khoản mới theo ngày" }).getByRole("row"),
