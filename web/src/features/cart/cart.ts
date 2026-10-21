@@ -113,6 +113,9 @@ function lineOf(offer: OfferSummary): Omit<CartLine, "quantity"> {
   return { id, name, priceVnd, originalPriceVnd, unitsLeft, windowStart, windowEnd };
 }
 
+/** A dish of the cart with fewer portions left than it holds; none left when `left` is 0. */
+export type CutLine = CartLine & { left: number };
+
 /**
  * The cart cut down to the portions still left of each dish (Figma O7), and the dishes it cut: what someone
  * else ordered first between the cart and "Đặt món". Null when nothing is left to order.
@@ -120,8 +123,10 @@ function lineOf(offer: OfferSummary): Omit<CartLine, "quantity"> {
 export function keepLeft(
   cart: Cart,
   left: Record<string, number>,
-): { cart: Cart | null; cut: CartLine[] } {
-  const cut = cart.lines.filter((line) => (left[line.id] ?? 0) < line.quantity);
+): { cart: Cart | null; cut: CutLine[] } {
+  const cut = cart.lines
+    .map((line) => ({ ...line, left: left[line.id] ?? 0 }))
+    .filter((line) => line.left < line.quantity);
   const lines = cart.lines
     .map((line) => ({ ...line, quantity: Math.min(line.quantity, left[line.id] ?? 0) }))
     .filter((line) => line.quantity > 0);

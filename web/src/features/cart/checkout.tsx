@@ -179,9 +179,10 @@ function Confirmation({ cart, ...asking }: { cart: Cart } & Asking) {
           </div>
           {problem?.kind === "failed" && (
             <p role="alert" className="text-label text-destructive">
-              {problem.reference
-                ? t("orderFailed", { reference: problem.reference })
-                : t("orderFailedPlain")}
+              {problem.detail ??
+                (problem.reference
+                  ? t("orderFailed", { reference: problem.reference })
+                  : t("orderFailedPlain"))}
             </p>
           )}
         </div>

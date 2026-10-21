@@ -116,12 +116,18 @@ describe("the cart", () => {
 
 describe("what is left after someone else ordered first", () => {
   it("cuts each dish to its portions left and names the dishes it cut", () => {
-    const cart = cartOf(offer("croissant"), offer("croissant"), offer("eclair"))!;
+    const cart = cartOf(offer("croissant"), offer("croissant"), offer("eclair"), offer("tart"))!;
 
-    const { cart: kept, cut } = keepLeft(cart, { croissant: 2, eclair: 0 });
+    const { cart: kept, cut } = keepLeft(cart, { croissant: 1, eclair: 0, tart: 3 });
 
-    expect(cut.map(({ id }) => id)).toEqual(["eclair"]);
-    expect(kept?.lines.map(({ id, quantity }) => [id, quantity])).toEqual([["croissant", 2]]);
+    expect(cut.map(({ id, left }) => [id, left])).toEqual([
+      ["croissant", 1],
+      ["eclair", 0],
+    ]);
+    expect(kept?.lines.map(({ id, quantity }) => [id, quantity])).toEqual([
+      ["croissant", 1],
+      ["tart", 1],
+    ]);
   });
 
   it("leaves nothing when every dish is gone", () => {

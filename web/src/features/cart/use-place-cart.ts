@@ -3,15 +3,16 @@
 import { useState, useTransition } from "react";
 
 import { useRouter } from "@/i18n/navigation";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, failureOf } from "@/lib/api/client";
 import { getOffer, placeOrder } from "@/lib/api/generated";
 
-import { keepLeft, type Cart, type CartLine } from "./cart";
+import { keepLeft, type Cart, type CutLine } from "./cart";
 import { saveCart } from "./cart-store";
 
-/** Why the cart was not ordered: dishes someone else took first (Figma O7), or anything else. */
-export type PlaceProblem =
-  { kind: "gone"; cut: CartLine[]; rest: Cart | null } | { kind: "failed"; reference?: string };
+/** Why the cart was not ordered: dishes someone else took first (Figma O7), or anything else in the server's words. */
+type PlaceProblem =
+  | { kind: "gone"; cut: CutLine[]; rest: Cart | null }
+  | { kind: "failed"; detail?: string; reference?: string };
 
 const GONE = new Set(["ORDER_OFFER_SOLD_OUT", "ORDER_OFFER_UNAVAILABLE"]);
 
@@ -33,7 +34,8 @@ async function portionsLeft(cart: Cart): Promise<Record<string, number>> {
 // Orders the whole cart at once (SEC-15 › POST /orders) and opens the order. One key per visit goes with
 // every press, so a second press or a retried request returns the order placed first; a refused order
 // writes nothing, so the same key orders what is left after O7. When a dish ran out, the answer does not
-// say which, so the dishes are read again to name them.
+// say which, so the dishes are read again to name them; when none is short (the seller closed, or the
+// portions came back) the server's own words say why.
 export function usePlaceCart() {
   const router = useRouter();
   const [key] = useState(() => crypto.randomUUID());
@@ -53,13 +55,12 @@ export function usePlaceCart() {
       } catch (error) {
         if (error instanceof ApiError && GONE.has(error.code ?? "")) {
           const { cart: rest, cut } = keepLeft(cart, await portionsLeft(cart));
-          setProblem({ kind: "gone", cut, rest });
-        } else {
-          setProblem({
-            kind: "failed",
-            reference: error instanceof ApiError ? error.requestId : undefined,
-          });
+          if (cut.length > 0) {
+            setProblem({ kind: "gone", cut, rest });
+            return;
+          }
         }
+        setProblem({ kind: "failed", ...failureOf(error) });
       }
     });
   }

@@ -50,8 +50,8 @@ test.describe("ordering from the cart", () => {
     await expect(page.getByText("Giỏ hàng đang trống")).toBeVisible();
   });
 
-  // Figma O7: someone else ordered first. The stub sells no more croissants than the three it has, so a cart
-  // holding four (written before the last ones went) is refused.
+  // Figma O7: someone else ordered first. The cart holds a dish the stub no longer sells beside a croissant,
+  // as a cart written before the last portions went would.
   test("says which dish ran out and orders what is left", async ({ page }, testInfo) => {
     await page.goto("/vi/sign-in?returnTo=/cart");
     await (
@@ -69,7 +69,7 @@ test.describe("ordering from the cart", () => {
     ).click();
     await page.evaluate(() => {
       const cart = JSON.parse(localStorage.getItem("secondbite.cart") ?? "null");
-      cart.lines[0].quantity = 4;
+      cart.lines.push({ ...cart.lines[0], id: "of-gone-tart", name: "Bánh Tart Trứng" });
       localStorage.setItem("secondbite.cart", JSON.stringify(cart));
     });
     await page.goto("/vi/cart");
@@ -78,16 +78,17 @@ test.describe("ordering from the cart", () => {
     await name.getByLabel("Tên hiển thị").fill("Hà");
     await name.getByRole("button", { name: "Tiếp tục đặt món" }).click();
 
-    const gone = page.getByRole("dialog", { name: "Bánh Croissant Truyền Thống vừa hết" });
+    const gone = page.getByRole("dialog", { name: "Bánh Tart Trứng vừa hết" });
     await expect(
       gone.getByText("Người khác vừa đặt phần cuối. Bạn chưa bị tính tiền."),
     ).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
     await gone
-      .getByRole("button", { name: "Đặt 3× Bánh Croissant Truyền Thống · 66.000đ" })
+      .getByRole("button", { name: "Đặt 1× Bánh Croissant Truyền Thống · 22.000đ" })
       .click();
     await expect(page).toHaveURL(/\/vi\/orders\/or-\d+$/);
-    await expect(page.getByText("3× Bánh Croissant Truyền Thống")).toBeVisible();
+    await expect(page.getByText("1× Bánh Croissant Truyền Thống")).toBeVisible();
+    await expect(page.getByText("Bánh Tart Trứng")).toHaveCount(0);
   });
 });
