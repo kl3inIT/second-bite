@@ -121,13 +121,16 @@ test.describe("the accounts", () => {
 
   test("a row's menu names its actions, opens the account and makes a customer an admin", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await page.goto("/vi/admin/accounts");
     const table = page.getByRole("table", { name: "Tài khoản" });
     const menu = await hydrated(table.getByRole("button", { name: "Thao tác cho Đức Khang" }));
 
-    await menu.hover();
-    await expect(page.getByRole("tooltip", { name: "Thao tác" })).toBeVisible();
+    // The tooltip is for a pointer; Base UI draws it without a role, as the trigger's own name is the label.
+    if (testInfo.project.name === "desktop") {
+      await menu.hover();
+      await expect(page.locator('[data-slot="tooltip-content"]')).toHaveText("Thao tác");
+    }
     await menu.click();
     await expect(page.getByRole("menuitem", { name: "Xem chi tiết" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
