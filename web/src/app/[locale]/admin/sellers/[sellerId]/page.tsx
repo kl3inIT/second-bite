@@ -25,6 +25,7 @@ import {
   type OfferBody,
 } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Admin.sellers");
@@ -73,7 +74,7 @@ export default async function SellerPage({
   // photo across the whole cover; with neither, the plain ground.
   const covers =
     offers.length > 0
-      ? offers.slice(0, 3).map((offer) => `/api${offer.photo.largePath}`)
+      ? offers.slice(0, 3).map((offer) => photoUrl(offer.photo.largePath))
       : seller.photoId
         ? [`/api/photos/${seller.photoId}/1600.jpg`]
         : [];

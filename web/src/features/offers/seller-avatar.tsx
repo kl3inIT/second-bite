@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { photoUrl } from "@/lib/api/photo";
 
 import { avatarTone, initials } from "./seller";
 
@@ -16,7 +17,7 @@ export function SellerAvatar({
 }) {
   return (
     <Avatar aria-hidden size={size === "md" ? "seller" : "seller-xs"} className={className}>
-      {seller.photo && <AvatarImage src={`/api${seller.photo.smallPath}`} alt="" />}
+      {seller.photo && <AvatarImage src={photoUrl(seller.photo.smallPath)} alt="" />}
       <AvatarFallback tone={avatarTone(seller.id)}>
         {size === "sm" ? Array.from(initials(seller.name))[0] : initials(seller.name)}
       </AvatarFallback>

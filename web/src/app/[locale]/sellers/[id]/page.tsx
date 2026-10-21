@@ -20,7 +20,7 @@ export async function generateMetadata({
     getTranslations("Seller"),
   ]);
   const [first] = await listOffers({ sellerId: id, near });
-  return { title: `${first?.seller.name ?? t("nothing")} · Second Bite` };
+  return { title: first?.seller.name ?? t("nothing") };
 }
 
 // A seller's dishes tonight (Figma K4b), from "Xem quán" or a dish (K4); `?kind=` opens one tab, `?q=` searches

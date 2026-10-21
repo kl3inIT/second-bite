@@ -5,6 +5,7 @@ import { useFormatter, useTranslations } from "next-intl";
 
 import { formatPrice } from "@/features/offers/format";
 import type { OfferBody } from "@/lib/api/generated";
+import { photoUrl } from "@/lib/api/photo";
 
 // One post on a store's page, in a frame of its own (Figma AD-Q3 › Bài đang bán, AD-QD1): its photo, then the
 // dish, the price beside the original one struck through, the discount and what is left in Sale Red, and the
@@ -20,7 +21,7 @@ export function OfferRow({ offer, onOpen }: { offer: OfferBody; onOpen?: () => v
     <li className="relative flex items-center gap-4 rounded-xl border border-border p-4 has-[button:hover]:bg-muted">
       <span className="relative size-28 shrink-0 overflow-hidden rounded-lg bg-muted">
         <Image
-          src={`/api${offer.photo.smallPath}`}
+          src={photoUrl(offer.photo.smallPath)}
           alt=""
           fill
           sizes="112px"

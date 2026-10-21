@@ -16,6 +16,7 @@ import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
 import { ListFooter } from "@/features/admin/list-footer";
 import { formatPrice } from "@/features/offers/format";
 import type { OfferBody } from "@/lib/api/generated";
+import { photoUrl } from "@/lib/api/photo";
 
 import { OfferRow } from "./offer-row";
 
@@ -130,7 +131,7 @@ function PostsTable({
         <span className="flex items-center gap-3">
           <span className="relative size-9 shrink-0 overflow-hidden rounded-md bg-muted">
             <Image
-              src={`/api${row.original.photo.smallPath}`}
+              src={photoUrl(row.original.photo.smallPath)}
               alt=""
               fill
               sizes="36px"
@@ -261,7 +262,7 @@ function PostFacts({ offer }: { offer: OfferBody }) {
     <div className="flex flex-col gap-4 px-4 pb-6">
       <span className="relative aspect-video overflow-hidden rounded-xl bg-muted">
         <Image
-          src={`/api${offer.photo.largePath}`}
+          src={photoUrl(offer.photo.largePath)}
           alt=""
           fill
           sizes="560px"

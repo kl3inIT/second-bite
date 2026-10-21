@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
 import type { OfferSummary } from "./offer";
 import { avatarTone, initials } from "./seller";
@@ -37,7 +38,7 @@ export function SellerLogo({
     >
       {seller.photo ? (
         <Image
-          src={`/api${seller.photo.smallPath}`}
+          src={photoUrl(seller.photo.smallPath)}
           alt=""
           fill
           sizes="56px"

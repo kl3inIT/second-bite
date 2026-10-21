@@ -2,31 +2,23 @@
 
 import { BellIcon, CheckIcon, HeartIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useSyncExternalStore, useTransition } from "react";
+import { useTransition } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 
 import { followedIds, toggleFollow, useFollows } from "./follows";
 
 const TOAST_MS = 2500;
 
-// The last thing a heart did, shown by the one FollowToast in the layout: a heart on a card in "Yêu thích"
-// leaves with its card as it is let go, so it cannot hold its own toast.
-let toast: string | null = null;
-let toastTimer: ReturnType<typeof setTimeout> | undefined;
-const toastListeners = new Set<() => void>();
+// The last thing a heart did, said in the layout's toast: a heart on a card in "Yêu thích" leaves with its card
+// as it is let go, so the toast is not its own. Only the latest is shown, as a new tap replaces what it said.
+let lastToast: string | undefined;
 
-function showToast(message: string | null) {
-  toast = message;
-  clearTimeout(toastTimer);
-  if (message) toastTimer = setTimeout(() => showToast(null), TOAST_MS);
-  for (const listener of toastListeners) listener();
-}
-
-function subscribeToast(listener: () => void) {
-  toastListeners.add(listener);
-  return () => toastListeners.delete(listener);
+function showToast(message: string, type: "success" | "error") {
+  if (lastToast) toast.close(lastToast);
+  lastToast = toast.add({ type, title: message, timeout: TOAST_MS });
 }
 
 // The heart that follows a seller (SEC-109, Figma K9): `float` is the white round button over the seller's
@@ -53,9 +45,9 @@ export function FollowButton({
   function toggle() {
     startTransition(async () => {
       try {
-        showToast(t((await toggleFollow(sellerId)) ? "added" : "removed"));
+        showToast(t((await toggleFollow(sellerId)) ? "added" : "removed"), "success");
       } catch {
-        showToast(t("failed"));
+        showToast(t("failed"), "error");
       }
     });
   }
@@ -101,24 +93,5 @@ export function FollowButton({
         />
       )}
     </button>
-  );
-}
-
-/** What a heart just did, in a short toast at the foot of any page (SEC-109). */
-export function FollowToast() {
-  const message = useSyncExternalStore(
-    subscribeToast,
-    () => toast,
-    () => null,
-  );
-  useEffect(() => () => clearTimeout(toastTimer), []);
-  if (!message) return null;
-
-  return (
-    <div className="pointer-events-none fixed inset-x-4 bottom-28 z-50 flex justify-center md:bottom-8">
-      <output className="rounded-xl bg-foreground px-5 py-3 text-body-sm text-background shadow-lg">
-        {message}
-      </output>
-    </div>
   );
 }

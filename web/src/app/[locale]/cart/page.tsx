@@ -6,7 +6,7 @@ import { Checkout } from "@/features/cart/checkout";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Cart");
-  return { title: `${t("title")} · Second Bite`, robots: { index: false } };
+  return { title: t("title"), robots: { index: false } };
 }
 
 // The cart's confirmation (Figma K5) under the blue top bar with its white back button. The cart lives in

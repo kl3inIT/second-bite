@@ -18,6 +18,7 @@ import { formatPrice } from "@/features/offers/format";
 import { directionsHref } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
 import { isOpen, mapOf, savingOf, unitsOf, type Order } from "./order";
 import { OrderQr } from "./order-qr";
@@ -30,7 +31,14 @@ function Photo({ path, sizes, className }: { path?: string; sizes: string; class
   return (
     <span className={cn("relative shrink-0 overflow-hidden bg-muted", className)}>
       {path ? (
-        <Image src={`/api${path}`} alt="" fill sizes={sizes} unoptimized className="object-cover" />
+        <Image
+          src={photoUrl(path)}
+          alt=""
+          fill
+          sizes={sizes}
+          unoptimized
+          className="object-cover"
+        />
       ) : null}
     </span>
   );
