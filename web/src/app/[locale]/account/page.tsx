@@ -24,9 +24,12 @@ export default async function AccountPage() {
     <>
       <AppHeader
         account={
-          <Suspense>
-            <AccountAction returnTo="/account" />
-          </Suspense>
+          // A phone reaches the account from its bottom bar, so its header keeps no account (as before SEC-101).
+          <div className="max-md:hidden">
+            <Suspense>
+              <AccountAction returnTo="/account" />
+            </Suspense>
+          </div>
         }
       />
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 pt-2 pb-8 md:max-w-292 md:pt-6">

@@ -6,23 +6,31 @@ test.use({ locale: "vi-VN" });
 // bar and the bottom navigation, never the desktop header, and nothing scrolls sideways.
 const PHONE_WIDTHS = [360, 412];
 const pages = [
-  { path: "/vi", top: { role: "heading", name: "Tối nay ở Tasco Mall" } },
-  { path: "/vi/search", top: { role: "searchbox", name: "Tìm món hoặc quán" } },
-  { path: "/vi/favourites", top: { role: "heading", name: "Yêu thích" } },
-  { path: "/vi/account", top: { role: "heading", name: "Tài khoản" } },
+  { path: "/vi", top: { role: "heading", name: "Tối nay ở Tasco Mall" }, bar: true },
+  // The search is a screen of its own, left by its back arrow, so it has no bottom bar.
+  { path: "/vi/search", top: { role: "searchbox", name: "Tìm món hoặc quán" }, bar: false },
+  { path: "/vi/favourites", top: { role: "heading", name: "Yêu thích" }, bar: true },
+  { path: "/vi/account", top: { role: "heading", name: "Tài khoản" }, bar: true },
 ] as const;
 
 for (const width of PHONE_WIDTHS) {
   test.describe(`a phone ${width}px wide`, () => {
-    for (const { path, top } of pages) {
+    for (const { path, top, bar } of pages) {
       test(`${path} keeps the phone's top bar and bottom bar and does not scroll sideways`, async ({
         page,
       }) => {
         await page.setViewportSize({ width, height: 800 });
         await page.goto(path);
 
-        await expect(page.getByRole(top.role, { name: top.name })).toBeVisible();
-        await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toBeVisible();
+        await expect(
+          page.getByRole(top.role, {
+            name: top.name,
+            level: top.role === "heading" ? 1 : undefined,
+          }),
+        ).toBeVisible();
+        await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toHaveCount(
+          bar ? 1 : 0,
+        );
         // The desktop header's search field and footer stay out.
         await expect(page.getByRole("contentinfo")).toBeHidden();
         const overflow = await page.evaluate(
