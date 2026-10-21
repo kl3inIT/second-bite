@@ -25,6 +25,12 @@ test.describe("the favourites", () => {
     const card = page.getByRole("article").filter({ hasText: "La Paris" });
     await expect(card.getByRole("heading", { name: "La Paris" })).toBeVisible();
     await expect(card.getByText("Bánh Croissant Truyền Thống")).toBeVisible();
+    // The row of dishes scrolls inside the card; the page itself never scrolls sideways.
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      ),
+    ).toBe(0);
     await expectNoSeriousA11yViolations(page);
 
     await (await hydrated(card.getByRole("button", { name: "Yêu thích La Paris" }))).click();
