@@ -37,5 +37,13 @@ Build every admin screen Figma draws, as SEC-57 built the seller's web. The scre
 ## What waits
 
 - The 14-day trend on the store cards needs a history of status changes, which `seller` does not keep. The chart is drawn empty until it does.
-- Backends for orders (SEC-15), payments and refunds (SEC-18), problem reports and reports (SEC-13), and reviews, promotions, banners, broadcast notifications, sponsors, categories, areas, store documents, legal content, integrations, admin roles, account locking, the audit log and removing a post for a violation. These have no issue or decision yet.
-- Open questions are kept in Linear SEC-62: where VietQR money lands, what happens to held orders when a post is removed or an account locked, and whether admin roles are split.
+- Backends for orders (SEC-15), payments and refunds (SEC-18), problem reports and reports (SEC-13), and reviews, promotions, banners, broadcast notifications, sponsors, categories, areas, store documents, legal content, integrations, account locking and removing a post for a violation. These have no issue or decision yet. Admins (one role, grant and revoke), the audit log, store review with reasons and opening a store for its owner are decided in SEC-64, SEC-65 and SEC-75; their screens are built behind flags (see below) until those backends land.
+- Open questions are kept in Linear SEC-62: where VietQR money lands and what happens to held orders when a post is removed or an account locked.
+
+## After SEC-64, SEC-65 and SEC-75 (21 October 2026)
+
+Figma rows 12 to 14 draw an admin opening a store for its owner, store review (pending queue first, rejected, reasons on reject and block, the duplicate warning, an owner-less store), one admin role with grant and revoke, and the audit log of SEC-75's catalog. The web builds them now and waits for their backends:
+
+- The stores page keeps today's behaviour; the new parts sit behind feature flags in `web/src/features/admin/features.ts` (`storeReview`, `openForOwner`, both off), read through `isFeatureOn`, and are tested with the flag passed as a prop.
+- The admins and audit log pages stay behind their page flags ("Sắp ra mắt").
+- The request and response shapes the screens expect are written beside them (`sellers/owner-actions.ts`, `review-actions.ts`, `review-source.ts`, `settings/admins*.ts`, `settings/audit*.ts`), for SEC-64 and SEC-75 to match or to change here.

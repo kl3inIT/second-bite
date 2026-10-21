@@ -16,5 +16,5 @@ On 21 October 2026 the tech lead moved the shell, access, Figma rows 1 to 4 and 
 | 8 | Problem reports, reviews, all posts, accounts, empty until their backend exists | Done, 21 October 2026 |
 | 9 | Marketing: promotions, banners and content, notifications, sponsors, empty until their backend exists | Done, 21 October 2026 |
 | 10 | Coming-soon flags: the shared coming-soon page; the pages without a backend are switched to it | Done, 21 October 2026: only the overview, the stores and the offer and email settings are released |
-| 11 | Verification: `pnpm check`, the backend gates, Playwright with axe on desktop and phone; `verification.md`; pull request | In progress |
-| 12 | Figma, then web: an admin opens a store for its owner by email (SEC-64), and the rows that change with SEC-64 and SEC-75 | To do |
+| 11 | Verification: `pnpm check`, the backend gates, Playwright with axe on desktop and phone; `verification.md`; pull request | Done, 21 October 2026: pull request #41, CI green on b1ebe7b |
+| 12 | Figma rows 12 to 14, then web behind flags: an admin opens a store for its owner (SEC-64), store review with reasons (SEC-64, SEC-65), one admin role and the audit log (SEC-75) | Done, 21 October 2026 |
