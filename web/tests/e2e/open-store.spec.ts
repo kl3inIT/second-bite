@@ -594,7 +594,7 @@ test.describe("the catalog on the web", () => {
   });
 
   test("a dish takes up to three photos, the first being the cover", async ({ page }, testInfo) => {
-    const store = await catalogStore(page, "tam", testInfo);
+    const store = await catalogStore(page, "ba-anh", testInfo);
     await page.goto(`/vi/stores/${store}/catalog/new`);
 
     // Four photos at once: the form keeps the first three.
