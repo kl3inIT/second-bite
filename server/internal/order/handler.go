@@ -76,6 +76,8 @@ type orderBody struct {
 	CustomerName  string          `json:"customerName"           doc:"Who collects, as given with the order"`
 	CustomerPhone string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits"`
 	Review        *reviewBody     `json:"review,omitempty"       doc:"The customer's rating of the collected order; none until they rate it"`
+	Unread        *int            `json:"unreadMessages,omitempty" doc:"Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins"`
+	Messages      *int            `json:"messageCount,omitempty" doc:"Messages its chat holds, with unreadMessages; none for admins"`
 	Access        string          `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
 }
 
@@ -104,6 +106,7 @@ func toBody(o Order) orderBody {
 		ReadyAt: o.ReadyAt, CollectedAt: o.CollectedAt, CancelledAt: o.CancelledAt, RefusedAt: o.RefusedAt,
 		CancelReason: o.CancelReason, RefuseReason: o.RefuseReason, RefuseNote: o.RefuseNote,
 		CheckoutID: o.CheckoutID, CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Review: review, Access: o.Access,
+		Unread: o.UnreadMessages, Messages: o.MessageCount,
 	}
 }
 
@@ -148,6 +151,7 @@ var (
 // RegisterOperations adds the module's operations to api.
 func RegisterOperations(api huma.API, s *Service) {
 	registerCustomerOperations(api, s)
+	registerChatOperations(api, s)
 	registerStaffOperations(api, s)
 }
 
@@ -250,6 +254,154 @@ func registerCustomerOperations(api huma.API, s *Service) {
 		}
 
 		return &orderOutput{Body: toBody(o)}, nil
+	})
+}
+
+type liveTicketOutput struct {
+	Body struct {
+		Ticket    string    `json:"ticket"    doc:"Sent once in a subscribe frame on GET /live; it works once"`
+		ExpiresAt time.Time `json:"expiresAt" doc:"Thirty seconds after it was minted"`
+	}
+}
+
+func toLiveTicket(t LiveTicket) *liveTicketOutput {
+	out := &liveTicketOutput{}
+	out.Body.Ticket, out.Body.ExpiresAt = t.Value, t.ExpiresAt
+
+	return out
+}
+
+type messageBody struct {
+	Seq    int       `json:"seq"    doc:"Its number in the chat, from 1"`
+	From   Side      `json:"from"   enum:"customer,seller"`
+	Text   string    `json:"text"`
+	SentAt time.Time `json:"sentAt"`
+}
+
+func toMessageBody(m Message) messageBody {
+	return messageBody(m)
+}
+
+type messageOutput struct {
+	Body messageBody
+}
+
+type seenBody struct {
+	Customer int `json:"customer" doc:"The highest message the customer has read"`
+	Seller   int `json:"seller"   doc:"The highest message the seller's people have read"`
+}
+
+type messagesOutput struct {
+	Body struct {
+		Messages []messageBody `json:"messages"           doc:"Oldest first" nullable:"false"`
+		Seen     seenBody      `json:"seen"`
+		Open     bool          `json:"open"               doc:"Whether the chat takes messages"`
+		ClosesAt *time.Time    `json:"closesAt,omitempty" doc:"Only once the order is collected: when its chat turns read-only"`
+	}
+}
+
+func registerChatOperations(api huma.API, s *Service) {
+	huma.Register(api, huma.Operation{
+		OperationID: "createOrderLiveTicket", Method: http.MethodPost, Path: "/orders/{orderId}/live-ticket",
+		Summary: "A ticket to follow an order on the live socket",
+		Description: "To its customer, signed in or sending its access, and to the seller's people; admins are left out. " +
+			"The socket reads no cookie, so the ticket is what authorizes it.",
+		Tags: tagOrders, Security: anyone,
+	}, func(ctx context.Context, in *customerPath) (*liveTicketOutput, error) {
+		t, err := s.OrderLiveTicket(ctx, in.OrderID, in.Access)
+		if err != nil {
+			return nil, err
+		}
+
+		return toLiveTicket(t), nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "createSellerLiveTicket", Method: http.MethodPost, Path: "/sellers/{sellerId}/orders/live-ticket",
+		Summary: "A ticket to follow a seller's orders on the live socket", Tags: tagOrders, Security: security,
+	}, func(ctx context.Context, in *struct {
+		SellerID uuid.UUID `path:"sellerId"`
+	},
+	) (*liveTicketOutput, error) {
+		t, err := s.SellerLiveTicket(ctx, in.SellerID)
+		if err != nil {
+			return nil, err
+		}
+
+		return toLiveTicket(t), nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "listOrderMessages", Method: http.MethodGet, Path: "/orders/{orderId}/messages",
+		Summary:     "The messages of an order's chat, oldest first",
+		Description: "To its customer, signed in or sending its access, and to the seller's people; admins are left out.",
+		Tags:        tagOrders, Security: anyone,
+	}, func(ctx context.Context, in *struct {
+		OrderID uuid.UUID `path:"orderId"`
+		Access  string    `doc:"The order's access, for its customer who did not sign in" header:"Order-Access" maxLength:"64"`
+		After   int       `default:"0"                                                    doc:"Only messages numbered after this one" minimum:"0" query:"after"`
+		Limit   int       `default:"50"                                                   maximum:"100"                               minimum:"1" query:"limit"`
+	},
+	) (*messagesOutput, error) {
+		c, err := s.Messages(ctx, in.OrderID, in.Access, in.After, in.Limit)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &messagesOutput{}
+		out.Body.Messages = make([]messageBody, 0, len(c.Messages))
+
+		for _, m := range c.Messages {
+			out.Body.Messages = append(out.Body.Messages, toMessageBody(m))
+		}
+
+		out.Body.Seen = seenBody{Customer: c.SeenCustomer, Seller: c.SeenSeller}
+		out.Body.Open, out.Body.ClosesAt = c.Open, c.ClosesAt
+
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "sendOrderMessage", Method: http.MethodPost, Path: "/orders/{orderId}/messages",
+		Summary: "Write in an order's chat",
+		Description: "By its customer, signed in or sending its access, and by the seller's people, while the order is open " +
+			"and for two hours after it is collected. Sending the same Idempotency-Key again returns the message sent first.",
+		Tags: tagOrders, Security: anyone, DefaultStatus: http.StatusCreated,
+	}, func(ctx context.Context, in *struct {
+		OrderID        uuid.UUID `path:"orderId"`
+		Access         string    `doc:"The order's access, for its customer who did not sign in" header:"Order-Access" maxLength:"64"`
+		IdempotencyKey string    `header:"Idempotency-Key" maxLength:"255" minLength:"1" required:"true"`
+		Body           struct {
+			Text string `json:"text" doc:"Trimmed; 1 to 1,000 characters" maxLength:"1000" minLength:"1"`
+		}
+	},
+	) (*messageOutput, error) {
+		m, err := s.SendMessage(ctx, in.OrderID, in.Access, in.IdempotencyKey, in.Body.Text)
+		if err != nil {
+			return nil, err
+		}
+
+		return &messageOutput{Body: toMessageBody(m)}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "markOrderMessagesSeen", Method: http.MethodPost, Path: "/orders/{orderId}/messages/seen",
+		Summary:     "Say you have read an order's chat up to a message",
+		Description: "Also once the chat is read-only. An upTo beyond the latest message counts as the latest.",
+		Tags:        tagOrders, Security: anyone, DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *struct {
+		OrderID uuid.UUID `path:"orderId"`
+		Access  string    `doc:"The order's access, for its customer who did not sign in" header:"Order-Access" maxLength:"64"`
+		Body    struct {
+			UpTo int `json:"upTo" minimum:"0"`
+		}
+	},
+	) (*struct{}, error) {
+		if err := s.MarkSeen(ctx, in.OrderID, in.Access, in.Body.UpTo); err != nil {
+			return nil, err
+		}
+
+		return &struct{}{}, nil
 	})
 }
 

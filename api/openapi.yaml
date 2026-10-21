@@ -760,6 +760,30 @@ components:
       required:
         - dishes
       type: object
+    LiveTicketOutputBody:
+      additionalProperties: false
+      properties:
+        expiresAt:
+          description: Thirty seconds after it was minted
+          format: date-time
+          type: string
+        ticket:
+          description: Sent once in a subscribe frame on GET /live; it works once
+          type: string
+      required:
+        - ticket
+        - expiresAt
+      type: object
+    MarkOrderMessagesSeenRequest:
+      additionalProperties: false
+      properties:
+        upTo:
+          format: int64
+          minimum: 0
+          type: integer
+      required:
+        - upTo
+      type: object
     MemberBody:
       additionalProperties: false
       properties:
@@ -832,6 +856,51 @@ components:
             - "null"
       required:
         - memberships
+      type: object
+    MessageBody:
+      additionalProperties: false
+      properties:
+        from:
+          enum:
+            - customer
+            - seller
+          type: string
+        sentAt:
+          format: date-time
+          type: string
+        seq:
+          description: Its number in the chat, from 1
+          format: int64
+          type: integer
+        text:
+          type: string
+      required:
+        - seq
+        - from
+        - text
+        - sentAt
+      type: object
+    MessagesOutputBody:
+      additionalProperties: false
+      properties:
+        closesAt:
+          description: "Only once the order is collected: when its chat turns read-only"
+          format: date-time
+          type: string
+        messages:
+          description: Oldest first
+          items:
+            $ref: "#/components/schemas/MessageBody"
+          type: array
+        open:
+          description: Whether the chat takes messages
+          type: boolean
+        seen:
+          $ref: "#/components/schemas/SeenBody"
+      required:
+        - messages
+        - seen
+        - open
       type: object
     MethodsOutputBody:
       additionalProperties: false
@@ -1187,6 +1256,10 @@ components:
           items:
             $ref: "#/components/schemas/OrderLineBody"
           type: array
+        messageCount:
+          description: Messages its chat holds, with unreadMessages; none for admins
+          format: int64
+          type: integer
         number:
           description: What people read aloud, SB- and a number
           type: string
@@ -1227,6 +1300,10 @@ components:
           type: string
         totalVnd:
           description: Paid to the seller at the counter
+          format: int64
+          type: integer
+        unreadMessages:
+          description: "Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins"
           format: int64
           type: integer
         windowEnd:
@@ -1620,6 +1697,21 @@ components:
         - senderAddress
         - senderName
       type: object
+    SeenBody:
+      additionalProperties: false
+      properties:
+        customer:
+          description: The highest message the customer has read
+          format: int64
+          type: integer
+        seller:
+          description: The highest message the seller's people have read
+          format: int64
+          type: integer
+      required:
+        - customer
+        - seller
+      type: object
     SellerBody:
       additionalProperties: false
       properties:
@@ -1725,6 +1817,17 @@ components:
             - "null"
       required:
         - sellers
+      type: object
+    SendOrderMessageRequest:
+      additionalProperties: false
+      properties:
+        text:
+          description: Trimmed; 1 to 1,000 characters
+          maxLength: 1000
+          minLength: 1
+          type: string
+      required:
+        - text
       type: object
     SendTestEmailInputBody:
       additionalProperties: false
@@ -3284,6 +3387,187 @@ paths:
       summary: Hand an order over
       tags:
         - Orders
+  /orders/{orderId}/live-ticket:
+    post:
+      description: To its customer, signed in or sending its access, and to the seller's people; admins are left out. The socket reads no cookie, so the ticket is what authorizes it.
+      operationId: createOrderLiveTicket
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveTicketOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: A ticket to follow an order on the live socket
+      tags:
+        - Orders
+  /orders/{orderId}/messages:
+    get:
+      description: To its customer, signed in or sending its access, and to the seller's people; admins are left out.
+      operationId: listOrderMessages
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+        - description: Only messages numbered after this one
+          explode: false
+          in: query
+          name: after
+          schema:
+            default: 0
+            description: Only messages numbered after this one
+            format: int64
+            minimum: 0
+            type: integer
+        - explode: false
+          in: query
+          name: limit
+          schema:
+            default: 50
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessagesOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: The messages of an order's chat, oldest first
+      tags:
+        - Orders
+    post:
+      description: By its customer, signed in or sending its access, and by the seller's people, while the order is open and for two hours after it is collected. Sending the same Idempotency-Key again returns the message sent first.
+      operationId: sendOrderMessage
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema:
+            maxLength: 255
+            minLength: 1
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOrderMessageRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageBody"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Write in an order's chat
+      tags:
+        - Orders
+  /orders/{orderId}/messages/seen:
+    post:
+      description: Also once the chat is read-only. An upTo beyond the latest message counts as the latest.
+      operationId: markOrderMessagesSeen
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkOrderMessagesSeenRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Say you have read an order's chat up to a message
+      tags:
+        - Orders
   /orders/{orderId}/ready:
     post:
       operationId: markOrderReady
@@ -3994,6 +4278,34 @@ paths:
         - bearer: []
         - cookie: []
       summary: A seller's orders of one day, soonest first, to its people and admins
+      tags:
+        - Orders
+  /sellers/{sellerId}/orders/live-ticket:
+    post:
+      operationId: createSellerLiveTicket
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveTicketOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: A ticket to follow a seller's orders on the live socket
       tags:
         - Orders
   /sellers/{sellerId}/photo:

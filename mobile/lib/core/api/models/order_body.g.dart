@@ -29,6 +29,7 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
   collectedAt: json['collectedAt'] == null
       ? null
       : DateTime.parse(json['collectedAt'] as String),
+  messageCount: (json['messageCount'] as num?)?.toInt(),
   readyAt: json['readyAt'] == null
       ? null
       : DateTime.parse(json['readyAt'] as String),
@@ -42,6 +43,7 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
   review: json['review'] == null
       ? null
       : ReviewBody.fromJson(json['review'] as Map<String, dynamic>),
+  unreadMessages: (json['unreadMessages'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
@@ -62,11 +64,13 @@ Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
       'cancelReason': instance.cancelReason,
       'cancelledAt': instance.cancelledAt?.toIso8601String(),
       'collectedAt': instance.collectedAt?.toIso8601String(),
+      'messageCount': instance.messageCount,
       'readyAt': instance.readyAt?.toIso8601String(),
       'refuseNote': instance.refuseNote,
       'refuseReason': _$OrderBodyRefuseReasonEnumMap[instance.refuseReason],
       'refusedAt': instance.refusedAt?.toIso8601String(),
       'review': instance.review,
+      'unreadMessages': instance.unreadMessages,
     };
 
 const _$OrderBodyStatusEnumMap = {
