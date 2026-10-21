@@ -4,6 +4,10 @@ import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
+
+// A one-pixel PNG, the store's photo in the checks below.
+const onePixel =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 // Each test signs in and opens a store first, which takes a while when the projects run side by side.
 test.setTimeout(90_000);
 
@@ -88,6 +92,26 @@ test.describe("opening a store on the web", () => {
 
     await page.getByRole("link", { name: /Quán Hai/ }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Quán Hai" })).toBeVisible();
+  });
+
+  test("shows the store's photo in its header and in the list of stores", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `anh.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByLabel("Tên quán"))).fill("Ăn cùng chú Nhật");
+    await page.getByLabel("Số điện thoại").fill("0912345678");
+    await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await page.getByLabel("Ảnh đại diện quán").setInputFiles({
+      name: "quan.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(onePixel, "base64"),
+    });
+    await page.getByRole("button", { name: "Tạo quán" }).click();
+    await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
+
+    // The capsule of the store's name has its photo, not only its initials.
+    const photo = page.locator('header [data-slot="avatar-image"]').first();
+    await expect(photo).toHaveAttribute("src", /\/api\/photos\/ph-upload\/400\.jpg/);
   });
 
   test("a store's posts are in three tabs", async ({ page }, testInfo) => {
