@@ -37,7 +37,7 @@ test.describe("opening a store on the web", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Mở quán của bạn" })).toBeVisible();
   });
 
-  test("pins the store where the person stands when they allow it", async ({
+  test("fills the address from where the person stands, and pins the store there", async ({
     page,
     context,
   }, testInfo) => {
@@ -47,15 +47,16 @@ test.describe("opening a store on the web", () => {
 
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Cầu Giấy");
     await page.getByLabel("Số điện thoại").fill("0912345678");
-    await page.getByLabel("Địa chỉ quán").fill("21 Cầu Giấy, Hà Nội");
     await page.getByRole("button", { name: "Dùng vị trí hiện tại" }).click();
+    await expect(page.getByLabel("Địa chỉ quán")).toHaveValue(
+      "21 Phố Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội",
+    );
     await expect(
       page.getByText("Đã lấy vị trí hiện tại, sai số khoảng 20 m. Bạn có thể sửa địa chỉ."),
     ).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
-    // The address stays as it was written; the store is pinned where the person stood, not at the mall.
-    await expect(page.getByLabel("Địa chỉ quán")).toHaveValue("21 Cầu Giấy, Hà Nội");
+    // The store is pinned where the person stood, not at the mall.
     const sent = page.waitForRequest(
       (request) =>
         request.method() === "POST" && new URL(request.url()).pathname.endsWith("/sellers"),
@@ -64,6 +65,27 @@ test.describe("opening a store on the web", () => {
     const body = (await sent).postDataJSON() as { latitude: number; longitude: number };
     expect(body.latitude).toBeCloseTo(21.0367, 3);
     expect(body.longitude).toBeCloseTo(105.7818, 3);
+  });
+
+  test("keeps an address the person wrote, and says when no street is found", async ({
+    page,
+    context,
+  }, testInfo) => {
+    await context.grantPermissions(["geolocation"]);
+    await context.setGeolocation({ latitude: 21.0367, longitude: 105.7818, accuracy: 20 });
+    await signIn(page, `mai.${testInfo.project.name}@example.com`, "/open-store");
+
+    await (await hydrated(page.getByLabel("Địa chỉ quán"))).fill("Tầng 2, Tasco Mall");
+    await page.getByRole("button", { name: "Dùng vị trí hiện tại" }).click();
+    await expect(page.getByText(/Địa chỉ giữ như bạn đã nhập/)).toBeVisible();
+    await expect(page.getByLabel("Địa chỉ quán")).toHaveValue("Tầng 2, Tasco Mall");
+
+    // Somewhere the geocoder knows nothing of: the store is pinned and the person writes the address.
+    await context.setGeolocation({ latitude: 10.77, longitude: 106.7, accuracy: 30 });
+    await page.getByLabel("Địa chỉ quán").fill("");
+    await page.getByRole("button", { name: "Dùng vị trí hiện tại" }).click();
+    await expect(page.getByText(/Chưa tìm được tên đường, bạn nhập địa chỉ nhé/)).toBeVisible();
+    await expect(page.getByLabel("Địa chỉ quán")).toHaveValue("");
   });
 
   test("says when the location is not given, and the address is typed", async ({

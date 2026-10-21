@@ -869,6 +869,7 @@ async function sellerRoutes(request, response, url) {
   const isSellerRoute =
     url.pathname === "/sellers" ||
     url.pathname === "/sellers/mine" ||
+    url.pathname === "/sellers/address" ||
     url.pathname === "/photos" ||
     /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
     /^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse)$/.test(url.pathname) ||
@@ -881,6 +882,12 @@ async function sellerRoutes(request, response, url) {
     return true;
   }
   const mine = storesOf.get(token) ?? [];
+  if (request.method === "GET" && url.pathname === "/sellers/address") {
+    // A point in Cầu Giấy has an address; any other has none, as the geocoder knows nothing there.
+    const near = Math.abs(Number(url.searchParams.get("latitude")) - 21.0367) < 0.01;
+    json(response, 200, { address: near ? "21 Phố Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội" : "" });
+    return true;
+  }
   if (request.method === "GET" && url.pathname === "/sellers/mine") {
     // An address starting with "ending." has its session end between the account and its sellers (SEC-69).
     if (accounts.get(token).email.startsWith("ending.")) {
