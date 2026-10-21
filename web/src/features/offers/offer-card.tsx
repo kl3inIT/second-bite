@@ -124,9 +124,10 @@ export function OfferCard({
           </>
         ) : (
           !showSeller && (
-            <div className="flex items-center justify-between gap-2">
+            // With a phone's large text the price goes under the units, still on the right (SEC-107).
+            <div className="flex flex-wrap items-center justify-between gap-x-2">
               <UnitsLeft offer={offer} />
-              <Price offer={offer} />
+              <Price offer={offer} className="ml-auto" />
             </div>
           )
         )}

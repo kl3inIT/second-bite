@@ -45,7 +45,7 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
       <div className="flex flex-col gap-2 lg:max-w-md lg:min-w-0 lg:flex-1">
         <h2
           id="tonight-deals"
-          className="text-body-sm-strong text-fresh lg:font-display lg:text-page-title lg:font-bold lg:text-deal-foreground"
+          className="pr-16 text-body-sm-strong text-fresh lg:pr-0 lg:font-display lg:text-page-title lg:font-bold lg:text-deal-foreground"
         >
           {t("dealsTitle")}
         </h2>
@@ -65,7 +65,7 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
             {tickets.map((offer) => (
               <li
                 key={offer.id}
-                className="relative flex h-18 w-36 shrink-0 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:w-44 lg:h-auto lg:gap-1 lg:px-3 lg:py-2.5"
+                className="relative flex min-h-18 w-36 shrink-0 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 py-1.5 text-card-foreground sm:w-44 lg:h-auto lg:gap-1 lg:px-3 lg:py-2.5"
               >
                 <span className="font-display text-price-lg text-sale">
                   <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
