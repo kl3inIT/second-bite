@@ -55,6 +55,7 @@ type searchInput struct {
 	RadiusKm    int       `doc:"Around near; the settings' default when absent, never more than their maximum"             maximum:"100"                                         minimum:"0"   query:"radiusKm"`
 	Q           string    `doc:"Words; typed without marks they match any marks (\"ca\" finds cá and cà), with marks only those" maxLength:"200"                                   query:"q"`
 	Kind        []Kind    `doc:"One or more kinds, comma-separated"                                                        enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other" query:"kind"`
+	MinPrice    int64     `doc:"The lowest price of one unit, in đồng"                                                     minimum:"0"                                           query:"minPrice"`
 	MaxPrice    int64     `doc:"The highest price of one unit, in đồng"                                                    minimum:"0"                                           query:"maxPrice"`
 	CollectFrom time.Time `doc:"Keep offers whose window overlaps collectFrom to collectTo; both at one moment keep what can be collected then" query:"collectFrom"`
 	CollectTo   time.Time `query:"collectTo"`
@@ -67,7 +68,7 @@ type searchInput struct {
 
 func (in searchInput) query() (Query, error) {
 	q := Query{
-		RadiusKm: in.RadiusKm, Words: in.Q, Kinds: in.Kind, MaxPriceVND: in.MaxPrice, AvailableOnly: in.Available,
+		RadiusKm: in.RadiusKm, Words: in.Q, Kinds: in.Kind, MinPriceVND: in.MinPrice, MaxPriceVND: in.MaxPrice, AvailableOnly: in.Available,
 		Sort: in.Sort, Limit: in.Limit, Offset: in.Offset,
 	}
 

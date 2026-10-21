@@ -16,6 +16,7 @@ services:
       SECONDBITE_DATABASE_PASSWORD: secondbite-local
       SECONDBITE_EMAIL_SETTINGS_KEY: bG9jYWwtb25seS1lbWFpbC1zZXR0aW5ncy1rZXktMDA=
       SECONDBITE_SIGN_IN_CODE_KEY: bG9jYWwtb25seS1zaWduLWluLWNvZGUta2V5LTAwMDA=
+      SECONDBITE_COLLECTION_CODE_KEY: bG9jYWwtb25seS1jb2xsZWN0aW9uLWNvZGUta2V5MDA=
       # From the shell, never from Git; empty leaves Google off. The client needs http://localhost:8000 as an origin.
       SECONDBITE_GOOGLE_CLIENT_IDS: ${SECONDBITE_GOOGLE_CLIENT_IDS:-}
 

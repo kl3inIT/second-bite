@@ -93,7 +93,7 @@ colors:
   avatar-indigo: "{palette.logo-indigo}" # 7.6:1
   avatar-olive: "{palette.logo-olive}" # 6.0:1
 typography:
-  # Eighteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
+  # Nineteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
   # "Mobile v2" frames used (SEC-22). Named by purpose, not size; each has a Figma text style of the same name.
   # Be Vietnam Pro (`font-sans`) for everything people read; Bricolage Grotesque (`font-display`) only for
   # prices and figures, tracked -1%. Nothing is set below 12px.
@@ -173,6 +173,12 @@ typography:
     fontWeight: 700
     lineHeight: "16px"
     letterSpacing: "-0.01em"
+  price-sm: # the price on a dish tile, where two prices share 104px (Figma K1f hàng túi), since 20 October 2026
+    fontFamily: "Bricolage Grotesque"
+    fontSize: "14px"
+    fontWeight: 700
+    lineHeight: "17px"
+    letterSpacing: "-0.01em"
   price: # the price on a card
     fontFamily: "Bricolage Grotesque"
     fontSize: "16px"
@@ -194,6 +200,7 @@ typography:
 rounded:
   # Named like Tailwind and shadcn: `lg` is the base radius shadcn's controls use. No other radius is used; in
   # Figma each is a `radius/*` variable of the `Scale` collection, bound on every frame.
+  xs: "4px" # the rating tag on a small card's photograph
   sm: "8px" # small badges
   md: "12px" # photo thumbnails, small tiles
   lg: "14px" # inputs, segmented controls
@@ -210,7 +217,10 @@ spacing:
   "6": "24px"
   "8": "32px"
 elevation:
-  # Cards are flat on the sky ground; only what floats over content, a sheet, a dialog or the bottom bar, casts a shadow.
+  # Cards lift off the sky ground by a faint blue shadow, lighter than Figma's (owner, 20 October 2026); what floats
+  # over content, a sheet, a dialog or the bottom bar, casts a stronger one.
+  card: # offer cards, a seller's dishes in the search (Figma thẻ nổi bật, softened)
+    - { x: 0, y: 4, blur: 14, spread: 0, color: "#004E8C0F" }
   sheet:
     - { x: 0, y: -4, blur: 24, spread: 0, color: "#0E1D191F" }
   nav: # the floating bottom bar (Figma Bottom nav, 105:2515)
@@ -320,7 +330,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 **The Bite Rule.** The bitten corner is cut in the colour of what is behind the card. It sits on cards on the sky ground, never on a control.
 
-**The Honest Number Rule.** No figure appears that the product did not measure: no invented counters, ratings or "meals saved" until the pilot produces them.
+**The Honest Number Rule.** No figure appears that the product did not measure: no invented counters, ratings or "meals saved" until the pilot produces them. A seller's rating is drawn only when the backend returns one; until then it shows only against the test backend.
 
 ## Typography
 
@@ -329,16 +339,17 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 ### Hierarchy
 
-Eighteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `hero` and `page-title` were added for the sign-in screen (SEC-56); `headline` grew to 20/28 bold with Mobile v3 (SEC-48), when `price-lg` became 20/24 and `title-lg` was added (SEC-49); `card-title` and `note` were added for the seller's screens (SEC-57), whose Figma frames use 18/25 and 13/19. A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
+Nineteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `hero` and `page-title` were added for the sign-in screen (SEC-56); `headline` grew to 20/28 bold with Mobile v3 (SEC-48), when `price-lg` became 20/24 and `title-lg` was added (SEC-49); `card-title` and `note` were added for the seller's screens (SEC-57), whose Figma frames use 18/25 and 13/19; `price-sm` (14/17) followed for the dish tiles (SEC-49). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
 
 | Role             | Face          | Size / line | Use                                                                               |
 | ---------------- | ------------- | ----------- | --------------------------------------------------------------------------------- |
 | `display`        | Bricolage 700 | 36 / 40     | Big figures only: the pickup code, the best discount tonight                      |
 | `price-lg`       | Bricolage 700 | 20 / 24     | The price on a large card and at checkout, totals, the digits of the sign-in code |
 | `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                       |
+| `price-sm`       | Bricolage 700 | 14 / 17     | The price on a dish tile, where two prices share 104px                            |
 | `figure-sm`      | Bricolage 700 | 12 / 16     | Small figures on lime: the discount badge, the steps' numbers                     |
 | `page-title`     | 600           | 28 / 36     | The heading of a form page, the sign-in screen's                                  |
-| `hero`           | 700           | 44 / 54     | The headline of a panel with no other content, the wide sign-in screen's           |
+| `hero`           | 700           | 44 / 54     | The headline of a panel with no other content, the wide sign-in screen's          |
 | `headline`       | 700           | 20 / 28     | Section and sheet titles, a page's heading                                        |
 | `bar-title`      | 600           | 17 / 22     | The top bar's title                                                               |
 | `button`         | 600           | 16 / 20     | Button labels                                                                     |
@@ -366,11 +377,11 @@ Mobile at 390px is the source frame for app screens; desktop is derived from it.
 
 ## Elevation & Depth
 
-Flat. Cards separate from the sky ground by colour alone; photographs get a soft dark scrim where text sits on them. Only what floats over content casts a shadow: a sheet or a dialog (`elevation.sheet`), and the bottom bar (`elevation.nav`).
+Nearly flat. Cards lift off the sky ground by a faint blue shadow (`elevation.card`); photographs get a soft dark scrim where text sits on them. What floats over content casts a stronger shadow: a sheet or a dialog (`elevation.sheet`), and the bottom bar (`elevation.nav`).
 
 ## Shapes
 
-Generous rounding from one scale: 20px (`2xl`) on the deal card, sheets and list rows; 16px (`xl`) on offer cards; 14px (`lg`) on inputs, segmented controls and a dish card's photograph; 12px (`md`) on thumbnails and the inner corner of a discount label; 24px (`3xl`) on the bottom of the header and a sheet's top corners; full rounding on buttons, the search field and its filter button, the bottom bar, chips, avatars and icon buttons. Photographs fill the top of a card and share its corners. No other radius is used.
+Generous rounding from one scale: 4px (`xs`) on the rating tag of a small card; 20px (`2xl`) on the deal card, sheets and list rows; 16px (`xl`) on offer cards; 14px (`lg`) on inputs, segmented controls and a dish card's photograph; 12px (`md`) on thumbnails and the inner corner of a discount label; 24px (`3xl`) on the bottom of the header and a sheet's top corners; full rounding on buttons, the search field and its filter button, the bottom bar, chips, avatars and icon buttons. Photographs fill the top of a card and share its corners. No other radius is used.
 
 ## Components
 
@@ -384,13 +395,15 @@ Deal Blue with white `label-strong` ("Giảm 55%"), in the photograph's top left
 
 ### Offer card
 
-The large card of "Sắp hết giờ nhận" (264px wide in a row) and of the list (the full width), after Figma Mobile v3 (`card/…`, `thẻ nổi bật`). White, 16px radius, bitten corner. A photograph 136px high with the discount label, and a dark scrim along its foot carrying the window with a clock, and the distance when a place is known, in white `label-strong` ("20:30–21:30 · 350 m"). Under it, 10px 14px 12px: the dish only, never the seller (`title-lg`, one line, cut with "…"), then a row with the portions left in Sale Red (`label-strong`, "Còn 2 phần", or "Đã hết" muted) on the left, and the old price struck through (`label`, muted) beside the new price (`price-lg`, Tasco blue) on the right. A sold out card dims its photograph.
+The large card of "Sắp hết giờ nhận" (264px wide in a row) and of the list (the full width), after Figma Mobile v3 (`card/…`, `thẻ nổi bật`). White, 16px radius, bitten corner. A photograph 136px high with the discount label, and a dark scrim along its foot carrying the window with a clock, and the distance when a place is known, in white `label-strong` ("20:30–21:30 · 350 m"), and at its right the seller's rating once there is one ("★ 4,8", white like the window). Where the card names its seller, in the search (Figma K1f), the scrim carries the seller's place instead of the distance ("20:00–21:00 · Tầng 3") its photograph is 148px high, a white heart takes the discount label's corner (the struck price still shows the saving), and the bottom bar is gone, the search being left by its back arrow. Its body then pairs the dish with the price on the first line, and the seller ("Quán Nét Huế · cách 350 m", `label`, muted) with the portions left on the second. Under it, 10px 14px 12px: the dish only, never the seller (`title-lg`, one line, cut with "…"), then a row with the portions left in Sale Red (`label-strong`, "Còn 2 phần", or "Đã hết" muted) on the left, and the old price struck through (`label`, muted) beside the new price (`price-lg`, Tasco blue) on the right. A sold out card dims its photograph.
 
-The home's "Tất cả món quanh đây" lays its cards two abreast (Figma `lưới món`, K1b, K1b2, K1d): 12px apart both ways, three columns from `sm`, four from `lg`, five from `xl`. A grid card keeps the white, the 16px radius and the label, but its photograph is 120px high with a 44px scrim, and under it, 10px 10px 12px: the dish (`title`, one line, cut with "…"), the old price struck through beside the new one (`price-lg`) on their own line, then the portions left; it has no bitten corner, no seller and no rating. Its heart waits for Yêu thích.
+The home's "Tất cả món quanh đây" lays its cards two abreast (Figma `lưới món`, K1b, K1b2, K1d): 12px apart both ways, three columns from `sm`, four from `lg`, five from `xl`. A grid card keeps the white, the 16px radius and the label, but its photograph is 120px high with a 44px scrim, and under it, 10px 10px 12px: the dish (`title`, one line, cut with "…"), the old price struck through beside the new one (`price-lg`) on their own line, then the portions left; it has no bitten corner, no seller and no rating. A white heart (22px, a 44px target) sits in the photograph's top right corner, filled once the dish is kept; the browser keeps it until accounts keep favourites. Over the grid, the search's filter chips start with a round button to the search (Figma `chip lọc`).
 
 ### Dish card
 
 The small card of the sideways rows (Figma `rec/…`): 132px wide with no surface of its own. A photograph 96px high with a 14px radius and the discount label; 8px under it the dish (`body-sm-strong`, one line, cut with "…"), then 2px under that a clock and the window (`label`, muted, "20:00–21:00"). It names the dish only, never the seller.
+
+"Gợi ý cho bạn" adds the seller's rating as a badge at the photograph's bottom left: white with ink `label-strong` and the star in `rating` ("4,7 ★"), 4px radius (`xs`), 1px 4px inside, 6px from the photograph's left and bottom (Figma K1b, rating 105:2786; Figma sets it at 10px, which the Floor Rule raises to 12). "Sắp có tối nay" fills the label with the portions expected ("Dự kiến 6 phần"), puts a 28px white bell in Tasco blue at the photograph's bottom right, and shows the time it goes on sale under the dish ("Mở bán 22:00"). The bell asks first in a sheet (Figma K1d: "Báo bạn khi Nét Huế mở bán?", "Bật thông báo" over "Để sau"); once followed the bell turns Tasco blue and rings.
 
 ### Bottom bar
 
@@ -404,23 +417,35 @@ While a page's list is fetched, the pale ground covers the screen with the blue 
 
 ### Header foot and kind picker
 
-The page's pale ground rises over the header's foot as a 28px sheet with 24px top corners (Figma header › sheet); the sweep scales with the header, so its pale bands always reach that foot. Under it, the kinds are 60px round photographs, each a dish of a Tasco Mall shop cropped so the food fills the circle, with their names (`label`) on one line, and a short track (36px, `secondary-hover`, its blue half following the row) replaces the browser's scrollbar on every row that scrolls sideways.
+The page's pale ground rises over the header's foot as a 28px sheet with 24px top corners (Figma header › sheet); the sweep scales with the header, so its pale bands always reach that foot. Once the header's row has scrolled away, a copy stays at the top: on a phone the search field alone on the blue, its foot rounded 24px (Figma K1b, K1b2); from `lg` the whole row. Under a sheet (Figma K1a, K1d) the page dims in ink at 30%, without a blur. In the area sheet (Figma K1a) each place is a white option with a 14px radius and a hairline, the chosen one edged in Tasco blue; the chosen one shows its radio, the other its icon in the radio's place. An empty state on a white card (Figma K1e: "Chưa có món nào quanh đây") leads with a 36px line icon in Tasco blue, its title in `title-lg`, the hint in muted `body-sm` and its action the full width. Under it, the kinds are 60px round photographs, each a dish of a Tasco Mall shop cropped so the food fills the circle, with their names (`label`) on one line, and a short track (36px, `secondary-hover`, its blue half following the row) replaces the browser's scrollbar on every row that scrolls sideways.
 
 ### Search top bar
 
-The search's own bar (Figma K2): white with a hairline below, a plain back arrow, and the search field fully rounded on the sky ground (`muted`) without an edge. While the field is focused and empty, the recent searches (kept in the browser) and the kinds open under it as a white panel (Figma K2a).
+The search's own bar (Figma K2, K1f): white, a plain back chevron, and the search field fully rounded on the sky ground (`muted`) without an edge. The white goes on under it with the chips and the summary ("12 món đang bán ở Tasco Mall", "1 món cho “bánh bao”"), without tabs, with or without words; a hairline closes it. While the field is focused and empty, the recent searches (kept in the browser) and "Món phổ biến ở Tasco Mall" cover the page and its bottom bar in white until the field is left (Figma K2a), each titled in `headline`. The popular kinds are the kinds on sale, the most first, each a 56px row: its round 40px picture, the kind (`body-sm`) and "3 món đang giảm" (`label`, muted) at the right.
 
 ### Filter chip
 
-A 34px pill on the sky ground without an edge (`body-sm`, ink, a small chevron), with a 44px target around it; once chosen it shows its value on Blue Wash in Tasco blue (`body-sm-strong`). Each opens its options as a menu, and every option is a link over the address. A suggestion chip (the kinds in Figma K2a) has the same shape without the chevron.
+A 34px pill on the sky ground without an edge (`body-sm`, ink, a small chevron), with a 44px target around it; once chosen it shows its value on Blue Wash in Tasco blue (`body-sm-strong`). Each opens its options as a menu, and every option is a link over the address. The price and the time to collect open a small panel instead, 288px wide and compact: its title (`body-sm-strong`), quick choices as 28px chips (`label`) ("Đến 20.000đ", "20.000đ–40.000đ", "Từ 40.000đ"; "Nhận ngay", "Đến 21:00", "21:00–22:00", "Từ 22:00"), then "Từ" and "Đến" side by side, either one may stay empty: the price typed with its thousands marked and "đ" after it, the times chosen by the half hour on the 24-hour clock. The fields are 36px with 14px text under 12px muted labels. "Bỏ lọc" (secondary) and "Áp dụng" share the last row, 36px high; every control keeps a 44px target. A chosen range shows on the chip ("20.000đ–30.000đ", "Từ 20:00"). A suggestion chip (the kinds in Figma K2a) has the same shape without the chevron. On the sky ground itself, over the home's grid, a chip is white with a 1px `secondary` edge (Figma K1b). In the search the chips sit on the white top under the field (Figma K1f, K2), so they keep the sky fill.
 
-### Result tabs
+### Dish page
 
-Two halves over a hairline (Figma K2 "Món (12)" / "Quán (2)"): the open one in Tasco blue over a 3px line, the other muted, both `title`.
+A dish on a white page (Figma K4): its photograph 280px high, a scrim of ink at 35% along its top, and three 40px white round buttons with their icons in Tasco blue (back on the left, share and the heart on the right). A white sheet with 24px top corners rises 24px over the photograph's foot, 20px 16px inside, 16px between its parts: the seller's 44px logo (12px radius, hairline; their initials on their colour until they have a photograph), name (`title`) and place (`label`, muted), with "Xem quán" (`label-strong`, Tasco blue) at the right; the dish (`headline`); three lines 10px apart with 22px line icons in Tasco blue (`body-sm`): the kind and portion, the window, the seller's rating with a filled star in `rating`. Under a hairline, "Món khác của quán đang giảm" (`title-lg`) over four 1:1 photographs with a 12px radius, then the description (`body-sm`, muted). A white bar with a hairline stays at the screen's foot: the price (`price-lg`) beside the old one struck through, the discount and the portions left in Sale Red (`label-strong`), and "Thêm vào giỏ" filling the rest, which becomes "Xem giỏ hàng" once the dish is in the cart. Reviews and their count are left out until something measures them; Figma's 24px price and 10px text are set at `price-lg` and 12px.
+
+### Seller page
+
+A seller's dishes tonight (Figma K4b): up to three dish photographs side by side, 200px high, with the white back and search buttons; the same sheet carrying the seller's 56px logo (14px radius), their name (`headline`) and floor (`body-sm`, muted). A white card with a hairline and 14px radius holds three centred columns: the rating ("★ 4,8", the star in `rating`), tonight's window and the distance, or the floor without a place, each in Bricolage `price` over a muted `label`; "Chỉ đường ›" (`label`, Tasco blue) opens the maps. Tabs by kind follow when the seller sells more than one kind, 24px apart over a hairline, the open one in Tasco blue over a 3px line, all `title`. Each dish is a row 14px from a 100px photograph (14px radius): the dish (`title-lg`, two lines at most), then its price (`price`) beside the old one struck through over the discount and the portions left (`label`, Sale Red; "đã chọn đủ 2 phần" once all are in the cart), and the stepper at the right. The cart's bar stays at the foot while the cart holds anything: its total (`price-lg`) over the old total struck through, "3 phần · tiết kiệm 105.000đ" (`label-strong`) and "Xem giỏ hàng". "Theo dõi" and the review count are left out until their backend exists.
+
+### Stepper
+
+A lone 32px white + with the card shadow until the dish is in the cart; then a 96px by 32px pill on the sky fill (`muted`) holding a white − , the count (`title`) and a + in Tasco blue, which turns `secondary` with a muted icon once every portion left is chosen. Each button keeps a 44px target. A dish of another seller joins the same cart, in its seller's basket.
+
+### Order confirmation
+
+The cart's last screen (Figma K5) under a Tasco blue top bar with the white back button and its title (`bar-title`, white). On white, 16px inside and 20px between sections titled in `title-lg`: where to collect, a card with a hairline and 14px radius (the seller's logo, 56px, as on the dish page, the seller and floor in `body-sm-strong`, the distance, the window, and "Chỉ đường"); the payment as two options like the area sheet's, "Chuyển khoản tại quầy" chosen first; the summary with "Sửa món" back to the seller, each dish "2× Croissant" (`body-sm`) with its price (Bricolage `price-sm`), a hairline, the dishes' total and the total (`title-lg`, `price`); then the cancellation policy, its title in muted uppercase `label-strong`. The bar at the foot repeats the total and holds "Đặt món". "Đặt món" opens a sheet over the cart, "Người đến nhận", with a name and a phone number in pill fields, each saying under it what is wrong, and "Tiếp tục"; the fields keep what was given last. Then a dialog checks the number, "Xác nhận đặt đơn với số điện thoại", the number large in Bricolage (`page-title`) grouped "0900 000 000", with "Sửa" (ghost) and "Đúng, đặt món". When someone else took the last portions first, a sheet titled "… vừa hết" says nothing was charged, with "Đặt 2× Croissant · 40.000đ" for what is left and "Xem món khác của quán" in secondary (Figma O7).
 
 ### Seller block
 
-One seller's dishes in the search, white, 20px radius, bitten corner. Either the seller's avatar, name (`title-lg`) and window (`label`, muted) (Figma K2c), or their first dish as an offer card (Figma K1f); then up to three dish tiles: a photograph 84px high with a 12px radius, the price (`price`) beside the old one struck through, and the dish (`label`) on one line.
+One seller's dishes in the search, white, 20px radius, bitten corner. A seller with a single dish shows it as the grid card instead, with the seller (`label`, muted) under the dish, two to a row; a seller with more spans the row: their first dish as an offer card (Figma K1f), then up to three dish tiles: a photograph 84px high with a 12px radius, the price (`price-sm`) 3px beside the old one struck through, and the dish (`label`) on one line.
 
 ### Deal card
 
@@ -433,6 +458,7 @@ Deal Blue, 20px radius, at the bottom of the header without a filter: the title 
 - **Do** bind every colour, radius and gap to a token; a literal value on a screen is a defect.
 - **Do** keep the discount on the label and the portions left under the photograph, in the same place on every card.
 - **Do** use real photographs of real kinds of food, labelled as samples until the pilot has its own.
+- **Do** show the hand pointer over everything that can be pressed, and the arrow over what cannot.
 
 ### Don't:
 

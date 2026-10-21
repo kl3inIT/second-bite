@@ -1,13 +1,11 @@
 import "server-only";
 
-import { cookies } from "next/headers";
 import { cache } from "react";
 
 import { ApiError } from "@/lib/api/client";
 import { listMySellers } from "@/lib/api/generated";
 
-/** The session cookie the Go server sets on sign-in (SEC-27; server/internal/platform/caller.go). */
-const sessionCookie = "secondbite_session";
+import { sessionHeaders } from "./session";
 
 export type MySeller = { name: string; role: "owner" | "staff" };
 
@@ -19,12 +17,10 @@ export type MySeller = { name: string; role: "owner" | "staff" };
  * Suspense boundary; one render asks once.
  */
 export const getMySellers = cache(async (): Promise<MySeller[]> => {
-  const session = (await cookies()).get(sessionCookie);
-  if (!session) return [];
+  const headers = await sessionHeaders();
+  if (!headers) return [];
   try {
-    const { data } = await listMySellers({
-      headers: { cookie: `${sessionCookie}=${session.value}` },
-    });
+    const { data } = await listMySellers({ headers });
     return (data.sellers ?? []).map((seller) => ({
       name: seller.name,
       role: seller.myRole === "owner" ? "owner" : "staff",

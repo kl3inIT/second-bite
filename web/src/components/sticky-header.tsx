@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// From `lg`, once the header's own row has scrolled away, a slim copy of it stays at the top of the screen
-// (NN/g: a sticky header helps on a long page; ShopeeFood and GrabFood keep theirs). The header itself holds
-// tonight's deals and is too tall to stick. On a phone the bottom bar carries the way around instead.
+// Once the header's own row has scrolled away, a slim copy of it stays at the top of the screen (NN/g: a
+// sticky header helps on a long page; ShopeeFood and GrabFood keep theirs). The header itself holds
+// tonight's deals and is too tall to stick. On a phone the copy keeps only what the page leaves visible
+// there, the search field, on the blue with a rounded foot (Figma K1b).
 export function StickyHeader({ children }: { children: React.ReactNode }) {
   const marker = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(false);
@@ -24,8 +25,8 @@ export function StickyHeader({ children }: { children: React.ReactNode }) {
     <>
       <div ref={marker} aria-hidden className="absolute top-20 size-px" />
       {shown && (
-        <div className="fixed inset-x-0 top-0 z-40 hidden border-b border-header-border bg-header text-header-foreground shadow-sheet lg:block">
-          <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-6 px-4 xl:max-w-300">
+        <div className="fixed inset-x-0 top-0 z-40 rounded-b-3xl bg-header pt-4 pb-3 text-header-foreground shadow-sheet lg:rounded-none lg:border-b lg:border-header-border lg:py-0">
+          <div className="mx-auto flex w-full max-w-5xl items-center gap-6 px-4 lg:h-16 xl:max-w-300">
             {children}
           </div>
         </div>

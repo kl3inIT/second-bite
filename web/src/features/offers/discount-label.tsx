@@ -7,6 +7,17 @@ import { cn } from "@/lib/utils";
 export function DiscountLabel({ percent, className }: { percent: number; className?: string }) {
   const t = useTranslations("OfferCard");
 
+  return <PhotoLabel className={className}>{t("discount", { percent })}</PhotoLabel>;
+}
+
+/** The corner label itself, which an announcement fills with the portions expected ("Dự kiến 6 phần"). */
+export function PhotoLabel({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <p
       className={cn(
@@ -14,7 +25,7 @@ export function DiscountLabel({ percent, className }: { percent: number; classNa
         className,
       )}
     >
-      {t("discount", { percent })}
+      {children}
     </p>
   );
 }

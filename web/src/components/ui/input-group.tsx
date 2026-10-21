@@ -12,7 +12,7 @@ function InputGroup({
   className,
   surface = "default",
   ...props
-}: React.ComponentProps<"div"> & { surface?: "default" | "header" | "sky" }) {
+}: React.ComponentProps<"div"> & { surface?: "default" | "header" | "sky" | "panel" }) {
   return (
     // Second Bite: no role="group" without a name; the control inside carries the label.
     <div
@@ -22,6 +22,8 @@ function InputGroup({
         // Second Bite: on the blue header the field is white and 48px, its edge white, its text 14px, and its
         // focus ring Tasco blue with a white gap so it reads on the blue and on the sweep alike. On a white top
         // bar (the search screen) it is fully rounded on the sky ground, without an edge.
+        // In a small panel, such as the search's price range, the field is 36px and its text 14px like the rest of it.
+        "data-[surface=panel]:h-9 data-[surface=panel]:[&_input]:h-full data-[surface=panel]:[&_input]:text-body-sm",
         "data-[surface=sky]:rounded-full data-[surface=sky]:border-transparent data-[surface=sky]:bg-muted data-[surface=sky]:[&_input]:text-body-sm",
         "data-[surface=header]:h-12 data-[surface=header]:rounded-full data-[surface=header]:border-header-raised data-[surface=header]:bg-header-raised data-[surface=header]:text-header-raised-foreground data-[surface=header]:has-[[data-slot=input-group-control]:focus-visible]:border-header-raised data-[surface=header]:has-[[data-slot=input-group-control]:focus-visible]:ring-ring data-[surface=header]:has-[[data-slot=input-group-control]:focus-visible]:ring-offset-2 data-[surface=header]:has-[[data-slot=input-group-control]:focus-visible]:ring-offset-card data-[surface=header]:[&_input]:text-body-sm",
         "group/input-group relative flex h-11 w-full min-w-0 items-center rounded-lg border border-input bg-card transition-colors outline-none in-data-[slot=combobox-content]:focus-within:border-inherit in-data-[slot=combobox-content]:focus-within:ring-0 has-disabled:bg-input/50 has-disabled:opacity-50 has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-3 has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-3 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>textarea]:h-auto dark:bg-input/30 dark:has-disabled:bg-input/80 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40 has-[>[data-align=block-end]]:[&>input]:pt-3 has-[>[data-align=block-start]]:[&>input]:pb-3 has-[>[data-align=inline-end]]:[&>input]:pr-1.5 has-[>[data-align=inline-start]]:[&>input]:pl-1.5",

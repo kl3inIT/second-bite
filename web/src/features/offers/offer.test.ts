@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   biggestDiscountFirst,
   closingFirst,
+  directionsHref,
   groupBySeller,
   inShowingOrder,
   isAvailable,
+  kindsByCount,
   type OfferSummary,
 } from "./offer";
 
@@ -104,5 +106,34 @@ describe("the search's sellers", () => {
       ["s2", ["a", "c"]],
       ["s1", ["b"]],
     ]);
+  });
+});
+
+describe("the search's popular kinds", () => {
+  it("counts what can still be ordered by kind, the most offers first", () => {
+    const ofKind = (id: string, kind: OfferSummary["kind"], unitsLeft = 1): OfferSummary => ({
+      ...offer(id, "on_sale", unitsLeft),
+      kind,
+    });
+    const list = [
+      ofKind("a", "bakery"),
+      ofKind("b", "drinks"),
+      ofKind("c", "drinks"),
+      ofKind("d", "bakery", 0),
+      ofKind("e", "other", 0),
+    ];
+
+    expect(kindsByCount(list)).toEqual([
+      { kind: "drinks", count: 2 },
+      { kind: "bakery", count: 1 },
+    ]);
+  });
+});
+
+describe("directions", () => {
+  it("open the maps at the collection point", () => {
+    expect(directionsHref({ latitude: 21.0565, longitude: 105.8964, address: "Tầng 1" })).toBe(
+      "https://www.google.com/maps/dir/?api=1&destination=21.0565,105.8964",
+    );
   });
 });
