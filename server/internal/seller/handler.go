@@ -324,7 +324,8 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		OperationID: "listMembershipsForAdmins", Method: http.MethodGet, Path: "/memberships",
 		Summary: "The sellers some accounts own or work at, owners first",
 	}, func(ctx context.Context, in *struct {
-		AccountID []uuid.UUID `query:"accountId" doc:"The accounts, at most 100" maxItems:"100" minItems:"1" required:"true"`
+		// Exploded, as the generated clients send an array: accountId=a&accountId=b.
+		AccountID []uuid.UUID `query:"accountId,explode" doc:"The accounts, at most 100" maxItems:"100" minItems:"1" required:"true"`
 	},
 	) (*membershipsOutput, error) {
 		memberships, err := s.MembershipsForAdmins(ctx, in.AccountID)

@@ -2169,7 +2169,7 @@ paths:
       operationId: listMembershipsForAdmins
       parameters:
         - description: The accounts, at most 100
-          explode: false
+          explode: true
           in: query
           name: accountId
           required: true
