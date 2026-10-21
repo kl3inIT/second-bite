@@ -32,7 +32,8 @@ export async function UnreadBanner({
   if (!unread) return null;
   const [t, chat] = await Promise.all([getTranslations("Chat"), readOrderChat(orderId, access)]);
   const latest = chat.messages.findLast((message) => message.from === otherSide(side));
-  if (!latest) return null;
+  // A chat past its time is read, not answered, so nothing calls for a reply (Figma D4, Q5j).
+  if (!latest || !chat.open) return null;
 
   return (
     <section

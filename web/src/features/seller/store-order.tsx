@@ -3,7 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
-import { MessageLink } from "@/features/chat/message-link";
+import { ChatEntry } from "@/features/chat/chat-entry";
 import { UnreadBanner } from "@/features/chat/unread-banner";
 import { LiveRefresh } from "@/features/orders/live-refresh";
 import { hoursAndMinutes, unitsOf, windowPhase } from "@/features/orders/order";
@@ -169,26 +169,23 @@ export async function StoreOrder({
           <div className="lg:col-span-3">
             <OrderLines order={order} />
           </div>
-          <Next order={order} list={`/stores/${sellerId}/orders`} withChat />
+          <div className="flex flex-col gap-3 lg:col-span-2">
+            <Next order={order} list={`/stores/${sellerId}/orders`} />
+            <ChatEntry
+              order={order}
+              side="seller"
+              href={`/stores/${sellerId}/orders/${order.id}/chat`}
+              variant="outline"
+            />
+          </div>
         </div>
       </div>
     </>
   );
 }
 
-/**
- * What the seller can do with the order now: the next step and cancelling, or taking a mistake back, and, on the
- * order's own page, a message to the customer (Figma Q5j, Q5k).
- */
-export async function Next({
-  order,
-  list,
-  withChat = false,
-}: {
-  order: OrderBody;
-  list: string;
-  withChat?: boolean;
-}) {
+/** What the seller can do with the order now: the next step and cancelling, or taking a mistake back (Figma Q5j, Q5k). */
+export async function Next({ order, list }: { order: OrderBody; list: string }) {
   const t = await getTranslations("StoreOrders.detail");
   const stage =
     order.status === "confirmed" ? "preparing" : order.status === "ready" ? "ready" : undefined;
@@ -198,7 +195,7 @@ export async function Next({
   return (
     <section
       aria-labelledby={`order-next-${order.id}`}
-      className="flex flex-col gap-3 md:rounded-3xl md:bg-card md:p-5 md:text-card-foreground lg:col-span-2"
+      className="flex flex-col gap-3 md:rounded-3xl md:bg-card md:p-5 md:text-card-foreground"
     >
       <div className="flex flex-col max-md:hidden">
         <h2 id={`order-next-${order.id}`} className="text-body-sm-strong">
@@ -208,29 +205,19 @@ export async function Next({
           {t(stage ? `next.${stage}` : "next.undoBody")}
         </p>
       </div>
-      <div className="flex flex-col gap-2">
-        <PhoneFootBar>
-          {stage ? (
-            <OrderActions
-              orderId={order.id}
-              name={order.customerName}
-              stage={stage}
-              listPath={list}
-              fill
-            />
-          ) : (
-            <ReopenButton orderId={order.id} />
-          )}
-        </PhoneFootBar>
-        {withChat ? (
-          <MessageLink
-            to="customer"
-            href={`${list}/${order.id}/chat`}
-            unread={order.unreadMessages}
-            variant="outline"
+      <PhoneFootBar>
+        {stage ? (
+          <OrderActions
+            orderId={order.id}
+            name={order.customerName}
+            stage={stage}
+            listPath={list}
+            fill
           />
-        ) : null}
-      </div>
+        ) : (
+          <ReopenButton orderId={order.id} />
+        )}
+      </PhoneFootBar>
     </section>
   );
 }

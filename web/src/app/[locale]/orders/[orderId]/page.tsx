@@ -51,7 +51,7 @@ async function OrderView({ params }: { params: Promise<{ orderId: string }> }) {
   return (
     <>
       <LiveRefresh topics={[`order:${order.id}`]} at={[order.windowStart, order.windowEnd]} />
-      {order.unreadMessages && !hasEnded(order) ? (
+      {order.unreadMessages ? (
         <div className="mx-auto w-full max-w-xl px-4 py-4 md:max-w-3xl lg:max-w-292 lg:pb-0">
           <UnreadBanner
             orderId={order.id}

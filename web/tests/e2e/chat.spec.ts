@@ -131,15 +131,22 @@ for (const width of WIDTHS) {
       await expect(page.getByText("Có tin mới nè")).toBeVisible({ timeout: 40_000 });
     });
 
-    test("turns read-only once the order is collected", async ({ page }) => {
+    test("stays writable once collected, and is only read once the order is cancelled", async ({
+      page,
+    }) => {
       await liveSocket(page);
-      const orderId = await placeOrder(page, `09000002${width % 100}`);
-      await page.goto(`/vi/orders/${orderId}/chat`);
-      await hydrated(page.getByRole("textbox"));
+      const collected = await placeOrder(page, `09000002${width % 100}`);
+      await sellerSays(page, collected, "Cảm ơn bạn đã đến");
+      await page.request.post(`/api/orders/${collected}/ready`);
+      await page.request.post(`/api/orders/${collected}/hand-over`);
+      await page.goto(`/vi/orders/${collected}`);
+      await expect(page.getByRole("link", { name: "Nhắn quán" })).toBeVisible();
 
-      await page.request.post(`/api/orders/${orderId}/ready`);
-      await page.request.post(`/api/orders/${orderId}/hand-over`);
-      await page.goto(`/vi/orders/${orderId}/chat`);
+      const cancelled = await placeOrder(page, `09000003${width % 100}`);
+      await sellerSays(page, cancelled, "Quán xin lỗi, hết món");
+      await page.request.post(`/api/orders/${cancelled}/cancel`, { data: {} });
+      await page.goto(`/vi/orders/${cancelled}`);
+      await page.getByRole("link", { name: "Xem tin nhắn" }).click();
       await expect(page.getByRole("textbox")).toHaveCount(0);
       await expect(page.getByText("Đơn đã kết thúc, chỉ xem lại tin nhắn.")).toBeVisible();
       await expectNoSeriousA11yViolations(page);

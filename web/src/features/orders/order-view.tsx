@@ -4,6 +4,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { BackButton } from "@/components/back-button";
 import { PageBar } from "@/components/page-bar";
 import { buttonVariants } from "@/components/ui/button";
+import { ChatEntry } from "@/features/chat/chat-entry";
 import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -225,6 +226,13 @@ export function CollectedOrder({ order, together }: { order: Order; together: Or
             <div className="border-t border-border pt-3.5">
               <OrderSummary order={order} />
             </div>
+            <ChatEntry
+              order={order}
+              side="customer"
+              access={order.access}
+              href={`/orders/${order.id}/chat`}
+              variant="secondary"
+            />
           </section>
         }
       />
@@ -360,6 +368,13 @@ export function EndedOrder({ order }: { order: Order & { status: Ended } }) {
             </div>
           </div>
         </section>
+        <ChatEntry
+          order={order}
+          side="customer"
+          access={order.access}
+          href={`/orders/${order.id}/chat`}
+          variant="secondary"
+        />
         <Timeline order={order} />
         <Link href="/" className={buttonVariants({ size: "lg" })}>
           {t("seeOthers")}

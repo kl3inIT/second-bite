@@ -13,7 +13,7 @@ import {
 } from "react";
 
 import { useLive, useLivePolling } from "@/features/orders/use-live";
-import { ApiError, failureOf } from "@/lib/api/client";
+import { ApiError } from "@/lib/api/client";
 import { markOrderMessagesSeen, sendOrderMessage } from "@/lib/api/generated";
 import type { Side } from "@/lib/live-client";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,7 @@ const NEAR_END_PX = 96;
 const MAX_TIMER_MS = 2 ** 31 - 1;
 
 /** A message being sent, or one that was not sent and waits for another try with the same key. */
-type Outgoing = { key: string; text: string; failure?: { detail?: string; reference?: string } };
+type Outgoing = { key: string; text: string; failed?: boolean };
 
 function subscribeVisibility(listener: () => void) {
   document.addEventListener("visibilitychange", listener);
@@ -177,11 +177,8 @@ export function ChatPanel({
           setOutbox((all) => all.filter((each) => each.key !== item.key));
           return;
         }
-        const { detail, reference } = failureOf(error);
         setOutbox((all) =>
-          all.map((each) =>
-            each.key === item.key ? { ...each, failure: { detail, reference } } : each,
-          ),
+          all.map((each) => (each.key === item.key ? { ...each, failed: true } : each)),
         );
       },
     );
@@ -233,12 +230,12 @@ export function ChatPanel({
           {outbox.map((item) => (
             <li key={item.key} className="flex flex-col items-end gap-1">
               <Bubble own text={item.text} />
-              {item.failure ? (
+              {item.failed ? (
                 <p
                   role="alert"
-                  className="flex flex-wrap justify-end gap-x-2 text-label text-destructive"
+                  className="flex flex-wrap justify-end gap-x-1 text-label text-destructive"
                 >
-                  {item.failure.detail ?? t("failed", { reference: item.failure.reference ?? "—" })}
+                  {t("failed")} ·
                   <button
                     type="button"
                     onClick={() => deliver(item)}

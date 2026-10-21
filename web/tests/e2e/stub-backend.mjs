@@ -1027,8 +1027,7 @@ function unreadOf(orderId, side) {
 }
 
 function chatState(order) {
-  const ended =
-    order.status === "collected" || order.status === "cancelled" || order.status === "refused";
+  const ended = order.status === "cancelled" || order.status === "refused";
   const closesAt = new Date(new Date(order.windowEnd).getTime() + CHAT_GRACE_MS);
   return { open: !ended && closesAt > new Date(), closesAt: closesAt.toISOString() };
 }

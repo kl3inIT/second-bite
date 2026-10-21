@@ -11,12 +11,15 @@ import { cn } from "@/lib/utils";
  */
 export function MessageLink({
   to,
+  view = false,
   href,
   unread,
   variant,
   className,
 }: {
   to: "store" | "customer";
+  /** The chat can only be read, so the button says so instead of "Nhắn …". */
+  view?: boolean;
   href: string;
   unread: number | undefined;
   variant: "secondary" | "outline";
@@ -26,7 +29,7 @@ export function MessageLink({
 
   return (
     <Link href={href} className={cn(buttonVariants({ variant }), className)}>
-      {t(to === "store" ? "messageStore" : "messageCustomer")}
+      {t(view ? "viewMessages" : to === "store" ? "messageStore" : "messageCustomer")}
       <UnreadPill count={unread ?? 0} />
     </Link>
   );

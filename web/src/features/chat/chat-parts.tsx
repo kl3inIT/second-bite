@@ -118,8 +118,30 @@ export function SellerDetails({ order }: { order: Order }) {
           </a>
         </div>
       </div>
+      <CancelPolicy />
     </DetailsCard>
   );
+}
+
+/** The cancellation rule, as the checkout words it (Figma WK8 › Chính sách huỷ). */
+function CancelPolicy() {
+  const t = useTranslations("Cart");
+
+  return (
+    <section aria-labelledby="chat-cancel" className="flex flex-col gap-1">
+      <h3 id="chat-cancel" className="text-title-lg">
+        {t("cancelTitle")}
+      </h3>
+      <p className="text-label text-muted-foreground">{t("cancelBody")}</p>
+    </section>
+  );
+}
+
+/** A name's first and last letters in capitals: "Lê Thu Hà" is "LH". */
+function initialsOf(name: string): string {
+  const words = name.trim().split(/\s+/);
+  const letters = words.length > 1 ? [words[0], words.at(-1)] : words;
+  return letters.map((word) => word?.[0]?.toLocaleUpperCase("vi") ?? "").join("");
 }
 
 /** The customer of an order beside the seller's chat (Figma Q5m): who, their number, where the order stands. */
@@ -132,11 +154,12 @@ export function CustomerDetails({ order }: { order: Order }) {
   return (
     <DetailsCard order={order}>
       <div className="flex items-center gap-3 rounded-lg border border-border px-3.5 py-3">
-        <Photo
-          path={order.lines[0]?.photo.smallPath}
-          sizes="48px"
-          className="size-12 rounded-full"
-        />
+        <span
+          aria-hidden
+          className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-title-lg text-primary"
+        >
+          {initialsOf(order.customerName)}
+        </span>
         <div className="flex min-w-0 flex-col gap-0.5">
           <p className="truncate text-title">
             {t("who", { name: order.customerName, units: unitsOf(order) })}

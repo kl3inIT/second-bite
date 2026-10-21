@@ -9,7 +9,7 @@ import { useLive } from "./use-live";
 const QUERY_KEY = ["unread", "orders"];
 
 /**
- * How many messages the reader has not read across their orders, for the bottom bar. It follows the open orders,
+ * How many of their orders have messages the reader has not read, for the bottom bar. It follows the open orders,
  * so a message, a mark as seen or a status change reads the count again.
  */
 export function useOrdersUnread(): number {

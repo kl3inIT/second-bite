@@ -1516,7 +1516,7 @@
     "placeholderToCustomer": "Message the customer…",
     "send": "Send message",
     "retry": "Send again",
-    "failed": "The message was not sent. Try again, or report the reference {reference}.",
+    "failed": "Not sent",
     "quickReplies": "Quick replies",
     "customerReplies": {
       "coming": "I'm on my way",
@@ -1544,6 +1544,7 @@
     "seeOrder": "See order details",
     "pickup": "Collect today {from}–{until}",
     "orderTitle": "Order #{number}",
-    "breadcrumb": "Breadcrumb"
+    "breadcrumb": "Breadcrumb",
+    "viewMessages": "View messages"
   }
 }

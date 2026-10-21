@@ -12,7 +12,7 @@ import Image from "next/image";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
-import { MessageLink } from "@/features/chat/message-link";
+import { ChatEntry } from "@/features/chat/chat-entry";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
 import { directionsHref } from "@/features/offers/offer";
@@ -261,10 +261,11 @@ export function Directions({ order }: { order: Order }) {
             {t("directions")}
             <span className="sr-only">{t("opensMaps")}</span>
           </a>
-          <MessageLink
-            to="store"
+          <ChatEntry
+            order={order}
+            side="customer"
+            access={order.access}
             href={`/orders/${order.id}/chat`}
-            unread={order.unreadMessages}
             variant="secondary"
             className="flex-1"
           />

@@ -153,7 +153,7 @@ export async function readUnread(): Promise<{ unread: number; open: string[] }> 
     throw error;
   }
   return {
-    unread: orders.reduce((sum, order) => sum + (order.unreadMessages ?? 0), 0),
+    unread: orders.filter((order) => order.unreadMessages).length,
     open: orders.filter(isOpen).map((order) => order.id),
   };
 }
