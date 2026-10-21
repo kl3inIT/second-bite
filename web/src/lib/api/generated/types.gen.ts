@@ -541,6 +541,13 @@ export type SellersOutputBody = {
     sellers: Array<SellerBody> | null;
 };
 
+export type SendTestEmailInputBody = {
+    /**
+     * Who receives it; the admin sending it when empty
+     */
+    to?: string;
+};
+
 export type SessionOutputBody = {
     account: AccountBody;
     /**
@@ -909,7 +916,7 @@ export type SaveEmailSettingsResponses = {
 export type SaveEmailSettingsResponse = SaveEmailSettingsResponses[keyof SaveEmailSettingsResponses];
 
 export type SendTestEmailData = {
-    body?: never;
+    body?: SendTestEmailInputBody;
     path?: never;
     query?: never;
     url: '/admin/email-settings/test';

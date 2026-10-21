@@ -179,7 +179,7 @@ export const saveEmailSettings = <ThrowOnError extends boolean = true>(options: 
 });
 
 /**
- * Send one email to oneself through the settings saved
+ * Send one email through the settings saved, to an address or to oneself
  */
 export const sendTestEmail = <ThrowOnError extends boolean = true>(options?: Options<SendTestEmailData, ThrowOnError>): RequestResult<SendTestEmailResponses, SendTestEmailErrors, ThrowOnError> => (options?.client ?? client).post<SendTestEmailResponses, SendTestEmailErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -188,7 +188,11 @@ export const sendTestEmail = <ThrowOnError extends boolean = true>(options?: Opt
             type: 'apiKey'
         }],
     url: '/admin/email-settings/test',
-    ...options
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+    }
 });
 
 /**

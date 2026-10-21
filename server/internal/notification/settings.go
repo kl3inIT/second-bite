@@ -351,21 +351,38 @@ func (s *Service) unseal(field string, sealed []byte) (string, error) {
 	return string(plaintext), nil
 }
 
-// SendTestEmail sends one email to the admin of ctx through the settings
-// saved, so the admin sees they work. It answers ErrEmailNotConfigured or
-// ErrEmailUnavailable as SendEmail does.
-func (s *Service) SendTestEmail(ctx context.Context) error {
+// SendTestEmail sends one email through the settings saved, so the admin sees
+// they work: to the address to, or to the admin of ctx when to is empty, which
+// lets an admin try a mailbox elsewhere (Gmail, Outlook). It answers
+// ErrEmailNotConfigured or ErrEmailUnavailable as SendEmail does.
+func (s *Service) SendTestEmail(ctx context.Context, to string) error {
 	caller, err := platform.RequireAdmin(ctx)
 	if err != nil {
 		return err
 	}
 
-	return s.SendEmail(ctx, Email{
+	if to == "" {
+		to = caller.Label
+	}
+
+	err = s.SendEmail(ctx, Email{
 		Kind:    "settings-test",
-		To:      caller.Label,
+		To:      to,
 		Subject: "Second Bite: email thử / test email",
 		Text: "Cấu hình gửi email của Second Bite đang hoạt động.\n\n" +
 			"Second Bite's email settings work.",
 		HTML: "<p>Cấu hình gửi email của Second Bite đang hoạt động.</p><p>Second Bite's email settings work.</p>",
 	})
+
+	if se, ok := errors.AsType[*sendError](err); ok {
+		switch se.outcome {
+		case sendRefused:
+			return ErrTestEmailRefused.WithCause(err)
+		case sendUnavailable:
+			return ErrTestEmailUnreachable.WithCause(err)
+		case sendRateLimited:
+		}
+	}
+
+	return err
 }

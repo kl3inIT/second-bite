@@ -135,12 +135,21 @@ var adminChanges = map[string]adminChange{
 			s["senderName"] = "Second Bite (kiểm tra)"
 		})
 	}},
-	"sendTestEmail": {notAudited: "it sends one email to the admin and changes nothing", call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+	"sendTestEmail": {notAudited: "it sends one email and changes nothing", call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
 		t.Helper()
 
+		// Without a body the admin receives it; with one, the address named does.
 		resp := send(t, http.MethodPost, svc.base+"/admin/email-settings/test", admin, nil)
+		if resp.status != http.StatusNoContent {
+			return resp, func() {}
+		}
+
+		waitEmail(t, svc, auditAdminEmail, "email thử")
+
+		resp = send(t, http.MethodPost, svc.base+"/admin/email-settings/test", admin,
+			map[string]string{"to": "audit.mailbox@example.com"})
 		if resp.status == http.StatusNoContent {
-			waitEmail(t, svc, auditAdminEmail, "email thử")
+			waitEmail(t, svc, "audit.mailbox@example.com", "email thử")
 		}
 
 		return resp, func() {}

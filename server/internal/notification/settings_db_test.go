@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"slices"
 	"testing"
 
 	"github.com/google/uuid"
@@ -66,6 +67,8 @@ func TestSettingsSaved(t *testing.T) {
 
 	checkLastChanges(t, pool, `[{"to": "Second Bite Tasco", "from": "Second Bite", "field": "senderName"}, {"field": "smtpUsername"}, {"field": "smtpPassword"}]`)
 
+	checkTestEmail(admin, t, s)
+
 	customer := platform.WithCaller(context.Background(), platform.Caller{AccountID: uuid.New(), Role: platform.RoleCustomer})
 	if err := s.CreateEmailSettings(customer, first); !errors.Is(err, platform.ErrAdminRequired) {
 		t.Errorf("a customer: %v, want ErrAdminRequired", err)
@@ -85,5 +88,54 @@ func checkLastChanges(t *testing.T, pool *pgxpool.Pool, want string) {
 
 	if got != want {
 		t.Errorf("changes %s, want %s", got, want)
+	}
+}
+
+// fakeSender answers err, or delivers; it keeps who each email went to.
+type fakeSender struct {
+	err error
+	to  []string
+}
+
+func (f *fakeSender) Send(_ context.Context, _ providerConfig, e Email) (string, error) {
+	if f.err != nil {
+		return "", f.err
+	}
+
+	f.to = append(f.to, e.To)
+
+	return "fake-id", nil
+}
+
+// checkTestEmail checks who a test email goes to, and that a failure says
+// whether the provider refused or could not be reached.
+func checkTestEmail(admin context.Context, t *testing.T, s *Service) {
+	t.Helper()
+
+	delivered := &fakeSender{}
+	s.senders[EmailProviderSMTP] = delivered
+
+	if err := s.SendTestEmail(admin, ""); err != nil {
+		t.Fatalf("a test email to oneself: %v", err)
+	}
+
+	if err := s.SendTestEmail(admin, "bep@example.com"); err != nil {
+		t.Fatalf("a test email to another mailbox: %v", err)
+	}
+
+	if want := []string{"admin@example.com", "bep@example.com"}; !slices.Equal(delivered.to, want) {
+		t.Errorf("test emails went to %v, want %v", delivered.to, want)
+	}
+
+	for outcome, want := range map[sendOutcome]error{
+		sendRefused:     ErrTestEmailRefused,
+		sendUnavailable: ErrTestEmailUnreachable,
+		sendRateLimited: ErrEmailUnavailable,
+	} {
+		s.senders[EmailProviderSMTP] = &fakeSender{err: &sendError{outcome: outcome, cause: errors.New("the provider's own words")}}
+
+		if err := s.SendTestEmail(admin, ""); !errors.Is(err, want) {
+			t.Errorf("a test email whose send ends in outcome %d: %v, want %v", outcome, err, want)
+		}
 	}
 }

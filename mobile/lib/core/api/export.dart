@@ -54,6 +54,7 @@ export 'models/seller_body.dart';
 export 'models/seller_photo_body.dart';
 export 'models/seller_profile_body.dart';
 export 'models/sellers_output_body.dart';
+export 'models/send_test_email_input_body.dart';
 export 'models/session_output_body.dart';
 export 'models/set_display_name_input_body.dart';
 export 'models/set_seller_photo_request.dart';

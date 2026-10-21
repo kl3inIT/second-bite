@@ -17,6 +17,7 @@ import '../models/offer_settings_body.dart';
 import '../models/reject_seller_request.dart';
 import '../models/save_email_settings_input_body.dart';
 import '../models/seller_body.dart';
+import '../models/send_test_email_input_body.dart';
 import '../models/sort.dart';
 import '../models/status.dart';
 
@@ -86,9 +87,9 @@ abstract class AdminClient {
     @Header('If-None-Match') String? ifNoneMatch,
   });
 
-  /// Send one email to oneself through the settings saved
+  /// Send one email through the settings saved, to an address or to oneself
   @POST('/admin/email-settings/test')
-  Future<void> sendTestEmail();
+  Future<void> sendTestEmail({@Body() SendTestEmailInputBody? body});
 
   /// The rules every offer follows
   @GET('/admin/offer-settings')

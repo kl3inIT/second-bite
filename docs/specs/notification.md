@@ -8,7 +8,7 @@ Owns who delivers email, chosen by admins while the service runs, and the record
 | --- | --- | --- |
 | `GET /admin/email-settings` | Admins | `200` with the provider, the sender, the SMTP server, and whether the SMTP password and the Brevo API key are set, never a secret; their version in `ETag` |
 | `PUT /admin/email-settings`, with `If-Match` or `If-None-Match: *` | Admins | `204`; the next email uses the new settings. `If-Match` carries the `ETag` read; `If-None-Match: *` saves the first settings, when the read answered `NOTIFICATION_EMAIL_NOT_CONFIGURED`. `412` when saved since; `400 PLATFORM_VERSION_REQUIRED` without either |
-| `POST /admin/email-settings/test` | Admins | `204` once one email went to the admin's own address through the settings saved; `503` as `SendEmail` answers. Not recorded in the audit trail: it changes nothing |
+| `POST /admin/email-settings/test` | Admins | `204` once one email went through the settings saved to `to`, or to the admin's own address without it. A failed send says which: `409 NOTIFICATION_TEST_EMAIL_REFUSED` when the provider refused (user, password, key or sender), `503 NOTIFICATION_TEST_EMAIL_UNREACHABLE` when it could not be reached, otherwise as `SendEmail` answers; never the provider's own words. Not recorded in the audit trail: it changes nothing |
 
 Published to other modules: `SendEmail`, which sends one email now and records it.
 

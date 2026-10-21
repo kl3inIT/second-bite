@@ -1179,6 +1179,15 @@ components:
       required:
         - sellers
       type: object
+    SendTestEmailInputBody:
+      additionalProperties: false
+      properties:
+        to:
+          description: Who receives it; the admin sending it when empty
+          format: email
+          maxLength: 254
+          type: string
+      type: object
     SessionOutputBody:
       additionalProperties: false
       properties:
@@ -1629,6 +1638,11 @@ paths:
   /admin/email-settings/test:
     post:
       operationId: sendTestEmail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendTestEmailInputBody"
       responses:
         "204":
           description: No Content
@@ -1641,7 +1655,7 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Send one email to oneself through the settings saved
+      summary: Send one email through the settings saved, to an address or to oneself
       tags:
         - Admin
   /admin/offer-settings:

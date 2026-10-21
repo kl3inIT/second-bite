@@ -45,6 +45,14 @@ type saveEmailSettingsInput struct {
 	}
 }
 
+// sendTestEmailInput names who receives the test email; without a body, or
+// without to, it is the admin sending it.
+type sendTestEmailInput struct {
+	Body *struct {
+		To string `json:"to,omitempty" format:"email" maxLength:"254" doc:"Who receives it; the admin sending it when empty"`
+	} `required:"false"`
+}
+
 // RegisterAdminOperations adds the module's admin operations to admin, the
 // group platform.NewAdminGroup returns; their paths omit its prefix.
 func RegisterAdminOperations(admin huma.API, s *Service) {
@@ -108,9 +116,14 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		OperationID:   "sendTestEmail",
 		Method:        http.MethodPost,
 		Path:          "/email-settings/test",
-		Summary:       "Send one email to oneself through the settings saved",
+		Summary:       "Send one email through the settings saved, to an address or to oneself",
 		DefaultStatus: http.StatusNoContent,
-	}, func(ctx context.Context, _ *struct{}) (*struct{}, error) {
-		return nil, s.SendTestEmail(ctx)
+	}, func(ctx context.Context, in *sendTestEmailInput) (*struct{}, error) {
+		var to string
+		if in.Body != nil {
+			to = in.Body.To
+		}
+
+		return nil, s.SendTestEmail(ctx, to)
 	})
 }
