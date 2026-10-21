@@ -43,6 +43,10 @@ func TestDeletedAccountIsForgotten(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if err := f.sellers.Follow(leaving, staffed.ID); err != nil {
+		t.Fatal(err)
+	}
+
 	caller, _ := platform.CallerFrom(leaving)
 	events := startEvents(t, pool, f.sellers)
 
@@ -113,26 +117,32 @@ func waitStatus(admin context.Context, t *testing.T, sellers *seller.Service, id
 	}
 }
 
-// checkForgotten checks that no membership of the account remains and that
-// the seller it owned names no one as having blocked it.
+// checkForgotten checks that no membership or favourite of the account
+// remains and that the seller it owned names no one as having blocked it.
 func checkForgotten(t *testing.T, pool *pgxpool.Pool, accountID, ownedID uuid.UUID) {
 	t.Helper()
 
 	var (
 		memberships  int
+		follows      int
 		blockedByOne bool
 	)
 
 	if err := pool.QueryRow(t.Context(),
 		`SELECT (SELECT count(*) FROM seller_members WHERE account_id = $1),
+		        (SELECT count(*) FROM seller_follows WHERE account_id = $1),
 		        (SELECT status_changed_by IS NOT NULL FROM seller_sellers WHERE id = $2)`,
 		accountID, ownedID,
-	).Scan(&memberships, &blockedByOne); err != nil {
+	).Scan(&memberships, &follows, &blockedByOne); err != nil {
 		t.Fatal(err)
 	}
 
 	if memberships != 0 {
 		t.Errorf("%d memberships of the deleted account remain", memberships)
+	}
+
+	if follows != 0 {
+		t.Errorf("%d favourites of the deleted account remain", follows)
 	}
 
 	if blockedByOne {

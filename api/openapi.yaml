@@ -487,6 +487,18 @@ components:
         - brevoApiKeySet
         - updatedAt
       type: object
+    FollowedOutputBody:
+      additionalProperties: false
+      properties:
+        sellers:
+          items:
+            $ref: "#/components/schemas/SellerProfileBody"
+          type:
+            - array
+            - "null"
+      required:
+        - sellers
+      type: object
     FoundBody:
       additionalProperties: false
       properties:
@@ -3410,6 +3422,29 @@ paths:
       summary: The address at a point, to fill the form that opens a store; empty when it is not known
       tags:
         - Sellers
+  /sellers/followed:
+    get:
+      description: A seller blocked since is left out.
+      operationId: listFollowedSellers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowedOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The active sellers I follow, the latest followed first
+      tags:
+        - Sellers
   /sellers/mine:
     get:
       operationId: listMySellers
@@ -3556,6 +3591,55 @@ paths:
       summary: Add a dish to a seller's catalog
       tags:
         - Catalog
+  /sellers/{sellerId}/follow:
+    delete:
+      description: A seller I do not follow is left as it is.
+      operationId: unfollowSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Take a seller out of my favourites
+      tags:
+        - Sellers
+    put:
+      description: Following again changes nothing. A seller pending or blocked answers 404.
+      operationId: followSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Make an active seller one of my favourites
+      tags:
+        - Sellers
   /sellers/{sellerId}/members:
     get:
       operationId: listSellerMembers

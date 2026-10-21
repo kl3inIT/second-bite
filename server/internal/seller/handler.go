@@ -99,6 +99,7 @@ func RegisterOperations(api huma.API, s *Service) {
 	registerMemberOperations(api, s)
 	registerPhotoOperations(api, s)
 	registerPublicOperations(api, s)
+	registerFollowOperations(api, s)
 }
 
 var (
@@ -445,4 +446,51 @@ type statusCountsBody struct {
 	Active   int `json:"active"`
 	Rejected int `json:"rejected"`
 	Blocked  int `json:"blocked"`
+}
+
+func registerFollowOperations(api huma.API, s *Service) {
+	type followedOutput struct {
+		Body struct {
+			Sellers []sellerProfileBody `json:"sellers"`
+		}
+	}
+
+	huma.Register(api, huma.Operation{
+		OperationID: "followSeller", Method: http.MethodPut, Path: "/sellers/{sellerId}/follow",
+		Summary:     "Make an active seller one of my favourites",
+		Description: "Following again changes nothing. A seller pending or blocked answers 404.",
+		Tags:        tagSellers, Security: security, DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *sellerPath) (*struct{}, error) {
+		return nil, s.Follow(ctx, in.SellerID)
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "unfollowSeller", Method: http.MethodDelete, Path: "/sellers/{sellerId}/follow",
+		Summary:     "Take a seller out of my favourites",
+		Description: "A seller I do not follow is left as it is.",
+		Tags:        tagSellers, Security: security, DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *sellerPath) (*struct{}, error) {
+		return nil, s.Unfollow(ctx, in.SellerID)
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "listFollowedSellers", Method: http.MethodGet, Path: "/sellers/followed",
+		Summary:     "The active sellers I follow, the latest followed first",
+		Description: "A seller blocked since is left out.",
+		Tags:        tagSellers, Security: security,
+	}, func(ctx context.Context, _ *struct{}) (*followedOutput, error) {
+		followed, err := s.Followed(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &followedOutput{}
+		out.Body.Sellers = make([]sellerProfileBody, 0, len(followed))
+
+		for _, p := range followed {
+			out.Body.Sellers = append(out.Body.Sellers, toProfileBody(p))
+		}
+
+		return out, nil
+	})
 }

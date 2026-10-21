@@ -230,6 +230,10 @@ export type EmailSettingsBody = {
     updatedAt: string;
 };
 
+export type FollowedOutputBody = {
+    sellers: Array<SellerProfileBody> | null;
+};
+
 export type FoundBody = {
     /**
      * Where the offer is collected, copied from the seller when it was posted
@@ -2146,6 +2150,31 @@ export type AddressAtResponses = {
 
 export type AddressAtResponse = AddressAtResponses[keyof AddressAtResponses];
 
+export type ListFollowedSellersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/sellers/followed';
+};
+
+export type ListFollowedSellersErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListFollowedSellersError = ListFollowedSellersErrors[keyof ListFollowedSellersErrors];
+
+export type ListFollowedSellersResponses = {
+    /**
+     * OK
+     */
+    200: FollowedOutputBody;
+};
+
+export type ListFollowedSellersResponse = ListFollowedSellersResponses[keyof ListFollowedSellersResponses];
+
 export type ListMySellersData = {
     body?: never;
     path?: never;
@@ -2278,6 +2307,60 @@ export type AddDishResponses = {
 };
 
 export type AddDishResponse = AddDishResponses[keyof AddDishResponses];
+
+export type UnfollowSellerData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/follow';
+};
+
+export type UnfollowSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type UnfollowSellerError = UnfollowSellerErrors[keyof UnfollowSellerErrors];
+
+export type UnfollowSellerResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type UnfollowSellerResponse = UnfollowSellerResponses[keyof UnfollowSellerResponses];
+
+export type FollowSellerData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/follow';
+};
+
+export type FollowSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type FollowSellerError = FollowSellerErrors[keyof FollowSellerErrors];
+
+export type FollowSellerResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type FollowSellerResponse = FollowSellerResponses[keyof FollowSellerResponses];
 
 export type ListSellerMembersData = {
     body?: never;

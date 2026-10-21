@@ -985,6 +985,45 @@ function isCustomerOrder(pathname) {
   return orders.some((order) => pathname.startsWith(`/orders/${order.id}/`));
 }
 
+// Favourites (SEC-109), as api/openapi.yaml describes them: a signed-in person follows the active sellers of
+// the catalog above, idempotently, and lists the ones they follow, the latest first. Kept per address.
+const followsOf = new Map();
+/** Where the sample sellers are, as their public profile shows. */
+const SAMPLE_LOCATION = { latitude: 21.0565, longitude: 105.8964 };
+
+async function favouriteRoutes(request, response, url) {
+  const follow = /^\/sellers\/([\w-]+)\/follow$/.exec(url.pathname);
+  const isList = request.method === "GET" && url.pathname === "/sellers/followed";
+  if (!isList && !follow) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account) {
+    problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    return true;
+  }
+  const followed = followsOf.get(account.email) ?? [];
+  if (isList) {
+    const profiles = followed.map(({ rating: _rating, ...profile }) => ({
+      ...profile,
+      ...SAMPLE_LOCATION,
+    }));
+    json(response, 200, { sellers: profiles });
+  } else if (request.method === "DELETE") {
+    followsOf.set(
+      account.email,
+      followed.filter((seller) => seller.id !== follow[1]),
+    );
+    response.writeHead(204).end();
+  } else if (request.method === "PUT") {
+    const seller = Object.values(sellers).find((candidate) => candidate.id === follow[1]);
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else {
+      followsOf.set(account.email, [seller, ...followed.filter((found) => found !== seller)]);
+      response.writeHead(204).end();
+    }
+  } else return false;
+  return true;
+}
+
 async function sellerRoutes(request, response, url) {
   const token = tokenOf(request);
   const isSellerRoute =
@@ -1957,6 +1996,7 @@ async function answer(request, response) {
     return json(response, 200, offer);
   }
   if (await auth(request, response, url)) return;
+  if (await favouriteRoutes(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await emailSettingsRoutes(request, response, url)) return;
   if (await adminRoutes(request, response, url)) return;

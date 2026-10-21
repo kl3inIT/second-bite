@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { CartBar } from "@/features/cart/cart-bar";
+import { FollowButton } from "@/features/favourites/follow-button";
 import { Link } from "@/i18n/navigation";
 import { plainText } from "@/lib/plain-text";
 import { cn } from "@/lib/utils";
@@ -29,7 +30,7 @@ const COVER_PHOTOS = 3;
 const PAGE_WIDTH = "max-w-xl md:max-w-3xl lg:max-w-5xl";
 const ONE_DECIMAL = { minimumFractionDigits: 1, maximumFractionDigits: 1 } as const;
 
-// A seller's dishes tonight (Figma K4b): their dishes' photographs side by side with back and share; the seller's
+// A seller's dishes tonight (Figma K4b): their dishes' photographs side by side with back, the heart that follows them (SEC-109) and share; the seller's
 // logo, name, rating and floor; tonight's window, the counter and the way there; a search of their dishes; tabs by
 // kind when they sell more than one (the seller's own menu sections have no backend, SEC-49 decision 7); each dish
 // with its − and +, opening its sheet; and the cart's bar. `at` is the dish a link led to (K4), `q` the words
@@ -71,7 +72,10 @@ export function SellerPage({
           <div className="absolute inset-x-0 top-0 h-30 bg-linear-to-b from-foreground/35 to-transparent" />
           <div className="absolute inset-x-4 top-3 flex items-center justify-between">
             <BackButton fallback="/" />
-            <ShareButton title={first.seller.name} />
+            <div className="flex gap-2">
+              <FollowButton sellerId={first.sellerId} name={first.seller.name} look="float" />
+              <ShareButton title={first.seller.name} />
+            </div>
           </div>
         </div>
         <div className="relative -mt-6 flex flex-col gap-3.5 rounded-t-3xl bg-card px-4 pt-4 pb-6">

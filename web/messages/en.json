@@ -143,7 +143,6 @@
     "sellerAway": "{seller} · {distance} away",
     "windowAt": "{window} · {place}",
     "rating": "Seller rated {rating} out of 5",
-    "heart": "Favourite {name}",
     "badge": "-{percent}%"
   },
   "Intro": {
@@ -363,8 +362,7 @@
     "home": "Home",
     "orders": "My orders",
     "saved": "Saved",
-    "account": "Account",
-    "soon": "(coming soon)"
+    "account": "Account"
   },
   "Orders": {
     "orderTitle": "Your order",
@@ -1312,5 +1310,17 @@
     "failed": "The rating was not sent. Try again later, reference {reference}.",
     "given": "Your rating",
     "thanks": "Thank you, the shop will read it."
+  },
+  "Favourites": {
+    "title": "Favourites",
+    "intro": "Shops you follow",
+    "follow": "Favourite {name}",
+    "added": "Added to Favourites",
+    "removed": "Removed from Favourites",
+    "failed": "Not saved, try again later.",
+    "noneTonight": "Nothing on sale tonight",
+    "emptyTitle": "No favourite shops yet",
+    "emptyBody": "Tap ♡ on a shop's page to follow it.",
+    "explore": "Explore shops"
   }
 }

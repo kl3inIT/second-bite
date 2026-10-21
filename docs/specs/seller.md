@@ -16,6 +16,8 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `POST /sellers/{sellerId}/members` `{email}` | Its owner | `201` the new staff member |
 | `DELETE /sellers/{sellerId}/members/{accountId}` | Its owner, or a staff member removing themself | `204` |
 | `GET /sellers/{sellerId}/profile` | Anyone | `200` an active seller's name, address, location and photo; `404` for one blocked |
+| `PUT /sellers/{sellerId}/follow`, `DELETE` | Anyone signed in | `204`; following again, or unfollowing a seller not followed, changes nothing; following a seller that is not active answers `404` (SEC-109) |
+| `GET /sellers/followed` | Anyone signed in | `200 {sellers}`: the active sellers they follow, as the public profile above, the latest followed first; one blocked since is left out (SEC-109) |
 | `GET /admin/sellers?status=&q=&sort=&page=&size=` | Admins | `200 {items, page, pageSize, total, counts}`: sellers in the statuses given (every one when none) whose name, address or phone holds `q`, marks ignored; by default pending ones first, the oldest first, then the latest change first, or sorted by `name`, `address` or `changed` (`-` descending); `counts` gives each status matching `q`, for the cards above the list; each with its owner's address; `size` 1 to 100, 25 by default; a page past the end is empty (SEC-75) |
 | `GET /admin/memberships?accountId=` | Admins | `200 {memberships}`: the sellers each account given (1 to 100, the parameter repeated) owns or works at, owners first, with the seller's name and status, for the admins' accounts (SEC-75) |
 | `POST /admin/sellers/{sellerId}/approve` | Admins | `200` seller, `active`, from `pending`, `rejected` or `blocked`; its owner emailed |
@@ -37,14 +39,16 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 - Publishing is for the owner or staff of an `active` seller.
 - A seller answers 404 to anyone who is neither its member nor an admin. Admins read and set the status; they do not change a seller's details.
 - The phone keeps its digits and a leading `+`, 9 to 15 digits. The location is the latitude and longitude the client pins; PostGIS keeps it as a `geography(Point, 4326)` generated from them.
+- A favourite is an account following an active seller: one row per pair, so following twice is one favourite; it outlives the seller's status, so a seller blocked and approved again returns to the list, and unfollowing needs no active seller (SEC-109).
 - Working assumptions until the sellers' survey (SEC-9): changing an active seller's details does not send it back to `pending`; a blocked seller's owner still manages its staff.
-- When identity deletes an account (`identity.AccountDeletedEvent`, listener `seller.forget_account`), the module removes its memberships. A seller it owned would be left without an owner, so it is blocked with no one named as having blocked it and the reason "Chủ cửa hàng đã xoá tài khoản": it stops showing and publishing until admins decide (SEC-37). Running it again changes nothing.
+- When identity deletes an account (`identity.AccountDeletedEvent`, listener `seller.forget_account`), the module removes its memberships and favourites. A seller it owned would be left without an owner, so it is blocked with no one named as having blocked it and the reason "Chủ cửa hàng đã xoá tài khoản": it stops showing and publishing until admins decide (SEC-37). Running it again changes nothing.
 
 ## Data
 
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
 | `seller_sellers` | Name, address, latitude, longitude, generated location, phone, status, its reason, who set it and when, the photo (file's identifier, no foreign key), the generated folded words admins search | Kept |
+| `seller_follows` | Identity's account identifier (no foreign key across modules), the seller, when followed | Deleted when the account unfollows, and every favourite of an account when identity deletes it |
 | `seller_members` | Seller, identity's account identifier (no foreign key across modules), role `owner` or `staff`, when added | Deleted when a staff member is removed or leaves, and every membership of an account when identity deletes it |
 
 ## Failures
