@@ -49,7 +49,7 @@ export function ScanOrder({ sellerId }: { sellerId: string }) {
         <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>{t("title")}</DialogTitle>
-            <DialogDescription className="sr-only">{t("hint")}</DialogDescription>
+            <DialogDescription>{t("hint")}</DialogDescription>
           </DialogHeader>
           {open && <Scanner sellerId={sellerId} onDone={() => setOpen(false)} />}
           <DialogClose render={<Button type="button" variant="outline" size="lg" />}>
@@ -156,7 +156,6 @@ function Scanner({ sellerId, onDone }: { sellerId: string; onDone: () => void })
           className="pointer-events-none absolute inset-6 rounded-3xl border-4 border-background"
         />
       </div>
-      <p className="text-center text-body text-foreground">{t("hint")}</p>
       {problem && (
         <Alert variant="destructive">
           <CircleAlertIcon aria-hidden />
