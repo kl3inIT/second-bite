@@ -60,7 +60,7 @@ function StatusBand({
     <section
       className={cn(
         "relative overflow-hidden bg-header text-header-foreground",
-        beside && "lg:col-span-3 lg:row-start-1 lg:rounded-4xl",
+        beside && "lg:col-span-3 lg:col-start-1 lg:row-start-1 lg:rounded-4xl",
       )}
     >
       <span aria-hidden className="absolute -top-24 -right-20 size-64 rounded-full bg-sweep" />

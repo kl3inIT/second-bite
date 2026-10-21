@@ -71,7 +71,7 @@ test.describe("a dish, its seller and the cart", () => {
     // A phone's bar at the foot, a wider screen's sidebar at the side.
     await expect(
       wide(page)
-        ? page.getByText("Tiền món (3 phần)")
+        ? page.getByText("Tiền món (3 phần)").filter({ visible: true })
         : page.getByText("3 phần · tiết kiệm 84.000đ"),
     ).toBeVisible();
 
@@ -90,7 +90,7 @@ test.describe("a dish, its seller and the cart", () => {
         .getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" })
         .filter({ visible: true }),
     ).toBeDisabled();
-    await expect(page.getByText("Tiền món (4 phần)")).toBeVisible();
+    await expect(page.getByText("Tiền món (4 phần)").filter({ visible: true })).toBeVisible();
     // Figma K5: one card per seller's order, and one order button for both.
     await expect(page.getByRole("heading", { level: 2, name: "La Paris" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Panda Chef" })).toBeVisible();
@@ -102,7 +102,7 @@ test.describe("a dish, its seller and the cart", () => {
     // Figma K5: at one portion, − takes the dish out at once.
     await page.getByRole("button", { name: "Bớt một phần Há cảo tôm" }).click();
     await expect(page.getByText("Há cảo tôm", { exact: true })).toBeHidden();
-    await expect(page.getByText("Tiền món (3 phần)")).toBeVisible();
+    await expect(page.getByText("Tiền món (3 phần)").filter({ visible: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Đặt món" })).toBeVisible();
   });
 
