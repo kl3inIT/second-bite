@@ -535,7 +535,7 @@
     "crumbHome": "Trang chủ",
     "index": "Thực đơn tối nay",
     "rating": "Đánh giá",
-    "pickup": "Giờ nhận",
+    "pickup": "Giờ nhận hôm nay",
     "distance": "Khoảng cách"
   },
   "Cart": {
@@ -1482,6 +1482,8 @@
     "title": "Yêu thích",
     "intro": "Quán bạn theo dõi",
     "follow": "Yêu thích {name}",
+    "followName": "Theo dõi {name}",
+    "followLabel": "Theo dõi",
     "added": "Đã thêm vào Yêu thích",
     "removed": "Đã bỏ khỏi Yêu thích",
     "failed": "Chưa lưu được, thử lại sau.",

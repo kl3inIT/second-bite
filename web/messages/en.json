@@ -535,7 +535,7 @@
     "crumbHome": "Home",
     "index": "Tonight's menu",
     "rating": "Rating",
-    "pickup": "Collect",
+    "pickup": "Collect today",
     "distance": "Distance"
   },
   "Cart": {
@@ -1482,6 +1482,8 @@
     "title": "Favourites",
     "intro": "Shops you follow",
     "follow": "Favourite {name}",
+    "followName": "Follow {name}",
+    "followLabel": "Follow",
     "added": "Added to Favourites",
     "removed": "Removed from Favourites",
     "failed": "Not saved, try again later.",

@@ -1,6 +1,6 @@
 "use client";
 
-import { HeartIcon } from "lucide-react";
+import { BellIcon, HeartIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useSyncExternalStore, useTransition } from "react";
 
@@ -30,7 +30,8 @@ function subscribeToast(listener: () => void) {
 }
 
 // The heart that follows a seller (SEC-109, Figma K9): `float` is the white round button over the seller's
-// photographs (K4b), `card` the red heart of a card in "Yêu thích", `photo` the white heart on a dish's photograph.
+// photographs (K4b), `card` the red heart of a card in "Yêu thích", `photo` the white heart on a dish's photograph,
+// `outline` the "Theo dõi" button beside the seller's name on a wide screen (Figma WK3).
 // A tap says what it did in a short toast at the foot.
 export function FollowButton({
   sellerId,
@@ -40,7 +41,7 @@ export function FollowButton({
 }: {
   sellerId: string;
   name: string;
-  look: "float" | "card" | "photo";
+  look: "float" | "card" | "photo" | "outline";
   className?: string;
 }) {
   const t = useTranslations("Favourites");
@@ -62,26 +63,35 @@ export function FollowButton({
     <button
       type="button"
       aria-pressed={followed}
-      aria-label={t("follow", { name })}
+      aria-label={t(look === "outline" ? "followName" : "follow", { name })}
       disabled={follows.state === "loading" || pending}
       onClick={toggle}
       className={cn(
         look === "float" && buttonVariants({ variant: "float", size: "float" }),
         look === "card" &&
           "-m-2.75 flex size-11 shrink-0 items-center justify-center rounded-full text-destructive focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
+        look === "outline" &&
+          "flex min-h-11 items-center gap-1.5 rounded-md border-2 border-primary px-3 py-2 text-body-sm-strong text-primary hover:bg-secondary focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
         look === "photo" &&
           "absolute z-10 flex size-11 items-center justify-center rounded-full text-card focus-visible:ring-3 focus-visible:ring-card focus-visible:outline-none",
         className,
       )}
     >
-      <HeartIcon
-        aria-hidden
-        className={cn(
-          look === "card" ? "size-5.5" : "size-5",
-          look === "photo" && "size-5.5 drop-shadow-md",
-          followed && "fill-current",
-        )}
-      />
+      {look === "outline" ? (
+        <>
+          <BellIcon aria-hidden className={cn("size-4", followed && "fill-current")} />
+          {t("followLabel")}
+        </>
+      ) : (
+        <HeartIcon
+          aria-hidden
+          className={cn(
+            look === "card" ? "size-5.5" : "size-5",
+            look === "photo" && "size-5.5 drop-shadow-md",
+            followed && "fill-current",
+          )}
+        />
+      )}
     </button>
   );
 }
