@@ -36,13 +36,23 @@ function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) 
   );
 }
 
+// Second Bite: `fullscreen` holds a task that needs the whole screen on a phone and a large panel on a wider one, the
+// map a store is pinned on (SEC-66); its parts bring their own spacing.
+const dialogLayouts = {
+  default: "grid w-full max-w-[calc(100%-2rem)] gap-4 rounded-xl p-4 sm:max-w-sm",
+  fullscreen:
+    "flex size-full max-w-none flex-col overflow-hidden rounded-none sm:h-4/5 sm:max-w-3xl sm:rounded-xl",
+} as const;
+
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  layout = "default",
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean;
+  layout?: keyof typeof dialogLayouts;
 }) {
   return (
     <DialogPortal>
@@ -50,7 +60,8 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-body-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-popover text-body-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          dialogLayouts[layout],
           className,
         )}
         {...props}

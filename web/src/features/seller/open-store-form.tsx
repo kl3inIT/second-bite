@@ -3,10 +3,12 @@
 import { CircleAlertIcon, CircleCheckIcon, LocateFixedIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { LocationField } from "@/components/map/location-field";
+import type { Point } from "@/components/map/location-picker";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,13 +20,11 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
 import { ApiError, failureOf } from "@/lib/api/client";
-import { addressAt, openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
+import { openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
 
 import { PhoneFootBar } from "./phone-foot-bar";
 import { useRemountKey } from "./remount-key";
-
-/** Tasco Mall Long Biên, where every store of the pilot is: a store is pinned here until its owner gives where they are. */
-const MALL = { latitude: 21.0565, longitude: 105.8964 };
+import { describePlace, useSuggestedAddress, type Suggestion } from "./suggested-address";
 
 /** How long the browser may look for the place; it is asked afresh at each press, never for a place it kept. */
 const LOCATION_TIMEOUT_MS = 10_000;
@@ -37,11 +37,11 @@ type Located = {
   latitude: number;
   longitude: number;
   accuracy: number;
-  address: "filled" | "kept" | "unknown";
+  address: Suggestion;
 };
 
 type Problem = {
-  kind: "details" | "phone" | "limit" | "failed";
+  kind: "details" | "phone" | "location" | "limit" | "failed";
   detail?: string;
   reference?: string;
 };
@@ -53,6 +53,8 @@ function problemOf(error: unknown): Problem {
       return { kind: "details", ...failure };
     case "SELLER_PHONE_INVALID":
       return { kind: "phone", ...failure };
+    case "SELLER_LOCATION_OUTSIDE":
+      return { kind: "location", ...failure };
     case "SELLER_LIMIT_REACHED":
       return { kind: "limit", ...failure };
     default:
@@ -60,27 +62,29 @@ function problemOf(error: unknown): Problem {
   }
 }
 
-// The form that opens a store (SEC-57, Figma O1, O1b, O1c): name, phone, address and a photo, then "Tạo quán".
+// The form that opens a store (SEC-57, Figma O1, O1b, O1c): name, phone, address, where it is on the map (SEC-66) and
+// a photo, then "Tạo quán".
 // The store is active at once and the person goes on to its home. The photo is a second step, so a store whose
 // photo failed to upload is still opened.
 function OpenStoreFormBody() {
   const t = useTranslations("OpenStore");
+  const location = useTranslations("StoreLocation");
   const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const { address, type: typeAddress, suggest: suggestAddress } = useSuggestedAddress();
   const [photo, setPhoto] = useState<File>();
   const [preview, setPreview] = useState<string>();
   const [problem, setProblem] = useState<Problem>();
   const [pending, startTransition] = useTransition();
   const [located, setLocated] = useState<Located>();
+  // Where the store is: from the location button or the map. Required; no place is chosen for the person (SEC-66).
+  const [pin, setPin] = useState<Point>();
   const [locating, setLocating] = useState(false);
   const [locateFailure, setLocateFailure] = useState<"denied" | "failed">();
-  // Whether what the field holds was written from the place, and not by the person: a second press may replace it.
-  const written = useRef(false);
 
-  // The button at the end of the address (Figma O1d, O1e, O1f): where the person stands pins the store, in place
-  // of the mall, and the server names the place to fill the address, unless the person has written their own.
+  // The button at the end of the address (Figma O1d, O1e, O1f): where the person stands pins the store, which the
+  // map then shows to adjust (SEC-66), and the server names the place to fill the address.
   function locate() {
     setLocateFailure(undefined);
     if (!("geolocation" in navigator)) {
@@ -90,30 +94,14 @@ function OpenStoreFormBody() {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        const { latitude, longitude } = coords;
+        const point = { latitude: coords.latitude, longitude: coords.longitude };
         const accuracy = Math.round(coords.accuracy);
-        const mayFill = address.trim() === "" || written.current;
-        void (async () => {
-          let named = "";
-          try {
-            ({
-              data: { address: named },
-            } = await addressAt({ query: { latitude, longitude } }));
-          } catch {
-            // The place is pinned all the same; the person writes the address.
-          }
-          if (named && mayFill) {
-            written.current = true;
-            setAddress(named);
-          }
-          setLocated({
-            latitude,
-            longitude,
-            accuracy,
-            address: !named ? "unknown" : mayFill ? "filled" : "kept",
-          });
+        setPin(point);
+        clearLocationProblem();
+        void suggestAddress(point).then((outcome) => {
+          setLocated({ ...point, accuracy, address: outcome });
           setLocating(false);
-        })();
+        });
       },
       (error) => {
         setLocating(false);
@@ -121,6 +109,18 @@ function OpenStoreFormBody() {
       },
       { enableHighAccuracy: true, timeout: LOCATION_TIMEOUT_MS, maximumAge: 0 },
     );
+  }
+
+  // The pin moved on the map: the note about the location button no longer holds.
+  function pinned(point: Point) {
+    setPin(point);
+    setLocated(undefined);
+    clearLocationProblem();
+    void suggestAddress(point);
+  }
+
+  function clearLocationProblem() {
+    setProblem((now) => (now?.kind === "location" ? undefined : now));
   }
 
   function choose(file: File | undefined) {
@@ -131,16 +131,20 @@ function OpenStoreFormBody() {
 
   function submit() {
     setProblem(undefined);
+    const place = pin;
+    if (!place) {
+      setProblem({ kind: "location", detail: location("required") });
+      document.getElementById("store-location")?.focus();
+      return;
+    }
     startTransition(async () => {
       let sellerId: string;
-      const place = located ?? MALL;
       try {
         const { data } = await openSeller({
           body: {
             name: name.trim(),
             phone: phone.trim(),
             address: address.trim(),
-            // Only the place: what became of the address is the form's own note, not the store's.
             latitude: place.latitude,
             longitude: place.longitude,
           },
@@ -237,10 +241,7 @@ function OpenStoreFormBody() {
             <InputGroupInput
               id="store-address"
               value={address}
-              onChange={(event) => {
-                written.current = false;
-                setAddress(event.target.value);
-              }}
+              onChange={(event) => typeAddress(event.target.value)}
               placeholder={t("addressPlaceholder")}
               autoComplete="street-address"
               required
@@ -277,6 +278,15 @@ function OpenStoreFormBody() {
           </output>
           {detailsInvalid && <FieldError id="store-details-problem">{problem.detail}</FieldError>}
         </Field>
+
+        <LocationField
+          id="store-location"
+          value={pin}
+          onChange={pinned}
+          describe={describePlace}
+          error={problem?.kind === "location" ? problem.detail : undefined}
+          disabled={pending}
+        />
 
         <Field>
           <FieldLabel htmlFor="store-photo">{t("photo")}</FieldLabel>

@@ -737,6 +737,7 @@
   },
   "StoreMenu": {
     "shop": "Về trang người mua",
+    "location": "Vị trí quán",
     "mine": "Quán của tôi",
     "create": "Tạo thêm quán"
   },
@@ -1484,6 +1485,7 @@
         "info": "Thông tin",
         "address": "Địa chỉ",
         "phone": "Số điện thoại",
+        "map": "Vị trí quán trên bản đồ",
         "people": "Thành viên",
         "owner": "Chủ cửa hàng",
         "staff": "Nhân viên",
@@ -1585,5 +1587,35 @@
     "emptyBody": "Bấm ♡ ở trang quán để theo dõi.",
     "emptyMore": "Quán có món giảm sẽ báo bạn.",
     "explore": "Khám phá quán"
+  },
+  "StoreLocation": {
+    "label": "Vị trí trên bản đồ",
+    "hint": "Khoảng cách và chỉ đường cho khách tính theo ghim này.",
+    "empty": "Chưa ghim vị trí quán",
+    "pin": "Ghim trên bản đồ",
+    "adjust": "Chỉnh vị trí",
+    "required": "Ghim vị trí quán trên bản đồ để khách tìm đến.",
+    "previewLabel": "Vị trí quán trên bản đồ",
+    "pickTitle": "Ghim vị trí quán",
+    "pickHint": "Kéo bản đồ để mũi ghim nằm đúng cửa quán.",
+    "mapLabel": "Bản đồ Hà Nội. Kéo bản đồ, hoặc dùng các phím mũi tên, để đặt ghim vào vị trí quán.",
+    "looking": "Đang tìm địa chỉ…",
+    "unnamed": "Chưa có tên đường ở đây",
+    "locate": "Về vị trí hiện tại",
+    "locateDenied": "Chưa lấy được vị trí. Hãy cho phép vị trí trong trình duyệt, hoặc kéo bản đồ.",
+    "locateFailed": "Chưa lấy được vị trí lúc này. Bạn kéo bản đồ đến quán nhé.",
+    "zoomIn": "Phóng to bản đồ để ghim đúng chỗ.",
+    "confirm": "Xác nhận vị trí",
+    "unavailable": "Máy này chưa hiện được bản đồ. Hãy dùng nút vị trí hiện tại ở ô địa chỉ.",
+    "tilesFailed": "Một phần bản đồ chưa tải được. Bạn vẫn kéo và ghim được."
+  },
+  "StoreLocationPage": {
+    "title": "Vị trí quán",
+    "intro": "Khách thấy khoảng cách và đường đến quán theo ghim này. Món đang bán và đơn chưa nhận sẽ theo vị trí mới.",
+    "address": "Địa chỉ quán",
+    "save": "Lưu vị trí",
+    "saved": "Đã lưu vị trí mới của quán.",
+    "failed": "Chưa lưu được vị trí. Thử lại sau ít phút.",
+    "reference": "Mã tham chiếu: {id}"
   }
 }

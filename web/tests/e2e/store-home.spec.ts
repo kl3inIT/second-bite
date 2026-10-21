@@ -2,8 +2,9 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
+import { pinHere, TASCO_MALL } from "./pin";
 
-test.use({ locale: "vi-VN" });
+test.use({ locale: "vi-VN", permissions: ["geolocation"], geolocation: TASCO_MALL });
 // Each test signs in and opens a store first, which takes a while when the projects run side by side.
 test.setTimeout(90_000);
 
@@ -23,6 +24,7 @@ async function storeNamed(
   await (await hydrated(page.getByLabel("Tên quán"))).fill(name);
   await page.getByLabel("Số điện thoại").fill("0912345678");
   await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+  await pinHere(page);
   await page.getByRole("button", { name: "Tạo quán" }).click();
   await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
   return page.url().split("/").pop() ?? "";

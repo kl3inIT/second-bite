@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import { StoreMap } from "@/components/map/store-map";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -149,16 +150,22 @@ export default async function SellerPage({
                     <CardTitle>{t("sellers.detail.info")}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <dl className="flex flex-col gap-2 text-body-sm">
-                      <div className="flex justify-between gap-4">
-                        <dt className="text-muted-foreground">{t("sellers.detail.address")}</dt>
-                        <dd className="text-end text-body-sm-strong">{seller.address}</dd>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <dt className="text-muted-foreground">{t("sellers.detail.phone")}</dt>
-                        <dd className="text-end text-body-sm-strong">{shownPhone(seller.phone)}</dd>
-                      </div>
-                    </dl>
+                    <div className="flex flex-col gap-4">
+                      <dl className="flex flex-col gap-2 text-body-sm">
+                        <div className="flex justify-between gap-4">
+                          <dt className="text-muted-foreground">{t("sellers.detail.address")}</dt>
+                          <dd className="text-end text-body-sm-strong">{seller.address}</dd>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                          <dt className="text-muted-foreground">{t("sellers.detail.phone")}</dt>
+                          <dd className="text-end text-body-sm-strong">
+                            {shownPhone(seller.phone)}
+                          </dd>
+                        </div>
+                      </dl>
+                      {/* Where the owner pinned the store (SEC-66), so a wrong pin is seen before customers walk to it. */}
+                      <StoreMap point={seller} label={t("sellers.detail.map")} />
+                    </div>
                   </CardContent>
                 </Card>
                 <Card size="lg" className="flex-1">

@@ -2,8 +2,9 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
+import { pinHere, TASCO_MALL } from "./pin";
 
-test.use({ locale: "vi-VN" });
+test.use({ locale: "vi-VN", permissions: ["geolocation"], geolocation: TASCO_MALL });
 
 // A one-pixel PNG, the store's photo in the checks below.
 const onePixel =
@@ -61,6 +62,7 @@ test.describe("opening a store on the web", () => {
       (request) =>
         request.method() === "POST" && new URL(request.url()).pathname.endsWith("/sellers"),
     );
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     const body = (await sent).postDataJSON() as {
       address: string;
@@ -97,7 +99,9 @@ test.describe("opening a store on the web", () => {
 
   test("says when the location is not given, and the address is typed", async ({
     page,
+    context,
   }, testInfo) => {
+    await context.clearPermissions();
     await signIn(page, `huong.${testInfo.project.name}@example.com`, "/open-store");
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Hương");
     await page.getByRole("button", { name: "Dùng vị trí hiện tại" }).click();
@@ -117,6 +121,7 @@ test.describe("opening a store on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Hoa Sữa");
     await page.getByLabel("Số điện thoại").fill("123");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall, Long Biên");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(
       page.getByText("Nhập số điện thoại 9 đến 15 chữ số, ví dụ 0912 345 678."),
@@ -124,6 +129,7 @@ test.describe("opening a store on the web", () => {
     await expectNoSeriousA11yViolations(page);
 
     await page.getByLabel("Số điện thoại").fill("0912 345 678");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
 
     // The new store's home, where it invites the first post (Figma Q1).
@@ -148,6 +154,7 @@ test.describe("opening a store on the web", () => {
       await (await hydrated(page.getByLabel("Tên quán"))).fill(name);
       await page.getByLabel("Số điện thoại").fill("0912345678");
       await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+      await pinHere(page);
       await page.getByRole("button", { name: "Tạo quán" }).click();
       await expect(page).toHaveURL(/\/vi\/stores\/se-\d-/, { timeout: 20_000 });
     }
@@ -174,6 +181,7 @@ test.describe("opening a store on the web", () => {
       mimeType: "image/png",
       buffer: Buffer.from(onePixel, "base64"),
     });
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
 
@@ -189,6 +197,7 @@ test.describe("opening a store on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Một");
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
 
@@ -217,6 +226,7 @@ test.describe("opening a store on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Tiệm bánh Pháp");
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/);
 
@@ -259,6 +269,7 @@ test.describe("opening a store on the web", () => {
       await (await hydrated(page.getByLabel("Tên quán"))).fill(`Quán ${n}`);
       await page.getByLabel("Số điện thoại").fill("0912345678");
       await page.getByLabel("Địa chỉ quán").fill("Tasco Mall");
+      await pinHere(page);
       await page.getByRole("button", { name: "Tạo quán" }).click();
       await expect(page).toHaveURL(/\/vi\/stores\/se-/);
       if (n < 5) await page.goto("/vi/open-store");
@@ -270,6 +281,7 @@ test.describe("opening a store on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán 6");
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page.getByText("Bạn đã có đủ 5 quán. Hãy dùng một trong số đó.")).toBeVisible();
   });
@@ -288,6 +300,7 @@ test.describe("posting a dish on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill(name);
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/);
     return page.url().split("/").pop() ?? "";
@@ -402,6 +415,7 @@ test.describe("changing a post on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill(name);
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/);
     return page.url().split("/").pop() ?? "";
@@ -540,6 +554,7 @@ test.describe("the catalog on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Tiệm danh mục");
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
     return page.url().split("/").pop() ?? "";
