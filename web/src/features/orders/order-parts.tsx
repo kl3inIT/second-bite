@@ -9,7 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
 import { buttonVariants } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-import { directionsTo, isOpen, savingOf, unitsOf, type Order } from "./order";
+import { directionsTo, isOpen, mapOf, savingOf, unitsOf, type Order } from "./order";
 import { OrderQr } from "./order-qr";
 
 // The pieces the order pages are built from (Figma K6, K6b, D5): the seller's row, the ticket, the orders placed
@@ -216,18 +216,20 @@ export function OrderSummary({ order }: { order: Order }) {
 /** Where the counter is, and the way there in Google Maps (Figma D2 › chỗ lấy). */
 export function Directions({ order }: { order: Order }) {
   const t = useTranslations("Orders");
+  const locale = useLocale();
 
   return (
     <section
       aria-label={t("directionsLabel")}
       className="flex flex-col overflow-hidden rounded-2xl bg-card text-card-foreground"
     >
-      <div
-        aria-hidden
-        className="flex h-18 items-center justify-center bg-secondary text-secondary-foreground"
-      >
-        <MapPinIcon className="size-7" />
-      </div>
+      <iframe
+        title={t("mapTitle", { seller: order.seller.name })}
+        src={mapOf(order.seller, locale)}
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        className="h-40 w-full border-0 bg-secondary"
+      />
       <div className="flex flex-col gap-3 p-4">
         <div>
           <p className="text-body-sm-strong">

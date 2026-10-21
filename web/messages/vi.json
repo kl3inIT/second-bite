@@ -386,6 +386,7 @@
     "details": "Chi tiết đơn",
     "counterToday": "{address} · {from}–{until} hôm nay",
     "units": "{units} phần",
+    "mapTitle": "Bản đồ chỗ nhận món của {seller}",
     "directionsLabel": "Đường đến quầy",
     "placeLine": "{seller} · {address}",
     "placeHint": "Tasco Mall Long Biên",

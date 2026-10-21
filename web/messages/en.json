@@ -386,6 +386,7 @@
     "details": "Order details",
     "counterToday": "{address} · {from}–{until} today",
     "units": "{units, plural, one {# portion} other {# portions}}",
+    "mapTitle": "Map of where to collect from {seller}",
     "directionsLabel": "The way to the counter",
     "placeLine": "{seller} · {address}",
     "placeHint": "Tasco Mall Long Biên",
