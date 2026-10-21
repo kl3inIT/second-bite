@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
+import { chipTrigger } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ChevronRightIcon, CheckIcon } from "lucide-react";
 
@@ -18,16 +19,20 @@ function DropdownMenuPortal({ ...props }: MenuPrimitive.Portal.Props) {
 function DropdownMenuTrigger({
   className,
   variant = "plain",
+  raised = false,
   ...props
-}: MenuPrimitive.Trigger.Props & { variant?: "plain" | "header" | "chip" | "inline" }) {
+}: MenuPrimitive.Trigger.Props & {
+  variant?: "plain" | "header" | "chip" | "inline";
+  /** A chip on the sky ground itself rather than on white: white with a pale edge (Figma K1b chip lọc). */
+  raised?: boolean;
+}) {
   return (
     <MenuPrimitive.Trigger
       data-slot="dropdown-menu-trigger"
       data-variant={variant}
+      data-raised={raised ? "" : undefined}
       className={cn(
-        // Second Bite (Figma K2 chip lọc): a filter chip, fully rounded on the sky ground without an edge, its
-        // value shown once chosen (`data-active`), and a 44px target around its 34px.
-        "data-[variant=chip]:relative data-[variant=chip]:flex data-[variant=chip]:h-8.5 data-[variant=chip]:shrink-0 data-[variant=chip]:items-center data-[variant=chip]:gap-1.5 data-[variant=chip]:rounded-full data-[variant=chip]:bg-muted data-[variant=chip]:px-3.5 data-[variant=chip]:text-body-sm data-[variant=chip]:text-foreground data-[variant=chip]:transition-colors data-[variant=chip]:after:absolute data-[variant=chip]:after:inset-x-0 data-[variant=chip]:after:-inset-y-1.25 data-[variant=chip]:hover:bg-secondary data-[variant=chip]:focus-visible:ring-3 data-[variant=chip]:focus-visible:ring-ring/50 data-[variant=chip]:focus-visible:outline-none data-[variant=chip]:data-active:bg-secondary data-[variant=chip]:data-active:text-body-sm-strong data-[variant=chip]:data-active:text-primary",
+        chipTrigger,
         // Second Bite (Figma K2 tóm tắt): a menu opened from a short link in a line, such as "Gần nhất".
         "data-[variant=inline]:-my-3 data-[variant=inline]:flex data-[variant=inline]:min-h-11 data-[variant=inline]:items-center data-[variant=inline]:gap-1 data-[variant=inline]:text-label-strong data-[variant=inline]:text-link data-[variant=inline]:focus-visible:ring-3 data-[variant=inline]:focus-visible:ring-ring/50 data-[variant=inline]:focus-visible:outline-none",
         "data-[variant=header]:-my-1.5 data-[variant=header]:flex data-[variant=header]:h-11 data-[variant=header]:min-w-11 data-[variant=header]:items-center data-[variant=header]:justify-center data-[variant=header]:rounded-full data-[variant=header]:focus-visible:ring-3 data-[variant=header]:focus-visible:ring-ring data-[variant=header]:focus-visible:ring-offset-2 data-[variant=header]:focus-visible:ring-offset-card data-[variant=header]:focus-visible:outline-none",
@@ -106,7 +111,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "group/dropdown-menu-item relative flex min-h-11 cursor-default items-center gap-1.5 rounded-md px-2.5 py-1 text-body-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-[variant=destructive]:*:[svg]:text-destructive",
+        "group/dropdown-menu-item relative flex min-h-11 cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 text-body-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-[variant=destructive]:*:[svg]:text-destructive",
         className,
       )}
       {...props}
@@ -131,7 +136,7 @@ function DropdownMenuSubTrigger({
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
       className={cn(
-        "flex min-h-11 cursor-default items-center gap-1.5 rounded-md px-2.5 py-1 text-body-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7 data-popup-open:bg-accent data-popup-open:text-accent-foreground data-open:bg-accent data-open:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "flex min-h-11 cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 text-body-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7 data-popup-open:bg-accent data-popup-open:text-accent-foreground data-open:bg-accent data-open:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}
@@ -180,7 +185,7 @@ function DropdownMenuCheckboxItem({
       data-slot="dropdown-menu-checkbox-item"
       data-inset={inset}
       className={cn(
-        "relative flex min-h-11 cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-2.5 text-body-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex min-h-11 cursor-pointer items-center gap-1.5 rounded-md py-1 pr-8 pl-2.5 text-body-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       checked={checked}
@@ -216,7 +221,7 @@ function DropdownMenuRadioItem({
       data-slot="dropdown-menu-radio-item"
       data-inset={inset}
       className={cn(
-        "relative flex min-h-11 cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-2.5 text-body-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex min-h-11 cursor-pointer items-center gap-1.5 rounded-md py-1 pr-8 pl-2.5 text-body-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}

@@ -20,6 +20,7 @@ export const typeStyles = [
   "hero",
   "page-title",
   "figure-sm",
+  "price-sm",
   "price",
   "price-lg",
   "display",
