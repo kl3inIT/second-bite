@@ -18,6 +18,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Spinner } from "@/components/ui/spinner";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError, failureOf } from "@/lib/api/client";
@@ -36,6 +37,10 @@ const kinds = [
   "mixed_box",
   "other",
 ] as const satisfies readonly DishBody["kind"][];
+
+// What a dish is counted in, chosen rather than typed: a seller's own word would reach every card and order as it
+// was written. A dish saved earlier with another word keeps it as one more choice.
+const units = ["suất", "phần", "cái", "chiếc", "túi", "hộp", "ổ", "ly", "chai"];
 
 type Problem = { kind: "details" | "limit" | "failed"; detail?: string; reference?: string };
 
@@ -232,19 +237,25 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
           </div>
         </fieldset>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field>
+        <div className="grid grid-cols-5 gap-3">
+          <Field className="col-span-2">
             <FieldLabel htmlFor="dish-unit">{t("unit")}</FieldLabel>
-            <Input
+            <NativeSelect
               id="dish-unit"
+              size="field"
               value={unit}
-              maxLength={20}
               onChange={(event) => setUnit(event.target.value)}
               disabled={pending}
-            />
+            >
+              {(units.includes(unit) ? units : [...units, unit]).map((value) => (
+                <NativeSelectOption key={value} value={value}>
+                  {value}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           </Field>
 
-          <Field data-invalid={(tried && originalInvalid) || undefined}>
+          <Field className="col-span-3" data-invalid={(tried && originalInvalid) || undefined}>
             <FieldLabel htmlFor="dish-original">{t("original")}</FieldLabel>
             <NumberInput
               id="dish-original"
