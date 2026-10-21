@@ -27,8 +27,13 @@ async function orderAs(page: Page, name: string, phone: string) {
   await check.getByRole("button", { name: "Đúng, đặt món" }).click();
 }
 
-/** The order's four steps on the blue band, in order, with the current one marked (Figma W5, W6). */
-async function expectSteps(page: Page, names: string[], current: string) {
+/**
+ * The order's four steps on the blue band, in order, with the current one marked. A phone keeps its own row (Figma
+ * K6), whose last step is "Hoàn tất"; from 768px it is "Đã nhận" (Figma W5, W6).
+ */
+async function expectSteps(page: Page, current: number) {
+  const wide = (page.viewportSize()?.width ?? 0) >= 768;
+  const names = ["Đã đặt", "Chuẩn bị", "Sẵn sàng", wide ? "Đã nhận" : "Hoàn tất"];
   const list = page.getByRole("list", { name: "Các bước của đơn" });
   const steps = list.getByRole("listitem");
   await expect(steps).toHaveCount(names.length);
@@ -36,7 +41,7 @@ async function expectSteps(page: Page, names: string[], current: string) {
     await expect(steps.nth(index)).toContainText(name);
   }
   await expect(list.locator('[aria-current="step"]')).toHaveCount(1);
-  await expect(list.locator('[aria-current="step"]')).toContainText(current);
+  await expect(list.locator('[aria-current="step"]')).toContainText(names[current]);
 }
 
 /** The dish's line on the order's page, its units and name in spans of their own (Figma D2 › Món đã đặt). */
@@ -79,7 +84,7 @@ test.describe("ordering from the cart", () => {
     await expect(page).toHaveURL(ORDER_URL);
     await expect(page.getByRole("heading", { name: /^Đơn #SB-\d+$/, level: 1 })).toBeVisible();
     await expect(page.getByText("Đã xác nhận · quán đang chuẩn bị")).toBeVisible();
-    await expectSteps(page, ["Đã đặt", "Chuẩn bị", "Sẵn sàng", "Đã nhận"], "Chuẩn bị");
+    await expectSteps(page, 1);
     await expect(page.getByText(/^Mã QR hiện khi món sẵn sàng/)).toBeVisible();
     await expect(dishLine(page)).toBeVisible();
     await expectNoSeriousA11yViolations(page);
@@ -115,7 +120,7 @@ test.describe("ordering from the cart", () => {
     await page.request.post(`/api/orders/${orderId}/ready`);
     await page.reload();
     await expect(page.getByText("Món đã sẵn sàng")).toBeVisible();
-    await expectSteps(page, ["Đã đặt", "Chuẩn bị", "Sẵn sàng", "Đã nhận"], "Sẵn sàng");
+    await expectSteps(page, 2);
     await expect(page.getByText(/^Đưa mã QR cho quầy quét/)).toBeVisible();
     await expect(page.getByRole("heading", { name: "Cách nhận món" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
@@ -128,7 +133,7 @@ test.describe("ordering from the cart", () => {
     await page.request.post(`/api/orders/${orderId}/hand-over`);
     await page.goto(`/vi/orders/${orderId}`);
     await expect(page.getByText(/^Đã nhận món lúc/)).toBeVisible();
-    await expectSteps(page, ["Đã đặt", "Chuẩn bị", "Sẵn sàng", "Đã nhận"], "Đã nhận");
+    await expectSteps(page, 3);
     await expect(page.getByText("28.000đ", { exact: true })).toBeVisible();
     await expect(page.getByText("Tiết kiệm so với giá gốc · 1 phần không bị bỏ phí")).toBeVisible();
 

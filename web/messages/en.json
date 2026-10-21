@@ -421,7 +421,8 @@
       "ready": "Ready",
       "readyNote": "come to the counter",
       "readyPending": "Not ready yet",
-      "collected": "Collected",
+      "collected": "Done",
+      "received": "Collected",
       "collectedNote": "enjoy your meal",
       "collectedPending": "Not collected yet"
     },

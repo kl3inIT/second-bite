@@ -421,7 +421,8 @@
       "ready": "Sẵn sàng",
       "readyNote": "mời bạn tới quầy",
       "readyPending": "Chưa sẵn sàng",
-      "collected": "Đã nhận",
+      "collected": "Hoàn tất",
+      "received": "Đã nhận",
       "collectedNote": "chúc ngon miệng",
       "collectedPending": "Chưa nhận"
     },
