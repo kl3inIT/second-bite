@@ -12,7 +12,7 @@ Design: [design.md](design.md). Tracked in Linear as SEC-117.
 | 6 | Assembly in `cmd/secondbite`, the composition test through the middleware, OpenAPI and the web client regenerated | Done |
 | 7 | The proxies: `local-proxy.conf`, the staging runbook's `location /api/` block, and CI's local-proxy job opening `/api/live` | Done |
 | 8 | Documents: the order and platform specs (the socket's frames included), `docs/tests/order.md`, coder/websocket in the backend guideline, ARCHITECTURE.md, the runbook's connection count | Done |
-| 9 | Web: the socket client in `src/lib`, the server action that mints tickets, reconnection and the polling fallback; Vitest | To do |
+| 9 | Web: the socket client in `src/lib`, the server action that mints tickets, reconnection and the polling fallback; Vitest | Done |
 | 10 | Web: the order page and "Đơn của tôi" follow their orders and refresh at `windowEnd`; the Đơn tab and an order's page follow the seller; the unread badges | To do |
 | 11 | Web: the chat after Figma 125:5155 and WK8 (349:36918), with the order card, the note under the input, "Đã xem" and the read-only state; "Nhắn quán" on the order page and the pickup card; the seller's chat with "Nhắn khách"; TanStack Query; both catalogs | To do |
 | 12 | The stub backend, and Playwright specs with `page.routeWebSocket` at 390, 768 and 1440, with axe | To do |
