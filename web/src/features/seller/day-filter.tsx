@@ -56,12 +56,6 @@ function dateOf(day: string): Date {
   return new Date(year, month - 1, date, 12);
 }
 
-/** A weekday in one or two characters, so seven of them fit above the cells of a phone's popover: "T2" to "CN". */
-function weekdayName(date: Date, language: string): string {
-  if (language === "vi") return ["CN", "T2", "T3", "T4", "T5", "T6", "T7"][date.getDay()];
-  return date.toLocaleDateString(language, { weekday: "narrow" });
-}
-
 function dayOf(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -123,7 +117,7 @@ export function DayBar(view: DayView) {
   const [open, setOpen] = useState(false);
   const { day, today } = view;
 
-  const written = format.dateTime(dateOf(day), { day: "2-digit", month: "2-digit" });
+  const written = format.dateTime(dateOf(day), "dayMonth");
   let label = written;
   if (day === today) label = `${t("today")} · ${written}`;
   else if (day === shiftDay(today, -1)) label = `${t("yesterday")} · ${written}`;
@@ -182,7 +176,7 @@ export function DayBar(view: DayView) {
               defaultMonth={dateOf(day)}
               locale={language === "vi" ? vi : enUS}
               weekStartsOn={1}
-              formatters={{ formatWeekdayName: (date) => weekdayName(date, language) }}
+              formatters={{ formatWeekdayName: (date) => format.dateTime(date, "weekday") }}
               onSelect={(picked) => {
                 setOpen(false);
                 router.push(hrefFor(view, { day: dayOf(picked) }));

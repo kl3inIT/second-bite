@@ -6,6 +6,7 @@ import { SellerAvatar } from "@/features/offers/seller-avatar";
 import { Link } from "@/i18n/navigation";
 
 import { getMySellers, MAX_OWNED } from "./my-sellers";
+import { StorePanel } from "./store-panel";
 
 // The stores of the person signed in (Figma S0): a row per store, and "Tạo quán mới" while they own fewer than
 // five; with none, the card that says so. It reads the session, so it renders inside Suspense.
@@ -14,10 +15,7 @@ export async function MyStores() {
   const owned = sellers.filter((seller) => seller.myRole === "owner").length;
 
   return (
-    <section
-      aria-labelledby="my-stores"
-      className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 text-card-foreground"
-    >
+    <StorePanel labelledBy="my-stores" className="gap-4">
       {sellers.length === 0 ? (
         <div className="flex items-center gap-3">
           <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
@@ -60,6 +58,6 @@ export async function MyStores() {
           {t("create")}
         </Link>
       )}
-    </section>
+    </StorePanel>
   );
 }

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { formatPrice } from "@/features/offers/format";
 import { savingOf, unitsOf } from "@/features/orders/order";
 import type { OrderBody } from "@/lib/api/generated";
+import { photoUrl } from "@/lib/api/photo";
 
 // The lines of an order and what it comes to (Figma Q5j, Q5k, O2, O3 › Món đã đặt): each dish with its units,
 // photo and what the customer pays for it beside the price it had, then the saving, the total, the number and
@@ -29,7 +30,7 @@ export function OrderLines({ order }: { order: OrderBody }) {
             <span className="w-7 shrink-0 font-display text-title">{line.units}×</span>
             <span className="relative size-10 shrink-0 overflow-hidden rounded-xl bg-muted">
               <Image
-                src={`/api${line.photo.smallPath}`}
+                src={photoUrl(line.photo.smallPath)}
                 alt=""
                 fill
                 sizes="40px"

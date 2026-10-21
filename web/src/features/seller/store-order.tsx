@@ -7,6 +7,7 @@ import { hoursAndMinutes, unitsOf, windowPhase } from "@/features/orders/order";
 import { Link } from "@/i18n/navigation";
 import type { OrderBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
 import { CopyPhoneButton } from "./copy-phone-button";
 import { getStoreOrder } from "./my-sellers";
@@ -122,7 +123,7 @@ export async function StoreOrder({
               <div className="flex items-center gap-3">
                 <span className="relative size-10 shrink-0 overflow-hidden rounded-full bg-muted">
                   <Image
-                    src={`/api${first.photo.smallPath}`}
+                    src={photoUrl(first.photo.smallPath)}
                     alt=""
                     fill
                     sizes="40px"

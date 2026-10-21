@@ -11,6 +11,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
 import { failureOf } from "@/lib/api/client";
 import { withdrawOffer } from "@/lib/api/generated";
+import { photoUrl } from "@/lib/api/photo";
 
 import type { EditTarget } from "./post-draft";
 
@@ -63,7 +64,7 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
           <div className="flex items-center gap-4">
             <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
               <Image
-                src={`/api${dish.photoPath}`}
+                src={photoUrl(dish.photoPath)}
                 alt=""
                 fill
                 sizes="56px"

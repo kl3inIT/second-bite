@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { refuse, useAppForm } from "@/components/form/app-form";
 import { useFieldValidity } from "@/components/form/form-context";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -338,9 +339,7 @@ function PostDrawerBody({
                 <input type="radio" name="post-kind" disabled className="sr-only" />
                 <span className="flex items-center gap-2 text-title">
                   {t("expectedTitle")}
-                  <span className="rounded-full bg-secondary px-2 py-0.5 text-label-strong text-secondary-foreground">
-                    {t("soon")}
-                  </span>
+                  <Badge variant="info">{t("soon")}</Badge>
                 </span>
                 <span className="text-body-sm text-muted-foreground">{t("expectedBody")}</span>
               </label>

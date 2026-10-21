@@ -18,6 +18,8 @@ export const formats = {
     day: { day: "2-digit", month: "2-digit", year: "numeric" },
     /** "20/10": a day of this year in a filter or a list. */
     dayMonth: { day: "2-digit", month: "2-digit" },
+    /** "T2", "CN"; "M", "S": a weekday above a calendar's columns. */
+    weekday: { weekday: "narrow" },
     /** "20/10/2026" for a date with no time of day, kept at midnight UTC, so no zone moves it a day. */
     calendarDay: { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" },
   },
