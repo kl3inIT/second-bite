@@ -1,5 +1,14 @@
-import type { SellerStatus } from "../ui/badge";
-import type { DateRangeValue } from "../ui/filter-bar";
+import type { VariantProps } from "class-variance-authority";
+import {
+  CircleCheckIcon,
+  CircleXIcon,
+  ClockIcon,
+  InfoIcon,
+  type LucideIcon,
+  TriangleAlertIcon,
+} from "lucide-react";
+
+import type { badgeVariants } from "@/components/ui/badge";
 
 // The admin's orders (SEC-62, Figma AD-DH1 to AD-DH5). SEC-15 has not built the `order` module yet, so these
 // shapes follow the order's states as the team drew them (Figma "Đơn · SEC-15", 155:832: Đã xác nhận, Sẵn
@@ -84,7 +93,13 @@ export type AdminOrder = {
     /** How many times in the last 30 days the customer did not come, this order included. */
     noShowsIn30Days?: number;
   };
-  seller: { id: string; name: string; location: string; phone: string; status: SellerStatus };
+  seller: {
+    id: string;
+    name: string;
+    location: string;
+    phone: string;
+    status: "active" | "pending" | "rejected" | "blocked";
+  };
   wrongCodeAttempts: number;
   maxCodeAttempts: number;
   history: { kind: OrderEventKind; at: string }[];
@@ -181,6 +196,9 @@ export function ordersHref(list: string, { status, q }: { status: OrderStatusFil
   return query ? `${list}?${query}` : list;
 }
 
+/** The days a list is filtered to, both ends included; neither end keeps every day. */
+export type DateRangeValue = { from?: Date; to?: Date };
+
 export type OrderFilters = {
   search: string;
   sellerId: string;
@@ -256,16 +274,64 @@ export function toggleSort<Key extends string>(sort: Sort<Key>, key: Key): Sort<
   return { key, direction: sort.direction === "desc" ? "asc" : "desc" };
 }
 
-/** One page of rows: `page` counts from 1 and is kept within the pages there are. */
+/**
+ * One page of rows: `page` counts from 1 and is kept within the `pages` there are; `from` and `to` number its
+ * first and last row for "Hiển thị 1–10 trên 34".
+ */
 export function pageOf<Row>(
   rows: Row[],
   page: number,
   size: number,
-): { rows: Row[]; page: number } {
+): { rows: Row[]; page: number; pages: number; from: number; to: number } {
   const pages = Math.max(1, Math.ceil(rows.length / size));
   const current = Math.min(Math.max(1, page), pages);
-  return { rows: rows.slice((current - 1) * size, current * size), page: current };
+  return {
+    rows: rows.slice((current - 1) * size, current * size),
+    page: current,
+    pages,
+    from: rows.length === 0 ? 0 : (current - 1) * size + 1,
+    to: Math.min(rows.length, current * size),
+  };
 }
+
+/**
+ * A day filter's range in words (Figma Admin/DateRange 238:55307): "01/10 – 20/10/2026", or `any` ("Mọi lúc")
+ * when none is chosen. Each end is written on its own, as Figma writes it, since Intl's own range drops the
+ * two-digit month in Vietnamese; the start loses its year when both ends share one.
+ */
+export function dayRangeLabel(
+  { from, to }: DateRangeValue,
+  words: { day: (at: Date) => string; dayMonth: (at: Date) => string; any: string },
+): string {
+  if (from && to) {
+    const start = from.getFullYear() === to.getFullYear() ? words.dayMonth(from) : words.day(from);
+    return `${start} – ${words.day(to)}`;
+  }
+  return from ? words.day(from) : words.any;
+}
+
+/** How a state shows in the shared Badge: the variant of its tone and its icon, beside its words. */
+export type BadgeLook = {
+  variant: NonNullable<VariantProps<typeof badgeVariants>["variant"]>;
+  icon: LucideIcon | null;
+};
+
+/** An order's state (Figma AD-DH1 › Trạng thái): "Sẵn sàng", "Hết hạn", each with its icon. */
+export const orderStatusLooks: Record<OrderStatus, BadgeLook> = {
+  confirmed: { variant: "outline", icon: ClockIcon },
+  ready: { variant: "secondary", icon: InfoIcon },
+  collected: { variant: "fresh", icon: CircleCheckIcon },
+  expired: { variant: "outline", icon: TriangleAlertIcon },
+  cancelled: { variant: "destructive", icon: CircleXIcon },
+  rejected: { variant: "destructive", icon: CircleXIcon },
+};
+
+/** A step's dot in a history (Figma Admin/Timeline): done in green, one to come in grey, a failure in red. */
+export const stepDots: Record<OrderStep["tone"], string> = {
+  done: "bg-success",
+  pending: "bg-muted-foreground",
+  error: "bg-destructive",
+};
 
 /** The stores the rows come from, for the "Cửa hàng" filter, by name. */
 export function sellersOf(rows: { sellerId: string; sellerName: string }[]) {

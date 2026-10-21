@@ -112,7 +112,8 @@ describe("the orders' sort and pages", () => {
   it("cuts pages of ten and keeps the page within those there are", () => {
     expect(pageOf(sampleRows, 2, 10).rows).toHaveLength(2);
     expect(pageOf(sampleRows, 9, 10).page).toBe(2);
-    expect(pageOf([], 3, 10)).toEqual({ rows: [], page: 1 });
+    expect(pageOf(sampleRows, 2, 10)).toMatchObject({ pages: 2, from: 11, to: 12 });
+    expect(pageOf([], 3, 10)).toEqual({ rows: [], page: 1, pages: 1, from: 0, to: 0 });
   });
 });
 

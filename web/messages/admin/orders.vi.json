@@ -12,7 +12,8 @@
     "collectedToday": "Đã nhận hôm nay",
     "waiting": "Đang chờ nhận",
     "noShow": "Khách không đến",
-    "none": "—"
+    "none": "—",
+    "filtering": "Đang lọc"
   },
   "filters": {
     "search": "Tìm đơn",
@@ -38,6 +39,7 @@
   "empty": "Chưa có đơn nào",
   "emptyFiltered": "Không có đơn nào khớp bộ lọc",
   "summary": "Hiển thị {from}–{to} trên {total} đơn",
+  "pages": "{page} / {pages}",
   "actions": {
     "view": "Xem chi tiết",
     "viewSeller": "Xem cửa hàng",

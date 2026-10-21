@@ -78,7 +78,7 @@ describe("an order's page (AD-DH3)", () => {
     expect(text).toContain("Thanh toán Không thu tiền");
     expect(text).toContain("Mã nhận Đã hết hiệu lực");
     expect(text).not.toContain("Huỷ đơn");
-    expect(html).toMatch(/<button[^>]*disabled=""[^>]*title="Sắp có"[^>]*>Ghi nhận vi phạm/);
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Ghi nhận vi phạm/);
   });
 });
 

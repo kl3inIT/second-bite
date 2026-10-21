@@ -1,24 +1,34 @@
 "use client";
 
-import { BanIcon, CircleCheckIcon, EyeOffIcon } from "lucide-react";
+import { BanIcon, CircleCheckIcon, CircleXIcon, EyeOffIcon, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "@/components/ui/toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 
 import { formatPrice } from "../../offers/format";
 import { AdminCrumb } from "../admin-crumbs";
-import { showAdminToast } from "../lib/toast";
 import { adminHref } from "../pages";
-import { InfoStrip } from "../ui/info-strip";
-import { StatusCard, type StatusLine } from "../ui/status-card";
-import { Timeline } from "../ui/timeline";
 import { CancelOrderDialog } from "./cancel-order-dialog";
-import { DetailCard, DetailList } from "./detail-card";
-import { type AdminOrder, type CancelRequest, isOpen, orderClock, orderSteps } from "./order";
-import { OrderStatusBadge } from "./order-status-badge";
+import {
+  type AdminOrder,
+  type CancelRequest,
+  isOpen,
+  orderClock,
+  orderStatusLooks,
+  orderSteps,
+  stepDots,
+} from "./order";
+
+type Fact = { key: string; label: string; value: ReactNode };
 
 /**
  * One order (Figma AD-DH3, AD-DH5): its code and state with "Xem cửa hàng" and the action its state allows
@@ -50,19 +60,118 @@ export function OrderDetail({
   const charged = open || order.status === "collected";
   const portions = order.items.reduce((sum, item) => sum + item.quantity, 0);
   const sellerHref = adminHref("sellerDetail", { sellerId: order.seller.id });
+  const look = orderStatusLooks[order.status];
+  const totalLabel = charged ? t("detail.strip.totalCollect") : t("detail.strip.totalNotCollected");
 
   async function recordNoShow() {
     if (!onRecordNoShow) return;
     setRecording(true);
     try {
       await onRecordNoShow();
-      showAdminToast(t("detail.recorded", { code: order.code }));
+      toast.add({
+        title: t("detail.recorded", { code: order.code }),
+        type: "success",
+        timeout: 5000,
+      });
     } catch {
-      showAdminToast(t("detail.failed"), "error");
+      toast.add({ title: t("detail.failed"), type: "error", timeout: 5000 });
     } finally {
       setRecording(false);
     }
   }
+
+  const record = (
+    <Button
+      variant="destructive"
+      disabled={!onRecordNoShow || recording}
+      onClick={() => void recordNoShow()}
+    >
+      {t("detail.recordNoShow")}
+    </Button>
+  );
+
+  const strip = [
+    { label: totalLabel, value: formatPrice(order.totalVnd) },
+    { label: t("detail.strip.quantity"), value: portions },
+    {
+      label: t("detail.strip.window", { day: format.dateTime(new Date(order.pickupStart), "day") }),
+      value: t("window", { start: time(order.pickupStart), end: time(order.pickupEnd) }),
+    },
+    clockItem(order, now, { t, time }),
+  ];
+
+  const sideCards: { key: string; title: string; facts: Fact[] }[] = [
+    {
+      key: "customer",
+      title: t("detail.customer.title"),
+      facts: [
+        { key: "name", label: t("detail.customer.name"), value: order.customer.name },
+        { key: "phone", label: t("detail.customer.phone"), value: order.customer.phone },
+        { key: "email", label: t("detail.customer.email"), value: order.customer.email },
+        {
+          key: "previous",
+          label: t("detail.customer.previous"),
+          value: t("detail.customer.previousValue", {
+            collected: order.customer.collectedBefore,
+            noShow: order.customer.noShowBefore,
+          }),
+        },
+      ],
+    },
+    {
+      key: "seller",
+      title: t("detail.seller.title"),
+      facts: [
+        { key: "name", label: t("detail.seller.name"), value: order.seller.name },
+        { key: "location", label: t("detail.seller.location"), value: order.seller.location },
+        { key: "phone", label: t("detail.seller.phone"), value: order.seller.phone },
+        {
+          key: "status",
+          label: t("detail.seller.status"),
+          value: shell(`status.${order.seller.status}`),
+        },
+      ],
+    },
+    {
+      key: "pickup",
+      title: t("detail.pickup.title"),
+      facts: [
+        {
+          key: "method",
+          label: t("detail.pickup.method"),
+          value: t("detail.pickup.methodValue"),
+        },
+        {
+          key: "payment",
+          label: t("detail.pickup.payment"),
+          value: open
+            ? t("detail.pickup.paymentOpen")
+            : order.status === "collected"
+              ? t("detail.pickup.paymentCollected")
+              : t("detail.pickup.paymentNone"),
+        },
+        {
+          key: "code",
+          label: t("detail.pickup.code"),
+          value: open
+            ? t("detail.pickup.codeOpen")
+            : order.status === "collected"
+              ? t("detail.pickup.codeUsed")
+              : t("detail.pickup.codeVoid"),
+        },
+        {
+          key: "attempts",
+          label: t("detail.pickup.attempts"),
+          value: t("detail.pickup.attemptsValue", {
+            count: order.wrongCodeAttempts,
+            max: order.maxCodeAttempts,
+          }),
+        },
+      ],
+    },
+  ];
+
+  const steps = orderSteps(order);
 
   return (
     <>
@@ -70,7 +179,10 @@ export function OrderDetail({
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-page-title text-foreground">{code}</h1>
-          <OrderStatusBadge status={order.status} />
+          <Badge variant={look.variant}>
+            {look.icon && <look.icon aria-hidden />}
+            {t(`status.${order.status}`)}
+          </Badge>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Link href={sellerHref} className={buttonVariants({ variant: "outline" })}>
@@ -82,200 +194,185 @@ export function OrderDetail({
               {t("detail.cancel")}
             </Button>
           )}
-          {order.status === "expired" && (
-            <Button
-              variant="destructive"
-              disabled={!onRecordNoShow || recording}
-              title={onRecordNoShow ? undefined : shell("soon")}
-              onClick={() => void recordNoShow()}
-            >
-              {t("detail.recordNoShow")}
-            </Button>
-          )}
+          {order.status === "expired" &&
+            (onRecordNoShow ? (
+              record
+            ) : (
+              // A disabled button takes no pointer, so "Sắp có" sits on what holds it.
+              <Tooltip>
+                <TooltipTrigger render={<span />}>{record}</TooltipTrigger>
+                <TooltipContent>{shell("soon")}</TooltipContent>
+              </Tooltip>
+            ))}
         </div>
       </div>
 
-      <InfoStrip
-        items={[
-          {
-            label: charged ? t("detail.strip.totalCollect") : t("detail.strip.totalNotCollected"),
-            value: formatPrice(order.totalVnd),
-          },
-          { label: t("detail.strip.quantity"), value: portions },
-          {
-            label: t("detail.strip.window", {
-              day: format.dateTime(new Date(order.pickupStart), "day"),
-            }),
-            value: t("window", { start: time(order.pickupStart), end: time(order.pickupEnd) }),
-          },
-          clockItem(order, now, { t, time }),
-        ]}
-      />
+      <Card>
+        <CardContent>
+          <dl className="grid grid-cols-2 gap-y-3 md:flex">
+            {strip.map(({ label, value }) => (
+              <div
+                key={label}
+                className="flex flex-1 flex-col-reverse items-center gap-0.5 text-center md:border-l md:border-border md:first:border-l-0"
+              >
+                <dt className="text-label text-muted-foreground">{label}</dt>
+                <dd className="font-display text-price-lg text-foreground">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </CardContent>
+      </Card>
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-5">
-          <DetailCard
-            title={t("detail.items.title")}
-            action={
-              <Link
-                href={`${sellerHref}?tab=posts`}
-                className="rounded-sm text-body-sm-strong text-link hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-              >
-                {t("detail.items.viewPosts")}
-              </Link>
-            }
-          >
-            <ul className="-mt-1.5 flex flex-col">
-              {order.items.map((item) => {
-                const original = formatPrice(item.originalPriceVnd * item.quantity);
-                return (
-                  <li
-                    key={item.offerId}
-                    className="flex items-center gap-3.5 border-t border-border py-3"
-                  >
-                    {item.photoUrl ? (
-                      <Image
-                        src={item.photoUrl}
-                        alt=""
-                        width={100}
-                        height={100}
-                        unoptimized
-                        className="size-25 shrink-0 rounded-md object-cover"
-                      />
-                    ) : (
-                      <span aria-hidden className="size-25 shrink-0 rounded-md bg-muted" />
-                    )}
-                    <div className="flex min-w-0 flex-col gap-1.5">
-                      <h3 className="text-title-lg text-foreground">{item.name}</h3>
-                      <p className="flex items-baseline gap-1.5">
-                        <span className="font-display text-price text-primary">
-                          {formatPrice(item.priceVnd * item.quantity)}
-                        </span>
-                        <s aria-hidden className="text-label text-muted-foreground">
-                          {original}
-                        </s>
-                        <span className="sr-only">
-                          {t("detail.items.originalPrice", { price: original })}
-                        </span>
-                      </p>
-                      <p className="text-body-sm text-muted-foreground">
-                        {t("detail.items.quantity", { quantity: item.quantity })}
-                      </p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-            <dl className="flex flex-col gap-1">
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-body-sm text-muted-foreground">{t("detail.items.payBy")}</dt>
-                <dd className="text-right text-body-sm-strong text-foreground">
-                  {t("detail.items.payByValue")}
-                </dd>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>{t("detail.items.title")}</h2>
+              </CardTitle>
+              <CardAction>
+                <Link
+                  href={`${sellerHref}?tab=posts`}
+                  className={buttonVariants({ variant: "link", size: "inline" })}
+                >
+                  {t("detail.items.viewPosts")}
+                </Link>
+              </CardAction>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-3">
+                <ul className="flex flex-col">
+                  {order.items.map((item) => {
+                    const original = formatPrice(item.originalPriceVnd * item.quantity);
+                    return (
+                      <li
+                        key={item.offerId}
+                        className="flex items-center gap-3.5 border-t border-border py-3"
+                      >
+                        {item.photoUrl ? (
+                          <Image
+                            src={item.photoUrl}
+                            alt=""
+                            width={100}
+                            height={100}
+                            unoptimized
+                            className="size-25 shrink-0 rounded-md object-cover"
+                          />
+                        ) : (
+                          <span aria-hidden className="size-25 shrink-0 rounded-md bg-muted" />
+                        )}
+                        <div className="flex min-w-0 flex-col gap-1.5">
+                          <h3 className="text-title-lg text-foreground">{item.name}</h3>
+                          <p className="flex items-baseline gap-1.5">
+                            <span className="font-display text-price text-primary">
+                              {formatPrice(item.priceVnd * item.quantity)}
+                            </span>
+                            <s aria-hidden className="text-label text-muted-foreground">
+                              {original}
+                            </s>
+                            <span className="sr-only">
+                              {t("detail.items.originalPrice", { price: original })}
+                            </span>
+                          </p>
+                          <p className="text-body-sm text-muted-foreground">
+                            {t("detail.items.quantity", { quantity: item.quantity })}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <dl className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-body-sm text-muted-foreground">
+                      {t("detail.items.payBy")}
+                    </dt>
+                    <dd className="text-right text-body-sm-strong text-foreground">
+                      {t("detail.items.payByValue")}
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-body-sm-strong text-muted-foreground">{totalLabel}</dt>
+                    <dd className="font-display text-price-lg text-foreground">
+                      {formatPrice(order.totalVnd)}
+                    </dd>
+                  </div>
+                </dl>
               </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-body-sm-strong text-muted-foreground">
-                  {charged ? t("detail.strip.totalCollect") : t("detail.strip.totalNotCollected")}
-                </dt>
-                <dd className="font-display text-price-lg text-foreground">
-                  {formatPrice(order.totalVnd)}
-                </dd>
-              </div>
-            </dl>
-          </DetailCard>
+            </CardContent>
+          </Card>
 
-          <DetailCard title={t("detail.history.title")}>
-            <Timeline
-              events={orderSteps(order).map((step) => ({
-                key: step.key,
-                title: t(`detail.history.${step.kind}`),
-                at: step.at,
-                tone: step.tone,
-              }))}
-            />
-          </DetailCard>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>{t("detail.history.title")}</h2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ol className="flex flex-col">
+                {steps.map((step, index) => (
+                  <li key={step.key} className="relative flex items-start gap-3 pb-4 last:pb-0">
+                    {index < steps.length - 1 && (
+                      <span aria-hidden className="absolute top-3 bottom-0 left-1 w-px bg-border" />
+                    )}
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "relative mt-1.5 size-2.5 shrink-0 rounded-full",
+                        stepDots[step.tone],
+                      )}
+                    />
+                    <span className="min-w-0 flex-1 text-body-sm-strong text-foreground">
+                      {t(`detail.history.${step.kind}`)}
+                    </span>
+                    <time dateTime={step.at} className="shrink-0 text-label text-muted-foreground">
+                      {time(step.at)}, {format.dateTime(new Date(step.at), "day")}
+                    </time>
+                  </li>
+                ))}
+              </ol>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="flex flex-col gap-5 lg:w-90 lg:shrink-0">
           {order.status === "expired" && (
-            <StatusCard
-              title={t("detail.noShow.title")}
-              tone="error"
-              lines={noShowLines(order, t)}
-            />
+            <Alert variant="destructive">
+              <BanIcon aria-hidden />
+              <AlertTitle>{t("detail.noShow.title")}</AlertTitle>
+              <AlertDescription>
+                <ul className="flex flex-col gap-2">
+                  {noShowLines(order, t).map(({ icon: Icon, text }) => (
+                    <li key={text} className="flex gap-2">
+                      <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
+                      <span>{text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
           )}
-          <DetailCard title={t("detail.customer.title")}>
-            <DetailList
-              facts={[
-                { key: "name", label: t("detail.customer.name"), value: order.customer.name },
-                { key: "phone", label: t("detail.customer.phone"), value: order.customer.phone },
-                { key: "email", label: t("detail.customer.email"), value: order.customer.email },
-                {
-                  key: "previous",
-                  label: t("detail.customer.previous"),
-                  value: t("detail.customer.previousValue", {
-                    collected: order.customer.collectedBefore,
-                    noShow: order.customer.noShowBefore,
-                  }),
-                },
-              ]}
-            />
-          </DetailCard>
-          <DetailCard title={t("detail.seller.title")}>
-            <DetailList
-              facts={[
-                { key: "name", label: t("detail.seller.name"), value: order.seller.name },
-                {
-                  key: "location",
-                  label: t("detail.seller.location"),
-                  value: order.seller.location,
-                },
-                { key: "phone", label: t("detail.seller.phone"), value: order.seller.phone },
-                {
-                  key: "status",
-                  label: t("detail.seller.status"),
-                  value: shell(`status.${order.seller.status}`),
-                },
-              ]}
-            />
-          </DetailCard>
-          <DetailCard title={t("detail.pickup.title")}>
-            <DetailList
-              facts={[
-                {
-                  key: "method",
-                  label: t("detail.pickup.method"),
-                  value: t("detail.pickup.methodValue"),
-                },
-                {
-                  key: "payment",
-                  label: t("detail.pickup.payment"),
-                  value: open
-                    ? t("detail.pickup.paymentOpen")
-                    : order.status === "collected"
-                      ? t("detail.pickup.paymentCollected")
-                      : t("detail.pickup.paymentNone"),
-                },
-                {
-                  key: "code",
-                  label: t("detail.pickup.code"),
-                  value: open
-                    ? t("detail.pickup.codeOpen")
-                    : order.status === "collected"
-                      ? t("detail.pickup.codeUsed")
-                      : t("detail.pickup.codeVoid"),
-                },
-                {
-                  key: "attempts",
-                  label: t("detail.pickup.attempts"),
-                  value: t("detail.pickup.attemptsValue", {
-                    count: order.wrongCodeAttempts,
-                    max: order.maxCodeAttempts,
-                  }),
-                },
-              ]}
-            />
-          </DetailCard>
+          {sideCards.map((card) => (
+            <Card key={card.key}>
+              <CardHeader>
+                <CardTitle>
+                  <h2>{card.title}</h2>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="flex flex-col gap-3">
+                  {card.facts.map((fact) => (
+                    <div key={fact.key} className="flex items-start justify-between gap-3">
+                      <dt className="shrink-0 text-body-sm text-muted-foreground">{fact.label}</dt>
+                      <dd className="min-w-0 text-right text-body-sm-strong break-words text-foreground">
+                        {fact.value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
 
@@ -326,14 +423,14 @@ function clockItem(
 }
 
 // What a no-show means (AD-DH5): nothing collected, how often the customer did it, and that it can be recorded.
-function noShowLines(order: AdminOrder, t: Words): StatusLine[] {
-  const lines: StatusLine[] = [{ icon: BanIcon, text: t("detail.noShow.noCharge") }];
+function noShowLines(order: AdminOrder, t: Words): { icon: LucideIcon; text: string }[] {
+  const lines = [{ icon: CircleXIcon, text: t("detail.noShow.noCharge") }];
   if (order.customer.noShowsIn30Days) {
     lines.push({
       icon: EyeOffIcon,
       text: t("detail.noShow.repeat", { count: order.customer.noShowsIn30Days }),
     });
   }
-  lines.push({ icon: CircleCheckIcon, text: t("detail.noShow.canRecord"), tone: "success" });
+  lines.push({ icon: CircleCheckIcon, text: t("detail.noShow.canRecord") });
   return lines;
 }

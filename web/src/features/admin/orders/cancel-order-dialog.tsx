@@ -3,11 +3,22 @@
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field, FieldContent, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import { toast } from "@/components/ui/toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-import { showAdminToast } from "../lib/toast";
-import { ConfirmDialog } from "../ui/confirm-dialog";
 import { type CancelReason, type CancelRequest, canCancel, cancelReasons } from "./order";
 
 /**
@@ -27,7 +38,7 @@ export function CancelOrderDialog({
   onCancel?: (request: CancelRequest) => Promise<void>;
 }) {
   const t = useTranslations("admin.orders.cancel");
-  const soon = useTranslations("admin.shell");
+  const shell = useTranslations("admin.shell");
   const [reason, setReason] = useState<CancelReason>();
   const [note, setNote] = useState("");
   const [pending, setPending] = useState(false);
@@ -37,35 +48,55 @@ export function CancelOrderDialog({
     setPending(true);
     try {
       await onCancel({ reason, note: note.trim() });
-      showAdminToast(t("done", { code }));
+      toast.add({ title: t("done", { code }), type: "success", timeout: 5000 });
       onOpenChange(false);
       setReason(undefined);
       setNote("");
     } catch {
-      showAdminToast(t("failed", { code }), "error");
+      toast.add({ title: t("failed", { code }), type: "error", timeout: 5000 });
     } finally {
       setPending(false);
     }
   }
 
+  const action = (
+    <Button
+      variant="destructive"
+      disabled={pending || !onCancel || !canCancel(reason, note)}
+      onClick={() => void confirm()}
+    >
+      {pending && <Spinner data-icon="inline-start" />}
+      {t("confirm")}
+    </Button>
+  );
+
   return (
-    <ConfirmDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title={t("title", { code })}
-      cancelLabel={t("keep")}
-      confirmLabel={t("confirm")}
-      destructive
-      confirmDisabled={!onCancel || !canCancel(reason, note)}
-      confirmTitle={onCancel ? undefined : soon("soon")}
-      pending={pending}
-      onConfirm={() => void confirm()}
-      form={<CancelOrderFields reason={reason} onReason={setReason} note={note} onNote={setNote} />}
-    />
+    <Dialog open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>{t("title", { code })}</DialogTitle>
+        </DialogHeader>
+        <CancelOrderFields reason={reason} onReason={setReason} note={note} onNote={setNote} />
+        <DialogFooter>
+          <DialogClose render={<Button variant="outline" disabled={pending} />}>
+            {t("keep")}
+          </DialogClose>
+          {onCancel ? (
+            action
+          ) : (
+            // A disabled button takes no pointer, so "Sắp có" sits on what holds it.
+            <Tooltip>
+              <TooltipTrigger render={<span />}>{action}</TooltipTrigger>
+              <TooltipContent>{shell("soon")}</TooltipContent>
+            </Tooltip>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-/** The dialog's fields: the reasons as cards with a radio (Figma Admin/Radio), then the note. */
+/** The dialog's fields: the reasons as choice cards with a radio (Figma Admin/Radio), then the note. */
 export function CancelOrderFields({
   reason,
   onReason,
@@ -78,46 +109,38 @@ export function CancelOrderFields({
   onNote: (note: string) => void;
 }) {
   const t = useTranslations("admin.orders.cancel");
-  const noteId = useId();
+  const id = useId();
 
   return (
     <>
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-label-strong text-foreground">{t("reason")}</legend>
-        {cancelReasons.map((each) => (
-          <label
-            key={each}
-            className={cn(
-              "flex min-h-12.5 cursor-pointer items-center gap-2.5 rounded-md border bg-card px-4 text-body-sm text-foreground transition-colors has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
-              each === reason ? "border-2 border-primary bg-muted px-3.75" : "border-border",
-            )}
-          >
-            <input
-              type="radio"
-              name="cancel-reason"
-              value={each}
-              checked={each === reason}
-              required
-              onChange={() => onReason(each)}
-              className="size-5 shrink-0 accent-primary"
-            />
-            {t(`reasons.${each}`)}
-          </label>
-        ))}
-      </fieldset>
-      <div className="flex flex-col gap-2">
-        <label htmlFor={noteId} className="text-label-strong text-foreground">
-          {t("note")}
-        </label>
+      <FieldSet>
+        <FieldLegend variant="label">{t("reason")}</FieldLegend>
+        <RadioGroup
+          name="cancel-reason"
+          required
+          value={reason ?? null}
+          onValueChange={(value) => onReason(value as CancelReason)}
+        >
+          {cancelReasons.map((each) => (
+            <FieldLabel key={each} htmlFor={`${id}-${each}`}>
+              <Field orientation="horizontal">
+                <RadioGroupItem id={`${id}-${each}`} value={each} />
+                <FieldContent>{t(`reasons.${each}`)}</FieldContent>
+              </Field>
+            </FieldLabel>
+          ))}
+        </RadioGroup>
+      </FieldSet>
+      <Field>
+        <FieldLabel htmlFor={`${id}-note`}>{t("note")}</FieldLabel>
         <Textarea
-          id={noteId}
+          id={`${id}-note`}
           value={note}
           maxLength={200}
           required={reason === "other"}
           onChange={(event) => onNote(event.target.value)}
-          className="min-h-30"
         />
-      </div>
+      </Field>
     </>
   );
 }

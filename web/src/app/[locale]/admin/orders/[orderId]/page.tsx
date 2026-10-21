@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { AdminPageGate, adminMetadata } from "@/features/admin/admin-page";
@@ -12,10 +13,22 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/admin/or
 // One order (SEC-62, Figma AD-DH3): built in full, not found until SEC-15 gives the admin its orders.
 export default function AdminOrder({ params }: PageProps<"/[locale]/admin/orders/[orderId]">) {
   return (
-    <AdminPageGate page="orderDetail">
+    <>
+      <AdminPageGate page="orderDetail">
+        <Suspense fallback={null}>
+          <OrderDetailPage params={params} />
+        </Suspense>
+      </AdminPageGate>
+      {/* The title reads the order's id, so the page renders at request time even while the gate is shut,
+          as a store's page does through its address (Next's dynamic marker for generateMetadata). */}
       <Suspense fallback={null}>
-        <OrderDetailPage params={params} />
+        <AtRequestTime />
       </Suspense>
-    </AdminPageGate>
+    </>
   );
+}
+
+async function AtRequestTime() {
+  await connection();
+  return null;
 }
