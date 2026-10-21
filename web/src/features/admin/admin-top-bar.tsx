@@ -15,7 +15,8 @@ import { SidebarToggle } from "./admin-sidebar";
 
 export type Crumb = {
   label: string;
-  href?: "/admin/sellers" | "/admin/accounts" | "/admin/audit" | "/admin/settings";
+  href?:
+    "/admin/sellers" | "/admin/orders" | "/admin/accounts" | "/admin/audit" | "/admin/settings";
 };
 
 // The bar over every admin page (Figma Admin/TopBar, 228:6039): white with a hairline below, and where the

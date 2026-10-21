@@ -166,7 +166,7 @@ class _OffersClient implements OffersClient {
     required String sellerId,
     int? limit = 20,
     int? offset = 0,
-    Status2? status,
+    Status? status,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{

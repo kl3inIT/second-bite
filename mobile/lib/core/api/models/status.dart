@@ -4,16 +4,17 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+/// Keep this status; every status when absent
 @JsonEnum()
 enum Status {
-  @JsonValue('pending')
-  pending('pending'),
-  @JsonValue('active')
-  active('active'),
-  @JsonValue('rejected')
-  rejected('rejected'),
-  @JsonValue('blocked')
-  blocked('blocked'),
+  @JsonValue('on_sale')
+  onSale('on_sale'),
+  @JsonValue('sold_out')
+  soldOut('sold_out'),
+  @JsonValue('closed')
+  closed('closed'),
+  @JsonValue('withdrawn')
+  withdrawn('withdrawn'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

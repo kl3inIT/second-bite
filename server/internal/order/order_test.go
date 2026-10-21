@@ -69,6 +69,7 @@ func TestOrder(t *testing.T) {
 		"live tickets work once, for who may":      testLiveTickets,
 		"every change of an order notifies":        testEveryChangeNotifies,
 		"old chats are forgotten":                  testOldChatsAreForgotten,
+		"admins list every seller's orders":        testAdminsListOrders,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

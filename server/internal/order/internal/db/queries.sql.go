@@ -29,6 +29,91 @@ func (q *Queries) ChatSeen(ctx context.Context, orderID uuid.UUID) (ChatSeenRow,
 	return i, err
 }
 
+const countOrdersByStatus = `-- name: CountOrdersByStatus :one
+SELECT count(*) FILTER (WHERE state = 'confirmed' AND window_end > now()) AS confirmed,
+       count(*) FILTER (WHERE state = 'ready' AND window_end > now()) AS ready,
+       count(*) FILTER (WHERE state = 'collected') AS collected,
+       count(*) FILTER (WHERE state = 'cancelled') AS cancelled,
+       count(*) FILTER (WHERE state = 'refused') AS refused,
+       count(*) FILTER (WHERE state = 'expired' OR (state IN ('confirmed', 'ready') AND window_end <= now())) AS expired
+FROM order_orders
+WHERE true
+  AND ($1::text = '' OR search_text LIKE '%' || order_fold($1::text) || '%' ESCAPE '\')
+  AND ($2::uuid IS NULL OR seller_id = $2::uuid)
+  AND ($3::timestamptz IS NULL OR window_start >= $3::timestamptz)
+  AND ($4::timestamptz IS NULL OR window_start < $4::timestamptz)
+`
+
+type CountOrdersByStatusParams struct {
+	Query        string
+	SellerID     uuid.NullUUID
+	CollectSince *time.Time
+	CollectUntil *time.Time
+}
+
+type CountOrdersByStatusRow struct {
+	Confirmed int64
+	Ready     int64
+	Collected int64
+	Cancelled int64
+	Refused   int64
+	Expired   int64
+}
+
+// How many orders of each status match the words, the seller and the day
+// collected, whatever the statuses asked, for the cards above the admins'
+// list.
+func (q *Queries) CountOrdersByStatus(ctx context.Context, arg CountOrdersByStatusParams) (CountOrdersByStatusRow, error) {
+	row := q.db.QueryRow(ctx, countOrdersByStatus,
+		arg.Query,
+		arg.SellerID,
+		arg.CollectSince,
+		arg.CollectUntil,
+	)
+	var i CountOrdersByStatusRow
+	err := row.Scan(
+		&i.Confirmed,
+		&i.Ready,
+		&i.Collected,
+		&i.Cancelled,
+		&i.Refused,
+		&i.Expired,
+	)
+	return i, err
+}
+
+const countOrdersForAdmins = `-- name: CountOrdersForAdmins :one
+SELECT count(*) FROM order_orders
+WHERE (cardinality($1::text[]) = 0
+       OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
+          = ANY ($1::text[]))
+  AND ($2::text = '' OR search_text LIKE '%' || order_fold($2::text) || '%' ESCAPE '\')
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::timestamptz IS NULL OR window_start >= $4::timestamptz)
+  AND ($5::timestamptz IS NULL OR window_start < $5::timestamptz)
+`
+
+type CountOrdersForAdminsParams struct {
+	Statuses     []string
+	Query        string
+	SellerID     uuid.NullUUID
+	CollectSince *time.Time
+	CollectUntil *time.Time
+}
+
+func (q *Queries) CountOrdersForAdmins(ctx context.Context, arg CountOrdersForAdminsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countOrdersForAdmins,
+		arg.Statuses,
+		arg.Query,
+		arg.SellerID,
+		arg.CollectSince,
+		arg.CollectUntil,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const customerOrderCounts = `-- name: CustomerOrderCounts :one
 SELECT count(*) AS placed,
        count(*) FILTER (WHERE state = 'collected') AS collected,
@@ -881,6 +966,118 @@ func (q *Queries) OrderOfKey(ctx context.Context, arg OrderOfKeyParams) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const ordersForAdmins = `-- name: OrdersForAdmins :many
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
+FROM order_orders
+WHERE (cardinality($1::text[]) = 0
+       OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
+          = ANY ($1::text[]))
+  AND ($2::text = '' OR search_text LIKE '%' || order_fold($2::text) || '%' ESCAPE '\')
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::timestamptz IS NULL OR window_start >= $4::timestamptz)
+  AND ($5::timestamptz IS NULL OR window_start < $5::timestamptz)
+ORDER BY window_start DESC, number DESC
+LIMIT $7 OFFSET $6
+`
+
+type OrdersForAdminsParams struct {
+	Statuses     []string
+	Query        string
+	SellerID     uuid.NullUUID
+	CollectSince *time.Time
+	CollectUntil *time.Time
+	SkipRows     int32
+	MaxRows      int32
+}
+
+type OrdersForAdminsRow struct {
+	ID            uuid.UUID
+	Number        pgtype.Int8
+	CustomerID    uuid.NullUUID
+	CustomerName  string
+	CustomerPhone string
+	SellerID      uuid.UUID
+	CheckoutID    uuid.UUID
+	SellerName    string
+	Latitude      float64
+	Longitude     float64
+	Address       string
+	State         string
+	WindowStart   time.Time
+	WindowEnd     time.Time
+	TotalVnd      int64
+	Access        string
+	CancelReason  string
+	RefuseReason  pgtype.Text
+	RefuseNote    string
+	CreatedAt     time.Time
+	ReadyAt       *time.Time
+	CollectedAt   *time.Time
+	CancelledAt   *time.Time
+	RefusedAt     *time.Time
+}
+
+// One page of every seller's orders in the statuses given (all when empty),
+// read as fromRow reads them: one still to collect whose window is over is
+// expired. Matching the words folded by order_fold (any when empty), of the
+// seller given and collected from a window starting in [collect_since,
+// collect_until) when given; the latest window first. GetOrder's columns, so
+// the rows convert to its row; CountOrdersForAdmins counts them all.
+func (q *Queries) OrdersForAdmins(ctx context.Context, arg OrdersForAdminsParams) ([]OrdersForAdminsRow, error) {
+	rows, err := q.db.Query(ctx, ordersForAdmins,
+		arg.Statuses,
+		arg.Query,
+		arg.SellerID,
+		arg.CollectSince,
+		arg.CollectUntil,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrdersForAdminsRow
+	for rows.Next() {
+		var i OrdersForAdminsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Number,
+			&i.CustomerID,
+			&i.CustomerName,
+			&i.CustomerPhone,
+			&i.SellerID,
+			&i.CheckoutID,
+			&i.SellerName,
+			&i.Latitude,
+			&i.Longitude,
+			&i.Address,
+			&i.State,
+			&i.WindowStart,
+			&i.WindowEnd,
+			&i.TotalVnd,
+			&i.Access,
+			&i.CancelReason,
+			&i.RefuseReason,
+			&i.RefuseNote,
+			&i.CreatedAt,
+			&i.ReadyAt,
+			&i.CollectedAt,
+			&i.CancelledAt,
+			&i.RefusedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const purgeLiveTickets = `-- name: PurgeLiveTickets :execrows

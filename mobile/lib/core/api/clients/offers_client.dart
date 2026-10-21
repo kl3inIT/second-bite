@@ -12,7 +12,7 @@ import '../models/offer_change_body.dart';
 import '../models/offer_details_body.dart';
 import '../models/offers_output_body.dart';
 import '../models/sort3.dart';
-import '../models/status2.dart';
+import '../models/status.dart';
 
 part 'offers_client.g.dart';
 
@@ -85,7 +85,7 @@ abstract class OffersClient {
     @Path('sellerId') required String sellerId,
     @Query('limit') int? limit = 20,
     @Query('offset') int? offset = 0,
-    @Query('status') Status2? status,
+    @Query('status') Status? status,
   });
 
   /// Put surplus on sale for a seller you own or work for.

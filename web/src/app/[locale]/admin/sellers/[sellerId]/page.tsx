@@ -46,7 +46,7 @@ function initialsOf(email: string) {
     .toLocaleUpperCase("vi");
 }
 
-// A store's page for an admin (Figma AD-Q3, AD-Q4, SEC-62): the photos of its latest posts, its name and status
+// A store's page for an admin (Figma AD-Q3, AD-Q4, SEC-62): its photo as the cover, its name and status
 // with every action on it behind its "⋯", the same menu as the list's, then its overview, posts and members.
 export default async function SellerPage({
   params,
@@ -131,13 +131,13 @@ export default async function SellerPage({
                     </Link>
                   </CardAction>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="@container">
                   {onSale.length === 0 ? (
                     <p className="text-body-sm text-muted-foreground">
                       {t("sellers.detail.noneOnSale")}
                     </p>
                   ) : (
-                    <ul className="grid gap-4 md:grid-cols-2">
+                    <ul className="grid gap-4 @xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4">
                       {onSale.map((offer) => (
                         <OfferRow key={offer.id} offer={offer} />
                       ))}
