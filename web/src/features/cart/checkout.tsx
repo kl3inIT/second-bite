@@ -9,19 +9,30 @@ import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/em
 import { RadioGroup } from "@/components/ui/radio-group";
 import { formatPrice } from "@/features/offers/format";
 import { directionsHref } from "@/features/offers/offer";
+import { OfferPhoto } from "@/features/offers/offer-photo";
 import { SellerLogo } from "@/features/offers/seller-logo";
 import { useMeters } from "@/features/offers/window";
 import { Link } from "@/i18n/navigation";
 
-import { collectionWindow, totals, withBasket, type Basket, type Cart } from "./cart";
+import {
+  collectionWindow,
+  oneMore,
+  removeOne,
+  totals,
+  withBasket,
+  type Basket,
+  type Cart,
+  type CartLine,
+} from "./cart";
 import { saveCart, useCart } from "./cart-store";
 import type { Contact } from "./contact";
 import { GoneSheet } from "./gone-sheet";
 import { OrderButton } from "./order-button";
+import { Stepper } from "./quantity-stepper";
 import { usePlaceCart } from "./use-place-cart";
 
 // The cart's confirmation (Figma K5): where and when to collect at each seller, how to pay at the counter, the
-// dishes with "Sửa món", the totals, the cancellation policy, and "Đặt món", which
+// dishes each with its − and +, the totals, the cancellation policy, and "Đặt món", which
 // asks who collects in a sheet and checks the phone number once, then orders each seller's dishes and opens the order, signed
 // in or not (SEC-76); a dish someone else took first asks what to do with the rest (O7).
 export function Checkout() {
@@ -83,7 +94,7 @@ function Confirmation({ cart }: { cart: Cart }) {
             {t("summaryTitle")}
           </h2>
           {cart.baskets.map((basket) => (
-            <BasketLines key={basket.seller.id} basket={basket} named={several} />
+            <BasketLines key={basket.seller.id} cart={cart} basket={basket} named={several} />
           ))}
           <dl className="flex flex-col gap-3 border-t border-border pt-3 text-body-sm text-foreground">
             <div className="flex items-center justify-between gap-3">
@@ -187,39 +198,45 @@ function CollectionPoint({ basket }: { basket: Basket }) {
   );
 }
 
-/** One seller's dishes with "Sửa món" back to the seller, under the seller's name when there are several. */
-function BasketLines({ basket, named }: { basket: Basket; named: boolean }) {
-  const t = useTranslations("Cart");
-
+/** One seller's dishes, under the seller's name when there are several. */
+function BasketLines({ cart, basket, named }: { cart: Cart; basket: Basket; named: boolean }) {
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className={named ? "text-body-sm-strong text-foreground" : "sr-only"}>
-          {basket.seller.name}
-        </h3>
-        <Link
-          href={`/sellers/${basket.seller.id}`}
-          aria-label={named ? t("editAt", { seller: basket.seller.name }) : undefined}
-          className="-my-3 flex min-h-11 items-center text-body-sm-strong text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-        >
-          {t("edit")}
-        </Link>
-      </div>
+      <h3 className={named ? "text-body-sm-strong text-foreground" : "sr-only"}>
+        {basket.seller.name}
+      </h3>
       <ul className="flex flex-col gap-3">
         {basket.lines.map((line) => (
-          <li
-            key={line.id}
-            className="flex items-center justify-between gap-3 text-body-sm text-foreground"
-          >
-            <span className="min-w-0">
-              {t("line", { quantity: line.quantity, name: line.name })}
-            </span>
-            <span className="shrink-0 font-display text-price-sm">
-              {formatPrice(line.quantity * line.priceVnd)}
-            </span>
+          <li key={line.id}>
+            <LineRow cart={cart} line={line} />
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+// A dish of the cart (Figma K5 "món"): its photograph, the dish over what its portions cost, and its − and +; at
+// one portion − takes it out of the cart at once.
+function LineRow({ cart, line }: { cart: Cart; line: CartLine }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative size-13 shrink-0 overflow-hidden rounded-md bg-muted">
+        {line.photo && <OfferPhoto offer={{ photo: line.photo }} sizes="52px" />}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <p className="truncate text-body-sm text-foreground">{line.name}</p>
+        <p className="font-display text-price-sm text-foreground">
+          {formatPrice(line.quantity * line.priceVnd)}
+        </p>
+      </div>
+      <Stepper
+        name={line.name}
+        quantity={line.quantity}
+        canAdd={line.quantity < line.unitsLeft}
+        onAdd={() => saveCart(oneMore(cart, line.id))}
+        onRemove={() => saveCart(removeOne(cart, line.id))}
+      />
     </div>
   );
 }

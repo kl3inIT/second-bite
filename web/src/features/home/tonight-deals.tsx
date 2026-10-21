@@ -75,7 +75,7 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
                 </span>
                 <hr className="border-t border-dashed border-border" />
                 <span className="truncate text-body-sm-strong">
-                  <DishLink offerId={offer.id}>{offer.seller.name}</DishLink>
+                  <DishLink offer={offer}>{offer.seller.name}</DishLink>
                 </span>
                 <span className="hidden text-label text-muted-foreground lg:block">
                   {t("ticketFrom", { time: format.dateTime(new Date(offer.windowStart), "time") })}

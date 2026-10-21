@@ -6,14 +6,12 @@ import { useState } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
 
-import { labelledAction } from "./heart-button";
-
 const COPIED_MS = 2000;
 
-// Sharing a dish (Figma K4 "share"): the phone's own share sheet where there is one, otherwise its address
-// copied, which the button confirms with a tick for a moment. `labelled` says "Chia sẻ" beside its icon (Figma WK4).
-export function ShareButton({ title, labelled = false }: { title: string; labelled?: boolean }) {
-  const t = useTranslations("Dish");
+// Sharing a seller's page (Figma K4b "share"): the phone's own share sheet where there is one, otherwise its address
+// copied, which the button confirms with a tick for a moment.
+export function ShareButton({ title }: { title: string }) {
+  const t = useTranslations("Seller");
   const [copied, setCopied] = useState(false);
 
   async function share() {
@@ -30,19 +28,6 @@ export function ShareButton({ title, labelled = false }: { title: string; labell
     } catch {
       // Without the clipboard there is no fallback left; the address bar still has the link.
     }
-  }
-
-  if (labelled) {
-    return (
-      <button type="button" onClick={() => void share()} className={labelledAction}>
-        {copied ? (
-          <CheckIcon aria-hidden strokeWidth={2.4} className="size-4" />
-        ) : (
-          <Share2Icon aria-hidden strokeWidth={2} className="size-4" />
-        )}
-        <span aria-live="polite">{copied ? t("copied") : t("shareLabel")}</span>
-      </button>
-    );
   }
 
   return (

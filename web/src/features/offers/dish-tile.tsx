@@ -26,7 +26,7 @@ export function DishTile({ offer }: { offer: OfferSummary }) {
         <span className="sr-only">{t("originalPrice", { price: original })}</span>
       </p>
       <h4 className="truncate text-label text-foreground">
-        <DishLink offerId={offer.id}>{offer.name}</DishLink>
+        <DishLink offer={offer}>{offer.name}</DishLink>
       </h4>
     </article>
   );

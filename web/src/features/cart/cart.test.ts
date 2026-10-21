@@ -4,8 +4,10 @@ import type { OfferSummary } from "@/features/offers/offer";
 
 import {
   addOne,
+  addPortions,
   collectionWindow,
   keepLeft,
+  oneMore,
   quantityOf,
   readCart,
   removeOne,
@@ -92,6 +94,22 @@ describe("the cart", () => {
     const later = { ...offer("eclair"), seller: { ...offer("eclair").seller, photo: logo } };
 
     expect(basketOf(offer("croissant"), later).seller.photo).toEqual(logo);
+  });
+
+  it("adds several portions at once from the dish's sheet, never more than its portions left", () => {
+    const croissant = offer("croissant", { unitsLeft: 3 });
+    const cart = addPortions(null, croissant, 2);
+
+    expect(quantityOf(cart, "croissant")).toBe(2);
+    expect(quantityOf(addPortions(cart, croissant, 2), "croissant")).toBe(3);
+    expect(cart.baskets[0].lines[0].photo?.smallPath).toBe("/photos/croissant/400.jpg");
+  });
+
+  it("adds one more of a dish already in the cart, never more than its portions left", () => {
+    const cart = cartOf(offer("croissant", { unitsLeft: 2 }))!;
+
+    expect(quantityOf(oneMore(cart, "croissant"), "croissant")).toBe(2);
+    expect(quantityOf(oneMore(oneMore(cart, "croissant"), "croissant"), "croissant")).toBe(2);
   });
 
   it("lets a dish go at none and is gone with its last dish", () => {
