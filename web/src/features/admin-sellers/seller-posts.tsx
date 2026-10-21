@@ -80,11 +80,11 @@ export function SellerPosts({ offers }: { offers: OfferBody[] }) {
         <PostsTable offers={shown} onOpen={setOpen} />
       ) : (
         <Card size="lg">
-          <CardContent>
+          <CardContent className="@container">
             {shown.length === 0 ? (
               <NoPosts />
             ) : (
-              <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <ul className="grid gap-4 @xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4">
                 {shown.map((offer) => (
                   <OfferRow key={offer.id} offer={offer} onOpen={() => setOpen(offer)} />
                 ))}

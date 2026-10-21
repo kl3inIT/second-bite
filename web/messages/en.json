@@ -1439,10 +1439,10 @@
       },
       "menu": {
         "open": "Actions for {name}",
-        "block": "Block store…",
+        "block": "Block store",
         "unblock": "Unblock",
         "approve": "Approve",
-        "reject": "Reject…",
+        "reject": "Reject",
         "view": "View details"
       },
       "block": {

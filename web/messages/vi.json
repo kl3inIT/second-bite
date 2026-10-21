@@ -1439,10 +1439,10 @@
       },
       "menu": {
         "open": "Thao tác với {name}",
-        "block": "Chặn cửa hàng…",
+        "block": "Chặn cửa hàng",
         "unblock": "Gỡ chặn",
         "approve": "Duyệt",
-        "reject": "Từ chối…",
+        "reject": "Từ chối",
         "view": "Xem chi tiết"
       },
       "block": {
