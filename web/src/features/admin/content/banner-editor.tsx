@@ -1,21 +1,31 @@
 "use client";
 
-import { CheckIcon } from "lucide-react";
+import { ArrowRightIcon, CheckIcon, ImageIcon } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldError, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Wordmark } from "@/components/wordmark";
 import { Link } from "@/i18n/navigation";
 
 import { AdminCrumb } from "../admin-crumbs";
 import { adminHref } from "../pages";
-import { ChoiceRow, GroupLabel, SwitchField, TextField } from "../ui/form-fields";
 import type { StoreOption } from "../promotions/promotion-form";
-import { SoonBadge } from "../ui/soon-badge";
-import { FilterSelect } from "../ui/filter-bar";
-import { PageHeader } from "../ui/page-header";
-import { SegmentedControl } from "../ui/segmented-control";
 import {
   type BannerForm,
   type BannerLinkKind,
@@ -31,7 +41,6 @@ import {
   withBannerEnd,
   withBannerStart,
 } from "./banner";
-import { BannerArt } from "./banner-art";
 
 /**
  * Adding or changing a banner (Figma AD-MK4): its picture, title and line under it, where it shows, what it
@@ -62,45 +71,55 @@ export function BannerEditor({
   return (
     <>
       <AdminCrumb label={editing ? editing.title : t("newCrumb")} />
-      <PageHeader
-        title={editing ? t("editTitle") : t("newTitle")}
-        actions={
-          <>
-            <Link href={adminHref("content")} className={buttonVariants({ variant: "outline" })}>
-              {t("cancel")}
-            </Link>
-            <SoonBadge id={soonId} />
-            <Button disabled title={tShell("soon")} aria-describedby={soonId}>
-              <CheckIcon data-icon="inline-start" aria-hidden />
-              {t("save")}
-            </Button>
-          </>
-        }
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-page-title text-foreground">
+          {editing ? t("editTitle") : t("newTitle")}
+        </h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href={adminHref("content")} className={buttonVariants({ variant: "outline" })}>
+            {t("cancel")}
+          </Link>
+          <Badge variant="outline" id={soonId}>
+            {tShell("soon")}
+          </Badge>
+          <Button disabled aria-describedby={soonId}>
+            <CheckIcon data-icon="inline-start" aria-hidden />
+            {t("save")}
+          </Button>
+        </div>
+      </div>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <section
-          aria-labelledby="banner-form-title"
-          className="flex min-w-0 flex-1 flex-col gap-5 rounded-2xl border border-border bg-card p-6"
-        >
-          <h2 id="banner-form-title" className="text-title-lg text-foreground">
-            {t("formTitle")}
-          </h2>
-          <BannerFields
-            form={form}
-            onChange={setForm}
-            positions={(placement) => positionsIn(banners, placement, editing?.id)}
-            collections={collections}
-            stores={stores}
-          />
+        <section aria-labelledby="banner-form-title" className="min-w-0 flex-1">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2 id="banner-form-title">{t("formTitle")}</h2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-5">
+                <BannerFields
+                  form={form}
+                  onChange={setForm}
+                  positions={(placement) => positionsIn(banners, placement, editing?.id)}
+                  collections={collections}
+                  stores={stores}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </section>
-        <section
-          aria-labelledby="banner-preview-title"
-          className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 lg:w-110 lg:shrink-0"
-        >
-          <h2 id="banner-preview-title" className="text-title-lg text-foreground">
-            {t("previewTitle")}
-          </h2>
-          <BannerPreview form={form} />
+        <section aria-labelledby="banner-preview-title" className="lg:w-110 lg:shrink-0">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2 id="banner-preview-title">{t("previewTitle")}</h2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BannerPreview form={form} />
+            </CardContent>
+          </Card>
         </section>
       </div>
     </>
@@ -127,6 +146,8 @@ export function BannerFields({
   const [touched, setTouched] = useState({ title: false, link: false });
   const problems = bannerProblems(form);
   const set = (change: Partial<BannerForm>) => setForm((current) => ({ ...current, ...change }));
+  const titleProblem = touched.title && problems.includes("title");
+  const urlProblem = touched.link && problems.includes("link");
 
   const choose = (file: File | undefined) => {
     if (!file || !file.type.startsWith("image/")) return;
@@ -145,23 +166,76 @@ export function BannerFields({
       ? stores.map((store) => ({ value: store.id, label: store.name }))
       : collections.map((collection) => ({ value: collection.id, label: collection.name }));
 
+  // The two selects of the form: where the banner shows, and the store or collection it opens.
+  const selects = [
+    {
+      key: "placement",
+      label: t("placementField"),
+      value: `${form.placement}:${form.position}`,
+      options: places,
+      onChange: (value: string) => {
+        const [placement, position] = value.split(":");
+        set({ placement: placement as BannerPlacement, position: Number(position) });
+      },
+    },
+    {
+      key: "target",
+      label: t(`linkKinds.${form.linkKind}`),
+      value: form.linkTarget,
+      options: [{ value: "", label: t("noTarget") }, ...targets],
+      onChange: (linkTarget: string) => set({ linkTarget }),
+    },
+  ];
+  const [placementSelect, targetSelect] = selects.map((select) => (
+    <Select
+      key={select.key}
+      value={select.value}
+      items={select.options}
+      onValueChange={(next) => {
+        if (typeof next === "string") select.onChange(next);
+      }}
+    >
+      <SelectTrigger aria-labelledby={`${id}-${select.key}`}>
+        <span id={`${id}-${select.key}`} className="text-muted-foreground">
+          {select.label}:
+        </span>
+        <span className="text-body-sm-strong text-foreground">
+          <SelectValue />
+        </span>
+      </SelectTrigger>
+      <SelectContent alignItemWithTrigger={false} align="start">
+        {select.options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  ));
+
   return (
     <>
-      <div className="flex flex-col gap-1.5">
-        <GroupLabel>{t("image")}</GroupLabel>
-        <label
-          htmlFor={`${id}-image`}
-          className="relative flex cursor-pointer flex-col items-center gap-2 rounded-md border border-dashed border-secondary-hover bg-muted px-4 py-5 has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
-        >
-          <BannerArt
-            title={form.title || t("titlePlaceholder")}
-            subtitle={form.subtitle}
-            imageUrl={form.imageUrl}
-          />
+      <Field>
+        <FieldLabel htmlFor={`${id}-image`}>{t("image")}</FieldLabel>
+        {/* The input lies over the whole zone, so a picture dropped anywhere on it is taken, as a press is. */}
+        <div className="relative flex flex-col items-center gap-2">
+          <Item variant="muted">
+            <ItemContent className="min-w-0">
+              <ItemTitle>{form.title || t("titlePlaceholder")}</ItemTitle>
+              <ItemDescription>{form.subtitle}</ItemDescription>
+            </ItemContent>
+            <ItemMedia variant="image">
+              {form.imageUrl ? (
+                // Unoptimized: a picture the admin just chose lives only in this browser until it is uploaded.
+                <Image src={form.imageUrl} alt="" width={84} height={60} unoptimized />
+              ) : (
+                <ImageIcon aria-hidden />
+              )}
+            </ItemMedia>
+          </Item>
           <span className="text-center text-body-sm-strong text-primary">
             {form.imageUrl ? t("imageChange") : t("imageChoose")}
           </span>
-          {/* The input lies over the whole zone, so a picture dropped anywhere on it is taken, as a press is. */}
           <input
             id={`${id}-image`}
             type="file"
@@ -169,96 +243,112 @@ export function BannerFields({
             className="absolute inset-0 cursor-pointer opacity-0"
             onChange={(event) => choose(event.target.files?.[0])}
           />
-        </label>
-      </div>
+        </div>
+      </Field>
 
-      <TextField
-        id={`${id}-title`}
-        label={t("title")}
-        value={form.title}
-        maxLength={bannerLimits.title}
-        onChange={(title) => set({ title })}
-        onBlur={() => setTouched((current) => ({ ...current, title: true }))}
-        problem={touched.title && problems.includes("title") ? t("titleProblem") : undefined}
-      />
-      <TextField
-        id={`${id}-subtitle`}
-        label={t("subtitle")}
-        value={form.subtitle}
-        maxLength={bannerLimits.subtitle}
-        onChange={(subtitle) => set({ subtitle })}
-      />
-
-      <div className="flex flex-col gap-1.5">
-        <GroupLabel>{t("placement")}</GroupLabel>
-        <FilterSelect
-          label={t("placementField")}
-          value={`${form.placement}:${form.position}`}
-          options={places}
-          onChange={(value) => {
-            const [placement, position] = value.split(":");
-            set({ placement: placement as BannerPlacement, position: Number(position) });
-          }}
+      <Field data-invalid={titleProblem || undefined}>
+        <FieldLabel htmlFor={`${id}-title`}>{t("title")}</FieldLabel>
+        <Input
+          id={`${id}-title`}
+          value={form.title}
+          maxLength={bannerLimits.title}
+          autoComplete="off"
+          aria-invalid={titleProblem || undefined}
+          aria-describedby={titleProblem ? `${id}-title-problem` : undefined}
+          onChange={(event) => set({ title: event.target.value })}
+          onBlur={() => setTouched((current) => ({ ...current, title: true }))}
         />
-      </div>
+        {titleProblem && <FieldError id={`${id}-title-problem`}>{t("titleProblem")}</FieldError>}
+      </Field>
+      <Field>
+        <FieldLabel htmlFor={`${id}-subtitle`}>{t("subtitle")}</FieldLabel>
+        <Input
+          id={`${id}-subtitle`}
+          value={form.subtitle}
+          maxLength={bannerLimits.subtitle}
+          autoComplete="off"
+          onChange={(event) => set({ subtitle: event.target.value })}
+        />
+      </Field>
 
-      <div className="flex flex-col gap-1.5">
-        <GroupLabel>{t("link")}</GroupLabel>
-        <ChoiceRow>
-          <SegmentedControl<BannerLinkKind>
-            label={t("link")}
-            value={form.linkKind}
-            segments={bannerLinkKinds.map((kind) => ({
-              value: kind,
-              label: t(`linkKinds.${kind}`),
-            }))}
-            onChange={(linkKind) => set({ linkKind, linkTarget: "" })}
-          />
-        </ChoiceRow>
+      <FieldSet>
+        <FieldLegend variant="label">{t("placement")}</FieldLegend>
+        {placementSelect}
+      </FieldSet>
+
+      <FieldSet>
+        <FieldLegend variant="label">{t("link")}</FieldLegend>
+        <ToggleGroup
+          variant="outline"
+          value={[form.linkKind]}
+          onValueChange={([linkKind]) => {
+            if (linkKind) set({ linkKind: linkKind as BannerLinkKind, linkTarget: "" });
+          }}
+          className="max-w-full overflow-x-auto"
+        >
+          {bannerLinkKinds.map((kind) => (
+            <ToggleGroupItem key={kind} value={kind} className="h-11">
+              {t(`linkKinds.${kind}`)}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
         {form.linkKind === "url" ? (
-          <TextField
-            id={`${id}-url`}
-            type="url"
-            label={t("url")}
-            value={form.linkTarget}
-            placeholder="https://"
-            onChange={(linkTarget) => set({ linkTarget })}
-            onBlur={() => setTouched((current) => ({ ...current, link: true }))}
-            problem={touched.link && problems.includes("link") ? t("urlProblem") : undefined}
-          />
+          <Field data-invalid={urlProblem || undefined}>
+            <FieldLabel htmlFor={`${id}-url`}>{t("url")}</FieldLabel>
+            <Input
+              id={`${id}-url`}
+              type="url"
+              value={form.linkTarget}
+              placeholder="https://"
+              autoComplete="off"
+              aria-invalid={urlProblem || undefined}
+              aria-describedby={urlProblem ? `${id}-url-problem` : undefined}
+              onChange={(event) => set({ linkTarget: event.target.value })}
+              onBlur={() => setTouched((current) => ({ ...current, link: true }))}
+            />
+            {urlProblem && <FieldError id={`${id}-url-problem`}>{t("urlProblem")}</FieldError>}
+          </Field>
         ) : (
-          <FilterSelect
-            label={t(`linkKinds.${form.linkKind}`)}
-            value={form.linkTarget}
-            options={[{ value: "", label: t("noTarget") }, ...targets]}
-            onChange={(linkTarget) => set({ linkTarget })}
-          />
+          targetSelect
         )}
-      </div>
+      </FieldSet>
 
       <div className="flex flex-col gap-4 sm:flex-row">
-        <TextField
-          id={`${id}-starts`}
-          type="datetime-local"
-          label={t("startsAt")}
-          value={form.startsAt}
-          onChange={(value) => value && setForm((current) => withBannerStart(current, value))}
-        />
-        <TextField
-          id={`${id}-ends`}
-          type="datetime-local"
-          label={t("endsAt")}
-          value={form.endsAt}
-          min={form.startsAt}
-          onChange={(value) => value && setForm((current) => withBannerEnd(current, value))}
-        />
+        <Field>
+          <FieldLabel htmlFor={`${id}-starts`}>{t("startsAt")}</FieldLabel>
+          <Input
+            id={`${id}-starts`}
+            type="datetime-local"
+            value={form.startsAt}
+            onChange={(event) => {
+              const value = event.target.value;
+              if (value) setForm((current) => withBannerStart(current, value));
+            }}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${id}-ends`}>{t("endsAt")}</FieldLabel>
+          <Input
+            id={`${id}-ends`}
+            type="datetime-local"
+            value={form.endsAt}
+            min={form.startsAt}
+            onChange={(event) => {
+              const value = event.target.value;
+              if (value) setForm((current) => withBannerEnd(current, value));
+            }}
+          />
+        </Field>
       </div>
 
-      <SwitchField
-        label={t("visible")}
-        checked={form.visible}
-        onChange={(visible) => set({ visible })}
-      />
+      <Field orientation="horizontal" className="min-h-11">
+        <Switch
+          id={`${id}-visible`}
+          checked={form.visible}
+          onCheckedChange={(visible) => set({ visible })}
+        />
+        <FieldLabel htmlFor={`${id}-visible`}>{t("visible")}</FieldLabel>
+      </Field>
     </>
   );
 }
@@ -278,11 +368,20 @@ export function BannerPreview({ form }: { form: BannerForm }) {
       >
         {t("previewSearch")}
       </div>
-      <BannerArt
-        title={form.title || t("titlePlaceholder")}
-        subtitle={form.subtitle}
-        imageUrl={form.imageUrl}
-      />
+      <Item variant="outline">
+        <ItemContent className="min-w-0">
+          <ItemTitle>{form.title || t("titlePlaceholder")}</ItemTitle>
+          <ItemDescription>{form.subtitle}</ItemDescription>
+        </ItemContent>
+        <ItemMedia variant="image">
+          {form.imageUrl ? (
+            <Image src={form.imageUrl} alt="" width={84} height={60} unoptimized />
+          ) : (
+            <ImageIcon aria-hidden />
+          )}
+        </ItemMedia>
+        <ArrowRightIcon aria-hidden />
+      </Item>
       <p className="text-title-lg text-foreground">{t("previewShelf")}</p>
     </div>
   );

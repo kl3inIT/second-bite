@@ -1,9 +1,14 @@
 "use client";
 
 import {
+  ArrowRightIcon,
+  CircleCheckIcon,
+  ClockIcon,
+  EllipsisIcon,
   GripVerticalIcon,
   ImageIcon,
   LayoutGridIcon,
+  type LucideIcon,
   PauseIcon,
   PencilIcon,
   Trash2Icon,
@@ -12,27 +17,46 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useId } from "react";
 
+import type { VariantProps } from "class-variance-authority";
+
+import { Badge, type badgeVariants } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Link } from "@/i18n/navigation";
 
 import { adminHref } from "../pages";
-import { CampaignBadge } from "../promotions/campaign-badge";
-import { SoonBadge } from "../ui/soon-badge";
+import type { CampaignStatus } from "../promotions/promotion";
 import { useListQuery } from "../use-list-query";
-import { EmptyState } from "../ui/empty-state";
-import { PageHeader } from "../ui/page-header";
-import { RowActionMenu } from "../ui/row-action-menu";
-import { SegmentedControl } from "../ui/segmented-control";
 import {
   type BannerPlacement,
-  type BannerRow,
   bannerPlacements,
   bannersIn,
-  type Collection,
   type ContentData,
   placementCounts,
 } from "./banner";
-import { BannerArt } from "./banner-art";
+
+// Each status on the Badge's own variants (Figma Admin/Badge in AD-MK3): the tick or the clock and the words carry
+// the status, never the colour alone.
+const statusBadges: Record<
+  CampaignStatus,
+  { variant: VariantProps<typeof badgeVariants>["variant"]; icon: LucideIcon }
+> = {
+  running: { variant: "fresh", icon: CircleCheckIcon },
+  scheduled: { variant: "secondary", icon: ClockIcon },
+  paused: { variant: "outline", icon: ClockIcon },
+  ended: { variant: "outline", icon: ClockIcon },
+};
 
 /**
  * Banners and featured collections (Figma AD-MK3): "Thêm banner", a choice of where the banners show with how
@@ -47,6 +71,7 @@ export function ContentView({
   placement: BannerPlacement;
 }) {
   const t = useTranslations("admin.content");
+  const tStatus = useTranslations("admin.promotions.status");
   const tShell = useTranslations("admin.shell");
   const soonId = useId();
   const { go } = useListQuery({ placement }, { placement: "home" });
@@ -55,126 +80,180 @@ export function ContentView({
 
   return (
     <>
-      <PageHeader
-        title={t("title")}
-        actions={
-          <Link href={adminHref("bannerDetail", { bannerId: "new" })} className={buttonVariants()}>
-            {t("addBanner")}
-          </Link>
-        }
-      />
-
-      <div className="max-w-full overflow-x-auto">
-        <SegmentedControl<BannerPlacement>
-          label={t("placementLabel")}
-          value={placement}
-          segments={bannerPlacements.map((each) => ({
-            value: each,
-            label: t("placementCount", { place: t(`placements.${each}`), count: counts[each] }),
-          }))}
-          onChange={(next) => go({ placement: next })}
-        />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-page-title text-foreground">{t("title")}</h1>
+        <Link href={adminHref("bannerDetail", { bannerId: "new" })} className={buttonVariants()}>
+          {t("addBanner")}
+        </Link>
       </div>
 
-      <section
-        aria-labelledby="banners-title"
-        className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6"
+      <ToggleGroup
+        variant="outline"
+        aria-label={t("placementLabel")}
+        value={[placement]}
+        onValueChange={([next]) => {
+          if (next) go({ placement: next as BannerPlacement });
+        }}
+        className="max-w-full overflow-x-auto"
       >
-        <h2 id="banners-title" className="text-title-lg text-foreground">
-          {t(`bannersOf.${placement}`)}
-        </h2>
-        {banners.length === 0 ? (
-          <EmptyState icon={ImageIcon} title={t(`emptyBanners.${placement}`)} />
-        ) : (
-          <ul className="grid gap-4 lg:grid-cols-2">
-            {banners.map((banner) => (
-              <li key={banner.id}>
-                <BannerItem banner={banner} />
-              </li>
-            ))}
-          </ul>
-        )}
+        {bannerPlacements.map((each) => (
+          <ToggleGroupItem key={each} value={each} className="h-11">
+            {t("placementCount", { place: t(`placements.${each}`), count: counts[each] })}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+
+      <section aria-labelledby="banners-title">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h2 id="banners-title">{t(`bannersOf.${placement}`)}</h2>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {banners.length === 0 ? (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <ImageIcon aria-hidden />
+                  </EmptyMedia>
+                  <EmptyTitle>{t(`emptyBanners.${placement}`)}</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <ul className="grid gap-4 lg:grid-cols-2">
+                {banners.map((banner) => {
+                  const badge = statusBadges[banner.status];
+                  return (
+                    <li key={banner.id}>
+                      <Item variant="outline" className="flex-col items-stretch">
+                        <Item variant="muted">
+                          <ItemContent className="min-w-0">
+                            <ItemTitle>{banner.title}</ItemTitle>
+                            <ItemDescription>{banner.subtitle}</ItemDescription>
+                          </ItemContent>
+                          <ItemMedia variant="image">
+                            {banner.imageUrl ? (
+                              <Image
+                                src={banner.imageUrl}
+                                alt=""
+                                width={84}
+                                height={60}
+                                unoptimized
+                              />
+                            ) : (
+                              <ImageIcon aria-hidden />
+                            )}
+                          </ItemMedia>
+                          <ArrowRightIcon aria-hidden />
+                        </Item>
+                        <div className="flex items-center gap-2">
+                          <GripVerticalIcon aria-hidden />
+                          <h3 className="min-w-0 flex-1 truncate text-body-sm-strong text-foreground">
+                            {t("bannerName", { position: banner.position, title: banner.title })}
+                          </h3>
+                          <Badge variant={badge.variant}>
+                            <badge.icon aria-hidden />
+                            {tStatus(banner.status)}
+                          </Badge>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={<Button variant="ghost" size="icon" />}
+                              aria-label={tShell("rowActions", { name: banner.title })}
+                            >
+                              <EllipsisIcon aria-hidden />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem
+                                  render={
+                                    <Link
+                                      href={adminHref("bannerDetail", { bannerId: banner.id })}
+                                    />
+                                  }
+                                >
+                                  <PencilIcon aria-hidden />
+                                  {t("actions.edit")}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem disabled>
+                                  <PauseIcon aria-hidden />
+                                  {t("actions.pause")}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem variant="destructive" disabled>
+                                  <Trash2Icon aria-hidden />
+                                  {t("actions.delete")}
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </Item>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </section>
 
-      <section
-        aria-labelledby="collections-title"
-        className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6"
-      >
-        <div className="flex flex-wrap items-center gap-4">
-          <h2 id="collections-title" className="min-w-0 flex-1 text-title-lg text-foreground">
-            {t("collections")}
-          </h2>
-          <SoonBadge id={soonId} />
-          <Button variant="outline" disabled title={tShell("soon")} aria-describedby={soonId}>
-            {t("addCollection")}
-          </Button>
-        </div>
-        {content.collections.length === 0 ? (
-          <EmptyState icon={LayoutGridIcon} title={t("emptyCollections")} />
-        ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {content.collections.map((collection) => (
-              <li key={collection.id}>
-                <CollectionTile collection={collection} />
-              </li>
-            ))}
-          </ul>
-        )}
+      <section aria-labelledby="collections-title">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h2 id="collections-title">{t("collections")}</h2>
+            </CardTitle>
+            <CardAction>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" id={soonId}>
+                  {tShell("soon")}
+                </Badge>
+                <Button variant="outline" disabled aria-describedby={soonId}>
+                  {t("addCollection")}
+                </Button>
+              </div>
+            </CardAction>
+          </CardHeader>
+          <CardContent>
+            {content.collections.length === 0 ? (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <LayoutGridIcon aria-hidden />
+                  </EmptyMedia>
+                  <EmptyTitle>{t("emptyCollections")}</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {content.collections.map((collection) => (
+                  <li key={collection.id}>
+                    <Item variant="muted">
+                      <ItemMedia variant="image">
+                        {collection.imageUrl ? (
+                          <Image
+                            src={collection.imageUrl}
+                            alt=""
+                            width={48}
+                            height={48}
+                            unoptimized
+                          />
+                        ) : (
+                          <LayoutGridIcon aria-hidden />
+                        )}
+                      </ItemMedia>
+                      <ItemContent className="min-w-0">
+                        <ItemTitle>{collection.name}</ItemTitle>
+                      </ItemContent>
+                    </Item>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </section>
     </>
-  );
-}
-
-// One banner of the grid (Figma AD-MK3 › BannerItem): the banner on its pale ground, then its place and title,
-// its status and its menu. The grip shows its order; moving banners waits for their backend.
-function BannerItem({ banner }: { banner: BannerRow }) {
-  const t = useTranslations("admin.content");
-  const name = t("bannerName", { position: banner.position, title: banner.title });
-  return (
-    <article className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3">
-      <div className="flex h-26 items-center justify-center overflow-hidden rounded-md bg-muted px-4">
-        <BannerArt title={banner.title} subtitle={banner.subtitle} imageUrl={banner.imageUrl} />
-      </div>
-      <div className="flex items-center gap-2">
-        <GripVerticalIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
-        <h3 className="min-w-0 flex-1 truncate text-body-sm-strong text-foreground">{name}</h3>
-        <CampaignBadge status={banner.status} />
-        <RowActionMenu
-          name={banner.title}
-          actions={[
-            {
-              label: t("actions.edit"),
-              icon: PencilIcon,
-              href: adminHref("bannerDetail", { bannerId: banner.id }),
-            },
-            { label: t("actions.pause"), icon: PauseIcon, disabled: true },
-            { label: t("actions.delete"), icon: Trash2Icon, destructive: true, disabled: true },
-          ]}
-        />
-      </div>
-    </article>
-  );
-}
-
-// A featured collection (Figma AD-MK3 › Collection): its picture and its name on the pale ground.
-function CollectionTile({ collection }: { collection: Collection }) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl bg-muted p-3">
-      {collection.imageUrl ? (
-        <Image
-          src={collection.imageUrl}
-          alt=""
-          width={48}
-          height={48}
-          unoptimized
-          className="size-12 shrink-0 rounded-md object-cover"
-        />
-      ) : (
-        <span aria-hidden className="size-12 shrink-0 rounded-md bg-card" />
-      )}
-      <span className="min-w-0 truncate text-body-sm-strong text-foreground">
-        {collection.name}
-      </span>
-    </div>
   );
 }
