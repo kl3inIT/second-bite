@@ -12,9 +12,12 @@ export function nameOf(account: Pick<RecordBody, "displayName" | "email">): stri
 
 /** Up to two letters for the account's avatar: the first and last words of its name, or its address. */
 export function initialsOf(account: Pick<RecordBody, "displayName" | "email">): string {
+  // A note in brackets, as "(HE182328)" or "(K18 HL)" after a student's name, is not part of the name, and
+  // a word that starts with no letter gives none.
   const words = (account.displayName || account.email.split("@")[0])
+    .replace(/[([{][^)\]}]*[)\]}]?/gu, " ")
     .split(/[\s._-]+/)
-    .filter(Boolean);
+    .filter((word) => /^\p{L}/u.test(word));
   const letters = words.length > 1 ? [words[0], words.at(-1) ?? ""] : [words[0] ?? "?"];
   return letters
     .map((word) => word.charAt(0))

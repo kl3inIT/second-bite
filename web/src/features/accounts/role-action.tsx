@@ -13,7 +13,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -24,10 +23,27 @@ import { grantAdmin, revokeAdmin, type RecordBody } from "@/lib/api/generated";
 
 import { nameOf } from "./account-parts";
 
+export type RoleChange = "grant" | "revoke";
+
 /**
- * What an admin can do to an account's role (SEC-75): make a customer an admin, or make an admin a customer
- * again, each after asking. The caller's own account and the last admin say in text why they cannot be
- * revoked, as the server refuses both. No email is sent: the person sees the admin pages at their next visit.
+ * The change an admin may make to the account's role, or why there is none: the caller's own account and
+ * the last admin cannot be revoked, as the server refuses both.
+ */
+export function roleChangeOf(
+  account: RecordBody,
+  myId: string,
+  adminCount: number,
+): { change: RoleChange } | { refused: "self" | "last" } {
+  if (account.role === "customer") return { change: "grant" };
+  if (account.id === myId) return { refused: "self" };
+  if (adminCount <= 1) return { refused: "last" };
+  return { change: "revoke" };
+}
+
+/**
+ * The account page's role action (SEC-75): a labelled button that makes a customer an admin, or an admin a
+ * customer again, after asking; or the reason in text when there is none. No email is sent: the person
+ * sees the admin pages at their next visit.
  */
 export function RoleAction({
   account,
@@ -38,26 +54,51 @@ export function RoleAction({
   myId: string;
   adminCount: number;
 }) {
-  const t = useTranslations("Admin.admins.revoke");
+  const t = useTranslations("Admin.admins");
+  const [open, setOpen] = useState(false);
+  const role = roleChangeOf(account, myId, adminCount);
 
-  // Keyed by the change, so a grant that turns the account into an admin starts the revoke afresh.
-  if (account.role === "customer")
-    return <ChangeRole key="grant" account={account} change="grant" />;
-  if (account.id === myId)
-    return <span className="text-label text-muted-foreground">{t("self")}</span>;
-  if (adminCount <= 1) return <span className="text-label text-muted-foreground">{t("last")}</span>;
-  return <ChangeRole key="revoke" account={account} change="revoke" />;
+  if ("refused" in role)
+    return <span className="text-label text-muted-foreground">{t(`revoke.${role.refused}`)}</span>;
+
+  const Icon = role.change === "grant" ? ShieldPlusIcon : ShieldMinusIcon;
+  return (
+    <>
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        <Icon data-icon="inline-start" aria-hidden />
+        {t(role.change === "grant" ? "promote.open" : "revoke.open")}
+        <span className="sr-only"> {nameOf(account)}</span>
+      </Button>
+      {/* Keyed by the change, so a grant that turns the account into an admin asks the revoke afresh. */}
+      <ChangeRoleDialog
+        key={role.change}
+        account={account}
+        change={role.change}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
+  );
 }
 
-function ChangeRole({ account, change }: { account: RecordBody; change: "grant" | "revoke" }) {
+/** Asks before the change, makes it, and reads the page again; a refusal stays in a toast. */
+export function ChangeRoleDialog({
+  account,
+  change,
+  open,
+  onOpenChange,
+}: {
+  account: RecordBody;
+  change: RoleChange;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const promote = useTranslations("Admin.admins.promote");
   const revoke = useTranslations("Admin.admins.revoke");
   const t = change === "grant" ? promote : revoke;
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const name = nameOf(account);
-  const Icon = change === "grant" ? ShieldPlusIcon : ShieldMinusIcon;
 
   const confirm = async () => {
     setBusy(true);
@@ -65,7 +106,7 @@ function ChangeRole({ account, change }: { account: RecordBody; change: "grant" 
       if (change === "grant") await grantAdmin({ body: { email: account.email } });
       else await revokeAdmin({ path: { accountId: account.id } });
       toast.add({ type: "success", title: t("done", { name, email: account.email }) });
-      setOpen(false);
+      onOpenChange(false);
       router.refresh();
     } catch (error) {
       const { detail, reference } = failureOf(error);
@@ -82,12 +123,7 @@ function ChangeRole({ account, change }: { account: RecordBody; change: "grant" 
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger render={<Button variant="outline" />}>
-        <Icon data-icon="inline-start" aria-hidden />
-        {t("open")}
-        <span className="sr-only"> {name}</span>
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{t("title", { name })}</AlertDialogTitle>

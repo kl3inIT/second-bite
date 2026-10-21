@@ -17,6 +17,7 @@ type challenge struct {
 type session struct {
 	Token   string `json:"token"`
 	Account struct {
+		ID    string `json:"id"`
 		Email string `json:"email"`
 		Role  string `json:"role"`
 	} `json:"account"`
