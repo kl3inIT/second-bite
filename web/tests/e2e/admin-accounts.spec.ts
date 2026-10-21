@@ -23,11 +23,10 @@ test.describe("the accounts", () => {
     await signInAsAdmin(page, `accounts.${testInfo.project.name}.${testInfo.title.length}`);
   });
 
-  test("the admin's home opens the accounts, the newest first, with their stores and last sign-in", async ({
+  test("the accounts list the newest first, with their stores and last sign-in", async ({
     page,
   }) => {
-    await page.goto("/vi/admin");
-    await expect(page).toHaveURL(/\/vi\/admin\/accounts$/);
+    await page.goto("/vi/admin/accounts");
     await expect(page.getByRole("heading", { level: 1, name: "Tài khoản" })).toBeVisible();
 
     await expect(page.getByRole("tab", { name: /Tất cả\s*11/ })).toHaveAttribute(

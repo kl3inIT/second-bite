@@ -3,3 +3,15 @@
 //   sqlc v1.31.1
 
 package db
+
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type SellerStatusDay struct {
+	Day      pgtype.Date
+	Pending  int32
+	Active   int32
+	Rejected int32
+	Blocked  int32
+}

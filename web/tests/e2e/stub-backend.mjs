@@ -1774,6 +1774,224 @@ function historyOf(accountId) {
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// The stores as admins list them (SEC-62, Figma AD-Q1): the shops above with their logos, then more without a
+// photo, mostly active, with one pending, one rejected and two blocked. Each admin gets a copy of their own,
+// so tests side by side can block and unblock without meeting.
+const adminStoreNames = [
+  ["Tiệm bánh Pháp", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Cơm nhà Hạnh", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Trà sữa Mây", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Bún chả Phố Hàng", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Xôi xéo Bà Tư", "Tầng B1, Tasco Mall"],
+  ["Phở bò Gánh", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Bánh mì Hội An", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Nước ép Xanh", "Tầng 2, Tasco Mall"],
+  ["Cơm tấm Sài Gòn", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Rau củ sạch Việt Hưng", "Tầng B1, Tasco Mall"],
+  ["Bánh cuốn Thanh Trì", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Chè Thái Hà", "Tầng 2, Tasco Mall"],
+  ["Gà nướng Ò Ó O", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Bánh bao Thọ Phát", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Sữa chua Hạ Long", "Tầng 2, Tasco Mall"],
+  ["Mì vằn thắn Hồng Kông", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Bánh ngọt Hà Thành", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Lẩu nấm Ashima", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Sushi Kei", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Cà phê Cộng", "Tầng 1, Tasco Mall, Việt Hưng"],
+];
+
+function adminStoresSeed() {
+  const start = Date.parse("2026-10-20T20:00:00+07:00");
+  const shops = Object.values(sellers).map((s) => [s.name, `${s.address}, Tasco Mall`, s.photo.id]);
+  return [...shops, ...adminStoreNames].map(([name, address, photoId], i) => {
+    const changed = new Date(start - i * 9 * 60 * 60 * 1000).toISOString();
+    const status =
+      i === 3 ? "pending" : i === 5 ? "rejected" : i === 8 || i === 12 ? "blocked" : "active";
+    return {
+      id: `se-admin-${String(i).padStart(2, "0")}`,
+      name,
+      address,
+      latitude: 21.0565,
+      longitude: 105.8964,
+      phone: `0900000${String(101 + i)}`,
+      status,
+      ...(status === "blocked" || status === "rejected"
+        ? {
+            statusReason: "Bán bánh đã quá hạn sử dụng cho khách ngày 19/10/2026.",
+            statusChangedAt: changed,
+          }
+        : {}),
+      createdAt: new Date(Date.parse(changed) - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: changed,
+      ...(photoId ? { photoId } : {}),
+      ownerEmail: `chu.quan${i}@example.com`,
+    };
+  });
+}
+
+const adminStores = new Map();
+
+function adminStoresOf(account) {
+  if (!adminStores.has(account.email)) adminStores.set(account.email, adminStoresSeed());
+  return adminStores.get(account.email);
+}
+
+const storeStatuses = ["pending", "active", "rejected", "blocked"];
+
+/** GET /admin/sellers, filtered, sorted and paged as server/internal/seller/queries.sql does. */
+function listAdminStores(response, url, stores) {
+  const statuses = url.searchParams
+    .getAll("status")
+    .flatMap((s) => s.split(","))
+    .filter(Boolean);
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sort = url.searchParams.get("sort");
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const since = url.searchParams.get("changedSince");
+  const until = url.searchParams.get("changedUntil");
+  if (
+    (since && until && Date.parse(since) >= Date.parse(until)) ||
+    statuses.some((s) => !storeStatuses.includes(s)) ||
+    q.length > 100 ||
+    !(page >= 1) ||
+    !(size >= 1 && size <= 100) ||
+    (sort && !/^-?(name|address|changed)$/.test(sort))
+  ) {
+    problem(response, 400, "SELLER_LIST_INVALID");
+    return;
+  }
+  const found = stores.filter(
+    (s) =>
+      (!q || fold(`${s.name} ${s.address} ${s.phone}`).includes(q)) &&
+      (!since || Date.parse(s.updatedAt) >= Date.parse(since)) &&
+      (!until || Date.parse(s.updatedAt) < Date.parse(until)),
+  );
+  const counts = Object.fromEntries(
+    storeStatuses.map((status) => [status, found.filter((s) => s.status === status).length]),
+  );
+  const listed = found.filter((s) => statuses.length === 0 || statuses.includes(s.status));
+  const key = { name: (s) => s.name, address: (s) => s.address, changed: (s) => s.updatedAt };
+  if (sort) {
+    const by = key[sort.replace("-", "")];
+    const way = sort.startsWith("-") ? -1 : 1;
+    listed.sort((a, b) => way * by(a).localeCompare(by(b), "vi"));
+  } else {
+    // Pending first, the oldest first, as a queue; then the latest change first.
+    listed.sort((a, b) =>
+      a.status === "pending" && b.status === "pending"
+        ? a.createdAt.localeCompare(b.createdAt)
+        : (b.status === "pending") - (a.status === "pending") ||
+          b.updatedAt.localeCompare(a.updatedAt),
+    );
+  }
+  json(response, 200, {
+    items: listed.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: listed.length,
+    counts,
+    days: storeDays(stores),
+  });
+}
+
+/** 14 made-up days of counts for the cards' lines, the last today's as the stores stand. */
+function storeDays(stores) {
+  const now = Object.fromEntries(
+    storeStatuses.map((status) => [status, stores.filter((s) => s.status === status).length]),
+  );
+  return Array.from({ length: 14 }, (_, i) => {
+    const back = 13 - i;
+    const day = new Date(Date.now() + 7 * 60 * 60 * 1000 - back * 24 * 60 * 60 * 1000);
+    return {
+      day: day.toISOString().slice(0, 10),
+      pending: now.pending + (back > 10 ? 2 : back > 7 ? 1 : 0),
+      active: Math.max(0, now.active - Math.floor(back / 2)),
+      rejected: now.rejected,
+      blocked: back > 8 ? Math.max(0, now.blocked - 1) : now.blocked,
+    };
+  });
+}
+
+/** POST /admin/sellers/{id}/approve | reject | block, each from the statuses it applies to. */
+async function changeAdminStore(request, response, stores, id, action) {
+  const store = stores.find((s) => s.id === id);
+  if (!store) return problem(response, 404, "SELLER_NOT_FOUND");
+  const from = {
+    approve: ["pending", "rejected", "blocked"],
+    reject: ["pending"],
+    block: ["active"],
+  };
+  let reason;
+  if (action !== "approve") {
+    reason = String((await readBody(request)).reason ?? "").trim();
+    if (reason.length < 10 || reason.length > 500)
+      return problem(response, 400, "SELLER_REASON_INVALID");
+  }
+  if (!from[action].includes(store.status))
+    return problem(response, 409, "SELLER_STATUS_CHANGE_NOT_ALLOWED");
+  const now = new Date().toISOString();
+  store.status = action === "approve" ? "active" : action === "reject" ? "rejected" : "blocked";
+  store.statusChangedAt = now;
+  store.updatedAt = now;
+  if (reason) store.statusReason = reason;
+  else delete store.statusReason;
+  const { ownerEmail: _owner, ...seller } = store;
+  json(response, 200, seller);
+}
+
+// What an admin reads of one store (SEC-62, Figma AD-Q3): the store, its people and its posts, as
+// GET /sellers/{id}, /members and /offers answer an admin who is not a member.
+const adminStorePosts = new Map();
+
+function adminSellerReads(request, response, url) {
+  const match = /^\/sellers\/(se-admin-\d+)(\/members|\/offers)?$/.exec(url.pathname);
+  if (request.method !== "GET" || !match) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account || account.role !== "admin") return false;
+  const store = adminStoresOf(account).find((s) => s.id === match[1]);
+  if (!store) {
+    problem(response, 404, "SELLER_NOT_FOUND");
+    return true;
+  }
+  const { ownerEmail, ...seller } = store;
+  if (match[2] === "/members") {
+    json(response, 200, {
+      members: [
+        { accountId: "ac-owner", email: ownerEmail, role: "owner", addedAt: store.createdAt },
+        {
+          accountId: "ac-staff",
+          email: "nhan.vien@example.com",
+          role: "staff",
+          addedAt: store.createdAt,
+        },
+      ],
+    });
+  } else if (match[2] === "/offers") {
+    // The shops with a logo have posted nothing, so their page shows the logo as its cover (Figma AD-Q3); the
+    // others have a post of each status, the first described and weighed as its panel shows it (AD-QD3).
+    if (!adminStorePosts.has(store.id))
+      adminStorePosts.set(
+        store.id,
+        store.photoId
+          ? []
+          : postsOf(store).map((post, i) =>
+              i === 0
+                ? {
+                    ...post,
+                    description: "Bánh mì và croissant nướng trong ngày, còn mềm.",
+                    weightGrams: 400,
+                  }
+                : post,
+            ),
+      );
+    json(response, 200, { offers: adminStorePosts.get(store.id) });
+  } else {
+    json(response, 200, seller);
+  }
+  return true;
+}
+
 async function adminRoutes(request, response, url) {
   if (!url.pathname.startsWith("/admin/")) return false;
   const account = accounts.get(tokenOf(request));
@@ -1783,6 +2001,21 @@ async function adminRoutes(request, response, url) {
   }
   if (account.role !== "admin") {
     problem(response, 403, "PLATFORM_ADMIN_REQUIRED");
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/sellers") {
+    listAdminStores(response, url, adminStoresOf(account));
+    return true;
+  }
+  const storeAction = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block)$/.exec(url.pathname);
+  if (request.method === "POST" && storeAction) {
+    await changeAdminStore(
+      request,
+      response,
+      adminStoresOf(account),
+      storeAction[1],
+      storeAction[2],
+    );
     return true;
   }
   if (request.method === "GET" && url.pathname === "/admin/admins") {
@@ -1997,6 +2230,7 @@ async function answer(request, response) {
   }
   if (await auth(request, response, url)) return;
   if (await favouriteRoutes(request, response, url)) return;
+  if (adminSellerReads(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await emailSettingsRoutes(request, response, url)) return;
   if (await adminRoutes(request, response, url)) return;

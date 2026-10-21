@@ -21,15 +21,15 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
-import { Wordmark } from "@/components/wordmark";
+import { BiteMark, Wordmark } from "@/components/wordmark";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { signOut } from "@/lib/api/generated";
 
 import { adminNav, isWithin } from "./nav";
 
-// The admin's sidebar (Figma Admin/Sidebar, 228:6027): the wordmark with the collapse button and the
-// "Quản trị" tag, the menu by group, then the language and the account at the foot, over the light sweep.
-// Collapsed, it keeps the icons, each named in a tooltip.
+// The admin's sidebar (Figma Admin/Sidebar, 228:6027): the wordmark and the "Quản trị" tag, the menu by
+// group, then the language and the account at the foot, over the light sweep. The top bar's button folds it;
+// folded, it keeps the wordmark's bitten "o" and the icons, each named in a tooltip.
 export function AdminSidebar({ email }: { email: string }) {
   const t = useTranslations("Admin");
   const pathname = usePathname();
@@ -38,15 +38,15 @@ export function AdminSidebar({ email }: { email: string }) {
     <Sidebar collapsible="icon" label={t("menu")}>
       <SidebarSweep />
       <SidebarHeader>
-        <div className="flex h-11 items-center justify-between gap-2 ps-1 group-data-[collapsible=icon]:ps-0">
+        <div className="flex h-11 items-center ps-1 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:ps-0">
           <Link
             href="/admin"
-            className="rounded-sm text-sidebar-foreground outline-hidden group-data-[collapsible=icon]:hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className="rounded-sm text-sidebar-foreground outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
-            <Wordmark />
+            <Wordmark className="group-data-[collapsible=icon]:hidden" />
+            <BiteMark className="hidden group-data-[collapsible=icon]:block" />
             <span className="sr-only">{t("home")}</span>
           </Link>
-          <CollapseButton />
         </div>
         <Badge variant="fresh" className="ms-1 self-start group-data-[collapsible=icon]:hidden">
           {t("tag")}
@@ -91,20 +91,23 @@ export function AdminSidebar({ email }: { email: string }) {
   );
 }
 
-function CollapseButton() {
+/**
+ * The button at the start of the top bar (Figma AdminTopBar › SidebarTrigger): on a wide screen it folds the
+ * sidebar to its icons and back; on a phone, where the sidebar is a sheet, it opens the menu.
+ */
+export function SidebarToggle() {
   const t = useTranslations("Admin");
-  const { state, toggleSidebar } = useSidebar();
+  const { state, isMobile, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
-  const Icon = collapsed ? PanelLeftOpenIcon : PanelLeftCloseIcon;
+  const Icon = isMobile || collapsed ? PanelLeftOpenIcon : PanelLeftCloseIcon;
 
   return (
     <Button
       size="icon"
+      variant="ghost"
       onClick={toggleSidebar}
-      aria-label={collapsed ? t("expand") : t("collapse")}
-      aria-expanded={!collapsed}
-      variant="sidebar"
-      className="max-md:hidden"
+      aria-label={isMobile ? t("menu") : collapsed ? t("expand") : t("collapse")}
+      className="-ms-2"
     >
       <Icon aria-hidden />
     </Button>

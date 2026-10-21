@@ -989,6 +989,7 @@
     "skip": "Bỏ qua thanh bên",
     "breadcrumb": "Vị trí trang",
     "nav": {
+      "sellers": "Cửa hàng",
       "audit": "Nhật ký thao tác",
       "settings": "Cài đặt",
       "accounts": "Tài khoản"
@@ -1173,6 +1174,7 @@
       }
     },
     "group": {
+      "operations": "Vận hành",
       "users": "Người dùng"
     },
     "accounts": {
@@ -1292,6 +1294,140 @@
         "done": "Đã cấp quyền quản trị cho {email}",
         "failed": "Chưa cấp quyền cho {name} được",
         "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát."
+      }
+    },
+    "sellers": {
+      "title": "Cửa hàng",
+      "noun": "cửa hàng",
+      "search": "Tìm cửa hàng theo tên hoặc địa chỉ",
+      "size": "Số dòng",
+      "area": "Khu vực",
+      "anyArea": "Tất cả",
+      "changed": "Sửa đổi",
+      "anytime": "Mọi lúc",
+      "cards": "Lọc theo trạng thái",
+      "status": {
+        "active": "Đang hoạt động",
+        "pending": "Chờ duyệt",
+        "rejected": "Bị từ chối",
+        "blocked": "Bị chặn"
+      },
+      "column": {
+        "store": "Cửa hàng",
+        "address": "Địa chỉ",
+        "phone": "Số điện thoại",
+        "status": "Trạng thái",
+        "changed": "Ngày sửa đổi",
+        "actions": "Thao tác"
+      },
+      "empty": {
+        "title": "Chưa có cửa hàng nào"
+      },
+      "noResults": {
+        "title": "Không tìm thấy cửa hàng nào",
+        "clear": "Xoá bộ lọc"
+      },
+      "menu": {
+        "open": "Thao tác với {name}",
+        "block": "Chặn cửa hàng…",
+        "unblock": "Gỡ chặn",
+        "approve": "Duyệt",
+        "reject": "Từ chối…",
+        "view": "Xem chi tiết"
+      },
+      "block": {
+        "title": "Chặn cửa hàng {name}?",
+        "reason": "Lý do chặn",
+        "confirm": "Chặn cửa hàng",
+        "done": "Đã chặn {name}"
+      },
+      "reject": {
+        "title": "Từ chối cửa hàng {name}?",
+        "reason": "Lý do từ chối",
+        "confirm": "Từ chối",
+        "done": "Đã từ chối {name}"
+      },
+      "unblock": {
+        "title": "Gỡ chặn cửa hàng {name}?",
+        "confirm": "Gỡ chặn",
+        "done": "Đã gỡ chặn {name}"
+      },
+      "approve": {
+        "title": "Duyệt cửa hàng {name}?",
+        "confirm": "Duyệt",
+        "done": "Đã duyệt {name}"
+      },
+      "cancel": "Huỷ",
+      "reasonHint": "Từ 10 đến 500 ký tự",
+      "reasonLength": "{length}/500",
+      "unreachable": "Không kết nối được máy chủ. Thử lại sau.",
+      "detail": {
+        "tabs": "Nội dung cửa hàng",
+        "overview": "Tổng quan",
+        "posts": "Bài đăng · {count}",
+        "members": "Thành viên · {count}",
+        "onSale": "Bài đang bán",
+        "seeAll": "Xem tất cả",
+        "noneOnSale": "Chưa có bài đang bán",
+        "noPosts": "Cửa hàng chưa đăng bài nào",
+        "info": "Thông tin",
+        "address": "Địa chỉ",
+        "phone": "Số điện thoại",
+        "people": "Thành viên",
+        "owner": "Chủ cửa hàng",
+        "staff": "Nhân viên",
+        "offerLeft": "-{discount}% · còn {left}/{units} {unit}",
+        "offerWindow": "Lấy {from}–{until}",
+        "offerUnits": "-{discount}% · {units} {unit}",
+        "offerWithdrawn": "Đã gỡ {day}/{month} · {time}",
+        "postStatus": {
+          "label": "Trạng thái bài đăng",
+          "on_sale": "Đang bán · {count}",
+          "sold_out": "Hết hàng · {count}",
+          "closed": "Đã đóng · {count}",
+          "withdrawn": "Đã gỡ · {count}"
+        },
+        "view": {
+          "label": "Cách xem",
+          "list": "Dạng bảng",
+          "grid": "Dạng lưới"
+        },
+        "noneInStatus": "Không có bài nào",
+        "postsTable": "Bài đăng của cửa hàng",
+        "postNoun": "bài đăng",
+        "column": {
+          "post": "Bài đăng",
+          "price": "Giá bán",
+          "discount": "Giảm",
+          "left": "Còn lại",
+          "window": "Khung nhận",
+          "open": "Xem"
+        },
+        "discount": "-{discount}%",
+        "unitsLeft": "{left}/{units} {unit}",
+        "window": "{from}–{until}",
+        "openPost": "Xem bài {name}",
+        "panel": {
+          "title": "Chi tiết bài đăng",
+          "description": "Mô tả",
+          "status": "Trạng thái",
+          "units": "Số phần",
+          "unitsLeft": "Còn {left}/{units} {unit}",
+          "weight": "Khối lượng mỗi suất",
+          "grams": "{grams} g",
+          "window": "Khung nhận",
+          "windowDay": "{from}–{until}, {day}/{month}",
+          "place": "Nơi nhận",
+          "created": "Tạo lúc",
+          "updated": "Sửa lần cuối",
+          "at": "{day} · {time}",
+          "state": {
+            "on_sale": "Đang bán",
+            "sold_out": "Hết hàng",
+            "closed": "Đã đóng",
+            "withdrawn": "Đã gỡ"
+          }
+        }
       }
     }
   },

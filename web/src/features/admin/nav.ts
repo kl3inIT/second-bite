@@ -3,19 +3,20 @@ import {
   MailIcon,
   SettingsIcon,
   ShieldCheckIcon,
+  StoreIcon,
   UsersIcon,
   type LucideIcon,
 } from "lucide-react";
 
 export type AdminNavItem = {
-  key: "accounts" | "audit" | "settings";
-  href: "/admin/accounts" | "/admin/audit" | "/admin/settings";
+  key: "sellers" | "accounts" | "audit" | "settings";
+  href: "/admin/sellers" | "/admin/accounts" | "/admin/audit" | "/admin/settings";
   icon: LucideIcon;
 };
 
 export type AdminNavGroup = {
   /** The group's name above its items; the last group of Figma's sidebar has none. */
-  key?: "users";
+  key?: "operations" | "users";
   items: AdminNavItem[];
 };
 
@@ -23,6 +24,10 @@ export type AdminNavGroup = {
 // its screen, never before: an entry that opens nothing reads as a fault. The log is an entry of its own,
 // not a page of the settings: it records far more than settings, and is read on its own.
 export const adminNav: AdminNavGroup[] = [
+  {
+    key: "operations",
+    items: [{ key: "sellers", href: "/admin/sellers", icon: StoreIcon }],
+  },
   {
     key: "users",
     items: [{ key: "accounts", href: "/admin/accounts", icon: UsersIcon }],

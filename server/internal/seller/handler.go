@@ -328,9 +328,21 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		Sort   string   `query:"sort"         doc:"name, address or changed; a leading - is descending; the queue order when absent" enum:"name,-name,address,-address,changed,-changed"`
 		Page   int      `query:"page"         default:"1" minimum:"1"`
 		Size   int      `query:"size"   default:"25"                                        maximum:"100" minimum:"1"`
+
+		ChangedSince time.Time `query:"changedSince" doc:"Keep the sellers last changed at or after this time"`
+		ChangedUntil time.Time `query:"changedUntil" doc:"Keep the sellers last changed before this time"`
 	},
 	) (*adminSellersOutput, error) {
-		page, err := s.List(ctx, Filter{Statuses: in.Status, Query: in.Q, Sort: in.Sort, Page: in.Page, Size: in.Size})
+		f := Filter{Statuses: in.Status, Query: in.Q, Sort: in.Sort, Page: in.Page, Size: in.Size}
+		if !in.ChangedSince.IsZero() {
+			f.ChangedSince = &in.ChangedSince
+		}
+
+		if !in.ChangedUntil.IsZero() {
+			f.ChangedUntil = &in.ChangedUntil
+		}
+
+		page, err := s.List(ctx, f)
 		if err != nil {
 			return nil, err
 		}
@@ -344,7 +356,16 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		}
 
 		for _, l := range page.Sellers {
-			out.Body.Items = append(out.Body.Items, adminSellerBody{sellerBody: toBody(l.Seller), OwnerEmail: l.OwnerEmail})
+			out.Body.Items = append(out.Body.Items, toAdminSellerBody(l))
+		}
+
+		out.Body.Days = make([]statusDayBody, 0, len(page.Days))
+		for _, d := range page.Days {
+			out.Body.Days = append(out.Body.Days, statusDayBody{
+				Day:     d.Day.Format(time.DateOnly),
+				Pending: d.Counts[StatusPending], Active: d.Counts[StatusActive],
+				Rejected: d.Counts[StatusRejected], Blocked: d.Counts[StatusBlocked],
+			})
 		}
 
 		return out, nil
@@ -411,10 +432,32 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 	}
 }
 
+// adminSellerBody is a seller in the admins' list. It lists its own fields rather than embedding sellerBody,
+// which is unexported, so huma leaves it out of the contract.
 type adminSellerBody struct {
-	sellerBody
+	ID              uuid.UUID  `json:"id"`
+	Name            string     `json:"name"`
+	Address         string     `json:"address"`
+	Latitude        float64    `json:"latitude"`
+	Longitude       float64    `json:"longitude"`
+	Phone           string     `json:"phone"`
+	Status          Status     `json:"status"                    enum:"pending,active,rejected,blocked"`
+	StatusReason    string     `json:"statusReason,omitempty"    doc:"Why an admin rejected or blocked the seller, as the owner is told"`
+	StatusChangedAt *time.Time `json:"statusChangedAt,omitempty"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	PhotoID         *uuid.UUID `json:"photoId,omitempty"         doc:"Served at /photos/{photoId}/1600.jpg and /400.jpg"`
+	OwnerEmail      string     `json:"ownerEmail,omitempty"      doc:"Absent when the owner deleted their account"`
+}
 
-	OwnerEmail string `json:"ownerEmail,omitempty" doc:"Absent when the owner deleted their account"`
+func toAdminSellerBody(l Listed) adminSellerBody {
+	s := l.Seller
+
+	return adminSellerBody{
+		ID: s.ID, Name: s.Name, Address: s.Address, Latitude: s.Latitude, Longitude: s.Longitude, Phone: s.Phone,
+		Status: s.Status, StatusReason: s.StatusReason, StatusChangedAt: s.StatusChangedAt,
+		CreatedAt: s.CreatedAt, UpdatedAt: s.UpdatedAt, PhotoID: s.PhotoID, OwnerEmail: l.OwnerEmail,
+	}
 }
 
 type membershipBody struct {
@@ -438,7 +481,18 @@ type adminSellersOutput struct {
 		PageSize int               `json:"pageSize"`
 		Total    int               `json:"total"`
 		Counts   statusCountsBody  `json:"counts"   doc:"Sellers of each status matching q, whatever status asks"`
+		Days     []statusDayBody   `json:"days"     doc:"Sellers of each status on each of the last 14 days in Vietnam, the oldest first, whatever the filters; a day before counting started is absent"`
 	}
+}
+
+// statusDayBody lists its own fields, as huma leaves an embedded unexported
+// struct out of the contract.
+type statusDayBody struct {
+	Day      string `json:"day"      doc:"The day in Vietnam, as YYYY-MM-DD" format:"date"`
+	Pending  int    `json:"pending"`
+	Active   int    `json:"active"`
+	Rejected int    `json:"rejected"`
+	Blocked  int    `json:"blocked"`
 }
 
 type statusCountsBody struct {

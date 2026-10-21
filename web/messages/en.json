@@ -989,6 +989,7 @@
     "skip": "Skip the sidebar",
     "breadcrumb": "Where you are",
     "nav": {
+      "sellers": "Stores",
       "audit": "Activity log",
       "settings": "Settings",
       "accounts": "Accounts"
@@ -1173,6 +1174,7 @@
       }
     },
     "group": {
+      "operations": "Operations",
       "users": "Users"
     },
     "accounts": {
@@ -1292,6 +1294,140 @@
         "done": "{email} is now an admin",
         "failed": "Could not make {name} an admin",
         "unreachable": "The server could not be reached. Try again shortly."
+      }
+    },
+    "sellers": {
+      "title": "Stores",
+      "noun": "stores",
+      "search": "Search stores by name or address",
+      "size": "Rows",
+      "area": "Area",
+      "anyArea": "All",
+      "changed": "Changed",
+      "anytime": "Any time",
+      "cards": "Filter by status",
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "blocked": "Blocked"
+      },
+      "column": {
+        "store": "Store",
+        "address": "Address",
+        "phone": "Phone",
+        "status": "Status",
+        "changed": "Last changed",
+        "actions": "Actions"
+      },
+      "empty": {
+        "title": "No stores yet"
+      },
+      "noResults": {
+        "title": "No store matches",
+        "clear": "Clear filters"
+      },
+      "menu": {
+        "open": "Actions for {name}",
+        "block": "Block store…",
+        "unblock": "Unblock",
+        "approve": "Approve",
+        "reject": "Reject…",
+        "view": "View details"
+      },
+      "block": {
+        "title": "Block {name}?",
+        "reason": "Reason for blocking",
+        "confirm": "Block store",
+        "done": "{name} is blocked"
+      },
+      "reject": {
+        "title": "Reject {name}?",
+        "reason": "Reason for rejecting",
+        "confirm": "Reject",
+        "done": "{name} is rejected"
+      },
+      "unblock": {
+        "title": "Unblock {name}?",
+        "confirm": "Unblock",
+        "done": "{name} is unblocked"
+      },
+      "approve": {
+        "title": "Approve {name}?",
+        "confirm": "Approve",
+        "done": "{name} is approved"
+      },
+      "cancel": "Cancel",
+      "reasonHint": "10 to 500 characters",
+      "reasonLength": "{length}/500",
+      "unreachable": "The server did not answer. Try again later.",
+      "detail": {
+        "tabs": "Store content",
+        "overview": "Overview",
+        "posts": "Posts · {count}",
+        "members": "Members · {count}",
+        "onSale": "On sale",
+        "seeAll": "See all",
+        "noneOnSale": "Nothing on sale",
+        "noPosts": "The store has posted nothing yet",
+        "info": "Details",
+        "address": "Address",
+        "phone": "Phone",
+        "people": "Members",
+        "owner": "Owner",
+        "staff": "Staff",
+        "offerLeft": "-{discount}% · {left}/{units} {unit} left",
+        "offerWindow": "Pick-up {from}–{until}",
+        "offerUnits": "-{discount}% · {units} {unit}",
+        "offerWithdrawn": "Withdrawn {day}/{month} · {time}",
+        "postStatus": {
+          "label": "Post status",
+          "on_sale": "On sale · {count}",
+          "sold_out": "Sold out · {count}",
+          "closed": "Closed · {count}",
+          "withdrawn": "Withdrawn · {count}"
+        },
+        "view": {
+          "label": "View",
+          "list": "Table",
+          "grid": "Grid"
+        },
+        "noneInStatus": "No posts here",
+        "postsTable": "The store's posts",
+        "postNoun": "posts",
+        "column": {
+          "post": "Post",
+          "price": "Price",
+          "discount": "Discount",
+          "left": "Left",
+          "window": "Pick-up",
+          "open": "View"
+        },
+        "discount": "-{discount}%",
+        "unitsLeft": "{left}/{units} {unit}",
+        "window": "{from}–{until}",
+        "openPost": "View post {name}",
+        "panel": {
+          "title": "Post details",
+          "description": "Description",
+          "status": "Status",
+          "units": "Units",
+          "unitsLeft": "{left}/{units} {unit} left",
+          "weight": "Weight per unit",
+          "grams": "{grams} g",
+          "window": "Pick-up",
+          "windowDay": "{from}–{until}, {month}/{day}",
+          "place": "Pick-up place",
+          "created": "Posted",
+          "updated": "Last changed",
+          "at": "{day} · {time}",
+          "state": {
+            "on_sale": "On sale",
+            "sold_out": "Sold out",
+            "closed": "Closed",
+            "withdrawn": "Withdrawn"
+          }
+        }
       }
     }
   },
