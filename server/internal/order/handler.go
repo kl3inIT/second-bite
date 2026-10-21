@@ -49,28 +49,26 @@ type orderSellerBody struct {
 }
 
 type orderBody struct {
-	ID               uuid.UUID       `json:"id"`
-	Number           string          `json:"number"                 doc:"What people read aloud, SB- and a number"`
-	Status           Status          `json:"status"                 doc:"expired is read from the window's end" enum:"confirmed,ready,collected,cancelled,refused,expired"`
-	Seller           orderSellerBody `json:"seller"                 doc:"Where the order is collected, copied when it was placed"`
-	Lines            []orderLineBody `json:"lines"                  nullable:"false"`
-	TotalVND         int64           `json:"totalVnd"               doc:"Paid to the seller at the counter"`
-	WindowStart      time.Time       `json:"windowStart"`
-	WindowEnd        time.Time       `json:"windowEnd"`
-	CreatedAt        time.Time       `json:"createdAt"`
-	ReadyAt          *time.Time      `json:"readyAt,omitempty"`
-	CollectedAt      *time.Time      `json:"collectedAt,omitempty"`
-	CancelledAt      *time.Time      `json:"cancelledAt,omitempty"`
-	RefusedAt        *time.Time      `json:"refusedAt,omitempty"`
-	CancelReason     string          `json:"cancelReason,omitempty"`
-	RefuseReason     RefuseReason    `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,other"`
-	RefuseNote       string          `json:"refuseNote,omitempty"`
-	CodeAttemptsLeft int             `json:"codeAttemptsLeft"       doc:"How many wrong codes staff may still enter"`
-	Code             string          `json:"code,omitempty"         doc:"The collection code, to its customer once the order is ready or its window has opened"`
-	CheckoutID       uuid.UUID       `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
-	CustomerName     string          `json:"customerName"           doc:"Who collects, as given with the order"`
-	CustomerPhone    string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits"`
-	Access           string          `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
+	ID            uuid.UUID       `json:"id"`
+	Number        string          `json:"number"                 doc:"What people read aloud, SB- and a number"`
+	Status        Status          `json:"status"                 doc:"expired is read from the window's end" enum:"confirmed,ready,collected,cancelled,refused,expired"`
+	Seller        orderSellerBody `json:"seller"                 doc:"Where the order is collected, copied when it was placed"`
+	Lines         []orderLineBody `json:"lines"                  nullable:"false"`
+	TotalVND      int64           `json:"totalVnd"               doc:"Paid to the seller at the counter"`
+	WindowStart   time.Time       `json:"windowStart"`
+	WindowEnd     time.Time       `json:"windowEnd"`
+	CreatedAt     time.Time       `json:"createdAt"`
+	ReadyAt       *time.Time      `json:"readyAt,omitempty"`
+	CollectedAt   *time.Time      `json:"collectedAt,omitempty"`
+	CancelledAt   *time.Time      `json:"cancelledAt,omitempty"`
+	RefusedAt     *time.Time      `json:"refusedAt,omitempty"`
+	CancelReason  string          `json:"cancelReason,omitempty"`
+	RefuseReason  RefuseReason    `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,other"`
+	RefuseNote    string          `json:"refuseNote,omitempty"`
+	CheckoutID    uuid.UUID       `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
+	CustomerName  string          `json:"customerName"           doc:"Who collects, as given with the order"`
+	CustomerPhone string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits"`
+	Access        string          `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
 }
 
 func toBody(o Order) orderBody {
@@ -92,7 +90,6 @@ func toBody(o Order) orderBody {
 		Lines: lines, TotalVND: o.TotalVND, WindowStart: o.WindowStart, WindowEnd: o.WindowEnd, CreatedAt: o.CreatedAt,
 		ReadyAt: o.ReadyAt, CollectedAt: o.CollectedAt, CancelledAt: o.CancelledAt, RefusedAt: o.RefusedAt,
 		CancelReason: o.CancelReason, RefuseReason: o.RefuseReason, RefuseNote: o.RefuseNote,
-		CodeAttemptsLeft: o.CodeAttemptsLeft, Code: o.Code,
 		CheckoutID: o.CheckoutID, CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Access: o.Access,
 	}
 }
@@ -186,10 +183,9 @@ func registerCustomerOperations(api huma.API, s *Service) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "getOrder", Method: http.MethodGet, Path: "/orders/{orderId}",
-		Summary: "An order",
-		Description: "To its customer, signed in or sending its access, with the code once it may be shown; to the " +
-			"seller's people and to admins.",
-		Tags: tagOrders, Security: anyone,
+		Summary:     "An order",
+		Description: "To its customer, signed in or sending its access; to the seller's people and to admins.",
+		Tags:        tagOrders, Security: anyone,
 	}, func(ctx context.Context, in *customerPath) (*orderOutput, error) {
 		o, err := s.Get(ctx, in.OrderID, in.Access)
 		if err != nil {
@@ -251,7 +247,7 @@ func registerStaffOperations(api huma.API, s *Service) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "markOrderReady", Method: http.MethodPost, Path: "/orders/{orderId}/ready",
-		Summary: "Mark an order ready, which shows its customer the code", Tags: tagOrders, Security: security,
+		Summary: "Mark an order ready, which tells its customer to come", Tags: tagOrders, Security: security,
 	}, func(ctx context.Context, in *orderPath) (*orderOutput, error) {
 		o, err := s.Ready(ctx, in.OrderID)
 		if err != nil {
@@ -263,17 +259,12 @@ func registerStaffOperations(api huma.API, s *Service) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "handOverOrder", Method: http.MethodPost, Path: "/orders/{orderId}/hand-over",
-		Summary:     "Hand an order over against its collection code",
-		Description: "Within the window. A wrong code is counted; the third locks the code.",
-		Tags:        tagOrders, Security: security,
-	}, func(ctx context.Context, in *struct {
-		OrderID uuid.UUID `path:"orderId"`
-		Body    struct {
-			Code string `json:"code" pattern:"^[0-9]{4}$"`
-		}
-	},
-	) (*orderOutput, error) {
-		o, err := s.HandOver(ctx, in.OrderID, in.Body.Code)
+		Summary: "Hand an order over",
+		Description: "Within the window, once staff have matched the collector to the order by its QR code or by " +
+			"the name and phone number on it.",
+		Tags: tagOrders, Security: security,
+	}, func(ctx context.Context, in *orderPath) (*orderOutput, error) {
+		o, err := s.HandOver(ctx, in.OrderID)
 		if err != nil {
 			return nil, err
 		}

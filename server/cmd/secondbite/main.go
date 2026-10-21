@@ -175,10 +175,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		sellers := seller.NewService(pool, identities, files, logger)
 		offers := offer.NewService(pool, sellers, files, logger)
 
-		orders, err := order.NewService(pool, offers, sellers, k.collectionCode, logger)
-		if err != nil {
-			return nil, err
-		}
+		orders := order.NewService(pool, offers, sellers, logger)
 
 		// The listeners are known before anything publishes; they run only in
 		// serve.
@@ -201,7 +198,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 
 // keys are the secrets the modules derive values from.
 type keys struct {
-	settings, signInCode, collectionCode []byte
+	settings, signInCode []byte
 }
 
 func readKeys(getenv func(string) string) (keys, error) {
@@ -213,7 +210,6 @@ func readKeys(getenv func(string) string) (keys, error) {
 	}{
 		{"SECONDBITE_EMAIL_SETTINGS_KEY", &k.settings},
 		{"SECONDBITE_SIGN_IN_CODE_KEY", &k.signInCode},
-		{"SECONDBITE_COLLECTION_CODE_KEY", &k.collectionCode},
 	} {
 		value, err := platform.ReadKey(getenv, each.name)
 		if err != nil {

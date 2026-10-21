@@ -17,9 +17,6 @@ abstract class OrderBody with _$OrderBody {
   const factory OrderBody({
     /// Shared by the orders placed together from one cart
     required String checkoutId,
-
-    /// How many wrong codes staff may still enter
-    required int codeAttemptsLeft,
     required DateTime createdAt,
 
     /// Who collects, as given with the order
@@ -48,9 +45,6 @@ abstract class OrderBody with _$OrderBody {
     String? access,
     String? cancelReason,
     DateTime? cancelledAt,
-
-    /// The collection code, to its customer once the order is ready or its window has opened
-    String? code,
     DateTime? collectedAt,
     DateTime? readyAt,
     String? refuseNote,
