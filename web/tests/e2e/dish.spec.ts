@@ -81,9 +81,14 @@ test.describe("a dish, its seller and the cart", () => {
     await page.getByRole("link", { name: wide(page) ? /^Đặt 2 đơn/ : "Xem giỏ hàng" }).click();
 
     await expect(page.getByRole("heading", { level: 1, name: "Xác nhận đơn" })).toBeVisible();
-    await expect(page.getByLabel("3 phần Bánh Croissant Truyền Thống trong giỏ")).toHaveText("3");
+    // The seller page just left stays in the document, hidden, with its own sidebar.
     await expect(
-      page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }),
+      page.getByLabel("3 phần Bánh Croissant Truyền Thống trong giỏ").filter({ visible: true }),
+    ).toHaveText("3");
+    await expect(
+      page
+        .getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" })
+        .filter({ visible: true }),
     ).toBeDisabled();
     await expect(page.getByText("Tiền món (4 phần)")).toBeVisible();
     // Figma K5: one card per seller's order, and one order button for both.

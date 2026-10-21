@@ -133,7 +133,7 @@ export function OpenOrder({
   return (
     <article
       aria-label={t("orderNumber", { number: order.number })}
-      className="lg:mx-auto lg:grid lg:max-w-292 lg:grid-cols-3 lg:items-start lg:gap-x-6 lg:gap-y-4 lg:pt-6"
+      className="lg:mx-auto lg:grid lg:w-full lg:max-w-292 lg:grid-cols-3 lg:items-start lg:gap-x-6 lg:gap-y-4 lg:pt-6"
     >
       <StatusBand
         beside

@@ -8,6 +8,9 @@ test.use({ locale: "vi-VN" });
 const ORDER_URL = /\/vi\/orders\/[0-9a-f-]{36}$/;
 const DISH = "Bánh Croissant Truyền Thống";
 
+/** From 768px the cart is a sidebar beside the menu (Figma WK3), not the phone's bar. */
+const isWide = (page: Page) => (page.viewportSize()?.width ?? 0) >= 768;
+
 async function addCroissant(page: Page) {
   await page.goto("/vi/sellers/se-la-paris");
   await (
@@ -56,7 +59,7 @@ test.describe("ordering from the cart", () => {
     page,
   }) => {
     await addCroissant(page);
-    await page.getByRole("link", { name: "Xem giỏ hàng" }).click();
+    await page.getByRole("link", { name: isWide(page) ? /^Đặt món · / : "Xem giỏ hàng" }).click();
     await expect(page).toHaveURL(/\/vi\/cart$/);
 
     await expect(page.getByLabel("Tên")).toHaveCount(0);

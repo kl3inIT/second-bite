@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "@/i18n/navigation";
 
 import { totals, type Cart } from "./cart";
@@ -16,6 +17,9 @@ import { SellerOrder } from "./checkout-parts";
 export function CartSidebar() {
   const t = useTranslations("Cart");
   const cart = useCart();
+  const phone = useIsMobile();
+  // A phone has the bar at the foot, so the sidebar is not in its page at all, not only out of sight.
+  if (phone) return null;
 
   return (
     <aside
