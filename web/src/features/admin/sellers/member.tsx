@@ -1,8 +1,27 @@
+import { ClockIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { AdminBadge } from "@/features/admin/ui/badge";
 import type { MemberBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
+
+/**
+ * A store's member as the admin shows it. `awaitingSignIn` is SEC-64's: the owner of a store an admin opened, given
+ * by address, holds the role only once that address signs in with its code (SEC-39). `GET …/members` does not
+ * give it yet, so no member shows "Chờ đăng nhập" until it does.
+ */
+export type AdminMember = MemberBody & { awaitingSignIn?: boolean };
+
+/** "Chờ đăng nhập" beside a member who has not signed in yet (Figma AD-OS3). */
+export function AwaitingSignInBadge({ member }: { member: AdminMember }) {
+  const t = useTranslations("admin.sellers.detail.members");
+  if (!member.awaitingSignIn) return null;
+  return (
+    <AdminBadge tone="neutral" icon={ClockIcon}>
+      {t("awaitingSignIn")}
+    </AdminBadge>
+  );
+}
 
 /** Two letters from the start of an address: "chu.quan@…" is "CQ", "lan@…" is "LA". */
 export function initialsOf(email: string): string {

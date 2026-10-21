@@ -47,6 +47,30 @@
       "undo": "You can unblock it at any time."
     }
   },
+  "open": {
+    "button": "Open a store",
+    "title": "Open a store",
+    "name": "Store name",
+    "phone": "Phone number",
+    "address": "Address",
+    "floor": "Floor",
+    "photo": "Store photo",
+    "choosePhoto": "Choose a photo",
+    "changePhoto": "Change photo",
+    "email": "Owner's email",
+    "cancel": "Cancel",
+    "submit": "Open the store",
+    "done": "Opened {name} and emailed its owner",
+    "failed": "{name} was not opened, please try again",
+    "problems": {
+      "nameRequired": "Enter the store's name",
+      "nameTooLong": "The store's name takes at most {max} characters",
+      "addressTooLong": "The address is too long",
+      "phoneInvalid": "Enter a phone number of 9 to 15 digits",
+      "emailInvalid": "Enter the owner's email",
+      "ownerLimit": "This email already owns 5 stores"
+    }
+  },
   "detail": {
     "loading": "Loading the store",
     "pager": {
@@ -147,7 +171,8 @@
         "role": "Role",
         "added": "Joined on"
       },
-      "empty": "The store has no members."
+      "empty": "The store has no members.",
+      "awaitingSignIn": "Not signed in yet"
     },
     "documents": {
       "caption": "Verification documents",

@@ -47,6 +47,30 @@
       "undo": "Có thể gỡ chặn bất cứ lúc nào."
     }
   },
+  "open": {
+    "button": "Mở cửa hàng",
+    "title": "Mở cửa hàng",
+    "name": "Tên cửa hàng",
+    "phone": "Số điện thoại",
+    "address": "Địa chỉ",
+    "floor": "Tầng",
+    "photo": "Ảnh cửa hàng",
+    "choosePhoto": "Chọn ảnh",
+    "changePhoto": "Đổi ảnh",
+    "email": "Email chủ cửa hàng",
+    "cancel": "Huỷ",
+    "submit": "Mở cửa hàng",
+    "done": "Đã mở {name} và gửi email cho chủ cửa hàng",
+    "failed": "Chưa mở được {name}, hãy thử lại",
+    "problems": {
+      "nameRequired": "Nhập tên cửa hàng",
+      "nameTooLong": "Tên cửa hàng tối đa {max} ký tự",
+      "addressTooLong": "Địa chỉ quá dài",
+      "phoneInvalid": "Nhập số điện thoại 9 đến 15 chữ số",
+      "emailInvalid": "Nhập email của chủ cửa hàng",
+      "ownerLimit": "Email này đã là chủ của 5 cửa hàng"
+    }
+  },
   "detail": {
     "loading": "Đang tải cửa hàng",
     "pager": {
@@ -147,7 +171,8 @@
         "role": "Vai trò",
         "added": "Ngày tham gia"
       },
-      "empty": "Cửa hàng chưa có thành viên."
+      "empty": "Cửa hàng chưa có thành viên.",
+      "awaitingSignIn": "Chờ đăng nhập"
     },
     "documents": {
       "caption": "Giấy tờ kiểm định",

@@ -7,9 +7,9 @@ import { formatPrice } from "@/features/offers/format";
 import { EmptyState } from "@/features/admin/ui/empty-state";
 import { StatusCard } from "@/features/admin/ui/status-card";
 import { Link } from "@/i18n/navigation";
-import type { MemberBody, OfferBody, SellerBody } from "@/lib/api/generated";
+import type { OfferBody, SellerBody } from "@/lib/api/generated";
 
-import { MemberAvatar, RoleBadge } from "./member";
+import { type AdminMember, AwaitingSignInBadge, MemberAvatar, RoleBadge } from "./member";
 import { postsIn } from "./seller-posts";
 
 /** How many posts on sale the overview shows; "Xem tất cả" opens the rest. */
@@ -28,7 +28,7 @@ export function SellerOverview({
 }: {
   seller: SellerBody;
   offers: OfferBody[];
-  members: MemberBody[];
+  members: AdminMember[];
   postsHref: string;
 }) {
   const t = useTranslations("admin.sellers.detail");
@@ -171,7 +171,7 @@ function OfferRow({ offer }: { offer: OfferBody }) {
   );
 }
 
-function MembersCard({ members, title }: { members: MemberBody[]; title: string }) {
+function MembersCard({ members, title }: { members: AdminMember[]; title: string }) {
   return (
     <Card title={title}>
       <ul className="flex flex-col gap-3.5">
@@ -181,6 +181,7 @@ function MembersCard({ members, title }: { members: MemberBody[]; title: string 
             <span className="min-w-0 flex-1 truncate text-body-sm text-foreground">
               {member.email}
             </span>
+            <AwaitingSignInBadge member={member} />
             <RoleBadge role={member.role} />
           </li>
         ))}

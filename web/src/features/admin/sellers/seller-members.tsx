@@ -5,16 +5,16 @@ import { useTranslations } from "next-intl";
 
 import { DataTable, DateCell } from "@/features/admin/ui/data-table";
 import { EmptyState } from "@/features/admin/ui/empty-state";
-import type { MemberBody } from "@/lib/api/generated";
 
-import { MemberAvatar, RoleBadge } from "./member";
+import { type AdminMember, AwaitingSignInBadge, MemberAvatar, RoleBadge } from "./member";
 
 /**
  * A store's members tab (Figma AD-QD4): its owner and staff with their address, role and the day they joined.
  * The backend keeps no name for an account and does not count who posted what, so the table shows the address
- * and leaves out Figma's "Bài đã đăng". The address writes to them.
+ * and leaves out Figma's "Bài đã đăng". The address writes to them. An owner who has not signed in yet carries
+ * "Chờ đăng nhập" beside their role (AD-OS3).
  */
-export function SellerMembers({ members }: { members: MemberBody[] }) {
+export function SellerMembers({ members }: { members: AdminMember[] }) {
   const t = useTranslations("admin.sellers.detail.members");
   if (members.length === 0) {
     return (
@@ -49,7 +49,12 @@ export function SellerMembers({ members }: { members: MemberBody[] }) {
         {
           key: "role",
           header: t("columns.role"),
-          cell: (member) => <RoleBadge role={member.role} />,
+          cell: (member) => (
+            <span className="flex items-center gap-2">
+              <AwaitingSignInBadge member={member} />
+              <RoleBadge role={member.role} />
+            </span>
+          ),
         },
         {
           key: "added",
