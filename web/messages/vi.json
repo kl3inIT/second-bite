@@ -737,7 +737,7 @@
   "StoreOrders": {
     "title": "Đơn",
     "portions": "phần",
-    "summaryHolding": "Đang giữ {units} phần · {people} khách",
+    "summaryHolding": "Chuẩn bị {preparing} · sẵn sàng {ready}",
     "summaryDelivered": "Hôm nay {count} đơn · {amount}",
     "summaryCancelled": "Hôm nay {count} đơn hủy",
     "searchLabel": "Tìm đơn",
@@ -745,12 +745,14 @@
     "searchCount": "{count} kết quả",
     "tabs": "Nhóm đơn",
     "tab": {
-      "holding": "Đang giữ · {count}",
+      "preparing": "Chuẩn bị · {count}",
+      "ready": "Sẵn sàng · {count}",
       "delivered": "Đã giao · {count}",
       "cancelled": "Đã hủy · {count}"
     },
     "empty": {
-      "holding": "Chưa có ai giữ món ngày này. Khi khách giữ, tên và số điện thoại hiện ở đây.",
+      "preparing": "Chưa có đơn nào đang chuẩn bị ngày này. Khi khách đặt món, tên và số điện thoại hiện ở đây.",
+      "ready": "Chưa có đơn nào sẵn sàng ngày này. Món xong thì bấm Báo sẵn sàng.",
       "delivered": "Chưa giao đơn nào ngày này.",
       "cancelled": "Chưa có đơn nào bị hủy ngày này."
     },
@@ -759,6 +761,7 @@
     "units": "{count} {unit}",
     "copyPhone": "Sao chép số điện thoại {phone}",
     "copied": "Đã sao chép số điện thoại.",
+    "markReady": "Báo sẵn sàng",
     "deliver": "Đã giao",
     "cancel": "Hủy đơn",
     "reopen": "Hoàn tác",

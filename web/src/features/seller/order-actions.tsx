@@ -18,7 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { failureOf } from "@/lib/api/client";
-import { handOverOrder, refuseOrder, reopenOrder } from "@/lib/api/generated";
+import { handOverOrder, markOrderReady, refuseOrder, reopenOrder } from "@/lib/api/generated";
+
+import { cn } from "@/lib/utils";
 
 import { Chip } from "./chip";
 import { type CancelReason, cancelReasons } from "./store-orders";
@@ -61,17 +63,36 @@ function Failed({ failed }: { failed: Failure }) {
   );
 }
 
-// The two buttons of an order still held (Figma Q5): "Hủy đơn", which asks for a reason, and "Đã giao", which
-// ends the order at once — the customer pays the seller in cash at the counter — and leaves "Hoàn tác" on a
-// line at the foot (Q5d) for a tap by mistake.
-export function HoldingActions({ orderId, name }: { orderId: string; name: string }) {
+// The two buttons of an order still open (Figma Q5h, Q5i, Q5j, Q5k): "Hủy đơn", which asks for a reason, and
+// the next step. While the order is being prepared that is "Báo sẵn sàng", which tells the customer to come
+// (SEC-102); once it is ready it is "Đã giao", which ends the order at once — the customer pays the seller in
+// cash at the counter — and leaves "Hoàn tác" on a line at the foot (Q5d) for a tap by mistake. From an order's
+// own page the list it returns to is `listPath`; from the list it is the page itself.
+export function OrderActions({
+  orderId,
+  name,
+  stage,
+  listPath,
+  className,
+}: {
+  orderId: string;
+  name: string;
+  stage: "preparing" | "ready";
+  listPath?: string;
+  className?: string;
+}) {
   const t = useTranslations("StoreOrders");
   const pathname = usePathname();
   const { pending, failed, run, router } = useOrderAction();
   const [asking, setAsking] = useState(false);
 
   return (
-    <div className="flex flex-col items-end gap-2 max-md:w-full max-md:items-stretch">
+    <div
+      className={cn(
+        "relative z-10 flex flex-col items-end gap-2 max-md:w-full max-md:items-stretch",
+        className,
+      )}
+    >
       <div className="flex items-center gap-2">
         <Button
           type="button"
@@ -82,23 +103,38 @@ export function HoldingActions({ orderId, name }: { orderId: string; name: strin
         >
           {t("cancel")}
         </Button>
-        <Button
-          type="button"
-          className="max-md:flex-1"
-          disabled={pending}
-          onClick={() =>
-            run(
-              () => handOverOrder({ path: { orderId } }),
-              () => {
-                const query = Object.fromEntries(new URLSearchParams(window.location.search));
-                router.replace({ pathname, query: { ...query, undo: orderId } }, { scroll: false });
-              },
-            )
-          }
-        >
-          {pending && <Spinner data-icon="inline-start" />}
-          {t("deliver")}
-        </Button>
+        {stage === "preparing" ? (
+          <Button
+            type="button"
+            className="max-md:flex-1"
+            disabled={pending}
+            onClick={() => run(() => markOrderReady({ path: { orderId } }))}
+          >
+            {pending && <Spinner data-icon="inline-start" />}
+            {t("markReady")}
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            className="max-md:flex-1"
+            disabled={pending}
+            onClick={() =>
+              run(
+                () => handOverOrder({ path: { orderId } }),
+                () => {
+                  const query = Object.fromEntries(new URLSearchParams(window.location.search));
+                  router.replace(
+                    { pathname: listPath ?? pathname, query: { ...query, undo: orderId } },
+                    { scroll: false },
+                  );
+                },
+              )
+            }
+          >
+            {pending && <Spinner data-icon="inline-start" />}
+            {t("deliver")}
+          </Button>
+        )}
       </div>
       {failed && <Failed failed={failed} />}
       <CancelDialog open={asking} onOpenChange={setAsking} orderId={orderId} name={name} />
@@ -194,7 +230,7 @@ export function ReopenButton({ orderId }: { orderId: string }) {
   const { pending, failed, run } = useOrderAction();
 
   return (
-    <div className="flex flex-col items-end gap-2 max-md:w-full max-md:items-stretch">
+    <div className="relative z-10 flex flex-col items-end gap-2 max-md:w-full max-md:items-stretch">
       <Button
         type="button"
         variant="outline"

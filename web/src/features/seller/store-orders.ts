@@ -3,23 +3,25 @@ import type { OrderBody } from "@/lib/api/generated";
 import { plain } from "./store-day";
 
 /**
- * The tabs of a store's order list (Figma Q5, Q5e, Q5f): what customers hold and the seller still has to hand
- * over, what was handed over, and what ended without a hand-over. A customer cancelling, the seller refusing
- * and a window that ran out are one tab, each with its reason.
+ * The tabs of a store's order list (Figma Q5, Q5h, Q5i, Q5e, Q5f): the orders being prepared, the ones the seller
+ * has marked ready, what was handed over, and what ended without a hand-over. A customer cancelling, the seller
+ * refusing and a window that ran out are one tab, each with its reason. The first two are the customer's steps
+ * Preparing and Ready (SEC-102).
  */
-export const orderTabs = ["holding", "delivered", "cancelled"] as const;
+export const orderTabs = ["preparing", "ready", "delivered", "cancelled"] as const;
 
 export type OrderTab = (typeof orderTabs)[number];
 
 export function readOrderTab(value: string | undefined): OrderTab {
-  return orderTabs.find((tab) => tab === value) ?? "holding";
+  return orderTabs.find((tab) => tab === value) ?? "preparing";
 }
 
 export function tabOfOrder(order: OrderBody): OrderTab {
   switch (order.status) {
     case "confirmed":
+      return "preparing";
     case "ready":
-      return "holding";
+      return "ready";
     case "collected":
       return "delivered";
     default:
@@ -29,7 +31,12 @@ export function tabOfOrder(order: OrderBody): OrderTab {
 
 /** The orders of each tab, in the backend's order (the soonest window first). */
 export function groupOrders(orders: readonly OrderBody[]): Record<OrderTab, OrderBody[]> {
-  const groups: Record<OrderTab, OrderBody[]> = { holding: [], delivered: [], cancelled: [] };
+  const groups: Record<OrderTab, OrderBody[]> = {
+    preparing: [],
+    ready: [],
+    delivered: [],
+    cancelled: [],
+  };
   for (const order of orders) groups[tabOfOrder(order)].push(order);
   return groups;
 }
