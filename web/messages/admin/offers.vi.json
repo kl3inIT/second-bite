@@ -67,5 +67,6 @@
     "note": "Ghi chú gửi cửa hàng",
     "confirm": "Gỡ bài vi phạm"
   },
-  "soon": "Sắp có"
+  "soon": "Sắp có",
+  "pageOf": "Trang {page} / {pages}"
 }

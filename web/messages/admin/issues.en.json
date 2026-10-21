@@ -99,5 +99,6 @@
     "note": "Note to the customer",
     "confirm": "Mark as done"
   },
-  "soon": "Coming soon"
+  "soon": "Coming soon",
+  "pageOf": "Page {page} of {pages}"
 }

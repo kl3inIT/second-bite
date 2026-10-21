@@ -101,5 +101,6 @@
     "reason": "Lý do khoá (chỉ quản trị thấy)",
     "confirm": "Khoá tài khoản"
   },
-  "soon": "Sắp có"
+  "soon": "Sắp có",
+  "pageOf": "Trang {page} / {pages}"
 }

@@ -79,12 +79,12 @@ describe("an account", () => {
   });
 
   test("looks as Figma AD-TK1 and AD-TK2 draw it", () => {
-    expect(roleLook("customer")).toEqual({ tone: "neutral", icon: null });
-    expect(roleLook("owner").tone).toBe("info");
-    expect(statusLook("active").tone).toBe("success");
-    expect(statusLook("locked").tone).toBe("error");
-    expect(orderLook("held").tone).toBe("info");
-    expect(orderLook("no_show").tone).toBe("warning");
-    expect(orderLook("cancelled").tone).toBe("neutral");
+    expect(roleLook("customer")).toBe("outline");
+    expect(roleLook("owner")).toBe("secondary");
+    expect(statusLook("active").variant).toBe("fresh");
+    expect(statusLook("locked").variant).toBe("destructive");
+    expect(orderLook("held").variant).toBe("secondary");
+    expect(orderLook("no_show").variant).toBe("outline");
+    expect(orderLook("cancelled").variant).toBe("outline");
   });
 });

@@ -67,6 +67,9 @@ describe("the accounts (AD-TK1)", () => {
     expect(html).toContain("Hoạt động");
     expect(html).toContain("Đã khoá");
     expect(html).toContain("Hiển thị 1–10 trên 214 tài khoản");
+    expect(html).toContain("Trang 1 / 22");
+    expect(html).toContain('href="/vi/admin/accounts?page=2"');
+    expect(html).toContain('aria-label="Tài khoản theo vai trò"');
     expect(html).toContain("Ngày tạo:");
   });
 
@@ -146,7 +149,10 @@ describe("an account (AD-TK2, AD-TK4)", () => {
     expect(html).toContain("Không đăng nhập được");
     expect(html).toContain("Lịch sử đơn và báo lỗi vẫn được giữ");
     expect(html).toContain("Mở khoá tài khoản");
-    expect(html).toContain('title="Sắp có"');
+    // Unlocking waits for its backend: the button is off, with "Sắp có" under the pointer, whose tooltip opens in
+    // a portal the server does not render.
+    expect(html.match(/data-slot="tooltip-trigger"/g)).toHaveLength(1);
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>.*Mở khoá tài khoản<\/button>/);
   });
 
   test("lists its reports on their tab", () => {

@@ -4,10 +4,21 @@ import { BanIcon, CheckIcon, EyeIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-import { ConfirmDialog, ConsequenceList } from "../ui/confirm-dialog";
 import { type RemoveReason, removeReasons } from "./offer";
 
 /**
@@ -24,61 +35,69 @@ export function RemoveOfferDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("admin.offers.removeDialog");
-  const soon = useTranslations("admin.offers")("soon");
-  const reasonId = useId();
-  const noteId = useId();
+  const offers = useTranslations("admin.offers");
+  const shell = useTranslations("admin.shell");
+  const id = useId();
   const [reason, setReason] = useState<RemoveReason>("food_safety");
+  const consequences = [
+    { icon: EyeIcon, text: t("consequences.hidden") },
+    { icon: BanIcon, text: t("consequences.store") },
+    { icon: CheckIcon, text: t("consequences.orders") },
+  ];
 
   return (
-    <ConfirmDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title={t("title")}
-      confirmLabel={t("confirm")}
-      confirmIcon={BanIcon}
-      destructive
-      confirmDisabled
-      confirmTitle={soon}
-      onConfirm={() => undefined}
-      form={
-        <>
-          <div className="flex flex-col gap-2">
-            <p id={reasonId} className="text-label-strong text-foreground">
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t("title")}</AlertDialogTitle>
+        </AlertDialogHeader>
+        <AlertDialogDescription render={<div />}>
+          <p>{t("after")}</p>
+          <ul className="mt-2 flex flex-col gap-2">
+            {consequences.map(({ icon: Icon, text }) => (
+              <li key={text} className="flex gap-2">
+                <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
+                <span>{text}</span>
+              </li>
+            ))}
+          </ul>
+        </AlertDialogDescription>
+        <FieldGroup>
+          <FieldSet>
+            <FieldLegend id={`${id}-reason`} variant="label">
               {t("reason")}
-            </p>
+            </FieldLegend>
             <RadioGroup
-              aria-labelledby={reasonId}
+              aria-labelledby={`${id}-reason`}
               value={reason}
               onValueChange={(next) => setReason(next as RemoveReason)}
             >
               {removeReasons.map((value) => (
-                <label
-                  key={value}
-                  className="flex min-h-11 cursor-pointer items-center gap-3 text-body-sm text-foreground"
-                >
-                  <RadioGroupItem value={value} />
-                  {t(`reasons.${value}`)}
-                </label>
+                <Field key={value} orientation="horizontal">
+                  <RadioGroupItem value={value} id={`${id}-${value}`} />
+                  <FieldLabel htmlFor={`${id}-${value}`}>{t(`reasons.${value}`)}</FieldLabel>
+                </Field>
               ))}
             </RadioGroup>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor={noteId} className="text-label-strong text-foreground">
-              {t("note")}
-            </label>
-            <Textarea id={noteId} rows={3} />
-          </div>
-        </>
-      }
-    >
-      <ConsequenceList
-        title={t("after")}
-        items={[
-          { icon: EyeIcon, text: t("consequences.hidden") },
-          { icon: BanIcon, text: t("consequences.store") },
-          { icon: CheckIcon, text: t("consequences.orders") },
-        ]}
-      />
-    </ConfirmDialog>
+          </FieldSet>
+          <Field>
+            <FieldLabel htmlFor={`${id}-note`}>{t("note")}</FieldLabel>
+            <Textarea id={`${id}-note`} rows={3} />
+          </Field>
+        </FieldGroup>
+        <AlertDialogFooter>
+          <AlertDialogCancel variant="outline">{shell("confirm.cancel")}</AlertDialogCancel>
+          <Tooltip>
+            <TooltipTrigger render={<span className="flex" />}>
+              <AlertDialogAction variant="destructive" disabled>
+                <BanIcon data-icon="inline-start" aria-hidden />
+                {t("confirm")}
+              </AlertDialogAction>
+            </TooltipTrigger>
+            <TooltipContent>{offers("soon")}</TooltipContent>
+          </Tooltip>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

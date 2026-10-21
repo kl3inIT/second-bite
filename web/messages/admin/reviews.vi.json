@@ -50,5 +50,6 @@
     "note": "Ghi chú nội bộ (không bắt buộc)",
     "confirm": "Ẩn đánh giá"
   },
-  "soon": "Sắp có"
+  "soon": "Sắp có",
+  "pageOf": "Trang {page} / {pages}"
 }

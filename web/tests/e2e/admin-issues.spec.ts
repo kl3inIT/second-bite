@@ -20,8 +20,8 @@ test.describe("the problem reports", () => {
     await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
     const crumbs = page.getByRole("navigation", { name: "Đường dẫn" });
     await expect(crumbs).toContainText("Vận hành");
-    const tabs = page.getByRole("navigation", { name: "Báo lỗi theo trạng thái" });
-    await expect(tabs.getByRole("link", { name: "Mới" })).toHaveAttribute("aria-current", "page");
+    const tabs = page.getByRole("tablist", { name: "Báo lỗi theo trạng thái" });
+    await expect(tabs.getByRole("tab", { name: "Mới" })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("searchbox", { name: "Tìm báo lỗi" })).toBeVisible();
     await expect(page.getByText("Loại:")).toBeVisible();
     await expect(page.getByText("Người xử lý:")).toBeVisible();
@@ -31,8 +31,12 @@ test.describe("the problem reports", () => {
     await expect(page.getByText("Không có báo lỗi mới")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
-    await (await hydrated(tabs.getByRole("link", { name: "Đã xong" }))).click();
+    await (await hydrated(tabs.getByRole("tab", { name: "Đã xong" }))).click();
     await expect(page).toHaveURL(/\/vi\/admin\/issues\?tab=done$/);
+    await expect(tabs.getByRole("tab", { name: "Đã xong" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     await expect(page.getByText("Chưa có báo lỗi đã xong")).toBeVisible();
     await expect(page.getByRole("columnheader", { name: "Xong lúc" })).toBeAttached();
 

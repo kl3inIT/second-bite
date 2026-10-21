@@ -21,16 +21,20 @@ test("the reviews are empty on each tab until a module keeps them", async ({
   await expect(page.getByRole("heading", { level: 1, name: "Đánh giá" })).toBeVisible();
   await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
   await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText("Vận hành");
-  const tabs = page.getByRole("navigation", { name: "Đánh giá theo trạng thái" });
-  await expect(tabs.getByRole("link", { name: "Tất cả" })).toHaveAttribute("aria-current", "page");
+  const tabs = page.getByRole("tablist", { name: "Đánh giá theo trạng thái" });
+  await expect(tabs.getByRole("tab", { name: "Tất cả" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("searchbox", { name: "Tìm đánh giá" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: /Số sao/ })).toBeVisible();
   await expect(page.getByRole("combobox", { name: /Cửa hàng/ })).toBeVisible();
   await expect(page.getByText("Chưa có đánh giá nào")).toBeVisible();
   await expectNoSeriousA11yViolations(page);
 
-  await (await hydrated(tabs.getByRole("link", { name: "Bị báo cáo" }))).click();
+  await (await hydrated(tabs.getByRole("tab", { name: "Bị báo cáo" }))).click();
   await expect(page).toHaveURL(/\/vi\/admin\/reviews\?tab=reported$/);
+  await expect(tabs.getByRole("tab", { name: "Bị báo cáo" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   await expect(page.getByText("Không có đánh giá bị báo cáo")).toBeVisible();
 
   if (isMobile) await openAdminMenu(page);

@@ -67,5 +67,6 @@
     "note": "Note to the store",
     "confirm": "Remove for a violation"
   },
-  "soon": "Coming soon"
+  "soon": "Coming soon",
+  "pageOf": "Page {page} of {pages}"
 }

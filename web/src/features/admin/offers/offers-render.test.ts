@@ -76,6 +76,9 @@ describe("every post (AD-BD1)", () => {
     expect(html).toContain("20:00–21:00");
     expect(html).toContain("Thao tác với Phở bò tái, 2 suất");
     expect(html).toContain("Hiển thị 1–10 trên 167 bài đăng");
+    expect(html).toContain("Trang 1 / 17");
+    expect(html).toContain('href="/vi/admin/offers?page=2"');
+    expect(html).toContain('href="/vi/admin/offers?status=on_sale"');
     expect(html).toContain("Ngày đăng:");
     expect(html).toContain("Mọi lúc");
   });

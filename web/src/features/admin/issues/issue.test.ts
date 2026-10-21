@@ -59,12 +59,12 @@ describe("the problem reports' address", () => {
 
 describe("how a report's type and status look", () => {
   test("as Figma AD-BL1 and AD-BL2 draw them", () => {
-    expect(kindLook("food_problem").tone).toBe("warning");
-    expect(kindLook("refund").tone).toBe("info");
-    expect(kindLook("store_closed").tone).toBe("error");
-    expect(kindLook("cancel").tone).toBe("neutral");
-    expect(kindLook("other").tone).toBe("neutral");
-    expect(statusLook("in_progress").tone).toBe("neutral");
-    expect(statusLook("done").tone).toBe("success");
+    expect(kindLook("food_problem").variant).toBe("outline");
+    expect(kindLook("refund").variant).toBe("secondary");
+    expect(kindLook("store_closed").variant).toBe("destructive");
+    expect(kindLook("cancel").variant).toBe("outline");
+    expect(kindLook("other").variant).toBe("outline");
+    expect(statusLook("in_progress").variant).toBe("outline");
+    expect(statusLook("done").variant).toBe("fresh");
   });
 });

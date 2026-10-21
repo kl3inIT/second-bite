@@ -14,15 +14,19 @@ export async function AccountsPage({ query: pendingQuery }: { query: Query }) {
   return <AccountsList query={query} rows={list.items} total={list.total} counts={list.counts} />;
 }
 
-/** One account on its tab, or the admin's not-found page, which keeps the shell (AD-TT5). */
+/**
+ * One account on its tab, or the admin's not-found page, which keeps the shell (AD-TT5). It reads the address
+ * inside its Suspense, as a store's page does.
+ */
 export async function AccountDetailPage({
-  accountId,
+  params,
   query,
 }: {
-  accountId: Promise<string>;
+  params: Promise<{ accountId: string }>;
   query: Query;
 }) {
-  const [account, params] = await Promise.all([accountId.then(getAdminAccount), query]);
+  const [{ accountId }, search] = await Promise.all([params, query]);
+  const account = await getAdminAccount(accountId);
   if (!account) notFound();
-  return <AccountDetail account={account} tab={readDetailTab(params.tab)} />;
+  return <AccountDetail account={account} tab={readDetailTab(search.tab)} />;
 }

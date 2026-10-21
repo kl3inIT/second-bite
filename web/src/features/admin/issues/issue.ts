@@ -10,7 +10,10 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 
-import type { BadgeTone } from "../ui/badge";
+import type { VariantProps } from "class-variance-authority";
+
+import type { badgeVariants } from "@/components/ui/badge";
+
 import { pageSizes } from "../list-query";
 
 // A problem report as the admin sees it (docs: admin-web-flow › Báo lỗi, Figma AD-BL1 to AD-BL4). SEC-13 has
@@ -77,20 +80,21 @@ export type AdminIssue = {
   order?: IssueOrder;
 };
 
-type BadgeLook = { tone: BadgeTone; icon: LucideIcon };
+/** A badge's look: one of the shared Badge's own variants, and the icon that carries the status with its words. */
+type BadgeLook = { variant: VariantProps<typeof badgeVariants>["variant"]; icon: LucideIcon };
 
 const kindLooks: Record<IssueKind, BadgeLook> = {
-  food_problem: { tone: "warning", icon: TriangleAlertIcon },
-  refund: { tone: "info", icon: RotateCcwIcon },
-  store_closed: { tone: "error", icon: BanIcon },
-  cancel: { tone: "neutral", icon: CircleXIcon },
-  other: { tone: "neutral", icon: InfoIcon },
+  food_problem: { variant: "outline", icon: TriangleAlertIcon },
+  refund: { variant: "secondary", icon: RotateCcwIcon },
+  store_closed: { variant: "destructive", icon: BanIcon },
+  cancel: { variant: "outline", icon: CircleXIcon },
+  other: { variant: "outline", icon: InfoIcon },
 };
 
 const statusLooks: Record<IssueStatus, BadgeLook> = {
-  new: { tone: "info", icon: SparklesIcon },
-  in_progress: { tone: "neutral", icon: ClockIcon },
-  done: { tone: "success", icon: CircleCheckIcon },
+  new: { variant: "secondary", icon: SparklesIcon },
+  in_progress: { variant: "outline", icon: ClockIcon },
+  done: { variant: "fresh", icon: CircleCheckIcon },
 };
 
 /** A report's type as Figma AD-BL1 draws it: its colour and icon. */

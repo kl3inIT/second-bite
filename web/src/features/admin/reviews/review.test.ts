@@ -39,7 +39,7 @@ describe("the reviews' address", () => {
 });
 
 test("a review's status looks as Figma AD-DG1 draws it", () => {
-  expect(statusLook("shown").tone).toBe("success");
-  expect(statusLook("reported").tone).toBe("warning");
-  expect(statusLook("hidden").tone).toBe("neutral");
+  expect(statusLook("shown").variant).toBe("fresh");
+  expect(statusLook("reported").variant).toBe("outline");
+  expect(statusLook("hidden").variant).toBe("outline");
 });

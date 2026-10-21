@@ -1,3 +1,4 @@
+import type { VariantProps } from "class-variance-authority";
 import {
   BanIcon,
   CircleCheckIcon,
@@ -7,7 +8,8 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 
-import type { BadgeTone } from "../ui/badge";
+import type { badgeVariants } from "@/components/ui/badge";
+
 import { pageSizes } from "../list-query";
 
 // An account as the admin looks it up and locks it (docs: admin-web-flow › Tài khoản, Figma AD-TK1 to AD-TK4).
@@ -76,23 +78,26 @@ export type AdminAccount = {
   position?: { index: number; total: number; previousId?: string; nextId?: string };
 };
 
-type BadgeLook = { tone: BadgeTone; icon: LucideIcon | null };
+type BadgeVariant = VariantProps<typeof badgeVariants>["variant"];
 
-const roleLooks: Record<AccountRole, BadgeLook> = {
-  customer: { tone: "neutral", icon: null },
-  owner: { tone: "info", icon: null },
-  staff: { tone: "info", icon: null },
-  admin: { tone: "info", icon: null },
+/** A badge's look: one of the shared Badge's own variants, and the icon that carries the status with its words. */
+type BadgeLook = { variant: BadgeVariant; icon: LucideIcon };
+
+const roleLooks: Record<AccountRole, BadgeVariant> = {
+  customer: "outline",
+  owner: "secondary",
+  staff: "secondary",
+  admin: "secondary",
 };
 
-/** A role as Figma AD-TK1 draws it: words alone, grey for a customer, blue for the others. */
-export function roleLook(role: AccountRole): BadgeLook {
+/** A role as Figma AD-TK1 draws it: words alone, plain for a customer, on the wash for the others. */
+export function roleLook(role: AccountRole): BadgeVariant {
   return roleLooks[role];
 }
 
 const statusLooks: Record<AccountStatus, BadgeLook> = {
-  active: { tone: "success", icon: CircleCheckIcon },
-  locked: { tone: "error", icon: BanIcon },
+  active: { variant: "fresh", icon: CircleCheckIcon },
+  locked: { variant: "destructive", icon: BanIcon },
 };
 
 /** An account's status: "Hoạt động", "Đã khoá". */
@@ -101,10 +106,10 @@ export function statusLook(status: AccountStatus): BadgeLook {
 }
 
 const orderLooks: Record<AccountOrderStatus, BadgeLook> = {
-  held: { tone: "info", icon: ClockIcon },
-  collected: { tone: "success", icon: CircleCheckIcon },
-  no_show: { tone: "warning", icon: TriangleAlertIcon },
-  cancelled: { tone: "neutral", icon: CircleXIcon },
+  held: { variant: "secondary", icon: ClockIcon },
+  collected: { variant: "fresh", icon: CircleCheckIcon },
+  no_show: { variant: "outline", icon: TriangleAlertIcon },
+  cancelled: { variant: "outline", icon: CircleXIcon },
 };
 
 /** An order's status in the account's recent orders (Figma AD-TK2): "Đang giữ", "Đã lấy", "Không đến", "Đã huỷ". */

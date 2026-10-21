@@ -65,6 +65,10 @@ describe("the problem reports' queue (AD-BL1)", () => {
     expect(html).toContain("Chưa nhận");
     expect(html).toContain("20/10 · 19:42");
     expect(html).toContain("Hiển thị 1–10 trên 12 báo lỗi mới");
+    expect(html).toContain("Trang 1 / 2");
+    expect(html).toContain('href="/vi/admin/issues?page=2"');
+    expect(html).toContain('role="tablist"');
+    expect(html).toContain('aria-label="Báo lỗi theo trạng thái"');
     expect(html).toContain("Thao tác với BL-1042");
     expect(html).not.toContain("Không có báo lỗi mới");
   });
@@ -149,7 +153,10 @@ describe("a problem report (AD-BL2)", () => {
     expect(html).toContain("35.000đ");
     expect(html).toContain("VietQR tại quầy · đã trả");
     expect(html).toContain("20/10/2026 · 20:41");
-    // Sending, giving the report to someone and refunding wait for their backend.
-    expect(html.match(/title="Sắp có"/g)).toHaveLength(3);
+    // Sending, giving the report to someone and refunding wait for their backend: each is off, with "Sắp có"
+    // under the pointer, whose tooltip opens in a portal the server does not render.
+    expect(html.match(/data-slot="tooltip-trigger"/g)).toHaveLength(3);
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Gửi<\/button>/);
+    expect(html).toContain("Tạo yêu cầu hoàn tiền");
   });
 });
