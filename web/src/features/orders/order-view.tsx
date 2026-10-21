@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { CancelOrder } from "./cancel-order";
 import { hoursAndMinutes, unitsOf, windowPhase, type Order } from "./order";
 import {
-  CodeTicket,
+  CollectTicket,
   Directions,
   HowToCollect,
   OrderDetails,
@@ -48,7 +48,7 @@ type Level = { level?: "page" | "part" };
 
 /**
  * An order still to collect (Figma W2 confirmed, W3 ready): the blue card with the window in large figures,
- * how long until it opens or closes and the steps, the code ticket beside it; then how to collect, a change
+ * how long until it opens or closes and the steps, the ticket beside it; then how to collect, a change
  * of mind while it is free, the facts and the way to the counter.
  */
 export function OpenOrder({
@@ -98,7 +98,7 @@ export function OpenOrder({
             <OrderSteps order={order} />
           </div>
           <div className="md:col-span-2">
-            <CodeTicket order={order} />
+            <CollectTicket order={order} />
           </div>
         </section>
       </div>

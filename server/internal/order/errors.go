@@ -44,14 +44,6 @@ var (
 		VI: "Chỉ giao đơn trong giờ nhận.",
 		EN: "The order is handed over within its collection window.",
 	})
-	ErrCodeWrong = platform.NewFailure("ORDER_CODE_WRONG", platform.CategoryConflict, platform.Words{
-		VI: "Mã nhận không phải của đơn này.",
-		EN: "The collection code is not this order's.",
-	})
-	ErrCodeLocked = platform.NewFailure("ORDER_CODE_LOCKED", platform.CategoryConflict, platform.Words{
-		VI: "Đã nhập sai mã quá nhiều lần cho đơn này; hãy gọi hỗ trợ của Second Bite.",
-		EN: "Too many wrong codes were given for this order; call Second Bite's support.",
-	})
 	ErrDayInvalid = platform.NewFailure("ORDER_DAY_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Hãy chọn một ngày có thật, dạng YYYY-MM-DD.",
 		EN: "Name a day that exists, as YYYY-MM-DD.",

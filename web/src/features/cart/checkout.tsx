@@ -48,7 +48,7 @@ export function Checkout() {
 
 function Confirmation({ cart }: { cart: Cart }) {
   const t = useTranslations("Cart");
-  const [payment, setPayment] = useState("transfer");
+  const [payment, setPayment] = useState("counter");
   const [contact, setContact] = useState<Contact>();
   const { place, pending, problem, dismiss } = usePlaceCart();
   const { units, priceVnd, originalPriceVnd } = totals(cart);
@@ -74,7 +74,7 @@ function Confirmation({ cart }: { cart: Cart }) {
             onValueChange={(value) => setPayment(String(value))}
             aria-labelledby="pay"
           >
-            <ChoiceOption value="transfer" title={t("transfer")} hint={t("transferHint")} />
+            <ChoiceOption value="counter" title={t("counter")} hint={t("counterHint")} />
             <ChoiceOption value="cash" title={t("cash")} hint={t("cashHint")} />
           </RadioGroup>
         </section>

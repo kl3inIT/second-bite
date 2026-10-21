@@ -313,10 +313,6 @@ export type GrantAdminRequest = {
     email: string;
 };
 
-export type HandOverOrderRequest = {
-    code: string;
-};
-
 export type LatestOfferBody = {
     id: string;
     name: string;
@@ -522,14 +518,6 @@ export type OrderBody = {
      * Shared by the orders placed together from one cart
      */
     checkoutId: string;
-    /**
-     * The collection code, to its customer once the order is ready or its window has opened
-     */
-    code?: string;
-    /**
-     * How many wrong codes staff may still enter
-     */
-    codeAttemptsLeft: number;
     collectedAt?: string;
     createdAt: string;
     /**
@@ -1870,7 +1858,7 @@ export type CancelOrderResponses = {
 export type CancelOrderResponse = CancelOrderResponses[keyof CancelOrderResponses];
 
 export type HandOverOrderData = {
-    body: HandOverOrderRequest;
+    body?: never;
     path: {
         orderId: string;
     };

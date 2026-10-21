@@ -655,15 +655,6 @@ components:
       required:
         - email
       type: object
-    HandOverOrderRequest:
-      additionalProperties: false
-      properties:
-        code:
-          pattern: ^[0-9]{4}$
-          type: string
-      required:
-        - code
-      type: object
     LatestOfferBody:
       additionalProperties: false
       properties:
@@ -1104,13 +1095,6 @@ components:
         checkoutId:
           description: Shared by the orders placed together from one cart
           type: string
-        code:
-          description: The collection code, to its customer once the order is ready or its window has opened
-          type: string
-        codeAttemptsLeft:
-          description: How many wrong codes staff may still enter
-          format: int64
-          type: integer
         collectedAt:
           format: date-time
           type: string
@@ -1179,7 +1163,6 @@ components:
         - windowStart
         - windowEnd
         - createdAt
-        - codeAttemptsLeft
         - checkoutId
         - customerName
         - customerPhone
@@ -2930,7 +2913,7 @@ paths:
         - Orders
   /orders/{orderId}:
     get:
-      description: To its customer, signed in or sending its access, with the code once it may be shown; to the seller's people and to admins.
+      description: To its customer, signed in or sending its access; to the seller's people and to admins.
       operationId: getOrder
       parameters:
         - in: path
@@ -3010,7 +2993,7 @@ paths:
         - Orders
   /orders/{orderId}/hand-over:
     post:
-      description: Within the window. A wrong code is counted; the third locks the code.
+      description: Within the window, once staff have matched the collector to the order by its QR code or by the name and phone number on it.
       operationId: handOverOrder
       parameters:
         - in: path
@@ -3018,12 +3001,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/HandOverOrderRequest"
-        required: true
       responses:
         "200":
           content:
@@ -3040,7 +3017,7 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Hand an order over against its collection code
+      summary: Hand an order over
       tags:
         - Orders
   /orders/{orderId}/ready:
@@ -3068,7 +3045,7 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Mark an order ready, which shows its customer the code
+      summary: Mark an order ready, which tells its customer to come
       tags:
         - Orders
   /orders/{orderId}/refuse:
