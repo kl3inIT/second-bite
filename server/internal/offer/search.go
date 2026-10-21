@@ -171,15 +171,7 @@ func (s *Service) searchParams(ctx context.Context, q Query) (db.SearchOffersPar
 // starts, a price range whose lowest is above its highest, an unknown kind or
 // order, and an order by distance from no point.
 func (q Query) valid() bool {
-	if q.Near != nil && (q.Near.Latitude < -90 || q.Near.Latitude > 90 || q.Near.Longitude < -180 || q.Near.Longitude > 180) {
-		return false
-	}
-
-	if q.CollectFrom != nil && q.CollectTo != nil && q.CollectTo.Before(*q.CollectFrom) {
-		return false
-	}
-
-	if q.MinPriceVND > 0 && q.MaxPriceVND > 0 && q.MinPriceVND > q.MaxPriceVND {
+	if !q.rangesValid() {
 		return false
 	}
 
@@ -197,6 +189,17 @@ func (q Query) valid() bool {
 	default:
 		return false
 	}
+}
+
+// rangesValid tells whether the point is on the map and each range starts no
+// later than it ends.
+func (q Query) rangesValid() bool {
+	pointOff := q.Near != nil &&
+		(q.Near.Latitude < -90 || q.Near.Latitude > 90 || q.Near.Longitude < -180 || q.Near.Longitude > 180)
+	timesBackwards := q.CollectFrom != nil && q.CollectTo != nil && q.CollectTo.Before(*q.CollectFrom)
+	pricesBackwards := q.MinPriceVND > 0 && q.MaxPriceVND > 0 && q.MinPriceVND > q.MaxPriceVND
+
+	return !pointOff && !timesBackwards && !pricesBackwards
 }
 
 // order is the sort asked for, or the default for what was searched.

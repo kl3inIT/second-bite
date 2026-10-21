@@ -272,10 +272,18 @@ func testOrderWithoutAccount(t *testing.T, f fixture) {
 		t.Fatalf("the same key from another phone: %v, %v", other.ID, err)
 	}
 
-	_, err = f.orders.Get(guest, o.ID, "")
+	readAndCancelWithAccess(guest, t, f, o, other.Access)
+}
+
+// readAndCancelWithAccess reads and cancels o, placed without an account,
+// with nothing, another order's access, then its own.
+func readAndCancelWithAccess(guest context.Context, t *testing.T, f fixture, o order.Order, another string) {
+	t.Helper()
+
+	_, err := f.orders.Get(guest, o.ID, "")
 	mustFail(t, "reading without the access", err, order.ErrNotFound)
 
-	_, err = f.orders.Get(guest, o.ID, other.Access)
+	_, err = f.orders.Get(guest, o.ID, another)
 	mustFail(t, "reading with another order's access", err, order.ErrNotFound)
 
 	read, err := f.orders.Get(guest, o.ID, o.Access)
@@ -649,18 +657,7 @@ func testCustomerLists(t *testing.T, f fixture) {
 		t.Fatal(err)
 	}
 
-	if open.CheckoutID != cart || ended.CheckoutID == uuid.Nil || ended.CheckoutID == cart {
-		t.Errorf("checkouts: given %v, got %v; a new one %v", cart, open.CheckoutID, ended.CheckoutID)
-	}
-
-	// Someone else naming the same checkout never joins the customer's.
-	if _, err := f.orders.Place(owner, key(), cart, someone, []order.Wanted{{croissant.ID, 1}}); err != nil {
-		t.Fatal(err)
-	}
-
-	if mine, err := f.orders.Mine(customer, order.WhichAll, cart, 20, 0); err != nil || len(mine) != 1 || mine[0].ID != open.ID {
-		t.Errorf("the customer's orders of one checkout: %v, %v", mine, err)
-	}
+	checkoutKept(owner, customer, t, f, croissant.ID, open, ended)
 
 	for which, want := range map[order.Which][]uuid.UUID{
 		order.WhichAll:   {open.ID, ended.ID},
@@ -684,5 +681,26 @@ func testCustomerLists(t *testing.T, f fixture) {
 
 	if others, _ := f.orders.Mine(owner, order.WhichAll, uuid.Nil, 20, 0); len(others) != 1 {
 		t.Errorf("the owner's own orders, not the customer's: %d", len(others))
+	}
+}
+
+// checkoutKept checks open was placed under the checkout given and ended
+// under a new one, and that someone else naming the same checkout never joins
+// the customer's.
+func checkoutKept(owner, customer context.Context, t *testing.T, f fixture, offerID uuid.UUID, open, ended order.Order) {
+	t.Helper()
+
+	cart := open.CheckoutID
+	if cart == uuid.Nil || ended.CheckoutID == uuid.Nil || ended.CheckoutID == cart {
+		t.Errorf("checkouts: given %v; a new one %v", cart, ended.CheckoutID)
+	}
+
+	if _, err := f.orders.Place(owner, key(), cart, someone, []order.Wanted{{offerID, 1}}); err != nil {
+		t.Fatal(err)
+	}
+
+	mine, err := f.orders.Mine(customer, order.WhichAll, cart, 20, 0)
+	if err != nil || len(mine) != 1 || mine[0].ID != open.ID {
+		t.Errorf("the customer's orders of one checkout: %v, %v", mine, err)
 	}
 }

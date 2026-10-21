@@ -128,17 +128,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		return nil, fmt.Errorf("configuration: %w", err)
 	}
 
-	settingsKey, err := platform.ReadKey(getenv, "SECONDBITE_EMAIL_SETTINGS_KEY")
-	if err != nil {
-		return nil, fmt.Errorf("configuration: %w", err)
-	}
-
-	codeKey, err := platform.ReadKey(getenv, "SECONDBITE_SIGN_IN_CODE_KEY")
-	if err != nil {
-		return nil, fmt.Errorf("configuration: %w", err)
-	}
-
-	collectionKey, err := platform.ReadKey(getenv, "SECONDBITE_COLLECTION_CODE_KEY")
+	k, err := readKeys(getenv)
 	if err != nil {
 		return nil, fmt.Errorf("configuration: %w", err)
 	}
@@ -160,13 +150,13 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 			return nil, err
 		}
 
-		notifications, err := notification.NewService(pool, notification.Config{SettingsKey: settingsKey}, logger)
+		notifications, err := notification.NewService(pool, notification.Config{SettingsKey: k.settings}, logger)
 		if err != nil {
 			return nil, err
 		}
 
 		identities, err := identity.NewService(pool, notifications, events, identity.Config{
-			CodeKey: codeKey, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")),
+			CodeKey: k.signInCode, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")),
 		}, logger)
 		if err != nil {
 			return nil, err
@@ -185,7 +175,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		sellers := seller.NewService(pool, identities, files, logger)
 		offers := offer.NewService(pool, sellers, files, logger)
 
-		orders, err := order.NewService(pool, offers, sellers, collectionKey, logger)
+		orders, err := order.NewService(pool, offers, sellers, k.collectionCode, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -207,6 +197,33 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 	}
 
 	return a, nil
+}
+
+// keys are the secrets the modules derive values from.
+type keys struct {
+	settings, signInCode, collectionCode []byte
+}
+
+func readKeys(getenv func(string) string) (keys, error) {
+	var k keys
+
+	for _, each := range []struct {
+		name string
+		key  *[]byte
+	}{
+		{"SECONDBITE_EMAIL_SETTINGS_KEY", &k.settings},
+		{"SECONDBITE_SIGN_IN_CODE_KEY", &k.signInCode},
+		{"SECONDBITE_COLLECTION_CODE_KEY", &k.collectionCode},
+	} {
+		value, err := platform.ReadKey(getenv, each.name)
+		if err != nil {
+			return keys{}, err
+		}
+
+		*each.key = value
+	}
+
+	return k, nil
 }
 
 func (a *app) serve(ctx context.Context) error {
