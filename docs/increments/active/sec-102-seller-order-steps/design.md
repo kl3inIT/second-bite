@@ -30,3 +30,5 @@ The search, the day bar, "Hủy đơn" with its reasons, "Hoàn tác" and the un
 ## Open
 
 An order can still be handed over at the counter by someone who matches its name and phone number although the seller never pressed "Báo sẵn sàng" on the web (the API allows it). The customer's track then goes from Preparing to Done.
+
+"Hoàn tác" after a hand-over reopens the order as the server does, stored `confirmed`: it returns to Chuẩn bị, and the seller marks it ready again.
