@@ -13,4 +13,12 @@ describe("an account's name in the lists", () => {
     expect(initialsOf({ displayName: "", email: "dong.lan@example.com" })).toBe("DL");
     expect(initialsOf({ displayName: "", email: "minh@example.com" })).toBe("M");
   });
+
+  it("leaves out a note in brackets and words without a letter", () => {
+    const named = (displayName: string) => initialsOf({ displayName, email: "x@example.com" });
+    expect(named("Nhữ Đình Nhật (HE182328)")).toBe("NN");
+    expect(named("Nhu Dinh Nhat (K18 HL)")).toBe("NN");
+    expect(named("An 2004")).toBe("A");
+    expect(named("(HE182328)")).toBe("?");
+  });
 });
