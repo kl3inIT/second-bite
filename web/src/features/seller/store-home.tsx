@@ -11,6 +11,7 @@ import { SellerAvatar } from "@/features/offers/seller-avatar";
 import { Link } from "@/i18n/navigation";
 import type { OfferBody, SellerBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
 import { DayBar } from "./day-filter";
 import { getStoreDishes, getStoreOffers, getStoreOrders } from "./my-sellers";
@@ -21,14 +22,12 @@ import { ShowDishButton } from "./show-dish-button";
 import { readDay, vietnamToday } from "./store-day";
 import { offersOfDay } from "./store-offers";
 import { groupOrders, orderTabs, type OrderTab } from "./store-orders";
+import { StorePanel } from "./store-panel";
 import { summarizeDay } from "./store-summary";
 import { StoreTitleRow } from "./store-title-row";
 
 /** How many orders, posts and dishes the home lists; each card's chips or title lead to the whole tab. */
 const SHOWN = 3;
-
-const card =
-  "flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground";
 
 /** The column of a row's badge or button, as wide on every row so they stand on one axis (Figma Q1b). */
 const actionColumn = "flex w-31 shrink-0 justify-center";
@@ -65,10 +64,7 @@ export async function StoreHome({
   ]);
 
   const isToday = day === today;
-  const date = format.dateTime(new Date(`${day}T12:00:00+07:00`), {
-    day: "2-digit",
-    month: "2-digit",
-  });
+  const date = format.dateTime(new Date(`${day}T12:00:00+07:00`), "dayMonth");
   const posts = offersOfDay(offers, day);
   const summary = summarizeDay(orders, posts);
   const groups = groupOrders(orders);
@@ -87,7 +83,7 @@ export async function StoreHome({
       <StoreStatus store={store} />
 
       {offers.length === 0 && (
-        <section aria-labelledby="store-start" className={cn(card, "items-start")}>
+        <StorePanel labelledBy="store-start" className="items-start">
           <div className="flex flex-col gap-1">
             <h2 id="store-start" className="text-card-title">
               {t("startTitle")}
@@ -97,7 +93,7 @@ export async function StoreHome({
           <Link href={postHref} className={buttonVariants({ size: "lg" })}>
             {t("post")}
           </Link>
-        </section>
+        </StorePanel>
       )}
 
       <section aria-labelledby="store-overview" className="flex flex-col gap-4">
@@ -139,14 +135,14 @@ export async function StoreHome({
       </section>
 
       {isToday && groups.preparing.length > 0 && (
-        <section aria-labelledby="store-todo" className={card}>
+        <StorePanel labelledBy="store-todo">
           <h2 id="store-todo" className="text-card-title">
             {t("todo")}
           </h2>
           <div className="flex items-center gap-3 border-t border-border pt-4 max-md:flex-wrap md:gap-4">
             <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
               <Image
-                src={`/api${groups.preparing[0].lines[0].photo.smallPath}`}
+                src={photoUrl(groups.preparing[0].lines[0].photo.smallPath)}
                 alt=""
                 fill
                 sizes="56px"
@@ -168,10 +164,10 @@ export async function StoreHome({
               {t("seeOrders")}
             </Link>
           </div>
-        </section>
+        </StorePanel>
       )}
 
-      <section aria-labelledby="store-orders" className={card}>
+      <StorePanel labelledBy="store-orders">
         <h2 id="store-orders" className="text-card-title">
           {isToday ? t("ordersToday") : t("ordersOn", { date })}
         </h2>
@@ -212,10 +208,10 @@ export async function StoreHome({
             ))}
           </ul>
         )}
-      </section>
+      </StorePanel>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <section aria-labelledby="store-posts" className={card}>
+        <StorePanel labelledBy="store-posts">
           <h2 id="store-posts" className="text-card-title">
             {isToday ? t("postsToday") : t("postsOn", { date })}
           </h2>
@@ -238,9 +234,9 @@ export async function StoreHome({
               ))}
             </ul>
           )}
-        </section>
+        </StorePanel>
 
-        <section aria-labelledby="store-catalog" className={card}>
+        <StorePanel labelledBy="store-catalog">
           <h2 id="store-catalog" className="text-card-title">
             {t("catalog", { count: dishes.length })}
           </h2>
@@ -262,7 +258,7 @@ export async function StoreHome({
                     )}
                   >
                     <Image
-                      src={`/api${dish.photo.smallPath}`}
+                      src={photoUrl(dish.photo.smallPath)}
                       alt=""
                       fill
                       sizes="56px"
@@ -294,7 +290,7 @@ export async function StoreHome({
               ))}
             </ul>
           )}
-        </section>
+        </StorePanel>
       </div>
 
       <Link

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 
 import { uploadPhoto } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
 /** How many photos a dish or a post shows (SEC-119): the first is the cover. */
 export const MAX_PHOTOS = 3;
@@ -18,7 +19,7 @@ export function slotsOf(photos: readonly { id: string; smallPath: string }[]): P
   return photos.map((photo) => ({
     key: photo.id,
     id: photo.id,
-    preview: `/api${photo.smallPath}`,
+    preview: photoUrl(photo.smallPath),
   }));
 }
 

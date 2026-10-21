@@ -11,6 +11,7 @@ import { PostToast } from "./post-toast";
 import { requireStore } from "./require-store";
 import { readDay, vietnamToday } from "./store-day";
 import { groupByTab, matchesName, offersOfDay, postTabs, readPostTab } from "./store-offers";
+import { StorePanel } from "./store-panel";
 import { StoreTitleRow, titleActionPhone } from "./store-title-row";
 
 /** The line at the foot for what was just done, or nothing when the address carries nothing known. */
@@ -67,10 +68,7 @@ export async function StorePosts({
     day === today
       ? t("today")
       : t("onDay", {
-          date: format.dateTime(new Date(`${day}T12:00:00+07:00`), {
-            day: "2-digit",
-            month: "2-digit",
-          }),
+          date: format.dateTime(new Date(`${day}T12:00:00+07:00`), "dayMonth"),
         });
 
   const message = noticeMessage(notice, t);
@@ -103,10 +101,7 @@ export async function StorePosts({
         placeholder={t("searchPlaceholder")}
       />
 
-      <section
-        aria-labelledby="store-posts"
-        className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground"
-      >
+      <StorePanel labelledBy="store-posts">
         <h2 id="store-posts" className="text-card-title">
           {title}
         </h2>
@@ -180,7 +175,7 @@ export async function StorePosts({
             ))}
           </ul>
         )}
-      </section>
+      </StorePanel>
     </>
   );
 }
