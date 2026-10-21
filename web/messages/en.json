@@ -551,9 +551,7 @@
     "askSeller": "Ask the shop about ingredients and allergies.",
     "count": "{count} {name} to add",
     "add": "Add to cart · {price}",
-    "allChosen": "All {units} chosen",
-    "photos": "The dish's photos",
-    "photoNumber": "Show photo {number} of {total}"
+    "allChosen": "All {units} chosen"
   },
   "Seller": {
     "search": "Search the {seller} menu",
@@ -1069,8 +1067,8 @@
     "editTitle": "Edit dish",
     "photo": "Dish photo",
     "choosePhoto": "Choose a photo",
-    "addPhoto": "Add a photo",
-    "photoHint": "Up to 3 photos; the first is the cover.",
+    "changePhoto": "Change the photo",
+    "photoHint": "A photo helps customers recognise your dish.",
     "photoMissing": "Choose a photo for the dish.",
     "name": "Dish name",
     "namePlaceholder": "For example: Bread and croissant bag, 4 pieces",
@@ -1093,9 +1091,7 @@
     "failed": "Could not save the dish. Try again in a few minutes.",
     "original": "Original price (VND, optional)",
     "originalPlaceholder": "For example: 95.000",
-    "originalInvalid": "An original price from 1.001đ, or leave it empty.",
-    "cover": "Cover",
-    "removePhoto": "Remove photo {number}"
+    "originalInvalid": "An original price from 1.001đ, or leave it empty."
   },
   "Admin": {
     "home": "Second Bite, admin",

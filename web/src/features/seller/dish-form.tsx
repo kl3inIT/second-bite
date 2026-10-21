@@ -23,12 +23,13 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Spinner } from "@/components/ui/spinner";
 import { Link, useRouter } from "@/i18n/navigation";
 import { failureOf } from "@/lib/api/client";
-import { addDish, changeDish, type DishBody, removeDish } from "@/lib/api/generated";
+import { addDish, changeDish, type DishBody, removeDish, uploadPhoto } from "@/lib/api/generated";
+import { photoUrl } from "@/lib/api/photo";
 
 import { Chip } from "./chip";
 import { NumberInput } from "./number-input";
 import { PhoneFootBar } from "./phone-foot-bar";
-import { type PhotoSlot, PhotoSlots, slotsOf, uploadedIds } from "./photo-slots";
+import { type ChosenPhoto, PhotoField } from "./photo-drop";
 import { useRemountKey } from "./remount-key";
 
 const kinds = [
@@ -46,7 +47,8 @@ const kinds = [
 const units = ["suất", "phần", "cái", "chiếc", "túi", "hộp", "ổ", "ly", "chai"];
 
 type Values = {
-  photos: PhotoSlot[];
+  /** A photo just chosen; a dish that exists keeps its own until one is. */
+  photo: ChosenPhoto | undefined;
   name: string;
   kind: DishBody["kind"];
   unit: string;
@@ -74,7 +76,7 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
   }
 
   const defaultValues: Values = {
-    photos: dish ? slotsOf(dish.photos) : [],
+    photo: undefined,
     name: dish?.name ?? "",
     kind: dish?.kind ?? "bakery",
     unit: dish?.unit ?? "suất",
@@ -89,7 +91,9 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
     validators: {
       onDynamic: z
         .object({
-          photos: z.array(z.custom<PhotoSlot>()).min(1, t("photoMissing")),
+          photo: z
+            .custom<ChosenPhoto | undefined>()
+            .refine((photo) => dish !== undefined || photo !== undefined, t("photoMissing")),
           name: z.string().trim().min(1, t("nameMissing")),
           kind: z.enum(kinds),
           unit: z.string(),
@@ -111,8 +115,9 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
     onSubmit: async ({ value, formApi }) => {
       setRemoveFailure(undefined);
       try {
-        const [photoId, ...morePhotoIds] = await uploadedIds(value.photos);
-        if (!photoId) return;
+        const photoId = value.photo
+          ? (await uploadPhoto({ body: value.photo.file })).data.id
+          : undefined;
         const fields = {
           name: value.name.trim(),
           kind: value.kind,
@@ -124,16 +129,19 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
           // Emptying the price takes it away (the backend reads 0 so).
           await changeDish({
             path: { dishId: dish.id },
-            body: { ...fields, originalPriceVnd: Number(value.original), photoId, morePhotoIds },
+            body: {
+              ...fields,
+              originalPriceVnd: Number(value.original),
+              ...(photoId ? { photoId } : {}),
+            },
           });
-        } else {
+        } else if (photoId) {
           await addDish({
             path: { sellerId },
             body: {
               ...fields,
               ...(value.original ? { originalPriceVnd: Number(value.original) } : {}),
               photoId,
-              morePhotoIds,
             },
           });
         }
@@ -174,7 +182,14 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
         </form.AppForm>
         {removeFailure && <FailureAlert failure={removeFailure} fallback={t("failed")} />}
 
-        <form.AppField name="photos">{() => <PhotosField />}</form.AppField>
+        <form.AppField name="photo">
+          {() => (
+            <PhotoField
+              label={t("photo")}
+              current={dish ? photoUrl(dish.photo.smallPath) : undefined}
+            />
+          )}
+        </form.AppField>
 
         <form.AppField name="name">
           {(field) => (
@@ -275,25 +290,6 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
         </AlertDialogContent>
       </AlertDialog>
     </form>
-  );
-}
-
-/** The dish's photos: up to three, the first its cover. */
-function PhotosField() {
-  const t = useTranslations("DishForm");
-  const { field, invalid, errors, ids } = useFieldValidity<PhotoSlot[]>();
-  return (
-    <Field data-invalid={invalid || undefined}>
-      <FieldLabel htmlFor={ids.control}>{t("photo")}</FieldLabel>
-      <PhotoSlots
-        id={ids.control}
-        slots={field.state.value}
-        invalid={invalid}
-        describedBy={invalid ? ids.error : undefined}
-        onChange={(slots) => field.handleChange(slots)}
-      />
-      {invalid && <FieldError id={ids.error} errors={errors} />}
-    </Field>
   );
 }
 
