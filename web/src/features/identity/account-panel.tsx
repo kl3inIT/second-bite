@@ -1,4 +1,4 @@
-import { ChevronRightIcon, SettingsIcon, UserRoundIcon } from "lucide-react";
+import { ChevronRightIcon, SettingsIcon, StoreIcon, UserRoundIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -9,7 +9,8 @@ import { getCurrentAccount } from "./current-account";
 import { SignOutButton } from "./sign-out-button";
 
 // The account tab (Figma "Tài khoản", Q1a): who is signed in and sign-out, or a way to sign in; account
-// settings, where the account is managed and deleted (SEC-37), for someone signed in; then the terms
+// settings, where the account is managed and deleted (SEC-37), and on a phone "Mở quán" (the header's capsule
+// does it from `md`), for someone signed in; then the terms
 // and the privacy policy, which a shopping site must keep within reach (Decree 52/2013, SEC-32) and which
 // on a phone live here rather than in a footer. It reads the session, so it renders inside Suspense.
 export async function AccountPanel() {
@@ -63,6 +64,23 @@ export async function AccountPanel() {
                 <span className="flex items-center gap-2">
                   <SettingsIcon aria-hidden className="size-4" />
                   {t("settings")}
+                </span>
+              </ItemTitle>
+            </ItemContent>
+            <ItemActions>
+              <ChevronRightIcon aria-hidden className="size-4 text-muted-foreground" />
+            </ItemActions>
+          </Item>
+        </div>
+      )}
+      {account && (
+        <div className="rounded-2xl bg-card p-1 text-card-foreground md:hidden">
+          <Item render={<Link href="/stores" />} className="min-h-12">
+            <ItemContent>
+              <ItemTitle>
+                <span className="flex items-center gap-2">
+                  <StoreIcon aria-hidden className="size-4" />
+                  {t("openStore")}
                 </span>
               </ItemTitle>
             </ItemContent>
