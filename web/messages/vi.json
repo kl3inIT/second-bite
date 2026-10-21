@@ -1201,12 +1201,10 @@
         "clear": "Xoá bộ lọc"
       }
     },
-    "closeToast": "Đóng thông báo",
     "settings": {
       "title": "Cài đặt",
       "nav": "Mục cài đặt",
-      "email": "Email",
-      "admins": "Quản trị viên"
+      "email": "Email"
     },
     "email": {
       "title": "Email",
@@ -1364,14 +1362,6 @@
       }
     },
     "admins": {
-      "title": "Quản trị viên",
-      "description": "Quản trị viên duyệt cửa hàng, xem tài khoản và đổi cài đặt. Họ đăng nhập bằng mã gửi qua email như mọi người.",
-      "you": "Bạn",
-      "column": {
-        "account": "Tài khoản",
-        "signedIn": "Lần đăng nhập cuối",
-        "actions": "Thao tác"
-      },
       "grant": {
         "open": "Thêm quản trị viên",
         "title": "Thêm quản trị viên",
@@ -1382,7 +1372,8 @@
         "submit": "Cấp quyền",
         "done": "Đã cấp quyền quản trị cho {email}",
         "failed": "Chưa cấp quyền được",
-        "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát."
+        "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát.",
+        "placeholder": "ten@gmail.com"
       },
       "revoke": {
         "open": "Thu quyền",
@@ -1585,5 +1576,10 @@
     "emptyBody": "Bấm ♡ ở trang quán để theo dõi.",
     "emptyMore": "Quán có món giảm sẽ báo bạn.",
     "explore": "Khám phá quán"
+  },
+  "Failure": {
+    "reference": "Mã tham chiếu: {reference}",
+    "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát.",
+    "closeToast": "Đóng thông báo"
   }
 }

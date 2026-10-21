@@ -1201,12 +1201,10 @@
         "clear": "Clear the filters"
       }
     },
-    "closeToast": "Close notification",
     "settings": {
       "title": "Settings",
       "nav": "Settings pages",
-      "email": "Email",
-      "admins": "Admins"
+      "email": "Email"
     },
     "email": {
       "title": "Email",
@@ -1364,14 +1362,6 @@
       }
     },
     "admins": {
-      "title": "Admins",
-      "description": "Admins approve stores, look up accounts and change the settings. They sign in with an emailed code like everyone.",
-      "you": "You",
-      "column": {
-        "account": "Account",
-        "signedIn": "Last sign-in",
-        "actions": "Actions"
-      },
       "grant": {
         "open": "Add an admin",
         "title": "Add an admin",
@@ -1382,7 +1372,8 @@
         "submit": "Make admin",
         "done": "{email} is now an admin",
         "failed": "Could not make an admin",
-        "unreachable": "The server could not be reached. Try again shortly."
+        "unreachable": "The server could not be reached. Try again shortly.",
+        "placeholder": "name@gmail.com"
       },
       "revoke": {
         "open": "Revoke",
@@ -1585,5 +1576,10 @@
     "emptyBody": "Tap ♡ on a shop's page to follow it.",
     "emptyMore": "Shops with a deal will let you know.",
     "explore": "Explore shops"
+  },
+  "Failure": {
+    "reference": "Reference: {reference}",
+    "unreachable": "The server could not be reached. Try again in a moment.",
+    "closeToast": "Close notification"
   }
 }
