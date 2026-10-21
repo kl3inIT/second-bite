@@ -171,7 +171,7 @@ func registerStaffOperations(api huma.API, s *Service) {
 	huma.Register(api, huma.Operation{
 		OperationID: "changeOffer", Method: http.MethodPatch, Path: "/offers/{offerId}",
 		Summary:     "Change an offer",
-		Description: "Once units are ordered, only the description, the photo and the units (never below those ordered) change.",
+		Description: "Once units are ordered, only the description, the photo, the units (never below those ordered) and the collection window change; the orders still to collect follow the new window.",
 		Tags:        tagOffers, Security: security,
 	}, func(ctx context.Context, in *struct {
 		OfferID uuid.UUID `path:"offerId"`

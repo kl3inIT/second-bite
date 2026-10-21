@@ -310,7 +310,7 @@ test.describe("changing a post on the web", () => {
     ).toBeVisible();
   });
 
-  test("locks the price and the hours once units are ordered, and refuses fewer units", async ({
+  test("locks the price once units are ordered, lets the hours move, and refuses fewer units", async ({
     page,
   }, testInfo) => {
     const store = await storeNamed(page, "bao", testInfo, "Tiệm có đơn");
@@ -321,7 +321,8 @@ test.describe("changing a post on the web", () => {
     await expect(drawer.getByText("Đang bán, đã có 2 suất được đặt")).toBeVisible();
     await expect(drawer.getByLabel("Giá bán (đồng)")).toBeDisabled();
     await expect(drawer.getByLabel("Giá gốc (đồng)")).toBeDisabled();
-    await expect(drawer.getByRole("button", { name: "Ngay bây giờ" })).toBeDisabled();
+    await expect(drawer.getByRole("button", { name: "Ngay bây giờ" })).toBeEnabled();
+    await expect(drawer.getByText(/Khách đã đặt sẽ lấy theo giờ mới/)).toBeVisible();
     await expect(drawer.getByRole("button", { name: "Rút bài" })).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
 
@@ -332,7 +333,9 @@ test.describe("changing a post on the web", () => {
     ).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
+    // The hours may move with orders on the post: "Ngay bây giờ" sends a new window, which the stub accepts.
     await drawer.getByLabel("Số lượng").fill("4");
+    await drawer.getByRole("button", { name: "Ngay bây giờ" }).click();
     await drawer.getByRole("button", { name: "Lưu thay đổi" }).click();
     await expect(page.getByText("Đã lưu.")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("listitem").filter({ hasText: /Còn 2\/4 suất/ })).toBeVisible();

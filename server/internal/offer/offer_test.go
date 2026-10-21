@@ -47,6 +47,7 @@ func TestOffer(t *testing.T) {
 			"only an active seller's people post":         testOnlyActiveSellersPeoplePost,
 			"a photo is the poster's or the seller's":     testPhotoIsPostersOrSellers,
 			"orders limit what changes":                   testOrdersLimitWhatChanges,
+			"orders let the window move":                  testOrdersLetTheWindowMove,
 			"status follows units, window and withdrawal": testStatusFollowsUnitsWindowAndWithdrawal,
 			"search reads Vietnamese as it is typed":      testSearchReadsVietnamese,
 			"search keeps what is near and filtered":      testSearchNearAndFiltered,
@@ -93,7 +94,7 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 
 	return fixture{
 		pool: pool, accounts: accounts, files: files, sellers: sellers,
-		offers: offer.NewService(pool, sellers, files, trail, platformtest.Logger()),
+		offers: offer.NewService(pool, sellers, files, events, trail, platformtest.Logger()),
 		prefix: "offer." + strings.ReplaceAll(uuid.NewString(), "-", ""),
 	}
 }
@@ -350,6 +351,41 @@ func testOrdersLimitWhatChanges(t *testing.T, f fixture) {
 
 	_, err = f.offers.Change(owner, o.ID, offer.Change{Description: &note})
 	mustFail(t, "a withdrawn offer", err, offer.ErrChangeNotAllowed)
+}
+
+func testOrdersLetTheWindowMove(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	sellerID := f.activeSeller(owner, t)
+
+	o, err := f.offers.Post(owner, sellerID, bread(f.photo(owner, t)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f.order(t, o.ID, 2)
+
+	name := "Bánh mì khác"
+	_, err = f.offers.Change(owner, o.ID, offer.Change{Name: &name})
+	mustFail(t, "the name once units are ordered", err, offer.ErrChangeNotAllowed)
+
+	// The window may move once units are ordered: orders follow it.
+	start, end := time.Now().Add(time.Hour), time.Now().Add(4*time.Hour)
+
+	o, err = f.offers.Change(owner, o.ID, offer.Change{WindowStart: &start, WindowEnd: &end})
+	if err != nil || o.UnitsLeft != 3 || o.PriceVND != 15_000 {
+		t.Fatalf("a window once units are ordered: %+v, %v", o, err)
+	}
+
+	windows, err := f.offers.WindowsOf(owner, []uuid.UUID{o.ID, uuid.New()})
+	if err != nil || len(windows) != 1 || windows[o.ID].End.Sub(end).Abs() > time.Second {
+		t.Fatalf("the windows read: %+v, %v", windows, err)
+	}
+
+	over := time.Now().Add(-time.Hour)
+	_, err = f.offers.Change(owner, o.ID, offer.Change{WindowEnd: &over})
+	mustFail(t, "a window already over", err, offer.ErrWindowInvalid)
 }
 
 func testStatusFollowsUnitsWindowAndWithdrawal(t *testing.T, f fixture) {

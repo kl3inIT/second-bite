@@ -55,6 +55,7 @@ func TestOrder(t *testing.T) {
 		"no answer or no show gives units back":    testNoShowGivesUnitsBack,
 		"a mistake is taken back":                  testReopen,
 		"some orders are not reopened":             testReopenStaysShut,
+		"orders follow their offer's window":       testOrdersFollowTheWindow,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -84,7 +85,7 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 	}
 
 	sellers := seller.NewService(pool, accounts, files, nil, events, trail, platformtest.Logger()) // its listeners do not run here
-	offers := offer.NewService(pool, sellers, files, trail, platformtest.Logger())
+	offers := offer.NewService(pool, sellers, files, events, trail, platformtest.Logger())
 
 	orders := order.NewService(pool, offers, sellers, platformtest.Logger())
 
@@ -660,6 +661,52 @@ func testReopenStaysShut(t *testing.T, f fixture) {
 
 	_, err = f.orders.Reopen(owner, late.ID)
 	mustFail(t, "reopening once the window is over", err, order.ErrTransitionNotAllowed)
+}
+
+func testOrdersFollowTheWindow(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
+
+	open, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	handed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.orders.HandOver(owner, handed.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	start, end := time.Now().Add(time.Hour), time.Now().Add(3*time.Hour)
+	if _, err := f.offers.Change(owner, croissant.ID, offer.Change{WindowStart: &start, WindowEnd: &end}); err != nil {
+		t.Fatal(err)
+	}
+
+	// The listener does not run in this check; its handler is called as the event would.
+	event := offer.WindowChangedEvent{OfferID: croissant.ID}
+	for range 2 { // delivered twice, it changes nothing more
+		if err := f.orders.FollowOfferWindow(t.Context(), event); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	moved, err := f.orders.Get(customer, open.ID, "")
+	if err != nil || moved.WindowStart.Sub(start).Abs() > time.Second || moved.WindowEnd.Sub(end).Abs() > time.Second {
+		t.Fatalf("the open order's window: %v to %v, want %v to %v (%v)", moved.WindowStart, moved.WindowEnd, start, end, err)
+	}
+
+	kept, err := f.orders.Get(customer, handed.ID, "")
+	if err != nil || kept.WindowStart.Sub(start).Abs() < time.Minute {
+		t.Fatalf("the handed-over order's window moved: %v (%v)", kept.WindowStart, err)
+	}
 }
 
 func testExpiryReadFromTheWindow(t *testing.T, f fixture) {

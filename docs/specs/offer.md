@@ -19,7 +19,7 @@ Owns the surplus sellers post and the settings every offer follows (tables `offe
 
 An offer carries its status, units left, discount, photo addresses and the collection point copied from the seller when it was posted. Prices are whole đồng; times are RFC 3339.
 
-Published to other modules: `Service` alone. `order` takes units with `Take` and gives them back with `Return`, both inside the order's transaction; `Take` answers what the order copies (`Taken`: the seller, its name and collection point, the offer's name, unit, prices, photo and window).
+Published to other modules: `Service` and `WindowChangedEvent`. `order` reads the windows of the offers it holds with `WindowsOf`, and takes units with `Take` and gives them back with `Return`, both inside the order's transaction; `Take` answers what the order copies (`Taken`: the seller, its name and collection point, the offer's name, unit, prices, photo and window).
 
 ## Rules
 
@@ -27,7 +27,7 @@ Published to other modules: `Service` alone. `order` takes units with `Take` and
 - **Settings** (admins change them while the service runs; the first values are the team's of 18 October 2026): the price at least 20% below the original price; a window of 30 minutes to 6 hours, not over, starting within 24 hours; a search radius of 5 km by default and 30 at most, read by search (step 4). A setting applies to what is posted, and to a price or window changed, after it is saved.
 - **The photo** is one the poster uploaded, which the offer claims, or one an earlier offer of the same seller shows: that is how staff post again, sending an earlier offer's details with new units and window. Another seller's photo answers `FILE_PHOTO_NOT_FOUND`.
 - **Status**: `on_sale` and `withdrawn` are stored; `sold_out` (no unit left) and `closed` (the window is over) are read in every query. A sold-out offer stays visible; a closed or withdrawn one is seen only by its seller's people and admins.
-- **Changes**: before any unit is ordered, everything but the seller and the collection point; once units are ordered, only the description, the photo and the units, never below the units ordered. Nothing changes once the offer is closed or withdrawn. Changes to one offer are serialized by a row lock.
+- **Changes**: before any unit is ordered, everything but the seller and the collection point; once units are ordered, only the description, the photo, the units (never below the units ordered) and the collection window, since an order keeps the price and the name it was placed at and follows the window. A change of the window of an offer with orders publishes `offer.window_changed`, and `order` moves the orders still to collect to it (SEC-91); the customers are not told, as they leave no address to tell them at. Nothing changes once the offer is closed or withdrawn. Changes to one offer are serialized by a row lock.
 - **Withdrawing** keeps the row with when it was withdrawn; a closed offer cannot be withdrawn. Orders already placed stand ([SEC-15 design](../increments/active/sec-15-order-module/design.md#5-context-map)).
 - **Taking units** for an order is one conditional update: only an offer on sale, its window not over, with the units left; when two orders want the last unit, one gets it. Units come back when an order is cancelled, never above the units posted.
 - Admins neither post nor change offers; a stranger gets 404.

@@ -1073,10 +1073,9 @@ async function sellerRoutes(request, response, url) {
     }
     if (request.method === "PATCH") {
       const body = await readBody(request);
-      const priceOrHours = ["priceVnd", "originalPriceVnd", "windowStart", "windowEnd"].some(
-        (key) => key in body,
-      );
-      if (ordered > 0 && priceOrHours) {
+      // Once units are ordered the price stays; the hours may move, and the orders follow them (SEC-91).
+      const price = ["priceVnd", "originalPriceVnd"].some((key) => key in body);
+      if (ordered > 0 && price) {
         problem(response, 409, "OFFER_CHANGE_NOT_ALLOWED");
       } else if (body.units !== undefined && body.units < ordered) {
         problem(response, 422, "OFFER_DETAILS_INVALID");

@@ -25,7 +25,7 @@ Published to other modules: `Service` alone.
 ## Rules
 
 - **A cart**: one to ten different offers of one active seller, each one or more units. The units are taken from each offer in the order's transaction, in one order of identifiers; when one offer has too few, nothing is taken.
-- **The window** is the part all the offers' windows share; it must still be to come.
+- **The window** is the part all the offers' windows share; it must still be to come. When a seller moves the window of an offer that has orders, `offer.window_changed` reaches `order`, which reads the windows of each open order's offers again and moves the order to the part they share (SEC-91); an order whose offers no longer share a time keeps its window, and orders handed over, cancelled or refused stay as they were. The customers are not told.
 - **Confirmed at once**; staff never accept an order.
 - **The checkout**: the orders placed together from one cart, one per seller, share an identifier the client gives, or a new one; it groups them for their customer and changes nothing else.
 - **Who collects**: a name of 1 to 50 characters and a Vietnamese phone number, `0` and nine digits; spaces, dots, dashes and `+84` are taken out or written as `0`. Never logged.
