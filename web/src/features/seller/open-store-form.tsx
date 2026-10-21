@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleAlertIcon } from "lucide-react";
+import { CircleAlertIcon, CircleCheckIcon, LocateFixedIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
@@ -9,6 +9,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
 import { ApiError, failureOf } from "@/lib/api/client";
@@ -17,8 +23,15 @@ import { openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
 import { PhoneFootBar } from "./phone-foot-bar";
 import { useRemountKey } from "./remount-key";
 
-/** Tasco Mall Long Biên, where every store of the pilot is: the form has no map (Figma O1), so a store is pinned here. */
+/** Tasco Mall Long Biên, where every store of the pilot is: a store is pinned here until its owner gives where they are. */
 const MALL = { latitude: 21.0565, longitude: 105.8964 };
+
+/** How long the browser may look for the place, and how old a place it may reuse (as the home's area sheet asks). */
+const LOCATION_TIMEOUT_MS = 10_000;
+const LOCATION_MAX_AGE_MS = 5 * 60_000;
+
+/** Where the person is, as the browser gave it, with how far off it may be, in metres. */
+type Located = { latitude: number; longitude: number; accuracy: number };
 
 type Problem = {
   kind: "details" | "phone" | "limit" | "failed";
@@ -53,6 +66,35 @@ function OpenStoreFormBody() {
   const [preview, setPreview] = useState<string>();
   const [problem, setProblem] = useState<Problem>();
   const [pending, startTransition] = useTransition();
+  const [located, setLocated] = useState<Located>();
+  const [locating, setLocating] = useState(false);
+  const [locateFailure, setLocateFailure] = useState<"denied" | "failed">();
+
+  // The button at the end of the address (Figma O1d, O1e, O1f): where the person stands pins the store, in place
+  // of the mall; the address itself stays as they write it.
+  function locate() {
+    setLocateFailure(undefined);
+    if (!("geolocation" in navigator)) {
+      setLocateFailure("failed");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setLocating(false);
+        setLocated({
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          accuracy: Math.round(coords.accuracy),
+        });
+      },
+      (error) => {
+        setLocating(false);
+        setLocateFailure(error.code === error.PERMISSION_DENIED ? "denied" : "failed");
+      },
+      { enableHighAccuracy: true, timeout: LOCATION_TIMEOUT_MS, maximumAge: LOCATION_MAX_AGE_MS },
+    );
+  }
 
   function choose(file: File | undefined) {
     if (preview) URL.revokeObjectURL(preview);
@@ -66,7 +108,12 @@ function OpenStoreFormBody() {
       let sellerId: string;
       try {
         const { data } = await openSeller({
-          body: { name: name.trim(), phone: phone.trim(), address: address.trim(), ...MALL },
+          body: {
+            name: name.trim(),
+            phone: phone.trim(),
+            address: address.trim(),
+            ...(located ?? MALL),
+          },
         });
         sellerId = data.id;
       } catch (error) {
@@ -156,17 +203,45 @@ function OpenStoreFormBody() {
 
         <Field data-invalid={detailsInvalid || undefined}>
           <FieldLabel htmlFor="store-address">{t("address")}</FieldLabel>
-          <Input
-            id="store-address"
-            value={address}
-            onChange={(event) => setAddress(event.target.value)}
-            placeholder={t("addressPlaceholder")}
-            autoComplete="street-address"
-            required
-            aria-invalid={detailsInvalid || undefined}
-            aria-describedby={detailsInvalid ? "store-details-problem" : undefined}
-            disabled={pending}
-          />
+          <InputGroup>
+            <InputGroupInput
+              id="store-address"
+              value={address}
+              onChange={(event) => setAddress(event.target.value)}
+              placeholder={t("addressPlaceholder")}
+              autoComplete="street-address"
+              required
+              aria-invalid={detailsInvalid || undefined}
+              aria-describedby={detailsInvalid ? "store-details-problem" : "store-locate-note"}
+              disabled={pending}
+            />
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                size="icon-sm"
+                className="relative after:absolute after:-inset-1.5"
+                aria-label={t("locate")}
+                title={t("locate")}
+                disabled={pending || locating}
+                onClick={locate}
+              >
+                {locating ? <Spinner /> : <LocateFixedIcon aria-hidden />}
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+          <output id="store-locate-note" className="block empty:hidden">
+            {located && !locateFailure && (
+              <span className="flex items-start gap-2 text-note text-muted-foreground">
+                <CircleCheckIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
+                {t("located", { meters: located.accuracy })}
+              </span>
+            )}
+            {locateFailure && (
+              <span className="flex items-start gap-2 text-note text-warning-foreground">
+                <CircleAlertIcon aria-hidden className="mt-0.5 size-4 shrink-0" />
+                {t(locateFailure === "denied" ? "locateDenied" : "locateFailed")}
+              </span>
+            )}
+          </output>
           {detailsInvalid && <FieldError id="store-details-problem">{problem.detail}</FieldError>}
         </Field>
 
