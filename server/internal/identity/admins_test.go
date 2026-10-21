@@ -47,7 +47,7 @@ func TestAdmins(t *testing.T) {
 		gone = second
 	}
 
-	checkRevokeIdempotent(t, s, pool, admins[0], gone)
+	checkRevokeIdempotent(t, s, pool, admins[0].Account, gone)
 }
 
 // checkFirstAdminStays: the only admin cannot be revoked, alone or by themselves.

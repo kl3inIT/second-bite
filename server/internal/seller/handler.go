@@ -321,6 +321,28 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 	})
 
 	huma.Register(admin, huma.Operation{
+		OperationID: "listMembershipsForAdmins", Method: http.MethodGet, Path: "/memberships",
+		Summary: "The sellers some accounts own or work at, owners first",
+	}, func(ctx context.Context, in *struct {
+		AccountID []uuid.UUID `query:"accountId" doc:"The accounts, at most 100" maxItems:"100" minItems:"1" required:"true"`
+	},
+	) (*membershipsOutput, error) {
+		memberships, err := s.MembershipsForAdmins(ctx, in.AccountID)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &membershipsOutput{}
+		out.Body.Memberships = make([]membershipBody, 0, len(memberships))
+
+		for _, m := range memberships {
+			out.Body.Memberships = append(out.Body.Memberships, membershipBody(m))
+		}
+
+		return out, nil
+	})
+
+	huma.Register(admin, huma.Operation{
 		OperationID: "approveSeller", Method: http.MethodPost, Path: "/sellers/{sellerId}/approve",
 		Summary: "Let a pending, rejected or blocked seller publish; its owner is emailed",
 	}, func(ctx context.Context, in *sellerPath) (*sellerOutput, error) {
@@ -362,6 +384,20 @@ type adminSellerBody struct {
 	sellerBody
 
 	OwnerEmail string `json:"ownerEmail,omitempty" doc:"Absent when the owner deleted their account"`
+}
+
+type membershipBody struct {
+	AccountID    uuid.UUID `json:"accountId"`
+	Role         Role      `json:"role"         enum:"owner,staff"`
+	SellerID     uuid.UUID `json:"sellerId"`
+	SellerName   string    `json:"sellerName"`
+	SellerStatus Status    `json:"sellerStatus" enum:"pending,active,rejected,blocked"`
+}
+
+type membershipsOutput struct {
+	Body struct {
+		Memberships []membershipBody `json:"memberships"`
+	}
 }
 
 type adminSellersOutput struct {

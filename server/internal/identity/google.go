@@ -172,7 +172,7 @@ func (s *Service) SignInWithGoogle(ctx context.Context, idToken, nonce string) (
 			return err
 		}
 
-		session, err = s.openSession(ctx, q, account)
+		session, err = s.openSession(ctx, q, account, methodGoogle)
 
 		return err
 	})

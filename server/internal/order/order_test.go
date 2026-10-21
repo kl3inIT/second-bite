@@ -55,6 +55,7 @@ func TestOrder(t *testing.T) {
 		"no answer or no show gives units back":    testNoShowGivesUnitsBack,
 		"a mistake is taken back":                  testReopen,
 		"some orders are not reopened":             testReopenStaysShut,
+		"admins read what an account ordered":      testHistoryForAdmins,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -787,4 +788,60 @@ func checkoutKept(owner, customer context.Context, t *testing.T, f fixture, offe
 	if err != nil || len(mine) != 1 || mine[0].ID != open.ID {
 		t.Errorf("the customer's orders of one checkout: %v, %v", mine, err)
 	}
+}
+
+func testHistoryForAdmins(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	admin := f.as(t, "admin", platform.RoleAdmin)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 9, 20_000, time.Now())
+
+	place := func() order.Order {
+		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		return o
+	}
+
+	collected := place()
+	if _, err := f.orders.HandOver(owner, collected.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	noShow := place()
+	if _, err := f.orders.Refuse(owner, noShow.ID, order.RefuseNoShow, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	soldOut := place()
+	if _, err := f.orders.Refuse(owner, soldOut.ID, order.RefuseSoldOut, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	expired := place()
+	f.shift(t, expired.ID, -3*time.Hour)
+
+	for range 3 {
+		place()
+	}
+
+	caller, _ := platform.CallerFrom(customer)
+
+	h, err := f.orders.HistoryForAdmins(admin, caller.AccountID)
+	if err != nil || h.Placed != 7 || h.Collected != 1 || h.Missed != 2 || len(h.Recent) != 5 {
+		t.Fatalf("the history: placed %d, collected %d, missed %d, %d recent, %v; want 7, 1, 2, 5",
+			h.Placed, h.Collected, h.Missed, len(h.Recent), err)
+	}
+
+	if h.Recent[0].Status != order.StatusConfirmed || len(h.Recent[0].Lines) != 1 || h.Recent[0].Access != "" {
+		t.Errorf("the newest order: %+v; want confirmed, with its line, without its access", h.Recent[0])
+	}
+
+	_, err = f.orders.HistoryForAdmins(customer, caller.AccountID)
+	mustFail(t, "a customer reading a history", err, platform.ErrAdminRequired)
 }

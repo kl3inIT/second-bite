@@ -7,18 +7,24 @@ import 'package:retrofit/retrofit.dart';
 
 import '../models/account_body.dart';
 import '../models/action.dart';
+import '../models/admin_accounts_output_body.dart';
 import '../models/admin_sellers_output_body.dart';
 import '../models/admins_output_body.dart';
 import '../models/audit_events_output_body.dart';
 import '../models/block_seller_request.dart';
 import '../models/email_settings_body.dart';
 import '../models/grant_admin_request.dart';
+import '../models/history_output_body.dart';
+import '../models/memberships_output_body.dart';
 import '../models/offer_settings_body.dart';
+import '../models/record_body.dart';
 import '../models/reject_seller_request.dart';
+import '../models/role.dart';
 import '../models/save_email_settings_input_body.dart';
 import '../models/seller_body.dart';
 import '../models/send_test_email_input_body.dart';
 import '../models/sort.dart';
+import '../models/sort2.dart';
 import '../models/status.dart';
 
 part 'admin_client.g.dart';
@@ -26,6 +32,36 @@ part 'admin_client.g.dart';
 @RestApi()
 abstract class AdminClient {
   factory AdminClient(Dio dio, {String? baseUrl}) = _AdminClient;
+
+  /// Accounts by role and words, the newest first.
+  ///
+  /// q matches the address or the name, Vietnamese marks ignored. Sorted by last sign-in, those never signed in come last. A page past the end is empty.
+  ///
+  /// [role] - Keep this role; every role when absent.
+  ///
+  /// [q] - Words of the address or the name.
+  ///
+  /// [sort] - name, created or signedIn; a leading - is descending; the newest first when absent.
+  @GET('/admin/accounts')
+  Future<AdminAccountsOutputBody> listAccounts({
+    @Query('page') int? page = 1,
+    @Query('size') int? size = 25,
+    @Query('role') Role? role,
+    @Query('q') String? q,
+    @Query('sort') Sort? sort,
+  });
+
+  /// An account, with when and how it last signed in
+  @GET('/admin/accounts/{accountId}')
+  Future<RecordBody> getAccountForAdmins({
+    @Path('accountId') required String accountId,
+  });
+
+  /// What an account ordered: counts and the latest five orders
+  @GET('/admin/accounts/{accountId}/orders')
+  Future<HistoryOutputBody> getAccountOrderHistory({
+    @Path('accountId') required String accountId,
+  });
 
   /// Every admin, by address
   @GET('/admin/admins')
@@ -91,6 +127,14 @@ abstract class AdminClient {
   @POST('/admin/email-settings/test')
   Future<void> sendTestEmail({@Body() SendTestEmailInputBody? body});
 
+  /// The sellers some accounts own or work at, owners first.
+  ///
+  /// [accountId] - The accounts, at most 100.
+  @GET('/admin/memberships')
+  Future<MembershipsOutputBody> listMembershipsForAdmins({
+    @Query('accountId') required List<String>? accountId,
+  });
+
   /// The rules every offer follows
   @GET('/admin/offer-settings')
   Future<OfferSettingsBody> getOfferSettings();
@@ -121,7 +165,7 @@ abstract class AdminClient {
     @Query('size') int? size = 25,
     @Query('status') List<Status>? status,
     @Query('q') String? q,
-    @Query('sort') Sort? sort,
+    @Query('sort') Sort2? sort,
   });
 
   /// Let a pending, rejected or blocked seller publish; its owner is emailed

@@ -17,7 +17,7 @@ T _$identity<T>(T value) => value;
 mixin _$AdminsOutputBody {
 
 /// Every admin, by address
- List<AccountBody>? get admins;
+ List<RecordBody>? get admins;
 /// Create a copy of AdminsOutputBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -55,7 +55,7 @@ abstract mixin class $AdminsOutputBodyCopyWith<$Res>  {
   factory $AdminsOutputBodyCopyWith(AdminsOutputBody value, $Res Function(AdminsOutputBody) _then) = _$AdminsOutputBodyCopyWithImpl;
 @useResult
 $Res call({
- List<AccountBody>? admins
+ List<RecordBody>? admins
 });
 
 
@@ -75,7 +75,7 @@ class _$AdminsOutputBodyCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? admins = freezed,}) {
   return _then(AdminsOutputBody(
 admins: freezed == admins ? _self.admins : admins // ignore: cast_nullable_to_non_nullable
-as List<AccountBody>?,
+as List<RecordBody>?,
   ));
 }
 
@@ -160,7 +160,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<AccountBody>? admins)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<RecordBody>? admins)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdminsOutputBody() when $default != null:
 return $default(_that.admins);case _:
@@ -181,7 +181,7 @@ return $default(_that.admins);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<AccountBody>? admins)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<RecordBody>? admins)  $default,) {final _that = this;
 switch (_that) {
 case _AdminsOutputBody():
 return $default(_that.admins);case _:
@@ -201,7 +201,7 @@ return $default(_that.admins);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<AccountBody>? admins)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<RecordBody>? admins)?  $default,) {final _that = this;
 switch (_that) {
 case _AdminsOutputBody() when $default != null:
 return $default(_that.admins);case _:
@@ -216,13 +216,13 @@ return $default(_that.admins);case _:
 @JsonSerializable()
 
 class _AdminsOutputBody implements AdminsOutputBody {
-  const _AdminsOutputBody({required  List<AccountBody>? admins}): _admins = admins;
+  const _AdminsOutputBody({required  List<RecordBody>? admins}): _admins = admins;
   factory _AdminsOutputBody.fromJson(Map<String, dynamic> json) => _$AdminsOutputBodyFromJson(json);
 
 /// Every admin, by address
- final  List<AccountBody>? _admins;
+ final  List<RecordBody>? _admins;
 /// Every admin, by address
-@override List<AccountBody>? get admins {
+@override List<RecordBody>? get admins {
   final value = _admins;
   if (value == null) return null;
   if (_admins is EqualUnmodifiableListView) return _admins;
@@ -266,7 +266,7 @@ abstract mixin class _$AdminsOutputBodyCopyWith<$Res> implements $AdminsOutputBo
   factory _$AdminsOutputBodyCopyWith(_AdminsOutputBody value, $Res Function(_AdminsOutputBody) _then) = __$AdminsOutputBodyCopyWithImpl;
 @override @useResult
 $Res call({
- List<AccountBody>? admins
+ List<RecordBody>? admins
 });
 
 
@@ -286,7 +286,7 @@ class __$AdminsOutputBodyCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? admins = freezed,}) {
   return _then(_AdminsOutputBody(
 admins: freezed == admins ? _self._admins : admins // ignore: cast_nullable_to_non_nullable
-as List<AccountBody>?,
+as List<RecordBody>?,
   ));
 }
 

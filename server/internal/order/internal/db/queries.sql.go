@@ -13,6 +13,29 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const customerOrderCounts = `-- name: CustomerOrderCounts :one
+SELECT count(*) AS placed,
+       count(*) FILTER (WHERE state = 'collected') AS collected,
+       count(*) FILTER (WHERE (state IN ('confirmed', 'ready') AND window_end <= now())
+                           OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late'))) AS missed
+FROM order_orders WHERE customer_id = $1
+`
+
+type CustomerOrderCountsRow struct {
+	Placed    int64
+	Collected int64
+	Missed    int64
+}
+
+// How many orders a customer placed, collected, and missed: their window
+// ended with no hand-over, or staff ended them as no answer, no show or late.
+func (q *Queries) CustomerOrderCounts(ctx context.Context, customerID uuid.NullUUID) (CustomerOrderCountsRow, error) {
+	row := q.db.QueryRow(ctx, customerOrderCounts, customerID)
+	var i CustomerOrderCountsRow
+	err := row.Scan(&i.Placed, &i.Collected, &i.Missed)
+	return i, err
+}
+
 const customerOrders = `-- name: CustomerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,

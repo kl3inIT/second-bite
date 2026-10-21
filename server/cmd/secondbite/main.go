@@ -264,6 +264,7 @@ func registerOperations(api huma.API, a *app) {
 	seller.RegisterAdminOperations(admin, a.seller)
 	offer.RegisterAdminOperations(admin, a.offer)
 	audit.RegisterAdminOperations(admin, a.audit)
+	order.RegisterAdminOperations(admin, a.order)
 }
 
 // fileConfig reads where files are kept: SECONDBITE_FILE_STORE (postgres by
