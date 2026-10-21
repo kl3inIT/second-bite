@@ -200,6 +200,8 @@ export function DishDetails({
 
 // The bar at the bottom of the dish (Figma K4 footer): tonight's price over the old one, the discount and the
 // portions left, and the cart's button. It sticks to the screen's foot and rests above the site's footer.
+// With a phone's large text (Zalo grows web text with it) the two no longer fit side by side, so the button
+// takes a line of its own under the price rather than pushing the page past the screen (SEC-107).
 function DishBar({ dish }: { dish: OfferSummary }) {
   const t = useTranslations("Dish");
   const cards = useTranslations("OfferCard");
@@ -207,9 +209,9 @@ function DishBar({ dish }: { dish: OfferSummary }) {
 
   return (
     <div className="sticky bottom-0 z-40 border-t border-border bg-card lg:hidden">
-      <div className="mx-auto flex w-full max-w-xl items-center gap-4 px-4 pt-3 pb-5">
+      <div className="mx-auto flex w-full max-w-xl flex-wrap items-center gap-x-4 gap-y-3 px-4 pt-3 pb-5">
         <div className="flex flex-col">
-          <p className="flex items-baseline gap-1.5">
+          <p className="flex flex-wrap items-baseline gap-x-1.5">
             <span className="font-display text-price-lg text-primary">
               {formatPrice(dish.priceVnd)}
             </span>

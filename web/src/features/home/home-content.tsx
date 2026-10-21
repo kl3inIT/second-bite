@@ -24,7 +24,8 @@ import { KindPicker } from "./kind-picker";
 import { RecommendedSection, UpcomingSection } from "./tonight-rows";
 
 const CLOSING_COUNT = 6;
-const seeAllClass = "-my-3 py-3 text-body-sm-strong text-link underline-offset-4 hover:underline";
+const seeAllClass =
+  "-my-3 shrink-0 py-3 text-body-sm-strong whitespace-nowrap text-link underline-offset-4 hover:underline";
 
 // Everything under the header for what the address asks (Figma Mobile v3 content). Without a filter: the
 // kinds, the windows closing first, what is coming tonight, the recommendations, then every offer in a grid

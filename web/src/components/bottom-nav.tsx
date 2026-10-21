@@ -24,7 +24,8 @@ type Tab = {
 // floating 16px from the sides and the bottom. Saved sellers have no screen yet, so their tab is shown
 // dimmed and cannot be pressed. A tab is also active on the pages under it, as an order under the orders. Every page has it, after a space as
 // tall as the bar so the bar never covers the page's end. From `md` the header and the footer take over,
-// and the bar is not shown.
+// and the bar is not shown. With a phone's large text a label may take two lines, so the bar is at least its
+// height rather than exactly it (SEC-107).
 const screensOfTheirOwn = ["/search", "/offers", "/sellers", "/cart", "/stores", "/open-store"];
 
 const tabs: Tab[] = [
@@ -59,7 +60,7 @@ export function BottomNav() {
         aria-label={t("label")}
         className="fixed inset-x-4 bottom-safe-4 z-40 mx-auto max-w-md rounded-full border border-card/60 bg-card/45 p-1.25 text-shell-foreground shadow-nav backdrop-blur-xl backdrop-saturate-180 md:hidden"
       >
-        <ul className="grid h-13.5 grid-cols-4">
+        <ul className="grid min-h-13.5 grid-cols-4">
           {tabs.map(({ key, icon: Icon, href, within = [] }) => {
             const active =
               href === pathname ||
@@ -68,17 +69,19 @@ export function BottomNav() {
             const body = (
               <>
                 <Icon aria-hidden className="size-5" />
-                <span className={active ? "text-label-strong" : "text-label"}>{t(key)}</span>
+                <span className={cn("text-center", active ? "text-label-strong" : "text-label")}>
+                  {t(key)}
+                </span>
               </>
             );
             return (
-              <li key={key} className="flex">
+              <li key={key} className="flex min-w-0">
                 {href ? (
                   <Link
                     href={href}
                     aria-current={href === pathname ? "page" : active ? "true" : undefined}
                     className={cn(
-                      "flex flex-1 flex-col items-center justify-center gap-1 rounded-full transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset",
+                      "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-full px-1 py-1.5 transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset",
                       active
                         ? "bg-secondary text-primary"
                         : "text-muted-foreground hover:text-foreground",
@@ -89,7 +92,7 @@ export function BottomNav() {
                 ) : (
                   <span
                     aria-disabled="true"
-                    className="flex flex-1 cursor-not-allowed flex-col items-center justify-center gap-1 text-muted-foreground opacity-85"
+                    className="flex min-w-0 flex-1 cursor-not-allowed flex-col items-center justify-center gap-1 px-1 py-1.5 text-muted-foreground opacity-85"
                   >
                     {body}
                     <span className="sr-only">{t("soon")}</span>
