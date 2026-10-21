@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // address, on a page of its own across the frame's width.
 export default async function AuditPage({ searchParams }: PageProps<"/[locale]/admin/audit">) {
   await requireAdmin("/admin/audit");
-  const filter = await loadAuditSearchParams(searchParams);
+  const filter = loadAuditSearchParams(await searchParams);
   const [t, headers] = await Promise.all([getTranslations("Admin.audit"), sessionHeaders()]);
 
   const [{ data: page }, { data: admins }] = await Promise.all([
