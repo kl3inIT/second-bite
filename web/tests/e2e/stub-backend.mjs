@@ -563,8 +563,11 @@ function search(url) {
 // asks for it ("session": "cookie"), and otherwise answers the token for the app's Bearer header, as the Go
 // server does; GET /accounts/me and sign-out read either, the header first. Google is off unless STUB_GOOGLE_CLIENT_ID is set.
 const sessionCookie = "secondbite_session";
-// One session per address, so tests running side by side do not sign each other out.
+// Each sign-in is a session of its own, as on the Go server: signing out, or deleting the account from one
+// session, ends only what it should, so two tests that use the same address side by side do not sign each
+// other out (SEC-125). The map goes from a session's token to its account.
 const accounts = new Map();
+let sessions = 0;
 
 function problem(response, status, code) {
   const language = requestLanguage.getStore() ?? "vi";
@@ -653,7 +656,8 @@ async function auth(request, response, url) {
       displayName: "",
       role,
     };
-    const token = `stub-${Buffer.from(email).toString("hex")}`;
+    sessions += 1;
+    const token = `stub-${Buffer.from(email).toString("hex")}-${sessions}`;
     accounts.set(token, account);
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     if (session === "cookie") {
@@ -725,7 +729,9 @@ async function deletion(request, response, url) {
       problem(response, 410, "IDENTITY_CHALLENGE_GONE");
     } else if (code !== "123456") problem(response, 422, "IDENTITY_CODE_INCORRECT");
     else {
-      accounts.delete(token);
+      for (const [other, signedIn] of accounts) {
+        if (signedIn.email === account.email) accounts.delete(other);
+      }
       response.writeHead(204, {
         "set-cookie": `${sessionCookie}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
       });
@@ -737,7 +743,7 @@ async function deletion(request, response, url) {
 }
 
 // The seller's side (SEC-57), as api/openapi.yaml describes it: a person opens stores, at most five, each active
-// at once, and reads the ones they own. Kept per session, like the accounts above.
+// at once, and reads the ones they own. Kept per address, so every session of a person sees the same stores.
 const storesOf = new Map();
 /** Each store's posts, the newest first: the sample ones of a store named like Figma's, then what it posts. */
 const postsBy = new Map();
@@ -1058,7 +1064,8 @@ async function sellerRoutes(request, response, url) {
     problem(response, 401, "IDENTITY_SESSION_INVALID");
     return true;
   }
-  const mine = storesOf.get(token) ?? [];
+  const email = accounts.get(token).email;
+  const mine = storesOf.get(email) ?? [];
   if (request.method === "GET" && url.pathname === "/sellers/address") {
     // A point in Cầu Giấy has an address; any other has none, as the geocoder knows nothing there.
     const near = Math.abs(Number(url.searchParams.get("latitude")) - 21.0367) < 0.01;
@@ -1098,7 +1105,7 @@ async function sellerRoutes(request, response, url) {
         createdAt: now,
         updatedAt: now,
       };
-      storesOf.set(token, [...mine, seller]);
+      storesOf.set(email, [...mine, seller]);
       json(response, 201, seller);
     }
     return true;
