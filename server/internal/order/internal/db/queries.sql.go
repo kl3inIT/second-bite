@@ -13,6 +13,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const chatSeen = `-- name: ChatSeen :one
+SELECT customer_seen_seq, seller_seen_seq FROM order_chats WHERE order_id = $1
+`
+
+type ChatSeenRow struct {
+	CustomerSeenSeq int32
+	SellerSeenSeq   int32
+}
+
+func (q *Queries) ChatSeen(ctx context.Context, orderID uuid.UUID) (ChatSeenRow, error) {
+	row := q.db.QueryRow(ctx, chatSeen, orderID)
+	var i ChatSeenRow
+	err := row.Scan(&i.CustomerSeenSeq, &i.SellerSeenSeq)
+	return i, err
+}
+
 const customerOrderCounts = `-- name: CustomerOrderCounts :one
 SELECT count(*) AS placed,
        count(*) FILTER (WHERE state = 'collected') AS collected,
@@ -141,23 +157,59 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 	return items, nil
 }
 
-const expireEnded = `-- name: ExpireEnded :execrows
-WITH ended AS (
-    UPDATE order_orders SET state = 'expired'
-    WHERE state IN ('confirmed', 'ready') AND window_end <= now()
-    RETURNING id
-)
-INSERT INTO order_events (order_id, kind) SELECT id, 'expired' FROM ended
+const deleteChatsEndedBefore = `-- name: DeleteChatsEndedBefore :execrows
+DELETE FROM order_chats
+WHERE order_id IN (SELECT id FROM order_orders WHERE window_end < $1)
 `
 
-// Expires the orders still to collect whose window is over, each with an event.
-// Reads compare the window too.
-func (q *Queries) ExpireEnded(ctx context.Context) (int64, error) {
-	result, err := q.db.Exec(ctx, expireEnded)
+func (q *Queries) DeleteChatsEndedBefore(ctx context.Context, before time.Time) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteChatsEndedBefore, before)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const deleteChatsOfCustomer = `-- name: DeleteChatsOfCustomer :execrows
+DELETE FROM order_chats
+WHERE order_id IN (SELECT id FROM order_orders WHERE customer_id = $1)
+`
+
+// The messages go with their chat.
+func (q *Queries) DeleteChatsOfCustomer(ctx context.Context, customerID uuid.NullUUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteChatsOfCustomer, customerID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const expireEnded = `-- name: ExpireEnded :one
+WITH ended AS (
+    UPDATE order_orders SET state = 'expired'
+    WHERE state IN ('confirmed', 'ready') AND window_end <= now()
+    RETURNING id, seller_id
+), recorded AS (
+    INSERT INTO order_events (order_id, kind) SELECT id, 'expired' FROM ended
+)
+SELECT count(*) AS expired
+FROM (
+    SELECT pg_notify('secondbite_live', json_build_object(
+        'topics', json_build_array('order:' || id::text, 'seller:' || seller_id::text),
+        'notice', json_build_object('type', 'order', 'orderId', id, 'status', 'expired')
+    )::text)
+    FROM ended
+) AS notified
+`
+
+// Expires the orders still to collect whose window is over, each with an event
+// and a notice to the sockets following it (channel secondbite_live), and
+// returns how many. Reads compare the window too.
+func (q *Queries) ExpireEnded(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, expireEnded)
+	var expired int64
+	err := row.Scan(&expired)
+	return expired, err
 }
 
 const getOrder = `-- name: GetOrder :one
@@ -271,6 +323,47 @@ func (q *Queries) InsertLine(ctx context.Context, arg InsertLineParams) error {
 	return err
 }
 
+const insertLiveTicket = `-- name: InsertLiveTicket :exec
+INSERT INTO order_live_tickets (ticket_hash, topic, expires_at) VALUES ($1, $2, $3)
+`
+
+type InsertLiveTicketParams struct {
+	TicketHash []byte
+	Topic      string
+	ExpiresAt  time.Time
+}
+
+func (q *Queries) InsertLiveTicket(ctx context.Context, arg InsertLiveTicketParams) error {
+	_, err := q.db.Exec(ctx, insertLiveTicket, arg.TicketHash, arg.Topic, arg.ExpiresAt)
+	return err
+}
+
+const insertMessage = `-- name: InsertMessage :exec
+INSERT INTO order_messages (order_id, seq, sender, body, idempotency_key, sent_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+`
+
+type InsertMessageParams struct {
+	OrderID        uuid.UUID
+	Seq            int32
+	Sender         string
+	Body           string
+	IdempotencyKey string
+	SentAt         time.Time
+}
+
+func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) error {
+	_, err := q.db.Exec(ctx, insertMessage,
+		arg.OrderID,
+		arg.Seq,
+		arg.Sender,
+		arg.Body,
+		arg.IdempotencyKey,
+		arg.SentAt,
+	)
+	return err
+}
+
 const insertOrder = `-- name: InsertOrder :one
 INSERT INTO order_orders (
     customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude, longitude, address,
@@ -380,6 +473,51 @@ func (q *Queries) LinesOf(ctx context.Context, orderIds []uuid.UUID) ([]OrderLin
 	return items, nil
 }
 
+const listMessages = `-- name: ListMessages :many
+SELECT seq, sender, body, sent_at FROM order_messages
+WHERE order_id = $1 AND seq > $2
+ORDER BY seq
+LIMIT $3
+`
+
+type ListMessagesParams struct {
+	OrderID uuid.UUID
+	After   int32
+	MaxRows int32
+}
+
+type ListMessagesRow struct {
+	Seq    int32
+	Sender string
+	Body   string
+	SentAt time.Time
+}
+
+func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]ListMessagesRow, error) {
+	rows, err := q.db.Query(ctx, listMessages, arg.OrderID, arg.After, arg.MaxRows)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListMessagesRow
+	for rows.Next() {
+		var i ListMessagesRow
+		if err := rows.Scan(
+			&i.Seq,
+			&i.Sender,
+			&i.Body,
+			&i.SentAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockOrder = `-- name: LockOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
@@ -418,6 +556,74 @@ type LockOrderRow struct {
 func (q *Queries) LockOrder(ctx context.Context, id uuid.UUID) (LockOrderRow, error) {
 	row := q.db.QueryRow(ctx, lockOrder, id)
 	var i LockOrderRow
+	err := row.Scan(
+		&i.ID,
+		&i.Number,
+		&i.CustomerID,
+		&i.CustomerName,
+		&i.CustomerPhone,
+		&i.SellerID,
+		&i.CheckoutID,
+		&i.SellerName,
+		&i.Latitude,
+		&i.Longitude,
+		&i.Address,
+		&i.State,
+		&i.WindowStart,
+		&i.WindowEnd,
+		&i.TotalVnd,
+		&i.Access,
+		&i.CancelReason,
+		&i.RefuseReason,
+		&i.RefuseNote,
+		&i.CreatedAt,
+		&i.ReadyAt,
+		&i.CollectedAt,
+		&i.CancelledAt,
+		&i.RefusedAt,
+	)
+	return i, err
+}
+
+const lockOrderShared = `-- name: LockOrderShared :one
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
+FROM order_orders WHERE id = $1 FOR SHARE
+`
+
+type LockOrderSharedRow struct {
+	ID            uuid.UUID
+	Number        pgtype.Int8
+	CustomerID    uuid.NullUUID
+	CustomerName  string
+	CustomerPhone string
+	SellerID      uuid.UUID
+	CheckoutID    uuid.UUID
+	SellerName    string
+	Latitude      float64
+	Longitude     float64
+	Address       string
+	State         string
+	WindowStart   time.Time
+	WindowEnd     time.Time
+	TotalVnd      int64
+	Access        string
+	CancelReason  string
+	RefuseReason  pgtype.Text
+	RefuseNote    string
+	CreatedAt     time.Time
+	ReadyAt       *time.Time
+	CollectedAt   *time.Time
+	CancelledAt   *time.Time
+	RefusedAt     *time.Time
+}
+
+// Holds an order against a transition (which locks it for update) until the
+// transaction ends, while other readers of it go on.
+func (q *Queries) LockOrderShared(ctx context.Context, id uuid.UUID) (LockOrderSharedRow, error) {
+	row := q.db.QueryRow(ctx, lockOrderShared, id)
+	var i LockOrderSharedRow
 	err := row.Scan(
 		&i.ID,
 		&i.Number,
@@ -508,6 +714,88 @@ func (q *Queries) MarkReopened(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const messageOfKey = `-- name: MessageOfKey :one
+SELECT seq, sender, body, sent_at FROM order_messages
+WHERE order_id = $1 AND sender = $2 AND idempotency_key = $3
+`
+
+type MessageOfKeyParams struct {
+	OrderID        uuid.UUID
+	Sender         string
+	IdempotencyKey string
+}
+
+type MessageOfKeyRow struct {
+	Seq    int32
+	Sender string
+	Body   string
+	SentAt time.Time
+}
+
+// The message a side already sent with this idempotency key.
+func (q *Queries) MessageOfKey(ctx context.Context, arg MessageOfKeyParams) (MessageOfKeyRow, error) {
+	row := q.db.QueryRow(ctx, messageOfKey, arg.OrderID, arg.Sender, arg.IdempotencyKey)
+	var i MessageOfKeyRow
+	err := row.Scan(
+		&i.Seq,
+		&i.Sender,
+		&i.Body,
+		&i.SentAt,
+	)
+	return i, err
+}
+
+const nextChatSeq = `-- name: NextChatSeq :one
+INSERT INTO order_chats (order_id, last_seq) VALUES ($1, 1)
+ON CONFLICT (order_id) DO UPDATE SET last_seq = order_chats.last_seq + 1
+WHERE order_chats.last_seq < $2::int
+RETURNING last_seq
+`
+
+type NextChatSeqParams struct {
+	OrderID     uuid.UUID
+	MaxMessages int32
+}
+
+// Numbers the next message of an order's chat, creating the chat for its first.
+// The row lock it takes lasts until the transaction ends, so the messages of
+// one chat are numbered in the order they commit. Nothing is returned once the
+// chat holds max_messages.
+func (q *Queries) NextChatSeq(ctx context.Context, arg NextChatSeqParams) (int32, error) {
+	row := q.db.QueryRow(ctx, nextChatSeq, arg.OrderID, arg.MaxMessages)
+	var last_seq int32
+	err := row.Scan(&last_seq)
+	return last_seq, err
+}
+
+const nthRecentMessageTime = `-- name: NthRecentMessageTime :one
+SELECT sent_at FROM order_messages
+WHERE order_id = $1 AND sender = $2 AND sent_at > $3
+ORDER BY sent_at DESC
+LIMIT 1 OFFSET $4
+`
+
+type NthRecentMessageTimeParams struct {
+	OrderID  uuid.UUID
+	Sender   string
+	Since    time.Time
+	SkipRows int32
+}
+
+// When a side's message was sent that has skip_rows newer ones, among those
+// sent since a moment; nothing when the side sent fewer since.
+func (q *Queries) NthRecentMessageTime(ctx context.Context, arg NthRecentMessageTimeParams) (time.Time, error) {
+	row := q.db.QueryRow(ctx, nthRecentMessageTime,
+		arg.OrderID,
+		arg.Sender,
+		arg.Since,
+		arg.SkipRows,
+	)
+	var sent_at time.Time
+	err := row.Scan(&sent_at)
+	return sent_at, err
+}
+
 const openOrdersOfOffer = `-- name: OpenOrdersOfOffer :many
 SELECT DISTINCT o.id
 FROM order_orders AS o
@@ -555,6 +843,61 @@ func (q *Queries) OrderOfKey(ctx context.Context, arg OrderOfKeyParams) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const purgeLiveTickets = `-- name: PurgeLiveTickets :execrows
+DELETE FROM order_live_tickets WHERE expires_at <= $1
+`
+
+func (q *Queries) PurgeLiveTickets(ctx context.Context, now time.Time) (int64, error) {
+	result, err := q.db.Exec(ctx, purgeLiveTickets, now)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const raiseSeen = `-- name: RaiseSeen :one
+UPDATE order_chats
+SET customer_seen_seq = CASE WHEN $1::text = 'customer' THEN LEAST($2::int, last_seq) ELSE customer_seen_seq END,
+    seller_seen_seq = CASE WHEN $1::text = 'seller' THEN LEAST($2::int, last_seq) ELSE seller_seen_seq END
+WHERE order_id = $3
+  AND CASE WHEN $1::text = 'customer' THEN customer_seen_seq ELSE seller_seen_seq END < LEAST($2::int, last_seq)
+RETURNING (CASE WHEN $1::text = 'customer' THEN customer_seen_seq ELSE seller_seen_seq END)::int AS seen_seq
+`
+
+type RaiseSeenParams struct {
+	Side    string
+	UpTo    int32
+	OrderID uuid.UUID
+}
+
+// Raises what a side has seen, never lowers it and never beyond the latest
+// message; nothing is returned when it did not rise.
+func (q *Queries) RaiseSeen(ctx context.Context, arg RaiseSeenParams) (int32, error) {
+	row := q.db.QueryRow(ctx, raiseSeen, arg.Side, arg.UpTo, arg.OrderID)
+	var seen_seq int32
+	err := row.Scan(&seen_seq)
+	return seen_seq, err
+}
+
+const redeemLiveTicket = `-- name: RedeemLiveTicket :one
+DELETE FROM order_live_tickets WHERE ticket_hash = $1 AND expires_at > $2
+RETURNING topic
+`
+
+type RedeemLiveTicketParams struct {
+	TicketHash []byte
+	Now        time.Time
+}
+
+// Spends a ticket: it is deleted as it is read, so it works once, and only
+// before it expires.
+func (q *Queries) RedeemLiveTicket(ctx context.Context, arg RedeemLiveTicketParams) (string, error) {
+	row := q.db.QueryRow(ctx, redeemLiveTicket, arg.TicketHash, arg.Now)
+	var topic string
+	err := row.Scan(&topic)
+	return topic, err
 }
 
 const reviewsOf = `-- name: ReviewsOf :many
@@ -679,8 +1022,16 @@ func (q *Queries) SellerOrders(ctx context.Context, arg SellerOrdersParams) ([]S
 }
 
 const setWindow = `-- name: SetWindow :exec
-UPDATE order_orders SET window_start = $1, window_end = $2
-WHERE id = $3 AND state IN ('confirmed', 'ready')
+WITH moved AS (
+    UPDATE order_orders SET window_start = $1, window_end = $2
+    WHERE id = $3 AND state IN ('confirmed', 'ready')
+    RETURNING id, seller_id, state
+)
+SELECT pg_notify('secondbite_live', json_build_object(
+    'topics', json_build_array('order:' || id::text, 'seller:' || seller_id::text),
+    'notice', json_build_object('type', 'order', 'orderId', id, 'status', state)
+)::text)
+FROM moved
 `
 
 type SetWindowParams struct {
@@ -689,8 +1040,47 @@ type SetWindowParams struct {
 	ID          uuid.UUID
 }
 
-// Moves an order still to collect to a new window; one that ended stays as it was.
+// Moves an order still to collect to a new window, and tells the sockets
+// following it (channel secondbite_live); one that ended stays as it was.
 func (q *Queries) SetWindow(ctx context.Context, arg SetWindowParams) error {
 	_, err := q.db.Exec(ctx, setWindow, arg.WindowStart, arg.WindowEnd, arg.ID)
 	return err
+}
+
+const unreadOf = `-- name: UnreadOf :many
+SELECT c.order_id,
+       (SELECT count(*) FROM order_messages AS m
+        WHERE m.order_id = c.order_id AND m.sender = 'seller' AND m.seq > c.customer_seen_seq) AS customer_unread,
+       (SELECT count(*) FROM order_messages AS m
+        WHERE m.order_id = c.order_id AND m.sender = 'customer' AND m.seq > c.seller_seen_seq) AS seller_unread
+FROM order_chats AS c
+WHERE c.order_id = ANY ($1::uuid[])
+`
+
+type UnreadOfRow struct {
+	OrderID        uuid.UUID
+	CustomerUnread int64
+	SellerUnread   int64
+}
+
+// For each order with a chat: what its customer has not read from the seller,
+// and what its seller's people have not read from the customer.
+func (q *Queries) UnreadOf(ctx context.Context, orderIds []uuid.UUID) ([]UnreadOfRow, error) {
+	rows, err := q.db.Query(ctx, unreadOf, orderIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UnreadOfRow
+	for rows.Next() {
+		var i UnreadOfRow
+		if err := rows.Scan(&i.OrderID, &i.CustomerUnread, &i.SellerUnread); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

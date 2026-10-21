@@ -64,4 +64,20 @@ var (
 		VI: "Đơn này đã được đánh giá.",
 		EN: "The order was already reviewed.",
 	})
+	ErrMessageInvalid = platform.NewFailure("ORDER_MESSAGE_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Tin nhắn dài từ 1 đến 1.000 ký tự.",
+		EN: "A message is 1 to 1,000 characters.",
+	})
+	ErrChatClosed = platform.NewFailure("ORDER_CHAT_CLOSED", platform.CategoryConflict, platform.Words{
+		VI: "Đơn đã kết thúc, chỉ xem lại tin nhắn.",
+		EN: "The order has ended; its messages can only be read.",
+	})
+	ErrChatFull = platform.NewFailure("ORDER_CHAT_FULL", platform.CategoryConflict, platform.Words{
+		VI: "Cuộc trò chuyện đã đủ 500 tin nhắn.",
+		EN: "The chat already holds 500 messages.",
+	})
+	ErrMessagesTooFast = platform.NewFailure("ORDER_MESSAGES_TOO_FAST", platform.CategoryLimitExceeded, platform.Words{
+		VI: "Bạn nhắn quá nhanh, hãy thử lại sau ít phút.",
+		EN: "You are sending messages too fast; try again shortly.",
+	})
 )

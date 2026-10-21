@@ -60,6 +60,14 @@ func TestOrder(t *testing.T) {
 		"orders follow their offer's window":       testOrdersFollowTheWindow,
 		"ended orders expire in the table":         testEndedOrdersExpire,
 		"withdrawing an offer refuses its orders":  testWithdrawRefusesOrders,
+		"the two sides of an order talk":           testChatConversation,
+		"who takes part in a chat":                 testChatWhoTakesPart,
+		"a chat closes with its order":             testChatClosesWithTheOrder,
+		"a chat is bounded":                        testChatBounds,
+		"messages are numbered in commit order":    testChatNumbersInCommitOrder,
+		"live tickets work once, for who may":      testLiveTickets,
+		"every change of an order notifies":        testEveryChangeNotifies,
+		"old chats are forgotten":                  testOldChatsAreForgotten,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

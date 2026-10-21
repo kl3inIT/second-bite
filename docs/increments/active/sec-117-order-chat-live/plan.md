@@ -5,10 +5,10 @@ Design: [design.md](design.md). Tracked in Linear as SEC-117.
 | # | Step | State |
 | --- | --- | --- |
 | 1 | The hub in `platform`: `platform.Live` over coder/websocket and `LISTEN/NOTIFY`, with the `GET /live` handler, the heartbeat, the bounds, the deadlines cleared, close on shutdown and `resync`; its tests with two instances on one database | Done |
-| 2 | Live tickets in `order`: migration, mint for an order and for a seller, redeem once, the purge schedule; tests of who may mint | To do |
-| 3 | Notices from every path that changes an order (place, cancel, ready, hand over, reopen, refuse, withdrawn offer, moved window, expiry); a test per path, and none after a rollback | To do |
-| 4 | Chats in `order`: migration, list, send with `Idempotency-Key` and the bounds, seen, `unreadMessages` on the order, the failure codes with their words; database tests | To do |
-| 5 | `order.forget_account` and `order.forget_old_chats`; tests that run each twice | To do |
+| 2 | Live tickets in `order`: migration, mint for an order and for a seller, redeem once, the purge schedule; tests of who may mint | Done |
+| 3 | Notices from every path that changes an order (place, cancel, ready, hand over, reopen, refuse, withdrawn offer, moved window, expiry); a test per path, and none after a rollback | Done |
+| 4 | Chats in `order`: migration, list, send with `Idempotency-Key` and the bounds, seen, `unreadMessages` on the order, the failure codes with their words; database tests | Done |
+| 5 | `order.forget_account` and `order.forget_old_chats`; tests that run each twice | Done |
 | 6 | Assembly in `cmd/secondbite`, the composition test through the middleware, OpenAPI and the web client regenerated | To do |
 | 7 | The proxies: `local-proxy.conf`, the staging runbook's `location /api/` block, and CI's local-proxy job opening `/api/live` | To do |
 | 8 | Documents: the order and platform specs (the socket's frames included), `docs/tests/order.md`, coder/websocket in the backend guideline, ARCHITECTURE.md, the runbook's connection count | To do |
