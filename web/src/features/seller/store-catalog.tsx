@@ -10,6 +10,7 @@ import { getStoreDishes } from "./my-sellers";
 import { PostToast } from "./post-toast";
 import { requireStore } from "./require-store";
 import { ShowDishButton } from "./show-dish-button";
+import { StoreTitleRow, titleActionPhone } from "./store-title-row";
 
 // The store's catalog tab (SEC-55, Figma Q3, Q3b): "Thêm món", then one card with the count and a row for each
 // dish, the newest first. A hidden dish has a faded photo and its name in the muted ink (no text is faded, which
@@ -44,12 +45,17 @@ export async function StoreCatalog({
   return (
     <>
       {message && <PostToast message={message} to={`/stores/${sellerId}/catalog`} />}
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-page-title text-foreground">{t("title")}</h1>
-        <Link href={`/stores/${sellerId}/catalog/new`} className={buttonVariants({ size: "lg" })}>
-          {t("add")}
-        </Link>
-      </div>
+      <StoreTitleRow
+        title={t("title")}
+        aside={
+          <Link
+            href={`/stores/${sellerId}/catalog/new`}
+            className={cn(buttonVariants({ size: "lg" }), titleActionPhone)}
+          >
+            {t("add")}
+          </Link>
+        }
+      />
 
       <section
         aria-labelledby="store-dishes"

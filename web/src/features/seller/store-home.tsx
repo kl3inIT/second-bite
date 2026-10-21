@@ -7,14 +7,16 @@ import { getStoreOffers } from "./my-sellers";
 import { PostRow } from "./post-row";
 import { requireStore } from "./require-store";
 import { postedToday } from "./store-offers";
+import { StoreTitleRow } from "./store-title-row";
 
 // The store's home (SEC-57, Figma Q1): its name, "Bắt đầu bán" until it has posted anything, and today's posts.
 // The card of orders to handle (Figma Q1) joins with the order module (SEC-15, SEC-51). It reads the session,
 // so it renders inside Suspense.
 export async function StoreHome({ sellerId: pendingId }: { sellerId: Promise<string> }) {
   const sellerId = await pendingId;
-  const [t, store, offers] = await Promise.all([
+  const [t, n, store, offers] = await Promise.all([
     getTranslations("StoreHome"),
+    getTranslations("StoreNav"),
     requireStore(sellerId, `/stores/${sellerId}`),
     getStoreOffers(sellerId),
   ]);
@@ -22,7 +24,7 @@ export async function StoreHome({ sellerId: pendingId }: { sellerId: Promise<str
 
   return (
     <>
-      <h1 className="text-page-title text-foreground">{store.name}</h1>
+      <StoreTitleRow title={store.name} phoneTitle={n("home")} />
 
       {offers.length === 0 && (
         <section
