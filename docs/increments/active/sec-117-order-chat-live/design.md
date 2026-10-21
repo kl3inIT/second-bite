@@ -11,20 +11,20 @@ It supersedes [SEC-97 decision 7](../sec-97-pickup-and-review/design.md) for "Nh
 
 - A customer on their order's page sees it move on its own: Chuẩn bị, then Sẵn sàng with the QR code, then Hoàn tất with the review card, or what ended it. "Đơn của tôi" moves the same way.
 - A seller's people see a new order appear in the Đơn tab as soon as it is placed. An order with a message they have not read carries a badge, and an order's own page changes when the customer cancels.
-- On an order still to collect, either side taps "Nhắn quán" (the customer) or "Nhắn khách" (the seller's people) and writes. The other side sees the message at once, and the writer sees "Đã xem" once it has been read. The order's card heads the chat. Under the input it says: "Tin nhắn không đổi giá, số lượng hay giờ nhận của đơn."
-- Once the order is collected, cancelled, refused or expired, the chat can still be read but no longer written in.
+- On an order still to collect, or collected less than 2 hours ago, either side taps "Nhắn quán" (the customer) or "Nhắn khách" (the seller's people) and writes. The other side sees the message at once, and the writer sees "Đã xem" once it has been read. The order's card heads the chat. Under the input it says: "Tin nhắn không đổi giá, số lượng hay giờ nhận của đơn."
+- For 2 hours after the order is collected, the chat stays writable (to report a missing or wrong dish). Then, and at once when the order is cancelled, refused or expired, it can still be read but no longer written in. A read-only chat says: "Đơn đã kết thúc, chỉ xem lại tin nhắn."
 
 ## Boundary discovery
 
 ### Domain story
 
-A customer places an order without signing in. The seller's phone, open on the Đơn tab, shows the order at once. The customer opens the order and taps "Nhắn quán": "Cho mình lấy trễ 10 phút được không?" A staff member sees the badge on the order, opens its chat, and the customer's side shows "Đã xem". The staff member answers, then presses "Báo sẵn sàng". The customer's page turns to Sẵn sàng and shows the QR code. At the counter the order is handed over, the customer's page turns to Hoàn tất with the review card, and the chat becomes read-only.
+A customer places an order without signing in. The seller's phone, open on the Đơn tab, shows the order at once. The customer opens the order and taps "Nhắn quán": "Cho mình lấy trễ 10 phút được không?" A staff member sees the badge on the order, opens its chat, and the customer's side shows "Đã xem". The staff member answers, then presses "Báo sẵn sàng". The customer's page turns to Sẵn sàng and shows the QR code. At the counter the order is handed over, the customer's page turns to Hoàn tất with the review card. The chat stays writable for 2 hours more, then becomes read-only.
 
 Failure paths:
 
 - Someone who knows only the order's number or identifier asks for its messages or a ticket, and gets "not found".
 - The connection drops (a tunnel, a phone asleep, an instance replaced). The page reconnects, reads the order and the messages it missed, and goes on. When it cannot connect at all, it asks again every few seconds.
-- A message is sent at the moment the order is handed over. If the hand-over committed first, the message is refused as closed.
+- A message is sent at the moment the order is cancelled or refused. If that committed first, the message is refused as closed. A hand-over does not close the chat, so a message sent at that moment is accepted.
 - A staff member is removed from the seller. Their open connection keeps their subscription only until it is renewed (at most 30 minutes). The renewal mints a new ticket, and the minting refuses them.
 
 ### Glossary
@@ -32,7 +32,7 @@ Failure paths:
 - **Chat:** the messages of one order between its customer and the seller's people. One order has at most one chat, created by its first message.
 - **Message:** a text one side wrote in a chat, numbered in its chat from 1 (`seq`). It comes from a side, not from a person: `customer` or `seller`, where any of the seller's people writes as the seller.
 - **Seen:** for each side, the highest `seq` that side has read. "Đã xem" shows under the writer's last message whose `seq` the other side has seen.
-- **Open chat:** a chat whose order is open, its status `confirmed` or `ready` with its window not over (the status as every read computes it). Only an open chat takes messages.
+- **Open chat:** a chat whose order is open: its status `confirmed` or `ready` with its window not over (the status as every read computes it), or `collected` less than 2 hours ago. Only an open chat takes messages.
 - **Topic:** what a connection follows: `order:{orderId}` for one order, or `seller:{sellerId}` for the orders of one seller.
 - **Live ticket:** a short-lived, single-use proof, minted by an authenticated HTTP call, that its holder may follow one topic.
 - **Notice:** what the server pushes on a topic. It names what changed (an order, a message, seen) with identifiers and numbers only, never the text.
@@ -80,12 +80,12 @@ No new edge between modules. `order` already uses `identity`, whose `AccountDele
 | 16 | When the listening connection drops, the hub reconnects with backoff, then sends `resync` to all its sockets | Notices sent while it was down are lost. `resync` makes every page catch up (decision 12) |
 | 17 | Messages are text of 1 to 1,000 characters, trimmed. Sending takes `Idempotency-Key`, unique per order and side: the same key returns the message sent first. At most 20 messages a minute from one side of one chat (429 with `Retry-After`), and 500 in one chat | A person may send twice on a poor connection ([API discovery](../../../conventions.md#api-discovery-and-product-boundaries) point 7). The bounds stop a script holding only an order's access from flooding the seller |
 | 18 | `seq` comes from `order_chats.last_seq`, raised by an upsert in the sending transaction, which serializes the messages of one chat in commit order | `after=<seq>` then never skips a message that commits late |
-| 19 | Sending locks the order row for share and refuses with `ORDER_CHAT_CLOSED` unless the order is open as reads compute it, its window not over | The rule "only while the order is open" holds against a hand-over or the window ending at the same moment |
+| 19 | Sending locks the order row for share and refuses with `ORDER_CHAT_CLOSED` unless the chat is open: the order `confirmed` or `ready` as reads compute it, its window not over, or `collected` less than 2 hours ago (`collected_at`). A cancelled, refused or expired order refuses at once | The rule "only while the order is open" holds against a hand-over, a cancellation or the window ending at the same moment. The 2 hours after collecting let a customer report a missing or wrong dish (the owner's decision) |
 | 20 | Seen is kept per side: `customer_seen_seq` and `seller_seen_seq` on the chat, only ever raised. Any of the seller's people seeing counts as the seller | One seller answers, whoever holds the phone. It matches "Đã xem" in Figma 125:5155 |
 | 21 | The order carries `unreadMessages` for its reader: from the seller for the customer, from the customer for the seller's people. Absent for admins | The badges on the Đơn tab, on "Đơn của tôi" and on "Nhắn quán". One join in the module's own queries |
-| 22 | The chat is between the two sides only: admins neither mint tickets nor read messages | Admins read orders to answer accounts (SEC-75), not private conversations. Whether disputes need it is an open question |
+| 22 | The chat is between the two sides only: admins neither mint tickets nor read messages | Admins read orders to answer accounts (SEC-75), not private conversations. The owner decided that no admin access is built in this issue |
 | 23 | **Photos are phase 2, not built here.** | `file` serves every photo publicly at `/photos/{id}/…` to anyone who has its address. A chat photo needs private serving, authorized like the order, and its own retention: a new access model in `file`, which deserves its own issue |
-| 24 | Messages are deleted 30 days after the order's window ends, by a daily schedule (`order.forget_old_chats`). The order and its events are kept | A chat is about collecting one order, and it holds personal free text. Orders are records and keep their history. The period is the owner's to confirm |
+| 24 | Messages are deleted 30 days after the order's window ends, by a daily schedule (`order.forget_old_chats`). The order and its events are kept | A chat is about collecting one order, and it holds personal free text. Orders are records and keep their history. The owner confirmed the 30 days |
 | 25 | Deleting an account deletes the chats of the orders it placed (`order.forget_account`, listening to `identity.account_deleted`). A message stores its side, not the account of the staff member who wrote it, so a staff account's deletion leaves nothing to remove | The account's data goes with it, as favourites and memberships do ([SEC-37](../../completed/sec-37-account-deletion/design.md)) |
 | 26 | Logs never hold a message's text, a ticket or an access. `order.message.sent` logs the order, the side and `seq`; `platform.live.*` logs topic counts, close codes and durations | [Logging](../../../conventions.md#logging) |
 | 27 | Expiry shows at the window's end: a page also schedules its own refresh at `windowEnd`. `ExpireEnded`'s notice, up to a minute later, then confirms it | Reads compute `expired` at once, while the job runs every minute |
@@ -93,6 +93,9 @@ No new edge between modules. `order` already uses `identity`, whose `AccountDele
 | 29 | When the socket cannot open three times in a row, the web polls while the tab is visible: the order pages refresh every 15 seconds, and an open chat reads `after=` every 5. Reconnection keeps trying every 30 seconds and stops the polling once it succeeds | The owner asked for a fallback. Visibility bounds the load |
 | 30 | The proxies pass the upgrade: `proxy_http_version 1.1`, `Upgrade` and `Connection` headers, and `proxy_read_timeout 75s`, in `local-proxy.conf` and in the staging runbook's `location /api/` block. Development needs nothing, since Next.js's rewrite proxies upgrades (`router-server`'s `upgradeHandler`) | Without them production would quietly stay on polling. CI's "start together and exercise the routes" opens `/api/live` through the local proxy |
 | 31 | Chat state in the browser is kept with TanStack Query, which arrives with this screen. A notice updates the query's data | The [web guideline](../../../guidelines/web.md#stack) brings TanStack Query with the first screen that keeps server data in the browser, and the chat is that screen |
+| 32 | The owner's answers to the open questions (21 October 2026): messages are kept 30 days after the window ends (decision 24); every one of the seller's people may read and answer every chat (decision 20); the chat stays writable 2 hours after collecting (decision 19); no admin access (decision 22) | Recorded as decisions, so the table is the whole truth |
+| 33 | The seller's chat screen is built like the customer's, with the customer's name and the order's status in place of the order card at the top. A Figma frame will come later | The owner's answer. The web PR follows it |
+| 34 | The read-only line reads "Đơn đã kết thúc, chỉ xem lại tin nhắn." | The owner's answer |
 
 ## The contract
 
@@ -102,7 +105,7 @@ No new edge between modules. `order` already uses `identity`, whose `AccountDele
 | --- | --- | --- |
 | `POST /orders/{orderId}/live-ticket`, header `Order-Access` without an account | Its customer, signed in or with its access; the seller's people | `200 {ticket, expiresAt}` for topic `order:{orderId}` |
 | `POST /sellers/{sellerId}/orders/live-ticket` | The seller's people (owner or staff) | `200 {ticket, expiresAt}` for topic `seller:{sellerId}` |
-| `GET /orders/{orderId}/messages?after=&limit=`, header `Order-Access` without an account | Its customer; the seller's people | `200 {messages: [{seq, from, text, sentAt}], seen: {customer, seller}, open}`, oldest first, after `seq` `after` (0 by default), at most 100 a page (50 by default) |
+| `GET /orders/{orderId}/messages?after=&limit=`, header `Order-Access` without an account | Its customer; the seller's people | `200 {messages: [{seq, from, text, sentAt}], seen: {customer, seller}, open, closesAt}` (`closesAt` only once the order is collected: when the chat turns read-only), oldest first, after `seq` `after` (0 by default), at most 100 a page (50 by default) |
 | `POST /orders/{orderId}/messages` `{text}`, headers `Idempotency-Key` and `Order-Access` without an account | Its customer; the seller's people | `201` the message; the same message again for the same key |
 | `POST /orders/{orderId}/messages/seen` `{upTo}`, header `Order-Access` without an account | Its customer; the seller's people | `204`; `upTo` beyond the last `seq` counts as the last |
 
@@ -132,7 +135,7 @@ Close codes: 1001 when the instance stops, 1008 for a frame that breaks the prot
 | `ORDER_IDEMPOTENCY_KEY_INVALID` | 400 | As for placing an order |
 | `ORDER_NOT_FOUND` | 404 | No such order, or the caller is neither its customer nor one of the seller's people (an admin included) |
 | `SELLER_NOT_FOUND` | 404 | A seller ticket for a seller the caller is not one of the people of |
-| `ORDER_CHAT_CLOSED` | 409 | Sending once the order is collected, cancelled, refused or expired |
+| `ORDER_CHAT_CLOSED` | 409 | Sending when the order is cancelled, refused or expired, or more than 2 hours after it was collected |
 | `ORDER_CHAT_FULL` | 409 | The chat already holds 500 messages |
 | `ORDER_MESSAGES_TOO_FAST` | 429 | More than 20 messages in a minute from one side, with `Retry-After` |
 
@@ -161,13 +164,13 @@ The listening connection is one connection per instance outside the pool's work.
 - **A notice is lost** (listening dropped, a queue overflowed): `resync` or the reconnect makes every page read its state again.
 - **The socket never opens** (a proxy without the upgrade, a network that blocks it): the pages poll (decision 29), and the chat still works through its operations.
 - **A message is sent twice:** the second answers the first (decision 17).
-- **The order ends while a message is written:** the message is refused with `ORDER_CHAT_CLOSED`, and the chat turns read-only on the `order` notice.
+- **The order ends while a message is written:** the message is refused with `ORDER_CHAT_CLOSED`, and the chat turns read-only on the `order` notice (for a cancelled, refused or expired order at once; for a collected one, when the 2 hours end, which the page computes from the order).
 
 ## Verification plan
 
 - **Go, against PostgreSQL in a container**, in the order module:
   - sending, the trimmed text, `seq` in commit order under concurrent senders, and the idempotent resend;
-  - refused once collected, cancelled, refused and at the window's end, including a send racing a hand-over;
+  - accepted up to 2 hours after collecting and refused after; refused at once when cancelled, refused and at the window's end, including a send racing a cancellation or a refusal;
   - the per-minute and per-chat bounds;
   - seen only rising, and `unreadMessages` on the order for each reader;
   - who may read, send and mint: the session, the access, the seller's owner and staff; a stranger holding only the identifier, a wrong access and an admin get 404;
@@ -185,7 +188,7 @@ The listening connection is one connection per instance outside the pool's work.
   - the order page turns to Sẵn sàng with its QR code on an `order` notice, and to Hoàn tất with the review card;
   - "Đơn của tôi" moves a card;
   - the chat from "Nhắn quán" and from the pickup card shows the order card, the note under the input, sending and receiving, and "Đã xem";
-  - a collected order's chat is read-only;
+  - a collected order's chat is writable for 2 hours, then read-only with the line "Đơn đã kết thúc, chỉ xem lại tin nhắn.";
   - the Đơn tab shows a new order and an unread badge;
   - with the socket refused, the order page still changes by polling.
 - **Vitest:** the socket client's backoff, subscription after reconnect, and applying notices once each by `seq`.
@@ -206,11 +209,13 @@ The listening connection is one connection per instance outside the pool's work.
 
 ## Open questions
 
-| Question | Who answers |
+All answered by the owner on 21 October 2026.
+
+| Question | Answer |
 | --- | --- |
-| How long are messages kept after the window ends: 30 days, as proposed, or less? | The owner |
-| Should every one of the seller's people see and answer every chat, as proposed, or only the owner? | The owner |
-| Should the chat stay writable for a while after the order is collected, for "quên túi" and similar? Proposed: no, read-only at once, as asked | The owner |
-| Figma draws the customer's chat only. The seller's chat proposes the same layout with the sides swapped, at `/stores/{sellerId}/orders/{orderId}/chat`. Does it need frames of its own? | The owner, with design |
-| Do disputes need admins to read a chat? Proposed: not in this issue | The owner |
-| The words of the read-only line, proposed "Đơn đã kết thúc, chỉ xem lại tin nhắn." | The owner |
+| How long are messages kept after the window ends? | 30 days, then deleted by a periodic job (decision 24) |
+| Should every one of the seller's people see and answer every chat? | Yes (decision 20) |
+| Should the chat stay writable for a while after the order is collected? | Yes, for 2 hours, to report a missing or wrong dish; then read-only. Cancelled, refused and expired orders lock at once (decision 19) |
+| Does the seller's chat need Figma frames of its own? | Not now: it is built like the customer's, with the customer's name and the order's status at the top, and a frame will come later (decision 33) |
+| Do disputes need admins to read a chat? | No admin access in this issue (decision 22) |
+| The words of the read-only line | "Đơn đã kết thúc, chỉ xem lại tin nhắn." (decision 34) |
