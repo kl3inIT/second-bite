@@ -274,7 +274,7 @@ export function OrderFacts({ order }: { order: Order }) {
             label={t("facts.payment")}
             value={
               <span className="text-body-sm">
-                {paid ? t("facts.payAtCounter") : t("facts.nothing")}
+                {paid ? t("facts.atCounter") : t("facts.nothing")}
               </span>
             }
           />
@@ -408,25 +408,41 @@ type StepState = "done" | "now" | "later";
 // (SEC-97 › decision 5).
 const stepOf: Partial<Record<Order["status"], number>> = { confirmed: 1, ready: 2, collected: 3 };
 
-/** The mark before a step's name (Figma D4): a lime check once done, a white dot now, a ring to come. */
-function StepMark({ state }: { state: StepState }) {
-  if (state === "done") {
-    return <CheckIcon aria-hidden className="size-4 text-fresh" strokeWidth={3} />;
-  }
+/** The icon of a step (Figma W5 › icon/…): a lime check once done, a white one in a ring now, a dashed ring to come. */
+function StepIcon({ state }: { state: StepState }) {
   return (
     <span
       aria-hidden
       className={cn(
-        "size-2.5 rounded-full",
-        state === "now" ? "bg-primary-foreground" : "border border-inverse-faint",
+        "relative flex shrink-0 items-center justify-center rounded-full",
+        state === "now" ? "size-7.5" : "size-5.5",
       )}
-    />
+    >
+      {state === "later" ? (
+        <span className="size-full rounded-full border-2 border-dashed border-inverse-faint" />
+      ) : (
+        <span
+          className={cn(
+            "flex size-full items-center justify-center rounded-full",
+            state === "done" ? "bg-fresh text-header" : "bg-primary-foreground/25",
+          )}
+        >
+          {state === "now" ? (
+            <span className="flex size-5.5 items-center justify-center rounded-full bg-primary-foreground text-header">
+              <CheckIcon className="size-3" strokeWidth={4} />
+            </span>
+          ) : (
+            <CheckIcon className="size-3" strokeWidth={4} />
+          )}
+        </span>
+      )}
+    </span>
   );
 }
 
 /**
- * The four steps of an order on the blue band: placed, preparing, ready, collected, in one row from 768px (Figma
- * D4): each a mark and its name, with the time of those done. A phone has its own row.
+ * The four steps of an order on the blue band: placed, preparing, ready, collected (Figma W5, W6). Each is a round
+ * icon beside its name and time, joined by bars that stretch evenly. Shown from 768px; a phone has its own row.
  */
 function WideOrderSteps({ order }: { order: Order }) {
   const t = useTranslations("Orders.steps");
@@ -435,30 +451,74 @@ function WideOrderSteps({ order }: { order: Order }) {
   const timeOf = (moment?: string) =>
     moment ? format.dateTime(new Date(moment), "time") : undefined;
   // The backend stamps no moment for preparing: an order is confirmed as it is placed.
-  const steps: { label: string; time?: string }[] = [
+  const steps: { label: string; time?: string; note?: string; pending?: string }[] = [
     { label: t("placed"), time: timeOf(order.createdAt) },
-    { label: t("preparing") },
-    { label: t("ready"), time: timeOf(order.readyAt) },
-    { label: t("received"), time: timeOf(order.collectedAt) },
+    { label: t("preparing"), note: t("preparingNote") },
+    {
+      label: t("ready"),
+      time: timeOf(order.readyAt),
+      note: t("readyNote"),
+      pending: t("readyPending"),
+    },
+    {
+      label: t("received"),
+      time: timeOf(order.collectedAt),
+      note: t("collectedNote"),
+      pending: t("collectedPending"),
+    },
   ];
 
   return (
-    <ol aria-label={t("label")} className="flex flex-wrap items-center gap-x-7 gap-y-2">
-      {steps.map(({ label, time }, index) => {
+    <ol aria-label={t("label")} className="flex items-center">
+      {steps.map(({ label, time, note, pending }, index) => {
         const state: StepState = index < current ? "done" : index === current ? "now" : "later";
         return (
           <li
             key={label}
             aria-current={state === "now" ? "step" : undefined}
-            className={cn(
-              "flex items-center gap-1.5",
-              state === "done" && "text-body-sm font-medium text-fresh",
-              state === "now" && "text-body-sm-strong text-primary-foreground",
-              state === "later" && "text-body-sm text-inverse-muted",
-            )}
+            className={cn("flex items-center", index > 0 && "flex-auto")}
           >
-            <StepMark state={state} />
-            {state === "done" && time ? `${label} ${time}` : label}
+            {index > 0 ? (
+              <span
+                aria-hidden
+                className={cn(
+                  "mx-3 h-0.5 min-w-4 flex-1",
+                  index <= current ? "bg-fresh" : "bg-inverse-faint/40",
+                )}
+              />
+            ) : null}
+            <span className="flex shrink-0 items-center gap-2">
+              <StepIcon state={state} />
+              <span className="flex flex-col">
+                <span
+                  className={cn(
+                    state === "now" ? "text-title text-primary-foreground" : "text-body-sm",
+                    state === "done" && "font-medium text-fresh",
+                    state === "later" && "text-inverse-muted",
+                  )}
+                >
+                  {label}
+                </span>
+                {state === "later" ? (
+                  <span className="text-label text-inverse-muted">{pending}</span>
+                ) : time || (state === "now" && note) ? (
+                  <span
+                    className={cn(
+                      "text-label text-inverse-muted",
+                      state === "now" && "font-medium",
+                    )}
+                  >
+                    {time}
+                    {state === "now" && note ? (
+                      <span>
+                        {time ? " · " : ""}
+                        {note}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : null}
+              </span>
+            </span>
           </li>
         );
       })}

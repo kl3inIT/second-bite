@@ -22,6 +22,7 @@ export default async function FavouritesPage() {
     <>
       <PageBar title={t("title")} returnTo="/favourites" />
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-3 px-4 py-4 md:max-w-292">
+        <h1 className="hidden text-page-title text-foreground md:block">{t("title")}</h1>
         <Suspense fallback={<Skeleton shape="card" className="h-58" />}>
           <Favourites />
         </Suspense>

@@ -97,7 +97,7 @@ test.describe("ordering from the cart", () => {
     const cancel = page.getByRole("alertdialog", { name: /Huỷ đơn SB-\d+\?/ });
     await cancel.getByRole("button", { name: "Không đến kịp" }).click();
     await cancel.getByRole("button", { name: "Huỷ đơn" }).click();
-    await expect(page.getByText(/^Đã huỷ lúc/)).toBeVisible();
+    await expect(page.getByText(isWide(page) ? /^Bạn huỷ lúc/ : /^Đã huỷ lúc/)).toBeVisible();
 
     await page.goto("/vi/orders?state=ended");
     await expect(page.getByRole("heading", { name: "Hôm nay" })).toBeVisible();
@@ -290,7 +290,7 @@ test.describe("ordering from the cart", () => {
     expect(ticket).toBeLessThan(dishes);
     expect(dishes).toBeLessThan(place);
     expect(place).toBeLessThan(cancel);
-    await expect(page.getByText(/miễn phí/)).toHaveCount(0);
+    await expect(page.getByText("Huỷ được cho tới khi quán báo món sẵn sàng.")).toBeVisible();
   });
 
   // SEC-99: a 360 px phone and a seller with a long name and address, as "Tiệm Bánh Nhà Nhật, 21, Cầu Giấy,

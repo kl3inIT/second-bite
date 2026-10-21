@@ -32,15 +32,12 @@ export function CancelOrder({
   number,
   seller,
   units,
-  freeUntil,
 }: {
   orderId: string;
   access?: string;
   number: string;
   seller: string;
   units: number;
-  /** When the window opens, until which cancelling is free. */
-  freeUntil: string;
 }) {
   const t = useTranslations("Orders.cancel");
   const router = useRouter();
@@ -81,11 +78,11 @@ export function CancelOrder({
       </span>
       <div className="hidden min-w-0 flex-1 flex-col md:flex">
         <p className="text-title-lg text-foreground">{t("change")}</p>
-        <p className="text-body-sm text-muted-foreground">{t("after", { until: freeUntil })}</p>
+        <p className="text-body-sm text-muted-foreground">{t("after")}</p>
       </div>
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger
-          render={<Button variant="cancel" size="lg" className="h-12 w-full md:w-auto" />}
+          render={<Button variant="cancel" size="lg" className="w-full md:w-auto" />}
         >
           {t("open")}
         </AlertDialogTrigger>
@@ -125,6 +122,7 @@ export function CancelOrder({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <p className="text-center text-label text-muted-foreground md:hidden">{t("note")}</p>
     </div>
   );
 }

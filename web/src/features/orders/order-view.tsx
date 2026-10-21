@@ -194,7 +194,6 @@ export function OpenOrder({
                 number={order.number}
                 seller={order.seller.name}
                 units={unitsOf(order)}
-                freeUntil={from}
               />
             </div>
           ) : null}
@@ -272,10 +271,22 @@ type Ended = Exclude<Order["status"], "confirmed" | "ready" | "collected">;
 
 // Each ended status with the colour of its receipt and its icon, so it is never told by colour alone (Figma D5:
 // cancelled, refused and expired in the same receipt).
-const ended: Record<Ended, { icon: LucideIcon; frame: string }> = {
-  cancelled: { icon: CircleXIcon, frame: "bg-destructive text-destructive-foreground" },
-  refused: { icon: BanIcon, frame: "bg-destructive text-destructive-foreground" },
-  expired: { icon: TimerOffIcon, frame: "bg-warning-border text-warning-foreground" },
+const ended: Record<Ended, { icon: LucideIcon; frame: string; band: string }> = {
+  cancelled: {
+    icon: CircleXIcon,
+    frame: "bg-destructive text-destructive-foreground",
+    band: "bg-destructive-muted text-destructive",
+  },
+  refused: {
+    icon: BanIcon,
+    frame: "bg-destructive text-destructive-foreground",
+    band: "bg-destructive-muted text-destructive",
+  },
+  expired: {
+    icon: TimerOffIcon,
+    frame: "bg-warning-border text-warning-foreground",
+    band: "bg-warning text-warning-foreground",
+  },
 };
 
 /** When an ended order ended, as the moment its status records, or the end of its window. */
@@ -360,44 +371,88 @@ function Timeline({ order }: { order: Order & { status: Ended } }) {
   );
 }
 
+/** The phone's blue bar, or from 768px the customer header, over an ended order. */
+export function EndedOrderBar({ order }: { order: Order }) {
+  const t = useTranslations("Orders");
+  return (
+    <PageBar
+      title={t("orderNumber", { number: order.number })}
+      back="/orders"
+      returnTo={`/orders/${order.id}`}
+    />
+  );
+}
+
 /**
  * An order that has ended without being collected (Figma D5: cancelled, refused and expired): a receipt framed in
  * the colour of its status, with when it ended above the seller, the dishes and totals; then what happened, and
- * the way back to tonight's dishes.
+ * the way back to tonight's dishes. From 768px a band in the status' colour leads (Figma D5 web): the order's
+ * number and seller, what happened in large figures and the way back to tonight's dishes at its right; the
+ * receipt and what happened sit side by side from 1024px.
  */
-export function EndedOrder({ order }: { order: Order & { status: Ended } }) {
+export function EndedOrder({ order, now }: { order: Order & { status: Ended }; now: number }) {
   const t = useTranslations("Orders");
   const format = useFormatter();
   const date = useOrderDate();
+  const meta = useOrderMeta(order, now);
   const look = ended[order.status];
   const Icon = look.icon;
   const when = endedAt(order);
-  const title = t("orderNumber", { number: order.number });
+  const time = format.dateTime(new Date(when), "time");
+  const line = {
+    cancelled: t("ended.cancelledLine", { time, units: unitsOf(order) }),
+    refused: t("endedAt.refused", { date: date(when) }),
+    expired: t("endedAt.expired", { time, date: date(when) }),
+  }[order.status];
 
   return (
-    <article aria-label={title}>
-      <PageBar title={title} back="/orders" />
-      <div className="mx-auto flex w-full max-w-xl flex-col gap-3.5 px-4 pt-4 pb-6">
+    <article
+      aria-label={t("orderNumber", { number: order.number })}
+      className="md:mx-auto md:flex md:w-full md:max-w-292 md:flex-col md:gap-6 md:px-8 md:pt-8"
+    >
+      <section
+        className={cn(
+          "hidden md:flex md:items-center md:justify-between md:gap-10 md:rounded-28 md:p-8",
+          look.band,
+        )}
+      >
+        <div className="flex min-w-0 flex-col gap-2">
+          <h1 className="text-body-sm font-medium text-muted-foreground">{meta}</h1>
+          <p className="font-display text-hero">{t(`ended.title.${order.status}`)}</p>
+          <p className="text-body text-foreground">{line}</p>
+        </div>
+        <div className="flex w-90 shrink-0 flex-col rounded-3xl bg-card p-5">
+          <Link href="/" className={buttonVariants({ size: "lg" })}>
+            {t("seeOthers")}
+          </Link>
+        </div>
+      </section>
+      <div className="mx-auto flex w-full max-w-xl flex-col gap-3.5 px-4 pt-4 pb-6 md:max-w-none md:gap-6 md:p-0 lg:grid lg:grid-cols-2 lg:items-start">
         <section
           aria-label={t("details")}
           className={cn("rounded-2xl px-0.75 pb-0.75", look.frame)}
         >
           <p className="flex items-center justify-center gap-1.5 py-2 text-body-sm-strong">
             <Icon aria-hidden className="size-4" />
-            {t(`endedAt.${order.status}`, {
-              time: format.dateTime(new Date(when), "time"),
-              date: date(when),
-            })}
+            <span className="md:hidden">
+              {t(`endedAt.${order.status}`, { time, date: date(when) })}
+            </span>
+            <span className="hidden md:inline">{t(`ended.badge.${order.status}`)}</span>
           </p>
-          <div className="flex flex-col gap-3.5 rounded-xl bg-card p-4 text-card-foreground">
-            <SellerRow order={order} />
-            <div className="border-t border-border pt-3.5">
-              <OrderSummary order={order} />
+          <div className="rounded-xl bg-card p-4 text-card-foreground">
+            <div className="flex flex-col gap-3.5 md:hidden">
+              <SellerRow order={order} />
+              <div className="border-t border-border pt-3.5">
+                <OrderSummary order={order} />
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <OrderFacts order={order} />
             </div>
           </div>
         </section>
         <Timeline order={order} />
-        <Link href="/" className={buttonVariants({ size: "lg" })}>
+        <Link href="/" className={cn(buttonVariants({ size: "lg" }), "md:hidden")}>
           {t("seeOthers")}
         </Link>
       </div>

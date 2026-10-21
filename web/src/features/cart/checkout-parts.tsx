@@ -95,13 +95,6 @@ function LineRow({ cart, line }: { cart: Cart; line: CartLine }) {
   );
 }
 
-export function CancelPolicy({ basket }: { basket: Basket }) {
-  const t = useTranslations("Cart");
-  const { from } = useWindow(basket);
-
-  return <p className="text-label text-muted-foreground">{t("cancelBody", { time: from })}</p>;
-}
-
 function useWindow(basket: Basket): { from: string; until: string } {
   const format = useFormatter();
   const { windowStart, windowEnd } = collectionWindow(basket);

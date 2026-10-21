@@ -408,8 +408,7 @@
       "date": "Day",
       "today": "Today, {date}",
       "window": "Collection window",
-      "dishes": "Dishes",
-      "payAtCounter": "Pay at the counter"
+      "dishes": "Dishes"
     },
     "how": {
       "title": "How to collect",
@@ -429,9 +428,14 @@
       "label": "Order steps",
       "placed": "Placed",
       "preparing": "Preparing",
+      "preparingNote": "the seller is making it",
       "ready": "Ready",
+      "readyNote": "come to the counter",
+      "readyPending": "Not ready yet",
       "collected": "Done",
-      "received": "Collected"
+      "received": "Collected",
+      "collectedNote": "enjoy your meal",
+      "collectedPending": "Not collected yet"
     },
     "timeline": {
       "title": "Status",
@@ -476,12 +480,26 @@
       },
       "keep": "Keep order",
       "confirm": "Cancel order",
-      "tooLate": "Too late to cancel free of charge: the collection window has opened.",
+      "tooLate": "It can no longer be cancelled: the seller has said the food is ready.",
       "failed": "The order was not cancelled. Try again, or report the reference {reference}.",
       "change": "Changed your mind?",
-      "after": "After {until} the order cannot be cancelled, because the food is set aside for you."
+      "note": "You can cancel until the seller says the food is ready.",
+      "after": "You can cancel until the seller says the food is ready. After that it cannot be cancelled."
     },
     "date": "{day}/{month}",
+    "ended": {
+      "title": {
+        "cancelled": "Order cancelled",
+        "refused": "The shop did not hand it over",
+        "expired": "Collection time is over"
+      },
+      "cancelledLine": "You cancelled at {time} · nothing charged · {units, plural, one {# portion goes} other {# portions go}} back to the shop",
+      "badge": {
+        "cancelled": "Order cancelled",
+        "refused": "Not handed over",
+        "expired": "Order expired"
+      }
+    },
     "orderNumber": "Order #{number}",
     "metaToday": "Order #{number} · placed today {time} · {seller}, {address}",
     "metaOn": "Order #{number} · placed {date} {time} · {seller}, {address}",
@@ -570,7 +588,6 @@
     "dishes": "Dishes ({units} portions)",
     "total": "Total",
     "cancelTitle": "Cancellation policy",
-    "cancelBody": "Free cancellation before {time}.",
     "totalSummary": "{orders, plural, =1 {{units} portions in all} other {# orders · {units} portions}} · save {saved}",
     "order": "{orders, plural, =1 {Place order} other {Place # orders}}",
     "contactTitle": "Who collects",
@@ -595,7 +612,7 @@
     "orderFailed": "The order did not go through. Try again, or quote the reference {reference}.",
     "orderFailedPlain": "The order did not go through. Check your connection and try again.",
     "sellerWindow": "{place} · Collect {from} – {until}",
-    "cancelEach": "Free cancellation before each order's collection time.",
+    "cancelEach": "You can cancel until the seller says the food is ready.",
     "intro": "One order per seller, each with its own QR code. Check the dishes and the collection time before you order.",
     "sellerUnits": "{seller} · {units} portions",
     "sidebarTitle": "{sellers, plural, =0 {Your cart} =1 {Your cart} other {Your cart · # sellers}}",

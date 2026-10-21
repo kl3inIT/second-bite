@@ -62,6 +62,16 @@ export function SellerPage({
 
   if (!first || available.length === 0) return <NothingTonight />;
 
+  // The menu's groups are the kinds of dish, the most first (the seller's own sections have no backend, SEC-49
+  // decision 7): from 768px the first is a list of rows and the others grids of cards (Figma WK3).
+  const groups = tabs
+    .map(({ kind: groupKind }, index) => ({
+      kind: groupKind,
+      offers: shown.filter((offer) => offer.kind === groupKind),
+      cards: index > 0,
+    }))
+    .filter(({ offers: dishes }) => dishes.length > 0);
+
   const kindLinks = [undefined, ...tabs.map((tab) => tab.kind)].map((each) => ({
     each,
     href: {
@@ -177,13 +187,30 @@ export function SellerPage({
                     {kind ? kinds(kind) : t("tonight")}
                   </h2>
                   {shown.length > 0 ? (
-                    <ul className="grid grid-cols-1 gap-5">
-                      {shown.map((offer) => (
-                        <li key={offer.id}>
-                          <SellerDish offer={offer} focused={offer.id === at} />
-                        </li>
+                    <div className="flex flex-col gap-5">
+                      {groups.map(({ kind: groupKind, offers: dishes, cards }, index) => (
+                        <div key={groupKind} className="flex flex-col gap-5 md:gap-3">
+                          {/* The first group sits under the page's own title "Đang giảm tối nay" (Figma WK3). */}
+                          {!kind && index > 0 && (
+                            <h3 className="hidden text-title-lg text-foreground md:block">
+                              {kinds(groupKind)}
+                            </h3>
+                          )}
+                          <ul
+                            className={cn(
+                              "grid grid-cols-1 gap-5",
+                              cards && "md:flex md:flex-wrap md:gap-3",
+                            )}
+                          >
+                            {dishes.map((offer) => (
+                              <li key={offer.id}>
+                                <SellerDish offer={offer} focused={offer.id === at} card={cards} />
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   ) : (
                     <p className="text-body-sm text-muted-foreground">
                       {t("noMatch", { q: q ?? "" })}

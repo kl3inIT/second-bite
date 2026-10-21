@@ -300,7 +300,7 @@ abstract final class RadiusTokens {
 
 /// The border widths of DESIGN.md beyond the hairline, in logical pixels.
 abstract final class BorderWidthTokens {
-  static const double strong = 1.5;
+  static const double border15 = 1.5;
 }
 
 /// The spacing steps of DESIGN.md, in logical pixels.

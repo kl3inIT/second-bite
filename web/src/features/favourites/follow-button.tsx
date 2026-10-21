@@ -71,7 +71,7 @@ export function FollowButton({
         look === "card" &&
           "-m-2.75 flex size-11 shrink-0 items-center justify-center rounded-full text-destructive focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
         look === "outline" &&
-          "flex min-h-11 items-center gap-1.5 rounded-md border-strong border-primary px-3 py-2 text-body-sm-strong text-primary hover:bg-secondary focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
+          "flex min-h-11 items-center gap-1.5 rounded-md border-15 border-primary px-3 py-2 text-body-sm-strong text-primary hover:bg-secondary focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
         look === "photo" &&
           "absolute z-10 flex size-11 items-center justify-center rounded-full text-card focus-visible:ring-3 focus-visible:ring-card focus-visible:outline-none",
         className,

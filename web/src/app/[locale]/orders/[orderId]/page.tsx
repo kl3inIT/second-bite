@@ -5,7 +5,13 @@ import { Suspense } from "react";
 
 import { CustomerHeader } from "@/components/customer-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CollectedOrder, EndedOrder, hasEnded, OpenOrder } from "@/features/orders/order-view";
+import {
+  CollectedOrder,
+  EndedOrder,
+  EndedOrderBar,
+  hasEnded,
+  OpenOrder,
+} from "@/features/orders/order-view";
 import { readOrderView } from "@/features/orders/read-orders";
 import { SignInPrompt } from "@/features/orders/sign-in-prompt";
 
@@ -55,9 +61,12 @@ async function OrderView({ params }: { params: Promise<{ orderId: string }> }) {
 
   if (hasEnded(order)) {
     return (
-      <Main>
-        <EndedOrder order={order} />
-      </Main>
+      <>
+        <EndedOrderBar order={order} />
+        <Main>
+          <EndedOrder order={order} now={now} />
+        </Main>
+      </>
     );
   }
 

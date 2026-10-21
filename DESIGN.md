@@ -236,7 +236,7 @@ rounded:
   full: "9999px" # buttons, the search field, the bottom bar, pills, chips, avatars, icon buttons
 borderWidth:
   # The hairline is Tailwind's 1px `border`; this is the one heavier edge (Figma: "Theo dõi", "Huỷ đơn").
-  strong: "1.5px"
+  "15": "1.5px" # named in tenths of a pixel, as Tailwind names `border-2`: `border-15`
 spacing:
   "1": "4px"
   "2": "8px"
