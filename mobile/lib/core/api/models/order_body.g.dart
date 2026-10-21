@@ -8,7 +8,6 @@ part of 'order_body.dart';
 
 _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
   checkoutId: json['checkoutId'] as String,
-  codeAttemptsLeft: (json['codeAttemptsLeft'] as num).toInt(),
   createdAt: DateTime.parse(json['createdAt'] as String),
   customerName: json['customerName'] as String,
   customerPhone: json['customerPhone'] as String,
@@ -27,7 +26,6 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
   cancelledAt: json['cancelledAt'] == null
       ? null
       : DateTime.parse(json['cancelledAt'] as String),
-  code: json['code'] as String?,
   collectedAt: json['collectedAt'] == null
       ? null
       : DateTime.parse(json['collectedAt'] as String),
@@ -46,7 +44,6 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
 Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
     <String, dynamic>{
       'checkoutId': instance.checkoutId,
-      'codeAttemptsLeft': instance.codeAttemptsLeft,
       'createdAt': instance.createdAt.toIso8601String(),
       'customerName': instance.customerName,
       'customerPhone': instance.customerPhone,
@@ -61,7 +58,6 @@ Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
       'access': instance.access,
       'cancelReason': instance.cancelReason,
       'cancelledAt': instance.cancelledAt?.toIso8601String(),
-      'code': instance.code,
       'collectedAt': instance.collectedAt?.toIso8601String(),
       'readyAt': instance.readyAt?.toIso8601String(),
       'refuseNote': instance.refuseNote,
