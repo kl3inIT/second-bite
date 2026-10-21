@@ -25,6 +25,35 @@ type addressOutput struct {
 	}
 }
 
+// placesInput is what someone typed in a store's address.
+type placesInput struct {
+	Query string `query:"q" required:"true" minLength:"2" maxLength:"200" doc:"The words of the address, with or without Vietnamese marks"`
+}
+
+// placeBody is a suggested place.
+type placeBody struct {
+	Address   string  `json:"address"   doc:"As people write it; a house number typed first goes before a street that has none"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+// toPlaceBodies is the suggestions as the API gives them, an empty list for none.
+func toPlaceBodies(found []Place) []placeBody {
+	out := make([]placeBody, len(found))
+	for i, p := range found {
+		out[i] = placeBody(p)
+	}
+
+	return out
+}
+
+// placesOutput is up to five suggestions.
+type placesOutput struct {
+	Body struct {
+		Places []placeBody `json:"places" doc:"Up to five places in Hanoi; none when nothing matches or the search does not answer"`
+	}
+}
+
 type detailsBody struct {
 	Name      string  `json:"name"      maxLength:"100" minLength:"1"`
 	Address   string  `json:"address"   maxLength:"300" minLength:"1" doc:"The address as people write it"`
@@ -137,6 +166,18 @@ func registerOwnerOperations(api huma.API, s *Service) {
 		out.Body.Address = address
 
 		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "searchPlaces", Method: http.MethodGet, Path: "/sellers/places",
+		Summary: "Places in Hanoi for the words of a store's address, to pin it as it is typed",
+		Tags:    tagSellers, Security: security,
+	}, func(ctx context.Context, in *placesInput) (*placesOutput, error) {
+		found, err := s.Places(ctx, in.Query)
+		out := &placesOutput{}
+		out.Body.Places = toPlaceBodies(found)
+
+		return out, err
 	})
 
 	huma.Register(api, huma.Operation{

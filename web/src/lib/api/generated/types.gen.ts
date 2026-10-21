@@ -681,6 +681,15 @@ export type PhotoBody = {
     width: number;
 };
 
+export type PlaceBody = {
+    /**
+     * As people write it; a house number typed first goes before a street that has none
+     */
+    address: string;
+    latitude: number;
+    longitude: number;
+};
+
 export type PlaceOrderBody = {
     /**
      * Shared by the orders placed together from one cart, one per seller; a new one when omitted
@@ -698,6 +707,13 @@ export type PlaceOrderBody = {
      * A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted
      */
     phone: string;
+};
+
+export type PlacesOutputBody = {
+    /**
+     * Up to five places in Hanoi; none when nothing matches or the search does not answer
+     */
+    places: Array<PlaceBody> | null;
 };
 
 export type Problem = {
@@ -2480,6 +2496,36 @@ export type ListMySellersResponses = {
 };
 
 export type ListMySellersResponse = ListMySellersResponses[keyof ListMySellersResponses];
+
+export type SearchPlacesData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The words of the address, with or without Vietnamese marks
+         */
+        q: string;
+    };
+    url: '/sellers/places';
+};
+
+export type SearchPlacesErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SearchPlacesError = SearchPlacesErrors[keyof SearchPlacesErrors];
+
+export type SearchPlacesResponses = {
+    /**
+     * OK
+     */
+    200: PlacesOutputBody;
+};
+
+export type SearchPlacesResponse = SearchPlacesResponses[keyof SearchPlacesResponses];
 
 export type GetSellerData = {
     body?: never;

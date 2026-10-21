@@ -12,17 +12,13 @@ import { useFieldValidity } from "@/components/form/form-context";
 import { LocationField } from "@/components/map/location-field";
 import type { Point } from "@/components/map/location-picker";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/components/ui/input-group";
+import { InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
 import { openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
 
 import { PhoneFootBar } from "./phone-foot-bar";
+import { AddressInput } from "./address-input";
 import { useRemountKey } from "./remount-key";
 import { describePlace, suggestAddress, type Suggestion } from "./suggested-address";
 
@@ -183,6 +179,7 @@ function OpenStoreFormBody() {
               onLocated={({ latitude, longitude }) =>
                 form.setFieldValue("location", { latitude, longitude })
               }
+              onPlace={(point) => form.setFieldValue("location", point)}
             />
           )}
         </form.AppField>
@@ -204,13 +201,16 @@ function OpenStoreFormBody() {
 /**
  * The store's address, with the button at its end (Figma O1d, O1e, O1f): where the person stands pins the store,
  * which the map then shows to adjust (SEC-66), and the server names the place to fill the address, unless the
- * person has written their own.
+ * person has written their own. Places are suggested as it is typed; picking one pins the store there.
  */
 function AddressField({
   fillFrom,
   pin,
   onLocated,
+  onPlace,
 }: {
+  /** A suggested place was picked: the store is pinned there. */
+  onPlace: (point: Point) => void;
   /** Where the store is pinned now. */
   pin: Point | undefined;
   /** Names the place at a point and fills the address when it may; answers what became of it. */
@@ -258,19 +258,17 @@ function AddressField({
   return (
     <Field data-invalid={invalid || undefined}>
       <FieldLabel htmlFor={ids.control}>{t("address")}</FieldLabel>
-      <InputGroup>
-        <InputGroupInput
-          id={ids.control}
-          name={field.name}
-          value={field.state.value}
-          onBlur={field.handleBlur}
-          onChange={(event) => field.handleChange(event.target.value)}
-          placeholder={t("addressPlaceholder")}
-          autoComplete="street-address"
-          aria-required
-          aria-invalid={invalid || undefined}
-          aria-describedby={invalid ? `${ids.error} ${note}` : note}
-        />
+      <AddressInput
+        id={ids.control}
+        name={field.name}
+        value={field.state.value}
+        onBlur={field.handleBlur}
+        onChange={field.handleChange}
+        onPlace={onPlace}
+        placeholder={t("addressPlaceholder")}
+        invalid={invalid}
+        describedBy={invalid ? `${ids.error} ${note}` : note}
+      >
         <InputGroupAddon align="inline-end">
           <InputGroupButton
             size="icon-sm"
@@ -283,7 +281,7 @@ function AddressField({
             {locating ? <Spinner /> : <LocateFixedIcon aria-hidden />}
           </InputGroupButton>
         </InputGroupAddon>
-      </InputGroup>
+      </AddressInput>
       <output id={note} className="block empty:hidden">
         {located && stillThere && !locateFailure && (
           <span className="flex items-start gap-2 text-note text-muted-foreground">

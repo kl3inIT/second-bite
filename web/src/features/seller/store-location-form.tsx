@@ -9,11 +9,12 @@ import { refuse, useAppForm } from "@/components/form/app-form";
 import { useFieldValidity } from "@/components/form/form-context";
 import { LocationField } from "@/components/map/location-field";
 import type { Point } from "@/components/map/location-picker";
-import { FieldError, FieldGroup } from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "@/i18n/navigation";
 import { updateSeller, type SellerBody } from "@/lib/api/generated";
 
+import { AddressInput } from "./address-input";
 import { describePlace, suggestAddress } from "./suggested-address";
 
 // The owner moves their store's pin and its written address (SEC-66, design decision 7). The store's other details
@@ -95,8 +96,11 @@ export function StoreLocationForm({ store }: { store: SellerBody }) {
         </form.AppField>
 
         <form.AppField name="address">
-          {(field) => (
-            <field.TextField label={t("address")} required autoComplete="street-address" />
+          {() => (
+            <AddressField
+              label={t("address")}
+              onPlace={(point) => form.setFieldValue("location", point)}
+            />
           )}
         </form.AppField>
 
@@ -105,6 +109,27 @@ export function StoreLocationForm({ store }: { store: SellerBody }) {
         </form.AppForm>
       </FieldGroup>
     </form>
+  );
+}
+
+/** The store's address, with places suggested as it is typed; picking one moves the pin there. */
+function AddressField({ label, onPlace }: { label: string; onPlace: (point: Point) => void }) {
+  const { field, invalid, errors, ids } = useFieldValidity<string>();
+  return (
+    <Field data-invalid={invalid || undefined}>
+      <FieldLabel htmlFor={ids.control}>{label}</FieldLabel>
+      <AddressInput
+        id={ids.control}
+        name={field.name}
+        value={field.state.value}
+        onBlur={field.handleBlur}
+        onChange={field.handleChange}
+        onPlace={onPlace}
+        invalid={invalid}
+        describedBy={invalid ? ids.error : undefined}
+      />
+      {invalid && <FieldError id={ids.error} errors={errors} />}
+    </Field>
   );
 }
 

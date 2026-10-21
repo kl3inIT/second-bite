@@ -87,6 +87,8 @@ func checkSellerFlow(t *testing.T, svc service) {
 		t.Errorf("the owner moving the seller out of Hanoi: %q", p.Code)
 	}
 
+	checkPlacesNeedACaller(t, svc, owner)
+
 	stranger := bearer(signIn(t, svc, "seller.stranger@example.com").Token)
 	if p := send(t, http.MethodGet, sellerURL, stranger, nil).problem(t, http.StatusNotFound); p.Code != "SELLER_NOT_FOUND" {
 		t.Errorf("a stranger reading the seller: %q", p.Code)
@@ -215,4 +217,18 @@ func waitEmail(t *testing.T, svc service, address, subject string) string {
 	t.Fatalf("no email to %s about %q", address, subject)
 
 	return ""
+}
+
+// checkPlacesNeedACaller: suggestions for an address are for someone signed in, from two letters typed.
+func checkPlacesNeedACaller(t *testing.T, svc service, signedIn http.Header) {
+	t.Helper()
+
+	places := svc.base + "/sellers/places?q="
+	if p := send(t, http.MethodGet, places+"hoa+lam", nil, nil).problem(t, http.StatusUnauthorized); p.Code != codeAuthenticationRequired {
+		t.Errorf("anonymous suggestions: %q", p.Code)
+	}
+
+	if p := send(t, http.MethodGet, places+"h", signedIn, nil).problem(t, http.StatusBadRequest); p.Code != "PLATFORM_REQUEST_INVALID" {
+		t.Errorf("one letter: %q", p.Code)
+	}
 }

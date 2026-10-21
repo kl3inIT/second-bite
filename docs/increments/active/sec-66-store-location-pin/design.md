@@ -24,6 +24,18 @@ Decided with Đạt Phan on 21 October 2026. The scope is option A of the conver
 | 10 | **The admin's store page shows the pin** on a small map that only reads | Admins spot a store pinned in the wrong place and block it (SEC-75) |
 | 11 | **When the map cannot load** (no WebGL, tiles unreachable), the form says so and the location button still pins the store | VNExplore wraps the map's creation and its `error` event and falls back (`Frontend/src/components/RealMap.tsx:328-334`) |
 
+### After trying it on staging
+
+On 21 October 2026 Đạt Phan found the picker awkward on staging: it opened one zoom short of the street, so "Xác nhận vị trí" waited for a zoom every time, and a pinch was the only way in. The address also named Kẻ Diễn, a quarter, in place of Phường Phú Diễn. Changed with him the same day:
+
+| # | Decision | Why |
+| --- | --- | --- |
+| 12 | **The picker opens at street level (17)**, wherever it starts, so the pin is confirmed at once. Decision 5 still holds once the person zooms out | The gate was meant to stop a pin dropped from far away, not to make every open cost a zoom |
+| 13 | **"Phóng to" and "Thu nhỏ" buttons** sit under the location button, 48 px like it | Zooming with one hand or a mouse. MapLibre's own control is 29 px, under the 44 px Apple asks for a touch target |
+| 14 | **A press on the small map opens the picker**, beside "Chỉnh vị trí", which stays the way in for a keyboard | People press a map to move it, as on Uber Eats's address form (decision 3) |
+| 15 | **The address field suggests places as it is typed** through `GET /sellers/places`, which asks komoot's public Photon (OpenStreetMap, no key) inside Hanoi's box. Picking one writes its address and moves the pin there; what is typed stays free text. A house number typed first goes before a street that has none | Grab and ShopeeFood suggest addresses as they are typed. Photon answers Vietnamese with or without marks ("pho hoa lam" finds Phố Hoa Lâm) but knows few house numbers, hence the number kept from the typing. Baymard asks for autocomplete that never blocks a typed address. A self-hosted Photon waits until the traffic needs it |
+| 16 | **A written address is street, ward or commune, city.** The ward is the part named Phường, Xã, Thị trấn or Đặc khu, wherever Nominatim puts it | Districts were abolished in July 2025. Nominatim gives a quarter (Kẻ Diễn) beside the ward (Phường Phú Diễn) |
+
 ## The map
 
 - **Libraries, at their latest versions:** `maplibre-gl` 6.15, `react-map-gl` 8.1 (`react-map-gl/maplibre`), `pmtiles` 4.5 and `@protomaps/basemaps` 5.7. The map loads only where it is shown (`next/dynamic`, no server rendering). The `pmtiles` protocol is registered once, at module scope, since it "must be added once globally" (`pmtiles` `js/src/adapters.ts:169-171`). No new Go library.
@@ -45,4 +57,4 @@ Cloned into `.tmp/map-refs/`: `visgl/react-map-gl`, `protomaps/basemaps`, `proto
 
 ## Out of scope
 
-A national map; searching for a place by name; the Flutter application; the customer's maps (SEC-115); editing the store's other details.
+A national map; house numbers in suggestions (only a paid Vietnamese geocoder has them); the Flutter application; the customer's maps (SEC-115); editing the store's other details.

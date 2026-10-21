@@ -1057,6 +1057,7 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers" ||
     url.pathname === "/sellers/mine" ||
     url.pathname === "/sellers/address" ||
+    url.pathname === "/sellers/places" ||
     url.pathname === "/photos" ||
     /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
     (/^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse)$/.test(url.pathname) &&
@@ -1075,6 +1076,27 @@ async function sellerRoutes(request, response, url) {
     // A point in Cầu Giấy has an address; any other has none, as the geocoder knows nothing there.
     const near = Math.abs(Number(url.searchParams.get("latitude")) - 21.0367) < 0.01;
     json(response, 200, { address: near ? "21 Phố Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội" : "" });
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/sellers/places") {
+    // "hoa lam" finds the street, with a house number typed first put before it, as the server does (SEC-66).
+    const words = (url.searchParams.get("q") ?? "").toLowerCase();
+    const number = /^(\d\w*) /.exec(words)?.[1];
+    const places = words.includes("hoa lam")
+      ? [
+          {
+            address: `${number ? `${number} ` : ""}Phố Hoa Lâm, Việt Hưng, Hà Nội`,
+            latitude: 21.0543,
+            longitude: 105.8962,
+          },
+          {
+            address: "Ngõ 139 Phố Hoa Lâm, Việt Hưng, Hà Nội",
+            latitude: 21.0551,
+            longitude: 105.8975,
+          },
+        ]
+      : [];
+    json(response, 200, { places });
     return true;
   }
   if (request.method === "GET" && url.pathname === "/sellers/mine") {
