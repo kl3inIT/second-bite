@@ -72,9 +72,11 @@ export function OpenOrder({
   return (
     <>
       <div className="mx-auto w-full max-w-5xl px-4 pt-6 xl:max-w-300">
+        {/* grid-cols-1: a phone's one column may shrink, so a long seller's line that truncates does not
+            widen the page past the screen (SEC-99). */}
         <section
           aria-labelledby={`order-status-${order.id}`}
-          className="grid gap-6 rounded-3xl bg-primary p-5 text-primary-foreground md:grid-cols-5 md:items-center md:p-8"
+          className="grid grid-cols-1 gap-6 rounded-3xl bg-primary p-5 text-primary-foreground md:grid-cols-5 md:items-center md:p-8"
         >
           <div className="flex flex-col gap-2 md:col-span-3">
             <OrderMeta order={order} className="text-inverse-muted" />
@@ -102,7 +104,7 @@ export function OpenOrder({
           </div>
         </section>
       </div>
-      <div className="mx-auto grid w-full max-w-5xl gap-4 px-4 py-6 lg:grid-cols-5 lg:items-start xl:max-w-300">
+      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 px-4 py-6 lg:grid-cols-5 lg:items-start xl:max-w-300">
         <div className="flex flex-col gap-4 lg:col-span-3">
           <HowToCollect order={order} />
           {cancellable ? (
@@ -250,7 +252,7 @@ export function EndedOrder({
         <section
           aria-labelledby={`order-status-${order.id}`}
           className={cn(
-            "grid gap-6 rounded-3xl p-5 md:grid-cols-5 md:items-center md:p-8",
+            "grid grid-cols-1 gap-6 rounded-3xl p-5 md:grid-cols-5 md:items-center md:p-8",
             look.band,
           )}
         >
@@ -274,7 +276,7 @@ export function EndedOrder({
           </div>
         </section>
       </div>
-      <div className="mx-auto grid w-full max-w-5xl gap-4 px-4 py-6 lg:grid-cols-5 lg:items-start xl:max-w-300">
+      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 px-4 py-6 lg:grid-cols-5 lg:items-start xl:max-w-300">
         <section
           aria-label={t("details")}
           className={cn(
