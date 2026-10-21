@@ -8,6 +8,7 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | --- | --- | --- |
 | `POST /sellers` `{name, address, latitude, longitude, phone}` | Anyone signed in, owning fewer than five sellers | `201` seller, `active` at once, the caller its owner |
 | `GET /sellers/mine` | Anyone signed in | `200` the sellers they own or work for, with their role |
+| `GET /sellers/address?latitude&longitude` | Anyone signed in | `200` the address at a point, as people write it, from OpenStreetMap's Nominatim; empty when it is not known or the service does not answer ([SEC-110](../increments/active/sec-110-address-from-location/design.md)) |
 | `GET /sellers/{sellerId}` | Its members; admins | `200` seller |
 | `PUT /sellers/{sellerId}` | Its owner | `200` seller |
 | `PUT /sellers/{sellerId}/photo` `{photoId}`, `DELETE` | Its owner | `200` seller with its `photoId`; `204` |
