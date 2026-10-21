@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/app-header";
 import { HeaderSweep } from "@/components/header-sweep";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { SellerAvatar } from "@/features/offers/seller-avatar";
+import { cn } from "@/lib/utils";
 import { getMySellers, MAX_OWNED } from "./my-sellers";
 import { requireStore } from "./require-store";
 import { StoreMenu } from "./store-menu";
@@ -105,7 +106,7 @@ function NavPlaceholder() {
     <ul aria-hidden className="flex items-center gap-1">
       {["w-20", "w-22", "w-24", "w-12"].map((width) => (
         <li key={width} className="flex min-h-11 items-center">
-          <span className={`h-9 rounded-full bg-header-raised/20 ${width}`} />
+          <span className={cn("h-9 rounded-full bg-header-raised/20", width)} />
         </li>
       ))}
     </ul>

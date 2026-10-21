@@ -5,11 +5,13 @@ import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import type { DishBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
 import { getStoreDishes } from "./my-sellers";
 import { PostToast } from "./post-toast";
 import { requireStore } from "./require-store";
 import { ShowDishButton } from "./show-dish-button";
+import { StorePanel } from "./store-panel";
 import { StoreTitleRow, titleActionPhone } from "./store-title-row";
 
 // The store's catalog tab (SEC-55, Figma Q3, Q3b): "Thêm món", then one card with the count and a row for each
@@ -57,10 +59,7 @@ export async function StoreCatalog({
         }
       />
 
-      <section
-        aria-labelledby="store-dishes"
-        className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground"
-      >
+      <StorePanel labelledBy="store-dishes">
         <h2 id="store-dishes" className="text-card-title">
           {dishes.length === 0 ? t("emptyTitle") : t("count", { count: dishes.length })}
         </h2>
@@ -80,7 +79,7 @@ export async function StoreCatalog({
                   )}
                 >
                   <Image
-                    src={`/api${dish.photo.smallPath}`}
+                    src={photoUrl(dish.photo.smallPath)}
                     alt=""
                     fill
                     sizes="56px"
@@ -121,7 +120,7 @@ export async function StoreCatalog({
             ))}
           </ul>
         )}
-      </section>
+      </StorePanel>
       {children}
     </>
   );

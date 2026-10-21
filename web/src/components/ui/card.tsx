@@ -2,17 +2,18 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 // Second Bite: `lg` is Figma's Admin/SettingsCard, a framed card with 24 px inside.
+// Second Bite: "md", outlined with 20 px inside, is the panel of the seller's pages (Figma Q1, Q2, Q3).
 function Card({
   className,
   size = "default",
   ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" | "lg" }) {
+}: React.ComponentProps<"div"> & { size?: "default" | "sm" | "md" | "lg" }) {
   return (
     <div
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-2xl bg-card py-(--card-spacing) text-body-sm text-card-foreground [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=lg]:border data-[size=lg]:border-border data-[size=lg]:[--card-spacing:--spacing(6)] data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl",
+        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-2xl bg-card py-(--card-spacing) text-body-sm text-card-foreground [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=lg]:border data-[size=lg]:border-border data-[size=lg]:[--card-spacing:--spacing(6)] data-[size=md]:border data-[size=md]:border-border data-[size=md]:[--card-spacing:--spacing(5)] data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl",
         className,
       )}
       {...props}
