@@ -14,12 +14,12 @@ A green deployment means the release is running and healthy. It does not claim t
 
 `main` receives only commits whose checks passed on their branch. A `main` push that changes `server/`, `web/`, `mobile/` or `infrastructure/deployment/` starts Release:
 
-1. **Server image, Web image and Preview image** build side by side; the first two use the GitHub Actions layer cache, and the preview builds the Flutter app for the browser with the version `mobile/pubspec.yaml` pins. Each pushes to GHCR as `ghcr.io/kl3init/second-bite-{server,web,preview}:sha-<sha>-<run>-<attempt>`. A tag names one attempt and is never moved; there is no `latest`.
+1. **Server image, Web image and Preview image** build side by side; the first two use the GitHub Actions layer cache, and the preview builds the Flutter app for the browser with the version `mobile/pubspec.yaml` pins and `SECONDBITE_API_ORIGIN=https://preview.secondbite.vadan.app/api`, so it calls staging's API through its own origin. Each pushes to GHCR as `ghcr.io/kl3init/second-bite-{server,web,preview}:sha-<sha>-<run>-<attempt>`. A tag names one attempt and is never moved; there is no `latest`.
 2. **Start together and exercise the routes** pulls both images by digest and starts them with PostgreSQL behind the local proxy (`compose.local.yaml`, `--no-build`). It then checks:
    - `/vi` and `/robots.txt` answer 200;
    - `/api/readyz` answers 204;
    - `/api/offers` answers 200;
-   - the preview answers any path with the app and `X-Robots-Tag: noindex`;
+   - the preview answers `/` with the app, sends a screen's path such as `/offers/1` to `/#/offers/1`, and carries `X-Robots-Tag: noindex`;
    - each image's `revision` label is the commit.
 3. **Publish release** runs only after the step above passes. It uploads the artifact `release-<sha>`, kept 30 days, holding `images.env`: the source SHA and both images by digest.
 
@@ -190,6 +190,27 @@ location /api/ {
 ```
 
 Staging's proxy host is id 10, and its certificate is id 11, renewed by Nginx Proxy Manager.
+
+The preview's proxy host, `preview.secondbite.vadan.app`, forwards to `http://secondbite-staging-preview:8080` with the same certificate options. Its advanced configuration keeps the preview out of search even while the container is down, and gives it the same `location /api/` block as above, so the app reaches staging's API on its own origin and the server needs no CORS (SEC-94):
+
+```nginx
+# A preview for the team: never indexed, even when the container is down.
+add_header X-Robots-Tag "noindex, nofollow" always;
+
+location /api/ {
+    set $secondbite_server secondbite-staging-server;
+    rewrite ^/api/(.*)$ /$1 break;
+    proxy_pass http://$secondbite_server:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header Forwarded "";
+    proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+The preview's proxy host is id 11, and its certificate is id 12. Its `/api/` block was added on 21 October 2026 through the API, with a token signed inside the container as described below.
 
 Nginx Proxy Manager 2.13 takes the Let's Encrypt address from its own settings. A certificate requested through its API carries only `{"dns_challenge": false}` in `meta`; it refuses `letsencrypt_agree` or `letsencrypt_email`.
 
