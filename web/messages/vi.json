@@ -560,7 +560,7 @@
     "dishes": "Tiền món ({units} phần)",
     "total": "Tổng tiền",
     "cancelTitle": "Chính sách huỷ",
-    "cancelBody": "Huỷ miễn phí cho tới khi quán báo món sẵn sàng.",
+    "cancelBody": "Huỷ được cho tới khi quán báo món sẵn sàng.",
     "totalSummary": "{orders, plural, =1 {Tổng {units} phần} other {# đơn · {units} phần}} · tiết kiệm {saved}",
     "order": "{orders, plural, =1 {Đặt món} other {Đặt # đơn}}",
     "contactTitle": "Người đến nhận",
