@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/add_seller_staff_request.dart';
+import '../models/address_output_body.dart';
 import '../models/details_body.dart';
 import '../models/member_body.dart';
 import '../models/members_output_body.dart';
@@ -23,6 +24,13 @@ abstract class SellersClient {
   /// Open a seller; it waits for an admin to activate it
   @POST('/sellers')
   Future<SellerBody> openSeller({@Body() required DetailsBody body});
+
+  /// The address at a point, to fill the form that opens a store; empty when it is not known
+  @GET('/sellers/address')
+  Future<AddressOutputBody> addressAt({
+    @Query('latitude') required double latitude,
+    @Query('longitude') required double longitude,
+  });
 
   /// The sellers I own or work for
   @GET('/sellers/mine')

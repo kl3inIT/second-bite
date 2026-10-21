@@ -669,7 +669,11 @@
     "address": "Địa chỉ quán",
     "addressPlaceholder": "Số nhà, đường, phường, quận",
     "locate": "Dùng vị trí hiện tại",
-    "located": "Đã lấy vị trí hiện tại, sai số khoảng {meters} m. Bạn có thể sửa địa chỉ.",
+    "located": {
+      "filled": "Đã lấy vị trí hiện tại, sai số khoảng {meters} m. Bạn có thể sửa địa chỉ.",
+      "kept": "Đã ghim quán tại vị trí của bạn, sai số khoảng {meters} m. Địa chỉ giữ như bạn đã nhập.",
+      "unknown": "Đã ghim quán tại vị trí của bạn, sai số khoảng {meters} m. Chưa tìm được tên đường, bạn nhập địa chỉ nhé."
+    },
     "locateDenied": "Chưa lấy được vị trí. Hãy cho phép vị trí trong trình duyệt, hoặc nhập địa chỉ bằng tay.",
     "locateFailed": "Chưa lấy được vị trí lúc này. Bạn nhập địa chỉ bằng tay nhé.",
     "photo": "Ảnh đại diện quán",

@@ -18,6 +18,13 @@ export type AddSellerStaffRequest = {
     email: string;
 };
 
+export type AddressOutputBody = {
+    /**
+     * As people write it; empty when the point has no known address
+     */
+    address: string;
+};
+
 export type AdminAccountsOutputBody = {
     /**
      * How many accounts of each role match the words, whatever the role asked
@@ -2057,6 +2064,34 @@ export type OpenSellerResponses = {
 };
 
 export type OpenSellerResponse = OpenSellerResponses[keyof OpenSellerResponses];
+
+export type AddressAtData = {
+    body?: never;
+    path?: never;
+    query: {
+        latitude: number;
+        longitude: number;
+    };
+    url: '/sellers/address';
+};
+
+export type AddressAtErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type AddressAtError = AddressAtErrors[keyof AddressAtErrors];
+
+export type AddressAtResponses = {
+    /**
+     * OK
+     */
+    200: AddressOutputBody;
+};
+
+export type AddressAtResponse = AddressAtResponses[keyof AddressAtResponses];
 
 export type ListMySellersData = {
     body?: never;

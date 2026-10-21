@@ -105,6 +105,7 @@ type Service struct {
 	events   *platform.Events
 	trail    *audit.Service
 	logger   *slog.Logger
+	geocoder geocoder
 }
 
 // NewService assembles the module.
@@ -114,7 +115,7 @@ func NewService(
 ) *Service {
 	return &Service{
 		pool: pool, queries: db.New(pool), accounts: accounts, photos: photos, mail: mail, events: events,
-		trail: trail, logger: logger,
+		trail: trail, logger: logger, geocoder: newGeocoder(),
 	}
 }
 

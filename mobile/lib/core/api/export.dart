@@ -14,6 +14,7 @@ export 'clients/sellers_client.dart';
 // Data classes
 export 'models/account_body.dart';
 export 'models/add_seller_staff_request.dart';
+export 'models/address_output_body.dart';
 export 'models/admin_accounts_output_body.dart';
 export 'models/admin_seller_body.dart';
 export 'models/admin_sellers_output_body.dart';

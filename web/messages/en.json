@@ -669,7 +669,11 @@
     "address": "Store address",
     "addressPlaceholder": "Number, street, ward, district",
     "locate": "Use my current location",
-    "located": "Current location taken, accurate to about {meters} m. You can edit the address.",
+    "located": {
+      "filled": "Current location taken, accurate to about {meters} m. You can edit the address.",
+      "kept": "The store is pinned where you are, accurate to about {meters} m. The address stays as you typed it.",
+      "unknown": "The store is pinned where you are, accurate to about {meters} m. No street name found, please type the address."
+    },
     "locateDenied": "Could not get the location. Allow location in the browser, or type the address.",
     "locateFailed": "Could not get the location right now. Type the address instead.",
     "photo": "Store photo",
