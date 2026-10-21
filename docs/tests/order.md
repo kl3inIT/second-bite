@@ -12,6 +12,9 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | The code is shown once the window opens; a stranger cannot hand over; a wrong code is counted; the right code collects the order; nothing after; not before the window | `TestOrder` › handing over against the code |
 | The third wrong code locks the order, the right code then too, and the customer no longer sees it | `TestOrder` › three wrong codes lock it |
 | Staff refuse with a known reason and a note; the customer cannot; the units are not offered again; nothing after | `TestOrder` › staff refuse an order |
+| Staff deliver an order with no code, before its window opens; a stranger and the customer cannot; not twice; the units stay taken | `TestOrder` › the counter delivers without a code |
+| Refusing for no answer, no show or too late gives the units back; for out of food or another reason it does not | `TestOrder` › no answer or no show gives units back |
+| A delivery is taken back; a refusal that returned its units is taken back only while they are still there; what its customer cancelled, an open order and one whose window is over cannot be reopened; a stranger gets 404 | `TestOrder` › a mistake is taken back |
 | An order whose window is over reads as expired without its code and cannot be handed over, made ready or cancelled | `TestOrder` › expiry is read from the window |
 | A seller's people list the orders of today, not of tomorrow, without codes; a stranger cannot | `TestOrder` › a seller lists the orders of a day |
 | The customer lists all, open and ended orders, newest first; another account sees none of them | `TestOrder` › the customer lists open and ended orders |
