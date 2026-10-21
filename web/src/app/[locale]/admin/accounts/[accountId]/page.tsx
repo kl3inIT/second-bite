@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 
 import { AccountDetail } from "@/features/accounts/account-detail";
 import { nameOf } from "@/features/accounts/account-parts";
+import { RoleAction } from "@/features/accounts/role-action";
 import { AdminTopBar } from "@/features/admin/admin-top-bar";
 import { requireAdmin } from "@/features/identity/current-account";
 import { sessionHeaders } from "@/features/identity/session";
@@ -11,6 +12,7 @@ import { ApiError } from "@/lib/api/client";
 import {
   getAccountForAdmins,
   getAccountOrderHistory,
+  listAdmins,
   listMembershipsForAdmins,
 } from "@/lib/api/generated";
 
@@ -34,13 +36,14 @@ export default async function AccountPage({
   params,
 }: PageProps<"/[locale]/admin/accounts/[accountId]">) {
   const { accountId } = await params;
-  await requireAdmin(`/admin/accounts/${accountId}`);
+  const me = await requireAdmin(`/admin/accounts/${accountId}`);
   const [t, headers] = await Promise.all([getTranslations("Admin"), sessionHeaders()]);
 
   const account = await readAccount(accountId, headers);
-  const [{ data: history }, { data: memberships }] = await Promise.all([
+  const [{ data: history }, { data: memberships }, { data: admins }] = await Promise.all([
     getAccountOrderHistory({ headers, path: { accountId } }),
     listMembershipsForAdmins({ headers, query: { accountId: [accountId] } }),
+    listAdmins({ headers }),
   ]);
 
   return (
@@ -57,6 +60,9 @@ export default async function AccountPage({
           account={account}
           history={history}
           memberships={memberships.memberships ?? []}
+          action={
+            <RoleAction account={account} myId={me.id} adminCount={admins.admins?.length ?? 0} />
+          }
         />
       </div>
     </>

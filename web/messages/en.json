@@ -1209,6 +1209,16 @@
         "unreachable": "The server could not be reached. Try again shortly.",
         "self": "You cannot revoke yourself",
         "last": "The last admin"
+      },
+      "promote": {
+        "open": "Make admin",
+        "title": "Make {name} an admin?",
+        "description": "They see and change everything in the admin pages from their next request. You can revoke it at any time.",
+        "cancel": "Cancel",
+        "confirm": "Make admin",
+        "done": "{email} is now an admin",
+        "failed": "Could not make {name} an admin",
+        "unreachable": "The server could not be reached. Try again shortly."
       }
     }
   }

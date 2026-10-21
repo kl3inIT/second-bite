@@ -98,6 +98,36 @@ test.describe("the accounts", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
+  test("a customer is made an admin after asking, and revoked again", async ({ page }) => {
+    await page.goto("/vi/admin/accounts/ac-phong");
+
+    await (
+      await hydrated(page.getByRole("button", { name: "Cấp quyền quản trị Tuấn Phong" }))
+    ).click();
+    const ask = page.getByRole("alertdialog", { name: "Cấp quyền quản trị cho Tuấn Phong?" });
+    await expectNoSeriousA11yViolations(page);
+    await ask.getByRole("button", { name: "Cấp quyền" }).click();
+    await expect(page.getByText("Đã cấp quyền quản trị cho phong@example.com")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Thu quyền Tuấn Phong" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Thu quyền Tuấn Phong" }).click();
+    await page
+      .getByRole("alertdialog", { name: "Thu quyền quản trị của Tuấn Phong?" })
+      .getByRole("button", { name: "Thu quyền" })
+      .click();
+    await expect(page.getByText("Đã thu quyền quản trị của Tuấn Phong")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Cấp quyền quản trị Tuấn Phong" })).toBeVisible();
+  });
+
+  test("an admin's own account cannot be revoked from its page", async ({ page }) => {
+    await page.goto("/vi/admin/accounts?role=admin");
+    const table = page.getByRole("table", { name: "Tài khoản" });
+    await (await hydrated(table.getByRole("link", { name: /^admin\.accounts\./ }))).click();
+
+    await expect(page.getByText("Không tự thu quyền của mình")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Thu quyền/ })).toHaveCount(0);
+  });
+
   test("an account that never ordered says so, and an unknown one is not found", async ({
     page,
   }) => {

@@ -1448,13 +1448,20 @@ function adminsOf(account) {
   return adminsBy.get(account.email);
 }
 
+/** The accounts as the signed-in admin sees them: a customer it made an admin is listed as an admin. */
+function directoryOf(account) {
+  const admins = adminsOf(account);
+  const ids = new Set(admins.map((admin) => admin.id));
+  return [...stubCustomers.filter((customer) => !ids.has(customer.id)), ...admins];
+}
+
 function accountsPage(account, url) {
   const role = url.searchParams.get("role");
   const q = fold(url.searchParams.get("q") ?? "");
   const sort = url.searchParams.get("sort") ?? "";
   const page = Number(url.searchParams.get("page") ?? 1);
   const size = Number(url.searchParams.get("size") ?? 25);
-  const found = [...stubCustomers, ...adminsOf(account)].filter(
+  const found = directoryOf(account).filter(
     (a) => !q || fold(`${a.email} ${a.displayName}`).includes(q),
   );
   const matching = found.filter((a) => !role || a.role === role);
@@ -1560,6 +1567,11 @@ async function adminRoutes(request, response, url) {
     }
     const admins = adminsOf(account);
     let granted = admins.find((admin) => admin.email === email);
+    const customer = stubCustomers.find((c) => c.email === email);
+    if (!granted && customer) {
+      granted = { ...customer, role: "admin" };
+      admins.push(granted);
+    }
     if (!granted) {
       granted = {
         id: `ac-${Buffer.from(email).toString("hex")}`,
@@ -1597,7 +1609,7 @@ async function adminRoutes(request, response, url) {
   }
   const accountMatch = /^\/admin\/accounts\/([\w-]+)$/.exec(url.pathname);
   if (request.method === "GET" && accountMatch) {
-    const found = [...stubCustomers, ...adminsOf(account)].find((a) => a.id === accountMatch[1]);
+    const found = directoryOf(account).find((a) => a.id === accountMatch[1]);
     if (found) json(response, 200, found);
     else problem(response, 404, "IDENTITY_ACCOUNT_NOT_FOUND");
     return true;

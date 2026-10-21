@@ -1209,6 +1209,16 @@
         "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát.",
         "self": "Không tự thu quyền của mình",
         "last": "Quản trị viên cuối cùng"
+      },
+      "promote": {
+        "open": "Cấp quyền quản trị",
+        "title": "Cấp quyền quản trị cho {name}?",
+        "description": "Họ xem và thay đổi mọi thứ trong trang quản trị từ lần thao tác tiếp theo. Bạn có thể thu quyền bất cứ lúc nào.",
+        "cancel": "Huỷ",
+        "confirm": "Cấp quyền",
+        "done": "Đã cấp quyền quản trị cho {email}",
+        "failed": "Chưa cấp quyền cho {name} được",
+        "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát."
       }
     }
   }

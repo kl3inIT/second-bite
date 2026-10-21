@@ -37,10 +37,13 @@ export function AccountDetail({
   account,
   history,
   memberships,
+  action,
 }: {
   account: RecordBody;
   history: HistoryOutputBody;
   memberships: MembershipBody[];
+  /** What the admin may do to the account's role, at the head of the page. */
+  action: React.ReactNode;
 }) {
   const t = useTranslations("Admin.accounts");
   const format = useFormatter();
@@ -64,9 +67,9 @@ export function AccountDetail({
     <div className="flex flex-col gap-5">
       <Card size="lg">
         <CardContent>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <AccountAvatar account={account} />
-            <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-page-title break-all text-foreground">{nameOf(account)}</h1>
                 <RoleBadge role={account.role} />
@@ -75,6 +78,7 @@ export function AccountDetail({
                 <p className="text-body-sm break-all text-muted-foreground">{account.email}</p>
               )}
             </div>
+            {action}
           </div>
         </CardContent>
       </Card>

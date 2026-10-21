@@ -39,6 +39,7 @@ import { ApiError, failureOf } from "@/lib/api/client";
 import { grantAdmin, revokeAdmin, type RecordBody } from "@/lib/api/generated";
 
 import { AccountAvatar, nameOf, SignedIn } from "./account-parts";
+import { RoleAction } from "./role-action";
 
 /**
  * Who administers Second Bite (Settings › Quản trị viên, SEC-75): every admin with their last sign-in, a
@@ -108,15 +109,7 @@ function useColumns(count: number, myId: string): DataTableColumns<RecordBody> {
     {
       id: "actions",
       header: () => <span className="sr-only">{t("column.actions")}</span>,
-      cell: ({ row }) => {
-        const blocked =
-          row.original.id === myId ? t("revoke.self") : count <= 1 ? t("revoke.last") : null;
-        return blocked ? (
-          <span className="text-label text-muted-foreground">{blocked}</span>
-        ) : (
-          <RevokeAdmin admin={row.original} />
-        );
-      },
+      cell: ({ row }) => <RoleAction account={row.original} myId={myId} adminCount={count} />,
     },
   ];
 }
@@ -240,54 +233,5 @@ function GrantAdmin() {
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function RevokeAdmin({ admin }: { admin: RecordBody }) {
-  const t = useTranslations("Admin.admins.revoke");
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
-  const name = nameOf(admin);
-
-  const revoke = async () => {
-    setBusy(true);
-    try {
-      await revokeAdmin({ path: { accountId: admin.id } });
-      toast.add({ type: "success", title: t("done", { name }) });
-      router.refresh();
-    } catch (error) {
-      const { detail, reference } = failureOf(error);
-      toast.add({
-        type: "error",
-        title: t("failed", { name }),
-        description: [detail ?? t("unreachable"), reference && `(${reference})`]
-          .filter(Boolean)
-          .join(" "),
-      });
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <AlertDialog>
-      <AlertDialogTrigger render={<Button variant="outline" />}>
-        {t("open")}
-        <span className="sr-only"> {name}</span>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("title", { name })}</AlertDialogTitle>
-          <AlertDialogDescription>{t("description")}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" disabled={busy} onClick={() => void revoke()}>
-            {busy && <Spinner data-icon="inline-start" />}
-            {t("confirm")}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
   );
 }
