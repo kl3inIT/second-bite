@@ -169,7 +169,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		}
 
 		sellers := seller.NewService(pool, identities, files, notifications, events, trail, logger)
-		offers := offer.NewService(pool, sellers, files, trail, logger)
+		offers := offer.NewService(pool, sellers, files, events, trail, logger)
 
 		orders := order.NewService(pool, offers, sellers, logger)
 
@@ -177,6 +177,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		// serve.
 		file.RegisterListeners(events, files)
 		seller.RegisterListeners(events, sellers)
+		order.RegisterListeners(events, orders)
 
 		return &app{
 			cfg: cfg, logger: logger, pool: pool, events: events, audit: trail, notification: notifications, identity: identities,

@@ -70,6 +70,7 @@ type Service struct {
 	queries *db.Queries
 	sellers *seller.Service
 	files   *file.Service
+	events  *platform.Events
 	trail   *audit.Service
 	logger  *slog.Logger
 	now     func() time.Time
@@ -77,10 +78,12 @@ type Service struct {
 
 // NewService assembles the module.
 func NewService(
-	pool *pgxpool.Pool, sellers *seller.Service, files *file.Service, trail *audit.Service, logger *slog.Logger,
+	pool *pgxpool.Pool, sellers *seller.Service, files *file.Service, events *platform.Events, trail *audit.Service,
+	logger *slog.Logger,
 ) *Service {
 	return &Service{
-		pool: pool, queries: db.New(pool), sellers: sellers, files: files, trail: trail, logger: logger, now: time.Now,
+		pool: pool, queries: db.New(pool), sellers: sellers, files: files, events: events, trail: trail, logger: logger,
+		now: time.Now,
 	}
 }
 
@@ -213,10 +216,11 @@ type Change struct {
 
 // Change changes an offer of a seller the caller publishes for. Before any
 // unit is ordered everything may change; once units are ordered, only the
-// description, the photo and the units, never below the units ordered, since
-// an order keeps the price, the name and the window it was placed at (Open
-// Food Network copies them onto the order line). Nothing changes once the
-// window is over or the offer is withdrawn.
+// description, the photo, the units (never below the units ordered) and the
+// window, since an order keeps the price and the name it was placed at (Open
+// Food Network copies them onto the order line), and follows the window: a
+// change of it is published, and `order` moves the orders still to collect.
+// Nothing changes once the window is over or the offer is withdrawn.
 func (s *Service) Change(ctx context.Context, id uuid.UUID, c Change) (Offer, error) {
 	caller, err := platform.RequireCaller(ctx)
 	if err != nil {
@@ -240,32 +244,7 @@ func (s *Service) Change(ctx context.Context, id uuid.UUID, c Change) (Offer, er
 	}
 
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
-		q := s.queries.WithTx(tx)
-
-		row, err := q.LockOffer(ctx, id)
-		if err != nil {
-			return fmt.Errorf("locking the offer: %w", err)
-		}
-
-		o := s.fromRow(db.GetOfferRow(row))
-		if o.Status == StatusWithdrawn || o.Status == StatusClosed {
-			return ErrChangeNotAllowed
-		}
-
-		next, err := s.applyChange(ctx, o, c, set, caller.AccountID)
-		if err != nil {
-			return err
-		}
-
-		ordered := o.Units - o.UnitsLeft
-
-		return q.UpdateOffer(ctx, db.UpdateOfferParams{
-			ID: id, Name: next.Name, Description: next.Description, Kind: string(next.Kind), Unit: next.Unit,
-			Units: int32(next.Units), UnitsLeft: int32(next.Units - ordered), //nolint:gosec // at most 999
-			PriceVnd: next.PriceVND, OriginalPriceVnd: next.OriginalPriceVND, WeightGrams: weight(next.WeightGrams),
-			PhotoID: next.PhotoID, WindowStart: next.WindowStart, WindowEnd: next.WindowEnd,
-			SearchVector: Offer{Details: next, sellerName: o.sellerName}.searchText(),
-		})
+		return s.changeIn(ctx, tx, id, c, set, caller.AccountID)
 	})
 	if err != nil {
 		return Offer{}, err
@@ -280,11 +259,85 @@ func (s *Service) Change(ctx context.Context, id uuid.UUID, c Change) (Offer, er
 	return s.read(ctx, id)
 }
 
-// touchesWhatOrdersKeep tells whether c changes what an order copies from its
-// offer: everything but the description, the photo and the units.
+// changeIn applies c to the offer in tx, which locks it first, and tells the
+// other modules when the window of an offer with orders moved.
+func (s *Service) changeIn(
+	ctx context.Context, tx pgx.Tx, id uuid.UUID, c Change, set Settings, accountID uuid.UUID,
+) error {
+	q := s.queries.WithTx(tx)
+
+	row, err := q.LockOffer(ctx, id)
+	if err != nil {
+		return fmt.Errorf("locking the offer: %w", err)
+	}
+
+	o := s.fromRow(db.GetOfferRow(row))
+	if o.Status == StatusWithdrawn || o.Status == StatusClosed {
+		return ErrChangeNotAllowed
+	}
+
+	next, err := s.applyChange(ctx, o, c, set, accountID)
+	if err != nil {
+		return err
+	}
+
+	ordered := o.Units - o.UnitsLeft
+
+	if err := q.UpdateOffer(ctx, db.UpdateOfferParams{
+		ID: id, Name: next.Name, Description: next.Description, Kind: string(next.Kind), Unit: next.Unit,
+		Units: int32(next.Units), UnitsLeft: int32(next.Units - ordered), //nolint:gosec // at most 999
+		PriceVnd: next.PriceVND, OriginalPriceVnd: next.OriginalPriceVND, WeightGrams: weight(next.WeightGrams),
+		PhotoID: next.PhotoID, WindowStart: next.WindowStart, WindowEnd: next.WindowEnd,
+		SearchVector: Offer{Details: next, sellerName: o.sellerName}.searchText(),
+	}); err != nil {
+		return err
+	}
+
+	// The orders placed on the offer follow its window.
+	if ordered > 0 && (c.WindowStart != nil || c.WindowEnd != nil) {
+		return platform.Publish(ctx, tx, s.events, WindowChangedEvent{OfferID: id})
+	}
+
+	return nil
+}
+
+// touchesWhatOrdersKeep tells whether c changes what an order keeps from its
+// offer: everything but the description, the photo, the units and the window,
+// which orders follow.
 func (c Change) touchesWhatOrdersKeep() bool {
 	return c.Name != nil || c.Kind != nil || c.Unit != nil || c.PriceVND != nil || c.OriginalPriceVND != nil ||
-		c.WeightGrams != nil || c.WindowStart != nil || c.WindowEnd != nil
+		c.WeightGrams != nil
+}
+
+// WindowChangedEvent tells the other modules that an offer with orders has a
+// new collection window, which they read from the offer.
+type WindowChangedEvent struct {
+	OfferID uuid.UUID `json:"offerId"`
+}
+
+// EventKey names the event where it is stored, delivered and logged.
+func (WindowChangedEvent) EventKey() string { return "offer.window_changed" }
+
+// Window is when an offer is collected.
+type Window struct {
+	Start, End time.Time
+}
+
+// WindowsOf returns the collection windows of offers, whatever their status;
+// an offer that does not exist is left out. It is for modules that follow an
+// offer's window, not for people.
+func (s *Service) WindowsOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Window, error) {
+	rows, err := s.queries.WindowsOf(ctx, ids)
+	if err != nil {
+		return nil, fmt.Errorf("reading the offers' windows: %w", err)
+	}
+
+	windows := make(map[uuid.UUID]Window, len(rows))
+	for _, r := range rows {
+		windows[r.ID] = Window{Start: r.WindowStart, End: r.WindowEnd}
+	}
+
+	return windows, nil
 }
 
 // appliedTo returns d with every field c sets replaced.

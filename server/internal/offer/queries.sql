@@ -49,6 +49,9 @@ SET name = @name, description = @description, kind = @kind, unit = @unit, units 
     search_vector = (sqlc.arg(search_vector)::text)::tsvector, updated_at = now()
 WHERE id = @id;
 
+-- name: WindowsOf :many
+SELECT id, window_start, window_end FROM offer_offers WHERE id = ANY (@ids::uuid[]);
+
 -- name: WithdrawOffer :exec
 UPDATE offer_offers SET state = 'withdrawn', withdrawn_at = now(), updated_at = now()
 WHERE id = @id AND state = 'on_sale';
