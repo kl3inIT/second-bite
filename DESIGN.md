@@ -425,8 +425,6 @@ The four tabs on a phone (Figma Bottom nav, 105:2515), floating 16px from the si
 
 The first page of a visit on a phone opens on the splash (Figma K0): the white wordmark, 48px high, over the tagline (`body-sm-strong`, white at 80%) on the header's blue. The other letters stand still while the bitten "o" falls into its place from above the screen, turning as it falls and bouncing twice (1 second); the tagline rises in after it. At 1.7 seconds the splash fades in 0.3 seconds to the page already drawn beneath it. With reduced motion it is gone at once, and a wide screen does not show it.
 
-While a page's list is fetched, the loading screen moves the same way on the page's background: the wordmark in Tasco blue, 40px high, its bitten "o" falling into place and then bouncing gently (0.9 seconds a bounce) until the page is ready, with the tagline (`body-sm-strong`, muted) rising in beneath it. With reduced motion it stands still.
-
 While a page's list is fetched, the pale ground covers the screen with the blue wordmark (40px) in its middle, its letters hopping in a wave, still for reduced motion.
 
 ### Header foot and kind picker
