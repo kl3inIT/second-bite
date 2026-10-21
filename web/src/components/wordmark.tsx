@@ -28,6 +28,22 @@ const letters = [
 // drawn in the colour of the text around it. Each letter is its own path, numbered by --letter, so the splash
 // and the loading screen can move them one after another. It is a picture of words, so the link or heading
 // around it carries those words for assistive technology.
+/**
+ * The bitten "o" of the wordmark on its own (Figma logo/mark, 32px with a 28px cookie), where the words do not
+ * fit, such as the admin's folded sidebar. Like the wordmark, the link around it names it.
+ */
+export function BiteMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="92.9 11.55 35.5 35.5"
+      aria-hidden
+      className={cn("size-8 fill-current", className)}
+    >
+      <path d={letters[3]} />
+    </svg>
+  );
+}
+
 export function Wordmark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 304 48" aria-hidden className={cn("h-6 w-auto fill-current", className)}>
