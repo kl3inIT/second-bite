@@ -42,12 +42,34 @@ func (s Status) open() bool { return s == StatusConfirmed || s == StatusReady }
 // RefuseReason is why staff did not hand an order over.
 type RefuseReason string
 
-// The reasons to refuse an order.
+// The reasons to refuse an order. The first two are about the food at the
+// counter; the others are the pilot's: no answer on the phone, no show, too
+// late, out of food.
 const (
 	RefuseNotSuitable RefuseReason = "not_suitable"
 	RefuseWrongItems  RefuseReason = "wrong_items"
+	RefuseNoAnswer    RefuseReason = "no_answer"
+	RefuseNoShow      RefuseReason = "no_show"
+	RefuseLate        RefuseReason = "late"
+	RefuseSoldOut     RefuseReason = "sold_out"
 	RefuseOther       RefuseReason = "other"
 )
+
+// valid tells whether staff may give r.
+func (r RefuseReason) valid() bool {
+	switch r {
+	case RefuseNotSuitable, RefuseWrongItems, RefuseNoAnswer, RefuseNoShow, RefuseLate, RefuseSoldOut, RefuseOther:
+		return true
+	}
+
+	return false
+}
+
+// foodKept tells whether the food of an order refused for r is still fit to
+// sell: the customer did not come, so its units go back to the offer.
+func (r RefuseReason) foodKept() bool {
+	return r == RefuseNoAnswer || r == RefuseNoShow || r == RefuseLate
+}
 
 // maxCodeAttempts is how many wrong codes lock an order's code.
 const maxCodeAttempts = 3

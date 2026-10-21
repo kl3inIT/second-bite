@@ -57,7 +57,7 @@ var (
 		EN: "Name a day that exists, as YYYY-MM-DD.",
 	})
 	ErrRefusalInvalid = platform.NewFailure("ORDER_REFUSAL_INVALID", platform.CategoryValidation, platform.Words{
-		VI: "Chọn lý do là not_suitable, wrong_items hoặc other, kèm ghi chú tối đa 200 ký tự.",
-		EN: "Give a reason among not_suitable, wrong_items and other, and a note of at most 200 characters.",
+		VI: "Chọn một lý do có sẵn (not_suitable, wrong_items, no_answer, no_show, late, sold_out hoặc other), kèm ghi chú tối đa 200 ký tự.",
+		EN: "Give one of the reasons (not_suitable, wrong_items, no_answer, no_show, late, sold_out or other), and a note of at most 200 characters.",
 	})
 )
