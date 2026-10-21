@@ -28,7 +28,7 @@ type addressOutput struct {
 type detailsBody struct {
 	Name      string  `json:"name"      maxLength:"100" minLength:"1"`
 	Address   string  `json:"address"   maxLength:"300" minLength:"1" doc:"The address as people write it"`
-	Latitude  float64 `json:"latitude"  maximum:"90"    minimum:"-90" doc:"Where the seller is, pinned on a map"`
+	Latitude  float64 `json:"latitude"  maximum:"90"    minimum:"-90" doc:"Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE"`
 	Longitude float64 `json:"longitude" maximum:"180"   minimum:"-180"`
 	Phone     string  `json:"phone"     maxLength:"30" doc:"Shown to the seller's members and admins"`
 }
@@ -112,7 +112,7 @@ var (
 func registerOwnerOperations(api huma.API, s *Service) {
 	huma.Register(api, huma.Operation{
 		OperationID: "openSeller", Method: http.MethodPost, Path: "/sellers",
-		Summary: "Open a seller; it waits for an admin to activate it", Tags: tagSellers,
+		Summary: "Open a seller, active at once, pinned inside Hanoi", Tags: tagSellers,
 		Security: security, DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, in *struct{ Body detailsBody }) (*sellerOutput, error) {
 		seller, err := s.Open(ctx, in.Body.details())
@@ -165,7 +165,7 @@ func registerOwnerOperations(api huma.API, s *Service) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "updateSeller", Method: http.MethodPut, Path: "/sellers/{sellerId}",
-		Summary: "Change a seller's details; only its owner may", Tags: tagSellers, Security: security,
+		Summary: "Change a seller's details; only its owner may. A moved pin or address moves its offers on sale and its orders still to collect", Tags: tagSellers, Security: security,
 	}, func(ctx context.Context, in *struct {
 		SellerID uuid.UUID `path:"sellerId"`
 		Body     detailsBody

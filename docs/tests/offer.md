@@ -19,5 +19,6 @@ Requirements of [docs/specs/offer.md](../specs/offer.md) and the checks that hol
 | An order takes units in its own transaction with what it copies; two orders for the last units get them once; units come back never above those posted; a withdrawn offer and an unknown one give none | `TestOffer` › orders take and return units (`internal/offer/units_test.go`) |
 | Through the API: a pending seller cannot post; once active, an offer is posted, found by anyone near Tasco Mall by words without marks with its seller and distance; the seller's page; sorting by distance from no point refused | `TestService` › an offer is posted and found near Tasco Mall (`cmd/secondbite/offer_test.go`) |
 | The operations are in the contract | `TestOpenAPIDocumentIsCurrent` (`cmd/secondbite/openapi_test.go`) |
+| A seller's moved point is copied onto its offer on sale, not onto a withdrawn one; delivered twice, nothing more changes; an unknown seller is ignored | `TestOrder` › orders and offers follow their seller (`internal/order/order_test.go`), which holds offers and orders together |
 
 Not covered by a test: two staff changing one offer at once (held by the row lock), and the cap of the radius at the settings' maximum.

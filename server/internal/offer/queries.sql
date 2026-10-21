@@ -161,3 +161,11 @@ RETURNING id, seller_id, name, unit, price_vnd, original_price_vnd, photo_id, wi
 -- Gives back the units of a cancelled order, never above the offer's units.
 UPDATE offer_offers SET units_left = LEAST(units, units_left + @units), updated_at = now()
 WHERE id = @id;
+
+-- name: MoveSellerOffers :execrows
+-- Copies a seller's collection point onto its offers still to come: on sale
+-- with a window not yet over. Offers withdrawn or ended keep what they copied.
+UPDATE offer_offers
+SET latitude = @latitude, longitude = @longitude, address = @address, updated_at = now()
+WHERE seller_id = @seller_id AND state = 'on_sale' AND window_end > now()
+  AND (latitude, longitude, address) IS DISTINCT FROM (@latitude, @longitude, @address::text);

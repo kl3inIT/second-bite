@@ -28,6 +28,10 @@ var (
 		VI: "Nhập số điện thoại 9 đến 15 chữ số, ví dụ 0912 345 678.",
 		EN: "Enter a phone number of 9 to 15 digits, such as 0912 345 678.",
 	})
+	ErrLocationOutside = platform.NewFailure("SELLER_LOCATION_OUTSIDE", platform.CategoryValidation, platform.Words{
+		VI: "Second Bite mới phục vụ ở Hà Nội. Hãy ghim quán ở trong Hà Nội.",
+		EN: "Second Bite serves Hanoi only for now. Pin the seller inside Hanoi.",
+	})
 	ErrStaffLimitReached = platform.NewFailure("SELLER_STAFF_LIMIT_REACHED", platform.CategoryConflict, platform.Words{
 		VI: "Mỗi quán có tối đa 30 người.",
 		EN: "A seller has at most 30 people.",

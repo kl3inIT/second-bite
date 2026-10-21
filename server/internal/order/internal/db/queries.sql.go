@@ -745,6 +745,44 @@ func (q *Queries) MessageOfKey(ctx context.Context, arg MessageOfKeyParams) (Mes
 	return i, err
 }
 
+const moveSellerOrders = `-- name: MoveSellerOrders :execrows
+WITH moved AS (
+    UPDATE order_orders
+    SET latitude = $1, longitude = $2, address = $3
+    WHERE seller_id = $4 AND state IN ('confirmed', 'ready')
+      AND (latitude, longitude, address) IS DISTINCT FROM ($1, $2, $3::text)
+    RETURNING id, seller_id, state
+)
+SELECT pg_notify('secondbite_live', json_build_object(
+    'topics', json_build_array('order:' || id::text, 'seller:' || seller_id::text),
+    'notice', json_build_object('type', 'order', 'orderId', id, 'status', state)
+)::text)
+FROM moved
+`
+
+type MoveSellerOrdersParams struct {
+	Latitude  float64
+	Longitude float64
+	Address   string
+	SellerID  uuid.UUID
+}
+
+// Copies a seller's collection point onto its orders still to collect, and
+// tells the sockets following each (channel secondbite_live). Orders handed
+// over, cancelled, refused or expired keep what they copied.
+func (q *Queries) MoveSellerOrders(ctx context.Context, arg MoveSellerOrdersParams) (int64, error) {
+	result, err := q.db.Exec(ctx, moveSellerOrders,
+		arg.Latitude,
+		arg.Longitude,
+		arg.Address,
+		arg.SellerID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const nextChatSeq = `-- name: NextChatSeq :one
 INSERT INTO order_chats (order_id, last_seq) VALUES ($1, 1)
 ON CONFLICT (order_id) DO UPDATE SET last_seq = order_chats.last_seq + 1

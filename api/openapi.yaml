@@ -336,7 +336,7 @@ components:
           minLength: 1
           type: string
         latitude:
-          description: Where the seller is, pinned on a map
+          description: Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE
           format: double
           maximum: 90
           minimum: -90
@@ -3802,7 +3802,7 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Open a seller; it waits for an admin to activate it
+      summary: Open a seller, active at once, pinned inside Hanoi
       tags:
         - Sellers
   /sellers/address:
@@ -3949,7 +3949,7 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Change a seller's details; only its owner may
+      summary: Change a seller's details; only its owner may. A moved pin or address moves its offers on sale and its orders still to collect
       tags:
         - Sellers
   /sellers/{sellerId}/dishes:

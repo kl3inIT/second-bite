@@ -404,6 +404,35 @@ func (q *Queries) LockSettings(ctx context.Context) (LockSettingsRow, error) {
 	return i, err
 }
 
+const moveSellerOffers = `-- name: MoveSellerOffers :execrows
+UPDATE offer_offers
+SET latitude = $1, longitude = $2, address = $3, updated_at = now()
+WHERE seller_id = $4 AND state = 'on_sale' AND window_end > now()
+  AND (latitude, longitude, address) IS DISTINCT FROM ($1, $2, $3::text)
+`
+
+type MoveSellerOffersParams struct {
+	Latitude  float64
+	Longitude float64
+	Address   string
+	SellerID  uuid.UUID
+}
+
+// Copies a seller's collection point onto its offers still to come: on sale
+// with a window not yet over. Offers withdrawn or ended keep what they copied.
+func (q *Queries) MoveSellerOffers(ctx context.Context, arg MoveSellerOffersParams) (int64, error) {
+	result, err := q.db.Exec(ctx, moveSellerOffers,
+		arg.Latitude,
+		arg.Longitude,
+		arg.Address,
+		arg.SellerID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const putSettings = `-- name: PutSettings :exec
 UPDATE offer_settings
 SET min_discount_percent = $1, default_radius_km = $2,

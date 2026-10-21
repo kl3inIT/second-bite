@@ -24,7 +24,7 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `POST /admin/sellers/{sellerId}/reject` `{reason}` | Admins | `200` seller, `rejected`, from `pending`; its owner emailed the reason |
 | `POST /admin/sellers/{sellerId}/block` `{reason}` | Admins | `200` seller, `blocked`, from `active`; its owner emailed the reason |
 
-Published to other modules: `Publishing(seller, account)`, which `offer` calls before posting or changing: the seller's name and collection point when the account is the owner or staff of an active seller, `SELLER_NOT_FOUND` when it is not a member, `SELLER_NOT_ACTIVE` when the seller is not active; `Publics(sellers)`, what customers see of the active ones among them; `IsActiveIn(tx, seller)`, whether a seller is active, read in the caller's transaction, which `order` checks while it places an order so that it never holds one connection and waits for another (SEC-128); `Blocked()`, the sellers whose offers search leaves out.
+Published to other modules: `Publishing(seller, account)`, which `offer` calls before posting or changing: the seller's name and collection point when the account is the owner or staff of an active seller, `SELLER_NOT_FOUND` when it is not a member, `SELLER_NOT_ACTIVE` when the seller is not active; `Publics(sellers)`, what customers see of the active ones among them; `IsActiveIn(tx, seller)`, whether a seller is active, read in the caller's transaction, which `order` checks while it places an order so that it never holds one connection and waits for another (SEC-128); `Blocked()`, the sellers whose offers search leaves out; `CollectionPointOf(seller)`, where its offers are collected as it stands, which `offer` and `order` read when they follow `LocationChangedEvent`; and the events `StatusChangedEvent` and `LocationChangedEvent` (SEC-66).
 
 ## Rules
 
@@ -39,6 +39,8 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 - Publishing is for the owner or staff of an `active` seller.
 - A seller answers 404 to anyone who is neither its member nor an admin. Admins read and set the status; they do not change a seller's details.
 - The phone keeps its digits and a leading `+`, 9 to 15 digits. The location is the latitude and longitude the client pins; PostGIS keeps it as a `geography(Point, 4326)` generated from them.
+- The location must fall in Hanoi's box, latitude 20.53 to 21.42 and longitude 105.25 to 106.06, about three kilometres beyond the city's edge; any other point answers `SELLER_LOCATION_OUTSIDE`, on opening and on a change. The web's map is held to the same box, so it never shows the sea, Hoàng Sa or Trường Sa ([SEC-66](../increments/active/sec-66-store-location-pin/design.md)).
+- A change that moves the collection point (the pin, the written address or both) writes `seller.LocationChangedEvent` (`seller.location_changed`, the seller's identifier only) in its transaction; a change that keeps both writes nothing. `offer` and `order` follow it and read the point through `CollectionPointOf` (SEC-66).
 - A favourite is an account following an active seller: one row per pair, so following twice is one favourite; it outlives the seller's status, so a seller blocked and approved again returns to the list, and unfollowing needs no active seller (SEC-109).
 - Working assumptions until the sellers' survey (SEC-9): changing an active seller's details does not send it back to `pending`; a blocked seller's owner still manages its staff.
 - When identity deletes an account (`identity.AccountDeletedEvent`, listener `seller.forget_account`), the module removes its memberships and favourites. A seller it owned would be left without an owner, so it is blocked with no one named as having blocked it and the reason "Chủ cửa hàng đã xoá tài khoản": it stops showing and publishing until admins decide (SEC-37). Running it again changes nothing.
@@ -60,6 +62,7 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 | `SELLER_REASON_INVALID` | 400 | A reason under 10 or over 500 characters, or with a control character |
 | `SELLER_LIST_INVALID` | 400 | An unknown status, a query over 100 characters, a page under 1 or a size outside 1 to 100 |
 | `SELLER_PHONE_INVALID` | 400 | Not 9 to 15 digits |
+| `SELLER_LOCATION_OUTSIDE` | 400 | The pin falls outside Hanoi's box (SEC-66) |
 | `SELLER_NOT_ACTIVE` | 403 | Publishing for a seller that is pending, rejected or blocked |
 | `SELLER_OWNER_REQUIRED` | 403 | A staff member tries what only the owner may |
 | `SELLER_NOT_FOUND` | 404 | No such seller, or the caller is neither a member nor an admin |
