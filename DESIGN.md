@@ -349,7 +349,7 @@ Nineteen roles, normalised on 19 October 2026 from the 45 size, weight and leadi
 | `price-sm`       | Bricolage 700 | 14 / 17     | The price on a dish tile, where two prices share 104px                            |
 | `figure-sm`      | Bricolage 700 | 12 / 16     | Small figures on lime: the discount badge, the steps' numbers                     |
 | `page-title`     | 600           | 28 / 36     | The heading of a form page, the sign-in screen's                                  |
-| `hero`           | 700           | 44 / 54     | The headline of a panel with no other content, the wide sign-in screen's           |
+| `hero`           | 700           | 44 / 54     | The headline of a panel with no other content, the wide sign-in screen's          |
 | `headline`       | 700           | 20 / 28     | Section and sheet titles, a page's heading                                        |
 | `bar-title`      | 600           | 17 / 22     | The top bar's title                                                               |
 | `button`         | 600           | 16 / 20     | Button labels                                                                     |
@@ -441,7 +441,7 @@ A lone 32px white + with the card shadow until the dish is in the cart; then a 9
 
 ### Order confirmation
 
-The cart's last screen (Figma K5) under a Tasco blue top bar with the white back button and its title (`bar-title`, white). On white, 16px inside and 20px between sections titled in `title-lg`: where to collect, a card with a hairline and 14px radius (a 64px pin on the sky fill, the seller and floor in `body-sm-strong`, the distance, the window, and "Chỉ đường"); the payment as two options like the area sheet's, "Chuyển khoản tại quầy" chosen first; the summary with "Sửa món" back to the seller, each dish "2× Croissant" (`body-sm`) with its price (Bricolage `price-sm`), a hairline, the dishes' total, "Phí bên thứ ba · Không có", the total (`title-lg`, `price`) and "Second Bite không thu hoa hồng · quán nhận đủ …" (`label`, muted); then the cancellation policy, its title in muted uppercase `label-strong`. The bar at the foot repeats the total and holds "Đặt món". Figma's map picture has no source yet; a pin stands in for it.
+The cart's last screen (Figma K5) under a Tasco blue top bar with the white back button and its title (`bar-title`, white). On white, 16px inside and 20px between sections titled in `title-lg`: where to collect, a card with a hairline and 14px radius (a 64px pin on the sky fill, the seller and floor in `body-sm-strong`, the distance, the window, and "Chỉ đường"); the payment as two options like the area sheet's, "Chuyển khoản tại quầy" chosen first; the summary with "Sửa món" back to the seller, each dish "2× Croissant" (`body-sm`) with its price (Bricolage `price-sm`), a hairline, the dishes' total, "Phí bên thứ ba · Không có", the total (`title-lg`, `price`) and "Second Bite không thu hoa hồng · quán nhận đủ …" (`label`, muted); then the cancellation policy, its title in muted uppercase `label-strong`. The bar at the foot repeats the total and holds "Đặt món". Figma's map picture has no source yet; a pin stands in for it. "Đặt món" signed out opens a sheet over the cart, "Đăng nhập để đặt món", which says the cart is kept and holds the sign-in form without its own heading (Figma L5); an account with no name is asked "Quán gọi bạn là gì?" in the same sheet, a field and "Tiếp tục đặt món" (Figma L6).
 
 ### Seller block
 

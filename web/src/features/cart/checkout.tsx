@@ -5,7 +5,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { ChoiceOption } from "@/components/choice-option";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { formatPrice } from "@/features/offers/format";
@@ -15,11 +15,14 @@ import { Link } from "@/i18n/navigation";
 
 import { collectionWindow, totals, type Cart } from "./cart";
 import { useCart } from "./cart-store";
+import { OrderButton } from "./order-button";
+import { resumesReady } from "./order-steps";
 
 // The cart's confirmation (Figma K5): where and when to collect, how to pay at the counter, the dishes with
-// "Sửa món", the totals with no fee from Second Bite, the cancellation policy, and "Đặt món". There is no
-// endpoint for an order yet (SEC-15) nor signing in at checkout (L5), so "Đặt món" says so instead of sending.
-export function Checkout() {
+// "Sửa món", the totals with no fee from Second Bite, the cancellation policy, and "Đặt món", which signs in
+// and names the account first (L5, L6). Ordering joins SEC-51's order pages once they are on main (SEC-76),
+// so until then "Đặt món" says so instead of sending.
+export function Checkout(asking: Asking) {
   const t = useTranslations("Cart");
   const cart = useCart();
 
@@ -38,14 +41,17 @@ export function Checkout() {
     );
   }
 
-  return <Confirmation cart={cart} />;
+  return <Confirmation cart={cart} {...asking} />;
 }
 
-function Confirmation({ cart }: { cart: Cart }) {
+/** Who orders, and what "Đặt món" asks before ordering (SEC-76): see `OrderButton`. */
+type Asking = Omit<React.ComponentProps<typeof OrderButton>, "held" | "onReady">;
+
+function Confirmation({ cart, ...asking }: { cart: Cart } & Asking) {
   const t = useTranslations("Cart");
   const format = useFormatter();
   const [payment, setPayment] = useState("transfer");
-  const [asked, setAsked] = useState(false);
+  const [asked, setAsked] = useState(() => resumesReady(asking.account, asking.resumed));
   const { windowStart, windowEnd } = collectionWindow(cart);
   const from = format.dateTime(new Date(windowStart), "time");
   const until = format.dateTime(new Date(windowEnd), "time");
@@ -162,9 +168,11 @@ function Confirmation({ cart }: { cart: Cart }) {
               </p>
             </div>
             <div className="flex flex-1 *:w-full">
-              <Button size="lg" onClick={() => setAsked(true)}>
-                {t("order")}
-              </Button>
+              <OrderButton
+                {...asking}
+                held={{ units, seller: cart.seller.name }}
+                onReady={() => setAsked(true)}
+              />
             </div>
           </div>
           {asked && <output className="text-label text-muted-foreground">{t("orderSoon")}</output>}
