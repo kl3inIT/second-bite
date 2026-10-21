@@ -7,7 +7,7 @@ Status: started on 21 October 2026. Tracked in Linear as SEC-62. The screen is F
 - Open "Cửa hàng" from the menu and see the stores, 10 to a page by default as Figma draws it, with their photo or initials, address, phone, status and the day they last changed.
 - See how many stores are active, pending and blocked, and press one of those cards to list only that status; pressing it again lists every status.
 - Find a store by words of its name, address or phone, with or without marks; sort by name, address or the last change, either way; choose 10, 25 or 50 rows a page; move between pages. Every choice is in the address.
-- From a row's menu: block an active store with a reason the owner is emailed (AD-DS4); unblock a blocked one after a confirmation; approve a pending or rejected one after a confirmation; reject a pending one with a reason. Each ends with a notice, and the list reads again.
+- From a row's menu: block an active store with a reason the owner is emailed, 10 to 500 characters, counted (AD-Q5); unblock a blocked one after a confirmation; approve a pending or rejected one after a confirmation; reject a pending one with a reason. Each ends with a notice, and the list reads again.
 - Tell an empty list from a search that found nothing, which offers to clear the filters.
 
 ## Decisions
@@ -28,7 +28,7 @@ Status: started on 21 October 2026. Tracked in Linear as SEC-62. The screen is F
 
 ## A store's page (AD-Q3, AD-Q4)
 
-`/admin/sellers/{id}`, opened from a row's "Xem chi tiết" or its name. The photos of its three latest posts over its photo, name and status, and its "⋯": every action on a store is in one menu, the list's (`StoreActions`), so a new one is added once (changed with the user on 21 October 2026 from Figma's separate "Chặn cửa hàng" button). Tabs: Tổng quan (the posts on sale, the address and phone, the members), Bài đăng (every post) and Thành viên, with their counts; the tab is in the address, so "Xem tất cả" is a link. A blocked store's photos fade (AD-Q4). It reads `GET /sellers/{id}`, `/members` and `/offers`, which answer admins; a post's row is the seller's own `PostRow`. An unknown store is the admin's not-found page.
+`/admin/sellers/{id}`, opened from a row's "Xem chi tiết" or its name. The photos of its three latest posts over its photo, name and status, and its "⋯": every action on a store is in one menu, the list's (`StoreActions`), so a new one is added once (changed with the user on 21 October 2026 from Figma's separate "Chặn cửa hàng" button). Tabs: Tổng quan (the posts on sale, the address and phone, the members), Bài đăng and Thành viên, with their counts; the posts tab chooses a status (Đang bán, Hết hàng, Đã đóng, Đã gỡ, with counts) and a view, boxes or a table, both in the address, and a post opens a panel with its description, units, weight, window, place and times (AD-QD1 to AD-QD3), all from the posts the page already reads; the tab is in the address, so "Xem tất cả" is a link. A blocked store's photos fade (AD-Q4). It reads `GET /sellers/{id}`, `/members` and `/offers`, which answer admins; a post's row is the seller's own `PostRow`. An unknown store is the admin's not-found page.
 
 ## Contract
 
