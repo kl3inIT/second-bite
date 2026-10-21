@@ -3,12 +3,9 @@
   "loading": "Loading the stores",
   "search": {
     "label": "Search stores",
-    "placeholder": "Search stores by name or address"
+    "placeholder": "Search stores by name, address or phone"
   },
   "filters": {
-    "area": "Area",
-    "all": "All",
-    "changed": "Changed",
     "size": "Rows"
   },
   "columns": {

@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { adminFeatures, isFeatureOn } from "./features";
 
 describe("the admin's feature flags", () => {
-  it("keeps every part whose backend is not built off", () => {
-    expect(adminFeatures).toEqual({ storeReview: false, openForOwner: false });
+  it("turns on only the parts whose backend is built", () => {
+    expect(adminFeatures).toEqual({ storeReview: true, openForOwner: false });
   });
 
   it("reads a flag from the registry", () => {

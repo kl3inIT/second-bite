@@ -119,10 +119,14 @@ test("a store blocked from its page shows the blocked card and can be unblocked 
   await (await hydrated(page.getByRole("button", { name: "Chặn cửa hàng" }))).click();
   const dialog = page.getByRole("alertdialog", { name: "Chặn cửa hàng Tiệm bánh Pháp?" });
   await expect(dialog).toBeVisible();
+  await dialog.getByRole("textbox", { name: "Lý do chặn" }).fill("Bán bánh đã quá hạn sử dụng.");
   await dialog.getByRole("button", { name: "Chặn cửa hàng" }).click();
-  await expect(page.getByText("Đã chặn Tiệm bánh Pháp")).toBeVisible();
+  await expect(
+    page.getByText("Đã chặn Tiệm bánh Pháp và gửi email cho chủ cửa hàng"),
+  ).toBeVisible();
 
   await expect(page.getByRole("heading", { name: "Cửa hàng đang bị chặn" })).toBeVisible();
+  await expect(page.getByText("Lý do: Bán bánh đã quá hạn sử dụng.")).toBeVisible();
   await expect(page.getByText("Không hiện với khách")).toBeVisible();
   await expect(page.getByText("Đổi trạng thái")).toBeVisible();
   const unblock = page.getByRole("button", { name: "Gỡ chặn" });
@@ -143,6 +147,23 @@ test("a store waiting for approval is approved from its page", async ({ page }, 
   await (await hydrated(page.getByRole("button", { name: "Duyệt" }))).click();
   await expect(page.getByText("Đã duyệt Phở bò Gánh")).toBeVisible();
   await expect(page.getByRole("button", { name: "Chặn cửa hàng" })).toBeVisible();
+});
+
+test("a rejected store says why and is approved from its page (AD-DS5)", async ({
+  page,
+}, testInfo) => {
+  await signInTo(page, "/admin/sellers/se-admin-15", testInfo, { who: "cttuchoi" });
+
+  await expect(page.getByRole("heading", { level: 1, name: "Bánh cuốn Thanh Trì" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Cửa hàng bị từ chối" })).toBeVisible();
+  await expect(
+    page.getByText("Lý do: Ảnh cửa hàng chưa phải ảnh quầy tại Tasco Mall."),
+  ).toBeVisible();
+  await expectNoSeriousA11yViolations(page);
+  await (await hydrated(page.getByRole("button", { name: "Duyệt" }))).click();
+  await expect(page.getByText("Đã duyệt Bánh cuốn Thanh Trì")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Chặn cửa hàng" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Cửa hàng bị từ chối" })).toHaveCount(0);
 });
 
 // SEC-62 › A store that does not exist (Figma AD-TT5).

@@ -19,66 +19,74 @@ import {
   type SellerStatusDay,
 } from "@/lib/api/generated";
 
-import { countRejectedSellers, listRejectedSellers } from "./review-source";
-import type { AdminSeller, SellerStatus } from "./seller-list";
+import type { AdminSeller, ListQuery, SellerStatus } from "./seller-list";
 
-/** The most the backend gives in one page of `GET /admin/sellers`. */
-const PAGE = 100;
-/** Enough pages for the pilot's 30 to 100 stores many times over; the list moves to the backend before this. */
-const MOST_PAGES = 20;
+/** A page of stores and how many match in all. */
+export type SellerPage = { rows: AdminSeller[]; total: number; page: number };
 
 /**
- * Every store in a status, read page by page from `GET /admin/sellers` (oldest first). The list searches and
- * sorts them in the browser (docs: admin-web-flow › Style 6.1). The rejected stores, asked for only behind the
- * `storeReview` flag, come from SEC-64's source, which has none yet.
+ * A page of the stores in a status that match the search, from `GET /admin/sellers`, which searches the name,
+ * address and phone without Vietnamese marks and orders them (the pending ones first, the oldest first, then the
+ * latest change first). A page past the end comes back empty, so the last page is read instead.
  */
-export const listSellers = cache(async (status: SellerStatus): Promise<AdminSeller[]> => {
-  if (status === "rejected") return listRejectedSellers();
-  const all: SellerBody[] = [];
-  for (let page = 0; page < MOST_PAGES; page++) {
-    const { sellers } = await adminRead((headers) =>
-      listSellersForAdmins({ query: { status, limit: PAGE, offset: page * PAGE }, headers }),
-    );
-    all.push(...(sellers ?? []));
-    if ((sellers?.length ?? 0) < PAGE) break;
-  }
-  return all;
-});
+export const listSellers = cache(
+  async ({
+    status,
+    q,
+    page,
+    size,
+  }: Omit<ListQuery, "size"> & { size: number }): Promise<SellerPage> => {
+    const read = (at: number) =>
+      adminRead((headers) =>
+        listSellersForAdmins({
+          query: { status: [status], q: q || undefined, page: at, size },
+          headers,
+        }),
+      );
+    let answer = await read(page);
+    const last = Math.max(1, Math.ceil(answer.total / size));
+    if (page > last) answer = await read(last);
+    // The items carry the store's own fields, which api/openapi.yaml leaves out of AdminSellerBody.
+    return { rows: (answer.items ?? []) as AdminSeller[], total: answer.total, page: answer.page };
+  },
+);
 
 /**
  * How many stores are in each status now, and at the end of each of the last 14 days (`trend`, oldest first, the
- * last day today); no figure and no trend for the rejected ones until SEC-64 counts them.
+ * last day today).
  */
-export type SellerCounts = Record<Exclude<SellerStatus, "rejected">, number> & {
-  rejected?: number;
-  trend?: SellerStatusDay[];
-};
+export type SellerCounts = Record<SellerStatus, number> & { trend?: SellerStatusDay[] };
 
 /** The days the cards' trend draws (Figma "Sparkline · 14 ngày"). */
 const TREND_DAYS = 14;
 
 /**
- * How many stores are in each status now and over the last 14 days, from `GET /admin/summary`, with the rejected
- * ones only behind the `storeReview` flag. The backend rebuilds the days from each store's last change of status
- * (docs/specs/seller.md).
+ * How many stores are in each status now and over the last 14 days, from `GET /admin/summary`. The backend
+ * rebuilds the days from each store's last change of status (docs/specs/seller.md).
  */
-export async function countSellers(review: boolean): Promise<SellerCounts> {
+export async function countSellers(): Promise<SellerCounts> {
   // Today is the request's, never a prerender's.
   await connection();
   const to = dayInVietnam(new Date());
-  const [{ sellers }, rejected] = await Promise.all([
-    adminRead((headers) =>
-      getAdminSummary({ query: { from: addDays(to, 1 - TREND_DAYS), to }, headers }),
-    ),
-    review ? countRejectedSellers() : undefined,
-  ]);
+  const { sellers } = await adminRead((headers) =>
+    getAdminSummary({ query: { from: addDays(to, 1 - TREND_DAYS), to }, headers }),
+  );
   return {
     active: sellers.active,
     pending: sellers.pending,
+    rejected: sellers.rejected,
     blocked: sellers.blocked,
-    rejected,
     trend: sellers.perDay,
   };
+}
+
+/** The most stores the ‹ › of a store's page steps through: one page of `GET /admin/sellers` at its largest. */
+const NEIGHBOURS = 100;
+
+/** The first stores in a status, in the list's order, for the ‹ › of a store's page. */
+export async function listSiblings(status: SellerStatus): Promise<AdminSeller[]> {
+  const { rows } = await listSellers({ status, q: "", page: 1, size: NEIGHBOURS });
+  return rows;
 }
 
 /** One store; a store that does not exist is the admin's not-found page, in the admin's frame (AD-TT5). */

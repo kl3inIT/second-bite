@@ -23,13 +23,14 @@ export type SellerDuplicate = {
   match: "phone" | "address";
 };
 
-/** The longest reason an admin writes on a reject or a block. */
+/** The shortest and the longest reason an admin writes on a reject or a block (`SELLER_REASON_INVALID`). */
+export const REASON_MIN = 10;
 export const REASON_MAX = 500;
 
-/** Whether a reason can be sent: some words, at most REASON_MAX characters. */
+/** Whether a reason can be sent: REASON_MIN to REASON_MAX characters once trimmed. */
 export function isReason(text: string): boolean {
   const reason = text.trim();
-  return reason.length > 0 && reason.length <= REASON_MAX;
+  return reason.length >= REASON_MIN && reason.length <= REASON_MAX;
 }
 
 /**

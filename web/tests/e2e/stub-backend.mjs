@@ -839,12 +839,13 @@ function postsOn(day) {
 /**
  * The stores in each status at the end of a day, rebuilt as the backend's StatusPerDay does: a store counts from
  * the day it was opened, in the status it was opened in until its status changed and in its status now from
- * then; opened in its status now when it never changed, active when blocked now, pending when active now.
+ * then; opened in its status now when it never changed, active when blocked now, pending when active or rejected
+ * now.
  */
 function sellersOnDay(stores, date) {
   const dayEnd = Date.parse(`${shiftDay(date, 1)}T00:00:00+07:00`);
-  const opened = { blocked: "active", active: "pending" };
-  const counts = { date, active: 0, pending: 0, blocked: 0 };
+  const opened = { blocked: "active", active: "pending", rejected: "pending" };
+  const counts = { date, active: 0, pending: 0, rejected: 0, blocked: 0 };
   for (const store of stores) {
     if (Date.parse(store.createdAt) >= dayEnd) continue;
     const changed = store.statusChangedAt ? Date.parse(store.statusChangedAt) : undefined;
@@ -852,7 +853,7 @@ function sellersOnDay(stores, date) {
       changed === undefined || changed < dayEnd
         ? store.status
         : (opened[store.status] ?? store.status);
-    if (status === "active" || status === "pending" || status === "blocked") counts[status] += 1;
+    if (status in counts && status !== "date") counts[status] += 1;
   }
   return counts;
 }
@@ -888,6 +889,7 @@ async function adminSummaryRoutes(request, response, url) {
       // The same stores the admin's list holds (Admin › Cửa hàng below), so the cards and the list agree.
       active: storesWith("active"),
       pending: storesWith("pending"),
+      rejected: storesWith("rejected"),
       blocked: storesWith("blocked"),
       openedInRange: Math.min(length, 4),
       latest: [
@@ -937,9 +939,23 @@ async function adminSummaryRoutes(request, response, url) {
 // the offer and notification modules answer them. Each admin has settings of their own, so tests running side by
 // side do not change each other's. An admin whose address starts with "admin.trong." has no email settings yet
 // (503 NOTIFICATION_EMAIL_NOT_CONFIGURED). A minimum discount of 77 and the sender name "Từ chối" stand for
-// values the backend refuses at a field; the checks the modules make (settings.go) are made here too.
+// values the backend refuses at a field; the checks the modules make (settings.go) are made here too. A read
+// answers the settings' version in ETag and a save must send it back in If-Match, or is refused with 412 and
+// changes nothing (platform/version.go, SEC-75).
 const offerSettingsOf = new Map();
 const emailSettingsOf = new Map();
+
+/** The version of settings changed at updatedAt, as platform.ETag writes it: microseconds, quoted. */
+function etagOf(updatedAt) {
+  return `"${Date.parse(updatedAt) * 1000}"`;
+}
+
+/** Whether a save names the version it read; refuses it with 412 when it does not. */
+function sameVersion(request, response, updatedAt) {
+  if (request.headers["if-match"] === etagOf(updatedAt)) return true;
+  problem(response, 412, "PLATFORM_CHANGED_SINCE_READ");
+  return false;
+}
 
 function refusedAt(response, code, pointers) {
   const language = requestLanguage.getStore() ?? "vi";
@@ -1012,6 +1028,8 @@ async function adminSettingsRoutes(request, response, url) {
       });
     }
     if (request.method === "PUT") {
+      if (!sameVersion(request, response, offerSettingsOf.get(account.email).updatedAt))
+        return true;
       const body = await readBody(request);
       if (body.minDiscountPercent === 77) {
         refusedAt(response, "OFFER_SETTINGS_INVALID", ["#/minDiscountPercent"]);
@@ -1038,17 +1056,20 @@ async function adminSettingsRoutes(request, response, url) {
         updatedBy: "ac-stub",
       });
     }
-    json(response, 200, offerSettingsOf.get(account.email));
+    const settings = offerSettingsOf.get(account.email);
+    json(response, 200, settings, { etag: etagOf(settings.updatedAt) });
     return true;
   }
 
   const current = emailSettingsFor(account);
   if (request.method === "GET") {
-    if (current) json(response, 200, current);
+    if (current) json(response, 200, current, { etag: etagOf(current.updatedAt) });
     else problem(response, 503, "NOTIFICATION_EMAIL_NOT_CONFIGURED");
     return true;
   }
   if (request.method === "PUT") {
+    // The first settings are saved from the command line, so with none there is no version to send back.
+    if (!sameVersion(request, response, current?.updatedAt ?? "")) return true;
     const body = await readBody(request);
     if (body.senderName === "Từ chối") {
       refusedAt(response, "NOTIFICATION_EMAIL_SETTINGS_INVALID", ["#/senderName"]);
@@ -1090,9 +1111,85 @@ async function adminSettingsRoutes(request, response, url) {
   }
   return false;
 }
+// --- Admin settings: Quản trị viên (SEC-62) ---
+// GET /admin/admins, POST /admin/admins and POST /admin/admins/{accountId}/revoke, as the identity module answers
+// them (identity/admins.go). Each admin session has its own list, the viewer first, so tests running side by side
+// do not change each other's. An address starting with "chua." has never signed in with a code
+// (409 IDENTITY_ADDRESS_UNPROVEN); the viewer cannot revoke themselves, nor anyone the last admin.
+const adminsOf = new Map();
+
+function adminsFor(account) {
+  if (!adminsOf.has(account.email)) {
+    adminsOf.set(account.email, [
+      account,
+      { id: "ac-admin-1", email: "quantri@example.com", displayName: "", role: "admin" },
+      { id: "ac-admin-2", email: "ngocmai@example.com", displayName: "Ngọc Mai", role: "admin" },
+    ]);
+  }
+  return adminsOf.get(account.email);
+}
+
+async function adminAdminsRoutes(request, response, url) {
+  const revoke = /^\/admin\/admins\/([\w-]+)\/revoke$/.exec(url.pathname);
+  if (url.pathname !== "/admin/admins" && !revoke) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account) {
+    problem(response, 401, "IDENTITY_SESSION_INVALID");
+    return true;
+  }
+  if (account.role !== "admin") {
+    problem(response, 403, "PLATFORM_ADMIN_REQUIRED");
+    return true;
+  }
+  const admins = adminsFor(account);
+
+  if (revoke && request.method === "POST") {
+    const target = admins.find((each) => each.id === revoke[1]);
+    if (!target) problem(response, 404, "IDENTITY_ACCOUNT_NOT_FOUND");
+    else if (target.id === account.id) problem(response, 409, "IDENTITY_ADMIN_SELF");
+    else if (admins.length === 1) problem(response, 409, "IDENTITY_LAST_ADMIN");
+    else {
+      admins.splice(admins.indexOf(target), 1);
+      json(response, 200, { ...target, role: "customer" });
+    }
+    return true;
+  }
+  if (revoke) return false;
+  if (request.method === "GET") {
+    json(response, 200, {
+      admins: admins.toSorted((a, b) => a.email.localeCompare(b.email)),
+    });
+    return true;
+  }
+  if (request.method === "POST") {
+    const { email } = await readBody(request);
+    const address = typeof email === "string" ? email.trim().toLowerCase() : "";
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address)) {
+      problem(response, 422, "IDENTITY_EMAIL_INVALID");
+    } else if (address.startsWith("chua.")) {
+      problem(response, 409, "IDENTITY_ADDRESS_UNPROVEN");
+    } else {
+      let granted = admins.find((each) => each.email === address);
+      if (!granted) {
+        granted = {
+          id: `ac-${Buffer.from(address).toString("hex").slice(0, 24)}`,
+          email: address,
+          displayName: "",
+          role: "admin",
+        };
+        admins.push(granted);
+      }
+      json(response, 200, granted);
+    }
+    return true;
+  }
+  return false;
+}
+// --- end Admin settings: Quản trị viên ---
 // ── Admin › Cửa hàng (SEC-62, the stores screens) ──────────────────────────────────────────────────────────
-// What an admin reads and does with stores, as api/openapi.yaml describes it: GET /admin/sellers by status
-// (oldest first), POST /admin/sellers/{id}/block and /activate (GET /admin/summary above counts these stores), and a
+// What an admin reads and does with stores, as api/openapi.yaml describes it: GET /admin/sellers by status and
+// words, a page at a time, POST /admin/sellers/{id}/approve, /reject and /block, the last two with a reason (GET
+// /admin/summary above counts these stores), and a
 // store's page as an admin reads it (GET /sellers/{id}, /members, /offers, GET /offers/{id}). Each admin
 // session has its own copy of the stores below, so tests running side by side do not change each other's.
 // Names, phone numbers (0900 000 1xx) and addresses are made up, after Figma AD-Q1. An admin address with
@@ -1168,7 +1265,14 @@ function adminStores(token) {
             ),
             store(12, "Phở bò Gánh", "Tầng 3, khu ẩm thực, Tasco Mall", "pending", 10),
             store(13, "Cơm tấm Sài Gòn", "Tầng 3, khu ẩm thực, Tasco Mall", "pending", 12),
-            store(14, "Chè Thái Lan", "Tầng 2, Tasco Mall", "blocked", 1, "ph-tra-sua"),
+            {
+              ...store(14, "Chè Thái Lan", "Tầng 2, Tasco Mall", "blocked", 1, "ph-tra-sua"),
+              statusReason: "Bán chè đã quá hạn sử dụng cho khách.",
+            },
+            {
+              ...store(15, "Bánh cuốn Thanh Trì", "Tầng B1, Tasco Mall", "rejected", 3),
+              statusReason: "Ảnh cửa hàng chưa phải ảnh quầy tại Tasco Mall.",
+            },
           ],
     });
   }
@@ -1224,29 +1328,73 @@ async function adminSellerRoutes(request, response, url) {
       return true;
     }
     if (account.email.includes(".cham.")) await new Promise((resolve) => setTimeout(resolve, 3000));
-    const status = url.searchParams.get("status") ?? "pending";
-    const limit = Number(url.searchParams.get("limit") ?? 50);
-    const offset = Number(url.searchParams.get("offset") ?? 0);
-    const sellers = stores
-      .filter((seller) => seller.status === status)
-      .toSorted((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt))
-      .slice(offset, offset + limit);
-    json(response, 200, { sellers });
+    // `status` comes once per value or as one comma-separated value; every status when absent.
+    const statuses = url.searchParams.getAll("status").flatMap((value) => value.split(","));
+    const words = fold((url.searchParams.get("q") ?? "").trim().toLowerCase());
+    const page = Number(url.searchParams.get("page") ?? 1);
+    const size = Number(url.searchParams.get("size") ?? 25);
+    const known = ["pending", "active", "rejected", "blocked"];
+    if (
+      statuses.some((status) => !known.includes(status)) ||
+      words.length > 100 ||
+      !(page >= 1) ||
+      !(size >= 1 && size <= 100)
+    ) {
+      problem(response, 400, "SELLER_LIST_INVALID");
+      return true;
+    }
+    // The pending ones first, the oldest first; then the latest change first.
+    const matched = stores
+      .filter((seller) => statuses.length === 0 || statuses.includes(seller.status))
+      .filter(
+        (seller) =>
+          !words ||
+          [seller.name, seller.address, seller.phone].some((text) =>
+            fold(text.toLowerCase()).includes(words),
+          ),
+      )
+      .toSorted((a, b) => {
+        const pending = Number(b.status === "pending") - Number(a.status === "pending");
+        if (pending) return pending;
+        if (a.status === "pending") return Date.parse(a.createdAt) - Date.parse(b.createdAt);
+        return Date.parse(b.updatedAt) - Date.parse(a.updatedAt);
+      });
+    const items = matched
+      .slice((page - 1) * size, page * size)
+      .map((seller) => ({ ...seller, ownerEmail: "chu.cua.hang@example.com" }));
+    json(response, 200, { items, page, pageSize: size, total: matched.length });
     return true;
   }
-  const change = /^\/admin\/sellers\/([\w-]+)\/(block|activate)$/.exec(url.pathname);
+  const change = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block)$/.exec(url.pathname);
   if (request.method === "POST" && change) {
     const seller = stores.find((candidate) => candidate.id === change[1]);
     if (!seller) {
       problem(response, 404, "SELLER_NOT_FOUND");
       return true;
     }
+    const [, , action] = change;
+    const from = {
+      approve: ["pending", "rejected", "blocked"],
+      reject: ["pending"],
+      block: ["active"],
+    };
+    if (!from[action].includes(seller.status)) {
+      problem(response, 409, "SELLER_STATUS_CHANGE_NOT_ALLOWED");
+      return true;
+    }
+    let reason;
+    if (action !== "approve") {
+      reason = String((await readBody(request)).reason ?? "").trim();
+      if (reason.length < 10 || reason.length > 500) {
+        problem(response, 400, "SELLER_REASON_INVALID");
+        return true;
+      }
+    }
     const now = new Date().toISOString();
-    Object.assign(seller, {
-      status: change[2] === "block" ? "blocked" : "active",
-      statusChangedAt: now,
-      updatedAt: now,
-    });
+    const status = { approve: "active", reject: "rejected", block: "blocked" }[action];
+    Object.assign(seller, { status, statusChangedAt: now, updatedAt: now });
+    if (reason) seller.statusReason = reason;
+    else delete seller.statusReason;
     json(response, 200, seller);
     return true;
   }
@@ -1298,6 +1446,7 @@ async function answer(request, response) {
   if (await sellerRoutes(request, response, url)) return;
   if (await adminSummaryRoutes(request, response, url)) return;
   if (await adminSettingsRoutes(request, response, url)) return;
+  if (await adminAdminsRoutes(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {
     const { type, body } = await photo(photoMatch[1]);

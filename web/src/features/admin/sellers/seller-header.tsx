@@ -10,9 +10,9 @@ import { isFeatureOn } from "@/features/admin/features";
 import { adminHref } from "@/features/admin/pages";
 import { StatusBadge } from "@/features/admin/ui/badge";
 import { RowActionMenu } from "@/features/admin/ui/row-action-menu";
+import type { SellerBody } from "@/lib/api/generated";
 
 import { useSellerActions } from "./seller-actions";
-import type { AdminSeller } from "./seller-list";
 import { sellerPhoto } from "./seller-photo";
 
 /**
@@ -30,7 +30,7 @@ export function SellerHeader({
   review = isFeatureOn("storeReview"),
   ownerless = false,
 }: {
-  seller: AdminSeller;
+  seller: SellerBody;
   cover: string[];
   review?: boolean;
   ownerless?: boolean;

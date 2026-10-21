@@ -7,11 +7,10 @@ import { formatPrice } from "@/features/offers/format";
 import { EmptyState } from "@/features/admin/ui/empty-state";
 import { StatusCard, type StatusLine } from "@/features/admin/ui/status-card";
 import { Link } from "@/i18n/navigation";
-import type { OfferBody } from "@/lib/api/generated";
+import type { OfferBody, SellerBody } from "@/lib/api/generated";
 
 import { type AdminMember, AwaitingSignInBadge, MemberAvatar, RoleBadge } from "./member";
 import { hasOwner, type SellerReview } from "./review";
-import type { AdminSeller } from "./seller-list";
 import { postsIn } from "./seller-posts";
 
 /** How many posts on sale the overview shows; "Xem tất cả" opens the rest. */
@@ -34,7 +33,7 @@ export function SellerOverview({
   postsHref,
   review,
 }: {
-  seller: AdminSeller;
+  seller: SellerBody;
   offers: OfferBody[];
   members: AdminMember[];
   postsHref: string;
@@ -125,7 +124,7 @@ type Words = ReturnType<typeof useTranslations<"admin.sellers.detail">>;
  * says so, and keeps its posts but no staff to speak of (AD-DS6).
  */
 function statusCard(
-  status: AdminSeller["status"],
+  status: SellerBody["status"],
   review: SellerReview,
   owned: boolean,
   t: Words,

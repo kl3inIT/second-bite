@@ -3,12 +3,9 @@
   "loading": "Đang tải danh sách cửa hàng",
   "search": {
     "label": "Tìm cửa hàng",
-    "placeholder": "Tìm cửa hàng theo tên hoặc địa chỉ"
+    "placeholder": "Tìm cửa hàng theo tên, địa chỉ hoặc số điện thoại"
   },
   "filters": {
-    "area": "Khu vực",
-    "all": "Tất cả",
-    "changed": "Sửa đổi",
     "size": "Số dòng"
   },
   "columns": {

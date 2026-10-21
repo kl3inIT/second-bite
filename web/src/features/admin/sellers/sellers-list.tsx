@@ -9,6 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { isFeatureOn } from "@/features/admin/features";
@@ -16,13 +17,7 @@ import { adminHref } from "@/features/admin/pages";
 import { StatusBadge } from "@/features/admin/ui/badge";
 import { DataTable, DateCell, MediaCell, TextCell } from "@/features/admin/ui/data-table";
 import { EmptyState } from "@/features/admin/ui/empty-state";
-import {
-  DateRangeFilter,
-  type DateRangeValue,
-  FilterBar,
-  FilterSelect,
-  SearchField,
-} from "@/features/admin/ui/filter-bar";
+import { FilterBar, FilterSelect, SearchField } from "@/features/admin/ui/filter-bar";
 import { Pagination } from "@/features/admin/ui/pagination";
 import { RowActionMenu } from "@/features/admin/ui/row-action-menu";
 import { dayToDate } from "@/features/admin/overview/days";
@@ -33,22 +28,15 @@ import { cn } from "@/lib/utils";
 import { useSellerActions } from "./seller-actions";
 import {
   type AdminSeller,
-  applyListQuery,
-  areasOf,
   isFiltered,
   type ListQuery,
   listStatuses,
   type SellerStatus,
-  type SortKey,
-  toggleSort,
 } from "./seller-list";
 import type { SellerCounts } from "./sellers-source";
 import { sellerPhoto } from "./seller-photo";
 import { statusHref, useListQuery } from "./use-list-query";
 import { pageSizes } from "../list-query";
-
-/** The statuses the backend counts per day; the rejected card has no trend until SEC-64. */
-type TrendStatus = Exclude<SellerStatus, "rejected">;
 
 const cardLooks: Record<SellerStatus, { tone: BadgeTone; icon: LucideIcon }> = {
   active: { tone: "success", icon: CircleCheckIcon },
@@ -59,36 +47,42 @@ const cardLooks: Record<SellerStatus, { tone: BadgeTone; icon: LucideIcon }> = {
 
 /**
  * The stores list (Figma AD-Q1, AD-Q2, AD-Q5 to AD-Q11, AD-TT1, AD-TT2): the three status cards, which filter
- * the list in place of tabs, the filter bar, the table with its row menu, and the numbered pages. `rows` are
- * every store in the status of the address; the search, the area, the change dates, the sort and the page are
- * applied here (seller-list.ts). Each card draws its status over the last 14 days (`counts.trend`), which the
+ * the list in place of tabs, the search, the table with its row menu, and the numbered pages. `rows` are the
+ * page of stores `GET /admin/sellers` gave for the address's status, search and page, in the backend's order,
+ * and `total` how many match. Each card draws its status over the last 14 days (`counts.trend`), which the
  * backend rebuilds from each store's last change of status (design.md › Sellers per day).
  *
  * With the `storeReview` flag (`review`, SEC-64) the list opens on the pending queue, a fourth card counts the
- * rejected stores ("—" until the backend counts them), and a pending store's menu offers "Từ chối…" (AD-DS1).
+ * rejected stores, and a pending store's menu offers "Từ chối…" (AD-DS1).
  */
 export function SellersList({
+  query,
   rows,
+  total,
   counts,
   review = isFeatureOn("storeReview"),
 }: {
+  query: ListQuery;
   rows: AdminSeller[];
+  total: number;
   counts: SellerCounts;
   review?: boolean;
 }) {
   const t = useTranslations("admin.sellers");
   const status = useTranslations("admin.shell.status");
   const format = useFormatter();
-  const [query, update] = useListQuery(review);
+  const update = useListQuery(query, review);
   const actions = useSellerActions({ review });
-  const shown = applyListQuery(rows, query);
+  const [search, setSearch] = useState(query.q);
   const base = adminHref("sellers");
   const cards = listStatuses(review).map((each) => ({ status: each, ...cardLooks[each] }));
 
-  const sortOf = (key: SortKey) => ({
-    direction: query.sort === key ? query.dir : ("none" as const),
-    onSort: () => update(toggleSort(query, key)),
-  });
+  // The search follows the typing once it pauses, so each key does not reload the list.
+  useEffect(() => {
+    if (search.trim() === query.q) return;
+    const timer = setTimeout(() => update({ q: search.trim() }), 300);
+    return () => clearTimeout(timer);
+  }, [search, query.q, update]);
 
   return (
     <>
@@ -97,14 +91,13 @@ export function SellersList({
           <li key={card.status}>
             <StatCard
               label={status(card.status)}
-              value={counts[card.status] ?? "—"}
+              value={counts[card.status]}
               icon={card.icon}
               tone={card.tone}
               chart={
-                card.status !== "rejected" &&
                 counts.trend && (
                   <Sparkline
-                    points={counts.trend.map((day) => day[card.status as TrendStatus])}
+                    points={counts.trend.map((day) => day[card.status])}
                     labels={counts.trend.map((day) => format.dateTime(dayToDate(day.date), "day"))}
                   />
                 )
@@ -120,24 +113,8 @@ export function SellersList({
         <SearchField
           label={t("search.label")}
           placeholder={t("search.placeholder")}
-          value={query.q}
-          onChange={(q) => update({ q })}
-        />
-        <FilterSelect
-          label={t("filters.area")}
-          value={query.area || "all"}
-          options={[
-            { value: "all", label: t("filters.all") },
-            ...areasOf(rows).map((area) => ({ value: area, label: area })),
-          ]}
-          onChange={(area) => update({ area: area === "all" ? "" : area })}
-        />
-        <DateRangeFilter
-          label={t("filters.changed")}
-          value={{ from: dateOf(query.from), to: dateOf(query.to) }}
-          onChange={(range: DateRangeValue) =>
-            update({ from: dayString(range.from), to: dayString(range.to) })
-          }
+          value={search}
+          onChange={setSearch}
         />
         <FilterSelect
           label={t("filters.size")}
@@ -147,14 +124,17 @@ export function SellersList({
         />
       </FilterBar>
 
-      {shown.total === 0 ? (
+      {total === 0 ? (
         <div className="flex flex-col items-center rounded-md border border-border bg-card pb-6">
           {isFiltered(query) ? (
             <>
               <EmptyState title={t("empty.filtered")} />
               <Button
                 variant="link"
-                onClick={() => update({ q: "", area: "", from: undefined, to: undefined })}
+                onClick={() => {
+                  setSearch("");
+                  update({ q: "" });
+                }}
               >
                 {t("empty.clear")}
               </Button>
@@ -166,14 +146,13 @@ export function SellersList({
       ) : (
         <DataTable
           caption={t("caption", { status: status(query.status) })}
-          rows={shown.rows}
+          rows={rows}
           rowKey={(seller) => seller.id}
           rowHref={(seller) => adminHref("sellerDetail", { sellerId: seller.id })}
           columns={[
             {
               key: "name",
               header: t("columns.name"),
-              sort: sortOf("name"),
               cell: (seller) => (
                 <MediaCell
                   src={sellerPhoto(seller, 400)}
@@ -185,7 +164,6 @@ export function SellersList({
             {
               key: "address",
               header: t("columns.address"),
-              sort: sortOf("address"),
               grow: true,
               cell: (seller) => <TextCell>{seller.address}</TextCell>,
             },
@@ -202,7 +180,6 @@ export function SellersList({
             {
               key: "updatedAt",
               header: t("columns.updatedAt"),
-              sort: sortOf("updatedAt"),
               cell: (seller) => <DateCell value={seller.updatedAt} />,
             },
             {
@@ -232,9 +209,9 @@ export function SellersList({
           ]}
           footer={
             <Pagination
-              page={shown.page}
+              page={query.page}
               pageSize={query.size}
-              total={shown.total}
+              total={total}
               onPage={(page) => update({ page })}
               summary={({ from, to, total }) => t("summary", { from, to, total })}
             />
@@ -244,18 +221,4 @@ export function SellersList({
       {actions.dialog}
     </>
   );
-}
-
-/** A day of the address, `2026-10-20`, as the calendar's date at midnight where the browser is. */
-function dateOf(day: string | undefined): Date | undefined {
-  if (!day) return undefined;
-  const [year, month, date] = day.split("-").map(Number);
-  return new Date(year, month - 1, date);
-}
-
-/** The calendar's date as a day of the address. */
-function dayString(date: Date | undefined): string | undefined {
-  if (!date) return undefined;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }

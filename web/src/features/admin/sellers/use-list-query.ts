@@ -1,33 +1,24 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 
-import { type ListQuery, listQueryString, readListQuery } from "./seller-list";
+import { type ListQuery, listQueryString } from "./seller-list";
 
 /**
- * The stores list's state in its address (seller-list.ts). A search, a filter, a sort or a page changes the
- * address in place, without a request to the server: the rows are already in the browser. Only the status
- * cards are links, since a status is a read of its own. Kept in this one hook so that a library for state in
- * the address (nuqs) can take its place later in one file. `review` is the `storeReview` flag, which changes the
- * statuses the list offers and the one it opens on.
+ * Moves the stores list to a new state through its address (seller-list.ts), which the server reads to ask
+ * `GET /admin/sellers` for that page. Anything but turning the page starts again from the first. `review` is the
+ * `storeReview` flag, which changes the statuses the list offers and the one it opens on.
  */
-export function useListQuery(review: boolean): [ListQuery, (change: Partial<ListQuery>) => void] {
-  const params = useSearchParams();
+export function useListQuery(query: ListQuery, review: boolean) {
+  const router = useRouter();
   const pathname = usePathname();
-  const query = readListQuery(params, review);
-
-  function update(change: Partial<ListQuery>) {
-    // Anything but turning the page starts again from the first.
-    const next = { ...query, page: 1, ...change };
-    const search = listQueryString(next, review);
-    // Next.js keeps useSearchParams in step with the history API (App Router › Linking and Navigating).
-    window.history.replaceState(null, "", search ? `${pathname}?${search}` : pathname);
-  }
-
-  return [query, update];
+  return (change: Partial<ListQuery>) => {
+    const search = listQueryString({ ...query, page: 1, ...change }, review);
+    router.replace(search ? `${pathname}?${search}` : pathname, { scroll: false });
+  };
 }
 
-/** The address of the list in another status, keeping the search and the filters, from the first page. */
+/** The address of the list in another status, keeping the search, from the first page. */
 export function statusHref(
   query: ListQuery,
   status: ListQuery["status"],

@@ -15,14 +15,13 @@ import { useId } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDialog, ConsequenceList } from "@/features/admin/ui/confirm-dialog";
 
-import { isReason, REASON_MAX } from "./review";
+import { isReason, REASON_MAX, REASON_MIN } from "./review";
 
 export type ReasonKind = "reject" | "block";
 
 /**
- * Rejecting or blocking a store with its reason (Figma AD-DS3, AD-DS4), behind the `storeReview` flag (SEC-64):
- * the reason first, which the owner reads in their email, then what follows. The action waits for a reason, and
- * stays off with "Sắp có" while the backend takes none (`ready`).
+ * Rejecting or blocking a store with its reason (Figma AD-DS3, AD-DS4): the reason first, which the owner reads
+ * in their email, then what follows. The action waits for a reason of 10 to 500 characters.
  */
 export function ReasonDialog({
   kind,
@@ -31,7 +30,6 @@ export function ReasonDialog({
   onOpenChange,
   reason,
   onReason,
-  ready,
   pending,
   onConfirm,
 }: {
@@ -41,12 +39,11 @@ export function ReasonDialog({
   onOpenChange: (open: boolean) => void;
   reason: string;
   onReason: (reason: string) => void;
-  ready: boolean;
   pending: boolean;
   onConfirm: () => void;
 }) {
   const t = useTranslations("admin.sellers.actions");
-  const soon = useTranslations("admin.shell")("soon");
+
   const confirm: { label: string; icon: LucideIcon } =
     kind === "reject"
       ? { label: t("reject"), icon: CircleXIcon }
@@ -61,8 +58,7 @@ export function ReasonDialog({
       confirmIcon={confirm.icon}
       destructive
       pending={pending}
-      confirmDisabled={!ready || !isReason(reason)}
-      confirmTitle={ready ? undefined : soon}
+      confirmDisabled={!isReason(reason)}
       onConfirm={onConfirm}
       form={<ReasonBody kind={kind} reason={reason} onReason={onReason} />}
     />
@@ -92,6 +88,7 @@ export function ReasonBody({
           id={id}
           rows={3}
           required
+          minLength={REASON_MIN}
           maxLength={REASON_MAX}
           value={reason}
           onChange={(event) => onReason(event.target.value)}

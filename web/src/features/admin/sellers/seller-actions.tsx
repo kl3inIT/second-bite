@@ -1,33 +1,20 @@
 "use client";
 
-import {
-  BanIcon,
-  CheckIcon,
-  CircleXIcon,
-  EyeIcon,
-  type LucideIcon,
-  RotateCcwIcon,
-} from "lucide-react";
+import { BanIcon, CheckIcon, CircleXIcon, type LucideIcon, RotateCcwIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRef, useState, useTransition } from "react";
 
 import { showAdminToast } from "@/features/admin/admin-toast";
 import { isFeatureOn } from "@/features/admin/features";
-import { ConfirmDialog, ConsequenceList } from "@/features/admin/ui/confirm-dialog";
+
 import { useRouter } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
-import { activateSeller, blockSeller } from "@/lib/api/generated";
+import { approveSeller, blockSeller, rejectSeller, type SellerBody } from "@/lib/api/generated";
 
 import { ReasonDialog, type ReasonKind } from "./reason-dialog";
-import {
-  blockSellerWithReason,
-  OWNERLESS_CODE,
-  reasonsReady,
-  rejectSeller,
-} from "./review-actions";
-import type { AdminSeller } from "./seller-list";
+import { OWNERLESS_CODE } from "./review-actions";
 
-type Target = Pick<AdminSeller, "id" | "name" | "status">;
+type Target = Pick<SellerBody, "id" | "name" | "status">;
 type Kind = "block" | "unblock" | "approve" | "reject";
 
 /** What changes a store's status from where it stands (docs: admin-web-flow › Thao tác với cửa hàng). */
@@ -44,12 +31,13 @@ export type StatusAction = {
 
 /**
  * Blocking, unblocking and approving a store, from the list's row menu and from the store's page. Blocking asks
- * first (AD-Q5, AD-Q7); unblocking and approving run at once, both on `POST …/activate`. Each says how it went in
+ * first for the reason its owner is emailed (AD-DS4); unblocking and approving run at once, both on
+ * `POST …/approve`. Each says how it went in
  * a one-line toast and refreshes the page from the backend, which decides when two admins act together. While a
  * request is out, `pending` names the store and its buttons are locked, so two presses send one request.
  *
- * With the `storeReview` flag (SEC-64, SEC-65) a pending store can also be rejected, a rejected one approved,
- * rejecting and blocking ask for a reason (AD-DS3, AD-DS4), and a store with no owner left cannot be brought back.
+ * With the `storeReview` flag (SEC-64, SEC-65) a pending store can also be rejected with a reason (AD-DS3), a
+ * rejected one approved, and a store with no owner left cannot be brought back.
  */
 export function useSellerActions({
   review = isFeatureOn("storeReview"),
@@ -108,11 +96,10 @@ export function useSellerActions({
 
   async function send(seller: Target, kind: Kind) {
     const path = { sellerId: seller.id };
-    if (kind === "reject") return rejectSeller(seller.id, { reason: reason.trim() });
-    if (kind === "block" && review)
-      return blockSellerWithReason(seller.id, { reason: reason.trim() });
-    if (kind === "block") return blockSeller({ path });
-    return activateSeller({ path });
+    const body = { reason: reason.trim() };
+    if (kind === "reject") return rejectSeller({ path, body });
+    if (kind === "block") return blockSeller({ path, body });
+    return approveSeller({ path });
   }
 
   async function run(seller: Target, kind: Kind) {
@@ -122,7 +109,7 @@ export function useSellerActions({
     try {
       await send(seller, kind);
       startRefresh(() => router.refresh());
-      const emailed = review && (kind === "block" || kind === "reject");
+      const emailed = kind === "block" || kind === "reject";
       showAdminToast(
         emailed
           ? t(`emailed.${kind}`, { name: seller.name })
@@ -154,8 +141,7 @@ export function useSellerActions({
   }
 
   const close = (open: boolean) => !open && setAsking(undefined);
-  // Without the flag, blocking keeps its first dialog, with no reason (AD-Q5).
-  const dialog = review ? (
+  const dialog = (
     <ReasonDialog
       kind={asking?.kind ?? "block"}
       name={asking?.seller.name ?? ""}
@@ -163,37 +149,9 @@ export function useSellerActions({
       onOpenChange={close}
       reason={reason}
       onReason={setReason}
-      ready={reasonsReady}
       pending={pending !== undefined}
       onConfirm={() => asking && void run(asking.seller, asking.kind)}
     />
-  ) : (
-    <ConfirmDialog
-      open={asking !== undefined}
-      onOpenChange={close}
-      title={t("confirm.title", { name: asking?.seller.name ?? "" })}
-      confirmLabel={t("block")}
-      confirmIcon={BanIcon}
-      destructive
-      pending={pending !== undefined}
-      onConfirm={() => asking && void run(asking.seller, "block")}
-    >
-      <div className="flex flex-col gap-3">
-        <ConsequenceList
-          title={t("confirm.when")}
-          items={[
-            { icon: BanIcon, text: t("confirm.noPosting") },
-            { icon: EyeIcon, text: t("confirm.hidden") },
-            { icon: CheckIcon, text: t("confirm.kept") },
-          ]}
-        />
-        <p className="flex items-center gap-2 text-body-sm text-muted-foreground">
-          <RotateCcwIcon aria-hidden className="size-4 shrink-0" />
-          {t("confirm.undo")}
-        </p>
-      </div>
-    </ConfirmDialog>
   );
-
   return { actionsFor, act, pending, locked: pending !== undefined || refreshing, dialog };
 }

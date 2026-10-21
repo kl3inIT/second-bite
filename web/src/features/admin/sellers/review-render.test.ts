@@ -9,14 +9,13 @@ import type { AdminMember } from "./member";
 import { ReasonBody } from "./reason-dialog";
 import { useSellerActions } from "./seller-actions";
 import { SellerHeader } from "./seller-header";
-import type { AdminSeller } from "./seller-list";
+import { type AdminSeller, defaultQuery } from "./seller-list";
 import { SellerOverview } from "./seller-overview";
 import { SellersList } from "./sellers-list";
 
-// Reviewing a store (SEC-64, SEC-65, Figma AD-DS1 to AD-DS7), behind the `storeReview` flag, turned on here
-// through the components' `review` prop: the screens with sample stores, since the backend has neither the
-// `rejected` status nor reasons yet. Dialogs are portals, which do not render on the server, so their bodies are
-// rendered on their own. Each part is also rendered with the flag off, as the page shows it today.
+// Reviewing a store (SEC-64, SEC-65, Figma AD-DS1 to AD-DS7), behind the `storeReview` flag, set here through the
+// components' `review` prop: the screens with sample stores. Dialogs are portals, which do not render on the
+// server, so their bodies are rendered on their own. Each part is also rendered with the flag off.
 vi.mock("@/i18n/navigation", () => ({
   ...navigationMock,
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
@@ -54,7 +53,8 @@ const staff: AdminMember = {
   role: "staff",
 };
 const offers: OfferBody[] = [];
-const counts = { active: 34, pending: 4, blocked: 2 };
+const counts = { active: 34, pending: 4, rejected: 1, blocked: 2 };
+const pendingQuery = { ...defaultQuery, status: "pending" as const };
 
 /** The words of each card, in order: "Chờ duyệt 4". */
 function cardsOf(html: string): string[] {
@@ -64,7 +64,13 @@ function cardsOf(html: string): string[] {
 describe("the stores list", () => {
   test("keeps its three cards and opens on the active stores while the flag is off", () => {
     const html = renderAdmin(
-      createElement(SellersList, { rows: [store("Chè Thái", "active")], counts, review: false }),
+      createElement(SellersList, {
+        query: defaultQuery,
+        rows: [store("Chè Thái", "active")],
+        total: 1,
+        counts,
+        review: false,
+      }),
     );
     expect(cardsOf(html)).toEqual(["Đang hoạt động 34", "Chờ duyệt 4", "Bị chặn 2"]);
     expect(html).toMatch(/<a[^>]*aria-current="true"[^>]*>.*?Đang hoạt động/);
@@ -74,7 +80,9 @@ describe("the stores list", () => {
   test("opens on the pending queue with a fourth card for the rejected stores (AD-DS1)", () => {
     const html = renderAdmin(
       createElement(SellersList, {
+        query: pendingQuery,
         rows: [store("Chè Thái Phố Cổ", "pending"), store("Phở bò Gánh", "pending")],
+        total: 2,
         counts,
         review: true,
       }),
@@ -82,7 +90,7 @@ describe("the stores list", () => {
     expect(cardsOf(html)).toEqual([
       "Chờ duyệt 4",
       "Đang hoạt động 34",
-      "Bị từ chối —",
+      "Bị từ chối 1",
       "Bị chặn 2",
     ]);
     expect(html).toMatch(/<a[^>]*aria-current="true"[^>]*>.*?Chờ duyệt/);
@@ -92,12 +100,24 @@ describe("the stores list", () => {
     expect(textOf(html)).toContain("Hiển thị 1–2 trên 2 cửa hàng");
   });
 
-  test("counts the rejected stores once the backend does", () => {
+  test("says the pending queue is empty", () => {
     const html = renderAdmin(
-      createElement(SellersList, { rows: [], counts: { ...counts, rejected: 1 }, review: true }),
+      createElement(SellersList, { query: pendingQuery, rows: [], total: 0, counts, review: true }),
     );
-    expect(cardsOf(html)[2]).toBe("Bị từ chối 1");
     expect(textOf(html)).toContain("Không có cửa hàng nào chờ duyệt.");
+  });
+
+  test("numbers the pages from the backend's total (AD-TT1)", () => {
+    const html = renderAdmin(
+      createElement(SellersList, {
+        query: { ...pendingQuery, page: 2 },
+        rows: [store("Phở bò Gánh", "pending")],
+        total: 11,
+        counts,
+        review: true,
+      }),
+    );
+    expect(textOf(html)).toContain("Hiển thị 11–11 trên 11 cửa hàng");
   });
 });
 

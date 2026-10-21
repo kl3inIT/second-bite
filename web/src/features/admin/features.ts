@@ -11,7 +11,7 @@ export const adminFeatures = {
    * on block; the pending queue opened first; who blocked a store (an admin, or its owner deleting their account);
    * a store matching a blocked one flagged at approval; an owner-less store that cannot be unblocked.
    */
-  storeReview: false,
+  storeReview: true,
   /** SEC-64: an admin opens a store for its owner, given by email address, active at once. */
   openForOwner: false,
 } satisfies Record<string, boolean>;

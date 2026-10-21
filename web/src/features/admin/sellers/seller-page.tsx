@@ -12,8 +12,8 @@ import { cn } from "@/lib/utils";
 
 import { listSellerDocuments } from "./documents-source";
 import { DuplicateAlert } from "./duplicate-alert";
-import { hasOwner } from "./review";
-import { readSellerReview } from "./review-source";
+import { hasOwner, type SellerReview } from "./review";
+
 import { SellerDocuments } from "./seller-documents";
 import { SellerHeader } from "./seller-header";
 import { neighboursOf } from "./seller-list";
@@ -21,7 +21,7 @@ import { SellerMembers } from "./seller-members";
 import { SellerOverview } from "./seller-overview";
 import { countPosts, coverPhotos } from "./seller-posts";
 import { SellerPosts } from "./seller-posts-tab";
-import { listSellers, readSeller, readSellerMembers, readSellerOffers } from "./sellers-source";
+import { listSiblings, readSeller, readSellerMembers, readSellerOffers } from "./sellers-source";
 
 const tabs = ["overview", "posts", "members", "documents"] as const;
 type Tab = (typeof tabs)[number];
@@ -40,14 +40,15 @@ export async function SellerPage({
 }) {
   const [{ sellerId }, search] = await Promise.all([params, query]);
   const seller = await readSeller(sellerId);
-  // What reviewing a store adds (SEC-64, SEC-65) is read only behind its flag.
+  // What reviewing a store adds (SEC-64, SEC-65) shows only behind its flag: the reason an admin gave when
+  // rejecting or blocking it. Who blocked it and a blocked store it matches are not given by the backend yet.
   const reviewing = isFeatureOn("storeReview");
-  const [offers, members, siblings, documents, review, t, format] = await Promise.all([
+  const review: SellerReview | undefined = reviewing ? { reason: seller.statusReason } : undefined;
+  const [offers, members, siblings, documents, t, format] = await Promise.all([
     readSellerOffers(sellerId),
     readSellerMembers(sellerId),
-    listSellers(seller.status),
+    listSiblings(seller.status),
     listSellerDocuments(sellerId),
-    reviewing ? readSellerReview(sellerId) : undefined,
     getTranslations("admin.sellers.detail"),
     getFormatter(),
   ]);
