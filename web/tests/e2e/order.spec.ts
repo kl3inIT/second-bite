@@ -208,19 +208,60 @@ test.describe("ordering from the cart", () => {
     await page.goto("/vi/cart");
     await orderAs(page, "Hà", "0900000001");
 
+    // Figma O7 on a phone, a sheet; Figma WK5b from 768px, a dialog that names the seller and the orders left.
+    const wide = (page.viewportSize()?.width ?? 0) >= 768;
     const gone = page.getByRole("dialog", { name: "Bánh Tart Trứng vừa hết" });
     await expect(
-      gone.getByText("Người khác vừa đặt phần cuối. Bạn chưa bị tính tiền."),
+      gone.getByText(
+        wide
+          ? "Người khác vừa đặt phần cuối của La Paris. Bạn chưa bị tính tiền."
+          : "Người khác vừa đặt phần cuối. Bạn chưa bị tính tiền.",
+      ),
     ).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
     await gone
-      .getByRole("button", { name: "Đặt 1× Bánh Croissant Truyền Thống · 22.000đ" })
+      .getByRole("button", {
+        name: wide
+          ? "Đặt món, bỏ món hết · 22.000đ"
+          : "Đặt 1× Bánh Croissant Truyền Thống · 22.000đ",
+      })
       .click();
     await expect(page).toHaveURL(ORDER_URL);
     await expect(dishLine(page)).toBeVisible();
     await expect(page.getByText("Bánh Tart Trứng")).toHaveCount(0);
   });
+
+  // Figma D4: from 1024px the ticket is at the right of the band and the order's details in the right column; from
+  // 768px up to it the cards stack. Nothing scrolls sideways at any width.
+  for (const width of [768, 1024, 1440]) {
+    test(`places the ticket and the details at ${width} px`, async ({ page, isMobile }) => {
+      test.skip(isMobile, "a phone has its own layout");
+      await page.setViewportSize({ width, height: 900 });
+      await addCroissant(page);
+      await page.goto("/vi/cart");
+      await orderAs(page, "Lan", "0900 000 000");
+      await expect(page).toHaveURL(ORDER_URL);
+
+      const steps = await page.getByRole("list", { name: "Các bước của đơn" }).boundingBox();
+      const ticket = await page
+        .getByText("Mã QR hiện khi món sẵn sàng", { exact: false })
+        .boundingBox();
+      const details = await page.getByRole("region", { name: "Chi tiết đơn" }).boundingBox();
+      if (width >= 1024) {
+        expect(ticket!.x).toBeGreaterThan(steps!.x + steps!.width - 1);
+        expect(details!.x).toBeGreaterThan(steps!.x + steps!.width - 1);
+      } else {
+        expect(ticket!.y).toBeGreaterThan(steps!.y);
+      }
+      const widths = await page.evaluate(() => ({
+        page: document.documentElement.scrollWidth,
+        screen: document.documentElement.clientWidth,
+      }));
+      expect(widths.page).toBe(widths.screen);
+      await expectNoSeriousA11yViolations(page);
+    });
+  }
 
   // SEC-99: a 360 px phone and a seller with a long name and address, as "Tiệm Bánh Nhà Nhật, 21, Cầu Giấy,
   // Hà Nội" on staging. The stub's seller is short, so its name and address are lengthened on the page.

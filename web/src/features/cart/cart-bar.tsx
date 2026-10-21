@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
 import { totals } from "./cart";
 import { useCart } from "./cart-store";
 
-// The cart's bar at the bottom of the seller's page (Figma K4b footer): what the portions cost tonight over
-// what they would have cost, how many and how much is saved, and "Xem giỏ hàng", within the page's `width`. Hidden
-// while the cart is empty.
+// The cart's bar at the bottom of the seller's page on a phone (Figma K4b footer; from 768px the sidebar shows the
+// cart): what the portions cost tonight over what they would have cost, how many and how much is saved, and "Xem
+// giỏ hàng", within the page's `width`. Hidden while the cart is empty.
 export function CartBar({ width }: { width: string }) {
   const t = useTranslations("Cart");
   const cart = useCart();
@@ -20,7 +20,7 @@ export function CartBar({ width }: { width: string }) {
   const { units, priceVnd, originalPriceVnd } = totals(cart);
 
   return (
-    <div className="sticky bottom-0 z-40 border-t border-border bg-card">
+    <div className="sticky bottom-0 z-40 border-t border-border bg-card md:hidden">
       <div className={cn("mx-auto flex w-full items-center gap-4 px-4 pt-3 pb-5", width)}>
         <div className="flex flex-col">
           <p className="flex items-baseline gap-1.5">

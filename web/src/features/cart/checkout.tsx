@@ -1,38 +1,29 @@
 "use client";
 
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { formatPrice } from "@/features/offers/format";
-import { directionsHref } from "@/features/offers/offer";
-import { OfferPhoto } from "@/features/offers/offer-photo";
-import { SellerLogo } from "@/features/offers/seller-logo";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "@/i18n/navigation";
 
-import {
-  collectionWindow,
-  oneMore,
-  removeOne,
-  totals,
-  withBasket,
-  type Basket,
-  type Cart,
-  type CartLine,
-} from "./cart";
+import { totals, withBasket, type Cart } from "./cart";
 import { saveCart, useCart } from "./cart-store";
+import { CheckoutDesktop } from "./checkout-desktop";
+import { CancelPolicy, SellerOrder, type CheckoutProps } from "./checkout-parts";
 import type { Contact } from "./contact";
 import { GoneSheet } from "./gone-sheet";
 import { OrderButton } from "./order-button";
-import { Stepper } from "./quantity-stepper";
 import { usePlaceCart } from "./use-place-cart";
 
 // The cart's confirmation (Figma K5): one card per seller's order with where and when to collect and the dishes
 // each with its − and +, how to pay at the counter, the totals, the cancellation policy, and "Đặt món" ("Đặt 2 đơn"
 // for two sellers), which
 // asks who collects in a sheet and checks the phone number once, then orders each seller's dishes and opens the order, signed
-// in or not (SEC-76); a dish someone else took first asks what to do with the rest (O7).
+// in or not (SEC-76); a dish someone else took first asks what to do with the rest (O7). From 768px the
+// confirmation is `CheckoutDesktop` (Figma WK5, WK5b).
 export function Checkout() {
   const t = useTranslations("Cart");
   const cart = useCart();
@@ -56,9 +47,51 @@ export function Checkout() {
 }
 
 function Confirmation({ cart }: { cart: Cart }) {
-  const t = useTranslations("Cart");
+  const phone = useIsMobile();
   const [contact, setContact] = useState<Contact>();
   const { place, pending, problem, dismiss } = usePlaceCart();
+  const seller =
+    problem?.kind === "gone"
+      ? cart.baskets.find((basket) => basket.seller.id === problem.sellerId)?.seller
+      : undefined;
+  const props = {
+    cart,
+    pending,
+    problem,
+    onConfirmed: (confirmed: Contact) => {
+      setContact(confirmed);
+      place(cart, confirmed);
+    },
+  };
+
+  return (
+    <>
+      {/* The cart is drawn on the client only, so choosing the layout by the width never mismatches the server's HTML. */}
+      {phone ? <CheckoutPhone {...props} /> : <CheckoutDesktop {...props} />}
+      {problem?.kind === "gone" && seller && (
+        <GoneSheet
+          cart={cart}
+          cut={problem.cut}
+          rest={problem.rest}
+          seller={seller}
+          onKeep={() => {
+            dismiss();
+            saveCart(withBasket(cart, problem.sellerId, problem.rest));
+          }}
+          onOrderRest={(rest) => {
+            const next = withBasket(cart, problem.sellerId, rest);
+            saveCart(next);
+            if (next && contact) place(next, contact);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+// The confirmation on a phone: the cards, payment, the summary and the policy in one column, with the bar at the foot.
+function CheckoutPhone({ cart, pending, problem, onConfirmed }: CheckoutProps) {
+  const t = useTranslations("Cart");
   const { units, priceVnd, originalPriceVnd } = totals(cart);
   const orders = cart.baskets.length;
 
@@ -123,14 +156,7 @@ function Confirmation({ cart }: { cart: Cart }) {
               </p>
             </div>
             <div className="flex flex-1 *:w-full">
-              <OrderButton
-                orders={orders}
-                pending={pending}
-                onConfirmed={(confirmed) => {
-                  setContact(confirmed);
-                  place(cart, confirmed);
-                }}
-              />
+              <OrderButton orders={orders} pending={pending} onConfirmed={onConfirmed} />
             </div>
           </div>
           {problem?.kind === "failed" && (
@@ -143,105 +169,6 @@ function Confirmation({ cart }: { cart: Cart }) {
           )}
         </div>
       </div>
-      {problem?.kind === "gone" && (
-        <GoneSheet
-          cut={problem.cut}
-          rest={problem.rest}
-          sellerId={problem.sellerId}
-          onKeep={() => {
-            dismiss();
-            saveCart(withBasket(cart, problem.sellerId, problem.rest));
-          }}
-          onOrderRest={(rest) => {
-            const next = withBasket(cart, problem.sellerId, rest);
-            saveCart(next);
-            if (next && contact) place(next, contact);
-          }}
-        />
-      )}
     </>
   );
-}
-
-// One seller's order (Figma K5 "đơn · quán"): the seller's logo, name, floor and window with the way there, over
-// the dishes ordered from them, on a card with a hairline.
-function SellerOrder({ cart, basket }: { cart: Cart; basket: Basket }) {
-  const t = useTranslations("Cart");
-  const { from, until } = useWindow(basket);
-  const heading = `seller-${basket.seller.id}`;
-
-  return (
-    <section
-      aria-labelledby={heading}
-      className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3.5"
-    >
-      <div className="flex items-center gap-2.5">
-        <SellerLogo seller={basket.seller} size="sm" />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <h2 id={heading} className="truncate text-title-lg text-foreground">
-            {basket.seller.name}
-          </h2>
-          <p className="text-label text-muted-foreground">
-            {t("sellerWindow", { place: basket.seller.address, from, until })}
-          </p>
-        </div>
-        <a
-          href={directionsHref(basket.collectionPoint)}
-          target="_blank"
-          rel="noreferrer"
-          className="-mr-2 flex min-h-11 shrink-0 items-center rounded-lg px-2 text-label-strong text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-        >
-          {t("directions")}
-        </a>
-      </div>
-      <ul className="flex flex-col gap-3 border-t border-border pt-3">
-        {basket.lines.map((line) => (
-          <li key={line.id}>
-            <LineRow cart={cart} line={line} />
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-// A dish of the cart (Figma K5 "món"): its photograph, the dish over what its portions cost, and its − and +; at
-// one portion − takes it out of the cart at once.
-function LineRow({ cart, line }: { cart: Cart; line: CartLine }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="relative size-13 shrink-0 overflow-hidden rounded-md bg-muted">
-        {line.photo && <OfferPhoto offer={{ photo: line.photo }} sizes="52px" />}
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <p className="truncate text-body-sm text-foreground">{line.name}</p>
-        <p className="font-display text-price-sm text-foreground">
-          {formatPrice(line.quantity * line.priceVnd)}
-        </p>
-      </div>
-      <Stepper
-        name={line.name}
-        quantity={line.quantity}
-        canAdd={line.quantity < line.unitsLeft}
-        onAdd={() => saveCart(oneMore(cart, line.id))}
-        onRemove={() => saveCart(removeOne(cart, line.id))}
-      />
-    </div>
-  );
-}
-
-function CancelPolicy({ basket }: { basket: Basket }) {
-  const t = useTranslations("Cart");
-  const { from } = useWindow(basket);
-
-  return <p className="text-label text-muted-foreground">{t("cancelBody", { time: from })}</p>;
-}
-
-function useWindow(basket: Basket): { from: string; until: string } {
-  const format = useFormatter();
-  const { windowStart, windowEnd } = collectionWindow(basket);
-  return {
-    from: format.dateTime(new Date(windowStart), "time"),
-    until: format.dateTime(new Date(windowEnd), "time"),
-  };
 }

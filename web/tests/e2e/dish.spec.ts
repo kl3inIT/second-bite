@@ -1,9 +1,14 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
+
+/** From 768px the cart is a sidebar beside the menu (Figma WK3) and the bottom bar is a phone's. */
+function wide(page: Page) {
+  return (page.viewportSize()?.width ?? 0) >= 768;
+}
 
 test.describe("a dish, its seller and the cart", () => {
   test("opens a dish on its seller's page from the search, and its sheet", async ({ page }) => {
@@ -30,7 +35,9 @@ test.describe("a dish, its seller and the cart", () => {
     await sheet.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }).click();
     await sheet.getByRole("button", { name: "Thêm vào giỏ · 44.000đ" }).click();
     await expect(sheet).toBeHidden();
-    await expect(page.getByLabel("2 phần Bánh Croissant Truyền Thống trong giỏ")).toHaveText("2");
+    await expect(
+      page.getByLabel("2 phần Bánh Croissant Truyền Thống trong giỏ").first(),
+    ).toHaveText("2");
 
     await page.getByRole("searchbox", { name: "Tìm trong thực đơn La Paris" }).fill("eclair");
     await page.keyboard.press("Enter");
@@ -48,22 +55,30 @@ test.describe("a dish, its seller and the cart", () => {
     page,
   }) => {
     await page.goto("/vi/sellers/se-la-paris");
+    // The sidebar lists the dish with its own + once it is in the cart; the menu's comes first.
     const add = await hydrated(
-      page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }),
+      page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }).first(),
     );
     await add.click();
     await add.click();
     await add.click();
 
-    await expect(page.getByLabel("3 phần Bánh Croissant Truyền Thống trong giỏ")).toHaveText("3");
+    await expect(
+      page.getByLabel("3 phần Bánh Croissant Truyền Thống trong giỏ").first(),
+    ).toHaveText("3");
     await expect(add).toBeDisabled();
     await expect(page.getByText("đã chọn đủ 3 phần")).toBeVisible();
-    await expect(page.getByText("3 phần · tiết kiệm 84.000đ")).toBeVisible();
+    // A phone's bar at the foot, a wider screen's sidebar at the side.
+    await expect(
+      wide(page)
+        ? page.getByText("Tiền món (3 phần)")
+        : page.getByText("3 phần · tiết kiệm 84.000đ"),
+    ).toBeVisible();
 
     // Another seller's dish joins the same cart, in its own basket.
     await page.goto("/vi/sellers/se-panda-chef");
     await (await hydrated(page.getByRole("button", { name: "Thêm một phần Há cảo tôm" }))).click();
-    await page.getByRole("link", { name: "Xem giỏ hàng" }).click();
+    await page.getByRole("link", { name: wide(page) ? /^Đặt 2 đơn/ : "Xem giỏ hàng" }).click();
 
     await expect(page.getByRole("heading", { level: 1, name: "Xác nhận đơn" })).toBeVisible();
     await expect(page.getByLabel("3 phần Bánh Croissant Truyền Thống trong giỏ")).toHaveText("3");
@@ -84,6 +99,54 @@ test.describe("a dish, its seller and the cart", () => {
     await expect(page.getByText("Há cảo tôm", { exact: true })).toBeHidden();
     await expect(page.getByText("Tiền món (3 phần)")).toBeVisible();
     await expect(page.getByRole("button", { name: "Đặt món" })).toBeVisible();
+  });
+
+  // Figma WK3: from 1024px the menu at the left and the cart's sidebar at the right, in view as the page scrolls;
+  // from 768px up to it the sidebar sits under the menu. A phone has the bar at the foot instead.
+  for (const width of [768, 1024, 1440]) {
+    test(`shows the cart beside the menu at ${width} px`, async ({ page, isMobile }) => {
+      test.skip(isMobile, "a phone has the bar at the foot");
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/vi/sellers/se-la-paris");
+      const sidebar = page.getByRole("complementary", { name: "Giỏ của bạn" });
+      await expect(sidebar).toBeVisible();
+      await expect(sidebar.getByText("Chọn món để thêm vào giỏ.")).toBeVisible();
+
+      await (
+        await hydrated(
+          page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }),
+        )
+      ).click();
+      await expect(sidebar.getByRole("heading", { name: "La Paris" })).toBeVisible();
+      await expect(sidebar.getByText("Tiền món (1 phần)")).toBeVisible();
+      await expect(sidebar.getByRole("link", { name: /^Đặt món · / })).toBeVisible();
+      await expect(page.getByText("1 phần · tiết kiệm")).toBeHidden();
+
+      const menu = await page.locator("#dishes").boundingBox();
+      const cart = await sidebar.boundingBox();
+      if (width >= 1024) expect(cart!.x).toBeGreaterThan(menu!.x + menu!.width - 1);
+      else expect(cart!.y).toBeGreaterThan(menu!.y + menu!.height - 1);
+      await expectNoSeriousA11yViolations(page);
+    });
+  }
+
+  test("the seller's page and the confirmation fit a 360 px phone", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 760 });
+    await page.goto("/vi/sellers/se-la-paris");
+    await (
+      await hydrated(
+        page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }),
+      )
+    ).click();
+    const noSideways = () =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth === document.documentElement.clientWidth,
+      );
+    expect(await noSideways()).toBe(true);
+
+    await page.goto("/vi/cart");
+    await expect(page.getByRole("button", { name: "Đặt món" })).toBeVisible();
+    expect(await noSideways()).toBe(true);
   });
 
   test("says when a seller has nothing tonight", async ({ page }) => {
