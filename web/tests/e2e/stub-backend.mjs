@@ -666,8 +666,9 @@ function dishesFor(seller) {
 }
 
 /**
- * A store's orders (SEC-78), as GET /sellers/{id}/orders answers for today: a store named "Tiệm có đơn" holds
- * four and has handed over one and had one cancelled by its customer (Figma Q5, Q5e, Q5f); any other starts empty.
+ * A store's orders (SEC-78, SEC-102), as GET /sellers/{id}/orders answers for today: a store named "Tiệm có đơn"
+ * has three being prepared, one marked ready, one handed over and one cancelled by its customer (Figma Q5, Q5h,
+ * Q5i, Q5e, Q5f); any other starts empty.
  * The windows run from an hour ago to three hours on, so none reads as expired.
  */
 const sellerOrdersBy = new Map();
@@ -742,6 +743,9 @@ function sellerOrdersFor(seller) {
             order(5, "cancelled", "Võ Lan", "0900123456", "Xôi thập cẩm", "hộp", 1, 30000, {
               cancelledAt: new Date().toISOString(),
             }),
+            order(6, "ready", "Đỗ Hương", "0966333444", "Bánh mì mềm chà bông", "túi", 1, 30000, {
+              readyAt: new Date().toISOString(),
+            }),
           ]
         : [],
     );
@@ -749,7 +753,7 @@ function sellerOrdersFor(seller) {
   return sellerOrdersBy.get(seller.id);
 }
 
-/** What the seller's people do with an order: hand it over, refuse it with a reason, or take either back. */
+/** What the seller's people do with an order: mark it ready, hand it over, refuse it with a reason, or take either back. */
 const REFUSALS = [
   "not_suitable",
   "wrong_items",
@@ -773,6 +777,7 @@ async function staffOrderAction(request, response, mine, id, action) {
       return;
     }
     order.status = "confirmed";
+    delete order.readyAt;
     delete order.collectedAt;
     delete order.refusedAt;
     delete order.refuseReason;
@@ -780,6 +785,9 @@ async function staffOrderAction(request, response, mine, id, action) {
   } else if (!open) {
     problem(response, 409, "ORDER_TRANSITION_NOT_ALLOWED");
     return;
+  } else if (action === "ready") {
+    order.status = "ready";
+    order.readyAt = new Date().toISOString();
   } else if (action === "hand-over") {
     order.status = "collected";
     order.collectedAt = new Date().toISOString();
@@ -863,7 +871,8 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers/mine" ||
     url.pathname === "/photos" ||
     /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
-    /^\/orders\/[\w-]+\/(hand-over|reopen|refuse)$/.test(url.pathname) ||
+    /^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse)$/.test(url.pathname) ||
+    /^\/orders\/or-\d+-[\w-]+$/.test(url.pathname) ||
     /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname) ||
     /^\/dishes\/[\w-]+$/.test(url.pathname);
   if (!isSellerRoute) return false;
@@ -921,7 +930,16 @@ async function sellerRoutes(request, response, url) {
     });
     return true;
   }
-  const staffAction = /^\/orders\/([\w-]+)\/(hand-over|reopen|refuse)$/.exec(url.pathname);
+  const staffAction = /^\/orders\/([\w-]+)\/(ready|hand-over|reopen|refuse)$/.exec(url.pathname);
+  const staffOrder = /^\/orders\/(or-\d+-[\w-]+)$/.exec(url.pathname);
+  if (request.method === "GET" && staffOrder) {
+    const found = mine
+      .flatMap((seller) => sellerOrdersFor(seller))
+      .find((o) => o.id === staffOrder[1]);
+    if (found) json(response, 200, found);
+    else problem(response, 404, "ORDER_NOT_FOUND");
+    return true;
+  }
   if (request.method === "POST" && staffAction) {
     await staffOrderAction(request, response, mine, staffAction[1], staffAction[2]);
     return true;

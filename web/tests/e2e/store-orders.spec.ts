@@ -31,18 +31,20 @@ async function storeNamed(
 const row = (page: Page, text: RegExp | string) =>
   page.getByRole("listitem").filter({ hasText: text });
 
-// SEC-78 › The seller's order tab (Figma Q5, Q5b to Q5g): the orders of a day that customers hold.
+// SEC-78 › The seller's order tab (Figma Q5, Q5b to Q5g), and SEC-102 › its steps and the order's own page (Q5h to
+// Q5k): the orders of a day, prepared, marked ready and handed over.
 test.describe("the order tab of a store", () => {
-  test("lists the day's holds with who holds them, in three tabs", async ({ page }, testInfo) => {
+  test("lists the day's orders with who ordered them, in four tabs", async ({ page }, testInfo) => {
     const store = await storeNamed(page, "ha", testInfo, "Tiệm có đơn");
     await page.getByRole("link", { name: "Đơn", exact: true }).click();
 
     await expect(page.getByRole("heading", { level: 1, name: "Đơn" })).toBeVisible();
-    await expect(page.getByText("Đang giữ 4 phần · 3 khách")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Đang giữ · 3" })).toHaveAttribute(
+    await expect(page.getByText("Chuẩn bị 3 · sẵn sàng 1")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Chuẩn bị · 3" })).toHaveAttribute(
       "aria-current",
       "page",
     );
+    await expect(page.getByRole("link", { name: "Sẵn sàng · 1" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Đã giao · 1" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Đã hủy · 1" })).toBeVisible();
 
@@ -55,6 +57,16 @@ test.describe("the order tab of a store", () => {
     ).toBeVisible();
     await expect(row(page, "Nguyễn An · 0912345678")).toContainText("2 túi");
     await expect(row(page, "Nguyễn An · 0912345678")).toContainText("114.000đ");
+    // An order being prepared is marked ready first; it is handed over only once it is ready.
+    await expect(held.getByRole("button", { name: "Báo sẵn sàng" })).toBeVisible();
+    await expect(held.getByRole("button", { name: "Đã giao" })).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole("link", { name: "Sẵn sàng · 1" }).click();
+    await expect(page).toHaveURL(new RegExp(`/vi/stores/${store}/orders\\?tab=ready`));
+    const ready = row(page, "Đỗ Hương · 0966333444");
+    await expect(ready.getByRole("button", { name: "Đã giao" })).toBeVisible();
+    await expect(ready.getByRole("button", { name: "Báo sẵn sàng" })).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
 
     await page.getByRole("link", { name: "Đã giao · 1" }).click();
@@ -76,22 +88,66 @@ test.describe("the order tab of a store", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
-  test("hands an order over and takes it back", async ({ page }, testInfo) => {
+  test("marks an order ready, hands it over and takes it back", async ({ page }, testInfo) => {
     const store = await storeNamed(page, "an", testInfo, "Tiệm có đơn");
     await page.goto(`/vi/stores/${store}/orders`);
 
     await (
+      await hydrated(
+        row(page, "Lê Thu Hà · 0905111222").getByRole("button", { name: "Báo sẵn sàng" }),
+      )
+    ).click();
+    await expect(page.getByRole("link", { name: "Chuẩn bị · 2" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sẵn sàng · 2" })).toBeVisible();
+    await expect(row(page, "Lê Thu Hà · 0905111222")).toHaveCount(0);
+
+    await page.getByRole("link", { name: "Sẵn sàng · 2" }).click();
+    await (
       await hydrated(row(page, "Lê Thu Hà · 0905111222").getByRole("button", { name: "Đã giao" }))
     ).click();
     await expect(page.getByText("Đã giao cho Lê Thu Hà")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Đang giữ · 2" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sẵn sàng · 1" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Đã giao · 2" })).toBeVisible();
     await expect(row(page, "Lê Thu Hà · 0905111222")).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
 
+    // Taking the hand-over back opens the order again, which is being prepared.
     await page.getByRole("button", { name: "Hoàn tác" }).click();
-    await expect(page.getByRole("link", { name: "Đang giữ · 3" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Chuẩn bị · 3" })).toBeVisible();
+    await page.getByRole("link", { name: "Chuẩn bị · 3" }).click();
     await expect(row(page, "Lê Thu Hà · 0905111222")).toBeVisible();
+  });
+
+  test("opens an order's own page, with its steps and the next one", async ({ page }, testInfo) => {
+    const store = await storeNamed(page, "hong", testInfo, "Tiệm có đơn");
+    await page.goto(`/vi/stores/${store}/orders`);
+
+    await (await hydrated(row(page, "Lê Thu Hà · 0905111222").getByRole("link"))).first().click();
+    await expect(page).toHaveURL(new RegExp(`/vi/stores/${store}/orders/or-1-`));
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Đơn mới · đang chuẩn bị");
+    const track = page.getByRole("list", { name: "Các bước của đơn" });
+    await expect(track.getByRole("listitem").filter({ hasText: "Chuẩn bị" })).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
+    await expect(page.getByText("Món đã đặt · 1 phần")).toBeVisible();
+    await expect(page.getByText("Lê Thu Hà", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Đã giao" })).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+
+    await (await hydrated(page.getByRole("button", { name: "Báo sẵn sàng" }))).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Đã báo sẵn sàng · chờ khách đến",
+    );
+    await expect(track.getByRole("listitem").filter({ hasText: "Sẵn sàng" })).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole("button", { name: "Đã giao" }).click();
+    await expect(page).toHaveURL(new RegExp(`/vi/stores/${store}/orders\\?undo=`));
+    await expect(page.getByText("Đã giao cho Lê Thu Hà")).toBeVisible();
   });
 
   test("cancels an order with a reason, which the cancelled tab shows", async ({
@@ -115,7 +171,7 @@ test.describe("the order tab of a store", () => {
     await dialog.getByLabel("Ghi lý do").fill("Khách đổi ý");
     await dialog.getByRole("button", { name: "Hủy đơn", exact: true }).click();
 
-    await expect(page.getByRole("link", { name: "Đang giữ · 2" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Chuẩn bị · 2" })).toBeVisible();
     await page.getByRole("link", { name: "Đã hủy · 2" }).click();
     await expect(row(page, "Trần Minh · 0987654321")).toContainText(
       "Lý do: Lý do khác · Khách đổi ý",
@@ -141,8 +197,8 @@ test.describe("the order tab of a store", () => {
 
     await page.getByRole("link", { name: "Ngày trước" }).click();
     await expect(page).toHaveURL(/day=\d{4}-\d{2}-\d{2}/);
-    await expect(page.getByText("Chưa có ai giữ món ngày này.")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Đang giữ · 0" })).toBeVisible();
+    await expect(page.getByText("Chưa có đơn nào đang chuẩn bị ngày này.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Chuẩn bị · 0" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
     await page.getByRole("button", { name: /^Chọn ngày/ }).click();
@@ -150,6 +206,6 @@ test.describe("the order tab of a store", () => {
     await expect(page.getByRole("grid")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
     await page.getByRole("link", { name: "Hôm nay" }).click();
-    await expect(page.getByText("Đang giữ 4 phần · 3 khách")).toBeVisible();
+    await expect(page.getByText("Chuẩn bị 3 · sẵn sàng 1")).toBeVisible();
   });
 });
