@@ -71,13 +71,20 @@ export function HoldingActions({ orderId, name }: { orderId: string; name: strin
   const [asking, setAsking] = useState(false);
 
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div className="flex flex-col items-end gap-2 max-md:w-full max-md:items-stretch">
       <div className="flex items-center gap-2">
-        <Button type="button" variant="outline" disabled={pending} onClick={() => setAsking(true)}>
+        <Button
+          type="button"
+          variant="outline"
+          className="max-md:flex-1"
+          disabled={pending}
+          onClick={() => setAsking(true)}
+        >
           {t("cancel")}
         </Button>
         <Button
           type="button"
+          className="max-md:flex-1"
           disabled={pending}
           onClick={() =>
             run(
@@ -144,12 +151,18 @@ function CancelDialog({
           )}
         </fieldset>
         {failed && <Failed failed={failed} />}
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="max-sm:flex-row">
+          <Button
+            type="button"
+            variant="outline"
+            className="max-sm:flex-1"
+            onClick={() => onOpenChange(false)}
+          >
             {t("cancelDialog.back")}
           </Button>
           <Button
             type="button"
+            className="max-sm:flex-1"
             disabled={pending}
             onClick={() =>
               run(
@@ -181,7 +194,7 @@ export function ReopenButton({ orderId }: { orderId: string }) {
   const { pending, failed, run } = useOrderAction();
 
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div className="flex flex-col items-end gap-2 max-md:w-full max-md:items-stretch">
       <Button
         type="button"
         variant="outline"
