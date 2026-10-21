@@ -39,6 +39,25 @@ export type AdminAccountsOutputBody = {
     total: number;
 };
 
+export type AdminOfferBody = {
+    offer: OfferBody;
+    /**
+     * Copied from the seller when the offer was posted
+     */
+    sellerName: string;
+};
+
+export type AdminOffersOutputBody = {
+    /**
+     * Offers of each status matching the other filters, whatever status asks
+     */
+    counts: OfferCountsBody;
+    items: Array<AdminOfferBody>;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
 export type AdminSellerBody = {
     address: string;
     createdAt: string;
@@ -485,6 +504,13 @@ export type OfferChangeBody = {
     weightGrams?: number;
     windowEnd?: string;
     windowStart?: string;
+};
+
+export type OfferCountsBody = {
+    closed: number;
+    onSale: number;
+    soldOut: number;
+    withdrawn: number;
 };
 
 export type OfferDetailsBody = {
@@ -1474,6 +1500,54 @@ export type SaveOfferSettingsResponses = {
 };
 
 export type SaveOfferSettingsResponse = SaveOfferSettingsResponses[keyof SaveOfferSettingsResponses];
+
+export type ListOffersForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep this status; every status when absent
+         */
+        status?: 'on_sale' | 'sold_out' | 'closed' | 'withdrawn';
+        /**
+         * Words of the dish, the seller's name or the description
+         */
+        q?: string;
+        /**
+         * Keep this seller's offers
+         */
+        sellerId?: string;
+        page?: number;
+        size?: number;
+        /**
+         * Keep the offers posted at or after this time
+         */
+        postedSince?: string;
+        /**
+         * Keep the offers posted before this time
+         */
+        postedUntil?: string;
+    };
+    url: '/admin/offers';
+};
+
+export type ListOffersForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListOffersForAdminsError = ListOffersForAdminsErrors[keyof ListOffersForAdminsErrors];
+
+export type ListOffersForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: AdminOffersOutputBody;
+};
+
+export type ListOffersForAdminsResponse = ListOffersForAdminsResponses[keyof ListOffersForAdminsResponses];
 
 export type ListSellersForAdminsData = {
     body?: never;

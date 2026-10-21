@@ -38,6 +38,85 @@ func (q *Queries) CountDishes(ctx context.Context, sellerID uuid.UUID) (int32, e
 	return column_1, err
 }
 
+const countOffersByStatus = `-- name: CountOffersByStatus :one
+SELECT count(*) FILTER (WHERE state = 'on_sale' AND window_end > now() AND units_left > 0) AS on_sale,
+       count(*) FILTER (WHERE state = 'on_sale' AND window_end > now() AND units_left = 0) AS sold_out,
+       count(*) FILTER (WHERE state = 'closed' OR (state = 'on_sale' AND window_end <= now())) AS closed,
+       count(*) FILTER (WHERE state = 'withdrawn') AS withdrawn
+FROM offer_offers
+WHERE ($1::text = '' OR search_vector @@ ($1::text)::tsquery)
+  AND ($2::uuid IS NULL OR seller_id = $2::uuid)
+  AND ($3::timestamptz IS NULL OR created_at >= $3::timestamptz)
+  AND ($4::timestamptz IS NULL OR created_at < $4::timestamptz)
+`
+
+type CountOffersByStatusParams struct {
+	Query       string
+	SellerID    uuid.NullUUID
+	PostedSince *time.Time
+	PostedUntil *time.Time
+}
+
+type CountOffersByStatusRow struct {
+	OnSale    int64
+	SoldOut   int64
+	Closed    int64
+	Withdrawn int64
+}
+
+// How many offers of each status match the words, the seller and the day
+// posted, whatever the status asked, for the cards above the admins' list.
+func (q *Queries) CountOffersByStatus(ctx context.Context, arg CountOffersByStatusParams) (CountOffersByStatusRow, error) {
+	row := q.db.QueryRow(ctx, countOffersByStatus,
+		arg.Query,
+		arg.SellerID,
+		arg.PostedSince,
+		arg.PostedUntil,
+	)
+	var i CountOffersByStatusRow
+	err := row.Scan(
+		&i.OnSale,
+		&i.SoldOut,
+		&i.Closed,
+		&i.Withdrawn,
+	)
+	return i, err
+}
+
+const countOffersForAdmins = `-- name: CountOffersForAdmins :one
+SELECT count(*) FROM offer_offers
+WHERE ($1::text = ''
+       OR ($1 = 'withdrawn' AND state = 'withdrawn')
+       OR ($1 = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
+       OR ($1 = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
+       OR ($1 = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
+  AND ($2::text = '' OR search_vector @@ ($2::text)::tsquery)
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::timestamptz IS NULL OR created_at >= $4::timestamptz)
+  AND ($5::timestamptz IS NULL OR created_at < $5::timestamptz)
+`
+
+type CountOffersForAdminsParams struct {
+	Status      string
+	Query       string
+	SellerID    uuid.NullUUID
+	PostedSince *time.Time
+	PostedUntil *time.Time
+}
+
+func (q *Queries) CountOffersForAdmins(ctx context.Context, arg CountOffersForAdminsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countOffersForAdmins,
+		arg.Status,
+		arg.Query,
+		arg.SellerID,
+		arg.PostedSince,
+		arg.PostedUntil,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const deleteDish = `-- name: DeleteDish :execrows
 DELETE FROM offer_dishes WHERE id = $1
 `
@@ -431,6 +510,118 @@ func (q *Queries) MoveSellerOffers(ctx context.Context, arg MoveSellerOffersPara
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const offersForAdmins = `-- name: OffersForAdmins :many
+SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
+       created_at, updated_at, withdrawn_at, seller_name
+FROM offer_offers
+WHERE ($1::text = ''
+       OR ($1 = 'withdrawn' AND state = 'withdrawn')
+       OR ($1 = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
+       OR ($1 = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
+       OR ($1 = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
+  AND ($2::text = '' OR search_vector @@ ($2::text)::tsquery)
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::timestamptz IS NULL OR created_at >= $4::timestamptz)
+  AND ($5::timestamptz IS NULL OR created_at < $5::timestamptz)
+ORDER BY created_at DESC, id
+LIMIT $7 OFFSET $6
+`
+
+type OffersForAdminsParams struct {
+	Status      string
+	Query       string
+	SellerID    uuid.NullUUID
+	PostedSince *time.Time
+	PostedUntil *time.Time
+	SkipRows    int32
+	MaxRows     int32
+}
+
+type OffersForAdminsRow struct {
+	ID               uuid.UUID
+	SellerID         uuid.UUID
+	PostedBy         uuid.UUID
+	State            string
+	Name             string
+	Description      string
+	Kind             string
+	Unit             string
+	Units            int32
+	UnitsLeft        int32
+	PriceVnd         int64
+	OriginalPriceVnd int64
+	WeightGrams      pgtype.Int4
+	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
+	WindowStart      time.Time
+	WindowEnd        time.Time
+	Latitude         float64
+	Longitude        float64
+	Address          string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	WithdrawnAt      *time.Time
+	SellerName       string
+}
+
+// One page of every seller's offers in the status given (all when empty),
+// matching the tsquery literal built by searchQuery (any when empty), of the
+// seller given and posted in [posted_since, posted_until) when given, newest
+// first; CountOffersForAdmins counts them all.
+func (q *Queries) OffersForAdmins(ctx context.Context, arg OffersForAdminsParams) ([]OffersForAdminsRow, error) {
+	rows, err := q.db.Query(ctx, offersForAdmins,
+		arg.Status,
+		arg.Query,
+		arg.SellerID,
+		arg.PostedSince,
+		arg.PostedUntil,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OffersForAdminsRow
+	for rows.Next() {
+		var i OffersForAdminsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SellerID,
+			&i.PostedBy,
+			&i.State,
+			&i.Name,
+			&i.Description,
+			&i.Kind,
+			&i.Unit,
+			&i.Units,
+			&i.UnitsLeft,
+			&i.PriceVnd,
+			&i.OriginalPriceVnd,
+			&i.WeightGrams,
+			&i.PhotoID,
+			&i.MorePhotoIds,
+			&i.WindowStart,
+			&i.WindowEnd,
+			&i.Latitude,
+			&i.Longitude,
+			&i.Address,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.WithdrawnAt,
+			&i.SellerName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const putSettings = `-- name: PutSettings :exec

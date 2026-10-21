@@ -81,6 +81,52 @@ WHERE seller_id = @seller_id
 ORDER BY created_at DESC, id
 LIMIT @max_rows OFFSET @skip_rows;
 
+-- name: OffersForAdmins :many
+-- One page of every seller's offers in the status given (all when empty),
+-- matching the tsquery literal built by searchQuery (any when empty), of the
+-- seller given and posted in [posted_since, posted_until) when given, newest
+-- first; CountOffersForAdmins counts them all.
+SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
+       created_at, updated_at, withdrawn_at, seller_name
+FROM offer_offers
+WHERE (@status::text = ''
+       OR (@status = 'withdrawn' AND state = 'withdrawn')
+       OR (@status = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
+       OR (@status = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
+       OR (@status = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
+  AND (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
+  AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz)
+ORDER BY created_at DESC, id
+LIMIT @max_rows OFFSET @skip_rows;
+
+-- name: CountOffersForAdmins :one
+SELECT count(*) FROM offer_offers
+WHERE (@status::text = ''
+       OR (@status = 'withdrawn' AND state = 'withdrawn')
+       OR (@status = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
+       OR (@status = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
+       OR (@status = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
+  AND (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
+  AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz);
+
+-- name: CountOffersByStatus :one
+-- How many offers of each status match the words, the seller and the day
+-- posted, whatever the status asked, for the cards above the admins' list.
+SELECT count(*) FILTER (WHERE state = 'on_sale' AND window_end > now() AND units_left > 0) AS on_sale,
+       count(*) FILTER (WHERE state = 'on_sale' AND window_end > now() AND units_left = 0) AS sold_out,
+       count(*) FILTER (WHERE state = 'closed' OR (state = 'on_sale' AND window_end <= now())) AS closed,
+       count(*) FILTER (WHERE state = 'withdrawn') AS withdrawn
+FROM offer_offers
+WHERE (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
+  AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz);
+
 -- name: SearchOffers :many
 -- Offers customers may order or see sold out: on sale, the window not over,
 -- the seller not blocked; filtered before they are ordered and paged. The

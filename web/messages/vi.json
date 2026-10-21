@@ -1109,6 +1109,7 @@
     "breadcrumb": "Vị trí trang",
     "nav": {
       "sellers": "Cửa hàng",
+      "offers": "Bài đăng",
       "audit": "Nhật ký thao tác",
       "settings": "Cài đặt",
       "accounts": "Tài khoản"
@@ -1537,10 +1538,47 @@
             "sold_out": "Hết hàng",
             "closed": "Đã đóng",
             "withdrawn": "Đã gỡ"
-          }
+          },
+          "store": "Xem trang cửa hàng"
         }
       },
       "reasonInvalid": "Ghi lý do cho chủ cửa hàng, từ 10 đến 500 ký tự."
+    },
+    "offers": {
+      "title": "Bài đăng",
+      "cards": "Lọc theo trạng thái",
+      "status": {
+        "on_sale": "Đang bán",
+        "sold_out": "Hết hàng",
+        "closed": "Đã đóng",
+        "withdrawn": "Đã gỡ"
+      },
+      "search": "Tìm tên món hoặc cửa hàng",
+      "store": "Cửa hàng",
+      "anyStore": "Tất cả",
+      "posted": "Ngày đăng",
+      "anytime": "Mọi lúc",
+      "size": "Số dòng",
+      "noun": "bài đăng",
+      "column": {
+        "dish": "Món",
+        "store": "Cửa hàng",
+        "price": "Giá",
+        "left": "Còn",
+        "window": "Khung nhận",
+        "status": "Trạng thái",
+        "open": "Xem"
+      },
+      "unitsLeft": "{left}/{units} {unit}",
+      "window": "{from}–{until}",
+      "openPost": "Xem bài {name}",
+      "empty": {
+        "title": "Chưa có bài đăng nào"
+      },
+      "noResults": {
+        "title": "Không có bài đăng nào khớp bộ lọc",
+        "clear": "Xoá bộ lọc"
+      }
     }
   },
   "Review": {

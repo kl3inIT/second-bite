@@ -107,6 +107,29 @@ type offerOutput struct {
 	Body offerBody
 }
 
+// adminOfferBody is an offer as admins list it, with its seller's name.
+type adminOfferBody struct {
+	Offer      offerBody `json:"offer"`
+	SellerName string    `json:"sellerName" doc:"Copied from the seller when the offer was posted"`
+}
+
+type offerCountsBody struct {
+	OnSale    int `json:"onSale"`
+	SoldOut   int `json:"soldOut"`
+	Closed    int `json:"closed"`
+	Withdrawn int `json:"withdrawn"`
+}
+
+type adminOffersOutput struct {
+	Body struct {
+		Items    []adminOfferBody `json:"items"    nullable:"false"`
+		Page     int              `json:"page"`
+		PageSize int              `json:"pageSize"`
+		Total    int              `json:"total"`
+		Counts   offerCountsBody  `json:"counts"   doc:"Offers of each status matching the other filters, whatever status asks"`
+	}
+}
+
 type offerPath struct {
 	OfferID uuid.UUID `path:"offerId"`
 }
@@ -253,6 +276,51 @@ func registerReadOperations(api huma.API, s *Service) {
 // RegisterAdminOperations adds the module's admin operations to admin, the
 // group platform.NewAdminGroup returns; their paths omit its prefix.
 func RegisterAdminOperations(admin huma.API, s *Service) {
+	huma.Register(admin, huma.Operation{
+		OperationID: "listOffersForAdmins", Method: http.MethodGet, Path: "/offers",
+		Summary: "Every seller's offers by status, words, seller and day posted, newest first",
+		Description: "q matches the dish, the seller's name or the description, as customers search. " +
+			"counts holds the offers of each status matching the other filters. A page past the end is empty.",
+	}, func(ctx context.Context, in *struct {
+		Status   Status    `query:"status"      doc:"Keep this status; every status when absent" enum:"on_sale,sold_out,closed,withdrawn"`
+		Q        string    `query:"q"           doc:"Words of the dish, the seller's name or the description" maxLength:"100"`
+		SellerID uuid.UUID `query:"sellerId"    doc:"Keep this seller's offers"`
+		Page     int       `query:"page"        default:"1" minimum:"1"`
+		Size     int       `query:"size"        default:"25" maximum:"100" minimum:"1"`
+
+		PostedSince time.Time `query:"postedSince" doc:"Keep the offers posted at or after this time"`
+		PostedUntil time.Time `query:"postedUntil" doc:"Keep the offers posted before this time"`
+	},
+	) (*adminOffersOutput, error) {
+		f := AdminFilter{Status: in.Status, Query: in.Q, SellerID: in.SellerID, Page: in.Page, Size: in.Size}
+		if !in.PostedSince.IsZero() {
+			f.PostedSince = &in.PostedSince
+		}
+
+		if !in.PostedUntil.IsZero() {
+			f.PostedUntil = &in.PostedUntil
+		}
+
+		page, err := s.ListForAdmins(ctx, f)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &adminOffersOutput{}
+		out.Body.Items = make([]adminOfferBody, 0, len(page.Offers))
+		out.Body.Page, out.Body.PageSize, out.Body.Total = in.Page, in.Size, page.Total
+		out.Body.Counts = offerCountsBody{
+			OnSale: page.Counts[StatusOnSale], SoldOut: page.Counts[StatusSoldOut],
+			Closed: page.Counts[StatusClosed], Withdrawn: page.Counts[StatusWithdrawn],
+		}
+
+		for _, l := range page.Offers {
+			out.Body.Items = append(out.Body.Items, adminOfferBody{Offer: toBody(l.Offer), SellerName: l.SellerName})
+		}
+
+		return out, nil
+	})
+
 	huma.Register(admin, huma.Operation{
 		OperationID: "getOfferSettings", Method: http.MethodGet, Path: "/offer-settings",
 		Summary: "The rules every offer follows",

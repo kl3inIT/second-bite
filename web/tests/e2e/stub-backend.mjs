@@ -2000,6 +2000,65 @@ function storeDays(stores) {
   });
 }
 
+const offerStatuses = ["on_sale", "sold_out", "closed", "withdrawn"];
+
+/**
+ * GET /admin/offers (SEC-134), filtered and paged as server/internal/offer/queries.sql does: the posts of the
+ * stores without a logo, a post of each status each, posted a minute apart, the newest first.
+ */
+function listAdminOffers(response, url, stores) {
+  const status = url.searchParams.get("status");
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sellerId = url.searchParams.get("sellerId");
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const since = url.searchParams.get("postedSince");
+  const until = url.searchParams.get("postedUntil");
+  if (
+    (since && until && Date.parse(since) >= Date.parse(until)) ||
+    (status && !offerStatuses.includes(status)) ||
+    q.length > 100 ||
+    !(page >= 1) ||
+    !(size >= 1 && size <= 100)
+  ) {
+    problem(response, 400, "OFFER_ADMIN_LIST_INVALID");
+    return;
+  }
+  const start = Date.now();
+  const found = stores
+    .filter((store) => !store.photoId)
+    .flatMap((store, i) =>
+      postsOf(store).map((offer, n) => {
+        const posted = new Date(start - (i * 4 + n) * 60 * 1000).toISOString();
+        return {
+          offer: { ...offer, createdAt: posted, updatedAt: posted },
+          sellerName: store.name,
+        };
+      }),
+    )
+    .filter(
+      (item) =>
+        (!q || fold(`${item.offer.name} ${item.sellerName}`).includes(q)) &&
+        (!sellerId || item.offer.sellerId === sellerId) &&
+        (!since || Date.parse(item.offer.createdAt) >= Date.parse(since)) &&
+        (!until || Date.parse(item.offer.createdAt) < Date.parse(until)),
+    );
+  const countOf = (s) => found.filter((item) => item.offer.status === s).length;
+  const listed = found.filter((item) => !status || item.offer.status === status);
+  json(response, 200, {
+    items: listed.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: listed.length,
+    counts: {
+      onSale: countOf("on_sale"),
+      soldOut: countOf("sold_out"),
+      closed: countOf("closed"),
+      withdrawn: countOf("withdrawn"),
+    },
+  });
+}
+
 /** POST /admin/sellers/{id}/approve | reject | block, each from the statuses it applies to. */
 async function changeAdminStore(request, response, stores, id, action) {
   const store = stores.find((s) => s.id === id);
@@ -2092,6 +2151,10 @@ async function adminRoutes(request, response, url) {
   }
   if (request.method === "GET" && url.pathname === "/admin/sellers") {
     listAdminStores(response, url, adminStoresOf(account));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/offers") {
+    listAdminOffers(response, url, adminStoresOf(account));
     return true;
   }
   const storeAction = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block)$/.exec(url.pathname);

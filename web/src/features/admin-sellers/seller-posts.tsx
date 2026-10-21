@@ -6,15 +6,16 @@ import { useFormatter, useTranslations } from "next-intl";
 import { parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
 import { ListFooter } from "@/features/admin/list-footer";
 import { formatPrice } from "@/features/offers/format";
+import { Link } from "@/i18n/navigation";
 import type { OfferBody } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
 
@@ -210,9 +211,18 @@ function PostsTable({
   );
 }
 
-// A post in full, beside the store's page (Figma AD-QD3): its photo, dish and price, what it says of itself,
-// then its status, units, weight, window, place and when it was posted and last changed.
-function PostPanel({ offer, onClose }: { offer: OfferBody | null; onClose: () => void }) {
+// A post in full, beside the store's page (Figma AD-QD3) or the posts of every store (AD-BD2): its photo,
+// dish and price, what it says of itself, then its status, units, weight, window, place and when it was
+// posted and last changed. Beside every store's posts it ends with a way to the store's page.
+export function PostPanel({
+  offer,
+  onClose,
+  withStore = false,
+}: {
+  offer: OfferBody | null;
+  onClose: () => void;
+  withStore?: boolean;
+}) {
   const t = useTranslations("Admin.sellers.detail");
 
   return (
@@ -222,6 +232,16 @@ function PostPanel({ offer, onClose }: { offer: OfferBody | null; onClose: () =>
           <SheetTitle>{t("panel.title")}</SheetTitle>
         </SheetHeader>
         {offer && <PostFacts offer={offer} />}
+        {offer && withStore && (
+          <SheetFooter>
+            <Link
+              href={`/admin/sellers/${offer.sellerId}`}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              {t("panel.store")}
+            </Link>
+          </SheetFooter>
+        )}
       </SheetContent>
     </Sheet>
   );

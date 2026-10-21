@@ -69,6 +69,44 @@ components:
         - total
         - counts
       type: object
+    AdminOfferBody:
+      additionalProperties: false
+      properties:
+        offer:
+          $ref: "#/components/schemas/OfferBody"
+        sellerName:
+          description: Copied from the seller when the offer was posted
+          type: string
+      required:
+        - offer
+        - sellerName
+      type: object
+    AdminOffersOutputBody:
+      additionalProperties: false
+      properties:
+        counts:
+          $ref: "#/components/schemas/OfferCountsBody"
+          description: Offers of each status matching the other filters, whatever status asks
+        items:
+          items:
+            $ref: "#/components/schemas/AdminOfferBody"
+          type: array
+        page:
+          format: int64
+          type: integer
+        pageSize:
+          format: int64
+          type: integer
+        total:
+          format: int64
+          type: integer
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+        - counts
+      type: object
     AdminSellerBody:
       additionalProperties: false
       properties:
@@ -1058,6 +1096,27 @@ components:
         windowStart:
           format: date-time
           type: string
+      type: object
+    OfferCountsBody:
+      additionalProperties: false
+      properties:
+        closed:
+          format: int64
+          type: integer
+        onSale:
+          format: int64
+          type: integer
+        soldOut:
+          format: int64
+          type: integer
+        withdrawn:
+          format: int64
+          type: integer
+      required:
+        - onSale
+        - soldOut
+        - closed
+        - withdrawn
       type: object
     OfferDetailsBody:
       additionalProperties: false
@@ -2596,6 +2655,90 @@ paths:
         - bearer: []
         - cookie: []
       summary: Change the rules every offer follows
+      tags:
+        - Admin
+  /admin/offers:
+    get:
+      description: q matches the dish, the seller's name or the description, as customers search. counts holds the offers of each status matching the other filters. A page past the end is empty.
+      operationId: listOffersForAdmins
+      parameters:
+        - description: Keep this status; every status when absent
+          explode: false
+          in: query
+          name: status
+          schema:
+            description: Keep this status; every status when absent
+            enum:
+              - on_sale
+              - sold_out
+              - closed
+              - withdrawn
+            type: string
+        - description: Words of the dish, the seller's name or the description
+          explode: false
+          in: query
+          name: q
+          schema:
+            description: Words of the dish, the seller's name or the description
+            maxLength: 100
+            type: string
+        - description: Keep this seller's offers
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep this seller's offers
+            type: string
+        - explode: false
+          in: query
+          name: page
+          schema:
+            default: 1
+            format: int64
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: size
+          schema:
+            default: 25
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+        - description: Keep the offers posted at or after this time
+          explode: false
+          in: query
+          name: postedSince
+          schema:
+            description: Keep the offers posted at or after this time
+            format: date-time
+            type: string
+        - description: Keep the offers posted before this time
+          explode: false
+          in: query
+          name: postedUntil
+          schema:
+            description: Keep the offers posted before this time
+            format: date-time
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOffersOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Every seller's offers by status, words, seller and day posted, newest first
       tags:
         - Admin
   /admin/sellers:

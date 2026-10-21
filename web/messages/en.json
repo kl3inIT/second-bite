@@ -1109,6 +1109,7 @@
     "breadcrumb": "Where you are",
     "nav": {
       "sellers": "Stores",
+      "offers": "Posts",
       "audit": "Activity log",
       "settings": "Settings",
       "accounts": "Accounts"
@@ -1537,10 +1538,47 @@
             "sold_out": "Sold out",
             "closed": "Closed",
             "withdrawn": "Withdrawn"
-          }
+          },
+          "store": "See the store's page"
         }
       },
       "reasonInvalid": "Write the owner a reason of 10 to 500 characters."
+    },
+    "offers": {
+      "title": "Posts",
+      "cards": "Filter by status",
+      "status": {
+        "on_sale": "On sale",
+        "sold_out": "Sold out",
+        "closed": "Closed",
+        "withdrawn": "Withdrawn"
+      },
+      "search": "Search a dish or a store",
+      "store": "Store",
+      "anyStore": "All",
+      "posted": "Posted",
+      "anytime": "Any time",
+      "size": "Rows",
+      "noun": "posts",
+      "column": {
+        "dish": "Dish",
+        "store": "Store",
+        "price": "Price",
+        "left": "Left",
+        "window": "Window",
+        "status": "Status",
+        "open": "Open"
+      },
+      "unitsLeft": "{left}/{units} {unit}",
+      "window": "{from}–{until}",
+      "openPost": "Open the post {name}",
+      "empty": {
+        "title": "No posts yet"
+      },
+      "noResults": {
+        "title": "No post matches the filters",
+        "clear": "Clear the filters"
+      }
     }
   },
   "Review": {
