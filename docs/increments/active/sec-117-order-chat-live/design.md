@@ -147,10 +147,10 @@ Each code declares its words in Vietnamese and English beside it (`platform.Word
 
 Two migrations, numbered after the highest on `main` when the branch merges (`0025` and `0026` today):
 
-- `0025_order_create_chats.sql`:
+- `0026_order_create_chats.sql`:
   - `order_chats`: order (primary key, references `order_orders`, cascades), `last_seq`, `customer_seen_seq`, `seller_seen_seq` (integers, not negative, seen never beyond `last_seq`).
   - `order_messages`: order and `seq` (primary key), sender (`customer` or `seller`), text (1 to 1,000 characters), idempotency key (unique with order and sender), when sent. An index on order and when sent serves the per-minute bound.
-- `0026_order_create_live_tickets.sql`: `order_live_tickets` holds the SHA-256 of a ticket (primary key), its topic and when it expires, with an index on the expiry.
+- `0027_order_create_live_tickets.sql`: `order_live_tickets` holds the SHA-256 of a ticket (primary key), its topic and when it expires, with an index on the expiry.
 
 | Table | Lifecycle |
 | --- | --- |
