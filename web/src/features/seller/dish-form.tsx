@@ -1,7 +1,6 @@
 "use client";
 
 import { CircleAlertIcon } from "lucide-react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
@@ -27,6 +26,7 @@ import { addDish, changeDish, type DishBody, removeDish, uploadPhoto } from "@/l
 import { Chip } from "./chip";
 import { useRemountKey } from "./remount-key";
 import { NumberInput } from "./number-input";
+import { PhotoDrop } from "./photo-drop";
 import { PhoneFootBar } from "./phone-foot-bar";
 
 const kinds = [
@@ -182,33 +182,13 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
 
         <Field data-invalid={(tried && photoMissing) || undefined}>
           <FieldLabel htmlFor="dish-photo">{t("photo")}</FieldLabel>
-          <label
-            htmlFor="dish-photo"
-            className="flex min-h-21 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-primary/30 bg-background px-4 py-5 text-center transition-colors focus-within:ring-3 focus-within:ring-ring/50 hover:bg-secondary"
-          >
-            {shownPhoto && (
-              <Image
-                src={shownPhoto}
-                alt=""
-                width={64}
-                height={64}
-                unoptimized
-                className="size-16 rounded-lg object-cover"
-              />
-            )}
-            <span className="text-body-sm-strong text-link">
-              {photo ? photo.name : t("choosePhoto")}
-            </span>
-            <span className="text-note text-muted-foreground">{t("photoHint")}</span>
-            <input
-              id="dish-photo"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="sr-only"
-              disabled={pending}
-              onChange={(event) => choosePhoto(event.target.files?.[0])}
-            />
-          </label>
+          <PhotoDrop
+            id="dish-photo"
+            fileName={photo?.name}
+            preview={shownPhoto}
+            disabled={pending}
+            onChange={choosePhoto}
+          />
           {tried && photoMissing && <FieldError>{t("photoMissing")}</FieldError>}
         </Field>
 

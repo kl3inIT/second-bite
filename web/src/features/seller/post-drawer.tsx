@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { Chip } from "./chip";
 import { useRemountKey } from "./remount-key";
 import { NumberInput } from "./number-input";
+import { PhotoDrop } from "./photo-drop";
 import {
   clock,
   type Dish,
@@ -292,7 +293,7 @@ function PostDrawerBody({
           </span>
         </SheetHeader>
 
-        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 sm:px-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto px-4 pb-4 sm:px-6">
           {step === 1 && (
             <fieldset className="flex flex-col gap-3">
               <legend className="mb-3 text-title">{t("kindQuestion")}</legend>
@@ -316,7 +317,7 @@ function PostDrawerBody({
 
           {step === 2 && (
             <>
-              <div className="flex gap-2">
+              <div className="-my-1 flex flex-wrap gap-x-2">
                 <Chip
                   selected={source === "catalog"}
                   onClick={() => {
@@ -407,32 +408,12 @@ function PostDrawerBody({
                 <>
                   <Field>
                     <FieldLabel htmlFor="dish-photo">{t("photo")}</FieldLabel>
-                    <label
-                      htmlFor="dish-photo"
-                      className="flex min-h-21 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-primary/30 bg-background px-4 py-5 text-center transition-colors focus-within:ring-3 focus-within:ring-ring/50 hover:bg-secondary"
-                    >
-                      {preview && (
-                        <Image
-                          src={preview}
-                          alt=""
-                          width={64}
-                          height={64}
-                          unoptimized
-                          className="size-16 rounded-lg object-cover"
-                        />
-                      )}
-                      <span className="text-body-sm-strong text-link">
-                        {photo ? photo.name : t("choosePhoto")}
-                      </span>
-                      <span className="text-note text-muted-foreground">{t("photoHint")}</span>
-                      <input
-                        id="dish-photo"
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="sr-only"
-                        onChange={(event) => choosePhoto(event.target.files?.[0])}
-                      />
-                    </label>
+                    <PhotoDrop
+                      id="dish-photo"
+                      fileName={photo?.name}
+                      preview={preview}
+                      onChange={choosePhoto}
+                    />
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="dish-name">{t("name")}</FieldLabel>

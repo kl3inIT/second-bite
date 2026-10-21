@@ -974,6 +974,7 @@
     "editTitle": "Edit dish",
     "photo": "Dish photo",
     "choosePhoto": "Choose a photo",
+    "changePhoto": "Change the photo",
     "photoHint": "A photo helps customers recognise your dish.",
     "photoMissing": "Choose a photo for the dish.",
     "name": "Dish name",
