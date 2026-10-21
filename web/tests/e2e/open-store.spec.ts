@@ -483,17 +483,24 @@ test.describe("changing a post on the web", () => {
     );
   });
 
-  test("does not withdraw a post that has orders", async ({ page }, testInfo) => {
+  test("withdraws a post that has orders, and says they are cancelled", async ({
+    page,
+  }, testInfo) => {
     const store = await storeNamed(page, "tam", testInfo, "Tiệm có đơn");
     await page.goto(`/vi/stores/${store}/offers/of-1-${store}/withdraw`);
 
     const drawer = page.getByRole("dialog");
     await expect(
-      drawer.getByText(/Bài này đã có 2 suất được đặt nên chưa rút được\./),
+      drawer.getByText(/Bài này đã có 2 suất được đặt\. Rút bài sẽ huỷ các đơn đó/),
     ).toBeVisible();
-    await expect(drawer.getByRole("button", { name: "Rút bài" })).toHaveCount(0);
-    await expect(drawer.getByRole("link", { name: "Đến tab Đơn" })).toBeVisible();
+    await expect(drawer.getByText("2 suất đang chờ lấy sẽ bị huỷ.")).toBeVisible();
+    await expect(drawer.getByRole("link", { name: "Đến tab Đơn" })).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
+
+    await drawer.getByRole("button", { name: "Rút bài và huỷ đơn" }).click();
+    await expect(page.getByText(/Đã rút bài\. Bài nằm ở tab Đã đóng/)).toBeVisible({
+      timeout: 15_000,
+    });
   });
 });
 
