@@ -79,7 +79,7 @@ function StatusBand({
   const t = useTranslations("Orders");
 
   return (
-    <section className="md:flex md:flex-col md:gap-10 md:rounded-4xl md:bg-header md:py-8 md:pr-8 md:pl-10 md:text-header-foreground lg:flex-row lg:items-center">
+    <section className="md:flex md:flex-col md:gap-10 md:rounded-28 md:bg-header md:py-8 md:pr-8 md:pl-10 md:text-header-foreground lg:flex-row lg:items-center">
       <div className="relative overflow-hidden bg-header text-header-foreground md:flex-1 md:overflow-visible md:bg-transparent">
         <span
           aria-hidden
@@ -97,7 +97,7 @@ function StatusBand({
           </div>
           <h1 className="hidden text-body-sm font-medium text-inverse-faint md:block">{meta}</h1>
           <p className="mt-3 text-title text-fresh md:mt-0 md:text-card-title">{eyebrow}</p>
-          <p className="font-display text-display md:text-hero">{figure}</p>
+          <p className="font-display text-display md:text-display-60">{figure}</p>
           <p className="mt-1 text-body-sm text-inverse-muted md:mt-0 md:text-body">{line}</p>
           <div className="mt-5 md:mt-0 md:pt-4">
             <OrderSteps order={order} />

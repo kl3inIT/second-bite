@@ -262,10 +262,31 @@ abstract final class TypeTokens {
     letterSpacing: -0.36,
     leadingDistribution: TextLeadingDistribution.even,
   );
+  static const display60 = TextStyle(
+    fontFamily: 'Bricolage Grotesque',
+    package: 'app_ui',
+    fontSize: 60,
+    fontWeight: FontWeight.w700,
+    fontVariations: [FontVariation('wght', 700)],
+    height: 64 / 60,
+    letterSpacing: -0.6,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
+  static const cardHeading = TextStyle(
+    fontFamily: 'Bricolage Grotesque',
+    package: 'app_ui',
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    fontVariations: [FontVariation('wght', 600)],
+    height: 24 / 20,
+    letterSpacing: -0.2,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
 }
 
 /// The corner radii of DESIGN.md, in logical pixels.
 abstract final class RadiusTokens {
+  static const double radius28 = 28;
   static const double xs = 4;
   static const double sm = 8;
   static const double md = 12;
@@ -275,6 +296,11 @@ abstract final class RadiusTokens {
   static const double radius3xl = 24;
   static const double radius4xl = 32;
   static const double full = 9999;
+}
+
+/// The border widths of DESIGN.md beyond the hairline, in logical pixels.
+abstract final class BorderWidthTokens {
+  static const double strong = 1.5;
 }
 
 /// The spacing steps of DESIGN.md, in logical pixels.

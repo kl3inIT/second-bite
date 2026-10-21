@@ -163,6 +163,7 @@
   --color-avatar-rose: var(--avatar-rose);
   --color-avatar-indigo: var(--avatar-indigo);
   --color-avatar-olive: var(--avatar-olive);
+  --radius-28: 28px;
   --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -172,6 +173,7 @@
   --radius-3xl: 24px;
   --radius-4xl: 32px;
   --radius-full: 9999px;
+  --border-width-strong: 1.5px;
   --shadow-card: 0px 4px 14px 0px #004E8C0F;
   --shadow-sheet: 0px -4px 24px 0px #0E1D191F;
   --shadow-nav: 0px 8px 24px 0px #05122924;
@@ -237,4 +239,12 @@
   --text-display--line-height: 40px;
   --text-display--font-weight: 700;
   --text-display--letter-spacing: -0.01em;
+  --text-display-60: 60px;
+  --text-display-60--line-height: 64px;
+  --text-display-60--font-weight: 700;
+  --text-display-60--letter-spacing: -0.01em;
+  --text-card-heading: 20px;
+  --text-card-heading--line-height: 24px;
+  --text-card-heading--font-weight: 600;
+  --text-card-heading--letter-spacing: -0.01em;
 }

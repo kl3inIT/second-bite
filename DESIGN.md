@@ -209,6 +209,18 @@ typography:
     fontWeight: 700
     lineHeight: "40px"
     letterSpacing: "-0.01em"
+  display-60: # the pickup window on an open order's band from 768px (Figma D4)
+    fontFamily: "Bricolage Grotesque"
+    fontSize: "60px"
+    fontWeight: 700
+    lineHeight: "64px"
+    letterSpacing: "-0.01em"
+  card-heading: # the title of a card on a wide screen: the cart's sidebar, the order's cards (Figma WK3, D4)
+    fontFamily: "Bricolage Grotesque"
+    fontSize: "20px"
+    fontWeight: 600
+    lineHeight: "24px"
+    letterSpacing: "-0.01em"
 rounded:
   # Named like Tailwind and shadcn: `lg` is the base radius shadcn's controls use. No other radius is used; in
   # Figma each is a `radius/*` variable of the `Scale` collection, bound on every frame.
@@ -220,7 +232,11 @@ rounded:
   2xl: "20px" # cards, the deal card, sheets and list rows
   3xl: "24px" # the bottom edge of the header, a sheet's top corners
   4xl: "32px"
+  28: "28px" # the page frame rising over the header on a wide screen, the order's band (Figma SHARED, D4)
   full: "9999px" # buttons, the search field, the bottom bar, pills, chips, avatars, icon buttons
+borderWidth:
+  # The hairline is Tailwind's 1px `border`; this is the one heavier edge (Figma: "Theo dõi", "Huỷ đơn").
+  strong: "1.5px"
 spacing:
   "1": "4px"
   "2": "8px"
@@ -357,6 +373,8 @@ Nineteen roles, normalised on 19 October 2026 from the 45 size, weight and leadi
 | Role             | Face          | Size / line | Use                                                                               |
 | ---------------- | ------------- | ----------- | --------------------------------------------------------------------------------- |
 | `display`        | Bricolage 700 | 36 / 40     | Big figures only: the pickup code, the best discount tonight                      |
+| `display-60`     | Bricolage 700 | 60 / 64     | The pickup window on an open order's band from 768px                              |
+| `card-heading`   | Bricolage 600 | 20 / 24     | A card's title on a wide screen: the cart's sidebar, the order's cards            |
 | `price-lg`       | Bricolage 700 | 20 / 24     | The price on a large card and at checkout, totals, the digits of the sign-in code |
 | `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                       |
 | `price-sm`       | Bricolage 700 | 14 / 17     | The price on a dish tile, where two prices share 104px                            |
@@ -396,7 +414,7 @@ Nearly flat. Cards lift off the sky ground by a faint blue shadow (`elevation.ca
 
 ## Shapes
 
-Generous rounding from one scale: 4px (`xs`) on the rating tag of a small card; 20px (`2xl`) on the deal card, sheets and list rows; 16px (`xl`) on offer cards; 14px (`lg`) on inputs, segmented controls and a dish card's photograph; 12px (`md`) on thumbnails and the inner corner of a discount label; 24px (`3xl`) on the bottom of the header and a sheet's top corners; full rounding on buttons, the search field and its filter button, the bottom bar, chips, avatars and icon buttons. Photographs fill the top of a card and share its corners. No other radius is used.
+Generous rounding from one scale: 4px (`xs`) on the rating tag of a small card; 20px (`2xl`) on the deal card, sheets and list rows; 16px (`xl`) on offer cards; 14px (`lg`) on inputs, segmented controls and a dish card's photograph; 12px (`md`) on thumbnails and the inner corner of a discount label; 24px (`3xl`) on the bottom of the header and a sheet's top corners; 28px (`28`) on the wide page's frame over the header and the open order's band; full rounding on buttons, the search field and its filter button, the bottom bar, chips, avatars and icon buttons. Photographs fill the top of a card and share its corners. No other radius is used.
 
 ## Components
 
@@ -432,7 +450,7 @@ While a page's list is fetched, the pale ground covers the screen with the blue 
 
 ### Header foot and kind picker
 
-The page's pale ground rises over the header's foot as a 28px sheet with 24px top corners (Figma header › sheet); the sweep scales with the header, so its pale bands always reach that foot. Once the header's row has scrolled away, a copy stays at the top: on a phone the search field alone on the blue, its foot rounded 24px (Figma K1b, K1b2); from `lg` the whole row. Under a sheet (Figma K1a, K1d) the page dims in ink at 30%, without a blur. In the area sheet (Figma K1a) each place is a white option with a 14px radius and a hairline, the chosen one edged in Tasco blue; the chosen one shows its radio, the other its icon in the radio's place. An empty state on a white card (Figma K1e: "Chưa có món nào quanh đây") leads with a 36px line icon in Tasco blue, its title in `title-lg`, the hint in muted `body-sm` and its action the full width. Under it, the kinds are 60px round photographs, each a dish of a Tasco Mall shop cropped so the food fills the circle, with their names (`label`) on one line, and a short track (36px, `secondary-hover`, its blue half following the row) replaces the browser's scrollbar on every row that scrolls sideways.
+The page's pale ground rises over the header's foot as a 28px sheet with 24px top corners, 28px (`28`) from 768px (Figma header › sheet, WK3, D4); the sweep scales with the header, so its pale bands always reach that foot. Once the header's row has scrolled away, a copy stays at the top: on a phone the search field alone on the blue, its foot rounded 24px (Figma K1b, K1b2); from `lg` the whole row. Under a sheet (Figma K1a, K1d) the page dims in ink at 30%, without a blur. In the area sheet (Figma K1a) each place is a white option with a 14px radius and a hairline, the chosen one edged in Tasco blue; the chosen one shows its radio, the other its icon in the radio's place. An empty state on a white card (Figma K1e: "Chưa có món nào quanh đây") leads with a 36px line icon in Tasco blue, its title in `title-lg`, the hint in muted `body-sm` and its action the full width. Under it, the kinds are 60px round photographs, each a dish of a Tasco Mall shop cropped so the food fills the circle, with their names (`label`) on one line, and a short track (36px, `secondary-hover`, its blue half following the row) replaces the browser's scrollbar on every row that scrolls sideways.
 
 ### Search top bar
 

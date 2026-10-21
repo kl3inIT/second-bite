@@ -357,7 +357,10 @@ export function HowToCollect({ order }: { order: Order }) {
       aria-labelledby={`how-to-collect-${order.id}`}
       className="flex flex-col gap-3 rounded-2xl bg-card p-4 text-card-foreground md:gap-4.5 md:px-6 md:pt-5 md:pb-5.5"
     >
-      <h2 id={`how-to-collect-${order.id}`} className="text-title">
+      <h2
+        id={`how-to-collect-${order.id}`}
+        className="text-title md:font-display md:text-card-heading"
+      >
         {t("title")}
       </h2>
       <ol className="flex items-start md:hidden">

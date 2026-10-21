@@ -21,7 +21,7 @@ const buttonStyles = cva(
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         // Second Bite (Figma D3, D4): "Huỷ đơn", white and edged in status/error on a phone, in Tasco blue from 768px.
         cancel:
-          "border-2 border-destructive bg-card text-destructive hover:bg-destructive-muted md:border-primary md:text-primary md:hover:bg-secondary",
+          "border-strong border-destructive bg-card text-destructive hover:bg-destructive-muted md:border-primary md:text-primary md:hover:bg-secondary",
         link: "text-primary underline-offset-4 hover:underline",
         // Second Bite: an icon or text action on the white top bar.
         shell: "text-shell-foreground hover:bg-muted",
