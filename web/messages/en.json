@@ -365,6 +365,8 @@
   },
   "Orders": {
     "orderTitle": "Your order",
+    "togetherTitle": "One order from {sellers} shops",
+    "togetherBody": "{names} · {total} in all. Each shop has its own collection code; pay at its counter.",
     "mine": "My orders",
     "mineLead": "To collect and done",
     "lists": "Order lists",

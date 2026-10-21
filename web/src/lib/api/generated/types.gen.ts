@@ -342,6 +342,10 @@ export type OrderBody = {
     cancelReason?: string;
     cancelledAt?: string;
     /**
+     * Shared by the orders placed together from one cart
+     */
+    checkoutId: string;
+    /**
      * The collection code, to its customer once the order is ready or its window has opened
      */
     code?: string;
@@ -436,6 +440,10 @@ export type PhotoBody = {
 };
 
 export type PlaceOrderBody = {
+    /**
+     * Shared by the orders placed together from one cart, one per seller; a new one when omitted
+     */
+    checkoutId?: string;
     /**
      * One to ten different offers of one seller
      */
@@ -1245,6 +1253,10 @@ export type ListMyOrdersData = {
          * open: still to collect; ended: every other
          */
         state?: 'open' | 'ended';
+        /**
+         * Only the orders placed together from this cart
+         */
+        checkout?: string;
         limit?: number;
         offset?: number;
     };

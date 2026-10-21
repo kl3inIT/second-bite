@@ -18,9 +18,10 @@ type orderWantedBody struct {
 }
 
 type placeOrderBody struct {
-	Lines []orderWantedBody `json:"lines" doc:"One to ten different offers of one seller"                            maxItems:"10" minItems:"1"`
-	Name  string            `json:"name"  doc:"The name the seller calls at the counter"                             maxLength:"50" minLength:"1"`
-	Phone string            `json:"phone" doc:"A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted" maxLength:"20" minLength:"1"`
+	CheckoutID uuid.UUID         `json:"checkoutId,omitempty" doc:"Shared by the orders placed together from one cart, one per seller; a new one when omitted" required:"false"`
+	Lines      []orderWantedBody `json:"lines" doc:"One to ten different offers of one seller"                            maxItems:"10" minItems:"1"`
+	Name       string            `json:"name"  doc:"The name the seller calls at the counter"                             maxLength:"50" minLength:"1"`
+	Phone      string            `json:"phone" doc:"A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted" maxLength:"20" minLength:"1"`
 }
 
 type orderLinePhotoBody struct {
@@ -66,6 +67,7 @@ type orderBody struct {
 	RefuseNote       string          `json:"refuseNote,omitempty"`
 	CodeAttemptsLeft int             `json:"codeAttemptsLeft"       doc:"How many wrong codes staff may still enter"`
 	Code             string          `json:"code,omitempty"         doc:"The collection code, to its customer once the order is ready or its window has opened"`
+	CheckoutID       uuid.UUID       `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
 	CustomerName     string          `json:"customerName"           doc:"Who collects, as given with the order"`
 	CustomerPhone    string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits"`
 	Access           string          `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
@@ -91,7 +93,7 @@ func toBody(o Order) orderBody {
 		ReadyAt: o.ReadyAt, CollectedAt: o.CollectedAt, CancelledAt: o.CancelledAt, RefusedAt: o.RefusedAt,
 		CancelReason: o.CancelReason, RefuseReason: o.RefuseReason, RefuseNote: o.RefuseNote,
 		CodeAttemptsLeft: o.CodeAttemptsLeft, Code: o.Code,
-		CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Access: o.Access,
+		CheckoutID: o.CheckoutID, CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Access: o.Access,
 	}
 }
 
@@ -156,7 +158,7 @@ func registerCustomerOperations(api huma.API, s *Service) {
 			wanted = append(wanted, Wanted(l))
 		}
 
-		o, err := s.Place(ctx, in.IdempotencyKey, Contact{Name: in.Body.Name, Phone: in.Body.Phone}, wanted)
+		o, err := s.Place(ctx, in.IdempotencyKey, in.Body.CheckoutID, Contact{Name: in.Body.Name, Phone: in.Body.Phone}, wanted)
 		if err != nil {
 			return nil, err
 		}
@@ -168,12 +170,13 @@ func registerCustomerOperations(api huma.API, s *Service) {
 		OperationID: "listMyOrders", Method: http.MethodGet, Path: "/orders",
 		Summary: "Your orders, newest first", Tags: tagOrders, Security: security,
 	}, func(ctx context.Context, in *struct {
-		State  Which `doc:"open: still to collect; ended: every other" enum:"open,ended" query:"state"`
-		Limit  int   `default:"20"                                     maximum:"50"      minimum:"1" query:"limit"`
-		Offset int   `default:"0"                                      minimum:"0"       query:"offset"`
+		State    Which     `doc:"open: still to collect; ended: every other" enum:"open,ended" query:"state"`
+		Checkout uuid.UUID `doc:"Only the orders placed together from this cart" query:"checkout" required:"false"`
+		Limit    int       `default:"20"                                     maximum:"50"      minimum:"1" query:"limit"`
+		Offset   int       `default:"0"                                      minimum:"0"       query:"offset"`
 	},
 	) (*ordersOutput, error) {
-		orders, err := s.Mine(ctx, in.State, in.Limit, in.Offset)
+		orders, err := s.Mine(ctx, in.State, in.Checkout, in.Limit, in.Offset)
 		if err != nil {
 			return nil, err
 		}

@@ -64,6 +64,8 @@ type Order struct {
 	CustomerID uuid.NullUUID
 	Contact    Contact
 	SellerID   uuid.UUID
+	// CheckoutID is shared by the orders placed together from one cart.
+	CheckoutID uuid.UUID
 	SellerName string
 	// CollectionPoint is copied from the offers when ordered.
 	CollectionPoint seller.CollectionPoint
@@ -172,8 +174,9 @@ const (
 // maxListed bounds one page of a customer's orders.
 const maxListed = 50
 
-// Mine lists the caller's orders, newest first.
-func (s *Service) Mine(ctx context.Context, which Which, limit, offset int) ([]Order, error) {
+// Mine lists the caller's orders, newest first; only those of checkout when
+// it is not nil.
+func (s *Service) Mine(ctx context.Context, which Which, checkout uuid.UUID, limit, offset int) ([]Order, error) {
 	caller, err := platform.RequireCaller(ctx)
 	if err != nil {
 		return nil, err
@@ -181,7 +184,8 @@ func (s *Service) Mine(ctx context.Context, which Which, limit, offset int) ([]O
 
 	rows, err := s.queries.CustomerOrders(ctx, db.CustomerOrdersParams{
 		CustomerID: uuid.NullUUID{UUID: caller.AccountID, Valid: true}, Which: string(which),
-		MaxRows: int32(min(max(limit, 1), maxListed)), SkipRows: int32(max(offset, 0)), //nolint:gosec // bounded above
+		CheckoutID: uuid.NullUUID{UUID: checkout, Valid: checkout != uuid.Nil},
+		MaxRows:    int32(min(max(limit, 1), maxListed)), SkipRows: int32(max(offset, 0)), //nolint:gosec // bounded above
 	})
 	if err != nil {
 		return nil, fmt.Errorf("listing the customer's orders: %w", err)
@@ -306,7 +310,7 @@ func (s *Service) fromRow(r db.GetOrderRow) Order {
 	o := Order{
 		ID: r.ID, Number: r.Number.Int64, CustomerID: r.CustomerID,
 		Contact:  Contact{Name: r.CustomerName, Phone: r.CustomerPhone},
-		SellerID: r.SellerID, SellerName: r.SellerName,
+		SellerID: r.SellerID, CheckoutID: r.CheckoutID, SellerName: r.SellerName,
 		CollectionPoint: seller.CollectionPoint{Latitude: r.Latitude, Longitude: r.Longitude, Address: r.Address},
 		Status:          Status(r.State), TotalVND: r.TotalVnd, WindowStart: r.WindowStart, WindowEnd: r.WindowEnd,
 		CreatedAt: r.CreatedAt, ReadyAt: r.ReadyAt, CollectedAt: r.CollectedAt, CancelledAt: r.CancelledAt,

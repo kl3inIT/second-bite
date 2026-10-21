@@ -9,6 +9,8 @@ CREATE TABLE order_orders (
     -- modules; no account when the order was placed without signing in.
     customer_id          uuid,
     seller_id            uuid        NOT NULL,
+    -- The orders placed together from one cart, one per seller, share it.
+    checkout_id          uuid        NOT NULL,
     -- Who collects: the name the seller calls and a Vietnamese phone number,
     -- given with every order.
     customer_name        text        NOT NULL CHECK (char_length(customer_name) BETWEEN 1 AND 50),

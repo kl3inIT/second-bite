@@ -72,12 +72,12 @@ export function CodeTicket({ order }: { order: Order }) {
 
   return (
     <section
-      aria-labelledby="order-code"
+      aria-labelledby={`order-code-${order.id}`}
       className="flex flex-col gap-4 rounded-3xl bg-card p-5 text-card-foreground"
     >
       <SellerRow order={order} />
       <div className="flex flex-col gap-1 border-t border-dashed border-border pt-4">
-        <h2 id="order-code" className="text-label text-muted-foreground">
+        <h2 id={`order-code-${order.id}`} className="text-label text-muted-foreground">
           {t("code")}
         </h2>
         {order.code ? (
@@ -206,10 +206,10 @@ export function HowToCollect({ order }: { order: Order }) {
 
   return (
     <section
-      aria-labelledby="how-to-collect"
+      aria-labelledby={`how-to-collect-${order.id}`}
       className="flex flex-col gap-4 rounded-3xl bg-card p-5 text-card-foreground"
     >
-      <h2 id="how-to-collect" className="text-title">
+      <h2 id={`how-to-collect-${order.id}`} className="text-title">
         {t("title")}
       </h2>
       <ol className="grid gap-3 sm:grid-cols-3">

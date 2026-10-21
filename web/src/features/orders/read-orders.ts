@@ -6,9 +6,8 @@ import { sessionHeaders } from "@/features/identity/session";
 import { ApiError } from "@/lib/api/client";
 import { getOrder, listMyOrders } from "@/lib/api/generated";
 
-import { canCancel, type Order } from "./order";
+import { byCheckout, canCancel, isOpen, type Order } from "./order";
 import { accessOf, keptOrders } from "./order-access";
-import { hasEnded } from "./order-view";
 
 /**
  * What the reader may see: nothing when no one is signed in and this browser placed no such order, so the
@@ -54,21 +53,49 @@ export const readOrder = cache(async (orderId: string): Promise<Read<Order | nul
   }
 });
 
+/** An order with whether its customer may still cancel it. */
+export type OrderPart = { order: Order; cancellable: boolean };
+
 /**
- * One order and whether its customer may still cancel it, decided when it is read: the page renders once
- * per request, so the moment of reading is the moment that counts.
+ * One order with the others placed together from the same cart (SEC-76 › decision 8), and whether each may
+ * still be cancelled, decided when it is read: the page renders once per request, so the moment of reading is
+ * the moment that counts. The others are found only among the reader's own: the account's orders, or those
+ * this browser placed.
  */
 export async function readOrderView(
   orderId: string,
-): Promise<Read<{ order: Order; cancellable: boolean; now: number } | null>> {
+): Promise<Read<{ parts: OrderPart[]; now: number } | null>> {
   const read = await readOrder(orderId);
   if (!read.known) return read;
   if (!read.value) return { known: true, value: null };
+  const order = read.value;
+  const together = order.access ? await placedTogether(order) : [order];
   const now = Date.now();
   return {
     known: true,
-    value: { order: read.value, cancellable: canCancel(read.value, now), now },
+    value: {
+      parts: together.map((part) => ({ order: part, cancellable: canCancel(part, now) })),
+      now,
+    },
   };
+}
+
+async function placedTogether(order: Order): Promise<Order[]> {
+  const session = await sessionHeaders();
+  const [mine, kept] = await Promise.all([
+    session
+      ? listMyOrders({ query: { checkout: order.checkoutId, limit: 50 }, headers: session }).then(
+          ({ data }) => data.orders,
+        )
+      : [],
+    readAllKept(),
+  ]);
+  const byId = new Map(
+    [order, ...mine, ...(kept ?? [])]
+      .filter((part) => part.checkoutId === order.checkoutId)
+      .map((part) => [part.id, part]),
+  );
+  return byCheckout([...byId.values()])[0];
 }
 
 /**
@@ -103,6 +130,6 @@ async function readKeptOrders(state: "open" | "ended"): Promise<Read<Order[]>> {
   if (!orders) return { known: false };
   return {
     known: true,
-    value: orders.filter((order) => hasEnded(order) === (state === "ended")),
+    value: orders.filter((order) => isOpen(order) === (state === "open")),
   };
 }

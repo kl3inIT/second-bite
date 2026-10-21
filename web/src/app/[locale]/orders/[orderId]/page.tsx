@@ -6,7 +6,9 @@ import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OrdersHeader, OrdersHeaderFallback } from "@/features/orders/orders-header";
 import { EndedOrder, hasEnded, OpenOrder } from "@/features/orders/order-view";
-import { readOrderView } from "@/features/orders/read-orders";
+import { formatPrice } from "@/features/offers/format";
+import type { Order } from "@/features/orders/order";
+import { readOrderView, type OrderPart } from "@/features/orders/read-orders";
 import { SignInPrompt } from "@/features/orders/sign-in-prompt";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -56,11 +58,46 @@ async function OrderView({ params }: { params: Promise<{ orderId: string }> }) {
     );
   }
   if (!read.value) notFound();
-  const { order, cancellable, now } = read.value;
+  const { parts, now } = read.value;
 
+  if (parts.length === 1) return <Part {...parts[0]} now={now} level="page" />;
+  return (
+    <>
+      <PlacedTogether orders={parts.map(({ order }) => order)} />
+      {parts.map((part) => (
+        <Part key={part.order.id} {...part} now={now} level="part" />
+      ))}
+    </>
+  );
+}
+
+function Part({
+  order,
+  cancellable,
+  now,
+  level,
+}: OrderPart & { now: number; level: "page" | "part" }) {
   return hasEnded(order) ? (
-    <EndedOrder order={order} />
+    <EndedOrder order={order} level={level} />
   ) : (
-    <OpenOrder order={order} cancellable={cancellable} now={now} />
+    <OpenOrder order={order} cancellable={cancellable} now={now} level={level} />
+  );
+}
+
+/** The title of orders placed together from one cart: one per seller, each with its own code (SEC-76 › decision 8). */
+async function PlacedTogether({ orders }: { orders: Order[] }) {
+  const t = await getTranslations("Orders");
+  const total = orders.reduce((sum, order) => sum + order.totalVnd, 0);
+
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 px-4 pt-6 xl:max-w-300">
+      <h1 className="text-headline">{t("togetherTitle", { sellers: orders.length })}</h1>
+      <p className="text-body-sm text-muted-foreground">
+        {t("togetherBody", {
+          names: orders.map((order) => order.seller.name).join(", "),
+          total: formatPrice(total),
+        })}
+      </p>
+    </div>
   );
 }

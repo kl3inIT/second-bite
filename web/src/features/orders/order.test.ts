@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { canCancel, clampUnits, isOpen, savingOf, unitsOf, type Order } from "./order";
+import { byCheckout, canCancel, clampUnits, isOpen, savingOf, unitsOf, type Order } from "./order";
 
 const opensAt = Date.parse("2026-10-20T21:00:00+07:00");
 const windowStart = new Date(opensAt).toISOString();
@@ -40,5 +40,33 @@ describe("the units asked for", () => {
     expect(clampUnits("0", 3)).toBe(1);
     expect(clampUnits("abc", 3)).toBe(1);
     expect(clampUnits(undefined, 3)).toBe(1);
+  });
+});
+
+describe("orders placed together", () => {
+  const placed = (
+    id: string,
+    checkoutId: string,
+    minute: number,
+    status: Order["status"] = "confirmed",
+  ) =>
+    ({
+      id,
+      checkoutId,
+      status,
+      createdAt: `2026-10-20T20:${String(minute).padStart(2, "0")}:00+07:00`,
+    }) as Order;
+
+  it("are one group in the order their sellers were placed, and groups come newest first", () => {
+    const groups = byCheckout([
+      placed("nethue", "cart-2", 31),
+      placed("alone", "cart-1", 10, "collected"),
+      placed("laparis", "cart-2", 30, "collected"),
+    ]);
+
+    expect(groups.map((group) => group.map(({ id }) => id))).toEqual([
+      ["laparis", "nethue"],
+      ["alone"],
+    ]);
   });
 });

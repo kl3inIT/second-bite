@@ -365,6 +365,8 @@
   },
   "Orders": {
     "orderTitle": "Đơn của bạn",
+    "togetherTitle": "Đơn ở {sellers} quán",
+    "togetherBody": "{names} · tổng {total}. Mỗi quán có mã nhận riêng, trả tiền tại quầy của quán.",
     "mine": "Đơn của tôi",
     "mineLead": "Đang chờ nhận và đã xong",
     "lists": "Danh sách đơn",

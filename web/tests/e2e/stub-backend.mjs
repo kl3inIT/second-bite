@@ -994,7 +994,7 @@ async function ordersApi(request, response, url) {
   const account = accounts.get(tokenOf(request));
 
   if (request.method === "POST" && url.pathname === "/orders") {
-    const { lines, name, phone } = await readBody(request);
+    const { lines, name, phone, checkoutId } = await readBody(request);
     const contact = {
       name: typeof name === "string" ? name.trim() : "",
       phone: typeof phone === "string" ? phone.replace(/[\s.-]/g, "").replace(/^\+84/, "0") : "",
@@ -1027,6 +1027,7 @@ async function ordersApi(request, response, url) {
       id: randomUUID(),
       number: `SB-${number}`,
       owner: account?.email,
+      checkoutId: typeof checkoutId === "string" && checkoutId ? checkoutId : randomUUID(),
       access: randomUUID().replaceAll("-", ""),
       customerName: contact.name,
       customerPhone: contact.phone,
@@ -1065,7 +1066,12 @@ async function ordersApi(request, response, url) {
       return true;
     }
     const state = url.searchParams.get("state");
-    const all = orders.filter((order) => order.owner === account.email).map(shown);
+    const checkout = url.searchParams.get("checkout");
+    const all = orders
+      .filter(
+        (order) => order.owner === account.email && (!checkout || order.checkoutId === checkout),
+      )
+      .map(shown);
     const open = (order) => order.status === "confirmed" || order.status === "ready";
     json(response, 200, {
       orders: all.filter((order) => !state || (state === "open" ? open(order) : !open(order))),

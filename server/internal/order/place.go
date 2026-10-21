@@ -32,9 +32,10 @@ type Wanted struct {
 // from each offer in the order's transaction, so when one offer has too few
 // nothing is taken. The same key from the same customer, or without an account
 // from the same phone number, returns the order it placed first, so a second
-// tap orders nothing more. The order comes back with its access, which proves
-// it is theirs without signing in.
-func (s *Service) Place(ctx context.Context, key string, contact Contact, wanted []Wanted) (Order, error) {
+// tap orders nothing more. The orders of one cart share checkout, a new one
+// when it is nil. The order comes back with its access, which proves it is
+// theirs without signing in.
+func (s *Service) Place(ctx context.Context, key string, checkout uuid.UUID, contact Contact, wanted []Wanted) (Order, error) {
 	caller, signedIn := platform.CallerFrom(ctx)
 	customer := uuid.NullUUID{UUID: caller.AccountID, Valid: signedIn}
 
@@ -66,7 +67,7 @@ func (s *Service) Place(ctx context.Context, key string, contact Contact, wanted
 	var id uuid.UUID
 
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
-		id, err = s.place(ctx, tx, customer, contact, key, wanted)
+		id, err = s.place(ctx, tx, customer, cmp.Or(checkout, uuid.New()), contact, key, wanted)
 
 		return err
 	})
@@ -105,7 +106,8 @@ func (s *Service) placed(ctx context.Context, id uuid.UUID) (Order, error) {
 
 // place takes the units and writes the order inside tx.
 func (s *Service) place(
-	ctx context.Context, tx pgx.Tx, customer uuid.NullUUID, contact Contact, key string, wanted []Wanted,
+	ctx context.Context, tx pgx.Tx, customer uuid.NullUUID, checkout uuid.UUID, contact Contact, key string,
+	wanted []Wanted,
 ) (uuid.UUID, error) {
 	taken := make([]offer.Taken, 0, len(wanted))
 
@@ -149,7 +151,7 @@ func (s *Service) place(
 
 	id, err := q.InsertOrder(ctx, db.InsertOrderParams{
 		CustomerID: customer, CustomerName: contact.Name, CustomerPhone: contact.Phone,
-		SellerID: first.SellerID, SellerName: first.SellerName,
+		SellerID: first.SellerID, CheckoutID: checkout, SellerName: first.SellerName,
 		Latitude: first.CollectionPoint.Latitude, Longitude: first.CollectionPoint.Longitude, Address: first.CollectionPoint.Address,
 		WindowStart: start, WindowEnd: end, TotalVnd: total, IdempotencyKey: key,
 	})

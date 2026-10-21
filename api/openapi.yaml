@@ -783,6 +783,9 @@ components:
         cancelledAt:
           format: date-time
           type: string
+        checkoutId:
+          description: Shared by the orders placed together from one cart
+          type: string
         code:
           description: The collection code, to its customer once the order is ready or its window has opened
           type: string
@@ -859,6 +862,7 @@ components:
         - windowEnd
         - createdAt
         - codeAttemptsLeft
+        - checkoutId
         - customerName
         - customerPhone
       type: object
@@ -979,6 +983,9 @@ components:
     PlaceOrderBody:
       additionalProperties: false
       properties:
+        checkoutId:
+          description: Shared by the orders placed together from one cart, one per seller; a new one when omitted
+          type: string
         lines:
           description: One to ten different offers of one seller
           items:
@@ -2052,6 +2059,13 @@ paths:
             enum:
               - open
               - ended
+            type: string
+        - description: Only the orders placed together from this cart
+          explode: false
+          in: query
+          name: checkout
+          schema:
+            description: Only the orders placed together from this cart
             type: string
         - explode: false
           in: query

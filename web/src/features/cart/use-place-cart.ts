@@ -59,6 +59,7 @@ export function usePlaceCart() {
             body: {
               lines: basket.lines.map(({ id, quantity }) => ({ offerId: id, units: quantity })),
               ...contact,
+              checkoutId: key,
             },
           });
           if (data.access) await keepOrder(data.id, data.access);
@@ -77,8 +78,8 @@ export function usePlaceCart() {
           return;
         }
       }
-      const orders = placed.current;
-      router.push(orders.length === 1 ? `/orders/${orders[0]}` : "/orders");
+      // The orders of one cart share the visit's key as their checkout, so the first opens them all.
+      router.push(`/orders/${placed.current[0]}`);
     });
   }
 
