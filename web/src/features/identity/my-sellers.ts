@@ -2,10 +2,8 @@ import "server-only";
 
 import { cache } from "react";
 
+import { getMySellers as getMyStores } from "@/features/seller/my-sellers";
 import { ApiError } from "@/lib/api/client";
-import { listMySellers } from "@/lib/api/generated";
-
-import { sessionHeaders } from "./session";
 
 export type MySeller = { name: string; role: "owner" | "staff" };
 
@@ -14,14 +12,11 @@ export type MySeller = { name: string; role: "owner" | "staff" };
  * settings lists them, and the deletion warns an owner that their sellers close with their account (SEC-37).
  * A session that ended after the account was read has no sellers, as `getCurrentAccount` has no account, so
  * the page goes on rather than showing the error page (SEC-69). It reads the request, so it renders inside a
- * Suspense boundary; one render asks once.
+ * Suspense boundary; one render asks once, the seller pages' own reading included.
  */
 export const getMySellers = cache(async (): Promise<MySeller[]> => {
-  const headers = await sessionHeaders();
-  if (!headers) return [];
   try {
-    const { data } = await listMySellers({ headers });
-    return (data.sellers ?? []).map((seller) => ({
+    return (await getMyStores()).map((seller) => ({
       name: seller.name,
       role: seller.myRole === "owner" ? "owner" : "staff",
     }));

@@ -340,7 +340,10 @@
     "googleNeedsCodeBodyNoAddress": "This Google account's address already has a Second Bite account. Get a code by email to sign in.",
     "failed": "You could not be signed in. Please try again.",
     "notArrived": "No email yet? Check your spam folder.",
-    "reference": "Reference: {reference}"
+    "errors": {
+      "email": "Enter one email address, such as name@example.com.",
+      "code": "Enter the 6 digits of the code in the email."
+    }
   },
   "Account": {
     "signIn": "Sign in",
@@ -650,7 +653,8 @@
     "save": "Save",
     "saving": "Saving…",
     "cancel": "Cancel",
-    "nameFailed": "The name was not saved. Try again in a few minutes."
+    "nameFailed": "The name was not saved. Try again in a few minutes.",
+    "nameInvalid": "Enter a display name of 1 to 50 characters."
   },
   "DeleteAccount": {
     "title": "Delete your account",
@@ -691,7 +695,9 @@
     "doneTitle": "Your account is deleted",
     "doneBody": "Your account and your personal data are deleted. You can still sign in with this address at any time, as a new account.",
     "home": "Back to home",
-    "reference": "Reference: {reference}"
+    "errors": {
+      "code": "Enter the 6 digits of the code in the email."
+    }
   },
   "OpenStore": {
     "title": "Open a store",

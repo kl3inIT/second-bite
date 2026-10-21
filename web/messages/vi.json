@@ -340,7 +340,10 @@
     "googleNeedsCodeBodyNoAddress": "Email của tài khoản Google này đã có tài khoản Second Bite. Nhận mã qua email để đăng nhập.",
     "failed": "Chưa đăng nhập được. Vui lòng thử lại.",
     "notArrived": "Chưa thấy email? Xem trong thư rác (Spam).",
-    "reference": "Mã tham chiếu: {reference}"
+    "errors": {
+      "email": "Nhập một địa chỉ email, ví dụ ten@gmail.com.",
+      "code": "Nhập đủ 6 số của mã trong email."
+    }
   },
   "Account": {
     "signIn": "Đăng nhập",
@@ -650,7 +653,8 @@
     "save": "Lưu",
     "saving": "Đang lưu…",
     "cancel": "Huỷ",
-    "nameFailed": "Chưa lưu được tên. Thử lại sau ít phút."
+    "nameFailed": "Chưa lưu được tên. Thử lại sau ít phút.",
+    "nameInvalid": "Nhập tên hiển thị từ 1 đến 50 ký tự."
   },
   "DeleteAccount": {
     "title": "Xoá tài khoản",
@@ -691,7 +695,9 @@
     "doneTitle": "Đã xoá tài khoản",
     "doneBody": "Tài khoản và dữ liệu cá nhân của bạn đã được xoá. Bạn vẫn có thể đăng nhập lại bằng email này bất cứ lúc nào, như một tài khoản mới.",
     "home": "Về trang chủ",
-    "reference": "Mã tham chiếu: {reference}"
+    "errors": {
+      "code": "Nhập đủ 6 số của mã trong email."
+    }
   },
   "OpenStore": {
     "title": "Mở quán",

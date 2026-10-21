@@ -37,7 +37,7 @@ function useDescribed<TValue>(description: ReactNode) {
 }
 
 type TextFieldProps = Labelled &
-  Omit<ComponentProps<"input">, "id" | "name" | "value" | "onChange" | "onBlur" | "required">;
+  Omit<ComponentProps<typeof Input>, "id" | "name" | "value" | "onChange" | "onBlur" | "required">;
 
 /** A line of text bound to its field. */
 export function TextField({ label, description, required, ...input }: TextFieldProps) {
@@ -91,16 +91,20 @@ export function TextareaField({ label, description, required, ...textarea }: Tex
 /** The form's submit: a spinner and no second press while it is sent. */
 export function SubmitButton({
   children,
+  pendingLabel,
   disabled,
   ...button
-}: Omit<ComponentProps<typeof Button>, "type">) {
+}: Omit<ComponentProps<typeof Button>, "type"> & {
+  /** What the button says while the form is being sent, in place of `children`. */
+  pendingLabel?: ReactNode;
+}) {
   const form = useFormContext();
   return (
     <form.Subscribe selector={(state) => state.isSubmitting}>
       {(submitting) => (
         <Button {...button} type="submit" form={form.formId} disabled={disabled || submitting}>
           {submitting && <Spinner data-icon="inline-start" />}
-          {children}
+          {submitting && pendingLabel !== undefined ? pendingLabel : children}
         </Button>
       )}
     </form.Subscribe>
