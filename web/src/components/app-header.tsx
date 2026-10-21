@@ -12,11 +12,11 @@ import { Wordmark } from "./wordmark";
 
 // The blue header of the home (Figma header): what the page names itself with, an optional search field,
 // the account and the language capsules, then what the page puts under them, under the light sweep; the
-// page's pale ground rises over its foot with rounded corners (Figma header › sheet). On a phone the search field takes its own row; from `lg` the wordmark leads the row and
-// the three share it, and `sticky` (a second search field and account) stays at the top once the row has
-// scrolled away, on a phone the search field alone. From `xl` it is 1200px wide, as Vietnamese food sites are
-// (docs/research/2026-10-19-desktop-home.md). Without a title (the legal, error and account pages, as Figma's
-// seller screens), the wordmark leads the row at every width (SEC-52).
+// page's pale ground rises over its foot with rounded corners (Figma header › sheet). On a phone the search
+// field takes its own row; from `md` the wordmark leads the row and the three share it, inside the content
+// column (1168px at most, Figma Web header), and `sticky` (a second search field and account) stays at the top
+// once the row has scrolled away, on a phone the search field alone. Without a title (the legal, error and
+// account pages, as Figma's seller screens), the wordmark leads the row at every width (SEC-52).
 export function AppHeader({
   title,
   nav,
@@ -49,9 +49,12 @@ export function AppHeader({
   );
 
   return (
-    <header className="relative overflow-hidden bg-header text-header-foreground">
-      <HeaderSweep />
-      <div className={cn(contentWidth, "relative flex flex-col gap-3 px-4 pt-4 pb-9.75")}>
+    <header className="relative bg-header text-header-foreground">
+      {/* The sweep is clipped on its own, so a menu hanging from the header (the search's suggestions) is not. */}
+      <div aria-hidden className="absolute inset-0 overflow-hidden">
+        <HeaderSweep />
+      </div>
+      <div className={cn(contentWidth, "relative flex flex-col gap-3 px-4 pt-4 pb-9.75 md:pb-11")}>
         <div
           className={cn(
             "flex flex-wrap justify-between gap-x-6 gap-y-3 md:flex-nowrap md:items-center",
@@ -68,7 +71,7 @@ export function AppHeader({
             </div>
           )}
           {search && (
-            <div className="order-last w-full md:order-none md:max-w-xl md:flex-1">{search}</div>
+            <div className="order-last w-full md:order-none md:max-w-160 md:flex-1">{search}</div>
           )}
           <div className="flex shrink-0 items-center gap-2">
             {account}

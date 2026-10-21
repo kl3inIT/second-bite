@@ -94,6 +94,7 @@
     "dishesHere": "{count, plural, one {# dish} other {# dishes}} on sale {place, select, near {nearby} other {at Tasco Mall}}",
     "nothing": "No dish matches.",
     "everything": "See every dish",
+    "resetFilters": "Reset filters",
     "sortBy": "Sort",
     "from": "From",
     "to": "To",

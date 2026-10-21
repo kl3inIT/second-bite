@@ -17,7 +17,7 @@ export function SiteFooter() {
     // A page that is a screen of its own (the sign-in screen, the admin's frame) marks itself
     // `data-no-footer`, and the footer stays out of it.
     <footer className="mt-8 border-t border-border group-has-[[data-no-footer]]/body:hidden max-md:hidden">
-      <div className={cn(contentWidth, "flex justify-between gap-8 px-4 pt-8 pb-6")}>
+      <div className={cn(contentWidth, "flex justify-between gap-6 px-4 py-5")}>
         <div className="flex max-w-sm flex-col gap-2">
           <Link
             href="/"
@@ -36,7 +36,7 @@ export function SiteFooter() {
             <li>
               <Link
                 href="/terms"
-                className="inline-flex min-h-11 items-center text-body-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                className="inline-flex min-h-11 items-center text-body-sm text-foreground underline underline-offset-4 hover:text-primary"
               >
                 {t("terms")}
               </Link>
@@ -44,7 +44,7 @@ export function SiteFooter() {
             <li>
               <Link
                 href="/privacy"
-                className="inline-flex min-h-11 items-center text-body-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                className="inline-flex min-h-11 items-center text-body-sm text-foreground underline underline-offset-4 hover:text-primary"
               >
                 {t("privacy")}
               </Link>

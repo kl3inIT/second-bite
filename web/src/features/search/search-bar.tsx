@@ -3,7 +3,7 @@
 import { ChevronLeftIcon, HistoryIcon, SearchIcon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -15,24 +15,30 @@ import {
 import { kindPictures } from "@/features/offers/kind-pictures";
 import type { OfferKind } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 
 import { clearSearches, forgetSearch, rememberSearch, useRecentSearches } from "./recent-searches";
 
 // The search's top bar (Figma K2 đầu trang tìm kiếm): a plain back arrow and a fully rounded field on the
 // sky ground, a GET form over the address that keeps the place. While the field is focused and
 // empty, the recent searches and the popular kinds, each with how many dishes are on sale, cover the page
-// under it and its bottom bar (Figma K2a).
+// under it and its bottom bar (Figma K2a). `desktop` is the field on the customer header from `md` (Figma
+// WK2): white on the blue, without the back arrow, its suggestions a card hanging from it.
 export function SearchBar({
   value,
   near,
   kinds: popular = [],
+  desktop = false,
 }: {
   value?: string;
   near?: string;
   /** The kinds on sale here, the most first. */
   kinds?: readonly { kind: OfferKind; count: number }[];
+  desktop?: boolean;
 }) {
   const t = useTranslations("Search");
+  const recentId = useId();
+  const kindsId = useId();
   const kinds = useTranslations("OfferKind");
   const recent = useRecentSearches();
   const input = useRef<HTMLInputElement>(null);
@@ -53,18 +59,20 @@ export function SearchBar({
         if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
       }}
     >
-      <div className="flex items-center gap-1 px-2 py-2">
-        <Link
-          href={{ pathname: "/", query: place }}
-          aria-label={t("back")}
-          className={buttonVariants({ variant: "ghost", size: "icon" })}
-        >
-          <ChevronLeftIcon aria-hidden className="size-6" />
-        </Link>
-        <search className="min-w-0 flex-1 search-cancel-none md:max-w-xl">
+      <div className={cn("flex items-center gap-1", !desktop && "px-2 py-2")}>
+        {!desktop && (
+          <Link
+            href={{ pathname: "/", query: place }}
+            aria-label={t("back")}
+            className={buttonVariants({ variant: "ghost", size: "icon" })}
+          >
+            <ChevronLeftIcon aria-hidden className="size-6" />
+          </Link>
+        )}
+        <search className="min-w-0 flex-1 search-cancel-none">
           <form>
             {near && <input type="hidden" name="near" value={near} />}
-            <InputGroup surface="sky">
+            <InputGroup surface={desktop ? "header" : "sky"}>
               <InputGroupAddon>
                 <SearchIcon aria-hidden className="size-5" />
               </InputGroupAddon>
@@ -96,11 +104,18 @@ export function SearchBar({
         </search>
       </div>
       {focused && !words && (
-        <div className="absolute inset-x-0 top-full flex h-dvh flex-col gap-4 bg-card px-4 pt-4">
+        <div
+          className={cn(
+            "absolute inset-x-0 top-full flex flex-col gap-4 bg-card px-4 pt-4",
+            desktop
+              ? "z-50 mt-2 max-h-96 overflow-y-auto rounded-2xl pb-4 text-foreground shadow-card"
+              : "h-dvh",
+          )}
+        >
           {recent.length > 0 && (
-            <section aria-labelledby="recent-searches" className="flex flex-col gap-1">
+            <section aria-labelledby={recentId} className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <h2 id="recent-searches" className="text-headline text-foreground">
+                <h2 id={recentId} className="text-headline text-foreground">
                   {t("recent")}
                 </h2>
                 <button
@@ -138,8 +153,8 @@ export function SearchBar({
             </section>
           )}
           {popular.length > 0 && (
-            <section aria-labelledby="search-kinds" className="flex flex-col">
-              <h2 id="search-kinds" className="text-headline text-foreground">
+            <section aria-labelledby={kindsId} className="flex flex-col">
+              <h2 id={kindsId} className="text-headline text-foreground">
                 {t("popular")}
               </h2>
               <ul>

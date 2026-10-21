@@ -9,7 +9,7 @@ import { SellerGroup } from "@/features/offers/seller-group";
 import { Link } from "@/i18n/navigation";
 
 import { SearchFilters, SearchOrder } from "./search-filters";
-import type { SearchQuery } from "./search-query";
+import { searchParams, type SearchQuery } from "./search-query";
 
 // What the search finds (Figma K1f), under the chips and a line saying how many and in what order: the dishes
 // grouped by seller, with or without words.
@@ -38,9 +38,30 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
     ? t("dishesFor", { count, q: query.q })
     : t("dishesHere", { count, place });
 
+  const filtered = Boolean(
+    query.kind ||
+    query.now ||
+    query.radiusKm ||
+    query.minPrice ||
+    query.maxPrice ||
+    query.from ||
+    query.to,
+  );
   const heading = (
-    <div className="flex items-center justify-between gap-3 px-4">
-      <output className="text-label text-muted-foreground">{summary}</output>
+    <div className="flex items-center justify-between gap-3 px-4 md:pt-2">
+      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+        <output className="text-label text-muted-foreground md:text-body-sm md:font-medium">
+          {summary}
+        </output>
+        {filtered && (
+          <Link
+            href={{ pathname: "/search", query: searchParams({ q: query.q, near: query.near }) }}
+            className="text-body-sm-strong text-link underline-offset-4 hover:underline max-md:hidden"
+          >
+            {t("resetFilters")}
+          </Link>
+        )}
+      </div>
       {offers.length > 1 && <SearchOrder query={query} />}
     </div>
   );
@@ -59,7 +80,7 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
         {heading}
       </div>
       {offers.length === 0 ? (
-        <Empty surface="card" className="mx-4 w-auto md:mx-auto md:my-12 md:w-full md:max-w-lg">
+        <Empty surface="card" className="mx-4 w-auto">
           <EmptyHeader>
             <EmptyTitle>{t("nothing")}</EmptyTitle>
           </EmptyHeader>
@@ -73,23 +94,32 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
           </EmptyContent>
         </Empty>
       ) : (
-        // A seller with one dish is a small card, two to a row; a seller with more spans the row with their
-        // tiles (Figma K1f). From `md` the cards are four across, six from `lg`, and a seller's group takes
-        // two of them, so every card is about as wide as on a phone.
-        <ul className="grid grid-cols-2 gap-3 px-4 md:grid-flow-dense md:grid-cols-4 lg:grid-cols-6">
-          {groups.map(({ seller, offers: dishes }) => {
-            const [only] = dishes;
-            return dishes.length === 1 && only ? (
-              <li key={seller.id} className="min-w-0">
-                <OfferCard offer={only} compact showSeller className="h-full" />
+        <>
+          {/* A seller with one dish is a small card, two to a row; a seller with more spans the row with their
+              tiles (Figma K1f). */}
+          <ul className="grid grid-cols-2 gap-3 px-4 md:hidden">
+            {groups.map(({ seller, offers: dishes }) => {
+              const [only] = dishes;
+              return dishes.length === 1 && only ? (
+                <li key={seller.id} className="min-w-0">
+                  <OfferCard offer={only} compact showSeller className="h-full" />
+                </li>
+              ) : (
+                <li key={seller.id} className="col-span-2 min-w-0">
+                  <SellerGroup seller={seller} offers={dishes} />
+                </li>
+              );
+            })}
+          </ul>
+          {/* From `md` every dish is its own card, two across and three from `lg` (Figma WK2, D2). */}
+          <ul className="hidden gap-x-5 gap-y-3.5 px-4 md:grid md:grid-cols-2 lg:grid-cols-3">
+            {offers.map((offer) => (
+              <li key={offer.id} className="min-w-0">
+                <OfferCard offer={offer} showSeller className="h-full" />
               </li>
-            ) : (
-              <li key={seller.id} className="col-span-2 min-w-0">
-                <SellerGroup seller={seller} offers={dishes} />
-              </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );

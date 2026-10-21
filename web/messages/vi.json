@@ -94,6 +94,7 @@
     "dishesHere": "{count} món đang bán {place, select, near {quanh đây} other {ở Tasco Mall}}",
     "nothing": "Không tìm thấy món nào khớp.",
     "everything": "Xem tất cả món",
+    "resetFilters": "Đặt lại bộ lọc",
     "sortBy": "Sắp xếp",
     "from": "Từ",
     "to": "Đến",

@@ -49,10 +49,12 @@ export function OfferCard({
     <article
       className={cn(
         "relative flex flex-col overflow-hidden rounded-xl bg-card text-card-foreground shadow-card",
+        // The search's card on a wide screen is one dish with its seller, a little taller and rounder (Figma D2).
+        showSeller && !compact && "md:rounded-2xl",
         className,
       )}
     >
-      <div className={cn("relative", compact ? "h-30" : showSeller ? "h-37" : "h-34")}>
+      <div className={cn("relative", compact ? "h-30" : showSeller ? "h-37 md:h-40" : "h-34")}>
         <OfferPhoto
           offer={offer}
           dimmed={!available}
