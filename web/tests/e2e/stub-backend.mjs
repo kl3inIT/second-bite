@@ -1735,9 +1735,23 @@ function adminSellerReads(request, response, url) {
       ],
     });
   } else if (match[2] === "/offers") {
-    // The shops with a logo have posted nothing, so their page shows the logo as its cover (Figma AD-Q3).
+    // The shops with a logo have posted nothing, so their page shows the logo as its cover (Figma AD-Q3); the
+    // others have a post of each status, the first described and weighed as its panel shows it (AD-QD3).
     if (!adminStorePosts.has(store.id))
-      adminStorePosts.set(store.id, store.photoId ? [] : postsOf(store));
+      adminStorePosts.set(
+        store.id,
+        store.photoId
+          ? []
+          : postsOf(store).map((post, i) =>
+              i === 0
+                ? {
+                    ...post,
+                    description: "Bánh mì và croissant nướng trong ngày, còn mềm.",
+                    weightGrams: 400,
+                  }
+                : post,
+            ),
+      );
     json(response, 200, { offers: adminStorePosts.get(store.id) });
   } else {
     json(response, 200, seller);

@@ -1319,7 +1319,57 @@
         "owner": "Chủ cửa hàng",
         "staff": "Nhân viên",
         "offerLeft": "-{discount}% · còn {left}/{units} {unit}",
-        "offerWindow": "Lấy {from}–{until}"
+        "offerWindow": "Lấy {from}–{until}",
+        "offerUnits": "-{discount}% · {units} {unit}",
+        "offerWithdrawn": "Đã gỡ {day}/{month} · {time}",
+        "postStatus": {
+          "label": "Trạng thái bài đăng",
+          "on_sale": "Đang bán · {count}",
+          "sold_out": "Hết hàng · {count}",
+          "closed": "Đã đóng · {count}",
+          "withdrawn": "Đã gỡ · {count}"
+        },
+        "view": {
+          "label": "Cách xem",
+          "list": "Dạng bảng",
+          "grid": "Dạng lưới"
+        },
+        "noneInStatus": "Không có bài nào",
+        "postsTable": "Bài đăng của cửa hàng",
+        "postNoun": "bài đăng",
+        "column": {
+          "post": "Bài đăng",
+          "price": "Giá bán",
+          "discount": "Giảm",
+          "left": "Còn lại",
+          "window": "Khung nhận",
+          "open": "Xem"
+        },
+        "discount": "-{discount}%",
+        "unitsLeft": "{left}/{units} {unit}",
+        "window": "{from}–{until}",
+        "openPost": "Xem bài {name}",
+        "panel": {
+          "title": "Chi tiết bài đăng",
+          "description": "Mô tả",
+          "status": "Trạng thái",
+          "units": "Số phần",
+          "unitsLeft": "Còn {left}/{units} {unit}",
+          "weight": "Khối lượng mỗi suất",
+          "grams": "{grams} g",
+          "window": "Khung nhận",
+          "windowDay": "{from}–{until}, {day}/{month}",
+          "place": "Nơi nhận",
+          "created": "Tạo lúc",
+          "updated": "Sửa lần cuối",
+          "at": "{day} · {time}",
+          "state": {
+            "on_sale": "Đang bán",
+            "sold_out": "Hết hàng",
+            "closed": "Đã đóng",
+            "withdrawn": "Đã gỡ"
+          }
+        }
       }
     }
   }

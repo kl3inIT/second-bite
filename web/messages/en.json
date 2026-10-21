@@ -1319,7 +1319,57 @@
         "owner": "Owner",
         "staff": "Staff",
         "offerLeft": "-{discount}% · {left}/{units} {unit} left",
-        "offerWindow": "Pick-up {from}–{until}"
+        "offerWindow": "Pick-up {from}–{until}",
+        "offerUnits": "-{discount}% · {units} {unit}",
+        "offerWithdrawn": "Withdrawn {day}/{month} · {time}",
+        "postStatus": {
+          "label": "Post status",
+          "on_sale": "On sale · {count}",
+          "sold_out": "Sold out · {count}",
+          "closed": "Closed · {count}",
+          "withdrawn": "Withdrawn · {count}"
+        },
+        "view": {
+          "label": "View",
+          "list": "Table",
+          "grid": "Grid"
+        },
+        "noneInStatus": "No posts here",
+        "postsTable": "The store's posts",
+        "postNoun": "posts",
+        "column": {
+          "post": "Post",
+          "price": "Price",
+          "discount": "Discount",
+          "left": "Left",
+          "window": "Pick-up",
+          "open": "View"
+        },
+        "discount": "-{discount}%",
+        "unitsLeft": "{left}/{units} {unit}",
+        "window": "{from}–{until}",
+        "openPost": "View post {name}",
+        "panel": {
+          "title": "Post details",
+          "description": "Description",
+          "status": "Status",
+          "units": "Units",
+          "unitsLeft": "{left}/{units} {unit} left",
+          "weight": "Weight per unit",
+          "grams": "{grams} g",
+          "window": "Pick-up",
+          "windowDay": "{from}–{until}, {month}/{day}",
+          "place": "Pick-up place",
+          "created": "Posted",
+          "updated": "Last changed",
+          "at": "{day} · {time}",
+          "state": {
+            "on_sale": "On sale",
+            "sold_out": "Sold out",
+            "closed": "Closed",
+            "withdrawn": "Withdrawn"
+          }
+        }
       }
     }
   }

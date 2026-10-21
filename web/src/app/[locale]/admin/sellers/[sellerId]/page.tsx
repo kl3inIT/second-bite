@@ -9,6 +9,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/componen
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { AdminTopBar } from "@/features/admin/admin-top-bar";
 import { OfferRow } from "@/features/admin-sellers/offer-row";
+import { SellerPosts } from "@/features/admin-sellers/seller-posts";
 import { SellerTabs } from "@/features/admin-sellers/seller-tabs";
 import { StatusBadge, StoreThumb } from "@/features/admin-sellers/seller-parts";
 import { StoreActions } from "@/features/admin-sellers/store-actions";
@@ -183,15 +184,7 @@ export default async function SellerPage({
                 </EmptyHeader>
               </Empty>
             ) : (
-              <Card size="lg">
-                <CardContent>
-                  <ul className="flex flex-col gap-3">
-                    {offers.map((offer) => (
-                      <OfferRow key={offer.id} offer={offer} />
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+              <SellerPosts offers={offers} />
             )
           }
           membersList={

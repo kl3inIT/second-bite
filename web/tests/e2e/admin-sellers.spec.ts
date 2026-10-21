@@ -173,6 +173,41 @@ test.describe("the admin's stores", () => {
     );
   });
 
+  test("a store's posts show by status, as boxes or a table, and open in a panel (AD-QD1 to AD-QD4)", async ({
+    page,
+  }) => {
+    await page.goto("/vi/admin/sellers/se-admin-07?tab=posts");
+    const statuses = page.getByRole("group", { name: "Trạng thái bài đăng" });
+    await expect(statuses.getByRole("button", { name: "Đang bán · 1" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(page.getByText("Túi bánh mì và croissant, 4 chiếc")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await (await hydrated(statuses.getByRole("button", { name: "Đã gỡ · 1" }))).click();
+    await expect(page).toHaveURL(/posts=withdrawn/);
+    await expect(page.getByText("Cơm sườn nướng, 1 suất")).toBeVisible();
+    await expect(page.getByText(/^Đã gỡ \d\d\/\d\d · \d\d:\d\d$/)).toBeVisible();
+
+    await statuses.getByRole("button", { name: "Đang bán · 1" }).click();
+    await page.getByRole("button", { name: "Dạng bảng" }).click();
+    const table = page.getByRole("table", { name: "Bài đăng của cửa hàng" });
+    await expect(table.getByRole("row")).toHaveCount(2);
+    await expect(page.getByText("Hiển thị 1–1 trên 1 bài đăng")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await table.getByRole("button", { name: "Xem bài Túi bánh mì và croissant, 4 chiếc" }).click();
+    const panel = page.getByRole("dialog", { name: "Chi tiết bài đăng" });
+    await expect(panel.getByText("Bánh mì và croissant nướng trong ngày, còn mềm.")).toBeVisible();
+    await expect(panel.getByText("400 g")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+    await page.keyboard.press("Escape");
+
+    await page.getByRole("tab", { name: "Thành viên · 2" }).click();
+    await expect(page.getByText("nhan.vien@example.com")).toBeVisible();
+  });
+
   test("an unknown store is not found", async ({ page }) => {
     await page.goto("/vi/admin/sellers/se-admin-99");
     await expect(page.getByRole("heading", { name: "Không tìm thấy trang này" })).toBeVisible();
