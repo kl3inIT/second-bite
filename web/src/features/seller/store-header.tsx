@@ -39,9 +39,9 @@ export async function StoreHeader({ sellerId: pendingId }: { sellerId: Promise<s
         />
       </div>
 
-      <header className="relative overflow-hidden bg-header text-header-foreground md:hidden">
+      <header className="relative overflow-hidden bg-header text-header-foreground group-data-[screen=push]/store:hidden md:hidden">
         <HeaderSweep />
-        <div className="relative flex flex-col gap-4 px-4 pt-4 pb-12 group-data-[screen=push]/store:pb-8">
+        <div className="relative flex flex-col gap-4 px-4 pt-4 pb-12">
           <div className="flex items-center justify-between gap-3">
             <Link
               href="/stores"
@@ -54,7 +54,7 @@ export async function StoreHeader({ sellerId: pendingId }: { sellerId: Promise<s
             <LanguageSwitcher />
           </div>
           {/* The room for the page's title row, which the layout pulls up into it. */}
-          <div aria-hidden className="h-13 group-data-[screen=push]/store:hidden" />
+          <div aria-hidden className="h-13" />
         </div>
       </header>
     </>

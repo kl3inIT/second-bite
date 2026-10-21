@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { StoreBottomNav } from "@/features/seller/store-bottom-nav";
 import { StoreFrame } from "@/features/seller/store-frame";
 import { StoreHeader } from "@/features/seller/store-header";
+import { StorePushedBar } from "@/features/seller/store-pushed-bar";
 
 // The store's pages (SEC-57, Figma Q1 to Q4): under the header with the four tabs and the store's name. On a
 // phone (SEC-79) the tabs are the bottom bar, and the page is a pale sheet rising over the foot of the header: the
@@ -17,6 +18,9 @@ export default function StoreLayout({
 
   return (
     <StoreFrame>
+      <Suspense fallback={null}>
+        <StorePushedBar />
+      </Suspense>
       <Suspense fallback={<header aria-hidden className="h-16 rounded-b-3xl bg-header" />}>
         <StoreHeader sellerId={sellerId} />
       </Suspense>
