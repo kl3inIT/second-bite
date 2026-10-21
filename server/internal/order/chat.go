@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/kl3inIT/second-bite/server/internal/order/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
@@ -144,6 +145,9 @@ func (s *Service) Messages(ctx context.Context, id uuid.UUID, access string, aft
 	return c, nil
 }
 
+// uniqueViolation is the PostgreSQL code of a duplicate key.
+const uniqueViolation = "23505"
+
 // SendMessage adds a message to an order's chat, from its customer or from the
 // seller's people, while the chat is open. The same key from the same side
 // returns the message sent first, even after the chat has closed.
@@ -162,13 +166,25 @@ func (s *Service) SendMessage(ctx context.Context, id uuid.UUID, access, key, te
 		created bool
 	)
 
-	err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
-		var err error
+	send := func() error {
+		return pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+			var err error
 
-		sent, created, err = s.sendIn(ctx, tx, id, access, key, text)
+			sent, created, err = s.sendIn(ctx, tx, id, access, key, text)
 
-		return err
-	})
+			return err
+		})
+	}
+
+	err := send()
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == uniqueViolation {
+		// The same key arrived twice at once; the first message stands, and
+		// the second pass reads it as an earlier one.
+		err = send()
+	}
+
 	if err != nil {
 		return Message{}, err
 	}

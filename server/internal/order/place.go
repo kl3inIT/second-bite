@@ -73,7 +73,7 @@ func (s *Service) Place(ctx context.Context, key string, checkout uuid.UUID, con
 	})
 
 	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+	if errors.As(err, &pgErr) && pgErr.Code == uniqueViolation {
 		// The same key arrived twice at once; the first order stands.
 		earlier, err := s.queries.OrderOfKey(ctx, db.OrderOfKeyParams{
 			CustomerID: customer, IdempotencyKey: key, CustomerPhone: contact.Phone,

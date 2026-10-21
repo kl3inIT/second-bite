@@ -323,6 +323,24 @@ func testChatBounds(t *testing.T, f fixture) { //nolint:gocyclo // a check reads
 		t.Errorf("the customer's message with the seller's key: %+v, %v", m, err)
 	}
 
+	// The same key sent at once is still one message, and neither request fails.
+	raced := make([]order.Message, 2)
+
+	var (
+		wg      sync.WaitGroup
+		raceErr [2]error
+	)
+
+	for i := range raced {
+		wg.Go(func() { raced[i], raceErr[i] = f.orders.SendMessage(sc.customer, id, "", "raced", "Gửi hai lần") })
+	}
+
+	wg.Wait()
+
+	if raceErr[0] != nil || raceErr[1] != nil || raced[0].Seq != raced[1].Seq {
+		t.Errorf("the same key at once: %+v, %v and %+v, %v", raced[0], raceErr[0], raced[1], raceErr[1])
+	}
+
 	// Twenty a minute from one side; the other side is not held back.
 	busy := f.placeOne(sc.customer, t, sc.offer)
 	for i := range 20 {
