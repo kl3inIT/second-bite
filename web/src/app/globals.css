@@ -111,28 +111,30 @@
   }
 }
 
-/* The loading screen: the letters hop in a wave, over and over. Still for reduced motion. */
-@utility letters-wave {
-  & path {
+/* The loading screen: the bitten "o" drops in as on the splash, then bounces gently for as long as the page
+   loads. The bounce comes later in the list, so it takes over once it starts. Still for reduced motion. */
+@utility bite-bounce {
+  & path:nth-child(4) {
     transform-box: fill-box;
-    animation: letter-wave 1200ms ease-in-out infinite;
-    animation-delay: calc(var(--letter) * 80ms);
+    transform-origin: center;
+    animation:
+      bite-drop 1000ms linear 150ms both,
+      bite-bounce 900ms ease-in-out 1150ms infinite;
   }
   @media (prefers-reduced-motion: reduce) {
-    & path {
+    & path:nth-child(4) {
       animation: none;
     }
   }
 }
 
-@keyframes letter-wave {
+@keyframes bite-bounce {
   0%,
-  50%,
   100% {
     transform: none;
   }
-  25% {
-    transform: translateY(-30%);
+  50% {
+    transform: translateY(-18%);
   }
 }
 
