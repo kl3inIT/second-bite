@@ -2,9 +2,23 @@ import { getTranslations } from "next-intl/server";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ApiError } from "@/lib/api/client";
+import { type EmailSettingsBody, getEmailSettings } from "@/lib/api/generated";
 
-import { readEmailSettings } from "./email-settings-source";
+import { adminRead } from "../session";
+
 import { Integrations } from "./integrations";
+
+/** Who delivers email, or nothing when no provider is saved yet (NOTIFICATION_EMAIL_NOT_CONFIGURED). */
+async function readEmailSettings(): Promise<EmailSettingsBody | null> {
+  try {
+    return await adminRead(async (headers) => await getEmailSettings({ headers }));
+  } catch (error) {
+    if (error instanceof ApiError && error.code === "NOTIFICATION_EMAIL_NOT_CONFIGURED")
+      return null;
+    throw error;
+  }
+}
 
 /** Cài đặt › Tích hợp (Figma AD-CD7): email is read from its settings; the others wait for a backend. */
 export async function IntegrationsPage() {
@@ -28,7 +42,7 @@ export async function IntegrationsPage() {
           <TooltipContent>{shell("soon")}</TooltipContent>
         </Tooltip>
       </div>
-      <Integrations email={email?.settings ?? null} />
+      <Integrations email={email} />
     </section>
   );
 }

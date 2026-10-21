@@ -22,8 +22,10 @@ test.describe("the bottom bar and the account tab", () => {
       "aria-current",
       "page",
     );
-    await expect(bar.getByText("Đơn của tôi")).toBeVisible();
-    await expect(bar.getByRole("link", { name: /Đơn của tôi/ })).toHaveCount(0);
+    await expect(bar.getByRole("link", { name: "Đơn của tôi" })).toHaveAttribute(
+      "href",
+      "/vi/orders",
+    );
     await expect(page.getByRole("contentinfo")).toBeHidden();
 
     await (await hydrated(bar.getByRole("link", { name: "Tài khoản" }))).click();

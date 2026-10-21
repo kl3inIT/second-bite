@@ -2,14 +2,30 @@
 
 import * as React from "react";
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
+import { chipTrigger } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 function Popover({ ...props }: PopoverPrimitive.Root.Props) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />;
 }
 
-function PopoverTrigger({ ...props }: PopoverPrimitive.Trigger.Props) {
-  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
+// Second Bite: "chip" is the search's filter chip, as DropdownMenuTrigger's, for a filter that opens a form
+// rather than a list (Figma K2 chip lọc); `raised` sits it on the sky ground itself (Figma K1b).
+function PopoverTrigger({
+  className,
+  variant = "plain",
+  raised = false,
+  ...props
+}: PopoverPrimitive.Trigger.Props & { variant?: "plain" | "chip"; raised?: boolean }) {
+  return (
+    <PopoverPrimitive.Trigger
+      data-slot="popover-trigger"
+      data-variant={variant}
+      data-raised={raised ? "" : undefined}
+      className={cn(chipTrigger, className)}
+      {...props}
+    />
+  );
 }
 
 function PopoverContent({
@@ -55,7 +71,12 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
 
 function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
   return (
-    <PopoverPrimitive.Title data-slot="popover-title" className={cn("", className)} {...props} />
+    // Second Bite: a panel's title, as a sheet's.
+    <PopoverPrimitive.Title
+      data-slot="popover-title"
+      className={cn("text-body-sm-strong text-foreground", className)}
+      {...props}
+    />
   );
 }
 

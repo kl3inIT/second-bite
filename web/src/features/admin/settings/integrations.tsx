@@ -22,7 +22,6 @@ import { Link } from "@/i18n/navigation";
 import type { EmailSettingsBody } from "@/lib/api/generated";
 
 import { adminHref } from "../pages";
-import { emailConnected } from "./email-draft";
 
 /**
  * The integrations (Figma AD-CD7), one card each. Brevo / SMTP reads the real email settings and opens them; SePay,
@@ -31,7 +30,11 @@ import { emailConnected } from "./email-draft";
 export function Integrations({ email }: { email: EmailSettingsBody | null }) {
   const t = useTranslations("admin.settings.integrations");
   const soon = useTranslations("admin.shell")("soon");
-  const connected = emailConnected(email);
+  const connected = email
+    ? email.provider === "brevo"
+      ? email.brevoApiKeySet
+      : email.smtpHost !== ""
+    : false;
   const secretSet = email?.provider === "brevo" ? email.brevoApiKeySet : email?.smtpPasswordSet;
 
   // A button whose backend does not exist yet: off, with "Sắp có" under the pointer and on focus.

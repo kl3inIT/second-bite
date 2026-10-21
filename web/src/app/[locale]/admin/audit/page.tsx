@@ -8,7 +8,8 @@ import {
   loadAuditSearchParams,
   vietnamMidnight,
 } from "@/features/audit/search-params";
-import { requireAdmin, sessionHeaders } from "@/features/identity/current-account";
+import { requireAdmin } from "@/features/identity/current-account";
+import { sessionHeaders } from "@/features/identity/session";
 import { listAdmins, listAuditEvents } from "@/lib/api/generated";
 
 export async function generateMetadata(): Promise<Metadata> {

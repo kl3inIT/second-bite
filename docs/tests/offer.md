@@ -1,6 +1,6 @@
 # offer: verification matrix
 
-Requirements of [docs/specs/offer.md](../specs/offer.md) and the checks that hold them. Paths are under `server/`. `TestOffer` (`internal/offer/offer_test.go`) runs its checks in parallel against one migrated PostGIS, then the check that changes the settings alone. Orders are simulated by taking units in the table, as `order` will through the module.
+Requirements of [docs/specs/offer.md](../specs/offer.md) and the checks that hold them. Paths are under `server/`. `TestOffer` (`internal/offer/offer_test.go`) runs its checks in parallel against one migrated PostGIS, then the check that changes the settings alone. Where a check needs ordered units without the `order` module, it takes them in the table.
 
 | Requirement | Check |
 | --- | --- |
@@ -14,6 +14,7 @@ Requirements of [docs/specs/offer.md](../specs/offer.md) and the checks that hol
 | "banh mi", "bánh mì" and "banh m" find "bánh mì" and "bánh mỳ" before "mì xào, bánh bao"; "cá" finds no "cà phê", "ca" finds both; the description and the seller's name are searched | `TestOffer` › search reads Vietnamese as it is typed |
 | The default radius and a wider and narrower one, nearest first; sold out left out on request; kinds, price, discount, one seller, a window not yet begun; the seller's name and the distance in a result; the refusals | `TestOffer` › search keeps what is near and filtered |
 | A blocked seller's offer leaves search and anyone's read, its owner still reads it | `TestOffer` › a blocked seller's offers leave search |
+| An order takes units in its own transaction with what it copies; two orders for the last units get them once; units come back never above those posted; a withdrawn offer and an unknown one give none | `TestOffer` › orders take and return units (`internal/offer/units_test.go`) |
 | Through the API: a pending seller cannot post; once active, an offer is posted, found by anyone near Tasco Mall by words without marks with its seller and distance; the seller's page; sorting by distance from no point refused | `TestService` › an offer is posted and found near Tasco Mall (`cmd/secondbite/offer_test.go`) |
 | The summary counts the offers posted in the range and their units, per day in Vietnam time (00:30 on the 1st is the 1st, midnight after the last day is out), the sellers that posted most and the five newest; on sale and sold out now, a blocked seller's left out, what was posted still counted; admins alone read it | `TestSummary` (`internal/offer/summary_test.go`), on a database of its own |
 | Through the API: admins alone read the summary; without a range it covers the 30 days to today, every day in the series; a reversed range, one over 90 days and a malformed date are refused naming `query.from` | `TestService` › admins read the dashboard's summary over a range of days (`cmd/secondbite/summary_test.go`) |

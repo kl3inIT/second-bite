@@ -97,7 +97,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
           <Splash />
           {children}
           <SiteFooter />
-          {/* Its tabs read the address, which a page with a parameter (a store) only knows at request time. */}
+          {/* The bar reads the address, which a page with a dynamic segment knows only at request time. */}
           <Suspense>
             <BottomNav />
           </Suspense>

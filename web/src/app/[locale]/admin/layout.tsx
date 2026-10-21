@@ -5,6 +5,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/toast";
 import { AdminSidebar } from "@/features/admin/admin-sidebar";
 import { getCurrentAccount } from "@/features/identity/current-account";
 
@@ -28,7 +29,11 @@ export default function AdminLayout({ children }: LayoutProps<"/[locale]/admin">
 }
 
 async function AdminFrame({ children }: { children: React.ReactNode }) {
-  const [account, jar] = await Promise.all([getCurrentAccount(), cookies()]);
+  const [account, jar, t] = await Promise.all([
+    getCurrentAccount(),
+    cookies(),
+    getTranslations("Admin"),
+  ]);
   if (account?.role !== "admin") return children;
 
   return (
@@ -40,7 +45,8 @@ async function AdminFrame({ children }: { children: React.ReactNode }) {
       <SkipLink />
       <AdminSidebar email={account.email} />
       <SidebarInset id="admin-main" className="min-w-0">
-        {children}
+        {/* What a change did, said at the foot of the page (Figma Admin/Toast). */}
+        <Toaster closeLabel={t("closeToast")}>{children}</Toaster>
       </SidebarInset>
     </SidebarProvider>
   );

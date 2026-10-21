@@ -33,8 +33,8 @@ var (
 		EN: "A seller's catalog holds at most 100 dishes.",
 	})
 	ErrSearchInvalid = platform.NewFailure("OFFER_SEARCH_INVALID", platform.CategoryValidation, platform.Words{
-		VI: "Kiểm tra lại tìm kiếm: một điểm trên bản đồ, khoảng thời gian kết thúc sau khi bắt đầu, loại món hợp lệ, và một điểm khi xếp theo khoảng cách.",
-		EN: "Check the search: a point on the map, a time range that ends after it starts, known kinds, and a point to sort by distance.",
+		VI: "Kiểm tra lại tìm kiếm: một điểm trên bản đồ, khoảng thời gian kết thúc sau khi bắt đầu, giá thấp nhất không cao hơn giá cao nhất, loại món hợp lệ, và một điểm khi xếp theo khoảng cách.",
+		EN: "Check the search: a point on the map, a time range that ends after it starts, a lowest price no higher than the highest, known kinds, and a point to sort by distance.",
 	})
 	ErrSettingsInvalid = platform.NewFailure("OFFER_SETTINGS_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Cài đặt món đăng nằm ngoài giới hạn hoặc mâu thuẫn nhau.",
@@ -47,5 +47,13 @@ var (
 	ErrSummaryRangeTooLong = platform.NewFailure("OFFER_SUMMARY_RANGE_TOO_LONG", platform.CategoryValidation, platform.Words{
 		VI: "Khoảng ngày dài tối đa 90 ngày.",
 		EN: "The range is at most 90 days.",
+	})
+	ErrSoldOut = platform.NewFailure("OFFER_SOLD_OUT", platform.CategoryConflict, platform.Words{
+		VI: "Món này còn ít phần hơn số bạn chọn.",
+		EN: "The offer has fewer units left than were asked for.",
+	})
+	ErrUnavailable = platform.NewFailure("OFFER_UNAVAILABLE", platform.CategoryConflict, platform.Words{
+		VI: "Món này không còn bán: quán đã rút hoặc đã hết giờ nhận.",
+		EN: "The offer is no longer on sale: it was withdrawn or its window is over.",
 	})
 )

@@ -9,6 +9,14 @@
     "searchLabel": "Tìm món hoặc quán",
     "searchPlaceholder": "Tìm bánh, gà rán, pizza…",
     "kindsLabel": "Loại món",
+    "dishes": {
+      "pho": "Phở",
+      "noodles": "Mì",
+      "sushi": "Sushi",
+      "cakes": "Bánh ngọt",
+      "vegetables": "Rau củ",
+      "fruit": "Trái cây"
+    },
     "dealsTitle": "Món ngon tối nay ở Tasco Mall",
     "upTo": "Giảm đến",
     "upToPercent": "{percent}%",
@@ -26,10 +34,20 @@
     "titleNearby": "<hidden>Tối nay quanh </hidden>Vị trí của tôi",
     "areaNearby": "Các quán gần bạn",
     "nearbyEmpty": "Chưa có món nào quanh đây",
-    "nearbyEmptyHint": "Các quán gần bạn chưa đăng món nào tối nay. Bạn có thể xem món đang bán ở Tasco Mall.",
+    "nearbyEmptyHint": "Quán gần bạn thường đăng món còn lại từ 18:00. Theo dõi món sắp có bên dưới, hoặc xem Tasco Mall.",
     "seeMall": "Xem món ở Tasco Mall",
     "mallOffers": "Đang bán ở Tasco Mall",
-    "filters": "Lọc món"
+    "filters": "Lọc món",
+    "upcoming": "Sắp có tối nay",
+    "recommended": "Gợi ý cho bạn",
+    "expected": "Dự kiến {units} phần",
+    "opensAt": "Mở bán {time}",
+    "follow": "Báo khi {dish} mở bán",
+    "followTitle": "Báo bạn khi {seller} mở bán?",
+    "followBody": "{seller} dự kiến còn {units} phần mẻ sau, mở bán lúc {time} tối nay. Bật thông báo để biết ngay khi món lên, trước khi hết phần.",
+    "followOn": "Bật thông báo",
+    "followLater": "Để sau",
+    "close": "Đóng"
   },
   "Area": {
     "open": "Chọn nơi xem món",
@@ -54,19 +72,12 @@
     "recent": "Tìm gần đây",
     "clearRecent": "Xoá",
     "forget": "Xoá “{words}” khỏi tìm gần đây",
-    "kinds": "Tìm theo loại món",
-    "tabs": "Món hoặc quán",
-    "dishesTab": "Món ({count})",
-    "sellersTab": "Quán ({count})",
     "filters": "Bộ lọc",
     "distance": "Khoảng cách",
     "anyDistance": "Mọi khoảng cách",
     "within": "Trong {distance}",
     "price": "Giá",
-    "anyPrice": "Mọi giá",
-    "under": "Dưới {price}",
     "when": "Giờ nhận",
-    "anyTime": "Mọi giờ",
     "now": "Nhận ngay",
     "kind": "Loại món",
     "anyKind": "Mọi loại",
@@ -78,12 +89,25 @@
       "discount": "Giảm nhiều nhất"
     },
     "dishesFor": "{count} món cho “{q}”",
-    "dishesHere": "{count} món đang bán",
-    "sellersFor": "{count} quán có món cho “{q}”",
-    "sellersHere": "{count} quán đang bán",
-    "sellerWindow": "Nhận {from}–{until}",
+    "dishesHere": "{count} món đang bán {place, select, near {quanh đây} other {ở Tasco Mall}}",
     "nothing": "Không tìm thấy món nào khớp.",
-    "everything": "Xem tất cả món"
+    "everything": "Xem tất cả món",
+    "sortBy": "Sắp xếp",
+    "from": "Từ",
+    "to": "Đến",
+    "range": "{from}–{to}",
+    "rangeFrom": "Từ {from}",
+    "rangeTo": "Đến {to}",
+    "priceOrder": "Giá “từ” cần thấp hơn giá “đến”.",
+    "timeOrder": "Giờ “từ” cần sớm hơn giờ “đến”.",
+    "apply": "Áp dụng",
+    "clearFilter": "Bỏ lọc",
+    "quick": "Chọn nhanh",
+    "anyTime": "Bất kỳ",
+    "lowest": "Thấp nhất",
+    "highest": "Cao nhất",
+    "popular": "Món phổ biến ở Tasco Mall",
+    "onSale": "{count} món đang giảm"
   },
   "LanguageSwitcher": {
     "label": "Switch to English"
@@ -113,8 +137,11 @@
     "originalPrice": "Giá gốc {price}",
     "left": "Còn {units} phần",
     "windowAway": "{window} · {distance}",
-    "seller": "{seller}",
-    "sellerAway": "{seller} · cách {distance}"
+    "seller": "Quán {seller}",
+    "sellerAway": "Quán {seller} · cách {distance}",
+    "windowAt": "{window} · {place}",
+    "rating": "Quán được chấm {rating} trên 5",
+    "heart": "Yêu thích {name}"
   },
   "Intro": {
     "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
@@ -324,6 +351,238 @@
     "signedIn": "Đã đăng nhập",
     "settings": "Cài đặt tài khoản"
   },
+  "TopBar": {
+    "back": "Quay lại",
+    "home": "Second Bite, về trang chủ"
+  },
+  "BottomNav": {
+    "label": "Điều hướng chính",
+    "home": "Trang chủ",
+    "orders": "Đơn của tôi",
+    "saved": "Yêu thích",
+    "account": "Tài khoản",
+    "soon": "(sắp có)"
+  },
+  "Orders": {
+    "orderTitle": "Đơn của bạn",
+    "togetherTitle": "Đơn ở {sellers} quán",
+    "togetherBody": "{names} · tổng {total}. Mỗi quán có mã nhận riêng, trả tiền tại quầy của quán.",
+    "mine": "Đơn của tôi",
+    "mineLead": "Đang chờ nhận và đã xong",
+    "lists": "Danh sách đơn",
+    "tabOpen": "Đang chờ nhận ({count})",
+    "tabEnded": "Đã xong ({count})",
+    "noneOpen": "Bạn chưa có đơn nào đang chờ nhận.",
+    "noneEnded": "Chưa có đơn nào đã xong.",
+    "before": "Trước đó",
+    "readyUntil": "Sẵn sàng · đến {until}",
+    "collectFrom": "Nhận từ {from}",
+    "payOnCollect": "Thanh toán khi nhận hàng",
+    "seeCode": "Xem mã nhận {code}",
+    "seeOrder": "Xem đơn",
+    "impact": "{meals} bữa ngon, trọn đến miếng cuối",
+    "impactSaved": "Bạn đã tiết kiệm {saved} so với giá gốc",
+    "status": {
+      "confirmed": "Đã xác nhận",
+      "ready": "Sẵn sàng",
+      "collected": "Đã nhận",
+      "cancelled": "Đã huỷ",
+      "refused": "Quán không giao",
+      "expired": "Hết hạn"
+    },
+    "meta": "Đơn {number} · đặt lúc {time} · {seller}, {address}",
+    "hoursMinutes": "{hours} giờ {minutes} phút",
+    "minutes": "{minutes} phút",
+    "headline": {
+      "confirmed": "Đã xác nhận · quán đang chuẩn bị",
+      "ready": "Món đã sẵn sàng"
+    },
+    "opensIn": "Nhận hôm nay tại quầy {seller} · mở sau {left}",
+    "closesIn": "Nhận hôm nay tại quầy {seller} · còn {left}",
+    "changeOfMind": "Đổi ý?",
+    "changeOfMindBody": "Huỷ miễn phí trước {from}. Sau đó không huỷ được, vì món đã để riêng cho bạn.",
+    "ended": {
+      "collected": "Đã nhận món",
+      "cancelled": "Đã huỷ đơn",
+      "refused": "Quán không giao đơn",
+      "expired": "Đơn đã hết hạn"
+    },
+    "endedBody": {
+      "collected": "Cảm ơn bạn đã cứu {units} phần món ngon khỏi bị bỏ phí.",
+      "cancelled": "Không mất phí nào · {units} phần đã trả lại cho quán",
+      "refused": "Bạn không phải trả tiền cho đơn này.",
+      "expired": "Không ai đến nhận trước {until} · đơn ghi là không nhận · không thu tiền"
+    },
+    "tonightMore": "Còn nhiều món ngon tối nay",
+    "seeOthers": "Xem món khác",
+    "details": "Chi tiết đơn",
+    "counterToday": "{address} · {from}–{until} hôm nay",
+    "units": "{units} phần",
+    "code": "Mã nhận hàng",
+    "codeHint": "Đưa mã cho quầy khi đến nhận. Mã chỉ dùng một lần.",
+    "codeLater": "Mã hiện khi quán báo sẵn sàng, hoặc từ {from}.",
+    "directionsLabel": "Đường đến quầy",
+    "placeLine": "{seller} · {address}",
+    "placeHint": "Tasco Mall Long Biên",
+    "directions": "Chỉ đường",
+    "opensMaps": "(mở Google Maps)",
+    "signInTitle": "Chưa thấy đơn nào",
+    "signInBody": "Chưa có đơn nào đặt trên trình duyệt này. Nếu bạn đặt khi đã đăng nhập, đăng nhập để xem.",
+    "signIn": "Đăng nhập",
+    "facts": {
+      "day": "Ngày",
+      "window": "Khung giờ nhận",
+      "what": "Món",
+      "total": "Tổng",
+      "number": "Mã đơn",
+      "payment": "Thanh toán",
+      "atCounter": "Trả tại quầy",
+      "nothing": "Không thu tiền"
+    },
+    "how": {
+      "title": "Cách nhận món",
+      "goTitle": "Đến quầy",
+      "goBody": "Quầy {seller}, Tasco Mall",
+      "codeTitle": "Đọc mã nhận",
+      "codeBody": "Nhân viên nhập mã của bạn",
+      "payTitle": "Kiểm món, trả tiền",
+      "payBody": "Tiền mặt hoặc chuyển khoản cho quán"
+    },
+    "steps": {
+      "label": "Các bước của đơn",
+      "placed": "Đã đặt {time}",
+      "preparing": "Chuẩn bị",
+      "ready": "Sẵn sàng",
+      "readyAt": "Sẵn sàng {time}",
+      "collected": "Đã nhận"
+    },
+    "timeline": {
+      "title": "Trạng thái",
+      "placed": "Bạn đã đặt đơn",
+      "ready": "Món đã sẵn sàng",
+      "collected": "Bạn đã nhận món",
+      "cancelled": "Bạn đã huỷ đơn",
+      "withReason": "{time} · {reason}",
+      "returned": "{units} phần đã trả lại cho quán",
+      "returnedBody": "Người khác có thể đặt",
+      "refused": "Quán không giao đơn",
+      "reason": {
+        "not_suitable": "món không còn phù hợp",
+        "wrong_items": "món không đúng với đơn",
+        "other": "lý do khác"
+      },
+      "expired": "Hết giờ nhận",
+      "expiredBody": "{until} · đơn ghi là không nhận",
+      "summary": {
+        "collected": "Bạn đã trả tiền cho quán khi nhận món.",
+        "cancelled": "Bạn chưa trả tiền nên không có gì phải hoàn.",
+        "refused": "Bạn chưa trả tiền nên không có gì phải hoàn.",
+        "expired": "Lần sau nếu không kịp, hãy huỷ trước giờ mở để món đến được người khác."
+      }
+    },
+    "cancel": {
+      "open": "Huỷ đơn",
+      "title": "Huỷ đơn {number}?",
+      "body": "{units} phần sẽ trả lại cho {seller} để người khác đặt. Bạn chưa trả tiền nên không mất phí nào. Chọn lý do (không bắt buộc):",
+      "reason": "Lý do huỷ",
+      "reasons": {
+        "late": "Không đến kịp",
+        "mistake": "Đặt nhầm",
+        "other": "Lý do khác"
+      },
+      "keep": "Giữ đơn",
+      "confirm": "Huỷ đơn",
+      "tooLate": "Đã quá giờ huỷ miễn phí: khung nhận đã mở.",
+      "failed": "Chưa huỷ được đơn. Thử lại, hoặc báo mã tham chiếu {reference}."
+    },
+    "date": "{day}/{month}"
+  },
+  "Splash": {
+    "tagline": "Món ngon còn lại cuối ngày, giá tốt hơn",
+    "loading": "Đang tải…"
+  },
+  "Dish": {
+    "seeSeller": "Xem quán",
+    "placeAway": "{place} · {distance}",
+    "portion": "{kind} · 1 {unit}",
+    "window": "Nhận hôm nay {from} – {until}",
+    "rating": "Quán được {rating} sao",
+    "more": "Món khác của quán đang giảm",
+    "other": "{name}, {price}",
+    "saving": "Giảm {percent}% · còn {units} phần",
+    "share": "Chia sẻ món",
+    "copied": "Đã chép đường dẫn"
+  },
+  "Seller": {
+    "search": "Tìm món của {seller}",
+    "rating": "Điểm của quán",
+    "window": "Giờ nhận hôm nay",
+    "where": "Nơi nhận",
+    "directions": "Chỉ đường ›",
+    "kinds": "Loại món",
+    "onSale": "Đang giảm",
+    "tonight": "Đang giảm tối nay",
+    "nothing": "Quán chưa có món tối nay",
+    "home": "Xem món khác"
+  },
+  "Cart": {
+    "title": "Xác nhận đơn",
+    "close": "Đóng",
+    "add": "Thêm một phần {name}",
+    "remove": "Bớt một phần {name}",
+    "quantity": "{quantity} phần {name} trong giỏ",
+    "addToCart": "Thêm vào giỏ",
+    "view": "Xem giỏ hàng · {units} phần",
+    "soldOut": "Đã hết",
+    "portionsLeft": "-{percent}% · còn {units} phần",
+    "portionsChosen": "-{percent}% · đã chọn đủ {units} phần",
+    "summary": "{units} phần · tiết kiệm {saved}",
+    "open": "Xem giỏ hàng",
+    "empty": "Giỏ hàng đang trống",
+    "browse": "Xem món tối nay",
+    "collectAt": "Nhận món tại",
+    "place": "{seller} · {place}",
+    "away": "Cách bạn {distance}",
+    "window": "Nhận hôm nay {from}–{until}",
+    "directions": "Chỉ đường",
+    "pay": "Thanh toán",
+    "transfer": "Chuyển khoản tại quầy",
+    "transferHint": "Quét QR của quán khi nhận món",
+    "cash": "Tiền mặt",
+    "cashHint": "Trả khi nhận món",
+    "summaryTitle": "Tóm tắt đơn",
+    "edit": "Sửa món",
+    "editAt": "Sửa món của {seller}",
+    "line": "{quantity}× {name}",
+    "dishes": "Tiền món ({units} phần)",
+    "total": "Tổng tiền",
+    "cancelTitle": "Chính sách huỷ",
+    "cancelBody": "Huỷ miễn phí trước {time}.",
+    "cancelAt": "{seller}: {body}",
+    "totalSummary": "Tổng {units} phần · tiết kiệm {saved}",
+    "order": "Đặt món",
+    "contactTitle": "Người đến nhận",
+    "contactHint": "Quán gọi tên này khi bạn đến và gọi số này nếu cần.",
+    "nameLabel": "Tên",
+    "phoneLabel": "Số điện thoại",
+    "nameInvalid": "Nhập tên từ 1 đến 50 ký tự.",
+    "phoneInvalid": "Nhập số điện thoại 10 số, bắt đầu bằng 0.",
+    "contactSubmit": "Tiếp tục",
+    "confirmTitle": "Xác nhận đặt đơn với số điện thoại",
+    "confirmYes": "Đúng, đặt món",
+    "confirmEdit": "Sửa",
+    "goneOne": "{name} vừa hết",
+    "goneMany": "{count} món vừa hết",
+    "goneBody": "Người khác vừa đặt phần cuối. Bạn chưa bị tính tiền.",
+    "fewerOne": "{name} chỉ còn {left} phần",
+    "fewerMany": "{count} món còn ít phần hơn bạn chọn",
+    "fewerBody": "Người khác vừa đặt trước bạn. Bạn chưa bị tính tiền.",
+    "orderRest": "Đặt {what} · {price}",
+    "restUnits": "{units} phần còn lại",
+    "otherDishes": "Xem món khác của quán",
+    "orderFailed": "Chưa đặt được món. Thử lại, hoặc báo mã tham chiếu {reference}.",
+    "orderFailedPlain": "Chưa đặt được món. Kiểm tra mạng rồi thử lại."
+  },
   "AccountSettings": {
     "title": "Cài đặt tài khoản",
     "details": "Thông tin tài khoản",
@@ -345,22 +604,6 @@
     "saving": "Đang lưu…",
     "cancel": "Huỷ",
     "nameFailed": "Chưa lưu được tên. Thử lại sau ít phút."
-  },
-  "TopBar": {
-    "back": "Quay lại",
-    "home": "Second Bite, về trang chủ"
-  },
-  "BottomNav": {
-    "label": "Điều hướng chính",
-    "home": "Trang chủ",
-    "orders": "Đơn của tôi",
-    "saved": "Yêu thích",
-    "account": "Tài khoản",
-    "soon": "(sắp có)"
-  },
-  "Splash": {
-    "tagline": "Món ngon còn lại cuối ngày, giá tốt hơn",
-    "loading": "Đang tải…"
   },
   "DeleteAccount": {
     "title": "Xoá tài khoản",
@@ -722,6 +965,90 @@
         "title": "Không tìm thấy thao tác",
         "body": "Không có thao tác nào khớp bộ lọc.",
         "clear": "Xoá bộ lọc"
+      }
+    },
+    "closeToast": "Đóng thông báo",
+    "settings": {
+      "title": "Cài đặt",
+      "nav": "Mục cài đặt",
+      "offers": "Bài đăng",
+      "email": "Email",
+      "admins": "Quản trị viên"
+    },
+    "email": {
+      "title": "Email",
+      "provider": {
+        "title": "Nhà cung cấp",
+        "label": "Nhà cung cấp email",
+        "smtp": "SMTP",
+        "brevo": "Brevo",
+        "using": "Đang dùng {provider}",
+        "notConfigured": "Chưa cấu hình"
+      },
+      "sender": {
+        "title": "Người gửi",
+        "address": "Địa chỉ gửi",
+        "name": "Tên người gửi"
+      },
+      "smtp": {
+        "title": "Máy chủ SMTP",
+        "host": "Host",
+        "port": "Port",
+        "security": "Bảo mật",
+        "none": "Không mã hoá",
+        "starttls": "STARTTLS",
+        "tls": "TLS",
+        "user": "User",
+        "password": "Mật khẩu",
+        "passwordNew": "Nhập mật khẩu"
+      },
+      "brevo": {
+        "title": "Brevo",
+        "key": "API key",
+        "keyNew": "Dán API key của Brevo"
+      },
+      "kept": "Đã lưu · để trống để giữ nguyên",
+      "test": {
+        "title": "Gửi thử",
+        "to": "Gửi tới",
+        "hint": "Dùng cấu hình đã lưu. Mặc định là email của bạn; đổi để thử hộp thư khác (Gmail, Outlook…).",
+        "saveFirst": "Lưu thay đổi trước khi gửi thử: email thử dùng cấu hình đã lưu.",
+        "notConfigured": "Lưu cấu hình trước rồi mới gửi thử được.",
+        "invalid": "Nhập một địa chỉ email hợp lệ.",
+        "send": "Gửi email thử",
+        "sent": "Đã gửi email thử tới {to}",
+        "sentHint": "Mở hộp thư để kiểm tra; không thấy thì xem mục Spam.",
+        "failed": "Không gửi được tới {to}",
+        "unknown": "Chưa gửi được. Thử lại sau giây lát.",
+        "reference": "mã {reference}"
+      },
+      "footer": {
+        "updated": "Cập nhật lần cuối lúc {time}, {day}",
+        "never": "Chưa lưu lần nào",
+        "dirty": "Bạn có thay đổi chưa lưu",
+        "cancel": "Huỷ",
+        "save": "Lưu thay đổi",
+        "create": "Lưu cấu hình",
+        "saved": "Đã lưu cấu hình email",
+        "savedHint": "Email tiếp theo gửi bằng cấu hình mới."
+      },
+      "conflict": {
+        "title": "Người khác vừa lưu cấu hình email",
+        "body": "Thay đổi của bạn chưa được lưu. Tải lại để xem bản mới rồi sửa tiếp.",
+        "reload": "Tải lại"
+      },
+      "refused": "Chưa lưu được",
+      "failed": "Chưa lưu được. Thử lại sau giây lát.",
+      "reference": "mã {reference}",
+      "errors": {
+        "senderAddress": "Nhập một địa chỉ email hợp lệ.",
+        "senderName": "Nhập tên người gửi, tối đa 100 ký tự.",
+        "smtpHost": "Nhập host của máy chủ SMTP.",
+        "smtpPort": "Port là số từ 1 đến 65535.",
+        "passwordNeeded": "Nhập mật khẩu cho user này.",
+        "passwordDropped": "Đã đổi máy chủ nên mật khẩu đã lưu sẽ bị xoá. Nhập mật khẩu cho máy chủ mới.",
+        "noTls": "Có user và mật khẩu thì phải dùng STARTTLS hoặc TLS.",
+        "brevoKey": "Nhập API key của Brevo."
       }
     }
   }

@@ -7,11 +7,9 @@ import { OfferCard } from "./offer-card";
 // cards two abreast from a phone up (Figma "lưới món").
 export function OfferList({
   offers,
-  showSeller = false,
   compact = false,
 }: {
   offers: readonly OfferSummary[];
-  showSeller?: boolean;
   compact?: boolean;
 }) {
   return (
@@ -25,7 +23,7 @@ export function OfferList({
     >
       {offers.map((offer) => (
         <li key={offer.id} className="flex min-w-0">
-          <OfferCard offer={offer} showSeller={showSeller} compact={compact} className="w-full" />
+          <OfferCard offer={offer} compact={compact} className="w-full" />
         </li>
       ))}
     </ul>

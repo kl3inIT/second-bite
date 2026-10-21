@@ -93,6 +93,7 @@ FROM (
       AND (sqlc.narg(latitude)::float8 IS NULL
            OR ST_DWithin(o.location, ST_SetSRID(ST_MakePoint(sqlc.narg(longitude)::float8, sqlc.narg(latitude)::float8), 4326)::geography, sqlc.arg(radius_m)::float8))
       AND (COALESCE(cardinality(sqlc.arg(kinds)::text[]), 0) = 0 OR o.kind = ANY (sqlc.arg(kinds)::text[]))
+      AND (sqlc.narg(min_price)::bigint IS NULL OR o.price_vnd >= sqlc.narg(min_price)::bigint)
       AND (sqlc.narg(max_price)::bigint IS NULL OR o.price_vnd <= sqlc.narg(max_price)::bigint)
       AND (sqlc.narg(collect_from)::timestamptz IS NULL OR o.window_end > sqlc.narg(collect_from)::timestamptz)
       AND (sqlc.narg(collect_to)::timestamptz IS NULL OR o.window_start <= sqlc.narg(collect_to)::timestamptz)
@@ -173,3 +174,16 @@ LIMIT @max_rows;
 
 -- name: LatestOffers :many
 SELECT id, name, seller_id, seller_name, created_at FROM offer_offers ORDER BY created_at DESC, id DESC LIMIT @max_rows;
+-- name: TakeUnits :one
+-- Takes units for an order in the order's transaction: only from an offer on
+-- sale whose window is not over and that has them, so the last unit goes to
+-- one order.
+UPDATE offer_offers SET units_left = units_left - @units, updated_at = now()
+WHERE id = @id AND state = 'on_sale' AND window_end > now() AND units_left >= @units
+RETURNING id, seller_id, name, unit, price_vnd, original_price_vnd, photo_id, window_start, window_end,
+          latitude, longitude, address, seller_name;
+
+-- name: ReturnUnits :exec
+-- Gives back the units of a cancelled order, never above the offer's units.
+UPDATE offer_offers SET units_left = LEAST(units, units_left + @units), updated_at = now()
+WHERE id = @id;

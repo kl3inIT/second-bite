@@ -9,6 +9,14 @@
     "searchLabel": "Search dishes or sellers",
     "searchPlaceholder": "Search pastries, fried chicken, pizza…",
     "kindsLabel": "Kinds of food",
+    "dishes": {
+      "pho": "Phở",
+      "noodles": "Noodles",
+      "sushi": "Sushi",
+      "cakes": "Cakes",
+      "vegetables": "Vegetables",
+      "fruit": "Fruit"
+    },
     "dealsTitle": "Good food tonight at Tasco Mall",
     "upTo": "Up to",
     "upToPercent": "{percent}%",
@@ -26,10 +34,20 @@
     "titleNearby": "<hidden>Tonight around </hidden>My location",
     "areaNearby": "Sellers near you",
     "nearbyEmpty": "Nothing around here yet",
-    "nearbyEmptyHint": "The sellers near you have posted nothing tonight. You can see what is on at Tasco Mall.",
+    "nearbyEmptyHint": "Shops near you usually post what is left from 18:00. Follow what is coming below, or see Tasco Mall.",
     "seeMall": "See dishes at Tasco Mall",
     "mallOffers": "On now at Tasco Mall",
-    "filters": "Filter dishes"
+    "filters": "Filter dishes",
+    "upcoming": "Coming tonight",
+    "recommended": "Picked for you",
+    "expected": "{units} expected",
+    "opensAt": "On sale at {time}",
+    "follow": "Tell me when {dish} goes on sale",
+    "followTitle": "Tell you when {seller} starts selling?",
+    "followBody": "{seller} expects {units} more portions, on sale at {time} tonight. Turn on alerts to hear the moment they are up, before they run out.",
+    "followOn": "Turn on alerts",
+    "followLater": "Not now",
+    "close": "Close"
   },
   "Area": {
     "open": "Choose where to look",
@@ -54,19 +72,12 @@
     "recent": "Recent searches",
     "clearRecent": "Clear",
     "forget": "Remove “{words}” from recent searches",
-    "kinds": "Search by kind",
-    "tabs": "Dishes or sellers",
-    "dishesTab": "Dishes ({count})",
-    "sellersTab": "Sellers ({count})",
     "filters": "Filters",
     "distance": "Distance",
     "anyDistance": "Any distance",
     "within": "Within {distance}",
     "price": "Price",
-    "anyPrice": "Any price",
-    "under": "Under {price}",
     "when": "Collection time",
-    "anyTime": "Any time",
     "now": "Collect now",
     "kind": "Kind",
     "anyKind": "Any kind",
@@ -78,12 +89,25 @@
       "discount": "Biggest discount"
     },
     "dishesFor": "{count, plural, one {# dish} other {# dishes}} for “{q}”",
-    "dishesHere": "{count, plural, one {# dish} other {# dishes}} on sale",
-    "sellersFor": "{count, plural, one {# seller} other {# sellers}} with dishes for “{q}”",
-    "sellersHere": "{count, plural, one {# seller} other {# sellers}} on sale",
-    "sellerWindow": "Collect {from}–{until}",
+    "dishesHere": "{count, plural, one {# dish} other {# dishes}} on sale {place, select, near {nearby} other {at Tasco Mall}}",
     "nothing": "No dish matches.",
-    "everything": "See every dish"
+    "everything": "See every dish",
+    "sortBy": "Sort",
+    "from": "From",
+    "to": "To",
+    "range": "{from}–{to}",
+    "rangeFrom": "From {from}",
+    "rangeTo": "Up to {to}",
+    "priceOrder": "The lowest price must be below the highest.",
+    "timeOrder": "The start must be before the end.",
+    "apply": "Apply",
+    "clearFilter": "Clear",
+    "quick": "Quick picks",
+    "anyTime": "Any time",
+    "lowest": "Lowest",
+    "highest": "Highest",
+    "popular": "Popular at Tasco Mall",
+    "onSale": "{count, plural, one {# dish} other {# dishes}} on sale"
   },
   "LanguageSwitcher": {
     "label": "Chuyển sang tiếng Việt"
@@ -114,7 +138,10 @@
     "left": "{units} left",
     "windowAway": "{window} · {distance}",
     "seller": "{seller}",
-    "sellerAway": "{seller} · {distance} away"
+    "sellerAway": "{seller} · {distance} away",
+    "windowAt": "{window} · {place}",
+    "rating": "Seller rated {rating} out of 5",
+    "heart": "Favourite {name}"
   },
   "Intro": {
     "tagline": "End-of-day food from the counters at Tasco Mall, for less.",
@@ -324,6 +351,238 @@
     "signedIn": "Signed in",
     "settings": "Account settings"
   },
+  "TopBar": {
+    "back": "Back",
+    "home": "Second Bite, back to the home"
+  },
+  "BottomNav": {
+    "label": "Main navigation",
+    "home": "Home",
+    "orders": "My orders",
+    "saved": "Saved",
+    "account": "Account",
+    "soon": "(coming soon)"
+  },
+  "Orders": {
+    "orderTitle": "Your order",
+    "togetherTitle": "One order from {sellers} shops",
+    "togetherBody": "{names} · {total} in all. Each shop has its own collection code; pay at its counter.",
+    "mine": "My orders",
+    "mineLead": "To collect and done",
+    "lists": "Order lists",
+    "tabOpen": "To collect ({count})",
+    "tabEnded": "Done ({count})",
+    "noneOpen": "You have no orders to collect.",
+    "noneEnded": "No finished orders yet.",
+    "before": "Earlier",
+    "readyUntil": "Ready · until {until}",
+    "collectFrom": "Collect from {from}",
+    "payOnCollect": "Pay when you collect",
+    "seeCode": "See collection code {code}",
+    "seeOrder": "See order",
+    "impact": "{meals, plural, one {# good meal} other {# good meals}}, eaten to the last bite",
+    "impactSaved": "You saved {saved} on the original prices",
+    "status": {
+      "confirmed": "Confirmed",
+      "ready": "Ready",
+      "collected": "Collected",
+      "cancelled": "Cancelled",
+      "refused": "Refused",
+      "expired": "Expired"
+    },
+    "meta": "Order {number} · placed at {time} · {seller}, {address}",
+    "hoursMinutes": "{hours} h {minutes} min",
+    "minutes": "{minutes} min",
+    "headline": {
+      "confirmed": "Confirmed · the shop is preparing it",
+      "ready": "Ready to collect"
+    },
+    "opensIn": "Collect today at the {seller} counter · opens in {left}",
+    "closesIn": "Collect today at the {seller} counter · {left} left",
+    "changeOfMind": "Changed your mind?",
+    "changeOfMindBody": "Cancel free of charge before {from}. After that it cannot be cancelled: the food is set aside for you.",
+    "ended": {
+      "collected": "Collected",
+      "cancelled": "Order cancelled",
+      "refused": "Refused by the shop",
+      "expired": "Order expired"
+    },
+    "endedBody": {
+      "collected": "Thank you for saving {units, plural, one {# portion} other {# portions}} of good food.",
+      "cancelled": "No charge · {units, plural, one {# portion} other {# portions}} back with the shop",
+      "refused": "You pay nothing for this order.",
+      "expired": "Nobody came before {until} · recorded as not collected · no charge"
+    },
+    "tonightMore": "Plenty more tonight",
+    "seeOthers": "See other offers",
+    "details": "Order details",
+    "counterToday": "{address} · {from}–{until} today",
+    "units": "{units, plural, one {# portion} other {# portions}}",
+    "code": "Collection code",
+    "codeHint": "Show the code at the counter. It works once.",
+    "codeLater": "The code shows when the shop marks it ready, or from {from}.",
+    "directionsLabel": "The way to the counter",
+    "placeLine": "{seller} · {address}",
+    "placeHint": "Tasco Mall Long Biên",
+    "directions": "Directions",
+    "opensMaps": "(opens Google Maps)",
+    "signInTitle": "No orders here yet",
+    "signInBody": "No order was placed in this browser. If you ordered while signed in, sign in to see it.",
+    "signIn": "Sign in",
+    "facts": {
+      "day": "Day",
+      "window": "Collection window",
+      "what": "Food",
+      "total": "Total",
+      "number": "Order number",
+      "payment": "Payment",
+      "atCounter": "At the counter",
+      "nothing": "No charge"
+    },
+    "how": {
+      "title": "How to collect",
+      "goTitle": "Go to the counter",
+      "goBody": "The {seller} counter, Tasco Mall",
+      "codeTitle": "Read your code",
+      "codeBody": "The staff enter your code",
+      "payTitle": "Check, then pay",
+      "payBody": "Cash or a transfer to the shop"
+    },
+    "steps": {
+      "label": "The order's steps",
+      "placed": "Placed {time}",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "readyAt": "Ready {time}",
+      "collected": "Collected"
+    },
+    "timeline": {
+      "title": "Status",
+      "placed": "You placed the order",
+      "ready": "The food was ready",
+      "collected": "You collected it",
+      "cancelled": "You cancelled the order",
+      "withReason": "{time} · {reason}",
+      "returned": "{units, plural, one {# portion} other {# portions}} back with the shop",
+      "returnedBody": "Someone else can order them",
+      "refused": "The shop refused the order",
+      "reason": {
+        "not_suitable": "the food was no longer fit",
+        "wrong_items": "the food did not match the order",
+        "other": "another reason"
+      },
+      "expired": "Collection time over",
+      "expiredBody": "{until} · recorded as not collected",
+      "summary": {
+        "collected": "You paid the shop when you collected.",
+        "cancelled": "You had not paid, so there is nothing to refund.",
+        "refused": "You had not paid, so there is nothing to refund.",
+        "expired": "Next time, cancel before the window opens so the food reaches someone else."
+      }
+    },
+    "cancel": {
+      "open": "Cancel order",
+      "title": "Cancel order {number}?",
+      "body": "{units, plural, one {# portion goes} other {# portions go}} back to {seller} for someone else. You have not paid, so nothing is charged. Choose a reason (optional):",
+      "reason": "Reason",
+      "reasons": {
+        "late": "Cannot make it",
+        "mistake": "Ordered by mistake",
+        "other": "Another reason"
+      },
+      "keep": "Keep order",
+      "confirm": "Cancel order",
+      "tooLate": "Too late to cancel free of charge: the collection window has opened.",
+      "failed": "The order was not cancelled. Try again, or report the reference {reference}."
+    },
+    "date": "{day}/{month}"
+  },
+  "Splash": {
+    "tagline": "Good food left at the end of the day, for less",
+    "loading": "Loading…"
+  },
+  "Dish": {
+    "seeSeller": "See shop",
+    "placeAway": "{place} · {distance}",
+    "portion": "{kind} · 1 {unit}",
+    "window": "Collect today {from} – {until}",
+    "rating": "Shop rated {rating} stars",
+    "more": "More on sale from this shop",
+    "other": "{name}, {price}",
+    "saving": "{percent}% off · {units} left",
+    "share": "Share this dish",
+    "copied": "Link copied"
+  },
+  "Seller": {
+    "search": "Search {seller}'s dishes",
+    "rating": "Shop rating",
+    "window": "Collect today",
+    "where": "Where to collect",
+    "directions": "Directions ›",
+    "kinds": "Kinds of dish",
+    "onSale": "On sale",
+    "tonight": "On sale tonight",
+    "nothing": "This shop has nothing on sale tonight",
+    "home": "See other dishes"
+  },
+  "Cart": {
+    "title": "Confirm order",
+    "close": "Close",
+    "add": "Add one {name}",
+    "remove": "Remove one {name}",
+    "quantity": "{quantity} {name} in the cart",
+    "addToCart": "Add to cart",
+    "view": "View cart · {units}",
+    "soldOut": "Sold out",
+    "portionsLeft": "-{percent}% · {units} left",
+    "portionsChosen": "-{percent}% · all {units} chosen",
+    "summary": "{units} portions · save {saved}",
+    "open": "View cart",
+    "empty": "Your cart is empty",
+    "browse": "See tonight's dishes",
+    "collectAt": "Collect at",
+    "place": "{seller} · {place}",
+    "away": "{distance} from you",
+    "window": "Collect today {from}–{until}",
+    "directions": "Directions",
+    "pay": "Payment",
+    "transfer": "Bank transfer at the counter",
+    "transferHint": "Scan the shop's QR code when you collect",
+    "cash": "Cash",
+    "cashHint": "Pay when you collect",
+    "summaryTitle": "Order summary",
+    "edit": "Edit",
+    "editAt": "Edit the dishes from {seller}",
+    "line": "{quantity}× {name}",
+    "dishes": "Dishes ({units} portions)",
+    "total": "Total",
+    "cancelTitle": "Cancellation policy",
+    "cancelBody": "Free cancellation before {time}.",
+    "cancelAt": "{seller}: {body}",
+    "totalSummary": "{units} portions in all · save {saved}",
+    "order": "Place order",
+    "contactTitle": "Who collects",
+    "contactHint": "The seller calls this name when you arrive and rings this number if needed.",
+    "nameLabel": "Name",
+    "phoneLabel": "Phone number",
+    "nameInvalid": "Give a name of 1 to 50 characters.",
+    "phoneInvalid": "Give a 10-digit phone number starting with 0.",
+    "contactSubmit": "Continue",
+    "confirmTitle": "Place the order with the phone number",
+    "confirmYes": "Yes, order",
+    "confirmEdit": "Edit",
+    "goneOne": "{name} just sold out",
+    "goneMany": "{count} dishes just sold out",
+    "goneBody": "Someone else just ordered the last portions. You have not been charged.",
+    "fewerOne": "Only {left} of {name} left",
+    "fewerMany": "{count} dishes have fewer portions left",
+    "fewerBody": "Someone else just ordered first. You have not been charged.",
+    "orderRest": "Order {what} · {price}",
+    "restUnits": "the {units} portions left",
+    "otherDishes": "See the seller's other dishes",
+    "orderFailed": "The order did not go through. Try again, or quote the reference {reference}.",
+    "orderFailedPlain": "The order did not go through. Check your connection and try again."
+  },
   "AccountSettings": {
     "title": "Account settings",
     "details": "Account details",
@@ -345,22 +604,6 @@
     "saving": "Saving…",
     "cancel": "Cancel",
     "nameFailed": "The name was not saved. Try again in a few minutes."
-  },
-  "TopBar": {
-    "back": "Back",
-    "home": "Second Bite, back to the home"
-  },
-  "BottomNav": {
-    "label": "Main navigation",
-    "home": "Home",
-    "orders": "My orders",
-    "saved": "Saved",
-    "account": "Account",
-    "soon": "(coming soon)"
-  },
-  "Splash": {
-    "tagline": "Good food left at the end of the day, for less",
-    "loading": "Loading…"
   },
   "DeleteAccount": {
     "title": "Delete your account",
@@ -722,6 +965,90 @@
         "title": "No actions found",
         "body": "No action matches the filters.",
         "clear": "Clear the filters"
+      }
+    },
+    "closeToast": "Close notification",
+    "settings": {
+      "title": "Settings",
+      "nav": "Settings pages",
+      "offers": "Posts",
+      "email": "Email",
+      "admins": "Admins"
+    },
+    "email": {
+      "title": "Email",
+      "provider": {
+        "title": "Provider",
+        "label": "Email provider",
+        "smtp": "SMTP",
+        "brevo": "Brevo",
+        "using": "Using {provider}",
+        "notConfigured": "Not set up"
+      },
+      "sender": {
+        "title": "Sender",
+        "address": "Sender address",
+        "name": "Sender name"
+      },
+      "smtp": {
+        "title": "SMTP server",
+        "host": "Host",
+        "port": "Port",
+        "security": "Security",
+        "none": "No encryption",
+        "starttls": "STARTTLS",
+        "tls": "TLS",
+        "user": "User",
+        "password": "Password",
+        "passwordNew": "Enter the password"
+      },
+      "brevo": {
+        "title": "Brevo",
+        "key": "API key",
+        "keyNew": "Paste Brevo's API key"
+      },
+      "kept": "Saved · leave empty to keep it",
+      "test": {
+        "title": "Test email",
+        "to": "Send to",
+        "hint": "Uses the saved settings. Your own address by default; change it to try another mailbox (Gmail, Outlook…).",
+        "saveFirst": "Save your changes before testing: the test email uses the saved settings.",
+        "notConfigured": "Save the settings first, then send a test.",
+        "invalid": "Enter a valid email address.",
+        "send": "Send test email",
+        "sent": "Test email sent to {to}",
+        "sentHint": "Check the mailbox; if it is not there, look in Spam.",
+        "failed": "Could not send to {to}",
+        "unknown": "Not sent yet. Try again shortly.",
+        "reference": "reference {reference}"
+      },
+      "footer": {
+        "updated": "Last updated at {time}, {day}",
+        "never": "Never saved",
+        "dirty": "You have unsaved changes",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "create": "Save settings",
+        "saved": "Email settings saved",
+        "savedHint": "The next email uses them."
+      },
+      "conflict": {
+        "title": "Someone just saved the email settings",
+        "body": "Your changes are not saved. Reload to see the new version, then edit again.",
+        "reload": "Reload"
+      },
+      "refused": "Not saved",
+      "failed": "Not saved yet. Try again shortly.",
+      "reference": "reference {reference}",
+      "errors": {
+        "senderAddress": "Enter a valid email address.",
+        "senderName": "Enter the sender name, up to 100 characters.",
+        "smtpHost": "Enter the SMTP server's host.",
+        "smtpPort": "The port is a number from 1 to 65535.",
+        "passwordNeeded": "Enter the password for this user.",
+        "passwordDropped": "The server changed, so the saved password will be dropped. Enter the password for the new server.",
+        "noTls": "With a user and password, use STARTTLS or TLS.",
+        "brevoKey": "Enter Brevo's API key."
       }
     }
   }

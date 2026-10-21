@@ -27,6 +27,13 @@
   ::selection {
     @apply bg-secondary-hover text-foreground;
   }
+  /* Whatever can be pressed shows the hand; Tailwind v4 leaves buttons with the arrow (DESIGN.md › Do's). */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label:has(input:not(:disabled)) {
+    cursor: pointer;
+  }
 }
 
 /* Figma K0: the bitten "o" drops into the wordmark, the tagline follows, then the splash fades and stops
@@ -137,7 +144,51 @@
   }
 }
 
+/* Around a search field with its own clear button: the browser's is hidden, so only one × shows. */
+@utility search-cancel-none {
+  & input::-webkit-search-cancel-button {
+    appearance: none;
+  }
+}
+
 /* Floats the bottom bar 16px above the screen's foot, or clear of a phone's home indicator when that is taller. */
 @utility bottom-safe-4 {
   bottom: max(calc(var(--spacing) * 4), env(safe-area-inset-bottom, 0px));
+}
+
+/* A row that runs on its own (Marquee): the list and its copy slide by half their width, then start over. It
+   stops under the pointer or the focus, and takes the pace of its number of items (--marquee-items). While it
+   stands still (on a phone, for reduced motion) it scrolls by hand. */
+@utility marquee-box {
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  /* While it runs, the tickets fade in and out at the edges instead of being cut. */
+  &:has(.marquee) {
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 1.5rem,
+      black calc(100% - 1.5rem),
+      transparent
+    );
+  }
+}
+
+@utility marquee {
+  /* Four seconds for each item to pass, so a longer row runs at the same pace. */
+  animation: marquee calc(var(--marquee-items, 6) * 4s) linear infinite;
+  .marquee-box:hover &,
+  .marquee-box:focus-within & {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
 }

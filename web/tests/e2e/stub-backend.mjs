@@ -4,6 +4,7 @@
 // tonight's prices and windows are made up. Adapted from BeyondPilot's
 // web/tests/e2e/stub-backend.mjs.
 import { AsyncLocalStorage } from "node:async_hooks";
+import { randomUUID } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
@@ -63,7 +64,19 @@ function tonight(hour, minute) {
 }
 
 /** An offer as `GET /offers` answers (api/openapi.yaml › FoundBody), at Tasco Mall. */
-function sample({ id, name, kind, price, originalPrice, unitsLeft, unit, from, until, seller }) {
+function sample({
+  id,
+  name,
+  description = "",
+  kind,
+  price,
+  originalPrice,
+  unitsLeft,
+  unit,
+  from,
+  until,
+  seller,
+}) {
   const status = unitsLeft > 0 ? "on_sale" : "sold_out";
   const photo = `ph-${id.slice(3)}`;
   return {
@@ -71,7 +84,7 @@ function sample({ id, name, kind, price, originalPrice, unitsLeft, unit, from, u
     sellerId: seller.id,
     status,
     name,
-    description: "",
+    description,
     kind,
     unit,
     units: Math.max(unitsLeft, 1),
@@ -93,14 +106,55 @@ function sample({ id, name, kind, price, originalPrice, unitsLeft, unit, from, u
   };
 }
 
+/** Surplus expected later tonight: an offer with estimated units instead of units, which nobody can order. */
+function announce({ estimatedUnits, ...fields }) {
+  const { units: _units, unitsLeft: _unitsLeft, ...offer } = sample({ ...fields, unitsLeft: 0 });
+  return { ...offer, status: "announced", estimatedUnits };
+}
+
+/** A seller's logo, served like the dishes' photographs (photoFiles below). */
+function logo(slug) {
+  const id = `ph-logo-${slug}`;
+  return { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` };
+}
+
 const sellers = {
-  laParis: { id: "se-la-paris", name: "La Paris", address: "Tầng 1" },
-  pandaChef: { id: "se-panda-chef", name: "Panda Chef", address: "Tầng 3" },
-  netHue: { id: "se-net-hue", name: "Nét Huế", address: "Tầng 3" },
-  phucLong: { id: "se-phuc-long", name: "Phúc Long", address: "Tầng 1" },
-  highlands: { id: "se-highlands", name: "Highlands Coffee", address: "Tầng 1" },
-  kfc: { id: "se-kfc", name: "KFC", address: "Tầng hầm" },
-  pizzaHut: { id: "se-pizza-hut", name: "Pizza Hut", address: "Tầng 3" },
+  laParis: {
+    id: "se-la-paris",
+    name: "La Paris",
+    address: "Tầng 1",
+    rating: 4.8,
+    photo: logo("la-paris"),
+  },
+  pandaChef: {
+    id: "se-panda-chef",
+    name: "Panda Chef",
+    address: "Tầng 3",
+    rating: 4.6,
+    photo: logo("panda-chef"),
+  },
+  netHue: {
+    id: "se-net-hue",
+    name: "Nét Huế",
+    address: "Tầng 3",
+    rating: 4.7,
+    photo: logo("net-hue"),
+  },
+  phucLong: {
+    id: "se-phuc-long",
+    name: "Phúc Long",
+    address: "Tầng 1",
+    rating: 4.5,
+    photo: logo("phuc-long"),
+  },
+  highlands: {
+    id: "se-highlands",
+    name: "Highlands Coffee",
+    address: "Tầng 1",
+    photo: logo("highlands"),
+  },
+  kfc: { id: "se-kfc", name: "KFC", address: "Tầng hầm", photo: logo("kfc") },
+  pizzaHut: { id: "se-pizza-hut", name: "Pizza Hut", address: "Tầng 3", photo: logo("pizza-hut") },
 };
 
 // Dishes from the shops' menus at Tasco Mall, at their menu price, with tonight's price and window made up.
@@ -108,6 +162,8 @@ const offers = [
   sample({
     id: "of-croissant",
     name: "Bánh Croissant Truyền Thống",
+    description:
+      "Bánh làm trong ngày, ngon nhất khi dùng trước 24 giờ. Nếu bạn dị ứng món nào, hãy hỏi quán khi đến nhận.",
     kind: "bakery",
     price: 22000,
     originalPrice: 50000,
@@ -131,7 +187,7 @@ const offers = [
   }),
   sample({
     id: "of-banh-mi",
-    name: "Bánh Mì Mềm Chà Bông",
+    name: "Bánh mì mềm chà bông",
     kind: "bakery",
     price: 35000,
     originalPrice: 75000,
@@ -225,7 +281,64 @@ const offers = [
     until: tonight(22, 0),
     seller: sellers.pizzaHut,
   }),
+  // Announcements, ahead of the contract (SEC-11 step 5; web/src/features/offers/proposed.ts).
+  announce({
+    id: "an-com-bo",
+    name: "Cơm Bò Rang Giòn",
+    kind: "prepared_food",
+    price: 32000,
+    originalPrice: 72000,
+    estimatedUnits: 6,
+    unit: "suất",
+    from: tonight(22, 0),
+    until: tonight(22, 45),
+    seller: sellers.netHue,
+  }),
+  announce({
+    id: "an-xiu-mai",
+    name: "Xíu Mại Hấp",
+    kind: "prepared_food",
+    price: 24000,
+    originalPrice: 55000,
+    estimatedUnits: 8,
+    unit: "phần",
+    from: tonight(22, 30),
+    until: tonight(23, 0),
+    seller: sellers.pandaChef,
+  }),
+  announce({
+    id: "an-ga-ran",
+    name: "3 Miếng Gà Rán",
+    kind: "prepared_food",
+    price: 45000,
+    originalPrice: 99000,
+    estimatedUnits: 5,
+    unit: "phần",
+    from: tonight(21, 45),
+    until: tonight(22, 15),
+    seller: sellers.kfc,
+  }),
 ];
+
+/** In hours from now, as RFC 3339: a window that has not opened yet, whatever the time of the test. */
+function hoursFromNow(hours) {
+  return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+}
+
+// An offer reached only by its page, never in the home's list: its window opens three hours from now, so an
+// order of it can always be cancelled free of charge in the tests.
+const laterOffer = sample({
+  id: "of-banh-bao-thit",
+  name: "Bánh bao nhân thịt, 2 chiếc",
+  kind: "prepared_food",
+  price: 25000,
+  originalPrice: 50000,
+  unitsLeft: 6,
+  unit: "túi",
+  from: hoursFromNow(3),
+  until: hoursFromNow(4),
+  seller: sellers.pandaChef,
+});
 
 // Each dish's photograph from the shop's own menu, in the git-ignored copy of Tasco Mall's food directory
 // (.tmp/tascomall-am-thuc, or STUB_PHOTOS_DIR). Without it, as in CI, a placeholder stands in.
@@ -243,8 +356,24 @@ const photoFiles = {
   "ph-bac-xiu": "highlands-coffee-2/01-bac-xiu-da.jpg",
   "ph-combo-nhom": "kfc/10-combo-nhom-3-tu-tap.jpg",
   "ph-pizza": "pizza-hut/02-pizza-thap-cam.webp",
+  "ph-com-bo": "net-hue/08-com-bo-rang-gion.jpg",
+  "ph-xiu-mai": "panda-chef/02-xiu-mai-hap.png",
+  "ph-ga-ran": "kfc/01-3-mieng-ga-ran.jpg",
+  // The sellers' logos, from the directory's list of shops.
+  "ph-logo-la-paris": "../quan-an/la-paris.png",
+  "ph-logo-panda-chef": "../quan-an/panda-chef.png",
+  "ph-logo-net-hue": "../quan-an/net-hue.png",
+  "ph-logo-kfc": "../quan-an/kfc.jpeg",
+  "ph-logo-pizza-hut": "../quan-an/pizza-hut.png",
+  "ph-logo-phuc-long": "../giai-khat/phuc-long.png",
+  "ph-logo-highlands": "../giai-khat/highlands-coffee-2.png",
 };
-const imageTypes = { ".jpg": "image/jpeg", ".png": "image/png", ".webp": "image/webp" };
+const imageTypes = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+};
 
 /** The dish's photograph when the directory is there, otherwise a placeholder. */
 async function photo(id) {
@@ -285,11 +414,15 @@ function search(url) {
   const to = url.searchParams.get("collectTo");
   const near = url.searchParams.get("near")?.split(",").map(Number);
   const radiusKm = Number(url.searchParams.get("radiusKm") ?? DEFAULT_RADIUS_KM);
+  const minPrice = url.searchParams.get("minPrice");
   const maxPrice = url.searchParams.get("maxPrice");
+  const sellerId = url.searchParams.get("sellerId");
   const found = offers.filter(
     (offer) =>
       (!q || fold(offer.name).includes(fold(q)) || fold(offer.seller.name).includes(fold(q))) &&
       (!kind || kind.split(",").includes(offer.kind)) &&
+      (!sellerId || offer.sellerId === sellerId) &&
+      (!minPrice || offer.priceVnd >= Number(minPrice)) &&
       (!maxPrice || offer.priceVnd <= Number(maxPrice)) &&
       (!to || new Date(offer.windowStart) <= new Date(to)) &&
       (!from || new Date(from) < new Date(offer.windowEnd)),
@@ -935,24 +1068,22 @@ async function adminSummaryRoutes(request, response, url) {
   return true;
 }
 // --- end Admin: Tổng quan and Báo cáo ---
-// Admin settings (SEC-62, the settings screens): GET and PUT /admin/offer-settings and /admin/email-settings, as
-// the offer and notification modules answer them. Each admin has settings of their own, so tests running side by
-// side do not change each other's. An admin whose address starts with "admin.trong." has no email settings yet
-// (503 NOTIFICATION_EMAIL_NOT_CONFIGURED). A minimum discount of 77 and the sender name "Từ chối" stand for
-// values the backend refuses at a field; the checks the modules make (settings.go) are made here too. A read
+// Admin settings (SEC-62, the settings screens): GET and PUT /admin/offer-settings, as the offer module answers
+// them; the email settings are SEC-75's (emailSettingsRoutes). Each admin has settings of their own, so tests
+// running side by side do not change each other's. A minimum discount of 77 stands for a value the backend refuses
+// at a field; the checks the module makes (settings.go) are made here too. A read
 // answers the settings' version in ETag and a save must send it back in If-Match, or is refused with 412 and
 // changes nothing (platform/version.go, SEC-75).
 const offerSettingsOf = new Map();
-const emailSettingsOf = new Map();
 
 /** The version of settings changed at updatedAt, as platform.ETag writes it: microseconds, quoted. */
-function etagOf(updatedAt) {
+function versionOf(updatedAt) {
   return `"${Date.parse(updatedAt) * 1000}"`;
 }
 
 /** Whether a save names the version it read; refuses it with 412 when it does not. */
 function sameVersion(request, response, updatedAt) {
-  if (request.headers["if-match"] === etagOf(updatedAt)) return true;
+  if (request.headers["if-match"] === versionOf(updatedAt)) return true;
   problem(response, 412, "PLATFORM_CHANGED_SINCE_READ");
   return false;
 }
@@ -977,33 +1108,8 @@ function refusedAt(response, code, pointers) {
   );
 }
 
-function emailSettingsFor(account) {
-  if (!emailSettingsOf.has(account.email)) {
-    emailSettingsOf.set(
-      account.email,
-      account.email.startsWith("admin.trong.")
-        ? null
-        : {
-            provider: "smtp",
-            senderAddress: "noreply@example.com",
-            senderName: "Second Bite",
-            smtpHost: "smtp.example.com",
-            smtpPort: 587,
-            smtpSecurity: "starttls",
-            smtpUsername: "mailer@example.com",
-            smtpPasswordSet: true,
-            brevoApiKeySet: false,
-            updatedAt: "2026-10-19T07:20:00Z",
-          },
-    );
-  }
-  return emailSettingsOf.get(account.email);
-}
-
 async function adminSettingsRoutes(request, response, url) {
-  if (url.pathname !== "/admin/offer-settings" && url.pathname !== "/admin/email-settings") {
-    return false;
-  }
+  if (url.pathname !== "/admin/offer-settings") return false;
   const account = accounts.get(tokenOf(request));
   if (!account) {
     problem(response, 401, "IDENTITY_SESSION_INVALID");
@@ -1057,56 +1163,7 @@ async function adminSettingsRoutes(request, response, url) {
       });
     }
     const settings = offerSettingsOf.get(account.email);
-    json(response, 200, settings, { etag: etagOf(settings.updatedAt) });
-    return true;
-  }
-
-  const current = emailSettingsFor(account);
-  if (request.method === "GET") {
-    if (current) json(response, 200, current, { etag: etagOf(current.updatedAt) });
-    else problem(response, 503, "NOTIFICATION_EMAIL_NOT_CONFIGURED");
-    return true;
-  }
-  if (request.method === "PUT") {
-    // The first settings are saved from the command line, so with none there is no version to send back.
-    if (!sameVersion(request, response, current?.updatedAt ?? "")) return true;
-    const body = await readBody(request);
-    if (body.senderName === "Từ chối") {
-      refusedAt(response, "NOTIFICATION_EMAIL_SETTINGS_INVALID", ["#/senderName"]);
-      return true;
-    }
-    const next = {
-      provider: body.provider,
-      senderAddress: body.senderAddress ?? "",
-      senderName: body.senderName ?? "",
-      smtpHost: body.smtpHost ?? "",
-      smtpPort: body.smtpPort ?? 0,
-      smtpSecurity: body.smtpSecurity || "starttls",
-      smtpUsername: body.smtpUsername ?? "",
-    };
-    // A stored password goes only to the server it was entered for (notification/settings.go › setSecrets).
-    const sameServer =
-      current &&
-      ["smtpHost", "smtpPort", "smtpSecurity", "smtpUsername"].every(
-        (key) => current[key] === next[key],
-      );
-    next.smtpPasswordSet =
-      Boolean(body.smtpPassword) || Boolean(sameServer && current.smtpPasswordSet);
-    next.brevoApiKeySet = Boolean(body.brevoApiKey) || Boolean(current?.brevoApiKeySet);
-    const valid =
-      /^[^@\s]+@[^@\s]+$/.test(next.senderAddress) &&
-      next.senderName !== "" &&
-      (next.provider === "smtp"
-        ? next.smtpHost !== "" &&
-          next.smtpPort >= 1 &&
-          (next.smtpUsername === "" || (next.smtpPasswordSet && next.smtpSecurity !== "none"))
-        : next.provider === "brevo" && next.brevoApiKeySet);
-    if (!valid) {
-      refusedAt(response, "NOTIFICATION_EMAIL_SETTINGS_INVALID", []);
-      return true;
-    }
-    emailSettingsOf.set(account.email, { ...next, updatedAt: new Date().toISOString() });
-    response.writeHead(204).end();
+    json(response, 200, settings, { etag: versionOf(settings.updatedAt) });
     return true;
   }
   return false;
@@ -1418,6 +1475,166 @@ async function adminSellerRoutes(request, response, url) {
   return true;
 }
 // ── end of Admin › Cửa hàng ──────────────────────────────────────────────────────────────────────────────
+// Orders (SEC-15, SEC-76), as api/openapi.yaml describes them: placed with a name, a phone number and an
+// Idempotency-Key, signed in or not; read and cancelled until the window opens by the account that placed them
+// or with the access answered to whoever placed them; listed for the account. The stub takes no units away,
+// so the home's tests keep their counts.
+const orders = [];
+const ordersByKey = new Map();
+let nextOrder = 10001;
+const PHONE = /^0[0-9]{9}$/;
+
+function offerById(id) {
+  return [...offers, laterOffer].find((offer) => offer.id === id);
+}
+
+function shown(order) {
+  const open = order.status === "confirmed" || order.status === "ready";
+  const expired = open && new Date(order.windowEnd) <= new Date();
+  const status = expired ? "expired" : order.status;
+  const codeShown =
+    (status === "confirmed" || status === "ready") &&
+    (status === "ready" || new Date(order.windowStart) <= new Date());
+  const { code, owner: _owner, ...rest } = order;
+  return { ...rest, status, ...(codeShown ? { code } : {}) };
+}
+
+/** Whether the request comes from whoever placed the order: its account, or its access. */
+function placedBy(request, account, order) {
+  return (
+    (account && order.owner === account.email) || request.headers["order-access"] === order.access
+  );
+}
+
+async function ordersApi(request, response, url) {
+  const offerMatch = /^\/offers\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "GET" && offerMatch) {
+    const offer = offerById(offerMatch[1]);
+    if (!offer) problem(response, 404, "OFFER_NOT_FOUND");
+    else {
+      const { seller: _seller, ...body } = offer;
+      json(response, 200, body);
+    }
+    return true;
+  }
+  if (!url.pathname.startsWith("/orders")) return false;
+  const account = accounts.get(tokenOf(request));
+
+  if (request.method === "POST" && url.pathname === "/orders") {
+    const { lines, name, phone, checkoutId } = await readBody(request);
+    const contact = {
+      name: typeof name === "string" ? name.trim() : "",
+      phone: typeof phone === "string" ? phone.replace(/[\s.-]/g, "").replace(/^\+84/, "0") : "",
+    };
+    if (!contact.name || contact.name.length > 50 || !PHONE.test(contact.phone)) {
+      problem(response, 400, "ORDER_CONTACT_INVALID");
+      return true;
+    }
+    const key = `${account?.email ?? contact.phone} ${request.headers["idempotency-key"] ?? ""}`;
+    const earlier = ordersByKey.get(key);
+    if (earlier) {
+      json(response, 201, shown(earlier));
+      return true;
+    }
+    const wanted = (Array.isArray(lines) ? lines : []).map((line) => ({
+      ...line,
+      offer: offerById(line.offerId),
+    }));
+    if (wanted.length === 0 || wanted.some(({ offer }) => !offer || offer.status !== "on_sale")) {
+      problem(response, 409, "ORDER_OFFER_UNAVAILABLE");
+      return true;
+    }
+    if (wanted.some(({ units, offer }) => units > offer.unitsLeft)) {
+      problem(response, 409, "ORDER_OFFER_SOLD_OUT");
+      return true;
+    }
+    const { offer } = wanted[0];
+    const number = nextOrder++;
+    const order = {
+      id: randomUUID(),
+      number: `SB-${number}`,
+      owner: account?.email,
+      checkoutId: typeof checkoutId === "string" && checkoutId ? checkoutId : randomUUID(),
+      access: randomUUID().replaceAll("-", ""),
+      customerName: contact.name,
+      customerPhone: contact.phone,
+      status: "confirmed",
+      seller: {
+        id: offer.seller.id,
+        name: offer.seller.name,
+        address: offer.seller.address,
+        latitude: 21.0565,
+        longitude: 105.8964,
+      },
+      lines: wanted.map(({ units, offer: each }) => ({
+        offerId: each.id,
+        name: each.name,
+        unit: each.unit,
+        priceVnd: each.priceVnd,
+        originalPriceVnd: each.originalPriceVnd,
+        units,
+        photo: each.photo,
+      })),
+      totalVnd: wanted.reduce((sum, { units, offer: each }) => sum + each.priceVnd * units, 0),
+      windowStart: offer.windowStart,
+      windowEnd: offer.windowEnd,
+      createdAt: new Date().toISOString(),
+      codeAttemptsLeft: 3,
+      code: String(number % 10000).padStart(4, "0"),
+    };
+    orders.unshift(order);
+    ordersByKey.set(key, order);
+    json(response, 201, shown(order));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/orders") {
+    if (!account) {
+      problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+      return true;
+    }
+    const state = url.searchParams.get("state");
+    const checkout = url.searchParams.get("checkout");
+    const all = orders
+      .filter(
+        (order) => order.owner === account.email && (!checkout || order.checkoutId === checkout),
+      )
+      .map(shown);
+    const open = (order) => order.status === "confirmed" || order.status === "ready";
+    json(response, 200, {
+      orders: all.filter((order) => !state || (state === "open" ? open(order) : !open(order))),
+    });
+    return true;
+  }
+  const orderMatch = /^\/orders\/([\w-]+)(\/cancel)?$/.exec(url.pathname);
+  const order = orderMatch
+    ? orders.find((found) => found.id === orderMatch[1] && placedBy(request, account, found))
+    : undefined;
+  if (orderMatch && !order) {
+    problem(response, 404, "ORDER_NOT_FOUND");
+    return true;
+  }
+  if (request.method === "GET" && orderMatch && !orderMatch[2]) {
+    json(response, 200, shown(order));
+    return true;
+  }
+  if (request.method === "POST" && orderMatch?.[2]) {
+    const status = shown(order).status;
+    if (
+      (status !== "confirmed" && status !== "ready") ||
+      new Date(order.windowStart) <= new Date()
+    ) {
+      problem(response, 409, "ORDER_CANCEL_TOO_LATE");
+      return true;
+    }
+    const { reason } = await readBody(request);
+    order.status = "cancelled";
+    order.cancelledAt = new Date().toISOString();
+    if (typeof reason === "string" && reason) order.cancelReason = reason;
+    json(response, 200, shown(order));
+    return true;
+  }
+  return false;
+}
 
 const server = createServer((request, response) =>
   requestLanguage.run(languageOf(request.headers["accept-language"]), () =>
@@ -1545,6 +1762,94 @@ function adminRoutes(request, response, url) {
   return false;
 }
 
+// The email settings, one per admin so tests side by side keep apart. An admin whose address names "unset"
+// starts with none saved (Figma AD-CS6); the others with SMTP saved (AD-E1). The version is the time saved.
+const emailSettings = new Map();
+
+function emailSettingsOf(account) {
+  if (!emailSettings.has(account.email)) {
+    emailSettings.set(
+      account.email,
+      account.email.includes("unset")
+        ? undefined
+        : {
+            provider: "smtp",
+            senderAddress: "noreply@example.com",
+            senderName: "Second Bite",
+            smtpHost: "smtp.example.com",
+            smtpPort: 587,
+            smtpSecurity: "starttls",
+            smtpUsername: "mailer@example.com",
+            smtpPasswordSet: true,
+            brevoApiKeySet: false,
+            updatedAt: "2026-10-19T07:20:00.000Z",
+          },
+    );
+  }
+  return emailSettings.get(account.email);
+}
+
+const etagOf = (settings) => `"${settings.updatedAt}"`;
+
+async function emailSettingsRoutes(request, response, url) {
+  if (!url.pathname.startsWith("/admin/email-settings")) return false;
+  const account = accounts.get(tokenOf(request));
+  if (account?.role !== "admin") return false;
+  const current = emailSettingsOf(account);
+
+  if (request.method === "GET" && url.pathname === "/admin/email-settings") {
+    if (!current) problem(response, 503, "NOTIFICATION_EMAIL_NOT_CONFIGURED");
+    else json(response, 200, current, { etag: etagOf(current) });
+    return true;
+  }
+  if (request.method === "PUT" && url.pathname === "/admin/email-settings") {
+    const ifMatch = request.headers["if-match"];
+    const ifNoneMatch = request.headers["if-none-match"];
+    if (!ifMatch && ifNoneMatch !== "*") {
+      problem(response, 400, "PLATFORM_VERSION_REQUIRED");
+      return true;
+    }
+    if (
+      (ifMatch && (!current || ifMatch !== etagOf(current))) ||
+      (ifNoneMatch === "*" && current)
+    ) {
+      problem(response, 412, "PLATFORM_CHANGED_SINCE_READ");
+      return true;
+    }
+    const body = await readBody(request);
+    const sameServer =
+      current &&
+      current.smtpHost === (body.smtpHost ?? "") &&
+      current.smtpPort === (body.smtpPort ?? 0) &&
+      current.smtpSecurity === (body.smtpSecurity ?? "starttls") &&
+      current.smtpUsername === (body.smtpUsername ?? "");
+    emailSettings.set(account.email, {
+      provider: body.provider,
+      senderAddress: body.senderAddress,
+      senderName: body.senderName,
+      smtpHost: body.smtpHost ?? "",
+      smtpPort: body.smtpPort ?? 0,
+      smtpSecurity: body.smtpSecurity ?? "starttls",
+      smtpUsername: body.smtpUsername ?? "",
+      smtpPasswordSet: Boolean(body.smtpPassword) || Boolean(sameServer && current.smtpPasswordSet),
+      brevoApiKeySet: Boolean(body.brevoApiKey) || Boolean(current?.brevoApiKeySet),
+      updatedAt: new Date().toISOString(),
+    });
+    response.writeHead(204).end();
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/admin/email-settings/test") {
+    const { to } = await readBody(request);
+    if (!current) problem(response, 503, "NOTIFICATION_EMAIL_NOT_CONFIGURED");
+    // A mailbox whose address names "refused" stands for a provider that refuses the settings.
+    else if ((to ?? "").includes("refused"))
+      problem(response, 409, "NOTIFICATION_TEST_EMAIL_REFUSED");
+    else response.writeHead(204).end();
+    return true;
+  }
+  return false;
+}
+
 async function answer(request, response) {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
@@ -1561,13 +1866,23 @@ async function answer(request, response) {
     response.end(JSON.stringify({ offers: search(url) }));
     return;
   }
+  // GET /offers/{id} answers OfferBody: the offer without its seller or distance.
+  const offerMatch = /^\/offers\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "GET" && offerMatch) {
+    const found = offers.find((offer) => offer.id === offerMatch[1]);
+    if (!found) return problem(response, 404, "OFFER_NOT_FOUND");
+    const { seller: _seller, ...offer } = found;
+    return json(response, 200, offer);
+  }
   if (await auth(request, response, url)) return;
   if (await adminSellerRoutes(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await adminSummaryRoutes(request, response, url)) return;
   if (await adminSettingsRoutes(request, response, url)) return;
   if (await adminAdminsRoutes(request, response, url)) return;
+  if (await emailSettingsRoutes(request, response, url)) return;
   if (adminRoutes(request, response, url)) return;
+  if (await ordersApi(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {
     const { type, body } = await photo(photoMatch[1]);

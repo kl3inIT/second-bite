@@ -180,6 +180,9 @@ func testSearchNearAndFiltered(t *testing.T, f fixture) {
 		"by price": {
 			offer.Query{MaxPriceVND: 20_000, Sort: offer.SortPrice}, []string{stickyRice, milkTea},
 		},
+		"by a price range": {
+			offer.Query{MinPriceVND: 20_000, MaxPriceVND: 25_000, Sort: offer.SortPrice}, []string{milkTea, friedRice},
+		},
 		"by discount": {
 			offer.Query{Sort: offer.SortDiscount}, []string{milkTea, stickyRice, friedRice, croissant},
 		},
@@ -240,7 +243,8 @@ func testSearchRefusals(t *testing.T, f fixture) {
 		"a range ending before it starts": {
 			CollectFrom: new(time.Now().Add(time.Hour)), CollectTo: new(time.Now()),
 		},
-		"a point off the map": {Near: &offer.Point{Latitude: 91}},
+		"a point off the map":              {Near: &offer.Point{Latitude: 91}},
+		"a lowest price above the highest": {MinPriceVND: 30_000, MaxPriceVND: 20_000},
 	} {
 		if _, err := f.offers.Search(t.Context(), q); !errors.Is(err, offer.ErrSearchInvalid) {
 			t.Errorf("%s: %v", name, err)

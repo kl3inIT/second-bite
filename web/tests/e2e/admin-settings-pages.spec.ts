@@ -42,32 +42,6 @@ test.describe("the settings pages without a backend", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
-  test("the audit log is empty, and its filters live in the address", async ({
-    page,
-  }, testInfo) => {
-    test.skip(!isReleased("settingsAuditLog"), "not released yet");
-    await signInTo(
-      page,
-      "/admin/settings/audit-log?action=store.block&from=2026-10-14&to=2026-10-21",
-      testInfo,
-      { who: "nhatky" },
-    );
-    await expectSettingsPage(page, "Nhật ký thao tác");
-    await expect(page.getByText("Chưa có thao tác nào")).toBeVisible();
-    const action = page.getByRole("combobox", { name: /Hành động/ });
-    await expect(action).toContainText("Chặn cửa hàng");
-    await expect(page.getByText("14/10 – 21/10/2026")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Tải CSV" })).toBeDisabled();
-    await expect(page.getByRole("button", { name: "Tải thêm" })).toBeHidden();
-    await expectNoSeriousA11yViolations(page);
-
-    await (await hydrated(action)).click();
-    await page.getByRole("option", { name: "Cấp quyền quản trị" }).click();
-    await expect(page).toHaveURL(
-      /\/vi\/admin\/settings\/audit-log\?action=admin\.grant&from=2026-10-14&to=2026-10-21$/,
-    );
-  });
-
   test("legal content is empty, and a new version cannot be made yet", async ({
     page,
   }, testInfo) => {

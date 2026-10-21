@@ -72,17 +72,15 @@ test.describe("the pages that are not released yet", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
-  test("the settings menu marks the settings pages that are not released", async ({
-    page,
-  }, testInfo) => {
+  test("the settings menu holds only the open settings pages", async ({ page }, testInfo) => {
     await signInTo(page, "/admin/settings/offers", testInfo, { who: "sapco-cd" });
     const menu = page.getByRole("navigation", { name: "Mục cài đặt" });
-    await expect(menu.getByRole("link")).toHaveCount(8);
-    await expect(menu.getByRole("link", { name: /^Danh mục\s*Sắp có$/ })).toBeVisible();
-    await expect(menu.getByRole("link", { name: /^Tích hợp\s*Sắp có$/ })).toBeVisible();
+    // As the sidebar, the settings menu holds only the pages that are open (SEC-75 › Shell).
+    await expect(menu.getByRole("link")).toHaveCount(3);
+    await expect(menu.getByRole("link", { name: "Bài đăng", exact: true })).toBeVisible();
     await expect(menu.getByRole("link", { name: "Email", exact: true })).toBeVisible();
     await expect(menu.getByRole("link", { name: "Quản trị viên", exact: true })).toBeVisible();
-    await expect(menu.getByText("Sắp có")).toHaveCount(5);
+    await expect(menu.getByText("Sắp có")).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
   });
 });

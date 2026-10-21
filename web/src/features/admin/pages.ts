@@ -65,7 +65,6 @@ type AdminPageKey =
   | "settingsCategories"
   | "settingsAreas"
   | "settingsAdmins"
-  | "settingsAuditLog"
   | "settingsLegal"
   | "settingsIntegrations";
 
@@ -250,13 +249,6 @@ export const adminPages = {
     parent: "settings",
     released: true,
   },
-  settingsAuditLog: {
-    path: "/admin/settings/audit-log",
-    section: "settings",
-    icon: SettingsIcon,
-    parent: "settings",
-    released: false,
-  },
   settingsLegal: {
     path: "/admin/settings/legal",
     section: "settings",
@@ -277,26 +269,6 @@ export type { AdminPageKey };
 
 /** A page with a name of its own in the catalog (`admin.shell.pages.<key>`), unlike a detail page. */
 export type AdminNamedPage = Exclude<AdminPageKey, `${string}Detail`>;
-
-export const adminNavGroups: readonly AdminNavGroup[] = [
-  "top",
-  "operations",
-  "users",
-  "marketing",
-  "bottom",
-];
-
-/** The sidebar's items of one group, in order. */
-export function navItems(group: AdminNavGroup): AdminNamedPage[] {
-  return (Object.keys(adminPages) as AdminPageKey[]).filter(
-    (key): key is AdminNamedPage => (adminPages[key] as PageSpec).nav === group,
-  );
-}
-
-/** The settings pages, in the order of the settings menu (Figma Admin/SettingsNav). */
-export const settingsPages = (Object.keys(adminPages) as AdminPageKey[]).filter(
-  (key): key is AdminNamedPage => (adminPages[key] as PageSpec).parent === "settings",
-);
 
 /** The page and the pages above it, nearest first: `sellerDetail`, `sellers`. */
 export function lineage(key: AdminPageKey): AdminPageKey[] {
