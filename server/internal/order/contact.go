@@ -1,15 +1,10 @@
 package order
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
 	"crypto/subtle"
-	"encoding/base64"
 	"regexp"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/google/uuid"
 )
 
 // Contact is who collects an order: the name the seller calls at the counter
@@ -42,20 +37,8 @@ func (c Contact) normalized() (Contact, error) {
 	return Contact{Name: name, Phone: phone}, nil
 }
 
-// access is what proves an order is theirs to whoever placed it without
-// signing in: HMAC-SHA-256 of the order's identifier under the code key,
-// apart from the collection code by its label. Derived when needed and never
-// stored, so the same order always has the same one.
-func (s *Service) access(orderID uuid.UUID) string {
-	mac := hmac.New(sha256.New, s.codeKey)
-	mac.Write([]byte("access:"))
-	mac.Write(orderID[:])
-
-	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil)[:18])
-}
-
-// accessMatches compares what a reader sent with an order's access, in
-// constant time; nothing sent never matches.
-func (s *Service) accessMatches(orderID uuid.UUID, given string) bool {
-	return given != "" && subtle.ConstantTimeCompare([]byte(s.access(orderID)), []byte(given)) == 1
+// accessMatches compares what a reader sent with the order's access, which is
+// random and stored with it, in constant time; nothing sent never matches.
+func (o Order) accessMatches(given string) bool {
+	return given != "" && subtle.ConstantTimeCompare([]byte(o.access), []byte(given)) == 1
 }

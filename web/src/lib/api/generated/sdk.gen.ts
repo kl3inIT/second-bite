@@ -374,7 +374,7 @@ export const placeOrder = <ThrowOnError extends boolean = true>(options: Options
 /**
  * An order
  *
- * To its customer, signed in or sending its access, with the code once it may be shown; to the seller's people and to admins.
+ * To its customer, signed in or sending its access; to the seller's people and to admins.
  */
 export const getOrder = <ThrowOnError extends boolean = true>(options: Options<GetOrderData, ThrowOnError>): RequestResult<GetOrderResponses, GetOrderErrors, ThrowOnError> => (options.client ?? client).get<GetOrderResponses, GetOrderErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -406,9 +406,9 @@ export const cancelOrder = <ThrowOnError extends boolean = true>(options: Option
 });
 
 /**
- * Hand an order over against its collection code
+ * Hand an order over
  *
- * Within the window. A wrong code is counted; the third locks the code.
+ * Within the window, once staff have matched the collector to the order by its QR code or by the name and phone number on it.
  */
 export const handOverOrder = <ThrowOnError extends boolean = true>(options: Options<HandOverOrderData, ThrowOnError>): RequestResult<HandOverOrderResponses, HandOverOrderErrors, ThrowOnError> => (options.client ?? client).post<HandOverOrderResponses, HandOverOrderErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -417,15 +417,11 @@ export const handOverOrder = <ThrowOnError extends boolean = true>(options: Opti
             type: 'apiKey'
         }],
     url: '/orders/{orderId}/hand-over',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
+    ...options
 });
 
 /**
- * Mark an order ready, which shows its customer the code
+ * Mark an order ready, which tells its customer to come
  */
 export const markOrderReady = <ThrowOnError extends boolean = true>(options: Options<MarkOrderReadyData, ThrowOnError>): RequestResult<MarkOrderReadyResponses, MarkOrderReadyErrors, ThrowOnError> => (options.client ?? client).post<MarkOrderReadyResponses, MarkOrderReadyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {

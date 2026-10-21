@@ -59,8 +59,8 @@ func (s *Service) Cancel(ctx context.Context, id uuid.UUID, access, reason strin
 	return s.Get(ctx, id, access)
 }
 
-// Ready marks an order ready for collection, which shows its customer the
-// code. Marking it ready again changes nothing.
+// Ready marks an order ready for collection, which tells its customer to come.
+// Marking it ready again changes nothing.
 func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 	caller, err := s.staffOf(ctx, id)
 	if err != nil {
@@ -91,39 +91,20 @@ func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 	return s.Get(ctx, id, "")
 }
 
-// HandOver hands an order over when the collector gives its code within the
-// window. A wrong code is counted, and the third locks the order's code.
-func (s *Service) HandOver(ctx context.Context, id uuid.UUID, code string) (Order, error) {
+// HandOver hands an order over within its window, once staff have matched the
+// collector to it by its QR code or by the name and phone number on it.
+func (s *Service) HandOver(ctx context.Context, id uuid.UUID) (Order, error) {
 	caller, err := s.staffOf(ctx, id)
 	if err != nil {
 		return Order{}, err
 	}
 
-	var wrong error
-
 	err = s.transition(ctx, id, func(q *db.Queries, _ pgx.Tx, o Order) error {
 		switch {
 		case !o.Status.open():
 			return ErrTransitionNotAllowed
-		case o.CodeAttemptsLeft <= 0:
-			return ErrCodeLocked
 		case s.now().Before(o.WindowStart):
 			return ErrOutsideWindow
-		}
-
-		if !s.codeMatches(id, strings.TrimSpace(code)) {
-			attempts, err := q.CountWrongCode(ctx, id)
-			if err != nil {
-				return fmt.Errorf("counting a wrong code: %w", err)
-			}
-
-			wrong = ErrCodeWrong
-			if attempts >= maxCodeAttempts {
-				wrong = ErrCodeLocked
-			}
-
-			// The wrong attempt is kept: the transaction commits.
-			return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "code_wrong", ActorID: actor(caller)})
 		}
 
 		if err := q.MarkCollected(ctx, id); err != nil {
@@ -134,17 +115,6 @@ func (s *Service) HandOver(ctx context.Context, id uuid.UUID, code string) (Orde
 	})
 	if err != nil {
 		return Order{}, err
-	}
-
-	if wrong != nil {
-		s.logger.WarnContext(ctx, "wrong collection code",
-			slog.String("event", "order.collection.code_wrong"),
-			slog.String("order_id", id.String()),
-			slog.String("account_id", caller.AccountID.String()),
-			slog.String("error_code", failureCode(wrong)),
-		)
-
-		return Order{}, wrong
 	}
 
 	s.logged(ctx, "order collected", "order.collection.confirmed", id, caller)
@@ -228,15 +198,6 @@ func (s *Service) transition(ctx context.Context, id uuid.UUID, change func(*db.
 
 		return change(q, tx, orders[0])
 	})
-}
-
-// failureCode is the code of a module failure, for logs.
-func failureCode(err error) string {
-	if f, ok := platform.AsFailure(err); ok {
-		return f.Code
-	}
-
-	return ""
 }
 
 func textOf(s string) pgtype.Text { return pgtype.Text{String: s, Valid: s != ""} }

@@ -965,11 +965,8 @@ function shown(order) {
   const open = order.status === "confirmed" || order.status === "ready";
   const expired = open && new Date(order.windowEnd) <= new Date();
   const status = expired ? "expired" : order.status;
-  const codeShown =
-    (status === "confirmed" || status === "ready") &&
-    (status === "ready" || new Date(order.windowStart) <= new Date());
-  const { code, owner: _owner, ...rest } = order;
-  return { ...rest, status, ...(codeShown ? { code } : {}) };
+  const { owner: _owner, ...rest } = order;
+  return { ...rest, status };
 }
 
 /** Whether the request comes from whoever placed the order: its account, or its access. */
@@ -1052,8 +1049,6 @@ async function ordersApi(request, response, url) {
       windowStart: offer.windowStart,
       windowEnd: offer.windowEnd,
       createdAt: new Date().toISOString(),
-      codeAttemptsLeft: 3,
-      code: String(number % 10000).padStart(4, "0"),
     };
     orders.unshift(order);
     ordersByKey.set(key, order);

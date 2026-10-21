@@ -17,14 +17,13 @@ From the repository root, start the database and Mailpit:
 docker compose up -d --wait
 ```
 
-`SECONDBITE_POSTGRES_PORT`, `SECONDBITE_MAILPIT_SMTP_PORT` and `SECONDBITE_MAILPIT_WEB_PORT` publish them on other ports when 5432, 1025 or 8025 are taken. Then, from `server/`, set the environment once per shell. The three keys are made up for this machine; keep them for as long as the local database lives, because the email settings are sealed under the first.
+`SECONDBITE_POSTGRES_PORT`, `SECONDBITE_MAILPIT_SMTP_PORT` and `SECONDBITE_MAILPIT_WEB_PORT` publish them on other ports when 5432, 1025 or 8025 are taken. Then, from `server/`, set the environment once per shell. The two keys are made up for this machine; keep them for as long as the local database lives, because the email settings are sealed under the first.
 
 ```sh
 export SECONDBITE_DATABASE_URL="postgres://secondbite@127.0.0.1:5432/secondbite?sslmode=disable"
 export SECONDBITE_DATABASE_PASSWORD=secondbite-local
 export SECONDBITE_EMAIL_SETTINGS_KEY="$(openssl rand -base64 32)"
 export SECONDBITE_SIGN_IN_CODE_KEY="$(openssl rand -base64 32)"
-export SECONDBITE_COLLECTION_CODE_KEY="$(openssl rand -base64 32)"
 export SECONDBITE_LOG_FORMAT=text
 ```
 
@@ -84,7 +83,6 @@ The tests start the images `compose.yaml` names, so Dependabot's updates of that
 | `SECONDBITE_DATABASE_PASSWORD` | required, a secret | The database password |
 | `SECONDBITE_EMAIL_SETTINGS_KEY` | required, a secret | 32 bytes in standard base64 that seal the email provider's password or API key in the database. Replacing it makes them unreadable: an admin enters them again |
 | `SECONDBITE_SIGN_IN_CODE_KEY` | required, a secret | 32 bytes in standard base64 that key the HMAC of stored sign-in codes. Replacing it voids the codes sent in the last 15 minutes |
-| `SECONDBITE_COLLECTION_CODE_KEY` | required, a secret | 32 bytes in standard base64 that key the HMAC each order's four-digit collection code is derived from; no code is stored. Replacing it changes the code of every open order, so replace it only when no order is open |
 | `SECONDBITE_DATABASE_MAX_CONNS` | `10` | The size of the connection pool |
 | `SECONDBITE_HTTP_ADDR` | `:8080` | Where the API listens |
 | `SECONDBITE_LOG_FORMAT` | `json` | `json`, or `text` for local development |
