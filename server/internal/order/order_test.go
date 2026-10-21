@@ -707,7 +707,6 @@ func testReopen(t *testing.T, f fixture) {
 	if got := f.unitsLeft(owner, t, croissant.ID); got != 0 {
 		t.Errorf("units once the refusal is taken back: %d", got)
 	}
-
 }
 
 func testReopenStaysShut(t *testing.T, f fixture) {
