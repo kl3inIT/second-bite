@@ -7,9 +7,10 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 
-import type { OfferBody } from "@/lib/api/generated";
+import type { VariantProps } from "class-variance-authority";
 
-import type { BadgeTone } from "../ui/badge";
+import type { badgeVariants } from "@/components/ui/badge";
+import type { OfferBody } from "@/lib/api/generated";
 
 // Every post in the system, as the admin sees it (docs: admin-web-flow › Bài đăng, Figma AD-BD1 to AD-BD4). The
 // offer module lists a store's posts but not every store's for an admin, and has no removal for a violation;
@@ -53,14 +54,15 @@ export type AdminOfferRow = {
 
 export type OfferSeller = { id: string; name: string };
 
-type BadgeLook = { tone: BadgeTone; icon: LucideIcon };
+/** A badge's look: one of the shared Badge's own variants, and the icon that carries the status with its words. */
+type BadgeLook = { variant: VariantProps<typeof badgeVariants>["variant"]; icon: LucideIcon };
 
 const statusLooks: Record<OfferStatus, BadgeLook> = {
-  on_sale: { tone: "success", icon: CircleCheckIcon },
-  sold_out: { tone: "warning", icon: TriangleAlertIcon },
-  closed: { tone: "neutral", icon: ClockIcon },
-  withdrawn: { tone: "neutral", icon: RotateCcwIcon },
-  removed: { tone: "error", icon: BanIcon },
+  on_sale: { variant: "fresh", icon: CircleCheckIcon },
+  sold_out: { variant: "outline", icon: TriangleAlertIcon },
+  closed: { variant: "outline", icon: ClockIcon },
+  withdrawn: { variant: "outline", icon: RotateCcwIcon },
+  removed: { variant: "destructive", icon: BanIcon },
 };
 
 /** A post's status as Figma AD-BD1 draws it in the table. */
@@ -69,14 +71,14 @@ export function statusLook(status: OfferStatus): BadgeLook {
 }
 
 const cardLooks: Record<OfferStatus, BadgeLook> = {
-  on_sale: { tone: "success", icon: CircleCheckIcon },
-  sold_out: { tone: "warning", icon: ClockIcon },
-  closed: { tone: "warning", icon: ClockIcon },
-  withdrawn: { tone: "warning", icon: ClockIcon },
-  removed: { tone: "error", icon: BanIcon },
+  on_sale: { variant: "fresh", icon: CircleCheckIcon },
+  sold_out: { variant: "outline", icon: ClockIcon },
+  closed: { variant: "outline", icon: ClockIcon },
+  withdrawn: { variant: "outline", icon: ClockIcon },
+  removed: { variant: "destructive", icon: BanIcon },
 };
 
-/** A status's summary card as Figma AD-BD1 draws it (Admin/StatCard success, warning, error). */
+/** A status's summary card as Figma AD-BD1 draws it: the badge of its icon (success, warning, error). */
 export function cardLook(status: OfferStatus): BadgeLook {
   return cardLooks[status];
 }

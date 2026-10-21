@@ -79,12 +79,12 @@ describe("the posts' address", () => {
 
 describe("a post's status", () => {
   test("looks as Figma AD-BD1 draws it", () => {
-    expect(statusLook("on_sale").tone).toBe("success");
-    expect(statusLook("sold_out").tone).toBe("warning");
-    expect(statusLook("withdrawn").tone).toBe("neutral");
-    expect(statusLook("removed").tone).toBe("error");
-    expect(cardLook("closed").tone).toBe("warning");
-    expect(cardLook("removed").tone).toBe("error");
+    expect(statusLook("on_sale").variant).toBe("fresh");
+    expect(statusLook("sold_out").variant).toBe("outline");
+    expect(statusLook("withdrawn").variant).toBe("outline");
+    expect(statusLook("removed").variant).toBe("destructive");
+    expect(cardLook("closed").variant).toBe("outline");
+    expect(cardLook("removed").variant).toBe("destructive");
   });
 
   test("an admin removes only a post that is still up", () => {
