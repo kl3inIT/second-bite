@@ -10,7 +10,16 @@ import {
 import { useFormatter, useTranslations } from "next-intl";
 
 import { BackButton } from "@/components/back-button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { AddToCartButton } from "@/features/cart/add-to-cart-button";
+import { DishBooking } from "@/features/cart/dish-booking";
 import { Link } from "@/i18n/navigation";
 
 import { formatPrice } from "./format";
@@ -38,6 +47,8 @@ const kindIcons: Record<OfferKind, LucideIcon> = {
 // foot the seller with "Xem quán", the dish, its kind and portion, the window and the seller's rating, then
 // the seller's other dishes tonight and the description; a bar with the price and "Thêm vào giỏ" stays at the
 // bottom. Reviews have no backend yet, so they are left out (SEC-49 decision 7).
+// From 1024px it is Figma WK4: the path to it, then two columns, the dish's name over a rounded photograph and
+// the same details on the left, and the booking card staying beside them on the right instead of the bar.
 export function DishDetails({
   dish,
   others,
@@ -58,91 +69,128 @@ export function DishDetails({
 
   return (
     <>
-      <main className="mx-auto w-full max-w-xl flex-1 bg-card">
-        <div className="relative h-70 bg-muted">
-          <OfferPhoto
-            offer={dish}
-            large
-            dimmed={!isAvailable(dish)}
-            sizes="(min-width: 576px) 576px, 100vw"
+      <main className="mx-auto w-full max-w-xl flex-1 bg-card lg:max-w-248 lg:bg-transparent lg:px-0 lg:pt-8 lg:pb-12">
+        <Breadcrumb aria-label={t("crumbs")} className="mb-6 hidden lg:block">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink render={<Link href="/" />}>{t("home")}</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink render={<Link href={sellerHref} />}>
+                {dish.seller.name}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{dish.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="lg:flex lg:items-start lg:gap-8">
+          <div className="flex flex-col lg:min-w-0 lg:flex-1 lg:gap-5">
+            <div className="relative h-70 bg-muted lg:order-2 lg:h-90 lg:overflow-hidden lg:rounded-3xl">
+              <OfferPhoto
+                offer={dish}
+                large
+                dimmed={!isAvailable(dish)}
+                sizes="(min-width: 576px) 576px, 100vw"
+              />
+              <div className="absolute inset-x-0 top-0 h-30 bg-linear-to-b from-foreground/35 to-transparent lg:hidden" />
+              <div className="absolute inset-x-4 top-3 flex items-center gap-2 lg:hidden">
+                <BackButton fallback="/" />
+                <div className="ml-auto flex gap-2">
+                  <ShareButton title={dish.name} />
+                  <HeartButton offerId={dish.id} name={dish.name} float />
+                </div>
+              </div>
+            </div>
+            <div className="relative -mt-6 flex flex-col gap-4 rounded-t-3xl bg-card px-4 pt-5 pb-6 lg:contents">
+              <div className="flex items-center gap-3 lg:order-3">
+                <SellerLogo seller={dish.seller} size="md" />
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <p className="truncate text-title text-foreground">{dish.seller.name}</p>
+                  <p className="truncate text-label text-muted-foreground">
+                    {distance
+                      ? t("placeAway", { place: dish.seller.address, distance })
+                      : dish.seller.address}
+                  </p>
+                </div>
+                <Link
+                  href={sellerHref}
+                  className="-mr-2 flex min-h-11 shrink-0 items-center rounded-lg px-2 text-label-strong text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                  {t("seeSeller")}
+                </Link>
+              </div>
+              <h1 className="text-headline text-foreground lg:order-1 lg:font-display lg:text-page-title lg:font-bold">
+                {dish.name}
+              </h1>
+              <ul className="flex flex-col gap-2.5 text-body-sm text-foreground lg:order-4">
+                <li className="flex items-center gap-2.5">
+                  <KindIcon
+                    aria-hidden
+                    strokeWidth={1.8}
+                    className="size-5.5 shrink-0 text-primary"
+                  />
+                  {t("portion", { kind: kinds(dish.kind), unit: dish.unit })}
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <ClockIcon
+                    aria-hidden
+                    strokeWidth={1.8}
+                    className="size-5.5 shrink-0 text-primary"
+                  />
+                  {t("window", { from, until })}
+                </li>
+                {rating !== undefined && (
+                  <li className="flex items-center gap-2.5">
+                    <StarIcon aria-hidden className="size-5.5 shrink-0 fill-rating text-rating" />
+                    {t("rating", { rating: format.number(rating, ONE_DECIMAL) })}
+                  </li>
+                )}
+              </ul>
+              {(others.length > 0 || dish.description) && (
+                <section
+                  aria-labelledby="more"
+                  className="flex flex-col gap-3 border-t border-border pt-4 lg:order-5"
+                >
+                  {others.length > 0 && (
+                    <>
+                      <h2 id="more" className="text-title-lg text-foreground">
+                        {t("more")}
+                      </h2>
+                      <ul className="grid grid-cols-4 gap-3 lg:flex lg:justify-between">
+                        {others.slice(0, MORE_DISHES).map((other) => (
+                          <li key={other.id} className="lg:size-20">
+                            <Link
+                              href={`/offers/${other.id}`}
+                              aria-label={t("other", {
+                                name: other.name,
+                                price: formatPrice(other.priceVnd),
+                              })}
+                              className="relative block aspect-square overflow-hidden rounded-md focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                            >
+                              <OfferPhoto offer={other} sizes="96px" />
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {dish.description && (
+                    <p className="text-body-sm text-muted-foreground lg:text-note">
+                      {dish.description}
+                    </p>
+                  )}
+                </section>
+              )}
+            </div>
+          </div>
+          <DishBooking
+            dish={dish}
+            className="hidden lg:sticky lg:top-24 lg:flex lg:w-87 lg:shrink-0"
           />
-          <div className="absolute inset-x-0 top-0 h-30 bg-linear-to-b from-foreground/35 to-transparent" />
-          <div className="absolute inset-x-4 top-3 flex items-center gap-2">
-            <BackButton fallback="/" />
-            <div className="ml-auto flex gap-2">
-              <ShareButton title={dish.name} />
-              <HeartButton offerId={dish.id} name={dish.name} float />
-            </div>
-          </div>
-        </div>
-        <div className="relative -mt-6 flex flex-col gap-4 rounded-t-3xl bg-card px-4 pt-5 pb-6">
-          <div className="flex items-center gap-3">
-            <SellerLogo seller={dish.seller} size="md" />
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <p className="truncate text-title text-foreground">{dish.seller.name}</p>
-              <p className="truncate text-label text-muted-foreground">
-                {distance
-                  ? t("placeAway", { place: dish.seller.address, distance })
-                  : dish.seller.address}
-              </p>
-            </div>
-            <Link
-              href={sellerHref}
-              className="-mr-2 flex min-h-11 shrink-0 items-center rounded-lg px-2 text-label-strong text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-            >
-              {t("seeSeller")}
-            </Link>
-          </div>
-          <h1 className="text-headline text-foreground">{dish.name}</h1>
-          <ul className="flex flex-col gap-2.5 text-body-sm text-foreground">
-            <li className="flex items-center gap-2.5">
-              <KindIcon aria-hidden strokeWidth={1.8} className="size-5.5 shrink-0 text-primary" />
-              {t("portion", { kind: kinds(dish.kind), unit: dish.unit })}
-            </li>
-            <li className="flex items-center gap-2.5">
-              <ClockIcon aria-hidden strokeWidth={1.8} className="size-5.5 shrink-0 text-primary" />
-              {t("window", { from, until })}
-            </li>
-            {rating !== undefined && (
-              <li className="flex items-center gap-2.5">
-                <StarIcon aria-hidden className="size-5.5 shrink-0 fill-rating text-rating" />
-                {t("rating", { rating: format.number(rating, ONE_DECIMAL) })}
-              </li>
-            )}
-          </ul>
-          {(others.length > 0 || dish.description) && (
-            <section
-              aria-labelledby="more"
-              className="flex flex-col gap-3 border-t border-border pt-4"
-            >
-              {others.length > 0 && (
-                <>
-                  <h2 id="more" className="text-title-lg text-foreground">
-                    {t("more")}
-                  </h2>
-                  <ul className="grid grid-cols-4 gap-3">
-                    {others.slice(0, MORE_DISHES).map((other) => (
-                      <li key={other.id}>
-                        <Link
-                          href={`/offers/${other.id}`}
-                          aria-label={t("other", {
-                            name: other.name,
-                            price: formatPrice(other.priceVnd),
-                          })}
-                          className="relative block aspect-square overflow-hidden rounded-md focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-                        >
-                          <OfferPhoto offer={other} sizes="96px" />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-              {dish.description && (
-                <p className="text-body-sm text-muted-foreground">{dish.description}</p>
-              )}
-            </section>
-          )}
         </div>
       </main>
       <DishBar dish={dish} />
@@ -158,7 +206,7 @@ function DishBar({ dish }: { dish: OfferSummary }) {
   const original = formatPrice(dish.originalPriceVnd);
 
   return (
-    <div className="sticky bottom-0 z-40 border-t border-border bg-card">
+    <div className="sticky bottom-0 z-40 border-t border-border bg-card lg:hidden">
       <div className="mx-auto flex w-full max-w-xl items-center gap-4 px-4 pt-3 pb-5">
         <div className="flex flex-col">
           <p className="flex items-baseline gap-1.5">

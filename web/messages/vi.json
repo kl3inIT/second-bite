@@ -47,7 +47,9 @@
     "followBody": "{seller} dự kiến còn {units} phần mẻ sau, mở bán lúc {time} tối nay. Bật thông báo để biết ngay khi món lên, trước khi hết phần.",
     "followOn": "Bật thông báo",
     "followLater": "Để sau",
-    "close": "Đóng"
+    "close": "Đóng",
+    "dealsLine": "Các quán trong trung tâm bán nốt món cuối ngày, giảm đến {percent}%. Đặt trước, đến quầy nhận trong khung giờ.",
+    "ticketFrom": "Nhận {time}"
   },
   "Area": {
     "open": "Chọn nơi xem món",
@@ -513,7 +515,14 @@
     "other": "{name}, {price}",
     "saving": "Giảm {percent}% · còn {units} phần",
     "share": "Chia sẻ món",
-    "copied": "Đã chép đường dẫn"
+    "copied": "Đã chép đường dẫn",
+    "booking": "Đặt món",
+    "portions": "Số phần · còn {units}",
+    "addUnits": "Thêm {units} phần vào giỏ · {price}",
+    "save": "Lưu món",
+    "shareLabel": "Chia sẻ",
+    "crumbs": "Bạn đang ở đây",
+    "home": "Trang chủ"
   },
   "Seller": {
     "search": "Tìm món của {seller}",
