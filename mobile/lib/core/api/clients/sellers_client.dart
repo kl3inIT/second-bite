@@ -11,6 +11,7 @@ import '../models/details_body.dart';
 import '../models/followed_output_body.dart';
 import '../models/member_body.dart';
 import '../models/members_output_body.dart';
+import '../models/places_output_body.dart';
 import '../models/seller_body.dart';
 import '../models/seller_profile_body.dart';
 import '../models/sellers_output_body.dart';
@@ -42,6 +43,12 @@ abstract class SellersClient {
   /// The sellers I own or work for
   @GET('/sellers/mine')
   Future<SellersOutputBody> listMySellers();
+
+  /// Places in Hanoi for the words of a store's address, to pin it as it is typed.
+  ///
+  /// [q] - The words of the address, with or without Vietnamese marks.
+  @GET('/sellers/places')
+  Future<PlacesOutputBody> searchPlaces({@Query('q') required String q});
 
   /// A seller, to its members and admins
   @GET('/sellers/{sellerId}')

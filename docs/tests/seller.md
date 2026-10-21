@@ -25,3 +25,6 @@ Requirements of [docs/specs/seller.md](../specs/seller.md) and the checks that h
 | The list keeps the sellers last changed in a range, the cards following, and refuses a range ending before it starts; after a block today's counts are the sellers' as they stand, a day with no change stands as the day before and no day comes before the first counted | `TestAdmin` › the list filters by the last change; the list counts each day |
 
 Not covered by a test: the limit of five under concurrency (held by the same kind of lock as the staff cap).
+| A written address is the street, the ward or commune, the city: the ward named Phường, Xã, Thị trấn or Đặc khu wins over a quarter beside it | `TestWritten` (`internal/seller/locate_test.go`) |
+| Suggested places: inside Hanoi only, each address once, at most five; a house number typed first goes before a street without one; a place keeps its name and its own number | `TestPlaces`, `TestLeadingNumber`, `TestSearchAsksInHanoiWithAUserAgent`, `TestSearchFailsOnAnErrorStatus` (`internal/seller/places_test.go`) |
+| Suggestions need a caller and two letters | `TestService` › `checkPlacesNeedACaller` (`cmd/secondbite/seller_test.go`) |

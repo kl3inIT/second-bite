@@ -1440,6 +1440,23 @@ components:
         - largePath
         - smallPath
       type: object
+    PlaceBody:
+      additionalProperties: false
+      properties:
+        address:
+          description: As people write it; a house number typed first goes before a street that has none
+          type: string
+        latitude:
+          format: double
+          type: number
+        longitude:
+          format: double
+          type: number
+      required:
+        - address
+        - latitude
+        - longitude
+      type: object
     PlaceOrderBody:
       additionalProperties: false
       properties:
@@ -1469,6 +1486,19 @@ components:
         - lines
         - name
         - phone
+      type: object
+    PlacesOutputBody:
+      additionalProperties: false
+      properties:
+        places:
+          description: Up to five places in Hanoi; none when nothing matches or the search does not answer
+          items:
+            $ref: "#/components/schemas/PlaceBody"
+          type:
+            - array
+            - "null"
+      required:
+        - places
       type: object
     Problem:
       additionalProperties: false
@@ -3889,6 +3919,39 @@ paths:
         - bearer: []
         - cookie: []
       summary: The sellers I own or work for
+      tags:
+        - Sellers
+  /sellers/places:
+    get:
+      operationId: searchPlaces
+      parameters:
+        - description: The words of the address, with or without Vietnamese marks
+          explode: false
+          in: query
+          name: q
+          required: true
+          schema:
+            description: The words of the address, with or without Vietnamese marks
+            maxLength: 200
+            minLength: 2
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlacesOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Places in Hanoi for the words of a store's address, to pin it as it is typed
       tags:
         - Sellers
   /sellers/{sellerId}:
