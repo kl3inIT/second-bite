@@ -178,11 +178,13 @@ for (const width of WIDTHS) {
       await sellerSays(page, cancelled, "Quán xin lỗi, hết món");
       await page.reload();
       await (await hydrated(page.getByRole("button", { name: /^Huỷ đơn/ }))).click();
-      const cancel = page.getByRole("alertdialog", { name: /Huỷ đơn SB-\d+\?/ });
+      const cancel = page.getByRole("dialog", { name: /Huỷ đơn #SB-\d+\?/ });
       await cancel.getByRole("button", { name: "Không đến kịp" }).click();
       await cancel.getByRole("button", { name: "Huỷ đơn" }).click();
-      await expect(page.getByText(/^Đã huỷ lúc/)).toBeVisible();
-      await page.getByRole("link", { name: "Xem tin nhắn" }).click();
+      // Figma W6 and D5: the cancelled order's page offers its messages to read.
+      const read = page.getByRole("link", { name: "Xem tin nhắn" }).filter({ visible: true });
+      await expect(read).toBeVisible();
+      await read.click();
       await expect(page.getByRole("textbox")).toHaveCount(0);
       await expect(page.getByText("Đơn đã kết thúc, chỉ xem lại tin nhắn.")).toBeVisible();
       await expectNoSeriousA11yViolations(page);
