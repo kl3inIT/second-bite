@@ -135,7 +135,7 @@ export default async function SellerPage({
                       {t("sellers.detail.noneOnSale")}
                     </p>
                   ) : (
-                    <ul className="flex flex-col gap-3">
+                    <ul className="grid gap-4 md:grid-cols-2">
                       {onSale.map((offer) => (
                         <OfferRow key={offer.id} offer={offer} />
                       ))}
