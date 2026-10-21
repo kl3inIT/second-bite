@@ -56,7 +56,7 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
                 </span>
                 <hr className="border-t border-dashed border-border" />
                 <span className="truncate text-body-sm-strong">
-                  <DishLink offerId={offer.id}>{offer.seller.name}</DishLink>
+                  <DishLink offer={offer}>{offer.seller.name}</DishLink>
                 </span>
                 <span
                   aria-hidden

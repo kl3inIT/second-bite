@@ -1,4 +1,5 @@
 import type { OrderBody } from "@/lib/api/generated";
+import { plainText } from "@/lib/plain-text";
 
 /**
  * The tabs of a store's order list (Figma Q5, Q5e, Q5f): what customers hold and the seller still has to hand
@@ -63,24 +64,14 @@ export function unitsOf(order: OrderBody): number {
   return order.lines.reduce((sum, line) => sum + line.units, 0);
 }
 
-/** Lower case without accents, so "Bánh" is found by "banh" and "Đạt" by "dat". */
-function plain(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replaceAll("đ", "d")
-    .replaceAll("Đ", "d")
-    .toLowerCase();
-}
-
 /** Whether an order answers a search: by the customer's name, a part of their phone number, or a dish. */
 export function matchesQuery(order: OrderBody, query: string): boolean {
-  const wanted = plain(query.trim());
+  const wanted = plainText(query.trim());
   if (!wanted) return true;
   const digits = wanted.replace(/\D/g, "");
   if (digits.length >= 3 && order.customerPhone.includes(digits)) return true;
   return [order.customerName, ...order.lines.map((line) => line.name)].some((text) =>
-    plain(text).includes(wanted),
+    plainText(text).includes(wanted),
   );
 }
 

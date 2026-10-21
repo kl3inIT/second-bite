@@ -8,10 +8,10 @@ import { buttonVariants } from "@/components/ui/button";
 
 const COPIED_MS = 2000;
 
-// Sharing a dish (Figma K4 "share"): the phone's own share sheet where there is one, otherwise its address
+// Sharing a seller's page (Figma K4b "share"): the phone's own share sheet where there is one, otherwise its address
 // copied, which the button confirms with a tick for a moment.
 export function ShareButton({ title }: { title: string }) {
-  const t = useTranslations("Dish");
+  const t = useTranslations("Seller");
   const [copied, setCopied] = useState(false);
 
   async function share() {

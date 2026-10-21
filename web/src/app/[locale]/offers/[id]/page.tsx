@@ -1,24 +1,15 @@
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { Suspense } from "react";
 
 import { BrandLoader } from "@/components/brand-loader";
 
-import { readHomeQuery } from "@/features/home/home-query";
-import { DishDetails } from "@/features/offers/dish-details";
-import { getDish } from "@/features/offers/get-dish";
+import { dishSeller } from "@/features/offers/dish-seller";
+import { dishHref } from "@/features/offers/offer";
+import { redirect } from "@/i18n/navigation";
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: PageProps<"/[locale]/offers/[id]">): Promise<Metadata> {
-  const [{ id }, { near }] = await Promise.all([params, searchParams.then(readHomeQuery)]);
-  const found = await getDish(id, near);
-  return { title: found ? `${found.dish.name} · Second Bite` : "Second Bite" };
-}
-
-// A dish (Figma K4), opened from any card; `near` keeps the distance the cards showed. The address is known only at
-// request time, so the page streams in.
+// A dish has no page of its own (Figma K4): an address shared or kept from before leads to its seller's page,
+// scrolled to its row. The address is known only at request time, so the redirect streams in.
 export default function DishPage(props: PageProps<"/[locale]/offers/[id]">) {
   return (
     <Suspense fallback={<BrandLoader />}>
@@ -27,10 +18,10 @@ export default function DishPage(props: PageProps<"/[locale]/offers/[id]">) {
   );
 }
 
-async function Dish({ params, searchParams }: PageProps<"/[locale]/offers/[id]">) {
-  const [{ id }, { near }] = await Promise.all([params, searchParams.then(readHomeQuery)]);
-  const found = await getDish(id, near);
-  if (!found) notFound();
+async function Dish({ params }: PageProps<"/[locale]/offers/[id]">) {
+  const { id } = await params;
+  const sellerId = await dishSeller(id);
+  if (!sellerId) notFound();
 
-  return <DishDetails dish={found.dish} others={found.others} near={near} />;
+  return redirect({ href: dishHref({ id, sellerId }), locale: await getLocale() });
 }

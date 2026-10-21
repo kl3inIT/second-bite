@@ -6,7 +6,7 @@ import { OfferPhoto } from "./offer-photo";
 
 // The small card of the home's rows "Sắp có tối nay" and "Gợi ý cho bạn" (Figma rec/…): a 96px photograph
 // with a label in its corner and, at its foot, a badge on the left and an action on the right; then the dish
-// and one line beside a clock, the window or the time it goes on sale. A dish on sale opens its page (`linked`);
+// and one line beside a clock, the window or the time it goes on sale. A dish on sale opens on its seller's page (`linked`);
 // an announcement has none yet.
 export function MiniCard({
   offer,
@@ -16,7 +16,7 @@ export function MiniCard({
   action,
   meta,
 }: {
-  offer: Pick<OfferSummary, "id" | "name" | "photo">;
+  offer: Pick<OfferSummary, "id" | "sellerId" | "name" | "photo">;
   linked?: boolean;
   label: React.ReactNode;
   badge?: React.ReactNode;
@@ -32,7 +32,7 @@ export function MiniCard({
         {action && <div className="absolute right-1.5 bottom-1.5 z-10">{action}</div>}
       </div>
       <h3 className="truncate text-body-sm-strong text-foreground">
-        {linked ? <DishLink offerId={offer.id}>{offer.name}</DishLink> : offer.name}
+        {linked ? <DishLink offer={offer}>{offer.name}</DishLink> : offer.name}
       </h3>
       <p className="flex items-center gap-1.5 text-label text-muted-foreground">
         <ClockIcon aria-hidden strokeWidth={2.2} className="size-3.5 shrink-0" />

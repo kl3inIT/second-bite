@@ -68,6 +68,7 @@ function sample({
   id,
   name,
   description = "",
+  weightGrams,
   kind,
   price,
   originalPrice,
@@ -85,6 +86,7 @@ function sample({
     status,
     name,
     description,
+    ...(weightGrams ? { weightGrams } : {}),
     kind,
     unit,
     units: Math.max(unitsLeft, 1),
@@ -163,7 +165,8 @@ const offers = [
     id: "of-croissant",
     name: "Bánh Croissant Truyền Thống",
     description:
-      "Bánh làm trong ngày, ngon nhất khi dùng trước 24 giờ. Nếu bạn dị ứng món nào, hãy hỏi quán khi đến nhận.",
+      "Croissant bơ Pháp nướng sáng nay, vỏ nhiều lớp, ruột mềm. Hâm lò 3 phút cho giòn lại.",
+    weightGrams: 80,
     kind: "bakery",
     price: 22000,
     originalPrice: 50000,
@@ -188,6 +191,8 @@ const offers = [
   sample({
     id: "of-banh-mi",
     name: "Bánh mì mềm chà bông",
+    description: "Bánh mì mềm phủ chà bông và sốt bơ, làm sáng nay.",
+    weightGrams: 120,
     kind: "bakery",
     price: 35000,
     originalPrice: 75000,
@@ -200,6 +205,8 @@ const offers = [
   sample({
     id: "of-ha-cao",
     name: "Há cảo tôm",
+    description: "Há cảo tôm hấp, vỏ bột lọc mỏng. Hâm hấp lại 5 phút trước khi ăn.",
+    weightGrams: 150,
     kind: "prepared_food",
     price: 25000,
     originalPrice: 59000,
@@ -224,6 +231,9 @@ const offers = [
   sample({
     id: "of-com-thit-kho",
     name: "Cơm Thịt Kho Nước Dừa",
+    description:
+      "Cơm trắng với thịt ba chỉ kho nước dừa và trứng, kèm dưa leo. Hâm lò vi sóng 2 phút.",
+    weightGrams: 400,
     kind: "prepared_food",
     price: 30000,
     originalPrice: 68000,

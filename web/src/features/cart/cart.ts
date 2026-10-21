@@ -7,7 +7,11 @@ import type { OfferSummary } from "@/features/offers/offer";
 export type CartLine = Pick<
   OfferSummary,
   "id" | "name" | "priceVnd" | "originalPriceVnd" | "unitsLeft" | "windowStart" | "windowEnd"
-> & { quantity: number };
+> & {
+  quantity: number;
+  /** The dish's photograph on the confirmation; a cart saved before it was kept has none. */
+  photo?: OfferSummary["photo"];
+};
 
 /** One seller's dishes in the cart: one order. */
 export type Basket = {
@@ -22,23 +26,42 @@ export type Cart = { baskets: Basket[] };
 
 /** One more portion of the dish, in its seller's basket, never more than its portions left. */
 export function addOne(cart: Cart | null, offer: OfferSummary): Cart {
+  return addPortions(cart, offer, 1);
+}
+
+/** Some more portions of the dish, as the dish's sheet adds them (Figma K4a), never more than its portions left. */
+export function addPortions(cart: Cart | null, offer: OfferSummary, count: number): Cart {
   const baskets = cart?.baskets ?? [];
   const basket = baskets.find(({ seller }) => seller.id === offer.sellerId);
-  if (!basket) return { baskets: [...baskets, basketOf(offer)] };
+  if (!basket) return { baskets: [...baskets, basketOf(offer, count)] };
   const line = basket.lines.find(({ id }) => id === offer.id);
   const updated = {
     ...lineOf(offer),
-    quantity: Math.min((line?.quantity ?? 0) + 1, offer.unitsLeft),
+    quantity: Math.min((line?.quantity ?? 0) + count, offer.unitsLeft),
   };
   const lines = line
     ? basket.lines.map((each) => (each.id === offer.id ? updated : each))
     : [...basket.lines, updated];
   // The seller's details come from the dish just added, so a basket kept from earlier shows them as they are now.
-  const { seller, collectionPoint, distanceMeters } = basketOf(offer);
+  const { seller, collectionPoint, distanceMeters } = basketOf(offer, count);
   return {
     baskets: baskets.map((each) =>
       each === basket ? { ...basket, seller, collectionPoint, distanceMeters, lines } : each,
     ),
+  };
+}
+
+/** One more portion of a dish already in the cart, as the confirmation adds it (Figma K5), never more than left. */
+export function oneMore(cart: Cart, offerId: string): Cart {
+  return {
+    baskets: cart.baskets.map((basket) => ({
+      ...basket,
+      lines: basket.lines.map((line) =>
+        line.id === offerId
+          ? { ...line, quantity: Math.min(line.quantity + 1, line.unitsLeft) }
+          : line,
+      ),
+    })),
   };
 }
 
@@ -138,7 +161,7 @@ function isBasket(value: unknown): value is Basket {
   );
 }
 
-function basketOf(offer: OfferSummary): Basket {
+function basketOf(offer: OfferSummary, count: number): Basket {
   return {
     seller: {
       id: offer.seller.id,
@@ -148,13 +171,13 @@ function basketOf(offer: OfferSummary): Basket {
     },
     collectionPoint: offer.collectionPoint,
     distanceMeters: offer.distanceMeters,
-    lines: [{ ...lineOf(offer), quantity: Math.min(1, offer.unitsLeft) }],
+    lines: [{ ...lineOf(offer), quantity: Math.min(count, offer.unitsLeft) }],
   };
 }
 
 function lineOf(offer: OfferSummary): Omit<CartLine, "quantity"> {
-  const { id, name, priceVnd, originalPriceVnd, unitsLeft, windowStart, windowEnd } = offer;
-  return { id, name, priceVnd, originalPriceVnd, unitsLeft, windowStart, windowEnd };
+  const { id, name, priceVnd, originalPriceVnd, unitsLeft, windowStart, windowEnd, photo } = offer;
+  return { id, name, priceVnd, originalPriceVnd, unitsLeft, windowStart, windowEnd, photo };
 }
 
 /** A dish of a basket with fewer portions left than it holds; none left when `left` is 0. */

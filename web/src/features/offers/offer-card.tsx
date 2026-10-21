@@ -86,7 +86,7 @@ export function OfferCard({
           <>
             <div className="flex items-center justify-between gap-2">
               <h3 className="min-w-0 truncate text-title-lg text-foreground">
-                <DishLink offerId={offer.id}>{offer.name}</DishLink>
+                <DishLink offer={offer}>{offer.name}</DishLink>
               </h3>
               <Price offer={offer} />
             </div>
@@ -106,7 +106,7 @@ export function OfferCard({
             <h3
               className={cn("truncate text-foreground", compact ? "text-title" : "text-title-lg")}
             >
-              <DishLink offerId={offer.id}>{offer.name}</DishLink>
+              <DishLink offer={offer}>{offer.name}</DishLink>
             </h3>
             {showSeller && (
               <p className="truncate text-label text-muted-foreground">
