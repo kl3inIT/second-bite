@@ -76,6 +76,12 @@ UPDATE order_orders SET state = 'collected', collected_at = now() WHERE id = @id
 -- name: MarkCancelled :exec
 UPDATE order_orders SET state = 'cancelled', cancelled_at = now(), cancel_reason = @cancel_reason WHERE id = @id;
 
+-- name: MarkReopened :exec
+-- Takes a hand-over or a refusal back: the order is open again.
+UPDATE order_orders
+SET state = 'confirmed', ready_at = NULL, collected_at = NULL, refused_at = NULL, refuse_reason = NULL, refuse_note = ''
+WHERE id = @id;
+
 -- name: MarkRefused :exec
 UPDATE order_orders
 SET state = 'refused', refused_at = now(), refuse_reason = @refuse_reason, refuse_note = @refuse_note

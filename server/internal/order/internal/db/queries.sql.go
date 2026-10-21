@@ -426,6 +426,18 @@ func (q *Queries) MarkRefused(ctx context.Context, arg MarkRefusedParams) error 
 	return err
 }
 
+const markReopened = `-- name: MarkReopened :exec
+UPDATE order_orders
+SET state = 'confirmed', ready_at = NULL, collected_at = NULL, refused_at = NULL, refuse_reason = NULL, refuse_note = ''
+WHERE id = $1
+`
+
+// Takes a hand-over or a refusal back: the order is open again.
+func (q *Queries) MarkReopened(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, markReopened, id)
+	return err
+}
+
 const orderOfKey = `-- name: OrderOfKey :one
 SELECT id FROM order_orders
 WHERE customer_id IS NOT DISTINCT FROM $1::uuid AND idempotency_key = $2

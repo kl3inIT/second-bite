@@ -52,6 +52,9 @@ func TestOrder(t *testing.T) {
 		"a seller lists the orders of a day":       testSellerListsADay,
 		"the customer lists open and ended orders": testCustomerLists,
 		"an order without an account":              testOrderWithoutAccount,
+		"no answer or no show gives units back":    testNoShowGivesUnitsBack,
+		"a mistake is taken back":                  testReopen,
+		"some orders are not reopened":             testReopenStaysShut,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -524,6 +527,139 @@ func testStaffRefuse(t *testing.T, f fixture) {
 
 	_, err = f.orders.Ready(staff, o.ID)
 	mustFail(t, "ready once refused", err, order.ErrTransitionNotAllowed)
+}
+
+func testNoShowGivesUnitsBack(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
+
+	for reason, back := range map[order.RefuseReason]bool{
+		order.RefuseNoAnswer: true, order.RefuseNoShow: true, order.RefuseLate: true,
+		order.RefuseSoldOut: false, order.RefuseOther: false,
+	} {
+		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		before := f.unitsLeft(owner, t, croissant.ID)
+
+		refused, err := f.orders.Refuse(owner, o.ID, reason, "")
+		if err != nil || refused.Status != order.StatusRefused || refused.RefuseReason != reason {
+			t.Fatalf("refused for %s: %+v, %v", reason, refused, err)
+		}
+
+		want := before
+		if back {
+			want++
+		}
+
+		if got := f.unitsLeft(owner, t, croissant.ID); got != want {
+			t.Errorf("units after %s: %d, want %d", reason, got, want)
+		}
+	}
+}
+
+func testReopen(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	stranger := f.as(t, "stranger", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	// The window opens in an hour, so its customer may still cancel; the order's own window is moved to
+	// now, so that it can be handed over.
+	croissant := f.post(owner, t, shop, "Croissant", 2, 20_000, time.Now().Add(time.Hour))
+
+	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 2}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f.shift(t, o.ID, -2*time.Hour)
+
+	_, err = f.orders.Reopen(owner, o.ID)
+	mustFail(t, "reopening an open order", err, order.ErrTransitionNotAllowed)
+
+	if _, err := f.orders.HandOver(owner, o.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Reopen(stranger, o.ID)
+	mustFail(t, "a stranger reopening", err, order.ErrNotFound)
+
+	again, err := f.orders.Reopen(owner, o.ID)
+	if err != nil || again.Status != order.StatusConfirmed || again.CollectedAt != nil {
+		t.Fatalf("a hand-over taken back: %+v, %v", again, err)
+	}
+
+	// A no-show gave its units back; someone took them; taking the refusal back fails.
+	if _, err := f.orders.Refuse(owner, o.ID, order.RefuseNoShow, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	other, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 2}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Reopen(owner, o.ID)
+	mustFail(t, "reopening when the units are gone", err, order.ErrOfferSoldOut)
+
+	if _, err := f.orders.Cancel(customer, other.ID, "", ""); err != nil {
+		t.Fatal(err)
+	}
+
+	back, err := f.orders.Reopen(owner, o.ID)
+	if err != nil || back.Status != order.StatusConfirmed || back.RefuseReason != "" {
+		t.Fatalf("a no-show taken back: %+v, %v", back, err)
+	}
+
+	if got := f.unitsLeft(owner, t, croissant.ID); got != 0 {
+		t.Errorf("units once the refusal is taken back: %d", got)
+	}
+}
+
+func testReopenStaysShut(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 3, 20_000, time.Now().Add(time.Hour))
+
+	cancelled, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// What its customer cancelled, or whose window is over, stays as it is.
+	if _, err := f.orders.Cancel(customer, cancelled.ID, "", ""); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Reopen(owner, cancelled.ID)
+	mustFail(t, "reopening what its customer cancelled", err, order.ErrTransitionNotAllowed)
+
+	late, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f.shift(t, late.ID, -2*time.Hour)
+
+	if _, err := f.orders.HandOver(owner, late.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	f.shift(t, late.ID, -4*time.Hour)
+
+	_, err = f.orders.Reopen(owner, late.ID)
+	mustFail(t, "reopening once the window is over", err, order.ErrTransitionNotAllowed)
 }
 
 func testExpiryReadFromTheWindow(t *testing.T, f fixture) {

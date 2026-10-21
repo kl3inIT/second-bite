@@ -11,6 +11,9 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | The customer cancels before the window opens and the units return; the seller cannot cancel; not twice; not once the window has opened | `TestOrder` › cancelling until the window opens |
 | A stranger cannot hand over; the seller's people collect the order; nothing after; not before the window | `TestOrder` › handing over |
 | Staff refuse with a known reason and a note; the customer cannot; the units are not offered again; nothing after | `TestOrder` › staff refuse an order |
+| Refusing for no answer, no show or too late gives the units back; for out of food or another reason it does not | `TestOrder` › no answer or no show gives units back |
+| A hand-over is taken back; a refusal that returned its units is taken back only while they are still there; a stranger gets 404 | `TestOrder` › a mistake is taken back |
+| What its customer cancelled, an order whose window is over and one still open cannot be reopened | `TestOrder` › some orders are not reopened |
 | An order whose window is over reads as expired and cannot be handed over, made ready or cancelled | `TestOrder` › expiry is read from the window |
 | A seller's people list the orders of today, not of tomorrow, without the access; a stranger cannot | `TestOrder` › a seller lists the orders of a day |
 | The customer lists all, open and ended orders, newest first; another account sees none of them | `TestOrder` › the customer lists open and ended orders |

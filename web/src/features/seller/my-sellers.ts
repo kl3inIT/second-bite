@@ -9,7 +9,9 @@ import {
   listDishes,
   listMySellers,
   listSellerOffers,
+  listSellerOrders,
   type OfferBody,
+  type OrderBody,
   type SellerBody,
 } from "@/lib/api/generated";
 
@@ -47,6 +49,16 @@ export const getStoreOffers = cache(async (sellerId: string): Promise<OfferBody[
     headers: await sessionHeaders(),
   });
   return data.offers ?? [];
+});
+
+/** A store's orders of one day (`YYYY-MM-DD`, Vietnam's time), the soonest window first. */
+export const getStoreOrders = cache(async (sellerId: string, day: string): Promise<OrderBody[]> => {
+  const { data } = await listSellerOrders({
+    path: { sellerId },
+    query: { day },
+    headers: await sessionHeaders(),
+  });
+  return data.orders;
 });
 
 /** A store's catalog, the newest dish first, hidden ones included. */
