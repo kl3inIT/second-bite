@@ -863,11 +863,23 @@
     "breadcrumb": "Vị trí trang",
     "group": {
       "operations": "Vận hành",
-      "users": "Người dùng"
+      "users": "Người dùng",
+      "marketing": "Marketing"
     },
     "nav": {
       "overview": "Tổng quan",
       "sellers": "Cửa hàng",
+      "orders": "Đơn hàng",
+      "payments": "Thanh toán & Hoàn tiền",
+      "issues": "Báo lỗi",
+      "reviews": "Đánh giá",
+      "offers": "Bài đăng",
+      "accounts": "Tài khoản",
+      "promotions": "Mã giảm giá",
+      "content": "Banner & nội dung",
+      "notifications": "Thông báo",
+      "sponsors": "Tài trợ",
+      "reports": "Báo cáo",
       "audit": "Nhật ký thao tác",
       "settings": "Cài đặt"
     },
@@ -973,7 +985,11 @@
       "nav": "Mục cài đặt",
       "offers": "Bài đăng",
       "email": "Email",
-      "admins": "Quản trị viên"
+      "admins": "Quản trị viên",
+      "categories": "Danh mục",
+      "areas": "Khu vực",
+      "legal": "Nội dung pháp lý",
+      "integrations": "Tích hợp"
     },
     "email": {
       "title": "Email",

@@ -32,9 +32,9 @@ type PageSpec = {
   nav?: AdminNavGroup;
   parent?: AdminPageKey;
   /**
-   * Whether the page is open. An unreleased page keeps its code, its route shows the shared coming-soon page
-   * and its sidebar or settings-menu item carries "Sắp có" (docs: admin-web-flow › Menu đầy đủ và trang Sắp ra
-   * mắt). A page is open once its backend exists; the others are built in full and wait behind the flag.
+   * Whether the page is open. An unreleased page keeps its code and its menu entry, with no mark on it, and its
+   * route shows the shared coming-soon page (docs: admin-web-flow › Menu đầy đủ và trang Sắp ra mắt). A page is
+   * open once its backend exists; the others are built in full and wait behind the flag.
    */
   released: boolean;
 };

@@ -2,6 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { adminSidebar, isReleased, openAdminMenu, signInTo } from "./admin";
 import { expectNoSeriousA11yViolations } from "./axe";
+import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
 // Each test signs in first, which takes a while when the projects run side by side.
@@ -19,11 +20,12 @@ async function expectComingSoon(page: Page, name: string) {
 }
 
 // SEC-62 › Menu đầy đủ và trang Sắp ra mắt (docs: admin-web-flow): a page whose backend does not exist yet keeps
-// its place in the menu with "Sắp có" and shows the coming-soon page, its code kept behind its flag (pages.ts).
+// its place in the menu, with no mark on it, and shows the coming-soon page, its code kept behind its flag
+// (pages.ts).
 test.describe("the pages that are not released yet", () => {
   test.skip(isReleased("orders") && isReleased("reports"), "Every page here is released.");
 
-  test("a page shows its name and Sắp có, and the menu holds only the open pages", async ({
+  test("a page shows its name and Sắp có, and the menu lists every page with no mark", async ({
     page,
     isMobile,
   }, testInfo) => {
@@ -34,16 +36,32 @@ test.describe("the pages that are not released yet", () => {
     await expect(crumbs).toContainText("Vận hành");
     await expect(crumbs).toContainText("Đơn hàng");
 
-    // An entry joins the menu with its screen (SEC-75 › Shell): no entry opens a coming-soon page.
     if (isMobile) await openAdminMenu(page);
-    await expect(
-      adminSidebar(page).getByRole("link", { name: "Cửa hàng", exact: true }),
-    ).toBeVisible();
-    await expect(
-      adminSidebar(page).getByRole("link", { name: "Tổng quan", exact: true }),
-    ).toBeVisible();
-    await expect(adminSidebar(page).getByRole("link", { name: "Đơn hàng" })).toHaveCount(0);
-    await expect(adminSidebar(page).getByText("Sắp có")).toHaveCount(0);
+    const menu = adminSidebar(page);
+    for (const name of [
+      "Tổng quan",
+      "Cửa hàng",
+      "Đơn hàng",
+      "Thanh toán & Hoàn tiền",
+      "Báo lỗi",
+      "Đánh giá",
+      "Bài đăng",
+      "Tài khoản",
+      "Mã giảm giá",
+      "Banner & nội dung",
+      "Thông báo",
+      "Tài trợ",
+      "Báo cáo",
+      "Nhật ký thao tác",
+      "Cài đặt",
+    ]) {
+      await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
+    }
+    await expect(menu.getByRole("link", { name: "Đơn hàng", exact: true })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(menu.getByText("Sắp có")).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
   });
 
@@ -72,15 +90,27 @@ test.describe("the pages that are not released yet", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
-  test("the settings menu holds only the open settings pages", async ({ page }, testInfo) => {
+  test("the settings menu lists every settings page with no mark", async ({ page }, testInfo) => {
     await signInTo(page, "/admin/settings/offers", testInfo, { who: "sapco-cd" });
     const menu = page.getByRole("navigation", { name: "Mục cài đặt" });
-    // As the sidebar, the settings menu holds only the pages that are open (SEC-75 › Shell).
-    await expect(menu.getByRole("link")).toHaveCount(3);
-    await expect(menu.getByRole("link", { name: "Bài đăng", exact: true })).toBeVisible();
-    await expect(menu.getByRole("link", { name: "Email", exact: true })).toBeVisible();
-    await expect(menu.getByRole("link", { name: "Quản trị viên", exact: true })).toBeVisible();
+    // As the sidebar, the settings menu lists the unreleased pages too; they open their coming-soon page.
+    await expect(menu.getByRole("link")).toHaveCount(7);
+    for (const name of [
+      "Bài đăng",
+      "Email",
+      "Quản trị viên",
+      "Danh mục",
+      "Khu vực",
+      "Nội dung pháp lý",
+      "Tích hợp",
+    ]) {
+      await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
+    }
     await expect(menu.getByText("Sắp có")).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
+
+    await (await hydrated(menu.getByRole("link", { name: "Danh mục", exact: true }))).click();
+    await expect(page).toHaveURL(/\/vi\/admin\/settings\/categories$/);
+    await expectComingSoon(page, "Danh mục");
   });
 });

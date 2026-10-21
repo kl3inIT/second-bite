@@ -863,11 +863,23 @@
     "breadcrumb": "Where you are",
     "group": {
       "operations": "Operations",
-      "users": "Users"
+      "users": "Users",
+      "marketing": "Marketing"
     },
     "nav": {
       "overview": "Overview",
       "sellers": "Stores",
+      "orders": "Orders",
+      "payments": "Payments & refunds",
+      "issues": "Problem reports",
+      "reviews": "Reviews",
+      "offers": "Posts",
+      "accounts": "Accounts",
+      "promotions": "Promo codes",
+      "content": "Banners & content",
+      "notifications": "Notifications",
+      "sponsors": "Sponsors",
+      "reports": "Reports",
       "audit": "Activity log",
       "settings": "Settings"
     },
@@ -973,7 +985,11 @@
       "nav": "Settings pages",
       "offers": "Posts",
       "email": "Email",
-      "admins": "Admins"
+      "admins": "Admins",
+      "categories": "Categories",
+      "areas": "Areas",
+      "legal": "Legal content",
+      "integrations": "Integrations"
     },
     "email": {
       "title": "Email",

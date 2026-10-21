@@ -20,7 +20,7 @@ test.describe("the offer settings", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Cài đặt" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Bài đăng" })).toBeVisible();
     const menu = page.getByRole("navigation", { name: "Mục cài đặt" });
-    await expect(menu.getByRole("link")).toHaveCount(8);
+    await expect(menu.getByRole("link")).toHaveCount(7);
     await expect(menu.getByRole("link", { name: "Bài đăng" })).toHaveAttribute(
       "aria-current",
       "page",
