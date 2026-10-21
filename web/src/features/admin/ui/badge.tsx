@@ -44,15 +44,20 @@ export function AdminBadge({
   );
 }
 
-export type SellerStatus = "active" | "pending" | "blocked";
+/** A store's status; `rejected` is SEC-64's, shown behind the `storeReview` flag until the backend has it. */
+export type SellerStatus = "active" | "pending" | "rejected" | "blocked";
 
 const statuses: Record<SellerStatus, { tone: BadgeTone; icon: LucideIcon }> = {
   active: { tone: "success", icon: CircleCheckIcon },
   pending: { tone: "warning", icon: ClockIcon },
+  rejected: { tone: "neutral", icon: CircleXIcon },
   blocked: { tone: "error", icon: BanIcon },
 };
 
-/** A store's status (Figma Admin/StatusBadge 228:5238): "Đang hoạt động", "Chờ duyệt", "Bị chặn". */
+/**
+ * A store's status (Figma Admin/StatusBadge 228:5238, AD-DS5): "Đang hoạt động", "Chờ duyệt", "Bị từ chối" in
+ * grey with its crossed circle, "Bị chặn".
+ */
 export function StatusBadge({ status }: { status: SellerStatus }) {
   const t = useTranslations("admin.shell.status");
   const { tone, icon } = statuses[status];

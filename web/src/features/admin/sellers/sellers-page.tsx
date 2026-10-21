@@ -1,3 +1,5 @@
+import { isFeatureOn } from "@/features/admin/features";
+
 import { readStatus } from "./seller-list";
 import { SellersList } from "./sellers-list";
 import { countSellers, listSellers } from "./sellers-source";
@@ -11,7 +13,8 @@ export async function SellersPage({
 }: {
   query: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const status = readStatus(await query);
-  const [rows, counts] = await Promise.all([listSellers(status), countSellers()]);
-  return <SellersList rows={rows} counts={counts} />;
+  const review = isFeatureOn("storeReview");
+  const status = readStatus(await query, review);
+  const [rows, counts] = await Promise.all([listSellers(status), countSellers(review)]);
+  return <SellersList rows={rows} counts={counts} review={review} />;
 }

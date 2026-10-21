@@ -23,6 +23,7 @@
     "active": "No store is active.",
     "pending": "No store is waiting for approval.",
     "blocked": "No store is blocked.",
+    "rejected": "No store is rejected.",
     "filtered": "No store matches the search",
     "clear": "Clear filters"
   },
@@ -32,19 +33,38 @@
     "blockMenu": "Block store…",
     "unblock": "Unblock",
     "approve": "Approve",
+    "reject": "Reject",
+    "rejectMenu": "Reject…",
     "done": {
       "block": "Blocked {name}",
       "unblock": "Unblocked {name}",
-      "approve": "Approved {name}"
+      "approve": "Approved {name}",
+      "reject": "Rejected {name}"
+    },
+    "emailed": {
+      "block": "Blocked {name} and emailed its owner",
+      "reject": "Rejected {name} and emailed its owner"
     },
     "failed": "The status of {name} did not change, please try again",
+    "ownerless": "The store has no owner left",
+    "ownerlessFailed": "{name} has no owner left, so its status did not change",
     "confirm": {
       "title": "Block the store {name}?",
+      "reason": "Reason for blocking",
       "when": "While it is blocked:",
       "noPosting": "The store cannot post or change posts.",
       "hidden": "The store and all its posts leave customers' search at once, and its page no longer opens.",
       "kept": "The store can still withdraw posts and manage its staff.",
+      "emailed": "The owner is emailed the reason.",
       "undo": "You can unblock it at any time."
+    },
+    "rejectConfirm": {
+      "title": "Reject the store {name}?",
+      "reason": "Reason for rejecting",
+      "when": "Once it is rejected:",
+      "hidden": "Customers do not see the store and it cannot post.",
+      "emailed": "The owner is emailed the reason.",
+      "retry": "The owner can correct the store and ask again."
     }
   },
   "open": {
@@ -105,13 +125,27 @@
       "address": "Address",
       "phone": "Phone number",
       "statusChanged": "Status changed",
-      "members": "Members"
+      "members": "Members",
+      "noMembers": "No members left"
     },
+    "reason": "Reason: {reason}",
     "blocked": {
       "title": "This store is blocked",
       "noPosting": "It cannot post or change posts",
       "hidden": "Customers do not see it",
-      "kept": "Its posts and staff are kept"
+      "kept": "Its posts and staff are kept",
+      "ownerDeleted": "Reason: the owner deleted their account",
+      "postsKept": "Its posts are kept"
+    },
+    "rejected": {
+      "title": "This store is rejected",
+      "hidden": "Customers do not see it",
+      "retry": "The owner can correct it and ask again"
+    },
+    "duplicate": {
+      "phone": "Same phone number as {name} (blocked)",
+      "address": "Same address as {name} (blocked)",
+      "view": "View {name}"
     },
     "roles": {
       "owner": "Owner",

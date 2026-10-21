@@ -1,4 +1,5 @@
 import type { SellerBody } from "@/lib/api/generated";
+import { isFeatureOn } from "../features";
 import { type PageSize, pageSizes } from "../list-query";
 
 /**
@@ -7,7 +8,10 @@ import { type PageSize, pageSizes } from "../list-query";
  * the sort. The backend lists a status; searching, filtering and sorting happen here in the browser while the
  * pilot has 30 to 100 stores, and move to the backend when there are more.
  */
-export type SellerStatus = SellerBody["status"];
+/** A store's status: the backend's three, and SEC-64's `rejected` behind the `storeReview` flag. */
+export type SellerStatus = SellerBody["status"] | "rejected";
+/** A store as the admin lists it, which may be `rejected` once SEC-64 gives that status. */
+export type AdminSeller = Omit<SellerBody, "status"> & { status: SellerStatus };
 export type SortKey = "name" | "address" | "updatedAt";
 export type SortDirection = "asc" | "desc";
 
@@ -25,7 +29,19 @@ export type ListQuery = {
   dir: SortDirection;
 };
 
-const statuses: readonly SellerStatus[] = ["active", "pending", "blocked"];
+/**
+ * The statuses the list offers, in the order of its cards: today Đang hoạt động, Chờ duyệt, Bị chặn; with the
+ * `storeReview` flag (SEC-64) the queue comes first, Chờ duyệt, Đang hoạt động, Bị từ chối, Bị chặn (AD-DS1).
+ */
+export function listStatuses(review: boolean): readonly SellerStatus[] {
+  return review ? ["pending", "active", "rejected", "blocked"] : ["active", "pending", "blocked"];
+}
+
+/** The status the list opens on: the active stores today, the pending queue with the `storeReview` flag. */
+export function defaultStatus(review: boolean): SellerStatus {
+  return review ? "pending" : "active";
+}
+
 const sortKeys: readonly SortKey[] = ["name", "address", "updatedAt"];
 const day = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -47,13 +63,19 @@ function read(params: Params, name: string): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-/** The status the address asks for, Đang hoạt động when it names none or one that does not exist. */
-export function readStatus(params: Params): SellerStatus {
-  return statuses.find((status) => status === read(params, "status")) ?? defaultQuery.status;
+/**
+ * The status the address asks for, the list's first status when it names none or one the list does not offer
+ * (`rejected` while the `storeReview` flag is off).
+ */
+export function readStatus(params: Params, review = isFeatureOn("storeReview")): SellerStatus {
+  return (
+    listStatuses(review).find((status) => status === read(params, "status")) ??
+    defaultStatus(review)
+  );
 }
 
 /** The list's state from its address; whatever is missing or wrong takes its default. */
-export function readListQuery(params: Params): ListQuery {
+export function readListQuery(params: Params, review = isFeatureOn("storeReview")): ListQuery {
   const size = Number(read(params, "size"));
   const page = Number(read(params, "page"));
   const sort = sortKeys.find((key) => key === read(params, "sort")) ?? defaultQuery.sort;
@@ -61,7 +83,7 @@ export function readListQuery(params: Params): ListQuery {
   const from = read(params, "from");
   const to = read(params, "to");
   return {
-    status: readStatus(params),
+    status: readStatus(params, review),
     q: read(params, "q") ?? "",
     area: read(params, "area") ?? "",
     from: from && day.test(from) ? from : undefined,
@@ -74,9 +96,9 @@ export function readListQuery(params: Params): ListQuery {
 }
 
 /** The address's query for a state, leaving out what is at its default: `status=blocked&q=banh`. */
-export function listQueryString(query: ListQuery): string {
+export function listQueryString(query: ListQuery, review = isFeatureOn("storeReview")): string {
   const params = new URLSearchParams();
-  if (query.status !== defaultQuery.status) params.set("status", query.status);
+  if (query.status !== defaultStatus(review)) params.set("status", query.status);
   if (query.q) params.set("q", query.q);
   if (query.area) params.set("area", query.area);
   if (query.from) params.set("from", query.from);
@@ -131,16 +153,16 @@ export function dayOf(at: string | Date): string {
   return vietnamDay.format(typeof at === "string" ? new Date(at) : at);
 }
 
-function compare(a: SellerBody, b: SellerBody, key: SortKey): number {
+function compare(a: AdminSeller, b: AdminSeller, key: SortKey): number {
   if (key === "updatedAt") return Date.parse(a.updatedAt) - Date.parse(b.updatedAt);
   return collator.compare(a[key], b[key]);
 }
 
 /** The stores in a column's order; ties keep the name's order, so a page never shuffles between two renders. */
 export function sortSellers(
-  rows: readonly SellerBody[],
+  rows: readonly AdminSeller[],
   { sort, dir }: Pick<ListQuery, "sort" | "dir">,
-): SellerBody[] {
+): AdminSeller[] {
   const sign = dir === "asc" ? 1 : -1;
   return rows.toSorted((a, b) => sign * compare(a, b, sort) || collator.compare(a.name, b.name));
 }
@@ -150,7 +172,7 @@ export function sortSellers(
  * ‹ › of a store's page, and where it stands: "1 / 5".
  */
 export function neighboursOf(
-  rows: readonly SellerBody[],
+  rows: readonly AdminSeller[],
   sellerId: string,
 ): { previous?: string; next?: string; position: number; total: number } {
   const sorted = sortSellers(rows, defaultQuery);
@@ -166,9 +188,9 @@ export function neighboursOf(
 
 /** The stores the state asks for, sorted, then the page of them: the rows shown and how many matched. */
 export function applyListQuery(
-  rows: readonly SellerBody[],
+  rows: readonly AdminSeller[],
   query: ListQuery,
-): { rows: SellerBody[]; total: number; page: number } {
+): { rows: AdminSeller[]; total: number; page: number } {
   const words = fold(query.q.trim());
   const matched = rows.filter(
     (row) =>

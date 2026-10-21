@@ -129,6 +129,7 @@
   "status": {
     "active": "Đang hoạt động",
     "pending": "Chờ duyệt",
+    "rejected": "Bị từ chối",
     "blocked": "Bị chặn"
   },
   "empty": "Chưa có dữ liệu",

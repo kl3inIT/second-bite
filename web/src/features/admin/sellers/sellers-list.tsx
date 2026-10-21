@@ -1,9 +1,17 @@
 "use client";
 
-import { BanIcon, CircleCheckIcon, ClockIcon, EyeIcon, type LucideIcon } from "lucide-react";
+import {
+  BanIcon,
+  CircleCheckIcon,
+  CircleXIcon,
+  ClockIcon,
+  EyeIcon,
+  type LucideIcon,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
+import { isFeatureOn } from "@/features/admin/features";
 import { adminHref } from "@/features/admin/pages";
 import { StatusBadge } from "@/features/admin/ui/badge";
 import { DataTable, DateCell, MediaCell, TextCell } from "@/features/admin/ui/data-table";
@@ -19,14 +27,16 @@ import { Pagination } from "@/features/admin/ui/pagination";
 import { RowActionMenu } from "@/features/admin/ui/row-action-menu";
 import { StatCard } from "@/features/admin/ui/stat-card";
 import type { BadgeTone } from "@/features/admin/ui/badge";
-import type { SellerBody } from "@/lib/api/generated";
+import { cn } from "@/lib/utils";
 
 import { useSellerActions } from "./seller-actions";
 import {
+  type AdminSeller,
   applyListQuery,
   areasOf,
   isFiltered,
   type ListQuery,
+  listStatuses,
   type SellerStatus,
   type SortKey,
   toggleSort,
@@ -36,11 +46,12 @@ import { sellerPhoto } from "./seller-photo";
 import { statusHref, useListQuery } from "./use-list-query";
 import { pageSizes } from "../list-query";
 
-const cards: { status: SellerStatus; tone: BadgeTone; icon: LucideIcon }[] = [
-  { status: "active", tone: "success", icon: CircleCheckIcon },
-  { status: "pending", tone: "warning", icon: ClockIcon },
-  { status: "blocked", tone: "error", icon: BanIcon },
-];
+const cardLooks: Record<SellerStatus, { tone: BadgeTone; icon: LucideIcon }> = {
+  active: { tone: "success", icon: CircleCheckIcon },
+  pending: { tone: "warning", icon: ClockIcon },
+  rejected: { tone: "neutral", icon: CircleXIcon },
+  blocked: { tone: "error", icon: BanIcon },
+};
 
 /**
  * The stores list (Figma AD-Q1, AD-Q2, AD-Q5 to AD-Q11, AD-TT1, AD-TT2): the three status cards, which filter
@@ -48,14 +59,26 @@ const cards: { status: SellerStatus; tone: BadgeTone; icon: LucideIcon }[] = [
  * every store in the status of the address; the search, the area, the change dates, the sort and the page are
  * applied here (seller-list.ts). The cards' 14-day trend waits for a history of status changes in `seller`, so
  * the cards draw none (design.md › What waits).
+ *
+ * With the `storeReview` flag (`review`, SEC-64) the list opens on the pending queue, a fourth card counts the
+ * rejected stores ("—" until the backend counts them), and a pending store's menu offers "Từ chối…" (AD-DS1).
  */
-export function SellersList({ rows, counts }: { rows: SellerBody[]; counts: SellerCounts }) {
+export function SellersList({
+  rows,
+  counts,
+  review = isFeatureOn("storeReview"),
+}: {
+  rows: AdminSeller[];
+  counts: SellerCounts;
+  review?: boolean;
+}) {
   const t = useTranslations("admin.sellers");
   const status = useTranslations("admin.shell.status");
-  const [query, update] = useListQuery();
-  const actions = useSellerActions();
+  const [query, update] = useListQuery(review);
+  const actions = useSellerActions({ review });
   const shown = applyListQuery(rows, query);
   const base = adminHref("sellers");
+  const cards = listStatuses(review).map((each) => ({ status: each, ...cardLooks[each] }));
 
   const sortOf = (key: SortKey) => ({
     direction: query.sort === key ? query.dir : ("none" as const),
@@ -64,15 +87,15 @@ export function SellersList({ rows, counts }: { rows: SellerBody[]; counts: Sell
 
   return (
     <>
-      <ul className="grid gap-4 md:grid-cols-3">
+      <ul className={cn("grid gap-4", review ? "sm:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-3")}>
         {cards.map((card) => (
           <li key={card.status}>
             <StatCard
               label={status(card.status)}
-              value={counts[card.status]}
+              value={counts[card.status] ?? "—"}
               icon={card.icon}
               tone={card.tone}
-              href={statusHref(query, card.status, base)}
+              href={statusHref(query, card.status, base, review)}
               selected={query.status === card.status}
             />
           </li>
@@ -172,28 +195,25 @@ export function SellersList({ rows, counts }: { rows: SellerBody[]; counts: Sell
               key: "actions",
               header: "",
               align: "end",
-              cell: (seller) => {
-                const action = actions.actionFor(seller);
-                return (
-                  <RowActionMenu
-                    name={seller.name}
-                    actions={[
-                      {
-                        label: t("actions.view"),
-                        icon: EyeIcon,
-                        href: adminHref("sellerDetail", { sellerId: seller.id }),
-                      },
-                      {
-                        label: action.menuLabel,
-                        icon: action.icon,
-                        destructive: action.destructive,
-                        disabled: actions.locked,
-                        onSelect: () => actions.act(seller),
-                      },
-                    ]}
-                  />
-                );
-              },
+              cell: (seller) => (
+                <RowActionMenu
+                  name={seller.name}
+                  actions={[
+                    {
+                      label: t("actions.view"),
+                      icon: EyeIcon,
+                      href: adminHref("sellerDetail", { sellerId: seller.id }),
+                    },
+                    ...actions.actionsFor(seller).map((action) => ({
+                      label: action.menuLabel,
+                      icon: action.icon,
+                      destructive: action.destructive,
+                      disabled: actions.locked,
+                      onSelect: () => actions.act(seller, action.kind),
+                    })),
+                  ]}
+                />
+              ),
             },
           ]}
           footer={

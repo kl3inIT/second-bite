@@ -129,6 +129,7 @@
   "status": {
     "active": "Active",
     "pending": "Pending",
+    "rejected": "Rejected",
     "blocked": "Blocked"
   },
   "empty": "No data yet",

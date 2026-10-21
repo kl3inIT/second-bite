@@ -1,15 +1,17 @@
-import { BanIcon, CircleCheckIcon, EyeOffIcon } from "lucide-react";
+import { BanIcon, CircleCheckIcon, EyeOffIcon, UsersIcon } from "lucide-react";
 import Image from "next/image";
 import { useFormatter, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { formatPrice } from "@/features/offers/format";
 import { EmptyState } from "@/features/admin/ui/empty-state";
-import { StatusCard } from "@/features/admin/ui/status-card";
+import { StatusCard, type StatusLine } from "@/features/admin/ui/status-card";
 import { Link } from "@/i18n/navigation";
-import type { OfferBody, SellerBody } from "@/lib/api/generated";
+import type { OfferBody } from "@/lib/api/generated";
 
 import { type AdminMember, AwaitingSignInBadge, MemberAvatar, RoleBadge } from "./member";
+import { hasOwner, type SellerReview } from "./review";
+import type { AdminSeller } from "./seller-list";
 import { postsIn } from "./seller-posts";
 
 /** How many posts on sale the overview shows; "Xem tất cả" opens the rest. */
@@ -19,27 +21,43 @@ const SHOWN = 3;
  * A store's overview tab (Figma AD-Q3, AD-Q4): its posts on sale, then its details and its people. A blocked
  * store has the card "Cửa hàng đang bị chặn" at the head of the right column instead of a banner, with when its
  * status changed among the details, and its people move under the posts.
+ *
+ * With the `storeReview` flag (SEC-64, SEC-65) `review` holds what the backend says beyond the status: a rejected
+ * store has its card "Cửa hàng bị từ chối" with the reason (AD-DS5), a blocked one says why and who blocked it, an
+ * admin or its owner deleting their account (AD-DS6, AD-DS7), and a store being reviewed shows its people first
+ * (AD-DS2). Without the flag `review` is absent and the tab is as it was.
  */
 export function SellerOverview({
   seller,
   offers,
   members,
   postsHref,
+  review,
 }: {
-  seller: SellerBody;
+  seller: AdminSeller;
   offers: OfferBody[];
   members: AdminMember[];
   postsHref: string;
+  review?: SellerReview;
 }) {
   const t = useTranslations("admin.sellers.detail");
   const format = useFormatter();
   const blocked = seller.status === "blocked";
+  const peopleFirst = review !== undefined && ["pending", "rejected"].includes(seller.status);
   const onSale = postsIn(offers, "on_sale");
-  const people = <MembersCard members={members} title={t("overview.members")} />;
+  const people = (
+    <MembersCard
+      members={members}
+      title={t("overview.members")}
+      empty={review && t("overview.noMembers")}
+    />
+  );
+  const status = review && statusCard(seller.status, review, hasOwner(members), t);
 
   return (
     <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
       <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
+        {peopleFirst && people}
         <Card
           title={t("overview.onSale")}
           action={
@@ -66,16 +84,20 @@ export function SellerOverview({
         {blocked && people}
       </div>
       <div className="flex min-w-0 flex-col gap-5">
-        {blocked && (
-          <StatusCard
-            title={t("blocked.title")}
-            tone="error"
-            lines={[
-              { icon: BanIcon, text: t("blocked.noPosting") },
-              { icon: EyeOffIcon, text: t("blocked.hidden") },
-              { icon: CircleCheckIcon, text: t("blocked.kept"), tone: "success" },
-            ]}
-          />
+        {status ? (
+          <StatusCard title={status.title} tone="error" lines={status.lines} />
+        ) : (
+          blocked && (
+            <StatusCard
+              title={t("blocked.title")}
+              tone="error"
+              lines={[
+                { icon: BanIcon, text: t("blocked.noPosting") },
+                { icon: EyeOffIcon, text: t("blocked.hidden") },
+                { icon: CircleCheckIcon, text: t("blocked.kept"), tone: "success" },
+              ]}
+            />
+          )
         )}
         <Card title={t("overview.info")}>
           <dl className="flex flex-col gap-3">
@@ -89,10 +111,57 @@ export function SellerOverview({
             )}
           </dl>
         </Card>
-        {!blocked && people}
+        {!blocked && !peopleFirst && people}
       </div>
     </div>
   );
+}
+
+type Words = ReturnType<typeof useTranslations<"admin.sellers.detail">>;
+
+/**
+ * The card at the head of the right column for a rejected or a blocked store, with the `storeReview` flag: the
+ * reason first when the backend gives one, then what the status means. A store whose owner deleted their account
+ * says so, and keeps its posts but no staff to speak of (AD-DS6).
+ */
+function statusCard(
+  status: AdminSeller["status"],
+  review: SellerReview,
+  owned: boolean,
+  t: Words,
+): { title: string; lines: StatusLine[] } | undefined {
+  const reason: StatusLine | undefined = review.reason
+    ? { icon: BanIcon, text: t("reason", { reason: review.reason }) }
+    : undefined;
+  if (status === "rejected") {
+    return {
+      title: t("rejected.title"),
+      lines: [
+        ...(reason ? [reason] : []),
+        { icon: EyeOffIcon, text: t("rejected.hidden") },
+        { icon: CircleCheckIcon, text: t("rejected.retry"), tone: "success" },
+      ],
+    };
+  }
+  if (status === "blocked") {
+    const why =
+      review.blockedBy === "owner_deleted"
+        ? { icon: BanIcon, text: t("blocked.ownerDeleted") }
+        : (reason ?? { icon: BanIcon, text: t("blocked.noPosting") });
+    return {
+      title: t("blocked.title"),
+      lines: [
+        why,
+        { icon: EyeOffIcon, text: t("blocked.hidden") },
+        {
+          icon: CircleCheckIcon,
+          text: owned ? t("blocked.kept") : t("blocked.postsKept"),
+          tone: "success",
+        },
+      ],
+    };
+  }
+  return undefined;
 }
 
 // A white card with its title and, on the right, what it links to (Figma "Card · Bài đang bán").
@@ -171,7 +240,23 @@ function OfferRow({ offer }: { offer: OfferBody }) {
   );
 }
 
-function MembersCard({ members, title }: { members: AdminMember[]; title: string }) {
+/** The store's people; `empty` says there is nobody left (AD-DS6), with the `storeReview` flag. */
+function MembersCard({
+  members,
+  title,
+  empty,
+}: {
+  members: AdminMember[];
+  title: string;
+  empty?: string;
+}) {
+  if (empty && members.length === 0) {
+    return (
+      <Card title={title}>
+        <EmptyState title={empty} icon={UsersIcon} />
+      </Card>
+    );
+  }
   return (
     <Card title={title}>
       <ul className="flex flex-col gap-3.5">

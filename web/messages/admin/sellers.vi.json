@@ -23,6 +23,7 @@
     "active": "Không có cửa hàng nào đang hoạt động.",
     "pending": "Không có cửa hàng nào chờ duyệt.",
     "blocked": "Không có cửa hàng nào bị chặn.",
+    "rejected": "Không có cửa hàng nào bị từ chối.",
     "filtered": "Không có cửa hàng nào khớp với tìm kiếm",
     "clear": "Xoá bộ lọc"
   },
@@ -32,19 +33,38 @@
     "blockMenu": "Chặn cửa hàng…",
     "unblock": "Gỡ chặn",
     "approve": "Duyệt",
+    "reject": "Từ chối",
+    "rejectMenu": "Từ chối…",
     "done": {
       "block": "Đã chặn {name}",
       "unblock": "Đã gỡ chặn {name}",
-      "approve": "Đã duyệt {name}"
+      "approve": "Đã duyệt {name}",
+      "reject": "Đã từ chối {name}"
+    },
+    "emailed": {
+      "block": "Đã chặn {name} và gửi email cho chủ cửa hàng",
+      "reject": "Đã từ chối {name} và gửi email cho chủ cửa hàng"
     },
     "failed": "Chưa đổi được trạng thái của {name}, hãy thử lại",
+    "ownerless": "Cửa hàng không còn chủ",
+    "ownerlessFailed": "{name} không còn chủ nên chưa đổi được trạng thái",
     "confirm": {
       "title": "Chặn cửa hàng {name}?",
+      "reason": "Lý do chặn",
       "when": "Khi bị chặn:",
       "noPosting": "Cửa hàng không đăng bài mới hay sửa bài được.",
       "hidden": "Cửa hàng và mọi bài biến mất khỏi tìm kiếm của khách ngay, trang cửa hàng không mở được.",
       "kept": "Cửa hàng vẫn gỡ bài và quản lý nhân viên được.",
+      "emailed": "Chủ cửa hàng nhận email kèm lý do.",
       "undo": "Có thể gỡ chặn bất cứ lúc nào."
+    },
+    "rejectConfirm": {
+      "title": "Từ chối cửa hàng {name}?",
+      "reason": "Lý do từ chối",
+      "when": "Khi bị từ chối:",
+      "hidden": "Cửa hàng không hiện với khách và không đăng bài được.",
+      "emailed": "Chủ cửa hàng nhận email kèm lý do.",
+      "retry": "Chủ cửa hàng sửa thông tin rồi gửi lại được."
     }
   },
   "open": {
@@ -105,13 +125,27 @@
       "address": "Địa chỉ",
       "phone": "Số điện thoại",
       "statusChanged": "Đổi trạng thái",
-      "members": "Thành viên"
+      "members": "Thành viên",
+      "noMembers": "Không còn thành viên"
     },
+    "reason": "Lý do: {reason}",
     "blocked": {
       "title": "Cửa hàng đang bị chặn",
       "noPosting": "Không đăng hay sửa bài được",
       "hidden": "Không hiện với khách",
-      "kept": "Bài đăng và nhân viên vẫn được giữ"
+      "kept": "Bài đăng và nhân viên vẫn được giữ",
+      "ownerDeleted": "Lý do: chủ cửa hàng đã xoá tài khoản",
+      "postsKept": "Bài đăng vẫn được giữ"
+    },
+    "rejected": {
+      "title": "Cửa hàng bị từ chối",
+      "hidden": "Không hiện với khách",
+      "retry": "Chủ sửa rồi gửi lại được"
+    },
+    "duplicate": {
+      "phone": "Trùng số điện thoại với {name} (đang bị chặn)",
+      "address": "Trùng địa chỉ với {name} (đang bị chặn)",
+      "view": "Xem {name}"
     },
     "roles": {
       "owner": "Chủ cửa hàng",

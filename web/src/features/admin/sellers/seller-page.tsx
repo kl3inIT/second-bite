@@ -4,12 +4,16 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { buttonVariants } from "@/components/ui/button";
 import { AdminCrumb, AdminTopBarActions } from "@/features/admin/admin-crumbs";
 import { adminHref } from "@/features/admin/pages";
+import { isFeatureOn } from "@/features/admin/features";
 import { InfoStrip } from "@/features/admin/ui/info-strip";
 import { AdminTabs } from "@/features/admin/ui/tabs";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import { listSellerDocuments } from "./documents-source";
+import { DuplicateAlert } from "./duplicate-alert";
+import { hasOwner } from "./review";
+import { readSellerReview } from "./review-source";
 import { SellerDocuments } from "./seller-documents";
 import { SellerHeader } from "./seller-header";
 import { neighboursOf } from "./seller-list";
@@ -36,11 +40,14 @@ export async function SellerPage({
 }) {
   const [{ sellerId }, search] = await Promise.all([params, query]);
   const seller = await readSeller(sellerId);
-  const [offers, members, siblings, documents, t, format] = await Promise.all([
+  // What reviewing a store adds (SEC-64, SEC-65) is read only behind its flag.
+  const reviewing = isFeatureOn("storeReview");
+  const [offers, members, siblings, documents, review, t, format] = await Promise.all([
     readSellerOffers(sellerId),
     readSellerMembers(sellerId),
     listSellers(seller.status),
     listSellerDocuments(sellerId),
+    reviewing ? readSellerReview(sellerId) : undefined,
     getTranslations("admin.sellers.detail"),
     getFormatter(),
   ]);
@@ -60,7 +67,12 @@ export async function SellerPage({
         />
       </AdminTopBarActions>
 
-      <SellerHeader seller={seller} cover={coverPhotos(offers)} />
+      <SellerHeader
+        seller={seller}
+        cover={coverPhotos(offers)}
+        review={reviewing}
+        ownerless={!hasOwner(members)}
+      />
       <InfoStrip
         items={[
           { label: t("info.posts"), value: counts.on_sale },
@@ -69,6 +81,9 @@ export async function SellerPage({
           { label: t("info.changed"), value: day(seller.updatedAt) },
         ]}
       />
+      {review?.duplicate && seller.status === "pending" && (
+        <DuplicateAlert duplicate={review.duplicate} />
+      )}
       <AdminTabs
         label={t("tabs.label")}
         current={tab}
@@ -94,6 +109,7 @@ export async function SellerPage({
           offers={offers}
           members={members}
           postsHref={`${href}?tab=posts`}
+          review={review}
         />
       )}
       {tab === "posts" && <SellerPosts offers={offers} />}

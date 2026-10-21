@@ -9,8 +9,10 @@ import {
   defaultQuery,
   isFiltered,
   listQueryString,
+  listStatuses,
   neighboursOf,
   readListQuery,
+  readStatus,
   toggleSort,
 } from "./seller-list";
 
@@ -71,6 +73,20 @@ describe("the stores list's address", () => {
       dir: "desc" as const,
     };
     expect(readListQuery(new URLSearchParams(listQueryString(query)))).toEqual(query);
+  });
+
+  it("offers the rejected stores and opens on the pending queue only with the storeReview flag", () => {
+    expect(listStatuses(false)).toEqual(["active", "pending", "blocked"]);
+    expect(listStatuses(true)).toEqual(["pending", "active", "rejected", "blocked"]);
+    expect(readStatus({ status: "rejected" }, false)).toBe("active");
+    expect(readStatus({}, true)).toBe("pending");
+    expect(readStatus({ status: "rejected" }, true)).toBe("rejected");
+
+    const queue = readListQuery(new URLSearchParams(), true);
+    expect(queue.status).toBe("pending");
+    expect(listQueryString(queue, true)).toBe("");
+    expect(listQueryString({ ...queue, status: "active" }, true)).toBe("status=active");
+    expect(listQueryString({ ...defaultQuery, status: "pending" }, false)).toBe("status=pending");
   });
 
   it("knows when the list is narrowed", () => {
