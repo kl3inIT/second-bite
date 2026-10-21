@@ -693,6 +693,11 @@
     "catalog": "Danh mục",
     "orders": "Đơn"
   },
+  "StoreMenu": {
+    "shop": "Về trang người mua",
+    "mine": "Quán của tôi",
+    "create": "Tạo thêm quán"
+  },
   "StoreHome": {
     "title": "Trang chủ quán",
     "startTitle": "Bắt đầu bán",
