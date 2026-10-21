@@ -1594,7 +1594,7 @@
         "ready": "Sẵn sàng",
         "collected": "Đã nhận",
         "cancelled": "Đã huỷ",
-        "refused": "Quán từ chối",
+        "refused": "Cửa hàng từ chối",
         "expired": "Hết hạn"
       },
       "search": "Tìm mã đơn, tên khách hoặc cửa hàng",
@@ -1641,7 +1641,7 @@
           "collected": "Đã nhận",
           "collectedAt": "Lúc {time}",
           "cancelled": "Đã huỷ",
-          "refused": "Quán từ chối",
+          "refused": "Cửa hàng từ chối",
           "endedAt": "Lúc {time}"
         },
         "lines": "Món trong đơn",
@@ -1657,7 +1657,7 @@
           "due": "Quá hạn nếu chưa nhận",
           "expired": "Hết hạn",
           "cancelled": "Đơn bị huỷ",
-          "refused": "Quán từ chối đơn"
+          "refused": "Cửa hàng từ chối đơn"
         },
         "notYet": "Chưa",
         "never": "Không",

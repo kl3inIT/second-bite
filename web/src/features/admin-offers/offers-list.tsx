@@ -24,6 +24,7 @@ import { PostPanel } from "@/features/admin-sellers/seller-posts";
 import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import type { AdminOfferBody, OfferBody, OfferCountsBody } from "@/lib/api/generated";
+import { photoUrl } from "@/lib/api/photo";
 import { cn } from "@/lib/utils";
 
 import { OfferStatusBadge, statusLook } from "./offer-status";
@@ -246,7 +247,7 @@ function useColumns(onOpen: (offer: OfferBody) => void): DataTableColumns<AdminO
         <span className="flex min-w-48 items-center gap-3">
           <span className="relative size-9 shrink-0 overflow-hidden rounded-md bg-muted">
             <Image
-              src={`/api${row.original.offer.photo.smallPath}`}
+              src={photoUrl(row.original.offer.photo.smallPath)}
               alt=""
               fill
               sizes="36px"

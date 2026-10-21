@@ -89,7 +89,7 @@ FROM order_orders
 WHERE (cardinality(@statuses::text[]) = 0
        OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
           = ANY (@statuses::text[]))
-  AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '')
+  AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
   AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
   AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz)
@@ -101,7 +101,7 @@ SELECT count(*) FROM order_orders
 WHERE (cardinality(@statuses::text[]) = 0
        OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
           = ANY (@statuses::text[]))
-  AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '')
+  AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
   AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
   AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz);
@@ -118,7 +118,7 @@ SELECT count(*) FILTER (WHERE state = 'confirmed' AND window_end > now()) AS con
        count(*) FILTER (WHERE state = 'expired' OR (state IN ('confirmed', 'ready') AND window_end <= now())) AS expired
 FROM order_orders
 WHERE true
-  AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '')
+  AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
   AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
   AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz);

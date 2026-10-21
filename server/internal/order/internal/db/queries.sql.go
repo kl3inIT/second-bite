@@ -38,7 +38,7 @@ SELECT count(*) FILTER (WHERE state = 'confirmed' AND window_end > now()) AS con
        count(*) FILTER (WHERE state = 'expired' OR (state IN ('confirmed', 'ready') AND window_end <= now())) AS expired
 FROM order_orders
 WHERE true
-  AND ($1::text = '' OR search_text LIKE '%' || order_fold($1::text) || '%' ESCAPE '')
+  AND ($1::text = '' OR search_text LIKE '%' || order_fold($1::text) || '%' ESCAPE '\')
   AND ($2::uuid IS NULL OR seller_id = $2::uuid)
   AND ($3::timestamptz IS NULL OR window_start >= $3::timestamptz)
   AND ($4::timestamptz IS NULL OR window_start < $4::timestamptz)
@@ -87,7 +87,7 @@ SELECT count(*) FROM order_orders
 WHERE (cardinality($1::text[]) = 0
        OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
           = ANY ($1::text[]))
-  AND ($2::text = '' OR search_text LIKE '%' || order_fold($2::text) || '%' ESCAPE '')
+  AND ($2::text = '' OR search_text LIKE '%' || order_fold($2::text) || '%' ESCAPE '\')
   AND ($3::uuid IS NULL OR seller_id = $3::uuid)
   AND ($4::timestamptz IS NULL OR window_start >= $4::timestamptz)
   AND ($5::timestamptz IS NULL OR window_start < $5::timestamptz)
@@ -976,7 +976,7 @@ FROM order_orders
 WHERE (cardinality($1::text[]) = 0
        OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
           = ANY ($1::text[]))
-  AND ($2::text = '' OR search_text LIKE '%' || order_fold($2::text) || '%' ESCAPE '')
+  AND ($2::text = '' OR search_text LIKE '%' || order_fold($2::text) || '%' ESCAPE '\')
   AND ($3::uuid IS NULL OR seller_id = $3::uuid)
   AND ($4::timestamptz IS NULL OR window_start >= $4::timestamptz)
   AND ($5::timestamptz IS NULL OR window_start < $5::timestamptz)
