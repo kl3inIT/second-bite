@@ -609,5 +609,29 @@
     "original": "Giá gốc (đồng, tùy chọn)",
     "originalPlaceholder": "Ví dụ: 95.000",
     "originalInvalid": "Giá gốc từ 1.001đ trở lên, hoặc để trống."
+  },
+  "Admin": {
+    "home": "Second Bite, trang quản trị",
+    "tag": "Quản trị",
+    "collapse": "Thu gọn thanh bên",
+    "expand": "Mở rộng thanh bên",
+    "language": "English",
+    "signOut": "Đăng xuất",
+    "skip": "Bỏ qua thanh bên",
+    "breadcrumb": "Vị trí trang",
+    "group": {
+      "users": "Người dùng"
+    },
+    "nav": {
+      "accounts": "Tài khoản",
+      "settings": "Cài đặt"
+    },
+    "notFound": {
+      "crumb": "Không tìm thấy",
+      "title": "Không tìm thấy trang này",
+      "body": "Địa chỉ này không có trong trang quản trị.",
+      "back": "Về trang quản trị"
+    },
+    "menu": "Menu quản trị"
   }
 }

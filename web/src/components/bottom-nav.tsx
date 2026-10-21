@@ -40,6 +40,8 @@ const tabs: Tab[] = [
 export function BottomNav() {
   const t = useTranslations("BottomNav");
   const pathname = usePathname();
+  // The admin's pages have their own sidebar instead (SEC-75 › Shell).
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
 
   return (
     <>

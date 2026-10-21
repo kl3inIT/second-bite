@@ -53,6 +53,16 @@ colors:
   inverse-muted: "{palette.text-on-brand}" # secondary text on Tasco blue or a dark photo scrim, 5.3:1 on primary
   shell: "{palette.base-white}" # the web's top bar of every screen but the home: white with a hairline below
   shell-foreground: "{palette.text-ink}"
+  sidebar: "{palette.brand-800}" # the admin's sidebar, Tasco blue as Figma's Admin/Sidebar; white on it 6.3:1
+  sidebar-foreground: "{palette.base-white}"
+  sidebar-muted: "{palette.text-on-brand}" # the group names on the sidebar, in capitals, 5.3:1; Figma's brand-200 reaches 4.49:1
+  sidebar-accent: "{palette.brand-900}" # a sidebar item under the pointer, 8.5:1
+  sidebar-accent-foreground: "{palette.base-white}"
+  sidebar-active: "{palette.base-white}" # the item of the page open, 6.3:1
+  sidebar-active-foreground: "{palette.brand-800}"
+  sidebar-raised: "{palette.brand-900}" # the account at the sidebar's foot
+  sidebar-border: "{palette.brand-700}" # hairlines on the sidebar, decorative
+  sidebar-ring: "{palette.base-white}" # the focus ring on the sidebar, 6.3:1
   sky: "{palette.brand-500}" # the sign-in screen's side panel, Figma L6; white on it is 2.4:1, so only large decorative type goes there, never text a person must read
   header: "{palette.brand-800}" # the home's header, under the light sweep; Figma v3's sky #3CB4E7 held white at 2.4:1
   header-foreground: "{palette.base-white}" # the place on the header, 6.3:1
@@ -281,6 +291,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 - **Deal Blue** (`deal`, `deal-foreground`): the deal card on the header, one step deeper than it so it stands apart.
 - **Raised** (`header-raised`, `header-border`): the white capsule and search field on the header.
 - **White Shell** (`shell`, `shell-foreground`): on the web, the top bar of every other screen, white with a hairline below, and the bottom bar. In the app, every screen but the home has the Blue Header's colours instead, its name in `header-foreground` and the back button a `header-raised` disc with the arrow in `primary`, as Figma Mobile v3 draws it (K5); decided by the team on 20 October 2026 (SEC-52).
+- **Admin Sidebar** (`sidebar-*`): the admin's sidebar in Tasco blue, as Figma's `Admin/Sidebar` draws it: items in white, group names in `sidebar-muted`, the item under the pointer on `sidebar-accent`, the page open on `sidebar-active` in blue, the account at its foot on `sidebar-raised`, the focus ring white. Decided by the team on 21 October 2026 (SEC-75).
 - **Soft on Blue** (`inverse-muted`): secondary text on Tasco blue, the deal card or a dark photo scrim.
 - **Blue Link** (`link`): text links and secondary actions, on white or the ground. Figma v3 uses `brand-700`, which reaches only 3.9:1 on white, so links take `brand-800`.
 

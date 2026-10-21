@@ -609,5 +609,29 @@
     "original": "Original price (VND, optional)",
     "originalPlaceholder": "For example: 95.000",
     "originalInvalid": "An original price from 1.001đ, or leave it empty."
+  },
+  "Admin": {
+    "home": "Second Bite, admin",
+    "tag": "Admin",
+    "collapse": "Collapse the sidebar",
+    "expand": "Expand the sidebar",
+    "language": "Tiếng Việt",
+    "signOut": "Sign out",
+    "skip": "Skip the sidebar",
+    "breadcrumb": "Where you are",
+    "group": {
+      "users": "Users"
+    },
+    "nav": {
+      "accounts": "Accounts",
+      "settings": "Settings"
+    },
+    "notFound": {
+      "crumb": "Not found",
+      "title": "This page was not found",
+      "body": "This address is not part of the admin pages.",
+      "back": "Back to the admin"
+    },
+    "menu": "Admin menu"
   }
 }
