@@ -39,12 +39,18 @@ test.describe("a dish, its seller and the cart", () => {
       page.getByLabel("2 phần Bánh Croissant Truyền Thống trong giỏ").first(),
     ).toHaveText("2");
 
-    await page.getByRole("searchbox", { name: "Tìm trong thực đơn La Paris" }).fill("eclair");
-    await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/q=eclair/);
-    await expect(
-      page.getByRole("button", { name: "Bánh Croissant Truyền Thống", exact: true }),
-    ).toBeHidden();
+    // Figma K4b searches the menu on a phone; WK3 has no such search.
+    const menuSearch = page.getByRole("searchbox", { name: "Tìm trong thực đơn La Paris" });
+    if (wide(page)) {
+      await expect(menuSearch).toBeHidden();
+    } else {
+      await menuSearch.fill("eclair");
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(/q=eclair/);
+      await expect(
+        page.getByRole("button", { name: "Bánh Croissant Truyền Thống", exact: true }),
+      ).toBeHidden();
+    }
 
     // A dish's old address leads to the same place.
     await page.goto("/vi/offers/of-croissant");

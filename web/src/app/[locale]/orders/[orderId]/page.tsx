@@ -72,7 +72,11 @@ async function OrderView({ params }: { params: Promise<{ orderId: string }> }) {
 
   return (
     <>
-      <CustomerHeader returnTo={`/orders/${orderId}`} />
+      {order.status === "collected" && order.review ? (
+        <EndedOrderBar order={order} />
+      ) : (
+        <CustomerHeader returnTo={`/orders/${orderId}`} />
+      )}
       <Main>
         {order.status === "collected" ? (
           <CollectedOrder order={order} together={together} now={now} />

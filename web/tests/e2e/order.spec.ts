@@ -97,7 +97,7 @@ test.describe("ordering from the cart", () => {
     const cancel = page.getByRole("dialog", { name: /Huỷ đơn #SB-\d+\?/ });
     await cancel.getByRole("button", { name: "Không đến kịp" }).click();
     await cancel.getByRole("button", { name: "Huỷ đơn" }).click();
-    await expect(page.getByText(isWide(page) ? /^Bạn huỷ lúc/ : /^Đã huỷ lúc/)).toBeVisible();
+    await expect(page.getByText(isWide(page) ? /^Bạn huỷ lúc/ : "Đơn đã huỷ")).toBeVisible();
 
     await page.goto("/vi/orders?state=ended");
     await expect(page.getByRole("heading", { name: "Hôm nay" })).toBeVisible();

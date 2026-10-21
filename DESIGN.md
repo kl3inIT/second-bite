@@ -213,7 +213,13 @@ typography:
     fontFamily: "Bricolage Grotesque"
     fontSize: "60px"
     fontWeight: 700
-    lineHeight: "64px"
+    lineHeight: "72px"
+    letterSpacing: "-0.01em"
+  display-48: # the title of an ended order's band from 768px (Figma D5)
+    fontFamily: "Bricolage Grotesque"
+    fontSize: "48px"
+    fontWeight: 700
+    lineHeight: "58px"
     letterSpacing: "-0.01em"
   card-heading: # the title of a card on a wide screen: the cart's sidebar, the order's cards (Figma WK3, D4)
     fontFamily: "Bricolage Grotesque"
@@ -373,7 +379,8 @@ Nineteen roles, normalised on 19 October 2026 from the 45 size, weight and leadi
 | Role             | Face          | Size / line | Use                                                                               |
 | ---------------- | ------------- | ----------- | --------------------------------------------------------------------------------- |
 | `display`        | Bricolage 700 | 36 / 40     | Big figures only: the pickup code, the best discount tonight                      |
-| `display-60`     | Bricolage 700 | 60 / 64     | The pickup window on an open order's band from 768px                              |
+| `display-60`     | Bricolage 700 | 60 / 72     | The pickup window on an open order's band from 768px                              |
+| `display-48`     | Bricolage 700 | 48 / 58     | The title of an ended order's band from 768px                                     |
 | `card-heading`   | Bricolage 600 | 20 / 24     | A card's title on a wide screen: the cart's sidebar, the order's cards            |
 | `price-lg`       | Bricolage 700 | 20 / 24     | The price on a large card and at checkout, totals, the digits of the sign-in code |
 | `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                       |

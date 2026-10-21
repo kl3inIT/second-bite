@@ -1,14 +1,12 @@
 import { ChevronRightIcon } from "lucide-react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
 import { getFormatter, getTimeZone, getTranslations } from "next-intl/server";
 
 import { BiteCorner } from "@/components/bite-corner";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
 import { listOffers } from "@/features/offers/list-offers";
-import { closingFirst, type OfferSummary } from "@/features/offers/offer";
-import { OfferCard } from "@/features/offers/offer-card";
+import { TonightOffers } from "@/features/offers/tonight-offers";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -68,17 +66,24 @@ async function OpenOrderCard({ order }: { order: Order }) {
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <p className="flex items-center justify-between gap-2 pr-6">
             <span className="truncate text-label text-muted-foreground">{order.seller.name}</span>
-            <span className="shrink-0 rounded-full bg-secondary px-2 py-0.75 text-label-strong text-primary">
-              {order.status === "ready" ? t("readyUntil", { until }) : t("collectAt", { from })}
-            </span>
+            {order.status === "ready" ? (
+              <span className="shrink-0 rounded-full bg-secondary px-2 py-0.75 text-label-strong text-primary">
+                {t("readyUntil", { until })}
+              </span>
+            ) : (
+              <span className="shrink-0 text-label-strong text-primary">{t("preparing")}</span>
+            )}
           </p>
           <h3 className="line-clamp-2 text-title">{dishesOf(order)}</h3>
           <p className="text-label text-muted-foreground">
-            {t("cardMeta", {
-              number: order.number,
-              total: formatPrice(order.totalVnd),
-              place: order.seller.address,
-            })}
+            {order.status === "ready"
+              ? t("cardMetaReady", { number: order.number, total: formatPrice(order.totalVnd) })
+              : t("cardMetaWindow", {
+                  number: order.number,
+                  total: formatPrice(order.totalVnd),
+                  from,
+                  until,
+                })}
           </p>
         </div>
       </div>
@@ -86,7 +91,7 @@ async function OpenOrderCard({ order }: { order: Order }) {
         href={`/orders/${order.id}`}
         className={buttonVariants({ variant: "secondary", size: "lg" })}
       >
-        {t("seeOrder")}
+        {order.status === "ready" ? t("seeQr") : t("seeOrder")}
       </Link>
     </article>
   );
@@ -111,6 +116,7 @@ async function EndedOrderRow({ order }: { order: Order }) {
     month: format.dateTime(at, "monthOfYear"),
   });
   const meta = [
+    ...(order.status === "collected" ? [order.seller.name] : []),
     date,
     t(`endedLine.${order.status}`),
     ...(order.status === "collected" ? [formatPrice(order.totalVnd)] : []),
@@ -136,29 +142,6 @@ async function EndedOrderRow({ order }: { order: Order }) {
 const days: Day[] = ["today", "week", "before"];
 // A phone's column, wider on a tablet; from 1024px the page's grid sets the width, 1168px in all.
 const COLUMN_WIDTH = "max-w-xl md:max-w-3xl lg:max-w-none lg:px-0";
-// The offers beside the orders on a desktop (Figma D6 › cột phải).
-const TONIGHT_COUNT = 2;
-
-/** Tonight's offers in the right column of the wide layout, so the orders page leads back to ordering (Figma D6). */
-function TonightOffers({ offers }: { offers: OfferSummary[] }) {
-  const t = useTranslations("Orders");
-  if (offers.length === 0) return null;
-
-  return (
-    <section
-      aria-labelledby="orders-tonight"
-      className="hidden flex-col gap-4 lg:col-start-3 lg:row-span-2 lg:row-start-1 lg:flex"
-    >
-      <h2 id="orders-tonight" className="font-display text-headline">
-        {t("tonight")}
-      </h2>
-      {offers.map((offer) => (
-        <OfferCard key={offer.id} offer={offer} />
-      ))}
-    </section>
-  );
-}
-
 /**
  * "Đơn của tôi" (Figma K8, D6): the two lists as a segmented control; each seller's order to collect as a card with
  * the way to it, two abreast on a tablet; the ended ones under their day. From 1024px the lists take two thirds
@@ -186,7 +169,7 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
 
   return (
     <div className="lg:mx-auto lg:grid lg:w-full lg:max-w-292 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-4 lg:px-4 lg:py-4">
-      <div className="bg-card lg:col-span-2 lg:bg-transparent">
+      <div className="lg:col-span-2">
         <nav
           aria-label={t("lists")}
           className={cn("mx-auto w-full px-4 py-3 lg:p-0", COLUMN_WIDTH)}
@@ -251,7 +234,7 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
           </p>
         )}
       </div>
-      <TonightOffers offers={closingFirst(offers).slice(0, TONIGHT_COUNT)} />
+      <TonightOffers offers={offers} className="lg:col-start-3 lg:row-span-2 lg:row-start-1" />
     </div>
   );
 }

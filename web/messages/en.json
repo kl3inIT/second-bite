@@ -445,7 +445,8 @@
       "withReason": "{time} · {reason}",
       "returned": "{units, plural, one {# portion} other {# portions}} back with the shop",
       "returnedBody": "Someone else can order them",
-      "refused": "The shop refused the order",
+      "refused": "The shop turned the order down",
+      "refusedBody": "{time} · reason: {reason}",
       "reason": {
         "not_suitable": "the food was no longer fit",
         "wrong_items": "the food did not match the order",
@@ -460,13 +461,17 @@
       "expiredBody": "{until} · recorded as not collected",
       "summary": {
         "cancelled": "You had not paid, so there is nothing to refund.",
-        "refused": "You had not paid, so there is nothing to refund.",
-        "expired": "Next time, cancel before the window opens so the food reaches someone else."
+        "refused": "The shop checked the food before handing it over and found it no longer good. You do not pay.",
+        "expired": "Nobody came to collect before {until}. Next time, if you cannot make it, cancel before {opens} so the food reaches someone else."
       },
       "placedBody": "{date}, {time} · {units} portions · {total}",
       "confirmed": "The seller confirmed it",
       "confirmedBody": "{time} · {units} portions kept for you",
-      "readyBody": "{time} · the seller says come and collect"
+      "readyBody": "{time} · the seller says come and collect",
+      "toldBody": "{date}, {time} · the shop told you",
+      "collected": "You collected the food",
+      "collectedBody": "{time} · paid {total}",
+      "collectedRated": "{time} · paid {total} · you rated {stars, plural, one {# star} other {# stars}}"
     },
     "cancel": {
       "open": "Cancel order",
@@ -490,20 +495,23 @@
     "ended": {
       "title": {
         "cancelled": "Order cancelled",
-        "refused": "The shop did not hand it over",
-        "expired": "Collection time is over"
+        "refused": "The shop did not hand over the order",
+        "expired": "Order expired"
       },
+      "refusedLine": "{time} · reason: {reason} · you do not pay",
+      "expiredLine": "Nobody came to collect before {until} · recorded as not collected · nothing charged",
       "cancelledLine": "You cancelled at {time} · {units, plural, one {# portion goes} other {# portions go}} back to the shop",
       "badge": {
         "cancelled": "Order cancelled",
-        "refused": "Not handed over",
+        "refused": "The shop did not hand over this order",
         "expired": "Order expired"
       }
     },
     "orderNumber": "Order #{number}",
     "metaToday": "Order #{number} · placed today {time} · {seller}, {address}",
     "metaOn": "Order #{number} · placed {date} {time} · {seller}, {address}",
-    "cardMeta": "#{number} · {total} · {place}",
+    "cardMetaWindow": "#{number} · {total} · collect {from}–{until}",
+    "cardMetaReady": "#{number} · {total} · pay when you collect",
     "day": {
       "today": "Today",
       "week": "This week",
@@ -520,14 +528,14 @@
     "ordered": "Ordered · {units} portions",
     "originalPrice": "Original price",
     "endedAt": {
-      "collected": "Collected at {time} · {date}",
-      "cancelled": "Cancelled at {time} · {date}",
-      "refused": "Turned down by the seller · {date}",
-      "expired": "Expired at {time} · {date}"
+      "collected": "Collected at {time} · {date}"
     },
+    "collectedAt": "Collected at {time}",
     "collectLater": "The QR code shows once your food is ready. You can also give your name and phone number.",
     "collectReady": "Show the QR code at the counter, or give your name and phone number.",
-    "collectAt": "Collect at {from}",
+    "preparing": "Preparing",
+    "seeQr": "Show the QR code",
+    "subtitle": "To collect and done",
     "savedLine": "Saved against the original price · {units} portions not wasted",
     "placedWith": "Ordered together: {seller}"
   },
@@ -1507,15 +1515,20 @@
   "Favourites": {
     "title": "Favourites",
     "intro": "Shops you follow",
+    "subtitle": "Shops you follow · we tell you when they have a deal",
+    "pickup": " · Collect {from} – {until}",
     "follow": "Favourite {name}",
     "followName": "Follow {name}",
     "followLabel": "Follow",
+    "followingLabel": "Following",
     "added": "Added to Favourites",
     "removed": "Removed from Favourites",
     "failed": "Not saved, try again later.",
     "noneTonight": "Nothing on sale tonight",
+    "noneTonightMore": " · we tell you when there is",
     "emptyTitle": "No favourite shops yet",
     "emptyBody": "Tap ♡ on a shop's page to follow it.",
+    "emptyMore": "Shops with a deal will let you know.",
     "explore": "Explore shops"
   }
 }

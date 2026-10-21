@@ -25,6 +25,7 @@ export const typeStyles = [
   "price-lg",
   "display",
   "display-60",
+  "display-48",
   "card-heading",
 ] as const;
 

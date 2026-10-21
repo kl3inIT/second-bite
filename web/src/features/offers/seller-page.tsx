@@ -62,16 +62,6 @@ export function SellerPage({
 
   if (!first || available.length === 0) return <NothingTonight />;
 
-  // The menu's groups are the kinds of dish, the most first (the seller's own sections have no backend, SEC-49
-  // decision 7): from 768px the first is a list of rows and the others grids of cards (Figma WK3).
-  const groups = tabs
-    .map(({ kind: groupKind }, index) => ({
-      kind: groupKind,
-      offers: shown.filter((offer) => offer.kind === groupKind),
-      cards: index > 0,
-    }))
-    .filter(({ offers: dishes }) => dishes.length > 0);
-
   const kindLinks = [undefined, ...tabs.map((tab) => tab.kind)].map((each) => ({
     each,
     href: {
@@ -130,7 +120,10 @@ export function SellerPage({
               <SellerHeading lead={first} />
               <SellerFacts lead={first} offers={available} />
               <SellerFactsCard lead={first} offers={available} />
-              <SellerSearch lead={first} kind={kind} near={near} q={q} />
+              {/* Figma WK3 has no search in the menu; a phone keeps it (K4b). */}
+              <div className="md:hidden">
+                <SellerSearch lead={first} kind={kind} near={near} q={q} />
+              </div>
               <div className="flex flex-col gap-3.5 md:flex-row md:gap-6">
                 {tabs.length > 1 && (
                   <nav
@@ -157,29 +150,23 @@ export function SellerPage({
                     </ul>
                   </nav>
                 )}
-                {/* The menu's index (Figma WK3): the same kinds, down the side, even for a seller with one. */}
+                {/* The menu's index (Figma WK3), a line for each section; the catalog has no dish groups yet
+                    (SEC-49 decision 7), so the one section is tonight's dishes. */}
                 <nav
                   aria-label={t("kinds")}
                   className="hidden w-37.5 shrink-0 flex-col gap-4 pt-1 md:sticky md:top-4 md:flex md:self-start"
                 >
                   <p className="text-label-strong text-muted-foreground uppercase">{t("index")}</p>
                   <ul className="flex flex-col gap-1">
-                    {kindLinks.map(({ each, href, label }) => (
-                      <li key={each ?? "all"}>
-                        <Link
-                          href={href}
-                          aria-current={each === kind ? "page" : undefined}
-                          className={cn(
-                            "flex min-h-11 items-center border-l-2 pl-3 text-body-sm focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
-                            each === kind
-                              ? "border-primary text-body-sm-strong text-primary"
-                              : "border-transparent text-foreground hover:text-primary",
-                          )}
-                        >
-                          {label}
-                        </Link>
-                      </li>
-                    ))}
+                    <li>
+                      <a
+                        href="#dishes"
+                        aria-current="location"
+                        className="flex min-h-11 items-center border-l-2 border-primary pl-3 text-body-sm-strong text-primary focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                      >
+                        {t("tonight")}
+                      </a>
+                    </li>
                   </ul>
                 </nav>
                 <section aria-labelledby="dishes" className="flex min-w-0 flex-1 flex-col gap-3">
@@ -187,30 +174,13 @@ export function SellerPage({
                     {kind ? kinds(kind) : t("tonight")}
                   </h2>
                   {shown.length > 0 ? (
-                    <div className="flex flex-col gap-5">
-                      {groups.map(({ kind: groupKind, offers: dishes, cards }, index) => (
-                        <div key={groupKind} className="flex flex-col gap-5 md:gap-3">
-                          {/* The first group sits under the page's own title "Đang giảm tối nay" (Figma WK3). */}
-                          {!kind && index > 0 && (
-                            <h3 className="hidden text-title-lg text-foreground md:block">
-                              {kinds(groupKind)}
-                            </h3>
-                          )}
-                          <ul
-                            className={cn(
-                              "grid grid-cols-1 gap-5",
-                              cards && "md:flex md:flex-wrap md:gap-3",
-                            )}
-                          >
-                            {dishes.map((offer) => (
-                              <li key={offer.id}>
-                                <SellerDish offer={offer} focused={offer.id === at} card={cards} />
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                    <ul className="grid grid-cols-1 gap-5">
+                      {shown.map((offer) => (
+                        <li key={offer.id}>
+                          <SellerDish offer={offer} focused={offer.id === at} />
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   ) : (
                     <p className="text-body-sm text-muted-foreground">
                       {t("noMatch", { q: q ?? "" })}

@@ -268,8 +268,18 @@ abstract final class TypeTokens {
     fontSize: 60,
     fontWeight: FontWeight.w700,
     fontVariations: [FontVariation('wght', 700)],
-    height: 64 / 60,
+    height: 72 / 60,
     letterSpacing: -0.6,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
+  static const display48 = TextStyle(
+    fontFamily: 'Bricolage Grotesque',
+    package: 'app_ui',
+    fontSize: 48,
+    fontWeight: FontWeight.w700,
+    fontVariations: [FontVariation('wght', 700)],
+    height: 58 / 48,
+    letterSpacing: -0.48,
     leadingDistribution: TextLeadingDistribution.even,
   );
   static const cardHeading = TextStyle(

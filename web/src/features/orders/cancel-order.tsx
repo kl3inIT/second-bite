@@ -21,10 +21,9 @@ const CHIP =
   "relative h-8 rounded-full border border-secondary bg-card px-3.5 text-note font-medium text-primary after:absolute after:inset-x-0 after:-inset-y-1.5 aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none";
 
 // Cancelling an order from its page (Figma D2b, D4), asked once more first, in a sheet from the foot on a phone (Figma
-// D2c) and a dialog on a wider screen: its
-// units go back to the seller, nothing was paid, and a reason may be chosen. The page reads the order again
-// afterwards and shows it cancelled. An order placed without signing in is cancelled with its access (SEC-76 ›
-// decision 7).
+// D2c) and a dialog on a wider screen (Figma W2b): its units go back to the seller, nothing was paid, and a reason
+// may be chosen. The page reads the order again afterwards and shows it cancelled. An order placed without signing in
+// is cancelled with its access (SEC-76 › decision 7).
 export function CancelOrder({
   orderId,
   access,
@@ -92,12 +91,18 @@ export function CancelOrder({
           {failure.tooLate ? t("tooLate") : t("failed", { reference: failure.reference ?? "—" })}
         </p>
       ) : null}
-      <div className="flex flex-col gap-2 pt-1.5">
+      {/* A phone stacks the two; from 768px they sit side by side, "Giữ đơn" first (Figma W2b). */}
+      <div className="flex flex-col gap-2 pt-1.5 md:grid md:grid-cols-2 md:gap-3 md:pt-0">
         <Button variant="danger" size="lg" disabled={pending} onClick={cancel}>
           {pending ? <Spinner data-icon="inline-start" /> : null}
           {t("confirm")}
         </Button>
-        <Button variant="outline" size="lg" onClick={() => setOpen(false)}>
+        <Button
+          variant="outline"
+          size="lg"
+          className="md:order-first"
+          onClick={() => setOpen(false)}
+        >
           {t("keep")}
         </Button>
       </div>
@@ -121,10 +126,9 @@ export function CancelOrder({
         {t("open")}
       </Button>
       {phone ? (
-        <Drawer open={open} onOpenChange={setOpen}>
+        <Drawer open={open} onOpenChange={setOpen} showSwipeHandle>
           <DrawerContent>
             <div className="mx-auto flex w-full max-w-xl flex-col gap-3.5 px-5 pt-2.5 pb-8.5">
-              <span aria-hidden className="mx-auto h-1 w-10 rounded-full bg-border" />
               <DrawerTitle>{t("title", { number })}</DrawerTitle>
               <DrawerDescription>{t("body", { units, seller })}</DrawerDescription>
               {form}
@@ -134,9 +138,11 @@ export function CancelOrder({
       ) : (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent showCloseButton={false} className="sm:max-w-120">
-            <DialogTitle size="headline">{t("title", { number })}</DialogTitle>
-            <DialogDescription>{t("body", { units, seller })}</DialogDescription>
-            {form}
+            <div className="flex flex-col gap-3.5 px-3 pt-3 pb-2">
+              <DialogTitle size="headline">{t("title", { number })}</DialogTitle>
+              <DialogDescription>{t("body", { units, seller })}</DialogDescription>
+              {form}
+            </div>
           </DialogContent>
         </Dialog>
       )}

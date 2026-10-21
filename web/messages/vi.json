@@ -445,7 +445,8 @@
       "withReason": "{time} · {reason}",
       "returned": "{units} phần đã trả lại cho quán",
       "returnedBody": "Người khác có thể đặt",
-      "refused": "Quán không giao đơn",
+      "refused": "Quán từ chối giao",
+      "refusedBody": "{time} · lý do: {reason}",
       "reason": {
         "not_suitable": "món không còn phù hợp",
         "wrong_items": "món không đúng với đơn",
@@ -460,13 +461,17 @@
       "expiredBody": "{until} · đơn ghi là không nhận",
       "summary": {
         "cancelled": "Bạn chưa trả tiền nên không có gì phải hoàn.",
-        "refused": "Bạn chưa trả tiền nên không có gì phải hoàn.",
-        "expired": "Lần sau nếu không kịp, hãy huỷ trước giờ mở để món đến được người khác."
+        "refused": "Quán kiểm món trước khi giao và thấy món không còn đạt. Bạn không phải trả tiền.",
+        "expired": "Không ai đến nhận trước {until}. Lần sau nếu không kịp, hãy huỷ trước {opens} để món đến được người khác."
       },
       "placedBody": "{date}, {time} · {units} phần · {total}",
       "confirmed": "Quán xác nhận đơn",
       "confirmedBody": "{time} · giữ {units} phần cho bạn",
-      "readyBody": "{time} · quán báo bạn đến nhận"
+      "readyBody": "{time} · quán báo bạn đến nhận",
+      "toldBody": "{date}, {time} · đã báo cho bạn",
+      "collected": "Bạn đã nhận món",
+      "collectedBody": "{time} · đã trả {total}",
+      "collectedRated": "{time} · đã trả {total} · bạn chấm {stars} sao"
     },
     "cancel": {
       "open": "Huỷ đơn",
@@ -491,19 +496,22 @@
       "title": {
         "cancelled": "Đã huỷ đơn",
         "refused": "Quán không giao đơn",
-        "expired": "Hết giờ nhận"
+        "expired": "Đơn đã hết hạn"
       },
+      "refusedLine": "{time} · lý do: {reason} · bạn không phải trả tiền",
+      "expiredLine": "Không ai đến nhận trước {until} · đơn được ghi là không nhận · không thu tiền",
       "cancelledLine": "Bạn huỷ lúc {time} · {units} phần đã trả lại cho quán",
       "badge": {
         "cancelled": "Đơn đã huỷ",
-        "refused": "Quán không giao",
-        "expired": "Đơn hết hạn"
+        "refused": "Quán không giao đơn này",
+        "expired": "Đơn đã hết hạn"
       }
     },
     "orderNumber": "Đơn #{number}",
     "metaToday": "Đơn #{number} · đặt hôm nay {time} · {seller}, {address}",
     "metaOn": "Đơn #{number} · đặt {date} {time} · {seller}, {address}",
-    "cardMeta": "#{number} · {total} · {place}",
+    "cardMetaWindow": "#{number} · {total} · nhận {from}–{until}",
+    "cardMetaReady": "#{number} · {total} · trả khi nhận",
     "day": {
       "today": "Hôm nay",
       "week": "Tuần này",
@@ -520,14 +528,14 @@
     "ordered": "Món đã đặt · {units} phần",
     "originalPrice": "Giá gốc",
     "endedAt": {
-      "collected": "Đã nhận món lúc {time} · {date}",
-      "cancelled": "Đã huỷ lúc {time} · {date}",
-      "refused": "Quán không giao · {date}",
-      "expired": "Hết hạn lúc {time} · {date}"
+      "collected": "Đã nhận món lúc {time} · {date}"
     },
+    "collectedAt": "Đã nhận món lúc {time}",
     "collectLater": "Mã QR hiện khi món sẵn sàng. Có thể đọc tên, số điện thoại để nhận món.",
     "collectReady": "Đưa mã QR cho quầy quét hoặc đọc tên, số điện thoại để nhận món.",
-    "collectAt": "Nhận lúc {from}",
+    "preparing": "Đang chuẩn bị",
+    "seeQr": "Xem mã QR nhận món",
+    "subtitle": "Đang chờ nhận và đã xong",
     "savedLine": "Tiết kiệm so với giá gốc · {units} phần không bị bỏ phí",
     "placedWith": "Cùng lần đặt: {seller}"
   },
@@ -1507,15 +1515,20 @@
   "Favourites": {
     "title": "Yêu thích",
     "intro": "Quán bạn theo dõi",
+    "subtitle": "Quán bạn theo dõi · có món giảm sẽ báo bạn",
+    "pickup": " · Nhận {from} – {until}",
     "follow": "Yêu thích {name}",
     "followName": "Theo dõi {name}",
     "followLabel": "Theo dõi",
+    "followingLabel": "Đang theo dõi",
     "added": "Đã thêm vào Yêu thích",
     "removed": "Đã bỏ khỏi Yêu thích",
     "failed": "Chưa lưu được, thử lại sau.",
     "noneTonight": "Tối nay chưa có món giảm",
+    "noneTonightMore": " · có món sẽ báo bạn",
     "emptyTitle": "Chưa có quán yêu thích",
     "emptyBody": "Bấm ♡ ở trang quán để theo dõi.",
+    "emptyMore": "Quán có món giảm sẽ báo bạn.",
     "explore": "Khám phá quán"
   }
 }

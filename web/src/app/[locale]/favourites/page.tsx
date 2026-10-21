@@ -6,6 +6,7 @@ import { PageBar } from "@/components/page-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FavouriteSellers } from "@/features/favourites/favourite-sellers";
 import { listOffers } from "@/features/offers/list-offers";
+import { TonightOffers } from "@/features/offers/tonight-offers";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Favourites");
@@ -21,9 +22,12 @@ export default async function FavouritesPage() {
   return (
     <>
       <PageBar title={t("title")} returnTo="/favourites" />
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-3 px-4 py-4 md:max-w-292">
-        <h1 className="hidden text-page-title text-foreground md:block">{t("title")}</h1>
-        <Suspense fallback={<Skeleton shape="card" className="h-58" />}>
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-3 px-4 py-4 md:max-w-292 md:px-8 md:pt-8 md:pb-14 lg:grid lg:grid-cols-3 lg:content-start lg:gap-x-6 lg:gap-y-6">
+        <div className="hidden flex-col gap-1 md:flex lg:col-span-3">
+          <h1 className="text-page-title text-foreground">{t("title")}</h1>
+          <p className="text-body text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        <Suspense fallback={<Skeleton shape="card" className="h-58 lg:col-span-2" />}>
           <Favourites />
         </Suspense>
       </main>
@@ -31,6 +35,16 @@ export default async function FavouritesPage() {
   );
 }
 
+// The followed sellers take two thirds beside tonight's offers on a desktop (Figma WK9).
 async function Favourites() {
-  return <FavouriteSellers offers={await listOffers({})} />;
+  const offers = await listOffers({});
+
+  return (
+    <>
+      <div className="flex flex-col gap-3 md:gap-4 lg:col-span-2">
+        <FavouriteSellers offers={offers} />
+      </div>
+      <TonightOffers offers={offers} />
+    </>
+  );
 }

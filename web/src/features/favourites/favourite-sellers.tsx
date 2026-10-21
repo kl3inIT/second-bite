@@ -42,8 +42,8 @@ export function FavouriteSellers({ offers }: { offers: readonly OfferSummary[] }
 
   return (
     <>
-      <p className="text-body-sm text-muted-foreground">{t("intro")}</p>
-      <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+      <p className="text-body-sm text-muted-foreground md:hidden">{t("intro")}</p>
+      <ul className="grid grid-cols-1 gap-3 md:gap-4">
         {ids.map((id) => {
           const own = inShowingOrder(offers.filter((offer) => offer.sellerId === id));
           const seller = own[0]?.seller ?? profiles.get(id);
@@ -109,6 +109,7 @@ function SellerCard({
   const format = useFormatter();
   const [lead] = offers;
   const rating = lead ? sellerRating(lead) : undefined;
+  const time = (moment: string) => format.dateTime(new Date(moment), "time");
 
   return (
     <article className="flex flex-col gap-3 rounded-2xl bg-card p-3.5 text-card-foreground">
@@ -126,6 +127,11 @@ function SellerCard({
           <p className="truncate text-label text-muted-foreground">
             {rating !== undefined && `${format.number(rating, ONE_DECIMAL)} ★ · `}
             {seller.address}
+            {lead ? (
+              <span className="max-md:hidden">
+                {t("pickup", { from: time(lead.windowStart), until: time(lead.windowEnd) })}
+              </span>
+            ) : null}
           </p>
         </div>
         <FollowButton sellerId={seller.id} name={seller.name} look="card" />
@@ -139,7 +145,10 @@ function SellerCard({
           ))}
         </ul>
       ) : (
-        <p className="text-body-sm text-muted-foreground">{t("noneTonight")}</p>
+        <p className="text-body-sm text-muted-foreground">
+          {t("noneTonight")}
+          <span className="max-md:hidden">{t("noneTonightMore")}</span>
+        </p>
       )}
     </article>
   );
@@ -150,19 +159,27 @@ function NoFavourites() {
   const t = useTranslations("Favourites");
 
   return (
-    <Empty className="flex-1">
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <HeartIcon aria-hidden />
-        </EmptyMedia>
-        <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
-        <EmptyDescription>{t("emptyBody")}</EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent>
-        <Link href="/" className={buttonVariants({ size: "lg", className: "w-full" })}>
-          {t("explore")}
-        </Link>
-      </EmptyContent>
-    </Empty>
+    <div className="flex flex-1 flex-col md:flex-none md:rounded-2xl md:bg-card md:py-8">
+      <Empty className="flex-1">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <HeartIcon aria-hidden />
+          </EmptyMedia>
+          <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
+          <EmptyDescription>
+            {t("emptyBody")}
+            <span className="max-md:hidden"> {t("emptyMore")}</span>
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Link
+            href="/"
+            className={buttonVariants({ size: "lg", className: "w-full md:w-auto md:px-8" })}
+          >
+            {t("explore")}
+          </Link>
+        </EmptyContent>
+      </Empty>
+    </div>
   );
 }
