@@ -124,7 +124,7 @@ test.describe("the customer home", () => {
     await expect(page.getByText("Giờ “từ” cần sớm hơn giờ “đến”.")).toHaveRole("alert");
     await page.getByLabel("Đến").selectOption("21:30");
     await page.getByRole("button", { name: "Áp dụng" }).click();
-    await expect(page).toHaveURL(/\/vi\/search\?from=21%3A00&to=21%3A30$/);
+    await expect(page).toHaveURL(/\/vi\/search\?from=21:00&to=21:30$/);
   });
 
   test("filters by kind, back to every offer from the chosen kind or when nothing matches", async ({
@@ -188,7 +188,7 @@ test.describe("the customer home", () => {
     await page.getByText("Dùng vị trí của tôi").click();
     await page.getByRole("button", { name: "Xem món quanh đây" }).click();
 
-    await expect(page).toHaveURL(/\/vi\?near=21\.057%2C105\.897$/);
+    await expect(page).toHaveURL(/\/vi\?near=21\.057,105\.897$/);
     await expect(
       page.getByRole("heading", { level: 1, name: "Tối nay quanh Vị trí của tôi" }),
     ).toBeVisible();

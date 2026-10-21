@@ -2,7 +2,7 @@ import { ChevronDownIcon, MapPinIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { AreaSheet } from "./area-sheet";
-import { homeSearch, type HomeQuery } from "./home-query";
+import type { HomeQuery } from "./home-query";
 
 // The page's title on the header (Figma header › location): a lime pin, the place in bold and its district
 // below in the soft text for Tasco blue, Tasco Mall or the person's own place. The whole of it opens the
@@ -33,7 +33,7 @@ export function PlaceHeading({
         </Title>
         <p className="text-label text-inverse-muted">{near ? t("areaNearby") : t("area")}</p>
       </div>
-      <AreaSheet nearby={Boolean(near)} keep={homeSearch(rest)} className="absolute -inset-1" />
+      <AreaSheet nearby={Boolean(near)} keep={rest} className="absolute -inset-1" />
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { SellerGroup } from "@/features/offers/seller-group";
 import { Link } from "@/i18n/navigation";
 
 import { SearchFilters, SearchOrder } from "./search-filters";
-import { searchParams, type SearchQuery } from "./search-query";
+import { searchHref, type SearchQuery } from "./search-query";
 
 // What the search finds (Figma K1f), under the chips and a line saying how many and in what order: the dishes
 // grouped by seller, with or without words.
@@ -55,7 +55,7 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
         </output>
         {filtered && (
           <Link
-            href={{ pathname: "/search", query: searchParams({ q: query.q, near: query.near }) }}
+            href={searchHref({ q: query.q, near: query.near })}
             className="text-body-sm-strong text-link underline-offset-4 hover:underline max-md:hidden"
           >
             {t("resetFilters")}
@@ -86,7 +86,7 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
           </EmptyHeader>
           <EmptyContent>
             <Link
-              href={{ pathname: "/search", query: query.near ? { near: query.near } : {} }}
+              href={searchHref({ near: query.near })}
               className={buttonVariants({ variant: "secondary" })}
             >
               {t("everything")}

@@ -17,6 +17,8 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
+import { homePath, type HomeQuery } from "./home-query";
+
 type Area = "mall" | "nearby";
 
 // Three decimals of a degree, about 110 m: enough for "350 m" on a card, without the exact spot in the address.
@@ -33,7 +35,7 @@ export function AreaSheet({
   className,
 }: {
   nearby: boolean;
-  keep: Record<string, string>;
+  keep: HomeQuery;
   className?: string;
 }) {
   const t = useTranslations("Area");
@@ -43,8 +45,8 @@ export function AreaSheet({
   const [locating, setLocating] = useState(false);
   const [failure, setFailure] = useState<"denied" | "failed">();
 
-  function show(query: Record<string, string>) {
-    router.push({ pathname: "/", query });
+  function show(query: HomeQuery) {
+    router.push(homePath(query));
     setOpen(false);
   }
 
