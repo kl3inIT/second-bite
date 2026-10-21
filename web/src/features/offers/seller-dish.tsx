@@ -7,6 +7,7 @@ import { CartPortions } from "@/features/cart/cart-portions";
 import { QuantityStepper } from "@/features/cart/quantity-stepper";
 import { cn } from "@/lib/utils";
 
+import { DiscountBadge } from "./discount-label";
 import { DishSheet } from "./dish-sheet";
 import { formatPrice } from "./format";
 import { dishAnchor, type OfferSummary } from "./offer";
@@ -36,6 +37,7 @@ export function SellerDish({ offer, focused }: { offer: OfferSummary; focused: b
         className="relative size-25 shrink-0 overflow-hidden rounded-lg bg-muted"
       >
         <OfferPhoto offer={offer} sizes="100px" />
+        <DiscountBadge percent={offer.discountPercent} />
       </button>
       <div className="flex min-w-0 flex-1 flex-col gap-2.5">
         <h3 className="line-clamp-2 text-title-lg text-foreground">

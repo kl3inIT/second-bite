@@ -143,7 +143,8 @@
     "sellerAway": "Quán {seller} · cách {distance}",
     "windowAt": "{window} · {place}",
     "rating": "Quán được chấm {rating} trên 5",
-    "heart": "Yêu thích {name}"
+    "heart": "Yêu thích {name}",
+    "badge": "-{percent}%"
   },
   "Intro": {
     "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
@@ -537,8 +538,8 @@
     "remove": "Bớt một phần {name}",
     "quantity": "{quantity} phần {name} trong giỏ",
     "soldOut": "Đã hết",
-    "portionsLeft": "-{percent}% · còn {units} phần",
-    "portionsChosen": "-{percent}% · đã chọn đủ {units} phần",
+    "portionsLeft": "còn {units} phần",
+    "portionsChosen": "đã chọn đủ {units} phần",
     "summary": "{units} phần · tiết kiệm {saved}",
     "open": "Xem giỏ hàng",
     "empty": "Giỏ hàng đang trống",
@@ -550,7 +551,7 @@
     "directions": "Chỉ đường",
     "pay": "Thanh toán",
     "counter": "Thanh toán tại quầy",
-    "counterHint": "Trả tiền mặt hoặc chuyển khoản khi nhận món",
+    "counterHint": "Tiền mặt hoặc quét QR của quán khi nhận món",
     "summaryTitle": "Tóm tắt đơn",
     "line": "{quantity}× {name}",
     "dishes": "Tiền món ({units} phần)",

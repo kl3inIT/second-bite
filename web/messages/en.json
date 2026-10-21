@@ -143,7 +143,8 @@
     "sellerAway": "{seller} · {distance} away",
     "windowAt": "{window} · {place}",
     "rating": "Seller rated {rating} out of 5",
-    "heart": "Favourite {name}"
+    "heart": "Favourite {name}",
+    "badge": "-{percent}%"
   },
   "Intro": {
     "tagline": "End-of-day food from the counters at Tasco Mall, for less.",
@@ -537,8 +538,8 @@
     "remove": "Remove one {name}",
     "quantity": "{quantity} {name} in the cart",
     "soldOut": "Sold out",
-    "portionsLeft": "-{percent}% · {units} left",
-    "portionsChosen": "-{percent}% · all {units} chosen",
+    "portionsLeft": "{units} left",
+    "portionsChosen": "all {units} chosen",
     "summary": "{units} portions · save {saved}",
     "open": "View cart",
     "empty": "Your cart is empty",
@@ -550,7 +551,7 @@
     "directions": "Directions",
     "pay": "Payment",
     "counter": "Pay at the counter",
-    "counterHint": "In cash or by bank transfer when you collect",
+    "counterHint": "Cash or the shop's QR code when you collect",
     "summaryTitle": "Order summary",
     "line": "{quantity}× {name}",
     "dishes": "Dishes ({units} portions)",
