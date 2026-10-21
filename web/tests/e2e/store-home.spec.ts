@@ -55,11 +55,24 @@ test.describe("the home of a store", () => {
     );
 
     const orders = page.getByRole("region", { name: "Đơn hôm nay" });
-    await expect(orders.getByRole("link", { name: "Sẵn sàng · 1" })).toHaveAttribute(
-      "href",
-      `/vi/stores/${store}/orders?tab=ready`,
+    await expect(orders.getByRole("link", { name: "Chuẩn bị · 3" })).toHaveAttribute(
+      "aria-current",
+      "page",
     );
     await expect(orders.getByRole("button", { name: "Báo sẵn sàng" })).toHaveCount(3);
+
+    // A chip filters the home's own list: the page stays the home, with the ready order and its hand-over.
+    await orders.getByRole("link", { name: "Sẵn sàng · 1" }).click();
+    await expect(page).toHaveURL(new RegExp(`/vi/stores/${store}\\?tab=ready$`));
+    await expect(orders.getByRole("link", { name: "Sẵn sàng · 1" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(orders).toContainText("Đỗ Hương");
+    await expect(orders.getByRole("button", { name: "Đã giao" })).toHaveCount(1);
+    await expect(orders.getByRole("button", { name: "Báo sẵn sàng" })).toHaveCount(0);
+    await orders.getByRole("link", { name: "Chuẩn bị · 3" }).click();
+    await expect(page).toHaveURL(new RegExp(`/vi/stores/${store}$`));
 
     const posts = page.getByRole("region", { name: "Bài đăng hôm nay" });
     await expect(posts).toContainText("Bánh mì que, 3 chiếc");
@@ -67,6 +80,9 @@ test.describe("the home of a store", () => {
     await expect(page.getByRole("region", { name: "Danh mục · 0 món" })).toContainText(
       "Chưa có món nào trong danh mục.",
     );
+    // A chip keeps the place on the page; checked from the top, as every page is, so a blue button scrolled
+    // behind the translucent bottom bar does not stand in for its ground.
+    await page.evaluate(() => window.scrollTo(0, 0));
     await expectNoSeriousA11yViolations(page);
 
     // Another day has its own numbers and nothing left to do.

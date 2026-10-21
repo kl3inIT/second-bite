@@ -775,7 +775,12 @@
       "delivered": "Đã giao",
       "cancelled": "Đã hủy"
     },
-    "ordersEmpty": "Chưa có đơn nào đang chuẩn bị.",
+    "ordersEmpty": {
+      "preparing": "Chưa có đơn nào đang chuẩn bị.",
+      "ready": "Chưa có đơn nào sẵn sàng.",
+      "delivered": "Chưa giao đơn nào.",
+      "cancelled": "Chưa có đơn nào bị hủy."
+    },
     "postsToday": "Bài đăng hôm nay",
     "postsOn": "Bài đăng ngày {date}",
     "postsEmpty": "Chưa có bài đăng nào ngày này.",

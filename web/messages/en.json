@@ -775,7 +775,12 @@
       "delivered": "Delivered",
       "cancelled": "Cancelled"
     },
-    "ordersEmpty": "No orders being prepared.",
+    "ordersEmpty": {
+      "preparing": "No orders being prepared.",
+      "ready": "No orders ready.",
+      "delivered": "No orders handed over.",
+      "cancelled": "No cancelled orders."
+    },
     "postsToday": "Today's posts",
     "postsOn": "Posts on {date}",
     "postsEmpty": "No posts on this day.",
