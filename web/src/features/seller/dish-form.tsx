@@ -21,12 +21,12 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Spinner } from "@/components/ui/spinner";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError, failureOf } from "@/lib/api/client";
-import { addDish, changeDish, type DishBody, removeDish } from "@/lib/api/generated";
+import { addDish, changeDish, type DishBody, removeDish, uploadPhoto } from "@/lib/api/generated";
 
 import { Chip } from "./chip";
 import { useRemountKey } from "./remount-key";
 import { NumberInput } from "./number-input";
-import { type PhotoSlot, PhotoSlots, slotsOf, uploadedIds } from "./photo-slots";
+import { PhotoDrop } from "./photo-drop";
 import { PhoneFootBar } from "./phone-foot-bar";
 
 const kinds = [
@@ -63,7 +63,8 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
   const kindName = useTranslations("OfferKind");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [slots, setSlots] = useState<PhotoSlot[]>(() => (dish ? slotsOf(dish.photos) : []));
+  const [photo, setPhoto] = useState<File>();
+  const [preview, setPreview] = useState<string>();
   const [name, setName] = useState(dish?.name ?? "");
   const [kind, setKind] = useState<DishBody["kind"]>(dish?.kind ?? "bakery");
   const [unit, setUnit] = useState(dish?.unit ?? "suất");
@@ -77,12 +78,18 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
   const [confirming, setConfirming] = useState(false);
 
   const nameMissing = name.trim() === "";
-  const photoMissing = slots.length === 0;
+  const photoMissing = !dish && !photo;
   const descriptionMissing =
     kind === "mixed_box" && description.trim() === "" && ingredients.trim() === "";
   // The original price is optional; a price, when given, is from 1.001đ, as the backend asks.
   const originalInvalid = original !== "" && Number(original) <= 1000;
   const back = `/stores/${sellerId}/catalog`;
+
+  function choosePhoto(file: File | undefined) {
+    if (preview) URL.revokeObjectURL(preview);
+    setPhoto(file);
+    setPreview(file ? URL.createObjectURL(file) : undefined);
+  }
 
   function done(notice: string) {
     router.push({ pathname: back, query: { notice } });
@@ -95,8 +102,7 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
     if (nameMissing || photoMissing || descriptionMissing || originalInvalid) return;
     startTransition(async () => {
       try {
-        const [photoId, ...morePhotoIds] = await uploadedIds(slots);
-        if (!photoId) return;
+        const photoId = photo ? (await uploadPhoto({ body: photo })).data.id : undefined;
         const fields = {
           name: name.trim(),
           kind,
@@ -111,18 +117,16 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
             body: {
               ...fields,
               originalPriceVnd: Number(original),
-              photoId,
-              morePhotoIds,
+              ...(photoId ? { photoId } : {}),
             },
           });
-        } else {
+        } else if (photoId) {
           await addDish({
             path: { sellerId },
             body: {
               ...fields,
               ...(original ? { originalPriceVnd: Number(original) } : {}),
               photoId,
-              morePhotoIds,
             },
           });
         }
@@ -146,6 +150,8 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
       }
     });
   }
+
+  const shownPhoto = preview ?? (dish ? `/api${dish.photo.smallPath}` : undefined);
 
   return (
     <form
@@ -176,7 +182,13 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
 
         <Field data-invalid={(tried && photoMissing) || undefined}>
           <FieldLabel htmlFor="dish-photo">{t("photo")}</FieldLabel>
-          <PhotoSlots id="dish-photo" slots={slots} disabled={pending} onChange={setSlots} />
+          <PhotoDrop
+            id="dish-photo"
+            fileName={photo?.name}
+            preview={shownPhoto}
+            disabled={pending}
+            onChange={choosePhoto}
+          />
           {tried && photoMissing && <FieldError>{t("photoMissing")}</FieldError>}
         </Field>
 
