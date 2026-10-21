@@ -153,6 +153,36 @@ test.describe("opening a store on the web", () => {
     await expect(photo).toHaveAttribute("src", /\/api\/photos\/ph-upload\/400\.jpg/);
   });
 
+  test("the store's name opens a menu to the shop, the stores and a new store", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `bich.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Một");
+    await page.getByLabel("Số điện thoại").fill("0912345678");
+    await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await page.getByRole("button", { name: "Tạo quán" }).click();
+    await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
+
+    // With one store the name still opens the menu, and does not reload the page.
+    await page.getByRole("button", { name: "Menu quán Quán Một" }).click();
+    await expect(page.getByRole("menuitem", { name: "Về trang người mua" })).toHaveAttribute(
+      "href",
+      /\/vi$/,
+    );
+    await expect(page.getByRole("menuitem", { name: "Quán Một" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    await expect(page.getByRole("menuitem", { name: "Tạo thêm quán" })).toHaveAttribute(
+      "href",
+      /\/vi\/open-store$/,
+    );
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole("menuitem", { name: "Tạo thêm quán" }).click();
+    await expect(page).toHaveURL(/\/vi\/open-store$/);
+  });
+
   test("a store's posts are in three tabs", async ({ page }, testInfo) => {
     await signIn(page, `lien.${testInfo.project.name}@example.com`, "/open-store");
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Tiệm bánh Pháp");
