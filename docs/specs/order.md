@@ -39,7 +39,7 @@ Published to other modules: `Service` alone.
 - **Refusing**: by the seller's people while the order is open, with `not_suitable`, `wrong_items`, `no_answer`, `no_show`, `late`, `sold_out` or `other` and a note of up to 200 characters. For `no_answer`, `no_show` and `late` the customer did not come, so the units go back to their offers; for the others they are not offered again.
 - **Reopening**: by the seller's people, for an order that was handed over or refused and whose window is not over; it is confirmed again. The units a refusal had returned are taken again, and `ORDER_OFFER_SOLD_OUT` answers when they are gone. An order its customer cancelled stays cancelled.
 - **Reading**: its customer, signed in or with the access, the seller's people and admins; anyone else gets 404. Admins read but never act for a seller.
-- **Withdrawing an offer** leaves its orders standing; the seller serves them or refuses them at the counter ([why](../increments/active/sec-15-order-module/design.md#5-context-map)).
+- **Withdrawing an offer** ends the orders still to collect on it: `order` listens to `offer.withdrawn` and refuses each with the reason `withdrawn`, returning the units it held of the seller's other offers. Staff cannot choose that reason, and an order refused for it is not reopened ([SEC-108](../increments/active/sec-108-withdraw-with-orders/design.md)).
 
 ## Data
 
@@ -69,4 +69,4 @@ Published to other modules: `Service` alone.
 
 ## Not yet
 
-Per the [plan](../increments/active/sec-15-order-module/plan.md): a limit of units per customer and day, and of orders per phone number, since a number is not verified; telling people what happened (SEC-24 and later); cancelling the orders of a withdrawn offer, which needs an event; paying online (SEC-18).
+Per the [plan](../increments/active/sec-15-order-module/plan.md): a limit of units per customer and day, and of orders per phone number, since a number is not verified; telling people what happened (SEC-24 and later); paying online (SEC-18).
