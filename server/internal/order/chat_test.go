@@ -555,6 +555,7 @@ func listen(t *testing.T, pool *pgxpool.Pool) *heard {
 	t.Cleanup(func() {
 		cancel()
 		<-done
+
 		_ = conn.Close(context.WithoutCancel(t.Context()))
 	})
 
