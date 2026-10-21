@@ -370,53 +370,24 @@
     "togetherTitle": "Đơn ở {sellers} quán",
     "togetherBody": "{names} · tổng {total}. Mỗi quán có mã nhận riêng, trả tiền tại quầy của quán.",
     "mine": "Đơn của tôi",
-    "mineLead": "Đang chờ nhận và đã xong",
     "lists": "Danh sách đơn",
     "tabOpen": "Đang chờ nhận ({count})",
-    "tabEnded": "Đã xong ({count})",
+    "tabEnded": "Đã xong",
     "noneOpen": "Bạn chưa có đơn nào đang chờ nhận.",
     "noneEnded": "Chưa có đơn nào đã xong.",
-    "before": "Trước đó",
     "readyUntil": "Sẵn sàng · đến {until}",
-    "collectFrom": "Nhận từ {from}",
     "payOnCollect": "Thanh toán khi nhận hàng",
     "seeOrder": "Xem đơn",
-    "collectAs": "Nhận đơn bằng tên và số điện thoại",
-    "collectHint": "Đọc tên và số điện thoại cho quầy khi đến nhận.",
     "impact": "{meals} bữa ngon, trọn đến miếng cuối",
-    "impactSaved": "Bạn đã tiết kiệm {saved} so với giá gốc",
-    "status": {
-      "confirmed": "Đã xác nhận",
-      "ready": "Sẵn sàng",
-      "collected": "Đã nhận",
-      "cancelled": "Đã huỷ",
-      "refused": "Quán không giao",
-      "expired": "Hết hạn"
-    },
-    "meta": "Đơn {number} · đặt lúc {time} · {seller}, {address}",
+    "impactSaved": "Tiết kiệm {saved} so với giá gốc",
     "hoursMinutes": "{hours} giờ {minutes} phút",
     "minutes": "{minutes} phút",
     "headline": {
       "confirmed": "Đã xác nhận · quán đang chuẩn bị",
       "ready": "Món đã sẵn sàng"
     },
-    "opensIn": "Nhận hôm nay tại quầy {seller} · mở sau {left}",
-    "closesIn": "Nhận hôm nay tại quầy {seller} · còn {left}",
-    "changeOfMind": "Đổi ý?",
-    "changeOfMindBody": "Huỷ miễn phí trước {from}. Sau đó không huỷ được, vì món đã để riêng cho bạn.",
-    "ended": {
-      "collected": "Đã nhận món",
-      "cancelled": "Đã huỷ đơn",
-      "refused": "Quán không giao đơn",
-      "expired": "Đơn đã hết hạn"
-    },
-    "endedBody": {
-      "collected": "Cảm ơn bạn đã cứu {units} phần món ngon khỏi bị bỏ phí.",
-      "cancelled": "Không mất phí nào · {units} phần đã trả lại cho quán",
-      "refused": "Bạn không phải trả tiền cho đơn này.",
-      "expired": "Không ai đến nhận trước {until} · đơn ghi là không nhận · không thu tiền"
-    },
-    "tonightMore": "Còn nhiều món ngon tối nay",
+    "opensIn": "Nhận hôm nay · mở sau {left}",
+    "closesIn": "Nhận hôm nay · còn {left}",
     "seeOthers": "Xem món khác",
     "details": "Chi tiết đơn",
     "counterToday": "{address} · {from}–{until} hôm nay",
@@ -430,31 +401,28 @@
     "signInBody": "Chưa có đơn nào đặt trên trình duyệt này. Nếu bạn đặt khi đã đăng nhập, đăng nhập để xem.",
     "signIn": "Đăng nhập",
     "facts": {
-      "day": "Ngày",
-      "window": "Khung giờ nhận",
-      "what": "Món",
+      "saved": "Tiết kiệm",
+      "savedValue": "{saved} so với giá gốc",
       "total": "Tổng",
       "number": "Mã đơn",
       "payment": "Thanh toán",
-      "atCounter": "Trả tại quầy",
+      "atCounter": "Trả tại quầy khi nhận",
       "nothing": "Không thu tiền"
     },
     "how": {
       "title": "Cách nhận món",
-      "goTitle": "Đến quầy",
-      "goBody": "Quầy {seller}, Tasco Mall",
-      "nameTitle": "Đọc tên, số điện thoại",
-      "nameBody": "Nhân viên tìm đơn của bạn",
-      "payTitle": "Kiểm món, trả tiền",
-      "payBody": "Tiền mặt hoặc chuyển khoản cho quán"
+      "goTitle": "Đến quầy thu ngân",
+      "takeTitle": "Nhận món",
+      "takeBody": "Nhớ mang túi riêng",
+      "qrTitle": "Đưa mã QR",
+      "qrBody": "hoặc đọc tên, số ĐT"
     },
     "steps": {
       "label": "Các bước của đơn",
-      "placed": "Đã đặt {time}",
+      "placed": "Đã đặt",
       "preparing": "Chuẩn bị",
       "ready": "Sẵn sàng",
-      "readyAt": "Sẵn sàng {time}",
-      "collected": "Đã nhận"
+      "collected": "Hoàn tất"
     },
     "timeline": {
       "title": "Trạng thái",
@@ -483,7 +451,12 @@
         "cancelled": "Bạn chưa trả tiền nên không có gì phải hoàn.",
         "refused": "Bạn chưa trả tiền nên không có gì phải hoàn.",
         "expired": "Lần sau nếu không kịp, hãy huỷ trước giờ mở để món đến được người khác."
-      }
+      },
+      "placedBody": "{date}, {time} · {units} phần · {total}",
+      "confirmed": "Quán xác nhận đơn",
+      "confirmedBody": "{time} · giữ {units} phần cho bạn",
+      "readyBody": "{time} · quán báo bạn đến nhận",
+      "collectedBody": "{time} · đã trả {total}"
     },
     "cancel": {
       "open": "Huỷ đơn",
@@ -498,9 +471,36 @@
       "keep": "Giữ đơn",
       "confirm": "Huỷ đơn",
       "tooLate": "Đã quá giờ huỷ miễn phí: khung nhận đã mở.",
-      "failed": "Chưa huỷ được đơn. Thử lại, hoặc báo mã tham chiếu {reference}."
+      "failed": "Chưa huỷ được đơn. Thử lại, hoặc báo mã tham chiếu {reference}.",
+      "free": "· miễn phí trước {until}"
     },
-    "date": "{day}/{month}"
+    "date": "{day}/{month}",
+    "orderNumber": "Đơn #{number}",
+    "preparing": "Đang chuẩn bị",
+    "cardMeta": "#{numbers} · nhận {from}–{until}",
+    "day": {
+      "today": "Hôm nay",
+      "week": "Tuần này",
+      "before": "Trước đó"
+    },
+    "endedLine": {
+      "confirmed": "Đã xác nhận",
+      "ready": "Sẵn sàng",
+      "collected": "Đã nhận",
+      "cancelled": "Đã huỷ · không thu tiền",
+      "refused": "Quán không giao · không thu tiền",
+      "expired": "Hết hạn, không đến nhận"
+    },
+    "ordered": "Món đã đặt · {units} phần",
+    "originalPrice": "Giá gốc",
+    "endedAt": {
+      "collected": "Đã nhận món lúc {time} · {date}",
+      "cancelled": "Đã huỷ lúc {time} · {date}",
+      "refused": "Quán không giao · {date}",
+      "expired": "Hết hạn lúc {time} · {date}"
+    },
+    "collectLater": "Mã QR hiện khi món sẵn sàng. Có thể đọc tên, số điện thoại để nhận món.",
+    "collectReady": "Đưa mã QR cho quầy quét hoặc đọc tên, số điện thoại để nhận món."
   },
   "Splash": {
     "tagline": "Món ngon còn lại cuối ngày, giá tốt hơn",

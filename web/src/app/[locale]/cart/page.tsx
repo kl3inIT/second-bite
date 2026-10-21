@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
-import { BackButton } from "@/components/back-button";
+import { PageBar } from "@/components/page-bar";
 import { Checkout } from "@/features/cart/checkout";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,12 +16,7 @@ export default async function CartPage() {
 
   return (
     <>
-      <header className="bg-header text-header-foreground">
-        <div className="mx-auto flex h-16 w-full max-w-xl items-center gap-3 px-4">
-          <BackButton fallback="/" />
-          <h1 className="text-bar-title">{t("title")}</h1>
-        </div>
-      </header>
+      <PageBar title={t("title")} back="/" />
       <main className="flex flex-1 flex-col">
         <Checkout />
       </main>

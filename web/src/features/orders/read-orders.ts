@@ -114,6 +114,15 @@ export const readMyOrders = cache(async (state: "open" | "ended"): Promise<Read<
   }
 });
 
+/** Both lists of the reader's orders, with the moment they were read, against which their days are told. */
+export async function readMyOrderLists(): Promise<
+  Read<{ open: Order[]; ended: Order[]; now: number }>
+> {
+  const [open, ended] = await Promise.all([readMyOrders("open"), readMyOrders("ended")]);
+  if (!open.known || !ended.known) return { known: false };
+  return { known: true, value: { open: open.value, ended: ended.value, now: Date.now() } };
+}
+
 const readAllKept = cache(async (): Promise<Order[] | null> => {
   const kept = await keptOrders();
   if (kept.length === 0) return null;

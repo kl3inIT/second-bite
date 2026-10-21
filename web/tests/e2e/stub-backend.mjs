@@ -864,6 +864,11 @@ function ownerSeller() {
   };
 }
 
+/** Whether the path names an order a customer placed through the stub, which ordersApi hands over instead. */
+function isCustomerOrder(pathname) {
+  return orders.some((order) => pathname.startsWith(`/orders/${order.id}/`));
+}
+
 async function sellerRoutes(request, response, url) {
   const token = tokenOf(request);
   const isSellerRoute =
@@ -872,7 +877,8 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers/address" ||
     url.pathname === "/photos" ||
     /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
-    /^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse)$/.test(url.pathname) ||
+    (/^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse)$/.test(url.pathname) &&
+      !isCustomerOrder(url.pathname)) ||
     /^\/orders\/or-\d+-[\w-]+$/.test(url.pathname) ||
     /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname) ||
     /^\/dishes\/[\w-]+$/.test(url.pathname);
@@ -1145,8 +1151,8 @@ async function sellerRoutes(request, response, url) {
 
 // Orders (SEC-15, SEC-76), as api/openapi.yaml describes them: placed with a name, a phone number and an
 // Idempotency-Key, signed in or not; read and cancelled until the window opens by the account that placed them
-// or with the access answered to whoever placed them; listed for the account. The stub takes no units away,
-// so the home's tests keep their counts.
+// or with the access answered to whoever placed them; listed for the account; marked ready and handed over
+// as a seller would. The stub takes no units away, so the home's tests keep their counts.
 const orders = [];
 const ordersByKey = new Map();
 let nextOrder = 10001;
@@ -1266,6 +1272,24 @@ async function ordersApi(request, response, url) {
     json(response, 200, {
       orders: all.filter((order) => !state || (state === "open" ? open(order) : !open(order))),
     });
+    return true;
+  }
+  // The seller's side, so a test can bring an order to ready and collected; the stub does not check who is staff.
+  const staffMatch = /^\/orders\/([\w-]+)\/(ready|hand-over)$/.exec(url.pathname);
+  if (request.method === "POST" && staffMatch) {
+    const handled = orders.find((found) => found.id === staffMatch[1]);
+    if (!handled) {
+      problem(response, 404, "ORDER_NOT_FOUND");
+      return true;
+    }
+    if (staffMatch[2] === "ready") {
+      handled.status = "ready";
+      handled.readyAt = new Date().toISOString();
+    } else {
+      handled.status = "collected";
+      handled.collectedAt = new Date().toISOString();
+    }
+    json(response, 200, shown(handled));
     return true;
   }
   const orderMatch = /^\/orders\/([\w-]+)(\/cancel)?$/.exec(url.pathname);
