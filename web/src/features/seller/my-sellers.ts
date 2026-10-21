@@ -15,6 +15,9 @@ import {
   type SellerBody,
 } from "@/lib/api/generated";
 
+/** A person owns at most five stores (server/internal/seller, maxOwnedSellers). */
+export const MAX_OWNED = 5;
+
 /** The session cookie the Go server sets on sign-in (see identity/current-account.ts). */
 const sessionCookie = "secondbite_session";
 

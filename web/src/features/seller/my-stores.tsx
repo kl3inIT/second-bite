@@ -5,10 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { SellerAvatar } from "@/features/offers/seller-avatar";
 import { Link } from "@/i18n/navigation";
 
-import { getMySellers } from "./my-sellers";
-
-/** A person owns at most five stores (server/internal/seller, maxOwnedSellers). */
-const MAX_OWNED = 5;
+import { getMySellers, MAX_OWNED } from "./my-sellers";
 
 // The stores of the person signed in (Figma S0): a row per store, and "Tạo quán mới" while they own fewer than
 // five; with none, the card that says so. It reads the session, so it renders inside Suspense.
