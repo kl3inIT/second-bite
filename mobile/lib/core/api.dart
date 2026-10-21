@@ -6,9 +6,7 @@ import 'package:second_bite/core/api/export.dart';
 import 'package:second_bite/core/app_locale.dart';
 import 'package:second_bite/core/session.dart';
 
-// The generated `State` (the filter of `GET /orders`) is hidden: it would hide Flutter's own `State` in every
-// screen that imports this file, and nothing outside the client reads it.
-export 'package:second_bite/core/api/export.dart' hide State;
+export 'package:second_bite/core/api/export.dart';
 
 part 'api.g.dart';
 
