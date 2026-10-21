@@ -1,5 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { Panel } from "@/components/panel";
 
 /**
  * A panel of the seller's pages (Figma Q1, Q2, Q3): a section named by its heading (`labelledBy`), drawn as an
@@ -15,12 +14,8 @@ export function StorePanel({
   children: React.ReactNode;
 }) {
   return (
-    <section aria-labelledby={labelledBy}>
-      <Card size="md">
-        <CardContent>
-          <div className={cn("flex flex-col gap-3", className)}>{children}</div>
-        </CardContent>
-      </Card>
-    </section>
+    <Panel size="md" aria-labelledby={labelledBy} contentClassName={className}>
+      {children}
+    </Panel>
   );
 }

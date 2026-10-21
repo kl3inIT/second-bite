@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
@@ -86,6 +87,8 @@ export function RangeFilter({
         id={`${id}-${end}`}
         name={end}
         value={value}
+        invalid={invalid}
+        describedBy={invalid ? `${id}-order` : undefined}
         placeholder={t(end === "from" ? "lowest" : "highest")}
       />
     ) : (
@@ -93,6 +96,8 @@ export function RangeFilter({
         id={`${id}-${end}`}
         name={end}
         defaultValue={value ?? ""}
+        aria-invalid={invalid || undefined}
+        aria-describedby={invalid ? `${id}-order` : undefined}
         size="lg"
         className="w-full"
       >
@@ -164,9 +169,9 @@ export function RangeFilter({
             </div>
           </div>
           {invalid && (
-            <p role="alert" className="-mt-2 text-label text-destructive">
+            <FieldError id={`${id}-order`} className="-mt-2">
               {t(type === "price" ? "priceOrder" : "timeOrder")}
-            </p>
+            </FieldError>
           )}
           <div className="grid grid-cols-2 gap-2">
             <Button
@@ -193,11 +198,15 @@ function PriceInput({
   name,
   value,
   placeholder,
+  invalid,
+  describedBy,
 }: {
   id: string;
   name: string;
   value?: string;
   placeholder: string;
+  invalid?: boolean;
+  describedBy?: string;
 }) {
   const [digits, setDigits] = useState(value ?? "");
 
@@ -209,6 +218,8 @@ function PriceInput({
         inputMode="numeric"
         autoComplete="off"
         placeholder={placeholder}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
         value={digits ? thousands.format(Number(digits)) : ""}
         onChange={(event) => setDigits(event.target.value.replace(/\D/g, "").slice(0, 8))}
       />
