@@ -74,8 +74,9 @@ function Confirmation({ cart }: { cart: Cart }) {
             onValueChange={(value) => setPayment(String(value))}
             aria-labelledby="pay"
           >
-            <ChoiceOption value="counter" title={t("counter")} hint={t("counterHint")} />
-            <ChoiceOption value="cash" title={t("cash")} hint={t("cashHint")} />
+            <ChoiceOption value="counter" title={t("counter")} />
+            {/* Paying in the app is a later phase (SEC-18); the pilot pays at the counter (SEC-114). */}
+            <ChoiceOption value="transfer" title={t("transfer")} note={t("soon")} disabled />
           </RadioGroup>
         </section>
         <section aria-labelledby="summary" className="flex flex-col gap-3">

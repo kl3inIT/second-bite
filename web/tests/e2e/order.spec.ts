@@ -43,6 +43,11 @@ test.describe("ordering from the cart", () => {
     await expect(page).toHaveURL(/\/vi\/cart$/);
 
     await expect(page.getByLabel("Tên")).toHaveCount(0);
+    // The pilot pays at the counter; paying by transfer in the app comes later (SEC-114).
+    const payment = page.getByRole("radiogroup", { name: "Thanh toán" });
+    await expect(payment.getByRole("radio", { name: "Thanh toán tại quầy" })).toBeChecked();
+    await expect(payment.getByRole("radio", { name: /Chuyển khoản/ })).toBeDisabled();
+    await expect(page.getByText("Tiền mặt")).toHaveCount(0);
     await (await hydrated(page.getByRole("button", { name: "Đặt món" }))).click();
     const sheet = page.getByRole("dialog", { name: "Người đến nhận" });
     await sheet.getByRole("button", { name: "Tiếp tục" }).click();
