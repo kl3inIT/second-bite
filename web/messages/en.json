@@ -1489,5 +1489,57 @@
     "emptyTitle": "No favourite shops yet",
     "emptyBody": "Tap ♡ on a shop's page to follow it.",
     "explore": "Explore shops"
+  },
+  "Chat": {
+    "unread": "{count, plural, one {# unread message} other {# unread messages}}",
+    "messageStore": "Message the store",
+    "messageCustomer": "Message the customer",
+    "storeWrote": "The store just wrote",
+    "customerWrote": "The customer just wrote",
+    "quote": "“{text}”",
+    "seeMessage": "See message",
+    "reply": "Reply",
+    "title": "Messages",
+    "withStore": "Message {seller}",
+    "withCustomer": "Chat with {name}",
+    "cardMeta": "{units, plural, one {# portion} other {# portions}} · {from}–{until} today",
+    "confirmedToday": "Today · Order #{number} confirmed",
+    "confirmedOn": "{date} · Order #{number} confirmed",
+    "log": "Messages of the order",
+    "mine": "You",
+    "time": "{time}",
+    "seen": "{time} · Seen",
+    "note": "Messages do not change the order's price, quantity or collection time.",
+    "placeholderToStore": "Message the store…",
+    "placeholderToCustomer": "Message the customer…",
+    "send": "Send message",
+    "retry": "Send again",
+    "failed": "The message was not sent. Try again, or report the reference {reference}.",
+    "quickReplies": "Quick replies",
+    "customerReplies": {
+      "coming": "I'm on my way",
+      "late": "Let me collect 10 minutes late",
+      "stillHave": "Does the store still have the dishes?"
+    },
+    "sellerReplies": {
+      "ready": "Your order is ready",
+      "working": "We're still making it, one moment please",
+      "holding": "We'll hold your order until the window ends"
+    },
+    "locked": "This order has ended, so you can only read the messages.",
+    "details": "Order details",
+    "who": "{name} · {units, plural, one {# portion} other {# portions}}",
+    "placedAt": "{phone} · placed at {time}",
+    "state": {
+      "confirmed": "Being prepared",
+      "ready": "Ready",
+      "collected": "Handed over",
+      "cancelled": "Cancelled by the customer",
+      "refused": "Cancelled by the store",
+      "expired": "Pickup time passed"
+    },
+    "window": "collects {from}–{until}",
+    "seeOrder": "See order details",
+    "pickup": "Collect today {from}–{until}"
   }
 }

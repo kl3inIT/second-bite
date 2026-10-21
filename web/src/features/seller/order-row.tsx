@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
+import { UnreadPill } from "@/components/unread-pill";
 import { formatPrice } from "@/features/offers/format";
 import type { OrderBody } from "@/lib/api/generated";
 
@@ -45,13 +46,14 @@ export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab
         />
       </span>
       <div className="flex min-w-48 flex-1 flex-col">
-        <h3 className="text-card-title">
+        <h3 className="flex items-center gap-2 text-card-title">
           <Link
             href={`/stores/${order.seller.id}/orders/${order.id}`}
             className="rounded-sm outline-none after:absolute after:inset-0 focus-visible:ring-3 focus-visible:ring-ring"
           >
             {names}
           </Link>
+          <UnreadPill count={order.unreadMessages ?? 0} />
         </h3>
         <p className="flex items-center gap-2 text-title-lg font-normal text-muted-foreground">
           <span>

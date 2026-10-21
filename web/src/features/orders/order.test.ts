@@ -30,9 +30,10 @@ describe("an order", () => {
     }
   });
 
-  it("can be cancelled while open and before its window opens", () => {
+  it("is offered cancelling while confirmed and before its window opens, and not once ready", () => {
     expect(canCancel({ status: "confirmed", windowStart }, opensAt - 1)).toBe(true);
     expect(canCancel({ status: "confirmed", windowStart }, opensAt)).toBe(false);
+    expect(canCancel({ status: "ready", windowStart }, opensAt - 1)).toBe(false);
     expect(canCancel({ status: "cancelled", windowStart }, opensAt - 1)).toBe(false);
   });
 

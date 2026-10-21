@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
+import { LiveRefresh } from "@/features/orders/live-refresh";
 import { hoursAndMinutes, unitsOf, windowPhase } from "@/features/orders/order";
 import { Link } from "@/i18n/navigation";
 import type { OrderBody } from "@/lib/api/generated";
@@ -82,6 +83,11 @@ export async function StoreOrder({
 
   return (
     <>
+      <LiveRefresh
+        topics={[`seller:${sellerId}`]}
+        orderIds={[order.id]}
+        at={[order.windowStart, order.windowEnd]}
+      />
       <div className="flex flex-col gap-4 max-md:mb-28">
         <Link
           href={list}

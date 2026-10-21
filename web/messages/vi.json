@@ -831,7 +831,7 @@
       "minutes": "{minutes} phút",
       "units": "{count} phần",
       "hint": {
-        "confirmed": "Món xong thì bấm Báo sẵn sàng để khách biết đến lấy.",
+        "confirmed": "Món xong thì bấm Báo sẵn sàng để khách biết đến nhận.",
         "ready": "Khách đến thì quét mã QR của họ hoặc đối chiếu tên và số điện thoại, rồi bấm Đã giao."
       },
       "lines": "Món đã đặt · {count} phần",
@@ -843,7 +843,7 @@
       "atCounter": "Thu tại quầy",
       "next": {
         "title": "Việc cần làm",
-        "preparing": "Món xong thì báo cho khách đến lấy.",
+        "preparing": "Món xong thì báo cho khách đến nhận.",
         "ready": "Giao món khi khách đến quầy.",
         "undoTitle": "Nhầm tay?",
         "undoBody": "Mở lại đơn để làm tiếp."
@@ -1489,5 +1489,57 @@
     "emptyTitle": "Chưa có quán yêu thích",
     "emptyBody": "Bấm ♡ ở trang quán để theo dõi.",
     "explore": "Khám phá quán"
+  },
+  "Chat": {
+    "unread": "{count} tin nhắn chưa đọc",
+    "messageStore": "Nhắn quán",
+    "messageCustomer": "Nhắn khách",
+    "storeWrote": "Quán vừa nhắn",
+    "customerWrote": "Khách vừa nhắn",
+    "quote": "“{text}”",
+    "seeMessage": "Xem tin",
+    "reply": "Trả lời",
+    "title": "Tin nhắn",
+    "withStore": "Nhắn quán {seller}",
+    "withCustomer": "Nhắn với {name}",
+    "cardMeta": "{units} phần · {from}–{until} hôm nay",
+    "confirmedToday": "Hôm nay · Đơn #{number} đã xác nhận",
+    "confirmedOn": "{date} · Đơn #{number} đã xác nhận",
+    "log": "Tin nhắn của đơn",
+    "mine": "Bạn",
+    "time": "{time}",
+    "seen": "{time} · Đã xem",
+    "note": "Tin nhắn không đổi giá, số lượng hay giờ nhận của đơn.",
+    "placeholderToStore": "Nhắn cho quán…",
+    "placeholderToCustomer": "Nhắn cho khách…",
+    "send": "Gửi tin nhắn",
+    "retry": "Gửi lại",
+    "failed": "Chưa gửi được tin nhắn. Thử lại, hoặc báo mã tham chiếu {reference}.",
+    "quickReplies": "Trả lời nhanh",
+    "customerReplies": {
+      "coming": "Mình đang tới",
+      "late": "Cho mình nhận trễ 10 phút",
+      "stillHave": "Quán còn món không?"
+    },
+    "sellerReplies": {
+      "ready": "Món đã sẵn sàng",
+      "working": "Quán đang làm, chờ chút nhé",
+      "holding": "Giữ món tới hết giờ nhận"
+    },
+    "locked": "Đơn đã kết thúc, chỉ xem lại tin nhắn.",
+    "details": "Chi tiết đơn",
+    "who": "{name} · {units} phần",
+    "placedAt": "{phone} · đặt lúc {time}",
+    "state": {
+      "confirmed": "Đang chuẩn bị",
+      "ready": "Sẵn sàng",
+      "collected": "Đã giao",
+      "cancelled": "Khách đã hủy",
+      "refused": "Quán đã hủy",
+      "expired": "Hết giờ nhận"
+    },
+    "window": "nhận {from}–{until}",
+    "seeOrder": "Xem chi tiết đơn",
+    "pickup": "Nhận hôm nay {from}–{until}"
   }
 }

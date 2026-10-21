@@ -5,6 +5,7 @@ import { getFormatter, getTimeZone, getTranslations } from "next-intl/server";
 
 import { BiteCorner } from "@/components/bite-corner";
 import { buttonVariants } from "@/components/ui/button";
+import { UnreadPill } from "@/components/unread-pill";
 import { formatPrice } from "@/features/offers/format";
 import { listOffers } from "@/features/offers/list-offers";
 import { closingFirst, type OfferSummary } from "@/features/offers/offer";
@@ -12,6 +13,7 @@ import { OfferCard } from "@/features/offers/offer-card";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
+import { LiveRefresh } from "./live-refresh";
 import { dayOf, type Day, type Order } from "./order";
 import { readMyOrderLists } from "./read-orders";
 import { SignInPrompt } from "./sign-in-prompt";
@@ -23,25 +25,29 @@ export function readWhich(value: unknown): Which {
   return value === "ended" ? "ended" : "open";
 }
 
+/** The order's first dish; the count of messages not read yet sits at its top right (SEC-117). */
 function Thumb({ order, size }: { order: Order; size: "md" | "sm" }) {
   const photo = order.lines[0]?.photo;
   return (
-    <span
-      className={cn(
-        "relative shrink-0 overflow-hidden bg-muted",
-        size === "md" ? "size-18 rounded-lg" : "size-13 rounded-md",
-      )}
-    >
-      {photo ? (
-        <Image
-          src={`/api${photo.smallPath}`}
-          alt=""
-          fill
-          sizes={size === "md" ? "72px" : "52px"}
-          unoptimized
-          className="object-cover"
-        />
-      ) : null}
+    <span className="relative shrink-0">
+      <span
+        className={cn(
+          "relative block overflow-hidden bg-muted",
+          size === "md" ? "size-18 rounded-lg" : "size-13 rounded-md",
+        )}
+      >
+        {photo ? (
+          <Image
+            src={`/api${photo.smallPath}`}
+            alt=""
+            fill
+            sizes={size === "md" ? "72px" : "52px"}
+            unoptimized
+            className="object-cover"
+          />
+        ) : null}
+      </span>
+      <UnreadPill count={order.unreadMessages ?? 0} className="absolute -top-1.5 -right-1.5" />
     </span>
   );
 }
@@ -186,6 +192,10 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
 
   return (
     <div className="lg:mx-auto lg:grid lg:w-full lg:max-w-292 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-4 lg:px-4 lg:py-4">
+      <LiveRefresh
+        topics={open.map((order) => `order:${order.id}`)}
+        at={open.map((order) => order.windowEnd)}
+      />
       <div className="bg-card lg:col-span-2 lg:bg-transparent">
         <nav
           aria-label={t("lists")}

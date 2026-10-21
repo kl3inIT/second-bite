@@ -6,6 +6,7 @@ import { Suspense } from "react";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { JsonLd } from "@/components/json-ld";
+import { QueryProvider } from "@/components/query-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { Splash } from "@/components/splash";
 import { FollowToast } from "@/features/favourites/follow-button";
@@ -93,14 +94,16 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
           }}
         />
         <NextIntlClientProvider>
-          <Splash />
-          {children}
-          <SiteFooter />
-          {/* The bar reads the address, which a page with a dynamic segment knows only at request time. */}
-          <Suspense>
-            <BottomNav />
-          </Suspense>
-          <FollowToast />
+          <QueryProvider>
+            <Splash />
+            {children}
+            <SiteFooter />
+            {/* The bar reads the address, which a page with a dynamic segment knows only at request time. */}
+            <Suspense>
+              <BottomNav />
+            </Suspense>
+            <FollowToast />
+          </QueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>

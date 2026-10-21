@@ -136,6 +136,28 @@ const readAllKept = cache(async (): Promise<Order[] | null> => {
     .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt));
 });
 
+/**
+ * What the bottom bar shows of the reader's orders: how many messages they have not read, across the newest
+ * orders, and which orders are open, to follow. Nothing when no one is signed in and this browser placed none.
+ */
+export async function readUnread(): Promise<{ unread: number; open: string[] }> {
+  const none = { unread: 0, open: [] };
+  const session = await sessionHeaders();
+  let orders: Order[];
+  try {
+    orders = session
+      ? (await listMyOrders({ query: { limit: 50 }, headers: session })).data.orders
+      : ((await readAllKept()) ?? []);
+  } catch (error) {
+    if (signedOut(error)) return none;
+    throw error;
+  }
+  return {
+    unread: orders.reduce((sum, order) => sum + (order.unreadMessages ?? 0), 0),
+    open: orders.filter(isOpen).map((order) => order.id),
+  };
+}
+
 async function readKeptOrders(state: "open" | "ended"): Promise<Read<Order[]>> {
   const orders = await readAllKept();
   if (!orders) return { known: false };

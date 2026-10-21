@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { LiveRefresh } from "@/features/orders/live-refresh";
 import { CollectedOrder, EndedOrder, hasEnded, OpenOrder } from "@/features/orders/order-view";
 import { readOrderView } from "@/features/orders/read-orders";
 import { SignInPrompt } from "@/features/orders/sign-in-prompt";
@@ -45,10 +46,17 @@ async function OrderView({ params }: { params: Promise<{ orderId: string }> }) {
   if (!read.value) notFound();
   const { order, cancellable, together, now } = read.value;
 
-  if (order.status === "collected") return <CollectedOrder order={order} together={together} />;
-  return hasEnded(order) ? (
-    <EndedOrder order={order} />
-  ) : (
-    <OpenOrder order={order} cancellable={cancellable} together={together} now={now} />
+  // The order follows its notices, and the moments its window opens and closes (SEC-117), whatever it shows.
+  return (
+    <>
+      <LiveRefresh topics={[`order:${order.id}`]} at={[order.windowStart, order.windowEnd]} />
+      {order.status === "collected" ? (
+        <CollectedOrder order={order} together={together} />
+      ) : hasEnded(order) ? (
+        <EndedOrder order={order} />
+      ) : (
+        <OpenOrder order={order} cancellable={cancellable} together={together} now={now} />
+      )}
+    </>
   );
 }
