@@ -1,52 +1,26 @@
 "use client";
 
-import { revalidateLogic, useForm, type AnyFieldApi } from "@tanstack/react-form";
-import { CircleAlertIcon, CircleCheckIcon, TriangleAlertIcon } from "lucide-react";
+import { revalidateLogic } from "@tanstack/react-form";
+import { CircleCheckIcon, TriangleAlertIcon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { z } from "zod";
 
+import { refuse, useAppForm } from "@/components/form/app-form";
+import { useFieldValidity } from "@/components/form/form-context";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
 import { toast } from "@/components/ui/toast";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useRouter } from "@/i18n/navigation";
-import { ApiError, failureOf } from "@/lib/api/client";
+import { ApiError } from "@/lib/api/client";
 import { saveEmailSettings, sendTestEmail, type EmailSettingsBody } from "@/lib/api/generated";
 
-import {
-  bodyOf,
-  dropsPassword,
-  emailSettingsSchema,
-  valuesOf,
-  type EmailSettingsValues,
-} from "./email-settings-schema";
-
-type FieldName = keyof EmailSettingsValues;
-
-/** The fields in the order the page shows them. */
-const fieldOrder: FieldName[] = [
-  "senderAddress",
-  "senderName",
-  "smtpHost",
-  "smtpPort",
-  "smtpSecurity",
-  "smtpUsername",
-  "smtpPassword",
-  "brevoApiKey",
-];
-
-/** The field a body member the server refused names (`#/senderAddress`), when the form has it. */
-function fieldOfPointer(pointer: string | undefined): FieldName | undefined {
-  const name = pointer?.replace(/^#\//, "");
-  const names: readonly string[] = Object.keys(valuesOf(undefined));
-  return name && names.includes(name) ? (name as FieldName) : undefined;
-}
+import { bodyOf, dropsPassword, emailSettingsSchema, valuesOf } from "./email-settings-schema";
 
 // Who delivers the email that signs people in and tells owners about their stores (SEC-75, Figma AD-E1…E4,
 // AD-CS4…CS7): the provider, the sender, the provider's own settings, then a test email. The saved settings
@@ -65,9 +39,8 @@ export function EmailSettingsForm({
   const format = useFormatter();
   const router = useRouter();
   const [conflict, setConflict] = useState(false);
-  const [refusal, setRefusal] = useState<{ detail?: string; reference?: string }>();
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: valuesOf(saved),
     // Checked when saved, then again on each change, so a fixed field clears at once.
     validationLogic: revalidateLogic(),
@@ -86,14 +59,8 @@ export function EmailSettingsForm({
         saved,
       ),
     },
-    // The first field the rules refuse takes the focus, so a keyboard or screen reader lands on it.
-    onSubmitInvalid: ({ formApi }) => {
-      const first = fieldOrder.find((name) => !formApi.getFieldMeta(name)?.isValid);
-      if (first) document.getElementById(`email-${first}`)?.focus();
-    },
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value, formApi }) => {
       setConflict(false);
-      setRefusal(undefined);
       try {
         await saveEmailSettings({
           body: bodyOf(value),
@@ -104,17 +71,7 @@ export function EmailSettingsForm({
           setConflict(true);
           return;
         }
-        const named = error instanceof ApiError ? error.violations : [];
-        for (const violation of named) {
-          const field = fieldOfPointer(violation.pointer);
-          if (field) {
-            form.setFieldMeta(field, (meta) => ({
-              ...meta,
-              errorMap: { ...meta.errorMap, onServer: { message: violation.detail } },
-            }));
-          }
-        }
-        setRefusal(failureOf(error));
+        refuse(formApi, error);
         return;
       }
       toast.add({ type: "success", title: t("footer.saved"), description: t("footer.savedHint") });
@@ -123,286 +80,280 @@ export function EmailSettingsForm({
     },
   });
 
+  // The settings are one form and the test email another, so Enter in the test address sends the test; the
+  // save at the foot names the settings' form (`form` attribute), as it sits after the test.
   return (
-    <form
-      noValidate
-      aria-labelledby="email-settings-title"
-      className="flex flex-col gap-5"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void form.handleSubmit();
-      }}
-    >
-      <h2 id="email-settings-title" className="text-headline text-foreground">
-        {t("title")}
-      </h2>
+    <div className="flex flex-col gap-5">
+      <form
+        id={form.formId}
+        noValidate
+        aria-labelledby="email-settings-title"
+        className="flex flex-col gap-5"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit();
+        }}
+      >
+        <h2 id="email-settings-title" className="text-headline text-foreground">
+          {t("title")}
+        </h2>
 
-      {conflict && (
-        <Alert variant="warning">
-          <TriangleAlertIcon />
-          <AlertTitle>{t("conflict.title")}</AlertTitle>
-          <AlertDescription>{t("conflict.body")}</AlertDescription>
-          <AlertAction>
-            <Button type="button" variant="secondary" size="sm" onClick={() => router.refresh()}>
-              {t("conflict.reload")}
-            </Button>
-          </AlertAction>
-        </Alert>
-      )}
+        {conflict && (
+          <Alert variant="warning">
+            <TriangleAlertIcon />
+            <AlertTitle>{t("conflict.title")}</AlertTitle>
+            <AlertDescription>{t("conflict.body")}</AlertDescription>
+            <AlertAction>
+              <Button type="button" variant="secondary" size="sm" onClick={() => router.refresh()}>
+                {t("conflict.reload")}
+              </Button>
+            </AlertAction>
+          </Alert>
+        )}
 
-      {refusal && (
-        <Alert variant="destructive">
-          <CircleAlertIcon />
-          <AlertTitle>{t("refused")}</AlertTitle>
-          <AlertDescription>
-            {refusal.detail ?? t("failed")}
-            {refusal.reference && ` (${t("reference", { reference: refusal.reference })})`}
-          </AlertDescription>
-        </Alert>
-      )}
+        <form.AppForm>
+          <form.FormError title={t("refused")} fallback={t("failed")} />
+        </form.AppForm>
 
-      <Card size="lg">
-        <CardHeader>
-          <CardTitle>{t("provider.title")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-center gap-4">
-            <form.Field name="provider">
-              {(field) => (
-                <ToggleGroup
-                  variant="segment"
-                  aria-label={t("provider.label")}
-                  value={[field.state.value]}
-                  onValueChange={(chosen: string[]) => {
-                    const next = chosen[0];
-                    if (next === "smtp" || next === "brevo") field.handleChange(next);
-                  }}
-                >
-                  <ToggleGroupItem value="smtp">{t("provider.smtp")}</ToggleGroupItem>
-                  <ToggleGroupItem value="brevo">{t("provider.brevo")}</ToggleGroupItem>
-                </ToggleGroup>
-              )}
-            </form.Field>
-            {saved ? (
-              <Badge variant="success">
-                <CircleCheckIcon data-icon="inline-start" />
-                {t("provider.using", { provider: t(`provider.${saved.provider}`) })}
-              </Badge>
-            ) : (
-              <Badge variant="warning">
-                <TriangleAlertIcon data-icon="inline-start" />
-                {t("provider.notConfigured")}
-              </Badge>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card size="lg">
-        <CardHeader>
-          <CardTitle>{t("sender.title")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FieldGroup>
-            <div className="grid gap-4 md:grid-cols-2">
-              <form.Field name="senderAddress">
+        <Card size="lg">
+          <CardHeader>
+            <CardTitle>{t("provider.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-4">
+              <form.Field name="provider">
                 {(field) => (
-                  <TextField
-                    field={field}
-                    label={t("sender.address")}
-                    type="email"
-                    autoComplete="off"
-                  />
+                  <ToggleGroup
+                    variant="segment"
+                    aria-label={t("provider.label")}
+                    value={[field.state.value]}
+                    onValueChange={(chosen: string[]) => {
+                      const next = chosen[0];
+                      if (next === "smtp" || next === "brevo") field.handleChange(next);
+                    }}
+                  >
+                    <ToggleGroupItem value="smtp">{t("provider.smtp")}</ToggleGroupItem>
+                    <ToggleGroupItem value="brevo">{t("provider.brevo")}</ToggleGroupItem>
+                  </ToggleGroup>
                 )}
               </form.Field>
-              <form.Field name="senderName">
-                {(field) => <TextField field={field} label={t("sender.name")} autoComplete="off" />}
-              </form.Field>
+              {saved ? (
+                <Badge variant="success">
+                  <CircleCheckIcon data-icon="inline-start" />
+                  {t("provider.using", { provider: t(`provider.${saved.provider}`) })}
+                </Badge>
+              ) : (
+                <Badge variant="warning">
+                  <TriangleAlertIcon data-icon="inline-start" />
+                  {t("provider.notConfigured")}
+                </Badge>
+              )}
             </div>
-          </FieldGroup>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <form.Subscribe selector={(state) => state.values.provider}>
-        {(provider) =>
-          provider === "smtp" ? (
-            <Card size="lg">
-              <CardHeader>
-                <CardTitle>{t("smtp.title")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FieldGroup>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <form.Field name="smtpHost">
+        <Card size="lg">
+          <CardHeader>
+            <CardTitle>{t("sender.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FieldGroup>
+              <div className="grid gap-4 md:grid-cols-2">
+                <form.AppField name="senderAddress">
+                  {(field) => (
+                    <field.TextField label={t("sender.address")} type="email" autoComplete="off" />
+                  )}
+                </form.AppField>
+                <form.AppField name="senderName">
+                  {(field) => <field.TextField label={t("sender.name")} autoComplete="off" />}
+                </form.AppField>
+              </div>
+            </FieldGroup>
+          </CardContent>
+        </Card>
+
+        <form.Subscribe selector={(state) => state.values.provider}>
+          {(provider) =>
+            provider === "smtp" ? (
+              <Card size="lg">
+                <CardHeader>
+                  <CardTitle>{t("smtp.title")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <FieldGroup>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <form.AppField name="smtpHost">
+                        {(field) => <field.TextField label={t("smtp.host")} autoComplete="off" />}
+                      </form.AppField>
+                      <form.AppField name="smtpPort">
+                        {(field) => (
+                          <field.TextField
+                            label={t("smtp.port")}
+                            inputMode="numeric"
+                            autoComplete="off"
+                          />
+                        )}
+                      </form.AppField>
+                      <form.AppField name="smtpSecurity">
+                        {() => <SecurityField label={t("smtp.security")} />}
+                      </form.AppField>
+                      <form.AppField name="smtpUsername">
+                        {(field) => <field.TextField label={t("smtp.user")} autoComplete="off" />}
+                      </form.AppField>
+                      <form.Subscribe selector={(state) => dropsPassword(state.values, saved)}>
+                        {(drops) => (
+                          <form.AppField name="smtpPassword">
+                            {() => (
+                              <PasswordField
+                                label={t("smtp.password")}
+                                placeholder={
+                                  saved?.smtpPasswordSet && !drops
+                                    ? t("kept")
+                                    : t("smtp.passwordNew")
+                                }
+                                warning={drops ? t("errors.passwordDropped") : undefined}
+                              />
+                            )}
+                          </form.AppField>
+                        )}
+                      </form.Subscribe>
+                    </div>
+                  </FieldGroup>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card size="lg">
+                <CardHeader>
+                  <CardTitle>{t("brevo.title")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <FieldGroup>
+                    <form.AppField name="brevoApiKey">
                       {(field) => (
-                        <TextField field={field} label={t("smtp.host")} autoComplete="off" />
-                      )}
-                    </form.Field>
-                    <form.Field name="smtpPort">
-                      {(field) => (
-                        <TextField
-                          field={field}
-                          label={t("smtp.port")}
-                          inputMode="numeric"
+                        <field.TextField
+                          label={t("brevo.key")}
+                          type="password"
                           autoComplete="off"
+                          placeholder={saved?.brevoApiKeySet ? t("kept") : t("brevo.keyNew")}
                         />
                       )}
-                    </form.Field>
-                    <form.Field name="smtpSecurity">
-                      {(field) => (
-                        <Field
-                          className="md:col-span-2"
-                          data-invalid={!field.state.meta.isValid || undefined}
-                        >
-                          <FieldLabel id="smtp-security-label">{t("smtp.security")}</FieldLabel>
-                          <ToggleGroup
-                            id="email-smtpSecurity"
-                            variant="segment"
-                            aria-labelledby="smtp-security-label"
-                            value={[field.state.value]}
-                            onValueChange={(chosen: string[]) => {
-                              const next = chosen[0];
-                              if (next === "starttls" || next === "tls" || next === "none")
-                                field.handleChange(next);
-                            }}
-                          >
-                            <ToggleGroupItem value="none">{t("smtp.none")}</ToggleGroupItem>
-                            <ToggleGroupItem value="starttls">{t("smtp.starttls")}</ToggleGroupItem>
-                            <ToggleGroupItem value="tls">{t("smtp.tls")}</ToggleGroupItem>
-                          </ToggleGroup>
-                          <FieldError errors={field.state.meta.errors} />
-                        </Field>
-                      )}
-                    </form.Field>
-                    <form.Field name="smtpUsername">
-                      {(field) => (
-                        <TextField field={field} label={t("smtp.user")} autoComplete="off" />
-                      )}
-                    </form.Field>
-                    <form.Subscribe selector={(state) => dropsPassword(state.values, saved)}>
-                      {(drops) => (
-                        <form.Field name="smtpPassword">
-                          {(field) => (
-                            <TextField
-                              field={field}
-                              label={t("smtp.password")}
-                              type="password"
-                              autoComplete="new-password"
-                              placeholder={
-                                saved?.smtpPasswordSet && !drops ? t("kept") : t("smtp.passwordNew")
-                              }
-                              warning={drops ? t("errors.passwordDropped") : undefined}
-                            />
-                          )}
-                        </form.Field>
-                      )}
-                    </form.Subscribe>
-                  </div>
-                </FieldGroup>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card size="lg">
-              <CardHeader>
-                <CardTitle>{t("brevo.title")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FieldGroup>
-                  <form.Field name="brevoApiKey">
-                    {(field) => (
-                      <TextField
-                        field={field}
-                        label={t("brevo.key")}
-                        type="password"
-                        autoComplete="off"
-                        placeholder={saved?.brevoApiKeySet ? t("kept") : t("brevo.keyNew")}
-                      />
-                    )}
-                  </form.Field>
-                </FieldGroup>
-              </CardContent>
-            </Card>
-          )
-        }
-      </form.Subscribe>
+                    </form.AppField>
+                  </FieldGroup>
+                </CardContent>
+              </Card>
+            )
+          }
+        </form.Subscribe>
+      </form>
 
       <form.Subscribe selector={(state) => state.isDirty}>
         {(dirty) => <TestEmail configured={Boolean(saved)} dirty={dirty} adminEmail={adminEmail} />}
       </form.Subscribe>
 
-      <form.Subscribe selector={(state) => [state.isDirty, state.isSubmitting] as const}>
-        {([dirty, submitting]) => (
-          <Card size="lg">
-            <CardContent>
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="flex-1 text-label text-muted-foreground" aria-live="polite">
-                  {dirty
-                    ? t("footer.dirty")
-                    : saved
-                      ? t("footer.updated", {
-                          time: format.dateTime(new Date(saved.updatedAt), "time"),
-                          day: format.dateTime(new Date(saved.updatedAt), "day"),
-                        })
-                      : t("footer.never")}
-                </p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={!dirty || submitting}
-                  onClick={() => form.reset()}
-                >
-                  {t("footer.cancel")}
-                </Button>
-                <Button type="submit" disabled={(saved !== undefined && !dirty) || submitting}>
-                  {submitting && <Spinner data-icon="inline-start" />}
-                  {saved ? t("footer.save") : t("footer.create")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </form.Subscribe>
-    </form>
+      <form.AppForm>
+        <form.Subscribe selector={(state) => [state.isDirty, state.isSubmitting] as const}>
+          {([dirty, submitting]) => (
+            <Card size="lg">
+              <CardContent>
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="flex-1 text-label text-muted-foreground" aria-live="polite">
+                    {dirty
+                      ? t("footer.dirty")
+                      : saved
+                        ? t("footer.updated", {
+                            time: format.dateTime(new Date(saved.updatedAt), "time"),
+                            day: format.dateTime(new Date(saved.updatedAt), "day"),
+                          })
+                        : t("footer.never")}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={!dirty || submitting}
+                    onClick={() => form.reset()}
+                  >
+                    {t("footer.cancel")}
+                  </Button>
+                  <form.SubmitButton disabled={saved !== undefined && !dirty}>
+                    {saved ? t("footer.save") : t("footer.create")}
+                  </form.SubmitButton>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </form.Subscribe>
+      </form.AppForm>
+    </div>
   );
 }
 
-/** One text field of the form, its label, its errors (the schema's and the server's), and a warning before them. */
-function TextField({
-  field,
-  label,
-  warning,
-  ...input
-}: {
-  field: AnyFieldApi;
-  label: string;
-  warning?: string;
-} & Pick<React.ComponentProps<"input">, "type" | "autoComplete" | "inputMode" | "placeholder">) {
-  const meta = field.state.meta;
-  const invalid = !meta.isValid || warning !== undefined;
-  const id = `email-${field.name}`;
+/** How the SMTP connection is secured: a choice of three composed from the `field` parts. */
+function SecurityField({ label }: { label: string }) {
+  const { field, invalid, errors, ids } = useFieldValidity<"starttls" | "tls" | "none">();
+  const t = useTranslations("Admin.email.smtp");
   return (
-    <Field data-invalid={invalid || undefined}>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+    <Field className="md:col-span-2" data-invalid={invalid || undefined}>
+      <FieldLabel id={`${ids.control}-label`}>{label}</FieldLabel>
+      <ToggleGroup
+        id={ids.control}
+        variant="segment"
+        aria-labelledby={`${ids.control}-label`}
+        value={[field.state.value]}
+        onValueChange={(chosen: string[]) => {
+          const next = chosen[0];
+          if (next === "starttls" || next === "tls" || next === "none") field.handleChange(next);
+        }}
+      >
+        <ToggleGroupItem value="none">{t("none")}</ToggleGroupItem>
+        <ToggleGroupItem value="starttls">{t("starttls")}</ToggleGroupItem>
+        <ToggleGroupItem value="tls">{t("tls")}</ToggleGroupItem>
+      </ToggleGroup>
+      {invalid && <FieldError id={ids.error} errors={errors} />}
+    </Field>
+  );
+}
+
+/**
+ * The SMTP password, which also warns before a save that the stored one would be dropped: the server keeps
+ * it only for the server it was entered for (`dropsPassword`).
+ */
+function PasswordField({
+  label,
+  placeholder,
+  warning,
+}: {
+  label: string;
+  placeholder: string;
+  warning?: string;
+}) {
+  const { field, invalid, errors, ids } = useFieldValidity<string>();
+  const marked = invalid || warning !== undefined;
+  return (
+    <Field data-invalid={marked || undefined}>
+      <FieldLabel htmlFor={ids.control}>{label}</FieldLabel>
       <Input
-        id={id}
+        id={ids.control}
         name={field.name}
-        value={String(field.state.value)}
-        aria-invalid={invalid || undefined}
+        type="password"
+        autoComplete="new-password"
+        placeholder={placeholder}
+        value={field.state.value}
+        aria-invalid={marked || undefined}
+        aria-describedby={marked ? ids.error : undefined}
         onBlur={field.handleBlur}
         onChange={(event) => field.handleChange(event.target.value)}
-        {...input}
       />
-      {meta.isValid && warning ? (
-        <FieldError>{warning}</FieldError>
+      {invalid ? (
+        <FieldError id={ids.error} errors={errors} />
       ) : (
-        <FieldError errors={meta.errors} />
+        warning && <FieldError id={ids.error}>{warning}</FieldError>
       )}
     </Field>
   );
 }
 
 // The test email (Figma AD-E1…E3): through the settings saved, to the admin's own address or one typed, so an
-// admin sees a mailbox elsewhere receive it. It waits while the form has changes, which it would not use.
+// admin sees a mailbox elsewhere receive it. It waits while the settings have changes, which it would not use.
 function TestEmail({
   configured,
   dirty,
@@ -413,33 +364,30 @@ function TestEmail({
   adminEmail: string;
 }) {
   const t = useTranslations("Admin.email.test");
-  const [to, setTo] = useState(adminEmail);
-  const [invalid, setInvalid] = useState(false);
-  const [failure, setFailure] = useState<{ to: string; detail?: string; reference?: string }>();
-  const [sending, startSending] = useTransition();
   const blocked = !configured || dirty;
 
-  function send() {
-    const address = to.trim();
-    if (!z.email().safeParse(address).success) {
-      setInvalid(true);
-      return;
-    }
-    setInvalid(false);
-    setFailure(undefined);
-    startSending(async () => {
+  const form = useAppForm({
+    defaultValues: { to: adminEmail },
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: z.object({
+        to: z
+          .string()
+          .trim()
+          .pipe(z.email({ message: t("invalid") })),
+      }),
+    },
+    onSubmit: async ({ value, formApi }) => {
+      const to = value.to.trim();
       try {
-        await sendTestEmail({ body: { to: address } });
-        toast.add({
-          type: "success",
-          title: t("sent", { to: address }),
-          description: t("sentHint"),
-        });
+        await sendTestEmail({ body: { to } });
       } catch (error) {
-        setFailure({ to: address, ...failureOf(error) });
+        refuse(formApi, error);
+        return;
       }
-    });
-  }
+      toast.add({ type: "success", title: t("sent", { to }), description: t("sentHint") });
+    },
+  });
 
   return (
     <Card size="lg">
@@ -447,56 +395,44 @@ function TestEmail({
         <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col gap-4">
+        <form
+          id={form.formId}
+          noValidate
+          className="flex flex-col gap-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!blocked) void form.handleSubmit();
+          }}
+        >
           <div className="flex flex-col gap-3 md:flex-row md:items-start">
-            <Field className="flex-1" data-invalid={invalid || undefined}>
-              <FieldLabel htmlFor="email-test-to">{t("to")}</FieldLabel>
-              <Input
-                id="email-test-to"
-                type="email"
-                autoComplete="email"
-                value={to}
-                aria-invalid={invalid || undefined}
-                aria-describedby="email-test-hint"
-                onChange={(event) => setTo(event.target.value)}
-                onKeyDown={(event) => {
-                  // Enter here sends the test, not the settings form around it.
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    if (!blocked) send();
-                  }
-                }}
-              />
-              {invalid ? (
-                <FieldError>{t("invalid")}</FieldError>
-              ) : (
-                <FieldDescription id="email-test-hint">
-                  {!configured ? t("notConfigured") : dirty ? t("saveFirst") : t("hint")}
-                </FieldDescription>
-              )}
-            </Field>
-            <Button
-              type="button"
-              variant="outline"
-              className="md:mt-6"
-              disabled={blocked || sending}
-              onClick={send}
-            >
-              {sending && <Spinner data-icon="inline-start" />}
-              {t("send")}
-            </Button>
+            <div className="flex-1">
+              <form.AppField name="to">
+                {(field) => (
+                  <field.TextField
+                    label={t("to")}
+                    type="email"
+                    autoComplete="email"
+                    description={
+                      !configured ? t("notConfigured") : dirty ? t("saveFirst") : t("hint")
+                    }
+                  />
+                )}
+              </form.AppField>
+            </div>
+            <form.AppForm>
+              <form.SubmitButton variant="outline" className="md:mt-6" disabled={blocked}>
+                {t("send")}
+              </form.SubmitButton>
+            </form.AppForm>
           </div>
-          {failure && (
-            <Alert variant="destructive">
-              <CircleAlertIcon />
-              <AlertTitle>{t("failed", { to: failure.to })}</AlertTitle>
-              <AlertDescription>
-                {failure.detail ?? t("unknown")}
-                {failure.reference && ` (${t("reference", { reference: failure.reference })})`}
-              </AlertDescription>
-            </Alert>
-          )}
-        </div>
+          <form.Subscribe selector={(state) => state.values.to.trim()}>
+            {(to) => (
+              <form.AppForm>
+                <form.FormError title={t("failed", { to })} fallback={t("unknown")} />
+              </form.AppForm>
+            )}
+          </form.Subscribe>
+        </form>
       </CardContent>
     </Card>
   );
