@@ -568,7 +568,7 @@
     "nameInvalid": "Give a name of 1 to 50 characters.",
     "phoneInvalid": "Give a 10-digit phone number starting with 0.",
     "contactSubmit": "Continue",
-    "confirmTitle": "Place the order with this phone number?",
+    "confirmTitle": "Place the order with the phone number",
     "confirmYes": "Yes, order",
     "confirmEdit": "Edit",
     "goneOne": "{name} just sold out",

@@ -568,7 +568,7 @@
     "nameInvalid": "Nhập tên từ 1 đến 50 ký tự.",
     "phoneInvalid": "Nhập số điện thoại 10 số, bắt đầu bằng 0.",
     "contactSubmit": "Tiếp tục",
-    "confirmTitle": "Xác nhận đặt đơn với số điện thoại này?",
+    "confirmTitle": "Xác nhận đặt đơn với số điện thoại",
     "confirmYes": "Đúng, đặt món",
     "confirmEdit": "Sửa",
     "goneOne": "{name} vừa hết",

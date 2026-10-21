@@ -129,7 +129,7 @@ export function OrderButton({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("confirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              <span className="font-display text-price-lg text-foreground">
+              <span className="font-display text-page-title text-foreground">
                 {groupedPhone(checked.phone)}
               </span>
             </AlertDialogDescription>
