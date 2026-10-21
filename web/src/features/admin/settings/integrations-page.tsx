@@ -22,7 +22,7 @@ export async function IntegrationsPage() {
         </Button>
       }
     >
-      <Integrations email={email} />
+      <Integrations email={email?.settings ?? null} />
     </SettingsLayout>
   );
 }

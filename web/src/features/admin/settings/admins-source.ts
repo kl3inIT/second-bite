@@ -1,11 +1,11 @@
 import "server-only";
 
-import type { AdminList } from "./admins";
+import { type AccountBody, listAdmins } from "@/lib/api/generated";
 
-/**
- * The platform's admins. SEC-75 has not built `GET /admin/admins` yet (identity keeps the `admin` role, granted
- * from the command line, with no list of who holds it), so there are none; the page shows its empty state.
- */
-export async function listAdmins(): Promise<AdminList> {
-  return { items: [] };
+import { adminRead } from "../session";
+
+/** The platform's admins, by address, from `GET /admin/admins` (SEC-75). */
+export async function readAdmins(): Promise<AccountBody[]> {
+  const { admins } = await adminRead((headers) => listAdmins({ headers }));
+  return admins ?? [];
 }

@@ -1,46 +1,40 @@
 "use client";
 
-import { BanIcon, CircleCheckIcon, ClockIcon, type LucideIcon, ShieldIcon } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { BanIcon, ShieldIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { AdminBadge, type BadgeTone } from "../ui/badge";
-import { DataTable, StrongCell, TextCell } from "../ui/data-table";
+import type { AccountBody } from "@/lib/api/generated";
+
+import { DataTable, StrongCell } from "../ui/data-table";
 import { EmptyState } from "../ui/empty-state";
 import { RowActionMenu } from "../ui/row-action-menu";
 import { initialsOf } from "../sellers/member";
-import { type AdminGrant, type AdminStatus, revokeBlock, sameEmail } from "./admins";
+import { revokeBlock, sameEmail } from "./admins";
 import { RevokeAdminDialog } from "./revoke-admin-dialog";
 
-const statuses: Record<AdminStatus, { tone: BadgeTone; icon: LucideIcon }> = {
-  active: { tone: "success", icon: CircleCheckIcon },
-  pending: { tone: "neutral", icon: ClockIcon },
-};
-
 /**
- * The admins (Figma AD-AM1): each address with its initials, the day it was granted, who granted it ("Cấp bằng
- * dòng lệnh" from the CLI) and whether they have signed in since. The ⋯ menu revokes, locked with its reason for
- * the viewer and for the last admin (AD-AM4), and opens the revoke dialog (AD-AM3).
+ * The admins (Figma AD-AM1): each address with its initials, as `GET /admin/admins` lists them. The backend keeps
+ * no grant date, granter or first sign-in, so those columns of the design are not drawn. The ⋯ menu revokes,
+ * locked with its reason for the viewer and for the last admin (AD-AM4), and opens the revoke dialog (AD-AM3).
  */
 export function AdminsTable({
   rows,
   viewerEmail,
 }: {
-  rows: AdminGrant[];
+  rows: AccountBody[];
   /** The signed-in admin's address, to mark their row and keep them from revoking themselves. */
   viewerEmail?: string;
 }) {
   const t = useTranslations("admin.settings.admins");
-  const deleted = useTranslations("admin.settings")("deletedAccount");
-  const format = useFormatter();
-  const [revoking, setRevoking] = useState<AdminGrant | null>(null);
+  const [revoking, setRevoking] = useState<AccountBody | null>(null);
 
   return (
     <>
       <DataTable
         caption={t("caption")}
         rows={rows}
-        rowKey={(row) => row.accountId}
+        rowKey={(row) => row.id}
         empty={<EmptyState icon={ShieldIcon} title={t("empty")} />}
         columns={[
           {
@@ -61,35 +55,6 @@ export function AdminsTable({
                     : row.email}
                 </StrongCell>
               </span>
-            ),
-          },
-          {
-            key: "grantedAt",
-            header: t("columns.grantedAt"),
-            cell: (row) => (
-              <TextCell>
-                <time dateTime={row.grantedAt}>
-                  {format.dateTime(new Date(row.grantedAt), "day")}
-                </time>
-              </TextCell>
-            ),
-          },
-          {
-            key: "grantedBy",
-            header: t("columns.grantedBy"),
-            cell: (row) => (
-              <TextCell>
-                {row.grantedBy === null ? t("cli") : (row.grantedBy.label ?? deleted)}
-              </TextCell>
-            ),
-          },
-          {
-            key: "status",
-            header: t("columns.status"),
-            cell: (row) => (
-              <AdminBadge tone={statuses[row.status].tone} icon={statuses[row.status].icon}>
-                {t(`statuses.${row.status}`)}
-              </AdminBadge>
             ),
           },
           {
@@ -118,7 +83,7 @@ export function AdminsTable({
         ]}
       />
       <RevokeAdminDialog
-        email={revoking?.email ?? ""}
+        admin={revoking}
         open={revoking !== null}
         onOpenChange={(open) => !open && setRevoking(null)}
       />

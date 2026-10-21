@@ -2,43 +2,66 @@
 
 import { BanIcon, InfoIcon, RotateCcwIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useTransition } from "react";
 
+import { useRouter } from "@/i18n/navigation";
+import { ApiError } from "@/lib/api/client";
+import { revokeAdmin } from "@/lib/api/generated";
+
+import { showAdminToast } from "../admin-toast";
 import { ConfirmDialog, ConsequenceList } from "../ui/confirm-dialog";
+import { adminRefusal } from "./admins";
 
 /**
  * Revoking an admin (Figma AD-AM3): what follows (the admin pages refuse them from their next request, the audit
- * log records it, and the role can be granted again). SEC-75 has not built revoking from the web yet, so the
- * action stays off with "Sắp có".
+ * log records it, and the role can be granted again), then `POST /admin/admins/{accountId}/revoke`. A refusal,
+ * such as the last admin, is said in a one-line toast.
  */
 export function RevokeAdminDialog({
-  email,
+  admin,
   open,
   onOpenChange,
 }: {
-  email: string;
+  admin: { id: string; email: string } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const t = useTranslations("admin.settings.admins.revokeDialog");
-  const soon = useTranslations("admin.shell")("soon");
+  const t = useTranslations("admin.settings.admins");
+  const router = useRouter();
+  const [pending, startRevoking] = useTransition();
+  const email = admin?.email ?? "";
+
+  function revoke() {
+    if (!admin || pending) return;
+    startRevoking(async () => {
+      try {
+        await revokeAdmin({ path: { accountId: admin.id } });
+        showAdminToast(t("revoked", { email }));
+        onOpenChange(false);
+        router.refresh();
+      } catch (error) {
+        const code = error instanceof ApiError ? error.code : undefined;
+        showAdminToast(t(`refusals.${adminRefusal(code)}`, { email }), "error");
+      }
+    });
+  }
 
   return (
     <ConfirmDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={t("title")}
-      confirmLabel={t("confirm")}
+      title={t("revokeDialog.title")}
+      confirmLabel={t("revokeDialog.confirm")}
       destructive
-      confirmDisabled
-      confirmTitle={soon}
-      onConfirm={() => undefined}
+      pending={pending}
+      onConfirm={revoke}
     >
       <ConsequenceList
-        title={t("after")}
+        title={t("revokeDialog.after")}
         items={[
-          { icon: BanIcon, text: t("access", { email }) },
-          { icon: InfoIcon, text: t("logged") },
-          { icon: RotateCcwIcon, text: t("regrant") },
+          { icon: BanIcon, text: t("revokeDialog.access", { email }) },
+          { icon: InfoIcon, text: t("revokeDialog.logged") },
+          { icon: RotateCcwIcon, text: t("revokeDialog.regrant") },
         ]}
       />
     </ConfirmDialog>

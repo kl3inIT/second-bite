@@ -86,7 +86,8 @@ test.describe("the pages that are not released yet", () => {
     await expect(menu.getByRole("link", { name: /^Danh mục\s*Sắp có$/ })).toBeVisible();
     await expect(menu.getByRole("link", { name: /^Tích hợp\s*Sắp có$/ })).toBeVisible();
     await expect(menu.getByRole("link", { name: "Email", exact: true })).toBeVisible();
-    await expect(menu.getByText("Sắp có")).toHaveCount(6);
+    await expect(menu.getByRole("link", { name: "Quản trị viên", exact: true })).toBeVisible();
+    await expect(menu.getByText("Sắp có")).toHaveCount(5);
     await expectNoSeriousA11yViolations(page);
   });
 });

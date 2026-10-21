@@ -43,30 +43,6 @@ test.describe("the settings pages without a backend", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
-  test("admins are empty, and adding one opens but cannot be sent yet (AD-AM2)", async ({
-    page,
-  }, testInfo) => {
-    test.skip(!isReleased("settingsAdmins"), "not released yet");
-    await signInTo(page, "/admin/settings/admins", testInfo, { who: "quantrivien" });
-    await expectSettingsPage(page, "Quản trị viên");
-    await expect(page.getByText("Chưa có quản trị viên nào")).toBeVisible();
-    await expectNoSeriousA11yViolations(page);
-
-    await (await hydrated(page.getByRole("button", { name: "Thêm quản trị viên" }))).click();
-    const dialog = page.getByRole("alertdialog", { name: "Thêm quản trị viên" });
-    await expect(dialog).toBeVisible();
-    const email = dialog.getByLabel("Email");
-    await email.fill("baotran");
-    await email.blur();
-    await expect(dialog.getByText("Email chưa đúng định dạng")).toBeVisible();
-    await email.fill("baotran@example.com");
-    await expect(dialog.getByText("Email chưa đúng định dạng")).toBeHidden();
-    await expect(dialog.getByRole("button", { name: "Thêm quản trị viên" })).toBeDisabled();
-    await expectNoSeriousA11yViolations(page);
-    await dialog.getByRole("button", { name: "Huỷ" }).click();
-    await expect(dialog).toBeHidden();
-  });
-
   test("the audit log is empty, and its filters live in the address", async ({
     page,
   }, testInfo) => {
@@ -130,5 +106,62 @@ test.describe("the settings pages without a backend", () => {
     await expect(
       page.getByRole("region", { name: "Brevo / SMTP" }).getByText("Chưa kết nối"),
     ).toBeVisible();
+  });
+});
+
+// SEC-62 › Cài đặt › Quản trị viên (Figma AD-AM1 to AD-AM4), on GET, POST /admin/admins and …/revoke (SEC-75).
+test.describe("the admins", () => {
+  test("list the admins, grant one by email and revoke one", async ({ page }, testInfo) => {
+    test.skip(!isReleased("settingsAdmins"), "not released yet");
+    await signInTo(page, "/admin/settings/admins", testInfo, { who: "quantrivien" });
+    const me = `admin.quantrivien.${testInfo.project.name}@example.com`;
+    await expectSettingsPage(page, "Quản trị viên");
+    await expect(page.getByText(`${me} (bạn)`)).toBeVisible();
+    await expect(page.getByText("ngocmai@example.com")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    // The viewer cannot revoke themselves.
+    await (await hydrated(page.getByRole("button", { name: `Thao tác với ${me}` }))).click();
+    await expect(page.getByRole("menuitem", { name: "Thu hồi quyền" })).toBeDisabled();
+    await page.keyboard.press("Escape");
+
+    await page.getByRole("button", { name: "Thêm quản trị viên" }).click();
+    const dialog = page.getByRole("alertdialog", { name: "Thêm quản trị viên" });
+    const email = dialog.getByLabel("Email");
+    await email.fill("baotran");
+    await email.blur();
+    await expect(dialog.getByText("Email chưa đúng định dạng")).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Thêm quản trị viên" })).toBeDisabled();
+    await expectNoSeriousA11yViolations(page);
+
+    // The stub has never seen "chua." sign in with a code.
+    await email.fill("chua.dangnhap@example.com");
+    await dialog.getByRole("button", { name: "Thêm quản trị viên" }).click();
+    await expect(
+      page.getByText("chua.dangnhap@example.com chưa đăng nhập bằng mã lần nào"),
+    ).toBeVisible();
+    await expect(dialog).toBeVisible();
+
+    await email.fill("baotran@example.com");
+    await dialog.getByRole("button", { name: "Thêm quản trị viên" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText("Đã cấp quyền quản trị cho baotran@example.com")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Thao tác với baotran@example.com" }),
+    ).toBeVisible();
+
+    await (
+      await hydrated(page.getByRole("button", { name: "Thao tác với ngocmai@example.com" }))
+    ).click();
+    await page.getByRole("menuitem", { name: "Thu hồi quyền" }).click();
+    const revoke = page.getByRole("alertdialog", { name: "Thu hồi quyền quản trị?" });
+    await expect(revoke).toContainText("ngocmai@example.com không dùng được trang quản trị");
+    await expectNoSeriousA11yViolations(page);
+    await revoke.getByRole("button", { name: "Thu hồi quyền" }).click();
+    await expect(revoke).toBeHidden();
+    await expect(page.getByText("Đã thu hồi quyền quản trị của ngocmai@example.com")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Thao tác với ngocmai@example.com" }),
+    ).toBeHidden();
   });
 });

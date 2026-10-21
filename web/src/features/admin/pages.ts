@@ -248,7 +248,7 @@ export const adminPages = {
     section: "settings",
     icon: SettingsIcon,
     parent: "settings",
-    released: false,
+    released: true,
   },
   settingsAuditLog: {
     path: "/admin/settings/audit-log",

@@ -78,6 +78,7 @@ describe("the admin page registry", () => {
       "settings",
       "settingsOffers",
       "settingsEmail",
+      "settingsAdmins",
     ]);
     expect(isReleased("orderDetail")).toBe(false);
   });

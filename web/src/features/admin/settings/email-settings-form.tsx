@@ -26,6 +26,7 @@ import {
 import { refusalSentence, refusedFields } from "./field-errors";
 import { useSavedStatus } from "./saved-status";
 import { TextField } from "./text-field";
+import { changedSinceRead, etagOf } from "./version";
 
 /**
  * The email settings (Figma AD-CS4 to AD-CS7; docs: admin-web-flow › Sửa cài đặt email): SMTP or Brevo, the
@@ -33,10 +34,18 @@ import { TextField } from "./text-field";
  * left empty keeps it. With no provider saved, a toast says no one can sign in by code yet. Changing the server
  * without a new password warns, in a toast, that the saved password will go.
  */
-export function EmailSettingsForm({ settings }: { settings: EmailSettingsBody | null }) {
+export function EmailSettingsForm({
+  settings,
+  etag,
+}: {
+  settings: EmailSettingsBody | null;
+  /** The settings' version as read, sent back in If-Match (SEC-75); "" when none is saved. */
+  etag: string;
+}) {
   const t = useTranslations("admin.settings");
   const router = useRouter();
   const [saved, setSaved] = useState(settings);
+  const [version, setVersion] = useState(etag);
   const [draft, setDraft] = useState(() => emailDraft(settings));
   const [refused, setRefused] = useState<EmailField[]>([]);
   const [saving, startSaving] = useTransition();
@@ -73,14 +82,20 @@ export function EmailSettingsForm({ settings }: { settings: EmailSettingsBody | 
     }
     startSaving(async () => {
       try {
-        await saveEmailSettings({ body: emailBody(draft) });
-        const { data } = await getEmailSettings();
+        await saveEmailSettings({ body: emailBody(draft), headers: { "If-Match": version } });
+        // The save answers nothing; the read gives the settings as saved and their new version.
+        const { data, response } = await getEmailSettings();
         setSaved(data);
+        setVersion(etagOf(response));
         setDraft(emailDraft(data));
         setRefused([]);
         showAdminToast(t("email.saved"));
         router.refresh();
       } catch (error) {
+        if (changedSinceRead(error)) {
+          showAdminToast(t("form.changedSinceRead"), "warning");
+          return;
+        }
         const fields = refusedFields(error, "NOTIFICATION_EMAIL_SETTINGS_INVALID", emailFields);
         setRefused(fields);
         if (fields.length === 0) {

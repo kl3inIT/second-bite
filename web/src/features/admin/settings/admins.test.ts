@@ -1,34 +1,27 @@
 import { describe, expect, it } from "vitest";
 
-import { type AdminGrant, addAdminProblem, revokeBlock, sameEmail } from "./admins";
+import type { AccountBody } from "@/lib/api/generated";
 
-function admin(email: string, status: AdminGrant["status"] = "active"): AdminGrant {
-  return {
-    accountId: email,
-    email,
-    grantedAt: "2026-10-01T02:00:00Z",
-    grantedBy: null,
-    status,
-  };
+import { addAdminProblem, adminRefusal, revokeBlock, sameEmail } from "./admins";
+
+function admin(email: string): AccountBody {
+  return { id: email, email, displayName: "", role: "admin" };
 }
 
 describe("who can be revoked", () => {
   const me = admin("quantri@example.com");
   const other = admin("ngocmai@example.com");
-  const waiting = admin("lanchi@example.com", "pending");
 
   it("is never the viewer, whatever the case of their address", () => {
     expect(revokeBlock(me, [me, other], "QuanTri@Example.com ")).toBe("self");
   });
 
-  it("is another admin while one active admin remains", () => {
-    expect(revokeBlock(other, [me, other, waiting], me.email)).toBeNull();
-    expect(revokeBlock(waiting, [me, other, waiting], me.email)).toBeNull();
+  it("is another admin while one admin remains", () => {
+    expect(revokeBlock(other, [me, other], me.email)).toBeNull();
   });
 
-  it("is never the last active admin; one waiting to sign in does not count", () => {
-    expect(revokeBlock(other, [other, waiting], undefined)).toBe("lastAdmin");
-    expect(revokeBlock(waiting, [other, waiting], undefined)).toBeNull();
+  it("is never the last admin", () => {
+    expect(revokeBlock(other, [other], undefined)).toBe("lastAdmin");
   });
 
   it("names the viewer before the last admin", () => {
@@ -63,5 +56,14 @@ describe("an address to add as an admin", () => {
   it("compares addresses without case or spaces", () => {
     expect(sameEmail(" A@Example.com", "a@example.com")).toBe(true);
     expect(sameEmail("a@example.com", "b@example.com")).toBe(false);
+  });
+});
+
+describe("a refused grant or revoke", () => {
+  it("is worded from the backend's code, and any other failure says to try again", () => {
+    expect(adminRefusal("IDENTITY_LAST_ADMIN")).toBe("lastAdmin");
+    expect(adminRefusal("IDENTITY_ADDRESS_UNPROVEN")).toBe("unproven");
+    expect(adminRefusal("PLATFORM_INTERNAL_FAILURE")).toBe("failed");
+    expect(adminRefusal(undefined)).toBe("failed");
   });
 });

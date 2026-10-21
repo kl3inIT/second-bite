@@ -89,6 +89,31 @@ test.describe("the offer settings", () => {
     await expect(page.getByLabel("Bán kính tối đa")).toHaveValue("40");
   });
 
+  test("saving over someone else's save is refused with a toast (SEC-75)", async ({
+    page,
+  }, testInfo) => {
+    await signInTo(page, "/admin/settings/offers", testInfo, { who: "chongcheo" });
+    const discount = await hydrated(page.getByLabel("Giảm tối thiểu"));
+
+    // Another admin saves after the page read the settings: the page's version is no longer the current one.
+    const read = await page.request.get("/api/admin/offer-settings");
+    const { updatedAt: _at, updatedBy: _by, ...settings } = await read.json();
+    const other = await page.request.put("/api/admin/offer-settings", {
+      headers: { "If-Match": read.headers().etag },
+      data: { ...settings, maxRadiusKm: 50 },
+    });
+    expect(other.status()).toBe(200);
+
+    await discount.fill("35");
+    await page.getByRole("button", { name: "Lưu thay đổi" }).click();
+    await expect(page.getByText("Cài đặt vừa được người khác sửa, tải lại để xem.")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await page.reload();
+    await expect(page.getByLabel("Giảm tối thiểu")).toHaveValue("20");
+    await expect(page.getByLabel("Bán kính tối đa")).toHaveValue("50");
+  });
+
   test("a value the backend refuses is marked at its field", async ({ page }, testInfo) => {
     await signInTo(page, "/admin/settings/offers", testInfo, { who: "tuchoi" });
 

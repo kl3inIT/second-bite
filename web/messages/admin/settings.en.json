@@ -5,7 +5,8 @@
     "refused": "This value was not accepted.",
     "failed": "Not saved. Try again later.",
     "failedWithReference": "Not saved. Reference: {reference}",
-    "reference": "Reference: {reference}"
+    "reference": "Reference: {reference}",
+    "changedSinceRead": "Someone else just changed these settings; reload to see them."
   },
   "units": {
     "percent": "%",
@@ -91,17 +92,9 @@
     "caption": "Admins",
     "empty": "No admins yet",
     "columns": {
-      "email": "Admin",
-      "grantedAt": "Granted on",
-      "grantedBy": "Granted by",
-      "status": "Status"
+      "email": "Admin"
     },
     "you": "{email} (you)",
-    "cli": "Granted from the command line",
-    "statuses": {
-      "active": "Active",
-      "pending": "Waiting to sign in"
-    },
     "revoke": "Revoke access",
     "revokeBlocked": {
       "self": "You cannot revoke your own access",
@@ -112,7 +105,7 @@
       "invalid": "This is not an email address",
       "taken": "This email is already an admin"
     },
-    "takesEffect": "Takes effect when this person signs in with a code.",
+    "takesEffect": "This email must have signed in with a code at least once.",
     "revokeDialog": {
       "title": "Revoke admin access?",
       "after": "When revoked:",
@@ -120,6 +113,15 @@
       "logged": "The action is recorded in the audit log.",
       "regrant": "Access can be granted again at any time.",
       "confirm": "Revoke access"
+    },
+    "granted": "{email} is now an admin",
+    "revoked": "Revoked admin access for {email}",
+    "refusals": {
+      "self": "You cannot revoke your own access",
+      "lastAdmin": "There must be at least one admin",
+      "unproven": "{email} has never signed in with a code",
+      "invalid": "This is not an email address",
+      "failed": "Could not do that. Try again later."
     }
   },
   "auditLog": {

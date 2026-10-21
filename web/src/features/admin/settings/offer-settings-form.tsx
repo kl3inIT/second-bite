@@ -19,6 +19,7 @@ import {
   sameOfferSettings,
 } from "./offer-bounds";
 import { useSavedStatus } from "./saved-status";
+import { changedSinceRead, etagOf } from "./version";
 
 /**
  * The offer settings (Figma AD-CS1 to AD-CS3; docs: admin-web-flow › Sửa cài đặt bài đăng): three cards, Giá,
@@ -26,10 +27,18 @@ import { useSavedStatus } from "./saved-status";
  * the toast says they apply to what is posted from now on. A value the backend still refuses is marked at its
  * field when the backend names it, and otherwise said in a toast.
  */
-export function OfferSettingsForm({ settings }: { settings: OfferSettingsBody }) {
+export function OfferSettingsForm({
+  settings,
+  etag,
+}: {
+  settings: OfferSettingsBody;
+  /** The settings' version as read, sent back in If-Match (SEC-75). */
+  etag: string;
+}) {
   const t = useTranslations("admin.settings");
   const router = useRouter();
   const [saved, setSaved] = useState(settings);
+  const [version, setVersion] = useState(etag);
   const [values, setValues] = useState(() => offerSettingsValues(settings));
   const [refused, setRefused] = useState<OfferSettingKey[]>([]);
   const [saving, startSaving] = useTransition();
@@ -62,13 +71,21 @@ export function OfferSettingsForm({ settings }: { settings: OfferSettingsBody })
   function save() {
     startSaving(async () => {
       try {
-        const { data } = await saveOfferSettings({ body: values });
+        const { data, response } = await saveOfferSettings({
+          body: values,
+          headers: { "If-Match": version },
+        });
         setSaved(data);
+        setVersion(etagOf(response));
         setValues(offerSettingsValues(data));
         setRefused([]);
         showAdminToast(t("offers.saved"));
         router.refresh();
       } catch (error) {
+        if (changedSinceRead(error)) {
+          showAdminToast(t("form.changedSinceRead"), "warning");
+          return;
+        }
         const fields = refusedFields(error, "OFFER_SETTINGS_INVALID", offerSettingKeys);
         setRefused(fields);
         if (fields.length === 0) {

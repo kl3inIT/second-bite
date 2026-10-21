@@ -1,10 +1,11 @@
 import { createElement, type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import type { AccountBody } from "@/lib/api/generated";
+
 import { navigationMock, renderAdmin, textOf } from "../testing/render";
 import type { RowAction } from "../ui/row-action-menu";
 import { AddAdmin } from "./add-admin";
-import type { AdminGrant } from "./admins";
 import { AdminsTable } from "./admins-table";
 import { RevokeAdminDialog } from "./revoke-admin-dialog";
 
@@ -55,41 +56,20 @@ vi.mock("../ui/row-action-menu", () => ({
     ),
 }));
 
-const rows: AdminGrant[] = [
-  {
-    accountId: "a1",
-    email: "quantri@example.com",
-    grantedAt: "2026-10-01T02:00:00Z",
-    grantedBy: null,
-    status: "active",
-  },
-  {
-    accountId: "a2",
-    email: "ngocmai@example.com",
-    grantedAt: "2026-10-21T03:00:00Z",
-    grantedBy: { id: "a1", label: "quantri@example.com" },
-    status: "pending",
-  },
-  {
-    accountId: "a3",
-    email: "gialinh@example.com",
-    grantedAt: "2026-10-15T01:30:00Z",
-    grantedBy: { id: "gone", label: null },
-    status: "active",
-  },
+const rows: AccountBody[] = [
+  { id: "a1", email: "quantri@example.com", displayName: "", role: "admin" },
+  { id: "a2", email: "ngocmai@example.com", displayName: "Ngọc Mai", role: "admin" },
+  { id: "a3", email: "gialinh@example.com", displayName: "", role: "admin" },
 ];
 
 describe("the admins (AD-AM1, AD-AM4)", () => {
-  it("show each address, when and by whom it was granted, and whether they have signed in", () => {
+  it("show each address with its initials, the viewer's marked", () => {
     const text = textOf(
       renderAdmin(createElement(AdminsTable, { rows, viewerEmail: "quantri@example.com" })),
     );
-    expect(text).toContain("Quản trị viên Ngày cấp Người cấp Trạng thái");
-    expect(text).toContain(
-      "QU quantri@example.com (bạn) 01/10/2026 Cấp bằng dòng lệnh Đang hoạt động",
-    );
-    expect(text).toContain("NG ngocmai@example.com 21/10/2026 quantri@example.com Chờ đăng nhập");
-    expect(text).toContain("GI gialinh@example.com 15/10/2026 Tài khoản đã xoá Đang hoạt động");
+    expect(text).toContain("QU quantri@example.com (bạn)");
+    expect(text).toContain("NG ngocmai@example.com");
+    expect(text).toContain("GI gialinh@example.com");
   });
 
   it("lock revoking the viewer, and let them revoke the others", () => {
@@ -107,8 +87,8 @@ describe("the admins (AD-AM1, AD-AM4)", () => {
     );
   });
 
-  it("lock revoking the last active admin", () => {
-    const html = renderAdmin(createElement(AdminsTable, { rows: rows.slice(1, 3) }));
+  it("lock revoking the last admin", () => {
+    const html = renderAdmin(createElement(AdminsTable, { rows: rows.slice(2) }));
     expect(html).toContain(
       '<menu aria-label="gialinh@example.com"><li aria-disabled="true" title="Phải còn ít nhất một quản trị viên">Thu hồi quyền</li></menu>',
     );
@@ -122,21 +102,21 @@ describe("the admins (AD-AM1, AD-AM4)", () => {
 });
 
 describe("adding an admin (AD-AM2)", () => {
-  it("asks for one email and cannot be sent yet", () => {
+  it("asks for one email, and cannot be sent while it is empty", () => {
     const html = renderAdmin(createElement(AddAdmin, { admins: rows }));
     const text = textOf(html);
     expect(text).toContain("Thêm quản trị viên Thêm quản trị viên Email");
     expect(html).toContain('type="email"');
-    expect(text).toContain("Có hiệu lực khi người này đăng nhập bằng mã.");
-    expect(html).toMatch(/<button disabled="" title="Sắp có">Thêm quản trị viên<\/button>/);
+    expect(text).toContain("Email này phải đã đăng nhập bằng mã ít nhất một lần.");
+    expect(html).toMatch(/<button disabled="">Thêm quản trị viên<\/button>/);
   });
 });
 
 describe("revoking an admin (AD-AM3)", () => {
-  it("says what follows and cannot be done yet", () => {
+  it("says what follows", () => {
     const html = renderAdmin(
       createElement(RevokeAdminDialog, {
-        email: "vantoan@example.com",
+        admin: { id: "a9", email: "vantoan@example.com" },
         open: true,
         onOpenChange: () => undefined,
       }),
@@ -148,6 +128,6 @@ describe("revoking an admin (AD-AM3)", () => {
     );
     expect(text).toContain("Thao tác được ghi vào Nhật ký thao tác.");
     expect(text).toContain("Có thể cấp lại quyền bất cứ lúc nào.");
-    expect(html).toMatch(/<button disabled="" title="Sắp có">Thu hồi quyền<\/button>/);
+    expect(html).toMatch(/<button>Thu hồi quyền<\/button>/);
   });
 });

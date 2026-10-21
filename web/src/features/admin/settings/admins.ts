@@ -1,27 +1,4 @@
-import type { AuditActor } from "./audit-log";
-
-/**
- * One admin as `GET /admin/admins` is expected to answer it (SEC-75 decision 3: one `admin` role, no
- * permissions, granted and revoked from the CLI or this page).
- */
-export type AdminGrant = {
-  /** The account that holds the role. */
-  accountId: string;
-  email: string;
-  /** When the role was granted (RFC 3339). */
-  grantedAt: string;
-  /**
-   * Who granted it; none when it was granted from the command line (`secondbite admin grant EMAIL`). A label is
-   * none once that account was deleted (SEC-75 decision 6).
-   */
-  grantedBy: AuditActor | null;
-  /** `pending` until the person first signs in with a code after the grant. */
-  status: AdminStatus;
-};
-
-export type AdminStatus = "active" | "pending";
-
-export type AdminList = { items: AdminGrant[] };
+import type { AccountBody } from "@/lib/api/generated";
 
 /** Why an admin's role cannot be revoked from this page, or none when it can. */
 export type RevokeBlock = "self" | "lastAdmin";
@@ -33,19 +10,16 @@ export function sameEmail(a: string, b: string): boolean {
 
 /**
  * Whether `admin` can be revoked by the person viewing the list (Saleor `staff_update.py`, SEC-75 decision 3):
- * never themselves, and never the last admin who can still use the admin pages. The backend checks both again
- * under a lock; this only keeps the menu from offering what it would refuse.
+ * never themselves, and never the last admin. The backend checks both again under a lock
+ * (`IDENTITY_ADMIN_SELF`, `IDENTITY_LAST_ADMIN`); this only keeps the menu from offering what it would refuse.
  */
 export function revokeBlock(
-  admin: AdminGrant,
-  admins: readonly AdminGrant[],
+  admin: AccountBody,
+  admins: readonly AccountBody[],
   viewerEmail: string | undefined,
 ): RevokeBlock | null {
   if (viewerEmail && sameEmail(admin.email, viewerEmail)) return "self";
-  const othersActive = admins.filter(
-    (each) => each.status === "active" && each.accountId !== admin.accountId,
-  ).length;
-  if (admin.status === "active" && othersActive === 0) return "lastAdmin";
+  if (!admins.some((each) => each.id !== admin.id)) return "lastAdmin";
   return null;
 }
 
@@ -58,10 +32,25 @@ const emailShape = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
  */
 export function addAdminProblem(
   value: string,
-  admins: readonly AdminGrant[],
+  admins: readonly AccountBody[],
 ): "invalid" | "taken" | null {
   const email = value.trim();
   if (email.length > 254 || !emailShape.test(email)) return "invalid";
   if (admins.some((admin) => sameEmail(admin.email, email))) return "taken";
   return null;
+}
+
+/** The refusals of granting and revoking that the page words itself; any other failure says to try again. */
+const refusals = {
+  IDENTITY_ADMIN_SELF: "self",
+  IDENTITY_LAST_ADMIN: "lastAdmin",
+  IDENTITY_ADDRESS_UNPROVEN: "unproven",
+  IDENTITY_EMAIL_INVALID: "invalid",
+} as const;
+
+export type AdminRefusal = (typeof refusals)[keyof typeof refusals] | "failed";
+
+/** The toast's key for a refused grant or revoke, from the backend's code. */
+export function adminRefusal(code: string | undefined): AdminRefusal {
+  return (code && refusals[code as keyof typeof refusals]) || "failed";
 }

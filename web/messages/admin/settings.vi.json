@@ -5,7 +5,8 @@
     "refused": "Giá trị này chưa được chấp nhận.",
     "failed": "Chưa lưu được. Thử lại sau.",
     "failedWithReference": "Chưa lưu được. Mã tham chiếu: {reference}",
-    "reference": "Mã tham chiếu: {reference}"
+    "reference": "Mã tham chiếu: {reference}",
+    "changedSinceRead": "Cài đặt vừa được người khác sửa, tải lại để xem."
   },
   "units": {
     "percent": "%",
@@ -91,17 +92,9 @@
     "caption": "Quản trị viên",
     "empty": "Chưa có quản trị viên nào",
     "columns": {
-      "email": "Quản trị viên",
-      "grantedAt": "Ngày cấp",
-      "grantedBy": "Người cấp",
-      "status": "Trạng thái"
+      "email": "Quản trị viên"
     },
     "you": "{email} (bạn)",
-    "cli": "Cấp bằng dòng lệnh",
-    "statuses": {
-      "active": "Đang hoạt động",
-      "pending": "Chờ đăng nhập"
-    },
     "revoke": "Thu hồi quyền",
     "revokeBlocked": {
       "self": "Không thể thu hồi quyền của chính bạn",
@@ -112,7 +105,7 @@
       "invalid": "Email chưa đúng định dạng",
       "taken": "Email này đã là quản trị viên"
     },
-    "takesEffect": "Có hiệu lực khi người này đăng nhập bằng mã.",
+    "takesEffect": "Email này phải đã đăng nhập bằng mã ít nhất một lần.",
     "revokeDialog": {
       "title": "Thu hồi quyền quản trị?",
       "after": "Khi thu hồi:",
@@ -120,6 +113,15 @@
       "logged": "Thao tác được ghi vào Nhật ký thao tác.",
       "regrant": "Có thể cấp lại quyền bất cứ lúc nào.",
       "confirm": "Thu hồi quyền"
+    },
+    "granted": "Đã cấp quyền quản trị cho {email}",
+    "revoked": "Đã thu hồi quyền quản trị của {email}",
+    "refusals": {
+      "self": "Bạn không tự thu hồi quyền của mình được",
+      "lastAdmin": "Phải còn ít nhất một quản trị viên",
+      "unproven": "{email} chưa đăng nhập bằng mã lần nào",
+      "invalid": "Email chưa đúng định dạng",
+      "failed": "Chưa làm được. Thử lại sau."
     }
   },
   "auditLog": {
