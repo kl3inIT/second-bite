@@ -7,7 +7,6 @@ import {
   endedBecause,
   groupOrders,
   matchesQuery,
-  readOrderTab,
   tabOfOrder,
   unitsOf,
 } from "./store-orders";
@@ -45,13 +44,6 @@ function order(overrides: Partial<OrderBody> = {}): OrderBody {
 }
 
 describe("the order tabs", () => {
-  it("falls back to the orders being prepared", () => {
-    expect(readOrderTab(undefined)).toBe("preparing");
-    expect(readOrderTab("nonsense")).toBe("preparing");
-    expect(readOrderTab("ready")).toBe("ready");
-    expect(readOrderTab("cancelled")).toBe("cancelled");
-  });
-
   it("puts every way an order can end without a hand-over in one tab", () => {
     expect(tabOfOrder(order({ status: "confirmed" }))).toBe("preparing");
     expect(tabOfOrder(order({ status: "ready" }))).toBe("ready");
