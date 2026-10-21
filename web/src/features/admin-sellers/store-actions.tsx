@@ -10,7 +10,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useId, useState } from "react";
+import { revalidateLogic } from "@tanstack/react-form";
+import { useState, useTransition } from "react";
+import { z } from "zod";
+
+import { refuse, useAppForm } from "@/components/form/app-form";
+import { useFieldValidity } from "@/components/form/form-context";
 
 import {
   AlertDialog,
@@ -138,45 +143,30 @@ export function StoreActions({ seller, onPage = false }: { seller: Store; onPage
   );
 }
 
-/** Runs one action, then tells how it went and reads the list again; a refused reason stays at its field. */
+/** Says how an action went, in a toast, and reads the list again. */
 function useStoreAction(seller: Store, action: Action) {
   const t = useTranslations("Admin.sellers");
   const router = useRouter();
-  const [busy, setBusy] = useState(false);
-  const [reasonError, setReasonError] = useState<string>();
 
-  const run = async (reason: string, done: () => void) => {
-    setBusy(true);
-    setReasonError(undefined);
-    try {
-      const path = { sellerId: seller.id };
-      if (action === "block") await blockSeller({ path, body: { reason } });
-      else if (action === "reject") await rejectSeller({ path, body: { reason } });
-      else await approveSeller({ path });
-      toast.add({ type: "success", title: t(`${action}.done`, { name: seller.name }) });
-      done();
-      router.refresh();
-    } catch (error) {
-      if (error instanceof ApiError && error.code === "SELLER_REASON_INVALID") {
-        setReasonError(error.detail);
-        return;
-      }
-      const { detail, reference } = failureOf(error);
-      toast.add({
-        type: "error",
-        title: [detail ?? t("unreachable"), reference && `(${reference})`]
-          .filter(Boolean)
-          .join(" "),
-      });
-      done();
-      router.refresh();
-    } finally {
-      setBusy(false);
-    }
+  const succeeded = () => {
+    toast.add({ type: "success", title: t(`${action}.done`, { name: seller.name }) });
+    router.refresh();
+  };
+  const failed = (error: unknown) => {
+    const { detail, reference } = failureOf(error);
+    toast.add({
+      type: "error",
+      title: [detail ?? t("unreachable"), reference && `(${reference})`].filter(Boolean).join(" "),
+    });
+    router.refresh();
   };
 
-  return { busy, reasonError, run };
+  return { succeeded, failed };
 }
+
+/** The server's rule for a reason (server/internal/seller, minReasonRunes and maxReasonRunes). */
+const REASON_MIN = 10;
+const REASON_MAX = 500;
 
 function ReasonDialog({
   action,
@@ -189,64 +179,138 @@ function ReasonDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const t = useTranslations("Admin.sellers");
-  const id = useId();
-  const [reason, setReason] = useState("");
-  const { busy, reasonError, run } = useStoreAction(seller, action);
-  const Icon = actionIcon[action];
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="sm:max-w-120">
-        <form
-          className="contents"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void run(reason.trim(), () => {
-              setReason("");
-              onOpenChange(false);
-            });
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>{t(`${action}.title`, { name: seller.name })}</DialogTitle>
-          </DialogHeader>
-          <Field data-invalid={reasonError ? true : undefined}>
-            <FieldLabel htmlFor={id}>{t(`${action}.reason`)}</FieldLabel>
-            <Textarea
-              id={id}
-              value={reason}
-              required
-              maxLength={500}
-              aria-describedby={`${id}-hint`}
-              aria-invalid={reasonError ? true : undefined}
-              onChange={(event) => setReason(event.target.value)}
-            />
-            {reasonError ? (
-              <FieldError>{reasonError}</FieldError>
-            ) : (
-              <FieldDescription id={`${id}-hint`} className="flex justify-between">
-                <span>{t("reasonHint")}</span>
-                <span className="tabular-nums">{t("reasonLength", { length: reason.length })}</span>
-              </FieldDescription>
-            )}
-          </Field>
-          <DialogFooter>
-            <DialogClose render={<Button type="button" variant="outline" />}>
-              {t("cancel")}
-            </DialogClose>
-            <Button type="submit" variant="danger" disabled={busy}>
-              {busy ? (
-                <Spinner data-icon="inline-start" />
-              ) : (
-                <Icon data-icon="inline-start" aria-hidden />
-              )}
-              {t(`${action}.confirm`)}
-            </Button>
-          </DialogFooter>
-        </form>
+        {open && <ReasonForm action={action} seller={seller} onDone={() => onOpenChange(false)} />}
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Blocking and rejecting ask the owner a reason (docs/guidelines/web.md › Forms), under the server's rule. A reason
+// the server refuses stays at its field; any other failure is said in a toast, and the dialog closes.
+function ReasonForm({
+  action,
+  seller,
+  onDone,
+}: {
+  action: "block" | "reject";
+  seller: Store;
+  onDone: () => void;
+}) {
+  const t = useTranslations("Admin.sellers");
+  const { succeeded, failed } = useStoreAction(seller, action);
+  const Icon = actionIcon[action];
+
+  const form = useAppForm({
+    defaultValues: { reason: "" },
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: z.object({
+        reason: z
+          .string()
+          .trim()
+          .refine(
+            (reason) =>
+              Array.from(reason).length >= REASON_MIN && Array.from(reason).length <= REASON_MAX,
+            t("reasonInvalid"),
+          ),
+      }),
+    },
+    onSubmit: async ({ value, formApi }) => {
+      const path = { sellerId: seller.id };
+      const body = { reason: value.reason.trim() };
+      try {
+        if (action === "block") await blockSeller({ path, body });
+        else await rejectSeller({ path, body });
+      } catch (error) {
+        if (error instanceof ApiError && error.code === "SELLER_REASON_INVALID") {
+          refuse(formApi, error, { SELLER_REASON_INVALID: "reason" });
+          return;
+        }
+        failed(error);
+        onDone();
+        return;
+      }
+      succeeded();
+      onDone();
+    },
+  });
+
+  return (
+    <form
+      id={form.formId}
+      noValidate
+      className="contents"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void form.handleSubmit();
+      }}
+    >
+      <DialogHeader>
+        <DialogTitle>{t(`${action}.title`, { name: seller.name })}</DialogTitle>
+      </DialogHeader>
+      <form.AppField name="reason">
+        {() => <ReasonField label={t(`${action}.reason`)} />}
+      </form.AppField>
+      <form.AppForm>
+        <DialogFooter>
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(submitting) => (
+              <DialogClose
+                render={<Button type="button" variant="outline" disabled={submitting} />}
+              >
+                {t("cancel")}
+              </DialogClose>
+            )}
+          </form.Subscribe>
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(submitting) => (
+              <Button type="submit" variant="danger" disabled={submitting}>
+                {submitting ? (
+                  <Spinner data-icon="inline-start" />
+                ) : (
+                  <Icon data-icon="inline-start" aria-hidden />
+                )}
+                {t(`${action}.confirm`)}
+              </Button>
+            )}
+          </form.Subscribe>
+        </DialogFooter>
+      </form.AppForm>
+    </form>
+  );
+}
+
+/** The reason, with how long it may be and how long it is, or why it is refused. */
+function ReasonField({ label }: { label: string }) {
+  const t = useTranslations("Admin.sellers");
+  const { field, invalid, errors, ids } = useFieldValidity<string>();
+  const reason = field.state.value;
+  return (
+    <Field data-invalid={invalid || undefined}>
+      <FieldLabel htmlFor={ids.control}>{label}</FieldLabel>
+      <Textarea
+        id={ids.control}
+        name={field.name}
+        value={reason}
+        maxLength={REASON_MAX}
+        aria-required
+        aria-invalid={invalid || undefined}
+        aria-describedby={invalid ? ids.error : ids.hint}
+        onBlur={field.handleBlur}
+        onChange={(event) => field.handleChange(event.target.value)}
+      />
+      {invalid ? (
+        <FieldError id={ids.error} errors={errors} />
+      ) : (
+        <FieldDescription id={ids.hint} className="flex justify-between">
+          <span>{t("reasonHint")}</span>
+          <span className="tabular-nums">{t("reasonLength", { length: reason.length })}</span>
+        </FieldDescription>
+      )}
+    </Field>
   );
 }
 
@@ -262,7 +326,20 @@ function ConfirmDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("Admin.sellers");
-  const { busy, run } = useStoreAction(seller, action);
+  const { succeeded, failed } = useStoreAction(seller, action);
+  const [busy, startTransition] = useTransition();
+
+  // Unblocking sets the store active again, as approving does.
+  const run = () =>
+    startTransition(async () => {
+      try {
+        await approveSeller({ path: { sellerId: seller.id } });
+        succeeded();
+      } catch (error) {
+        failed(error);
+      }
+      onOpenChange(false);
+    });
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -272,10 +349,7 @@ function ConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-          <AlertDialogAction
-            disabled={busy}
-            onClick={() => void run("", () => onOpenChange(false))}
-          >
+          <AlertDialogAction disabled={busy} onClick={run}>
             {busy && <Spinner data-icon="inline-start" />}
             {t(`${action}.confirm`)}
           </AlertDialogAction>

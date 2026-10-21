@@ -73,7 +73,7 @@ Adapted from the Forms section of BeyondPilot's `docs/conventions.md` (revision 
 - Text fields are `form.AppField` with `field.TextField` or `field.TextareaField`. The submit is `form.SubmitButton`: it shows a spinner and takes no second press while the form is sent. A control the set lacks (a choice of chips, a photo, a number, a toggle group) is composed from the `field` parts inside `form.AppField`, with `useFieldValidity` for its ids, `data-invalid` and `aria-invalid`.
 - A refusal from the server goes through `refuse(formApi, error, fieldOfCode)`. Each refused member (`errors[].pointer`) lands under its field, and a code the screen ties to a field lands there too. What no field can say, a request that got no answer included, shows above the buttons in `form.FormError`, with the server's sentence and its reference. The screen never words a failure code itself.
 - A form in several steps is one form holding every step's values, with a zod schema per step. Fields that several forms draw the same way are a field group (`withFieldGroup`), added to the kit with the first form that needs it.
-- Not a form: a search box and list filters (they are the address, below), a switch or a button that acts at once, and the one-time code of sign-in, which submits itself.
+- Not a form: a search box and list filters (they are the address, below), and a switch or a button that acts at once. The emailed code is a form field (`CodeField` in `src/features/identity/code-field.tsx`), whose sixth digit submits the sign-in form.
 
 ## Lists and filters
 

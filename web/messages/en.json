@@ -1539,7 +1539,8 @@
             "withdrawn": "Withdrawn"
           }
         }
-      }
+      },
+      "reasonInvalid": "Write the owner a reason of 10 to 500 characters."
     }
   },
   "Review": {

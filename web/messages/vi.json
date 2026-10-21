@@ -1539,7 +1539,8 @@
             "withdrawn": "Đã gỡ"
           }
         }
-      }
+      },
+      "reasonInvalid": "Ghi lý do cho chủ cửa hàng, từ 10 đến 500 ký tự."
     }
   },
   "Review": {

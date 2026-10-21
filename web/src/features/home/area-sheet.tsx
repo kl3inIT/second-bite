@@ -1,10 +1,11 @@
 "use client";
 
-import { LocateFixedIcon, StoreIcon, XIcon } from "lucide-react";
+import { CircleAlertIcon, LocateFixedIcon, StoreIcon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { ChoiceOption } from "@/components/choice-option";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -112,9 +113,10 @@ export function AreaSheet({
             />
           </RadioGroup>
           {failure && (
-            <p role="alert" className="text-body-sm text-destructive">
-              {t(failure)}
-            </p>
+            <Alert variant="warning">
+              <CircleAlertIcon aria-hidden />
+              <AlertDescription>{t(failure)}</AlertDescription>
+            </Alert>
           )}
           <Button size="lg" onClick={apply} disabled={locating}>
             {locating ? t("locating") : t("apply")}
