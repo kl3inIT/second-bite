@@ -21,3 +21,4 @@ Status: started on 21 October 2026. Tracked in Linear as SEC-88. On 21 October 2
 | 8 | The seller's heading is one row, the logo beside the name; the discount sits on each dish's photograph; the confirmation pays only at the counter | The owner's review of the first build, 21 October 2026 |
 | 9 | Wider screens widen the page and lay the dishes two and three abreast; the dish's sheet becomes a dialog | The owner asked for the web to work at every width |
 | 10 | The test stub gives La Paris ten dishes over three kinds | A long list to review; the home's and the search's specs follow it |
+| 11 | The confirmation shows one card per seller's order, with its window and dishes, and "Đặt 2 đơn"; payment reads "Thanh toán tại quầy" wherever an order shows it; the orders list loses its impact banner | Figma K5, K8 and D1 as the owner approved them, 21 October 2026 |
