@@ -823,6 +823,10 @@ components:
           enum:
             - not_suitable
             - wrong_items
+            - no_answer
+            - no_show
+            - late
+            - sold_out
             - other
           type: string
         refusedAt:
@@ -1052,6 +1056,10 @@ components:
           enum:
             - not_suitable
             - wrong_items
+            - no_answer
+            - no_show
+            - late
+            - sold_out
             - other
           type: string
       required:
@@ -2220,6 +2228,35 @@ paths:
       summary: Cancel your order, free of charge until its window opens
       tags:
         - Orders
+  /orders/{orderId}/deliver:
+    post:
+      description: No code is asked, and a customer may come before the window opens.
+      operationId: deliverOrder
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Hand an order over at the counter, where its customer pays in cash
+      tags:
+        - Orders
   /orders/{orderId}/hand-over:
     post:
       description: Within the window. A wrong code is counted; the third locks the code.
@@ -2315,6 +2352,35 @@ paths:
         - bearer: []
         - cookie: []
       summary: Refuse to hand an order over, with a reason
+      tags:
+        - Orders
+  /orders/{orderId}/reopen:
+    post:
+      description: The order is open again, and the units a refusal had returned are taken again, or it fails when they are gone. An order its customer cancelled, or whose window is over, stays as it is.
+      operationId: reopenOrder
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Take a hand-over or a refusal back
       tags:
         - Orders
   /photos:
