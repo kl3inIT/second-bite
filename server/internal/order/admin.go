@@ -51,7 +51,7 @@ func (s *Service) HistoryForAdmins(ctx context.Context, accountID uuid.UUID) (Hi
 		h.Recent = append(h.Recent, s.fromRow(db.GetOrderRow(r)))
 	}
 
-	if err := s.withLines(ctx, h.Recent); err != nil {
+	if err := s.withLines(ctx, s.queries, h.Recent); err != nil {
 		return History{}, err
 	}
 

@@ -24,7 +24,7 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `POST /admin/sellers/{sellerId}/reject` `{reason}` | Admins | `200` seller, `rejected`, from `pending`; its owner emailed the reason |
 | `POST /admin/sellers/{sellerId}/block` `{reason}` | Admins | `200` seller, `blocked`, from `active`; its owner emailed the reason |
 
-Published to other modules: `Publishing(seller, account)`, which `offer` calls before posting or changing: the seller's name and collection point when the account is the owner or staff of an active seller, `SELLER_NOT_FOUND` when it is not a member, `SELLER_NOT_ACTIVE` when the seller is not active; `Publics(sellers)`, what customers see of the active ones among them; `Blocked()`, the sellers whose offers search leaves out.
+Published to other modules: `Publishing(seller, account)`, which `offer` calls before posting or changing: the seller's name and collection point when the account is the owner or staff of an active seller, `SELLER_NOT_FOUND` when it is not a member, `SELLER_NOT_ACTIVE` when the seller is not active; `Publics(sellers)`, what customers see of the active ones among them; `IsActiveIn(tx, seller)`, whether a seller is active, read in the caller's transaction, which `order` checks while it places an order so that it never holds one connection and waits for another (SEC-128); `Blocked()`, the sellers whose offers search leaves out.
 
 ## Rules
 
