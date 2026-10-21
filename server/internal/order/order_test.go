@@ -57,6 +57,7 @@ func TestOrder(t *testing.T) {
 		"some orders are not reopened":             testReopenStaysShut,
 		"admins read what an account ordered":      testHistoryForAdmins,
 		"orders follow their offer's window":       testOrdersFollowTheWindow,
+		"ended orders expire in the table":         testEndedOrdersExpire,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -708,6 +709,80 @@ func testOrdersFollowTheWindow(t *testing.T, f fixture) {
 	if err != nil || kept.WindowStart.Sub(start).Abs() < time.Minute {
 		t.Fatalf("the handed-over order's window moved: %v (%v)", kept.WindowStart, err)
 	}
+}
+
+// expectState fails the check unless an order is stored in the state, whatever it reads as.
+func (f fixture) expectState(t *testing.T, id uuid.UUID, want, what string) {
+	t.Helper()
+
+	var state string
+	if err := f.pool.QueryRow(t.Context(), "SELECT state FROM order_orders WHERE id = $1", id).Scan(&state); err != nil {
+		t.Fatal(err)
+	}
+
+	if state != want {
+		t.Errorf("%s: stored %s, want %s", what, state, want)
+	}
+}
+
+func testEndedOrdersExpire(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
+
+	var placed []order.Order
+
+	for range 3 {
+		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		placed = append(placed, o)
+	}
+
+	ended, running, handed := placed[0], placed[1], placed[2]
+
+	if _, err := f.orders.HandOver(owner, handed.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	f.shift(t, ended.ID, -3*time.Hour)
+	f.shift(t, handed.ID, -3*time.Hour)
+
+	// Read as expired already, whatever the job has done.
+	before, err := f.orders.Get(customer, ended.ID, "")
+	if err != nil || before.Status != order.StatusExpired {
+		t.Fatalf("read before the job: %+v, %v", before, err)
+	}
+
+	f.expectState(t, ended.ID, "confirmed", "before the job")
+
+	for range 2 { // run twice, it changes nothing more
+		if err := f.orders.ExpireEnded(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	f.expectState(t, ended.ID, "expired", "the ended order once the job ran")
+	f.expectState(t, running.ID, "confirmed", "an order still running")
+	f.expectState(t, handed.ID, "collected", "an order handed over before its window ended")
+
+	var events int
+	if err := f.pool.QueryRow(t.Context(),
+		"SELECT count(*) FROM order_events WHERE order_id = $1 AND kind = 'expired'", ended.ID).Scan(&events); err != nil {
+		t.Fatal(err)
+	}
+
+	if events != 1 {
+		t.Errorf("expired events: %d", events)
+	}
+
+	_, err = f.orders.Reopen(owner, ended.ID)
+	mustFail(t, "reopening an expired order", err, order.ErrTransitionNotAllowed)
 }
 
 func testExpiryReadFromTheWindow(t *testing.T, f fixture) {

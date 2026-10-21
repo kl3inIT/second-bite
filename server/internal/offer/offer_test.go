@@ -48,6 +48,7 @@ func TestOffer(t *testing.T) {
 			"a photo is the poster's or the seller's":     testPhotoIsPostersOrSellers,
 			"orders limit what changes":                   testOrdersLimitWhatChanges,
 			"orders let the window move":                  testOrdersLetTheWindowMove,
+			"ended offers are closed in the table":        testEndedOffersAreClosed,
 			"status follows units, window and withdrawal": testStatusFollowsUnitsWindowAndWithdrawal,
 			"search reads Vietnamese as it is typed":      testSearchReadsVietnamese,
 			"search keeps what is near and filtered":      testSearchNearAndFiltered,
@@ -386,6 +387,69 @@ func testOrdersLetTheWindowMove(t *testing.T, f fixture) {
 	over := time.Now().Add(-time.Hour)
 	_, err = f.offers.Change(owner, o.ID, offer.Change{WindowEnd: &over})
 	mustFail(t, "a window already over", err, offer.ErrWindowInvalid)
+}
+
+// expectState fails the check unless an offer is stored in the state, whatever it reads as.
+func (f fixture) expectState(t *testing.T, id uuid.UUID, want, what string) {
+	t.Helper()
+
+	var state string
+	if err := f.pool.QueryRow(t.Context(), "SELECT state FROM offer_offers WHERE id = $1", id).Scan(&state); err != nil {
+		t.Fatal(err)
+	}
+
+	if state != want {
+		t.Errorf("%s: stored %s, want %s", what, state, want)
+	}
+}
+
+func testEndedOffersAreClosed(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	sellerID := f.activeSeller(owner, t)
+
+	ended, err := f.offers.Post(owner, sellerID, bread(f.photo(owner, t)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	running, err := f.offers.Post(owner, sellerID, bread(f.photo(owner, t)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The window of the first ends, as time passing would end it.
+	if _, err := f.pool.Exec(t.Context(),
+		"UPDATE offer_offers SET window_start = now() - interval '3 hours', window_end = now() - interval '1 hour' WHERE id = $1",
+		ended.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	// Read as closed already, whatever the job has done.
+	before, err := f.offers.Get(owner, ended.ID)
+	if err != nil || before.Status != offer.StatusClosed {
+		t.Fatalf("read before the job: %+v, %v", before, err)
+	}
+
+	f.expectState(t, ended.ID, "on_sale", "before the job")
+
+	for range 2 { // run twice, it changes nothing more
+		if err := f.offers.CloseEnded(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	f.expectState(t, ended.ID, "closed", "the ended offer once the job ran")
+	f.expectState(t, running.ID, "on_sale", "an offer still running")
+
+	closed, err := f.offers.OfSeller(owner, sellerID, offer.StatusClosed, 20, 0)
+	if err != nil || len(closed) != 1 || closed[0].ID != ended.ID {
+		t.Errorf("the seller's closed offers: %+v, %v", closed, err)
+	}
+
+	_, err = f.offers.Withdraw(owner, ended.ID)
+	mustFail(t, "withdrawing a closed offer", err, offer.ErrChangeNotAllowed)
 }
 
 func testStatusFollowsUnitsWindowAndWithdrawal(t *testing.T, f fixture) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -16,6 +17,32 @@ import (
 // depends on.
 func RegisterListeners(events *platform.Events, s *Service) {
 	platform.Listen(events, "order.follow_offer_window", s.FollowOfferWindow)
+}
+
+// RegisterSchedules makes the module run what it does on the clock.
+func RegisterSchedules(events *platform.Events, s *Service) {
+	events.Every("order.expire_ended", time.Minute, s.ExpireEnded)
+}
+
+// ExpireEnded expires the orders still to collect whose window is over, each
+// with an event (SEC-96). An order reads as expired the moment its window ends,
+// since reads compare the window; this keeps the table in step, so a report on
+// it, and later a message to the customer, can follow. It changes nothing a
+// second run would not, so it may run twice.
+func (s *Service) ExpireEnded(ctx context.Context) error {
+	expired, err := s.queries.ExpireEnded(ctx)
+	if err != nil {
+		return fmt.Errorf("expiring the ended orders: %w", err)
+	}
+
+	if expired > 0 {
+		s.logger.InfoContext(ctx, "ended orders expired",
+			slog.String("event", "order.orders.expired"),
+			slog.Int64("orders_expired", expired),
+		)
+	}
+
+	return nil
 }
 
 // FollowOfferWindow moves the orders still to collect to the new window of an

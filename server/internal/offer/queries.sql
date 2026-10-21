@@ -49,6 +49,11 @@ SET name = @name, description = @description, kind = @kind, unit = @unit, units 
     search_vector = (sqlc.arg(search_vector)::text)::tsvector, updated_at = now()
 WHERE id = @id;
 
+-- name: CloseEnded :execrows
+-- Closes the offers still on sale whose window is over. Reads compare the window too.
+UPDATE offer_offers SET state = 'closed', updated_at = now()
+WHERE state = 'on_sale' AND window_end <= now();
+
 -- name: WindowsOf :many
 SELECT id, window_start, window_end FROM offer_offers WHERE id = ANY (@ids::uuid[]);
 
@@ -68,7 +73,7 @@ FROM offer_offers
 WHERE seller_id = @seller_id
   AND (@status::text = ''
        OR (@status = 'withdrawn' AND state = 'withdrawn')
-       OR (@status = 'closed' AND state = 'on_sale' AND window_end <= now())
+       OR (@status = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
        OR (@status = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
        OR (@status = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
 ORDER BY created_at DESC, id

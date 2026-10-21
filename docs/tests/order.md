@@ -15,6 +15,7 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | A hand-over is taken back; a refusal that returned its units is taken back only while they are still there; a stranger gets 404 | `TestOrder` › a mistake is taken back |
 | What its customer cancelled, an order whose window is over and one still open cannot be reopened | `TestOrder` › some orders are not reopened |
 | The orders still to collect follow the new window of their offer, twice delivered changing nothing more, and one handed over keeps its own | `TestOrder` › orders follow their offer's window |
+| The job stores `expired` with an event on the orders still to collect whose window is over, and leaves one handed over and one still running; run twice it changes nothing more; an expired order is not reopened | `TestOrder` › ended orders expire in the table |
 | An order whose window is over reads as expired and cannot be handed over, made ready or cancelled | `TestOrder` › expiry is read from the window |
 | A seller's people list the orders of today, not of tomorrow, without the access; a stranger cannot | `TestOrder` › a seller lists the orders of a day |
 | The customer lists all, open and ended orders, newest first; another account sees none of them | `TestOrder` › the customer lists open and ended orders |

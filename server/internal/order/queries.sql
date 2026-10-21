@@ -107,3 +107,13 @@ WHERE l.offer_id = @offer_id AND o.state IN ('confirmed', 'ready');
 -- Moves an order still to collect to a new window; one that ended stays as it was.
 UPDATE order_orders SET window_start = @window_start, window_end = @window_end
 WHERE id = @id AND state IN ('confirmed', 'ready');
+
+-- name: ExpireEnded :execrows
+-- Expires the orders still to collect whose window is over, each with an event.
+-- Reads compare the window too.
+WITH ended AS (
+    UPDATE order_orders SET state = 'expired'
+    WHERE state IN ('confirmed', 'ready') AND window_end <= now()
+    RETURNING id
+)
+INSERT INTO order_events (order_id, kind) SELECT id, 'expired' FROM ended;
