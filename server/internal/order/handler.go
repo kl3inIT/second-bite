@@ -63,7 +63,7 @@ type orderBody struct {
 	CancelledAt   *time.Time      `json:"cancelledAt,omitempty"`
 	RefusedAt     *time.Time      `json:"refusedAt,omitempty"`
 	CancelReason  string          `json:"cancelReason,omitempty"`
-	RefuseReason  RefuseReason    `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,other"`
+	RefuseReason  RefuseReason    `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other"`
 	RefuseNote    string          `json:"refuseNote,omitempty"`
 	CheckoutID    uuid.UUID       `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
 	CustomerName  string          `json:"customerName"           doc:"Who collects, as given with the order"`
@@ -273,12 +273,27 @@ func registerStaffOperations(api huma.API, s *Service) {
 	})
 
 	huma.Register(api, huma.Operation{
+		OperationID: "reopenOrder", Method: http.MethodPost, Path: "/orders/{orderId}/reopen",
+		Summary: "Take a hand-over or a refusal back",
+		Description: "The order is open again, and the units a refusal had returned are taken again, or it fails when they " +
+			"are gone. An order its customer cancelled, or whose window is over, stays as it is.",
+		Tags: tagOrders, Security: security,
+	}, func(ctx context.Context, in *orderPath) (*orderOutput, error) {
+		o, err := s.Reopen(ctx, in.OrderID)
+		if err != nil {
+			return nil, err
+		}
+
+		return &orderOutput{Body: toBody(o)}, nil
+	})
+
+	huma.Register(api, huma.Operation{
 		OperationID: "refuseOrder", Method: http.MethodPost, Path: "/orders/{orderId}/refuse",
 		Summary: "Refuse to hand an order over, with a reason", Tags: tagOrders, Security: security,
 	}, func(ctx context.Context, in *struct {
 		OrderID uuid.UUID `path:"orderId"`
 		Body    struct {
-			Reason RefuseReason `json:"reason"         enum:"not_suitable,wrong_items,other"`
+			Reason RefuseReason `json:"reason"         enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other"`
 			Note   string       `json:"note,omitempty" maxLength:"200"`
 		}
 	},
