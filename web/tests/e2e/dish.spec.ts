@@ -101,7 +101,9 @@ test.describe("a dish, its seller and the cart", () => {
 
     // Figma K5: at one portion, − takes the dish out at once.
     await page.getByRole("button", { name: "Bớt một phần Há cảo tôm" }).click();
-    await expect(page.getByText("Há cảo tôm", { exact: true })).toBeHidden();
+    await expect(
+      page.getByText("Há cảo tôm", { exact: true }).filter({ visible: true }),
+    ).toHaveCount(0);
     await expect(page.getByText("Tiền món (3 phần)").filter({ visible: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Đặt món" })).toBeVisible();
   });
