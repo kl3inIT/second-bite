@@ -169,8 +169,8 @@ test.describe("ordering from the cart", () => {
     await expect(together).toHaveCount(1);
     const first = page.url();
     await together.click();
+    await expect(page).not.toHaveURL(first);
     await expect(page).toHaveURL(ORDER_URL);
-    expect(page.url()).not.toBe(first);
     await expect(page.getByRole("link", { name: /^Cùng lần đặt: / })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
   });

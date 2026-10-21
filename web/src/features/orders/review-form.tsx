@@ -72,7 +72,7 @@ export function ReviewForm({ order }: { order: Order }) {
             {STARS.map((count) => (
               <label
                 key={count}
-                className="flex size-11 cursor-pointer items-center justify-center rounded-full text-rating has-focus-visible:ring-3 has-focus-visible:ring-ring"
+                className="relative flex size-11 items-center justify-center rounded-full text-rating has-focus-visible:ring-3 has-focus-visible:ring-ring"
               >
                 <input
                   type="radio"
@@ -81,9 +81,12 @@ export function ReviewForm({ order }: { order: Order }) {
                   checked={stars === count}
                   onChange={() => setStars(count)}
                   aria-label={t("star", { count })}
-                  className="sr-only"
+                  className="absolute inset-0 cursor-pointer appearance-none rounded-full focus-visible:outline-none"
                 />
-                <StarIcon aria-hidden className={cn("size-8", count <= stars && "fill-current")} />
+                <StarIcon
+                  aria-hidden
+                  className={cn("pointer-events-none size-8", count <= stars && "fill-current")}
+                />
               </label>
             ))}
           </div>
