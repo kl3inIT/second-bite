@@ -1256,6 +1256,10 @@ components:
           items:
             $ref: "#/components/schemas/OrderLineBody"
           type: array
+        messageCount:
+          description: Messages its chat holds, with unreadMessages; none for admins
+          format: int64
+          type: integer
         number:
           description: What people read aloud, SB- and a number
           type: string

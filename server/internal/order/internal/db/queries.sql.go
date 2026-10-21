@@ -1049,6 +1049,7 @@ func (q *Queries) SetWindow(ctx context.Context, arg SetWindowParams) error {
 
 const unreadOf = `-- name: UnreadOf :many
 SELECT c.order_id,
+       c.last_seq AS messages,
        (SELECT count(*) FROM order_messages AS m
         WHERE m.order_id = c.order_id AND m.sender = 'seller' AND m.seq > c.customer_seen_seq) AS customer_unread,
        (SELECT count(*) FROM order_messages AS m
@@ -1059,12 +1060,14 @@ WHERE c.order_id = ANY ($1::uuid[])
 
 type UnreadOfRow struct {
 	OrderID        uuid.UUID
+	Messages       int32
 	CustomerUnread int64
 	SellerUnread   int64
 }
 
-// For each order with a chat: what its customer has not read from the seller,
-// and what its seller's people have not read from the customer.
+// For each order with a chat: how many messages it holds, what its customer
+// has not read from the seller, and what its seller's people have not read
+// from the customer.
 func (q *Queries) UnreadOf(ctx context.Context, orderIds []uuid.UUID) ([]UnreadOfRow, error) {
 	rows, err := q.db.Query(ctx, unreadOf, orderIds)
 	if err != nil {
@@ -1074,7 +1077,12 @@ func (q *Queries) UnreadOf(ctx context.Context, orderIds []uuid.UUID) ([]UnreadO
 	var items []UnreadOfRow
 	for rows.Next() {
 		var i UnreadOfRow
-		if err := rows.Scan(&i.OrderID, &i.CustomerUnread, &i.SellerUnread); err != nil {
+		if err := rows.Scan(
+			&i.OrderID,
+			&i.Messages,
+			&i.CustomerUnread,
+			&i.SellerUnread,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -326,8 +326,8 @@ func (s *Service) MarkSeen(ctx context.Context, id uuid.UUID, access string, upT
 	})
 }
 
-// withUnread sets, on each of orders, what the reader's side has not read of
-// its chat.
+// withUnread sets, on each of orders, how many messages its chat holds and what
+// the reader's side has not read of them.
 func (s *Service) withUnread(ctx context.Context, orders []Order, side Side) error {
 	if len(orders) == 0 {
 		return nil
@@ -339,6 +339,7 @@ func (s *Service) withUnread(ctx context.Context, orders []Order, side Side) err
 	for i, o := range orders {
 		ids[i], at[o.ID] = o.ID, i
 		orders[i].UnreadMessages = new(int)
+		orders[i].MessageCount = new(int)
 	}
 
 	rows, err := s.queries.UnreadOf(ctx, ids)
@@ -353,6 +354,7 @@ func (s *Service) withUnread(ctx context.Context, orders []Order, side Side) err
 		}
 
 		*orders[at[r.OrderID]].UnreadMessages = int(unread)
+		*orders[at[r.OrderID]].MessageCount = int(r.Messages)
 	}
 
 	return nil

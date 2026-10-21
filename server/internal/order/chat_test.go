@@ -120,8 +120,12 @@ func testChatConversation(t *testing.T, f fixture) { //nolint:gocyclo // a check
 
 	unreadFor(t, f, sc, 0, 0, "everything is seen")
 
-	if o, err := f.orders.Get(sc.admin, id, ""); err != nil || o.UnreadMessages != nil {
-		t.Errorf("an admin reads the order with unread %v (%v), want none", o.UnreadMessages, err)
+	if o, err := f.orders.Get(sc.customer, id, ""); err != nil || o.MessageCount == nil || *o.MessageCount != len(seen.Messages) {
+		t.Errorf("the customer reads the order with %v messages (%v), want %d", o.MessageCount, err, len(seen.Messages))
+	}
+
+	if o, err := f.orders.Get(sc.admin, id, ""); err != nil || o.UnreadMessages != nil || o.MessageCount != nil {
+		t.Errorf("an admin reads the order with unread %v and %v messages (%v), want none", o.UnreadMessages, o.MessageCount, err)
 	}
 }
 

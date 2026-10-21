@@ -112,6 +112,9 @@ type Order struct {
 	// from the seller for the customer, from the customer for the seller's
 	// people. None for admins, who do not read chats.
 	UnreadMessages *int
+	// MessageCount is how many messages its chat holds, set with
+	// UnreadMessages.
+	MessageCount *int
 	// Access proves the order is theirs to whoever placed it, set only for
 	// them.
 	Access string
