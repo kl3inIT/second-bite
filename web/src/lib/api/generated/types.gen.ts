@@ -371,7 +371,7 @@ export type OrderBody = {
     number: string;
     readyAt?: string;
     refuseNote?: string;
-    refuseReason?: 'not_suitable' | 'wrong_items' | 'other';
+    refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other';
     refusedAt?: string;
     /**
      * Where the order is collected, copied when it was placed
@@ -482,7 +482,7 @@ export type Problem = {
 
 export type RefuseOrderRequest = {
     note?: string;
-    reason: 'not_suitable' | 'wrong_items' | 'other';
+    reason: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other';
 };
 
 export type RequestCodeInputBody = {
@@ -1375,6 +1375,33 @@ export type CancelOrderResponses = {
 
 export type CancelOrderResponse = CancelOrderResponses[keyof CancelOrderResponses];
 
+export type DeliverOrderData = {
+    body?: never;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/deliver';
+};
+
+export type DeliverOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type DeliverOrderError = DeliverOrderErrors[keyof DeliverOrderErrors];
+
+export type DeliverOrderResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type DeliverOrderResponse = DeliverOrderResponses[keyof DeliverOrderResponses];
+
 export type HandOverOrderData = {
     body: HandOverOrderRequest;
     path: {
@@ -1455,6 +1482,33 @@ export type RefuseOrderResponses = {
 };
 
 export type RefuseOrderResponse = RefuseOrderResponses[keyof RefuseOrderResponses];
+
+export type ReopenOrderData = {
+    body?: never;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/reopen';
+};
+
+export type ReopenOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ReopenOrderError = ReopenOrderErrors[keyof ReopenOrderErrors];
+
+export type ReopenOrderResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type ReopenOrderResponse = ReopenOrderResponses[keyof ReopenOrderResponses];
 
 export type UploadPhotoData = {
     body: Blob | File;
