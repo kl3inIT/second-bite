@@ -9,6 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
+import { Fragment } from "react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
@@ -214,6 +215,75 @@ export function OrderSummary({ order }: { order: Order }) {
   );
 }
 
+/**
+ * The order's details as a wide screen's card holds them (Figma D4 › content card): the seller, then the day, the
+ * window, the dishes in one line, the total, the number and how it is paid, two to a row.
+ */
+export function OrderFacts({ order }: { order: Order }) {
+  const t = useTranslations("Orders");
+  const format = useFormatter();
+  const date = useOrderDate();
+  const paid = isOpen(order) || order.status === "collected";
+  const time = (value: string) => format.dateTime(new Date(value), "time");
+
+  return (
+    <div className="flex flex-col gap-3.5">
+      <SellerRow order={order} />
+      <dl className="flex flex-col gap-3.5 border-t border-border pt-3.5">
+        <div className="flex justify-between gap-4">
+          <Fact
+            label={t("facts.date")}
+            value={
+              <span className="text-body-sm">
+                {t("facts.today", { date: date(order.windowStart) })}
+              </span>
+            }
+          />
+          <Fact
+            end
+            label={t("facts.window")}
+            value={
+              <span className="text-body-sm">
+                {time(order.windowStart)} – {time(order.windowEnd)}
+              </span>
+            }
+          />
+        </div>
+        <div className="flex justify-between gap-4">
+          <Fact
+            label={t("facts.dishes")}
+            value={
+              <span className="text-body-sm">
+                {order.lines.map((line) => `${line.units}× ${line.name}`).join(", ")}
+              </span>
+            }
+          />
+          <Fact
+            end
+            label={t("facts.total")}
+            value={<span className="font-display text-price">{formatPrice(order.totalVnd)}</span>}
+          />
+        </div>
+        <div className="flex justify-between gap-4">
+          <Fact
+            label={t("facts.number")}
+            value={<span className="text-body-sm">#{order.number}</span>}
+          />
+          <Fact
+            end
+            label={t("facts.payment")}
+            value={
+              <span className="text-body-sm">
+                {paid ? t("facts.payAtCounter") : t("facts.nothing")}
+              </span>
+            }
+          />
+        </div>
+      </dl>
+    </div>
+  );
+}
+
 /** Where the counter is, and the way there in Google Maps (Figma D2 › chỗ lấy). */
 export function Directions({ order }: { order: Order }) {
   const t = useTranslations("Orders");
@@ -252,37 +322,76 @@ export function Directions({ order }: { order: Order }) {
   );
 }
 
-/** The three steps of collecting a ready order, joined by dotted lines (Figma D3 › Cách nhận món). */
+/**
+ * The steps of collecting an order (Figma D3 › Cách nhận món, D4): on a phone three round icons in a row, joined
+ * by dashed lines; from 768px three tinted cards side by side, each numbered.
+ */
 export function HowToCollect({ order }: { order: Order }) {
   const t = useTranslations("Orders.how");
-  const steps: { icon: LucideIcon; title: string; body: string }[] = [
-    { icon: MapPinIcon, title: t("goTitle"), body: order.seller.address },
-    { icon: QrCodeIcon, title: t("qrTitle"), body: t("qrBody") },
-    { icon: ShoppingBagIcon, title: t("takeTitle"), body: t("takeBody") },
+  const steps = [
+    {
+      icon: MapPinIcon,
+      title: t("goTitle"),
+      body: order.seller.address,
+      wideTitle: t("wideGo"),
+      wideBody: t("wideGoBody", { seller: order.seller.name, address: order.seller.address }),
+    },
+    {
+      icon: QrCodeIcon,
+      title: t("qrTitle"),
+      body: t("qrBody"),
+      wideTitle: t("wideQr"),
+      wideBody: t("wideQrBody"),
+    },
+    {
+      icon: ShoppingBagIcon,
+      title: t("takeTitle"),
+      body: t("takeBody"),
+      wideTitle: t("wideTake"),
+      wideBody: t("wideTakeBody"),
+    },
   ];
 
   return (
     <section
       aria-labelledby={`how-to-collect-${order.id}`}
-      className="flex flex-col gap-2 rounded-2xl bg-card px-4 pt-3 pb-4 text-card-foreground"
+      className="flex flex-col gap-3 rounded-2xl bg-card p-4 text-card-foreground md:gap-4.5 md:px-6 md:pt-5 md:pb-5.5"
     >
       <h2 id={`how-to-collect-${order.id}`} className="text-title">
         {t("title")}
       </h2>
-      <ol className="grid grid-cols-3">
+      <ol className="flex items-start md:hidden">
         {steps.map(({ icon: Icon, title, body }, index) => (
-          <li key={title} className="relative flex flex-col items-center gap-1.5 text-center">
+          <Fragment key={title}>
             {index > 0 ? (
-              <span
+              <li
                 aria-hidden
-                className="absolute top-4.5 right-1/2 w-full border-t-2 border-dotted border-secondary-hover"
+                className="mt-4.5 w-4 shrink-0 border-t-2 border-dashed border-secondary-hover"
               />
             ) : null}
-            <span className="relative flex size-9 items-center justify-center rounded-full bg-secondary text-primary">
+            <li className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center">
+              <span className="flex size-9 items-center justify-center rounded-full bg-muted text-primary">
+                <Icon aria-hidden className="size-4" />
+              </span>
+              <p className="text-label-strong">{title}</p>
+              <p className="text-label text-muted-foreground">{body}</p>
+            </li>
+          </Fragment>
+        ))}
+      </ol>
+      <ol className="hidden gap-3 md:flex">
+        {steps.map(({ icon: Icon, wideTitle, wideBody }) => (
+          <li
+            key={wideTitle}
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-xl bg-muted p-3"
+          >
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
               <Icon aria-hidden className="size-4" />
             </span>
-            <p className="text-label-strong">{title}</p>
-            <p className="text-label text-muted-foreground">{body}</p>
+            <span className="flex min-w-0 flex-col">
+              <span className="text-body-sm-strong">{wideTitle}</span>
+              <span className="text-label text-muted-foreground">{wideBody}</span>
+            </span>
           </li>
         ))}
       </ol>
@@ -296,41 +405,25 @@ type StepState = "done" | "now" | "later";
 // (SEC-97 › decision 5).
 const stepOf: Partial<Record<Order["status"], number>> = { confirmed: 1, ready: 2, collected: 3 };
 
-/** The icon of a step (Figma W5 › icon/…): a lime check once done, a white one in a ring now, a dashed ring to come. */
-function StepIcon({ state }: { state: StepState }) {
+/** The mark before a step's name (Figma D4): a lime check once done, a white dot now, a ring to come. */
+function StepMark({ state }: { state: StepState }) {
+  if (state === "done") {
+    return <CheckIcon aria-hidden className="size-4 text-fresh" strokeWidth={3} />;
+  }
   return (
     <span
       aria-hidden
       className={cn(
-        "relative flex shrink-0 items-center justify-center rounded-full",
-        state === "now" ? "size-7.5" : "size-5.5",
+        "size-2.5 rounded-full",
+        state === "now" ? "bg-primary-foreground" : "border border-inverse-faint",
       )}
-    >
-      {state === "later" ? (
-        <span className="size-full rounded-full border-2 border-dashed border-inverse-faint" />
-      ) : (
-        <span
-          className={cn(
-            "flex size-full items-center justify-center rounded-full",
-            state === "done" ? "bg-fresh text-header" : "bg-primary-foreground/25",
-          )}
-        >
-          {state === "now" ? (
-            <span className="flex size-5.5 items-center justify-center rounded-full bg-primary-foreground text-header">
-              <CheckIcon className="size-3" strokeWidth={4} />
-            </span>
-          ) : (
-            <CheckIcon className="size-3" strokeWidth={4} />
-          )}
-        </span>
-      )}
-    </span>
+    />
   );
 }
 
 /**
- * The four steps of an order on the blue band: placed, preparing, ready, collected (Figma W5, W6). Each is a round
- * icon beside its name and time, joined by bars that stretch evenly. Shown from 768px; a phone has its own row.
+ * The four steps of an order on the blue band: placed, preparing, ready, collected, in one row from 768px (Figma
+ * D4): each a mark and its name, with the time of those done. A phone has its own row.
  */
 function WideOrderSteps({ order }: { order: Order }) {
   const t = useTranslations("Orders.steps");
@@ -339,74 +432,30 @@ function WideOrderSteps({ order }: { order: Order }) {
   const timeOf = (moment?: string) =>
     moment ? format.dateTime(new Date(moment), "time") : undefined;
   // The backend stamps no moment for preparing: an order is confirmed as it is placed.
-  const steps: { label: string; time?: string; note?: string; pending?: string }[] = [
+  const steps: { label: string; time?: string }[] = [
     { label: t("placed"), time: timeOf(order.createdAt) },
-    { label: t("preparing"), note: t("preparingNote") },
-    {
-      label: t("ready"),
-      time: timeOf(order.readyAt),
-      note: t("readyNote"),
-      pending: t("readyPending"),
-    },
-    {
-      label: t("received"),
-      time: timeOf(order.collectedAt),
-      note: t("collectedNote"),
-      pending: t("collectedPending"),
-    },
+    { label: t("preparing") },
+    { label: t("ready"), time: timeOf(order.readyAt) },
+    { label: t("received"), time: timeOf(order.collectedAt) },
   ];
 
   return (
-    <ol aria-label={t("label")} className="flex items-center">
-      {steps.map(({ label, time, note, pending }, index) => {
+    <ol aria-label={t("label")} className="flex flex-wrap items-center gap-x-7 gap-y-2">
+      {steps.map(({ label, time }, index) => {
         const state: StepState = index < current ? "done" : index === current ? "now" : "later";
         return (
           <li
             key={label}
             aria-current={state === "now" ? "step" : undefined}
-            className={cn("relative flex min-w-0 flex-1 items-center", index === 0 && "flex-none")}
+            className={cn(
+              "flex items-center gap-1.5",
+              state === "done" && "text-body-sm font-medium text-fresh",
+              state === "now" && "text-body-sm-strong text-primary-foreground",
+              state === "later" && "text-body-sm text-inverse-muted",
+            )}
           >
-            {index > 0 ? (
-              <span
-                aria-hidden
-                className={cn(
-                  "mr-3 h-0.5 flex-1",
-                  index <= current ? "bg-fresh" : "bg-inverse-faint/40",
-                )}
-              />
-            ) : null}
-            <span className="flex min-w-0 items-center gap-2">
-              <StepIcon state={state} />
-              <span className="flex min-w-0 flex-col">
-                <span
-                  className={cn(
-                    state === "now" ? "text-title text-primary-foreground" : "text-body-sm",
-                    state === "done" && "font-medium text-fresh",
-                    state === "later" && "text-inverse-muted",
-                  )}
-                >
-                  {label}
-                </span>
-                {state === "later" ? (
-                  <span className="text-label text-inverse-muted">{pending}</span>
-                ) : time || (state === "now" && note) ? (
-                  <span
-                    className={cn(
-                      "text-label text-inverse-muted",
-                      state === "now" && "font-medium",
-                    )}
-                  >
-                    {time}
-                    {state === "now" && note ? (
-                      <span>
-                        {time ? " · " : ""}
-                        {note}
-                      </span>
-                    ) : null}
-                  </span>
-                ) : null}
-              </span>
-            </span>
+            <StepMark state={state} />
+            {state === "done" && time ? `${label} ${time}` : label}
           </li>
         );
       })}

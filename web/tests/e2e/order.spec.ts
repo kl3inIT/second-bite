@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
@@ -49,7 +49,8 @@ async function expectSteps(page: Page, current: number) {
 
 /** The dish's line on the order's page, its units and name in spans of their own (Figma D2 › Món đã đặt). */
 function dishLine(page: Page) {
-  return page.getByRole("main").getByText(DISH, { exact: true });
+  // From 768px the details card writes the dishes in one line, "1× Bánh…" (Figma D4).
+  return page.getByRole("main").getByText(isWide(page) ? `1× ${DISH}` : DISH, { exact: true });
 }
 
 // SEC-76 › Figma K5, O7; SEC-83 › Figma D1–D5: ordering needs no account, only a name and a phone number
@@ -85,7 +86,7 @@ test.describe("ordering from the cart", () => {
     await check.getByRole("button", { name: "Đúng, đặt món" }).click();
 
     await expect(page).toHaveURL(ORDER_URL);
-    await expect(page.getByRole("heading", { name: /^Đơn #SB-\d+$/, level: 1 })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /^Đơn #SB-\d+/, level: 1 })).toBeVisible();
     await expect(page.getByText("Đã xác nhận · quán đang chuẩn bị")).toBeVisible();
     await expectSteps(page, 1);
     await expect(page.getByText(/^Mã QR hiện khi món sẵn sàng/)).toBeVisible();
@@ -257,6 +258,12 @@ test.describe("ordering from the cart", () => {
       } else {
         expect(ticket!.y).toBeGreaterThan(steps!.y);
       }
+      // The customer header is over the band, and the ticket sits inside the band (Figma D4).
+      await expect(page.getByRole("searchbox", { name: "Tìm món hoặc quán" })).toBeVisible();
+      const band = await page.getByRole("heading", { level: 1 }).boundingBox();
+      expect(ticket!.y).toBeGreaterThan(band!.y - 1);
+      await expect(page.getByRole("heading", { name: "Cách nhận món" })).toBeVisible();
+      await expect(page.getByText("Đổi ý?")).toBeVisible();
       const widths = await page.evaluate(() => ({
         page: document.documentElement.scrollWidth,
         screen: document.documentElement.clientWidth,
@@ -265,6 +272,26 @@ test.describe("ordering from the cart", () => {
       await expectNoSeriousA11yViolations(page);
     });
   }
+
+  // Figma D2, D3: a phone lists the ticket, how to collect once ready, the dishes, the way there, then cancelling.
+  test("a phone's cards follow each other with cancelling last", async ({ page, isMobile }) => {
+    test.skip(!isMobile, "the phone's layout");
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    await orderAs(page, "Lan", "0900 000 000");
+    await expect(page).toHaveURL(ORDER_URL);
+
+    await expect(page.getByRole("heading", { name: "Cách nhận món" })).toHaveCount(0);
+    const y = async (locator: Locator) => (await locator.boundingBox())!.y;
+    const ticket = await y(page.getByText(/^Mã QR hiện khi món sẵn sàng/));
+    const dishes = await y(page.getByText(/^Món đã đặt/));
+    const place = await y(page.getByRole("link", { name: /^Chỉ đường/ }));
+    const cancel = await y(page.getByRole("button", { name: "Huỷ đơn" }));
+    expect(ticket).toBeLessThan(dishes);
+    expect(dishes).toBeLessThan(place);
+    expect(place).toBeLessThan(cancel);
+    await expect(page.getByText(/miễn phí/)).toHaveCount(0);
+  });
 
   // SEC-99: a 360 px phone and a seller with a long name and address, as "Tiệm Bánh Nhà Nhật, 21, Cầu Giấy,
   // Hà Nội" on staging. The stub's seller is short, so its name and address are lengthened on the page.

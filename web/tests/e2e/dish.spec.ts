@@ -118,6 +118,10 @@ test.describe("a dish, its seller and the cart", () => {
       const sidebar = page.getByRole("complementary", { name: "Giỏ của bạn" });
       await expect(sidebar).toBeVisible();
       await expect(sidebar.getByText("Chọn món để thêm vào giỏ.")).toBeVisible();
+      // Figma WK3: the customer header, "Theo dõi" beside the seller and the menu's index at the left.
+      await expect(page.getByRole("searchbox", { name: "Tìm món hoặc quán" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Theo dõi La Paris" })).toBeVisible();
+      await expect(page.getByRole("navigation", { name: "Loại món" })).toBeVisible();
 
       await (
         await hydrated(

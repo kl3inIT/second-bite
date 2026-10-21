@@ -404,10 +404,21 @@
       "number": "Order number",
       "payment": "Payment",
       "atCounter": "Pay at the counter",
-      "nothing": "Nothing charged"
+      "nothing": "Nothing charged",
+      "date": "Day",
+      "today": "Today, {date}",
+      "window": "Collection window",
+      "dishes": "Dishes",
+      "payAtCounter": "Pay at the counter"
     },
     "how": {
       "title": "How to collect",
+      "wideGo": "1. Go to the till",
+      "wideGoBody": "{seller} · {address}",
+      "wideQr": "2. Show the QR code",
+      "wideQrBody": "Or give your name and phone number",
+      "wideTake": "3. Check the dishes, pay",
+      "wideTakeBody": "Cash or the shop's QR code",
       "goTitle": "Go to the till",
       "takeTitle": "Take your food",
       "takeBody": "Bring your own bag",
@@ -418,14 +429,9 @@
       "label": "Order steps",
       "placed": "Placed",
       "preparing": "Preparing",
-      "preparingNote": "the seller is preparing",
       "ready": "Ready",
-      "readyNote": "come to the counter",
-      "readyPending": "Not ready yet",
       "collected": "Done",
-      "received": "Collected",
-      "collectedNote": "enjoy your meal",
-      "collectedPending": "Not collected yet"
+      "received": "Collected"
     },
     "timeline": {
       "title": "Status",
@@ -472,10 +478,13 @@
       "confirm": "Cancel order",
       "tooLate": "Too late to cancel free of charge: the collection window has opened.",
       "failed": "The order was not cancelled. Try again, or report the reference {reference}.",
-      "free": "· free before {until}"
+      "change": "Changed your mind?",
+      "after": "After {until} the order cannot be cancelled, because the food is set aside for you."
     },
     "date": "{day}/{month}",
     "orderNumber": "Order #{number}",
+    "metaToday": "Order #{number} · placed today {time} · {seller}, {address}",
+    "metaOn": "Order #{number} · placed {date} {time} · {seller}, {address}",
     "cardMeta": "#{number} · {total} · {place}",
     "day": {
       "today": "Today",

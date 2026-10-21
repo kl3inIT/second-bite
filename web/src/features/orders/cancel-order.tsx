@@ -71,45 +71,60 @@ export function CancelOrder({
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger render={<Button variant="ghost" size="lg" />}>
-        <CircleXIcon aria-hidden className="text-destructive" />
-        <span className="text-destructive">{t("open")}</span>
-        <span className="font-normal text-muted-foreground">{t("free", { until: freeUntil })}</span>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("title", { number })}</AlertDialogTitle>
-          <AlertDialogDescription>{t("body", { units, seller })}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <fieldset className="flex flex-wrap gap-2">
-          <legend className="sr-only">{t("reason")}</legend>
-          {reasons.map((key) => (
-            <Button
-              key={key}
-              variant={reason === key ? "secondary" : "outline"}
-              aria-pressed={reason === key}
-              onClick={() => setReason(reason === key ? undefined : key)}
-            >
-              {t(`reasons.${key}`)}
+    <div className="flex flex-col gap-2 pt-2 pb-6 md:flex-row md:items-center md:gap-3 md:rounded-2xl md:bg-card md:px-5 md:py-4.5 md:pb-4.5">
+      {/* Figma D4: from 768px the button sits at the end of a card that asks "Đổi ý?". */}
+      <span
+        aria-hidden
+        className="hidden size-9 shrink-0 items-center justify-center rounded-full bg-destructive-muted text-destructive md:flex"
+      >
+        <CircleXIcon className="size-5" />
+      </span>
+      <div className="hidden min-w-0 flex-1 flex-col md:flex">
+        <p className="text-title-lg text-foreground">{t("change")}</p>
+        <p className="text-body-sm text-muted-foreground">{t("after", { until: freeUntil })}</p>
+      </div>
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogTrigger
+          render={<Button variant="cancel" size="lg" className="h-12 w-full md:w-auto" />}
+        >
+          {t("open")}
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("title", { number })}</AlertDialogTitle>
+            <AlertDialogDescription>{t("body", { units, seller })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <fieldset className="flex flex-wrap gap-2">
+            <legend className="sr-only">{t("reason")}</legend>
+            {reasons.map((key) => (
+              <Button
+                key={key}
+                variant={reason === key ? "secondary" : "outline"}
+                aria-pressed={reason === key}
+                onClick={() => setReason(reason === key ? undefined : key)}
+              >
+                {t(`reasons.${key}`)}
+              </Button>
+            ))}
+          </fieldset>
+          {failure ? (
+            <p role="alert" className="text-body-sm text-destructive">
+              {failure.tooLate
+                ? t("tooLate")
+                : t("failed", { reference: failure.reference ?? "—" })}
+            </p>
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel variant="ghost" size="lg">
+              {t("keep")}
+            </AlertDialogCancel>
+            <Button size="lg" disabled={pending} onClick={cancel}>
+              {pending ? <Spinner data-icon="inline-start" /> : null}
+              {t("confirm")}
             </Button>
-          ))}
-        </fieldset>
-        {failure ? (
-          <p role="alert" className="text-body-sm text-destructive">
-            {failure.tooLate ? t("tooLate") : t("failed", { reference: failure.reference ?? "—" })}
-          </p>
-        ) : null}
-        <AlertDialogFooter>
-          <AlertDialogCancel variant="ghost" size="lg">
-            {t("keep")}
-          </AlertDialogCancel>
-          <Button size="lg" disabled={pending} onClick={cancel}>
-            {pending ? <Spinner data-icon="inline-start" /> : null}
-            {t("confirm")}
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

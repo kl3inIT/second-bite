@@ -16,7 +16,9 @@ test.describe("the favourites", () => {
     await expectNoSeriousA11yViolations(page);
 
     await page.goto("/vi/sellers/se-la-paris");
-    const heart = await hydrated(page.getByRole("button", { name: "Yêu thích La Paris" }));
+    const heart = await hydrated(
+      page.getByRole("button", { name: /^(Yêu thích|Theo dõi) La Paris$/ }),
+    );
     await heart.click();
     await expect(heart).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText("Đã thêm vào Yêu thích")).toBeVisible();

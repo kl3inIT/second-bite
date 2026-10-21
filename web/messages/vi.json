@@ -404,10 +404,21 @@
       "number": "Mã đơn",
       "payment": "Thanh toán",
       "atCounter": "Thanh toán tại quầy",
-      "nothing": "Không thu tiền"
+      "nothing": "Không thu tiền",
+      "date": "Ngày",
+      "today": "Hôm nay, {date}",
+      "window": "Khung giờ nhận",
+      "dishes": "Món",
+      "payAtCounter": "Trả tại quầy"
     },
     "how": {
       "title": "Cách nhận món",
+      "wideGo": "1. Đến quầy thu ngân",
+      "wideGoBody": "{seller} · {address}",
+      "wideQr": "2. Đưa mã QR",
+      "wideQrBody": "Hoặc đọc tên, số điện thoại",
+      "wideTake": "3. Kiểm món, trả tiền",
+      "wideTakeBody": "Tiền mặt hoặc QR của quán",
       "goTitle": "Đến quầy thu ngân",
       "takeTitle": "Nhận món",
       "takeBody": "Nhớ mang túi riêng",
@@ -418,14 +429,9 @@
       "label": "Các bước của đơn",
       "placed": "Đã đặt",
       "preparing": "Chuẩn bị",
-      "preparingNote": "quán đang chuẩn bị",
       "ready": "Sẵn sàng",
-      "readyNote": "mời bạn tới quầy",
-      "readyPending": "Chưa sẵn sàng",
       "collected": "Hoàn tất",
-      "received": "Đã nhận",
-      "collectedNote": "chúc ngon miệng",
-      "collectedPending": "Chưa nhận"
+      "received": "Đã nhận"
     },
     "timeline": {
       "title": "Trạng thái",
@@ -472,10 +478,13 @@
       "confirm": "Huỷ đơn",
       "tooLate": "Đã quá giờ huỷ miễn phí: khung nhận đã mở.",
       "failed": "Chưa huỷ được đơn. Thử lại, hoặc báo mã tham chiếu {reference}.",
-      "free": "· miễn phí trước {until}"
+      "change": "Đổi ý?",
+      "after": "Sau {until} đơn không huỷ được, vì món đã để riêng cho bạn."
     },
     "date": "{day}/{month}",
     "orderNumber": "Đơn #{number}",
+    "metaToday": "Đơn #{number} · đặt hôm nay {time} · {seller}, {address}",
+    "metaOn": "Đơn #{number} · đặt {date} {time} · {seller}, {address}",
     "cardMeta": "#{number} · {total} · {place}",
     "day": {
       "today": "Hôm nay",

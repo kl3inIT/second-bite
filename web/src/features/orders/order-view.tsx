@@ -14,6 +14,7 @@ import {
   CollectTicket,
   Directions,
   HowToCollect,
+  OrderFacts,
   OrderSteps,
   OrderSummary,
   SellerRow,
@@ -32,70 +33,98 @@ function useDuration() {
   };
 }
 
-// The order page's width: a phone's column, wider on a tablet, and from 1024px the content width of the wide
-// layout, where the order's details sit in a column at the right (SEC-97 › decision 8).
-const PAGE_WIDTH = "max-w-xl md:max-w-3xl lg:max-w-292";
+// A phone's column, and the frame of the wide layout from 768px (Figma D4): the content width, 32px from the sides,
+// the blocks 24px apart. The pale ground rises over the customer header's foot, so the frame starts 32px under it.
+const PHONE_COLUMN = "max-w-xl";
+const WIDE_FRAME = "md:mx-auto md:flex md:w-full md:max-w-292 md:flex-col md:gap-6 md:px-8 md:pt-8";
+
+/** "Đơn #SB-24817 · đặt hôm nay 19:52 · La Paris, Tầng 1", the line over the status on a wide screen (Figma D4). */
+function useOrderMeta(order: Order, now: number) {
+  const t = useTranslations("Orders");
+  const format = useFormatter();
+  const date = useOrderDate();
+  const placed = date(order.createdAt);
+  const values = {
+    number: order.number,
+    date: placed,
+    time: format.dateTime(new Date(order.createdAt), "time"),
+    seller: order.seller.name,
+    address: order.seller.address,
+  };
+  return t(placed === date(new Date(now).toISOString()) ? "metaToday" : "metaOn", values);
+}
 
 /**
- * The blue band at the top of an order (Figma K6, K6b): the back button and the order's number, a line in lime, a
- * large figure under it and a line in pale blue, then the four steps.
+ * The blue band at the top of an order (Figma K6, K6b, D4): on a phone the back button and the order's number, a
+ * line in lime, a large figure under it and a line in pale blue, then the four steps; from 768px a rounded card
+ * on the page's ground that starts with the order's number, placing and seller, with the ticket at its right
+ * from 1024px.
  */
 function StatusBand({
   order,
+  meta,
   eyebrow,
   figure,
   line,
-  beside,
+  ticket,
 }: {
   order: Order;
+  meta: string;
   eyebrow: string;
   figure: string;
   line: string;
-  /** Whether the ticket sits at the right of the band from 1024px (Figma D4), so the band leaves room for it. */
-  beside?: boolean;
+  /** The ticket of an open order: under the band on a phone, in it from 768px (Figma D4). */
+  ticket?: React.ReactNode;
 }) {
   const t = useTranslations("Orders");
 
   return (
-    <section
-      className={cn(
-        "relative overflow-hidden bg-header text-header-foreground",
-        beside && "lg:col-span-3 lg:col-start-1 lg:row-start-1 lg:rounded-4xl",
-      )}
-    >
-      <span aria-hidden className="absolute -top-24 -right-20 size-64 rounded-full bg-sweep" />
-      <div
-        className={cn(
-          "relative mx-auto flex w-full flex-col px-4 pb-10",
-          PAGE_WIDTH,
-          beside && "lg:max-w-none lg:py-4 lg:pr-100 lg:pl-10",
-        )}
-      >
-        <div className="flex h-16 items-center gap-3">
-          <BackButton fallback="/orders" />
-          <h1 className="text-bar-title">{t("orderNumber", { number: order.number })}</h1>
-        </div>
-        <p className="mt-3 text-title text-fresh">{eyebrow}</p>
-        <p className="font-display text-display">{figure}</p>
-        <p className="mt-1 text-body-sm text-inverse-muted">{line}</p>
-        <div className="mt-5">
-          <OrderSteps order={order} />
+    <section className="md:flex md:flex-col md:gap-10 md:rounded-4xl md:bg-header md:py-8 md:pr-8 md:pl-10 md:text-header-foreground lg:flex-row lg:items-center">
+      <div className="relative overflow-hidden bg-header text-header-foreground md:flex-1 md:overflow-visible md:bg-transparent">
+        <span
+          aria-hidden
+          className="absolute -top-24 -right-20 size-64 rounded-full bg-sweep md:hidden"
+        />
+        <div
+          className={cn(
+            "relative mx-auto flex w-full flex-col px-4 pb-10 md:max-w-none md:gap-2 md:p-0",
+            PHONE_COLUMN,
+          )}
+        >
+          <div className="flex h-16 items-center gap-3 md:hidden">
+            <BackButton fallback="/orders" />
+            <h1 className="text-bar-title">{t("orderNumber", { number: order.number })}</h1>
+          </div>
+          <h1 className="hidden text-body-sm font-medium text-inverse-faint md:block">{meta}</h1>
+          <p className="mt-3 text-title text-fresh md:mt-0 md:text-card-title">{eyebrow}</p>
+          <p className="font-display text-display md:text-hero">{figure}</p>
+          <p className="mt-1 text-body-sm text-inverse-muted md:mt-0 md:text-body">{line}</p>
+          <div className="mt-5 md:mt-0 md:pt-4">
+            <OrderSteps order={order} />
+          </div>
         </div>
       </div>
+      {ticket ? (
+        <div className="relative -mt-6 rounded-t-3xl bg-background md:m-0 md:w-full md:max-w-89.5 md:rounded-none md:bg-transparent lg:shrink-0">
+          <div className={cn("mx-auto w-full px-4 pt-4 md:max-w-none md:p-0", PHONE_COLUMN)}>
+            {ticket}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
 
-/** The pale ground under the band: one column, or from 1024px the main column beside the order's details. */
+/** The pale ground under a collected order's band: one column, or from 1024px the main column beside the order's details. */
 function OrderBody({ main, aside }: { main: React.ReactNode; aside: React.ReactNode }) {
   return (
-    <div className="relative -mt-6 rounded-t-3xl bg-background">
+    <div className="relative -mt-6 rounded-t-3xl bg-background md:mt-0 md:rounded-none md:bg-transparent">
       {/* grid-cols-1: a phone's one column may shrink, so a long seller's line that truncates does not widen
           the page past the screen (SEC-99). */}
       <div
         className={cn(
-          "mx-auto grid w-full grid-cols-1 items-start gap-3 px-4 pt-4 pb-6 lg:grid-cols-3 lg:gap-6",
-          PAGE_WIDTH,
+          "mx-auto grid w-full grid-cols-1 items-start gap-3 px-4 pt-4 pb-6 md:max-w-none md:gap-4 md:p-0 lg:grid-cols-3 lg:gap-6",
+          PHONE_COLUMN,
         )}
       >
         <div className="flex flex-col gap-3 lg:col-span-2">{main}</div>
@@ -106,11 +135,11 @@ function OrderBody({ main, aside }: { main: React.ReactNode; aside: React.ReactN
 }
 
 /**
- * An order still to collect (Figma K6, D4): the blue band with the window in large figures, how long until it opens
- * or closes and the steps; on the pale ground below, the ticket with the orders placed with it, how to collect
- * once it is ready, the way to the counter and cancelling while it is free; the dishes and totals beside them.
- * From 1024px the article is a grid of three columns: the ticket at the right of the band, how to collect and
- * cancelling under it in two, the dishes and totals and the way to the counter in the third.
+ * An order still to collect (Figma D2, D3, D4): the blue band with the window in large figures, how long until it
+ * opens or closes and the steps; on a phone the ticket under it, how to collect once it is ready, the dishes and
+ * totals, the way to the counter, and cancelling at the very end. From 768px the ticket is in the band, and two
+ * columns follow: how to collect and cancelling, then the order's details and the way to the counter (one column
+ * below 1024px).
  */
 export function OpenOrder({
   order,
@@ -126,18 +155,16 @@ export function OpenOrder({
   const t = useTranslations("Orders");
   const format = useFormatter();
   const duration = useDuration();
+  const meta = useOrderMeta(order, now);
   const from = format.dateTime(new Date(order.windowStart), "time");
   const until = format.dateTime(new Date(order.windowEnd), "time");
   const ready = order.status === "ready";
 
   return (
-    <article
-      aria-label={t("orderNumber", { number: order.number })}
-      className="lg:mx-auto lg:grid lg:w-full lg:max-w-292 lg:grid-cols-3 lg:items-start lg:gap-x-6 lg:gap-y-4 lg:pt-6"
-    >
+    <article aria-label={t("orderNumber", { number: order.number })} className={WIDE_FRAME}>
       <StatusBand
-        beside
         order={order}
+        meta={meta}
         eyebrow={t(`headline.${ready ? "ready" : "confirmed"}`)}
         figure={`${from} – ${until}`}
         line={
@@ -145,48 +172,46 @@ export function OpenOrder({
             ? t("opensIn", { left: duration(Date.parse(order.windowStart) - now) })
             : t("closesIn", { left: duration(Date.parse(order.windowEnd) - now) })
         }
+        ticket={<CollectTicket order={order} together={together} />}
       />
-      <div className="relative -mt-6 rounded-t-3xl bg-background lg:contents">
-        {/* grid-cols-1: see OrderBody. */}
-        <div
-          className={cn(
-            "mx-auto grid w-full grid-cols-1 items-start gap-3 px-4 pt-4 pb-6 lg:contents",
-            PAGE_WIDTH,
-          )}
-        >
-          <div className="flex flex-col gap-3 lg:contents">
-            <div className="lg:z-10 lg:col-start-3 lg:row-start-1 lg:m-8 lg:w-full lg:max-w-89.5 lg:self-center lg:justify-self-end">
-              <CollectTicket order={order} together={together} />
-            </div>
-            {ready ? (
-              <div className="lg:col-span-2 lg:col-start-1 lg:row-start-2">
-                <HowToCollect order={order} />
-              </div>
-            ) : null}
-            <div className="lg:col-start-3 lg:row-start-3">
-              <Directions order={order} />
-            </div>
-            {cancellable ? (
-              <div className="flex justify-center lg:col-span-2 lg:col-start-1 lg:row-start-3 lg:justify-start">
-                <CancelOrder
-                  orderId={order.id}
-                  access={order.access}
-                  number={order.number}
-                  seller={order.seller.name}
-                  units={unitsOf(order)}
-                  freeUntil={from}
-                />
-              </div>
-            ) : null}
+      {/* On a phone the two columns are one: their cards follow each other, cancelling last. */}
+      <div
+        className={cn(
+          "mx-auto flex w-full flex-col gap-3 px-4 pt-3 pb-6 md:max-w-none md:gap-4 md:p-0 lg:flex-row lg:items-start lg:gap-6",
+          PHONE_COLUMN,
+        )}
+      >
+        <div className="max-lg:contents lg:flex lg:min-w-0 lg:flex-1 lg:flex-col lg:gap-4">
+          {/* Figma D2 has no steps to collect before the order is ready; D4 has them in both. */}
+          <div className={cn(!ready && "max-md:hidden")}>
+            <HowToCollect order={order} />
           </div>
-          <div className="flex flex-col gap-3 lg:contents">
-            <section
-              aria-label={t("details")}
-              className="rounded-2xl bg-card p-4 text-card-foreground lg:col-start-3 lg:row-start-2"
-            >
+          {cancellable ? (
+            <div className="max-lg:order-last">
+              <CancelOrder
+                orderId={order.id}
+                access={order.access}
+                number={order.number}
+                seller={order.seller.name}
+                units={unitsOf(order)}
+                freeUntil={from}
+              />
+            </div>
+          ) : null}
+        </div>
+        <div className="max-lg:contents lg:flex lg:w-89.5 lg:shrink-0 lg:flex-col lg:gap-4">
+          <section
+            aria-label={t("details")}
+            className="rounded-2xl bg-card p-4 text-card-foreground"
+          >
+            <div className="md:hidden">
               <OrderSummary order={order} />
-            </section>
-          </div>
+            </div>
+            <div className="hidden md:block">
+              <OrderFacts order={order} />
+            </div>
+          </section>
+          <Directions order={order} />
         </div>
       </div>
     </article>
@@ -197,16 +222,26 @@ export function OpenOrder({
  * A collected order (Figma K6b, WK6b): the blue band with when it was collected, what it saved in large figures
  * and the steps all done; below, the rating, or the rating given, beside the seller and the order's details.
  */
-export function CollectedOrder({ order, together }: { order: Order; together: Order[] }) {
+export function CollectedOrder({
+  order,
+  together,
+  now,
+}: {
+  order: Order;
+  together: Order[];
+  now: number;
+}) {
   const t = useTranslations("Orders");
   const format = useFormatter();
   const date = useOrderDate();
   const when = order.collectedAt ?? order.windowEnd;
+  const meta = useOrderMeta(order, now);
 
   return (
-    <article aria-label={t("orderNumber", { number: order.number })}>
+    <article aria-label={t("orderNumber", { number: order.number })} className={WIDE_FRAME}>
       <StatusBand
         order={order}
+        meta={meta}
         eyebrow={t("endedAt.collected", {
           time: format.dateTime(new Date(when), "time"),
           date: date(when),
