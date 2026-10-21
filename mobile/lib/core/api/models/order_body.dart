@@ -8,6 +8,7 @@ import 'order_body_refuse_reason.dart';
 import 'order_body_status.dart';
 import 'order_line_body.dart';
 import 'order_seller_body.dart';
+import 'review_body.dart';
 
 part 'order_body.freezed.dart';
 part 'order_body.g.dart';
@@ -50,6 +51,9 @@ abstract class OrderBody with _$OrderBody {
     String? refuseNote,
     OrderBodyRefuseReason? refuseReason,
     DateTime? refusedAt,
+
+    /// The customer's rating of the collected order; none until they rate it
+    ReviewBody? review,
   }) = _OrderBody;
 
   factory OrderBody.fromJson(Map<String, Object?> json) =>

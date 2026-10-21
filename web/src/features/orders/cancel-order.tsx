@@ -1,5 +1,6 @@
 "use client";
 
+import { CircleXIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
@@ -21,21 +22,25 @@ import { cancelOrder } from "@/lib/api/generated";
 
 const reasons = ["late", "mistake", "other"] as const;
 
-// Cancelling an order, asked once more first (Figma W2b): its units go back to the seller, nothing was paid,
-// and a reason may be chosen. The page reads the order again afterwards and shows it cancelled (W4). An order
-// placed without signing in is cancelled with its access (SEC-76 › decision 7).
+// Cancelling an order from the line under it (Figma D2 › huỷ đơn), asked once more first (Figma W2b): its
+// units go back to the seller, nothing was paid, and a reason may be chosen. The page reads the order again
+// afterwards and shows it cancelled. An order placed without signing in is cancelled with its access (SEC-76 ›
+// decision 7).
 export function CancelOrder({
   orderId,
   access,
   number,
   seller,
   units,
+  freeUntil,
 }: {
   orderId: string;
   access?: string;
   number: string;
   seller: string;
   units: number;
+  /** When the window opens, until which cancelling is free. */
+  freeUntil: string;
 }) {
   const t = useTranslations("Orders.cancel");
   const router = useRouter();
@@ -67,7 +72,11 @@ export function CancelOrder({
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger render={<Button variant="outline" />}>{t("open")}</AlertDialogTrigger>
+      <AlertDialogTrigger render={<Button variant="ghost" size="lg" />}>
+        <CircleXIcon aria-hidden className="text-destructive" />
+        <span className="text-destructive">{t("open")}</span>
+        <span className="font-normal text-muted-foreground">{t("free", { until: freeUntil })}</span>
+      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{t("title", { number })}</AlertDialogTitle>

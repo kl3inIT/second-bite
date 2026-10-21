@@ -47,6 +47,7 @@ func TestSeller(t *testing.T) {
 		"additions arriving together keep the cap": testStaffCapUnderConcurrency,
 		"the owner sets a photo they uploaded":     testOwnerSetsAPhoto,
 		"admins read who belongs to which seller":  testMembershipsForAdmins,
+		"customers follow sellers and list them":   testFollowing,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

@@ -39,6 +39,9 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
   refusedAt: json['refusedAt'] == null
       ? null
       : DateTime.parse(json['refusedAt'] as String),
+  review: json['review'] == null
+      ? null
+      : ReviewBody.fromJson(json['review'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
@@ -63,6 +66,7 @@ Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
       'refuseNote': instance.refuseNote,
       'refuseReason': _$OrderBodyRefuseReasonEnumMap[instance.refuseReason],
       'refusedAt': instance.refusedAt?.toIso8601String(),
+      'review': instance.review,
     };
 
 const _$OrderBodyStatusEnumMap = {
@@ -83,5 +87,6 @@ const _$OrderBodyRefuseReasonEnumMap = {
   OrderBodyRefuseReason.valueLate: 'late',
   OrderBodyRefuseReason.soldOut: 'sold_out',
   OrderBodyRefuseReason.other: 'other',
+  OrderBodyRefuseReason.withdrawn: 'withdrawn',
   OrderBodyRefuseReason.$unknown: r'$unknown',
 };

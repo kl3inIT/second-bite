@@ -3,25 +3,34 @@
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { ChoiceOption } from "@/components/choice-option";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { RadioGroup } from "@/components/ui/radio-group";
 import { formatPrice } from "@/features/offers/format";
 import { directionsHref } from "@/features/offers/offer";
+import { OfferPhoto } from "@/features/offers/offer-photo";
 import { SellerLogo } from "@/features/offers/seller-logo";
-import { useMeters } from "@/features/offers/window";
 import { Link } from "@/i18n/navigation";
 
-import { collectionWindow, totals, withBasket, type Basket, type Cart } from "./cart";
+import {
+  collectionWindow,
+  oneMore,
+  removeOne,
+  totals,
+  withBasket,
+  type Basket,
+  type Cart,
+  type CartLine,
+} from "./cart";
 import { saveCart, useCart } from "./cart-store";
 import type { Contact } from "./contact";
 import { GoneSheet } from "./gone-sheet";
 import { OrderButton } from "./order-button";
+import { Stepper } from "./quantity-stepper";
 import { usePlaceCart } from "./use-place-cart";
 
-// The cart's confirmation (Figma K5): where and when to collect at each seller, how to pay at the counter, the
-// dishes with "Sửa món", the totals, the cancellation policy, and "Đặt món", which
+// The cart's confirmation (Figma K5): one card per seller's order with where and when to collect and the dishes
+// each with its − and +, how to pay at the counter, the totals, the cancellation policy, and "Đặt món" ("Đặt 2 đơn"
+// for two sellers), which
 // asks who collects in a sheet and checks the phone number once, then orders each seller's dishes and opens the order, signed
 // in or not (SEC-76); a dish someone else took first asks what to do with the rest (O7).
 export function Checkout() {
@@ -48,44 +57,32 @@ export function Checkout() {
 
 function Confirmation({ cart }: { cart: Cart }) {
   const t = useTranslations("Cart");
-  const [payment, setPayment] = useState("counter");
   const [contact, setContact] = useState<Contact>();
   const { place, pending, problem, dismiss } = usePlaceCart();
   const { units, priceVnd, originalPriceVnd } = totals(cart);
-  const several = cart.baskets.length > 1;
+  const orders = cart.baskets.length;
 
   return (
     <>
       <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-5 bg-card px-4 pt-4 pb-6">
-        <section aria-labelledby="collect" className="flex flex-col gap-3">
-          <h2 id="collect" className="text-title-lg text-foreground">
-            {t("collectAt")}
-          </h2>
-          {cart.baskets.map((basket) => (
-            <CollectionPoint key={basket.seller.id} basket={basket} />
-          ))}
-        </section>
+        {cart.baskets.map((basket) => (
+          <SellerOrder key={basket.seller.id} cart={cart} basket={basket} />
+        ))}
         <section aria-labelledby="pay" className="flex flex-col gap-3">
           <h2 id="pay" className="text-title-lg text-foreground">
             {t("pay")}
           </h2>
-          <RadioGroup
-            value={payment}
-            onValueChange={(value) => setPayment(String(value))}
-            aria-labelledby="pay"
-          >
-            <ChoiceOption value="counter" title={t("counter")} hint={t("counterHint")} />
-            <ChoiceOption value="cash" title={t("cash")} hint={t("cashHint")} />
-          </RadioGroup>
+          {/* The only way to pay: at the counter, in cash or by the seller's QR code, when collecting. */}
+          <div className="flex min-h-16 flex-col justify-center rounded-lg border border-border bg-card px-3.5 py-3">
+            <p className="text-body-sm-strong text-foreground">{t("counter")}</p>
+            <p className="text-label text-muted-foreground">{t("counterHint")}</p>
+          </div>
         </section>
         <section aria-labelledby="summary" className="flex flex-col gap-3">
           <h2 id="summary" className="text-title-lg text-foreground">
-            {t("summaryTitle")}
+            {t("summaryTitle", { orders })}
           </h2>
-          {cart.baskets.map((basket) => (
-            <BasketLines key={basket.seller.id} basket={basket} named={several} />
-          ))}
-          <dl className="flex flex-col gap-3 border-t border-border pt-3 text-body-sm text-foreground">
+          <dl className="flex flex-col gap-3 text-body-sm text-foreground">
             <div className="flex items-center justify-between gap-3">
               <dt>{t("dishes", { units })}</dt>
               <dd className="font-display text-price-sm">{formatPrice(priceVnd)}</dd>
@@ -100,9 +97,11 @@ function Confirmation({ cart }: { cart: Cart }) {
           <h2 id="cancel" className="text-label-strong text-muted-foreground uppercase">
             {t("cancelTitle")}
           </h2>
-          {cart.baskets.map((basket) => (
-            <CancelPolicy key={basket.seller.id} basket={basket} named={several} />
-          ))}
+          {orders > 1 ? (
+            <p className="text-label text-muted-foreground">{t("cancelEach")}</p>
+          ) : (
+            <CancelPolicy basket={cart.baskets[0]} />
+          )}
         </section>
       </div>
       <div className="sticky bottom-0 z-40 border-t border-border bg-card">
@@ -116,11 +115,16 @@ function Confirmation({ cart }: { cart: Cart }) {
                 <s className="text-label text-muted-foreground">{formatPrice(originalPriceVnd)}</s>
               </p>
               <p className="text-label-strong text-foreground">
-                {t("totalSummary", { units, saved: formatPrice(originalPriceVnd - priceVnd) })}
+                {t("totalSummary", {
+                  orders,
+                  units,
+                  saved: formatPrice(originalPriceVnd - priceVnd),
+                })}
               </p>
             </div>
             <div className="flex flex-1 *:w-full">
               <OrderButton
+                orders={orders}
                 pending={pending}
                 onConfirmed={(confirmed) => {
                   setContact(confirmed);
@@ -159,81 +163,78 @@ function Confirmation({ cart }: { cart: Cart }) {
   );
 }
 
-/** Where and when one seller's dishes are collected, with the way there. */
-function CollectionPoint({ basket }: { basket: Basket }) {
+// One seller's order (Figma K5 "đơn · quán"): the seller's logo, name, floor and window with the way there, over
+// the dishes ordered from them, on a card with a hairline.
+function SellerOrder({ cart, basket }: { cart: Cart; basket: Basket }) {
   const t = useTranslations("Cart");
   const { from, until } = useWindow(basket);
-  const distance = useMeters(basket.distanceMeters);
+  const heading = `seller-${basket.seller.id}`;
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border px-3.5 py-3">
-      <SellerLogo seller={basket.seller} size="lg" />
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <p className="text-body-sm-strong text-foreground">
-          {t("place", { seller: basket.seller.name, place: basket.seller.address })}
-        </p>
-        {distance && <p className="text-label text-muted-foreground">{t("away", { distance })}</p>}
-        <p className="text-label text-foreground">{t("window", { from, until })}</p>
+    <section
+      aria-labelledby={heading}
+      className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3.5"
+    >
+      <div className="flex items-center gap-2.5">
+        <SellerLogo seller={basket.seller} size="sm" />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <h2 id={heading} className="truncate text-title-lg text-foreground">
+            {basket.seller.name}
+          </h2>
+          <p className="text-label text-muted-foreground">
+            {t("sellerWindow", { place: basket.seller.address, from, until })}
+          </p>
+        </div>
         <a
           href={directionsHref(basket.collectionPoint)}
           target="_blank"
           rel="noreferrer"
-          className="self-start text-label-strong text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+          className="-mr-2 flex min-h-11 shrink-0 items-center rounded-lg px-2 text-label-strong text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
         >
           {t("directions")}
         </a>
       </div>
-    </div>
-  );
-}
-
-/** One seller's dishes with "Sửa món" back to the seller, under the seller's name when there are several. */
-function BasketLines({ basket, named }: { basket: Basket; named: boolean }) {
-  const t = useTranslations("Cart");
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className={named ? "text-body-sm-strong text-foreground" : "sr-only"}>
-          {basket.seller.name}
-        </h3>
-        <Link
-          href={`/sellers/${basket.seller.id}`}
-          aria-label={named ? t("editAt", { seller: basket.seller.name }) : undefined}
-          className="-my-3 flex min-h-11 items-center text-body-sm-strong text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-        >
-          {t("edit")}
-        </Link>
-      </div>
-      <ul className="flex flex-col gap-3">
+      <ul className="flex flex-col gap-3 border-t border-border pt-3">
         {basket.lines.map((line) => (
-          <li
-            key={line.id}
-            className="flex items-center justify-between gap-3 text-body-sm text-foreground"
-          >
-            <span className="min-w-0">
-              {t("line", { quantity: line.quantity, name: line.name })}
-            </span>
-            <span className="shrink-0 font-display text-price-sm">
-              {formatPrice(line.quantity * line.priceVnd)}
-            </span>
+          <li key={line.id}>
+            <LineRow cart={cart} line={line} />
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+// A dish of the cart (Figma K5 "món"): its photograph, the dish over what its portions cost, and its − and +; at
+// one portion − takes it out of the cart at once.
+function LineRow({ cart, line }: { cart: Cart; line: CartLine }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative size-13 shrink-0 overflow-hidden rounded-md bg-muted">
+        {line.photo && <OfferPhoto offer={{ photo: line.photo }} sizes="52px" />}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <p className="truncate text-body-sm text-foreground">{line.name}</p>
+        <p className="font-display text-price-sm text-foreground">
+          {formatPrice(line.quantity * line.priceVnd)}
+        </p>
+      </div>
+      <Stepper
+        name={line.name}
+        quantity={line.quantity}
+        canAdd={line.quantity < line.unitsLeft}
+        onAdd={() => saveCart(oneMore(cart, line.id))}
+        onRemove={() => saveCart(removeOne(cart, line.id))}
+      />
     </div>
   );
 }
 
-function CancelPolicy({ basket, named }: { basket: Basket; named: boolean }) {
+function CancelPolicy({ basket }: { basket: Basket }) {
   const t = useTranslations("Cart");
   const { from } = useWindow(basket);
-  const body = t("cancelBody", { time: from });
 
-  return (
-    <p className="text-label text-muted-foreground">
-      {named ? t("cancelAt", { seller: basket.seller.name, body }) : body}
-    </p>
-  );
+  return <p className="text-label text-muted-foreground">{t("cancelBody", { time: from })}</p>;
 }
 
 function useWindow(basket: Basket): { from: string; until: string } {

@@ -45,15 +45,16 @@ function order(overrides: Partial<OrderBody> = {}): OrderBody {
 }
 
 describe("the order tabs", () => {
-  it("falls back to the orders still held", () => {
-    expect(readOrderTab(undefined)).toBe("holding");
-    expect(readOrderTab("nonsense")).toBe("holding");
+  it("falls back to the orders being prepared", () => {
+    expect(readOrderTab(undefined)).toBe("preparing");
+    expect(readOrderTab("nonsense")).toBe("preparing");
+    expect(readOrderTab("ready")).toBe("ready");
     expect(readOrderTab("cancelled")).toBe("cancelled");
   });
 
   it("puts every way an order can end without a hand-over in one tab", () => {
-    expect(tabOfOrder(order({ status: "confirmed" }))).toBe("holding");
-    expect(tabOfOrder(order({ status: "ready" }))).toBe("holding");
+    expect(tabOfOrder(order({ status: "confirmed" }))).toBe("preparing");
+    expect(tabOfOrder(order({ status: "ready" }))).toBe("ready");
     expect(tabOfOrder(order({ status: "collected" }))).toBe("delivered");
     for (const status of ["cancelled", "refused", "expired"] as const) {
       expect(tabOfOrder(order({ status }))).toBe("cancelled");
@@ -66,8 +67,10 @@ describe("the order tabs", () => {
       order({ id: "b", status: "collected" }),
       order({ id: "c" }),
       order({ id: "d", status: "refused", refuseReason: "no_show" }),
+      order({ id: "e", status: "ready" }),
     ]);
-    expect(groups.holding.map((o) => o.id)).toEqual(["a", "c"]);
+    expect(groups.preparing.map((o) => o.id)).toEqual(["a", "c"]);
+    expect(groups.ready.map((o) => o.id)).toEqual(["e"]);
     expect(groups.delivered.map((o) => o.id)).toEqual(["b"]);
     expect(groups.cancelled.map((o) => o.id)).toEqual(["d"]);
   });

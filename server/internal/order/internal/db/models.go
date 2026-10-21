@@ -5,6 +5,8 @@
 package db
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -17,4 +19,12 @@ type OrderLine struct {
 	OriginalPriceVnd int64
 	PhotoID          uuid.UUID
 	Units            int32
+}
+
+type OrderReview struct {
+	OrderID   uuid.UUID
+	Stars     int16
+	Tags      []string
+	Comment   string
+	CreatedAt time.Time
 }

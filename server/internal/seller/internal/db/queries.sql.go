@@ -222,6 +222,33 @@ func (q *Queries) CountSellersForAdmins(ctx context.Context, arg CountSellersFor
 	return count, err
 }
 
+const deleteFollow = `-- name: DeleteFollow :exec
+DELETE FROM seller_follows WHERE account_id = $1 AND seller_id = $2
+`
+
+type DeleteFollowParams struct {
+	AccountID uuid.UUID
+	SellerID  uuid.UUID
+}
+
+func (q *Queries) DeleteFollow(ctx context.Context, arg DeleteFollowParams) error {
+	_, err := q.db.Exec(ctx, deleteFollow, arg.AccountID, arg.SellerID)
+	return err
+}
+
+const deleteFollowsOf = `-- name: DeleteFollowsOf :execrows
+DELETE FROM seller_follows WHERE account_id = $1
+`
+
+// Every favourite of an account, once the account is deleted (SEC-109).
+func (q *Queries) DeleteFollowsOf(ctx context.Context, accountID uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteFollowsOf, accountID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deleteMembershipsOf = `-- name: DeleteMembershipsOf :execrows
 DELETE FROM seller_members WHERE account_id = $1
 `
@@ -250,6 +277,50 @@ func (q *Queries) DeleteStaff(ctx context.Context, arg DeleteStaffParams) (int64
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const followedSellers = `-- name: FollowedSellers :many
+SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.photo_id
+FROM seller_follows f JOIN seller_sellers s ON s.id = f.seller_id
+WHERE f.account_id = $1 AND s.status = 'active'
+ORDER BY f.created_at DESC, s.id
+`
+
+type FollowedSellersRow struct {
+	ID        uuid.UUID
+	Name      string
+	Address   string
+	Latitude  float64
+	Longitude float64
+	PhotoID   uuid.NullUUID
+}
+
+// The active sellers an account follows, the latest followed first.
+func (q *Queries) FollowedSellers(ctx context.Context, accountID uuid.UUID) ([]FollowedSellersRow, error) {
+	rows, err := q.db.Query(ctx, followedSellers, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FollowedSellersRow
+	for rows.Next() {
+		var i FollowedSellersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Address,
+			&i.Latitude,
+			&i.Longitude,
+			&i.PhotoID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getSeller = `-- name: GetSeller :one
@@ -292,6 +363,22 @@ func (q *Queries) GetSeller(ctx context.Context, id uuid.UUID) (GetSellerRow, er
 		&i.PhotoID,
 	)
 	return i, err
+}
+
+const insertFollow = `-- name: InsertFollow :exec
+INSERT INTO seller_follows (account_id, seller_id)
+VALUES ($1, $2)
+ON CONFLICT (account_id, seller_id) DO NOTHING
+`
+
+type InsertFollowParams struct {
+	AccountID uuid.UUID
+	SellerID  uuid.UUID
+}
+
+func (q *Queries) InsertFollow(ctx context.Context, arg InsertFollowParams) error {
+	_, err := q.db.Exec(ctx, insertFollow, arg.AccountID, arg.SellerID)
+	return err
 }
 
 const insertMember = `-- name: InsertMember :execrows

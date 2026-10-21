@@ -143,7 +143,7 @@
     "sellerAway": "Quán {seller} · cách {distance}",
     "windowAt": "{window} · {place}",
     "rating": "Quán được chấm {rating} trên 5",
-    "heart": "Yêu thích {name}"
+    "badge": "-{percent}%"
   },
   "Intro": {
     "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
@@ -362,61 +362,26 @@
     "home": "Trang chủ",
     "orders": "Đơn của tôi",
     "saved": "Yêu thích",
-    "account": "Tài khoản",
-    "soon": "(sắp có)"
+    "account": "Tài khoản"
   },
   "Orders": {
     "orderTitle": "Đơn của bạn",
-    "togetherTitle": "Đơn ở {sellers} quán",
-    "togetherBody": "{names} · tổng {total}. Mỗi quán có mã nhận riêng, trả tiền tại quầy của quán.",
     "mine": "Đơn của tôi",
-    "mineLead": "Đang chờ nhận và đã xong",
     "lists": "Danh sách đơn",
     "tabOpen": "Đang chờ nhận ({count})",
-    "tabEnded": "Đã xong ({count})",
+    "tabEnded": "Đã xong",
     "noneOpen": "Bạn chưa có đơn nào đang chờ nhận.",
     "noneEnded": "Chưa có đơn nào đã xong.",
-    "before": "Trước đó",
     "readyUntil": "Sẵn sàng · đến {until}",
-    "collectFrom": "Nhận từ {from}",
-    "payOnCollect": "Thanh toán khi nhận hàng",
     "seeOrder": "Xem đơn",
-    "collectAs": "Nhận đơn bằng tên và số điện thoại",
-    "collectHint": "Đọc tên và số điện thoại cho quầy khi đến nhận.",
-    "impact": "{meals} bữa ngon, trọn đến miếng cuối",
-    "impactSaved": "Bạn đã tiết kiệm {saved} so với giá gốc",
-    "status": {
-      "confirmed": "Đã xác nhận",
-      "ready": "Sẵn sàng",
-      "collected": "Đã nhận",
-      "cancelled": "Đã huỷ",
-      "refused": "Quán không giao",
-      "expired": "Hết hạn"
-    },
-    "meta": "Đơn {number} · đặt lúc {time} · {seller}, {address}",
     "hoursMinutes": "{hours} giờ {minutes} phút",
     "minutes": "{minutes} phút",
     "headline": {
       "confirmed": "Đã xác nhận · quán đang chuẩn bị",
       "ready": "Món đã sẵn sàng"
     },
-    "opensIn": "Nhận hôm nay tại quầy {seller} · mở sau {left}",
-    "closesIn": "Nhận hôm nay tại quầy {seller} · còn {left}",
-    "changeOfMind": "Đổi ý?",
-    "changeOfMindBody": "Huỷ miễn phí trước {from}. Sau đó không huỷ được, vì món đã để riêng cho bạn.",
-    "ended": {
-      "collected": "Đã nhận món",
-      "cancelled": "Đã huỷ đơn",
-      "refused": "Quán không giao đơn",
-      "expired": "Đơn đã hết hạn"
-    },
-    "endedBody": {
-      "collected": "Cảm ơn bạn đã cứu {units} phần món ngon khỏi bị bỏ phí.",
-      "cancelled": "Không mất phí nào · {units} phần đã trả lại cho quán",
-      "refused": "Bạn không phải trả tiền cho đơn này.",
-      "expired": "Không ai đến nhận trước {until} · đơn ghi là không nhận · không thu tiền"
-    },
-    "tonightMore": "Còn nhiều món ngon tối nay",
+    "opensIn": "Nhận hôm nay · mở sau {left}",
+    "closesIn": "Nhận hôm nay · còn {left}",
     "seeOthers": "Xem món khác",
     "details": "Chi tiết đơn",
     "counterToday": "{address} · {from}–{until} hôm nay",
@@ -430,37 +395,33 @@
     "signInBody": "Chưa có đơn nào đặt trên trình duyệt này. Nếu bạn đặt khi đã đăng nhập, đăng nhập để xem.",
     "signIn": "Đăng nhập",
     "facts": {
-      "day": "Ngày",
-      "window": "Khung giờ nhận",
-      "what": "Món",
+      "saved": "Tiết kiệm",
+      "savedValue": "{saved} so với giá gốc",
       "total": "Tổng",
       "number": "Mã đơn",
       "payment": "Thanh toán",
-      "atCounter": "Trả tại quầy",
+      "atCounter": "Thanh toán tại quầy",
       "nothing": "Không thu tiền"
     },
     "how": {
       "title": "Cách nhận món",
-      "goTitle": "Đến quầy",
-      "goBody": "Quầy {seller}, Tasco Mall",
-      "nameTitle": "Đọc tên, số điện thoại",
-      "nameBody": "Nhân viên tìm đơn của bạn",
-      "payTitle": "Kiểm món, trả tiền",
-      "payBody": "Tiền mặt hoặc chuyển khoản cho quán"
+      "goTitle": "Đến quầy thu ngân",
+      "takeTitle": "Nhận món",
+      "takeBody": "Nhớ mang túi riêng",
+      "qrTitle": "Đưa mã QR",
+      "qrBody": "hoặc đọc tên, số ĐT"
     },
     "steps": {
       "label": "Các bước của đơn",
-      "placed": "Đã đặt {time}",
+      "placed": "Đã đặt",
       "preparing": "Chuẩn bị",
       "ready": "Sẵn sàng",
-      "readyAt": "Sẵn sàng {time}",
-      "collected": "Đã nhận"
+      "collected": "Hoàn tất"
     },
     "timeline": {
       "title": "Trạng thái",
       "placed": "Bạn đã đặt đơn",
       "ready": "Món đã sẵn sàng",
-      "collected": "Bạn đã nhận món",
       "cancelled": "Bạn đã huỷ đơn",
       "withReason": "{time} · {reason}",
       "returned": "{units} phần đã trả lại cho quán",
@@ -473,16 +434,20 @@
         "no_show": "bạn chưa đến nhận",
         "late": "đã quá giờ nhận",
         "sold_out": "món đã hết",
-        "other": "lý do khác"
+        "other": "lý do khác",
+        "withdrawn": "quán đã rút bài này"
       },
       "expired": "Hết giờ nhận",
       "expiredBody": "{until} · đơn ghi là không nhận",
       "summary": {
-        "collected": "Bạn đã trả tiền cho quán khi nhận món.",
         "cancelled": "Bạn chưa trả tiền nên không có gì phải hoàn.",
         "refused": "Bạn chưa trả tiền nên không có gì phải hoàn.",
         "expired": "Lần sau nếu không kịp, hãy huỷ trước giờ mở để món đến được người khác."
-      }
+      },
+      "placedBody": "{date}, {time} · {units} phần · {total}",
+      "confirmed": "Quán xác nhận đơn",
+      "confirmedBody": "{time} · giữ {units} phần cho bạn",
+      "readyBody": "{time} · quán báo bạn đến nhận"
     },
     "cancel": {
       "open": "Huỷ đơn",
@@ -497,44 +462,66 @@
       "keep": "Giữ đơn",
       "confirm": "Huỷ đơn",
       "tooLate": "Đã quá giờ huỷ miễn phí: khung nhận đã mở.",
-      "failed": "Chưa huỷ được đơn. Thử lại, hoặc báo mã tham chiếu {reference}."
+      "failed": "Chưa huỷ được đơn. Thử lại, hoặc báo mã tham chiếu {reference}.",
+      "free": "· miễn phí trước {until}"
     },
-    "date": "{day}/{month}"
+    "date": "{day}/{month}",
+    "orderNumber": "Đơn #{number}",
+    "cardMeta": "#{number} · {total} · {place}",
+    "day": {
+      "today": "Hôm nay",
+      "week": "Tuần này",
+      "before": "Trước đó"
+    },
+    "endedLine": {
+      "confirmed": "Đã xác nhận",
+      "ready": "Sẵn sàng",
+      "collected": "Đã nhận",
+      "cancelled": "Đã huỷ · không thu tiền",
+      "refused": "Quán không giao · không thu tiền",
+      "expired": "Hết hạn, không đến nhận"
+    },
+    "ordered": "Món đã đặt · {units} phần",
+    "originalPrice": "Giá gốc",
+    "endedAt": {
+      "collected": "Đã nhận món lúc {time} · {date}",
+      "cancelled": "Đã huỷ lúc {time} · {date}",
+      "refused": "Quán không giao · {date}",
+      "expired": "Hết hạn lúc {time} · {date}"
+    },
+    "collectLater": "Mã QR hiện khi món sẵn sàng. Có thể đọc tên, số điện thoại để nhận món.",
+    "collectReady": "Đưa mã QR cho quầy quét hoặc đọc tên, số điện thoại để nhận món.",
+    "collectAt": "Nhận lúc {from}",
+    "savedLine": "Tiết kiệm so với giá gốc · {units} phần không bị bỏ phí",
+    "placedWith": "Cùng lần đặt: {seller}"
   },
   "Splash": {
     "tagline": "Món ngon còn lại cuối ngày, giá tốt hơn",
     "loading": "Đang tải…"
   },
   "Dish": {
-    "seeSeller": "Xem quán",
-    "placeAway": "{place} · {distance}",
-    "portion": "{kind} · 1 {unit}",
-    "window": "Nhận hôm nay {from} – {until}",
-    "rating": "Quán được {rating} sao",
-    "more": "Món khác của quán đang giảm",
-    "other": "{name}, {price}",
-    "saving": "Giảm {percent}% · còn {units} phần",
-    "share": "Chia sẻ món",
-    "copied": "Đã chép đường dẫn",
-    "booking": "Đặt món",
-    "portions": "Số phần · còn {units}",
-    "addUnits": "Thêm {units} phần vào giỏ · {price}",
-    "save": "Lưu món",
-    "shareLabel": "Chia sẻ",
-    "crumbs": "Bạn đang ở đây",
-    "home": "Trang chủ"
+    "about": "Về món này",
+    "weight": "Khoảng {grams} g.",
+    "notes": "Lưu ý",
+    "bringBag": "Nên mang túi hoặc hộp riêng.",
+    "askSeller": "Hỏi quán về thành phần và dị ứng.",
+    "count": "{count} phần {name} sẽ thêm",
+    "add": "Thêm vào giỏ · {price}",
+    "allChosen": "Đã chọn đủ {units} phần"
   },
   "Seller": {
-    "search": "Tìm món của {seller}",
-    "rating": "Điểm của quán",
-    "window": "Giờ nhận hôm nay",
-    "where": "Nơi nhận",
+    "search": "Tìm trong thực đơn {seller}",
+    "window": "Nhận hôm nay {from}–{until}",
     "directions": "Chỉ đường ›",
     "kinds": "Loại món",
     "onSale": "Đang giảm",
     "tonight": "Đang giảm tối nay",
     "nothing": "Quán chưa có món tối nay",
-    "home": "Xem món khác"
+    "home": "Xem món khác",
+    "placeAway": "{place} · cách {distance}",
+    "noMatch": "Không có món nào khớp “{q}”",
+    "share": "Chia sẻ quán",
+    "copied": "Đã chép đường dẫn"
   },
   "Cart": {
     "title": "Xác nhận đơn",
@@ -542,36 +529,26 @@
     "add": "Thêm một phần {name}",
     "remove": "Bớt một phần {name}",
     "quantity": "{quantity} phần {name} trong giỏ",
-    "addToCart": "Thêm vào giỏ",
-    "view": "Xem giỏ hàng · {units} phần",
     "soldOut": "Đã hết",
-    "portionsLeft": "-{percent}% · còn {units} phần",
-    "portionsChosen": "-{percent}% · đã chọn đủ {units} phần",
+    "portionsLeft": "còn {units} phần",
+    "portionsChosen": "đã chọn đủ {units} phần",
     "summary": "{units} phần · tiết kiệm {saved}",
     "open": "Xem giỏ hàng",
     "empty": "Giỏ hàng đang trống",
     "browse": "Xem món tối nay",
-    "collectAt": "Nhận món tại",
-    "place": "{seller} · {place}",
-    "away": "Cách bạn {distance}",
     "window": "Nhận hôm nay {from}–{until}",
     "directions": "Chỉ đường",
     "pay": "Thanh toán",
     "counter": "Thanh toán tại quầy",
-    "counterHint": "Trả tiền mặt hoặc chuyển khoản khi nhận món",
-    "cash": "Tiền mặt",
-    "cashHint": "Trả khi nhận món",
-    "summaryTitle": "Tóm tắt đơn",
-    "edit": "Sửa món",
-    "editAt": "Sửa món của {seller}",
+    "counterHint": "Tiền mặt hoặc quét QR của quán khi nhận món",
+    "summaryTitle": "{orders, plural, =1 {Tổng cộng} other {Tổng cộng · # đơn}}",
     "line": "{quantity}× {name}",
     "dishes": "Tiền món ({units} phần)",
     "total": "Tổng tiền",
     "cancelTitle": "Chính sách huỷ",
     "cancelBody": "Huỷ miễn phí trước {time}.",
-    "cancelAt": "{seller}: {body}",
-    "totalSummary": "Tổng {units} phần · tiết kiệm {saved}",
-    "order": "Đặt món",
+    "totalSummary": "{orders, plural, =1 {Tổng {units} phần} other {# đơn · {units} phần}} · tiết kiệm {saved}",
+    "order": "{orders, plural, =1 {Đặt món} other {Đặt # đơn}}",
     "contactTitle": "Người đến nhận",
     "contactHint": "Quán gọi tên này khi bạn đến và gọi số này nếu cần.",
     "nameLabel": "Tên",
@@ -592,7 +569,9 @@
     "restUnits": "{units} phần còn lại",
     "otherDishes": "Xem món khác của quán",
     "orderFailed": "Chưa đặt được món. Thử lại, hoặc báo mã tham chiếu {reference}.",
-    "orderFailedPlain": "Chưa đặt được món. Kiểm tra mạng rồi thử lại."
+    "orderFailedPlain": "Chưa đặt được món. Kiểm tra mạng rồi thử lại.",
+    "sellerWindow": "{place} · Nhận {from} – {until}",
+    "cancelEach": "Huỷ miễn phí trước giờ nhận của từng đơn."
   },
   "AccountSettings": {
     "title": "Cài đặt tài khoản",
@@ -667,6 +646,14 @@
     "phonePlaceholder": "09xx xxx xxx",
     "address": "Địa chỉ quán",
     "addressPlaceholder": "Số nhà, đường, phường, quận",
+    "locate": "Dùng vị trí hiện tại",
+    "located": {
+      "filled": "Đã lấy vị trí hiện tại, sai số khoảng {meters} m. Bạn có thể sửa địa chỉ.",
+      "kept": "Đã ghim quán tại vị trí của bạn, sai số khoảng {meters} m. Địa chỉ giữ như bạn đã nhập.",
+      "unknown": "Đã ghim quán tại vị trí của bạn, sai số khoảng {meters} m. Chưa tìm được tên đường, bạn nhập địa chỉ nhé."
+    },
+    "locateDenied": "Chưa lấy được vị trí. Hãy cho phép vị trí trong trình duyệt, hoặc nhập địa chỉ bằng tay.",
+    "locateFailed": "Chưa lấy được vị trí lúc này. Bạn nhập địa chỉ bằng tay nhé.",
     "photo": "Ảnh đại diện quán",
     "choosePhoto": "Chọn ảnh từ máy",
     "photoHint": "Một ảnh giúp khách nhận ra quán của bạn.",
@@ -688,6 +675,11 @@
     "posts": "Bài đăng",
     "catalog": "Danh mục",
     "orders": "Đơn"
+  },
+  "StoreMenu": {
+    "shop": "Về trang người mua",
+    "mine": "Quán của tôi",
+    "create": "Tạo thêm quán"
   },
   "StoreHome": {
     "title": "Trang chủ quán",
@@ -733,7 +725,7 @@
   "StoreOrders": {
     "title": "Đơn",
     "portions": "phần",
-    "summaryHolding": "Đang giữ {units} phần · {people} khách",
+    "summaryHolding": "Chuẩn bị {preparing} · sẵn sàng {ready}",
     "summaryDelivered": "Hôm nay {count} đơn · {amount}",
     "summaryCancelled": "Hôm nay {count} đơn hủy",
     "searchLabel": "Tìm đơn",
@@ -741,12 +733,14 @@
     "searchCount": "{count} kết quả",
     "tabs": "Nhóm đơn",
     "tab": {
-      "holding": "Đang giữ · {count}",
+      "preparing": "Chuẩn bị · {count}",
+      "ready": "Sẵn sàng · {count}",
       "delivered": "Đã giao · {count}",
       "cancelled": "Đã hủy · {count}"
     },
     "empty": {
-      "holding": "Chưa có ai giữ món ngày này. Khi khách giữ, tên và số điện thoại hiện ở đây.",
+      "preparing": "Chưa có đơn nào đang chuẩn bị ngày này. Khi khách đặt món, tên và số điện thoại hiện ở đây.",
+      "ready": "Chưa có đơn nào sẵn sàng ngày này. Món xong thì bấm Báo sẵn sàng.",
       "delivered": "Chưa giao đơn nào ngày này.",
       "cancelled": "Chưa có đơn nào bị hủy ngày này."
     },
@@ -755,6 +749,7 @@
     "units": "{count} {unit}",
     "copyPhone": "Sao chép số điện thoại {phone}",
     "copied": "Đã sao chép số điện thoại.",
+    "markReady": "Báo sẵn sàng",
     "deliver": "Đã giao",
     "cancel": "Hủy đơn",
     "reopen": "Hoàn tác",
@@ -769,7 +764,8 @@
       "sold_out": "Hết món",
       "other": "Lý do khác",
       "not_suitable": "Món không còn phù hợp",
-      "wrong_items": "Sai món"
+      "wrong_items": "Sai món",
+      "withdrawn": "Quán đã rút bài"
     },
     "ended": {
       "customer": "Khách tự hủy trên trang người dùng",
@@ -783,6 +779,52 @@
       "note": "Ghi lý do",
       "back": "Quay lại",
       "confirm": "Hủy đơn"
+    },
+    "detail": {
+      "pushedTitle": "Chi tiết đơn",
+      "back": "Về danh sách đơn",
+      "customer": "Khách",
+      "meta": "Đơn #{number} · đặt lúc {time}",
+      "headline": {
+        "confirmed": "Đơn mới · đang chuẩn bị",
+        "ready": "Đã báo sẵn sàng · chờ khách đến",
+        "collected": "Đã giao cho khách",
+        "cancelled": "Khách đã hủy đơn",
+        "refused": "Quán đã hủy đơn",
+        "expired": "Quá giờ lấy"
+      },
+      "opensIn": "Khách nhận hôm nay · giờ nhận mở sau {left}",
+      "closesIn": "Khách nhận hôm nay · còn {left}",
+      "over": "Hết giờ nhận lúc {until}",
+      "collectedAt": "Đã giao lúc {time}",
+      "hoursMinutes": "{hours} giờ {minutes} phút",
+      "minutes": "{minutes} phút",
+      "units": "{count} phần",
+      "hint": {
+        "confirmed": "Món xong thì bấm Báo sẵn sàng để khách biết đến lấy.",
+        "ready": "Khách đến thì quét mã QR của họ hoặc đối chiếu tên và số điện thoại, rồi bấm Đã giao."
+      },
+      "lines": "Món đã đặt · {count} phần",
+      "saving": "Tiết kiệm",
+      "savingValue": "{amount} so với giá gốc",
+      "total": "Tổng",
+      "number": "Mã đơn",
+      "payment": "Thanh toán",
+      "atCounter": "Thu tại quầy",
+      "next": {
+        "title": "Việc cần làm",
+        "preparing": "Món xong thì báo cho khách đến lấy.",
+        "ready": "Giao món khi khách đến quầy.",
+        "undoTitle": "Nhầm tay?",
+        "undoBody": "Mở lại đơn để làm tiếp."
+      }
+    },
+    "track": {
+      "label": "Các bước của đơn",
+      "placed": "Đã đặt",
+      "preparing": "Chuẩn bị",
+      "ready": "Sẵn sàng",
+      "collected": "Hoàn tất"
     }
   },
   "DayFilter": {
@@ -872,13 +914,12 @@
     "title": "Rút bài",
     "question": "Rút bài này?",
     "explain": "Chỉ rút được khi chưa có đơn. Bài rút sẽ biến mất khỏi trang khách ngay và nằm ở tab Đã đóng.",
+    "explainOrders": "Bài này đã có {count} suất được đặt. Rút bài sẽ huỷ các đơn đó ngay; khách thấy lý do “Quán đã rút bài” và có thể đặt món khác.",
     "keptNote": "Bài rút vẫn lưu ở tab Đã đóng, đăng lại được.",
-    "blocked": "Bài này đã có {count} suất được đặt nên chưa rút được. Hãy huỷ từng đơn ở tab Đơn trước.",
-    "blockedNote": "Đã có {count} suất đang chờ lấy.",
+    "ordersNote": "{count} suất đang chờ lấy sẽ bị huỷ.",
     "keep": "Giữ lại",
-    "close": "Đóng",
     "withdraw": "Rút bài",
-    "toOrders": "Đến tab Đơn",
+    "withdrawAndCancel": "Rút bài và huỷ đơn",
     "failed": "Chưa rút được. Thử lại sau ít phút.",
     "reference": "Mã tham chiếu: {id}"
   },
@@ -1144,7 +1185,8 @@
         "sellers": "Cửa hàng liên quan",
         "method": "Đăng nhập bằng",
         "created": "Ngày tạo",
-        "signedIn": "Lần đăng nhập cuối"
+        "signedIn": "Lần đăng nhập cuối",
+        "actions": "Thao tác"
       },
       "role": {
         "customer": "Khách",
@@ -1192,6 +1234,13 @@
         "missed": "Không đến",
         "cancelled": "Đã huỷ",
         "refused": "Quán từ chối"
+      },
+      "menu": {
+        "open": "Thao tác cho {name}",
+        "tooltip": "Thao tác",
+        "view": "Xem chi tiết",
+        "grant": "Cấp quyền quản trị…",
+        "revoke": "Thu quyền quản trị…"
       }
     },
     "admins": {
@@ -1372,5 +1421,42 @@
         }
       }
     }
+  },
+  "Review": {
+    "title": "Món hôm nay thế nào?",
+    "hint": "Đánh giá giúp quán và người mua sau.",
+    "starsLegend": "Số sao",
+    "star": "{count} sao",
+    "word": {
+      "1": "Tệ",
+      "2": "Chưa ổn",
+      "3": "Bình thường",
+      "4": "Tốt",
+      "5": "Tuyệt vời"
+    },
+    "tagsTitle": "Điều gì làm bạn hài lòng?",
+    "tag": {
+      "fast_pickup": "Nhận hàng nhanh",
+      "good_quality": "Chất lượng tốt",
+      "good_variety": "Đa dạng món",
+      "fair_portions": "Đủ số lượng"
+    },
+    "comment": "Viết vài dòng cho quán (không bắt buộc)",
+    "submit": "Gửi đánh giá",
+    "failed": "Chưa gửi được đánh giá. Thử lại sau, mã lỗi {reference}.",
+    "given": "Bạn đã đánh giá",
+    "thanks": "Cảm ơn bạn, quán sẽ đọc đánh giá này."
+  },
+  "Favourites": {
+    "title": "Yêu thích",
+    "intro": "Quán bạn theo dõi",
+    "follow": "Yêu thích {name}",
+    "added": "Đã thêm vào Yêu thích",
+    "removed": "Đã bỏ khỏi Yêu thích",
+    "failed": "Chưa lưu được, thử lại sau.",
+    "noneTonight": "Tối nay chưa có món giảm",
+    "emptyTitle": "Chưa có quán yêu thích",
+    "emptyBody": "Bấm ♡ ở trang quán để theo dõi.",
+    "explore": "Khám phá quán"
   }
 }

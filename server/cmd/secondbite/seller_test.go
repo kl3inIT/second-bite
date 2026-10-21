@@ -30,7 +30,8 @@ func newSeller(name, phone string) map[string]any {
 func checkSellerFlow(t *testing.T, svc service) {
 	t.Helper()
 
-	owner := bearer(signIn(t, svc, "seller.owner@example.com").Token)
+	ownerSession := signIn(t, svc, "seller.owner@example.com")
+	owner := bearer(ownerSession.Token)
 
 	var opened sellerResponse
 
@@ -61,7 +62,8 @@ func checkSellerFlow(t *testing.T, svc service) {
 		decode(t, http.StatusCreated, &struct{}{})
 
 	// The staff member had no account; they sign in like anyone and find the seller.
-	staff := bearer(signIn(t, svc, "seller.staff@example.com").Token)
+	staffSession := signIn(t, svc, "seller.staff@example.com")
+	staff := bearer(staffSession.Token)
 
 	var mine struct {
 		Sellers []sellerResponse `json:"sellers"`
@@ -88,7 +90,34 @@ func checkSellerFlow(t *testing.T, svc service) {
 	}
 
 	admin := bearer(signIn(t, svc, sellerAdminEmail).Token)
+	checkMembershipsOfAccounts(t, svc, admin, ownerSession.Account.ID, staffSession.Account.ID)
 	checkAdminBlocksAndLifts(t, svc, admin, opened.ID)
+}
+
+// checkMembershipsOfAccounts has an admin read the sellers of two accounts at
+// once, the ids repeated in the query as the generated clients send an array
+// (SEC-75).
+func checkMembershipsOfAccounts(t *testing.T, svc service, admin http.Header, ownerID, staffID string) {
+	t.Helper()
+
+	var held struct {
+		Memberships []struct {
+			AccountID string `json:"accountId"`
+			Role      string `json:"role"`
+		} `json:"memberships"`
+	}
+
+	send(t, http.MethodGet, svc.base+"/admin/memberships?accountId="+ownerID+"&accountId="+staffID, admin, nil).
+		decode(t, http.StatusOK, &held)
+
+	roles := map[string]string{}
+	for _, m := range held.Memberships {
+		roles[m.AccountID] = m.Role
+	}
+
+	if len(held.Memberships) != 2 || roles[ownerID] != "owner" || roles[staffID] != "staff" {
+		t.Errorf("the memberships of the owner and the staff member: %+v", held)
+	}
 }
 
 // checkAdminBlocksAndLifts has an admin block the seller with a reason, find

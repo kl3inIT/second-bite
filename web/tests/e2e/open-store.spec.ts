@@ -4,6 +4,10 @@ import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
 
 test.use({ locale: "vi-VN" });
+
+// A one-pixel PNG, the store's photo in the checks below.
+const onePixel =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 // Each test signs in and opens a store first, which takes a while when the projects run side by side.
 test.setTimeout(90_000);
 
@@ -31,6 +35,67 @@ test.describe("opening a store on the web", () => {
     await page.getByLabel("Mã đăng nhập 6 số").fill("123456");
     await expect(page).toHaveURL(/\/vi\/open-store$/);
     await expect(page.getByRole("heading", { level: 1, name: "Mở quán của bạn" })).toBeVisible();
+  });
+
+  test("fills the address from where the person stands, and pins the store there", async ({
+    page,
+    context,
+  }, testInfo) => {
+    await context.grantPermissions(["geolocation"]);
+    await context.setGeolocation({ latitude: 21.0367, longitude: 105.7818, accuracy: 20 });
+    await signIn(page, `dinh.${testInfo.project.name}@example.com`, "/open-store");
+
+    await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Cầu Giấy");
+    await page.getByLabel("Số điện thoại").fill("0912345678");
+    await page.getByRole("button", { name: "Dùng vị trí hiện tại" }).click();
+    await expect(page.getByLabel("Địa chỉ quán")).toHaveValue(
+      "21 Phố Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội",
+    );
+    await expect(
+      page.getByText("Đã lấy vị trí hiện tại, sai số khoảng 20 m. Bạn có thể sửa địa chỉ."),
+    ).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    // The store is pinned where the person stood, not at the mall.
+    const sent = page.waitForRequest(
+      (request) =>
+        request.method() === "POST" && new URL(request.url()).pathname.endsWith("/sellers"),
+    );
+    await page.getByRole("button", { name: "Tạo quán" }).click();
+    const body = (await sent).postDataJSON() as { latitude: number; longitude: number };
+    expect(body.latitude).toBeCloseTo(21.0367, 3);
+    expect(body.longitude).toBeCloseTo(105.7818, 3);
+  });
+
+  test("keeps an address the person wrote, and says when no street is found", async ({
+    page,
+    context,
+  }, testInfo) => {
+    await context.grantPermissions(["geolocation"]);
+    await context.setGeolocation({ latitude: 21.0367, longitude: 105.7818, accuracy: 20 });
+    await signIn(page, `mai.${testInfo.project.name}@example.com`, "/open-store");
+
+    await (await hydrated(page.getByLabel("Địa chỉ quán"))).fill("Tầng 2, Tasco Mall");
+    await page.getByRole("button", { name: "Dùng vị trí hiện tại" }).click();
+    await expect(page.getByText(/Địa chỉ giữ như bạn đã nhập/)).toBeVisible();
+    await expect(page.getByLabel("Địa chỉ quán")).toHaveValue("Tầng 2, Tasco Mall");
+
+    // Somewhere the geocoder knows nothing of: the store is pinned and the person writes the address.
+    await context.setGeolocation({ latitude: 10.77, longitude: 106.7, accuracy: 30 });
+    await page.getByLabel("Địa chỉ quán").fill("");
+    await page.getByRole("button", { name: "Dùng vị trí hiện tại" }).click();
+    await expect(page.getByText(/Chưa tìm được tên đường, bạn nhập địa chỉ nhé/)).toBeVisible();
+    await expect(page.getByLabel("Địa chỉ quán")).toHaveValue("");
+  });
+
+  test("says when the location is not given, and the address is typed", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `huong.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Hương");
+    await page.getByRole("button", { name: "Dùng vị trí hiện tại" }).click();
+    await expect(page.getByText(/Chưa lấy được vị trí/)).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
   });
 
   test("opens a store and lists it", async ({ page }, testInfo) => {
@@ -88,6 +153,56 @@ test.describe("opening a store on the web", () => {
 
     await page.getByRole("link", { name: /Quán Hai/ }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Quán Hai" })).toBeVisible();
+  });
+
+  test("shows the store's photo in its header and in the list of stores", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `anh.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByLabel("Tên quán"))).fill("Ăn cùng chú Nhật");
+    await page.getByLabel("Số điện thoại").fill("0912345678");
+    await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await page.getByLabel("Ảnh đại diện quán").setInputFiles({
+      name: "quan.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(onePixel, "base64"),
+    });
+    await page.getByRole("button", { name: "Tạo quán" }).click();
+    await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
+
+    // The capsule of the store's name has its photo, not only its initials.
+    const photo = page.locator('header [data-slot="avatar-image"]').first();
+    await expect(photo).toHaveAttribute("src", /\/api\/photos\/ph-upload\/400\.jpg/);
+  });
+
+  test("the store's name opens a menu to the shop, the stores and a new store", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `bich.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Một");
+    await page.getByLabel("Số điện thoại").fill("0912345678");
+    await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await page.getByRole("button", { name: "Tạo quán" }).click();
+    await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
+
+    // With one store the name still opens the menu, and does not reload the page.
+    await page.getByRole("button", { name: "Quán Một", exact: true }).click();
+    await expect(page.getByRole("menuitem", { name: "Về trang người mua" })).toHaveAttribute(
+      "href",
+      /\/vi$/,
+    );
+    await expect(page.getByRole("menuitem", { name: "Quán Một" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    await expect(page.getByRole("menuitem", { name: "Tạo thêm quán" })).toHaveAttribute(
+      "href",
+      /\/vi\/open-store$/,
+    );
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole("menuitem", { name: "Tạo thêm quán" }).click();
+    await expect(page).toHaveURL(/\/vi\/open-store$/);
   });
 
   test("a store's posts are in three tabs", async ({ page }, testInfo) => {
@@ -390,17 +505,24 @@ test.describe("changing a post on the web", () => {
     );
   });
 
-  test("does not withdraw a post that has orders", async ({ page }, testInfo) => {
+  test("withdraws a post that has orders, and says they are cancelled", async ({
+    page,
+  }, testInfo) => {
     const store = await storeNamed(page, "tam", testInfo, "Tiệm có đơn");
     await page.goto(`/vi/stores/${store}/offers/of-1-${store}/withdraw`);
 
     const drawer = page.getByRole("dialog");
     await expect(
-      drawer.getByText(/Bài này đã có 2 suất được đặt nên chưa rút được\./),
+      drawer.getByText(/Bài này đã có 2 suất được đặt\. Rút bài sẽ huỷ các đơn đó/),
     ).toBeVisible();
-    await expect(drawer.getByRole("button", { name: "Rút bài" })).toHaveCount(0);
-    await expect(drawer.getByRole("link", { name: "Đến tab Đơn" })).toBeVisible();
+    await expect(drawer.getByText("2 suất đang chờ lấy sẽ bị huỷ.")).toBeVisible();
+    await expect(drawer.getByRole("link", { name: "Đến tab Đơn" })).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
+
+    await drawer.getByRole("button", { name: "Rút bài và huỷ đơn" }).click();
+    await expect(page.getByText(/Đã rút bài\. Bài nằm ở tab Đã đóng/)).toBeVisible({
+      timeout: 15_000,
+    });
   });
 });
 

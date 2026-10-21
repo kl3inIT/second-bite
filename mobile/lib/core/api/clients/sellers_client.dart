@@ -6,7 +6,9 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/add_seller_staff_request.dart';
+import '../models/address_output_body.dart';
 import '../models/details_body.dart';
+import '../models/followed_output_body.dart';
 import '../models/member_body.dart';
 import '../models/members_output_body.dart';
 import '../models/seller_body.dart';
@@ -24,6 +26,19 @@ abstract class SellersClient {
   @POST('/sellers')
   Future<SellerBody> openSeller({@Body() required DetailsBody body});
 
+  /// The address at a point, to fill the form that opens a store; empty when it is not known
+  @GET('/sellers/address')
+  Future<AddressOutputBody> addressAt({
+    @Query('latitude') required double latitude,
+    @Query('longitude') required double longitude,
+  });
+
+  /// The active sellers I follow, the latest followed first.
+  ///
+  /// A seller blocked since is left out.
+  @GET('/sellers/followed')
+  Future<FollowedOutputBody> listFollowedSellers();
+
   /// The sellers I own or work for
   @GET('/sellers/mine')
   Future<SellersOutputBody> listMySellers();
@@ -38,6 +53,18 @@ abstract class SellersClient {
     @Path('sellerId') required String sellerId,
     @Body() required DetailsBody body,
   });
+
+  /// Take a seller out of my favourites.
+  ///
+  /// A seller I do not follow is left as it is.
+  @DELETE('/sellers/{sellerId}/follow')
+  Future<void> unfollowSeller({@Path('sellerId') required String sellerId});
+
+  /// Make an active seller one of my favourites.
+  ///
+  /// Following again changes nothing. A seller pending or blocked answers 404.
+  @PUT('/sellers/{sellerId}/follow')
+  Future<void> followSeller({@Path('sellerId') required String sellerId});
 
   /// The owner and staff of a seller
   @GET('/sellers/{sellerId}/members')

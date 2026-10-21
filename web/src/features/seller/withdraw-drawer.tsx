@@ -6,18 +6,19 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
-import { Link, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { failureOf } from "@/lib/api/client";
 import { withdrawOffer } from "@/lib/api/generated";
 
 import type { EditTarget } from "./post-draft";
 
-// The drawer that withdraws a live post (SEC-57, Figma E3, E3b): a post nobody has ordered leaves the customers'
-// pages at once and stays in "Đã đóng", where it can be posted again; one with orders is not withdrawn and the
-// drawer says so, with the way to the orders. The reasons Figma asks for are not kept by the backend yet.
+// The drawer that withdraws a live post (SEC-57, Figma E3, E3b): the post leaves the customers' pages at once and
+// stays in "Đã đóng", where it can be posted again. A post with orders is withdrawn too (SEC-108): the drawer
+// says the orders end with it, and the customers who hold them read "Quán đã rút bài". The reasons Figma asks for
+// are not kept by the backend yet.
 export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target: EditTarget }) {
   const t = useTranslations("WithdrawDrawer");
   const kindName = useTranslations("OfferKind");
@@ -26,7 +27,7 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
   const [pending, startTransition] = useTransition();
   const [failed, setFailed] = useState<{ detail?: string; reference?: string }>();
   const { dish, ordered } = target;
-  const blocked = ordered > 0;
+  const hasOrders = ordered > 0;
 
   function close() {
     router.push(`/stores/${sellerId}/offers`);
@@ -79,10 +80,16 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
             </span>
           </div>
           <p className="text-note text-muted-foreground">
-            {blocked ? t("blocked", { count: ordered }) : t("explain")}
+            {hasOrders ? t("explainOrders", { count: ordered }) : t("explain")}
           </p>
-          <output className="rounded-xl bg-secondary px-4 py-3 text-title-lg text-secondary-foreground">
-            {blocked ? t("blockedNote", { count: ordered }) : t("keptNote")}
+          <output
+            className={
+              hasOrders
+                ? "rounded-xl border border-warning-border bg-warning px-4 py-3 text-title-lg text-warning-foreground"
+                : "rounded-xl bg-secondary px-4 py-3 text-title-lg text-secondary-foreground"
+            }
+          >
+            {hasOrders ? t("ordersNote", { count: ordered }) : t("keptNote")}
           </output>
           {failed && (
             <Alert variant="destructive">
@@ -99,18 +106,18 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
 
         <SheetFooter variant="bar">
           <Button type="button" variant="outline" size="lg" disabled={pending} onClick={close}>
-            {blocked ? t("close") : t("keep")}
+            {t("keep")}
           </Button>
-          {blocked ? (
-            <Link href={`/stores/${sellerId}/orders`} className={buttonVariants({ size: "lg" })}>
-              {t("toOrders")}
-            </Link>
-          ) : (
-            <Button type="button" size="lg" disabled={pending} onClick={withdraw}>
-              {pending && <Spinner data-icon="inline-start" />}
-              {t("withdraw")}
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant={hasOrders ? "destructive" : "default"}
+            size="lg"
+            disabled={pending}
+            onClick={withdraw}
+          >
+            {pending && <Spinner data-icon="inline-start" />}
+            {hasOrders ? t("withdrawAndCancel") : t("withdraw")}
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

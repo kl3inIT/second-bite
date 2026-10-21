@@ -41,9 +41,11 @@ import {
  * the sheet.
  */
 export function OrderButton({
+  orders,
   pending,
   onConfirmed,
 }: {
+  orders: number;
   pending: boolean;
   onConfirmed: (contact: Contact) => void;
 }) {
@@ -70,7 +72,7 @@ export function OrderButton({
     <>
       <Button size="lg" onClick={() => setStep("contact")} disabled={pending}>
         {pending && <Spinner data-icon="inline-start" />}
-        {t("order")}
+        {t("order", { orders })}
       </Button>
       <Drawer open={step === "contact"} onOpenChange={(open) => !open && setStep(undefined)}>
         <DrawerContent>

@@ -31,6 +31,15 @@ components:
       required:
         - email
       type: object
+    AddressOutputBody:
+      additionalProperties: false
+      properties:
+        address:
+          description: As people write it; empty when the point has no known address
+          type: string
+      required:
+        - address
+      type: object
     AdminAccountsOutputBody:
       additionalProperties: false
       properties:
@@ -531,6 +540,18 @@ components:
         - smtpPasswordSet
         - brevoApiKeySet
         - updatedAt
+      type: object
+    FollowedOutputBody:
+      additionalProperties: false
+      properties:
+        sellers:
+          items:
+            $ref: "#/components/schemas/SellerProfileBody"
+          type:
+            - array
+            - "null"
+      required:
+        - sellers
       type: object
     FoundBody:
       additionalProperties: false
@@ -1139,10 +1160,14 @@ components:
             - late
             - sold_out
             - other
+            - withdrawn
           type: string
         refusedAt:
           format: date-time
           type: string
+        review:
+          $ref: "#/components/schemas/ReviewBody"
+          description: The customer's rating of the collected order; none until they rate it
         seller:
           $ref: "#/components/schemas/OrderSellerBody"
           description: Where the order is collected, copied when it was placed
@@ -1444,6 +1469,53 @@ components:
       required:
         - challengeId
         - expiresAt
+      type: object
+    ReviewBody:
+      additionalProperties: false
+      properties:
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        stars:
+          format: int64
+          type: integer
+        tags:
+          items:
+            type: string
+          type: array
+      required:
+        - stars
+        - tags
+        - createdAt
+      type: object
+    ReviewOrderRequest:
+      additionalProperties: false
+      properties:
+        comment:
+          maxLength: 500
+          type: string
+        stars:
+          format: int64
+          maximum: 5
+          minimum: 1
+          type: integer
+        tags:
+          description: What went well
+          items:
+            enum:
+              - fast_pickup
+              - good_quality
+              - good_variety
+              - fair_portions
+            type: string
+          maxItems: 4
+          type: array
+          uniqueItems: true
+      required:
+        - stars
+        - tags
       type: object
     RoleCountsBody:
       additionalProperties: false
@@ -2249,7 +2321,7 @@ paths:
       operationId: listMembershipsForAdmins
       parameters:
         - description: The accounts, at most 100
-          explode: false
+          explode: true
           in: query
           name: accountId
           required: true
@@ -3259,6 +3331,49 @@ paths:
       summary: Take a hand-over or a refusal back
       tags:
         - Orders
+  /orders/{orderId}/review:
+    post:
+      description: By its customer, signed in or sending its access, after the order was handed over.
+      operationId: reviewOrder
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewOrderRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Rate your collected order, once
+      tags:
+        - Orders
   /photos:
     post:
       description: "The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG in two sizes, without its metadata. An unused photo is kept for a day."
@@ -3360,6 +3475,70 @@ paths:
         - bearer: []
         - cookie: []
       summary: Open a seller; it waits for an admin to activate it
+      tags:
+        - Sellers
+  /sellers/address:
+    get:
+      operationId: addressAt
+      parameters:
+        - explode: false
+          in: query
+          name: latitude
+          required: true
+          schema:
+            format: double
+            maximum: 90
+            minimum: -90
+            type: number
+        - explode: false
+          in: query
+          name: longitude
+          required: true
+          schema:
+            format: double
+            maximum: 180
+            minimum: -180
+            type: number
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The address at a point, to fill the form that opens a store; empty when it is not known
+      tags:
+        - Sellers
+  /sellers/followed:
+    get:
+      description: A seller blocked since is left out.
+      operationId: listFollowedSellers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowedOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The active sellers I follow, the latest followed first
       tags:
         - Sellers
   /sellers/mine:
@@ -3508,6 +3687,55 @@ paths:
       summary: Add a dish to a seller's catalog
       tags:
         - Catalog
+  /sellers/{sellerId}/follow:
+    delete:
+      description: A seller I do not follow is left as it is.
+      operationId: unfollowSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Take a seller out of my favourites
+      tags:
+        - Sellers
+    put:
+      description: Following again changes nothing. A seller pending or blocked answers 404.
+      operationId: followSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Make an active seller one of my favourites
+      tags:
+        - Sellers
   /sellers/{sellerId}/members:
     get:
       operationId: listSellerMembers

@@ -18,6 +18,13 @@ export type AddSellerStaffRequest = {
     email: string;
 };
 
+export type AddressOutputBody = {
+    /**
+     * As people write it; empty when the point has no known address
+     */
+    address: string;
+};
+
 export type AdminAccountsOutputBody = {
     /**
      * How many accounts of each role match the words, whatever the role asked
@@ -243,6 +250,10 @@ export type EmailSettingsBody = {
     smtpSecurity: 'starttls' | 'tls' | 'none';
     smtpUsername: string;
     updatedAt: string;
+};
+
+export type FollowedOutputBody = {
+    sellers: Array<SellerProfileBody> | null;
 };
 
 export type FoundBody = {
@@ -515,8 +526,12 @@ export type OrderBody = {
     number: string;
     readyAt?: string;
     refuseNote?: string;
-    refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other';
+    refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other' | 'withdrawn';
     refusedAt?: string;
+    /**
+     * The customer's rating of the collected order; none until they rate it
+     */
+    review?: ReviewBody;
     /**
      * Where the order is collected, copied when it was placed
      */
@@ -668,6 +683,22 @@ export type RequestCodeOutputBody = {
      */
     challengeId: string;
     expiresAt: string;
+};
+
+export type ReviewBody = {
+    comment?: string;
+    createdAt: string;
+    stars: number;
+    tags: Array<string>;
+};
+
+export type ReviewOrderRequest = {
+    comment?: string;
+    stars: number;
+    /**
+     * What went well
+     */
+    tags: Array<'fast_pickup' | 'good_quality' | 'good_variety' | 'fair_portions'>;
 };
 
 export type RoleCountsBody = {
@@ -2023,6 +2054,39 @@ export type ReopenOrderResponses = {
 
 export type ReopenOrderResponse = ReopenOrderResponses[keyof ReopenOrderResponses];
 
+export type ReviewOrderData = {
+    body: ReviewOrderRequest;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/review';
+};
+
+export type ReviewOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ReviewOrderError = ReviewOrderErrors[keyof ReviewOrderErrors];
+
+export type ReviewOrderResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type ReviewOrderResponse = ReviewOrderResponses[keyof ReviewOrderResponses];
+
 export type UploadPhotoData = {
     body: Blob | File;
     path?: never;
@@ -2098,6 +2162,59 @@ export type OpenSellerResponses = {
 };
 
 export type OpenSellerResponse = OpenSellerResponses[keyof OpenSellerResponses];
+
+export type AddressAtData = {
+    body?: never;
+    path?: never;
+    query: {
+        latitude: number;
+        longitude: number;
+    };
+    url: '/sellers/address';
+};
+
+export type AddressAtErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type AddressAtError = AddressAtErrors[keyof AddressAtErrors];
+
+export type AddressAtResponses = {
+    /**
+     * OK
+     */
+    200: AddressOutputBody;
+};
+
+export type AddressAtResponse = AddressAtResponses[keyof AddressAtResponses];
+
+export type ListFollowedSellersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/sellers/followed';
+};
+
+export type ListFollowedSellersErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListFollowedSellersError = ListFollowedSellersErrors[keyof ListFollowedSellersErrors];
+
+export type ListFollowedSellersResponses = {
+    /**
+     * OK
+     */
+    200: FollowedOutputBody;
+};
+
+export type ListFollowedSellersResponse = ListFollowedSellersResponses[keyof ListFollowedSellersResponses];
 
 export type ListMySellersData = {
     body?: never;
@@ -2231,6 +2348,60 @@ export type AddDishResponses = {
 };
 
 export type AddDishResponse = AddDishResponses[keyof AddDishResponses];
+
+export type UnfollowSellerData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/follow';
+};
+
+export type UnfollowSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type UnfollowSellerError = UnfollowSellerErrors[keyof UnfollowSellerErrors];
+
+export type UnfollowSellerResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type UnfollowSellerResponse = UnfollowSellerResponses[keyof UnfollowSellerResponses];
+
+export type FollowSellerData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/follow';
+};
+
+export type FollowSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type FollowSellerError = FollowSellerErrors[keyof FollowSellerErrors];
+
+export type FollowSellerResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type FollowSellerResponse = FollowSellerResponses[keyof FollowSellerResponses];
 
 export type ListSellerMembersData = {
     body?: never;

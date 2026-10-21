@@ -68,6 +68,7 @@ function sample({
   id,
   name,
   description = "",
+  weightGrams,
   kind,
   price,
   originalPrice,
@@ -85,6 +86,7 @@ function sample({
     status,
     name,
     description,
+    ...(weightGrams ? { weightGrams } : {}),
     kind,
     unit,
     units: Math.max(unitsLeft, 1),
@@ -163,7 +165,8 @@ const offers = [
     id: "of-croissant",
     name: "Bánh Croissant Truyền Thống",
     description:
-      "Bánh làm trong ngày, ngon nhất khi dùng trước 24 giờ. Nếu bạn dị ứng món nào, hãy hỏi quán khi đến nhận.",
+      "Croissant bơ Pháp nướng sáng nay, vỏ nhiều lớp, ruột mềm. Hâm lò 3 phút cho giòn lại.",
+    weightGrams: 80,
     kind: "bakery",
     price: 22000,
     originalPrice: 50000,
@@ -188,6 +191,8 @@ const offers = [
   sample({
     id: "of-banh-mi",
     name: "Bánh mì mềm chà bông",
+    description: "Bánh mì mềm phủ chà bông và sốt bơ, làm sáng nay.",
+    weightGrams: 120,
     kind: "bakery",
     price: 35000,
     originalPrice: 75000,
@@ -200,6 +205,8 @@ const offers = [
   sample({
     id: "of-ha-cao",
     name: "Há cảo tôm",
+    description: "Há cảo tôm hấp, vỏ bột lọc mỏng. Hâm hấp lại 5 phút trước khi ăn.",
+    weightGrams: 150,
     kind: "prepared_food",
     price: 25000,
     originalPrice: 59000,
@@ -224,6 +231,9 @@ const offers = [
   sample({
     id: "of-com-thit-kho",
     name: "Cơm Thịt Kho Nước Dừa",
+    description:
+      "Cơm trắng với thịt ba chỉ kho nước dừa và trứng, kèm dưa leo. Hâm lò vi sóng 2 phút.",
+    weightGrams: 400,
     kind: "prepared_food",
     price: 30000,
     originalPrice: 68000,
@@ -318,6 +328,105 @@ const offers = [
     until: tonight(22, 15),
     seller: sellers.kfc,
   }),
+  // La Paris's longer list, for the seller's page with many dishes and three tabs (SEC-88).
+  sample({
+    id: "of-croissant-hanh-nhan",
+    name: "Bánh Croissant Hạnh Nhân",
+    description: "Croissant nhân kem hạnh nhân, phủ lát hạnh nhân nướng.",
+    weightGrams: 95,
+    kind: "bakery",
+    price: 36000,
+    originalPrice: 80000,
+    unitsLeft: 4,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-croissant-kem-trung",
+    name: "Bánh Croissant Kem Trứng",
+    description: "Croissant nhân kem trứng béo, nướng sáng nay.",
+    weightGrams: 90,
+    kind: "bakery",
+    price: 32000,
+    originalPrice: 70000,
+    unitsLeft: 3,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-macaron",
+    name: "Bánh Macaron Vani",
+    description: "Hộp ba chiếc macaron vani, để lạnh trước khi ăn.",
+    weightGrams: 45,
+    kind: "bakery",
+    price: 16000,
+    originalPrice: 35000,
+    unitsLeft: 6,
+    unit: "hộp",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-mille-feuille",
+    name: "Choco Mille Feuille",
+    description: "Bánh ngàn lớp kem sô-cô-la, dùng trong ngày.",
+    weightGrams: 120,
+    kind: "bakery",
+    price: 32000,
+    originalPrice: 70000,
+    unitsLeft: 2,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-tiramisu",
+    name: "Bánh Tiramisu Cà Phê",
+    description: "Tiramisu cà phê truyền thống, cắt miếng. Giữ lạnh.",
+    weightGrams: 150,
+    kind: "mixed_box",
+    price: 79000,
+    originalPrice: 170000,
+    unitsLeft: 2,
+    unit: "miếng",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-cheesecake",
+    name: "Bánh Basque Cheesecake",
+    description: "Cheesecake nướng cháy mặt kiểu Basque, cắt miếng. Giữ lạnh.",
+    weightGrams: 130,
+    kind: "mixed_box",
+    price: 52000,
+    originalPrice: 115000,
+    unitsLeft: 3,
+    unit: "miếng",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-quiche",
+    name: "Bánh Quiche Gà Phô Mai",
+    description: "Quiche ngàn lớp nhân gà và phô mai. Hâm lò 5 phút.",
+    weightGrams: 180,
+    kind: "prepared_food",
+    price: 27000,
+    originalPrice: 60000,
+    unitsLeft: 5,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
 ];
 
 /** In hours from now, as RFC 3339: a window that has not opened yet, whatever the time of the test. */
@@ -359,6 +468,13 @@ const photoFiles = {
   "ph-com-bo": "net-hue/08-com-bo-rang-gion.jpg",
   "ph-xiu-mai": "panda-chef/02-xiu-mai-hap.png",
   "ph-ga-ran": "kfc/01-3-mieng-ga-ran.jpg",
+  "ph-croissant-hanh-nhan": "la-paris/02-banh-croissant-hanh-nhan.webp",
+  "ph-croissant-kem-trung": "la-paris/03-banh-croissant-kem-trung.png",
+  "ph-macaron": "la-paris/06-banh-macaron-vani.webp",
+  "ph-mille-feuille": "la-paris/10-choco-mille-feuille.webp",
+  "ph-tiramisu": "la-paris/04-banh-tiramisu-ca-phe-truyen-thong.webp",
+  "ph-cheesecake": "la-paris/07-banh-basque-burnt-original-cheesecake.webp",
+  "ph-quiche": "la-paris/08-banh-quiche-ngan-lop-nhan-ga-pho-mai.png",
   // The sellers' logos, from the directory's list of shops.
   "ph-logo-la-paris": "../quan-an/la-paris.png",
   "ph-logo-panda-chef": "../quan-an/panda-chef.png",
@@ -666,8 +782,9 @@ function dishesFor(seller) {
 }
 
 /**
- * A store's orders (SEC-78), as GET /sellers/{id}/orders answers for today: a store named "Tiệm có đơn" holds
- * four and has handed over one and had one cancelled by its customer (Figma Q5, Q5e, Q5f); any other starts empty.
+ * A store's orders (SEC-78, SEC-102), as GET /sellers/{id}/orders answers for today: a store named "Tiệm có đơn"
+ * has three being prepared, one marked ready, one handed over and one cancelled by its customer (Figma Q5, Q5h,
+ * Q5i, Q5e, Q5f); any other starts empty.
  * The windows run from an hour ago to three hours on, so none reads as expired.
  */
 const sellerOrdersBy = new Map();
@@ -742,6 +859,9 @@ function sellerOrdersFor(seller) {
             order(5, "cancelled", "Võ Lan", "0900123456", "Xôi thập cẩm", "hộp", 1, 30000, {
               cancelledAt: new Date().toISOString(),
             }),
+            order(6, "ready", "Đỗ Hương", "0966333444", "Bánh mì mềm chà bông", "túi", 1, 30000, {
+              readyAt: new Date().toISOString(),
+            }),
           ]
         : [],
     );
@@ -749,7 +869,7 @@ function sellerOrdersFor(seller) {
   return sellerOrdersBy.get(seller.id);
 }
 
-/** What the seller's people do with an order: hand it over, refuse it with a reason, or take either back. */
+/** What the seller's people do with an order: mark it ready, hand it over, refuse it with a reason, or take either back. */
 const REFUSALS = [
   "not_suitable",
   "wrong_items",
@@ -773,6 +893,7 @@ async function staffOrderAction(request, response, mine, id, action) {
       return;
     }
     order.status = "confirmed";
+    delete order.readyAt;
     delete order.collectedAt;
     delete order.refusedAt;
     delete order.refuseReason;
@@ -780,6 +901,9 @@ async function staffOrderAction(request, response, mine, id, action) {
   } else if (!open) {
     problem(response, 409, "ORDER_TRANSITION_NOT_ALLOWED");
     return;
+  } else if (action === "ready") {
+    order.status = "ready";
+    order.readyAt = new Date().toISOString();
   } else if (action === "hand-over") {
     order.status = "collected";
     order.collectedAt = new Date().toISOString();
@@ -856,14 +980,61 @@ function ownerSeller() {
   };
 }
 
+/** Whether the path names an order a customer placed through the stub, which ordersApi hands over instead. */
+function isCustomerOrder(pathname) {
+  return orders.some((order) => pathname.startsWith(`/orders/${order.id}/`));
+}
+
+// Favourites (SEC-109), as api/openapi.yaml describes them: a signed-in person follows the active sellers of
+// the catalog above, idempotently, and lists the ones they follow, the latest first. Kept per address.
+const followsOf = new Map();
+/** Where the sample sellers are, as their public profile shows. */
+const SAMPLE_LOCATION = { latitude: 21.0565, longitude: 105.8964 };
+
+async function favouriteRoutes(request, response, url) {
+  const follow = /^\/sellers\/([\w-]+)\/follow$/.exec(url.pathname);
+  const isList = request.method === "GET" && url.pathname === "/sellers/followed";
+  if (!isList && !follow) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account) {
+    problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    return true;
+  }
+  const followed = followsOf.get(account.email) ?? [];
+  if (isList) {
+    const profiles = followed.map(({ rating: _rating, ...profile }) => ({
+      ...profile,
+      ...SAMPLE_LOCATION,
+    }));
+    json(response, 200, { sellers: profiles });
+  } else if (request.method === "DELETE") {
+    followsOf.set(
+      account.email,
+      followed.filter((seller) => seller.id !== follow[1]),
+    );
+    response.writeHead(204).end();
+  } else if (request.method === "PUT") {
+    const seller = Object.values(sellers).find((candidate) => candidate.id === follow[1]);
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else {
+      followsOf.set(account.email, [seller, ...followed.filter((found) => found !== seller)]);
+      response.writeHead(204).end();
+    }
+  } else return false;
+  return true;
+}
+
 async function sellerRoutes(request, response, url) {
   const token = tokenOf(request);
   const isSellerRoute =
     url.pathname === "/sellers" ||
     url.pathname === "/sellers/mine" ||
+    url.pathname === "/sellers/address" ||
     url.pathname === "/photos" ||
     /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
-    /^\/orders\/[\w-]+\/(hand-over|reopen|refuse)$/.test(url.pathname) ||
+    (/^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse)$/.test(url.pathname) &&
+      !isCustomerOrder(url.pathname)) ||
+    /^\/orders\/or-\d+-[\w-]+$/.test(url.pathname) ||
     /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname) ||
     /^\/dishes\/[\w-]+$/.test(url.pathname);
   if (!isSellerRoute) return false;
@@ -872,6 +1043,12 @@ async function sellerRoutes(request, response, url) {
     return true;
   }
   const mine = storesOf.get(token) ?? [];
+  if (request.method === "GET" && url.pathname === "/sellers/address") {
+    // A point in Cầu Giấy has an address; any other has none, as the geocoder knows nothing there.
+    const near = Math.abs(Number(url.searchParams.get("latitude")) - 21.0367) < 0.01;
+    json(response, 200, { address: near ? "21 Phố Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội" : "" });
+    return true;
+  }
   if (request.method === "GET" && url.pathname === "/sellers/mine") {
     // An address starting with "ending." has its session end between the account and its sellers (SEC-69).
     if (accounts.get(token).email.startsWith("ending.")) {
@@ -921,7 +1098,16 @@ async function sellerRoutes(request, response, url) {
     });
     return true;
   }
-  const staffAction = /^\/orders\/([\w-]+)\/(hand-over|reopen|refuse)$/.exec(url.pathname);
+  const staffAction = /^\/orders\/([\w-]+)\/(ready|hand-over|reopen|refuse)$/.exec(url.pathname);
+  const staffOrder = /^\/orders\/(or-\d+-[\w-]+)$/.exec(url.pathname);
+  if (request.method === "GET" && staffOrder) {
+    const found = mine
+      .flatMap((seller) => sellerOrdersFor(seller))
+      .find((o) => o.id === staffOrder[1]);
+    if (found) json(response, 200, found);
+    else problem(response, 404, "ORDER_NOT_FOUND");
+    return true;
+  }
   if (request.method === "POST" && staffAction) {
     await staffOrderAction(request, response, mine, staffAction[1], staffAction[2]);
     return true;
@@ -1067,7 +1253,7 @@ async function sellerRoutes(request, response, url) {
     }
     const ordered = offer.units - offer.unitsLeft;
     if (request.method === "POST" && change[2]) {
-      if (ordered > 0 || offer.status === "closed") {
+      if (offer.status === "closed") {
         problem(response, 409, "OFFER_CHANGE_NOT_ALLOWED");
       } else {
         offer.status = "withdrawn";
@@ -1105,6 +1291,12 @@ async function sellerRoutes(request, response, url) {
       problem(response, 404, "SELLER_NOT_FOUND");
     } else {
       seller.photoId = (await readBody(request)).photoId;
+      // As the API answers: the photo's id and the paths it is served at.
+      seller.photo = {
+        id: seller.photoId,
+        largePath: `/photos/${seller.photoId}/1600.jpg`,
+        smallPath: `/photos/${seller.photoId}/400.jpg`,
+      };
       json(response, 200, seller);
     }
     return true;
@@ -1114,12 +1306,13 @@ async function sellerRoutes(request, response, url) {
 
 // Orders (SEC-15, SEC-76), as api/openapi.yaml describes them: placed with a name, a phone number and an
 // Idempotency-Key, signed in or not; read and cancelled until the window opens by the account that placed them
-// or with the access answered to whoever placed them; listed for the account. The stub takes no units away,
-// so the home's tests keep their counts.
+// or with the access answered to whoever placed them; rated once collected; listed for the account; marked ready and handed over
+// as a seller would. The stub takes no units away, so the home's tests keep their counts.
 const orders = [];
 const ordersByKey = new Map();
 let nextOrder = 10001;
 const PHONE = /^0[0-9]{9}$/;
+const REVIEW_TAGS = ["fast_pickup", "good_quality", "good_variety", "fair_portions"];
 
 function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
@@ -1237,7 +1430,25 @@ async function ordersApi(request, response, url) {
     });
     return true;
   }
-  const orderMatch = /^\/orders\/([\w-]+)(\/cancel)?$/.exec(url.pathname);
+  // The seller's side, so a test can bring an order to ready and collected; the stub does not check who is staff.
+  const staffMatch = /^\/orders\/([\w-]+)\/(ready|hand-over)$/.exec(url.pathname);
+  if (request.method === "POST" && staffMatch) {
+    const handled = orders.find((found) => found.id === staffMatch[1]);
+    if (!handled) {
+      problem(response, 404, "ORDER_NOT_FOUND");
+      return true;
+    }
+    if (staffMatch[2] === "ready") {
+      handled.status = "ready";
+      handled.readyAt = new Date().toISOString();
+    } else {
+      handled.status = "collected";
+      handled.collectedAt = new Date().toISOString();
+    }
+    json(response, 200, shown(handled));
+    return true;
+  }
+  const orderMatch = /^\/orders\/([\w-]+)(\/cancel|\/review)?$/.exec(url.pathname);
   const order = orderMatch
     ? orders.find((found) => found.id === orderMatch[1] && placedBy(request, account, found))
     : undefined;
@@ -1247,6 +1458,28 @@ async function ordersApi(request, response, url) {
   }
   if (request.method === "GET" && orderMatch && !orderMatch[2]) {
     json(response, 200, shown(order));
+    return true;
+  }
+  if (request.method === "POST" && orderMatch?.[2] === "/review") {
+    const { stars, tags, comment } = await readBody(request);
+    if (
+      !Number.isInteger(stars) ||
+      stars < 1 ||
+      stars > 5 ||
+      !Array.isArray(tags) ||
+      !tags.every((tag, at) => REVIEW_TAGS.includes(tag) && tags.indexOf(tag) === at) ||
+      (comment !== undefined && (typeof comment !== "string" || comment.length > 500))
+    ) {
+      problem(response, 400, "ORDER_REVIEW_INVALID");
+    } else if (order.status !== "collected") {
+      problem(response, 409, "ORDER_NOT_COLLECTED");
+    } else if (order.review) {
+      problem(response, 409, "ORDER_ALREADY_REVIEWED");
+    } else {
+      order.review = { stars, tags, createdAt: new Date().toISOString() };
+      if (comment?.trim()) order.review.comment = comment.trim();
+      json(response, 200, shown(order));
+    }
     return true;
   }
   if (request.method === "POST" && orderMatch?.[2]) {
@@ -1996,6 +2229,7 @@ async function answer(request, response) {
     return json(response, 200, offer);
   }
   if (await auth(request, response, url)) return;
+  if (await favouriteRoutes(request, response, url)) return;
   if (adminSellerReads(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await emailSettingsRoutes(request, response, url)) return;

@@ -89,10 +89,12 @@ WHERE id = @id;
 
 -- name: CustomerOrderCounts :one
 -- How many orders a customer placed, collected, and missed: their window
--- ended with no hand-over, or staff ended them as no answer, no show or late.
+-- ended with no hand-over, whether ExpireEnded has marked them expired yet or
+-- not, or staff ended them as no answer, no show or late.
 SELECT count(*) AS placed,
        count(*) FILTER (WHERE state = 'collected') AS collected,
-       count(*) FILTER (WHERE (state IN ('confirmed', 'ready') AND window_end <= now())
+       count(*) FILTER (WHERE state = 'expired'
+                           OR (state IN ('confirmed', 'ready') AND window_end <= now())
                            OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late'))) AS missed
 FROM order_orders WHERE customer_id = @customer_id;
 
@@ -107,3 +109,22 @@ WHERE l.offer_id = @offer_id AND o.state IN ('confirmed', 'ready');
 -- Moves an order still to collect to a new window; one that ended stays as it was.
 UPDATE order_orders SET window_start = @window_start, window_end = @window_end
 WHERE id = @id AND state IN ('confirmed', 'ready');
+
+-- name: ExpireEnded :execrows
+-- Expires the orders still to collect whose window is over, each with an event.
+-- Reads compare the window too.
+WITH ended AS (
+    UPDATE order_orders SET state = 'expired'
+    WHERE state IN ('confirmed', 'ready') AND window_end <= now()
+    RETURNING id
+)
+INSERT INTO order_events (order_id, kind) SELECT id, 'expired' FROM ended;
+
+-- name: InsertReview :execrows
+-- Nothing is inserted when the order was already reviewed.
+INSERT INTO order_reviews (order_id, stars, tags, comment) VALUES (@order_id, @stars, @tags, @comment)
+ON CONFLICT (order_id) DO NOTHING;
+
+-- name: ReviewsOf :many
+SELECT order_id, stars, tags, comment, created_at
+FROM order_reviews WHERE order_id = ANY (@order_ids::uuid[]);

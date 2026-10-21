@@ -41,5 +41,12 @@ export async function expectNoSeriousA11yViolations(
     await expect(page).toHaveTitle(/\S/);
     serious = await seriousViolations(page, exclude);
   }
+  // A finding of colour contrast is read once more too: a list that has just been filtered fades in after the
+  // first wait began, and 4.3:1 was measured on text at a fraction of its way to its colour. A colour that
+  // really falls short is still short at the second reading.
+  if (serious.some((violation) => violation.id === "color-contrast")) {
+    await page.waitForTimeout(500);
+    serious = await seriousViolations(page, exclude);
+  }
   expect(serious, serious.map((violation) => violation.id).join(", ")).toEqual([]);
 }

@@ -28,12 +28,12 @@ import { ApiError, failureOf } from "@/lib/api/client";
 import { grantAdmin, type RecordBody } from "@/lib/api/generated";
 
 import { AccountAvatar, nameOf, SignedIn } from "./account-parts";
-import { RoleAction } from "./role-action";
+import { AccountRowMenu } from "./account-row-menu";
 
 /**
  * Who administers Second Bite (Settings › Quản trị viên, SEC-75): every admin with their last sign-in, a
- * dialog that makes an address an admin, and a revoke that asks first. An admin cannot revoke themselves
- * nor the last admin; the row says why instead of hiding the button.
+ * dialog that makes an address an admin, and each row's "⋯" menu, whose revoke asks first. An admin cannot
+ * revoke themselves nor the last admin; the menu says why instead of hiding the item.
  */
 export function AdminsList({ admins, myId }: { admins: RecordBody[]; myId: string }) {
   const t = useTranslations("Admin.admins");
@@ -98,7 +98,11 @@ function useColumns(count: number, myId: string): DataTableColumns<RecordBody> {
     {
       id: "actions",
       header: () => <span className="sr-only">{t("column.actions")}</span>,
-      cell: ({ row }) => <RoleAction account={row.original} myId={myId} adminCount={count} />,
+      cell: ({ row }) => (
+        <div className="flex justify-end">
+          <AccountRowMenu account={row.original} myId={myId} adminCount={count} />
+        </div>
+      ),
     },
   ];
 }

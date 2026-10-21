@@ -47,6 +47,7 @@ func TestOrder(t *testing.T) {
 		"who reads an order":                       testWhoReadsAnOrder,
 		"cancelling until the window opens":        testCancelUntilTheWindowOpens,
 		"handing over":                             testHandOver,
+		"a collected order is rated once":          testRateOnce,
 		"staff refuse an order":                    testStaffRefuse,
 		"expiry is read from the window":           testExpiryReadFromTheWindow,
 		"a seller lists the orders of a day":       testSellerListsADay,
@@ -57,6 +58,8 @@ func TestOrder(t *testing.T) {
 		"some orders are not reopened":             testReopenStaysShut,
 		"admins read what an account ordered":      testHistoryForAdmins,
 		"orders follow their offer's window":       testOrdersFollowTheWindow,
+		"ended orders expire in the table":         testEndedOrdersExpire,
+		"withdrawing an offer refuses its orders":  testWithdrawRefusesOrders,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -710,6 +713,134 @@ func testOrdersFollowTheWindow(t *testing.T, f fixture) {
 	}
 }
 
+func testWithdrawRefusesOrders(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
+	eclair := f.post(owner, t, shop, "Eclair", 5, 25_000, time.Now())
+
+	both, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 2}, {eclair.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	handed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.orders.HandOver(owner, handed.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.offers.Withdraw(owner, croissant.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	// The listener does not run in this check; its handler is called as the event would.
+	event := offer.WithdrawnEvent{OfferID: croissant.ID}
+	for range 2 { // delivered twice, it changes nothing more
+		if err := f.orders.RefuseWithdrawnOffer(t.Context(), event); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	refused, err := f.orders.Get(customer, both.ID, "")
+	if err != nil || refused.Status != order.StatusRefused || refused.RefuseReason != order.RefuseWithdrawn {
+		t.Fatalf("the open order: %+v (%v)", refused, err)
+	}
+
+	kept, err := f.orders.Get(customer, handed.ID, "")
+	if err != nil || kept.Status != order.StatusCollected {
+		t.Fatalf("the handed-over order: %+v (%v)", kept, err)
+	}
+
+	// The units it held of the seller's other offer are back; those of the withdrawn one are not offered again.
+	if left := f.unitsLeft(owner, t, eclair.ID); left != 5 {
+		t.Fatalf("the other offer's units left: %d, want 5", left)
+	}
+
+	_, err = f.orders.Reopen(owner, both.ID)
+	mustFail(t, "reopening an order refused as withdrawn", err, order.ErrTransitionNotAllowed)
+}
+
+// expectState fails the check unless an order is stored in the state, whatever it reads as.
+func (f fixture) expectState(t *testing.T, id uuid.UUID, want, what string) {
+	t.Helper()
+
+	var state string
+	if err := f.pool.QueryRow(t.Context(), "SELECT state FROM order_orders WHERE id = $1", id).Scan(&state); err != nil {
+		t.Fatal(err)
+	}
+
+	if state != want {
+		t.Errorf("%s: stored %s, want %s", what, state, want)
+	}
+}
+
+func testEndedOrdersExpire(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
+
+	var placed []order.Order
+
+	for range 3 {
+		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		placed = append(placed, o)
+	}
+
+	ended, running, handed := placed[0], placed[1], placed[2]
+
+	if _, err := f.orders.HandOver(owner, handed.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	f.shift(t, ended.ID, -3*time.Hour)
+	f.shift(t, handed.ID, -3*time.Hour)
+
+	// Read as expired already, whatever the job has done.
+	before, err := f.orders.Get(customer, ended.ID, "")
+	if err != nil || before.Status != order.StatusExpired {
+		t.Fatalf("read before the job: %+v, %v", before, err)
+	}
+
+	f.expectState(t, ended.ID, "confirmed", "before the job")
+
+	for range 2 { // run twice, it changes nothing more
+		if err := f.orders.ExpireEnded(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	f.expectState(t, ended.ID, "expired", "the ended order once the job ran")
+	f.expectState(t, running.ID, "confirmed", "an order still running")
+	f.expectState(t, handed.ID, "collected", "an order handed over before its window ended")
+
+	var events int
+	if err := f.pool.QueryRow(t.Context(),
+		"SELECT count(*) FROM order_events WHERE order_id = $1 AND kind = 'expired'", ended.ID).Scan(&events); err != nil {
+		t.Fatal(err)
+	}
+
+	if events != 1 {
+		t.Errorf("expired events: %d", events)
+	}
+
+	_, err = f.orders.Reopen(owner, ended.ID)
+	mustFail(t, "reopening an expired order", err, order.ErrTransitionNotAllowed)
+}
+
 func testExpiryReadFromTheWindow(t *testing.T, f fixture) {
 	t.Helper()
 
@@ -893,5 +1024,89 @@ func orderSevenWays(customer context.Context, t *testing.T, f fixture) {
 
 	for range 3 {
 		place()
+	}
+}
+
+func testRateOnce(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	stranger := f.as(t, "stranger", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
+	good := order.Review{Stars: 5, Tags: []order.Tag{order.TagFastPickup, order.TagGoodQuality}, Comment: " Ngon "}
+
+	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Rate(customer, o.ID, "", good)
+	mustFail(t, "an order not collected", err, order.ErrNotCollected)
+
+	if _, err := f.orders.HandOver(owner, o.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Rate(stranger, o.ID, "", good)
+	mustFail(t, "a stranger", err, order.ErrNotFound)
+
+	_, err = f.orders.Rate(owner, o.ID, "", good)
+	mustFail(t, "the seller", err, order.ErrNotFound)
+
+	invalid(customer, t, f, o.ID, order.Review{Stars: 0})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 6})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 4, Tags: []order.Tag{"cheap"}})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 4, Tags: []order.Tag{order.TagGoodVariety, order.TagGoodVariety}})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 4, Comment: strings.Repeat("ế", 501)})
+
+	rated, err := f.orders.Rate(customer, o.ID, "", good)
+	if err != nil || rated.Review == nil || rated.Review.Stars != 5 || rated.Review.Comment != "Ngon" ||
+		len(rated.Review.Tags) != 2 || rated.Review.CreatedAt.IsZero() {
+		t.Fatalf("rated %+v, %v", rated.Review, err)
+	}
+
+	_, err = f.orders.Rate(customer, o.ID, "", order.Review{Stars: 1})
+	mustFail(t, "rating twice", err, order.ErrAlreadyReviewed)
+
+	listed, err := f.orders.Mine(customer, order.WhichAll, uuid.Nil, 10, 0)
+	if err != nil || len(listed) != 1 || listed[0].Review == nil || listed[0].Review.Stars != 5 {
+		t.Fatalf("listed %+v, %v", listed, err)
+	}
+
+	rateWithAccess(owner, t, f, croissant.ID, good)
+}
+
+// invalid rates o with review, which is refused.
+func invalid(customer context.Context, t *testing.T, f fixture, id uuid.UUID, review order.Review) {
+	t.Helper()
+
+	_, err := f.orders.Rate(customer, id, "", review)
+	mustFail(t, "an invalid review", err, order.ErrReviewInvalid)
+}
+
+// rateWithAccess rates a collected order placed without an account: with
+// nothing it is not found, with its access it is rated.
+func rateWithAccess(owner context.Context, t *testing.T, f fixture, offerID uuid.UUID, review order.Review) {
+	t.Helper()
+
+	guest := t.Context()
+
+	o, err := f.orders.Place(guest, key(), uuid.Nil, someone, []order.Wanted{{offerID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.orders.HandOver(owner, o.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Rate(guest, o.ID, "", review)
+	mustFail(t, "without the access", err, order.ErrNotFound)
+
+	rated, err := f.orders.Rate(guest, o.ID, o.Access, review)
+	if err != nil || rated.Review == nil || rated.Access != o.Access {
+		t.Fatalf("rating with the access: %+v, %v", rated, err)
 	}
 }

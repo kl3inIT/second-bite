@@ -30,8 +30,12 @@ test.describe("the admins", () => {
     await expect(table.getByRole("row")).toHaveCount(4);
     const mine = table.getByRole("row").filter({ hasText: me });
     await expect(mine).toContainText("Bạn");
-    await expect(mine).toContainText("Không tự thu quyền của mình");
-    await expect(mine.getByRole("button")).toHaveCount(0);
+
+    // The caller's own revoke stays in the row's menu, disabled, with its reason.
+    await (await hydrated(mine.getByRole("button", { name: `Thao tác cho ${me}` }))).click();
+    const revoke = page.getByRole("menuitem", { name: /Thu quyền quản trị/ });
+    await expect(revoke).toHaveAttribute("aria-disabled", "true");
+    await expect(revoke).toContainText("Không tự thu quyền của mình");
     await expectNoSeriousA11yViolations(page);
   });
 
@@ -61,8 +65,9 @@ test.describe("the admins", () => {
     const table = page.getByRole("table", { name: "Quản trị viên" });
 
     await (
-      await hydrated(table.getByRole("button", { name: "Thu quyền thu.admin@example.com" }))
+      await hydrated(table.getByRole("button", { name: "Thao tác cho thu.admin@example.com" }))
     ).click();
+    await page.getByRole("menuitem", { name: "Thu quyền quản trị…" }).click();
     const ask = page.getByRole("alertdialog", {
       name: "Thu quyền quản trị của thu.admin@example.com?",
     });

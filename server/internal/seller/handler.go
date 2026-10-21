@@ -12,6 +12,19 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
+// addressInput is the point whose address is asked.
+type addressInput struct {
+	Latitude  float64 `query:"latitude"  required:"true" maximum:"90"  minimum:"-90"`
+	Longitude float64 `query:"longitude" required:"true" maximum:"180" minimum:"-180"`
+}
+
+// addressOutput is the address at a point.
+type addressOutput struct {
+	Body struct {
+		Address string `json:"address" doc:"As people write it; empty when the point has no known address"`
+	}
+}
+
 type detailsBody struct {
 	Name      string  `json:"name"      maxLength:"100" minLength:"1"`
 	Address   string  `json:"address"   maxLength:"300" minLength:"1" doc:"The address as people write it"`
@@ -86,6 +99,7 @@ func RegisterOperations(api huma.API, s *Service) {
 	registerMemberOperations(api, s)
 	registerPhotoOperations(api, s)
 	registerPublicOperations(api, s)
+	registerFollowOperations(api, s)
 }
 
 var (
@@ -107,6 +121,22 @@ func registerOwnerOperations(api huma.API, s *Service) {
 		}
 
 		return &sellerOutput{Body: toBody(seller)}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "addressAt", Method: http.MethodGet, Path: "/sellers/address",
+		Summary: "The address at a point, to fill the form that opens a store; empty when it is not known",
+		Tags:    tagSellers, Security: security,
+	}, func(ctx context.Context, in *addressInput) (*addressOutput, error) {
+		address, err := s.AddressAt(ctx, in.Latitude, in.Longitude)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &addressOutput{}
+		out.Body.Address = address
+
+		return out, nil
 	})
 
 	huma.Register(api, huma.Operation{
@@ -345,7 +375,8 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		OperationID: "listMembershipsForAdmins", Method: http.MethodGet, Path: "/memberships",
 		Summary: "The sellers some accounts own or work at, owners first",
 	}, func(ctx context.Context, in *struct {
-		AccountID []uuid.UUID `query:"accountId" doc:"The accounts, at most 100" maxItems:"100" minItems:"1" required:"true"`
+		// Exploded, as the generated clients send an array: accountId=a&accountId=b.
+		AccountID []uuid.UUID `query:"accountId,explode" doc:"The accounts, at most 100" maxItems:"100" minItems:"1" required:"true"`
 	},
 	) (*membershipsOutput, error) {
 		memberships, err := s.MembershipsForAdmins(ctx, in.AccountID)
@@ -469,4 +500,51 @@ type statusCountsBody struct {
 	Active   int `json:"active"`
 	Rejected int `json:"rejected"`
 	Blocked  int `json:"blocked"`
+}
+
+func registerFollowOperations(api huma.API, s *Service) {
+	type followedOutput struct {
+		Body struct {
+			Sellers []sellerProfileBody `json:"sellers"`
+		}
+	}
+
+	huma.Register(api, huma.Operation{
+		OperationID: "followSeller", Method: http.MethodPut, Path: "/sellers/{sellerId}/follow",
+		Summary:     "Make an active seller one of my favourites",
+		Description: "Following again changes nothing. A seller pending or blocked answers 404.",
+		Tags:        tagSellers, Security: security, DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *sellerPath) (*struct{}, error) {
+		return nil, s.Follow(ctx, in.SellerID)
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "unfollowSeller", Method: http.MethodDelete, Path: "/sellers/{sellerId}/follow",
+		Summary:     "Take a seller out of my favourites",
+		Description: "A seller I do not follow is left as it is.",
+		Tags:        tagSellers, Security: security, DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *sellerPath) (*struct{}, error) {
+		return nil, s.Unfollow(ctx, in.SellerID)
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "listFollowedSellers", Method: http.MethodGet, Path: "/sellers/followed",
+		Summary:     "The active sellers I follow, the latest followed first",
+		Description: "A seller blocked since is left out.",
+		Tags:        tagSellers, Security: security,
+	}, func(ctx context.Context, _ *struct{}) (*followedOutput, error) {
+		followed, err := s.Followed(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &followedOutput{}
+		out.Body.Sellers = make([]sellerProfileBody, 0, len(followed))
+
+		for _, p := range followed {
+			out.Body.Sellers = append(out.Body.Sellers, toProfileBody(p))
+		}
+
+		return out, nil
+	})
 }

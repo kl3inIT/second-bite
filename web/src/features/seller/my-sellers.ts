@@ -3,8 +3,10 @@ import "server-only";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
+import { ApiError } from "@/lib/api/client";
 import {
   type DishBody,
+  getOrder,
   getSeller,
   listDishes,
   listMySellers,
@@ -14,6 +16,9 @@ import {
   type OrderBody,
   type SellerBody,
 } from "@/lib/api/generated";
+
+/** A person owns at most five stores (server/internal/seller, maxOwnedSellers). */
+export const MAX_OWNED = 5;
 
 /** The session cookie the Go server sets on sign-in (see identity/current-account.ts). */
 const sessionCookie = "secondbite_session";
@@ -65,4 +70,15 @@ export const getStoreOrders = cache(async (sellerId: string, day: string): Promi
 export const getStoreDishes = cache(async (sellerId: string): Promise<DishBody[]> => {
   const { data } = await listDishes({ path: { sellerId }, headers: await sessionHeaders() });
   return data.dishes;
+});
+
+/** One order of a store, which the seller's people may read; null when there is no such order or it is not theirs to see. */
+export const getStoreOrder = cache(async (orderId: string): Promise<OrderBody | null> => {
+  try {
+    const { data } = await getOrder({ path: { orderId }, headers: await sessionHeaders() });
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
 });

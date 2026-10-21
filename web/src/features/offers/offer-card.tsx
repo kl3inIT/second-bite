@@ -2,11 +2,11 @@ import { ClockIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
+import { FollowButton } from "@/features/favourites/follow-button";
 import { cn } from "@/lib/utils";
 
 import { DiscountLabel } from "./discount-label";
 import { DishLink, SellerLink } from "./dish-link";
-import { HeartButton } from "./heart-button";
 import { isAvailable, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
 import { Price } from "./price";
@@ -73,9 +73,10 @@ export function OfferCard({
           {!compact && rating !== undefined && <Rating rating={rating} className="ml-auto" />}
         </p>
         {(compact || showSeller) && (
-          <HeartButton
-            offerId={offer.id}
-            name={offer.name}
+          <FollowButton
+            sellerId={offer.sellerId}
+            name={offer.seller.name}
+            look="photo"
             className={compact ? "top-0 right-0" : "top-0.5 left-0.5"}
           />
         )}
@@ -86,7 +87,7 @@ export function OfferCard({
           <>
             <div className="flex items-center justify-between gap-2">
               <h3 className="min-w-0 truncate text-title-lg text-foreground">
-                <DishLink offerId={offer.id}>{offer.name}</DishLink>
+                <DishLink offer={offer}>{offer.name}</DishLink>
               </h3>
               <Price offer={offer} />
             </div>
@@ -106,7 +107,7 @@ export function OfferCard({
             <h3
               className={cn("truncate text-foreground", compact ? "text-title" : "text-title-lg")}
             >
-              <DishLink offerId={offer.id}>{offer.name}</DishLink>
+              <DishLink offer={offer}>{offer.name}</DishLink>
             </h3>
             {showSeller && (
               <p className="truncate text-label text-muted-foreground">
@@ -124,9 +125,10 @@ export function OfferCard({
           </>
         ) : (
           !showSeller && (
-            <div className="flex items-center justify-between gap-2">
+            // With a phone's large text the price goes under the units, still on the right (SEC-107).
+            <div className="flex flex-wrap items-center justify-between gap-x-2">
               <UnitsLeft offer={offer} />
-              <Price offer={offer} />
+              <Price offer={offer} className="ml-auto" />
             </div>
           )
         )}

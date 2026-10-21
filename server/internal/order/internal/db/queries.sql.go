@@ -16,7 +16,8 @@ import (
 const customerOrderCounts = `-- name: CustomerOrderCounts :one
 SELECT count(*) AS placed,
        count(*) FILTER (WHERE state = 'collected') AS collected,
-       count(*) FILTER (WHERE (state IN ('confirmed', 'ready') AND window_end <= now())
+       count(*) FILTER (WHERE state = 'expired'
+                           OR (state IN ('confirmed', 'ready') AND window_end <= now())
                            OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late'))) AS missed
 FROM order_orders WHERE customer_id = $1
 `
@@ -28,7 +29,8 @@ type CustomerOrderCountsRow struct {
 }
 
 // How many orders a customer placed, collected, and missed: their window
-// ended with no hand-over, or staff ended them as no answer, no show or late.
+// ended with no hand-over, whether ExpireEnded has marked them expired yet or
+// not, or staff ended them as no answer, no show or late.
 func (q *Queries) CustomerOrderCounts(ctx context.Context, customerID uuid.NullUUID) (CustomerOrderCountsRow, error) {
 	row := q.db.QueryRow(ctx, customerOrderCounts, customerID)
 	var i CustomerOrderCountsRow
@@ -137,6 +139,25 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 		return nil, err
 	}
 	return items, nil
+}
+
+const expireEnded = `-- name: ExpireEnded :execrows
+WITH ended AS (
+    UPDATE order_orders SET state = 'expired'
+    WHERE state IN ('confirmed', 'ready') AND window_end <= now()
+    RETURNING id
+)
+INSERT INTO order_events (order_id, kind) SELECT id, 'expired' FROM ended
+`
+
+// Expires the orders still to collect whose window is over, each with an event.
+// Reads compare the window too.
+func (q *Queries) ExpireEnded(ctx context.Context) (int64, error) {
+	result, err := q.db.Exec(ctx, expireEnded)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getOrder = `-- name: GetOrder :one
@@ -296,6 +317,32 @@ func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const insertReview = `-- name: InsertReview :execrows
+INSERT INTO order_reviews (order_id, stars, tags, comment) VALUES ($1, $2, $3, $4)
+ON CONFLICT (order_id) DO NOTHING
+`
+
+type InsertReviewParams struct {
+	OrderID uuid.UUID
+	Stars   int16
+	Tags    []string
+	Comment string
+}
+
+// Nothing is inserted when the order was already reviewed.
+func (q *Queries) InsertReview(ctx context.Context, arg InsertReviewParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertReview,
+		arg.OrderID,
+		arg.Stars,
+		arg.Tags,
+		arg.Comment,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const linesOf = `-- name: LinesOf :many
@@ -508,6 +555,37 @@ func (q *Queries) OrderOfKey(ctx context.Context, arg OrderOfKeyParams) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const reviewsOf = `-- name: ReviewsOf :many
+SELECT order_id, stars, tags, comment, created_at
+FROM order_reviews WHERE order_id = ANY ($1::uuid[])
+`
+
+func (q *Queries) ReviewsOf(ctx context.Context, orderIds []uuid.UUID) ([]OrderReview, error) {
+	rows, err := q.db.Query(ctx, reviewsOf, orderIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderReview
+	for rows.Next() {
+		var i OrderReview
+		if err := rows.Scan(
+			&i.OrderID,
+			&i.Stars,
+			&i.Tags,
+			&i.Comment,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const sellerOrders = `-- name: SellerOrders :many

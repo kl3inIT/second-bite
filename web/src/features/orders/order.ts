@@ -5,8 +5,6 @@ import type { OrderBody } from "@/lib/api/generated";
 
 export type Order = OrderBody;
 
-export type OrderStatus = Order["status"];
-
 /** Whether the order is still to be collected: confirmed or ready, and its window not over. */
 export function isOpen(order: Pick<Order, "status">): boolean {
   return order.status === "confirmed" || order.status === "ready";
@@ -67,4 +65,20 @@ export function byCheckout(orders: Order[]): Order[][] {
   return [...groups.values()]
     .map((group) => group.toSorted((a, b) => placed(a) - placed(b)))
     .toSorted((a, b) => placed(b.at(-1)!) - placed(a.at(-1)!));
+}
+
+/** Where a list of ended orders puts one (Figma D4): today, the six days before, or earlier. */
+export type Day = "today" | "week" | "before";
+
+/** The calendar day of a moment in a time zone, as whole days since 1970, so two days subtract. */
+function dayNumber(at: number, timeZone: string): number {
+  const date = new Intl.DateTimeFormat("en-CA", { timeZone }).format(at);
+  return Date.parse(`${date}T00:00:00Z`) / 86_400_000;
+}
+
+/** The day an order falls on against now, counted in the app's time zone, not the server's. */
+export function dayOf(at: string, now: number, timeZone: string): Day {
+  const daysAgo = dayNumber(now, timeZone) - dayNumber(Date.parse(at), timeZone);
+  if (daysAgo <= 0) return "today";
+  return daysAgo < 7 ? "week" : "before";
 }
