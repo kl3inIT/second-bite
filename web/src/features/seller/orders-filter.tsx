@@ -124,7 +124,7 @@ function DayBar(view: View) {
           <CalendarIcon aria-hidden className="size-5 text-muted-foreground" />
           {label}
         </PopoverTrigger>
-        <PopoverContent align="end">
+        <PopoverContent align="end" sheet>
           <p className="sr-only">{t("day.quick")}</p>
           <ul className="flex flex-wrap gap-2">
             {quick.map((choice) => (
@@ -146,6 +146,7 @@ function DayBar(view: View) {
             ))}
           </ul>
           <Calendar
+            className="max-sm:mx-auto max-sm:w-80"
             mode="single"
             required
             selected={dateOf(day)}
