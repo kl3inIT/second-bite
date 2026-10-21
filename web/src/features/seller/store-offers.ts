@@ -11,10 +11,6 @@ export const postTabs = ["on_sale", "sold_out", "closed"] as const;
 
 export type PostTab = (typeof postTabs)[number];
 
-export function readPostTab(value: string | undefined): PostTab {
-  return postTabs.find((tab) => tab === value) ?? "on_sale";
-}
-
 export function tabOf(offer: OfferBody): PostTab {
   switch (offer.status) {
     case "on_sale":

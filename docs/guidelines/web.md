@@ -77,6 +77,8 @@ Adapted from the Forms section of BeyondPilot's `docs/conventions.md` (revision 
 ## Lists and filters
 
 - A list's search, filters, sort and page are the address, written with nuqs: a `search-params.ts` beside the list declares the parsers, the server page reads them with `createLoader`, and the client changes them with `useQueryStates(parsers, { shallow: false, startTransition })`, so the server reads the list again. A value at its default stays out of the address; changing the search or a filter returns to page 1; a search waits 300 ms after the last keystroke (`limitUrlUpdates: debounce(300)`).
+- A filter that is a link, a chip or a tab the server draws, is built with `createSerializer` from the same parsers, so it works before the page's script has loaded and reads the address as the list does. A rule across several keys (a range in order, a radius only around a place) is one small step after the loader, not a second reader of the address.
+- A value whose default the server knows only at request time (today) has no default in its parser: the page reads `value ?? today`, and a link to that default leaves the key out.
 - The server filters, sorts and pages. A list is not read whole to be filtered in the browser.
 - A table of rows is `DataTable` (`src/features/admin/data-table.tsx`) with `SortHeader` and `ListFooter`; rows on a phone that are cards are drawn as a list. A row's actions are a "⋯" menu at its end (`account-row-menu.tsx` is the pattern), and the one action the row waits for may sit beside it as a labelled button.
 - `NuqsAdapter` is mounted once, in the root layout.
