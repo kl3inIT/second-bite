@@ -1,9 +1,8 @@
 "use client";
 
-import { SearchIcon } from "lucide-react";
 import { debounce, useQueryStates } from "nuqs";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,6 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -25,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable, SortHeader, type DataTableColumns } from "@/features/admin/data-table";
+import { SearchBox } from "@/features/admin/search-box";
 import { ListFooter } from "@/features/admin/list-footer";
 import { Link } from "@/i18n/navigation";
 import type { MembershipBody, RecordBody, RoleCountsBody } from "@/lib/api/generated";
@@ -106,6 +105,8 @@ export function AccountsList({
       </Tabs>
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox
+          label={t("search")}
+          className="sm:max-w-md"
           value={params.q}
           onChange={(q) =>
             void setParams(
@@ -172,30 +173,6 @@ export function AccountsList({
         }
       />
     </section>
-  );
-}
-
-function SearchBox({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const t = useTranslations("Admin.accounts");
-  const [text, setText] = useState(value);
-
-  return (
-    <InputGroup className="h-11 w-full sm:max-w-md">
-      <InputGroupAddon>
-        <SearchIcon aria-hidden />
-      </InputGroupAddon>
-      <InputGroupInput
-        type="search"
-        aria-label={t("search")}
-        placeholder={t("search")}
-        value={text}
-        maxLength={100}
-        onChange={(event) => {
-          setText(event.target.value);
-          onChange(event.target.value.trim());
-        }}
-      />
-    </InputGroup>
   );
 }
 

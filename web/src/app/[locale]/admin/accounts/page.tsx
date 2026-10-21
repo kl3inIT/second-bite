@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 import { AccountsList } from "@/features/accounts/accounts-list";
+import { GrantAdmin } from "@/features/accounts/grant-admin";
 import { loadAccountSearchParams } from "@/features/accounts/search-params";
 import { AdminTopBar } from "@/features/admin/admin-top-bar";
 import { requireAdmin } from "@/features/identity/current-account";
@@ -50,7 +51,10 @@ export default async function AccountsPage({
     <>
       <AdminTopBar crumbs={[{ label: t("group.users") }, { label: t("accounts.title") }]} />
       <div className="flex flex-1 flex-col gap-5 px-4 py-6 md:px-8">
-        <h1 className="text-page-title text-foreground">{t("accounts.title")}</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-page-title text-foreground">{t("accounts.title")}</h1>
+          <GrantAdmin />
+        </div>
         <AccountsList
           accounts={accounts}
           total={page.total}

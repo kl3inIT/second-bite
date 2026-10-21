@@ -63,6 +63,37 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 - A link styled as a button is a `Link` with `buttonVariants`, never a `Button` wrapping an anchor.
 - Icons come from `lucide-react` under their Lucide names, as in Figma.
 
+## Forms
+
+Adapted from the Forms section of BeyondPilot's `docs/conventions.md` (revision `5fd043a8`) and its `src/components/form`, with Second Bite's rule that the server words a failure (SEC-106).
+
+- Every form that sends data to the server is built with `useAppForm` (`src/components/form/app-form.ts`), on TanStack Form, whether it has one field or many. Its rules are a zod schema under `validationLogic: revalidateLogic()` and `validators: { onDynamic: schema }`, never checks written by hand or the native `required`.
+- The element is `<form id={form.formId} noValidate>`. A refused submit moves the focus to the first field in error and brings it into view; `useAppForm` does it for every form.
+- Text fields are `form.AppField` with `field.TextField` or `field.TextareaField`. The submit is `form.SubmitButton`: it shows a spinner and takes no second press while the form is sent. A control the set lacks (a choice of chips, a photo, a number, a toggle group) is composed from the `field` parts inside `form.AppField`, with `useFieldValidity` for its ids, `data-invalid` and `aria-invalid`.
+- A refusal from the server goes through `refuse(formApi, error, fieldOfCode)`. Each refused member (`errors[].pointer`) lands under its field, and a code the screen ties to a field lands there too. What no field can say, a request that got no answer included, shows above the buttons in `form.FormError`, with the server's sentence and its reference. The screen never words a failure code itself.
+- A form in several steps is one form holding every step's values, with a zod schema per step. Fields that several forms draw the same way are a field group (`withFieldGroup`), added to the kit with the first form that needs it.
+- Not a form: a search box and list filters (they are the address, below), a switch or a button that acts at once, and the one-time code of sign-in, which submits itself.
+
+## Lists and filters
+
+- A list's search, filters, sort and page are the address, written with nuqs: a `search-params.ts` beside the list declares the parsers, the server page reads them with `createLoader`, and the client changes them with `useQueryStates(parsers, { shallow: false, startTransition })`, so the server reads the list again. A value at its default stays out of the address; changing the search or a filter returns to page 1; a search waits 300 ms after the last keystroke (`limitUrlUpdates: debounce(300)`).
+- The server filters, sorts and pages. A list is not read whole to be filtered in the browser.
+- A table of rows is `DataTable` (`src/features/admin/data-table.tsx`) with `SortHeader` and `ListFooter`; rows on a phone that are cards are drawn as a list. A row's actions are a "⋯" menu at its end (`account-row-menu.tsx` is the pattern), and the one action the row waits for may sit beside it as a labelled button.
+- `NuqsAdapter` is mounted once, in the root layout.
+
+## Feedback
+
+- What an action did is said in a toast from `@/components/ui/toast` (`toast.add({ type, title, description })`); the one `Toaster` is in the root layout. An undo is the toast's action. No screen builds its own toast from state and a timer.
+- A failed request shown in place, above a form or under an action, is `FailureAlert` (`src/components/failure-alert.tsx`) with `failureOf(error)`: the server's sentence, or the screen's fallback when no answer came, then the reference. A `catch` that drops a failure says why in a comment; otherwise the person is told.
+- A confirmation is the registry `alert-dialog`, opened controlled (`open`, `onOpenChange`) so it closes once the action succeeds.
+
+## Shared parts
+
+- Before writing markup, look for the primitive: a card is `Card`, an empty list or page is `Empty`, a status is `Badge` with a variant, a loading block is `Skeleton`, a rule is `Separator`, a message in place is `Alert`, a link drawn as a button is `Link` with `buttonVariants`. A look the primitive lacks becomes a variant in its own file, never a colour or type class where it is used.
+- A photo the backend serves is `photoUrl(path)` (`src/lib/api/photo.ts`), never an address written by hand.
+- A price is `formatPrice` (`src/features/offers/format.ts`); a date, a time or a number is a named format of `src/i18n/formats.ts` (`dayMonth`, `calendarDay`, `oneDecimal`…), added there when a screen needs a new one.
+- A helper or a component a second feature needs moves to `src/components` or the feature that owns it, and the copy is deleted.
+
 ## Building and serving
 
 - `web/Dockerfile` builds the standalone output (`output: "standalone"`) on `node:24-slim`, pinned by digest and kept current by Dependabot, and runs it as the `node` user on port 3000. The image is built from `web/` alone: the API client and `tokens.css` are committed. `SECONDBITE_API_ORIGIN` is set where it runs; the reverse proxy in front routes `/api` to the Go server.
