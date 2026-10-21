@@ -2,7 +2,10 @@ import {
   HistoryIcon,
   LayoutDashboardIcon,
   type LucideIcon,
+  MailIcon,
+  PackageIcon,
   SettingsIcon,
+  ShieldUserIcon,
   StoreIcon,
 } from "lucide-react";
 
@@ -30,6 +33,19 @@ export const adminNav: AdminNavGroup[] = [
       { key: "settings", href: "/admin/settings", icon: SettingsIcon },
     ],
   },
+];
+
+/** The settings' pages, in the order of Figma's Admin/SettingsNav; a page joins with its screen. */
+// Kept here, outside the client menu, so a server page can read it too.
+export const settingsPages: Array<{
+  key: "offers" | "email" | "admins";
+  href: "/admin/settings/offers" | "/admin/settings/email" | "/admin/settings/admins";
+  icon: LucideIcon;
+}> = [
+  // The offer settings and the admins are SEC-62's pages.
+  { key: "offers", href: "/admin/settings/offers", icon: PackageIcon },
+  { key: "email", href: "/admin/settings/email", icon: MailIcon },
+  { key: "admins", href: "/admin/settings/admins", icon: ShieldUserIcon },
 ];
 
 /** Whether an entry is the page open: its own address or one under it. */

@@ -1,24 +1,11 @@
 "use client";
 
-import { MailIcon, PackageIcon, ShieldUserIcon, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-import { isWithin } from "./nav";
-
-/** The settings' pages, in the order of Figma's Admin/SettingsNav; a page joins with its screen. */
-export const settingsPages: Array<{
-  key: "offers" | "email" | "admins";
-  href: "/admin/settings/offers" | "/admin/settings/email" | "/admin/settings/admins";
-  icon: LucideIcon;
-}> = [
-  // The offer settings and the admins are SEC-62's pages.
-  { key: "offers", href: "/admin/settings/offers", icon: PackageIcon },
-  { key: "email", href: "/admin/settings/email", icon: MailIcon },
-  { key: "admins", href: "/admin/settings/admins", icon: ShieldUserIcon },
-];
+import { isWithin, settingsPages } from "./nav";
 
 // The settings' own menu beside the page (Figma Admin/SettingsNav): a framed list, the page open tinted.
 export function SettingsNav() {

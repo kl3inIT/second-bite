@@ -40,11 +40,11 @@ function problemOf(error: unknown): Problem {
   }
 }
 
-type Step =
-  { name: "confirm" } | { name: "code"; challengeId: string; resendAt: number } | { name: "done" };
+type Step = { name: "confirm" } | { name: "code"; challengeId: string; resendAt: number };
 
-// Deleting the signed-in account (SEC-37): a code emailed to the account's address, then the code, then the
-// confirmation. The server ends the session and clears its cookie; the page then shows the person signed out.
+// Deleting the signed-in account (SEC-37): a code emailed to the account's address, then the code. The server
+// ends the session and clears its cookie, and the page is read again at `?done=1`: the confirmation is the
+// server's, so it stays while the header and the rest of the page turn signed out (SEC-69).
 export function DeleteAccountForm({ email }: { email: string }) {
   const t = useTranslations("DeleteAccount");
   const router = useRouter();
@@ -75,8 +75,7 @@ export function DeleteAccountForm({ email }: { email: string }) {
     startTransition(async () => {
       try {
         await deleteMyAccount({ body: { challengeId, code: value } });
-        setStep({ name: "done" });
-        router.refresh();
+        router.replace({ pathname: "/delete-account", query: { done: "1" } });
       } catch (error) {
         setProblem(problemOf(error));
         setCode("");
@@ -88,7 +87,6 @@ export function DeleteAccountForm({ email }: { email: string }) {
   const stepName = step.name;
   useEffect(() => {
     if (stepName === "code") document.getElementById("delete-account-code")?.focus();
-    if (stepName === "done") document.getElementById("delete-account-done")?.focus();
   }, [stepName]);
 
   const problemLine = problem && (
@@ -105,25 +103,6 @@ export function DeleteAccountForm({ email }: { email: string }) {
       </span>
     </FieldError>
   );
-
-  if (step.name === "done") {
-    return (
-      <div className="flex flex-col items-start gap-3" aria-live="polite">
-        <h2
-          id="delete-account-done"
-          tabIndex={-1}
-          className="flex items-center gap-2 text-title outline-none"
-        >
-          <CircleCheckIcon aria-hidden className="size-5 text-success" />
-          {t("doneTitle")}
-        </h2>
-        <p className="text-body-sm">{t("doneBody")}</p>
-        <Link href="/" className={buttonVariants({ variant: "outline" })}>
-          {t("home")}
-        </Link>
-      </div>
-    );
-  }
 
   if (step.name === "code") {
     const invalid = problem?.kind === "codeIncorrect" || problem?.kind === "codeGone";
@@ -178,11 +157,11 @@ export function DeleteAccountForm({ email }: { email: string }) {
             />
           </Field>
           {/* The deletion is final, so it waits for the button, not the sixth digit. */}
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="flex flex-col gap-2">
             <Button
               type="submit"
               size="lg"
-              variant="destructive"
+              variant="danger"
               disabled={pending || code.length < CODE_LENGTH}
             >
               {pending ? (
@@ -218,12 +197,44 @@ export function DeleteAccountForm({ email }: { email: string }) {
             strong: (chunks) => <strong className="text-body-sm-strong">{chunks}</strong>,
           })}
         </p>
+        <p className="text-body-sm-strong">{t("final")}</p>
         {problemLine}
-        <Button type="submit" size="lg" variant="destructive" disabled={pending}>
-          {pending && <Spinner data-icon="inline-start" />}
-          {pending ? t("sending") : t("sendCode")}
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button type="submit" size="lg" variant="danger" disabled={pending}>
+            {pending && <Spinner data-icon="inline-start" />}
+            {pending ? t("sending") : t("sendCode")}
+          </Button>
+          <Link
+            href="/account/settings"
+            className={buttonVariants({ variant: "outline", size: "lg" })}
+          >
+            {t("cancel")}
+          </Link>
+        </div>
       </FieldGroup>
     </form>
+  );
+}
+
+// The confirmation after the deletion, rendered by the page at `?done=1` once no one is signed in. Focus
+// moves to it, so a keyboard or a screen reader starts at the outcome.
+export function DeleteAccountDone() {
+  const t = useTranslations("DeleteAccount");
+  useEffect(() => {
+    document.getElementById("delete-account-done")?.focus();
+  }, []);
+
+  return (
+    // Figma Q5: the tick on its own line, the title, what it means, and the way home across the card.
+    <div className="flex flex-col gap-3" aria-live="polite">
+      <CircleCheckIcon aria-hidden className="size-7 text-success" />
+      <h2 id="delete-account-done" tabIndex={-1} className="text-title outline-none">
+        {t("doneTitle")}
+      </h2>
+      <p className="text-body-sm">{t("doneBody")}</p>
+      <Link href="/" className={buttonVariants({ variant: "outline", size: "lg" })}>
+        {t("home")}
+      </Link>
+    </div>
   );
 }

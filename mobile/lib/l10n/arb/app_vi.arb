@@ -689,6 +689,18 @@
       }
     }
   },
+  "deleteAccountFinal": "Khi bạn nhập đúng mã, tài khoản bị xoá ngay và không thể hoàn tác.",
+  "@deleteAccountFinal": {
+    "description": "Above the button that sends the code: the deletion cannot be undone"
+  },
+  "deleteAccountOwnedFailed": "Chưa đọc được các quán của bạn, nên chưa biết quán nào sẽ đóng cùng tài khoản. Thử lại trước khi gửi mã.",
+  "@deleteAccountOwnedFailed": {
+    "description": "The sellers the person owns could not be read; the code waits until they are"
+  },
+  "deleteAccountRetry": "Thử lại",
+  "@deleteAccountRetry": {
+    "description": "Reads the person's sellers again"
+  },
   "deleteAccountCodeHeading": "Nhập mã xác nhận",
   "@deleteAccountCodeHeading": {
     "description": "The heading of the code step"
