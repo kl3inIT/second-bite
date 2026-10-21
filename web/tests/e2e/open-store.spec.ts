@@ -37,6 +37,45 @@ test.describe("opening a store on the web", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Mở quán của bạn" })).toBeVisible();
   });
 
+  test("pins the store where the person stands when they allow it", async ({
+    page,
+    context,
+  }, testInfo) => {
+    await context.grantPermissions(["geolocation"]);
+    await context.setGeolocation({ latitude: 21.0367, longitude: 105.7818, accuracy: 20 });
+    await signIn(page, `dinh.${testInfo.project.name}@example.com`, "/open-store");
+
+    await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Cầu Giấy");
+    await page.getByLabel("Số điện thoại").fill("0912345678");
+    await page.getByLabel("Địa chỉ quán").fill("21 Cầu Giấy, Hà Nội");
+    await page.getByRole("button", { name: "Dùng vị trí hiện tại" }).click();
+    await expect(
+      page.getByText("Đã lấy vị trí hiện tại, sai số khoảng 20 m. Bạn có thể sửa địa chỉ."),
+    ).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    // The address stays as it was written; the store is pinned where the person stood, not at the mall.
+    await expect(page.getByLabel("Địa chỉ quán")).toHaveValue("21 Cầu Giấy, Hà Nội");
+    const sent = page.waitForRequest(
+      (request) =>
+        request.method() === "POST" && new URL(request.url()).pathname.endsWith("/sellers"),
+    );
+    await page.getByRole("button", { name: "Tạo quán" }).click();
+    const body = (await sent).postDataJSON() as { latitude: number; longitude: number };
+    expect(body.latitude).toBeCloseTo(21.0367, 3);
+    expect(body.longitude).toBeCloseTo(105.7818, 3);
+  });
+
+  test("says when the location is not given, and the address is typed", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `huong.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Hương");
+    await page.getByRole("button", { name: "Dùng vị trí hiện tại" }).click();
+    await expect(page.getByText(/Chưa lấy được vị trí/)).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+  });
+
   test("opens a store and lists it", async ({ page }, testInfo) => {
     await signIn(page, `mai.${testInfo.project.name}@example.com`, "/stores");
     await expect(page.getByRole("heading", { level: 1, name: "Bạn chưa có quán" })).toBeVisible();
