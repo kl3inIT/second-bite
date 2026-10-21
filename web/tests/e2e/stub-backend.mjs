@@ -836,6 +836,27 @@ function postsOn(day) {
   return (Number(day.slice(8)) % 5) + 1;
 }
 
+/**
+ * The stores in each status at the end of a day, rebuilt as the backend's StatusPerDay does: a store counts from
+ * the day it was opened, in the status it was opened in until its status changed and in its status now from
+ * then; opened in its status now when it never changed, active when blocked now, pending when active now.
+ */
+function sellersOnDay(stores, date) {
+  const dayEnd = Date.parse(`${shiftDay(date, 1)}T00:00:00+07:00`);
+  const opened = { blocked: "active", active: "pending" };
+  const counts = { date, active: 0, pending: 0, blocked: 0 };
+  for (const store of stores) {
+    if (Date.parse(store.createdAt) >= dayEnd) continue;
+    const changed = store.statusChangedAt ? Date.parse(store.statusChangedAt) : undefined;
+    const status =
+      changed === undefined || changed < dayEnd
+        ? store.status
+        : (opened[store.status] ?? store.status);
+    if (status === "active" || status === "pending" || status === "blocked") counts[status] += 1;
+  }
+  return counts;
+}
+
 async function adminSummaryRoutes(request, response, url) {
   if (request.method !== "GET" || url.pathname !== "/admin/summary") return false;
   if (accounts.get(tokenOf(request))?.role !== "admin") {
@@ -873,6 +894,7 @@ async function adminSummaryRoutes(request, response, url) {
         { id: "sl-rau-cu", name: "Rau củ sạch Việt Hưng", openedAt: at(8, "47") },
         { id: "sl-tra-sua", name: "Trà sữa Mây", openedAt: `${shiftDay(to, -2)}T09:30:00+07:00` },
       ],
+      perDay: days.map((date) => sellersOnDay(stores, date)),
     },
     offers: {
       postedInRange: posted,
