@@ -1609,7 +1609,11 @@
     "zoomIn": "Phóng to bản đồ để ghim đúng chỗ.",
     "confirm": "Xác nhận vị trí",
     "unavailable": "Máy này chưa hiện được bản đồ. Hãy dùng nút vị trí hiện tại ở ô địa chỉ.",
-    "tilesFailed": "Một phần bản đồ chưa tải được. Bạn vẫn kéo và ghim được."
+    "tilesFailed": "Một phần bản đồ chưa tải được. Bạn vẫn kéo và ghim được.",
+    "zoomInButton": "Phóng to",
+    "zoomOutButton": "Thu nhỏ",
+    "openMap": "Mở bản đồ lớn",
+    "suggestions": "{count, plural, =0 {Không có gợi ý} other {# gợi ý}}"
   },
   "StoreLocationPage": {
     "title": "Vị trí quán",

@@ -40,7 +40,12 @@ export function LocationField({
       {/* A title, not a label: the button keeps its own name, "Ghim trên bản đồ" or "Chỉnh vị trí". */}
       <FieldTitle>{t("label")}</FieldTitle>
       {value ? (
-        <StoreMap point={value} label={t("previewLabel")} />
+        <StoreMap
+          point={value}
+          label={t("previewLabel")}
+          onOpen={() => setOpen(true)}
+          openLabel={t("openMap")}
+        />
       ) : (
         <div className="flex h-24 items-center justify-center gap-2 rounded-xl border border-dashed border-border text-body-sm text-muted-foreground">
           <MapPinIcon aria-hidden className="size-5" />

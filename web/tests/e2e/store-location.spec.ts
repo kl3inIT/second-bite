@@ -84,17 +84,31 @@ test.describe("a store's location on the map", () => {
     const dialog = page.getByRole("dialog", { name: "Ghim vị trí quán" });
     await expect(dialog.getByText("Kéo bản đồ để mũi ghim nằm đúng cửa quán.")).toBeVisible();
     const confirm = dialog.getByRole("button", { name: "Xác nhận vị trí" });
-    await expect(confirm).toBeDisabled();
     await expectNoSeriousA11yViolations(page);
 
-    // It opens at Tasco Mall, one level short of the street: the pin waits for a closer look.
+    // It opens at street level, so the pin can be confirmed at once; zoomed out, it waits for a closer look.
     test.skip(!(await nudgeMap(page, [])), "this browser has no WebGL; the picker says so instead");
-    await expect(dialog.getByText("Phóng to bản đồ để ghim đúng chỗ.")).toBeVisible();
-    await nudgeMap(page, ["Equal", "ArrowRight", "ArrowRight"]);
     await expect(confirm).toBeEnabled();
+    for (const step of [1, 2]) {
+      await dialog.getByRole("button", { name: "Thu nhỏ" }).click();
+      await page.waitForTimeout(400 * step);
+    }
+    await expect(dialog.getByText("Phóng to bản đồ để ghim đúng chỗ.")).toBeVisible();
+    await expect(confirm).toBeDisabled();
+    await dialog.getByRole("button", { name: "Phóng to" }).click();
+    await page.waitForTimeout(400);
+    await dialog.getByRole("button", { name: "Phóng to" }).click();
+    await expect(confirm).toBeEnabled();
+    await nudgeMap(page, ["ArrowRight", "ArrowRight"]);
     await confirm.click();
     await expect(dialog).toBeHidden();
     await expect(page.getByRole("figure", { name: "Vị trí quán trên bản đồ" })).toBeVisible();
+
+    // A press on the small map opens the large one again.
+    await page.getByRole("button", { name: "Mở bản đồ lớn" }).click();
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
 
     const opened = page.waitForRequest(opening);
     await page.getByRole("button", { name: "Tạo quán" }).click();
@@ -103,6 +117,47 @@ test.describe("a store's location on the map", () => {
     expect(body.latitude).toBeCloseTo(TASCO_MALL.latitude, 3);
     expect(body.longitude).toBeGreaterThan(TASCO_MALL.longitude);
     expect(body.longitude).toBeLessThan(TASCO_MALL.longitude + 0.05);
+  });
+
+  test("a place suggested for the typed address pins the store there", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `pin.suggest.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán gợi ý");
+    await page.getByLabel("Số điện thoại").fill("0912345678");
+
+    const address = page.getByRole("combobox", { name: "Địa chỉ quán" });
+    await address.pressSequentially("12 pho hoa lam");
+    const suggestion = page.getByRole("option", { name: "12 Phố Hoa Lâm, Việt Hưng, Hà Nội" });
+    await expect(suggestion).toBeVisible();
+    await expect(page.getByRole("option")).toHaveCount(2);
+    await suggestion.click();
+
+    await expect(address).toHaveValue("12 Phố Hoa Lâm, Việt Hưng, Hà Nội");
+    await expect(page.getByRole("figure", { name: "Vị trí quán trên bản đồ" })).toBeVisible();
+    // Scanned once the list has closed: while it is open, Base UI hides the rest of the page from screen readers.
+    await expectNoSeriousA11yViolations(page);
+    const opened = page.waitForRequest(opening);
+    await page.getByRole("button", { name: "Tạo quán" }).click();
+    const body = (await opened).postDataJSON() as {
+      address: string;
+      latitude: number;
+      longitude: number;
+    };
+    expect(body).toMatchObject({
+      address: "12 Phố Hoa Lâm, Việt Hưng, Hà Nội",
+      latitude: 21.0543,
+      longitude: 105.8962,
+    });
+  });
+
+  test("an address with no suggestion is kept as typed", async ({ page }, testInfo) => {
+    await signIn(page, `pin.typed.${testInfo.project.name}@example.com`, "/open-store");
+    const address = await hydrated(page.getByRole("combobox", { name: "Địa chỉ quán" }));
+    await address.pressSequentially("Kiot 5 chợ Long Biên");
+    await page.waitForTimeout(600);
+    await expect(page.getByRole("option")).toHaveCount(0);
+    await expect(address).toHaveValue("Kiot 5 chợ Long Biên");
   });
 
   test("the owner moves the store's pin from the store menu", async ({ page }, testInfo) => {
@@ -117,7 +172,7 @@ test.describe("a store's location on the map", () => {
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-[\w-]+\/location$/);
     await expect(page.getByRole("heading", { level: 1, name: "Vị trí quán" })).toBeVisible();
     await expect(page.getByRole("figure", { name: "Vị trí quán trên bản đồ" })).toBeVisible();
-    await expect(page.getByRole("textbox", { name: "Địa chỉ quán" })).toHaveValue(
+    await expect(page.getByRole("combobox", { name: "Địa chỉ quán" })).toHaveValue(
       "Tầng 1, Tasco Mall, Long Biên",
     );
     await expectNoSeriousA11yViolations(page);
@@ -133,7 +188,7 @@ test.describe("a store's location on the map", () => {
       await page.keyboard.press("Escape");
     }
 
-    await page.getByRole("textbox", { name: "Địa chỉ quán" }).fill("12 Ngọc Lâm, Long Biên");
+    await page.getByRole("combobox", { name: "Địa chỉ quán" }).fill("12 Ngọc Lâm, Long Biên");
     const saved = page.waitForRequest(
       (request) => request.method() === "PUT" && /\/sellers\/se-1-[\w-]+$/.test(request.url()),
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleAlertIcon, LocateFixedIcon, MapPinIcon } from "lucide-react";
+import { CircleAlertIcon, LocateFixedIcon, MapPinIcon, MinusIcon, PlusIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
@@ -92,9 +92,10 @@ function PickerBody({
 }) {
   const t = useTranslations("StoreLocation");
   const mapRef = useRef<MapRef>(null);
+  // Opened at street level, so the pin can be confirmed at once; zooming out shows the hint again.
   const [view, setView] = useState<MapView>(() => ({
     ...(start ?? TASCO_MALL),
-    zoom: start ? STREET_ZOOM + 1 : STREET_ZOOM - 1,
+    zoom: STREET_ZOOM + 1,
   }));
   const [place, setPlace] = useState<Place>({ state: "looking" });
   const [failure, setFailure] = useState<MapFailure>();
@@ -179,18 +180,40 @@ function PickerBody({
                 <MapPinIcon aria-hidden className="size-10 fill-primary text-primary-foreground" />
               </div>
             </div>
-            <Button
-              type="button"
-              variant="float"
-              size="icon-lg"
-              className="absolute top-4 right-4"
-              aria-label={t("locate")}
-              title={t("locate")}
-              disabled={locating}
-              onClick={locate}
-            >
-              {locating ? <Spinner /> : <LocateFixedIcon aria-hidden />}
-            </Button>
+            {/* Buttons for a hand without a second finger, and for a mouse, as the map's own control would give. */}
+            <div className="absolute top-4 right-4 flex flex-col gap-2">
+              <Button
+                type="button"
+                variant="float"
+                size="icon-lg"
+                aria-label={t("locate")}
+                title={t("locate")}
+                disabled={locating}
+                onClick={locate}
+              >
+                {locating ? <Spinner /> : <LocateFixedIcon aria-hidden />}
+              </Button>
+              <Button
+                type="button"
+                variant="float"
+                size="icon-lg"
+                aria-label={t("zoomInButton")}
+                title={t("zoomInButton")}
+                onClick={() => mapRef.current?.zoomIn()}
+              >
+                <PlusIcon aria-hidden />
+              </Button>
+              <Button
+                type="button"
+                variant="float"
+                size="icon-lg"
+                aria-label={t("zoomOutButton")}
+                title={t("zoomOutButton")}
+                onClick={() => mapRef.current?.zoomOut()}
+              >
+                <MinusIcon aria-hidden />
+              </Button>
+            </div>
           </>
         )}
       </div>
