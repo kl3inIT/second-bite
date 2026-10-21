@@ -58,7 +58,7 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
           </span>
         </SheetHeader>
 
-        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 pb-4">
+        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 sm:px-6">
           <h3 className="border-b border-border pb-3 text-title-lg">{t("question")}</h3>
           <div className="flex items-center gap-4">
             <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
