@@ -368,8 +368,6 @@
   },
   "Orders": {
     "orderTitle": "Your order",
-    "togetherTitle": "One order from {sellers} shops",
-    "togetherBody": "{names} · {total} in all. Each shop has its own collection code; pay at its counter.",
     "mine": "My orders",
     "lists": "Order lists",
     "tabOpen": "To collect ({count})",
@@ -377,7 +375,6 @@
     "noneOpen": "You have no orders to collect.",
     "noneEnded": "No finished orders yet.",
     "readyUntil": "Ready · until {until}",
-    "payOnCollect": "Pay at the counter",
     "seeOrder": "See order",
     "hoursMinutes": "{hours} h {minutes} min",
     "minutes": "{minutes} min",
@@ -427,7 +424,6 @@
       "title": "Status",
       "placed": "You placed the order",
       "ready": "The food was ready",
-      "collected": "You collected it",
       "cancelled": "You cancelled the order",
       "withReason": "{time} · {reason}",
       "returned": "{units, plural, one {# portion} other {# portions}} back with the shop",
@@ -446,7 +442,6 @@
       "expired": "Collection time over",
       "expiredBody": "{until} · recorded as not collected",
       "summary": {
-        "collected": "You paid the shop when you collected.",
         "cancelled": "You had not paid, so there is nothing to refund.",
         "refused": "You had not paid, so there is nothing to refund.",
         "expired": "Next time, cancel before the window opens so the food reaches someone else."
@@ -454,8 +449,7 @@
       "placedBody": "{date}, {time} · {units} portions · {total}",
       "confirmed": "The seller confirmed it",
       "confirmedBody": "{time} · {units} portions kept for you",
-      "readyBody": "{time} · the seller says come and collect",
-      "collectedBody": "{time} · paid {total}"
+      "readyBody": "{time} · the seller says come and collect"
     },
     "cancel": {
       "open": "Cancel order",
@@ -475,8 +469,7 @@
     },
     "date": "{day}/{month}",
     "orderNumber": "Order #{number}",
-    "preparing": "Being prepared",
-    "cardMeta": "#{numbers} · collect {from}–{until}",
+    "cardMeta": "#{number} · {total} · {place}",
     "day": {
       "today": "Today",
       "week": "This week",
@@ -499,7 +492,10 @@
       "expired": "Expired at {time} · {date}"
     },
     "collectLater": "The QR code shows once your food is ready. You can also give your name and phone number.",
-    "collectReady": "Show the QR code at the counter, or give your name and phone number."
+    "collectReady": "Show the QR code at the counter, or give your name and phone number.",
+    "collectAt": "Collect at {from}",
+    "savedLine": "Saved against the original price · {units} portions not wasted",
+    "placedWith": "Ordered together: {seller}"
   },
   "Splash": {
     "tagline": "Good food left at the end of the day, for less",
@@ -1291,5 +1287,30 @@
         "unreachable": "The server could not be reached. Try again shortly."
       }
     }
+  },
+  "Review": {
+    "title": "How was it today?",
+    "hint": "Your rating helps the shop and the next buyers.",
+    "starsLegend": "Stars",
+    "star": "{count, plural, one {# star} other {# stars}}",
+    "word": {
+      "1": "Bad",
+      "2": "Not great",
+      "3": "Okay",
+      "4": "Good",
+      "5": "Excellent"
+    },
+    "tagsTitle": "What did you like?",
+    "tag": {
+      "fast_pickup": "Quick pickup",
+      "good_quality": "Good quality",
+      "good_variety": "Good variety",
+      "fair_portions": "Fair portions"
+    },
+    "comment": "A few words for the shop (optional)",
+    "submit": "Send rating",
+    "failed": "The rating was not sent. Try again later, reference {reference}.",
+    "given": "Your rating",
+    "thanks": "Thank you, the shop will read it."
   }
 }

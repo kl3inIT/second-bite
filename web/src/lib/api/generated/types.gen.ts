@@ -503,6 +503,10 @@ export type OrderBody = {
     refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other' | 'withdrawn';
     refusedAt?: string;
     /**
+     * The customer's rating of the collected order; none until they rate it
+     */
+    review?: ReviewBody;
+    /**
      * Where the order is collected, copied when it was placed
      */
     seller: OrderSellerBody;
@@ -653,6 +657,22 @@ export type RequestCodeOutputBody = {
      */
     challengeId: string;
     expiresAt: string;
+};
+
+export type ReviewBody = {
+    comment?: string;
+    createdAt: string;
+    stars: number;
+    tags: Array<string>;
+};
+
+export type ReviewOrderRequest = {
+    comment?: string;
+    stars: number;
+    /**
+     * What went well
+     */
+    tags: Array<'fast_pickup' | 'good_quality' | 'good_variety' | 'fair_portions'>;
 };
 
 export type RoleCountsBody = {
@@ -1988,6 +2008,39 @@ export type ReopenOrderResponses = {
 };
 
 export type ReopenOrderResponse = ReopenOrderResponses[keyof ReopenOrderResponses];
+
+export type ReviewOrderData = {
+    body: ReviewOrderRequest;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/review';
+};
+
+export type ReviewOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ReviewOrderError = ReviewOrderErrors[keyof ReviewOrderErrors];
+
+export type ReviewOrderResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type ReviewOrderResponse = ReviewOrderResponses[keyof ReviewOrderResponses];
 
 export type UploadPhotoData = {
     body: Blob | File;

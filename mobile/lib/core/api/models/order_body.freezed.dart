@@ -24,7 +24,8 @@ mixin _$OrderBody {
  OrderSellerBody get seller;/// expired is read from the window's end
  OrderBodyStatus get status;/// Paid to the seller at the counter
  int get totalVnd; DateTime get windowEnd; DateTime get windowStart;/// To its customer: proves the order is theirs without signing in, sent back as Order-Access
- String? get access; String? get cancelReason; DateTime? get cancelledAt; DateTime? get collectedAt; DateTime? get readyAt; String? get refuseNote; OrderBodyRefuseReason? get refuseReason; DateTime? get refusedAt;
+ String? get access; String? get cancelReason; DateTime? get cancelledAt; DateTime? get collectedAt; DateTime? get readyAt; String? get refuseNote; OrderBodyRefuseReason? get refuseReason; DateTime? get refusedAt;/// The customer's rating of the collected order; none until they rate it
+ ReviewBody? get review;
 /// Create a copy of OrderBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -38,20 +39,20 @@ $OrderBodyCopyWith<OrderBody> get copyWith => _$OrderBodyCopyWithImpl<OrderBody>
 @override
 bool operator ==(Object other) {
   final _this = this as OrderBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderBody&&(identical(other.checkoutId, _this.checkoutId) || other.checkoutId == _this.checkoutId)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.customerName, _this.customerName) || other.customerName == _this.customerName)&&(identical(other.customerPhone, _this.customerPhone) || other.customerPhone == _this.customerPhone)&&(identical(other.id, _this.id) || other.id == _this.id)&&const DeepCollectionEquality().equals(other.lines, _this.lines)&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.seller, _this.seller) || other.seller == _this.seller)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.totalVnd, _this.totalVnd) || other.totalVnd == _this.totalVnd)&&(identical(other.windowEnd, _this.windowEnd) || other.windowEnd == _this.windowEnd)&&(identical(other.windowStart, _this.windowStart) || other.windowStart == _this.windowStart)&&(identical(other.access, _this.access) || other.access == _this.access)&&(identical(other.cancelReason, _this.cancelReason) || other.cancelReason == _this.cancelReason)&&(identical(other.cancelledAt, _this.cancelledAt) || other.cancelledAt == _this.cancelledAt)&&(identical(other.collectedAt, _this.collectedAt) || other.collectedAt == _this.collectedAt)&&(identical(other.readyAt, _this.readyAt) || other.readyAt == _this.readyAt)&&(identical(other.refuseNote, _this.refuseNote) || other.refuseNote == _this.refuseNote)&&(identical(other.refuseReason, _this.refuseReason) || other.refuseReason == _this.refuseReason)&&(identical(other.refusedAt, _this.refusedAt) || other.refusedAt == _this.refusedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderBody&&(identical(other.checkoutId, _this.checkoutId) || other.checkoutId == _this.checkoutId)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.customerName, _this.customerName) || other.customerName == _this.customerName)&&(identical(other.customerPhone, _this.customerPhone) || other.customerPhone == _this.customerPhone)&&(identical(other.id, _this.id) || other.id == _this.id)&&const DeepCollectionEquality().equals(other.lines, _this.lines)&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.seller, _this.seller) || other.seller == _this.seller)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.totalVnd, _this.totalVnd) || other.totalVnd == _this.totalVnd)&&(identical(other.windowEnd, _this.windowEnd) || other.windowEnd == _this.windowEnd)&&(identical(other.windowStart, _this.windowStart) || other.windowStart == _this.windowStart)&&(identical(other.access, _this.access) || other.access == _this.access)&&(identical(other.cancelReason, _this.cancelReason) || other.cancelReason == _this.cancelReason)&&(identical(other.cancelledAt, _this.cancelledAt) || other.cancelledAt == _this.cancelledAt)&&(identical(other.collectedAt, _this.collectedAt) || other.collectedAt == _this.collectedAt)&&(identical(other.readyAt, _this.readyAt) || other.readyAt == _this.readyAt)&&(identical(other.refuseNote, _this.refuseNote) || other.refuseNote == _this.refuseNote)&&(identical(other.refuseReason, _this.refuseReason) || other.refuseReason == _this.refuseReason)&&(identical(other.refusedAt, _this.refusedAt) || other.refusedAt == _this.refusedAt)&&(identical(other.review, _this.review) || other.review == _this.review));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as OrderBody;
-  return Object.hashAll([runtimeType,_this.checkoutId,_this.createdAt,_this.customerName,_this.customerPhone,_this.id,const DeepCollectionEquality().hash(_this.lines),_this.number,_this.seller,_this.status,_this.totalVnd,_this.windowEnd,_this.windowStart,_this.access,_this.cancelReason,_this.cancelledAt,_this.collectedAt,_this.readyAt,_this.refuseNote,_this.refuseReason,_this.refusedAt]);
+  return Object.hashAll([runtimeType,_this.checkoutId,_this.createdAt,_this.customerName,_this.customerPhone,_this.id,const DeepCollectionEquality().hash(_this.lines),_this.number,_this.seller,_this.status,_this.totalVnd,_this.windowEnd,_this.windowStart,_this.access,_this.cancelReason,_this.cancelledAt,_this.collectedAt,_this.readyAt,_this.refuseNote,_this.refuseReason,_this.refusedAt,_this.review]);
 }
 
 @override
 String toString() {
   final _this = this as OrderBody;
-  return 'OrderBody(checkoutId: ${_this.checkoutId}, createdAt: ${_this.createdAt}, customerName: ${_this.customerName}, customerPhone: ${_this.customerPhone}, id: ${_this.id}, lines: ${_this.lines}, number: ${_this.number}, seller: ${_this.seller}, status: ${_this.status}, totalVnd: ${_this.totalVnd}, windowEnd: ${_this.windowEnd}, windowStart: ${_this.windowStart}, access: ${_this.access}, cancelReason: ${_this.cancelReason}, cancelledAt: ${_this.cancelledAt}, collectedAt: ${_this.collectedAt}, readyAt: ${_this.readyAt}, refuseNote: ${_this.refuseNote}, refuseReason: ${_this.refuseReason}, refusedAt: ${_this.refusedAt})';
+  return 'OrderBody(checkoutId: ${_this.checkoutId}, createdAt: ${_this.createdAt}, customerName: ${_this.customerName}, customerPhone: ${_this.customerPhone}, id: ${_this.id}, lines: ${_this.lines}, number: ${_this.number}, seller: ${_this.seller}, status: ${_this.status}, totalVnd: ${_this.totalVnd}, windowEnd: ${_this.windowEnd}, windowStart: ${_this.windowStart}, access: ${_this.access}, cancelReason: ${_this.cancelReason}, cancelledAt: ${_this.cancelledAt}, collectedAt: ${_this.collectedAt}, readyAt: ${_this.readyAt}, refuseNote: ${_this.refuseNote}, refuseReason: ${_this.refuseReason}, refusedAt: ${_this.refusedAt}, review: ${_this.review})';
 }
 
 
@@ -62,11 +63,11 @@ abstract mixin class $OrderBodyCopyWith<$Res>  {
   factory $OrderBodyCopyWith(OrderBody value, $Res Function(OrderBody) _then) = _$OrderBodyCopyWithImpl;
 @useResult
 $Res call({
- String checkoutId, DateTime createdAt, String customerName, String customerPhone, String id, List<OrderLineBody> lines, String number, OrderSellerBody seller, OrderBodyStatus status, int totalVnd, DateTime windowEnd, DateTime windowStart, String? access, String? cancelReason, DateTime? cancelledAt, DateTime? collectedAt, DateTime? readyAt, String? refuseNote, OrderBodyRefuseReason? refuseReason, DateTime? refusedAt
+ String checkoutId, DateTime createdAt, String customerName, String customerPhone, String id, List<OrderLineBody> lines, String number, OrderSellerBody seller, OrderBodyStatus status, int totalVnd, DateTime windowEnd, DateTime windowStart, String? access, String? cancelReason, DateTime? cancelledAt, DateTime? collectedAt, DateTime? readyAt, String? refuseNote, OrderBodyRefuseReason? refuseReason, DateTime? refusedAt, ReviewBody? review
 });
 
 
-$OrderSellerBodyCopyWith<$Res> get seller;
+$OrderSellerBodyCopyWith<$Res> get seller;$ReviewBodyCopyWith<$Res>? get review;
 
 }
 /// @nodoc
@@ -79,7 +80,7 @@ class _$OrderBodyCopyWithImpl<$Res>
 
 /// Create a copy of OrderBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? checkoutId = null,Object? createdAt = null,Object? customerName = null,Object? customerPhone = null,Object? id = null,Object? lines = null,Object? number = null,Object? seller = null,Object? status = null,Object? totalVnd = null,Object? windowEnd = null,Object? windowStart = null,Object? access = freezed,Object? cancelReason = freezed,Object? cancelledAt = freezed,Object? collectedAt = freezed,Object? readyAt = freezed,Object? refuseNote = freezed,Object? refuseReason = freezed,Object? refusedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? checkoutId = null,Object? createdAt = null,Object? customerName = null,Object? customerPhone = null,Object? id = null,Object? lines = null,Object? number = null,Object? seller = null,Object? status = null,Object? totalVnd = null,Object? windowEnd = null,Object? windowStart = null,Object? access = freezed,Object? cancelReason = freezed,Object? cancelledAt = freezed,Object? collectedAt = freezed,Object? readyAt = freezed,Object? refuseNote = freezed,Object? refuseReason = freezed,Object? refusedAt = freezed,Object? review = freezed,}) {
   return _then(OrderBody(
 checkoutId: null == checkoutId ? _self.checkoutId : checkoutId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -101,7 +102,8 @@ as DateTime?,readyAt: freezed == readyAt ? _self.readyAt : readyAt // ignore: ca
 as DateTime?,refuseNote: freezed == refuseNote ? _self.refuseNote : refuseNote // ignore: cast_nullable_to_non_nullable
 as String?,refuseReason: freezed == refuseReason ? _self.refuseReason : refuseReason // ignore: cast_nullable_to_non_nullable
 as OrderBodyRefuseReason?,refusedAt: freezed == refusedAt ? _self.refusedAt : refusedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,review: freezed == review ? _self.review : review // ignore: cast_nullable_to_non_nullable
+as ReviewBody?,
   ));
 }
 /// Create a copy of OrderBody
@@ -112,6 +114,18 @@ $OrderSellerBodyCopyWith<$Res> get seller {
   
   return $OrderSellerBodyCopyWith<$Res>(_self.seller, (value) {
     return _then(_self.copyWith(seller: value));
+  });
+}/// Create a copy of OrderBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ReviewBodyCopyWith<$Res>? get review {
+    if (_self.review == null) {
+    return null;
+  }
+
+  return $ReviewBodyCopyWith<$Res>(_self.review!, (value) {
+    return _then(_self.copyWith(review: value));
   });
 }
 }
@@ -195,10 +209,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt,  ReviewBody? review)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OrderBody() when $default != null:
-return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt);case _:
+return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt,_that.review);case _:
   return orElse();
 
 }
@@ -216,10 +230,10 @@ return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.custom
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt,  ReviewBody? review)  $default,) {final _that = this;
 switch (_that) {
 case _OrderBody():
-return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt);case _:
+return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt,_that.review);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -236,10 +250,10 @@ return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.custom
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt,  ReviewBody? review)?  $default,) {final _that = this;
 switch (_that) {
 case _OrderBody() when $default != null:
-return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt);case _:
+return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt,_that.review);case _:
   return null;
 
 }
@@ -251,7 +265,7 @@ return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.custom
 @JsonSerializable()
 
 class _OrderBody implements OrderBody {
-  const _OrderBody({required this.checkoutId, required this.createdAt, required this.customerName, required this.customerPhone, required this.id, required  List<OrderLineBody> lines, required this.number, required this.seller, required this.status, required this.totalVnd, required this.windowEnd, required this.windowStart, this.access, this.cancelReason, this.cancelledAt, this.collectedAt, this.readyAt, this.refuseNote, this.refuseReason, this.refusedAt}): _lines = lines;
+  const _OrderBody({required this.checkoutId, required this.createdAt, required this.customerName, required this.customerPhone, required this.id, required  List<OrderLineBody> lines, required this.number, required this.seller, required this.status, required this.totalVnd, required this.windowEnd, required this.windowStart, this.access, this.cancelReason, this.cancelledAt, this.collectedAt, this.readyAt, this.refuseNote, this.refuseReason, this.refusedAt, this.review}): _lines = lines;
   factory _OrderBody.fromJson(Map<String, dynamic> json) => _$OrderBodyFromJson(json);
 
 /// Shared by the orders placed together from one cart
@@ -288,6 +302,8 @@ class _OrderBody implements OrderBody {
 @override final  String? refuseNote;
 @override final  OrderBodyRefuseReason? refuseReason;
 @override final  DateTime? refusedAt;
+/// The customer's rating of the collected order; none until they rate it
+@override final  ReviewBody? review;
 
 /// Create a copy of OrderBody
 /// with the given fields replaced by the non-null parameter values.
@@ -302,18 +318,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrderBody&&(identical(other.checkoutId, checkoutId) || other.checkoutId == checkoutId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.lines, _lines)&&(identical(other.number, number) || other.number == number)&&(identical(other.seller, seller) || other.seller == seller)&&(identical(other.status, status) || other.status == status)&&(identical(other.totalVnd, totalVnd) || other.totalVnd == totalVnd)&&(identical(other.windowEnd, windowEnd) || other.windowEnd == windowEnd)&&(identical(other.windowStart, windowStart) || other.windowStart == windowStart)&&(identical(other.access, access) || other.access == access)&&(identical(other.cancelReason, cancelReason) || other.cancelReason == cancelReason)&&(identical(other.cancelledAt, cancelledAt) || other.cancelledAt == cancelledAt)&&(identical(other.collectedAt, collectedAt) || other.collectedAt == collectedAt)&&(identical(other.readyAt, readyAt) || other.readyAt == readyAt)&&(identical(other.refuseNote, refuseNote) || other.refuseNote == refuseNote)&&(identical(other.refuseReason, refuseReason) || other.refuseReason == refuseReason)&&(identical(other.refusedAt, refusedAt) || other.refusedAt == refusedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrderBody&&(identical(other.checkoutId, checkoutId) || other.checkoutId == checkoutId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.lines, _lines)&&(identical(other.number, number) || other.number == number)&&(identical(other.seller, seller) || other.seller == seller)&&(identical(other.status, status) || other.status == status)&&(identical(other.totalVnd, totalVnd) || other.totalVnd == totalVnd)&&(identical(other.windowEnd, windowEnd) || other.windowEnd == windowEnd)&&(identical(other.windowStart, windowStart) || other.windowStart == windowStart)&&(identical(other.access, access) || other.access == access)&&(identical(other.cancelReason, cancelReason) || other.cancelReason == cancelReason)&&(identical(other.cancelledAt, cancelledAt) || other.cancelledAt == cancelledAt)&&(identical(other.collectedAt, collectedAt) || other.collectedAt == collectedAt)&&(identical(other.readyAt, readyAt) || other.readyAt == readyAt)&&(identical(other.refuseNote, refuseNote) || other.refuseNote == refuseNote)&&(identical(other.refuseReason, refuseReason) || other.refuseReason == refuseReason)&&(identical(other.refusedAt, refusedAt) || other.refusedAt == refusedAt)&&(identical(other.review, review) || other.review == review));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hashAll([runtimeType,checkoutId,createdAt,customerName,customerPhone,id,const DeepCollectionEquality().hash(_lines),number,seller,status,totalVnd,windowEnd,windowStart,access,cancelReason,cancelledAt,collectedAt,readyAt,refuseNote,refuseReason,refusedAt]);
+    return Object.hashAll([runtimeType,checkoutId,createdAt,customerName,customerPhone,id,const DeepCollectionEquality().hash(_lines),number,seller,status,totalVnd,windowEnd,windowStart,access,cancelReason,cancelledAt,collectedAt,readyAt,refuseNote,refuseReason,refusedAt,review]);
 }
 
 @override
 String toString() {
-    return 'OrderBody(checkoutId: $checkoutId, createdAt: $createdAt, customerName: $customerName, customerPhone: $customerPhone, id: $id, lines: $lines, number: $number, seller: $seller, status: $status, totalVnd: $totalVnd, windowEnd: $windowEnd, windowStart: $windowStart, access: $access, cancelReason: $cancelReason, cancelledAt: $cancelledAt, collectedAt: $collectedAt, readyAt: $readyAt, refuseNote: $refuseNote, refuseReason: $refuseReason, refusedAt: $refusedAt)';
+    return 'OrderBody(checkoutId: $checkoutId, createdAt: $createdAt, customerName: $customerName, customerPhone: $customerPhone, id: $id, lines: $lines, number: $number, seller: $seller, status: $status, totalVnd: $totalVnd, windowEnd: $windowEnd, windowStart: $windowStart, access: $access, cancelReason: $cancelReason, cancelledAt: $cancelledAt, collectedAt: $collectedAt, readyAt: $readyAt, refuseNote: $refuseNote, refuseReason: $refuseReason, refusedAt: $refusedAt, review: $review)';
 }
 
 
@@ -324,11 +340,11 @@ abstract mixin class _$OrderBodyCopyWith<$Res> implements $OrderBodyCopyWith<$Re
   factory _$OrderBodyCopyWith(_OrderBody value, $Res Function(_OrderBody) _then) = __$OrderBodyCopyWithImpl;
 @override @useResult
 $Res call({
- String checkoutId, DateTime createdAt, String customerName, String customerPhone, String id, List<OrderLineBody> lines, String number, OrderSellerBody seller, OrderBodyStatus status, int totalVnd, DateTime windowEnd, DateTime windowStart, String? access, String? cancelReason, DateTime? cancelledAt, DateTime? collectedAt, DateTime? readyAt, String? refuseNote, OrderBodyRefuseReason? refuseReason, DateTime? refusedAt
+ String checkoutId, DateTime createdAt, String customerName, String customerPhone, String id, List<OrderLineBody> lines, String number, OrderSellerBody seller, OrderBodyStatus status, int totalVnd, DateTime windowEnd, DateTime windowStart, String? access, String? cancelReason, DateTime? cancelledAt, DateTime? collectedAt, DateTime? readyAt, String? refuseNote, OrderBodyRefuseReason? refuseReason, DateTime? refusedAt, ReviewBody? review
 });
 
 
-@override $OrderSellerBodyCopyWith<$Res> get seller;
+@override $OrderSellerBodyCopyWith<$Res> get seller;@override $ReviewBodyCopyWith<$Res>? get review;
 
 }
 /// @nodoc
@@ -341,7 +357,7 @@ class __$OrderBodyCopyWithImpl<$Res>
 
 /// Create a copy of OrderBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? checkoutId = null,Object? createdAt = null,Object? customerName = null,Object? customerPhone = null,Object? id = null,Object? lines = null,Object? number = null,Object? seller = null,Object? status = null,Object? totalVnd = null,Object? windowEnd = null,Object? windowStart = null,Object? access = freezed,Object? cancelReason = freezed,Object? cancelledAt = freezed,Object? collectedAt = freezed,Object? readyAt = freezed,Object? refuseNote = freezed,Object? refuseReason = freezed,Object? refusedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? checkoutId = null,Object? createdAt = null,Object? customerName = null,Object? customerPhone = null,Object? id = null,Object? lines = null,Object? number = null,Object? seller = null,Object? status = null,Object? totalVnd = null,Object? windowEnd = null,Object? windowStart = null,Object? access = freezed,Object? cancelReason = freezed,Object? cancelledAt = freezed,Object? collectedAt = freezed,Object? readyAt = freezed,Object? refuseNote = freezed,Object? refuseReason = freezed,Object? refusedAt = freezed,Object? review = freezed,}) {
   return _then(_OrderBody(
 checkoutId: null == checkoutId ? _self.checkoutId : checkoutId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -363,7 +379,8 @@ as DateTime?,readyAt: freezed == readyAt ? _self.readyAt : readyAt // ignore: ca
 as DateTime?,refuseNote: freezed == refuseNote ? _self.refuseNote : refuseNote // ignore: cast_nullable_to_non_nullable
 as String?,refuseReason: freezed == refuseReason ? _self.refuseReason : refuseReason // ignore: cast_nullable_to_non_nullable
 as OrderBodyRefuseReason?,refusedAt: freezed == refusedAt ? _self.refusedAt : refusedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,review: freezed == review ? _self.review : review // ignore: cast_nullable_to_non_nullable
+as ReviewBody?,
   ));
 }
 
@@ -375,6 +392,18 @@ $OrderSellerBodyCopyWith<$Res> get seller {
   
   return $OrderSellerBodyCopyWith<$Res>(_self.seller, (value) {
     return _then(_self.copyWith(seller: value));
+  });
+}/// Create a copy of OrderBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ReviewBodyCopyWith<$Res>? get review {
+    if (_self.review == null) {
+    return null;
+  }
+
+  return $ReviewBodyCopyWith<$Res>(_self.review!, (value) {
+    return _then(_self.copyWith(review: value));
   });
 }
 }

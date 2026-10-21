@@ -319,6 +319,32 @@ func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.
 	return id, err
 }
 
+const insertReview = `-- name: InsertReview :execrows
+INSERT INTO order_reviews (order_id, stars, tags, comment) VALUES ($1, $2, $3, $4)
+ON CONFLICT (order_id) DO NOTHING
+`
+
+type InsertReviewParams struct {
+	OrderID uuid.UUID
+	Stars   int16
+	Tags    []string
+	Comment string
+}
+
+// Nothing is inserted when the order was already reviewed.
+func (q *Queries) InsertReview(ctx context.Context, arg InsertReviewParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertReview,
+		arg.OrderID,
+		arg.Stars,
+		arg.Tags,
+		arg.Comment,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const linesOf = `-- name: LinesOf :many
 SELECT order_id, offer_id, name, unit, price_vnd, original_price_vnd, photo_id, units
 FROM order_lines WHERE order_id = ANY ($1::uuid[])
@@ -529,6 +555,37 @@ func (q *Queries) OrderOfKey(ctx context.Context, arg OrderOfKeyParams) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const reviewsOf = `-- name: ReviewsOf :many
+SELECT order_id, stars, tags, comment, created_at
+FROM order_reviews WHERE order_id = ANY ($1::uuid[])
+`
+
+func (q *Queries) ReviewsOf(ctx context.Context, orderIds []uuid.UUID) ([]OrderReview, error) {
+	rows, err := q.db.Query(ctx, reviewsOf, orderIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderReview
+	for rows.Next() {
+		var i OrderReview
+		if err := rows.Scan(
+			&i.OrderID,
+			&i.Stars,
+			&i.Tags,
+			&i.Comment,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const sellerOrders = `-- name: SellerOrders :many

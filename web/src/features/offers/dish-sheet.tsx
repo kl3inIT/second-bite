@@ -136,7 +136,12 @@ function AddBar({
   const [count, setCount] = useState(1);
 
   return (
-    <div className={cn("flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-border", className)}>
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-border",
+        className,
+      )}
+    >
       {room > 0 && (
         <Stepper
           name={offer.name}

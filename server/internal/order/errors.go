@@ -52,4 +52,16 @@ var (
 		VI: "Chọn một lý do có sẵn (not_suitable, wrong_items, no_answer, no_show, late, sold_out hoặc other), kèm ghi chú tối đa 200 ký tự.",
 		EN: "Give one of the reasons (not_suitable, wrong_items, no_answer, no_show, late, sold_out or other), and a note of at most 200 characters.",
 	})
+	ErrReviewInvalid = platform.NewFailure("ORDER_REVIEW_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Chọn từ 1 đến 5 sao, các thẻ có sẵn (fast_pickup, good_quality, good_variety hoặc fair_portions) không lặp lại, và nhận xét tối đa 500 ký tự.",
+		EN: "Give 1 to 5 stars, tags from the set (fast_pickup, good_quality, good_variety or fair_portions) none twice, and a comment of at most 500 characters.",
+	})
+	ErrNotCollected = platform.NewFailure("ORDER_NOT_COLLECTED", platform.CategoryConflict, platform.Words{
+		VI: "Chỉ đánh giá được đơn đã nhận.",
+		EN: "Only a collected order can be reviewed.",
+	})
+	ErrAlreadyReviewed = platform.NewFailure("ORDER_ALREADY_REVIEWED", platform.CategoryConflict, platform.Words{
+		VI: "Đơn này đã được đánh giá.",
+		EN: "The order was already reviewed.",
+	})
 )
