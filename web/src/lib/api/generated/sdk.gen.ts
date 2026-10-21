@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddDishData, AddDishErrors, AddDishResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, CancelOrderData, CancelOrderErrors, CancelOrderResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetOrderData, GetOrderErrors, GetOrderResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, HandOverOrderData, HandOverOrderErrors, HandOverOrderResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListMyOrdersData, ListMyOrdersErrors, ListMyOrdersResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellerOrdersData, ListSellerOrdersErrors, ListSellerOrdersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, MarkOrderReadyData, MarkOrderReadyErrors, MarkOrderReadyResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PlaceOrderData, PlaceOrderErrors, PlaceOrderResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RefuseOrderData, RefuseOrderErrors, RefuseOrderResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
+import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddDishData, AddDishErrors, AddDishResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, CancelOrderData, CancelOrderErrors, CancelOrderResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, DeliverOrderData, DeliverOrderErrors, DeliverOrderResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetOrderData, GetOrderErrors, GetOrderResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, HandOverOrderData, HandOverOrderErrors, HandOverOrderResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListMyOrdersData, ListMyOrdersErrors, ListMyOrdersResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellerOrdersData, ListSellerOrdersErrors, ListSellerOrdersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, MarkOrderReadyData, MarkOrderReadyErrors, MarkOrderReadyResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PlaceOrderData, PlaceOrderErrors, PlaceOrderResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RefuseOrderData, RefuseOrderErrors, RefuseOrderResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, ReopenOrderData, ReopenOrderErrors, ReopenOrderResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -406,6 +406,21 @@ export const cancelOrder = <ThrowOnError extends boolean = true>(options: Option
 });
 
 /**
+ * Hand an order over at the counter, where its customer pays in cash
+ *
+ * No code is asked, and a customer may come before the window opens.
+ */
+export const deliverOrder = <ThrowOnError extends boolean = true>(options: Options<DeliverOrderData, ThrowOnError>): RequestResult<DeliverOrderResponses, DeliverOrderErrors, ThrowOnError> => (options.client ?? client).post<DeliverOrderResponses, DeliverOrderErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/deliver',
+    ...options
+});
+
+/**
  * Hand an order over against its collection code
  *
  * Within the window. A wrong code is counted; the third locks the code.
@@ -452,6 +467,21 @@ export const refuseOrder = <ThrowOnError extends boolean = true>(options: Option
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Take a hand-over or a refusal back
+ *
+ * The order is open again, and the units a refusal had returned are taken again, or it fails when they are gone. An order its customer cancelled, or whose window is over, stays as it is.
+ */
+export const reopenOrder = <ThrowOnError extends boolean = true>(options: Options<ReopenOrderData, ThrowOnError>): RequestResult<ReopenOrderResponses, ReopenOrderErrors, ThrowOnError> => (options.client ?? client).post<ReopenOrderResponses, ReopenOrderErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/reopen',
+    ...options
 });
 
 /**
