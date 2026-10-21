@@ -939,6 +939,7 @@
     "skip": "Skip the sidebar",
     "breadcrumb": "Where you are",
     "nav": {
+      "sellers": "Stores",
       "audit": "Activity log",
       "settings": "Settings",
       "accounts": "Accounts"
@@ -1123,6 +1124,7 @@
       }
     },
     "group": {
+      "operations": "Operations",
       "users": "Users"
     },
     "accounts": {
@@ -1234,6 +1236,103 @@
         "done": "{email} is now an admin",
         "failed": "Could not make {name} an admin",
         "unreachable": "The server could not be reached. Try again shortly."
+      }
+    },
+    "sellers": {
+      "title": "Stores",
+      "noun": "stores",
+      "search": "Search stores by name or address",
+      "size": "Rows",
+      "area": "Area",
+      "anyArea": "All",
+      "changed": "Changed",
+      "anytime": "Any time",
+      "cards": "Filter by status",
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "blocked": "Blocked"
+      },
+      "column": {
+        "store": "Store",
+        "address": "Address",
+        "phone": "Phone",
+        "status": "Status",
+        "changed": "Last changed",
+        "actions": "Actions"
+      },
+      "empty": {
+        "title": "No stores yet"
+      },
+      "noResults": {
+        "title": "No store matches",
+        "clear": "Clear filters"
+      },
+      "menu": {
+        "open": "Actions for {name}",
+        "block": "Block store…",
+        "unblock": "Unblock",
+        "approve": "Approve",
+        "reject": "Reject…",
+        "view": "View details"
+      },
+      "block": {
+        "title": "Block {name}?",
+        "reason": "Reason for blocking",
+        "effects": "Once blocked:",
+        "noPosting": "The store cannot post or edit offers.",
+        "hidden": "The store and all its offers leave customers' searches at once, and its page no longer opens.",
+        "stillManage": "The store can still withdraw offers and manage its staff.",
+        "emailed": "The owner is emailed the reason.",
+        "undo": "You can unblock it at any time.",
+        "confirm": "Block store",
+        "done": "{name} is blocked"
+      },
+      "reject": {
+        "title": "Reject {name}?",
+        "reason": "Reason for rejecting",
+        "effects": "Once rejected:",
+        "hidden": "The store does not show to customers and cannot post.",
+        "emailed": "The owner is emailed the reason.",
+        "confirm": "Reject",
+        "done": "{name} is rejected"
+      },
+      "unblock": {
+        "title": "Unblock {name}?",
+        "effects": "Once unblocked:",
+        "shown": "The store and its offers on sale show to customers again, and it can post at once.",
+        "emailed": "The owner is emailed that the store is approved.",
+        "confirm": "Unblock",
+        "done": "{name} is unblocked"
+      },
+      "approve": {
+        "title": "Approve {name}?",
+        "effects": "Once approved:",
+        "shown": "The store shows to customers and can post at once.",
+        "emailed": "The owner is emailed that the store is approved.",
+        "confirm": "Approve",
+        "done": "{name} is approved"
+      },
+      "cancel": "Cancel",
+      "unreachable": "The server did not answer. Try again later.",
+      "detail": {
+        "tabs": "Store content",
+        "overview": "Overview",
+        "posts": "Posts · {count}",
+        "members": "Members · {count}",
+        "onSale": "On sale",
+        "seeAll": "See all",
+        "noneOnSale": "Nothing on sale",
+        "noPosts": "The store has posted nothing yet",
+        "info": "Details",
+        "address": "Address",
+        "phone": "Phone",
+        "people": "Members",
+        "owner": "Owner",
+        "staff": "Staff",
+        "offerLeft": "-{discount}% · {left}/{units} {unit} left",
+        "offerWindow": "Pick-up {from}–{until}"
       }
     }
   }

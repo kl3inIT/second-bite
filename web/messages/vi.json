@@ -939,6 +939,7 @@
     "skip": "Bỏ qua thanh bên",
     "breadcrumb": "Vị trí trang",
     "nav": {
+      "sellers": "Cửa hàng",
       "audit": "Nhật ký thao tác",
       "settings": "Cài đặt",
       "accounts": "Tài khoản"
@@ -1123,6 +1124,7 @@
       }
     },
     "group": {
+      "operations": "Vận hành",
       "users": "Người dùng"
     },
     "accounts": {
@@ -1234,6 +1236,103 @@
         "done": "Đã cấp quyền quản trị cho {email}",
         "failed": "Chưa cấp quyền cho {name} được",
         "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát."
+      }
+    },
+    "sellers": {
+      "title": "Cửa hàng",
+      "noun": "cửa hàng",
+      "search": "Tìm cửa hàng theo tên hoặc địa chỉ",
+      "size": "Số dòng",
+      "area": "Khu vực",
+      "anyArea": "Tất cả",
+      "changed": "Sửa đổi",
+      "anytime": "Mọi lúc",
+      "cards": "Lọc theo trạng thái",
+      "status": {
+        "active": "Đang hoạt động",
+        "pending": "Chờ duyệt",
+        "rejected": "Bị từ chối",
+        "blocked": "Bị chặn"
+      },
+      "column": {
+        "store": "Cửa hàng",
+        "address": "Địa chỉ",
+        "phone": "Số điện thoại",
+        "status": "Trạng thái",
+        "changed": "Ngày sửa đổi",
+        "actions": "Thao tác"
+      },
+      "empty": {
+        "title": "Chưa có cửa hàng nào"
+      },
+      "noResults": {
+        "title": "Không tìm thấy cửa hàng nào",
+        "clear": "Xoá bộ lọc"
+      },
+      "menu": {
+        "open": "Thao tác với {name}",
+        "block": "Chặn cửa hàng…",
+        "unblock": "Gỡ chặn",
+        "approve": "Duyệt",
+        "reject": "Từ chối…",
+        "view": "Xem chi tiết"
+      },
+      "block": {
+        "title": "Chặn cửa hàng {name}?",
+        "reason": "Lý do chặn",
+        "effects": "Khi bị chặn:",
+        "noPosting": "Cửa hàng không đăng bài mới hay sửa bài được.",
+        "hidden": "Cửa hàng và mọi bài biến mất khỏi tìm kiếm của khách ngay, trang cửa hàng không mở được.",
+        "stillManage": "Cửa hàng vẫn gỡ bài và quản lý nhân viên được.",
+        "emailed": "Chủ cửa hàng nhận email kèm lý do.",
+        "undo": "Có thể gỡ chặn bất cứ lúc nào.",
+        "confirm": "Chặn cửa hàng",
+        "done": "Đã chặn {name}"
+      },
+      "reject": {
+        "title": "Từ chối cửa hàng {name}?",
+        "reason": "Lý do từ chối",
+        "effects": "Khi bị từ chối:",
+        "hidden": "Cửa hàng không hiện với khách và không đăng bài được.",
+        "emailed": "Chủ cửa hàng nhận email kèm lý do.",
+        "confirm": "Từ chối",
+        "done": "Đã từ chối {name}"
+      },
+      "unblock": {
+        "title": "Gỡ chặn cửa hàng {name}?",
+        "effects": "Khi gỡ chặn:",
+        "shown": "Cửa hàng và các bài đang bán hiện lại với khách, đăng bài được ngay.",
+        "emailed": "Chủ cửa hàng nhận email báo cửa hàng đã được duyệt.",
+        "confirm": "Gỡ chặn",
+        "done": "Đã gỡ chặn {name}"
+      },
+      "approve": {
+        "title": "Duyệt cửa hàng {name}?",
+        "effects": "Khi được duyệt:",
+        "shown": "Cửa hàng hiện với khách và đăng bài được ngay.",
+        "emailed": "Chủ cửa hàng nhận email báo cửa hàng đã được duyệt.",
+        "confirm": "Duyệt",
+        "done": "Đã duyệt {name}"
+      },
+      "cancel": "Huỷ",
+      "unreachable": "Không kết nối được máy chủ. Thử lại sau.",
+      "detail": {
+        "tabs": "Nội dung cửa hàng",
+        "overview": "Tổng quan",
+        "posts": "Bài đăng · {count}",
+        "members": "Thành viên · {count}",
+        "onSale": "Bài đang bán",
+        "seeAll": "Xem tất cả",
+        "noneOnSale": "Chưa có bài đang bán",
+        "noPosts": "Cửa hàng chưa đăng bài nào",
+        "info": "Thông tin",
+        "address": "Địa chỉ",
+        "phone": "Số điện thoại",
+        "people": "Thành viên",
+        "owner": "Chủ cửa hàng",
+        "staff": "Nhân viên",
+        "offerLeft": "-{discount}% · còn {left}/{units} {unit}",
+        "offerWindow": "Lấy {from}–{until}"
       }
     }
   }
