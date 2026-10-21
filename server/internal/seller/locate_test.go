@@ -9,20 +9,36 @@ import (
 func TestWritten(t *testing.T) {
 	t.Parallel()
 
+	const road, hanoi = "road", "Hà Nội"
+
 	for name, tc := range map[string]struct {
 		parts   map[string]string
 		display string
 		want    string
 	}{
-		"a street": {
+		"a ward, not the quarter inside it": {
 			parts: map[string]string{
-				"house_number": "21", "road": "Phố Cầu Giấy", "quarter": "Dịch Vọng",
-				"city_district": "Cầu Giấy", "city": "Hà Nội", "country": "Việt Nam",
+				road: "Ngõ 68 Đường Phú Diễn", "quarter": "Kẻ Diễn", "suburb": "Phường Phú Diễn",
+				"city": hanoi, "country": "Việt Nam",
 			},
-			want: "21 Phố Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội",
+			want: "Ngõ 68 Đường Phú Diễn, Phường Phú Diễn, Hà Nội",
 		},
-		"no house number": {
-			parts: map[string]string{"road": "Đường Láng", "suburb": "Láng Thượng", "state": "Hà Nội"},
+		"a house in the old quarter": {
+			parts: map[string]string{
+				"house_number": "79", road: "Phố Đinh Tiên Hoàng", "quarter": "Khu phố cổ",
+				"suburb": "Phường Hoàn Kiếm", "city": hanoi,
+			},
+			want: "79 Phố Đinh Tiên Hoàng, Phường Hoàn Kiếm, Hà Nội",
+		},
+		"a commune given as a city district, under hamlets": {
+			parts: map[string]string{
+				road: "Đường Bát Tràng", "residential": "Gốm Bát Tràng", "hamlet": "Thôn 1",
+				"city_district": "Xã Bát Tràng", "city": hanoi,
+			},
+			want: "Đường Bát Tràng, Xã Bát Tràng, Hà Nội",
+		},
+		"a place without a ward's name stands for it": {
+			parts: map[string]string{road: "Đường Láng", "suburb": "Láng Thượng", "state": hanoi},
 			want:  "Đường Láng, Láng Thượng, Hà Nội",
 		},
 		"only the service's line": {
