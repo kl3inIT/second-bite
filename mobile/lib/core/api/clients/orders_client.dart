@@ -11,6 +11,7 @@ import '../models/orders_output_body.dart';
 import '../models/orders_state.dart';
 import '../models/place_order_body.dart';
 import '../models/refuse_order_request.dart';
+import '../models/review_order_request.dart';
 
 part 'orders_client.g.dart';
 
@@ -85,6 +86,18 @@ abstract class OrdersClient {
   /// The order is open again, and the units a refusal had returned are taken again, or it fails when they are gone. An order its customer cancelled, or whose window is over, stays as it is.
   @POST('/orders/{orderId}/reopen')
   Future<OrderBody> reopenOrder({@Path('orderId') required String orderId});
+
+  /// Rate your collected order, once.
+  ///
+  /// By its customer, signed in or sending its access, after the order was handed over.
+  ///
+  /// [orderAccess] - The order's access, for its customer who did not sign in.
+  @POST('/orders/{orderId}/review')
+  Future<OrderBody> reviewOrder({
+    @Path('orderId') required String orderId,
+    @Body() required ReviewOrderRequest body,
+    @Header('Order-Access') String? orderAccess,
+  });
 
   /// A seller's orders of one day, soonest first, to its people and admins.
   ///
