@@ -17,6 +17,13 @@ func feature(lng, lat float64, name, house, street, district string) photonFeatu
 	return f
 }
 
+// bacNinh is a feature of Bắc Ninh, inside Hanoi's box.
+func bacNinh(f photonFeature) photonFeature {
+	f.Properties.City = "Bắc Ninh"
+
+	return f
+}
+
 func TestPlaces(t *testing.T) {
 	t.Parallel()
 
@@ -39,11 +46,12 @@ func TestPlaces(t *testing.T) {
 			number: "12",
 			want:   []string{"TASCO Mall, 7-9 Đường Nguyễn Văn Linh, Việt Hưng, Hà Nội"},
 		},
-		"repeats once, outside Hanoi never, at most five": {
+		"repeats once, outside Hanoi or in another city of its box never, at most five": {
 			features: []photonFeature{
 				feature(105.896, 21.054, hoaLam, "", "", vietHung),
 				feature(105.897, 21.055, hoaLam, "", "", vietHung),
 				feature(106.680, 20.860, "Phố Hoa Lâm", "", "", "Hải Phòng"),
+				bacNinh(feature(106.022, 21.028, "Đường Lạc Long Quân", "12", "", "Trí Quả")),
 				feature(105.81, 21.01, "Ngõ 1", "", "", "Láng"),
 				feature(105.81, 21.01, "Ngõ 2", "", "", "Láng"),
 				feature(105.81, 21.01, "Ngõ 3", "", "", "Láng"),
