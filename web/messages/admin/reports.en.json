@@ -37,7 +37,8 @@
     "collectionRate": "Collected",
     "revenue": "Taken at the counter (estimate)",
     "empty": "No orders in this period yet",
-    "summary": "Showing {from}–{to} of {total} stores with orders"
+    "summary": "Showing {from}–{to} of {total} stores with orders",
+    "pageOf": "{page} / {pages}"
   },
   "export": {
     "title": "Export report",

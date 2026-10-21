@@ -1,11 +1,15 @@
 import { useFormatter, useTranslations } from "next-intl";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
+
 import type { NotificationChannel } from "./campaign";
 
 /**
- * A notification as people will get it (Figma AD-MK6 › Xem trước thông báo): a push on a phone's blue lock
- * screen with its time and day, the app's "sb" and its title and text; an email shows as a message in the
- * inbox. `day` and `time` are Vietnam wall-clock values; without them the lock screen shows no clock.
+ * A notification as people will get it (Figma AD-MK6 › Xem trước thông báo): a push on a phone's lock screen with
+ * its time and day, the app's "sb" and its title and text; an email shows as a message in the inbox. `day` and
+ * `time` are Vietnam wall-clock values; without them the lock screen shows no clock.
  */
 export function NotificationPreview({
   channel,
@@ -28,11 +32,15 @@ export function NotificationPreview({
   if (channel === "email") {
     return (
       <div className="flex w-full max-w-97.5 flex-col gap-3 rounded-4xl border-6 border-border bg-muted px-4 pt-10 pb-20">
-        <div className="flex flex-col gap-1 rounded-2xl bg-card p-4">
-          <span className="text-label text-muted-foreground">{t("emailFrom")}</span>
-          <span className="text-body-sm-strong text-foreground">{shownTitle}</span>
-          <p className="text-body-sm whitespace-pre-line text-foreground">{shownBody}</p>
-        </div>
+        <Card size="sm">
+          <CardHeader>
+            <CardDescription>{t("emailFrom")}</CardDescription>
+            <CardTitle>{shownTitle}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-line">{shownBody}</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -47,19 +55,22 @@ export function NotificationPreview({
           </span>
         </>
       )}
-      <div className="flex w-full gap-2.5 rounded-xl bg-card p-3">
-        <span
-          aria-hidden
-          className="flex size-9 shrink-0 items-center justify-center rounded-sm bg-fresh text-label-strong text-primary"
-        >
-          sb
-        </span>
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-label text-muted-foreground">{t("pushFrom")}</span>
-          <span className="text-body-sm-strong text-foreground">{shownTitle}</span>
-          <p className="line-clamp-2 text-body-sm text-foreground">{shownBody}</p>
-        </div>
-      </div>
+      <Card size="sm" className="w-full">
+        <CardContent>
+          <Item size="xs">
+            <ItemMedia>
+              <Avatar aria-hidden>
+                <AvatarFallback>sb</AvatarFallback>
+              </Avatar>
+            </ItemMedia>
+            <ItemContent className="min-w-0">
+              <ItemDescription>{t("pushFrom")}</ItemDescription>
+              <ItemTitle>{shownTitle}</ItemTitle>
+              <ItemDescription>{shownBody}</ItemDescription>
+            </ItemContent>
+          </Item>
+        </CardContent>
+      </Card>
     </div>
   );
 }

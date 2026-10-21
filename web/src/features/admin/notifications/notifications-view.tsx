@@ -1,27 +1,68 @@
 "use client";
 
-import { BanIcon, ClockIcon, EyeIcon, MegaphoneIcon, Trash2Icon } from "lucide-react";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  BanIcon,
+  CircleCheckIcon,
+  ClockIcon,
+  EllipsisIcon,
+  EyeIcon,
+  type LucideIcon,
+  MegaphoneIcon,
+  SearchIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { type MouseEvent, useId, useState } from "react";
 
-import { buttonVariants } from "@/components/ui/button";
+import type { VariantProps } from "class-variance-authority";
+
+import { Badge, type badgeVariants } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardFooter } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { formatDayMonth } from "@/i18n/day-month";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 
-import { adminHref } from "../pages";
-import { FigureText } from "../promotions/campaign-badge";
 import { pageSizes } from "../list-query";
+import { adminHref } from "../pages";
 import { isFiltered } from "../promotions/promotion";
 import { vietnamDateTime } from "../promotions/schedule";
 import { useListQuery } from "../use-list-query";
-import { AdminBadge, type BadgeTone } from "../ui/badge";
-import { type Column, DataTable, StrongCell, TextCell } from "../ui/data-table";
-import { EmptyState } from "../ui/empty-state";
-import { FilterBar, FilterSelect, SearchField } from "../ui/filter-bar";
-import { PageHeader } from "../ui/page-header";
-import { Pagination } from "../ui/pagination";
-import { RowActionMenu } from "../ui/row-action-menu";
-import { SideSheet } from "../ui/side-sheet";
 import {
   campaignDefaults,
   type CampaignList,
@@ -34,10 +75,15 @@ import {
 } from "./campaign";
 import { NotificationPreview } from "./notification-preview";
 
-const stateTones: Record<CampaignState, BadgeTone> = {
-  sent: "success",
-  scheduled: "info",
-  draft: "neutral",
+// Each state on the Badge's own variants (Figma Admin/Badge in AD-MK5): the tick or the clock and the words carry
+// the state, never the colour alone.
+const stateBadges: Record<
+  CampaignState,
+  { variant: VariantProps<typeof badgeVariants>["variant"]; icon: LucideIcon }
+> = {
+  sent: { variant: "fresh", icon: CircleCheckIcon },
+  scheduled: { variant: "secondary", icon: ClockIcon },
+  draft: { variant: "outline", icon: ClockIcon },
 };
 
 /**
@@ -47,8 +93,11 @@ const stateTones: Record<CampaignState, BadgeTone> = {
  */
 export function NotificationsView({ list, query }: { list: CampaignList; query: CampaignQuery }) {
   const t = useTranslations("admin.notifications");
+  const tShell = useTranslations("admin.shell");
   const format = useFormatter();
   const locale = useLocale();
+  const id = useId();
+  const router = useRouter();
   const { hrefWith, go } = useListQuery(query, campaignDefaults);
   const [search, setSearch] = useState(query.q);
   const [shown, setShown] = useState<CampaignRow>();
@@ -60,153 +109,272 @@ export function NotificationsView({ list, query }: { list: CampaignList; query: 
     return `${formatDayMonth(instant, locale)} · ${format.dateTime(instant, "time")}`;
   };
 
-  const columns: Column<CampaignRow>[] = [
-    {
-      key: "title",
-      header: t("columns.title"),
-      grow: true,
-      cell: (row) => <StrongCell>{row.title}</StrongCell>,
-    },
+  const headers = [
+    { key: "title", label: t("columns.title") },
+    { key: "channel", label: t("columns.channel") },
+    { key: "audience", label: t("columns.audience") },
+    { key: "sent", label: t("columns.sent") },
+    { key: "opened", label: t("columns.opened") },
+    { key: "at", label: t("columns.at") },
+    { key: "state", label: t("columns.state") },
+    { key: "actions", label: "" },
+  ];
+  const SortIcon = query.dir === "asc" ? ArrowUpIcon : ArrowDownIcon;
+
+  const filters = [
     {
       key: "channel",
-      header: t("columns.channel"),
-      cell: (row) => <TextCell>{t(`channels.${row.channel}`)}</TextCell>,
-    },
-    {
-      key: "audience",
-      header: t("columns.audience"),
-      cell: (row) => <TextCell>{t(`audiences.${row.audience}`)}</TextCell>,
-    },
-    {
-      key: "sent",
-      header: t("columns.sent"),
-      cell: (row) => <FigureText>{row.sent === null ? "—" : format.number(row.sent)}</FigureText>,
-    },
-    {
-      key: "opened",
-      header: t("columns.opened"),
-      cell: (row) => <TextCell>{row.openRate === null ? "—" : percentOf(row.openRate)}</TextCell>,
-    },
-    {
-      key: "at",
-      header: t("columns.at"),
-      sort: {
-        direction: query.dir,
-        href: hrefWith({ dir: query.dir === "desc" ? "asc" : "desc" }),
-      },
-      cell: (row) => <TextCell>{when(row.at)}</TextCell>,
+      label: t("filters.channel"),
+      value: query.channel,
+      options: [
+        { value: "all", label: t("filters.all") },
+        ...notificationChannels.map((value) => ({ value, label: t(`channels.${value}`) })),
+      ],
+      onChange: (value: string) => go({ channel: value as CampaignQuery["channel"] }),
     },
     {
       key: "state",
-      header: t("columns.state"),
-      cell: (row) => (
-        <AdminBadge
-          tone={stateTones[row.state]}
-          icon={row.state === "sent" ? undefined : ClockIcon}
-        >
-          {t(`states.${row.state}`)}
-        </AdminBadge>
-      ),
+      label: t("filters.state"),
+      value: query.state,
+      options: [
+        { value: "all", label: t("filters.all") },
+        ...campaignStates.map((value) => ({ value, label: t(`states.${value}`) })),
+      ],
+      onChange: (value: string) => go({ state: value as CampaignQuery["state"] }),
     },
     {
-      key: "actions",
-      header: "",
-      align: "end",
-      cell: (row) => (
-        <RowActionMenu
-          name={row.title}
-          actions={[
-            {
-              label: t("actions.view"),
-              icon: EyeIcon,
-              onSelect: () => {
-                setShown(row);
-                setOpen(true);
-              },
-            },
-            { label: t("actions.cancel"), icon: BanIcon, disabled: true },
-            { label: t("actions.delete"), icon: Trash2Icon, destructive: true, disabled: true },
-          ]}
-        />
-      ),
+      key: "size",
+      label: t("filters.size"),
+      value: String(query.size),
+      options: pageSizes.map((size) => ({ value: String(size), label: String(size) })),
+      onChange: (value: string) => go({ size: Number(value) as CampaignQuery["size"] }),
     },
   ];
 
+  const total = list.total ?? 0;
+  const pages = Math.max(1, Math.ceil(total / query.size) || 1);
+  const range = {
+    from: total === 0 ? 0 : (query.page - 1) * query.size + 1,
+    to: Math.min(total, query.page * query.size),
+    total,
+  };
+  const pageLink = (page: number) => ({
+    href: `/${locale}${hrefWith({ page })}`,
+    onClick: (event: MouseEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      router.push(hrefWith({ page }), { scroll: false });
+    },
+  });
+
   return (
     <>
-      <PageHeader
-        title={t("title")}
-        actions={
-          <Link href={adminHref("notificationsCompose")} className={buttonVariants()}>
-            {t("composeAction")}
-          </Link>
-        }
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-page-title text-foreground">{t("title")}</h1>
+        <Link href={adminHref("notificationsCompose")} className={buttonVariants()}>
+          {t("composeAction")}
+        </Link>
+      </div>
 
-      <FilterBar>
-        <SearchField
-          label={t("filters.search")}
-          placeholder={t("filters.searchPlaceholder")}
-          value={search}
-          onChange={(value) => {
-            setSearch(value);
-            go({ q: value.trim() });
-          }}
-        />
-        <FilterSelect
-          label={t("filters.channel")}
-          value={query.channel}
-          options={[
-            { value: "all", label: t("filters.all") },
-            ...notificationChannels.map((value) => ({ value, label: t(`channels.${value}`) })),
-          ]}
-          onChange={(value) => go({ channel: value as CampaignQuery["channel"] })}
-        />
-        <FilterSelect
-          label={t("filters.state")}
-          value={query.state}
-          options={[
-            { value: "all", label: t("filters.all") },
-            ...campaignStates.map((value) => ({ value, label: t(`states.${value}`) })),
-          ]}
-          onChange={(value) => go({ state: value as CampaignQuery["state"] })}
-        />
-        <FilterSelect
-          label={t("filters.size")}
-          value={String(query.size)}
-          options={pageSizes.map((size) => ({ value: String(size), label: String(size) }))}
-          onChange={(value) => go({ size: Number(value) as CampaignQuery["size"] })}
-        />
-      </FilterBar>
-
-      <DataTable
-        caption={t("title")}
-        columns={columns}
-        rows={list.items}
-        rowKey={(row) => row.id}
-        empty={
-          <EmptyState
-            icon={MegaphoneIcon}
-            title={isFiltered(query, ["channel", "state"]) ? t("emptyFiltered") : t("empty")}
-          />
-        }
-        footer={
-          list.total > 0 && (
-            <Pagination
-              page={query.page}
-              pageSize={query.size}
-              total={list.total}
-              hrefFor={(page) => hrefWith({ page })}
-              summary={(range) => t("summary", range)}
+      <search className="flex flex-wrap items-center gap-3">
+        <div className="min-w-60 flex-1">
+          <InputGroup>
+            <InputGroupAddon>
+              <SearchIcon aria-hidden />
+            </InputGroupAddon>
+            <InputGroupInput
+              type="search"
+              aria-label={t("filters.search")}
+              placeholder={t("filters.searchPlaceholder")}
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                go({ q: event.target.value.trim() });
+              }}
             />
-          )
-        }
-      />
+          </InputGroup>
+        </div>
+        {filters.map((filter) => (
+          <Select
+            key={filter.key}
+            value={filter.value}
+            items={filter.options}
+            onValueChange={(next) => {
+              if (typeof next === "string") filter.onChange(next);
+            }}
+          >
+            <SelectTrigger aria-labelledby={`${id}-${filter.key}`}>
+              <span id={`${id}-${filter.key}`} className="text-muted-foreground">
+                {filter.label}:
+              </span>
+              <span className="text-body-sm-strong text-foreground">
+                <SelectValue />
+              </span>
+            </SelectTrigger>
+            <SelectContent alignItemWithTrigger={false} align="start">
+              {filter.options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ))}
+      </search>
+
+      <Card>
+        <Table>
+          <TableCaption className="sr-only">{t("title")}</TableCaption>
+          <TableHeader>
+            <TableRow>
+              {headers.map((header) => (
+                <TableHead
+                  key={header.key}
+                  aria-sort={
+                    header.key === "at"
+                      ? query.dir === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : undefined
+                  }
+                  className={header.key === "title" ? "w-full" : undefined}
+                >
+                  {header.key === "at" ? (
+                    <Link
+                      href={hrefWith({ dir: query.dir === "desc" ? "asc" : "desc" })}
+                      scroll={false}
+                      className={buttonVariants({ variant: "secondary" })}
+                    >
+                      {header.label}
+                      <SortIcon data-icon="inline-end" aria-hidden />
+                    </Link>
+                  ) : (
+                    header.label
+                  )}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {list.items.map((row) => {
+              const badge = stateBadges[row.state];
+              return (
+                <TableRow key={row.id}>
+                  <TableCell className="w-full">
+                    <span className="block max-w-80 truncate text-body-sm-strong text-foreground">
+                      {row.title}
+                    </span>
+                  </TableCell>
+                  <TableCell>{t(`channels.${row.channel}`)}</TableCell>
+                  <TableCell>{t(`audiences.${row.audience}`)}</TableCell>
+                  <TableCell>
+                    <span className="font-display text-price text-primary">
+                      {row.sent === null ? "—" : format.number(row.sent)}
+                    </span>
+                  </TableCell>
+                  <TableCell>{row.openRate === null ? "—" : percentOf(row.openRate)}</TableCell>
+                  <TableCell>{when(row.at)}</TableCell>
+                  <TableCell>
+                    <Badge variant={badge.variant}>
+                      <badge.icon aria-hidden />
+                      {t(`states.${row.state}`)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={<Button variant="ghost" size="icon" />}
+                        aria-label={tShell("rowActions", { name: row.title })}
+                      >
+                        <EllipsisIcon aria-hidden />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setShown(row);
+                              setOpen(true);
+                            }}
+                          >
+                            <EyeIcon aria-hidden />
+                            {t("actions.view")}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem disabled>
+                            <BanIcon aria-hidden />
+                            {t("actions.cancel")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem variant="destructive" disabled>
+                            <Trash2Icon aria-hidden />
+                            {t("actions.delete")}
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+        {list.items.length === 0 && (
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <MegaphoneIcon aria-hidden />
+              </EmptyMedia>
+              <EmptyTitle>
+                {isFiltered(query, ["channel", "state"]) ? t("emptyFiltered") : t("empty")}
+              </EmptyTitle>
+            </EmptyHeader>
+          </Empty>
+        )}
+        {total > 0 && (
+          <CardFooter>
+            <div className="flex w-full flex-wrap items-center justify-between gap-3">
+              <p className="text-body-sm text-muted-foreground">{t("summary", range)}</p>
+              {pages > 1 && (
+                <Pagination aria-label={tShell("pagination.label")} className="mx-0 w-auto">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        text={tShell("pagination.previous")}
+                        aria-label={tShell("pagination.previous")}
+                        {...(query.page > 1 ? pageLink(query.page - 1) : { "aria-disabled": true })}
+                      />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <span className="px-2 text-body-sm text-foreground tabular-nums">
+                        {t("pageOf", { page: query.page, pages })}
+                      </span>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext
+                        text={tShell("pagination.next")}
+                        aria-label={tShell("pagination.next")}
+                        {...(query.page < pages
+                          ? pageLink(query.page + 1)
+                          : { "aria-disabled": true })}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </div>
+          </CardFooter>
+        )}
+      </Card>
 
       {shown && (
-        <SideSheet open={open} onOpenChange={setOpen} title={shown.title}>
-          <CampaignDetails campaign={shown} when={when(shown.at)} />
-        </SideSheet>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetContent side="right">
+            <SheetHeader variant="bar">
+              <SheetTitle variant="headline">{shown.title}</SheetTitle>
+            </SheetHeader>
+            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-5">
+              <CampaignDetails campaign={shown} when={when(shown.at)} />
+            </div>
+          </SheetContent>
+        </Sheet>
       )}
     </>
   );

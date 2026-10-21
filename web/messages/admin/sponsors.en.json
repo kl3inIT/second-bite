@@ -35,6 +35,7 @@
     "status": "Status"
   },
   "summary": "Showing {from}–{to} of {total} placements",
+  "pageOf": "{page} / {pages}",
   "empty": "No sponsored placements yet",
   "emptyFiltered": "No placements match these filters",
   "actions": {

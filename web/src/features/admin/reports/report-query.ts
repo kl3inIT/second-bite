@@ -1,4 +1,5 @@
 import { addDays, type Day, daysBetween, isDay, weekday } from "@/features/admin/overview/days";
+import { formatDayMonth } from "@/i18n/day-month";
 import type { DayCountBody } from "@/lib/api/generated";
 
 /** The longest range the summary answers (`OFFER_SUMMARY_RANGE_TOO_LONG` past it). */
@@ -22,6 +23,30 @@ export function readReportQuery(query: Record<string, unknown>, today: Day): Rep
   }
   const start = daysBetween(from, to) > longestRange ? addDays(to, 1 - longestRange) : from;
   return { from: start, to, sellerId };
+}
+
+/** A range of days as a calendar holds it while it is chosen: its first day, then its last. */
+export type DayRange = { from?: Date; to?: Date };
+
+/**
+ * A range as its button writes it (Figma Admin/DateRange): "21/09 – 20/10/2026", each end on its own since Intl's
+ * own range drops the two-digit month in Vietnamese; the start loses its year when both ends share one. One end
+ * alone is written as its day; none gives `undefined`, for the button's words for any time. `day` writes a whole
+ * day, the page's "day" format.
+ */
+export function rangeText(
+  value: DayRange,
+  locale: string,
+  day: (at: Date) => string,
+): string | undefined {
+  if (value.from && value.to) {
+    const from =
+      value.from.getFullYear() === value.to.getFullYear()
+        ? formatDayMonth(value.from, locale)
+        : day(value.from);
+    return `${from} – ${day(value.to)}`;
+  }
+  return value.from ? day(value.from) : undefined;
 }
 
 /** A week of the weekly chart, Monday to Sunday or the part of it in the range. */

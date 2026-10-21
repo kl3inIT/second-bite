@@ -43,6 +43,7 @@
   "storesAll": "Every store",
   "storesSome": "{count, plural, one {# store} other {# stores}}",
   "summary": "Showing {from}–{to} of {total} codes",
+  "pageOf": "{page} / {pages}",
   "empty": "No promotion codes yet",
   "emptyFiltered": "No codes match these filters",
   "actions": {

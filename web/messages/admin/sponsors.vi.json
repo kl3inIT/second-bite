@@ -35,6 +35,7 @@
     "status": "Trạng thái"
   },
   "summary": "Hiển thị {from}–{to} trên {total} vị trí",
+  "pageOf": "{page} / {pages}",
   "empty": "Chưa có vị trí tài trợ nào",
   "emptyFiltered": "Không có vị trí nào khớp bộ lọc",
   "actions": {

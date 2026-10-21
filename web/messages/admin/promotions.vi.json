@@ -43,6 +43,7 @@
   "storesAll": "Tất cả cửa hàng",
   "storesSome": "{count} cửa hàng",
   "summary": "Hiển thị {from}–{to} trên {total} mã",
+  "pageOf": "{page} / {pages}",
   "empty": "Chưa có mã giảm giá nào",
   "emptyFiltered": "Không có mã nào khớp bộ lọc",
   "actions": {
