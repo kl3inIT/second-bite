@@ -22,18 +22,22 @@ test.describe("the accounts", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Tài khoản" })).toBeVisible();
     await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
     await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText("Người dùng");
-    const tabs = page.getByRole("navigation", { name: "Tài khoản theo vai trò" });
-    await expect(tabs.getByRole("link", { name: "Tất cả" })).toHaveAttribute(
-      "aria-current",
-      "page",
+    const tabs = page.getByRole("tablist", { name: "Tài khoản theo vai trò" });
+    await expect(tabs.getByRole("tab", { name: "Tất cả" })).toHaveAttribute(
+      "aria-selected",
+      "true",
     );
     await expect(page.getByRole("searchbox", { name: "Tìm tài khoản" })).toBeVisible();
     await expect(page.getByRole("combobox", { name: /Trạng thái/ })).toBeVisible();
     await expect(page.getByText("Chưa có tài khoản nào")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
-    await (await hydrated(tabs.getByRole("link", { name: "Chủ cửa hàng/Nhân viên" }))).click();
+    await (await hydrated(tabs.getByRole("tab", { name: "Chủ cửa hàng/Nhân viên" }))).click();
     await expect(page).toHaveURL(/\/vi\/admin\/accounts\?tab=seller$/);
+    await expect(tabs.getByRole("tab", { name: "Chủ cửa hàng/Nhân viên" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     await expect(page.getByText("Chưa có chủ cửa hàng hay nhân viên nào")).toBeVisible();
 
     if (isMobile) await openAdminMenu(page);
