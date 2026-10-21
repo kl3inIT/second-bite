@@ -23,7 +23,9 @@ export default function StoreLayout({
       <main className="relative isolate mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 pt-2 pb-14 group-data-[screen=tab]/store:max-md:-mt-25 group-data-[screen=tab]/store:max-md:pt-0 group-data-[screen=tab]/store:max-md:before:absolute group-data-[screen=tab]/store:max-md:before:inset-x-0 group-data-[screen=tab]/store:max-md:before:top-19 group-data-[screen=tab]/store:max-md:before:bottom-0 group-data-[screen=tab]/store:max-md:before:-z-10 group-data-[screen=tab]/store:max-md:before:rounded-t-3xl group-data-[screen=tab]/store:max-md:before:bg-background md:pt-6 xl:max-w-300">
         {children}
       </main>
-      <StoreBottomNav />
+      <Suspense fallback={null}>
+        <StoreBottomNav />
+      </Suspense>
     </StoreFrame>
   );
 }
