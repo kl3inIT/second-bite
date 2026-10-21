@@ -533,10 +533,14 @@ func listen(t *testing.T, pool *pgxpool.Pool) *heard {
 	}
 
 	h := &heard{}
+	ctx, cancel := context.WithCancel(t.Context())
+	done := make(chan struct{})
 
 	go func() {
+		defer close(done)
+
 		for {
-			n, err := conn.WaitForNotification(t.Context())
+			n, err := conn.WaitForNotification(ctx)
 			if err != nil {
 				return
 			}
@@ -547,7 +551,12 @@ func listen(t *testing.T, pool *pgxpool.Pool) *heard {
 		}
 	}()
 
-	t.Cleanup(func() { _ = conn.Close(context.WithoutCancel(t.Context())) })
+	// The connection is closed only once the goroutine waiting on it is gone.
+	t.Cleanup(func() {
+		cancel()
+		<-done
+		_ = conn.Close(context.WithoutCancel(t.Context()))
+	})
 
 	return h
 }

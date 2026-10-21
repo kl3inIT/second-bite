@@ -24,6 +24,7 @@ const (
 	statusReady = "ready"
 	statusKey   = "status"
 	typeKey     = "type"
+	refused     = "refused"
 )
 
 // tickets is a module's tickets, each redeemed once.
@@ -310,13 +311,13 @@ func testTicketWorksOnce(t *testing.T, pool *pgxpool.Pool) {
 
 	send(t, c, `{"type":"subscribe","ticket":"once"}`)
 
-	if got := next(t, c); got["type"] != "refused" {
+	if got := next(t, c); got["type"] != refused {
 		t.Errorf("the used ticket answered %v, want refused", got)
 	}
 
 	send(t, c, `{"type":"subscribe","ticket":"never-minted"}`)
 
-	if got := next(t, c); got["type"] != "refused" {
+	if got := next(t, c); got["type"] != refused {
 		t.Errorf("an unknown ticket answered %v, want refused", got)
 	}
 }
@@ -338,7 +339,7 @@ func testTopicLimit(t *testing.T, pool *pgxpool.Pool) {
 
 	send(t, c, `{"type":"subscribe","ticket":"one-too-many"}`)
 
-	if got := next(t, c); got["type"] != "refused" {
+	if got := next(t, c); got["type"] != refused {
 		t.Errorf("the 21st topic answered %v, want refused", got)
 	}
 }
@@ -352,7 +353,7 @@ func testAttemptLimit(t *testing.T, pool *pgxpool.Pool) {
 	for i := range 40 {
 		send(t, c, `{"type":"subscribe","ticket":"unknown"}`)
 
-		if got := next(t, c); got["type"] != "refused" {
+		if got := next(t, c); got["type"] != refused {
 			t.Fatalf("attempt %d answered %v, want refused", i+1, got)
 		}
 	}
