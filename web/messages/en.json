@@ -694,7 +694,6 @@
     "orders": "Orders"
   },
   "StoreMenu": {
-    "open": "Menu of {name}",
     "shop": "Back to the customers' shop",
     "mine": "My stores",
     "create": "Open another store"

@@ -39,11 +39,7 @@ export function StoreMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        variant="header"
-        aria-label={t("open", { name: current.name })}
-        className="min-w-0 justify-start"
-      >
+      <DropdownMenuTrigger variant="header" className="min-w-0 justify-start">
         {children}
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="min-w-64">

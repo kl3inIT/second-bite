@@ -164,7 +164,7 @@ test.describe("opening a store on the web", () => {
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
 
     // With one store the name still opens the menu, and does not reload the page.
-    await page.getByRole("button", { name: "Menu quán Quán Một" }).click();
+    await page.getByRole("button", { name: "Quán Một", exact: true }).click();
     await expect(page.getByRole("menuitem", { name: "Về trang người mua" })).toHaveAttribute(
       "href",
       /\/vi$/,

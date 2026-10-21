@@ -694,7 +694,6 @@
     "orders": "Đơn"
   },
   "StoreMenu": {
-    "open": "Menu quán {name}",
     "shop": "Về trang người mua",
     "mine": "Quán của tôi",
     "create": "Tạo thêm quán"
