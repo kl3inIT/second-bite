@@ -113,7 +113,7 @@ function DayBar(view: View) {
   ];
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 max-md:w-full">
       <Link
         href={hrefFor(view, { day: shiftDay(day, -1) })}
         aria-label={t("day.previous")}
@@ -122,11 +122,15 @@ function DayBar(view: View) {
         <ChevronLeftIcon aria-hidden className="size-5" />
       </Link>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger variant="field" aria-label={`${t("day.pick")}: ${label}`}>
+        <PopoverTrigger
+          variant="field"
+          className="max-md:flex-1"
+          aria-label={`${t("day.pick")}: ${label}`}
+        >
           <CalendarIcon aria-hidden className="size-5 text-muted-foreground" />
           {label}
         </PopoverTrigger>
-        <PopoverContent align="end">
+        <PopoverContent align="end" sheet>
           <p className="sr-only">{t("day.quick")}</p>
           <ul className="grid grid-cols-3 gap-2">
             {quick.map((choice) => (
@@ -149,6 +153,7 @@ function DayBar(view: View) {
           </ul>
           <div className="flex justify-center">
             <Calendar
+              className="max-sm:w-80"
               mode="single"
               required
               selected={dateOf(day)}

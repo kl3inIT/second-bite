@@ -5,12 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-const tabs = [
-  { key: "home", path: "" },
-  { key: "posts", path: "/offers" },
-  { key: "catalog", path: "/catalog" },
-  { key: "orders", path: "/orders" },
-] as const;
+import { isTabOpen, storeTabs } from "./store-tabs";
 
 // The store's four tabs in the header (Figma Q1: Trang chủ, Bài đăng, Danh mục, Đơn): the open one is a white
 // pill with blue ink, the others white ink on the header. A tab is open on its own address and below it.
@@ -20,11 +15,11 @@ export function StoreNav({ sellerId }: { sellerId: string }) {
   const base = `/stores/${sellerId}`;
 
   return (
-    <nav aria-label={t("label")}>
+    <nav aria-label={t("label")} className="max-md:hidden">
       <ul className="flex items-center gap-1">
-        {tabs.map(({ key, path }) => {
+        {storeTabs.map(({ key, path }) => {
           const href = `${base}${path}`;
-          const open = path === "" ? pathname === href : pathname.startsWith(href);
+          const open = isTabOpen(pathname, base, path);
           return (
             <li key={key}>
               <Link

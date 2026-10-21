@@ -19,6 +19,7 @@ import {
   unitsOf,
   vietnamToday,
 } from "./store-orders";
+import { StoreTitleRow } from "./store-title-row";
 import { UndoToast } from "./undo-toast";
 
 // The store's order tab (SEC-78, Figma Q5, Q5b to Q5g): the orders of one day, which customers hold with their
@@ -86,10 +87,15 @@ export async function StoreOrders({
   return (
     <>
       {undone && undoMessage && <UndoToast orderId={undone.id} message={undoMessage} />}
-      <div className="flex items-baseline justify-between gap-4">
-        <h1 className="text-page-title text-foreground">{t("title")}</h1>
-        <p className="text-body-sm text-muted-foreground">{summary}</p>
-      </div>
+      <StoreTitleRow
+        title={t("title")}
+        baseline
+        aside={
+          <p className="text-body-sm text-muted-foreground max-md:text-right max-md:text-header-foreground">
+            {summary}
+          </p>
+        }
+      />
 
       <OrdersFilter sellerId={sellerId} day={day} today={today} tab={tab} q={search} />
 

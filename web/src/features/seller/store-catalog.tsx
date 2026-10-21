@@ -10,6 +10,7 @@ import { getStoreDishes } from "./my-sellers";
 import { PostToast } from "./post-toast";
 import { requireStore } from "./require-store";
 import { ShowDishButton } from "./show-dish-button";
+import { StoreTitleRow, titleActionPhone } from "./store-title-row";
 
 // The store's catalog tab (SEC-55, Figma Q3, Q3b): "Thêm món", then one card with the count and a row for each
 // dish, the newest first. A hidden dish has a faded photo and its name in the muted ink (no text is faded, which
@@ -44,12 +45,17 @@ export async function StoreCatalog({
   return (
     <>
       {message && <PostToast message={message} to={`/stores/${sellerId}/catalog`} />}
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-page-title text-foreground">{t("title")}</h1>
-        <Link href={`/stores/${sellerId}/catalog/new`} className={buttonVariants({ size: "lg" })}>
-          {t("add")}
-        </Link>
-      </div>
+      <StoreTitleRow
+        title={t("title")}
+        aside={
+          <Link
+            href={`/stores/${sellerId}/catalog/new`}
+            className={cn(buttonVariants({ size: "lg" }), titleActionPhone)}
+          >
+            {t("add")}
+          </Link>
+        }
+      />
 
       <section
         aria-labelledby="store-dishes"
@@ -65,7 +71,7 @@ export async function StoreCatalog({
             {dishes.map((dish) => (
               <li
                 key={dish.id}
-                className="flex items-center gap-4 border-b border-border py-4 last:border-b-0 last:pb-0"
+                className="flex items-center gap-3 border-b border-border py-4 last:border-b-0 last:pb-0 max-md:flex-wrap md:gap-4"
               >
                 <span
                   className={cn(
@@ -84,28 +90,33 @@ export async function StoreCatalog({
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col">
                   <h3
-                    className={cn("truncate text-title-lg", dish.hidden && "text-muted-foreground")}
+                    className={cn(
+                      "text-title-lg md:truncate",
+                      dish.hidden && "text-muted-foreground",
+                    )}
                   >
                     {dish.name}
                   </h3>
                   <p className="text-body-sm text-muted-foreground">{meta(dish)}</p>
                 </div>
-                <Link
-                  href={`/stores/${sellerId}/catalog/${dish.id}/edit`}
-                  className={buttonVariants({ variant: "outline" })}
-                >
-                  {t("edit")}
-                </Link>
-                {dish.hidden ? (
-                  <ShowDishButton dishId={dish.id} />
-                ) : (
+                <div className="flex gap-2 max-md:w-full md:contents">
                   <Link
-                    href={`/stores/${sellerId}/catalog/${dish.id}/post`}
-                    className={buttonVariants({ variant: "outline" })}
+                    href={`/stores/${sellerId}/catalog/${dish.id}/edit`}
+                    className={cn(buttonVariants({ variant: "outline" }), "max-md:flex-1")}
                   >
-                    {t("postNow")}
+                    {t("edit")}
                   </Link>
-                )}
+                  {dish.hidden ? (
+                    <ShowDishButton dishId={dish.id} />
+                  ) : (
+                    <Link
+                      href={`/stores/${sellerId}/catalog/${dish.id}/post`}
+                      className={cn(buttonVariants({ variant: "outline" }), "max-md:flex-1")}
+                    >
+                      {t("postNow")}
+                    </Link>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
-import { AppHeader } from "@/components/app-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentAccount } from "@/features/identity/current-account";
 import { getMySellers } from "@/features/seller/my-sellers";
 import { MyStores } from "@/features/seller/my-stores";
+import { PushedScreenHeader } from "@/features/seller/pushed-screen-header";
 import { redirect } from "@/i18n/navigation";
 import { pageMetadata } from "@/lib/seo";
 
@@ -23,7 +23,9 @@ export async function generateMetadata({
 export default function StoresPage() {
   return (
     <>
-      <AppHeader />
+      <Suspense fallback={null}>
+        <PushedScreenHeader namespace="Stores" back="/account" />
+      </Suspense>
       <main className="mx-auto flex w-full max-w-136 flex-1 flex-col px-4 pt-2 pb-14 md:pt-8">
         <Suspense fallback={<Skeleton shape="card" className="h-36" />}>
           <Stores />

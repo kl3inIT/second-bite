@@ -26,6 +26,7 @@ import { addDish, changeDish, type DishBody, removeDish, uploadPhoto } from "@/l
 import { Chip } from "./chip";
 import { useRemountKey } from "./remount-key";
 import { NumberInput } from "./number-input";
+import { PhoneFootBar } from "./phone-foot-bar";
 
 const kinds = [
   "bakery",
@@ -294,7 +295,7 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
           />
         </Field>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <PhoneFootBar className="flex flex-wrap items-center gap-3">
           <Link href={back} className={buttonVariants({ variant: "outline", size: "lg" })}>
             {t("cancel")}
           </Link>
@@ -313,7 +314,7 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
               {t("delete")}
             </Button>
           )}
-        </div>
+        </PhoneFootBar>
       </FieldGroup>
 
       <AlertDialog open={confirming} onOpenChange={setConfirming}>

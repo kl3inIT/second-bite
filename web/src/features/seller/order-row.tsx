@@ -30,8 +30,8 @@ export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab
   }
 
   return (
-    <li className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-border py-4 last:border-b-0 last:pb-0">
-      <span className="relative size-18 shrink-0 overflow-hidden rounded-xl bg-muted">
+    <li className="flex flex-wrap items-center gap-x-3 gap-y-3 border-b border-border py-4 last:border-b-0 last:pb-0 md:gap-x-4">
+      <span className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-muted md:size-18">
         <Image
           src={`/api${first.photo.smallPath}`}
           alt=""
@@ -51,11 +51,11 @@ export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab
         </p>
         {ended && <p className="text-body-sm text-muted-foreground">{ended}</p>}
       </div>
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-6 max-md:w-full max-md:justify-between">
         <span className="w-22 rounded-full bg-muted px-4 py-2 text-center text-body-sm-strong">
           {units}
         </span>
-        <span aria-hidden className="h-11 w-px bg-border" />
+        <span aria-hidden className="h-11 w-px bg-border max-md:hidden" />
         <p className="flex w-25 flex-col">
           <span className="text-note text-muted-foreground">{t("amount")}</span>
           <span className="text-card-title">{formatPrice(order.totalVnd)}</span>

@@ -30,7 +30,7 @@ export async function PostRow({ offer, action }: { offer: OfferBody; action?: Re
   }
 
   return (
-    <li className="flex items-center gap-4 border-b border-border py-4 last:border-b-0 last:pb-0">
+    <li className="flex items-center gap-3 border-b border-border py-4 last:border-b-0 last:pb-0 md:gap-4">
       <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
         <Image
           src={`/api${offer.photo.smallPath}`}
@@ -42,7 +42,7 @@ export async function PostRow({ offer, action }: { offer: OfferBody; action?: Re
         />
       </span>
       <div className="flex min-w-0 flex-1 flex-col">
-        <h3 className="truncate text-title-lg">{offer.name}</h3>
+        <h3 className="text-title-lg md:truncate">{offer.name}</h3>
         <p className="text-body-sm text-muted-foreground">{line}</p>
       </div>
       {action}

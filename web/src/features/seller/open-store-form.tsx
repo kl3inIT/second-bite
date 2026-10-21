@@ -14,6 +14,7 @@ import { useRouter } from "@/i18n/navigation";
 import { ApiError, failureOf } from "@/lib/api/client";
 import { openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
 
+import { PhoneFootBar } from "./phone-foot-bar";
 import { useRemountKey } from "./remount-key";
 
 /** Tasco Mall Long Biên, where every store of the pilot is: the form has no map (Figma O1), so a store is pinned here. */
@@ -200,10 +201,12 @@ function OpenStoreFormBody() {
           </label>
         </Field>
 
-        <Button type="submit" size="lg" disabled={pending}>
-          {pending && <Spinner data-icon="inline-start" />}
-          {t("submit")}
-        </Button>
+        <PhoneFootBar className="md:flex md:flex-col">
+          <Button type="submit" size="lg" disabled={pending}>
+            {pending && <Spinner data-icon="inline-start" />}
+            {t("submit")}
+          </Button>
+        </PhoneFootBar>
       </FieldGroup>
     </form>
   );

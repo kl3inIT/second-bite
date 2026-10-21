@@ -298,7 +298,7 @@ function PostDrawerBody({
           </span>
         </SheetHeader>
 
-        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 pb-4">
+        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 sm:px-6">
           {step === 1 && (
             <fieldset className="flex flex-col gap-3">
               <legend className="mb-3 text-title">{t("kindQuestion")}</legend>
@@ -504,8 +504,11 @@ function PostDrawerBody({
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <Field data-invalid={(tried && !unitsValid) || undefined}>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <Field
+                  data-invalid={(tried && !unitsValid) || undefined}
+                  className="max-sm:col-span-2"
+                >
                   <FieldLabel htmlFor="post-units">{t("units")}</FieldLabel>
                   <NumberInput
                     id="post-units"

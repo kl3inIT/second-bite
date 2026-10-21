@@ -18,7 +18,7 @@ export function PostToast({ message, to }: { message: string; to: string }) {
   }, [router, to]);
 
   return (
-    <div className="pointer-events-none fixed inset-x-4 bottom-8 z-40 flex justify-center">
+    <div className="pointer-events-none fixed inset-x-4 bottom-24 z-40 flex justify-center md:bottom-8">
       <output className="rounded-xl bg-primary px-5 py-4 text-body-sm-strong text-primary-foreground shadow-lg">
         {message}
       </output>
