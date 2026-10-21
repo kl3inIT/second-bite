@@ -73,13 +73,14 @@ export function OrderActions({
   name,
   stage,
   listPath,
-  className,
+  fill,
 }: {
   orderId: string;
   name: string;
   stage: "preparing" | "ready";
   listPath?: string;
-  className?: string;
+  /** The buttons share the width of their place, as on an order's own page. */
+  fill?: boolean;
 }) {
   const t = useTranslations("StoreOrders");
   const pathname = usePathname();
@@ -90,14 +91,14 @@ export function OrderActions({
     <div
       className={cn(
         "relative z-10 flex flex-col items-end gap-2 max-md:w-full max-md:items-stretch",
-        className,
+        fill && "w-full items-stretch",
       )}
     >
-      <div className="flex items-center gap-2">
+      <div className={cn("flex items-center gap-2", fill && "w-full")}>
         <Button
           type="button"
           variant="outline"
-          className="max-md:flex-1"
+          className={cn("max-md:flex-1", fill && "flex-1")}
           disabled={pending}
           onClick={() => setAsking(true)}
         >
@@ -106,7 +107,7 @@ export function OrderActions({
         {stage === "preparing" ? (
           <Button
             type="button"
-            className="max-md:flex-1"
+            className={cn("max-md:flex-1", fill && "flex-1")}
             disabled={pending}
             onClick={() => run(() => markOrderReady({ path: { orderId } }))}
           >
@@ -116,7 +117,7 @@ export function OrderActions({
         ) : (
           <Button
             type="button"
-            className="max-md:flex-1"
+            className={cn("max-md:flex-1", fill && "flex-1")}
             disabled={pending}
             onClick={() =>
               run(

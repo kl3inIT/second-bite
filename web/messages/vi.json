@@ -790,6 +790,52 @@
       "note": "Ghi lý do",
       "back": "Quay lại",
       "confirm": "Hủy đơn"
+    },
+    "detail": {
+      "pushedTitle": "Chi tiết đơn",
+      "back": "Về danh sách đơn",
+      "customer": "Khách",
+      "meta": "Đơn #{number} · đặt lúc {time}",
+      "headline": {
+        "confirmed": "Đơn mới · đang chuẩn bị",
+        "ready": "Đã báo sẵn sàng · chờ khách đến",
+        "collected": "Đã giao cho khách",
+        "cancelled": "Khách đã hủy đơn",
+        "refused": "Quán đã hủy đơn",
+        "expired": "Quá giờ lấy"
+      },
+      "opensIn": "Khách nhận hôm nay · giờ nhận mở sau {left}",
+      "closesIn": "Khách nhận hôm nay · còn {left}",
+      "over": "Hết giờ nhận lúc {until}",
+      "collectedAt": "Đã giao lúc {time}",
+      "hoursMinutes": "{hours} giờ {minutes} phút",
+      "minutes": "{minutes} phút",
+      "units": "{count} phần",
+      "hint": {
+        "confirmed": "Món xong thì bấm Báo sẵn sàng để khách biết đến lấy.",
+        "ready": "Khách đến thì quét mã QR của họ hoặc đối chiếu tên và số điện thoại, rồi bấm Đã giao."
+      },
+      "lines": "Món đã đặt · {count} phần",
+      "saving": "Tiết kiệm",
+      "savingValue": "{amount} so với giá gốc",
+      "total": "Tổng",
+      "number": "Mã đơn",
+      "payment": "Thanh toán",
+      "atCounter": "Thu tại quầy",
+      "next": {
+        "title": "Việc cần làm",
+        "preparing": "Món xong thì báo cho khách đến lấy.",
+        "ready": "Giao món khi khách đến quầy.",
+        "undoTitle": "Nhầm tay?",
+        "undoBody": "Mở lại đơn để làm tiếp."
+      }
+    },
+    "track": {
+      "label": "Các bước của đơn",
+      "placed": "Đã đặt",
+      "preparing": "Chuẩn bị",
+      "ready": "Sẵn sàng",
+      "collected": "Hoàn tất"
     }
   },
   "DayFilter": {
