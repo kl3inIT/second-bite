@@ -62,9 +62,16 @@ test.describe("opening a store on the web", () => {
         request.method() === "POST" && new URL(request.url()).pathname.endsWith("/sellers"),
     );
     await page.getByRole("button", { name: "Tạo quán" }).click();
-    const body = (await sent).postDataJSON() as { latitude: number; longitude: number };
+    const body = (await sent).postDataJSON() as {
+      address: string;
+      latitude: number;
+      longitude: number;
+    };
     expect(body.latitude).toBeCloseTo(21.0367, 3);
     expect(body.longitude).toBeCloseTo(105.7818, 3);
+    // The address sent is the one in the field, and the body holds nothing the API does not know.
+    expect(body.address).toBe("21 Phố Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội");
+    expect(Object.keys(body).sort()).toEqual(["address", "latitude", "longitude", "name", "phone"]);
   });
 
   test("keeps an address the person wrote, and says when no street is found", async ({
