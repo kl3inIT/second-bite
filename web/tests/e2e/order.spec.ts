@@ -94,7 +94,7 @@ test.describe("ordering from the cart", () => {
     await expectNoSeriousA11yViolations(page);
 
     await (await hydrated(page.getByRole("button", { name: /^Huỷ đơn/ }))).click();
-    const cancel = page.getByRole("alertdialog", { name: /Huỷ đơn SB-\d+\?/ });
+    const cancel = page.getByRole("dialog", { name: /Huỷ đơn #SB-\d+\?/ });
     await cancel.getByRole("button", { name: "Không đến kịp" }).click();
     await cancel.getByRole("button", { name: "Huỷ đơn" }).click();
     await expect(page.getByText(isWide(page) ? /^Bạn huỷ lúc/ : /^Đã huỷ lúc/)).toBeVisible();

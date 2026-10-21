@@ -470,9 +470,9 @@
     },
     "cancel": {
       "open": "Huỷ đơn",
-      "title": "Huỷ đơn {number}?",
-      "body": "{units} phần sẽ trả lại cho {seller} để người khác đặt. Bạn chưa trả tiền nên không mất phí nào. Chọn lý do (không bắt buộc):",
-      "reason": "Lý do huỷ",
+      "title": "Huỷ đơn #{number}?",
+      "body": "{units} phần sẽ trả lại cho {seller} để người khác đặt.",
+      "reason": "Lý do huỷ (không bắt buộc)",
       "reasons": {
         "late": "Không đến kịp",
         "mistake": "Đặt nhầm",
@@ -480,7 +480,7 @@
       },
       "keep": "Giữ đơn",
       "confirm": "Huỷ đơn",
-      "tooLate": "Không huỷ được nữa: quán đã báo món sẵn sàng.",
+      "tooLate": "Quán đã báo món sẵn sàng nên không huỷ được đơn nữa.",
       "failed": "Chưa huỷ được đơn. Thử lại, hoặc báo mã tham chiếu {reference}.",
       "change": "Đổi ý?",
       "note": "Huỷ được cho tới khi quán báo món sẵn sàng.",
@@ -493,7 +493,7 @@
         "refused": "Quán không giao đơn",
         "expired": "Hết giờ nhận"
       },
-      "cancelledLine": "Bạn huỷ lúc {time} · không mất phí nào · {units} phần đã trả lại cho quán",
+      "cancelledLine": "Bạn huỷ lúc {time} · {units} phần đã trả lại cho quán",
       "badge": {
         "cancelled": "Đơn đã huỷ",
         "refused": "Quán không giao",

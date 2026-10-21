@@ -470,9 +470,9 @@
     },
     "cancel": {
       "open": "Cancel order",
-      "title": "Cancel order {number}?",
-      "body": "{units, plural, one {# portion goes} other {# portions go}} back to {seller} for someone else. You have not paid, so nothing is charged. Choose a reason (optional):",
-      "reason": "Reason",
+      "title": "Cancel order #{number}?",
+      "body": "{units, plural, one {# portion goes} other {# portions go}} back to {seller} for someone else.",
+      "reason": "Reason (optional)",
       "reasons": {
         "late": "Cannot make it",
         "mistake": "Ordered by mistake",
@@ -480,7 +480,7 @@
       },
       "keep": "Keep order",
       "confirm": "Cancel order",
-      "tooLate": "It can no longer be cancelled: the seller has said the food is ready.",
+      "tooLate": "The seller has marked the food ready, so the order can no longer be cancelled.",
       "failed": "The order was not cancelled. Try again, or report the reference {reference}.",
       "change": "Changed your mind?",
       "note": "You can cancel until the seller says the food is ready.",
@@ -493,7 +493,7 @@
         "refused": "The shop did not hand it over",
         "expired": "Collection time is over"
       },
-      "cancelledLine": "You cancelled at {time} · nothing charged · {units, plural, one {# portion goes} other {# portions go}} back to the shop",
+      "cancelledLine": "You cancelled at {time} · {units, plural, one {# portion goes} other {# portions go}} back to the shop",
       "badge": {
         "cancelled": "Order cancelled",
         "refused": "Not handed over",
