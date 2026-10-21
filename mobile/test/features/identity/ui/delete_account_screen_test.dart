@@ -99,6 +99,8 @@ void main() {
           .called(1);
       expect(find.text('Đã xoá tài khoản'), findsOneWidget);
       expect(find.text('Đăng nhập để xoá tài khoản'), findsNothing);
+      // Figma Q5a: only the confirmation.
+      expect(find.text('Được giữ lại, không còn gắn với bạn'), findsNothing);
     });
 
     testWidgets('holds the code until the shops are read, and reads them '

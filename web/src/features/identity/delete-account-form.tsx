@@ -157,11 +157,11 @@ export function DeleteAccountForm({ email }: { email: string }) {
             />
           </Field>
           {/* The deletion is final, so it waits for the button, not the sixth digit. */}
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="flex flex-col gap-2">
             <Button
               type="submit"
               size="lg"
-              variant="destructive"
+              variant="danger"
               disabled={pending || code.length < CODE_LENGTH}
             >
               {pending ? (
@@ -199,8 +199,8 @@ export function DeleteAccountForm({ email }: { email: string }) {
         </p>
         <p className="text-body-sm-strong">{t("final")}</p>
         {problemLine}
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button type="submit" size="lg" variant="destructive" disabled={pending}>
+        <div className="flex flex-col gap-2">
+          <Button type="submit" size="lg" variant="danger" disabled={pending}>
             {pending && <Spinner data-icon="inline-start" />}
             {pending ? t("sending") : t("sendCode")}
           </Button>
@@ -225,17 +225,14 @@ export function DeleteAccountDone() {
   }, []);
 
   return (
-    <div className="flex flex-col items-start gap-3" aria-live="polite">
-      <h2
-        id="delete-account-done"
-        tabIndex={-1}
-        className="flex items-center gap-2 text-title outline-none"
-      >
-        <CircleCheckIcon aria-hidden className="size-5 text-success" />
+    // Figma Q5: the tick on its own line, the title, what it means, and the way home across the card.
+    <div className="flex flex-col gap-3" aria-live="polite">
+      <CircleCheckIcon aria-hidden className="size-7 text-success" />
+      <h2 id="delete-account-done" tabIndex={-1} className="text-title outline-none">
         {t("doneTitle")}
       </h2>
       <p className="text-body-sm">{t("doneBody")}</p>
-      <Link href="/" className={buttonVariants({ variant: "outline" })}>
+      <Link href="/" className={buttonVariants({ variant: "outline", size: "lg" })}>
         {t("home")}
       </Link>
     </div>

@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { AppHeader } from "@/components/app-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AccountAction } from "@/features/identity/account-action";
 import { getCurrentAccount } from "@/features/identity/current-account";
 import { DisplayNameRow } from "@/features/identity/display-name-row";
 import { getMySellers } from "@/features/identity/my-sellers";
@@ -28,7 +29,13 @@ export default async function AccountSettingsPage() {
 
   return (
     <>
-      <AppHeader />
+      <AppHeader
+        account={
+          <Suspense>
+            <AccountAction returnTo="/account/settings" />
+          </Suspense>
+        }
+      />
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 pt-2 pb-8 md:pt-6">
         <h1 className="text-headline text-foreground">{t("title")}</h1>
         <Suspense fallback={<Skeleton shape="card" className="h-64" />}>

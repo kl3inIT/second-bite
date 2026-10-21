@@ -75,6 +75,8 @@ test.describe("deleting an account on the web", () => {
     await expect(page).toHaveURL(/\/vi\/delete-account\?done=1$/);
     await expect(page.getByRole("heading", { name: "Đã xoá tài khoản" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Đăng nhập để xoá tài khoản" })).toHaveCount(0);
+    // Figma Q5: only the confirmation, without what the deletion takes.
+    await expect(page.getByText("Được giữ lại, không còn gắn với bạn")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Đã xoá tài khoản" })).toBeFocused();
     await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
     await page.reload();

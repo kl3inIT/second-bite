@@ -146,8 +146,11 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: SpacingTokens.space4,
                 children: [
-                  Text(l10n.deleteAccountIntro, style: text.bodySm),
-                  const _WhatGoes(),
+                  // Once deleted, only the confirmation (Figma Q5a).
+                  if (_step != _Step.done) ...[
+                    Text(l10n.deleteAccountIntro, style: text.bodySm),
+                    const _WhatGoes(),
+                  ],
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(SpacingTokens.space4),
@@ -158,7 +161,14 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           spacing: SpacingTokens.space4,
                           children: [
-                            const _OwnerWarning(),
+                            // Only when there is a warning, so the column
+                            // adds no gap for it.
+                            if (ref
+                                    .watch(ownedSellerNamesProvider)
+                                    .value
+                                    ?.isNotEmpty ??
+                                false)
+                              const _OwnerWarning(),
                             if (_step == _Step.code)
                               ..._codeStep(context, account.email)
                             else
@@ -383,7 +393,6 @@ class _OwnedFailed extends ConsumerWidget {
         AppButton(
           variant: AppButtonVariant.outline,
           onPressed: () => ref.invalidate(ownedSellerNamesProvider),
-          icon: const Icon(LucideIcons.refreshCw, size: 16),
           child: Text(l10n.deleteAccountRetry),
         ),
       ],
@@ -431,18 +440,19 @@ class _Done extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: SpacingTokens.space3,
+        // Figma Q5a: the tick on its own line, then the title.
         children: [
-          Row(
-            spacing: SpacingTokens.space2,
-            children: [
-              Icon(LucideIcons.circleCheck, size: 20, color: colors.success),
-              Expanded(
-                child: Semantics(
-                  header: true,
-                  child: Text(l10n.deleteAccountDoneTitle, style: text.title),
-                ),
-              ),
-            ],
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Icon(
+              LucideIcons.circleCheck,
+              size: 28,
+              color: colors.success,
+            ),
+          ),
+          Semantics(
+            header: true,
+            child: Text(l10n.deleteAccountDoneTitle, style: text.title),
           ),
           Text(l10n.deleteAccountDoneBody, style: text.bodySm),
           AppButton(
