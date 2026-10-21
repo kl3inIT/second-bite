@@ -47,6 +47,7 @@ func TestOffer(t *testing.T) {
 			"only an active seller's people post":         testOnlyActiveSellersPeoplePost,
 			"a photo is the poster's or the seller's":     testPhotoIsPostersOrSellers,
 			"orders limit what changes":                   testOrdersLimitWhatChanges,
+			"orders let the window move":                  testOrdersLetTheWindowMove,
 			"status follows units, window and withdrawal": testStatusFollowsUnitsWindowAndWithdrawal,
 			"search reads Vietnamese as it is typed":      testSearchReadsVietnamese,
 			"search keeps what is near and filtered":      testSearchNearAndFiltered,
@@ -344,6 +345,27 @@ func testOrdersLimitWhatChanges(t *testing.T, f fixture) {
 		t.Fatalf("units and description once units are ordered: %+v, %v", o, err)
 	}
 
+	if _, err := f.offers.Withdraw(owner, o.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.offers.Change(owner, o.ID, offer.Change{Description: &note})
+	mustFail(t, "a withdrawn offer", err, offer.ErrChangeNotAllowed)
+}
+
+func testOrdersLetTheWindowMove(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	sellerID := f.activeSeller(owner, t)
+
+	o, err := f.offers.Post(owner, sellerID, bread(f.photo(owner, t)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f.order(t, o.ID, 2)
+
 	name := "Bánh mì khác"
 	_, err = f.offers.Change(owner, o.ID, offer.Change{Name: &name})
 	mustFail(t, "the name once units are ordered", err, offer.ErrChangeNotAllowed)
@@ -352,7 +374,7 @@ func testOrdersLimitWhatChanges(t *testing.T, f fixture) {
 	start, end := time.Now().Add(time.Hour), time.Now().Add(4*time.Hour)
 
 	o, err = f.offers.Change(owner, o.ID, offer.Change{WindowStart: &start, WindowEnd: &end})
-	if err != nil || o.UnitsLeft != 6 || o.PriceVND != 12_000 {
+	if err != nil || o.UnitsLeft != 3 || o.PriceVND != 15_000 {
 		t.Fatalf("a window once units are ordered: %+v, %v", o, err)
 	}
 
@@ -364,13 +386,6 @@ func testOrdersLimitWhatChanges(t *testing.T, f fixture) {
 	over := time.Now().Add(-time.Hour)
 	_, err = f.offers.Change(owner, o.ID, offer.Change{WindowEnd: &over})
 	mustFail(t, "a window already over", err, offer.ErrWindowInvalid)
-
-	if _, err := f.offers.Withdraw(owner, o.ID); err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = f.offers.Change(owner, o.ID, offer.Change{Description: &note})
-	mustFail(t, "a withdrawn offer", err, offer.ErrChangeNotAllowed)
 }
 
 func testStatusFollowsUnitsWindowAndWithdrawal(t *testing.T, f fixture) {
