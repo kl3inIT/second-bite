@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"github.com/kl3inIT/second-bite/server/internal/identity"
 	"github.com/kl3inIT/second-bite/server/internal/offer"
 	"github.com/kl3inIT/second-bite/server/internal/order/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
@@ -19,11 +20,59 @@ import (
 func RegisterListeners(events *platform.Events, s *Service) {
 	platform.Listen(events, "order.follow_offer_window", s.FollowOfferWindow)
 	platform.Listen(events, "order.refuse_withdrawn_offer", s.RefuseWithdrawnOffer)
+	platform.Listen(events, "order.forget_account", s.forgetAccount)
 }
 
 // RegisterSchedules makes the module run what it does on the clock.
 func RegisterSchedules(events *platform.Events, s *Service) {
 	events.Every("order.expire_ended", time.Minute, s.ExpireEnded)
+	events.Every("order.purge_live_tickets", liveTicketPurgeEvery, s.PurgeLiveTickets)
+	events.Every("order.forget_old_chats", 24*time.Hour, s.ForgetOldChats)
+}
+
+// liveTicketPurgeEvery is how often the tickets that expired unspent are deleted.
+const liveTicketPurgeEvery = 10 * time.Minute
+
+// chatKept is how long a chat is kept after its order's window ends.
+const chatKept = 30 * 24 * time.Hour
+
+// ForgetOldChats deletes the chats, with their messages, of the orders whose
+// window ended more than chatKept ago: a chat is about collecting one order and
+// holds personal free text, while the order and its events are kept. It changes
+// nothing a second run would not, so it may run twice.
+func (s *Service) ForgetOldChats(ctx context.Context) error {
+	forgotten, err := s.queries.DeleteChatsEndedBefore(ctx, s.now().Add(-chatKept))
+	if err != nil {
+		return fmt.Errorf("forgetting the old chats: %w", err)
+	}
+
+	if forgotten > 0 {
+		s.logger.InfoContext(ctx, "old chats forgotten",
+			slog.String("event", "order.chats.forgotten_old"),
+			slog.Int64("chats_forgotten", forgotten),
+		)
+	}
+
+	return nil
+}
+
+// forgetAccount deletes the chats of the orders a deleted account placed, as
+// its favourites and memberships go with it (SEC-37). A message stores its side
+// and not the staff member who wrote it, so a staff account's deletion leaves
+// nothing to remove. Running it again changes nothing more.
+func (s *Service) forgetAccount(ctx context.Context, e identity.AccountDeletedEvent) error {
+	forgotten, err := s.queries.DeleteChatsOfCustomer(ctx, uuid.NullUUID{UUID: e.AccountID, Valid: true})
+	if err != nil {
+		return fmt.Errorf("forgetting the account's chats: %w", err)
+	}
+
+	s.logger.InfoContext(ctx, "deleted account's chats forgotten",
+		slog.String("event", "order.account.forgotten"),
+		slog.String("account_id", e.AccountID.String()),
+		slog.Int64("chats_forgotten", forgotten),
+	)
+
+	return nil
 }
 
 // ExpireEnded expires the orders still to collect whose window is over, each
@@ -78,7 +127,11 @@ func (s *Service) RefuseWithdrawnOffer(ctx context.Context, e offer.WithdrawnEve
 				}
 			}
 
-			return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "refused"})
+			if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "refused"}); err != nil {
+				return err
+			}
+
+			return notifyOrder(ctx, tx, id, o.SellerID, StatusRefused)
 		})
 		if err != nil {
 			return err

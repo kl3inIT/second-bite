@@ -180,6 +180,12 @@ location /api/ {
     set $secondbite_server secondbite-staging-server;
     rewrite ^/api/(.*)$ /$1 break;
     proxy_pass http://$secondbite_server:8080;
+    # GET /live is a WebSocket: the upgrade needs HTTP/1.1 and its two headers, and the server pings every 25
+    # seconds, well inside the read timeout.
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_read_timeout 75s;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host $host;

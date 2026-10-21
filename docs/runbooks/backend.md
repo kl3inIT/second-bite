@@ -83,7 +83,7 @@ The tests start the images `compose.yaml` names, so Dependabot's updates of that
 | `SECONDBITE_DATABASE_PASSWORD` | required, a secret | The database password |
 | `SECONDBITE_EMAIL_SETTINGS_KEY` | required, a secret | 32 bytes in standard base64 that seal the email provider's password or API key in the database. Replacing it makes them unreadable: an admin enters them again |
 | `SECONDBITE_SIGN_IN_CODE_KEY` | required, a secret | 32 bytes in standard base64 that key the HMAC of stored sign-in codes. Replacing it voids the codes sent in the last 15 minutes |
-| `SECONDBITE_DATABASE_MAX_CONNS` | `10` | The size of the connection pool |
+| `SECONDBITE_DATABASE_MAX_CONNS` | `10` | The size of the connection pool. Each instance also holds one listening connection for the live socket, outside it: count `SECONDBITE_DATABASE_MAX_CONNS + 1` for each instance against PostgreSQL's `max_connections` |
 | `SECONDBITE_HTTP_ADDR` | `:8080` | Where the API listens |
 | `SECONDBITE_LOG_FORMAT` | `json` | `json`, or `text` for local development |
 | `SECONDBITE_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` |

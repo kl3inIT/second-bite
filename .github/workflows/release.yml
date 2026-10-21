@@ -173,6 +173,18 @@ jobs:
           answers /robots.txt 200
           answers /api/readyz 204
           answers /api/offers 200
+          # The live socket upgrades through the proxy: a handshake answers 101.
+          upgrades() {
+            local line=""
+            for _ in 1 2 3 4 5 6 7 8 9 10; do
+              line=$(curl --silent --include --max-time 3 --header 'Connection: Upgrade' --header 'Upgrade: websocket'                 --header 'Sec-WebSocket-Version: 13' --header 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ=='                 "http://127.0.0.1:8000$1" | head -n 1 || true)
+              [[ "$line" == HTTP/1.1\ 101* ]] && return 0
+              sleep 3
+            done
+            echo "$1 answered '$line', not 101" >&2
+            return 1
+          }
+          upgrades /api/live
           # The preview stands alone: a screen's path is sent to the app's route after "#", and it is never indexed.
           docker run --detach --name preview --publish 127.0.0.1:8100:8080 "$SECONDBITE_PREVIEW_IMAGE"
           headers=""
