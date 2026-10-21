@@ -10,7 +10,7 @@ import { TonightOffers } from "@/features/offers/tonight-offers";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Favourites");
-  return { title: `${t("title")} · Second Bite`, robots: { index: false } };
+  return { title: t("title"), robots: { index: false } };
 }
 
 // "Yêu thích" (SEC-109, Figma K9, K9a): the sellers this person follows. A tab of its own, reached from the

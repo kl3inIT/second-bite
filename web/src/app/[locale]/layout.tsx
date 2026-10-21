@@ -10,7 +10,6 @@ import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { Splash } from "@/components/splash";
 import { Toaster } from "@/components/ui/toast";
-import { FollowToast } from "@/features/favourites/follow-button";
 import { routing } from "@/i18n/routing";
 import { absoluteUrl, siteIds, siteOrigin } from "@/lib/seo";
 
@@ -106,7 +105,6 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
               <Suspense>
                 <BottomNav />
               </Suspense>
-              <FollowToast />
             </Toaster>
           </NuqsAdapter>
         </NextIntlClientProvider>
