@@ -35,7 +35,7 @@ function weeksOver(days: number) {
 function figure(page: Page, name: string) {
   return page
     .getByRole("region", { name: "Số liệu" })
-    .locator("div")
+    .locator('[data-slot="card"]')
     .filter({ has: page.getByText(name, { exact: true }) });
 }
 
@@ -106,19 +106,22 @@ test("the range and the store are in the address", async ({ page }, testInfo) =>
 test("the export is drawn but cannot download before its backend", async ({ page }, testInfo) => {
   await signInTo(page, "/admin/reports", testInfo, { who: "baocao-xuat" });
   await (await hydrated(page.getByRole("button", { name: "Xuất báo cáo" }))).click();
-  const dialog = page.getByRole("alertdialog", { name: "Xuất báo cáo" });
+  const dialog = page.getByRole("dialog", { name: "Xuất báo cáo" });
   await expect(dialog).toBeVisible();
 
   await expect(dialog.getByRole("radio", { name: "Đơn giữ hàng" })).toBeChecked();
   await dialog.getByText("Cửa hàng", { exact: true }).click();
   await expect(dialog.getByRole("radio", { name: "Cửa hàng" })).toBeChecked();
-  await dialog.getByText("CSV (.csv)").click();
-  await expect(dialog.getByRole("radio", { name: "CSV (.csv)" })).toBeChecked();
+  await dialog.getByRole("button", { name: "CSV (.csv)" }).click();
+  await expect(dialog.getByRole("button", { name: "CSV (.csv)" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await expect(dialog.getByRole("button", { name: /Từ – đến/ })).toBeVisible();
 
   const download = dialog.getByRole("button", { name: "Tải về" });
   await expect(download).toBeDisabled();
-  await expect(download).toHaveAttribute("title", "Sắp có");
+  await expect(download).toHaveAccessibleDescription("Sắp có");
   await expect(dialog.getByText("Sắp có", { exact: true })).toBeVisible();
   await expectNoSeriousA11yViolations(page);
 

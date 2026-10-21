@@ -37,7 +37,8 @@
     "collectionRate": "Tỉ lệ nhận",
     "revenue": "Doanh thu tại quầy (ước tính)",
     "empty": "Chưa có đơn nào trong khoảng này",
-    "summary": "Hiển thị {from}–{to} trên {total} cửa hàng có đơn"
+    "summary": "Hiển thị {from}–{to} trên {total} cửa hàng có đơn",
+    "pageOf": "{page} / {pages}"
   },
   "export": {
     "title": "Xuất báo cáo",

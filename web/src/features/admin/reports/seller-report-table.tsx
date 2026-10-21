@@ -1,19 +1,32 @@
 "use client";
 
+import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon, InboxIcon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { formatPrice } from "@/features/offers/format";
-import { adminHref } from "@/features/admin/pages";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardFooter } from "@/components/ui/card";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import {
-  AmountCell,
-  type Column,
-  DataTable,
-  MediaCell,
-  TextCell,
-} from "@/features/admin/ui/data-table";
-import { EmptyState } from "@/features/admin/ui/empty-state";
-import { Pagination } from "@/features/admin/ui/pagination";
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { adminHref } from "@/features/admin/pages";
+import { formatPrice } from "@/features/offers/format";
+import { Link } from "@/i18n/navigation";
 
 import {
   defaultReportSort,
@@ -31,79 +44,150 @@ const pageSize = 10;
  */
 export function SellerReportTable({ rows }: { rows: ReportSellerRow[] }) {
   const t = useTranslations("admin.reports.table");
+  const tShell = useTranslations("admin.shell");
   const format = useFormatter();
   const [sort, setSort] = useState(defaultReportSort);
   const [page, setPage] = useState(1);
   const sorted = sortReportRows(rows, sort);
   const shown = sorted.slice((page - 1) * pageSize, page * pageSize);
+  const total = rows.length;
+  const pages = Math.max(1, Math.ceil(total / pageSize) || 1);
+  const range = {
+    from: total === 0 ? 0 : (page - 1) * pageSize + 1,
+    to: Math.min(total, page * pageSize),
+    total,
+  };
 
-  const sortable = (key: ReportSortKey) => ({
-    direction: sort.key === key ? sort.direction : ("none" as const),
-    onSort: () => {
-      setSort(nextReportSort(sort, key));
-      setPage(1);
-    },
-  });
-
-  const columns: Column<ReportSellerRow>[] = [
-    {
-      key: "name",
-      header: t("seller"),
-      grow: true,
-      sort: sortable("name"),
-      cell: (row) => (
-        <MediaCell
-          src={row.photoUrl}
-          name={row.name}
-          href={adminHref("sellerDetail", { sellerId: row.sellerId })}
-        />
-      ),
-    },
-    {
-      key: "orders",
-      header: t("orders"),
-      sort: sortable("orders"),
-      cell: (row) => <TextCell>{format.number(row.orders)}</TextCell>,
-    },
-    {
-      key: "portionsSaved",
-      header: t("portionsSaved"),
-      sort: sortable("portionsSaved"),
-      cell: (row) => <AmountCell>{format.number(row.portionsSaved)}</AmountCell>,
-    },
-    {
-      key: "collectionRate",
-      header: t("collectionRate"),
-      sort: sortable("collectionRate"),
-      cell: (row) => <TextCell>{`${Math.round(row.collectionRate * 100)}%`}</TextCell>,
-    },
-    {
-      key: "revenueVnd",
-      header: t("revenue"),
-      sort: sortable("revenueVnd"),
-      cell: (row) => <TextCell>{formatPrice(row.revenueVnd)}</TextCell>,
-    },
+  const headers: { key: ReportSortKey; label: string }[] = [
+    { key: "name", label: t("seller") },
+    { key: "orders", label: t("orders") },
+    { key: "portionsSaved", label: t("portionsSaved") },
+    { key: "collectionRate", label: t("collectionRate") },
+    { key: "revenueVnd", label: t("revenue") },
   ];
 
   return (
-    <DataTable
-      caption={t("caption")}
-      columns={columns}
-      rows={shown}
-      rowKey={(row) => row.sellerId}
-      rowHref={(row) => adminHref("sellerDetail", { sellerId: row.sellerId })}
-      empty={<EmptyState title={t("empty")} />}
-      footer={
-        rows.length > 0 && (
-          <Pagination
-            page={page}
-            pageSize={pageSize}
-            total={rows.length}
-            onPage={setPage}
-            summary={(range) => t("summary", range)}
-          />
-        )
-      }
-    />
+    <Card>
+      <Table>
+        <TableCaption className="sr-only">{t("caption")}</TableCaption>
+        <TableHeader>
+          <TableRow>
+            {headers.map((header) => {
+              const direction = sort.key === header.key ? sort.direction : "none";
+              const SortIcon =
+                direction === "asc"
+                  ? ArrowUpIcon
+                  : direction === "desc"
+                    ? ArrowDownIcon
+                    : ChevronsUpDownIcon;
+              return (
+                <TableHead
+                  key={header.key}
+                  aria-sort={
+                    direction === "asc"
+                      ? "ascending"
+                      : direction === "desc"
+                        ? "descending"
+                        : undefined
+                  }
+                  className={header.key === "name" ? "w-full" : undefined}
+                >
+                  <Button
+                    variant={direction === "none" ? "ghost" : "secondary"}
+                    onClick={() => {
+                      setSort(nextReportSort(sort, header.key));
+                      setPage(1);
+                    }}
+                  >
+                    {header.label}
+                    <SortIcon data-icon="inline-end" aria-hidden />
+                  </Button>
+                </TableHead>
+              );
+            })}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {shown.map((row) => (
+            <TableRow key={row.sellerId}>
+              <TableCell className="w-full">
+                <div className="flex min-w-56 items-center gap-2.5">
+                  <Avatar size="lg">
+                    {row.photoUrl && <AvatarImage src={row.photoUrl} alt="" />}
+                    <AvatarFallback>{row.name.slice(0, 1).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <Link
+                    href={adminHref("sellerDetail", { sellerId: row.sellerId })}
+                    className="block max-w-80 truncate text-body-sm-strong text-foreground hover:underline"
+                  >
+                    {row.name}
+                  </Link>
+                </div>
+              </TableCell>
+              <TableCell>{format.number(row.orders)}</TableCell>
+              <TableCell>
+                <span className="text-body-sm-strong text-foreground tabular-nums">
+                  {format.number(row.portionsSaved)}
+                </span>
+              </TableCell>
+              <TableCell>{`${Math.round(row.collectionRate * 100)}%`}</TableCell>
+              <TableCell>{formatPrice(row.revenueVnd)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {total === 0 && (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <InboxIcon aria-hidden />
+            </EmptyMedia>
+            <EmptyTitle>{t("empty")}</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
+      )}
+      {total > 0 && (
+        <CardFooter>
+          <div className="flex w-full flex-wrap items-center justify-between gap-3">
+            <p className="text-body-sm text-muted-foreground">{t("summary", range)}</p>
+            {pages > 1 && (
+              <Pagination aria-label={tShell("pagination.label")} className="mx-0 w-auto">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      text={tShell("pagination.previous")}
+                      aria-label={tShell("pagination.previous")}
+                      href={page > 1 ? "#" : undefined}
+                      aria-disabled={page > 1 ? undefined : true}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        if (page > 1) setPage(page - 1);
+                      }}
+                    />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <span className="px-2 text-body-sm text-foreground tabular-nums">
+                      {t("pageOf", { page, pages })}
+                    </span>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationNext
+                      text={tShell("pagination.next")}
+                      aria-label={tShell("pagination.next")}
+                      href={page < pages ? "#" : undefined}
+                      aria-disabled={page < pages ? undefined : true}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        if (page < pages) setPage(page + 1);
+                      }}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </div>
+        </CardFooter>
+      )}
+    </Card>
   );
 }
