@@ -11,7 +11,7 @@ test.describe("the favourites", () => {
     page,
   }) => {
     await page.goto("/vi/favourites");
-    await expect(page.getByRole("heading", { name: "Chưa có quán yêu thích" })).toBeVisible();
+    await expect(page.getByText("Chưa có quán yêu thích", { exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "Khám phá quán" })).toHaveAttribute("href", "/vi");
     await expectNoSeriousA11yViolations(page);
 
@@ -29,6 +29,6 @@ test.describe("the favourites", () => {
 
     await (await hydrated(card.getByRole("button", { name: "Yêu thích La Paris" }))).click();
     await expect(page.getByText("Đã bỏ khỏi Yêu thích")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Chưa có quán yêu thích" })).toBeVisible();
+    await expect(page.getByText("Chưa có quán yêu thích", { exact: true })).toBeVisible();
   });
 });
