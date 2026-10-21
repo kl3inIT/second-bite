@@ -488,8 +488,7 @@
       },
       "keep": "Keep order",
       "confirm": "Cancel order",
-      "tooLate": "The seller has marked the food ready, so the order can no longer be cancelled.",
-      "failed": "The order was not cancelled. Try again, or report the reference {reference}.",
+      "failed": "The order could not be cancelled. Try again in a moment.",
       "change": "Changed your mind?",
       "note": "You can cancel until the seller says the food is ready.",
       "after": "You can cancel until the seller says the food is ready. After that it cannot be cancelled."
@@ -622,7 +621,6 @@
     "orderRest": "Order {what} · {price}",
     "restUnits": "the {units} portions left",
     "otherDishes": "See the seller's other dishes",
-    "orderFailed": "The order did not go through. Try again, or quote the reference {reference}.",
     "orderFailedPlain": "The order did not go through. Check your connection and try again.",
     "sellerWindow": "{place} · Collect {from} – {until}",
     "intro": "One order per seller, each with its own QR code. Check the dishes and the collection time before you order.",
@@ -1563,9 +1561,12 @@
     },
     "comment": "A few words for the shop (optional)",
     "submit": "Send rating",
-    "failed": "The rating was not sent. Try again later, reference {reference}.",
+    "failed": "The rating could not be sent. Try again in a moment.",
     "given": "Your rating",
-    "thanks": "Thank you, the shop will read it."
+    "thanks": "Thank you, the shop will read it.",
+    "errors": {
+      "stars": "Choose how many stars to give."
+    }
   },
   "Favourites": {
     "title": "Favourites",

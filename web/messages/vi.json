@@ -488,8 +488,7 @@
       },
       "keep": "Giữ đơn",
       "confirm": "Huỷ đơn",
-      "tooLate": "Quán đã báo món sẵn sàng nên không huỷ được đơn nữa.",
-      "failed": "Chưa huỷ được đơn. Thử lại, hoặc báo mã tham chiếu {reference}.",
+      "failed": "Chưa huỷ được đơn. Thử lại sau ít phút.",
       "change": "Đổi ý?",
       "note": "Huỷ được cho tới khi quán báo món sẵn sàng.",
       "after": "Huỷ được cho tới khi quán báo món sẵn sàng. Sau đó không huỷ được nữa."
@@ -622,7 +621,6 @@
     "orderRest": "Đặt {what} · {price}",
     "restUnits": "{units} phần còn lại",
     "otherDishes": "Xem món khác của quán",
-    "orderFailed": "Chưa đặt được món. Thử lại, hoặc báo mã tham chiếu {reference}.",
     "orderFailedPlain": "Chưa đặt được món. Kiểm tra mạng rồi thử lại.",
     "sellerWindow": "{place} · Nhận {from} – {until}",
     "intro": "Mỗi quán một đơn, mỗi đơn có mã QR riêng. Kiểm tra món và giờ nhận trước khi đặt.",
@@ -1563,9 +1561,12 @@
     },
     "comment": "Viết vài dòng cho quán (không bắt buộc)",
     "submit": "Gửi đánh giá",
-    "failed": "Chưa gửi được đánh giá. Thử lại sau, mã lỗi {reference}.",
+    "failed": "Chưa gửi được đánh giá. Thử lại sau ít phút.",
     "given": "Bạn đã đánh giá",
-    "thanks": "Cảm ơn bạn, quán sẽ đọc đánh giá này."
+    "thanks": "Cảm ơn bạn, quán sẽ đọc đánh giá này.",
+    "errors": {
+      "stars": "Chọn số sao cho đơn."
+    }
   },
   "Favourites": {
     "title": "Yêu thích",
