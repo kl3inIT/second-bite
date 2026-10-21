@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { BrandLoader } from "@/components/brand-loader";
+import { CustomerHeader } from "@/components/customer-header";
 
 import { readHomeQuery } from "@/features/home/home-query";
 import { listOffers } from "@/features/offers/list-offers";
@@ -40,5 +41,10 @@ async function Seller({ params, searchParams }: PageProps<"/[locale]/sellers/[id
   const offers = inShowingOrder(await listOffers({ sellerId: id, near }));
   const at = typeof search.at === "string" ? search.at : undefined;
 
-  return <SellerPage offers={offers} kind={kind} near={near} at={at} q={q} />;
+  return (
+    <>
+      <CustomerHeader returnTo={`/sellers/${id}`} near={near} />
+      <SellerPage offers={offers} kind={kind} near={near} at={at} q={q} />
+    </>
+  );
 }

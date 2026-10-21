@@ -82,7 +82,10 @@ export function AppHeader({
         </div>
         {children}
       </div>
-      <div aria-hidden className="absolute inset-x-0 bottom-0 h-7 rounded-t-3xl bg-background" />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-7 rounded-t-3xl bg-background md:rounded-t-28"
+      />
       {sticky && (
         <StickyHeader>
           {home}

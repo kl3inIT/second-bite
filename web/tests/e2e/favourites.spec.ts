@@ -16,7 +16,9 @@ test.describe("the favourites", () => {
     await expectNoSeriousA11yViolations(page);
 
     await page.goto("/vi/sellers/se-la-paris");
-    const heart = await hydrated(page.getByRole("button", { name: "Yêu thích La Paris" }));
+    const heart = await hydrated(
+      page.getByRole("button", { name: /^(Yêu thích|Theo dõi) La Paris$/ }),
+    );
     await heart.click();
     await expect(heart).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText("Đã thêm vào Yêu thích")).toBeVisible();
@@ -25,6 +27,14 @@ test.describe("the favourites", () => {
     const card = page.getByRole("article").filter({ hasText: "La Paris" });
     await expect(card.getByRole("heading", { name: "La Paris" })).toBeVisible();
     await expect(card.getByText("Bánh Croissant Truyền Thống")).toBeVisible();
+    // Figma WK9: from 768px the title has its line, and from 1024px tonight's offers stand beside the sellers.
+    const width = page.viewportSize()?.width ?? 0;
+    if (width >= 768) {
+      await expect(page.getByText("Quán bạn theo dõi · có món giảm sẽ báo bạn")).toBeVisible();
+    }
+    if (width >= 1024) {
+      await expect(page.getByRole("heading", { name: "Còn món ngon" })).toBeVisible();
+    }
     // The row of dishes scrolls inside the card; the page itself never scrolls sideways.
     expect(
       await page.evaluate(

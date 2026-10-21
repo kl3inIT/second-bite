@@ -26,7 +26,7 @@ export function CartSidebar() {
       aria-labelledby="cart-sidebar"
       className="hidden w-full shrink-0 flex-col gap-4 rounded-3xl bg-card p-6 shadow-card md:flex lg:sticky lg:top-4 lg:w-95"
     >
-      <h2 id="cart-sidebar" className="text-title-lg text-foreground">
+      <h2 id="cart-sidebar" className="font-display text-card-heading text-foreground">
         {t("sidebarTitle", { sellers: cart?.baskets.length ?? 0 })}
       </h2>
       {cart ? (
