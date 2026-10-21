@@ -108,9 +108,11 @@ function Confirmation({ cart }: { cart: Cart }) {
       </div>
       <div className="sticky bottom-0 z-40 border-t border-border bg-card">
         <div className="mx-auto flex w-full max-w-xl flex-col gap-2 px-4 pt-3 pb-5">
-          <div className="flex items-center gap-4">
+          {/* With a phone's large text (Zalo grows web text with it) the button takes a line of its own under the
+              totals rather than running past the screen, as on the dish page (SEC-112). */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             <div className="flex flex-col">
-              <p className="flex items-baseline gap-1.5">
+              <p className="flex flex-wrap items-baseline gap-x-1.5">
                 <span className="font-display text-price-lg text-primary">
                   {formatPrice(priceVnd)}
                 </span>
