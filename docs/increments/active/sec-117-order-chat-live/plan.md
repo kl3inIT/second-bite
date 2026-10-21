@@ -10,7 +10,7 @@ Design: [design.md](design.md). Tracked in Linear as SEC-117.
 | 4 | Chats in `order`: migration, list, send with `Idempotency-Key` and the bounds, seen, `unreadMessages` on the order, the failure codes with their words; database tests | Done |
 | 5 | `order.forget_account` and `order.forget_old_chats`; tests that run each twice | Done |
 | 6 | Assembly in `cmd/secondbite`, the composition test through the middleware, OpenAPI and the web client regenerated | Done |
-| 7 | The proxies: `local-proxy.conf`, the staging runbook's `location /api/` block, and CI's local-proxy job opening `/api/live` | To do |
+| 7 | The proxies: `local-proxy.conf`, the staging runbook's `location /api/` block, and CI's local-proxy job opening `/api/live` | Done |
 | 8 | Documents: the order and platform specs (the socket's frames included), `docs/tests/order.md`, coder/websocket in the backend guideline, ARCHITECTURE.md, the runbook's connection count | To do |
 | 9 | Web: the socket client in `src/lib`, the server action that mints tickets, reconnection and the polling fallback; Vitest | To do |
 | 10 | Web: the order page and "Đơn của tôi" follow their orders and refresh at `windowEnd`; the Đơn tab and an order's page follow the seller; the unread badges | To do |
