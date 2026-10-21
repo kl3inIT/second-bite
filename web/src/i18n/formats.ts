@@ -9,6 +9,8 @@ export const formats = {
   dateTime: {
     /** "21:45": an edge of a collection window. */
     time: { hour: "2-digit", minute: "2-digit", hourCycle: "h23" },
+    /** "18 tháng 10, 2026", "October 18, 2026": the day a document changed. */
+    date: { day: "numeric", month: "long", year: "numeric" },
   },
   number: {
     /** "350 m": how far a seller is, under a kilometre. */

@@ -6,12 +6,16 @@ on:
       - "mobile/**"
       # The API client is generated from the contract.
       - "api/openapi.yaml"
+      # The app's legal text is checked against the web's (test/features/legal).
+      - "web/messages/**"
       - ".github/workflows/mobile.yml"
   pull_request:
     paths:
       - "mobile/**"
       # The API client is generated from the contract.
       - "api/openapi.yaml"
+      # The app's legal text is checked against the web's (test/features/legal).
+      - "web/messages/**"
       - ".github/workflows/mobile.yml"
 
 permissions:

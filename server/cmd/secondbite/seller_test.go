@@ -23,7 +23,7 @@ func newSeller(name, phone string) map[string]any {
 }
 
 // checkSellerFlow opens a seller, adds staff who sign in through Mailpit, and
-// has an admin activate it, through the API as the clients will.
+// has an admin block it and lift the block, through the API as the clients will.
 func checkSellerFlow(t *testing.T, svc service) {
 	t.Helper()
 
@@ -34,8 +34,22 @@ func checkSellerFlow(t *testing.T, svc service) {
 	send(t, http.MethodPost, svc.base+"/sellers", owner, newSeller("Bánh mì Tasco", "0912 345 678")).
 		decode(t, http.StatusCreated, &opened)
 
-	if opened.Status != "pending" || opened.MyRole != "owner" {
+	if opened.Status != "active" || opened.MyRole != "owner" {
 		t.Fatalf("opened %+v", opened)
+	}
+
+	// A phone too short reaches the module's rule and its words, in the request's language (SEC-28).
+	short := newSeller("Quán thử", "12")
+	if p := send(t, http.MethodPost, svc.base+"/sellers", owner, short).problem(t, http.StatusBadRequest); p.Code != "SELLER_PHONE_INVALID" ||
+		p.Detail != "Nhập số điện thoại 9 đến 15 chữ số, ví dụ 0912 345 678." {
+		t.Errorf("a short phone: %q %q", p.Code, p.Detail)
+	}
+
+	inEnglish := owner.Clone()
+	inEnglish.Set("Accept-Language", "en")
+
+	if p := send(t, http.MethodPost, svc.base+"/sellers", inEnglish, short).problem(t, http.StatusBadRequest); p.Detail != "Enter a phone number of 9 to 15 digits, such as 0912 345 678." {
+		t.Errorf("a short phone in English: %q", p.Detail)
 	}
 
 	sellerURL := svc.base + "/sellers/" + opened.ID
@@ -66,30 +80,44 @@ func checkSellerFlow(t *testing.T, svc service) {
 		t.Errorf("a stranger reading the seller: %q", p.Code)
 	}
 
-	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/activate", owner, nil).problem(t, http.StatusForbidden); p.Code != "PLATFORM_ADMIN_REQUIRED" {
-		t.Errorf("the owner activating: %q", p.Code)
+	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/block", owner, nil).problem(t, http.StatusForbidden); p.Code != "PLATFORM_ADMIN_REQUIRED" {
+		t.Errorf("the owner blocking: %q", p.Code)
 	}
 
 	admin := bearer(signIn(t, svc, sellerAdminEmail).Token)
+	checkAdminBlocksAndLifts(t, svc, admin, opened.ID)
+}
 
-	var pending struct {
+// checkAdminBlocksAndLifts has an admin block the seller, find it in the blocked list, and lift the block.
+func checkAdminBlocksAndLifts(t *testing.T, svc service, admin http.Header, sellerID string) {
+	t.Helper()
+
+	var blocked sellerResponse
+
+	send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/block", admin, nil).decode(t, http.StatusOK, &blocked)
+
+	if blocked.Status != "blocked" {
+		t.Errorf("blocked %+v", blocked)
+	}
+
+	var listed struct {
 		Sellers []sellerResponse `json:"sellers"`
 	}
 
-	send(t, http.MethodGet, svc.base+"/admin/sellers?status=pending", admin, nil).decode(t, http.StatusOK, &pending)
+	send(t, http.MethodGet, svc.base+"/admin/sellers?status=blocked", admin, nil).decode(t, http.StatusOK, &listed)
 
 	found := false
-	for _, s := range pending.Sellers {
-		found = found || s.ID == opened.ID
+	for _, s := range listed.Sellers {
+		found = found || s.ID == sellerID
 	}
 
 	if !found {
-		t.Fatalf("the pending list lacks the seller: %+v", pending)
+		t.Fatalf("the blocked list lacks the seller: %+v", listed)
 	}
 
 	var activated sellerResponse
 
-	send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/activate", admin, nil).decode(t, http.StatusOK, &activated)
+	send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/activate", admin, nil).decode(t, http.StatusOK, &activated)
 
 	if activated.Status != "active" {
 		t.Errorf("activated %+v", activated)

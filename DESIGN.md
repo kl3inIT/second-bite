@@ -51,8 +51,9 @@ colors:
   primary-foreground: "{palette.base-white}"
   primary-hover: "{palette.brand-900}" # darker under the pointer so the text gains contrast, 8.5:1
   inverse-muted: "{palette.text-on-brand}" # secondary text on Tasco blue or a dark photo scrim, 5.3:1 on primary
-  shell: "{palette.base-white}" # the top bar of every screen but the home: white with a hairline below
+  shell: "{palette.base-white}" # the web's top bar of every screen but the home: white with a hairline below
   shell-foreground: "{palette.text-ink}"
+  sky: "{palette.brand-500}" # the sign-in screen's side panel, Figma L6; white on it is 2.4:1, so only large decorative type goes there, never text a person must read
   header: "{palette.brand-800}" # the home's header, under the light sweep; Figma v3's sky #3CB4E7 held white at 2.4:1
   header-foreground: "{palette.base-white}" # the place on the header, 6.3:1
   header-raised: "{palette.base-white}" # the capsule and the search field on the header
@@ -92,7 +93,7 @@ colors:
   avatar-indigo: "{palette.logo-indigo}" # 7.6:1
   avatar-olive: "{palette.logo-olive}" # 6.0:1
 typography:
-  # Fifteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
+  # Nineteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
   # "Mobile v2" frames used (SEC-22). Named by purpose, not size; each has a Figma text style of the same name.
   # Be Vietnam Pro (`font-sans`) for everything people read; Bricolage Grotesque (`font-display`) only for
   # prices and figures, tracked -1%. Nothing is set below 12px.
@@ -131,6 +132,16 @@ typography:
     fontSize: "16px"
     fontWeight: 600
     lineHeight: "22px"
+  card-title: # the heading of a card on the seller's screens, and of the open-store form
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "18px"
+    fontWeight: 600
+    lineHeight: "25px"
+  note: # a hint under a field, and what a photo box says under its call
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: "19px"
   button: # button labels
     fontFamily: "Be Vietnam Pro"
     fontSize: "16px"
@@ -146,6 +157,16 @@ typography:
     fontSize: "20px"
     fontWeight: 700
     lineHeight: "28px"
+  page-title: # the heading of a form page, such as the sign-in screen's
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "28px"
+    fontWeight: 600
+    lineHeight: "36px"
+  hero: # the headline of a panel that carries no other content, such as the sign-in screen's on a wide screen
+    fontFamily: "Be Vietnam Pro"
+    fontSize: "44px"
+    fontWeight: 700
+    lineHeight: "54px"
   figure-sm: # small figures on lime: the discount badge, the steps' numbers
     fontFamily: "Bricolage Grotesque"
     fontSize: "12px"
@@ -269,7 +290,7 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 - **Blue Header** (`header`, `header-foreground`): the home's header, the same blue as `primary`, with the place in white, a lime pin and the district in `inverse-muted`. **Light Sweep** (`sweep`, `sweep-edge`) crosses its top right: Figma draws it as `brand-300` at 18% and 30% over the header, written here as the solid colours that makes. Figma v3 had a sky header (`brand-500`), but white on it reaches only 2.4:1.
 - **Deal Blue** (`deal`, `deal-foreground`): the deal card on the header, one step deeper than it so it stands apart.
 - **Raised** (`header-raised`, `header-border`): the white capsule and search field on the header.
-- **White Shell** (`shell`, `shell-foreground`): the top bar of every other screen, white with a hairline below.
+- **White Shell** (`shell`, `shell-foreground`): on the web, the top bar of every other screen, white with a hairline below, and the bottom bar. In the app, every screen but the home has the Blue Header's colours instead, its name in `header-foreground` and the back button a `header-raised` disc with the arrow in `primary`, as Figma Mobile v3 draws it (K5); decided by the team on 20 October 2026 (SEC-52).
 - **Soft on Blue** (`inverse-muted`): secondary text on Tasco blue, the deal card or a dark photo scrim.
 - **Blue Link** (`link`): text links and secondary actions, on white or the ground. Figma v3 uses `brand-700`, which reaches only 3.9:1 on white, so links take `brand-800`.
 
@@ -318,18 +339,23 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 
 ### Hierarchy
 
-Fifteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `headline` grew to 20/28 bold with Mobile v3 (SEC-48), when `price-lg` became 20/24 and `title-lg` was added (SEC-49); `price-sm` (14/17) followed for the dish tiles, the fifteenth. A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
+Nineteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Mobile v2 frames had used (SEC-22); `hero` and `page-title` were added for the sign-in screen (SEC-56); `headline` grew to 20/28 bold with Mobile v3 (SEC-48), when `price-lg` became 20/24 and `title-lg` was added (SEC-49); `card-title` and `note` were added for the seller's screens (SEC-57), whose Figma frames use 18/25 and 13/19; `price-sm` (14/17) followed for the dish tiles (SEC-49). A role's token, its Figma text style and its Flutter style share one name, which names its purpose, not its size.
 
 | Role             | Face          | Size / line | Use                                                                               |
 | ---------------- | ------------- | ----------- | --------------------------------------------------------------------------------- |
 | `display`        | Bricolage 700 | 36 / 40     | Big figures only: the pickup code, the best discount tonight                      |
 | `price-lg`       | Bricolage 700 | 20 / 24     | The price on a large card and at checkout, totals, the digits of the sign-in code |
 | `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                       |
+| `price-sm`       | Bricolage 700 | 14 / 17     | The price on a dish tile, where two prices share 104px                            |
 | `figure-sm`      | Bricolage 700 | 12 / 16     | Small figures on lime: the discount badge, the steps' numbers                     |
+| `page-title`     | 600           | 28 / 36     | The heading of a form page, the sign-in screen's                                  |
+| `hero`           | 700           | 44 / 54     | The headline of a panel with no other content, the wide sign-in screen's           |
 | `headline`       | 700           | 20 / 28     | Section and sheet titles, a page's heading                                        |
 | `bar-title`      | 600           | 17 / 22     | The top bar's title                                                               |
 | `button`         | 600           | 16 / 20     | Button labels                                                                     |
 | `title-lg`       | 600           | 16 / 22     | The dish on a large card                                                          |
+| `card-title`     | 600           | 18 / 25     | The heading of a card on the seller's screens, and of the open-store form         |
+| `note`           | 400           | 13 / 19     | A hint under a field, and what a photo box says under its call                    |
 | `title`          | 600           | 15 / 21     | Field labels, block titles, the place on the header                               |
 | `body`           | 400           | 16 / 24     | Running text and input values                                                     |
 | `body-sm-strong` | 600           | 14 / 21     | Names in lists, small actions                                                     |
@@ -423,7 +449,7 @@ One seller's dishes in the search, white, 20px radius, bitten corner. A seller w
 
 ### Deal card
 
-Deal Blue, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and two white coupons 72px high (Figma 105:2666): the discount in red (`price-lg` in `sale`), a dashed cut with a 10px notch in the deal card's blue at each edge, then the seller (`body-sm-strong`, one line). A sky sheet with rounded top corners rises behind its lower half to start the page.
+Deal Blue, 20px radius, at the bottom of the header without a filter: the title in lime, "Giảm đến" over the largest discount (`display`, lime), and two white coupons 72px high (Figma 105:2666): the discount in red (`price-lg` in `sale`), a dashed cut with a 10px notch in the deal card's blue at each edge, then the seller (`body-sm-strong`, one line). It sits on the header's blue; the header's foot (below) starts the page under it.
 
 ## Do's and Don'ts
 

@@ -31,7 +31,12 @@ const tabs: Tab[] = [
   { key: "home", icon: HouseIcon, href: "/", within: ["/search"] },
   { key: "orders", icon: ReceiptTextIcon },
   { key: "saved", icon: HeartIcon },
-  { key: "account", icon: UserRoundIcon, href: "/account" },
+  {
+    key: "account",
+    icon: UserRoundIcon,
+    href: "/account",
+    within: ["/account/settings", "/delete-account"],
+  },
 ];
 
 export function BottomNav() {

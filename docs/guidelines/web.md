@@ -23,7 +23,7 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 
 - The browser calls the Go server as `/api/...` on the web's own origin. In development `next.config.ts` forwards it to `SECONDBITE_API_ORIGIN` (`web/.env.development`) without the prefix; when deployed, the reverse proxy does. Server code calls `SECONDBITE_API_ORIGIN` directly.
 - Every call goes through the generated SDK. A failed call rejects with `ApiError` (`src/lib/api/client.ts`); code branches on `error.code` only where the screen does something different, such as showing the failure at a field. `error.requestId` is what a person reports.
-- The words for a failure are the Go server's, not the web's: the web and the Flutter app call the same API, and one place keeps a code's words in step for both (decided 18 October 2026; Mattermost and Karrot translate on the server too). Until the server answers in the request's language (SEC-28), a failure is shown in the general words of the error screen; the catalogs word no failure code.
+- The words for a failure are the Go server's, not the web's: the web and the Flutter app call the same API, and one place keeps a code's words in step for both (decided 18 October 2026; Mattermost and Karrot translate on the server too). The client sends the page's locale as `Accept-Language`, from the browser and from the server, and a screen shows `error.detail` (`failureOf` in `src/lib/api/client.ts`), followed by the reference for a failure it does not expect; its own sentence is for a request that got no answer. The catalogs word no failure code (SEC-28). The error boundary receives only Next's `digest`, so it keeps its own words.
 - The web session is an httpOnly cookie set by the Go server (SEC-27); a token never sits in browser storage. Access is decided by the backend, never by what a screen shows.
 
 ## Errors and logging
@@ -38,6 +38,15 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 - Every string a person reads is in both `messages/vi.json` and `messages/en.json`. `vi.json` is the reference for the types; `pnpm check:messages` fails on a key missing from one catalog or an empty message.
 - Times are in `Asia/Ho_Chi_Minh`, prices in đồng (`39.000đ`), windows on the 24-hour clock. A date is formatted by a named format of `src/i18n/formats.ts` (`format.dateTime(at, "time")`), never by options written on a page.
 - Links between pages use `Link` from `@/i18n/navigation`, which keeps the locale.
+
+## Search and answer engines
+
+- Every page's metadata comes from `pageMetadata` (`src/lib/seo.ts`): its title, which the layout's template ends in "· Second Bite", its description, its canonical address and the same page in the other language with `x-default` the Vietnamese one, and Open Graph. A page that is someone's own or passing (account, sign-in, errors) passes `index: false` and gets `noindex` instead.
+- Absolute addresses are built on `SECONDBITE_SITE_ORIGIN`, read at build time; until the production address exists it falls back to staging's.
+- Structured data is JSON-LD through `JsonLd` (`src/components/json-ld.tsx`), escaped as the Next.js guide shows. The layout describes the `Organization` and the `WebSite`; a page adds what it is, as the legal pages add a `WebPage` with its sections as parts an answer engine can cite.
+- A page with sections gives each a heading and an `id`, lists them in a contents `nav`, and marks dates with `<time datetime>`.
+- `src/app/sitemap.ts` lists the public pages in both languages with their alternates; `src/app/robots.ts` names it and keeps crawlers out until the production address is chosen.
+- Measure with Lighthouse, the engine of PageSpeed Insights, on the production build and on staging (docs/increments/completed/sec-52-legal-error-account-screens/verification.md shows how).
 
 ## Design tokens and styling
 

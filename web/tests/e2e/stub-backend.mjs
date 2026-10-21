@@ -3,12 +3,58 @@
 // GET /offers answers as api/openapi.yaml describes it, with real shops of Tasco Mall and dishes from their menus;
 // tonight's prices and windows are made up. Adapted from BeyondPilot's
 // web/tests/e2e/stub-backend.mjs.
+import { AsyncLocalStorage } from "node:async_hooks";
+import { readdirSync, readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const port = Number(process.env.STUB_BACKEND_PORT ?? 3190);
+
+/**
+ * The words of every failure in both languages, read from the Go server's own declarations (SEC-28:
+ * `NewFailure(…, platform.Words{VI, EN})` in each module's errors.go, the platform's own in problem.go), so
+ * the stub says what the server says and a sentence is written once.
+ */
+const failureWords = readFailureWords();
+
+function readFailureWords() {
+  const internal = fileURLToPath(new URL("../../../server/internal/", import.meta.url));
+  const words = new Map();
+  const quoted = String.raw`"((?:[^"\\]|\\.)*)"`;
+  const declared = new RegExp(
+    String.raw`NewFailure\("([A-Z0-9_]+)",[^{]*Words\{\s*VI:\s*${quoted},\s*EN:\s*${quoted}`,
+    "g",
+  );
+  for (const entry of readdirSync(internal, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    for (const file of ["errors.go", "caller.go"]) {
+      let source;
+      try {
+        source = readFileSync(join(internal, entry.name, file), "utf8");
+      } catch {
+        continue;
+      }
+      for (const [, code, vi, en] of source.matchAll(declared)) words.set(code, { vi, en });
+    }
+  }
+  const problem = readFileSync(join(internal, "platform", "problem.go"), "utf8");
+  const codes = new Map(
+    [...problem.matchAll(/(Code\w+)\s*=\s*"([A-Z_]+)"/g)].map(([, name, code]) => [name, code]),
+  );
+  const platform = new RegExp(String.raw`(Code\w+): \{\s*VI:\s*${quoted},\s*EN:\s*${quoted}`, "g");
+  for (const [, name, vi, en] of problem.matchAll(platform)) words.set(codes.get(name), { vi, en });
+  return words;
+}
+
+/** The language of the request being answered, as the server reads Accept-Language: English or Vietnamese. */
+const requestLanguage = new AsyncLocalStorage();
+
+function languageOf(header) {
+  const first = (header ?? "").split(",")[0].trim().toLowerCase();
+  return first.startsWith("en") ? "en" : "vi";
+}
 
 /** Today at hh:mm in Vietnam time, as RFC 3339 with its offset. */
 function tonight(hour, minute) {
@@ -335,11 +381,17 @@ const sessionCookie = "secondbite_session";
 const accounts = new Map();
 
 function problem(response, status, code) {
-  response.writeHead(status, { "content-type": "application/problem+json" });
+  const language = requestLanguage.getStore() ?? "vi";
+  response.writeHead(status, {
+    "content-type": "application/problem+json",
+    "content-language": language,
+    vary: "Accept-Language",
+  });
   response.end(
     JSON.stringify({
-      type: `urn:secondbite:failure:${code.toLowerCase()}`,
+      type: `urn:secondbite:failure:${code.toLowerCase().replaceAll("_", "-")}`,
       status,
+      detail: failureWords.get(code)?.[language],
       code,
       requestId: "STUB",
     }),
@@ -425,10 +477,415 @@ async function auth(request, response, url) {
     else problem(response, 401, "IDENTITY_SESSION_INVALID");
     return true;
   }
+  // The display name (SEC-61), as the server keeps it: trimmed, 1 to 50 characters.
+  if (request.method === "PUT" && url.pathname === "/accounts/me") {
+    const account = accounts.get(tokenOf(request));
+    if (!account) {
+      problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+      return true;
+    }
+    const name = String((await readBody(request)).displayName ?? "").trim();
+    if (name === "" || Array.from(name).length > 50) {
+      problem(response, 400, "IDENTITY_DISPLAY_NAME_INVALID");
+      return true;
+    }
+    account.displayName = name;
+    json(response, 200, account);
+    return true;
+  }
+  return deletion(request, response, url);
+}
+
+// Deleting an account (SEC-37): the deletion code goes to the signed-in account's address; 123456 is right and
+// any other is not, and a sign-in challenge cannot delete. A right code ends the session and clears the cookie.
+// An address starting with "owner." owns a seller besides those it opened (sellerRoutes), for the warning
+// before the deletion and for account settings.
+async function deletion(request, response, url) {
+  const token = tokenOf(request);
+  const account = accounts.get(token);
+  if (request.method === "POST" && url.pathname === "/accounts/me/deletion-codes") {
+    if (!account) problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    else {
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      json(response, 202, { challengeId: `del-${encodeURIComponent(account.email)}`, expiresAt });
+    }
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/accounts/me/deletion") {
+    const { challengeId, code } = await readBody(request);
+    if (!account) problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    else if (challengeId !== `del-${encodeURIComponent(account.email)}`) {
+      problem(response, 410, "IDENTITY_CHALLENGE_GONE");
+    } else if (code !== "123456") problem(response, 422, "IDENTITY_CODE_INCORRECT");
+    else {
+      accounts.delete(token);
+      response.writeHead(204, {
+        "set-cookie": `${sessionCookie}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
+      });
+      response.end();
+    }
+    return true;
+  }
   return false;
 }
 
-const server = createServer(async (request, response) => {
+// The seller's side (SEC-57), as api/openapi.yaml describes it: a person opens stores, at most five, each active
+// at once, and reads the ones they own. Kept per session, like the accounts above.
+const storesOf = new Map();
+/** Each store's posts, the newest first: the sample ones of a store named like Figma's, then what it posts. */
+const postsBy = new Map();
+
+function postsFor(seller) {
+  if (!postsBy.has(seller.id)) {
+    postsBy.set(
+      seller.id,
+      seller.name === "Tiệm bánh Pháp"
+        ? postsOf(seller)
+        : seller.name === "Tiệm có đơn"
+          ? postsWithOrders(seller)
+          : [],
+    );
+  }
+  return postsBy.get(seller.id);
+}
+
+/** A store's posts as GET /sellers/{id}/offers answers: one on sale, one sold out, one over, one withdrawn. */
+/** Each store's catalog, the newest dish first: a store named "Tiệm danh mục" starts with the three of Figma Q3b. */
+const dishesBy = new Map();
+
+function dishesFor(seller) {
+  if (!dishesBy.has(seller.id)) {
+    const dish = (n, name, kind, unit, hidden = false) => ({
+      id: `di-${n}-${seller.id}`,
+      sellerId: seller.id,
+      name,
+      kind,
+      unit,
+      description: "",
+      ingredients: "",
+      photo: {
+        id: `ph-${n}`,
+        largePath: `/photos/ph-${n}/1600.jpg`,
+        smallPath: `/photos/ph-${n}/400.jpg`,
+      },
+      hidden,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    dishesBy.set(
+      seller.id,
+      seller.name === "Tiệm danh mục"
+        ? [
+            {
+              ...dish(1, "Túi bánh mì và croissant, 4 chiếc", "bakery", "túi"),
+              originalPriceVnd: 95000,
+            },
+            dish(2, "Cơm sườn nướng, 1 suất", "prepared_food", "suất", true),
+            dish(3, "Xôi thập cẩm, 1 hộp", "prepared_food", "hộp"),
+          ]
+        : [],
+    );
+  }
+  return dishesBy.get(seller.id);
+}
+
+/** A store with one live post of which units are ordered, for the screens that lock the price and the hours. */
+function postsWithOrders(seller) {
+  return postsOf(seller)
+    .slice(0, 1)
+    .map((post) => ({ ...post, name: "Bánh mì que, 3 chiếc", units: 3, unitsLeft: 1 }));
+}
+
+function postsOf(seller) {
+  const post = (n, status, name, units, unitsLeft, from, until, extra = {}) => ({
+    id: `of-${n}-${seller.id}`,
+    sellerId: seller.id,
+    status,
+    name,
+    description: "",
+    kind: "bakery",
+    unit: "suất",
+    units,
+    unitsLeft,
+    priceVnd: 57000,
+    originalPriceVnd: 95000,
+    discountPercent: 40,
+    photo: {
+      id: `ph-${n}`,
+      largePath: `/photos/ph-${n}/1600.jpg`,
+      smallPath: `/photos/ph-${n}/400.jpg`,
+    },
+    windowStart: tonight(...from),
+    windowEnd: tonight(...until),
+    collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...extra,
+  });
+  return [
+    post(1, "on_sale", "Túi bánh mì và croissant, 4 chiếc", 3, 3, [20, 30], [21, 30]),
+    post(2, "sold_out", "Xôi thập cẩm, 1 hộp", 4, 0, [20, 0], [21, 0]),
+    post(3, "closed", "Bánh su kem, 6 cái", 3, 1, [18, 0], [19, 0]),
+    post(4, "withdrawn", "Cơm sườn nướng, 1 suất", 2, 2, [18, 0], [19, 0], {
+      withdrawnAt: new Date().toISOString(),
+    }),
+  ];
+}
+
+// The seller an address starting with "owner." owns (SEC-37).
+function ownerSeller() {
+  return {
+    id: "se-stub",
+    name: "Bánh mì Tasco",
+    address: "Tasco Mall, Việt Hưng",
+    latitude: 21.0565,
+    longitude: 105.8964,
+    phone: "0912 345 678",
+    status: "active",
+    myRole: "owner",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+async function sellerRoutes(request, response, url) {
+  const token = tokenOf(request);
+  const isSellerRoute =
+    url.pathname === "/sellers" ||
+    url.pathname === "/sellers/mine" ||
+    url.pathname === "/photos" ||
+    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes)?$/.test(url.pathname) ||
+    /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname) ||
+    /^\/dishes\/[\w-]+$/.test(url.pathname);
+  if (!isSellerRoute) return false;
+  if (!accounts.has(token)) {
+    problem(response, 401, "IDENTITY_SESSION_INVALID");
+    return true;
+  }
+  const mine = storesOf.get(token) ?? [];
+  if (request.method === "GET" && url.pathname === "/sellers/mine") {
+    const owned = accounts.get(token).email.startsWith("owner.") ? [ownerSeller()] : [];
+    json(response, 200, { sellers: [...owned, ...mine] });
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/sellers") {
+    const body = await readBody(request);
+    const digits = String(body.phone ?? "").replace(/\D/g, "");
+    if (!String(body.name ?? "").trim() || !String(body.address ?? "").trim()) {
+      problem(response, 422, "SELLER_DETAILS_INVALID");
+    } else if (digits.length < 9 || digits.length > 15) {
+      problem(response, 422, "SELLER_PHONE_INVALID");
+    } else if (mine.length >= 5) {
+      problem(response, 409, "SELLER_LIMIT_REACHED");
+    } else {
+      const now = new Date().toISOString();
+      const seller = {
+        id: `se-${mine.length + 1}-${token.slice(5)}`,
+        name: body.name.trim(),
+        address: body.address.trim(),
+        phone: digits,
+        latitude: body.latitude,
+        longitude: body.longitude,
+        status: "active",
+        myRole: "owner",
+        createdAt: now,
+        updatedAt: now,
+      };
+      storesOf.set(token, [...mine, seller]);
+      json(response, 201, seller);
+    }
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/photos") {
+    for await (const chunk of request) void chunk;
+    json(response, 201, {
+      id: "ph-upload",
+      width: 400,
+      height: 400,
+      largePath: "/photos/ph-upload/1600.jpg",
+      smallPath: "/photos/ph-upload/400.jpg",
+    });
+    return true;
+  }
+  const catalog = /^\/sellers\/([\w-]+)\/dishes$/.exec(url.pathname);
+  if (catalog) {
+    const seller = mine.find((candidate) => candidate.id === catalog[1]);
+    if (!seller) {
+      problem(response, 404, "SELLER_NOT_FOUND");
+    } else if (request.method === "GET") {
+      json(response, 200, { dishes: dishesFor(seller) });
+    } else if (request.method === "POST") {
+      const body = await readBody(request);
+      const dishes = dishesFor(seller);
+      if (!String(body.name ?? "").trim()) {
+        problem(response, 422, "OFFER_DETAILS_INVALID");
+      } else if (dishes.length >= 100) {
+        problem(response, 409, "OFFER_DISH_LIMIT_REACHED");
+      } else {
+        const now = new Date().toISOString();
+        const dish = {
+          id: `di-new-${dishes.length + 1}-${seller.id}`,
+          sellerId: seller.id,
+          name: body.name.trim(),
+          kind: body.kind,
+          unit: body.unit || "suất",
+          description: body.description ?? "",
+          ingredients: body.ingredients ?? "",
+          ...(body.originalPriceVnd ? { originalPriceVnd: body.originalPriceVnd } : {}),
+          photo: {
+            id: body.photoId,
+            largePath: `/photos/${body.photoId}/1600.jpg`,
+            smallPath: `/photos/${body.photoId}/400.jpg`,
+          },
+          hidden: Boolean(body.hidden),
+          createdAt: now,
+          updatedAt: now,
+        };
+        dishes.unshift(dish);
+        json(response, 201, dish);
+      }
+    }
+    return true;
+  }
+  const dishRoute = /^\/dishes\/([\w-]+)$/.exec(url.pathname);
+  if (dishRoute) {
+    const own = mine.find((store) => dishesFor(store).some((d) => d.id === dishRoute[1]));
+    if (!own) {
+      problem(response, 404, "OFFER_DISH_NOT_FOUND");
+      return true;
+    }
+    const dishes = dishesFor(own);
+    const dish = dishes.find((d) => d.id === dishRoute[1]);
+    if (request.method === "DELETE") {
+      dishes.splice(dishes.indexOf(dish), 1);
+      response.writeHead(204).end();
+    } else if (request.method === "PATCH") {
+      const { photoId, ...body } = await readBody(request);
+      Object.assign(dish, body, { updatedAt: new Date().toISOString() });
+      // 0 takes the original price away.
+      if (body.originalPriceVnd === 0) delete dish.originalPriceVnd;
+      if (photoId) {
+        dish.photo = {
+          id: photoId,
+          largePath: `/photos/${photoId}/1600.jpg`,
+          smallPath: `/photos/${photoId}/400.jpg`,
+        };
+      }
+      json(response, 200, dish);
+    }
+    return true;
+  }
+  const one = /^\/sellers\/([\w-]+)(\/offers)?$/.exec(url.pathname);
+  if (request.method === "GET" && one) {
+    const seller = mine.find((candidate) => candidate.id === one[1]);
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else if (one[2]) {
+      // A store named like the Figma sample has its posts; any other starts empty.
+      json(response, 200, { offers: postsFor(seller) });
+    } else json(response, 200, seller);
+    return true;
+  }
+  if (request.method === "POST" && one?.[2]) {
+    const seller = mine.find((candidate) => candidate.id === one[1]);
+    if (!seller) {
+      problem(response, 404, "SELLER_NOT_FOUND");
+      return true;
+    }
+    const body = await readBody(request);
+    if (body.priceVnd > Math.floor((body.originalPriceVnd * 80) / 100)) {
+      problem(response, 422, "OFFER_DISCOUNT_TOO_SMALL");
+    } else if (Date.parse(body.windowEnd) <= Date.now()) {
+      problem(response, 422, "OFFER_WINDOW_INVALID");
+    } else {
+      const posted = postsFor(seller);
+      const now = new Date().toISOString();
+      const offer = {
+        ...body,
+        id: `of-new-${posted.length + 1}-${seller.id}`,
+        sellerId: seller.id,
+        status: "on_sale",
+        description: body.description ?? "",
+        unit: body.unit || "suất",
+        unitsLeft: body.units,
+        discountPercent: Math.floor(
+          ((body.originalPriceVnd - body.priceVnd) * 100) / body.originalPriceVnd,
+        ),
+        photo: {
+          id: body.photoId,
+          largePath: `/photos/${body.photoId}/1600.jpg`,
+          smallPath: `/photos/${body.photoId}/400.jpg`,
+        },
+        collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
+        createdAt: now,
+        updatedAt: now,
+      };
+      posted.unshift(offer);
+      json(response, 201, offer);
+    }
+    return true;
+  }
+  const change = /^\/offers\/([\w-]+)(\/withdraw)?$/.exec(url.pathname);
+  if (change) {
+    const offer = mine.flatMap((store) => postsFor(store)).find((post) => post.id === change[1]);
+    if (!offer) {
+      problem(response, 404, "OFFER_NOT_FOUND");
+      return true;
+    }
+    const ordered = offer.units - offer.unitsLeft;
+    if (request.method === "POST" && change[2]) {
+      if (ordered > 0 || offer.status === "closed") {
+        problem(response, 409, "OFFER_CHANGE_NOT_ALLOWED");
+      } else {
+        offer.status = "withdrawn";
+        offer.withdrawnAt = new Date().toISOString();
+        json(response, 200, offer);
+      }
+      return true;
+    }
+    if (request.method === "PATCH") {
+      const body = await readBody(request);
+      const priceOrHours = ["priceVnd", "originalPriceVnd", "windowStart", "windowEnd"].some(
+        (key) => key in body,
+      );
+      if (ordered > 0 && priceOrHours) {
+        problem(response, 409, "OFFER_CHANGE_NOT_ALLOWED");
+      } else if (body.units !== undefined && body.units < ordered) {
+        problem(response, 422, "OFFER_DETAILS_INVALID");
+      } else if (
+        body.priceVnd !== undefined &&
+        body.priceVnd > Math.floor(((body.originalPriceVnd ?? offer.originalPriceVnd) * 80) / 100)
+      ) {
+        problem(response, 422, "OFFER_DISCOUNT_TOO_SMALL");
+      } else {
+        Object.assign(offer, body, { updatedAt: new Date().toISOString() });
+        if (body.units !== undefined) offer.unitsLeft = body.units - ordered;
+        if (offer.unitsLeft > 0 && offer.status === "sold_out") offer.status = "on_sale";
+        json(response, 200, offer);
+      }
+      return true;
+    }
+  }
+  if (request.method === "PUT") {
+    const id = url.pathname.split("/")[2];
+    const seller = mine.find((candidate) => candidate.id === id);
+    if (!seller) {
+      problem(response, 404, "SELLER_NOT_FOUND");
+    } else {
+      seller.photoId = (await readBody(request)).photoId;
+      json(response, 200, seller);
+    }
+    return true;
+  }
+  return false;
+}
+
+const server = createServer((request, response) =>
+  requestLanguage.run(languageOf(request.headers["accept-language"]), () =>
+    answer(request, response),
+  ),
+);
+
+async function answer(request, response) {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
     response.writeHead(204).end();
@@ -436,16 +893,7 @@ const server = createServer(async (request, response) => {
   }
   // A search for this word stands for a server that fails, for the error screen's test.
   if (url.pathname === "/offers" && url.searchParams.get("q") === "loi-may-chu") {
-    response.writeHead(500, { "content-type": "application/problem+json" });
-    response.end(
-      JSON.stringify({
-        type: "urn:secondbite:failure:platform-internal-failure",
-        title: "Internal Server Error",
-        status: 500,
-        code: "PLATFORM_INTERNAL_FAILURE",
-        requestId: "STUB",
-      }),
-    );
+    problem(response, 500, "PLATFORM_INTERNAL_FAILURE");
     return;
   }
   if (request.method === "GET" && url.pathname === "/offers") {
@@ -462,6 +910,7 @@ const server = createServer(async (request, response) => {
     return json(response, 200, offer);
   }
   if (await auth(request, response, url)) return;
+  if (await sellerRoutes(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {
     const { type, body } = await photo(photoMatch[1]);
@@ -469,16 +918,7 @@ const server = createServer(async (request, response) => {
     response.end(body);
     return;
   }
-  response.writeHead(404, { "content-type": "application/problem+json" });
-  response.end(
-    JSON.stringify({
-      type: "urn:secondbite:failure:platform-route-not-found",
-      title: "Not Found",
-      status: 404,
-      code: "PLATFORM_ROUTE_NOT_FOUND",
-      requestId: "STUB",
-    }),
-  );
-});
+  problem(response, 404, "PLATFORM_ROUTE_NOT_FOUND");
+}
 
 server.listen(port, () => console.log(`Stub backend on http://localhost:${port}`));

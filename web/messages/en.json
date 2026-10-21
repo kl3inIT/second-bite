@@ -1,7 +1,9 @@
 {
   "Metadata": {
     "title": "Second Bite",
-    "description": "A second chance for good food."
+    "description": "Good food left at the end of the day at Tasco Mall's counters, for less. Order ahead and collect it in its window. Non-profit, no commission.",
+    "organization": "A non-profit platform that helps food sellers sell good end-of-day surplus for less, taking no commission.",
+    "area": "Tasco Mall, Long Biên, Hanoi"
   },
   "Home": {
     "searchLabel": "Search dishes or sellers",
@@ -149,7 +151,7 @@
   },
   "Legal": {
     "draft": "Draft, waiting for review by the founder and a lawyer. It may change before Second Bite opens to everyone; the parts marked “to be added” will be filled in.",
-    "updated": "Last updated: 18 October 2026",
+    "updated": "Last updated: <time>{date}</time>",
     "contents": "Sections"
   },
   "Privacy": {
@@ -183,7 +185,8 @@
           "Sign-in codes: deleted once used, when a newer one is requested, or a day after they were sent at the latest.",
           "Sessions: end after 30 days without use; deleted when you sign out.",
           "Photos uploaded but never used for a dish or a shop: deleted after a day.",
-          "Accounts, shops, posted dishes and orders: kept until you ask us to delete them, except what the law requires us to keep longer."
+          "Accounts, shops, posted dishes and orders: kept until you delete your account or ask us to delete them, except what the law requires us to keep longer.",
+          "When you delete your account: the account, its sessions, its Google link, sign-in codes and the record of the emails we sent you are deleted at once; your place in shops and the photos you never used go within minutes. Posted dishes, their photos and shop photos belong to the shop and stay, no longer linked to you; a shop you own is closed."
         ]
       },
       {
@@ -199,6 +202,7 @@
         "title": "5. Your rights",
         "paragraphs": [
           "You may know about, see, correct and ask us to delete your data; withdraw your consent; ask us to restrict processing; and complain, under the Personal Data Protection Law 2025.",
+          "You can delete your account yourself in the app (Account → Account settings → Delete account) or on the web at /delete-account, after typing the code we email to the account's address.",
           "You can change your display name yourself. For anything else, write to the contact in section 1; we answer within the time the law sets, and if we cannot delete something for a legitimate reason, we tell you why."
         ]
       },
@@ -229,7 +233,8 @@
           "When the policy changes, we update the date at the top and tell you before a change that affects your rights takes effect."
         ]
       }
-    ]
+    ],
+    "description": "What personal data Second Bite collects, why, for how long, who sees it and your rights, under Vietnam's 2025 Personal Data Protection Law."
   },
   "Terms": {
     "title": "Terms of use",
@@ -295,19 +300,23 @@
           "Contact: to be added."
         ]
       }
-    ]
+    ],
+    "description": "Second Bite's terms of use: accounts, what sellers and customers agree to, prices, payment, cancellation and the limits of liability."
   },
   "SignIn": {
     "title": "Sign in",
-    "heading": "Sign in to order",
+    "heading": "Sign in",
+    "heroLine1": "LOG IN",
+    "heroLine2": "TO SECOND BITE",
     "or": "or use your email",
+    "google": "Continue with Google",
     "emailLabel": "Email",
     "emailPlaceholder": "name@gmail.com",
     "sendCode": "Send code",
     "sendCodeHere": "Send a code to this address",
     "sending": "Sending the code…",
-    "legal": "By continuing, you agree to the <terms>Terms of use</terms> and the <privacy>Privacy policy</privacy>.",
-    "codeHeading": "Check your email",
+    "legal": "By continuing, you agree to the <terms>Terms of use</terms><br></br>and the <privacy>Privacy policy</privacy>.",
+    "codeHeading": "Enter the code",
     "codeSent": "We sent a 6-digit sign-in code to <strong>{email}</strong>.",
     "changeEmail": "Change email",
     "codeLabel": "The 6-digit sign-in code",
@@ -318,24 +327,21 @@
     "googleNeedsCodeTitle": "This address already has an account",
     "googleNeedsCodeBody": "{email} already has a Second Bite account. Get a code at this address to sign in.",
     "googleNeedsCodeBodyNoAddress": "This Google account's address already has a Second Bite account. Get a code by email to sign in.",
-    "emailInvalid": "Enter one email address, such as name@gmail.com.",
-    "codeLimit": "Too many codes were asked for this address. Wait a while, then try again.",
-    "codeIncorrect": "The code is not right. Check the latest email and enter it again.",
-    "codeGone": "This code has expired or was already used. Send a new code.",
-    "googleUnverified": "Google has not confirmed this address. Sign in with a code sent by email.",
     "failed": "You could not be signed in. Please try again.",
-    "failedWithReference": "You could not be signed in. Please try again. Reference: {reference}",
-    "notArrived": "No email yet? Check your spam folder."
+    "notArrived": "No email yet? Check your spam folder.",
+    "reference": "Reference: {reference}"
   },
   "Account": {
     "signIn": "Sign in",
+    "openStore": "Open a store",
     "menu": "Account {email}",
     "signedInAs": "Signed in as {email}",
     "signOut": "Sign out",
     "title": "Account",
     "guestTitle": "You are not signed in",
     "guestBody": "Sign in to order and follow your orders.",
-    "signedIn": "Signed in"
+    "signedIn": "Signed in",
+    "settings": "Account settings"
   },
   "TopBar": {
     "back": "Back",
@@ -419,5 +425,275 @@
     "totalSummary": "{units} portions in all · save {saved}",
     "order": "Place order",
     "orderSoon": "Ordering on the web is coming soon. Your cart stays on this device."
+  },
+  "AccountSettings": {
+    "title": "Account settings",
+    "details": "Account details",
+    "email": "Email",
+    "displayName": "Display name",
+    "noDisplayName": "Not set",
+    "sellers": "Your shops",
+    "owner": "Owner",
+    "staff": "Staff",
+    "language": "Language",
+    "languageName": "English",
+    "switchLanguage": "Switch to Tiếng Việt",
+    "deleteTitle": "Delete your account",
+    "deleteBody": "Permanently delete your account and your personal data. This cannot be undone; a shop you own will be closed.",
+    "deleteAction": "Delete account",
+    "edit": "Edit",
+    "editName": "Edit the display name",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "nameFailed": "The name was not saved. Try again in a few minutes."
+  },
+  "DeleteAccount": {
+    "title": "Delete your account",
+    "description": "How to delete your Second Bite account: confirm with an emailed code; what is deleted at once, what goes a few minutes later and what is kept.",
+    "intro": "You can delete your Second Bite account at any time, in the app or on this page. Deleting it is permanent and cannot be undone.",
+    "deletedTitle": "Deleted as soon as you confirm",
+    "deleted": [
+      "Your account: your email address and display name.",
+      "Every session on every device, and the link to your Google account.",
+      "Sign-in codes and the record of the emails we sent you."
+    ],
+    "laterTitle": "Deleted within a few minutes",
+    "later": [
+      "Your place as a seller's owner or staff.",
+      "Photos you uploaded that no dish or seller uses."
+    ],
+    "keptTitle": "Kept, no longer linked to you",
+    "kept": [
+      "Dishes posted, their photos and sellers' photos: they belong to the seller.",
+      "Orders and payments the law requires us to keep, once ordering opens; how long is to be added."
+    ],
+    "ownerTitle": "You own a seller",
+    "ownerBody": "Deleting your account closes {sellers}: it stops showing to customers and its staff can no longer manage it, until Second Bite steps in.",
+    "signedOutTitle": "Sign in to delete your account",
+    "signedOutBody": "To be sure the account is yours, you sign in, then type the code we email to the account's address.",
+    "signIn": "Sign in",
+    "confirmBody": "We will email a six-digit code to <strong>{email}</strong> to confirm that you want to delete your account.",
+    "sendCode": "Send the code",
+    "sending": "Sending the code…",
+    "codeHeading": "Enter the code",
+    "codeSent": "A six-digit code was sent to <strong>{email}</strong>. It only deletes the account.",
+    "codeLabel": "Six-digit confirmation code",
+    "confirm": "Delete my account for good",
+    "deleting": "Deleting…",
+    "cancel": "Keep my account",
+    "failed": "Your account could not be deleted. Please try again.",
+    "doneTitle": "Your account is deleted",
+    "doneBody": "Your account and your personal data are deleted. You can still sign in with this address at any time, as a new account.",
+    "home": "Back to home",
+    "reference": "Reference: {reference}"
+  },
+  "OpenStore": {
+    "title": "Open a store",
+    "heading": "Open your store",
+    "intro": "Just a few details. You can change them later.",
+    "name": "Store name",
+    "namePlaceholder": "For example: Tiệm bánh Pháp",
+    "phone": "Phone number",
+    "phonePlaceholder": "09xx xxx xxx",
+    "address": "Store address",
+    "addressPlaceholder": "Number, street, ward, district",
+    "photo": "Store photo",
+    "choosePhoto": "Choose a photo",
+    "photoHint": "A photo helps customers recognise your store.",
+    "submit": "Create store",
+    "failed": "The store was not created. Try again in a few minutes.",
+    "reference": "Reference: {id}"
+  },
+  "Stores": {
+    "title": "My stores",
+    "noneTitle": "You have no store yet",
+    "noneBody": "Open a store to post what is left at the end of the day.",
+    "create": "Open a new store",
+    "owner": "Owner",
+    "staff": "Staff"
+  },
+  "StoreNav": {
+    "label": "Store",
+    "home": "Home",
+    "posts": "Posts",
+    "catalog": "Catalog",
+    "orders": "Orders"
+  },
+  "StoreHome": {
+    "title": "Store home",
+    "startTitle": "Start selling",
+    "startBody": "Post your first dish so customers see your store.",
+    "post": "Post a dish",
+    "todayTitle": "Today's posts",
+    "todayEmpty": "No posts today yet."
+  },
+  "StorePosts": {
+    "title": "Posts",
+    "post": "Post a dish",
+    "today": "Today and coming up",
+    "tabs": "Groups of posts",
+    "tab": {
+      "on_sale": "On sale · {count}",
+      "sold_out": "Sold out · {count}",
+      "closed": "Closed · {count}"
+    },
+    "emptyAll": "No posts yet. Press Post a dish to add one.",
+    "empty": {
+      "on_sale": "Nothing on sale.",
+      "sold_out": "Nothing has sold out.",
+      "closed": "Nothing has closed."
+    },
+    "edit": "Edit",
+    "postAgain": "Post again",
+    "posted": "Posted {count, plural, one {# unit} other {# units}}. Customers can order now.",
+    "saved": "Saved.",
+    "withdrawn": "Withdrawn. It is in Closed, and can be posted again."
+  },
+  "PostRow": {
+    "onSale": "Pick-up {from}–{until} · {left}/{units} {unit} left · {price}",
+    "soldOut": "Pick-up {from}–{until} · Sold out {units}/{units} {unit} · {price}",
+    "closed": "Pick-up over · sold {sold}/{units} {unit} · {price}",
+    "withdrawn": "Withdrawn · {price}"
+  },
+  "StoreSoon": {
+    "soon": "Coming soon",
+    "orders": {
+      "title": "Orders",
+      "body": "Customers' orders will show here once ordering is ready."
+    }
+  },
+  "PostDrawer": {
+    "title": "Post a dish",
+    "step": "Step {step} / 3",
+    "againTitle": "Post again",
+    "againFrom": "From a closed post",
+    "kindQuestion": "How are you posting this dish?",
+    "todayTitle": "Surplus today",
+    "todayBody": "The food is ready. Customers order at once and collect in the hours you choose.",
+    "expectedTitle": "Announce expected surplus",
+    "expectedBody": "Not sure there will be any. Customers follow, and you confirm the units later.",
+    "soon": "Coming soon",
+    "sourceEarlier": "Earlier dishes",
+    "sourceOneOff": "One-off dish",
+    "chooseDish": "Choose a dish to post",
+    "noDishes": "No earlier dishes. Use One-off dish to post the first.",
+    "choose": "Choose",
+    "chosen": "Chosen",
+    "photo": "Dish photo",
+    "choosePhoto": "Choose a photo",
+    "photoHint": "A photo helps customers recognise your dish.",
+    "name": "Dish name",
+    "namePlaceholder": "For example: Bread and croissant bag, 4 pieces",
+    "kind": "Kind",
+    "description": "What the box holds",
+    "descriptionPlaceholder": "For example: bread and pastries, may contain egg and milk",
+    "sellQuestion": "How does it sell?",
+    "againQuestion": "How does it sell again?",
+    "units": "Units",
+    "original": "Original price (VND)",
+    "price": "Price (VND)",
+    "discount": "{percent}% off the original price. The minimum discount is {min}%.",
+    "discountHint": "The minimum discount off the original price is {min}%.",
+    "priceTooHigh": "The price must be at least {min}% below the original price, so at most {max}.",
+    "priceMissing": "Enter the original price and the price, each from 1.000đ.",
+    "startQuestion": "From what time?",
+    "usual": "Usual {time}",
+    "now": "Right now",
+    "otherTime": "Other time",
+    "hour": "Hour",
+    "minute": "Minute",
+    "lengthQuestion": "How long can customers collect?",
+    "length": {
+      "30": "30 minutes",
+      "60": "1 hour",
+      "90": "1.5 hours",
+      "120": "2 hours"
+    },
+    "otherLength": "Other",
+    "minutes": "{minutes} minutes",
+    "window": "Customers collect from {from} to {until} today",
+    "windowOver": "That time has passed. Choose a time from now on.",
+    "failed": "Could not post. Try again in a few minutes.",
+    "reference": "Reference: {id}",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "post": "Post",
+    "editTitle": "Edit post",
+    "editStatus": {
+      "on_sale": "On sale",
+      "sold_out": "Sold out"
+    },
+    "editOrdered": "{count, plural, one {# unit} other {# units}} ordered",
+    "editQuestion": "What to change?",
+    "editFree": "Nobody has ordered, so you can change the units, the price and the hours.",
+    "editLocked": "{count, plural, one {# unit is} other {# units are}} ordered, so the price and the hours stay. You can change the units, not below {count}.",
+    "unitsBelowOrdered": "The units cannot go below {count}, which are ordered.",
+    "withdraw": "Withdraw",
+    "save": "Save changes",
+    "sourceCatalog": "From the catalog",
+    "noCatalog": "No dish of the catalog is shown. Add one in the Catalog tab."
+  },
+  "WithdrawDrawer": {
+    "title": "Withdraw",
+    "question": "Withdraw this post?",
+    "explain": "Only possible while nothing is ordered. A withdrawn post leaves customers' pages at once and stays in Closed.",
+    "keptNote": "A withdrawn post stays in Closed, and can be posted again.",
+    "blocked": "{count, plural, one {# unit is} other {# units are}} ordered, so this cannot be withdrawn. Cancel each order in Orders first.",
+    "blockedNote": "{count, plural, one {# unit is} other {# units are}} waiting to be collected.",
+    "keep": "Keep",
+    "close": "Close",
+    "withdraw": "Withdraw",
+    "toOrders": "Go to Orders",
+    "failed": "Could not withdraw. Try again in a few minutes.",
+    "reference": "Reference: {id}"
+  },
+  "StoreCatalog": {
+    "title": "Catalog",
+    "add": "Add a dish",
+    "count": "{count, plural, one {# dish} other {# dishes}}",
+    "emptyTitle": "Dishes in the catalog",
+    "empty": "No dishes yet. Add what your store usually sells, to post faster.",
+    "edit": "Edit",
+    "postNow": "Post now",
+    "show": "Show again",
+    "hidden": "Hidden",
+    "notice": {
+      "saved": "Dish saved.",
+      "deleted": "Dish deleted from the catalog.",
+      "shown": "The dish is shown again."
+    }
+  },
+  "DishForm": {
+    "addTitle": "Add a dish",
+    "editTitle": "Edit dish",
+    "photo": "Dish photo",
+    "choosePhoto": "Choose a photo",
+    "photoHint": "A photo helps customers recognise your dish.",
+    "photoMissing": "Choose a photo for the dish.",
+    "name": "Dish name",
+    "namePlaceholder": "For example: Bread and croissant bag, 4 pieces",
+    "nameMissing": "Enter the dish's name.",
+    "kind": "Kind",
+    "unit": "Unit",
+    "description": "Description (optional)",
+    "descriptionRequired": "Description",
+    "descriptionPlaceholder": "For example: changes by the day. About 1 kg a bag.",
+    "descriptionMissing": "A mixed box must say what it holds: enter a description or the ingredients.",
+    "ingredients": "Ingredients and allergens (optional)",
+    "ingredientsPlaceholder": "For example: flour, eggs, milk. May contain gluten, nuts.",
+    "cancel": "Cancel",
+    "save": "Save dish",
+    "saveChanges": "Save changes",
+    "delete": "Delete dish",
+    "deleteTitle": "Delete this dish?",
+    "deleteBody": "The dish is deleted from the catalog. Posts already made are not affected.",
+    "keep": "Keep",
+    "failed": "Could not save the dish. Try again in a few minutes.",
+    "reference": "Reference: {id}",
+    "original": "Original price (VND, optional)",
+    "originalPlaceholder": "For example: 95.000",
+    "originalInvalid": "An original price from 1.001đ, or leave it empty."
   }
 }

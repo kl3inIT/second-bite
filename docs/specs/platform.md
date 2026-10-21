@@ -20,6 +20,8 @@
 
 Every error is an RFC 9457 problem (`application/problem+json`) with `type` (`urn:secondbite:failure:<code in kebab case>`), `title`, `status`, `detail`, `code` and `requestId`, as the [API errors convention](../conventions.md#api-errors) asks.
 
+`detail` is written for people in the request's language (SEC-28). `Accept-Language` is matched against Vietnamese and English, quality values honoured, and Vietnamese answers when it asks for neither. Every problem carries `Content-Language` and `Vary: Accept-Language`. Each failure declares its words in both languages beside its code (`platform.Words`); a failure missing one stops its package from loading. Violations keep huma's English and are translated into Vietnamese by recognising huma's sentence, with "Giá trị không hợp lệ." when none is recognised. `title` stays the category's English.
+
 | Category | Status | Notes |
 | --- | --- | --- |
 | `VALIDATION` | 400 | Violations in `errors[]`, each naming a body member by JSON Pointer (`pointer`) or a parameter by location (`parameter`, such as `query.limit`), with code `PLATFORM_VALUE_INVALID`; the rejected value is never echoed |
@@ -50,3 +52,12 @@ Failures the platform answers itself:
 - The contract declares both schemes, `bearer` and `cookie`; an operation that needs a caller lists either (`platform.SignedIn`), one open to anyone lists none as well (`platform.MaybeSignedIn`).
 - A module reads the caller through `platform.CallerFrom`, `RequireCaller` and `RequireAdmin`, so it authorizes without depending on `identity`.
 - Roles are `customer` and `admin`.
+
+## Events between modules
+
+Introduced with SEC-37 ([design](../increments/completed/sec-37-account-deletion/design.md#the-outbox)).
+
+- River (v0.49) on the service's PostgreSQL carries events as a transactional outbox. Its tables are River's own, created by its migrations after goose at start-up while a session lock lets one instance migrate at a time.
+- `Publish` writes an event inside the publisher's transaction, one job per listener; a rolled-back change publishes nothing. `Listen` registers a listener under a stable name before the service runs.
+- Every event travels as one job kind, `platform.event`, with its key (`identity.account_deleted`) and its listener's name inside, since River binds one worker to a kind.
+- `serve` runs the listeners, at most ten at once and each within a minute, retried with River's backoff; a job whose listener no longer exists is cancelled; they stop after the HTTP server, with ten seconds to finish. The command-line commands only write events.

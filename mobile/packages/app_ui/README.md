@@ -8,12 +8,12 @@ Second Bite's design system for Flutter, built from the tokens in [DESIGN.md](..
 - `AppTheme.light`, the app's one theme. Material's `ColorScheme` and `TextTheme` take the roles they have a slot for, and the component themes follow DESIGN.md's components. There is no dark theme until DESIGN.md defines one.
 - Theme extensions, read from the context:
   - `context.appColors`: the colour roles Material has no slot for (`fresh`, `link`, `header`, the `*-hover` colours…).
-  - `context.appTextStyles`: the thirteen type roles under the web's names (`bodySm`, `price`…).
+  - `context.appTextStyles`: the eighteen type roles under the web's names (`bodySm`, `price`…).
   - `context.appSpacing`: the spacing steps (`space4` is the web's `p-4`).
 - Be Vietnam Pro and Bricolage Grotesque, with the Vietnamese marks, under the SIL Open Font License. `registerFontLicenses()` adds their licences to the app's licence page.
 - `RadiusTokens` and `SpacingTokens` from the barrel, for sizes a screen needs as constants.
-- The shared widgets, each taking its words as parameters: `AppButton`, DESIGN.md's button; `AppOfferCard` and `AppOfferTile`, the offer cards, with `AppSticker`, `AppDiscountChip`, `AppPrice`, `AppSellerAvatar` and `AppBiteCorner`; `AppHomeHeader`, the blue header under the light sweep; `AppSectionHeader`; and `AppWordmark`, the logo from `assets/brand/wordmark.svg`.
-- The bottom bar's look, in the theme's `navigationBarTheme`.
+- The shared widgets, each taking its words as parameters: `AppButton`, DESIGN.md's button; `AppOfferCard` and `AppOfferTile`, the offer cards, with `AppSticker`, `AppDiscountChip`, `AppPrice`, `AppSellerAvatar` and `AppBiteCorner`; `AppHomeHeader`, the blue header under the light sweep, with the page's sheet rising over its foot; `AppHeaderCapsule`, the white capsules on it; `AppSectionHeader`; and `AppWordmark`, the logo from `assets/brand/wordmark.svg`.
+- The bottom bar: `AppBottomBar`, the floating glass it sits on, and the tabs' look in the theme's `navigationBarTheme`.
 
 ## Usage
 

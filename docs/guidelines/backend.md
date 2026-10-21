@@ -49,7 +49,7 @@ A module is a package directly under `internal/`, named after its business conce
 [Events between modules](../conventions.md#events-between-modules) in Go:
 
 - An event is a struct in the publishing module's root package, part of its published API: `type PublishedEvent struct { OfferID uuid.UUID }` in package `offer`, read as `offer.PublishedEvent`. Repeating the package in the name (`offer.OfferPublishedEvent`) is the stutter Go's naming guidance warns against.
-- Its key (`offer.published`) is the River job kind that carries it, so a listener is a River worker. It is inserted with `InsertTx` in the transaction that made the change.
+- Its key (`offer.published`) is returned by its `EventKey` method. `platform.Publish` inserts it with River's `InsertTx` in the transaction that made the change, one job per listener. Every event travels as the one job kind `platform.event`, since River binds one worker to a kind and an event can have several listeners. A listener is registered with `platform.Listen` under a stable name in its module's `RegisterListeners`, which `cmd/secondbite` calls (SEC-37).
 - A listener that needs the event in its own terms translates it at its edge, as the anti-corruption layer of the vendored `golang-design-patterns` skill (`references/ddd.md`) shows.
 - Where that skill differs, this repository wins:
   - it publishes after saving, through an `EventPublisher` called once the repository has saved; here the event is written in the same transaction, so a crash between the two can neither lose it nor publish a change that was rolled back;

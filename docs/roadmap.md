@@ -6,6 +6,10 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 
 - SEC-5 — Repository foundation, 16 October 2026: brief, vision, conventions, guidelines, the research done before design, the Go agent skills and the Linear MCP server.
 - [SEC-10 — Backend foundation and the `seller` module](increments/completed/sec-10-backend-foundation/design.md), 17 October 2026: the Go service with its checks in CI, sign-in by emailed code with bearer sessions, email through the provider admins choose (SMTP or Brevo), and `seller` (opened by anyone, activated by admins, staffed by its owner). Specs and test matrices under `docs/specs/` and `docs/tests/`; Brevo's delivery reports moved to SEC-24.
+- [SEC-52 — Legal, error and account screens](increments/completed/sec-52-legal-error-account-screens/design.md), 20 October 2026: redrawn in Figma as web desktop and mobile app; on the web under the seller header and findable by search and answer engines (metadata, language alternates, JSON-LD, sitemap); in the app the legal pages open inside it and every screen but the home has the blue top bar (PR #30). Staging to be measured again with PageSpeed once deployed.
+- [SEC-37 — Account deletion and account settings](increments/completed/sec-37-account-deletion/design.md), 20 October 2026: a person deletes their account in the app or on the web with an emailed code, from the foot of account settings, which the account menu and the account tab lead to; `/delete-account` is also Google Play's web link. The first events between modules, through a River outbox (PR #33).
+- [SEC-28 — Failure messages translated by the server](increments/completed/sec-28-failure-words/design.md), 20 October 2026: every failure in Vietnamese and English beside its code, chosen from `Accept-Language`; the web and the app show the server's words; proven against the real service (PR #38).
+- [SEC-61 — Edit the display name](increments/completed/sec-61-display-name/design.md), 20 October 2026: a person names their account from account settings, on the web and in the app; a name they chose stays when they sign in with Google; a refused name reads in the server's words; proven against the real service (PR #39).
 
 ## Active
 
@@ -15,6 +19,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 - [SEC-29 — Signing in on the web](increments/active/sec-29-web-sign-in/design.md), with SEC-27: the session in an httpOnly cookie, the sign-in page with the emailed code and Google, linking by Google's authoritative addresses. Proposed on 18 October 2026.
 - [SEC-43 — Signing in on the app](increments/active/sec-43-app-sign-in/design.md): the Flutter application's sign-in with the emailed code and Google, the session as a Bearer token in the platform's secure store, and the web's Lucide icons. Built on 19 October 2026; checked on a device before the beta.
 - [SEC-53 — The seller's web screens in Figma](increments/active/sec-53-seller-web-design/design.md): sign-in and opening a store, the four tabs, posting, expected surplus, managing and editing posts, the catalog; designed on 20 October 2026, no code. The rules go to SEC-54 and SEC-55.
+- [SEC-57 — The seller's web screens](increments/active/sec-57-seller-web/design.md): open a store, my stores, the store's tabs, posting, editing and withdrawing, for what the backend does today; expected surplus, the catalog and orders wait for their issues.
 
 ## Candidates
 

@@ -7,57 +7,49 @@ import { useEffect, useState, useTransition } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Spinner } from "@/components/ui/spinner";
 import { Link, useRouter } from "@/i18n/navigation";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, failureOf } from "@/lib/api/client";
 import { requestSignInCode, signIn, signInWithGoogle } from "@/lib/api/generated";
 
 import { emailInToken, GoogleButton } from "./google-button";
 
-const CODE_LENGTH = 6;
+export const CODE_LENGTH = 6;
 /** How long "Gửi lại mã" waits after a code is sent: the server refuses a new code for a minute
  * (server/internal/identity, codeCooldown), so the button never offers what would be refused. */
-const RESEND_AFTER_SECONDS = 60;
+export const RESEND_AFTER_SECONDS = 60;
 
 /**
  * What the screen shows after a failure. The server's code decides it only where the screen does something
  * different (web guideline › Data and the backend): a field turns red, a new code is offered, or Google gives
- * way to the emailed code. Everything else is "failed", with the request's reference.
+ * way to the emailed code. Everything else is "failed", with the request's reference. The words are the
+ * server's (SEC-28).
  */
-type Problem =
-  | { kind: "emailInvalid" }
-  | { kind: "codeLimit" }
-  | { kind: "codeIncorrect" }
-  | { kind: "codeGone" }
-  | { kind: "googleUnverified" }
-  | { kind: "failed"; reference?: string };
+type Problem = {
+  kind: "emailInvalid" | "codeLimit" | "codeIncorrect" | "codeGone" | "googleUnverified" | "failed";
+  detail?: string;
+  reference?: string;
+};
 
 function problemOf(error: unknown): Problem {
-  const code = error instanceof ApiError ? error.code : undefined;
-  switch (code) {
+  const failure = failureOf(error);
+  switch (error instanceof ApiError ? error.code : undefined) {
     case "IDENTITY_EMAIL_INVALID":
-      return { kind: "emailInvalid" };
+      return { kind: "emailInvalid", ...failure };
     case "IDENTITY_CODE_LIMIT_EXCEEDED":
-      return { kind: "codeLimit" };
+      return { kind: "codeLimit", ...failure };
     case "IDENTITY_CODE_INCORRECT":
-      return { kind: "codeIncorrect" };
+      return { kind: "codeIncorrect", ...failure };
     case "IDENTITY_CHALLENGE_GONE":
     case "IDENTITY_CODE_ATTEMPTS_EXHAUSTED":
-      return { kind: "codeGone" };
+      return { kind: "codeGone", ...failure };
     case "IDENTITY_EMAIL_NOT_VERIFIED":
-      return { kind: "googleUnverified" };
+      return { kind: "googleUnverified", ...failure };
     default:
-      return { kind: "failed", reference: error instanceof ApiError ? error.requestId : undefined };
+      return { kind: "failed", ...failure };
   }
 }
 
@@ -155,7 +147,7 @@ export function SignInForm({
       >
         <FieldGroup>
           <header className="flex flex-col gap-1">
-            <h1 className="text-headline text-foreground">{t("codeHeading")}</h1>
+            <h1 className="text-page-title text-foreground">{t("codeHeading")}</h1>
             <p className="text-body-sm text-muted-foreground">
               {t.rich("codeSent", {
                 email,
@@ -236,7 +228,7 @@ export function SignInForm({
       }}
     >
       <FieldGroup>
-        <h1 className="text-headline text-foreground">{t("heading")}</h1>
+        <h1 className="text-page-title text-foreground">{t("heading")}</h1>
         {step.googleNeedsCode !== undefined && (
           <Alert variant="warning">
             <MailWarningIcon aria-hidden />
@@ -251,7 +243,11 @@ export function SignInForm({
         {googleClientId && step.googleNeedsCode === undefined && (
           <>
             <GoogleButton clientId={googleClientId} onCredential={continueWithGoogle} />
-            <FieldSeparator>{t("or")}</FieldSeparator>
+            <div className="flex items-center gap-3 text-label text-muted-foreground">
+              <span aria-hidden className="h-px flex-1 bg-border" />
+              {t("or")}
+              <span aria-hidden className="h-px flex-1 bg-border" />
+            </div>
           </>
         )}
         <Field data-invalid={emailInvalid || undefined}>
@@ -265,6 +261,7 @@ export function SignInForm({
             autoCapitalize="none"
             spellCheck={false}
             required
+            variant="pill"
             placeholder={t("emailPlaceholder")}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -290,8 +287,17 @@ export function SignInForm({
         </Button>
         <FieldDescription className="text-center">
           {t.rich("legal", {
-            terms: (chunks) => <Link href="/terms">{chunks}</Link>,
-            privacy: (chunks) => <Link href="/privacy">{chunks}</Link>,
+            terms: (chunks) => (
+              <Link href="/terms" className="text-link">
+                {chunks}
+              </Link>
+            ),
+            privacy: (chunks) => (
+              <Link href="/privacy" className="text-link">
+                {chunks}
+              </Link>
+            ),
+            br: () => <br />,
           })}
         </FieldDescription>
       </FieldGroup>
@@ -299,17 +305,16 @@ export function SignInForm({
   );
 }
 
+/** The server's sentence, with the reference of a failure the screen does not expect; its own without an answer. */
 function problemText(t: ReturnType<typeof useTranslations<"SignIn">>, problem: Problem): string {
-  if (problem.kind === "failed") {
-    return problem.reference
-      ? t("failedWithReference", { reference: problem.reference })
-      : t("failed");
-  }
-  return t(problem.kind);
+  if (!problem.detail) return t("failed");
+  return problem.kind === "failed" && problem.reference
+    ? `${problem.detail} ${t("reference", { reference: problem.reference })}`
+    : problem.detail;
 }
 
 /** "Gửi lại mã sau 0:28", then the button itself once the wait is over. */
-function ResendCode({
+export function ResendCode({
   resendAt,
   disabled,
   onResend,

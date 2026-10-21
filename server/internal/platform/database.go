@@ -46,9 +46,9 @@ func OpenDatabase(ctx context.Context, cfg DatabaseConfig) (*pgxpool.Pool, error
 	return pool, nil
 }
 
-// Migrate applies the pending migrations of fsys. A PostgreSQL session lock
-// lets only one instance migrate at a time, so several instances can start
-// together.
+// Migrate applies the pending migrations of fsys, then the outbox's
+// (MigrateEvents). A PostgreSQL session lock lets only one instance migrate at
+// a time, so several instances can start together.
 func Migrate(ctx context.Context, pool *pgxpool.Pool, fsys fs.FS, logger *slog.Logger) (err error) {
 	db := stdlib.OpenDBFromPool(pool)
 	defer func() { err = errors.Join(err, db.Close()) }()
@@ -82,5 +82,6 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool, fsys fs.FS, logger *slog.L
 		slog.Int64("duration_ms", time.Since(start).Milliseconds()),
 	)
 
-	return nil
+	// The outbox's tables are River's own, migrated after the modules' (SEC-37).
+	return MigrateEvents(ctx, pool, logger)
 }

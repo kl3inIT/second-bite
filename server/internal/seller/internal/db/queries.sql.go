@@ -53,6 +53,22 @@ func (q *Queries) ActiveSellers(ctx context.Context, ids []uuid.UUID) ([]ActiveS
 	return items, nil
 }
 
+const blockOwnerless = `-- name: BlockOwnerless :execrows
+UPDATE seller_sellers
+SET status = 'blocked', status_changed_at = now(), status_changed_by = NULL, updated_at = now()
+WHERE id = ANY ($1::uuid[]) AND status <> 'blocked'
+`
+
+// A seller whose owner's account was deleted stops showing until admins decide;
+// no one set the status, so it names no one.
+func (q *Queries) BlockOwnerless(ctx context.Context, ids []uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, blockOwnerless, ids)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const blockedSellers = `-- name: BlockedSellers :many
 SELECT id FROM seller_sellers WHERE status = 'blocked'
 `
@@ -97,6 +113,19 @@ func (q *Queries) CountOwnedSellers(ctx context.Context, accountID uuid.UUID) (i
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const deleteMembershipsOf = `-- name: DeleteMembershipsOf :execrows
+DELETE FROM seller_members WHERE account_id = $1
+`
+
+// Every membership of an account, once the account is deleted (SEC-37).
+func (q *Queries) DeleteMembershipsOf(ctx context.Context, accountID uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteMembershipsOf, accountID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const deleteStaff = `-- name: DeleteStaff :execrows
@@ -177,8 +206,8 @@ func (q *Queries) InsertMember(ctx context.Context, arg InsertMemberParams) (int
 }
 
 const insertSeller = `-- name: InsertSeller :one
-INSERT INTO seller_sellers (name, address, latitude, longitude, phone)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO seller_sellers (name, address, latitude, longitude, phone, status)
+VALUES ($1, $2, $3, $4, $5, 'active')
 RETURNING id
 `
 
@@ -382,6 +411,30 @@ func (q *Queries) SellersOfAccount(ctx context.Context, accountID uuid.UUID) ([]
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const sellersOwnedBy = `-- name: SellersOwnedBy :many
+SELECT seller_id FROM seller_members WHERE account_id = $1 AND role = 'owner'
+`
+
+func (q *Queries) SellersOwnedBy(ctx context.Context, accountID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, sellersOwnedBy, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var seller_id uuid.UUID
+		if err := rows.Scan(&seller_id); err != nil {
+			return nil, err
+		}
+		items = append(items, seller_id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

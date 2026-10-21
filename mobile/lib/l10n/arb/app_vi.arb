@@ -28,7 +28,7 @@
   "@homeKindsLabel": {
     "description": "Name of the row of kinds of food"
   },
-  "homeCollectNow": "Lấy ngay",
+  "homeCollectNow": "Nhận ngay",
   "@homeCollectNow": {
     "description": "The first item of the kinds row: only what can be collected now"
   },
@@ -49,7 +49,7 @@
       }
     }
   },
-  "homeTicketWindow": "Lấy {from}",
+  "homeTicketWindow": "Nhận {from}",
   "@homeTicketWindow": {
     "description": "When collection opens, on a ticket of the deal card",
     "placeholders": {
@@ -72,7 +72,7 @@
       }
     }
   },
-  "homeClosingSoon": "Sắp hết giờ lấy",
+  "homeClosingSoon": "Sắp hết giờ nhận",
   "@homeClosingSoon": {
     "description": "Title of the row of offers whose windows close first"
   },
@@ -117,7 +117,7 @@
   "@offerSoldOut": {
     "description": "The sticker of an offer with nothing left"
   },
-  "offerWindow": "Lấy {from}–{until}",
+  "offerWindow": "Nhận {from}–{until}",
   "@offerWindow": {
     "description": "The collection window on a compact card",
     "placeholders": {
@@ -190,7 +190,7 @@
   "@introTitle": {
     "description": "Title of the introduction for a first visit"
   },
-  "introBody": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy lấy trong khung giờ của món.",
+  "introBody": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Bạn đặt trước rồi đến quầy nhận trong khung giờ của món.",
   "@introBody": {
     "description": "What Second Bite is, in two sentences"
   },
@@ -269,11 +269,181 @@
   },
   "legalTerms": "Điều khoản sử dụng",
   "@legalTerms": {
-    "description": "Opens the terms of use on the web"
+    "description": "Opens the terms of use"
   },
   "legalPrivacy": "Chính sách quyền riêng tư",
   "@legalPrivacy": {
-    "description": "Opens the privacy policy on the web"
+    "description": "Opens the privacy policy"
+  },
+  "legalDraft": "Bản nháp, đang chờ người sáng lập và luật sư xem xét. Nội dung có thể thay đổi trước khi Second Bite mở cho mọi người; những chỗ ghi “đang cập nhật” sẽ được bổ sung.",
+  "@legalDraft": {
+    "description": "The notice that the legal pages are drafts, as the web's Legal.draft"
+  },
+  "legalUpdated": "Cập nhật lần cuối: {date}",
+  "@legalUpdated": {
+    "description": "When the legal pages last changed",
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMMMMd"
+      }
+    }
+  },
+  "legalContents": "Các mục",
+  "@legalContents": {
+    "description": "The heading of the list of sections"
+  },
+  "legalTermsIntro": "Điều khoản này là thỏa thuận giữa bạn và Second Bite khi bạn dùng trang web và ứng dụng Second Bite, với tư cách khách hàng hay người bán.",
+  "@legalTermsIntro": {
+    "description": "The opening paragraph, as the web's Terms.intro"
+  },
+  "legalTermsSection1Title": "1. Second Bite là gì",
+  "@legalTermsSection1Title": {
+    "description": "Section 1's heading, as the web's Terms.sections[0].title"
+  },
+  "legalTermsSection1Body": "Second Bite là nền tảng phi lợi nhuận kết nối các quán còn món dư cuối ngày với khách muốn mua với giá thấp hơn. Second Bite không lấy hoa hồng trên doanh thu của quán.\n\nĐơn vị vận hành: đang cập nhật (tên, địa chỉ, mã số và giấy phép nếu có).\n\nMua bán món diễn ra giữa khách và quán. Second Bite cung cấp nơi đăng, tìm và đặt món; Second Bite không bán món và không kiểm tra món.",
+  "@legalTermsSection1Body": {
+    "description": "Section 1's paragraphs, one blank line apart, as the web's Terms.sections[0].paragraphs"
+  },
+  "legalTermsSection2Title": "2. Tài khoản",
+  "@legalTermsSection2Title": {
+    "description": "Section 2's heading, as the web's Terms.sections[1].title"
+  },
+  "legalTermsSection2Body": "Bạn xem và tìm món mà không cần tài khoản. Bạn cần đăng nhập để đặt món, theo dõi quán, hoặc đăng món cho một quán.\n\nHãy giữ an toàn hộp thư và tài khoản Google bạn dùng để đăng nhập, và không đăng nhập thay người khác.",
+  "@legalTermsSection2Body": {
+    "description": "Section 2's paragraphs, one blank line apart, as the web's Terms.sections[1].paragraphs"
+  },
+  "legalTermsSection3Title": "3. Trách nhiệm của người bán",
+  "@legalTermsSection3Title": {
+    "description": "Section 3's heading, as the web's Terms.sections[2].title"
+  },
+  "legalTermsSection3Body": "Chỉ đăng món thật sự còn dư, không phải món vẫn cần cho việc bán hàng bình thường.\n\nMô tả trung thực món, số lượng, giá gốc và giá bán; giá bán phải thấp hơn giá gốc ít nhất mức giảm tối thiểu do Second Bite quy định (hiện là 20%).\n\nChịu trách nhiệm về chất lượng, an toàn thực phẩm và thông tin về chất gây dị ứng của món, và kiểm tra món khi giao cho khách.\n\nẢnh và nội dung bạn đăng phải là của bạn hoặc bạn được phép dùng; bạn cho phép Second Bite hiển thị chúng trên nền tảng.",
+  "@legalTermsSection3Body": {
+    "description": "Section 3's paragraphs, one blank line apart, as the web's Terms.sections[2].paragraphs"
+  },
+  "legalTermsSection4Title": "4. Trách nhiệm của khách",
+  "@legalTermsSection4Title": {
+    "description": "Section 4's heading, as the web's Terms.sections[3].title"
+  },
+  "legalTermsSection4Body": "Đến lấy món trong khung giờ của món; đơn không đến lấy có thể bị ghi nhận và ảnh hưởng tới việc đặt món về sau.\n\nĐọc kỹ mô tả món, đặc biệt là thông tin về chất gây dị ứng, và hỏi quán khi chưa rõ. Món dư có thể khác chút ít so với ảnh.\n\nMỗi người được đặt một số lượng món giới hạn mỗi ngày, để món dư đến được với nhiều người.",
+  "@legalTermsSection4Body": {
+    "description": "Section 4's paragraphs, one blank line apart, as the web's Terms.sections[3].paragraphs"
+  },
+  "legalTermsSection5Title": "5. Giá, thanh toán và hủy đơn",
+  "@legalTermsSection5Title": {
+    "description": "Section 5's heading, as the web's Terms.sections[4].title"
+  },
+  "legalTermsSection5Body": "Giá hiển thị là giá của quán; phí của bên thứ ba, nếu có, được ghi riêng trước khi bạn đặt.\n\nỞ giai đoạn thử nghiệm, bạn thanh toán trực tiếp cho quán khi đến lấy món. Hủy đơn và hoàn tiền: đang cập nhật, sẽ có khi tính năng đặt món mở.",
+  "@legalTermsSection5Body": {
+    "description": "Section 5's paragraphs, one blank line apart, as the web's Terms.sections[4].paragraphs"
+  },
+  "legalTermsSection6Title": "6. Hành vi không được phép",
+  "@legalTermsSection6Title": {
+    "description": "Section 6's heading, as the web's Terms.sections[5].title"
+  },
+  "legalTermsSection6Body": "Đăng nội dung sai sự thật, vi phạm pháp luật hoặc của người khác; đặt món mà không có ý định lấy; can thiệp vào hệ thống hoặc dùng tài khoản của người khác.\n\nSecond Bite có thể ẩn món, tạm khóa quán hoặc tài khoản vi phạm điều khoản này.",
+  "@legalTermsSection6Body": {
+    "description": "Section 6's paragraphs, one blank line apart, as the web's Terms.sections[5].paragraphs"
+  },
+  "legalTermsSection7Title": "7. Giới hạn trách nhiệm",
+  "@legalTermsSection7Title": {
+    "description": "Section 7's heading, as the web's Terms.sections[6].title"
+  },
+  "legalTermsSection7Body": "Second Bite cố gắng giữ dịch vụ hoạt động ổn định nhưng không bảo đảm dịch vụ luôn sẵn sàng. Trong phạm vi pháp luật cho phép, Second Bite không chịu trách nhiệm về chất lượng món do quán bán; khiếu nại về món được gửi tới quán, và Second Bite hỗ trợ hai bên giải quyết.",
+  "@legalTermsSection7Body": {
+    "description": "Section 7's paragraphs, one blank line apart, as the web's Terms.sections[6].paragraphs"
+  },
+  "legalTermsSection8Title": "8. Thay đổi điều khoản và luật áp dụng",
+  "@legalTermsSection8Title": {
+    "description": "Section 8's heading, as the web's Terms.sections[7].title"
+  },
+  "legalTermsSection8Body": "Khi điều khoản thay đổi, chúng tôi cập nhật ngày ở đầu trang và báo trước nếu thay đổi ảnh hưởng tới quyền của bạn.\n\nĐiều khoản này theo pháp luật Việt Nam. Tranh chấp được giải quyết bằng thương lượng trước, sau đó theo quy định của pháp luật.\n\nLiên hệ: đang cập nhật.",
+  "@legalTermsSection8Body": {
+    "description": "Section 8's paragraphs, one blank line apart, as the web's Terms.sections[7].paragraphs"
+  },
+  "legalPrivacyIntro": "Second Bite là nền tảng phi lợi nhuận giúp các quán bán món còn dư cuối ngày với giá thấp hơn. Trang này cho biết chúng tôi thu dữ liệu cá nhân nào, để làm gì, lưu bao lâu, ai được xem, và bạn có những quyền gì, theo Luật Bảo vệ dữ liệu cá nhân 2025 và Nghị định 52/2013/NĐ-CP.",
+  "@legalPrivacyIntro": {
+    "description": "The opening paragraph, as the web's Privacy.intro"
+  },
+  "legalPrivacySection1Title": "1. Ai chịu trách nhiệm về dữ liệu của bạn",
+  "@legalPrivacySection1Title": {
+    "description": "Section 1's heading, as the web's Privacy.sections[0].title"
+  },
+  "legalPrivacySection1Body": "Bên kiểm soát dữ liệu cá nhân: đang cập nhật (tên tổ chức hoặc cá nhân, địa chỉ).\n\nLiên hệ về quyền riêng tư: đang cập nhật.",
+  "@legalPrivacySection1Body": {
+    "description": "Section 1's paragraphs, one blank line apart, as the web's Privacy.sections[0].paragraphs"
+  },
+  "legalPrivacySection2Title": "2. Dữ liệu chúng tôi thu và để làm gì",
+  "@legalPrivacySection2Title": {
+    "description": "Section 2's heading, as the web's Privacy.sections[1].title"
+  },
+  "legalPrivacySection2Body": "Xem món và tìm kiếm không cần tài khoản. Khi bạn tìm món quanh một vị trí, vị trí đó chỉ được dùng để tính khoảng cách trong lần tìm ấy và không được lưu.\n\nTài khoản: địa chỉ email của bạn, để gửi mã đăng nhập và nhận ra bạn ở lần sau; tên hiển thị, để quán gọi bạn khi giao món.\n\nĐăng nhập bằng Google (sắp có): mã định danh Google của bạn, địa chỉ email, tên và ảnh đại diện mà Google chia sẻ khi bạn đồng ý, để đăng nhập và hiển thị tên của bạn.\n\nPhiên đăng nhập: một mã ngẫu nhiên giữ bạn đăng nhập; chúng tôi chỉ lưu bản băm của nó cùng thời điểm dùng gần nhất.\n\nNgười bán: tên quán, địa chỉ, vị trí trên bản đồ, số điện thoại của quán và email của chủ quán, nhân viên, để quán đăng món và khách tìm đến lấy.\n\nẢnh: ảnh món và ảnh quán do người bán tải lên. Ảnh được ghi lại ở hai kích thước và bỏ toàn bộ thông tin đi kèm như vị trí chụp hay loại máy.\n\nĐơn hàng (sắp có): món, số lượng, giờ lấy, trạng thái đơn, để quán chuẩn bị món và giới hạn số món mỗi người được đặt trong ngày.\n\nEmail đã gửi: người nhận, loại email và mã của nhà cung cấp, để biết email có tới được không.\n\nNhật ký kỹ thuật: thời điểm, đường dẫn và kết quả của từng yêu cầu, để tìm và sửa lỗi; nhật ký không ghi email, mã đăng nhập hay mật khẩu.",
+  "@legalPrivacySection2Body": {
+    "description": "Section 2's paragraphs, one blank line apart, as the web's Privacy.sections[1].paragraphs"
+  },
+  "legalPrivacySection3Title": "3. Lưu bao lâu",
+  "@legalPrivacySection3Title": {
+    "description": "Section 3's heading, as the web's Privacy.sections[2].title"
+  },
+  "legalPrivacySection3Body": "Mã đăng nhập: xóa khi dùng xong, khi bạn xin mã mới, hoặc muộn nhất một ngày sau khi gửi.\n\nPhiên đăng nhập: hết hạn sau 30 ngày không dùng; xóa khi bạn đăng xuất.\n\nẢnh tải lên nhưng không dùng cho món hay quán nào: xóa sau một ngày.\n\nTài khoản, quán, món đã đăng và đơn hàng: giữ cho tới khi bạn xóa tài khoản hoặc yêu cầu xóa, trừ phần pháp luật buộc phải giữ lâu hơn.\n\nKhi bạn xóa tài khoản: tài khoản, phiên đăng nhập, liên kết Google, mã đăng nhập và bản ghi các email gửi cho bạn bị xóa ngay; tư cách thành viên ở các quán và ảnh chưa dùng bị xóa trong vài phút sau đó. Món đã đăng, ảnh món và ảnh quán thuộc về quán nên được giữ, không còn gắn với bạn; quán bạn là chủ sẽ bị đóng.",
+  "@legalPrivacySection3Body": {
+    "description": "Section 3's paragraphs, one blank line apart, as the web's Privacy.sections[2].paragraphs"
+  },
+  "legalPrivacySection4Title": "4. Ai được xem dữ liệu của bạn",
+  "@legalPrivacySection4Title": {
+    "description": "Section 4's heading, as the web's Privacy.sections[3].title"
+  },
+  "legalPrivacySection4Body": "Người bán thấy tên hiển thị và đơn hàng của bạn với quán của họ; không thấy email của bạn. Khách thấy thông tin công khai của quán và món.\n\nQuản trị viên của Second Bite xem dữ liệu khi cần để vận hành và hỗ trợ.\n\nCác bên xử lý dữ liệu thay chúng tôi: nhà cung cấp máy chủ (Amazon Web Services; nơi đặt máy chủ: đang cập nhật), nhà cung cấp dịch vụ email (Brevo), và Google khi bạn chọn đăng nhập bằng Google. Nếu dữ liệu được lưu ở nước ngoài, chúng tôi sẽ nêu rõ tại đây.\n\nChúng tôi không bán dữ liệu của bạn và không dùng nó để quảng cáo.",
+  "@legalPrivacySection4Body": {
+    "description": "Section 4's paragraphs, one blank line apart, as the web's Privacy.sections[3].paragraphs"
+  },
+  "legalPrivacySection5Title": "5. Quyền của bạn",
+  "@legalPrivacySection5Title": {
+    "description": "Section 5's heading, as the web's Privacy.sections[4].title"
+  },
+  "legalPrivacySection5Body": "Bạn có quyền được biết, xem, sửa và yêu cầu xóa dữ liệu của mình; rút lại sự đồng ý; yêu cầu hạn chế xử lý; và khiếu nại, theo Luật Bảo vệ dữ liệu cá nhân 2025.\n\nBạn tự xóa được tài khoản trong ứng dụng (Tài khoản → Cài đặt tài khoản → Xóa tài khoản) hoặc trên trang web tại /delete-account, sau khi nhập mã chúng tôi gửi đến email của tài khoản.\n\nBạn tự sửa được tên hiển thị trong tài khoản. Với các yêu cầu khác, hãy gửi cho chúng tôi qua địa chỉ liên hệ ở mục 1; chúng tôi trả lời trong thời hạn pháp luật quy định, và nếu không thể xóa vì lý do chính đáng, chúng tôi sẽ cho bạn biết lý do.",
+  "@legalPrivacySection5Body": {
+    "description": "Section 5's paragraphs, one blank line apart, as the web's Privacy.sections[4].paragraphs"
+  },
+  "legalPrivacySection6Title": "6. Cookie và lưu trữ trên trình duyệt",
+  "@legalPrivacySection6Title": {
+    "description": "Section 6's heading, as the web's Privacy.sections[5].title"
+  },
+  "legalPrivacySection6Body": "Cookie phiên đăng nhập (sắp có), để giữ bạn đăng nhập.\n\nCookie ngôn ngữ, nhớ bạn chọn tiếng Việt hay tiếng Anh trong một năm.\n\nMột dấu trong bộ nhớ trình duyệt, nhớ bạn đã đóng phần giới thiệu.\n\nChúng tôi không dùng cookie quảng cáo hay công cụ theo dõi của bên thứ ba.",
+  "@legalPrivacySection6Body": {
+    "description": "Section 6's paragraphs, one blank line apart, as the web's Privacy.sections[5].paragraphs"
+  },
+  "legalPrivacySection7Title": "7. Bảo vệ dữ liệu",
+  "@legalPrivacySection7Title": {
+    "description": "Section 7's heading, as the web's Privacy.sections[6].title"
+  },
+  "legalPrivacySection7Body": "Kết nối được mã hóa; mã đăng nhập và phiên đăng nhập chỉ được lưu dưới dạng băm; quyền truy cập được kiểm tra ở máy chủ cho từng yêu cầu. Nếu xảy ra sự cố lộ dữ liệu, chúng tôi sẽ thông báo theo quy định của pháp luật.",
+  "@legalPrivacySection7Body": {
+    "description": "Section 7's paragraphs, one blank line apart, as the web's Privacy.sections[6].paragraphs"
+  },
+  "legalPrivacySection8Title": "8. Trẻ em",
+  "@legalPrivacySection8Title": {
+    "description": "Section 8's heading, as the web's Privacy.sections[7].title"
+  },
+  "legalPrivacySection8Body": "Second Bite dành cho người từ 16 tuổi. Nếu bạn dưới 16 tuổi, hãy dùng cùng cha mẹ hoặc người giám hộ.",
+  "@legalPrivacySection8Body": {
+    "description": "Section 8's paragraphs, one blank line apart, as the web's Privacy.sections[7].paragraphs"
+  },
+  "legalPrivacySection9Title": "9. Thay đổi chính sách",
+  "@legalPrivacySection9Title": {
+    "description": "Section 9's heading, as the web's Privacy.sections[8].title"
+  },
+  "legalPrivacySection9Body": "Khi chính sách thay đổi, chúng tôi cập nhật ngày ở đầu trang và báo cho bạn trước khi thay đổi có hiệu lực nếu nó ảnh hưởng tới quyền của bạn.",
+  "@legalPrivacySection9Body": {
+    "description": "Section 9's paragraphs, one blank line apart, as the web's Privacy.sections[8].paragraphs"
+  },
+  "notFoundTitle": "Không tìm thấy trang này",
+  "@notFoundTitle": {
+    "description": "An address the app does not know, as the web's NotFound.title"
+  },
+  "notFoundBack": "Về trang chủ",
+  "@notFoundBack": {
+    "description": "The button back to the home from the not-found screen"
   },
   "topBarBack": "Quay lại",
   "@topBarBack": {
@@ -423,42 +593,227 @@
   "@signInGoogleNeedsCodeBodyNoAddress": {
     "description": "As signInGoogleNeedsCodeBody when the address is not known"
   },
-  "signInEmailInvalid": "Nhập một địa chỉ email, ví dụ ten@gmail.com.",
-  "@signInEmailInvalid": {
-    "description": "The address is not one"
-  },
-  "signInCodeLimit": "Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.",
-  "@signInCodeLimit": {
-    "description": "Too many codes for the address"
-  },
-  "signInCodeIncorrect": "Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.",
-  "@signInCodeIncorrect": {
-    "description": "A wrong code"
-  },
-  "signInCodeGone": "Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.",
-  "@signInCodeGone": {
-    "description": "An expired or used code"
-  },
-  "signInGoogleUnverified": "Google chưa xác nhận email này. Đăng nhập bằng mã gửi qua email.",
-  "@signInGoogleUnverified": {
-    "description": "Google has not verified the address"
-  },
   "signInFailed": "Chưa đăng nhập được. Vui lòng thử lại.",
   "@signInFailed": {
     "description": "Any other failure"
   },
-  "signInFailedWithReference": "Chưa đăng nhập được. Vui lòng thử lại. Mã tham chiếu: {reference}",
-  "@signInFailedWithReference": {
-    "description": "Any other failure, with the request's reference",
-    "placeholders": {
-      "reference": {
-        "type": "String",
-        "example": "01J…"
-      }
-    }
-  },
   "signInNotArrived": "Chưa thấy email? Xem trong thư rác (Spam).",
   "@signInNotArrived": {
     "description": "Under the code field"
+  },
+  "deleteAccountTitle": "Xoá tài khoản",
+  "@deleteAccountTitle": {
+    "description": "The deletion screen's title and the account tab's entry"
+  },
+  "deleteAccountIntro": "Bạn có thể xoá tài khoản Second Bite bất cứ lúc nào, trong ứng dụng hoặc tại trang này. Việc xoá là vĩnh viễn và không thể hoàn tác.",
+  "@deleteAccountIntro": {
+    "description": "What deleting means, first on the screen"
+  },
+  "deleteAccountDeletedTitle": "Bị xoá ngay khi bạn xác nhận",
+  "@deleteAccountDeletedTitle": {
+    "description": "The heading of what goes at once"
+  },
+  "deleteAccountDeleted1": "Tài khoản của bạn: địa chỉ email và tên hiển thị.",
+  "@deleteAccountDeleted1": {
+    "description": "Something deleted at once"
+  },
+  "deleteAccountDeleted2": "Mọi phiên đăng nhập trên mọi thiết bị, và liên kết với tài khoản Google.",
+  "@deleteAccountDeleted2": {
+    "description": "Something deleted at once"
+  },
+  "deleteAccountDeleted3": "Mã đăng nhập và bản ghi các email chúng tôi đã gửi cho bạn.",
+  "@deleteAccountDeleted3": {
+    "description": "Something deleted at once"
+  },
+  "deleteAccountLaterTitle": "Bị xoá trong vài phút sau đó",
+  "@deleteAccountLaterTitle": {
+    "description": "The heading of what goes within minutes"
+  },
+  "deleteAccountLater1": "Tư cách chủ quán hoặc nhân viên của bạn ở các quán.",
+  "@deleteAccountLater1": {
+    "description": "Something deleted within minutes"
+  },
+  "deleteAccountLater2": "Ảnh bạn đã tải lên nhưng chưa dùng cho món hay quán nào.",
+  "@deleteAccountLater2": {
+    "description": "Something deleted within minutes"
+  },
+  "deleteAccountKeptTitle": "Được giữ lại, không còn gắn với bạn",
+  "@deleteAccountKeptTitle": {
+    "description": "The heading of what is kept"
+  },
+  "deleteAccountKept1": "Món đã đăng, ảnh món và ảnh quán: chúng thuộc về quán.",
+  "@deleteAccountKept1": {
+    "description": "Something kept, no longer linked to the person"
+  },
+  "deleteAccountKept2": "Đơn hàng và thanh toán mà pháp luật buộc phải giữ, khi tính năng đặt món mở; thời hạn giữ đang cập nhật.",
+  "@deleteAccountKept2": {
+    "description": "Something kept, no longer linked to the person"
+  },
+  "deleteAccountOwnerTitle": "Bạn đang là chủ quán",
+  "@deleteAccountOwnerTitle": {
+    "description": "The warning to the owner of a seller"
+  },
+  "deleteAccountOwnerBody": "Xoá tài khoản sẽ đóng {sellers}: quán ngừng hiển thị với khách và nhân viên không quản lý được nữa, cho tới khi Second Bite xử lý.",
+  "@deleteAccountOwnerBody": {
+    "description": "What happens to the sellers the person owns",
+    "placeholders": {
+      "sellers": {
+        "type": "String",
+        "example": "Bánh mì Tasco"
+      }
+    }
+  },
+  "deleteAccountSignedOutTitle": "Đăng nhập để xoá tài khoản",
+  "@deleteAccountSignedOutTitle": {
+    "description": "Shown to someone signed out"
+  },
+  "deleteAccountSignedOutBody": "Để chắc người xoá là chủ tài khoản, bạn đăng nhập rồi nhập mã chúng tôi gửi đến email của tài khoản.",
+  "@deleteAccountSignedOutBody": {
+    "description": "Why signing in comes first"
+  },
+  "deleteAccountSendCode": "Gửi mã xác nhận",
+  "@deleteAccountSendCode": {
+    "description": "The button that emails the deletion code"
+  },
+  "deleteAccountSending": "Đang gửi mã…",
+  "@deleteAccountSending": {
+    "description": "The button while the code is sent"
+  },
+  "deleteAccountConfirmBody": "Chúng tôi sẽ gửi mã 6 số đến {email} để xác nhận bạn muốn xoá tài khoản.",
+  "@deleteAccountConfirmBody": {
+    "description": "Where the code will go",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "lan@gmail.com"
+      }
+    }
+  },
+  "deleteAccountCodeHeading": "Nhập mã xác nhận",
+  "@deleteAccountCodeHeading": {
+    "description": "The heading of the code step"
+  },
+  "deleteAccountCodeSent": "Mã 6 số đã gửi đến {email}. Mã chỉ dùng để xoá tài khoản.",
+  "@deleteAccountCodeSent": {
+    "description": "Where the code went",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "lan@gmail.com"
+      }
+    }
+  },
+  "deleteAccountCodeLabel": "Mã xác nhận 6 số",
+  "@deleteAccountCodeLabel": {
+    "description": "The code field, as a screen reader names it"
+  },
+  "deleteAccountConfirm": "Xoá vĩnh viễn tài khoản",
+  "@deleteAccountConfirm": {
+    "description": "The button that deletes the account"
+  },
+  "deleteAccountDeleting": "Đang xoá…",
+  "@deleteAccountDeleting": {
+    "description": "The button while the account is deleted"
+  },
+  "deleteAccountCancel": "Giữ tài khoản",
+  "@deleteAccountCancel": {
+    "description": "The way back without deleting"
+  },
+  "deleteAccountFailed": "Chưa xoá được tài khoản. Vui lòng thử lại.",
+  "@deleteAccountFailed": {
+    "description": "Any other failure"
+  },
+  "deleteAccountDoneTitle": "Đã xoá tài khoản",
+  "@deleteAccountDoneTitle": {
+    "description": "Shown once the account is deleted"
+  },
+  "deleteAccountDoneBody": "Tài khoản và dữ liệu cá nhân của bạn đã được xoá. Bạn vẫn có thể đăng nhập lại bằng email này bất cứ lúc nào, như một tài khoản mới.",
+  "@deleteAccountDoneBody": {
+    "description": "What the deletion did, and that the address can sign in again"
+  },
+  "deleteAccountHome": "Về trang chủ",
+  "@deleteAccountHome": {
+    "description": "The button home after the deletion"
+  },
+  "accountSettingsTitle": "Cài đặt tài khoản",
+  "@accountSettingsTitle": {
+    "description": "The account tab's row and the title of account settings"
+  },
+  "accountSettingsDetails": "Thông tin tài khoản",
+  "@accountSettingsDetails": {
+    "description": "The label of the account's details, for screen readers"
+  },
+  "accountSettingsEmail": "Email",
+  "@accountSettingsEmail": {
+    "description": "The row of the account's address"
+  },
+  "accountSettingsDisplayName": "Tên hiển thị",
+  "@accountSettingsDisplayName": {
+    "description": "The row of the account's display name"
+  },
+  "accountSettingsNoDisplayName": "Chưa có",
+  "@accountSettingsNoDisplayName": {
+    "description": "The display name when there is none"
+  },
+  "accountSettingsSellers": "Quán của bạn",
+  "@accountSettingsSellers": {
+    "description": "The row of the sellers the person owns or works for"
+  },
+  "accountSettingsOwner": "Chủ quán",
+  "@accountSettingsOwner": {
+    "description": "The role of an owner of a seller"
+  },
+  "accountSettingsStaff": "Nhân viên",
+  "@accountSettingsStaff": {
+    "description": "The role of a staff member of a seller"
+  },
+  "accountSettingsLanguage": "Ngôn ngữ",
+  "@accountSettingsLanguage": {
+    "description": "The row of the app's language"
+  },
+  "accountSettingsLanguageName": "Tiếng Việt",
+  "@accountSettingsLanguageName": {
+    "description": "The name of the language on screen"
+  },
+  "accountSettingsDeleteTitle": "Xoá tài khoản",
+  "@accountSettingsDeleteTitle": {
+    "description": "The heading at the foot of account settings"
+  },
+  "accountSettingsDeleteBody": "Xoá vĩnh viễn tài khoản và dữ liệu cá nhân của bạn. Việc xoá không thể hoàn tác; quán bạn là chủ sẽ bị đóng.",
+  "@accountSettingsDeleteBody": {
+    "description": "What deleting the account means, at the foot of account settings"
+  },
+  "accountSettingsDeleteAction": "Xoá tài khoản",
+  "@accountSettingsDeleteAction": {
+    "description": "The button that opens the deletion"
+  },
+  "problemReference": "Mã tham chiếu: {reference}",
+  "@problemReference": {
+    "description": "The request's reference after the server's words, quoted when a person reports a failure",
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "accountSettingsEditName": "Sửa tên hiển thị",
+  "@accountSettingsEditName": {
+    "description": "The heading of the sheet that changes the display name, and the row's hint"
+  },
+  "accountSettingsSave": "Lưu",
+  "@accountSettingsSave": {
+    "description": "Saves the display name"
+  },
+  "accountSettingsSaving": "Đang lưu…",
+  "@accountSettingsSaving": {
+    "description": "While the display name is saved"
+  },
+  "accountSettingsCancel": "Huỷ",
+  "@accountSettingsCancel": {
+    "description": "Closes the sheet without saving"
+  },
+  "accountSettingsNameFailed": "Chưa lưu được tên. Thử lại sau ít phút.",
+  "@accountSettingsNameFailed": {
+    "description": "When saving the name got no answer"
   }
 }

@@ -8,6 +8,7 @@ import 'clients/accounts_client.dart';
 import 'clients/admins_client.dart';
 import 'clients/admin_client.dart';
 import 'clients/sign_in_client.dart';
+import 'clients/catalog_client.dart';
 import 'clients/offers_client.dart';
 import 'clients/photos_client.dart';
 import 'clients/sellers_client.dart';
@@ -27,6 +28,7 @@ class SecondBiteApi {
   AdminsClient? _admins;
   AdminClient? _admin;
   SignInClient? _signIn;
+  CatalogClient? _catalog;
   OffersClient? _offers;
   PhotosClient? _photos;
   SellersClient? _sellers;
@@ -39,6 +41,9 @@ class SecondBiteApi {
   AdminClient get admin => _admin ??= AdminClient(_dio, baseUrl: _baseUrl);
 
   SignInClient get signIn => _signIn ??= SignInClient(_dio, baseUrl: _baseUrl);
+
+  CatalogClient get catalog =>
+      _catalog ??= CatalogClient(_dio, baseUrl: _baseUrl);
 
   OffersClient get offers => _offers ??= OffersClient(_dio, baseUrl: _baseUrl);
 

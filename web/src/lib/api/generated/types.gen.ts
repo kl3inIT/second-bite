@@ -24,6 +24,14 @@ export type CollectionPointBody = {
     longitude: number;
 };
 
+export type DeleteAccountInputBody = {
+    challengeId: string;
+    /**
+     * The six digits of the deletion email
+     */
+    code: string;
+};
+
 export type DetailsBody = {
     /**
      * The address as people write it
@@ -39,6 +47,58 @@ export type DetailsBody = {
      * Shown to the seller's members and admins
      */
     phone: string;
+};
+
+export type DishBody = {
+    createdAt: string;
+    description: string;
+    hidden: boolean;
+    id: string;
+    ingredients: string;
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    name: string;
+    originalPriceVnd?: number;
+    photo: OfferPhotoBody;
+    sellerId: string;
+    unit: string;
+    updatedAt: string;
+};
+
+export type DishChangeBody = {
+    description?: string;
+    hidden?: boolean;
+    ingredients?: string;
+    kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    name?: string;
+    originalPriceVnd?: number;
+    photoId?: string;
+    unit?: string;
+};
+
+export type DishDetailsBody = {
+    description?: string;
+    /**
+     * Keeps the dish out of the list a post is picked from
+     */
+    hidden?: boolean;
+    /**
+     * What the dish is made of and may contain, allergens included
+     */
+    ingredients?: string;
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    name: string;
+    /**
+     * What one unit normally sells for; a post starts from it
+     */
+    originalPriceVnd?: number;
+    /**
+     * From POST /photos, or a photo the seller already shows
+     */
+    photoId: string;
+    /**
+     * What one unit is called; "suất" when empty
+     */
+    unit?: string;
 };
 
 export type EmailSettingsBody = {
@@ -118,6 +178,10 @@ export type GoogleSignInInputBody = {
      * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
      */
     session?: 'token' | 'cookie';
+};
+
+export type ListDishesResponse = {
+    dishes: Array<DishBody>;
 };
 
 export type MemberBody = {
@@ -386,6 +450,13 @@ export type SessionOutputBody = {
     token?: string;
 };
 
+export type SetDisplayNameInputBody = {
+    /**
+     * 1 to 50 characters once trimmed; Google never replaces it
+     */
+    displayName: string;
+};
+
 export type SetSellerPhotoRequest = {
     /**
      * From POST /photos
@@ -466,6 +537,81 @@ export type GetMyAccountResponses = {
 };
 
 export type GetMyAccountResponse = GetMyAccountResponses[keyof GetMyAccountResponses];
+
+export type SetMyDisplayNameData = {
+    body: SetDisplayNameInputBody;
+    path?: never;
+    query?: never;
+    url: '/accounts/me';
+};
+
+export type SetMyDisplayNameErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SetMyDisplayNameError = SetMyDisplayNameErrors[keyof SetMyDisplayNameErrors];
+
+export type SetMyDisplayNameResponses = {
+    /**
+     * OK
+     */
+    200: AccountBody;
+};
+
+export type SetMyDisplayNameResponse = SetMyDisplayNameResponses[keyof SetMyDisplayNameResponses];
+
+export type DeleteMyAccountData = {
+    body: DeleteAccountInputBody;
+    path?: never;
+    query?: never;
+    url: '/accounts/me/deletion';
+};
+
+export type DeleteMyAccountErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type DeleteMyAccountError = DeleteMyAccountErrors[keyof DeleteMyAccountErrors];
+
+export type DeleteMyAccountResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type DeleteMyAccountResponse = DeleteMyAccountResponses[keyof DeleteMyAccountResponses];
+
+export type RequestAccountDeletionCodeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/accounts/me/deletion-codes';
+};
+
+export type RequestAccountDeletionCodeErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RequestAccountDeletionCodeError = RequestAccountDeletionCodeErrors[keyof RequestAccountDeletionCodeErrors];
+
+export type RequestAccountDeletionCodeResponses = {
+    /**
+     * Accepted
+     */
+    202: RequestCodeOutputBody;
+};
+
+export type RequestAccountDeletionCodeResponse = RequestAccountDeletionCodeResponses[keyof RequestAccountDeletionCodeResponses];
 
 export type GetEmailSettingsData = {
     body?: never;
@@ -775,6 +921,60 @@ export type RequestSignInCodeResponses = {
 
 export type RequestSignInCodeResponse = RequestSignInCodeResponses[keyof RequestSignInCodeResponses];
 
+export type RemoveDishData = {
+    body?: never;
+    path: {
+        dishId: string;
+    };
+    query?: never;
+    url: '/dishes/{dishId}';
+};
+
+export type RemoveDishErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RemoveDishError = RemoveDishErrors[keyof RemoveDishErrors];
+
+export type RemoveDishResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type RemoveDishResponse = RemoveDishResponses[keyof RemoveDishResponses];
+
+export type ChangeDishData = {
+    body: DishChangeBody;
+    path: {
+        dishId: string;
+    };
+    query?: never;
+    url: '/dishes/{dishId}';
+};
+
+export type ChangeDishErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ChangeDishError = ChangeDishErrors[keyof ChangeDishErrors];
+
+export type ChangeDishResponses = {
+    /**
+     * OK
+     */
+    200: DishBody;
+};
+
+export type ChangeDishResponse = ChangeDishResponses[keyof ChangeDishResponses];
+
 export type SearchOffersData = {
     body?: never;
     path?: never;
@@ -1079,6 +1279,60 @@ export type UpdateSellerResponses = {
 };
 
 export type UpdateSellerResponse = UpdateSellerResponses[keyof UpdateSellerResponses];
+
+export type ListDishesData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/dishes';
+};
+
+export type ListDishesErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListDishesError = ListDishesErrors[keyof ListDishesErrors];
+
+export type ListDishesResponses = {
+    /**
+     * OK
+     */
+    200: ListDishesResponse;
+};
+
+export type ListDishesResponse2 = ListDishesResponses[keyof ListDishesResponses];
+
+export type AddDishData = {
+    body: DishDetailsBody;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/dishes';
+};
+
+export type AddDishErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type AddDishError = AddDishErrors[keyof AddDishErrors];
+
+export type AddDishResponses = {
+    /**
+     * Created
+     */
+    201: DishBody;
+};
+
+export type AddDishResponse = AddDishResponses[keyof AddDishResponses];
 
 export type ListSellerMembersData = {
     body?: never;

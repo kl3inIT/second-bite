@@ -101,8 +101,8 @@ func NewService(pool *pgxpool.Pool, accounts *identity.Service, photos *file.Ser
 	return &Service{pool: pool, queries: db.New(pool), accounts: accounts, photos: photos, logger: logger}
 }
 
-// Open opens a seller for the caller, who becomes its owner. It is pending
-// until an admin activates it.
+// Open opens a seller for the caller, who becomes its owner. It is active at
+// once: the pilot has no approval step; an admin can still block it.
 func (s *Service) Open(ctx context.Context, d Details) (Seller, error) {
 	caller, err := platform.RequireCaller(ctx)
 	if err != nil {

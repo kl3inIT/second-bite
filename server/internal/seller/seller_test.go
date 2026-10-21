@@ -54,7 +54,7 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 	t.Helper()
 
 	// Sending sign-in codes is not exercised here, so identity has no email.
-	accounts, err := identity.NewService(pool, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
+	accounts, err := identity.NewService(pool, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,17 +122,13 @@ func testPublishingFollowsStatusAndMembership(t *testing.T, pool *pgxpool.Pool) 
 		t.Fatal(err)
 	}
 
-	if s.Status != seller.StatusPending || s.MyRole != seller.RoleOwner || s.Phone != "0912345678" {
+	if s.Status != seller.StatusActive || s.MyRole != seller.RoleOwner || s.Phone != "0912345678" {
 		t.Fatalf("opened %+v", s)
 	}
 
-	mustPublish(owner, t, f, s.ID, false) // pending
+	mustPublish(owner, t, f, s.ID, true) // active as soon as it is opened
 
 	if _, err := f.sellers.AddStaff(owner, s.ID, strings.ToUpper(f.mail("staff"))); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := f.sellers.Activate(admin, s.ID); err != nil {
 		t.Fatal(err)
 	}
 

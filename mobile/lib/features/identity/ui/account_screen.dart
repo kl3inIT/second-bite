@@ -4,14 +4,13 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:second_bite/core/language_button.dart';
 import 'package:second_bite/core/routes.dart';
-import 'package:second_bite/core/web_pages.dart';
 import 'package:second_bite/features/identity/ui/current_account.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
 /// {@template account_screen}
 /// The account tab, as the web's `/account`: who is signed in and sign-out,
 /// or a way to sign in; then the terms and the privacy policy (Decree
-/// 52/2013, SEC-32), which open on the web.
+/// 52/2013, SEC-32), which open inside the app (SEC-52).
 /// {@endtemplate}
 class AccountScreen extends ConsumerStatefulWidget {
   /// {@macro account_screen}
@@ -41,7 +40,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     final l10n = context.l10n;
     final text = context.appTextStyles;
     final scheme = Theme.of(context).colorScheme;
-    final language = Localizations.localeOf(context).languageCode;
     final account = ref.watch(currentAccountProvider).value;
     final name = account?.displayName ?? '';
 
@@ -53,122 +51,156 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
           SizedBox(width: SpacingTokens.space3),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(SpacingTokens.space4),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxWidth),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: SpacingTokens.space6,
-              children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(SpacingTokens.space4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      spacing: SpacingTokens.space4,
-                      children: [
-                        Row(
-                          spacing: SpacingTokens.space3,
-                          children: [
-                            CircleAvatar(
-                              radius: SpacingTokens.space6,
-                              backgroundColor: scheme.secondary,
-                              foregroundColor: scheme.onSecondary,
-                              child: const Icon(LucideIcons.userRound),
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Semantics(
-                                    header: true,
-                                    child: Text(
-                                      account == null
-                                          ? l10n.accountGuestTitle
-                                          : name.isEmpty
-                                          ? account.email
-                                          : name,
-                                      style: text.title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  Text(
-                                    account == null
-                                        ? l10n.accountGuestBody
-                                        : name.isEmpty
-                                        ? l10n.accountSignedIn
-                                        : account.email,
-                                    style: text.bodySm.copyWith(
-                                      color: scheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (account == null)
-                          AppButton(
-                            onPressed: () => unawaited(
-                              const SignInRoute(returnTo: '/account')
-                                  .push(context),
-                            ),
-                            child: Text(l10n.accountSignIn),
-                          )
-                        else
-                          AppButton(
-                            variant: AppButtonVariant.outline,
-                            onPressed: _signingOut ? null : _signOut,
-                            icon: _signingOut
-                                ? const SizedBox.square(
-                                    dimension: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Icon(LucideIcons.logOut, size: 16),
-                            child: Text(l10n.accountSignOut),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                Semantics(
-                  container: true,
-                  label: l10n.legalLabel,
-                  child: Card(
+      // Clear of the floating bottom bar at its end.
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(SpacingTokens.space4),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: _maxWidth),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: SpacingTokens.space6,
+                children: [
+                  Card(
                     child: Padding(
-                      padding: const EdgeInsets.all(SpacingTokens.space1),
+                      padding: const EdgeInsets.all(SpacingTokens.space4),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        spacing: SpacingTokens.space4,
                         children: [
-                          for (final (page, title) in [
-                            (LegalPage.terms, l10n.legalTerms),
-                            (LegalPage.privacy, l10n.legalPrivacy),
-                          ])
-                            ListTile(
-                              minTileHeight: 48,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  RadiusTokens.xl,
+                          Row(
+                            spacing: SpacingTokens.space3,
+                            children: [
+                              CircleAvatar(
+                                radius: SpacingTokens.space6,
+                                backgroundColor: scheme.secondary,
+                                foregroundColor: scheme.onSecondary,
+                                child: const Icon(LucideIcons.userRound),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Semantics(
+                                      header: true,
+                                      child: Text(
+                                        account == null
+                                            ? l10n.accountGuestTitle
+                                            : name.isEmpty
+                                            ? account.email
+                                            : name,
+                                        style: text.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Text(
+                                      account == null
+                                          ? l10n.accountGuestBody
+                                          : name.isEmpty
+                                          ? l10n.accountSignedIn
+                                          : account.email,
+                                      style: text.bodySm.copyWith(
+                                        color: scheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              title: Text(title, style: text.body),
-                              trailing: Icon(
-                                LucideIcons.chevronRight,
-                                size: 16,
-                                color: scheme.onSurfaceVariant,
+                            ],
+                          ),
+                          if (account == null)
+                            AppButton(
+                              onPressed: () => unawaited(
+                                const SignInRoute(returnTo: '/account')
+                                    .push(context),
                               ),
-                              onTap: () => openLegalPage(page, language),
+                              child: Text(l10n.accountSignIn),
+                            )
+                          else
+                            AppButton(
+                              variant: AppButtonVariant.outline,
+                              onPressed: _signingOut ? null : _signOut,
+                              icon: _signingOut
+                                  ? const SizedBox.square(
+                                      dimension: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(LucideIcons.logOut, size: 16),
+                              child: Text(l10n.accountSignOut),
                             ),
                         ],
                       ),
                     ),
                   ),
-                ),
-              ],
+                  // Account settings, where the account is managed and, at its
+                  // foot, deleted (SEC-37): never beside sign-out.
+                  if (account != null)
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(SpacingTokens.space1),
+                        child: ListTile(
+                          minTileHeight: 48,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              RadiusTokens.xl,
+                            ),
+                          ),
+                          leading: const Icon(LucideIcons.settings, size: 18),
+                          title: Text(
+                            l10n.accountSettingsTitle,
+                            style: text.body,
+                          ),
+                          trailing: Icon(
+                            LucideIcons.chevronRight,
+                            size: 16,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                          onTap: () => unawaited(
+                            const AccountSettingsRoute().push<void>(context),
+                          ),
+                        ),
+                      ),
+                    ),
+                  Semantics(
+                    container: true,
+                    label: l10n.legalLabel,
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(SpacingTokens.space1),
+                        child: Column(
+                          children: [
+                            for (final (route, title) in [
+                              (const TermsRoute(), l10n.legalTerms),
+                              (const PrivacyRoute(), l10n.legalPrivacy),
+                            ])
+                              ListTile(
+                                minTileHeight: 48,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    RadiusTokens.xl,
+                                  ),
+                                ),
+                                title: Text(title, style: text.body),
+                                trailing: Icon(
+                                  LucideIcons.chevronRight,
+                                  size: 16,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                                onTap: () =>
+                                    unawaited(route.push<void>(context)),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

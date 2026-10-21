@@ -26,7 +26,7 @@ export function inShowingOrder(offers: readonly OfferSummary[]): OfferSummary[] 
   return [...offers.filter(isAvailable), ...offers.filter((offer) => !isAvailable(offer))];
 }
 
-/** What can still be ordered, the window that closes first at the top: the home's "Sắp hết giờ lấy". */
+/** What can still be ordered, the window that closes first at the top: the home's "Sắp hết giờ nhận". */
 export function closingFirst(offers: readonly OfferSummary[]): OfferSummary[] {
   return offers
     .filter(isAvailable)

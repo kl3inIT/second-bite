@@ -7,28 +7,39 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentAccount } from "@/features/identity/current-account";
 import { readReturnTo } from "@/features/identity/return-to";
 import { SignInForm } from "@/features/identity/sign-in-form";
+import { SignInHero } from "@/features/identity/sign-in-hero";
 import { redirect } from "@/i18n/navigation";
 import { getSignInMethods } from "@/lib/api/generated";
+import { pageMetadata } from "@/lib/seo";
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/sign-in">): Promise<Metadata> {
   const t = await getTranslations("SignIn");
-  return { title: `${t("title")} · Second Bite`, robots: { index: false } };
+  return pageMetadata({ locale: (await params).locale, title: t("title"), index: false });
 }
 
 // The sign-in screen (SEC-29 › Web), reached when an action needs an account, with `returnTo` naming the
-// page to go back to. On a phone the form fills the screen under the white top bar; on a wide screen it
-// sits on a 440 px card (Figma W1, W2).
+// page to go back to. On a phone the form fills the screen under the white top bar; on a tablet it sits on a
+// 440 px card (Figma W1, W2); from 1024 px the page splits in two, the blue panel and the bare form (Figma
+// L6, L9; SEC-56).
 export default async function SignInPage({ searchParams }: PageProps<"/[locale]/sign-in">) {
   const t = await getTranslations("SignIn");
   const returnTo = searchParams.then((query) => readReturnTo(query.returnTo));
 
   return (
     <>
-      <Suspense fallback={<TopBar title={t("title")} back="/" />}>
-        <BackToReturn title={t("title")} returnTo={returnTo} />
-      </Suspense>
-      <main className="flex flex-1 justify-center bg-card sm:bg-background sm:px-4 sm:py-10">
-        <div className="w-full px-4 py-6 sm:h-fit sm:max-w-110 sm:rounded-2xl sm:bg-card sm:p-8">
+      <div className="lg:hidden">
+        <Suspense fallback={<TopBar title={t("title")} back="/" />}>
+          <BackToReturn title={t("title")} returnTo={returnTo} />
+        </Suspense>
+      </div>
+      <main
+        data-no-footer
+        className="flex flex-1 justify-center bg-card sm:bg-background sm:px-4 sm:py-10 lg:grid lg:min-h-svh lg:grid-cols-5 lg:p-0"
+      >
+        <SignInHero />
+        <div className="w-full px-4 py-6 sm:h-fit sm:max-w-110 sm:rounded-2xl sm:bg-card sm:p-8 lg:col-span-3 lg:m-auto lg:max-w-100 lg:rounded-none lg:bg-transparent lg:p-0">
           <Suspense fallback={<SignInSkeleton />}>
             <SignIn returnTo={returnTo} />
           </Suspense>

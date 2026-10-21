@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:app_ui/src/theme/tokens.g.dart';
+import 'package:flutter/services.dart';
 
 /// The height of a button, from DESIGN.md's `button-primary` component.
 const double _buttonHeight = 52;
@@ -24,16 +25,38 @@ abstract final class AppTheme {
       textTheme: _textTheme(textStyles),
       // Pressed controls darken to their `*-hover` colour instead of rippling.
       splashFactory: NoSplash.splashFactory,
+      // Every screen but the home has the blue top bar of Figma Mobile v3
+      // (K5): the screen's name in white over the header's blue, with light
+      // status bar icons (DESIGN.md › Blue Header; SEC-52). The web keeps the
+      // White Shell.
       appBarTheme: AppBarTheme(
-        backgroundColor: ColorTokens.shell,
-        foregroundColor: ColorTokens.shellForeground,
+        backgroundColor: ColorTokens.header,
+        foregroundColor: ColorTokens.headerForeground,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
         titleTextStyle: textStyles.barTitle.copyWith(
-          color: ColorTokens.shellForeground,
+          color: ColorTokens.headerForeground,
         ),
-        shape: const Border(bottom: BorderSide(color: ColorTokens.border)),
+      ),
+      // The back button is a white disc with the arrow in Tasco blue, as K5
+      // draws it; the button around it keeps its 48 point target.
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (context) => const DecoratedBox(
+          decoration: BoxDecoration(
+            color: ColorTokens.headerRaised,
+            shape: BoxShape.circle,
+          ),
+          child: SizedBox.square(
+            dimension: 36,
+            child: Icon(
+              LucideIcons.chevronLeft,
+              size: 20,
+              color: ColorTokens.primary,
+            ),
+          ),
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(style: _buttonStyle(textStyles)),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -93,26 +116,27 @@ abstract final class AppTheme {
           ),
         ),
       ),
-      // The bottom bar (Figma "Bottom nav"): white, the active tab's icon in a
-      // lime pill, its label strong; the others muted.
+      // The tabs of the bottom bar (DESIGN.md › Bottom bar, Figma "Bottom
+      // nav"), on the glass of AppBottomBar: the active tab's icon in a Blue
+      // Wash pill, it and its label in Tasco blue; the others muted.
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: ColorTokens.shell,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        height: 64,
-        indicatorColor: ColorTokens.fresh,
+        // The 64 point bar less the glass's 5 point edge on each side.
+        height: 54,
+        indicatorColor: ColorTokens.secondary,
         indicatorShape: const StadiumBorder(),
-        // A tab without a screen yet is muted at half strength, as on the web.
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? textStyles.labelStrong.copyWith(color: ColorTokens.foreground)
+              ? textStyles.labelStrong.copyWith(color: ColorTokens.primary)
               : textStyles.label.copyWith(color: _navigationMuted(states)),
         ),
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             size: 20,
             color: states.contains(WidgetState.selected)
-                ? ColorTokens.freshForeground
+                ? ColorTokens.primary
                 : _navigationMuted(states),
           ),
         ),
@@ -201,9 +225,10 @@ abstract final class AppTheme {
     );
   }
 
+  // A tab without a screen yet is shown at 85%, as on the web.
   static Color _navigationMuted(Set<WidgetState> states) =>
       states.contains(WidgetState.disabled)
-      ? ColorTokens.mutedForeground.withValues(alpha: 0.5)
+      ? ColorTokens.mutedForeground.withValues(alpha: 0.85)
       : ColorTokens.mutedForeground;
 
   static OutlineInputBorder _fieldBorder(Color color, {double width = 1}) {

@@ -8,24 +8,27 @@ part of 'auth_repository.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The [AuthRepository] over the app's one client and session store.
+/// The [AuthRepository] over the app's one client and session store, kept
+/// for the app's life as they are, since the signed-in account follows it.
 
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();
 
-/// The [AuthRepository] over the app's one client and session store.
+/// The [AuthRepository] over the app's one client and session store, kept
+/// for the app's life as they are, since the signed-in account follows it.
 
 final class AuthRepositoryProvider
     extends $FunctionalProvider<AuthRepository, AuthRepository, AuthRepository>
     with $Provider<AuthRepository> {
-  /// The [AuthRepository] over the app's one client and session store.
+  /// The [AuthRepository] over the app's one client and session store, kept
+  /// for the app's life as they are, since the signed-in account follows it.
   AuthRepositoryProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'authRepositoryProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -52,4 +55,4 @@ final class AuthRepositoryProvider
   }
 }
 
-String _$authRepositoryHash() => r'57f4aad381690eb22f76ec79d4b58ce44feac424';
+String _$authRepositoryHash() => r'33c2ec294d685023c4a5080b26652cd7f44450ff';

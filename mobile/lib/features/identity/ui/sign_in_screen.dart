@@ -6,11 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:second_bite/core/api.dart';
 import 'package:second_bite/core/language_button.dart';
-import 'package:second_bite/core/web_pages.dart';
+import 'package:second_bite/core/routes.dart';
 import 'package:second_bite/features/identity/data/auth_repository.dart';
 import 'package:second_bite/features/identity/data/google_auth.dart';
 import 'package:second_bite/features/identity/ui/current_account.dart';
+import 'package:second_bite/features/identity/ui/resend_code.dart';
 import 'package:second_bite/features/identity/ui/sign_in_problem.dart';
+import 'package:second_bite/features/legal/ui/legal_text.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
 /// How many digits the emailed code has.
@@ -176,7 +178,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           tooltip: l10n.topBarBack,
           onPressed: () =>
               context.canPop() ? context.pop() : context.go(widget.returnTo),
-          icon: const Icon(LucideIcons.chevronLeft, size: 24),
+          icon: const BackButtonIcon(),
         ),
         title: Text(l10n.signInTitle),
         actions: const [
@@ -325,7 +327,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               l10n.signInNotArrived,
               style: text.label.copyWith(color: scheme.onSurfaceVariant),
             ),
-            _ResendCode(
+            ResendCode(
               key: ValueKey(_sent),
               wait: problem?.kind == SignInProblemKind.codeGone
                   ? 0
@@ -397,7 +399,7 @@ class _ProblemText extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              problem.text(context.l10n),
+              problem.text(context.l10n, failed: context.l10n.signInFailed),
               style: context.appTextStyles.bodySm.copyWith(color: error),
             ),
           ),
@@ -473,7 +475,7 @@ class _CodeSentState extends State<_CodeSent> {
 }
 
 /// "Khi tiếp tục, bạn đồng ý với Điều khoản sử dụng và Chính sách quyền
-/// riêng tư.", the two pages opening on the web as on the account tab.
+/// riêng tư.", the two pages opening inside the app as on the account tab.
 class _LegalLine extends StatefulWidget {
   const new();
 
@@ -482,8 +484,8 @@ class _LegalLine extends StatefulWidget {
 }
 
 class _LegalLineState extends State<_LegalLine> {
-  final Map<LegalPage, TapGestureRecognizer> _links = {
-    for (final page in LegalPage.values) page: TapGestureRecognizer(),
+  final Map<LegalDocument, TapGestureRecognizer> _links = {
+    for (final page in LegalDocument.values) page: TapGestureRecognizer(),
   };
 
   @override
@@ -499,7 +501,6 @@ class _LegalLineState extends State<_LegalLine> {
     final l10n = context.l10n;
     final text = context.appTextStyles;
     final scheme = Theme.of(context).colorScheme;
-    final language = Localizations.localeOf(context).languageCode;
     const terms = '\u0000';
     const privacy = '\u0001';
     final sentence = l10n.signInLegal(terms, privacy);
@@ -517,13 +518,18 @@ class _LegalLineState extends State<_LegalLine> {
         break;
       }
       if (at > 0) spans.add(TextSpan(text: rest.substring(0, at)));
-      final page = rest[at] == terms ? LegalPage.terms : LegalPage.privacy;
+      final page = rest[at] == terms
+          ? LegalDocument.terms
+          : LegalDocument.privacy;
       spans.add(
         TextSpan(
-          text: page == LegalPage.terms ? l10n.legalTerms : l10n.legalPrivacy,
+          text: page.title(l10n),
           style: link,
           recognizer: _links[page]!
-            ..onTap = () => openLegalPage(page, language),
+            ..onTap = () => unawaited(switch (page) {
+              LegalDocument.terms => const TermsRoute().push<void>(context),
+              LegalDocument.privacy => const PrivacyRoute().push<void>(context),
+            }),
         ),
       );
       rest = rest.substring(at + 1);
@@ -535,81 +541,6 @@ class _LegalLineState extends State<_LegalLine> {
         children: spans,
       ),
       textAlign: TextAlign.center,
-    );
-  }
-}
-
-/// "Gửi lại mã sau 0:28", then the button itself once the wait is over.
-class _ResendCode extends StatefulWidget {
-  const new({
-    required this.wait,
-    required this.enabled,
-    required this.onResend,
-    super.key,
-  });
-
-  /// Seconds to wait before a new code can be asked for.
-  final int wait;
-  final bool enabled;
-  final VoidCallback onResend;
-
-  @override
-  State<_ResendCode> createState() => _ResendCodeState();
-}
-
-class _ResendCodeState extends State<_ResendCode> {
-  late int _left = widget.wait;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _start();
-  }
-
-  @override
-  void didUpdateWidget(_ResendCode oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.wait == 0 && _left > 0) {
-      _timer?.cancel();
-      _left = 0;
-    }
-  }
-
-  void _start() {
-    if (_left == 0) return;
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() => _left--);
-      if (_left <= 0) timer.cancel();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    if (_left > 0) {
-      final time = '${_left ~/ 60}:${(_left % 60).toString().padLeft(2, '0')}';
-      return Text(
-        l10n.signInResendIn(time),
-        style: context.appTextStyles.label.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      );
-    }
-    return TextButton(
-      onPressed: widget.enabled ? widget.onResend : null,
-      style: TextButton.styleFrom(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size(0, 44),
-        foregroundColor: Theme.of(context).colorScheme.primary,
-      ),
-      child: Text(l10n.signInResend),
     );
   }
 }

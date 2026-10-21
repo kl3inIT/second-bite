@@ -17,6 +17,7 @@ abstract final class ColorTokens {
   static const inverseMuted = Color(0xFFD8F0FA);
   static const shell = Color(0xFFFFFFFF);
   static const shellForeground = Color(0xFF0E1D19);
+  static const sky = Color(0xFF3CB4E7);
   static const header = Color(0xFF0061AF);
   static const headerForeground = Color(0xFFFFFFFF);
   static const headerRaised = Color(0xFFFFFFFF);
@@ -129,6 +130,26 @@ abstract final class TypeTokens {
     letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );
+  static const cardTitle = TextStyle(
+    fontFamily: 'Be Vietnam Pro',
+    package: 'app_ui',
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    fontVariations: [FontVariation('wght', 600)],
+    height: 25 / 18,
+    letterSpacing: 0,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
+  static const note = TextStyle(
+    fontFamily: 'Be Vietnam Pro',
+    package: 'app_ui',
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    fontVariations: [FontVariation('wght', 400)],
+    height: 19 / 13,
+    letterSpacing: 0,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
   static const button = TextStyle(
     fontFamily: 'Be Vietnam Pro',
     package: 'app_ui',
@@ -156,6 +177,26 @@ abstract final class TypeTokens {
     fontWeight: FontWeight.w700,
     fontVariations: [FontVariation('wght', 700)],
     height: 28 / 20,
+    letterSpacing: 0,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
+  static const pageTitle = TextStyle(
+    fontFamily: 'Be Vietnam Pro',
+    package: 'app_ui',
+    fontSize: 28,
+    fontWeight: FontWeight.w600,
+    fontVariations: [FontVariation('wght', 600)],
+    height: 36 / 28,
+    letterSpacing: 0,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
+  static const hero = TextStyle(
+    fontFamily: 'Be Vietnam Pro',
+    package: 'app_ui',
+    fontSize: 44,
+    fontWeight: FontWeight.w700,
+    fontVariations: [FontVariation('wght', 700)],
+    height: 54 / 44,
     letterSpacing: 0,
     leadingDistribution: TextLeadingDistribution.even,
   );

@@ -29,6 +29,30 @@ class CurrentAccount extends _$CurrentAccount {
   /// Records [account], just signed in.
   void signedIn(AccountBody account) => state = AsyncData(account);
 
+  /// Gives the account the display name it chose (SEC-61); every screen
+  /// showing the account follows.
+  Future<void> setDisplayName(String name) async {
+    final account = await ref.read(authRepositoryProvider).setDisplayName(name);
+    state = AsyncData(account);
+  }
+
+  /// Deletes the account with the emailed [code] (SEC-37): no one is signed
+  /// in after, and the Google account chosen on this phone is forgotten.
+  Future<void> deleteAccount({
+    required String challengeId,
+    required String code,
+  }) async {
+    await ref
+        .read(authRepositoryProvider)
+        .deleteAccount(challengeId: challengeId, code: code);
+    state = const AsyncData(null);
+    try {
+      await ref.read(googleAuthProvider).signOut();
+    } on Object {
+      // Google's own state matters only to the next Google sign-in.
+    }
+  }
+
   /// Ends the session here and on the server, and forgets the Google account
   /// chosen on this phone.
   Future<void> signOut() async {

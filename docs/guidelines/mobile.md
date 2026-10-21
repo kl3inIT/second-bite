@@ -47,7 +47,7 @@ mobile/
 ## Design tokens and theming
 
 - Tokens are defined once, in the frontmatter of `DESIGN.md`. `web/scripts/generate-tokens.mjs` writes both the web's `tokens.css` and `app_ui`'s `tokens.g.dart`, with the same contrast gate; never edit either file. Token names follow the web's (`primary`, `signature`, `muted-foreground`).
-- `ThemeData` is built from the tokens and is the only source of colour, type and component style, as VGV's `material-theming` skill asks. Colours Material has a role for go into `ColorScheme`; the rest (`fresh`, `link`, `success`, `warning`, the `*-hover` colours) into the `AppColors` extension. The thirteen type roles fill Material's fifteen `TextTheme` slots and the `AppTextStyles` extension, under the web's names. `tokens.g.dart` holds only the values; which role takes which Material slot is written by hand in `AppTheme`, so a role added to DESIGN.md reaches the app once someone maps it there. Material's defaults that do not belong to the design (ripple colour, surface tint, tonal fills) are set explicitly in the component themes.
+- `ThemeData` is built from the tokens and is the only source of colour, type and component style, as VGV's `material-theming` skill asks. Colours Material has a role for go into `ColorScheme`; the rest (`fresh`, `link`, `success`, `warning`, the `*-hover` colours) into the `AppColors` extension. The eighteen type roles fill Material's fifteen `TextTheme` slots and the `AppTextStyles` extension, under the web's names. `tokens.g.dart` holds only the values; which role takes which Material slot is written by hand in `AppTheme`, so a role added to DESIGN.md reaches the app once someone maps it there. Material's defaults that do not belong to the design (ripple colour, surface tint, tonal fills) are set explicitly in the component themes.
 - The typefaces are bundled in `app_ui` (Be Vietnam Pro, and Bricolage Grotesque as a variable font whose weight is set as an axis), with their licences registered by `registerFontLicenses()`; a text style names its family with `package: 'app_ui'`.
 - There is no dark theme until DESIGN.md defines one.
 - Touch targets are at least 44 points; status is never carried by colour alone; text scales with the system setting.
@@ -57,6 +57,7 @@ mobile/
 - Repositories call the generated client; the client is configured once in `core/` with the API's address and the session's token. A failure's words are the server's `detail` (SEC-28); the app branches on its `code` only where the screen does something different.
 - Vietnamese and English through gen-l10n (`flutter_localizations`, `intl`, ARB files), read as `context.l10n`. The first language follows the device; a choice made in the app is kept in `shared_preferences` and sent as `Accept-Language` on every call. Every key is in both catalogs.
 - Times are shown in `Asia/Ho_Chi_Minh` on the 24-hour clock, prices in đồng (`39.000đ`), as on the web.
+- The terms and the privacy policy are read inside the app from a copy of the web's text in the ARB catalogs (`legalTerms*`, `legalPrivacy*`); `test/features/legal/legal_text_test.dart` reads `web/messages` and fails when the two differ, so a change to the legal text is made on the web and copied here in the same change (SEC-52).
 
 ## Quality gates
 

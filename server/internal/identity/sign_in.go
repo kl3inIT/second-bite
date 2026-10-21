@@ -35,6 +35,14 @@ type Session struct {
 	Account   Account
 }
 
+// codePurpose is what an emailed code is for; a code works only for its own.
+type codePurpose string
+
+const (
+	purposeSignIn        codePurpose = "sign_in"
+	purposeDeleteAccount codePurpose = "delete_account"
+)
+
 // RequestCode emails a six-digit code to address. Whether the address has an
 // account or not, the answer is the same, so it does not tell who has one.
 // The email is sent before the request is answered and the code never
@@ -45,6 +53,25 @@ func (s *Service) RequestCode(ctx context.Context, address string) (Challenge, e
 		return Challenge{}, err
 	}
 
+	c, err := s.sendCode(ctx, email, purposeSignIn, signInCodeEmail)
+	if err != nil {
+		return Challenge{}, err
+	}
+
+	s.logger.InfoContext(ctx, "sign-in code sent",
+		slog.String("event", "identity.sign_in_code.sent"),
+		slog.String("challenge_id", c.ID.String()),
+	)
+
+	return c, nil
+}
+
+// sendCode stores a code of purpose for email within the address's limits and
+// emails it with message. A code that could not be sent is deleted, so it
+// neither works nor counts toward the limits.
+func (s *Service) sendCode(
+	ctx context.Context, email string, purpose codePurpose, message func(to, code string) notification.Email,
+) (Challenge, error) {
 	code, err := newCode()
 	if err != nil {
 		return Challenge{}, err
@@ -89,6 +116,7 @@ func (s *Service) RequestCode(ctx context.Context, address string) (Challenge, e
 			ID:              id,
 			Email:           email,
 			CodeHash:        s.codeHash(id, code),
+			Purpose:         string(purpose),
 			LifetimeSeconds: int32(codeLifetime / time.Second),
 		})
 		if err != nil {
@@ -101,7 +129,7 @@ func (s *Service) RequestCode(ctx context.Context, address string) (Challenge, e
 		return Challenge{}, err
 	}
 
-	if err := s.email.SendEmail(ctx, signInCodeEmail(email, code)); err != nil {
+	if err := s.email.SendEmail(ctx, message(email, code)); err != nil {
 		// A code that never left neither works nor counts toward the limits.
 		if _, delErr := s.queries.DeleteChallenge(context.WithoutCancel(ctx), id); delErr != nil {
 			return Challenge{}, errors.Join(err, fmt.Errorf("deleting the unsent challenge: %w", delErr))
@@ -109,11 +137,6 @@ func (s *Service) RequestCode(ctx context.Context, address string) (Challenge, e
 
 		return Challenge{}, err
 	}
-
-	s.logger.InfoContext(ctx, "sign-in code sent",
-		slog.String("event", "identity.sign_in_code.sent"),
-		slog.String("challenge_id", id.String()),
-	)
 
 	return Challenge{ID: id, ExpiresAt: expiresAt}, nil
 }
@@ -151,32 +174,9 @@ func limitWait(u db.ChallengeUsageRow) time.Duration {
 // a session, creating the account on its first sign-in. Each guess is paid
 // before it is compared; a right code works once.
 func (s *Service) SignIn(ctx context.Context, challengeID uuid.UUID, code string) (Session, error) {
-	spent, err := s.queries.SpendAttempt(ctx, db.SpendAttemptParams{ID: challengeID, MaxAttempts: codeAttempts})
-	if errors.Is(err, pgx.ErrNoRows) {
-		exhausted, err := s.queries.ChallengeExhausted(ctx, db.ChallengeExhaustedParams{ID: challengeID, MaxAttempts: codeAttempts})
-		if err != nil {
-			return Session{}, fmt.Errorf("reading the challenge: %w", err)
-		}
-
-		if exhausted {
-			return Session{}, ErrCodeAttemptsExhausted
-		}
-
-		return Session{}, ErrChallengeGone
-	}
-
+	email, err := s.checkCode(ctx, challengeID, code, purposeSignIn)
 	if err != nil {
-		return Session{}, fmt.Errorf("spending a guess: %w", err)
-	}
-
-	if !hmac.Equal(spent.CodeHash, s.codeHash(challengeID, code)) {
-		s.logger.InfoContext(ctx, "sign-in code wrong",
-			slog.String("event", "identity.sign_in.failed"),
-			slog.String("challenge_id", challengeID.String()),
-			slog.String("error_code", ErrCodeIncorrect.Code),
-		)
-
-		return Session{}, ErrCodeIncorrect
+		return Session{}, err
 	}
 
 	var session Session
@@ -193,7 +193,7 @@ func (s *Service) SignIn(ctx context.Context, challengeID uuid.UUID, code string
 			return ErrChallengeGone // another request used the code first
 		}
 
-		account, err := q.UpsertAccount(ctx, spent.Email)
+		account, err := q.UpsertAccount(ctx, email)
 		if err != nil {
 			return fmt.Errorf("finding the account: %w", err)
 		}
