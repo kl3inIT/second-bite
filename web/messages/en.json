@@ -703,6 +703,14 @@
     "mine": "My stores",
     "create": "Open another store"
   },
+  "ScanOrder": {
+    "open": "Scan an order's code",
+    "title": "Scan an order's code",
+    "hint": "Hold the customer's QR code in the frame",
+    "close": "Close",
+    "noCamera": "Could not open the camera. Allow the camera in the browser.",
+    "notOurs": "This code is not an order of this store. Try another code."
+  },
   "StoreHome": {
     "title": "Store home",
     "startTitle": "Start selling",

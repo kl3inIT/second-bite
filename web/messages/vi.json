@@ -703,6 +703,14 @@
     "mine": "Quán của tôi",
     "create": "Tạo thêm quán"
   },
+  "ScanOrder": {
+    "open": "Quét mã đơn",
+    "title": "Quét mã đơn",
+    "hint": "Đưa mã QR của khách vào khung",
+    "close": "Đóng",
+    "noCamera": "Chưa mở được camera. Hãy cho phép camera trong trình duyệt.",
+    "notOurs": "Mã này không phải đơn của quán. Thử mã khác."
+  },
   "StoreHome": {
     "title": "Trang chủ quán",
     "startTitle": "Bắt đầu bán",

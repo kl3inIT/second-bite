@@ -29,6 +29,9 @@ type View = {
   placeholder: string;
 };
 
+/** What stands beside the search, as the Đơn tab's scan button does. */
+type Extra = { extra?: React.ReactNode };
+
 /** The address of the page for a view, without what is as it opens: today, the first tab, no search. */
 function hrefFor(view: View, change: Partial<Pick<View, "day" | "q">> = {}) {
   const { pathname, today, tab, defaultTab } = view;
@@ -66,10 +69,13 @@ const squareControl =
 // The search and the day of a store's list, orders or posts (Figma Q5, Q5b, Q5g, Q2): a search by name, phone number or dish that
 // reads as you type, and the day shown with a step to the day before and after, and a month to pick from. Orders
 // belong to a day, so the page shows one. The view is the address, so it is shared and survives a reload.
-export function DayFilter(view: View) {
+export function DayFilter({ extra, ...view }: View & Extra) {
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <Search {...view} />
+      <div className="flex min-w-60 flex-1 items-center gap-2 max-md:w-full">
+        <Search {...view} />
+        {extra}
+      </div>
       <DayBar {...view} />
     </div>
   );
@@ -89,7 +95,7 @@ function Search(view: View) {
   }, [text, view, router]);
 
   return (
-    <InputGroup className="min-w-60 flex-1">
+    <InputGroup className="min-w-0 flex-1">
       <InputGroupAddon>
         <SearchIcon aria-hidden />
       </InputGroupAddon>
