@@ -48,6 +48,13 @@ type orderSellerBody struct {
 	Longitude float64   `json:"longitude"`
 }
 
+type reviewBody struct {
+	Stars     int       `json:"stars"`
+	Tags      []Tag     `json:"tags"      nullable:"false"`
+	Comment   string    `json:"comment,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 type orderBody struct {
 	ID            uuid.UUID       `json:"id"`
 	Number        string          `json:"number"                 doc:"What people read aloud, SB- and a number"`
@@ -68,10 +75,16 @@ type orderBody struct {
 	CheckoutID    uuid.UUID       `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
 	CustomerName  string          `json:"customerName"           doc:"Who collects, as given with the order"`
 	CustomerPhone string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits"`
+	Review        *reviewBody     `json:"review,omitempty"       doc:"The customer's rating of the collected order; none until they rate it"`
 	Access        string          `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
 }
 
 func toBody(o Order) orderBody {
+	var review *reviewBody
+	if o.Review != nil {
+		review = &reviewBody{Stars: o.Review.Stars, Tags: o.Review.Tags, Comment: o.Review.Comment, CreatedAt: o.Review.CreatedAt}
+	}
+
 	lines := make([]orderLineBody, 0, len(o.Lines))
 	for _, l := range o.Lines {
 		lines = append(lines, orderLineBody{
@@ -90,7 +103,7 @@ func toBody(o Order) orderBody {
 		Lines: lines, TotalVND: o.TotalVND, WindowStart: o.WindowStart, WindowEnd: o.WindowEnd, CreatedAt: o.CreatedAt,
 		ReadyAt: o.ReadyAt, CollectedAt: o.CollectedAt, CancelledAt: o.CancelledAt, RefusedAt: o.RefusedAt,
 		CancelReason: o.CancelReason, RefuseReason: o.RefuseReason, RefuseNote: o.RefuseNote,
-		CheckoutID: o.CheckoutID, CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Access: o.Access,
+		CheckoutID: o.CheckoutID, CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Review: review, Access: o.Access,
 	}
 }
 
@@ -209,6 +222,29 @@ func registerCustomerOperations(api huma.API, s *Service) {
 	},
 	) (*orderOutput, error) {
 		o, err := s.Cancel(ctx, in.OrderID, in.Access, in.Body.Reason)
+		if err != nil {
+			return nil, err
+		}
+
+		return &orderOutput{Body: toBody(o)}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "reviewOrder", Method: http.MethodPost, Path: "/orders/{orderId}/review",
+		Summary:     "Rate your collected order, once",
+		Description: "By its customer, signed in or sending its access, after the order was handed over.",
+		Tags:        tagOrders, Security: anyone,
+	}, func(ctx context.Context, in *struct {
+		OrderID uuid.UUID `path:"orderId"`
+		Access  string    `doc:"The order's access, for its customer who did not sign in" header:"Order-Access" maxLength:"64"`
+		Body    struct {
+			Stars   int    `json:"stars"             maximum:"5" minimum:"1"`
+			Tags    []Tag  `json:"tags"              doc:"What went well" enum:"fast_pickup,good_quality,good_variety,fair_portions" maxItems:"4" nullable:"false" uniqueItems:"true"`
+			Comment string `json:"comment,omitempty" maxLength:"500"`
+		}
+	},
+	) (*orderOutput, error) {
+		o, err := s.Rate(ctx, in.OrderID, in.Access, Review{Stars: in.Body.Stars, Tags: in.Body.Tags, Comment: in.Body.Comment})
 		if err != nil {
 			return nil, err
 		}

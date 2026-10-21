@@ -54,7 +54,7 @@ test.describe("the search", () => {
 
     const recent = page.getByRole("region", { name: "Tìm gần đây" });
     await expect(recent.getByRole("link", { name: "banh bao" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Bánh 2 món đang giảm" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Bánh 6 món đang giảm" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
     await recent.getByRole("button", { name: "Xoá “banh bao” khỏi tìm gần đây" }).click();

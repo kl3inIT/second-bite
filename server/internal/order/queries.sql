@@ -119,3 +119,12 @@ WITH ended AS (
     RETURNING id
 )
 INSERT INTO order_events (order_id, kind) SELECT id, 'expired' FROM ended;
+
+-- name: InsertReview :execrows
+-- Nothing is inserted when the order was already reviewed.
+INSERT INTO order_reviews (order_id, stars, tags, comment) VALUES (@order_id, @stars, @tags, @comment)
+ON CONFLICT (order_id) DO NOTHING;
+
+-- name: ReviewsOf :many
+SELECT order_id, stars, tags, comment, created_at
+FROM order_reviews WHERE order_id = ANY (@order_ids::uuid[]);

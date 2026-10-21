@@ -8,8 +8,7 @@ import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-import impact from "./impact.jpg";
-import { byCheckout, dayOf, isOpen, savingOf, type Day, type Order } from "./order";
+import { dayOf, type Day, type Order } from "./order";
 import { readMyOrderLists } from "./read-orders";
 import { SignInPrompt } from "./sign-in-prompt";
 
@@ -43,41 +42,19 @@ function Thumb({ order, size }: { order: Order; size: "md" | "sm" }) {
   );
 }
 
-/** What a group of orders placed together shows as one: its sellers, dishes, numbers and total. */
-function together(orders: Order[]) {
-  return {
-    sellers: orders.map((order) => order.seller.name).join(", "),
-    dishes: orders.flatMap((order) => order.lines.map((line) => line.name)),
-    numbers: orders.map((order) => order.number).join(", "),
-    total: orders.reduce((sum, order) => sum + order.totalVnd, 0),
-  };
-}
-
-/** The dishes of a group, each on its own line. */
-function Dishes({ dishes, className }: { dishes: string[]; className: string }) {
-  return (
-    <span className={cn("flex flex-col", className)}>
-      {dishes.map((dish, index) => (
-        <span key={index} className="truncate">
-          {dish}
-        </span>
-      ))}
-    </span>
-  );
+/** The dishes of an order on one line: "Croissant & bánh mì chà bông". */
+function dishesOf(order: Order): string {
+  return order.lines.map((line) => line.name).join(" & ");
 }
 
 /**
- * Orders still to collect, placed together from one cart (SEC-76 › decision 8), with the way to them (Figma
- * D1 › active): the soonest part decides the status and the window shown.
+ * A seller's order still to collect, with the way to it (Figma K8 › active): the seller and when to collect, the
+ * dishes, the number, the total and the counter.
  */
-async function OpenOrderCard({ orders }: { orders: Order[] }) {
+async function OpenOrderCard({ order }: { order: Order }) {
   const [t, format] = await Promise.all([getTranslations("Orders"), getFormatter()]);
-  const [order] = orders
-    .filter(isOpen)
-    .toSorted((a, b) => Date.parse(a.windowStart) - Date.parse(b.windowStart));
   const from = format.dateTime(new Date(order.windowStart), "time");
   const until = format.dateTime(new Date(order.windowEnd), "time");
-  const { sellers, dishes, numbers, total } = together(orders);
 
   return (
     <article className="relative flex flex-col gap-3 overflow-hidden rounded-2xl bg-card p-3.5 text-card-foreground">
@@ -85,26 +62,24 @@ async function OpenOrderCard({ orders }: { orders: Order[] }) {
       <div className="flex items-center gap-3">
         <Thumb order={order} size="md" />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <p className="flex items-center justify-between gap-2 pr-6 text-label">
-            <span className="truncate text-muted-foreground">{sellers}</span>
-            <span className="shrink-0 text-label-strong text-primary">
-              {order.status === "ready" ? t("readyUntil", { until }) : t("preparing")}
+          <p className="flex items-center justify-between gap-2 pr-6">
+            <span className="truncate text-label text-muted-foreground">{order.seller.name}</span>
+            <span className="shrink-0 rounded-full bg-secondary px-2 py-0.75 text-label-strong text-primary">
+              {order.status === "ready" ? t("readyUntil", { until }) : t("collectAt", { from })}
             </span>
           </p>
-          <h3>
-            <Dishes dishes={dishes} className="text-title" />
-          </h3>
+          <h3 className="line-clamp-2 text-title">{dishesOf(order)}</h3>
           <p className="text-label text-muted-foreground">
-            {t("cardMeta", { numbers, from, until })}
-          </p>
-          <p className="flex items-baseline gap-1.5 text-label text-muted-foreground">
-            <span className="font-display text-price text-foreground">{formatPrice(total)}</span>
-            {t("payOnCollect")}
+            {t("cardMeta", {
+              number: order.number,
+              total: formatPrice(order.totalVnd),
+              place: order.seller.address,
+            })}
           </p>
         </div>
       </div>
       <Link
-        href={`/orders/${orders[0].id}`}
+        href={`/orders/${order.id}`}
         className={buttonVariants({ variant: "secondary", size: "lg" })}
       >
         {t("seeOrder")}
@@ -123,35 +98,29 @@ const endedTone: Record<Order["status"], string> = {
   expired: "text-warning-foreground",
 };
 
-/** Orders placed together that have all ended, on one line (Figma D4 › past): their day and what became of them. */
-async function EndedOrderRow({ orders }: { orders: Order[] }) {
+/** A seller's order that has ended, on one line (Figma K8 › past): its day, what became of it and what it cost. */
+async function EndedOrderRow({ order }: { order: Order }) {
   const [t, format] = await Promise.all([getTranslations("Orders"), getFormatter()]);
-  const [order] = orders;
   const at = new Date(order.windowStart);
-  const { sellers, dishes } = together(orders);
-  const collected = orders.filter(({ status }) => status === "collected");
   const date = t("date", {
     day: format.dateTime(at, "dayOfMonth"),
     month: format.dateTime(at, "monthOfYear"),
   });
-  const outcomes = [...new Set(orders.map(({ status }) => t(`endedLine.${status}`)))];
-  const paid = collected.reduce((sum, { totalVnd }) => sum + totalVnd, 0);
   const meta = [
-    ...(collected.length > 0 ? [sellers] : []),
     date,
-    ...outcomes,
-    ...(paid > 0 ? [formatPrice(paid)] : []),
+    t(`endedLine.${order.status}`),
+    ...(order.status === "collected" ? [formatPrice(order.totalVnd)] : []),
   ];
 
   return (
     <li>
       <Link
         href={`/orders/${order.id}`}
-        className="flex items-center gap-3 rounded-2xl bg-card p-3 text-card-foreground focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+        className="flex h-full items-center gap-3 rounded-2xl bg-card p-3 text-card-foreground focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
       >
         <Thumb order={order} size="sm" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <Dishes dishes={dishes} className="text-body-sm-strong" />
+          <span className="truncate text-body-sm-strong">{dishesOf(order)}</span>
           <span className={cn("text-label", endedTone[order.status])}>{meta.join(" · ")}</span>
         </span>
         <ChevronRightIcon aria-hidden className="size-4.5 shrink-0 text-muted-foreground" />
@@ -160,39 +129,13 @@ async function EndedOrderRow({ orders }: { orders: Order[] }) {
   );
 }
 
-/** What the collected orders saved, over a photograph of fresh food (Figma D1 › impact). */
-async function Impact({ collected }: { collected: Order[] }) {
-  const t = await getTranslations("Orders");
-  const saved = collected.reduce((sum, order) => sum + savingOf(order), 0);
-
-  return (
-    <aside className="relative flex h-37.5 flex-col justify-between overflow-hidden rounded-2xl p-4 text-deal-foreground">
-      <Image
-        src={impact}
-        alt=""
-        fill
-        sizes="(min-width: 36rem) 36rem, 100vw"
-        className="object-cover"
-      />
-      <span aria-hidden className="absolute inset-0 bg-linear-to-b from-deal/45 to-deal/90" />
-      <svg viewBox="0 0 32 32" aria-hidden className="relative size-8 fill-current">
-        <path d="M17.95 2.13a3.36 3.36 0 0 0 4.4 3.97 3.36 3.36 0 0 0 3.55 3.55 3.36 3.36 0 0 0 3.97 4.4A14 14 0 1 1 17.95 2.13Z" />
-      </svg>
-      <div className="relative flex flex-col gap-1">
-        <p className="font-display text-price-lg">{t("impact", { meals: collected.length })}</p>
-        <p className="text-note text-inverse-muted">
-          {t("impactSaved", { saved: formatPrice(saved) })}
-        </p>
-      </div>
-    </aside>
-  );
-}
-
 const days: Day[] = ["today", "week", "before"];
+// A phone's column, wider on a tablet, and the content width of the wide layout from 1024px.
+const LIST_WIDTH = "max-w-xl md:max-w-3xl lg:max-w-292";
 
 /**
- * "Đơn của tôi" (Figma D1, D4): the two lists as a segmented control; the orders to collect as cards with the
- * way to them, and once some were collected what they saved; the ended ones under their day.
+ * "Đơn của tôi" (Figma K8): the two lists as a segmented control; each seller's order to collect as a card with the
+ * way to it, two or three abreast on wider screens; the ended ones under their day.
  */
 export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
   const which = await pending;
@@ -204,22 +147,18 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
   if (!lists.known) return <SignInPrompt returnTo="/orders" />;
   const { open, ended, now } = lists.value;
 
-  // Orders placed together are one, still to collect while any of them is (SEC-76 › decision 8).
-  const groups = byCheckout([...open, ...ended]);
-  const openGroups = groups.filter((group) => group.some(isOpen));
-  const endedGroups = groups.filter((group) => !group.some(isOpen));
-  const collected = ended.filter((order) => order.status === "collected");
+  // Each seller's order is its own, even when placed together with others (SEC-97 › decision 4).
   const endedByDay = days
     .map((day) => ({
       day,
-      groups: endedGroups.filter((group) => dayOf(group[0].windowStart, now, timeZone) === day),
+      orders: ended.filter((order) => dayOf(order.windowStart, now, timeZone) === day),
     }))
-    .filter(({ groups }) => groups.length > 0);
+    .filter(({ orders }) => orders.length > 0);
 
   return (
     <>
       <div className="bg-card">
-        <nav aria-label={t("lists")} className="mx-auto w-full max-w-xl px-4 py-3">
+        <nav aria-label={t("lists")} className={cn("mx-auto w-full px-4 py-3", LIST_WIDTH)}>
           <div className="grid grid-cols-2 rounded-lg bg-secondary p-1">
             {(["open", "ended"] as const).map((tab) => (
               <Link
@@ -235,33 +174,36 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
                     : "text-muted-foreground",
                 )}
               >
-                {tab === "open" ? t("tabOpen", { count: openGroups.length }) : t("tabEnded")}
+                {tab === "open" ? t("tabOpen", { count: open.length }) : t("tabEnded")}
               </Link>
             ))}
           </div>
         </nav>
       </div>
-      <div className="mx-auto flex w-full max-w-xl flex-col gap-4 px-4 py-4">
+      <div className={cn("mx-auto flex w-full flex-col gap-4 px-4 py-4", LIST_WIDTH)}>
         {which === "open" ? (
           <>
-            {openGroups.length > 0 ? (
-              openGroups.map((group) => <OpenOrderCard key={group[0].id} orders={group} />)
+            {open.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {open.map((order) => (
+                  <OpenOrderCard key={order.id} order={order} />
+                ))}
+              </div>
             ) : (
               <p className="rounded-2xl bg-card p-6 text-center text-body-sm text-muted-foreground">
                 {t("noneOpen")}
               </p>
             )}
-            {collected.length > 0 ? <Impact collected={collected} /> : null}
           </>
         ) : endedByDay.length > 0 ? (
-          endedByDay.map(({ day, groups: inDay }) => (
+          endedByDay.map(({ day, orders }) => (
             <section key={day} aria-labelledby={`orders-${day}`} className="flex flex-col gap-2.5">
               <h2 id={`orders-${day}`} className="text-title">
                 {t(`day.${day}`)}
               </h2>
-              <ul className="flex flex-col gap-2.5">
-                {inDay.map((group) => (
-                  <EndedOrderRow key={group[0].id} orders={group} />
+              <ul className="grid gap-2.5 md:grid-cols-2 lg:grid-cols-3">
+                {orders.map((order) => (
+                  <EndedOrderRow key={order.id} order={order} />
                 ))}
               </ul>
             </section>

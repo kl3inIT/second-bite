@@ -68,6 +68,7 @@ function sample({
   id,
   name,
   description = "",
+  weightGrams,
   kind,
   price,
   originalPrice,
@@ -85,6 +86,7 @@ function sample({
     status,
     name,
     description,
+    ...(weightGrams ? { weightGrams } : {}),
     kind,
     unit,
     units: Math.max(unitsLeft, 1),
@@ -163,7 +165,8 @@ const offers = [
     id: "of-croissant",
     name: "Bánh Croissant Truyền Thống",
     description:
-      "Bánh làm trong ngày, ngon nhất khi dùng trước 24 giờ. Nếu bạn dị ứng món nào, hãy hỏi quán khi đến nhận.",
+      "Croissant bơ Pháp nướng sáng nay, vỏ nhiều lớp, ruột mềm. Hâm lò 3 phút cho giòn lại.",
+    weightGrams: 80,
     kind: "bakery",
     price: 22000,
     originalPrice: 50000,
@@ -188,6 +191,8 @@ const offers = [
   sample({
     id: "of-banh-mi",
     name: "Bánh mì mềm chà bông",
+    description: "Bánh mì mềm phủ chà bông và sốt bơ, làm sáng nay.",
+    weightGrams: 120,
     kind: "bakery",
     price: 35000,
     originalPrice: 75000,
@@ -200,6 +205,8 @@ const offers = [
   sample({
     id: "of-ha-cao",
     name: "Há cảo tôm",
+    description: "Há cảo tôm hấp, vỏ bột lọc mỏng. Hâm hấp lại 5 phút trước khi ăn.",
+    weightGrams: 150,
     kind: "prepared_food",
     price: 25000,
     originalPrice: 59000,
@@ -224,6 +231,9 @@ const offers = [
   sample({
     id: "of-com-thit-kho",
     name: "Cơm Thịt Kho Nước Dừa",
+    description:
+      "Cơm trắng với thịt ba chỉ kho nước dừa và trứng, kèm dưa leo. Hâm lò vi sóng 2 phút.",
+    weightGrams: 400,
     kind: "prepared_food",
     price: 30000,
     originalPrice: 68000,
@@ -318,6 +328,105 @@ const offers = [
     until: tonight(22, 15),
     seller: sellers.kfc,
   }),
+  // La Paris's longer list, for the seller's page with many dishes and three tabs (SEC-88).
+  sample({
+    id: "of-croissant-hanh-nhan",
+    name: "Bánh Croissant Hạnh Nhân",
+    description: "Croissant nhân kem hạnh nhân, phủ lát hạnh nhân nướng.",
+    weightGrams: 95,
+    kind: "bakery",
+    price: 36000,
+    originalPrice: 80000,
+    unitsLeft: 4,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-croissant-kem-trung",
+    name: "Bánh Croissant Kem Trứng",
+    description: "Croissant nhân kem trứng béo, nướng sáng nay.",
+    weightGrams: 90,
+    kind: "bakery",
+    price: 32000,
+    originalPrice: 70000,
+    unitsLeft: 3,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-macaron",
+    name: "Bánh Macaron Vani",
+    description: "Hộp ba chiếc macaron vani, để lạnh trước khi ăn.",
+    weightGrams: 45,
+    kind: "bakery",
+    price: 16000,
+    originalPrice: 35000,
+    unitsLeft: 6,
+    unit: "hộp",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-mille-feuille",
+    name: "Choco Mille Feuille",
+    description: "Bánh ngàn lớp kem sô-cô-la, dùng trong ngày.",
+    weightGrams: 120,
+    kind: "bakery",
+    price: 32000,
+    originalPrice: 70000,
+    unitsLeft: 2,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-tiramisu",
+    name: "Bánh Tiramisu Cà Phê",
+    description: "Tiramisu cà phê truyền thống, cắt miếng. Giữ lạnh.",
+    weightGrams: 150,
+    kind: "mixed_box",
+    price: 79000,
+    originalPrice: 170000,
+    unitsLeft: 2,
+    unit: "miếng",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-cheesecake",
+    name: "Bánh Basque Cheesecake",
+    description: "Cheesecake nướng cháy mặt kiểu Basque, cắt miếng. Giữ lạnh.",
+    weightGrams: 130,
+    kind: "mixed_box",
+    price: 52000,
+    originalPrice: 115000,
+    unitsLeft: 3,
+    unit: "miếng",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-quiche",
+    name: "Bánh Quiche Gà Phô Mai",
+    description: "Quiche ngàn lớp nhân gà và phô mai. Hâm lò 5 phút.",
+    weightGrams: 180,
+    kind: "prepared_food",
+    price: 27000,
+    originalPrice: 60000,
+    unitsLeft: 5,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
 ];
 
 /** In hours from now, as RFC 3339: a window that has not opened yet, whatever the time of the test. */
@@ -359,6 +468,13 @@ const photoFiles = {
   "ph-com-bo": "net-hue/08-com-bo-rang-gion.jpg",
   "ph-xiu-mai": "panda-chef/02-xiu-mai-hap.png",
   "ph-ga-ran": "kfc/01-3-mieng-ga-ran.jpg",
+  "ph-croissant-hanh-nhan": "la-paris/02-banh-croissant-hanh-nhan.webp",
+  "ph-croissant-kem-trung": "la-paris/03-banh-croissant-kem-trung.png",
+  "ph-macaron": "la-paris/06-banh-macaron-vani.webp",
+  "ph-mille-feuille": "la-paris/10-choco-mille-feuille.webp",
+  "ph-tiramisu": "la-paris/04-banh-tiramisu-ca-phe-truyen-thong.webp",
+  "ph-cheesecake": "la-paris/07-banh-basque-burnt-original-cheesecake.webp",
+  "ph-quiche": "la-paris/08-banh-quiche-ngan-lop-nhan-ga-pho-mai.png",
   // The sellers' logos, from the directory's list of shops.
   "ph-logo-la-paris": "../quan-an/la-paris.png",
   "ph-logo-panda-chef": "../quan-an/panda-chef.png",
@@ -1151,12 +1267,13 @@ async function sellerRoutes(request, response, url) {
 
 // Orders (SEC-15, SEC-76), as api/openapi.yaml describes them: placed with a name, a phone number and an
 // Idempotency-Key, signed in or not; read and cancelled until the window opens by the account that placed them
-// or with the access answered to whoever placed them; listed for the account; marked ready and handed over
+// or with the access answered to whoever placed them; rated once collected; listed for the account; marked ready and handed over
 // as a seller would. The stub takes no units away, so the home's tests keep their counts.
 const orders = [];
 const ordersByKey = new Map();
 let nextOrder = 10001;
 const PHONE = /^0[0-9]{9}$/;
+const REVIEW_TAGS = ["fast_pickup", "good_quality", "good_variety", "fair_portions"];
 
 function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
@@ -1292,7 +1409,7 @@ async function ordersApi(request, response, url) {
     json(response, 200, shown(handled));
     return true;
   }
-  const orderMatch = /^\/orders\/([\w-]+)(\/cancel)?$/.exec(url.pathname);
+  const orderMatch = /^\/orders\/([\w-]+)(\/cancel|\/review)?$/.exec(url.pathname);
   const order = orderMatch
     ? orders.find((found) => found.id === orderMatch[1] && placedBy(request, account, found))
     : undefined;
@@ -1302,6 +1419,28 @@ async function ordersApi(request, response, url) {
   }
   if (request.method === "GET" && orderMatch && !orderMatch[2]) {
     json(response, 200, shown(order));
+    return true;
+  }
+  if (request.method === "POST" && orderMatch?.[2] === "/review") {
+    const { stars, tags, comment } = await readBody(request);
+    if (
+      !Number.isInteger(stars) ||
+      stars < 1 ||
+      stars > 5 ||
+      !Array.isArray(tags) ||
+      !tags.every((tag, at) => REVIEW_TAGS.includes(tag) && tags.indexOf(tag) === at) ||
+      (comment !== undefined && (typeof comment !== "string" || comment.length > 500))
+    ) {
+      problem(response, 400, "ORDER_REVIEW_INVALID");
+    } else if (order.status !== "collected") {
+      problem(response, 409, "ORDER_NOT_COLLECTED");
+    } else if (order.review) {
+      problem(response, 409, "ORDER_ALREADY_REVIEWED");
+    } else {
+      order.review = { stars, tags, createdAt: new Date().toISOString() };
+      if (comment?.trim()) order.review.comment = comment.trim();
+      json(response, 200, shown(order));
+    }
     return true;
   }
   if (request.method === "POST" && orderMatch?.[2]) {

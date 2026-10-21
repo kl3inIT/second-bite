@@ -68,7 +68,6 @@ test.describe("ordering from the cart", () => {
     await expect(page.getByRole("heading", { name: /^Đơn #SB-\d+$/, level: 1 })).toBeVisible();
     await expect(page.getByText("Đã xác nhận · quán đang chuẩn bị")).toBeVisible();
     await expect(page.getByText(/^Mã QR hiện khi món sẵn sàng/)).toBeVisible();
-    await expect(page.getByText("Minh Anh", { exact: true })).toBeVisible();
     await expect(dishLine(page)).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
@@ -92,8 +91,8 @@ test.describe("ordering from the cart", () => {
     await expect(again.getByLabel("Số điện thoại")).toHaveValue("0900000000");
   });
 
-  // Figma D3, D5: the seller marks it ready, which shows its QR code, then hands it over.
-  test("shows the QR code once ready, then the receipt once collected", async ({ page }) => {
+  // Figma K6, K6b: the seller marks it ready, which shows its QR code, then hands it over, and it is rated once.
+  test("shows the QR code once ready, then rates the order once collected", async ({ page }) => {
     await addCroissant(page);
     await page.goto("/vi/cart");
     await orderAs(page, "Lan", "0900000002");
@@ -115,12 +114,65 @@ test.describe("ordering from the cart", () => {
     await page.request.post(`/api/orders/${orderId}/hand-over`);
     await page.goto(`/vi/orders/${orderId}`);
     await expect(page.getByText(/^Đã nhận món lúc/)).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Trạng thái" })).toBeVisible();
-    await expect(page.getByText("Bạn đã nhận món")).toBeVisible();
+    await expect(page.getByText("28.000đ", { exact: true })).toBeVisible();
+    await expect(page.getByText("Tiết kiệm so với giá gốc · 1 phần không bị bỏ phí")).toBeVisible();
+
+    const send = await hydrated(page.getByRole("button", { name: "Gửi đánh giá" }));
+    await expect(send).toBeDisabled();
+    await page.getByRole("radio", { name: "4 sao" }).click();
+    await expect(page.getByText("Tốt", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Nhận hàng nhanh" }).click();
+    await expect(page.getByRole("button", { name: "Nhận hàng nhanh" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await page.getByLabel("Viết vài dòng cho quán (không bắt buộc)").fill("Bánh còn giòn.");
     await expectNoSeriousA11yViolations(page);
+    await send.click();
+
+    await expect(page.getByRole("heading", { name: "Bạn đã đánh giá" })).toBeVisible();
+    await expect(page.getByText("4 sao", { exact: true })).toBeAttached();
+    await expect(page.getByText("Nhận hàng nhanh")).toBeVisible();
+    await expect(page.getByText("“Bánh còn giòn.”")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Gửi đánh giá" })).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  // Figma K8, K6: a cart from two sellers places two orders, each its own card and page, linked to the other.
+  test("lists each seller's order on its own, and links the orders placed together", async ({
+    page,
+  }) => {
+    await addCroissant(page);
+    await page.goto("/vi/sellers/se-panda-chef");
+    await (await hydrated(page.getByRole("button", { name: "Thêm một phần Há cảo tôm" }))).click();
+    await page.goto("/vi/cart");
+    await (await hydrated(page.getByRole("button", { name: "Đặt 2 đơn" }))).click();
+    const sheet = page.getByRole("dialog", { name: "Người đến nhận" });
+    await sheet.getByLabel("Tên").fill("Hà");
+    await sheet.getByLabel("Số điện thoại").fill("0900000003");
+    await sheet.getByRole("button", { name: "Tiếp tục" }).click();
+    await page
+      .getByRole("alertdialog", { name: "Xác nhận đặt đơn với số điện thoại" })
+      .getByRole("button", { name: "Đúng, đặt món" })
+      .click();
+    await expect(page).toHaveURL(ORDER_URL);
 
     await page.goto("/vi/orders");
-    await expect(page.getByText("1 bữa ngon, trọn đến miếng cuối")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Đang chờ nhận (2)" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Xem đơn" })).toHaveCount(2);
+    await expect(page.getByRole("heading", { level: 3, name: DISH })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: "Há cảo tôm" })).toBeVisible();
+
+    await page.getByRole("link", { name: "Xem đơn" }).first().click();
+    await expect(page).toHaveURL(ORDER_URL);
+    const together = page.getByRole("link", { name: /^Cùng lần đặt: / });
+    await expect(together).toHaveCount(1);
+    const first = page.url();
+    await together.click();
+    await expect(page).not.toHaveURL(first);
+    await expect(page).toHaveURL(ORDER_URL);
+    await expect(page.getByRole("link", { name: /^Cùng lần đặt: / })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
   });
 
   // Figma O7: someone else ordered first. The cart holds a dish the stub no longer sells beside a croissant,

@@ -1,5 +1,6 @@
 import {
   CheckIcon,
+  ChevronRightIcon,
   MapPinIcon,
   QrCodeIcon,
   ReceiptTextIcon,
@@ -13,13 +14,14 @@ import { useFormatter, useTranslations } from "next-intl";
 import { BiteCorner } from "@/components/bite-corner";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import { directionsTo, isOpen, savingOf, unitsOf, type Order } from "./order";
 import { OrderQr } from "./order-qr";
 
-// The pieces the order pages are built from (Figma D2–D5): the seller's row, the ticket, the dishes and
-// totals, the way to the counter, the steps on the blue band and how to collect.
+// The pieces the order pages are built from (Figma K6, K6b, D5): the seller's row, the ticket, the orders placed
+// together, the dishes and totals, the way to the counter, the steps on the blue band and how to collect.
 
 /** A photograph of a line, or the muted ground where it has none. */
 function Photo({ path, sizes, className }: { path?: string; sizes: string; className: string }) {
@@ -62,10 +64,11 @@ export function SellerRow({ order }: { order: Order }) {
 }
 
 /**
- * The ticket of an open order (Figma D2, D3): the seller above a torn edge, then the order's QR code once it is
- * ready, or a pale one until then, beside the name and phone number the counter may find it by instead (SEC-86).
+ * The ticket of an open order (Figma K6): the seller above a torn edge, then the order's QR code once it is ready,
+ * or a pale one until then, beside how to collect it: the code, or the name and phone number read out (SEC-86);
+ * under them the other sellers' orders placed with it.
  */
-export function CollectTicket({ order }: { order: Order }) {
+export function CollectTicket({ order, together }: { order: Order; together: Order[] }) {
   const t = useTranslations("Orders");
   const ready = order.status === "ready";
 
@@ -91,15 +94,34 @@ export function CollectTicket({ order }: { order: Order }) {
             <QrCodeIcon className="size-20" strokeWidth={1.2} />
           </span>
         )}
-        <div className="flex min-w-0 flex-col gap-1">
-          <h2 id={`order-collect-${order.id}`} className="text-body-sm text-muted-foreground">
-            {ready ? t("collectReady") : t("collectLater")}
-          </h2>
-          <p className="text-body-sm-strong">{order.customerName}</p>
-          <p className="text-body-sm-strong">{order.customerPhone}</p>
-        </div>
+        <h2 id={`order-collect-${order.id}`} className="min-w-0 text-body-sm text-muted-foreground">
+          {ready ? t("collectReady") : t("collectLater")}
+        </h2>
       </div>
+      <TogetherLinks together={together} />
     </section>
+  );
+}
+
+/** "Cùng lần đặt: Panda Chef ›", a link to each other seller's order placed from the same cart (SEC-97 › decision 4). */
+export function TogetherLinks({ together }: { together: Order[] }) {
+  const t = useTranslations("Orders");
+  if (together.length === 0) return null;
+
+  return (
+    <ul className="flex flex-col gap-1">
+      {together.map((other) => (
+        <li key={other.id}>
+          <Link
+            href={`/orders/${other.id}`}
+            className="inline-flex min-h-11 items-center gap-0.5 rounded-sm text-label-strong text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+          >
+            {t("placedWith", { seller: other.seller.name })}
+            <ChevronRightIcon aria-hidden className="size-4" />
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -267,15 +289,24 @@ export function HowToCollect({ order }: { order: Order }) {
 
 type StepState = "done" | "now" | "later";
 
-/** The four steps of an order on the blue band: placed, preparing, ready, collected (Figma D2, D3). */
+// The step each status stands at: a confirmed order is being prepared, as the backend has no separate status
+// (SEC-97 › decision 5).
+const stepOf: Partial<Record<Order["status"], number>> = { confirmed: 1, ready: 2, collected: 3 };
+
+/** The four steps of an order on the blue band: placed, preparing, ready, collected (Figma K6, K6b). */
 export function OrderSteps({ order }: { order: Order }) {
   const t = useTranslations("Orders.steps");
-  const ready = order.status === "ready";
+  const current = stepOf[order.status] ?? 0;
+  const collected = order.status === "collected";
+  const stateAt = (index: number): StepState => {
+    if (index < current || (collected && index === current)) return "done";
+    return index === current ? "now" : "later";
+  };
   const steps: { icon: LucideIcon; label: string; state: StepState }[] = [
-    { icon: ReceiptTextIcon, label: t("placed"), state: "done" },
-    { icon: StoreIcon, label: t("preparing"), state: ready ? "done" : "now" },
-    { icon: ShoppingBagIcon, label: t("ready"), state: ready ? "now" : "later" },
-    { icon: CheckIcon, label: t("collected"), state: "later" },
+    { icon: ReceiptTextIcon, label: t("placed"), state: stateAt(0) },
+    { icon: StoreIcon, label: t("preparing"), state: stateAt(1) },
+    { icon: ShoppingBagIcon, label: t("ready"), state: stateAt(2) },
+    { icon: CheckIcon, label: t("collected"), state: stateAt(3) },
   ];
 
   return (
@@ -283,7 +314,7 @@ export function OrderSteps({ order }: { order: Order }) {
       {steps.map(({ icon: Icon, label, state }, index) => (
         <li
           key={label}
-          aria-current={state === "now" ? "step" : undefined}
+          aria-current={index === current ? "step" : undefined}
           className="relative flex flex-1 flex-col items-center gap-1.5"
         >
           {index > 0 ? (
@@ -309,7 +340,7 @@ export function OrderSteps({ order }: { order: Order }) {
           <span
             className={cn(
               "text-label",
-              state === "now" ? "text-label-strong text-fresh" : "text-inverse-muted",
+              index === current ? "text-label-strong text-fresh" : "text-inverse-muted",
             )}
           >
             {label}

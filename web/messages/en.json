@@ -143,7 +143,8 @@
     "sellerAway": "{seller} · {distance} away",
     "windowAt": "{window} · {place}",
     "rating": "Seller rated {rating} out of 5",
-    "heart": "Favourite {name}"
+    "heart": "Favourite {name}",
+    "badge": "-{percent}%"
   },
   "Intro": {
     "tagline": "End-of-day food from the counters at Tasco Mall, for less.",
@@ -367,8 +368,6 @@
   },
   "Orders": {
     "orderTitle": "Your order",
-    "togetherTitle": "One order from {sellers} shops",
-    "togetherBody": "{names} · {total} in all. Each shop has its own collection code; pay at its counter.",
     "mine": "My orders",
     "lists": "Order lists",
     "tabOpen": "To collect ({count})",
@@ -376,10 +375,7 @@
     "noneOpen": "You have no orders to collect.",
     "noneEnded": "No finished orders yet.",
     "readyUntil": "Ready · until {until}",
-    "payOnCollect": "Pay when you collect",
     "seeOrder": "See order",
-    "impact": "{meals, plural, one {# good meal} other {# good meals}}, eaten to the last bite",
-    "impactSaved": "Saved {saved} on the original prices",
     "hoursMinutes": "{hours} h {minutes} min",
     "minutes": "{minutes} min",
     "headline": {
@@ -406,7 +402,7 @@
       "total": "Total",
       "number": "Order number",
       "payment": "Payment",
-      "atCounter": "At the counter on collection",
+      "atCounter": "Pay at the counter",
       "nothing": "Nothing charged"
     },
     "how": {
@@ -428,7 +424,6 @@
       "title": "Status",
       "placed": "You placed the order",
       "ready": "The food was ready",
-      "collected": "You collected it",
       "cancelled": "You cancelled the order",
       "withReason": "{time} · {reason}",
       "returned": "{units, plural, one {# portion} other {# portions}} back with the shop",
@@ -447,7 +442,6 @@
       "expired": "Collection time over",
       "expiredBody": "{until} · recorded as not collected",
       "summary": {
-        "collected": "You paid the shop when you collected.",
         "cancelled": "You had not paid, so there is nothing to refund.",
         "refused": "You had not paid, so there is nothing to refund.",
         "expired": "Next time, cancel before the window opens so the food reaches someone else."
@@ -455,8 +449,7 @@
       "placedBody": "{date}, {time} · {units} portions · {total}",
       "confirmed": "The seller confirmed it",
       "confirmedBody": "{time} · {units} portions kept for you",
-      "readyBody": "{time} · the seller says come and collect",
-      "collectedBody": "{time} · paid {total}"
+      "readyBody": "{time} · the seller says come and collect"
     },
     "cancel": {
       "open": "Cancel order",
@@ -476,8 +469,7 @@
     },
     "date": "{day}/{month}",
     "orderNumber": "Order #{number}",
-    "preparing": "Being prepared",
-    "cardMeta": "#{numbers} · collect {from}–{until}",
+    "cardMeta": "#{number} · {total} · {place}",
     "day": {
       "today": "Today",
       "week": "This week",
@@ -500,42 +492,38 @@
       "expired": "Expired at {time} · {date}"
     },
     "collectLater": "The QR code shows once your food is ready. You can also give your name and phone number.",
-    "collectReady": "Show the QR code at the counter, or give your name and phone number."
+    "collectReady": "Show the QR code at the counter, or give your name and phone number.",
+    "collectAt": "Collect at {from}",
+    "savedLine": "Saved against the original price · {units} portions not wasted",
+    "placedWith": "Ordered together: {seller}"
   },
   "Splash": {
     "tagline": "Good food left at the end of the day, for less",
     "loading": "Loading…"
   },
   "Dish": {
-    "seeSeller": "See shop",
-    "placeAway": "{place} · {distance}",
-    "portion": "{kind} · 1 {unit}",
-    "window": "Collect today {from} – {until}",
-    "rating": "Shop rated {rating} stars",
-    "more": "More on sale from this shop",
-    "other": "{name}, {price}",
-    "saving": "{percent}% off · {units} left",
-    "share": "Share this dish",
-    "copied": "Link copied",
-    "booking": "Order",
-    "portions": "Portions · {units} left",
-    "addUnits": "Add {units} to the cart · {price}",
-    "save": "Save",
-    "shareLabel": "Share",
-    "crumbs": "You are here",
-    "home": "Home"
+    "about": "About this dish",
+    "weight": "About {grams} g.",
+    "notes": "Good to know",
+    "bringBag": "Bring your own bag or box.",
+    "askSeller": "Ask the shop about ingredients and allergies.",
+    "count": "{count} {name} to add",
+    "add": "Add to cart · {price}",
+    "allChosen": "All {units} chosen"
   },
   "Seller": {
-    "search": "Search {seller}'s dishes",
-    "rating": "Shop rating",
-    "window": "Collect today",
-    "where": "Where to collect",
+    "search": "Search the {seller} menu",
+    "window": "Collect today {from}–{until}",
     "directions": "Directions ›",
     "kinds": "Kinds of dish",
     "onSale": "On sale",
     "tonight": "On sale tonight",
     "nothing": "This shop has nothing on sale tonight",
-    "home": "See other dishes"
+    "home": "See other dishes",
+    "placeAway": "{place} · {distance} away",
+    "noMatch": "No dish matches “{q}”",
+    "share": "Share this shop",
+    "copied": "Link copied"
   },
   "Cart": {
     "title": "Confirm order",
@@ -543,36 +531,26 @@
     "add": "Add one {name}",
     "remove": "Remove one {name}",
     "quantity": "{quantity} {name} in the cart",
-    "addToCart": "Add to cart",
-    "view": "View cart · {units}",
     "soldOut": "Sold out",
-    "portionsLeft": "-{percent}% · {units} left",
-    "portionsChosen": "-{percent}% · all {units} chosen",
+    "portionsLeft": "{units} left",
+    "portionsChosen": "all {units} chosen",
     "summary": "{units} portions · save {saved}",
     "open": "View cart",
     "empty": "Your cart is empty",
     "browse": "See tonight's dishes",
-    "collectAt": "Collect at",
-    "place": "{seller} · {place}",
-    "away": "{distance} from you",
     "window": "Collect today {from}–{until}",
     "directions": "Directions",
     "pay": "Payment",
     "counter": "Pay at the counter",
-    "counterHint": "In cash or by bank transfer when you collect",
-    "cash": "Cash",
-    "cashHint": "Pay when you collect",
-    "summaryTitle": "Order summary",
-    "edit": "Edit",
-    "editAt": "Edit the dishes from {seller}",
+    "counterHint": "Cash or the shop's QR code when you collect",
+    "summaryTitle": "{orders, plural, =1 {Total} other {Total · # orders}}",
     "line": "{quantity}× {name}",
     "dishes": "Dishes ({units} portions)",
     "total": "Total",
     "cancelTitle": "Cancellation policy",
     "cancelBody": "Free cancellation before {time}.",
-    "cancelAt": "{seller}: {body}",
-    "totalSummary": "{units} portions in all · save {saved}",
-    "order": "Place order",
+    "totalSummary": "{orders, plural, =1 {{units} portions in all} other {# orders · {units} portions}} · save {saved}",
+    "order": "{orders, plural, =1 {Place order} other {Place # orders}}",
     "contactTitle": "Who collects",
     "contactHint": "The seller calls this name when you arrive and rings this number if needed.",
     "nameLabel": "Name",
@@ -593,7 +571,9 @@
     "restUnits": "the {units} portions left",
     "otherDishes": "See the seller's other dishes",
     "orderFailed": "The order did not go through. Try again, or quote the reference {reference}.",
-    "orderFailedPlain": "The order did not go through. Check your connection and try again."
+    "orderFailedPlain": "The order did not go through. Check your connection and try again.",
+    "sellerWindow": "{place} · Collect {from} – {until}",
+    "cancelEach": "Free cancellation before each order's collection time."
   },
   "AccountSettings": {
     "title": "Account settings",
@@ -1307,5 +1287,30 @@
         "unreachable": "The server could not be reached. Try again shortly."
       }
     }
+  },
+  "Review": {
+    "title": "How was it today?",
+    "hint": "Your rating helps the shop and the next buyers.",
+    "starsLegend": "Stars",
+    "star": "{count, plural, one {# star} other {# stars}}",
+    "word": {
+      "1": "Bad",
+      "2": "Not great",
+      "3": "Okay",
+      "4": "Good",
+      "5": "Excellent"
+    },
+    "tagsTitle": "What did you like?",
+    "tag": {
+      "fast_pickup": "Quick pickup",
+      "good_quality": "Good quality",
+      "good_variety": "Good variety",
+      "fair_portions": "Fair portions"
+    },
+    "comment": "A few words for the shop (optional)",
+    "submit": "Send rating",
+    "failed": "The rating was not sent. Try again later, reference {reference}.",
+    "given": "Your rating",
+    "thanks": "Thank you, the shop will read it."
   }
 }

@@ -22,7 +22,8 @@ export async function generateMetadata({
   return { title: `${first?.seller.name ?? t("nothing")} · Second Bite` };
 }
 
-// A seller's dishes tonight (Figma K4b), from "Xem quán"; `?kind=` opens one tab, `near` keeps the distance.
+// A seller's dishes tonight (Figma K4b), from "Xem quán" or a dish (K4); `?kind=` opens one tab, `?q=` searches
+// their dishes, `?at=` tints the dish a link led to, `near` keeps the distance.
 // The seller's own record is for their people, so the page is built from their offers. The address is known only
 // at request time, so the page streams in.
 export default function SellerRoute(props: PageProps<"/[locale]/sellers/[id]">) {
@@ -34,8 +35,10 @@ export default function SellerRoute(props: PageProps<"/[locale]/sellers/[id]">) 
 }
 
 async function Seller({ params, searchParams }: PageProps<"/[locale]/sellers/[id]">) {
-  const [{ id }, { near, kind }] = await Promise.all([params, searchParams.then(readHomeQuery)]);
+  const [{ id }, search] = await Promise.all([params, searchParams]);
+  const { near, kind, q } = readHomeQuery(search);
   const offers = inShowingOrder(await listOffers({ sellerId: id, near }));
+  const at = typeof search.at === "string" ? search.at : undefined;
 
-  return <SellerPage offers={offers} kind={kind} near={near} />;
+  return <SellerPage offers={offers} kind={kind} near={near} at={at} q={q} />;
 }

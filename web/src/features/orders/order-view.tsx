@@ -9,7 +9,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import { CancelOrder } from "./cancel-order";
-import { hoursAndMinutes, unitsOf, windowPhase, type Order } from "./order";
+import { hoursAndMinutes, savingOf, unitsOf, windowPhase, type Order } from "./order";
 import {
   CollectTicket,
   Directions,
@@ -17,8 +17,11 @@ import {
   OrderSteps,
   OrderSummary,
   SellerRow,
+  TogetherLinks,
   useOrderDate,
 } from "./order-parts";
+import { ReviewForm } from "./review-form";
+import { ReviewGiven } from "./review-given";
 
 /** "1 giờ 12 phút", or "48 phút". */
 function useDuration() {
@@ -29,28 +32,81 @@ function useDuration() {
   };
 }
 
-/**
- * An order's title: the page's own, under a back button, or one seller's part under the title of orders placed
- * together (SEC-76 › decision 8), which has the back button.
- */
-type Level = { level?: "page" | "part" };
+// The order page's width: a phone's column, wider on a tablet, and from 1024px the content width of the wide
+// layout, where the order's details sit in a column at the right (SEC-97 › decision 8).
+const PAGE_WIDTH = "max-w-xl md:max-w-3xl lg:max-w-292";
 
 /**
- * An order still to collect (Figma D2 preparing, D3 ready): the blue band with the window in large figures, how
- * long until it opens or closes and the steps; on the pale ground below, the ticket, how to collect once it
- * is ready, the dishes and totals, the way to the counter, and cancelling while it is free.
+ * The blue band at the top of an order (Figma K6, K6b): the back button and the order's number, a line in lime, a
+ * large figure under it and a line in pale blue, then the four steps.
+ */
+function StatusBand({
+  order,
+  eyebrow,
+  figure,
+  line,
+}: {
+  order: Order;
+  eyebrow: string;
+  figure: string;
+  line: string;
+}) {
+  const t = useTranslations("Orders");
+
+  return (
+    <section className="relative overflow-hidden bg-header text-header-foreground">
+      <span aria-hidden className="absolute -top-24 -right-20 size-64 rounded-full bg-sweep" />
+      <div className={cn("relative mx-auto flex w-full flex-col px-4 pb-10", PAGE_WIDTH)}>
+        <div className="flex h-16 items-center gap-3">
+          <BackButton fallback="/orders" />
+          <h1 className="text-bar-title">{t("orderNumber", { number: order.number })}</h1>
+        </div>
+        <p className="mt-3 text-title text-fresh">{eyebrow}</p>
+        <p className="font-display text-display">{figure}</p>
+        <p className="mt-1 text-body-sm text-inverse-muted">{line}</p>
+        <div className="mt-5 lg:max-w-xl">
+          <OrderSteps order={order} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** The pale ground under the band: one column, or from 1024px the main column beside the order's details. */
+function OrderBody({ main, aside }: { main: React.ReactNode; aside: React.ReactNode }) {
+  return (
+    <div className="relative -mt-6 rounded-t-3xl bg-background">
+      {/* grid-cols-1: a phone's one column may shrink, so a long seller's line that truncates does not widen
+          the page past the screen (SEC-99). */}
+      <div
+        className={cn(
+          "mx-auto grid w-full grid-cols-1 items-start gap-3 px-4 pt-4 pb-6 lg:grid-cols-3 lg:gap-6",
+          PAGE_WIDTH,
+        )}
+      >
+        <div className="flex flex-col gap-3 lg:col-span-2">{main}</div>
+        <div className="flex flex-col gap-3">{aside}</div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * An order still to collect (Figma K6): the blue band with the window in large figures, how long until it opens
+ * or closes and the steps; on the pale ground below, the ticket with the orders placed with it, how to collect
+ * once it is ready, the way to the counter and cancelling while it is free; the dishes and totals beside them.
  */
 export function OpenOrder({
   order,
   cancellable,
+  together,
   now,
-  level = "page",
 }: {
   order: Order;
   cancellable: boolean;
+  together: Order[];
   now: number;
-} & Level) {
-  const Title = level === "page" ? "h1" : "h2";
+}) {
   const t = useTranslations("Orders");
   const format = useFormatter();
   const duration = useDuration();
@@ -59,67 +115,95 @@ export function OpenOrder({
   const ready = order.status === "ready";
 
   return (
-    <article aria-labelledby={`order-title-${order.id}`}>
-      <section className="relative overflow-hidden bg-header text-header-foreground">
-        <span aria-hidden className="absolute -top-24 -right-20 size-64 rounded-full bg-sweep" />
-        <div className="relative mx-auto flex w-full max-w-xl flex-col px-4 pb-10">
-          <div className="flex h-16 items-center gap-3">
-            {level === "page" ? <BackButton fallback="/orders" /> : null}
-            <Title id={`order-title-${order.id}`} className="text-bar-title">
-              {t("orderNumber", { number: order.number })}
-            </Title>
-          </div>
-          <p className="mt-3 text-title text-fresh">
-            {t(`headline.${ready ? "ready" : "confirmed"}`)}
-          </p>
-          <p className="font-display text-display">
-            {from} – {until}
-          </p>
-          <p className="mt-1 text-body-sm text-inverse-muted">
-            {windowPhase(order, now) === "before"
-              ? t("opensIn", { left: duration(Date.parse(order.windowStart) - now) })
-              : t("closesIn", { left: duration(Date.parse(order.windowEnd) - now) })}
-          </p>
-          <div className="mt-5">
-            <OrderSteps order={order} />
-          </div>
-        </div>
-      </section>
-      <div className="relative -mt-6 rounded-t-3xl bg-background">
-        <div className="mx-auto flex w-full max-w-xl flex-col gap-3 px-4 pt-4 pb-6">
-          <CollectTicket order={order} />
-          {ready ? <HowToCollect order={order} /> : null}
+    <article aria-label={t("orderNumber", { number: order.number })}>
+      <StatusBand
+        order={order}
+        eyebrow={t(`headline.${ready ? "ready" : "confirmed"}`)}
+        figure={`${from} – ${until}`}
+        line={
+          windowPhase(order, now) === "before"
+            ? t("opensIn", { left: duration(Date.parse(order.windowStart) - now) })
+            : t("closesIn", { left: duration(Date.parse(order.windowEnd) - now) })
+        }
+      />
+      <OrderBody
+        main={
+          <>
+            <CollectTicket order={order} together={together} />
+            {ready ? <HowToCollect order={order} /> : null}
+            <Directions order={order} />
+            {cancellable ? (
+              <div className="flex justify-center">
+                <CancelOrder
+                  orderId={order.id}
+                  access={order.access}
+                  number={order.number}
+                  seller={order.seller.name}
+                  units={unitsOf(order)}
+                  freeUntil={from}
+                />
+              </div>
+            ) : null}
+          </>
+        }
+        aside={
           <section
             aria-label={t("details")}
             className="rounded-2xl bg-card p-4 text-card-foreground"
           >
             <OrderSummary order={order} />
           </section>
-          <Directions order={order} />
-          {cancellable ? (
-            <div className="flex justify-center">
-              <CancelOrder
-                orderId={order.id}
-                access={order.access}
-                number={order.number}
-                seller={order.seller.name}
-                units={unitsOf(order)}
-                freeUntil={from}
-              />
-            </div>
-          ) : null}
-        </div>
-      </div>
+        }
+      />
     </article>
   );
 }
 
-type Ended = Exclude<Order["status"], "confirmed" | "ready">;
+/**
+ * A collected order (Figma K6b, WK6b): the blue band with when it was collected, what it saved in large figures
+ * and the steps all done; below, the rating, or the rating given, beside the seller and the order's details.
+ */
+export function CollectedOrder({ order, together }: { order: Order; together: Order[] }) {
+  const t = useTranslations("Orders");
+  const format = useFormatter();
+  const date = useOrderDate();
+  const when = order.collectedAt ?? order.windowEnd;
 
-// Each ended status with the colour of its receipt and its icon, so it is never told by colour alone (Figma D5
-// collected; cancelled, refused and expired in the same receipt).
+  return (
+    <article aria-label={t("orderNumber", { number: order.number })}>
+      <StatusBand
+        order={order}
+        eyebrow={t("endedAt.collected", {
+          time: format.dateTime(new Date(when), "time"),
+          date: date(when),
+        })}
+        figure={formatPrice(savingOf(order))}
+        line={t("savedLine", { units: unitsOf(order) })}
+      />
+      <OrderBody
+        main={order.review ? <ReviewGiven review={order.review} /> : <ReviewForm order={order} />}
+        aside={
+          <section
+            aria-label={t("details")}
+            className="flex flex-col gap-3.5 rounded-2xl bg-card p-4 text-card-foreground"
+          >
+            <SellerRow order={order} />
+            <TogetherLinks together={together} />
+            <div className="border-t border-border pt-3.5">
+              <OrderSummary order={order} />
+            </div>
+          </section>
+        }
+      />
+    </article>
+  );
+}
+
+type Ended = Exclude<Order["status"], "confirmed" | "ready" | "collected">;
+
+// Each ended status with the colour of its receipt and its icon, so it is never told by colour alone (Figma D5:
+// cancelled, refused and expired in the same receipt).
 const ended: Record<Ended, { icon: LucideIcon; frame: string }> = {
-  collected: { icon: CircleCheckIcon, frame: "bg-primary text-primary-foreground" },
   cancelled: { icon: CircleXIcon, frame: "bg-destructive text-destructive-foreground" },
   refused: { icon: BanIcon, frame: "bg-destructive text-destructive-foreground" },
   expired: { icon: TimerOffIcon, frame: "bg-warning-border text-warning-foreground" },
@@ -127,7 +211,6 @@ const ended: Record<Ended, { icon: LucideIcon; frame: string }> = {
 
 /** When an ended order ended, as the moment its status records, or the end of its window. */
 function endedAt(order: Order & { status: Ended }): string {
-  if (order.status === "collected") return order.collectedAt ?? order.windowEnd;
   if (order.status === "cancelled") return order.cancelledAt ?? order.windowEnd;
   if (order.status === "refused") return order.refusedAt ?? order.windowEnd;
   return order.windowEnd;
@@ -156,12 +239,6 @@ function Timeline({ order }: { order: Order & { status: Ended } }) {
   ];
   if (order.readyAt) {
     moments.push({ title: t("ready"), body: t("readyBody", { time: at(order.readyAt) }) });
-  }
-  if (order.status === "collected" && order.collectedAt) {
-    moments.push({
-      title: t("collected"),
-      body: t("collectedBody", { time: at(order.collectedAt), total }),
-    });
   }
   if (order.status === "cancelled" && order.cancelledAt) {
     moments.push({
@@ -195,9 +272,7 @@ function Timeline({ order }: { order: Order & { status: Ended } }) {
       >
         {t("title")}
       </h2>
-      {order.status === "collected" ? null : (
-        <p className="text-body-sm">{t(`summary.${order.status}`)}</p>
-      )}
+      <p className="text-body-sm">{t(`summary.${order.status}`)}</p>
       <ol className="flex flex-col gap-3.5">
         {moments.map(({ title, body }) => (
           <li key={title} className="flex items-center gap-3">
@@ -217,14 +292,11 @@ function Timeline({ order }: { order: Order & { status: Ended } }) {
 }
 
 /**
- * An order that has ended (Figma D5 collected; cancelled, refused and expired the same way): a receipt framed in
+ * An order that has ended without being collected (Figma D5: cancelled, refused and expired): a receipt framed in
  * the colour of its status, with when it ended above the seller, the dishes and totals; then what happened, and
  * the way back to tonight's dishes.
  */
-export function EndedOrder({
-  order,
-  level = "page",
-}: { order: Order & { status: Ended } } & Level) {
+export function EndedOrder({ order }: { order: Order & { status: Ended } }) {
   const t = useTranslations("Orders");
   const format = useFormatter();
   const date = useOrderDate();
@@ -235,9 +307,8 @@ export function EndedOrder({
 
   return (
     <article aria-label={title}>
-      {level === "page" ? <PageBar title={title} back="/orders" /> : null}
+      <PageBar title={title} back="/orders" />
       <div className="mx-auto flex w-full max-w-xl flex-col gap-3.5 px-4 pt-4 pb-6">
-        {level === "part" ? <h2 className="text-bar-title">{title}</h2> : null}
         <section
           aria-label={t("details")}
           className={cn("rounded-2xl px-0.75 pb-0.75", look.frame)}
@@ -265,7 +336,7 @@ export function EndedOrder({
   );
 }
 
-/** Whether the order has ended, so it is shown as one that has. */
+/** Whether the order has ended without being collected, so it is shown as a receipt. */
 export function hasEnded(order: Order): order is Order & { status: Ended } {
-  return order.status !== "confirmed" && order.status !== "ready";
+  return order.status !== "confirmed" && order.status !== "ready" && order.status !== "collected";
 }

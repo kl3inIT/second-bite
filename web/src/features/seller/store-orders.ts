@@ -1,6 +1,5 @@
 import type { OrderBody } from "@/lib/api/generated";
-
-import { plain } from "./store-day";
+import { plainText } from "@/lib/plain-text";
 
 /**
  * The tabs of a store's order list (Figma Q5, Q5h, Q5i, Q5e, Q5f): the orders being prepared, the ones the seller
@@ -74,11 +73,11 @@ export function unitsOf(order: OrderBody): number {
 
 /** Whether an order answers a search: by the customer's name, a part of their phone number, or a dish. */
 export function matchesQuery(order: OrderBody, query: string): boolean {
-  const wanted = plain(query.trim());
+  const wanted = plainText(query.trim());
   if (!wanted) return true;
   const digits = wanted.replace(/\D/g, "");
   if (digits.length >= 3 && order.customerPhone.includes(digits)) return true;
   return [order.customerName, ...order.lines.map((line) => line.name)].some((text) =>
-    plain(text).includes(wanted),
+    plainText(text).includes(wanted),
   );
 }
