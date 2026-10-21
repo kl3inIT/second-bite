@@ -35,7 +35,6 @@ export 'models/found_output_body.dart';
 export 'models/google_method_body.dart';
 export 'models/google_sign_in_input_body.dart';
 export 'models/grant_admin_request.dart';
-export 'models/hand_over_order_request.dart';
 export 'models/list_dishes_response.dart';
 export 'models/member_body.dart';
 export 'models/members_output_body.dart';

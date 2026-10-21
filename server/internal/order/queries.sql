@@ -24,14 +24,14 @@ WHERE customer_id IS NOT DISTINCT FROM sqlc.narg(customer_id)::uuid AND idempote
 
 -- name: GetOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
-       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders WHERE id = @id;
 
 -- name: LockOrder :one
 -- Serializes the transitions of one order until the transaction ends.
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
-       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders WHERE id = @id FOR UPDATE;
 
@@ -45,7 +45,7 @@ ORDER BY order_id, name, offer_id;
 -- their window not over; ended ones are every other; those of one checkout
 -- when it is given.
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
-       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders
 WHERE customer_id = @customer_id
@@ -60,7 +60,7 @@ LIMIT @max_rows OFFSET @skip_rows;
 -- A seller's orders whose window starts within [day_start, day_end), soonest
 -- first.
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
-       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders
 WHERE seller_id = @seller_id AND window_start >= @day_start AND window_start < @day_end
@@ -80,7 +80,3 @@ UPDATE order_orders SET state = 'cancelled', cancelled_at = now(), cancel_reason
 UPDATE order_orders
 SET state = 'refused', refused_at = now(), refuse_reason = @refuse_reason, refuse_note = @refuse_note
 WHERE id = @id;
-
--- name: CountWrongCode :one
-UPDATE order_orders SET wrong_code_attempts = wrong_code_attempts + 1 WHERE id = @id
-RETURNING wrong_code_attempts;

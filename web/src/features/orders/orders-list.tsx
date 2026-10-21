@@ -54,7 +54,7 @@ function together(orders: Order[]) {
 
 /**
  * Orders still to collect, placed together from one cart (SEC-76 › decision 8), with the way to them (Figma W7
- * › đơn đang chờ): the soonest part decides the time shown, and one order alone shows its code.
+ * › đơn đang chờ): the soonest part decides the time shown.
  */
 async function OpenOrderCard({ orders }: { orders: Order[] }) {
   const [t, format] = await Promise.all([getTranslations("Orders"), getFormatter()]);
@@ -64,7 +64,6 @@ async function OpenOrderCard({ orders }: { orders: Order[] }) {
   const until = format.dateTime(new Date(order.windowEnd), "time");
   const from = format.dateTime(new Date(order.windowStart), "time");
   const { sellers, dishes, numbers, total } = together(orders);
-  const code = orders.length === 1 ? order.code : undefined;
 
   return (
     <article className="flex flex-col gap-3 rounded-3xl bg-card p-4 text-card-foreground">
@@ -95,7 +94,7 @@ async function OpenOrderCard({ orders }: { orders: Order[] }) {
         href={`/orders/${orders[0].id}`}
         className={buttonVariants({ variant: "secondary", size: "lg" })}
       >
-        {code ? t("seeCode", { code }) : t("seeOrder")}
+        {t("seeOrder")}
       </Link>
     </article>
   );
@@ -141,7 +140,7 @@ async function EndedOrderRow({ orders }: { orders: Order[] }) {
 
 /**
  * "Đơn của tôi" (Figma W7): the two lists as tabs with their counts; the orders to collect as cards with the
- * way to their code, then the latest that have ended; beside them, once some were collected, what they saved.
+ * way to them, then the latest that have ended; beside them, once some were collected, what they saved.
  */
 export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
   const which = await pending;

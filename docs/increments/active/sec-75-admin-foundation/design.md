@@ -105,7 +105,7 @@ Not recorded: customers' and members' actions (ordering, posting, adding staff),
 
 ### Table
 
-Migration `0015_audit_create_events.sql`.
+Migration `0016_audit_create_events.sql`.
 
 | Column | Type | Holds |
 | --- | --- | --- |
@@ -206,7 +206,7 @@ func (s *Service) ForgetAccount(ctx context.Context, tx pgx.Tx, accountID uuid.U
   - Each action is one conditional update, `UPDATE … WHERE id = @id AND status = ANY(@from)`. It replaces `SetStatus`, which today writes any status (`seller/queries.sql:44-47`).
   - From any other state the action answers 409 `SELLER_STATUS_CHANGE_NOT_ALLOWED`, translated as every failure is.
   - `activate` is renamed `approve`; this increment makes the generated clients follow.
-- **New columns** (migration `0016_seller_add_status_reason_and_search.sql`):
+- **New columns** (migration `0017_seller_add_status_reason_and_search.sql`):
   - `status` gains `rejected`;
   - `status_reason text` null, set by reject and block, cleared by approve.
 
