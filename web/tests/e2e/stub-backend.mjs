@@ -99,6 +99,7 @@ function sample({
       largePath: `/photos/${photo}/1600.jpg`,
       smallPath: `/photos/${photo}/400.jpg`,
     },
+    photos: [photoBody(photo)],
     windowStart: from,
     windowEnd: until,
     collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
@@ -947,6 +948,7 @@ function postsOf(seller) {
       largePath: `/photos/ph-${n}/1600.jpg`,
       smallPath: `/photos/ph-${n}/400.jpg`,
     },
+    photos: [photoBody(`ph-${n}`)],
     windowStart: tonight(...from),
     windowEnd: tonight(...until),
     collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
@@ -1157,6 +1159,7 @@ async function sellerRoutes(request, response, url) {
             largePath: `/photos/${body.photoId}/1600.jpg`,
             smallPath: `/photos/${body.photoId}/400.jpg`,
           },
+          photos: photosBody(body.photoId, body.morePhotoIds),
           hidden: Boolean(body.hidden),
           createdAt: now,
           updatedAt: now,
@@ -1180,7 +1183,7 @@ async function sellerRoutes(request, response, url) {
       dishes.splice(dishes.indexOf(dish), 1);
       response.writeHead(204).end();
     } else if (request.method === "PATCH") {
-      const { photoId, ...body } = await readBody(request);
+      const { photoId, morePhotoIds, ...body } = await readBody(request);
       Object.assign(dish, body, { updatedAt: new Date().toISOString() });
       // 0 takes the original price away.
       if (body.originalPriceVnd === 0) delete dish.originalPriceVnd;
@@ -1190,6 +1193,12 @@ async function sellerRoutes(request, response, url) {
           largePath: `/photos/${photoId}/1600.jpg`,
           smallPath: `/photos/${photoId}/400.jpg`,
         };
+      }
+      if (photoId || morePhotoIds) {
+        dish.photos = photosBody(
+          photoId ?? dish.photo.id,
+          morePhotoIds ?? dish.photos.slice(1).map((p) => p.id),
+        );
       }
       json(response, 200, dish);
     }
@@ -1235,6 +1244,7 @@ async function sellerRoutes(request, response, url) {
           largePath: `/photos/${body.photoId}/1600.jpg`,
           smallPath: `/photos/${body.photoId}/400.jpg`,
         },
+        photos: photosBody(body.photoId, body.morePhotoIds),
         collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
         createdAt: now,
         updatedAt: now,
@@ -1313,6 +1323,14 @@ const ordersByKey = new Map();
 let nextOrder = 10001;
 const PHONE = /^0[0-9]{9}$/;
 const REVIEW_TAGS = ["fast_pickup", "good_quality", "good_variety", "fair_portions"];
+
+function photoBody(id) {
+  return { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` };
+}
+
+function photosBody(cover, more = []) {
+  return [cover, ...more].map(photoBody);
+}
 
 function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
