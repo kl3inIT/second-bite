@@ -53,6 +53,9 @@ const (
 	RefuseLate        RefuseReason = "late"
 	RefuseSoldOut     RefuseReason = "sold_out"
 	RefuseOther       RefuseReason = "other"
+	// RefuseWithdrawn is the reason the system gives when the seller withdraws
+	// an offer the order holds units of; staff never choose it (SEC-108).
+	RefuseWithdrawn RefuseReason = "withdrawn"
 )
 
 // valid tells whether staff may give r.

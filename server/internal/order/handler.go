@@ -63,7 +63,7 @@ type orderBody struct {
 	CancelledAt   *time.Time      `json:"cancelledAt,omitempty"`
 	RefusedAt     *time.Time      `json:"refusedAt,omitempty"`
 	CancelReason  string          `json:"cancelReason,omitempty"`
-	RefuseReason  RefuseReason    `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other"`
+	RefuseReason  RefuseReason    `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other,withdrawn"`
 	RefuseNote    string          `json:"refuseNote,omitempty"`
 	CheckoutID    uuid.UUID       `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
 	CustomerName  string          `json:"customerName"           doc:"Who collects, as given with the order"`
