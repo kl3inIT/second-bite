@@ -32,6 +32,8 @@ type service struct {
 	base    string
 	dsn     string
 	mailpit string
+	// getenv is the service's environment, for running its commands.
+	getenv func(string) string
 }
 
 // TestService runs the assembled service against PostgreSQL with PostGIS and
@@ -43,27 +45,30 @@ func TestService(t *testing.T) {
 	svc, stop := startService(t)
 
 	checks := map[string]func(*testing.T, service){
-		"migrations applied":                                      checkMigrated,
-		"probes answer and carry a request id":                    checkProbes,
-		"a well-formed request id from the caller is kept":        checkCallerRequestID,
-		"the contract is served":                                  checkContractServed,
-		"an unknown route is a problem":                           checkUnknownRoute,
-		"another method on a known route is a problem with Allow": checkMethodNotAllowed,
-		"sign in with an emailed code, then sign out":             checkSignInAndOut,
-		"sign in with the session in a cookie, as the web does":   checkCookieSession,
-		"without client IDs Google is offered nowhere":            checkGoogleOff,
-		"a wrong code spends a guess and the fifth ends the code": checkWrongCodes,
-		"a second code within a minute is refused with a wait":    checkCodeCooldown,
-		"a code works once":                                       checkCodeWorksOnce,
-		"an unknown or malformed token is refused with 401":       checkInvalidToken,
-		"only admins read the email settings":                     checkAdminOnly,
-		"a new code ends the earlier one":                         checkNewCodeEndsEarlier,
-		"a seller is opened active, staffed and blocked":          checkSellerFlow,
-		"a photo is uploaded, set on a seller and served":         checkPhotoFlow,
-		"an offer is posted and found near Tasco Mall":            checkOfferFlow,
-		"an owner deletes their account; the others forget it":    checkAccountDeletion,
-		"a person names their account":                            checkDisplayName,
-		"an order is placed, made ready and handed over":          checkOrderFlow,
+		"migrations applied":                                         checkMigrated,
+		"probes answer and carry a request id":                       checkProbes,
+		"a well-formed request id from the caller is kept":           checkCallerRequestID,
+		"the contract is served":                                     checkContractServed,
+		"an unknown route is a problem":                              checkUnknownRoute,
+		"another method on a known route is a problem with Allow":    checkMethodNotAllowed,
+		"sign in with an emailed code, then sign out":                checkSignInAndOut,
+		"sign in with the session in a cookie, as the web does":      checkCookieSession,
+		"without client IDs Google is offered nowhere":               checkGoogleOff,
+		"a wrong code spends a guess and the fifth ends the code":    checkWrongCodes,
+		"a second code within a minute is refused with a wait":       checkCodeCooldown,
+		"a code works once":                                          checkCodeWorksOnce,
+		"an unknown or malformed token is refused with 401":          checkInvalidToken,
+		"only admins read the email settings":                        checkAdminOnly,
+		"every admin operation refuses the signed out and customers": checkAdminOperationsRefuseOthers,
+		"a revoked admin is refused at the next request":             checkRevokedAdminRefused,
+		"the command line grants and revokes an admin":               checkAdminCommands,
+		"a new code ends the earlier one":                            checkNewCodeEndsEarlier,
+		"a seller is opened active, staffed and blocked":             checkSellerFlow,
+		"a photo is uploaded, set on a seller and served":            checkPhotoFlow,
+		"an offer is posted and found near Tasco Mall":               checkOfferFlow,
+		"an owner deletes their account; the others forget it":       checkAccountDeletion,
+		"a person names their account":                               checkDisplayName,
+		"an order is placed, made ready and handed over":             checkOrderFlow,
 	}
 
 	// The checks run in parallel with one another; this group returns when
@@ -79,6 +84,10 @@ func TestService(t *testing.T) {
 
 	t.Run("a stored SMTP password follows only its server", func(t *testing.T) { //nolint:paralleltest // it changes the email settings the other checks send with
 		checkSMTPPasswordFollowsServer(t, svc)
+	})
+
+	t.Run("every admin change is audited", func(t *testing.T) { //nolint:paralleltest // it changes the settings the other checks use
+		checkAdminChangesAreAudited(t, svc)
 	})
 
 	// Cleanups run after the checks, and before the containers'.
@@ -114,8 +123,8 @@ func startService(t *testing.T) (service, func() error) {
 			"-smtp-host", smtpHost, "-smtp-port", smtpPort, "-smtp-security", "none",
 		},
 	}
-	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail, orderAdminEmail} {
-		admin = append(admin, []string{"admin", "grant", email})
+	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail, grantingAdminEmail, auditAdminEmail} {
+		admin = append(admin, []string{commandAdmin, "grant", email})
 	}
 
 	for _, args := range admin {
@@ -129,7 +138,7 @@ func startService(t *testing.T) (service, func() error) {
 
 	go func() { done <- run(runCtx, []string{"serve"}, getenv, strings.NewReader(""), io.Discard) }()
 
-	svc := service{base: "http://" + addr, dsn: dsn, mailpit: mailpitURL}
+	svc := service{base: "http://" + addr, dsn: dsn, mailpit: mailpitURL, getenv: getenv}
 	waitReady(t, svc.base+"/readyz", done)
 
 	stop := func() error {

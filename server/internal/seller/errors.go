@@ -44,4 +44,16 @@ var (
 		VI: "Chủ quán không thể rời quán.",
 		EN: "The owner cannot leave the seller.",
 	})
+	ErrStatusChangeNotAllowed = platform.NewFailure("SELLER_STATUS_CHANGE_NOT_ALLOWED", platform.CategoryConflict, platform.Words{
+		VI: "Không đổi được trạng thái cửa hàng theo cách này: chỉ duyệt cửa hàng đang chờ, bị từ chối hoặc bị khoá; chỉ từ chối cửa hàng đang chờ; chỉ khoá cửa hàng đang hoạt động.",
+		EN: "The seller's status cannot change this way: only a pending, rejected or blocked seller is approved, only a pending one rejected, only an active one blocked.",
+	})
+	ErrReasonInvalid = platform.NewFailure("SELLER_REASON_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Ghi lý do cho chủ cửa hàng, từ 10 đến 500 ký tự.",
+		EN: "Write the owner a reason of 10 to 500 characters.",
+	})
+	ErrListInvalid = platform.NewFailure("SELLER_LIST_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Bộ lọc danh sách cửa hàng không hợp lệ: kiểm tra trạng thái, từ khoá tối đa 100 ký tự, trang từ 1 và cỡ trang từ 1 đến 100.",
+		EN: "The seller list's filters are not valid: check the statuses, a query of at most 100 characters, a page from 1 and a page size of 1 to 100.",
+	})
 )

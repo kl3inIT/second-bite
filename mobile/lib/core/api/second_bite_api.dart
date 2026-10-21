@@ -5,7 +5,6 @@
 import 'package:dio/dio.dart';
 
 import 'clients/accounts_client.dart';
-import 'clients/admins_client.dart';
 import 'clients/admin_client.dart';
 import 'clients/sign_in_client.dart';
 import 'clients/catalog_client.dart';
@@ -26,7 +25,6 @@ class SecondBiteApi {
   static String get version => '0.1.0';
 
   AccountsClient? _accounts;
-  AdminsClient? _admins;
   AdminClient? _admin;
   SignInClient? _signIn;
   CatalogClient? _catalog;
@@ -37,8 +35,6 @@ class SecondBiteApi {
 
   AccountsClient get accounts =>
       _accounts ??= AccountsClient(_dio, baseUrl: _baseUrl);
-
-  AdminsClient get admins => _admins ??= AdminsClient(_dio, baseUrl: _baseUrl);
 
   AdminClient get admin => _admin ??= AdminClient(_dio, baseUrl: _baseUrl);
 

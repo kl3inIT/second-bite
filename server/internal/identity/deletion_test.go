@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/identity/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
@@ -40,10 +41,24 @@ func TestDeleteAccount(t *testing.T) {
 		t.Fatalf("deleting with another address's code: %v, want ErrChallengeGone", err)
 	}
 
+	// What the audit says leave did, and what was done to leave's account,
+	// keeps its identifier and loses its address; keep's stays (SEC-75).
+	if _, err := pool.Exec(t.Context(), `INSERT INTO audit_events
+		(action, actor_id, actor_label, resource_type, resource_id, resource_label) VALUES
+		('seller.block', $1, $2, 'seller', $5, 'Bếp Cô Ba'),
+		('admin.grant', $3, $4, 'account', $1::text, $2),
+		('admin.grant', $1, $2, 'account', $3::text, $4)`,
+		leave.Account.ID, leave.Account.Email, keep.Account.ID, keep.Account.Email, uuid.NewString(),
+	); err != nil {
+		t.Fatal(err)
+	}
+
 	id, code = deletionChallenge(t, s, leave.Account.Email)
 	if err := s.DeleteAccount(callerCtx(t, leave), id, code); err != nil {
 		t.Fatal(err)
 	}
+
+	checkAuditForgot(t, pool, leave.Account, keep.Account)
 
 	var accounts, sessions, logins, codes, jobs int
 	if err := pool.QueryRow(t.Context(), `SELECT
@@ -70,10 +85,32 @@ func TestDeleteAccount(t *testing.T) {
 	}
 }
 
+// checkAuditForgot checks that no audit event names gone any more, that each
+// still carries its identifier, and that what names kept is unchanged.
+func checkAuditForgot(t *testing.T, pool *pgxpool.Pool, gone, kept Account) {
+	t.Helper()
+
+	var naming, byGone, onGone, keptNamed int
+	if err := pool.QueryRow(t.Context(), `SELECT
+		(SELECT count(*) FROM audit_events WHERE actor_label = $2 OR resource_label = $2),
+		(SELECT count(*) FROM audit_events WHERE actor_id = $1),
+		(SELECT count(*) FROM audit_events WHERE resource_type = 'account' AND resource_id = $1::text),
+		(SELECT count(*) FROM audit_events WHERE actor_label = $3 OR resource_label = $3)`,
+		gone.ID, gone.Email, kept.Email,
+	).Scan(&naming, &byGone, &onGone, &keptNamed); err != nil {
+		t.Fatal(err)
+	}
+
+	if naming != 0 || byGone != 2 || onGone != 1 || keptNamed != 2 {
+		t.Errorf("audit: %d events name the deleted account (want 0), %d by it (want 2), %d on it (want 1), %d name the other (want 2)",
+			naming, byGone, onGone, keptNamed)
+	}
+}
+
 func newDeletionService(t *testing.T, pool *pgxpool.Pool) *Service {
 	t.Helper()
 
-	notifications, err := notification.NewService(pool, notification.Config{SettingsKey: make([]byte, 32)}, platformtest.Logger())
+	notifications, err := notification.NewService(pool, audit.NewService(pool, platformtest.Logger()), notification.Config{SettingsKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +123,7 @@ func newDeletionService(t *testing.T, pool *pgxpool.Pool) *Service {
 	// One listener, so the event is written once; it never runs here.
 	platform.Listen(events, "test.deleted", func(_ context.Context, _ AccountDeletedEvent) error { return nil })
 
-	s, err := NewService(pool, notifications, events, Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
+	s, err := NewService(pool, notifications, events, audit.NewService(pool, platformtest.Logger()), Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}

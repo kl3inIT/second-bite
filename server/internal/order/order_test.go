@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/identity"
 	"github.com/kl3inIT/second-bite/server/internal/offer"
@@ -62,7 +63,7 @@ func TestOrder(t *testing.T) {
 func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 	t.Helper()
 
-	accounts, err := identity.NewService(pool, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
+	accounts, err := identity.NewService(pool, nil, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,8 +73,15 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 		t.Fatal(err)
 	}
 
-	sellers := seller.NewService(pool, accounts, files, platformtest.Logger())
-	offers := offer.NewService(pool, sellers, files, platformtest.Logger())
+	trail := audit.NewService(pool, platformtest.Logger())
+
+	events, err := platform.NewEvents(pool, platformtest.Logger())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sellers := seller.NewService(pool, accounts, files, nil, events, trail, platformtest.Logger()) // its listeners do not run here
+	offers := offer.NewService(pool, sellers, files, trail, platformtest.Logger())
 
 	orders := order.NewService(pool, offers, sellers, platformtest.Logger())
 
@@ -95,8 +103,8 @@ func (f fixture) as(t *testing.T, name string, role platform.Role) context.Conte
 	return platform.WithCaller(t.Context(), platform.Caller{AccountID: a.ID, SessionID: uuid.New(), Role: role})
 }
 
-// shop opens a seller of that name owned by owner, with staff, activated by
-// an admin.
+// shop opens a seller of that name owned by owner, with staff; a seller is
+// active once opened.
 func (f fixture) shop(owner context.Context, t *testing.T, name string, staff ...string) uuid.UUID {
 	t.Helper()
 
@@ -111,10 +119,6 @@ func (f fixture) shop(owner context.Context, t *testing.T, name string, staff ..
 		if _, err := f.sellers.AddStaff(owner, s.ID, f.prefix+"."+name+"@example.com"); err != nil {
 			t.Fatal(err)
 		}
-	}
-
-	if _, err := f.sellers.Activate(f.as(t, "admin", platform.RoleAdmin), s.ID); err != nil {
-		t.Fatal(err)
 	}
 
 	return s.ID
@@ -337,7 +341,7 @@ func testRefusedCartTakesNothing(t *testing.T, f fixture) {
 	_, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{bread.ID, 1}})
 	mustFail(t, "a withdrawn offer", err, order.ErrOfferUnavailable)
 
-	if _, err := f.sellers.Block(f.as(t, "admin", platform.RoleAdmin), shop); err != nil {
+	if _, err := f.sellers.Block(f.as(t, "admin", platform.RoleAdmin), shop, "Bán món đã quá hạn sử dụng"); err != nil {
 		t.Fatal(err)
 	}
 

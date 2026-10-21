@@ -851,5 +851,200 @@
     "original": "Original price (VND, optional)",
     "originalPlaceholder": "For example: 95.000",
     "originalInvalid": "An original price from 1.001đ, or leave it empty."
+  },
+  "Admin": {
+    "home": "Second Bite, admin",
+    "tag": "Admin",
+    "collapse": "Collapse the sidebar",
+    "expand": "Expand the sidebar",
+    "language": "Tiếng Việt",
+    "signOut": "Sign out",
+    "skip": "Skip the sidebar",
+    "breadcrumb": "Where you are",
+    "nav": {
+      "audit": "Activity log",
+      "settings": "Settings"
+    },
+    "notFound": {
+      "crumb": "Not found",
+      "title": "This page was not found",
+      "body": "This address is not part of the admin pages.",
+      "back": "Back to the admin"
+    },
+    "menu": "Admin menu",
+    "list": {
+      "range": "Showing {first}–{last} of {total} {noun}",
+      "pages": "Pages",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "audit": {
+      "title": "Activity log",
+      "noun": "actions",
+      "filter": {
+        "search": "Search stores, emails",
+        "actor": "By",
+        "anyone": "Anyone",
+        "action": "Action",
+        "anything": "Any",
+        "days": "Days",
+        "anytime": "Any time"
+      },
+      "column": {
+        "time": "Time",
+        "actor": "By",
+        "action": "Action",
+        "resource": "On",
+        "change": "Change (before → after)"
+      },
+      "action": {
+        "sellerApprove": "Store approved",
+        "sellerReject": "Store rejected",
+        "sellerBlock": "Store blocked",
+        "sellerUnblock": "Store unblocked",
+        "adminGrant": "Admin granted",
+        "adminRevoke": "Admin revoked",
+        "offerSettingsChange": "Post settings changed",
+        "emailSettingsChange": "Email settings changed"
+      },
+      "resource": {
+        "seller": "Store",
+        "account": "Account",
+        "offer_settings": "Post settings",
+        "email_settings": "Email settings"
+      },
+      "commandLine": "Command line",
+      "deletedAccount": "Deleted account",
+      "change": {
+        "approved": "→ Active",
+        "rejected": "Pending → Rejected",
+        "blocked": "Active → Blocked",
+        "unblocked": "Blocked → Active",
+        "granted": "Customer → Admin",
+        "revoked": "Admin → Customer",
+        "fromCommandLine": "From the server's command line",
+        "reason": "Reason: {reason}",
+        "value": "{field}: {from} → {to}",
+        "secret": "{field}: changed",
+        "empty": "empty"
+      },
+      "field": {
+        "minDiscountPercent": "Minimum discount",
+        "defaultRadiusKm": "Default radius",
+        "maxRadiusKm": "Maximum radius",
+        "windowMinMinutes": "Shortest pickup window",
+        "windowMaxMinutes": "Longest pickup window",
+        "startsWithinHours": "Starts within",
+        "provider": "Provider",
+        "senderAddress": "Sender address",
+        "senderName": "Sender name",
+        "smtpHost": "SMTP server",
+        "smtpPort": "SMTP port",
+        "smtpSecurity": "SMTP security",
+        "smtpUsername": "SMTP user",
+        "smtpPassword": "SMTP password",
+        "brevoApiKey": "Brevo API key"
+      },
+      "unit": {
+        "percent": "{value}%",
+        "km": "{value} km",
+        "minutes": "{value} min",
+        "hours": "{value} h"
+      },
+      "empty": {
+        "title": "No actions yet",
+        "body": "When admins approve or block a store or change a setting, it shows here."
+      },
+      "noResults": {
+        "title": "No actions found",
+        "body": "No action matches the filters.",
+        "clear": "Clear the filters"
+      }
+    },
+    "closeToast": "Close notification",
+    "settings": {
+      "title": "Settings",
+      "nav": "Settings pages",
+      "email": "Email"
+    },
+    "email": {
+      "title": "Email",
+      "provider": {
+        "title": "Provider",
+        "label": "Email provider",
+        "smtp": "SMTP",
+        "brevo": "Brevo",
+        "using": "Using {provider}",
+        "notConfigured": "Not set up"
+      },
+      "sender": {
+        "title": "Sender",
+        "address": "Sender address",
+        "name": "Sender name"
+      },
+      "smtp": {
+        "title": "SMTP server",
+        "host": "Host",
+        "port": "Port",
+        "security": "Security",
+        "none": "No encryption",
+        "starttls": "STARTTLS",
+        "tls": "TLS",
+        "user": "User",
+        "password": "Password",
+        "passwordNew": "Enter the password"
+      },
+      "brevo": {
+        "title": "Brevo",
+        "key": "API key",
+        "keyNew": "Paste Brevo's API key"
+      },
+      "kept": "Saved · leave empty to keep it",
+      "test": {
+        "title": "Test email",
+        "to": "Send to",
+        "hint": "Uses the saved settings. Your own address by default; change it to try another mailbox (Gmail, Outlook…).",
+        "saveFirst": "Save your changes before testing: the test email uses the saved settings.",
+        "notConfigured": "Save the settings first, then send a test.",
+        "invalid": "Enter a valid email address.",
+        "send": "Send test email",
+        "sent": "Test email sent to {to}",
+        "sentHint": "Check the mailbox; if it is not there, look in Spam.",
+        "failed": "Could not send to {to}",
+        "unknown": "Not sent yet. Try again shortly.",
+        "reference": "reference {reference}"
+      },
+      "footer": {
+        "updated": "Last updated at {time}, {day}",
+        "never": "Never saved",
+        "dirty": "You have unsaved changes",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "create": "Save settings",
+        "saved": "Email settings saved",
+        "savedHint": "The next email uses them."
+      },
+      "conflict": {
+        "title": "Someone just saved the email settings",
+        "body": "Your changes are not saved. Reload to see the new version, then edit again.",
+        "reload": "Reload"
+      },
+      "refused": "Not saved",
+      "failed": "Not saved yet. Try again shortly.",
+      "reference": "reference {reference}",
+      "errors": {
+        "senderAddress": "Enter a valid email address.",
+        "senderName": "Enter the sender name, up to 100 characters.",
+        "smtpHost": "Enter the SMTP server's host.",
+        "smtpPort": "The port is a number from 1 to 65535.",
+        "passwordNeeded": "Enter the password for this user.",
+        "passwordDropped": "The server changed, so the saved password will be dropped. Enter the password for the new server.",
+        "noTls": "With a user and password, use STARTTLS or TLS.",
+        "brevoKey": "Enter Brevo's API key."
+      }
+    },
+    "group": {
+      "users": "Users"
+    }
   }
 }

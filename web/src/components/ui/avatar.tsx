@@ -43,6 +43,8 @@ const avatarFallbackTones = {
   rose: "bg-avatar-rose text-avatar-foreground",
   indigo: "bg-avatar-indigo text-avatar-foreground",
   olive: "bg-avatar-olive text-avatar-foreground",
+  // Second Bite: the admin's own initials at the sidebar's foot, in lime (Figma Avatar/QT).
+  fresh: "bg-fresh text-fresh-foreground",
 } as const;
 
 function AvatarFallback({

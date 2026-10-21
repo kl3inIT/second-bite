@@ -42,6 +42,8 @@ const tabs: Tab[] = [
 export function BottomNav() {
   const t = useTranslations("BottomNav");
   const pathname = usePathname();
+  // The admin's pages have their own sidebar instead (SEC-75 › Shell).
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
   // The search, a dish, a seller and the cart are screens of their own, left by their back arrow, the last
   // three with a bar of their own at the bottom (Figma K1f, K2, K4, K4b, K5).
   if (

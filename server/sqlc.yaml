@@ -67,6 +67,15 @@ sql:
         omit_unused_structs: true
   - engine: postgresql
     schema: migrations
+    queries: internal/audit/queries.sql
+    gen:
+      go:
+        package: db
+        out: internal/audit/internal/db
+        sql_package: pgx/v5
+        omit_unused_structs: true
+  - engine: postgresql
+    schema: migrations
     queries: internal/order/queries.sql
     gen:
       go:

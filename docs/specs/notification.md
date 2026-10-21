@@ -6,8 +6,9 @@ Owns who delivers email, chosen by admins while the service runs, and the record
 
 | Operation | Who | Answer |
 | --- | --- | --- |
-| `GET /admin/email-settings` | Admins | `200` with the provider, the sender, the SMTP server, and whether the SMTP password and the Brevo API key are set; never a secret |
-| `PUT /admin/email-settings` | Admins | `204`; the next email uses the new settings |
+| `GET /admin/email-settings` | Admins | `200` with the provider, the sender, the SMTP server, and whether the SMTP password and the Brevo API key are set, never a secret; their version in `ETag` |
+| `PUT /admin/email-settings`, with `If-Match` or `If-None-Match: *` | Admins | `204`; the next email uses the new settings. `If-Match` carries the `ETag` read; `If-None-Match: *` saves the first settings, when the read answered `NOTIFICATION_EMAIL_NOT_CONFIGURED`. `412` when saved since; `400 PLATFORM_VERSION_REQUIRED` without either |
+| `POST /admin/email-settings/test` | Admins | `204` once one email went through the settings saved to `to`, or to the admin's own address without it. A failed send says which: `409 NOTIFICATION_TEST_EMAIL_REFUSED` when the provider refused (user, password, key or sender), `503 NOTIFICATION_TEST_EMAIL_UNREACHABLE` when it could not be reached, otherwise as `SendEmail` answers; never the provider's own words. Not recorded in the audit trail: it changes nothing |
 
 Published to other modules: `SendEmail`, which sends one email now and records it.
 
@@ -20,6 +21,7 @@ Administrative command: `secondbite email configure` with `-provider`, `-sender-
 - The SMTP password and the Brevo API key are sealed with AES-256-GCM under `SECONDBITE_EMAIL_SETTINGS_KEY`, each with its field's name as additional data. An empty secret on save keeps the stored one. Replacing the key makes the stored secrets unreadable; an admin enters them again.
 - A stored SMTP password follows only its server: changing the host, port, security or user drops it unless a new password comes with the change. A password is refused with security `none`.
 - A send has a 10-second bound. A provider's failure is classified as refused, rate limited (with the wait it asks for) or unavailable; a provider's error text is never logged.
+- Each change of the settings is recorded in the audit trail with the provider and the names of the fields changed, never a value; from the command line it has no actor (SEC-75). A save that changes nothing writes nothing. A secret counts as changed when a new one is given or the stored one is dropped.
 - Each email sent is recorded with its kind, recipient, provider and the provider's message id.
 - `ForgetRecipient` deletes the record of every email sent to an address, which identity calls when it deletes the address's account (SEC-37).
 

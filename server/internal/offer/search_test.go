@@ -219,7 +219,7 @@ func testBlockedSellerLeavesSearch(t *testing.T, f fixture) {
 		t.Fatalf("before the block: %q", got)
 	}
 
-	if _, err := f.sellers.Block(f.as(t, "admin", platform.RoleAdmin), sellerID); err != nil {
+	if _, err := f.sellers.Block(f.as(t, "admin", platform.RoleAdmin), sellerID, "Bán món đã quá hạn sử dụng"); err != nil {
 		t.Fatal(err)
 	}
 

@@ -15,10 +15,15 @@ Owns accounts and their role, emailed sign-in codes, Google sign-in and sessions
 | `PUT /accounts/me` `{displayName}` | A signed-in caller | `200` the account, its name trimmed (SEC-61) |
 | `POST /accounts/me/deletion-codes` | A signed-in caller | `202 {challengeId, expiresAt}`; a code that only confirms the deletion is emailed to the account's address (SEC-37) |
 | `POST /accounts/me/deletion` `{challengeId, code}` | A signed-in caller holding a deletion code of their own address | `204`; the account is deleted and the session cookie cleared |
+| `GET /admin/admins` | Admins | `200 {admins}`, by address (SEC-75) |
+| `POST /admin/admins` `{email}` | Admins | `200` the account, an admin; created when the address has never signed in; again, the same, recording nothing |
+| `POST /admin/admins/{accountId}/revoke` | Admins, never for themselves | `200` the account, a customer; a customer again, the same; refused for the last admin |
 
-Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantRole`, and the event `AccountDeletedEvent` (`identity.account_deleted`, the account's identifier only), which `seller` and `file` follow.
+Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantAdmin`, `RevokeAdmin` and their command-line forms, and the event `AccountDeletedEvent` (`identity.account_deleted`, the account's identifier only), which `seller` and `file` follow.
 
-Administrative command: `secondbite admin grant EMAIL` makes an account an admin, creating it if needed.
+Administrative commands: `secondbite admin grant EMAIL` makes an account an admin, creating it if needed; `secondbite admin revoke EMAIL` makes it a customer again, never the last admin.
+
+**Admins** (SEC-75). Changes of who is an admin are serialized by an advisory lock (`identity:admins`); a revoke counts the admins under it, so two admins revoking each other at once leave one. An admin cannot revoke themselves. Sessions are not ended: the role is read with the session on every request, so a revoked admin's next request is a customer's. Each grant and revoke is recorded in the audit trail with its source, `admin` or `command_line`; granting an admin or revoking a customer records nothing. Granting an address an unvouched Google link holds waits for its owner's code, as any gift by address does.
 
 ## Rules
 
@@ -33,7 +38,7 @@ Administrative command: `secondbite admin grant EMAIL` makes an account an admin
 - A Google identity is found by Google's subject, never by address. A first sign-in needs `email_verified`; it creates the account when no account has the address, links the account that has it when Google speaks for the address (`gmail.com`, or `hd` set), and otherwise is refused so that the person signs in with the code. The account's address never follows Google's. Each link records whether Google speaks for its address; a sign-in with the emailed code removes the account's links that it does not, and when it removes any, ends the account's earlier sessions (a Google sign-in racing it either finishes first, and its session is ended, or finds its link gone and is treated as unlinked), so that a Google account linked to an outside address before its owner arrived loses its way in (account pre-hijacking). Giving something by address waits for that proof: while the address's account holds such a link, `EnsureAccount` (a seller adding staff) and `GrantRole` are refused with `IDENTITY_ADDRESS_UNPROVEN`, under the address lock a Google sign-in takes, so that a role or a membership reaches the address's owner and not whoever linked Google to it first; once the owner has signed in with the code, they succeed. They end no one's sessions (SEC-39). The sign-ins of one identity run under a lock, so two first sign-ins make one link.
 - An account's display name is empty until a Google sign-in fills it with Google's name, or its owner sets one; a name it already has is kept, so Google never replaces the one the person chose. The owner sets it from account settings: trimmed, 1 to 50 characters, no control character (SEC-61). The identity's name and picture follow Google's at each sign-in.
 - A code carries its purpose: a sign-in code only signs in, a deletion code only deletes. Both share an address's limits and its one live code (SEC-37).
-- Deleting an account (SEC-37): the signed-in person asks for a deletion code, emailed to the account's address, and sends it back. The records of emails sent to the address are forgotten first (`notification`), since afterwards no one knows the address; then, in one transaction, the address's codes and the account are deleted, its sessions and external logins with it, and `AccountDeletedEvent` is written to the outbox. Signing in again with the address makes a new account. An admin may delete their own account like anyone.
+- Deleting an account (SEC-37): the signed-in person asks for a deletion code, emailed to the account's address, and sends it back. The records of emails sent to the address are forgotten first (`notification`), since afterwards no one knows the address; then, in one transaction, the address's codes and the account are deleted, its sessions and external logins with it, `audit` forgets the address in the admins' trail (SEC-75), and `AccountDeletedEvent` is written to the outbox. Signing in again with the address makes a new account. An admin may delete their own account like anyone.
 
 ## Data
 
@@ -57,6 +62,8 @@ Administrative command: `secondbite admin grant EMAIL` makes an account an admin
 | `IDENTITY_ADDRESS_UNPROVEN` | 409 | A role or a seller membership is given by address while the address's account holds a Google link Google does not speak for; the owner signs in once with the emailed code, then it succeeds (SEC-39) |
 | `IDENTITY_DISPLAY_NAME_INVALID` | 400 | A display name empty once trimmed, longer than 50 characters, or holding a control character |
 | `IDENTITY_ACCOUNT_NOT_FOUND` | 404 | The account does not exist |
+| `IDENTITY_ADMIN_SELF` | 409 | An admin revokes their own account |
+| `IDENTITY_LAST_ADMIN` | 409 | The revoke would leave no admin |
 | `IDENTITY_CHALLENGE_GONE` | 410 | The code expired, was used or was ended by a newer one; also a code of the other purpose, or a deletion code of another address, so a challenge tells nothing of who asked for it |
 | `IDENTITY_CODE_ATTEMPTS_EXHAUSTED` | 410 | Five wrong guesses on this code |
 | `IDENTITY_CODE_LIMIT_EXCEEDED` | 429 | A limit per address; `Retry-After` gives the wait |

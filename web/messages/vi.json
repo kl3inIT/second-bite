@@ -851,5 +851,200 @@
     "original": "Giá gốc (đồng, tùy chọn)",
     "originalPlaceholder": "Ví dụ: 95.000",
     "originalInvalid": "Giá gốc từ 1.001đ trở lên, hoặc để trống."
+  },
+  "Admin": {
+    "home": "Second Bite, trang quản trị",
+    "tag": "Quản trị",
+    "collapse": "Thu gọn thanh bên",
+    "expand": "Mở rộng thanh bên",
+    "language": "English",
+    "signOut": "Đăng xuất",
+    "skip": "Bỏ qua thanh bên",
+    "breadcrumb": "Vị trí trang",
+    "nav": {
+      "audit": "Nhật ký thao tác",
+      "settings": "Cài đặt"
+    },
+    "notFound": {
+      "crumb": "Không tìm thấy",
+      "title": "Không tìm thấy trang này",
+      "body": "Địa chỉ này không có trong trang quản trị.",
+      "back": "Về trang quản trị"
+    },
+    "menu": "Menu quản trị",
+    "list": {
+      "range": "Hiển thị {first}–{last} trên {total} {noun}",
+      "pages": "Trang",
+      "previous": "Trước",
+      "next": "Sau"
+    },
+    "audit": {
+      "title": "Nhật ký thao tác",
+      "noun": "thao tác",
+      "filter": {
+        "search": "Tìm cửa hàng, email",
+        "actor": "Người làm",
+        "anyone": "Tất cả",
+        "action": "Hành động",
+        "anything": "Tất cả",
+        "days": "Ngày",
+        "anytime": "Mọi lúc"
+      },
+      "column": {
+        "time": "Thời gian",
+        "actor": "Người làm",
+        "action": "Hành động",
+        "resource": "Đối tượng",
+        "change": "Thay đổi (trước → sau)"
+      },
+      "action": {
+        "sellerApprove": "Duyệt cửa hàng",
+        "sellerReject": "Từ chối cửa hàng",
+        "sellerBlock": "Chặn cửa hàng",
+        "sellerUnblock": "Gỡ chặn",
+        "adminGrant": "Cấp quản trị viên",
+        "adminRevoke": "Thu hồi quản trị viên",
+        "offerSettingsChange": "Sửa cài đặt bài đăng",
+        "emailSettingsChange": "Sửa cài đặt email"
+      },
+      "resource": {
+        "seller": "Cửa hàng",
+        "account": "Tài khoản",
+        "offer_settings": "Cài đặt bài đăng",
+        "email_settings": "Cài đặt email"
+      },
+      "commandLine": "Dòng lệnh",
+      "deletedAccount": "Tài khoản đã xoá",
+      "change": {
+        "approved": "→ Đang hoạt động",
+        "rejected": "Chờ duyệt → Bị từ chối",
+        "blocked": "Đang hoạt động → Bị chặn",
+        "unblocked": "Bị chặn → Đang hoạt động",
+        "granted": "Khách → Quản trị viên",
+        "revoked": "Quản trị viên → Khách",
+        "fromCommandLine": "Từ dòng lệnh trên máy chủ",
+        "reason": "Lý do: {reason}",
+        "value": "{field}: {from} → {to}",
+        "secret": "{field}: đã đổi",
+        "empty": "trống"
+      },
+      "field": {
+        "minDiscountPercent": "Giảm tối thiểu",
+        "defaultRadiusKm": "Bán kính mặc định",
+        "maxRadiusKm": "Bán kính tối đa",
+        "windowMinMinutes": "Khung lấy ngắn nhất",
+        "windowMaxMinutes": "Khung lấy dài nhất",
+        "startsWithinHours": "Bắt đầu trong vòng",
+        "provider": "Nhà cung cấp",
+        "senderAddress": "Địa chỉ gửi",
+        "senderName": "Tên người gửi",
+        "smtpHost": "Máy chủ SMTP",
+        "smtpPort": "Cổng SMTP",
+        "smtpSecurity": "Bảo mật SMTP",
+        "smtpUsername": "User SMTP",
+        "smtpPassword": "Mật khẩu SMTP",
+        "brevoApiKey": "Khoá API Brevo"
+      },
+      "unit": {
+        "percent": "{value}%",
+        "km": "{value} km",
+        "minutes": "{value} phút",
+        "hours": "{value} giờ"
+      },
+      "empty": {
+        "title": "Chưa có thao tác nào",
+        "body": "Khi quản trị viên duyệt, chặn cửa hàng hay sửa cài đặt, thao tác sẽ hiện ở đây."
+      },
+      "noResults": {
+        "title": "Không tìm thấy thao tác",
+        "body": "Không có thao tác nào khớp bộ lọc.",
+        "clear": "Xoá bộ lọc"
+      }
+    },
+    "closeToast": "Đóng thông báo",
+    "settings": {
+      "title": "Cài đặt",
+      "nav": "Mục cài đặt",
+      "email": "Email"
+    },
+    "email": {
+      "title": "Email",
+      "provider": {
+        "title": "Nhà cung cấp",
+        "label": "Nhà cung cấp email",
+        "smtp": "SMTP",
+        "brevo": "Brevo",
+        "using": "Đang dùng {provider}",
+        "notConfigured": "Chưa cấu hình"
+      },
+      "sender": {
+        "title": "Người gửi",
+        "address": "Địa chỉ gửi",
+        "name": "Tên người gửi"
+      },
+      "smtp": {
+        "title": "Máy chủ SMTP",
+        "host": "Host",
+        "port": "Port",
+        "security": "Bảo mật",
+        "none": "Không mã hoá",
+        "starttls": "STARTTLS",
+        "tls": "TLS",
+        "user": "User",
+        "password": "Mật khẩu",
+        "passwordNew": "Nhập mật khẩu"
+      },
+      "brevo": {
+        "title": "Brevo",
+        "key": "API key",
+        "keyNew": "Dán API key của Brevo"
+      },
+      "kept": "Đã lưu · để trống để giữ nguyên",
+      "test": {
+        "title": "Gửi thử",
+        "to": "Gửi tới",
+        "hint": "Dùng cấu hình đã lưu. Mặc định là email của bạn; đổi để thử hộp thư khác (Gmail, Outlook…).",
+        "saveFirst": "Lưu thay đổi trước khi gửi thử: email thử dùng cấu hình đã lưu.",
+        "notConfigured": "Lưu cấu hình trước rồi mới gửi thử được.",
+        "invalid": "Nhập một địa chỉ email hợp lệ.",
+        "send": "Gửi email thử",
+        "sent": "Đã gửi email thử tới {to}",
+        "sentHint": "Mở hộp thư để kiểm tra; không thấy thì xem mục Spam.",
+        "failed": "Không gửi được tới {to}",
+        "unknown": "Chưa gửi được. Thử lại sau giây lát.",
+        "reference": "mã {reference}"
+      },
+      "footer": {
+        "updated": "Cập nhật lần cuối lúc {time}, {day}",
+        "never": "Chưa lưu lần nào",
+        "dirty": "Bạn có thay đổi chưa lưu",
+        "cancel": "Huỷ",
+        "save": "Lưu thay đổi",
+        "create": "Lưu cấu hình",
+        "saved": "Đã lưu cấu hình email",
+        "savedHint": "Email tiếp theo gửi bằng cấu hình mới."
+      },
+      "conflict": {
+        "title": "Người khác vừa lưu cấu hình email",
+        "body": "Thay đổi của bạn chưa được lưu. Tải lại để xem bản mới rồi sửa tiếp.",
+        "reload": "Tải lại"
+      },
+      "refused": "Chưa lưu được",
+      "failed": "Chưa lưu được. Thử lại sau giây lát.",
+      "reference": "mã {reference}",
+      "errors": {
+        "senderAddress": "Nhập một địa chỉ email hợp lệ.",
+        "senderName": "Nhập tên người gửi, tối đa 100 ký tự.",
+        "smtpHost": "Nhập host của máy chủ SMTP.",
+        "smtpPort": "Port là số từ 1 đến 65535.",
+        "passwordNeeded": "Nhập mật khẩu cho user này.",
+        "passwordDropped": "Đã đổi máy chủ nên mật khẩu đã lưu sẽ bị xoá. Nhập mật khẩu cho máy chủ mới.",
+        "noTls": "Có user và mật khẩu thì phải dùng STARTTLS hoặc TLS.",
+        "brevoKey": "Nhập API key của Brevo."
+      }
+    },
+    "group": {
+      "users": "Người dùng"
+    }
   }
 }

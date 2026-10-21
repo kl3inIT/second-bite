@@ -38,27 +38,20 @@ func requestCode(t *testing.T, svc service, email string) (string, string) {
 }
 
 // readCode polls Mailpit for the newest email to address and returns its code.
+// Mailpit's search matches part of an address (admin@example.com finds
+// seller.admin@example.com too), so the recipient is compared whole.
 func readCode(t *testing.T, svc service, address string) string {
 	t.Helper()
 
 	deadline := time.Now().Add(10 * time.Second)
 
 	for time.Now().Before(deadline) {
-		var found struct {
-			Messages []struct {
-				ID string `json:"ID"`
-			} `json:"messages"`
-		}
-
-		send(t, http.MethodGet, svc.mailpit+"/api/v1/search?query="+url.QueryEscape("to:"+address), nil, nil).
-			decode(t, http.StatusOK, &found)
-
-		if len(found.Messages) > 0 {
+		if id, ok := newestEmailTo(t, svc, address); ok {
 			var msg struct {
 				Text string `json:"Text"`
 			}
 
-			send(t, http.MethodGet, svc.mailpit+"/api/v1/message/"+found.Messages[0].ID, nil, nil).
+			send(t, http.MethodGet, svc.mailpit+"/api/v1/message/"+id, nil, nil).
 				decode(t, http.StatusOK, &msg)
 
 			m := codePattern.FindStringSubmatch(msg.Text)
@@ -75,6 +68,34 @@ func readCode(t *testing.T, svc service, address string) string {
 	t.Fatalf("no email reached %s", address)
 
 	return ""
+}
+
+// newestEmailTo answers the identifier of the newest email Mailpit caught
+// for exactly address; Mailpit lists the newest first.
+func newestEmailTo(t *testing.T, svc service, address string) (string, bool) {
+	t.Helper()
+
+	var found struct {
+		Messages []struct {
+			ID string `json:"ID"`
+			To []struct {
+				Address string `json:"Address"`
+			} `json:"To"`
+		} `json:"messages"`
+	}
+
+	send(t, http.MethodGet, svc.mailpit+"/api/v1/search?query="+url.QueryEscape("to:"+address), nil, nil).
+		decode(t, http.StatusOK, &found)
+
+	for _, m := range found.Messages {
+		for _, to := range m.To {
+			if strings.EqualFold(to.Address, address) {
+				return m.ID, true
+			}
+		}
+	}
+
+	return "", false
 }
 
 func signIn(t *testing.T, svc service, email string) session {
@@ -346,8 +367,12 @@ func checkSMTPPasswordFollowsServer(t *testing.T, svc service) {
 	send(t, http.MethodGet, svc.base+"/admin/email-settings", auth, nil).decode(t, http.StatusOK, &current)
 
 	put := func(body map[string]any) response {
-		return send(t, http.MethodPut, svc.base+"/admin/email-settings", auth, body)
+		_, etag := readSettings(t, svc, auth, "/admin/email-settings")
+
+		return saveSettings(t, svc, auth, "/admin/email-settings", etag, body)
 	}
+
+	checkStaleSettingsRefused(t, svc, auth)
 
 	withPassword := map[string]any{
 		"provider": "smtp", "senderAddress": "no-reply@secondbite.test", "senderName": "Second Bite",
@@ -410,12 +435,12 @@ func checkAdminOnly(t *testing.T, svc service) {
 	customer := signIn(t, svc, "not.an.admin@example.com")
 
 	p := send(t, http.MethodGet, svc.base+"/admin/email-settings", bearer(customer.Token), nil).problem(t, http.StatusForbidden)
-	if p.Code != "PLATFORM_ADMIN_REQUIRED" {
+	if p.Code != codeAdminRequired {
 		t.Errorf("customer: code %q", p.Code)
 	}
 
 	admin := signIn(t, svc, adminEmail)
-	if admin.Account.Role != "admin" {
+	if admin.Account.Role != roleAdmin {
 		t.Fatalf("the granted admin signed in as %q", admin.Account.Role)
 	}
 
@@ -428,5 +453,43 @@ func checkAdminOnly(t *testing.T, svc service) {
 
 	if settings.Provider != "smtp" || settings.SMTPPasswordSet {
 		t.Errorf("settings %+v", settings)
+	}
+}
+
+// checkStaleSettingsRefused saves the email settings with a version from
+// before a change, and with none: neither is saved (SEC-75).
+func checkStaleSettingsRefused(t *testing.T, svc service, auth http.Header) {
+	t.Helper()
+
+	const path = "/admin/email-settings"
+
+	settings, before := readSettings(t, svc, auth, path)
+
+	renamed := maps.Clone(settings)
+	renamed["senderName"] = "Second Bite (lần 1)"
+
+	if resp := saveSettings(t, svc, auth, path, before, renamed); resp.status != http.StatusNoContent {
+		t.Fatalf("saving: %d %s", resp.status, resp.body)
+	}
+
+	renamed["senderName"] = "Second Bite (lần 2)"
+	if p := saveSettings(t, svc, auth, path, before, renamed).problem(t, http.StatusPreconditionFailed); p.Code != "PLATFORM_CHANGED_SINCE_READ" {
+		t.Errorf("saving over a change made since reading: %q", p.Code)
+	}
+
+	if p := send(t, http.MethodPut, svc.base+path, auth, renamed).problem(t, http.StatusBadRequest); p.Code != "PLATFORM_VERSION_REQUIRED" {
+		t.Errorf("saving without a version: %q", p.Code)
+	}
+
+	first := auth.Clone()
+	first.Set("If-None-Match", "*")
+
+	if p := send(t, http.MethodPut, svc.base+path, first, renamed).problem(t, http.StatusPreconditionFailed); p.Code != "PLATFORM_CHANGED_SINCE_READ" {
+		t.Errorf("saving the first settings over saved ones: %q", p.Code)
+	}
+
+	_, now := readSettings(t, svc, auth, path)
+	if resp := saveSettings(t, svc, auth, path, now, settings); resp.status != http.StatusNoContent {
+		t.Fatalf("restoring: %d %s", resp.status, resp.body)
 	}
 }

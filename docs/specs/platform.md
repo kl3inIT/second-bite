@@ -29,6 +29,7 @@ Every error is an RFC 9457 problem (`application/problem+json`) with `type` (`ur
 | `NOT_PERMITTED` | 403 | |
 | `NOT_FOUND` | 404 | |
 | `CONFLICT` | 409 | |
+| `STALE` | 412 | A change sent with a version that is no longer the current one (SEC-75) |
 | `GONE` | 410 | |
 | `LIMIT_EXCEEDED` | 429 | `Retry-After` in whole seconds when the failure carries a wait |
 | `SERVICE_UNAVAILABLE` | 503 | `Retry-After` likewise |
@@ -41,17 +42,24 @@ Failures the platform answers itself:
 | `PLATFORM_AUTHENTICATION_REQUIRED` | 401 | An operation that needs a caller is called without one |
 | `PLATFORM_ADMIN_REQUIRED` | 403 | An admin operation is called by someone else |
 | `PLATFORM_CROSS_ORIGIN_REFUSED` | 403 | A change of state authenticated by the session cookie comes from another origin |
+| `PLATFORM_VERSION_REQUIRED` | 400 | A change that needs the version read comes without `If-Match`, or without `If-None-Match: *` for what does not exist yet |
+| `PLATFORM_CHANGED_SINCE_READ` | 412 | `If-Match` names a version that is no longer the current one, or none; or `If-None-Match: *` asks for something that exists already |
 | `PLATFORM_ROUTE_NOT_FOUND` | 404 | No route matches the path |
 | `PLATFORM_METHOD_NOT_ALLOWED` | 405 | The path exists for other methods, listed in `Allow` |
 | `PLATFORM_INTERNAL_FAILURE` | 500 | An uncaught error or a panic; the cause is logged with the request's identifier, never answered |
 
 ## The caller
 
-- A request with `Authorization: Bearer <token>`, or without it the session cookie `secondbite_session`, is authenticated by `identity` before it reaches its route, and its caller (account, session, role) is put in the request's context. Without either the request is anonymous.
+- A request with `Authorization: Bearer <token>`, or without it the session cookie `secondbite_session`, is authenticated by `identity` before it reaches its route, and its caller (account, session, role, and the account's address as its label for the audit trail, never logged) is put in the request's context. Without either the request is anonymous.
 - A change of state (any method but `GET`, `HEAD` and `OPTIONS`) authenticated by the cookie must come from the same origin, judged by `Sec-Fetch-Site` and `Origin` with Go's `http.CrossOriginProtection`; a request without those headers, such as the web's server, passes.
 - The contract declares both schemes, `bearer` and `cookie`; an operation that needs a caller lists either (`platform.SignedIn`), one open to anyone lists none as well (`platform.MaybeSignedIn`).
 - A module reads the caller through `platform.CallerFrom`, `RequireCaller` and `RequireAdmin`, so it authorizes without depending on `identity`.
 - Roles are `customer` and `admin`.
+
+## Versions
+
+- A setting kept in one row is changed only at the version read (SEC-75). Its read answers `ETag`, a strong tag of the row's `updated_at` in microseconds (`platform.ETag`). A save requires `If-Match` with that tag. The service locks the row, compares, and answers 412 `PLATFORM_CHANGED_SINCE_READ` when someone saved since. A weak tag, `*` or several tags name no version. Where the row may not exist yet, `If-None-Match: *` saves the first one, and answers 412 when someone saved it since (`platform.ErrVersionRequired` when neither header comes).
+- Every admin operation is registered on the group `platform.NewAdminGroup` returns, under `/admin` (SEC-75). The group tags it `Admin`, documents that it needs a session, and refuses anyone but an admin before the request is read: 401 `PLATFORM_AUTHENTICATION_REQUIRED` signed out, 403 `PLATFORM_ADMIN_REQUIRED` otherwise. The service checks `RequireAdmin` as well. A test calls every operation under `/admin` both ways.
 
 ## Events between modules
 

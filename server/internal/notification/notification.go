@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/notification/internal/db"
 )
 
@@ -44,11 +45,12 @@ type Service struct {
 	queries *db.Queries
 	senders emailSenders
 	aead    cipher.AEAD
+	trail   *audit.Service
 	logger  *slog.Logger
 }
 
 // NewService assembles the module and its registry of email providers.
-func NewService(pool *pgxpool.Pool, cfg Config, logger *slog.Logger) (*Service, error) {
+func NewService(pool *pgxpool.Pool, trail *audit.Service, cfg Config, logger *slog.Logger) (*Service, error) {
 	block, err := aes.NewCipher(cfg.SettingsKey)
 	if err != nil {
 		return nil, fmt.Errorf("the email settings key: %w", err)
@@ -67,7 +69,7 @@ func NewService(pool *pgxpool.Pool, cfg Config, logger *slog.Logger) (*Service, 
 		return nil, err
 	}
 
-	return &Service{pool: pool, queries: db.New(pool), senders: senders, aead: aead, logger: logger}, nil
+	return &Service{pool: pool, queries: db.New(pool), senders: senders, aead: aead, trail: trail, logger: logger}, nil
 }
 
 // SendEmail delivers e through the provider admins chose and records it.

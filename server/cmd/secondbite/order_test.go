@@ -9,10 +9,6 @@ import (
 	"time"
 )
 
-// orderAdminEmail is a fourth admin, so this check signs in apart from the
-// others that run beside it.
-const orderAdminEmail = "order.admin@example.com"
-
 type orderResponse struct {
 	ID            string `json:"id"`
 	Number        string `json:"number"`
@@ -169,9 +165,6 @@ func postedOffer(t *testing.T, svc service, owner http.Header) string {
 	var opened sellerResponse
 
 	send(t, http.MethodPost, svc.base+"/sellers", owner, newSeller("La Paris", "0912 345 671")).decode(t, http.StatusCreated, &opened)
-
-	admin := bearer(signIn(t, svc, orderAdminEmail).Token)
-	send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/activate", admin, nil).decode(t, http.StatusOK, &struct{}{})
 
 	var buf bytes.Buffer
 	if err := png.Encode(&buf, image.NewGray(image.Rect(0, 0, 64, 48))); err != nil {

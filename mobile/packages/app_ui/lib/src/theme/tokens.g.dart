@@ -17,6 +17,16 @@ abstract final class ColorTokens {
   static const inverseMuted = Color(0xFFD8F0FA);
   static const shell = Color(0xFFFFFFFF);
   static const shellForeground = Color(0xFF0E1D19);
+  static const sidebar = Color(0xFF0061AF);
+  static const sidebarForeground = Color(0xFFFFFFFF);
+  static const sidebarMuted = Color(0xFFD8F0FA);
+  static const sidebarAccent = Color(0xFF004E8C);
+  static const sidebarAccentForeground = Color(0xFFFFFFFF);
+  static const sidebarActive = Color(0xFFFFFFFF);
+  static const sidebarActiveForeground = Color(0xFF0061AF);
+  static const sidebarRaised = Color(0xFF004E8C);
+  static const sidebarBorder = Color(0xFF1A88C9);
+  static const sidebarRing = Color(0xFFFFFFFF);
   static const sky = Color(0xFF3CB4E7);
   static const header = Color(0xFF0061AF);
   static const headerForeground = Color(0xFFFFFFFF);
@@ -43,6 +53,7 @@ abstract final class ColorTokens {
   static const destructive = Color(0xFFB42318);
   static const destructiveForeground = Color(0xFFFFFFFF);
   static const destructiveHover = Color(0xFF912018);
+  static const destructiveMuted = Color(0xFFFEF3F2);
   static const success = Color(0xFF2E6B3F);
   static const successForeground = Color(0xFFFFFFFF);
   static const warning = Color(0xFFFFF6E5);

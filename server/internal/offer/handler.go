@@ -139,7 +139,6 @@ var (
 	// optional is for reads anyone may make; a signed-in caller may see more.
 	optional  = platform.MaybeSignedIn()
 	tagOffers = []string{"Offers"}
-	tagAdmin  = []string{"Admin"}
 )
 
 // RegisterOperations adds the module's operations to api.
@@ -148,7 +147,6 @@ func RegisterOperations(api huma.API, s *Service) {
 	registerReadOperations(api, s)
 	registerCatalogOperations(api, s)
 	registerSearchOperations(api, s)
-	registerAdminOperations(api, s)
 }
 
 func registerStaffOperations(api huma.API, s *Service) {
@@ -248,30 +246,51 @@ func registerReadOperations(api huma.API, s *Service) {
 	})
 }
 
-func registerAdminOperations(api huma.API, s *Service) {
-	huma.Register(api, huma.Operation{
-		OperationID: "getOfferSettings", Method: http.MethodGet, Path: "/admin/offer-settings",
-		Summary: "The rules every offer follows", Tags: tagAdmin, Security: security,
-	}, func(ctx context.Context, _ *struct{}) (*struct{ Body offerSettingsBody }, error) {
+// RegisterAdminOperations adds the module's admin operations to admin, the
+// group platform.NewAdminGroup returns; their paths omit its prefix.
+func RegisterAdminOperations(admin huma.API, s *Service) {
+	huma.Register(admin, huma.Operation{
+		OperationID: "getOfferSettings", Method: http.MethodGet, Path: "/offer-settings",
+		Summary: "The rules every offer follows",
+	}, func(ctx context.Context, _ *struct{}) (*offerSettingsOutput, error) {
 		set, err := s.Settings(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		return &struct{ Body offerSettingsBody }{Body: toOfferSettingsBody(set)}, nil
+		return toOfferSettingsOutput(set), nil
 	})
 
-	huma.Register(api, huma.Operation{
-		OperationID: "saveOfferSettings", Method: http.MethodPut, Path: "/admin/offer-settings",
-		Summary:     "Change the rules every offer follows",
-		Description: "New rules apply to offers posted, and to the prices and windows changed, after they are saved.",
-		Tags:        tagAdmin, Security: security,
-	}, func(ctx context.Context, in *struct{ Body offerSettingsBody }) (*struct{ Body offerSettingsBody }, error) {
-		set, err := s.SaveSettings(ctx, in.Body.settings())
+	huma.Register(admin, huma.Operation{
+		OperationID: "saveOfferSettings", Method: http.MethodPut, Path: "/offer-settings",
+		Summary: "Change the rules every offer follows",
+		Description: "New rules apply to offers posted, and to the prices and windows changed, after they are saved. " +
+			"If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes.",
+	}, func(ctx context.Context, in *saveOfferSettingsInput) (*offerSettingsOutput, error) {
+		version, ok := platform.VersionOf(in.IfMatch)
+		if !ok {
+			return nil, platform.ErrChangedSinceRead
+		}
+
+		set, err := s.SaveSettings(ctx, in.Body.settings(), version)
 		if err != nil {
 			return nil, err
 		}
 
-		return &struct{ Body offerSettingsBody }{Body: toOfferSettingsBody(set)}, nil
+		return toOfferSettingsOutput(set), nil
 	})
+}
+
+type offerSettingsOutput struct {
+	ETag string `header:"ETag" doc:"The settings' version, sent back in If-Match to save them"`
+	Body offerSettingsBody
+}
+
+type saveOfferSettingsInput struct {
+	IfMatch string `header:"If-Match" doc:"The ETag of the settings read" required:"true"`
+	Body    offerSettingsBody
+}
+
+func toOfferSettingsOutput(set Settings) *offerSettingsOutput {
+	return &offerSettingsOutput{ETag: platform.ETag(set.UpdatedAt), Body: toOfferSettingsBody(set)}
 }

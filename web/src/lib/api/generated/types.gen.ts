@@ -18,6 +18,91 @@ export type AddSellerStaffRequest = {
     email: string;
 };
 
+export type AdminSellerBody = {
+    /**
+     * Absent when the owner deleted their account
+     */
+    ownerEmail?: string;
+};
+
+export type AdminSellersOutputBody = {
+    /**
+     * Sellers of each status matching q, whatever status asks
+     */
+    counts: StatusCountsBody;
+    items: Array<AdminSellerBody> | null;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
+export type AdminsOutputBody = {
+    /**
+     * Every admin, by address
+     */
+    admins: Array<AccountBody> | null;
+};
+
+export type AuditChangeBody = {
+    field: string;
+    /**
+     * The value before; absent for a secret or the SMTP user
+     */
+    from?: string;
+    /**
+     * The value after; absent likewise
+     */
+    to?: string;
+};
+
+export type AuditDetailsBody = {
+    /**
+     * The settings changed
+     */
+    changes?: Array<AuditChangeBody> | null;
+    /**
+     * Who delivers email after the change
+     */
+    provider?: 'smtp' | 'brevo';
+    /**
+     * What the owner was told, for a rejection or a block
+     */
+    reason?: string;
+    /**
+     * Where a change of admins came from
+     */
+    source?: 'admin' | 'command_line';
+};
+
+export type AuditEventBody = {
+    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock';
+    actorId?: string;
+    actorLabel?: string;
+    details: AuditDetailsBody;
+    id: string;
+    occurredAt: string;
+    resourceId: string;
+    /**
+     * The store's name or the account's address at the time; absent once that account is deleted
+     */
+    resourceLabel?: string;
+    resourceType: 'account' | 'seller' | 'offer_settings' | 'email_settings';
+};
+
+export type AuditEventsOutputBody = {
+    items: Array<AuditEventBody> | null;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
+export type BlockSellerRequest = {
+    /**
+     * What the owner is told, 10 to 500 characters
+     */
+    reason: string;
+};
+
 export type CancelOrderRequest = {
     reason?: string;
 };
@@ -182,6 +267,13 @@ export type GoogleSignInInputBody = {
      * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
      */
     session?: 'token' | 'cookie';
+};
+
+export type GrantAdminRequest = {
+    /**
+     * The address of the account
+     */
+    email: string;
 };
 
 export type ListDishesResponse = {
@@ -473,6 +565,13 @@ export type RefuseOrderRequest = {
     reason: 'not_suitable' | 'wrong_items' | 'other';
 };
 
+export type RejectSellerRequest = {
+    /**
+     * What the owner is told, 10 to 500 characters
+     */
+    reason: string;
+};
+
 export type RequestCodeInputBody = {
     /**
      * The address to send the code to
@@ -522,8 +621,12 @@ export type SellerBody = {
      * Served at /photos/{photoId}/1600.jpg and /400.jpg
      */
     photoId?: string;
-    status: 'pending' | 'active' | 'blocked';
+    status: 'pending' | 'active' | 'rejected' | 'blocked';
     statusChangedAt?: string;
+    /**
+     * Why an admin rejected or blocked the seller, as the owner is told
+     */
+    statusReason?: string;
     updatedAt: string;
 };
 
@@ -544,6 +647,13 @@ export type SellerProfileBody = {
 
 export type SellersOutputBody = {
     sellers: Array<SellerBody> | null;
+};
+
+export type SendTestEmailInputBody = {
+    /**
+     * Who receives it; the admin sending it when empty
+     */
+    to?: string;
 };
 
 export type SessionOutputBody = {
@@ -582,6 +692,13 @@ export type SignInInputBody = {
      * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
      */
     session?: 'token' | 'cookie';
+};
+
+export type StatusCountsBody = {
+    active: number;
+    blocked: number;
+    pending: number;
+    rejected: number;
 };
 
 export type Violation = {
@@ -721,6 +838,131 @@ export type RequestAccountDeletionCodeResponses = {
 
 export type RequestAccountDeletionCodeResponse = RequestAccountDeletionCodeResponses[keyof RequestAccountDeletionCodeResponses];
 
+export type ListAdminsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/admins';
+};
+
+export type ListAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListAdminsError = ListAdminsErrors[keyof ListAdminsErrors];
+
+export type ListAdminsResponses = {
+    /**
+     * OK
+     */
+    200: AdminsOutputBody;
+};
+
+export type ListAdminsResponse = ListAdminsResponses[keyof ListAdminsResponses];
+
+export type GrantAdminData = {
+    body: GrantAdminRequest;
+    path?: never;
+    query?: never;
+    url: '/admin/admins';
+};
+
+export type GrantAdminErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GrantAdminError = GrantAdminErrors[keyof GrantAdminErrors];
+
+export type GrantAdminResponses = {
+    /**
+     * OK
+     */
+    200: AccountBody;
+};
+
+export type GrantAdminResponse = GrantAdminResponses[keyof GrantAdminResponses];
+
+export type RevokeAdminData = {
+    body?: never;
+    path: {
+        accountId: string;
+    };
+    query?: never;
+    url: '/admin/admins/{accountId}/revoke';
+};
+
+export type RevokeAdminErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RevokeAdminError = RevokeAdminErrors[keyof RevokeAdminErrors];
+
+export type RevokeAdminResponses = {
+    /**
+     * OK
+     */
+    200: AccountBody;
+};
+
+export type RevokeAdminResponse = RevokeAdminResponses[keyof RevokeAdminResponses];
+
+export type ListAuditEventsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep these actions; every action when absent
+         */
+        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock'> | null;
+        /**
+         * Keep one admin's actions
+         */
+        actorId?: string;
+        /**
+         * Keep what happened at or after this time
+         */
+        since?: string;
+        /**
+         * Keep what happened before this time
+         */
+        until?: string;
+        /**
+         * Words of the admin's or the resource's label, or the resource's identifier
+         */
+        q?: string;
+        page?: number;
+        size?: number;
+    };
+    url: '/admin/audit-events';
+};
+
+export type ListAuditEventsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListAuditEventsError = ListAuditEventsErrors[keyof ListAuditEventsErrors];
+
+export type ListAuditEventsResponses = {
+    /**
+     * OK
+     */
+    200: AuditEventsOutputBody;
+};
+
+export type ListAuditEventsResponse = ListAuditEventsResponses[keyof ListAuditEventsResponses];
+
 export type GetEmailSettingsData = {
     body?: never;
     path?: never;
@@ -748,6 +990,16 @@ export type GetEmailSettingsResponse = GetEmailSettingsResponses[keyof GetEmailS
 
 export type SaveEmailSettingsData = {
     body: SaveEmailSettingsInputBody;
+    headers?: {
+        /**
+         * The ETag of the settings read
+         */
+        'If-Match'?: string;
+        /**
+         * * to save the first settings, when none were read
+         */
+        'If-None-Match'?: string;
+    };
     path?: never;
     query?: never;
     url: '/admin/email-settings';
@@ -770,6 +1022,31 @@ export type SaveEmailSettingsResponses = {
 };
 
 export type SaveEmailSettingsResponse = SaveEmailSettingsResponses[keyof SaveEmailSettingsResponses];
+
+export type SendTestEmailData = {
+    body?: SendTestEmailInputBody;
+    path?: never;
+    query?: never;
+    url: '/admin/email-settings/test';
+};
+
+export type SendTestEmailErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SendTestEmailError = SendTestEmailErrors[keyof SendTestEmailErrors];
+
+export type SendTestEmailResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type SendTestEmailResponse = SendTestEmailResponses[keyof SendTestEmailResponses];
 
 export type GetOfferSettingsData = {
     body?: never;
@@ -798,6 +1075,12 @@ export type GetOfferSettingsResponse = GetOfferSettingsResponses[keyof GetOfferS
 
 export type SaveOfferSettingsData = {
     body: OfferSettingsBodyWritable;
+    headers: {
+        /**
+         * The ETag of the settings read
+         */
+        'If-Match': string;
+    };
     path?: never;
     query?: never;
     url: '/admin/offer-settings';
@@ -825,9 +1108,20 @@ export type ListSellersForAdminsData = {
     body?: never;
     path?: never;
     query?: {
-        status?: 'pending' | 'active' | 'blocked';
-        limit?: number;
-        offset?: number;
+        /**
+         * Keep these statuses; every status when absent
+         */
+        status?: Array<'pending' | 'active' | 'rejected' | 'blocked'> | null;
+        /**
+         * Words of the name, address or phone
+         */
+        q?: string;
+        /**
+         * name, address or changed; a leading - is descending; the queue order when absent
+         */
+        sort?: 'name' | '-name' | 'address' | '-address' | 'changed' | '-changed';
+        page?: number;
+        size?: number;
     };
     url: '/admin/sellers';
 };
@@ -845,40 +1139,40 @@ export type ListSellersForAdminsResponses = {
     /**
      * OK
      */
-    200: SellersOutputBody;
+    200: AdminSellersOutputBody;
 };
 
 export type ListSellersForAdminsResponse = ListSellersForAdminsResponses[keyof ListSellersForAdminsResponses];
 
-export type ActivateSellerData = {
+export type ApproveSellerData = {
     body?: never;
     path: {
         sellerId: string;
     };
     query?: never;
-    url: '/admin/sellers/{sellerId}/activate';
+    url: '/admin/sellers/{sellerId}/approve';
 };
 
-export type ActivateSellerErrors = {
+export type ApproveSellerErrors = {
     /**
      * Error
      */
     default: Problem;
 };
 
-export type ActivateSellerError = ActivateSellerErrors[keyof ActivateSellerErrors];
+export type ApproveSellerError = ApproveSellerErrors[keyof ApproveSellerErrors];
 
-export type ActivateSellerResponses = {
+export type ApproveSellerResponses = {
     /**
      * OK
      */
     200: SellerBody;
 };
 
-export type ActivateSellerResponse = ActivateSellerResponses[keyof ActivateSellerResponses];
+export type ApproveSellerResponse = ApproveSellerResponses[keyof ApproveSellerResponses];
 
 export type BlockSellerData = {
-    body?: never;
+    body: BlockSellerRequest;
     path: {
         sellerId: string;
     };
@@ -903,6 +1197,33 @@ export type BlockSellerResponses = {
 };
 
 export type BlockSellerResponse = BlockSellerResponses[keyof BlockSellerResponses];
+
+export type RejectSellerData = {
+    body: RejectSellerRequest;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/admin/sellers/{sellerId}/reject';
+};
+
+export type RejectSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RejectSellerError = RejectSellerErrors[keyof RejectSellerErrors];
+
+export type RejectSellerResponses = {
+    /**
+     * OK
+     */
+    200: SellerBody;
+};
+
+export type RejectSellerResponse = RejectSellerResponses[keyof RejectSellerResponses];
 
 export type SignInWithGoogleData = {
     body: GoogleSignInInputBody;

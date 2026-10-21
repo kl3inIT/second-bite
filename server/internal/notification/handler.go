@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -24,11 +25,14 @@ type emailSettingsBody struct {
 }
 
 type emailSettingsOutput struct {
+	ETag string `header:"ETag" doc:"The settings' version, sent back in If-Match to save them"`
 	Body emailSettingsBody
 }
 
 type saveEmailSettingsInput struct {
-	Body struct {
+	IfMatch     string `header:"If-Match"      doc:"The ETag of the settings read"`
+	IfNoneMatch string `header:"If-None-Match" doc:"* to save the first settings, when none were read"`
+	Body        struct {
 		Provider      EmailProvider `json:"provider"               enum:"smtp,brevo"`
 		SenderAddress string        `json:"senderAddress"          format:"email" maxLength:"254"`
 		SenderName    string        `json:"senderName"             maxLength:"100" minLength:"1"`
@@ -41,28 +45,29 @@ type saveEmailSettingsInput struct {
 	}
 }
 
-// RegisterOperations adds the module's operations to api.
-func RegisterOperations(api huma.API, s *Service) {
-	security := platform.SignedIn()
+// sendTestEmailInput names who receives the test email; without a body, or
+// without to, it is the admin sending it.
+type sendTestEmailInput struct {
+	Body *struct {
+		To string `json:"to,omitempty" format:"email" maxLength:"254" doc:"Who receives it; the admin sending it when empty"`
+	} `required:"false"`
+}
 
-	huma.Register(api, huma.Operation{
+// RegisterAdminOperations adds the module's admin operations to admin, the
+// group platform.NewAdminGroup returns; their paths omit its prefix.
+func RegisterAdminOperations(admin huma.API, s *Service) {
+	huma.Register(admin, huma.Operation{
 		OperationID: "getEmailSettings",
 		Method:      http.MethodGet,
-		Path:        "/admin/email-settings",
+		Path:        "/email-settings",
 		Summary:     "Read who delivers email",
-		Tags:        []string{"Admins"},
-		Security:    security,
 	}, func(ctx context.Context, _ *struct{}) (*emailSettingsOutput, error) {
-		if _, err := platform.RequireAdmin(ctx); err != nil {
-			return nil, err
-		}
-
 		settings, err := s.EmailSettings(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		return &emailSettingsOutput{Body: emailSettingsBody{
+		return &emailSettingsOutput{ETag: platform.ETag(settings.UpdatedAt), Body: emailSettingsBody{
 			Provider:        settings.Provider,
 			SenderAddress:   settings.SenderAddress,
 			SenderName:      settings.SenderName,
@@ -76,26 +81,49 @@ func RegisterOperations(api huma.API, s *Service) {
 		}}, nil
 	})
 
-	huma.Register(api, huma.Operation{
-		OperationID:   "saveEmailSettings",
-		Method:        http.MethodPut,
-		Path:          "/admin/email-settings",
-		Summary:       "Choose who delivers email; the next email uses it",
-		Tags:          []string{"Admins"},
-		Security:      security,
+	huma.Register(admin, huma.Operation{
+		OperationID: "saveEmailSettings",
+		Method:      http.MethodPut,
+		Path:        "/email-settings",
+		Summary:     "Choose who delivers email; the next email uses it",
+		Description: "If-Match carries the ETag read, or If-None-Match: * saves the first settings; when someone saved " +
+			"since, the answer is 412 and nothing changes. Without either the answer is 400.",
 		DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, in *saveEmailSettingsInput) (*struct{}, error) {
-		caller, err := platform.RequireAdmin(ctx)
-		if err != nil {
-			return nil, err
-		}
-
 		b := in.Body
-
-		return nil, s.SaveEmailSettings(ctx, EmailSettingsChange{
+		c := EmailSettingsChange{
 			Provider: b.Provider, SenderAddress: b.SenderAddress, SenderName: b.SenderName,
 			SMTPHost: b.SMTPHost, SMTPPort: b.SMTPPort, SMTPSecurity: b.SMTPSecurity,
 			SMTPUsername: b.SMTPUsername, SMTPPassword: b.SMTPPassword, BrevoAPIKey: b.BrevoAPIKey,
-		}, caller.AccountID)
+		}
+
+		switch {
+		case in.IfMatch != "":
+			version, ok := platform.VersionOf(in.IfMatch)
+			if !ok {
+				return nil, platform.ErrChangedSinceRead
+			}
+
+			return nil, s.SaveEmailSettings(ctx, c, version)
+		case strings.TrimSpace(in.IfNoneMatch) == "*":
+			return nil, s.CreateEmailSettings(ctx, c)
+		default:
+			return nil, platform.ErrVersionRequired
+		}
+	})
+
+	huma.Register(admin, huma.Operation{
+		OperationID:   "sendTestEmail",
+		Method:        http.MethodPost,
+		Path:          "/email-settings/test",
+		Summary:       "Send one email through the settings saved, to an address or to oneself",
+		DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *sendTestEmailInput) (*struct{}, error) {
+		var to string
+		if in.Body != nil {
+			to = in.Body.To
+		}
+
+		return nil, s.SendTestEmail(ctx, to)
 	})
 }

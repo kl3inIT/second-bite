@@ -26,6 +26,12 @@ const buttonStyles = cva(
         chip: "bg-muted text-foreground hover:bg-secondary aria-pressed:bg-secondary aria-pressed:text-body-sm-strong aria-pressed:text-primary",
         // Second Bite (Figma K4, K4b, K5): a white round button over a photograph or the blue top, its icon in Tasco blue.
         float: "bg-card text-primary shadow-card hover:bg-muted",
+        // Second Bite: a control that opens a choice, drawn as a field (Figma Admin/FilterBar's date range).
+        field:
+          "rounded-md border-input bg-card px-3 text-body-sm text-foreground hover:bg-muted aria-expanded:bg-muted",
+        // Second Bite: an icon action on the admin's blue sidebar (Figma SidebarTrigger, Đăng xuất).
+        sidebar:
+          "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-sidebar-ring",
         danger: "bg-destructive text-destructive-foreground hover:bg-destructive-hover",
       },
       size: {

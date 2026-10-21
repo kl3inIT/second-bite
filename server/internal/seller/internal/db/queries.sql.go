@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const activeSellers = `-- name: ActiveSellers :many
@@ -55,14 +56,19 @@ func (q *Queries) ActiveSellers(ctx context.Context, ids []uuid.UUID) ([]ActiveS
 
 const blockOwnerless = `-- name: BlockOwnerless :execrows
 UPDATE seller_sellers
-SET status = 'blocked', status_changed_at = now(), status_changed_by = NULL, updated_at = now()
-WHERE id = ANY ($1::uuid[]) AND status <> 'blocked'
+SET status = 'blocked', status_reason = $1, status_changed_at = now(), status_changed_by = NULL, updated_at = now()
+WHERE id = ANY ($2::uuid[]) AND status <> 'blocked'
 `
+
+type BlockOwnerlessParams struct {
+	Reason pgtype.Text
+	Ids    []uuid.UUID
+}
 
 // A seller whose owner's account was deleted stops showing until admins decide;
 // no one set the status, so it names no one.
-func (q *Queries) BlockOwnerless(ctx context.Context, ids []uuid.UUID) (int64, error) {
-	result, err := q.db.Exec(ctx, blockOwnerless, ids)
+func (q *Queries) BlockOwnerless(ctx context.Context, arg BlockOwnerlessParams) (int64, error) {
+	result, err := q.db.Exec(ctx, blockOwnerless, arg.Reason, arg.Ids)
 	if err != nil {
 		return 0, err
 	}
@@ -93,6 +99,38 @@ func (q *Queries) BlockedSellers(ctx context.Context) ([]uuid.UUID, error) {
 	return items, nil
 }
 
+const changeStatus = `-- name: ChangeStatus :one
+UPDATE seller_sellers s
+SET status = $1, status_reason = $2, status_changed_at = now(),
+    status_changed_by = $3, updated_at = now()
+FROM (SELECT x.id, x.status FROM seller_sellers x WHERE x.id = $5 FOR UPDATE) was
+WHERE s.id = was.id AND was.status = ANY ($4::text[])
+RETURNING was.status AS was
+`
+
+type ChangeStatusParams struct {
+	Status       string
+	Reason       pgtype.Text
+	ChangedBy    uuid.NullUUID
+	FromStatuses []string
+	ID           uuid.UUID
+}
+
+// Moves the seller to status when it stands in one of from, and answers the
+// status it left; no row when it does not.
+func (q *Queries) ChangeStatus(ctx context.Context, arg ChangeStatusParams) (string, error) {
+	row := q.db.QueryRow(ctx, changeStatus,
+		arg.Status,
+		arg.Reason,
+		arg.ChangedBy,
+		arg.FromStatuses,
+		arg.ID,
+	)
+	var was string
+	err := row.Scan(&was)
+	return was, err
+}
+
 const countMembers = `-- name: CountMembers :one
 SELECT count(*)::integer FROM seller_members WHERE seller_id = $1
 `
@@ -113,6 +151,57 @@ func (q *Queries) CountOwnedSellers(ctx context.Context, accountID uuid.UUID) (i
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const countSellersByStatus = `-- name: CountSellersByStatus :many
+SELECT status, count(*) AS sellers FROM seller_sellers
+WHERE ($1::text = '' OR search_text LIKE '%' || seller_fold($1::text) || '%' ESCAPE '\')
+GROUP BY status
+`
+
+type CountSellersByStatusRow struct {
+	Status  string
+	Sellers int64
+}
+
+// How many sellers of each status match the words, whatever the statuses
+// asked, for the counts above the list.
+func (q *Queries) CountSellersByStatus(ctx context.Context, query string) ([]CountSellersByStatusRow, error) {
+	rows, err := q.db.Query(ctx, countSellersByStatus, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CountSellersByStatusRow
+	for rows.Next() {
+		var i CountSellersByStatusRow
+		if err := rows.Scan(&i.Status, &i.Sellers); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const countSellersForAdmins = `-- name: CountSellersForAdmins :one
+SELECT count(*) FROM seller_sellers
+WHERE (cardinality($1::text[]) = 0 OR status = ANY ($1::text[]))
+  AND ($2::text = '' OR search_text LIKE '%' || seller_fold($2::text) || '%' ESCAPE '\')
+`
+
+type CountSellersForAdminsParams struct {
+	Statuses []string
+	Query    string
+}
+
+func (q *Queries) CountSellersForAdmins(ctx context.Context, arg CountSellersForAdminsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countSellersForAdmins, arg.Statuses, arg.Query)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const deleteMembershipsOf = `-- name: DeleteMembershipsOf :execrows
@@ -146,7 +235,7 @@ func (q *Queries) DeleteStaff(ctx context.Context, arg DeleteStaffParams) (int64
 }
 
 const getSeller = `-- name: GetSeller :one
-SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at, photo_id
+SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id
 FROM seller_sellers WHERE id = $1
 `
 
@@ -158,6 +247,7 @@ type GetSellerRow struct {
 	Longitude       float64
 	Phone           string
 	Status          string
+	StatusReason    pgtype.Text
 	StatusChangedAt *time.Time
 	StatusChangedBy uuid.NullUUID
 	CreatedAt       time.Time
@@ -176,6 +266,7 @@ func (q *Queries) GetSeller(ctx context.Context, id uuid.UUID) (GetSellerRow, er
 		&i.Longitude,
 		&i.Phone,
 		&i.Status,
+		&i.StatusReason,
 		&i.StatusChangedAt,
 		&i.StatusChangedBy,
 		&i.CreatedAt,
@@ -298,21 +389,73 @@ func (q *Queries) Members(ctx context.Context, sellerID uuid.UUID) ([]MembersRow
 	return items, nil
 }
 
-const sellersByStatus = `-- name: SellersByStatus :many
-SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at, photo_id
-FROM seller_sellers
-WHERE status = $1
-ORDER BY created_at, id
-LIMIT $3 OFFSET $2
+const ownersOf = `-- name: OwnersOf :many
+SELECT seller_id, account_id FROM seller_members WHERE seller_id = ANY ($1::uuid[]) AND role = 'owner'
 `
 
-type SellersByStatusParams struct {
-	Status   string
+type OwnersOfRow struct {
+	SellerID  uuid.UUID
+	AccountID uuid.UUID
+}
+
+func (q *Queries) OwnersOf(ctx context.Context, sellerIds []uuid.UUID) ([]OwnersOfRow, error) {
+	rows, err := q.db.Query(ctx, ownersOf, sellerIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OwnersOfRow
+	for rows.Next() {
+		var i OwnersOfRow
+		if err := rows.Scan(&i.SellerID, &i.AccountID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const sellerExists = `-- name: SellerExists :one
+SELECT EXISTS (SELECT 1 FROM seller_sellers WHERE id = $1)
+`
+
+func (q *Queries) SellerExists(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, sellerExists, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const sellersForAdmins = `-- name: SellersForAdmins :many
+SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id,
+       count(*) OVER () AS total
+FROM seller_sellers
+WHERE (cardinality($1::text[]) = 0 OR status = ANY ($1::text[]))
+  AND ($2::text = '' OR search_text LIKE '%' || seller_fold($2::text) || '%' ESCAPE '\')
+ORDER BY CASE WHEN $3::text = '' THEN status = 'pending' END DESC,
+         CASE WHEN $3::text = '' AND status = 'pending' THEN created_at END,
+         CASE WHEN $3::text = 'name' THEN seller_fold(name) END,
+         CASE WHEN $3::text = '-name' THEN seller_fold(name) END DESC,
+         CASE WHEN $3::text = 'address' THEN seller_fold(address) END,
+         CASE WHEN $3::text = '-address' THEN seller_fold(address) END DESC,
+         CASE WHEN $3::text = 'changed' THEN updated_at END,
+         updated_at DESC,
+         id
+LIMIT $5 OFFSET $4
+`
+
+type SellersForAdminsParams struct {
+	Statuses []string
+	Query    string
+	Sort     string
 	SkipRows int32
 	MaxRows  int32
 }
 
-type SellersByStatusRow struct {
+type SellersForAdminsRow struct {
 	ID              uuid.UUID
 	Name            string
 	Address         string
@@ -320,22 +463,35 @@ type SellersByStatusRow struct {
 	Longitude       float64
 	Phone           string
 	Status          string
+	StatusReason    pgtype.Text
 	StatusChangedAt *time.Time
 	StatusChangedBy uuid.NullUUID
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	PhotoID         uuid.NullUUID
+	Total           int64
 }
 
-func (q *Queries) SellersByStatus(ctx context.Context, arg SellersByStatusParams) ([]SellersByStatusRow, error) {
-	rows, err := q.db.Query(ctx, sellersByStatus, arg.Status, arg.SkipRows, arg.MaxRows)
+// One page of the sellers in the statuses given (all when none), whose
+// words, folded, hold the query's (any when empty), in the order sort names: by default pending ones first,
+// the oldest first, as a queue, then the latest change first; otherwise by
+// name, address or last change, '-' first for descending. total counts them
+// all; it is absent when the page is past the end.
+func (q *Queries) SellersForAdmins(ctx context.Context, arg SellersForAdminsParams) ([]SellersForAdminsRow, error) {
+	rows, err := q.db.Query(ctx, sellersForAdmins,
+		arg.Statuses,
+		arg.Query,
+		arg.Sort,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []SellersByStatusRow
+	var items []SellersForAdminsRow
 	for rows.Next() {
-		var i SellersByStatusRow
+		var i SellersForAdminsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
@@ -344,11 +500,13 @@ func (q *Queries) SellersByStatus(ctx context.Context, arg SellersByStatusParams
 			&i.Longitude,
 			&i.Phone,
 			&i.Status,
+			&i.StatusReason,
 			&i.StatusChangedAt,
 			&i.StatusChangedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.PhotoID,
+			&i.Total,
 		); err != nil {
 			return nil, err
 		}
@@ -361,8 +519,8 @@ func (q *Queries) SellersByStatus(ctx context.Context, arg SellersByStatusParams
 }
 
 const sellersOfAccount = `-- name: SellersOfAccount :many
-SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.phone, s.status, s.status_changed_at, s.status_changed_by,
-       s.created_at, s.updated_at, s.photo_id, m.role
+SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.phone, s.status, s.status_reason, s.status_changed_at,
+       s.status_changed_by, s.created_at, s.updated_at, s.photo_id, m.role
 FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
 WHERE m.account_id = $1
 ORDER BY s.created_at
@@ -376,6 +534,7 @@ type SellersOfAccountRow struct {
 	Longitude       float64
 	Phone           string
 	Status          string
+	StatusReason    pgtype.Text
 	StatusChangedAt *time.Time
 	StatusChangedBy uuid.NullUUID
 	CreatedAt       time.Time
@@ -401,6 +560,7 @@ func (q *Queries) SellersOfAccount(ctx context.Context, accountID uuid.UUID) ([]
 			&i.Longitude,
 			&i.Phone,
 			&i.Status,
+			&i.StatusReason,
 			&i.StatusChangedAt,
 			&i.StatusChangedBy,
 			&i.CreatedAt,
@@ -454,26 +614,6 @@ type SetPhotoParams struct {
 func (q *Queries) SetPhoto(ctx context.Context, arg SetPhotoParams) error {
 	_, err := q.db.Exec(ctx, setPhoto, arg.PhotoID, arg.ID)
 	return err
-}
-
-const setStatus = `-- name: SetStatus :execrows
-UPDATE seller_sellers
-SET status = $1, status_changed_at = now(), status_changed_by = $2, updated_at = now()
-WHERE id = $3
-`
-
-type SetStatusParams struct {
-	Status    string
-	ChangedBy uuid.NullUUID
-	ID        uuid.UUID
-}
-
-func (q *Queries) SetStatus(ctx context.Context, arg SetStatusParams) (int64, error) {
-	result, err := q.db.Exec(ctx, setStatus, arg.Status, arg.ChangedBy, arg.ID)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
 }
 
 const updateSeller = `-- name: UpdateSeller :exec
