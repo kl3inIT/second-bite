@@ -40,8 +40,11 @@ export const postSearchParams = {
   q: parseAsSearch,
 };
 
-/** The day the store's home shows. */
-export const homeSearchParams = { day: parseAsDay };
+/** The day the store's home shows, and the group of its orders listed (being prepared first, SEC-124). */
+export const homeSearchParams = {
+  day: parseAsDay,
+  tab: parseAsStringLiteral(orderTabs).withDefault("preparing"),
+};
 
 export const loadOrderSearchParams = createLoader(orderSearchParams);
 export const loadPostSearchParams = createLoader(postSearchParams);
@@ -58,6 +61,7 @@ export type DayList = keyof typeof listSearchParams;
 
 export const serializeOrderSearchParams = createSerializer(orderSearchParams);
 export const serializePostSearchParams = createSerializer(postSearchParams);
+export const serializeHomeSearchParams = createSerializer(homeSearchParams);
 
 /** The day for an address: none for today, which is where a list opens. */
 export function dayOrNull(day: string, today: string): string | null {
