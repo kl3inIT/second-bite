@@ -493,7 +493,7 @@ export type OrderBody = {
     number: string;
     readyAt?: string;
     refuseNote?: string;
-    refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other';
+    refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other' | 'withdrawn';
     refusedAt?: string;
     /**
      * Where the order is collected, copied when it was placed

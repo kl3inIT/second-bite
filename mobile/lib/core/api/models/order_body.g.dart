@@ -83,5 +83,6 @@ const _$OrderBodyRefuseReasonEnumMap = {
   OrderBodyRefuseReason.valueLate: 'late',
   OrderBodyRefuseReason.soldOut: 'sold_out',
   OrderBodyRefuseReason.other: 'other',
+  OrderBodyRefuseReason.withdrawn: 'withdrawn',
   OrderBodyRefuseReason.$unknown: r'$unknown',
 };
