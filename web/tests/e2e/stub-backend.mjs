@@ -843,6 +843,9 @@ function sellerOrdersFor(seller) {
       get unreadMessages() {
         return unreadOf(this.id, "seller");
       },
+      get messageCount() {
+        return countOf(this.id);
+      },
       ...extra,
     });
     sellerOrdersBy.set(
@@ -1017,6 +1020,11 @@ function chatOf(orderId) {
     chats.set(orderId, { messages: [], seen: { customer: 0, seller: 0 }, keys: new Map() });
   }
   return chats.get(orderId);
+}
+
+/** How many messages the chat holds; the orders carry it as `messageCount`. */
+function countOf(orderId) {
+  return chats.get(orderId)?.messages.length ?? 0;
 }
 
 /** How many messages of the other side the reader has not seen yet; the orders carry it as `unreadMessages`. */
@@ -1460,7 +1468,12 @@ function shown(order) {
   const expired = open && new Date(order.windowEnd) <= new Date();
   const status = expired ? "expired" : order.status;
   const { owner: _owner, ...rest } = order;
-  return { ...rest, status, unreadMessages: unreadOf(order.id, "customer") };
+  return {
+    ...rest,
+    status,
+    unreadMessages: unreadOf(order.id, "customer"),
+    messageCount: countOf(order.id),
+  };
 }
 
 /** Whether the request comes from whoever placed the order: its account, or its access. */

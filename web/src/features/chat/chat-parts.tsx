@@ -129,10 +129,10 @@ function CancelPolicy() {
 
   return (
     <section aria-labelledby="chat-cancel" className="flex flex-col gap-1">
-      <h3 id="chat-cancel" className="text-title-lg">
+      <h3 id="chat-cancel" className="text-label-strong text-muted-foreground uppercase">
         {t("cancelTitle")}
       </h3>
-      <p className="text-label text-muted-foreground">{t("cancelBody")}</p>
+      <p className="text-note text-muted-foreground">{t("cancelBody")}</p>
     </section>
   );
 }

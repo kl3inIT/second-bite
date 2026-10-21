@@ -3,13 +3,13 @@ import type { Side } from "@/lib/live-client";
 import { MessageLink } from "./message-link";
 import { readOrderChat } from "./read-chat";
 
-type Entry = { id: string; status: string; unreadMessages?: number };
+type Entry = { id: string; status: string; unreadMessages?: number; messageCount?: number };
 
 /**
  * The way into an order's chat from the order's page: "Nhắn quán" / "Nhắn khách" while the chat can be written in,
  * which is while the order is open and after it was collected until the chat closes; "Xem tin nhắn" once it can
- * only be read, and then only when it has messages. No field of the order says whether it has messages, so an
- * order that is no longer open reads its chat here. It reads the request, so it renders inside Suspense.
+ * only be read, and then only when the order's `messageCount` says it has messages. Whether a collected order's
+ * chat is still open is read from the chat. It reads the request, so it renders inside Suspense.
  */
 export async function ChatEntry({
   order,
@@ -39,9 +39,8 @@ export async function ChatEntry({
       />
     );
   }
-  const chat = await readOrderChat(order.id, access);
-  if (chat.messages.length === 0) return null;
-  const writable = order.status === "collected" && chat.open;
+  if (!order.messageCount) return null;
+  const writable = order.status === "collected" && (await readOrderChat(order.id, access)).open;
 
   return (
     <MessageLink
