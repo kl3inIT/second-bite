@@ -70,9 +70,13 @@ func seedPeople(t *testing.T, s *Service, pool *pgxpool.Pool) people {
 		unnamed: insertAccount(t, s, "dong.lan@example.com", "").Email,
 	}
 
-	for a, method := range map[Account]string{p.an: methodGoogle, p.binh: methodCode} {
+	// An signs in first, by Google; Bình after, by code.
+	for _, signIn := range []struct {
+		a      Account
+		method string
+	}{{p.an, methodGoogle}, {p.binh, methodCode}} {
 		if err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
-			_, err := s.openSession(ctx, s.queries.WithTx(tx), a, method)
+			_, err := s.openSession(ctx, s.queries.WithTx(tx), signIn.a, signIn.method)
 
 			return err
 		}); err != nil {
