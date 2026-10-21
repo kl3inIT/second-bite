@@ -30,7 +30,12 @@ func TestSummary(t *testing.T) {
 	admin := f.as(t, "admin", platform.RoleAdmin)
 	ids := openSixSellers(t, pool, f)
 
-	if _, err := f.sellers.Block(admin, ids[0]); err != nil {
+	if _, err := f.sellers.Block(admin, ids[0], blockReason); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sellers are opened active, so one is put back to rejected by hand.
+	if _, err := pool.Exec(t.Context(), "UPDATE seller_sellers SET status = 'rejected', status_reason = $2 WHERE id = $1", ids[1], blockReason); err != nil {
 		t.Fatal(err)
 	}
 
@@ -43,8 +48,8 @@ func TestSummary(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if got.Active != 5 || got.Pending != 0 || got.Blocked != 1 || got.Opened != 5 {
-		t.Errorf("counts %+v, want 5 active, 1 blocked, 5 opened in the range", got)
+	if got.Active != 4 || got.Pending != 0 || got.Rejected != 1 || got.Blocked != 1 || got.Opened != 5 {
+		t.Errorf("counts %+v, want 4 active, 1 rejected, 1 blocked, 5 opened in the range", got)
 	}
 
 	want := seller.Opened{ID: ids[5], Name: shop.Name, OpenedAt: september9am(5)}

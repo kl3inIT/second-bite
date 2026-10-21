@@ -93,7 +93,7 @@ func TestSummary(t *testing.T) {
 		offer.Posted{ID: k2, Name: breadMixed, SellerID: kiosk, SellerName: "Quầy xôi Tasco", PostedAt: to})
 
 	// A blocked seller's offers leave what is open now, not what was posted.
-	if _, err := f.sellers.Block(admin, kiosk); err != nil {
+	if _, err := f.sellers.Block(admin, kiosk, "Bán món đã quá hạn sử dụng"); err != nil {
 		t.Fatal(err)
 	}
 

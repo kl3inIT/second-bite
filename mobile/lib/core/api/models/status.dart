@@ -10,6 +10,8 @@ enum Status {
   pending('pending'),
   @JsonValue('active')
   active('active'),
+  @JsonValue('rejected')
+  rejected('rejected'),
   @JsonValue('blocked')
   blocked('blocked'),
 

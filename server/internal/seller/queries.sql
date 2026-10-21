@@ -16,22 +16,36 @@ VALUES (@seller_id, @account_id, @role)
 ON CONFLICT (seller_id, account_id) DO NOTHING;
 
 -- name: GetSeller :one
-SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at, photo_id
+SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id
 FROM seller_sellers WHERE id = @id;
 
 -- name: SellersOfAccount :many
-SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.phone, s.status, s.status_changed_at, s.status_changed_by,
-       s.created_at, s.updated_at, s.photo_id, m.role
+SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.phone, s.status, s.status_reason, s.status_changed_at,
+       s.status_changed_by, s.created_at, s.updated_at, s.photo_id, m.role
 FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
 WHERE m.account_id = @account_id
 ORDER BY s.created_at;
 
--- name: SellersByStatus :many
-SELECT id, name, address, latitude, longitude, phone, status, status_changed_at, status_changed_by, created_at, updated_at, photo_id
+-- name: SellersForAdmins :many
+-- One page of the sellers in the statuses given (all when none), whose
+-- words, folded, hold the query's (any when empty): pending ones first, the
+-- oldest first, as a queue; then the latest change first. total counts them
+-- all; it is absent when the page is past the end.
+SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id,
+       count(*) OVER () AS total
 FROM seller_sellers
-WHERE status = @status
-ORDER BY created_at, id
+WHERE (cardinality(@statuses::text[]) = 0 OR status = ANY (@statuses::text[]))
+  AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\')
+ORDER BY status = 'pending' DESC,
+         CASE WHEN status = 'pending' THEN created_at END,
+         COALESCE(status_changed_at, created_at) DESC,
+         id
 LIMIT @max_rows OFFSET @skip_rows;
+
+-- name: CountSellersForAdmins :one
+SELECT count(*) FROM seller_sellers
+WHERE (cardinality(@statuses::text[]) = 0 OR status = ANY (@statuses::text[]))
+  AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\');
 
 -- name: MemberRole :one
 SELECT role FROM seller_members WHERE seller_id = @seller_id AND account_id = @account_id;
@@ -41,10 +55,21 @@ UPDATE seller_sellers
 SET name = @name, address = @address, latitude = @latitude, longitude = @longitude, phone = @phone, updated_at = now()
 WHERE id = @id;
 
--- name: SetStatus :execrows
-UPDATE seller_sellers
-SET status = @status, status_changed_at = now(), status_changed_by = @changed_by, updated_at = now()
-WHERE id = @id;
+-- name: ChangeStatus :one
+-- Moves the seller to status when it stands in one of from, and answers the
+-- status it left; no row when it does not.
+UPDATE seller_sellers s
+SET status = @status, status_reason = sqlc.narg(reason), status_changed_at = now(),
+    status_changed_by = @changed_by, updated_at = now()
+FROM (SELECT x.id, x.status FROM seller_sellers x WHERE x.id = @id FOR UPDATE) was
+WHERE s.id = was.id AND was.status = ANY (@from_statuses::text[])
+RETURNING was.status AS was;
+
+-- name: SellerExists :one
+SELECT EXISTS (SELECT 1 FROM seller_sellers WHERE id = @id);
+
+-- name: OwnersOf :many
+SELECT seller_id, account_id FROM seller_members WHERE seller_id = ANY (@seller_ids::uuid[]) AND role = 'owner';
 
 -- name: LockSeller :exec
 -- Serializes changes to a seller's members until the transaction ends.
@@ -80,13 +105,14 @@ DELETE FROM seller_members WHERE account_id = @account_id;
 -- A seller whose owner's account was deleted stops showing until admins decide;
 -- no one set the status, so it names no one.
 UPDATE seller_sellers
-SET status = 'blocked', status_changed_at = now(), status_changed_by = NULL, updated_at = now()
+SET status = 'blocked', status_reason = @reason, status_changed_at = now(), status_changed_by = NULL, updated_at = now()
 WHERE id = ANY (sqlc.arg(ids)::uuid[]) AND status <> 'blocked';
 
 -- name: SummarizeSellers :one
 -- The sellers in each status now, and those opened in a range, for admins.
 SELECT count(*) FILTER (WHERE status = 'active')::integer AS active,
        count(*) FILTER (WHERE status = 'pending')::integer AS pending,
+       count(*) FILTER (WHERE status = 'rejected')::integer AS rejected,
        count(*) FILTER (WHERE status = 'blocked')::integer AS blocked,
        count(*) FILTER (WHERE created_at >= @range_start::timestamptz AND created_at < @range_end::timestamptz)::integer AS opened
 FROM seller_sellers;

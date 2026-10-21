@@ -14,8 +14,9 @@ Owns the surplus sellers post and the settings every offer follows (tables `offe
 | `GET /offers/{offerId}` | Anyone while it is on sale or sold out and its seller active; its members and admins always | `200` offer |
 | `GET`, `POST /sellers/{sellerId}/dishes` `{name, kind, unit, description, ingredients, originalPriceVnd, photoId, hidden}` | The owner or staff of an active seller | `200` the catalog, newest first, hidden dishes included; `201` the dish |
 | `PATCH`, `DELETE /dishes/{dishId}` | Same, through the dish's seller | `200` the dish; `204` |
-| `GET`, `PUT /admin/offer-settings` | Admins | `200` the settings |
-| `GET /admin/summary?from=&to=` | Admins | `200` the dashboard's figures over a range of days, composed from the summaries of `seller`, `offer` and `identity` (below) |
+| `GET /admin/offer-settings` | Admins | `200` the settings, their version in `ETag` |
+| `PUT /admin/offer-settings`, `If-Match` required | Admins | `200` the settings and their new `ETag`; `412` when saved since; a save that changes nothing writes nothing; each change recorded in the audit trail with the fields changed (SEC-75) |
+| `GET /admin/summary?from=&to=` | Admins | `200` the dashboard's figures over a range of days, composed from the summaries of `seller`, `offer` and `identity` (below); a read, so nothing is recorded in the audit trail |
 
 An offer carries its status, units left, discount, photo addresses and the collection point copied from the seller when it was posted. Prices are whole đồng; times are RFC 3339.
 

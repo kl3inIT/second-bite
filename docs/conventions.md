@@ -114,6 +114,7 @@ The error contract follows [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.htm
   | `NOT_PERMITTED` | 403 |
   | `NOT_FOUND` | 404 |
   | `CONFLICT` | 409 |
+  | `STALE` | 412 |
   | `GONE` | 410 |
   | `LIMIT_EXCEEDED` | 429 |
   | `SERVICE_UNAVAILABLE` | 503 |

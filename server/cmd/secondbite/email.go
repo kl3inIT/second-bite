@@ -9,8 +9,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/google/uuid"
-
 	"github.com/kl3inIT/second-bite/server/internal/notification"
 )
 
@@ -59,7 +57,7 @@ func configureEmail(ctx context.Context, s *notification.Service, args []string,
 		}
 	}
 
-	if err := s.SaveEmailSettings(ctx, c, uuid.Nil); err != nil {
+	if err := s.SaveEmailSettingsAsSystem(ctx, c); err != nil {
 		return err
 	}
 

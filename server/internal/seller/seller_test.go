@@ -14,8 +14,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/identity"
+	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
 	"github.com/kl3inIT/second-bite/server/internal/seller"
@@ -25,6 +27,7 @@ type fixture struct {
 	sellers  *seller.Service
 	accounts *identity.Service
 	photos   *file.Service
+	events   *platform.Events
 	prefix   string
 }
 
@@ -54,7 +57,7 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 	t.Helper()
 
 	// Sending sign-in codes is not exercised here, so identity has no email.
-	accounts, err := identity.NewService(pool, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
+	accounts, err := identity.NewService(pool, nil, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,8 +67,21 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 		t.Fatal(err)
 	}
 
+	trail := audit.NewService(pool, platformtest.Logger())
+
+	notifications, err := notification.NewService(pool, trail, notification.Config{SettingsKey: make([]byte, 32)}, platformtest.Logger())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	events, err := platform.NewEvents(pool, platformtest.Logger())
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return fixture{
-		sellers: seller.NewService(pool, accounts, photos, platformtest.Logger()), accounts: accounts, photos: photos,
+		sellers:  seller.NewService(pool, accounts, photos, notifications, events, trail, platformtest.Logger()),
+		accounts: accounts, photos: photos, events: events,
 		prefix: strings.ToLower(t.Name()),
 	}
 }
@@ -88,6 +104,9 @@ func (f fixture) as(t *testing.T, email string, role platform.Role) context.Cont
 
 	return platform.WithCaller(t.Context(), platform.Caller{AccountID: a.ID, SessionID: uuid.New(), Role: role})
 }
+
+// blockReason is what an admin tells an owner in these tests.
+const blockReason = "Bán món đã quá hạn sử dụng"
 
 var shop = seller.Details{Name: "Bánh mì Tasco", Address: "Tasco Mall, Việt Hưng", Latitude: 21.0565, Longitude: 105.8964, Phone: "0912 345 678"}
 
@@ -136,14 +155,14 @@ func testPublishingFollowsStatusAndMembership(t *testing.T, pool *pgxpool.Pool) 
 	mustPublish(staff, t, f, s.ID, true)
 	mustPublish(stranger, t, f, s.ID, false)
 
-	if _, err := f.sellers.Block(admin, s.ID); err != nil {
+	if _, err := f.sellers.Block(admin, s.ID, blockReason); err != nil {
 		t.Fatal(err)
 	}
 
 	mustPublish(owner, t, f, s.ID, false) // blocked
 	mustPublish(staff, t, f, s.ID, false)
 
-	if _, err := f.sellers.Activate(admin, s.ID); err != nil { // a block is lifted the same way
+	if _, err := f.sellers.Approve(admin, s.ID); err != nil { // a block is lifted by approving again
 		t.Fatal(err)
 	}
 
@@ -181,7 +200,7 @@ func testOnlyTheRightPeopleActOnASeller(t *testing.T, pool *pgxpool.Pool) {
 		{"staff do not change it", update(staff, f, s.ID), seller.ErrOwnerRequired},
 		{"staff do not add staff", addStaff(staff, f, s.ID, f.mail("other")), seller.ErrOwnerRequired},
 		{"the same person is not added twice", addStaff(owner, f, s.ID, strings.ToUpper(f.mail("staff"))), seller.ErrAlreadyMember},
-		{"a customer does not activate", activate(owner, f, s.ID), platform.ErrAdminRequired},
+		{"a customer does not approve", approve(owner, f, s.ID), platform.ErrAdminRequired},
 		{"the owner does not leave", leave(owner, f, s.ID), seller.ErrOwnerCannotLeave},
 		{"an address must be one address", addStaff(owner, f, s.ID, "not an address"), identity.ErrEmailInvalid},
 	}
@@ -285,8 +304,8 @@ func addStaff(ctx context.Context, f fixture, id uuid.UUID, email string) error 
 	return err
 }
 
-func activate(ctx context.Context, f fixture, id uuid.UUID) error {
-	_, err := f.sellers.Activate(ctx, id)
+func approve(ctx context.Context, f fixture, id uuid.UUID) error {
+	_, err := f.sellers.Approve(ctx, id)
 
 	return err
 }

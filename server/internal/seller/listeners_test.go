@@ -43,10 +43,6 @@ func TestDeletedAccountIsForgotten(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := f.sellers.Activate(admin, staffed.ID); err != nil {
-		t.Fatal(err)
-	}
-
 	caller, _ := platform.CallerFrom(leaving)
 	events := startEvents(t, pool, f.sellers)
 
@@ -141,5 +137,56 @@ func checkForgotten(t *testing.T, pool *pgxpool.Pool, accountID, ownedID uuid.UU
 
 	if blockedByOne {
 		t.Error("the seller left without an owner names someone as having blocked it")
+	}
+}
+
+// TestOwnerToldWithoutEmail blocks a seller while no email provider is
+// chosen (SEC-75): the job that tells the owner ends rather than retrying.
+func TestOwnerToldWithoutEmail(t *testing.T) {
+	t.Parallel()
+
+	pool := platformtest.StartPostgres(t)
+	f := newFixture(t, pool)
+
+	seller.RegisterListeners(f.events, f.sellers)
+
+	if err := f.events.Start(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Cleanup(func() {
+		stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := f.events.Stop(stopCtx); err != nil {
+			t.Error(err)
+		}
+	})
+
+	s, err := f.sellers.Open(f.as(t, "owner", platform.RoleCustomer), shop)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.sellers.Block(f.as(t, "admin", platform.RoleAdmin), s.ID, blockReason); err != nil {
+		t.Fatal(err)
+	}
+
+	deadline := time.Now().Add(15 * time.Second)
+
+	for {
+		var state string
+
+		err := pool.QueryRow(t.Context(), `SELECT state FROM river_job
+			WHERE args->>'listener' = 'seller.tell_owner' AND args->'payload'->>'sellerId' = $1::text`, s.ID).Scan(&state)
+
+		switch {
+		case err == nil && state == "completed":
+			return
+		case time.Now().After(deadline):
+			t.Fatalf("the job is %q (%v) after 15 seconds, want completed", state, err)
+		}
+
+		time.Sleep(100 * time.Millisecond)
 	}
 }

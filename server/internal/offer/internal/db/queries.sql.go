@@ -384,6 +384,40 @@ func (q *Queries) LockOffer(ctx context.Context, id uuid.UUID) (LockOfferRow, er
 	return i, err
 }
 
+const lockSettings = `-- name: LockSettings :one
+SELECT min_discount_percent, default_radius_km, max_radius_km, window_min_minutes, window_max_minutes,
+       starts_within_hours, updated_at, updated_by
+FROM offer_settings WHERE id = 1 FOR UPDATE
+`
+
+type LockSettingsRow struct {
+	MinDiscountPercent int32
+	DefaultRadiusKm    int32
+	MaxRadiusKm        int32
+	WindowMinMinutes   int32
+	WindowMaxMinutes   int32
+	StartsWithinHours  int32
+	UpdatedAt          time.Time
+	UpdatedBy          uuid.NullUUID
+}
+
+// The settings, locked until the transaction saving them ends.
+func (q *Queries) LockSettings(ctx context.Context) (LockSettingsRow, error) {
+	row := q.db.QueryRow(ctx, lockSettings)
+	var i LockSettingsRow
+	err := row.Scan(
+		&i.MinDiscountPercent,
+		&i.DefaultRadiusKm,
+		&i.MaxRadiusKm,
+		&i.WindowMinMinutes,
+		&i.WindowMaxMinutes,
+		&i.StartsWithinHours,
+		&i.UpdatedAt,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
 const postedPerDay = `-- name: PostedPerDay :many
 SELECT date_trunc('day', created_at, 'Asia/Ho_Chi_Minh')::timestamptz AS day, count(*)::integer AS posted
 FROM offer_offers

@@ -21,7 +21,7 @@ func TestSummary(t *testing.T) {
 
 	pool := platformtest.StartPostgres(t)
 
-	s, err := identity.NewService(pool, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
+	s, err := identity.NewService(pool, nil, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}

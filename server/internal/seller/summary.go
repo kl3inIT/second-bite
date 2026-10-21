@@ -17,9 +17,10 @@ const latestOpened = 5
 // Summary is what admins see of the sellers at a glance: how many stand in
 // each status now, how many were opened in a range, and the newest.
 type Summary struct {
-	Active  int
-	Pending int
-	Blocked int
+	Active   int
+	Pending  int
+	Rejected int
+	Blocked  int
 	// Opened counts the sellers opened in the range, whatever their status.
 	Opened int
 	// Latest are the five sellers opened last, whenever that was, newest
@@ -51,7 +52,8 @@ func (s *Service) Summary(ctx context.Context, from, to time.Time) (Summary, err
 	}
 
 	out := Summary{
-		Active: int(counts.Active), Pending: int(counts.Pending), Blocked: int(counts.Blocked), Opened: int(counts.Opened),
+		Active: int(counts.Active), Pending: int(counts.Pending), Rejected: int(counts.Rejected), Blocked: int(counts.Blocked),
+		Opened: int(counts.Opened),
 		Latest: make([]Opened, 0, len(rows)),
 	}
 

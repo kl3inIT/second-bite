@@ -48,6 +48,31 @@ func (q *Queries) GetEmailSettings(ctx context.Context) (NotificationEmailSettin
 	return i, err
 }
 
+const lockEmailSettings = `-- name: LockEmailSettings :one
+SELECT id, provider, sender_address, sender_name, smtp_host, smtp_port, smtp_security, smtp_username, smtp_password_sealed, brevo_api_key_sealed, updated_at, updated_by FROM notification_email_settings WHERE id = 1 FOR UPDATE
+`
+
+// The settings, locked until the transaction saving them ends.
+func (q *Queries) LockEmailSettings(ctx context.Context) (NotificationEmailSetting, error) {
+	row := q.db.QueryRow(ctx, lockEmailSettings)
+	var i NotificationEmailSetting
+	err := row.Scan(
+		&i.ID,
+		&i.Provider,
+		&i.SenderAddress,
+		&i.SenderName,
+		&i.SmtpHost,
+		&i.SmtpPort,
+		&i.SmtpSecurity,
+		&i.SmtpUsername,
+		&i.SmtpPasswordSealed,
+		&i.BrevoApiKeySealed,
+		&i.UpdatedAt,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
 const putEmailSettings = `-- name: PutEmailSettings :exec
 INSERT INTO notification_email_settings (
     id, provider, sender_address, sender_name,

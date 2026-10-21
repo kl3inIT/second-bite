@@ -3,6 +3,12 @@ SELECT min_discount_percent, default_radius_km, max_radius_km, window_min_minute
        starts_within_hours, updated_at, updated_by
 FROM offer_settings WHERE id = 1;
 
+-- name: LockSettings :one
+-- The settings, locked until the transaction saving them ends.
+SELECT min_discount_percent, default_radius_km, max_radius_km, window_min_minutes, window_max_minutes,
+       starts_within_hours, updated_at, updated_by
+FROM offer_settings WHERE id = 1 FOR UPDATE;
+
 -- name: PutSettings :exec
 UPDATE offer_settings
 SET min_discount_percent = @min_discount_percent, default_radius_km = @default_radius_km,

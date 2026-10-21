@@ -15,6 +15,7 @@ _SellersSummaryBody _$SellersSummaryBodyFromJson(Map<String, dynamic> json) =>
           .toList(),
       openedInRange: (json['openedInRange'] as num).toInt(),
       pending: (json['pending'] as num).toInt(),
+      rejected: (json['rejected'] as num).toInt(),
     );
 
 Map<String, dynamic> _$SellersSummaryBodyToJson(_SellersSummaryBody instance) =>
@@ -24,4 +25,5 @@ Map<String, dynamic> _$SellersSummaryBodyToJson(_SellersSummaryBody instance) =>
       'latest': instance.latest,
       'openedInRange': instance.openedInRange,
       'pending': instance.pending,
+      'rejected': instance.rejected,
     };

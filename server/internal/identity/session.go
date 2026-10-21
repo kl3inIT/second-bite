@@ -142,7 +142,9 @@ func (s *Service) findCaller(ctx context.Context, token string) (platform.Caller
 		}
 	}
 
-	return platform.Caller{AccountID: row.AccountID, SessionID: row.ID, Role: platform.Role(row.Role)}, nil
+	return platform.Caller{
+		AccountID: row.AccountID, SessionID: row.ID, Role: platform.Role(row.Role), Label: row.Email,
+	}, nil
 }
 
 // SignOut ends the caller's session.

@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/offer/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
@@ -36,8 +38,10 @@ func (s *Service) Settings(ctx context.Context) (Settings, error) {
 	return s.settings(ctx)
 }
 
-// SaveSettings replaces the offer settings. Only admins may.
-func (s *Service) SaveSettings(ctx context.Context, in Settings) (Settings, error) {
+// SaveSettings replaces the offer settings for an admin, when they are still
+// at version, the UpdatedAt the admin read; otherwise it answers
+// platform.ErrChangedSinceRead. A save that changes nothing writes nothing.
+func (s *Service) SaveSettings(ctx context.Context, in Settings, version time.Time) (Settings, error) {
 	caller, err := platform.RequireAdmin(ctx)
 	if err != nil {
 		return Settings{}, err
@@ -47,24 +51,78 @@ func (s *Service) SaveSettings(ctx context.Context, in Settings) (Settings, erro
 		return Settings{}, ErrSettingsInvalid
 	}
 
-	if err := s.queries.PutSettings(ctx, db.PutSettingsParams{
-		MinDiscountPercent: int32(in.MinDiscountPercent), //nolint:gosec // bounded by valid
-		DefaultRadiusKm:    int32(in.DefaultRadiusKm),    //nolint:gosec // likewise
-		MaxRadiusKm:        int32(in.MaxRadiusKm),        //nolint:gosec // likewise
-		WindowMinMinutes:   int32(in.WindowMin.Minutes()),
-		WindowMaxMinutes:   int32(in.WindowMax.Minutes()),
-		StartsWithinHours:  int32(in.StartsWithin.Hours()),
-		UpdatedBy:          uuid.NullUUID{UUID: caller.AccountID, Valid: true},
-	}); err != nil {
-		return Settings{}, fmt.Errorf("saving the offer settings: %w", err)
+	var changed []string
+
+	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.queries.WithTx(tx)
+
+		current, err := q.LockSettings(ctx)
+		if err != nil {
+			return fmt.Errorf("reading the offer settings: %w", err)
+		}
+
+		if !platform.SameVersion(current.UpdatedAt, version) {
+			return platform.ErrChangedSinceRead
+		}
+
+		next := db.PutSettingsParams{
+			MinDiscountPercent: int32(in.MinDiscountPercent), //nolint:gosec // bounded by valid
+			DefaultRadiusKm:    int32(in.DefaultRadiusKm),    //nolint:gosec // likewise
+			MaxRadiusKm:        int32(in.MaxRadiusKm),        //nolint:gosec // likewise
+			WindowMinMinutes:   int32(in.WindowMin.Minutes()),
+			WindowMaxMinutes:   int32(in.WindowMax.Minutes()),
+			StartsWithinHours:  int32(in.StartsWithin.Hours()),
+			UpdatedBy:          uuid.NullUUID{UUID: caller.AccountID, Valid: true},
+		}
+
+		changed = changedSettings(current, next)
+		if len(changed) == 0 {
+			return nil
+		}
+
+		if err := q.PutSettings(ctx, next); err != nil {
+			return fmt.Errorf("saving the offer settings: %w", err)
+		}
+
+		return s.trail.Record(ctx, tx,
+			audit.Resource{Type: audit.ResourceOfferSettings, ID: audit.SingletonID},
+			audit.OfferSettingsChanged{Fields: changed})
+	})
+	if err != nil {
+		return Settings{}, err
 	}
 
-	s.logger.InfoContext(ctx, "offer settings changed",
-		slog.String("event", "offer.settings.changed"),
-		slog.String("account_id", caller.AccountID.String()),
-	)
+	if len(changed) > 0 {
+		s.logger.InfoContext(ctx, "offer settings changed",
+			slog.String("event", "offer.settings.changed"),
+			slog.String("account_id", caller.AccountID.String()),
+		)
+	}
 
 	return s.settings(ctx)
+}
+
+// changedSettings names, as the API does, the settings next changes.
+func changedSettings(current db.LockSettingsRow, next db.PutSettingsParams) []string {
+	var changed []string
+
+	for _, f := range []struct {
+		name     string
+		was, now int32
+	}{
+		{"minDiscountPercent", current.MinDiscountPercent, next.MinDiscountPercent},
+		{"defaultRadiusKm", current.DefaultRadiusKm, next.DefaultRadiusKm},
+		{"maxRadiusKm", current.MaxRadiusKm, next.MaxRadiusKm},
+		{"windowMinMinutes", current.WindowMinMinutes, next.WindowMinMinutes},
+		{"windowMaxMinutes", current.WindowMaxMinutes, next.WindowMaxMinutes},
+		{"startsWithinHours", current.StartsWithinHours, next.StartsWithinHours},
+	} {
+		if f.was != f.now {
+			changed = append(changed, f.name)
+		}
+	}
+
+	return changed
 }
 
 // valid holds the bounds the table's checks hold, so a mistake is a

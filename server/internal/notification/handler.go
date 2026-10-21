@@ -24,11 +24,13 @@ type emailSettingsBody struct {
 }
 
 type emailSettingsOutput struct {
+	ETag string `header:"ETag" doc:"The settings' version, sent back in If-Match to save them"`
 	Body emailSettingsBody
 }
 
 type saveEmailSettingsInput struct {
-	Body struct {
+	IfMatch string `header:"If-Match" doc:"The ETag of the settings read" required:"true"`
+	Body    struct {
 		Provider      EmailProvider `json:"provider"               enum:"smtp,brevo"`
 		SenderAddress string        `json:"senderAddress"          format:"email" maxLength:"254"`
 		SenderName    string        `json:"senderName"             maxLength:"100" minLength:"1"`
@@ -41,28 +43,21 @@ type saveEmailSettingsInput struct {
 	}
 }
 
-// RegisterOperations adds the module's operations to api.
-func RegisterOperations(api huma.API, s *Service) {
-	security := platform.SignedIn()
-
-	huma.Register(api, huma.Operation{
+// RegisterAdminOperations adds the module's admin operations to admin, the
+// group platform.NewAdminGroup returns; their paths omit its prefix.
+func RegisterAdminOperations(admin huma.API, s *Service) {
+	huma.Register(admin, huma.Operation{
 		OperationID: "getEmailSettings",
 		Method:      http.MethodGet,
-		Path:        "/admin/email-settings",
+		Path:        "/email-settings",
 		Summary:     "Read who delivers email",
-		Tags:        []string{"Admins"},
-		Security:    security,
 	}, func(ctx context.Context, _ *struct{}) (*emailSettingsOutput, error) {
-		if _, err := platform.RequireAdmin(ctx); err != nil {
-			return nil, err
-		}
-
 		settings, err := s.EmailSettings(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		return &emailSettingsOutput{Body: emailSettingsBody{
+		return &emailSettingsOutput{ETag: platform.ETag(settings.UpdatedAt), Body: emailSettingsBody{
 			Provider:        settings.Provider,
 			SenderAddress:   settings.SenderAddress,
 			SenderName:      settings.SenderName,
@@ -76,18 +71,18 @@ func RegisterOperations(api huma.API, s *Service) {
 		}}, nil
 	})
 
-	huma.Register(api, huma.Operation{
-		OperationID:   "saveEmailSettings",
-		Method:        http.MethodPut,
-		Path:          "/admin/email-settings",
-		Summary:       "Choose who delivers email; the next email uses it",
-		Tags:          []string{"Admins"},
-		Security:      security,
+	huma.Register(admin, huma.Operation{
+		OperationID: "saveEmailSettings",
+		Method:      http.MethodPut,
+		Path:        "/email-settings",
+		Summary:     "Choose who delivers email; the next email uses it",
+		Description: "If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes. " +
+			"The first settings are saved with `secondbite email configure`.",
 		DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, in *saveEmailSettingsInput) (*struct{}, error) {
-		caller, err := platform.RequireAdmin(ctx)
-		if err != nil {
-			return nil, err
+		version, ok := platform.VersionOf(in.IfMatch)
+		if !ok {
+			return nil, platform.ErrChangedSinceRead
 		}
 
 		b := in.Body
@@ -96,6 +91,6 @@ func RegisterOperations(api huma.API, s *Service) {
 			Provider: b.Provider, SenderAddress: b.SenderAddress, SenderName: b.SenderName,
 			SMTPHost: b.SMTPHost, SMTPPort: b.SMTPPort, SMTPSecurity: b.SMTPSecurity,
 			SMTPUsername: b.SMTPUsername, SMTPPassword: b.SMTPPassword, BrevoAPIKey: b.BrevoAPIKey,
-		}, caller.AccountID)
+		}, version)
 	})
 }

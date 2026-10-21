@@ -8,8 +8,8 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
-// summaryAdminEmail is a fourth admin, so this check signs in apart from the
-// others that run beside it.
+// summaryAdminEmail is an admin of its own, so this check signs in apart from
+// the others that run beside it.
 const summaryAdminEmail = "summary.admin@example.com"
 
 type dayCount struct {

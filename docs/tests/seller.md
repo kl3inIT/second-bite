@@ -4,14 +4,20 @@ Requirements of [docs/specs/seller.md](../specs/seller.md) and the checks that h
 
 | Requirement | Check |
 | --- | --- |
-| A new seller is `pending`, its opener the owner; publishing only for members of an active seller; a block stops it and activation lifts it; a removed member loses the right at once | `TestSeller` › publishing follows status and membership (through `Publishing`) |
-| A stranger gets 404; staff neither change the seller nor add staff; nobody is added twice; a customer does not activate; the owner does not leave; staff do leave; an address must be one address | `TestSeller` › only the right people act on a seller |
+| A new seller is `pending`, its opener the owner; publishing only for members of an active seller; a block stops it and approving lifts it; a removed member loses the right at once | `TestSeller` › publishing follows status and membership (through `Publishing`) |
+| A stranger gets 404; staff neither change the seller nor add staff; nobody is added twice; a customer does not approve; the owner does not leave; staff do leave; an address must be one address | `TestSeller` › only the right people act on a seller |
 | An owner opens at most five sellers | `TestSeller` › an owner opens at most five sellers |
 | Phone and name are checked | `TestSeller` › details are checked |
 | A hundred additions at once leave exactly 30 people | `TestSeller` › additions arriving together keep the cap (the first version left 98) |
 | The flow through the API: open, add staff who then signs in by code and finds the seller; staff refused a change; a stranger answered 404; a customer refused activation; the admin lists pending sellers and activates | `TestService` › a seller is opened, staffed and activated (`cmd/secondbite/seller_test.go`) |
 | The owner sets only a photo they uploaded; staff cannot; the photo is removed | `TestSeller` › the owner sets a photo they uploaded; through the API, `TestService` › a photo is uploaded, set on a seller and served |
 | When an account is deleted, its memberships are removed and the seller it owned is blocked, naming no one; a seller it only staffed keeps its status; delivered twice, nothing more changes | `TestDeletedAccountIsForgotten` (`internal/seller/listeners_test.go`); end to end in `TestService` › an owner deletes their account; the others forget it |
-| The summary counts the sellers in each status now and those opened in the range, and lists the five opened last, newest first; admins alone read it | `TestSummary` (`internal/seller/summary_test.go`), on a database of its own |
+| The summary counts the sellers in each status now (pending, active, rejected, blocked) and those opened in the range, and lists the five opened last, newest first; admins alone read it | `TestSummary` (`internal/seller/summary_test.go`), on a database of its own |
+| Every action from every status: approve from pending, rejected and blocked (recorded as `seller.unblock` from blocked), reject from pending, block from active, each with one audit event and one job to tell the owner; the others refused with nothing recorded; a customer refused; an unknown seller not found | `TestAdmin` › every action from every status (`internal/seller/admin_test.go`) |
+| A reason too short, too long, blank or with a control character is refused | `TestAdmin` › a reason is checked |
+| The list finds words without marks, capitals and phone digits, filters by status, reads `%` as a letter, puts pending sellers first, counts past the end, names the owner; bad filters and customers are refused | `TestAdmin` › the list filters, searches and pages |
+| The owner's email names the seller on one line, carries the reason in both languages, and escapes it in HTML | `TestStatusEmail` (`internal/seller/status_email_test.go`) |
+| Without an email provider, the job that tells the owner ends | `TestOwnerToldWithoutEmail` (`internal/seller/listeners_test.go`) |
+| Through the API: a block with a reason, found by words without marks among the blocked, the owner emailed the reason through Mailpit, a second block refused with 409, a short reason with 400, approved again with the reason cleared | `TestService` › a seller is opened active, staffed and blocked |
 
-Not covered by a test: the limit of five under concurrency (held by the same kind of lock as the staff cap), and pagination of the admins' list.
+Not covered by a test: the limit of five under concurrency (held by the same kind of lock as the staff cap).

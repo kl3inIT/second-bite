@@ -6,6 +6,7 @@ Requirements of [docs/specs/notification.md](../specs/notification.md) and the c
 | --- | --- |
 | SMTP delivers through Mailpit, configured by `secondbite email configure` | `TestService` (`cmd/secondbite/main_test.go`): every sign-in check reads its email from Mailpit |
 | The settings are served to admins only and never return a secret | `TestService` › only admins read the email settings |
+| A save at a version read before a change is refused with 412, and one without `If-Match` with 400 | `TestService` › a stored SMTP password follows only its server (`checkStaleSettingsRefused`) |
 | A stored SMTP password follows only its server and is refused without TLS | `checkSMTPPasswordFollowsServer` (`cmd/secondbite/sign_in_test.go`), run after the parallel checks of `TestService` |
 | A secret sealed for one field does not open in another; two seals of one value differ | `TestSealedSecretOpensOnlyInItsField` (`internal/notification/settings_test.go`) |
 | Brevo's request (path, `api-key`, body, tag) and the message id kept without angle brackets | `TestBrevoEmailSender` (`internal/notification/brevo_email_sender_test.go`) |

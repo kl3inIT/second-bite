@@ -52,6 +52,37 @@ components:
       required:
         - email
       type: object
+    AdminSellerBody:
+      additionalProperties: false
+      properties:
+        ownerEmail:
+          description: Absent when the owner deleted their account
+          type: string
+      type: object
+    AdminSellersOutputBody:
+      additionalProperties: false
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/AdminSellerBody"
+          type:
+            - array
+            - "null"
+        page:
+          format: int64
+          type: integer
+        pageSize:
+          format: int64
+          type: integer
+        total:
+          format: int64
+          type: integer
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+      type: object
     AdminSummaryBody:
       additionalProperties: false
       properties:
@@ -75,6 +106,30 @@ components:
         - sellers
         - offers
         - accounts
+      type: object
+    AdminsOutputBody:
+      additionalProperties: false
+      properties:
+        admins:
+          description: Every admin, by address
+          items:
+            $ref: "#/components/schemas/AccountBody"
+          type:
+            - array
+            - "null"
+      required:
+        - admins
+      type: object
+    BlockSellerRequest:
+      additionalProperties: false
+      properties:
+        reason:
+          description: What the owner is told, 10 to 500 characters
+          maxLength: 500
+          minLength: 10
+          type: string
+      required:
+        - reason
       type: object
     CollectionPointBody:
       additionalProperties: false
@@ -468,6 +523,17 @@ components:
           type: string
       required:
         - idToken
+      type: object
+    GrantAdminRequest:
+      additionalProperties: false
+      properties:
+        email:
+          description: The address of the account
+          maxLength: 254
+          minLength: 3
+          type: string
+      required:
+        - email
       type: object
     LatestOfferBody:
       additionalProperties: false
@@ -952,6 +1018,17 @@ components:
         - status
         - code
       type: object
+    RejectSellerRequest:
+      additionalProperties: false
+      properties:
+        reason:
+          description: What the owner is told, 10 to 500 characters
+          maxLength: 500
+          minLength: 10
+          type: string
+      required:
+        - reason
+      type: object
     RequestCodeInputBody:
       additionalProperties: false
       properties:
@@ -1055,10 +1132,14 @@ components:
           enum:
             - pending
             - active
+            - rejected
             - blocked
           type: string
         statusChangedAt:
           format: date-time
+          type: string
+        statusReason:
+          description: Why an admin rejected or blocked the seller, as the owner is told
           type: string
         updatedAt:
           format: date-time
@@ -1148,9 +1229,14 @@ components:
           description: Sellers pending now
           format: int64
           type: integer
+        rejected:
+          description: Sellers rejected now
+          format: int64
+          type: integer
       required:
         - active
         - pending
+        - rejected
         - blocked
         - openedInRange
         - latest
@@ -1363,6 +1449,85 @@ paths:
       summary: Email the signed-in account's address a code that confirms its deletion
       tags:
         - Accounts
+  /admin/admins:
+    get:
+      operationId: listAdmins
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Every admin, by address
+      tags:
+        - Admin
+    post:
+      description: Creates the account when the address has never signed in; its owner signs in with an emailed code. Granting an admin again changes nothing.
+      operationId: grantAdmin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrantAdminRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Make the account of an address an admin
+      tags:
+        - Admin
+  /admin/admins/{accountId}/revoke:
+    post:
+      description: The account's next request is a customer's; its sessions stay. Revoking a customer changes nothing.
+      operationId: revokeAdmin
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Make an admin a customer again; never oneself nor the last admin
+      tags:
+        - Admin
   /admin/email-settings:
     get:
       operationId: getEmailSettings
@@ -1373,6 +1538,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/EmailSettingsBody"
           description: OK
+          headers:
+            ETag:
+              schema:
+                description: The settings' version, sent back in If-Match to save them
+                type: string
         default:
           content:
             application/problem+json:
@@ -1384,9 +1554,18 @@ paths:
         - cookie: []
       summary: Read who delivers email
       tags:
-        - Admins
+        - Admin
     put:
+      description: If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes. The first settings are saved with `secondbite email configure`.
       operationId: saveEmailSettings
+      parameters:
+        - description: The ETag of the settings read
+          in: header
+          name: If-Match
+          required: true
+          schema:
+            description: The ETag of the settings read
+            type: string
       requestBody:
         content:
           application/json:
@@ -1407,7 +1586,7 @@ paths:
         - cookie: []
       summary: Choose who delivers email; the next email uses it
       tags:
-        - Admins
+        - Admin
   /admin/offer-settings:
     get:
       operationId: getOfferSettings
@@ -1418,6 +1597,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/OfferSettingsBody"
           description: OK
+          headers:
+            ETag:
+              schema:
+                description: The settings' version, sent back in If-Match to save them
+                type: string
         default:
           content:
             application/problem+json:
@@ -1431,8 +1615,16 @@ paths:
       tags:
         - Admin
     put:
-      description: New rules apply to offers posted, and to the prices and windows changed, after they are saved.
+      description: New rules apply to offers posted, and to the prices and windows changed, after they are saved. If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes.
       operationId: saveOfferSettings
+      parameters:
+        - description: The ETag of the settings read
+          in: header
+          name: If-Match
+          required: true
+          schema:
+            description: The ETag of the settings read
+            type: string
       requestBody:
         content:
           application/json:
@@ -1446,6 +1638,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/OfferSettingsBody"
           description: OK
+          headers:
+            ETag:
+              schema:
+                description: The settings' version, sent back in If-Match to save them
+                type: string
         default:
           content:
             application/problem+json:
@@ -1460,41 +1657,56 @@ paths:
         - Admin
   /admin/sellers:
     get:
+      description: Pending sellers come first, the oldest first; then the latest change first. q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.
       operationId: listSellersForAdmins
       parameters:
-        - explode: false
+        - description: Keep these statuses; every status when absent
+          explode: false
           in: query
           name: status
           schema:
-            default: pending
-            enum:
-              - pending
-              - active
-              - blocked
+            description: Keep these statuses; every status when absent
+            items:
+              enum:
+                - pending
+                - active
+                - rejected
+                - blocked
+              type: string
+            type:
+              - array
+              - "null"
+        - description: Words of the name, address or phone
+          explode: false
+          in: query
+          name: q
+          schema:
+            description: Words of the name, address or phone
+            maxLength: 100
             type: string
         - explode: false
           in: query
-          name: limit
+          name: page
           schema:
-            default: 50
+            default: 1
             format: int64
-            maximum: 100
             minimum: 1
             type: integer
         - explode: false
           in: query
-          name: offset
+          name: size
           schema:
-            default: 0
+            default: 25
             format: int64
-            minimum: 0
+            maximum: 100
+            minimum: 1
             type: integer
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SellersOutputBody"
+                $ref: "#/components/schemas/AdminSellersOutputBody"
           description: OK
         default:
           content:
@@ -1505,12 +1717,12 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Sellers in a status, oldest first
+      summary: Sellers by status and words, pending ones first
       tags:
         - Admin
-  /admin/sellers/{sellerId}/activate:
+  /admin/sellers/{sellerId}/approve:
     post:
-      operationId: activateSeller
+      operationId: approveSeller
       parameters:
         - in: path
           name: sellerId
@@ -1533,7 +1745,7 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Let a seller publish; also lifts a block
+      summary: Let a pending, rejected or blocked seller publish; its owner is emailed
       tags:
         - Admin
   /admin/sellers/{sellerId}/block:
@@ -1545,6 +1757,12 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockSellerRequest"
+        required: true
       responses:
         "200":
           content:
@@ -1561,7 +1779,41 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Stop a seller from publishing
+      summary: Stop an active seller; its owner is emailed the reason
+      tags:
+        - Admin
+  /admin/sellers/{sellerId}/reject:
+    post:
+      operationId: rejectSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectSellerRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Refuse a pending seller; its owner is emailed the reason
       tags:
         - Admin
   /admin/summary:

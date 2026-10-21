@@ -26,6 +26,9 @@ abstract class SellersSummaryBody with _$SellersSummaryBody {
 
     /// Sellers pending now
     required int pending,
+
+    /// Sellers rejected now
+    required int rejected,
   }) = _SellersSummaryBody;
 
   factory SellersSummaryBody.fromJson(Map<String, Object?> json) =>

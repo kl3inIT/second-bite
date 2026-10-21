@@ -100,6 +100,7 @@ type adminSummaryBody struct {
 type sellersSummaryBody struct {
 	Active        int                `json:"active"        doc:"Sellers active now"`
 	Pending       int                `json:"pending"       doc:"Sellers pending now"`
+	Rejected      int                `json:"rejected"      doc:"Sellers rejected now"`
 	Blocked       int                `json:"blocked"       doc:"Sellers blocked now"`
 	OpenedInRange int                `json:"openedInRange" doc:"Sellers opened in the range, whatever their status"`
 	Latest        []openedSellerBody `json:"latest"        doc:"The five sellers opened last, newest first, whenever that was" nullable:"false"`
@@ -143,7 +144,7 @@ type accountsSummaryBody struct {
 
 func toSellersSummaryBody(s seller.Summary) sellersSummaryBody {
 	b := sellersSummaryBody{
-		Active: s.Active, Pending: s.Pending, Blocked: s.Blocked, OpenedInRange: s.Opened,
+		Active: s.Active, Pending: s.Pending, Rejected: s.Rejected, Blocked: s.Blocked, OpenedInRange: s.Opened,
 		Latest: make([]openedSellerBody, 0, len(s.Latest)),
 	}
 	for _, o := range s.Latest {
@@ -171,17 +172,17 @@ func toOffersSummaryBody(s Summary, r summaryRange) offersSummaryBody {
 	return b
 }
 
-// registerSummaryOperations adds the admins' dashboard. It lives here
-// because offer is the one module allowed to read both seller and identity
-// (ARCHITECTURE.md); each of the three counts its own tables.
-func registerSummaryOperations(api huma.API, s *Service, accounts *identity.Service) {
-	huma.Register(api, huma.Operation{
-		OperationID: "getAdminSummary", Method: http.MethodGet, Path: "/admin/summary",
+// registerSummaryOperations adds the admins' dashboard to admin, the group
+// platform.NewAdminGroup returns. It lives here because offer is the one
+// module allowed to read both seller and identity (ARCHITECTURE.md); each of
+// the three counts its own tables.
+func registerSummaryOperations(admin huma.API, s *Service, accounts *identity.Service) {
+	huma.Register(admin, huma.Operation{
+		OperationID: "getAdminSummary", Method: http.MethodGet, Path: "/summary",
 		Summary: "The figures of the admins' dashboard over a range of days",
 		Description: "Sellers by status now and opened in the range; offers posted in the range, per day and by seller, " +
 			"and open now; accounts in all and created in the range, per day. Days are in Vietnam time; " +
 			"the range is at most 90 days and the last 30 without one. Orders and payments are not counted yet.",
-		Tags: tagAdmin, Security: security,
 	}, func(ctx context.Context, in *summaryInput) (*struct{ Body adminSummaryBody }, error) {
 		r, err := in.summaryRange(s.now())
 		if err != nil {

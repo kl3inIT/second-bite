@@ -13,7 +13,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/notification/internal/db"
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 // EmailSettings is who delivers email, as admins read it. Secrets are never
@@ -46,8 +48,13 @@ type EmailSettingsChange struct {
 	BrevoAPIKey   string
 }
 
-// EmailSettings returns the current settings, or ErrEmailNotConfigured.
+// EmailSettings returns the current settings to an admin, or
+// ErrEmailNotConfigured.
 func (s *Service) EmailSettings(ctx context.Context) (EmailSettings, error) {
+	if _, err := platform.RequireAdmin(ctx); err != nil {
+		return EmailSettings{}, err
+	}
+
 	row, err := s.queries.GetEmailSettings(ctx)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return EmailSettings{}, ErrEmailNotConfigured
@@ -72,9 +79,30 @@ func (s *Service) EmailSettings(ctx context.Context) (EmailSettings, error) {
 	}, nil
 }
 
-// SaveEmailSettings validates and stores c; the next email uses it. by is the
-// admin who saved it, or uuid.Nil from the command line.
-func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, by uuid.UUID) error {
+// SaveEmailSettings validates and stores c for the admin of ctx, when the
+// settings are still at version, the UpdatedAt the admin read; otherwise it
+// answers platform.ErrChangedSinceRead. The next email uses them. A save that
+// changes nothing writes nothing.
+func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, version time.Time) error {
+	caller, err := platform.RequireAdmin(ctx)
+	if err != nil {
+		return err
+	}
+
+	return s.saveEmailSettings(ctx, c, caller.AccountID, &version)
+}
+
+// SaveEmailSettingsAsSystem stores c with no admin behind it, whatever was
+// saved before. Only the command line calls it: whoever runs it already has
+// the server's own access.
+func (s *Service) SaveEmailSettingsAsSystem(ctx context.Context, c EmailSettingsChange) error {
+	return s.saveEmailSettings(ctx, c, uuid.Nil, nil)
+}
+
+// saveEmailSettings validates and stores c and records the change; by is the
+// admin who saved it, or uuid.Nil for the command line, and version, when
+// given, the version the settings must still be at.
+func (s *Service) saveEmailSettings(ctx context.Context, c EmailSettingsChange, by uuid.UUID, version *time.Time) error {
 	c.SenderAddress = strings.TrimSpace(c.SenderAddress)
 	c.SMTPHost = strings.TrimSpace(c.SMTPHost)
 
@@ -85,9 +113,17 @@ func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, 
 	return pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		q := s.queries.WithTx(tx)
 
-		current, err := q.GetEmailSettings(ctx)
-		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		current, err := q.LockEmailSettings(ctx)
+
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			if version != nil {
+				return platform.ErrChangedSinceRead // nothing was there to read
+			}
+		case err != nil:
 			return fmt.Errorf("reading the email settings: %w", err)
+		case version != nil && !platform.SameVersion(current.UpdatedAt, *version):
+			return platform.ErrChangedSinceRead
 		}
 
 		params := db.PutEmailSettingsParams{
@@ -109,12 +145,47 @@ func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, 
 			return err
 		}
 
+		changed := changedEmailSettings(current, params, c)
+		if len(changed) == 0 {
+			return nil
+		}
+
 		if err := q.PutEmailSettings(ctx, params); err != nil {
 			return fmt.Errorf("saving the email settings: %w", err)
 		}
 
-		return nil
+		return s.trail.Record(ctx, tx,
+			audit.Resource{Type: audit.ResourceEmailSettings, ID: audit.SingletonID},
+			audit.EmailSettingsChanged{Provider: params.Provider, Fields: changed})
 	})
+}
+
+// changedEmailSettings names, as the API does, what next changes. A secret is
+// changed when a new one is given or the stored one is dropped; its value is
+// never compared, since sealing it again gives other bytes.
+func changedEmailSettings(current db.NotificationEmailSetting, next db.PutEmailSettingsParams, c EmailSettingsChange) []string {
+	var changed []string
+
+	for _, f := range []struct {
+		name string
+		same bool
+	}{
+		{"provider", current.Provider == next.Provider},
+		{"senderAddress", current.SenderAddress == next.SenderAddress},
+		{"senderName", current.SenderName == next.SenderName},
+		{"smtpHost", current.SmtpHost == next.SmtpHost},
+		{"smtpPort", current.SmtpPort == next.SmtpPort},
+		{"smtpSecurity", current.SmtpSecurity == next.SmtpSecurity},
+		{"smtpUsername", current.SmtpUsername == next.SmtpUsername},
+		{"smtpPassword", c.SMTPPassword == "" && (current.SmtpPasswordSealed == nil) == (next.SmtpPasswordSealed == nil)},
+		{"brevoApiKey", c.BrevoAPIKey == ""},
+	} {
+		if !f.same {
+			changed = append(changed, f.name)
+		}
+	}
+
+	return changed
 }
 
 // setSecrets seals the secrets of c, or keeps the stored ones. A stored

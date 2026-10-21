@@ -15,11 +15,14 @@ type Category string
 
 // The categories of the API error contract.
 const (
-	CategoryValidation         Category = "VALIDATION"
-	CategoryUnauthenticated    Category = "UNAUTHENTICATED"
-	CategoryNotPermitted       Category = "NOT_PERMITTED"
-	CategoryNotFound           Category = "NOT_FOUND"
-	CategoryConflict           Category = "CONFLICT"
+	CategoryValidation      Category = "VALIDATION"
+	CategoryUnauthenticated Category = "UNAUTHENTICATED"
+	CategoryNotPermitted    Category = "NOT_PERMITTED"
+	CategoryNotFound        Category = "NOT_FOUND"
+	CategoryConflict        Category = "CONFLICT"
+	// CategoryStale is a change made against a version that is no longer
+	// the current one: the caller reads again and decides.
+	CategoryStale              Category = "STALE"
 	CategoryGone               Category = "GONE"
 	CategoryLimitExceeded      Category = "LIMIT_EXCEEDED"
 	CategoryServiceUnavailable Category = "SERVICE_UNAVAILABLE"
@@ -34,6 +37,7 @@ var categories = map[Category]struct {
 	CategoryNotPermitted:       {http.StatusForbidden, "Not permitted"},
 	CategoryNotFound:           {http.StatusNotFound, "Not found"},
 	CategoryConflict:           {http.StatusConflict, "Conflict"},
+	CategoryStale:              {http.StatusPreconditionFailed, "Precondition failed"},
 	CategoryGone:               {http.StatusGone, "Gone"},
 	CategoryLimitExceeded:      {http.StatusTooManyRequests, "Limit exceeded"},
 	CategoryServiceUnavailable: {http.StatusServiceUnavailable, "Service unavailable"},

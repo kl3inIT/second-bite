@@ -4,7 +4,6 @@
 
 // Clients
 export 'clients/accounts_client.dart';
-export 'clients/admins_client.dart';
 export 'clients/admin_client.dart';
 export 'clients/sign_in_client.dart';
 export 'clients/catalog_client.dart';
@@ -15,7 +14,11 @@ export 'clients/sellers_client.dart';
 export 'models/account_body.dart';
 export 'models/accounts_summary_body.dart';
 export 'models/add_seller_staff_request.dart';
+export 'models/admin_seller_body.dart';
+export 'models/admin_sellers_output_body.dart';
 export 'models/admin_summary_body.dart';
+export 'models/admins_output_body.dart';
+export 'models/block_seller_request.dart';
 export 'models/collection_point_body.dart';
 export 'models/day_count_body.dart';
 export 'models/delete_account_input_body.dart';
@@ -28,6 +31,7 @@ export 'models/found_body.dart';
 export 'models/found_output_body.dart';
 export 'models/google_method_body.dart';
 export 'models/google_sign_in_input_body.dart';
+export 'models/grant_admin_request.dart';
 export 'models/latest_offer_body.dart';
 export 'models/list_dishes_response.dart';
 export 'models/member_body.dart';
@@ -44,6 +48,7 @@ export 'models/offers_summary_body.dart';
 export 'models/opened_seller_body.dart';
 export 'models/photo_body.dart';
 export 'models/problem.dart';
+export 'models/reject_seller_request.dart';
 export 'models/request_code_input_body.dart';
 export 'models/request_code_output_body.dart';
 export 'models/save_email_settings_input_body.dart';

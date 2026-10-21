@@ -1,6 +1,10 @@
 -- name: GetEmailSettings :one
 SELECT * FROM notification_email_settings WHERE id = 1;
 
+-- name: LockEmailSettings :one
+-- The settings, locked until the transaction saving them ends.
+SELECT * FROM notification_email_settings WHERE id = 1 FOR UPDATE;
+
 -- name: PutEmailSettings :exec
 INSERT INTO notification_email_settings (
     id, provider, sender_address, sender_name,

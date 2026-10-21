@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/identity/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
@@ -61,6 +62,8 @@ type Service struct {
 	queries *db.Queries
 	email   *notification.Service
 	events  *platform.Events
+	// trail forgets the account's name in the audit when it is deleted.
+	trail   *audit.Service
 	codeKey []byte
 	logger  *slog.Logger
 	// crossOrigin refuses changes signed in by the cookie from other origins.
@@ -71,14 +74,16 @@ type Service struct {
 
 // NewService assembles the module.
 func NewService(
-	pool *pgxpool.Pool, email *notification.Service, events *platform.Events, cfg Config, logger *slog.Logger,
+	pool *pgxpool.Pool, email *notification.Service, events *platform.Events, trail *audit.Service, cfg Config,
+	logger *slog.Logger,
 ) (*Service, error) {
 	if len(cfg.CodeKey) != 32 {
 		return nil, errors.New("the sign-in code key must be 32 bytes")
 	}
 
 	s := &Service{
-		pool: pool, queries: db.New(pool), email: email, events: events, codeKey: cfg.CodeKey, logger: logger,
+		pool: pool, queries: db.New(pool), email: email, events: events, trail: trail, codeKey: cfg.CodeKey,
+		logger:      logger,
 		crossOrigin: http.NewCrossOriginProtection(),
 	}
 	if len(cfg.GoogleClientIDs) > 0 {
@@ -122,7 +127,7 @@ func (s *Service) Accounts(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]
 // added for. Its owner signs in with an emailed code like anyone else. It is
 // refused while the address is unproven (giveByAddress).
 func (s *Service) EnsureAccount(ctx context.Context, email string) (Account, error) {
-	return s.giveByAddress(ctx, email, func(q *db.Queries, email string) (Account, error) {
+	return s.giveByAddress(ctx, email, func(_ pgx.Tx, q *db.Queries, email string) (Account, error) {
 		row, err := q.UpsertAccount(ctx, email)
 		if err != nil {
 			return Account{}, fmt.Errorf("finding the account: %w", err)
@@ -130,31 +135,6 @@ func (s *Service) EnsureAccount(ctx context.Context, email string) (Account, err
 
 		return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
 	})
-}
-
-// GrantRole gives the account of email the role, creating the account when
-// the address has never signed in. Only the command line calls it: the first
-// admin exists before anyone can sign in to name one.
-func (s *Service) GrantRole(ctx context.Context, email string, role platform.Role) (Account, error) {
-	a, err := s.giveByAddress(ctx, email, func(q *db.Queries, email string) (Account, error) {
-		row, err := q.GrantRole(ctx, db.GrantRoleParams{Email: email, Role: string(role)})
-		if err != nil {
-			return Account{}, fmt.Errorf("granting the role: %w", err)
-		}
-
-		return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
-	})
-	if err != nil {
-		return Account{}, err
-	}
-
-	s.logger.InfoContext(ctx, "role granted",
-		slog.String("event", "identity.role.granted"),
-		slog.String("account_id", a.ID.String()),
-		slog.String("role", string(a.Role)),
-	)
-
-	return a, nil
 }
 
 // giveByAddress finds or changes the account of email with find, unless the
@@ -166,7 +146,7 @@ func (s *Service) GrantRole(ctx context.Context, email string, role platform.Rol
 // sessions, so whoever gives by address cannot sign someone out. The address
 // stays locked meanwhile, so a Google sign-in cannot link it halfway through.
 func (s *Service) giveByAddress(
-	ctx context.Context, email string, find func(*db.Queries, string) (Account, error),
+	ctx context.Context, email string, find func(pgx.Tx, *db.Queries, string) (Account, error),
 ) (Account, error) {
 	email, err := normalizeEmail(email)
 	if err != nil {
@@ -191,7 +171,7 @@ func (s *Service) giveByAddress(
 			return ErrAddressUnproven
 		}
 
-		account, err = find(q, email)
+		account, err = find(tx, q, email)
 
 		return err
 	})
