@@ -105,4 +105,36 @@ test.describe("ordering from the cart", () => {
     await expect(page.getByText("1× Bánh Croissant Truyền Thống")).toBeVisible();
     await expect(page.getByText("Bánh Tart Trứng")).toHaveCount(0);
   });
+
+  // SEC-99: a 360 px phone and a seller with a long name and address, as "Tiệm Bánh Nhà Nhật, 21, Cầu Giấy,
+  // Hà Nội" on staging. The stub's seller is short, so its name and address are lengthened on the page.
+  test("the order page fits a 360 px phone when the seller's name and address are long", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 360, height: 760 });
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    await orderAs(page, "Lan", "0900 000 000");
+    await expect(page).toHaveURL(ORDER_URL);
+    await expect(
+      page.getByRole("heading", { name: "Đã xác nhận · quán đang chuẩn bị" }),
+    ).toBeVisible();
+
+    await page.evaluate(() => {
+      const walker = document.createTreeWalker(
+        document.querySelector("main") ?? document.body,
+        NodeFilter.SHOW_TEXT,
+      );
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        node.nodeValue = (node.nodeValue ?? "")
+          .replaceAll("La Paris", "Tiệm Bánh Nhà Nhật")
+          .replaceAll("Tầng 1", "21, Cầu Giấy, Hà Nội");
+      }
+    });
+    const widths = await page.evaluate(() => ({
+      page: document.documentElement.scrollWidth,
+      screen: document.documentElement.clientWidth,
+    }));
+    expect(widths.page).toBe(widths.screen);
+  });
 });
