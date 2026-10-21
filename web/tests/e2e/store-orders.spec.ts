@@ -107,7 +107,8 @@ test.describe("the order tab of a store", () => {
   });
 
   test("marks an order ready, hands it over and takes it back", async ({ page }, testInfo) => {
-    const store = await storeNamed(page, "an", testInfo, "Tiệm có đơn");
+    // An address no other spec signs in with, so no other test shares its account (SEC-125).
+    const store = await storeNamed(page, "nhung", testInfo, "Tiệm có đơn");
     await page.goto(`/vi/stores/${store}/orders`);
 
     await (

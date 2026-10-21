@@ -33,12 +33,6 @@ export function groupByTab(offers: readonly OfferBody[]): Record<PostTab, OfferB
   return groups;
 }
 
-/** The posts made today, Vietnam's time: the store home's "Bài đăng hôm nay". */
-export function postedToday(offers: readonly OfferBody[]): OfferBody[] {
-  const today = vietnamDay.format(new Date());
-  return offers.filter((offer) => vietnamDay.format(new Date(offer.createdAt)) === today);
-}
-
 /** The posts collected on a day, Vietnam's time (`2026-10-21`): a post belongs to the day its window opens. */
 export function offersOfDay(offers: readonly OfferBody[], day: string): OfferBody[] {
   return offers.filter((offer) => vietnamDay.format(new Date(offer.windowStart)) === day);

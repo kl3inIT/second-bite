@@ -15,7 +15,8 @@ import { OfferPhoto } from "./offer-photo";
 
 // One dish of the seller (Figma K4b "món"): its photograph, the dish, the price over the discount and the
 // portions left, and the − and +. The photograph and the name open the dish's sheet (K4a); the dish a link led
-// to is tinted, and the page scrolls to it by its anchor (K4).
+// to is tinted, and the page scrolls to it by its anchor (K4). From 768px a dish is a row of 100px with the − and +
+// at its right end (Figma WK3).
 export function SellerDish({ offer, focused }: { offer: OfferSummary; focused: boolean }) {
   const t = useTranslations("OfferCard");
   const [open, setOpen] = useState(false);
@@ -25,7 +26,7 @@ export function SellerDish({ offer, focused }: { offer: OfferSummary; focused: b
     <article
       id={dishAnchor(offer.id)}
       className={cn(
-        "flex scroll-mt-4 items-center gap-3.5",
+        "flex scroll-mt-4 items-center gap-3.5 md:relative",
         focused && "-mx-2.5 rounded-xl bg-muted p-2.5",
       )}
     >
@@ -39,7 +40,7 @@ export function SellerDish({ offer, focused }: { offer: OfferSummary; focused: b
         <OfferPhoto offer={offer} sizes="100px" />
         <DiscountBadge percent={offer.discountPercent} />
       </button>
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-2.5 md:pr-26">
         <h3 className="line-clamp-2 text-title-lg text-foreground">
           <button
             type="button"
@@ -62,7 +63,9 @@ export function SellerDish({ offer, focused }: { offer: OfferSummary; focused: b
             </p>
             <CartPortions offer={offer} />
           </div>
-          <QuantityStepper offer={offer} />
+          <div className="shrink-0 md:absolute md:top-1/2 md:right-0 md:-translate-y-1/2">
+            <QuantityStepper offer={offer} />
+          </div>
         </div>
       </div>
       <DishSheet offer={offer} open={open} onOpenChange={setOpen} />

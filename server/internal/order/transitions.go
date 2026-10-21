@@ -269,7 +269,9 @@ func (s *Service) transition(ctx context.Context, id uuid.UUID, change func(*db.
 		}
 
 		orders := []Order{s.fromRow(db.GetOrderRow(row))}
-		if err := s.withLines(ctx, orders); err != nil {
+		// Read in the transaction: a second connection from the pool while this one is
+		// held can wait for ever once the pool is full (SEC-128).
+		if err := s.withLines(ctx, q, orders); err != nil {
 			return err
 		}
 

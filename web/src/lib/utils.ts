@@ -24,6 +24,9 @@ export const typeStyles = [
   "price",
   "price-lg",
   "display",
+  "display-60",
+  "display-48",
+  "card-heading",
 ] as const;
 
 export const cn = createCn({

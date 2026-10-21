@@ -139,12 +139,12 @@ func (s *Service) place(
 
 	first := taken[0]
 
-	active, err := s.sellers.Publics(ctx, []uuid.UUID{first.SellerID})
+	active, err := s.sellers.IsActiveIn(ctx, tx, first.SellerID)
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	if _, ok := active[first.SellerID]; !ok {
+	if !active {
 		return uuid.Nil, ErrOfferUnavailable
 	}
 

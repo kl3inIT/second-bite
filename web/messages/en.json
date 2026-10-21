@@ -404,10 +404,20 @@
       "number": "Order number",
       "payment": "Payment",
       "atCounter": "Pay at the counter",
-      "nothing": "Nothing charged"
+      "nothing": "Nothing charged",
+      "date": "Day",
+      "today": "Today, {date}",
+      "window": "Collection window",
+      "dishes": "Dishes"
     },
     "how": {
       "title": "How to collect",
+      "wideGo": "1. Go to the till",
+      "wideGoBody": "{seller} · {address}",
+      "wideQr": "2. Show the QR code",
+      "wideQrBody": "Or give your name and phone number",
+      "wideTake": "3. Check the dishes, pay",
+      "wideTakeBody": "Cash or the shop's QR code",
       "goTitle": "Go to the till",
       "takeTitle": "Take your food",
       "takeBody": "Bring your own bag",
@@ -418,7 +428,7 @@
       "label": "Order steps",
       "placed": "Placed",
       "preparing": "Preparing",
-      "preparingNote": "the seller is preparing",
+      "preparingNote": "the seller is making it",
       "ready": "Ready",
       "readyNote": "come to the counter",
       "readyPending": "Not ready yet",
@@ -435,7 +445,8 @@
       "withReason": "{time} · {reason}",
       "returned": "{units, plural, one {# portion} other {# portions}} back with the shop",
       "returnedBody": "Someone else can order them",
-      "refused": "The shop refused the order",
+      "refused": "The shop turned the order down",
+      "refusedBody": "{time} · reason: {reason}",
       "reason": {
         "not_suitable": "the food was no longer fit",
         "wrong_items": "the food did not match the order",
@@ -450,19 +461,23 @@
       "expiredBody": "{until} · recorded as not collected",
       "summary": {
         "cancelled": "You had not paid, so there is nothing to refund.",
-        "refused": "You had not paid, so there is nothing to refund.",
-        "expired": "Next time, cancel the order so the food reaches someone else."
+        "refused": "The shop could not hand over the order: {reason}. You do not pay.",
+        "expired": "Nobody came to collect before {until}. Next time, if you cannot make it, cancel the order so the food reaches someone else."
       },
       "placedBody": "{date}, {time} · {units} portions · {total}",
       "confirmed": "The seller confirmed it",
       "confirmedBody": "{time} · {units} portions kept for you",
-      "readyBody": "{time} · the seller says come and collect"
+      "readyBody": "{time} · the seller says come and collect",
+      "toldBody": "{date}, {time} · the shop told you",
+      "collected": "You collected the food",
+      "collectedBody": "{time} · paid {total}",
+      "collectedRated": "{time} · paid {total} · you rated {stars, plural, one {# star} other {# stars}}"
     },
     "cancel": {
       "open": "Cancel order",
-      "title": "Cancel order {number}?",
-      "body": "{units, plural, one {# portion goes} other {# portions go}} back to {seller} for someone else. Choose a reason (optional):",
-      "reason": "Reason",
+      "title": "Cancel order #{number}?",
+      "body": "{units, plural, one {# portion goes} other {# portions go}} back to {seller} for someone else.",
+      "reason": "Reason (optional)",
       "reasons": {
         "late": "Cannot make it",
         "mistake": "Ordered by mistake",
@@ -471,11 +486,32 @@
       "keep": "Keep order",
       "confirm": "Cancel order",
       "tooLate": "The seller has marked the food ready, so the order can no longer be cancelled.",
-      "failed": "The order was not cancelled. Try again, or report the reference {reference}."
+      "failed": "The order was not cancelled. Try again, or report the reference {reference}.",
+      "change": "Changed your mind?",
+      "note": "You can cancel until the seller says the food is ready.",
+      "after": "You can cancel until the seller says the food is ready. After that it cannot be cancelled."
     },
     "date": "{day}/{month}",
+    "ended": {
+      "title": {
+        "cancelled": "Order cancelled",
+        "refused": "The shop did not hand over the order",
+        "expired": "Order expired"
+      },
+      "refusedLine": "{time} · reason: {reason} · you do not pay",
+      "expiredLine": "Nobody came to collect before {until} · recorded as not collected · nothing charged",
+      "cancelledLine": "You cancelled at {time} · {units, plural, one {# portion goes} other {# portions go}} back to the shop",
+      "badge": {
+        "cancelled": "Order cancelled",
+        "refused": "The shop did not hand over this order",
+        "expired": "Order expired"
+      }
+    },
     "orderNumber": "Order #{number}",
-    "cardMeta": "#{number} · {total} · {place}",
+    "metaToday": "Order #{number} · placed today {time} · {seller}, {address}",
+    "metaOn": "Order #{number} · placed {date} {time} · {seller}, {address}",
+    "cardMetaWindow": "#{number} · {total} · collect {from}–{until}",
+    "cardMetaReady": "#{number} · {total} · pay when you collect",
     "day": {
       "today": "Today",
       "week": "This week",
@@ -492,14 +528,14 @@
     "ordered": "Ordered · {units} portions",
     "originalPrice": "Original price",
     "endedAt": {
-      "collected": "Collected at {time} · {date}",
-      "cancelled": "Cancelled at {time} · {date}",
-      "refused": "Turned down by the seller · {date}",
-      "expired": "Expired at {time} · {date}"
+      "collected": "Collected at {time} · {date}"
     },
+    "collectedAt": "Collected at {time}",
     "collectLater": "The QR code shows once your food is ready. You can also give your name and phone number.",
     "collectReady": "Show the QR code at the counter, or give your name and phone number.",
-    "collectAt": "Collect at {from}",
+    "preparing": "Preparing",
+    "seeQr": "Show the QR code",
+    "subtitle": "To collect and done",
     "savedLine": "Saved against the original price · {units} portions not wasted",
     "placedWith": "Ordered together: {seller}"
   },
@@ -536,7 +572,7 @@
     "crumbHome": "Home",
     "index": "Tonight's menu",
     "rating": "Rating",
-    "pickup": "Collect",
+    "pickup": "Collect today",
     "distance": "Distance"
   },
   "Cart": {
@@ -717,8 +753,58 @@
     "startTitle": "Start selling",
     "startBody": "Post your first dish so customers see your store.",
     "post": "Post a dish",
-    "todayTitle": "Today's posts",
-    "todayEmpty": "No posts today yet."
+    "overview": "Today at a glance",
+    "held": "Orders held",
+    "heldNote": "{count} ready",
+    "collected": "Cash taken",
+    "collectedNote": "{amount} still to take",
+    "sold": "Portions sold",
+    "soldValue": "{sold}/{posted}",
+    "soldNote": "{count, plural, one {# portion} other {# portions}} left",
+    "missed": "No-shows",
+    "missedNote": "Of {count, plural, one {# order} other {# orders}}",
+    "todo": "To do",
+    "toMarkReady": "{count, plural, one {# order} other {# orders}} to mark ready",
+    "seeOrders": "See orders",
+    "ordersToday": "Today's orders",
+    "ordersOn": "Orders on {date}",
+    "orderTabs": "Order groups",
+    "orderTab": {
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "ordersEmpty": "No orders being prepared.",
+    "postsToday": "Today's posts",
+    "postsOn": "Posts on {date}",
+    "postsEmpty": "No posts on this day.",
+    "catalog": "Catalog · {count, plural, one {# dish} other {# dishes}}",
+    "catalogEmpty": "No dishes in the catalog yet.",
+    "dishHidden": "Hidden",
+    "showDish": "Show dish",
+    "postNow": "Post now",
+    "left": "{count} left",
+    "soldOut": "Sold out",
+    "withdrawn": "Withdrawn",
+    "closed": "Over",
+    "viewStore": "View store page",
+    "status": {
+      "active": "Open",
+      "pending": "Awaiting approval",
+      "rejected": "Rejected",
+      "blocked": "Blocked"
+    },
+    "statusTitle": {
+      "pending": "Your store is awaiting approval",
+      "rejected": "Your store was not approved",
+      "blocked": "Your store is blocked"
+    },
+    "statusBody": {
+      "pending": "An admin will look at it soon. Meanwhile you can still add dishes to the catalog.",
+      "rejected": "Contact an admin to learn more.",
+      "blocked": "It cannot post until it is opened again."
+    }
   },
   "StorePosts": {
     "title": "Posts",
@@ -1484,13 +1570,20 @@
   "Favourites": {
     "title": "Favourites",
     "intro": "Shops you follow",
+    "subtitle": "Shops you follow · we tell you when they have a deal",
+    "pickup": " · Collect {from} – {until}",
     "follow": "Favourite {name}",
+    "followName": "Follow {name}",
+    "followLabel": "Follow",
+    "followingLabel": "Following",
     "added": "Added to Favourites",
     "removed": "Removed from Favourites",
     "failed": "Not saved, try again later.",
     "noneTonight": "Nothing on sale tonight",
+    "noneTonightMore": " · we tell you when there is",
     "emptyTitle": "No favourite shops yet",
     "emptyBody": "Tap ♡ on a shop's page to follow it.",
+    "emptyMore": "Shops with a deal will let you know.",
     "explore": "Explore shops"
   },
   "Chat": {

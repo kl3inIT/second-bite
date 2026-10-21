@@ -20,7 +20,15 @@ const dartPath = new URL(
 const design = await readFile(designPath, "utf8");
 const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(design);
 if (!frontmatter) throw new Error("DESIGN.md has no frontmatter");
-const { palette, colors: roles, typography, rounded, spacing, elevation } = parse(frontmatter[1]);
+const {
+  palette,
+  colors: roles,
+  typography,
+  rounded,
+  borderWidth,
+  spacing,
+  elevation,
+} = parse(frontmatter[1]);
 
 // Each role as a hex, for the contrast checks, and as the CSS it is written with.
 const alias = /^\{palette\.([\w-]+)\}$/;
@@ -128,6 +136,7 @@ const lines = [
   "@theme inline {",
   ...Object.keys(colors).map((name) => `  --color-${name}: var(--${name});`),
   ...Object.entries(rounded).map(([name, value]) => `  --radius-${name}: ${value};`),
+  ...Object.entries(borderWidth).map(([name, value]) => `  --border-width-${name}: ${value};`),
   ...Object.entries(elevation).map(([name, layers]) => `  --shadow-${name}: ${shadow(layers)};`),
   ...Object.entries(typography).flatMap(([name, style]) => [
     `  --text-${name}: ${style.fontSize};`,
@@ -230,6 +239,13 @@ const dart = [
     "RadiusTokens",
     Object.entries(rounded).map(
       ([name, value]) => `  static const double ${dartName("radius", name)} = ${pixels(value)};`,
+    ),
+  ),
+  ...dartClass(
+    "The border widths of DESIGN.md beyond the hairline, in logical pixels.",
+    "BorderWidthTokens",
+    Object.entries(borderWidth).map(
+      ([name, value]) => `  static const double ${dartName("border", name)} = ${pixels(value)};`,
     ),
   ),
   ...dartClass(
