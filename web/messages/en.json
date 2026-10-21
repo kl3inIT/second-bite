@@ -753,8 +753,58 @@
     "startTitle": "Start selling",
     "startBody": "Post your first dish so customers see your store.",
     "post": "Post a dish",
-    "todayTitle": "Today's posts",
-    "todayEmpty": "No posts today yet."
+    "overview": "Today at a glance",
+    "held": "Orders held",
+    "heldNote": "{count} ready",
+    "collected": "Cash taken",
+    "collectedNote": "{amount} still to take",
+    "sold": "Portions sold",
+    "soldValue": "{sold}/{posted}",
+    "soldNote": "{count, plural, one {# portion} other {# portions}} left",
+    "missed": "No-shows",
+    "missedNote": "Of {count, plural, one {# order} other {# orders}}",
+    "todo": "To do",
+    "toMarkReady": "{count, plural, one {# order} other {# orders}} to mark ready",
+    "seeOrders": "See orders",
+    "ordersToday": "Today's orders",
+    "ordersOn": "Orders on {date}",
+    "orderTabs": "Order groups",
+    "orderTab": {
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "ordersEmpty": "No orders being prepared.",
+    "postsToday": "Today's posts",
+    "postsOn": "Posts on {date}",
+    "postsEmpty": "No posts on this day.",
+    "catalog": "Catalog · {count, plural, one {# dish} other {# dishes}}",
+    "catalogEmpty": "No dishes in the catalog yet.",
+    "dishHidden": "Hidden",
+    "showDish": "Show dish",
+    "postNow": "Post now",
+    "left": "{count} left",
+    "soldOut": "Sold out",
+    "withdrawn": "Withdrawn",
+    "closed": "Over",
+    "viewStore": "View store page",
+    "status": {
+      "active": "Open",
+      "pending": "Awaiting approval",
+      "rejected": "Rejected",
+      "blocked": "Blocked"
+    },
+    "statusTitle": {
+      "pending": "Your store is awaiting approval",
+      "rejected": "Your store was not approved",
+      "blocked": "Your store is blocked"
+    },
+    "statusBody": {
+      "pending": "An admin will look at it soon. Meanwhile you can still add dishes to the catalog.",
+      "rejected": "Contact an admin to learn more.",
+      "blocked": "It cannot post until it is opened again."
+    }
   },
   "StorePosts": {
     "title": "Posts",

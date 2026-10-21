@@ -15,7 +15,8 @@ import { shiftDay } from "./store-day";
 
 const SEARCH_WAIT_MS = 300;
 
-type View = {
+/** The day a page shows, and what else its address keeps when the day changes. */
+type DayView = {
   /** The page the filter belongs to, as an address without its language: `/stores/{id}/orders`. */
   pathname: string;
   day: string;
@@ -24,6 +25,9 @@ type View = {
   tab: string;
   defaultTab: string;
   q: string;
+};
+
+type View = DayView & {
   /** What the search field is called, and what it says it searches by. */
   label: string;
   placeholder: string;
@@ -33,7 +37,7 @@ type View = {
 type Extra = { extra?: React.ReactNode };
 
 /** The address of the page for a view, without what is as it opens: today, the first tab, no search. */
-function hrefFor(view: View, change: Partial<Pick<View, "day" | "q">> = {}) {
+function hrefFor(view: DayView, change: Partial<Pick<DayView, "day" | "q">> = {}) {
   const { pathname, today, tab, defaultTab } = view;
   const { day, q } = { ...view, ...change };
   return {
@@ -110,7 +114,8 @@ function Search(view: View) {
   );
 }
 
-function DayBar(view: View) {
+/** The day alone, with its steps and its month, for a page with no search (the store's home, Figma Q1b). */
+export function DayBar(view: DayView) {
   const t = useTranslations("DayFilter");
   const format = useFormatter();
   const router = useRouter();

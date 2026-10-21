@@ -753,8 +753,58 @@
     "startTitle": "Bắt đầu bán",
     "startBody": "Đăng món đầu tiên để khách thấy quán của bạn.",
     "post": "Đăng món",
-    "todayTitle": "Bài đăng hôm nay",
-    "todayEmpty": "Chưa có bài đăng nào hôm nay."
+    "overview": "Tổng quan trong ngày",
+    "held": "Đơn đang giữ",
+    "heldNote": "{count} đã sẵn sàng",
+    "collected": "Tiền đã thu",
+    "collectedNote": "Còn {amount} chờ thu",
+    "sold": "Suất đã bán",
+    "soldValue": "{sold}/{posted}",
+    "soldNote": "Còn {count} suất",
+    "missed": "Khách không đến",
+    "missedNote": "Trên {count} đơn",
+    "todo": "Việc cần làm",
+    "toMarkReady": "{count} đơn chờ báo sẵn sàng",
+    "seeOrders": "Xem đơn",
+    "ordersToday": "Đơn hôm nay",
+    "ordersOn": "Đơn ngày {date}",
+    "orderTabs": "Nhóm đơn",
+    "orderTab": {
+      "preparing": "Chuẩn bị",
+      "ready": "Sẵn sàng",
+      "delivered": "Đã giao",
+      "cancelled": "Đã hủy"
+    },
+    "ordersEmpty": "Chưa có đơn nào đang chuẩn bị.",
+    "postsToday": "Bài đăng hôm nay",
+    "postsOn": "Bài đăng ngày {date}",
+    "postsEmpty": "Chưa có bài đăng nào ngày này.",
+    "catalog": "Danh mục · {count} món",
+    "catalogEmpty": "Chưa có món nào trong danh mục.",
+    "dishHidden": "Đang ẩn",
+    "showDish": "Hiện món",
+    "postNow": "Đăng ngay",
+    "left": "Còn {count}",
+    "soldOut": "Đã hết",
+    "withdrawn": "Đã rút",
+    "closed": "Hết giờ",
+    "viewStore": "Xem trang quán",
+    "status": {
+      "active": "Đang mở",
+      "pending": "Chờ duyệt",
+      "rejected": "Bị từ chối",
+      "blocked": "Bị khóa"
+    },
+    "statusTitle": {
+      "pending": "Quán đang chờ duyệt",
+      "rejected": "Quán chưa được duyệt",
+      "blocked": "Quán đang bị khóa"
+    },
+    "statusBody": {
+      "pending": "Quản trị viên sẽ xem quán sớm. Trong lúc chờ, bạn vẫn thêm món vào danh mục được.",
+      "rejected": "Liên hệ quản trị viên để biết thêm.",
+      "blocked": "Quán chưa đăng bài được cho đến khi được mở lại."
+    }
   },
   "StorePosts": {
     "title": "Bài đăng",
