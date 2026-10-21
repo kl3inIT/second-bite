@@ -77,6 +77,7 @@ type orderBody struct {
 	CustomerPhone string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits"`
 	Review        *reviewBody     `json:"review,omitempty"       doc:"The customer's rating of the collected order; none until they rate it"`
 	Unread        *int            `json:"unreadMessages,omitempty" doc:"Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins"`
+	Messages      *int            `json:"messageCount,omitempty" doc:"Messages its chat holds, with unreadMessages; none for admins"`
 	Access        string          `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
 }
 
@@ -105,7 +106,7 @@ func toBody(o Order) orderBody {
 		ReadyAt: o.ReadyAt, CollectedAt: o.CollectedAt, CancelledAt: o.CancelledAt, RefusedAt: o.RefusedAt,
 		CancelReason: o.CancelReason, RefuseReason: o.RefuseReason, RefuseNote: o.RefuseNote,
 		CheckoutID: o.CheckoutID, CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Review: review, Access: o.Access,
-		Unread: o.UnreadMessages,
+		Unread: o.UnreadMessages, Messages: o.MessageCount,
 	}
 }
 

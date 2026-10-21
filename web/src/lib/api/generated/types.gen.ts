@@ -596,6 +596,10 @@ export type OrderBody = {
     id: string;
     lines: Array<OrderLineBody>;
     /**
+     * Messages its chat holds, with unreadMessages; none for admins
+     */
+    messageCount?: number;
+    /**
      * What people read aloud, SB- and a number
      */
     number: string;

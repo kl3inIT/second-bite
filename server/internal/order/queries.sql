@@ -215,9 +215,11 @@ WHERE order_id = @order_id
 RETURNING (CASE WHEN @side::text = 'customer' THEN customer_seen_seq ELSE seller_seen_seq END)::int AS seen_seq;
 
 -- name: UnreadOf :many
--- For each order with a chat: what its customer has not read from the seller,
--- and what its seller's people have not read from the customer.
+-- For each order with a chat: how many messages it holds, what its customer
+-- has not read from the seller, and what its seller's people have not read
+-- from the customer.
 SELECT c.order_id,
+       c.last_seq AS messages,
        (SELECT count(*) FROM order_messages AS m
         WHERE m.order_id = c.order_id AND m.sender = 'seller' AND m.seq > c.customer_seen_seq) AS customer_unread,
        (SELECT count(*) FROM order_messages AS m
