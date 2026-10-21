@@ -8,7 +8,7 @@ import { useRef, useState } from "react";
 import { z } from "zod";
 
 import { refuse, useAppForm } from "@/components/form/app-form";
-import { useFieldValidity, useFormContext } from "@/components/form/form-context";
+import { useFieldValidity } from "@/components/form/form-context";
 import { LocationField } from "@/components/map/location-field";
 import type { Point } from "@/components/map/location-picker";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -129,6 +129,8 @@ function OpenStoreFormBody() {
     return outcome;
   }
 
+  const pin = useStore(form.store, (state) => state.values.location);
+
   return (
     <form
       id={form.formId}
@@ -177,6 +179,7 @@ function OpenStoreFormBody() {
           {() => (
             <AddressField
               fillFrom={fillFrom}
+              pin={pin}
               onLocated={({ latitude, longitude }) =>
                 form.setFieldValue("location", { latitude, longitude })
               }
@@ -205,8 +208,11 @@ function OpenStoreFormBody() {
  */
 function AddressField({
   fillFrom,
+  pin,
   onLocated,
 }: {
+  /** Where the store is pinned now. */
+  pin: Point | undefined;
   /** Names the place at a point and fills the address when it may; answers what became of it. */
   fillFrom: (point: Point) => Promise<Suggestion>;
   onLocated: (place: Located) => void;
@@ -218,10 +224,6 @@ function AddressField({
   const [locateFailure, setLocateFailure] = useState<"denied" | "failed">();
   const note = `${ids.control}-note`;
   // The note speaks of where the person stood only while the pin is still there.
-  const pin = useStore(
-    useFormContext().store,
-    (state) => (state.values as { location?: Point }).location,
-  );
   const stillThere =
     located !== undefined &&
     pin?.latitude === located.latitude &&

@@ -117,7 +117,9 @@ test.describe("a store's location on the map", () => {
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-[\w-]+\/location$/);
     await expect(page.getByRole("heading", { level: 1, name: "Vị trí quán" })).toBeVisible();
     await expect(page.getByRole("figure", { name: "Vị trí quán trên bản đồ" })).toBeVisible();
-    await expect(page.getByLabel("Địa chỉ quán")).toHaveValue("Tầng 1, Tasco Mall, Long Biên");
+    await expect(page.getByRole("textbox", { name: "Địa chỉ quán" })).toHaveValue(
+      "Tầng 1, Tasco Mall, Long Biên",
+    );
     await expectNoSeriousA11yViolations(page);
 
     // It opens on the store's pin, at the street, so it can be confirmed at once.
@@ -131,7 +133,7 @@ test.describe("a store's location on the map", () => {
       await page.keyboard.press("Escape");
     }
 
-    await page.getByLabel("Địa chỉ quán").fill("12 Ngọc Lâm, Long Biên");
+    await page.getByRole("textbox", { name: "Địa chỉ quán" }).fill("12 Ngọc Lâm, Long Biên");
     const saved = page.waitForRequest(
       (request) => request.method() === "PUT" && /\/sellers\/se-1-[\w-]+$/.test(request.url()),
     );
