@@ -323,6 +323,32 @@ type Window struct {
 	Start, End time.Time
 }
 
+// RegisterSchedules makes the module run what it does on the clock.
+func RegisterSchedules(events *platform.Events, s *Service) {
+	events.Every("offer.close_ended", time.Minute, s.CloseEnded)
+}
+
+// CloseEnded closes the offers still on sale whose window is over (SEC-96). An
+// offer is closed to every read the moment its window ends, since reads compare
+// the window; this keeps the table in step, so a report on it, and later a
+// message, can follow. It changes nothing a second run would not, so it may
+// run twice.
+func (s *Service) CloseEnded(ctx context.Context) error {
+	closed, err := s.queries.CloseEnded(ctx)
+	if err != nil {
+		return fmt.Errorf("closing the ended offers: %w", err)
+	}
+
+	if closed > 0 {
+		s.logger.InfoContext(ctx, "ended offers closed",
+			slog.String("event", "offer.offers.closed"),
+			slog.Int64("offers_closed", closed),
+		)
+	}
+
+	return nil
+}
+
 // WindowsOf returns the collection windows of offers, whatever their status;
 // an offer that does not exist is left out. It is for modules that follow an
 // offer's window, not for people.
@@ -492,7 +518,7 @@ func (s *Service) fromRow(r db.GetOfferRow) Offer {
 	switch {
 	case r.State == string(StatusWithdrawn):
 		o.Status = StatusWithdrawn
-	case !r.WindowEnd.After(s.now()):
+	case r.State == string(StatusClosed), !r.WindowEnd.After(s.now()):
 		o.Status = StatusClosed
 	case r.UnitsLeft == 0:
 		o.Status = StatusSoldOut

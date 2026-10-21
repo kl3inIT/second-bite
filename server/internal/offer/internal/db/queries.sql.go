@@ -13,6 +13,20 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const closeEnded = `-- name: CloseEnded :execrows
+UPDATE offer_offers SET state = 'closed', updated_at = now()
+WHERE state = 'on_sale' AND window_end <= now()
+`
+
+// Closes the offers still on sale whose window is over. Reads compare the window too.
+func (q *Queries) CloseEnded(ctx context.Context) (int64, error) {
+	result, err := q.db.Exec(ctx, closeEnded)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const countDishes = `-- name: CountDishes :one
 SELECT count(*)::integer FROM offer_dishes WHERE seller_id = $1
 `
@@ -638,7 +652,7 @@ FROM offer_offers
 WHERE seller_id = $1
   AND ($2::text = ''
        OR ($2 = 'withdrawn' AND state = 'withdrawn')
-       OR ($2 = 'closed' AND state = 'on_sale' AND window_end <= now())
+       OR ($2 = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
        OR ($2 = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
        OR ($2 = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
 ORDER BY created_at DESC, id

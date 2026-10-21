@@ -178,6 +178,8 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		file.RegisterListeners(events, files)
 		seller.RegisterListeners(events, sellers)
 		order.RegisterListeners(events, orders)
+		offer.RegisterSchedules(events, offers)
+		order.RegisterSchedules(events, orders)
 
 		return &app{
 			cfg: cfg, logger: logger, pool: pool, events: events, audit: trail, notification: notifications, identity: identities,
