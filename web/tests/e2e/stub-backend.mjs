@@ -584,9 +584,23 @@ function problem(response, status, code) {
   );
 }
 
+/**
+ * A dish or an offer answers with its photos, the cover first (SEC-119): one the stub did not give is the cover alone.
+ * They are told by their kind, which a seller, an order's line and a photo do not have.
+ */
+function withPhotos(value) {
+  if (Array.isArray(value)) return value.map(withPhotos);
+  if (value === null || typeof value !== "object") return value;
+  const copy = Object.fromEntries(
+    Object.entries(value).map(([key, inner]) => [key, withPhotos(inner)]),
+  );
+  if (copy.kind && copy.photo?.smallPath && !copy.photos) copy.photos = [copy.photo];
+  return copy;
+}
+
 function json(response, status, body, headers = {}) {
   response.writeHead(status, { "content-type": "application/json", ...headers });
-  response.end(JSON.stringify(body));
+  response.end(JSON.stringify(withPhotos(body)));
 }
 
 async function readBody(request) {
@@ -1197,7 +1211,7 @@ async function sellerRoutes(request, response, url) {
       if (photoId || morePhotoIds) {
         dish.photos = photosBody(
           photoId ?? dish.photo.id,
-          morePhotoIds ?? dish.photos.slice(1).map((p) => p.id),
+          morePhotoIds ?? (dish.photos ?? [dish.photo]).slice(1).map((p) => p.id),
         );
       }
       json(response, 200, dish);
