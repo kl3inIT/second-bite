@@ -359,7 +359,7 @@ test.describe("changing a post on the web", () => {
     await expectNoSeriousA11yViolations(page);
 
     await page.getByRole("link", { name: "Ngày trước" }).click();
-    await expect(page).toHaveURL(/day=d{4}-d{2}-d{2}/);
+    await expect(page).toHaveURL(/day=\d{4}-\d{2}-\d{2}/);
     await expect(page.getByText("Chưa có bài đăng nào ngày này.")).toBeVisible();
     await expect(page.getByRole("link", { name: "Đang bán · 0" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
