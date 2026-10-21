@@ -47,7 +47,9 @@
     "followBody": "{seller} expects {units} more portions, on sale at {time} tonight. Turn on alerts to hear the moment they are up, before they run out.",
     "followOn": "Turn on alerts",
     "followLater": "Not now",
-    "close": "Close"
+    "close": "Close",
+    "dealsLine": "The mall's shops sell the day's last dishes, up to {percent}% off. Order ahead and collect at the counter in the window.",
+    "ticketFrom": "Collect {time}"
   },
   "Area": {
     "open": "Choose where to look",
@@ -513,7 +515,14 @@
     "other": "{name}, {price}",
     "saving": "{percent}% off · {units} left",
     "share": "Share this dish",
-    "copied": "Link copied"
+    "copied": "Link copied",
+    "booking": "Order",
+    "portions": "Portions · {units} left",
+    "addUnits": "Add {units} to the cart · {price}",
+    "save": "Save",
+    "shareLabel": "Share",
+    "crumbs": "You are here",
+    "home": "Home"
   },
   "Seller": {
     "search": "Search {seller}'s dishes",
