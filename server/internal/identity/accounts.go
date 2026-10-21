@@ -150,7 +150,7 @@ func (f AccountFilter) params() (db.AccountsForAdminsParams, error) {
 
 // escapeLike makes the characters LIKE reads as patterns plain.
 func escapeLike(s string) string {
-	return strings.NewReplacer(`\`, `\`, `%`, `\%`, `_`, `\_`).Replace(s)
+	return strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(s)
 }
 
 func recordOf(r db.GetAccountForAdminsRow) Record {
