@@ -545,7 +545,7 @@ export const getOrder = <ThrowOnError extends boolean = true>(options: Options<G
 });
 
 /**
- * Cancel your order, free of charge until its window opens
+ * Cancel your order until the seller marks it ready
  *
  * By its customer, signed in or sending its access. Its units go back on sale.
  */

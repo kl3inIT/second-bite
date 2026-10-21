@@ -451,7 +451,7 @@
       "summary": {
         "cancelled": "Bạn chưa trả tiền nên không có gì phải hoàn.",
         "refused": "Bạn chưa trả tiền nên không có gì phải hoàn.",
-        "expired": "Lần sau nếu không kịp, hãy huỷ trước giờ mở để món đến được người khác."
+        "expired": "Lần sau nếu không kịp, hãy huỷ đơn để món đến được người khác."
       },
       "placedBody": "{date}, {time} · {units} phần · {total}",
       "confirmed": "Quán xác nhận đơn",
@@ -461,7 +461,7 @@
     "cancel": {
       "open": "Huỷ đơn",
       "title": "Huỷ đơn {number}?",
-      "body": "{units} phần sẽ trả lại cho {seller} để người khác đặt. Bạn chưa trả tiền nên không mất phí nào. Chọn lý do (không bắt buộc):",
+      "body": "{units} phần sẽ trả lại cho {seller} để người khác đặt. Chọn lý do (không bắt buộc):",
       "reason": "Lý do huỷ",
       "reasons": {
         "late": "Không đến kịp",
@@ -470,9 +470,8 @@
       },
       "keep": "Giữ đơn",
       "confirm": "Huỷ đơn",
-      "tooLate": "Đã quá giờ huỷ miễn phí: khung nhận đã mở.",
-      "failed": "Chưa huỷ được đơn. Thử lại, hoặc báo mã tham chiếu {reference}.",
-      "free": "· miễn phí trước {until}"
+      "tooLate": "Quán đã báo món sẵn sàng nên không huỷ được đơn nữa.",
+      "failed": "Chưa huỷ được đơn. Thử lại, hoặc báo mã tham chiếu {reference}."
     },
     "date": "{day}/{month}",
     "orderNumber": "Đơn #{number}",
@@ -563,7 +562,7 @@
     "dishes": "Tiền món ({units} phần)",
     "total": "Tổng tiền",
     "cancelTitle": "Chính sách huỷ",
-    "cancelBody": "Huỷ miễn phí trước {time}.",
+    "cancelBody": "Huỷ được cho tới khi quán báo món sẵn sàng.",
     "totalSummary": "{orders, plural, =1 {Tổng {units} phần} other {# đơn · {units} phần}} · tiết kiệm {saved}",
     "order": "{orders, plural, =1 {Đặt món} other {Đặt # đơn}}",
     "contactTitle": "Người đến nhận",
@@ -588,7 +587,6 @@
     "orderFailed": "Chưa đặt được món. Thử lại, hoặc báo mã tham chiếu {reference}.",
     "orderFailedPlain": "Chưa đặt được món. Kiểm tra mạng rồi thử lại.",
     "sellerWindow": "{place} · Nhận {from} – {until}",
-    "cancelEach": "Huỷ miễn phí trước giờ nhận của từng đơn.",
     "intro": "Mỗi quán một đơn, mỗi đơn có mã QR riêng. Kiểm tra món và giờ nhận trước khi đặt.",
     "sellerUnits": "{seller} · {units} phần",
     "sidebarTitle": "{sellers, plural, =0 {Giỏ của bạn} =1 {Giỏ của bạn} other {Giỏ của bạn · # quán}}",
