@@ -227,7 +227,7 @@ export function Directions({ order }: { order: Order }) {
         title={t("mapTitle", { seller: order.seller.name })}
         src={mapOf(order.seller, locale)}
         loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
+        referrerPolicy="no-referrer"
         className="h-40 w-full border-0 bg-secondary"
       />
       <div className="flex flex-col gap-3 p-4">
