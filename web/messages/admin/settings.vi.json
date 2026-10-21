@@ -126,31 +126,70 @@
     "export": "Tải CSV",
     "caption": "Nhật ký thao tác",
     "empty": "Chưa có thao tác nào",
-    "search": "Tìm trong nhật ký",
-    "searchPlaceholder": "Tìm cửa hàng, mã bài",
-    "actor": "Người làm",
     "action": "Hành động",
     "day": "Ngày",
     "all": "Tất cả",
     "columns": {
-      "at": "Thời gian",
+      "occurredAt": "Thời gian",
       "actor": "Người làm",
       "action": "Hành động",
-      "target": "Đối tượng",
-      "change": "Thay đổi (trước → sau)"
+      "resource": "Đối tượng",
+      "detail": "Chi tiết",
+      "requestId": "Mã yêu cầu"
     },
-    "to": "thành",
     "actions": {
-      "sellerBlocked": "Chặn cửa hàng",
-      "sellerUnblocked": "Gỡ chặn",
-      "offerRemoved": "Gỡ bài vi phạm",
-      "offerSettingsChanged": "Sửa cài đặt bài đăng",
-      "emailSettingsChanged": "Sửa cài đặt email",
-      "categoryChanged": "Sửa danh mục",
-      "reviewHidden": "Ẩn đánh giá",
-      "adminInvited": "Mời quản trị viên"
+      "storeApprove": "Duyệt cửa hàng",
+      "storeReject": "Từ chối cửa hàng",
+      "storeBlock": "Chặn cửa hàng",
+      "storeUnblock": "Gỡ chặn cửa hàng",
+      "offerSettingsChange": "Sửa cài đặt bài đăng",
+      "emailSettingsChange": "Sửa cài đặt email",
+      "adminGrant": "Cấp quyền quản trị",
+      "adminRevoke": "Thu hồi quyền quản trị"
     },
-    "summary": "Hiển thị {from}–{to} trên {total} thao tác"
+    "badges": {
+      "storeApprove": "Duyệt cửa hàng",
+      "storeReject": "Từ chối cửa hàng",
+      "storeBlock": "Chặn cửa hàng",
+      "storeUnblock": "Gỡ chặn cửa hàng",
+      "offerSettingsChange": "Sửa cài đặt",
+      "emailSettingsChange": "Sửa cài đặt",
+      "adminGrant": "Cấp quyền",
+      "adminRevoke": "Thu hồi quyền"
+    },
+    "resources": {
+      "offerSettings": "Cài đặt bài đăng",
+      "emailSettings": "Cài đặt email"
+    },
+    "reason": "Lý do: {reason}",
+    "change": "{field}: {before} → {after}",
+    "secretChanged": "{field}: đã đổi",
+    "blank": "trống",
+    "fields": {
+      "minDiscountPercent": "Giảm tối thiểu",
+      "windowMinMinutes": "Khung nhận ngắn nhất",
+      "windowMaxMinutes": "Khung nhận dài nhất",
+      "startsWithinHours": "Bắt đầu trong vòng",
+      "defaultRadiusKm": "Bán kính mặc định",
+      "maxRadiusKm": "Bán kính tối đa",
+      "provider": "Nhà cung cấp",
+      "senderAddress": "Địa chỉ gửi",
+      "senderName": "Tên người gửi",
+      "smtpHost": "Host",
+      "smtpPort": "Port",
+      "smtpSecurity": "Bảo mật",
+      "smtpUsername": "User",
+      "smtpPassword": "Mật khẩu SMTP",
+      "brevoApiKey": "API key Brevo"
+    },
+    "values": {
+      "percent": "{value}%",
+      "minutes": "{value} phút",
+      "hours": "{value} giờ",
+      "km": "{value} km"
+    },
+    "loadMore": "Tải thêm",
+    "loadFailed": "Chưa tải thêm được. Thử lại sau."
   },
   "legal": {
     "newVersion": "Tạo phiên bản mới",

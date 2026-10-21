@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { auditActionLook, auditQuery, auditSearch } from "./audit-log";
 import { flattenTree } from "./tree";
 
 describe("a tree as a table shows it", () => {
@@ -25,51 +24,5 @@ describe("a tree as a table shows it", () => {
     expect(flattenTree([{ id: "x", parentId: "gone" }])).toEqual([
       { id: "x", parentId: "gone", depth: 0 },
     ]);
-  });
-});
-
-describe("the audit log's filters", () => {
-  it("read from the address, unknown or malformed values falling back", () => {
-    expect(auditQuery({})).toEqual({ q: "", actor: "all", action: "all", page: 1 });
-    expect(
-      auditQuery({
-        q: " Bún chả ",
-        actor: "Minh Anh",
-        action: "sellerBlocked",
-        from: "2026-10-14",
-        to: "2026-10-20",
-        page: "3",
-      }),
-    ).toEqual({
-      q: "Bún chả",
-      actor: "Minh Anh",
-      action: "sellerBlocked",
-      from: "2026-10-14",
-      to: "2026-10-20",
-      page: 3,
-    });
-    expect(auditQuery({ action: "dropTables", from: "14/10", page: "-2" })).toEqual({
-      q: "",
-      actor: "all",
-      action: "all",
-      page: 1,
-    });
-    expect(auditQuery({ q: ["a", "b"] }).q).toBe("a");
-  });
-
-  it("write back to the address without their defaults", () => {
-    expect(auditSearch({ q: "", actor: "all", action: "all", page: 1 })).toBe("");
-    expect(
-      auditSearch({ q: "bún", actor: "all", action: "offerRemoved", from: "2026-10-14", page: 2 }),
-    ).toBe("?q=b%C3%BAn&action=offerRemoved&from=2026-10-14&page=2");
-  });
-});
-
-describe("how an audit action looks", () => {
-  it("is red for a block, amber for a removal, green for an unblock", () => {
-    expect(auditActionLook("sellerBlocked").tone).toBe("error");
-    expect(auditActionLook("offerRemoved").tone).toBe("warning");
-    expect(auditActionLook("sellerUnblocked").tone).toBe("success");
-    expect(auditActionLook("offerSettingsChanged").tone).toBe("info");
   });
 });

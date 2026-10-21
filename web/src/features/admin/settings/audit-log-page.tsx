@@ -2,19 +2,19 @@ import { getTranslations } from "next-intl/server";
 
 import { Button } from "@/components/ui/button";
 
+import type { SearchParams } from "../list-query";
 import { SettingsLayout } from "../ui/settings";
-import { auditQuery } from "./audit-log";
-import { auditPageSize, listAuditLog } from "./audit-log-source";
+import { readAuditQuery } from "./audit-log";
+import { listAuditLog } from "./audit-log-source";
 import { AuditLogTable } from "./audit-log-table";
 
-/** Cài đặt › Nhật ký thao tác (Figma AD-CD5), filtered by the address. Empty until the audit log has a backend. */
-export async function AuditLogPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const query = auditQuery(await searchParams);
-  const [log, shell, t] = await Promise.all([
+/**
+ * Cài đặt › Nhật ký thao tác (Figma AD-AL1), filtered by the address. Empty until SEC-75 builds the audit log;
+ * "Tải CSV" waits for it too.
+ */
+export async function AuditLogPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const query = readAuditQuery(await searchParams);
+  const [page, shell, t] = await Promise.all([
     listAuditLog(query),
     getTranslations("admin.shell"),
     getTranslations("admin.settings.auditLog"),
@@ -28,13 +28,7 @@ export async function AuditLogPage({
         </Button>
       }
     >
-      <AuditLogTable
-        query={query}
-        rows={log.items}
-        total={log.total}
-        pageSize={auditPageSize}
-        actors={log.actors}
-      />
+      <AuditLogTable key={JSON.stringify(query)} query={query} page={page} />
     </SettingsLayout>
   );
 }

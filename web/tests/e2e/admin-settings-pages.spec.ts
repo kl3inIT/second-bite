@@ -71,21 +71,25 @@ test.describe("the settings pages without a backend", () => {
     page,
   }, testInfo) => {
     test.skip(!isReleased("settingsAuditLog"), "not released yet");
-    await signInTo(page, "/admin/settings/audit-log?action=sellerBlocked", testInfo, {
-      who: "nhatky",
-    });
+    await signInTo(
+      page,
+      "/admin/settings/audit-log?action=store.block&from=2026-10-14&to=2026-10-21",
+      testInfo,
+      { who: "nhatky" },
+    );
     await expectSettingsPage(page, "Nhật ký thao tác");
     await expect(page.getByText("Chưa có thao tác nào")).toBeVisible();
-    await expect(page.getByText("Hành động:")).toBeVisible();
-    await expect(page.getByRole("combobox", { name: /Hành động/ })).toContainText("Chặn cửa hàng");
+    const action = page.getByRole("combobox", { name: /Hành động/ });
+    await expect(action).toContainText("Chặn cửa hàng");
+    await expect(page.getByText("14/10 – 21/10/2026")).toBeVisible();
     await expect(page.getByRole("button", { name: "Tải CSV" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Tải thêm" })).toBeHidden();
     await expectNoSeriousA11yViolations(page);
 
-    await (
-      await hydrated(page.getByRole("searchbox", { name: "Tìm trong nhật ký" }))
-    ).fill("Bún chả");
+    await (await hydrated(action)).click();
+    await page.getByRole("option", { name: "Cấp quyền quản trị" }).click();
     await expect(page).toHaveURL(
-      /\/vi\/admin\/settings\/audit-log\?q=B%C3%BAn\+ch%E1%BA%A3&action=sellerBlocked$/,
+      /\/vi\/admin\/settings\/audit-log\?action=admin\.grant&from=2026-10-14&to=2026-10-21$/,
     );
   });
 

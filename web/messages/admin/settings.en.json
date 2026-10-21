@@ -126,31 +126,70 @@
     "export": "Download CSV",
     "caption": "Audit log",
     "empty": "No actions yet",
-    "search": "Search the audit log",
-    "searchPlaceholder": "Search stores, post codes",
-    "actor": "By",
     "action": "Action",
     "day": "Day",
     "all": "All",
     "columns": {
-      "at": "Time",
+      "occurredAt": "Time",
       "actor": "By",
       "action": "Action",
-      "target": "Subject",
-      "change": "Change (before → after)"
+      "resource": "Subject",
+      "detail": "Detail",
+      "requestId": "Request ID"
     },
-    "to": "to",
     "actions": {
-      "sellerBlocked": "Store blocked",
-      "sellerUnblocked": "Store unblocked",
-      "offerRemoved": "Post removed for a violation",
-      "offerSettingsChanged": "Post settings changed",
-      "emailSettingsChanged": "Email settings changed",
-      "categoryChanged": "Category changed",
-      "reviewHidden": "Review hidden",
-      "adminInvited": "Admin invited"
+      "storeApprove": "Store approved",
+      "storeReject": "Store refused",
+      "storeBlock": "Store blocked",
+      "storeUnblock": "Store unblocked",
+      "offerSettingsChange": "Post settings changed",
+      "emailSettingsChange": "Email settings changed",
+      "adminGrant": "Admin access granted",
+      "adminRevoke": "Admin access revoked"
     },
-    "summary": "Showing {from}–{to} of {total} actions"
+    "badges": {
+      "storeApprove": "Store approved",
+      "storeReject": "Store refused",
+      "storeBlock": "Store blocked",
+      "storeUnblock": "Store unblocked",
+      "offerSettingsChange": "Settings changed",
+      "emailSettingsChange": "Settings changed",
+      "adminGrant": "Access granted",
+      "adminRevoke": "Access revoked"
+    },
+    "resources": {
+      "offerSettings": "Post settings",
+      "emailSettings": "Email settings"
+    },
+    "reason": "Reason: {reason}",
+    "change": "{field}: {before} → {after}",
+    "secretChanged": "{field}: changed",
+    "blank": "empty",
+    "fields": {
+      "minDiscountPercent": "Minimum discount",
+      "windowMinMinutes": "Shortest pickup window",
+      "windowMaxMinutes": "Longest pickup window",
+      "startsWithinHours": "Starts within",
+      "defaultRadiusKm": "Default radius",
+      "maxRadiusKm": "Largest radius",
+      "provider": "Provider",
+      "senderAddress": "Sender address",
+      "senderName": "Sender name",
+      "smtpHost": "Host",
+      "smtpPort": "Port",
+      "smtpSecurity": "Security",
+      "smtpUsername": "User",
+      "smtpPassword": "SMTP password",
+      "brevoApiKey": "Brevo API key"
+    },
+    "values": {
+      "percent": "{value}%",
+      "minutes": "{value} min",
+      "hours": "{value} h",
+      "km": "{value} km"
+    },
+    "loadMore": "Load more",
+    "loadFailed": "Could not load more. Try again later."
   },
   "legal": {
     "newVersion": "New version",

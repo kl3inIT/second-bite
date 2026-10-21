@@ -1,26 +1,11 @@
-import "server-only";
-
-import type { AuditAction, AuditQuery } from "./audit-log";
-
-export type AuditEntry = {
-  id: string;
-  at: string;
-  actor: string;
-  action: AuditAction;
-  /** What it was done to, and its page when it has one. */
-  target: { label: string; href?: string };
-  /** The value before and after; none before when something was created. */
-  change: { before?: string; after: string };
-};
-
-export type AuditLog = { items: AuditEntry[]; total: number; actors: string[] };
-
-export const auditPageSize = 10;
+import type { AuditCursor, AuditPage, AuditQuery } from "./audit-log";
 
 /**
- * Who did what and when. The modules record who changed a seller's status or a setting last, but keep no log of
- * every change, so there is none; the page shows its empty state until an audit log has a backend.
+ * A page of the audit log, newest first: the first one when the page renders on the server, the next ones when
+ * "Tải thêm" is pressed in the browser (`after` the last entry shown). SEC-75 has not built
+ * `GET /admin/audit-events?action=&from=&to=&afterAt=&afterId=&size=` yet, so the log is empty; the page shows
+ * its empty state.
  */
-export async function listAuditLog(_query: AuditQuery): Promise<AuditLog> {
-  return { items: [], total: 0, actors: [] };
+export async function listAuditLog(_query: AuditQuery, _after?: AuditCursor): Promise<AuditPage> {
+  return { items: [], next: null };
 }

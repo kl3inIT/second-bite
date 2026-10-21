@@ -2,7 +2,6 @@ import { createElement, type ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { AreasTable } from "./areas-table";
-import { AuditLogTable } from "./audit-log-table";
 import { CategoriesTable } from "./categories-table";
 import { Integrations } from "./integrations";
 import { LegalDocuments } from "./legal-documents";
@@ -76,60 +75,6 @@ describe("the areas (AD-CD2)", () => {
     expect(text).toContain("Khu vực / tầng Cửa hàng tham gia Nhận cửa hàng mới");
     expect(text).toContain("Tasco Mall Việt Hưng 10 cửa hàng Đang mở");
     expect(text).toContain("Tầng 2 · thời trang 1 cửa hàng Tạm dừng");
-  });
-});
-
-describe("the audit log (AD-CD5)", () => {
-  const query = { q: "", actor: "all", action: "all" as const, page: 1 };
-
-  it("shows each action with its time, who, a badge, what it was done to and the change", () => {
-    const html = renderSettings(
-      createElement(AuditLogTable, {
-        query,
-        pageSize: 10,
-        total: 24,
-        actors: ["Minh Anh"],
-        rows: [
-          {
-            id: "e1",
-            at: "2026-10-20T02:41:00Z",
-            actor: "Minh Anh",
-            action: "sellerBlocked" as const,
-            target: { label: "Bún chả Phố Hàng", href: "/admin/sellers/s1" },
-            change: { before: "Đang hoạt động", after: "Bị chặn" },
-          },
-          {
-            id: "e2",
-            at: "2026-10-19T08:20:00Z",
-            actor: "Minh Anh",
-            action: "adminInvited" as const,
-            target: { label: "ngocmai@example.com" },
-            change: { after: "Chăm sóc khách" },
-          },
-        ],
-      }),
-    );
-    const text = textOf(html);
-    expect(text).toContain("Thời gian Người làm Hành động Đối tượng Thay đổi (trước → sau)");
-    expect(text).toContain(
-      "20/10/2026 09:41 Minh Anh Chặn cửa hàng Bún chả Phố Hàng Đang hoạt động",
-    );
-    expect(text).toContain("Mời quản trị viên ngocmai@example.com — Chăm sóc khách");
-    expect(html).toContain('href="/admin/sellers/s1"');
-    expect(text).toContain("Hiển thị 1–10 trên 24 thao tác");
-  });
-
-  it("has its filters, and is an empty state with nothing in it", () => {
-    const text = textOf(
-      renderSettings(
-        createElement(AuditLogTable, { query, pageSize: 10, total: 0, actors: [], rows: [] }),
-      ),
-    );
-    expect(text).toContain("Người làm: Tất cả");
-    expect(text).toContain("Hành động: Tất cả");
-    expect(text).toContain("Ngày: Mọi lúc");
-    expect(text).toContain("Chưa có thao tác nào");
-    expect(text).not.toContain("Hiển thị");
   });
 });
 
