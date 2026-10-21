@@ -515,6 +515,17 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String get deleteAccountFinal =>
+      'Khi bạn nhập đúng mã, tài khoản bị xoá ngay và không thể hoàn tác.';
+
+  @override
+  String get deleteAccountOwnedFailed =>
+      'Chưa đọc được các quán của bạn, nên chưa biết quán nào sẽ đóng cùng tài khoản. Thử lại trước khi gửi mã.';
+
+  @override
+  String get deleteAccountRetry => 'Thử lại';
+
+  @override
   String get deleteAccountCodeHeading => 'Nhập mã xác nhận';
 
   @override

@@ -15,9 +15,13 @@ import 'package:second_bite/l10n/l10n.dart';
 
 part 'delete_account_screen.g.dart';
 
+// A failure shows at once, with its retry, rather than behind retries.
+Duration? _never(int retryCount, Object error) => null;
+
 /// The names of the sellers the signed-in person owns, for the warning that
-/// they close with the account.
-@riverpod
+/// they close with the account. The code is not sent until they are read
+/// (SEC-69).
+@Riverpod(retry: _never)
 Future<List<String>> ownedSellerNames(Ref ref) =>
     ref.watch(sellerRepositoryProvider).ownedSellerNames();
 
@@ -119,45 +123,53 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
     final text = context.appTextStyles;
     final account = ref.watch(currentAccountProvider).value;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.deleteAccountTitle)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          SpacingTokens.space4,
-          SpacingTokens.space4,
-          SpacingTokens.space4,
-          SpacingTokens.space8,
-        ),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxWidth),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: SpacingTokens.space4,
-              children: [
-                Text(l10n.deleteAccountIntro, style: text.bodySm),
-                const _WhatGoes(),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(SpacingTokens.space4),
-                    child: switch ((_step, account)) {
-                      (_Step.done, _) => const _Done(),
-                      (_, null) => const _SignedOut(),
-                      (_, final account?) => Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        spacing: SpacingTokens.space4,
-                        children: [
-                          const _OwnerWarning(),
-                          if (_step == _Step.code)
-                            ..._codeStep(context, account.email)
-                          else
-                            ..._confirmStep(context, account.email),
-                        ],
-                      ),
-                    },
+    // Once deleted, back leaves for the home, not for the settings of an
+    // account that is gone (SEC-69).
+    return PopScope(
+      canPop: _step != _Step.done,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) const HomeRoute().go(context);
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text(l10n.deleteAccountTitle)),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(
+            SpacingTokens.space4,
+            SpacingTokens.space4,
+            SpacingTokens.space4,
+            SpacingTokens.space8,
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: _maxWidth),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: SpacingTokens.space4,
+                children: [
+                  Text(l10n.deleteAccountIntro, style: text.bodySm),
+                  const _WhatGoes(),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(SpacingTokens.space4),
+                      child: switch ((_step, account)) {
+                        (_Step.done, _) => const _Done(),
+                        (_, null) => const _SignedOut(),
+                        (_, final account?) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: SpacingTokens.space4,
+                          children: [
+                            const _OwnerWarning(),
+                            if (_step == _Step.code)
+                              ..._codeStep(context, account.email)
+                            else
+                              ..._confirmStep(context, account.email),
+                          ],
+                        ),
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -167,21 +179,35 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
 
   List<Widget> _confirmStep(BuildContext context, String email) {
     final l10n = context.l10n;
+    final text = context.appTextStyles;
+    // The code waits for the person's sellers: an owner is told which close
+    // before anything is sent, and a failure to read them is not "none"
+    // (SEC-69).
+    final owned = ref.watch(ownedSellerNamesProvider);
     return [
-      Text(
-        l10n.deleteAccountConfirmBody(email),
-        style: context.appTextStyles.bodySm,
-      ),
+      Text(l10n.deleteAccountConfirmBody(email), style: text.bodySm),
+      Text(l10n.deleteAccountFinal, style: text.bodySmStrong),
+      if (owned is AsyncError) const _OwnedFailed(),
       if (_problem case final problem?) _ProblemText(problem: problem),
       AppButton(
         variant: AppButtonVariant.destructive,
-        onPressed: _pending ? null : _sendCode,
+        onPressed: _pending || owned is! AsyncData ? null : _sendCode,
         child: Text(
           _pending ? l10n.deleteAccountSending : l10n.deleteAccountSendCode,
         ),
       ),
+      AppButton(
+        variant: AppButtonVariant.outline,
+        onPressed: () => _keep(context),
+        child: Text(l10n.deleteAccountCancel),
+      ),
     ];
   }
+
+  /// Back to account settings, which led here.
+  void _keep(BuildContext context) => context.canPop()
+      ? context.pop()
+      : const AccountSettingsRoute().go(context);
 
   List<Widget> _codeStep(BuildContext context, String email) {
     final l10n = context.l10n;
@@ -231,10 +257,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
       ),
       AppButton(
         variant: AppButtonVariant.outline,
-        // Back to account settings, which led here.
-        onPressed: () => context.canPop()
-            ? context.pop()
-            : const AccountSettingsRoute().go(context),
+        onPressed: () => _keep(context),
         child: Text(l10n.deleteAccountCancel),
       ),
     ];
@@ -306,8 +329,9 @@ class _What extends StatelessWidget {
   }
 }
 
-/// The warning to the owner of a seller; nothing while their sellers load or
-/// when they own none.
+/// The warning to the owner of a seller; nothing while their sellers load,
+/// when they could not be read (the confirm step says so) or when they own
+/// none.
 class _OwnerWarning extends ConsumerWidget {
   const new();
 
@@ -320,6 +344,49 @@ class _OwnerWarning extends ConsumerWidget {
       icon: LucideIcons.triangleAlert,
       title: l10n.deleteAccountOwnerTitle,
       description: l10n.deleteAccountOwnerBody(owned.join(', ')),
+    );
+  }
+}
+
+/// The person's sellers could not be read: the code waits, and they are read
+/// again on request.
+class _OwnedFailed extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final error = Theme.of(context).colorScheme.error;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: SpacingTokens.space2,
+      children: [
+        Semantics(
+          liveRegion: true,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 6,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(LucideIcons.circleAlert, size: 16, color: error),
+              ),
+              Expanded(
+                child: Text(
+                  l10n.deleteAccountOwnedFailed,
+                  style: context.appTextStyles.bodySm.copyWith(color: error),
+                ),
+              ),
+            ],
+          ),
+        ),
+        AppButton(
+          variant: AppButtonVariant.outline,
+          onPressed: () => ref.invalidate(ownedSellerNamesProvider),
+          icon: const Icon(LucideIcons.refreshCw, size: 16),
+          child: Text(l10n.deleteAccountRetry),
+        ),
+      ],
     );
   }
 }

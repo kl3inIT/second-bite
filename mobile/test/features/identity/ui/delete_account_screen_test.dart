@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:second_bite/features/identity/ui/delete_account_screen.dart';
 
@@ -96,6 +99,125 @@ void main() {
           .called(1);
       expect(find.text('Đã xoá tài khoản'), findsOneWidget);
       expect(find.text('Đăng nhập để xoá tài khoản'), findsNothing);
+    });
+
+    testWidgets('holds the code until the shops are read, and reads them '
+        'again after a failure', (tester) async {
+      final auth = signedInAs(sampleAccount);
+      final reads = Completer<List<String>>();
+      var attempts = 0;
+      await tester.pumpApp(
+        const DeleteAccountScreen(),
+        auth: auth,
+        overrides: [
+          ownedSellerNamesProvider.overrideWith((_) {
+            attempts++;
+            if (attempts == 1) return reads.future;
+            return Future.value(['Bánh mì Tasco']);
+          }),
+        ],
+      );
+      await tester.pump();
+      FilledButton send() => tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Gửi mã xác nhận'),
+      );
+
+      // Still reading: no code yet, and no "owns nothing" either.
+      expect(send().onPressed, isNull);
+      expect(
+        find.text(
+          'Khi bạn nhập đúng mã, tài khoản bị xoá ngay và không thể hoàn tác.',
+        ),
+        findsOneWidget,
+      );
+
+      reads.completeError(Exception('offline'));
+      await tester.pumpAndSettle();
+      expect(send().onPressed, isNull);
+      expect(find.textContaining('Chưa đọc được các quán'), findsOneWidget);
+      expect(find.text('Bạn đang là chủ quán'), findsNothing);
+
+      await tester.tapVisible(find.widgetWithText(OutlinedButton, 'Thử lại'));
+      await tester.pumpAndSettle();
+      expect(find.text('Bạn đang là chủ quán'), findsOneWidget);
+      expect(find.textContaining('Chưa đọc được các quán'), findsNothing);
+      expect(send().onPressed, isNotNull);
+      verifyNever(auth.requestDeletionCode);
+    });
+
+    group('with the app around it', () {
+      late MockAuthRepository auth;
+
+      setUp(() {
+        auth = signedInAs(sampleAccount) as MockAuthRepository;
+        when(auth.requestDeletionCode).thenAnswer((_) async => 'del-1');
+        when(() => auth.deleteAccount(challengeId: 'del-1', code: '123456'))
+            .thenAnswer((_) async {});
+      });
+
+      Future<void> pumpOverSettings(WidgetTester tester) async {
+        await tester.pumpRouterApp(
+          GoRouter(
+            initialLocation: '/settings',
+            routes: [
+              GoRoute(path: '/', builder: (_, _) => const Text('Trang chủ')),
+              GoRoute(
+                path: '/settings',
+                builder: (_, _) => const Text('Cài đặt'),
+                routes: [
+                  GoRoute(
+                    path: 'delete',
+                    builder: (_, _) => const DeleteAccountScreen(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          auth: auth,
+          overrides: [ownedSellerNamesProvider.overrideWith((_) async => [])],
+        );
+        await tester.pumpAndSettle();
+        final router = GoRouter.of(tester.element(find.text('Cài đặt')));
+        unawaited(router.push<void>('/settings/delete'));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('the first step goes back without sending a code', (
+        tester,
+      ) async {
+        await pumpOverSettings(tester);
+
+        await tester.tapVisible(
+          find.widgetWithText(OutlinedButton, 'Giữ tài khoản'),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cài đặt'), findsOneWidget);
+        verifyNever(auth.requestDeletionCode);
+      });
+
+      testWidgets('back after the deletion goes home, not to settings', (
+        tester,
+      ) async {
+        when(auth.signOut).thenAnswer((_) async {});
+        await pumpOverSettings(tester);
+
+        await tester.tapVisible(find.text('Gửi mã xác nhận'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), '123456');
+        await tester.pump();
+        await tester.tapVisible(
+          find.widgetWithText(FilledButton, 'Xoá vĩnh viễn tài khoản'),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Đã xoá tài khoản'), findsOneWidget);
+
+        await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Trang chủ'), findsOneWidget);
+        expect(find.text('Cài đặt'), findsNothing);
+      });
     });
 
     testWidgets('warns the owner of a seller that it closes', (tester) async {

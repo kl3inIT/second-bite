@@ -13,6 +13,10 @@ import 'package:second_bite/features/offer/ui/home_screen.dart';
 
 part 'routes.g.dart';
 
+/// The navigator over the tabs: a screen that names it opens full screen,
+/// above the bottom bar, while its path stays under a tab's.
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 /// The customer screens under the bottom bar, one branch per tab that has a
 /// screen, so each tab keeps its place when another is opened. Paths match
 /// the web's, so a shared link opens the same place in both apps.
@@ -22,7 +26,12 @@ part 'routes.g.dart';
       routes: [TypedGoRoute<HomeRoute>(path: '/')],
     ),
     TypedStatefulShellBranch<AccountBranch>(
-      routes: [TypedGoRoute<AccountRoute>(path: '/account')],
+      routes: [
+        TypedGoRoute<AccountRoute>(
+          path: '/account',
+          routes: [TypedGoRoute<AccountSettingsRoute>(path: 'settings')],
+        ),
+      ],
     ),
   ],
 )
@@ -81,12 +90,15 @@ class AccountRoute extends GoRouteData with $AccountRoute {
       const AccountScreen();
 }
 
-/// Account settings at `/account-settings`, as the web's
-/// `/account/settings` (SEC-37): over the tabs, from the account tab.
-@TypedGoRoute<AccountSettingsRoute>(path: '/account-settings')
+/// Account settings at `/account/settings`, as on the web (SEC-37): over
+/// the tabs, from the account tab. Under `/account`, so going there from
+/// anywhere, as sign-in does, keeps the account tab to go back to (SEC-69).
 class AccountSettingsRoute extends GoRouteData with $AccountSettingsRoute {
   /// The route to account settings.
   const new();
+
+  /// Opens over the tabs.
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>

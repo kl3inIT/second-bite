@@ -9,13 +9,15 @@ part of 'delete_account_screen.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// The names of the sellers the signed-in person owns, for the warning that
-/// they close with the account.
+/// they close with the account. The code is not sent until they are read
+/// (SEC-69).
 
 @ProviderFor(ownedSellerNames)
 final ownedSellerNamesProvider = OwnedSellerNamesProvider._();
 
 /// The names of the sellers the signed-in person owns, for the warning that
-/// they close with the account.
+/// they close with the account. The code is not sent until they are read
+/// (SEC-69).
 
 final class OwnedSellerNamesProvider
     extends
@@ -26,12 +28,13 @@ final class OwnedSellerNamesProvider
         >
     with $FutureModifier<List<String>>, $FutureProvider<List<String>> {
   /// The names of the sellers the signed-in person owns, for the warning that
-  /// they close with the account.
+  /// they close with the account. The code is not sent until they are read
+  /// (SEC-69).
   OwnedSellerNamesProvider._()
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: _never,
         name: r'ownedSellerNamesProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -53,4 +56,4 @@ final class OwnedSellerNamesProvider
   }
 }
 
-String _$ownedSellerNamesHash() => r'd02f1484f3d53c0ea1edfd126b08af8bb4266b9a';
+String _$ownedSellerNamesHash() => r'776017ccf718d35121c1a7ca9595e8144806b529';

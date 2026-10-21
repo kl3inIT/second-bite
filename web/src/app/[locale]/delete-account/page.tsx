@@ -8,7 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentAccount } from "@/features/identity/current-account";
-import { DeleteAccountForm } from "@/features/identity/delete-account-form";
+import { DeleteAccountDone, DeleteAccountForm } from "@/features/identity/delete-account-form";
 import { getOwnedSellerNames } from "@/features/identity/my-sellers";
 import { Link } from "@/i18n/navigation";
 import { pageMetadata } from "@/lib/seo";
@@ -28,8 +28,11 @@ export async function generateMetadata({
 // Deleting an account (SEC-37): what goes at once, what follows within minutes and what is kept, readable by
 // anyone at this address, the web link Google Play asks for; then, for the signed-in person, the deletion
 // itself, or the way to sign in first. Account settings, on the web and in the app, leads here.
-export default async function DeleteAccountPage() {
+export default async function DeleteAccountPage({
+  searchParams,
+}: PageProps<"/[locale]/delete-account">) {
   const t = await getTranslations("DeleteAccount");
+  const done = searchParams.then((query) => query.done === "1");
 
   return (
     <>
@@ -46,7 +49,7 @@ export default async function DeleteAccountPage() {
           <What title={t("keptTitle")} items={t.raw("kept") as string[]} />
         </section>
         <Suspense fallback={<Skeleton shape="card" className="h-40" />}>
-          <Action />
+          <Action done={done} />
         </Suspense>
       </main>
     </>
@@ -67,9 +70,23 @@ function What({ title, items }: { title: string; items: string[] }) {
 }
 
 // The deletion for the signed-in person, warned first when they own a seller; otherwise the way to sign in,
-// back to this page. It reads the session, so it renders inside Suspense.
-async function Action() {
-  const [t, account] = await Promise.all([getTranslations("DeleteAccount"), getCurrentAccount()]);
+// back to this page. Right after a deletion (`?done=1`, no one signed in) it is the confirmation, which Apple
+// asks for (SEC-69); someone signed in at that address still gets the deletion. It reads the session, so it
+// renders inside Suspense.
+async function Action({ done: pending }: { done: Promise<boolean> }) {
+  const [t, account, done] = await Promise.all([
+    getTranslations("DeleteAccount"),
+    getCurrentAccount(),
+    pending,
+  ]);
+
+  if (!account && done) {
+    return (
+      <section className="rounded-2xl border border-border bg-card p-4 text-card-foreground md:px-7 md:py-6">
+        <DeleteAccountDone />
+      </section>
+    );
+  }
 
   if (!account) {
     return (
