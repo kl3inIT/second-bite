@@ -2,8 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-/** The session cookie the Go server sets on sign-in (SEC-27; server/internal/platform/caller.go). */
-const sessionCookie = "secondbite_session";
+import { sessionCookie } from "./session-cookie";
 
 /**
  * The headers that carry the reader's session to the API from the server (SEC-29 › decision 2), or nothing

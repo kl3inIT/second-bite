@@ -7,13 +7,16 @@ import (
 	"fmt"
 	"net/mail"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/notification/internal/db"
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 // EmailSettings is who delivers email, as admins read it. Secrets are never
@@ -46,8 +49,13 @@ type EmailSettingsChange struct {
 	BrevoAPIKey   string
 }
 
-// EmailSettings returns the current settings, or ErrEmailNotConfigured.
+// EmailSettings returns the current settings to an admin, or
+// ErrEmailNotConfigured.
 func (s *Service) EmailSettings(ctx context.Context) (EmailSettings, error) {
+	if _, err := platform.RequireAdmin(ctx); err != nil {
+		return EmailSettings{}, err
+	}
+
 	row, err := s.queries.GetEmailSettings(ctx)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return EmailSettings{}, ErrEmailNotConfigured
@@ -72,9 +80,43 @@ func (s *Service) EmailSettings(ctx context.Context) (EmailSettings, error) {
 	}, nil
 }
 
-// SaveEmailSettings validates and stores c; the next email uses it. by is the
-// admin who saved it, or uuid.Nil from the command line.
-func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, by uuid.UUID) error {
+// SaveEmailSettings validates and stores c for the admin of ctx, when the
+// settings are still at version, the UpdatedAt the admin read; otherwise it
+// answers platform.ErrChangedSinceRead. The next email uses them. A save that
+// changes nothing writes nothing.
+func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, version time.Time) error {
+	caller, err := platform.RequireAdmin(ctx)
+	if err != nil {
+		return err
+	}
+
+	return s.saveEmailSettings(ctx, c, caller.AccountID, &version)
+}
+
+// CreateEmailSettings stores the first settings for the admin of ctx, as
+// SaveEmailSettings does; when settings exist already, someone saved them
+// since the admin saw none, and it answers platform.ErrChangedSinceRead.
+func (s *Service) CreateEmailSettings(ctx context.Context, c EmailSettingsChange) error {
+	caller, err := platform.RequireAdmin(ctx)
+	if err != nil {
+		return err
+	}
+
+	return s.saveEmailSettings(ctx, c, caller.AccountID, &time.Time{})
+}
+
+// SaveEmailSettingsAsSystem stores c with no admin behind it, whatever was
+// saved before. Only the command line calls it: whoever runs it already has
+// the server's own access.
+func (s *Service) SaveEmailSettingsAsSystem(ctx context.Context, c EmailSettingsChange) error {
+	return s.saveEmailSettings(ctx, c, uuid.Nil, nil)
+}
+
+// saveEmailSettings validates and stores c and records the change; by is the
+// admin who saved it, or uuid.Nil for the command line, and version, when
+// given, the version the settings must still be at, the zero time when there
+// must be none yet.
+func (s *Service) saveEmailSettings(ctx context.Context, c EmailSettingsChange, by uuid.UUID, version *time.Time) error {
 	c.SenderAddress = strings.TrimSpace(c.SenderAddress)
 	c.SMTPHost = strings.TrimSpace(c.SMTPHost)
 
@@ -85,9 +127,17 @@ func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, 
 	return pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		q := s.queries.WithTx(tx)
 
-		current, err := q.GetEmailSettings(ctx)
-		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		current, err := q.LockEmailSettings(ctx)
+
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			if version != nil && !version.IsZero() {
+				return platform.ErrChangedSinceRead // nothing was there to read
+			}
+		case err != nil:
 			return fmt.Errorf("reading the email settings: %w", err)
+		case version != nil && (version.IsZero() || !platform.SameVersion(current.UpdatedAt, *version)):
+			return platform.ErrChangedSinceRead
 		}
 
 		params := db.PutEmailSettingsParams{
@@ -109,12 +159,59 @@ func (s *Service) SaveEmailSettings(ctx context.Context, c EmailSettingsChange, 
 			return err
 		}
 
+		changed := changedEmailSettings(current, params, c)
+		if len(changed) == 0 {
+			return nil
+		}
+
 		if err := q.PutEmailSettings(ctx, params); err != nil {
 			return fmt.Errorf("saving the email settings: %w", err)
 		}
 
-		return nil
+		return s.trail.Record(ctx, tx,
+			audit.Resource{Type: audit.ResourceEmailSettings, ID: audit.SingletonID},
+			audit.EmailSettingsChanged{Provider: params.Provider, Changes: changed})
 	})
+}
+
+// changedEmailSettings names, as the API does, what next changes, with the
+// values before and after. A secret is changed when a new one is given or the
+// stored one is dropped; its value is never compared, since sealing it again
+// gives other bytes, and never kept. Nor is the SMTP user, which may be a
+// person's address.
+func changedEmailSettings(current db.NotificationEmailSetting, next db.PutEmailSettingsParams, c EmailSettingsChange) []audit.Change {
+	var changed []audit.Change
+
+	for _, f := range []struct {
+		name     string
+		was, now string
+	}{
+		{"provider", current.Provider, next.Provider},
+		{"senderAddress", current.SenderAddress, next.SenderAddress},
+		{"senderName", current.SenderName, next.SenderName},
+		{"smtpHost", current.SmtpHost, next.SmtpHost},
+		{"smtpPort", strconv.Itoa(int(current.SmtpPort)), strconv.Itoa(int(next.SmtpPort))},
+		{"smtpSecurity", current.SmtpSecurity, next.SmtpSecurity},
+	} {
+		if f.was != f.now {
+			changed = append(changed, audit.ChangedFromTo(f.name, f.was, f.now))
+		}
+	}
+
+	for _, f := range []struct {
+		name string
+		same bool
+	}{
+		{"smtpUsername", current.SmtpUsername == next.SmtpUsername},
+		{"smtpPassword", c.SMTPPassword == "" && (current.SmtpPasswordSealed == nil) == (next.SmtpPasswordSealed == nil)},
+		{"brevoApiKey", c.BrevoAPIKey == ""},
+	} {
+		if !f.same {
+			changed = append(changed, audit.Changed(f.name))
+		}
+	}
+
+	return changed
 }
 
 // setSecrets seals the secrets of c, or keeps the stored ones. A stored
@@ -252,4 +349,40 @@ func (s *Service) unseal(field string, sealed []byte) (string, error) {
 	}
 
 	return string(plaintext), nil
+}
+
+// SendTestEmail sends one email through the settings saved, so the admin sees
+// they work: to the address to, or to the admin of ctx when to is empty, which
+// lets an admin try a mailbox elsewhere (Gmail, Outlook). It answers
+// ErrEmailNotConfigured or ErrEmailUnavailable as SendEmail does.
+func (s *Service) SendTestEmail(ctx context.Context, to string) error {
+	caller, err := platform.RequireAdmin(ctx)
+	if err != nil {
+		return err
+	}
+
+	if to == "" {
+		to = caller.Label
+	}
+
+	err = s.SendEmail(ctx, Email{
+		Kind:    "settings-test",
+		To:      to,
+		Subject: "Second Bite: email thử / test email",
+		Text: "Cấu hình gửi email của Second Bite đang hoạt động.\n\n" +
+			"Second Bite's email settings work.",
+		HTML: "<p>Cấu hình gửi email của Second Bite đang hoạt động.</p><p>Second Bite's email settings work.</p>",
+	})
+
+	if se, ok := errors.AsType[*sendError](err); ok {
+		switch se.outcome {
+		case sendRefused:
+			return ErrTestEmailRefused.WithCause(err)
+		case sendUnavailable:
+			return ErrTestEmailUnreachable.WithCause(err)
+		case sendRateLimited:
+		}
+	}
+
+	return err
 }

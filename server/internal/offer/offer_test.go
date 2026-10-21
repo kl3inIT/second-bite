@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/identity"
 	"github.com/kl3inIT/second-bite/server/internal/offer"
@@ -70,7 +72,7 @@ func TestOffer(t *testing.T) {
 func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 	t.Helper()
 
-	accounts, err := identity.NewService(pool, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
+	accounts, err := identity.NewService(pool, nil, nil, nil, identity.Config{CodeKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,11 +82,18 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 		t.Fatal(err)
 	}
 
-	sellers := seller.NewService(pool, accounts, files, platformtest.Logger())
+	trail := audit.NewService(pool, platformtest.Logger())
+
+	events, err := platform.NewEvents(pool, platformtest.Logger())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sellers := seller.NewService(pool, accounts, files, nil, events, trail, platformtest.Logger()) // its listeners do not run here
 
 	return fixture{
 		pool: pool, accounts: accounts, files: files, sellers: sellers,
-		offers: offer.NewService(pool, sellers, files, platformtest.Logger()),
+		offers: offer.NewService(pool, sellers, files, trail, platformtest.Logger()),
 		prefix: "offer." + strings.ReplaceAll(uuid.NewString(), "-", ""),
 	}
 }
@@ -128,10 +137,6 @@ func (f fixture) sellerAt(owner context.Context, t *testing.T, name string, at o
 		if _, err := f.sellers.AddStaff(owner, s.ID, f.prefix+"."+name+"@example.com"); err != nil {
 			t.Fatal(err)
 		}
-	}
-
-	if _, err := f.sellers.Activate(f.as(t, "admin", platform.RoleAdmin), s.ID); err != nil {
-		t.Fatal(err)
 	}
 
 	return s.ID
@@ -246,7 +251,7 @@ func testOnlyActiveSellersPeoplePost(t *testing.T, f fixture) {
 	_, err = f.offers.Post(t.Context(), sellerID, bread(uuid.New()))
 	mustFail(t, "nobody signed in", err, platform.ErrAuthenticationRequired)
 
-	if _, err := f.sellers.Block(admin, sellerID); err != nil {
+	if _, err := f.sellers.Block(admin, sellerID, "Bán món đã quá hạn sử dụng"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -440,28 +445,77 @@ func testSettingsBoundEveryPost(t *testing.T, f fixture) {
 	}
 
 	t.Cleanup(func() {
-		if _, err := f.offers.SaveSettings(context.WithoutCancel(admin), set); err != nil {
+		ctx := context.WithoutCancel(admin)
+
+		now, err := f.offers.Settings(ctx)
+		if err == nil {
+			_, err = f.offers.SaveSettings(ctx, set, now.UpdatedAt)
+		}
+
+		if err != nil {
 			t.Error(err)
 		}
 	})
 
 	stricter := set
 	stricter.MinDiscountPercent = 50
+	stricter.MaxRadiusKm = set.MaxRadiusKm + 1
 
-	if _, err := f.offers.SaveSettings(admin, stricter); err != nil {
+	saved, err := f.offers.SaveSettings(admin, stricter, set.UpdatedAt)
+	if err != nil {
 		t.Fatal(err)
 	}
+
+	checkSettingsAudited(t, f, `["minDiscountPercent", "maxRadiusKm"]`, set.MinDiscountPercent)
 
 	_, err = f.offers.Post(owner, sellerID, bread(photo))
 	mustFail(t, "40% off under a 50% minimum", err, offer.ErrDiscountTooSmall)
 
+	// Saving against the version read before the change is refused, and
+	// saving what is there changes and records nothing (SEC-75).
+	_, err = f.offers.SaveSettings(admin, set, set.UpdatedAt)
+	mustFail(t, "saving over a change made since reading", err, platform.ErrChangedSinceRead)
+
+	same, err := f.offers.SaveSettings(admin, stricter, saved.UpdatedAt)
+	if err != nil || !same.UpdatedAt.Equal(saved.UpdatedAt) {
+		t.Errorf("saving the same settings: %v, changed at %v, want %v unchanged", err, same.UpdatedAt, saved.UpdatedAt)
+	}
+
+	checkSettingsAudited(t, f, `["minDiscountPercent", "maxRadiusKm"]`, set.MinDiscountPercent)
+
 	broken := set
 	broken.MaxRadiusKm = set.DefaultRadiusKm - 1
-	_, err = f.offers.SaveSettings(admin, broken)
+	_, err = f.offers.SaveSettings(admin, broken, saved.UpdatedAt)
 	mustFail(t, "a maximum radius below the default", err, offer.ErrSettingsInvalid)
 
-	_, err = f.offers.SaveSettings(owner, set)
+	_, err = f.offers.SaveSettings(owner, set, saved.UpdatedAt)
 	mustFail(t, "a customer saving the settings", err, platform.ErrAdminRequired)
+}
+
+// checkSettingsAudited checks that one change of the offer settings is
+// recorded, the last naming fields, the minimum discount from minWas to 50.
+func checkSettingsAudited(t *testing.T, f fixture, fields string, minWas int) {
+	t.Helper()
+
+	var (
+		count          int
+		last, from, to string
+	)
+
+	if err := f.pool.QueryRow(t.Context(), `SELECT count(*), e.fields, e.from, e.to
+		FROM audit_events,
+			(SELECT jsonb_path_query_array(details, '$.changes[*].field')::text AS fields,
+				details #>> '{changes,0,from}' AS from, details #>> '{changes,0,to}' AS to
+			FROM audit_events WHERE action = 'offer_settings.change' ORDER BY occurred_at DESC, id DESC LIMIT 1) e
+		WHERE action = 'offer_settings.change' AND actor_id IS NOT NULL
+		GROUP BY e.fields, e.from, e.to`).Scan(&count, &last, &from, &to); err != nil {
+		t.Fatal(err)
+	}
+
+	if count != 1 || last != fields || from != strconv.Itoa(minWas) || to != "50" {
+		t.Errorf("%d changes recorded, the last naming %s, the minimum from %s to %s; want 1 naming %s, from %d to 50",
+			count, last, from, to, fields, minWas)
+	}
 }
 
 // catalogWorld is a seller with its people and one dish in its catalog, which the catalog's checks start from.

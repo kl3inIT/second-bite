@@ -25,8 +25,10 @@ export async function CatalogDish({
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
-      <h1 className="text-page-title text-foreground">{dish ? t("editTitle") : t("addTitle")}</h1>
-      <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+      <h1 className="text-page-title text-foreground max-md:sr-only">
+        {dish ? t("editTitle") : t("addTitle")}
+      </h1>
+      <div className="rounded-2xl border border-border bg-card p-4 max-md:mb-24 sm:p-8">
         <DishForm sellerId={sellerId} dish={dish} />
       </div>
     </div>

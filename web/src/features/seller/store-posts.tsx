@@ -9,6 +9,7 @@ import { PostRow } from "./post-row";
 import { PostToast } from "./post-toast";
 import { requireStore } from "./require-store";
 import { groupByTab, postTabs, readPostTab } from "./store-offers";
+import { StoreTitleRow, titleActionPhone } from "./store-title-row";
 
 /** The line at the foot for what was just done, or nothing when the address carries nothing known. */
 function noticeMessage(
@@ -55,12 +56,17 @@ export async function StorePosts({
           to={`/stores/${sellerId}/offers${tab === "on_sale" ? "" : `?tab=${tab}`}`}
         />
       )}
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-page-title text-foreground">{t("title")}</h1>
-        <Link href={`/stores/${sellerId}/offers/new`} className={buttonVariants({ size: "lg" })}>
-          {t("post")}
-        </Link>
-      </div>
+      <StoreTitleRow
+        title={t("title")}
+        aside={
+          <Link
+            href={`/stores/${sellerId}/offers/new`}
+            className={cn(buttonVariants({ size: "lg" }), titleActionPhone)}
+          >
+            {t("post")}
+          </Link>
+        }
+      />
 
       <section
         aria-labelledby="store-posts"

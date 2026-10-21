@@ -2,9 +2,9 @@ import {
   CheckIcon,
   CircleDotIcon,
   CircleIcon,
-  HashIcon,
   MapPinIcon,
   ShoppingBagIcon,
+  UserRoundIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { useFormatter, useTranslations } from "next-intl";
@@ -15,8 +15,8 @@ import { cn } from "@/lib/utils";
 
 import { directionsTo, isOpen, unitsOf, type Order } from "./order";
 
-// The pieces the order pages are built from (Figma W2–W6): the seller's row, the collection code, the facts
-// of the order, the way to the counter and the steps of collecting.
+// The pieces the order pages are built from (Figma W2–W6): the seller's row, who collects, the facts of the
+// order, the way to the counter and the steps of collecting.
 
 /** The first line's photograph, small and round, beside the seller's name. */
 function LinePhoto({ order }: { order: Order }) {
@@ -63,43 +63,25 @@ export function SellerRow({ order }: { order: Order }) {
 }
 
 /**
- * The ticket of an open order (Figma W2, W3): the seller, then the four-digit code once it may be shown, or
- * four dots and when it will show. A screen reader hears the code digit by digit.
+ * The ticket of an open order (Figma W2, W3): the seller, then the name and phone number the counter finds
+ * the order by (SEC-86).
  */
-export function CodeTicket({ order }: { order: Order }) {
+export function CollectTicket({ order }: { order: Order }) {
   const t = useTranslations("Orders");
-  const format = useFormatter();
 
   return (
     <section
-      aria-labelledby={`order-code-${order.id}`}
+      aria-labelledby={`order-collect-${order.id}`}
       className="flex flex-col gap-4 rounded-3xl bg-card p-5 text-card-foreground"
     >
       <SellerRow order={order} />
       <div className="flex flex-col gap-1 border-t border-dashed border-border pt-4">
-        <h2 id={`order-code-${order.id}`} className="text-label text-muted-foreground">
-          {t("code")}
+        <h2 id={`order-collect-${order.id}`} className="text-label text-muted-foreground">
+          {t("collectAs")}
         </h2>
-        {order.code ? (
-          <>
-            <p
-              aria-label={order.code.split("").join(" ")}
-              className="font-display text-display tracking-widest"
-            >
-              {order.code}
-            </p>
-            <p className="text-label text-muted-foreground">{t("codeHint")}</p>
-          </>
-        ) : (
-          <>
-            <p aria-hidden className="font-display text-display tracking-widest text-secondary">
-              ••••
-            </p>
-            <p className="text-label text-muted-foreground">
-              {t("codeLater", { from: format.dateTime(new Date(order.windowStart), "time") })}
-            </p>
-          </>
-        )}
+        <p className="text-title">{order.customerName}</p>
+        <p className="text-body-sm-strong">{order.customerPhone}</p>
+        <p className="text-label text-muted-foreground">{t("collectHint")}</p>
       </div>
     </section>
   );
@@ -200,7 +182,7 @@ export function HowToCollect({ order }: { order: Order }) {
   const t = useTranslations("Orders.how");
   const steps = [
     { icon: MapPinIcon, title: t("goTitle"), body: t("goBody", { seller: order.seller.name }) },
-    { icon: HashIcon, title: t("codeTitle"), body: t("codeBody") },
+    { icon: UserRoundIcon, title: t("nameTitle"), body: t("nameBody") },
     { icon: ShoppingBagIcon, title: t("payTitle"), body: t("payBody") },
   ];
 

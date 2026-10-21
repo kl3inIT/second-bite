@@ -26,7 +26,7 @@ Second Bite connects sellers that have genuine edible surplus with nearby people
 
 - Non-profit, and no commission ever: Second Bite takes no share of a seller's sales. Third-party fees (payment, later delivery) are shown separately.
 - Named, photographed, confirmed stock rather than a surprise bag; a seller may also announce expected surplus that customers follow but cannot order until it is confirmed.
-- A one-use collection code checked by staff at the counter, rather than a swipe the staff merely watch.
+- Staff at the counter match the collector to the order, by its QR code or the name and phone number on it, then press "Đã giao".
 - AI drafts an offer from a seller's words or photo, and searches for customers in words or voice; staff always confirm, and the AI never states that food is safe or when it expires.
 
 ## Operating Context

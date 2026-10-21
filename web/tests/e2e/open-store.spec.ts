@@ -60,10 +60,34 @@ test.describe("opening a store on the web", () => {
     await expect(page.getByText("Bắt đầu bán")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
+    // With one store, the way to the stores goes straight into it.
     await page.goto("/vi/stores");
-    await expect(page.getByRole("heading", { level: 1, name: "Quán của tôi" })).toBeVisible();
-    await expect(page.getByText("Quán Hoa Sữa")).toBeVisible();
+    await expect(page).toHaveURL(/\/vi\/stores\/se-1-/);
+    await expect(page.getByRole("heading", { level: 1, name: "Quán Hoa Sữa" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
+  });
+
+  test("the header goes into the only store, or lists several to pick from", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `hoa.${testInfo.project.name}@example.com`, "/open-store");
+    for (const name of ["Quán Một", "Quán Hai"]) {
+      await page.goto("/vi/open-store");
+      await (await hydrated(page.getByLabel("Tên quán"))).fill(name);
+      await page.getByLabel("Số điện thoại").fill("0912345678");
+      await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+      await page.getByRole("button", { name: "Tạo quán" }).click();
+      await expect(page).toHaveURL(/\/vi\/stores\/se-\d-/, { timeout: 20_000 });
+    }
+
+    await page.goto("/vi");
+    await page.getByRole("link", { name: "Mở quán" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Quán của tôi" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Quán Một/ })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole("link", { name: /Quán Hai/ }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Quán Hai" })).toBeVisible();
   });
 
   test("a store's posts are in three tabs", async ({ page }, testInfo) => {

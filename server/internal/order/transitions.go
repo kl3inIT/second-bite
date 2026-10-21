@@ -1,10 +1,12 @@
 package order
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -59,8 +61,8 @@ func (s *Service) Cancel(ctx context.Context, id uuid.UUID, access, reason strin
 	return s.Get(ctx, id, access)
 }
 
-// Ready marks an order ready for collection, which shows its customer the
-// code. Marking it ready again changes nothing.
+// Ready marks an order ready for collection, which tells its customer to come.
+// Marking it ready again changes nothing.
 func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 	caller, err := s.staffOf(ctx, id)
 	if err != nil {
@@ -91,39 +93,20 @@ func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 	return s.Get(ctx, id, "")
 }
 
-// HandOver hands an order over when the collector gives its code within the
-// window. A wrong code is counted, and the third locks the order's code.
-func (s *Service) HandOver(ctx context.Context, id uuid.UUID, code string) (Order, error) {
+// HandOver hands an order over within its window, once staff have matched the
+// collector to it by its QR code or by the name and phone number on it.
+func (s *Service) HandOver(ctx context.Context, id uuid.UUID) (Order, error) {
 	caller, err := s.staffOf(ctx, id)
 	if err != nil {
 		return Order{}, err
 	}
 
-	var wrong error
-
 	err = s.transition(ctx, id, func(q *db.Queries, _ pgx.Tx, o Order) error {
 		switch {
 		case !o.Status.open():
 			return ErrTransitionNotAllowed
-		case o.CodeAttemptsLeft <= 0:
-			return ErrCodeLocked
 		case s.now().Before(o.WindowStart):
 			return ErrOutsideWindow
-		}
-
-		if !s.codeMatches(id, strings.TrimSpace(code)) {
-			attempts, err := q.CountWrongCode(ctx, id)
-			if err != nil {
-				return fmt.Errorf("counting a wrong code: %w", err)
-			}
-
-			wrong = ErrCodeWrong
-			if attempts >= maxCodeAttempts {
-				wrong = ErrCodeLocked
-			}
-
-			// The wrong attempt is kept: the transaction commits.
-			return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "code_wrong", ActorID: actor(caller)})
 		}
 
 		if err := q.MarkCollected(ctx, id); err != nil {
@@ -136,27 +119,61 @@ func (s *Service) HandOver(ctx context.Context, id uuid.UUID, code string) (Orde
 		return Order{}, err
 	}
 
-	if wrong != nil {
-		s.logger.WarnContext(ctx, "wrong collection code",
-			slog.String("event", "order.collection.code_wrong"),
-			slog.String("order_id", id.String()),
-			slog.String("account_id", caller.AccountID.String()),
-			slog.String("error_code", failureCode(wrong)),
-		)
-
-		return Order{}, wrong
-	}
-
 	s.logged(ctx, "order collected", "order.collection.confirmed", id, caller)
 
 	return s.Get(ctx, id, "")
 }
 
+// Reopen takes a mistaken hand-over or refusal back: the order is open again,
+// and the units a refusal had returned are taken again, or the call fails when
+// they are gone. An order its customer cancelled stays cancelled, and so does
+// one whose window is over.
+func (s *Service) Reopen(ctx context.Context, id uuid.UUID) (Order, error) {
+	caller, err := s.staffOf(ctx, id)
+	if err != nil {
+		return Order{}, err
+	}
+
+	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
+		if (o.Status != StatusCollected && o.Status != StatusRefused) || !o.WindowEnd.After(s.now()) {
+			return ErrTransitionNotAllowed
+		}
+
+		if o.Status == StatusRefused && o.RefuseReason.foodKept() {
+			// One order of identifiers, so two orders sharing offers never wait on each other's rows.
+			lines := slices.SortedFunc(slices.Values(o.Lines), func(a, b Line) int {
+				return cmp.Compare(a.OfferID.String(), b.OfferID.String())
+			})
+
+			for _, l := range lines {
+				if _, err := s.offers.Take(ctx, tx, l.OfferID, l.Units); err != nil {
+					return takeFailure(err)
+				}
+			}
+		}
+
+		if err := q.MarkReopened(ctx, id); err != nil {
+			return fmt.Errorf("reopening the order: %w", err)
+		}
+
+		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "reopened", ActorID: actor(caller)})
+	})
+	if err != nil {
+		return Order{}, err
+	}
+
+	s.logged(ctx, "order reopened", "order.order.reopened", id, caller)
+
+	return s.Get(ctx, id, "")
+}
+
 // Refuse ends an order staff will not hand over: the food is no longer
-// suitable, or the order is wrong. Its units are not offered again.
+// suitable, the order is wrong, the customer did not answer or come, or the
+// food ran out. Its units go back to their offers when the customer did not
+// come, and are not offered again otherwise.
 func (s *Service) Refuse(ctx context.Context, id uuid.UUID, reason RefuseReason, note string) (Order, error) {
 	note = strings.TrimSpace(note)
-	if (reason != RefuseNotSuitable && reason != RefuseWrongItems && reason != RefuseOther) || utf8.RuneCountInString(note) > 200 {
+	if !reason.valid() || utf8.RuneCountInString(note) > 200 {
 		return Order{}, ErrRefusalInvalid
 	}
 
@@ -165,13 +182,21 @@ func (s *Service) Refuse(ctx context.Context, id uuid.UUID, reason RefuseReason,
 		return Order{}, err
 	}
 
-	err = s.transition(ctx, id, func(q *db.Queries, _ pgx.Tx, o Order) error {
+	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
 		if !o.Status.open() {
 			return ErrTransitionNotAllowed
 		}
 
 		if err := q.MarkRefused(ctx, db.MarkRefusedParams{ID: id, RefuseReason: textOf(string(reason)), RefuseNote: note}); err != nil {
 			return fmt.Errorf("refusing the order: %w", err)
+		}
+
+		if reason.foodKept() {
+			for _, l := range o.Lines {
+				if err := s.offers.Return(ctx, tx, l.OfferID, l.Units); err != nil {
+					return err
+				}
+			}
 		}
 
 		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "refused", ActorID: actor(caller)})
@@ -228,15 +253,6 @@ func (s *Service) transition(ctx context.Context, id uuid.UUID, change func(*db.
 
 		return change(q, tx, orders[0])
 	})
-}
-
-// failureCode is the code of a module failure, for logs.
-func failureCode(err error) string {
-	if f, ok := platform.AsFailure(err); ok {
-		return f.Code
-	}
-
-	return ""
 }
 
 func textOf(s string) pgtype.Text { return pgtype.Text{String: s, Valid: s != ""} }

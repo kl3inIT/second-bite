@@ -13,21 +13,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const countWrongCode = `-- name: CountWrongCode :one
-UPDATE order_orders SET wrong_code_attempts = wrong_code_attempts + 1 WHERE id = $1
-RETURNING wrong_code_attempts
-`
-
-func (q *Queries) CountWrongCode(ctx context.Context, id uuid.UUID) (int32, error) {
-	row := q.db.QueryRow(ctx, countWrongCode, id)
-	var wrong_code_attempts int32
-	err := row.Scan(&wrong_code_attempts)
-	return wrong_code_attempts, err
-}
-
 const customerOrders = `-- name: CustomerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
-       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders
 WHERE customer_id = $1
@@ -48,30 +36,30 @@ type CustomerOrdersParams struct {
 }
 
 type CustomerOrdersRow struct {
-	ID                uuid.UUID
-	Number            pgtype.Int8
-	CustomerID        uuid.NullUUID
-	CustomerName      string
-	CustomerPhone     string
-	SellerID          uuid.UUID
-	CheckoutID        uuid.UUID
-	SellerName        string
-	Latitude          float64
-	Longitude         float64
-	Address           string
-	State             string
-	WindowStart       time.Time
-	WindowEnd         time.Time
-	TotalVnd          int64
-	WrongCodeAttempts int32
-	CancelReason      string
-	RefuseReason      pgtype.Text
-	RefuseNote        string
-	CreatedAt         time.Time
-	ReadyAt           *time.Time
-	CollectedAt       *time.Time
-	CancelledAt       *time.Time
-	RefusedAt         *time.Time
+	ID            uuid.UUID
+	Number        pgtype.Int8
+	CustomerID    uuid.NullUUID
+	CustomerName  string
+	CustomerPhone string
+	SellerID      uuid.UUID
+	CheckoutID    uuid.UUID
+	SellerName    string
+	Latitude      float64
+	Longitude     float64
+	Address       string
+	State         string
+	WindowStart   time.Time
+	WindowEnd     time.Time
+	TotalVnd      int64
+	Access        string
+	CancelReason  string
+	RefuseReason  pgtype.Text
+	RefuseNote    string
+	CreatedAt     time.Time
+	ReadyAt       *time.Time
+	CollectedAt   *time.Time
+	CancelledAt   *time.Time
+	RefusedAt     *time.Time
 }
 
 // A customer's orders, newest first: open ones are confirmed or ready with
@@ -108,7 +96,7 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 			&i.WindowStart,
 			&i.WindowEnd,
 			&i.TotalVnd,
-			&i.WrongCodeAttempts,
+			&i.Access,
 			&i.CancelReason,
 			&i.RefuseReason,
 			&i.RefuseNote,
@@ -130,36 +118,36 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 
 const getOrder = `-- name: GetOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
-       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders WHERE id = $1
 `
 
 type GetOrderRow struct {
-	ID                uuid.UUID
-	Number            pgtype.Int8
-	CustomerID        uuid.NullUUID
-	CustomerName      string
-	CustomerPhone     string
-	SellerID          uuid.UUID
-	CheckoutID        uuid.UUID
-	SellerName        string
-	Latitude          float64
-	Longitude         float64
-	Address           string
-	State             string
-	WindowStart       time.Time
-	WindowEnd         time.Time
-	TotalVnd          int64
-	WrongCodeAttempts int32
-	CancelReason      string
-	RefuseReason      pgtype.Text
-	RefuseNote        string
-	CreatedAt         time.Time
-	ReadyAt           *time.Time
-	CollectedAt       *time.Time
-	CancelledAt       *time.Time
-	RefusedAt         *time.Time
+	ID            uuid.UUID
+	Number        pgtype.Int8
+	CustomerID    uuid.NullUUID
+	CustomerName  string
+	CustomerPhone string
+	SellerID      uuid.UUID
+	CheckoutID    uuid.UUID
+	SellerName    string
+	Latitude      float64
+	Longitude     float64
+	Address       string
+	State         string
+	WindowStart   time.Time
+	WindowEnd     time.Time
+	TotalVnd      int64
+	Access        string
+	CancelReason  string
+	RefuseReason  pgtype.Text
+	RefuseNote    string
+	CreatedAt     time.Time
+	ReadyAt       *time.Time
+	CollectedAt   *time.Time
+	CancelledAt   *time.Time
+	RefusedAt     *time.Time
 }
 
 func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, error) {
@@ -181,7 +169,7 @@ func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, erro
 		&i.WindowStart,
 		&i.WindowEnd,
 		&i.TotalVnd,
-		&i.WrongCodeAttempts,
+		&i.Access,
 		&i.CancelReason,
 		&i.RefuseReason,
 		&i.RefuseNote,
@@ -324,36 +312,36 @@ func (q *Queries) LinesOf(ctx context.Context, orderIds []uuid.UUID) ([]OrderLin
 
 const lockOrder = `-- name: LockOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
-       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders WHERE id = $1 FOR UPDATE
 `
 
 type LockOrderRow struct {
-	ID                uuid.UUID
-	Number            pgtype.Int8
-	CustomerID        uuid.NullUUID
-	CustomerName      string
-	CustomerPhone     string
-	SellerID          uuid.UUID
-	CheckoutID        uuid.UUID
-	SellerName        string
-	Latitude          float64
-	Longitude         float64
-	Address           string
-	State             string
-	WindowStart       time.Time
-	WindowEnd         time.Time
-	TotalVnd          int64
-	WrongCodeAttempts int32
-	CancelReason      string
-	RefuseReason      pgtype.Text
-	RefuseNote        string
-	CreatedAt         time.Time
-	ReadyAt           *time.Time
-	CollectedAt       *time.Time
-	CancelledAt       *time.Time
-	RefusedAt         *time.Time
+	ID            uuid.UUID
+	Number        pgtype.Int8
+	CustomerID    uuid.NullUUID
+	CustomerName  string
+	CustomerPhone string
+	SellerID      uuid.UUID
+	CheckoutID    uuid.UUID
+	SellerName    string
+	Latitude      float64
+	Longitude     float64
+	Address       string
+	State         string
+	WindowStart   time.Time
+	WindowEnd     time.Time
+	TotalVnd      int64
+	Access        string
+	CancelReason  string
+	RefuseReason  pgtype.Text
+	RefuseNote    string
+	CreatedAt     time.Time
+	ReadyAt       *time.Time
+	CollectedAt   *time.Time
+	CancelledAt   *time.Time
+	RefusedAt     *time.Time
 }
 
 // Serializes the transitions of one order until the transaction ends.
@@ -376,7 +364,7 @@ func (q *Queries) LockOrder(ctx context.Context, id uuid.UUID) (LockOrderRow, er
 		&i.WindowStart,
 		&i.WindowEnd,
 		&i.TotalVnd,
-		&i.WrongCodeAttempts,
+		&i.Access,
 		&i.CancelReason,
 		&i.RefuseReason,
 		&i.RefuseNote,
@@ -438,6 +426,18 @@ func (q *Queries) MarkRefused(ctx context.Context, arg MarkRefusedParams) error 
 	return err
 }
 
+const markReopened = `-- name: MarkReopened :exec
+UPDATE order_orders
+SET state = 'confirmed', ready_at = NULL, collected_at = NULL, refused_at = NULL, refuse_reason = NULL, refuse_note = ''
+WHERE id = $1
+`
+
+// Takes a hand-over or a refusal back: the order is open again.
+func (q *Queries) MarkReopened(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, markReopened, id)
+	return err
+}
+
 const orderOfKey = `-- name: OrderOfKey :one
 SELECT id FROM order_orders
 WHERE customer_id IS NOT DISTINCT FROM $1::uuid AND idempotency_key = $2
@@ -461,7 +461,7 @@ func (q *Queries) OrderOfKey(ctx context.Context, arg OrderOfKeyParams) (uuid.UU
 
 const sellerOrders = `-- name: SellerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
-       longitude, address, state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders
 WHERE seller_id = $1 AND window_start >= $2 AND window_start < $3
@@ -476,30 +476,30 @@ type SellerOrdersParams struct {
 }
 
 type SellerOrdersRow struct {
-	ID                uuid.UUID
-	Number            pgtype.Int8
-	CustomerID        uuid.NullUUID
-	CustomerName      string
-	CustomerPhone     string
-	SellerID          uuid.UUID
-	CheckoutID        uuid.UUID
-	SellerName        string
-	Latitude          float64
-	Longitude         float64
-	Address           string
-	State             string
-	WindowStart       time.Time
-	WindowEnd         time.Time
-	TotalVnd          int64
-	WrongCodeAttempts int32
-	CancelReason      string
-	RefuseReason      pgtype.Text
-	RefuseNote        string
-	CreatedAt         time.Time
-	ReadyAt           *time.Time
-	CollectedAt       *time.Time
-	CancelledAt       *time.Time
-	RefusedAt         *time.Time
+	ID            uuid.UUID
+	Number        pgtype.Int8
+	CustomerID    uuid.NullUUID
+	CustomerName  string
+	CustomerPhone string
+	SellerID      uuid.UUID
+	CheckoutID    uuid.UUID
+	SellerName    string
+	Latitude      float64
+	Longitude     float64
+	Address       string
+	State         string
+	WindowStart   time.Time
+	WindowEnd     time.Time
+	TotalVnd      int64
+	Access        string
+	CancelReason  string
+	RefuseReason  pgtype.Text
+	RefuseNote    string
+	CreatedAt     time.Time
+	ReadyAt       *time.Time
+	CollectedAt   *time.Time
+	CancelledAt   *time.Time
+	RefusedAt     *time.Time
 }
 
 // A seller's orders whose window starts within [day_start, day_end), soonest
@@ -529,7 +529,7 @@ func (q *Queries) SellerOrders(ctx context.Context, arg SellerOrdersParams) ([]S
 			&i.WindowStart,
 			&i.WindowEnd,
 			&i.TotalVnd,
-			&i.WrongCodeAttempts,
+			&i.Access,
 			&i.CancelReason,
 			&i.RefuseReason,
 			&i.RefuseNote,

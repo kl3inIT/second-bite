@@ -20,6 +20,12 @@ const badgeVariants = cva(
         fresh: "h-auto bg-fresh px-2.5 py-1 text-fresh-foreground",
         soldOut: "h-auto bg-muted-foreground px-2.5 py-1 text-card",
         discount: "bg-fresh font-display text-figure-sm text-fresh-foreground",
+        // Second Bite (Figma Badge tones): a state or an action in an admin's table, always with an icon.
+        success: "h-6 bg-fresh-muted px-2.5 text-fresh-foreground",
+        warning: "h-6 bg-warning px-2.5 text-warning-foreground",
+        danger: "h-6 bg-destructive-muted px-2.5 text-destructive",
+        info: "h-6 bg-secondary px-2.5 text-secondary-foreground",
+        neutral: "h-6 bg-muted px-2.5 text-muted-foreground",
       },
     },
     defaultVariants: {

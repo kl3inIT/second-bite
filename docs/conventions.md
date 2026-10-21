@@ -114,6 +114,7 @@ The error contract follows [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.htm
   | `NOT_PERMITTED` | 403 |
   | `NOT_FOUND` | 404 |
   | `CONFLICT` | 409 |
+  | `STALE` | 412 |
   | `GONE` | 410 |
   | `LIMIT_EXCEEDED` | 429 |
   | `SERVICE_UNAVAILABLE` | 503 |
@@ -184,7 +185,7 @@ Every test must identify the observable contract and the regression it would cat
 - Logs are structured key and value records.
 - Every log carries `event` named `<module>.<subject>.<outcome>` in snake case, for example `order.collection.confirmed`. Failures add `error_type` and `error_code` (the typed code when one exists). A handled failure logs these fields without a stack trace.
 - INFO records lifecycle transitions, DEBUG stale or no-op details, WARN handled retries and expected failures worth attention, ERROR unhandled failures.
-- Never log passwords, tokens, secrets, presigned URLs, collection codes, request or response bodies, file or audio contents, personal data such as names, email addresses, phone numbers or precise locations, or a third party's error text.
+- Never log passwords, tokens, secrets, presigned URLs, request or response bodies, file or audio contents, personal data such as names, email addresses, phone numbers or precise locations, or a third party's error text.
 - Local development logs readable text; deployed environments log JSON to standard output.
 
 ## Data and security
@@ -194,7 +195,6 @@ Every test must identify the observable contract and the regression it would cat
 - Fail closed on missing configuration, invalid credentials, unknown bindings and ownership conflicts.
 - Configuration comes from environment variables prefixed `SECONDBITE_`. Deployed environments mount each secret as a file named after its variable under `/run/secrets`; a secret never sits in a container's environment, where inspection and crash reports show it.
 - Never write passwords, tokens, private keys, authorization codes, secret values or personal data to Git, docs, Linear, logs or command history. The repository is public. Record only where a secret is managed and how to retrieve it.
-- A collection code is a secret of its order: random, single use, stored only as a hash, valid only within its collection window, and refused after a bounded number of wrong attempts.
 - A customer's precise location is used to answer a query and is not stored with their account.
 - Administrative or ownership-changing behavior requires an authorization and audit design; never expose an unauthenticated convenience endpoint.
 

@@ -1,8 +1,8 @@
 // Package seller holds the businesses that sell surplus: who opened each, its
 // status set by admins, and the accounts that act for it. The flow follows
 // Open Food Network (one owner, staff added by email, five sellers per owner)
-// and Spree multi-vendor (pending until an admin activates it; rights only
-// through an active seller).
+// and Spree multi-vendor (pending, active, rejected and blocked, each refusal
+// with a reason; rights only through an active seller).
 package seller
 
 import (
@@ -18,8 +18,10 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/file"
 	"github.com/kl3inIT/second-bite/server/internal/identity"
+	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller/internal/db"
 )
@@ -35,11 +37,14 @@ const (
 // Status is where a seller stands with the admins.
 type Status string
 
-// The statuses of a seller.
+// The statuses of a seller (SEC-75). An admin approves a pending seller or
+// rejects it, blocks an active one, and approves a rejected or blocked one
+// again.
 const (
-	StatusPending Status = "pending"
-	StatusActive  Status = "active"
-	StatusBlocked Status = "blocked"
+	StatusPending  Status = "pending"
+	StatusActive   Status = "active"
+	StatusRejected Status = "rejected"
+	StatusBlocked  Status = "blocked"
 )
 
 // Role is what an account is to one seller.
@@ -53,13 +58,16 @@ const (
 
 // Seller is a business that sells surplus.
 type Seller struct {
-	ID              uuid.UUID
-	Name            string
-	Address         string
-	Latitude        float64
-	Longitude       float64
-	Phone           string
-	Status          Status
+	ID        uuid.UUID
+	Name      string
+	Address   string
+	Latitude  float64
+	Longitude float64
+	Phone     string
+	Status    Status
+	// StatusReason is what the admin told the owner when rejecting or
+	// blocking the seller; empty otherwise.
+	StatusReason    string
 	StatusChangedAt *time.Time
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
@@ -93,12 +101,21 @@ type Service struct {
 	queries  *db.Queries
 	accounts *identity.Service
 	photos   *file.Service
+	mail     *notification.Service
+	events   *platform.Events
+	trail    *audit.Service
 	logger   *slog.Logger
 }
 
 // NewService assembles the module.
-func NewService(pool *pgxpool.Pool, accounts *identity.Service, photos *file.Service, logger *slog.Logger) *Service {
-	return &Service{pool: pool, queries: db.New(pool), accounts: accounts, photos: photos, logger: logger}
+func NewService(
+	pool *pgxpool.Pool, accounts *identity.Service, photos *file.Service, mail *notification.Service,
+	events *platform.Events, trail *audit.Service, logger *slog.Logger,
+) *Service {
+	return &Service{
+		pool: pool, queries: db.New(pool), accounts: accounts, photos: photos, mail: mail, events: events,
+		trail: trail, logger: logger,
+	}
 }
 
 // Open opens a seller for the caller, who becomes its owner. It is active at
@@ -174,8 +191,8 @@ func (s *Service) Mine(ctx context.Context) ([]Seller, error) {
 	for _, r := range rows {
 		sellers = append(sellers, Seller{
 			ID: r.ID, Name: r.Name, Address: r.Address, Latitude: r.Latitude, Longitude: r.Longitude, Phone: r.Phone,
-			Status: Status(r.Status), StatusChangedAt: r.StatusChangedAt, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
-			PhotoID: nullUUID(r.PhotoID), MyRole: Role(r.Role),
+			Status: Status(r.Status), StatusReason: r.StatusReason.String, StatusChangedAt: r.StatusChangedAt,
+			CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt, PhotoID: nullUUID(r.PhotoID), MyRole: Role(r.Role),
 		})
 	}
 
@@ -329,8 +346,8 @@ func (s *Service) requireOwner(ctx context.Context, sellerID uuid.UUID) (platfor
 func fromRow(r db.GetSellerRow, role Role) Seller {
 	return Seller{
 		ID: r.ID, Name: r.Name, Address: r.Address, Latitude: r.Latitude, Longitude: r.Longitude, Phone: r.Phone,
-		Status: Status(r.Status), StatusChangedAt: r.StatusChangedAt, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
-		PhotoID: nullUUID(r.PhotoID), MyRole: role,
+		Status: Status(r.Status), StatusReason: r.StatusReason.String, StatusChangedAt: r.StatusChangedAt,
+		CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt, PhotoID: nullUUID(r.PhotoID), MyRole: role,
 	}
 }
 

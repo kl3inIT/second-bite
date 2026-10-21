@@ -1,0 +1,78 @@
+"use client";
+
+import { tableFeatures, useTable, type ColumnDef, type RowData } from "@tanstack/react-table";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+// No feature of TanStack's own: the server filters, sorts and pages (SEC-75 › Lists), and the address holds
+// what is asked, so the table only lays out the page it is given.
+const features = tableFeatures({});
+
+export type DataTableColumns<Row extends RowData> = Array<ColumnDef<typeof features, Row>>;
+
+/**
+ * One page of an admin's list in Figma's Admin/Table: a framed table with a tinted head, a row per item, and
+ * `empty` in place of the rows when the page has none. `busy` dims the rows while the next page loads (the table's `aria-busy`).
+ */
+export function DataTable<Row extends RowData>({
+  label,
+  columns,
+  rows,
+  rowKey,
+  empty,
+  busy = false,
+  footer,
+}: {
+  label: string;
+  columns: DataTableColumns<Row>;
+  rows: Row[];
+  rowKey: (row: Row) => string;
+  empty: React.ReactNode;
+  busy?: boolean;
+  footer?: React.ReactNode;
+}) {
+  const table = useTable({ features, columns, data: rows, getRowId: rowKey });
+
+  return (
+    <div className="overflow-hidden rounded-md border border-border bg-card">
+      <Table aria-label={label} aria-busy={busy}>
+        <TableHeader>
+          {table.getHeaderGroups().map((group) => (
+            <TableRow key={group.id}>
+              {group.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder ? null : <table.FlexRender header={header} />}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {rows.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={columns.length}>{empty}</TableCell>
+            </TableRow>
+          ) : (
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getAllCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    <table.FlexRender cell={cell} />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+      {footer}
+    </div>
+  );
+}

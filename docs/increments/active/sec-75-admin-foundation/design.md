@@ -105,7 +105,7 @@ Not recorded: customers' and members' actions (ordering, posting, adding staff),
 
 ### Table
 
-Migration `0014_audit_create_events.sql`.
+Migration `0016_audit_create_events.sql`.
 
 | Column | Type | Holds |
 | --- | --- | --- |
@@ -140,7 +140,7 @@ type SellerRejected struct{ Reason string `json:"reason"` }
 type SellerBlocked struct{ Reason string `json:"reason"` }
 type SellerUnblocked struct{}
 type OfferSettingsChanged struct{ Fields []string `json:"fields"` }
-type EmailSettingsChanged struct{ Provider string `json:"provider"` } // never a secret
+type EmailSettingsChanged struct{ Provider string `json:"provider"`; Fields []string `json:"fields"` } // names, never a secret
 type AdminGranted struct{ Source string `json:"source"` }            // "admin" or "command_line"
 type AdminRevoked struct{ Source string `json:"source"` }
 ```
@@ -181,8 +181,8 @@ func (s *Service) ForgetAccount(ctx context.Context, tx pgx.Tx, accountID uuid.U
 - **The command line:** `secondbite admin grant EMAIL` stays, and `secondbite admin revoke EMAIL` is new. Both record `AdminGranted` or `AdminRevoked` with `Source: "command_line"` and no actor.
 - **The API**, for SEC-62's "Quản trị viên" screen; built here, with no screen yet:
   - `GET /admin/admins`;
-  - `POST /admin/accounts/{accountId}/grant-admin`;
-  - `POST /admin/accounts/{accountId}/revoke-admin`.
+  - `POST /admin/admins {email}`, granting by address, so a person who never signed in can be named (changed while building, 21 October 2026);
+  - `POST /admin/admins/{accountId}/revoke`.
 
   These are commands, not `DELETE`, after BeyondPilot.
 - **Granting** an address that has no account creates the account, waiting for that address's code (SEC-39).
@@ -206,7 +206,7 @@ func (s *Service) ForgetAccount(ctx context.Context, tx pgx.Tx, accountID uuid.U
   - Each action is one conditional update, `UPDATE … WHERE id = @id AND status = ANY(@from)`. It replaces `SetStatus`, which today writes any status (`seller/queries.sql:44-47`).
   - From any other state the action answers 409 `SELLER_STATUS_CHANGE_NOT_ALLOWED`, translated as every failure is.
   - `activate` is renamed `approve`; this increment makes the generated clients follow.
-- **New columns** (migration `0015_seller_add_status_reason.sql`):
+- **New columns** (migration `0017_seller_add_status_reason_and_search.sql`):
   - `status` gains `rejected`;
   - `status_reason text` null, set by reject and block, cleared by approve.
 
@@ -214,7 +214,7 @@ func (s *Service) ForgetAccount(ctx context.Context, tx pgx.Tx, accountID uuid.U
 - **Telling the owner:**
   - Each change publishes `seller.StatusChangedEvent{SellerID, Status}` in the transaction. Its listener `seller.tell_owner` reads the owner's address through `identity.Accounts` and sends the email through `notification.SendEmail`.
   - The new edge is `seller → notification`. `notification` cannot listen to `seller` itself, since notification → seller → identity → notification would be a cycle.
-  - When email is not configured the job ends (`river.JobCancel`) rather than retrying. Delivery is at least once, so an owner may rarely get the same email twice.
+  - When email is not configured the job ends, the listener returning without an error, rather than retrying. Delivery is at least once, so an owner may rarely get the same email twice.
   - The email's words: "Cửa hàng {name} đã được duyệt", "chưa được duyệt: {reason}", "đã bị tạm khoá: {reason}", in both languages.
 - **The blocked owner-less seller of SEC-37:** its block keeps the reason "Chủ cửa hàng đã xoá tài khoản" and no actor. SEC-65 then refuses to approve it while it has no owner.
 
@@ -225,11 +225,11 @@ func (s *Service) ForgetAccount(ctx context.Context, tx pgx.Tx, accountID uuid.U
   - `q` matches a store's name, address or phone.
   - `page` starts at 1; `size` runs from 1 to 100, 25 by default.
 - **Answer:** `{items, page, pageSize, total}`.
-- **Order:** fixed, pending first, then the newest change, then `id`. A page past the end is empty, not an error.
+- **Order:** fixed: pending first, the oldest first as a queue; then the newest change; then `id`. A page past the end is empty, not an error.
 - **In sqlc** (research › The admin API):
   - `status = ANY(sqlc.narg(statuses)::text[])` when the list is given, and `count(*) OVER () AS total`;
   - when a page past the first comes back empty, a separate count, so the total is never a wrong 0.
-- **Search** without accents works as offer search does: the store's name and address are folded by `offer/search_text.go`'s rule into a generated column. If sharing that rule would need a new edge, the rule moves to `platform`.
+- **Search** without accents: a SQL function, `seller_fold`, folds the store's name, address and phone into a generated column, and the query by the same function (changed while building: offer's Go rule indexes lexemes for ranking, which a list of stores does not need).
 - **Each item** carries the store's name, address, phone, location, status, reason, created and changed times, and its owner's email for admins.
 
 ## Settings

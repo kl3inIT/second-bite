@@ -1,5 +1,5 @@
 // Package order holds what customers order: units of one seller's offers,
-// collected at the counter with a code within one window. The rules are in
+// collected at the counter within one window. The rules are in
 // the SEC-15 design: an order is confirmed when it is placed, as in Too Good
 // To Go, Karrot and Open Food Network; expiry is read from the window in every
 // query, as offer reads closed.
@@ -42,15 +42,34 @@ func (s Status) open() bool { return s == StatusConfirmed || s == StatusReady }
 // RefuseReason is why staff did not hand an order over.
 type RefuseReason string
 
-// The reasons to refuse an order.
+// The reasons to refuse an order. The first two are about the food at the
+// counter; the others are the pilot's: no answer on the phone, no show, too
+// late, out of food.
 const (
 	RefuseNotSuitable RefuseReason = "not_suitable"
 	RefuseWrongItems  RefuseReason = "wrong_items"
+	RefuseNoAnswer    RefuseReason = "no_answer"
+	RefuseNoShow      RefuseReason = "no_show"
+	RefuseLate        RefuseReason = "late"
+	RefuseSoldOut     RefuseReason = "sold_out"
 	RefuseOther       RefuseReason = "other"
 )
 
-// maxCodeAttempts is how many wrong codes lock an order's code.
-const maxCodeAttempts = 3
+// valid tells whether staff may give r.
+func (r RefuseReason) valid() bool {
+	switch r {
+	case RefuseNotSuitable, RefuseWrongItems, RefuseNoAnswer, RefuseNoShow, RefuseLate, RefuseSoldOut, RefuseOther:
+		return true
+	}
+
+	return false
+}
+
+// foodKept tells whether the food of an order refused for r is still fit to
+// sell: the customer did not come, so its units go back to the offer.
+func (r RefuseReason) foodKept() bool {
+	return r == RefuseNoAnswer || r == RefuseNoShow || r == RefuseLate
+}
 
 // vietnam is the pilot's time zone, which keeps no daylight saving time.
 var vietnam = time.FixedZone("Asia/Ho_Chi_Minh", 7*60*60)
@@ -82,14 +101,11 @@ type Order struct {
 	CancelReason    string
 	RefuseReason    RefuseReason
 	RefuseNote      string
-	// CodeAttemptsLeft is how many wrong codes staff may still enter.
-	CodeAttemptsLeft int
-	// Code is the collection code, set only for the order's customer once it
-	// may be shown.
-	Code string
 	// Access proves the order is theirs to whoever placed it, set only for
 	// them.
 	Access string
+	// access is the order's stored access, whoever reads it.
+	access string
 }
 
 // Number is how people read an order's number aloud and search for it.
@@ -112,26 +128,17 @@ type Service struct {
 	queries *db.Queries
 	offers  *offer.Service
 	sellers *seller.Service
-	codeKey []byte
 	logger  *slog.Logger
 	now     func() time.Time
 }
 
-// NewService assembles the module. codeKey keys the collection codes, which
-// are derived from each order and never stored.
-func NewService(pool *pgxpool.Pool, offers *offer.Service, sellers *seller.Service, codeKey []byte, logger *slog.Logger) (*Service, error) {
-	if len(codeKey) < 32 {
-		return nil, errors.New("order: the collection code key must be at least 32 bytes")
-	}
-
-	return &Service{
-		pool: pool, queries: db.New(pool), offers: offers, sellers: sellers, codeKey: codeKey, logger: logger, now: time.Now,
-	}, nil
+// NewService assembles the module.
+func NewService(pool *pgxpool.Pool, offers *offer.Service, sellers *seller.Service, logger *slog.Logger) *Service {
+	return &Service{pool: pool, queries: db.New(pool), offers: offers, sellers: sellers, logger: logger, now: time.Now}
 }
 
 // Get returns an order to its customer, signed in or holding its access, to
-// the seller's people and to admins; the code only to its customer, once it
-// may be shown.
+// the seller's people and to admins; its access only to its customer.
 func (s *Service) Get(ctx context.Context, id uuid.UUID, access string) (Order, error) {
 	o, err := s.read(ctx, id)
 	if err != nil {
@@ -158,7 +165,7 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID, access string) (Order, 
 func (s *Service) isCustomer(ctx context.Context, o Order, access string) bool {
 	caller, signedIn := platform.CallerFrom(ctx)
 
-	return (signedIn && o.CustomerID.Valid && o.CustomerID.UUID == caller.AccountID) || s.accessMatches(o.ID, access)
+	return (signedIn && o.CustomerID.Valid && o.CustomerID.UUID == caller.AccountID) || o.accessMatches(access)
 }
 
 // Which narrows a customer's orders: those still to collect, or those ended.
@@ -285,25 +292,13 @@ func (s *Service) withLines(ctx context.Context, orders []Order) error {
 	return nil
 }
 
-// shown is what a reader may see of o: to its customer, its access and, once
-// it may be shown, the code.
+// shown is what a reader may see of o: to its customer, also its access.
 func (s *Service) shown(o Order, customer bool) Order {
-	if !customer {
-		return o
-	}
-
-	o.Access = s.access(o.ID)
-	if s.codeShown(o) {
-		o.Code = s.code(o.ID)
+	if customer {
+		o.Access = o.access
 	}
 
 	return o
-}
-
-// codeShown tells whether an order's customer sees its code: once the order is
-// ready or its window has opened, while it is open and its code not locked.
-func (s *Service) codeShown(o Order) bool {
-	return o.Status.open() && o.CodeAttemptsLeft > 0 && (o.Status == StatusReady || !s.now().Before(o.WindowStart))
 }
 
 func (s *Service) fromRow(r db.GetOrderRow) Order {
@@ -315,7 +310,7 @@ func (s *Service) fromRow(r db.GetOrderRow) Order {
 		Status:          Status(r.State), TotalVND: r.TotalVnd, WindowStart: r.WindowStart, WindowEnd: r.WindowEnd,
 		CreatedAt: r.CreatedAt, ReadyAt: r.ReadyAt, CollectedAt: r.CollectedAt, CancelledAt: r.CancelledAt,
 		RefusedAt: r.RefusedAt, CancelReason: r.CancelReason, RefuseReason: RefuseReason(r.RefuseReason.String),
-		RefuseNote: r.RefuseNote, CodeAttemptsLeft: maxCodeAttempts - int(r.WrongCodeAttempts),
+		RefuseNote: r.RefuseNote, access: r.Access,
 	}
 
 	if o.Status.open() && !o.WindowEnd.After(s.now()) {

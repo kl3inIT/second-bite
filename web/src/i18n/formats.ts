@@ -14,6 +14,8 @@ export const formats = {
     monthOfYear: { month: "2-digit" },
     /** "18 tháng 10, 2026", "October 18, 2026": the day a document changed. */
     date: { day: "numeric", month: "long", year: "numeric" },
+    /** "20/10/2026", "10/20/2026": a day in a table or a range. */
+    day: { day: "2-digit", month: "2-digit", year: "numeric" },
   },
   number: {
     /** "350 m": how far a seller is, under a kilometre. */

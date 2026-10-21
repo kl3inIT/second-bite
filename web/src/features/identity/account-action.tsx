@@ -14,7 +14,7 @@ export async function AccountAction({ returnTo }: { returnTo: string }) {
     return (
       <div className="flex items-center gap-2">
         <Link
-          href="/open-store"
+          href="/stores"
           className="group/open-store -my-1.5 flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card focus-visible:outline-none"
         >
           <span className="flex h-8 items-center rounded-full bg-secondary px-3 text-label-strong whitespace-nowrap text-secondary-foreground transition-colors group-hover/open-store:bg-secondary-hover">

@@ -9,20 +9,14 @@ import (
 	"time"
 )
 
-// orderAdminEmail is a fourth admin, so this check signs in apart from the
-// others that run beside it.
-const orderAdminEmail = "order.admin@example.com"
-
 type orderResponse struct {
-	ID               string `json:"id"`
-	Number           string `json:"number"`
-	Status           string `json:"status"`
-	TotalVND         int64  `json:"totalVnd"`
-	Code             string `json:"code"`
-	CodeAttemptsLeft int    `json:"codeAttemptsLeft"`
-	CustomerPhone    string `json:"customerPhone"`
-	Access           string `json:"access"`
-	Lines            []struct {
+	ID            string `json:"id"`
+	Number        string `json:"number"`
+	Status        string `json:"status"`
+	TotalVND      int64  `json:"totalVnd"`
+	CustomerPhone string `json:"customerPhone"`
+	Access        string `json:"access"`
+	Lines         []struct {
 		Name  string `json:"name"`
 		Units int    `json:"units"`
 	} `json:"lines"`
@@ -97,7 +91,7 @@ func placeTwice(t *testing.T, svc service, customer http.Header, offerID string)
 	send(t, http.MethodPost, svc.base+"/orders", placing, twoUnits).decode(t, http.StatusCreated, &placed)
 
 	if placed.Status != "confirmed" || placed.TotalVND != 30_000 || len(placed.Number) < 4 || placed.Number[:3] != "SB-" ||
-		len(placed.Lines) != 1 || placed.Lines[0].Units != 2 || len(placed.Code) != 4 {
+		len(placed.Lines) != 1 || placed.Lines[0].Units != 2 || placed.Access == "" {
 		t.Fatalf("placed %+v", placed)
 	}
 
@@ -142,27 +136,21 @@ func placeWithoutAccount(t *testing.T, svc service, offerID string) {
 	}
 }
 
-// handOver has the seller's owner give a wrong code, mark the order ready,
-// then hand it over against the code the customer was shown.
+// handOver has the seller's owner mark the order ready, then hand it over.
 func handOver(t *testing.T, svc service, owner http.Header, placed orderResponse) {
 	t.Helper()
 
 	orderURL := svc.base + "/orders/" + placed.ID
 
-	if p := send(t, http.MethodPost, orderURL+"/hand-over", owner, map[string]string{"code": wrongCollectionCode(placed.Code)}).
-		problem(t, http.StatusConflict); p.Code != "ORDER_CODE_WRONG" {
-		t.Errorf("a wrong code: %q", p.Code)
-	}
-
 	var ready, collected orderResponse
 
 	send(t, http.MethodPost, orderURL+"/ready", owner, nil).decode(t, http.StatusOK, &ready)
 
-	if ready.Status != "ready" || ready.Code != "" || ready.CodeAttemptsLeft != 2 {
+	if ready.Status != "ready" || ready.Access != "" {
 		t.Errorf("ready, as staff see it: %+v", ready)
 	}
 
-	send(t, http.MethodPost, orderURL+"/hand-over", owner, map[string]string{"code": placed.Code}).decode(t, http.StatusOK, &collected)
+	send(t, http.MethodPost, orderURL+"/hand-over", owner, nil).decode(t, http.StatusOK, &collected)
 
 	if collected.Status != "collected" {
 		t.Errorf("handed over %+v", collected)
@@ -177,9 +165,6 @@ func postedOffer(t *testing.T, svc service, owner http.Header) string {
 	var opened sellerResponse
 
 	send(t, http.MethodPost, svc.base+"/sellers", owner, newSeller("La Paris", "0912 345 671")).decode(t, http.StatusCreated, &opened)
-
-	admin := bearer(signIn(t, svc, orderAdminEmail).Token)
-	send(t, http.MethodPost, svc.base+"/admin/sellers/"+opened.ID+"/activate", admin, nil).decode(t, http.StatusOK, &struct{}{})
 
 	var buf bytes.Buffer
 	if err := png.Encode(&buf, image.NewGray(image.Rect(0, 0, 64, 48))); err != nil {
@@ -208,13 +193,4 @@ func postedOffer(t *testing.T, svc service, owner http.Header) string {
 	}).decode(t, http.StatusCreated, &posted)
 
 	return posted.ID
-}
-
-// wrongCollectionCode is a four-digit code other than code.
-func wrongCollectionCode(code string) string {
-	if code == "0000" {
-		return "0001"
-	}
-
-	return "0000"
 }

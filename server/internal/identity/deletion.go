@@ -87,35 +87,7 @@ func (s *Service) DeleteAccount(ctx context.Context, challengeID uuid.UUID, code
 	}
 
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
-		q := s.queries.WithTx(tx)
-
-		if err := q.LockEmail(ctx, account.Email); err != nil {
-			return fmt.Errorf("locking the address: %w", err)
-		}
-
-		used, err := q.DeleteChallenge(ctx, challengeID)
-		if err != nil {
-			return fmt.Errorf("using the challenge: %w", err)
-		}
-
-		if used == 0 {
-			return ErrChallengeGone // another request used the code first
-		}
-
-		if err := q.DeleteChallengesOf(ctx, account.Email); err != nil {
-			return fmt.Errorf("deleting the address's codes: %w", err)
-		}
-
-		deleted, err := q.DeleteAccount(ctx, account.ID)
-		if err != nil {
-			return fmt.Errorf("deleting the account: %w", err)
-		}
-
-		if deleted == 0 {
-			return ErrAccountNotFound
-		}
-
-		return platform.Publish(ctx, tx, s.events, AccountDeletedEvent{AccountID: account.ID})
+		return s.deleteAccountIn(ctx, tx, account, challengeID)
 	})
 	if err != nil {
 		return err
@@ -127,6 +99,45 @@ func (s *Service) DeleteAccount(ctx context.Context, challengeID uuid.UUID, code
 	)
 
 	return nil
+}
+
+// deleteAccountIn uses the challenge and deletes the account in tx: its
+// address's codes, the account with its sessions and links, its name in the
+// audit trail; and writes AccountDeletedEvent.
+func (s *Service) deleteAccountIn(ctx context.Context, tx pgx.Tx, account Account, challengeID uuid.UUID) error {
+	q := s.queries.WithTx(tx)
+
+	if err := q.LockEmail(ctx, account.Email); err != nil {
+		return fmt.Errorf("locking the address: %w", err)
+	}
+
+	used, err := q.DeleteChallenge(ctx, challengeID)
+	if err != nil {
+		return fmt.Errorf("using the challenge: %w", err)
+	}
+
+	if used == 0 {
+		return ErrChallengeGone // another request used the code first
+	}
+
+	if err := q.DeleteChallengesOf(ctx, account.Email); err != nil {
+		return fmt.Errorf("deleting the address's codes: %w", err)
+	}
+
+	deleted, err := q.DeleteAccount(ctx, account.ID)
+	if err != nil {
+		return fmt.Errorf("deleting the account: %w", err)
+	}
+
+	if deleted == 0 {
+		return ErrAccountNotFound
+	}
+
+	if err := s.trail.ForgetAccount(ctx, tx, account.ID); err != nil {
+		return err
+	}
+
+	return platform.Publish(ctx, tx, s.events, AccountDeletedEvent{AccountID: account.ID})
 }
 
 // checkCode spends a guess on the challenge of purpose and compares the code,

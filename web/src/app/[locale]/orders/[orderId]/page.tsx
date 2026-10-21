@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { OrdersHeader, OrdersHeaderFallback } from "@/features/orders/orders-header";
+import { OrdersHeader } from "@/features/orders/orders-header";
 import { EndedOrder, hasEnded, OpenOrder } from "@/features/orders/order-view";
 import { formatPrice } from "@/features/offers/format";
 import type { Order } from "@/features/orders/order";
@@ -23,11 +23,9 @@ export default function OrderPage({ params }: PageProps<"/[locale]/orders/[order
 
   return (
     <>
-      {/* The order's address is known only at request time, so the header, which reads it to switch the
-          language, streams in with the order. */}
-      <Suspense fallback={<OrdersHeaderFallback />}>
-        <Header returnTo={returnTo} />
-      </Suspense>
+      {/* The order's address is known only at request time: the account, which reads it to come back here
+          after signing in, streams in inside the header's static shell. */}
+      <OrdersHeader returnTo={returnTo} />
       <main className="flex-1 pb-10">
         <Suspense
           fallback={
@@ -41,10 +39,6 @@ export default function OrderPage({ params }: PageProps<"/[locale]/orders/[order
       </main>
     </>
   );
-}
-
-async function Header({ returnTo }: { returnTo: Promise<string> }) {
-  return <OrdersHeader returnTo={await returnTo} />;
 }
 
 async function OrderView({ params }: { params: Promise<{ orderId: string }> }) {

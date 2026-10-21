@@ -104,6 +104,18 @@ func (s *Service) placed(ctx context.Context, id uuid.UUID) (Order, error) {
 	return s.shown(o, true), nil
 }
 
+// takeFailure is an offer's failure to give units, as the order module says it.
+func takeFailure(err error) error {
+	switch {
+	case errors.Is(err, offer.ErrSoldOut):
+		return ErrOfferSoldOut
+	case errors.Is(err, offer.ErrUnavailable), errors.Is(err, offer.ErrNotFound):
+		return ErrOfferUnavailable
+	}
+
+	return err
+}
+
 // place takes the units and writes the order inside tx.
 func (s *Service) place(
 	ctx context.Context, tx pgx.Tx, customer uuid.NullUUID, checkout uuid.UUID, contact Contact, key string,
@@ -113,14 +125,8 @@ func (s *Service) place(
 
 	for _, w := range wanted {
 		t, err := s.offers.Take(ctx, tx, w.OfferID, w.Units)
-
-		switch {
-		case errors.Is(err, offer.ErrSoldOut):
-			return uuid.Nil, ErrOfferSoldOut
-		case errors.Is(err, offer.ErrUnavailable), errors.Is(err, offer.ErrNotFound):
-			return uuid.Nil, ErrOfferUnavailable
-		case err != nil:
-			return uuid.Nil, err
+		if err != nil {
+			return uuid.Nil, takeFailure(err)
 		}
 
 		taken = append(taken, t)

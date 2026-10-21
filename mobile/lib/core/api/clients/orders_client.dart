@@ -6,7 +6,6 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/cancel_order_request.dart';
-import '../models/hand_over_order_request.dart';
 import '../models/order_body.dart';
 import '../models/orders_output_body.dart';
 import '../models/orders_state.dart';
@@ -43,7 +42,7 @@ abstract class OrdersClient {
 
   /// An order.
   ///
-  /// To its customer, signed in or sending its access, with the code once it may be shown; to the seller's people and to admins.
+  /// To its customer, signed in or sending its access; to the seller's people and to admins.
   ///
   /// [orderAccess] - The order's access, for its customer who did not sign in.
   @GET('/orders/{orderId}')
@@ -64,16 +63,13 @@ abstract class OrdersClient {
     @Header('Order-Access') String? orderAccess,
   });
 
-  /// Hand an order over against its collection code.
+  /// Hand an order over.
   ///
-  /// Within the window. A wrong code is counted; the third locks the code.
+  /// Within the window, once staff have matched the collector to the order by its QR code or by the name and phone number on it.
   @POST('/orders/{orderId}/hand-over')
-  Future<OrderBody> handOverOrder({
-    @Path('orderId') required String orderId,
-    @Body() required HandOverOrderRequest body,
-  });
+  Future<OrderBody> handOverOrder({@Path('orderId') required String orderId});
 
-  /// Mark an order ready, which shows its customer the code
+  /// Mark an order ready, which tells its customer to come
   @POST('/orders/{orderId}/ready')
   Future<OrderBody> markOrderReady({@Path('orderId') required String orderId});
 
@@ -83,6 +79,12 @@ abstract class OrdersClient {
     @Path('orderId') required String orderId,
     @Body() required RefuseOrderRequest body,
   });
+
+  /// Take a hand-over or a refusal back.
+  ///
+  /// The order is open again, and the units a refusal had returned are taken again, or it fails when they are gone. An order its customer cancelled, or whose window is over, stays as it is.
+  @POST('/orders/{orderId}/reopen')
+  Future<OrderBody> reopenOrder({@Path('orderId') required String orderId});
 
   /// A seller's orders of one day, soonest first, to its people and admins.
   ///

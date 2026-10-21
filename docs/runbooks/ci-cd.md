@@ -81,7 +81,7 @@ Under `/apps/secondbite-staging`:
 | `incoming` | `secondbite-ci`, `0700` | One directory per uploaded release; `deploy.sh` keeps the current and previous ones |
 | `deployments` | root, `0700` | `lock`, `current.env`, `previous.env` |
 | `backups` | root, `0700` | Pre-deployment dumps (the five newest) and nightly dumps (the 14 newest) |
-| `secrets` | root, `0700` | `database-password`, `email-settings-key`, `sign-in-code-key` and `collection-code-key`, each owned by uid 65532 (the server's distroless `nonroot` user) with mode `0400` |
+| `secrets` | root, `0700` | `database-password`, `email-settings-key` and `sign-in-code-key`, each owned by uid 65532 (the server's distroless `nonroot` user) with mode `0400` |
 | `.env.staging` | root, `0600` | The non-secret values of [`staging.env.example`](../../infrastructure/deployment/staging.env.example) |
 
 ### Provision the host once
@@ -121,9 +121,8 @@ cd /apps/secondbite-staging/secrets
 sudo sh -c 'umask 077; openssl rand -hex 32 > database-password'
 sudo sh -c 'umask 077; openssl rand -base64 32 > email-settings-key'
 sudo sh -c 'umask 077; openssl rand -base64 32 > sign-in-code-key'
-sudo sh -c 'umask 077; openssl rand -base64 32 > collection-code-key'
-sudo chown 65532:65532 database-password email-settings-key sign-in-code-key collection-code-key
-sudo chmod 0400 database-password email-settings-key sign-in-code-key collection-code-key
+sudo chown 65532:65532 database-password email-settings-key sign-in-code-key
+sudo chmod 0400 database-password email-settings-key sign-in-code-key
 sudo install -m 0600 /dev/null /apps/secondbite-staging/.env.staging
 ```
 
@@ -131,7 +130,6 @@ What each secret does ([backend runbook](backend.md)):
 - `database-password` sets the password only when PostgreSQL first creates its data directory. Changing the file later does not change the database.
 - Replacing `email-settings-key` makes the stored email provider key unreadable until an admin enters it again.
 - Replacing `sign-in-code-key` voids the codes sent in the last 15 minutes.
-- Replacing `collection-code-key` changes the code of every open order, which customers may already have noted; replace it when no order is open.
 
 **The nightly backup.** Install it from a checkout of this repository:
 

@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
-import { AppHeader } from "@/components/app-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentAccount } from "@/features/identity/current-account";
 import { OpenStoreForm } from "@/features/seller/open-store-form";
+import { PushedScreenHeader } from "@/features/seller/pushed-screen-header";
 import { redirect } from "@/i18n/navigation";
 import { pageMetadata } from "@/lib/seo";
 
@@ -21,7 +21,9 @@ export async function generateMetadata({
 export default function OpenStorePage() {
   return (
     <>
-      <AppHeader />
+      <Suspense fallback={null}>
+        <PushedScreenHeader namespace="OpenStore" back="/stores" />
+      </Suspense>
       <main className="mx-auto flex w-full max-w-130 flex-1 flex-col px-4 pt-2 pb-14 md:pt-8">
         <Suspense fallback={<Skeleton shape="card" className="h-130" />}>
           <OpenStore />
@@ -40,7 +42,7 @@ async function OpenStore() {
     });
   }
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+    <div className="rounded-2xl border border-border bg-card p-4 max-md:mb-24 sm:p-8">
       <OpenStoreForm />
     </div>
   );

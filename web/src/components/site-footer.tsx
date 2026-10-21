@@ -12,7 +12,9 @@ export function SiteFooter() {
   const t = useTranslations("Footer");
 
   return (
-    <footer className="mt-8 hidden border-t border-border md:block">
+    // A page that is a screen of its own (the sign-in screen, the admin's frame) marks itself
+    // `data-no-footer`, and the footer stays out of it.
+    <footer className="mt-8 border-t border-border group-has-[[data-no-footer]]/body:hidden max-md:hidden">
       <div className="mx-auto flex w-full max-w-5xl justify-between gap-8 px-4 pt-8 pb-6 xl:max-w-300">
         <div className="flex max-w-sm flex-col gap-2">
           <Link

@@ -19,6 +19,7 @@ export function ShowDishButton({ dishId }: { dishId: string }) {
     <Button
       type="button"
       variant="outline"
+      className="max-md:flex-1"
       disabled={pending}
       onClick={() =>
         startTransition(async () => {

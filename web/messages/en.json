@@ -378,8 +378,9 @@
     "readyUntil": "Ready · until {until}",
     "collectFrom": "Collect from {from}",
     "payOnCollect": "Pay when you collect",
-    "seeCode": "See collection code {code}",
     "seeOrder": "See order",
+    "collectAs": "Collect with your name and phone number",
+    "collectHint": "Give your name and phone number at the counter.",
     "impact": "{meals, plural, one {# good meal} other {# good meals}}, eaten to the last bite",
     "impactSaved": "You saved {saved} on the original prices",
     "status": {
@@ -418,9 +419,6 @@
     "details": "Order details",
     "counterToday": "{address} · {from}–{until} today",
     "units": "{units, plural, one {# portion} other {# portions}}",
-    "code": "Collection code",
-    "codeHint": "Show the code at the counter. It works once.",
-    "codeLater": "The code shows when the shop marks it ready, or from {from}.",
     "directionsLabel": "The way to the counter",
     "placeLine": "{seller} · {address}",
     "placeHint": "Tasco Mall Long Biên",
@@ -443,8 +441,8 @@
       "title": "How to collect",
       "goTitle": "Go to the counter",
       "goBody": "The {seller} counter, Tasco Mall",
-      "codeTitle": "Read your code",
-      "codeBody": "The staff enter your code",
+      "nameTitle": "Give your name and number",
+      "nameBody": "The staff find your order",
       "payTitle": "Check, then pay",
       "payBody": "Cash or a transfer to the shop"
     },
@@ -469,6 +467,10 @@
       "reason": {
         "not_suitable": "the food was no longer fit",
         "wrong_items": "the food did not match the order",
+        "no_answer": "the shop could not reach you by phone",
+        "no_show": "you did not come to collect",
+        "late": "the collection time had passed",
+        "sold_out": "the food ran out",
         "other": "another reason"
       },
       "expired": "Collection time over",
@@ -714,11 +716,69 @@
     "closed": "Pick-up over · sold {sold}/{units} {unit} · {price}",
     "withdrawn": "Withdrawn · {price}"
   },
-  "StoreSoon": {
-    "soon": "Coming soon",
-    "orders": {
-      "title": "Orders",
-      "body": "Customers' orders will show here once ordering is ready."
+  "StoreOrders": {
+    "title": "Orders",
+    "portions": "portions",
+    "summaryHolding": "Holding {units} portions · {people} customers",
+    "summaryDelivered": "Today {count} orders · {amount}",
+    "summaryCancelled": "Today {count} cancelled",
+    "searchLabel": "Search orders",
+    "searchPlaceholder": "Search by name, phone number or dish",
+    "searchCount": "{count} results",
+    "tabs": "Order groups",
+    "tab": {
+      "holding": "Holding · {count}",
+      "delivered": "Delivered · {count}",
+      "cancelled": "Cancelled · {count}"
+    },
+    "empty": {
+      "holding": "Nobody holds a dish on this day. When a customer does, their name and phone number show here.",
+      "delivered": "Nothing was delivered on this day.",
+      "cancelled": "No order was cancelled on this day."
+    },
+    "emptySearch": "No order matches “{query}”.",
+    "amount": "Amount",
+    "units": "{count} {unit}",
+    "copyPhone": "Copy the phone number {phone}",
+    "copied": "Phone number copied.",
+    "deliver": "Delivered",
+    "cancel": "Cancel order",
+    "reopen": "Undo",
+    "deliveredTo": "Delivered to {name}",
+    "failed": "That did not work. Try again.",
+    "reference": "Reference: {id}",
+    "reasonLabel": "Reason for cancelling",
+    "reason": {
+      "no_answer": "No answer",
+      "no_show": "Did not come",
+      "late": "Too late",
+      "sold_out": "Out of food",
+      "other": "Another reason",
+      "not_suitable": "Food no longer suitable",
+      "wrong_items": "Wrong dish"
+    },
+    "ended": {
+      "customer": "Cancelled by the customer on the customer site",
+      "expired": "Collection time ran out",
+      "reason": "Reason: {reason}",
+      "note": "Reason: {reason} · {note}"
+    },
+    "cancelDialog": {
+      "title": "Cancel {name}'s order?",
+      "body": "Choose a reason. When the customer did not come, the portions go back on sale.",
+      "note": "Write the reason",
+      "back": "Go back",
+      "confirm": "Cancel order"
+    },
+    "day": {
+      "label": "Day shown",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "dayBefore": "Two days ago",
+      "previous": "Previous day",
+      "next": "Next day",
+      "pick": "Pick a day",
+      "quick": "Quick choice"
     }
   },
   "PostDrawer": {
@@ -853,5 +913,200 @@
     "original": "Original price (VND, optional)",
     "originalPlaceholder": "For example: 95.000",
     "originalInvalid": "An original price from 1.001đ, or leave it empty."
+  },
+  "Admin": {
+    "home": "Second Bite, admin",
+    "tag": "Admin",
+    "collapse": "Collapse the sidebar",
+    "expand": "Expand the sidebar",
+    "language": "Tiếng Việt",
+    "signOut": "Sign out",
+    "skip": "Skip the sidebar",
+    "breadcrumb": "Where you are",
+    "nav": {
+      "audit": "Activity log",
+      "settings": "Settings"
+    },
+    "notFound": {
+      "crumb": "Not found",
+      "title": "This page was not found",
+      "body": "This address is not part of the admin pages.",
+      "back": "Back to the admin"
+    },
+    "menu": "Admin menu",
+    "list": {
+      "range": "Showing {first}–{last} of {total} {noun}",
+      "pages": "Pages",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "audit": {
+      "title": "Activity log",
+      "noun": "actions",
+      "filter": {
+        "search": "Search stores, emails",
+        "actor": "By",
+        "anyone": "Anyone",
+        "action": "Action",
+        "anything": "Any",
+        "days": "Days",
+        "anytime": "Any time"
+      },
+      "column": {
+        "time": "Time",
+        "actor": "By",
+        "action": "Action",
+        "resource": "On",
+        "change": "Change (before → after)"
+      },
+      "action": {
+        "sellerApprove": "Store approved",
+        "sellerReject": "Store rejected",
+        "sellerBlock": "Store blocked",
+        "sellerUnblock": "Store unblocked",
+        "adminGrant": "Admin granted",
+        "adminRevoke": "Admin revoked",
+        "offerSettingsChange": "Post settings changed",
+        "emailSettingsChange": "Email settings changed"
+      },
+      "resource": {
+        "seller": "Store",
+        "account": "Account",
+        "offer_settings": "Post settings",
+        "email_settings": "Email settings"
+      },
+      "commandLine": "Command line",
+      "deletedAccount": "Deleted account",
+      "change": {
+        "approved": "→ Active",
+        "rejected": "Pending → Rejected",
+        "blocked": "Active → Blocked",
+        "unblocked": "Blocked → Active",
+        "granted": "Customer → Admin",
+        "revoked": "Admin → Customer",
+        "fromCommandLine": "From the server's command line",
+        "reason": "Reason: {reason}",
+        "value": "{field}: {from} → {to}",
+        "secret": "{field}: changed",
+        "empty": "empty"
+      },
+      "field": {
+        "minDiscountPercent": "Minimum discount",
+        "defaultRadiusKm": "Default radius",
+        "maxRadiusKm": "Maximum radius",
+        "windowMinMinutes": "Shortest pickup window",
+        "windowMaxMinutes": "Longest pickup window",
+        "startsWithinHours": "Starts within",
+        "provider": "Provider",
+        "senderAddress": "Sender address",
+        "senderName": "Sender name",
+        "smtpHost": "SMTP server",
+        "smtpPort": "SMTP port",
+        "smtpSecurity": "SMTP security",
+        "smtpUsername": "SMTP user",
+        "smtpPassword": "SMTP password",
+        "brevoApiKey": "Brevo API key"
+      },
+      "unit": {
+        "percent": "{value}%",
+        "km": "{value} km",
+        "minutes": "{value} min",
+        "hours": "{value} h"
+      },
+      "empty": {
+        "title": "No actions yet",
+        "body": "When admins approve or block a store or change a setting, it shows here."
+      },
+      "noResults": {
+        "title": "No actions found",
+        "body": "No action matches the filters.",
+        "clear": "Clear the filters"
+      }
+    },
+    "closeToast": "Close notification",
+    "settings": {
+      "title": "Settings",
+      "nav": "Settings pages",
+      "email": "Email"
+    },
+    "email": {
+      "title": "Email",
+      "provider": {
+        "title": "Provider",
+        "label": "Email provider",
+        "smtp": "SMTP",
+        "brevo": "Brevo",
+        "using": "Using {provider}",
+        "notConfigured": "Not set up"
+      },
+      "sender": {
+        "title": "Sender",
+        "address": "Sender address",
+        "name": "Sender name"
+      },
+      "smtp": {
+        "title": "SMTP server",
+        "host": "Host",
+        "port": "Port",
+        "security": "Security",
+        "none": "No encryption",
+        "starttls": "STARTTLS",
+        "tls": "TLS",
+        "user": "User",
+        "password": "Password",
+        "passwordNew": "Enter the password"
+      },
+      "brevo": {
+        "title": "Brevo",
+        "key": "API key",
+        "keyNew": "Paste Brevo's API key"
+      },
+      "kept": "Saved · leave empty to keep it",
+      "test": {
+        "title": "Test email",
+        "to": "Send to",
+        "hint": "Uses the saved settings. Your own address by default; change it to try another mailbox (Gmail, Outlook…).",
+        "saveFirst": "Save your changes before testing: the test email uses the saved settings.",
+        "notConfigured": "Save the settings first, then send a test.",
+        "invalid": "Enter a valid email address.",
+        "send": "Send test email",
+        "sent": "Test email sent to {to}",
+        "sentHint": "Check the mailbox; if it is not there, look in Spam.",
+        "failed": "Could not send to {to}",
+        "unknown": "Not sent yet. Try again shortly.",
+        "reference": "reference {reference}"
+      },
+      "footer": {
+        "updated": "Last updated at {time}, {day}",
+        "never": "Never saved",
+        "dirty": "You have unsaved changes",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "create": "Save settings",
+        "saved": "Email settings saved",
+        "savedHint": "The next email uses them."
+      },
+      "conflict": {
+        "title": "Someone just saved the email settings",
+        "body": "Your changes are not saved. Reload to see the new version, then edit again.",
+        "reload": "Reload"
+      },
+      "refused": "Not saved",
+      "failed": "Not saved yet. Try again shortly.",
+      "reference": "reference {reference}",
+      "errors": {
+        "senderAddress": "Enter a valid email address.",
+        "senderName": "Enter the sender name, up to 100 characters.",
+        "smtpHost": "Enter the SMTP server's host.",
+        "smtpPort": "The port is a number from 1 to 65535.",
+        "passwordNeeded": "Enter the password for this user.",
+        "passwordDropped": "The server changed, so the saved password will be dropped. Enter the password for the new server.",
+        "noTls": "With a user and password, use STARTTLS or TLS.",
+        "brevoKey": "Enter Brevo's API key."
+      }
+    },
+    "group": {
+      "users": "Users"
+    }
   }
 }

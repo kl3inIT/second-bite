@@ -514,7 +514,9 @@ async function auth(request, response, url) {
       return true;
     }
     const email = decodeURIComponent(String(challengeId).slice(3));
-    const account = { id: "ac-stub", email, displayName: "", role: "customer" };
+    // An address that starts with "admin" is an admin's, as `secondbite admin grant` makes one.
+    const role = email.startsWith("admin") ? "admin" : "customer";
+    const account = { id: "ac-stub", email, displayName: "", role };
     const token = `stub-${Buffer.from(email).toString("hex")}`;
     accounts.set(token, account);
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -658,6 +660,138 @@ function dishesFor(seller) {
   return dishesBy.get(seller.id);
 }
 
+/**
+ * A store's orders (SEC-78), as GET /sellers/{id}/orders answers for today: a store named "Tiệm có đơn" holds
+ * four and has handed over one and had one cancelled by its customer (Figma Q5, Q5e, Q5f); any other starts empty.
+ * The windows run from an hour ago to three hours on, so none reads as expired.
+ */
+const sellerOrdersBy = new Map();
+
+function sellerOrdersFor(seller) {
+  if (!sellerOrdersBy.has(seller.id)) {
+    const order = (n, status, name, phone, dish, unit, units, price, extra = {}) => ({
+      id: `or-${n}-${seller.id}`,
+      number: `SB-${10100 + n}`,
+      checkoutId: `ch-${n}-${seller.id}`,
+      codeAttemptsLeft: 3,
+      status,
+      customerName: name,
+      customerPhone: phone,
+      seller: {
+        id: seller.id,
+        name: seller.name,
+        address: seller.address,
+        latitude: 21.0565,
+        longitude: 105.8964,
+      },
+      lines: [
+        {
+          offerId: `of-${n}-${seller.id}`,
+          name: dish,
+          unit,
+          units,
+          priceVnd: price,
+          originalPriceVnd: price * 2,
+          photo: {
+            id: "ph-1",
+            largePath: "/photos/ph-1/1600.jpg",
+            smallPath: "/photos/ph-1/400.jpg",
+          },
+        },
+      ],
+      totalVnd: price * units,
+      windowStart: new Date(Date.now() - 3_600_000).toISOString(),
+      windowEnd: new Date(Date.now() + 3 * 3_600_000).toISOString(),
+      createdAt: new Date().toISOString(),
+      ...extra,
+    });
+    sellerOrdersBy.set(
+      seller.id,
+      seller.name === "Tiệm có đơn"
+        ? [
+            order(1, "confirmed", "Lê Thu Hà", "0905111222", "Cơm sườn nướng", "suất", 1, 30000),
+            order(
+              2,
+              "confirmed",
+              "Nguyễn An",
+              "0912345678",
+              "Túi bánh mì và croissant",
+              "túi",
+              2,
+              57000,
+            ),
+            order(3, "confirmed", "Trần Minh", "0987654321", "Xôi thập cẩm", "hộp", 1, 30000),
+            order(
+              4,
+              "collected",
+              "Phạm Quốc Bảo",
+              "0933222888",
+              "Túi bánh mì và croissant",
+              "túi",
+              1,
+              57000,
+              {
+                collectedAt: new Date().toISOString(),
+              },
+            ),
+            order(5, "cancelled", "Võ Lan", "0900123456", "Xôi thập cẩm", "hộp", 1, 30000, {
+              cancelledAt: new Date().toISOString(),
+            }),
+          ]
+        : [],
+    );
+  }
+  return sellerOrdersBy.get(seller.id);
+}
+
+/** What the seller's people do with an order: hand it over, refuse it with a reason, or take either back. */
+const REFUSALS = [
+  "not_suitable",
+  "wrong_items",
+  "no_answer",
+  "no_show",
+  "late",
+  "sold_out",
+  "other",
+];
+
+async function staffOrderAction(request, response, mine, id, action) {
+  const order = mine.flatMap((seller) => sellerOrdersFor(seller)).find((found) => found.id === id);
+  if (!order) {
+    problem(response, 404, "ORDER_NOT_FOUND");
+    return;
+  }
+  const open = order.status === "confirmed" || order.status === "ready";
+  if (action === "reopen") {
+    if (order.status !== "collected" && order.status !== "refused") {
+      problem(response, 409, "ORDER_TRANSITION_NOT_ALLOWED");
+      return;
+    }
+    order.status = "confirmed";
+    delete order.collectedAt;
+    delete order.refusedAt;
+    delete order.refuseReason;
+    delete order.refuseNote;
+  } else if (!open) {
+    problem(response, 409, "ORDER_TRANSITION_NOT_ALLOWED");
+    return;
+  } else if (action === "hand-over") {
+    order.status = "collected";
+    order.collectedAt = new Date().toISOString();
+  } else {
+    const { reason, note } = await readBody(request);
+    if (!REFUSALS.includes(reason)) {
+      problem(response, 400, "ORDER_REFUSAL_INVALID");
+      return;
+    }
+    order.status = "refused";
+    order.refusedAt = new Date().toISOString();
+    order.refuseReason = reason;
+    if (typeof note === "string" && note) order.refuseNote = note;
+  }
+  json(response, 200, order);
+}
+
 /** A store with one live post of which units are ordered, for the screens that lock the price and the hours. */
 function postsWithOrders(seller) {
   return postsOf(seller)
@@ -723,7 +857,8 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers" ||
     url.pathname === "/sellers/mine" ||
     url.pathname === "/photos" ||
-    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes)?$/.test(url.pathname) ||
+    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
+    /^\/orders\/[\w-]+\/(hand-over|reopen|refuse)$/.test(url.pathname) ||
     /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname) ||
     /^\/dishes\/[\w-]+$/.test(url.pathname);
   if (!isSellerRoute) return false;
@@ -779,6 +914,26 @@ async function sellerRoutes(request, response, url) {
       largePath: "/photos/ph-upload/1600.jpg",
       smallPath: "/photos/ph-upload/400.jpg",
     });
+    return true;
+  }
+  const staffAction = /^\/orders\/([\w-]+)\/(hand-over|reopen|refuse)$/.exec(url.pathname);
+  if (request.method === "POST" && staffAction) {
+    await staffOrderAction(request, response, mine, staffAction[1], staffAction[2]);
+    return true;
+  }
+  const ordersOfStore = /^\/sellers\/([\w-]+)\/orders$/.exec(url.pathname);
+  if (request.method === "GET" && ordersOfStore) {
+    const seller = mine.find((candidate) => candidate.id === ordersOfStore[1]);
+    if (!seller) {
+      problem(response, 404, "SELLER_NOT_FOUND");
+      return true;
+    }
+    // The stub keeps the orders of today only; any other day is empty.
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(
+      new Date(),
+    );
+    const day = url.searchParams.get("day") || today;
+    json(response, 200, { orders: day === today ? sellerOrdersFor(seller) : [] });
     return true;
   }
   const catalog = /^\/sellers\/([\w-]+)\/dishes$/.exec(url.pathname);
@@ -970,11 +1125,8 @@ function shown(order) {
   const open = order.status === "confirmed" || order.status === "ready";
   const expired = open && new Date(order.windowEnd) <= new Date();
   const status = expired ? "expired" : order.status;
-  const codeShown =
-    (status === "confirmed" || status === "ready") &&
-    (status === "ready" || new Date(order.windowStart) <= new Date());
-  const { code, owner: _owner, ...rest } = order;
-  return { ...rest, status, ...(codeShown ? { code } : {}) };
+  const { owner: _owner, ...rest } = order;
+  return { ...rest, status };
 }
 
 /** Whether the request comes from whoever placed the order: its account, or its access. */
@@ -1057,8 +1209,6 @@ async function ordersApi(request, response, url) {
       windowStart: offer.windowStart,
       windowEnd: offer.windowEnd,
       createdAt: new Date().toISOString(),
-      codeAttemptsLeft: 3,
-      code: String(number % 10000).padStart(4, "0"),
     };
     orders.unshift(order);
     ordersByKey.set(key, order);
@@ -1120,6 +1270,214 @@ const server = createServer((request, response) =>
   ),
 );
 
+// The admin's pages (SEC-75): the admins, and the log of what they did, as api/openapi.yaml describes it.
+// The log is made up from the stores above: a week of approvals, blocks and setting changes by two admins,
+// the latest first, filtered and paged as the server does.
+const stubAdmins = [
+  { id: "ac-admin-minh", email: "minh.admin@example.com", displayName: "", role: "admin" },
+  { id: "ac-admin-thu", email: "thu.admin@example.com", displayName: "", role: "admin" },
+];
+
+function auditLog() {
+  const stores = Object.values(sellers);
+  const events = [];
+  const start = Date.parse("2026-10-20T21:30:00+07:00");
+  for (let i = 0; i < 30; i++) {
+    const store = stores[i % stores.length];
+    const admin = stubAdmins[i % 2];
+    const occurredAt = new Date(start - i * 5 * 60 * 60 * 1000).toISOString();
+    const base = {
+      id: `ev-${String(i).padStart(2, "0")}`,
+      occurredAt,
+      actorId: admin.id,
+      actorLabel: admin.email,
+    };
+    if (i === 1) {
+      events.push({
+        ...base,
+        action: "offer_settings.change",
+        resourceType: "offer_settings",
+        resourceId: "current",
+        details: { changes: [{ field: "minDiscountPercent", from: "20", to: "30" }] },
+      });
+    } else if (i === 4) {
+      events.push({
+        ...base,
+        action: "email_settings.change",
+        resourceType: "email_settings",
+        resourceId: "current",
+        details: {
+          provider: "smtp",
+          changes: [
+            { field: "senderName", from: "Second Bite", to: "Second Bite Tasco" },
+            { field: "smtpPassword" },
+          ],
+        },
+      });
+    } else if (i === 7) {
+      events.push({
+        ...base,
+        actorId: undefined,
+        actorLabel: undefined,
+        action: "admin.grant",
+        resourceType: "account",
+        resourceId: "ac-admin-thu",
+        resourceLabel: "thu.admin@example.com",
+        details: { source: "command_line" },
+      });
+    } else {
+      const [action, details] =
+        i % 3 === 0
+          ? ["seller.block", { reason: "Bán đồ quá hạn nhiều lần, khách đã báo" }]
+          : i % 3 === 1
+            ? ["seller.unblock", {}]
+            : ["seller.approve", {}];
+      events.push({
+        ...base,
+        action,
+        resourceType: "seller",
+        resourceId: store.id,
+        resourceLabel: store.name,
+        details,
+      });
+    }
+  }
+  return events;
+}
+
+function adminRoutes(request, response, url) {
+  if (!url.pathname.startsWith("/admin/")) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account) {
+    problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    return true;
+  }
+  if (account.role !== "admin") {
+    problem(response, 403, "PLATFORM_ADMIN_REQUIRED");
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/admins") {
+    json(response, 200, { admins: stubAdmins });
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/audit-events") {
+    const actions = url.searchParams.getAll("action").flatMap((a) => a.split(","));
+    const actor = url.searchParams.get("actorId");
+    const since = url.searchParams.get("since");
+    const until = url.searchParams.get("until");
+    const q = (url.searchParams.get("q") ?? "").toLowerCase();
+    const page = Number(url.searchParams.get("page") ?? 1);
+    const size = Number(url.searchParams.get("size") ?? 25);
+    const matching = auditLog().filter(
+      (e) =>
+        (actions.length === 0 || actions.includes(e.action)) &&
+        (!actor || e.actorId === actor) &&
+        (!since || Date.parse(e.occurredAt) >= Date.parse(since)) &&
+        (!until || Date.parse(e.occurredAt) < Date.parse(until)) &&
+        (!q ||
+          (e.actorLabel ?? "").toLowerCase().includes(q) ||
+          (e.resourceLabel ?? "").toLowerCase().includes(q) ||
+          e.resourceId === q),
+    );
+    json(response, 200, {
+      items: matching.slice((page - 1) * size, page * size),
+      page,
+      pageSize: size,
+      total: matching.length,
+    });
+    return true;
+  }
+  return false;
+}
+
+// The email settings, one per admin so tests side by side keep apart. An admin whose address names "unset"
+// starts with none saved (Figma AD-CS6); the others with SMTP saved (AD-E1). The version is the time saved.
+const emailSettings = new Map();
+
+function emailSettingsOf(account) {
+  if (!emailSettings.has(account.email)) {
+    emailSettings.set(
+      account.email,
+      account.email.includes("unset")
+        ? undefined
+        : {
+            provider: "smtp",
+            senderAddress: "noreply@example.com",
+            senderName: "Second Bite",
+            smtpHost: "smtp.example.com",
+            smtpPort: 587,
+            smtpSecurity: "starttls",
+            smtpUsername: "mailer@example.com",
+            smtpPasswordSet: true,
+            brevoApiKeySet: false,
+            updatedAt: "2026-10-19T07:20:00.000Z",
+          },
+    );
+  }
+  return emailSettings.get(account.email);
+}
+
+const etagOf = (settings) => `"${settings.updatedAt}"`;
+
+async function emailSettingsRoutes(request, response, url) {
+  if (!url.pathname.startsWith("/admin/email-settings")) return false;
+  const account = accounts.get(tokenOf(request));
+  if (account?.role !== "admin") return false;
+  const current = emailSettingsOf(account);
+
+  if (request.method === "GET" && url.pathname === "/admin/email-settings") {
+    if (!current) problem(response, 503, "NOTIFICATION_EMAIL_NOT_CONFIGURED");
+    else json(response, 200, current, { etag: etagOf(current) });
+    return true;
+  }
+  if (request.method === "PUT" && url.pathname === "/admin/email-settings") {
+    const ifMatch = request.headers["if-match"];
+    const ifNoneMatch = request.headers["if-none-match"];
+    if (!ifMatch && ifNoneMatch !== "*") {
+      problem(response, 400, "PLATFORM_VERSION_REQUIRED");
+      return true;
+    }
+    if (
+      (ifMatch && (!current || ifMatch !== etagOf(current))) ||
+      (ifNoneMatch === "*" && current)
+    ) {
+      problem(response, 412, "PLATFORM_CHANGED_SINCE_READ");
+      return true;
+    }
+    const body = await readBody(request);
+    const sameServer =
+      current &&
+      current.smtpHost === (body.smtpHost ?? "") &&
+      current.smtpPort === (body.smtpPort ?? 0) &&
+      current.smtpSecurity === (body.smtpSecurity ?? "starttls") &&
+      current.smtpUsername === (body.smtpUsername ?? "");
+    emailSettings.set(account.email, {
+      provider: body.provider,
+      senderAddress: body.senderAddress,
+      senderName: body.senderName,
+      smtpHost: body.smtpHost ?? "",
+      smtpPort: body.smtpPort ?? 0,
+      smtpSecurity: body.smtpSecurity ?? "starttls",
+      smtpUsername: body.smtpUsername ?? "",
+      smtpPasswordSet: Boolean(body.smtpPassword) || Boolean(sameServer && current.smtpPasswordSet),
+      brevoApiKeySet: Boolean(body.brevoApiKey) || Boolean(current?.brevoApiKeySet),
+      updatedAt: new Date().toISOString(),
+    });
+    response.writeHead(204).end();
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/admin/email-settings/test") {
+    const { to } = await readBody(request);
+    if (!current) problem(response, 503, "NOTIFICATION_EMAIL_NOT_CONFIGURED");
+    // A mailbox whose address names "refused" stands for a provider that refuses the settings.
+    else if ((to ?? "").includes("refused"))
+      problem(response, 409, "NOTIFICATION_TEST_EMAIL_REFUSED");
+    else response.writeHead(204).end();
+    return true;
+  }
+  return false;
+}
+
 async function answer(request, response) {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
@@ -1146,6 +1504,8 @@ async function answer(request, response) {
   }
   if (await auth(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
+  if (await emailSettingsRoutes(request, response, url)) return;
+  if (adminRoutes(request, response, url)) return;
   if (await ordersApi(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {

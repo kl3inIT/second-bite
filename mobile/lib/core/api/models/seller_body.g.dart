@@ -23,6 +23,7 @@ _SellerBody _$SellerBodyFromJson(Map<String, dynamic> json) => _SellerBody(
   statusChangedAt: json['statusChangedAt'] == null
       ? null
       : DateTime.parse(json['statusChangedAt'] as String),
+  statusReason: json['statusReason'] as String?,
 );
 
 Map<String, dynamic> _$SellerBodyToJson(_SellerBody instance) =>
@@ -39,11 +40,13 @@ Map<String, dynamic> _$SellerBodyToJson(_SellerBody instance) =>
       'myRole': _$SellerBodyMyRoleEnumMap[instance.myRole],
       'photoId': instance.photoId,
       'statusChangedAt': instance.statusChangedAt?.toIso8601String(),
+      'statusReason': instance.statusReason,
     };
 
 const _$SellerBodyStatusEnumMap = {
   SellerBodyStatus.pending: 'pending',
   SellerBodyStatus.active: 'active',
+  SellerBodyStatus.rejected: 'rejected',
   SellerBodyStatus.blocked: 'blocked',
   SellerBodyStatus.$unknown: r'$unknown',
 };
