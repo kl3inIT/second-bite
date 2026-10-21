@@ -1,10 +1,13 @@
 "use client";
 
-import { CircleAlertIcon } from "lucide-react";
+import { revalidateLogic } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
+import { z } from "zod";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FailureAlert, type Failure } from "@/components/failure-alert";
+import { refuse, useAppForm } from "@/components/form/app-form";
+import { useFieldValidity } from "@/components/form/form-context";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -16,18 +19,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Spinner } from "@/components/ui/spinner";
 import { Link, useRouter } from "@/i18n/navigation";
-import { ApiError, failureOf } from "@/lib/api/client";
+import { failureOf } from "@/lib/api/client";
 import { addDish, changeDish, type DishBody, removeDish, uploadPhoto } from "@/lib/api/generated";
+import { photoUrl } from "@/lib/api/photo";
 
 import { Chip } from "./chip";
-import { useRemountKey } from "./remount-key";
 import { NumberInput } from "./number-input";
-import { PhotoDrop } from "./photo-drop";
 import { PhoneFootBar } from "./phone-foot-bar";
+import { type ChosenPhoto, PhotoField } from "./photo-drop";
+import { useRemountKey } from "./remount-key";
 
 const kinds = [
   "bakery",
@@ -39,76 +42,88 @@ const kinds = [
 ] as const satisfies readonly DishBody["kind"][];
 
 // What a dish is counted in, chosen rather than typed: a seller's own word would reach every card and order as it
-// was written. A dish saved earlier with another word keeps it as one more choice.
+// was written. The unit is the dish's data, shown on cards and orders as it is saved, so the words stay Vietnamese
+// in both languages, as the dish's name does. A dish saved earlier with another word keeps it as one more choice.
 const units = ["suất", "phần", "cái", "chiếc", "túi", "hộp", "ổ", "ly", "chai"];
 
-type Problem = { kind: "details" | "limit" | "failed"; detail?: string; reference?: string };
-
-function problemOf(error: unknown): Problem {
-  const failure = failureOf(error);
-  switch (error instanceof ApiError ? error.code : undefined) {
-    case "OFFER_DETAILS_INVALID":
-      return { kind: "details", ...failure };
-    case "OFFER_DISH_LIMIT_REACHED":
-      return { kind: "limit", ...failure };
-    default:
-      return { kind: "failed", ...failure };
-  }
-}
+type Values = {
+  /** A photo just chosen; a dish that exists keeps its own until one is. */
+  photo: ChosenPhoto | undefined;
+  name: string;
+  kind: DishBody["kind"];
+  unit: string;
+  original: string;
+  description: string;
+  ingredients: string;
+};
 
 // The form of a dish of the catalog (SEC-55, Figma Q3c "Thêm món", C1 "Sửa món"): its photo, name, kind, unit,
-// description, and ingredients and allergens, and, once it exists, "Xoá món", which asks first (C2). A mixed box needs its description, as a post of it does.
+// description, and ingredients and allergens, and, once it exists, "Xoá món", which asks first (C2). The rules are
+// the server's (offer.DishDetails.normalized), and a mixed box needs its description, as a post of it does. A
+// refusal the server gives (OFFER_DETAILS_INVALID, OFFER_DISH_LIMIT_REACHED) is said above the buttons in its words.
 function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody }) {
   const t = useTranslations("DishForm");
   const kindName = useTranslations("OfferKind");
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [photo, setPhoto] = useState<File>();
-  const [preview, setPreview] = useState<string>();
-  const [name, setName] = useState(dish?.name ?? "");
-  const [kind, setKind] = useState<DishBody["kind"]>(dish?.kind ?? "bakery");
-  const [unit, setUnit] = useState(dish?.unit ?? "suất");
-  const [original, setOriginal] = useState(
-    dish?.originalPriceVnd ? String(dish.originalPriceVnd) : "",
-  );
-  const [description, setDescription] = useState(dish?.description ?? "");
-  const [ingredients, setIngredients] = useState(dish?.ingredients ?? "");
-  const [tried, setTried] = useState(false);
-  const [problem, setProblem] = useState<Problem>();
   const [confirming, setConfirming] = useState(false);
-
-  const nameMissing = name.trim() === "";
-  const photoMissing = !dish && !photo;
-  const descriptionMissing =
-    kind === "mixed_box" && description.trim() === "" && ingredients.trim() === "";
-  // The original price is optional; a price, when given, is from 1.001đ, as the backend asks.
-  const originalInvalid = original !== "" && Number(original) <= 1000;
+  const [removing, startRemoving] = useTransition();
+  const [removeFailure, setRemoveFailure] = useState<Failure>();
   const back = `/stores/${sellerId}/catalog`;
-
-  function choosePhoto(file: File | undefined) {
-    if (preview) URL.revokeObjectURL(preview);
-    setPhoto(file);
-    setPreview(file ? URL.createObjectURL(file) : undefined);
-  }
 
   function done(notice: string) {
     router.push({ pathname: back, query: { notice } });
     router.refresh();
   }
 
-  function save() {
-    setTried(true);
-    setProblem(undefined);
-    if (nameMissing || photoMissing || descriptionMissing || originalInvalid) return;
-    startTransition(async () => {
+  const defaultValues: Values = {
+    photo: undefined,
+    name: dish?.name ?? "",
+    kind: dish?.kind ?? "bakery",
+    unit: dish?.unit ?? "suất",
+    original: dish?.originalPriceVnd ? String(dish.originalPriceVnd) : "",
+    description: dish?.description ?? "",
+    ingredients: dish?.ingredients ?? "",
+  };
+
+  const form = useAppForm({
+    defaultValues,
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: z
+        .object({
+          photo: z
+            .custom<ChosenPhoto | undefined>()
+            .refine((photo) => dish !== undefined || photo !== undefined, t("photoMissing")),
+          name: z.string().trim().min(1, t("nameMissing")),
+          kind: z.enum(kinds),
+          unit: z.string(),
+          // The original price is optional; a price, when given, is from 1.001đ, as the backend asks.
+          original: z.string().refine((value) => value === "" || Number(value) > 1000, {
+            message: t("originalInvalid"),
+          }),
+          description: z.string(),
+          ingredients: z.string(),
+        })
+        .refine(
+          (value) =>
+            value.kind !== "mixed_box" ||
+            value.description.trim() !== "" ||
+            value.ingredients.trim() !== "",
+          { message: t("descriptionMissing"), path: ["description"] },
+        ),
+    },
+    onSubmit: async ({ value, formApi }) => {
+      setRemoveFailure(undefined);
       try {
-        const photoId = photo ? (await uploadPhoto({ body: photo })).data.id : undefined;
+        const photoId = value.photo
+          ? (await uploadPhoto({ body: value.photo.file })).data.id
+          : undefined;
         const fields = {
-          name: name.trim(),
-          kind,
-          unit: unit.trim(),
-          description: description.trim(),
-          ingredients: ingredients.trim(),
+          name: value.name.trim(),
+          kind: value.kind,
+          unit: value.unit.trim(),
+          description: value.description.trim(),
+          ingredients: value.ingredients.trim(),
         };
         if (dish) {
           // Emptying the price takes it away (the backend reads 0 so).
@@ -116,7 +131,7 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
             path: { dishId: dish.id },
             body: {
               ...fields,
-              originalPriceVnd: Number(original),
+              originalPriceVnd: Number(value.original),
               ...(photoId ? { photoId } : {}),
             },
           });
@@ -125,181 +140,132 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
             path: { sellerId },
             body: {
               ...fields,
-              ...(original ? { originalPriceVnd: Number(original) } : {}),
+              ...(value.original ? { originalPriceVnd: Number(value.original) } : {}),
               photoId,
             },
           });
         }
-        done("saved");
       } catch (error) {
-        setProblem(problemOf(error));
+        refuse(formApi, error);
+        return;
       }
-    });
-  }
+      done("saved");
+    },
+  });
 
   function remove() {
     if (!dish) return;
-    setProblem(undefined);
-    startTransition(async () => {
+    setRemoveFailure(undefined);
+    startRemoving(async () => {
       try {
         await removeDish({ path: { dishId: dish.id } });
         done("deleted");
       } catch (error) {
         setConfirming(false);
-        setProblem(problemOf(error));
+        setRemoveFailure(failureOf(error));
       }
     });
   }
 
-  const shownPhoto = preview ?? (dish ? `/api${dish.photo.smallPath}` : undefined);
-
   return (
     <form
+      id={form.formId}
+      noValidate
       onSubmit={(event) => {
         event.preventDefault();
-        save();
+        void form.handleSubmit();
       }}
-      noValidate
     >
       <FieldGroup>
-        {problem?.kind === "limit" && (
-          <Alert variant="destructive">
-            <CircleAlertIcon aria-hidden />
-            <AlertDescription>{problem.detail ?? t("failed")}</AlertDescription>
-          </Alert>
-        )}
-        {problem?.kind === "failed" && (
-          <Alert variant="destructive">
-            <CircleAlertIcon aria-hidden />
-            <AlertDescription>
-              {problem.detail ?? t("failed")}
-              {problem.detail && problem.reference && (
-                <> {t("reference", { id: problem.reference })}</>
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
+        <form.AppForm>
+          <form.FormError fallback={t("failed")} />
+        </form.AppForm>
+        {removeFailure && <FailureAlert failure={removeFailure} fallback={t("failed")} />}
 
-        <Field data-invalid={(tried && photoMissing) || undefined}>
-          <FieldLabel htmlFor="dish-photo">{t("photo")}</FieldLabel>
-          <PhotoDrop
-            id="dish-photo"
-            fileName={photo?.name}
-            preview={shownPhoto}
-            disabled={pending}
-            onChange={choosePhoto}
-          />
-          {tried && photoMissing && <FieldError>{t("photoMissing")}</FieldError>}
-        </Field>
+        <form.AppField name="photo">
+          {() => (
+            <PhotoField
+              label={t("photo")}
+              current={dish ? photoUrl(dish.photo.smallPath) : undefined}
+            />
+          )}
+        </form.AppField>
 
-        <Field data-invalid={(tried && nameMissing) || undefined}>
-          <FieldLabel htmlFor="dish-name">{t("name")}</FieldLabel>
-          <Input
-            id="dish-name"
-            value={name}
-            maxLength={80}
-            onChange={(event) => setName(event.target.value)}
-            placeholder={t("namePlaceholder")}
-            aria-invalid={(tried && nameMissing) || undefined}
-            disabled={pending}
-          />
-          {tried && nameMissing && <FieldError>{t("nameMissing")}</FieldError>}
-        </Field>
+        <form.AppField name="name">
+          {(field) => (
+            <field.TextField
+              label={t("name")}
+              required
+              maxLength={80}
+              placeholder={t("namePlaceholder")}
+            />
+          )}
+        </form.AppField>
 
-        <fieldset className="flex flex-col gap-2">
-          <legend className="mb-2 text-title">{t("kind")}</legend>
-          <div className="-my-1 flex flex-wrap gap-x-2">
-            {kinds.map((value) => (
-              <Chip key={value} selected={kind === value} onClick={() => setKind(value)}>
-                {kindName(value)}
-              </Chip>
-            ))}
-          </div>
-        </fieldset>
+        <form.AppField name="kind">
+          {(field) => (
+            <fieldset className="flex flex-col gap-2">
+              <legend className="mb-2 text-title">{t("kind")}</legend>
+              <div className="-my-1 flex flex-wrap gap-x-2">
+                {kinds.map((value) => (
+                  <Chip
+                    key={value}
+                    selected={field.state.value === value}
+                    onClick={() => field.handleChange(value)}
+                  >
+                    {kindName(value)}
+                  </Chip>
+                ))}
+              </div>
+            </fieldset>
+          )}
+        </form.AppField>
 
         <div className="grid grid-cols-5 gap-3">
-          <Field className="col-span-2">
-            <FieldLabel htmlFor="dish-unit">{t("unit")}</FieldLabel>
-            <NativeSelect
-              id="dish-unit"
-              size="field"
-              value={unit}
-              onChange={(event) => setUnit(event.target.value)}
-              disabled={pending}
-            >
-              {(units.includes(unit) ? units : [...units, unit]).map((value) => (
-                <NativeSelectOption key={value} value={value}>
-                  {value}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </Field>
-
-          <Field className="col-span-3" data-invalid={(tried && originalInvalid) || undefined}>
-            <FieldLabel htmlFor="dish-original">{t("original")}</FieldLabel>
-            <NumberInput
-              id="dish-original"
-              value={original}
-              grouped
-              onValueChange={setOriginal}
-              placeholder={t("originalPlaceholder")}
-              aria-invalid={(tried && originalInvalid) || undefined}
-              aria-describedby={tried && originalInvalid ? "dish-original-problem" : undefined}
-              disabled={pending}
-            />
-          </Field>
+          <form.AppField name="unit">{() => <UnitField />}</form.AppField>
+          <form.AppField name="original">{() => <OriginalPriceField />}</form.AppField>
         </div>
-        {tried && originalInvalid && (
-          <FieldError id="dish-original-problem" className="-mt-4">
-            {t("originalInvalid")}
-          </FieldError>
-        )}
 
-        <Field data-invalid={(tried && descriptionMissing) || undefined}>
-          <FieldLabel htmlFor="dish-description">
-            {kind === "mixed_box" ? t("descriptionRequired") : t("description")}
-          </FieldLabel>
-          <Input
-            id="dish-description"
-            value={description}
-            maxLength={1000}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder={t("descriptionPlaceholder")}
-            aria-invalid={(tried && descriptionMissing) || undefined}
-            aria-describedby={tried && descriptionMissing ? "dish-description-problem" : undefined}
-            disabled={pending}
-          />
-          {tried && descriptionMissing && (
-            <FieldError id="dish-description-problem">{t("descriptionMissing")}</FieldError>
+        <form.Subscribe selector={(state) => state.values.kind === "mixed_box"}>
+          {(mixedBox) => (
+            <form.AppField name="description">
+              {(field) => (
+                <field.TextField
+                  label={mixedBox ? t("descriptionRequired") : t("description")}
+                  required={mixedBox}
+                  maxLength={1000}
+                  placeholder={t("descriptionPlaceholder")}
+                />
+              )}
+            </form.AppField>
           )}
-        </Field>
+        </form.Subscribe>
 
-        <Field>
-          <FieldLabel htmlFor="dish-ingredients">{t("ingredients")}</FieldLabel>
-          <Input
-            id="dish-ingredients"
-            value={ingredients}
-            maxLength={500}
-            onChange={(event) => setIngredients(event.target.value)}
-            placeholder={t("ingredientsPlaceholder")}
-            disabled={pending}
-          />
-        </Field>
+        <form.AppField name="ingredients">
+          {(field) => (
+            <field.TextField
+              label={t("ingredients")}
+              maxLength={500}
+              placeholder={t("ingredientsPlaceholder")}
+            />
+          )}
+        </form.AppField>
 
         <PhoneFootBar className="flex flex-wrap items-center gap-3">
           <Link href={back} className={buttonVariants({ variant: "outline", size: "lg" })}>
             {t("cancel")}
           </Link>
-          <Button type="submit" size="lg" disabled={pending}>
-            {pending && <Spinner data-icon="inline-start" />}
-            {dish ? t("saveChanges") : t("save")}
-          </Button>
+          <form.AppForm>
+            <form.SubmitButton size="lg" disabled={removing}>
+              {dish ? t("saveChanges") : t("save")}
+            </form.SubmitButton>
+          </form.AppForm>
           {dish && (
             <Button
               type="button"
               variant="outline"
               size="lg"
-              disabled={pending}
+              disabled={removing}
               onClick={() => setConfirming(true)}
             >
               {t("delete")}
@@ -316,14 +282,60 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("keep")}</AlertDialogCancel>
-            <Button type="button" disabled={pending} onClick={remove}>
-              {pending && <Spinner data-icon="inline-start" />}
+            <Button type="button" disabled={removing} onClick={remove}>
+              {removing && <Spinner data-icon="inline-start" />}
               {t("delete")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </form>
+  );
+}
+
+/** What the dish is counted in, from the list, or the word it was saved with. */
+function UnitField() {
+  const t = useTranslations("DishForm");
+  const { field, ids } = useFieldValidity<string>();
+  const unit = field.state.value;
+  return (
+    <Field className="col-span-2">
+      <FieldLabel htmlFor={ids.control}>{t("unit")}</FieldLabel>
+      <NativeSelect
+        id={ids.control}
+        size="field"
+        value={unit}
+        onChange={(event) => field.handleChange(event.target.value)}
+      >
+        {(units.includes(unit) ? units : [...units, unit]).map((value) => (
+          <NativeSelectOption key={value} value={value}>
+            {value}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
+    </Field>
+  );
+}
+
+/** The dish's price before the discount, in đồng, grouped as it is typed. */
+function OriginalPriceField() {
+  const t = useTranslations("DishForm");
+  const { field, invalid, errors, ids } = useFieldValidity<string>();
+  return (
+    <Field className="col-span-3" data-invalid={invalid || undefined}>
+      <FieldLabel htmlFor={ids.control}>{t("original")}</FieldLabel>
+      <NumberInput
+        id={ids.control}
+        value={field.state.value}
+        grouped
+        onValueChange={(value) => field.handleChange(value)}
+        onBlur={field.handleBlur}
+        placeholder={t("originalPlaceholder")}
+        aria-invalid={invalid || undefined}
+        aria-describedby={invalid ? ids.error : undefined}
+      />
+      {invalid && <FieldError id={ids.error} errors={errors} />}
+    </Field>
   );
 }
 

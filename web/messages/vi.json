@@ -716,7 +716,11 @@
     "photoHint": "Một ảnh giúp khách nhận ra quán của bạn.",
     "submit": "Tạo quán",
     "failed": "Chưa tạo được quán. Thử lại sau ít phút.",
-    "reference": "Mã tham chiếu: {id}"
+    "errors": {
+      "name": "Nhập tên quán.",
+      "phone": "Nhập số điện thoại 9 đến 15 chữ số, ví dụ 0912 345 678.",
+      "address": "Nhập địa chỉ quán."
+    }
   },
   "Stores": {
     "title": "Quán của tôi",
@@ -870,7 +874,6 @@
     "reopen": "Hoàn tác",
     "deliveredTo": "Đã giao cho {name}",
     "failed": "Chưa làm được. Thử lại.",
-    "reference": "Mã tra cứu: {id}",
     "reasonLabel": "Lý do hủy",
     "reason": {
       "no_answer": "Không nghe máy",
@@ -1004,7 +1007,6 @@
     "window": "Khách đến nhận từ {from} đến {until} hôm nay",
     "windowOver": "Giờ nhận đã qua. Chọn giờ từ bây giờ trở đi.",
     "failed": "Chưa đăng được. Thử lại sau ít phút.",
-    "reference": "Mã tham chiếu: {id}",
     "cancel": "Hủy",
     "back": "Quay lại",
     "next": "Tiếp tục",
@@ -1023,7 +1025,13 @@
     "withdraw": "Rút bài",
     "save": "Lưu thay đổi",
     "sourceCatalog": "Từ danh mục",
-    "noCatalog": "Danh mục chưa có món nào đang hiện. Thêm món ở tab Danh mục."
+    "noCatalog": "Danh mục chưa có món nào đang hiện. Thêm món ở tab Danh mục.",
+    "errors": {
+      "photo": "Chọn một ảnh cho món.",
+      "name": "Nhập tên món.",
+      "description": "Hộp tổng hợp cần nói hộp gồm những gì.",
+      "units": "Nhập số suất từ 1 đến 999."
+    }
   },
   "WithdrawDrawer": {
     "title": "Rút bài",
@@ -1035,8 +1043,7 @@
     "keep": "Giữ lại",
     "withdraw": "Rút bài",
     "withdrawAndCancel": "Rút bài và huỷ đơn",
-    "failed": "Chưa rút được. Thử lại sau ít phút.",
-    "reference": "Mã tham chiếu: {id}"
+    "failed": "Chưa rút được. Thử lại sau ít phút."
   },
   "StoreCatalog": {
     "title": "Danh mục",
@@ -1052,7 +1059,8 @@
       "saved": "Đã lưu món.",
       "deleted": "Đã xoá món khỏi danh mục.",
       "shown": "Món đã hiện lại."
-    }
+    },
+    "showFailed": "Chưa hiện lại được món. Thử lại sau ít phút."
   },
   "DishForm": {
     "addTitle": "Thêm món",
@@ -1081,7 +1089,6 @@
     "deleteBody": "Món sẽ bị xoá khỏi danh mục. Các bài đã đăng trước đó không bị ảnh hưởng.",
     "keep": "Giữ lại",
     "failed": "Chưa lưu được món. Thử lại sau ít phút.",
-    "reference": "Mã tham chiếu: {id}",
     "original": "Giá gốc (đồng, tùy chọn)",
     "originalPlaceholder": "Ví dụ: 95.000",
     "originalInvalid": "Giá gốc từ 1.001đ trở lên, hoặc để trống."

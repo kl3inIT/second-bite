@@ -95,6 +95,21 @@ test.describe("opening a store on the web", () => {
     await expect(page.getByLabel("Địa chỉ quán")).toHaveValue("");
   });
 
+  test("an empty form says what is missing under each field, the first one focused", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `trong.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByRole("button", { name: "Tạo quán" }))).click();
+    await expect(page.getByLabel("Tên quán")).toBeFocused();
+    await expect(page.getByText("Nhập tên quán.")).toBeVisible();
+    await expect(page.getByText("Nhập địa chỉ quán.")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    // A field put right is no longer refused, as it is typed.
+    await page.getByLabel("Tên quán").fill("Quán Trống");
+    await expect(page.getByText("Nhập tên quán.")).toBeHidden();
+  });
+
   test("says when the location is not given, and the address is typed", async ({
     page,
   }, testInfo) => {
@@ -351,7 +366,10 @@ test.describe("posting a dish on the web", () => {
     await drawer.getByLabel("Tên món").fill("Hộp bánh cuối ngày");
     await drawer.getByRole("button", { name: "Hộp tổng hợp" }).click();
     await expect(drawer.getByLabel("Hộp gồm những gì")).toBeVisible();
-    await expect(drawer.getByRole("button", { name: "Tiếp tục" })).toBeDisabled();
+    // "Tiếp tục" checks the step: what is missing is said under its field, which takes the focus.
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+    await expect(drawer.getByText("Hộp tổng hợp cần nói hộp gồm những gì.")).toBeVisible();
+    await expect(drawer.getByLabel("Hộp gồm những gì")).toBeFocused();
     await drawer.getByLabel("Hộp gồm những gì").fill("Bánh mì và bánh ngọt, có trứng");
     await expectNoSeriousA11yViolations(page);
     await drawer.getByRole("button", { name: "Tiếp tục" }).click();
@@ -577,6 +595,8 @@ test.describe("the catalog on the web", () => {
     await page.getByRole("button", { name: "Hộp tổng hợp" }).click();
     await page.getByRole("button", { name: "Lưu món" }).click();
     await expect(page.getByText("Chọn một ảnh cho món.")).toBeVisible();
+    // The first field in error, the photos, takes the focus.
+    await expect(page.getByLabel("Ảnh món")).toBeFocused();
     await expect(page.getByText(/Hộp tổng hợp cần nói hộp gồm những gì/)).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 

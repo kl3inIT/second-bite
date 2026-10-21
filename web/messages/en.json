@@ -716,7 +716,11 @@
     "photoHint": "A photo helps customers recognise your store.",
     "submit": "Create store",
     "failed": "The store was not created. Try again in a few minutes.",
-    "reference": "Reference: {id}"
+    "errors": {
+      "name": "Enter the store's name.",
+      "phone": "Enter a phone number of 9 to 15 digits, such as 0912 345 678.",
+      "address": "Enter the store's address."
+    }
   },
   "Stores": {
     "title": "My stores",
@@ -870,7 +874,6 @@
     "reopen": "Undo",
     "deliveredTo": "Delivered to {name}",
     "failed": "That did not work. Try again.",
-    "reference": "Reference: {id}",
     "reasonLabel": "Reason for cancelling",
     "reason": {
       "no_answer": "No answer",
@@ -1004,7 +1007,6 @@
     "window": "Customers collect from {from} to {until} today",
     "windowOver": "That time has passed. Choose a time from now on.",
     "failed": "Could not post. Try again in a few minutes.",
-    "reference": "Reference: {id}",
     "cancel": "Cancel",
     "back": "Back",
     "next": "Next",
@@ -1023,7 +1025,13 @@
     "withdraw": "Withdraw",
     "save": "Save changes",
     "sourceCatalog": "From the catalog",
-    "noCatalog": "No dish of the catalog is shown. Add one in the Catalog tab."
+    "noCatalog": "No dish of the catalog is shown. Add one in the Catalog tab.",
+    "errors": {
+      "photo": "Choose a photo of the dish.",
+      "name": "Enter the dish's name.",
+      "description": "A mixed box needs to say what it holds.",
+      "units": "Enter a number of portions from 1 to 999."
+    }
   },
   "WithdrawDrawer": {
     "title": "Withdraw",
@@ -1035,8 +1043,7 @@
     "keep": "Keep",
     "withdraw": "Withdraw",
     "withdrawAndCancel": "Withdraw and cancel orders",
-    "failed": "Could not withdraw. Try again in a few minutes.",
-    "reference": "Reference: {id}"
+    "failed": "Could not withdraw. Try again in a few minutes."
   },
   "StoreCatalog": {
     "title": "Catalog",
@@ -1052,7 +1059,8 @@
       "saved": "Dish saved.",
       "deleted": "Dish deleted from the catalog.",
       "shown": "The dish is shown again."
-    }
+    },
+    "showFailed": "The dish could not be shown again. Try again in a moment."
   },
   "DishForm": {
     "addTitle": "Add a dish",
@@ -1081,7 +1089,6 @@
     "deleteBody": "The dish is deleted from the catalog. Posts already made are not affected.",
     "keep": "Keep",
     "failed": "Could not save the dish. Try again in a few minutes.",
-    "reference": "Reference: {id}",
     "original": "Original price (VND, optional)",
     "originalPlaceholder": "For example: 95.000",
     "originalInvalid": "An original price from 1.001đ, or leave it empty."
