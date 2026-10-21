@@ -30,7 +30,7 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | Tickets are minted for who may, work once, expire and are purged, and are stored only as a hash | `TestOrder` › live tickets work once, for who may |
 | Every path that changes an order notifies, and a failed placing notifies nothing | `TestOrder` › every change of an order notifies |
 | Chats are forgotten 30 days after the window, run twice; a deleted account's chats go through the outbox, twice, and another customer's stay | `TestOrder` › old chats are forgotten; `TestDeletedCustomerChatsAreForgotten` |
-| The hub: a notice reaches a socket on another instance; a rollback and other topics reach nobody; a ticket works once; 20 topics; 1008, 1009, 1013, a missed pong, 4000, `resync` after the listening connection is killed, a socket outliving the server's timeouts, 1001 on stop | `TestLive` (`internal/platform/live_test.go`) |
+| The hub: a notice reaches a socket on another instance; a rollback and other topics reach nobody; a ticket works once; 20 topics; 40 subscribe attempts and 10 idle seconds; 1008, 1009, 1013, a missed pong, 4000, `resync` after the listening connection is killed, a socket outliving the server's timeouts, 1001 on stop | `TestLive` (`internal/platform/live_test.go`) |
 | Through the assembled service: a customer follows an order with a ticket and hears it turn ready; a stranger gets no ticket | `TestService` › an order's live socket carries its changes |
 | The module depends only on the edges ARCHITECTURE.md allows | `TestModuleBoundaries` (`internal/boundaries_test.go`) |
 | The operations are in the contract | `TestOpenAPIDocumentIsCurrent` (`cmd/secondbite/openapi_test.go`) |

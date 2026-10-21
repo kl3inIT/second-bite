@@ -127,7 +127,7 @@ Frames are JSON text.
 | Server | `{"type":"seen","orderId":"…","by":"seller","seq":7}` | A side saw up to `seq` |
 | Server | `{"type":"resync"}` | Notices may have been lost. Read every followed state again |
 
-Close codes: 1001 when the instance stops, 1008 for a frame that breaks the protocol, 1009 for a frame over 4 KiB, 1013 when the queue is full, and 4000 when the connection reaches 30 minutes. The client reconnects after each, with backoff of 1, 2, 4, 8, 16, then 30 seconds and jitter.
+Close codes: 1001 when the instance stops, 1008 for a frame that breaks the protocol, for a 41st subscribe frame (refused ones count) and for a connection that follows nothing within 10 seconds, 1009 for a frame over 4 KiB, 1013 when the queue is full, and 4000 when the connection reaches 30 minutes. The client reconnects after each, with backoff of 1, 2, 4, 8, 16, then 30 seconds and jitter.
 
 ### Failures
 

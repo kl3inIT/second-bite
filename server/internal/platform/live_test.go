@@ -245,16 +245,18 @@ func TestLive(t *testing.T) { //nolint:paralleltest // the checks kill listening
 	for name, check := range map[string]func(*testing.T, *pgxpool.Pool){ //nolint:paralleltest // see above
 		"a notice committed through one instance reaches a socket on another":     testNoticeAcrossInstances,
 		"a rolled back notice reaches nobody, and a socket hears only its topics": testRollbackAndTopics,
-		"a ticket works once":                                    testTicketWorksOnce,
-		"a connection follows at most twenty topics":             testTopicLimit,
-		"a frame that is not a subscription closes with 1008":    testProtocolViolation,
-		"a frame over 4 KiB closes with 1009":                    testFrameTooBig,
-		"a connection that never reads is closed with 1013":      testFullQueue,
-		"a missed pong closes the connection":                    testMissedPong,
-		"a connection ends with 4000 at its lifetime":            testLifetime,
-		"resync follows the listening connection being killed":   testResync,
-		"a socket outlives the server's read and write timeouts": testOutlivesTimeouts,
-		"stopping closes every socket with 1001":                 testStopClosesWith1001,
+		"a ticket works once":                                          testTicketWorksOnce,
+		"a connection follows at most twenty topics":                   testTopicLimit,
+		"a connection that keeps sending bad tickets closes with 1008": testAttemptLimit,
+		"a connection that follows nothing closes with 1008":           testIdle,
+		"a frame that is not a subscription closes with 1008":          testProtocolViolation,
+		"a frame over 4 KiB closes with 1009":                          testFrameTooBig,
+		"a connection that never reads is closed with 1013":            testFullQueue,
+		"a missed pong closes the connection":                          testMissedPong,
+		"a connection ends with 4000 at its lifetime":                  testLifetime,
+		"resync follows the listening connection being killed":         testResync,
+		"a socket outlives the server's read and write timeouts":       testOutlivesTimeouts,
+		"stopping closes every socket with 1001":                       testStopClosesWith1001,
 	} {
 		t.Run(name, func(t *testing.T) { check(t, pool) })
 	}
@@ -338,6 +340,55 @@ func testTopicLimit(t *testing.T, pool *pgxpool.Pool) {
 
 	if got := next(t, c); got["type"] != "refused" {
 		t.Errorf("the 21st topic answered %v, want refused", got)
+	}
+}
+
+func testAttemptLimit(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+
+	s := startLive(t, pool, newTickets(), nil)
+
+	c := dial(t, s)
+	for i := range 40 {
+		send(t, c, `{"type":"subscribe","ticket":"unknown"}`)
+
+		if got := next(t, c); got["type"] != "refused" {
+			t.Fatalf("attempt %d answered %v, want refused", i+1, got)
+		}
+	}
+
+	send(t, c, `{"type":"subscribe","ticket":"unknown"}`)
+
+	if got := closedWith(t, c); got != websocket.StatusPolicyViolation {
+		t.Errorf("closed with %d after the 41st attempt, want 1008", got)
+	}
+}
+
+func testIdle(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+
+	s := startLive(t, pool, newTickets(), nil, platform.WithLiveTiming(platform.LiveTiming{Idle: 200 * time.Millisecond}))
+
+	if got := closedWith(t, dial(t, s)); got != websocket.StatusPolicyViolation {
+		t.Errorf("closed with %d, want 1008", got)
+	}
+
+	// A connection that follows a topic in time stays open past the grace.
+	k := newTickets()
+	s = startLive(t, pool, k, nil, platform.WithLiveTiming(platform.LiveTiming{Idle: 300 * time.Millisecond}))
+
+	c := dial(t, s)
+	follow(t, k, c, "t", "order:1")
+
+	time.Sleep(600 * time.Millisecond)
+
+	k.mu.Lock()
+	k.topics["again"] = "order:2"
+	k.mu.Unlock()
+	send(t, c, `{"type":"subscribe","ticket":"again"}`)
+
+	if got := next(t, c); got["type"] != "subscribed" {
+		t.Errorf("after the grace a connection that follows a topic answered %v, want subscribed", got)
 	}
 }
 

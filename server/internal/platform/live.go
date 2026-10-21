@@ -25,6 +25,10 @@ const (
 	// liveTopicsPerConn is how many topics one connection follows: the orders
 	// a browser keeps without an account.
 	liveTopicsPerConn = 20
+	// liveAttemptsPerConn is how many subscribe frames one connection may send,
+	// refused ones included, so a client without tickets cannot make the server
+	// query without end; the next one closes it with 1008.
+	liveAttemptsPerConn = 40
 	// liveReadLimit bounds a frame from the client; a larger one closes the
 	// connection with 1009.
 	liveReadLimit = 4 << 10
@@ -57,10 +61,11 @@ var errBadFrame = errors.New("the client sent a frame that is not a subscription
 // module that mints tickets provides it, so the platform knows no module.
 type RedeemTicket func(ctx context.Context, ticket string) (topic string, ok bool, err error)
 
-// LiveTiming is how often the hub pings, how long it waits for a pong and how
-// long a connection lives; each defaults when zero.
+// LiveTiming is how often the hub pings, how long it waits for a pong, how
+// long a connection lives and how long it may follow nothing; each defaults
+// when zero.
 type LiveTiming struct {
-	Ping, Pong, Lifetime, Write time.Duration
+	Ping, Pong, Lifetime, Write, Idle time.Duration
 }
 
 func (t LiveTiming) withDefaults() LiveTiming {
@@ -69,6 +74,7 @@ func (t LiveTiming) withDefaults() LiveTiming {
 		Pong:     cmp.Or(t.Pong, 10*time.Second),
 		Lifetime: cmp.Or(t.Lifetime, 30*time.Minute),
 		Write:    cmp.Or(t.Write, 10*time.Second),
+		Idle:     cmp.Or(t.Idle, 10*time.Second),
 	}
 }
 
@@ -341,6 +347,11 @@ func (l *Live) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	lifetime := time.AfterFunc(l.timing.Lifetime, func() { c.close(closeLifetime, "renew your tickets") })
+	idle := time.AfterFunc(l.timing.Idle, func() {
+		if l.followed(c) == 0 {
+			c.close(websocket.StatusPolicyViolation, "subscribe with a ticket")
+		}
+	})
 
 	var wg sync.WaitGroup
 
@@ -350,6 +361,7 @@ func (l *Live) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	readErr := l.read(ctx, c)
 
 	lifetime.Stop()
+	idle.Stop()
 	c.close(websocket.StatusNormalClosure, "")
 	wg.Wait()
 
@@ -402,7 +414,7 @@ func (l *Live) unregister(c *liveConn) int {
 // read takes the client's frames until the connection ends. It always runs,
 // since the library answers pings only while someone reads.
 func (l *Live) read(ctx context.Context, c *liveConn) error {
-	for {
+	for attempts := 1; ; attempts++ {
 		typ, data, err := c.ws.Read(ctx)
 		if err != nil {
 			return err
@@ -415,6 +427,12 @@ func (l *Live) read(ctx context.Context, c *liveConn) error {
 
 		if typ != websocket.MessageText || json.Unmarshal(data, &frame) != nil || frame.Type != "subscribe" {
 			c.close(websocket.StatusPolicyViolation, "send subscribe frames in JSON text")
+
+			return errBadFrame
+		}
+
+		if attempts > liveAttemptsPerConn {
+			c.close(websocket.StatusPolicyViolation, "too many subscribe frames")
 
 			return errBadFrame
 		}
