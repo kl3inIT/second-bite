@@ -206,7 +206,8 @@ export function OrderSummary({ order }: { order: Order }) {
         <dl className="flex justify-between gap-4">
           <Fact
             label={t("facts.number")}
-            value={<span className="text-body-sm">#{order.number}</span>}
+            // The number staff read at the counter stays on one line, even with a phone's large text (SEC-112).
+            value={<span className="text-body-sm whitespace-nowrap">#{order.number}</span>}
           />
           <Fact
             end
@@ -224,7 +225,7 @@ export function OrderSummary({ order }: { order: Order }) {
 }
 
 /**
- * Where the counter is, the way there in Google Maps and a message to the seller (Figma D2 › chỗ lấy, D2b, D4:
+ * Where the counter is, the way there in Google Maps and a message to the seller (Figma D2 › chỗ nhận, D2b, D4:
  * "Chỉ đường" and "Nhắn quán" side by side).
  */
 export function Directions({ order }: { order: Order }) {

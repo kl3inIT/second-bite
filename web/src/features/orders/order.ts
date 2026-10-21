@@ -10,12 +10,9 @@ export function isOpen(order: Pick<Order, "status">): boolean {
   return order.status === "confirmed" || order.status === "ready";
 }
 
-/**
- * Whether its customer is offered cancelling: the seller has not reported it ready (Figma D2b, D4: "Huỷ được cho
- * tới khi quán báo món sẵn sàng"), and its window has not opened, until which it is free of charge.
- */
-export function canCancel(order: Pick<Order, "status" | "windowStart">, now: number): boolean {
-  return order.status === "confirmed" && now < Date.parse(order.windowStart);
+/** Whether its customer may still cancel it: until the seller marks it ready (SEC-121). */
+export function canCancel(order: Pick<Order, "status">): boolean {
+  return order.status === "confirmed";
 }
 
 /** The dishes of an order on one line: "Croissant & bánh mì chà bông". */

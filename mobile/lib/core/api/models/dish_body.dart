@@ -21,6 +21,9 @@ abstract class DishBody with _$DishBody {
     required DishBodyKind kind,
     required String name,
     required OfferPhotoBody photo,
+
+    /// Every photo, the cover first
+    required List<OfferPhotoBody> photos,
     required String sellerId,
     required String unit,
     required DateTime updatedAt,

@@ -2,6 +2,8 @@
 
 import { useFormatter, useTranslations } from "next-intl";
 
+import { ChoiceOption } from "@/components/choice-option";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { formatPrice } from "@/features/offers/format";
 import { directionsHref } from "@/features/offers/offer";
 import { OfferPhoto } from "@/features/offers/offer-photo";
@@ -19,6 +21,22 @@ import { saveCart } from "./cart-store";
 import type { Contact } from "./contact";
 import { Stepper } from "./quantity-stepper";
 import type { usePlaceCart } from "./use-place-cart";
+
+/**
+ * How to pay (Figma K5, WK5): at the counter, chosen, the only way in the pilot; a bank transfer in the app is shown
+ * but cannot be chosen until it arrives (SEC-18), and a screen reader hears that it is coming (SEC-114). Nothing
+ * about it is sent with the order.
+ */
+export function PaymentChoice() {
+  const t = useTranslations("Cart");
+
+  return (
+    <RadioGroup defaultValue="counter" aria-labelledby="pay">
+      <ChoiceOption value="counter" title={t("counter")} />
+      <ChoiceOption value="transfer" title={t("transfer")} note={t("soon")} disabled />
+    </RadioGroup>
+  );
+}
 
 /** What a layout of the confirmation is given: the cart, whether it is ordering, why it did not, and who collects. */
 export type CheckoutProps = {
@@ -93,13 +111,6 @@ function LineRow({ cart, line }: { cart: Cart; line: CartLine }) {
       />
     </div>
   );
-}
-
-export function CancelPolicy({ basket }: { basket: Basket }) {
-  const t = useTranslations("Cart");
-  const { from } = useWindow(basket);
-
-  return <p className="text-label text-muted-foreground">{t("cancelBody", { time: from })}</p>;
 }
 
 function useWindow(basket: Basket): { from: string; until: string } {

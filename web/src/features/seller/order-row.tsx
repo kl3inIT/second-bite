@@ -46,15 +46,24 @@ export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab
         />
       </span>
       <div className="flex min-w-48 flex-1 flex-col">
-        <h3 className="flex items-center gap-2 text-card-title">
-          <Link
-            href={`/stores/${order.seller.id}/orders/${order.id}`}
-            className="rounded-sm outline-none after:absolute after:inset-0 focus-visible:ring-3 focus-visible:ring-ring"
-          >
-            {names}
-          </Link>
+        {/* The order's number: above the dish on a desktop, in the corner of the card on a phone. */}
+        <p className="text-note font-semibold text-muted-foreground max-md:hidden">
+          #{order.number}
+        </p>
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 className="min-w-0 truncate text-card-title">
+            <Link
+              href={`/stores/${order.seller.id}/orders/${order.id}`}
+              className="rounded-sm outline-none after:absolute after:inset-0 focus-visible:ring-3 focus-visible:ring-ring"
+            >
+              {names}
+            </Link>
+          </h3>
           <UnreadPill count={order.unreadMessages ?? 0} />
-        </h3>
+          <span className="shrink-0 text-note font-semibold text-muted-foreground md:hidden">
+            #{order.number}
+          </span>
+        </div>
         <p className="flex items-center gap-2 text-title-lg font-normal text-muted-foreground">
           <span>
             {order.customerName} · {order.customerPhone}

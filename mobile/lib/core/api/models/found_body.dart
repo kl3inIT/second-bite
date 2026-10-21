@@ -25,7 +25,12 @@ abstract class FoundBody with _$FoundBody {
     required FoundBodyKind kind,
     required String name,
     required int originalPriceVnd,
+
+    /// The cover, which lists and orders show
     required OfferPhotoBody photo,
+
+    /// Every photo, the cover first
+    required List<OfferPhotoBody> photos,
     required int priceVnd,
     required OfferSellerBody seller,
     required String sellerId,

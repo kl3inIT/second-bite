@@ -15,6 +15,9 @@ _DishBody _$DishBodyFromJson(Map<String, dynamic> json) => _DishBody(
   kind: DishBodyKind.fromJson(json['kind'] as String),
   name: json['name'] as String,
   photo: OfferPhotoBody.fromJson(json['photo'] as Map<String, dynamic>),
+  photos: (json['photos'] as List<dynamic>)
+      .map((e) => OfferPhotoBody.fromJson(e as Map<String, dynamic>))
+      .toList(),
   sellerId: json['sellerId'] as String,
   unit: json['unit'] as String,
   updatedAt: DateTime.parse(json['updatedAt'] as String),
@@ -30,6 +33,7 @@ Map<String, dynamic> _$DishBodyToJson(_DishBody instance) => <String, dynamic>{
   'kind': _$DishBodyKindEnumMap[instance.kind]!,
   'name': instance.name,
   'photo': instance.photo,
+  'photos': instance.photos,
   'sellerId': instance.sellerId,
   'unit': instance.unit,
   'updatedAt': instance.updatedAt.toIso8601String(),

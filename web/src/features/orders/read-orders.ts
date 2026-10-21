@@ -75,7 +75,7 @@ export async function readOrderView(orderId: string): Promise<Read<OrderView | n
     known: true,
     value: {
       order,
-      cancellable: canCancel(order, now),
+      cancellable: canCancel(order),
       together: together.filter((other) => other.id !== order.id),
       now,
     },

@@ -88,6 +88,8 @@ export type Dish = {
   priceVnd?: number;
   photoId: string;
   photoPath: string;
+  /** The photos after the cover, which a new post of the dish shows too (SEC-119). */
+  morePhotoIds: string[];
   /** The hour of day it was last put on sale, "the usual time" of Figma P3. */
   usual?: { hour: number; minute: number };
 };
@@ -113,6 +115,7 @@ export function dishOf(offer: OfferBody): Dish {
     priceVnd: offer.priceVnd,
     photoId: offer.photo.id,
     photoPath: offer.photo.smallPath,
+    morePhotoIds: offer.photos.slice(1).map((photo) => photo.id),
     usual: { hour: part("hour"), minute: part("minute") },
   };
 }
@@ -173,5 +176,6 @@ export function catalogDishOf(dish: DishBody): Dish {
     originalPriceVnd: dish.originalPriceVnd,
     photoId: dish.photo.id,
     photoPath: dish.photo.smallPath,
+    morePhotoIds: dish.photos.slice(1).map((photo) => photo.id),
   };
 }

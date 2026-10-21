@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { formatPrice } from "@/features/offers/format";
 
 import { totals } from "./cart";
-import { CancelPolicy, SellerOrder, type CheckoutProps } from "./checkout-parts";
+import { PaymentChoice, SellerOrder, type CheckoutProps } from "./checkout-parts";
 import { OrderButton } from "./order-button";
 
 // The cart's confirmation from 768px (Figma WK5): the page's intro, then at the left one card per seller's order, how
@@ -28,21 +28,13 @@ export function CheckoutDesktop({ cart, pending, problem, onConfirmed }: Checkou
           <h2 id="pay" className="text-title-lg text-foreground">
             {t("pay")}
           </h2>
-          {/* The only way to pay: at the counter, in cash or by the seller's QR code, when collecting. */}
-          <div className="flex flex-col gap-0.5 rounded-lg border border-border bg-card px-3.5 py-3">
-            <p className="text-body-sm-strong text-foreground">{t("counter")}</p>
-            <p className="text-label text-muted-foreground">{t("counterHint")}</p>
-          </div>
+          <PaymentChoice />
         </section>
         <section aria-labelledby="cancel" className="flex flex-col gap-1">
           <h2 id="cancel" className="text-title-lg text-foreground">
             {t("cancelTitle")}
           </h2>
-          {orders > 1 ? (
-            <p className="text-label text-muted-foreground">{t("cancelEach")}</p>
-          ) : (
-            <CancelPolicy basket={cart.baskets[0]} />
-          )}
+          <p className="text-label text-muted-foreground">{t("cancelBody")}</p>
         </section>
       </div>
       <section

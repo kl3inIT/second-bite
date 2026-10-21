@@ -229,7 +229,7 @@ func searchedRow(r db.SearchOffersRow) db.GetOfferRow {
 	return db.GetOfferRow{
 		ID: r.ID, SellerID: r.SellerID, PostedBy: r.PostedBy, State: r.State, Name: r.Name, Description: r.Description,
 		Kind: r.Kind, Unit: r.Unit, Units: r.Units, UnitsLeft: r.UnitsLeft, PriceVnd: r.PriceVnd,
-		OriginalPriceVnd: r.OriginalPriceVnd, WeightGrams: r.WeightGrams, PhotoID: r.PhotoID,
+		OriginalPriceVnd: r.OriginalPriceVnd, WeightGrams: r.WeightGrams, PhotoID: r.PhotoID, MorePhotoIds: r.MorePhotoIds,
 		WindowStart: r.WindowStart, WindowEnd: r.WindowEnd, Latitude: r.Latitude, Longitude: r.Longitude,
 		Address: r.Address, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt, WithdrawnAt: r.WithdrawnAt,
 		SellerName: r.SellerName,

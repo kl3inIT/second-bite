@@ -51,7 +51,7 @@ func (q *Queries) DeleteDish(ctx context.Context, id uuid.UUID) (int64, error) {
 }
 
 const getDish = `-- name: GetDish :one
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden, created_at, updated_at
 FROM offer_dishes WHERE id = $1
 `
 
@@ -66,6 +66,7 @@ type GetDishRow struct {
 	Ingredients      string
 	OriginalPriceVnd pgtype.Int8
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	Hidden           bool
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
@@ -85,6 +86,7 @@ func (q *Queries) GetDish(ctx context.Context, id uuid.UUID) (GetDishRow, error)
 		&i.Ingredients,
 		&i.OriginalPriceVnd,
 		&i.PhotoID,
+		&i.MorePhotoIds,
 		&i.Hidden,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -94,7 +96,7 @@ func (q *Queries) GetDish(ctx context.Context, id uuid.UUID) (GetDishRow, error)
 
 const getOffer = `-- name: GetOffer :one
 SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers WHERE id = $1
 `
@@ -114,6 +116,7 @@ type GetOfferRow struct {
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	Latitude         float64
@@ -143,6 +146,7 @@ func (q *Queries) GetOffer(ctx context.Context, id uuid.UUID) (GetOfferRow, erro
 		&i.OriginalPriceVnd,
 		&i.WeightGrams,
 		&i.PhotoID,
+		&i.MorePhotoIds,
 		&i.WindowStart,
 		&i.WindowEnd,
 		&i.Latitude,
@@ -190,8 +194,8 @@ func (q *Queries) GetSettings(ctx context.Context) (GetSettingsRow, error) {
 }
 
 const insertDish = `-- name: InsertDish :one
-INSERT INTO offer_dishes (seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+INSERT INTO offer_dishes (seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 RETURNING id
 `
 
@@ -205,6 +209,7 @@ type InsertDishParams struct {
 	Ingredients      string
 	OriginalPriceVnd pgtype.Int8
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	Hidden           bool
 }
 
@@ -219,6 +224,7 @@ func (q *Queries) InsertDish(ctx context.Context, arg InsertDishParams) (uuid.UU
 		arg.Ingredients,
 		arg.OriginalPriceVnd,
 		arg.PhotoID,
+		arg.MorePhotoIds,
 		arg.Hidden,
 	)
 	var id uuid.UUID
@@ -229,11 +235,11 @@ func (q *Queries) InsertDish(ctx context.Context, arg InsertDishParams) (uuid.UU
 const insertOffer = `-- name: InsertOffer :one
 INSERT INTO offer_offers (
     seller_id, posted_by, name, description, kind, unit, units, units_left, price_vnd, original_price_vnd,
-    weight_grams, photo_id, window_start, window_end, latitude, longitude, address, seller_name, search_vector
+    weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address, seller_name, search_vector
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $7, $8, $9,
-    $10, $11, $12, $13, $14, $15, $16, $17,
-    ($18::text)::tsvector
+    $10, $11, $12, $13, $14, $15, $16, $17, $18,
+    ($19::text)::tsvector
 )
 RETURNING id
 `
@@ -250,6 +256,7 @@ type InsertOfferParams struct {
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	Latitude         float64
@@ -272,6 +279,7 @@ func (q *Queries) InsertOffer(ctx context.Context, arg InsertOfferParams) (uuid.
 		arg.OriginalPriceVnd,
 		arg.WeightGrams,
 		arg.PhotoID,
+		arg.MorePhotoIds,
 		arg.WindowStart,
 		arg.WindowEnd,
 		arg.Latitude,
@@ -297,7 +305,7 @@ func (q *Queries) LockDishes(ctx context.Context, sellerID string) error {
 
 const lockOffer = `-- name: LockOffer :one
 SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers WHERE id = $1 FOR UPDATE
 `
@@ -317,6 +325,7 @@ type LockOfferRow struct {
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	Latitude         float64
@@ -347,6 +356,7 @@ func (q *Queries) LockOffer(ctx context.Context, id uuid.UUID) (LockOfferRow, er
 		&i.OriginalPriceVnd,
 		&i.WeightGrams,
 		&i.PhotoID,
+		&i.MorePhotoIds,
 		&i.WindowStart,
 		&i.WindowEnd,
 		&i.Latitude,
@@ -444,11 +454,11 @@ func (q *Queries) ReturnUnits(ctx context.Context, arg ReturnUnitsParams) error 
 
 const searchOffers = `-- name: SearchOffers :many
 SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name,
        COALESCE(distance_m, 0)::float8 AS distance_m, rank::float4 AS rank
 FROM (
-    SELECT o.id, o.seller_id, o.posted_by, o.state, o.name, o.description, o.kind, o.unit, o.units, o.units_left, o.price_vnd, o.original_price_vnd, o.weight_grams, o.photo_id, o.window_start, o.window_end, o.latitude, o.longitude, o.location, o.address, o.created_at, o.updated_at, o.withdrawn_at, o.seller_name, o.search_vector,
+    SELECT o.id, o.seller_id, o.posted_by, o.state, o.name, o.description, o.kind, o.unit, o.units, o.units_left, o.price_vnd, o.original_price_vnd, o.weight_grams, o.photo_id, o.window_start, o.window_end, o.latitude, o.longitude, o.location, o.address, o.created_at, o.updated_at, o.withdrawn_at, o.seller_name, o.search_vector, o.more_photo_ids,
            CASE WHEN $1::float8 IS NULL THEN NULL
                 ELSE ST_Distance(o.location, ST_SetSRID(ST_MakePoint($2::float8, $1::float8), 4326)::geography)
            END AS distance_m,
@@ -510,6 +520,7 @@ type SearchOffersRow struct {
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	Latitude         float64
@@ -566,6 +577,7 @@ func (q *Queries) SearchOffers(ctx context.Context, arg SearchOffersParams) ([]S
 			&i.OriginalPriceVnd,
 			&i.WeightGrams,
 			&i.PhotoID,
+			&i.MorePhotoIds,
 			&i.WindowStart,
 			&i.WindowEnd,
 			&i.Latitude,
@@ -589,7 +601,7 @@ func (q *Queries) SearchOffers(ctx context.Context, arg SearchOffersParams) ([]S
 }
 
 const sellerDishes = `-- name: SellerDishes :many
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden, created_at, updated_at
 FROM offer_dishes WHERE seller_id = $1
 ORDER BY created_at DESC, id DESC
 `
@@ -605,6 +617,7 @@ type SellerDishesRow struct {
 	Ingredients      string
 	OriginalPriceVnd pgtype.Int8
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	Hidden           bool
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
@@ -630,6 +643,7 @@ func (q *Queries) SellerDishes(ctx context.Context, sellerID uuid.UUID) ([]Selle
 			&i.Ingredients,
 			&i.OriginalPriceVnd,
 			&i.PhotoID,
+			&i.MorePhotoIds,
 			&i.Hidden,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -646,7 +660,7 @@ func (q *Queries) SellerDishes(ctx context.Context, sellerID uuid.UUID) ([]Selle
 
 const sellerOffers = `-- name: SellerOffers :many
 SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers
 WHERE seller_id = $1
@@ -681,6 +695,7 @@ type SellerOffersRow struct {
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	Latitude         float64
@@ -721,6 +736,7 @@ func (q *Queries) SellerOffers(ctx context.Context, arg SellerOffersParams) ([]S
 			&i.OriginalPriceVnd,
 			&i.WeightGrams,
 			&i.PhotoID,
+			&i.MorePhotoIds,
 			&i.WindowStart,
 			&i.WindowEnd,
 			&i.Latitude,
@@ -742,8 +758,10 @@ func (q *Queries) SellerOffers(ctx context.Context, arg SellerOffersParams) ([]S
 }
 
 const sellerUsesPhoto = `-- name: SellerUsesPhoto :one
-SELECT (EXISTS (SELECT 1 FROM offer_offers AS o WHERE o.seller_id = $1 AND o.photo_id = $2)
-    OR EXISTS (SELECT 1 FROM offer_dishes AS d WHERE d.seller_id = $1 AND d.photo_id = $2))::boolean
+SELECT (EXISTS (SELECT 1 FROM offer_offers AS o
+                WHERE o.seller_id = $1 AND (o.photo_id = $2 OR $2 = ANY (o.more_photo_ids)))
+    OR EXISTS (SELECT 1 FROM offer_dishes AS d
+               WHERE d.seller_id = $1 AND (d.photo_id = $2 OR $2 = ANY (d.more_photo_ids))))::boolean
 `
 
 type SellerUsesPhotoParams struct {
@@ -813,8 +831,8 @@ func (q *Queries) TakeUnits(ctx context.Context, arg TakeUnitsParams) (TakeUnits
 const updateDish = `-- name: UpdateDish :exec
 UPDATE offer_dishes
 SET name = $1, kind = $2, unit = $3, description = $4, ingredients = $5,
-    original_price_vnd = $6, photo_id = $7, hidden = $8, updated_at = now()
-WHERE id = $9
+    original_price_vnd = $6, photo_id = $7, more_photo_ids = $8, hidden = $9, updated_at = now()
+WHERE id = $10
 `
 
 type UpdateDishParams struct {
@@ -825,6 +843,7 @@ type UpdateDishParams struct {
 	Ingredients      string
 	OriginalPriceVnd pgtype.Int8
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	Hidden           bool
 	ID               uuid.UUID
 }
@@ -838,6 +857,7 @@ func (q *Queries) UpdateDish(ctx context.Context, arg UpdateDishParams) error {
 		arg.Ingredients,
 		arg.OriginalPriceVnd,
 		arg.PhotoID,
+		arg.MorePhotoIds,
 		arg.Hidden,
 		arg.ID,
 	)
@@ -848,9 +868,9 @@ const updateOffer = `-- name: UpdateOffer :exec
 UPDATE offer_offers
 SET name = $1, description = $2, kind = $3, unit = $4, units = $5,
     units_left = $6, price_vnd = $7, original_price_vnd = $8,
-    weight_grams = $9, photo_id = $10, window_start = $11, window_end = $12,
-    search_vector = ($13::text)::tsvector, updated_at = now()
-WHERE id = $14
+    weight_grams = $9, photo_id = $10, more_photo_ids = $11, window_start = $12, window_end = $13,
+    search_vector = ($14::text)::tsvector, updated_at = now()
+WHERE id = $15
 `
 
 type UpdateOfferParams struct {
@@ -864,6 +884,7 @@ type UpdateOfferParams struct {
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	SearchVector     string
@@ -882,6 +903,7 @@ func (q *Queries) UpdateOffer(ctx context.Context, arg UpdateOfferParams) error 
 		arg.OriginalPriceVnd,
 		arg.WeightGrams,
 		arg.PhotoID,
+		arg.MorePhotoIds,
 		arg.WindowStart,
 		arg.WindowEnd,
 		arg.SearchVector,
