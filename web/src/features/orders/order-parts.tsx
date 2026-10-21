@@ -198,7 +198,8 @@ export function OrderSummary({ order }: { order: Order }) {
         <dl className="flex justify-between gap-4">
           <Fact
             label={t("facts.number")}
-            value={<span className="text-body-sm">#{order.number}</span>}
+            // The number staff read at the counter stays on one line, even with a phone's large text (SEC-112).
+            value={<span className="text-body-sm whitespace-nowrap">#{order.number}</span>}
           />
           <Fact
             end
@@ -284,7 +285,7 @@ export function OrderFacts({ order }: { order: Order }) {
   );
 }
 
-/** Where the counter is, and the way there in Google Maps (Figma D2 › chỗ lấy). */
+/** Where the counter is, and the way there in Google Maps (Figma D2 › chỗ nhận). */
 export function Directions({ order }: { order: Order }) {
   const t = useTranslations("Orders");
   const locale = useLocale();

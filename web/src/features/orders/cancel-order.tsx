@@ -122,7 +122,13 @@ export function CancelOrder({
         <p className="text-title-lg text-foreground">{t("change")}</p>
         <p className="text-body-sm text-muted-foreground">{t("after")}</p>
       </div>
-      <Button variant="cancel" size="lg" className="w-full md:w-auto" onClick={() => setOpen(true)}>
+      {/* With a phone's large text the label wraps rather than running past the screen (SEC-112). */}
+      <Button
+        variant="cancel"
+        size="lg"
+        className="h-auto min-h-13 w-full whitespace-normal md:w-auto"
+        onClick={() => setOpen(true)}
+      >
         {t("open")}
       </Button>
       {phone ? (

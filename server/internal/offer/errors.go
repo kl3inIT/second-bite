@@ -13,7 +13,7 @@ var (
 		EN: "The price must be at least the minimum discount below the original price.",
 	})
 	ErrWindowInvalid = platform.NewFailure("OFFER_WINDOW_INVALID", platform.CategoryValidation, platform.Words{
-		VI: "Khung giờ lấy món quá ngắn, quá dài, đã qua, hoặc bắt đầu quá muộn.",
+		VI: "Khung giờ nhận món quá ngắn, quá dài, đã qua, hoặc bắt đầu quá muộn.",
 		EN: "The collection window is too short, too long, already over, or starts too late.",
 	})
 	ErrNotFound = platform.NewFailure("OFFER_NOT_FOUND", platform.CategoryNotFound, platform.Words{
@@ -21,7 +21,7 @@ var (
 		EN: "The offer does not exist.",
 	})
 	ErrChangeNotAllowed = platform.NewFailure("OFFER_CHANGE_NOT_ALLOWED", platform.CategoryConflict, platform.Words{
-		VI: "Món đăng này không sửa theo cách này được nữa: đã có người đặt (khi đó chỉ đổi được mô tả, ảnh, số suất và giờ lấy), đã hết giờ lấy, hoặc đã rút.",
+		VI: "Món đăng này không sửa theo cách này được nữa: đã có người đặt (khi đó chỉ đổi được mô tả, ảnh, số suất và giờ nhận), đã hết giờ nhận, hoặc đã rút.",
 		EN: "This offer can no longer be changed this way: units have been ordered (then only the description, the photo, the units and the collection window change), its window is over, or it was withdrawn.",
 	})
 	ErrDishNotFound = platform.NewFailure("OFFER_DISH_NOT_FOUND", platform.CategoryNotFound, platform.Words{
