@@ -1085,6 +1085,7 @@ components:
             - late
             - sold_out
             - other
+            - withdrawn
           type: string
         refusedAt:
           format: date-time

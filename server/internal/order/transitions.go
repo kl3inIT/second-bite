@@ -135,7 +135,8 @@ func (s *Service) Reopen(ctx context.Context, id uuid.UUID) (Order, error) {
 	}
 
 	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
-		if (o.Status != StatusCollected && o.Status != StatusRefused) || !o.WindowEnd.After(s.now()) {
+		if (o.Status != StatusCollected && o.Status != StatusRefused) || !o.WindowEnd.After(s.now()) ||
+			o.RefuseReason == RefuseWithdrawn {
 			return ErrTransitionNotAllowed
 		}
 

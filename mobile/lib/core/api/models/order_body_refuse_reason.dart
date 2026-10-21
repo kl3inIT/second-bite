@@ -22,6 +22,8 @@ enum OrderBodyRefuseReason {
   soldOut('sold_out'),
   @JsonValue('other')
   other('other'),
+  @JsonValue('withdrawn')
+  withdrawn('withdrawn'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

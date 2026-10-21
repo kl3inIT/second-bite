@@ -58,6 +58,7 @@ func TestOrder(t *testing.T) {
 		"admins read what an account ordered":      testHistoryForAdmins,
 		"orders follow their offer's window":       testOrdersFollowTheWindow,
 		"ended orders expire in the table":         testEndedOrdersExpire,
+		"withdrawing an offer refuses its orders":  testWithdrawRefusesOrders,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -709,6 +710,60 @@ func testOrdersFollowTheWindow(t *testing.T, f fixture) {
 	if err != nil || kept.WindowStart.Sub(start).Abs() < time.Minute {
 		t.Fatalf("the handed-over order's window moved: %v (%v)", kept.WindowStart, err)
 	}
+}
+
+func testWithdrawRefusesOrders(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
+	eclair := f.post(owner, t, shop, "Eclair", 5, 25_000, time.Now())
+
+	both, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 2}, {eclair.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	handed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.orders.HandOver(owner, handed.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.offers.Withdraw(owner, croissant.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	// The listener does not run in this check; its handler is called as the event would.
+	event := offer.WithdrawnEvent{OfferID: croissant.ID}
+	for range 2 { // delivered twice, it changes nothing more
+		if err := f.orders.RefuseWithdrawnOffer(t.Context(), event); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	refused, err := f.orders.Get(customer, both.ID, "")
+	if err != nil || refused.Status != order.StatusRefused || refused.RefuseReason != order.RefuseWithdrawn {
+		t.Fatalf("the open order: %+v (%v)", refused, err)
+	}
+
+	kept, err := f.orders.Get(customer, handed.ID, "")
+	if err != nil || kept.Status != order.StatusCollected {
+		t.Fatalf("the handed-over order: %+v (%v)", kept, err)
+	}
+
+	// The units it held of the seller's other offer are back; those of the withdrawn one are not offered again.
+	if left := f.unitsLeft(owner, t, eclair.ID); left != 5 {
+		t.Fatalf("the other offer's units left: %d, want 5", left)
+	}
+
+	_, err = f.orders.Reopen(owner, both.ID)
+	mustFail(t, "reopening an order refused as withdrawn", err, order.ErrTransitionNotAllowed)
 }
 
 // expectState fails the check unless an order is stored in the state, whatever it reads as.

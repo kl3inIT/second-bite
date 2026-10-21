@@ -1085,7 +1085,7 @@ async function sellerRoutes(request, response, url) {
     }
     const ordered = offer.units - offer.unitsLeft;
     if (request.method === "POST" && change[2]) {
-      if (ordered > 0 || offer.status === "closed") {
+      if (offer.status === "closed") {
         problem(response, 409, "OFFER_CHANGE_NOT_ALLOWED");
       } else {
         offer.status = "withdrawn";
