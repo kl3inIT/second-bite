@@ -12,6 +12,7 @@ import Image from "next/image";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
+import { MessageLink } from "@/features/chat/message-link";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
 import { directionsHref } from "@/features/offers/offer";
@@ -25,7 +26,15 @@ import { OrderQr } from "./order-qr";
 // together, the dishes and totals, the way to the counter, the steps on the blue band and how to collect.
 
 /** A photograph of a line, or the muted ground where it has none. */
-function Photo({ path, sizes, className }: { path?: string; sizes: string; className: string }) {
+export function Photo({
+  path,
+  sizes,
+  className,
+}: {
+  path?: string;
+  sizes: string;
+  className: string;
+}) {
   return (
     <span className={cn("relative shrink-0 overflow-hidden bg-muted", className)}>
       {path ? (
@@ -214,7 +223,10 @@ export function OrderSummary({ order }: { order: Order }) {
   );
 }
 
-/** Where the counter is, and the way there in Google Maps (Figma D2 › chỗ lấy). */
+/**
+ * Where the counter is, the way there in Google Maps and a message to the seller (Figma D2 › chỗ lấy, D2b, D4:
+ * "Chỉ đường" and "Nhắn quán" side by side).
+ */
 export function Directions({ order }: { order: Order }) {
   const t = useTranslations("Orders");
   const locale = useLocale();
@@ -238,15 +250,24 @@ export function Directions({ order }: { order: Order }) {
           </p>
           <p className="text-label text-muted-foreground">{t("placeHint")}</p>
         </div>
-        <a
-          href={directionsHref(order.seller)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={buttonVariants()}
-        >
-          {t("directions")}
-          <span className="sr-only">{t("opensMaps")}</span>
-        </a>
+        <div className="flex gap-2">
+          <a
+            href={directionsHref(order.seller)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(buttonVariants(), "flex-1")}
+          >
+            {t("directions")}
+            <span className="sr-only">{t("opensMaps")}</span>
+          </a>
+          <MessageLink
+            to="store"
+            href={`/orders/${order.id}/chat`}
+            unread={order.unreadMessages}
+            variant="secondary"
+            className="flex-1"
+          />
+        </div>
       </div>
     </section>
   );

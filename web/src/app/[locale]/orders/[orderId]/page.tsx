@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { UnreadBanner } from "@/features/chat/unread-banner";
 import { LiveRefresh } from "@/features/orders/live-refresh";
 import { CollectedOrder, EndedOrder, hasEnded, OpenOrder } from "@/features/orders/order-view";
 import { readOrderView } from "@/features/orders/read-orders";
@@ -50,6 +51,17 @@ async function OrderView({ params }: { params: Promise<{ orderId: string }> }) {
   return (
     <>
       <LiveRefresh topics={[`order:${order.id}`]} at={[order.windowStart, order.windowEnd]} />
+      {order.unreadMessages && !hasEnded(order) ? (
+        <div className="mx-auto w-full max-w-xl px-4 py-4 md:max-w-3xl lg:max-w-292 lg:pb-0">
+          <UnreadBanner
+            orderId={order.id}
+            access={order.access}
+            side="customer"
+            unread={order.unreadMessages}
+            href={`/orders/${order.id}/chat`}
+          />
+        </div>
+      ) : null}
       {order.status === "collected" ? (
         <CollectedOrder order={order} together={together} />
       ) : hasEnded(order) ? (

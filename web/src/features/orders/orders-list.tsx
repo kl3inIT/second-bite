@@ -14,7 +14,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import { LiveRefresh } from "./live-refresh";
-import { dayOf, type Day, type Order } from "./order";
+import { dayOf, dishesOf, type Day, type Order } from "./order";
 import { readMyOrderLists } from "./read-orders";
 import { SignInPrompt } from "./sign-in-prompt";
 
@@ -50,11 +50,6 @@ function Thumb({ order, size }: { order: Order; size: "md" | "sm" }) {
       <UnreadPill count={order.unreadMessages ?? 0} className="absolute -top-1.5 -right-1.5" />
     </span>
   );
-}
-
-/** The dishes of an order on one line: "Croissant & bánh mì chà bông". */
-function dishesOf(order: Order): string {
-  return order.lines.map((line) => line.name).join(" & ");
 }
 
 /**

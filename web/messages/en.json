@@ -1507,7 +1507,6 @@
     "confirmedOn": "{date} · Order #{number} confirmed",
     "log": "Messages of the order",
     "mine": "You",
-    "time": "{time}",
     "seen": "{time} · Seen",
     "note": "Messages do not change the order's price, quantity or collection time.",
     "placeholderToStore": "Message the store…",
@@ -1540,6 +1539,8 @@
     },
     "window": "collects {from}–{until}",
     "seeOrder": "See order details",
-    "pickup": "Collect today {from}–{until}"
+    "pickup": "Collect today {from}–{until}",
+    "orderTitle": "Order #{number}",
+    "breadcrumb": "Breadcrumb"
   }
 }

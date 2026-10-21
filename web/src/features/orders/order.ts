@@ -18,6 +18,16 @@ export function canCancel(order: Pick<Order, "status" | "windowStart">, now: num
   return order.status === "confirmed" && now < Date.parse(order.windowStart);
 }
 
+/** The dishes of an order on one line: "Croissant & bánh mì chà bông". */
+export function dishesOf(order: Pick<Order, "lines">): string {
+  return order.lines.map((line) => line.name).join(" & ");
+}
+
+/** The moment now, in milliseconds; read here and not in a page, which the purity rule keeps free of the clock. */
+export function nowMs(): number {
+  return Date.now();
+}
+
 /** How many units the order holds, across its lines. */
 export function unitsOf(order: Pick<Order, "lines">): number {
   return order.lines.reduce((sum, line) => sum + line.units, 0);

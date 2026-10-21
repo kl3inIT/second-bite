@@ -40,7 +40,4 @@ export function shiftDay(day: string, by: number): string {
   return new Date(Date.UTC(year, month - 1, date + by)).toISOString().slice(0, 10);
 }
 
-/** The moment now, in milliseconds; read here and not in a page, which the purity rule keeps free of the clock. */
-export function nowMs(): number {
-  return Date.now();
-}
+export { nowMs } from "@/features/orders/order";
