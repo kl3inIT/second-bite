@@ -29,7 +29,7 @@ export function UndoToast({ orderId, message }: { orderId: string; message: stri
   }, [leave]);
 
   return (
-    <div className="pointer-events-none fixed inset-x-4 bottom-8 z-40 flex justify-center">
+    <div className="pointer-events-none fixed inset-x-4 bottom-24 z-50 flex justify-center md:bottom-8">
       <output className="pointer-events-auto flex items-center gap-5 rounded-xl bg-foreground py-2 pr-2 pl-5 text-body-sm text-background shadow-lg">
         {message}
         <button
