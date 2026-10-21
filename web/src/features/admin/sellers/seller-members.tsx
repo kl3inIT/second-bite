@@ -1,12 +1,23 @@
 "use client";
 
-import { UsersIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { ClockIcon, UsersIcon } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 
-import { DataTable, DateCell } from "@/features/admin/ui/data-table";
-import { EmptyState } from "@/features/admin/ui/empty-state";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-import { type AdminMember, AwaitingSignInBadge, MemberAvatar, RoleBadge } from "./member";
+import { type AdminMember, initialsOf, roleTone } from "./member";
+import { toneBadge } from "./seller-list";
 
 /**
  * A store's members tab (Figma AD-QD4): its owner and staff with their address, role and the day they joined.
@@ -15,53 +26,75 @@ import { type AdminMember, AwaitingSignInBadge, MemberAvatar, RoleBadge } from "
  * "Chờ đăng nhập" beside their role (AD-OS3).
  */
 export function SellerMembers({ members }: { members: AdminMember[] }) {
-  const t = useTranslations("admin.sellers.detail.members");
+  const t = useTranslations("admin.sellers.detail");
+  const format = useFormatter();
   if (members.length === 0) {
     return (
-      <div className="rounded-md border border-border bg-card">
-        <EmptyState title={t("empty")} icon={UsersIcon} />
-      </div>
+      <Empty surface="card">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <UsersIcon aria-hidden />
+          </EmptyMedia>
+          <EmptyTitle>{t("members.empty")}</EmptyTitle>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
   return (
-    <DataTable
-      caption={t("caption")}
-      rows={members}
-      rowKey={(member) => member.accountId}
-      columns={[
-        {
-          key: "member",
-          header: t("columns.member"),
-          grow: true,
-          cell: (member) => (
-            <span className="flex items-center gap-2.5">
-              <MemberAvatar member={member} />
-              <a
-                href={`mailto:${member.email}`}
-                className="block max-w-80 truncate rounded-sm text-body-sm-strong text-foreground hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-              >
-                {member.email}
-              </a>
-            </span>
-          ),
-        },
-        {
-          key: "role",
-          header: t("columns.role"),
-          cell: (member) => (
-            <span className="flex items-center gap-2">
-              <AwaitingSignInBadge member={member} />
-              <RoleBadge role={member.role} />
-            </span>
-          ),
-        },
-        {
-          key: "added",
-          header: t("columns.added"),
-          cell: (member) => <DateCell value={member.addedAt} />,
-        },
-      ]}
-    />
+    <Card>
+      <Table>
+        <caption className="sr-only">{t("members.caption")}</caption>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-full">{t("members.columns.member")}</TableHead>
+            <TableHead>{t("members.columns.role")}</TableHead>
+            <TableHead>{t("members.columns.added")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {members.map((member) => {
+            const added = new Date(member.addedAt);
+            return (
+              <TableRow key={member.accountId}>
+                <TableCell className="w-full">
+                  <span className="flex items-center gap-2.5">
+                    <Avatar aria-hidden>
+                      <AvatarFallback tone={member.role === "owner" ? "indigo" : "muted"}>
+                        {initialsOf(member.email)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <a
+                      href={`mailto:${member.email}`}
+                      className="block max-w-80 truncate text-body-sm-strong text-foreground hover:underline"
+                    >
+                      {member.email}
+                    </a>
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="flex items-center gap-2">
+                    {member.awaitingSignIn && (
+                      <Badge variant={toneBadge.neutral}>
+                        <ClockIcon aria-hidden />
+                        {t("members.awaitingSignIn")}
+                      </Badge>
+                    )}
+                    <Badge variant={toneBadge[roleTone[member.role]]}>
+                      {t(`roles.${member.role}`)}
+                    </Badge>
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <time dateTime={added.toISOString()} className="text-muted-foreground">
+                    {format.dateTime(added, "day")}
+                  </time>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </Card>
   );
 }

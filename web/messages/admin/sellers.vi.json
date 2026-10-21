@@ -16,6 +16,7 @@
     "updatedAt": "Ngày sửa đổi"
   },
   "summary": "Hiển thị {from}–{to} trên {total} cửa hàng",
+  "pageOf": "{page} / {pages}",
   "empty": {
     "active": "Không có cửa hàng nào đang hoạt động.",
     "pending": "Không có cửa hàng nào chờ duyệt.",

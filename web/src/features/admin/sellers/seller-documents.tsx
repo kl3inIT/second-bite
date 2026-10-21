@@ -3,11 +3,21 @@
 import { EyeIcon, FileCheckIcon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 
-import { AdminBadge, type BadgeTone } from "@/features/admin/ui/badge";
-import { DataTable, StrongCell, TextCell } from "@/features/admin/ui/data-table";
-import { EmptyState } from "@/features/admin/ui/empty-state";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 import type { DocumentStatus, SellerDocument } from "./documents-source";
+import { type BadgeTone, toneBadge, toneIcon } from "./seller-list";
 
 const tones: Record<DocumentStatus, BadgeTone> = {
   valid: "success",
@@ -28,70 +38,72 @@ export function SellerDocuments({ documents }: { documents: SellerDocument[] }) 
   // An empty table scrolls sideways on a phone with nothing to focus in it, so the card stands alone.
   if (documents.length === 0) {
     return (
-      <div className="rounded-md border border-border bg-card">
-        <EmptyState title={t("empty")} icon={FileCheckIcon} />
-      </div>
+      <Empty surface="card">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <FileCheckIcon aria-hidden />
+          </EmptyMedia>
+          <EmptyTitle>{t("empty")}</EmptyTitle>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
   return (
-    <DataTable
-      caption={t("caption")}
-      rows={documents}
-      rowKey={(document) => document.id}
-      columns={[
-        {
-          key: "name",
-          header: t("columns.name"),
-          grow: true,
-          cell: (document) => <StrongCell>{document.name}</StrongCell>,
-        },
-        {
-          key: "number",
-          header: t("columns.number"),
-          cell: (document) => <TextCell>{document.number ?? "—"}</TextCell>,
-        },
-        {
-          key: "issued",
-          header: t("columns.issued"),
-          cell: (document) => <TextCell>{day(document.issuedOn, "—")}</TextCell>,
-        },
-        {
-          key: "expires",
-          header: t("columns.expires"),
-          cell: (document) => (
-            <TextCell>
-              {document.status === "missing" ? "—" : day(document.expiresOn, t("noExpiry"))}
-            </TextCell>
-          ),
-        },
-        {
-          key: "status",
-          header: t("columns.status"),
-          cell: (document) => (
-            <AdminBadge tone={tones[document.status]}>{t(`status.${document.status}`)}</AdminBadge>
-          ),
-        },
-        {
-          key: "file",
-          header: t("columns.file"),
-          cell: (document) =>
-            document.fileUrl ? (
-              <a
-                href={document.fileUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-sm text-body-sm-strong text-primary hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-              >
-                <EyeIcon aria-hidden className="size-4" />
-                {t("view")}
-                <span className="sr-only">{document.name}</span>
-              </a>
-            ) : (
-              <TextCell>{t("noFile")}</TextCell>
-            ),
-        },
-      ]}
-    />
+    <Card>
+      <Table>
+        <caption className="sr-only">{t("caption")}</caption>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-full">{t("columns.name")}</TableHead>
+            <TableHead>{t("columns.number")}</TableHead>
+            <TableHead>{t("columns.issued")}</TableHead>
+            <TableHead>{t("columns.expires")}</TableHead>
+            <TableHead>{t("columns.status")}</TableHead>
+            <TableHead>{t("columns.file")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {documents.map((document) => {
+            const tone = tones[document.status];
+            const Icon = toneIcon[tone];
+            return (
+              <TableRow key={document.id}>
+                <TableCell className="w-full">
+                  <span className="text-body-sm-strong">{document.name}</span>
+                </TableCell>
+                <TableCell>{document.number ?? "—"}</TableCell>
+                <TableCell>{day(document.issuedOn, "—")}</TableCell>
+                <TableCell>
+                  {document.status === "missing" ? "—" : day(document.expiresOn, t("noExpiry"))}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={toneBadge[tone]}>
+                    <Icon aria-hidden />
+                    {t(`status.${document.status}`)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {document.fileUrl ? (
+                    <a
+                      href={document.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={buttonVariants({ variant: "link" })}
+                    >
+                      <EyeIcon aria-hidden />
+                      {t("view")}
+                      <span className="sr-only">{document.name}</span>
+                    </a>
+                  ) : (
+                    t("noFile")
+                  )}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </Card>
   );
 }

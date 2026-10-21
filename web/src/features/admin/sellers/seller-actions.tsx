@@ -4,7 +4,7 @@ import { BanIcon, CheckIcon, CircleXIcon, type LucideIcon, RotateCcwIcon } from 
 import { useTranslations } from "next-intl";
 import { useRef, useState, useTransition } from "react";
 
-import { showAdminToast } from "@/features/admin/lib/toast";
+import { toast } from "@/components/ui/toast";
 import { isFeatureOn } from "@/features/admin/features";
 
 import { useRouter } from "@/i18n/navigation";
@@ -110,19 +110,22 @@ export function useSellerActions({
       await send(seller, kind);
       startRefresh(() => router.refresh());
       const emailed = kind === "block" || kind === "reject";
-      showAdminToast(
-        emailed
+      toast.add({
+        title: emailed
           ? t(`emailed.${kind}`, { name: seller.name })
           : t(`done.${kind}`, { name: seller.name }),
-      );
+        type: "success",
+        timeout: 5000,
+      });
     } catch (error) {
       const ownerless = review && error instanceof ApiError && error.code === OWNERLESS_CODE;
-      showAdminToast(
-        ownerless
+      toast.add({
+        title: ownerless
           ? t("ownerlessFailed", { name: seller.name })
           : t("failed", { name: seller.name }),
-        "error",
-      );
+        type: "error",
+        timeout: 5000,
+      });
     } finally {
       busy.current = false;
       setPending(undefined);

@@ -1,19 +1,17 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminCrumb, AdminTopBarActions } from "@/features/admin/admin-crumbs";
-import { adminHref } from "@/features/admin/pages";
 import { isFeatureOn } from "@/features/admin/features";
-import { InfoStrip } from "@/features/admin/ui/info-strip";
-import { AdminTabs } from "@/features/admin/ui/tabs";
+import { adminHref } from "@/features/admin/pages";
 import { Link } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
 
 import { listSellerDocuments } from "./documents-source";
 import { DuplicateAlert } from "./duplicate-alert";
 import { hasOwner, type SellerReview } from "./review";
-
 import { SellerDocuments } from "./seller-documents";
 import { SellerHeader } from "./seller-header";
 import { neighboursOf } from "./seller-list";
@@ -56,17 +54,29 @@ export async function SellerPage({
   const counts = countPosts(offers);
   const href = adminHref("sellerDetail", { sellerId });
   const day = (at: string) => format.dateTime(new Date(at), "day");
+  const figures = [
+    { label: t("info.posts"), value: counts.on_sale },
+    { label: t("info.staff"), value: members.length },
+    { label: t("info.joined"), value: day(seller.createdAt) },
+    { label: t("info.changed"), value: day(seller.updatedAt) },
+  ];
+  const { previous, next, position, total } = neighboursOf(siblings, sellerId);
 
   return (
     <>
       <AdminCrumb label={seller.name} />
-      <AdminTopBarActions>
-        <Pager
-          {...neighboursOf(siblings, sellerId)}
-          labels={{ previous: t("pager.previous"), next: t("pager.next") }}
-          say={(position, total) => t("pager.position", { position, total })}
-        />
-      </AdminTopBarActions>
+      {position > 0 && (
+        <AdminTopBarActions>
+          {/* The ‹ 1 / 5 › on the right of the top bar (Figma Admin/TopBar `pager`). */}
+          <div className="flex items-center gap-3">
+            <Step sellerId={previous} label={t("pager.previous")} icon={ChevronLeftIcon} />
+            <span className="text-body-sm text-muted-foreground tabular-nums">
+              {t("pager.position", { position, total })}
+            </span>
+            <Step sellerId={next} label={t("pager.next")} icon={ChevronRightIcon} />
+          </div>
+        </AdminTopBarActions>
+      )}
 
       <SellerHeader
         seller={seller}
@@ -74,85 +84,98 @@ export async function SellerPage({
         review={reviewing}
         ownerless={!hasOwner(members)}
       />
-      <InfoStrip
-        items={[
-          { label: t("info.posts"), value: counts.on_sale },
-          { label: t("info.staff"), value: members.length },
-          { label: t("info.joined"), value: day(seller.createdAt) },
-          { label: t("info.changed"), value: day(seller.updatedAt) },
-        ]}
-      />
+      {/* The figures under the header (Figma Admin/InfoStrip): each value over its name; two by two on a phone. */}
+      <Card size="sm">
+        <CardContent>
+          <dl className="grid grid-cols-2 gap-y-3 md:grid-cols-4">
+            {figures.map(({ label, value }) => (
+              <div key={label} className="flex flex-col-reverse items-center gap-0.5 text-center">
+                <dt className="text-label text-muted-foreground">{label}</dt>
+                <dd className="font-display text-price-lg text-foreground">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </CardContent>
+      </Card>
       {review?.duplicate && seller.status === "pending" && (
         <DuplicateAlert duplicate={review.duplicate} />
       )}
-      <AdminTabs
-        label={t("tabs.label")}
-        current={tab}
-        tabs={[
-          { key: "overview", label: t("tabs.overview"), href },
-          {
-            key: "posts",
-            label: t("tabs.posts", { count: offers.length }),
-            href: `${href}?tab=posts`,
-          },
-          {
-            key: "members",
-            label: t("tabs.members", { count: members.length }),
-            href: `${href}?tab=members`,
-          },
-          { key: "documents", label: t("tabs.documents"), href: `${href}?tab=documents` },
-        ]}
-      />
-
-      {tab === "overview" && (
-        <SellerOverview
-          seller={seller}
-          offers={offers}
-          members={members}
-          postsHref={`${href}?tab=posts`}
-          review={review}
-        />
-      )}
-      {tab === "posts" && <SellerPosts offers={offers} />}
-      {tab === "members" && <SellerMembers members={members} />}
-      {tab === "documents" && <SellerDocuments documents={documents} />}
+      {/* Each tab is an address (`?tab=posts`), so a tab can be shared and the back button returns to it. */}
+      <Tabs value={tab}>
+        <TabsList
+          variant="line"
+          aria-label={t("tabs.label")}
+          className="max-w-full overflow-x-auto"
+        >
+          {[
+            { key: "overview", label: t("tabs.overview"), href },
+            {
+              key: "posts",
+              label: t("tabs.posts", { count: offers.length }),
+              href: `${href}?tab=posts`,
+            },
+            {
+              key: "members",
+              label: t("tabs.members", { count: members.length }),
+              href: `${href}?tab=members`,
+            },
+            { key: "documents", label: t("tabs.documents"), href: `${href}?tab=documents` },
+          ].map((each) => (
+            <TabsTrigger
+              key={each.key}
+              value={each.key}
+              nativeButton={false}
+              render={<Link href={each.href} scroll={false} />}
+            >
+              {each.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={tab}>
+          <div className="flex flex-col gap-5 pt-3">
+            {tab === "overview" && (
+              <SellerOverview
+                seller={seller}
+                offers={offers}
+                members={members}
+                postsHref={`${href}?tab=posts`}
+                review={review}
+              />
+            )}
+            {tab === "posts" && <SellerPosts offers={offers} />}
+            {tab === "members" && <SellerMembers members={members} />}
+            {tab === "documents" && <SellerDocuments documents={documents} />}
+          </div>
+        </TabsContent>
+      </Tabs>
     </>
   );
 }
 
-// The ‹ 1 / 5 › on the right of the top bar (Figma Admin/TopBar `pager`).
-function Pager({
-  previous,
-  next,
-  position,
-  total,
-  labels,
-  say,
-}: ReturnType<typeof neighboursOf> & {
-  labels: { previous: string; next: string };
-  say: (position: number, total: number) => string;
+// One step of the pager: a link to the store before or after, or a disabled button at the list's end.
+function Step({
+  sellerId,
+  label,
+  icon: Icon,
+}: {
+  sellerId?: string;
+  label: string;
+  icon: typeof ChevronLeftIcon;
 }) {
-  if (position === 0) return null;
-  const step = (sellerId: string | undefined, label: string, Icon: typeof ChevronLeftIcon) => {
-    const className = buttonVariants({ variant: "outline", size: "icon" });
-    return sellerId ? (
-      <Link href={adminHref("sellerDetail", { sellerId })} aria-label={label} className={className}>
+  if (!sellerId) {
+    return (
+      <Button variant="outline" size="icon" disabled aria-label={label}>
         <Icon aria-hidden />
-      </Link>
-    ) : (
-      <span aria-disabled="true" className={cn(className, "opacity-40")}>
-        <span className="sr-only">{label}</span>
-        <Icon aria-hidden />
-      </span>
+      </Button>
     );
-  };
+  }
   return (
-    <div className="flex items-center gap-3">
-      {step(previous, labels.previous, ChevronLeftIcon)}
-      <span className="text-body-sm text-muted-foreground tabular-nums">
-        {say(position, total)}
-      </span>
-      {step(next, labels.next, ChevronRightIcon)}
-    </div>
+    <Link
+      href={adminHref("sellerDetail", { sellerId })}
+      aria-label={label}
+      className={buttonVariants({ variant: "outline", size: "icon" })}
+    >
+      <Icon aria-hidden />
+    </Link>
   );
 }

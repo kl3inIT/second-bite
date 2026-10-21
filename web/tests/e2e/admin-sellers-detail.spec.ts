@@ -13,7 +13,7 @@ test.setTimeout(90_000);
 const bakery = "/admin/sellers/se-admin-1";
 
 function tab(page: Page, name: string | RegExp) {
-  return page.getByRole("navigation", { name: "Mục của cửa hàng" }).getByRole("link", { name });
+  return page.getByRole("tablist", { name: "Mục của cửa hàng" }).getByRole("tab", { name });
 }
 
 // SEC-62 › A store (Figma AD-Q3).
@@ -33,7 +33,7 @@ test("a store's page shows its profile, figures and overview (AD-Q3)", async ({
   await expect(figures.first()).toHaveText("1");
   await expect(figures.nth(1)).toHaveText("2");
   await expect(page.getByText("Ngày tham gia")).toBeVisible();
-  await expect(tab(page, "Tổng quan")).toHaveAttribute("aria-current", "page");
+  await expect(tab(page, "Tổng quan")).toHaveAttribute("aria-selected", "true");
   await expect(tab(page, "Bài đăng · 4")).toBeVisible();
   await expect(tab(page, "Thành viên · 2")).toBeVisible();
 
@@ -65,7 +65,10 @@ test("the posts tab filters by status and opens a post in the side panel (AD-QD1
   await (await hydrated(tab(page, "Bài đăng · 4"))).click();
   await expect(page).toHaveURL(/\?tab=posts$/);
   const filter = page.getByRole("group", { name: "Trạng thái bài đăng" });
-  await expect(filter.getByRole("radio", { name: "Đang bán · 1" })).toBeChecked();
+  await expect(filter.getByRole("button", { name: "Đang bán · 1" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(2);
   await expect(page.getByRole("columnheader", { name: "Đăng lúc" })).toBeVisible();
   await expect(page.getByText("Hiển thị 1–1 trên 1 bài đăng")).toBeVisible();
@@ -117,7 +120,7 @@ test("a store blocked from its page shows the blocked card and can be unblocked 
   await signInTo(page, bakery, testInfo, { who: "ctchan" });
 
   await (await hydrated(page.getByRole("button", { name: "Chặn cửa hàng" }))).click();
-  const dialog = page.getByRole("alertdialog", { name: "Chặn cửa hàng Tiệm bánh Pháp?" });
+  const dialog = page.getByRole("dialog", { name: "Chặn cửa hàng Tiệm bánh Pháp?" });
   await expect(dialog).toBeVisible();
   await dialog.getByRole("textbox", { name: "Lý do chặn" }).fill("Bán bánh đã quá hạn sử dụng.");
   await dialog.getByRole("button", { name: "Chặn cửa hàng" }).click();

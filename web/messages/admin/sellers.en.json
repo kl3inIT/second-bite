@@ -16,6 +16,7 @@
     "updatedAt": "Changed on"
   },
   "summary": "Showing {from}–{to} of {total} stores",
+  "pageOf": "{page} / {pages}",
   "empty": {
     "active": "No store is active.",
     "pending": "No store is waiting for approval.",

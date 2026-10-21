@@ -50,13 +50,11 @@ test("the stores list opens on the pending queue, oldest first (AD-DS1)", async 
   await expectCount(page, "Bị từ chối", 1);
   await expectCount(page, "Bị chặn", 1);
 
-  // Each card draws its last 14 days: one value a day under the pointer, and the days for a screen reader. The
+  // Each card draws its last 14 days as a line, and names each day with its value for a screen reader. The
   // blocked store was blocked yesterday, active before.
   const blocked = card(page, "Bị chặn");
-  await expect(blocked.locator("svg title")).toHaveCount(14);
-  await expect(blocked.locator("svg title").last()).toHaveText(/: 1$/);
-  await expect(blocked.locator("svg title").first()).toHaveText(/: 0$/);
-  await expect(blocked.locator(".sr-only")).toHaveText(/^(.+: [01], ){13}.+: 1$/);
+  await expect(blocked.locator("svg .recharts-line")).toHaveCount(1);
+  await expect(blocked.locator(".sr-only")).toHaveText(/^[^,]+: 0, ([^,]+: [01], ){12}[^,]+: 1$/);
 
   await expect(table(page).getByRole("row")).toHaveCount(3);
   await expect(table(page).getByRole("row").nth(1)).toContainText("Cơm tấm Sài Gòn");
@@ -78,7 +76,7 @@ test("the active stores come ten to a page, the latest change first (AD-Q1)", as
   await expect(page.getByText("Hiển thị 1–10 trên 11 cửa hàng")).toBeVisible();
   await expectNoSeriousA11yViolations(page);
 
-  await (await hydrated(page.getByRole("button", { name: "Trang 2" }))).click();
+  await (await hydrated(page.getByRole("button", { name: "Trang sau" }))).click();
   await expect(page.getByText("Hiển thị 11–11 trên 11 cửa hàng")).toBeVisible();
   await expect(page).toHaveURL(/\/vi\/admin\/sellers\?status=active&page=2$/);
   await expect(table(page).getByRole("row")).toHaveCount(2);
@@ -162,7 +160,7 @@ test("blocking asks why first, then the store moves to Bị chặn (AD-Q5, AD-DS
 
   await openRowMenu(page, "Tiệm bánh Pháp");
   await page.getByRole("menuitem", { name: "Chặn cửa hàng…" }).click();
-  const dialog = page.getByRole("alertdialog", { name: "Chặn cửa hàng Tiệm bánh Pháp?" });
+  const dialog = page.getByRole("dialog", { name: "Chặn cửa hàng Tiệm bánh Pháp?" });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText("Khi bị chặn:")).toBeVisible();
   await expect(dialog.getByRole("listitem")).toHaveCount(4);
@@ -207,7 +205,7 @@ test("rejecting a pending store asks why, then it moves to Bị từ chối (AD-
     "Từ chối…",
   ]);
   await page.getByRole("menuitem", { name: "Từ chối…" }).click();
-  const dialog = page.getByRole("alertdialog", { name: "Từ chối cửa hàng Phở bò Gánh?" });
+  const dialog = page.getByRole("dialog", { name: "Từ chối cửa hàng Phở bò Gánh?" });
   await expect(dialog.getByText("Khi bị từ chối:")).toBeVisible();
   await dialog
     .getByRole("textbox", { name: "Lý do từ chối" })

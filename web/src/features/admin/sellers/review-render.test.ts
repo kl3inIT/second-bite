@@ -201,7 +201,10 @@ describe("a store's header", () => {
         ownerless: true,
       }),
     );
-    expect(html).toMatch(/<button[^>]*disabled=""[^>]*title="Cửa hàng không còn chủ"/);
+    // The button is off and its description, which its tooltip shows too, says why.
+    const button = /<button[^>]*aria-describedby="([^"]+)"[^>]*>/.exec(html);
+    expect(button?.[0]).toContain('disabled=""');
+    expect(html).toMatch(new RegExp(`id="${button?.[1]}"[^>]*>Cửa hàng không còn chủ<`));
 
     const today = renderAdmin(
       createElement(SellerHeader, {

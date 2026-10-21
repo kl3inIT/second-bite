@@ -1,18 +1,32 @@
 "use client";
 
-import { StoreIcon } from "lucide-react";
+import { StoreIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useId, useState, useTransition } from "react";
+import { useId, useRef, useState, useTransition } from "react";
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
+import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
-import { showAdminToast } from "@/features/admin/lib/toast";
+import { toast } from "@/components/ui/toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { adminHref } from "@/features/admin/pages";
-import { FieldLabel, FieldProblem } from "@/features/admin/ui/form-fields";
-import { FilterSelect } from "@/features/admin/ui/filter-bar";
-import { SideSheet } from "@/features/admin/ui/side-sheet";
 import { useRouter } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
 import { uploadPhoto } from "@/lib/api/generated";
@@ -72,9 +86,10 @@ function OpenStoreSheet({
 }) {
   const ready = openStoreReady;
   const t = useTranslations("admin.sellers.open");
-  const soon = useTranslations("admin.shell")("soon");
+  const shell = useTranslations("admin.shell");
   const router = useRouter();
   const formId = useId();
+  const soonId = useId();
   const [draft, setDraft] = useState(emptyDraft);
   const [photo, setPhoto] = useState<{ file: File; url: string }>();
   const [left, setLeft] = useState<ReadonlySet<OpenStoreField>>(new Set());
@@ -117,58 +132,77 @@ function OpenStoreSheet({
           photoId,
         });
         onOpenChange(false);
-        showAdminToast(t("done", { name }));
+        toast.add({ title: t("done", { name }), type: "success", timeout: 5000 });
         router.push(adminHref("sellerDetail", { sellerId: seller.id }));
       } catch (error) {
         const refusal = problemOfFailure(error instanceof ApiError ? error.code : undefined);
         if (refusal) setRefused({ [refusal.field]: refusal.problem });
-        else showAdminToast(t("failed", { name }), "error");
+        else toast.add({ title: t("failed", { name }), type: "error", timeout: 5000 });
       }
     });
   }
 
+  const submitButton = (
+    <Button
+      type="submit"
+      form={formId}
+      disabled={!ready || pending}
+      aria-describedby={ready ? undefined : soonId}
+    >
+      {pending && <Spinner data-icon="inline-start" />}
+      {t("submit")}
+    </Button>
+  );
+
   return (
-    <SideSheet
-      open={open}
-      onOpenChange={(next) => !pending && onOpenChange(next)}
-      title={t("title")}
-      footer={
-        <>
+    <Sheet open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
+      <SheetContent side="right" size="wide" showCloseButton={false}>
+        <SheetHeader variant="bar" className="items-center justify-between">
+          <SheetTitle variant="headline">{t("title")}</SheetTitle>
+          <SheetClose
+            render={<Button variant="ghost" size="icon" aria-label={shell("sheetClose")} />}
+          >
+            <XIcon aria-hidden />
+          </SheetClose>
+        </SheetHeader>
+        <form
+          id={formId}
+          noValidate
+          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6"
+          onSubmit={(event) => {
+            event.preventDefault();
+            submit();
+          }}
+        >
+          <OpenStoreFields
+            draft={draft}
+            problems={shown}
+            photoUrl={photo?.url}
+            disabled={pending}
+            onChange={change}
+            onLeave={(field) => setLeft((each) => new Set(each).add(field))}
+            onPhoto={choose}
+          />
+        </form>
+        <SheetFooter variant="bar">
           <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
             {t("cancel")}
           </Button>
-          <Button
-            type="submit"
-            form={formId}
-            disabled={!ready || pending}
-            title={ready ? undefined : soon}
-          >
-            {pending && <Spinner data-icon="inline-start" />}
-            {t("submit")}
-          </Button>
-        </>
-      }
-    >
-      <form
-        id={formId}
-        noValidate
-        className="flex flex-col gap-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          submit();
-        }}
-      >
-        <OpenStoreFields
-          draft={draft}
-          problems={shown}
-          photoUrl={photo?.url}
-          disabled={pending}
-          onChange={change}
-          onLeave={(field) => setLeft((each) => new Set(each).add(field))}
-          onPhoto={choose}
-        />
-      </form>
-    </SideSheet>
+          {ready ? (
+            submitButton
+          ) : (
+            // A disabled button takes no pointer, so its "Sắp có" sits on a wrapper the pointer reaches.
+            <Tooltip>
+              <TooltipTrigger render={<span />}>{submitButton}</TooltipTrigger>
+              <TooltipContent>{shell("soon")}</TooltipContent>
+            </Tooltip>
+          )}
+          <span id={soonId} className="sr-only">
+            {shell("soon")}
+          </span>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -201,53 +235,78 @@ export function OpenStoreFields({
 }) {
   const t = useTranslations("admin.sellers.open");
   const id = useId();
+  const photoInput = useRef<HTMLInputElement>(null);
   const say = (field: OpenStoreField) => {
     const problem = problems[field];
     return problem && t(`problems.${problem}`, { max: NAME_MAX });
   };
+  const floors = mallFloors.map((floor) => ({ value: floor, label: floor }));
+
+  // One line of the form: its label, the field, and what is wrong with it under it.
+  const line = (
+    field: "name" | "phone" | "ownerEmail",
+    label: string,
+    type: "text" | "tel" | "email",
+    autoComplete: string,
+  ) => {
+    const fieldId = `${id}-${field === "ownerEmail" ? "email" : field}`;
+    const problem = say(field);
+    return (
+      <Field data-invalid={problem ? true : undefined}>
+        <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
+        <Input
+          id={fieldId}
+          type={type}
+          inputMode={type === "tel" ? "tel" : type === "email" ? "email" : undefined}
+          value={draft[field]}
+          maxLength={field === "name" ? NAME_MAX : undefined}
+          autoComplete={autoComplete}
+          disabled={disabled}
+          aria-invalid={problem ? true : undefined}
+          aria-describedby={problem ? `${fieldId}-problem` : undefined}
+          onChange={(event) => onChange({ [field]: event.target.value })}
+          onBlur={() => onLeave(field)}
+        />
+        {problem && <FieldError id={`${fieldId}-problem`}>{problem}</FieldError>}
+      </Field>
+    );
+  };
 
   return (
     <>
-      <Field
-        id={`${id}-name`}
-        label={t("name")}
-        value={draft.name}
-        maxLength={NAME_MAX}
-        autoComplete="organization"
-        problem={say("name")}
-        disabled={disabled}
-        onChange={(name) => onChange({ name })}
-        onBlur={() => onLeave("name")}
-      />
-      <Field
-        id={`${id}-phone`}
-        label={t("phone")}
-        type="tel"
-        value={draft.phone}
-        autoComplete="tel"
-        problem={say("phone")}
-        disabled={disabled}
-        onChange={(phone) => onChange({ phone })}
-        onBlur={() => onLeave("phone")}
-      />
-      <div className="flex flex-col gap-1.5">
+      {line("name", t("name"), "text", "organization")}
+      {line("phone", t("phone"), "tel", "tel")}
+      <Field>
         <FieldLabel htmlFor={`${id}-mall`}>{t("address")}</FieldLabel>
         <div className="flex flex-wrap items-center gap-3">
-          <FilterSelect
-            label={t("floor")}
+          <Select
             value={draft.floor}
-            options={mallFloors.map((floor) => ({ value: floor, label: floor }))}
-            onChange={(floor) => onChange({ floor })}
-          />
+            items={floors}
+            onValueChange={(floor) => {
+              if (typeof floor === "string") onChange({ floor });
+            }}
+          >
+            <SelectTrigger aria-labelledby={`${id}-floor`}>
+              <span id={`${id}-floor`} className="text-muted-foreground">
+                {t("floor")}:
+              </span>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent alignItemWithTrigger={false} align="start">
+              {floors.map((floor) => (
+                <SelectItem key={floor.value} value={floor.value}>
+                  {floor.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="min-w-48 flex-1">
-            <InputGroup>
-              <InputGroupInput id={`${id}-mall`} value={MALL_ADDRESS} disabled readOnly />
-            </InputGroup>
+            <Input id={`${id}-mall`} value={MALL_ADDRESS} disabled readOnly />
           </div>
         </div>
-        {say("address") && <FieldProblem id={`${id}-mall-problem`}>{say("address")}</FieldProblem>}
-      </div>
-      <div className="flex flex-col gap-1.5">
+        {say("address") && <FieldError id={`${id}-mall-problem`}>{say("address")}</FieldError>}
+      </Field>
+      <Field>
         <FieldLabel htmlFor={`${id}-photo`}>{t("photo")}</FieldLabel>
         <div className="flex items-center gap-4">
           <span className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted text-muted-foreground">
@@ -257,77 +316,27 @@ export function OpenStoreFields({
               <StoreIcon aria-hidden className="size-6" />
             )}
           </span>
-          <label className={buttonVariants({ variant: "outline" })}>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={disabled}
+            onClick={() => photoInput.current?.click()}
+          >
             {photoUrl ? t("changePhoto") : t("choosePhoto")}
-            <input
-              id={`${id}-photo`}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="sr-only"
-              disabled={disabled}
-              onChange={(event) => onPhoto(event.target.files?.[0])}
-            />
-          </label>
+          </Button>
+          <input
+            ref={photoInput}
+            id={`${id}-photo`}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="sr-only"
+            tabIndex={-1}
+            disabled={disabled}
+            onChange={(event) => onPhoto(event.target.files?.[0])}
+          />
         </div>
-      </div>
-      <Field
-        id={`${id}-email`}
-        label={t("email")}
-        type="email"
-        value={draft.ownerEmail}
-        autoComplete="off"
-        problem={say("ownerEmail")}
-        disabled={disabled}
-        onChange={(ownerEmail) => onChange({ ownerEmail })}
-        onBlur={() => onLeave("ownerEmail")}
-      />
+      </Field>
+      {line("ownerEmail", t("email"), "email", "off")}
     </>
-  );
-}
-
-// A line of the form in the admin's 44px field, its label above and its problem below (Figma Admin/FormField).
-function Field({
-  id,
-  label,
-  value,
-  type = "text",
-  maxLength,
-  autoComplete,
-  problem,
-  disabled,
-  onChange,
-  onBlur,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  type?: "text" | "tel" | "email";
-  maxLength?: number;
-  autoComplete: string;
-  problem?: string;
-  disabled: boolean;
-  onChange: (value: string) => void;
-  onBlur: () => void;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <InputGroup>
-        <InputGroupInput
-          id={id}
-          type={type}
-          inputMode={type === "tel" ? "tel" : type === "email" ? "email" : undefined}
-          value={value}
-          maxLength={maxLength}
-          autoComplete={autoComplete}
-          disabled={disabled}
-          aria-invalid={problem ? true : undefined}
-          aria-describedby={problem ? `${id}-problem` : undefined}
-          onChange={(event) => onChange(event.target.value)}
-          onBlur={onBlur}
-        />
-      </InputGroup>
-      {problem && <FieldProblem id={`${id}-problem`}>{problem}</FieldProblem>}
-    </div>
   );
 }

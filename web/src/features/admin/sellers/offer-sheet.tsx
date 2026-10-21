@@ -1,17 +1,19 @@
 "use client";
 
-import { CircleCheckIcon, CircleSlashIcon, ClockIcon, PackageXIcon } from "lucide-react";
+import { CircleCheckIcon, CircleSlashIcon, ClockIcon, PackageXIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useFormatter, useTranslations } from "next-intl";
-import { useEffect, useEffectEvent, useState } from "react";
+import { type ReactNode, useEffect, useEffectEvent, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { showAdminToast } from "@/features/admin/lib/toast";
-import { AdminBadge, type BadgeTone } from "@/features/admin/ui/badge";
-import { SideSheet } from "@/features/admin/ui/side-sheet";
+import { toast } from "@/components/ui/toast";
 import { formatPrice } from "@/features/offers/format";
 import { getOffer, type OfferBody } from "@/lib/api/generated";
 
+import { type BadgeTone, toneBadge } from "./seller-list";
 import type { PostStatus } from "./seller-posts";
 
 const badges: Record<PostStatus, { tone: BadgeTone; icon: typeof CircleCheckIcon }> = {
@@ -28,9 +30,10 @@ const badges: Record<PostStatus, { tone: BadgeTone; icon: typeof CircleCheckIcon
  */
 export function OfferSheet({ offerId, onClose }: { offerId?: string; onClose: () => void }) {
   const t = useTranslations("admin.sellers.detail.sheet");
+  const close = useTranslations("admin.shell")("sheetClose");
   const [offer, setOffer] = useState<OfferBody>();
   const failed = useEffectEvent(() => {
-    showAdminToast(t("failed"), "error");
+    toast.add({ title: t("failed"), type: "error", timeout: 5000 });
     onClose();
   });
 
@@ -47,21 +50,27 @@ export function OfferSheet({ offerId, onClose }: { offerId?: string; onClose: ()
   }, [offerId]);
 
   return (
-    <SideSheet
-      open={offerId !== undefined}
-      onOpenChange={(open) => !open && onClose()}
-      title={t("title")}
-    >
-      {offer?.id === offerId && offer ? (
-        <OfferDetails offer={offer} />
-      ) : (
-        <output aria-label={t("loading")} className="flex flex-col gap-4">
-          <Skeleton className="aspect-video w-full" />
-          <Skeleton className="h-5 w-2/3" />
-          <Skeleton className="h-24 w-full" />
-        </output>
-      )}
-    </SideSheet>
+    <Sheet open={offerId !== undefined} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="right" showCloseButton={false}>
+        <SheetHeader variant="bar" className="items-center justify-between">
+          <SheetTitle variant="headline">{t("title")}</SheetTitle>
+          <SheetClose render={<Button variant="ghost" size="icon" aria-label={close} />}>
+            <XIcon aria-hidden />
+          </SheetClose>
+        </SheetHeader>
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 pb-6">
+          {offer?.id === offerId && offer ? (
+            <OfferDetails offer={offer} />
+          ) : (
+            <output aria-label={t("loading")} className="flex flex-col gap-4">
+              <Skeleton className="aspect-video w-full" />
+              <Skeleton className="h-5 w-2/3" />
+              <Skeleton className="h-24 w-full" />
+            </output>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -72,7 +81,7 @@ function OfferDetails({ offer }: { offer: OfferBody }) {
   const time = (at: string) => format.dateTime(new Date(at), "time");
   const moment = (at: string) =>
     `${format.dateTime(new Date(at), "day")} · ${format.dateTime(new Date(at), "time")}`;
-  const { tone, icon } = badges[offer.status];
+  const { tone, icon: Icon } = badges[offer.status];
 
   return (
     <>
@@ -89,9 +98,7 @@ function OfferDetails({ offer }: { offer: OfferBody }) {
       <div className="flex flex-col gap-2">
         <h3 className="text-title-lg text-foreground">{offer.name}</h3>
         <span>
-          <AdminBadge tone="info" icon={null}>
-            {kind(offer.kind)}
-          </AdminBadge>
+          <Badge variant={toneBadge.info}>{kind(offer.kind)}</Badge>
         </span>
         <p className="flex items-baseline gap-2">
           <span className="font-display text-price-lg text-primary">
@@ -113,9 +120,10 @@ function OfferDetails({ offer }: { offer: OfferBody }) {
       )}
       <dl className="flex flex-col">
         <Row label={t("sheet.status")}>
-          <AdminBadge tone={tone} icon={icon}>
+          <Badge variant={toneBadge[tone]}>
+            <Icon aria-hidden />
             {t(`posts.status.${offer.status}`)}
-          </AdminBadge>
+          </Badge>
         </Row>
         <Row label={t("sheet.units")}>
           {t("sheet.unitsValue", {
@@ -141,7 +149,8 @@ function OfferDetails({ offer }: { offer: OfferBody }) {
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+// One line of the post's facts: its name muted on the left, its value on the right, a hairline under it.
+function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-border py-2.5 last:border-b-0">
       <dt className="shrink-0 text-body-sm text-muted-foreground">{label}</dt>

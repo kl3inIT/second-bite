@@ -54,7 +54,7 @@ test.describe("the email settings", () => {
   test("Brevo shows whether its key is saved, never the key", async ({ page }, testInfo) => {
     await signInTo(page, "/admin/settings/email", testInfo, { who: "brevo" });
 
-    await (await hydrated(page.getByText("Brevo", { exact: true }))).click();
+    await (await hydrated(page.getByRole("button", { name: "Brevo", exact: true }))).click();
     await expect(page.getByRole("heading", { level: 3, name: "Brevo" })).toBeVisible();
     await expect(page.getByText("Chưa có API key")).toBeVisible();
     await expect(page.getByLabel("Host")).toHaveCount(0);

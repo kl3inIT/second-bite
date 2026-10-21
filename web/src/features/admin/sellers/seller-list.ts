@@ -1,3 +1,15 @@
+import type { VariantProps } from "class-variance-authority";
+import {
+  BanIcon,
+  CircleCheckIcon,
+  CircleXIcon,
+  ClockIcon,
+  InfoIcon,
+  type LucideIcon,
+  TriangleAlertIcon,
+} from "lucide-react";
+
+import type { badgeVariants } from "@/components/ui/badge";
 import type { AdminSellerBody, SellerBody } from "@/lib/api/generated";
 import { isFeatureOn } from "../features";
 import { type PageSize, pageSizes, searchOf } from "../list-query";
@@ -99,4 +111,45 @@ export function neighboursOf(
     position: index + 1,
     total: rows.length,
   };
+}
+
+/** How a status reads on the stores' screens: done, waiting, refused, a plain fact, or nothing to act on. */
+export type BadgeTone = "success" | "warning" | "error" | "info" | "neutral";
+
+/**
+ * Each tone on the closest of the shared Badge's own variants (components/ui/badge.tsx); the icon and the words
+ * carry the status, never the colour alone.
+ */
+export const toneBadge: Record<
+  BadgeTone,
+  NonNullable<VariantProps<typeof badgeVariants>["variant"]>
+> = {
+  success: "fresh",
+  warning: "outline",
+  error: "destructive",
+  info: "secondary",
+  neutral: "outline",
+};
+
+/** The icon a tone shows when its status names none of its own. */
+export const toneIcon: Record<BadgeTone, LucideIcon> = {
+  success: CircleCheckIcon,
+  warning: TriangleAlertIcon,
+  error: CircleXIcon,
+  info: InfoIcon,
+  neutral: ClockIcon,
+};
+
+/** A store's status as a Badge: "Đang hoạt động", "Chờ duyệt", "Bị từ chối", "Bị chặn", each with its icon. */
+export const sellerStatusLook: Record<SellerStatus, { tone: BadgeTone; icon: LucideIcon }> = {
+  active: { tone: "success", icon: CircleCheckIcon },
+  pending: { tone: "warning", icon: ClockIcon },
+  rejected: { tone: "neutral", icon: CircleXIcon },
+  blocked: { tone: "error", icon: BanIcon },
+};
+
+/** How many pages a list of `total` rows takes; a missing total (the backend sent none) is an empty list. */
+export function pageCount(total: number | undefined, pageSize: number): number {
+  const rows = Number.isFinite(total) ? Math.max(0, total as number) : 0;
+  return Math.max(1, Math.ceil(rows / pageSize));
 }

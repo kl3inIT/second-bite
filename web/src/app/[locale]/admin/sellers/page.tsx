@@ -6,7 +6,6 @@ import { isFeatureOn } from "@/features/admin/features";
 import { OpenStoreButton } from "@/features/admin/sellers/open-store-sheet";
 import { SellersPage } from "@/features/admin/sellers/sellers-page";
 import { SellersSkeleton } from "@/features/admin/sellers/sellers-skeleton";
-import { PageHeader } from "@/features/admin/ui/page-header";
 
 export function generateMetadata({ params }: PageProps<"/[locale]/admin/sellers">) {
   return adminMetadata(params, "sellers");
@@ -18,10 +17,10 @@ export default function AdminSellers({ searchParams }: PageProps<"/[locale]/admi
   const t = useTranslations("admin.shell.pages.sellers");
   return (
     <AdminPageGate page="sellers">
-      <PageHeader
-        title={t("label")}
-        actions={isFeatureOn("openForOwner") ? <OpenStoreButton /> : undefined}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-page-title text-foreground">{t("label")}</h1>
+        {isFeatureOn("openForOwner") && <OpenStoreButton />}
+      </div>
       <Suspense fallback={<SellersSkeleton />}>
         <SellersPage query={searchParams} />
       </Suspense>

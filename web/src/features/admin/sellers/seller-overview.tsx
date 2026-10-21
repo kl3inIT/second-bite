@@ -1,20 +1,36 @@
-import { BanIcon, CircleCheckIcon, EyeOffIcon, UsersIcon } from "lucide-react";
+import {
+  BanIcon,
+  CircleCheckIcon,
+  ClockIcon,
+  EyeOffIcon,
+  InboxIcon,
+  type LucideIcon,
+  UsersIcon,
+} from "lucide-react";
 import Image from "next/image";
 import { useFormatter, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { formatPrice } from "@/features/offers/format";
-import { EmptyState } from "@/features/admin/ui/empty-state";
-import { StatusCard, type StatusLine } from "@/features/admin/ui/status-card";
 import { Link } from "@/i18n/navigation";
 import type { OfferBody, SellerBody } from "@/lib/api/generated";
 
-import { type AdminMember, AwaitingSignInBadge, MemberAvatar, RoleBadge } from "./member";
+import { type AdminMember, initialsOf, roleTone } from "./member";
 import { hasOwner, type SellerReview } from "./review";
+import { toneBadge } from "./seller-list";
 import { postsIn } from "./seller-posts";
 
 /** How many posts on sale the overview shows; "Xem tất cả" opens the rest. */
 const SHOWN = 3;
+
+type StatusLine = { icon: LucideIcon; text: string };
 
 /**
  * A store's overview tab (Figma AD-Q3, AD-Q4): its posts on sale, then its details and its people. A blocked
@@ -51,64 +67,99 @@ export function SellerOverview({
       empty={review && t("overview.noMembers")}
     />
   );
-  const status = review && statusCard(seller.status, review, hasOwner(members), t);
+  const status =
+    (review && statusCard(seller.status, review, hasOwner(members), t)) ||
+    (blocked
+      ? {
+          title: t("blocked.title"),
+          lines: [
+            { icon: BanIcon, text: t("blocked.noPosting") },
+            { icon: EyeOffIcon, text: t("blocked.hidden") },
+            { icon: CircleCheckIcon, text: t("blocked.kept") },
+          ],
+        }
+      : undefined);
 
   return (
     <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
       <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
         {peopleFirst && people}
-        <Card
-          title={t("overview.onSale")}
-          action={
-            onSale.length > 0 && (
-              <Link
-                href={postsHref}
-                className="rounded-sm text-body-sm-strong text-primary hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-              >
-                {t("overview.seeAll")}
-              </Link>
-            )
-          }
-        >
-          {onSale.length === 0 ? (
-            <EmptyState title={t("overview.noneOnSale")} />
-          ) : (
-            <ul className="flex flex-col">
-              {onSale.slice(0, SHOWN).map((offer) => (
-                <OfferRow key={offer.id} offer={offer} />
-              ))}
-            </ul>
-          )}
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h2>{t("overview.onSale")}</h2>
+            </CardTitle>
+            {onSale.length > 0 && (
+              <CardAction>
+                <Link
+                  href={postsHref}
+                  className={buttonVariants({ variant: "link", size: "inline" })}
+                >
+                  {t("overview.seeAll")}
+                </Link>
+              </CardAction>
+            )}
+          </CardHeader>
+          <CardContent>
+            {onSale.length === 0 ? (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <InboxIcon aria-hidden />
+                  </EmptyMedia>
+                  <EmptyTitle>{t("overview.noneOnSale")}</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <ul className="flex flex-col gap-3">
+                {onSale.slice(0, SHOWN).map((offer) => (
+                  <li key={offer.id}>
+                    <OfferRow offer={offer} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
         </Card>
         {blocked && people}
       </div>
       <div className="flex min-w-0 flex-col gap-5">
-        {status ? (
-          <StatusCard title={status.title} tone="error" lines={status.lines} />
-        ) : (
-          blocked && (
-            <StatusCard
-              title={t("blocked.title")}
-              tone="error"
-              lines={[
-                { icon: BanIcon, text: t("blocked.noPosting") },
-                { icon: EyeOffIcon, text: t("blocked.hidden") },
-                { icon: CircleCheckIcon, text: t("blocked.kept"), tone: "success" },
-              ]}
-            />
-          )
+        {status && (
+          <Alert variant="destructive">
+            <BanIcon aria-hidden />
+            <AlertTitle>
+              <h2>{status.title}</h2>
+            </AlertTitle>
+            <AlertDescription>
+              <ul className="flex flex-col gap-2">
+                {status.lines.map(({ icon: Icon, text }) => (
+                  <li key={text} className="flex gap-2 text-foreground">
+                    <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
+                    <span>{text}</span>
+                  </li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
         )}
-        <Card title={t("overview.info")}>
-          <dl className="flex flex-col gap-3">
-            <Field label={t("overview.address")} value={seller.address} />
-            <Field label={t("overview.phone")} value={seller.phone} />
-            {seller.statusChangedAt && (
-              <Field
-                label={t("overview.statusChanged")}
-                value={`${format.dateTime(new Date(seller.statusChangedAt), "time")}, ${format.dateTime(new Date(seller.statusChangedAt), "day")}`}
-              />
-            )}
-          </dl>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h2>{t("overview.info")}</h2>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="flex flex-col gap-3">
+              <Fact label={t("overview.address")} value={seller.address} />
+              <Fact label={t("overview.phone")} value={seller.phone} />
+              {seller.statusChangedAt && (
+                <Fact
+                  label={t("overview.statusChanged")}
+                  value={`${format.dateTime(new Date(seller.statusChangedAt), "time")}, ${format.dateTime(new Date(seller.statusChangedAt), "day")}`}
+                />
+              )}
+            </dl>
+          </CardContent>
         </Card>
         {!blocked && !peopleFirst && people}
       </div>
@@ -138,7 +189,7 @@ function statusCard(
       lines: [
         ...(reason ? [reason] : []),
         { icon: EyeOffIcon, text: t("rejected.hidden") },
-        { icon: CircleCheckIcon, text: t("rejected.retry"), tone: "success" },
+        { icon: CircleCheckIcon, text: t("rejected.retry") },
       ],
     };
   }
@@ -152,39 +203,15 @@ function statusCard(
       lines: [
         why,
         { icon: EyeOffIcon, text: t("blocked.hidden") },
-        {
-          icon: CircleCheckIcon,
-          text: owned ? t("blocked.kept") : t("blocked.postsKept"),
-          tone: "success",
-        },
+        { icon: CircleCheckIcon, text: owned ? t("blocked.kept") : t("blocked.postsKept") },
       ],
     };
   }
   return undefined;
 }
 
-// A white card with its title and, on the right, what it links to (Figma "Card · Bài đang bán").
-function Card({
-  title,
-  action,
-  children,
-}: {
-  title: string;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-6 pt-5 pb-5.5">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-title-lg text-foreground">{title}</h2>
-        {action}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string }) {
+// One of the store's details: its name muted on the left, its value on the right.
+function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3">
       <dt className="shrink-0 text-body-sm text-muted-foreground">{label}</dt>
@@ -200,42 +227,42 @@ function OfferRow({ offer }: { offer: OfferBody }) {
   const format = useFormatter();
   const time = (at: string) => format.dateTime(new Date(at), "time");
   return (
-    <li className="flex items-center gap-3.5 border-border py-3 not-first:border-t">
-      <span className="relative size-20 shrink-0 overflow-hidden rounded-md bg-muted md:size-25">
-        <Image
-          src={`/api${offer.photo.smallPath}`}
-          alt=""
-          fill
-          sizes="100px"
-          unoptimized
-          className="object-cover"
-        />
-      </span>
-      <div className="flex min-w-0 flex-col gap-1.5">
-        <h3 className="truncate text-title-lg text-foreground">{offer.name}</h3>
-        <div className="flex flex-col gap-0.5">
-          <p className="flex items-baseline gap-1.5">
-            <span className="font-display text-price text-primary">
-              {formatPrice(offer.priceVnd)}
-            </span>
-            <s className="text-label text-muted-foreground">
-              {formatPrice(offer.originalPriceVnd)}
-            </s>
-          </p>
-          <p className="text-label-strong text-destructive">
-            {t("discount", {
-              percent: offer.discountPercent,
-              left: offer.unitsLeft,
-              units: offer.units,
-              unit: offer.unit,
-            })}
-          </p>
-        </div>
+    <Item variant="outline">
+      <ItemMedia>
+        <span className="relative size-20 overflow-hidden rounded-md bg-muted">
+          <Image
+            src={`/api${offer.photo.smallPath}`}
+            alt=""
+            fill
+            sizes="80px"
+            unoptimized
+            className="object-cover"
+          />
+        </span>
+      </ItemMedia>
+      <ItemContent className="min-w-0">
+        <ItemTitle>
+          <h3 className="truncate text-title-lg text-foreground">{offer.name}</h3>
+        </ItemTitle>
+        <p className="flex items-baseline gap-1.5">
+          <span className="font-display text-price text-primary">
+            {formatPrice(offer.priceVnd)}
+          </span>
+          <s className="text-label text-muted-foreground">{formatPrice(offer.originalPriceVnd)}</s>
+        </p>
+        <p className="text-label-strong text-destructive">
+          {t("discount", {
+            percent: offer.discountPercent,
+            left: offer.unitsLeft,
+            units: offer.units,
+            unit: offer.unit,
+          })}
+        </p>
         <p className="text-body-sm text-muted-foreground">
           {t("pickup", { from: time(offer.windowStart), until: time(offer.windowEnd) })}
         </p>
-      </div>
-    </li>
+      </ItemContent>
+    </Item>
   );
 }
 
@@ -249,27 +276,60 @@ function MembersCard({
   title: string;
   empty?: string;
 }) {
+  const t = useTranslations("admin.sellers.detail");
+  let body: ReactNode;
   if (empty && members.length === 0) {
-    return (
-      <Card title={title}>
-        <EmptyState title={empty} icon={UsersIcon} />
-      </Card>
+    body = (
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <UsersIcon aria-hidden />
+          </EmptyMedia>
+          <EmptyTitle>{empty}</EmptyTitle>
+        </EmptyHeader>
+      </Empty>
     );
-  }
-  return (
-    <Card title={title}>
-      <ul className="flex flex-col gap-3.5">
+  } else {
+    body = (
+      <ul className="flex flex-col gap-2">
         {members.map((member) => (
-          <li key={member.accountId} className="flex items-center gap-3">
-            <MemberAvatar member={member} />
-            <span className="min-w-0 flex-1 truncate text-body-sm text-foreground">
-              {member.email}
-            </span>
-            <AwaitingSignInBadge member={member} />
-            <RoleBadge role={member.role} />
+          <li key={member.accountId}>
+            <Item size="xs">
+              <ItemMedia>
+                <Avatar aria-hidden>
+                  <AvatarFallback tone={member.role === "owner" ? "indigo" : "muted"}>
+                    {initialsOf(member.email)}
+                  </AvatarFallback>
+                </Avatar>
+              </ItemMedia>
+              <ItemContent className="min-w-0">
+                <ItemTitle>{member.email}</ItemTitle>
+              </ItemContent>
+              <ItemActions>
+                {member.awaitingSignIn && (
+                  <Badge variant={toneBadge.neutral}>
+                    <ClockIcon aria-hidden />
+                    {t("members.awaitingSignIn")}
+                  </Badge>
+                )}
+                <Badge variant={toneBadge[roleTone[member.role]]}>
+                  {t(`roles.${member.role}`)}
+                </Badge>
+              </ItemActions>
+            </Item>
           </li>
         ))}
       </ul>
+    );
+  }
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <h2>{title}</h2>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>{body}</CardContent>
     </Card>
   );
 }
