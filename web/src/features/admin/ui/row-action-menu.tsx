@@ -23,6 +23,8 @@ export type RowAction = {
   /** Red, for what takes something away (Figma Admin/ActionMenuItem tone=destructive). */
   destructive?: boolean;
   disabled?: boolean;
+  /** Why the action cannot be taken, shown under the pointer: "Không thể thu hồi quyền của chính bạn". */
+  title?: string;
 };
 
 /**
@@ -40,20 +42,35 @@ export function RowActionMenu({ name, actions }: { name: string; actions: RowAct
       </DropdownMenuTrigger>
       <DropdownMenuContent size="admin" align="end">
         <DropdownMenuGroup>
-          {actions.map(({ label, icon: Icon, href, onSelect, destructive, disabled }, index) => (
-            <Fragment key={label}>
-              {index === 1 && <DropdownMenuSeparator />}
-              <DropdownMenuItem
-                variant={destructive ? "destructive" : "default"}
-                disabled={disabled}
-                onClick={onSelect}
-                render={href ? <Link href={href} /> : undefined}
-              >
-                <Icon aria-hidden />
-                {label}
-              </DropdownMenuItem>
-            </Fragment>
-          ))}
+          {actions.map(
+            ({ label, icon: Icon, href, onSelect, destructive, disabled, title }, index) => {
+              const item = (
+                <DropdownMenuItem
+                  variant={destructive ? "destructive" : "default"}
+                  disabled={disabled}
+                  title={title}
+                  onClick={onSelect}
+                  render={href ? <Link href={href} /> : undefined}
+                >
+                  <Icon aria-hidden />
+                  {label}
+                </DropdownMenuItem>
+              );
+              return (
+                <Fragment key={label}>
+                  {index === 1 && <DropdownMenuSeparator />}
+                  {/* A disabled item takes no pointer, so its reason sits on a wrapper the pointer reaches. */}
+                  {disabled && title ? (
+                    <div title={title} className="cursor-not-allowed">
+                      {item}
+                    </div>
+                  ) : (
+                    item
+                  )}
+                </Fragment>
+              );
+            },
+          )}
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
