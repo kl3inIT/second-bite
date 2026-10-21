@@ -932,6 +932,24 @@ abstract class AppLocalizations {
   /// **'Chúng tôi sẽ gửi mã 6 số đến {email} để xác nhận bạn muốn xoá tài khoản.'**
   String deleteAccountConfirmBody(String email);
 
+  /// Above the button that sends the code: the deletion cannot be undone
+  ///
+  /// In vi, this message translates to:
+  /// **'Khi bạn nhập đúng mã, tài khoản bị xoá ngay và không thể hoàn tác.'**
+  String get deleteAccountFinal;
+
+  /// The sellers the person owns could not be read; the code waits until they are
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa đọc được các quán của bạn, nên chưa biết quán nào sẽ đóng cùng tài khoản. Thử lại trước khi gửi mã.'**
+  String get deleteAccountOwnedFailed;
+
+  /// Reads the person's sellers again
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử lại'**
+  String get deleteAccountRetry;
+
   /// The heading of the code step
   ///
   /// In vi, this message translates to:
