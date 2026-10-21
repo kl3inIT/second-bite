@@ -1,10 +1,12 @@
 package order
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -152,14 +154,10 @@ func (s *Service) HandOver(ctx context.Context, id uuid.UUID, code string) (Orde
 	return s.Get(ctx, id, "")
 }
 
-// Refuse ends an order staff will not hand over: the food is no longer
-// suitable, or the order is wrong. Its units are not offered again.
-func (s *Service) Refuse(ctx context.Context, id uuid.UUID, reason RefuseReason, note string) (Order, error) {
-	note = strings.TrimSpace(note)
-	if (reason != RefuseNotSuitable && reason != RefuseWrongItems && reason != RefuseOther) || utf8.RuneCountInString(note) > 200 {
-		return Order{}, ErrRefusalInvalid
-	}
-
+// Deliver hands an order over at the counter, where its customer pays the
+// seller in cash: no code is asked, and the window is not checked, as a
+// customer may come early. The pilot's way to end an order.
+func (s *Service) Deliver(ctx context.Context, id uuid.UUID) (Order, error) {
 	caller, err := s.staffOf(ctx, id)
 	if err != nil {
 		return Order{}, err
@@ -170,8 +168,94 @@ func (s *Service) Refuse(ctx context.Context, id uuid.UUID, reason RefuseReason,
 			return ErrTransitionNotAllowed
 		}
 
+		if err := q.MarkCollected(ctx, id); err != nil {
+			return fmt.Errorf("delivering the order: %w", err)
+		}
+
+		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "collected", ActorID: actor(caller)})
+	})
+	if err != nil {
+		return Order{}, err
+	}
+
+	s.logged(ctx, "order delivered", "order.collection.delivered", id, caller)
+
+	return s.Get(ctx, id, "")
+}
+
+// Reopen takes a mistaken hand-over or refusal back: the order is open again,
+// and the units a refusal had returned are taken again, or the call fails when
+// they are gone. An order its customer cancelled stays cancelled, and so does
+// one whose window is over.
+func (s *Service) Reopen(ctx context.Context, id uuid.UUID) (Order, error) {
+	caller, err := s.staffOf(ctx, id)
+	if err != nil {
+		return Order{}, err
+	}
+
+	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
+		if (o.Status != StatusCollected && o.Status != StatusRefused) || !o.WindowEnd.After(s.now()) {
+			return ErrTransitionNotAllowed
+		}
+
+		if o.Status == StatusRefused && o.RefuseReason.foodKept() {
+			// One order of identifiers, so two orders sharing offers never wait on each other's rows.
+			lines := slices.SortedFunc(slices.Values(o.Lines), func(a, b Line) int {
+				return cmp.Compare(a.OfferID.String(), b.OfferID.String())
+			})
+
+			for _, l := range lines {
+				if _, err := s.offers.Take(ctx, tx, l.OfferID, l.Units); err != nil {
+					return takeFailure(err)
+				}
+			}
+		}
+
+		if err := q.MarkReopened(ctx, id); err != nil {
+			return fmt.Errorf("reopening the order: %w", err)
+		}
+
+		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "reopened", ActorID: actor(caller)})
+	})
+	if err != nil {
+		return Order{}, err
+	}
+
+	s.logged(ctx, "order reopened", "order.order.reopened", id, caller)
+
+	return s.Get(ctx, id, "")
+}
+
+// Refuse ends an order staff will not hand over: the food is no longer
+// suitable, the order is wrong, the customer did not answer or come, or the
+// food ran out. Its units go back to their offers when the customer did not
+// come, and are not offered again otherwise.
+func (s *Service) Refuse(ctx context.Context, id uuid.UUID, reason RefuseReason, note string) (Order, error) {
+	note = strings.TrimSpace(note)
+	if !reason.valid() || utf8.RuneCountInString(note) > 200 {
+		return Order{}, ErrRefusalInvalid
+	}
+
+	caller, err := s.staffOf(ctx, id)
+	if err != nil {
+		return Order{}, err
+	}
+
+	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
+		if !o.Status.open() {
+			return ErrTransitionNotAllowed
+		}
+
 		if err := q.MarkRefused(ctx, db.MarkRefusedParams{ID: id, RefuseReason: textOf(string(reason)), RefuseNote: note}); err != nil {
 			return fmt.Errorf("refusing the order: %w", err)
+		}
+
+		if reason.foodKept() {
+			for _, l := range o.Lines {
+				if err := s.offers.Return(ctx, tx, l.OfferID, l.Units); err != nil {
+					return err
+				}
+			}
 		}
 
 		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "refused", ActorID: actor(caller)})
