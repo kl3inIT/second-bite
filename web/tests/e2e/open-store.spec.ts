@@ -354,7 +354,7 @@ test.describe("posting a dish on the web", () => {
     await page.goto(`/vi/stores/${store}/offers/new`);
     const drawer = page.getByRole("dialog");
     await drawer.getByRole("button", { name: "Tiếp tục" }).click();
-    await drawer.getByRole("button", { name: "Món đột xuất" }).click();
+    await drawer.getByRole("button", { name: "Món mới" }).click();
     await drawer.getByLabel("Ảnh món").setInputFiles({
       name: "flan.png",
       mimeType: "image/png",

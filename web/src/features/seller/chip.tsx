@@ -5,16 +5,23 @@ import { cn } from "@/lib/utils";
 export function Chip({
   selected,
   size = "md",
+  fit = false,
   className,
   children,
   ...props
-}: React.ComponentProps<"button"> & { selected: boolean; size?: "md" | "lg" }) {
+}: React.ComponentProps<"button"> & {
+  selected: boolean;
+  size?: "md" | "lg";
+  /** Fills its cell and centres its words, for a row of choices that must stay in one line. */
+  fit?: boolean;
+}) {
   return (
     <button
       type="button"
       aria-pressed={selected}
       className={cn(
         "group/chip flex min-h-11 items-center rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring disabled:opacity-50",
+        fit && "w-full",
         className,
       )}
       {...props}
@@ -24,6 +31,7 @@ export function Chip({
           "flex items-center rounded-full border whitespace-nowrap transition-colors",
           // 38 px high with 16 px sides, or 44 px with 18 px, as Figma draws the two (Q2, P2b and P3).
           size === "lg" ? "h-11 px-4.5" : "h-9.5 px-4",
+          fit && "w-full justify-center px-2",
           selected
             ? "border-primary bg-primary text-body-sm-strong text-primary-foreground"
             : "border-border bg-card text-body-sm text-foreground group-hover/chip:bg-secondary",

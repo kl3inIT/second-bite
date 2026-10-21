@@ -348,14 +348,14 @@ function PostDrawerBody({
 
           {step === 2 && (
             <>
-              <div className="-my-1 flex flex-wrap gap-x-2">
-                <Chip selected={source === "catalog"} onClick={() => pick("catalog")}>
+              <div className="grid grid-cols-3 gap-2">
+                <Chip fit selected={source === "catalog"} onClick={() => pick("catalog")}>
                   {t("sourceCatalog")}
                 </Chip>
-                <Chip selected={source === "earlier"} onClick={() => pick("earlier")}>
+                <Chip fit selected={source === "earlier"} onClick={() => pick("earlier")}>
                   {t("sourceEarlier")}
                 </Chip>
-                <Chip selected={source === "oneoff"} onClick={() => pick("oneoff")}>
+                <Chip fit selected={source === "oneoff"} onClick={() => pick("oneoff")}>
                   {t("sourceOneOff")}
                 </Chip>
               </div>
