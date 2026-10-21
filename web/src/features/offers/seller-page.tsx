@@ -79,7 +79,7 @@ export function SellerPage({
           PHONE_WIDTH,
         )}
       >
-        <div className="md:mx-auto md:flex md:max-w-292 md:flex-col md:gap-6 md:pt-6">
+        <div className="md:mx-auto md:flex md:max-w-292 md:flex-col md:gap-6 md:pt-8 md:pb-8">
           <nav
             aria-label={t("breadcrumb")}
             className="hidden text-label text-muted-foreground md:block"
@@ -105,11 +105,10 @@ export function SellerPage({
                 <OfferPhoto offer={offer} sizes="(min-width: 768px) 400px, 33vw" />
               </div>
             ))}
-            <div className="absolute inset-x-0 top-0 h-30 bg-linear-to-b from-foreground/35 to-transparent" />
-            <div className="absolute inset-x-4 top-3 flex items-center justify-between md:justify-end">
-              <div className="md:hidden">
-                <BackButton fallback="/" />
-              </div>
+            <div className="absolute inset-x-0 top-0 h-30 bg-linear-to-b from-foreground/35 to-transparent md:hidden" />
+            {/* Figma WK3 draws no buttons on the cover: the seller's own row has "Theo dõi". */}
+            <div className="absolute inset-x-4 top-3 flex items-center justify-between md:hidden">
+              <BackButton fallback="/" />
               <div className="flex gap-2">
                 <FollowButton sellerId={first.sellerId} name={first.seller.name} look="float" />
                 <ShareButton title={first.seller.name} />
@@ -121,62 +120,55 @@ export function SellerPage({
               <SellerHeading lead={first} />
               <SellerFacts lead={first} offers={available} />
               <SellerFactsCard lead={first} offers={available} />
-              <SellerSearch lead={first} kind={kind} near={near} q={q} />
+              {/* Figma WK3 has no search in the menu; a phone keeps it (K4b). */}
+              <div className="md:hidden">
+                <SellerSearch lead={first} kind={kind} near={near} q={q} />
+              </div>
               <div className="flex flex-col gap-3.5 md:flex-row md:gap-6">
                 {tabs.length > 1 && (
-                  <>
-                    <nav
-                      aria-label={t("kinds")}
-                      className="-mx-4 scrollbar-none overflow-x-auto px-4 md:hidden"
-                    >
-                      <ul className="flex min-w-max gap-6 border-b border-border">
-                        {kindLinks.map(({ each, href, label }) => (
-                          <li key={each ?? "all"}>
-                            <Link
-                              href={href}
-                              aria-current={each === kind ? "page" : undefined}
-                              className={cn(
-                                "-mb-px flex min-h-11 items-center border-b-3 text-title focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
-                                each === kind
-                                  ? "border-primary text-primary"
-                                  : "border-transparent text-muted-foreground",
-                              )}
-                            >
-                              {label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </nav>
-                    {/* The menu's index (Figma WK3): the same kinds, down the side. */}
-                    <nav
-                      aria-label={t("kinds")}
-                      className="hidden w-37.5 shrink-0 flex-col gap-4 pt-1 md:sticky md:top-4 md:flex md:self-start"
-                    >
-                      <p className="text-label-strong text-muted-foreground uppercase">
-                        {t("index")}
-                      </p>
-                      <ul className="flex flex-col gap-1">
-                        {kindLinks.map(({ each, href, label }) => (
-                          <li key={each ?? "all"}>
-                            <Link
-                              href={href}
-                              aria-current={each === kind ? "page" : undefined}
-                              className={cn(
-                                "flex min-h-11 items-center rounded-full px-3.5 text-body-sm focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
-                                each === kind
-                                  ? "bg-secondary text-body-sm-strong text-primary"
-                                  : "text-muted-foreground hover:bg-muted",
-                              )}
-                            >
-                              {label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </nav>
-                  </>
+                  <nav
+                    aria-label={t("kinds")}
+                    className="-mx-4 scrollbar-none overflow-x-auto px-4 md:hidden"
+                  >
+                    <ul className="flex min-w-max gap-6 border-b border-border">
+                      {kindLinks.map(({ each, href, label }) => (
+                        <li key={each ?? "all"}>
+                          <Link
+                            href={href}
+                            aria-current={each === kind ? "page" : undefined}
+                            className={cn(
+                              "-mb-px flex min-h-11 items-center border-b-3 text-title focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
+                              each === kind
+                                ? "border-primary text-primary"
+                                : "border-transparent text-muted-foreground",
+                            )}
+                          >
+                            {label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
                 )}
+                {/* The menu's index (Figma WK3), a line for each section; the catalog has no dish groups yet
+                    (SEC-49 decision 7), so the one section is tonight's dishes. */}
+                <nav
+                  aria-label={t("kinds")}
+                  className="hidden w-37.5 shrink-0 flex-col gap-4 pt-1 md:sticky md:top-4 md:flex md:self-start"
+                >
+                  <p className="text-label-strong text-muted-foreground uppercase">{t("index")}</p>
+                  <ul className="flex flex-col gap-1">
+                    <li>
+                      <a
+                        href="#dishes"
+                        aria-current="location"
+                        className="flex min-h-11 items-center border-l-2 border-primary pl-3 text-body-sm-strong text-primary focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                      >
+                        {t("tonight")}
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
                 <section aria-labelledby="dishes" className="flex min-w-0 flex-1 flex-col gap-3">
                   <h2 id="dishes" className="text-title-lg text-foreground">
                     {kind ? kinds(kind) : t("tonight")}
@@ -214,11 +206,11 @@ function SellerHeading({ lead }: { lead: OfferSummary }) {
   return (
     <div className="flex items-center gap-3">
       <SellerLogo seller={lead.seller} size="lg" />
-      <div className="flex min-w-0 flex-col gap-0.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <h1 className="text-headline break-words text-foreground">{lead.seller.name}</h1>
         <p className="flex items-center gap-1 text-body-sm text-muted-foreground">
           {rating !== undefined && (
-            <>
+            <span className="flex items-center gap-1 md:hidden">
               <span aria-hidden className="text-rating">
                 ★
               </span>
@@ -226,11 +218,17 @@ function SellerHeading({ lead }: { lead: OfferSummary }) {
                 {format.number(rating, ONE_DECIMAL)}
               </span>
               <span aria-hidden>·</span>
-            </>
+            </span>
           )}
           {lead.seller.address}
         </p>
       </div>
+      <FollowButton
+        sellerId={lead.sellerId}
+        name={lead.seller.name}
+        look="outline"
+        className="max-md:hidden"
+      />
     </div>
   );
 }
@@ -271,7 +269,8 @@ function SellerFacts({ lead, offers }: { lead: OfferSummary; offers: readonly Of
 }
 
 // The seller's rating, tonight's window and the counter's distance in equal cells on a card with a hairline, from
-// 768px (Figma WK3 "thông số quán"); a seller with no rating, or no distance known, has fewer cells.
+// 768px (Figma WK3 "thông số quán"), each a value over its line; the third cell's line is the way there. A seller
+// with no rating has no first cell, and with no distance known the third cell is the way there alone.
 function SellerFactsCard({
   lead,
   offers,
@@ -285,24 +284,47 @@ function SellerFactsCard({
   const rating = sellerRating(lead);
   const opens = Math.min(...offers.map(({ windowStart }) => Date.parse(windowStart)));
   const closes = Math.max(...offers.map(({ windowEnd }) => Date.parse(windowEnd)));
-  const cells: { label: string; value: string }[] = [];
-  if (rating !== undefined) {
-    cells.push({ label: t("rating"), value: format.number(rating, ONE_DECIMAL) });
-  }
-  cells.push({
-    label: t("pickup"),
-    value: `${format.dateTime(opens, "time")}–${format.dateTime(closes, "time")}`,
-  });
-  if (distance) cells.push({ label: t("distance"), value: distance });
+  const directions = (
+    <a
+      href={directionsHref(lead.collectionPoint)}
+      target="_blank"
+      rel="noreferrer"
+      className="rounded-sm text-label text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+    >
+      {t("directions")}
+    </a>
+  );
 
   return (
     <dl className="hidden auto-cols-fr grid-flow-col rounded-lg border border-border bg-card px-3 py-2 md:grid">
-      {cells.map(({ label, value }) => (
-        <div key={label} className="flex flex-col items-center gap-0.5 py-1">
-          <dt className="order-2 text-label text-muted-foreground">{label}</dt>
-          <dd className="order-1 text-title text-foreground">{value}</dd>
+      {rating !== undefined && (
+        <div className="flex flex-col items-center gap-0.5 py-1">
+          <dd className="order-1 text-title text-foreground">
+            <span aria-hidden className="text-rating">
+              ★
+            </span>{" "}
+            {format.number(rating, ONE_DECIMAL)}
+          </dd>
+          <dt className="order-2 text-label text-muted-foreground">{t("rating")}</dt>
         </div>
-      ))}
+      )}
+      <div className="flex flex-col items-center gap-0.5 py-1">
+        <dd className="order-1 text-title text-foreground">
+          {format.dateTime(opens, "time")}–{format.dateTime(closes, "time")}
+        </dd>
+        <dt className="order-2 text-label text-muted-foreground">{t("pickup")}</dt>
+      </div>
+      <div className="flex flex-col items-center gap-0.5 py-1">
+        {distance ? (
+          <>
+            <dd className="order-1 text-title text-foreground">{distance}</dd>
+            <dt className="sr-only">{t("distance")}</dt>
+            <dd className="order-2">{directions}</dd>
+          </>
+        ) : (
+          <dd className="py-2.5">{directions}</dd>
+        )}
+      </div>
     </dl>
   );
 }

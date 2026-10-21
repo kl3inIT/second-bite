@@ -116,7 +116,7 @@ test.describe("a phone's large text, as Zalo shows it", () => {
       .click();
     await expect(page).toHaveURL(/\/vi\/orders\/[0-9a-f-]{36}$/);
 
-    const number = page.getByText(/^#SB-\d+$/);
+    const number = page.getByText(/^#SB-\d+$/).filter({ visible: true });
     await expect(number).toBeVisible();
     await expectNoSidewaysScroll(page);
     // One line: no taller than its own line height.

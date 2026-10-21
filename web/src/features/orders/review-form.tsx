@@ -123,7 +123,7 @@ export function ReviewForm({ order }: { order: Order }) {
           placeholder={t("comment")}
         />
       </section>
-      <div className="sticky bottom-0 z-40 -mx-4 flex flex-col gap-2 border-t border-border bg-card px-4 pt-3 pb-5 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0">
+      <div className="sticky bottom-0 z-40 -mx-4 flex flex-col gap-2 border-t border-border bg-card px-4 pt-3 pb-5 lg:static lg:order-first lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0">
         {reference ? (
           <p role="alert" className="text-label text-destructive">
             {t("failed", { reference })}

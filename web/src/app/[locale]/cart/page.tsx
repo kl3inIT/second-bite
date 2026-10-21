@@ -16,7 +16,7 @@ export default async function CartPage() {
 
   return (
     <>
-      <PageBar title={t("title")} back="/" />
+      <PageBar title={t("title")} back="/" returnTo="/cart" />
       <main className="flex flex-1 flex-col">
         <Checkout />
       </main>
