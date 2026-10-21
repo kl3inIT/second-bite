@@ -71,7 +71,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     ref.listenManual(currentAccountProvider, (_, next) {
       if (next.value == null) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) context.go(widget.returnTo);
+        if (mounted) _leave();
       });
     }, fireImmediately: true);
   }
@@ -95,7 +95,21 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   void _signedIn(AccountBody account) {
     ref.read(currentAccountProvider.notifier).signedIn(account);
-    context.go(widget.returnTo);
+    _leave();
+  }
+
+  /// Set once the screen has left, as both a sign-in and the account it
+  /// records ask it to.
+  bool _left = false;
+
+  /// Back to the screen that opened sign-in, which follows the account and
+  /// keeps its own way back (SEC-69); opened on its own, to
+  /// [SignInScreen.returnTo]. Once only: a second pop would close that
+  /// screen too.
+  void _leave() {
+    if (_left) return;
+    _left = true;
+    context.canPop() ? context.pop() : context.go(widget.returnTo);
   }
 
   /// Runs [action] as the screen's one pending step; a failure becomes the

@@ -517,6 +517,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get deleteAccountFinal =>
+      'Once you enter the right code, the account is deleted at once and cannot be undone.';
+
+  @override
+  String get deleteAccountOwnedFailed =>
+      'Your sellers could not be read, so we cannot yet tell you which close with your account. Try again before the code is sent.';
+
+  @override
+  String get deleteAccountRetry => 'Try again';
+
+  @override
   String get deleteAccountCodeHeading => 'Enter the code';
 
   @override

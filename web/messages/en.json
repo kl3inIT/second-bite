@@ -631,6 +631,7 @@
     "signedOutBody": "To be sure the account is yours, you sign in, then type the code we email to the account's address.",
     "signIn": "Sign in",
     "confirmBody": "We will email a six-digit code to <strong>{email}</strong> to confirm that you want to delete your account.",
+    "final": "Once you enter the right code, the account is deleted at once and cannot be undone.",
     "sendCode": "Send the code",
     "sending": "Sending the code…",
     "codeHeading": "Enter the code",

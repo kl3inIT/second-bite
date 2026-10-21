@@ -40,6 +40,9 @@ void main() {
       registerFallbackValue(const SignInInputBody(challengeId: '', code: ''));
       registerFallbackValue(const GoogleSignInInputBody(idToken: ''));
       registerFallbackValue(const RequestCodeInputBody(email: ''));
+      registerFallbackValue(
+        const DeleteAccountInputBody(challengeId: '', code: ''),
+      );
     });
 
     setUp(() {
@@ -129,6 +132,34 @@ void main() {
 
       expect(await repository.currentAccount(), isNull);
       verify(store.clear).called(1);
+    });
+
+    test('deletes the account and forgets the kept session', () async {
+      when(() => accounts.deleteMyAccount(body: any(named: 'body')))
+          .thenAnswer((_) async {});
+
+      await repository.deleteAccount(challengeId: 'del-1', code: '123456');
+
+      verify(
+        () => accounts.deleteMyAccount(
+          body: const DeleteAccountInputBody(
+            challengeId: 'del-1',
+            code: '123456',
+          ),
+        ),
+      ).called(1);
+      verify(store.clear).called(1);
+    });
+
+    test('keeps the session when the deletion is refused', () async {
+      when(() => accounts.deleteMyAccount(body: any(named: 'body')))
+          .thenThrow(_status(422));
+
+      await expectLater(
+        repository.deleteAccount(challengeId: 'del-1', code: '111111'),
+        throwsA(isA<DioException>()),
+      );
+      verifyNever(store.clear);
     });
 
     test('signs out here even when the server fails', () async {

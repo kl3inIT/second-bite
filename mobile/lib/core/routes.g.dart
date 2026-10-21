@@ -8,7 +8,6 @@ part of 'routes.dart';
 
 List<RouteBase> get $appRoutes => [
   $appShellRoute,
-  $accountSettingsRoute,
   $deleteAccountRoute,
   $termsRoute,
   $privacyRoute,
@@ -33,6 +32,14 @@ RouteBase get $appShellRoute => StatefulShellRouteData.$route(
           path: '/account',
           hasOverriddenOnExit: false,
           factory: $AccountRoute._fromState,
+          routes: [
+            GoRouteData.$route(
+              path: 'settings',
+              hasOverriddenOnExit: false,
+              parentNavigatorKey: AccountSettingsRoute.$parentNavigatorKey,
+              factory: $AccountSettingsRoute._fromState,
+            ),
+          ],
         ),
       ],
     ),
@@ -96,18 +103,12 @@ mixin $AccountRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
-RouteBase get $accountSettingsRoute => GoRouteData.$route(
-  path: '/account-settings',
-  hasOverriddenOnExit: false,
-  factory: $AccountSettingsRoute._fromState,
-);
-
 mixin $AccountSettingsRoute on GoRouteData {
   static AccountSettingsRoute _fromState(GoRouterState state) =>
       const AccountSettingsRoute();
 
   @override
-  String get location => GoRouteData.$location('/account-settings');
+  String get location => GoRouteData.$location('/account/settings');
 
   @override
   void go(BuildContext context) => context.go(location);
