@@ -1105,6 +1105,12 @@ async function sellerRoutes(request, response, url) {
       problem(response, 404, "SELLER_NOT_FOUND");
     } else {
       seller.photoId = (await readBody(request)).photoId;
+      // As the API answers: the photo's id and the paths it is served at.
+      seller.photo = {
+        id: seller.photoId,
+        largePath: `/photos/${seller.photoId}/1600.jpg`,
+        smallPath: `/photos/${seller.photoId}/400.jpg`,
+      };
       json(response, 200, seller);
     }
     return true;
