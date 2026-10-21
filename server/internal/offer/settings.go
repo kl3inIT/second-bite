@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -51,7 +52,7 @@ func (s *Service) SaveSettings(ctx context.Context, in Settings, version time.Ti
 		return Settings{}, ErrSettingsInvalid
 	}
 
-	var changed []string
+	var changed []audit.Change
 
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		q := s.queries.WithTx(tx)
@@ -86,7 +87,7 @@ func (s *Service) SaveSettings(ctx context.Context, in Settings, version time.Ti
 
 		return s.trail.Record(ctx, tx,
 			audit.Resource{Type: audit.ResourceOfferSettings, ID: audit.SingletonID},
-			audit.OfferSettingsChanged{Fields: changed})
+			audit.OfferSettingsChanged{Changes: changed})
 	})
 	if err != nil {
 		return Settings{}, err
@@ -103,8 +104,8 @@ func (s *Service) SaveSettings(ctx context.Context, in Settings, version time.Ti
 }
 
 // changedSettings names, as the API does, the settings next changes.
-func changedSettings(current db.LockSettingsRow, next db.PutSettingsParams) []string {
-	var changed []string
+func changedSettings(current db.LockSettingsRow, next db.PutSettingsParams) []audit.Change {
+	var changed []audit.Change
 
 	for _, f := range []struct {
 		name     string
@@ -118,7 +119,7 @@ func changedSettings(current db.LockSettingsRow, next db.PutSettingsParams) []st
 		{"startsWithinHours", current.StartsWithinHours, next.StartsWithinHours},
 	} {
 		if f.was != f.now {
-			changed = append(changed, f.name)
+			changed = append(changed, audit.ChangedFromTo(f.name, strconv.Itoa(int(f.was)), strconv.Itoa(int(f.now))))
 		}
 	}
 

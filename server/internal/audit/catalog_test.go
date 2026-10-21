@@ -5,18 +5,6 @@ import (
 	"testing"
 )
 
-// catalog is every action of catalog.go; a type added there is added here.
-var catalog = []Action{
-	OfferSettingsChanged{},
-	EmailSettingsChanged{},
-	AdminGranted{},
-	AdminRevoked{},
-	SellerApproved{},
-	SellerRejected{},
-	SellerBlocked{},
-	SellerUnblocked{},
-}
-
 var actionName = regexp.MustCompile(`^[a-z_]+\.[a-z_]+$`)
 
 // TestCatalog checks each action's name has the shape the table accepts and

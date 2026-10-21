@@ -104,6 +104,7 @@ type app struct {
 	logger       *slog.Logger
 	pool         *pgxpool.Pool
 	events       *platform.Events
+	audit        *audit.Service
 	notification *notification.Service
 	identity     *identity.Service
 	file         *file.Service
@@ -179,7 +180,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		seller.RegisterListeners(events, sellers)
 
 		return &app{
-			cfg: cfg, logger: logger, pool: pool, events: events, notification: notifications, identity: identities,
+			cfg: cfg, logger: logger, pool: pool, events: events, audit: trail, notification: notifications, identity: identities,
 			file: files, seller: sellers, offer: offers,
 		}, nil
 	}()
@@ -236,6 +237,7 @@ func registerOperations(api huma.API, a *app) {
 	notification.RegisterAdminOperations(admin, a.notification)
 	seller.RegisterAdminOperations(admin, a.seller)
 	offer.RegisterAdminOperations(admin, a.offer)
+	audit.RegisterAdminOperations(admin, a.audit)
 }
 
 // fileConfig reads where files are kept: SECONDBITE_FILE_STORE (postgres by

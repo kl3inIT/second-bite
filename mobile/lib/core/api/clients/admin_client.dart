@@ -6,8 +6,10 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/account_body.dart';
+import '../models/action.dart';
 import '../models/admin_sellers_output_body.dart';
 import '../models/admins_output_body.dart';
+import '../models/audit_events_output_body.dart';
 import '../models/block_seller_request.dart';
 import '../models/email_settings_body.dart';
 import '../models/grant_admin_request.dart';
@@ -42,20 +44,51 @@ abstract class AdminClient {
     @Path('accountId') required String accountId,
   });
 
+  /// What admins did, the latest first.
+  ///
+  /// Only the actions of the audit catalog are recorded. A page past the end is empty.
+  ///
+  /// [action] - Keep these actions; every action when absent.
+  ///
+  /// [actorId] - Keep one admin's actions.
+  ///
+  /// [since] - Keep what happened at or after this time.
+  ///
+  /// [until] - Keep what happened before this time.
+  ///
+  /// [q] - Words of the admin's or the resource's label, or the resource's identifier.
+  @GET('/admin/audit-events')
+  Future<AuditEventsOutputBody> listAuditEvents({
+    @Query('page') int? page = 1,
+    @Query('size') int? size = 25,
+    @Query('action') List<Action>? action,
+    @Query('actorId') String? actorId,
+    @Query('since') DateTime? since,
+    @Query('until') DateTime? until,
+    @Query('q') String? q,
+  });
+
   /// Read who delivers email
   @GET('/admin/email-settings')
   Future<EmailSettingsBody> getEmailSettings();
 
   /// Choose who delivers email; the next email uses it.
   ///
-  /// If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes. The first settings are saved with `secondbite email configure`.
+  /// If-Match carries the ETag read, or If-None-Match: * saves the first settings; when someone saved since, the answer is 412 and nothing changes. Without either the answer is 400.
   ///
   /// [ifMatch] - The ETag of the settings read.
+  ///
+  /// [ifNoneMatch] - * to save the first settings, when none were read.
   @PUT('/admin/email-settings')
   Future<void> saveEmailSettings({
-    @Header('If-Match') required String ifMatch,
     @Body() required SaveEmailSettingsInputBody body,
+    @Header('If-Match') String? ifMatch,
+    @Header('If-None-Match') String? ifNoneMatch,
   });
+
+  /// Send one email to oneself through the settings saved
+  @POST('/admin/email-settings/test')
+  Future<void> sendTestEmail();
 
   /// The rules every offer follows
   @GET('/admin/offer-settings')

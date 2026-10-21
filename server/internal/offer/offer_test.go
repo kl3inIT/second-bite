@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -464,7 +465,7 @@ func testSettingsBoundEveryPost(t *testing.T, f fixture) {
 		t.Fatal(err)
 	}
 
-	checkSettingsAudited(t, f, `["minDiscountPercent", "maxRadiusKm"]`)
+	checkSettingsAudited(t, f, `["minDiscountPercent", "maxRadiusKm"]`, set.MinDiscountPercent)
 
 	_, err = f.offers.Post(owner, sellerID, bread(photo))
 	mustFail(t, "40% off under a 50% minimum", err, offer.ErrDiscountTooSmall)
@@ -479,7 +480,7 @@ func testSettingsBoundEveryPost(t *testing.T, f fixture) {
 		t.Errorf("saving the same settings: %v, changed at %v, want %v unchanged", err, same.UpdatedAt, saved.UpdatedAt)
 	}
 
-	checkSettingsAudited(t, f, `["minDiscountPercent", "maxRadiusKm"]`)
+	checkSettingsAudited(t, f, `["minDiscountPercent", "maxRadiusKm"]`, set.MinDiscountPercent)
 
 	broken := set
 	broken.MaxRadiusKm = set.DefaultRadiusKm - 1
@@ -491,21 +492,28 @@ func testSettingsBoundEveryPost(t *testing.T, f fixture) {
 }
 
 // checkSettingsAudited checks that one change of the offer settings is
-// recorded, the last naming fields.
-func checkSettingsAudited(t *testing.T, f fixture, fields string) {
+// recorded, the last naming fields, the minimum discount from minWas to 50.
+func checkSettingsAudited(t *testing.T, f fixture, fields string, minWas int) {
 	t.Helper()
 
-	var count int
+	var (
+		count          int
+		last, from, to string
+	)
 
-	var last string
-	if err := f.pool.QueryRow(t.Context(), `SELECT count(*),
-		(SELECT details->>'fields' FROM audit_events WHERE action = 'offer_settings.change' ORDER BY occurred_at DESC, id DESC LIMIT 1)
-		FROM audit_events WHERE action = 'offer_settings.change' AND actor_id IS NOT NULL`).Scan(&count, &last); err != nil {
+	if err := f.pool.QueryRow(t.Context(), `SELECT count(*), e.fields, e.from, e.to
+		FROM audit_events,
+			(SELECT jsonb_path_query_array(details, '$.changes[*].field')::text AS fields,
+				details #>> '{changes,0,from}' AS from, details #>> '{changes,0,to}' AS to
+			FROM audit_events WHERE action = 'offer_settings.change' ORDER BY occurred_at DESC, id DESC LIMIT 1) e
+		WHERE action = 'offer_settings.change' AND actor_id IS NOT NULL
+		GROUP BY e.fields, e.from, e.to`).Scan(&count, &last, &from, &to); err != nil {
 		t.Fatal(err)
 	}
 
-	if count != 1 || last != fields {
-		t.Errorf("%d changes of the offer settings recorded, the last naming %s; want 1 naming %s", count, last, fields)
+	if count != 1 || last != fields || from != strconv.Itoa(minWas) || to != "50" {
+		t.Errorf("%d changes recorded, the last naming %s, the minimum from %s to %s; want 1 naming %s, from %d to 50",
+			count, last, from, to, fields, minWas)
 	}
 }
 

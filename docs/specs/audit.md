@@ -4,7 +4,11 @@ Owns the trail of what admins did, which admin did what to which store, account 
 
 ## Operations
 
-None yet. Admins read the trail once its screen exists (Figma row 11, Nhật ký).
+| Operation | Who | Answers |
+| --- | --- | --- |
+| `GET /admin/audit-events?action=&actorId=&since=&until=&q=&page=&size=` | Admin | One page of events, the latest first, with `total`. `action` keeps names of the catalog (repeatable); `actorId` one admin; `since` and `until` bound the time, `until` excluded; `q` matches the admin's or the resource's label, any case, or is the resource's identifier. A page past the end is empty. A filter out of bounds answers `AUDIT_LIST_INVALID` (400). |
+
+Each event answers its `details` as typed fields: `reason`, `source`, `provider` and `changes`, each present only for the actions that have it. The API's lists of actions are the catalog's, which a test keeps the same.
 
 Published to other modules: `Record(ctx, tx, resource, action)`, which writes one event in the transaction of the change it records, and `ForgetAccount(ctx, tx, account)`, which `identity` calls in the transaction that deletes an account.
 
@@ -22,8 +26,8 @@ Published to other modules: `Record(ctx, tx, resource, action)`, which writes on
 
 | Action | Resource | Details | Recorded by |
 | --- | --- | --- | --- |
-| `offer_settings.change` | `offer_settings`, `current` | `fields`: the settings changed, as the API names them | `offer` |
-| `email_settings.change` | `email_settings`, `current` | `provider`; `fields`: the settings changed, a secret by name only | `notification` |
+| `offer_settings.change` | `offer_settings`, `current` | `changes`: each setting changed, as the API names it, with its value `from` and `to` | `offer` |
+| `email_settings.change` | `email_settings`, `current` | `provider`; `changes`: as above, but a password, a key and the SMTP user by name only, since one is a secret and the user may name a person | `notification` |
 | `seller.approve` | `seller`, its identifier, its name | none | `seller` |
 | `seller.reject` | `seller`, its identifier, its name | `reason` | `seller` |
 | `seller.block` | `seller`, its identifier, its name | `reason` | `seller` |

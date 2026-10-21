@@ -14,6 +14,14 @@ var ErrChangedSinceRead = NewFailure("PLATFORM_CHANGED_SINCE_READ", CategoryStal
 	EN: "Someone changed this after you opened it. Reload to see the new version, then try again.",
 })
 
+// ErrVersionRequired refuses a change sent without the version it was made
+// at: If-Match with the ETag read, or If-None-Match: * for what does not exist
+// yet.
+var ErrVersionRequired = NewFailure("PLATFORM_VERSION_REQUIRED", CategoryValidation, Words{
+	VI: "Thiếu phiên bản đã đọc. Tải lại trang rồi thử lại.",
+	EN: "The version read is missing. Reload the page, then try again.",
+})
+
 // ETag is the version of a row changed at updatedAt, as the strong entity tag
 // a read answers in ETag and a change sends back in If-Match. PostgreSQL keeps
 // microseconds, so they are the version.

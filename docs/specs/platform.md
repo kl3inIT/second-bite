@@ -42,7 +42,8 @@ Failures the platform answers itself:
 | `PLATFORM_AUTHENTICATION_REQUIRED` | 401 | An operation that needs a caller is called without one |
 | `PLATFORM_ADMIN_REQUIRED` | 403 | An admin operation is called by someone else |
 | `PLATFORM_CROSS_ORIGIN_REFUSED` | 403 | A change of state authenticated by the session cookie comes from another origin |
-| `PLATFORM_CHANGED_SINCE_READ` | 412 | `If-Match` names a version that is no longer the current one, or none |
+| `PLATFORM_VERSION_REQUIRED` | 400 | A change that needs the version read comes without `If-Match`, or without `If-None-Match: *` for what does not exist yet |
+| `PLATFORM_CHANGED_SINCE_READ` | 412 | `If-Match` names a version that is no longer the current one, or none; or `If-None-Match: *` asks for something that exists already |
 | `PLATFORM_ROUTE_NOT_FOUND` | 404 | No route matches the path |
 | `PLATFORM_METHOD_NOT_ALLOWED` | 405 | The path exists for other methods, listed in `Allow` |
 | `PLATFORM_INTERNAL_FAILURE` | 500 | An uncaught error or a panic; the cause is logged with the request's identifier, never answered |
@@ -57,7 +58,7 @@ Failures the platform answers itself:
 
 ## Versions
 
-- A setting kept in one row is changed only at the version read (SEC-75). Its read answers `ETag`, a strong tag of the row's `updated_at` in microseconds (`platform.ETag`). A save requires `If-Match` with that tag. The service locks the row, compares, and answers 412 `PLATFORM_CHANGED_SINCE_READ` when someone saved since. A weak tag, `*` or several tags name no version.
+- A setting kept in one row is changed only at the version read (SEC-75). Its read answers `ETag`, a strong tag of the row's `updated_at` in microseconds (`platform.ETag`). A save requires `If-Match` with that tag. The service locks the row, compares, and answers 412 `PLATFORM_CHANGED_SINCE_READ` when someone saved since. A weak tag, `*` or several tags name no version. Where the row may not exist yet, `If-None-Match: *` saves the first one, and answers 412 when someone saved it since (`platform.ErrVersionRequired` when neither header comes).
 - Every admin operation is registered on the group `platform.NewAdminGroup` returns, under `/admin` (SEC-75). The group tags it `Admin`, documents that it needs a session, and refuses anyone but an admin before the request is read: 401 `PLATFORM_AUTHENTICATION_REQUIRED` signed out, 403 `PLATFORM_ADMIN_REQUIRED` otherwise. The service checks `RequireAdmin` as well. A test calls every operation under `/admin` both ways.
 
 ## Events between modules

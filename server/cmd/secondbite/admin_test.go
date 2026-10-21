@@ -135,6 +135,16 @@ var adminChanges = map[string]adminChange{
 			s["senderName"] = "Second Bite (kiểm tra)"
 		})
 	}},
+	"sendTestEmail": {notAudited: "it sends one email to the admin and changes nothing", call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		resp := send(t, http.MethodPost, svc.base+"/admin/email-settings/test", admin, nil)
+		if resp.status == http.StatusNoContent {
+			waitEmail(t, svc, auditAdminEmail, "email thử")
+		}
+
+		return resp, func() {}
+	}},
 	"grantAdmin": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
 		t.Helper()
 

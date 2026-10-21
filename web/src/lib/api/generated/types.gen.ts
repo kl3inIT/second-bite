@@ -43,6 +43,59 @@ export type AdminsOutputBody = {
     admins: Array<AccountBody> | null;
 };
 
+export type AuditChangeBody = {
+    field: string;
+    /**
+     * The value before; absent for a secret or the SMTP user
+     */
+    from?: string;
+    /**
+     * The value after; absent likewise
+     */
+    to?: string;
+};
+
+export type AuditDetailsBody = {
+    /**
+     * The settings changed
+     */
+    changes?: Array<AuditChangeBody> | null;
+    /**
+     * Who delivers email after the change
+     */
+    provider?: 'smtp' | 'brevo';
+    /**
+     * What the owner was told, for a rejection or a block
+     */
+    reason?: string;
+    /**
+     * Where a change of admins came from
+     */
+    source?: 'admin' | 'command_line';
+};
+
+export type AuditEventBody = {
+    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock';
+    actorId?: string;
+    actorLabel?: string;
+    details: AuditDetailsBody;
+    id: string;
+    occurredAt: string;
+    resourceId: string;
+    /**
+     * The store's name or the account's address at the time; absent once that account is deleted
+     */
+    resourceLabel?: string;
+    resourceType: 'account' | 'seller' | 'offer_settings' | 'email_settings';
+};
+
+export type AuditEventsOutputBody = {
+    items: Array<AuditEventBody> | null;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
 export type BlockSellerRequest = {
     /**
      * What the owner is told, 10 to 500 characters
@@ -747,6 +800,54 @@ export type RevokeAdminResponses = {
 
 export type RevokeAdminResponse = RevokeAdminResponses[keyof RevokeAdminResponses];
 
+export type ListAuditEventsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep these actions; every action when absent
+         */
+        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock'> | null;
+        /**
+         * Keep one admin's actions
+         */
+        actorId?: string;
+        /**
+         * Keep what happened at or after this time
+         */
+        since?: string;
+        /**
+         * Keep what happened before this time
+         */
+        until?: string;
+        /**
+         * Words of the admin's or the resource's label, or the resource's identifier
+         */
+        q?: string;
+        page?: number;
+        size?: number;
+    };
+    url: '/admin/audit-events';
+};
+
+export type ListAuditEventsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListAuditEventsError = ListAuditEventsErrors[keyof ListAuditEventsErrors];
+
+export type ListAuditEventsResponses = {
+    /**
+     * OK
+     */
+    200: AuditEventsOutputBody;
+};
+
+export type ListAuditEventsResponse = ListAuditEventsResponses[keyof ListAuditEventsResponses];
+
 export type GetEmailSettingsData = {
     body?: never;
     path?: never;
@@ -774,11 +875,15 @@ export type GetEmailSettingsResponse = GetEmailSettingsResponses[keyof GetEmailS
 
 export type SaveEmailSettingsData = {
     body: SaveEmailSettingsInputBody;
-    headers: {
+    headers?: {
         /**
          * The ETag of the settings read
          */
-        'If-Match': string;
+        'If-Match'?: string;
+        /**
+         * * to save the first settings, when none were read
+         */
+        'If-None-Match'?: string;
     };
     path?: never;
     query?: never;
@@ -802,6 +907,31 @@ export type SaveEmailSettingsResponses = {
 };
 
 export type SaveEmailSettingsResponse = SaveEmailSettingsResponses[keyof SaveEmailSettingsResponses];
+
+export type SendTestEmailData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/email-settings/test';
+};
+
+export type SendTestEmailErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SendTestEmailError = SendTestEmailErrors[keyof SendTestEmailErrors];
+
+export type SendTestEmailResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type SendTestEmailResponse = SendTestEmailResponses[keyof SendTestEmailResponses];
 
 export type GetOfferSettingsData = {
     body?: never;
