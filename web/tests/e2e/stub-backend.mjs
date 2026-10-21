@@ -825,6 +825,9 @@ function sellerOrdersFor(seller) {
       windowStart: new Date(Date.now() - 3_600_000).toISOString(),
       windowEnd: new Date(Date.now() + 3 * 3_600_000).toISOString(),
       createdAt: new Date().toISOString(),
+      get unreadMessages() {
+        return unreadOf(this.id, "seller");
+      },
       ...extra,
     });
     sellerOrdersBy.set(
@@ -983,6 +986,109 @@ function ownerSeller() {
 /** Whether the path names an order a customer placed through the stub, which ordersApi hands over instead. */
 function isCustomerOrder(pathname) {
   return orders.some((order) => pathname.startsWith(`/orders/${order.id}/`));
+}
+
+// An order's chat and its live socket's tickets (SEC-117), as api/openapi.yaml describes them: the customer who
+// placed the order (account or access) and a signed-in seller's person write to it, each message gets the next
+// number, a sent message keyed twice is one, and the chat is writable until two hours after the window closes or
+// the order ends. A test plays the other side through POST /__stub/chat/{orderId}; the stub holds no socket
+// (the specs answer /api/live themselves). A ticket is "tk-" and the topic it opens, so they know which to confirm.
+const chats = new Map();
+const CHAT_GRACE_MS = 2 * 3_600_000;
+
+function chatOf(orderId) {
+  if (!chats.has(orderId)) {
+    chats.set(orderId, { messages: [], seen: { customer: 0, seller: 0 }, keys: new Map() });
+  }
+  return chats.get(orderId);
+}
+
+/** How many messages of the other side the reader has not seen yet; the orders carry it as `unreadMessages`. */
+function unreadOf(orderId, side) {
+  const chat = chats.get(orderId);
+  if (!chat) return 0;
+  return chat.messages.filter((m) => m.from !== side && m.seq > chat.seen[side]).length;
+}
+
+function chatState(order) {
+  const ended =
+    order.status === "collected" || order.status === "cancelled" || order.status === "refused";
+  const closesAt = new Date(new Date(order.windowEnd).getTime() + CHAT_GRACE_MS);
+  return { open: !ended && closesAt > new Date(), closesAt: closesAt.toISOString() };
+}
+
+async function chatRoutes(request, response, url) {
+  const injected = /^\/__stub\/chat\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "POST" && injected) {
+    const { from, text } = await readBody(request);
+    const chat = chatOf(injected[1]);
+    chat.messages.push({
+      seq: chat.messages.length + 1,
+      from,
+      text,
+      sentAt: new Date().toISOString(),
+    });
+    response.writeHead(204).end();
+    return true;
+  }
+  const sellerTicket = /^\/sellers\/([\w-]+)\/orders\/live-ticket$/.exec(url.pathname);
+  const route = /^\/orders\/([\w-]+)\/(live-ticket|messages(?:\/seen)?)$/.exec(url.pathname);
+  if (!sellerTicket && !route) return false;
+  const account = accounts.get(tokenOf(request));
+  const expiresAt = new Date(Date.now() + 30_000).toISOString();
+  if (sellerTicket) {
+    if (!account) problem(response, 401, "IDENTITY_SESSION_INVALID");
+    else json(response, 200, { ticket: `tk-seller:${sellerTicket[1]}`, expiresAt });
+    return true;
+  }
+  const customerOrder = orders.find((found) => found.id === route[1]);
+  const staffOrder = customerOrder
+    ? undefined
+    : [...sellerOrdersBy.values()].flat().find((found) => found.id === route[1]);
+  const found = customerOrder ?? staffOrder;
+  const side = customerOrder ? "customer" : "seller";
+  const allowed = customerOrder
+    ? placedBy(request, account, customerOrder)
+    : Boolean(account && staffOrder);
+  if (!found || !allowed) {
+    problem(response, 404, "ORDER_NOT_FOUND");
+    return true;
+  }
+  const chat = chatOf(found.id);
+  if (route[2] === "live-ticket") {
+    json(response, 200, { ticket: `tk-order:${found.id}`, expiresAt });
+  } else if (route[2] === "messages/seen") {
+    const { upTo } = await readBody(request);
+    chat.seen[side] = Math.max(chat.seen[side], Number(upTo) || 0);
+    response.writeHead(204).end();
+  } else if (request.method === "GET") {
+    const after = Number(url.searchParams.get("after") ?? 0);
+    json(response, 200, {
+      messages: chat.messages.filter((m) => m.seq > after),
+      seen: chat.seen,
+      ...chatState(found),
+    });
+  } else {
+    const key = request.headers["idempotency-key"];
+    const { text } = await readBody(request);
+    const sent = chat.keys.get(`${side}:${key}`);
+    if (sent) json(response, 200, sent);
+    else if (!chatState(found).open) problem(response, 409, "ORDER_CHAT_CLOSED");
+    else if (typeof text !== "string" || !text.trim() || text.length > 1000) {
+      problem(response, 400, "ORDER_MESSAGE_INVALID");
+    } else {
+      const message = {
+        seq: chat.messages.length + 1,
+        from: side,
+        text,
+        sentAt: new Date().toISOString(),
+      };
+      chat.messages.push(message);
+      chat.keys.set(`${side}:${key}`, message);
+      json(response, 201, message);
+    }
+  }
+  return true;
 }
 
 // Favourites (SEC-109), as api/openapi.yaml describes them: a signed-in person follows the active sellers of
@@ -1323,7 +1429,7 @@ function shown(order) {
   const expired = open && new Date(order.windowEnd) <= new Date();
   const status = expired ? "expired" : order.status;
   const { owner: _owner, ...rest } = order;
-  return { ...rest, status };
+  return { ...rest, status, unreadMessages: unreadOf(order.id, "customer") };
 }
 
 /** Whether the request comes from whoever placed the order: its account, or its access. */
@@ -2229,6 +2335,7 @@ async function answer(request, response) {
     return json(response, 200, offer);
   }
   if (await auth(request, response, url)) return;
+  if (await chatRoutes(request, response, url)) return;
   if (await favouriteRoutes(request, response, url)) return;
   if (adminSellerReads(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;

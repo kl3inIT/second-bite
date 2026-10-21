@@ -15,7 +15,7 @@ Design: [design.md](design.md). Tracked in Linear as SEC-117.
 | 9 | Web: the socket client in `src/lib`, the server action that mints tickets, reconnection and the polling fallback; Vitest | Done |
 | 10 | Web: the order page and "Đơn của tôi" follow their orders and refresh at `windowEnd`; the Đơn tab and an order's page follow the seller; the unread badges | Done |
 | 11 | Web: the chat after Figma 125:5155 and WK8 (349:36918), with the order card, the note under the input, "Đã xem" and the read-only state; "Nhắn quán" on the order page and the pickup card; the seller's chat with "Nhắn khách"; TanStack Query; both catalogs | Done |
-| 12 | The stub backend, and Playwright specs with `page.routeWebSocket` at 390, 768 and 1440, with axe | To do |
+| 12 | The stub backend, and Playwright specs with `page.routeWebSocket` at 390, 768 and 1440, with axe | Done |
 | 13 | Regenerate the mobile client from the new OpenAPI document | To do: needs Dart |
 | 14 | Deploy to staging, check the chat on two phones, record it in `verification.md`; consolidate and move the increment to `completed` | To do |
 
