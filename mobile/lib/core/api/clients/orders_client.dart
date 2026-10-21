@@ -9,9 +9,9 @@ import '../models/cancel_order_request.dart';
 import '../models/hand_over_order_request.dart';
 import '../models/order_body.dart';
 import '../models/orders_output_body.dart';
+import '../models/orders_state.dart';
 import '../models/place_order_body.dart';
 import '../models/refuse_order_request.dart';
-import '../models/state.dart';
 
 part 'orders_client.g.dart';
 
@@ -28,7 +28,7 @@ abstract class OrdersClient {
   Future<OrdersOutputBody> listMyOrders({
     @Query('limit') int? limit = 20,
     @Query('offset') int? offset = 0,
-    @Query('state') State? state,
+    @Query('state') OrdersState? state,
     @Query('checkout') String? checkout,
   });
 

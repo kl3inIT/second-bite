@@ -9,3 +9,7 @@ swagger_parser:
   root_client: true
   root_client_name: SecondBiteApi
   put_clients_in_folder: true
+  # GET /orders's `state` would be the enum `State`, which hides Flutter's.
+  replacement_rules:
+    - pattern: "^[Ss]tate$"
+      replacement: "OrdersState"

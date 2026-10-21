@@ -24,7 +24,7 @@ class _OrdersClient implements OrdersClient {
   Future<OrdersOutputBody> listMyOrders({
     int? limit = 20,
     int? offset = 0,
-    State? state,
+    OrdersState? state,
     String? checkout,
   }) async {
     final _extra = <String, dynamic>{};
