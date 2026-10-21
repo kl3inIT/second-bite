@@ -21,7 +21,6 @@ function order(overrides: Partial<OrderBody> = {}): OrderBody {
     number: "SB-10001",
     status: "confirmed",
     checkoutId: "ch-1",
-    codeAttemptsLeft: 3,
     createdAt: "2026-10-21T03:00:00Z",
     customerName: "Lê Thu Hà",
     customerPhone: "0905111222",
