@@ -1,6 +1,6 @@
 "use client";
 
-import { MenuIcon } from "lucide-react";
+import { MenuIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 
@@ -12,6 +12,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Link, usePathname } from "@/i18n/navigation";
 
@@ -22,11 +23,17 @@ type Crumb = { label: string; href?: string };
 
 // The bar over every admin page (Figma Admin/TopBar 228:6039): the breadcrumb, "Vận hành / Cửa hàng", read
 // from the address through the page registry, a detail page's name at its end, and on the right whatever the
-// page puts there (AdminTopBarActions). On a phone it opens the sidebar's drawer.
+// page puts there (AdminTopBarActions). The button before the breadcrumb collapses and expands the sidebar; on
+// a phone it opens the sidebar's drawer.
 export function AdminTopBar() {
   const t = useTranslations("admin.shell");
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, isMobile, state } = useSidebar();
   const { trail, setActions } = useAdminCrumbs();
+  const [ToggleIcon, toggleLabel] = isMobile
+    ? [MenuIcon, t("sidebar.open")]
+    : state === "expanded"
+      ? [PanelLeftCloseIcon, t("sidebar.collapse")]
+      : [PanelLeftOpenIcon, t("sidebar.expand")];
   const current = matchAdminPage(usePathname());
 
   const crumbs: Crumb[] = [];
@@ -58,14 +65,16 @@ export function AdminTopBar() {
   return (
     <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-4 md:px-8">
       <div className="flex min-w-0 items-center gap-2">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={toggleSidebar}
-          aria-label={t("sidebar.open")}
-          className="-ml-2 flex size-11 shrink-0 items-center justify-center rounded-lg text-foreground hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none md:hidden"
+          aria-label={toggleLabel}
+          title={toggleLabel}
+          className="-ml-2 shrink-0"
         >
-          <MenuIcon aria-hidden className="size-5" />
-        </button>
+          <ToggleIcon aria-hidden className="size-5" />
+        </Button>
         <Breadcrumb aria-label={t("breadcrumb")} className="min-w-0">
           <BreadcrumbList>
             {crumbs.map((crumb, index) => (

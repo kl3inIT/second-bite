@@ -67,9 +67,10 @@ function useOpenItem(): AdminNamedPage | undefined {
 const focusRing = "focus-visible:ring-3 focus-visible:ring-sidebar-ring focus-visible:outline-none";
 
 // The admin's sidebar (SEC-62, Figma Admin/Sidebar 228:6027, AD-Q1 and AD-Q2), on shadcn's Sidebar. Open: the
-// wordmark, its collapse button and the "Quản trị" tag, the fourteen items in their groups, then the language
-// and the account at the foot over the light sweep. Collapsed: a 72px rail of icons labelled underneath, which
-// the "sb" tile opens again. shadcn's cookie keeps the choice. On a phone it is a drawer, always open.
+// wordmark and the "Quản trị" tag, the fourteen items in their groups, then the language and the account at the
+// foot over the light sweep. Collapsed: a 72px rail of icons labelled underneath, under the "sb" mark. The button
+// in the top bar collapses and expands it, and shadcn's cookie keeps the choice. On a phone it is a drawer,
+// always open, closed from its own button.
 export function AdminSidebar({ account }: { account: Account }) {
   const t = useTranslations("admin.shell");
   const { state, isMobile } = useSidebar();
@@ -84,34 +85,36 @@ export function AdminSidebar({ account }: { account: Account }) {
 
 function Full({ account }: { account: Account }) {
   const t = useTranslations("admin.shell");
-  const { toggleSidebar, isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const open = useOpenItem();
   // On a phone the drawer closes once an item is chosen.
   const closeDrawer = () => setOpenMobile(false);
   const { pending, signOutHere } = useSignOut();
-  const toggleLabel = isMobile ? t("sidebar.close") : t("sidebar.collapse");
 
   return (
     <div className="relative flex h-full flex-col gap-5 overflow-hidden bg-sidebar px-4 pt-7 pb-6 text-sidebar-foreground">
       <Sweep />
       <div className="relative flex flex-col gap-1">
-        <div className="flex items-center justify-between pl-1">
+        <div className="flex min-h-11 items-center justify-between pl-1">
           <Link href={adminHref("overview")} className={cn("rounded-lg", focusRing)}>
             <Wordmark className="h-6" />
             <span className="sr-only">{t("sidebar.home")}</span>
           </Link>
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            aria-label={toggleLabel}
-            title={toggleLabel}
-            className={cn(
-              "flex size-11 items-center justify-center rounded-lg transition-colors hover:bg-sidebar-accent",
-              focusRing,
-            )}
-          >
-            <PanelLeftCloseIcon aria-hidden className="size-5" />
-          </button>
+          {/* The top bar collapses the sidebar; only the drawer on a phone closes from here. */}
+          {isMobile && (
+            <button
+              type="button"
+              onClick={() => setOpenMobile(false)}
+              aria-label={t("sidebar.close")}
+              title={t("sidebar.close")}
+              className={cn(
+                "flex size-11 items-center justify-center rounded-lg transition-colors hover:bg-sidebar-accent",
+                focusRing,
+              )}
+            >
+              <PanelLeftCloseIcon aria-hidden className="size-5" />
+            </button>
+          )}
         </div>
         <span className="ml-1 self-start rounded-full bg-fresh px-2.5 py-1 text-label-strong text-fresh-foreground">
           {t("title")}
@@ -191,17 +194,15 @@ function Full({ account }: { account: Account }) {
 
 function Rail({ account }: { account: Account }) {
   const t = useTranslations("admin.shell");
-  const { toggleSidebar } = useSidebar();
   const open = useOpenItem();
   const { pending, signOutHere } = useSignOut();
 
   return (
     <div className="flex h-full flex-col items-center justify-between gap-4 bg-sidebar py-4 text-sidebar-foreground">
       <div className="flex min-h-0 w-full flex-col items-center gap-3">
-        <button
-          type="button"
-          onClick={toggleSidebar}
-          title={t("sidebar.expand")}
+        {/* The rail's mark, the wordmark's stand-in; the top bar expands the sidebar again. */}
+        <Link
+          href={adminHref("overview")}
           className={cn(
             "flex size-11 shrink-0 items-center justify-center rounded-xl bg-sidebar-accent text-title-lg text-sidebar-accent-foreground",
             focusRing,
@@ -209,8 +210,8 @@ function Rail({ account }: { account: Account }) {
         >
           {/* Named by the hidden words, not aria-label, so the "sb" on show is not taken for its name. */}
           <span aria-hidden>sb</span>
-          <span className="sr-only">{t("sidebar.expand")}</span>
-        </button>
+          <span className="sr-only">{t("sidebar.home")}</span>
+        </Link>
         <nav
           aria-label={t("sidebar.label")}
           className="scrollbar-none min-h-0 w-full overflow-y-auto"
