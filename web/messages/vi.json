@@ -700,7 +700,7 @@
   "StorePosts": {
     "title": "Bài đăng",
     "post": "Đăng món",
-    "today": "Hôm nay và sắp tới",
+    "today": "Hôm nay",
     "tabs": "Nhóm bài đăng",
     "tab": {
       "on_sale": "Đang bán · {count}",
@@ -717,7 +717,12 @@
     "postAgain": "Đăng lại",
     "posted": "Đã đăng {count} suất. Khách đặt được ngay.",
     "saved": "Đã lưu.",
-    "withdrawn": "Đã rút bài. Bài nằm ở tab Đã đóng, đăng lại được."
+    "withdrawn": "Đã rút bài. Bài nằm ở tab Đã đóng, đăng lại được.",
+    "searchPlaceholder": "Tìm theo tên món",
+    "onDay": "Bài đăng ngày {date}",
+    "emptyDay": "Chưa có bài đăng nào ngày này. Bấm Đăng món để thêm.",
+    "emptySearch": "Không có bài nào khớp “{query}”.",
+    "searchLabel": "Tìm bài đăng"
   },
   "PostRow": {
     "onSale": "Lấy {from}–{until} · Còn {left}/{units} {unit} · {price}",
@@ -778,17 +783,17 @@
       "note": "Ghi lý do",
       "back": "Quay lại",
       "confirm": "Hủy đơn"
-    },
-    "day": {
-      "label": "Ngày xem",
-      "today": "Hôm nay",
-      "yesterday": "Hôm qua",
-      "dayBefore": "Hôm kia",
-      "previous": "Ngày trước",
-      "next": "Ngày sau",
-      "pick": "Chọn ngày",
-      "quick": "Chọn nhanh"
     }
+  },
+  "DayFilter": {
+    "label": "Ngày xem",
+    "today": "Hôm nay",
+    "yesterday": "Hôm qua",
+    "dayBefore": "Hôm kia",
+    "previous": "Ngày trước",
+    "next": "Ngày sau",
+    "pick": "Chọn ngày",
+    "quick": "Chọn nhanh"
   },
   "PostDrawer": {
     "title": "Đăng món",

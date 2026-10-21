@@ -23,7 +23,7 @@ export async function PostNew({
     <>
       <StorePosts
         sellerId={Promise.resolve(sellerId)}
-        tab={Promise.resolve(earlier ? "closed" : undefined)}
+        query={Promise.resolve(earlier ? { tab: "closed" } : {})}
       />
       <PostDrawer
         sellerId={sellerId}

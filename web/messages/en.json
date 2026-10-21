@@ -700,7 +700,7 @@
   "StorePosts": {
     "title": "Posts",
     "post": "Post a dish",
-    "today": "Today and coming up",
+    "today": "Today",
     "tabs": "Groups of posts",
     "tab": {
       "on_sale": "On sale · {count}",
@@ -717,7 +717,12 @@
     "postAgain": "Post again",
     "posted": "Posted {count, plural, one {# unit} other {# units}}. Customers can order now.",
     "saved": "Saved.",
-    "withdrawn": "Withdrawn. It is in Closed, and can be posted again."
+    "withdrawn": "Withdrawn. It is in Closed, and can be posted again.",
+    "searchPlaceholder": "Search by dish name",
+    "onDay": "Posts on {date}",
+    "emptyDay": "No post on this day. Press Post a dish to add one.",
+    "emptySearch": "No post matches “{query}”.",
+    "searchLabel": "Search posts"
   },
   "PostRow": {
     "onSale": "Pick-up {from}–{until} · {left}/{units} {unit} left · {price}",
@@ -778,17 +783,17 @@
       "note": "Write the reason",
       "back": "Go back",
       "confirm": "Cancel order"
-    },
-    "day": {
-      "label": "Day shown",
-      "today": "Today",
-      "yesterday": "Yesterday",
-      "dayBefore": "Two days ago",
-      "previous": "Previous day",
-      "next": "Next day",
-      "pick": "Pick a day",
-      "quick": "Quick choice"
     }
+  },
+  "DayFilter": {
+    "label": "Day shown",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "dayBefore": "Two days ago",
+    "previous": "Previous day",
+    "next": "Next day",
+    "pick": "Pick a day",
+    "quick": "Quick choice"
   },
   "PostDrawer": {
     "title": "Post a dish",
