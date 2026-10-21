@@ -159,10 +159,15 @@ test.describe("ordering from the cart", () => {
     await expectNoSeriousA11yViolations(page);
     await send.click();
 
-    await expect(page.getByRole("heading", { name: "Bạn đã đánh giá" })).toBeVisible();
-    await expect(page.getByText("4 sao", { exact: true })).toBeAttached();
-    await expect(page.getByText("Nhận hàng nhanh")).toBeVisible();
-    await expect(page.getByText("“Bánh còn giòn.”")).toBeVisible();
+    if (isWide(page)) {
+      await expect(page.getByRole("heading", { name: "Bạn đã đánh giá" })).toBeVisible();
+      await expect(page.getByText("4 sao", { exact: true })).toBeAttached();
+      await expect(page.getByText("Nhận hàng nhanh")).toBeVisible();
+      await expect(page.getByText("“Bánh còn giòn.”")).toBeVisible();
+    } else {
+      // Figma D5: a phone shows the rated order as its receipt, the stars in the line under it.
+      await expect(page.getByText(/bạn chấm 4 sao/).filter({ visible: true })).toBeVisible();
+    }
     await expect(page.getByRole("button", { name: "Gửi đánh giá" })).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
   });
