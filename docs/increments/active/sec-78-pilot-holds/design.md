@@ -6,7 +6,7 @@ Status: started on 21 October 2026. Tracked in Linear as SEC-78, a child of [SEC
 
 For the prototype of 23 October 2026 there is no online payment. A customer holds a dish, comes to the counter and pays the seller in cash, so one button, "Đã giao", ends an order: the dish is handed over and paid at the same moment. The seller's Đơn tab is a list of the day's holds that answers three questions at the counter: who holds what, how much to collect, and who to call when they do not come.
 
-The Đơn tab drawn for SEC-15 (its increment is in pull request 25, not merged yet; Figma W8: a four-digit code entered at the counter, a "ready" step, refusing with reasons) fits a payment-and-code flow, not this phase. It is not built. The tab is redrawn as below, and the order module is changed to match (see "What the backend must give").
+The Đơn tab drawn for SEC-15 (Figma W8: a four-digit code entered at the counter, a "ready" step, refusing with reasons) fits a payment-and-code flow, not this phase. It is not built. The tab is redrawn as below, and the order module is extended to match (see "What the backend gives").
 
 ## What a hold shows
 
@@ -33,26 +33,22 @@ No code, no collection time, no payment state. The seller made the post, so they
 
 The Figma frames were researched on Mobbin (Apple Music, Klaviyo and Vercel for the calendar, Square for the day bar, Glovo and Talabat for the row).
 
-## What the backend must give
+## What the backend gives
 
-The `order` module of SEC-15 (pull request 25, Đức Anh) is the home of this; nothing here is built until the two of us agree. What the screens need from it:
+The `order` module, as pull request 45 (SEC-76) has it, which supersedes pull request 25: a customer holds with a name and a phone number, signed in or not, and `GET /sellers/{id}/orders?day=` lists a seller's orders of a day, with the customer's name and phone. SEC-78 adds to it, in its own migration and operations (spec: [order](../../../specs/order.md)):
 
-- **A hold without sign-in**: the customer gives a name and a phone, no account, no code. Today an order needs a signed-in customer and a four-digit code (shown when the seller marks it ready, locked after three wrong tries).
-- **Cash at the counter** as the only payment, with no state for it: "Đã giao" is the whole of collection.
-- **Statuses**: held, handed over, cancelled; and for a cancelled order, *who* cancelled (the seller or the customer) and a reason from a fixed list, or free text for "other".
-- **Undo**: from handed over or cancelled back to held; the units are taken again, and the call is refused when they are gone.
-- **The seller's list for one day**, with the counts per status, the day's total handed over, and a search by name, phone or dish. The day is the day of the hold, in the pilot's time zone.
-- **Expiry**: a hold whose post's window has ended is cancelled by the server with the reason *Quá giờ* and the units are returned; the seller does not have to press anything.
-- **Limits against abuse** of a hold without sign-in: a cap per phone and per address, as the research of the team proposed; the numbers are for the order module's design.
+- **Deliver**: `POST /orders/{id}/deliver` ends an order with no code, at any time while it is open. The code and `hand-over` stay for the flows that need them.
+- **Refusal reasons** for a seller's cancelling: `no_answer`, `no_show`, `late`, `sold_out` and `other` (with a note) join `not_suitable` and `wrong_items`. For the first three the customer did not come, so the units go back to the offer; for `sold_out` and the others they do not.
+- **Reopen**: `POST /orders/{id}/reopen` takes a delivery or a refusal back while the window is not over; the units a refusal had returned are taken again, and `ORDER_OFFER_SOLD_OUT` answers when they are gone. A customer's own cancelling is not taken back.
+- **The cancelled tab** reads three states of the order: `cancelled` (the customer), `refused` (the seller, with a reason) and `expired` (the window ran out, read from the window, so nothing waits for a job; it shows as *Quá giờ lấy*).
+- **Counts, the day's total and the search** are computed by the web from the day's orders, which are few: a store has at most five hundred a day, the list's limit.
 
-## Open decisions
+Decided with the build, and so no longer open: the pilot reuses the `order` module rather than a second one; name and phone are both required, as the module already asks; the seller may cancel for "Hết món" and then the units are not offered again.
 
-Not settled; the plan waits on them.
+## Open
 
-1. Reuse the `order` module (the same table, a guest customer) or a separate, smaller `hold` module for the pilot. Reusing avoids a second source of truth; a separate module avoids bending a payment-and-code design.
-2. Whether name and phone are both required on a hold. The screens show both.
-3. Whether the seller may also cancel for "Hết món" after the hold, and what the customer is told.
-4. The customer's side: how a customer cancels (a link, a phone number lookup), and what the confirmation shows. This is SEC-51's and Việt's work, and must agree with the above.
+1. **Limits against abuse** of a hold without sign-in: a cap per phone number and per address. The order module's own plan has it ("Not yet").
+2. **The customer's side**: how a customer cancels and what they are told when the seller cancels with a reason. The customer's words for the new reasons are in the web's order page; the flow is SEC-51 and SEC-76.
 
 ## Not here
 
