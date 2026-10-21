@@ -148,9 +148,12 @@ func Publish[E Event](ctx context.Context, tx pgx.Tx, e *Events, event E) error 
 	return nil
 }
 
-// Start runs the listeners until Stop.
+// Start runs the listeners until Stop. Cancelling ctx does not stop them:
+// River takes a cancelled start context as a hard stop that cancels the jobs
+// running, so a shutdown signal would cut a listener short before Stop gave it
+// time to finish (SEC-70). Stop alone ends them.
 func (e *Events) Start(ctx context.Context) error {
-	if err := e.client.Start(ctx); err != nil {
+	if err := e.client.Start(context.WithoutCancel(ctx)); err != nil {
 		return fmt.Errorf("starting the event listeners: %w", err)
 	}
 
@@ -179,13 +182,7 @@ func (w *eventWorker) Work(ctx context.Context, job *river.Job[eventJob]) error 
 		}
 
 		if err := l.handle(ctx, job.Args.Payload); err != nil {
-			w.events.logger.WarnContext(ctx, "event listener failed",
-				slog.String("event", "platform.event.failed"),
-				slog.String("event_key", job.Args.Event),
-				slog.String("listener", job.Args.Listener),
-				slog.Int("attempt", job.Attempt),
-				slog.String("error_type", fmt.Sprintf("%T", err)),
-			)
+			w.events.failed(ctx, job, "platform.event.failed", err)
 
 			return err
 		}
@@ -193,9 +190,60 @@ func (w *eventWorker) Work(ctx context.Context, job *river.Job[eventJob]) error 
 		return nil
 	}
 
-	// A listener renamed or removed while its jobs waited: retrying cannot
-	// help.
-	return river.JobCancel(fmt.Errorf("no listener %q for %s", job.Args.Listener, job.Args.Event))
+	// No listener of that name here. During a rolling deploy an instance of
+	// the old version can take a job published for a listener only the new
+	// version has: the job is retried, so an instance that knows the listener
+	// takes it, rather than cancelled for good (SEC-70). A listener truly
+	// renamed or removed runs out of attempts and is logged as discarded.
+	err := fmt.Errorf("%w: %q for %s", errNoListener, job.Args.Listener, job.Args.Event)
+	w.events.failed(ctx, job, "platform.event.unheard", err)
+
+	return err
+}
+
+// errNoListener is the failure of a job whose listener this instance does not
+// have.
+var errNoListener = errors.New("no listener")
+
+// failed logs a listener's job that did not succeed. While River will try it
+// again the record is a warning; on its last attempt the job is discarded and
+// the event is lost to that listener, which account deletion relies on to
+// forget a person's data, so the record is an error to alert on (SEC-70). The
+// error's text is never logged, since it can carry personal data or a third
+// party's words (docs/conventions.md › Logging): its type and its code are.
+func (e *Events) failed(ctx context.Context, job *river.Job[eventJob], event string, err error) {
+	level, message := slog.LevelWarn, "event listener failed"
+	if job.Attempt >= job.MaxAttempts {
+		level, message, event = slog.LevelError, "event listener gave up; the event is discarded", "platform.event.discarded"
+	}
+
+	attrs := []slog.Attr{
+		slog.String("event", event),
+		slog.String("event_key", job.Args.Event),
+		slog.String("listener", job.Args.Listener),
+		slog.Int("attempt", job.Attempt),
+		slog.Int("max_attempts", job.MaxAttempts),
+		slog.String("error_type", rootType(err)),
+	}
+
+	if failure, ok := errors.AsType[*FailureError](err); ok {
+		attrs = append(attrs, slog.String("error_code", failure.Code))
+	}
+
+	e.logger.LogAttrs(ctx, level, message, attrs...)
+}
+
+// rootType names the type of the innermost error err wraps, which says more
+// than the wrapper's *fmt.wrapError.
+func rootType(err error) string {
+	for {
+		next := errors.Unwrap(err)
+		if next == nil {
+			return fmt.Sprintf("%T", err)
+		}
+
+		err = next
+	}
 }
 
 type scheduleWorker struct {
