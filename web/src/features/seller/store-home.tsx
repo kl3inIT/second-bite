@@ -19,7 +19,12 @@ import { OrderRow } from "./order-row";
 import { PostRow } from "./post-row";
 import { requireStore } from "./require-store";
 import { ShowDishButton } from "./show-dish-button";
-import { dayOrNull, loadHomeSearchParams, serializeOrderSearchParams } from "./search-params";
+import {
+  dayOrNull,
+  loadHomeSearchParams,
+  serializeHomeSearchParams,
+  serializeOrderSearchParams,
+} from "./search-params";
 import { vietnamToday } from "./store-day";
 import { offersOfDay } from "./store-offers";
 import { groupOrders, orderTabs, type OrderTab } from "./store-orders";
@@ -33,7 +38,7 @@ const SHOWN = 3;
 /** The column of a row's badge or button, as wide on every row so they stand on one axis (Figma Q1b). */
 const actionColumn = "flex w-31 shrink-0 justify-center";
 
-// The store's home (SEC-57, Figma Q1 and Q1b): on a computer a blue card with the store and its two ways on, on a
+// The store's home (SEC-57, SEC-124, Figma Q1 and Q1b): on a computer a blue card with the store and its two ways on, on a
 // phone the tab's name in the header and a round "Đăng món" over the bottom bar. Then a day's overview — the orders
 // held, the cash taken at the counter, the units sold, the customers who did not come — for the day the address
 // names (today when it names none), what to do now, and short lists of the day's orders, the day's posts and the
@@ -52,7 +57,9 @@ export async function StoreHome({
   // The session is read before the clock, so the page is made for each request and never at build time.
   const store = await requireStore(sellerId, `/stores/${sellerId}`);
   const today = vietnamToday();
-  const day = loadHomeSearchParams(query).day ?? today;
+  const view = loadHomeSearchParams(query);
+  const day = view.day ?? today;
+  const tab = view.tab;
 
   const [t, n, format, offers, orders, dishes] = await Promise.all([
     getTranslations("StoreHome"),
@@ -71,6 +78,10 @@ export async function StoreHome({
   const postHref = `/stores/${sellerId}/offers/new`;
   const ordersHref = (tab: OrderTab) =>
     `/stores/${sellerId}/orders${serializeOrderSearchParams({ day: dayOrNull(day, today), tab })}`;
+  // A chip filters the home's own list in place, keeping the day and the place on the page.
+  const filterHref = (name: OrderTab) =>
+    `/stores/${sellerId}${serializeHomeSearchParams({ day: dayOrNull(day, today), tab: name })}`;
+  const shown = groups[tab];
 
   return (
     <>
@@ -167,13 +178,15 @@ export async function StoreHome({
             {orderTabs.map((name) => (
               <li key={name}>
                 <Link
-                  href={ordersHref(name)}
+                  href={filterHref(name)}
+                  scroll={false}
+                  aria-current={name === tab ? "page" : undefined}
                   className="group/chip flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none max-md:rounded-2xl"
                 >
                   <span
                     className={cn(
                       "flex h-9.5 items-center gap-1.5 rounded-full border px-4 whitespace-nowrap transition-colors max-md:h-auto max-md:min-h-11 max-md:w-full max-md:flex-col max-md:justify-center max-md:gap-0 max-md:rounded-2xl max-md:px-1 max-md:py-1",
-                      name === "preparing"
+                      name === tab
                         ? "border-primary bg-primary text-body-sm-strong text-primary-foreground"
                         : "border-border bg-card text-body-sm text-foreground group-hover/chip:bg-secondary",
                     )}
@@ -188,14 +201,14 @@ export async function StoreHome({
             ))}
           </ul>
         </nav>
-        {groups.preparing.length === 0 ? (
+        {shown.length === 0 ? (
           <p className="border-t border-border pt-4 text-body-sm text-muted-foreground">
-            {t("ordersEmpty")}
+            {t(`ordersEmpty.${tab}`)}
           </p>
         ) : (
           <ul className="flex flex-col border-t border-border">
-            {groups.preparing.slice(0, SHOWN).map((order) => (
-              <OrderRow key={order.id} order={order} tab="preparing" />
+            {shown.slice(0, SHOWN).map((order) => (
+              <OrderRow key={order.id} order={order} tab={tab} />
             ))}
           </ul>
         )}
