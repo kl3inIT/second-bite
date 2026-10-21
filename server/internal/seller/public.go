@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/kl3inIT/second-bite/server/internal/seller/internal/db"
 )
@@ -50,6 +51,20 @@ func (s *Service) Publics(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]P
 	}
 
 	return found, nil
+}
+
+// IsActiveIn says whether the seller is active, read in tx, for a module that
+// checks it while it writes: placing an order reads it in the order's
+// transaction rather than asking the pool for a second connection while it
+// holds one, which froze the pool once as many orders came at once as it had
+// connections (SEC-128).
+func (s *Service) IsActiveIn(ctx context.Context, tx pgx.Tx, id uuid.UUID) (bool, error) {
+	rows, err := s.queries.WithTx(tx).ActiveSellers(ctx, []uuid.UUID{id})
+	if err != nil {
+		return false, fmt.Errorf("reading the seller: %w", err)
+	}
+
+	return len(rows) > 0, nil
 }
 
 // Blocked returns the sellers admins have blocked, whose offers customers no

@@ -210,7 +210,7 @@ func (s *Service) Mine(ctx context.Context, which Which, checkout uuid.UUID, lim
 		orders = append(orders, s.fromRow(db.GetOrderRow(r)))
 	}
 
-	if err := s.withLines(ctx, orders); err != nil {
+	if err := s.withLines(ctx, s.queries, orders); err != nil {
 		return nil, err
 	}
 
@@ -245,7 +245,7 @@ func (s *Service) OfSeller(ctx context.Context, sellerID uuid.UUID, day time.Tim
 		orders = append(orders, s.fromRow(db.GetOrderRow(r)))
 	}
 
-	if err := s.withLines(ctx, orders); err != nil {
+	if err := s.withLines(ctx, s.queries, orders); err != nil {
 		return nil, err
 	}
 
@@ -271,7 +271,7 @@ func (s *Service) read(ctx context.Context, id uuid.UUID) (Order, error) {
 	}
 
 	orders := []Order{s.fromRow(row)}
-	if err := s.withLines(ctx, orders); err != nil {
+	if err := s.withLines(ctx, s.queries, orders); err != nil {
 		return Order{}, err
 	}
 
@@ -282,8 +282,9 @@ func (s *Service) read(ctx context.Context, id uuid.UUID) (Order, error) {
 	return orders[0], nil
 }
 
-// withLines reads the lines of orders in one query.
-func (s *Service) withLines(ctx context.Context, orders []Order) error {
+// withLines reads the lines of orders in one query, with q: the pool's, or the
+// transaction's when the orders are read inside one.
+func (s *Service) withLines(ctx context.Context, q *db.Queries, orders []Order) error {
 	if len(orders) == 0 {
 		return nil
 	}
@@ -295,7 +296,7 @@ func (s *Service) withLines(ctx context.Context, orders []Order) error {
 		ids[i], at[o.ID] = o.ID, i
 	}
 
-	rows, err := s.queries.LinesOf(ctx, ids)
+	rows, err := q.LinesOf(ctx, ids)
 	if err != nil {
 		return fmt.Errorf("reading the orders' lines: %w", err)
 	}
