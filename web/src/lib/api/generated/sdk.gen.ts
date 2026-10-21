@@ -414,7 +414,7 @@ export const getOffer = <ThrowOnError extends boolean = true>(options: Options<G
 /**
  * Change an offer
  *
- * Once units are ordered, only the description, the photo and the units (never below those ordered) change.
+ * Once units are ordered, only the description, the photo, the units (never below those ordered) and the collection window change; the orders still to collect follow the new window.
  */
 export const changeOffer = <ThrowOnError extends boolean = true>(options: Options<ChangeOfferData, ThrowOnError>): RequestResult<ChangeOfferResponses, ChangeOfferErrors, ThrowOnError> => (options.client ?? client).patch<ChangeOfferResponses, ChangeOfferErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
