@@ -89,10 +89,12 @@ WHERE id = @id;
 
 -- name: CustomerOrderCounts :one
 -- How many orders a customer placed, collected, and missed: their window
--- ended with no hand-over, or staff ended them as no answer, no show or late.
+-- ended with no hand-over, whether ExpireEnded has marked them expired yet or
+-- not, or staff ended them as no answer, no show or late.
 SELECT count(*) AS placed,
        count(*) FILTER (WHERE state = 'collected') AS collected,
-       count(*) FILTER (WHERE (state IN ('confirmed', 'ready') AND window_end <= now())
+       count(*) FILTER (WHERE state = 'expired'
+                           OR (state IN ('confirmed', 'ready') AND window_end <= now())
                            OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late'))) AS missed
 FROM order_orders WHERE customer_id = @customer_id;
 
