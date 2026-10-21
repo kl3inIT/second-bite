@@ -473,7 +473,8 @@
         "no_show": "bạn chưa đến nhận",
         "late": "đã quá giờ nhận",
         "sold_out": "món đã hết",
-        "other": "lý do khác"
+        "other": "lý do khác",
+        "withdrawn": "quán đã rút bài này"
       },
       "expired": "Hết giờ nhận",
       "expiredBody": "{until} · đơn ghi là không nhận",
@@ -781,7 +782,8 @@
       "sold_out": "Hết món",
       "other": "Lý do khác",
       "not_suitable": "Món không còn phù hợp",
-      "wrong_items": "Sai món"
+      "wrong_items": "Sai món",
+      "withdrawn": "Quán đã rút bài"
     },
     "ended": {
       "customer": "Khách tự hủy trên trang người dùng",
@@ -930,13 +932,12 @@
     "title": "Rút bài",
     "question": "Rút bài này?",
     "explain": "Chỉ rút được khi chưa có đơn. Bài rút sẽ biến mất khỏi trang khách ngay và nằm ở tab Đã đóng.",
+    "explainOrders": "Bài này đã có {count} suất được đặt. Rút bài sẽ huỷ các đơn đó ngay; khách thấy lý do “Quán đã rút bài” và có thể đặt món khác.",
     "keptNote": "Bài rút vẫn lưu ở tab Đã đóng, đăng lại được.",
-    "blocked": "Bài này đã có {count} suất được đặt nên chưa rút được. Hãy huỷ từng đơn ở tab Đơn trước.",
-    "blockedNote": "Đã có {count} suất đang chờ lấy.",
+    "ordersNote": "{count} suất đang chờ lấy sẽ bị huỷ.",
     "keep": "Giữ lại",
-    "close": "Đóng",
     "withdraw": "Rút bài",
-    "toOrders": "Đến tab Đơn",
+    "withdrawAndCancel": "Rút bài và huỷ đơn",
     "failed": "Chưa rút được. Thử lại sau ít phút.",
     "reference": "Mã tham chiếu: {id}"
   },

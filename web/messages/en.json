@@ -473,7 +473,8 @@
         "no_show": "you did not come to collect",
         "late": "the collection time had passed",
         "sold_out": "the food ran out",
-        "other": "another reason"
+        "other": "another reason",
+        "withdrawn": "the store withdrew this post"
       },
       "expired": "Collection time over",
       "expiredBody": "{until} · recorded as not collected",
@@ -781,7 +782,8 @@
       "sold_out": "Out of food",
       "other": "Another reason",
       "not_suitable": "Food no longer suitable",
-      "wrong_items": "Wrong dish"
+      "wrong_items": "Wrong dish",
+      "withdrawn": "Post withdrawn"
     },
     "ended": {
       "customer": "Cancelled by the customer on the customer site",
@@ -930,13 +932,12 @@
     "title": "Withdraw",
     "question": "Withdraw this post?",
     "explain": "Only possible while nothing is ordered. A withdrawn post leaves customers' pages at once and stays in Closed.",
+    "explainOrders": "{count} units of this post are ordered. Withdrawing it cancels those orders at once; the customers read “Post withdrawn” and can order something else.",
     "keptNote": "A withdrawn post stays in Closed, and can be posted again.",
-    "blocked": "{count, plural, one {# unit is} other {# units are}} ordered, so this cannot be withdrawn. Cancel each order in Orders first.",
-    "blockedNote": "{count, plural, one {# unit is} other {# units are}} waiting to be collected.",
+    "ordersNote": "{count} units waiting to be collected will be cancelled.",
     "keep": "Keep",
-    "close": "Close",
     "withdraw": "Withdraw",
-    "toOrders": "Go to Orders",
+    "withdrawAndCancel": "Withdraw and cancel orders",
     "failed": "Could not withdraw. Try again in a few minutes.",
     "reference": "Reference: {id}"
   },
