@@ -1046,6 +1046,11 @@ async function favouriteRoutes(request, response, url) {
   return true;
 }
 
+/** Hanoi's box, as the server's servedArea (server/internal/seller/location.go). */
+function inHanoi(latitude, longitude) {
+  return latitude >= 20.53 && latitude <= 21.42 && longitude >= 105.25 && longitude <= 106.06;
+}
+
 async function sellerRoutes(request, response, url) {
   const token = tokenOf(request);
   const isSellerRoute =
@@ -1089,6 +1094,8 @@ async function sellerRoutes(request, response, url) {
       problem(response, 422, "SELLER_DETAILS_INVALID");
     } else if (digits.length < 9 || digits.length > 15) {
       problem(response, 422, "SELLER_PHONE_INVALID");
+    } else if (!inHanoi(body.latitude, body.longitude)) {
+      problem(response, 400, "SELLER_LOCATION_OUTSIDE");
     } else if (mine.length >= 5) {
       problem(response, 409, "SELLER_LIMIT_REACHED");
     } else {
@@ -1107,6 +1114,27 @@ async function sellerRoutes(request, response, url) {
       };
       storesOf.set(email, [...mine, seller]);
       json(response, 201, seller);
+    }
+    return true;
+  }
+  // The owner changes the store's details, its pin among them (SEC-66).
+  const changed = /^\/sellers\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "PUT" && changed) {
+    const seller = mine.find((candidate) => candidate.id === changed[1]);
+    const body = await readBody(request);
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else if (seller.myRole !== "owner") problem(response, 403, "SELLER_OWNER_REQUIRED");
+    else if (!String(body.address ?? "").trim()) problem(response, 422, "SELLER_DETAILS_INVALID");
+    else if (!inHanoi(body.latitude, body.longitude))
+      problem(response, 400, "SELLER_LOCATION_OUTSIDE");
+    else {
+      Object.assign(seller, {
+        address: body.address.trim(),
+        latitude: body.latitude,
+        longitude: body.longitude,
+        updatedAt: new Date().toISOString(),
+      });
+      json(response, 200, seller);
     }
     return true;
   }

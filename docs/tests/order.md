@@ -34,5 +34,6 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | Through the assembled service: a customer follows an order with a ticket and hears it turn ready; a stranger gets no ticket | `TestService` › an order's live socket carries its changes |
 | The module depends only on the edges ARCHITECTURE.md allows | `TestModuleBoundaries` (`internal/boundaries_test.go`) |
 | The operations are in the contract | `TestOpenAPIDocumentIsCurrent` (`cmd/secondbite/openapi_test.go`) |
+| A seller's moved point is copied onto its order to collect, not onto one handed over; delivered twice, nothing more changes; an unknown seller is ignored | `TestOrder` › orders and offers follow their seller |
 
 Not covered by a test: the same key arriving twice at once (held by the unique index, then read back), and two staff handing over at once (held by the row lock).

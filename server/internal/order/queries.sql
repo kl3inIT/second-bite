@@ -235,3 +235,20 @@ WHERE order_id IN (SELECT id FROM order_orders WHERE customer_id = @customer_id)
 -- name: DeleteChatsEndedBefore :execrows
 DELETE FROM order_chats
 WHERE order_id IN (SELECT id FROM order_orders WHERE window_end < @before);
+
+-- name: MoveSellerOrders :execrows
+-- Copies a seller's collection point onto its orders still to collect, and
+-- tells the sockets following each (channel secondbite_live). Orders handed
+-- over, cancelled, refused or expired keep what they copied.
+WITH moved AS (
+    UPDATE order_orders
+    SET latitude = @latitude, longitude = @longitude, address = @address
+    WHERE seller_id = @seller_id AND state IN ('confirmed', 'ready')
+      AND (latitude, longitude, address) IS DISTINCT FROM (@latitude, @longitude, @address::text)
+    RETURNING id, seller_id, state
+)
+SELECT pg_notify('secondbite_live', json_build_object(
+    'topics', json_build_array('order:' || id::text, 'seller:' || seller_id::text),
+    'notice', json_build_object('type', 'order', 'orderId', id, 'status', state)
+)::text)
+FROM moved;

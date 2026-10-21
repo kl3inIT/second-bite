@@ -1,6 +1,6 @@
 "use client";
 
-import { revalidateLogic } from "@tanstack/react-form";
+import { revalidateLogic, useStore } from "@tanstack/react-form";
 import { CircleAlertIcon, CircleCheckIcon, LocateFixedIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
@@ -9,6 +9,8 @@ import { z } from "zod";
 
 import { refuse, useAppForm } from "@/components/form/app-form";
 import { useFieldValidity } from "@/components/form/form-context";
+import { LocationField } from "@/components/map/location-field";
+import type { Point } from "@/components/map/location-picker";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   InputGroup,
@@ -18,13 +20,11 @@ import {
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
-import { addressAt, openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
+import { openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
 
 import { PhoneFootBar } from "./phone-foot-bar";
 import { useRemountKey } from "./remount-key";
-
-/** Tasco Mall Long Biên, where every store of the pilot is: a store is pinned here until its owner gives where they are. */
-const MALL = { latitude: 21.0565, longitude: 105.8964 };
+import { describePlace, suggestAddress, type Suggestion } from "./suggested-address";
 
 /** How long the browser may look for the place; it is asked afresh at each press, never for a place it kept. */
 const LOCATION_TIMEOUT_MS = 10_000;
@@ -37,7 +37,7 @@ type Located = {
   latitude: number;
   longitude: number;
   accuracy: number;
-  address: "filled" | "kept" | "unknown";
+  address: Suggestion;
 };
 
 /** A phone of 9 to 15 digits, a leading + allowed, spaces, dots, dashes and brackets between them: the server's rule. */
@@ -48,42 +48,58 @@ function isPhone(raw: string) {
   return digits >= 9 && digits <= 15;
 }
 
-// The form that opens a store (SEC-57, Figma O1, O1b, O1c): name, phone, address and a photo, then "Tạo quán".
+// The form that opens a store (SEC-57, Figma O1, O1b, O1c): name, phone, address, where it is on the map (SEC-66)
+// and a photo, then "Tạo quán".
 // The store is active at once and the person goes on to its home. The photo is a second step, so a store whose
 // photo failed to upload is still opened. The rules are the server's (seller.Details.normalized), checked here
 // first so a mistake is said under its field before anything is sent.
 function OpenStoreFormBody() {
   const t = useTranslations("OpenStore");
+  const location = useTranslations("StoreLocation");
   const router = useRouter();
+  // What a place last wrote into the address: while the field still holds it, the next place may replace it.
+  const lastFilled = useRef<string>(undefined);
 
   const form = useAppForm({
-    defaultValues: { name: "", phone: "", address: "", photo: undefined as File | undefined },
+    defaultValues: {
+      name: "",
+      phone: "",
+      address: "",
+      // Required: no place is chosen for the person (SEC-66).
+      location: undefined as Point | undefined,
+      photo: undefined as File | undefined,
+    },
     validationLogic: revalidateLogic(),
     validators: {
       onDynamic: z.object({
         name: z.string().trim().min(1, t("errors.name")),
         phone: z.string().refine(isPhone, t("errors.phone")),
         address: z.string().trim().min(1, t("errors.address")),
+        location: z.custom<Point | undefined>((point) => point !== undefined, location("required")),
         photo: z.custom<File | undefined>(),
       }),
     },
     onSubmit: async ({ value, formApi }) => {
       let sellerId: string;
-      const place = located.current ?? MALL;
+      const place = value.location;
+      if (!place) return;
       try {
         const { data } = await openSeller({
           body: {
             name: value.name.trim(),
             phone: value.phone.trim(),
             address: value.address.trim(),
-            // Only the place: what became of the address is the form's own note, not the store's.
             latitude: place.latitude,
             longitude: place.longitude,
           },
         });
         sellerId = data.id;
       } catch (error) {
-        refuse(formApi, error, { SELLER_PHONE_INVALID: "phone", SELLER_DETAILS_INVALID: "name" });
+        refuse(formApi, error, {
+          SELLER_PHONE_INVALID: "phone",
+          SELLER_DETAILS_INVALID: "name",
+          SELLER_LOCATION_OUTSIDE: "location",
+        });
         return;
       }
       if (value.photo) {
@@ -99,8 +115,21 @@ function OpenStoreFormBody() {
     },
   });
 
-  // The place the address field pinned, read when the form is sent.
-  const located = useRef<Located>(undefined);
+  // The address at a point by SEC-110's rule 5, written into the address field when it may be.
+  async function fillFrom(point: Point): Promise<Suggestion> {
+    const { outcome, fill } = await suggestAddress(
+      point,
+      form.getFieldValue("address"),
+      lastFilled.current,
+    );
+    if (fill) {
+      lastFilled.current = fill;
+      form.setFieldValue("address", fill);
+    }
+    return outcome;
+  }
+
+  const pin = useStore(form.store, (state) => state.values.location);
 
   return (
     <form
@@ -147,8 +176,18 @@ function OpenStoreFormBody() {
         </form.AppField>
 
         <form.AppField name="address">
-          {() => <AddressField onLocated={(place) => (located.current = place)} />}
+          {() => (
+            <AddressField
+              fillFrom={fillFrom}
+              pin={pin}
+              onLocated={({ latitude, longitude }) =>
+                form.setFieldValue("location", { latitude, longitude })
+              }
+            />
+          )}
         </form.AppField>
+
+        <form.AppField name="location">{() => <PinField onPinned={fillFrom} />}</form.AppField>
 
         <form.AppField name="photo">{() => <PhotoField />}</form.AppField>
 
@@ -164,17 +203,31 @@ function OpenStoreFormBody() {
 
 /**
  * The store's address, with the button at its end (Figma O1d, O1e, O1f): where the person stands pins the store,
- * in place of the mall, and the server names the place to fill the address, unless the person has written their own.
+ * which the map then shows to adjust (SEC-66), and the server names the place to fill the address, unless the
+ * person has written their own.
  */
-function AddressField({ onLocated }: { onLocated: (place: Located) => void }) {
+function AddressField({
+  fillFrom,
+  pin,
+  onLocated,
+}: {
+  /** Where the store is pinned now. */
+  pin: Point | undefined;
+  /** Names the place at a point and fills the address when it may; answers what became of it. */
+  fillFrom: (point: Point) => Promise<Suggestion>;
+  onLocated: (place: Located) => void;
+}) {
   const t = useTranslations("OpenStore");
   const { field, invalid, errors, ids } = useFieldValidity<string>();
   const [located, setLocated] = useState<Located>();
   const [locating, setLocating] = useState(false);
   const [locateFailure, setLocateFailure] = useState<"denied" | "failed">();
-  // Whether what the field holds was written from the place, and not by the person: a second press may replace it.
-  const written = useRef(false);
   const note = `${ids.control}-note`;
+  // The note speaks of where the person stood only while the pin is still there.
+  const stillThere =
+    located !== undefined &&
+    pin?.latitude === located.latitude &&
+    pin.longitude === located.longitude;
 
   function locate() {
     setLocateFailure(undefined);
@@ -185,28 +238,10 @@ function AddressField({ onLocated }: { onLocated: (place: Located) => void }) {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        const { latitude, longitude } = coords;
+        const point = { latitude: coords.latitude, longitude: coords.longitude };
         const accuracy = Math.round(coords.accuracy);
-        const mayFill = field.state.value.trim() === "" || written.current;
         void (async () => {
-          let named = "";
-          try {
-            ({
-              data: { address: named },
-            } = await addressAt({ query: { latitude, longitude } }));
-          } catch {
-            // The place is pinned all the same; the person writes the address.
-          }
-          if (named && mayFill) {
-            written.current = true;
-            field.handleChange(named);
-          }
-          const place: Located = {
-            latitude,
-            longitude,
-            accuracy,
-            address: !named ? "unknown" : mayFill ? "filled" : "kept",
-          };
+          const place: Located = { ...point, accuracy, address: await fillFrom(point) };
           setLocated(place);
           onLocated(place);
           setLocating(false);
@@ -229,10 +264,7 @@ function AddressField({ onLocated }: { onLocated: (place: Located) => void }) {
           name={field.name}
           value={field.state.value}
           onBlur={field.handleBlur}
-          onChange={(event) => {
-            written.current = false;
-            field.handleChange(event.target.value);
-          }}
+          onChange={(event) => field.handleChange(event.target.value)}
           placeholder={t("addressPlaceholder")}
           autoComplete="street-address"
           aria-required
@@ -253,7 +285,7 @@ function AddressField({ onLocated }: { onLocated: (place: Located) => void }) {
         </InputGroupAddon>
       </InputGroup>
       <output id={note} className="block empty:hidden">
-        {located && !locateFailure && (
+        {located && stillThere && !locateFailure && (
           <span className="flex items-start gap-2 text-note text-muted-foreground">
             <CircleCheckIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
             {t(`located.${located.address}`, { meters: located.accuracy })}
@@ -268,6 +300,30 @@ function AddressField({ onLocated }: { onLocated: (place: Located) => void }) {
       </output>
       {invalid && <FieldError id={ids.error} errors={errors} />}
     </Field>
+  );
+}
+
+/**
+ * Where the store is on the map (SEC-66): a pin moved there names the place, which fills the address by the same
+ * rule as the location button.
+ */
+function PinField({ onPinned }: { onPinned: (point: Point) => Promise<unknown> }) {
+  const { field, invalid, errors, ids } = useFieldValidity<Point | undefined>();
+
+  function pinned(point: Point) {
+    field.handleChange(point);
+    void onPinned(point);
+  }
+
+  return (
+    <LocationField
+      ids={ids}
+      value={field.state.value}
+      onChange={pinned}
+      describe={describePlace}
+      invalid={invalid}
+      error={<FieldError id={ids.error} errors={errors} />}
+    />
   );
 }
 

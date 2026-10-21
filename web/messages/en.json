@@ -743,6 +743,7 @@
   },
   "StoreMenu": {
     "shop": "Back to the customers' shop",
+    "location": "Store location",
     "mine": "My stores",
     "create": "Open another store"
   },
@@ -1482,6 +1483,7 @@
         "info": "Details",
         "address": "Address",
         "phone": "Phone",
+        "map": "The store on the map",
         "people": "Members",
         "owner": "Owner",
         "staff": "Staff",
@@ -1586,6 +1588,36 @@
     "emptyBody": "Tap ♡ on a shop's page to follow it.",
     "emptyMore": "Shops with a deal will let you know.",
     "explore": "Explore shops"
+  },
+  "StoreLocation": {
+    "label": "Location on the map",
+    "hint": "Customers' distance and directions follow this pin.",
+    "empty": "The store is not pinned yet",
+    "pin": "Pin on the map",
+    "adjust": "Adjust the location",
+    "required": "Pin the store on the map so customers can find it.",
+    "previewLabel": "The store's location on the map",
+    "pickTitle": "Pin the store",
+    "pickHint": "Move the map until the pin's tip is on the store's door.",
+    "mapLabel": "Map of Hanoi. Drag the map, or use the arrow keys, to put the pin on the store.",
+    "looking": "Looking up the address…",
+    "unnamed": "No street name here yet",
+    "locate": "Go to where I am",
+    "locateDenied": "Your location is not available. Allow location in the browser, or move the map.",
+    "locateFailed": "Your location is not available right now. Move the map to the store.",
+    "zoomIn": "Zoom in to place the pin exactly.",
+    "confirm": "Confirm the location",
+    "unavailable": "This device cannot show the map. Use the current-location button in the address field.",
+    "tilesFailed": "Part of the map did not load. You can still move it and pin the store."
+  },
+  "StoreLocationPage": {
+    "title": "Store location",
+    "intro": "Customers see the distance and the way to the store from this pin. Dishes on sale and orders still to collect follow the new place.",
+    "address": "Store address",
+    "addressRequired": "Enter the store's address.",
+    "save": "Save the location",
+    "saved": "The store's new location is saved.",
+    "failed": "The location could not be saved. Try again in a few minutes."
   },
   "Failure": {
     "reference": "Reference: {reference}",

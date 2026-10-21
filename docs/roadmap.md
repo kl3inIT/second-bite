@@ -20,6 +20,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 - [SEC-43 — Signing in on the app](increments/active/sec-43-app-sign-in/design.md): the Flutter application's sign-in with the emailed code and Google, the session as a Bearer token in the platform's secure store, and the web's Lucide icons. Built on 19 October 2026; checked on a device before the beta.
 - [SEC-53 — The seller's web screens in Figma](increments/active/sec-53-seller-web-design/design.md): sign-in and opening a store, the four tabs, posting, expected surplus, managing and editing posts, the catalog; designed on 20 October 2026, no code. The rules go to SEC-54 and SEC-55.
 - [SEC-57 — The seller's web screens](increments/active/sec-57-seller-web/design.md): open a store, my stores, the store's tabs, posting, editing and withdrawing, for what the backend does today; expected surplus, the catalog and orders wait for their issues.
+- [SEC-66 — A store's real location, pinned on a map](increments/active/sec-66-store-location-pin/design.md): the owner pins the store on a self-hosted map of Hanoi when opening it and moves the pin later; the server keeps every store in Hanoi, and a moved store moves its offers on sale and its orders still to collect. Built on 21 October 2026; due before the beta.
 
 ## Candidates
 

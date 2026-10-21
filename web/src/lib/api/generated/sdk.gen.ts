@@ -736,7 +736,7 @@ export const uploadPhoto = <ThrowOnError extends boolean = true>(options: Option
 export const getPhoto = <ThrowOnError extends boolean = true>(options: Options<GetPhotoData, ThrowOnError>): RequestResult<GetPhotoResponses, GetPhotoErrors, ThrowOnError> => (options.client ?? client).get<GetPhotoResponses, GetPhotoErrors, ThrowOnError>({ url: '/photos/{photoId}/{file}', ...options });
 
 /**
- * Open a seller; it waits for an admin to activate it
+ * Open a seller, active at once, pinned inside Hanoi
  */
 export const openSeller = <ThrowOnError extends boolean = true>(options: Options<OpenSellerData, ThrowOnError>): RequestResult<OpenSellerResponses, OpenSellerErrors, ThrowOnError> => (options.client ?? client).post<OpenSellerResponses, OpenSellerErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -807,7 +807,7 @@ export const getSeller = <ThrowOnError extends boolean = true>(options: Options<
 });
 
 /**
- * Change a seller's details; only its owner may
+ * Change a seller's details; only its owner may. A moved pin or address moves its offers on sale and its orders still to collect
  */
 export const updateSeller = <ThrowOnError extends boolean = true>(options: Options<UpdateSellerData, ThrowOnError>): RequestResult<UpdateSellerResponses, UpdateSellerErrors, ThrowOnError> => (options.client ?? client).put<UpdateSellerResponses, UpdateSellerErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {

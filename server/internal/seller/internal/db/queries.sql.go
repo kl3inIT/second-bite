@@ -832,10 +832,15 @@ func (q *Queries) StatusDays(ctx context.Context, first pgtype.Date) ([]SellerSt
 	return items, nil
 }
 
-const updateSeller = `-- name: UpdateSeller :exec
-UPDATE seller_sellers
+const updateSeller = `-- name: UpdateSeller :one
+WITH old AS (
+    SELECT cur.id, cur.latitude, cur.longitude, cur.address FROM seller_sellers AS cur WHERE cur.id = $6 FOR UPDATE
+)
+UPDATE seller_sellers AS s
 SET name = $1, address = $2, latitude = $3, longitude = $4, phone = $5, updated_at = now()
-WHERE id = $6
+FROM old
+WHERE s.id = old.id
+RETURNING (old.latitude, old.longitude, old.address) IS DISTINCT FROM (s.latitude, s.longitude, s.address) AS moved
 `
 
 type UpdateSellerParams struct {
@@ -847,8 +852,10 @@ type UpdateSellerParams struct {
 	ID        uuid.UUID
 }
 
-func (q *Queries) UpdateSeller(ctx context.Context, arg UpdateSellerParams) error {
-	_, err := q.db.Exec(ctx, updateSeller,
+// Changes a seller's details under a row lock, and answers whether its
+// collection point (the point or the written address) moved.
+func (q *Queries) UpdateSeller(ctx context.Context, arg UpdateSellerParams) (bool, error) {
+	row := q.db.QueryRow(ctx, updateSeller,
 		arg.Name,
 		arg.Address,
 		arg.Latitude,
@@ -856,5 +863,7 @@ func (q *Queries) UpdateSeller(ctx context.Context, arg UpdateSellerParams) erro
 		arg.Phone,
 		arg.ID,
 	)
-	return err
+	var moved bool
+	err := row.Scan(&moved)
+	return moved, err
 }

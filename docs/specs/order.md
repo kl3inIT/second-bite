@@ -29,6 +29,8 @@ An order carries its number (`SB-` and a number), status, seller (name, address,
 
 Published to other modules: `Service` alone.
 
+It follows `seller.LocationChangedEvent` (listener `order.follow_seller_location`): the orders still to collect (`confirmed`, `ready`) copy the seller's collection point as it stands and tell the sockets following them, so a customer on the way reads where the seller now is; orders handed over, cancelled, refused or expired keep theirs, and the same event twice changes nothing more (SEC-66). The customers are not told otherwise.
+
 ## Rules
 
 - **A cart**: one to ten different offers of one active seller, each one or more units. The units are taken from each offer in the order's transaction, in one order of identifiers; when one offer has too few, nothing is taken.

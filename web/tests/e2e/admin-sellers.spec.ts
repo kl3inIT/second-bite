@@ -154,6 +154,8 @@ test.describe("the admin's stores", () => {
     await expect(page.getByRole("tab", { name: "Thành viên · 2" })).toBeVisible();
     await expect(page.getByText("Túi bánh mì và croissant, 4 chiếc")).toBeVisible();
     await expect(page.getByText("Chủ cửa hàng", { exact: true })).toBeVisible();
+    // Where the owner pinned it (SEC-66), a map that does not move.
+    await expect(page.getByRole("figure", { name: "Vị trí quán trên bản đồ" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
     await page.getByRole("button", { name: "Thao tác với Tiệm bánh Pháp" }).click();

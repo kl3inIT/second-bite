@@ -75,9 +75,16 @@ func checkSellerFlow(t *testing.T, svc service) {
 		t.Fatalf("staff's sellers %+v", mine)
 	}
 
-	body := map[string]any{"name": "Renamed", "address": "x", "latitude": 21, "longitude": 105, "phone": "0912345678"}
+	body := newSeller("Renamed", "0912345678")
 	if p := send(t, http.MethodPut, sellerURL, staff, body).problem(t, http.StatusForbidden); p.Code != "SELLER_OWNER_REQUIRED" {
 		t.Errorf("staff changing the seller: %q", p.Code)
+	}
+
+	outside := newSeller("Renamed", "0912345678")
+	outside["latitude"], outside["longitude"] = 10.7769, 106.7009 // Ho Chi Minh City
+
+	if p := send(t, http.MethodPut, sellerURL, owner, outside).problem(t, http.StatusBadRequest); p.Code != "SELLER_LOCATION_OUTSIDE" {
+		t.Errorf("the owner moving the seller out of Hanoi: %q", p.Code)
 	}
 
 	stranger := bearer(signIn(t, svc, "seller.stranger@example.com").Token)

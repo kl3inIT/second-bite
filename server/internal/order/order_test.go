@@ -58,6 +58,7 @@ func TestOrder(t *testing.T) {
 		"some orders are not reopened":             testReopenStaysShut,
 		"admins read what an account ordered":      testHistoryForAdmins,
 		"orders follow their offer's window":       testOrdersFollowTheWindow,
+		"orders and offers follow their seller":    testOrdersAndOffersFollowTheSeller,
 		"ended orders expire in the table":         testEndedOrdersExpire,
 		"withdrawing an offer refuses its orders":  testWithdrawRefusesOrders,
 		"the two sides of an order talk":           testChatConversation,
@@ -1131,4 +1132,104 @@ func rateWithAccess(owner context.Context, t *testing.T, f fixture, offerID uuid
 	if err != nil || rated.Review == nil || rated.Access != o.Access {
 		t.Fatalf("rating with the access: %+v, %v", rated, err)
 	}
+}
+
+// testOrdersAndOffersFollowTheSeller moves a seller's pin and checks that the
+// offers still on sale and the orders still to collect copy the new point,
+// while a withdrawn offer and a handed-over order keep the old one (SEC-66).
+func testOrdersAndOffersFollowTheSeller(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
+	eclair := f.post(owner, t, shop, "Eclair", 5, 25_000, time.Now())
+
+	open, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	handed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.orders.HandOver(owner, handed.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.offers.Withdraw(owner, eclair.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	before := croissant.CollectionPoint
+	after := seller.CollectionPoint{Latitude: 21.0453, Longitude: 105.8738, Address: "12 Ngọc Lâm, Long Biên"}
+
+	if _, err := f.sellers.Update(owner, shop, seller.Details{
+		Name: "La Paris", Address: after.Address, Latitude: after.Latitude, Longitude: after.Longitude, Phone: "0912345678",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	// The listeners do not run in this check; their handlers are called as the event would.
+	event := seller.LocationChangedEvent{SellerID: shop}
+	for range 2 { // delivered twice, it changes nothing more
+		if err := f.offers.FollowSellerLocation(t.Context(), event); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := f.orders.FollowSellerLocation(t.Context(), event); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	for _, c := range []struct {
+		name      string
+		got, want seller.CollectionPoint
+	}{
+		{"the offer on sale", f.offerPoint(owner, t, croissant.ID), after},
+		{"the withdrawn offer", f.offerPoint(owner, t, eclair.ID), before},
+		{"the order to collect", f.orderPoint(customer, t, open.ID), after},
+		{"the handed-over order", f.orderPoint(customer, t, handed.ID), before},
+	} {
+		if c.got != c.want {
+			t.Errorf("%s at %+v, want %+v", c.name, c.got, c.want)
+		}
+	}
+
+	// An unknown seller is nothing to follow.
+	gone := seller.LocationChangedEvent{SellerID: uuid.New()}
+	if err := f.offers.FollowSellerLocation(t.Context(), gone); err != nil {
+		t.Errorf("offers following an unknown seller: %v", err)
+	}
+
+	if err := f.orders.FollowSellerLocation(t.Context(), gone); err != nil {
+		t.Errorf("orders following an unknown seller: %v", err)
+	}
+}
+
+// offerPoint reads where an offer is collected.
+func (f fixture) offerPoint(owner context.Context, t *testing.T, id uuid.UUID) seller.CollectionPoint {
+	t.Helper()
+
+	o, err := f.offers.Get(owner, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return o.CollectionPoint
+}
+
+// orderPoint reads where an order is collected.
+func (f fixture) orderPoint(customer context.Context, t *testing.T, id uuid.UUID) seller.CollectionPoint {
+	t.Helper()
+
+	o, err := f.orders.Get(customer, id, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return o.CollectionPoint
 }

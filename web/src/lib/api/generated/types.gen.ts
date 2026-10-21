@@ -170,7 +170,7 @@ export type DetailsBody = {
      */
     address: string;
     /**
-     * Where the seller is, pinned on a map
+     * Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE
      */
     latitude: number;
     longitude: number;
