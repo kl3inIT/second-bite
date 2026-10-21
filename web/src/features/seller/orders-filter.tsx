@@ -37,6 +37,12 @@ function dateOf(day: string): Date {
   return new Date(year, month - 1, date, 12);
 }
 
+/** A weekday in one or two characters, so seven of them fit above the cells of a phone's popover: "T2" to "CN". */
+function weekdayName(date: Date, language: string): string {
+  if (language === "vi") return ["CN", "T2", "T3", "T4", "T5", "T6", "T7"][date.getDay()];
+  return date.toLocaleDateString(language, { weekday: "narrow" });
+}
+
 function dayOf(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -122,7 +128,7 @@ function DayBar(view: View) {
         </PopoverTrigger>
         <PopoverContent align="end">
           <p className="sr-only">{t("day.quick")}</p>
-          <ul className="flex flex-wrap gap-2">
+          <ul className="grid grid-cols-3 gap-2">
             {quick.map((choice) => (
               <li key={choice.day}>
                 <Link
@@ -130,7 +136,7 @@ function DayBar(view: View) {
                   aria-current={choice.day === day ? "date" : undefined}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    "flex h-9.5 items-center rounded-full border px-4 whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring",
+                    "flex h-9.5 items-center justify-center rounded-full border px-2 whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring",
                     choice.day === day
                       ? "border-primary bg-primary text-body-sm-strong text-primary-foreground"
                       : "border-border bg-card text-body-sm text-foreground hover:bg-secondary",
@@ -141,18 +147,21 @@ function DayBar(view: View) {
               </li>
             ))}
           </ul>
-          <Calendar
-            mode="single"
-            required
-            selected={dateOf(day)}
-            defaultMonth={dateOf(day)}
-            locale={language === "vi" ? vi : enUS}
-            weekStartsOn={1}
-            onSelect={(picked) => {
-              setOpen(false);
-              router.push(hrefFor(view, { day: dayOf(picked) }));
-            }}
-          />
+          <div className="flex justify-center [&_[data-slot=calendar]]:[--cell-size:--spacing(9)]">
+            <Calendar
+              mode="single"
+              required
+              selected={dateOf(day)}
+              defaultMonth={dateOf(day)}
+              locale={language === "vi" ? vi : enUS}
+              weekStartsOn={1}
+              formatters={{ formatWeekdayName: (date) => weekdayName(date, language) }}
+              onSelect={(picked) => {
+                setOpen(false);
+                router.push(hrefFor(view, { day: dayOf(picked) }));
+              }}
+            />
+          </div>
         </PopoverContent>
       </Popover>
       <Link
