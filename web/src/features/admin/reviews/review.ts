@@ -1,6 +1,8 @@
+import type { VariantProps } from "class-variance-authority";
 import { BanIcon, EyeIcon, type LucideIcon, TriangleAlertIcon } from "lucide-react";
 
-import type { BadgeTone } from "../ui/badge";
+import type { badgeVariants } from "@/components/ui/badge";
+
 import { pageSizes } from "../list-query";
 
 // A customer's review of a store, as the admin moderates it (docs: admin-web-flow › Đánh giá, Figma AD-DG1 to
@@ -31,12 +33,13 @@ export type ReviewSeller = { id: string; name: string };
 export const hideReasons = ["language", "off_topic", "spam"] as const;
 export type HideReason = (typeof hideReasons)[number];
 
-type BadgeLook = { tone: BadgeTone; icon: LucideIcon };
+/** A badge's look: one of the shared Badge's own variants, and the icon that carries the status with its words. */
+type BadgeLook = { variant: VariantProps<typeof badgeVariants>["variant"]; icon: LucideIcon };
 
 const statusLooks: Record<ReviewStatus, BadgeLook> = {
-  shown: { tone: "success", icon: EyeIcon },
-  reported: { tone: "warning", icon: TriangleAlertIcon },
-  hidden: { tone: "neutral", icon: BanIcon },
+  shown: { variant: "fresh", icon: EyeIcon },
+  reported: { variant: "outline", icon: TriangleAlertIcon },
+  hidden: { variant: "outline", icon: BanIcon },
 };
 
 /** A review's status as Figma AD-DG1 draws it: "Hiển thị", "Bị báo cáo", "Đã ẩn". */

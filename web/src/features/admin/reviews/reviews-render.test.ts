@@ -71,6 +71,9 @@ describe("the reviews (AD-DG1)", () => {
     expect(html).toContain("20/10/2026");
     expect(html).toContain("Thao tác với đánh giá của Quốc Bảo");
     expect(html).toContain("Hiển thị 1–10 trên 214 đánh giá");
+    expect(html).toContain("Trang 1 / 22");
+    expect(html).toContain('href="/vi/admin/reviews?page=2"');
+    expect(html).toContain('aria-label="Đánh giá theo trạng thái"');
   });
 
   test("says when a tab is empty", () => {

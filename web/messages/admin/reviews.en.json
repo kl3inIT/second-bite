@@ -50,5 +50,6 @@
     "note": "Internal note (optional)",
     "confirm": "Hide review"
   },
-  "soon": "Coming soon"
+  "soon": "Coming soon",
+  "pageOf": "Page {page} of {pages}"
 }
