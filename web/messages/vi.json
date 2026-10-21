@@ -750,7 +750,7 @@
   "PostRow": {
     "onSale": "Lấy {from}–{until} · Còn {left}/{units} {unit} · {price}",
     "soldOut": "Lấy {from}–{until} · Hết {units}/{units} {unit} · {price}",
-    "closed": "Hết giờ lấy · bán {sold}/{units} {unit} · {price}",
+    "closed": "Hết giờ nhận · bán {sold}/{units} {unit} · {price}",
     "withdrawn": "Đã rút · {price}"
   },
   "StoreOrders": {
@@ -800,7 +800,7 @@
     },
     "ended": {
       "customer": "Khách tự hủy trên trang người dùng",
-      "expired": "Quá giờ lấy",
+      "expired": "Quá giờ nhận",
       "reason": "Lý do: {reason}",
       "note": "Lý do: {reason} · {note}"
     },
@@ -822,7 +822,7 @@
         "collected": "Đã giao cho khách",
         "cancelled": "Khách đã hủy đơn",
         "refused": "Quán đã hủy đơn",
-        "expired": "Quá giờ lấy"
+        "expired": "Quá giờ nhận"
       },
       "opensIn": "Khách nhận hôm nay · giờ nhận mở sau {left}",
       "closesIn": "Khách nhận hôm nay · còn {left}",
@@ -832,7 +832,7 @@
       "minutes": "{minutes} phút",
       "units": "{count} phần",
       "hint": {
-        "confirmed": "Món xong thì bấm Báo sẵn sàng để khách biết đến lấy.",
+        "confirmed": "Món xong thì bấm Báo sẵn sàng để khách biết đến nhận.",
         "ready": "Khách đến thì quét mã QR của họ hoặc đối chiếu tên và số điện thoại, rồi bấm Đã giao."
       },
       "lines": "Món đã đặt · {count} phần",
@@ -844,7 +844,7 @@
       "atCounter": "Thu tại quầy",
       "next": {
         "title": "Việc cần làm",
-        "preparing": "Món xong thì báo cho khách đến lấy.",
+        "preparing": "Món xong thì báo cho khách đến nhận.",
         "ready": "Giao món khi khách đến quầy.",
         "undoTitle": "Nhầm tay?",
         "undoBody": "Mở lại đơn để làm tiếp."
@@ -875,7 +875,7 @@
     "againFrom": "Từ bài đã đóng",
     "kindQuestion": "Bạn đăng món này theo kiểu nào?",
     "todayTitle": "Đang dư hôm nay",
-    "todayBody": "Hàng đã có. Khách đặt được ngay và đến lấy trong khung giờ bạn chọn.",
+    "todayBody": "Hàng đã có. Khách đặt được ngay và đến nhận trong khung giờ bạn chọn.",
     "expectedTitle": "Báo trước dự kiến dư",
     "expectedBody": "Chưa chắc có hàng. Khách theo dõi, bạn xác nhận số suất sau.",
     "soon": "Sắp có",
@@ -908,7 +908,7 @@
     "otherTime": "Giờ khác",
     "hour": "Giờ",
     "minute": "Phút",
-    "lengthQuestion": "Khách lấy trong bao lâu?",
+    "lengthQuestion": "Khách nhận trong bao lâu?",
     "length": {
       "30": "30 phút",
       "60": "1 giờ",
@@ -917,8 +917,8 @@
     },
     "otherLength": "Khác",
     "minutes": "{minutes} phút",
-    "window": "Khách đến lấy từ {from} đến {until} hôm nay",
-    "windowOver": "Giờ lấy đã qua. Chọn giờ từ bây giờ trở đi.",
+    "window": "Khách đến nhận từ {from} đến {until} hôm nay",
+    "windowOver": "Giờ nhận đã qua. Chọn giờ từ bây giờ trở đi.",
     "failed": "Chưa đăng được. Thử lại sau ít phút.",
     "reference": "Mã tham chiếu: {id}",
     "cancel": "Hủy",
@@ -932,9 +932,9 @@
     },
     "editOrdered": "đã có {count} suất được đặt",
     "editQuestion": "Sửa thế nào?",
-    "editFree": "Chưa ai đặt, nên bạn sửa được số suất, giá và giờ lấy.",
-    "editLocked": "Đã có {count} suất được đặt nên giá giữ nguyên. Bạn sửa được số suất (không thấp hơn {count}) và giờ lấy.",
-    "editHoursNote": "Khách đã đặt sẽ lấy theo giờ mới. Hãy báo họ, vì hệ thống chưa nhắn cho khách.",
+    "editFree": "Chưa ai đặt, nên bạn sửa được số suất, giá và giờ nhận.",
+    "editLocked": "Đã có {count} suất được đặt nên giá giữ nguyên. Bạn sửa được số suất (không thấp hơn {count}) và giờ nhận.",
+    "editHoursNote": "Khách đã đặt sẽ nhận theo giờ mới. Hãy báo họ, vì hệ thống chưa nhắn cho khách.",
     "unitsBelowOrdered": "Số suất không được thấp hơn {count}, vì đã có {count} suất được đặt.",
     "withdraw": "Rút bài",
     "save": "Lưu thay đổi",
@@ -947,7 +947,7 @@
     "explain": "Chỉ rút được khi chưa có đơn. Bài rút sẽ biến mất khỏi trang khách ngay và nằm ở tab Đã đóng.",
     "explainOrders": "Bài này đã có {count} suất được đặt. Rút bài sẽ huỷ các đơn đó ngay; khách thấy lý do “Quán đã rút bài” và có thể đặt món khác.",
     "keptNote": "Bài rút vẫn lưu ở tab Đã đóng, đăng lại được.",
-    "ordersNote": "{count} suất đang chờ lấy sẽ bị huỷ.",
+    "ordersNote": "{count} suất đang chờ nhận sẽ bị huỷ.",
     "keep": "Giữ lại",
     "withdraw": "Rút bài",
     "withdrawAndCancel": "Rút bài và huỷ đơn",
@@ -1086,8 +1086,8 @@
         "minDiscountPercent": "Giảm tối thiểu",
         "defaultRadiusKm": "Bán kính mặc định",
         "maxRadiusKm": "Bán kính tối đa",
-        "windowMinMinutes": "Khung lấy ngắn nhất",
-        "windowMaxMinutes": "Khung lấy dài nhất",
+        "windowMinMinutes": "Khung nhận ngắn nhất",
+        "windowMaxMinutes": "Khung nhận dài nhất",
         "startsWithinHours": "Bắt đầu trong vòng",
         "provider": "Nhà cung cấp",
         "senderAddress": "Địa chỉ gửi",
@@ -1243,7 +1243,7 @@
       },
       "figure": {
         "placed": "Đơn đã đặt",
-        "pickupRate": "Tỉ lệ đến lấy",
+        "pickupRate": "Tỉ lệ đến nhận",
         "joined": "Ngày tham gia",
         "signedIn": "Lần đăng nhập cuối"
       },
@@ -1264,7 +1264,7 @@
       },
       "outcome": {
         "open": "Đang giữ",
-        "collected": "Đã lấy",
+        "collected": "Đã nhận",
         "missed": "Không đến",
         "cancelled": "Đã huỷ",
         "refused": "Quán từ chối"

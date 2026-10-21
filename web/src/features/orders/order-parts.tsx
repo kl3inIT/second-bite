@@ -215,7 +215,7 @@ export function OrderSummary({ order }: { order: Order }) {
   );
 }
 
-/** Where the counter is, and the way there in Google Maps (Figma D2 › chỗ lấy). */
+/** Where the counter is, and the way there in Google Maps (Figma D2 › chỗ nhận). */
 export function Directions({ order }: { order: Order }) {
   const t = useTranslations("Orders");
   const locale = useLocale();

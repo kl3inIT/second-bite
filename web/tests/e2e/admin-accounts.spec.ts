@@ -88,7 +88,7 @@ test.describe("the accounts", () => {
     await expect(page.getByRole("paragraph").filter({ hasText: "bao@example.com" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toContainText("Tài khoản");
     await expect(page.getByRole("definition").filter({ hasText: "83%" })).toBeVisible();
-    await expect(page.getByRole("term").filter({ hasText: "Tỉ lệ đến lấy" })).toBeVisible();
+    await expect(page.getByRole("term").filter({ hasText: "Tỉ lệ đến nhận" })).toBeVisible();
     const recent = page.getByRole("list").filter({ hasText: "Không đến" });
     await expect(recent.getByRole("listitem")).toHaveCount(5);
     await expect(recent).toContainText("Đang giữ");
