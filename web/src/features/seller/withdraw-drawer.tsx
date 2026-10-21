@@ -1,11 +1,10 @@
 "use client";
 
-import { CircleAlertIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FailureAlert } from "@/components/failure-alert";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
@@ -91,17 +90,7 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
           >
             {hasOrders ? t("ordersNote", { count: ordered }) : t("keptNote")}
           </output>
-          {failed && (
-            <Alert variant="destructive">
-              <CircleAlertIcon aria-hidden />
-              <AlertDescription>
-                {failed.detail ?? t("failed")}
-                {failed.detail && failed.reference && (
-                  <> {t("reference", { id: failed.reference })}</>
-                )}
-              </AlertDescription>
-            </Alert>
-          )}
+          {failed && <FailureAlert failure={failed} fallback={t("failed")} />}
         </div>
 
         <SheetFooter variant="bar">

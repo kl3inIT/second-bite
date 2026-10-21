@@ -40,11 +40,16 @@ export function PhotoSlots({
   id,
   slots,
   disabled,
+  invalid,
+  describedBy,
   onChange,
 }: {
   id: string;
   slots: PhotoSlot[];
   disabled?: boolean;
+  /** Marks the chooser in error, so a refused submit's focus lands on it. */
+  invalid?: boolean;
+  describedBy?: string;
   onChange: (slots: PhotoSlot[]) => void;
 }) {
   const t = useTranslations("DishForm");
@@ -78,6 +83,8 @@ export function PhotoSlots({
         accept="image/jpeg,image/png,image/webp"
         className="sr-only"
         disabled={disabled || room === 0}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
         onChange={(event) => {
           add(event.target.files);
           event.target.value = "";
