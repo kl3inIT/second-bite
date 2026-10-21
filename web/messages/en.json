@@ -386,6 +386,7 @@
     "details": "Order details",
     "counterToday": "{address} · {from}–{until} today",
     "units": "{units, plural, one {# portion} other {# portions}}",
+    "mapTitle": "Map of where to collect from {seller}",
     "directionsLabel": "The way to the counter",
     "placeLine": "{seller} · {address}",
     "placeHint": "Tasco Mall Long Biên",
@@ -680,6 +681,14 @@
     "shop": "Back to the customers' shop",
     "mine": "My stores",
     "create": "Open another store"
+  },
+  "ScanOrder": {
+    "open": "Scan an order's code",
+    "title": "Scan an order's code",
+    "hint": "Hold the customer's QR code in the frame",
+    "close": "Close",
+    "noCamera": "Could not open the camera. Allow the camera in the browser.",
+    "notOurs": "This code is not an order of this store. Try another code."
   },
   "StoreHome": {
     "title": "Store home",

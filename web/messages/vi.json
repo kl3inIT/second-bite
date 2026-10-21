@@ -386,6 +386,7 @@
     "details": "Chi tiết đơn",
     "counterToday": "{address} · {from}–{until} hôm nay",
     "units": "{units} phần",
+    "mapTitle": "Bản đồ chỗ nhận món của {seller}",
     "directionsLabel": "Đường đến quầy",
     "placeLine": "{seller} · {address}",
     "placeHint": "Tasco Mall Long Biên",
@@ -680,6 +681,14 @@
     "shop": "Về trang người mua",
     "mine": "Quán của tôi",
     "create": "Tạo thêm quán"
+  },
+  "ScanOrder": {
+    "open": "Quét mã đơn",
+    "title": "Quét mã đơn",
+    "hint": "Đưa mã QR của khách vào khung",
+    "close": "Đóng",
+    "noCamera": "Chưa mở được camera. Hãy cho phép camera trong trình duyệt.",
+    "notOurs": "Mã này không phải đơn của quán. Thử mã khác."
   },
   "StoreHome": {
     "title": "Trang chủ quán",

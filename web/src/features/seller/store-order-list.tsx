@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { getStoreOrders } from "./my-sellers";
 import { OrderRow } from "./order-row";
 import { DayFilter } from "./day-filter";
+import { ScanOrder } from "./scan-order";
 import { requireStore } from "./require-store";
 import {
   deliveredTotal,
@@ -104,6 +105,7 @@ export async function StoreOrders({
         q={search}
         label={t("searchLabel")}
         placeholder={t("searchPlaceholder")}
+        extra={<ScanOrder sellerId={sellerId} />}
       />
 
       <section
