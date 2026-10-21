@@ -1,9 +1,9 @@
 import { getTranslations } from "next-intl/server";
 
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 import type { SearchParams } from "../list-query";
-import { SettingsLayout } from "../ui/settings";
 import { readAuditQuery } from "./audit-log";
 import { listAuditLog } from "./audit-log-source";
 import { AuditLogTable } from "./audit-log-table";
@@ -20,15 +20,21 @@ export async function AuditLogPage({ searchParams }: { searchParams: Promise<Sea
     getTranslations("admin.settings.auditLog"),
   ]);
   return (
-    <SettingsLayout
-      title={shell("pages.settingsAuditLog.label")}
-      actions={
-        <Button variant="outline" disabled title={shell("soon")}>
-          {t("export")}
-        </Button>
-      }
-    >
+    <section aria-labelledby="settings-title" className="flex min-w-0 flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="settings-title" className="text-card-title text-foreground">
+          {shell("pages.settingsAuditLog.label")}
+        </h2>
+        <Tooltip>
+          <TooltipTrigger render={<span />}>
+            <Button variant="outline" disabled>
+              {t("export")}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{shell("soon")}</TooltipContent>
+        </Tooltip>
+      </div>
       <AuditLogTable key={JSON.stringify(query)} query={query} page={page} />
-    </SettingsLayout>
+    </section>
   );
 }

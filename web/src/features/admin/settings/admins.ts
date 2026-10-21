@@ -54,3 +54,13 @@ export type AdminRefusal = (typeof refusals)[keyof typeof refusals] | "failed";
 export function adminRefusal(code: string | undefined): AdminRefusal {
   return (code && refusals[code as keyof typeof refusals]) || "failed";
 }
+
+/** Two letters from the start of an address for its avatar: "chu.quan@…" is "CQ", "lan@…" is "LA". */
+export function initialsOf(email: string): string {
+  const words = email
+    .split("@")[0]
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean);
+  const letters = words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? "?").slice(0, 2);
+  return letters.toUpperCase();
+}

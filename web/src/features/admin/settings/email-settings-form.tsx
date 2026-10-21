@@ -1,15 +1,20 @@
 "use client";
 
+import { CircleCheckIcon, TriangleAlertIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState, useTransition } from "react";
+import { type ComponentProps, type ReactNode, useEffect, useState, useTransition } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldError, FieldLabel, FieldTitle } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useRouter } from "@/i18n/navigation";
 import { type EmailSettingsBody, getEmailSettings, saveEmailSettings } from "@/lib/api/generated";
 
-import { showAdminToast } from "../lib/toast";
-import { AdminBadge } from "../ui/badge";
-import { SegmentedControl } from "../ui/segmented-control";
-import { FormFooter, SettingsCard } from "../ui/settings";
+import { toast } from "@/components/ui/toast";
 import {
   type EmailDraft,
   type EmailField,
@@ -25,8 +30,9 @@ import {
 } from "./email-draft";
 import { refusalSentence, refusedFields } from "./field-errors";
 import { useSavedStatus } from "./saved-status";
-import { TextField } from "./text-field";
 import { changedSinceRead, etagOf } from "./version";
+
+type TextFieldKey = Exclude<EmailField, "provider" | "smtpSecurity">;
 
 /**
  * The email settings (Figma AD-CS4 to AD-CS7; docs: admin-web-flow › Sửa cài đặt email): SMTP or Brevo, the
@@ -43,6 +49,7 @@ export function EmailSettingsForm({
   etag: string;
 }) {
   const t = useTranslations("admin.settings");
+  const foot = useTranslations("admin.shell.form");
   const router = useRouter();
   const [saved, setSaved] = useState(settings);
   const [version, setVersion] = useState(etag);
@@ -54,21 +61,20 @@ export function EmailSettingsForm({
   useEffect(() => {
     if (settings) return;
     // Once, when the page opens, after the layout's effects, so the toaster around the page already listens.
-    const timer = setTimeout(() => showAdminToast(t("email.notConfigured"), "warning"));
+    const timer = setTimeout(() =>
+      toast.add({ title: t("email.notConfigured"), type: "warning", timeout: 5000 }),
+    );
     return () => clearTimeout(timer);
   }, [settings, t]);
 
   const passwordLost = t("email.passwordLost");
   const locked = signInLocked(draft);
-
-  function change(field: Exclude<EmailField, "provider" | "smtpSecurity">, value: string) {
-    edit({ [field]: value });
-  }
+  const dirty = emailChanged(draft, saved);
 
   function edit(next: Partial<EmailDraft>) {
     const changed = { ...draft, ...next };
     if (!passwordWillBeLost(draft, saved) && passwordWillBeLost(changed, saved)) {
-      showAdminToast(passwordLost, "warning");
+      toast.add({ title: passwordLost, type: "warning", timeout: 5000 });
     }
     setDraft(changed);
     setRefused((current) => current.filter((field) => !(field in next)));
@@ -76,7 +82,7 @@ export function EmailSettingsForm({
 
   function save() {
     if (passwordWillBeLost(draft, saved)) {
-      showAdminToast(passwordLost, "warning");
+      toast.add({ title: passwordLost, type: "warning", timeout: 5000 });
       document.getElementById("email-smtpPassword")?.focus();
       return;
     }
@@ -89,34 +95,121 @@ export function EmailSettingsForm({
         setVersion(etagOf(response));
         setDraft(emailDraft(data));
         setRefused([]);
-        showAdminToast(t("email.saved"));
+        toast.add({ title: t("email.saved"), type: "success", timeout: 5000 });
         router.refresh();
       } catch (error) {
         if (changedSinceRead(error)) {
-          showAdminToast(t("form.changedSinceRead"), "warning");
+          toast.add({ title: t("form.changedSinceRead"), type: "warning", timeout: 5000 });
           return;
         }
         const fields = refusedFields(error, "NOTIFICATION_EMAIL_SETTINGS_INVALID", emailFields);
         setRefused(fields);
         if (fields.length === 0) {
-          showAdminToast(
-            refusalSentence(error, {
+          toast.add({
+            title: refusalSentence(error, {
               failed: t("form.failed"),
               failedWithReference: (reference) => t("form.failedWithReference", { reference }),
               reference: (reference) => t("form.reference", { reference }),
             }),
-            "error",
-          );
+            type: "error",
+            timeout: 5000,
+          });
         }
       }
     });
   }
 
-  function errorOf(field: EmailField) {
-    return refused.includes(field) ? t("form.refused") : undefined;
+  const keptPlaceholder = t("email.kept");
+
+  // A line of words with its label over it (Figma Admin/FormField, AD-CS4): no helper line; the backend's refusal
+  // of the field, when it names it, under it.
+  function textField(
+    key: TextFieldKey,
+    label: string,
+    input: Pick<
+      ComponentProps<"input">,
+      "type" | "autoComplete" | "inputMode" | "maxLength" | "placeholder" | "disabled"
+    > & { value?: string; onChange?: (value: string) => void } = {},
+  ) {
+    const id = `email-${key}`;
+    const error = refused.includes(key) ? t("form.refused") : undefined;
+    const {
+      value = draft[key],
+      onChange = (next: string) => edit({ [key]: next }),
+      ...rest
+    } = input;
+    return (
+      <Field data-invalid={error ? true : undefined}>
+        <FieldLabel htmlFor={id}>{label}</FieldLabel>
+        <Input
+          id={id}
+          autoComplete="off"
+          disabled={saving}
+          {...rest}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
+        />
+        {error && <FieldError id={`${id}-error`}>{error}</FieldError>}
+      </Field>
+    );
   }
 
-  const keptPlaceholder = t("email.kept");
+  // One choice of two or three (Figma Admin/SegmentedControl): SMTP | Brevo, Không mã hoá | STARTTLS | TLS. One
+  // always stays chosen. It scrolls sideways on a phone rather than breaking a choice over two lines.
+  function choice<Value extends string>(
+    labelledBy: string,
+    value: Value,
+    options: { value: Value; label: string }[],
+    onChange: (value: Value) => void,
+  ) {
+    return (
+      <div className="max-w-full overflow-x-auto">
+        <ToggleGroup
+          aria-labelledby={labelledBy}
+          variant="outline"
+          disabled={saving}
+          value={[value]}
+          onValueChange={(next) => {
+            const chosen = next.find((each) => each !== value) ?? next[0];
+            if (chosen) onChange(chosen as Value);
+          }}
+        >
+          {options.map((option) => (
+            <ToggleGroupItem key={option.value} value={option.value}>
+              {option.label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </div>
+    );
+  }
+
+  function card(title: string, body: ReactNode) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h3>{title}</h3>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>{body}</CardContent>
+      </Card>
+    );
+  }
+
+  const providerBadge = saved ? (
+    <Badge variant="fresh">
+      <CircleCheckIcon aria-hidden />
+      {t("email.using", { provider: t(`email.${saved.provider}`) })}
+    </Badge>
+  ) : (
+    <Badge variant="outline">
+      <TriangleAlertIcon aria-hidden />
+      {t("email.notSet")}
+    </Badge>
+  );
 
   return (
     <form
@@ -127,150 +220,123 @@ export function EmailSettingsForm({
         save();
       }}
     >
-      <SettingsCard title={t("email.provider")}>
+      {card(
+        t("email.provider"),
         <div className="flex flex-wrap items-center gap-4">
-          <SegmentedControl<EmailProvider>
-            label={t("email.provider")}
-            value={draft.provider}
-            disabled={saving}
-            segments={[
+          <span id="email-provider-label" className="sr-only">
+            {t("email.provider")}
+          </span>
+          {choice<EmailProvider>(
+            "email-provider-label",
+            draft.provider,
+            [
               { value: "smtp", label: t("email.smtp") },
               { value: "brevo", label: t("email.brevo") },
-            ]}
-            onChange={(provider) => edit({ provider })}
-          />
-          {saved ? (
-            <AdminBadge tone="success">
-              {t("email.using", { provider: t(`email.${saved.provider}`) })}
-            </AdminBadge>
-          ) : (
-            <AdminBadge tone="warning">{t("email.notSet")}</AdminBadge>
+            ],
+            (provider) => edit({ provider }),
           )}
-        </div>
-      </SettingsCard>
-
-      <SettingsCard title={t("email.sender")}>
-        <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
-          <TextField
-            id="email-senderAddress"
-            label={t("email.senderAddress")}
-            type="email"
-            autoComplete="off"
-            maxLength={254}
-            value={draft.senderAddress}
-            onChange={(value) => change("senderAddress", value)}
-            disabled={saving}
-            error={errorOf("senderAddress")}
-          />
-          <TextField
-            id="email-senderName"
-            label={t("email.senderName")}
-            autoComplete="off"
-            maxLength={100}
-            value={draft.senderName}
-            onChange={(value) => change("senderName", value)}
-            disabled={saving}
-            error={errorOf("senderName")}
-          />
-        </div>
-      </SettingsCard>
-
-      {draft.provider === "smtp" ? (
-        <SettingsCard title={t("email.server")}>
-          <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
-            <TextField
-              id="email-smtpHost"
-              label={t("email.host")}
-              autoComplete="off"
-              maxLength={253}
-              value={draft.smtpHost}
-              onChange={(value) => change("smtpHost", value)}
-              disabled={saving}
-              error={errorOf("smtpHost")}
-            />
-            <TextField
-              id="email-smtpPort"
-              label={t("email.port")}
-              inputMode="numeric"
-              autoComplete="off"
-              value={draft.smtpPort}
-              onChange={(value) => change("smtpPort", portInput(value))}
-              disabled={saving}
-              error={errorOf("smtpPort")}
-            />
-            <div className="flex flex-col gap-1.5 sm:col-span-2">
-              <span aria-hidden className="text-label-strong text-foreground">
-                {t("email.security")}
-              </span>
-              <SegmentedControl<SmtpSecurity>
-                label={t("email.security")}
-                value={draft.smtpSecurity}
-                disabled={saving}
-                segments={[
-                  { value: "none", label: t("email.none") },
-                  { value: "starttls", label: t("email.starttls") },
-                  { value: "tls", label: t("email.tls") },
-                ]}
-                onChange={(smtpSecurity) => edit({ smtpSecurity })}
-              />
-            </div>
-            <TextField
-              id="email-smtpUsername"
-              label={t("email.user")}
-              autoComplete="off"
-              maxLength={254}
-              value={draft.smtpUsername}
-              onChange={(value) => change("smtpUsername", value)}
-              disabled={saving || locked}
-              error={errorOf("smtpUsername")}
-            />
-            <TextField
-              id="email-smtpPassword"
-              label={t("email.password")}
-              type="password"
-              autoComplete="new-password"
-              maxLength={1024}
-              placeholder={saved?.smtpPasswordSet && !locked ? keptPlaceholder : undefined}
-              value={locked ? "" : draft.smtpPassword}
-              onChange={(value) => change("smtpPassword", value)}
-              disabled={saving || locked}
-              error={errorOf("smtpPassword")}
-            />
-          </div>
-        </SettingsCard>
-      ) : (
-        <SettingsCard title={t("email.brevo")}>
-          <div className="flex flex-col gap-4">
-            {saved?.brevoApiKeySet ? (
-              <AdminBadge tone="success">{t("email.keySaved")}</AdminBadge>
-            ) : (
-              <AdminBadge tone="warning">{t("email.keyMissing")}</AdminBadge>
-            )}
-            <TextField
-              id="email-brevoApiKey"
-              label={t("email.apiKey")}
-              type="password"
-              autoComplete="new-password"
-              maxLength={1024}
-              placeholder={saved?.brevoApiKeySet ? keptPlaceholder : undefined}
-              value={draft.brevoApiKey}
-              onChange={(value) => change("brevoApiKey", value)}
-              disabled={saving}
-              error={errorOf("brevoApiKey")}
-            />
-          </div>
-        </SettingsCard>
+          {providerBadge}
+        </div>,
       )}
 
-      <FormFooter
-        dirty={emailChanged(draft, saved)}
-        saving={saving}
-        savedStatus={savedStatus}
-        onCancel={() => {
-          setDraft(emailDraft(saved));
-          setRefused([]);
-        }}
-      />
+      {card(
+        t("email.sender"),
+        <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+          {textField("senderAddress", t("email.senderAddress"), { type: "email", maxLength: 254 })}
+          {textField("senderName", t("email.senderName"), { maxLength: 100 })}
+        </div>,
+      )}
+
+      {draft.provider === "smtp"
+        ? card(
+            t("email.server"),
+            <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+              {textField("smtpHost", t("email.host"), { maxLength: 253 })}
+              {textField("smtpPort", t("email.port"), {
+                inputMode: "numeric",
+                onChange: (value) => edit({ smtpPort: portInput(value) }),
+              })}
+              <Field className="sm:col-span-2">
+                <FieldTitle id="email-security-label">{t("email.security")}</FieldTitle>
+                {choice<SmtpSecurity>(
+                  "email-security-label",
+                  draft.smtpSecurity,
+                  [
+                    { value: "none", label: t("email.none") },
+                    { value: "starttls", label: t("email.starttls") },
+                    { value: "tls", label: t("email.tls") },
+                  ],
+                  (smtpSecurity) => edit({ smtpSecurity }),
+                )}
+              </Field>
+              {textField("smtpUsername", t("email.user"), {
+                maxLength: 254,
+                disabled: saving || locked,
+              })}
+              {textField("smtpPassword", t("email.password"), {
+                type: "password",
+                autoComplete: "new-password",
+                maxLength: 1024,
+                placeholder: saved?.smtpPasswordSet && !locked ? keptPlaceholder : undefined,
+                value: locked ? "" : draft.smtpPassword,
+                disabled: saving || locked,
+              })}
+            </div>,
+          )
+        : card(
+            t("email.brevo"),
+            <div className="flex flex-col gap-4">
+              {saved?.brevoApiKeySet ? (
+                <Badge variant="fresh">
+                  <CircleCheckIcon aria-hidden />
+                  {t("email.keySaved")}
+                </Badge>
+              ) : (
+                <Badge variant="outline">
+                  <TriangleAlertIcon aria-hidden />
+                  {t("email.keyMissing")}
+                </Badge>
+              )}
+              {textField("brevoApiKey", t("email.apiKey"), {
+                type: "password",
+                autoComplete: "new-password",
+                maxLength: 1024,
+                placeholder: saved?.brevoApiKeySet ? keptPlaceholder : undefined,
+              })}
+            </div>,
+          )}
+
+      {/* The foot (Figma Admin/FormFooter): when it was saved or that it is changed, Huỷ and Lưu thay đổi. */}
+      <Card size="sm">
+        <CardContent>
+          <div className="flex flex-wrap items-center gap-3">
+            <output
+              className={
+                dirty && !saving
+                  ? "min-w-0 flex-1 text-label-strong text-warning-foreground"
+                  : "min-w-0 flex-1 text-label text-muted-foreground"
+              }
+            >
+              {saving ? foot("saving") : dirty ? foot("dirty") : savedStatus}
+            </output>
+            <Button
+              variant="outline"
+              type="button"
+              disabled={!dirty || saving}
+              onClick={() => {
+                setDraft(emailDraft(saved));
+                setRefused([]);
+              }}
+            >
+              {foot("cancel")}
+            </Button>
+            <Button type="submit" disabled={!dirty || saving}>
+              {saving && <Spinner data-icon="inline-start" />}
+              {saving ? foot("savingButton") : foot("save")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </form>
   );
 }

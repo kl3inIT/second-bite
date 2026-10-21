@@ -1,13 +1,30 @@
 "use client";
 
-import { MapPinIcon, PencilIcon, PlusIcon } from "lucide-react";
+import { EllipsisIcon, MapPinIcon, PencilIcon, PlusIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-import { DataTable, StrongCell, TextCell } from "../ui/data-table";
-import { EmptyState } from "../ui/empty-state";
-import { RowActionMenu } from "../ui/row-action-menu";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Switch } from "@/components/ui/switch";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
 import type { AreaRow } from "./areas-source";
-import { ShownSwitch } from "./shown-switch";
 import { flattenTree } from "./tree";
 
 /**
@@ -16,63 +33,94 @@ import { flattenTree } from "./tree";
  */
 export function AreasTable({ rows }: { rows: AreaRow[] }) {
   const t = useTranslations("admin.settings.areas");
-  const soon = useTranslations("admin.shell")("soon");
+  const shell = useTranslations("admin.shell");
+  const soon = shell("soon");
+  const shown = flattenTree(rows);
 
   return (
-    <DataTable
-      caption={t("caption")}
-      rows={flattenTree(rows)}
-      rowKey={(row) => row.id}
-      empty={<EmptyState icon={MapPinIcon} title={t("empty")} />}
-      columns={[
-        {
-          key: "name",
-          header: t("columns.name"),
-          grow: true,
-          cell: (row) => (
-            <span className="flex items-center gap-3">
-              {row.depth === 0 ? (
-                <MapPinIcon aria-hidden className="size-5 shrink-0 text-primary" />
-              ) : (
-                <span aria-hidden className="w-5 shrink-0" />
-              )}
-              <StrongCell>{row.name}</StrongCell>
-            </span>
-          ),
-        },
-        {
-          key: "sellers",
-          header: t("columns.sellers"),
-          align: "end",
-          cell: (row) => <TextCell>{t("sellers", { count: row.sellers })}</TextCell>,
-        },
-        {
-          key: "open",
-          header: t("columns.open"),
-          cell: (row) => (
-            <ShownSwitch
-              checked={row.open}
-              label={t("toggle", { name: row.name })}
-              on={t("open")}
-              off={t("paused")}
-            />
-          ),
-        },
-        {
-          key: "actions",
-          header: "",
-          align: "end",
-          cell: (row) => (
-            <RowActionMenu
-              name={row.name}
-              actions={[
-                { label: `${t("edit")} · ${soon}`, icon: PencilIcon, disabled: true },
-                { label: `${t("addFloor")} · ${soon}`, icon: PlusIcon, disabled: true },
-              ]}
-            />
-          ),
-        },
-      ]}
-    />
+    <Card>
+      <Table>
+        <caption className="sr-only">{t("caption")}</caption>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-full">{t("columns.name")}</TableHead>
+            <TableHead>{t("columns.sellers")}</TableHead>
+            <TableHead>{t("columns.open")}</TableHead>
+            <TableHead />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {shown.map((row) => (
+            <TableRow key={row.id}>
+              <TableCell className="w-full">
+                <span className="flex items-center gap-3">
+                  {row.depth === 0 ? (
+                    <MapPinIcon aria-hidden className="size-5 shrink-0 text-primary" />
+                  ) : (
+                    <span aria-hidden className="w-5 shrink-0" />
+                  )}
+                  <span className="block max-w-80 truncate text-body-sm-strong text-foreground">
+                    {row.name}
+                  </span>
+                </span>
+              </TableCell>
+              <TableCell>{t("sellers", { count: row.sellers })}</TableCell>
+              <TableCell>
+                <Tooltip>
+                  <TooltipTrigger render={<span />}>
+                    <span className="flex items-center gap-2.5">
+                      <Switch
+                        checked={row.open}
+                        disabled
+                        aria-label={t("toggle", { name: row.name })}
+                      />
+                      <span>{row.open ? t("open") : t("paused")}</span>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>{soon}</TooltipContent>
+                </Tooltip>
+              </TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={shell("rowActions", { name: row.name })}
+                      />
+                    }
+                  >
+                    <EllipsisIcon aria-hidden />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem disabled>
+                        <PencilIcon aria-hidden />
+                        {`${t("edit")} · ${soon}`}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem disabled>
+                        <PlusIcon aria-hidden />
+                        {`${t("addFloor")} · ${soon}`}
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {shown.length === 0 && (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <MapPinIcon aria-hidden />
+            </EmptyMedia>
+            <EmptyTitle>{t("empty")}</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
+      )}
+    </Card>
   );
 }

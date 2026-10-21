@@ -30,10 +30,9 @@ test.describe("the settings pages without a backend", () => {
     await expectSettingsPage(page, "Danh mục");
     await expect(page.getByText("Chưa có danh mục nào")).toBeVisible();
     await expect(page.getByRole("button", { name: "Thêm danh mục" })).toBeDisabled();
-    await expect(page.getByRole("button", { name: "Thêm danh mục" })).toHaveAttribute(
-      "title",
-      "Sắp có",
-    );
+    // A disabled button takes no pointer: its "Sắp có" shows from what holds it.
+    await page.getByRole("button", { name: "Thêm danh mục" }).hover({ force: true });
+    await expect(page.locator('[data-slot="tooltip-content"]')).toHaveText("Sắp có");
     await expectNoSeriousA11yViolations(page);
 
     await page.goto("/vi/admin/settings/areas");
@@ -126,7 +125,7 @@ test.describe("the admins", () => {
     await page.keyboard.press("Escape");
 
     await page.getByRole("button", { name: "Thêm quản trị viên" }).click();
-    const dialog = page.getByRole("alertdialog", { name: "Thêm quản trị viên" });
+    const dialog = page.getByRole("dialog", { name: "Thêm quản trị viên" });
     const email = dialog.getByLabel("Email");
     await email.fill("baotran");
     await email.blur();

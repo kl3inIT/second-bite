@@ -1,15 +1,24 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { type ReactNode, useState, useTransition } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
+import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
 import { type OfferSettingsBody, saveOfferSettings } from "@/lib/api/generated";
 
-import { showAdminToast } from "../lib/toast";
-import { NumberField } from "../ui/number-field";
-import { FormFooter, SettingsCard } from "../ui/settings";
+import { toast } from "@/components/ui/toast";
 import { refusalSentence, refusedFields } from "./field-errors";
+import { leftNumber, typedNumber } from "./offer-number";
 import {
   changeOfferSetting,
   offerBounds,
@@ -36,10 +45,13 @@ export function OfferSettingsForm({
   etag: string;
 }) {
   const t = useTranslations("admin.settings");
+  const foot = useTranslations("admin.shell.form");
   const router = useRouter();
   const [saved, setSaved] = useState(settings);
   const [version, setVersion] = useState(etag);
   const [values, setValues] = useState(() => offerSettingsValues(settings));
+  // What a field shows while it is typed, which may be empty or under its bound for a moment.
+  const [drafts, setDrafts] = useState<Partial<Record<OfferSettingKey, string>>>({});
   const [refused, setRefused] = useState<OfferSettingKey[]>([]);
   const [saving, startSaving] = useTransition();
   const savedStatus = useSavedStatus(saved.updatedAt);
@@ -47,24 +59,66 @@ export function OfferSettingsForm({
   const dirty = !sameOfferSettings(values, offerSettingsValues(saved));
   const bounds = offerBounds(values);
 
+  function change(key: OfferSettingKey, value: number) {
+    setValues((current) => changeOfferSetting(current, key, value));
+    setRefused((current) => current.filter((each) => each !== key));
+  }
+
+  function setDraft(key: OfferSettingKey, draft: string | undefined) {
+    setDrafts((current) => ({ ...current, [key]: draft }));
+  }
+
+  // A number with its unit (Figma AD-CS1: "Giảm tối thiểu", "20 %"), never outside its bounds.
   function field(key: OfferSettingKey, unit: string) {
+    const id = `offer-${key}`;
+    const { min, max } = bounds[key];
+    const error = refused.includes(key) ? t("form.refused") : undefined;
+    const draft = drafts[key];
     return (
       <div className="w-full sm:w-60">
-        <NumberField
-          id={`offer-${key}`}
-          label={t(`offers.${key}`)}
-          value={values[key]}
-          onChange={(value) => {
-            setValues((current) => changeOfferSetting(current, key, value));
-            setRefused((current) => current.filter((each) => each !== key));
-          }}
-          min={bounds[key].min}
-          max={bounds[key].max}
-          unit={unit}
-          disabled={saving}
-          error={refused.includes(key) ? t("form.refused") : undefined}
-        />
+        <Field data-invalid={error ? true : undefined}>
+          <FieldLabel htmlFor={id}>{t(`offers.${key}`)}</FieldLabel>
+          <InputGroup>
+            <InputGroupInput
+              id={id}
+              inputMode="numeric"
+              autoComplete="off"
+              disabled={saving}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? `${id}-error` : undefined}
+              value={draft ?? String(values[key])}
+              onChange={(event) => {
+                const typed = typedNumber(event.target.value, min, max);
+                setDraft(key, typed.draft);
+                if (typed.value !== undefined) change(key, typed.value);
+              }}
+              onBlur={() => {
+                if (draft !== undefined) change(key, leftNumber(draft, min, max));
+                setDraft(key, undefined);
+              }}
+            />
+            <InputGroupAddon align="inline-end">
+              <InputGroupText>{unit}</InputGroupText>
+            </InputGroupAddon>
+          </InputGroup>
+          {error && <FieldError id={`${id}-error`}>{error}</FieldError>}
+        </Field>
       </div>
+    );
+  }
+
+  function card(title: string, fields: ReactNode) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h3>{title}</h3>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4">{fields}</div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -79,24 +133,25 @@ export function OfferSettingsForm({
         setVersion(etagOf(response));
         setValues(offerSettingsValues(data));
         setRefused([]);
-        showAdminToast(t("offers.saved"));
+        toast.add({ title: t("offers.saved"), type: "success", timeout: 5000 });
         router.refresh();
       } catch (error) {
         if (changedSinceRead(error)) {
-          showAdminToast(t("form.changedSinceRead"), "warning");
+          toast.add({ title: t("form.changedSinceRead"), type: "warning", timeout: 5000 });
           return;
         }
         const fields = refusedFields(error, "OFFER_SETTINGS_INVALID", offerSettingKeys);
         setRefused(fields);
         if (fields.length === 0) {
-          showAdminToast(
-            refusalSentence(error, {
+          toast.add({
+            title: refusalSentence(error, {
               failed: t("form.failed"),
               failedWithReference: (reference) => t("form.failedWithReference", { reference }),
               reference: (reference) => t("form.reference", { reference }),
             }),
-            "error",
-          );
+            type: "error",
+            timeout: 5000,
+          });
         }
       }
     });
@@ -111,33 +166,54 @@ export function OfferSettingsForm({
         save();
       }}
     >
-      <SettingsCard title={t("offers.price")}>
-        <div className="flex flex-wrap gap-4">
-          {field("minDiscountPercent", t("units.percent"))}
-        </div>
-      </SettingsCard>
-      <SettingsCard title={t("offers.window")}>
-        <div className="flex flex-wrap gap-4">
+      {card(t("offers.price"), field("minDiscountPercent", t("units.percent")))}
+      {card(
+        t("offers.window"),
+        <>
           {field("windowMinMinutes", t("units.minutes"))}
           {field("windowMaxMinutes", t("units.minutes"))}
           {field("startsWithinHours", t("units.hours"))}
-        </div>
-      </SettingsCard>
-      <SettingsCard title={t("offers.search")}>
-        <div className="flex flex-wrap gap-4">
+        </>,
+      )}
+      {card(
+        t("offers.search"),
+        <>
           {field("defaultRadiusKm", t("units.km"))}
           {field("maxRadiusKm", t("units.km"))}
-        </div>
-      </SettingsCard>
-      <FormFooter
-        dirty={dirty}
-        saving={saving}
-        savedStatus={savedStatus}
-        onCancel={() => {
-          setValues(offerSettingsValues(saved));
-          setRefused([]);
-        }}
-      />
+        </>,
+      )}
+      {/* The foot (Figma Admin/FormFooter): when it was saved or that it is changed, Huỷ and Lưu thay đổi. */}
+      <Card size="sm">
+        <CardContent>
+          <div className="flex flex-wrap items-center gap-3">
+            <output
+              className={
+                dirty && !saving
+                  ? "min-w-0 flex-1 text-label-strong text-warning-foreground"
+                  : "min-w-0 flex-1 text-label text-muted-foreground"
+              }
+            >
+              {saving ? foot("saving") : dirty ? foot("dirty") : savedStatus}
+            </output>
+            <Button
+              variant="outline"
+              type="button"
+              disabled={!dirty || saving}
+              onClick={() => {
+                setValues(offerSettingsValues(saved));
+                setDrafts({});
+                setRefused([]);
+              }}
+            >
+              {foot("cancel")}
+            </Button>
+            <Button type="submit" disabled={!dirty || saving}>
+              {saving && <Spinner data-icon="inline-start" />}
+              {saving ? foot("savingButton") : foot("save")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </form>
   );
 }

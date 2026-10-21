@@ -2,7 +2,6 @@ import { getTranslations } from "next-intl/server";
 
 import { getCurrentAccount } from "@/features/identity/current-account";
 
-import { SettingsLayout } from "../ui/settings";
 import { AddAdmin } from "./add-admin";
 import { readAdmins } from "./admins-source";
 import { AdminsTable } from "./admins-table";
@@ -15,11 +14,14 @@ export async function AdminsPage() {
     getTranslations("admin.shell"),
   ]);
   return (
-    <SettingsLayout
-      title={shell("pages.settingsAdmins.label")}
-      actions={<AddAdmin admins={admins} />}
-    >
+    <section aria-labelledby="settings-title" className="flex min-w-0 flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="settings-title" className="text-card-title text-foreground">
+          {shell("pages.settingsAdmins.label")}
+        </h2>
+        <AddAdmin admins={admins} />
+      </div>
       <AdminsTable rows={admins} viewerEmail={account?.email} />
-    </SettingsLayout>
+    </section>
   );
 }

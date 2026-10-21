@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-import { SettingsLayout } from "../ui/settings";
 import { LegalDocuments } from "./legal-documents";
 import { listLegalDocuments } from "./legal-source";
 
@@ -14,15 +14,19 @@ export async function LegalPage() {
     getTranslations("admin.settings.legal"),
   ]);
   return (
-    <SettingsLayout
-      title={shell("pages.settingsLegal.label")}
-      actions={
-        <Button disabled title={shell("soon")}>
-          {t("newVersion")}
-        </Button>
-      }
-    >
+    <section aria-labelledby="settings-title" className="flex min-w-0 flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="settings-title" className="text-card-title text-foreground">
+          {shell("pages.settingsLegal.label")}
+        </h2>
+        <Tooltip>
+          <TooltipTrigger render={<span />}>
+            <Button disabled>{t("newVersion")}</Button>
+          </TooltipTrigger>
+          <TooltipContent>{shell("soon")}</TooltipContent>
+        </Tooltip>
+      </div>
       <LegalDocuments documents={content.documents} draft={content.draft} />
-    </SettingsLayout>
+    </section>
   );
 }

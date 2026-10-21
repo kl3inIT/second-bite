@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-import { SettingsLayout } from "../ui/settings";
 import { readEmailSettings } from "./email-settings-source";
 import { Integrations } from "./integrations";
 
@@ -14,15 +14,21 @@ export async function IntegrationsPage() {
     getTranslations("admin.settings.integrations"),
   ]);
   return (
-    <SettingsLayout
-      title={shell("pages.settingsIntegrations.label")}
-      actions={
-        <Button variant="outline" disabled title={shell("soon")}>
-          {t("addWebhook")}
-        </Button>
-      }
-    >
+    <section aria-labelledby="settings-title" className="flex min-w-0 flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="settings-title" className="text-card-title text-foreground">
+          {shell("pages.settingsIntegrations.label")}
+        </h2>
+        <Tooltip>
+          <TooltipTrigger render={<span />}>
+            <Button variant="outline" disabled>
+              {t("addWebhook")}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{shell("soon")}</TooltipContent>
+        </Tooltip>
+      </div>
       <Integrations email={email?.settings ?? null} />
-    </SettingsLayout>
+    </section>
   );
 }

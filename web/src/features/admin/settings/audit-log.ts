@@ -2,7 +2,6 @@ import { CircleCheckIcon, CircleXIcon, InfoIcon, type LucideIcon, MinusIcon } fr
 
 import { first, oneOf, type SearchParams } from "../list-query";
 import { adminHref } from "../pages";
-import type { BadgeTone } from "../ui/badge";
 
 // The audit log as SEC-75 decided it (decisions 1, 5, 6 and 7): an append-only table written in the change's own
 // transaction, a closed catalog of `subject.verb` actions each with the detail it may carry, the actor and the
@@ -115,6 +114,9 @@ export type AuditCursor = { occurredAt: string; id: string };
 /** A page of the log, and where the next one starts; none on the last page. */
 export type AuditPage = { items: AuditEntry[]; next: AuditCursor | null };
 
+/** How an action reads: done, waiting, refused, a plain fact, or nothing to act on. */
+export type AuditTone = "success" | "warning" | "error" | "info" | "neutral";
+
 /** How an action is named in the page's words, and how its badge looks (Figma AD-AL1). */
 export const auditActionLooks: Record<
   AuditAction,
@@ -128,7 +130,7 @@ export const auditActionLooks: Record<
       | "emailSettingsChange"
       | "adminGrant"
       | "adminRevoke";
-    tone: BadgeTone;
+    tone: AuditTone;
     icon: LucideIcon;
   }
 > = {

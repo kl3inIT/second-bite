@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 
-import { SettingsLayout } from "../ui/settings";
 import { EmailSettingsForm } from "./email-settings-form";
 import { readEmailSettings } from "./email-settings-source";
 
@@ -8,8 +7,11 @@ import { readEmailSettings } from "./email-settings-source";
 export async function EmailSettingsPage() {
   const [read, t] = await Promise.all([readEmailSettings(), getTranslations("admin.shell")]);
   return (
-    <SettingsLayout title={t("pages.settingsEmail.label")}>
+    <section aria-labelledby="settings-title" className="flex min-w-0 flex-col gap-4">
+      <h2 id="settings-title" className="text-card-title text-foreground">
+        {t("pages.settingsEmail.label")}
+      </h2>
       <EmailSettingsForm settings={read?.settings ?? null} etag={read?.etag ?? ""} />
-    </SettingsLayout>
+    </section>
   );
 }

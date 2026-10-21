@@ -1,7 +1,5 @@
 import type { OfferSettingsBodyWritable } from "@/lib/api/generated";
 
-import { clamp } from "../ui/numbers";
-
 export type OfferSettingsValues = OfferSettingsBodyWritable;
 export type OfferSettingKey = keyof OfferSettingsValues;
 
@@ -47,7 +45,7 @@ export function changeOfferSetting(
   value: number,
 ): OfferSettingsValues {
   const { min, max } = offerBounds(values)[key];
-  return { ...values, [key]: clamp(Math.round(value), min, max) };
+  return { ...values, [key]: Math.min(max, Math.max(min, Math.round(value))) };
 }
 
 /** Only the settings themselves, without who changed them and when, as the form keeps and sends them. */

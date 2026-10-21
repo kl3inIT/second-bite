@@ -1,4 +1,4 @@
-import { createElement, type ReactElement } from "react";
+import { createElement, type ReactElement, type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { AreasTable } from "./areas-table";
@@ -11,6 +11,13 @@ vi.mock("@/i18n/navigation", () => ({
   Link: ({ href, ...props }: { href: string }) => createElement("a", { href, ...props }),
   usePathname: () => "/admin/settings",
   useRouter: () => ({ push: () => undefined, replace: () => undefined, refresh: () => undefined }),
+}));
+// A tooltip renders only once its trigger is pointed at; here its words are drawn after what it explains.
+vi.mock("@/components/ui/tooltip", () => ({
+  Tooltip: ({ children }: { children?: ReactNode }) => children,
+  TooltipTrigger: ({ children }: { children?: ReactNode }) => children,
+  TooltipContent: ({ children }: { children?: ReactNode }) =>
+    createElement("span", { role: "tooltip" }, children),
 }));
 
 // The settings pages whose backend does not exist yet are empty in the browser; here they are filled with sample
@@ -47,7 +54,7 @@ describe("the categories (AD-CD1)", () => {
   it("cannot be switched or changed until there is a backend", () => {
     const html = renderSettings(createElement(CategoriesTable, { rows }));
     expect(html).toContain('aria-label="Hiển thị Bánh cho khách"');
-    expect(html).toContain('title="Sắp có"');
+    expect(html).toMatch(/Đang hiện<\/span><\/span><span role="tooltip">Sắp có<\/span>/);
     expect(html).toMatch(
       /role="switch"[^>]*aria-disabled="true"|aria-disabled="true"[^>]*role="switch"/,
     );
@@ -118,9 +125,7 @@ describe("the legal content (AD-CD6)", () => {
     expect(html).toContain('value="2026-11-01"');
     expect(text).toContain("Yêu cầu đồng ý lại");
     // Neither kept nor published until there is a backend.
-    expect(html).toMatch(
-      /disabled=""[^>]*title="Sắp có"[^>]*>Xuất bản|title="Sắp có"[^>]*disabled=""[^>]*>Xuất bản/,
-    );
+    expect(html).toMatch(/disabled=""[^>]*>Xuất bản<\/button><span role="tooltip">Sắp có<\/span>/);
   });
 });
 

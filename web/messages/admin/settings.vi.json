@@ -42,7 +42,7 @@
     "none": "Không mã hoá",
     "starttls": "STARTTLS",
     "tls": "TLS",
-    "user": "User",
+    "user": "Tên đăng nhập",
     "password": "Mật khẩu",
     "kept": "Đã lưu · để trống để giữ nguyên",
     "keySaved": "API key đã lưu",
@@ -180,7 +180,7 @@
       "smtpHost": "Host",
       "smtpPort": "Port",
       "smtpSecurity": "Bảo mật",
-      "smtpUsername": "User",
+      "smtpUsername": "Tên đăng nhập",
       "smtpPassword": "Mật khẩu SMTP",
       "brevoApiKey": "API key Brevo"
     },

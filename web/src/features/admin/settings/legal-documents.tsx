@@ -4,6 +4,7 @@ import {
   BoldIcon,
   CircleCheckIcon,
   ClockIcon,
+  EllipsisIcon,
   EyeIcon,
   FilePlusIcon,
   FileTextIcon,
@@ -14,23 +15,47 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState } from "react";
+import { type ReactElement, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-import { AdminBadge, type BadgeTone } from "../ui/badge";
-import { DataTable, StrongCell, TextCell } from "../ui/data-table";
-import { EmptyState } from "../ui/empty-state";
-import { RowActionMenu } from "../ui/row-action-menu";
 import type { LegalDocument, LegalDraft, LegalStatus } from "./legal-source";
-import { TextField } from "./text-field";
 
-const statuses: Record<LegalStatus, { tone: BadgeTone; icon: LucideIcon }> = {
-  active: { tone: "success", icon: CircleCheckIcon },
-  draft: { tone: "neutral", icon: ClockIcon },
-  replaced: { tone: "neutral", icon: ClockIcon },
+// Each status on the shared Badge's own variants, with its icon and words, never colour alone.
+const statuses: Record<LegalStatus, { variant: "fresh" | "outline"; icon: LucideIcon }> = {
+  active: { variant: "fresh", icon: CircleCheckIcon },
+  draft: { variant: "outline", icon: ClockIcon },
+  replaced: { variant: "outline", icon: ClockIcon },
 };
 
 /**
@@ -46,66 +71,91 @@ export function LegalDocuments({
   draft: LegalDraft | null;
 }) {
   const t = useTranslations("admin.settings.legal");
-  const soon = useTranslations("admin.shell")("soon");
+  const shell = useTranslations("admin.shell");
+  const soon = shell("soon");
   const format = useFormatter();
 
   return (
     <div className="flex flex-col gap-5">
-      <DataTable
-        caption={t("caption")}
-        rows={documents}
-        rowKey={(row) => row.id}
-        empty={<EmptyState icon={FileTextIcon} title={t("empty")} />}
-        columns={[
-          {
-            key: "kind",
-            header: t("columns.document"),
-            grow: true,
-            cell: (row) => (
-              <span className="flex items-center gap-3">
-                <FileTextIcon aria-hidden className="size-5 shrink-0 text-primary" />
-                <StrongCell>
-                  {t("versionOf", { name: t(`kinds.${row.kind}`), version: row.version })}
-                </StrongCell>
-              </span>
-            ),
-          },
-          {
-            key: "effectiveFrom",
-            header: t("columns.effectiveFrom"),
-            cell: (row) => (
-              <TextCell>
-                {row.effectiveFrom
-                  ? format.dateTime(new Date(row.effectiveFrom), "day")
-                  : t("noDay")}
-              </TextCell>
-            ),
-          },
-          {
-            key: "status",
-            header: t("columns.status"),
-            cell: (row) => (
-              <AdminBadge tone={statuses[row.status].tone} icon={statuses[row.status].icon}>
-                {t(`statuses.${row.status}`)}
-              </AdminBadge>
-            ),
-          },
-          {
-            key: "actions",
-            header: "",
-            align: "end",
-            cell: (row) => (
-              <RowActionMenu
-                name={t("versionOf", { name: t(`kinds.${row.kind}`), version: row.version })}
-                actions={[
-                  { label: `${t("view")} · ${soon}`, icon: EyeIcon, disabled: true },
-                  { label: `${t("copy")} · ${soon}`, icon: FilePlusIcon, disabled: true },
-                ]}
-              />
-            ),
-          },
-        ]}
-      />
+      <Card>
+        <Table>
+          <caption className="sr-only">{t("caption")}</caption>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-full">{t("columns.document")}</TableHead>
+              <TableHead>{t("columns.effectiveFrom")}</TableHead>
+              <TableHead>{t("columns.status")}</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {documents.map((row) => {
+              const name = t("versionOf", { name: t(`kinds.${row.kind}`), version: row.version });
+              const { variant, icon: Icon } = statuses[row.status];
+              return (
+                <TableRow key={row.id}>
+                  <TableCell className="w-full">
+                    <span className="flex items-center gap-3">
+                      <FileTextIcon aria-hidden className="size-5 shrink-0 text-primary" />
+                      <span className="block max-w-80 truncate text-body-sm-strong text-foreground">
+                        {name}
+                      </span>
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {row.effectiveFrom
+                      ? format.dateTime(new Date(row.effectiveFrom), "day")
+                      : t("noDay")}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={variant}>
+                      <Icon aria-hidden />
+                      {t(`statuses.${row.status}`)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={shell("rowActions", { name })}
+                          />
+                        }
+                      >
+                        <EllipsisIcon aria-hidden />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem disabled>
+                            <EyeIcon aria-hidden />
+                            {`${t("view")} · ${soon}`}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem disabled>
+                            <FilePlusIcon aria-hidden />
+                            {`${t("copy")} · ${soon}`}
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+        {documents.length === 0 && (
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <FileTextIcon aria-hidden />
+              </EmptyMedia>
+              <EmptyTitle>{t("empty")}</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
+        )}
+      </Card>
       {draft && <DraftEditor draft={draft} />}
     </div>
   );
@@ -128,63 +178,85 @@ function DraftEditor({ draft }: { draft: LegalDraft }) {
     { label: t("tools.link"), icon: LinkIcon },
   ];
 
+  // A button whose backend does not exist yet: off, with "Sắp có" under the pointer and on focus.
+  function soonButton(key: string, button: ReactElement) {
+    return (
+      <Tooltip key={key}>
+        <TooltipTrigger render={<span />}>{button}</TooltipTrigger>
+        <TooltipContent>{soon}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
   return (
-    <section
-      aria-labelledby="legal-draft-title"
-      className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
-        <h3 id="legal-draft-title" className="text-title text-foreground">
-          {t("draftTitle", { name: t(`kinds.${draft.kind}`), version: draft.version })}
-        </h3>
-        {draft.savedAt && (
-          <AdminBadge tone="neutral">
-            {t("draftSaved", { time: format.dateTime(new Date(draft.savedAt), "time") })}
-          </AdminBadge>
-        )}
-      </div>
-      <div
-        role="toolbar"
-        aria-label={t("tools.label")}
-        className="flex gap-1 border-y border-border bg-muted px-3 py-1"
-      >
-        {tools.map(({ label, icon: Icon }) => (
-          <Button key={label} variant="ghost" size="icon" disabled title={soon} aria-label={label}>
-            <Icon aria-hidden />
-          </Button>
-        ))}
-      </div>
-      <div className="px-5 py-4">
-        <Textarea
-          aria-label={t("body")}
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-          rows={8}
-        />
-      </div>
-      <div className="flex flex-wrap items-end gap-4 border-t border-border px-5 py-4">
-        <div className="w-full sm:w-48">
-          <TextField
-            id="legal-effective-from"
-            label={t("columns.effectiveFrom")}
-            type="date"
-            value={effectiveFrom}
-            onChange={setEffectiveFrom}
-          />
-        </div>
-        <label className="flex min-h-11 items-center gap-2 text-body-sm text-foreground">
-          <Checkbox checked={reconsent} onCheckedChange={setReconsent} />
-          {t("reconsent")}
-        </label>
-        <div className="ml-auto flex gap-3">
-          <Button variant="outline" disabled title={soon}>
-            {t("saveDraft")}
-          </Button>
-          <Button disabled title={soon}>
-            {t("publish")}
-          </Button>
-        </div>
-      </div>
+    <section aria-labelledby="legal-draft-title">
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h3 id="legal-draft-title">
+              {t("draftTitle", { name: t(`kinds.${draft.kind}`), version: draft.version })}
+            </h3>
+          </CardTitle>
+          {draft.savedAt && (
+            <CardAction>
+              <Badge variant="outline">
+                <ClockIcon aria-hidden />
+                {t("draftSaved", { time: format.dateTime(new Date(draft.savedAt), "time") })}
+              </Badge>
+            </CardAction>
+          )}
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <div role="toolbar" aria-label={t("tools.label")} className="flex gap-1">
+              {tools.map(({ label, icon: Icon }) =>
+                soonButton(
+                  label,
+                  <Button variant="ghost" size="icon" disabled aria-label={label}>
+                    <Icon aria-hidden />
+                  </Button>,
+                ),
+              )}
+            </div>
+            <Textarea
+              aria-label={t("body")}
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              rows={8}
+            />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <div className="flex w-full flex-wrap items-end gap-4">
+            <Field className="w-full sm:w-48">
+              <FieldLabel htmlFor="legal-effective-from">{t("columns.effectiveFrom")}</FieldLabel>
+              <Input
+                id="legal-effective-from"
+                type="date"
+                value={effectiveFrom}
+                onChange={(event) => setEffectiveFrom(event.target.value)}
+              />
+            </Field>
+            <Field orientation="horizontal" className="w-auto">
+              <Checkbox
+                id="legal-reconsent"
+                checked={reconsent}
+                onCheckedChange={(checked) => setReconsent(checked)}
+              />
+              <FieldLabel htmlFor="legal-reconsent">{t("reconsent")}</FieldLabel>
+            </Field>
+            <div className="ml-auto flex gap-3">
+              {soonButton(
+                "saveDraft",
+                <Button variant="outline" disabled>
+                  {t("saveDraft")}
+                </Button>,
+              )}
+              {soonButton("publish", <Button disabled>{t("publish")}</Button>)}
+            </div>
+          </div>
+        </CardFooter>
+      </Card>
     </section>
   );
 }

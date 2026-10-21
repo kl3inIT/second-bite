@@ -24,13 +24,19 @@ test.describe("the email settings", () => {
       page.getByRole("navigation", { name: "Mục cài đặt" }).getByRole("link", { name: "Email" }),
     ).toHaveAttribute("aria-current", "page");
     await expect(page.getByText("Đang dùng SMTP")).toBeVisible();
-    await expect(page.getByRole("radio", { name: "SMTP" })).toBeChecked();
+    await expect(page.getByRole("button", { name: "SMTP" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     await expect(page.getByLabel("Địa chỉ gửi")).toHaveValue("noreply@example.com");
     await expect(page.getByLabel("Tên người gửi")).toHaveValue("Second Bite");
     await expect(page.getByLabel("Host")).toHaveValue("smtp.example.com");
     await expect(page.getByLabel("Port")).toHaveValue("587");
-    await expect(page.getByRole("radio", { name: "STARTTLS" })).toBeChecked();
-    await expect(page.getByLabel("User")).toHaveValue("mailer@example.com");
+    await expect(page.getByRole("button", { name: "STARTTLS" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(page.getByLabel("Tên đăng nhập")).toHaveValue("mailer@example.com");
     await expect(password(page)).toHaveValue("");
     await expect(password(page)).toHaveAttribute("placeholder", kept);
     await expect(page.getByText("Cập nhật lần cuối lúc 14:20, 19/10/2026")).toBeVisible();
@@ -38,7 +44,7 @@ test.describe("the email settings", () => {
     await expectNoSeriousA11yViolations(page);
 
     await (await hydrated(page.getByText("Không mã hoá", { exact: true }))).click();
-    await expect(page.getByLabel("User")).toBeDisabled();
+    await expect(page.getByLabel("Tên đăng nhập")).toBeDisabled();
     await expect(password(page)).toBeDisabled();
     await expect(page.getByText("Bạn có thay đổi chưa lưu")).toBeVisible();
     await page.getByText("STARTTLS", { exact: true }).click();

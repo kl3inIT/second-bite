@@ -1,7 +1,5 @@
 import type { EmailSettingsBody, SaveEmailSettingsInputBody } from "@/lib/api/generated";
 
-import { clamp } from "../ui/numbers";
-
 export type EmailProvider = EmailSettingsBody["provider"];
 export type SmtpSecurity = EmailSettingsBody["smtpSecurity"];
 
@@ -50,7 +48,7 @@ export function emailDraft(saved: EmailSettingsBody | null): EmailDraft {
 /** A port as it is typed: digits only, never over 65535. */
 export function portInput(typed: string): string {
   const digits = typed.replace(/\D/g, "").slice(0, 5);
-  return digits === "" ? "" : String(clamp(Number(digits), 0, 65535));
+  return digits === "" ? "" : String(Math.min(Number(digits), 65535));
 }
 
 /**

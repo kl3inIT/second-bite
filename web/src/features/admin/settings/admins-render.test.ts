@@ -1,61 +1,65 @@
-import { createElement, type ReactNode } from "react";
+import { createElement, type ReactElement, type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { AccountBody } from "@/lib/api/generated";
 
 import { navigationMock, renderAdmin, textOf } from "../testing/render";
-import type { RowAction } from "../ui/row-action-menu";
 import { AddAdmin } from "./add-admin";
 import { AdminsTable } from "./admins-table";
 import { RevokeAdminDialog } from "./revoke-admin-dialog";
 
 vi.mock("@/i18n/navigation", () => navigationMock);
 
-// A dialog renders in a portal and a menu only once opened, neither on the server; here both are drawn open as
-// plain HTML, so their words, fields and locked actions are checked.
-vi.mock("../ui/confirm-dialog", async (original) => ({
-  ...(await original<Record<string, unknown>>()),
-  ConfirmDialog: ({
-    open,
-    title,
-    confirmLabel,
-    confirmDisabled,
-    confirmTitle,
-    children,
-    form,
-  }: {
-    open: boolean;
-    title: string;
-    confirmLabel: string;
-    confirmDisabled?: boolean;
-    confirmTitle?: string;
-    children?: ReactNode;
-    form?: ReactNode;
-  }) =>
-    createElement(
-      "section",
-      { "data-dialog": open ? "open" : "closed" },
-      createElement("h2", null, title),
-      children,
-      form,
-      createElement("button", { disabled: confirmDisabled, title: confirmTitle }, confirmLabel),
-    ),
-}));
-vi.mock("../ui/row-action-menu", () => ({
-  RowActionMenu: ({ name, actions }: { name: string; actions: RowAction[] }) =>
-    createElement(
-      "menu",
-      { "aria-label": name },
-      actions.map((action) =>
-        createElement(
-          "li",
-          { key: action.label, "aria-disabled": action.disabled, title: action.title },
-          action.label,
-        ),
-      ),
-    ),
+type Children = { children?: ReactNode };
+const { passThrough } = vi.hoisted(() => ({
+  passThrough: ({ children }: { children?: ReactNode }) => children,
 }));
 
+// A dialog renders in a portal, a menu and a tooltip only once opened, none of them on the server; here the shared
+// primitives are drawn open as plain HTML, so the dialogs' words and fields and the menus' locked actions with
+// their reasons are checked.
+vi.mock("@/components/ui/dialog", () => ({
+  Dialog: ({ open, children }: Children & { open: boolean }) =>
+    createElement("section", { "data-dialog": open ? "open" : "closed" }, children),
+  DialogContent: passThrough,
+  DialogHeader: passThrough,
+  DialogFooter: passThrough,
+  DialogTitle: ({ children }: Children) => createElement("h2", null, children),
+  DialogClose: ({ children }: Children) => createElement("button", { type: "button" }, children),
+}));
+vi.mock("@/components/ui/alert-dialog", () => ({
+  AlertDialog: ({ open, children }: Children & { open: boolean }) =>
+    createElement("section", { "data-dialog": open ? "open" : "closed" }, children),
+  AlertDialogContent: passThrough,
+  AlertDialogHeader: passThrough,
+  AlertDialogFooter: passThrough,
+  AlertDialogTitle: ({ children }: Children) => createElement("h2", null, children),
+  AlertDialogDescription: ({ children }: Children) => createElement("div", null, children),
+  AlertDialogCancel: ({ children }: Children) => createElement("button", null, children),
+  AlertDialogAction: ({ children, disabled }: Children & { disabled?: boolean }) =>
+    createElement("button", { disabled }, children),
+}));
+vi.mock("@/components/ui/dropdown-menu", () => ({
+  DropdownMenu: ({ children }: Children) => createElement("menu", null, children),
+  DropdownMenuTrigger: ({ render }: { render: ReactElement<{ "aria-label"?: string }> }) =>
+    createElement("button", { "aria-label": render.props["aria-label"] }),
+  DropdownMenuContent: passThrough,
+  DropdownMenuGroup: passThrough,
+  DropdownMenuItem: ({ children, disabled }: Children & { disabled?: boolean }) =>
+    createElement("li", { "aria-disabled": disabled ? "true" : "false" }, children),
+}));
+vi.mock("@/components/ui/tooltip", () => ({
+  Tooltip: passThrough,
+  TooltipTrigger: passThrough,
+  TooltipContent: ({ children }: Children) => createElement("span", { role: "tooltip" }, children),
+}));
+
+/** A row's ⋯ menu as plain HTML: its button's name, then its items, an item's icon left out. */
+function menuOf(html: string, email: string): string {
+  const start = html.indexOf(`<menu><button aria-label="Thao tác với ${email}"></button>`);
+  const menu = html.slice(start, html.indexOf("</menu>", start) + "</menu>".length);
+  return start < 0 ? "" : menu.replace(/<svg[^>]*>.*?<\/svg>/g, "");
+}
 const rows: AccountBody[] = [
   { id: "a1", email: "quantri@example.com", displayName: "", role: "admin" },
   { id: "a2", email: "ngocmai@example.com", displayName: "Ngọc Mai", role: "admin" },
@@ -76,21 +80,21 @@ describe("the admins (AD-AM1, AD-AM4)", () => {
     const html = renderAdmin(
       createElement(AdminsTable, { rows, viewerEmail: "quantri@example.com" }),
     );
-    expect(html).toContain(
-      '<menu aria-label="quantri@example.com"><li aria-disabled="true" title="Không thể thu hồi quyền của chính bạn">Thu hồi quyền</li></menu>',
+    expect(menuOf(html, "quantri@example.com")).toBe(
+      '<menu><button aria-label="Thao tác với quantri@example.com"></button><li aria-disabled="true">Thu hồi quyền</li><span role="tooltip">Không thể thu hồi quyền của chính bạn</span></menu>',
     );
-    expect(html).toContain(
-      '<menu aria-label="ngocmai@example.com"><li aria-disabled="false">Thu hồi quyền</li></menu>',
+    expect(menuOf(html, "ngocmai@example.com")).toBe(
+      '<menu><button aria-label="Thao tác với ngocmai@example.com"></button><li aria-disabled="false">Thu hồi quyền</li></menu>',
     );
-    expect(html).toContain(
-      '<menu aria-label="gialinh@example.com"><li aria-disabled="false">Thu hồi quyền</li></menu>',
+    expect(menuOf(html, "gialinh@example.com")).toBe(
+      '<menu><button aria-label="Thao tác với gialinh@example.com"></button><li aria-disabled="false">Thu hồi quyền</li></menu>',
     );
   });
 
   it("lock revoking the last admin", () => {
     const html = renderAdmin(createElement(AdminsTable, { rows: rows.slice(2) }));
-    expect(html).toContain(
-      '<menu aria-label="gialinh@example.com"><li aria-disabled="true" title="Phải còn ít nhất một quản trị viên">Thu hồi quyền</li></menu>',
+    expect(menuOf(html, "gialinh@example.com")).toBe(
+      '<menu><button aria-label="Thao tác với gialinh@example.com"></button><li aria-disabled="true">Thu hồi quyền</li><span role="tooltip">Phải còn ít nhất một quản trị viên</span></menu>',
     );
   });
 
@@ -108,7 +112,9 @@ describe("adding an admin (AD-AM2)", () => {
     expect(text).toContain("Thêm quản trị viên Thêm quản trị viên Email");
     expect(html).toContain('type="email"');
     expect(text).toContain("Email này phải đã đăng nhập bằng mã ít nhất một lần.");
-    expect(html).toMatch(/<button disabled="">Thêm quản trị viên<\/button>/);
+    expect(html).toMatch(
+      /<button(?=[^>]*type="submit")(?=[^>]*disabled="")[^>]*>Thêm quản trị viên<\/button>/,
+    );
   });
 });
 

@@ -10,16 +10,19 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { type ReactNode, useId } from "react";
+import { type ComponentProps, type ReactElement, type ReactNode, useId } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "@/i18n/navigation";
 import type { EmailSettingsBody } from "@/lib/api/generated";
 
 import { adminHref } from "../pages";
-import { AdminBadge } from "../ui/badge";
 import { emailConnected } from "./email-draft";
-import { TextField } from "./text-field";
 
 /**
  * The integrations (Figma AD-CD7), one card each. Brevo / SMTP reads the real email settings and opens them; SePay,
@@ -31,34 +34,40 @@ export function Integrations({ email }: { email: EmailSettingsBody | null }) {
   const connected = emailConnected(email);
   const secretSet = email?.provider === "brevo" ? email.brevoApiKeySet : email?.smtpPasswordSet;
 
+  // A button whose backend does not exist yet: off, with "Sắp có" under the pointer and on focus.
+  function soonButton(button: ReactElement) {
+    return (
+      <Tooltip>
+        <TooltipTrigger render={<span />}>{button}</TooltipTrigger>
+        <TooltipContent>{soon}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  // A field that cannot be filled until its integration has a backend.
+  function field(id: string, label: string, input: ComponentProps<typeof Input> = {}) {
+    return (
+      <Field>
+        <FieldLabel htmlFor={id}>{label}</FieldLabel>
+        <Input id={id} value="" readOnly disabled {...input} />
+      </Field>
+    );
+  }
+
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       <IntegrationCard icon={QrCodeIcon} name={t("sepay")} connected={false}>
-        <TextField
-          id="sepay-key"
-          label={t("apiKey")}
-          type="password"
-          value=""
-          onChange={() => undefined}
-          disabled
-        />
+        {field("sepay-key", t("apiKey"), { type: "password" })}
         <div className="flex flex-wrap gap-3">
-          <Button disabled title={soon}>
-            {t("connect")}
-          </Button>
+          {soonButton(<Button disabled>{t("connect")}</Button>)}
         </div>
       </IntegrationCard>
 
       <IntegrationCard icon={MailIcon} name={t("email")} connected={connected}>
-        <TextField
-          id="email-secret"
-          label={email?.provider === "brevo" ? t("apiKey") : t("smtpPassword")}
-          type="password"
-          value=""
-          onChange={() => undefined}
-          placeholder={secretSet ? t("kept") : undefined}
-          disabled
-        />
+        {field("email-secret", email?.provider === "brevo" ? t("apiKey") : t("smtpPassword"), {
+          type: "password",
+          placeholder: secretSet ? t("kept") : undefined,
+        })}
         <div className="flex flex-wrap gap-3">
           <Link
             href={adminHref("settingsEmail")}
@@ -66,45 +75,38 @@ export function Integrations({ email }: { email: EmailSettingsBody | null }) {
           >
             {t("openEmail")}
           </Link>
-          {connected && (
-            <Button variant="destructive" disabled title={soon}>
-              {t("disconnect")}
-            </Button>
-          )}
+          {connected &&
+            soonButton(
+              <Button variant="destructive" disabled>
+                {t("disconnect")}
+              </Button>,
+            )}
         </div>
       </IntegrationCard>
 
       <IntegrationCard icon={SmartphoneIcon} name={t("tasco")} connected={false}>
-        <TextField id="tasco-app" label={t("appId")} value="" onChange={() => undefined} disabled />
+        {field("tasco-app", t("appId"))}
         <div className="flex flex-wrap gap-3">
-          <Button disabled title={soon}>
-            {t("connect")}
-          </Button>
+          {soonButton(<Button disabled>{t("connect")}</Button>)}
         </div>
       </IntegrationCard>
 
       <IntegrationCard icon={WebhookIcon} name={t("webhook")} connected={false}>
-        <TextField
-          id="webhook-url"
-          label={t("webhookUrl")}
-          type="url"
-          value=""
-          onChange={() => undefined}
-          disabled
-        />
+        {field("webhook-url", t("webhookUrl"), { type: "url" })}
         <div className="flex flex-wrap gap-3">
-          <Button disabled title={soon}>
-            {t("connect")}
-          </Button>
-          <Button variant="outline" disabled title={soon}>
-            {t("test")}
-          </Button>
+          {soonButton(<Button disabled>{t("connect")}</Button>)}
+          {soonButton(
+            <Button variant="outline" disabled>
+              {t("test")}
+            </Button>,
+          )}
         </div>
       </IntegrationCard>
     </div>
   );
 }
 
+// One integration's card: its icon and name, whether it is connected, then its field and buttons.
 function IntegrationCard({
   icon: Icon,
   name,
@@ -119,28 +121,33 @@ function IntegrationCard({
   const t = useTranslations("admin.settings.integrations");
   const titleId = useId();
   return (
-    <section
-      aria-labelledby={titleId}
-      className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5"
-    >
-      <div className="flex items-center gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-secondary text-primary">
-          <Icon aria-hidden className="size-5" />
-        </span>
-        <h3 id={titleId} className="min-w-0 flex-1 text-title text-foreground">
-          {name}
-        </h3>
-        {connected ? (
-          <AdminBadge tone="success" icon={CircleCheckIcon}>
-            {t("connected")}
-          </AdminBadge>
-        ) : (
-          <AdminBadge tone="neutral" icon={ClockIcon}>
-            {t("notConnected")}
-          </AdminBadge>
-        )}
-      </div>
-      {children}
+    <section aria-labelledby={titleId}>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h3 id={titleId} className="flex items-center gap-3">
+              <Icon aria-hidden className="size-5 shrink-0 text-primary" />
+              {name}
+            </h3>
+          </CardTitle>
+          <CardAction>
+            {connected ? (
+              <Badge variant="fresh">
+                <CircleCheckIcon aria-hidden />
+                {t("connected")}
+              </Badge>
+            ) : (
+              <Badge variant="outline">
+                <ClockIcon aria-hidden />
+                {t("notConnected")}
+              </Badge>
+            )}
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4">{children}</div>
+        </CardContent>
+      </Card>
     </section>
   );
 }
