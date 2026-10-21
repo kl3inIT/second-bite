@@ -4,7 +4,7 @@ Design: [design.md](design.md). Tracked in Linear as SEC-117.
 
 | # | Step | State |
 | --- | --- | --- |
-| 1 | The hub in `platform`: `platform.Live` over coder/websocket and `LISTEN/NOTIFY`, with the `GET /live` handler, the heartbeat, the bounds, the deadlines cleared, close on shutdown and `resync`; its tests with two instances on one database | To do |
+| 1 | The hub in `platform`: `platform.Live` over coder/websocket and `LISTEN/NOTIFY`, with the `GET /live` handler, the heartbeat, the bounds, the deadlines cleared, close on shutdown and `resync`; its tests with two instances on one database | Done |
 | 2 | Live tickets in `order`: migration, mint for an order and for a seller, redeem once, the purge schedule; tests of who may mint | To do |
 | 3 | Notices from every path that changes an order (place, cancel, ready, hand over, reopen, refuse, withdrawn offer, moved window, expiry); a test per path, and none after a rollback | To do |
 | 4 | Chats in `order`: migration, list, send with `Idempotency-Key` and the bounds, seen, `unreadMessages` on the order, the failure codes with their words; database tests | To do |
