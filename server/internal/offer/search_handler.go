@@ -46,6 +46,18 @@ func toFoundBody(f Found) foundBody {
 	return b
 }
 
+// photosOf is a cover and the photos after it, in the order they are shown.
+func photosOf(cover uuid.UUID, more []uuid.UUID) []offerPhotoBody {
+	photos := make([]offerPhotoBody, 0, 1+len(more))
+	photos = append(photos, *photoOf(cover))
+
+	for _, id := range more {
+		photos = append(photos, *photoOf(id))
+	}
+
+	return photos
+}
+
 func photoOf(id uuid.UUID) *offerPhotoBody {
 	return &offerPhotoBody{ID: id, LargePath: file.Path(id, file.SizeLarge), SmallPath: file.Path(id, file.SizeSmall)}
 }

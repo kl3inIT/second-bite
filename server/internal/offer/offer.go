@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -119,7 +120,7 @@ func (s *Service) Post(ctx context.Context, sellerID uuid.UUID, d Details) (Offe
 		return Offer{}, err
 	}
 
-	if err := s.usePhoto(ctx, sellerID, d.PhotoID, caller.AccountID); err != nil {
+	if err := s.usePhotos(ctx, sellerID, caller.AccountID, d.PhotoID, d.MorePhotoIDs, uuid.Nil, nil); err != nil {
 		return Offer{}, err
 	}
 
@@ -127,7 +128,7 @@ func (s *Service) Post(ctx context.Context, sellerID uuid.UUID, d Details) (Offe
 		SellerID: sellerID, PostedBy: caller.AccountID, Name: d.Name, Description: d.Description,
 		Kind: string(d.Kind), Unit: d.Unit, Units: int32(d.Units), //nolint:gosec // at most 999
 		PriceVnd: d.PriceVND, OriginalPriceVnd: d.OriginalPriceVND, WeightGrams: weight(d.WeightGrams),
-		PhotoID: d.PhotoID, WindowStart: d.WindowStart, WindowEnd: d.WindowEnd,
+		PhotoID: d.PhotoID, MorePhotoIds: d.MorePhotoIDs, WindowStart: d.WindowStart, WindowEnd: d.WindowEnd,
 		Latitude: publisher.Latitude, Longitude: publisher.Longitude, Address: publisher.Address,
 		SellerName: publisher.Name, SearchVector: Offer{Details: d, sellerName: publisher.Name}.searchText(),
 	})
@@ -210,6 +211,7 @@ type Change struct {
 	OriginalPriceVND *int64
 	WeightGrams      *int
 	PhotoID          *uuid.UUID
+	MorePhotoIDs     *[]uuid.UUID
 	WindowStart      *time.Time
 	WindowEnd        *time.Time
 }
@@ -287,7 +289,7 @@ func (s *Service) changeIn(
 		ID: id, Name: next.Name, Description: next.Description, Kind: string(next.Kind), Unit: next.Unit,
 		Units: int32(next.Units), UnitsLeft: int32(next.Units - ordered), //nolint:gosec // at most 999
 		PriceVnd: next.PriceVND, OriginalPriceVnd: next.OriginalPriceVND, WeightGrams: weight(next.WeightGrams),
-		PhotoID: next.PhotoID, WindowStart: next.WindowStart, WindowEnd: next.WindowEnd,
+		PhotoID: next.PhotoID, MorePhotoIds: next.MorePhotoIDs, WindowStart: next.WindowStart, WindowEnd: next.WindowEnd,
 		SearchVector: Offer{Details: next, sellerName: o.sellerName}.searchText(),
 	}); err != nil {
 		return err
@@ -392,6 +394,10 @@ func (c Change) appliedTo(d Details) Details {
 		d.WeightGrams = c.WeightGrams
 	}
 
+	if c.MorePhotoIDs != nil {
+		d.MorePhotoIDs = *c.MorePhotoIDs
+	}
+
 	return d
 }
 
@@ -428,10 +434,8 @@ func (s *Service) applyChange(ctx context.Context, o Offer, c Change, set Settin
 		}
 	}
 
-	if next.PhotoID != o.PhotoID {
-		if err := s.usePhoto(ctx, o.SellerID, next.PhotoID, accountID); err != nil {
-			return Details{}, err
-		}
+	if err := s.usePhotos(ctx, o.SellerID, accountID, next.PhotoID, next.MorePhotoIDs, o.PhotoID, o.MorePhotoIDs); err != nil {
+		return Details{}, err
 	}
 
 	return next, nil
@@ -502,6 +506,24 @@ func (s *Service) usePhoto(ctx context.Context, sellerID, photoID, accountID uui
 	return s.files.Claim(ctx, photoID, accountID)
 }
 
+// usePhotos lets a dish or an offer show a cover and up to two more photos, claiming each one it did not show
+// before (earlier is what it showed until now).
+func (s *Service) usePhotos(
+	ctx context.Context, sellerID, accountID, cover uuid.UUID, more []uuid.UUID, earlierCover uuid.UUID, earlierMore []uuid.UUID,
+) error {
+	for _, id := range append([]uuid.UUID{cover}, more...) {
+		if id == earlierCover || slices.Contains(earlierMore, id) {
+			continue
+		}
+
+		if err := s.usePhoto(ctx, sellerID, id, accountID); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *Service) read(ctx context.Context, id uuid.UUID) (Offer, error) {
 	row, err := s.queries.GetOffer(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -519,7 +541,7 @@ func (s *Service) fromRow(r db.GetOfferRow) Offer {
 	o := Offer{
 		ID: r.ID, SellerID: r.SellerID,
 		Name: r.Name, Description: r.Description, Kind: Kind(r.Kind), Unit: r.Unit, Units: int(r.Units),
-		PriceVND: r.PriceVnd, OriginalPriceVND: r.OriginalPriceVnd, PhotoID: r.PhotoID,
+		PriceVND: r.PriceVnd, OriginalPriceVND: r.OriginalPriceVnd, PhotoID: r.PhotoID, MorePhotoIDs: r.MorePhotoIds,
 		WindowStart: r.WindowStart, WindowEnd: r.WindowEnd,
 		UnitsLeft:       int(r.UnitsLeft),
 		DiscountPercent: discountPercent(r.PriceVnd, r.OriginalPriceVnd),

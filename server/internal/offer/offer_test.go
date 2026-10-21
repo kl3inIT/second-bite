@@ -46,6 +46,7 @@ func TestOffer(t *testing.T) {
 			"a post follows the rules of its fields":      testPostFollowsFieldRules,
 			"only an active seller's people post":         testOnlyActiveSellersPeoplePost,
 			"a photo is the poster's or the seller's":     testPhotoIsPostersOrSellers,
+			"a dish and an offer show up to three photos": testUpToThreePhotos,
 			"orders limit what changes":                   testOrdersLimitWhatChanges,
 			"orders let the window move":                  testOrdersLetTheWindowMove,
 			"ended offers are closed in the table":        testEndedOffersAreClosed,
@@ -775,4 +776,73 @@ func testCatalogHoldsAHundredDishes(t *testing.T, f fixture) {
 
 	_, err := f.offers.AddDish(owner, sellerID, offer.DishDetails{Name: "Một món nữa", Kind: offer.KindOther, PhotoID: photo})
 	mustFail(t, "the 101st dish", err, offer.ErrDishLimitReached)
+}
+
+// A dish and an offer show up to three photos, the first being the cover (SEC-119).
+func testUpToThreePhotos(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	other := f.as(t, "other", platform.RoleCustomer)
+	sellerID := f.activeSeller(owner, t)
+	otherSeller := f.activeSeller(other, t)
+
+	cover, second, third, fourth := f.photo(owner, t), f.photo(owner, t), f.photo(owner, t), f.photo(owner, t)
+	dish := offer.DishDetails{Name: "Xôi", Kind: offer.KindPreparedFood, PhotoID: cover}
+
+	for name, more := range map[string][]uuid.UUID{
+		"three photos after the cover": {second, third, fourth},
+		"the cover again":              {cover},
+		"a photo twice":                {second, second},
+		"no photo at all":              {uuid.Nil},
+	} {
+		d := dish
+		d.MorePhotoIDs = more
+		_, err := f.offers.AddDish(owner, sellerID, d)
+		mustFail(t, name, err, offer.ErrDetailsInvalid)
+	}
+
+	_, err := f.offers.AddDish(owner, sellerID, offer.DishDetails{
+		Name: "Xôi", Kind: offer.KindPreparedFood, PhotoID: cover, MorePhotoIDs: []uuid.UUID{f.photo(other, t)},
+	})
+	mustFail(t, "a photo someone else uploaded", err, file.ErrPhotoNotFound)
+
+	dish.MorePhotoIDs = []uuid.UUID{second, third}
+
+	kept, err := f.offers.AddDish(owner, sellerID, dish)
+	if err != nil || len(kept.MorePhotoIDs) != 2 || kept.MorePhotoIDs[0] != second || kept.PhotoID != cover {
+		t.Fatalf("a dish with three photos: %+v, %v", kept, err)
+	}
+
+	// An offer shows the photos its seller already shows, and no other seller may.
+	d := bread(cover)
+	d.MorePhotoIDs = []uuid.UUID{second, third}
+
+	posted, err := f.offers.Post(owner, sellerID, d)
+	if err != nil || len(posted.MorePhotoIDs) != 2 {
+		t.Fatalf("an offer with three photos: %+v, %v", posted, err)
+	}
+
+	got, err := f.offers.Get(owner, posted.ID)
+	if err != nil || len(got.MorePhotoIDs) != 2 || got.MorePhotoIDs[1] != third {
+		t.Fatalf("the offer read again: %+v, %v", got, err)
+	}
+
+	stolen := bread(f.photo(other, t))
+	stolen.MorePhotoIDs = []uuid.UUID{second}
+	_, err = f.offers.Post(other, otherSeller, stolen)
+	mustFail(t, "another seller taking a seller's extra photo", err, file.ErrPhotoNotFound)
+
+	// A change replaces the photos after the cover, and an empty list takes them away.
+	none := []uuid.UUID{}
+
+	if cleared, err := f.offers.ChangeDish(owner, kept.ID, offer.DishChange{MorePhotoIDs: &none}); err != nil || len(cleared.MorePhotoIDs) != 0 {
+		t.Fatalf("a dish with only its cover: %+v, %v", cleared, err)
+	}
+
+	only := []uuid.UUID{third}
+
+	if changed, err := f.offers.Change(owner, posted.ID, offer.Change{MorePhotoIDs: &only}); err != nil || len(changed.MorePhotoIDs) != 1 {
+		t.Fatalf("an offer with two photos: %+v, %v", changed, err)
+	}
 }
