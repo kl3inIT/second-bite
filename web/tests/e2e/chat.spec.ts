@@ -10,23 +10,37 @@ test.setTimeout(90_000);
 const ORDER_URL = /\/vi\/orders\/[0-9a-f-]{36}$/;
 const WIDTHS = [390, 768, 1440];
 
-/** The live socket of the page, answered the way the server does: each ticket confirms the topic it opens. */
-type Live = { push: (notice: object) => void };
+/**
+ * The live socket of the page, answered the way the server does: each ticket confirms the topic it opens. A notice
+ * is pushed once the page has subscribed to its order, as one sent before would be lost.
+ */
+type Live = {
+  push: (notice: { type: string; orderId: string; [field: string]: unknown }) => Promise<void>;
+};
 
 async function liveSocket(page: Page): Promise<Live> {
-  const sockets: WebSocketRoute[] = [];
+  const sockets = new Map<WebSocketRoute, Set<string>>();
   await page.routeWebSocket(/\/api\/live$/, (socket) => {
-    sockets.push(socket);
+    const topics = new Set<string>();
+    sockets.set(socket, topics);
+    socket.onClose(() => sockets.delete(socket));
     socket.onMessage((raw) => {
       const frame = JSON.parse(String(raw)) as { type: string; ticket: string };
-      if (frame.type === "subscribe") {
-        socket.send(
-          JSON.stringify({ type: "subscribed", topic: frame.ticket.replace(/^tk-/, "") }),
-        );
-      }
+      if (frame.type !== "subscribe") return;
+      const topic = frame.ticket.replace(/^tk-/, "");
+      topics.add(topic);
+      socket.send(JSON.stringify({ type: "subscribed", topic }));
     });
   });
-  return { push: (notice) => sockets.forEach((socket) => socket.send(JSON.stringify(notice))) };
+  return {
+    push: async (notice) => {
+      const topic = `order:${notice.orderId}`;
+      await expect.poll(() => [...sockets.values()].some((topics) => topics.has(topic))).toBe(true);
+      for (const [socket, topics] of sockets) {
+        if (topics.has(topic)) socket.send(JSON.stringify(notice));
+      }
+    },
+  };
 }
 
 /** A socket that never opens, so the pages fall back to polling after three tries (design decision 29). */
@@ -63,14 +77,14 @@ test.describe("the live order pages", () => {
     const live = await liveSocket(page);
     const orderId = await placeOrder(page, "0900000011");
     await page.request.post(`/api/orders/${orderId}/ready`);
-    live.push({ type: "order", orderId, status: "ready" });
+    await live.push({ type: "order", orderId, status: "ready" });
     await expect(page.getByText("Món đã sẵn sàng")).toBeVisible();
     await expect(page.getByText(/^Đưa mã QR cho quầy quét/)).toBeVisible();
     await expect(page.getByRole("button", { name: "Huỷ đơn" })).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
 
     await page.request.post(`/api/orders/${orderId}/hand-over`);
-    live.push({ type: "order", orderId, status: "collected" });
+    await live.push({ type: "order", orderId, status: "collected" });
     await expect(page.getByText(/^Đã nhận món lúc/)).toBeVisible();
   });
 
@@ -95,7 +109,7 @@ for (const width of WIDTHS) {
       const orderId = await placeOrder(page, `09000000${width % 100}`);
 
       await sellerSays(page, orderId, "Quán đã chuẩn bị xong rồi nhé.");
-      live.push({ type: "message", orderId, seq: 1, from: "seller" });
+      await live.push({ type: "message", orderId, seq: 1, from: "seller" });
       await expect(page.getByText("Quán vừa nhắn")).toBeVisible();
       await expect(page.getByText("“Quán đã chuẩn bị xong rồi nhé.”")).toBeVisible();
 
@@ -116,7 +130,7 @@ for (const width of WIDTHS) {
       await expect(log.getByText("Mình đang tới")).toBeVisible();
 
       await sellerSays(page, orderId, "Cảm ơn bạn!");
-      live.push({ type: "message", orderId, seq: 4, from: "seller" });
+      await live.push({ type: "message", orderId, seq: 4, from: "seller" });
       await expect(log.getByText("Cảm ơn bạn!")).toBeVisible();
       await expectNoSeriousA11yViolations(page);
     });
@@ -144,8 +158,12 @@ for (const width of WIDTHS) {
 
       const cancelled = await placeOrder(page, `09000003${width % 100}`);
       await sellerSays(page, cancelled, "Quán xin lỗi, hết món");
-      await page.request.post(`/api/orders/${cancelled}/cancel`, { data: {} });
-      await page.goto(`/vi/orders/${cancelled}`);
+      await page.reload();
+      await (await hydrated(page.getByRole("button", { name: /^Huỷ đơn/ }))).click();
+      const cancel = page.getByRole("alertdialog", { name: /Huỷ đơn SB-\d+\?/ });
+      await cancel.getByRole("button", { name: "Không đến kịp" }).click();
+      await cancel.getByRole("button", { name: "Huỷ đơn" }).click();
+      await expect(page.getByText(/^Đã huỷ lúc/)).toBeVisible();
       await page.getByRole("link", { name: "Xem tin nhắn" }).click();
       await expect(page.getByRole("textbox")).toHaveCount(0);
       await expect(page.getByText("Đơn đã kết thúc, chỉ xem lại tin nhắn.")).toBeVisible();
