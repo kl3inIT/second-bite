@@ -16,6 +16,9 @@ abstract class DishChangeBody with _$DishChangeBody {
     bool? hidden,
     String? ingredients,
     DishChangeBodyKind? kind,
+
+    /// Replaces the photos after the cover; at most two
+    List<String>? morePhotoIds,
     String? name,
     int? originalPriceVnd,
     String? photoId,

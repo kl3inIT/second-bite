@@ -14,6 +14,9 @@ abstract class OfferChangeBody with _$OfferChangeBody {
   const factory OfferChangeBody({
     String? description,
     OfferChangeBodyKind? kind,
+
+    /// Replaces the photos after the cover; at most two
+    List<String>? morePhotoIds,
     String? name,
     int? originalPriceVnd,
     String? photoId,
