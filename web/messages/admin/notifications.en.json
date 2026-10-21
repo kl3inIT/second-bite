@@ -34,6 +34,7 @@
   },
   "unscheduled": "No time set",
   "summary": "Showing {from}–{to} of {total} campaigns",
+  "pageOf": "{page} / {pages}",
   "empty": "No notifications sent yet",
   "emptyFiltered": "No campaigns match these filters",
   "actions": {

@@ -34,6 +34,7 @@
   },
   "unscheduled": "Chưa hẹn giờ",
   "summary": "Hiển thị {from}–{to} trên {total} chiến dịch",
+  "pageOf": "{page} / {pages}",
   "empty": "Chưa gửi thông báo nào",
   "emptyFiltered": "Không có chiến dịch nào khớp bộ lọc",
   "actions": {

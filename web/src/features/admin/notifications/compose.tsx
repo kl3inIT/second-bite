@@ -4,21 +4,16 @@ import { CheckIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldError, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-import {
-  ChoiceRow,
-  FieldLabel,
-  FieldProblem,
-  GroupLabel,
-  SwitchField,
-  TextField,
-} from "../ui/form-fields";
 import { vietnamDay } from "../promotions/schedule";
-import { SoonBadge } from "../ui/soon-badge";
-import { PageHeader } from "../ui/page-header";
-import { SegmentedControl } from "../ui/segmented-control";
 import {
   blankCompose,
   type ComposeForm,
@@ -49,45 +44,53 @@ export function ComposeEditor() {
 
   return (
     <>
-      <PageHeader
-        title={t("title")}
-        actions={
-          <>
-            <SoonBadge id={soonId} />
-            <Button variant="outline" disabled title={tShell("soon")} aria-describedby={soonId}>
-              {t("test")}
-            </Button>
-            <Button disabled title={tShell("soon")} aria-describedby={soonId}>
-              <CheckIcon data-icon="inline-start" aria-hidden />
-              {t("schedule")}
-            </Button>
-          </>
-        }
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-page-title text-foreground">{t("title")}</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <Badge variant="outline" id={soonId}>
+            {tShell("soon")}
+          </Badge>
+          <Button variant="outline" disabled aria-describedby={soonId}>
+            {t("test")}
+          </Button>
+          <Button disabled aria-describedby={soonId}>
+            <CheckIcon data-icon="inline-start" aria-hidden />
+            {t("schedule")}
+          </Button>
+        </div>
+      </div>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <section
-          aria-labelledby="compose-form-title"
-          className="flex min-w-0 flex-1 flex-col gap-5 rounded-2xl border border-border bg-card p-6"
-        >
-          <h2 id="compose-form-title" className="text-title-lg text-foreground">
-            {t("formTitle")}
-          </h2>
-          <ComposeFields form={form} onChange={setForm} />
+        <section aria-labelledby="compose-form-title" className="min-w-0 flex-1">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2 id="compose-form-title">{t("formTitle")}</h2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-5">
+                <ComposeFields form={form} onChange={setForm} />
+              </div>
+            </CardContent>
+          </Card>
         </section>
-        <section
-          aria-labelledby="compose-preview-title"
-          className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 lg:w-110 lg:shrink-0"
-        >
-          <h2 id="compose-preview-title" className="text-title-lg text-foreground">
-            {t("previewTitle")}
-          </h2>
-          <NotificationPreview
-            channel={form.channel}
-            title={form.title}
-            body={form.body}
-            day={form.day}
-            time={form.time}
-          />
+        <section aria-labelledby="compose-preview-title" className="lg:w-110 lg:shrink-0">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2 id="compose-preview-title">{t("previewTitle")}</h2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <NotificationPreview
+                channel={form.channel}
+                title={form.title}
+                body={form.body}
+                day={form.day}
+                time={form.time}
+              />
+            </CardContent>
+          </Card>
         </section>
       </div>
     </>
@@ -109,90 +112,115 @@ export function ComposeFields({
   const [today] = useState(() => vietnamDay(new Date()));
   const problems = composeProblems(form);
   const set = (change: Partial<ComposeForm>) => setForm((current) => ({ ...current, ...change }));
+  const titleProblem = touched.title && problems.includes("title");
   const bodyProblem = touched.body && problems.includes("body");
 
   return (
     <>
-      <div className="flex flex-col gap-1.5">
-        <GroupLabel>{t("channel")}</GroupLabel>
-        <ChoiceRow>
-          <SegmentedControl<NotificationChannel>
-            label={t("channel")}
-            value={form.channel}
-            segments={notificationChannels.map((channel) => ({
-              value: channel,
-              label: t(`channels.${channel}`),
-            }))}
-            onChange={(channel) => set({ channel })}
-          />
-        </ChoiceRow>
-      </div>
+      <FieldSet>
+        <FieldLegend variant="label">{t("channel")}</FieldLegend>
+        <ToggleGroup
+          variant="outline"
+          value={[form.channel]}
+          onValueChange={([channel]) => {
+            if (channel) set({ channel: channel as NotificationChannel });
+          }}
+          className="max-w-full overflow-x-auto"
+        >
+          {notificationChannels.map((channel) => (
+            <ToggleGroupItem key={channel} value={channel} className="h-11">
+              {t(`channels.${channel}`)}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </FieldSet>
 
-      <div className="flex flex-col gap-1.5">
-        <GroupLabel>{t("audience")}</GroupLabel>
-        <ChoiceRow>
-          <SegmentedControl<NotificationAudience>
-            label={t("audience")}
-            value={form.audience}
-            segments={notificationAudiences.map((audience) => ({
-              value: audience,
-              label: t(`audiences.${audience}`),
-            }))}
-            onChange={(audience) => set({ audience })}
-          />
-        </ChoiceRow>
-      </div>
+      <FieldSet>
+        <FieldLegend variant="label">{t("audience")}</FieldLegend>
+        <ToggleGroup
+          variant="outline"
+          value={[form.audience]}
+          onValueChange={([audience]) => {
+            if (audience) set({ audience: audience as NotificationAudience });
+          }}
+          className="max-w-full overflow-x-auto"
+        >
+          {notificationAudiences.map((audience) => (
+            <ToggleGroupItem key={audience} value={audience} className="h-11">
+              {t(`audiences.${audience}`)}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </FieldSet>
 
-      <TextField
-        id={`${id}-title`}
-        label={t("titleField")}
-        value={form.title}
-        maxLength={composeLimits.title}
-        onChange={(title) => set({ title })}
-        onBlur={() => setTouched((current) => ({ ...current, title: true }))}
-        problem={touched.title && problems.includes("title") ? t("titleProblem") : undefined}
-      />
+      <Field data-invalid={titleProblem || undefined}>
+        <FieldLabel htmlFor={`${id}-title`}>{t("titleField")}</FieldLabel>
+        <Input
+          id={`${id}-title`}
+          value={form.title}
+          maxLength={composeLimits.title}
+          autoComplete="off"
+          aria-invalid={titleProblem || undefined}
+          aria-describedby={titleProblem ? `${id}-title-problem` : undefined}
+          onChange={(event) => set({ title: event.target.value })}
+          onBlur={() => setTouched((current) => ({ ...current, title: true }))}
+        />
+        {titleProblem && <FieldError id={`${id}-title-problem`}>{t("titleProblem")}</FieldError>}
+      </Field>
 
-      <div className="flex flex-col gap-1.5">
+      <Field data-invalid={bodyProblem || undefined}>
         <FieldLabel htmlFor={`${id}-body`}>{t("body")}</FieldLabel>
         <Textarea
           id={`${id}-body`}
           value={form.body}
           rows={3}
           maxLength={composeLimits.body}
-          aria-invalid={bodyProblem ? true : undefined}
+          aria-invalid={bodyProblem || undefined}
           aria-describedby={bodyProblem ? `${id}-body-problem` : undefined}
           onChange={(event) => set({ body: event.target.value })}
           onBlur={() => setTouched((current) => ({ ...current, body: true }))}
         />
-        {bodyProblem && <FieldProblem id={`${id}-body-problem`}>{t("bodyProblem")}</FieldProblem>}
-      </div>
+        {bodyProblem && <FieldError id={`${id}-body-problem`}>{t("bodyProblem")}</FieldError>}
+      </Field>
 
       <div className="flex flex-col gap-4 sm:flex-row">
-        <TextField
-          id={`${id}-day`}
-          type="date"
-          label={t("day")}
-          value={form.day}
-          min={today}
-          onChange={(day) => day && setForm((current) => withDay(current, day, new Date()))}
-        />
-        <TextField
-          id={`${id}-time`}
-          type="time"
-          label={t("time")}
-          value={form.time}
-          min={form.quiet ? quietHours.until : undefined}
-          max={form.quiet ? quietHours.lastMinute : undefined}
-          onChange={(time) => time && setForm((current) => withTime(current, time))}
-        />
+        <Field>
+          <FieldLabel htmlFor={`${id}-day`}>{t("day")}</FieldLabel>
+          <Input
+            id={`${id}-day`}
+            type="date"
+            value={form.day}
+            min={today}
+            onChange={(event) => {
+              const day = event.target.value;
+              if (day) setForm((current) => withDay(current, day, new Date()));
+            }}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${id}-time`}>{t("time")}</FieldLabel>
+          <Input
+            id={`${id}-time`}
+            type="time"
+            value={form.time}
+            min={form.quiet ? quietHours.until : undefined}
+            max={form.quiet ? quietHours.lastMinute : undefined}
+            onChange={(event) => {
+              const time = event.target.value;
+              if (time) setForm((current) => withTime(current, time));
+            }}
+          />
+        </Field>
       </div>
 
-      <SwitchField
-        label={t("quiet")}
-        checked={form.quiet}
-        onChange={(quiet) => setForm((current) => withQuiet(current, quiet))}
-      />
+      <Field orientation="horizontal" className="min-h-11">
+        <Switch
+          id={`${id}-quiet`}
+          checked={form.quiet}
+          onCheckedChange={(quiet) => setForm((current) => withQuiet(current, quiet))}
+        />
+        <FieldLabel htmlFor={`${id}-quiet`}>{t("quiet")}</FieldLabel>
+      </Field>
     </>
   );
 }
