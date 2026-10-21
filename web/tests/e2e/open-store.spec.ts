@@ -341,6 +341,34 @@ test.describe("changing a post on the web", () => {
     await expect(page.getByRole("listitem").filter({ hasText: /Còn 2\/4 suất/ })).toBeVisible();
   });
 
+  test("searches the posts by name and picks a day", async ({ page }, testInfo) => {
+    const store = await storeNamed(page, "thu", testInfo, "Tiệm bánh Pháp");
+    await page.goto(`/vi/stores/${store}/offers`);
+    await expect(page.getByRole("heading", { level: 2, name: "Hôm nay" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Đã hết · 1" })).toBeVisible();
+
+    await (await hydrated(page.getByLabel("Tìm bài đăng"))).fill("croissant");
+    await expect(page).toHaveURL(/q=croissant/);
+    await expect(page.getByRole("link", { name: "Đang bán · 1" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Đã hết · 0" })).toBeVisible();
+
+    await page.getByLabel("Tìm bài đăng").fill("xyz");
+    await expect(page.getByText("Không có bài nào khớp “xyz”.")).toBeVisible();
+    await page.getByLabel("Tìm bài đăng").fill("");
+    await expect(page.getByRole("link", { name: "Đã hết · 1" })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole("link", { name: "Ngày trước" }).click();
+    await expect(page).toHaveURL(/day=d{4}-d{2}-d{2}/);
+    await expect(page.getByText("Chưa có bài đăng nào ngày này.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Đang bán · 0" })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole("button", { name: /^Chọn ngày/ }).click();
+    await page.getByRole("link", { name: "Hôm nay" }).click();
+    await expect(page.getByRole("link", { name: "Đang bán · 1" })).toBeVisible();
+  });
+
   test("withdraws a post nobody has ordered into Đã đóng", async ({ page }, testInfo) => {
     const store = await storeNamed(page, "khoa", testInfo, "Tiệm bánh Pháp");
     await page.goto(`/vi/stores/${store}/offers`);
