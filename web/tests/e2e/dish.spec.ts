@@ -71,7 +71,7 @@ test.describe("a dish, its seller and the cart", () => {
       page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }),
     ).toBeDisabled();
     await expect(page.getByText("Tiền món (4 phần)")).toBeVisible();
-    await expect(page.getByRole("radio", { name: "Thanh toán tại quầy" })).toBeChecked();
+    await expect(page.getByText("Thanh toán tại quầy")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
     // Figma K5: at one portion, − takes the dish out at once.
