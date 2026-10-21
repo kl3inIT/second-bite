@@ -15,33 +15,18 @@ async function signInAsAdmin(page: Page, name: string) {
   return email;
 }
 
-// SEC-75 › Settings › Quản trị viên: who administers, granting by address, revoking after asking.
+// SEC-75 › the admins, on the accounts page (SEC-106 folded Settings › Quản trị viên into it): an address
+// granted from the page's head, a revoke from a row's menu after asking, never one's own.
 test.describe("the admins", () => {
-  test("lists the admins, the caller marked and never revocable", async ({ page }, testInfo) => {
-    const me = await signInAsAdmin(page, `admins.list.${testInfo.project.name}`);
-    await page.goto("/vi/admin/settings/admins");
-
-    await expect(
-      page
-        .getByRole("navigation", { name: "Mục cài đặt" })
-        .getByRole("link", { name: "Quản trị viên" }),
-    ).toHaveAttribute("aria-current", "page");
-    const table = page.getByRole("table", { name: "Quản trị viên" });
-    await expect(table.getByRole("row")).toHaveCount(4);
-    const mine = table.getByRole("row").filter({ hasText: me });
-    await expect(mine).toContainText("Bạn");
-
-    // The caller's own revoke stays in the row's menu, disabled, with its reason.
-    await (await hydrated(mine.getByRole("button", { name: `Thao tác cho ${me}` }))).click();
-    const revoke = page.getByRole("menuitem", { name: /Thu quyền quản trị/ });
-    await expect(revoke).toHaveAttribute("aria-disabled", "true");
-    await expect(revoke).toContainText("Không tự thu quyền của mình");
-    await expectNoSeriousA11yViolations(page);
-  });
-
-  test("grants an address, and refuses one that is not", async ({ page }, testInfo) => {
+  test("an address is made an admin from the accounts, and one that is not is refused", async ({
+    page,
+  }, testInfo) => {
     await signInAsAdmin(page, `admins.grant.${testInfo.project.name}`);
-    await page.goto("/vi/admin/settings/admins");
+    await page.goto("/vi/admin/accounts?role=admin");
+    await expect(page.getByRole("tab", { name: /Quản trị\s*3/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
 
     await (await hydrated(page.getByRole("button", { name: "Thêm quản trị viên" }))).click();
     const dialog = page.getByRole("dialog", { name: "Thêm quản trị viên" });
@@ -54,15 +39,31 @@ test.describe("the admins", () => {
     await dialog.getByRole("button", { name: "Cấp quyền" }).click();
     await expect(page.getByText("Đã cấp quyền quản trị cho lan.moi@example.com")).toBeVisible();
     await expect(dialog).toBeHidden();
-    await expect(page.getByRole("table", { name: "Quản trị viên" }).getByRole("row")).toHaveCount(
-      5,
+    await expect(page.getByRole("tab", { name: /Quản trị\s*4/ })).toBeVisible();
+    await expect(page.getByRole("table", { name: "Tài khoản" })).toContainText(
+      "lan.moi@example.com",
     );
   });
 
-  test("revokes another admin after asking", async ({ page }, testInfo) => {
+  test("one's own revoke is in the menu, disabled, with its reason", async ({ page }, testInfo) => {
+    const me = await signInAsAdmin(page, `admins.self.${testInfo.project.name}`);
+    await page.goto("/vi/admin/accounts?role=admin");
+    const mine = page
+      .getByRole("table", { name: "Tài khoản" })
+      .getByRole("row")
+      .filter({ hasText: me });
+
+    await (await hydrated(mine.getByRole("button", { name: `Thao tác cho ${me}` }))).click();
+    const revoke = page.getByRole("menuitem", { name: /Thu quyền quản trị/ });
+    await expect(revoke).toHaveAttribute("aria-disabled", "true");
+    await expect(revoke).toContainText("Không tự thu quyền của mình");
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  test("another admin is revoked from their row after asking", async ({ page }, testInfo) => {
     await signInAsAdmin(page, `admins.revoke.${testInfo.project.name}`);
-    await page.goto("/vi/admin/settings/admins");
-    const table = page.getByRole("table", { name: "Quản trị viên" });
+    await page.goto("/vi/admin/accounts?role=admin");
+    const table = page.getByRole("table", { name: "Tài khoản" });
 
     await (
       await hydrated(table.getByRole("button", { name: "Thao tác cho thu.admin@example.com" }))
@@ -76,7 +77,7 @@ test.describe("the admins", () => {
     await ask.getByRole("button", { name: "Thu quyền" }).click();
 
     await expect(page.getByText("Đã thu quyền quản trị của thu.admin@example.com")).toBeVisible();
-    await expect(table.getByRole("row")).toHaveCount(3);
+    await expect(page.getByRole("tab", { name: /Quản trị\s*2/ })).toBeVisible();
     await expect(table).not.toContainText("thu.admin@example.com");
   });
 });
