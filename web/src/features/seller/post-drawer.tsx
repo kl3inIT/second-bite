@@ -14,13 +14,13 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatPrice } from "@/features/offers/format";
 import { useRouter } from "@/i18n/navigation";
-import { changeOffer, postOffer, type OfferBody } from "@/lib/api/generated";
+import { changeOffer, postOffer, type OfferBody, uploadPhoto } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
 import { cn } from "@/lib/utils";
 
 import { Chip } from "./chip";
 import { NumberInput } from "./number-input";
-import { type PhotoSlot, PhotoSlots, uploadedIds } from "./photo-slots";
+import { type ChosenPhoto, PhotoField } from "./photo-drop";
 import {
   type Dish,
   discountPercent,
@@ -53,7 +53,7 @@ const DEFAULT_USUAL = { hour: 20, minute: 30 };
 
 /** What the drawer sends: a one-off dish of step 2, then how it sells, of step 3. */
 type Values = {
-  slots: PhotoSlot[];
+  photo: ChosenPhoto | undefined;
   name: string;
   kind: OfferBody["kind"];
   description: string;
@@ -152,7 +152,7 @@ function PostDrawerBody({
   const time = (at: Date) => format.dateTime(at, "time");
 
   const defaultValues: Values = {
-    slots: [],
+    photo: undefined,
     name: "",
     kind: "bakery",
     description: "",
@@ -164,7 +164,7 @@ function PostDrawerBody({
   // Step 2 checks the one-off dish; step 3 the units and the price, which a post with orders no longer changes.
   // Each step's rules name every value, those of the other step unchecked.
   const unchecked = {
-    slots: z.array(z.custom<PhotoSlot>()),
+    photo: z.custom<ChosenPhoto | undefined>(),
     name: z.string(),
     kind: z.enum(kinds),
     description: z.string(),
@@ -175,7 +175,7 @@ function PostDrawerBody({
   const oneOffRules = z
     .object({
       ...unchecked,
-      slots: z.array(z.custom<PhotoSlot>()).min(1, t("errors.photo")),
+      photo: z.custom<ChosenPhoto | undefined>().refine(Boolean, t("errors.photo")),
       name: z.string().trim().min(1, t("errors.name")),
     })
     .refine((value) => value.kind !== "mixed_box" || value.description.trim() !== "", {
@@ -244,9 +244,9 @@ function PostDrawerBody({
       router.refresh();
       return;
     }
-    const [photoId, ...morePhotoIds] = chosen
-      ? [chosen.photoId, ...chosen.morePhotoIds]
-      : await uploadedIds(value.slots);
+    const photoId =
+      chosen?.photoId ??
+      (value.photo ? (await uploadPhoto({ body: value.photo.file })).data.id : undefined);
     if (!photoId) return;
     await postOffer({
       path: { sellerId },
@@ -256,7 +256,6 @@ function PostDrawerBody({
         ...(chosen ? { unit: chosen.unit } : {}),
         description: chosen ? chosen.description : value.description.trim(),
         photoId,
-        morePhotoIds,
         units,
         ...prices,
         windowStart: finalWindow.start.toISOString(),
@@ -408,7 +407,9 @@ function PostDrawerBody({
                 </section>
               ) : (
                 <>
-                  <form.AppField name="slots">{() => <PhotosField />}</form.AppField>
+                  <form.AppField name="photo">
+                    {() => <PhotoField label={t("photo")} />}
+                  </form.AppField>
                   <form.AppField name="name">
                     {(field) => (
                       <field.TextField
@@ -466,11 +467,9 @@ function PostDrawerBody({
                 {(values) => (
                   <div className="flex items-center gap-4">
                     <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
-                      {(chosen?.photoPath ?? values.slots[0]?.preview) && (
+                      {(chosen?.photoPath ?? values.photo?.preview) && (
                         <Image
-                          src={
-                            chosen ? photoUrl(chosen.photoPath) : (values.slots[0]?.preview ?? "")
-                          }
+                          src={chosen ? photoUrl(chosen.photoPath) : (values.photo?.preview ?? "")}
                           alt=""
                           fill
                           sizes="56px"
@@ -648,25 +647,6 @@ function PostDrawerBody({
         </SheetFooter>
       </SheetContent>
     </Sheet>
-  );
-}
-
-/** The one-off dish's photos: up to three, the first its cover. */
-function PhotosField() {
-  const t = useTranslations("PostDrawer");
-  const { field, invalid, errors, ids } = useFieldValidity<PhotoSlot[]>();
-  return (
-    <Field data-invalid={invalid || undefined}>
-      <FieldLabel htmlFor={ids.control}>{t("photo")}</FieldLabel>
-      <PhotoSlots
-        id={ids.control}
-        slots={field.state.value}
-        invalid={invalid}
-        describedBy={invalid ? ids.error : undefined}
-        onChange={(slots) => field.handleChange(slots)}
-      />
-      {invalid && <FieldError id={ids.error} errors={errors} />}
-    </Field>
   );
 }
 
