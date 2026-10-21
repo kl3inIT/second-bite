@@ -12,7 +12,7 @@ import { Link } from "@/i18n/navigation";
 import { totals, withBasket, type Cart } from "./cart";
 import { saveCart, useCart } from "./cart-store";
 import { CheckoutDesktop } from "./checkout-desktop";
-import { CancelPolicy, SellerOrder, type CheckoutProps } from "./checkout-parts";
+import { SellerOrder, type CheckoutProps } from "./checkout-parts";
 import type { Contact } from "./contact";
 import { GoneSheet } from "./gone-sheet";
 import { OrderButton } from "./order-button";
@@ -130,11 +130,7 @@ function CheckoutPhone({ cart, pending, problem, onConfirmed }: CheckoutProps) {
           <h2 id="cancel" className="text-label-strong text-muted-foreground uppercase">
             {t("cancelTitle")}
           </h2>
-          {orders > 1 ? (
-            <p className="text-label text-muted-foreground">{t("cancelEach")}</p>
-          ) : (
-            <CancelPolicy basket={cart.baskets[0]} />
-          )}
+          <p className="text-label text-muted-foreground">{t("cancelBody")}</p>
         </section>
       </div>
       <div className="sticky bottom-0 z-40 border-t border-border bg-card">

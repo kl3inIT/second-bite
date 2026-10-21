@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { formatPrice } from "@/features/offers/format";
 
 import { totals } from "./cart";
-import { CancelPolicy, SellerOrder, type CheckoutProps } from "./checkout-parts";
+import { SellerOrder, type CheckoutProps } from "./checkout-parts";
 import { OrderButton } from "./order-button";
 
 // The cart's confirmation from 768px (Figma WK5): the page's intro, then at the left one card per seller's order, how
@@ -38,11 +38,7 @@ export function CheckoutDesktop({ cart, pending, problem, onConfirmed }: Checkou
           <h2 id="cancel" className="text-title-lg text-foreground">
             {t("cancelTitle")}
           </h2>
-          {orders > 1 ? (
-            <p className="text-label text-muted-foreground">{t("cancelEach")}</p>
-          ) : (
-            <CancelPolicy basket={cart.baskets[0]} />
-          )}
+          <p className="text-label text-muted-foreground">{t("cancelBody")}</p>
         </section>
       </div>
       <section

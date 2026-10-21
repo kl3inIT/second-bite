@@ -451,7 +451,7 @@
       "summary": {
         "cancelled": "You had not paid, so there is nothing to refund.",
         "refused": "You had not paid, so there is nothing to refund.",
-        "expired": "Next time, cancel before the window opens so the food reaches someone else."
+        "expired": "Next time, cancel the order so the food reaches someone else."
       },
       "placedBody": "{date}, {time} · {units} portions · {total}",
       "confirmed": "The seller confirmed it",
@@ -470,9 +470,8 @@
       },
       "keep": "Keep order",
       "confirm": "Cancel order",
-      "tooLate": "Too late to cancel free of charge: the collection window has opened.",
-      "failed": "The order was not cancelled. Try again, or report the reference {reference}.",
-      "free": "· free before {until}"
+      "tooLate": "The seller has finished preparing the food, so the order can no longer be cancelled.",
+      "failed": "The order was not cancelled. Try again, or report the reference {reference}."
     },
     "date": "{day}/{month}",
     "orderNumber": "Order #{number}",
@@ -561,7 +560,7 @@
     "dishes": "Dishes ({units} portions)",
     "total": "Total",
     "cancelTitle": "Cancellation policy",
-    "cancelBody": "Free cancellation before {time}.",
+    "cancelBody": "Free cancellation until the seller marks the food ready.",
     "totalSummary": "{orders, plural, =1 {{units} portions in all} other {# orders · {units} portions}} · save {saved}",
     "order": "{orders, plural, =1 {Place order} other {Place # orders}}",
     "contactTitle": "Who collects",
@@ -586,7 +585,6 @@
     "orderFailed": "The order did not go through. Try again, or quote the reference {reference}.",
     "orderFailedPlain": "The order did not go through. Check your connection and try again.",
     "sellerWindow": "{place} · Collect {from} – {until}",
-    "cancelEach": "Free cancellation before each order's collection time.",
     "intro": "One order per seller, each with its own QR code. Check the dishes and the collection time before you order.",
     "sellerUnits": "{seller} · {units} portions",
     "sidebarTitle": "{sellers, plural, =0 {Your cart} =1 {Your cart} other {Your cart · # sellers}}",

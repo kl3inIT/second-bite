@@ -32,7 +32,6 @@ export function CancelOrder({
   number,
   seller,
   units,
-  freeUntil,
 }: {
   orderId: string;
   access?: string;
@@ -40,7 +39,6 @@ export function CancelOrder({
   seller: string;
   units: number;
   /** When the window opens, until which cancelling is free. */
-  freeUntil: string;
 }) {
   const t = useTranslations("Orders.cancel");
   const router = useRouter();
@@ -75,7 +73,6 @@ export function CancelOrder({
       <AlertDialogTrigger render={<Button variant="ghost" size="lg" />}>
         <CircleXIcon aria-hidden className="text-destructive" />
         <span className="text-destructive">{t("open")}</span>
-        <span className="font-normal text-muted-foreground">{t("free", { until: freeUntil })}</span>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

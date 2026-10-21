@@ -1484,10 +1484,8 @@ async function ordersApi(request, response, url) {
   }
   if (request.method === "POST" && orderMatch?.[2]) {
     const status = shown(order).status;
-    if (
-      (status !== "confirmed" && status !== "ready") ||
-      new Date(order.windowStart) <= new Date()
-    ) {
+    // Until the seller marks it ready (SEC-121).
+    if (status !== "confirmed") {
       problem(response, 409, "ORDER_CANCEL_TOO_LATE");
       return true;
     }
