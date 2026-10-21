@@ -63,6 +63,8 @@ func (r RefuseReason) valid() bool {
 	switch r {
 	case RefuseNotSuitable, RefuseWrongItems, RefuseNoAnswer, RefuseNoShow, RefuseLate, RefuseSoldOut, RefuseOther:
 		return true
+	case RefuseWithdrawn:
+		return false
 	}
 
 	return false
