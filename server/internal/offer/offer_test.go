@@ -93,7 +93,7 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 
 	return fixture{
 		pool: pool, accounts: accounts, files: files, sellers: sellers,
-		offers: offer.NewService(pool, sellers, files, trail, platformtest.Logger()),
+		offers: offer.NewService(pool, sellers, files, events, trail, platformtest.Logger()),
 		prefix: "offer." + strings.ReplaceAll(uuid.NewString(), "-", ""),
 	}
 }
@@ -343,6 +343,27 @@ func testOrdersLimitWhatChanges(t *testing.T, f fixture) {
 	if err != nil || o.Units != 8 || o.UnitsLeft != 6 || o.Description != note {
 		t.Fatalf("units and description once units are ordered: %+v, %v", o, err)
 	}
+
+	name := "Bánh mì khác"
+	_, err = f.offers.Change(owner, o.ID, offer.Change{Name: &name})
+	mustFail(t, "the name once units are ordered", err, offer.ErrChangeNotAllowed)
+
+	// The window may move once units are ordered: orders follow it.
+	start, end := time.Now().Add(time.Hour), time.Now().Add(4*time.Hour)
+
+	o, err = f.offers.Change(owner, o.ID, offer.Change{WindowStart: &start, WindowEnd: &end})
+	if err != nil || o.UnitsLeft != 6 || o.PriceVND != 12_000 {
+		t.Fatalf("a window once units are ordered: %+v, %v", o, err)
+	}
+
+	windows, err := f.offers.WindowsOf(owner, []uuid.UUID{o.ID, uuid.New()})
+	if err != nil || len(windows) != 1 || windows[o.ID].End.Sub(end).Abs() > time.Second {
+		t.Fatalf("the windows read: %+v, %v", windows, err)
+	}
+
+	over := time.Now().Add(-time.Hour)
+	_, err = f.offers.Change(owner, o.ID, offer.Change{WindowEnd: &over})
+	mustFail(t, "a window already over", err, offer.ErrWindowInvalid)
 
 	if _, err := f.offers.Withdraw(owner, o.ID); err != nil {
 		t.Fatal(err)

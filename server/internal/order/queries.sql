@@ -86,3 +86,15 @@ WHERE id = @id;
 UPDATE order_orders
 SET state = 'refused', refused_at = now(), refuse_reason = @refuse_reason, refuse_note = @refuse_note
 WHERE id = @id;
+
+-- name: OpenOrdersOfOffer :many
+-- The orders still to collect that hold units of an offer.
+SELECT DISTINCT o.id
+FROM order_orders AS o
+JOIN order_lines AS l ON l.order_id = o.id
+WHERE l.offer_id = @offer_id AND o.state IN ('confirmed', 'ready');
+
+-- name: SetWindow :exec
+-- Moves an order still to collect to a new window; one that ended stays as it was.
+UPDATE order_orders SET window_start = @window_start, window_end = @window_end
+WHERE id = @id AND state IN ('confirmed', 'ready');

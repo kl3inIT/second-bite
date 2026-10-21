@@ -438,6 +438,34 @@ func (q *Queries) MarkReopened(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const openOrdersOfOffer = `-- name: OpenOrdersOfOffer :many
+SELECT DISTINCT o.id
+FROM order_orders AS o
+JOIN order_lines AS l ON l.order_id = o.id
+WHERE l.offer_id = $1 AND o.state IN ('confirmed', 'ready')
+`
+
+// The orders still to collect that hold units of an offer.
+func (q *Queries) OpenOrdersOfOffer(ctx context.Context, offerID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, openOrdersOfOffer, offerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const orderOfKey = `-- name: OrderOfKey :one
 SELECT id FROM order_orders
 WHERE customer_id IS NOT DISTINCT FROM $1::uuid AND idempotency_key = $2
@@ -547,4 +575,21 @@ func (q *Queries) SellerOrders(ctx context.Context, arg SellerOrdersParams) ([]S
 		return nil, err
 	}
 	return items, nil
+}
+
+const setWindow = `-- name: SetWindow :exec
+UPDATE order_orders SET window_start = $1, window_end = $2
+WHERE id = $3 AND state IN ('confirmed', 'ready')
+`
+
+type SetWindowParams struct {
+	WindowStart time.Time
+	WindowEnd   time.Time
+	ID          uuid.UUID
+}
+
+// Moves an order still to collect to a new window; one that ended stays as it was.
+func (q *Queries) SetWindow(ctx context.Context, arg SetWindowParams) error {
+	_, err := q.db.Exec(ctx, setWindow, arg.WindowStart, arg.WindowEnd, arg.ID)
+	return err
 }
