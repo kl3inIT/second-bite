@@ -31,6 +31,8 @@ test.describe("the admin's posts", () => {
     const menu = isMobile ? page.getByRole("dialog", { name: "Menu quản trị" }) : page;
     await (await hydrated(menu.getByRole("link", { name: "Bài đăng" }))).click();
     await expect(page).toHaveURL(/\/vi\/admin\/offers$/);
+    // The menu's sheet stays open over the page it opened until closed.
+    if (isMobile) await page.keyboard.press("Escape");
 
     await expect(page.getByRole("heading", { level: 1, name: "Bài đăng" })).toBeVisible();
     const cards = page.getByRole("group", { name: "Lọc theo trạng thái" });
