@@ -43,6 +43,7 @@ func TestAccountsForAdmins(t *testing.T) {
 	for name, check := range map[string]func(context.Context, *testing.T, *Service, people){
 		"an account shows its last sign-in":                       checkLastSignIn,
 		"the list finds words without marks and counts the roles": checkSearch,
+		"the list reads LIKE's characters as letters":             checkPlainLetters,
 		"the list sorts, those never signed in last":              checkSorts,
 		"the list pages and refuses bad filters and customers":    checkPagingAndRefusals,
 	} {
@@ -115,18 +116,23 @@ func checkSearch(asAdmin context.Context, t *testing.T, s *Service, p people) {
 		}
 	}
 
-	// LIKE's own characters are plain letters: no address holds them.
+	page, err := s.ListAccounts(asAdmin, AccountFilter{Role: platform.RoleAdmin, Page: 1, Size: 25})
+	if err != nil || page.Total != 1 || page.Accounts[0].ID != p.admin.ID ||
+		page.Counts[platform.RoleAdmin] != 1 || page.Counts[platform.RoleCustomer] != 3 {
+		t.Errorf("the admins: %+v, %v", page, err)
+	}
+}
+
+// checkPlainLetters: LIKE's own characters are plain letters, and no address
+// or name holds them.
+func checkPlainLetters(asAdmin context.Context, t *testing.T, s *Service, _ people) {
+	t.Helper()
+
 	for _, query := range []string{"_", "%"} {
 		page, err := s.ListAccounts(asAdmin, AccountFilter{Query: query, Page: 1, Size: 25})
 		if err != nil || page.Total != 0 {
 			t.Errorf("q=%q: %d found, %v; want none", query, page.Total, err)
 		}
-	}
-
-	page, err := s.ListAccounts(asAdmin, AccountFilter{Role: platform.RoleAdmin, Page: 1, Size: 25})
-	if err != nil || page.Total != 1 || page.Accounts[0].ID != p.admin.ID ||
-		page.Counts[platform.RoleAdmin] != 1 || page.Counts[platform.RoleCustomer] != 3 {
-		t.Errorf("the admins: %+v, %v", page, err)
 	}
 }
 
