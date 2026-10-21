@@ -551,9 +551,7 @@
     "askSeller": "Ask the shop about ingredients and allergies.",
     "count": "{count} {name} to add",
     "add": "Add to cart · {price}",
-    "allChosen": "All {units} chosen",
-    "photos": "The dish's photos",
-    "photoNumber": "Show photo {number} of {total}"
+    "allChosen": "All {units} chosen"
   },
   "Seller": {
     "search": "Search the {seller} menu",
@@ -718,7 +716,11 @@
     "photoHint": "A photo helps customers recognise your store.",
     "submit": "Create store",
     "failed": "The store was not created. Try again in a few minutes.",
-    "reference": "Reference: {id}"
+    "errors": {
+      "name": "Enter the store's name.",
+      "phone": "Enter a phone number of 9 to 15 digits, such as 0912 345 678.",
+      "address": "Enter the store's address."
+    }
   },
   "Stores": {
     "title": "My stores",
@@ -873,7 +875,6 @@
     "reopen": "Undo",
     "deliveredTo": "Delivered to {name}",
     "failed": "That did not work. Try again.",
-    "reference": "Reference: {id}",
     "reasonLabel": "Reason for cancelling",
     "reason": {
       "no_answer": "No answer",
@@ -1007,7 +1008,6 @@
     "window": "Customers collect from {from} to {until} today",
     "windowOver": "That time has passed. Choose a time from now on.",
     "failed": "Could not post. Try again in a few minutes.",
-    "reference": "Reference: {id}",
     "cancel": "Cancel",
     "back": "Back",
     "next": "Next",
@@ -1026,7 +1026,13 @@
     "withdraw": "Withdraw",
     "save": "Save changes",
     "sourceCatalog": "From the catalog",
-    "noCatalog": "No dish of the catalog is shown. Add one in the Catalog tab."
+    "noCatalog": "No dish of the catalog is shown. Add one in the Catalog tab.",
+    "errors": {
+      "photo": "Choose a photo of the dish.",
+      "name": "Enter the dish's name.",
+      "description": "A mixed box needs to say what it holds.",
+      "units": "Enter a number of portions from 1 to 999."
+    }
   },
   "WithdrawDrawer": {
     "title": "Withdraw",
@@ -1038,8 +1044,7 @@
     "keep": "Keep",
     "withdraw": "Withdraw",
     "withdrawAndCancel": "Withdraw and cancel orders",
-    "failed": "Could not withdraw. Try again in a few minutes.",
-    "reference": "Reference: {id}"
+    "failed": "Could not withdraw. Try again in a few minutes."
   },
   "StoreCatalog": {
     "title": "Catalog",
@@ -1055,15 +1060,16 @@
       "saved": "Dish saved.",
       "deleted": "Dish deleted from the catalog.",
       "shown": "The dish is shown again."
-    }
+    },
+    "showFailed": "The dish could not be shown again. Try again in a moment."
   },
   "DishForm": {
     "addTitle": "Add a dish",
     "editTitle": "Edit dish",
     "photo": "Dish photo",
     "choosePhoto": "Choose a photo",
-    "addPhoto": "Add a photo",
-    "photoHint": "Up to 3 photos; the first is the cover.",
+    "changePhoto": "Change the photo",
+    "photoHint": "A photo helps customers recognise your dish.",
     "photoMissing": "Choose a photo for the dish.",
     "name": "Dish name",
     "namePlaceholder": "For example: Bread and croissant bag, 4 pieces",
@@ -1084,12 +1090,9 @@
     "deleteBody": "The dish is deleted from the catalog. Posts already made are not affected.",
     "keep": "Keep",
     "failed": "Could not save the dish. Try again in a few minutes.",
-    "reference": "Reference: {id}",
     "original": "Original price (VND, optional)",
     "originalPlaceholder": "For example: 95.000",
-    "originalInvalid": "An original price from 1.001đ, or leave it empty.",
-    "cover": "Cover",
-    "removePhoto": "Remove photo {number}"
+    "originalInvalid": "An original price from 1.001đ, or leave it empty."
   },
   "Admin": {
     "home": "Second Bite, admin",
@@ -1202,12 +1205,10 @@
         "clear": "Clear the filters"
       }
     },
-    "closeToast": "Close notification",
     "settings": {
       "title": "Settings",
       "nav": "Settings pages",
-      "email": "Email",
-      "admins": "Admins"
+      "email": "Email"
     },
     "email": {
       "title": "Email",
@@ -1365,14 +1366,6 @@
       }
     },
     "admins": {
-      "title": "Admins",
-      "description": "Admins approve stores, look up accounts and change the settings. They sign in with an emailed code like everyone.",
-      "you": "You",
-      "column": {
-        "account": "Account",
-        "signedIn": "Last sign-in",
-        "actions": "Actions"
-      },
       "grant": {
         "open": "Add an admin",
         "title": "Add an admin",
@@ -1383,7 +1376,8 @@
         "submit": "Make admin",
         "done": "{email} is now an admin",
         "failed": "Could not make an admin",
-        "unreachable": "The server could not be reached. Try again shortly."
+        "unreachable": "The server could not be reached. Try again shortly.",
+        "placeholder": "name@gmail.com"
       },
       "revoke": {
         "open": "Revoke",
@@ -1613,9 +1607,14 @@
     "title": "Store location",
     "intro": "Customers see the distance and the way to the store from this pin. Dishes on sale and orders still to collect follow the new place.",
     "address": "Store address",
+    "addressRequired": "Enter the store's address.",
     "save": "Save the location",
     "saved": "The store's new location is saved.",
-    "failed": "The location could not be saved. Try again in a few minutes.",
-    "reference": "Reference: {id}"
+    "failed": "The location could not be saved. Try again in a few minutes."
+  },
+  "Failure": {
+    "reference": "Reference: {reference}",
+    "unreachable": "The server could not be reached. Try again in a moment.",
+    "closeToast": "Close notification"
   }
 }

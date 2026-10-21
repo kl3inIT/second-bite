@@ -29,8 +29,7 @@ export function DayRange({
   const format = useFormatter();
   const locale = useLocale();
   const [today] = useState(() => new Date());
-  const day = (d: Date) =>
-    format.dateTime(d, { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" });
+  const day = (d: Date) => format.dateTime(d, "calendarDay");
 
   return (
     <Popover>

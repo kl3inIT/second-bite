@@ -1,7 +1,3 @@
-"use client";
-
-import { useRef, useState } from "react";
-
 import type { Point } from "@/components/map/location-picker";
 import { addressAt } from "@/lib/api/generated";
 
@@ -15,33 +11,22 @@ export async function describePlace(point: Point): Promise<string> {
 }
 
 /**
- * A store's written address, filled from where it is pinned by SEC-110's rule 5: written when the field is empty
- * or still holds what the last place wrote, kept when the person typed their own.
+ * The address to write for a point by SEC-110's rule 5: the place's name when the field is empty or still holds
+ * exactly what the last place wrote (`lastFilled`), nothing when the person typed their own or the geocoder knows
+ * nothing. The caller writes `fill` into its field and keeps it as the next `lastFilled`.
  */
-export function useSuggestedAddress(initial = "") {
-  const [address, setAddress] = useState(initial);
-  // Whether the field holds what a place wrote, and not the person: the next place may replace it.
-  const written = useRef(false);
-
-  function type(value: string) {
-    written.current = false;
-    setAddress(value);
+export async function suggestAddress(
+  point: Point,
+  current: string,
+  lastFilled: string | undefined,
+): Promise<{ outcome: Suggestion; fill?: string }> {
+  const mayFill = current.trim() === "" || current === lastFilled;
+  let named = "";
+  try {
+    named = await describePlace(point);
+  } catch {
+    // The place is pinned all the same; the person writes the address.
   }
-
-  async function suggest(point: Point): Promise<Suggestion> {
-    const mayFill = address.trim() === "" || written.current;
-    let named = "";
-    try {
-      named = await describePlace(point);
-    } catch {
-      // The place is pinned all the same; the person writes the address.
-    }
-    if (named && mayFill) {
-      written.current = true;
-      setAddress(named);
-    }
-    return !named ? "unknown" : mayFill ? "filled" : "kept";
-  }
-
-  return { address, type, suggest };
+  if (!named) return { outcome: "unknown" };
+  return mayFill ? { outcome: "filled", fill: named } : { outcome: "kept" };
 }

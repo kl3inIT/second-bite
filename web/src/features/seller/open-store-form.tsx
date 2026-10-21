@@ -1,16 +1,17 @@
 "use client";
 
+import { revalidateLogic, useStore } from "@tanstack/react-form";
 import { CircleAlertIcon, CircleCheckIcon, LocateFixedIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useRef, useState } from "react";
+import { z } from "zod";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { refuse, useAppForm } from "@/components/form/app-form";
+import { useFieldValidity, useFormContext } from "@/components/form/form-context";
 import { LocationField } from "@/components/map/location-field";
 import type { Point } from "@/components/map/location-picker";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,
@@ -19,12 +20,11 @@ import {
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
-import { ApiError, failureOf } from "@/lib/api/client";
 import { openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
 
 import { PhoneFootBar } from "./phone-foot-bar";
 import { useRemountKey } from "./remount-key";
-import { describePlace, useSuggestedAddress, type Suggestion } from "./suggested-address";
+import { describePlace, suggestAddress, type Suggestion } from "./suggested-address";
 
 /** How long the browser may look for the place; it is asked afresh at each press, never for a place it kept. */
 const LOCATION_TIMEOUT_MS = 10_000;
@@ -40,51 +40,193 @@ type Located = {
   address: Suggestion;
 };
 
-type Problem = {
-  kind: "details" | "phone" | "location" | "limit" | "failed";
-  detail?: string;
-  reference?: string;
-};
-
-function problemOf(error: unknown): Problem {
-  const failure = failureOf(error);
-  switch (error instanceof ApiError ? error.code : undefined) {
-    case "SELLER_DETAILS_INVALID":
-      return { kind: "details", ...failure };
-    case "SELLER_PHONE_INVALID":
-      return { kind: "phone", ...failure };
-    case "SELLER_LOCATION_OUTSIDE":
-      return { kind: "location", ...failure };
-    case "SELLER_LIMIT_REACHED":
-      return { kind: "limit", ...failure };
-    default:
-      return { kind: "failed", ...failure };
-  }
+/** A phone of 9 to 15 digits, a leading + allowed, spaces, dots, dashes and brackets between them: the server's rule. */
+function isPhone(raw: string) {
+  const value = raw.trim();
+  if (!/^\+?[\d .\-()]+$/.test(value)) return false;
+  const digits = value.replace(/\D/g, "").length;
+  return digits >= 9 && digits <= 15;
 }
 
-// The form that opens a store (SEC-57, Figma O1, O1b, O1c): name, phone, address, where it is on the map (SEC-66) and
-// a photo, then "Tạo quán".
+// The form that opens a store (SEC-57, Figma O1, O1b, O1c): name, phone, address, where it is on the map (SEC-66)
+// and a photo, then "Tạo quán".
 // The store is active at once and the person goes on to its home. The photo is a second step, so a store whose
-// photo failed to upload is still opened.
+// photo failed to upload is still opened. The rules are the server's (seller.Details.normalized), checked here
+// first so a mistake is said under its field before anything is sent.
 function OpenStoreFormBody() {
   const t = useTranslations("OpenStore");
   const location = useTranslations("StoreLocation");
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const { address, type: typeAddress, suggest: suggestAddress } = useSuggestedAddress();
-  const [photo, setPhoto] = useState<File>();
-  const [preview, setPreview] = useState<string>();
-  const [problem, setProblem] = useState<Problem>();
-  const [pending, startTransition] = useTransition();
+  // What a place last wrote into the address: while the field still holds it, the next place may replace it.
+  const lastFilled = useRef<string>(undefined);
+
+  const form = useAppForm({
+    defaultValues: {
+      name: "",
+      phone: "",
+      address: "",
+      // Required: no place is chosen for the person (SEC-66).
+      location: undefined as Point | undefined,
+      photo: undefined as File | undefined,
+    },
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: z.object({
+        name: z.string().trim().min(1, t("errors.name")),
+        phone: z.string().refine(isPhone, t("errors.phone")),
+        address: z.string().trim().min(1, t("errors.address")),
+        location: z.custom<Point | undefined>((point) => point !== undefined, location("required")),
+        photo: z.custom<File | undefined>(),
+      }),
+    },
+    onSubmit: async ({ value, formApi }) => {
+      let sellerId: string;
+      const place = value.location;
+      if (!place) return;
+      try {
+        const { data } = await openSeller({
+          body: {
+            name: value.name.trim(),
+            phone: value.phone.trim(),
+            address: value.address.trim(),
+            latitude: place.latitude,
+            longitude: place.longitude,
+          },
+        });
+        sellerId = data.id;
+      } catch (error) {
+        refuse(formApi, error, {
+          SELLER_PHONE_INVALID: "phone",
+          SELLER_DETAILS_INVALID: "name",
+          SELLER_LOCATION_OUTSIDE: "location",
+        });
+        return;
+      }
+      if (value.photo) {
+        try {
+          const { data } = await uploadPhoto({ body: value.photo });
+          await setSellerPhoto({ path: { sellerId }, body: { photoId: data.id } });
+        } catch {
+          // The store exists; its photo can be set again later.
+        }
+      }
+      router.replace(`/stores/${sellerId}`);
+      router.refresh();
+    },
+  });
+
+  // The address at a point by SEC-110's rule 5, written into the address field when it may be.
+  async function fillFrom(point: Point): Promise<Suggestion> {
+    const { outcome, fill } = await suggestAddress(
+      point,
+      form.getFieldValue("address"),
+      lastFilled.current,
+    );
+    if (fill) {
+      lastFilled.current = fill;
+      form.setFieldValue("address", fill);
+    }
+    return outcome;
+  }
+
+  return (
+    <form
+      id={form.formId}
+      noValidate
+      onSubmit={(event) => {
+        event.preventDefault();
+        void form.handleSubmit();
+      }}
+    >
+      <FieldGroup>
+        <header className="flex flex-col gap-1">
+          <h1 className="text-card-title text-foreground">{t("heading")}</h1>
+          <p className="text-body-sm text-muted-foreground">{t("intro")}</p>
+        </header>
+
+        <form.AppForm>
+          <form.FormError fallback={t("failed")} />
+        </form.AppForm>
+
+        <form.AppField name="name">
+          {(field) => (
+            <field.TextField
+              label={t("name")}
+              required
+              placeholder={t("namePlaceholder")}
+              autoComplete="organization"
+              maxLength={80}
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="phone">
+          {(field) => (
+            <field.TextField
+              label={t("phone")}
+              required
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder={t("phonePlaceholder")}
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="address">
+          {() => (
+            <AddressField
+              fillFrom={fillFrom}
+              onLocated={({ latitude, longitude }) =>
+                form.setFieldValue("location", { latitude, longitude })
+              }
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="location">{() => <PinField onPinned={fillFrom} />}</form.AppField>
+
+        <form.AppField name="photo">{() => <PhotoField />}</form.AppField>
+
+        <PhoneFootBar className="md:flex md:flex-col">
+          <form.AppForm>
+            <form.SubmitButton size="lg">{t("submit")}</form.SubmitButton>
+          </form.AppForm>
+        </PhoneFootBar>
+      </FieldGroup>
+    </form>
+  );
+}
+
+/**
+ * The store's address, with the button at its end (Figma O1d, O1e, O1f): where the person stands pins the store,
+ * which the map then shows to adjust (SEC-66), and the server names the place to fill the address, unless the
+ * person has written their own.
+ */
+function AddressField({
+  fillFrom,
+  onLocated,
+}: {
+  /** Names the place at a point and fills the address when it may; answers what became of it. */
+  fillFrom: (point: Point) => Promise<Suggestion>;
+  onLocated: (place: Located) => void;
+}) {
+  const t = useTranslations("OpenStore");
+  const { field, invalid, errors, ids } = useFieldValidity<string>();
   const [located, setLocated] = useState<Located>();
-  // Where the store is: from the location button or the map. Required; no place is chosen for the person (SEC-66).
-  const [pin, setPin] = useState<Point>();
   const [locating, setLocating] = useState(false);
   const [locateFailure, setLocateFailure] = useState<"denied" | "failed">();
+  const note = `${ids.control}-note`;
+  // The note speaks of where the person stood only while the pin is still there.
+  const pin = useStore(
+    useFormContext().store,
+    (state) => (state.values as { location?: Point }).location,
+  );
+  const stillThere =
+    located !== undefined &&
+    pin?.latitude === located.latitude &&
+    pin.longitude === located.longitude;
 
-  // The button at the end of the address (Figma O1d, O1e, O1f): where the person stands pins the store, which the
-  // map then shows to adjust (SEC-66), and the server names the place to fill the address.
   function locate() {
     setLocateFailure(undefined);
     if (!("geolocation" in navigator)) {
@@ -96,12 +238,12 @@ function OpenStoreFormBody() {
       ({ coords }) => {
         const point = { latitude: coords.latitude, longitude: coords.longitude };
         const accuracy = Math.round(coords.accuracy);
-        setPin(point);
-        clearLocationProblem();
-        void suggestAddress(point).then((outcome) => {
-          setLocated({ ...point, accuracy, address: outcome });
+        void (async () => {
+          const place: Located = { ...point, accuracy, address: await fillFrom(point) };
+          setLocated(place);
+          onLocated(place);
           setLocating(false);
-        });
+        })();
       },
       (error) => {
         setLocating(false);
@@ -111,222 +253,121 @@ function OpenStoreFormBody() {
     );
   }
 
-  // The pin moved on the map: the note about the location button no longer holds.
+  return (
+    <Field data-invalid={invalid || undefined}>
+      <FieldLabel htmlFor={ids.control}>{t("address")}</FieldLabel>
+      <InputGroup>
+        <InputGroupInput
+          id={ids.control}
+          name={field.name}
+          value={field.state.value}
+          onBlur={field.handleBlur}
+          onChange={(event) => field.handleChange(event.target.value)}
+          placeholder={t("addressPlaceholder")}
+          autoComplete="street-address"
+          aria-required
+          aria-invalid={invalid || undefined}
+          aria-describedby={invalid ? `${ids.error} ${note}` : note}
+        />
+        <InputGroupAddon align="inline-end">
+          <InputGroupButton
+            size="icon-sm"
+            className="relative after:absolute after:-inset-1.5"
+            aria-label={t("locate")}
+            title={t("locate")}
+            disabled={locating}
+            onClick={locate}
+          >
+            {locating ? <Spinner /> : <LocateFixedIcon aria-hidden />}
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
+      <output id={note} className="block empty:hidden">
+        {located && stillThere && !locateFailure && (
+          <span className="flex items-start gap-2 text-note text-muted-foreground">
+            <CircleCheckIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
+            {t(`located.${located.address}`, { meters: located.accuracy })}
+          </span>
+        )}
+        {locateFailure && (
+          <span className="flex items-start gap-2 text-note text-warning-foreground">
+            <CircleAlertIcon aria-hidden className="mt-0.5 size-4 shrink-0" />
+            {t(locateFailure === "denied" ? "locateDenied" : "locateFailed")}
+          </span>
+        )}
+      </output>
+      {invalid && <FieldError id={ids.error} errors={errors} />}
+    </Field>
+  );
+}
+
+/**
+ * Where the store is on the map (SEC-66): a pin moved there names the place, which fills the address by the same
+ * rule as the location button.
+ */
+function PinField({ onPinned }: { onPinned: (point: Point) => Promise<unknown> }) {
+  const { field, invalid, errors, ids } = useFieldValidity<Point | undefined>();
+
   function pinned(point: Point) {
-    setPin(point);
-    setLocated(undefined);
-    clearLocationProblem();
-    void suggestAddress(point);
+    field.handleChange(point);
+    void onPinned(point);
   }
 
-  function clearLocationProblem() {
-    setProblem((now) => (now?.kind === "location" ? undefined : now));
-  }
+  return (
+    <LocationField
+      ids={ids}
+      value={field.state.value}
+      onChange={pinned}
+      describe={describePlace}
+      invalid={invalid}
+      error={<FieldError id={ids.error} errors={errors} />}
+    />
+  );
+}
+
+/** The store's photo, chosen from the device and shown before it is sent. */
+function PhotoField() {
+  const t = useTranslations("OpenStore");
+  const { field, ids } = useFieldValidity<File | undefined>();
+  const [preview, setPreview] = useState<string>();
+  const photo = field.state.value;
 
   function choose(file: File | undefined) {
     if (preview) URL.revokeObjectURL(preview);
-    setPhoto(file);
+    field.handleChange(file);
     setPreview(file ? URL.createObjectURL(file) : undefined);
   }
 
-  function submit() {
-    setProblem(undefined);
-    const place = pin;
-    if (!place) {
-      setProblem({ kind: "location", detail: location("required") });
-      document.getElementById("store-location")?.focus();
-      return;
-    }
-    startTransition(async () => {
-      let sellerId: string;
-      try {
-        const { data } = await openSeller({
-          body: {
-            name: name.trim(),
-            phone: phone.trim(),
-            address: address.trim(),
-            latitude: place.latitude,
-            longitude: place.longitude,
-          },
-        });
-        sellerId = data.id;
-      } catch (error) {
-        setProblem(problemOf(error));
-        return;
-      }
-      if (photo) {
-        try {
-          const { data } = await uploadPhoto({ body: photo });
-          await setSellerPhoto({ path: { sellerId }, body: { photoId: data.id } });
-        } catch {
-          // The store exists; its photo can be set again later.
-        }
-      }
-      router.replace(`/stores/${sellerId}`);
-      router.refresh();
-    });
-  }
-
-  const detailsInvalid = problem?.kind === "details";
-  const phoneInvalid = problem?.kind === "phone";
-
   return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        submit();
-      }}
-      noValidate
-    >
-      <FieldGroup>
-        <header className="flex flex-col gap-1">
-          <h1 className="text-card-title text-foreground">{t("heading")}</h1>
-          <p className="text-body-sm text-muted-foreground">{t("intro")}</p>
-        </header>
-
-        {problem?.kind === "limit" && (
-          <Alert variant="destructive">
-            <CircleAlertIcon aria-hidden />
-            <AlertDescription>{problem.detail ?? t("failed")}</AlertDescription>
-          </Alert>
-        )}
-        {problem?.kind === "failed" && (
-          <Alert variant="destructive">
-            <CircleAlertIcon aria-hidden />
-            <AlertDescription>
-              {problem.detail ?? t("failed")}
-              {problem.detail && problem.reference && (
-                <> {t("reference", { id: problem.reference })}</>
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <Field data-invalid={detailsInvalid || undefined}>
-          <FieldLabel htmlFor="store-name">{t("name")}</FieldLabel>
-          <Input
-            id="store-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder={t("namePlaceholder")}
-            autoComplete="organization"
-            maxLength={80}
-            required
-            aria-invalid={detailsInvalid || undefined}
-            disabled={pending}
+    <Field>
+      <FieldLabel htmlFor={ids.control}>{t("photo")}</FieldLabel>
+      <label
+        htmlFor={ids.control}
+        className="flex min-h-21 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-primary/30 bg-background px-4 py-5 text-center transition-colors focus-within:ring-3 focus-within:ring-ring/50 hover:bg-secondary"
+      >
+        {preview && (
+          <Image
+            src={preview}
+            alt=""
+            width={64}
+            height={64}
+            unoptimized
+            className="size-16 rounded-lg object-cover"
           />
-        </Field>
-
-        <Field data-invalid={phoneInvalid || undefined}>
-          <FieldLabel htmlFor="store-phone">{t("phone")}</FieldLabel>
-          <Input
-            id="store-phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            placeholder={t("phonePlaceholder")}
-            required
-            aria-invalid={phoneInvalid || undefined}
-            aria-describedby={phoneInvalid ? "store-phone-problem" : undefined}
-            disabled={pending}
-          />
-          {phoneInvalid && <FieldError id="store-phone-problem">{problem.detail}</FieldError>}
-        </Field>
-
-        <Field data-invalid={detailsInvalid || undefined}>
-          <FieldLabel htmlFor="store-address">{t("address")}</FieldLabel>
-          <InputGroup>
-            <InputGroupInput
-              id="store-address"
-              value={address}
-              onChange={(event) => typeAddress(event.target.value)}
-              placeholder={t("addressPlaceholder")}
-              autoComplete="street-address"
-              required
-              aria-invalid={detailsInvalid || undefined}
-              aria-describedby={detailsInvalid ? "store-details-problem" : "store-locate-note"}
-              disabled={pending}
-            />
-            <InputGroupAddon align="inline-end">
-              <InputGroupButton
-                size="icon-sm"
-                className="relative after:absolute after:-inset-1.5"
-                aria-label={t("locate")}
-                title={t("locate")}
-                disabled={pending || locating}
-                onClick={locate}
-              >
-                {locating ? <Spinner /> : <LocateFixedIcon aria-hidden />}
-              </InputGroupButton>
-            </InputGroupAddon>
-          </InputGroup>
-          <output id="store-locate-note" className="block empty:hidden">
-            {located && !locateFailure && (
-              <span className="flex items-start gap-2 text-note text-muted-foreground">
-                <CircleCheckIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
-                {t(`located.${located.address}`, { meters: located.accuracy })}
-              </span>
-            )}
-            {locateFailure && (
-              <span className="flex items-start gap-2 text-note text-warning-foreground">
-                <CircleAlertIcon aria-hidden className="mt-0.5 size-4 shrink-0" />
-                {t(locateFailure === "denied" ? "locateDenied" : "locateFailed")}
-              </span>
-            )}
-          </output>
-          {detailsInvalid && <FieldError id="store-details-problem">{problem.detail}</FieldError>}
-        </Field>
-
-        <LocationField
-          id="store-location"
-          value={pin}
-          onChange={pinned}
-          describe={describePlace}
-          error={problem?.kind === "location" ? problem.detail : undefined}
-          disabled={pending}
+        )}
+        <span className="text-body-sm-strong text-link">
+          {photo ? photo.name : t("choosePhoto")}
+        </span>
+        <span className="text-note text-muted-foreground">{t("photoHint")}</span>
+        <input
+          id={ids.control}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="sr-only"
+          onChange={(event) => choose(event.target.files?.[0])}
         />
-
-        <Field>
-          <FieldLabel htmlFor="store-photo">{t("photo")}</FieldLabel>
-          <label
-            htmlFor="store-photo"
-            className="flex min-h-21 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-primary/30 bg-background px-4 py-5 text-center transition-colors focus-within:ring-3 focus-within:ring-ring/50 hover:bg-secondary"
-          >
-            {preview && (
-              <Image
-                src={preview}
-                alt=""
-                width={64}
-                height={64}
-                unoptimized
-                className="size-16 rounded-lg object-cover"
-              />
-            )}
-            <span className="text-body-sm-strong text-link">
-              {photo ? photo.name : t("choosePhoto")}
-            </span>
-            <span className="text-note text-muted-foreground">{t("photoHint")}</span>
-            <input
-              id="store-photo"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="sr-only"
-              disabled={pending}
-              onChange={(event) => choose(event.target.files?.[0])}
-            />
-          </label>
-        </Field>
-
-        <PhoneFootBar className="md:flex md:flex-col">
-          <Button type="submit" size="lg" disabled={pending}>
-            {pending && <Spinner data-icon="inline-start" />}
-            {t("submit")}
-          </Button>
-        </PhoneFootBar>
-      </FieldGroup>
-    </form>
+      </label>
+    </Field>
   );
 }
 

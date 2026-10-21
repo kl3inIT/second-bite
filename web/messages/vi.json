@@ -551,9 +551,7 @@
     "askSeller": "Hỏi quán về thành phần và dị ứng.",
     "count": "{count} phần {name} sẽ thêm",
     "add": "Thêm vào giỏ · {price}",
-    "allChosen": "Đã chọn đủ {units} phần",
-    "photos": "Ảnh của món",
-    "photoNumber": "Xem ảnh {number} trên {total}"
+    "allChosen": "Đã chọn đủ {units} phần"
   },
   "Seller": {
     "search": "Tìm trong thực đơn {seller}",
@@ -718,7 +716,11 @@
     "photoHint": "Một ảnh giúp khách nhận ra quán của bạn.",
     "submit": "Tạo quán",
     "failed": "Chưa tạo được quán. Thử lại sau ít phút.",
-    "reference": "Mã tham chiếu: {id}"
+    "errors": {
+      "name": "Nhập tên quán.",
+      "phone": "Nhập số điện thoại 9 đến 15 chữ số, ví dụ 0912 345 678.",
+      "address": "Nhập địa chỉ quán."
+    }
   },
   "Stores": {
     "title": "Quán của tôi",
@@ -873,7 +875,6 @@
     "reopen": "Hoàn tác",
     "deliveredTo": "Đã giao cho {name}",
     "failed": "Chưa làm được. Thử lại.",
-    "reference": "Mã tra cứu: {id}",
     "reasonLabel": "Lý do hủy",
     "reason": {
       "no_answer": "Không nghe máy",
@@ -1007,7 +1008,6 @@
     "window": "Khách đến nhận từ {from} đến {until} hôm nay",
     "windowOver": "Giờ nhận đã qua. Chọn giờ từ bây giờ trở đi.",
     "failed": "Chưa đăng được. Thử lại sau ít phút.",
-    "reference": "Mã tham chiếu: {id}",
     "cancel": "Hủy",
     "back": "Quay lại",
     "next": "Tiếp tục",
@@ -1026,7 +1026,13 @@
     "withdraw": "Rút bài",
     "save": "Lưu thay đổi",
     "sourceCatalog": "Từ danh mục",
-    "noCatalog": "Danh mục chưa có món nào đang hiện. Thêm món ở tab Danh mục."
+    "noCatalog": "Danh mục chưa có món nào đang hiện. Thêm món ở tab Danh mục.",
+    "errors": {
+      "photo": "Chọn một ảnh cho món.",
+      "name": "Nhập tên món.",
+      "description": "Hộp tổng hợp cần nói hộp gồm những gì.",
+      "units": "Nhập số suất từ 1 đến 999."
+    }
   },
   "WithdrawDrawer": {
     "title": "Rút bài",
@@ -1038,8 +1044,7 @@
     "keep": "Giữ lại",
     "withdraw": "Rút bài",
     "withdrawAndCancel": "Rút bài và huỷ đơn",
-    "failed": "Chưa rút được. Thử lại sau ít phút.",
-    "reference": "Mã tham chiếu: {id}"
+    "failed": "Chưa rút được. Thử lại sau ít phút."
   },
   "StoreCatalog": {
     "title": "Danh mục",
@@ -1055,15 +1060,16 @@
       "saved": "Đã lưu món.",
       "deleted": "Đã xoá món khỏi danh mục.",
       "shown": "Món đã hiện lại."
-    }
+    },
+    "showFailed": "Chưa hiện lại được món. Thử lại sau ít phút."
   },
   "DishForm": {
     "addTitle": "Thêm món",
     "editTitle": "Sửa món",
     "photo": "Ảnh món",
     "choosePhoto": "Chọn ảnh từ máy",
-    "addPhoto": "Thêm ảnh",
-    "photoHint": "Tối đa 3 ảnh; ảnh đầu là ảnh đại diện.",
+    "changePhoto": "Đổi ảnh",
+    "photoHint": "Một ảnh giúp khách nhận ra món của bạn.",
     "photoMissing": "Chọn một ảnh cho món.",
     "name": "Tên món",
     "namePlaceholder": "Ví dụ: Túi bánh mì và croissant, 4 chiếc",
@@ -1084,12 +1090,9 @@
     "deleteBody": "Món sẽ bị xoá khỏi danh mục. Các bài đã đăng trước đó không bị ảnh hưởng.",
     "keep": "Giữ lại",
     "failed": "Chưa lưu được món. Thử lại sau ít phút.",
-    "reference": "Mã tham chiếu: {id}",
     "original": "Giá gốc (đồng, tùy chọn)",
     "originalPlaceholder": "Ví dụ: 95.000",
-    "originalInvalid": "Giá gốc từ 1.001đ trở lên, hoặc để trống.",
-    "cover": "Ảnh đại diện",
-    "removePhoto": "Bỏ ảnh {number}"
+    "originalInvalid": "Giá gốc từ 1.001đ trở lên, hoặc để trống."
   },
   "Admin": {
     "home": "Second Bite, trang quản trị",
@@ -1202,12 +1205,10 @@
         "clear": "Xoá bộ lọc"
       }
     },
-    "closeToast": "Đóng thông báo",
     "settings": {
       "title": "Cài đặt",
       "nav": "Mục cài đặt",
-      "email": "Email",
-      "admins": "Quản trị viên"
+      "email": "Email"
     },
     "email": {
       "title": "Email",
@@ -1365,14 +1366,6 @@
       }
     },
     "admins": {
-      "title": "Quản trị viên",
-      "description": "Quản trị viên duyệt cửa hàng, xem tài khoản và đổi cài đặt. Họ đăng nhập bằng mã gửi qua email như mọi người.",
-      "you": "Bạn",
-      "column": {
-        "account": "Tài khoản",
-        "signedIn": "Lần đăng nhập cuối",
-        "actions": "Thao tác"
-      },
       "grant": {
         "open": "Thêm quản trị viên",
         "title": "Thêm quản trị viên",
@@ -1383,7 +1376,8 @@
         "submit": "Cấp quyền",
         "done": "Đã cấp quyền quản trị cho {email}",
         "failed": "Chưa cấp quyền được",
-        "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát."
+        "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát.",
+        "placeholder": "ten@gmail.com"
       },
       "revoke": {
         "open": "Thu quyền",
@@ -1613,9 +1607,14 @@
     "title": "Vị trí quán",
     "intro": "Khách thấy khoảng cách và đường đến quán theo ghim này. Món đang bán và đơn chưa nhận sẽ theo vị trí mới.",
     "address": "Địa chỉ quán",
+    "addressRequired": "Nhập địa chỉ quán.",
     "save": "Lưu vị trí",
     "saved": "Đã lưu vị trí mới của quán.",
-    "failed": "Chưa lưu được vị trí. Thử lại sau ít phút.",
-    "reference": "Mã tham chiếu: {id}"
+    "failed": "Chưa lưu được vị trí. Thử lại sau ít phút."
+  },
+  "Failure": {
+    "reference": "Mã tham chiếu: {reference}",
+    "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát.",
+    "closeToast": "Đóng thông báo"
   }
 }

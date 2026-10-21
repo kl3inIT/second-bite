@@ -1,137 +1,126 @@
 "use client";
 
-import { CircleAlertIcon, CircleCheckIcon } from "lucide-react";
+import { revalidateLogic } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useRef } from "react";
+import { z } from "zod";
 
+import { refuse, useAppForm } from "@/components/form/app-form";
+import { useFieldValidity } from "@/components/form/form-context";
 import { LocationField } from "@/components/map/location-field";
 import type { Point } from "@/components/map/location-picker";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { FieldError, FieldGroup } from "@/components/ui/field";
+import { toast } from "@/components/ui/toast";
 import { useRouter } from "@/i18n/navigation";
-import { ApiError, failureOf } from "@/lib/api/client";
 import { updateSeller, type SellerBody } from "@/lib/api/generated";
 
-import { describePlace, useSuggestedAddress } from "./suggested-address";
-
-type Problem = { kind: "details" | "location" | "failed"; detail?: string; reference?: string };
-
-function problemOf(error: unknown): Problem {
-  const failure = failureOf(error);
-  switch (error instanceof ApiError ? error.code : undefined) {
-    case "SELLER_DETAILS_INVALID":
-      return { kind: "details", ...failure };
-    case "SELLER_LOCATION_OUTSIDE":
-      return { kind: "location", ...failure };
-    default:
-      return { kind: "failed", ...failure };
-  }
-}
+import { describePlace, suggestAddress } from "./suggested-address";
 
 // The owner moves their store's pin and its written address (SEC-66, design decision 7). The store's other details
 // go back as they are, since the API changes them together; the offers on sale and the orders still to collect
 // follow the new place.
 export function StoreLocationForm({ store }: { store: SellerBody }) {
   const t = useTranslations("StoreLocationPage");
+  const location = useTranslations("StoreLocation");
   const router = useRouter();
-  const [pin, setPin] = useState<Point>({ latitude: store.latitude, longitude: store.longitude });
-  const { address, type, suggest } = useSuggestedAddress(store.address);
-  const [problem, setProblem] = useState<Problem>();
-  const [saved, setSaved] = useState(false);
-  const [pending, startTransition] = useTransition();
+  // What a place last wrote into the address: the owner's own words are never replaced.
+  const lastFilled = useRef<string>(undefined);
 
-  function pinned(point: Point) {
-    setPin(point);
-    setSaved(false);
-    setProblem(undefined);
-    void suggest(point);
-  }
-
-  function save() {
-    setProblem(undefined);
-    setSaved(false);
-    startTransition(async () => {
+  const form = useAppForm({
+    defaultValues: {
+      location: { latitude: store.latitude, longitude: store.longitude } as Point | undefined,
+      address: store.address,
+    },
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: z.object({
+        location: z.custom<Point | undefined>((point) => point !== undefined, location("required")),
+        address: z.string().trim().min(1, t("addressRequired")),
+      }),
+    },
+    onSubmit: async ({ value, formApi }) => {
+      if (!value.location) return;
       try {
         await updateSeller({
           path: { sellerId: store.id },
-          body: { name: store.name, phone: store.phone, address: address.trim(), ...pin },
+          body: {
+            name: store.name,
+            phone: store.phone,
+            address: value.address.trim(),
+            ...value.location,
+          },
         });
       } catch (error) {
-        setProblem(problemOf(error));
+        refuse(formApi, error, {
+          SELLER_LOCATION_OUTSIDE: "location",
+          SELLER_DETAILS_INVALID: "address",
+        });
         return;
       }
-      setSaved(true);
+      toast.add({ type: "success", title: t("saved") });
       router.refresh();
-    });
-  }
-
-  const detailsInvalid = problem?.kind === "details";
+    },
+  });
 
   return (
     <form
+      id={form.formId}
+      noValidate
       onSubmit={(event) => {
         event.preventDefault();
-        save();
+        void form.handleSubmit();
       }}
-      noValidate
     >
       <FieldGroup>
-        {problem?.kind === "failed" && (
-          <Alert variant="destructive">
-            <CircleAlertIcon aria-hidden />
-            <AlertDescription>
-              {problem.detail ?? t("failed")}
-              {problem.detail && problem.reference && (
-                <> {t("reference", { id: problem.reference })}</>
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
+        <form.AppForm>
+          <form.FormError fallback={t("failed")} />
+        </form.AppForm>
 
-        <LocationField
-          id="store-location"
-          value={pin}
-          onChange={pinned}
-          describe={describePlace}
-          error={problem?.kind === "location" ? problem.detail : undefined}
-          disabled={pending}
-        />
-
-        <Field data-invalid={detailsInvalid || undefined}>
-          <FieldLabel htmlFor="store-address">{t("address")}</FieldLabel>
-          <Input
-            id="store-address"
-            value={address}
-            onChange={(event) => {
-              setSaved(false);
-              type(event.target.value);
-            }}
-            autoComplete="street-address"
-            required
-            aria-invalid={detailsInvalid || undefined}
-            aria-describedby={detailsInvalid ? "store-address-problem" : undefined}
-            disabled={pending}
-          />
-          {detailsInvalid && <FieldError id="store-address-problem">{problem.detail}</FieldError>}
-        </Field>
-
-        <output aria-live="polite" className="block empty:hidden">
-          {saved && (
-            <span className="flex items-start gap-2 text-note text-muted-foreground">
-              <CircleCheckIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
-              {t("saved")}
-            </span>
+        <form.AppField name="location">
+          {() => (
+            <PinField
+              onPinned={async (point) => {
+                const { fill } = await suggestAddress(
+                  point,
+                  form.getFieldValue("address"),
+                  lastFilled.current,
+                );
+                if (fill) {
+                  lastFilled.current = fill;
+                  form.setFieldValue("address", fill);
+                }
+              }}
+            />
           )}
-        </output>
+        </form.AppField>
 
-        <Button type="submit" size="lg" disabled={pending}>
-          {pending && <Spinner data-icon="inline-start" />}
-          {t("save")}
-        </Button>
+        <form.AppField name="address">
+          {(field) => (
+            <field.TextField label={t("address")} required autoComplete="street-address" />
+          )}
+        </form.AppField>
+
+        <form.AppForm>
+          <form.SubmitButton size="lg">{t("save")}</form.SubmitButton>
+        </form.AppForm>
       </FieldGroup>
     </form>
+  );
+}
+
+function PinField({ onPinned }: { onPinned: (point: Point) => Promise<void> }) {
+  const { field, invalid, errors, ids } = useFieldValidity<Point | undefined>();
+  return (
+    <LocationField
+      ids={ids}
+      value={field.state.value}
+      onChange={(point) => {
+        field.handleChange(point);
+        void onPinned(point);
+      }}
+      describe={describePlace}
+      invalid={invalid}
+      error={<FieldError id={ids.error} errors={errors} />}
+    />
   );
 }

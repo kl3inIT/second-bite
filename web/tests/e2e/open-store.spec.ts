@@ -97,6 +97,21 @@ test.describe("opening a store on the web", () => {
     await expect(page.getByLabel("Địa chỉ quán")).toHaveValue("");
   });
 
+  test("an empty form says what is missing under each field, the first one focused", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `trong.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByRole("button", { name: "Tạo quán" }))).click();
+    await expect(page.getByLabel("Tên quán")).toBeFocused();
+    await expect(page.getByText("Nhập tên quán.")).toBeVisible();
+    await expect(page.getByText("Nhập địa chỉ quán.")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    // A field put right is no longer refused, as it is typed.
+    await page.getByLabel("Tên quán").fill("Quán Trống");
+    await expect(page.getByText("Nhập tên quán.")).toBeHidden();
+  });
+
   test("says when the location is not given, and the address is typed", async ({
     page,
     context,
@@ -364,7 +379,10 @@ test.describe("posting a dish on the web", () => {
     await drawer.getByLabel("Tên món").fill("Hộp bánh cuối ngày");
     await drawer.getByRole("button", { name: "Hộp tổng hợp" }).click();
     await expect(drawer.getByLabel("Hộp gồm những gì")).toBeVisible();
-    await expect(drawer.getByRole("button", { name: "Tiếp tục" })).toBeDisabled();
+    // "Tiếp tục" checks the step: what is missing is said under its field, which takes the focus.
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+    await expect(drawer.getByText("Hộp tổng hợp cần nói hộp gồm những gì.")).toBeVisible();
+    await expect(drawer.getByLabel("Hộp gồm những gì")).toBeFocused();
     await drawer.getByLabel("Hộp gồm những gì").fill("Bánh mì và bánh ngọt, có trứng");
     await expectNoSeriousA11yViolations(page);
     await drawer.getByRole("button", { name: "Tiếp tục" }).click();
@@ -592,6 +610,8 @@ test.describe("the catalog on the web", () => {
     await page.getByRole("button", { name: "Hộp tổng hợp" }).click();
     await page.getByRole("button", { name: "Lưu món" }).click();
     await expect(page.getByText("Chọn một ảnh cho món.")).toBeVisible();
+    // The first field in error, the photos, takes the focus.
+    await expect(page.getByLabel("Ảnh món")).toBeFocused();
     await expect(page.getByText(/Hộp tổng hợp cần nói hộp gồm những gì/)).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
@@ -606,36 +626,6 @@ test.describe("the catalog on the web", () => {
     await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("heading", { level: 2, name: "4 món" })).toBeVisible();
     await expect(row(page, /Hộp bánh cuối ngày/)).toContainText("Hộp tổng hợp · 1 hộp");
-  });
-
-  test("a dish takes up to three photos, the first being the cover", async ({ page }, testInfo) => {
-    const store = await catalogStore(page, "ba-anh", testInfo);
-    await page.goto(`/vi/stores/${store}/catalog/new`);
-
-    // Four photos at once: the form keeps the first three.
-    const photos = ["a", "b", "c", "d"].map((name) => ({
-      name: `${name}.png`,
-      mimeType: "image/png",
-      buffer: png,
-    }));
-    await (await hydrated(page.getByLabel("Tên món"))).fill("Hộp ba ảnh");
-    await page.getByLabel("Ảnh món").setInputFiles(photos);
-    const removers = page.getByRole("button", { name: /^Bỏ ảnh/ });
-    await expect(removers).toHaveCount(3);
-    await expect(page.getByText("Ảnh đại diện", { exact: true })).toBeVisible();
-    await expectNoSeriousA11yViolations(page);
-
-    await page.getByRole("button", { name: "Bỏ ảnh 2" }).click();
-    await expect(removers).toHaveCount(2);
-
-    await page.getByRole("button", { name: "Lưu món" }).click();
-    await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
-
-    // Changing it shows the two photos it keeps.
-    await row(page, /Hộp ba ảnh/)
-      .getByRole("link", { name: "Sửa" })
-      .click();
-    await expect(removers).toHaveCount(2);
   });
 
   test("changes a dish, shows a hidden one again, and deletes one after asking", async ({
