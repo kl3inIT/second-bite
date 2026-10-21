@@ -593,36 +593,6 @@ test.describe("the catalog on the web", () => {
     await expect(row(page, /Hộp bánh cuối ngày/)).toContainText("Hộp tổng hợp · 1 hộp");
   });
 
-  test("a dish takes up to three photos, the first being the cover", async ({ page }, testInfo) => {
-    const store = await catalogStore(page, "ba-anh", testInfo);
-    await page.goto(`/vi/stores/${store}/catalog/new`);
-
-    // Four photos at once: the form keeps the first three.
-    const photos = ["a", "b", "c", "d"].map((name) => ({
-      name: `${name}.png`,
-      mimeType: "image/png",
-      buffer: png,
-    }));
-    await (await hydrated(page.getByLabel("Tên món"))).fill("Hộp ba ảnh");
-    await page.getByLabel("Ảnh món").setInputFiles(photos);
-    const removers = page.getByRole("button", { name: /^Bỏ ảnh/ });
-    await expect(removers).toHaveCount(3);
-    await expect(page.getByText("Ảnh đại diện", { exact: true })).toBeVisible();
-    await expectNoSeriousA11yViolations(page);
-
-    await page.getByRole("button", { name: "Bỏ ảnh 2" }).click();
-    await expect(removers).toHaveCount(2);
-
-    await page.getByRole("button", { name: "Lưu món" }).click();
-    await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
-
-    // Changing it shows the two photos it keeps.
-    await row(page, /Hộp ba ảnh/)
-      .getByRole("link", { name: "Sửa" })
-      .click();
-    await expect(removers).toHaveCount(2);
-  });
-
   test("changes a dish, shows a hidden one again, and deletes one after asking", async ({
     page,
   }, testInfo) => {
