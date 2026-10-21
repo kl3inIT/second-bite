@@ -102,8 +102,11 @@ test.describe("the admin shell", () => {
     await (await hydrated(page.getByRole("button", { name: "Thu gọn thanh bên" }))).click();
     const expand = page.getByRole("button", { name: "Mở rộng thanh bên" });
     await expect(expand).toBeVisible();
-    // The rail labels each item short, its full name read out with it.
-    await expect(adminSidebar(page).getByText("Thanh toán", { exact: true })).toBeVisible();
+    // The rail shows the icons; each item keeps its full name for the screen reader and in its tooltip.
+    await expect(adminSidebar(page).getByText("Thanh toán & Hoàn tiền")).toBeHidden();
+    await expect(
+      adminSidebar(page).getByRole("link", { name: /^Thanh toán & Hoàn tiền/ }),
+    ).toBeVisible();
     await expect(adminSidebar(page).getByRole("link")).toHaveCount(14);
     await expectNoSeriousA11yViolations(page);
 
@@ -125,7 +128,7 @@ test.describe("the admin shell", () => {
     await expectNoSeriousA11yViolations(page);
     await adminSidebar(page).getByRole("link", { name: "Cài đặt" }).click();
     await expect(page).toHaveURL(/\/vi\/admin\/settings/);
-    await expect(page.getByRole("dialog", { name: "Điều hướng quản trị" })).toBeHidden();
+    await expect(adminSidebar(page)).toBeHidden();
   });
 
   test("the language and sign-out sit at the sidebar's foot", async ({
@@ -141,10 +144,13 @@ test.describe("the admin shell", () => {
     await expect(page.getByRole("heading", { name: "This page was not found" })).toBeVisible();
 
     // On a phone the drawer may have stayed open across the change of language.
-    if (isMobile && !(await page.getByRole("button", { name: "Sign out" }).isVisible())) {
+    const account = page.getByRole("button", { name: new RegExp(email) });
+    if (isMobile && !(await account.isVisible())) {
       await (await hydrated(page.getByRole("button", { name: "Open the admin menu" }))).click();
     }
-    await (await hydrated(page.getByRole("button", { name: "Sign out" }))).click();
+    // Sign-out sits in the account's menu at the sidebar's foot.
+    await (await hydrated(account)).click();
+    await page.getByRole("menuitem", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/en\/sign-in\?returnTo=%2Fadmin%2Fkhong-co$/);
   });
 });

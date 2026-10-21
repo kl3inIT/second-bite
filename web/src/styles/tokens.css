@@ -85,13 +85,13 @@
   --avatar-rose: var(--logo-rose);
   --avatar-indigo: var(--logo-indigo);
   --avatar-olive: var(--logo-olive);
-  --sidebar: var(--brand-800);
+  --sidebar: var(--brand-900);
   --sidebar-foreground: var(--base-white);
   --sidebar-primary: var(--base-white);
-  --sidebar-primary-foreground: var(--brand-800);
-  --sidebar-accent: var(--brand-900);
+  --sidebar-primary-foreground: var(--brand-900);
+  --sidebar-accent: var(--brand-800);
   --sidebar-accent-foreground: var(--base-white);
-  --sidebar-border: var(--brand-900);
+  --sidebar-border: var(--brand-800);
   --sidebar-ring: var(--base-white);
 }
 

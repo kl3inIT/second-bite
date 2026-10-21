@@ -56,13 +56,13 @@ abstract final class ColorTokens {
   static const avatarRose = Color(0xFFB03B4E);
   static const avatarIndigo = Color(0xFF3A4F9A);
   static const avatarOlive = Color(0xFF5E6B1F);
-  static const sidebar = Color(0xFF0061AF);
+  static const sidebar = Color(0xFF004E8C);
   static const sidebarForeground = Color(0xFFFFFFFF);
   static const sidebarPrimary = Color(0xFFFFFFFF);
-  static const sidebarPrimaryForeground = Color(0xFF0061AF);
-  static const sidebarAccent = Color(0xFF004E8C);
+  static const sidebarPrimaryForeground = Color(0xFF004E8C);
+  static const sidebarAccent = Color(0xFF0061AF);
   static const sidebarAccentForeground = Color(0xFFFFFFFF);
-  static const sidebarBorder = Color(0xFF004E8C);
+  static const sidebarBorder = Color(0xFF0061AF);
   static const sidebarRing = Color(0xFFFFFFFF);
 }
 

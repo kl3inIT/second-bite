@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { pageMetadata } from "@/lib/seo";
 
-import { type AdminNamedPage, type AdminPageKey, isReleased, lineage } from "./pages";
-import { AdminComingSoon } from "./ui/coming-soon";
+import { type AdminNamedPage, type AdminPageKey, adminPages, isReleased, lineage } from "./pages";
 
 /**
  * A page's flag at work: an open page renders its content; one whose `released` is off in the registry (pages.ts)
@@ -20,7 +22,29 @@ import { AdminComingSoon } from "./ui/coming-soon";
 export function AdminPageGate({ page, children }: { page: AdminPageKey; children: ReactNode }) {
   if (isReleased(page)) return children;
   const named = lineage(page).find((key): key is AdminNamedPage => !key.endsWith("Detail"));
-  return <AdminComingSoon page={named ?? "overview"} />;
+  return <ComingSoon page={named ?? "overview"} />;
+}
+
+// The page of a menu item that is not open yet (AD-TT6): the page's icon, "Sắp có" and its name, nothing to press.
+// It shows inside the shell and, for a settings page, inside the settings layout, so the item can still be chosen.
+function ComingSoon({ page }: { page: AdminNamedPage }) {
+  const t = useTranslations("admin.shell");
+  const Icon = adminPages[page].icon;
+  return (
+    <section aria-labelledby="coming-soon-title" className="flex flex-1 flex-col">
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Icon aria-hidden />
+          </EmptyMedia>
+          <Badge variant="secondary">{t("soon")}</Badge>
+          <EmptyTitle>
+            <h1 id="coming-soon-title">{t(`pages.${page}.label`)}</h1>
+          </EmptyTitle>
+        </EmptyHeader>
+      </Empty>
+    </section>
+  );
 }
 
 /**

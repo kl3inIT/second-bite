@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link, usePathname } from "@/i18n/navigation";
 
 import { useAdminCrumbs } from "./admin-crumbs";
@@ -65,16 +66,22 @@ export function AdminTopBar() {
   return (
     <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-4 md:px-8">
       <div className="flex min-w-0 items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          aria-label={toggleLabel}
-          title={toggleLabel}
-          className="-ml-2 shrink-0"
-        >
-          <ToggleIcon aria-hidden className="size-5" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                aria-label={toggleLabel}
+                className="-ml-2 shrink-0"
+              />
+            }
+          >
+            <ToggleIcon aria-hidden />
+          </TooltipTrigger>
+          <TooltipContent side="bottom">{toggleLabel}</TooltipContent>
+        </Tooltip>
         <Breadcrumb aria-label={t("breadcrumb")} className="min-w-0">
           <BreadcrumbList>
             {crumbs.map((crumb, index) => (

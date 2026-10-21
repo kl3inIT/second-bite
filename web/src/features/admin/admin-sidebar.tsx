@@ -1,9 +1,12 @@
 "use client";
 
-import { GlobeIcon, LogOutIcon, PanelLeftCloseIcon } from "lucide-react";
+import { ChevronsUpDownIcon, GlobeIcon, LogOutIcon, PanelLeftCloseIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { Fragment, type ReactNode, useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,12 +16,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Sidebar, useSidebar } from "@/components/ui/sidebar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { Wordmark } from "@/components/wordmark";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { signOut } from "@/lib/api/generated";
-import { cn } from "@/lib/utils";
 
 import {
   adminHref,
@@ -65,278 +77,160 @@ function useOpenItem(): AdminNamedPage | undefined {
   return lineage(current).find((key): key is AdminNamedPage => "nav" in adminPages[key]);
 }
 
-const focusRing = "focus-visible:ring-3 focus-visible:ring-sidebar-ring focus-visible:outline-none";
-
-// The admin's sidebar (SEC-62, Figma Admin/Sidebar 228:6027, AD-Q1 and AD-Q2), on shadcn's Sidebar. Open: the
-// wordmark and the "Quản trị" tag, the fourteen items in their groups, then the language and the account at the
-// foot over the light sweep. Collapsed: a 72px rail of icons labelled underneath, under the "sb" mark. The button
-// in the top bar collapses and expands it, and shadcn's cookie keeps the choice. On a phone it is a drawer,
-// always open, closed from its own button.
+// The admin's sidebar (SEC-62), shadcn's Sidebar as main has it: the wordmark and the "Quản trị" badge, the
+// fourteen items in their groups, each with "Sắp có" while its page is not released, then the language and the
+// account at the foot. The button in the top bar collapses it to the primitive's icon rail (`collapsible="icon"`),
+// where each item names itself in a tooltip; shadcn's cookie keeps the choice. On a phone it is the primitive's
+// drawer, closed from its own button and on a choice. The menu scrolls when it is taller than the window, and
+// the open item is scrolled into view.
 export function AdminSidebar({ account }: { account: Account }) {
-  const { state, isMobile } = useSidebar();
-  const rail = state === "collapsed" && !isMobile;
+  const t = useTranslations("admin.shell");
+  const { isMobile, state, setOpenMobile } = useSidebar();
+  const collapsed = state === "collapsed" && !isMobile;
+  const open = useOpenItem();
+  const content = useRef<HTMLDivElement>(null);
+  const { pending, signOutHere } = useSignOut();
+  // On a phone the drawer closes once an item is chosen.
+  const closeDrawer = () => setOpenMobile(false);
+
+  useEffect(() => {
+    content.current
+      ?.querySelector('[data-sidebar="menu-button"][data-active]')
+      ?.scrollIntoView({ block: "nearest" });
+  }, [open]);
 
   return (
     <Sidebar collapsible="icon">
-      {rail ? <Rail account={account} /> : <Full account={account} />}
+      <SidebarHeader>
+        <div className="flex items-center gap-2">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                size="lg"
+                tooltip={t("sidebar.home")}
+                render={<Link href={adminHref("overview")} onClick={closeDrawer} />}
+              >
+                {/* The rail keeps the mark; the open sidebar shows the wordmark beside it. */}
+                <Avatar>
+                  <AvatarFallback>sb</AvatarFallback>
+                </Avatar>
+                <Wordmark className="h-6" />
+                <span className="sr-only">{t("sidebar.home")}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={closeDrawer}
+              aria-label={t("sidebar.close")}
+            >
+              <PanelLeftCloseIcon aria-hidden />
+            </Button>
+          )}
+        </div>
+        {!collapsed && (
+          <div className="flex">
+            <Badge variant="fresh">{t("title")}</Badge>
+          </div>
+        )}
+      </SidebarHeader>
+
+      <SidebarContent ref={content}>
+        <nav aria-label={t("sidebar.label")}>
+          {adminNavGroups.map((group) => (
+            <SidebarGroup key={group}>
+              {(group === "operations" || group === "users" || group === "marketing") && (
+                <SidebarGroupLabel>{t(`groups.${group}`)}</SidebarGroupLabel>
+              )}
+              <SidebarMenu>
+                {navItems(group).map((key) => {
+                  const Icon = adminPages[key].icon;
+                  const active = key === open;
+                  const label = t(`pages.${key}.label`);
+                  return (
+                    <SidebarMenuItem key={key}>
+                      <SidebarMenuButton
+                        isActive={active}
+                        tooltip={isReleased(key) ? label : `${label} · ${t("soon")}`}
+                        render={
+                          <Link
+                            href={adminHref(key)}
+                            onClick={closeDrawer}
+                            aria-current={active ? "page" : undefined}
+                          />
+                        }
+                      >
+                        <Icon aria-hidden />
+                        {/* The name gives way before "Sắp có" does, so the mark never covers it. */}
+                        <span className="min-w-0 flex-1 truncate">{label}</span>
+                        {!isReleased(key) && <Badge variant="secondary">{t("soon")}</Badge>}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroup>
+          ))}
+        </nav>
+      </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <LanguageButton />
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <SidebarMenuButton
+                    size="lg"
+                    tooltip={t("sidebar.account", { email: account.email })}
+                  />
+                }
+              >
+                <Avatar>
+                  <AvatarFallback>{initialsOf(account)}</AvatarFallback>
+                </Avatar>
+                <span className="min-w-0 flex-1 truncate">{account.email}</span>
+                <ChevronsUpDownIcon aria-hidden />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side={isMobile ? "top" : "right"} align="end">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>{account.email}</DropdownMenuLabel>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem disabled={pending} onClick={signOutHere}>
+                    <LogOutIcon aria-hidden />
+                    {t("sidebar.signOut")}
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
 
-function Full({ account }: { account: Account }) {
-  const t = useTranslations("admin.shell");
-  const { isMobile, setOpenMobile } = useSidebar();
-  const open = useOpenItem();
-  // On a phone the drawer closes once an item is chosen.
-  const closeDrawer = () => setOpenMobile(false);
-  const { pending, signOutHere } = useSignOut();
-
-  return (
-    <div className="relative flex h-full flex-col gap-5 overflow-hidden bg-sidebar px-4 pt-7 pb-6 text-sidebar-foreground">
-      <Sweep />
-      <div className="relative flex flex-col gap-1">
-        <div className="flex min-h-11 items-center justify-between pl-1">
-          <Link href={adminHref("overview")} className={cn("rounded-lg", focusRing)}>
-            <Wordmark className="h-6" />
-            <span className="sr-only">{t("sidebar.home")}</span>
-          </Link>
-          {/* The top bar collapses the sidebar; only the drawer on a phone closes from here. */}
-          {isMobile && (
-            <button
-              type="button"
-              onClick={() => setOpenMobile(false)}
-              aria-label={t("sidebar.close")}
-              title={t("sidebar.close")}
-              className={cn(
-                "flex size-11 items-center justify-center rounded-lg transition-colors hover:bg-sidebar-accent",
-                focusRing,
-              )}
-            >
-              <PanelLeftCloseIcon aria-hidden className="size-5" />
-            </button>
-          )}
-        </div>
-        <span className="ml-1 self-start rounded-full bg-fresh px-2.5 py-1 text-label-strong text-fresh-foreground">
-          {t("title")}
-        </span>
-      </div>
-
-      <nav
-        aria-label={t("sidebar.label")}
-        className="relative -mx-4 scrollbar-none flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4"
-      >
-        {adminNavGroups.map((group) => (
-          <div key={group} className="flex flex-col gap-0.5">
-            {(group === "operations" || group === "users" || group === "marketing") && (
-              <h2 className="px-3 pt-1.5 pb-1 text-label-strong tracking-wide text-sidebar-foreground uppercase">
-                {t(`groups.${group}`)}
-              </h2>
-            )}
-            <ul className="flex flex-col gap-0.5">
-              {navItems(group).map((key) => {
-                const Icon = adminPages[key].icon;
-                const active = key === open;
-                return (
-                  <li key={key}>
-                    <Link
-                      href={adminHref(key)}
-                      onClick={closeDrawer}
-                      aria-current={active ? "page" : undefined}
-                      className={cn(
-                        "flex h-11 items-center gap-3 rounded-xl pr-2.5 pl-3 text-body-sm-strong transition-colors",
-                        focusRing,
-                        active
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                          : "hover:bg-sidebar-accent",
-                      )}
-                    >
-                      <Icon aria-hidden className="size-5 shrink-0" />
-                      <span className="min-w-0 flex-1 truncate">{t(`pages.${key}.label`)}</span>
-                      {!isReleased(key) && (
-                        <span className="shrink-0 rounded-full bg-fresh px-2 py-0.5 text-label-strong text-fresh-foreground">
-                          {t("soon")}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </nav>
-
-      <div className="relative flex flex-col gap-5">
-        <LanguageLink className="flex items-center gap-3 rounded-xl p-3 text-title hover:bg-sidebar-accent">
-          <GlobeIcon aria-hidden className="size-5" />
-        </LanguageLink>
-        <div className="flex items-center gap-2.5 rounded-xl bg-sidebar-accent py-2.5 pr-2 pl-3 text-sidebar-accent-foreground">
-          <Avatar account={account} />
-          <span className="min-w-0 flex-1 truncate text-label-strong">{account.email}</span>
-          <button
-            type="button"
-            onClick={signOutHere}
-            disabled={pending}
-            aria-label={t("sidebar.signOut")}
-            title={t("sidebar.signOut")}
-            className={cn(
-              "flex size-11 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-sidebar disabled:opacity-60",
-              focusRing,
-            )}
-          >
-            <LogOutIcon aria-hidden className="size-5" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Rail({ account }: { account: Account }) {
-  const t = useTranslations("admin.shell");
-  const open = useOpenItem();
-  const { pending, signOutHere } = useSignOut();
-
-  return (
-    <div className="flex h-full flex-col items-center justify-between gap-4 bg-sidebar py-4 text-sidebar-foreground">
-      <div className="flex min-h-0 w-full flex-col items-center gap-3">
-        {/* The rail's mark, the wordmark's stand-in; the top bar expands the sidebar again. */}
-        <Link
-          href={adminHref("overview")}
-          className={cn(
-            "flex size-11 shrink-0 items-center justify-center rounded-xl bg-sidebar-accent text-title-lg text-sidebar-accent-foreground",
-            focusRing,
-          )}
-        >
-          {/* Named by the hidden words, not aria-label, so the "sb" on show is not taken for its name. */}
-          <span aria-hidden>sb</span>
-          <span className="sr-only">{t("sidebar.home")}</span>
-        </Link>
-        <nav
-          aria-label={t("sidebar.label")}
-          className="scrollbar-none min-h-0 w-full overflow-y-auto"
-        >
-          <ul className="flex flex-col items-center gap-1">
-            {adminNavGroups.map((group, index) => (
-              <Fragment key={group}>
-                {index > 0 && group !== "bottom" && (
-                  <li aria-hidden className="h-px w-10 shrink-0 bg-sidebar-border" />
-                )}
-                {navItems(group).map((key) => {
-                  const Icon = adminPages[key].icon;
-                  const active = key === open;
-                  return (
-                    <li key={key} className="w-full">
-                      <Link
-                        href={adminHref(key)}
-                        aria-current={active ? "page" : undefined}
-                        className="group/rail flex w-full flex-col items-center gap-0.5 py-1 focus-visible:outline-none"
-                      >
-                        <span
-                          className={cn(
-                            "flex h-7 w-11 items-center justify-center rounded-full transition-colors group-focus-visible/rail:ring-3 group-focus-visible/rail:ring-sidebar-ring",
-                            active
-                              ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                              : "group-hover/rail:bg-sidebar-accent",
-                          )}
-                        >
-                          <Icon aria-hidden className="size-5" />
-                        </span>
-                        <span
-                          className={cn(
-                            "max-w-full truncate",
-                            active
-                              ? "text-label-strong"
-                              : "text-label text-sidebar-foreground group-hover/rail:text-sidebar-foreground",
-                          )}
-                        >
-                          {t(`pages.${key}.short`)}
-                        </span>
-                        {/* The short label stands for the full name, which a screen reader reads too. */}
-                        {t(`pages.${key}.short`) !== t(`pages.${key}.label`) && (
-                          <span className="sr-only">{`, ${t(`pages.${key}.label`)}`}</span>
-                        )}
-                        {!isReleased(key) && <span className="sr-only">{`, ${t("soon")}`}</span>}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </Fragment>
-            ))}
-          </ul>
-        </nav>
-      </div>
-      <div className="flex flex-col items-center gap-4">
-        <LanguageLink className="flex flex-col items-center gap-1 rounded-xl px-1 pb-1 text-label text-sidebar-foreground hover:text-sidebar-foreground">
-          <span className="flex size-11 items-center justify-center rounded-xl text-sidebar-foreground">
-            <GlobeIcon aria-hidden className="size-5" />
-          </span>
-        </LanguageLink>
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-            <Avatar account={account} />
-            <span className="sr-only">{t("sidebar.account", { email: account.email })}</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" align="end" className="min-w-56">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>{account.email}</DropdownMenuLabel>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem disabled={pending} onClick={signOutHere}>
-                <LogOutIcon aria-hidden />
-                {t("sidebar.signOut")}
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
-  );
-}
-
 /** The same page in the other language; it shows the current one, as Figma does ("Tiếng Việt"). */
-function LanguageLink({ className, children }: { className: string; children: ReactNode }) {
+function LanguageButton() {
   const t = useTranslations("admin.shell.sidebar");
   const pathname = usePathname();
   const other = useLocale() === "vi" ? "en" : "vi";
 
   return (
-    <Link href={pathname} locale={other} className={cn("transition-colors", focusRing, className)}>
-      {children}
-      <span>{t("language")}</span>
-      {/* Said in the language it switches to, as the customer header's switch does. */}
-      <span lang={other} className="sr-only">{`, ${t("switchLanguage")}`}</span>
-    </Link>
-  );
-}
-
-function Avatar({ account }: { account: Account }) {
-  return (
-    <span
-      aria-hidden
-      className="flex size-9 shrink-0 items-center justify-center rounded-full bg-fresh text-body-sm-strong text-fresh-foreground"
-    >
-      {initialsOf(account)}
-    </span>
-  );
-}
-
-// The light sweep at the sidebar's foot (Figma `sweep`, 228:5682): two waves, sky and deep blue, behind the
-// language and the account. Decoration only.
-function Sweep() {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 256 300"
-      preserveAspectRatio="none"
-      className="pointer-events-none absolute inset-x-0 bottom-0 h-75 w-full"
-    >
-      <path d="M0 120C70 70 170 60 256 0V300H0V120Z" className="fill-sky opacity-35" />
-      <path
-        d="M0 190C80 140 180 140 256 90V300H0V190Z"
-        className="fill-sidebar-accent opacity-60"
-      />
-    </svg>
+    <SidebarMenuButton tooltip={t("language")} render={<Link href={pathname} locale={other} />}>
+      <GlobeIcon aria-hidden />
+      <span>
+        {t("language")}
+        {/* Said in the language it switches to, as the customer header's switch does. */}
+        <span lang={other} className="sr-only">{`, ${t("switchLanguage")}`}</span>
+      </span>
+    </SidebarMenuButton>
   );
 }

@@ -38,5 +38,5 @@ export function adminSidebar(page: Page) {
 /** Opens the sidebar's drawer on a phone. */
 export async function openAdminMenu(page: Page) {
   await (await hydrated(page.getByRole("button", { name: "Mở menu quản trị" }))).click();
-  await expect(page.getByRole("dialog", { name: "Điều hướng quản trị" })).toBeVisible();
+  await expect(page.getByRole("dialog").filter({ has: adminSidebar(page) })).toBeVisible();
 }

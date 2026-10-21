@@ -92,14 +92,14 @@ colors:
   avatar-rose: "{palette.logo-rose}" # 5.9:1
   avatar-indigo: "{palette.logo-indigo}" # 7.6:1
   avatar-olive: "{palette.logo-olive}" # 6.0:1
-  sidebar: "{palette.brand-800}" # the admin sidebar (SEC-62); white on it 6.3:1
+  sidebar: "{palette.brand-900}" # the admin sidebar (SEC-62); white on it 8.5:1, its group labels at 70% 5:1
   sidebar-foreground: "{palette.base-white}"
-  sidebar-primary: "{palette.base-white}" # the open item, a white pill
-  sidebar-primary-foreground: "{palette.brand-800}" # 6.3:1
-  sidebar-accent: "{palette.brand-900}" # an item under the pointer
-  sidebar-accent-foreground: "{palette.base-white}" # 8.5:1
-  sidebar-border: "{palette.brand-900}"
-  sidebar-ring: "{palette.base-white}" # focus ring on the sidebar, 6.3:1
+  sidebar-primary: "{palette.base-white}"
+  sidebar-primary-foreground: "{palette.brand-900}" # 8.5:1
+  sidebar-accent: "{palette.brand-800}" # the open item and an item under the pointer
+  sidebar-accent-foreground: "{palette.base-white}" # 6.3:1
+  sidebar-border: "{palette.brand-800}"
+  sidebar-ring: "{palette.base-white}" # focus ring on the sidebar, 8.5:1
 typography:
   # Eighteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
   # "Mobile v2" frames used (SEC-22). Named by purpose, not size; each has a Figma text style of the same name.
