@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DishChangeBody {
 
- String? get description; bool? get hidden; String? get ingredients; DishChangeBodyKind? get kind; String? get name; int? get originalPriceVnd; String? get photoId; String? get unit;
+ String? get description; bool? get hidden; String? get ingredients; DishChangeBodyKind? get kind;/// Replaces the photos after the cover; at most two
+ List<String>? get morePhotoIds; String? get name; int? get originalPriceVnd; String? get photoId; String? get unit;
 /// Create a copy of DishChangeBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +31,20 @@ $DishChangeBodyCopyWith<DishChangeBody> get copyWith => _$DishChangeBodyCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as DishChangeBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DishChangeBody&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.hidden, _this.hidden) || other.hidden == _this.hidden)&&(identical(other.ingredients, _this.ingredients) || other.ingredients == _this.ingredients)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.originalPriceVnd, _this.originalPriceVnd) || other.originalPriceVnd == _this.originalPriceVnd)&&(identical(other.photoId, _this.photoId) || other.photoId == _this.photoId)&&(identical(other.unit, _this.unit) || other.unit == _this.unit));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DishChangeBody&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.hidden, _this.hidden) || other.hidden == _this.hidden)&&(identical(other.ingredients, _this.ingredients) || other.ingredients == _this.ingredients)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&const DeepCollectionEquality().equals(other.morePhotoIds, _this.morePhotoIds)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.originalPriceVnd, _this.originalPriceVnd) || other.originalPriceVnd == _this.originalPriceVnd)&&(identical(other.photoId, _this.photoId) || other.photoId == _this.photoId)&&(identical(other.unit, _this.unit) || other.unit == _this.unit));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as DishChangeBody;
-  return Object.hash(runtimeType,_this.description,_this.hidden,_this.ingredients,_this.kind,_this.name,_this.originalPriceVnd,_this.photoId,_this.unit);
+  return Object.hash(runtimeType,_this.description,_this.hidden,_this.ingredients,_this.kind,const DeepCollectionEquality().hash(_this.morePhotoIds),_this.name,_this.originalPriceVnd,_this.photoId,_this.unit);
 }
 
 @override
 String toString() {
   final _this = this as DishChangeBody;
-  return 'DishChangeBody(description: ${_this.description}, hidden: ${_this.hidden}, ingredients: ${_this.ingredients}, kind: ${_this.kind}, name: ${_this.name}, originalPriceVnd: ${_this.originalPriceVnd}, photoId: ${_this.photoId}, unit: ${_this.unit})';
+  return 'DishChangeBody(description: ${_this.description}, hidden: ${_this.hidden}, ingredients: ${_this.ingredients}, kind: ${_this.kind}, morePhotoIds: ${_this.morePhotoIds}, name: ${_this.name}, originalPriceVnd: ${_this.originalPriceVnd}, photoId: ${_this.photoId}, unit: ${_this.unit})';
 }
 
 
@@ -54,7 +55,7 @@ abstract mixin class $DishChangeBodyCopyWith<$Res>  {
   factory $DishChangeBodyCopyWith(DishChangeBody value, $Res Function(DishChangeBody) _then) = _$DishChangeBodyCopyWithImpl;
 @useResult
 $Res call({
- String? description, bool? hidden, String? ingredients, DishChangeBodyKind? kind, String? name, int? originalPriceVnd, String? photoId, String? unit
+ String? description, bool? hidden, String? ingredients, DishChangeBodyKind? kind, List<String>? morePhotoIds, String? name, int? originalPriceVnd, String? photoId, String? unit
 });
 
 
@@ -71,13 +72,14 @@ class _$DishChangeBodyCopyWithImpl<$Res>
 
 /// Create a copy of DishChangeBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? description = freezed,Object? hidden = freezed,Object? ingredients = freezed,Object? kind = freezed,Object? name = freezed,Object? originalPriceVnd = freezed,Object? photoId = freezed,Object? unit = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? description = freezed,Object? hidden = freezed,Object? ingredients = freezed,Object? kind = freezed,Object? morePhotoIds = freezed,Object? name = freezed,Object? originalPriceVnd = freezed,Object? photoId = freezed,Object? unit = freezed,}) {
   return _then(DishChangeBody(
 description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,hidden: freezed == hidden ? _self.hidden : hidden // ignore: cast_nullable_to_non_nullable
 as bool?,ingredients: freezed == ingredients ? _self.ingredients : ingredients // ignore: cast_nullable_to_non_nullable
 as String?,kind: freezed == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as DishChangeBodyKind?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as DishChangeBodyKind?,morePhotoIds: freezed == morePhotoIds ? _self.morePhotoIds : morePhotoIds // ignore: cast_nullable_to_non_nullable
+as List<String>?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,originalPriceVnd: freezed == originalPriceVnd ? _self.originalPriceVnd : originalPriceVnd // ignore: cast_nullable_to_non_nullable
 as int?,photoId: freezed == photoId ? _self.photoId : photoId // ignore: cast_nullable_to_non_nullable
 as String?,unit: freezed == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
@@ -166,10 +168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? description,  bool? hidden,  String? ingredients,  DishChangeBodyKind? kind,  String? name,  int? originalPriceVnd,  String? photoId,  String? unit)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? description,  bool? hidden,  String? ingredients,  DishChangeBodyKind? kind,  List<String>? morePhotoIds,  String? name,  int? originalPriceVnd,  String? photoId,  String? unit)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DishChangeBody() when $default != null:
-return $default(_that.description,_that.hidden,_that.ingredients,_that.kind,_that.name,_that.originalPriceVnd,_that.photoId,_that.unit);case _:
+return $default(_that.description,_that.hidden,_that.ingredients,_that.kind,_that.morePhotoIds,_that.name,_that.originalPriceVnd,_that.photoId,_that.unit);case _:
   return orElse();
 
 }
@@ -187,10 +189,10 @@ return $default(_that.description,_that.hidden,_that.ingredients,_that.kind,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? description,  bool? hidden,  String? ingredients,  DishChangeBodyKind? kind,  String? name,  int? originalPriceVnd,  String? photoId,  String? unit)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? description,  bool? hidden,  String? ingredients,  DishChangeBodyKind? kind,  List<String>? morePhotoIds,  String? name,  int? originalPriceVnd,  String? photoId,  String? unit)  $default,) {final _that = this;
 switch (_that) {
 case _DishChangeBody():
-return $default(_that.description,_that.hidden,_that.ingredients,_that.kind,_that.name,_that.originalPriceVnd,_that.photoId,_that.unit);case _:
+return $default(_that.description,_that.hidden,_that.ingredients,_that.kind,_that.morePhotoIds,_that.name,_that.originalPriceVnd,_that.photoId,_that.unit);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +209,10 @@ return $default(_that.description,_that.hidden,_that.ingredients,_that.kind,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? description,  bool? hidden,  String? ingredients,  DishChangeBodyKind? kind,  String? name,  int? originalPriceVnd,  String? photoId,  String? unit)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? description,  bool? hidden,  String? ingredients,  DishChangeBodyKind? kind,  List<String>? morePhotoIds,  String? name,  int? originalPriceVnd,  String? photoId,  String? unit)?  $default,) {final _that = this;
 switch (_that) {
 case _DishChangeBody() when $default != null:
-return $default(_that.description,_that.hidden,_that.ingredients,_that.kind,_that.name,_that.originalPriceVnd,_that.photoId,_that.unit);case _:
+return $default(_that.description,_that.hidden,_that.ingredients,_that.kind,_that.morePhotoIds,_that.name,_that.originalPriceVnd,_that.photoId,_that.unit);case _:
   return null;
 
 }
@@ -222,13 +224,24 @@ return $default(_that.description,_that.hidden,_that.ingredients,_that.kind,_tha
 @JsonSerializable()
 
 class _DishChangeBody implements DishChangeBody {
-  const _DishChangeBody({this.description, this.hidden, this.ingredients, this.kind, this.name, this.originalPriceVnd, this.photoId, this.unit});
+  const _DishChangeBody({this.description, this.hidden, this.ingredients, this.kind,  List<String>? morePhotoIds, this.name, this.originalPriceVnd, this.photoId, this.unit}): _morePhotoIds = morePhotoIds;
   factory _DishChangeBody.fromJson(Map<String, dynamic> json) => _$DishChangeBodyFromJson(json);
 
 @override final  String? description;
 @override final  bool? hidden;
 @override final  String? ingredients;
 @override final  DishChangeBodyKind? kind;
+/// Replaces the photos after the cover; at most two
+ final  List<String>? _morePhotoIds;
+/// Replaces the photos after the cover; at most two
+@override List<String>? get morePhotoIds {
+  final value = _morePhotoIds;
+  if (value == null) return null;
+  if (_morePhotoIds is EqualUnmodifiableListView) return _morePhotoIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 @override final  String? name;
 @override final  int? originalPriceVnd;
 @override final  String? photoId;
@@ -247,18 +260,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DishChangeBody&&(identical(other.description, description) || other.description == description)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.ingredients, ingredients) || other.ingredients == ingredients)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.name, name) || other.name == name)&&(identical(other.originalPriceVnd, originalPriceVnd) || other.originalPriceVnd == originalPriceVnd)&&(identical(other.photoId, photoId) || other.photoId == photoId)&&(identical(other.unit, unit) || other.unit == unit));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DishChangeBody&&(identical(other.description, description) || other.description == description)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.ingredients, ingredients) || other.ingredients == ingredients)&&(identical(other.kind, kind) || other.kind == kind)&&const DeepCollectionEquality().equals(other.morePhotoIds, _morePhotoIds)&&(identical(other.name, name) || other.name == name)&&(identical(other.originalPriceVnd, originalPriceVnd) || other.originalPriceVnd == originalPriceVnd)&&(identical(other.photoId, photoId) || other.photoId == photoId)&&(identical(other.unit, unit) || other.unit == unit));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,description,hidden,ingredients,kind,name,originalPriceVnd,photoId,unit);
+    return Object.hash(runtimeType,description,hidden,ingredients,kind,const DeepCollectionEquality().hash(_morePhotoIds),name,originalPriceVnd,photoId,unit);
 }
 
 @override
 String toString() {
-    return 'DishChangeBody(description: $description, hidden: $hidden, ingredients: $ingredients, kind: $kind, name: $name, originalPriceVnd: $originalPriceVnd, photoId: $photoId, unit: $unit)';
+    return 'DishChangeBody(description: $description, hidden: $hidden, ingredients: $ingredients, kind: $kind, morePhotoIds: $morePhotoIds, name: $name, originalPriceVnd: $originalPriceVnd, photoId: $photoId, unit: $unit)';
 }
 
 
@@ -269,7 +282,7 @@ abstract mixin class _$DishChangeBodyCopyWith<$Res> implements $DishChangeBodyCo
   factory _$DishChangeBodyCopyWith(_DishChangeBody value, $Res Function(_DishChangeBody) _then) = __$DishChangeBodyCopyWithImpl;
 @override @useResult
 $Res call({
- String? description, bool? hidden, String? ingredients, DishChangeBodyKind? kind, String? name, int? originalPriceVnd, String? photoId, String? unit
+ String? description, bool? hidden, String? ingredients, DishChangeBodyKind? kind, List<String>? morePhotoIds, String? name, int? originalPriceVnd, String? photoId, String? unit
 });
 
 
@@ -286,13 +299,14 @@ class __$DishChangeBodyCopyWithImpl<$Res>
 
 /// Create a copy of DishChangeBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? description = freezed,Object? hidden = freezed,Object? ingredients = freezed,Object? kind = freezed,Object? name = freezed,Object? originalPriceVnd = freezed,Object? photoId = freezed,Object? unit = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? description = freezed,Object? hidden = freezed,Object? ingredients = freezed,Object? kind = freezed,Object? morePhotoIds = freezed,Object? name = freezed,Object? originalPriceVnd = freezed,Object? photoId = freezed,Object? unit = freezed,}) {
   return _then(_DishChangeBody(
 description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,hidden: freezed == hidden ? _self.hidden : hidden // ignore: cast_nullable_to_non_nullable
 as bool?,ingredients: freezed == ingredients ? _self.ingredients : ingredients // ignore: cast_nullable_to_non_nullable
 as String?,kind: freezed == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as DishChangeBodyKind?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as DishChangeBodyKind?,morePhotoIds: freezed == morePhotoIds ? _self._morePhotoIds : morePhotoIds // ignore: cast_nullable_to_non_nullable
+as List<String>?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,originalPriceVnd: freezed == originalPriceVnd ? _self.originalPriceVnd : originalPriceVnd // ignore: cast_nullable_to_non_nullable
 as int?,photoId: freezed == photoId ? _self.photoId : photoId // ignore: cast_nullable_to_non_nullable
 as String?,unit: freezed == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable

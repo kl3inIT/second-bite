@@ -451,7 +451,7 @@
       "summary": {
         "cancelled": "You had not paid, so there is nothing to refund.",
         "refused": "You had not paid, so there is nothing to refund.",
-        "expired": "Next time, cancel before the window opens so the food reaches someone else."
+        "expired": "Next time, cancel the order so the food reaches someone else."
       },
       "placedBody": "{date}, {time} · {units} portions · {total}",
       "confirmed": "The seller confirmed it",
@@ -461,7 +461,7 @@
     "cancel": {
       "open": "Cancel order",
       "title": "Cancel order {number}?",
-      "body": "{units, plural, one {# portion goes} other {# portions go}} back to {seller} for someone else. You have not paid, so nothing is charged. Choose a reason (optional):",
+      "body": "{units, plural, one {# portion goes} other {# portions go}} back to {seller} for someone else. Choose a reason (optional):",
       "reason": "Reason",
       "reasons": {
         "late": "Cannot make it",
@@ -470,9 +470,8 @@
       },
       "keep": "Keep order",
       "confirm": "Cancel order",
-      "tooLate": "Too late to cancel free of charge: the collection window has opened.",
-      "failed": "The order was not cancelled. Try again, or report the reference {reference}.",
-      "free": "· free before {until}"
+      "tooLate": "The seller has marked the food ready, so the order can no longer be cancelled.",
+      "failed": "The order was not cancelled. Try again, or report the reference {reference}."
     },
     "date": "{day}/{month}",
     "orderNumber": "Order #{number}",
@@ -516,7 +515,9 @@
     "askSeller": "Ask the shop about ingredients and allergies.",
     "count": "{count} {name} to add",
     "add": "Add to cart · {price}",
-    "allChosen": "All {units} chosen"
+    "allChosen": "All {units} chosen",
+    "photos": "The dish's photos",
+    "photoNumber": "Show photo {number} of {total}"
   },
   "Seller": {
     "search": "Search the {seller} menu",
@@ -555,13 +556,14 @@
     "directions": "Directions",
     "pay": "Payment",
     "counter": "Pay at the counter",
-    "counterHint": "Cash or the shop's QR code when you collect",
+    "transfer": "Bank transfer",
+    "soon": "(coming soon)",
     "summaryTitle": "{orders, plural, =1 {Total} other {Total · # orders}}",
     "line": "{quantity}× {name}",
     "dishes": "Dishes ({units} portions)",
     "total": "Total",
     "cancelTitle": "Cancellation policy",
-    "cancelBody": "Free cancellation before {time}.",
+    "cancelBody": "You can cancel until the seller marks the food ready.",
     "totalSummary": "{orders, plural, =1 {{units} portions in all} other {# orders · {units} portions}} · save {saved}",
     "order": "{orders, plural, =1 {Place order} other {Place # orders}}",
     "contactTitle": "Who collects",
@@ -586,7 +588,6 @@
     "orderFailed": "The order did not go through. Try again, or quote the reference {reference}.",
     "orderFailedPlain": "The order did not go through. Check your connection and try again.",
     "sellerWindow": "{place} · Collect {from} – {until}",
-    "cancelEach": "Free cancellation before each order's collection time.",
     "intro": "One order per seller, each with its own QR code. Check the dishes and the collection time before you order.",
     "sellerUnits": "{seller} · {units} portions",
     "sidebarTitle": "{sellers, plural, =0 {Your cart} =1 {Your cart} other {Your cart · # sellers}}",
@@ -763,10 +764,10 @@
     "searchCount": "{count} results",
     "tabs": "Order groups",
     "tab": {
-      "preparing": "Preparing · {count}",
-      "ready": "Ready · {count}",
-      "delivered": "Delivered · {count}",
-      "cancelled": "Cancelled · {count}"
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
     },
     "empty": {
       "preparing": "No order is being prepared on this day. When a customer orders, their name and phone number show here.",
@@ -974,8 +975,8 @@
     "editTitle": "Edit dish",
     "photo": "Dish photo",
     "choosePhoto": "Choose a photo",
-    "changePhoto": "Change the photo",
-    "photoHint": "A photo helps customers recognise your dish.",
+    "addPhoto": "Add a photo",
+    "photoHint": "Up to 3 photos; the first is the cover.",
     "photoMissing": "Choose a photo for the dish.",
     "name": "Dish name",
     "namePlaceholder": "For example: Bread and croissant bag, 4 pieces",
@@ -999,7 +1000,9 @@
     "reference": "Reference: {id}",
     "original": "Original price (VND, optional)",
     "originalPlaceholder": "For example: 95.000",
-    "originalInvalid": "An original price from 1.001đ, or leave it empty."
+    "originalInvalid": "An original price from 1.001đ, or leave it empty.",
+    "cover": "Cover",
+    "removePhoto": "Remove photo {number}"
   },
   "Admin": {
     "home": "Second Bite, admin",

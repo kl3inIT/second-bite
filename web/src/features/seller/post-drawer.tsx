@@ -15,13 +15,13 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "@/i18n/navigation";
 import { ApiError, failureOf } from "@/lib/api/client";
-import { changeOffer, postOffer, uploadPhoto, type OfferBody } from "@/lib/api/generated";
+import { changeOffer, postOffer, type OfferBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
 
 import { Chip } from "./chip";
 import { useRemountKey } from "./remount-key";
 import { NumberInput } from "./number-input";
-import { PhotoDrop } from "./photo-drop";
+import { type PhotoSlot, PhotoSlots, uploadedIds } from "./photo-slots";
 import {
   clock,
   type Dish,
@@ -131,8 +131,7 @@ function PostDrawerBody({
     catalog.length > 0 ? "catalog" : dishes.length > 0 ? "earlier" : "oneoff",
   );
   const [chosen, setChosen] = useState<Dish | undefined>(base);
-  const [photo, setPhoto] = useState<File>();
-  const [preview, setPreview] = useState<string>();
+  const [slots, setSlots] = useState<PhotoSlot[]>([]);
   const [name, setName] = useState("");
   const [kind, setKind] = useState<OfferBody["kind"]>("bakery");
   const [description, setDescription] = useState("");
@@ -194,18 +193,12 @@ function PostDrawerBody({
     source !== "oneoff"
       ? chosen !== undefined
       : name.trim() !== "" &&
-        photo !== undefined &&
+        slots.length > 0 &&
         (kind !== "mixed_box" || description.trim() !== "");
 
   function close() {
     // Posted from the catalog, a closed drawer leaves the person where they were.
     router.push(`/stores/${sellerId}/${fromDish ? "catalog" : "offers"}`);
-  }
-
-  function choosePhoto(file: File | undefined) {
-    if (preview) URL.revokeObjectURL(preview);
-    setPhoto(file);
-    setPreview(file ? URL.createObjectURL(file) : undefined);
   }
 
   function post() {
@@ -246,8 +239,9 @@ function PostDrawerBody({
     }
     startTransition(async () => {
       try {
-        let photoId = chosen?.photoId;
-        if (!photoId && photo) photoId = (await uploadPhoto({ body: photo })).data.id;
+        const [photoId, ...morePhotoIds] = chosen
+          ? [chosen.photoId, ...chosen.morePhotoIds]
+          : await uploadedIds(slots);
         if (!photoId) return;
         await postOffer({
           path: { sellerId },
@@ -257,6 +251,7 @@ function PostDrawerBody({
             ...(chosen ? { unit: chosen.unit } : {}),
             description: chosen ? chosen.description : description.trim(),
             photoId,
+            morePhotoIds,
             units: unitsNumber,
             originalPriceVnd: originalNumber,
             priceVnd: priceNumber,
@@ -408,12 +403,7 @@ function PostDrawerBody({
                 <>
                   <Field>
                     <FieldLabel htmlFor="dish-photo">{t("photo")}</FieldLabel>
-                    <PhotoDrop
-                      id="dish-photo"
-                      fileName={photo?.name}
-                      preview={preview}
-                      onChange={choosePhoto}
-                    />
+                    <PhotoSlots id="dish-photo" slots={slots} onChange={setSlots} />
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="dish-name">{t("name")}</FieldLabel>
@@ -458,9 +448,9 @@ function PostDrawerBody({
               </h3>
               <div className="flex items-center gap-4">
                 <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
-                  {(chosen?.photoPath ?? preview) && (
+                  {(chosen?.photoPath ?? slots[0]?.preview) && (
                     <Image
-                      src={chosen ? `/api${chosen.photoPath}` : (preview ?? "")}
+                      src={chosen ? `/api${chosen.photoPath}` : (slots[0]?.preview ?? "")}
                       alt=""
                       fill
                       sizes="56px"

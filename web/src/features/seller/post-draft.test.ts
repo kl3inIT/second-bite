@@ -87,6 +87,10 @@ describe("the dishes of earlier posts", () => {
       originalPriceVnd: 95_000,
       priceVnd: 57_000,
       photo: { id: `ph-${name}`, smallPath: `/photos/ph-${name}/400.jpg` },
+      photos: [
+        { id: `ph-${name}`, smallPath: `/photos/ph-${name}/400.jpg` },
+        { id: `ph-${name}-2`, smallPath: `/photos/ph-${name}-2/400.jpg` },
+      ],
       windowStart,
     }) as OfferBody;
 
@@ -98,5 +102,11 @@ describe("the dishes of earlier posts", () => {
     ]);
     expect(dishes.map((d) => d.name)).toEqual(["Bánh mì", "Xôi"]);
     expect(dishes[0]?.usual).toEqual({ hour: 20, minute: 30 });
+  });
+
+  it("carries the photos after the cover, so a new post of the dish shows them too", () => {
+    const [dish] = dishesOf([offer("Bánh mì", "2026-10-19T13:30:00Z")]);
+    expect(dish?.photoId).toBe("ph-Bánh mì");
+    expect(dish?.morePhotoIds).toEqual(["ph-Bánh mì-2"]);
   });
 });

@@ -191,6 +191,10 @@ export type DishBody = {
     name: string;
     originalPriceVnd?: number;
     photo: OfferPhotoBody;
+    /**
+     * Every photo, the cover first
+     */
+    photos: Array<OfferPhotoBody>;
     sellerId: string;
     unit: string;
     updatedAt: string;
@@ -201,6 +205,10 @@ export type DishChangeBody = {
     hidden?: boolean;
     ingredients?: string;
     kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    /**
+     * Replaces the photos after the cover; at most two
+     */
+    morePhotoIds?: Array<string>;
     name?: string;
     originalPriceVnd?: number;
     photoId?: string;
@@ -218,13 +226,17 @@ export type DishDetailsBody = {
      */
     ingredients?: string;
     kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    /**
+     * Up to two more photos after the cover
+     */
+    morePhotoIds?: Array<string>;
     name: string;
     /**
      * What one unit normally sells for; a post starts from it
      */
     originalPriceVnd?: number;
     /**
-     * From POST /photos, or a photo the seller already shows
+     * The cover: from POST /photos, or a photo the seller already shows
      */
     photoId: string;
     /**
@@ -272,7 +284,14 @@ export type FoundBody = {
     kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
     name: string;
     originalPriceVnd: number;
+    /**
+     * The cover, which lists and orders show
+     */
     photo: OfferPhotoBody;
+    /**
+     * Every photo, the cover first
+     */
+    photos: Array<OfferPhotoBody>;
     priceVnd: number;
     seller: OfferSellerBody;
     sellerId: string;
@@ -426,7 +445,14 @@ export type OfferBody = {
     kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
     name: string;
     originalPriceVnd: number;
+    /**
+     * The cover, which lists and orders show
+     */
     photo: OfferPhotoBody;
+    /**
+     * Every photo, the cover first
+     */
+    photos: Array<OfferPhotoBody>;
     priceVnd: number;
     sellerId: string;
     /**
@@ -446,6 +472,10 @@ export type OfferBody = {
 export type OfferChangeBody = {
     description?: string;
     kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    /**
+     * Replaces the photos after the cover; at most two
+     */
+    morePhotoIds?: Array<string>;
     name?: string;
     originalPriceVnd?: number;
     photoId?: string;
@@ -463,13 +493,17 @@ export type OfferDetailsBody = {
      */
     description?: string;
     kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    /**
+     * Up to two more photos after the cover
+     */
+    morePhotoIds?: Array<string>;
     name: string;
     /**
      * What one unit normally sells for; the price must be the minimum discount below it
      */
     originalPriceVnd: number;
     /**
-     * From POST /photos, or the photo of an earlier offer of the seller
+     * The cover: from POST /photos, or the photo of an earlier offer of the seller
      */
     photoId: string;
     /**

@@ -12,6 +12,9 @@ _OfferChangeBody _$OfferChangeBodyFromJson(Map<String, dynamic> json) =>
       kind: json['kind'] == null
           ? null
           : OfferChangeBodyKind.fromJson(json['kind'] as String),
+      morePhotoIds: (json['morePhotoIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       name: json['name'] as String?,
       originalPriceVnd: (json['originalPriceVnd'] as num?)?.toInt(),
       photoId: json['photoId'] as String?,
@@ -31,6 +34,7 @@ Map<String, dynamic> _$OfferChangeBodyToJson(_OfferChangeBody instance) =>
     <String, dynamic>{
       'description': instance.description,
       'kind': _$OfferChangeBodyKindEnumMap[instance.kind],
+      'morePhotoIds': instance.morePhotoIds,
       'name': instance.name,
       'originalPriceVnd': instance.originalPriceVnd,
       'photoId': instance.photoId,

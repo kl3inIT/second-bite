@@ -32,7 +32,6 @@ export function CancelOrder({
   number,
   seller,
   units,
-  freeUntil,
 }: {
   orderId: string;
   access?: string;
@@ -40,7 +39,6 @@ export function CancelOrder({
   seller: string;
   units: number;
   /** When the window opens, until which cancelling is free. */
-  freeUntil: string;
 }) {
   const t = useTranslations("Orders.cancel");
   const router = useRouter();
@@ -72,10 +70,18 @@ export function CancelOrder({
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger render={<Button variant="ghost" size="lg" />}>
+      {/* With a phone's large text the note goes under "Huỷ đơn" rather than past the screen (SEC-112). */}
+      <AlertDialogTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="lg"
+            className="h-auto min-h-13 max-w-full flex-wrap whitespace-normal"
+          />
+        }
+      >
         <CircleXIcon aria-hidden className="text-destructive" />
         <span className="text-destructive">{t("open")}</span>
-        <span className="font-normal text-muted-foreground">{t("free", { until: freeUntil })}</span>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

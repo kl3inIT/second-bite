@@ -12,7 +12,7 @@ import { Link } from "@/i18n/navigation";
 import { totals, withBasket, type Cart } from "./cart";
 import { saveCart, useCart } from "./cart-store";
 import { CheckoutDesktop } from "./checkout-desktop";
-import { CancelPolicy, SellerOrder, type CheckoutProps } from "./checkout-parts";
+import { PaymentChoice, SellerOrder, type CheckoutProps } from "./checkout-parts";
 import type { Contact } from "./contact";
 import { GoneSheet } from "./gone-sheet";
 import { OrderButton } from "./order-button";
@@ -105,11 +105,7 @@ function CheckoutPhone({ cart, pending, problem, onConfirmed }: CheckoutProps) {
           <h2 id="pay" className="text-title-lg text-foreground">
             {t("pay")}
           </h2>
-          {/* The only way to pay: at the counter, in cash or by the seller's QR code, when collecting. */}
-          <div className="flex min-h-16 flex-col justify-center rounded-lg border border-border bg-card px-3.5 py-3">
-            <p className="text-body-sm-strong text-foreground">{t("counter")}</p>
-            <p className="text-label text-muted-foreground">{t("counterHint")}</p>
-          </div>
+          <PaymentChoice />
         </section>
         <section aria-labelledby="summary" className="flex flex-col gap-3">
           <h2 id="summary" className="text-title-lg text-foreground">
@@ -130,18 +126,16 @@ function CheckoutPhone({ cart, pending, problem, onConfirmed }: CheckoutProps) {
           <h2 id="cancel" className="text-label-strong text-muted-foreground uppercase">
             {t("cancelTitle")}
           </h2>
-          {orders > 1 ? (
-            <p className="text-label text-muted-foreground">{t("cancelEach")}</p>
-          ) : (
-            <CancelPolicy basket={cart.baskets[0]} />
-          )}
+          <p className="text-label text-muted-foreground">{t("cancelBody")}</p>
         </section>
       </div>
       <div className="sticky bottom-0 z-40 border-t border-border bg-card">
         <div className="mx-auto flex w-full max-w-xl flex-col gap-2 px-4 pt-3 pb-5">
-          <div className="flex items-center gap-4">
+          {/* With a phone's large text (Zalo grows web text with it) the button takes a line of its own under the
+              totals rather than running past the screen, as on the dish page (SEC-112). */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             <div className="flex flex-col">
-              <p className="flex items-baseline gap-1.5">
+              <p className="flex flex-wrap items-baseline gap-x-1.5">
                 <span className="font-display text-price-lg text-primary">
                   {formatPrice(priceVnd)}
                 </span>

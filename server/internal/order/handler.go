@@ -213,7 +213,7 @@ func registerCustomerOperations(api huma.API, s *Service) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "cancelOrder", Method: http.MethodPost, Path: "/orders/{orderId}/cancel",
-		Summary:     "Cancel your order, free of charge until its window opens",
+		Summary:     "Cancel your order until the seller marks it ready",
 		Description: "By its customer, signed in or sending its access. Its units go back on sale.",
 		Tags:        tagOrders, Security: anyone,
 	}, func(ctx context.Context, in *struct {

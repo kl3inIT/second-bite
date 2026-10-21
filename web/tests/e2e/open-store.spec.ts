@@ -239,7 +239,7 @@ test.describe("opening a store on the web", () => {
 
     await page.getByRole("link", { name: "Đã đóng · 2" }).click();
     await expect(row(/Bánh su kem, 6 cái/)).toBeVisible();
-    await expect(row(/Hết giờ lấy · bán 2\/3 suất/)).toBeVisible();
+    await expect(row(/Hết giờ nhận · bán 2\/3 suất/)).toBeVisible();
     await expect(row(/Đã rút · 57\.000đ/)).toBeVisible();
     await expect(page.getByRole("link", { name: "Đăng lại" })).toHaveCount(2);
     await expectNoSeriousA11yViolations(page);
@@ -365,7 +365,7 @@ test.describe("posting a dish on the web", () => {
     await drawer.getByRole("button", { name: "Ngay bây giờ" }).click();
     await drawer.getByRole("button", { name: "1 tiếng rưỡi" }).click();
     await expect(
-      drawer.getByText(/Khách đến lấy từ \d\d:\d\d đến \d\d:\d\d hôm nay/),
+      drawer.getByText(/Khách đến nhận từ \d\d:\d\d đến \d\d:\d\d hôm nay/),
     ).toBeVisible();
     await expectNoSeriousA11yViolations(page);
     await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
@@ -418,7 +418,7 @@ test.describe("changing a post on the web", () => {
     await expect(drawer.getByText("Sửa bài đăng")).toBeVisible();
     await expect(drawer.getByText("Đang bán", { exact: true })).toBeVisible();
     await expect(
-      drawer.getByText(/Chưa ai đặt, nên bạn sửa được số suất, giá và giờ lấy\./),
+      drawer.getByText(/Chưa ai đặt, nên bạn sửa được số suất, giá và giờ nhận\./),
     ).toBeVisible();
     await expect(drawer.getByLabel("Số lượng")).toHaveValue("3");
     await expectNoSeriousA11yViolations(page);
@@ -444,7 +444,7 @@ test.describe("changing a post on the web", () => {
     await expect(drawer.getByLabel("Giá bán (đồng)")).toBeDisabled();
     await expect(drawer.getByLabel("Giá gốc (đồng)")).toBeDisabled();
     await expect(drawer.getByRole("button", { name: "Ngay bây giờ" })).toBeEnabled();
-    await expect(drawer.getByText(/Khách đã đặt sẽ lấy theo giờ mới/)).toBeVisible();
+    await expect(drawer.getByText(/Khách đã đặt sẽ nhận theo giờ mới/)).toBeVisible();
     await expect(drawer.getByRole("button", { name: "Rút bài" })).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
 
@@ -522,7 +522,7 @@ test.describe("changing a post on the web", () => {
     await expect(
       drawer.getByText(/Bài này đã có 2 suất được đặt\. Rút bài sẽ huỷ các đơn đó/),
     ).toBeVisible();
-    await expect(drawer.getByText("2 suất đang chờ lấy sẽ bị huỷ.")).toBeVisible();
+    await expect(drawer.getByText("2 suất đang chờ nhận sẽ bị huỷ.")).toBeVisible();
     await expect(drawer.getByRole("link", { name: "Đến tab Đơn" })).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
 
@@ -591,6 +591,36 @@ test.describe("the catalog on the web", () => {
     await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("heading", { level: 2, name: "4 món" })).toBeVisible();
     await expect(row(page, /Hộp bánh cuối ngày/)).toContainText("Hộp tổng hợp · 1 hộp");
+  });
+
+  test("a dish takes up to three photos, the first being the cover", async ({ page }, testInfo) => {
+    const store = await catalogStore(page, "ba-anh", testInfo);
+    await page.goto(`/vi/stores/${store}/catalog/new`);
+
+    // Four photos at once: the form keeps the first three.
+    const photos = ["a", "b", "c", "d"].map((name) => ({
+      name: `${name}.png`,
+      mimeType: "image/png",
+      buffer: png,
+    }));
+    await (await hydrated(page.getByLabel("Tên món"))).fill("Hộp ba ảnh");
+    await page.getByLabel("Ảnh món").setInputFiles(photos);
+    const removers = page.getByRole("button", { name: /^Bỏ ảnh/ });
+    await expect(removers).toHaveCount(3);
+    await expect(page.getByText("Ảnh đại diện", { exact: true })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole("button", { name: "Bỏ ảnh 2" }).click();
+    await expect(removers).toHaveCount(2);
+
+    await page.getByRole("button", { name: "Lưu món" }).click();
+    await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
+
+    // Changing it shows the two photos it keeps.
+    await row(page, /Hộp ba ảnh/)
+      .getByRole("link", { name: "Sửa" })
+      .click();
+    await expect(removers).toHaveCount(2);
   });
 
   test("changes a dish, shows a hidden one again, and deletes one after asking", async ({

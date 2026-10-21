@@ -8,7 +8,7 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | Too many units, two sellers, an offer twice, no unit, no line, windows that do not meet and an unknown offer are refused and take nothing; a withdrawn offer and a blocked seller cannot be ordered | `TestOrder` › a cart refused takes nothing |
 | Two customers ordering the last unit at once: one order | `TestOrder` › two customers race for the last unit |
 | The customer reads the order with its access; staff and admins read it without the access; a stranger gets 404; an admin does not act for the seller | `TestOrder` › who reads an order |
-| The customer cancels before the window opens and the units return; the seller cannot cancel; not twice; not once the window has opened | `TestOrder` › cancelling until the window opens |
+| The customer cancels and the units return; the seller cannot cancel; not twice; still once the window has opened; not once ready | `TestOrder` › cancelling until the order is ready |
 | A stranger cannot hand over; the seller's people collect the order; nothing after; not before the window | `TestOrder` › handing over |
 | Staff refuse with a known reason and a note; the customer cannot; the units are not offered again; nothing after | `TestOrder` › staff refuse an order |
 | Refusing for no answer, no show or too late gives the units back; for out of food or another reason it does not | `TestOrder` › no answer or no show gives units back |

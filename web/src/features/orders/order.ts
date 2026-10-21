@@ -10,9 +10,9 @@ export function isOpen(order: Pick<Order, "status">): boolean {
   return order.status === "confirmed" || order.status === "ready";
 }
 
-/** Whether its customer may still cancel it, free of charge: open, and its window not yet opened. */
-export function canCancel(order: Pick<Order, "status" | "windowStart">, now: number): boolean {
-  return isOpen(order) && now < Date.parse(order.windowStart);
+/** Whether its customer may still cancel it, free of charge: until the seller marks it ready (SEC-121). */
+export function canCancel(order: Pick<Order, "status">): boolean {
+  return order.status === "confirmed";
 }
 
 /** How many units the order holds, across its lines. */

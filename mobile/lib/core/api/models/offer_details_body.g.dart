@@ -17,6 +17,9 @@ _OfferDetailsBody _$OfferDetailsBodyFromJson(Map<String, dynamic> json) =>
       windowEnd: DateTime.parse(json['windowEnd'] as String),
       windowStart: DateTime.parse(json['windowStart'] as String),
       description: json['description'] as String?,
+      morePhotoIds: (json['morePhotoIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       unit: json['unit'] as String?,
       weightGrams: (json['weightGrams'] as num?)?.toInt(),
     );
@@ -32,6 +35,7 @@ Map<String, dynamic> _$OfferDetailsBodyToJson(_OfferDetailsBody instance) =>
       'windowEnd': instance.windowEnd.toIso8601String(),
       'windowStart': instance.windowStart.toIso8601String(),
       'description': instance.description,
+      'morePhotoIds': instance.morePhotoIds,
       'unit': instance.unit,
       'weightGrams': instance.weightGrams,
     };
