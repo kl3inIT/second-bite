@@ -1142,7 +1142,8 @@
         "sellers": "Stores",
         "method": "Signs in with",
         "created": "Created",
-        "signedIn": "Last sign-in"
+        "signedIn": "Last sign-in",
+        "actions": "Actions"
       },
       "role": {
         "customer": "Customer",
@@ -1190,6 +1191,13 @@
         "missed": "No-show",
         "cancelled": "Cancelled",
         "refused": "Refused by the store"
+      },
+      "menu": {
+        "open": "Actions for {name}",
+        "tooltip": "Actions",
+        "view": "View details",
+        "grant": "Make admin…",
+        "revoke": "Revoke admin…"
       }
     },
     "admins": {

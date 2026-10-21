@@ -119,6 +119,31 @@ test.describe("the accounts", () => {
     await expect(page.getByRole("button", { name: "Cấp quyền quản trị Tuấn Phong" })).toBeVisible();
   });
 
+  test("a row's menu names its actions, opens the account and makes a customer an admin", async ({
+    page,
+  }) => {
+    await page.goto("/vi/admin/accounts");
+    const table = page.getByRole("table", { name: "Tài khoản" });
+    const menu = await hydrated(table.getByRole("button", { name: "Thao tác cho Đức Khang" }));
+
+    await menu.hover();
+    await expect(page.getByRole("tooltip", { name: "Thao tác" })).toBeVisible();
+    await menu.click();
+    await expect(page.getByRole("menuitem", { name: "Xem chi tiết" })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+    await page.getByRole("menuitem", { name: "Cấp quyền quản trị…" }).click();
+    await page
+      .getByRole("alertdialog", { name: "Cấp quyền quản trị cho Đức Khang?" })
+      .getByRole("button", { name: "Cấp quyền" })
+      .click();
+    await expect(page.getByText("Đã cấp quyền quản trị cho khang@example.com")).toBeVisible();
+    await expect(table.getByRole("row", { name: /Đức Khang/ })).toContainText("Quản trị");
+
+    await table.getByRole("button", { name: "Thao tác cho Quốc Bảo" }).click();
+    await page.getByRole("menuitem", { name: "Xem chi tiết" }).click();
+    await expect(page).toHaveURL(/\/vi\/admin\/accounts\/ac-bao$/);
+  });
+
   test("an admin's own account cannot be revoked from its page", async ({ page }) => {
     await page.goto("/vi/admin/accounts?role=admin");
     const table = page.getByRole("table", { name: "Tài khoản" });

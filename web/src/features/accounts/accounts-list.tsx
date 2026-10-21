@@ -30,6 +30,7 @@ import { Link } from "@/i18n/navigation";
 import type { MembershipBody, RecordBody, RoleCountsBody } from "@/lib/api/generated";
 
 import { AccountAvatar, nameOf, RoleBadge, SignedIn } from "./account-parts";
+import { AccountRowMenu } from "./account-row-menu";
 import {
   accountPageSizes,
   accountSearchParams,
@@ -44,18 +45,24 @@ const everyone = "all";
 /**
  * The accounts (Figma AD-TK1, as SEC-75 proposes it): a tab per role with its count, words and the page size
  * in the address, a page of accounts the server read for them, sorted by the head pressed. Each account's
- * name opens it. The stores it belongs to are read for the page beside it, since they are the seller module's.
+ * name opens it, and its "⋯" menu opens it too or changes its role. The stores it belongs to are read for the
+ * page beside it, since they are the seller module's.
  */
 export function AccountsList({
   accounts,
   total,
   counts,
   memberships,
+  myId,
+  adminCount,
 }: {
   accounts: RecordBody[];
   total: number;
   counts: RoleCountsBody;
   memberships: MembershipBody[];
+  /** The admin reading, and how many admins there are in all, whatever the words: who may be revoked. */
+  myId: string;
+  adminCount: number;
 }) {
   const t = useTranslations("Admin.accounts");
   const [pending, startTransition] = useTransition();
@@ -68,6 +75,7 @@ export function AccountsList({
     memberships,
     sorted,
     (column, direction) => void setParams({ sort: sortOf(column, direction), page: null }),
+    { myId, adminCount },
   );
 
   const tabs = [
@@ -195,6 +203,7 @@ function useColumns(
   memberships: MembershipBody[],
   sorted: ReturnType<typeof sortedOf>,
   onSort: (column: AccountSortColumn, direction: "ascending" | "descending") => void,
+  roles: { myId: string; adminCount: number },
 ): DataTableColumns<RecordBody> {
   const t = useTranslations("Admin.accounts");
   const format = useFormatter();
@@ -273,6 +282,15 @@ function useColumns(
       id: "signedIn",
       header: () => sortable("signedIn", t("column.signedIn")),
       cell: ({ row }) => <SignedIn at={row.original.lastSignedInAt} />,
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">{t("column.actions")}</span>,
+      cell: ({ row }) => (
+        <div className="flex justify-end">
+          <AccountRowMenu account={row.original} {...roles} />
+        </div>
+      ),
     },
   ];
 }

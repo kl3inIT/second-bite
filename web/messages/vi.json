@@ -1142,7 +1142,8 @@
         "sellers": "Cửa hàng liên quan",
         "method": "Đăng nhập bằng",
         "created": "Ngày tạo",
-        "signedIn": "Lần đăng nhập cuối"
+        "signedIn": "Lần đăng nhập cuối",
+        "actions": "Thao tác"
       },
       "role": {
         "customer": "Khách",
@@ -1190,6 +1191,13 @@
         "missed": "Không đến",
         "cancelled": "Đã huỷ",
         "refused": "Quán từ chối"
+      },
+      "menu": {
+        "open": "Thao tác cho {name}",
+        "tooltip": "Thao tác",
+        "view": "Xem chi tiết",
+        "grant": "Cấp quyền quản trị…",
+        "revoke": "Thu quyền quản trị…"
       }
     },
     "admins": {

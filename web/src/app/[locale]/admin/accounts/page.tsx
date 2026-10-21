@@ -6,7 +6,7 @@ import { loadAccountSearchParams } from "@/features/accounts/search-params";
 import { AdminTopBar } from "@/features/admin/admin-top-bar";
 import { requireAdmin } from "@/features/identity/current-account";
 import { sessionHeaders } from "@/features/identity/session";
-import { listAccounts, listMembershipsForAdmins } from "@/lib/api/generated";
+import { listAccounts, listAdmins, listMembershipsForAdmins } from "@/lib/api/generated";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Admin.accounts");
@@ -14,24 +14,27 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // The accounts (Figma AD-TK1, SEC-75): a page read on the server for the filters in the address, then the
-// stores of the accounts on it, which the seller module answers.
+// stores of the accounts on it, which the seller module answers, and the admins, whom a row's menu may revoke.
 export default async function AccountsPage({
   searchParams,
 }: PageProps<"/[locale]/admin/accounts">) {
-  await requireAdmin("/admin/accounts");
+  const me = await requireAdmin("/admin/accounts");
   const filter = loadAccountSearchParams(await searchParams);
   const [t, headers] = await Promise.all([getTranslations("Admin"), sessionHeaders()]);
 
-  const { data: page } = await listAccounts({
-    headers,
-    query: {
-      role: filter.role ?? undefined,
-      q: filter.q || undefined,
-      sort: filter.sort ?? undefined,
-      page: filter.page,
-      size: filter.size,
-    },
-  });
+  const [{ data: page }, { data: admins }] = await Promise.all([
+    listAccounts({
+      headers,
+      query: {
+        role: filter.role ?? undefined,
+        q: filter.q || undefined,
+        sort: filter.sort ?? undefined,
+        page: filter.page,
+        size: filter.size,
+      },
+    }),
+    listAdmins({ headers }),
+  ]);
   const accounts = page.items ?? [];
   const memberships =
     accounts.length === 0
@@ -53,6 +56,8 @@ export default async function AccountsPage({
           total={page.total}
           counts={page.counts}
           memberships={memberships}
+          myId={me.id}
+          adminCount={admins.admins?.length ?? 0}
         />
       </div>
     </>
