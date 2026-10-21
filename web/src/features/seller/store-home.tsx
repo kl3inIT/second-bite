@@ -174,27 +174,24 @@ export async function StoreHome({
           {isToday ? t("ordersToday") : t("ordersOn", { date })}
         </h2>
         <nav aria-label={t("orderTabs")}>
-          <ul className="-my-1 flex flex-wrap gap-x-2 max-md:grid max-md:grid-cols-4 max-md:gap-x-1.5">
+          <ul className="-my-1 flex flex-wrap gap-x-2">
             {orderTabs.map((name) => (
               <li key={name}>
                 <Link
                   href={filterHref(name)}
                   scroll={false}
                   aria-current={name === tab ? "page" : undefined}
-                  className="group/chip flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none max-md:rounded-2xl"
+                  className="group/chip flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   <span
                     className={cn(
-                      "flex h-9.5 items-center gap-1.5 rounded-full border px-4 whitespace-nowrap transition-colors max-md:h-auto max-md:min-h-11 max-md:w-full max-md:flex-col max-md:justify-center max-md:gap-0 max-md:rounded-2xl max-md:px-1 max-md:py-1",
+                      "flex h-9.5 items-center rounded-full border px-4 whitespace-nowrap transition-colors",
                       name === tab
                         ? "border-primary bg-primary text-body-sm-strong text-primary-foreground"
                         : "border-border bg-card text-body-sm text-foreground group-hover/chip:bg-secondary",
                     )}
                   >
-                    <span className="max-md:text-note">{t(`orderTab.${name}`)}</span>
-                    {/* As on the Đơn tab: the dot is read, so the link's name is "Chuẩn bị · 3"; a phone stacks the count. */}
-                    <span className="max-md:sr-only">·</span>
-                    <span className="max-md:text-body-sm-strong">{groups[name].length}</span>
+                    {t(`orderTab.${name}`, { count: groups[name].length })}
                   </span>
                 </Link>
               </li>
