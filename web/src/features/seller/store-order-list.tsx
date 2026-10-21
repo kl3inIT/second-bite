@@ -35,6 +35,9 @@ export async function StoreOrders({
   const query = await pendingQuery;
   const one = (name: string) => (typeof query[name] === "string" ? query[name] : undefined);
 
+  // The session is read before the clock, so the page is made for each request and never at build time.
+  await requireStore(sellerId, `/stores/${sellerId}/orders`);
+
   const today = vietnamToday();
   const day = readDay(one("day"), today);
   const tab = readOrderTab(one("tab"));
@@ -42,7 +45,7 @@ export async function StoreOrders({
 
   const [t, orders] = await Promise.all([
     getTranslations("StoreOrders"),
-    requireStore(sellerId, `/stores/${sellerId}/orders`).then(() => getStoreOrders(sellerId, day)),
+    getStoreOrders(sellerId, day),
   ]);
 
   // The day's orders are few, so the search reads them here rather than asking the server again.
