@@ -99,5 +99,6 @@
     "note": "Ghi chú gửi khách",
     "confirm": "Đánh dấu đã xong"
   },
-  "soon": "Sắp có"
+  "soon": "Sắp có",
+  "pageOf": "Trang {page} / {pages}"
 }

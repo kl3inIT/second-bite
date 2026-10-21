@@ -16,7 +16,7 @@ export default function AdminIssue({ params }: PageProps<"/[locale]/admin/issues
   return (
     <AdminPageGate page="issueDetail">
       <Suspense fallback={<Skeleton shape="card" className="h-96" />}>
-        <IssueDetailPage issueId={params.then((p) => p.issueId)} />
+        <IssueDetailPage params={params} />
       </Suspense>
     </AdminPageGate>
   );
