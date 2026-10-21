@@ -763,10 +763,10 @@
     "searchCount": "{count} results",
     "tabs": "Order groups",
     "tab": {
-      "preparing": "Preparing · {count}",
-      "ready": "Ready · {count}",
-      "delivered": "Delivered · {count}",
-      "cancelled": "Cancelled · {count}"
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
     },
     "empty": {
       "preparing": "No order is being prepared on this day. When a customer orders, their name and phone number show here.",
