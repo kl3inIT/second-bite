@@ -9,7 +9,8 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { changeDish } from "@/lib/api/generated";
 
 // "Hiện lại" on a hidden dish (Figma Q3b): shows it again in the list a post is picked from, and the list says so.
-export function ShowDishButton({ dishId }: { dishId: string }) {
+// The store's home words it as its own row does ("Hiện món", Figma Q1b).
+export function ShowDishButton({ dishId, label }: { dishId: string; label?: string }) {
   const t = useTranslations("StoreCatalog");
   const router = useRouter();
   const pathname = usePathname();
@@ -34,7 +35,7 @@ export function ShowDishButton({ dishId }: { dishId: string }) {
       }
     >
       {pending && <Spinner data-icon="inline-start" />}
-      {t("show")}
+      {label ?? t("show")}
     </Button>
   );
 }
