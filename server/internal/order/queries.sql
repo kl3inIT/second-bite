@@ -86,3 +86,12 @@ WHERE id = @id;
 UPDATE order_orders
 SET state = 'refused', refused_at = now(), refuse_reason = @refuse_reason, refuse_note = @refuse_note
 WHERE id = @id;
+
+-- name: InsertReview :execrows
+-- Nothing is inserted when the order was already reviewed.
+INSERT INTO order_reviews (order_id, stars, tags, comment) VALUES (@order_id, @stars, @tags, @comment)
+ON CONFLICT (order_id) DO NOTHING;
+
+-- name: ReviewsOf :many
+SELECT order_id, stars, tags, comment, created_at
+FROM order_reviews WHERE order_id = ANY (@order_ids::uuid[]);

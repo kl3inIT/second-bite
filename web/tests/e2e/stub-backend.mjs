@@ -1232,12 +1232,13 @@ async function sellerRoutes(request, response, url) {
 
 // Orders (SEC-15, SEC-76), as api/openapi.yaml describes them: placed with a name, a phone number and an
 // Idempotency-Key, signed in or not; read and cancelled until the window opens by the account that placed them
-// or with the access answered to whoever placed them; listed for the account; marked ready and handed over
+// or with the access answered to whoever placed them; rated once collected; listed for the account; marked ready and handed over
 // as a seller would. The stub takes no units away, so the home's tests keep their counts.
 const orders = [];
 const ordersByKey = new Map();
 let nextOrder = 10001;
 const PHONE = /^0[0-9]{9}$/;
+const REVIEW_TAGS = ["fast_pickup", "good_quality", "good_variety", "fair_portions"];
 
 function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
@@ -1373,7 +1374,7 @@ async function ordersApi(request, response, url) {
     json(response, 200, shown(handled));
     return true;
   }
-  const orderMatch = /^\/orders\/([\w-]+)(\/cancel)?$/.exec(url.pathname);
+  const orderMatch = /^\/orders\/([\w-]+)(\/cancel|\/review)?$/.exec(url.pathname);
   const order = orderMatch
     ? orders.find((found) => found.id === orderMatch[1] && placedBy(request, account, found))
     : undefined;
@@ -1383,6 +1384,28 @@ async function ordersApi(request, response, url) {
   }
   if (request.method === "GET" && orderMatch && !orderMatch[2]) {
     json(response, 200, shown(order));
+    return true;
+  }
+  if (request.method === "POST" && orderMatch?.[2] === "/review") {
+    const { stars, tags, comment } = await readBody(request);
+    if (
+      !Number.isInteger(stars) ||
+      stars < 1 ||
+      stars > 5 ||
+      !Array.isArray(tags) ||
+      !tags.every((tag, at) => REVIEW_TAGS.includes(tag) && tags.indexOf(tag) === at) ||
+      (comment !== undefined && (typeof comment !== "string" || comment.length > 500))
+    ) {
+      problem(response, 400, "ORDER_REVIEW_INVALID");
+    } else if (order.status !== "collected") {
+      problem(response, 409, "ORDER_NOT_COLLECTED");
+    } else if (order.review) {
+      problem(response, 409, "ORDER_ALREADY_REVIEWED");
+    } else {
+      order.review = { stars, tags, createdAt: new Date().toISOString() };
+      if (comment?.trim()) order.review.comment = comment.trim();
+      json(response, 200, shown(order));
+    }
     return true;
   }
   if (request.method === "POST" && orderMatch?.[2]) {

@@ -14,6 +14,7 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | Refusing for no answer, no show or too late gives the units back; for out of food or another reason it does not | `TestOrder` › no answer or no show gives units back |
 | A hand-over is taken back; a refusal that returned its units is taken back only while they are still there; a stranger gets 404 | `TestOrder` › a mistake is taken back |
 | What its customer cancelled, an order whose window is over and one still open cannot be reopened | `TestOrder` › some orders are not reopened |
+| The customer rates a collected order once, signed in or with its access; an order not collected, a stranger, the seller, a second review, stars out of range, an unknown or repeated tag and a long comment are refused; the review is listed with the order | `TestOrder` › a collected order is rated once |
 | An order whose window is over reads as expired and cannot be handed over, made ready or cancelled | `TestOrder` › expiry is read from the window |
 | A seller's people list the orders of today, not of tomorrow, without the access; a stranger cannot | `TestOrder` › a seller lists the orders of a day |
 | The customer lists all, open and ended orders, newest first; another account sees none of them | `TestOrder` › the customer lists open and ended orders |

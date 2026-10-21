@@ -995,6 +995,9 @@ components:
         refusedAt:
           format: date-time
           type: string
+        review:
+          $ref: "#/components/schemas/ReviewBody"
+          description: The customer's rating of the collected order; none until they rate it
         seller:
           $ref: "#/components/schemas/OrderSellerBody"
           description: Where the order is collected, copied when it was placed
@@ -1261,6 +1264,53 @@ components:
       required:
         - challengeId
         - expiresAt
+      type: object
+    ReviewBody:
+      additionalProperties: false
+      properties:
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        stars:
+          format: int64
+          type: integer
+        tags:
+          items:
+            type: string
+          type: array
+      required:
+        - stars
+        - tags
+        - createdAt
+      type: object
+    ReviewOrderRequest:
+      additionalProperties: false
+      properties:
+        comment:
+          maxLength: 500
+          type: string
+        stars:
+          format: int64
+          maximum: 5
+          minimum: 1
+          type: integer
+        tags:
+          description: What went well
+          items:
+            enum:
+              - fast_pickup
+              - good_quality
+              - good_variety
+              - fair_portions
+            type: string
+          maxItems: 4
+          type: array
+          uniqueItems: true
+      required:
+        - stars
+        - tags
       type: object
     SaveEmailSettingsInputBody:
       additionalProperties: false
@@ -2853,6 +2903,49 @@ paths:
         - bearer: []
         - cookie: []
       summary: Take a hand-over or a refusal back
+      tags:
+        - Orders
+  /orders/{orderId}/review:
+    post:
+      description: By its customer, signed in or sending its access, after the order was handed over.
+      operationId: reviewOrder
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewOrderRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Rate your collected order, once
       tags:
         - Orders
   /photos:

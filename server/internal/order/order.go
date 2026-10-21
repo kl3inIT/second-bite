@@ -101,6 +101,8 @@ type Order struct {
 	CancelReason    string
 	RefuseReason    RefuseReason
 	RefuseNote      string
+	// Review is the customer's rating, none until they rate the collected order.
+	Review *Review
 	// Access proves the order is theirs to whoever placed it, set only for
 	// them.
 	Access string
@@ -207,6 +209,10 @@ func (s *Service) Mine(ctx context.Context, which Which, checkout uuid.UUID, lim
 		return nil, err
 	}
 
+	if err := s.withReviews(ctx, orders); err != nil {
+		return nil, err
+	}
+
 	for i := range orders {
 		orders[i] = s.shown(orders[i], true)
 	}
@@ -238,6 +244,10 @@ func (s *Service) OfSeller(ctx context.Context, sellerID uuid.UUID, day time.Tim
 		return nil, err
 	}
 
+	if err := s.withReviews(ctx, orders); err != nil {
+		return nil, err
+	}
+
 	return orders, nil
 }
 
@@ -257,6 +267,10 @@ func (s *Service) read(ctx context.Context, id uuid.UUID) (Order, error) {
 
 	orders := []Order{s.fromRow(row)}
 	if err := s.withLines(ctx, orders); err != nil {
+		return Order{}, err
+	}
+
+	if err := s.withReviews(ctx, orders); err != nil {
 		return Order{}, err
 	}
 
