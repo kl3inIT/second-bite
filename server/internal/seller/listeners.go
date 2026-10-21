@@ -50,6 +50,10 @@ func (s *Service) forgetAccount(ctx context.Context, e identity.AccountDeletedEv
 			}
 		}
 
+		if blocked > 0 {
+			return recordStatusDay(ctx, q)
+		}
+
 		return nil
 	})
 	if err != nil {

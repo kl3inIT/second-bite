@@ -63,9 +63,55 @@ components:
     AdminSellerBody:
       additionalProperties: false
       properties:
+        address:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          type: string
+        latitude:
+          format: double
+          type: number
+        longitude:
+          format: double
+          type: number
+        name:
+          type: string
         ownerEmail:
           description: Absent when the owner deleted their account
           type: string
+        phone:
+          type: string
+        photoId:
+          description: Served at /photos/{photoId}/1600.jpg and /400.jpg
+          type: string
+        status:
+          enum:
+            - pending
+            - active
+            - rejected
+            - blocked
+          type: string
+        statusChangedAt:
+          format: date-time
+          type: string
+        statusReason:
+          description: Why an admin rejected or blocked the seller, as the owner is told
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - address
+        - latitude
+        - longitude
+        - phone
+        - status
+        - createdAt
+        - updatedAt
       type: object
     AdminSellersOutputBody:
       additionalProperties: false
@@ -73,6 +119,13 @@ components:
         counts:
           $ref: "#/components/schemas/StatusCountsBody"
           description: Sellers of each status matching q, whatever status asks
+        days:
+          description: Sellers of each status on each of the last 14 days in Vietnam, the oldest first, whatever the filters; a day before counting started is absent
+          items:
+            $ref: "#/components/schemas/StatusDayBody"
+          type:
+            - array
+            - "null"
         items:
           items:
             $ref: "#/components/schemas/AdminSellerBody"
@@ -94,6 +147,7 @@ components:
         - pageSize
         - total
         - counts
+        - days
       type: object
     AdminsOutputBody:
       additionalProperties: false
@@ -1641,6 +1695,32 @@ components:
         - rejected
         - blocked
       type: object
+    StatusDayBody:
+      additionalProperties: false
+      properties:
+        active:
+          format: int64
+          type: integer
+        blocked:
+          format: int64
+          type: integer
+        day:
+          description: The day in Vietnam, as YYYY-MM-DD
+          format: date
+          type: string
+        pending:
+          format: int64
+          type: integer
+        rejected:
+          format: int64
+          type: integer
+      required:
+        - day
+        - pending
+        - active
+        - rejected
+        - blocked
+      type: object
     Violation:
       additionalProperties: false
       properties:
@@ -2329,6 +2409,22 @@ paths:
             maximum: 100
             minimum: 1
             type: integer
+        - description: Keep the sellers last changed at or after this time
+          explode: false
+          in: query
+          name: changedSince
+          schema:
+            description: Keep the sellers last changed at or after this time
+            format: date-time
+            type: string
+        - description: Keep the sellers last changed before this time
+          explode: false
+          in: query
+          name: changedUntil
+          schema:
+            description: Keep the sellers last changed before this time
+            format: date-time
+            type: string
       responses:
         "200":
           content:

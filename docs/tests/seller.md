@@ -20,4 +20,6 @@ Requirements of [docs/specs/seller.md](../specs/seller.md) and the checks that h
 | Without an email provider, the job that tells the owner ends | `TestOwnerToldWithoutEmail` (`internal/seller/listeners_test.go`) |
 | Through the API: a block with a reason, found by words without marks among the blocked, the owner emailed the reason through Mailpit, a second block refused with 409, a short reason with 400, approved again with the reason cleared | `TestService` › a seller is opened active, staffed and blocked |
 
+| The list keeps the sellers last changed in a range, the cards following, and refuses a range ending before it starts; after a block today's counts are the sellers' as they stand, a day with no change stands as the day before and no day comes before the first counted | `TestAdmin` › the list filters by the last change; the list counts each day |
+
 Not covered by a test: the limit of five under concurrency (held by the same kind of lock as the staff cap).

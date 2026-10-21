@@ -53,7 +53,7 @@ var (
 		EN: "Write the owner a reason of 10 to 500 characters.",
 	})
 	ErrListInvalid = platform.NewFailure("SELLER_LIST_INVALID", platform.CategoryValidation, platform.Words{
-		VI: "Bộ lọc danh sách cửa hàng không hợp lệ: kiểm tra trạng thái, từ khoá tối đa 100 ký tự, trang từ 1 và cỡ trang từ 1 đến 100.",
-		EN: "The seller list's filters are not valid: check the statuses, a query of at most 100 characters, a page from 1 and a page size of 1 to 100.",
+		VI: "Bộ lọc danh sách cửa hàng không hợp lệ: kiểm tra trạng thái, từ khoá tối đa 100 ký tự, khoảng ngày sửa đổi có ngày bắt đầu trước ngày kết thúc, trang từ 1 và cỡ trang từ 1 đến 100.",
+		EN: "The seller list's filters are not valid: check the statuses, a query of at most 100 characters, a range of last changes that starts before it ends, a page from 1 and a page size of 1 to 100.",
 	})
 )

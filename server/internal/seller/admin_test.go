@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -39,6 +40,98 @@ func TestAdmin(t *testing.T) {
 	t.Run("the list pages and refuses bad filters", func(t *testing.T) { //nolint:paralleltest // see above
 		checkPaging(t, f)
 	})
+	t.Run("the list filters by the last change", func(t *testing.T) { //nolint:paralleltest // see above
+		checkChanged(t, pool, f)
+	})
+	t.Run("the list counts each day", func(t *testing.T) { //nolint:paralleltest // see above
+		checkDays(t, pool, f)
+	})
+}
+
+// checkChanged: a seller last changed on 10 January 2026 is kept by a range
+// holding that time and left out by one after it, the cards following; a
+// range that ends before it starts is refused.
+func checkChanged(t *testing.T, pool *pgxpool.Pool, f fixture) {
+	t.Helper()
+
+	admin := f.as(t, "admin", platform.RoleAdmin)
+	owner := f.as(t, "changed.owner", platform.RoleCustomer)
+	id := openNamed(owner, t, pool, f, "Quán Đổi Tháng Giêng", "0977 000 111", seller.StatusActive)
+
+	if _, err := pool.Exec(t.Context(), `UPDATE seller_sellers SET updated_at = '2026-01-10T10:00:00+07:00' WHERE id = $1`, id); err != nil {
+		t.Fatal(err)
+	}
+
+	at := func(s string) *time.Time {
+		v, err := time.Parse(time.RFC3339, s)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		return &v
+	}
+
+	within, err := f.sellers.List(admin, seller.Filter{
+		Query: "0977000111", ChangedSince: at("2026-01-10T00:00:00+07:00"), ChangedUntil: at("2026-01-11T00:00:00+07:00"), Page: 1, Size: 10,
+	})
+	if err != nil || within.Total != 1 || within.Sellers[0].ID != id || within.Counts[seller.StatusActive] != 1 {
+		t.Errorf("changed within the day: total %d, counts %v, %v", within.Total, within.Counts, err)
+	}
+
+	after, err := f.sellers.List(admin, seller.Filter{Query: "0977000111", ChangedSince: at("2026-01-10T10:00:01+07:00"), Page: 1, Size: 10})
+	if err != nil || after.Total != 0 || after.Counts[seller.StatusActive] != 0 {
+		t.Errorf("changed after it: total %d, counts %v, %v", after.Total, after.Counts, err)
+	}
+
+	backwards := seller.Filter{ChangedSince: at("2026-01-11T00:00:00+07:00"), ChangedUntil: at("2026-01-10T00:00:00+07:00"), Page: 1, Size: 10}
+	if _, err := f.sellers.List(admin, backwards); !errors.Is(err, seller.ErrListInvalid) {
+		t.Errorf("a range ending before it starts: %v, want ErrListInvalid", err)
+	}
+}
+
+// checkDays: after a block, today's counts are the sellers' as they stand; a
+// day with no change stands as the day before, and no day comes before the
+// first one counted.
+func checkDays(t *testing.T, pool *pgxpool.Pool, f fixture) {
+	t.Helper()
+
+	admin := f.as(t, "admin", platform.RoleAdmin)
+	id := sellerIn(t, pool, f, seller.StatusActive)
+
+	if _, err := f.sellers.Block(admin, id, blockReason); err != nil {
+		t.Fatal(err)
+	}
+
+	var active, blocked int
+	if err := pool.QueryRow(t.Context(), `SELECT count(*) FILTER (WHERE status = 'active'), count(*) FILTER (WHERE status = 'blocked')
+		FROM seller_sellers`).Scan(&active, &blocked); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := pool.Exec(t.Context(), `INSERT INTO seller_status_days (day, pending, active, rejected, blocked)
+		VALUES ((now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date - 5, 0, 7, 0, 3)`); err != nil {
+		t.Fatal(err)
+	}
+
+	page, err := f.sellers.List(admin, seller.Filter{Page: 1, Size: 1})
+	if err != nil || len(page.Days) != 6 {
+		t.Fatalf("the days: %d, %v; want the 6 from the one inserted to today", len(page.Days), err)
+	}
+
+	today := page.Days[5]
+	if today.Counts[seller.StatusActive] != active || today.Counts[seller.StatusBlocked] != blocked {
+		t.Errorf("today: %v; want %d active and %d blocked", today.Counts, active, blocked)
+	}
+
+	for _, d := range page.Days[:5] {
+		if d.Counts[seller.StatusActive] != 7 || d.Counts[seller.StatusBlocked] != 3 {
+			t.Errorf("%s stands as the day inserted: %v", d.Day.Format(time.DateOnly), d.Counts)
+		}
+	}
+
+	if got := page.Days[1].Day.Sub(page.Days[0].Day); got != 24*time.Hour {
+		t.Errorf("the days follow one another: %v apart", got)
+	}
 }
 
 type transition struct {

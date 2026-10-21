@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -39,6 +40,9 @@ type Filter struct {
 	// Query keeps the sellers whose name, address or phone holds it, marks
 	// ignored.
 	Query string
+	// ChangedSince and ChangedUntil keep the sellers last changed in
+	// [ChangedSince, ChangedUntil); either may be nil.
+	ChangedSince, ChangedUntil *time.Time
 	// Sort orders the page: one of sorts, empty for the queue order.
 	Sort string
 	// Page counts from 1; Size runs from 1 to 100.
@@ -55,12 +59,14 @@ type Listed struct {
 	OwnerEmail string
 }
 
-// Page is one page of the admins' list, how many sellers match in all, and
-// how many of each status match the words.
+// Page is one page of the admins' list, how many sellers match in all, how
+// many of each status match the words, and how many stood in each status on
+// each of the last days, whatever the filters.
 type Page struct {
 	Sellers []Listed
 	Total   int
 	Counts  map[Status]int
+	Days    []StatusDay
 }
 
 // List answers one page of the sellers matching f, to an admin: pending
@@ -88,6 +94,7 @@ func (s *Service) List(ctx context.Context, f Filter) (Page, error) {
 		// Past the end the window counts nothing; the total is still asked.
 		total, err := s.queries.CountSellersForAdmins(ctx, db.CountSellersForAdminsParams{
 			Statuses: params.Statuses, Query: params.Query,
+			ChangedSince: params.ChangedSince, ChangedUntil: params.ChangedUntil,
 		})
 		if err != nil {
 			return Page{}, fmt.Errorf("counting the sellers: %w", err)
@@ -97,6 +104,10 @@ func (s *Service) List(ctx context.Context, f Filter) (Page, error) {
 	}
 
 	if page.Counts, err = s.statusCounts(ctx, params); err != nil {
+		return Page{}, err
+	}
+
+	if page.Days, err = s.statusDays(ctx, trendDays); err != nil {
 		return Page{}, err
 	}
 
@@ -119,10 +130,12 @@ func (s *Service) List(ctx context.Context, f Filter) (Page, error) {
 	return page, nil
 }
 
-// statusCounts counts the sellers of each status matching the words of
-// params; a status none has counts 0.
+// statusCounts counts the sellers of each status matching the words and the
+// time of the last change of params; a status none has counts 0.
 func (s *Service) statusCounts(ctx context.Context, params db.SellersForAdminsParams) (map[Status]int, error) {
-	rows, err := s.queries.CountSellersByStatus(ctx, params.Query)
+	rows, err := s.queries.CountSellersByStatus(ctx, db.CountSellersByStatusParams{
+		Query: params.Query, ChangedSince: params.ChangedSince, ChangedUntil: params.ChangedUntil,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("counting the sellers by status: %w", err)
 	}
@@ -149,6 +162,10 @@ func (f Filter) params() (db.SellersForAdminsParams, error) {
 		return db.SellersForAdminsParams{}, ErrListInvalid
 	}
 
+	if f.ChangedSince != nil && f.ChangedUntil != nil && !f.ChangedSince.Before(*f.ChangedUntil) {
+		return db.SellersForAdminsParams{}, ErrListInvalid
+	}
+
 	wanted := make([]string, 0, len(f.Statuses))
 
 	for _, st := range f.Statuses {
@@ -160,11 +177,13 @@ func (f Filter) params() (db.SellersForAdminsParams, error) {
 	}
 
 	return db.SellersForAdminsParams{
-		Statuses: wanted,
-		Query:    escapeLike(query),
-		Sort:     f.Sort,
-		MaxRows:  int32(f.Size),
-		SkipRows: int32((f.Page - 1) * f.Size), //nolint:gosec // a page past int32 finds nothing anyway
+		Statuses:     wanted,
+		Query:        escapeLike(query),
+		ChangedSince: f.ChangedSince,
+		ChangedUntil: f.ChangedUntil,
+		Sort:         f.Sort,
+		MaxRows:      int32(f.Size),
+		SkipRows:     int32((f.Page - 1) * f.Size), //nolint:gosec // a page past int32 finds nothing anyway
 	}, nil
 }
 
@@ -295,6 +314,10 @@ func (s *Service) changeStatus(
 
 		if err := s.trail.Record(ctx, tx,
 			audit.Resource{Type: audit.ResourceSeller, ID: id.String(), Label: row.Name}, action(was)); err != nil {
+			return err
+		}
+
+		if err := recordStatusDay(ctx, q); err != nil {
 			return err
 		}
 

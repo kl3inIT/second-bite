@@ -28,7 +28,7 @@ ORDER BY s.created_at;
 
 -- name: SellersForAdmins :many
 -- One page of the sellers in the statuses given (all when none), whose
--- words, folded, hold the query's (any when empty), in the order sort names: by default pending ones first,
+-- words, folded, hold the query's (any when empty), last changed in [changed_since, changed_until) when given, in the order sort names: by default pending ones first,
 -- the oldest first, as a queue, then the latest change first; otherwise by
 -- name, address or last change, '-' first for descending. total counts them
 -- all; it is absent when the page is past the end.
@@ -37,6 +37,8 @@ SELECT id, name, address, latitude, longitude, phone, status, status_reason, sta
 FROM seller_sellers
 WHERE (cardinality(@statuses::text[]) = 0 OR status = ANY (@statuses::text[]))
   AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\')
+  AND (sqlc.narg(changed_since)::timestamptz IS NULL OR updated_at >= sqlc.narg(changed_since)::timestamptz)
+  AND (sqlc.narg(changed_until)::timestamptz IS NULL OR updated_at < sqlc.narg(changed_until)::timestamptz)
 ORDER BY CASE WHEN @sort::text = '' THEN status = 'pending' END DESC,
          CASE WHEN @sort::text = '' AND status = 'pending' THEN created_at END,
          CASE WHEN @sort::text = 'name' THEN seller_fold(name) END,
@@ -51,14 +53,44 @@ LIMIT @max_rows OFFSET @skip_rows;
 -- name: CountSellersForAdmins :one
 SELECT count(*) FROM seller_sellers
 WHERE (cardinality(@statuses::text[]) = 0 OR status = ANY (@statuses::text[]))
-  AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\');
+  AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\')
+  AND (sqlc.narg(changed_since)::timestamptz IS NULL OR updated_at >= sqlc.narg(changed_since)::timestamptz)
+  AND (sqlc.narg(changed_until)::timestamptz IS NULL OR updated_at < sqlc.narg(changed_until)::timestamptz);
 
 -- name: CountSellersByStatus :many
--- How many sellers of each status match the words, whatever the statuses
--- asked, for the counts above the list.
+-- How many sellers of each status match the words and the time of the
+-- last change, whatever the statuses asked, for the cards above
+-- the list.
 SELECT status, count(*) AS sellers FROM seller_sellers
 WHERE (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\')
+  AND (sqlc.narg(changed_since)::timestamptz IS NULL OR updated_at >= sqlc.narg(changed_since)::timestamptz)
+  AND (sqlc.narg(changed_until)::timestamptz IS NULL OR updated_at < sqlc.narg(changed_until)::timestamptz)
 GROUP BY status;
+
+-- name: LockStatusDays :exec
+-- Serializes the writes of the day's counts, so each reads the changes
+-- committed before it.
+SELECT pg_advisory_xact_lock(hashtextextended('seller:status_days', 0));
+
+-- name: RecordStatusDay :exec
+-- Keeps how many sellers stand in each status now as today's, in Vietnam.
+INSERT INTO seller_status_days (day, pending, active, rejected, blocked)
+SELECT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date,
+       count(*) FILTER (WHERE status = 'pending'),
+       count(*) FILTER (WHERE status = 'active'),
+       count(*) FILTER (WHERE status = 'rejected'),
+       count(*) FILTER (WHERE status = 'blocked')
+FROM seller_sellers
+ON CONFLICT (day) DO UPDATE
+SET pending = excluded.pending, active = excluded.active, rejected = excluded.rejected, blocked = excluded.blocked;
+
+-- name: StatusDays :many
+-- The days recorded from the last one on or before first, so the first day
+-- asked stands as it was, to today.
+SELECT day, pending, active, rejected, blocked FROM seller_status_days
+WHERE day >= coalesce((SELECT max(d.day) FROM seller_status_days d WHERE d.day <= @first::date), @first::date)
+ORDER BY day;
+
 
 -- name: MemberRole :one
 SELECT role FROM seller_members WHERE seller_id = @seller_id AND account_id = @account_id;

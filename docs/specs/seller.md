@@ -15,7 +15,7 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `POST /sellers/{sellerId}/members` `{email}` | Its owner | `201` the new staff member |
 | `DELETE /sellers/{sellerId}/members/{accountId}` | Its owner, or a staff member removing themself | `204` |
 | `GET /sellers/{sellerId}/profile` | Anyone | `200` an active seller's name, address, location and photo; `404` for one blocked |
-| `GET /admin/sellers?status=&q=&sort=&page=&size=` | Admins | `200 {items, page, pageSize, total, counts}`: sellers in the statuses given (every one when none) whose name, address or phone holds `q`, marks ignored; by default pending ones first, the oldest first, then the latest change first, or sorted by `name`, `address` or `changed` (`-` descending); `counts` gives each status matching `q`, for the cards above the list; each with its owner's address; `size` 1 to 100, 25 by default; a page past the end is empty (SEC-75) |
+| `GET /admin/sellers?status=&q=&changedSince=&changedUntil=&sort=&page=&size=` | Admins | `200 {items, page, pageSize, total, counts, days}`: sellers in the statuses given (every one when none) whose name, address or phone holds `q`, marks ignored, last changed in `[changedSince, changedUntil)` when given (SEC-62); by default pending ones first, the oldest first, then the latest change first, or sorted by `name`, `address` or `changed` (`-` descending); `counts` gives each status matching `q` and the time range, for the cards above the list; `days` gives how many sellers stood in each status on each of the last 14 days in Vietnam, whatever the filters, from the first day counted (SEC-62); each with its owner's address; `size` 1 to 100, 25 by default; a page past the end is empty (SEC-75) |
 | `GET /admin/memberships?accountId=` | Admins | `200 {memberships}`: the sellers each account given (1 to 100) owns or works at, owners first, with the seller's name and status, for the admins' accounts (SEC-75) |
 | `POST /admin/sellers/{sellerId}/approve` | Admins | `200` seller, `active`, from `pending`, `rejected` or `blocked`; its owner emailed |
 | `POST /admin/sellers/{sellerId}/reject` `{reason}` | Admins | `200` seller, `rejected`, from `pending`; its owner emailed the reason |
@@ -44,6 +44,7 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
 | `seller_sellers` | Name, address, latitude, longitude, generated location, phone, status, its reason, who set it and when, the photo (file's identifier, no foreign key), the generated folded words admins search | Kept |
+| `seller_status_days` | A day in Vietnam and how many sellers stood in each status at its last change; written in the transaction of each opening and status change, so a day with no row stands as the day before; counting started on 21 October 2026 (SEC-62) | Kept |
 | `seller_members` | Seller, identity's account identifier (no foreign key across modules), role `owner` or `staff`, when added | Deleted when a staff member is removed or leaves, and every membership of an account when identity deletes it |
 
 ## Failures

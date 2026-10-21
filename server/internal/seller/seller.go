@@ -160,7 +160,7 @@ func (s *Service) Open(ctx context.Context, d Details) (Seller, error) {
 			return fmt.Errorf("storing the owner: %w", err)
 		}
 
-		return nil
+		return recordStatusDay(ctx, q)
 	})
 	if err != nil {
 		return Seller{}, err

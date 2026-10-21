@@ -33,10 +33,28 @@ export type AdminAccountsOutputBody = {
 };
 
 export type AdminSellerBody = {
+    address: string;
+    createdAt: string;
+    id: string;
+    latitude: number;
+    longitude: number;
+    name: string;
     /**
      * Absent when the owner deleted their account
      */
     ownerEmail?: string;
+    phone: string;
+    /**
+     * Served at /photos/{photoId}/1600.jpg and /400.jpg
+     */
+    photoId?: string;
+    status: 'pending' | 'active' | 'rejected' | 'blocked';
+    statusChangedAt?: string;
+    /**
+     * Why an admin rejected or blocked the seller, as the owner is told
+     */
+    statusReason?: string;
+    updatedAt: string;
 };
 
 export type AdminSellersOutputBody = {
@@ -44,6 +62,10 @@ export type AdminSellersOutputBody = {
      * Sellers of each status matching q, whatever status asks
      */
     counts: StatusCountsBody;
+    /**
+     * Sellers of each status on each of the last 14 days in Vietnam, the oldest first, whatever the filters; a day before counting started is absent
+     */
+    days: Array<StatusDayBody> | null;
     items: Array<AdminSellerBody> | null;
     page: number;
     pageSize: number;
@@ -767,6 +789,17 @@ export type StatusCountsBody = {
     rejected: number;
 };
 
+export type StatusDayBody = {
+    active: number;
+    blocked: number;
+    /**
+     * The day in Vietnam, as YYYY-MM-DD
+     */
+    day: string;
+    pending: number;
+    rejected: number;
+};
+
 export type Violation = {
     code: string;
     detail: string;
@@ -1312,6 +1345,14 @@ export type ListSellersForAdminsData = {
         sort?: 'name' | '-name' | 'address' | '-address' | 'changed' | '-changed';
         page?: number;
         size?: number;
+        /**
+         * Keep the sellers last changed at or after this time
+         */
+        changedSince?: string;
+        /**
+         * Keep the sellers last changed before this time
+         */
+        changedUntil?: string;
     };
     url: '/admin/sellers';
 };
