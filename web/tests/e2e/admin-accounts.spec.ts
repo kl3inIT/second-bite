@@ -21,7 +21,9 @@ test.describe("the accounts", () => {
 
     await expect(page.getByRole("heading", { level: 1, name: "Tài khoản" })).toBeVisible();
     await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
-    await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText("Người dùng");
+    await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toContainText(
+      "Người dùng",
+    );
     const tabs = page.getByRole("tablist", { name: "Tài khoản theo vai trò" });
     await expect(tabs.getByRole("tab", { name: "Tất cả" })).toHaveAttribute(
       "aria-selected",

@@ -20,7 +20,7 @@ test("the reviews are empty on each tab until a module keeps them", async ({
 
   await expect(page.getByRole("heading", { level: 1, name: "Đánh giá" })).toBeVisible();
   await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
-  await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText("Vận hành");
+  await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toContainText("Vận hành");
   const tabs = page.getByRole("tablist", { name: "Đánh giá theo trạng thái" });
   await expect(tabs.getByRole("tab", { name: "Tất cả" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("searchbox", { name: "Tìm đánh giá" })).toBeVisible();

@@ -1,26 +1,18 @@
 "use client";
 
-import { ChevronsUpDownIcon, GlobeIcon, LogOutIcon, PanelLeftCloseIcon } from "lucide-react";
+import { GlobeIcon, LogOutIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useRef, useTransition } from "react";
+import { useTransition } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
@@ -28,209 +20,166 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Spinner } from "@/components/ui/spinner";
 import { Wordmark } from "@/components/wordmark";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { signOut } from "@/lib/api/generated";
 
-import {
-  adminHref,
-  type AdminNamedPage,
-  adminNavGroups,
-  adminPages,
-  isReleased,
-  lineage,
-  matchAdminPage,
-  navItems,
-} from "./pages";
+import { adminNav, isWithin } from "./nav";
 
-type Account = { email: string; displayName: string };
-
-/** The initials on the account's avatar: the name's first and last words, or the start of the address. */
-function initialsOf({ email, displayName }: Account): string {
-  const words = displayName.trim().split(/\s+/).filter(Boolean);
-  const letters =
-    words.length > 1 ? `${words[0][0]}${words.at(-1)?.[0]}` : (words[0] ?? email).slice(0, 2);
-  return letters.toLocaleUpperCase();
-}
-
-/** Signs out on the server; the admin layout then reads no account and sends the page to sign in. */
-function useSignOut() {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  return {
-    pending,
-    signOutHere: () =>
-      startTransition(async () => {
-        try {
-          await signOut();
-        } finally {
-          router.refresh();
-        }
-      }),
-  };
-}
-
-/** The sidebar item a page lights: the page itself, or the item of the page above it. */
-function useOpenItem(): AdminNamedPage | undefined {
-  const current = matchAdminPage(usePathname());
-  if (!current) return undefined;
-  return lineage(current).find((key): key is AdminNamedPage => "nav" in adminPages[key]);
-}
-
-// The admin's sidebar (SEC-62), shadcn's Sidebar as main has it: the wordmark and the "Quản trị" badge, the
-// fourteen items in their groups, each with "Sắp có" while its page is not released, then the language and the
-// account at the foot. The button in the top bar collapses it to the primitive's icon rail (`collapsible="icon"`),
-// where each item names itself in a tooltip; shadcn's cookie keeps the choice. On a phone it is the primitive's
-// drawer, closed from its own button and on a choice. The menu scrolls when it is taller than the window, and
-// the open item is scrolled into view.
-export function AdminSidebar({ account }: { account: Account }) {
-  const t = useTranslations("admin.shell");
-  const { isMobile, state, setOpenMobile } = useSidebar();
-  const collapsed = state === "collapsed" && !isMobile;
-  const open = useOpenItem();
-  const content = useRef<HTMLDivElement>(null);
-  const { pending, signOutHere } = useSignOut();
-  // On a phone the drawer closes once an item is chosen.
-  const closeDrawer = () => setOpenMobile(false);
-
-  useEffect(() => {
-    content.current
-      ?.querySelector('[data-sidebar="menu-button"][data-active]')
-      ?.scrollIntoView({ block: "nearest" });
-  }, [open]);
+// The admin's sidebar (Figma Admin/Sidebar, 228:6027): the wordmark with the collapse button and the
+// "Quản trị" tag, the menu by group, then the language and the account at the foot, over the light sweep.
+// Collapsed, it keeps the icons, each named in a tooltip.
+export function AdminSidebar({ email }: { email: string }) {
+  const t = useTranslations("Admin");
+  const pathname = usePathname();
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" label={t("menu")}>
+      <SidebarSweep />
       <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                size="lg"
-                tooltip={t("sidebar.home")}
-                render={<Link href={adminHref("overview")} onClick={closeDrawer} />}
-              >
-                {/* The rail keeps the mark; the open sidebar shows the wordmark beside it. */}
-                <Avatar>
-                  <AvatarFallback>sb</AvatarFallback>
-                </Avatar>
-                <Wordmark className="h-6" />
-                <span className="sr-only">{t("sidebar.home")}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={closeDrawer}
-              aria-label={t("sidebar.close")}
-            >
-              <PanelLeftCloseIcon aria-hidden />
-            </Button>
-          )}
+        <div className="flex h-11 items-center justify-between gap-2 ps-1 group-data-[collapsible=icon]:ps-0">
+          <Link
+            href="/admin"
+            className="rounded-sm text-sidebar-foreground outline-hidden group-data-[collapsible=icon]:hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          >
+            <Wordmark />
+            <span className="sr-only">{t("home")}</span>
+          </Link>
+          <CollapseButton />
         </div>
-        {!collapsed && (
-          <div className="flex">
-            <Badge variant="fresh">{t("title")}</Badge>
-          </div>
-        )}
+        <Badge variant="fresh" className="ms-1 self-start group-data-[collapsible=icon]:hidden">
+          {t("tag")}
+        </Badge>
       </SidebarHeader>
-
-      <SidebarContent ref={content}>
-        <nav aria-label={t("sidebar.label")}>
-          {adminNavGroups.map((group) => (
-            <SidebarGroup key={group}>
-              {(group === "operations" || group === "users" || group === "marketing") && (
-                <SidebarGroupLabel>{t(`groups.${group}`)}</SidebarGroupLabel>
-              )}
+      <SidebarContent>
+        {adminNav.map((group, index) => (
+          <SidebarGroup key={group.key ?? index}>
+            {group.key && <SidebarGroupLabel>{t(`group.${group.key}`)}</SidebarGroupLabel>}
+            <SidebarGroupContent>
               <SidebarMenu>
-                {navItems(group).map((key) => {
-                  const Icon = adminPages[key].icon;
-                  const active = key === open;
-                  const label = t(`pages.${key}.label`);
+                {group.items.map(({ key, href, icon: Icon }) => {
+                  const active = isWithin(pathname, href);
                   return (
                     <SidebarMenuItem key={key}>
                       <SidebarMenuButton
+                        size="nav"
                         isActive={active}
-                        tooltip={isReleased(key) ? label : `${label} · ${t("soon")}`}
-                        render={
-                          <Link
-                            href={adminHref(key)}
-                            onClick={closeDrawer}
-                            aria-current={active ? "page" : undefined}
-                          />
-                        }
+                        tooltip={t(`nav.${key}`)}
+                        render={<Link href={href} aria-current={active ? "page" : undefined} />}
                       >
                         <Icon aria-hidden />
-                        {/* The name gives way before "Sắp có" does, so the mark never covers it. */}
-                        <span className="min-w-0 flex-1 truncate">{label}</span>
-                        {!isReleased(key) && <Badge variant="secondary">{t("soon")}</Badge>}
+                        <span>{t(`nav.${key}`)}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
                 })}
               </SidebarMenu>
-            </SidebarGroup>
-          ))}
-        </nav>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
-
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
             <LanguageButton />
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <SidebarMenuButton
-                    size="lg"
-                    tooltip={t("sidebar.account", { email: account.email })}
-                  />
-                }
-              >
-                <Avatar>
-                  <AvatarFallback>{initialsOf(account)}</AvatarFallback>
-                </Avatar>
-                <span className="min-w-0 flex-1 truncate">{account.email}</span>
-                <ChevronsUpDownIcon aria-hidden />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side={isMobile ? "top" : "right"} align="end">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>{account.email}</DropdownMenuLabel>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem disabled={pending} onClick={signOutHere}>
-                    <LogOutIcon aria-hidden />
-                    {t("sidebar.signOut")}
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
         </SidebarMenu>
+        <AccountCard email={email} />
       </SidebarFooter>
     </Sidebar>
   );
 }
 
-/** The same page in the other language; it shows the current one, as Figma does ("Tiếng Việt"). */
+function CollapseButton() {
+  const t = useTranslations("Admin");
+  const { state, toggleSidebar } = useSidebar();
+  const collapsed = state === "collapsed";
+  const Icon = collapsed ? PanelLeftOpenIcon : PanelLeftCloseIcon;
+
+  return (
+    <Button
+      size="icon"
+      onClick={toggleSidebar}
+      aria-label={collapsed ? t("expand") : t("collapse")}
+      aria-expanded={!collapsed}
+      variant="sidebar"
+      className="max-md:hidden"
+    >
+      <Icon aria-hidden />
+    </Button>
+  );
+}
+
+// The other language, opening the same page; next-intl's cookie keeps the choice.
 function LanguageButton() {
-  const t = useTranslations("admin.shell.sidebar");
+  const t = useTranslations("Admin");
   const pathname = usePathname();
   const other = useLocale() === "vi" ? "en" : "vi";
 
   return (
-    <SidebarMenuButton tooltip={t("language")} render={<Link href={pathname} locale={other} />}>
+    <SidebarMenuButton
+      size="nav"
+      tooltip={t("language")}
+      render={<Link href={pathname} locale={other} lang={other} />}
+    >
       <GlobeIcon aria-hidden />
-      <span>
-        {t("language")}
-        {/* Said in the language it switches to, as the customer header's switch does. */}
-        <span lang={other} className="sr-only">{`, ${t("switchLanguage")}`}</span>
-      </span>
+      <span>{t("language")}</span>
     </SidebarMenuButton>
+  );
+}
+
+// Who is signed in and the way out, on the deeper blue (Figma account, 228:5732).
+function AccountCard({ email }: { email: string }) {
+  const t = useTranslations("Admin");
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  return (
+    <div className="flex items-center gap-2.5 rounded-md bg-sidebar-raised py-2.5 ps-3 pe-2 text-sidebar-foreground group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0">
+      <Avatar className="size-9">
+        <AvatarFallback tone="fresh">{email.slice(0, 2).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <span className="min-w-0 flex-1 truncate text-label-strong group-data-[collapsible=icon]:hidden">
+        {email}
+      </span>
+      <Button
+        size="icon"
+        disabled={pending}
+        aria-label={t("signOut")}
+        variant="sidebar"
+        className="group-data-[collapsible=icon]:hidden"
+        onClick={() =>
+          startTransition(async () => {
+            try {
+              await signOut();
+            } finally {
+              router.replace("/");
+            }
+          })
+        }
+      >
+        {pending ? <Spinner aria-hidden /> : <LogOutIcon aria-hidden />}
+      </Button>
+    </div>
+  );
+}
+
+// The light sweep at the sidebar's foot (Figma sweep, 228:5682): Tasco sky at 35% and the deep blue at 60%
+// over the sidebar's own blue. Decoration only.
+function SidebarSweep() {
+  return (
+    <svg
+      viewBox="0 0 256 300"
+      preserveAspectRatio="none"
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 bottom-0 h-75 w-full"
+    >
+      <path d="M0 120C70 70 170 60 256 0V300H0V120Z" className="fill-sky opacity-35" />
+      <path
+        d="M0 190C80 140 180 140 256 90V300H0V190Z"
+        className="fill-sidebar-raised opacity-60"
+      />
+    </svg>
   );
 }

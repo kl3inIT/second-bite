@@ -4,16 +4,7 @@
   // lib/utils.ts is the `utils` alias in components.json that the shadcn CLI writes into new ones.
   "workspaces": {
     ".": {
-      // The admin's shared components and page helpers (SEC-62) are built ahead of the admin screens, which
-      // are built in parallel on them, as the shadcn primitives are.
-      "entry": [
-        "src/components/ui/**/*.tsx",
-        "src/lib/utils.ts",
-        "scripts/*.mjs",
-        "src/features/admin/ui/**/*.tsx",
-        "src/features/admin/{admin-page,admin-crumbs,admin-toast,session}.{ts,tsx}",
-        "src/i18n/day-month.ts",
-      ],
+      "entry": ["src/components/ui/**/*.tsx", "src/lib/utils.ts", "scripts/*.mjs"],
     },
     "tools/openapi": {},
   },

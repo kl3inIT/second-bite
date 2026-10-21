@@ -1,14 +1,12 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants, type Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from "lucide-react";
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav
-      role="navigation"
-      aria-label="pagination"
       data-slot="pagination"
       className={cn("mx-auto flex w-full justify-center", className)}
       {...props}
@@ -35,22 +33,28 @@ type PaginationLinkProps = {
 } & Pick<React.ComponentProps<typeof Button>, "size"> &
   React.ComponentProps<"a">;
 
-function PaginationLink({ className, isActive, size = "icon", ...props }: PaginationLinkProps) {
+// Second Bite: a page is a link, not a button, so it opens in a new tab and reads as one.
+function PaginationLink({
+  className,
+  isActive,
+  size = "icon",
+  children,
+  ...props
+}: PaginationLinkProps) {
   return (
-    <Button
-      variant={isActive ? "outline" : "ghost"}
-      size={size}
-      className={cn(className)}
-      nativeButton={false}
-      render={
-        <a
-          aria-current={isActive ? "page" : undefined}
-          data-slot="pagination-link"
-          data-active={isActive}
-          {...props}
-        />
-      }
-    />
+    <a
+      aria-current={isActive ? "page" : undefined}
+      data-slot="pagination-link"
+      data-active={isActive}
+      className={cn(
+        buttonVariants({ variant: isActive ? "outline" : "ghost", size }),
+        "aria-disabled:pointer-events-none aria-disabled:opacity-50",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </a>
   );
 }
 
@@ -61,7 +65,7 @@ function PaginationPrevious({
 }: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
   return (
     <PaginationLink
-      aria-label="Go to previous page"
+      aria-label={text}
       size="default"
       className={cn("pl-1.5!", className)}
       {...props}
@@ -79,7 +83,7 @@ function PaginationNext({
 }: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
   return (
     <PaginationLink
-      aria-label="Go to next page"
+      aria-label={text}
       size="default"
       className={cn("pr-1.5!", className)}
       {...props}
@@ -102,7 +106,6 @@ function PaginationEllipsis({ className, ...props }: React.ComponentProps<"span"
       {...props}
     >
       <MoreHorizontalIcon />
-      <span className="sr-only">More pages</span>
     </span>
   );
 }

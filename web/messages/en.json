@@ -609,5 +609,120 @@
     "original": "Original price (VND, optional)",
     "originalPlaceholder": "For example: 95.000",
     "originalInvalid": "An original price from 1.001đ, or leave it empty."
+  },
+  "Admin": {
+    "home": "Second Bite, admin",
+    "tag": "Admin",
+    "collapse": "Collapse the sidebar",
+    "expand": "Expand the sidebar",
+    "language": "Tiếng Việt",
+    "signOut": "Sign out",
+    "skip": "Skip the sidebar",
+    "breadcrumb": "Where you are",
+    "group": {
+      "operations": "Operations"
+    },
+    "nav": {
+      "overview": "Overview",
+      "sellers": "Stores",
+      "audit": "Activity log",
+      "settings": "Settings"
+    },
+    "notFound": {
+      "crumb": "Not found",
+      "title": "This page was not found",
+      "body": "This address is not part of the admin pages.",
+      "back": "Back to the admin"
+    },
+    "menu": "Admin menu",
+    "list": {
+      "range": "Showing {first}–{last} of {total} {noun}",
+      "pages": "Pages",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "audit": {
+      "title": "Activity log",
+      "noun": "actions",
+      "filter": {
+        "search": "Search stores, emails",
+        "actor": "By",
+        "anyone": "Anyone",
+        "action": "Action",
+        "anything": "Any",
+        "days": "Days",
+        "anytime": "Any time"
+      },
+      "column": {
+        "time": "Time",
+        "actor": "By",
+        "action": "Action",
+        "resource": "On",
+        "change": "Change (before → after)"
+      },
+      "action": {
+        "sellerApprove": "Store approved",
+        "sellerReject": "Store rejected",
+        "sellerBlock": "Store blocked",
+        "sellerUnblock": "Store unblocked",
+        "adminGrant": "Admin granted",
+        "adminRevoke": "Admin revoked",
+        "offerSettingsChange": "Post settings changed",
+        "emailSettingsChange": "Email settings changed"
+      },
+      "resource": {
+        "seller": "Store",
+        "account": "Account",
+        "offer_settings": "Post settings",
+        "email_settings": "Email settings"
+      },
+      "commandLine": "Command line",
+      "deletedAccount": "Deleted account",
+      "change": {
+        "approved": "→ Active",
+        "rejected": "Pending → Rejected",
+        "blocked": "Active → Blocked",
+        "unblocked": "Blocked → Active",
+        "granted": "Customer → Admin",
+        "revoked": "Admin → Customer",
+        "fromCommandLine": "From the server's command line",
+        "reason": "Reason: {reason}",
+        "value": "{field}: {from} → {to}",
+        "secret": "{field}: changed",
+        "empty": "empty"
+      },
+      "field": {
+        "minDiscountPercent": "Minimum discount",
+        "defaultRadiusKm": "Default radius",
+        "maxRadiusKm": "Maximum radius",
+        "windowMinMinutes": "Shortest pickup window",
+        "windowMaxMinutes": "Longest pickup window",
+        "startsWithinHours": "Starts within",
+        "provider": "Provider",
+        "senderAddress": "Sender address",
+        "senderName": "Sender name",
+        "smtpHost": "SMTP server",
+        "smtpPort": "SMTP port",
+        "smtpSecurity": "SMTP security",
+        "smtpUsername": "SMTP user",
+        "smtpPassword": "SMTP password",
+        "brevoApiKey": "Brevo API key"
+      },
+      "unit": {
+        "percent": "{value}%",
+        "km": "{value} km",
+        "minutes": "{value} min",
+        "hours": "{value} h"
+      },
+      "empty": {
+        "title": "No actions yet",
+        "body": "When admins approve or block a store or change a setting, it shows here."
+      },
+      "noResults": {
+        "title": "No actions found",
+        "body": "No action matches the filters.",
+        "clear": "Clear the filters"
+      }
+    }
   }
 }

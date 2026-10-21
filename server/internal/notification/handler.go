@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -29,8 +30,9 @@ type emailSettingsOutput struct {
 }
 
 type saveEmailSettingsInput struct {
-	IfMatch string `header:"If-Match" doc:"The ETag of the settings read" required:"true"`
-	Body    struct {
+	IfMatch     string `header:"If-Match"      doc:"The ETag of the settings read"`
+	IfNoneMatch string `header:"If-None-Match" doc:"* to save the first settings, when none were read"`
+	Body        struct {
 		Provider      EmailProvider `json:"provider"               enum:"smtp,brevo"`
 		SenderAddress string        `json:"senderAddress"          format:"email" maxLength:"254"`
 		SenderName    string        `json:"senderName"             maxLength:"100" minLength:"1"`
@@ -41,6 +43,14 @@ type saveEmailSettingsInput struct {
 		SMTPPassword  string        `json:"smtpPassword,omitempty" doc:"Empty keeps the stored password" maxLength:"1024"`
 		BrevoAPIKey   string        `json:"brevoApiKey,omitempty"  doc:"Empty keeps the stored key"      maxLength:"1024"`
 	}
+}
+
+// sendTestEmailInput names who receives the test email; without a body, or
+// without to, it is the admin sending it.
+type sendTestEmailInput struct {
+	Body *struct {
+		To string `json:"to,omitempty" format:"email" maxLength:"254" doc:"Who receives it; the admin sending it when empty"`
+	} `required:"false"`
 }
 
 // RegisterAdminOperations adds the module's admin operations to admin, the
@@ -76,21 +86,44 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		Method:      http.MethodPut,
 		Path:        "/email-settings",
 		Summary:     "Choose who delivers email; the next email uses it",
-		Description: "If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes. " +
-			"The first settings are saved with `secondbite email configure`.",
+		Description: "If-Match carries the ETag read, or If-None-Match: * saves the first settings; when someone saved " +
+			"since, the answer is 412 and nothing changes. Without either the answer is 400.",
 		DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, in *saveEmailSettingsInput) (*struct{}, error) {
-		version, ok := platform.VersionOf(in.IfMatch)
-		if !ok {
-			return nil, platform.ErrChangedSinceRead
-		}
-
 		b := in.Body
-
-		return nil, s.SaveEmailSettings(ctx, EmailSettingsChange{
+		c := EmailSettingsChange{
 			Provider: b.Provider, SenderAddress: b.SenderAddress, SenderName: b.SenderName,
 			SMTPHost: b.SMTPHost, SMTPPort: b.SMTPPort, SMTPSecurity: b.SMTPSecurity,
 			SMTPUsername: b.SMTPUsername, SMTPPassword: b.SMTPPassword, BrevoAPIKey: b.BrevoAPIKey,
-		}, version)
+		}
+
+		switch {
+		case in.IfMatch != "":
+			version, ok := platform.VersionOf(in.IfMatch)
+			if !ok {
+				return nil, platform.ErrChangedSinceRead
+			}
+
+			return nil, s.SaveEmailSettings(ctx, c, version)
+		case strings.TrimSpace(in.IfNoneMatch) == "*":
+			return nil, s.CreateEmailSettings(ctx, c)
+		default:
+			return nil, platform.ErrVersionRequired
+		}
+	})
+
+	huma.Register(admin, huma.Operation{
+		OperationID:   "sendTestEmail",
+		Method:        http.MethodPost,
+		Path:          "/email-settings/test",
+		Summary:       "Send one email through the settings saved, to an address or to oneself",
+		DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *sendTestEmailInput) (*struct{}, error) {
+		var to string
+		if in.Body != nil {
+			to = in.Body.To
+		}
+
+		return nil, s.SendTestEmail(ctx, to)
 	})
 }

@@ -59,7 +59,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
       // The splash's script marks a visit's later pages before React hydrates.
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col">
+      <body className="group/body flex min-h-full flex-col">
         {/* Who runs the site and what it is, for search and answer engines; each page adds its own. */}
         <JsonLd
           data={{

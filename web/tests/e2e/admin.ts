@@ -32,11 +32,11 @@ export async function signInTo(
 
 /** The admin's sidebar on a wide screen; on a phone open it first with `openAdminMenu`. */
 export function adminSidebar(page: Page) {
-  return page.getByRole("navigation", { name: "Điều hướng quản trị" });
+  return page.locator('[data-sidebar="sidebar"]').filter({ visible: true });
 }
 
 /** Opens the sidebar's drawer on a phone. */
 export async function openAdminMenu(page: Page) {
-  await (await hydrated(page.getByRole("button", { name: "Mở menu quản trị" }))).click();
-  await expect(page.getByRole("dialog").filter({ has: adminSidebar(page) })).toBeVisible();
+  await (await hydrated(page.getByRole("button", { name: "Menu quản trị" }))).click();
+  await expect(page.getByRole("dialog", { name: "Menu quản trị" })).toBeVisible();
 }

@@ -28,17 +28,23 @@ ORDER BY s.created_at;
 
 -- name: SellersForAdmins :many
 -- One page of the sellers in the statuses given (all when none), whose
--- words, folded, hold the query's (any when empty): pending ones first, the
--- oldest first, as a queue; then the latest change first. total counts them
+-- words, folded, hold the query's (any when empty), in the order sort names: by default pending ones first,
+-- the oldest first, as a queue, then the latest change first; otherwise by
+-- name, address or last change, '-' first for descending. total counts them
 -- all; it is absent when the page is past the end.
 SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id,
        count(*) OVER () AS total
 FROM seller_sellers
 WHERE (cardinality(@statuses::text[]) = 0 OR status = ANY (@statuses::text[]))
   AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\')
-ORDER BY status = 'pending' DESC,
-         CASE WHEN status = 'pending' THEN created_at END,
-         COALESCE(status_changed_at, created_at) DESC,
+ORDER BY CASE WHEN @sort::text = '' THEN status = 'pending' END DESC,
+         CASE WHEN @sort::text = '' AND status = 'pending' THEN created_at END,
+         CASE WHEN @sort::text = 'name' THEN seller_fold(name) END,
+         CASE WHEN @sort::text = '-name' THEN seller_fold(name) END DESC,
+         CASE WHEN @sort::text = 'address' THEN seller_fold(address) END,
+         CASE WHEN @sort::text = '-address' THEN seller_fold(address) END DESC,
+         CASE WHEN @sort::text = 'changed' THEN updated_at END,
+         updated_at DESC,
          id
 LIMIT @max_rows OFFSET @skip_rows;
 
@@ -46,6 +52,13 @@ LIMIT @max_rows OFFSET @skip_rows;
 SELECT count(*) FROM seller_sellers
 WHERE (cardinality(@statuses::text[]) = 0 OR status = ANY (@statuses::text[]))
   AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\');
+
+-- name: CountSellersByStatus :many
+-- How many sellers of each status match the words, whatever the statuses
+-- asked, for the counts above the list.
+SELECT status, count(*) AS sellers FROM seller_sellers
+WHERE (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\')
+GROUP BY status;
 
 -- name: MemberRole :one
 SELECT role FROM seller_members WHERE seller_id = @seller_id AND account_id = @account_id;

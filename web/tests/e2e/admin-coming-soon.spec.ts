@@ -23,32 +23,27 @@ async function expectComingSoon(page: Page, name: string) {
 test.describe("the pages that are not released yet", () => {
   test.skip(isReleased("orders") && isReleased("reports"), "Every page here is released.");
 
-  test("the sidebar marks them and a page shows its name and Sắp có", async ({
+  test("a page shows its name and Sắp có, and the menu holds only the open pages", async ({
     page,
     isMobile,
   }, testInfo) => {
     await signInTo(page, "/admin/orders", testInfo, { who: "sapco" });
 
     await expectComingSoon(page, "Đơn hàng");
-    const crumbs = page.getByRole("navigation", { name: "Đường dẫn" });
+    const crumbs = page.getByRole("navigation", { name: "Vị trí trang" });
     await expect(crumbs).toContainText("Vận hành");
     await expect(crumbs).toContainText("Đơn hàng");
 
+    // An entry joins the menu with its screen (SEC-75 › Shell): no entry opens a coming-soon page.
     if (isMobile) await openAdminMenu(page);
-    await expect(
-      adminSidebar(page).getByRole("link", { name: /^Đơn hàng\s*Sắp có$/ }),
-    ).toBeVisible();
-    await expect(
-      adminSidebar(page).getByRole("link", { name: /^Báo cáo\s*Sắp có$/ }),
-    ).toBeVisible();
-    // A released page carries no mark.
     await expect(
       adminSidebar(page).getByRole("link", { name: "Cửa hàng", exact: true }),
     ).toBeVisible();
     await expect(
       adminSidebar(page).getByRole("link", { name: "Tổng quan", exact: true }),
     ).toBeVisible();
-    await expect(adminSidebar(page).getByText("Sắp có")).toHaveCount(11);
+    await expect(adminSidebar(page).getByRole("link", { name: "Đơn hàng" })).toHaveCount(0);
+    await expect(adminSidebar(page).getByText("Sắp có")).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
   });
 
@@ -60,7 +55,7 @@ test.describe("the pages that are not released yet", () => {
   test("the reports read Quản trị / Báo cáo", async ({ page }, testInfo) => {
     await signInTo(page, "/admin/reports", testInfo, { who: "sapco-baocao" });
     await expectComingSoon(page, "Báo cáo");
-    await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toHaveText(
+    await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toHaveText(
       /^Quản trị\s*\/\s*Báo cáo$/,
     );
     await expectNoSeriousA11yViolations(page);
@@ -73,7 +68,7 @@ test.describe("the pages that are not released yet", () => {
 
     await page.goto("/vi/admin/settings/categories");
     await expectComingSoon(page, "Danh mục");
-    await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText("Cài đặt");
+    await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toContainText("Cài đặt");
     await expectNoSeriousA11yViolations(page);
   });
 

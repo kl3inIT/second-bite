@@ -21,7 +21,7 @@ test("every post is empty until the offer module lists them for an admin", async
 
   await expect(page.getByRole("heading", { level: 1, name: "Bài đăng" })).toBeVisible();
   await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
-  await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText("Vận hành");
+  await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toContainText("Vận hành");
   const cards = page.getByRole("navigation", { name: "Bài đăng theo trạng thái" });
   for (const name of ["Đang bán", "Hết hàng", "Đã đóng", "Đã gỡ", "Gỡ do vi phạm"]) {
     await expect(cards.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();

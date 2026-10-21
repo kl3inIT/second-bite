@@ -7,10 +7,44 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const countEvents = `-- name: CountEvents :one
+SELECT count(*) FROM audit_events
+WHERE (cardinality($1::text[]) = 0 OR action = ANY ($1::text[]))
+  AND ($2::uuid IS NULL OR actor_id = $2::uuid)
+  AND ($3::timestamptz IS NULL OR occurred_at >= $3::timestamptz)
+  AND ($4::timestamptz IS NULL OR occurred_at < $4::timestamptz)
+  AND ($5::text = ''
+       OR actor_label ILIKE '%' || $5::text || '%' ESCAPE '\'
+       OR resource_label ILIKE '%' || $5::text || '%' ESCAPE '\'
+       OR resource_id = $5::text)
+`
+
+type CountEventsParams struct {
+	Actions []string
+	ActorID uuid.NullUUID
+	Since   *time.Time
+	Until   *time.Time
+	Query   string
+}
+
+func (q *Queries) CountEvents(ctx context.Context, arg CountEventsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countEvents,
+		arg.Actions,
+		arg.ActorID,
+		arg.Since,
+		arg.Until,
+		arg.Query,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
 
 const forgetActor = `-- name: ForgetActor :exec
 UPDATE audit_events SET actor_label = NULL WHERE actor_id = $1 AND actor_label IS NOT NULL
@@ -59,4 +93,86 @@ func (q *Queries) InsertEvent(ctx context.Context, arg InsertEventParams) error 
 		arg.RequestID,
 	)
 	return err
+}
+
+const listEvents = `-- name: ListEvents :many
+SELECT id, occurred_at, action, actor_id, actor_label, resource_type, resource_id, resource_label, details,
+       count(*) OVER () AS total
+FROM audit_events
+WHERE (cardinality($1::text[]) = 0 OR action = ANY ($1::text[]))
+  AND ($2::uuid IS NULL OR actor_id = $2::uuid)
+  AND ($3::timestamptz IS NULL OR occurred_at >= $3::timestamptz)
+  AND ($4::timestamptz IS NULL OR occurred_at < $4::timestamptz)
+  AND ($5::text = ''
+       OR actor_label ILIKE '%' || $5::text || '%' ESCAPE '\'
+       OR resource_label ILIKE '%' || $5::text || '%' ESCAPE '\'
+       OR resource_id = $5::text)
+ORDER BY occurred_at DESC, id DESC
+LIMIT $7 OFFSET $6
+`
+
+type ListEventsParams struct {
+	Actions  []string
+	ActorID  uuid.NullUUID
+	Since    *time.Time
+	Until    *time.Time
+	Query    string
+	SkipRows int32
+	MaxRows  int32
+}
+
+type ListEventsRow struct {
+	ID            uuid.UUID
+	OccurredAt    time.Time
+	Action        string
+	ActorID       uuid.NullUUID
+	ActorLabel    pgtype.Text
+	ResourceType  string
+	ResourceID    string
+	ResourceLabel pgtype.Text
+	Details       []byte
+	Total         int64
+}
+
+// One page of the events of the actions given (all when none), by one admin
+// (any when null), between two times (open when null), whose labels hold the
+// query or whose resource it names (any when empty), the latest first. total
+// counts them all; it is absent when the page is past the end.
+func (q *Queries) ListEvents(ctx context.Context, arg ListEventsParams) ([]ListEventsRow, error) {
+	rows, err := q.db.Query(ctx, listEvents,
+		arg.Actions,
+		arg.ActorID,
+		arg.Since,
+		arg.Until,
+		arg.Query,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListEventsRow
+	for rows.Next() {
+		var i ListEventsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OccurredAt,
+			&i.Action,
+			&i.ActorID,
+			&i.ActorLabel,
+			&i.ResourceType,
+			&i.ResourceID,
+			&i.ResourceLabel,
+			&i.Details,
+			&i.Total,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

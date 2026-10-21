@@ -1,24 +1,9 @@
-import { getLocale } from "next-intl/server";
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
-import { adminHref } from "@/features/admin/pages";
-import { getCurrentAccount } from "@/features/identity/current-account";
-import { redirect } from "@/i18n/navigation";
+import { adminNav } from "@/features/admin/nav";
 
-// /admin opens the overview. Only an admin is sent on: the layout deals with everyone else, so the redirect
-// does not tell them the admin exists.
-export default function AdminHome() {
-  return (
-    <Suspense>
-      <ToOverview />
-    </Suspense>
-  );
-}
-
-async function ToOverview() {
-  const account = await getCurrentAccount();
-  if (account?.role === "admin") {
-    redirect({ href: adminHref("overview"), locale: await getLocale() });
-  }
-  return null;
+// The admin's home opens the menu's first entry until the overview exists (SEC-62 row 5).
+export default async function AdminHome({ params }: PageProps<"/[locale]/admin">) {
+  const { locale } = await params;
+  redirect(`/${locale}${adminNav[0].items[0].href}`);
 }

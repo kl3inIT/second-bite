@@ -20,7 +20,7 @@ test.describe("the admin's orders", () => {
 
     await expect(page.getByRole("heading", { level: 1, name: "Đơn hàng" })).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
-    const crumbs = page.getByRole("navigation", { name: "Đường dẫn" });
+    const crumbs = page.getByRole("navigation", { name: "Vị trí trang" });
     await expect(crumbs).toContainText("Vận hành");
     await expect(crumbs).toContainText("Đơn hàng");
 

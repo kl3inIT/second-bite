@@ -267,6 +267,6 @@ test("a list the backend cannot give shows the admin's error (AD-TT4)", async ({
 
   await expect(page.getByText("Không tải được dữ liệu")).toBeVisible();
   await expect(page.getByRole("button", { name: "Thử lại" })).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText("Cửa hàng");
+  await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toContainText("Cửa hàng");
   await expectNoSeriousA11yViolations(page);
 });

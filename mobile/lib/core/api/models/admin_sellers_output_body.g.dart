@@ -9,6 +9,7 @@ part of 'admin_sellers_output_body.dart';
 _AdminSellersOutputBody _$AdminSellersOutputBodyFromJson(
   Map<String, dynamic> json,
 ) => _AdminSellersOutputBody(
+  counts: StatusCountsBody.fromJson(json['counts'] as Map<String, dynamic>),
   items: (json['items'] as List<dynamic>?)
       ?.map((e) => AdminSellerBody.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -20,6 +21,7 @@ _AdminSellersOutputBody _$AdminSellersOutputBodyFromJson(
 Map<String, dynamic> _$AdminSellersOutputBodyToJson(
   _AdminSellersOutputBody instance,
 ) => <String, dynamic>{
+  'counts': instance.counts,
   'items': instance.items,
   'page': instance.page,
   'pageSize': instance.pageSize,

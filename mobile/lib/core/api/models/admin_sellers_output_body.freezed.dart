@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AdminSellersOutputBody {
 
- List<AdminSellerBody>? get items; int get page; int get pageSize; int get total;
+/// Sellers of each status matching q, whatever status asks
+ StatusCountsBody get counts; List<AdminSellerBody>? get items; int get page; int get pageSize; int get total;
 /// Create a copy of AdminSellersOutputBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +31,20 @@ $AdminSellersOutputBodyCopyWith<AdminSellersOutputBody> get copyWith => _$AdminS
 @override
 bool operator ==(Object other) {
   final _this = this as AdminSellersOutputBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminSellersOutputBody&&const DeepCollectionEquality().equals(other.items, _this.items)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.pageSize, _this.pageSize) || other.pageSize == _this.pageSize)&&(identical(other.total, _this.total) || other.total == _this.total));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminSellersOutputBody&&(identical(other.counts, _this.counts) || other.counts == _this.counts)&&const DeepCollectionEquality().equals(other.items, _this.items)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.pageSize, _this.pageSize) || other.pageSize == _this.pageSize)&&(identical(other.total, _this.total) || other.total == _this.total));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as AdminSellersOutputBody;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.items),_this.page,_this.pageSize,_this.total);
+  return Object.hash(runtimeType,_this.counts,const DeepCollectionEquality().hash(_this.items),_this.page,_this.pageSize,_this.total);
 }
 
 @override
 String toString() {
   final _this = this as AdminSellersOutputBody;
-  return 'AdminSellersOutputBody(items: ${_this.items}, page: ${_this.page}, pageSize: ${_this.pageSize}, total: ${_this.total})';
+  return 'AdminSellersOutputBody(counts: ${_this.counts}, items: ${_this.items}, page: ${_this.page}, pageSize: ${_this.pageSize}, total: ${_this.total})';
 }
 
 
@@ -54,11 +55,11 @@ abstract mixin class $AdminSellersOutputBodyCopyWith<$Res>  {
   factory $AdminSellersOutputBodyCopyWith(AdminSellersOutputBody value, $Res Function(AdminSellersOutputBody) _then) = _$AdminSellersOutputBodyCopyWithImpl;
 @useResult
 $Res call({
- List<AdminSellerBody>? items, int page, int pageSize, int total
+ StatusCountsBody counts, List<AdminSellerBody>? items, int page, int pageSize, int total
 });
 
 
-
+$StatusCountsBodyCopyWith<$Res> get counts;
 
 }
 /// @nodoc
@@ -71,16 +72,26 @@ class _$AdminSellersOutputBodyCopyWithImpl<$Res>
 
 /// Create a copy of AdminSellersOutputBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? items = freezed,Object? page = null,Object? pageSize = null,Object? total = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? counts = null,Object? items = freezed,Object? page = null,Object? pageSize = null,Object? total = null,}) {
   return _then(AdminSellersOutputBody(
-items: freezed == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
+counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
+as StatusCountsBody,items: freezed == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
 as List<AdminSellerBody>?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
 as int,pageSize: null == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
 as int,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
-
+/// Create a copy of AdminSellersOutputBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StatusCountsBodyCopyWith<$Res> get counts {
+  
+  return $StatusCountsBodyCopyWith<$Res>(_self.counts, (value) {
+    return _then(_self.copyWith(counts: value));
+  });
+}
 }
 
 
@@ -162,10 +173,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<AdminSellerBody>? items,  int page,  int pageSize,  int total)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( StatusCountsBody counts,  List<AdminSellerBody>? items,  int page,  int pageSize,  int total)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdminSellersOutputBody() when $default != null:
-return $default(_that.items,_that.page,_that.pageSize,_that.total);case _:
+return $default(_that.counts,_that.items,_that.page,_that.pageSize,_that.total);case _:
   return orElse();
 
 }
@@ -183,10 +194,10 @@ return $default(_that.items,_that.page,_that.pageSize,_that.total);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<AdminSellerBody>? items,  int page,  int pageSize,  int total)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( StatusCountsBody counts,  List<AdminSellerBody>? items,  int page,  int pageSize,  int total)  $default,) {final _that = this;
 switch (_that) {
 case _AdminSellersOutputBody():
-return $default(_that.items,_that.page,_that.pageSize,_that.total);case _:
+return $default(_that.counts,_that.items,_that.page,_that.pageSize,_that.total);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +214,10 @@ return $default(_that.items,_that.page,_that.pageSize,_that.total);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<AdminSellerBody>? items,  int page,  int pageSize,  int total)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( StatusCountsBody counts,  List<AdminSellerBody>? items,  int page,  int pageSize,  int total)?  $default,) {final _that = this;
 switch (_that) {
 case _AdminSellersOutputBody() when $default != null:
-return $default(_that.items,_that.page,_that.pageSize,_that.total);case _:
+return $default(_that.counts,_that.items,_that.page,_that.pageSize,_that.total);case _:
   return null;
 
 }
@@ -218,9 +229,11 @@ return $default(_that.items,_that.page,_that.pageSize,_that.total);case _:
 @JsonSerializable()
 
 class _AdminSellersOutputBody implements AdminSellersOutputBody {
-  const _AdminSellersOutputBody({required  List<AdminSellerBody>? items, required this.page, required this.pageSize, required this.total}): _items = items;
+  const _AdminSellersOutputBody({required this.counts, required  List<AdminSellerBody>? items, required this.page, required this.pageSize, required this.total}): _items = items;
   factory _AdminSellersOutputBody.fromJson(Map<String, dynamic> json) => _$AdminSellersOutputBodyFromJson(json);
 
+/// Sellers of each status matching q, whatever status asks
+@override final  StatusCountsBody counts;
  final  List<AdminSellerBody>? _items;
 @override List<AdminSellerBody>? get items {
   final value = _items;
@@ -247,18 +260,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminSellersOutputBody&&const DeepCollectionEquality().equals(other.items, _items)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.total, total) || other.total == total));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminSellersOutputBody&&(identical(other.counts, counts) || other.counts == counts)&&const DeepCollectionEquality().equals(other.items, _items)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.total, total) || other.total == total));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),page,pageSize,total);
+    return Object.hash(runtimeType,counts,const DeepCollectionEquality().hash(_items),page,pageSize,total);
 }
 
 @override
 String toString() {
-    return 'AdminSellersOutputBody(items: $items, page: $page, pageSize: $pageSize, total: $total)';
+    return 'AdminSellersOutputBody(counts: $counts, items: $items, page: $page, pageSize: $pageSize, total: $total)';
 }
 
 
@@ -269,11 +282,11 @@ abstract mixin class _$AdminSellersOutputBodyCopyWith<$Res> implements $AdminSel
   factory _$AdminSellersOutputBodyCopyWith(_AdminSellersOutputBody value, $Res Function(_AdminSellersOutputBody) _then) = __$AdminSellersOutputBodyCopyWithImpl;
 @override @useResult
 $Res call({
- List<AdminSellerBody>? items, int page, int pageSize, int total
+ StatusCountsBody counts, List<AdminSellerBody>? items, int page, int pageSize, int total
 });
 
 
-
+@override $StatusCountsBodyCopyWith<$Res> get counts;
 
 }
 /// @nodoc
@@ -286,9 +299,10 @@ class __$AdminSellersOutputBodyCopyWithImpl<$Res>
 
 /// Create a copy of AdminSellersOutputBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? items = freezed,Object? page = null,Object? pageSize = null,Object? total = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? counts = null,Object? items = freezed,Object? page = null,Object? pageSize = null,Object? total = null,}) {
   return _then(_AdminSellersOutputBody(
-items: freezed == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
+counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
+as StatusCountsBody,items: freezed == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
 as List<AdminSellerBody>?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
 as int,pageSize: null == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
 as int,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
@@ -296,7 +310,16 @@ as int,
   ));
 }
 
-
+/// Create a copy of AdminSellersOutputBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StatusCountsBodyCopyWith<$Res> get counts {
+  
+  return $StatusCountsBodyCopyWith<$Res>(_self.counts, (value) {
+    return _then(_self.copyWith(counts: value));
+  });
+}
 }
 
 // dart format on

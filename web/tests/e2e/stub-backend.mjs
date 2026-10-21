@@ -381,8 +381,8 @@ async function auth(request, response, url) {
       return true;
     }
     const email = decodeURIComponent(String(challengeId).slice(3));
-    // An address starting with "admin." is a platform admin (SEC-62), as `secondbite admin grant` makes one.
-    const role = email.startsWith("admin.") ? "admin" : "customer";
+    // An address that starts with "admin" is an admin's, as `secondbite admin grant` makes one.
+    const role = email.startsWith("admin") ? "admin" : "customer";
     const account = { id: "ac-stub", email, displayName: "", role };
     const token = `stub-${Buffer.from(email).toString("hex")}`;
     accounts.set(token, account);
@@ -1425,6 +1425,126 @@ const server = createServer((request, response) =>
   ),
 );
 
+// The admin's pages (SEC-75): the admins, and the log of what they did, as api/openapi.yaml describes it.
+// The log is made up from the stores above: a week of approvals, blocks and setting changes by two admins,
+// the latest first, filtered and paged as the server does.
+const stubAdmins = [
+  { id: "ac-admin-minh", email: "minh.admin@example.com", displayName: "", role: "admin" },
+  { id: "ac-admin-thu", email: "thu.admin@example.com", displayName: "", role: "admin" },
+];
+
+function auditLog() {
+  const stores = Object.values(sellers);
+  const events = [];
+  const start = Date.parse("2026-10-20T21:30:00+07:00");
+  for (let i = 0; i < 30; i++) {
+    const store = stores[i % stores.length];
+    const admin = stubAdmins[i % 2];
+    const occurredAt = new Date(start - i * 5 * 60 * 60 * 1000).toISOString();
+    const base = {
+      id: `ev-${String(i).padStart(2, "0")}`,
+      occurredAt,
+      actorId: admin.id,
+      actorLabel: admin.email,
+    };
+    if (i === 1) {
+      events.push({
+        ...base,
+        action: "offer_settings.change",
+        resourceType: "offer_settings",
+        resourceId: "current",
+        details: { changes: [{ field: "minDiscountPercent", from: "20", to: "30" }] },
+      });
+    } else if (i === 4) {
+      events.push({
+        ...base,
+        action: "email_settings.change",
+        resourceType: "email_settings",
+        resourceId: "current",
+        details: {
+          provider: "smtp",
+          changes: [
+            { field: "senderName", from: "Second Bite", to: "Second Bite Tasco" },
+            { field: "smtpPassword" },
+          ],
+        },
+      });
+    } else if (i === 7) {
+      events.push({
+        ...base,
+        actorId: undefined,
+        actorLabel: undefined,
+        action: "admin.grant",
+        resourceType: "account",
+        resourceId: "ac-admin-thu",
+        resourceLabel: "thu.admin@example.com",
+        details: { source: "command_line" },
+      });
+    } else {
+      const [action, details] =
+        i % 3 === 0
+          ? ["seller.block", { reason: "Bán đồ quá hạn nhiều lần, khách đã báo" }]
+          : i % 3 === 1
+            ? ["seller.unblock", {}]
+            : ["seller.approve", {}];
+      events.push({
+        ...base,
+        action,
+        resourceType: "seller",
+        resourceId: store.id,
+        resourceLabel: store.name,
+        details,
+      });
+    }
+  }
+  return events;
+}
+
+function adminRoutes(request, response, url) {
+  if (!url.pathname.startsWith("/admin/")) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account) {
+    problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    return true;
+  }
+  if (account.role !== "admin") {
+    problem(response, 403, "PLATFORM_ADMIN_REQUIRED");
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/admins") {
+    json(response, 200, { admins: stubAdmins });
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/audit-events") {
+    const actions = url.searchParams.getAll("action").flatMap((a) => a.split(","));
+    const actor = url.searchParams.get("actorId");
+    const since = url.searchParams.get("since");
+    const until = url.searchParams.get("until");
+    const q = (url.searchParams.get("q") ?? "").toLowerCase();
+    const page = Number(url.searchParams.get("page") ?? 1);
+    const size = Number(url.searchParams.get("size") ?? 25);
+    const matching = auditLog().filter(
+      (e) =>
+        (actions.length === 0 || actions.includes(e.action)) &&
+        (!actor || e.actorId === actor) &&
+        (!since || Date.parse(e.occurredAt) >= Date.parse(since)) &&
+        (!until || Date.parse(e.occurredAt) < Date.parse(until)) &&
+        (!q ||
+          (e.actorLabel ?? "").toLowerCase().includes(q) ||
+          (e.resourceLabel ?? "").toLowerCase().includes(q) ||
+          e.resourceId === q),
+    );
+    json(response, 200, {
+      items: matching.slice((page - 1) * size, page * size),
+      page,
+      pageSize: size,
+      total: matching.length,
+    });
+    return true;
+  }
+  return false;
+}
+
 async function answer(request, response) {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
@@ -1447,6 +1567,7 @@ async function answer(request, response) {
   if (await adminSummaryRoutes(request, response, url)) return;
   if (await adminSettingsRoutes(request, response, url)) return;
   if (await adminAdminsRoutes(request, response, url)) return;
+  if (adminRoutes(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {
     const { type, body } = await photo(photoMatch[1]);

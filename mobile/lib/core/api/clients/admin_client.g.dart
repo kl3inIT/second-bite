@@ -103,6 +103,50 @@ class _AdminClient implements AdminClient {
   }
 
   @override
+  Future<AuditEventsOutputBody> listAuditEvents({
+    int? page = 1,
+    int? size = 25,
+    List<Action>? action,
+    String? actorId,
+    DateTime? since,
+    DateTime? until,
+    String? q,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'page': page,
+      r'size': size,
+      r'action': action,
+      r'actorId': actorId,
+      r'since': since?.toIso8601String(),
+      r'until': until?.toIso8601String(),
+      r'q': q,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<AuditEventsOutputBody>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/admin/audit-events',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late AuditEventsOutputBody _value;
+    try {
+      _value = AuditEventsOutputBody.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<EmailSettingsBody> getEmailSettings() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -131,12 +175,17 @@ class _AdminClient implements AdminClient {
 
   @override
   Future<void> saveEmailSettings({
-    required String ifMatch,
     required SaveEmailSettingsInputBody body,
+    String? ifMatch,
+    String? ifNoneMatch,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'If-Match': ifMatch};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{
+      r'If-Match': ifMatch,
+      r'If-None-Match': ifNoneMatch,
+    };
     _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
@@ -145,6 +194,27 @@ class _AdminClient implements AdminClient {
           .compose(
             _dio.options,
             '/admin/email-settings',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    await _dio.fetch<void>(_options);
+  }
+
+  @override
+  Future<void> sendTestEmail({SendTestEmailInputBody? body}) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body?.toJson() ?? <String, dynamic>{});
+    final _options = _setStreamType<void>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/admin/email-settings/test',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -218,6 +288,7 @@ class _AdminClient implements AdminClient {
     int? size = 25,
     List<Status>? status,
     String? q,
+    Sort? sort,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -225,6 +296,7 @@ class _AdminClient implements AdminClient {
       r'size': size,
       r'status': status,
       r'q': q,
+      r'sort': sort,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};

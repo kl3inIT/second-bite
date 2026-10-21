@@ -11,19 +11,37 @@ const (
 	SingletonID           = "current"
 )
 
+// Change is one setting changed, named as the API names it, with its value
+// before and after. A secret, or a value that may name a person, has neither:
+// only that it changed is kept.
+type Change struct {
+	Field string  `json:"field"`
+	From  *string `json:"from,omitempty"`
+	To    *string `json:"to,omitempty"`
+}
+
+// ChangedFromTo is a change whose values may be kept.
+func ChangedFromTo(field, from, to string) Change {
+	return Change{Field: field, From: &from, To: &to}
+}
+
+// Changed is a change kept without its values.
+func Changed(field string) Change {
+	return Change{Field: field}
+}
+
 // OfferSettingsChanged is a change of the rules every offer follows.
 type OfferSettingsChanged struct {
-	// Fields name the settings that changed, as the API names them.
-	Fields []string `json:"fields"`
+	Changes []Change `json:"changes"`
 }
 
 func (OfferSettingsChanged) action() string { return "offer_settings.change" }
 
-// EmailSettingsChanged is a change of who delivers email. It names what
-// changed, never a value: a password or a key is a secret.
+// EmailSettingsChanged is a change of who delivers email. A password, a key
+// and the SMTP user are kept without their values.
 type EmailSettingsChanged struct {
 	Provider string   `json:"provider"`
-	Fields   []string `json:"fields"`
+	Changes  []Change `json:"changes"`
 }
 
 func (EmailSettingsChanged) action() string { return "email_settings.change" }
@@ -71,3 +89,26 @@ func (SellerBlocked) action() string { return "seller.block" }
 type SellerUnblocked struct{}
 
 func (SellerUnblocked) action() string { return "seller.unblock" }
+
+// catalog is every action above; a type added there is added here, which
+// gives the names admins filter by.
+var catalog = []Action{
+	OfferSettingsChanged{},
+	EmailSettingsChanged{},
+	AdminGranted{},
+	AdminRevoked{},
+	SellerApproved{},
+	SellerRejected{},
+	SellerBlocked{},
+	SellerUnblocked{},
+}
+
+// ActionNames are the names of the catalog, as events record them.
+func ActionNames() []string {
+	names := make([]string, 0, len(catalog))
+	for _, a := range catalog {
+		names = append(names, a.action())
+	}
+
+	return names
+}

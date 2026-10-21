@@ -477,7 +477,16 @@ func checkStaleSettingsRefused(t *testing.T, svc service, auth http.Header) {
 		t.Errorf("saving over a change made since reading: %q", p.Code)
 	}
 
-	send(t, http.MethodPut, svc.base+path, auth, renamed).problem(t, http.StatusBadRequest)
+	if p := send(t, http.MethodPut, svc.base+path, auth, renamed).problem(t, http.StatusBadRequest); p.Code != "PLATFORM_VERSION_REQUIRED" {
+		t.Errorf("saving without a version: %q", p.Code)
+	}
+
+	first := auth.Clone()
+	first.Set("If-None-Match", "*")
+
+	if p := send(t, http.MethodPut, svc.base+path, first, renamed).problem(t, http.StatusPreconditionFailed); p.Code != "PLATFORM_CHANGED_SINCE_READ" {
+		t.Errorf("saving the first settings over saved ones: %q", p.Code)
+	}
 
 	_, now := readSettings(t, svc, auth, path)
 	if resp := saveSettings(t, svc, auth, path, now, settings); resp.status != http.StatusNoContent {

@@ -48,7 +48,7 @@ test("the reports show what the summary gives and leave the orders empty", async
   await expect(page.getByRole("heading", { level: 1, name: "Báo cáo" })).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   // The reports sit on their own in the sidebar, under the admin rather than Vận hành.
-  await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toHaveText(
+  await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toHaveText(
     /^Quản trị\s*\/\s*Báo cáo$/,
   );
 

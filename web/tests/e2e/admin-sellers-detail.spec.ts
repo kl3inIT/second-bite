@@ -25,7 +25,9 @@ test("a store's page shows its profile, figures and overview (AD-Q3)", async ({
 
   await expect(page.getByRole("heading", { level: 1, name: "Tiệm bánh Pháp" })).toBeVisible();
   await expect(page).toHaveTitle(/Tiệm bánh Pháp/);
-  await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText("Tiệm bánh Pháp");
+  await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toContainText(
+    "Tiệm bánh Pháp",
+  );
   await expect(page.getByText("Đang hoạt động").first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Chặn cửa hàng" })).toBeVisible();
 

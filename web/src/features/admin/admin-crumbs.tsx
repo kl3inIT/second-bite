@@ -6,8 +6,6 @@ import { createPortal } from "react-dom";
 type Trail = {
   /** The last crumb of a detail page: the store's, the order's or the account's name. */
   last?: string;
-  /** The address answers no admin page: the trail reads "Quản trị / Không tìm thấy". */
-  notFound?: boolean;
 };
 
 type CrumbContext = {
@@ -42,16 +40,6 @@ export function AdminCrumb({ label }: { label: string }) {
     setTrail({ last: label });
     return () => setTrail({});
   }, [label, setTrail]);
-  return null;
-}
-
-/** Marks the page as not found, for the breadcrumb (Figma AD-TT5). */
-export function AdminNotFoundCrumb() {
-  const { setTrail } = useAdminCrumbs();
-  useEffect(() => {
-    setTrail({ notFound: true });
-    return () => setTrail({});
-  }, [setTrail]);
   return null;
 }
 

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddDishData, AddDishErrors, AddDishResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, ApproveSellerData, ApproveSellerErrors, ApproveSellerResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, GetAdminSummaryData, GetAdminSummaryErrors, GetAdminSummaryResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, GrantAdminData, GrantAdminErrors, GrantAdminResponses, ListAdminsData, ListAdminsErrors, ListAdminsResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RejectSellerData, RejectSellerErrors, RejectSellerResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, RevokeAdminData, RevokeAdminErrors, RevokeAdminResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
+import type { AddDishData, AddDishErrors, AddDishResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, ApproveSellerData, ApproveSellerErrors, ApproveSellerResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, GetAdminSummaryData, GetAdminSummaryErrors, GetAdminSummaryResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, GrantAdminData, GrantAdminErrors, GrantAdminResponses, ListAdminsData, ListAdminsErrors, ListAdminsResponses, ListAuditEventsData, ListAuditEventsErrors, ListAuditEventsResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RejectSellerData, RejectSellerErrors, RejectSellerResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, RevokeAdminData, RevokeAdminErrors, RevokeAdminResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SendTestEmailData, SendTestEmailErrors, SendTestEmailResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -132,6 +132,21 @@ export const revokeAdmin = <ThrowOnError extends boolean = true>(options: Option
 });
 
 /**
+ * What admins did, the latest first
+ *
+ * Only the actions of the audit catalog are recorded. A page past the end is empty.
+ */
+export const listAuditEvents = <ThrowOnError extends boolean = true>(options?: Options<ListAuditEventsData, ThrowOnError>): RequestResult<ListAuditEventsResponses, ListAuditEventsErrors, ThrowOnError> => (options?.client ?? client).get<ListAuditEventsResponses, ListAuditEventsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/audit-events',
+    ...options
+});
+
+/**
  * Read who delivers email
  */
 export const getEmailSettings = <ThrowOnError extends boolean = true>(options?: Options<GetEmailSettingsData, ThrowOnError>): RequestResult<GetEmailSettingsResponses, GetEmailSettingsErrors, ThrowOnError> => (options?.client ?? client).get<GetEmailSettingsResponses, GetEmailSettingsErrors, ThrowOnError>({
@@ -147,7 +162,7 @@ export const getEmailSettings = <ThrowOnError extends boolean = true>(options?: 
 /**
  * Choose who delivers email; the next email uses it
  *
- * If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes. The first settings are saved with `secondbite email configure`.
+ * If-Match carries the ETag read, or If-None-Match: * saves the first settings; when someone saved since, the answer is 412 and nothing changes. Without either the answer is 400.
  */
 export const saveEmailSettings = <ThrowOnError extends boolean = true>(options: Options<SaveEmailSettingsData, ThrowOnError>): RequestResult<SaveEmailSettingsResponses, SaveEmailSettingsErrors, ThrowOnError> => (options.client ?? client).put<SaveEmailSettingsResponses, SaveEmailSettingsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -160,6 +175,23 @@ export const saveEmailSettings = <ThrowOnError extends boolean = true>(options: 
     headers: {
         'Content-Type': 'application/json',
         ...options.headers
+    }
+});
+
+/**
+ * Send one email through the settings saved, to an address or to oneself
+ */
+export const sendTestEmail = <ThrowOnError extends boolean = true>(options?: Options<SendTestEmailData, ThrowOnError>): RequestResult<SendTestEmailResponses, SendTestEmailErrors, ThrowOnError> => (options?.client ?? client).post<SendTestEmailResponses, SendTestEmailErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/email-settings/test',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
     }
 });
 

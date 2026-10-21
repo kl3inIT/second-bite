@@ -18,7 +18,7 @@ test.describe("the problem reports", () => {
 
     await expect(page.getByRole("heading", { level: 1, name: "Báo lỗi" })).toBeVisible();
     await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
-    const crumbs = page.getByRole("navigation", { name: "Đường dẫn" });
+    const crumbs = page.getByRole("navigation", { name: "Vị trí trang" });
     await expect(crumbs).toContainText("Vận hành");
     const tabs = page.getByRole("tablist", { name: "Báo lỗi theo trạng thái" });
     await expect(tabs.getByRole("tab", { name: "Mới" })).toHaveAttribute("aria-selected", "true");

@@ -11,7 +11,7 @@ export const formats = {
     time: { hour: "2-digit", minute: "2-digit", hourCycle: "h23" },
     /** "18 tháng 10, 2026", "October 18, 2026": the day a document changed. */
     date: { day: "numeric", month: "long", year: "numeric" },
-    /** "20/10/2026": a day in an admin table or filter (SEC-62). */
+    /** "20/10/2026", "10/20/2026": a day in a table or a range. */
     day: { day: "2-digit", month: "2-digit", year: "numeric" },
     // A day and its month alone ("20/10") is formatDayMonth (./day-month.ts): Intl writes it "20-10" in Vietnamese.
     /** "Thứ Ba, 20/10/2026": the day under the pointer on an admin chart (Figma AD-TQ2). */

@@ -1,52 +1,28 @@
 "use client";
 
-import { CircleAlertIcon, RotateCcwIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { type AdminNamedPage, matchAdminPage } from "@/features/admin/pages";
-import { usePathname } from "@/i18n/navigation";
 
-// An admin page whose data could not be read (Figma AD-TT4 228:10364): the shell stays, the page keeps its
-// title, and the page says so with "Thử lại", which reads the page again. No reference and no description line
-// (the admin has no subtitles); Next's digest, which the server's web.render.failed line carries, goes to the
-// console for whoever is looking.
+// A failed admin page (Figma AD-TT4): the sidebar stays, since the boundary sits inside the frame, and the
+// card says so in safe words, with Next's digest as the reference to report and a retry.
 export default function AdminError({ error, retry }: { error: unknown; retry: () => void }) {
-  const t = useTranslations("admin.shell");
-  const current = matchAdminPage(usePathname());
-  // A page with a name of its own keeps its title over the card; a detail page has none to give.
-  const named = current && !current.endsWith("Detail") ? (current as AdminNamedPage) : undefined;
-  const Title = named ? "h2" : "h1";
+  const t = useTranslations("Error");
   const digest =
     typeof error === "object" && error !== null && "digest" in error
       ? String(error.digest)
       : undefined;
 
-  useEffect(() => {
-    if (digest) console.error(`web.render.failed digest=${digest}`);
-  }, [digest]);
-
   return (
-    <>
-      {named && <h1 className="text-page-title text-foreground">{t(`pages.${named}.label`)}</h1>}
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <CircleAlertIcon aria-hidden />
-          </EmptyMedia>
-          <EmptyTitle>
-            <Title>{t("error.title")}</Title>
-          </EmptyTitle>
-        </EmptyHeader>
-        <EmptyContent>
-          <Button onClick={() => retry()}>
-            <RotateCcwIcon data-icon="inline-start" aria-hidden />
-            {t("error.retry")}
-          </Button>
-        </EmptyContent>
-      </Empty>
-    </>
+    <div className="flex flex-1 flex-col items-center px-4 py-12 md:px-8">
+      <div className="flex w-full max-w-136 flex-col items-center gap-3 rounded-2xl border border-border bg-card px-5 py-7 text-center text-card-foreground md:px-7 md:py-8">
+        <h1 className="text-headline">{t("title")}</h1>
+        <p className="text-body-sm">{t("body")}</p>
+        {digest && <p className="text-label text-muted-foreground">{t("reference", { digest })}</p>}
+        <Button className="mt-1" onClick={() => retry()}>
+          {t("retry")}
+        </Button>
+      </div>
+    </div>
   );
 }

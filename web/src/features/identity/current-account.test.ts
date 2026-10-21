@@ -13,6 +13,10 @@ vi.mock("next/headers", () => ({
   }),
 }));
 vi.mock("@/lib/api/generated", () => ({ getMyAccount }));
+// requireAdmin, beside it, redirects and refuses through Next and next-intl, which do not load in Node.
+vi.mock("next/navigation", () => ({ notFound: vi.fn() }));
+vi.mock("next-intl/server", () => ({ getLocale: vi.fn() }));
+vi.mock("@/i18n/navigation", () => ({ redirect: vi.fn() }));
 
 const { getCurrentAccount } = await import("./current-account");
 

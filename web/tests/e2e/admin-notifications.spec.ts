@@ -29,7 +29,7 @@ test.describe("the notifications to groups", () => {
     await (await hydrated(page.getByRole("link", { name: "Soạn thông báo" }))).click();
     await expect(page).toHaveURL(/\/vi\/admin\/notifications\/new$/);
     await expect(page.getByRole("heading", { level: 1, name: "Soạn thông báo" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText(
+    await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toContainText(
       /Marketing.*Thông báo.*Soạn thông báo/,
     );
 

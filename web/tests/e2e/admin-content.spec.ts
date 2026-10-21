@@ -38,7 +38,7 @@ test.describe("the banners and collections", () => {
     await (await hydrated(page.getByRole("link", { name: "Thêm banner" }))).click();
     await expect(page).toHaveURL(/\/vi\/admin\/content\/banners\/new$/);
     await expect(page.getByRole("heading", { level: 1, name: "Thêm banner" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText(
+    await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toContainText(
       /Marketing.*Banner & nội dung.*Banner mới/,
     );
 
@@ -62,7 +62,7 @@ test.describe("the banners and collections", () => {
   test("a banner that is not kept is not found, inside the admin", async ({ page }, testInfo) => {
     await signInTo(page, "/admin/content/banners/khong-co", testInfo, { who: "khongbanner" });
     await expect(page.getByRole("heading", { name: "Không tìm thấy trang này" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Đường dẫn" })).toContainText(
+    await expect(page.getByRole("navigation", { name: "Vị trí trang" })).toContainText(
       "Không tìm thấy",
     );
   });
