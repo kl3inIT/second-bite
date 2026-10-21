@@ -925,7 +925,8 @@
     "breadcrumb": "Vị trí trang",
     "nav": {
       "audit": "Nhật ký thao tác",
-      "settings": "Cài đặt"
+      "settings": "Cài đặt",
+      "accounts": "Tài khoản"
     },
     "notFound": {
       "crumb": "Không tìm thấy",
@@ -1027,7 +1028,8 @@
     "settings": {
       "title": "Cài đặt",
       "nav": "Mục cài đặt",
-      "email": "Email"
+      "email": "Email",
+      "admins": "Quản trị viên"
     },
     "email": {
       "title": "Email",
@@ -1107,6 +1109,107 @@
     },
     "group": {
       "users": "Người dùng"
+    },
+    "accounts": {
+      "title": "Tài khoản",
+      "noun": "tài khoản",
+      "search": "Tìm theo tên hoặc email",
+      "size": "Số dòng",
+      "tab": {
+        "label": "Vai trò",
+        "all": "Tất cả",
+        "customer": "Khách",
+        "admin": "Quản trị"
+      },
+      "column": {
+        "account": "Tài khoản",
+        "role": "Vai trò",
+        "sellers": "Cửa hàng liên quan",
+        "method": "Đăng nhập bằng",
+        "created": "Ngày tạo",
+        "signedIn": "Lần đăng nhập cuối"
+      },
+      "role": {
+        "customer": "Khách",
+        "admin": "Quản trị"
+      },
+      "method": {
+        "code": "Mã email",
+        "google": "Google"
+      },
+      "sellerRole": "{seller} · {role, select, owner {Chủ} other {Nhân viên}}",
+      "neverSignedIn": "Chưa đăng nhập",
+      "empty": {
+        "title": "Chưa có tài khoản nào",
+        "body": "Tài khoản xuất hiện ở đây khi có người đăng nhập lần đầu."
+      },
+      "noResults": {
+        "title": "Không tìm thấy tài khoản",
+        "body": "Thử một tên hoặc email khác.",
+        "clear": "Xoá từ khoá"
+      },
+      "figure": {
+        "placed": "Đơn đã đặt",
+        "pickupRate": "Tỉ lệ đến lấy",
+        "joined": "Ngày tham gia",
+        "signedIn": "Lần đăng nhập cuối"
+      },
+      "recent": {
+        "title": "Đơn gần đây",
+        "empty": "Tài khoản này chưa đặt đơn nào."
+      },
+      "info": {
+        "title": "Thông tin tài khoản",
+        "method": "Đăng nhập bằng",
+        "role": "Vai trò"
+      },
+      "sellers": {
+        "title": "Cửa hàng liên quan",
+        "empty": "Chưa là chủ hay nhân viên của cửa hàng nào.",
+        "owner": "Chủ cửa hàng",
+        "staff": "Nhân viên"
+      },
+      "outcome": {
+        "open": "Đang giữ",
+        "collected": "Đã lấy",
+        "missed": "Không đến",
+        "cancelled": "Đã huỷ",
+        "refused": "Quán từ chối"
+      }
+    },
+    "admins": {
+      "title": "Quản trị viên",
+      "description": "Quản trị viên duyệt cửa hàng, xem tài khoản và đổi cài đặt. Họ đăng nhập bằng mã gửi qua email như mọi người.",
+      "you": "Bạn",
+      "column": {
+        "account": "Tài khoản",
+        "signedIn": "Lần đăng nhập cuối",
+        "actions": "Thao tác"
+      },
+      "grant": {
+        "open": "Thêm quản trị viên",
+        "title": "Thêm quản trị viên",
+        "description": "Nhập email của người cần quyền quản trị. Nếu họ chưa có tài khoản, tài khoản sẽ được tạo; họ đăng nhập bằng mã gửi tới email này.",
+        "email": "Email",
+        "invalid": "Nhập một địa chỉ email hợp lệ.",
+        "cancel": "Huỷ",
+        "submit": "Cấp quyền",
+        "done": "Đã cấp quyền quản trị cho {email}",
+        "failed": "Chưa cấp quyền được",
+        "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát."
+      },
+      "revoke": {
+        "open": "Thu quyền",
+        "title": "Thu quyền quản trị của {name}?",
+        "description": "Họ trở lại là khách ngay ở lần thao tác tiếp theo. Bạn có thể cấp lại quyền bất cứ lúc nào.",
+        "cancel": "Huỷ",
+        "confirm": "Thu quyền",
+        "done": "Đã thu quyền quản trị của {name}",
+        "failed": "Chưa thu quyền của {name} được",
+        "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát.",
+        "self": "Không tự thu quyền của mình",
+        "last": "Quản trị viên cuối cùng"
+      }
     }
   }
 }

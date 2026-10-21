@@ -17,6 +17,7 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | An order whose window is over reads as expired and cannot be handed over, made ready or cancelled | `TestOrder` › expiry is read from the window |
 | A seller's people list the orders of today, not of tomorrow, without the access; a stranger cannot | `TestOrder` › a seller lists the orders of a day |
 | The customer lists all, open and ended orders, newest first; another account sees none of them | `TestOrder` › the customer lists open and ended orders |
+| Admins read what an account ordered: placed, handed over, missed (a lapsed window and a no-show, not a refusal for the food), the latest five with their lines and without their access; a customer is refused | `TestOrder` › admins read what an account ordered |
 | Through the API: no key is a problem; an order is placed with its number and access, sent again with the same key; too many units is refused; ready without the access for staff, then handed over; the customer's ended orders | `TestService` › an order is placed, made ready and handed over (`cmd/secondbite/order_test.go`) |
 | The module depends only on the edges ARCHITECTURE.md allows | `TestModuleBoundaries` (`internal/boundaries_test.go`) |
 | The operations are in the contract | `TestOpenAPIDocumentIsCurrent` (`cmd/secondbite/openapi_test.go`) |

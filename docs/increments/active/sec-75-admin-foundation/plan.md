@@ -13,6 +13,7 @@ Design: [design.md](design.md). Research: [admin foundation](../../../research/2
 | 7 | **Web base.** `role` in the current account, `requireAccount`, `requireRole`; `nuqs`, TanStack Table, TanStack Form and zod; the admin layout, sidebar, not-found, error, coming soon; `DataTable`, `AdminPageHeader`, `ConfirmDialog`, `ReasonDialog`, `useNotify` | `pnpm check`; the guard's statuses (404, 307) in Playwright | |
 | 8 | **Web screens.** Row 1 (stores and their actions), row 2 (a store's detail), row 3 (settings), row 4 (the shared states), from Figma | `pnpm check`, `pnpm test:e2e` with axe on every page | |
 | 9 | **Documents.** Conventions *Admin*, the backend and web guidelines, specs (`seller`, `identity`, new `audit`), test matrices, ARCHITECTURE.md; a verification note | Read against the code | |
+| 9a | **Accounts and admins** (design › Accounts and admins). Migration `0019` (last sign-in, words for search); `GET /admin/accounts`, `GET /admin/accounts/{id}`, `GET /admin/memberships`, `GET /admin/accounts/{id}/orders`; the accounts list and detail, Settings › Quản trị viên | The lists against PostgreSQL, the contract test, `pnpm check`, the accounts and admins specs in Playwright with axe | In review, 21 October 2026, on `dathip04/sec-75-admin-accounts` |
 | 10 | Review, merge through a pull request, move this increment to `completed/` | | |
 
 Steps 2 to 6 change no screen and land before SEC-64 needs the states. Reviewing pull requests 25 and 26 (ordering, for the 23 October prototype) goes before step 2.

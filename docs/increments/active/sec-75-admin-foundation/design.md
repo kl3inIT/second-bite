@@ -321,6 +321,25 @@ Proposed: **option 1**, verified on the built site with a test that expects stat
 
 Each component's exact names are read from Figma with `get_design_context` when it is built, as the [Figma guide](../../../guidelines/figma.md) asks.
 
+## Accounts and admins
+
+Added on 21 October 2026, after the tech lead's review of Figma AD-TK1 and AD-TK2. The proposal is drawn beside them in Figma (`AD-TK1 · Đề xuất SEC-75`, `AD-TK2 · Đề xuất SEC-75`); the original frames stay as drawn.
+
+**References.** BeyondPilot (`AccountListRequest`, `accounts-page.tsx`), Saleor (`CustomerFilter`, `UserSortField`, `last_login`), Medusa (`admin/customers`), Open Food Network (`users_controller.rb`, Devise `trackable`) and Mattermost (`getUsers`, `report.go`). What they share: one search over name and address, a role filter, sorting by name, creation and last sign-in with the default by recency and "never" last, offset pages of 25 to 50, the last sign-in kept as a column on the account written at sign-in, and a thin detail page.
+
+**Decided.**
+
+| Topic | Decision | Why |
+| --- | --- | --- |
+| Last sign-in | `identity_accounts` gains `last_signed_in_at` and `last_sign_in_method` (`code` or `google`), written when a session opens | BeyondPilot, Saleor and Open Food Network keep it so; a session row is deleted at sign-out, so it cannot be read from the sessions. Figma's "Hoạt động lần cuối" becomes "Lần đăng nhập cuối", since only the sign-in is known |
+| The list | `GET /admin/accounts?role=&q=&sort=&page=&size=` in `identity`, words folded as `seller` folds them (`identity_fold`), counts per role for the tabs | The shape of `GET /admin/sellers` |
+| Tabs | All, customers, admins | Owners and staff are the seller module's: a tab for them would make `identity` read `seller`, which ARCHITECTURE.md does not allow. None of the references has it |
+| Stores of an account | `GET /admin/memberships?accountId=…` in `seller`; the page reads it for the accounts it shows and joins them | No new edge between modules; at most 100 accounts at once, one page |
+| What an account ordered | `GET /admin/accounts/{accountId}/orders` in `order`: placed, collected, missed, the latest five | Fills the detail page as Figma draws it; Saleor shows orders on the customer. "Missed" counts the orders the customer did not come for: a lapsed window, or staff ending it as no answer, no show or late; a refusal for the food is the store's, not the customer's |
+| Not built | Locking an account (AD-TK3, AD-TK4), the reports tab, the ‹ 1/214 › pager, "Xem tất cả đơn", the orders count in the list | Locking is its own issue; reports have no module; the pager needs the list's filters carried; admins have no orders list to open |
+| Admins | Settings › Quản trị viên lists the admins with their last sign-in, grants by address in a dialog (TanStack Form and zod, the server's refusal on the field) and revokes after asking; a row the caller cannot revoke (themselves, the last admin) says why in text | The API of step 5; a reason hidden in a tooltip is out of reach of a keyboard |
+| Web | `features/accounts/`, lists on `DataTable` with a sortable head (`SortHeader`, `aria-sort`), `ListFooter` and `nuqs` | The foundation, so the stores list can sort the same way |
+
 ## Tests
 
 - **Server:**

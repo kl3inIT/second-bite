@@ -22,11 +22,8 @@ test.describe("the admins' log", () => {
     await signInAsAdmin(page, `log.${testInfo.project.name}.${testInfo.title.length}`);
   });
 
-  test("the admin's home opens the log, the latest first, with what each action changed", async ({
-    page,
-  }) => {
-    await page.goto("/vi/admin");
-    await expect(page).toHaveURL(/\/vi\/admin\/audit$/);
+  test("the log shows the latest first, with what each action changed", async ({ page }) => {
+    await page.goto("/vi/admin/audit");
 
     await expect(page.getByRole("heading", { level: 1, name: "Nhật ký thao tác" })).toBeVisible();
 
