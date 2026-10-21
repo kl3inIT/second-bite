@@ -380,7 +380,7 @@
     "seeOrder": "Xem đơn",
     "impact": "{meals} bữa ngon, trọn đến miếng cuối",
     "impactSaved": "Bạn đã tiết kiệm {saved} so với giá gốc",
-    "impactNone": "Mỗi đơn cứu một bữa ngon",
+    "impactNone": "Bữa ngon đầu tiên đang chờ bạn",
     "impactNoneBody": "Món ngon còn lại cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
     "status": {
       "confirmed": "Đã xác nhận",
