@@ -9,6 +9,12 @@ import {
 
 import type { BadgeTone } from "../ui/badge";
 
+/**
+ * An account as the audit keeps it: its id, and its label (its email) as it was, or none once the account was
+ * deleted (SEC-75 decision 6), which reads "Tài khoản đã xoá".
+ */
+export type AuditActor = { id: string; label: string | null };
+
 /** What an admin did, as the audit log names it (Figma AD-CD5). */
 export const auditActions = [
   "sellerBlocked",

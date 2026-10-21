@@ -85,37 +85,42 @@
     "edit": "Edit area",
     "addFloor": "Add floor"
   },
+  "deletedAccount": "Deleted account",
   "admins": {
-    "invite": "Invite an admin",
+    "add": "Add an admin",
     "caption": "Admins",
     "empty": "No admins yet",
     "columns": {
-      "name": "Admin",
-      "role": "Role",
-      "lastSignIn": "Last signed in",
+      "email": "Admin",
+      "grantedAt": "Granted on",
+      "grantedBy": "Granted by",
       "status": "Status"
     },
-    "you": "{name} (you)",
-    "roles": {
-      "owner": "Full admin",
-      "operations": "Operations",
-      "support": "Customer care",
-      "finance": "Finance"
-    },
+    "you": "{email} (you)",
+    "cli": "Granted from the command line",
     "statuses": {
       "active": "Active",
-      "disabled": "Turned off",
-      "invited": "Invitation pending"
+      "pending": "Waiting to sign in"
     },
-    "today": "Today, {time}",
-    "yesterday": "Yesterday, {time}",
-    "neverSignedIn": "Never signed in",
-    "changeRole": "Change role",
-    "resend": "Send the invitation again",
-    "disable": "Turn off admin access",
+    "revoke": "Revoke access",
+    "revokeBlocked": {
+      "self": "You cannot revoke your own access",
+      "lastAdmin": "There must be at least one admin"
+    },
     "email": "Email",
-    "role": "Role",
-    "send": "Send invitation"
+    "problems": {
+      "invalid": "This is not an email address",
+      "taken": "This email is already an admin"
+    },
+    "takesEffect": "Takes effect when this person signs in with a code.",
+    "revokeDialog": {
+      "title": "Revoke admin access?",
+      "after": "When revoked:",
+      "access": "{email} can no longer use the admin pages from their next action.",
+      "logged": "The action is recorded in the audit log.",
+      "regrant": "Access can be granted again at any time.",
+      "confirm": "Revoke access"
+    }
   },
   "auditLog": {
     "export": "Download CSV",

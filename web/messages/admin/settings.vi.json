@@ -85,37 +85,42 @@
     "edit": "Sửa khu vực",
     "addFloor": "Thêm tầng"
   },
+  "deletedAccount": "Tài khoản đã xoá",
   "admins": {
-    "invite": "Mời quản trị viên",
+    "add": "Thêm quản trị viên",
     "caption": "Quản trị viên",
     "empty": "Chưa có quản trị viên nào",
     "columns": {
-      "name": "Quản trị viên",
-      "role": "Vai trò",
-      "lastSignIn": "Đăng nhập lần cuối",
+      "email": "Quản trị viên",
+      "grantedAt": "Ngày cấp",
+      "grantedBy": "Người cấp",
       "status": "Trạng thái"
     },
-    "you": "{name} (bạn)",
-    "roles": {
-      "owner": "Quản trị toàn quyền",
-      "operations": "Vận hành",
-      "support": "Chăm sóc khách",
-      "finance": "Tài chính"
-    },
+    "you": "{email} (bạn)",
+    "cli": "Cấp bằng dòng lệnh",
     "statuses": {
       "active": "Đang hoạt động",
-      "disabled": "Đã tắt",
-      "invited": "Chờ nhận lời mời"
+      "pending": "Chờ đăng nhập"
     },
-    "today": "Hôm nay, {time}",
-    "yesterday": "Hôm qua, {time}",
-    "neverSignedIn": "Chưa đăng nhập",
-    "changeRole": "Đổi vai trò",
-    "resend": "Gửi lại lời mời",
-    "disable": "Tắt quyền quản trị",
+    "revoke": "Thu hồi quyền",
+    "revokeBlocked": {
+      "self": "Không thể thu hồi quyền của chính bạn",
+      "lastAdmin": "Phải còn ít nhất một quản trị viên"
+    },
     "email": "Email",
-    "role": "Vai trò",
-    "send": "Gửi lời mời"
+    "problems": {
+      "invalid": "Email chưa đúng định dạng",
+      "taken": "Email này đã là quản trị viên"
+    },
+    "takesEffect": "Có hiệu lực khi người này đăng nhập bằng mã.",
+    "revokeDialog": {
+      "title": "Thu hồi quyền quản trị?",
+      "after": "Khi thu hồi:",
+      "access": "{email} không dùng được trang quản trị ngay từ thao tác tiếp theo.",
+      "logged": "Thao tác được ghi vào Nhật ký thao tác.",
+      "regrant": "Có thể cấp lại quyền bất cứ lúc nào.",
+      "confirm": "Thu hồi quyền"
+    }
   },
   "auditLog": {
     "export": "Tải CSV",

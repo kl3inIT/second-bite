@@ -7,7 +7,8 @@ import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 
 /**
  * A field of words with its label over it (Figma Admin/FormField + Admin/Input, AD-CS4): "Địa chỉ gửi", "Host".
- * No helper line under it; `error` is the backend's refusal of this field, when it names it.
+ * No helper line under it; `error` is what is wrong with it: the backend's refusal of this field, when it names it,
+ * or a check made in the page once the field is left.
  */
 export function TextField({
   id,
@@ -24,7 +25,14 @@ export function TextField({
   error?: string;
 } & Pick<
   ComponentProps<"input">,
-  "type" | "placeholder" | "disabled" | "autoComplete" | "inputMode" | "maxLength" | "readOnly"
+  | "type"
+  | "placeholder"
+  | "disabled"
+  | "autoComplete"
+  | "inputMode"
+  | "maxLength"
+  | "readOnly"
+  | "onBlur"
 >) {
   return (
     <div className="flex min-w-0 flex-col gap-1.5">

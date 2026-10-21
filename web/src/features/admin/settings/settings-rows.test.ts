@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { initials, signInDay } from "./admin-rows";
 import { auditActionLook, auditQuery, auditSearch } from "./audit-log";
 import { flattenTree } from "./tree";
 
@@ -26,26 +25,6 @@ describe("a tree as a table shows it", () => {
     expect(flattenTree([{ id: "x", parentId: "gone" }])).toEqual([
       { id: "x", parentId: "gone", depth: 0 },
     ]);
-  });
-});
-
-describe("an admin's avatar letters", () => {
-  it("are the first and last words' first letters", () => {
-    expect(initials("Minh Anh")).toBe("MA");
-    expect(initials("Đức Huy")).toBe("ĐH");
-    expect(initials("Nguyễn Thu Trang")).toBe("NT");
-    expect(initials("an")).toBe("AN");
-    expect(initials("  ")).toBe("");
-  });
-});
-
-describe("the day an admin last signed in", () => {
-  const now = new Date("2026-10-20T03:00:00Z"); // 10:00 on 20 October in Vietnam
-
-  it("is today or yesterday in Vietnam's days", () => {
-    expect(signInDay(new Date("2026-10-19T17:30:00Z"), now)).toBe("today"); // 00:30 on the 20th
-    expect(signInDay(new Date("2026-10-19T16:30:00Z"), now)).toBe("yesterday"); // 23:30 on the 19th
-    expect(signInDay(new Date("2026-10-18T10:00:00Z"), now)).toBe("earlier");
   });
 });
 

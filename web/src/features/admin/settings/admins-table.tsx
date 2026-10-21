@@ -1,123 +1,127 @@
 "use client";
 
-import {
-  BanIcon,
-  CircleCheckIcon,
-  ClockIcon,
-  type LucideIcon,
-  MailIcon,
-  ShieldIcon,
-  TriangleAlertIcon,
-  UserCogIcon,
-} from "lucide-react";
-import { useFormatter, useNow, useTranslations } from "next-intl";
+import { BanIcon, CircleCheckIcon, ClockIcon, type LucideIcon, ShieldIcon } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
+import { useState } from "react";
 
-import { AdminBadge } from "../ui/badge";
-import { DataTable, StrongCell } from "../ui/data-table";
+import { AdminBadge, type BadgeTone } from "../ui/badge";
+import { DataTable, StrongCell, TextCell } from "../ui/data-table";
 import { EmptyState } from "../ui/empty-state";
 import { RowActionMenu } from "../ui/row-action-menu";
-import { type AdminStatus, adminStatusTone, initials, signInDay } from "./admin-rows";
-import type { AdminRow } from "./admins-source";
+import { initialsOf } from "../sellers/member";
+import { type AdminGrant, type AdminStatus, revokeBlock, sameEmail } from "./admins";
+import { RevokeAdminDialog } from "./revoke-admin-dialog";
 
-const statusIcons: Record<AdminStatus, LucideIcon> = {
-  active: CircleCheckIcon,
-  disabled: ClockIcon,
-  invited: TriangleAlertIcon,
+const statuses: Record<AdminStatus, { tone: BadgeTone; icon: LucideIcon }> = {
+  active: { tone: "success", icon: CircleCheckIcon },
+  pending: { tone: "neutral", icon: ClockIcon },
 };
 
 /**
- * The admins (Figma AD-CD3): who, their role, when they last signed in and whether they can. Roles and invitations
- * have no backend yet, so the menu's actions say "Sắp có".
+ * The admins (Figma AD-AM1): each address with its initials, the day it was granted, who granted it ("Cấp bằng
+ * dòng lệnh" from the CLI) and whether they have signed in since. The ⋯ menu revokes, locked with its reason for
+ * the viewer and for the last admin (AD-AM4), and opens the revoke dialog (AD-AM3).
  */
-export function AdminsTable({ rows }: { rows: AdminRow[] }) {
+export function AdminsTable({
+  rows,
+  viewerEmail,
+}: {
+  rows: AdminGrant[];
+  /** The signed-in admin's address, to mark their row and keep them from revoking themselves. */
+  viewerEmail?: string;
+}) {
   const t = useTranslations("admin.settings.admins");
-  const soon = useTranslations("admin.shell")("soon");
+  const deleted = useTranslations("admin.settings")("deletedAccount");
   const format = useFormatter();
-  const now = useNow();
-
-  function lastSignIn(at: string | undefined) {
-    if (!at) return t("neverSignedIn");
-    const date = new Date(at);
-    const time = format.dateTime(date, "time");
-    const day = signInDay(date, now);
-    if (day === "today") return t("today", { time });
-    if (day === "yesterday") return t("yesterday", { time });
-    return `${format.dateTime(date, "day")}, ${time}`;
-  }
+  const [revoking, setRevoking] = useState<AdminGrant | null>(null);
 
   return (
-    <DataTable
-      caption={t("caption")}
-      rows={rows}
-      rowKey={(row) => row.id}
-      empty={<EmptyState icon={ShieldIcon} title={t("empty")} />}
-      columns={[
-        {
-          key: "name",
-          header: t("columns.name"),
-          grow: true,
-          cell: (row) => (
-            <span className="flex items-center gap-3">
-              <span
-                aria-hidden
-                className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-label-strong text-primary"
-              >
-                {initials(row.name)}
+    <>
+      <DataTable
+        caption={t("caption")}
+        rows={rows}
+        rowKey={(row) => row.accountId}
+        empty={<EmptyState icon={ShieldIcon} title={t("empty")} />}
+        columns={[
+          {
+            key: "email",
+            header: t("columns.email"),
+            grow: true,
+            cell: (row) => (
+              <span className="flex items-center gap-3">
+                <span
+                  aria-hidden
+                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-label-strong text-primary"
+                >
+                  {initialsOf(row.email)}
+                </span>
+                <StrongCell>
+                  {viewerEmail && sameEmail(row.email, viewerEmail)
+                    ? t("you", { email: row.email })
+                    : row.email}
+                </StrongCell>
               </span>
-              <StrongCell>{row.you ? t("you", { name: row.name }) : row.name}</StrongCell>
-            </span>
-          ),
-        },
-        {
-          key: "role",
-          header: t("columns.role"),
-          cell: (row) => (
-            <AdminBadge tone={row.role === "owner" ? "info" : "neutral"} icon={null}>
-              {t(`roles.${row.role}`)}
-            </AdminBadge>
-          ),
-        },
-        {
-          key: "lastSignIn",
-          header: t("columns.lastSignIn"),
-          cell: (row) => (
-            <span className="text-body-sm whitespace-nowrap text-foreground">
-              {lastSignIn(row.lastSignInAt)}
-            </span>
-          ),
-        },
-        {
-          key: "status",
-          header: t("columns.status"),
-          cell: (row) => (
-            <AdminBadge tone={adminStatusTone[row.status]} icon={statusIcons[row.status]}>
-              {t(`statuses.${row.status}`)}
-            </AdminBadge>
-          ),
-        },
-        {
-          key: "actions",
-          header: "",
-          align: "end",
-          cell: (row) => (
-            <RowActionMenu
-              name={row.name}
-              actions={[
-                { label: `${t("changeRole")} · ${soon}`, icon: UserCogIcon, disabled: true },
-                ...(row.status === "invited"
-                  ? [{ label: `${t("resend")} · ${soon}`, icon: MailIcon, disabled: true }]
-                  : []),
-                {
-                  label: `${t("disable")} · ${soon}`,
-                  icon: BanIcon,
-                  destructive: true,
-                  disabled: true,
-                },
-              ]}
-            />
-          ),
-        },
-      ]}
-    />
+            ),
+          },
+          {
+            key: "grantedAt",
+            header: t("columns.grantedAt"),
+            cell: (row) => (
+              <TextCell>
+                <time dateTime={row.grantedAt}>
+                  {format.dateTime(new Date(row.grantedAt), "day")}
+                </time>
+              </TextCell>
+            ),
+          },
+          {
+            key: "grantedBy",
+            header: t("columns.grantedBy"),
+            cell: (row) => (
+              <TextCell>
+                {row.grantedBy === null ? t("cli") : (row.grantedBy.label ?? deleted)}
+              </TextCell>
+            ),
+          },
+          {
+            key: "status",
+            header: t("columns.status"),
+            cell: (row) => (
+              <AdminBadge tone={statuses[row.status].tone} icon={statuses[row.status].icon}>
+                {t(`statuses.${row.status}`)}
+              </AdminBadge>
+            ),
+          },
+          {
+            key: "actions",
+            header: "",
+            align: "end",
+            cell: (row) => {
+              const blocked = revokeBlock(row, rows, viewerEmail);
+              return (
+                <RowActionMenu
+                  name={row.email}
+                  actions={[
+                    {
+                      label: t("revoke"),
+                      icon: BanIcon,
+                      destructive: true,
+                      disabled: blocked !== null,
+                      title: blocked ? t(`revokeBlocked.${blocked}`) : undefined,
+                      onSelect: () => setRevoking(row),
+                    },
+                  ]}
+                />
+              );
+            },
+          },
+        ]}
+      />
+      <RevokeAdminDialog
+        email={revoking?.email ?? ""}
+        open={revoking !== null}
+        onOpenChange={(open) => !open && setRevoking(null)}
+      />
+    </>
   );
 }

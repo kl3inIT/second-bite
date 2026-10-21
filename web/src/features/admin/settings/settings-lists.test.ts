@@ -1,7 +1,6 @@
 import { createElement, type ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { AdminsTable } from "./admins-table";
 import { AreasTable } from "./areas-table";
 import { AuditLogTable } from "./audit-log-table";
 import { CategoriesTable } from "./categories-table";
@@ -77,48 +76,6 @@ describe("the areas (AD-CD2)", () => {
     expect(text).toContain("Khu vực / tầng Cửa hàng tham gia Nhận cửa hàng mới");
     expect(text).toContain("Tasco Mall Việt Hưng 10 cửa hàng Đang mở");
     expect(text).toContain("Tầng 2 · thời trang 1 cửa hàng Tạm dừng");
-  });
-});
-
-describe("the admins (AD-CD3)", () => {
-  it("show who, their role, when they last signed in and their status", () => {
-    const text = textOf(
-      renderSettings(
-        createElement(AdminsTable, {
-          rows: [
-            {
-              id: "a1",
-              name: "Minh Anh",
-              email: "minhanh@example.com",
-              role: "owner" as const,
-              lastSignInAt: "2026-10-20T02:12:00Z",
-              status: "active" as const,
-              you: true,
-            },
-            {
-              id: "a2",
-              name: "Văn Toàn",
-              email: "vantoan@example.com",
-              role: "operations" as const,
-              lastSignInAt: "2026-09-02T07:20:00Z",
-              status: "disabled" as const,
-              you: false,
-            },
-            {
-              id: "a3",
-              name: "Gia Linh",
-              email: "gialinh@example.com",
-              role: "finance" as const,
-              status: "invited" as const,
-              you: false,
-            },
-          ],
-        }),
-      ),
-    );
-    expect(text).toContain("MA Minh Anh (bạn) Quản trị toàn quyền Hôm nay, 09:12 Đang hoạt động");
-    expect(text).toContain("VT Văn Toàn Vận hành 02/09/2026, 14:20 Đã tắt");
-    expect(text).toContain("GL Gia Linh Tài chính Chưa đăng nhập Chờ nhận lời mời");
   });
 });
 

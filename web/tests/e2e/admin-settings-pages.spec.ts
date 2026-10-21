@@ -43,7 +43,7 @@ test.describe("the settings pages without a backend", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
-  test("admins are empty, and the invitation opens but cannot be sent yet (AD-CD4)", async ({
+  test("admins are empty, and adding one opens but cannot be sent yet (AD-AM2)", async ({
     page,
   }, testInfo) => {
     test.skip(!isReleased("settingsAdmins"), "not released yet");
@@ -52,14 +52,16 @@ test.describe("the settings pages without a backend", () => {
     await expect(page.getByText("Chưa có quản trị viên nào")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
-    await (await hydrated(page.getByRole("button", { name: "Mời quản trị viên" }))).click();
-    const dialog = page.getByRole("alertdialog", { name: "Mời quản trị viên" });
+    await (await hydrated(page.getByRole("button", { name: "Thêm quản trị viên" }))).click();
+    const dialog = page.getByRole("alertdialog", { name: "Thêm quản trị viên" });
     await expect(dialog).toBeVisible();
-    await dialog.getByLabel("Email").fill("ngocmai@example.com");
-    await expect(dialog.getByRole("radio", { name: "Vận hành" })).toBeChecked();
-    await dialog.getByText("Chăm sóc khách").click();
-    await expect(dialog.getByRole("radio", { name: "Chăm sóc khách" })).toBeChecked();
-    await expect(dialog.getByRole("button", { name: "Gửi lời mời" })).toBeDisabled();
+    const email = dialog.getByLabel("Email");
+    await email.fill("baotran");
+    await email.blur();
+    await expect(dialog.getByText("Email chưa đúng định dạng")).toBeVisible();
+    await email.fill("baotran@example.com");
+    await expect(dialog.getByText("Email chưa đúng định dạng")).toBeHidden();
+    await expect(dialog.getByRole("button", { name: "Thêm quản trị viên" })).toBeDisabled();
     await expectNoSeriousA11yViolations(page);
     await dialog.getByRole("button", { name: "Huỷ" }).click();
     await expect(dialog).toBeHidden();
