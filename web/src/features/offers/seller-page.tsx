@@ -25,6 +25,8 @@ import { ShareButton } from "./share-button";
 import { useDistance } from "./window";
 
 const COVER_PHOTOS = 3;
+// The page's width: a phone's column, wider on a tablet and a desktop, where the dishes sit two and three abreast.
+const PAGE_WIDTH = "max-w-xl md:max-w-3xl lg:max-w-5xl";
 const ONE_DECIMAL = { minimumFractionDigits: 1, maximumFractionDigits: 1 } as const;
 
 // A seller's dishes tonight (Figma K4b): their dishes' photographs side by side with back and share; the seller's
@@ -59,8 +61,8 @@ export function SellerPage({
 
   return (
     <>
-      <main className="mx-auto w-full max-w-xl flex-1 bg-card">
-        <div className="relative flex h-50 bg-muted">
+      <main className={cn("mx-auto w-full flex-1 bg-card", PAGE_WIDTH)}>
+        <div className="relative flex h-50 bg-muted md:h-60">
           {available.slice(0, COVER_PHOTOS).map((offer) => (
             <div key={offer.id} className="relative flex-1">
               <OfferPhoto offer={offer} sizes="(min-width: 576px) 192px, 33vw" />
@@ -72,10 +74,12 @@ export function SellerPage({
             <ShareButton title={first.seller.name} />
           </div>
         </div>
-        <div className="relative -mt-6 flex flex-col gap-4 rounded-t-3xl bg-card px-4 pt-5 pb-6">
+        <div className="relative -mt-6 flex flex-col gap-3.5 rounded-t-3xl bg-card px-4 pt-4 pb-6">
           <SellerHeading lead={first} />
-          <SellerFacts lead={first} offers={available} />
-          <SellerSearch lead={first} kind={kind} near={near} q={q} />
+          <div className="flex flex-col gap-3.5 md:grid md:grid-cols-2 md:items-center">
+            <SellerFacts lead={first} offers={available} />
+            <SellerSearch lead={first} kind={kind} near={near} q={q} />
+          </div>
           {tabs.length > 1 && (
             <nav aria-label={t("kinds")} className="-mx-4 scrollbar-none overflow-x-auto px-4">
               <ul className="flex min-w-max gap-6 border-b border-border">
@@ -106,7 +110,7 @@ export function SellerPage({
               {kind ? kinds(kind) : t("tonight")}
             </h2>
             {shown.length > 0 ? (
-              <ul className="flex flex-col gap-5">
+              <ul className="grid gap-5 md:grid-cols-2 md:gap-x-6 lg:grid-cols-3">
                 {shown.map((offer) => (
                   <li key={offer.id}>
                     <SellerDish offer={offer} focused={offer.id === at} />
@@ -119,34 +123,36 @@ export function SellerPage({
           </section>
         </div>
       </main>
-      <CartBar />
+      <CartBar width={PAGE_WIDTH} />
     </>
   );
 }
 
-// The seller's logo over their name, then their rating, when there is one, beside their floor (Figma K4b "quán").
+// The seller's logo beside their name, over their rating, when there is one, and their floor (Figma K4b "quán").
 function SellerHeading({ lead }: { lead: OfferSummary }) {
   const format = useFormatter();
   const rating = sellerRating(lead);
 
   return (
-    <div className="flex flex-col items-center gap-1 text-center">
+    <div className="flex items-center gap-3">
       <SellerLogo seller={lead.seller} size="lg" />
-      <h1 className="pt-2 text-headline text-foreground">{lead.seller.name}</h1>
-      <p className="flex items-center gap-1 text-body-sm text-muted-foreground">
-        {rating !== undefined && (
-          <>
-            <span aria-hidden className="text-rating">
-              ★
-            </span>
-            <span className="text-body-sm-strong text-foreground">
-              {format.number(rating, ONE_DECIMAL)}
-            </span>
-            <span aria-hidden>·</span>
-          </>
-        )}
-        {lead.seller.address}
-      </p>
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <h1 className="text-headline break-words text-foreground">{lead.seller.name}</h1>
+        <p className="flex items-center gap-1 text-body-sm text-muted-foreground">
+          {rating !== undefined && (
+            <>
+              <span aria-hidden className="text-rating">
+                ★
+              </span>
+              <span className="text-body-sm-strong text-foreground">
+                {format.number(rating, ONE_DECIMAL)}
+              </span>
+              <span aria-hidden>·</span>
+            </>
+          )}
+          {lead.seller.address}
+        </p>
+      </div>
     </div>
   );
 }

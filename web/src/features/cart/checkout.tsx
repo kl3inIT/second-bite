@@ -78,7 +78,7 @@ function Confirmation({ cart }: { cart: Cart }) {
             {t("pay")}
           </h2>
           {/* The only way to pay: at the counter, in cash or by transfer, when collecting. */}
-          <div className="flex min-h-16 flex-col justify-center rounded-lg border border-primary bg-card px-3.5 py-3">
+          <div className="flex min-h-16 flex-col justify-center rounded-lg border border-border bg-card px-3.5 py-3">
             <p className="text-body-sm-strong text-foreground">{t("counter")}</p>
             <p className="text-label text-muted-foreground">{t("counterHint")}</p>
           </div>

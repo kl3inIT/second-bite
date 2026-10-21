@@ -18,3 +18,6 @@ Status: started on 21 October 2026. Tracked in Linear as SEC-88. On 21 October 2
 | 5 | The confirmation's lines carry their − and +; − at one portion takes the line out at once, and its seller's basket goes with its last line | Figma K5 |
 | 6 | The cart keeps several sellers, so K4c ("Bắt đầu giỏ mới?") is not built and K5 stays grouped by seller | The owner chose, on 21 October 2026, to keep SEC-76 decision 8 |
 | 7 | Not built: the seller's heart, the review count and the seller's category | Nothing backs them |
+| 8 | The seller's heading is one row, the logo beside the name; the discount sits on each dish's photograph; the confirmation pays only at the counter | The owner's review of the first build, 21 October 2026 |
+| 9 | Wider screens widen the page and lay the dishes two and three abreast; the dish's sheet becomes a dialog | The owner asked for the web to work at every width |
+| 10 | The test stub gives La Paris ten dishes over three kinds | A long list to review; the home's and the search's specs follow it |
