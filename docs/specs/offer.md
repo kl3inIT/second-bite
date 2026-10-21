@@ -18,7 +18,7 @@ Owns the surplus sellers post and the settings every offer follows (tables `offe
 
 An offer carries its status, units left, discount, photo addresses and the collection point copied from the seller when it was posted. Prices are whole đồng; times are RFC 3339.
 
-Published to other modules: `Service` alone; units are taken by `order` (SEC-15) through it.
+Published to other modules: `Service` alone. `order` takes units with `Take` and gives them back with `Return`, both inside the order's transaction; `Take` answers what the order copies (`Taken`: the seller, its name and collection point, the offer's name, unit, prices, photo and window).
 
 ## Rules
 
@@ -27,7 +27,8 @@ Published to other modules: `Service` alone; units are taken by `order` (SEC-15)
 - **The photo** is one the poster uploaded, which the offer claims, or one an earlier offer of the same seller shows: that is how staff post again, sending an earlier offer's details with new units and window. Another seller's photo answers `FILE_PHOTO_NOT_FOUND`.
 - **Status**: `on_sale` and `withdrawn` are stored; `sold_out` (no unit left) and `closed` (the window is over) are read in every query. A sold-out offer stays visible; a closed or withdrawn one is seen only by its seller's people and admins.
 - **Changes**: before any unit is ordered, everything but the seller and the collection point; once units are ordered, only the description, the photo and the units, never below the units ordered. Nothing changes once the offer is closed or withdrawn. Changes to one offer are serialized by a row lock.
-- **Withdrawing** keeps the row with when it was withdrawn; a closed offer cannot be withdrawn.
+- **Withdrawing** keeps the row with when it was withdrawn; a closed offer cannot be withdrawn. Orders already placed stand ([SEC-15 design](../increments/active/sec-15-order-module/design.md#5-context-map)).
+- **Taking units** for an order is one conditional update: only an offer on sale, its window not over, with the units left; when two orders want the last unit, one gets it. Units come back when an order is cancelled, never above the units posted.
 - Admins neither post nor change offers; a stranger gets 404.
 - **The catalog** ([SEC-55 design](../increments/completed/sec-55-seller-catalog/design.md)) holds the stable base of a dish: a photo, a name of 1 to 80 characters, a kind, a unit (`suất` when empty), a description, the ingredients and allergens (up to 500 characters), an original price (optional, from 1,001 đồng; `0` in a change takes it away), and whether it is hidden from the list a post is picked from. It has no selling price, hours or units; its original price is only where a post starts from. It is private to the seller's people; an admin or a stranger gets 404. At most 100 dishes per seller, the limit holding under concurrency (an advisory lock). A post copies the dish, so changing or deleting a dish never touches an offer; a dish's photo counts as one the seller shows, so a post may use it.
 - **Search** keeps offers on sale and sold out, the window not over, the seller not blocked (the blocked sellers are left out in the query, so a page is never short), then filters: within a radius of a point (the settings' default, at most their maximum), words, kinds, a maximum price, a collection-time range the window overlaps, one seller, and, when asked, nothing sold out. Its orders: `relevance` (default with words), `distance` (default with a point), `ending_soon` (default otherwise), `price`, `discount`.
@@ -54,10 +55,12 @@ Published to other modules: `Service` alone; units are taken by `order` (SEC-15)
 | `OFFER_DISH_NOT_FOUND` | 404 | No such dish, or one of another seller |
 | `OFFER_NOT_FOUND` | 404 | No such offer, or one the caller may not see or change |
 | `OFFER_CHANGE_NOT_ALLOWED` | 409 | A change its orders forbid, or any change once it is closed or withdrawn |
+| `OFFER_SOLD_OUT` | 409 | `Take`: fewer units left than an order asks; `order` answers it as its own code |
+| `OFFER_UNAVAILABLE` | 409 | `Take`: the offer is withdrawn or closed; `order` answers it as its own code |
 | `SELLER_NOT_ACTIVE` | 403 | Posting or changing for a seller that is not active |
 | `SELLER_NOT_FOUND` | 404 | Posting for a seller the caller is not a member of |
 | `FILE_PHOTO_NOT_FOUND` | 404 | A photo neither the caller's nor the seller's |
 
 ## Not yet
 
-Per the [plan](../increments/active/sec-11-offer-module/plan.md): announcements of expected surplus; following, with emails; weekly schedules. Ordering, which takes units, is SEC-15. Search by meaning, forgiving typos and a vegetarian filter wait for the conditions in the [design](../increments/active/sec-11-offer-module/design.md#5-finding-offers).
+Per the [plan](../increments/active/sec-11-offer-module/plan.md): announcements of expected surplus; following, with emails; weekly schedules. Search by meaning, forgiving typos and a vegetarian filter wait for the conditions in the [design](../increments/active/sec-11-offer-module/design.md#5-finding-offers).

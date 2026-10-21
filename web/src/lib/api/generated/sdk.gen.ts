@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddDishData, AddDishErrors, AddDishResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
+import type { ActivateSellerData, ActivateSellerErrors, ActivateSellerResponses, AddDishData, AddDishErrors, AddDishResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, CancelOrderData, CancelOrderErrors, CancelOrderResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetOrderData, GetOrderErrors, GetOrderResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, HandOverOrderData, HandOverOrderErrors, HandOverOrderResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListMyOrdersData, ListMyOrdersErrors, ListMyOrdersResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellerOrdersData, ListSellerOrdersErrors, ListSellerOrdersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, MarkOrderReadyData, MarkOrderReadyErrors, MarkOrderReadyResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PlaceOrderData, PlaceOrderErrors, PlaceOrderResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RefuseOrderData, RefuseOrderErrors, RefuseOrderResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -340,6 +340,121 @@ export const withdrawOffer = <ThrowOnError extends boolean = true>(options: Opti
 });
 
 /**
+ * Your orders, newest first
+ */
+export const listMyOrders = <ThrowOnError extends boolean = true>(options?: Options<ListMyOrdersData, ThrowOnError>): RequestResult<ListMyOrdersResponses, ListMyOrdersErrors, ThrowOnError> => (options?.client ?? client).get<ListMyOrdersResponses, ListMyOrdersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders',
+    ...options
+});
+
+/**
+ * Order units of one seller's offers, collected at the counter
+ *
+ * Confirmed at once. Sending the same Idempotency-Key again returns the order placed first.
+ */
+export const placeOrder = <ThrowOnError extends boolean = true>(options: Options<PlaceOrderData, ThrowOnError>): RequestResult<PlaceOrderResponses, PlaceOrderErrors, ThrowOnError> => (options.client ?? client).post<PlaceOrderResponses, PlaceOrderErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * An order
+ *
+ * To its customer, with the code once it may be shown, to the seller's people and to admins.
+ */
+export const getOrder = <ThrowOnError extends boolean = true>(options: Options<GetOrderData, ThrowOnError>): RequestResult<GetOrderResponses, GetOrderErrors, ThrowOnError> => (options.client ?? client).get<GetOrderResponses, GetOrderErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}',
+    ...options
+});
+
+/**
+ * Cancel your order, free of charge until its window opens
+ *
+ * Its units go back on sale.
+ */
+export const cancelOrder = <ThrowOnError extends boolean = true>(options: Options<CancelOrderData, ThrowOnError>): RequestResult<CancelOrderResponses, CancelOrderErrors, ThrowOnError> => (options.client ?? client).post<CancelOrderResponses, CancelOrderErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/cancel',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Hand an order over against its collection code
+ *
+ * Within the window. A wrong code is counted; the third locks the code.
+ */
+export const handOverOrder = <ThrowOnError extends boolean = true>(options: Options<HandOverOrderData, ThrowOnError>): RequestResult<HandOverOrderResponses, HandOverOrderErrors, ThrowOnError> => (options.client ?? client).post<HandOverOrderResponses, HandOverOrderErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/hand-over',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Mark an order ready, which shows its customer the code
+ */
+export const markOrderReady = <ThrowOnError extends boolean = true>(options: Options<MarkOrderReadyData, ThrowOnError>): RequestResult<MarkOrderReadyResponses, MarkOrderReadyErrors, ThrowOnError> => (options.client ?? client).post<MarkOrderReadyResponses, MarkOrderReadyErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/ready',
+    ...options
+});
+
+/**
+ * Refuse to hand an order over, with a reason
+ */
+export const refuseOrder = <ThrowOnError extends boolean = true>(options: Options<RefuseOrderData, ThrowOnError>): RequestResult<RefuseOrderResponses, RefuseOrderErrors, ThrowOnError> => (options.client ?? client).post<RefuseOrderResponses, RefuseOrderErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/refuse',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Upload a photo for an offer or a seller
  *
  * The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG in two sizes, without its metadata. An unused photo is kept for a day.
@@ -533,6 +648,19 @@ export const postOffer = <ThrowOnError extends boolean = true>(options: Options<
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * A seller's orders of one day, soonest first, to its people and admins
+ */
+export const listSellerOrders = <ThrowOnError extends boolean = true>(options: Options<ListSellerOrdersData, ThrowOnError>): RequestResult<ListSellerOrdersResponses, ListSellerOrdersErrors, ThrowOnError> => (options.client ?? client).get<ListSellerOrdersResponses, ListSellerOrdersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/{sellerId}/orders',
+    ...options
 });
 
 /**

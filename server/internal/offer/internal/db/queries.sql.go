@@ -378,6 +378,22 @@ func (q *Queries) PutSettings(ctx context.Context, arg PutSettingsParams) error 
 	return err
 }
 
+const returnUnits = `-- name: ReturnUnits :exec
+UPDATE offer_offers SET units_left = LEAST(units, units_left + $1), updated_at = now()
+WHERE id = $2
+`
+
+type ReturnUnitsParams struct {
+	Units int32
+	ID    uuid.UUID
+}
+
+// Gives back the units of a cancelled order, never above the offer's units.
+func (q *Queries) ReturnUnits(ctx context.Context, arg ReturnUnitsParams) error {
+	_, err := q.db.Exec(ctx, returnUnits, arg.Units, arg.ID)
+	return err
+}
+
 const searchOffers = `-- name: SearchOffers :many
 SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
@@ -692,6 +708,58 @@ func (q *Queries) SellerUsesPhoto(ctx context.Context, arg SellerUsesPhotoParams
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const takeUnits = `-- name: TakeUnits :one
+UPDATE offer_offers SET units_left = units_left - $1, updated_at = now()
+WHERE id = $2 AND state = 'on_sale' AND window_end > now() AND units_left >= $1
+RETURNING id, seller_id, name, unit, price_vnd, original_price_vnd, photo_id, window_start, window_end,
+          latitude, longitude, address, seller_name
+`
+
+type TakeUnitsParams struct {
+	Units int32
+	ID    uuid.UUID
+}
+
+type TakeUnitsRow struct {
+	ID               uuid.UUID
+	SellerID         uuid.UUID
+	Name             string
+	Unit             string
+	PriceVnd         int64
+	OriginalPriceVnd int64
+	PhotoID          uuid.UUID
+	WindowStart      time.Time
+	WindowEnd        time.Time
+	Latitude         float64
+	Longitude        float64
+	Address          string
+	SellerName       string
+}
+
+// Takes units for an order in the order's transaction: only from an offer on
+// sale whose window is not over and that has them, so the last unit goes to
+// one order.
+func (q *Queries) TakeUnits(ctx context.Context, arg TakeUnitsParams) (TakeUnitsRow, error) {
+	row := q.db.QueryRow(ctx, takeUnits, arg.Units, arg.ID)
+	var i TakeUnitsRow
+	err := row.Scan(
+		&i.ID,
+		&i.SellerID,
+		&i.Name,
+		&i.Unit,
+		&i.PriceVnd,
+		&i.OriginalPriceVnd,
+		&i.PhotoID,
+		&i.WindowStart,
+		&i.WindowEnd,
+		&i.Latitude,
+		&i.Longitude,
+		&i.Address,
+		&i.SellerName,
+	)
+	return i, err
 }
 
 const updateDish = `-- name: UpdateDish :exec

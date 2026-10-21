@@ -40,4 +40,12 @@ var (
 		VI: "Cài đặt món đăng nằm ngoài giới hạn hoặc mâu thuẫn nhau.",
 		EN: "The offer settings are out of range or contradict each other.",
 	})
+	ErrSoldOut = platform.NewFailure("OFFER_SOLD_OUT", platform.CategoryConflict, platform.Words{
+		VI: "Món này còn ít phần hơn số bạn chọn.",
+		EN: "The offer has fewer units left than were asked for.",
+	})
+	ErrUnavailable = platform.NewFailure("OFFER_UNAVAILABLE", platform.CategoryConflict, platform.Words{
+		VI: "Món này không còn bán: quán đã rút hoặc đã hết giờ nhận.",
+		EN: "The offer is no longer on sale: it was withdrawn or its window is over.",
+	})
 )

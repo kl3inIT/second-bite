@@ -30,6 +30,7 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/identity"
 	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/offer"
+	"github.com/kl3inIT/second-bite/server/internal/order"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller"
 	"github.com/kl3inIT/second-bite/server/migrations"
@@ -116,6 +117,7 @@ type app struct {
 	file         *file.Service
 	seller       *seller.Service
 	offer        *offer.Service
+	order        *order.Service
 }
 
 // assemble reads the configuration, opens and migrates the database, and
@@ -132,6 +134,11 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 	}
 
 	codeKey, err := platform.ReadKey(getenv, "SECONDBITE_SIGN_IN_CODE_KEY")
+	if err != nil {
+		return nil, fmt.Errorf("configuration: %w", err)
+	}
+
+	collectionKey, err := platform.ReadKey(getenv, "SECONDBITE_COLLECTION_CODE_KEY")
 	if err != nil {
 		return nil, fmt.Errorf("configuration: %w", err)
 	}
@@ -178,6 +185,11 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		sellers := seller.NewService(pool, identities, files, logger)
 		offers := offer.NewService(pool, sellers, files, logger)
 
+		orders, err := order.NewService(pool, offers, sellers, collectionKey, logger)
+		if err != nil {
+			return nil, err
+		}
+
 		// The listeners are known before anything publishes; they run only in
 		// serve.
 		file.RegisterListeners(events, files)
@@ -185,7 +197,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 
 		return &app{
 			cfg: cfg, logger: logger, pool: pool, events: events, notification: notifications, identity: identities,
-			file: files, seller: sellers, offer: offers,
+			file: files, seller: sellers, offer: offers, order: orders,
 		}, nil
 	}()
 	if err != nil {
@@ -234,6 +246,7 @@ func registerOperations(api huma.API, a *app) {
 	file.RegisterOperations(api, a.file)
 	seller.RegisterOperations(api, a.seller)
 	offer.RegisterOperations(api, a.offer)
+	order.RegisterOperations(api, a.order)
 }
 
 // fileConfig reads where files are kept: SECONDBITE_FILE_STORE (postgres by

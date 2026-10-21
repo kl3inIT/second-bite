@@ -4,11 +4,13 @@ import Image from "next/image";
 import { DishLink } from "@/features/offers/dish-link";
 import { listOffers } from "@/features/offers/list-offers";
 import { biggestDiscountFirst } from "@/features/offers/offer";
+import { Marquee } from "@/components/marquee";
 
 import bowl from "./tonight-bowl.webp";
 import type { HomeQuery } from "./home-query";
 
-const TICKET_COUNT = 2;
+// Tonight's biggest discounts; when they do not fit the card's width, phone or desktop, the row runs on its own.
+const TICKET_COUNT = 8;
 
 // The bottom of the header without a filter (Figma Mobile v3 deal card): the biggest discounts tonight as
 // coupons on the deep blue deal card (Figma 105:2666): the discount, a dashed cut
@@ -39,33 +41,35 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
             {t("upToPercent", { percent: tickets[0].discountPercent })}
           </span>
         </p>
-        <ul className="flex min-w-0 flex-1 gap-2">
-          {tickets.map((offer) => (
-            <li
-              key={offer.id}
-              className="relative flex h-18 min-w-0 flex-1 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:max-w-44"
-            >
-              <span className="font-display text-price-lg text-sale">
-                <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
-                <span className="sr-only">
-                  {t("ticketDiscountLabel", { percent: offer.discountPercent })}
+        <div className="flex min-w-0 flex-1 sm:mr-16">
+          <Marquee label={t("dealsTitle")} count={tickets.length}>
+            {tickets.map((offer) => (
+              <li
+                key={offer.id}
+                className="relative flex h-18 w-36 shrink-0 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:w-44 lg:w-52 lg:px-3"
+              >
+                <span className="font-display text-price-lg text-sale">
+                  <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
+                  <span className="sr-only">
+                    {t("ticketDiscountLabel", { percent: offer.discountPercent })}
+                  </span>
                 </span>
-              </span>
-              <hr className="border-t border-dashed border-border" />
-              <span className="truncate text-body-sm-strong">
-                <DishLink offerId={offer.id}>{offer.seller.name}</DishLink>
-              </span>
-              <span
-                aria-hidden
-                className="absolute top-8 -left-1.25 size-2.5 rounded-full bg-deal"
-              />
-              <span
-                aria-hidden
-                className="absolute top-8 -right-1.25 size-2.5 rounded-full bg-deal"
-              />
-            </li>
-          ))}
-        </ul>
+                <hr className="border-t border-dashed border-border" />
+                <span className="truncate text-body-sm-strong">
+                  <DishLink offerId={offer.id}>{offer.seller.name}</DishLink>
+                </span>
+                <span
+                  aria-hidden
+                  className="absolute top-8 -left-1.25 size-2.5 rounded-full bg-deal"
+                />
+                <span
+                  aria-hidden
+                  className="absolute top-8 -right-1.25 size-2.5 rounded-full bg-deal"
+                />
+              </li>
+            ))}
+          </Marquee>
+        </div>
       </div>
     </section>
   );

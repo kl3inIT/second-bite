@@ -15,21 +15,21 @@ import { cn } from "@/lib/utils";
 type Tab = {
   key: "home" | "orders" | "saved" | "account";
   icon: LucideIcon;
-  href?: "/" | "/account";
+  href?: "/" | "/orders" | "/account";
   // Other pages that belong to the tab, as the search belongs to the home.
   within?: readonly string[];
 };
 
 // The four tabs of the customer screens on a phone (DESIGN.md › Bottom bar, Figma "Bottom nav", 105:2515),
-// floating 16px from the sides and the bottom. Orders and saved sellers have no screen yet (SEC-15,
-// following), so their tabs are shown dimmed and cannot be pressed. Every page has it, after a space as
+// floating 16px from the sides and the bottom. Saved sellers have no screen yet, so their tab is shown
+// dimmed and cannot be pressed. A tab is also active on the pages under it, as an order under the orders. Every page has it, after a space as
 // tall as the bar so the bar never covers the page's end. From `md` the header and the footer take over,
 // and the bar is not shown.
 const screensOfTheirOwn = ["/search", "/offers", "/sellers", "/cart"];
 
 const tabs: Tab[] = [
   { key: "home", icon: HouseIcon, href: "/", within: ["/search"] },
-  { key: "orders", icon: ReceiptTextIcon },
+  { key: "orders", icon: ReceiptTextIcon, href: "/orders" },
   { key: "saved", icon: HeartIcon },
   {
     key: "account",
@@ -59,7 +59,10 @@ export function BottomNav() {
       >
         <ul className="grid h-13.5 grid-cols-4">
           {tabs.map(({ key, icon: Icon, href, within = [] }) => {
-            const active = href === pathname || within.includes(pathname);
+            const active =
+              href === pathname ||
+              within.includes(pathname) ||
+              (href !== undefined && href !== "/" && pathname.startsWith(`${href}/`));
             const body = (
               <>
                 <Icon aria-hidden className="size-5" />
