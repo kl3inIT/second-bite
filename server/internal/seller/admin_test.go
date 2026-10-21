@@ -176,7 +176,9 @@ func checkSearch(t *testing.T, pool *pgxpool.Pool, f fixture) {
 	owner := f.as(t, "list.owner", platform.RoleCustomer)
 
 	bakery := openNamed(owner, t, pool, f, "Tiệm Bánh Đồng Xuân", "0987 111 222", seller.StatusPending)
-	openNamed(owner, t, pool, f, "Cơm Gà 100%", "0987 333 444", seller.StatusActive)
+	rice := openNamed(owner, t, pool, f, "Cơm Gà 100%", "0987 333 444", seller.StatusActive)
+
+	checkSortAndCounts(t, f, bakery, rice)
 
 	page, err := f.sellers.List(admin, seller.Filter{Query: "banh dong xuan", Page: 1, Size: 10})
 	if err != nil || page.Total != 1 || len(page.Sellers) != 1 || page.Sellers[0].ID != bakery {
@@ -261,5 +263,33 @@ func checkBadFilters(t *testing.T, f fixture) {
 	customer := f.as(t, "list.customer", platform.RoleCustomer)
 	if _, err := f.sellers.List(customer, seller.Filter{Page: 1, Size: 10}); !errors.Is(err, platform.ErrAdminRequired) {
 		t.Errorf("a customer listing: %v", err)
+	}
+}
+
+// checkSortAndCounts: the two sellers whose phones hold 0987 sort by name
+// both ways, and the counts name one of each status whatever the status
+// asked.
+func checkSortAndCounts(t *testing.T, f fixture, bakery, rice uuid.UUID) {
+	t.Helper()
+
+	admin := f.as(t, "admin", platform.RoleAdmin)
+
+	for sort, first := range map[string]uuid.UUID{"name": rice, "-name": bakery, "": bakery} {
+		page, err := f.sellers.List(admin, seller.Filter{Query: "0987", Sort: sort, Page: 1, Size: 10})
+		if err != nil || len(page.Sellers) != 2 || page.Sellers[0].ID != first {
+			t.Errorf("sorted %q: %+v, %v", sort, page.Sellers, err)
+		}
+	}
+
+	page, err := f.sellers.List(admin, seller.Filter{
+		Statuses: []seller.Status{seller.StatusBlocked}, Query: "0987", Page: 1, Size: 10,
+	})
+	if err != nil || page.Total != 0 || page.Counts[seller.StatusPending] != 1 || page.Counts[seller.StatusActive] != 1 ||
+		page.Counts[seller.StatusRejected] != 0 || page.Counts[seller.StatusBlocked] != 0 {
+		t.Errorf("counts while listing the blocked: %+v, total %d, %v", page.Counts, page.Total, err)
+	}
+
+	if _, err := f.sellers.List(admin, seller.Filter{Sort: "phone", Page: 1, Size: 10}); !errors.Is(err, seller.ErrListInvalid) {
+		t.Errorf("sorting by phone: %v, want ErrListInvalid", err)
 	}
 }

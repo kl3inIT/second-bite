@@ -41,6 +41,9 @@ components:
     AdminSellersOutputBody:
       additionalProperties: false
       properties:
+        counts:
+          $ref: "#/components/schemas/StatusCountsBody"
+          description: Sellers of each status matching q, whatever status asks
         items:
           items:
             $ref: "#/components/schemas/AdminSellerBody"
@@ -61,6 +64,7 @@ components:
         - page
         - pageSize
         - total
+        - counts
       type: object
     AdminsOutputBody:
       additionalProperties: false
@@ -1121,6 +1125,27 @@ components:
         - challengeId
         - code
       type: object
+    StatusCountsBody:
+      additionalProperties: false
+      properties:
+        active:
+          format: int64
+          type: integer
+        blocked:
+          format: int64
+          type: integer
+        pending:
+          format: int64
+          type: integer
+        rejected:
+          format: int64
+          type: integer
+      required:
+        - pending
+        - active
+        - rejected
+        - blocked
+      type: object
     Violation:
       additionalProperties: false
       properties:
@@ -1491,6 +1516,20 @@ paths:
           schema:
             description: Words of the name, address or phone
             maxLength: 100
+            type: string
+        - description: name, address or changed; a leading - is descending; the queue order when absent
+          explode: false
+          in: query
+          name: sort
+          schema:
+            description: name, address or changed; a leading - is descending; the queue order when absent
+            enum:
+              - name
+              - -name
+              - address
+              - -address
+              - changed
+              - -changed
             type: string
         - explode: false
           in: query

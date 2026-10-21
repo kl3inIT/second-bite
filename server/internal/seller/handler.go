@@ -294,12 +294,13 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 			"q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.",
 	}, func(ctx context.Context, in *struct {
 		Status []Status `query:"status" doc:"Keep these statuses; every status when absent" enum:"pending,active,rejected,blocked"`
-		Q      string   `query:"q"      doc:"Words of the name, address or phone"           maxLength:"100"`
-		Page   int      `query:"page"   default:"1"                                         minimum:"1"`
+		Q      string   `query:"q"            doc:"Words of the name, address or phone" maxLength:"100"`
+		Sort   string   `query:"sort"         doc:"name, address or changed; a leading - is descending; the queue order when absent" enum:"name,-name,address,-address,changed,-changed"`
+		Page   int      `query:"page"         default:"1" minimum:"1"`
 		Size   int      `query:"size"   default:"25"                                        maximum:"100" minimum:"1"`
 	},
 	) (*adminSellersOutput, error) {
-		page, err := s.List(ctx, Filter{Statuses: in.Status, Query: in.Q, Page: in.Page, Size: in.Size})
+		page, err := s.List(ctx, Filter{Statuses: in.Status, Query: in.Q, Sort: in.Sort, Page: in.Page, Size: in.Size})
 		if err != nil {
 			return nil, err
 		}
@@ -307,6 +308,10 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		out := &adminSellersOutput{}
 		out.Body.Items = make([]adminSellerBody, 0, len(page.Sellers))
 		out.Body.Page, out.Body.PageSize, out.Body.Total = in.Page, in.Size, page.Total
+		out.Body.Counts = statusCountsBody{
+			Pending: page.Counts[StatusPending], Active: page.Counts[StatusActive],
+			Rejected: page.Counts[StatusRejected], Blocked: page.Counts[StatusBlocked],
+		}
 
 		for _, l := range page.Sellers {
 			out.Body.Items = append(out.Body.Items, adminSellerBody{sellerBody: toBody(l.Seller), OwnerEmail: l.OwnerEmail})
@@ -365,5 +370,13 @@ type adminSellersOutput struct {
 		Page     int               `json:"page"`
 		PageSize int               `json:"pageSize"`
 		Total    int               `json:"total"`
+		Counts   statusCountsBody  `json:"counts"   doc:"Sellers of each status matching q, whatever status asks"`
 	}
+}
+
+type statusCountsBody struct {
+	Pending  int `json:"pending"`
+	Active   int `json:"active"`
+	Rejected int `json:"rejected"`
+	Blocked  int `json:"blocked"`
 }

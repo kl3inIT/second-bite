@@ -39,9 +39,14 @@ type Filter struct {
 	// Query keeps the sellers whose name, address or phone holds it, marks
 	// ignored.
 	Query string
+	// Sort orders the page: one of sorts, empty for the queue order.
+	Sort string
 	// Page counts from 1; Size runs from 1 to 100.
 	Page, Size int
 }
+
+// The orders an admin may sort by; a leading '-' is descending.
+var sorts = []string{"", "name", "-name", "address", "-address", "changed", "-changed"}
 
 // Listed is a seller as admins list it, with its owner's address.
 type Listed struct {
@@ -50,10 +55,12 @@ type Listed struct {
 	OwnerEmail string
 }
 
-// Page is one page of the admins' list and how many sellers match in all.
+// Page is one page of the admins' list, how many sellers match in all, and
+// how many of each status match the words.
 type Page struct {
 	Sellers []Listed
 	Total   int
+	Counts  map[Status]int
 }
 
 // List answers one page of the sellers matching f, to an admin: pending
@@ -89,6 +96,10 @@ func (s *Service) List(ctx context.Context, f Filter) (Page, error) {
 		page.Total = int(total)
 	}
 
+	if page.Counts, err = s.statusCounts(ctx, params); err != nil {
+		return Page{}, err
+	}
+
 	owners, err := s.ownerEmails(ctx, rows)
 	if err != nil {
 		return Page{}, err
@@ -108,8 +119,28 @@ func (s *Service) List(ctx context.Context, f Filter) (Page, error) {
 	return page, nil
 }
 
+// statusCounts counts the sellers of each status matching the words of
+// params; a status none has counts 0.
+func (s *Service) statusCounts(ctx context.Context, params db.SellersForAdminsParams) (map[Status]int, error) {
+	rows, err := s.queries.CountSellersByStatus(ctx, params.Query)
+	if err != nil {
+		return nil, fmt.Errorf("counting the sellers by status: %w", err)
+	}
+
+	counts := make(map[Status]int, len(statuses))
+	for _, st := range statuses {
+		counts[st] = 0
+	}
+
+	for _, r := range rows {
+		counts[Status(r.Status)] = int(r.Sellers)
+	}
+
+	return counts, nil
+}
+
 func (f Filter) params() (db.SellersForAdminsParams, error) {
-	if f.Page < 1 || f.Size < 1 || f.Size > maxPageSize {
+	if f.Page < 1 || f.Size < 1 || f.Size > maxPageSize || !slices.Contains(sorts, f.Sort) {
 		return db.SellersForAdminsParams{}, ErrListInvalid
 	}
 
@@ -131,6 +162,7 @@ func (f Filter) params() (db.SellersForAdminsParams, error) {
 	return db.SellersForAdminsParams{
 		Statuses: wanted,
 		Query:    escapeLike(query),
+		Sort:     f.Sort,
 		MaxRows:  int32(f.Size),
 		SkipRows: int32((f.Page - 1) * f.Size), //nolint:gosec // a page past int32 finds nothing anyway
 	}, nil

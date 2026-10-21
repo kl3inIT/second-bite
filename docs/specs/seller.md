@@ -15,7 +15,7 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `POST /sellers/{sellerId}/members` `{email}` | Its owner | `201` the new staff member |
 | `DELETE /sellers/{sellerId}/members/{accountId}` | Its owner, or a staff member removing themself | `204` |
 | `GET /sellers/{sellerId}/profile` | Anyone | `200` an active seller's name, address, location and photo; `404` for one blocked |
-| `GET /admin/sellers?status=&q=&page=&size=` | Admins | `200 {items, page, pageSize, total}`: sellers in the statuses given (every one when none) whose name, address or phone holds `q`, marks ignored; pending ones first, the oldest first, then the latest change first; each with its owner's address; `size` 1 to 100, 25 by default; a page past the end is empty (SEC-75) |
+| `GET /admin/sellers?status=&q=&sort=&page=&size=` | Admins | `200 {items, page, pageSize, total, counts}`: sellers in the statuses given (every one when none) whose name, address or phone holds `q`, marks ignored; by default pending ones first, the oldest first, then the latest change first, or sorted by `name`, `address` or `changed` (`-` descending); `counts` gives each status matching `q`, for the cards above the list; each with its owner's address; `size` 1 to 100, 25 by default; a page past the end is empty (SEC-75) |
 | `POST /admin/sellers/{sellerId}/approve` | Admins | `200` seller, `active`, from `pending`, `rejected` or `blocked`; its owner emailed |
 | `POST /admin/sellers/{sellerId}/reject` `{reason}` | Admins | `200` seller, `rejected`, from `pending`; its owner emailed the reason |
 | `POST /admin/sellers/{sellerId}/block` `{reason}` | Admins | `200` seller, `blocked`, from `active`; its owner emailed the reason |

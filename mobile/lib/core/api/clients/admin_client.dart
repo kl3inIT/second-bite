@@ -15,6 +15,7 @@ import '../models/offer_settings_body.dart';
 import '../models/reject_seller_request.dart';
 import '../models/save_email_settings_input_body.dart';
 import '../models/seller_body.dart';
+import '../models/sort.dart';
 import '../models/status.dart';
 
 part 'admin_client.g.dart';
@@ -78,12 +79,15 @@ abstract class AdminClient {
   /// [status] - Keep these statuses; every status when absent.
   ///
   /// [q] - Words of the name, address or phone.
+  ///
+  /// [sort] - name, address or changed; a leading - is descending; the queue order when absent.
   @GET('/admin/sellers')
   Future<AdminSellersOutputBody> listSellersForAdmins({
     @Query('page') int? page = 1,
     @Query('size') int? size = 25,
     @Query('status') List<Status>? status,
     @Query('q') String? q,
+    @Query('sort') Sort? sort,
   });
 
   /// Let a pending, rejected or blocked seller publish; its owner is emailed

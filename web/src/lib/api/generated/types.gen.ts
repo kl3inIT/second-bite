@@ -26,6 +26,10 @@ export type AdminSellerBody = {
 };
 
 export type AdminSellersOutputBody = {
+    /**
+     * Sellers of each status matching q, whatever status asks
+     */
+    counts: StatusCountsBody;
     items: Array<AdminSellerBody> | null;
     page: number;
     pageSize: number;
@@ -522,6 +526,13 @@ export type SignInInputBody = {
     session?: 'token' | 'cookie';
 };
 
+export type StatusCountsBody = {
+    active: number;
+    blocked: number;
+    pending: number;
+    rejected: number;
+};
+
 export type Violation = {
     code: string;
     detail: string;
@@ -860,6 +871,10 @@ export type ListSellersForAdminsData = {
          * Words of the name, address or phone
          */
         q?: string;
+        /**
+         * name, address or changed; a leading - is descending; the queue order when absent
+         */
+        sort?: 'name' | '-name' | 'address' | '-address' | 'changed' | '-changed';
         page?: number;
         size?: number;
     };

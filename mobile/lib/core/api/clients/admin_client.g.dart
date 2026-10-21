@@ -218,6 +218,7 @@ class _AdminClient implements AdminClient {
     int? size = 25,
     List<Status>? status,
     String? q,
+    Sort? sort,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -225,6 +226,7 @@ class _AdminClient implements AdminClient {
       r'size': size,
       r'status': status,
       r'q': q,
+      r'sort': sort,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};

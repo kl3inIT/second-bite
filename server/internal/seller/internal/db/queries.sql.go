@@ -153,6 +153,39 @@ func (q *Queries) CountOwnedSellers(ctx context.Context, accountID uuid.UUID) (i
 	return column_1, err
 }
 
+const countSellersByStatus = `-- name: CountSellersByStatus :many
+SELECT status, count(*) AS sellers FROM seller_sellers
+WHERE ($1::text = '' OR search_text LIKE '%' || seller_fold($1::text) || '%' ESCAPE '\')
+GROUP BY status
+`
+
+type CountSellersByStatusRow struct {
+	Status  string
+	Sellers int64
+}
+
+// How many sellers of each status match the words, whatever the statuses
+// asked, for the counts above the list.
+func (q *Queries) CountSellersByStatus(ctx context.Context, query string) ([]CountSellersByStatusRow, error) {
+	rows, err := q.db.Query(ctx, countSellersByStatus, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CountSellersByStatusRow
+	for rows.Next() {
+		var i CountSellersByStatusRow
+		if err := rows.Scan(&i.Status, &i.Sellers); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const countSellersForAdmins = `-- name: CountSellersForAdmins :one
 SELECT count(*) FROM seller_sellers
 WHERE (cardinality($1::text[]) = 0 OR status = ANY ($1::text[]))
@@ -402,16 +435,22 @@ SELECT id, name, address, latitude, longitude, phone, status, status_reason, sta
 FROM seller_sellers
 WHERE (cardinality($1::text[]) = 0 OR status = ANY ($1::text[]))
   AND ($2::text = '' OR search_text LIKE '%' || seller_fold($2::text) || '%' ESCAPE '\')
-ORDER BY status = 'pending' DESC,
-         CASE WHEN status = 'pending' THEN created_at END,
-         COALESCE(status_changed_at, created_at) DESC,
+ORDER BY CASE WHEN $3::text = '' THEN status = 'pending' END DESC,
+         CASE WHEN $3::text = '' AND status = 'pending' THEN created_at END,
+         CASE WHEN $3::text = 'name' THEN seller_fold(name) END,
+         CASE WHEN $3::text = '-name' THEN seller_fold(name) END DESC,
+         CASE WHEN $3::text = 'address' THEN seller_fold(address) END,
+         CASE WHEN $3::text = '-address' THEN seller_fold(address) END DESC,
+         CASE WHEN $3::text = 'changed' THEN updated_at END,
+         updated_at DESC,
          id
-LIMIT $4 OFFSET $3
+LIMIT $5 OFFSET $4
 `
 
 type SellersForAdminsParams struct {
 	Statuses []string
 	Query    string
+	Sort     string
 	SkipRows int32
 	MaxRows  int32
 }
@@ -434,13 +473,15 @@ type SellersForAdminsRow struct {
 }
 
 // One page of the sellers in the statuses given (all when none), whose
-// words, folded, hold the query's (any when empty): pending ones first, the
-// oldest first, as a queue; then the latest change first. total counts them
+// words, folded, hold the query's (any when empty), in the order sort names: by default pending ones first,
+// the oldest first, as a queue, then the latest change first; otherwise by
+// name, address or last change, '-' first for descending. total counts them
 // all; it is absent when the page is past the end.
 func (q *Queries) SellersForAdmins(ctx context.Context, arg SellersForAdminsParams) ([]SellersForAdminsRow, error) {
 	rows, err := q.db.Query(ctx, sellersForAdmins,
 		arg.Statuses,
 		arg.Query,
+		arg.Sort,
 		arg.SkipRows,
 		arg.MaxRows,
 	)
