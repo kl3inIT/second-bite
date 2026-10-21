@@ -31,6 +31,35 @@ components:
       required:
         - email
       type: object
+    AdminAccountsOutputBody:
+      additionalProperties: false
+      properties:
+        counts:
+          $ref: "#/components/schemas/RoleCountsBody"
+          description: How many accounts of each role match the words, whatever the role asked
+        items:
+          items:
+            $ref: "#/components/schemas/RecordBody"
+          type:
+            - array
+            - "null"
+        page:
+          format: int64
+          type: integer
+        pageSize:
+          format: int64
+          type: integer
+        total:
+          description: How many accounts match the role and the words
+          format: int64
+          type: integer
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+        - counts
+      type: object
     AdminSellerBody:
       additionalProperties: false
       properties:
@@ -72,7 +101,7 @@ components:
         admins:
           description: Every admin, by address
           items:
-            $ref: "#/components/schemas/AccountBody"
+            $ref: "#/components/schemas/RecordBody"
           type:
             - array
             - "null"
@@ -596,6 +625,31 @@ components:
       required:
         - email
       type: object
+    HistoryOutputBody:
+      additionalProperties: false
+      properties:
+        collected:
+          description: Orders handed over
+          format: int64
+          type: integer
+        missed:
+          description: "Orders the customer did not come for: the window ended, or staff ended them as no answer, no show or late"
+          format: int64
+          type: integer
+        placed:
+          format: int64
+          type: integer
+        recent:
+          description: The latest five, newest first
+          items:
+            $ref: "#/components/schemas/OrderBody"
+          type: array
+      required:
+        - placed
+        - collected
+        - missed
+        - recent
+      type: object
     ListDishesResponse:
       additionalProperties: false
       properties:
@@ -638,6 +692,46 @@ components:
             - "null"
       required:
         - members
+      type: object
+    MembershipBody:
+      additionalProperties: false
+      properties:
+        accountId:
+          type: string
+        role:
+          enum:
+            - owner
+            - staff
+          type: string
+        sellerId:
+          type: string
+        sellerName:
+          type: string
+        sellerStatus:
+          enum:
+            - pending
+            - active
+            - rejected
+            - blocked
+          type: string
+      required:
+        - accountId
+        - role
+        - sellerId
+        - sellerName
+        - sellerStatus
+      type: object
+    MembershipsOutputBody:
+      additionalProperties: false
+      properties:
+        memberships:
+          items:
+            $ref: "#/components/schemas/MembershipBody"
+          type:
+            - array
+            - "null"
+      required:
+        - memberships
       type: object
     MethodsOutputBody:
       additionalProperties: false
@@ -1208,6 +1302,41 @@ components:
         - status
         - code
       type: object
+    RecordBody:
+      additionalProperties: false
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        displayName:
+          description: Empty until Google gives one or the person sets it
+          type: string
+        email:
+          type: string
+        id:
+          type: string
+        lastSignInMethod:
+          description: "How it last signed in: an emailed code or Google"
+          enum:
+            - code
+            - google
+          type: string
+        lastSignedInAt:
+          description: Absent until it signs in
+          format: date-time
+          type: string
+        role:
+          enum:
+            - customer
+            - admin
+          type: string
+      required:
+        - id
+        - email
+        - role
+        - displayName
+        - createdAt
+      type: object
     RefuseOrderRequest:
       additionalProperties: false
       properties:
@@ -1261,6 +1390,19 @@ components:
       required:
         - challengeId
         - expiresAt
+      type: object
+    RoleCountsBody:
+      additionalProperties: false
+      properties:
+        admin:
+          format: int64
+          type: integer
+        customer:
+          format: int64
+          type: integer
+      required:
+        - customer
+        - admin
       type: object
     SaveEmailSettingsInputBody:
       additionalProperties: false
@@ -1635,6 +1777,135 @@ paths:
       summary: Email the signed-in account's address a code that confirms its deletion
       tags:
         - Accounts
+  /admin/accounts:
+    get:
+      description: q matches the address or the name, Vietnamese marks ignored. Sorted by last sign-in, those never signed in come last. A page past the end is empty.
+      operationId: listAccounts
+      parameters:
+        - description: Keep this role; every role when absent
+          explode: false
+          in: query
+          name: role
+          schema:
+            description: Keep this role; every role when absent
+            enum:
+              - customer
+              - admin
+            type: string
+        - description: Words of the address or the name
+          explode: false
+          in: query
+          name: q
+          schema:
+            description: Words of the address or the name
+            maxLength: 100
+            type: string
+        - description: name, created or signedIn; a leading - is descending; the newest first when absent
+          explode: false
+          in: query
+          name: sort
+          schema:
+            description: name, created or signedIn; a leading - is descending; the newest first when absent
+            enum:
+              - name
+              - -name
+              - created
+              - -created
+              - signedIn
+              - -signedIn
+            type: string
+        - explode: false
+          in: query
+          name: page
+          schema:
+            default: 1
+            format: int64
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: size
+          schema:
+            default: 25
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAccountsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Accounts by role and words, the newest first
+      tags:
+        - Admin
+  /admin/accounts/{accountId}:
+    get:
+      operationId: getAccountForAdmins
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: An account, with when and how it last signed in
+      tags:
+        - Admin
+  /admin/accounts/{accountId}/orders:
+    get:
+      operationId: getAccountOrderHistory
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: "What an account ordered: counts and the latest five orders"
+      tags:
+        - Admin
   /admin/admins:
     get:
       operationId: listAdmins
@@ -1891,6 +2162,43 @@ paths:
         - bearer: []
         - cookie: []
       summary: Send one email through the settings saved, to an address or to oneself
+      tags:
+        - Admin
+  /admin/memberships:
+    get:
+      operationId: listMembershipsForAdmins
+      parameters:
+        - description: The accounts, at most 100
+          explode: false
+          in: query
+          name: accountId
+          required: true
+          schema:
+            description: The accounts, at most 100
+            items:
+              type: string
+            maxItems: 100
+            minItems: 1
+            type:
+              - array
+              - "null"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The sellers some accounts own or work at, owners first
       tags:
         - Admin
   /admin/offer-settings:

@@ -120,3 +120,10 @@ DELETE FROM seller_members WHERE account_id = @account_id;
 UPDATE seller_sellers
 SET status = 'blocked', status_reason = @reason, status_changed_at = now(), status_changed_by = NULL, updated_at = now()
 WHERE id = ANY (sqlc.arg(ids)::uuid[]) AND status <> 'blocked';
+
+-- name: MembershipsOfAccounts :many
+-- The sellers the accounts own or work at, owners first, for admins.
+SELECT m.account_id, m.role, s.id, s.name, s.status
+FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
+WHERE m.account_id = ANY (@account_ids::uuid[])
+ORDER BY m.account_id, m.role, s.name, s.id;

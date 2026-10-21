@@ -940,7 +940,8 @@
     "breadcrumb": "Where you are",
     "nav": {
       "audit": "Activity log",
-      "settings": "Settings"
+      "settings": "Settings",
+      "accounts": "Accounts"
     },
     "notFound": {
       "crumb": "Not found",
@@ -1042,7 +1043,8 @@
     "settings": {
       "title": "Settings",
       "nav": "Settings pages",
-      "email": "Email"
+      "email": "Email",
+      "admins": "Admins"
     },
     "email": {
       "title": "Email",
@@ -1122,6 +1124,117 @@
     },
     "group": {
       "users": "Users"
+    },
+    "accounts": {
+      "title": "Accounts",
+      "noun": "accounts",
+      "search": "Search by name or email",
+      "size": "Rows",
+      "tab": {
+        "label": "Role",
+        "all": "All",
+        "customer": "Customers",
+        "admin": "Admins"
+      },
+      "column": {
+        "account": "Account",
+        "role": "Role",
+        "sellers": "Stores",
+        "method": "Signs in with",
+        "created": "Created",
+        "signedIn": "Last sign-in"
+      },
+      "role": {
+        "customer": "Customer",
+        "admin": "Admin"
+      },
+      "method": {
+        "code": "Email code",
+        "google": "Google"
+      },
+      "sellerRole": "{seller} · {role, select, owner {Owner} other {Staff}}",
+      "neverSignedIn": "Never signed in",
+      "empty": {
+        "title": "No accounts yet",
+        "body": "An account appears here once someone signs in for the first time."
+      },
+      "noResults": {
+        "title": "No account found",
+        "body": "Try another name or email.",
+        "clear": "Clear the search"
+      },
+      "figure": {
+        "placed": "Orders placed",
+        "pickupRate": "Picked up",
+        "joined": "Joined",
+        "signedIn": "Last sign-in"
+      },
+      "recent": {
+        "title": "Recent orders",
+        "empty": "This account has not ordered yet."
+      },
+      "info": {
+        "title": "Account",
+        "method": "Signs in with",
+        "role": "Role"
+      },
+      "sellers": {
+        "title": "Stores",
+        "empty": "Neither owns nor works at a store.",
+        "owner": "Owner",
+        "staff": "Staff"
+      },
+      "outcome": {
+        "open": "Held",
+        "collected": "Picked up",
+        "missed": "No-show",
+        "cancelled": "Cancelled",
+        "refused": "Refused by the store"
+      }
+    },
+    "admins": {
+      "title": "Admins",
+      "description": "Admins approve stores, look up accounts and change the settings. They sign in with an emailed code like everyone.",
+      "you": "You",
+      "column": {
+        "account": "Account",
+        "signedIn": "Last sign-in",
+        "actions": "Actions"
+      },
+      "grant": {
+        "open": "Add an admin",
+        "title": "Add an admin",
+        "description": "Enter the email of the person who needs admin rights. An account is made if they have none; they sign in with a code sent to this address.",
+        "email": "Email",
+        "invalid": "Enter a valid email address.",
+        "cancel": "Cancel",
+        "submit": "Make admin",
+        "done": "{email} is now an admin",
+        "failed": "Could not make an admin",
+        "unreachable": "The server could not be reached. Try again shortly."
+      },
+      "revoke": {
+        "open": "Revoke",
+        "title": "Revoke {name}'s admin rights?",
+        "description": "They become a customer from their next request. You can make them an admin again at any time.",
+        "cancel": "Cancel",
+        "confirm": "Revoke",
+        "done": "{name} is no longer an admin",
+        "failed": "Could not revoke {name}",
+        "unreachable": "The server could not be reached. Try again shortly.",
+        "self": "You cannot revoke yourself",
+        "last": "The last admin"
+      },
+      "promote": {
+        "open": "Make admin",
+        "title": "Make {name} an admin?",
+        "description": "They see and change everything in the admin pages from their next request. You can revoke it at any time.",
+        "cancel": "Cancel",
+        "confirm": "Make admin",
+        "done": "{email} is now an admin",
+        "failed": "Could not make {name} an admin",
+        "unreachable": "The server could not be reached. Try again shortly."
+      }
     }
   }
 }

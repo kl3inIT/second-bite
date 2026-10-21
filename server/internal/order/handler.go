@@ -306,3 +306,39 @@ func registerStaffOperations(api huma.API, s *Service) {
 		return &orderOutput{Body: toBody(o)}, nil
 	})
 }
+
+type historyOutput struct {
+	Body struct {
+		Placed    int         `json:"placed"`
+		Collected int         `json:"collected" doc:"Orders handed over"`
+		Missed    int         `json:"missed"    doc:"Orders the customer did not come for: the window ended, or staff ended them as no answer, no show or late"`
+		Recent    []orderBody `json:"recent"    doc:"The latest five, newest first" nullable:"false"`
+	}
+}
+
+// RegisterAdminOperations adds the module's admin operations to admin, the
+// group platform.NewAdminGroup returns; their paths omit its prefix.
+func RegisterAdminOperations(admin huma.API, s *Service) {
+	huma.Register(admin, huma.Operation{
+		OperationID: "getAccountOrderHistory", Method: http.MethodGet, Path: "/accounts/{accountId}/orders",
+		Summary: "What an account ordered: counts and the latest five orders",
+	}, func(ctx context.Context, in *struct {
+		AccountID uuid.UUID `path:"accountId"`
+	},
+	) (*historyOutput, error) {
+		h, err := s.HistoryForAdmins(ctx, in.AccountID)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &historyOutput{}
+		out.Body.Placed, out.Body.Collected, out.Body.Missed = h.Placed, h.Collected, h.Missed
+		out.Body.Recent = make([]orderBody, 0, len(h.Recent))
+
+		for _, o := range h.Recent {
+			out.Body.Recent = append(out.Body.Recent, toBody(o))
+		}
+
+		return out, nil
+	})
+}

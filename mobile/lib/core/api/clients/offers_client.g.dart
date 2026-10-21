@@ -34,7 +34,7 @@ class _OffersClient implements OffersClient {
     DateTime? collectTo,
     String? sellerId,
     bool? available,
-    Sort2? sort,
+    Sort3? sort,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{

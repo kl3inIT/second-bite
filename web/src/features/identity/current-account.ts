@@ -10,7 +10,12 @@ import { getMyAccount, type AccountBody } from "@/lib/api/generated";
 
 import { sessionHeaders } from "./session";
 
-export type CurrentAccount = { email: string; displayName: string; role: AccountBody["role"] };
+export type CurrentAccount = {
+  id: string;
+  email: string;
+  displayName: string;
+  role: AccountBody["role"];
+};
 
 /**
  * Who is signed in, read on the server by forwarding the session cookie to the API (SEC-29 › decision 2);
@@ -22,7 +27,7 @@ export const getCurrentAccount = cache(async (): Promise<CurrentAccount | null> 
   if (!headers) return null;
   try {
     const { data } = await getMyAccount({ headers });
-    return { email: data.email, displayName: data.displayName, role: data.role };
+    return { id: data.id, email: data.email, displayName: data.displayName, role: data.role };
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) return null;
     throw error;

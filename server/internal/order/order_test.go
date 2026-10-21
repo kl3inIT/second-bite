@@ -55,6 +55,7 @@ func TestOrder(t *testing.T) {
 		"no answer or no show gives units back":    testNoShowGivesUnitsBack,
 		"a mistake is taken back":                  testReopen,
 		"some orders are not reopened":             testReopenStaysShut,
+		"admins read what an account ordered":      testHistoryForAdmins,
 		"orders follow their offer's window":       testOrdersFollowTheWindow,
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -833,5 +834,64 @@ func checkoutKept(owner, customer context.Context, t *testing.T, f fixture, offe
 	mine, err := f.orders.Mine(customer, order.WhichAll, cart, 20, 0)
 	if err != nil || len(mine) != 1 || mine[0].ID != open.ID {
 		t.Errorf("the customer's orders of one checkout: %v, %v", mine, err)
+	}
+}
+
+func testHistoryForAdmins(t *testing.T, f fixture) {
+	t.Helper()
+
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	admin := f.as(t, "admin", platform.RoleAdmin)
+	orderSevenWays(customer, t, f)
+
+	caller, _ := platform.CallerFrom(customer)
+
+	h, err := f.orders.HistoryForAdmins(admin, caller.AccountID)
+	if err != nil || h.Placed != 7 || h.Collected != 1 || h.Missed != 2 || len(h.Recent) != 5 {
+		t.Fatalf("the history: placed %d, collected %d, missed %d, %d recent, %v; want 7, 1, 2, 5",
+			h.Placed, h.Collected, h.Missed, len(h.Recent), err)
+	}
+
+	if h.Recent[0].Status != order.StatusConfirmed || len(h.Recent[0].Lines) != 1 || h.Recent[0].Access != "" {
+		t.Errorf("the newest order: %+v; want confirmed, with its line, without its access", h.Recent[0])
+	}
+
+	_, err = f.orders.HistoryForAdmins(customer, caller.AccountID)
+	mustFail(t, "a customer reading a history", err, platform.ErrAdminRequired)
+}
+
+// orderSevenWays has customer place seven orders at one seller: one handed
+// over, one refused as a no-show, one refused as sold out, one whose window
+// ended, and three still open.
+func orderSevenWays(customer context.Context, t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 9, 20_000, time.Now())
+
+	place := func() uuid.UUID {
+		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		return o.ID
+	}
+
+	if _, err := f.orders.HandOver(owner, place()); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, reason := range []order.RefuseReason{order.RefuseNoShow, order.RefuseSoldOut} {
+		if _, err := f.orders.Refuse(owner, place(), reason, ""); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	f.shift(t, place(), -3*time.Hour)
+
+	for range 3 {
+		place()
 	}
 }

@@ -10,7 +10,84 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const accountsForAdmins = `-- name: AccountsForAdmins :many
+SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method,
+       count(*) OVER () AS total
+FROM identity_accounts
+WHERE ($1::text = '' OR role = $1)
+  AND ($2::text = '' OR search_text LIKE '%' || identity_fold($2::text) || '%' ESCAPE '\')
+ORDER BY CASE WHEN $3::text = 'name' THEN identity_fold(coalesce(nullif(display_name, ''), email)) END,
+         CASE WHEN $3::text = '-name' THEN identity_fold(coalesce(nullif(display_name, ''), email)) END DESC,
+         CASE WHEN $3::text = 'signedIn' THEN last_signed_in_at END NULLS LAST,
+         CASE WHEN $3::text = '-signedIn' THEN last_signed_in_at END DESC NULLS LAST,
+         CASE WHEN $3::text = 'created' THEN created_at END,
+         created_at DESC,
+         id
+LIMIT $5 OFFSET $4
+`
+
+type AccountsForAdminsParams struct {
+	Role     string
+	Query    string
+	Sort     string
+	SkipRows int32
+	MaxRows  int32
+}
+
+type AccountsForAdminsRow struct {
+	ID               uuid.UUID
+	Email            string
+	Role             string
+	DisplayName      string
+	CreatedAt        time.Time
+	LastSignedInAt   *time.Time
+	LastSignInMethod pgtype.Text
+	Total            int64
+}
+
+// One page of the accounts of the role given (any when empty) whose address
+// or name, folded, holds the query's (any when empty), in the order sort
+// names: by default the newest first; otherwise by name (the address when
+// there is none), creation or last sign-in, '-' first for descending, those
+// never signed in last. total counts them all; it is absent when the page is
+// past the end.
+func (q *Queries) AccountsForAdmins(ctx context.Context, arg AccountsForAdminsParams) ([]AccountsForAdminsRow, error) {
+	rows, err := q.db.Query(ctx, accountsForAdmins,
+		arg.Role,
+		arg.Query,
+		arg.Sort,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AccountsForAdminsRow
+	for rows.Next() {
+		var i AccountsForAdminsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.Role,
+			&i.DisplayName,
+			&i.CreatedAt,
+			&i.LastSignedInAt,
+			&i.LastSignInMethod,
+			&i.Total,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const challengeExhausted = `-- name: ChallengeExhausted :one
 SELECT EXISTS (
@@ -72,6 +149,57 @@ func (q *Queries) ChallengeUsage(ctx context.Context, email string) (ChallengeUs
 		&i.CheckedAt,
 	)
 	return i, err
+}
+
+const countAccountsByRole = `-- name: CountAccountsByRole :many
+SELECT role, count(*) AS accounts FROM identity_accounts
+WHERE ($1::text = '' OR search_text LIKE '%' || identity_fold($1::text) || '%' ESCAPE '\')
+GROUP BY role
+`
+
+type CountAccountsByRoleRow struct {
+	Role     string
+	Accounts int64
+}
+
+// How many accounts of each role match the words, whatever the role asked,
+// for the counts above the list.
+func (q *Queries) CountAccountsByRole(ctx context.Context, query string) ([]CountAccountsByRoleRow, error) {
+	rows, err := q.db.Query(ctx, countAccountsByRole, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CountAccountsByRoleRow
+	for rows.Next() {
+		var i CountAccountsByRoleRow
+		if err := rows.Scan(&i.Role, &i.Accounts); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const countAccountsForAdmins = `-- name: CountAccountsForAdmins :one
+SELECT count(*) FROM identity_accounts
+WHERE ($1::text = '' OR role = $1)
+  AND ($2::text = '' OR search_text LIKE '%' || identity_fold($2::text) || '%' ESCAPE '\')
+`
+
+type CountAccountsForAdminsParams struct {
+	Role  string
+	Query string
+}
+
+func (q *Queries) CountAccountsForAdmins(ctx context.Context, arg CountAccountsForAdminsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countAccountsForAdmins, arg.Role, arg.Query)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const countAdmins = `-- name: CountAdmins :one
@@ -303,6 +431,36 @@ func (q *Queries) GetAccount(ctx context.Context, id uuid.UUID) (GetAccountRow, 
 	return i, err
 }
 
+const getAccountForAdmins = `-- name: GetAccountForAdmins :one
+SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method
+FROM identity_accounts WHERE id = $1
+`
+
+type GetAccountForAdminsRow struct {
+	ID               uuid.UUID
+	Email            string
+	Role             string
+	DisplayName      string
+	CreatedAt        time.Time
+	LastSignedInAt   *time.Time
+	LastSignInMethod pgtype.Text
+}
+
+func (q *Queries) GetAccountForAdmins(ctx context.Context, id uuid.UUID) (GetAccountForAdminsRow, error) {
+	row := q.db.QueryRow(ctx, getAccountForAdmins, id)
+	var i GetAccountForAdminsRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Role,
+		&i.DisplayName,
+		&i.CreatedAt,
+		&i.LastSignedInAt,
+		&i.LastSignInMethod,
+	)
+	return i, err
+}
+
 const getAccounts = `-- name: GetAccounts :many
 SELECT id, email, role, display_name FROM identity_accounts WHERE id = ANY($1::uuid[])
 `
@@ -491,14 +649,18 @@ func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) (I
 }
 
 const listAdmins = `-- name: ListAdmins :many
-SELECT id, email, role, display_name FROM identity_accounts WHERE role = 'admin' ORDER BY email
+SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method
+FROM identity_accounts WHERE role = 'admin' ORDER BY email
 `
 
 type ListAdminsRow struct {
-	ID          uuid.UUID
-	Email       string
-	Role        string
-	DisplayName string
+	ID               uuid.UUID
+	Email            string
+	Role             string
+	DisplayName      string
+	CreatedAt        time.Time
+	LastSignedInAt   *time.Time
+	LastSignInMethod pgtype.Text
 }
 
 func (q *Queries) ListAdmins(ctx context.Context) ([]ListAdminsRow, error) {
@@ -515,6 +677,9 @@ func (q *Queries) ListAdmins(ctx context.Context) ([]ListAdminsRow, error) {
 			&i.Email,
 			&i.Role,
 			&i.DisplayName,
+			&i.CreatedAt,
+			&i.LastSignedInAt,
+			&i.LastSignInMethod,
 		); err != nil {
 			return nil, err
 		}
@@ -559,6 +724,20 @@ type LockSubjectParams struct {
 // Serializes the sign-ins of one external identity until the transaction ends.
 func (q *Queries) LockSubject(ctx context.Context, arg LockSubjectParams) error {
 	_, err := q.db.Exec(ctx, lockSubject, arg.Provider, arg.Subject)
+	return err
+}
+
+const recordSignIn = `-- name: RecordSignIn :exec
+UPDATE identity_accounts SET last_signed_in_at = now(), last_sign_in_method = $1::text WHERE id = $2
+`
+
+type RecordSignInParams struct {
+	Method string
+	ID     uuid.UUID
+}
+
+func (q *Queries) RecordSignIn(ctx context.Context, arg RecordSignInParams) error {
+	_, err := q.db.Exec(ctx, recordSignIn, arg.Method, arg.ID)
 	return err
 }
 
