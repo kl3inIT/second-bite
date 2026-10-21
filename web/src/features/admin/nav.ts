@@ -2,6 +2,7 @@ import {
   HistoryIcon,
   MailIcon,
   PackageIcon,
+  ReceiptTextIcon,
   SettingsIcon,
   StoreIcon,
   UsersIcon,
@@ -9,8 +10,14 @@ import {
 } from "lucide-react";
 
 export type AdminNavItem = {
-  key: "sellers" | "offers" | "accounts" | "audit" | "settings";
-  href: "/admin/sellers" | "/admin/offers" | "/admin/accounts" | "/admin/audit" | "/admin/settings";
+  key: "sellers" | "offers" | "orders" | "accounts" | "audit" | "settings";
+  href:
+    | "/admin/sellers"
+    | "/admin/offers"
+    | "/admin/orders"
+    | "/admin/accounts"
+    | "/admin/audit"
+    | "/admin/settings";
   icon: LucideIcon;
 };
 
@@ -29,6 +36,7 @@ export const adminNav: AdminNavGroup[] = [
     items: [
       { key: "sellers", href: "/admin/sellers", icon: StoreIcon },
       { key: "offers", href: "/admin/offers", icon: PackageIcon },
+      { key: "orders", href: "/admin/orders", icon: ReceiptTextIcon },
     ],
   },
   {

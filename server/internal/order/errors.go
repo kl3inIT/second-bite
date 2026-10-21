@@ -64,6 +64,10 @@ var (
 		VI: "Đơn này đã được đánh giá.",
 		EN: "The order was already reviewed.",
 	})
+	ErrAdminListInvalid = platform.NewFailure("ORDER_ADMIN_LIST_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Bộ lọc danh sách đơn không hợp lệ: kiểm tra trạng thái, từ khoá tối đa 100 ký tự, khoảng ngày nhận có ngày bắt đầu trước ngày kết thúc, trang từ 1 và cỡ trang từ 1 đến 100.",
+		EN: "The order list's filters are not valid: check the statuses, a query of at most 100 characters, a range of collection days that starts before it ends, a page from 1 and a page size of 1 to 100.",
+	})
 	ErrMessageInvalid = platform.NewFailure("ORDER_MESSAGE_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Tin nhắn dài từ 1 đến 1.000 ký tự.",
 		EN: "A message is 1 to 1,000 characters.",

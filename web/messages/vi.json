@@ -1110,6 +1110,7 @@
     "nav": {
       "sellers": "Cửa hàng",
       "offers": "Bài đăng",
+      "orders": "Đơn hàng",
       "audit": "Nhật ký thao tác",
       "settings": "Cài đặt",
       "accounts": "Tài khoản"
@@ -1578,6 +1579,100 @@
       "noResults": {
         "title": "Không có bài đăng nào khớp bộ lọc",
         "clear": "Xoá bộ lọc"
+      }
+    },
+    "orders": {
+      "title": "Đơn hàng",
+      "cards": "Lọc theo trạng thái",
+      "card": {
+        "collected": "Đã nhận",
+        "waiting": "Đang chờ nhận",
+        "expired": "Hết hạn"
+      },
+      "status": {
+        "confirmed": "Đã xác nhận",
+        "ready": "Sẵn sàng",
+        "collected": "Đã nhận",
+        "cancelled": "Đã huỷ",
+        "refused": "Quán từ chối",
+        "expired": "Hết hạn"
+      },
+      "search": "Tìm mã đơn, tên khách hoặc cửa hàng",
+      "store": "Cửa hàng",
+      "anyStore": "Tất cả",
+      "collectionDay": "Ngày nhận",
+      "anytime": "Mọi lúc",
+      "size": "Số dòng",
+      "noun": "đơn",
+      "column": {
+        "store": "Cửa hàng",
+        "customer": "Khách",
+        "lines": "Món",
+        "number": "Mã đơn",
+        "total": "Tổng tiền",
+        "status": "Trạng thái",
+        "window": "Khung nhận"
+      },
+      "line": "{name} × {units}",
+      "moreLines": "+{count} món",
+      "window": "{from}–{until}",
+      "empty": {
+        "title": "Chưa có đơn nào"
+      },
+      "noResults": {
+        "title": "Không có đơn nào khớp bộ lọc",
+        "clear": "Xoá bộ lọc"
+      },
+      "detail": {
+        "seeStore": "Xem cửa hàng",
+        "strip": "Tóm tắt đơn",
+        "total": "Tổng thu tại quầy",
+        "totalNotTaken": "Tổng tiền (không thu)",
+        "units": "Số phần",
+        "unitsNote": "{count} món",
+        "window": "Khung nhận",
+        "held": "Giữ hàng",
+        "left": {
+          "minutes": "Còn {minutes} phút",
+          "hours": "Còn {hours} giờ{minutes, plural, =0 {} other { # phút}}",
+          "heldUntil": "Giữ hàng đến {time}",
+          "over": "Đã hết giờ",
+          "expiredAt": "Hết hạn lúc {time}",
+          "collected": "Đã nhận",
+          "collectedAt": "Lúc {time}",
+          "cancelled": "Đã huỷ",
+          "refused": "Quán từ chối",
+          "endedAt": "Lúc {time}"
+        },
+        "lines": "Món trong đơn",
+        "linesCount": "{lines} món · {units} phần",
+        "originalPrice": "Giá gốc",
+        "lineUnits": "× {units} {unit} · -{discount}%",
+        "linesTotal": "Tổng tiền (trả tại quầy)",
+        "history": "Lịch sử đơn",
+        "event": {
+          "placed": "Đặt món",
+          "ready": "Cửa hàng báo sẵn sàng",
+          "collected": "Khách nhận món",
+          "due": "Quá hạn nếu chưa nhận",
+          "expired": "Hết hạn",
+          "cancelled": "Đơn bị huỷ",
+          "refused": "Quán từ chối đơn"
+        },
+        "notYet": "Chưa",
+        "never": "Không",
+        "at": "{time} · {day}",
+        "customer": "Khách",
+        "name": "Tên",
+        "phone": "Số điện thoại",
+        "store": "Cửa hàng",
+        "address": "Địa chỉ",
+        "storeStatus": "Trạng thái",
+        "pickup": "Nhận hàng",
+        "windowOn": "{window} · {day}",
+        "place": "Nơi nhận",
+        "payment": "Thanh toán",
+        "atCounter": "Trả tại quầy"
       }
     }
   },

@@ -1110,6 +1110,7 @@
     "nav": {
       "sellers": "Stores",
       "offers": "Posts",
+      "orders": "Orders",
       "audit": "Activity log",
       "settings": "Settings",
       "accounts": "Accounts"
@@ -1578,6 +1579,100 @@
       "noResults": {
         "title": "No post matches the filters",
         "clear": "Clear the filters"
+      }
+    },
+    "orders": {
+      "title": "Orders",
+      "cards": "Filter by status",
+      "card": {
+        "collected": "Collected",
+        "waiting": "Waiting to collect",
+        "expired": "Expired"
+      },
+      "status": {
+        "confirmed": "Confirmed",
+        "ready": "Ready",
+        "collected": "Collected",
+        "cancelled": "Cancelled",
+        "refused": "Refused by the store",
+        "expired": "Expired"
+      },
+      "search": "Search an order number, customer or store",
+      "store": "Store",
+      "anyStore": "All",
+      "collectionDay": "Collection day",
+      "anytime": "Any time",
+      "size": "Rows",
+      "noun": "orders",
+      "column": {
+        "store": "Store",
+        "customer": "Customer",
+        "lines": "Items",
+        "number": "Order",
+        "total": "Total",
+        "status": "Status",
+        "window": "Pickup window"
+      },
+      "line": "{name} × {units}",
+      "moreLines": "+{count, plural, one {# item} other {# items}}",
+      "window": "{from}–{until}",
+      "empty": {
+        "title": "No orders yet"
+      },
+      "noResults": {
+        "title": "No orders match the filters",
+        "clear": "Clear filters"
+      },
+      "detail": {
+        "seeStore": "View store",
+        "strip": "Order summary",
+        "total": "Paid at the counter",
+        "totalNotTaken": "Total (not taken)",
+        "units": "Units",
+        "unitsNote": "{count, plural, one {# item} other {# items}}",
+        "window": "Pickup window",
+        "held": "Held",
+        "left": {
+          "minutes": "{minutes, plural, one {# minute} other {# minutes}} left",
+          "hours": "{hours} h{minutes, plural, =0 {} other { # min}} left",
+          "heldUntil": "Held until {time}",
+          "over": "Time is up",
+          "expiredAt": "Expired at {time}",
+          "collected": "Collected",
+          "collectedAt": "At {time}",
+          "cancelled": "Cancelled",
+          "refused": "Refused by the store",
+          "endedAt": "At {time}"
+        },
+        "lines": "Items in the order",
+        "linesCount": "{lines, plural, one {# item} other {# items}} · {units, plural, one {# unit} other {# units}}",
+        "originalPrice": "Original price",
+        "lineUnits": "× {units} {unit} · -{discount}%",
+        "linesTotal": "Total (paid at the counter)",
+        "history": "Order history",
+        "event": {
+          "placed": "Ordered",
+          "ready": "Store marked it ready",
+          "collected": "Customer collected it",
+          "due": "Expires if not collected",
+          "expired": "Expired",
+          "cancelled": "Cancelled",
+          "refused": "Refused by the store"
+        },
+        "notYet": "Not yet",
+        "never": "No",
+        "at": "{time} · {day}",
+        "customer": "Customer",
+        "name": "Name",
+        "phone": "Phone",
+        "store": "Store",
+        "address": "Address",
+        "storeStatus": "Status",
+        "pickup": "Pickup",
+        "windowOn": "{window} · {day}",
+        "place": "Pickup place",
+        "payment": "Payment",
+        "atCounter": "Pay at the counter"
       }
     }
   },

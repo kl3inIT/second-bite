@@ -2059,6 +2059,123 @@ function listAdminOffers(response, url, stores) {
   });
 }
 
+const orderStatuses = ["confirmed", "ready", "collected", "cancelled", "refused", "expired"];
+const adminCustomers = ["Minh Anh", "Quốc Bảo", "Thu Hà", "Đức Long"];
+
+/**
+ * Every store's orders as an admin reads them (SEC-135): twelve orders across the first four stores without a
+ * logo, two of each status, numbered down from SB-24831. Those still to collect end 38 minutes from now, the
+ * others ended earlier tonight; the first holds three lines, so its "Món" reads "+1 món".
+ */
+function adminOrdersOf(stores) {
+  const now = Date.now();
+  const at = (minutes) => new Date(now + minutes * 60 * 1000).toISOString();
+  const shops = stores.filter((store) => !store.photoId).slice(0, 4);
+  return Array.from({ length: 12 }, (_, i) => {
+    const store = shops[i % shops.length];
+    const status = orderStatuses[i % orderStatuses.length];
+    const open = status === "confirmed" || status === "ready";
+    const back = open ? 0 : 60 + i * 10;
+    const lines = postsOf(store)
+      .slice(0, i === 0 ? 3 : 1 + (i % 2))
+      .map((post, n) => ({
+        offerId: post.id,
+        name: post.name,
+        unit: post.unit,
+        priceVnd: post.priceVnd,
+        originalPriceVnd: post.originalPriceVnd,
+        units: n === 0 ? 2 : 1,
+        photo: post.photo,
+      }));
+    return {
+      id: `or-admin-${String(i).padStart(2, "0")}`,
+      number: `SB-${24831 - i}`,
+      status,
+      seller: {
+        id: store.id,
+        name: store.name,
+        address: store.address,
+        latitude: store.latitude,
+        longitude: store.longitude,
+      },
+      lines,
+      totalVnd: lines.reduce((sum, l) => sum + l.priceVnd * l.units, 0),
+      windowStart: at(-back - 22 - i),
+      windowEnd: at(-back + 38 - i),
+      createdAt: at(-back - 120 - i),
+      ...(status === "ready" || status === "collected" ? { readyAt: at(-back - 10 - i) } : {}),
+      ...(status === "collected" ? { collectedAt: at(-back - i) } : {}),
+      ...(status === "cancelled" ? { cancelledAt: at(-back - 60 - i) } : {}),
+      ...(status === "refused" ? { refusedAt: at(-back - i), refuseReason: "no_show" } : {}),
+      checkoutId: `co-admin-${i}`,
+      customerName: adminCustomers[i % adminCustomers.length],
+      customerPhone: `0900000${String(201 + i)}`,
+    };
+  });
+}
+
+/**
+ * GET /admin/orders (SEC-135), filtered and paged as server/internal/order/queries.sql does: the statuses, the
+ * number with or without SB-, the customer's name or phone or the store's name, a store and the days the
+ * window starts; the latest window first.
+ */
+function listAdminOrders(response, url, stores) {
+  const statuses = url.searchParams
+    .getAll("status")
+    .flatMap((s) => s.split(","))
+    .filter(Boolean);
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sellerId = url.searchParams.get("sellerId");
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const since = url.searchParams.get("collectSince");
+  const until = url.searchParams.get("collectUntil");
+  if (
+    (since && until && Date.parse(since) >= Date.parse(until)) ||
+    statuses.some((s) => !orderStatuses.includes(s)) ||
+    q.length > 100 ||
+    !(page >= 1) ||
+    !(size >= 1 && size <= 100)
+  ) {
+    problem(response, 400, "ORDER_ADMIN_LIST_INVALID");
+    return;
+  }
+  const found = adminOrdersOf(stores).filter(
+    (order) =>
+      (!q ||
+        fold(
+          `${order.number} ${order.number.slice(3)} ${order.customerName} ${order.customerPhone} ${order.seller.name}`,
+        ).includes(q)) &&
+      (!sellerId || order.seller.id === sellerId) &&
+      (!since || Date.parse(order.windowStart) >= Date.parse(since)) &&
+      (!until || Date.parse(order.windowStart) < Date.parse(until)),
+  );
+  const listed = found
+    .filter((order) => statuses.length === 0 || statuses.includes(order.status))
+    .sort((a, b) => b.windowStart.localeCompare(a.windowStart) || b.number.localeCompare(a.number));
+  json(response, 200, {
+    items: listed.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: listed.length,
+    counts: Object.fromEntries(
+      orderStatuses.map((status) => [status, found.filter((o) => o.status === status).length]),
+    ),
+  });
+}
+
+/** GET /orders/{id} for an admin, of the orders above (SEC-135); every other order goes on. */
+function adminOrderReads(request, response, url) {
+  const match = /^\/orders\/(or-admin-\d+)$/.exec(url.pathname);
+  if (request.method !== "GET" || !match) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account || account.role !== "admin") return false;
+  const order = adminOrdersOf(adminStoresOf(account)).find((o) => o.id === match[1]);
+  if (order) json(response, 200, order);
+  else problem(response, 404, "ORDER_NOT_FOUND");
+  return true;
+}
+
 /** POST /admin/sellers/{id}/approve | reject | block, each from the statuses it applies to. */
 async function changeAdminStore(request, response, stores, id, action) {
   const store = stores.find((s) => s.id === id);
@@ -2155,6 +2272,10 @@ async function adminRoutes(request, response, url) {
   }
   if (request.method === "GET" && url.pathname === "/admin/offers") {
     listAdminOffers(response, url, adminStoresOf(account));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/orders") {
+    listAdminOrders(response, url, adminStoresOf(account));
     return true;
   }
   const storeAction = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block)$/.exec(url.pathname);
@@ -2381,6 +2502,7 @@ async function answer(request, response) {
   if (await auth(request, response, url)) return;
   if (await favouriteRoutes(request, response, url)) return;
   if (adminSellerReads(request, response, url)) return;
+  if (adminOrderReads(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await emailSettingsRoutes(request, response, url)) return;
   if (await adminRoutes(request, response, url)) return;

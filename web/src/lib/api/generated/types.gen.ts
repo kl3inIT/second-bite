@@ -58,6 +58,17 @@ export type AdminOffersOutputBody = {
     total: number;
 };
 
+export type AdminOrdersOutputBody = {
+    /**
+     * Orders of each status matching the other filters, whatever status asks
+     */
+    counts: OrderCountsBody;
+    items: Array<OrderBody>;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
 export type AdminSellerBody = {
     address: string;
     createdAt: string;
@@ -655,6 +666,15 @@ export type OrderBody = {
     unreadMessages?: number;
     windowEnd: string;
     windowStart: string;
+};
+
+export type OrderCountsBody = {
+    cancelled: number;
+    collected: number;
+    confirmed: number;
+    expired: number;
+    ready: number;
+    refused: number;
 };
 
 export type OrderLineBody = {
@@ -1548,6 +1568,54 @@ export type ListOffersForAdminsResponses = {
 };
 
 export type ListOffersForAdminsResponse = ListOffersForAdminsResponses[keyof ListOffersForAdminsResponses];
+
+export type ListOrdersForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep these statuses; every status when absent
+         */
+        status?: Array<'confirmed' | 'ready' | 'collected' | 'cancelled' | 'refused' | 'expired'> | null;
+        /**
+         * The number, the customer's name or phone, or the seller's name
+         */
+        q?: string;
+        /**
+         * Keep this seller's orders
+         */
+        sellerId?: string;
+        page?: number;
+        size?: number;
+        /**
+         * Keep the orders whose window starts at or after this time
+         */
+        collectSince?: string;
+        /**
+         * Keep the orders whose window starts before this time
+         */
+        collectUntil?: string;
+    };
+    url: '/admin/orders';
+};
+
+export type ListOrdersForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListOrdersForAdminsError = ListOrdersForAdminsErrors[keyof ListOrdersForAdminsErrors];
+
+export type ListOrdersForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: AdminOrdersOutputBody;
+};
+
+export type ListOrdersForAdminsResponse = ListOrdersForAdminsResponses[keyof ListOrdersForAdminsResponses];
 
 export type ListSellersForAdminsData = {
     body?: never;
