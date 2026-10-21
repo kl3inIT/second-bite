@@ -163,11 +163,17 @@ body:has([data-no-footer]) > footer {
 }
 
 /* A row that runs on its own (Marquee): the list and its copy slide by half their width, then start over. It
-   stops under the pointer or the focus, and takes the pace of its number of items (--marquee-items); for reduced motion it stays still and scrolls by hand. */
+   stops under the pointer or the focus, and takes the pace of its number of items (--marquee-items). While it
+   stands still (on a phone, for reduced motion) it scrolls by hand. */
 @utility marquee-box {
-  overflow: hidden;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
   /* While it runs, the tickets fade in and out at the edges instead of being cut. */
   &:has(.marquee) {
+    overflow: hidden;
     mask-image: linear-gradient(
       to right,
       transparent,
@@ -175,9 +181,6 @@ body:has([data-no-footer]) > footer {
       black calc(100% - 1.5rem),
       transparent
     );
-  }
-  @media (prefers-reduced-motion: reduce) {
-    overflow-x: auto;
   }
 }
 
@@ -187,9 +190,6 @@ body:has([data-no-footer]) > footer {
   .marquee-box:hover &,
   .marquee-box:focus-within & {
     animation-play-state: paused;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
   }
 }
 
