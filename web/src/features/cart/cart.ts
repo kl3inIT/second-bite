@@ -33,7 +33,13 @@ export function addOne(cart: Cart | null, offer: OfferSummary): Cart {
   const lines = line
     ? basket.lines.map((each) => (each.id === offer.id ? updated : each))
     : [...basket.lines, updated];
-  return { baskets: baskets.map((each) => (each === basket ? { ...basket, lines } : each)) };
+  // The seller's details come from the dish just added, so a basket kept from earlier shows them as they are now.
+  const { seller, collectionPoint, distanceMeters } = basketOf(offer);
+  return {
+    baskets: baskets.map((each) =>
+      each === basket ? { ...basket, seller, collectionPoint, distanceMeters, lines } : each,
+    ),
+  };
 }
 
 /** One portion fewer; the dish leaves at none, its basket with its last dish, the cart with its last basket. */

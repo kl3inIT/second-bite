@@ -83,6 +83,17 @@ describe("the cart", () => {
     expect(withBasket(withBasket(cart, "s1", null)!, "s2", null)).toBeNull();
   });
 
+  it("shows a seller as the dish added last has them, so a basket kept from earlier gets the logo", () => {
+    const logo = {
+      id: "logo",
+      largePath: "/photos/logo/1600.jpg",
+      smallPath: "/photos/logo/400.jpg",
+    };
+    const later = { ...offer("eclair"), seller: { ...offer("eclair").seller, photo: logo } };
+
+    expect(basketOf(offer("croissant"), later).seller.photo).toEqual(logo);
+  });
+
   it("lets a dish go at none and is gone with its last dish", () => {
     const cart = cartOf(offer("croissant"), offer("croissant"), offer("eclair"))!;
 
