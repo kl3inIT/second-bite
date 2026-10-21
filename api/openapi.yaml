@@ -3208,7 +3208,7 @@ paths:
         - {}
         - bearer: []
         - cookie: []
-      summary: Cancel your order, free of charge until the seller marks it ready
+      summary: Cancel your order until the seller marks it ready
       tags:
         - Orders
   /orders/{orderId}/hand-over:

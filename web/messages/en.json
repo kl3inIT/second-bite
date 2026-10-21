@@ -461,7 +461,7 @@
     "cancel": {
       "open": "Cancel order",
       "title": "Cancel order {number}?",
-      "body": "{units, plural, one {# portion goes} other {# portions go}} back to {seller} for someone else. You have not paid, so nothing is charged. Choose a reason (optional):",
+      "body": "{units, plural, one {# portion goes} other {# portions go}} back to {seller} for someone else. Choose a reason (optional):",
       "reason": "Reason",
       "reasons": {
         "late": "Cannot make it",
@@ -470,7 +470,7 @@
       },
       "keep": "Keep order",
       "confirm": "Cancel order",
-      "tooLate": "The seller has finished preparing the food, so the order can no longer be cancelled.",
+      "tooLate": "The seller has marked the food ready, so the order can no longer be cancelled.",
       "failed": "The order was not cancelled. Try again, or report the reference {reference}."
     },
     "date": "{day}/{month}",

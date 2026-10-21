@@ -33,8 +33,8 @@ var (
 		EN: "The order does not exist.",
 	})
 	ErrCancelTooLate = platform.NewFailure("ORDER_CANCEL_TOO_LATE", platform.CategoryConflict, platform.Words{
-		VI: "Đơn không huỷ được nữa: quán đã chuẩn bị xong món, hoặc đơn đã kết thúc.",
-		EN: "The order can no longer be cancelled: the seller has finished preparing it, or it has ended.",
+		VI: "Đơn không huỷ được nữa: quán đã báo món sẵn sàng, hoặc đơn đã kết thúc.",
+		EN: "The order can no longer be cancelled: the seller has marked it ready, or it has ended.",
 	})
 	ErrTransitionNotAllowed = platform.NewFailure("ORDER_TRANSITION_NOT_ALLOWED", platform.CategoryConflict, platform.Words{
 		VI: "Đơn đã kết thúc: đã nhận, đã huỷ, bị từ chối, hoặc đã hết giờ nhận.",

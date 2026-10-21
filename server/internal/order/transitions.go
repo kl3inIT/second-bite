@@ -19,7 +19,7 @@ import (
 )
 
 // Cancel cancels an order for its customer, signed in or holding its access,
-// free of charge until the seller marks it ready, and gives its units back to their
+// until the seller marks it ready, and gives its units back to their
 // offers in the same transaction.
 func (s *Service) Cancel(ctx context.Context, id uuid.UUID, access, reason string) (Order, error) {
 	caller, signedIn := platform.CallerFrom(ctx)
