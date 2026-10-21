@@ -548,8 +548,6 @@
     "pay": "Thanh toán",
     "counter": "Thanh toán tại quầy",
     "counterHint": "Trả tiền mặt hoặc chuyển khoản khi nhận món",
-    "cash": "Tiền mặt",
-    "cashHint": "Trả khi nhận món",
     "summaryTitle": "Tóm tắt đơn",
     "line": "{quantity}× {name}",
     "dishes": "Tiền món ({units} phần)",

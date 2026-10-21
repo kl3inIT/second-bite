@@ -3,10 +3,8 @@
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { ChoiceOption } from "@/components/choice-option";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { RadioGroup } from "@/components/ui/radio-group";
 import { formatPrice } from "@/features/offers/format";
 import { directionsHref } from "@/features/offers/offer";
 import { OfferPhoto } from "@/features/offers/offer-photo";
@@ -59,7 +57,6 @@ export function Checkout() {
 
 function Confirmation({ cart }: { cart: Cart }) {
   const t = useTranslations("Cart");
-  const [payment, setPayment] = useState("counter");
   const [contact, setContact] = useState<Contact>();
   const { place, pending, problem, dismiss } = usePlaceCart();
   const { units, priceVnd, originalPriceVnd } = totals(cart);
@@ -80,14 +77,11 @@ function Confirmation({ cart }: { cart: Cart }) {
           <h2 id="pay" className="text-title-lg text-foreground">
             {t("pay")}
           </h2>
-          <RadioGroup
-            value={payment}
-            onValueChange={(value) => setPayment(String(value))}
-            aria-labelledby="pay"
-          >
-            <ChoiceOption value="counter" title={t("counter")} hint={t("counterHint")} />
-            <ChoiceOption value="cash" title={t("cash")} hint={t("cashHint")} />
-          </RadioGroup>
+          {/* The only way to pay: at the counter, in cash or by transfer, when collecting. */}
+          <div className="flex min-h-16 flex-col justify-center rounded-lg border border-primary bg-card px-3.5 py-3">
+            <p className="text-body-sm-strong text-foreground">{t("counter")}</p>
+            <p className="text-label text-muted-foreground">{t("counterHint")}</p>
+          </div>
         </section>
         <section aria-labelledby="summary" className="flex flex-col gap-3">
           <h2 id="summary" className="text-title-lg text-foreground">
