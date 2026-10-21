@@ -368,6 +368,7 @@
     "orderTitle": "Your order",
     "mine": "My orders",
     "lists": "Order lists",
+    "tonight": "Still on tonight",
     "tabOpen": "To collect ({count})",
     "tabEnded": "Done",
     "noneOpen": "You have no orders to collect.",
@@ -416,8 +417,13 @@
       "label": "Order steps",
       "placed": "Placed",
       "preparing": "Preparing",
+      "preparingNote": "the seller is preparing",
       "ready": "Ready",
-      "collected": "Done"
+      "readyNote": "come to the counter",
+      "readyPending": "Not ready yet",
+      "collected": "Collected",
+      "collectedNote": "enjoy your meal",
+      "collectedPending": "Not collected yet"
     },
     "timeline": {
       "title": "Status",

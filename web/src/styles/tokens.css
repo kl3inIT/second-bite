@@ -44,6 +44,7 @@
   --primary-foreground: var(--base-white);
   --primary-hover: var(--brand-900);
   --inverse-muted: var(--text-on-brand);
+  --inverse-faint: var(--brand-300);
   --shell: var(--base-white);
   --shell-foreground: var(--text-ink);
   --sidebar: var(--brand-800);
@@ -109,6 +110,7 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-hover: var(--primary-hover);
   --color-inverse-muted: var(--inverse-muted);
+  --color-inverse-faint: var(--inverse-faint);
   --color-shell: var(--shell);
   --color-shell-foreground: var(--shell-foreground);
   --color-sidebar: var(--sidebar);

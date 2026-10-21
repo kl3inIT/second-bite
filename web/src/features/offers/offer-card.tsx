@@ -68,7 +68,7 @@ export function OfferCard({
             compact ? "h-11 gap-1.25 px-2.5 pb-2" : "h-13 gap-1.75 px-3.25 pb-2.5",
           )}
         >
-          <ClockIcon aria-hidden strokeWidth={2.2} className="mb-0.5 size-3.5 shrink-0" />
+          <ClockIcon aria-hidden strokeWidth={2} className="mb-0.5 size-4 shrink-0" />
           <span className="truncate">{where}</span>
           {!compact && rating !== undefined && <Rating rating={rating} className="ml-auto" />}
         </p>

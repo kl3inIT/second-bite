@@ -64,7 +64,7 @@ function StatusBand({
         <p className="mt-3 text-title text-fresh">{eyebrow}</p>
         <p className="font-display text-display">{figure}</p>
         <p className="mt-1 text-body-sm text-inverse-muted">{line}</p>
-        <div className="mt-5 lg:max-w-xl">
+        <div className="mt-5">
           <OrderSteps order={order} />
         </div>
       </div>

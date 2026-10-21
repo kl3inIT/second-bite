@@ -368,6 +368,7 @@
     "orderTitle": "Đơn của bạn",
     "mine": "Đơn của tôi",
     "lists": "Danh sách đơn",
+    "tonight": "Còn món ngon",
     "tabOpen": "Đang chờ nhận ({count})",
     "tabEnded": "Đã xong",
     "noneOpen": "Bạn chưa có đơn nào đang chờ nhận.",
@@ -416,8 +417,13 @@
       "label": "Các bước của đơn",
       "placed": "Đã đặt",
       "preparing": "Chuẩn bị",
+      "preparingNote": "quán đang chuẩn bị",
       "ready": "Sẵn sàng",
-      "collected": "Hoàn tất"
+      "readyNote": "mời bạn tới quầy",
+      "readyPending": "Chưa sẵn sàng",
+      "collected": "Đã nhận",
+      "collectedNote": "chúc ngon miệng",
+      "collectedPending": "Chưa nhận"
     },
     "timeline": {
       "title": "Trạng thái",

@@ -15,6 +15,7 @@ abstract final class ColorTokens {
   static const primaryForeground = Color(0xFFFFFFFF);
   static const primaryHover = Color(0xFF004E8C);
   static const inverseMuted = Color(0xFFD8F0FA);
+  static const inverseFaint = Color(0xFF9EDAF3);
   static const shell = Color(0xFFFFFFFF);
   static const shellForeground = Color(0xFF0E1D19);
   static const sidebar = Color(0xFF0061AF);

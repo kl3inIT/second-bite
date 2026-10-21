@@ -3,9 +3,7 @@ import {
   ChevronRightIcon,
   MapPinIcon,
   QrCodeIcon,
-  ReceiptTextIcon,
   ShoppingBagIcon,
-  StoreIcon,
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
@@ -295,60 +293,125 @@ type StepState = "done" | "now" | "later";
 // (SEC-97 › decision 5).
 const stepOf: Partial<Record<Order["status"], number>> = { confirmed: 1, ready: 2, collected: 3 };
 
-/** The four steps of an order on the blue band: placed, preparing, ready, collected (Figma K6, K6b). */
+/** The icon of a step (Figma W5 › icon/…): a lime check once done, a white one in a ring now, a dashed ring to come. */
+function StepIcon({ state }: { state: StepState }) {
+  return (
+    // The header's blue behind the circle hides the bar that runs under it on a phone.
+    <span
+      aria-hidden
+      className={cn(
+        "relative flex shrink-0 items-center justify-center rounded-full bg-header",
+        state === "now" ? "size-7.5" : "size-5.5 max-md:my-1",
+      )}
+    >
+      {state === "later" ? (
+        <span className="size-full rounded-full border-2 border-dashed border-inverse-faint" />
+      ) : (
+        <span
+          className={cn(
+            "flex size-full items-center justify-center rounded-full",
+            state === "done" ? "bg-fresh text-header" : "bg-primary-foreground/25",
+          )}
+        >
+          {state === "now" ? (
+            <span className="flex size-5.5 items-center justify-center rounded-full bg-primary-foreground text-header">
+              <CheckIcon className="size-3" strokeWidth={4} />
+            </span>
+          ) : (
+            <CheckIcon className="size-3" strokeWidth={4} />
+          )}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/**
+ * The four steps of an order on the blue band: placed, preparing, ready, collected (Figma W5, W6). Each is a round
+ * icon, its name and under it its time, joined by bars that stretch evenly. A phone has no room beside the icons:
+ * the name goes under each one, and the time stays while the longer line the current step carries is dropped.
+ */
 export function OrderSteps({ order }: { order: Order }) {
   const t = useTranslations("Orders.steps");
+  const format = useFormatter();
   const current = stepOf[order.status] ?? 0;
-  const collected = order.status === "collected";
-  const stateAt = (index: number): StepState => {
-    if (index < current || (collected && index === current)) return "done";
-    return index === current ? "now" : "later";
-  };
-  const steps: { icon: LucideIcon; label: string; state: StepState }[] = [
-    { icon: ReceiptTextIcon, label: t("placed"), state: stateAt(0) },
-    { icon: StoreIcon, label: t("preparing"), state: stateAt(1) },
-    { icon: ShoppingBagIcon, label: t("ready"), state: stateAt(2) },
-    { icon: CheckIcon, label: t("collected"), state: stateAt(3) },
+  const timeOf = (moment?: string) =>
+    moment ? format.dateTime(new Date(moment), "time") : undefined;
+  // The backend stamps no moment for preparing: an order is confirmed as it is placed.
+  const steps: { label: string; time?: string; note?: string; pending?: string }[] = [
+    { label: t("placed"), time: timeOf(order.createdAt) },
+    { label: t("preparing"), note: t("preparingNote") },
+    {
+      label: t("ready"),
+      time: timeOf(order.readyAt),
+      note: t("readyNote"),
+      pending: t("readyPending"),
+    },
+    {
+      label: t("collected"),
+      time: timeOf(order.collectedAt),
+      note: t("collectedNote"),
+      pending: t("collectedPending"),
+    },
   ];
 
   return (
-    <ol aria-label={t("label")} className="flex items-start">
-      {steps.map(({ icon: Icon, label, state }, index) => (
-        <li
-          key={label}
-          aria-current={index === current ? "step" : undefined}
-          className="relative flex flex-1 flex-col items-center gap-1.5"
-        >
-          {index > 0 ? (
-            <span
-              aria-hidden
-              className={cn(
-                "absolute top-3.5 right-1/2 h-0.75 w-full",
-                state === "later" ? "bg-primary-foreground/15" : "bg-fresh",
-              )}
-            />
-          ) : null}
-          <span
+    <ol aria-label={t("label")} className="flex items-start md:items-center">
+      {steps.map(({ label, time, note, pending }, index) => {
+        const state: StepState = index < current ? "done" : index === current ? "now" : "later";
+        return (
+          <li
+            key={label}
+            aria-current={state === "now" ? "step" : undefined}
             className={cn(
-              "relative flex size-8 items-center justify-center rounded-full",
-              state === "later"
-                ? "bg-primary-foreground/15 text-inverse-muted"
-                : "bg-fresh text-fresh-foreground",
-              state === "now" && "ring-3 ring-primary-foreground",
+              "relative flex min-w-0 flex-1 flex-col items-center md:flex-row",
+              index === 0 && "md:flex-none",
             )}
           >
-            <Icon aria-hidden className="size-4" />
-          </span>
-          <span
-            className={cn(
-              "text-label",
-              index === current ? "text-label-strong text-fresh" : "text-inverse-muted",
-            )}
-          >
-            {label}
-          </span>
-        </li>
-      ))}
+            {index > 0 ? (
+              <span
+                aria-hidden
+                className={cn(
+                  "h-0.5 max-md:absolute max-md:top-3.5 max-md:right-1/2 max-md:w-full md:mr-3 md:flex-1",
+                  index <= current ? "bg-fresh" : "bg-inverse-faint/40",
+                )}
+              />
+            ) : null}
+            <span className="flex min-w-0 flex-col items-center gap-1.5 md:flex-row md:gap-2">
+              <StepIcon state={state} />
+              <span className="flex min-w-0 flex-col text-center md:text-left">
+                <span
+                  className={cn(
+                    state === "now" ? "text-title text-primary-foreground" : "text-body-sm",
+                    state === "done" && "font-medium text-fresh",
+                    state === "later" && "text-inverse-muted",
+                  )}
+                >
+                  {label}
+                </span>
+                {state === "later" ? (
+                  <span className="text-label text-inverse-muted max-md:hidden">{pending}</span>
+                ) : time || (state === "now" && note) ? (
+                  <span
+                    className={cn(
+                      "text-label text-inverse-muted",
+                      state === "now" && "font-medium",
+                    )}
+                  >
+                    {time}
+                    {state === "now" && note ? (
+                      <span className="max-md:hidden">
+                        {time ? " · " : ""}
+                        {note}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : null}
+              </span>
+            </span>
+          </li>
+        );
+      })}
     </ol>
   );
 }
