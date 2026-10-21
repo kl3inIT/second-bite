@@ -114,11 +114,10 @@ export function SubmitButton({
 export function FormError({ fallback, title }: { fallback: string; title?: string }) {
   const form = useFormContext();
   return (
-    <form.Subscribe selector={(state) => state.errorMap.onServer as { form?: Failure } | undefined}>
-      {(server) =>
-        server?.form ? (
-          <FailureAlert failure={server.form} fallback={fallback} title={title} />
-        ) : null
+    // TanStack Form keeps the `form` part of the errors `refuse` gave as the form's own error.
+    <form.Subscribe selector={(state) => state.errorMap.onServer as Failure | undefined}>
+      {(failure) =>
+        failure ? <FailureAlert failure={failure} fallback={fallback} title={title} /> : null
       }
     </form.Subscribe>
   );
