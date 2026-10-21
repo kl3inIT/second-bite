@@ -101,5 +101,6 @@
     "reason": "Reason for locking (admins only)",
     "confirm": "Lock account"
   },
-  "soon": "Coming soon"
+  "soon": "Coming soon",
+  "pageOf": "Page {page} of {pages}"
 }

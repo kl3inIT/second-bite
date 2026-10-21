@@ -21,7 +21,7 @@ export default function AdminAccount({
   return (
     <AdminPageGate page="accountDetail">
       <Suspense fallback={<Skeleton shape="card" className="h-96" />}>
-        <AccountDetailPage accountId={params.then((p) => p.accountId)} query={searchParams} />
+        <AccountDetailPage params={params} query={searchParams} />
       </Suspense>
     </AdminPageGate>
   );
