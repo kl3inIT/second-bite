@@ -4,18 +4,18 @@ Owns the surplus sellers post and the settings every offer follows (tables `offe
 
 ## Operations
 
-| Operation | Who | Answer |
-| --- | --- | --- |
-| `POST /sellers/{sellerId}/offers` `{name, description, kind, unit, units, priceVnd, originalPriceVnd, weightGrams, photoId, morePhotoIds, windowStart, windowEnd}` | The owner or staff of an active seller | `201` offer, on sale at once |
-| `PATCH /offers/{offerId}` | The owner or staff of an active seller | `200` offer |
-| `POST /offers/{offerId}/withdraw` | The seller's owner or staff, even when it is blocked | `200` offer, withdrawn; again, the same |
-| `GET /sellers/{sellerId}/offers?status=&limit=&offset=` | Its members; admins | `200` its offers, newest first, at most 100; the list staff post again from |
-| `GET /offers?near=&radiusKm=&q=&kind=&minPrice=&maxPrice=&collectFrom=&collectTo=&sellerId=&available=&sort=&limit=&offset=` | Anyone | `200` offers on sale or sold out, each with its seller (name, address, photo) and, near a point, its distance; at most 50 a page |
-| `GET /offers/{offerId}` | Anyone while it is on sale or sold out and its seller active; its members and admins always | `200` offer |
-| `GET`, `POST /sellers/{sellerId}/dishes` `{name, kind, unit, description, ingredients, originalPriceVnd, photoId, morePhotoIds, hidden}` | The owner or staff of an active seller | `200` the catalog, newest first, hidden dishes included; `201` the dish |
-| `PATCH`, `DELETE /dishes/{dishId}` | Same, through the dish's seller | `200` the dish; `204` |
-| `GET /admin/offer-settings` | Admins | `200` the settings, their version in `ETag` |
-| `PUT /admin/offer-settings`, `If-Match` required | Admins | `200` the settings and their new `ETag`; `412` when saved since; a save that changes nothing writes nothing; each change recorded in the audit trail with the fields changed (SEC-75) |
+| Operation                                                                                                                                                          | Who                                                                                         | Answer                                                                                                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /sellers/{sellerId}/offers` `{name, description, kind, unit, units, priceVnd, originalPriceVnd, weightGrams, photoId, morePhotoIds, windowStart, windowEnd}` | The owner or staff of an active seller                                                      | `201` offer, on sale at once                                                                                                                                                          |
+| `PATCH /offers/{offerId}`                                                                                                                                          | The owner or staff of an active seller                                                      | `200` offer                                                                                                                                                                           |
+| `POST /offers/{offerId}/withdraw`                                                                                                                                  | The seller's owner or staff, even when it is blocked                                        | `200` offer, withdrawn; again, the same                                                                                                                                               |
+| `GET /sellers/{sellerId}/offers?status=&limit=&offset=`                                                                                                            | Its members; admins                                                                         | `200` its offers, newest first, at most 100; the list staff post again from                                                                                                           |
+| `GET /offers?near=&radiusKm=&q=&kind=&minPrice=&maxPrice=&collectFrom=&collectTo=&sellerId=&available=&sort=&limit=&offset=`                                       | Anyone                                                                                      | `200` offers on sale or sold out, each with its seller (name, address, photo) and, near a point, its distance; at most 50 a page                                                      |
+| `GET /offers/{offerId}`                                                                                                                                            | Anyone while it is on sale or sold out and its seller active; its members and admins always | `200` offer                                                                                                                                                                           |
+| `GET`, `POST /sellers/{sellerId}/dishes` `{name, kind, unit, description, ingredients, originalPriceVnd, photoId, morePhotoIds, hidden}`                           | The owner or staff of an active seller                                                      | `200` the catalog, newest first, hidden dishes included; `201` the dish                                                                                                               |
+| `PATCH`, `DELETE /dishes/{dishId}`                                                                                                                                 | Same, through the dish's seller                                                             | `200` the dish; `204`                                                                                                                                                                 |
+| `GET /admin/offer-settings`                                                                                                                                        | Admins                                                                                      | `200` the settings, their version in `ETag`                                                                                                                                           |
+| `PUT /admin/offer-settings`, `If-Match` required                                                                                                                   | Admins                                                                                      | `200` the settings and their new `ETag`; `412` when saved since; a save that changes nothing writes nothing; each change recorded in the audit trail with the fields changed (SEC-75) |
 
 An offer carries its status, units left, discount, photo addresses (`photo` is the cover; `photos` is every photo, the cover first) and the collection point copied from the seller when it was posted. Prices are whole đồng; times are RFC 3339.
 
@@ -37,30 +37,30 @@ Published to other modules: `Service` and `WindowChangedEvent`. `order` reads th
 
 ## Data
 
-| Table | Holds | Lifecycle |
-| --- | --- | --- |
-| `offer_offers` | Seller and who posted (no foreign key across modules), state, the fields, units and units left (`0 <= units_left <= units`), the cover photo and up to two more (`more_photo_ids`), window, the copied latitude, longitude, generated location (GiST index), address and seller's name, the words searched (`search_vector`, GIN index), when posted, changed and withdrawn | Kept: orders, measures and the seller's history read it |
-| `offer_dishes` | Seller, who added it (no foreign keys across modules), the dish's fields, hidden or not, the cover photo and up to two more (`more_photo_ids`) | Kept until the seller deletes it |
-| `offer_settings` | One row: the settings, who changed them and when | Replaced on save |
+| Table            | Holds                                                                                                                                                                                                                                                                                                                                                                       | Lifecycle                                               |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `offer_offers`   | Seller and who posted (no foreign key across modules), state, the fields, units and units left (`0 <= units_left <= units`), the cover photo and up to two more (`more_photo_ids`), window, the copied latitude, longitude, generated location (GiST index), address and seller's name, the words searched (`search_vector`, GIN index), when posted, changed and withdrawn | Kept: orders, measures and the seller's history read it |
+| `offer_dishes`   | Seller, who added it (no foreign keys across modules), the dish's fields, hidden or not, the cover photo and up to two more (`more_photo_ids`)                                                                                                                                                                                                                              | Kept until the seller deletes it                        |
+| `offer_settings` | One row: the settings, who changed them and when                                                                                                                                                                                                                                                                                                                            | Replaced on save                                        |
 
 ## Failures
 
-| Code | Status | When |
-| --- | --- | --- |
-| `OFFER_DETAILS_INVALID` | 400 | A field breaks its rule |
-| `OFFER_DISCOUNT_TOO_SMALL` | 400 | The price is not the minimum discount below the original price |
-| `OFFER_WINDOW_INVALID` | 400 | The window is too short, too long, over, or starts too late |
-| `OFFER_SEARCH_INVALID` | 400 | A point off the map, a time range ending before it starts, a lowest price above the highest, or sorting by distance from no point |
-| `OFFER_SETTINGS_INVALID` | 400 | Settings out of range or contradicting each other |
-| `OFFER_DISH_LIMIT_REACHED` | 409 | A seller already holds 100 dishes |
-| `OFFER_DISH_NOT_FOUND` | 404 | No such dish, or one of another seller |
-| `OFFER_NOT_FOUND` | 404 | No such offer, or one the caller may not see or change |
-| `OFFER_CHANGE_NOT_ALLOWED` | 409 | A change its orders forbid, or any change once it is closed or withdrawn |
-| `OFFER_SOLD_OUT` | 409 | `Take`: fewer units left than an order asks; `order` answers it as its own code |
-| `OFFER_UNAVAILABLE` | 409 | `Take`: the offer is withdrawn or closed; `order` answers it as its own code |
-| `SELLER_NOT_ACTIVE` | 403 | Posting or changing for a seller that is not active |
-| `SELLER_NOT_FOUND` | 404 | Posting for a seller the caller is not a member of |
-| `FILE_PHOTO_NOT_FOUND` | 404 | A photo neither the caller's nor the seller's |
+| Code                       | Status | When                                                                                                                              |
+| -------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `OFFER_DETAILS_INVALID`    | 400    | A field breaks its rule                                                                                                           |
+| `OFFER_DISCOUNT_TOO_SMALL` | 400    | The price is not the minimum discount below the original price                                                                    |
+| `OFFER_WINDOW_INVALID`     | 400    | The window is too short, too long, over, or starts too late                                                                       |
+| `OFFER_SEARCH_INVALID`     | 400    | A point off the map, a time range ending before it starts, a lowest price above the highest, or sorting by distance from no point |
+| `OFFER_SETTINGS_INVALID`   | 400    | Settings out of range or contradicting each other                                                                                 |
+| `OFFER_DISH_LIMIT_REACHED` | 409    | A seller already holds 100 dishes                                                                                                 |
+| `OFFER_DISH_NOT_FOUND`     | 404    | No such dish, or one of another seller                                                                                            |
+| `OFFER_NOT_FOUND`          | 404    | No such offer, or one the caller may not see or change                                                                            |
+| `OFFER_CHANGE_NOT_ALLOWED` | 409    | A change its orders forbid, or any change once it is closed or withdrawn                                                          |
+| `OFFER_SOLD_OUT`           | 409    | `Take`: fewer units left than an order asks; `order` answers it as its own code                                                   |
+| `OFFER_UNAVAILABLE`        | 409    | `Take`: the offer is withdrawn or closed; `order` answers it as its own code                                                      |
+| `SELLER_NOT_ACTIVE`        | 403    | Posting or changing for a seller that is not active                                                                               |
+| `SELLER_NOT_FOUND`         | 404    | Posting for a seller the caller is not a member of                                                                                |
+| `FILE_PHOTO_NOT_FOUND`     | 404    | A photo neither the caller's nor the seller's                                                                                     |
 
 ## Not yet
 
