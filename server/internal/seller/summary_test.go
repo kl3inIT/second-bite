@@ -50,15 +50,22 @@ func TestSummary(t *testing.T) {
 	}
 
 	checkStatusPerDay(t, got.PerDay, from)
-
-	want := seller.Opened{ID: ids[5], Name: shop.Name, OpenedAt: september9am(5)}
-	if len(got.Latest) != 5 || got.Latest[0].ID != want.ID || got.Latest[0].Name != want.Name ||
-		!got.Latest[0].OpenedAt.Equal(want.OpenedAt) || got.Latest[4].ID != ids[1] {
-		t.Errorf("the newest %+v, want the last five opened, newest first", got.Latest)
-	}
+	checkLatest(t, got.Latest, ids)
 
 	if _, err := f.sellers.Summary(f.as(t, "owner", platform.RoleCustomer), from, to); !errors.Is(err, platform.ErrAdminRequired) {
 		t.Errorf("an owner reading the summary: %v, want ErrAdminRequired", err)
+	}
+}
+
+// checkLatest checks the newest five sellers, newest first, whenever they were
+// opened.
+func checkLatest(t *testing.T, got []seller.Opened, ids []uuid.UUID) {
+	t.Helper()
+
+	want := seller.Opened{ID: ids[5], Name: shop.Name, OpenedAt: september9am(5)}
+	if len(got) != 5 || got[0].ID != want.ID || got[0].Name != want.Name ||
+		!got[0].OpenedAt.Equal(want.OpenedAt) || got[4].ID != ids[1] {
+		t.Errorf("the newest %+v, want the last five opened, newest first", got)
 	}
 }
 
