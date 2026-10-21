@@ -1357,12 +1357,12 @@ function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
 }
 
+// An order keeps the status it was given: the stub does not expire one on the clock. The samples' windows are at
+// fixed evening hours (21:00 to 21:45 tonight), so a run after 21:45 in Vietnam would find every order placed from
+// them over and the customer's order tests failing.
 function shown(order) {
-  const open = order.status === "confirmed" || order.status === "ready";
-  const expired = open && new Date(order.windowEnd) <= new Date();
-  const status = expired ? "expired" : order.status;
   const { owner: _owner, ...rest } = order;
-  return { ...rest, status };
+  return rest;
 }
 
 /** Whether the request comes from whoever placed the order: its account, or its access. */

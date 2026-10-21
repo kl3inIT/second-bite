@@ -69,6 +69,7 @@ func TestService(t *testing.T) {
 		"an owner deletes their account; the others forget it":       checkAccountDeletion,
 		"a person names their account":                               checkDisplayName,
 		"an order is placed, made ready and handed over":             checkOrderFlow,
+		"an order's live socket carries its changes":                 checkLiveSocket,
 	}
 
 	// The checks run in parallel with one another; this group returns when

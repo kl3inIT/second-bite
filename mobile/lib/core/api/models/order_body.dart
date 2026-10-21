@@ -47,6 +47,9 @@ abstract class OrderBody with _$OrderBody {
     String? cancelReason,
     DateTime? cancelledAt,
     DateTime? collectedAt,
+
+    /// Messages its chat holds, with unreadMessages; none for admins
+    int? messageCount,
     DateTime? readyAt,
     String? refuseNote,
     OrderBodyRefuseReason? refuseReason,
@@ -54,6 +57,9 @@ abstract class OrderBody with _$OrderBody {
 
     /// The customer's rating of the collected order; none until they rate it
     ReviewBody? review,
+
+    /// Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins
+    int? unreadMessages,
   }) = _OrderBody;
 
   factory OrderBody.fromJson(Map<String, Object?> json) =>
