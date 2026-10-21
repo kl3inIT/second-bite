@@ -5,10 +5,13 @@ import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import { useRouter } from "@/i18n/navigation";
+
+import { searchHref, type SearchQuery } from "./search-query";
 
 const HALF_HOUR = 30;
 // Every half hour of the day, "00:00" to "23:30", for the times to collect.
@@ -19,11 +22,12 @@ const times = Array.from({ length: (24 * 60) / HALF_HOUR }, (_, index) => {
 const thousands = new Intl.NumberFormat("vi-VN");
 
 /** A choice applied in one press, such as "Dưới 20.000đ" or "Nhận ngay". */
-export type RangePreset = { label: string; query: Record<string, string>; current: boolean };
+export type RangePreset = { label: string; href: string; current: boolean };
 
 // A filter chip over a range, the price or the time to collect, "từ … đến …" (Shopee's "Khoảng giá", Too
 // Good To Go's pickup window): quick choices first, then the two ends, either of which may stay empty.
-// Applying opens the search with the range in the address, keeping every other filter in `keep`.
+// Applying opens the search with the range in the address, keeping every other filter in `keep`; the address is
+// written by the search's own serializer (search-params.ts).
 export function RangeFilter({
   type,
   name,
@@ -43,9 +47,9 @@ export function RangeFilter({
   from?: string;
   to?: string;
   /** The search's query without this filter. */
-  keep: Record<string, string>;
+  keep: SearchQuery;
   /** The address's keys for the two ends. */
-  params: readonly [string, string];
+  params: readonly ["minPrice", "maxPrice"] | readonly ["from", "to"];
   presets: readonly RangePreset[];
   raised?: boolean;
 }) {
@@ -55,8 +59,8 @@ export function RangeFilter({
   const [open, setOpen] = useState(false);
   const [invalid, setInvalid] = useState(false);
 
-  function show(query: Record<string, string>) {
-    router.push({ pathname: "/search", query });
+  function show(href: string) {
+    router.push(href);
     setOpen(false);
   }
 
@@ -72,10 +76,9 @@ export function RangeFilter({
       start !== "" && end !== "" && (type === "price" ? Number(start) > Number(end) : start > end);
     setInvalid(outOfOrder);
     if (outOfOrder) return;
-    const query = { ...keep };
-    if (start) query[params[0]] = start;
-    if (end) query[params[1]] = end;
-    show(query);
+    const end_ = (text: string) =>
+      text === "" ? undefined : type === "price" ? Number(text) : text;
+    show(searchHref(keep, { [params[0]]: end_(start), [params[1]]: end_(end) }));
   }
 
   const field = (end: "from" | "to", value?: string) =>
@@ -84,6 +87,8 @@ export function RangeFilter({
         id={`${id}-${end}`}
         name={end}
         value={value}
+        invalid={invalid}
+        describedBy={invalid ? `${id}-order` : undefined}
         placeholder={t(end === "from" ? "lowest" : "highest")}
       />
     ) : (
@@ -91,6 +96,8 @@ export function RangeFilter({
         id={`${id}-${end}`}
         name={end}
         defaultValue={value ?? ""}
+        aria-invalid={invalid || undefined}
+        aria-describedby={invalid ? `${id}-order` : undefined}
         size="lg"
         className="w-full"
       >
@@ -140,7 +147,7 @@ export function RangeFilter({
                   variant="chip"
                   size="chip-sm"
                   aria-pressed={preset.current}
-                  onClick={() => show(preset.query)}
+                  onClick={() => show(preset.href)}
                 >
                   {preset.label}
                 </Button>
@@ -162,12 +169,17 @@ export function RangeFilter({
             </div>
           </div>
           {invalid && (
-            <p role="alert" className="-mt-2 text-label text-destructive">
+            <FieldError id={`${id}-order`} className="-mt-2">
               {t(type === "price" ? "priceOrder" : "timeOrder")}
-            </p>
+            </FieldError>
           )}
           <div className="grid grid-cols-2 gap-2">
-            <Button type="button" variant="secondary" size="panel" onClick={() => show(keep)}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="panel"
+              onClick={() => show(searchHref(keep))}
+            >
               {t("clearFilter")}
             </Button>
             <Button type="submit" size="panel">
@@ -186,11 +198,15 @@ function PriceInput({
   name,
   value,
   placeholder,
+  invalid,
+  describedBy,
 }: {
   id: string;
   name: string;
   value?: string;
   placeholder: string;
+  invalid?: boolean;
+  describedBy?: string;
 }) {
   const [digits, setDigits] = useState(value ?? "");
 
@@ -202,6 +218,8 @@ function PriceInput({
         inputMode="numeric"
         autoComplete="off"
         placeholder={placeholder}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
         value={digits ? thousands.format(Number(digits)) : ""}
         onChange={(event) => setDigits(event.target.value.replace(/\D/g, "").slice(0, 8))}
       />

@@ -22,7 +22,18 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | The customer lists all, open and ended orders, newest first; another account sees none of them | `TestOrder` › the customer lists open and ended orders |
 | Admins read what an account ordered: placed, handed over, missed (a lapsed window and a no-show, not a refusal for the food), the latest five with their lines and without their access; a customer is refused | `TestOrder` › admins read what an account ordered |
 | Through the API: no key is a problem; an order is placed with its number and access, sent again with the same key; too many units is refused; ready without the access for staff, then handed over; the customer's ended orders | `TestService` › an order is placed, made ready and handed over (`cmd/secondbite/order_test.go`) |
+| A message is trimmed, numbered and read back with both sides' seen marks and `unreadMessages`, beyond-the-last counts as the last, and seen never lowers | `TestOrder` › the two sides of an order talk |
+| Only the customer (session or access) and the seller's people read, write, mark seen and get tickets; a stranger, an admin, another seller's owner and a wrong access get 404 | `TestOrder` › who takes part in a chat |
+| A cancelled, refused or expired order's chat locks at once; a collected one stays writable 2 hours; a resend after closing returns the first message | `TestOrder` › a chat closes with its order |
+| Empty, blank and over-long messages and bad keys are refused; the same key returns the first message; 20 a minute with a wait; 500 in a chat | `TestOrder` › a chat is bounded |
+| Concurrent senders get numbers 1 to n with no gap | `TestOrder` › messages are numbered in commit order |
+| Tickets are minted for who may, work once, expire and are purged, and are stored only as a hash | `TestOrder` › live tickets work once, for who may |
+| Every path that changes an order notifies, and a failed placing notifies nothing | `TestOrder` › every change of an order notifies |
+| Chats are forgotten 30 days after the window, run twice; a deleted account's chats go through the outbox, twice, and another customer's stay | `TestOrder` › old chats are forgotten; `TestDeletedCustomerChatsAreForgotten` |
+| The hub: a notice reaches a socket on another instance; a rollback and other topics reach nobody; a ticket works once; 20 topics; 40 subscribe attempts and 10 idle seconds; 1008, 1009, 1013, a missed pong, 4000, `resync` after the listening connection is killed, a socket outliving the server's timeouts, 1001 on stop | `TestLive` (`internal/platform/live_test.go`) |
+| Through the assembled service: a customer follows an order with a ticket and hears it turn ready; a stranger gets no ticket | `TestService` › an order's live socket carries its changes |
 | The module depends only on the edges ARCHITECTURE.md allows | `TestModuleBoundaries` (`internal/boundaries_test.go`) |
 | The operations are in the contract | `TestOpenAPIDocumentIsCurrent` (`cmd/secondbite/openapi_test.go`) |
+| A seller's moved point is copied onto its order to collect, not onto one handed over; delivered twice, nothing more changes; an unknown seller is ignored | `TestOrder` › orders and offers follow their seller |
 
 Not covered by a test: the same key arriving twice at once (held by the unique index, then read back), and two staff handing over at once (held by the row lock).

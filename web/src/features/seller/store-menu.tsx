@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon, PlusIcon, StoreIcon } from "lucide-react";
+import { CheckIcon, MapPinnedIcon, PlusIcon, StoreIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -15,7 +15,12 @@ import {
 import { SellerAvatar } from "@/features/offers/seller-avatar";
 import { Link } from "@/i18n/navigation";
 
-type Store = { id: string; name: string; photo?: { smallPath: string } };
+type Store = {
+  id: string;
+  name: string;
+  photo?: { smallPath: string };
+  myRole?: "owner" | "staff";
+};
 
 // What the store's name in the header opens (Figma "Chủ quán · Mobile 390"): the way back to the shop the customers
 // use, the person's stores to move between with the one they are in marked, and a way to open another while they
@@ -48,6 +53,12 @@ export function StoreMenu({
             <StoreIcon aria-hidden />
             {t("shop")}
           </DropdownMenuItem>
+          {current.myRole === "owner" && (
+            <DropdownMenuItem render={<Link href={`/stores/${current.id}/location`} />}>
+              <MapPinnedIcon aria-hidden />
+              {t("location")}
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

@@ -2,6 +2,10 @@
 
 Status: started on 21 October 2026. Tracked in Linear as SEC-119. The founder asked for it on seeing the posting drawer on a phone: a dish takes up to three photos, shown as three empty places to fill, the photo preview across the whole width, and the first photo being the cover. It changes the SEC-11 rule "one photo, required" ([SEC-11 design](../sec-11-offer-module/design.md)).
 
+## Outcome
+
+On 21 October 2026, after the server, the contract and the web screens were merged (#86), the founder decided a dish keeps one photo. The web goes back to one photo (the dish form, the posting drawer, the customer's dish sheet). The server, the contract and the mobile client keep `morePhotoIds` and `photos`: additive, unused by any screen, and the migration is applied on staging, so nothing is removed until the founder asks for the extra photos again or for them to go.
+
 ## Decision
 
 A dish (the catalog) and an offer (a post) carry a cover and up to two more photos. The change is additive, so the mobile app, which reads one `photo`, keeps working:

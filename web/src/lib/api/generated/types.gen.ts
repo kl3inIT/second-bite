@@ -170,7 +170,7 @@ export type DetailsBody = {
      */
     address: string;
     /**
-     * Where the seller is, pinned on a map
+     * Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE
      */
     latitude: number;
     longitude: number;
@@ -362,6 +362,21 @@ export type ListDishesResponse = {
     dishes: Array<DishBody>;
 };
 
+export type LiveTicketOutputBody = {
+    /**
+     * Thirty seconds after it was minted
+     */
+    expiresAt: string;
+    /**
+     * Sent once in a subscribe frame on GET /live; it works once
+     */
+    ticket: string;
+};
+
+export type MarkOrderMessagesSeenRequest = {
+    upTo: number;
+};
+
 export type MemberBody = {
     accountId: string;
     addedAt: string;
@@ -383,6 +398,32 @@ export type MembershipBody = {
 
 export type MembershipsOutputBody = {
     memberships: Array<MembershipBody> | null;
+};
+
+export type MessageBody = {
+    from: 'customer' | 'seller';
+    sentAt: string;
+    /**
+     * Its number in the chat, from 1
+     */
+    seq: number;
+    text: string;
+};
+
+export type MessagesOutputBody = {
+    /**
+     * Only once the order is collected: when its chat turns read-only
+     */
+    closesAt?: string;
+    /**
+     * Oldest first
+     */
+    messages: Array<MessageBody>;
+    /**
+     * Whether the chat takes messages
+     */
+    open: boolean;
+    seen: SeenBody;
 };
 
 export type MethodsOutputBody = {
@@ -555,6 +596,10 @@ export type OrderBody = {
     id: string;
     lines: Array<OrderLineBody>;
     /**
+     * Messages its chat holds, with unreadMessages; none for admins
+     */
+    messageCount?: number;
+    /**
      * What people read aloud, SB- and a number
      */
     number: string;
@@ -578,6 +623,10 @@ export type OrderBody = {
      * Paid to the seller at the counter
      */
     totalVnd: number;
+    /**
+     * Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins
+     */
+    unreadMessages?: number;
     windowEnd: string;
     windowStart: string;
 };
@@ -632,6 +681,15 @@ export type PhotoBody = {
     width: number;
 };
 
+export type PlaceBody = {
+    /**
+     * As people write it; a house number typed first goes before a street that has none
+     */
+    address: string;
+    latitude: number;
+    longitude: number;
+};
+
 export type PlaceOrderBody = {
     /**
      * Shared by the orders placed together from one cart, one per seller; a new one when omitted
@@ -649,6 +707,13 @@ export type PlaceOrderBody = {
      * A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted
      */
     phone: string;
+};
+
+export type PlacesOutputBody = {
+    /**
+     * Up to five places in Hanoi; none when nothing matches or the search does not answer
+     */
+    places: Array<PlaceBody> | null;
 };
 
 export type Problem = {
@@ -758,6 +823,17 @@ export type SaveEmailSettingsInputBody = {
     smtpUsername?: string;
 };
 
+export type SeenBody = {
+    /**
+     * The highest message the customer has read
+     */
+    customer: number;
+    /**
+     * The highest message the seller's people have read
+     */
+    seller: number;
+};
+
 export type SellerBody = {
     address: string;
     createdAt: string;
@@ -800,6 +876,13 @@ export type SellerProfileBody = {
 
 export type SellersOutputBody = {
     sellers: Array<SellerBody> | null;
+};
+
+export type SendOrderMessageRequest = {
+    /**
+     * Trimmed; 1 to 1,000 characters
+     */
+    text: string;
 };
 
 export type SendTestEmailInputBody = {
@@ -2007,6 +2090,145 @@ export type HandOverOrderResponses = {
 
 export type HandOverOrderResponse = HandOverOrderResponses[keyof HandOverOrderResponses];
 
+export type CreateOrderLiveTicketData = {
+    body?: never;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/live-ticket';
+};
+
+export type CreateOrderLiveTicketErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type CreateOrderLiveTicketError = CreateOrderLiveTicketErrors[keyof CreateOrderLiveTicketErrors];
+
+export type CreateOrderLiveTicketResponses = {
+    /**
+     * OK
+     */
+    200: LiveTicketOutputBody;
+};
+
+export type CreateOrderLiveTicketResponse = CreateOrderLiveTicketResponses[keyof CreateOrderLiveTicketResponses];
+
+export type ListOrderMessagesData = {
+    body?: never;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: {
+        /**
+         * Only messages numbered after this one
+         */
+        after?: number;
+        limit?: number;
+    };
+    url: '/orders/{orderId}/messages';
+};
+
+export type ListOrderMessagesErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListOrderMessagesError = ListOrderMessagesErrors[keyof ListOrderMessagesErrors];
+
+export type ListOrderMessagesResponses = {
+    /**
+     * OK
+     */
+    200: MessagesOutputBody;
+};
+
+export type ListOrderMessagesResponse = ListOrderMessagesResponses[keyof ListOrderMessagesResponses];
+
+export type SendOrderMessageData = {
+    body: SendOrderMessageRequest;
+    headers: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+        'Idempotency-Key': string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/messages';
+};
+
+export type SendOrderMessageErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SendOrderMessageError = SendOrderMessageErrors[keyof SendOrderMessageErrors];
+
+export type SendOrderMessageResponses = {
+    /**
+     * Created
+     */
+    201: MessageBody;
+};
+
+export type SendOrderMessageResponse = SendOrderMessageResponses[keyof SendOrderMessageResponses];
+
+export type MarkOrderMessagesSeenData = {
+    body: MarkOrderMessagesSeenRequest;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/messages/seen';
+};
+
+export type MarkOrderMessagesSeenErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type MarkOrderMessagesSeenError = MarkOrderMessagesSeenErrors[keyof MarkOrderMessagesSeenErrors];
+
+export type MarkOrderMessagesSeenResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type MarkOrderMessagesSeenResponse = MarkOrderMessagesSeenResponses[keyof MarkOrderMessagesSeenResponses];
+
 export type MarkOrderReadyData = {
     body?: never;
     path: {
@@ -2274,6 +2496,36 @@ export type ListMySellersResponses = {
 };
 
 export type ListMySellersResponse = ListMySellersResponses[keyof ListMySellersResponses];
+
+export type SearchPlacesData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The words of the address, with or without Vietnamese marks
+         */
+        q: string;
+    };
+    url: '/sellers/places';
+};
+
+export type SearchPlacesErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SearchPlacesError = SearchPlacesErrors[keyof SearchPlacesErrors];
+
+export type SearchPlacesResponses = {
+    /**
+     * OK
+     */
+    200: PlacesOutputBody;
+};
+
+export type SearchPlacesResponse = SearchPlacesResponses[keyof SearchPlacesResponses];
 
 export type GetSellerData = {
     body?: never;
@@ -2608,6 +2860,33 @@ export type ListSellerOrdersResponses = {
 };
 
 export type ListSellerOrdersResponse = ListSellerOrdersResponses[keyof ListSellerOrdersResponses];
+
+export type CreateSellerLiveTicketData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/orders/live-ticket';
+};
+
+export type CreateSellerLiveTicketErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type CreateSellerLiveTicketError = CreateSellerLiveTicketErrors[keyof CreateSellerLiveTicketErrors];
+
+export type CreateSellerLiveTicketResponses = {
+    /**
+     * OK
+     */
+    200: LiveTicketOutputBody;
+};
+
+export type CreateSellerLiveTicketResponse = CreateSellerLiveTicketResponses[keyof CreateSellerLiveTicketResponses];
 
 export type RemoveSellerPhotoData = {
     body?: never;

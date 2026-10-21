@@ -34,6 +34,15 @@ services:
       - internal
       - proxy
 
+  # Filled once, and refreshed, by infrastructure/map/fetch.sh (docs/runbooks/ci-cd.md).
+  map:
+    container_name: secondbite-staging-map
+    volumes:
+      - /apps/secondbite-staging/map:/usr/share/nginx/html/map:ro
+    networks:
+      - internal
+      - proxy
+
   # The Flutter app in a browser, for the team only, at preview.secondbite.vadan.app (docs/guidelines/mobile.md).
   # Its image carries its own health check; it reaches nothing but the proxy.
   preview:

@@ -24,6 +24,11 @@ services:
     build:
       context: ../../web
 
+  # Filled by `infrastructure/map/fetch.sh .tmp/map`; empty, the site runs and the map says it cannot load.
+  map:
+    volumes:
+      - ../../.tmp/map:/usr/share/nginx/html/map:ro
+
   # Stands in for the host's reverse proxy: /api goes to the server without its prefix, the rest to the web.
   proxy:
     image: nginx:1.31-alpine@sha256:892bb2152464f0c5d8972593a5f5afaf8054552580b699d95f8ff4af08c2d33d
@@ -34,6 +39,8 @@ services:
       - "127.0.0.1:8000:80"
     depends_on:
       web:
+        condition: service_healthy
+      map:
         condition: service_healthy
     networks:
       - internal

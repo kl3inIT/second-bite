@@ -1,10 +1,11 @@
 "use client";
 
-import { LocateFixedIcon, StoreIcon, XIcon } from "lucide-react";
+import { CircleAlertIcon, LocateFixedIcon, StoreIcon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { ChoiceOption } from "@/components/choice-option";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -16,6 +17,8 @@ import {
 import { RadioGroup } from "@/components/ui/radio-group";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+
+import { homePath, type HomeQuery } from "./home-query";
 
 type Area = "mall" | "nearby";
 
@@ -33,7 +36,7 @@ export function AreaSheet({
   className,
 }: {
   nearby: boolean;
-  keep: Record<string, string>;
+  keep: HomeQuery;
   className?: string;
 }) {
   const t = useTranslations("Area");
@@ -43,8 +46,8 @@ export function AreaSheet({
   const [locating, setLocating] = useState(false);
   const [failure, setFailure] = useState<"denied" | "failed">();
 
-  function show(query: Record<string, string>) {
-    router.push({ pathname: "/", query });
+  function show(query: HomeQuery) {
+    router.push(homePath(query));
     setOpen(false);
   }
 
@@ -110,9 +113,10 @@ export function AreaSheet({
             />
           </RadioGroup>
           {failure && (
-            <p role="alert" className="text-body-sm text-destructive">
-              {t(failure)}
-            </p>
+            <Alert variant="warning">
+              <CircleAlertIcon aria-hidden />
+              <AlertDescription>{t(failure)}</AlertDescription>
+            </Alert>
           )}
           <Button size="lg" onClick={apply} disabled={locating}>
             {locating ? t("locating") : t("apply")}

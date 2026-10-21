@@ -11,6 +11,7 @@ import { SellerAvatar } from "@/features/offers/seller-avatar";
 import { Link } from "@/i18n/navigation";
 import type { OfferBody, SellerBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
 import { DayBar } from "./day-filter";
 import { getStoreDishes, getStoreOffers, getStoreOrders } from "./my-sellers";
@@ -18,17 +19,21 @@ import { OrderRow } from "./order-row";
 import { PostRow } from "./post-row";
 import { requireStore } from "./require-store";
 import { ShowDishButton } from "./show-dish-button";
-import { readDay, vietnamToday } from "./store-day";
+import {
+  dayOrNull,
+  loadHomeSearchParams,
+  serializeHomeSearchParams,
+  serializeOrderSearchParams,
+} from "./search-params";
+import { vietnamToday } from "./store-day";
 import { offersOfDay } from "./store-offers";
-import { groupOrders, orderTabs, readOrderTab, type OrderTab } from "./store-orders";
+import { groupOrders, orderTabs, type OrderTab } from "./store-orders";
+import { StorePanel } from "./store-panel";
 import { summarizeDay } from "./store-summary";
 import { StoreTitleRow } from "./store-title-row";
 
 /** How many orders, posts and dishes the home lists; each card's chips or title lead to the whole tab. */
 const SHOWN = 3;
-
-const card =
-  "flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground";
 
 /** The column of a row's badge or button, as wide on every row so they stand on one axis (Figma Q1b). */
 const actionColumn = "flex w-31 shrink-0 justify-center";
@@ -48,13 +53,13 @@ export async function StoreHome({
 }) {
   const sellerId = await pendingId;
   const query = await pendingQuery;
-  const one = (name: string) => (typeof query[name] === "string" ? query[name] : undefined);
 
   // The session is read before the clock, so the page is made for each request and never at build time.
   const store = await requireStore(sellerId, `/stores/${sellerId}`);
   const today = vietnamToday();
-  const day = readDay(one("day"), today);
-  const tab = readOrderTab(one("tab"));
+  const view = loadHomeSearchParams(query);
+  const day = view.day ?? today;
+  const tab = view.tab;
 
   const [t, n, format, offers, orders, dishes] = await Promise.all([
     getTranslations("StoreHome"),
@@ -66,23 +71,16 @@ export async function StoreHome({
   ]);
 
   const isToday = day === today;
-  const date = format.dateTime(new Date(`${day}T12:00:00+07:00`), {
-    day: "2-digit",
-    month: "2-digit",
-  });
+  const date = format.dateTime(new Date(`${day}T12:00:00+07:00`), "dayMonth");
   const posts = offersOfDay(offers, day);
   const summary = summarizeDay(orders, posts);
   const groups = groupOrders(orders);
   const postHref = `/stores/${sellerId}/offers/new`;
-  const ordersHref = (tab: OrderTab) => ({
-    pathname: `/stores/${sellerId}/orders`,
-    query: { ...(isToday ? {} : { day }), ...(tab === "preparing" ? {} : { tab }) },
-  });
+  const ordersHref = (tab: OrderTab) =>
+    `/stores/${sellerId}/orders${serializeOrderSearchParams({ day: dayOrNull(day, today), tab })}`;
   // A chip filters the home's own list in place, keeping the day and the place on the page.
-  const filterHref = (name: OrderTab) => ({
-    pathname: `/stores/${sellerId}`,
-    query: { ...(isToday ? {} : { day }), ...(name === "preparing" ? {} : { tab: name }) },
-  });
+  const filterHref = (name: OrderTab) =>
+    `/stores/${sellerId}${serializeHomeSearchParams({ day: dayOrNull(day, today), tab: name })}`;
   const shown = groups[tab];
 
   return (
@@ -94,7 +92,7 @@ export async function StoreHome({
       <StoreStatus store={store} />
 
       {offers.length === 0 && (
-        <section aria-labelledby="store-start" className={cn(card, "items-start")}>
+        <StorePanel labelledBy="store-start" className="items-start">
           <div className="flex flex-col gap-1">
             <h2 id="store-start" className="text-card-title">
               {t("startTitle")}
@@ -104,7 +102,7 @@ export async function StoreHome({
           <Link href={postHref} className={buttonVariants({ size: "lg" })}>
             {t("post")}
           </Link>
-        </section>
+        </StorePanel>
       )}
 
       <section aria-labelledby="store-overview" className="flex flex-col gap-4">
@@ -112,14 +110,7 @@ export async function StoreHome({
           <h2 id="store-overview" className="text-card-title max-md:sr-only">
             {t("overview")}
           </h2>
-          <DayBar
-            pathname={`/stores/${sellerId}`}
-            day={day}
-            today={today}
-            tab={tab}
-            defaultTab="preparing"
-            q=""
-          />
+          <DayBar pathname={`/stores/${sellerId}`} list="home" today={today} />
         </div>
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           <Figure
@@ -146,14 +137,14 @@ export async function StoreHome({
       </section>
 
       {isToday && groups.preparing.length > 0 && (
-        <section aria-labelledby="store-todo" className={card}>
+        <StorePanel labelledBy="store-todo">
           <h2 id="store-todo" className="text-card-title">
             {t("todo")}
           </h2>
           <div className="flex items-center gap-3 border-t border-border pt-4 max-md:flex-wrap md:gap-4">
             <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
               <Image
-                src={`/api${groups.preparing[0].lines[0].photo.smallPath}`}
+                src={photoUrl(groups.preparing[0].lines[0].photo.smallPath)}
                 alt=""
                 fill
                 sizes="56px"
@@ -175,10 +166,10 @@ export async function StoreHome({
               {t("seeOrders")}
             </Link>
           </div>
-        </section>
+        </StorePanel>
       )}
 
-      <section aria-labelledby="store-orders" className={card}>
+      <StorePanel labelledBy="store-orders">
         <h2 id="store-orders" className="text-card-title">
           {isToday ? t("ordersToday") : t("ordersOn", { date })}
         </h2>
@@ -221,10 +212,10 @@ export async function StoreHome({
             ))}
           </ul>
         )}
-      </section>
+      </StorePanel>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <section aria-labelledby="store-posts" className={card}>
+        <StorePanel labelledBy="store-posts">
           <h2 id="store-posts" className="text-card-title">
             {isToday ? t("postsToday") : t("postsOn", { date })}
           </h2>
@@ -247,9 +238,9 @@ export async function StoreHome({
               ))}
             </ul>
           )}
-        </section>
+        </StorePanel>
 
-        <section aria-labelledby="store-catalog" className={card}>
+        <StorePanel labelledBy="store-catalog">
           <h2 id="store-catalog" className="text-card-title">
             {t("catalog", { count: dishes.length })}
           </h2>
@@ -271,7 +262,7 @@ export async function StoreHome({
                     )}
                   >
                     <Image
-                      src={`/api${dish.photo.smallPath}`}
+                      src={photoUrl(dish.photo.smallPath)}
                       alt=""
                       fill
                       sizes="56px"
@@ -303,7 +294,7 @@ export async function StoreHome({
               ))}
             </ul>
           )}
-        </section>
+        </StorePanel>
       </div>
 
       <Link

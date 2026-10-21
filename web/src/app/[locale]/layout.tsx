@@ -2,13 +2,14 @@ import type { Metadata, Viewport } from "next";
 import { Be_Vietnam_Pro, Bricolage_Grotesque } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { Splash } from "@/components/splash";
-import { FollowToast } from "@/features/favourites/follow-button";
+import { Toaster } from "@/components/ui/toast";
 import { routing } from "@/i18n/routing";
 import { absoluteUrl, siteIds, siteOrigin } from "@/lib/seo";
 
@@ -48,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // The root layout: every page lives under [locale], so the document's language is the page's.
 export default async function LocaleLayout({ children }: LayoutProps<"/[locale]">) {
   const locale = await getLocale();
-  const t = await getTranslations("Metadata");
+  const [t, failure] = await Promise.all([getTranslations("Metadata"), getTranslations("Failure")]);
   const lang = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
 
   return (
@@ -93,14 +94,19 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
           }}
         />
         <NextIntlClientProvider>
-          <Splash />
-          {children}
-          <SiteFooter />
-          {/* The bar reads the address, which a page with a dynamic segment knows only at request time. */}
-          <Suspense>
-            <BottomNav />
-          </Suspense>
-          <FollowToast />
+          {/* Every page may keep a list's filters in the address and say what an action did in a toast
+              (docs/guidelines/web.md › Lists and filters, › Feedback). */}
+          <NuqsAdapter>
+            <Toaster closeLabel={failure("closeToast")}>
+              <Splash />
+              {children}
+              <SiteFooter />
+              {/* The bar reads the address, which a page with a dynamic segment knows only at request time. */}
+              <Suspense>
+                <BottomNav />
+              </Suspense>
+            </Toaster>
+          </NuqsAdapter>
         </NextIntlClientProvider>
       </body>
     </html>

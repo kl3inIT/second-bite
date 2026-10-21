@@ -163,6 +163,8 @@ test.describe("a dish, its seller and the cart", () => {
 
     await page.goto("/vi/cart");
     await expect(page.getByRole("button", { name: "Đặt món" })).toBeVisible();
+    // The layout's template adds the name once.
+    await expect(page).toHaveTitle("Xác nhận đơn · Second Bite");
     expect(await noSideways()).toBe(true);
   });
 

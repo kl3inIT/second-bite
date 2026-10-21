@@ -6,12 +6,17 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/cancel_order_request.dart';
+import '../models/live_ticket_output_body.dart';
+import '../models/mark_order_messages_seen_request.dart';
+import '../models/message_body.dart';
+import '../models/messages_output_body.dart';
 import '../models/order_body.dart';
 import '../models/orders_output_body.dart';
 import '../models/orders_state.dart';
 import '../models/place_order_body.dart';
 import '../models/refuse_order_request.dart';
 import '../models/review_order_request.dart';
+import '../models/send_order_message_request.dart';
 
 part 'orders_client.g.dart';
 
@@ -70,6 +75,57 @@ abstract class OrdersClient {
   @POST('/orders/{orderId}/hand-over')
   Future<OrderBody> handOverOrder({@Path('orderId') required String orderId});
 
+  /// A ticket to follow an order on the live socket.
+  ///
+  /// To its customer, signed in or sending its access, and to the seller's people; admins are left out. The socket reads no cookie, so the ticket is what authorizes it.
+  ///
+  /// [orderAccess] - The order's access, for its customer who did not sign in.
+  @POST('/orders/{orderId}/live-ticket')
+  Future<LiveTicketOutputBody> createOrderLiveTicket({
+    @Path('orderId') required String orderId,
+    @Header('Order-Access') String? orderAccess,
+  });
+
+  /// The messages of an order's chat, oldest first.
+  ///
+  /// To its customer, signed in or sending its access, and to the seller's people; admins are left out.
+  ///
+  /// [orderAccess] - The order's access, for its customer who did not sign in.
+  ///
+  /// [after] - Only messages numbered after this one.
+  @GET('/orders/{orderId}/messages')
+  Future<MessagesOutputBody> listOrderMessages({
+    @Path('orderId') required String orderId,
+    @Query('after') int? after = 0,
+    @Query('limit') int? limit = 50,
+    @Header('Order-Access') String? orderAccess,
+  });
+
+  /// Write in an order's chat.
+  ///
+  /// By its customer, signed in or sending its access, and by the seller's people, while the order is open and for two hours after it is collected. Sending the same Idempotency-Key again returns the message sent first.
+  ///
+  /// [orderAccess] - The order's access, for its customer who did not sign in.
+  @POST('/orders/{orderId}/messages')
+  Future<MessageBody> sendOrderMessage({
+    @Path('orderId') required String orderId,
+    @Header('Idempotency-Key') required String idempotencyKey,
+    @Body() required SendOrderMessageRequest body,
+    @Header('Order-Access') String? orderAccess,
+  });
+
+  /// Say you have read an order's chat up to a message.
+  ///
+  /// Also once the chat is read-only. An upTo beyond the latest message counts as the latest.
+  ///
+  /// [orderAccess] - The order's access, for its customer who did not sign in.
+  @POST('/orders/{orderId}/messages/seen')
+  Future<void> markOrderMessagesSeen({
+    @Path('orderId') required String orderId,
+    @Body() required MarkOrderMessagesSeenRequest body,
+    @Header('Order-Access') String? orderAccess,
+  });
+
   /// Mark an order ready, which tells its customer to come
   @POST('/orders/{orderId}/ready')
   Future<OrderBody> markOrderReady({@Path('orderId') required String orderId});
@@ -106,5 +162,11 @@ abstract class OrdersClient {
   Future<OrdersOutputBody> listSellerOrders({
     @Path('sellerId') required String sellerId,
     @Query('day') String? day,
+  });
+
+  /// A ticket to follow a seller's orders on the live socket
+  @POST('/sellers/{sellerId}/orders/live-ticket')
+  Future<LiveTicketOutputBody> createSellerLiveTicket({
+    @Path('sellerId') required String sellerId,
   });
 }

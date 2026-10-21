@@ -147,7 +147,10 @@ test.describe("ordering from the cart", () => {
     await expect(page.getByText("Tiết kiệm so với giá gốc · 1 phần không bị bỏ phí")).toBeVisible();
 
     const send = await hydrated(page.getByRole("button", { name: "Gửi đánh giá" }));
-    await expect(send).toBeDisabled();
+    // Sent without stars, the rating says so under them, and the first star takes the focus.
+    await send.click();
+    await expect(page.getByText("Chọn số sao cho đơn.")).toBeVisible();
+    await expect(page.getByRole("radio", { name: "1 sao" })).toBeFocused();
     await page.getByRole("radio", { name: "4 sao" }).click();
     await expect(page.getByText("Tốt", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Nhận hàng nhanh" }).click();

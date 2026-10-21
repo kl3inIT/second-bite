@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { OfferBody } from "@/lib/api/generated";
 
-import { groupByTab, matchesName, offersOfDay, readPostTab } from "./store-offers";
+import { groupByTab, matchesName, offersOfDay } from "./store-offers";
 
 const offer = (id: string, status: OfferBody["status"]) => ({ id, status }) as OfferBody;
 
@@ -17,12 +17,6 @@ describe("a store's post tabs", () => {
     expect(groups.on_sale.map((o) => o.id)).toEqual(["a"]);
     expect(groups.sold_out.map((o) => o.id)).toEqual(["c"]);
     expect(groups.closed.map((o) => o.id)).toEqual(["b", "d"]);
-  });
-
-  it("reads the tab from the address, on sale when it is missing or unknown", () => {
-    expect(readPostTab("closed")).toBe("closed");
-    expect(readPostTab("withdrawn")).toBe("on_sale");
-    expect(readPostTab(undefined)).toBe("on_sale");
   });
 });
 

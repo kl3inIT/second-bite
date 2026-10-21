@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddDishData, AddDishErrors, AddDishResponses, AddressAtData, AddressAtErrors, AddressAtResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, ApproveSellerData, ApproveSellerErrors, ApproveSellerResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, CancelOrderData, CancelOrderErrors, CancelOrderResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, FollowSellerData, FollowSellerErrors, FollowSellerResponses, GetAccountForAdminsData, GetAccountForAdminsErrors, GetAccountForAdminsResponses, GetAccountOrderHistoryData, GetAccountOrderHistoryErrors, GetAccountOrderHistoryResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetOrderData, GetOrderErrors, GetOrderResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, GrantAdminData, GrantAdminErrors, GrantAdminResponses, HandOverOrderData, HandOverOrderErrors, HandOverOrderResponses, ListAccountsData, ListAccountsErrors, ListAccountsResponses, ListAdminsData, ListAdminsErrors, ListAdminsResponses, ListAuditEventsData, ListAuditEventsErrors, ListAuditEventsResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListFollowedSellersData, ListFollowedSellersErrors, ListFollowedSellersResponses, ListMembershipsForAdminsData, ListMembershipsForAdminsErrors, ListMembershipsForAdminsResponses, ListMyOrdersData, ListMyOrdersErrors, ListMyOrdersResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellerOrdersData, ListSellerOrdersErrors, ListSellerOrdersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, MarkOrderReadyData, MarkOrderReadyErrors, MarkOrderReadyResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PlaceOrderData, PlaceOrderErrors, PlaceOrderResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RefuseOrderData, RefuseOrderErrors, RefuseOrderResponses, RejectSellerData, RejectSellerErrors, RejectSellerResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, ReopenOrderData, ReopenOrderErrors, ReopenOrderResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, ReviewOrderData, ReviewOrderErrors, ReviewOrderResponses, RevokeAdminData, RevokeAdminErrors, RevokeAdminResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SendTestEmailData, SendTestEmailErrors, SendTestEmailResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UnfollowSellerData, UnfollowSellerErrors, UnfollowSellerResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
+import type { AddDishData, AddDishErrors, AddDishResponses, AddressAtData, AddressAtErrors, AddressAtResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, ApproveSellerData, ApproveSellerErrors, ApproveSellerResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, CancelOrderData, CancelOrderErrors, CancelOrderResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, CreateOrderLiveTicketData, CreateOrderLiveTicketErrors, CreateOrderLiveTicketResponses, CreateSellerLiveTicketData, CreateSellerLiveTicketErrors, CreateSellerLiveTicketResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, FollowSellerData, FollowSellerErrors, FollowSellerResponses, GetAccountForAdminsData, GetAccountForAdminsErrors, GetAccountForAdminsResponses, GetAccountOrderHistoryData, GetAccountOrderHistoryErrors, GetAccountOrderHistoryResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetOrderData, GetOrderErrors, GetOrderResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, GrantAdminData, GrantAdminErrors, GrantAdminResponses, HandOverOrderData, HandOverOrderErrors, HandOverOrderResponses, ListAccountsData, ListAccountsErrors, ListAccountsResponses, ListAdminsData, ListAdminsErrors, ListAdminsResponses, ListAuditEventsData, ListAuditEventsErrors, ListAuditEventsResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListFollowedSellersData, ListFollowedSellersErrors, ListFollowedSellersResponses, ListMembershipsForAdminsData, ListMembershipsForAdminsErrors, ListMembershipsForAdminsResponses, ListMyOrdersData, ListMyOrdersErrors, ListMyOrdersResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListOrderMessagesData, ListOrderMessagesErrors, ListOrderMessagesResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellerOrdersData, ListSellerOrdersErrors, ListSellerOrdersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, MarkOrderMessagesSeenData, MarkOrderMessagesSeenErrors, MarkOrderMessagesSeenResponses, MarkOrderReadyData, MarkOrderReadyErrors, MarkOrderReadyResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PlaceOrderData, PlaceOrderErrors, PlaceOrderResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RefuseOrderData, RefuseOrderErrors, RefuseOrderResponses, RejectSellerData, RejectSellerErrors, RejectSellerResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, ReopenOrderData, ReopenOrderErrors, ReopenOrderResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, ReviewOrderData, ReviewOrderErrors, ReviewOrderResponses, RevokeAdminData, RevokeAdminErrors, RevokeAdminResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SearchPlacesData, SearchPlacesErrors, SearchPlacesResponses, SendOrderMessageData, SendOrderMessageErrors, SendOrderMessageResponses, SendTestEmailData, SendTestEmailErrors, SendTestEmailResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UnfollowSellerData, UnfollowSellerErrors, UnfollowSellerResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -579,6 +579,74 @@ export const handOverOrder = <ThrowOnError extends boolean = true>(options: Opti
 });
 
 /**
+ * A ticket to follow an order on the live socket
+ *
+ * To its customer, signed in or sending its access, and to the seller's people; admins are left out. The socket reads no cookie, so the ticket is what authorizes it.
+ */
+export const createOrderLiveTicket = <ThrowOnError extends boolean = true>(options: Options<CreateOrderLiveTicketData, ThrowOnError>): RequestResult<CreateOrderLiveTicketResponses, CreateOrderLiveTicketErrors, ThrowOnError> => (options.client ?? client).post<CreateOrderLiveTicketResponses, CreateOrderLiveTicketErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/live-ticket',
+    ...options
+});
+
+/**
+ * The messages of an order's chat, oldest first
+ *
+ * To its customer, signed in or sending its access, and to the seller's people; admins are left out.
+ */
+export const listOrderMessages = <ThrowOnError extends boolean = true>(options: Options<ListOrderMessagesData, ThrowOnError>): RequestResult<ListOrderMessagesResponses, ListOrderMessagesErrors, ThrowOnError> => (options.client ?? client).get<ListOrderMessagesResponses, ListOrderMessagesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/messages',
+    ...options
+});
+
+/**
+ * Write in an order's chat
+ *
+ * By its customer, signed in or sending its access, and by the seller's people, while the order is open and for two hours after it is collected. Sending the same Idempotency-Key again returns the message sent first.
+ */
+export const sendOrderMessage = <ThrowOnError extends boolean = true>(options: Options<SendOrderMessageData, ThrowOnError>): RequestResult<SendOrderMessageResponses, SendOrderMessageErrors, ThrowOnError> => (options.client ?? client).post<SendOrderMessageResponses, SendOrderMessageErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/messages',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Say you have read an order's chat up to a message
+ *
+ * Also once the chat is read-only. An upTo beyond the latest message counts as the latest.
+ */
+export const markOrderMessagesSeen = <ThrowOnError extends boolean = true>(options: Options<MarkOrderMessagesSeenData, ThrowOnError>): RequestResult<MarkOrderMessagesSeenResponses, MarkOrderMessagesSeenErrors, ThrowOnError> => (options.client ?? client).post<MarkOrderMessagesSeenResponses, MarkOrderMessagesSeenErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/messages/seen',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Mark an order ready, which tells its customer to come
  */
 export const markOrderReady = <ThrowOnError extends boolean = true>(options: Options<MarkOrderReadyData, ThrowOnError>): RequestResult<MarkOrderReadyResponses, MarkOrderReadyErrors, ThrowOnError> => (options.client ?? client).post<MarkOrderReadyResponses, MarkOrderReadyErrors, ThrowOnError>({
@@ -668,7 +736,7 @@ export const uploadPhoto = <ThrowOnError extends boolean = true>(options: Option
 export const getPhoto = <ThrowOnError extends boolean = true>(options: Options<GetPhotoData, ThrowOnError>): RequestResult<GetPhotoResponses, GetPhotoErrors, ThrowOnError> => (options.client ?? client).get<GetPhotoResponses, GetPhotoErrors, ThrowOnError>({ url: '/photos/{photoId}/{file}', ...options });
 
 /**
- * Open a seller; it waits for an admin to activate it
+ * Open a seller, active at once, pinned inside Hanoi
  */
 export const openSeller = <ThrowOnError extends boolean = true>(options: Options<OpenSellerData, ThrowOnError>): RequestResult<OpenSellerResponses, OpenSellerErrors, ThrowOnError> => (options.client ?? client).post<OpenSellerResponses, OpenSellerErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -726,6 +794,19 @@ export const listMySellers = <ThrowOnError extends boolean = true>(options?: Opt
 });
 
 /**
+ * Places in Hanoi for the words of a store's address, to pin it as it is typed
+ */
+export const searchPlaces = <ThrowOnError extends boolean = true>(options: Options<SearchPlacesData, ThrowOnError>): RequestResult<SearchPlacesResponses, SearchPlacesErrors, ThrowOnError> => (options.client ?? client).get<SearchPlacesResponses, SearchPlacesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/places',
+    ...options
+});
+
+/**
  * A seller, to its members and admins
  */
 export const getSeller = <ThrowOnError extends boolean = true>(options: Options<GetSellerData, ThrowOnError>): RequestResult<GetSellerResponses, GetSellerErrors, ThrowOnError> => (options.client ?? client).get<GetSellerResponses, GetSellerErrors, ThrowOnError>({
@@ -739,7 +820,7 @@ export const getSeller = <ThrowOnError extends boolean = true>(options: Options<
 });
 
 /**
- * Change a seller's details; only its owner may
+ * Change a seller's details; only its owner may. A moved pin or address moves its offers on sale and its orders still to collect
  */
 export const updateSeller = <ThrowOnError extends boolean = true>(options: Options<UpdateSellerData, ThrowOnError>): RequestResult<UpdateSellerResponses, UpdateSellerErrors, ThrowOnError> => (options.client ?? client).put<UpdateSellerResponses, UpdateSellerErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -906,6 +987,19 @@ export const listSellerOrders = <ThrowOnError extends boolean = true>(options: O
             type: 'apiKey'
         }],
     url: '/sellers/{sellerId}/orders',
+    ...options
+});
+
+/**
+ * A ticket to follow a seller's orders on the live socket
+ */
+export const createSellerLiveTicket = <ThrowOnError extends boolean = true>(options: Options<CreateSellerLiveTicketData, ThrowOnError>): RequestResult<CreateSellerLiveTicketResponses, CreateSellerLiveTicketErrors, ThrowOnError> => (options.client ?? client).post<CreateSellerLiveTicketResponses, CreateSellerLiveTicketErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/{sellerId}/orders/live-ticket',
     ...options
 });
 

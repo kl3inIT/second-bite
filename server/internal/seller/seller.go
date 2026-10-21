@@ -106,6 +106,7 @@ type Service struct {
 	trail    *audit.Service
 	logger   *slog.Logger
 	geocoder geocoder
+	places   placeSearch
 }
 
 // NewService assembles the module.
@@ -115,7 +116,7 @@ func NewService(
 ) *Service {
 	return &Service{
 		pool: pool, queries: db.New(pool), accounts: accounts, photos: photos, mail: mail, events: events,
-		trail: trail, logger: logger, geocoder: newGeocoder(),
+		trail: trail, logger: logger, geocoder: newGeocoder(), places: newPlaceSearch(),
 	}
 }
 
@@ -225,7 +226,9 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID) (Seller, error) {
 	return fromRow(row, role), nil
 }
 
-// Update changes a seller's details. Only its owner may.
+// Update changes a seller's details. Only its owner may. When the collection
+// point moves, LocationChangedEvent is published in the same transaction, so
+// the offers and orders that copied the point follow it (SEC-66).
 func (s *Service) Update(ctx context.Context, id uuid.UUID, d Details) (Seller, error) {
 	if _, err := s.requireOwner(ctx, id); err != nil {
 		return Seller{}, err
@@ -236,10 +239,22 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, d Details) (Seller, 
 		return Seller{}, err
 	}
 
-	if err := s.queries.UpdateSeller(ctx, db.UpdateSellerParams{
-		ID: id, Name: d.Name, Address: d.Address, Latitude: d.Latitude, Longitude: d.Longitude, Phone: d.Phone,
-	}); err != nil {
-		return Seller{}, fmt.Errorf("changing the seller: %w", err)
+	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		moved, err := s.queries.WithTx(tx).UpdateSeller(ctx, db.UpdateSellerParams{
+			ID: id, Name: d.Name, Address: d.Address, Latitude: d.Latitude, Longitude: d.Longitude, Phone: d.Phone,
+		})
+		if err != nil {
+			return fmt.Errorf("changing the seller: %w", err)
+		}
+
+		if !moved {
+			return nil
+		}
+
+		return platform.Publish(ctx, tx, s.events, LocationChangedEvent{SellerID: id})
+	})
+	if err != nil {
+		return Seller{}, err
 	}
 
 	return s.Get(ctx, id)
@@ -367,6 +382,10 @@ func (d Details) normalized() (Details, error) {
 
 	if d.Name == "" || d.Address == "" {
 		return Details{}, ErrDetailsInvalid
+	}
+
+	if !served(d.Latitude, d.Longitude) {
+		return Details{}, ErrLocationOutside
 	}
 
 	phone, err := normalizePhone(d.Phone)

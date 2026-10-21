@@ -1046,12 +1046,18 @@ async function favouriteRoutes(request, response, url) {
   return true;
 }
 
+/** Hanoi's box, as the server's servedArea (server/internal/seller/location.go). */
+function inHanoi(latitude, longitude) {
+  return latitude >= 20.53 && latitude <= 21.42 && longitude >= 105.25 && longitude <= 106.06;
+}
+
 async function sellerRoutes(request, response, url) {
   const token = tokenOf(request);
   const isSellerRoute =
     url.pathname === "/sellers" ||
     url.pathname === "/sellers/mine" ||
     url.pathname === "/sellers/address" ||
+    url.pathname === "/sellers/places" ||
     url.pathname === "/photos" ||
     /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
     (/^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse)$/.test(url.pathname) &&
@@ -1072,6 +1078,27 @@ async function sellerRoutes(request, response, url) {
     json(response, 200, { address: near ? "21 Phố Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội" : "" });
     return true;
   }
+  if (request.method === "GET" && url.pathname === "/sellers/places") {
+    // "hoa lam" finds the street, with a house number typed first put before it, as the server does (SEC-66).
+    const words = (url.searchParams.get("q") ?? "").toLowerCase();
+    const number = /^(\d\w*) /.exec(words)?.[1];
+    const places = words.includes("hoa lam")
+      ? [
+          {
+            address: `${number ? `${number} ` : ""}Phố Hoa Lâm, Việt Hưng, Hà Nội`,
+            latitude: 21.0543,
+            longitude: 105.8962,
+          },
+          {
+            address: "Ngõ 139 Phố Hoa Lâm, Việt Hưng, Hà Nội",
+            latitude: 21.0551,
+            longitude: 105.8975,
+          },
+        ]
+      : [];
+    json(response, 200, { places });
+    return true;
+  }
   if (request.method === "GET" && url.pathname === "/sellers/mine") {
     // An address starting with "ending." has its session end between the account and its sellers (SEC-69).
     if (accounts.get(token).email.startsWith("ending.")) {
@@ -1089,6 +1116,8 @@ async function sellerRoutes(request, response, url) {
       problem(response, 422, "SELLER_DETAILS_INVALID");
     } else if (digits.length < 9 || digits.length > 15) {
       problem(response, 422, "SELLER_PHONE_INVALID");
+    } else if (!inHanoi(body.latitude, body.longitude)) {
+      problem(response, 400, "SELLER_LOCATION_OUTSIDE");
     } else if (mine.length >= 5) {
       problem(response, 409, "SELLER_LIMIT_REACHED");
     } else {
@@ -1107,6 +1136,27 @@ async function sellerRoutes(request, response, url) {
       };
       storesOf.set(email, [...mine, seller]);
       json(response, 201, seller);
+    }
+    return true;
+  }
+  // The owner changes the store's details, its pin among them (SEC-66).
+  const changed = /^\/sellers\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "PUT" && changed) {
+    const seller = mine.find((candidate) => candidate.id === changed[1]);
+    const body = await readBody(request);
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else if (seller.myRole !== "owner") problem(response, 403, "SELLER_OWNER_REQUIRED");
+    else if (!String(body.address ?? "").trim()) problem(response, 422, "SELLER_DETAILS_INVALID");
+    else if (!inHanoi(body.latitude, body.longitude))
+      problem(response, 400, "SELLER_LOCATION_OUTSIDE");
+    else {
+      Object.assign(seller, {
+        address: body.address.trim(),
+        latitude: body.latitude,
+        longitude: body.longitude,
+        updatedAt: new Date().toISOString(),
+      });
+      json(response, 200, seller);
     }
     return true;
   }
@@ -1357,12 +1407,12 @@ function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
 }
 
+// An order keeps the status it was given: the stub does not expire one on the clock. The samples' windows are at
+// fixed evening hours (21:00 to 21:45 tonight), so a run after 21:45 in Vietnam would find every order placed from
+// them over and the customer's order tests failing.
 function shown(order) {
-  const open = order.status === "confirmed" || order.status === "ready";
-  const expired = open && new Date(order.windowEnd) <= new Date();
-  const status = expired ? "expired" : order.status;
   const { owner: _owner, ...rest } = order;
-  return { ...rest, status };
+  return rest;
 }
 
 /** Whether the request comes from whoever placed the order: its account, or its access. */

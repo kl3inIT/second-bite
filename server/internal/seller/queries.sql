@@ -95,10 +95,17 @@ ORDER BY day;
 -- name: MemberRole :one
 SELECT role FROM seller_members WHERE seller_id = @seller_id AND account_id = @account_id;
 
--- name: UpdateSeller :exec
-UPDATE seller_sellers
+-- name: UpdateSeller :one
+-- Changes a seller's details under a row lock, and answers whether its
+-- collection point (the point or the written address) moved.
+WITH old AS (
+    SELECT cur.id, cur.latitude, cur.longitude, cur.address FROM seller_sellers AS cur WHERE cur.id = @id FOR UPDATE
+)
+UPDATE seller_sellers AS s
 SET name = @name, address = @address, latitude = @latitude, longitude = @longitude, phone = @phone, updated_at = now()
-WHERE id = @id;
+FROM old
+WHERE s.id = old.id
+RETURNING (old.latitude, old.longitude, old.address) IS DISTINCT FROM (s.latitude, s.longitude, s.address) AS moved;
 
 -- name: ChangeStatus :one
 -- Moves the seller to status when it stands in one of from, and answers the

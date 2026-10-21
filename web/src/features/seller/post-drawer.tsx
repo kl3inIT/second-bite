@@ -1,29 +1,27 @@
 "use client";
 
-import { CircleAlertIcon } from "lucide-react";
+import { revalidateLogic } from "@tanstack/react-form";
 import Image from "next/image";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { z } from "zod";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { refuse, useAppForm } from "@/components/form/app-form";
+import { useFieldValidity } from "@/components/form/form-context";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { NativeSelect } from "@/components/ui/native-select";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
+import { formatPrice } from "@/features/offers/format";
 import { useRouter } from "@/i18n/navigation";
-import { ApiError, failureOf } from "@/lib/api/client";
-import { changeOffer, postOffer, type OfferBody } from "@/lib/api/generated";
+import { changeOffer, postOffer, type OfferBody, uploadPhoto } from "@/lib/api/generated";
+import { photoUrl } from "@/lib/api/photo";
 import { cn } from "@/lib/utils";
 
 import { Chip } from "./chip";
-import { useRemountKey } from "./remount-key";
 import { NumberInput } from "./number-input";
-import { type PhotoSlot, PhotoSlots, uploadedIds } from "./photo-slots";
+import { type ChosenPhoto, PhotoField } from "./photo-drop";
 import {
-  clock,
   type Dish,
   discountPercent,
   type EditTarget,
@@ -38,6 +36,8 @@ import {
   windowIsOver,
   windowOf,
 } from "./post-draft";
+import { type Clock, LENGTHS, type StartKey, WindowChoices } from "./post-window";
+import { useRemountKey } from "./remount-key";
 
 const kinds = [
   "bakery",
@@ -48,36 +48,19 @@ const kinds = [
   "other",
 ] as const satisfies readonly OfferBody["kind"][];
 
-/** The hours offered besides the usual one and "now" (Figma P3). */
-const FIXED_STARTS = [
-  { hour: 20, minute: 0 },
-  { hour: 21, minute: 0 },
-  { hour: 21, minute: 30 },
-  { hour: 22, minute: 0 },
-] as const;
-const LENGTHS = [60, 30, 90, 120] as const;
 /** The usual hour of a store with nothing posted yet. */
 const DEFAULT_USUAL = { hour: 20, minute: 30 };
 
-type StartKey = "usual" | "now" | `${number}:${number}` | "custom";
-/**
- * A failure of posting or changing an offer. Every code reads the same way, in one alert with the server's
- * words (SEC-28); the request's reference follows a failure the form does not expect.
- */
-type Problem = { expected: boolean; detail?: string; reference?: string };
-
-const expectedCodes = new Set([
-  "OFFER_DISCOUNT_TOO_SMALL",
-  "OFFER_WINDOW_INVALID",
-  "OFFER_DETAILS_INVALID",
-  "SELLER_NOT_ACTIVE",
-  "OFFER_CHANGE_NOT_ALLOWED",
-]);
-
-function problemOf(error: unknown): Problem {
-  const code = error instanceof ApiError ? error.code : undefined;
-  return { expected: code !== undefined && expectedCodes.has(code), ...failureOf(error) };
-}
+/** What the drawer sends: a one-off dish of step 2, then how it sells, of step 3. */
+type Values = {
+  photo: ChosenPhoto | undefined;
+  name: string;
+  kind: OfferBody["kind"];
+  description: string;
+  units: string;
+  original: string;
+  price: string;
+};
 
 /** The moment of opening, read once; a function of its own so that rendering stays free of the clock. */
 function currentTime(): Date {
@@ -90,12 +73,11 @@ function startingPrice(original: number | undefined): string {
   return suggested ? String(suggested) : "";
 }
 
-const grouped = new Intl.NumberFormat("vi-VN");
-
 // The drawer that posts a dish (SEC-57, Figma P1 to P3, P2b, P3b, P3e, R1): the kind of post, the dish, then how
 // it sells. Posting again from a closed post (`again`) starts at the last step with that dish filled in.
-// "Báo trước dự kiến dư" (Figma P4) is shown as coming, and the dish step offers the store's earlier dishes
-// instead of the catalog, until SEC-54 and SEC-55 give the backend what those need.
+// "Báo trước dự kiến dư" (Figma P4) is shown as coming until SEC-54. One form holds every step's values, and each
+// step that must hold something before the next has rules of its own (docs/guidelines/web.md › Forms): "Tiếp tục"
+// and "Đăng" submit the form, which checks the step on the screen.
 function PostDrawerBody({
   sellerId,
   dishes,
@@ -119,7 +101,6 @@ function PostDrawerBody({
   const kindName = useTranslations("OfferKind");
   const format = useFormatter();
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
   const [now] = useState(currentTime);
   const base = edit?.dish ?? again ?? fromDish;
   const ordered = edit?.ordered ?? 0;
@@ -131,21 +112,10 @@ function PostDrawerBody({
     catalog.length > 0 ? "catalog" : dishes.length > 0 ? "earlier" : "oneoff",
   );
   const [chosen, setChosen] = useState<Dish | undefined>(base);
-  const [slots, setSlots] = useState<PhotoSlot[]>([]);
-  const [name, setName] = useState("");
-  const [kind, setKind] = useState<OfferBody["kind"]>("bakery");
-  const [description, setDescription] = useState("");
-  const [units, setUnits] = useState(base?.units ? String(base.units) : "");
-  const [original, setOriginal] = useState(
-    base?.originalPriceVnd ? String(base.originalPriceVnd) : "",
-  );
-  const [price, setPrice] = useState(
-    base?.priceVnd ? String(base.priceVnd) : startingPrice(base?.originalPriceVnd),
-  );
   // Until the person types a price, the one the platform's minimum discount allows follows the original price.
   const [priceTouched, setPriceTouched] = useState(Boolean(base?.priceVnd) || Boolean(edit));
   const [startKey, setStartKey] = useState<StartKey>("usual");
-  const [customStart, setCustomStart] = useState(DEFAULT_USUAL);
+  const [customStart, setCustomStart] = useState<Clock>(DEFAULT_USUAL);
   const [length, setLength] = useState<number | "custom">(
     edit && !(LENGTHS as readonly number[]).includes(edit.minutes)
       ? "custom"
@@ -159,8 +129,8 @@ function PostDrawerBody({
         )
       : 90,
   );
-  const [tried, setTried] = useState(false);
-  const [problem, setProblem] = useState<Problem>();
+  // A window found over or too long when the post was sent: said under the window until it is chosen again.
+  const [windowRefused, setWindowRefused] = useState(false);
 
   const usual = chosen?.usual ?? dishes[0]?.usual ?? DEFAULT_USUAL;
   const listed = source === "catalog" ? catalog : dishes;
@@ -181,96 +151,156 @@ function PostDrawerBody({
   const over = windowIsOver(window, now);
   const time = (at: Date) => format.dateTime(at, "time");
 
-  const originalNumber = Number(original);
-  const priceNumber = Number(price);
-  const priceIssue = priceProblem(originalNumber, priceNumber);
-  const unitsNumber = Number(units);
-  const unitsValid =
-    Number.isInteger(unitsNumber) && unitsNumber >= Math.max(1, ordered) && unitsNumber <= 999;
-  const dishName = chosen?.name ?? name.trim();
-  const dishKind = chosen?.kind ?? kind;
-  const dishReady =
-    source !== "oneoff"
-      ? chosen !== undefined
-      : name.trim() !== "" &&
-        slots.length > 0 &&
-        (kind !== "mixed_box" || description.trim() !== "");
+  const defaultValues: Values = {
+    photo: undefined,
+    name: "",
+    kind: "bakery",
+    description: "",
+    units: base?.units ? String(base.units) : "",
+    original: base?.originalPriceVnd ? String(base.originalPriceVnd) : "",
+    price: base?.priceVnd ? String(base.priceVnd) : startingPrice(base?.originalPriceVnd),
+  };
+
+  // Step 2 checks the one-off dish; step 3 the units and the price, which a post with orders no longer changes.
+  // Each step's rules name every value, those of the other step unchecked.
+  const unchecked = {
+    photo: z.custom<ChosenPhoto | undefined>(),
+    name: z.string(),
+    kind: z.enum(kinds),
+    description: z.string(),
+    units: z.string(),
+    original: z.string(),
+    price: z.string(),
+  };
+  const oneOffRules = z
+    .object({
+      ...unchecked,
+      photo: z.custom<ChosenPhoto | undefined>().refine(Boolean, t("errors.photo")),
+      name: z.string().trim().min(1, t("errors.name")),
+    })
+    .refine((value) => value.kind !== "mixed_box" || value.description.trim() !== "", {
+      message: t("errors.description"),
+      path: ["description"],
+    });
+  const sellRules = z.object(unchecked).superRefine((value, context) => {
+    const units = Number(value.units);
+    if (!Number.isInteger(units) || units < Math.max(1, ordered) || units > 999 || !value.units) {
+      context.addIssue({
+        code: "custom",
+        path: ["units"],
+        message: ordered > 0 ? t("unitsBelowOrdered", { count: ordered }) : t("errors.units"),
+      });
+    }
+    if (locked) return;
+    const original = Number(value.original);
+    const issue = priceProblem(original, Number(value.price));
+    if (issue === "missing" && value.original === "") {
+      context.addIssue({ code: "custom", path: ["original"], message: t("priceMissing") });
+    } else if (issue === "tooHigh") {
+      context.addIssue({
+        code: "custom",
+        path: ["price"],
+        message: t("priceTooHigh", {
+          min: MIN_DISCOUNT_PERCENT,
+          max: formatPrice(maxPrice(original)),
+        }),
+      });
+    } else if (issue) {
+      context.addIssue({ code: "custom", path: ["price"], message: t("priceMissing") });
+    }
+  });
 
   function close() {
     // Posted from the catalog, a closed drawer leaves the person where they were.
     router.push(`/stores/${sellerId}/${fromDish ? "catalog" : "offers"}`);
   }
 
-  function post() {
-    setTried(true);
-    setProblem(undefined);
+  async function send(value: Values) {
     const at = currentTime();
     const finalWindow = windowOf(start, minutes, at);
     const windowChanged = startKey !== "usual" || minutes !== edit?.minutes;
+    // A change that leaves the hours as they were does not send them, so a post made on another day is not moved to today.
+    if ((!edit || windowChanged) && (windowIsOver(finalWindow, at) || !lengthIsAllowed(minutes))) {
+      setWindowRefused(true);
+      return;
+    }
+    const units = Number(value.units);
+    const prices = { originalPriceVnd: Number(value.original), priceVnd: Number(value.price) };
     if (edit) {
-      // A change that leaves the hours as they were does not send them, so a post made on another day is not moved to today.
-      if (!unitsValid || (!locked && priceIssue)) return;
-      if (windowChanged && (windowIsOver(finalWindow, at) || !lengthIsAllowed(minutes))) return;
-      startTransition(async () => {
-        try {
-          await changeOffer({
-            path: { offerId: edit.offerId },
-            body: {
-              units: unitsNumber,
-              ...(locked ? {} : { originalPriceVnd: originalNumber, priceVnd: priceNumber }),
-              ...(windowChanged
-                ? {
-                    windowStart: finalWindow.start.toISOString(),
-                    windowEnd: finalWindow.end.toISOString(),
-                  }
-                : {}),
-            },
-          });
-          router.push({ pathname: `/stores/${sellerId}/offers`, query: { notice: "saved" } });
-          router.refresh();
-        } catch (error) {
-          setProblem(problemOf(error));
-        }
+      await changeOffer({
+        path: { offerId: edit.offerId },
+        body: {
+          units,
+          ...(locked ? {} : prices),
+          ...(windowChanged
+            ? {
+                windowStart: finalWindow.start.toISOString(),
+                windowEnd: finalWindow.end.toISOString(),
+              }
+            : {}),
+        },
       });
+      router.push({ pathname: `/stores/${sellerId}/offers`, query: { notice: "saved" } });
+      router.refresh();
       return;
     }
-    if (!unitsValid || priceIssue || windowIsOver(finalWindow, at) || !lengthIsAllowed(minutes)) {
-      return;
-    }
-    startTransition(async () => {
-      try {
-        const [photoId, ...morePhotoIds] = chosen
-          ? [chosen.photoId, ...chosen.morePhotoIds]
-          : await uploadedIds(slots);
-        if (!photoId) return;
-        await postOffer({
-          path: { sellerId },
-          body: {
-            name: dishName,
-            kind: dishKind,
-            ...(chosen ? { unit: chosen.unit } : {}),
-            description: chosen ? chosen.description : description.trim(),
-            photoId,
-            morePhotoIds,
-            units: unitsNumber,
-            originalPriceVnd: originalNumber,
-            priceVnd: priceNumber,
-            windowStart: finalWindow.start.toISOString(),
-            windowEnd: finalWindow.end.toISOString(),
-          },
-        });
-        router.push({
-          pathname: `/stores/${sellerId}/offers`,
-          query: { notice: `posted:${unitsNumber}` },
-        });
-        router.refresh();
-      } catch (error) {
-        setProblem(problemOf(error));
-      }
+    const photoId =
+      chosen?.photoId ??
+      (value.photo ? (await uploadPhoto({ body: value.photo.file })).data.id : undefined);
+    if (!photoId) return;
+    await postOffer({
+      path: { sellerId },
+      body: {
+        name: chosen?.name ?? value.name.trim(),
+        kind: chosen?.kind ?? value.kind,
+        ...(chosen ? { unit: chosen.unit } : {}),
+        description: chosen ? chosen.description : value.description.trim(),
+        photoId,
+        units,
+        ...prices,
+        windowStart: finalWindow.start.toISOString(),
+        windowEnd: finalWindow.end.toISOString(),
+      },
     });
+    router.push({ pathname: `/stores/${sellerId}/offers`, query: { notice: `posted:${units}` } });
+    router.refresh();
   }
 
-  const showPriceError = tried && priceIssue !== undefined;
+  const form = useAppForm({
+    defaultValues,
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic:
+        step === 2 && source === "oneoff" ? oneOffRules : step === 3 ? sellRules : undefined,
+    },
+    onSubmit: async ({ value, formApi }) => {
+      if (step === 2) {
+        setStep(3);
+        return;
+      }
+      try {
+        await send(value);
+      } catch (error) {
+        refuse(formApi, error);
+      }
+    },
+  });
+
+  function choose(dish: Dish) {
+    setChosen(dish);
+    form.setFieldValue("units", dish.units ? String(dish.units) : "");
+    form.setFieldValue("original", dish.originalPriceVnd ? String(dish.originalPriceVnd) : "");
+    form.setFieldValue(
+      "price",
+      dish.priceVnd ? String(dish.priceVnd) : startingPrice(dish.originalPriceVnd),
+    );
+    setPriceTouched(Boolean(dish.priceVnd));
+  }
+
+  function pick(next: typeof source) {
+    setSource(next);
+    setChosen(undefined);
+  }
 
   return (
     <Sheet open onOpenChange={(open) => !open && close()}>
@@ -288,7 +318,15 @@ function PostDrawerBody({
           </span>
         </SheetHeader>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto px-4 pb-4 sm:px-6">
+        <form
+          id={form.formId}
+          noValidate
+          className="flex min-w-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto px-4 pb-4 sm:px-6"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void form.handleSubmit();
+          }}
+        >
           {step === 1 && (
             <fieldset className="flex flex-col gap-3">
               <legend className="mb-3 text-title">{t("kindQuestion")}</legend>
@@ -301,9 +339,7 @@ function PostDrawerBody({
                 <input type="radio" name="post-kind" disabled className="sr-only" />
                 <span className="flex items-center gap-2 text-title">
                   {t("expectedTitle")}
-                  <span className="rounded-full bg-secondary px-2 py-0.5 text-label-strong text-secondary-foreground">
-                    {t("soon")}
-                  </span>
+                  <Badge variant="info">{t("soon")}</Badge>
                 </span>
                 <span className="text-body-sm text-muted-foreground">{t("expectedBody")}</span>
               </label>
@@ -313,31 +349,13 @@ function PostDrawerBody({
           {step === 2 && (
             <>
               <div className="-my-1 flex flex-wrap gap-x-2">
-                <Chip
-                  selected={source === "catalog"}
-                  onClick={() => {
-                    setSource("catalog");
-                    setChosen(undefined);
-                  }}
-                >
+                <Chip selected={source === "catalog"} onClick={() => pick("catalog")}>
                   {t("sourceCatalog")}
                 </Chip>
-                <Chip
-                  selected={source === "earlier"}
-                  onClick={() => {
-                    setSource("earlier");
-                    setChosen(undefined);
-                  }}
-                >
+                <Chip selected={source === "earlier"} onClick={() => pick("earlier")}>
                   {t("sourceEarlier")}
                 </Chip>
-                <Chip
-                  selected={source === "oneoff"}
-                  onClick={() => {
-                    setSource("oneoff");
-                    setChosen(undefined);
-                  }}
-                >
+                <Chip selected={source === "oneoff"} onClick={() => pick("oneoff")}>
                   {t("sourceOneOff")}
                 </Chip>
               </div>
@@ -360,7 +378,7 @@ function PostDrawerBody({
                         >
                           <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
                             <Image
-                              src={`/api${dish.photoPath}`}
+                              src={photoUrl(dish.photoPath)}
                               alt=""
                               fill
                               sizes="56px"
@@ -378,19 +396,7 @@ function PostDrawerBody({
                             type="button"
                             variant={chosen?.id === dish.id ? "default" : "outline"}
                             aria-pressed={chosen?.id === dish.id}
-                            onClick={() => {
-                              setChosen(dish);
-                              setUnits(dish.units ? String(dish.units) : "");
-                              setOriginal(
-                                dish.originalPriceVnd ? String(dish.originalPriceVnd) : "",
-                              );
-                              setPrice(
-                                dish.priceVnd
-                                  ? String(dish.priceVnd)
-                                  : startingPrice(dish.originalPriceVnd),
-                              );
-                              setPriceTouched(Boolean(dish.priceVnd));
-                            }}
+                            onClick={() => choose(dish)}
                           >
                             {chosen?.id === dish.id ? t("chosen") : t("choose")}
                           </Button>
@@ -401,41 +407,52 @@ function PostDrawerBody({
                 </section>
               ) : (
                 <>
-                  <Field>
-                    <FieldLabel htmlFor="dish-photo">{t("photo")}</FieldLabel>
-                    <PhotoSlots id="dish-photo" slots={slots} onChange={setSlots} />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="dish-name">{t("name")}</FieldLabel>
-                    <Input
-                      id="dish-name"
-                      value={name}
-                      maxLength={80}
-                      onChange={(event) => setName(event.target.value)}
-                      placeholder={t("namePlaceholder")}
-                    />
-                  </Field>
-                  <fieldset className="flex flex-col gap-2">
-                    <legend className="mb-2 text-title">{t("kind")}</legend>
-                    <div className="-my-1 flex flex-wrap gap-x-2">
-                      {kinds.map((value) => (
-                        <Chip key={value} selected={kind === value} onClick={() => setKind(value)}>
-                          {kindName(value)}
-                        </Chip>
-                      ))}
-                    </div>
-                  </fieldset>
-                  {kind === "mixed_box" && (
-                    <Field>
-                      <FieldLabel htmlFor="dish-description">{t("description")}</FieldLabel>
-                      <Textarea
-                        id="dish-description"
-                        value={description}
-                        onChange={(event) => setDescription(event.target.value)}
-                        placeholder={t("descriptionPlaceholder")}
+                  <form.AppField name="photo">
+                    {() => <PhotoField label={t("photo")} />}
+                  </form.AppField>
+                  <form.AppField name="name">
+                    {(field) => (
+                      <field.TextField
+                        label={t("name")}
+                        required
+                        maxLength={80}
+                        placeholder={t("namePlaceholder")}
                       />
-                    </Field>
-                  )}
+                    )}
+                  </form.AppField>
+                  <form.AppField name="kind">
+                    {(field) => (
+                      <fieldset className="flex flex-col gap-2">
+                        <legend className="mb-2 text-title">{t("kind")}</legend>
+                        <div className="-my-1 flex flex-wrap gap-x-2">
+                          {kinds.map((value) => (
+                            <Chip
+                              key={value}
+                              selected={field.state.value === value}
+                              onClick={() => field.handleChange(value)}
+                            >
+                              {kindName(value)}
+                            </Chip>
+                          ))}
+                        </div>
+                      </fieldset>
+                    )}
+                  </form.AppField>
+                  <form.Subscribe selector={(state) => state.values.kind === "mixed_box"}>
+                    {(mixedBox) =>
+                      mixedBox && (
+                        <form.AppField name="description">
+                          {(field) => (
+                            <field.TextareaField
+                              label={t("description")}
+                              required
+                              placeholder={t("descriptionPlaceholder")}
+                            />
+                          )}
+                        </form.AppField>
+                      )
+                    }
+                  </form.Subscribe>
                 </>
               )}
             </>
@@ -446,210 +463,109 @@ function PostDrawerBody({
               <h3 className="border-b border-border pb-3 text-title-lg">
                 {edit ? t("editQuestion") : again ? t("againQuestion") : t("sellQuestion")}
               </h3>
-              <div className="flex items-center gap-4">
-                <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
-                  {(chosen?.photoPath ?? slots[0]?.preview) && (
-                    <Image
-                      src={chosen ? `/api${chosen.photoPath}` : (slots[0]?.preview ?? "")}
-                      alt=""
-                      fill
-                      sizes="56px"
-                      unoptimized
-                      className="object-cover"
-                    />
-                  )}
-                </span>
-                <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-title-lg">{dishName}</span>
-                  <span className="text-body-sm text-muted-foreground">
-                    {chosen
-                      ? `${kindName(chosen.kind)} · ${chosen.unit}`
-                      : `${t("sourceOneOff")} · ${kindName(kind)}`}
-                  </span>
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <Field
-                  data-invalid={(tried && !unitsValid) || undefined}
-                  className="max-sm:col-span-2"
-                >
-                  <FieldLabel htmlFor="post-units">{t("units")}</FieldLabel>
-                  <NumberInput
-                    id="post-units"
-                    value={units}
-                    max={3}
-                    onValueChange={setUnits}
-                    aria-invalid={(tried && !unitsValid) || undefined}
-                    aria-describedby={ordered > 0 ? "post-units-note" : undefined}
-                  />
-                </Field>
-                <Field data-invalid={(tried && priceIssue === "missing" && !original) || undefined}>
-                  <FieldLabel htmlFor="post-original">{t("original")}</FieldLabel>
-                  <NumberInput
-                    id="post-original"
-                    value={original}
-                    grouped
-                    disabled={locked}
-                    onValueChange={(next) => {
-                      setOriginal(next);
-                      if (!priceTouched) setPrice(startingPrice(Number(next)));
-                    }}
-                  />
-                </Field>
-                <Field data-invalid={showPriceError || undefined}>
-                  <FieldLabel htmlFor="post-price">{t("price")}</FieldLabel>
-                  <NumberInput
-                    id="post-price"
-                    value={price}
-                    grouped
-                    disabled={locked}
-                    onValueChange={(next) => {
-                      setPrice(next);
-                      setPriceTouched(true);
-                    }}
-                    aria-invalid={showPriceError || undefined}
-                    aria-describedby="post-price-note"
-                  />
-                </Field>
-              </div>
-              {edit && tried && !unitsValid && ordered > 0 && (
-                <FieldError id="post-units-note">
-                  {t("unitsBelowOrdered", { count: ordered })}
-                </FieldError>
-              )}
-              {locked ? (
-                <p id="post-price-note" className="-mt-2 text-note text-muted-foreground">
-                  {t("editLocked", { count: ordered })}
-                </p>
-              ) : showPriceError && priceIssue === "tooHigh" ? (
-                <FieldError id="post-price-note">
-                  {t("priceTooHigh", {
-                    min: MIN_DISCOUNT_PERCENT,
-                    max: `${grouped.format(maxPrice(originalNumber))}đ`,
-                  })}
-                </FieldError>
-              ) : showPriceError ? (
-                <FieldError id="post-price-note">{t("priceMissing")}</FieldError>
-              ) : (
-                <p id="post-price-note" className="-mt-2 text-note text-muted-foreground">
-                  {edit && !priceIssue ? `${t("editFree")} ` : ""}
-                  {priceIssue
-                    ? t("discountHint", { min: MIN_DISCOUNT_PERCENT })
-                    : t("discount", {
-                        percent: discountPercent(originalNumber, priceNumber),
-                        min: MIN_DISCOUNT_PERCENT,
-                      })}
-                </p>
-              )}
-
-              <fieldset className="flex flex-col gap-2">
-                <legend className="mb-2 text-title">{t("startQuestion")}</legend>
-                <div className="-my-1 flex flex-wrap gap-x-2">
-                  <Chip
-                    size="lg"
-                    selected={startKey === "usual"}
-                    onClick={() => setStartKey("usual")}
-                  >
-                    {t("usual", { time: clock(usual.hour, usual.minute) })}
-                  </Chip>
-                  <Chip size="lg" selected={startKey === "now"} onClick={() => setStartKey("now")}>
-                    {t("now")}
-                  </Chip>
-                  {FIXED_STARTS.filter(
-                    (fixed) => fixed.hour !== usual.hour || fixed.minute !== usual.minute,
-                  ).map((fixed) => {
-                    const key = `${fixed.hour}:${fixed.minute}` as const;
-                    return (
-                      <Chip
-                        size="lg"
-                        key={key}
-                        selected={startKey === key}
-                        onClick={() => setStartKey(key)}
-                      >
-                        {clock(fixed.hour, fixed.minute)}
-                      </Chip>
-                    );
-                  })}
-                  <Chip
-                    size="lg"
-                    selected={startKey === "custom"}
-                    onClick={() => setStartKey("custom")}
-                  >
-                    {t("otherTime")}
-                  </Chip>
-                </div>
-                {startKey === "custom" && (
-                  <div className="flex items-center gap-2">
-                    <NativeSelect
-                      aria-label={t("hour")}
-                      value={customStart.hour}
-                      onChange={(event) =>
-                        setCustomStart({ ...customStart, hour: Number(event.target.value) })
-                      }
-                    >
-                      {Array.from({ length: 24 }, (_, hour) => (
-                        <option key={hour} value={hour}>
-                          {String(hour).padStart(2, "0")}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                    <span aria-hidden>:</span>
-                    <NativeSelect
-                      aria-label={t("minute")}
-                      value={customStart.minute}
-                      onChange={(event) =>
-                        setCustomStart({ ...customStart, minute: Number(event.target.value) })
-                      }
-                    >
-                      {[0, 15, 30, 45].map((minute) => (
-                        <option key={minute} value={minute}>
-                          {String(minute).padStart(2, "0")}
-                        </option>
-                      ))}
-                    </NativeSelect>
+              <form.Subscribe selector={(state) => state.values}>
+                {(values) => (
+                  <div className="flex items-center gap-4">
+                    <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
+                      {(chosen?.photoPath ?? values.photo?.preview) && (
+                        <Image
+                          src={chosen ? photoUrl(chosen.photoPath) : (values.photo?.preview ?? "")}
+                          alt=""
+                          fill
+                          sizes="56px"
+                          unoptimized
+                          className="object-cover"
+                        />
+                      )}
+                    </span>
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate text-title-lg">
+                        {chosen?.name ?? values.name.trim()}
+                      </span>
+                      <span className="text-body-sm text-muted-foreground">
+                        {chosen
+                          ? `${kindName(chosen.kind)} · ${chosen.unit}`
+                          : `${t("sourceOneOff")} · ${kindName(values.kind)}`}
+                      </span>
+                    </span>
                   </div>
                 )}
-              </fieldset>
+              </form.Subscribe>
 
-              <fieldset className="flex flex-col gap-2">
-                <legend className="mb-2 text-title">{t("lengthQuestion")}</legend>
-                <div className="-my-1 flex flex-wrap gap-x-2">
-                  {LENGTHS.map((value) => (
-                    <Chip
-                      size="lg"
-                      key={value}
-                      selected={length === value}
-                      onClick={() => setLength(value)}
-                    >
-                      {t(`length.${value}`)}
-                    </Chip>
-                  ))}
-                  <Chip
-                    size="lg"
-                    selected={length === "custom"}
-                    onClick={() => setLength("custom")}
-                  >
-                    {t("otherLength")}
-                  </Chip>
-                </div>
-                {length === "custom" && (
-                  <NativeSelect
-                    aria-label={t("lengthQuestion")}
-                    value={customLength}
-                    onChange={(event) => setCustomLength(Number(event.target.value))}
-                  >
-                    {Array.from(
-                      { length: (MAX_WINDOW_MINUTES - MIN_WINDOW_MINUTES) / 30 + 1 },
-                      (_, index) => MIN_WINDOW_MINUTES + index * 30,
-                    ).map((value) => (
-                      <option key={value} value={value}>
-                        {t("minutes", { minutes: value })}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                )}
-              </fieldset>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <form.AppField name="units">
+                  {() => (
+                    <NumberField label={t("units")} digits={3} className="max-sm:col-span-2" />
+                  )}
+                </form.AppField>
+                <form.AppField name="original">
+                  {() => (
+                    <NumberField
+                      label={t("original")}
+                      grouped
+                      disabled={locked}
+                      onValue={(next) => {
+                        if (!priceTouched) form.setFieldValue("price", startingPrice(Number(next)));
+                      }}
+                    />
+                  )}
+                </form.AppField>
+                <form.AppField name="price">
+                  {() => (
+                    <NumberField
+                      label={t("price")}
+                      grouped
+                      disabled={locked}
+                      onValue={() => setPriceTouched(true)}
+                    />
+                  )}
+                </form.AppField>
+              </div>
+              <form.Subscribe
+                selector={(state) => [state.values.original, state.values.price] as const}
+              >
+                {([original, price]) => {
+                  const issue = priceProblem(Number(original), Number(price));
+                  return (
+                    <p className="-mt-2 text-note text-muted-foreground">
+                      {locked
+                        ? t("editLocked", { count: ordered })
+                        : `${edit && !issue ? `${t("editFree")} ` : ""}${
+                            issue
+                              ? t("discountHint", { min: MIN_DISCOUNT_PERCENT })
+                              : t("discount", {
+                                  percent: discountPercent(Number(original), Number(price)),
+                                  min: MIN_DISCOUNT_PERCENT,
+                                })
+                          }`}
+                    </p>
+                  );
+                }}
+              </form.Subscribe>
+
+              <WindowChoices
+                usual={usual}
+                startKey={startKey}
+                onStartKey={(key) => {
+                  setStartKey(key);
+                  setWindowRefused(false);
+                }}
+                customStart={customStart}
+                onCustomStart={(next) => {
+                  setCustomStart(next);
+                  setWindowRefused(false);
+                }}
+                length={length}
+                onLength={(next) => {
+                  setLength(next);
+                  setWindowRefused(false);
+                }}
+                customLength={customLength}
+                onCustomLength={(next) => {
+                  setCustomLength(next);
+                  setWindowRefused(false);
+                }}
+              />
 
               <output
                 className={cn(
@@ -663,27 +579,19 @@ function PostDrawerBody({
                   ? t("windowOver")
                   : t("window", { from: time(window.start), until: time(window.end) })}
               </output>
+              {windowRefused && <FieldError className="-mt-2">{t("windowOver")}</FieldError>}
               {edit && ordered > 0 && (
                 <p className="-mt-2 text-note text-muted-foreground">
                   {t("editHoursNote", { count: ordered })}
                 </p>
               )}
 
-              {problem && (
-                <Alert variant="destructive">
-                  <CircleAlertIcon aria-hidden />
-                  <AlertDescription>
-                    {!problem.detail
-                      ? t("failed")
-                      : !problem.expected && problem.reference
-                        ? `${problem.detail} ${t("reference", { id: problem.reference })}`
-                        : problem.detail}
-                  </AlertDescription>
-                </Alert>
-              )}
+              <form.AppForm>
+                <form.FormError fallback={t("failed")} />
+              </form.AppForm>
             </>
           )}
-        </div>
+        </form>
 
         <SheetFooter variant="bar">
           {step === 1 && (
@@ -701,39 +609,85 @@ function PostDrawerBody({
               <Button type="button" variant="outline" size="lg" onClick={() => setStep(1)}>
                 {t("back")}
               </Button>
-              <Button type="button" size="lg" disabled={!dishReady} onClick={() => setStep(3)}>
-                {t("next")}
-              </Button>
+              <form.AppForm>
+                <form.SubmitButton size="lg" disabled={source !== "oneoff" && !chosen}>
+                  {t("next")}
+                </form.SubmitButton>
+              </form.AppForm>
             </>
           )}
           {step === 3 && (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                disabled={pending}
-                onClick={
-                  edit
-                    ? locked
-                      ? close
-                      : () => router.push(`/stores/${sellerId}/offers/${edit.offerId}/withdraw`)
-                    : again || fromDish
-                      ? close
-                      : () => setStep(2)
-                }
-              >
-                {edit && !locked ? t("withdraw") : t("back")}
-              </Button>
-              <Button type="button" size="lg" disabled={pending} onClick={post}>
-                {pending && <Spinner data-icon="inline-start" />}
-                {edit ? t("save") : t("post")}
-              </Button>
-            </>
+            <form.Subscribe selector={(state) => state.isSubmitting}>
+              {(submitting) => (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    disabled={submitting}
+                    onClick={
+                      edit
+                        ? locked
+                          ? close
+                          : () => router.push(`/stores/${sellerId}/offers/${edit.offerId}/withdraw`)
+                        : again || fromDish
+                          ? close
+                          : () => setStep(2)
+                    }
+                  >
+                    {edit && !locked ? t("withdraw") : t("back")}
+                  </Button>
+                  <form.AppForm>
+                    <form.SubmitButton size="lg">{edit ? t("save") : t("post")}</form.SubmitButton>
+                  </form.AppForm>
+                </>
+              )}
+            </form.Subscribe>
           )}
         </SheetFooter>
       </SheetContent>
     </Sheet>
+  );
+}
+
+/** A count or an amount in đồng, typed as digits, grouped as it is typed when `grouped`. */
+function NumberField({
+  label,
+  grouped,
+  digits,
+  disabled,
+  className,
+  onValue,
+}: {
+  label: string;
+  grouped?: boolean;
+  /** At most this many digits. */
+  digits?: number;
+  disabled?: boolean;
+  className?: string;
+  /** Told of each change, after the field holds it. */
+  onValue?: (value: string) => void;
+}) {
+  const { field, invalid, errors, ids } = useFieldValidity<string>();
+  return (
+    <Field data-invalid={invalid || undefined} className={className}>
+      <FieldLabel htmlFor={ids.control}>{label}</FieldLabel>
+      <NumberInput
+        id={ids.control}
+        value={field.state.value}
+        grouped={grouped}
+        max={digits}
+        disabled={disabled}
+        onValueChange={(value) => {
+          field.handleChange(value);
+          onValue?.(value);
+        }}
+        onBlur={field.handleBlur}
+        aria-invalid={invalid || undefined}
+        aria-describedby={invalid ? ids.error : undefined}
+      />
+      {invalid && <FieldError id={ids.error} errors={errors} />}
+    </Field>
   );
 }
 

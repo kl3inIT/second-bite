@@ -9,6 +9,7 @@ import { listOffers } from "@/features/offers/list-offers";
 import { TonightOffers } from "@/features/offers/tonight-offers";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
 import { dayOf, type Day, type Order } from "./order";
 import { readMyOrderLists } from "./read-orders";
@@ -32,7 +33,7 @@ function Thumb({ order, size }: { order: Order; size: "md" | "sm" }) {
     >
       {photo ? (
         <Image
-          src={`/api${photo.smallPath}`}
+          src={photoUrl(photo.smallPath)}
           alt=""
           fill
           sizes={size === "md" ? "72px" : "52px"}

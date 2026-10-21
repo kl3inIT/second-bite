@@ -2,8 +2,9 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
+import { pinHere, TASCO_MALL } from "./pin";
 
-test.use({ locale: "vi-VN" });
+test.use({ locale: "vi-VN", permissions: ["geolocation"], geolocation: TASCO_MALL });
 
 // A one-pixel PNG, the store's photo in the checks below.
 const onePixel =
@@ -61,6 +62,7 @@ test.describe("opening a store on the web", () => {
       (request) =>
         request.method() === "POST" && new URL(request.url()).pathname.endsWith("/sellers"),
     );
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     const body = (await sent).postDataJSON() as {
       address: string;
@@ -95,9 +97,26 @@ test.describe("opening a store on the web", () => {
     await expect(page.getByLabel("Địa chỉ quán")).toHaveValue("");
   });
 
-  test("says when the location is not given, and the address is typed", async ({
+  test("an empty form says what is missing under each field, the first one focused", async ({
     page,
   }, testInfo) => {
+    await signIn(page, `trong.${testInfo.project.name}@example.com`, "/open-store");
+    await (await hydrated(page.getByRole("button", { name: "Tạo quán" }))).click();
+    await expect(page.getByLabel("Tên quán")).toBeFocused();
+    await expect(page.getByText("Nhập tên quán.")).toBeVisible();
+    await expect(page.getByText("Nhập địa chỉ quán.")).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    // A field put right is no longer refused, as it is typed.
+    await page.getByLabel("Tên quán").fill("Quán Trống");
+    await expect(page.getByText("Nhập tên quán.")).toBeHidden();
+  });
+
+  test("says when the location is not given, and the address is typed", async ({
+    page,
+    context,
+  }, testInfo) => {
+    await context.clearPermissions();
     await signIn(page, `huong.${testInfo.project.name}@example.com`, "/open-store");
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Hương");
     await page.getByRole("button", { name: "Dùng vị trí hiện tại" }).click();
@@ -117,6 +136,7 @@ test.describe("opening a store on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Hoa Sữa");
     await page.getByLabel("Số điện thoại").fill("123");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall, Long Biên");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(
       page.getByText("Nhập số điện thoại 9 đến 15 chữ số, ví dụ 0912 345 678."),
@@ -124,6 +144,7 @@ test.describe("opening a store on the web", () => {
     await expectNoSeriousA11yViolations(page);
 
     await page.getByLabel("Số điện thoại").fill("0912 345 678");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
 
     // The new store's home, where it invites the first post (Figma Q1).
@@ -148,6 +169,7 @@ test.describe("opening a store on the web", () => {
       await (await hydrated(page.getByLabel("Tên quán"))).fill(name);
       await page.getByLabel("Số điện thoại").fill("0912345678");
       await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+      await pinHere(page);
       await page.getByRole("button", { name: "Tạo quán" }).click();
       await expect(page).toHaveURL(/\/vi\/stores\/se-\d-/, { timeout: 20_000 });
     }
@@ -174,6 +196,7 @@ test.describe("opening a store on the web", () => {
       mimeType: "image/png",
       buffer: Buffer.from(onePixel, "base64"),
     });
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
 
@@ -189,6 +212,7 @@ test.describe("opening a store on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán Một");
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
 
@@ -217,6 +241,7 @@ test.describe("opening a store on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Tiệm bánh Pháp");
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/);
 
@@ -259,6 +284,7 @@ test.describe("opening a store on the web", () => {
       await (await hydrated(page.getByLabel("Tên quán"))).fill(`Quán ${n}`);
       await page.getByLabel("Số điện thoại").fill("0912345678");
       await page.getByLabel("Địa chỉ quán").fill("Tasco Mall");
+      await pinHere(page);
       await page.getByRole("button", { name: "Tạo quán" }).click();
       await expect(page).toHaveURL(/\/vi\/stores\/se-/);
       if (n < 5) await page.goto("/vi/open-store");
@@ -270,6 +296,7 @@ test.describe("opening a store on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Quán 6");
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page.getByText("Bạn đã có đủ 5 quán. Hãy dùng một trong số đó.")).toBeVisible();
   });
@@ -288,6 +315,7 @@ test.describe("posting a dish on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill(name);
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/);
     return page.url().split("/").pop() ?? "";
@@ -351,7 +379,10 @@ test.describe("posting a dish on the web", () => {
     await drawer.getByLabel("Tên món").fill("Hộp bánh cuối ngày");
     await drawer.getByRole("button", { name: "Hộp tổng hợp" }).click();
     await expect(drawer.getByLabel("Hộp gồm những gì")).toBeVisible();
-    await expect(drawer.getByRole("button", { name: "Tiếp tục" })).toBeDisabled();
+    // "Tiếp tục" checks the step: what is missing is said under its field, which takes the focus.
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+    await expect(drawer.getByText("Hộp tổng hợp cần nói hộp gồm những gì.")).toBeVisible();
+    await expect(drawer.getByLabel("Hộp gồm những gì")).toBeFocused();
     await drawer.getByLabel("Hộp gồm những gì").fill("Bánh mì và bánh ngọt, có trứng");
     await expectNoSeriousA11yViolations(page);
     await drawer.getByRole("button", { name: "Tiếp tục" }).click();
@@ -402,6 +433,7 @@ test.describe("changing a post on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill(name);
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/);
     return page.url().split("/").pop() ?? "";
@@ -540,6 +572,7 @@ test.describe("the catalog on the web", () => {
     await (await hydrated(page.getByLabel("Tên quán"))).fill("Tiệm danh mục");
     await page.getByLabel("Số điện thoại").fill("0912345678");
     await page.getByLabel("Địa chỉ quán").fill("Tầng 1, Tasco Mall");
+    await pinHere(page);
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
     return page.url().split("/").pop() ?? "";
@@ -577,6 +610,8 @@ test.describe("the catalog on the web", () => {
     await page.getByRole("button", { name: "Hộp tổng hợp" }).click();
     await page.getByRole("button", { name: "Lưu món" }).click();
     await expect(page.getByText("Chọn một ảnh cho món.")).toBeVisible();
+    // The first field in error, the photos, takes the focus.
+    await expect(page.getByLabel("Ảnh món")).toBeFocused();
     await expect(page.getByText(/Hộp tổng hợp cần nói hộp gồm những gì/)).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
@@ -591,36 +626,6 @@ test.describe("the catalog on the web", () => {
     await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("heading", { level: 2, name: "4 món" })).toBeVisible();
     await expect(row(page, /Hộp bánh cuối ngày/)).toContainText("Hộp tổng hợp · 1 hộp");
-  });
-
-  test("a dish takes up to three photos, the first being the cover", async ({ page }, testInfo) => {
-    const store = await catalogStore(page, "ba-anh", testInfo);
-    await page.goto(`/vi/stores/${store}/catalog/new`);
-
-    // Four photos at once: the form keeps the first three.
-    const photos = ["a", "b", "c", "d"].map((name) => ({
-      name: `${name}.png`,
-      mimeType: "image/png",
-      buffer: png,
-    }));
-    await (await hydrated(page.getByLabel("Tên món"))).fill("Hộp ba ảnh");
-    await page.getByLabel("Ảnh món").setInputFiles(photos);
-    const removers = page.getByRole("button", { name: /^Bỏ ảnh/ });
-    await expect(removers).toHaveCount(3);
-    await expect(page.getByText("Ảnh đại diện", { exact: true })).toBeVisible();
-    await expectNoSeriousA11yViolations(page);
-
-    await page.getByRole("button", { name: "Bỏ ảnh 2" }).click();
-    await expect(removers).toHaveCount(2);
-
-    await page.getByRole("button", { name: "Lưu món" }).click();
-    await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
-
-    // Changing it shows the two photos it keeps.
-    await row(page, /Hộp ba ảnh/)
-      .getByRole("link", { name: "Sửa" })
-      .click();
-    await expect(removers).toHaveCount(2);
   });
 
   test("changes a dish, shows a hidden one again, and deletes one after asking", async ({

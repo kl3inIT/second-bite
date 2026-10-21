@@ -2,7 +2,6 @@ import {
   HistoryIcon,
   MailIcon,
   SettingsIcon,
-  ShieldCheckIcon,
   StoreIcon,
   UsersIcon,
   type LucideIcon,
@@ -43,13 +42,10 @@ export const adminNav: AdminNavGroup[] = [
 /** The settings' pages, in the order of Figma's Admin/SettingsNav; a page joins with its screen. */
 // Kept here, outside the client menu, so a server page can read it too.
 export const settingsPages: Array<{
-  key: "email" | "admins";
-  href: "/admin/settings/email" | "/admin/settings/admins";
+  key: "email";
+  href: "/admin/settings/email";
   icon: LucideIcon;
-}> = [
-  { key: "email", href: "/admin/settings/email", icon: MailIcon },
-  { key: "admins", href: "/admin/settings/admins", icon: ShieldCheckIcon },
-];
+}> = [{ key: "email", href: "/admin/settings/email", icon: MailIcon }];
 
 /** Whether an entry is the page open: its own address or one under it. */
 export function isWithin(pathname: string, href: string) {

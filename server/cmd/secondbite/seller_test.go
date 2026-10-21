@@ -75,10 +75,19 @@ func checkSellerFlow(t *testing.T, svc service) {
 		t.Fatalf("staff's sellers %+v", mine)
 	}
 
-	body := map[string]any{"name": "Renamed", "address": "x", "latitude": 21, "longitude": 105, "phone": "0912345678"}
+	body := newSeller("Renamed", "0912345678")
 	if p := send(t, http.MethodPut, sellerURL, staff, body).problem(t, http.StatusForbidden); p.Code != "SELLER_OWNER_REQUIRED" {
 		t.Errorf("staff changing the seller: %q", p.Code)
 	}
+
+	outside := newSeller("Renamed", "0912345678")
+	outside["latitude"], outside["longitude"] = 10.7769, 106.7009 // Ho Chi Minh City
+
+	if p := send(t, http.MethodPut, sellerURL, owner, outside).problem(t, http.StatusBadRequest); p.Code != "SELLER_LOCATION_OUTSIDE" {
+		t.Errorf("the owner moving the seller out of Hanoi: %q", p.Code)
+	}
+
+	checkPlacesNeedACaller(t, svc, owner)
 
 	stranger := bearer(signIn(t, svc, "seller.stranger@example.com").Token)
 	if p := send(t, http.MethodGet, sellerURL, stranger, nil).problem(t, http.StatusNotFound); p.Code != "SELLER_NOT_FOUND" {
@@ -208,4 +217,18 @@ func waitEmail(t *testing.T, svc service, address, subject string) string {
 	t.Fatalf("no email to %s about %q", address, subject)
 
 	return ""
+}
+
+// checkPlacesNeedACaller: suggestions for an address are for someone signed in, from two letters typed.
+func checkPlacesNeedACaller(t *testing.T, svc service, signedIn http.Header) {
+	t.Helper()
+
+	places := svc.base + "/sellers/places?q="
+	if p := send(t, http.MethodGet, places+"hoa+lam", nil, nil).problem(t, http.StatusUnauthorized); p.Code != codeAuthenticationRequired {
+		t.Errorf("anonymous suggestions: %q", p.Code)
+	}
+
+	if p := send(t, http.MethodGet, places+"h", signedIn, nil).problem(t, http.StatusBadRequest); p.Code != "PLATFORM_REQUEST_INVALID" {
+		t.Errorf("one letter: %q", p.Code)
+	}
 }

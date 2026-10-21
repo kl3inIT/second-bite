@@ -19,7 +19,7 @@ Owns the surplus sellers post and the settings every offer follows (tables `offe
 
 An offer carries its status, units left, discount, photo addresses (`photo` is the cover; `photos` is every photo, the cover first) and the collection point copied from the seller when it was posted. Prices are whole đồng; times are RFC 3339.
 
-Published to other modules: `Service` and `WindowChangedEvent`. `order` reads the windows of the offers it holds with `WindowsOf`, and takes units with `Take` and gives them back with `Return`, both inside the order's transaction; `Take` answers what the order copies (`Taken`: the seller, its name and collection point, the offer's name, unit, prices, photo and window).
+Published to other modules: `Service` and `WindowChangedEvent`. It follows `seller.LocationChangedEvent` (listener `offer.follow_seller_location`): the offers still on sale, whose window is not over, copy the seller's collection point as it stands; offers withdrawn or ended keep theirs, and the same event twice changes nothing more (SEC-66). `order` reads the windows of the offers it holds with `WindowsOf`, and takes units with `Take` and gives them back with `Return`, both inside the order's transaction; `Take` answers what the order copies (`Taken`: the seller, its name and collection point, the offer's name, unit, prices, photo and window).
 
 ## Rules
 

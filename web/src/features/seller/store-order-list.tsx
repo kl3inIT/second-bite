@@ -15,9 +15,14 @@ import {
   matchesQuery,
   type OrderTab,
   orderTabs,
-  readOrderTab,
 } from "./store-orders";
-import { readDay, vietnamToday } from "./store-day";
+import {
+  dayOrNull,
+  loadOrderSearchParams,
+  searchOf,
+  serializeOrderSearchParams,
+} from "./search-params";
+import { vietnamToday } from "./store-day";
 import { StoreTitleRow } from "./store-title-row";
 import { UndoToast } from "./undo-toast";
 
@@ -40,9 +45,10 @@ export async function StoreOrders({
   await requireStore(sellerId, `/stores/${sellerId}/orders`);
 
   const today = vietnamToday();
-  const day = readDay(one("day"), today);
-  const tab = readOrderTab(one("tab"));
-  const search = (one("q") ?? "").trim().slice(0, 80);
+  const filter = loadOrderSearchParams(query);
+  const day = filter.day ?? today;
+  const { tab } = filter;
+  const search = searchOf(filter.q);
 
   const [t, orders] = await Promise.all([
     getTranslations("StoreOrders"),
@@ -74,14 +80,8 @@ export async function StoreOrders({
   const undone = undoId ? orders.find((order) => order.id === undoId) : undefined;
   const undoMessage = undone ? t("deliveredTo", { name: undone.customerName }) : undefined;
 
-  const tabHref = (name: OrderTab) => ({
-    pathname: `/stores/${sellerId}/orders`,
-    query: {
-      ...(day === today ? {} : { day }),
-      ...(name === "preparing" ? {} : { tab: name }),
-      ...(searching ? { q: search } : {}),
-    },
-  });
+  const tabHref = (name: OrderTab) =>
+    `/stores/${sellerId}/orders${serializeOrderSearchParams({ day: dayOrNull(day, today), tab: name, q: search })}`;
 
   return (
     <>
@@ -98,11 +98,8 @@ export async function StoreOrders({
 
       <DayFilter
         pathname={`/stores/${sellerId}/orders`}
-        day={day}
+        list="orders"
         today={today}
-        tab={tab}
-        defaultTab="preparing"
-        q={search}
         label={t("searchLabel")}
         placeholder={t("searchPlaceholder")}
         extra={<ScanOrder sellerId={sellerId} />}

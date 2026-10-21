@@ -25,10 +25,39 @@ type addressOutput struct {
 	}
 }
 
+// placesInput is what someone typed in a store's address.
+type placesInput struct {
+	Query string `query:"q" required:"true" minLength:"2" maxLength:"200" doc:"The words of the address, with or without Vietnamese marks"`
+}
+
+// placeBody is a suggested place.
+type placeBody struct {
+	Address   string  `json:"address"   doc:"As people write it; a house number typed first goes before a street that has none"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+// toPlaceBodies is the suggestions as the API gives them, an empty list for none.
+func toPlaceBodies(found []Place) []placeBody {
+	out := make([]placeBody, len(found))
+	for i, p := range found {
+		out[i] = placeBody(p)
+	}
+
+	return out
+}
+
+// placesOutput is up to five suggestions.
+type placesOutput struct {
+	Body struct {
+		Places []placeBody `json:"places" doc:"Up to five places in Hanoi; none when nothing matches or the search does not answer"`
+	}
+}
+
 type detailsBody struct {
 	Name      string  `json:"name"      maxLength:"100" minLength:"1"`
 	Address   string  `json:"address"   maxLength:"300" minLength:"1" doc:"The address as people write it"`
-	Latitude  float64 `json:"latitude"  maximum:"90"    minimum:"-90" doc:"Where the seller is, pinned on a map"`
+	Latitude  float64 `json:"latitude"  maximum:"90"    minimum:"-90" doc:"Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE"`
 	Longitude float64 `json:"longitude" maximum:"180"   minimum:"-180"`
 	Phone     string  `json:"phone"     maxLength:"30" doc:"Shown to the seller's members and admins"`
 }
@@ -112,7 +141,7 @@ var (
 func registerOwnerOperations(api huma.API, s *Service) {
 	huma.Register(api, huma.Operation{
 		OperationID: "openSeller", Method: http.MethodPost, Path: "/sellers",
-		Summary: "Open a seller; it waits for an admin to activate it", Tags: tagSellers,
+		Summary: "Open a seller, active at once, pinned inside Hanoi", Tags: tagSellers,
 		Security: security, DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, in *struct{ Body detailsBody }) (*sellerOutput, error) {
 		seller, err := s.Open(ctx, in.Body.details())
@@ -137,6 +166,18 @@ func registerOwnerOperations(api huma.API, s *Service) {
 		out.Body.Address = address
 
 		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "searchPlaces", Method: http.MethodGet, Path: "/sellers/places",
+		Summary: "Places in Hanoi for the words of a store's address, to pin it as it is typed",
+		Tags:    tagSellers, Security: security,
+	}, func(ctx context.Context, in *placesInput) (*placesOutput, error) {
+		found, err := s.Places(ctx, in.Query)
+		out := &placesOutput{}
+		out.Body.Places = toPlaceBodies(found)
+
+		return out, err
 	})
 
 	huma.Register(api, huma.Operation{
@@ -165,7 +206,7 @@ func registerOwnerOperations(api huma.API, s *Service) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "updateSeller", Method: http.MethodPut, Path: "/sellers/{sellerId}",
-		Summary: "Change a seller's details; only its owner may", Tags: tagSellers, Security: security,
+		Summary: "Change a seller's details; only its owner may. A moved pin or address moves its offers on sale and its orders still to collect", Tags: tagSellers, Security: security,
 	}, func(ctx context.Context, in *struct {
 		SellerID uuid.UUID `path:"sellerId"`
 		Body     detailsBody

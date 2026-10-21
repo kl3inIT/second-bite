@@ -5,7 +5,6 @@ import {
   CircleCheckIcon,
   CircleXIcon,
   MailIcon,
-  SearchIcon,
   SettingsIcon,
   ShieldMinusIcon,
   ShieldPlusIcon,
@@ -13,7 +12,7 @@ import {
 } from "lucide-react";
 import { debounce, useQueryStates } from "nuqs";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,6 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -34,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
+import { SearchBox } from "@/features/admin/search-box";
 import { DayRange } from "@/features/admin/day-range";
 import { ListFooter } from "@/features/admin/list-footer";
 import type { AccountBody, AuditEventBody } from "@/lib/api/generated";
@@ -94,6 +93,8 @@ export function AuditLog({
     <section aria-label={t("title")} className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox
+          label={t("filter.search")}
+          className="sm:w-72"
           value={params.q}
           onChange={(q) =>
             void setParams(
@@ -210,30 +211,6 @@ export function AuditLog({
         }
       />
     </section>
-  );
-}
-
-function SearchBox({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const t = useTranslations("Admin.audit.filter");
-  const [text, setText] = useState(value);
-
-  return (
-    <InputGroup className="h-11 w-full sm:w-72">
-      <InputGroupAddon>
-        <SearchIcon aria-hidden />
-      </InputGroupAddon>
-      <InputGroupInput
-        type="search"
-        aria-label={t("search")}
-        placeholder={t("search")}
-        value={text}
-        maxLength={100}
-        onChange={(event) => {
-          setText(event.target.value);
-          onChange(event.target.value.trim());
-        }}
-      />
-    </InputGroup>
   );
 }
 

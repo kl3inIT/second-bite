@@ -11,10 +11,6 @@ export const orderTabs = ["preparing", "ready", "delivered", "cancelled"] as con
 
 export type OrderTab = (typeof orderTabs)[number];
 
-export function readOrderTab(value: string | undefined): OrderTab {
-  return orderTabs.find((tab) => tab === value) ?? "preparing";
-}
-
 export function tabOfOrder(order: OrderBody): OrderTab {
   switch (order.status) {
     case "confirmed":

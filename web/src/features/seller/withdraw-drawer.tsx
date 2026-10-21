@@ -1,17 +1,17 @@
 "use client";
 
-import { CircleAlertIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FailureAlert } from "@/components/failure-alert";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
 import { failureOf } from "@/lib/api/client";
 import { withdrawOffer } from "@/lib/api/generated";
+import { photoUrl } from "@/lib/api/photo";
 
 import type { EditTarget } from "./post-draft";
 
@@ -64,7 +64,7 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
           <div className="flex items-center gap-4">
             <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
               <Image
-                src={`/api${dish.photoPath}`}
+                src={photoUrl(dish.photoPath)}
                 alt=""
                 fill
                 sizes="56px"
@@ -91,17 +91,7 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
           >
             {hasOrders ? t("ordersNote", { count: ordered }) : t("keptNote")}
           </output>
-          {failed && (
-            <Alert variant="destructive">
-              <CircleAlertIcon aria-hidden />
-              <AlertDescription>
-                {failed.detail ?? t("failed")}
-                {failed.detail && failed.reference && (
-                  <> {t("reference", { id: failed.reference })}</>
-                )}
-              </AlertDescription>
-            </Alert>
-          )}
+          {failed && <FailureAlert failure={failed} fallback={t("failed")} />}
         </div>
 
         <SheetFooter variant="bar">

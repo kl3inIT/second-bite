@@ -3,6 +3,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 
 import { formatPrice } from "@/features/offers/format";
 import type { OfferBody } from "@/lib/api/generated";
+import { photoUrl } from "@/lib/api/photo";
 
 // One post of a store (Figma Q2, S1, S2): its photo, its name, and one line of where it stands, with what the
 // person can do beside it. The line depends on the status: on sale and sold out say the window and the units
@@ -33,7 +34,7 @@ export async function PostRow({ offer, action }: { offer: OfferBody; action?: Re
     <li className="flex items-center gap-3 border-b border-border py-4 last:border-b-0 last:pb-0 md:gap-4">
       <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
         <Image
-          src={`/api${offer.photo.smallPath}`}
+          src={photoUrl(offer.photo.smallPath)}
           alt=""
           fill
           sizes="56px"

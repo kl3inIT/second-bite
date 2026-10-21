@@ -6,17 +6,23 @@ import { TopBarView } from "@/components/top-bar";
 import { usePathname } from "@/i18n/navigation";
 
 // The top bar of a store's pushed screen on a phone (the dish form, Figma "Thêm món" and "Sửa món"; an order's
-// own page, O2 and O3): its name and a way back to the catalog, or to the orders. The layout shows it only while a
-// pushed screen is open.
+// own page, O2 and O3; the store's location, SEC-66): its name and a way back to the catalog, to the orders, or to
+// the store's home. The layout shows it only while a pushed screen is open.
 export function StorePushedBar() {
   const t = useTranslations("DishForm");
   const order = useTranslations("StoreOrders.detail");
+  const location = useTranslations("StoreLocationPage");
   const bar = useTranslations("TopBar");
   const pathname = usePathname();
-  const parent = pathname.split("/").slice(0, 4).join("/");
+  const ofLocation = pathname.endsWith("/location");
+  const parent = pathname
+    .split("/")
+    .slice(0, ofLocation ? 3 : 4)
+    .join("/");
   const ofOrder = pathname.includes("/orders/");
   let title = pathname.endsWith("/new") ? t("addTitle") : t("editTitle");
   if (ofOrder) title = order("pushedTitle");
+  if (ofLocation) title = location("title");
 
   return (
     <div className="hidden group-has-[[data-pushed]]/store:max-md:block">

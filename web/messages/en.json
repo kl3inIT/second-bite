@@ -340,7 +340,10 @@
     "googleNeedsCodeBodyNoAddress": "This Google account's address already has a Second Bite account. Get a code by email to sign in.",
     "failed": "You could not be signed in. Please try again.",
     "notArrived": "No email yet? Check your spam folder.",
-    "reference": "Reference: {reference}"
+    "errors": {
+      "email": "Enter one email address, such as name@example.com.",
+      "code": "Enter the 6 digits of the code in the email."
+    }
   },
   "Account": {
     "signIn": "Sign in",
@@ -485,8 +488,7 @@
       },
       "keep": "Keep order",
       "confirm": "Cancel order",
-      "tooLate": "The seller has marked the food ready, so the order can no longer be cancelled.",
-      "failed": "The order was not cancelled. Try again, or report the reference {reference}.",
+      "failed": "The order could not be cancelled. Try again in a moment.",
       "change": "Changed your mind?",
       "note": "You can cancel until the seller says the food is ready.",
       "after": "You can cancel until the seller says the food is ready. After that it cannot be cancelled."
@@ -551,9 +553,7 @@
     "askSeller": "Ask the shop about ingredients and allergies.",
     "count": "{count} {name} to add",
     "add": "Add to cart · {price}",
-    "allChosen": "All {units} chosen",
-    "photos": "The dish's photos",
-    "photoNumber": "Show photo {number} of {total}"
+    "allChosen": "All {units} chosen"
   },
   "Seller": {
     "search": "Search the {seller} menu",
@@ -621,7 +621,6 @@
     "orderRest": "Order {what} · {price}",
     "restUnits": "the {units} portions left",
     "otherDishes": "See the seller's other dishes",
-    "orderFailed": "The order did not go through. Try again, or quote the reference {reference}.",
     "orderFailedPlain": "The order did not go through. Check your connection and try again.",
     "sellerWindow": "{place} · Collect {from} – {until}",
     "intro": "One order per seller, each with its own QR code. Check the dishes and the collection time before you order.",
@@ -652,7 +651,8 @@
     "save": "Save",
     "saving": "Saving…",
     "cancel": "Cancel",
-    "nameFailed": "The name was not saved. Try again in a few minutes."
+    "nameFailed": "The name was not saved. Try again in a few minutes.",
+    "nameInvalid": "Enter a display name of 1 to 50 characters."
   },
   "DeleteAccount": {
     "title": "Delete your account",
@@ -693,7 +693,9 @@
     "doneTitle": "Your account is deleted",
     "doneBody": "Your account and your personal data are deleted. You can still sign in with this address at any time, as a new account.",
     "home": "Back to home",
-    "reference": "Reference: {reference}"
+    "errors": {
+      "code": "Enter the 6 digits of the code in the email."
+    }
   },
   "OpenStore": {
     "title": "Open a store",
@@ -718,7 +720,11 @@
     "photoHint": "A photo helps customers recognise your store.",
     "submit": "Create store",
     "failed": "The store was not created. Try again in a few minutes.",
-    "reference": "Reference: {id}"
+    "errors": {
+      "name": "Enter the store's name.",
+      "phone": "Enter a phone number of 9 to 15 digits, such as 0912 345 678.",
+      "address": "Enter the store's address."
+    }
   },
   "Stores": {
     "title": "My stores",
@@ -737,6 +743,7 @@
   },
   "StoreMenu": {
     "shop": "Back to the customers' shop",
+    "location": "Store location",
     "mine": "My stores",
     "create": "Open another store"
   },
@@ -877,7 +884,6 @@
     "reopen": "Undo",
     "deliveredTo": "Delivered to {name}",
     "failed": "That did not work. Try again.",
-    "reference": "Reference: {id}",
     "reasonLabel": "Reason for cancelling",
     "reason": {
       "no_answer": "No answer",
@@ -1011,7 +1017,6 @@
     "window": "Customers collect from {from} to {until} today",
     "windowOver": "That time has passed. Choose a time from now on.",
     "failed": "Could not post. Try again in a few minutes.",
-    "reference": "Reference: {id}",
     "cancel": "Cancel",
     "back": "Back",
     "next": "Next",
@@ -1030,7 +1035,13 @@
     "withdraw": "Withdraw",
     "save": "Save changes",
     "sourceCatalog": "From the catalog",
-    "noCatalog": "No dish of the catalog is shown. Add one in the Catalog tab."
+    "noCatalog": "No dish of the catalog is shown. Add one in the Catalog tab.",
+    "errors": {
+      "photo": "Choose a photo of the dish.",
+      "name": "Enter the dish's name.",
+      "description": "A mixed box needs to say what it holds.",
+      "units": "Enter a number of portions from 1 to 999."
+    }
   },
   "WithdrawDrawer": {
     "title": "Withdraw",
@@ -1042,8 +1053,7 @@
     "keep": "Keep",
     "withdraw": "Withdraw",
     "withdrawAndCancel": "Withdraw and cancel orders",
-    "failed": "Could not withdraw. Try again in a few minutes.",
-    "reference": "Reference: {id}"
+    "failed": "Could not withdraw. Try again in a few minutes."
   },
   "StoreCatalog": {
     "title": "Catalog",
@@ -1059,15 +1069,16 @@
       "saved": "Dish saved.",
       "deleted": "Dish deleted from the catalog.",
       "shown": "The dish is shown again."
-    }
+    },
+    "showFailed": "The dish could not be shown again. Try again in a moment."
   },
   "DishForm": {
     "addTitle": "Add a dish",
     "editTitle": "Edit dish",
     "photo": "Dish photo",
     "choosePhoto": "Choose a photo",
-    "addPhoto": "Add a photo",
-    "photoHint": "Up to 3 photos; the first is the cover.",
+    "changePhoto": "Change the photo",
+    "photoHint": "A photo helps customers recognise your dish.",
     "photoMissing": "Choose a photo for the dish.",
     "name": "Dish name",
     "namePlaceholder": "For example: Bread and croissant bag, 4 pieces",
@@ -1088,12 +1099,9 @@
     "deleteBody": "The dish is deleted from the catalog. Posts already made are not affected.",
     "keep": "Keep",
     "failed": "Could not save the dish. Try again in a few minutes.",
-    "reference": "Reference: {id}",
     "original": "Original price (VND, optional)",
     "originalPlaceholder": "For example: 95.000",
-    "originalInvalid": "An original price from 1.001đ, or leave it empty.",
-    "cover": "Cover",
-    "removePhoto": "Remove photo {number}"
+    "originalInvalid": "An original price from 1.001đ, or leave it empty."
   },
   "Admin": {
     "home": "Second Bite, admin",
@@ -1206,12 +1214,10 @@
         "clear": "Clear the filters"
       }
     },
-    "closeToast": "Close notification",
     "settings": {
       "title": "Settings",
       "nav": "Settings pages",
-      "email": "Email",
-      "admins": "Admins"
+      "email": "Email"
     },
     "email": {
       "title": "Email",
@@ -1369,14 +1375,6 @@
       }
     },
     "admins": {
-      "title": "Admins",
-      "description": "Admins approve stores, look up accounts and change the settings. They sign in with an emailed code like everyone.",
-      "you": "You",
-      "column": {
-        "account": "Account",
-        "signedIn": "Last sign-in",
-        "actions": "Actions"
-      },
       "grant": {
         "open": "Add an admin",
         "title": "Add an admin",
@@ -1387,7 +1385,8 @@
         "submit": "Make admin",
         "done": "{email} is now an admin",
         "failed": "Could not make an admin",
-        "unreachable": "The server could not be reached. Try again shortly."
+        "unreachable": "The server could not be reached. Try again shortly.",
+        "placeholder": "name@gmail.com"
       },
       "revoke": {
         "open": "Revoke",
@@ -1489,6 +1488,7 @@
         "info": "Details",
         "address": "Address",
         "phone": "Phone",
+        "map": "The store on the map",
         "people": "Members",
         "owner": "Owner",
         "staff": "Staff",
@@ -1544,7 +1544,8 @@
             "withdrawn": "Withdrawn"
           }
         }
-      }
+      },
+      "reasonInvalid": "Write the owner a reason of 10 to 500 characters."
     }
   },
   "Review": {
@@ -1568,9 +1569,12 @@
     },
     "comment": "A few words for the shop (optional)",
     "submit": "Send rating",
-    "failed": "The rating was not sent. Try again later, reference {reference}.",
+    "failed": "The rating could not be sent. Try again in a moment.",
     "given": "Your rating",
-    "thanks": "Thank you, the shop will read it."
+    "thanks": "Thank you, the shop will read it.",
+    "errors": {
+      "stars": "Choose how many stars to give."
+    }
   },
   "Favourites": {
     "title": "Favourites",
@@ -1590,5 +1594,44 @@
     "emptyBody": "Tap ♡ on a shop's page to follow it.",
     "emptyMore": "Shops with a deal will let you know.",
     "explore": "Explore shops"
+  },
+  "StoreLocation": {
+    "label": "Location on the map",
+    "hint": "Customers' distance and directions follow this pin.",
+    "empty": "The store is not pinned yet",
+    "pin": "Pin on the map",
+    "adjust": "Adjust the location",
+    "required": "Pin the store on the map so customers can find it.",
+    "previewLabel": "The store's location on the map",
+    "pickTitle": "Pin the store",
+    "pickHint": "Move the map until the pin's tip is on the store's door.",
+    "mapLabel": "Map of Hanoi. Drag the map, or use the arrow keys, to put the pin on the store.",
+    "looking": "Looking up the address…",
+    "unnamed": "No street name here yet",
+    "locate": "Go to where I am",
+    "locateDenied": "Your location is not available. Allow location in the browser, or move the map.",
+    "locateFailed": "Your location is not available right now. Move the map to the store.",
+    "zoomIn": "Zoom in to place the pin exactly.",
+    "confirm": "Confirm the location",
+    "unavailable": "This device cannot show the map. Use the current-location button in the address field.",
+    "tilesFailed": "Part of the map did not load. You can still move it and pin the store.",
+    "zoomInButton": "Zoom in",
+    "zoomOutButton": "Zoom out",
+    "openMap": "Open the large map",
+    "suggestions": "{count, plural, =0 {No suggestions} one {# suggestion} other {# suggestions}}"
+  },
+  "StoreLocationPage": {
+    "title": "Store location",
+    "intro": "Customers see the distance and the way to the store from this pin. Dishes on sale and orders still to collect follow the new place.",
+    "address": "Store address",
+    "addressRequired": "Enter the store's address.",
+    "save": "Save the location",
+    "saved": "The store's new location is saved.",
+    "failed": "The location could not be saved. Try again in a few minutes."
+  },
+  "Failure": {
+    "reference": "Reference: {reference}",
+    "unreachable": "The server could not be reached. Try again in a moment.",
+    "closeToast": "Close notification"
   }
 }

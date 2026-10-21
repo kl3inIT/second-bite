@@ -1,30 +1,29 @@
 "use client";
 
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react";
+import { createSerializer, debounce, useQueryStates } from "nuqs";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useState, useTransition } from "react";
 import { enUS, vi } from "react-day-picker/locale";
 
 import { Calendar } from "@/components/ui/calendar";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
+import { dayOrNull, type DayList, listSearchParams } from "./search-params";
 import { shiftDay } from "./store-day";
 
+/** How long the search waits after the last key before the list is read again. */
 const SEARCH_WAIT_MS = 300;
 
-/** The day a page shows, and what else its address keeps when the day changes. */
+/** The list a filter belongs to: its address, and today, which the page read at request time. */
 type DayView = {
-  /** The page the filter belongs to, as an address without its language: `/stores/{id}/orders`. */
+  /** The page, as an address without its language: `/stores/{id}/orders`. */
   pathname: string;
-  day: string;
+  list: DayList;
   today: string;
-  /** The tab shown, and the one the page opens on, which the address leaves out. */
-  tab: string;
-  defaultTab: string;
-  q: string;
 };
 
 type View = DayView & {
@@ -36,30 +35,10 @@ type View = DayView & {
 /** What stands beside the search, as the Đơn tab's scan button does. */
 type Extra = { extra?: React.ReactNode };
 
-/** The address of the page for a view, without what is as it opens: today, the first tab, no search. */
-function hrefFor(view: DayView, change: Partial<Pick<DayView, "day" | "q">> = {}) {
-  const { pathname, today, tab, defaultTab } = view;
-  const { day, q } = { ...view, ...change };
-  return {
-    pathname,
-    query: {
-      ...(day === today ? {} : { day }),
-      ...(tab === defaultTab ? {} : { tab }),
-      ...(q ? { q } : {}),
-    },
-  };
-}
-
 /** A day written `2026-10-21` as the date it stands for in the reader's own clock, noon, so no zone moves it. */
 function dateOf(day: string): Date {
   const [year, month, date] = day.split("-").map(Number);
   return new Date(year, month - 1, date, 12);
-}
-
-/** A weekday in one or two characters, so seven of them fit above the cells of a phone's popover: "T2" to "CN". */
-function weekdayName(date: Date, language: string): string {
-  if (language === "vi") return ["CN", "T2", "T3", "T4", "T5", "T6", "T7"][date.getDay()];
-  return date.toLocaleDateString(language, { weekday: "narrow" });
 }
 
 function dayOf(date: Date): string {
@@ -67,12 +46,25 @@ function dayOf(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+/**
+ * The list's view in the address (docs/guidelines/web.md › Lists and filters): read and changed with nuqs, the
+ * server reading the list again on a change. What is as the list opens stays out of the address.
+ */
+function useListView(list: DayList) {
+  const [, startTransition] = useTransition();
+  const [view, setView] = useQueryStates(listSearchParams[list], {
+    shallow: false,
+    startTransition,
+  });
+  return { view, setView };
+}
+
 const squareControl =
   "relative flex size-11 shrink-0 items-center justify-center rounded-xl border border-input bg-card text-foreground transition-colors outline-none hover:bg-secondary focus-visible:ring-3 focus-visible:ring-ring/50";
 
-// The search and the day of a store's list, orders or posts (Figma Q5, Q5b, Q5g, Q2): a search by name, phone number or dish that
-// reads as you type, and the day shown with a step to the day before and after, and a month to pick from. Orders
-// belong to a day, so the page shows one. The view is the address, so it is shared and survives a reload.
+// The search and the day of a store's list, orders or posts (Figma Q5, Q5b, Q5g, Q2): a search by name, phone number
+// or dish that reads as you type, and the day shown with a step to the day before and after, and a month to pick
+// from. Orders belong to a day, so the page shows one. The view is the address, so it is shared and survives a reload.
 export function DayFilter({ extra, ...view }: View & Extra) {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -85,18 +77,9 @@ export function DayFilter({ extra, ...view }: View & Extra) {
   );
 }
 
-function Search(view: View) {
-  const router = useRouter();
-  const [text, setText] = useState(view.q);
-
-  useEffect(() => {
-    if (text.trim() === view.q) return;
-    const timer = setTimeout(
-      () => router.replace(hrefFor(view, { q: text.trim() }), { scroll: false }),
-      SEARCH_WAIT_MS,
-    );
-    return () => clearTimeout(timer);
-  }, [text, view, router]);
+function Search({ list, label, placeholder }: View) {
+  const { view, setView } = useListView(list);
+  const q = "q" in view ? view.q : "";
 
   return (
     <InputGroup className="min-w-0 flex-1">
@@ -105,25 +88,37 @@ function Search(view: View) {
       </InputGroupAddon>
       <InputGroupInput
         type="search"
-        aria-label={view.label}
-        placeholder={view.placeholder}
-        value={text}
-        onChange={(event) => setText(event.target.value)}
+        aria-label={label}
+        placeholder={placeholder}
+        value={q}
+        onChange={(event) =>
+          void setView(
+            { q: event.target.value },
+            {
+              // Clearing the field reads the list at once; typing waits for the last key.
+              limitUrlUpdates: event.target.value ? debounce(SEARCH_WAIT_MS) : undefined,
+            },
+          )
+        }
       />
     </InputGroup>
   );
 }
 
 /** The day alone, with its steps and its month, for a page with no search (the store's home, Figma Q1b). */
-export function DayBar(view: DayView) {
+export function DayBar({ pathname, list, today }: DayView) {
   const t = useTranslations("DayFilter");
   const format = useFormatter();
-  const router = useRouter();
   const language = useLocale();
   const [open, setOpen] = useState(false);
-  const { day, today } = view;
+  const { view, setView } = useListView(list);
+  const day = view.day ?? today;
+  const serialize = createSerializer(listSearchParams[list]);
+  // The address of the same view on another day.
+  const hrefFor = (other: string) =>
+    `${pathname}${serialize({ ...view, day: dayOrNull(other, today) })}`;
 
-  const written = format.dateTime(dateOf(day), { day: "2-digit", month: "2-digit" });
+  const written = format.dateTime(dateOf(day), "dayMonth");
   let label = written;
   if (day === today) label = `${t("today")} · ${written}`;
   else if (day === shiftDay(today, -1)) label = `${t("yesterday")} · ${written}`;
@@ -136,11 +131,7 @@ export function DayBar(view: DayView) {
 
   return (
     <div className="flex items-center gap-2 max-md:w-full">
-      <Link
-        href={hrefFor(view, { day: shiftDay(day, -1) })}
-        aria-label={t("previous")}
-        className={squareControl}
-      >
+      <Link href={hrefFor(shiftDay(day, -1))} aria-label={t("previous")} className={squareControl}>
         <ChevronLeftIcon aria-hidden className="size-5" />
       </Link>
       <Popover open={open} onOpenChange={setOpen}>
@@ -158,7 +149,7 @@ export function DayBar(view: DayView) {
             {quick.map((choice) => (
               <li key={choice.day}>
                 <Link
-                  href={hrefFor(view, { day: choice.day })}
+                  href={hrefFor(choice.day)}
                   aria-current={choice.day === day ? "date" : undefined}
                   onClick={() => setOpen(false)}
                   className={cn(
@@ -182,20 +173,16 @@ export function DayBar(view: DayView) {
               defaultMonth={dateOf(day)}
               locale={language === "vi" ? vi : enUS}
               weekStartsOn={1}
-              formatters={{ formatWeekdayName: (date) => weekdayName(date, language) }}
+              formatters={{ formatWeekdayName: (date) => format.dateTime(date, "weekday") }}
               onSelect={(picked) => {
                 setOpen(false);
-                router.push(hrefFor(view, { day: dayOf(picked) }));
+                void setView({ day: dayOrNull(dayOf(picked), today) }, { history: "push" });
               }}
             />
           </div>
         </PopoverContent>
       </Popover>
-      <Link
-        href={hrefFor(view, { day: shiftDay(day, 1) })}
-        aria-label={t("next")}
-        className={squareControl}
-      >
+      <Link href={hrefFor(shiftDay(day, 1))} aria-label={t("next")} className={squareControl}>
         <ChevronRightIcon aria-hidden className="size-5" />
       </Link>
     </div>
