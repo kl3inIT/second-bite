@@ -777,10 +777,10 @@
     "ordersOn": "Orders on {date}",
     "orderTabs": "Order groups",
     "orderTab": {
-      "preparing": "Preparing",
-      "ready": "Ready",
-      "delivered": "Delivered",
-      "cancelled": "Cancelled"
+      "preparing": "Preparing · {count}",
+      "ready": "Ready · {count}",
+      "delivered": "Delivered · {count}",
+      "cancelled": "Cancelled · {count}"
     },
     "ordersEmpty": {
       "preparing": "No orders being prepared.",

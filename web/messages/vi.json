@@ -777,10 +777,10 @@
     "ordersOn": "Đơn ngày {date}",
     "orderTabs": "Nhóm đơn",
     "orderTab": {
-      "preparing": "Chuẩn bị",
-      "ready": "Sẵn sàng",
-      "delivered": "Đã giao",
-      "cancelled": "Đã hủy"
+      "preparing": "Chuẩn bị · {count}",
+      "ready": "Sẵn sàng · {count}",
+      "delivered": "Đã giao · {count}",
+      "cancelled": "Đã hủy · {count}"
     },
     "ordersEmpty": {
       "preparing": "Chưa có đơn nào đang chuẩn bị.",
