@@ -18,6 +18,20 @@ export type AddSellerStaffRequest = {
     email: string;
 };
 
+export type AdminAccountsOutputBody = {
+    /**
+     * How many accounts of each role match the words, whatever the role asked
+     */
+    counts: RoleCountsBody;
+    items: Array<RecordBody> | null;
+    page: number;
+    pageSize: number;
+    /**
+     * How many accounts match the role and the words
+     */
+    total: number;
+};
+
 export type AdminSellerBody = {
     /**
      * Absent when the owner deleted their account
@@ -40,7 +54,7 @@ export type AdminsOutputBody = {
     /**
      * Every admin, by address
      */
-    admins: Array<AccountBody> | null;
+    admins: Array<RecordBody> | null;
 };
 
 export type AuditChangeBody = {
@@ -276,6 +290,22 @@ export type GrantAdminRequest = {
     email: string;
 };
 
+export type HistoryOutputBody = {
+    /**
+     * Orders handed over
+     */
+    collected: number;
+    /**
+     * Orders the customer did not come for: the window ended, or staff ended them as no answer, no show or late
+     */
+    missed: number;
+    placed: number;
+    /**
+     * The latest five, newest first
+     */
+    recent: Array<OrderBody>;
+};
+
 export type ListDishesResponse = {
     dishes: Array<DishBody>;
 };
@@ -289,6 +319,18 @@ export type MemberBody = {
 
 export type MembersOutputBody = {
     members: Array<MemberBody> | null;
+};
+
+export type MembershipBody = {
+    accountId: string;
+    role: 'owner' | 'staff';
+    sellerId: string;
+    sellerName: string;
+    sellerStatus: 'pending' | 'active' | 'rejected' | 'blocked';
+};
+
+export type MembershipsOutputBody = {
+    memberships: Array<MembershipBody> | null;
 };
 
 export type MethodsOutputBody = {
@@ -560,6 +602,25 @@ export type Problem = {
     type: string;
 };
 
+export type RecordBody = {
+    createdAt: string;
+    /**
+     * Empty until Google gives one or the person sets it
+     */
+    displayName: string;
+    email: string;
+    id: string;
+    /**
+     * How it last signed in: an emailed code or Google
+     */
+    lastSignInMethod?: 'code' | 'google';
+    /**
+     * Absent until it signs in
+     */
+    lastSignedInAt?: string;
+    role: 'customer' | 'admin';
+};
+
 export type RefuseOrderRequest = {
     note?: string;
     reason: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other';
@@ -585,6 +646,11 @@ export type RequestCodeOutputBody = {
      */
     challengeId: string;
     expiresAt: string;
+};
+
+export type RoleCountsBody = {
+    admin: number;
+    customer: number;
 };
 
 export type SaveEmailSettingsInputBody = {
@@ -838,6 +904,100 @@ export type RequestAccountDeletionCodeResponses = {
 
 export type RequestAccountDeletionCodeResponse = RequestAccountDeletionCodeResponses[keyof RequestAccountDeletionCodeResponses];
 
+export type ListAccountsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep this role; every role when absent
+         */
+        role?: 'customer' | 'admin';
+        /**
+         * Words of the address or the name
+         */
+        q?: string;
+        /**
+         * name, created or signedIn; a leading - is descending; the newest first when absent
+         */
+        sort?: 'name' | '-name' | 'created' | '-created' | 'signedIn' | '-signedIn';
+        page?: number;
+        size?: number;
+    };
+    url: '/admin/accounts';
+};
+
+export type ListAccountsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListAccountsError = ListAccountsErrors[keyof ListAccountsErrors];
+
+export type ListAccountsResponses = {
+    /**
+     * OK
+     */
+    200: AdminAccountsOutputBody;
+};
+
+export type ListAccountsResponse = ListAccountsResponses[keyof ListAccountsResponses];
+
+export type GetAccountForAdminsData = {
+    body?: never;
+    path: {
+        accountId: string;
+    };
+    query?: never;
+    url: '/admin/accounts/{accountId}';
+};
+
+export type GetAccountForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetAccountForAdminsError = GetAccountForAdminsErrors[keyof GetAccountForAdminsErrors];
+
+export type GetAccountForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: RecordBody;
+};
+
+export type GetAccountForAdminsResponse = GetAccountForAdminsResponses[keyof GetAccountForAdminsResponses];
+
+export type GetAccountOrderHistoryData = {
+    body?: never;
+    path: {
+        accountId: string;
+    };
+    query?: never;
+    url: '/admin/accounts/{accountId}/orders';
+};
+
+export type GetAccountOrderHistoryErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetAccountOrderHistoryError = GetAccountOrderHistoryErrors[keyof GetAccountOrderHistoryErrors];
+
+export type GetAccountOrderHistoryResponses = {
+    /**
+     * OK
+     */
+    200: HistoryOutputBody;
+};
+
+export type GetAccountOrderHistoryResponse = GetAccountOrderHistoryResponses[keyof GetAccountOrderHistoryResponses];
+
 export type ListAdminsData = {
     body?: never;
     path?: never;
@@ -1047,6 +1207,36 @@ export type SendTestEmailResponses = {
 };
 
 export type SendTestEmailResponse = SendTestEmailResponses[keyof SendTestEmailResponses];
+
+export type ListMembershipsForAdminsData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The accounts, at most 100
+         */
+        accountId: Array<string> | null;
+    };
+    url: '/admin/memberships';
+};
+
+export type ListMembershipsForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListMembershipsForAdminsError = ListMembershipsForAdminsErrors[keyof ListMembershipsForAdminsErrors];
+
+export type ListMembershipsForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: MembershipsOutputBody;
+};
+
+export type ListMembershipsForAdminsResponse = ListMembershipsForAdminsResponses[keyof ListMembershipsForAdminsResponses];
 
 export type GetOfferSettingsData = {
     body?: never;

@@ -389,6 +389,48 @@ func (q *Queries) Members(ctx context.Context, sellerID uuid.UUID) ([]MembersRow
 	return items, nil
 }
 
+const membershipsOfAccounts = `-- name: MembershipsOfAccounts :many
+SELECT m.account_id, m.role, s.id, s.name, s.status
+FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
+WHERE m.account_id = ANY ($1::uuid[])
+ORDER BY m.account_id, m.role, s.name, s.id
+`
+
+type MembershipsOfAccountsRow struct {
+	AccountID uuid.UUID
+	Role      string
+	ID        uuid.UUID
+	Name      string
+	Status    string
+}
+
+// The sellers the accounts own or work at, owners first, for admins.
+func (q *Queries) MembershipsOfAccounts(ctx context.Context, accountIds []uuid.UUID) ([]MembershipsOfAccountsRow, error) {
+	rows, err := q.db.Query(ctx, membershipsOfAccounts, accountIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MembershipsOfAccountsRow
+	for rows.Next() {
+		var i MembershipsOfAccountsRow
+		if err := rows.Scan(
+			&i.AccountID,
+			&i.Role,
+			&i.ID,
+			&i.Name,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const ownersOf = `-- name: OwnersOf :many
 SELECT seller_id, account_id FROM seller_members WHERE seller_id = ANY ($1::uuid[]) AND role = 'owner'
 `

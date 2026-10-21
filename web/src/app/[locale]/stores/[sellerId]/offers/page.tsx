@@ -19,14 +19,10 @@ export default function StorePostsPage({
   searchParams,
 }: PageProps<"/[locale]/stores/[sellerId]/offers">) {
   const sellerId = params.then((p) => p.sellerId);
-  const tab = searchParams.then((query) => (typeof query.tab === "string" ? query.tab : undefined));
-  const notice = searchParams.then((query) =>
-    typeof query.notice === "string" ? query.notice : undefined,
-  );
 
   return (
     <Suspense fallback={<Skeleton shape="card" className="h-60" />}>
-      <StorePosts sellerId={sellerId} tab={tab} notice={notice} />
+      <StorePosts sellerId={sellerId} query={searchParams} />
     </Suspense>
   );
 }

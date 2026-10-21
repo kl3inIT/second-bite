@@ -11,7 +11,7 @@ import '../models/offer_body.dart';
 import '../models/offer_change_body.dart';
 import '../models/offer_details_body.dart';
 import '../models/offers_output_body.dart';
-import '../models/sort2.dart';
+import '../models/sort3.dart';
 import '../models/status2.dart';
 
 part 'offers_client.g.dart';
@@ -57,7 +57,7 @@ abstract class OffersClient {
     @Query('collectTo') DateTime? collectTo,
     @Query('sellerId') String? sellerId,
     @Query('available') bool? available,
-    @Query('sort') Sort2? sort,
+    @Query('sort') Sort3? sort,
   });
 
   /// An offer.

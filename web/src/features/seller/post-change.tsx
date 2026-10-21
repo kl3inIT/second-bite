@@ -4,6 +4,7 @@ import { getStoreOffers } from "./my-sellers";
 import { dishesOf, editTargetOf } from "./post-draft";
 import { PostDrawer } from "./post-drawer";
 import { requireStore } from "./require-store";
+import { vietnamDay } from "./store-day";
 import { StorePosts } from "./store-posts";
 import { WithdrawDrawer } from "./withdraw-drawer";
 
@@ -30,7 +31,11 @@ export async function PostChange({
     <>
       <StorePosts
         sellerId={Promise.resolve(sellerId)}
-        tab={Promise.resolve(target.status === "sold_out" ? "sold_out" : undefined)}
+        query={Promise.resolve({
+          // The list behind the drawer shows the day of the post being changed, and its tab.
+          day: vietnamDay.format(new Date(offer.windowStart)),
+          ...(target.status === "sold_out" ? { tab: "sold_out" } : {}),
+        })}
       />
       {mode === "edit" ? (
         <PostDrawer sellerId={sellerId} dishes={dishesOf(offers)} catalog={[]} edit={target} />

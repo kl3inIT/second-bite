@@ -15,7 +15,7 @@ A post's `closed` and an order's `expired` were read from the window's end in ev
 | 3 | The schedule is a River periodic job, `Events.Every(name, interval, run)`, on the same PostgreSQL as the event outbox; each module registers its own | River elects one leader to enqueue, so instances do not double a run; no new dependency or process |
 | 4 | A run that fails is not retried | The next run is a minute away and does the same work; the run is idempotent |
 | 5 | The units of an expired order are not offered again, as before, and customers are not told | The post is closed anyway; there is still no channel to tell them |
-| 6 | Two migrations, 0019 (the offer's `closed`) and 0020 (the order's `expired` and its event) | The tables' own checks name the stored states |
+| 6 | Two migrations, 0020 (the offer's `closed`) and 0021 (the order's `expired` and its event) | The tables' own checks name the stored states |
 
 ## Trade-offs
 

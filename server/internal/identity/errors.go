@@ -60,6 +60,10 @@ var (
 		VI: "Nhập tên hiển thị từ 1 đến 50 ký tự.",
 		EN: "Enter a display name of 1 to 50 characters.",
 	})
+	ErrAccountListInvalid = platform.NewFailure("IDENTITY_ACCOUNT_LIST_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Bộ lọc danh sách tài khoản không hợp lệ: kiểm tra vai trò, từ khoá tối đa 100 ký tự, trang từ 1 và cỡ trang từ 1 đến 100.",
+		EN: "The account list's filters are not valid: check the role, a query of at most 100 characters, a page from 1 and a page size of 1 to 100.",
+	})
 	ErrAccountNotFound = platform.NewFailure("IDENTITY_ACCOUNT_NOT_FOUND", platform.CategoryNotFound, platform.Words{
 		VI: "Không tìm thấy tài khoản này.",
 		EN: "The account does not exist.",

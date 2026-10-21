@@ -15,7 +15,7 @@ import (
 )
 
 // Admins lists the admins by address, to an admin.
-func (s *Service) Admins(ctx context.Context) ([]Account, error) {
+func (s *Service) Admins(ctx context.Context) ([]Record, error) {
 	if _, err := platform.RequireAdmin(ctx); err != nil {
 		return nil, err
 	}
@@ -25,9 +25,9 @@ func (s *Service) Admins(ctx context.Context) ([]Account, error) {
 		return nil, fmt.Errorf("listing the admins: %w", err)
 	}
 
-	admins := make([]Account, 0, len(rows))
+	admins := make([]Record, 0, len(rows))
 	for _, r := range rows {
-		admins = append(admins, accountOf(db.GetAccountRow(r)))
+		admins = append(admins, recordOf(db.GetAccountForAdminsRow(r)))
 	}
 
 	return admins, nil

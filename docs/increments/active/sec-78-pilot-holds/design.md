@@ -53,7 +53,7 @@ Decided with the build: the pilot reuses the `order` module rather than a second
 
 - The phone layout of the tab and of the calendar (a sheet from the bottom edge): not drawn yet; stall staff will likely use phones.
 - A history of changes to an order, blocking a phone, and a state for payment: not needed in phase 1.
-- The title of the post list card on Bài đăng, "Hôm nay và sắp tới", no longer matches a one-day filter; its new name is to be decided with the day filter on that page.
+- The post list card on Bài đăng is titled by the day it shows ("Hôm nay", or "Bài đăng ngày 21/10"), since the filter on that page is built (SEC-95).
 
 ## Rules the screens follow
 

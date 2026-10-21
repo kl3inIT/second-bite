@@ -4,21 +4,21 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-/// name, address or changed; a leading - is descending; the queue order when absent
+/// name, created or signedIn; a leading - is descending; the newest first when absent
 @JsonEnum()
 enum Sort {
   @JsonValue('name')
   name('name'),
   @JsonValue('-name')
   minusName('-name'),
-  @JsonValue('address')
-  address('address'),
-  @JsonValue('-address')
-  minusAddress('-address'),
-  @JsonValue('changed')
-  changed('changed'),
-  @JsonValue('-changed')
-  minusChanged('-changed'),
+  @JsonValue('created')
+  created('created'),
+  @JsonValue('-created')
+  minusCreated('-created'),
+  @JsonValue('signedIn')
+  signedIn('signedIn'),
+  @JsonValue('-signedIn')
+  minusSignedIn('-signedIn'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

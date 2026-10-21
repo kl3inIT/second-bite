@@ -328,3 +328,38 @@ func (s *Service) refusedChange(ctx context.Context, q *db.Queries, id uuid.UUID
 
 	return ErrStatusChangeNotAllowed
 }
+
+// Membership is a seller an account owns or works at, as admins see it.
+type Membership struct {
+	AccountID    uuid.UUID
+	Role         Role
+	SellerID     uuid.UUID
+	SellerName   string
+	SellerStatus Status
+}
+
+// MembershipsForAdmins answers the sellers each account owns or works at,
+// owners first, to an admin; at most maxPageSize accounts at once.
+func (s *Service) MembershipsForAdmins(ctx context.Context, accountIDs []uuid.UUID) ([]Membership, error) {
+	if _, err := platform.RequireAdmin(ctx); err != nil {
+		return nil, err
+	}
+
+	if len(accountIDs) > maxPageSize {
+		return nil, ErrListInvalid
+	}
+
+	rows, err := s.queries.MembershipsOfAccounts(ctx, accountIDs)
+	if err != nil {
+		return nil, fmt.Errorf("reading the memberships: %w", err)
+	}
+
+	memberships := make([]Membership, 0, len(rows))
+	for _, r := range rows {
+		memberships = append(memberships, Membership{
+			AccountID: r.AccountID, Role: Role(r.Role), SellerID: r.ID, SellerName: r.Name, SellerStatus: Status(r.Status),
+		})
+	}
+
+	return memberships, nil
+}

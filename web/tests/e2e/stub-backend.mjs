@@ -392,7 +392,7 @@ async function photo(id) {
 }
 
 function fold(text) {
-  return text.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").toLowerCase();
+  return text.toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
 const DEFAULT_RADIUS_KM = 5;
@@ -516,7 +516,12 @@ async function auth(request, response, url) {
     const email = decodeURIComponent(String(challengeId).slice(3));
     // An address that starts with "admin" is an admin's, as `secondbite admin grant` makes one.
     const role = email.startsWith("admin") ? "admin" : "customer";
-    const account = { id: "ac-stub", email, displayName: "", role };
+    const account = {
+      id: `ac-${Buffer.from(email).toString("hex")}`,
+      email,
+      displayName: "",
+      role,
+    };
     const token = `stub-${Buffer.from(email).toString("hex")}`;
     accounts.set(token, account);
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -1344,7 +1349,199 @@ function auditLog() {
   return events;
 }
 
-function adminRoutes(request, response, url) {
+// The accounts admins look up (SEC-75 › accounts): customers who signed in by code or Google, or never did;
+// two of them belong to a store. The admins are kept per signed-in admin, starting with that admin and the
+// two of the log, so a grant or a revoke in one test leaves the others alone.
+const stubCustomers = [
+  [
+    "ac-bao",
+    "bao@example.com",
+    "Quốc Bảo",
+    "2026-09-28T03:00:00Z",
+    "2026-10-20T14:40:00Z",
+    "google",
+  ],
+  ["ac-ha", "ha@example.com", "Thu Hà", "2026-09-30T03:00:00Z", "2026-10-21T00:55:00Z", "code"],
+  [
+    "ac-khang",
+    "khang@example.com",
+    "Đức Khang",
+    "2026-09-25T03:00:00Z",
+    "2026-10-18T09:00:00Z",
+    "google",
+  ],
+  [
+    "ac-ngoc",
+    "ngoc@example.com",
+    "Lan Ngọc",
+    "2026-10-08T03:00:00Z",
+    "2026-10-15T12:00:00Z",
+    "code",
+  ],
+  [
+    "ac-nam",
+    "nam@example.com",
+    "Hoàng Nam",
+    "2026-09-29T03:00:00Z",
+    "2026-10-20T23:30:00Z",
+    "code",
+  ],
+  [
+    "ac-trang",
+    "trang@example.com",
+    "Mai Trang",
+    "2026-10-12T03:00:00Z",
+    "2026-10-19T08:00:00Z",
+    "google",
+  ],
+  [
+    "ac-phong",
+    "phong@example.com",
+    "Tuấn Phong",
+    "2026-10-01T03:00:00Z",
+    "2026-10-20T11:05:00Z",
+    "code",
+  ],
+  ["ac-linh", "linh@example.com", "", "2026-10-19T03:00:00Z", undefined, undefined],
+].map(([id, email, displayName, createdAt, lastSignedInAt, lastSignInMethod]) => ({
+  id,
+  email,
+  displayName,
+  role: "customer",
+  createdAt,
+  lastSignedInAt,
+  lastSignInMethod,
+}));
+
+const stubMemberships = [
+  {
+    accountId: "ac-bao",
+    role: "owner",
+    sellerId: "se-la-paris",
+    sellerName: "La Paris",
+    sellerStatus: "active",
+  },
+  {
+    accountId: "ac-ha",
+    role: "staff",
+    sellerId: "se-la-paris",
+    sellerName: "La Paris",
+    sellerStatus: "active",
+  },
+];
+
+const adminsBy = new Map();
+
+function adminsOf(account) {
+  if (!adminsBy.has(account.email)) {
+    adminsBy.set(account.email, [
+      {
+        ...account,
+        createdAt: "2026-10-01T03:00:00Z",
+        lastSignedInAt: new Date().toISOString(),
+        lastSignInMethod: "code",
+      },
+      ...stubAdmins.map((admin) => ({ ...admin, createdAt: "2026-09-20T03:00:00Z" })),
+    ]);
+  }
+  return adminsBy.get(account.email);
+}
+
+/** The accounts as the signed-in admin sees them: a customer it made an admin is listed as an admin. */
+function directoryOf(account) {
+  const admins = adminsOf(account);
+  const ids = new Set(admins.map((admin) => admin.id));
+  return [...stubCustomers.filter((customer) => !ids.has(customer.id)), ...admins];
+}
+
+function accountsPage(account, url) {
+  const role = url.searchParams.get("role");
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sort = url.searchParams.get("sort") ?? "";
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const found = directoryOf(account).filter(
+    (a) => !q || fold(`${a.email} ${a.displayName}`).includes(q),
+  );
+  const matching = found.filter((a) => !role || a.role === role);
+  const column = sort.replace(/^-/, "");
+  const key = (a) =>
+    column === "name"
+      ? fold(a.displayName || a.email)
+      : column === "signedIn"
+        ? (a.lastSignedInAt ?? "")
+        : a.createdAt;
+  matching.sort((a, b) => {
+    // Those never signed in come last either way, as the server orders them.
+    if (column === "signedIn" && !a.lastSignedInAt !== !b.lastSignedInAt) {
+      return a.lastSignedInAt ? -1 : 1;
+    }
+    const order = key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0;
+    return sort === "" || sort.startsWith("-") ? -order : order;
+  });
+  return {
+    items: matching.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: matching.length,
+    counts: {
+      customer: found.filter((a) => a.role === "customer").length,
+      admin: found.filter((a) => a.role === "admin").length,
+    },
+  };
+}
+
+/** What Quốc Bảo ordered, made from the offers above; the others never ordered. */
+function historyOf(accountId) {
+  if (accountId !== "ac-bao") return { placed: 0, collected: 0, missed: 0, recent: [] };
+  const outcomes = [
+    ["confirmed", undefined],
+    ["collected", undefined],
+    ["refused", "no_show"],
+    ["collected", undefined],
+    ["cancelled", undefined],
+  ];
+  const recent = outcomes.map(([status, refuseReason], i) => {
+    const offer = offers[i % offers.length];
+    const units = i === 0 ? 2 : 1;
+    return {
+      id: `or-bao-${i}`,
+      number: `SB-${10100 + i}`,
+      status,
+      refuseReason,
+      seller: {
+        id: offer.seller.id,
+        name: offer.seller.name,
+        address: offer.seller.address,
+        latitude: 21.0565,
+        longitude: 105.8964,
+      },
+      lines: [
+        {
+          offerId: offer.id,
+          name: offer.name,
+          unit: offer.unit,
+          priceVnd: offer.priceVnd,
+          originalPriceVnd: offer.originalPriceVnd,
+          units,
+          photo: offer.photo,
+        },
+      ],
+      totalVnd: offer.priceVnd * units,
+      windowStart: offer.windowStart,
+      windowEnd: offer.windowEnd,
+      createdAt: new Date(Date.parse("2026-10-20T10:00:00Z") - i * 86_400_000).toISOString(),
+      checkoutId: `co-bao-${i}`,
+      customerName: "Quốc Bảo",
+      customerPhone: "0900000000",
+    };
+  });
+  return { placed: 12, collected: 10, missed: 2, recent };
+}
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function adminRoutes(request, response, url) {
   if (!url.pathname.startsWith("/admin/")) return false;
   const account = accounts.get(tokenOf(request));
   if (!account) {
@@ -1356,7 +1553,71 @@ function adminRoutes(request, response, url) {
     return true;
   }
   if (request.method === "GET" && url.pathname === "/admin/admins") {
-    json(response, 200, { admins: stubAdmins });
+    json(response, 200, { admins: adminsOf(account) });
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/admin/admins") {
+    const email = String((await readBody(request)).email ?? "")
+      .trim()
+      .toLowerCase();
+    if (!EMAIL.test(email)) {
+      problem(response, 400, "IDENTITY_EMAIL_INVALID");
+      return true;
+    }
+    const admins = adminsOf(account);
+    let granted = admins.find((admin) => admin.email === email);
+    const customer = stubCustomers.find((c) => c.email === email);
+    if (!granted && customer) {
+      granted = { ...customer, role: "admin" };
+      admins.push(granted);
+    }
+    if (!granted) {
+      granted = {
+        id: `ac-${Buffer.from(email).toString("hex")}`,
+        email,
+        displayName: "",
+        role: "admin",
+        createdAt: new Date().toISOString(),
+      };
+      admins.push(granted);
+    }
+    json(response, 200, granted);
+    return true;
+  }
+  const revokeMatch = /^\/admin\/admins\/([\w-]+)\/revoke$/.exec(url.pathname);
+  if (request.method === "POST" && revokeMatch) {
+    const admins = adminsOf(account);
+    const at = admins.findIndex((admin) => admin.id === revokeMatch[1]);
+    if (revokeMatch[1] === account.id) problem(response, 409, "IDENTITY_ADMIN_SELF");
+    else if (at < 0) problem(response, 404, "IDENTITY_ACCOUNT_NOT_FOUND");
+    else if (admins.length <= 1) problem(response, 409, "IDENTITY_LAST_ADMIN");
+    else {
+      const [revoked] = admins.splice(at, 1);
+      json(response, 200, { ...revoked, role: "customer" });
+    }
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/accounts") {
+    json(response, 200, accountsPage(account, url));
+    return true;
+  }
+  const historyMatch = /^\/admin\/accounts\/([\w-]+)\/orders$/.exec(url.pathname);
+  if (request.method === "GET" && historyMatch) {
+    json(response, 200, historyOf(historyMatch[1]));
+    return true;
+  }
+  const accountMatch = /^\/admin\/accounts\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "GET" && accountMatch) {
+    const found = directoryOf(account).find((a) => a.id === accountMatch[1]);
+    if (found) json(response, 200, found);
+    else problem(response, 404, "IDENTITY_ACCOUNT_NOT_FOUND");
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/memberships") {
+    const ids = url.searchParams.getAll("accountId").flatMap((id) => id.split(","));
+    json(response, 200, {
+      memberships: stubMemberships.filter((m) => ids.includes(m.accountId)),
+    });
     return true;
   }
   if (request.method === "GET" && url.pathname === "/admin/audit-events") {
@@ -1504,7 +1765,7 @@ async function answer(request, response) {
   if (await auth(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await emailSettingsRoutes(request, response, url)) return;
-  if (adminRoutes(request, response, url)) return;
+  if (await adminRoutes(request, response, url)) return;
   if (await ordersApi(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {

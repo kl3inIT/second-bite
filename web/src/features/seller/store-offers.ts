@@ -1,5 +1,7 @@
 import type { OfferBody } from "@/lib/api/generated";
 
+import { plain, vietnamDay } from "./store-day";
+
 /**
  * The tabs of a store's post list (Figma Q2, S1, S2): what is on sale, what has sold out, and what is over,
  * which holds both the posts whose window has closed and the withdrawn ones. "Dự kiến" (Figma Q2c) joins when
@@ -31,11 +33,19 @@ export function groupByTab(offers: readonly OfferBody[]): Record<PostTab, OfferB
   return groups;
 }
 
-/** A day as `2026-10-20` in Vietnam's time, to tell whether two moments fall on the same day there. */
-const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
-
 /** The posts made today, Vietnam's time: the store home's "Bài đăng hôm nay". */
 export function postedToday(offers: readonly OfferBody[]): OfferBody[] {
-  const today = day.format(new Date());
-  return offers.filter((offer) => day.format(new Date(offer.createdAt)) === today);
+  const today = vietnamDay.format(new Date());
+  return offers.filter((offer) => vietnamDay.format(new Date(offer.createdAt)) === today);
+}
+
+/** The posts collected on a day, Vietnam's time (`2026-10-21`): a post belongs to the day its window opens. */
+export function offersOfDay(offers: readonly OfferBody[], day: string): OfferBody[] {
+  return offers.filter((offer) => vietnamDay.format(new Date(offer.windowStart)) === day);
+}
+
+/** Whether a post answers a search by its name, without accents or case; an empty search answers every post. */
+export function matchesName(offer: OfferBody, query: string): boolean {
+  const wanted = plain(query.trim());
+  return !wanted || plain(offer.name).includes(wanted);
 }

@@ -202,7 +202,7 @@ func (s *Service) SignIn(ctx context.Context, challengeID uuid.UUID, code string
 			return err
 		}
 
-		session, err = s.openSession(ctx, q, Account{ID: account.ID, Email: account.Email, Role: platform.Role(account.Role), DisplayName: account.DisplayName})
+		session, err = s.openSession(ctx, q, Account{ID: account.ID, Email: account.Email, Role: platform.Role(account.Role), DisplayName: account.DisplayName}, methodCode)
 
 		return err
 	})
@@ -247,7 +247,15 @@ func (s *Service) dropUntrustedLogins(ctx context.Context, q *db.Queries, accoun
 	return nil
 }
 
-func (s *Service) openSession(ctx context.Context, q *db.Queries, a Account) (Session, error) {
+// The ways to sign in, as an account's last sign-in records them.
+const (
+	methodCode   = "code"
+	methodGoogle = "google"
+)
+
+// openSession opens a session for a, which signed in by method, and records
+// the sign-in on the account.
+func (s *Service) openSession(ctx context.Context, q *db.Queries, a Account, method string) (Session, error) {
 	token := rand.Text()
 
 	row, err := q.InsertSession(ctx, db.InsertSessionParams{
@@ -261,6 +269,10 @@ func (s *Service) openSession(ctx context.Context, q *db.Queries, a Account) (Se
 
 	if err := q.DeleteExpiredSessions(ctx, a.ID); err != nil {
 		return Session{}, fmt.Errorf("deleting expired sessions: %w", err)
+	}
+
+	if err := q.RecordSignIn(ctx, db.RecordSignInParams{ID: a.ID, Method: method}); err != nil {
+		return Session{}, fmt.Errorf("recording the sign-in: %w", err)
 	}
 
 	return Session{Token: token, ExpiresAt: row.ExpiresAt, Account: a}, nil
