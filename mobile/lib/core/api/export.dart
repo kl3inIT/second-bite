@@ -110,6 +110,7 @@ export 'models/offer_details_body_kind.dart';
 export 'models/order_body_refuse_reason.dart';
 export 'models/order_body_status.dart';
 export 'models/record_body_last_sign_in_method.dart';
+export 'models/record_body_role.dart';
 export 'models/refuse_order_request_reason.dart';
 export 'models/save_email_settings_input_body_provider.dart';
 export 'models/save_email_settings_input_body_smtp_security.dart';

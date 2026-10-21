@@ -605,6 +605,12 @@ export type Problem = {
 export type RecordBody = {
     createdAt: string;
     /**
+     * Empty until Google gives one or the person sets it
+     */
+    displayName: string;
+    email: string;
+    id: string;
+    /**
      * How it last signed in: an emailed code or Google
      */
     lastSignInMethod?: 'code' | 'google';
@@ -612,6 +618,7 @@ export type RecordBody = {
      * Absent until it signs in
      */
     lastSignedInAt?: string;
+    role: 'customer' | 'admin';
 };
 
 export type RefuseOrderRequest = {

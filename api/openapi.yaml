@@ -1308,6 +1308,13 @@ components:
         createdAt:
           format: date-time
           type: string
+        displayName:
+          description: Empty until Google gives one or the person sets it
+          type: string
+        email:
+          type: string
+        id:
+          type: string
         lastSignInMethod:
           description: "How it last signed in: an emailed code or Google"
           enum:
@@ -1318,7 +1325,16 @@ components:
           description: Absent until it signs in
           format: date-time
           type: string
+        role:
+          enum:
+            - customer
+            - admin
+          type: string
       required:
+        - id
+        - email
+        - role
+        - displayName
         - createdAt
       type: object
     RefuseOrderRequest:

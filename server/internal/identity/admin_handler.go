@@ -13,16 +13,18 @@ import (
 
 // recordBody is an account as admins see it.
 type recordBody struct {
-	accountBody
-
-	CreatedAt        time.Time  `json:"createdAt"`
-	LastSignedInAt   *time.Time `json:"lastSignedInAt,omitempty"   doc:"Absent until it signs in"`
-	LastSignInMethod string     `json:"lastSignInMethod,omitempty" doc:"How it last signed in: an emailed code or Google" enum:"code,google"`
+	ID               uuid.UUID     `json:"id"`
+	Email            string        `json:"email"`
+	Role             platform.Role `json:"role"                       enum:"customer,admin"`
+	DisplayName      string        `json:"displayName"                doc:"Empty until Google gives one or the person sets it"`
+	CreatedAt        time.Time     `json:"createdAt"`
+	LastSignedInAt   *time.Time    `json:"lastSignedInAt,omitempty"   doc:"Absent until it signs in"`
+	LastSignInMethod string        `json:"lastSignInMethod,omitempty" doc:"How it last signed in: an emailed code or Google" enum:"code,google"`
 }
 
 func toRecordBody(r Record) recordBody {
 	return recordBody{
-		accountBody: toAccountBody(r.Account), CreatedAt: r.CreatedAt,
+		ID: r.ID, Email: r.Email, Role: r.Role, DisplayName: r.DisplayName, CreatedAt: r.CreatedAt,
 		LastSignedInAt: r.LastSignedInAt, LastSignInMethod: r.LastSignInMethod,
 	}
 }

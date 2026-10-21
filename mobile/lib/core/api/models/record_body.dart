@@ -5,6 +5,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'record_body_last_sign_in_method.dart';
+import 'record_body_role.dart';
 
 part 'record_body.freezed.dart';
 part 'record_body.g.dart';
@@ -13,6 +14,12 @@ part 'record_body.g.dart';
 abstract class RecordBody with _$RecordBody {
   const factory RecordBody({
     required DateTime createdAt,
+
+    /// Empty until Google gives one or the person sets it
+    required String displayName,
+    required String email,
+    required String id,
+    required RecordBodyRole role,
 
     /// How it last signed in: an emailed code or Google
     RecordBodyLastSignInMethod? lastSignInMethod,
