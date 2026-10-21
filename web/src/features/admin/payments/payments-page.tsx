@@ -1,8 +1,10 @@
 import { getTranslations } from "next-intl/server";
 
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "@/i18n/navigation";
+
 import { adminHref } from "../pages";
-import { PageHeader } from "../ui/page-header";
-import { AdminTabs } from "../ui/tabs";
 import { paymentsTab, refundStatuses, statusFilter, transactionStatuses } from "./payment";
 import {
   getAdminRefund,
@@ -19,7 +21,8 @@ const one = (value: string | string[] | undefined) => (Array.isArray(value) ? va
 
 /**
  * Thanh toán & Hoàn tiền (Figma AD-HT1 to AD-HT7): the heading, the tabs Giao dịch | Hoàn tiền (`?tab=refunds`),
- * then the open tab's list; `?transaction=` or `?refund=` opens one in the side sheet. Empty until SEC-18.
+ * then the open tab's list; `?transaction=` or `?refund=` opens one in the side sheet. Each tab is an address, so
+ * it can be shared and the back button returns to it. Empty until SEC-18.
  */
 export async function PaymentsPage({ query }: { query: Promise<Query> }) {
   const [params, t, pages] = await Promise.all([
@@ -35,35 +38,47 @@ export async function PaymentsPage({ query }: { query: Promise<Query> }) {
 
   return (
     <>
-      <PageHeader title={pages("label")} />
-      <AdminTabs
-        label={t("label")}
-        current={tab}
-        tabs={[
-          { key: "transactions", label: t("transactions"), href: list },
-          {
-            key: "refunds",
-            label: t("refunds"),
-            href: `${list}?tab=refunds`,
-            count: refunds.summary?.pending,
-          },
-        ]}
-      />
-      {tab === "transactions" ? (
-        <TransactionsView
-          rows={transactions.items}
-          summary={transactions.summary}
-          status={statusFilter(params.status, transactionStatuses)}
-          selected={transactionId ? await getAdminTransaction(transactionId) : undefined}
-        />
-      ) : (
-        <RefundsView
-          rows={refunds.items}
-          summary={refunds.summary}
-          status={statusFilter(params.status, refundStatuses)}
-          selected={refundId ? await getAdminRefund(refundId) : undefined}
-        />
-      )}
+      <h1 className="text-page-title text-foreground">{pages("label")}</h1>
+      <Tabs value={tab}>
+        <TabsList variant="line" aria-label={t("label")}>
+          <TabsTrigger
+            value="transactions"
+            nativeButton={false}
+            render={<Link href={list} scroll={false} />}
+          >
+            {t("transactions")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="refunds"
+            nativeButton={false}
+            render={<Link href={`${list}?tab=refunds`} scroll={false} />}
+          >
+            {t("refunds")}
+            {refunds.summary?.pending !== undefined && (
+              <Badge variant="secondary">{refunds.summary.pending}</Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value={tab}>
+          <div className="flex flex-col gap-5">
+            {tab === "transactions" ? (
+              <TransactionsView
+                rows={transactions.items}
+                summary={transactions.summary}
+                status={statusFilter(params.status, transactionStatuses)}
+                selected={transactionId ? await getAdminTransaction(transactionId) : undefined}
+              />
+            ) : (
+              <RefundsView
+                rows={refunds.items}
+                summary={refunds.summary}
+                status={statusFilter(params.status, refundStatuses)}
+                selected={refundId ? await getAdminRefund(refundId) : undefined}
+              />
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </>
   );
 }

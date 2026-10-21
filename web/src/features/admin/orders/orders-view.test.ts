@@ -45,14 +45,16 @@ describe("the orders list (AD-DH1)", () => {
     expect(text).not.toContain("#SB-24831");
     expect(html.match(/<tr/g)).toHaveLength(11);
     expect(text).toContain("Hiển thị 1–10 trên 12 đơn");
-    expect(text).toContain("Trang 2");
+    expect(text).toContain("Trang trước 1 / 2 Trang sau");
     expect(html).toContain('aria-sort="descending"');
   });
 
   it("writes each row on one line: code, customer, store, items, total, window, state", () => {
     const html = renderAdmin(createElement(OrdersView, { rows: sampleRows, status: "waiting" }));
     const text = textOf(html);
-    expect(text).toContain("#SB-24831 Minh Anh Tiệm bánh Pháp Croissant × 2, Bánh mì chà bông × 1");
+    expect(text).toContain(
+      "#SB-24831 Minh Anh T Tiệm bánh Pháp Croissant × 2, Bánh mì chà bông × 1",
+    );
     expect(text).toContain("30.000đ 21:00–22:00 Đã xác nhận");
     expect(html).toContain('href="/admin/orders/o-0"');
     expect(html).toContain('aria-label="Thao tác với #SB-24831"');

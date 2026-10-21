@@ -3,13 +3,31 @@
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/toast";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-import { showAdminToast } from "../lib/toast";
-import { ConfirmDialog } from "../ui/confirm-dialog";
-import { NumberField } from "../ui/number-field";
-import { SegmentedControl } from "../ui/segmented-control";
 import { type ApproveRequest, canApprove, canReject, type RefundWay } from "./payment";
+
+const refundWays: readonly RefundWay[] = ["atCounter", "transfer"];
 
 /**
  * "Duyệt hoàn tiền cho HT-0312?" (Figma AD-HT5): how much the store gives back, at most the order's amount; how
@@ -46,38 +64,56 @@ export function ApproveRefundDialog({
     setPending(true);
     try {
       await onApprove({ ...request, note: request.note.trim() });
-      showAdminToast(t("done", { code }));
+      toast.add({ title: t("done", { code }), type: "success", timeout: 5000 });
       onOpenChange(false);
     } catch {
-      showAdminToast(t("failed", { code }), "error");
+      toast.add({ title: t("failed", { code }), type: "error", timeout: 5000 });
     } finally {
       setPending(false);
     }
   }
 
+  const action = (
+    <Button disabled={pending || !onApprove || !ready} onClick={() => void confirm()}>
+      {pending && <Spinner data-icon="inline-start" />}
+      {t("confirm")}
+    </Button>
+  );
+
   return (
-    <ConfirmDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title={t("title", { code })}
-      cancelLabel={t("cancel")}
-      confirmLabel={t("confirm")}
-      confirmDisabled={!onApprove || !ready}
-      confirmTitle={onApprove ? undefined : shell("soon")}
-      pending={pending}
-      onConfirm={() => void confirm()}
-      form={
+    <Dialog open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>{t("title", { code })}</DialogTitle>
+        </DialogHeader>
         <ApproveRefundFields
           request={request}
           orderAmountVnd={orderAmountVnd}
           onChange={(next) => setRequest({ ...request, ...next })}
         />
-      }
-    />
+        <DialogFooter>
+          <DialogClose render={<Button variant="outline" disabled={pending} />}>
+            {t("cancel")}
+          </DialogClose>
+          {onApprove ? (
+            action
+          ) : (
+            // A disabled button takes no pointer, so "Sắp có" sits on what holds it.
+            <Tooltip>
+              <TooltipTrigger render={<span />}>{action}</TooltipTrigger>
+              <TooltipContent>{shell("soon")}</TooltipContent>
+            </Tooltip>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-/** The approval's fields: the amount in đồng, kept within 1đ and the order's amount, the way, the note. */
+/**
+ * The approval's fields: the amount in đồng, kept within 1đ and the order's amount (a number over it becomes it
+ * as it is typed, one under 1đ becomes 1đ when the field is left), the way, the note.
+ */
 export function ApproveRefundFields({
   request,
   orderAmountVnd,
@@ -88,46 +124,75 @@ export function ApproveRefundFields({
   onChange: (next: Partial<ApproveRequest>) => void;
 }) {
   const t = useTranslations("admin.payments.refunds.approve");
-  const amountId = useId();
-  const noteId = useId();
+  const id = useId();
+  // What is in the amount while it is being typed, which may be empty or under 1đ for a moment.
+  const [draft, setDraft] = useState<string>();
 
   return (
     <>
-      <NumberField
-        id={amountId}
-        label={t("amount")}
-        value={request.amountVnd}
-        min={1}
-        max={orderAmountVnd}
-        unit="đ"
-        onChange={(amountVnd) => onChange({ amountVnd })}
-      />
-      <div className="flex flex-col gap-1.5">
-        <span aria-hidden className="text-label-strong text-foreground">
-          {t("way")}
-        </span>
-        <SegmentedControl<RefundWay>
-          label={t("way")}
-          value={request.way}
-          segments={[
-            { value: "atCounter", label: t("ways.atCounter") },
-            { value: "transfer", label: t("ways.transfer") },
-          ]}
-          onChange={(way) => onChange({ way })}
-        />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor={noteId} className="text-label-strong text-foreground">
-          {t("note")}
-        </label>
+      <Field>
+        <FieldLabel htmlFor={`${id}-amount`}>{t("amount")}</FieldLabel>
+        <InputGroup>
+          <InputGroupInput
+            id={`${id}-amount`}
+            inputMode="numeric"
+            autoComplete="off"
+            value={draft ?? String(request.amountVnd)}
+            onChange={(event) => {
+              const digits = event.target.value.replace(/\D/g, "").slice(0, 9);
+              if (digits === "") {
+                setDraft("");
+                return;
+              }
+              const typed = Number(digits);
+              if (typed > orderAmountVnd) {
+                setDraft(undefined);
+                onChange({ amountVnd: orderAmountVnd });
+              } else {
+                setDraft(typed < 1 ? digits : undefined);
+                onChange({ amountVnd: Math.max(typed, 1) });
+              }
+            }}
+            onBlur={() => {
+              if (draft !== undefined) {
+                onChange({ amountVnd: Math.min(orderAmountVnd, Math.max(1, Number(draft || 1))) });
+              }
+              setDraft(undefined);
+            }}
+          />
+          <InputGroupAddon align="inline-end">
+            <InputGroupText>đ</InputGroupText>
+          </InputGroupAddon>
+        </InputGroup>
+      </Field>
+      <FieldSet>
+        <FieldLegend variant="label">{t("way")}</FieldLegend>
+        <ToggleGroup
+          variant="outline"
+          aria-label={t("way")}
+          value={[request.way]}
+          onValueChange={(values) => {
+            // A pressed way stays pressed: one is always chosen.
+            const way = values.find((each) => each !== request.way) as RefundWay | undefined;
+            if (way) onChange({ way });
+          }}
+        >
+          {refundWays.map((way) => (
+            <ToggleGroupItem key={way} value={way} className="h-11">
+              {t(`ways.${way}`)}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </FieldSet>
+      <Field>
+        <FieldLabel htmlFor={`${id}-note`}>{t("note")}</FieldLabel>
         <Textarea
-          id={noteId}
+          id={`${id}-note`}
           value={request.note}
           maxLength={300}
           onChange={(event) => onChange({ note: event.target.value })}
-          className="min-h-24"
         />
-      </div>
+      </Field>
     </>
   );
 }
@@ -157,30 +222,50 @@ export function RejectRefundDialog({
     setPending(true);
     try {
       await onReject(reason.trim());
-      showAdminToast(t("done", { code }));
+      toast.add({ title: t("done", { code }), type: "success", timeout: 5000 });
       onOpenChange(false);
       setReason("");
     } catch {
-      showAdminToast(t("failed", { code }), "error");
+      toast.add({ title: t("failed", { code }), type: "error", timeout: 5000 });
     } finally {
       setPending(false);
     }
   }
 
+  const action = (
+    <Button
+      variant="destructive"
+      disabled={pending || !onReject || !canReject(reason)}
+      onClick={() => void confirm()}
+    >
+      {pending && <Spinner data-icon="inline-start" />}
+      {t("confirm")}
+    </Button>
+  );
+
   return (
-    <ConfirmDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title={t("title", { code })}
-      cancelLabel={t("cancel")}
-      confirmLabel={t("confirm")}
-      destructive
-      confirmDisabled={!onReject || !canReject(reason)}
-      confirmTitle={onReject ? undefined : shell("soon")}
-      pending={pending}
-      onConfirm={() => void confirm()}
-      form={<RejectRefundFields reason={reason} onReason={setReason} />}
-    />
+    <Dialog open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>{t("title", { code })}</DialogTitle>
+        </DialogHeader>
+        <RejectRefundFields reason={reason} onReason={setReason} />
+        <DialogFooter>
+          <DialogClose render={<Button variant="outline" disabled={pending} />}>
+            {t("cancel")}
+          </DialogClose>
+          {onReject ? (
+            action
+          ) : (
+            // A disabled button takes no pointer, so "Sắp có" sits on what holds it.
+            <Tooltip>
+              <TooltipTrigger render={<span />}>{action}</TooltipTrigger>
+              <TooltipContent>{shell("soon")}</TooltipContent>
+            </Tooltip>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -195,18 +280,15 @@ export function RejectRefundFields({
   const t = useTranslations("admin.payments.refunds.reject");
   const id = useId();
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-label-strong text-foreground">
-        {t("reason")}
-      </label>
+    <Field>
+      <FieldLabel htmlFor={id}>{t("reason")}</FieldLabel>
       <Textarea
         id={id}
         value={reason}
         required
         maxLength={300}
         onChange={(event) => onReason(event.target.value)}
-        className="min-h-24"
       />
-    </div>
+    </Field>
   );
 }

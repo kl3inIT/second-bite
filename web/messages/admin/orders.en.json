@@ -12,7 +12,8 @@
     "collectedToday": "Collected today",
     "waiting": "Waiting for pickup",
     "noShow": "No-shows",
-    "none": "—"
+    "none": "—",
+    "filtering": "Filtering"
   },
   "filters": {
     "search": "Search orders",
@@ -38,6 +39,7 @@
   "empty": "No orders yet",
   "emptyFiltered": "No orders match the filters",
   "summary": "Showing {from}–{to} of {total} orders",
+  "pages": "{page} / {pages}",
   "actions": {
     "view": "View details",
     "viewSeller": "View store",

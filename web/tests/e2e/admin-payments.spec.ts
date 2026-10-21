@@ -21,10 +21,10 @@ test.describe("the admin's payments and refunds", () => {
       page.getByRole("heading", { level: 1, name: "Thanh toán & Hoàn tiền" }),
     ).toBeVisible();
     await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
-    const tabs = page.getByRole("navigation", { name: "Thanh toán và hoàn tiền" });
-    await expect(tabs.getByRole("link", { name: "Giao dịch" })).toHaveAttribute(
-      "aria-current",
-      "page",
+    const tabs = page.getByRole("tablist", { name: "Thanh toán và hoàn tiền" });
+    await expect(tabs.getByRole("tab", { name: "Giao dịch" })).toHaveAttribute(
+      "aria-selected",
+      "true",
     );
     const cards = page.getByRole("navigation", { name: "Giao dịch theo trạng thái" });
     await expect(cards.getByRole("link", { name: /Không khớp\s*—/ })).toBeVisible();
@@ -39,12 +39,12 @@ test.describe("the admin's payments and refunds", () => {
   }, testInfo) => {
     await signInTo(page, "/admin/payments", testInfo, { who: "hoan" });
 
-    const tabs = page.getByRole("navigation", { name: "Thanh toán và hoàn tiền" });
-    await (await hydrated(tabs.getByRole("link", { name: "Hoàn tiền" }))).click();
+    const tabs = page.getByRole("tablist", { name: "Thanh toán và hoàn tiền" });
+    await (await hydrated(tabs.getByRole("tab", { name: "Hoàn tiền" }))).click();
     await expect(page).toHaveURL(/\/vi\/admin\/payments\?tab=refunds$/);
-    await expect(tabs.getByRole("link", { name: "Hoàn tiền" })).toHaveAttribute(
-      "aria-current",
-      "page",
+    await expect(tabs.getByRole("tab", { name: "Hoàn tiền" })).toHaveAttribute(
+      "aria-selected",
+      "true",
     );
     const cards = page.getByRole("navigation", { name: "Yêu cầu theo trạng thái" });
     await expect(cards.getByRole("link", { name: /Chờ duyệt\s*—/ })).toBeVisible();

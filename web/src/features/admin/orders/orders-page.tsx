@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 
-import { PageHeader } from "../ui/page-header";
 import { orderSearch, orderStatusFilter } from "./order";
 import { listAdminOrders } from "./orders-source";
 import { OrdersView } from "./orders-view";
@@ -19,7 +18,7 @@ export async function OrdersPage({
 
   return (
     <>
-      <PageHeader title={t("label")} />
+      <h1 className="text-page-title text-foreground">{t("label")}</h1>
       <OrdersView
         rows={orders.items}
         summary={orders.summary}
