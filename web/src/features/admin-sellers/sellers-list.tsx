@@ -37,7 +37,7 @@ import {
   sortOf,
   type SellerSortColumn,
 } from "./search-params";
-import { statusLook, StatusBadge, StoreThumb } from "./seller-parts";
+import { shownPhone, statusLook, StatusBadge, StoreThumb } from "./seller-parts";
 import type { Province } from "./provinces";
 import { Sparkline } from "./sparkline";
 import { StoreActions } from "./store-actions";
@@ -288,7 +288,9 @@ function useColumns(
     {
       id: "phone",
       header: t("column.phone"),
-      cell: ({ row }) => <span className="whitespace-nowrap">{row.original.phone}</span>,
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap">{shownPhone(row.original.phone)}</span>
+      ),
     },
     {
       id: "status",

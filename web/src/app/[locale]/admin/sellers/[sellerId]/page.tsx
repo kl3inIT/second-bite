@@ -11,7 +11,7 @@ import { AdminTopBar } from "@/features/admin/admin-top-bar";
 import { OfferRow } from "@/features/admin-sellers/offer-row";
 import { SellerPosts } from "@/features/admin-sellers/seller-posts";
 import { SellerTabs } from "@/features/admin-sellers/seller-tabs";
-import { StatusBadge, StoreThumb } from "@/features/admin-sellers/seller-parts";
+import { shownPhone, StatusBadge, StoreThumb } from "@/features/admin-sellers/seller-parts";
 import { StoreActions } from "@/features/admin-sellers/store-actions";
 import { requireAdmin } from "@/features/identity/current-account";
 import { sessionHeaders } from "@/features/identity/session";
@@ -156,7 +156,7 @@ export default async function SellerPage({
                       </div>
                       <div className="flex justify-between gap-4">
                         <dt className="text-muted-foreground">{t("sellers.detail.phone")}</dt>
-                        <dd className="text-end text-body-sm-strong">{seller.phone}</dd>
+                        <dd className="text-end text-body-sm-strong">{shownPhone(seller.phone)}</dd>
                       </div>
                     </dl>
                   </CardContent>

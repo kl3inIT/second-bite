@@ -1672,7 +1672,7 @@ function storeDays(stores) {
     const day = new Date(Date.now() + 7 * 60 * 60 * 1000 - back * 24 * 60 * 60 * 1000);
     return {
       day: day.toISOString().slice(0, 10),
-      pending: back % 4 === 1 ? now.pending + 1 : now.pending,
+      pending: now.pending + (back > 10 ? 2 : back > 7 ? 1 : 0),
       active: Math.max(0, now.active - Math.floor(back / 2)),
       rejected: now.rejected,
       blocked: back > 8 ? Math.max(0, now.blocked - 1) : now.blocked,

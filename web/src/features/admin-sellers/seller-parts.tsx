@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
+import { groupedPhone } from "@/features/cart/contact";
 import { avatarTone, initials } from "@/features/offers/seller";
 import type { AdminSellerBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,11 @@ export const statusLook: Record<
   rejected: { variant: "neutral", icon: CircleXIcon },
   blocked: { variant: "danger", icon: BanIcon },
 };
+
+/** A store's number as Figma AD-Q1 shows it, "0900 000 101"; a number of another shape stays as stored. */
+export function shownPhone(phone: string): string {
+  return /^0\d{9}$/.test(phone) ? groupedPhone(phone) : phone;
+}
 
 export function StatusBadge({ status }: { status: SellerStatus }) {
   const t = useTranslations("Admin.sellers.status");
