@@ -55,6 +55,7 @@ func TestOrder(t *testing.T) {
 		"the counter delivers without a code":      testDeliverAtTheCounter,
 		"no answer or no show gives units back":    testNoShowGivesUnitsBack,
 		"a mistake is taken back":                  testReopen,
+		"some orders are not reopened":             testReopenStaysShut,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -707,12 +708,28 @@ func testReopen(t *testing.T, f fixture) {
 		t.Errorf("units once the refusal is taken back: %d", got)
 	}
 
-	// What its customer cancelled, or whose window is over, stays as it is.
-	if _, err := f.orders.Cancel(customer, o.ID, "", ""); err != nil {
+}
+
+func testReopenStaysShut(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	// The window opens in an hour, so its customer may still cancel.
+	croissant := f.post(owner, t, shop, "Croissant", 3, 20_000, time.Now().Add(time.Hour))
+
+	cancelled, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = f.orders.Reopen(owner, o.ID)
+	// What its customer cancelled, or whose window is over, stays as it is.
+	if _, err := f.orders.Cancel(customer, cancelled.ID, "", ""); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Reopen(owner, cancelled.ID)
 	mustFail(t, "reopening what its customer cancelled", err, order.ErrTransitionNotAllowed)
 
 	late, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
@@ -724,7 +741,7 @@ func testReopen(t *testing.T, f fixture) {
 		t.Fatal(err)
 	}
 
-	f.shift(t, late.ID, -3*time.Hour)
+	f.shift(t, late.ID, -4*time.Hour)
 
 	_, err = f.orders.Reopen(owner, late.ID)
 	mustFail(t, "reopening once the window is over", err, order.ErrTransitionNotAllowed)
