@@ -33,7 +33,11 @@ function order(overrides: Partial<OrderBody> = {}): OrderBody {
         priceVnd: 30000,
         originalPriceVnd: 60000,
         units: 1,
-        photo: { id: "ph-1", largePath: "/photos/ph-1/1600.jpg", smallPath: "/photos/ph-1/400.jpg" },
+        photo: {
+          id: "ph-1",
+          largePath: "/photos/ph-1/1600.jpg",
+          smallPath: "/photos/ph-1/400.jpg",
+        },
       },
     ],
     seller: { id: "se-1", name: "Quán", address: "Tasco Mall", latitude: 21, longitude: 105 },
