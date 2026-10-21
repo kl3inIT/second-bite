@@ -1280,41 +1280,28 @@
       "block": {
         "title": "Chặn cửa hàng {name}?",
         "reason": "Lý do chặn",
-        "effects": "Khi bị chặn:",
-        "noPosting": "Cửa hàng không đăng bài mới hay sửa bài được.",
-        "hidden": "Cửa hàng và mọi bài biến mất khỏi tìm kiếm của khách ngay, trang cửa hàng không mở được.",
-        "stillManage": "Cửa hàng vẫn gỡ bài và quản lý nhân viên được.",
-        "emailed": "Chủ cửa hàng nhận email kèm lý do.",
-        "undo": "Có thể gỡ chặn bất cứ lúc nào.",
         "confirm": "Chặn cửa hàng",
         "done": "Đã chặn {name}"
       },
       "reject": {
         "title": "Từ chối cửa hàng {name}?",
         "reason": "Lý do từ chối",
-        "effects": "Khi bị từ chối:",
-        "hidden": "Cửa hàng không hiện với khách và không đăng bài được.",
-        "emailed": "Chủ cửa hàng nhận email kèm lý do.",
         "confirm": "Từ chối",
         "done": "Đã từ chối {name}"
       },
       "unblock": {
         "title": "Gỡ chặn cửa hàng {name}?",
-        "effects": "Khi gỡ chặn:",
-        "shown": "Cửa hàng và các bài đang bán hiện lại với khách, đăng bài được ngay.",
-        "emailed": "Chủ cửa hàng nhận email báo cửa hàng đã được duyệt.",
         "confirm": "Gỡ chặn",
         "done": "Đã gỡ chặn {name}"
       },
       "approve": {
         "title": "Duyệt cửa hàng {name}?",
-        "effects": "Khi được duyệt:",
-        "shown": "Cửa hàng hiện với khách và đăng bài được ngay.",
-        "emailed": "Chủ cửa hàng nhận email báo cửa hàng đã được duyệt.",
         "confirm": "Duyệt",
         "done": "Đã duyệt {name}"
       },
       "cancel": "Huỷ",
+      "reasonHint": "Từ 10 đến 500 ký tự",
+      "reasonLength": "{length}/500",
       "unreachable": "Không kết nối được máy chủ. Thử lại sau.",
       "detail": {
         "tabs": "Nội dung cửa hàng",

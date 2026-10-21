@@ -1280,41 +1280,28 @@
       "block": {
         "title": "Block {name}?",
         "reason": "Reason for blocking",
-        "effects": "Once blocked:",
-        "noPosting": "The store cannot post or edit offers.",
-        "hidden": "The store and all its offers leave customers' searches at once, and its page no longer opens.",
-        "stillManage": "The store can still withdraw offers and manage its staff.",
-        "emailed": "The owner is emailed the reason.",
-        "undo": "You can unblock it at any time.",
         "confirm": "Block store",
         "done": "{name} is blocked"
       },
       "reject": {
         "title": "Reject {name}?",
         "reason": "Reason for rejecting",
-        "effects": "Once rejected:",
-        "hidden": "The store does not show to customers and cannot post.",
-        "emailed": "The owner is emailed the reason.",
         "confirm": "Reject",
         "done": "{name} is rejected"
       },
       "unblock": {
         "title": "Unblock {name}?",
-        "effects": "Once unblocked:",
-        "shown": "The store and its offers on sale show to customers again, and it can post at once.",
-        "emailed": "The owner is emailed that the store is approved.",
         "confirm": "Unblock",
         "done": "{name} is unblocked"
       },
       "approve": {
         "title": "Approve {name}?",
-        "effects": "Once approved:",
-        "shown": "The store shows to customers and can post at once.",
-        "emailed": "The owner is emailed that the store is approved.",
         "confirm": "Approve",
         "done": "{name} is approved"
       },
       "cancel": "Cancel",
+      "reasonHint": "10 to 500 characters",
+      "reasonLength": "{length}/500",
       "unreachable": "The server did not answer. Try again later.",
       "detail": {
         "tabs": "Store content",

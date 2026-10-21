@@ -117,10 +117,11 @@ test.describe("the admin's stores", () => {
     await (await hydrated(page.getByRole("button", { name: "Thao tác với La Paris" }))).click();
     await page.getByRole("menuitem", { name: "Chặn cửa hàng…" }).click();
     const dialog = page.getByRole("dialog", { name: "Chặn cửa hàng La Paris?" });
-    await expect(dialog.getByText("Chủ cửa hàng nhận email kèm lý do.")).toBeVisible();
+    await expect(dialog.getByText("Từ 10 đến 500 ký tự")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
     await dialog.getByLabel("Lý do chặn").fill("Quá ngắn");
+    await expect(dialog.getByText("8/500")).toBeVisible();
     await dialog.getByRole("button", { name: "Chặn cửa hàng" }).click();
     await expect(
       dialog.getByText("Ghi lý do cho chủ cửa hàng, từ 10 đến 500 ký tự."),

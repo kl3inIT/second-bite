@@ -38,7 +38,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
@@ -72,10 +72,10 @@ const actionIcon: Record<Action, LucideIcon> = {
 };
 
 /**
- * Every action on a store, in one menu: a row's "⋯" (Figma AD-Q2, AD-Q8), which also opens the store's page,
- * and the "⋯" on that page (`onPage`). What the store's status allows. Blocking and rejecting ask a reason the
- * owner is emailed (AD-DS4); unblocking and approving ask first, since they email the owner too (SEC-75 ›
- * Lists, forms and actions). Each ends in a notice and the list read again.
+ * Every action on a store, in one menu: a row's "⋯" (Figma AD-Q2, AD-Q8, AD-Q10), which also opens the store's
+ * page, and the "⋯" on that page (`onPage`). What the store's status allows. Blocking and rejecting ask a reason
+ * the owner is emailed (AD-Q5, AD-Q10c); unblocking and approving ask first, since they email the owner too
+ * (AD-Q8b, AD-Q10b). Each ends in a notice and the list read again (AD-Q6, AD-Q9, AD-Q11).
  */
 export function StoreActions({ seller, onPage = false }: { seller: Store; onPage?: boolean }) {
   const t = useTranslations("Admin.sellers.menu");
@@ -178,29 +178,6 @@ function useStoreAction(seller: Store, action: Action) {
   return { busy, reasonError, run };
 }
 
-/** What follows each action, as Figma AD-DS4 lists it under "Khi bị chặn:". */
-const effects = {
-  block: ["block.noPosting", "block.hidden", "block.stillManage", "block.emailed"],
-  reject: ["reject.hidden", "reject.emailed"],
-  unblock: ["unblock.shown", "unblock.emailed"],
-  approve: ["approve.shown", "approve.emailed"],
-} as const;
-
-function Effects({ action }: { action: Action }) {
-  const t = useTranslations("Admin.sellers");
-
-  return (
-    <div className="flex flex-col gap-2 rounded-lg bg-muted p-3 text-body-sm text-foreground">
-      <p className="text-body-sm-strong">{t(`${action}.effects`)}</p>
-      <ul className="flex list-disc flex-col gap-1 ps-5">
-        {effects[action].map((line) => (
-          <li key={line}>{t(line)}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function ReasonDialog({
   action,
   seller,
@@ -241,18 +218,19 @@ function ReasonDialog({
               value={reason}
               required
               maxLength={500}
+              aria-describedby={`${id}-hint`}
               aria-invalid={reasonError ? true : undefined}
               onChange={(event) => setReason(event.target.value)}
             />
-            {reasonError && <FieldError>{reasonError}</FieldError>}
+            {reasonError ? (
+              <FieldError>{reasonError}</FieldError>
+            ) : (
+              <FieldDescription id={`${id}-hint`} className="flex justify-between">
+                <span>{t("reasonHint")}</span>
+                <span className="tabular-nums">{t("reasonLength", { length: reason.length })}</span>
+              </FieldDescription>
+            )}
           </Field>
-          <Effects action={action} />
-          {action === "block" && (
-            <p className="flex items-center gap-2 text-body-sm text-muted-foreground">
-              <RotateCcwIcon aria-hidden className="size-4" />
-              {t("block.undo")}
-            </p>
-          )}
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="outline" />}>
               {t("cancel")}
@@ -292,7 +270,6 @@ function ConfirmDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>{t(`${action}.title`, { name: seller.name })}</AlertDialogTitle>
         </AlertDialogHeader>
-        <Effects action={action} />
         <AlertDialogFooter>
           <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
           <AlertDialogAction
