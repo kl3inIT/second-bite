@@ -733,6 +733,11 @@ async function sellerRoutes(request, response, url) {
   }
   const mine = storesOf.get(token) ?? [];
   if (request.method === "GET" && url.pathname === "/sellers/mine") {
+    // An address starting with "ending." has its session end between the account and its sellers (SEC-69).
+    if (accounts.get(token).email.startsWith("ending.")) {
+      problem(response, 401, "IDENTITY_SESSION_INVALID");
+      return true;
+    }
     const owned = accounts.get(token).email.startsWith("owner.") ? [ownerSeller()] : [];
     json(response, 200, { sellers: [...owned, ...mine] });
     return true;

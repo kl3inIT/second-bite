@@ -52,10 +52,10 @@ void main() {
     testWidgets('opens the deletion from its foot', (tester) async {
       await tester.pumpRouterApp(
         GoRouter(
-          initialLocation: '/account-settings',
+          initialLocation: '/account/settings',
           routes: [
             GoRoute(
-              path: '/account-settings',
+              path: '/account/settings',
               builder: (_, _) => const AccountSettingsScreen(),
             ),
             GoRoute(

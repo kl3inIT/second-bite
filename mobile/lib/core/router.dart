@@ -10,6 +10,7 @@ part 'router.g.dart';
 @Riverpod(keepAlive: true)
 GoRouter router(Ref ref) {
   final router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     routes: $appRoutes,
     errorBuilder: (context, state) => const NotFoundScreen(),
   );

@@ -50,6 +50,9 @@ test.describe("deleting an account on the web", () => {
     await (await hydrated(page.getByRole("link", { name: "Xoá tài khoản" }))).click();
     await expect(page).toHaveURL(/\/vi\/delete-account$/);
     await expect(page.getByText(`Chúng tôi sẽ gửi mã 6 số đến ${email}`)).toBeVisible();
+    await expect(
+      page.getByText("Khi bạn nhập đúng mã, tài khoản bị xoá ngay và không thể hoàn tác."),
+    ).toBeVisible();
     await expect(page.getByText("Bạn đang là chủ quán")).toHaveCount(0);
     await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
 
@@ -67,6 +70,16 @@ test.describe("deleting an account on the web", () => {
 
     await page.getByLabel("Mã xác nhận 6 số").fill("123456");
     await confirm.click();
+    // The confirmation is the page read again without the session (SEC-69): it is still there once the
+    // server has answered, not replaced by the way to sign in.
+    await expect(page).toHaveURL(/\/vi\/delete-account\?done=1$/);
+    await expect(page.getByRole("heading", { name: "Đã xoá tài khoản" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Đăng nhập để xoá tài khoản" })).toHaveCount(0);
+    // Figma Q5: only the confirmation, without what the deletion takes.
+    await expect(page.getByText("Được giữ lại, không còn gắn với bạn")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Đã xoá tài khoản" })).toBeFocused();
+    await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
+    await page.reload();
     await expect(page.getByRole("heading", { name: "Đã xoá tài khoản" })).toBeVisible();
 
     await page.goto("/vi/account");
@@ -118,6 +131,35 @@ test.describe("deleting an account on the web", () => {
     await expect(page.getByText("Bạn đang là chủ quán")).toBeVisible();
     await expect(page.getByText(/Xoá tài khoản sẽ đóng Bánh mì Tasco/)).toBeVisible();
     await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
+  });
+
+  test("the first step goes back to account settings without sending a code", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `back.${testInfo.project.name}@example.com`);
+
+    await page.goto("/vi/delete-account");
+    await (await hydrated(page.getByRole("link", { name: "Giữ tài khoản" }))).click();
+    await expect(page).toHaveURL(/\/vi\/account\/settings$/);
+  });
+
+  test("a session that ends before the sellers are read shows the deletion, not an error", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `ending.${testInfo.project.name}@example.com`);
+
+    await page.goto("/vi/delete-account");
+    await expect(page.getByRole("button", { name: "Gửi mã xác nhận" })).toBeVisible();
+    await page.goto("/vi/account/settings");
+    await expect(page.getByRole("heading", { level: 1, name: "Cài đặt tài khoản" })).toBeVisible();
+  });
+
+  test("someone signed in at ?done=1 still gets the deletion", async ({ page }, testInfo) => {
+    await signIn(page, `done.${testInfo.project.name}@example.com`);
+
+    await page.goto("/vi/delete-account?done=1");
+    await expect(page.getByRole("button", { name: "Gửi mã xác nhận" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Đã xoá tài khoản" })).toHaveCount(0);
   });
 
   test("is in English under /en", async ({ page }) => {

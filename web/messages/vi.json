@@ -631,6 +631,7 @@
     "signedOutBody": "Để chắc người xoá là chủ tài khoản, bạn đăng nhập rồi nhập mã chúng tôi gửi đến email của tài khoản.",
     "signIn": "Đăng nhập",
     "confirmBody": "Chúng tôi sẽ gửi mã 6 số đến <strong>{email}</strong> để xác nhận bạn muốn xoá tài khoản.",
+    "final": "Khi bạn nhập đúng mã, tài khoản bị xoá ngay và không thể hoàn tác.",
     "sendCode": "Gửi mã xác nhận",
     "sending": "Đang gửi mã…",
     "codeHeading": "Nhập mã xác nhận",

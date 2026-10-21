@@ -380,7 +380,7 @@ class _SignedOut extends StatelessWidget {
             Text(l10n.accountGuestBody, style: text.bodySm),
             AppButton(
               onPressed: () => unawaited(
-                const SignInRoute(returnTo: '/account-settings')
+                const SignInRoute(returnTo: '/account/settings')
                     .push<void>(context),
               ),
               child: Text(l10n.accountSignIn),
