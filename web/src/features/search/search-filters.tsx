@@ -2,6 +2,7 @@ import { useFormatter, useTranslations } from "next-intl";
 
 import { formatPrice } from "@/features/offers/format";
 import { offerKinds } from "@/features/offers/offer";
+import { cn } from "@/lib/utils";
 
 import { FilterMenu, type FilterOption } from "./filter-menu";
 import { RangeFilter, type RangePreset } from "./range-filter";
@@ -17,11 +18,13 @@ export function SearchFilters({
   raised,
   sort,
   before,
+  className,
 }: {
   query: SearchQuery;
   raised?: boolean;
   sort?: boolean;
   before?: React.ReactNode;
+  className?: string;
 }) {
   const t = useTranslations("Search");
   const kinds = useTranslations("OfferKind");
@@ -60,7 +63,7 @@ export function SearchFilters({
   return (
     <ul
       aria-label={t("filters")}
-      className="scrollbar-none flex gap-2 overflow-x-auto px-4 py-1.25 *:shrink-0"
+      className={cn("scrollbar-none flex gap-2 overflow-x-auto px-4 py-1.25 *:shrink-0", className)}
     >
       {before && <li>{before}</li>}
       {sort && (

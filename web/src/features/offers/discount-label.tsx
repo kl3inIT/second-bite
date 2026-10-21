@@ -29,3 +29,17 @@ export function PhotoLabel({
     </p>
   );
 }
+
+/**
+ * The discount on a dish's photograph in the seller's rows and the dish's sheet (Figma K4b, K4a): "-57%" on Sale Red,
+ * 6px in from the top left corner.
+ */
+export function DiscountBadge({ percent }: { percent: number }) {
+  const t = useTranslations("OfferCard");
+
+  return (
+    <p className="absolute top-1.5 left-1.5 rounded-sm bg-sale px-1.5 py-0.5 font-display text-label-strong text-destructive-foreground">
+      {t("badge", { percent })}
+    </p>
+  );
+}

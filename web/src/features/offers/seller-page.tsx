@@ -1,16 +1,17 @@
 import { SearchIcon } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 
 import { BackButton } from "@/components/back-button";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { CartBar } from "@/features/cart/cart-bar";
-import { CartPortions } from "@/features/cart/cart-portions";
-import { QuantityStepper } from "@/features/cart/quantity-stepper";
+import { CartSidebar } from "@/features/cart/cart-sidebar";
+import { FollowButton } from "@/features/favourites/follow-button";
 import { Link } from "@/i18n/navigation";
+import { plainText } from "@/lib/plain-text";
 import { cn } from "@/lib/utils";
 
-import { formatPrice } from "./format";
 import {
   directionsHref,
   isAvailable,
@@ -20,195 +21,328 @@ import {
 } from "./offer";
 import { OfferPhoto } from "./offer-photo";
 import { sellerRating } from "./proposed";
+import { SellerDish } from "./seller-dish";
 import { SellerLogo } from "./seller-logo";
+import { ShareButton } from "./share-button";
 import { useDistance } from "./window";
 
 const COVER_PHOTOS = 3;
+// A phone's column; from 768px the page is `md:max-w-292`, the content width of the wide layout (Figma WK3).
+const PHONE_WIDTH = "max-w-xl";
 const ONE_DECIMAL = { minimumFractionDigits: 1, maximumFractionDigits: 1 } as const;
 
-// A seller's dishes tonight (Figma K4b): their dishes' photographs side by side, the seller, their rating,
-// tonight's window and the way there, tabs by kind when they sell more than one (the seller's own menu
-// sections have no backend, SEC-49 decision 7), each dish with its − and +, and the cart's bar.
+// A seller's dishes tonight (Figma K4b): their dishes' photographs side by side with back, the heart that follows them (SEC-109) and share; the seller's
+// logo, name, rating and floor; tonight's window, the counter and the way there; a search of their dishes; tabs by
+// kind when they sell more than one (the seller's own menu sections have no backend, SEC-49 decision 7); each dish
+// with its − and +, opening its sheet; and the cart's bar, which from 768px is the cart's sidebar beside the menu
+// (WK3). `at` is the dish a link led to (K4), `q` the words searched for. Figma's review count and seller
+// category have no backend, so they are left out.
 export function SellerPage({
   offers,
   kind,
   near,
+  at,
+  q,
 }: {
   offers: readonly OfferSummary[];
   kind?: OfferKind;
   near?: string;
+  at?: string;
+  q?: string;
 }) {
   const t = useTranslations("Seller");
   const kinds = useTranslations("OfferKind");
   const available = offers.filter(isAvailable);
   const [first] = offers;
   const tabs = kindsByCount(offers);
-  const shown = available.filter((offer) => !kind || offer.kind === kind);
+  const words = q ? plainText(q) : "";
+  const shown = available.filter(
+    (offer) => (!kind || offer.kind === kind) && (!words || plainText(offer.name).includes(words)),
+  );
 
   if (!first || available.length === 0) return <NothingTonight />;
 
+  const kindLinks = [undefined, ...tabs.map((tab) => tab.kind)].map((each) => ({
+    each,
+    href: {
+      pathname: `/sellers/${first.sellerId}`,
+      query: { ...(each ? { kind: each } : {}), ...(near ? { near } : {}) },
+    },
+    label: each ? kinds(each) : t("onSale"),
+  }));
+
   return (
     <>
-      <main className="mx-auto w-full max-w-xl flex-1 bg-card">
-        <div className="relative flex h-50 bg-muted">
-          {available.slice(0, COVER_PHOTOS).map((offer) => (
-            <div key={offer.id} className="relative flex-1">
-              <OfferPhoto offer={offer} sizes="(min-width: 576px) 192px, 33vw" />
+      <main
+        className={cn(
+          "mx-auto w-full flex-1 bg-card md:max-w-none md:bg-transparent md:px-8",
+          PHONE_WIDTH,
+        )}
+      >
+        <div className="md:mx-auto md:flex md:max-w-292 md:flex-col md:gap-6 md:pt-6">
+          <nav
+            aria-label={t("breadcrumb")}
+            className="hidden text-label text-muted-foreground md:block"
+          >
+            <ol className="flex items-center gap-1.5">
+              <li>
+                <Link
+                  href="/"
+                  className="rounded-sm focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                  {t("crumbHome")}
+                </Link>
+              </li>
+              <li aria-hidden>›</li>
+              <li aria-current="page" className="text-foreground">
+                {first.seller.name}
+              </li>
+            </ol>
+          </nav>
+          <div className="relative flex h-50 bg-muted md:h-40 md:overflow-hidden md:rounded-3xl">
+            {available.slice(0, COVER_PHOTOS).map((offer) => (
+              <div key={offer.id} className="relative flex-1">
+                <OfferPhoto offer={offer} sizes="(min-width: 768px) 400px, 33vw" />
+              </div>
+            ))}
+            <div className="absolute inset-x-0 top-0 h-30 bg-linear-to-b from-foreground/35 to-transparent" />
+            <div className="absolute inset-x-4 top-3 flex items-center justify-between md:justify-end">
+              <div className="md:hidden">
+                <BackButton fallback="/" />
+              </div>
+              <div className="flex gap-2">
+                <FollowButton sellerId={first.sellerId} name={first.seller.name} look="float" />
+                <ShareButton title={first.seller.name} />
+              </div>
             </div>
-          ))}
-          <div className="absolute inset-x-0 top-0 h-30 bg-linear-to-b from-foreground/35 to-transparent" />
-          <div className="absolute inset-x-4 top-3 flex items-center justify-between">
-            <BackButton fallback="/" />
-            <Link
-              href={{ pathname: "/search", query: { q: first.seller.name } }}
-              aria-label={t("search", { seller: first.seller.name })}
-              className={buttonVariants({ variant: "float", size: "float" })}
-            >
-              <SearchIcon aria-hidden strokeWidth={2} />
-            </Link>
           </div>
-        </div>
-        <div className="relative -mt-6 flex flex-col gap-4 rounded-t-3xl bg-card px-4 pt-5 pb-6">
-          <div className="flex items-center gap-3">
-            <SellerLogo seller={first.seller} size="lg" />
-            <div className="flex min-w-0 flex-col gap-1">
-              <h1 className="truncate text-headline text-foreground">{first.seller.name}</h1>
-              <p className="truncate text-body-sm text-muted-foreground">{first.seller.address}</p>
-            </div>
-          </div>
-          <SellerFacts lead={first} offers={available} />
-          {tabs.length > 1 && (
-            <nav aria-label={t("kinds")} className="-mx-4 scrollbar-none overflow-x-auto px-4">
-              <ul className="flex min-w-max gap-6 border-b border-border">
-                {[undefined, ...tabs.map((tab) => tab.kind)].map((each) => (
-                  <li key={each ?? "all"}>
-                    <Link
-                      href={{
-                        pathname: `/sellers/${first.sellerId}`,
-                        query: { ...(each ? { kind: each } : {}), ...(near ? { near } : {}) },
-                      }}
-                      aria-current={each === kind ? "page" : undefined}
-                      className={cn(
-                        "-mb-px flex min-h-11 items-center border-b-3 text-title focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
-                        each === kind
-                          ? "border-primary text-primary"
-                          : "border-transparent text-muted-foreground",
-                      )}
+          <div className="relative -mt-6 rounded-t-3xl bg-card px-4 pt-4 pb-6 md:mt-0 md:rounded-none md:bg-transparent md:p-0 lg:flex lg:items-start lg:gap-8">
+            <div className="flex min-w-0 flex-1 flex-col gap-3.5 md:gap-5">
+              <SellerHeading lead={first} />
+              <SellerFacts lead={first} offers={available} />
+              <SellerFactsCard lead={first} offers={available} />
+              <SellerSearch lead={first} kind={kind} near={near} q={q} />
+              <div className="flex flex-col gap-3.5 md:flex-row md:gap-6">
+                {tabs.length > 1 && (
+                  <>
+                    <nav
+                      aria-label={t("kinds")}
+                      className="-mx-4 scrollbar-none overflow-x-auto px-4 md:hidden"
                     >
-                      {each ? kinds(each) : t("onSale")}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          )}
-          <section aria-labelledby="dishes" className="flex flex-col gap-3">
-            <h2 id="dishes" className="text-title-lg text-foreground">
-              {kind ? kinds(kind) : t("tonight")}
-            </h2>
-            <ul className="flex flex-col gap-5">
-              {shown.map((offer) => (
-                <li key={offer.id}>
-                  <SellerDish offer={offer} />
-                </li>
-              ))}
-            </ul>
-          </section>
+                      <ul className="flex min-w-max gap-6 border-b border-border">
+                        {kindLinks.map(({ each, href, label }) => (
+                          <li key={each ?? "all"}>
+                            <Link
+                              href={href}
+                              aria-current={each === kind ? "page" : undefined}
+                              className={cn(
+                                "-mb-px flex min-h-11 items-center border-b-3 text-title focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
+                                each === kind
+                                  ? "border-primary text-primary"
+                                  : "border-transparent text-muted-foreground",
+                              )}
+                            >
+                              {label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </nav>
+                    {/* The menu's index (Figma WK3): the same kinds, down the side. */}
+                    <nav
+                      aria-label={t("kinds")}
+                      className="hidden w-37.5 shrink-0 flex-col gap-4 pt-1 md:sticky md:top-4 md:flex md:self-start"
+                    >
+                      <p className="text-label-strong text-muted-foreground uppercase">
+                        {t("index")}
+                      </p>
+                      <ul className="flex flex-col gap-1">
+                        {kindLinks.map(({ each, href, label }) => (
+                          <li key={each ?? "all"}>
+                            <Link
+                              href={href}
+                              aria-current={each === kind ? "page" : undefined}
+                              className={cn(
+                                "flex min-h-11 items-center rounded-full px-3.5 text-body-sm focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
+                                each === kind
+                                  ? "bg-secondary text-body-sm-strong text-primary"
+                                  : "text-muted-foreground hover:bg-muted",
+                              )}
+                            >
+                              {label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </nav>
+                  </>
+                )}
+                <section aria-labelledby="dishes" className="flex min-w-0 flex-1 flex-col gap-3">
+                  <h2 id="dishes" className="text-title-lg text-foreground">
+                    {kind ? kinds(kind) : t("tonight")}
+                  </h2>
+                  {shown.length > 0 ? (
+                    <ul className="grid grid-cols-1 gap-5">
+                      {shown.map((offer) => (
+                        <li key={offer.id}>
+                          <SellerDish offer={offer} focused={offer.id === at} />
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-body-sm text-muted-foreground">
+                      {t("noMatch", { q: q ?? "" })}
+                    </p>
+                  )}
+                </section>
+              </div>
+            </div>
+            <CartSidebar />
+          </div>
         </div>
       </main>
-      <CartBar />
+      <CartBar width={PHONE_WIDTH} />
     </>
   );
 }
 
-// Rating, tonight's window and the way there, three columns on a white card with a hairline (Figma K4b
-// "thông số quán"). Without a place searched, the floor takes the distance's place.
+// The seller's logo beside their name, over their rating, when there is one, and their floor (Figma K4b "quán").
+function SellerHeading({ lead }: { lead: OfferSummary }) {
+  const format = useFormatter();
+  const rating = sellerRating(lead);
+
+  return (
+    <div className="flex items-center gap-3">
+      <SellerLogo seller={lead.seller} size="lg" />
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <h1 className="text-headline break-words text-foreground">{lead.seller.name}</h1>
+        <p className="flex items-center gap-1 text-body-sm text-muted-foreground">
+          {rating !== undefined && (
+            <>
+              <span aria-hidden className="text-rating">
+                ★
+              </span>
+              <span className="text-body-sm-strong text-foreground">
+                {format.number(rating, ONE_DECIMAL)}
+              </span>
+              <span aria-hidden>·</span>
+            </>
+          )}
+          {lead.seller.address}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Tonight's window over the counter and its distance, with the way there, on a card with a hairline (Figma K4b
+// "thông số quán").
 function SellerFacts({ lead, offers }: { lead: OfferSummary; offers: readonly OfferSummary[] }) {
+  const t = useTranslations("Seller");
+  const format = useFormatter();
+  const distance = useDistance(lead);
+  const opens = Math.min(...offers.map(({ windowStart }) => Date.parse(windowStart)));
+  const closes = Math.max(...offers.map(({ windowEnd }) => Date.parse(windowEnd)));
+  const place = lead.collectionPoint.address;
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border px-3.5 py-3 md:hidden">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <p className="text-title text-foreground">
+          {t("window", {
+            from: format.dateTime(opens, "time"),
+            until: format.dateTime(closes, "time"),
+          })}
+        </p>
+        <p className="truncate text-label text-muted-foreground">
+          {distance ? t("placeAway", { place, distance }) : place}
+        </p>
+      </div>
+      <a
+        href={directionsHref(lead.collectionPoint)}
+        target="_blank"
+        rel="noreferrer"
+        className="-mr-2 flex min-h-11 shrink-0 items-center rounded-lg px-2 text-label-strong text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+      >
+        {t("directions")}
+      </a>
+    </div>
+  );
+}
+
+// The seller's rating, tonight's window and the counter's distance in equal cells on a card with a hairline, from
+// 768px (Figma WK3 "thông số quán"); a seller with no rating, or no distance known, has fewer cells.
+function SellerFactsCard({
+  lead,
+  offers,
+}: {
+  lead: OfferSummary;
+  offers: readonly OfferSummary[];
+}) {
   const t = useTranslations("Seller");
   const format = useFormatter();
   const distance = useDistance(lead);
   const rating = sellerRating(lead);
   const opens = Math.min(...offers.map(({ windowStart }) => Date.parse(windowStart)));
   const closes = Math.max(...offers.map(({ windowEnd }) => Date.parse(windowEnd)));
-  const fact = "font-display text-price text-foreground";
-  const label = "text-label text-muted-foreground";
+  const cells: { label: string; value: string }[] = [];
+  if (rating !== undefined) {
+    cells.push({ label: t("rating"), value: format.number(rating, ONE_DECIMAL) });
+  }
+  cells.push({
+    label: t("pickup"),
+    value: `${format.dateTime(opens, "time")}–${format.dateTime(closes, "time")}`,
+  });
+  if (distance) cells.push({ label: t("distance"), value: distance });
 
   return (
-    <dl className="flex rounded-lg border border-border px-2 py-3">
-      {rating !== undefined && (
-        <div className="flex flex-1 flex-col-reverse items-center gap-0.5">
-          <dt className={label}>{t("rating")}</dt>
-          <dd className={cn(fact, "flex items-center gap-1")}>
-            <span aria-hidden className="text-rating">
-              ★
-            </span>
-            {format.number(rating, ONE_DECIMAL)}
-          </dd>
+    <dl className="hidden auto-cols-fr grid-flow-col rounded-lg border border-border bg-card px-3 py-2 md:grid">
+      {cells.map(({ label, value }) => (
+        <div key={label} className="flex flex-col items-center gap-0.5 py-1">
+          <dt className="order-2 text-label text-muted-foreground">{label}</dt>
+          <dd className="order-1 text-title text-foreground">{value}</dd>
         </div>
-      )}
-      <div className="flex flex-1 flex-col-reverse items-center gap-0.5">
-        <dt className={label}>{t("window")}</dt>
-        <dd className={fact}>
-          {format.dateTime(opens, "time")}–{format.dateTime(closes, "time")}
-        </dd>
-      </div>
-      <div className="flex flex-1 flex-col items-center gap-0.5">
-        <dt className="sr-only">{t("where")}</dt>
-        <dd className={fact}>{distance ?? lead.seller.address}</dd>
-        <dd>
-          <a
-            href={directionsHref(lead.collectionPoint)}
-            target="_blank"
-            rel="noreferrer"
-            className="text-label text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-          >
-            {t("directions")}
-          </a>
-        </dd>
-      </div>
+      ))}
     </dl>
   );
 }
 
-// One dish of the seller (Figma K4b "món"): its photograph, the dish, the price over the discount and the
-// portions left, and the − and +; the dish opens its own page.
-function SellerDish({ offer }: { offer: OfferSummary }) {
-  const t = useTranslations("OfferCard");
-  const original = formatPrice(offer.originalPriceVnd);
+// A search of the seller's dishes tonight (Figma K4b "tìm trong thực đơn"): a GET form to this page, so it works
+// before JavaScript, keeping the tab and the place.
+function SellerSearch({
+  lead,
+  kind,
+  near,
+  q,
+}: {
+  lead: OfferSummary;
+  kind?: OfferKind;
+  near?: string;
+  q?: string;
+}) {
+  const t = useTranslations("Seller");
+  const locale = useLocale();
+  const label = t("search", { seller: lead.seller.name });
 
   return (
-    <article className="relative flex items-center gap-3.5">
-      <div className="relative size-25 shrink-0 overflow-hidden rounded-lg bg-muted">
-        <OfferPhoto offer={offer} sizes="100px" />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-        <h3 className="line-clamp-2 text-title-lg text-foreground">
-          <Link
-            href={`/offers/${offer.id}`}
-            className="after:absolute after:inset-0 focus-visible:underline focus-visible:outline-none"
-          >
-            {offer.name}
-          </Link>
-        </h3>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <p className="flex items-baseline gap-1.25">
-              <span className="font-display text-price text-primary">
-                {formatPrice(offer.priceVnd)}
-              </span>
-              <s aria-hidden className="text-label text-muted-foreground">
-                {original}
-              </s>
-              <span className="sr-only">{t("originalPrice", { price: original })}</span>
-            </p>
-            <CartPortions offer={offer} />
-          </div>
-          <div className="relative z-10">
-            <QuantityStepper offer={offer} />
-          </div>
-        </div>
-      </div>
-    </article>
+    <search>
+      <form action={`/${locale}/sellers/${lead.sellerId}`}>
+        {kind && <input type="hidden" name="kind" value={kind} />}
+        {near && <input type="hidden" name="near" value={near} />}
+        <InputGroup surface="sky" className="h-12">
+          <InputGroupInput
+            name="q"
+            type="search"
+            defaultValue={q}
+            aria-label={label}
+            placeholder={label}
+          />
+          <InputGroupAddon>
+            <SearchIcon aria-hidden className="size-5" />
+          </InputGroupAddon>
+        </InputGroup>
+      </form>
+    </search>
   );
 }
 

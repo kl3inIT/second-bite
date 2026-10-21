@@ -133,13 +133,16 @@ function OpenStoreFormBody() {
     setProblem(undefined);
     startTransition(async () => {
       let sellerId: string;
+      const place = located ?? MALL;
       try {
         const { data } = await openSeller({
           body: {
             name: name.trim(),
             phone: phone.trim(),
             address: address.trim(),
-            ...(located ?? MALL),
+            // Only the place: what became of the address is the form's own note, not the store's.
+            latitude: place.latitude,
+            longitude: place.longitude,
           },
         });
         sellerId = data.id;

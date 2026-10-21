@@ -11,9 +11,6 @@ import {
   type Order,
 } from "./order";
 
-const opensAt = Date.parse("2026-10-20T21:00:00+07:00");
-const windowStart = new Date(opensAt).toISOString();
-
 function line(units: number, priceVnd: number, originalPriceVnd: number): Order["lines"][number] {
   const photo = { id: "ph", largePath: "", smallPath: "" };
   return { offerId: "of", name: "", unit: "", photo, units, priceVnd, originalPriceVnd };
@@ -30,10 +27,10 @@ describe("an order", () => {
     }
   });
 
-  it("can be cancelled while open and before its window opens", () => {
-    expect(canCancel({ status: "confirmed", windowStart }, opensAt - 1)).toBe(true);
-    expect(canCancel({ status: "confirmed", windowStart }, opensAt)).toBe(false);
-    expect(canCancel({ status: "cancelled", windowStart }, opensAt - 1)).toBe(false);
+  it("can be cancelled until the seller marks it ready", () => {
+    expect(canCancel({ status: "confirmed" })).toBe(true);
+    expect(canCancel({ status: "ready" })).toBe(false);
+    expect(canCancel({ status: "cancelled" })).toBe(false);
   });
 
   it("counts its units and what the customer saves", () => {

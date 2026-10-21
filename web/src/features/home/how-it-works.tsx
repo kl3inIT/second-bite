@@ -10,7 +10,7 @@ export function HowItWorks() {
   return (
     <section
       aria-labelledby="how-it-works"
-      className="hidden flex-wrap items-center justify-between gap-x-8 gap-y-3 py-1 lg:flex"
+      className="hidden flex-wrap items-center justify-between gap-x-8 gap-y-3 py-1 md:flex"
     >
       <h2 id="how-it-works" className="text-title text-foreground">
         {t("tagline")}

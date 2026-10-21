@@ -45,16 +45,21 @@ async function expectNoSidewaysScroll(page: Page) {
 }
 
 test.describe("a phone's large text, as Zalo shows it", () => {
-  test("the dish page fits the screen and its button stays whole", async ({ page }) => {
-    await page.goto("/vi/offers/of-croissant");
-    const add = await hydrated(page.getByRole("button", { name: "Thêm vào giỏ" }));
-    await expect(page.locator("main p").first()).toHaveCSS("font-size", `${15 * SCALE}px`);
+  test("the dish's sheet fits the screen and its button stays whole", async ({ page }) => {
+    await page.goto("/vi/sellers/se-la-paris");
+    await (
+      await hydrated(page.getByRole("button", { name: "Bánh Croissant Truyền Thống", exact: true }))
+    ).click();
+    const sheet = page.getByRole("dialog", { name: "Bánh Croissant Truyền Thống" });
+    const add = sheet.getByRole("button", { name: /^Thêm vào giỏ/ });
+    await expect(add).toBeVisible();
+    await expect(sheet.locator("p.text-body-sm").first()).toHaveCSS("font-size", `${14 * SCALE}px`);
 
     await expectNoSidewaysScroll(page);
     const box = await add.boundingBox();
     expect(box && box.x + box.width).toBeLessThanOrEqual(360);
     await add.click();
-    await expect(page.getByRole("link", { name: "Xem giỏ hàng" })).toBeVisible();
+    await expect(sheet).toBeHidden();
   });
 
   test("the home fits the screen, the bar's labels stay in it and the grid's prices are whole", async ({

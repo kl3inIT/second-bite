@@ -68,7 +68,7 @@ export function KindPicker({ query }: { query: HomeQuery }) {
       <Marquee
         label={t("kindsLabel")}
         count={items.length}
-        spacing={{ gap: "gap-2.5 lg:gap-6", seam: "pr-2.5 lg:pr-6" }}
+        spacing={{ gap: "gap-2.5 md:gap-6", seam: "pr-2.5 md:pr-6" }}
       >
         {items.map((item) => (
           <li key={item.key} className="shrink-0 py-1.5">
@@ -96,7 +96,7 @@ export function KindPicker({ query }: { query: HomeQuery }) {
 
 function KindPicture({ picture, active }: { picture: StaticImageData; active: boolean }) {
   const frame = cn(
-    "size-15 rounded-full transition-shadow lg:size-20 group-hover/kind:ring-2 group-hover/kind:ring-secondary-hover",
+    "size-15 rounded-full transition-shadow md:size-20 group-hover/kind:ring-2 group-hover/kind:ring-secondary-hover",
     active &&
       "ring-3 ring-primary ring-offset-2 ring-offset-background group-hover/kind:ring-primary",
   );

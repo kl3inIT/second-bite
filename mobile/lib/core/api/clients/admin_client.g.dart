@@ -415,6 +415,8 @@ class _AdminClient implements AdminClient {
     List<Status>? status,
     String? q,
     Sort2? sort,
+    DateTime? changedSince,
+    DateTime? changedUntil,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -423,6 +425,8 @@ class _AdminClient implements AdminClient {
       r'status': status,
       r'q': q,
       r'sort': sort,
+      r'changedSince': changedSince?.toIso8601String(),
+      r'changedUntil': changedUntil?.toIso8601String(),
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};

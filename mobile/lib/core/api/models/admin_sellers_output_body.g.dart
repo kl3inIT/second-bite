@@ -10,6 +10,9 @@ _AdminSellersOutputBody _$AdminSellersOutputBodyFromJson(
   Map<String, dynamic> json,
 ) => _AdminSellersOutputBody(
   counts: StatusCountsBody.fromJson(json['counts'] as Map<String, dynamic>),
+  days: (json['days'] as List<dynamic>?)
+      ?.map((e) => StatusDayBody.fromJson(e as Map<String, dynamic>))
+      .toList(),
   items: (json['items'] as List<dynamic>?)
       ?.map((e) => AdminSellerBody.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -22,6 +25,7 @@ Map<String, dynamic> _$AdminSellersOutputBodyToJson(
   _AdminSellersOutputBody instance,
 ) => <String, dynamic>{
   'counts': instance.counts,
+  'days': instance.days,
   'items': instance.items,
   'page': instance.page,
   'pageSize': instance.pageSize,

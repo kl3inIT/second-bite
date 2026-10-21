@@ -20,14 +20,18 @@ export function SellerLogo({
   size,
 }: {
   seller: Pick<OfferSummary["seller"], "id" | "name" | "photo">;
-  size: "md" | "lg";
+  size: "sm" | "md" | "lg";
 }) {
   return (
     <span
       aria-hidden
       className={cn(
         "relative flex shrink-0 items-center justify-center overflow-hidden border border-border text-avatar-foreground",
-        size === "md" ? "size-11 rounded-md text-label-strong" : "size-14 rounded-lg text-title",
+        {
+          sm: "size-10 rounded-md text-label-strong",
+          md: "size-11 rounded-md text-label-strong",
+          lg: "size-14 rounded-lg text-title",
+        }[size],
         !seller.photo && tones[avatarTone(seller.id)],
       )}
     >

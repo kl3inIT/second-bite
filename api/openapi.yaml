@@ -72,9 +72,55 @@ components:
     AdminSellerBody:
       additionalProperties: false
       properties:
+        address:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          type: string
+        latitude:
+          format: double
+          type: number
+        longitude:
+          format: double
+          type: number
+        name:
+          type: string
         ownerEmail:
           description: Absent when the owner deleted their account
           type: string
+        phone:
+          type: string
+        photoId:
+          description: Served at /photos/{photoId}/1600.jpg and /400.jpg
+          type: string
+        status:
+          enum:
+            - pending
+            - active
+            - rejected
+            - blocked
+          type: string
+        statusChangedAt:
+          format: date-time
+          type: string
+        statusReason:
+          description: Why an admin rejected or blocked the seller, as the owner is told
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - address
+        - latitude
+        - longitude
+        - phone
+        - status
+        - createdAt
+        - updatedAt
       type: object
     AdminSellersOutputBody:
       additionalProperties: false
@@ -82,6 +128,13 @@ components:
         counts:
           $ref: "#/components/schemas/StatusCountsBody"
           description: Sellers of each status matching q, whatever status asks
+        days:
+          description: Sellers of each status on each of the last 14 days in Vietnam, the oldest first, whatever the filters; a day before counting started is absent
+          items:
+            $ref: "#/components/schemas/StatusDayBody"
+          type:
+            - array
+            - "null"
         items:
           items:
             $ref: "#/components/schemas/AdminSellerBody"
@@ -103,6 +156,7 @@ components:
         - pageSize
         - total
         - counts
+        - days
       type: object
     AdminsOutputBody:
       additionalProperties: false
@@ -337,6 +391,11 @@ components:
           type: integer
         photo:
           $ref: "#/components/schemas/OfferPhotoBody"
+        photos:
+          description: Every photo, the cover first
+          items:
+            $ref: "#/components/schemas/OfferPhotoBody"
+          type: array
         sellerId:
           type: string
         unit:
@@ -353,6 +412,7 @@ components:
         - description
         - ingredients
         - photo
+        - photos
         - hidden
         - createdAt
         - updatedAt
@@ -377,6 +437,12 @@ components:
             - mixed_box
             - other
           type: string
+        morePhotoIds:
+          description: Replaces the photos after the cover; at most two
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -413,6 +479,12 @@ components:
             - mixed_box
             - other
           type: string
+        morePhotoIds:
+          description: Up to two more photos after the cover
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -423,7 +495,7 @@ components:
           minimum: 1001
           type: integer
         photoId:
-          description: From POST /photos, or a photo the seller already shows
+          description: "The cover: from POST /photos, or a photo the seller already shows"
           type: string
         unit:
           description: What one unit is called; "suất" when empty
@@ -487,6 +559,18 @@ components:
         - brevoApiKeySet
         - updatedAt
       type: object
+    FollowedOutputBody:
+      additionalProperties: false
+      properties:
+        sellers:
+          items:
+            $ref: "#/components/schemas/SellerProfileBody"
+          type:
+            - array
+            - "null"
+      required:
+        - sellers
+      type: object
     FoundBody:
       additionalProperties: false
       properties:
@@ -523,6 +607,12 @@ components:
           type: integer
         photo:
           $ref: "#/components/schemas/OfferPhotoBody"
+          description: The cover, which lists and orders show
+        photos:
+          description: Every photo, the cover first
+          items:
+            $ref: "#/components/schemas/OfferPhotoBody"
+          type: array
         priceVnd:
           format: int64
           type: integer
@@ -576,6 +666,7 @@ components:
         - originalPriceVnd
         - discountPercent
         - photo
+        - photos
         - windowStart
         - windowEnd
         - collectionPoint
@@ -781,6 +872,12 @@ components:
           type: integer
         photo:
           $ref: "#/components/schemas/OfferPhotoBody"
+          description: The cover, which lists and orders show
+        photos:
+          description: Every photo, the cover first
+          items:
+            $ref: "#/components/schemas/OfferPhotoBody"
+          type: array
         priceVnd:
           format: int64
           type: integer
@@ -831,6 +928,7 @@ components:
         - originalPriceVnd
         - discountPercent
         - photo
+        - photos
         - windowStart
         - windowEnd
         - collectionPoint
@@ -852,6 +950,12 @@ components:
             - mixed_box
             - other
           type: string
+        morePhotoIds:
+          description: Replaces the photos after the cover; at most two
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -902,6 +1006,12 @@ components:
             - mixed_box
             - other
           type: string
+        morePhotoIds:
+          description: Up to two more photos after the cover
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -912,7 +1022,7 @@ components:
           minimum: 1001
           type: integer
         photoId:
-          description: From POST /photos, or the photo of an earlier offer of the seller
+          description: "The cover: from POST /photos, or the photo of an earlier offer of the seller"
           type: string
         priceVnd:
           description: Price of one unit, in whole đồng
@@ -1099,6 +1209,9 @@ components:
         refusedAt:
           format: date-time
           type: string
+        review:
+          $ref: "#/components/schemas/ReviewBody"
+          description: The customer's rating of the collected order; none until they rate it
         seller:
           $ref: "#/components/schemas/OrderSellerBody"
           description: Where the order is collected, copied when it was placed
@@ -1401,6 +1514,53 @@ components:
         - challengeId
         - expiresAt
       type: object
+    ReviewBody:
+      additionalProperties: false
+      properties:
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        stars:
+          format: int64
+          type: integer
+        tags:
+          items:
+            type: string
+          type: array
+      required:
+        - stars
+        - tags
+        - createdAt
+      type: object
+    ReviewOrderRequest:
+      additionalProperties: false
+      properties:
+        comment:
+          maxLength: 500
+          type: string
+        stars:
+          format: int64
+          maximum: 5
+          minimum: 1
+          type: integer
+        tags:
+          description: What went well
+          items:
+            enum:
+              - fast_pickup
+              - good_quality
+              - good_variety
+              - fair_portions
+            type: string
+          maxItems: 4
+          type: array
+          uniqueItems: true
+      required:
+        - stars
+        - tags
+      type: object
     RoleCountsBody:
       additionalProperties: false
       properties:
@@ -1646,6 +1806,32 @@ components:
           format: int64
           type: integer
       required:
+        - pending
+        - active
+        - rejected
+        - blocked
+      type: object
+    StatusDayBody:
+      additionalProperties: false
+      properties:
+        active:
+          format: int64
+          type: integer
+        blocked:
+          format: int64
+          type: integer
+        day:
+          description: The day in Vietnam, as YYYY-MM-DD
+          format: date
+          type: string
+        pending:
+          format: int64
+          type: integer
+        rejected:
+          format: int64
+          type: integer
+      required:
+        - day
         - pending
         - active
         - rejected
@@ -2339,6 +2525,22 @@ paths:
             maximum: 100
             minimum: 1
             type: integer
+        - description: Keep the sellers last changed at or after this time
+          explode: false
+          in: query
+          name: changedSince
+          schema:
+            description: Keep the sellers last changed at or after this time
+            format: date-time
+            type: string
+        - description: Keep the sellers last changed before this time
+          explode: false
+          in: query
+          name: changedUntil
+          schema:
+            description: Keep the sellers last changed before this time
+            format: date-time
+            type: string
       responses:
         "200":
           content:
@@ -3050,7 +3252,7 @@ paths:
         - {}
         - bearer: []
         - cookie: []
-      summary: Cancel your order, free of charge until its window opens
+      summary: Cancel your order until the seller marks it ready
       tags:
         - Orders
   /orders/{orderId}/hand-over:
@@ -3171,6 +3373,49 @@ paths:
         - bearer: []
         - cookie: []
       summary: Take a hand-over or a refusal back
+      tags:
+        - Orders
+  /orders/{orderId}/review:
+    post:
+      description: By its customer, signed in or sending its access, after the order was handed over.
+      operationId: reviewOrder
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewOrderRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Rate your collected order, once
       tags:
         - Orders
   /photos:
@@ -3315,6 +3560,29 @@ paths:
         - bearer: []
         - cookie: []
       summary: The address at a point, to fill the form that opens a store; empty when it is not known
+      tags:
+        - Sellers
+  /sellers/followed:
+    get:
+      description: A seller blocked since is left out.
+      operationId: listFollowedSellers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowedOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The active sellers I follow, the latest followed first
       tags:
         - Sellers
   /sellers/mine:
@@ -3463,6 +3731,55 @@ paths:
       summary: Add a dish to a seller's catalog
       tags:
         - Catalog
+  /sellers/{sellerId}/follow:
+    delete:
+      description: A seller I do not follow is left as it is.
+      operationId: unfollowSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Take a seller out of my favourites
+      tags:
+        - Sellers
+    put:
+      description: Following again changes nothing. A seller pending or blocked answers 404.
+      operationId: followSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Make an active seller one of my favourites
+      tags:
+        - Sellers
   /sellers/{sellerId}/members:
     get:
       operationId: listSellerMembers

@@ -101,11 +101,19 @@ function DialogFooter({
   );
 }
 
-function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
+// Second Bite: `headline` titles a dialog that stands for a sheet on wider screens, as the drawer's title does.
+function DialogTitle({
+  className,
+  size = "default",
+  ...props
+}: DialogPrimitive.Title.Props & { size?: "default" | "headline" }) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-body leading-none", className)}
+      className={cn(
+        size === "headline" ? "text-headline text-foreground" : "text-body leading-none",
+        className,
+      )}
       {...props}
     />
   );

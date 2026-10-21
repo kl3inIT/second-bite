@@ -68,6 +68,7 @@ function sample({
   id,
   name,
   description = "",
+  weightGrams,
   kind,
   price,
   originalPrice,
@@ -85,6 +86,7 @@ function sample({
     status,
     name,
     description,
+    ...(weightGrams ? { weightGrams } : {}),
     kind,
     unit,
     units: Math.max(unitsLeft, 1),
@@ -97,6 +99,7 @@ function sample({
       largePath: `/photos/${photo}/1600.jpg`,
       smallPath: `/photos/${photo}/400.jpg`,
     },
+    photos: [photoBody(photo)],
     windowStart: from,
     windowEnd: until,
     collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
@@ -163,7 +166,8 @@ const offers = [
     id: "of-croissant",
     name: "Bánh Croissant Truyền Thống",
     description:
-      "Bánh làm trong ngày, ngon nhất khi dùng trước 24 giờ. Nếu bạn dị ứng món nào, hãy hỏi quán khi đến nhận.",
+      "Croissant bơ Pháp nướng sáng nay, vỏ nhiều lớp, ruột mềm. Hâm lò 3 phút cho giòn lại.",
+    weightGrams: 80,
     kind: "bakery",
     price: 22000,
     originalPrice: 50000,
@@ -188,6 +192,8 @@ const offers = [
   sample({
     id: "of-banh-mi",
     name: "Bánh mì mềm chà bông",
+    description: "Bánh mì mềm phủ chà bông và sốt bơ, làm sáng nay.",
+    weightGrams: 120,
     kind: "bakery",
     price: 35000,
     originalPrice: 75000,
@@ -200,6 +206,8 @@ const offers = [
   sample({
     id: "of-ha-cao",
     name: "Há cảo tôm",
+    description: "Há cảo tôm hấp, vỏ bột lọc mỏng. Hâm hấp lại 5 phút trước khi ăn.",
+    weightGrams: 150,
     kind: "prepared_food",
     price: 25000,
     originalPrice: 59000,
@@ -224,6 +232,9 @@ const offers = [
   sample({
     id: "of-com-thit-kho",
     name: "Cơm Thịt Kho Nước Dừa",
+    description:
+      "Cơm trắng với thịt ba chỉ kho nước dừa và trứng, kèm dưa leo. Hâm lò vi sóng 2 phút.",
+    weightGrams: 400,
     kind: "prepared_food",
     price: 30000,
     originalPrice: 68000,
@@ -318,6 +329,105 @@ const offers = [
     until: tonight(22, 15),
     seller: sellers.kfc,
   }),
+  // La Paris's longer list, for the seller's page with many dishes and three tabs (SEC-88).
+  sample({
+    id: "of-croissant-hanh-nhan",
+    name: "Bánh Croissant Hạnh Nhân",
+    description: "Croissant nhân kem hạnh nhân, phủ lát hạnh nhân nướng.",
+    weightGrams: 95,
+    kind: "bakery",
+    price: 36000,
+    originalPrice: 80000,
+    unitsLeft: 4,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-croissant-kem-trung",
+    name: "Bánh Croissant Kem Trứng",
+    description: "Croissant nhân kem trứng béo, nướng sáng nay.",
+    weightGrams: 90,
+    kind: "bakery",
+    price: 32000,
+    originalPrice: 70000,
+    unitsLeft: 3,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-macaron",
+    name: "Bánh Macaron Vani",
+    description: "Hộp ba chiếc macaron vani, để lạnh trước khi ăn.",
+    weightGrams: 45,
+    kind: "bakery",
+    price: 16000,
+    originalPrice: 35000,
+    unitsLeft: 6,
+    unit: "hộp",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-mille-feuille",
+    name: "Choco Mille Feuille",
+    description: "Bánh ngàn lớp kem sô-cô-la, dùng trong ngày.",
+    weightGrams: 120,
+    kind: "bakery",
+    price: 32000,
+    originalPrice: 70000,
+    unitsLeft: 2,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-tiramisu",
+    name: "Bánh Tiramisu Cà Phê",
+    description: "Tiramisu cà phê truyền thống, cắt miếng. Giữ lạnh.",
+    weightGrams: 150,
+    kind: "mixed_box",
+    price: 79000,
+    originalPrice: 170000,
+    unitsLeft: 2,
+    unit: "miếng",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-cheesecake",
+    name: "Bánh Basque Cheesecake",
+    description: "Cheesecake nướng cháy mặt kiểu Basque, cắt miếng. Giữ lạnh.",
+    weightGrams: 130,
+    kind: "mixed_box",
+    price: 52000,
+    originalPrice: 115000,
+    unitsLeft: 3,
+    unit: "miếng",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-quiche",
+    name: "Bánh Quiche Gà Phô Mai",
+    description: "Quiche ngàn lớp nhân gà và phô mai. Hâm lò 5 phút.",
+    weightGrams: 180,
+    kind: "prepared_food",
+    price: 27000,
+    originalPrice: 60000,
+    unitsLeft: 5,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
 ];
 
 /** In hours from now, as RFC 3339: a window that has not opened yet, whatever the time of the test. */
@@ -359,6 +469,13 @@ const photoFiles = {
   "ph-com-bo": "net-hue/08-com-bo-rang-gion.jpg",
   "ph-xiu-mai": "panda-chef/02-xiu-mai-hap.png",
   "ph-ga-ran": "kfc/01-3-mieng-ga-ran.jpg",
+  "ph-croissant-hanh-nhan": "la-paris/02-banh-croissant-hanh-nhan.webp",
+  "ph-croissant-kem-trung": "la-paris/03-banh-croissant-kem-trung.png",
+  "ph-macaron": "la-paris/06-banh-macaron-vani.webp",
+  "ph-mille-feuille": "la-paris/10-choco-mille-feuille.webp",
+  "ph-tiramisu": "la-paris/04-banh-tiramisu-ca-phe-truyen-thong.webp",
+  "ph-cheesecake": "la-paris/07-banh-basque-burnt-original-cheesecake.webp",
+  "ph-quiche": "la-paris/08-banh-quiche-ngan-lop-nhan-ga-pho-mai.png",
   // The sellers' logos, from the directory's list of shops.
   "ph-logo-la-paris": "../quan-an/la-paris.png",
   "ph-logo-panda-chef": "../quan-an/panda-chef.png",
@@ -467,9 +584,23 @@ function problem(response, status, code) {
   );
 }
 
+/**
+ * A dish or an offer answers with its photos, the cover first (SEC-119): one the stub did not give is the cover alone.
+ * They are told by their kind, which a seller, an order's line and a photo do not have.
+ */
+function withPhotos(value) {
+  if (Array.isArray(value)) return value.map(withPhotos);
+  if (value === null || typeof value !== "object") return value;
+  const copy = Object.fromEntries(
+    Object.entries(value).map(([key, inner]) => [key, withPhotos(inner)]),
+  );
+  if (copy.kind && copy.photo?.smallPath && !copy.photos) copy.photos = [copy.photo];
+  return copy;
+}
+
 function json(response, status, body, headers = {}) {
   response.writeHead(status, { "content-type": "application/json", ...headers });
-  response.end(JSON.stringify(body));
+  response.end(JSON.stringify(withPhotos(body)));
 }
 
 async function readBody(request) {
@@ -831,6 +962,7 @@ function postsOf(seller) {
       largePath: `/photos/ph-${n}/1600.jpg`,
       smallPath: `/photos/ph-${n}/400.jpg`,
     },
+    photos: [photoBody(`ph-${n}`)],
     windowStart: tonight(...from),
     windowEnd: tonight(...until),
     collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
@@ -867,6 +999,45 @@ function ownerSeller() {
 /** Whether the path names an order a customer placed through the stub, which ordersApi hands over instead. */
 function isCustomerOrder(pathname) {
   return orders.some((order) => pathname.startsWith(`/orders/${order.id}/`));
+}
+
+// Favourites (SEC-109), as api/openapi.yaml describes them: a signed-in person follows the active sellers of
+// the catalog above, idempotently, and lists the ones they follow, the latest first. Kept per address.
+const followsOf = new Map();
+/** Where the sample sellers are, as their public profile shows. */
+const SAMPLE_LOCATION = { latitude: 21.0565, longitude: 105.8964 };
+
+async function favouriteRoutes(request, response, url) {
+  const follow = /^\/sellers\/([\w-]+)\/follow$/.exec(url.pathname);
+  const isList = request.method === "GET" && url.pathname === "/sellers/followed";
+  if (!isList && !follow) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account) {
+    problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    return true;
+  }
+  const followed = followsOf.get(account.email) ?? [];
+  if (isList) {
+    const profiles = followed.map(({ rating: _rating, ...profile }) => ({
+      ...profile,
+      ...SAMPLE_LOCATION,
+    }));
+    json(response, 200, { sellers: profiles });
+  } else if (request.method === "DELETE") {
+    followsOf.set(
+      account.email,
+      followed.filter((seller) => seller.id !== follow[1]),
+    );
+    response.writeHead(204).end();
+  } else if (request.method === "PUT") {
+    const seller = Object.values(sellers).find((candidate) => candidate.id === follow[1]);
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else {
+      followsOf.set(account.email, [seller, ...followed.filter((found) => found !== seller)]);
+      response.writeHead(204).end();
+    }
+  } else return false;
+  return true;
 }
 
 async function sellerRoutes(request, response, url) {
@@ -1002,6 +1173,7 @@ async function sellerRoutes(request, response, url) {
             largePath: `/photos/${body.photoId}/1600.jpg`,
             smallPath: `/photos/${body.photoId}/400.jpg`,
           },
+          photos: photosBody(body.photoId, body.morePhotoIds),
           hidden: Boolean(body.hidden),
           createdAt: now,
           updatedAt: now,
@@ -1025,7 +1197,7 @@ async function sellerRoutes(request, response, url) {
       dishes.splice(dishes.indexOf(dish), 1);
       response.writeHead(204).end();
     } else if (request.method === "PATCH") {
-      const { photoId, ...body } = await readBody(request);
+      const { photoId, morePhotoIds, ...body } = await readBody(request);
       Object.assign(dish, body, { updatedAt: new Date().toISOString() });
       // 0 takes the original price away.
       if (body.originalPriceVnd === 0) delete dish.originalPriceVnd;
@@ -1035,6 +1207,12 @@ async function sellerRoutes(request, response, url) {
           largePath: `/photos/${photoId}/1600.jpg`,
           smallPath: `/photos/${photoId}/400.jpg`,
         };
+      }
+      if (photoId || morePhotoIds) {
+        dish.photos = photosBody(
+          photoId ?? dish.photo.id,
+          morePhotoIds ?? (dish.photos ?? [dish.photo]).slice(1).map((p) => p.id),
+        );
       }
       json(response, 200, dish);
     }
@@ -1080,6 +1258,7 @@ async function sellerRoutes(request, response, url) {
           largePath: `/photos/${body.photoId}/1600.jpg`,
           smallPath: `/photos/${body.photoId}/400.jpg`,
         },
+        photos: photosBody(body.photoId, body.morePhotoIds),
         collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
         createdAt: now,
         updatedAt: now,
@@ -1151,12 +1330,21 @@ async function sellerRoutes(request, response, url) {
 
 // Orders (SEC-15, SEC-76), as api/openapi.yaml describes them: placed with a name, a phone number and an
 // Idempotency-Key, signed in or not; read and cancelled until the window opens by the account that placed them
-// or with the access answered to whoever placed them; listed for the account; marked ready and handed over
+// or with the access answered to whoever placed them; rated once collected; listed for the account; marked ready and handed over
 // as a seller would. The stub takes no units away, so the home's tests keep their counts.
 const orders = [];
 const ordersByKey = new Map();
 let nextOrder = 10001;
 const PHONE = /^0[0-9]{9}$/;
+const REVIEW_TAGS = ["fast_pickup", "good_quality", "good_variety", "fair_portions"];
+
+function photoBody(id) {
+  return { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` };
+}
+
+function photosBody(cover, more = []) {
+  return [cover, ...more].map(photoBody);
+}
 
 function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
@@ -1292,7 +1480,7 @@ async function ordersApi(request, response, url) {
     json(response, 200, shown(handled));
     return true;
   }
-  const orderMatch = /^\/orders\/([\w-]+)(\/cancel)?$/.exec(url.pathname);
+  const orderMatch = /^\/orders\/([\w-]+)(\/cancel|\/review)?$/.exec(url.pathname);
   const order = orderMatch
     ? orders.find((found) => found.id === orderMatch[1] && placedBy(request, account, found))
     : undefined;
@@ -1304,12 +1492,32 @@ async function ordersApi(request, response, url) {
     json(response, 200, shown(order));
     return true;
   }
+  if (request.method === "POST" && orderMatch?.[2] === "/review") {
+    const { stars, tags, comment } = await readBody(request);
+    if (
+      !Number.isInteger(stars) ||
+      stars < 1 ||
+      stars > 5 ||
+      !Array.isArray(tags) ||
+      !tags.every((tag, at) => REVIEW_TAGS.includes(tag) && tags.indexOf(tag) === at) ||
+      (comment !== undefined && (typeof comment !== "string" || comment.length > 500))
+    ) {
+      problem(response, 400, "ORDER_REVIEW_INVALID");
+    } else if (order.status !== "collected") {
+      problem(response, 409, "ORDER_NOT_COLLECTED");
+    } else if (order.review) {
+      problem(response, 409, "ORDER_ALREADY_REVIEWED");
+    } else {
+      order.review = { stars, tags, createdAt: new Date().toISOString() };
+      if (comment?.trim()) order.review.comment = comment.trim();
+      json(response, 200, shown(order));
+    }
+    return true;
+  }
   if (request.method === "POST" && orderMatch?.[2]) {
     const status = shown(order).status;
-    if (
-      (status !== "confirmed" && status !== "ready") ||
-      new Date(order.windowStart) <= new Date()
-    ) {
+    // Until the seller marks it ready (SEC-121).
+    if (status !== "confirmed") {
       problem(response, 409, "ORDER_CANCEL_TOO_LATE");
       return true;
     }
@@ -1596,6 +1804,224 @@ function historyOf(accountId) {
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// The stores as admins list them (SEC-62, Figma AD-Q1): the shops above with their logos, then more without a
+// photo, mostly active, with one pending, one rejected and two blocked. Each admin gets a copy of their own,
+// so tests side by side can block and unblock without meeting.
+const adminStoreNames = [
+  ["Tiệm bánh Pháp", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Cơm nhà Hạnh", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Trà sữa Mây", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Bún chả Phố Hàng", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Xôi xéo Bà Tư", "Tầng B1, Tasco Mall"],
+  ["Phở bò Gánh", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Bánh mì Hội An", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Nước ép Xanh", "Tầng 2, Tasco Mall"],
+  ["Cơm tấm Sài Gòn", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Rau củ sạch Việt Hưng", "Tầng B1, Tasco Mall"],
+  ["Bánh cuốn Thanh Trì", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Chè Thái Hà", "Tầng 2, Tasco Mall"],
+  ["Gà nướng Ò Ó O", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Bánh bao Thọ Phát", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Sữa chua Hạ Long", "Tầng 2, Tasco Mall"],
+  ["Mì vằn thắn Hồng Kông", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Bánh ngọt Hà Thành", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Lẩu nấm Ashima", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Sushi Kei", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Cà phê Cộng", "Tầng 1, Tasco Mall, Việt Hưng"],
+];
+
+function adminStoresSeed() {
+  const start = Date.parse("2026-10-20T20:00:00+07:00");
+  const shops = Object.values(sellers).map((s) => [s.name, `${s.address}, Tasco Mall`, s.photo.id]);
+  return [...shops, ...adminStoreNames].map(([name, address, photoId], i) => {
+    const changed = new Date(start - i * 9 * 60 * 60 * 1000).toISOString();
+    const status =
+      i === 3 ? "pending" : i === 5 ? "rejected" : i === 8 || i === 12 ? "blocked" : "active";
+    return {
+      id: `se-admin-${String(i).padStart(2, "0")}`,
+      name,
+      address,
+      latitude: 21.0565,
+      longitude: 105.8964,
+      phone: `0900000${String(101 + i)}`,
+      status,
+      ...(status === "blocked" || status === "rejected"
+        ? {
+            statusReason: "Bán bánh đã quá hạn sử dụng cho khách ngày 19/10/2026.",
+            statusChangedAt: changed,
+          }
+        : {}),
+      createdAt: new Date(Date.parse(changed) - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: changed,
+      ...(photoId ? { photoId } : {}),
+      ownerEmail: `chu.quan${i}@example.com`,
+    };
+  });
+}
+
+const adminStores = new Map();
+
+function adminStoresOf(account) {
+  if (!adminStores.has(account.email)) adminStores.set(account.email, adminStoresSeed());
+  return adminStores.get(account.email);
+}
+
+const storeStatuses = ["pending", "active", "rejected", "blocked"];
+
+/** GET /admin/sellers, filtered, sorted and paged as server/internal/seller/queries.sql does. */
+function listAdminStores(response, url, stores) {
+  const statuses = url.searchParams
+    .getAll("status")
+    .flatMap((s) => s.split(","))
+    .filter(Boolean);
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sort = url.searchParams.get("sort");
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const since = url.searchParams.get("changedSince");
+  const until = url.searchParams.get("changedUntil");
+  if (
+    (since && until && Date.parse(since) >= Date.parse(until)) ||
+    statuses.some((s) => !storeStatuses.includes(s)) ||
+    q.length > 100 ||
+    !(page >= 1) ||
+    !(size >= 1 && size <= 100) ||
+    (sort && !/^-?(name|address|changed)$/.test(sort))
+  ) {
+    problem(response, 400, "SELLER_LIST_INVALID");
+    return;
+  }
+  const found = stores.filter(
+    (s) =>
+      (!q || fold(`${s.name} ${s.address} ${s.phone}`).includes(q)) &&
+      (!since || Date.parse(s.updatedAt) >= Date.parse(since)) &&
+      (!until || Date.parse(s.updatedAt) < Date.parse(until)),
+  );
+  const counts = Object.fromEntries(
+    storeStatuses.map((status) => [status, found.filter((s) => s.status === status).length]),
+  );
+  const listed = found.filter((s) => statuses.length === 0 || statuses.includes(s.status));
+  const key = { name: (s) => s.name, address: (s) => s.address, changed: (s) => s.updatedAt };
+  if (sort) {
+    const by = key[sort.replace("-", "")];
+    const way = sort.startsWith("-") ? -1 : 1;
+    listed.sort((a, b) => way * by(a).localeCompare(by(b), "vi"));
+  } else {
+    // Pending first, the oldest first, as a queue; then the latest change first.
+    listed.sort((a, b) =>
+      a.status === "pending" && b.status === "pending"
+        ? a.createdAt.localeCompare(b.createdAt)
+        : (b.status === "pending") - (a.status === "pending") ||
+          b.updatedAt.localeCompare(a.updatedAt),
+    );
+  }
+  json(response, 200, {
+    items: listed.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: listed.length,
+    counts,
+    days: storeDays(stores),
+  });
+}
+
+/** 14 made-up days of counts for the cards' lines, the last today's as the stores stand. */
+function storeDays(stores) {
+  const now = Object.fromEntries(
+    storeStatuses.map((status) => [status, stores.filter((s) => s.status === status).length]),
+  );
+  return Array.from({ length: 14 }, (_, i) => {
+    const back = 13 - i;
+    const day = new Date(Date.now() + 7 * 60 * 60 * 1000 - back * 24 * 60 * 60 * 1000);
+    return {
+      day: day.toISOString().slice(0, 10),
+      pending: now.pending + (back > 10 ? 2 : back > 7 ? 1 : 0),
+      active: Math.max(0, now.active - Math.floor(back / 2)),
+      rejected: now.rejected,
+      blocked: back > 8 ? Math.max(0, now.blocked - 1) : now.blocked,
+    };
+  });
+}
+
+/** POST /admin/sellers/{id}/approve | reject | block, each from the statuses it applies to. */
+async function changeAdminStore(request, response, stores, id, action) {
+  const store = stores.find((s) => s.id === id);
+  if (!store) return problem(response, 404, "SELLER_NOT_FOUND");
+  const from = {
+    approve: ["pending", "rejected", "blocked"],
+    reject: ["pending"],
+    block: ["active"],
+  };
+  let reason;
+  if (action !== "approve") {
+    reason = String((await readBody(request)).reason ?? "").trim();
+    if (reason.length < 10 || reason.length > 500)
+      return problem(response, 400, "SELLER_REASON_INVALID");
+  }
+  if (!from[action].includes(store.status))
+    return problem(response, 409, "SELLER_STATUS_CHANGE_NOT_ALLOWED");
+  const now = new Date().toISOString();
+  store.status = action === "approve" ? "active" : action === "reject" ? "rejected" : "blocked";
+  store.statusChangedAt = now;
+  store.updatedAt = now;
+  if (reason) store.statusReason = reason;
+  else delete store.statusReason;
+  const { ownerEmail: _owner, ...seller } = store;
+  json(response, 200, seller);
+}
+
+// What an admin reads of one store (SEC-62, Figma AD-Q3): the store, its people and its posts, as
+// GET /sellers/{id}, /members and /offers answer an admin who is not a member.
+const adminStorePosts = new Map();
+
+function adminSellerReads(request, response, url) {
+  const match = /^\/sellers\/(se-admin-\d+)(\/members|\/offers)?$/.exec(url.pathname);
+  if (request.method !== "GET" || !match) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account || account.role !== "admin") return false;
+  const store = adminStoresOf(account).find((s) => s.id === match[1]);
+  if (!store) {
+    problem(response, 404, "SELLER_NOT_FOUND");
+    return true;
+  }
+  const { ownerEmail, ...seller } = store;
+  if (match[2] === "/members") {
+    json(response, 200, {
+      members: [
+        { accountId: "ac-owner", email: ownerEmail, role: "owner", addedAt: store.createdAt },
+        {
+          accountId: "ac-staff",
+          email: "nhan.vien@example.com",
+          role: "staff",
+          addedAt: store.createdAt,
+        },
+      ],
+    });
+  } else if (match[2] === "/offers") {
+    // The shops with a logo have posted nothing, so their page shows the logo as its cover (Figma AD-Q3); the
+    // others have a post of each status, the first described and weighed as its panel shows it (AD-QD3).
+    if (!adminStorePosts.has(store.id))
+      adminStorePosts.set(
+        store.id,
+        store.photoId
+          ? []
+          : postsOf(store).map((post, i) =>
+              i === 0
+                ? {
+                    ...post,
+                    description: "Bánh mì và croissant nướng trong ngày, còn mềm.",
+                    weightGrams: 400,
+                  }
+                : post,
+            ),
+      );
+    json(response, 200, { offers: adminStorePosts.get(store.id) });
+  } else {
+    json(response, 200, seller);
+  }
+  return true;
+}
+
 async function adminRoutes(request, response, url) {
   if (!url.pathname.startsWith("/admin/")) return false;
   const account = accounts.get(tokenOf(request));
@@ -1605,6 +2031,21 @@ async function adminRoutes(request, response, url) {
   }
   if (account.role !== "admin") {
     problem(response, 403, "PLATFORM_ADMIN_REQUIRED");
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/sellers") {
+    listAdminStores(response, url, adminStoresOf(account));
+    return true;
+  }
+  const storeAction = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block)$/.exec(url.pathname);
+  if (request.method === "POST" && storeAction) {
+    await changeAdminStore(
+      request,
+      response,
+      adminStoresOf(account),
+      storeAction[1],
+      storeAction[2],
+    );
     return true;
   }
   if (request.method === "GET" && url.pathname === "/admin/admins") {
@@ -1818,6 +2259,8 @@ async function answer(request, response) {
     return json(response, 200, offer);
   }
   if (await auth(request, response, url)) return;
+  if (await favouriteRoutes(request, response, url)) return;
+  if (adminSellerReads(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await emailSettingsRoutes(request, response, url)) return;
   if (await adminRoutes(request, response, url)) return;

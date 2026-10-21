@@ -8,6 +8,9 @@ test.use({ locale: "vi-VN" });
 const ORDER_URL = /\/vi\/orders\/[0-9a-f-]{36}$/;
 const DISH = "Bánh Croissant Truyền Thống";
 
+/** From 768px the cart is a sidebar beside the menu (Figma WK3), not the phone's bar. */
+const isWide = (page: Page) => (page.viewportSize()?.width ?? 0) >= 768;
+
 async function addCroissant(page: Page) {
   await page.goto("/vi/sellers/se-la-paris");
   await (
@@ -27,6 +30,23 @@ async function orderAs(page: Page, name: string, phone: string) {
   await check.getByRole("button", { name: "Đúng, đặt món" }).click();
 }
 
+/**
+ * The order's four steps on the blue band, in order, with the current one marked. A phone keeps its own row (Figma
+ * K6), whose last step is "Hoàn tất"; from 768px it is "Đã nhận" (Figma W5, W6).
+ */
+async function expectSteps(page: Page, current: number) {
+  const wide = (page.viewportSize()?.width ?? 0) >= 768;
+  const names = ["Đã đặt", "Chuẩn bị", "Sẵn sàng", wide ? "Đã nhận" : "Hoàn tất"];
+  const list = page.getByRole("list", { name: "Các bước của đơn" });
+  const steps = list.getByRole("listitem");
+  await expect(steps).toHaveCount(names.length);
+  for (const [index, name] of names.entries()) {
+    await expect(steps.nth(index)).toContainText(name);
+  }
+  await expect(list.locator('[aria-current="step"]')).toHaveCount(1);
+  await expect(list.locator('[aria-current="step"]')).toContainText(names[current]);
+}
+
 /** The dish's line on the order's page, its units and name in spans of their own (Figma D2 › Món đã đặt). */
 function dishLine(page: Page) {
   return page.getByRole("main").getByText(DISH, { exact: true });
@@ -39,7 +59,7 @@ test.describe("ordering from the cart", () => {
     page,
   }) => {
     await addCroissant(page);
-    await page.getByRole("link", { name: "Xem giỏ hàng" }).click();
+    await page.getByRole("link", { name: isWide(page) ? /^Đặt món · / : "Xem giỏ hàng" }).click();
     await expect(page).toHaveURL(/\/vi\/cart$/);
 
     await expect(page.getByLabel("Tên")).toHaveCount(0);
@@ -72,8 +92,8 @@ test.describe("ordering from the cart", () => {
     await expect(page).toHaveURL(ORDER_URL);
     await expect(page.getByRole("heading", { name: /^Đơn #SB-\d+$/, level: 1 })).toBeVisible();
     await expect(page.getByText("Đã xác nhận · quán đang chuẩn bị")).toBeVisible();
+    await expectSteps(page, 1);
     await expect(page.getByText(/^Mã QR hiện khi món sẵn sàng/)).toBeVisible();
-    await expect(page.getByText("Minh Anh", { exact: true })).toBeVisible();
     await expect(dishLine(page)).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
@@ -97,8 +117,8 @@ test.describe("ordering from the cart", () => {
     await expect(again.getByLabel("Số điện thoại")).toHaveValue("0900000000");
   });
 
-  // Figma D3, D5: the seller marks it ready, which shows its QR code, then hands it over.
-  test("shows the QR code once ready, then the receipt once collected", async ({ page }) => {
+  // Figma K6, K6b: the seller marks it ready, which shows its QR code, then hands it over, and it is rated once.
+  test("shows the QR code once ready, then rates the order once collected", async ({ page }) => {
     await addCroissant(page);
     await page.goto("/vi/cart");
     await orderAs(page, "Lan", "0900000002");
@@ -108,6 +128,7 @@ test.describe("ordering from the cart", () => {
     await page.request.post(`/api/orders/${orderId}/ready`);
     await page.reload();
     await expect(page.getByText("Món đã sẵn sàng")).toBeVisible();
+    await expectSteps(page, 2);
     await expect(page.getByText(/^Đưa mã QR cho quầy quét/)).toBeVisible();
     await expect(page.getByRole("heading", { name: "Cách nhận món" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
@@ -120,12 +141,66 @@ test.describe("ordering from the cart", () => {
     await page.request.post(`/api/orders/${orderId}/hand-over`);
     await page.goto(`/vi/orders/${orderId}`);
     await expect(page.getByText(/^Đã nhận món lúc/)).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Trạng thái" })).toBeVisible();
-    await expect(page.getByText("Bạn đã nhận món")).toBeVisible();
+    await expectSteps(page, 3);
+    await expect(page.getByText("28.000đ", { exact: true })).toBeVisible();
+    await expect(page.getByText("Tiết kiệm so với giá gốc · 1 phần không bị bỏ phí")).toBeVisible();
+
+    const send = await hydrated(page.getByRole("button", { name: "Gửi đánh giá" }));
+    await expect(send).toBeDisabled();
+    await page.getByRole("radio", { name: "4 sao" }).click();
+    await expect(page.getByText("Tốt", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Nhận hàng nhanh" }).click();
+    await expect(page.getByRole("button", { name: "Nhận hàng nhanh" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await page.getByLabel("Viết vài dòng cho quán (không bắt buộc)").fill("Bánh còn giòn.");
     await expectNoSeriousA11yViolations(page);
+    await send.click();
+
+    await expect(page.getByRole("heading", { name: "Bạn đã đánh giá" })).toBeVisible();
+    await expect(page.getByText("4 sao", { exact: true })).toBeAttached();
+    await expect(page.getByText("Nhận hàng nhanh")).toBeVisible();
+    await expect(page.getByText("“Bánh còn giòn.”")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Gửi đánh giá" })).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  // Figma K8, K6: a cart from two sellers places two orders, each its own card and page, linked to the other.
+  test("lists each seller's order on its own, and links the orders placed together", async ({
+    page,
+  }) => {
+    await addCroissant(page);
+    await page.goto("/vi/sellers/se-panda-chef");
+    await (await hydrated(page.getByRole("button", { name: "Thêm một phần Há cảo tôm" }))).click();
+    await page.goto("/vi/cart");
+    await (await hydrated(page.getByRole("button", { name: "Đặt 2 đơn" }))).click();
+    const sheet = page.getByRole("dialog", { name: "Người đến nhận" });
+    await sheet.getByLabel("Tên").fill("Hà");
+    await sheet.getByLabel("Số điện thoại").fill("0900000003");
+    await sheet.getByRole("button", { name: "Tiếp tục" }).click();
+    await page
+      .getByRole("alertdialog", { name: "Xác nhận đặt đơn với số điện thoại" })
+      .getByRole("button", { name: "Đúng, đặt món" })
+      .click();
+    await expect(page).toHaveURL(ORDER_URL);
 
     await page.goto("/vi/orders");
-    await expect(page.getByText("1 bữa ngon, trọn đến miếng cuối")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Đang chờ nhận (2)" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Xem đơn" })).toHaveCount(2);
+    await expect(page.getByRole("heading", { level: 3, name: DISH })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: "Há cảo tôm" })).toBeVisible();
+
+    await page.getByRole("link", { name: "Xem đơn" }).first().click();
+    await expect(page).toHaveURL(ORDER_URL);
+    const together = page.getByRole("link", { name: /^Cùng lần đặt: / });
+    await expect(together).toHaveCount(1);
+    const first = page.url();
+    await together.click();
+    await expect(page).not.toHaveURL(first);
+    await expect(page).toHaveURL(ORDER_URL);
+    await expect(page.getByRole("link", { name: /^Cùng lần đặt: / })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
   });
 
   // Figma O7: someone else ordered first. The cart holds a dish the stub no longer sells beside a croissant,
@@ -141,19 +216,60 @@ test.describe("ordering from the cart", () => {
     await page.goto("/vi/cart");
     await orderAs(page, "Hà", "0900000001");
 
+    // Figma O7 on a phone, a sheet; Figma WK5b from 768px, a dialog that names the seller and the orders left.
+    const wide = (page.viewportSize()?.width ?? 0) >= 768;
     const gone = page.getByRole("dialog", { name: "Bánh Tart Trứng vừa hết" });
     await expect(
-      gone.getByText("Người khác vừa đặt phần cuối. Bạn chưa bị tính tiền."),
+      gone.getByText(
+        wide
+          ? "Người khác vừa đặt phần cuối của La Paris. Bạn chưa bị tính tiền."
+          : "Người khác vừa đặt phần cuối. Bạn chưa bị tính tiền.",
+      ),
     ).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
     await gone
-      .getByRole("button", { name: "Đặt 1× Bánh Croissant Truyền Thống · 22.000đ" })
+      .getByRole("button", {
+        name: wide
+          ? "Đặt món, bỏ món hết · 22.000đ"
+          : "Đặt 1× Bánh Croissant Truyền Thống · 22.000đ",
+      })
       .click();
     await expect(page).toHaveURL(ORDER_URL);
     await expect(dishLine(page)).toBeVisible();
     await expect(page.getByText("Bánh Tart Trứng")).toHaveCount(0);
   });
+
+  // Figma D4: from 1024px the ticket is at the right of the band and the order's details in the right column; from
+  // 768px up to it the cards stack. Nothing scrolls sideways at any width.
+  for (const width of [768, 1024, 1440]) {
+    test(`places the ticket and the details at ${width} px`, async ({ page, isMobile }) => {
+      test.skip(isMobile, "a phone has its own layout");
+      await page.setViewportSize({ width, height: 900 });
+      await addCroissant(page);
+      await page.goto("/vi/cart");
+      await orderAs(page, "Lan", "0900 000 000");
+      await expect(page).toHaveURL(ORDER_URL);
+
+      const steps = await page.getByRole("list", { name: "Các bước của đơn" }).boundingBox();
+      const ticket = await page
+        .getByText("Mã QR hiện khi món sẵn sàng", { exact: false })
+        .boundingBox();
+      const details = await page.getByRole("region", { name: "Chi tiết đơn" }).boundingBox();
+      if (width >= 1024) {
+        expect(ticket!.x).toBeGreaterThan(steps!.x + steps!.width - 1);
+        expect(details!.x).toBeGreaterThan(steps!.x + steps!.width - 1);
+      } else {
+        expect(ticket!.y).toBeGreaterThan(steps!.y);
+      }
+      const widths = await page.evaluate(() => ({
+        page: document.documentElement.scrollWidth,
+        screen: document.documentElement.clientWidth,
+      }));
+      expect(widths.page).toBe(widths.screen);
+      await expectNoSeriousA11yViolations(page);
+    });
+  }
 
   // SEC-99: a 360 px phone and a seller with a long name and address, as "Tiệm Bánh Nhà Nhật, 21, Cầu Giấy,
   // Hà Nội" on staging. The stub's seller is short, so its name and address are lengthened on the page.

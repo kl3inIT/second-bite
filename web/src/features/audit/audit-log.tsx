@@ -2,7 +2,6 @@
 
 import {
   BanIcon,
-  CalendarIcon,
   CircleCheckIcon,
   CircleXIcon,
   MailIcon,
@@ -13,13 +12,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { debounce, useQueryStates } from "nuqs";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
-import { enUS, vi } from "react-day-picker/locale";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Empty,
   EmptyContent,
@@ -28,7 +25,6 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -38,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
+import { DayRange } from "@/features/admin/day-range";
 import { ListFooter } from "@/features/admin/list-footer";
 import type { AccountBody, AuditEventBody } from "@/lib/api/generated";
 
@@ -159,6 +156,8 @@ export function AuditLog({
           </SelectContent>
         </Select>
         <DayRange
+          label={t("filter.days")}
+          anytime={t("filter.anytime")}
           from={params.from}
           to={params.to}
           onChange={(from, to) => void setParams({ from, to, page: null })}
@@ -235,52 +234,6 @@ function SearchBox({ value, onChange }: { value: string; onChange: (value: strin
         }}
       />
     </InputGroup>
-  );
-}
-
-function DayRange({
-  from,
-  to,
-  onChange,
-}: {
-  from: Date | null;
-  to: Date | null;
-  onChange: (from: Date | null, to: Date | null) => void;
-}) {
-  const t = useTranslations("Admin.audit.filter");
-  const format = useFormatter();
-  const locale = useLocale();
-  const [today] = useState(() => new Date());
-  const day = (d: Date) =>
-    format.dateTime(d, { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" });
-
-  return (
-    <Popover>
-      <PopoverTrigger render={<Button variant="field" />}>
-        <CalendarIcon data-icon="inline-start" />
-        <span className="text-muted-foreground">{t("days")}:</span>
-        <span className="text-body-sm-strong">
-          {from ? `${day(from)} – ${day(to ?? from)}` : t("anytime")}
-        </span>
-      </PopoverTrigger>
-      <PopoverContent align="start">
-        <Calendar
-          mode="range"
-          locale={locale === "vi" ? vi : enUS}
-          timeZone="UTC"
-          selected={from ? { from, to: to ?? from } : undefined}
-          onSelect={(range) => onChange(range?.from ?? null, range?.to ?? range?.from ?? null)}
-          disabled={{ after: today }}
-        />
-        {from && (
-          <div className="border-t border-border p-2">
-            <Button variant="ghost" className="w-full" onClick={() => onChange(null, null)}>
-              {t("anytime")}
-            </Button>
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
   );
 }
 

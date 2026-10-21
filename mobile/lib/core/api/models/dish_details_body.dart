@@ -15,7 +15,7 @@ abstract class DishDetailsBody with _$DishDetailsBody {
     required DishDetailsBodyKind kind,
     required String name,
 
-    /// From POST /photos, or a photo the seller already shows
+    /// The cover: from POST /photos, or a photo the seller already shows
     required String photoId,
     String? description,
 
@@ -24,6 +24,9 @@ abstract class DishDetailsBody with _$DishDetailsBody {
 
     /// What the dish is made of and may contain, allergens included
     String? ingredients,
+
+    /// Up to two more photos after the cover
+    List<String>? morePhotoIds,
 
     /// What one unit normally sells for; a post starts from it
     int? originalPriceVnd,

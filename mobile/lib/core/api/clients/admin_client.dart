@@ -159,6 +159,10 @@ abstract class AdminClient {
   /// [q] - Words of the name, address or phone.
   ///
   /// [sort] - name, address or changed; a leading - is descending; the queue order when absent.
+  ///
+  /// [changedSince] - Keep the sellers last changed at or after this time.
+  ///
+  /// [changedUntil] - Keep the sellers last changed before this time.
   @GET('/admin/sellers')
   Future<AdminSellersOutputBody> listSellersForAdmins({
     @Query('page') int? page = 1,
@@ -166,6 +170,8 @@ abstract class AdminClient {
     @Query('status') List<Status>? status,
     @Query('q') String? q,
     @Query('sort') Sort2? sort,
+    @Query('changedSince') DateTime? changedSince,
+    @Query('changedUntil') DateTime? changedUntil,
   });
 
   /// Let a pending, rejected or blocked seller publish; its owner is emailed

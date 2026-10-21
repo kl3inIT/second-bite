@@ -46,8 +46,25 @@ type Details struct {
 	// weight, not only in units.
 	WeightGrams *int
 	PhotoID     uuid.UUID
-	WindowStart time.Time
-	WindowEnd   time.Time
+	// MorePhotoIDs are up to two more photos after the cover (SEC-119).
+	MorePhotoIDs []uuid.UUID
+	WindowStart  time.Time
+	WindowEnd    time.Time
+}
+
+// morePhotosValid holds the photos after the cover to two, each real, none repeated and none the cover.
+func morePhotosValid(cover uuid.UUID, more []uuid.UUID) bool {
+	if len(more) > 2 {
+		return false
+	}
+
+	for i, id := range more {
+		if id == uuid.Nil || id == cover || slices.Contains(more[:i], id) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // normalized trims the details, names the unit when staff named none, and
@@ -61,8 +78,12 @@ func (d Details) normalized() (Details, error) {
 		d.Unit = defaultUnit
 	}
 
-	if !d.textValid() || !d.amountsValid() || d.PhotoID == uuid.Nil {
+	if !d.textValid() || !d.amountsValid() || d.PhotoID == uuid.Nil || !morePhotosValid(d.PhotoID, d.MorePhotoIDs) {
 		return Details{}, ErrDetailsInvalid
+	}
+
+	if d.MorePhotoIDs == nil {
+		d.MorePhotoIDs = []uuid.UUID{}
 	}
 
 	return d, nil

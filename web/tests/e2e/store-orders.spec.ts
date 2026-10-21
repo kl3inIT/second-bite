@@ -34,6 +34,23 @@ const row = (page: Page, text: RegExp | string) =>
 // SEC-78 › The seller's order tab (Figma Q5, Q5b to Q5g), and SEC-102 › its steps and the order's own page (Q5h to
 // Q5k): the orders of a day, prepared, marked ready and handed over.
 test.describe("the order tab of a store", () => {
+  test("opens the scanner of an order's code, and says when there is no camera", async ({
+    page,
+  }, testInfo) => {
+    await storeNamed(page, "kim", testInfo, "Tiệm có đơn");
+    await page.getByRole("link", { name: "Đơn", exact: true }).click();
+
+    await page.getByRole("button", { name: "Quét mã đơn" }).click();
+    const dialog = page.getByRole("dialog", { name: "Quét mã đơn" });
+    await expect(dialog.getByText("Đưa mã QR của khách vào khung")).toBeVisible();
+    // The check runs with no camera and no permission to ask for one.
+    await expect(dialog.getByText(/Chưa mở được camera/)).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await dialog.getByRole("button", { name: "Đóng" }).click();
+    await expect(dialog).toHaveCount(0);
+  });
+
   test("lists the day's orders with who ordered them, in four tabs", async ({ page }, testInfo) => {
     const store = await storeNamed(page, "ha", testInfo, "Tiệm có đơn");
     await page.getByRole("link", { name: "Đơn", exact: true }).click();
@@ -50,6 +67,7 @@ test.describe("the order tab of a store", () => {
 
     const held = row(page, "Lê Thu Hà · 0905111222");
     await expect(held).toContainText("Cơm sườn nướng");
+    await expect(held).toContainText(/#SB-\d+/);
     await expect(held).toContainText("1 suất");
     await expect(held).toContainText("30.000đ");
     await expect(

@@ -110,7 +110,7 @@ function FiltersLink({ near, label }: { near?: string; label: string }) {
       className={buttonVariants({
         variant: "chip",
         size: "chip",
-        className: "bg-card ring-1 ring-secondary ring-inset",
+        className: "bg-card ring-1 ring-secondary ring-inset md:h-9",
       })}
     >
       <SlidersHorizontalIcon aria-hidden className="size-4.5 text-primary" />

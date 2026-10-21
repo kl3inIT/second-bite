@@ -14,6 +14,9 @@ _DishDetailsBody _$DishDetailsBodyFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String?,
       hidden: json['hidden'] as bool?,
       ingredients: json['ingredients'] as String?,
+      morePhotoIds: (json['morePhotoIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       originalPriceVnd: (json['originalPriceVnd'] as num?)?.toInt(),
       unit: json['unit'] as String?,
     );
@@ -26,6 +29,7 @@ Map<String, dynamic> _$DishDetailsBodyToJson(_DishDetailsBody instance) =>
       'description': instance.description,
       'hidden': instance.hidden,
       'ingredients': instance.ingredients,
+      'morePhotoIds': instance.morePhotoIds,
       'originalPriceVnd': instance.originalPriceVnd,
       'unit': instance.unit,
     };

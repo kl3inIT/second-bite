@@ -40,10 +40,28 @@ export type AdminAccountsOutputBody = {
 };
 
 export type AdminSellerBody = {
+    address: string;
+    createdAt: string;
+    id: string;
+    latitude: number;
+    longitude: number;
+    name: string;
     /**
      * Absent when the owner deleted their account
      */
     ownerEmail?: string;
+    phone: string;
+    /**
+     * Served at /photos/{photoId}/1600.jpg and /400.jpg
+     */
+    photoId?: string;
+    status: 'pending' | 'active' | 'rejected' | 'blocked';
+    statusChangedAt?: string;
+    /**
+     * Why an admin rejected or blocked the seller, as the owner is told
+     */
+    statusReason?: string;
+    updatedAt: string;
 };
 
 export type AdminSellersOutputBody = {
@@ -51,6 +69,10 @@ export type AdminSellersOutputBody = {
      * Sellers of each status matching q, whatever status asks
      */
     counts: StatusCountsBody;
+    /**
+     * Sellers of each status on each of the last 14 days in Vietnam, the oldest first, whatever the filters; a day before counting started is absent
+     */
+    days: Array<StatusDayBody> | null;
     items: Array<AdminSellerBody> | null;
     page: number;
     pageSize: number;
@@ -169,6 +191,10 @@ export type DishBody = {
     name: string;
     originalPriceVnd?: number;
     photo: OfferPhotoBody;
+    /**
+     * Every photo, the cover first
+     */
+    photos: Array<OfferPhotoBody>;
     sellerId: string;
     unit: string;
     updatedAt: string;
@@ -179,6 +205,10 @@ export type DishChangeBody = {
     hidden?: boolean;
     ingredients?: string;
     kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    /**
+     * Replaces the photos after the cover; at most two
+     */
+    morePhotoIds?: Array<string>;
     name?: string;
     originalPriceVnd?: number;
     photoId?: string;
@@ -196,13 +226,17 @@ export type DishDetailsBody = {
      */
     ingredients?: string;
     kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    /**
+     * Up to two more photos after the cover
+     */
+    morePhotoIds?: Array<string>;
     name: string;
     /**
      * What one unit normally sells for; a post starts from it
      */
     originalPriceVnd?: number;
     /**
-     * From POST /photos, or a photo the seller already shows
+     * The cover: from POST /photos, or a photo the seller already shows
      */
     photoId: string;
     /**
@@ -230,6 +264,10 @@ export type EmailSettingsBody = {
     updatedAt: string;
 };
 
+export type FollowedOutputBody = {
+    sellers: Array<SellerProfileBody> | null;
+};
+
 export type FoundBody = {
     /**
      * Where the offer is collected, copied from the seller when it was posted
@@ -246,7 +284,14 @@ export type FoundBody = {
     kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
     name: string;
     originalPriceVnd: number;
+    /**
+     * The cover, which lists and orders show
+     */
     photo: OfferPhotoBody;
+    /**
+     * Every photo, the cover first
+     */
+    photos: Array<OfferPhotoBody>;
     priceVnd: number;
     seller: OfferSellerBody;
     sellerId: string;
@@ -359,7 +404,14 @@ export type OfferBody = {
     kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
     name: string;
     originalPriceVnd: number;
+    /**
+     * The cover, which lists and orders show
+     */
     photo: OfferPhotoBody;
+    /**
+     * Every photo, the cover first
+     */
+    photos: Array<OfferPhotoBody>;
     priceVnd: number;
     sellerId: string;
     /**
@@ -379,6 +431,10 @@ export type OfferBody = {
 export type OfferChangeBody = {
     description?: string;
     kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    /**
+     * Replaces the photos after the cover; at most two
+     */
+    morePhotoIds?: Array<string>;
     name?: string;
     originalPriceVnd?: number;
     photoId?: string;
@@ -396,13 +452,17 @@ export type OfferDetailsBody = {
      */
     description?: string;
     kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    /**
+     * Up to two more photos after the cover
+     */
+    morePhotoIds?: Array<string>;
     name: string;
     /**
      * What one unit normally sells for; the price must be the minimum discount below it
      */
     originalPriceVnd: number;
     /**
-     * From POST /photos, or the photo of an earlier offer of the seller
+     * The cover: from POST /photos, or the photo of an earlier offer of the seller
      */
     photoId: string;
     /**
@@ -502,6 +562,10 @@ export type OrderBody = {
     refuseNote?: string;
     refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other' | 'withdrawn';
     refusedAt?: string;
+    /**
+     * The customer's rating of the collected order; none until they rate it
+     */
+    review?: ReviewBody;
     /**
      * Where the order is collected, copied when it was placed
      */
@@ -655,6 +719,22 @@ export type RequestCodeOutputBody = {
     expiresAt: string;
 };
 
+export type ReviewBody = {
+    comment?: string;
+    createdAt: string;
+    stars: number;
+    tags: Array<string>;
+};
+
+export type ReviewOrderRequest = {
+    comment?: string;
+    stars: number;
+    /**
+     * What went well
+     */
+    tags: Array<'fast_pickup' | 'good_quality' | 'good_variety' | 'fair_portions'>;
+};
+
 export type RoleCountsBody = {
     admin: number;
     customer: number;
@@ -770,6 +850,17 @@ export type SignInInputBody = {
 export type StatusCountsBody = {
     active: number;
     blocked: number;
+    pending: number;
+    rejected: number;
+};
+
+export type StatusDayBody = {
+    active: number;
+    blocked: number;
+    /**
+     * The day in Vietnam, as YYYY-MM-DD
+     */
+    day: string;
     pending: number;
     rejected: number;
 };
@@ -1319,6 +1410,14 @@ export type ListSellersForAdminsData = {
         sort?: 'name' | '-name' | 'address' | '-address' | 'changed' | '-changed';
         page?: number;
         size?: number;
+        /**
+         * Keep the sellers last changed at or after this time
+         */
+        changedSince?: string;
+        /**
+         * Keep the sellers last changed before this time
+         */
+        changedUntil?: string;
     };
     url: '/admin/sellers';
 };
@@ -1989,6 +2088,39 @@ export type ReopenOrderResponses = {
 
 export type ReopenOrderResponse = ReopenOrderResponses[keyof ReopenOrderResponses];
 
+export type ReviewOrderData = {
+    body: ReviewOrderRequest;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/review';
+};
+
+export type ReviewOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ReviewOrderError = ReviewOrderErrors[keyof ReviewOrderErrors];
+
+export type ReviewOrderResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type ReviewOrderResponse = ReviewOrderResponses[keyof ReviewOrderResponses];
+
 export type UploadPhotoData = {
     body: Blob | File;
     path?: never;
@@ -2092,6 +2224,31 @@ export type AddressAtResponses = {
 };
 
 export type AddressAtResponse = AddressAtResponses[keyof AddressAtResponses];
+
+export type ListFollowedSellersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/sellers/followed';
+};
+
+export type ListFollowedSellersErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListFollowedSellersError = ListFollowedSellersErrors[keyof ListFollowedSellersErrors];
+
+export type ListFollowedSellersResponses = {
+    /**
+     * OK
+     */
+    200: FollowedOutputBody;
+};
+
+export type ListFollowedSellersResponse = ListFollowedSellersResponses[keyof ListFollowedSellersResponses];
 
 export type ListMySellersData = {
     body?: never;
@@ -2225,6 +2382,60 @@ export type AddDishResponses = {
 };
 
 export type AddDishResponse = AddDishResponses[keyof AddDishResponses];
+
+export type UnfollowSellerData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/follow';
+};
+
+export type UnfollowSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type UnfollowSellerError = UnfollowSellerErrors[keyof UnfollowSellerErrors];
+
+export type UnfollowSellerResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type UnfollowSellerResponse = UnfollowSellerResponses[keyof UnfollowSellerResponses];
+
+export type FollowSellerData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/follow';
+};
+
+export type FollowSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type FollowSellerError = FollowSellerErrors[keyof FollowSellerErrors];
+
+export type FollowSellerResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type FollowSellerResponse = FollowSellerResponses[keyof FollowSellerResponses];
 
 export type ListSellerMembersData = {
     body?: never;

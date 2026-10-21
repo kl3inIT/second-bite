@@ -1,11 +1,19 @@
 import { Link } from "@/i18n/navigation";
 
-// A dish's name as the way to its page (Figma K4), stretched over its whole card, which must be positioned.
-// The card's own buttons, such as the heart, sit above it.
-export function DishLink({ offerId, children }: { offerId: string; children: React.ReactNode }) {
+import { dishHref, type OfferSummary } from "./offer";
+
+// A dish's name as the way to it on its seller's page (Figma K4), stretched over its whole card, which must be
+// positioned. The card's own buttons, such as the heart, sit above it.
+export function DishLink({
+  offer,
+  children,
+}: {
+  offer: Pick<OfferSummary, "id" | "sellerId">;
+  children: React.ReactNode;
+}) {
   return (
     <Link
-      href={`/offers/${offerId}`}
+      href={dishHref(offer)}
       className="after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-3 focus-visible:after:ring-ring focus-visible:after:ring-inset"
     >
       {children}

@@ -156,18 +156,27 @@ func (q *Queries) CountOwnedSellers(ctx context.Context, accountID uuid.UUID) (i
 const countSellersByStatus = `-- name: CountSellersByStatus :many
 SELECT status, count(*) AS sellers FROM seller_sellers
 WHERE ($1::text = '' OR search_text LIKE '%' || seller_fold($1::text) || '%' ESCAPE '\')
+  AND ($2::timestamptz IS NULL OR updated_at >= $2::timestamptz)
+  AND ($3::timestamptz IS NULL OR updated_at < $3::timestamptz)
 GROUP BY status
 `
+
+type CountSellersByStatusParams struct {
+	Query        string
+	ChangedSince *time.Time
+	ChangedUntil *time.Time
+}
 
 type CountSellersByStatusRow struct {
 	Status  string
 	Sellers int64
 }
 
-// How many sellers of each status match the words, whatever the statuses
-// asked, for the counts above the list.
-func (q *Queries) CountSellersByStatus(ctx context.Context, query string) ([]CountSellersByStatusRow, error) {
-	rows, err := q.db.Query(ctx, countSellersByStatus, query)
+// How many sellers of each status match the words and the time of the
+// last change, whatever the statuses asked, for the cards above
+// the list.
+func (q *Queries) CountSellersByStatus(ctx context.Context, arg CountSellersByStatusParams) ([]CountSellersByStatusRow, error) {
+	rows, err := q.db.Query(ctx, countSellersByStatus, arg.Query, arg.ChangedSince, arg.ChangedUntil)
 	if err != nil {
 		return nil, err
 	}
@@ -190,18 +199,54 @@ const countSellersForAdmins = `-- name: CountSellersForAdmins :one
 SELECT count(*) FROM seller_sellers
 WHERE (cardinality($1::text[]) = 0 OR status = ANY ($1::text[]))
   AND ($2::text = '' OR search_text LIKE '%' || seller_fold($2::text) || '%' ESCAPE '\')
+  AND ($3::timestamptz IS NULL OR updated_at >= $3::timestamptz)
+  AND ($4::timestamptz IS NULL OR updated_at < $4::timestamptz)
 `
 
 type CountSellersForAdminsParams struct {
-	Statuses []string
-	Query    string
+	Statuses     []string
+	Query        string
+	ChangedSince *time.Time
+	ChangedUntil *time.Time
 }
 
 func (q *Queries) CountSellersForAdmins(ctx context.Context, arg CountSellersForAdminsParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countSellersForAdmins, arg.Statuses, arg.Query)
+	row := q.db.QueryRow(ctx, countSellersForAdmins,
+		arg.Statuses,
+		arg.Query,
+		arg.ChangedSince,
+		arg.ChangedUntil,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const deleteFollow = `-- name: DeleteFollow :exec
+DELETE FROM seller_follows WHERE account_id = $1 AND seller_id = $2
+`
+
+type DeleteFollowParams struct {
+	AccountID uuid.UUID
+	SellerID  uuid.UUID
+}
+
+func (q *Queries) DeleteFollow(ctx context.Context, arg DeleteFollowParams) error {
+	_, err := q.db.Exec(ctx, deleteFollow, arg.AccountID, arg.SellerID)
+	return err
+}
+
+const deleteFollowsOf = `-- name: DeleteFollowsOf :execrows
+DELETE FROM seller_follows WHERE account_id = $1
+`
+
+// Every favourite of an account, once the account is deleted (SEC-109).
+func (q *Queries) DeleteFollowsOf(ctx context.Context, accountID uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteFollowsOf, accountID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const deleteMembershipsOf = `-- name: DeleteMembershipsOf :execrows
@@ -232,6 +277,50 @@ func (q *Queries) DeleteStaff(ctx context.Context, arg DeleteStaffParams) (int64
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const followedSellers = `-- name: FollowedSellers :many
+SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.photo_id
+FROM seller_follows f JOIN seller_sellers s ON s.id = f.seller_id
+WHERE f.account_id = $1 AND s.status = 'active'
+ORDER BY f.created_at DESC, s.id
+`
+
+type FollowedSellersRow struct {
+	ID        uuid.UUID
+	Name      string
+	Address   string
+	Latitude  float64
+	Longitude float64
+	PhotoID   uuid.NullUUID
+}
+
+// The active sellers an account follows, the latest followed first.
+func (q *Queries) FollowedSellers(ctx context.Context, accountID uuid.UUID) ([]FollowedSellersRow, error) {
+	rows, err := q.db.Query(ctx, followedSellers, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FollowedSellersRow
+	for rows.Next() {
+		var i FollowedSellersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Address,
+			&i.Latitude,
+			&i.Longitude,
+			&i.PhotoID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getSeller = `-- name: GetSeller :one
@@ -274,6 +363,22 @@ func (q *Queries) GetSeller(ctx context.Context, id uuid.UUID) (GetSellerRow, er
 		&i.PhotoID,
 	)
 	return i, err
+}
+
+const insertFollow = `-- name: InsertFollow :exec
+INSERT INTO seller_follows (account_id, seller_id)
+VALUES ($1, $2)
+ON CONFLICT (account_id, seller_id) DO NOTHING
+`
+
+type InsertFollowParams struct {
+	AccountID uuid.UUID
+	SellerID  uuid.UUID
+}
+
+func (q *Queries) InsertFollow(ctx context.Context, arg InsertFollowParams) error {
+	_, err := q.db.Exec(ctx, insertFollow, arg.AccountID, arg.SellerID)
+	return err
 }
 
 const insertMember = `-- name: InsertMember :execrows
@@ -340,6 +445,17 @@ SELECT 1 FROM seller_sellers WHERE id = $1 FOR UPDATE
 // Serializes changes to a seller's members until the transaction ends.
 func (q *Queries) LockSeller(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, lockSeller, id)
+	return err
+}
+
+const lockStatusDays = `-- name: LockStatusDays :exec
+SELECT pg_advisory_xact_lock(hashtextextended('seller:status_days', 0))
+`
+
+// Serializes the writes of the day's counts, so each reads the changes
+// committed before it.
+func (q *Queries) LockStatusDays(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, lockStatusDays)
 	return err
 }
 
@@ -460,6 +576,24 @@ func (q *Queries) OwnersOf(ctx context.Context, sellerIds []uuid.UUID) ([]Owners
 	return items, nil
 }
 
+const recordStatusDay = `-- name: RecordStatusDay :exec
+INSERT INTO seller_status_days (day, pending, active, rejected, blocked)
+SELECT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date,
+       count(*) FILTER (WHERE status = 'pending'),
+       count(*) FILTER (WHERE status = 'active'),
+       count(*) FILTER (WHERE status = 'rejected'),
+       count(*) FILTER (WHERE status = 'blocked')
+FROM seller_sellers
+ON CONFLICT (day) DO UPDATE
+SET pending = excluded.pending, active = excluded.active, rejected = excluded.rejected, blocked = excluded.blocked
+`
+
+// Keeps how many sellers stand in each status now as today's, in Vietnam.
+func (q *Queries) RecordStatusDay(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, recordStatusDay)
+	return err
+}
+
 const sellerExists = `-- name: SellerExists :one
 SELECT EXISTS (SELECT 1 FROM seller_sellers WHERE id = $1)
 `
@@ -477,24 +611,28 @@ SELECT id, name, address, latitude, longitude, phone, status, status_reason, sta
 FROM seller_sellers
 WHERE (cardinality($1::text[]) = 0 OR status = ANY ($1::text[]))
   AND ($2::text = '' OR search_text LIKE '%' || seller_fold($2::text) || '%' ESCAPE '\')
-ORDER BY CASE WHEN $3::text = '' THEN status = 'pending' END DESC,
-         CASE WHEN $3::text = '' AND status = 'pending' THEN created_at END,
-         CASE WHEN $3::text = 'name' THEN seller_fold(name) END,
-         CASE WHEN $3::text = '-name' THEN seller_fold(name) END DESC,
-         CASE WHEN $3::text = 'address' THEN seller_fold(address) END,
-         CASE WHEN $3::text = '-address' THEN seller_fold(address) END DESC,
-         CASE WHEN $3::text = 'changed' THEN updated_at END,
+  AND ($3::timestamptz IS NULL OR updated_at >= $3::timestamptz)
+  AND ($4::timestamptz IS NULL OR updated_at < $4::timestamptz)
+ORDER BY CASE WHEN $5::text = '' THEN status = 'pending' END DESC,
+         CASE WHEN $5::text = '' AND status = 'pending' THEN created_at END,
+         CASE WHEN $5::text = 'name' THEN seller_fold(name) END,
+         CASE WHEN $5::text = '-name' THEN seller_fold(name) END DESC,
+         CASE WHEN $5::text = 'address' THEN seller_fold(address) END,
+         CASE WHEN $5::text = '-address' THEN seller_fold(address) END DESC,
+         CASE WHEN $5::text = 'changed' THEN updated_at END,
          updated_at DESC,
          id
-LIMIT $5 OFFSET $4
+LIMIT $7 OFFSET $6
 `
 
 type SellersForAdminsParams struct {
-	Statuses []string
-	Query    string
-	Sort     string
-	SkipRows int32
-	MaxRows  int32
+	Statuses     []string
+	Query        string
+	ChangedSince *time.Time
+	ChangedUntil *time.Time
+	Sort         string
+	SkipRows     int32
+	MaxRows      int32
 }
 
 type SellersForAdminsRow struct {
@@ -515,7 +653,7 @@ type SellersForAdminsRow struct {
 }
 
 // One page of the sellers in the statuses given (all when none), whose
-// words, folded, hold the query's (any when empty), in the order sort names: by default pending ones first,
+// words, folded, hold the query's (any when empty), last changed in [changed_since, changed_until) when given, in the order sort names: by default pending ones first,
 // the oldest first, as a queue, then the latest change first; otherwise by
 // name, address or last change, '-' first for descending. total counts them
 // all; it is absent when the page is past the end.
@@ -523,6 +661,8 @@ func (q *Queries) SellersForAdmins(ctx context.Context, arg SellersForAdminsPara
 	rows, err := q.db.Query(ctx, sellersForAdmins,
 		arg.Statuses,
 		arg.Query,
+		arg.ChangedSince,
+		arg.ChangedUntil,
 		arg.Sort,
 		arg.SkipRows,
 		arg.MaxRows,
@@ -656,6 +796,40 @@ type SetPhotoParams struct {
 func (q *Queries) SetPhoto(ctx context.Context, arg SetPhotoParams) error {
 	_, err := q.db.Exec(ctx, setPhoto, arg.PhotoID, arg.ID)
 	return err
+}
+
+const statusDays = `-- name: StatusDays :many
+SELECT day, pending, active, rejected, blocked FROM seller_status_days
+WHERE day >= coalesce((SELECT max(d.day) FROM seller_status_days d WHERE d.day <= $1::date), $1::date)
+ORDER BY day
+`
+
+// The days recorded from the last one on or before first, so the first day
+// asked stands as it was, to today.
+func (q *Queries) StatusDays(ctx context.Context, first pgtype.Date) ([]SellerStatusDay, error) {
+	rows, err := q.db.Query(ctx, statusDays, first)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SellerStatusDay
+	for rows.Next() {
+		var i SellerStatusDay
+		if err := rows.Scan(
+			&i.Day,
+			&i.Pending,
+			&i.Active,
+			&i.Rejected,
+			&i.Blocked,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateSeller = `-- name: UpdateSeller :exec

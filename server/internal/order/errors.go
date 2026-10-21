@@ -33,8 +33,8 @@ var (
 		EN: "The order does not exist.",
 	})
 	ErrCancelTooLate = platform.NewFailure("ORDER_CANCEL_TOO_LATE", platform.CategoryConflict, platform.Words{
-		VI: "Đơn không huỷ được nữa: đã đến giờ nhận, hoặc đơn đã kết thúc.",
-		EN: "The order can no longer be cancelled: its collection window has opened, or it has ended.",
+		VI: "Đơn không huỷ được nữa: quán đã báo món sẵn sàng, hoặc đơn đã kết thúc.",
+		EN: "The order can no longer be cancelled: the seller has marked it ready, or it has ended.",
 	})
 	ErrTransitionNotAllowed = platform.NewFailure("ORDER_TRANSITION_NOT_ALLOWED", platform.CategoryConflict, platform.Words{
 		VI: "Đơn đã kết thúc: đã nhận, đã huỷ, bị từ chối, hoặc đã hết giờ nhận.",
@@ -51,5 +51,17 @@ var (
 	ErrRefusalInvalid = platform.NewFailure("ORDER_REFUSAL_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Chọn một lý do có sẵn (not_suitable, wrong_items, no_answer, no_show, late, sold_out hoặc other), kèm ghi chú tối đa 200 ký tự.",
 		EN: "Give one of the reasons (not_suitable, wrong_items, no_answer, no_show, late, sold_out or other), and a note of at most 200 characters.",
+	})
+	ErrReviewInvalid = platform.NewFailure("ORDER_REVIEW_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Chọn từ 1 đến 5 sao, các thẻ có sẵn (fast_pickup, good_quality, good_variety hoặc fair_portions) không lặp lại, và nhận xét tối đa 500 ký tự.",
+		EN: "Give 1 to 5 stars, tags from the set (fast_pickup, good_quality, good_variety or fair_portions) none twice, and a comment of at most 500 characters.",
+	})
+	ErrNotCollected = platform.NewFailure("ORDER_NOT_COLLECTED", platform.CategoryConflict, platform.Words{
+		VI: "Chỉ đánh giá được đơn đã nhận.",
+		EN: "Only a collected order can be reviewed.",
+	})
+	ErrAlreadyReviewed = platform.NewFailure("ORDER_ALREADY_REVIEWED", platform.CategoryConflict, platform.Words{
+		VI: "Đơn này đã được đánh giá.",
+		EN: "The order was already reviewed.",
 	})
 )

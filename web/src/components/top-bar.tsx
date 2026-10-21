@@ -2,6 +2,8 @@ import { ChevronLeftIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
+import { contentWidth } from "@/lib/layout";
+import { cn } from "@/lib/utils";
 
 import { LanguageSwitcher } from "./language-switcher";
 import { Wordmark } from "./wordmark";
@@ -21,7 +23,7 @@ export function TopBarView({
 }) {
   return (
     <header className="border-b border-border bg-shell text-shell-foreground">
-      <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-2 px-2">
+      <div className={cn(contentWidth, "flex h-14 items-center gap-2 px-2")}>
         {back ? (
           <Link
             href={back}

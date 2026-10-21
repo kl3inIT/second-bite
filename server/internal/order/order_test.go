@@ -45,8 +45,9 @@ func TestOrder(t *testing.T) {
 		"a cart refused takes nothing":             testRefusedCartTakesNothing,
 		"two customers race for the last unit":     testRaceForTheLastUnit,
 		"who reads an order":                       testWhoReadsAnOrder,
-		"cancelling until the window opens":        testCancelUntilTheWindowOpens,
+		"cancelling until the order is ready":      testCancelUntilReady,
 		"handing over":                             testHandOver,
+		"a collected order is rated once":          testRateOnce,
 		"staff refuse an order":                    testStaffRefuse,
 		"expiry is read from the window":           testExpiryReadFromTheWindow,
 		"a seller lists the orders of a day":       testSellerListsADay,
@@ -423,7 +424,7 @@ func testWhoReadsAnOrder(t *testing.T, f fixture) {
 	mustFail(t, "an admin acting for the seller", err, order.ErrNotFound)
 }
 
-func testCancelUntilTheWindowOpens(t *testing.T, f fixture) {
+func testCancelUntilReady(t *testing.T, f fixture) {
 	t.Helper()
 
 	owner := f.as(t, "owner", platform.RoleCustomer)
@@ -457,8 +458,22 @@ func testCancelUntilTheWindowOpens(t *testing.T, f fixture) {
 		t.Fatal(err)
 	}
 
-	_, err = f.orders.Cancel(customer, open.ID, "", "")
-	mustFail(t, "cancelling once the window has opened", err, order.ErrCancelTooLate)
+	// Until the seller marks it ready, the window's opening does not stop the customer (SEC-121).
+	if _, err := f.orders.Cancel(customer, open.ID, "", ""); err != nil {
+		t.Fatalf("cancelling once the window has opened, before ready: %v", err)
+	}
+
+	ready, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{now.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.orders.Ready(owner, ready.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Cancel(customer, ready.ID, "", "")
+	mustFail(t, "cancelling once ready", err, order.ErrCancelTooLate)
 }
 
 func testHandOver(t *testing.T, f fixture) {
@@ -1023,5 +1038,89 @@ func orderSevenWays(customer context.Context, t *testing.T, f fixture) {
 
 	for range 3 {
 		place()
+	}
+}
+
+func testRateOnce(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	stranger := f.as(t, "stranger", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
+	good := order.Review{Stars: 5, Tags: []order.Tag{order.TagFastPickup, order.TagGoodQuality}, Comment: " Ngon "}
+
+	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Rate(customer, o.ID, "", good)
+	mustFail(t, "an order not collected", err, order.ErrNotCollected)
+
+	if _, err := f.orders.HandOver(owner, o.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Rate(stranger, o.ID, "", good)
+	mustFail(t, "a stranger", err, order.ErrNotFound)
+
+	_, err = f.orders.Rate(owner, o.ID, "", good)
+	mustFail(t, "the seller", err, order.ErrNotFound)
+
+	invalid(customer, t, f, o.ID, order.Review{Stars: 0})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 6})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 4, Tags: []order.Tag{"cheap"}})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 4, Tags: []order.Tag{order.TagGoodVariety, order.TagGoodVariety}})
+	invalid(customer, t, f, o.ID, order.Review{Stars: 4, Comment: strings.Repeat("ế", 501)})
+
+	rated, err := f.orders.Rate(customer, o.ID, "", good)
+	if err != nil || rated.Review == nil || rated.Review.Stars != 5 || rated.Review.Comment != "Ngon" ||
+		len(rated.Review.Tags) != 2 || rated.Review.CreatedAt.IsZero() {
+		t.Fatalf("rated %+v, %v", rated.Review, err)
+	}
+
+	_, err = f.orders.Rate(customer, o.ID, "", order.Review{Stars: 1})
+	mustFail(t, "rating twice", err, order.ErrAlreadyReviewed)
+
+	listed, err := f.orders.Mine(customer, order.WhichAll, uuid.Nil, 10, 0)
+	if err != nil || len(listed) != 1 || listed[0].Review == nil || listed[0].Review.Stars != 5 {
+		t.Fatalf("listed %+v, %v", listed, err)
+	}
+
+	rateWithAccess(owner, t, f, croissant.ID, good)
+}
+
+// invalid rates o with review, which is refused.
+func invalid(customer context.Context, t *testing.T, f fixture, id uuid.UUID, review order.Review) {
+	t.Helper()
+
+	_, err := f.orders.Rate(customer, id, "", review)
+	mustFail(t, "an invalid review", err, order.ErrReviewInvalid)
+}
+
+// rateWithAccess rates a collected order placed without an account: with
+// nothing it is not found, with its access it is rated.
+func rateWithAccess(owner context.Context, t *testing.T, f fixture, offerID uuid.UUID, review order.Review) {
+	t.Helper()
+
+	guest := t.Context()
+
+	o, err := f.orders.Place(guest, key(), uuid.Nil, someone, []order.Wanted{{offerID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.orders.HandOver(owner, o.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Rate(guest, o.ID, "", review)
+	mustFail(t, "without the access", err, order.ErrNotFound)
+
+	rated, err := f.orders.Rate(guest, o.ID, o.Access, review)
+	if err != nil || rated.Review == nil || rated.Access != o.Access {
+		t.Fatalf("rating with the access: %+v, %v", rated, err)
 	}
 }

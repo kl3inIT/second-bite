@@ -64,7 +64,25 @@ export function kindsByCount(
     .toSorted((a, b) => b.count - a.count);
 }
 
-/** Directions to where the offer is collected, in the phone's maps (Figma K4b, K5 "Chỉ đường"). */
-export function directionsHref({ latitude, longitude }: OfferSummary["collectionPoint"]): string {
-  return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+/** The anchor of a dish's row on its seller's page (Figma K4). */
+export function dishAnchor(offerId: string): string {
+  return `dish-${offerId}`;
+}
+
+/**
+ * Where a dish opens: its seller's page scrolled to its row, which is tinted (Figma K4). The dish has no page of
+ * its own; its row opens its sheet (K4a).
+ */
+export function dishHref({ id, sellerId }: Pick<OfferSummary, "id" | "sellerId">): string {
+  return `/sellers/${sellerId}?at=${encodeURIComponent(id)}#${dishAnchor(id)}`;
+}
+
+/**
+ * Directions to where the offer is collected, in the phone's maps (Figma K4b, K5 "Chỉ đường"). Google Maps looks
+ * the seller's written address up: the stored point can sit off the store, the address is what the seller wrote.
+ */
+export function directionsHref({
+  address,
+}: Pick<OfferSummary["collectionPoint"], "address">): string {
+  return `https://www.google.com/maps/dir/?${new URLSearchParams({ api: "1", destination: address })}`;
 }

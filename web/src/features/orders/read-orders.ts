@@ -53,18 +53,18 @@ export const readOrder = cache(async (orderId: string): Promise<Read<Order | nul
   }
 });
 
-/** An order with whether its customer may still cancel it. */
-export type OrderPart = { order: Order; cancellable: boolean };
+/**
+ * An order as its page shows it: whether its customer may still cancel it, decided when it is read (the page
+ * renders once per request, so the moment of reading is the moment that counts), and the other sellers' orders
+ * placed with it from the same cart, which it links to (SEC-97 › decision 4).
+ */
+export type OrderView = { order: Order; cancellable: boolean; together: Order[]; now: number };
 
 /**
- * One order with the others placed together from the same cart (SEC-76 › decision 8), and whether each may
- * still be cancelled, decided when it is read: the page renders once per request, so the moment of reading is
- * the moment that counts. The others are found only among the reader's own: the account's orders, or those
- * this browser placed.
+ * One order with the others placed together from the same cart. The others are found only among the reader's
+ * own: the account's orders, or those this browser placed.
  */
-export async function readOrderView(
-  orderId: string,
-): Promise<Read<{ parts: OrderPart[]; now: number } | null>> {
+export async function readOrderView(orderId: string): Promise<Read<OrderView | null>> {
   const read = await readOrder(orderId);
   if (!read.known) return read;
   if (!read.value) return { known: true, value: null };
@@ -74,7 +74,9 @@ export async function readOrderView(
   return {
     known: true,
     value: {
-      parts: together.map((part) => ({ order: part, cancellable: canCancel(part, now) })),
+      order,
+      cancellable: canCancel(order),
+      together: together.filter((other) => other.id !== order.id),
       now,
     },
   };

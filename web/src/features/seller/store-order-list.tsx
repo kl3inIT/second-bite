@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { getStoreOrders } from "./my-sellers";
 import { OrderRow } from "./order-row";
 import { DayFilter } from "./day-filter";
+import { ScanOrder } from "./scan-order";
 import { requireStore } from "./require-store";
 import {
   deliveredTotal,
@@ -104,6 +105,7 @@ export async function StoreOrders({
         q={search}
         label={t("searchLabel")}
         placeholder={t("searchPlaceholder")}
+        extra={<ScanOrder sellerId={sellerId} />}
       />
 
       <section
@@ -111,23 +113,26 @@ export async function StoreOrders({
         className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground"
       >
         <nav aria-label={t("tabs")}>
-          <ul className="-my-1 flex flex-wrap gap-x-2">
+          <ul className="-my-1 flex flex-wrap gap-x-2 max-md:grid max-md:grid-cols-4 max-md:gap-x-1.5">
             {orderTabs.map((name) => (
               <li key={name}>
                 <Link
                   href={tabHref(name)}
                   aria-current={name === tab ? "page" : undefined}
-                  className="group/chip flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                  className="group/chip flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none max-md:rounded-2xl"
                 >
                   <span
                     className={cn(
-                      "flex h-9.5 items-center rounded-full border px-4 whitespace-nowrap transition-colors",
+                      "flex h-9.5 items-center gap-1.5 rounded-full border px-4 whitespace-nowrap transition-colors max-md:h-auto max-md:min-h-11 max-md:w-full max-md:flex-col max-md:justify-center max-md:gap-0 max-md:rounded-2xl max-md:px-1 max-md:py-1",
                       name === tab
                         ? "border-primary bg-primary text-body-sm-strong text-primary-foreground"
                         : "border-border bg-card text-body-sm text-foreground group-hover/chip:bg-secondary",
                     )}
                   >
-                    {t(`tab.${name}`, { count: groups[name].length })}
+                    <span className="max-md:text-note">{t(`tab.${name}`)}</span>
+                    {/* The dot is read, so the name of the link is "Chuẩn bị · 3" as ever; a phone stacks the count under the word. */}
+                    <span className="max-md:sr-only">·</span>
+                    <span className="max-md:text-body-sm-strong">{groups[name].length}</span>
                   </span>
                 </Link>
               </li>

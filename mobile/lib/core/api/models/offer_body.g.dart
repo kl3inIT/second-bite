@@ -18,6 +18,9 @@ _OfferBody _$OfferBodyFromJson(Map<String, dynamic> json) => _OfferBody(
   name: json['name'] as String,
   originalPriceVnd: (json['originalPriceVnd'] as num).toInt(),
   photo: OfferPhotoBody.fromJson(json['photo'] as Map<String, dynamic>),
+  photos: (json['photos'] as List<dynamic>)
+      .map((e) => OfferPhotoBody.fromJson(e as Map<String, dynamic>))
+      .toList(),
   priceVnd: (json['priceVnd'] as num).toInt(),
   sellerId: json['sellerId'] as String,
   status: OfferBodyStatus.fromJson(json['status'] as String),
@@ -44,6 +47,7 @@ Map<String, dynamic> _$OfferBodyToJson(_OfferBody instance) =>
       'name': instance.name,
       'originalPriceVnd': instance.originalPriceVnd,
       'photo': instance.photo,
+      'photos': instance.photos,
       'priceVnd': instance.priceVnd,
       'sellerId': instance.sellerId,
       'status': _$OfferBodyStatusEnumMap[instance.status]!,

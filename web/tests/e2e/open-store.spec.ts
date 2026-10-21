@@ -62,9 +62,16 @@ test.describe("opening a store on the web", () => {
         request.method() === "POST" && new URL(request.url()).pathname.endsWith("/sellers"),
     );
     await page.getByRole("button", { name: "Tạo quán" }).click();
-    const body = (await sent).postDataJSON() as { latitude: number; longitude: number };
+    const body = (await sent).postDataJSON() as {
+      address: string;
+      latitude: number;
+      longitude: number;
+    };
     expect(body.latitude).toBeCloseTo(21.0367, 3);
     expect(body.longitude).toBeCloseTo(105.7818, 3);
+    // The address sent is the one in the field, and the body holds nothing the API does not know.
+    expect(body.address).toBe("21 Phố Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội");
+    expect(Object.keys(body).sort()).toEqual(["address", "latitude", "longitude", "name", "phone"]);
   });
 
   test("keeps an address the person wrote, and says when no street is found", async ({
@@ -584,6 +591,36 @@ test.describe("the catalog on the web", () => {
     await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("heading", { level: 2, name: "4 món" })).toBeVisible();
     await expect(row(page, /Hộp bánh cuối ngày/)).toContainText("Hộp tổng hợp · 1 hộp");
+  });
+
+  test("a dish takes up to three photos, the first being the cover", async ({ page }, testInfo) => {
+    const store = await catalogStore(page, "ba-anh", testInfo);
+    await page.goto(`/vi/stores/${store}/catalog/new`);
+
+    // Four photos at once: the form keeps the first three.
+    const photos = ["a", "b", "c", "d"].map((name) => ({
+      name: `${name}.png`,
+      mimeType: "image/png",
+      buffer: png,
+    }));
+    await (await hydrated(page.getByLabel("Tên món"))).fill("Hộp ba ảnh");
+    await page.getByLabel("Ảnh món").setInputFiles(photos);
+    const removers = page.getByRole("button", { name: /^Bỏ ảnh/ });
+    await expect(removers).toHaveCount(3);
+    await expect(page.getByText("Ảnh đại diện", { exact: true })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole("button", { name: "Bỏ ảnh 2" }).click();
+    await expect(removers).toHaveCount(2);
+
+    await page.getByRole("button", { name: "Lưu món" }).click();
+    await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
+
+    // Changing it shows the two photos it keeps.
+    await row(page, /Hộp ba ảnh/)
+      .getByRole("link", { name: "Sửa" })
+      .click();
+    await expect(removers).toHaveCount(2);
   });
 
   test("changes a dish, shows a hidden one again, and deletes one after asking", async ({

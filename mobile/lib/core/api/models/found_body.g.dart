@@ -18,6 +18,9 @@ _FoundBody _$FoundBodyFromJson(Map<String, dynamic> json) => _FoundBody(
   name: json['name'] as String,
   originalPriceVnd: (json['originalPriceVnd'] as num).toInt(),
   photo: OfferPhotoBody.fromJson(json['photo'] as Map<String, dynamic>),
+  photos: (json['photos'] as List<dynamic>)
+      .map((e) => OfferPhotoBody.fromJson(e as Map<String, dynamic>))
+      .toList(),
   priceVnd: (json['priceVnd'] as num).toInt(),
   seller: OfferSellerBody.fromJson(json['seller'] as Map<String, dynamic>),
   sellerId: json['sellerId'] as String,
@@ -46,6 +49,7 @@ Map<String, dynamic> _$FoundBodyToJson(_FoundBody instance) =>
       'name': instance.name,
       'originalPriceVnd': instance.originalPriceVnd,
       'photo': instance.photo,
+      'photos': instance.photos,
       'priceVnd': instance.priceVnd,
       'seller': instance.seller,
       'sellerId': instance.sellerId,

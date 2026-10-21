@@ -17,8 +17,8 @@ export function OfferList({
       className={cn(
         "grid gap-3 px-4",
         compact
-          ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-          : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+          ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+          : "sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
       )}
     >
       {offers.map((offer) => (
