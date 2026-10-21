@@ -138,11 +138,9 @@ export function CancelOrder({
       ) : (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent showCloseButton={false} className="sm:max-w-120">
-            <div className="flex flex-col gap-3.5 px-3 pt-3 pb-2">
-              <DialogTitle size="headline">{t("title", { number })}</DialogTitle>
-              <DialogDescription>{t("body", { units, seller })}</DialogDescription>
-              {form}
-            </div>
+            <DialogTitle size="headline">{t("title", { number })}</DialogTitle>
+            <DialogDescription>{t("body", { units, seller })}</DialogDescription>
+            {form}
           </DialogContent>
         </Dialog>
       )}

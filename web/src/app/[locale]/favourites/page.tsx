@@ -22,12 +22,12 @@ export default async function FavouritesPage() {
   return (
     <>
       <PageBar title={t("title")} returnTo="/favourites" />
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-3 px-4 py-4 md:max-w-292 md:px-8 md:pt-8 md:pb-14 lg:grid lg:grid-cols-3 lg:content-start lg:gap-x-6 lg:gap-y-6">
-        <div className="hidden flex-col gap-1 md:flex lg:col-span-3">
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-3 px-4 py-4 md:max-w-300 md:gap-6 md:px-8 md:pt-8 md:pb-14 lg:px-4">
+        <div className="hidden flex-col gap-1 md:flex">
           <h1 className="text-page-title text-foreground">{t("title")}</h1>
           <p className="text-body text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Suspense fallback={<Skeleton shape="card" className="h-58 lg:col-span-2" />}>
+        <Suspense fallback={<Skeleton shape="card" className="h-58" />}>
           <Favourites />
         </Suspense>
       </main>
@@ -40,11 +40,11 @@ async function Favourites() {
   const offers = await listOffers({});
 
   return (
-    <>
-      <div className="flex flex-col gap-3 md:gap-4 lg:col-span-2">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-6">
+      <div className="flex flex-col gap-3 md:gap-4 lg:min-w-0 lg:flex-1">
         <FavouriteSellers offers={offers} />
       </div>
-      <TonightOffers offers={offers} />
-    </>
+      <TonightOffers offers={offers} className="lg:w-100 lg:shrink-0" />
+    </div>
   );
 }

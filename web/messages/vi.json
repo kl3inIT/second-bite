@@ -461,7 +461,7 @@
       "expiredBody": "{until} · đơn ghi là không nhận",
       "summary": {
         "cancelled": "Bạn chưa trả tiền nên không có gì phải hoàn.",
-        "refused": "Quán kiểm món trước khi giao và thấy món không còn đạt. Bạn không phải trả tiền.",
+        "refused": "Quán không giao được đơn: {reason}. Bạn không phải trả tiền.",
         "expired": "Không ai đến nhận trước {until}. Lần sau nếu không kịp, hãy huỷ đơn để món đến được người khác."
       },
       "placedBody": "{date}, {time} · {units} phần · {total}",

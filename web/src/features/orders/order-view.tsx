@@ -123,12 +123,12 @@ function OrderBody({ main, aside }: { main: React.ReactNode; aside: React.ReactN
           the page past the screen (SEC-99). */}
       <div
         className={cn(
-          "mx-auto grid w-full grid-cols-1 items-start gap-3 px-4 pt-4 pb-6 md:max-w-none md:gap-4 md:p-0 lg:grid-cols-3 lg:gap-6",
+          "mx-auto grid w-full grid-cols-1 items-start gap-3 px-4 pt-4 pb-6 md:max-w-none md:gap-4 md:p-0 lg:flex lg:gap-6",
           PHONE_COLUMN,
         )}
       >
-        <div className="flex flex-col gap-3 lg:col-span-2">{main}</div>
-        <div className="flex flex-col gap-3">{aside}</div>
+        <div className="flex flex-col gap-3 lg:min-w-0 lg:flex-1">{main}</div>
+        <div className="flex flex-col gap-3 lg:w-89.5 lg:shrink-0">{aside}</div>
       </div>
     </div>
   );
@@ -407,6 +407,7 @@ function Timeline({ order }: { order: Order }) {
         <p className="text-body-sm">
           {t(`summary.${order.status}`, {
             until: at(order.windowEnd),
+            reason: t(`reason.${order.refuseReason ?? "other"}`),
           })}
         </p>
       ) : null}
@@ -501,7 +502,7 @@ export function EndedOrder({ order, now }: { order: Order & { status: Ended }; n
     cancelled: t("ended.cancelledLine", { time, units: unitsOf(order) }),
     refused: t("ended.refusedLine", {
       time,
-      reason: order.refuseReason ? t(`timeline.reason.${order.refuseReason}`) : "—",
+      reason: t(`timeline.reason.${order.refuseReason ?? "other"}`),
     }),
     expired: t("ended.expiredLine", { until: format.dateTime(new Date(order.windowEnd), "time") }),
   }[order.status];

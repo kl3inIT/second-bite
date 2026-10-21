@@ -461,7 +461,7 @@
       "expiredBody": "{until} · recorded as not collected",
       "summary": {
         "cancelled": "You had not paid, so there is nothing to refund.",
-        "refused": "The shop checked the food before handing it over and found it no longer good. You do not pay.",
+        "refused": "The shop could not hand over the order: {reason}. You do not pay.",
         "expired": "Nobody came to collect before {until}. Next time, if you cannot make it, cancel the order so the food reaches someone else."
       },
       "placedBody": "{date}, {time} · {units} portions · {total}",

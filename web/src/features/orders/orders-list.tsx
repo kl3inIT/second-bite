@@ -168,8 +168,8 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
     .filter(({ orders }) => orders.length > 0);
 
   return (
-    <div className="lg:mx-auto lg:grid lg:w-full lg:max-w-292 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-4 lg:px-4 lg:py-4">
-      <div className="lg:col-span-2">
+    <div className="lg:mx-auto lg:flex lg:w-full lg:max-w-300 lg:items-start lg:gap-6 lg:px-4 lg:py-4">
+      <div className="lg:flex lg:min-w-0 lg:flex-1 lg:flex-col lg:gap-4">
         <nav
           aria-label={t("lists")}
           className={cn("mx-auto w-full px-4 py-3 lg:p-0", COLUMN_WIDTH)}
@@ -194,47 +194,46 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
             ))}
           </div>
         </nav>
+        <div className={cn("mx-auto flex w-full flex-col gap-4 px-4 py-4 lg:py-0", COLUMN_WIDTH)}>
+          {which === "open" ? (
+            <>
+              {open.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
+                  {open.map((order) => (
+                    <OpenOrderCard key={order.id} order={order} />
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-2xl bg-card p-6 text-center text-body-sm text-muted-foreground">
+                  {t("noneOpen")}
+                </p>
+              )}
+            </>
+          ) : endedByDay.length > 0 ? (
+            endedByDay.map(({ day, orders }) => (
+              <section
+                key={day}
+                aria-labelledby={`orders-${day}`}
+                className="flex flex-col gap-2.5"
+              >
+                <h2 id={`orders-${day}`} className="text-title">
+                  {t(`day.${day}`)}
+                </h2>
+                <ul className="grid gap-2.5 md:grid-cols-2 lg:grid-cols-1">
+                  {orders.map((order) => (
+                    <EndedOrderRow key={order.id} order={order} />
+                  ))}
+                </ul>
+              </section>
+            ))
+          ) : (
+            <p className="rounded-2xl bg-card p-6 text-center text-body-sm text-muted-foreground">
+              {t("noneEnded")}
+            </p>
+          )}
+        </div>
       </div>
-      <div
-        className={cn(
-          "mx-auto flex w-full flex-col gap-4 px-4 py-4 lg:col-span-2 lg:py-0",
-          COLUMN_WIDTH,
-        )}
-      >
-        {which === "open" ? (
-          <>
-            {open.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
-                {open.map((order) => (
-                  <OpenOrderCard key={order.id} order={order} />
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-2xl bg-card p-6 text-center text-body-sm text-muted-foreground">
-                {t("noneOpen")}
-              </p>
-            )}
-          </>
-        ) : endedByDay.length > 0 ? (
-          endedByDay.map(({ day, orders }) => (
-            <section key={day} aria-labelledby={`orders-${day}`} className="flex flex-col gap-2.5">
-              <h2 id={`orders-${day}`} className="text-title">
-                {t(`day.${day}`)}
-              </h2>
-              <ul className="grid gap-2.5 md:grid-cols-2 lg:grid-cols-1">
-                {orders.map((order) => (
-                  <EndedOrderRow key={order.id} order={order} />
-                ))}
-              </ul>
-            </section>
-          ))
-        ) : (
-          <p className="rounded-2xl bg-card p-6 text-center text-body-sm text-muted-foreground">
-            {t("noneEnded")}
-          </p>
-        )}
-      </div>
-      <TonightOffers offers={offers} className="lg:col-start-3 lg:row-span-2 lg:row-start-1" />
+      <TonightOffers offers={offers} className="lg:w-100 lg:shrink-0" />
     </div>
   );
 }

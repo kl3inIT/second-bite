@@ -20,7 +20,7 @@ export default async function MyOrdersPage({ searchParams }: PageProps<"/[locale
   return (
     <>
       <PageBar title={t("mine")} returnTo="/orders" />
-      <div className="mx-auto hidden w-full max-w-292 flex-col gap-1 px-8 pt-8 md:flex lg:px-4">
+      <div className="mx-auto hidden w-full max-w-300 flex-col gap-1 px-8 pt-8 md:flex lg:px-4">
         <h1 className="text-page-title text-foreground">{t("mine")}</h1>
         <p className="text-body text-muted-foreground">{t("subtitle")}</p>
       </div>
