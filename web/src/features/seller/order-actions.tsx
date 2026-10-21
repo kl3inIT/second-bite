@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { failureOf } from "@/lib/api/client";
-import { deliverOrder, refuseOrder, reopenOrder } from "@/lib/api/generated";
+import { handOverOrder, refuseOrder, reopenOrder } from "@/lib/api/generated";
 
 import { Chip } from "./chip";
 import { type CancelReason, cancelReasons } from "./store-orders";
@@ -81,7 +81,7 @@ export function HoldingActions({ orderId, name }: { orderId: string; name: strin
           disabled={pending}
           onClick={() =>
             run(
-              () => deliverOrder({ path: { orderId } }),
+              () => handOverOrder({ path: { orderId } }),
               () => {
                 const query = Object.fromEntries(new URLSearchParams(window.location.search));
                 router.replace({ pathname, query: { ...query, undo: orderId } }, { scroll: false });

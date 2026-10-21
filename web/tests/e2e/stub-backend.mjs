@@ -775,7 +775,7 @@ async function staffOrderAction(request, response, mine, id, action) {
   } else if (!open) {
     problem(response, 409, "ORDER_TRANSITION_NOT_ALLOWED");
     return;
-  } else if (action === "deliver") {
+  } else if (action === "hand-over") {
     order.status = "collected";
     order.collectedAt = new Date().toISOString();
   } else {
@@ -858,7 +858,7 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers/mine" ||
     url.pathname === "/photos" ||
     /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
-    /^\/orders\/[\w-]+\/(deliver|reopen|refuse)$/.test(url.pathname) ||
+    /^\/orders\/[\w-]+\/(hand-over|reopen|refuse)$/.test(url.pathname) ||
     /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname) ||
     /^\/dishes\/[\w-]+$/.test(url.pathname);
   if (!isSellerRoute) return false;
@@ -916,7 +916,7 @@ async function sellerRoutes(request, response, url) {
     });
     return true;
   }
-  const staffAction = /^\/orders\/([\w-]+)\/(deliver|reopen|refuse)$/.exec(url.pathname);
+  const staffAction = /^\/orders\/([\w-]+)\/(hand-over|reopen|refuse)$/.exec(url.pathname);
   if (request.method === "POST" && staffAction) {
     await staffOrderAction(request, response, mine, staffAction[1], staffAction[2]);
     return true;
