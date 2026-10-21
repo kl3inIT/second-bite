@@ -1,19 +1,11 @@
 "use client";
 
-import { MailIcon, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-import { isWithin } from "./nav";
-
-/** The settings' pages, in the order of Figma's Admin/SettingsNav; a page joins with its screen. */
-export const settingsPages: Array<{
-  key: "email";
-  href: "/admin/settings/email";
-  icon: LucideIcon;
-}> = [{ key: "email", href: "/admin/settings/email", icon: MailIcon }];
+import { isWithin, settingsPages } from "./nav";
 
 // The settings' own menu beside the page (Figma Admin/SettingsNav): a framed list, the page open tinted.
 export function SettingsNav() {
