@@ -1043,6 +1043,9 @@
         "noTls": "Có user và mật khẩu thì phải dùng STARTTLS hoặc TLS.",
         "brevoKey": "Nhập API key của Brevo."
       }
+    },
+    "group": {
+      "users": "Người dùng"
     }
   }
 }

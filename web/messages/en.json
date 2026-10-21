@@ -1043,6 +1043,9 @@
         "noTls": "With a user and password, use STARTTLS or TLS.",
         "brevoKey": "Enter Brevo's API key."
       }
+    },
+    "group": {
+      "users": "Users"
     }
   }
 }
