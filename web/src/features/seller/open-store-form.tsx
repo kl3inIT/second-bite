@@ -26,9 +26,8 @@ import { useRemountKey } from "./remount-key";
 /** Tasco Mall Long Biên, where every store of the pilot is: a store is pinned here until its owner gives where they are. */
 const MALL = { latitude: 21.0565, longitude: 105.8964 };
 
-/** How long the browser may look for the place, and how old a place it may reuse (as the home's area sheet asks). */
+/** How long the browser may look for the place; it is asked afresh at each press, never for a place it kept. */
 const LOCATION_TIMEOUT_MS = 10_000;
-const LOCATION_MAX_AGE_MS = 5 * 60_000;
 
 /**
  * Where the person is, as the browser gave it, with how far off it may be, in metres, and what became of the
@@ -120,7 +119,7 @@ function OpenStoreFormBody() {
         setLocating(false);
         setLocateFailure(error.code === error.PERMISSION_DENIED ? "denied" : "failed");
       },
-      { enableHighAccuracy: true, timeout: LOCATION_TIMEOUT_MS, maximumAge: LOCATION_MAX_AGE_MS },
+      { enableHighAccuracy: true, timeout: LOCATION_TIMEOUT_MS, maximumAge: 0 },
     );
   }
 
