@@ -53,6 +53,20 @@ export function directionsTo(seller: Pick<Order["seller"], "latitude" | "longitu
   return `https://www.google.com/maps/dir/?api=1&destination=${seller.latitude},${seller.longitude}`;
 }
 
+/** Google Maps' embedded map of the collection point, its pin on the seller, in the page's language. */
+export function mapOf(
+  seller: Pick<Order["seller"], "latitude" | "longitude">,
+  locale: string,
+): string {
+  const query = new URLSearchParams({
+    q: `${seller.latitude},${seller.longitude}`,
+    z: "17",
+    hl: locale,
+    output: "embed",
+  });
+  return `https://www.google.com/maps?${query}`;
+}
+
 /**
  * Orders placed together from one cart, one per seller (SEC-76 › decision 8), as one: each group in the order
  * its sellers' orders were placed, the groups newest first.
