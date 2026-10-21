@@ -424,10 +424,13 @@ test.describe("the catalog on the web", () => {
       .getByLabel("Ảnh món")
       .setInputFiles({ name: "hop.png", mimeType: "image/png", buffer: png });
     await page.getByLabel("Mô tả").fill("Bánh mì và bánh ngọt, có trứng");
+    // The unit is chosen from a list, not typed.
+    await expect(page.getByLabel("Đơn vị")).toHaveValue("suất");
+    await page.getByLabel("Đơn vị").selectOption("hộp");
     await page.getByRole("button", { name: "Lưu món" }).click();
     await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("heading", { level: 2, name: "4 món" })).toBeVisible();
-    await expect(row(page, /Hộp bánh cuối ngày/)).toContainText("Hộp tổng hợp · 1 suất");
+    await expect(row(page, /Hộp bánh cuối ngày/)).toContainText("Hộp tổng hợp · 1 hộp");
   });
 
   test("changes a dish, shows a hidden one again, and deletes one after asking", async ({
