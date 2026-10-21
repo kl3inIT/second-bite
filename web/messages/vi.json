@@ -467,6 +467,10 @@
       "reason": {
         "not_suitable": "món không còn phù hợp",
         "wrong_items": "món không đúng với đơn",
+        "no_answer": "quán không gọi được cho bạn",
+        "no_show": "bạn chưa đến nhận",
+        "late": "đã quá giờ nhận",
+        "sold_out": "món đã hết",
         "other": "lý do khác"
       },
       "expired": "Hết giờ nhận",
@@ -712,11 +716,69 @@
     "closed": "Hết giờ lấy · bán {sold}/{units} {unit} · {price}",
     "withdrawn": "Đã rút · {price}"
   },
-  "StoreSoon": {
-    "soon": "Sắp có",
-    "orders": {
-      "title": "Đơn",
-      "body": "Đơn của khách sẽ hiện ở đây khi tính năng đặt món sẵn sàng."
+  "StoreOrders": {
+    "title": "Đơn",
+    "portions": "phần",
+    "summaryHolding": "Đang giữ {units} phần · {people} khách",
+    "summaryDelivered": "Hôm nay {count} đơn · {amount}",
+    "summaryCancelled": "Hôm nay {count} đơn hủy",
+    "searchLabel": "Tìm đơn",
+    "searchPlaceholder": "Tìm theo tên, số điện thoại hoặc món",
+    "searchCount": "{count} kết quả",
+    "tabs": "Nhóm đơn",
+    "tab": {
+      "holding": "Đang giữ · {count}",
+      "delivered": "Đã giao · {count}",
+      "cancelled": "Đã hủy · {count}"
+    },
+    "empty": {
+      "holding": "Chưa có ai giữ món ngày này. Khi khách giữ, tên và số điện thoại hiện ở đây.",
+      "delivered": "Chưa giao đơn nào ngày này.",
+      "cancelled": "Chưa có đơn nào bị hủy ngày này."
+    },
+    "emptySearch": "Không có đơn nào khớp “{query}”.",
+    "amount": "Số tiền",
+    "units": "{count} {unit}",
+    "copyPhone": "Sao chép số điện thoại {phone}",
+    "copied": "Đã sao chép số điện thoại.",
+    "deliver": "Đã giao",
+    "cancel": "Hủy đơn",
+    "reopen": "Hoàn tác",
+    "deliveredTo": "Đã giao cho {name}",
+    "failed": "Chưa làm được. Thử lại.",
+    "reference": "Mã tra cứu: {id}",
+    "reasonLabel": "Lý do hủy",
+    "reason": {
+      "no_answer": "Không nghe máy",
+      "no_show": "Khách không đến",
+      "late": "Quá giờ",
+      "sold_out": "Hết món",
+      "other": "Lý do khác",
+      "not_suitable": "Món không còn phù hợp",
+      "wrong_items": "Sai món"
+    },
+    "ended": {
+      "customer": "Khách tự hủy trên trang người dùng",
+      "expired": "Quá giờ lấy",
+      "reason": "Lý do: {reason}",
+      "note": "Lý do: {reason} · {note}"
+    },
+    "cancelDialog": {
+      "title": "Hủy đơn của {name}?",
+      "body": "Chọn lý do. Khi khách không đến, phần món được trả lại để bán.",
+      "note": "Ghi lý do",
+      "back": "Quay lại",
+      "confirm": "Hủy đơn"
+    },
+    "day": {
+      "label": "Ngày xem",
+      "today": "Hôm nay",
+      "yesterday": "Hôm qua",
+      "dayBefore": "Hôm kia",
+      "previous": "Ngày trước",
+      "next": "Ngày sau",
+      "pick": "Chọn ngày",
+      "quick": "Chọn nhanh"
     }
   },
   "PostDrawer": {

@@ -21,6 +21,10 @@ Map<String, dynamic> _$RefuseOrderRequestToJson(_RefuseOrderRequest instance) =>
 const _$RefuseOrderRequestReasonEnumMap = {
   RefuseOrderRequestReason.notSuitable: 'not_suitable',
   RefuseOrderRequestReason.wrongItems: 'wrong_items',
+  RefuseOrderRequestReason.noAnswer: 'no_answer',
+  RefuseOrderRequestReason.noShow: 'no_show',
+  RefuseOrderRequestReason.valueLate: 'late',
+  RefuseOrderRequestReason.soldOut: 'sold_out',
   RefuseOrderRequestReason.other: 'other',
   RefuseOrderRequestReason.$unknown: r'$unknown',
 };

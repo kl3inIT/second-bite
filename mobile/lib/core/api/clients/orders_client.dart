@@ -80,6 +80,12 @@ abstract class OrdersClient {
     @Body() required RefuseOrderRequest body,
   });
 
+  /// Take a hand-over or a refusal back.
+  ///
+  /// The order is open again, and the units a refusal had returned are taken again, or it fails when they are gone. An order its customer cancelled, or whose window is over, stays as it is.
+  @POST('/orders/{orderId}/reopen')
+  Future<OrderBody> reopenOrder({@Path('orderId') required String orderId});
+
   /// A seller's orders of one day, soonest first, to its people and admins.
   ///
   /// [day] - A day in Vietnam time, YYYY-MM-DD; today when empty.

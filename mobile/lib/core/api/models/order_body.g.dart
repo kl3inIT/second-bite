@@ -78,6 +78,10 @@ const _$OrderBodyStatusEnumMap = {
 const _$OrderBodyRefuseReasonEnumMap = {
   OrderBodyRefuseReason.notSuitable: 'not_suitable',
   OrderBodyRefuseReason.wrongItems: 'wrong_items',
+  OrderBodyRefuseReason.noAnswer: 'no_answer',
+  OrderBodyRefuseReason.noShow: 'no_show',
+  OrderBodyRefuseReason.valueLate: 'late',
+  OrderBodyRefuseReason.soldOut: 'sold_out',
   OrderBodyRefuseReason.other: 'other',
   OrderBodyRefuseReason.$unknown: r'$unknown',
 };
