@@ -230,8 +230,8 @@ export function OrderFacts({ order }: { order: Order }) {
   return (
     <div className="flex flex-col gap-3.5">
       <SellerRow order={order} />
-      <dl className="flex flex-col gap-3.5 border-t border-border pt-3.5">
-        <div className="flex justify-between gap-4">
+      <div className="flex flex-col gap-3.5 border-t border-border pt-3.5">
+        <dl className="flex justify-between gap-4">
           <Fact
             label={t("facts.date")}
             value={
@@ -249,8 +249,8 @@ export function OrderFacts({ order }: { order: Order }) {
               </span>
             }
           />
-        </div>
-        <div className="flex justify-between gap-4">
+        </dl>
+        <dl className="flex justify-between gap-4">
           <Fact
             label={t("facts.dishes")}
             value={
@@ -264,11 +264,11 @@ export function OrderFacts({ order }: { order: Order }) {
             label={t("facts.total")}
             value={<span className="font-display text-price">{formatPrice(order.totalVnd)}</span>}
           />
-        </div>
-        <div className="flex justify-between gap-4">
+        </dl>
+        <dl className="flex justify-between gap-4">
           <Fact
             label={t("facts.number")}
-            value={<span className="text-body-sm">#{order.number}</span>}
+            value={<span className="text-body-sm whitespace-nowrap">#{order.number}</span>}
           />
           <Fact
             end
@@ -279,8 +279,8 @@ export function OrderFacts({ order }: { order: Order }) {
               </span>
             }
           />
-        </div>
-      </dl>
+        </dl>
+      </div>
     </div>
   );
 }

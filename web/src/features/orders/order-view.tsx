@@ -95,7 +95,7 @@ function StatusBand({
             <BackButton fallback="/orders" />
             <h1 className="text-bar-title">{t("orderNumber", { number: order.number })}</h1>
           </div>
-          <h1 className="hidden text-body-sm font-medium text-inverse-faint md:block">{meta}</h1>
+          <h1 className="hidden text-body-sm font-medium text-inverse-muted md:block">{meta}</h1>
           <p className="mt-3 text-title text-fresh md:mt-0 md:text-card-title">{eyebrow}</p>
           <p className="font-display text-display md:text-display-60">{figure}</p>
           <p className="mt-1 text-body-sm text-inverse-muted md:mt-0 md:text-body">{line}</p>
