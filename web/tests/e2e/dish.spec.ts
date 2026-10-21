@@ -58,6 +58,6 @@ test.describe("a dish, its seller and the cart", () => {
   test("says when a seller has nothing tonight", async ({ page }) => {
     await page.goto("/vi/sellers/se-unknown");
 
-    await expect(page.getByText("Quán chưa có món tối nay")).toBeVisible();
+    await expect(page.getByRole("main").getByText("Quán chưa có món tối nay")).toBeVisible();
   });
 });

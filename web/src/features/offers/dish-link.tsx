@@ -13,7 +13,8 @@ export function DishLink({ offerId, children }: { offerId: string; children: Rea
   );
 }
 
-// A seller's name as the way to their page (Figma K4b "Xem quán"), above a card's stretched dish link.
+// A seller's name as the way to their page (Figma K4b "Xem quán"), above a card's stretched dish link, at
+// least 24px tall so it stays a target of its own beside it (WCAG 2.5.8).
 export function SellerLink({
   sellerId,
   children,
@@ -24,7 +25,7 @@ export function SellerLink({
   return (
     <Link
       href={`/sellers/${sellerId}`}
-      className="relative z-10 hover:underline focus-visible:underline focus-visible:outline-none"
+      className="relative z-10 inline-flex min-h-6 items-center hover:underline focus-visible:underline focus-visible:outline-none"
     >
       {children}
     </Link>
