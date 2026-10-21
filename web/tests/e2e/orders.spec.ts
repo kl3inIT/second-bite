@@ -4,7 +4,7 @@ import { expectNoSeriousA11yViolations } from "./axe";
 
 test.use({ locale: "vi-VN" });
 
-// "Đơn của tôi" (SEC-51, Figma W7), against the stub backend's orders; ordering itself is in order.spec.ts.
+// "Đơn của tôi" (SEC-51, Figma D1, D4), against the stub backend's orders; ordering itself is in order.spec.ts.
 test.describe("my orders", () => {
   test("ask someone signed out with no order in this browser to sign in", async ({ page }) => {
     await page.goto("/vi/orders");
