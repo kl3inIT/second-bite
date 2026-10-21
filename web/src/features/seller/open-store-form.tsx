@@ -3,7 +3,7 @@
 import { CircleAlertIcon, CircleCheckIcon, LocateFixedIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
 import { ApiError, failureOf } from "@/lib/api/client";
-import { openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
+import { addressAt, openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
 
 import { PhoneFootBar } from "./phone-foot-bar";
 import { useRemountKey } from "./remount-key";
@@ -30,8 +30,16 @@ const MALL = { latitude: 21.0565, longitude: 105.8964 };
 const LOCATION_TIMEOUT_MS = 10_000;
 const LOCATION_MAX_AGE_MS = 5 * 60_000;
 
-/** Where the person is, as the browser gave it, with how far off it may be, in metres. */
-type Located = { latitude: number; longitude: number; accuracy: number };
+/**
+ * Where the person is, as the browser gave it, with how far off it may be, in metres, and what became of the
+ * address: written from the place, kept as the person had typed it, or not known to the geocoder.
+ */
+type Located = {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  address: "filled" | "kept" | "unknown";
+};
 
 type Problem = {
   kind: "details" | "phone" | "limit" | "failed";
@@ -69,9 +77,11 @@ function OpenStoreFormBody() {
   const [located, setLocated] = useState<Located>();
   const [locating, setLocating] = useState(false);
   const [locateFailure, setLocateFailure] = useState<"denied" | "failed">();
+  // Whether what the field holds was written from the place, and not by the person: a second press may replace it.
+  const written = useRef(false);
 
   // The button at the end of the address (Figma O1d, O1e, O1f): where the person stands pins the store, in place
-  // of the mall; the address itself stays as they write it.
+  // of the mall, and the server names the place to fill the address, unless the person has written their own.
   function locate() {
     setLocateFailure(undefined);
     if (!("geolocation" in navigator)) {
@@ -81,12 +91,30 @@ function OpenStoreFormBody() {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setLocating(false);
-        setLocated({
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-          accuracy: Math.round(coords.accuracy),
-        });
+        const { latitude, longitude } = coords;
+        const accuracy = Math.round(coords.accuracy);
+        const mayFill = address.trim() === "" || written.current;
+        void (async () => {
+          let named = "";
+          try {
+            ({
+              data: { address: named },
+            } = await addressAt({ query: { latitude, longitude } }));
+          } catch {
+            // The place is pinned all the same; the person writes the address.
+          }
+          if (named && mayFill) {
+            written.current = true;
+            setAddress(named);
+          }
+          setLocated({
+            latitude,
+            longitude,
+            accuracy,
+            address: !named ? "unknown" : mayFill ? "filled" : "kept",
+          });
+          setLocating(false);
+        })();
       },
       (error) => {
         setLocating(false);
@@ -207,7 +235,10 @@ function OpenStoreFormBody() {
             <InputGroupInput
               id="store-address"
               value={address}
-              onChange={(event) => setAddress(event.target.value)}
+              onChange={(event) => {
+                written.current = false;
+                setAddress(event.target.value);
+              }}
               placeholder={t("addressPlaceholder")}
               autoComplete="street-address"
               required
@@ -232,7 +263,7 @@ function OpenStoreFormBody() {
             {located && !locateFailure && (
               <span className="flex items-start gap-2 text-note text-muted-foreground">
                 <CircleCheckIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
-                {t("located", { meters: located.accuracy })}
+                {t(`located.${located.address}`, { meters: located.accuracy })}
               </span>
             )}
             {locateFailure && (
