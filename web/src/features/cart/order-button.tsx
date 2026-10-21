@@ -129,12 +129,11 @@ export function OrderButton({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("confirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("confirmBody", { name: checked.name })}
+              <span className="font-display text-price-lg text-foreground">
+                {groupedPhone(checked.phone)}
+              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <p className="text-center font-display text-price-lg text-foreground">
-            {groupedPhone(checked.phone)}
-          </p>
           <AlertDialogFooter>
             <Button variant="ghost" size="lg" onClick={() => setStep("contact")}>
               {t("confirmEdit")}

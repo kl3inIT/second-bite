@@ -21,7 +21,7 @@ async function orderAs(page: Page, name: string, phone: string) {
   await sheet.getByLabel("Tên").fill(name);
   await sheet.getByLabel("Số điện thoại").fill(phone);
   await sheet.getByRole("button", { name: "Tiếp tục" }).click();
-  const check = page.getByRole("alertdialog", { name: "Số điện thoại này đúng chưa?" });
+  const check = page.getByRole("alertdialog", { name: "Xác nhận đặt đơn với số điện thoại này?" });
   await expect(check).toBeVisible();
   await check.getByRole("button", { name: "Đúng, đặt món" }).click();
 }
@@ -46,7 +46,9 @@ test.describe("ordering from the cart", () => {
     await sheet.getByLabel("Tên").fill("Minh Anh");
     await sheet.getByLabel("Số điện thoại").fill("0900 000 000");
     await sheet.getByRole("button", { name: "Tiếp tục" }).click();
-    const check = page.getByRole("alertdialog", { name: "Số điện thoại này đúng chưa?" });
+    const check = page.getByRole("alertdialog", {
+      name: "Xác nhận đặt đơn với số điện thoại này?",
+    });
     await expect(check.getByText("0900 000 000")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
