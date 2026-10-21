@@ -18,7 +18,7 @@ It supersedes [SEC-97 decision 7](../sec-97-pickup-and-review/design.md) for "Nh
 
 ### Domain story
 
-A customer places an order without signing in. The seller's phone, open on the Đơn tab, shows the order at once. The customer opens the order and taps "Nhắn quán": "Cho mình lấy trễ 10 phút được không?" A staff member sees the badge on the order, opens its chat, and the customer's side shows "Đã xem". The staff member answers, then presses "Báo sẵn sàng". The customer's page turns to Sẵn sàng and shows the QR code. At the counter the order is handed over, the customer's page turns to Hoàn tất with the review card. The chat stays writable for 2 hours more, then becomes read-only.
+A customer places an order without signing in. The seller's phone, open on the Đơn tab, shows the order at once. The customer opens the order and taps "Nhắn quán": "Cho mình nhận trễ 10 phút được không?" A staff member sees the badge on the order, opens its chat, and the customer's side shows "Đã xem". The staff member answers, then presses "Báo sẵn sàng". The customer's page turns to Sẵn sàng and shows the QR code. At the counter the order is handed over, the customer's page turns to Hoàn tất with the review card. The chat stays writable for 2 hours more, then becomes read-only.
 
 Failure paths:
 
@@ -96,6 +96,8 @@ No new edge between modules. `order` already uses `identity`, whose `AccountDele
 | 32 | The owner's answers to the open questions (21 October 2026): messages are kept 30 days after the window ends (decision 24); every one of the seller's people may read and answer every chat (decision 20); the chat stays writable 2 hours after collecting (decision 19); no admin access (decision 22) | Recorded as decisions, so the table is the whole truth |
 | 33 | The seller's chat screen is built like the customer's, with the customer's name and the order's status in place of the order card at the top. A Figma frame will come later | The owner's answer. The web PR follows it |
 | 34 | The read-only line reads "Đơn đã kết thúc, chỉ xem lại tin nhắn." | The owner's answer |
+| 35 | Web, approved by the owner: while `unreadMessages` is above 0, the top of the order page shows a banner, "Quán vừa nhắn" (the seller's side reads "Khách vừa nhắn"), quoting the latest message, with a "Xem tin" action that opens the chat. No popup. The banner reads the latest message from `GET /orders/{orderId}/messages`, so the order payload carries a count and never message text | The order lists (`Mine`, `OfSeller`) stay free of free text, and decision 10 holds |
+| 36 | Web, approved by the owner: the chat footer offers quick-reply chips that send a fixed text at once, hidden while the person types and when the chat is read-only. Customer: "Mình đang tới", "Cho mình nhận trễ 10 phút", "Quán còn món không?". Seller: "Món đã sẵn sàng", "Quán đang làm, chờ chút nhé", "Giữ món tới hết giờ nhận" | Common answers in one tap. They are ordinary messages, so the backend needs nothing new |
 
 ## The contract
 
@@ -205,7 +207,7 @@ The listening connection is one connection per instance outside the pool's work.
 - Photos in the chat (decision 23, phase 2).
 - The Flutter app in `mobile/`: its generated client is regenerated, but it gets no screens.
 - Telling a person of a message or a status while they are off the page, by push or email (SEC-24 and later).
-- Quick replies, typing indicators, editing or deleting a message, and admins reading chats.
+- Typing indicators, editing or deleting a message, and admins reading chats.
 
 ## Open questions
 
