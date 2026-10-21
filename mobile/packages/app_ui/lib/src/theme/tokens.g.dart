@@ -221,6 +221,16 @@ abstract final class TypeTokens {
     letterSpacing: -0.12,
     leadingDistribution: TextLeadingDistribution.even,
   );
+  static const priceSm = TextStyle(
+    fontFamily: 'Bricolage Grotesque',
+    package: 'app_ui',
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    fontVariations: [FontVariation('wght', 700)],
+    height: 17 / 14,
+    letterSpacing: -0.14,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
   static const price = TextStyle(
     fontFamily: 'Bricolage Grotesque',
     package: 'app_ui',
@@ -255,6 +265,7 @@ abstract final class TypeTokens {
 
 /// The corner radii of DESIGN.md, in logical pixels.
 abstract final class RadiusTokens {
+  static const double xs = 4;
   static const double sm = 8;
   static const double md = 12;
   static const double lg = 14;
@@ -277,6 +288,9 @@ abstract final class SpacingTokens {
 
 /// The shadows of DESIGN.md.
 abstract final class ShadowTokens {
+  static const card = [
+    BoxShadow(color: Color(0x0F004E8C), offset: Offset(0, 4), blurRadius: 14),
+  ];
   static const sheet = [
     BoxShadow(color: Color(0x1F0E1D19), offset: Offset(0, -4), blurRadius: 24),
   ];

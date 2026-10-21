@@ -412,6 +412,22 @@ func (q *Queries) PutSettings(ctx context.Context, arg PutSettingsParams) error 
 	return err
 }
 
+const returnUnits = `-- name: ReturnUnits :exec
+UPDATE offer_offers SET units_left = LEAST(units, units_left + $1), updated_at = now()
+WHERE id = $2
+`
+
+type ReturnUnitsParams struct {
+	Units int32
+	ID    uuid.UUID
+}
+
+// Gives back the units of a cancelled order, never above the offer's units.
+func (q *Queries) ReturnUnits(ctx context.Context, arg ReturnUnitsParams) error {
+	_, err := q.db.Exec(ctx, returnUnits, arg.Units, arg.ID)
+	return err
+}
+
 const searchOffers = `-- name: SearchOffers :many
 SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
@@ -431,19 +447,20 @@ FROM (
       AND ($1::float8 IS NULL
            OR ST_DWithin(o.location, ST_SetSRID(ST_MakePoint($2::float8, $1::float8), 4326)::geography, $5::float8))
       AND (COALESCE(cardinality($6::text[]), 0) = 0 OR o.kind = ANY ($6::text[]))
-      AND ($7::bigint IS NULL OR o.price_vnd <= $7::bigint)
-      AND ($8::timestamptz IS NULL OR o.window_end > $8::timestamptz)
-      AND ($9::timestamptz IS NULL OR o.window_start <= $9::timestamptz)
-      AND ($10::uuid IS NULL OR o.seller_id = $10::uuid)
-      AND (NOT $11::boolean OR o.units_left > 0)
+      AND ($7::bigint IS NULL OR o.price_vnd >= $7::bigint)
+      AND ($8::bigint IS NULL OR o.price_vnd <= $8::bigint)
+      AND ($9::timestamptz IS NULL OR o.window_end > $9::timestamptz)
+      AND ($10::timestamptz IS NULL OR o.window_start <= $10::timestamptz)
+      AND ($11::uuid IS NULL OR o.seller_id = $11::uuid)
+      AND (NOT $12::boolean OR o.units_left > 0)
 ) found
 ORDER BY
-    CASE WHEN $12::text = 'relevance' THEN rank END DESC,
-    CASE WHEN $12::text IN ('relevance', 'distance') THEN distance_m END ASC NULLS LAST,
-    CASE WHEN $12::text = 'price' THEN price_vnd END ASC,
-    CASE WHEN $12::text = 'discount' THEN (original_price_vnd - price_vnd)::float8 / original_price_vnd END DESC,
+    CASE WHEN $13::text = 'relevance' THEN rank END DESC,
+    CASE WHEN $13::text IN ('relevance', 'distance') THEN distance_m END ASC NULLS LAST,
+    CASE WHEN $13::text = 'price' THEN price_vnd END ASC,
+    CASE WHEN $13::text = 'discount' THEN (original_price_vnd - price_vnd)::float8 / original_price_vnd END DESC,
     window_end ASC, id
-LIMIT $14 OFFSET $13
+LIMIT $15 OFFSET $14
 `
 
 type SearchOffersParams struct {
@@ -453,6 +470,7 @@ type SearchOffersParams struct {
 	ExcludedSellers []uuid.UUID
 	RadiusM         float64
 	Kinds           []string
+	MinPrice        pgtype.Int8
 	MaxPrice        pgtype.Int8
 	CollectFrom     *time.Time
 	CollectTo       *time.Time
@@ -502,6 +520,7 @@ func (q *Queries) SearchOffers(ctx context.Context, arg SearchOffersParams) ([]S
 		arg.ExcludedSellers,
 		arg.RadiusM,
 		arg.Kinds,
+		arg.MinPrice,
 		arg.MaxPrice,
 		arg.CollectFrom,
 		arg.CollectTo,
@@ -723,6 +742,58 @@ func (q *Queries) SellerUsesPhoto(ctx context.Context, arg SellerUsesPhotoParams
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const takeUnits = `-- name: TakeUnits :one
+UPDATE offer_offers SET units_left = units_left - $1, updated_at = now()
+WHERE id = $2 AND state = 'on_sale' AND window_end > now() AND units_left >= $1
+RETURNING id, seller_id, name, unit, price_vnd, original_price_vnd, photo_id, window_start, window_end,
+          latitude, longitude, address, seller_name
+`
+
+type TakeUnitsParams struct {
+	Units int32
+	ID    uuid.UUID
+}
+
+type TakeUnitsRow struct {
+	ID               uuid.UUID
+	SellerID         uuid.UUID
+	Name             string
+	Unit             string
+	PriceVnd         int64
+	OriginalPriceVnd int64
+	PhotoID          uuid.UUID
+	WindowStart      time.Time
+	WindowEnd        time.Time
+	Latitude         float64
+	Longitude        float64
+	Address          string
+	SellerName       string
+}
+
+// Takes units for an order in the order's transaction: only from an offer on
+// sale whose window is not over and that has them, so the last unit goes to
+// one order.
+func (q *Queries) TakeUnits(ctx context.Context, arg TakeUnitsParams) (TakeUnitsRow, error) {
+	row := q.db.QueryRow(ctx, takeUnits, arg.Units, arg.ID)
+	var i TakeUnitsRow
+	err := row.Scan(
+		&i.ID,
+		&i.SellerID,
+		&i.Name,
+		&i.Unit,
+		&i.PriceVnd,
+		&i.OriginalPriceVnd,
+		&i.PhotoID,
+		&i.WindowStart,
+		&i.WindowEnd,
+		&i.Latitude,
+		&i.Longitude,
+		&i.Address,
+		&i.SellerName,
+	)
+	return i, err
 }
 
 const updateDish = `-- name: UpdateDish :exec

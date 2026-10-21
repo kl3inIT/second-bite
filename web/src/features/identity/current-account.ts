@@ -1,6 +1,5 @@
 import "server-only";
 
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { cache } from "react";
@@ -9,7 +8,7 @@ import { redirect } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
 import { getMyAccount, type AccountBody } from "@/lib/api/generated";
 
-import { sessionCookie } from "./session-cookie";
+import { sessionHeaders } from "./session";
 
 export type CurrentAccount = { email: string; displayName: string; role: AccountBody["role"] };
 
@@ -19,12 +18,10 @@ export type CurrentAccount = { email: string; displayName: string; role: Account
  * Suspense boundary; one render asks once.
  */
 export const getCurrentAccount = cache(async (): Promise<CurrentAccount | null> => {
-  const session = (await cookies()).get(sessionCookie);
-  if (!session) return null;
+  const headers = await sessionHeaders();
+  if (!headers) return null;
   try {
-    const { data } = await getMyAccount({
-      headers: { cookie: `${sessionCookie}=${session.value}` },
-    });
+    const { data } = await getMyAccount({ headers });
     return { email: data.email, displayName: data.displayName, role: data.role };
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) return null;
@@ -49,13 +46,4 @@ export async function requireAdmin(returnTo: string): Promise<CurrentAccount> {
   }
   if (account.role !== "admin") notFound();
   return account;
-}
-
-/**
- * The session of the request, as the headers a server-side API call forwards so the backend sees the same
- * caller; none when no one is signed in. It reads the request, so it runs inside Suspense.
- */
-export async function sessionHeaders(): Promise<Record<string, string>> {
-  const session = (await cookies()).get(sessionCookie);
-  return session ? { cookie: `${sessionCookie}=${session.value}` } : {};
 }

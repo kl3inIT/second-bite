@@ -3,7 +3,8 @@ import { getTranslations } from "next-intl/server";
 
 import { AdminTopBar } from "@/features/admin/admin-top-bar";
 import { SettingsNav } from "@/features/admin/settings-nav";
-import { requireAdmin, sessionHeaders } from "@/features/identity/current-account";
+import { requireAdmin } from "@/features/identity/current-account";
+import { sessionHeaders } from "@/features/identity/session";
 import { EmailSettingsForm } from "@/features/notification/email-settings-form";
 import { ApiError } from "@/lib/api/client";
 import { getEmailSettings } from "@/lib/api/generated";

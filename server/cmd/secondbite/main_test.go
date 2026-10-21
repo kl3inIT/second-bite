@@ -68,6 +68,7 @@ func TestService(t *testing.T) {
 		"an offer is posted and found near Tasco Mall":               checkOfferFlow,
 		"an owner deletes their account; the others forget it":       checkAccountDeletion,
 		"a person names their account":                               checkDisplayName,
+		"an order is placed, made ready and handed over":             checkOrderFlow,
 	}
 
 	// The checks run in parallel with one another; this group returns when
@@ -192,6 +193,7 @@ func startPostgres(t *testing.T) (string, map[string]string) {
 	writeSecret(t, secrets, "SECONDBITE_DATABASE_PASSWORD", "test-only")
 	writeSecret(t, secrets, "SECONDBITE_EMAIL_SETTINGS_KEY", randomKey(t))
 	writeSecret(t, secrets, "SECONDBITE_SIGN_IN_CODE_KEY", randomKey(t))
+	writeSecret(t, secrets, "SECONDBITE_COLLECTION_CODE_KEY", randomKey(t))
 
 	return dsn, map[string]string{
 		"SECONDBITE_DATABASE_URL": "postgres://secondbite@" + net.JoinHostPort(host, port.Port()) + "/secondbite?sslmode=disable",

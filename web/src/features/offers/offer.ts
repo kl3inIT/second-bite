@@ -50,3 +50,21 @@ export function groupBySeller(
   }
   return [...groups.values()];
 }
+
+/** The kinds that can still be ordered, the one with the most offers first: the search's popular kinds. */
+export function kindsByCount(
+  offers: readonly OfferSummary[],
+): { kind: OfferKind; count: number }[] {
+  const counts = new Map<OfferKind, number>();
+  for (const offer of offers.filter(isAvailable)) {
+    counts.set(offer.kind, (counts.get(offer.kind) ?? 0) + 1);
+  }
+  return [...counts]
+    .map(([kind, count]) => ({ kind, count }))
+    .toSorted((a, b) => b.count - a.count);
+}
+
+/** Directions to where the offer is collected, in the phone's maps (Figma K4b, K5 "Chỉ đường"). */
+export function directionsHref({ latitude, longitude }: OfferSummary["collectionPoint"]): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+}

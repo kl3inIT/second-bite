@@ -32,6 +32,8 @@ abstract class OffersClient {
   ///
   /// [kind] - One or more kinds, comma-separated.
   ///
+  /// [minPrice] - The lowest price of one unit, in đồng.
+  ///
   /// [maxPrice] - The highest price of one unit, in đồng.
   ///
   /// [collectFrom] - Keep offers whose window overlaps collectFrom to collectTo; both at one moment keep what can be collected then.
@@ -49,6 +51,7 @@ abstract class OffersClient {
     @Query('radiusKm') int? radiusKm,
     @Query('q') String? q,
     @Query('kind') List<Kind>? kind,
+    @Query('minPrice') int? minPrice,
     @Query('maxPrice') int? maxPrice,
     @Query('collectFrom') DateTime? collectFrom,
     @Query('collectTo') DateTime? collectTo,

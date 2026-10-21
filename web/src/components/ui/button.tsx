@@ -23,7 +23,9 @@ const buttonVariants = cva(
         // Second Bite: an icon or text action on the white top bar.
         shell: "text-shell-foreground hover:bg-muted",
         // Second Bite (Figma K2a): a suggestion chip on the sky ground, without an edge.
-        chip: "bg-muted text-foreground hover:bg-secondary",
+        chip: "bg-muted text-foreground hover:bg-secondary aria-pressed:bg-secondary aria-pressed:text-body-sm-strong aria-pressed:text-primary",
+        // Second Bite (Figma K4, K4b, K5): a white round button over a photograph or the blue top, its icon in Tasco blue.
+        float: "bg-card text-primary shadow-card hover:bg-muted",
         // Second Bite: a control that opens a choice, drawn as a field (Figma Admin/FilterBar's date range).
         field:
           "rounded-md border-input bg-card px-3 text-body-sm text-foreground hover:bg-muted aria-expanded:bg-muted",
@@ -47,8 +49,17 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-12",
+        // Second Bite: a 40px round button with a 44px target around it (Figma K4 back, share, heart).
+        float:
+          "relative size-10 after:absolute after:-inset-0.5 [&_svg:not([class*='size-'])]:size-5",
         // Second Bite: a 34px chip with a 44px target around it.
         chip: "relative h-8.5 px-3.5 text-body-sm after:absolute after:inset-x-0 after:-inset-y-1.25",
+        // Second Bite: a quick choice in a small panel, 28px with 12px text, still a 44px target.
+        "chip-sm":
+          "relative h-7 px-3 text-label after:absolute after:inset-x-0 after:-inset-y-2 aria-pressed:text-label-strong",
+        // Second Bite: a 36px button in a small panel, still a 44px target.
+        panel:
+          "relative h-9 gap-1.5 px-4 text-body-sm-strong after:absolute after:inset-x-0 after:-inset-y-1",
       },
     },
     defaultVariants: {
@@ -56,6 +67,14 @@ const buttonVariants = cva(
       size: "default",
     },
   },
+);
+
+// Second Bite (Figma K2 chip lọc): the filter chip on a trigger, a menu's or a panel's, set by
+// `data-variant="chip"`: fully rounded on the sky fill without an edge, its value shown once chosen
+// (`data-active`), a 44px target around its 34px; `data-raised` sets it on the sky ground itself (Figma K1b).
+const chipTrigger = cn(
+  "data-[variant=chip]:relative data-[variant=chip]:flex data-[variant=chip]:h-8.5 data-[variant=chip]:shrink-0 data-[variant=chip]:items-center data-[variant=chip]:gap-1.5 data-[variant=chip]:rounded-full data-[variant=chip]:bg-muted data-[variant=chip]:px-3.5 data-[variant=chip]:text-body-sm data-[variant=chip]:whitespace-nowrap data-[variant=chip]:text-foreground data-[variant=chip]:transition-colors data-[variant=chip]:after:absolute data-[variant=chip]:after:inset-x-0 data-[variant=chip]:after:-inset-y-1.25 data-[variant=chip]:hover:bg-secondary data-[variant=chip]:focus-visible:ring-3 data-[variant=chip]:focus-visible:ring-ring/50 data-[variant=chip]:focus-visible:outline-none data-[variant=chip]:data-active:bg-secondary data-[variant=chip]:data-active:text-body-sm-strong data-[variant=chip]:data-active:text-primary",
+  "data-raised:data-[variant=chip]:bg-card data-raised:data-[variant=chip]:ring-1 data-raised:data-[variant=chip]:ring-secondary data-raised:data-[variant=chip]:ring-inset data-raised:data-[variant=chip]:hover:bg-secondary data-raised:data-[variant=chip]:data-active:bg-secondary",
 );
 
 function Button({
@@ -73,4 +92,4 @@ function Button({
   );
 }
 
-export { Button, buttonVariants };
+export { Button, buttonVariants, chipTrigger };

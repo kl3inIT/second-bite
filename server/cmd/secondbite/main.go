@@ -33,6 +33,7 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/identity"
 	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/offer"
+	"github.com/kl3inIT/second-bite/server/internal/order"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller"
 	"github.com/kl3inIT/second-bite/server/migrations"
@@ -110,6 +111,7 @@ type app struct {
 	file         *file.Service
 	seller       *seller.Service
 	offer        *offer.Service
+	order        *order.Service
 }
 
 // assemble reads the configuration, opens and migrates the database, and
@@ -120,12 +122,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		return nil, fmt.Errorf("configuration: %w", err)
 	}
 
-	settingsKey, err := platform.ReadKey(getenv, "SECONDBITE_EMAIL_SETTINGS_KEY")
-	if err != nil {
-		return nil, fmt.Errorf("configuration: %w", err)
-	}
-
-	codeKey, err := platform.ReadKey(getenv, "SECONDBITE_SIGN_IN_CODE_KEY")
+	k, err := readKeys(getenv)
 	if err != nil {
 		return nil, fmt.Errorf("configuration: %w", err)
 	}
@@ -149,13 +146,13 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 
 		trail := audit.NewService(pool, logger)
 
-		notifications, err := notification.NewService(pool, trail, notification.Config{SettingsKey: settingsKey}, logger)
+		notifications, err := notification.NewService(pool, trail, notification.Config{SettingsKey: k.settings}, logger)
 		if err != nil {
 			return nil, err
 		}
 
 		identities, err := identity.NewService(pool, notifications, events, trail, identity.Config{
-			CodeKey: codeKey, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")),
+			CodeKey: k.signInCode, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")),
 		}, logger)
 		if err != nil {
 			return nil, err
@@ -174,6 +171,11 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		sellers := seller.NewService(pool, identities, files, notifications, events, trail, logger)
 		offers := offer.NewService(pool, sellers, files, trail, logger)
 
+		orders, err := order.NewService(pool, offers, sellers, k.collectionCode, logger)
+		if err != nil {
+			return nil, err
+		}
+
 		// The listeners are known before anything publishes; they run only in
 		// serve.
 		file.RegisterListeners(events, files)
@@ -181,7 +183,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 
 		return &app{
 			cfg: cfg, logger: logger, pool: pool, events: events, audit: trail, notification: notifications, identity: identities,
-			file: files, seller: sellers, offer: offers,
+			file: files, seller: sellers, offer: offers, order: orders,
 		}, nil
 	}()
 	if err != nil {
@@ -191,6 +193,33 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 	}
 
 	return a, nil
+}
+
+// keys are the secrets the modules derive values from.
+type keys struct {
+	settings, signInCode, collectionCode []byte
+}
+
+func readKeys(getenv func(string) string) (keys, error) {
+	var k keys
+
+	for _, each := range []struct {
+		name string
+		key  *[]byte
+	}{
+		{"SECONDBITE_EMAIL_SETTINGS_KEY", &k.settings},
+		{"SECONDBITE_SIGN_IN_CODE_KEY", &k.signInCode},
+		{"SECONDBITE_COLLECTION_CODE_KEY", &k.collectionCode},
+	} {
+		value, err := platform.ReadKey(getenv, each.name)
+		if err != nil {
+			return keys{}, err
+		}
+
+		*each.key = value
+	}
+
+	return k, nil
 }
 
 func (a *app) serve(ctx context.Context) error {
@@ -229,6 +258,7 @@ func registerOperations(api huma.API, a *app) {
 	file.RegisterOperations(api, a.file)
 	seller.RegisterOperations(api, a.seller)
 	offer.RegisterOperations(api, a.offer)
+	order.RegisterOperations(api, a.order)
 
 	// Every admin operation is registered on one group, so the contract test
 	// finds them all under its prefix (SEC-75).

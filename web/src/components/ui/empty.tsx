@@ -37,7 +37,8 @@ const emptyMediaVariants = cva(
     variants: {
       variant: {
         default: "bg-transparent",
-        icon: "flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground [&_svg:not([class*='size-'])]:size-4",
+        // Second Bite: a 36px line icon in Tasco blue, without a tile (Figma K1e).
+        icon: "mb-0 flex size-9 shrink-0 items-center justify-center text-primary [&_svg:not([class*='size-'])]:size-9",
       },
     },
     defaultVariants: {
@@ -62,7 +63,8 @@ function EmptyMedia({
 }
 
 function EmptyTitle({ className, ...props }: React.ComponentProps<"div">) {
-  return <div data-slot="empty-title" className={cn("text-title", className)} {...props} />;
+  // Second Bite: an empty state's title reads as a block's, 16px.
+  return <div data-slot="empty-title" className={cn("text-title-lg", className)} {...props} />;
 }
 
 function EmptyDescription({ className, ...props }: React.ComponentProps<"p">) {

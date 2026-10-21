@@ -55,6 +55,7 @@ func TestOffer(t *testing.T) {
 			"a catalog is private to its sellers people":  testCatalogIsPrivateToTheSellersPeople,
 			"a post copies its dish":                      testPostsCopyTheirDish,
 			"a catalog holds a hundred dishes":            testCatalogHoldsAHundredDishes,
+			"orders take and return units":                testOrdersTakeAndReturnUnits,
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
