@@ -79,7 +79,6 @@ colors:
   destructive: "{palette.status-error}" # errors, cancelled and refused states, 6.6:1
   destructive-foreground: "{palette.base-white}"
   destructive-hover: "#912018" # 8.7:1
-  destructive-muted: "{palette.status-error-bg}" # a quiet red surface: the admin's "Bị chặn" badge, red ink on it 6.3:1
   success: "{palette.status-success}" # paid, ready, collected; always with an icon or label, 7.6:1
   success-foreground: "{palette.base-white}"
   warning: "{palette.alert-bg}" # allergens and waiting states; always with an icon
@@ -93,18 +92,14 @@ colors:
   avatar-rose: "{palette.logo-rose}" # 5.9:1
   avatar-indigo: "{palette.logo-indigo}" # 7.6:1
   avatar-olive: "{palette.logo-olive}" # 6.0:1
-  # The admin's web (SEC-62, Figma Admin/Sidebar, Admin/Toast): the blue sidebar and the one-line toast.
-  sidebar: "{palette.brand-800}" # the admin sidebar; white on it 6.3:1
+  sidebar: "{palette.brand-800}" # the admin sidebar (SEC-62); white on it 6.3:1
   sidebar-foreground: "{palette.base-white}"
-  sidebar-muted-foreground: "{palette.text-on-brand}" # group labels and the rail's labels; Figma's brand-200 reaches 4.49:1, so brand-100, 5.3:1
-  sidebar-accent: "{palette.brand-900}" # an item under the pointer, the account card, the rail's "sb" tile
-  sidebar-accent-foreground: "{palette.base-white}" # 8.5:1
   sidebar-primary: "{palette.base-white}" # the open item, a white pill
   sidebar-primary-foreground: "{palette.brand-800}" # 6.3:1
-  sidebar-border: "{palette.brand-900}" # the rail's dividers
+  sidebar-accent: "{palette.brand-900}" # an item under the pointer
+  sidebar-accent-foreground: "{palette.base-white}" # 8.5:1
+  sidebar-border: "{palette.brand-900}"
   sidebar-ring: "{palette.base-white}" # focus ring on the sidebar, 6.3:1
-  toast: "{palette.brand-900}" # the admin's one-line notice, bottom right
-  toast-foreground: "{palette.base-white}" # 8.5:1
 typography:
   # Eighteen roles, normalised on 19 October 2026 from the 45 size, weight and leading combinations the Figma
   # "Mobile v2" frames used (SEC-22). Named by purpose, not size; each has a Figma text style of the same name.
@@ -228,8 +223,6 @@ elevation:
     - { x: 0, y: -4, blur: 24, spread: 0, color: "#0E1D191F" }
   nav: # the floating bottom bar (Figma Bottom nav, 105:2515)
     - { x: 0, y: 8, blur: 24, spread: 0, color: "#05122924" }
-  toast: # the admin's toast (Figma Admin/Toast, 228:5568)
-    - { x: 0, y: 8, blur: 24, spread: 0, color: "#004E8C40" }
 components:
   button-primary:
     backgroundColor: "{colors.primary}"
@@ -325,11 +318,6 @@ Two layers, as in Figma. The **palette** is the `SecondBite` collection under th
 - **Leaf Stamp** (`success`): paid, ready and collected orders, always with an icon or label.
 - **Alert** (`warning`, `warning-border`): allergens, waiting states and notices to read before going on, a pale amber box with amber ink, its edge and an icon.
 
-### Admin
-
-- **Admin Sidebar** (`sidebar`, `sidebar-foreground`, `sidebar-muted-foreground`, `sidebar-accent`, `sidebar-primary`, `sidebar-border`, `sidebar-ring`): the admin web's sidebar in Tasco blue (SEC-62, Figma Admin/Sidebar). Group labels are `sidebar-muted-foreground`; an item under the pointer and the account card take `sidebar-accent`; the open item is a white pill (`sidebar-primary`) with blue ink.
-- **Admin Toast** (`toast`, `toast-foreground`, `elevation.toast`): the one-line notice at the bottom right of an admin page.
-
 ### Named Rules
 
 **The One Label Rule.** A card's photograph carries one label, at its top left in Deal Blue: the discount ("Giảm 55%"). How many portions are left is written under the photograph in Sale Red, as words ("Còn 2 phần"), never as a colour alone. Taken from Figma Mobile v3 with the owner on 20 October 2026, in place of the lime stock sticker (SEC-49).
@@ -358,7 +346,7 @@ Eighteen roles, normalised on 19 October 2026 from the 45 size, weight and leadi
 | `price`          | Bricolage 700 | 16 / 18     | The price on a compact card                                                       |
 | `figure-sm`      | Bricolage 700 | 12 / 16     | Small figures on lime: the discount badge, the steps' numbers                     |
 | `page-title`     | 600           | 28 / 36     | The heading of a form page, the sign-in screen's                                  |
-| `hero`           | 700           | 44 / 54     | The headline of a panel with no other content, the wide sign-in screen's          |
+| `hero`           | 700           | 44 / 54     | The headline of a panel with no other content, the wide sign-in screen's           |
 | `headline`       | 700           | 20 / 28     | Section and sheet titles, a page's heading                                        |
 | `bar-title`      | 600           | 17 / 22     | The top bar's title                                                               |
 | `button`         | 600           | 16 / 20     | Button labels                                                                     |

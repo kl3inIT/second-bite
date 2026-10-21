@@ -4,7 +4,7 @@ import { BanIcon, CheckIcon, CircleXIcon, type LucideIcon, RotateCcwIcon } from 
 import { useTranslations } from "next-intl";
 import { useRef, useState, useTransition } from "react";
 
-import { showAdminToast } from "@/features/admin/admin-toast";
+import { showAdminToast } from "@/features/admin/lib/toast";
 import { isFeatureOn } from "@/features/admin/features";
 
 import { useRouter } from "@/i18n/navigation";

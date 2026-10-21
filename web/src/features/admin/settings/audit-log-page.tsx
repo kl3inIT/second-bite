@@ -23,7 +23,7 @@ export async function AuditLogPage({ searchParams }: { searchParams: Promise<Sea
     <SettingsLayout
       title={shell("pages.settingsAuditLog.label")}
       actions={
-        <Button variant="neutral" disabled title={shell("soon")}>
+        <Button variant="outline" disabled title={shell("soon")}>
           {t("export")}
         </Button>
       }

@@ -9,7 +9,7 @@ import { useRouter } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
 import { type AccountBody, grantAdmin } from "@/lib/api/generated";
 
-import { showAdminToast } from "../admin-toast";
+import { showAdminToast } from "../lib/toast";
 import { ConfirmDialog, ConsequenceList } from "../ui/confirm-dialog";
 import { addAdminProblem, adminRefusal } from "./admins";
 import { TextField } from "./text-field";

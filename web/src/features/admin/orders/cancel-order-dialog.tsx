@@ -6,7 +6,7 @@ import { useId, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-import { showAdminToast } from "../admin-toast";
+import { showAdminToast } from "../lib/toast";
 import { ConfirmDialog } from "../ui/confirm-dialog";
 import { type CancelReason, type CancelRequest, canCancel, cancelReasons } from "./order";
 

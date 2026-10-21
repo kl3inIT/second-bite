@@ -6,7 +6,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useEffectEvent, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { showAdminToast } from "@/features/admin/admin-toast";
+import { showAdminToast } from "@/features/admin/lib/toast";
 import { AdminBadge, type BadgeTone } from "@/features/admin/ui/badge";
 import { SideSheet } from "@/features/admin/ui/side-sheet";
 import { formatPrice } from "@/features/offers/format";

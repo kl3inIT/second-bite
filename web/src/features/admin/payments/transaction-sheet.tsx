@@ -10,7 +10,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import { formatPrice } from "../../offers/format";
-import { showAdminToast } from "../admin-toast";
+import { showAdminToast } from "../lib/toast";
 import { DetailCard, DetailList } from "../orders/detail-card";
 import { isOpen } from "../orders/order";
 import { adminHref } from "../pages";
@@ -59,7 +59,7 @@ export function TransactionSheet({
       footer={
         transaction.status === "mismatch" && (
           <>
-            <Button variant="neutral" disabled title={shell("soon")}>
+            <Button variant="outline" disabled title={shell("soon")}>
               {t("addNote")}
             </Button>
             <Button

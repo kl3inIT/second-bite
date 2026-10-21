@@ -16,7 +16,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
 
-import { showAdminToast } from "../admin-toast";
+import { showAdminToast } from "../lib/toast";
 import { type Column, DataTable, StrongCell, TextCell } from "../ui/data-table";
 import { EmptyState } from "../ui/empty-state";
 import { FilterBar, FilterSelect, SearchField } from "../ui/filter-bar";

@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { type OfferSettingsBody, saveOfferSettings } from "@/lib/api/generated";
 
-import { showAdminToast } from "../admin-toast";
+import { showAdminToast } from "../lib/toast";
 import { NumberField } from "../ui/number-field";
 import { FormFooter, SettingsCard } from "../ui/settings";
 import { refusalSentence, refusedFields } from "./field-errors";

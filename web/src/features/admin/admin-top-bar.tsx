@@ -82,7 +82,7 @@ export function AdminTopBar() {
                 {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
                 <BreadcrumbItem>
                   {index === last ? (
-                    <BreadcrumbPage variant="strong">{crumb.label}</BreadcrumbPage>
+                    <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                   ) : crumb.href ? (
                     <BreadcrumbLink render={<Link href={crumb.href} />}>
                       {crumb.label}

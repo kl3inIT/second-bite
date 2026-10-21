@@ -46,7 +46,7 @@ export function SearchField({
 }) {
   return (
     <div className="min-w-60 flex-1">
-      <InputGroup surface="admin">
+      <InputGroup>
         <InputGroupAddon>
           <SearchIcon aria-hidden />
         </InputGroupAddon>
@@ -90,7 +90,7 @@ export function FilterSelect({
         if (typeof next === "string") onChange(next);
       }}
     >
-      <SelectTrigger size="admin" aria-labelledby={labelId}>
+      <SelectTrigger aria-labelledby={labelId}>
         <span id={labelId} className="text-muted-foreground">
           {label}:
         </span>
@@ -143,7 +143,7 @@ export function DateRangeFilter({
 
   return (
     <Popover>
-      <PopoverTrigger variant="field">
+      <PopoverTrigger render={<Button variant="outline" />}>
         <CalendarIcon aria-hidden className="size-4.5 text-muted-foreground" />
         <span className="text-muted-foreground">{label}:</span>
         <span className="text-body-sm-strong text-foreground">{shown}</span>

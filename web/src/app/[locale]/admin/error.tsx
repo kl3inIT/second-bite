@@ -32,7 +32,7 @@ export default function AdminError({ error, retry }: { error: unknown; retry: ()
     <>
       {named && <PageHeader title={t(`pages.${named}.label`)} />}
       <section className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-8 py-10 text-center">
-        <span className="flex size-12 items-center justify-center rounded-full bg-destructive-muted text-destructive">
+        <span className="flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
           <CircleAlertIcon aria-hidden className="size-6" />
         </span>
         <Title className="text-title text-foreground">{t("error.title")}</Title>

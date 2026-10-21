@@ -81,7 +81,7 @@ export function AccountDetail({ account, tab }: { account: AdminAccount; tab: Ac
               </Button>
             </span>
           ) : (
-            <Button variant="destructive-outline" onClick={() => setLocking(true)}>
+            <Button variant="destructive" onClick={() => setLocking(true)}>
               <BanIcon data-icon="inline-start" aria-hidden />
               {t("detail.lock")}
             </Button>

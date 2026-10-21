@@ -133,7 +133,7 @@ export function FormFooter({
       >
         {status}
       </output>
-      <Button variant="neutral" type="button" disabled={!dirty || saving} onClick={onCancel}>
+      <Button variant="outline" type="button" disabled={!dirty || saving} onClick={onCancel}>
         {t("cancel")}
       </Button>
       <Button type="submit" disabled={!dirty || saving}>

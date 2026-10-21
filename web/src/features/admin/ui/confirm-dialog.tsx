@@ -60,18 +60,18 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
-      <AlertDialogContent size="admin">
+      <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
         </AlertDialogHeader>
         {children && <AlertDialogDescription render={<div />}>{children}</AlertDialogDescription>}
         {form && <div className="flex flex-col gap-4">{form}</div>}
         <AlertDialogFooter>
-          <AlertDialogCancel variant="neutral" disabled={pending}>
+          <AlertDialogCancel variant="outline" disabled={pending}>
             {cancelLabel ?? t("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
-            variant={destructive ? "danger" : "default"}
+            variant={destructive ? "destructive" : "default"}
             disabled={pending || confirmDisabled}
             title={confirmTitle}
             onClick={onConfirm}

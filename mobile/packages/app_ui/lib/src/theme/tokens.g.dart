@@ -43,7 +43,6 @@ abstract final class ColorTokens {
   static const destructive = Color(0xFFB42318);
   static const destructiveForeground = Color(0xFFFFFFFF);
   static const destructiveHover = Color(0xFF912018);
-  static const destructiveMuted = Color(0xFFFEF3F2);
   static const success = Color(0xFF2E6B3F);
   static const successForeground = Color(0xFFFFFFFF);
   static const warning = Color(0xFFFFF6E5);
@@ -59,15 +58,12 @@ abstract final class ColorTokens {
   static const avatarOlive = Color(0xFF5E6B1F);
   static const sidebar = Color(0xFF0061AF);
   static const sidebarForeground = Color(0xFFFFFFFF);
-  static const sidebarMutedForeground = Color(0xFFD8F0FA);
-  static const sidebarAccent = Color(0xFF004E8C);
-  static const sidebarAccentForeground = Color(0xFFFFFFFF);
   static const sidebarPrimary = Color(0xFFFFFFFF);
   static const sidebarPrimaryForeground = Color(0xFF0061AF);
+  static const sidebarAccent = Color(0xFF004E8C);
+  static const sidebarAccentForeground = Color(0xFFFFFFFF);
   static const sidebarBorder = Color(0xFF004E8C);
   static const sidebarRing = Color(0xFFFFFFFF);
-  static const toast = Color(0xFF004E8C);
-  static const toastForeground = Color(0xFFFFFFFF);
 }
 
 /// The type roles of DESIGN.md.
@@ -283,8 +279,5 @@ abstract final class ShadowTokens {
   ];
   static const nav = [
     BoxShadow(color: Color(0x24051229), offset: Offset(0, 8), blurRadius: 24),
-  ];
-  static const toast = [
-    BoxShadow(color: Color(0x40004E8C), offset: Offset(0, 8), blurRadius: 24),
   ];
 }

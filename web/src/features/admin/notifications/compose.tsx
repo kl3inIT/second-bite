@@ -54,7 +54,7 @@ export function ComposeEditor() {
         actions={
           <>
             <SoonBadge id={soonId} />
-            <Button variant="neutral" disabled title={tShell("soon")} aria-describedby={soonId}>
+            <Button variant="outline" disabled title={tShell("soon")} aria-describedby={soonId}>
               {t("test")}
             </Button>
             <Button disabled title={tShell("soon")} aria-describedby={soonId}>

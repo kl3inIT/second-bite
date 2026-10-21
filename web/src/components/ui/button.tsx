@@ -24,14 +24,6 @@ const buttonVariants = cva(
         shell: "text-shell-foreground hover:bg-muted",
         // Second Bite (Figma K2a): a suggestion chip on the sky ground, without an edge.
         chip: "bg-muted text-foreground hover:bg-secondary",
-        // Second Bite (Figma Admin/Button): the admin's quiet "Huỷ", a hairline on white with ink words, and its
-        // red action, solid and darker under the pointer.
-        neutral: "border-border bg-card text-foreground hover:bg-muted aria-expanded:bg-muted",
-        danger: "bg-destructive text-destructive-foreground hover:bg-destructive-hover",
-        // Second Bite (Figma Admin/Button 228:9871): a red action that is not the page's main one ("Chặn cửa
-        // hàng", "Huỷ đơn"), a red edge on white, the quiet red under the pointer.
-        "destructive-outline":
-          "border-destructive bg-card text-destructive hover:bg-destructive-muted aria-expanded:bg-destructive-muted",
       },
       size: {
         // Second Bite: 44px targets for one-handed use (PRODUCT.md › Accessibility).

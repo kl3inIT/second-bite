@@ -177,7 +177,7 @@ function DraftEditor({ draft }: { draft: LegalDraft }) {
           {t("reconsent")}
         </label>
         <div className="ml-auto flex gap-3">
-          <Button variant="neutral" disabled title={soon}>
+          <Button variant="outline" disabled title={soon}>
             {t("saveDraft")}
           </Button>
           <Button disabled title={soon}>

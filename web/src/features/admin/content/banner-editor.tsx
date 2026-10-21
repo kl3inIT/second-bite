@@ -66,7 +66,7 @@ export function BannerEditor({
         title={editing ? t("editTitle") : t("newTitle")}
         actions={
           <>
-            <Link href={adminHref("content")} className={buttonVariants({ variant: "neutral" })}>
+            <Link href={adminHref("content")} className={buttonVariants({ variant: "outline" })}>
               {t("cancel")}
             </Link>
             <SoonBadge id={soonId} />

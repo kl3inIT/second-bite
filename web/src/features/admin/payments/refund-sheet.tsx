@@ -46,7 +46,7 @@ export function RefundSheet({
         footer={
           refund.status === "pending" && (
             <>
-              <Button variant="neutral" onClick={() => setDialog("reject")}>
+              <Button variant="outline" onClick={() => setDialog("reject")}>
                 {t("reject")}
               </Button>
               <Button onClick={() => setDialog("approve")}>
@@ -94,7 +94,7 @@ export function RefundDetails({ refund }: { refund: AdminRefund }) {
         <RefundStatusBadge status={refund.status} />
         <MethodBadge method={refund.method} />
       </div>
-      <Alert variant="info">
+      <Alert>
         <InfoIcon aria-hidden />
         <AlertTitle>{t("refunds.sheet.paidToSeller")}</AlertTitle>
       </Alert>

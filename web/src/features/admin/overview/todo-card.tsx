@@ -20,7 +20,7 @@ const rows = [
   {
     key: "issues",
     icon: LifeBuoyIcon,
-    tile: "bg-destructive-muted text-destructive",
+    tile: "bg-destructive/10 text-destructive",
     href: adminHref("issues"),
   },
   {
@@ -38,7 +38,7 @@ const rows = [
   {
     key: "blockedSellers",
     icon: BanIcon,
-    tile: "bg-destructive-muted text-destructive",
+    tile: "bg-destructive/10 text-destructive",
     href: `${adminHref("sellers")}?status=blocked`,
   },
   {

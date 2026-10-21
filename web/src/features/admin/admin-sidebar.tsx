@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { Sidebar, useSidebar } from "@/components/ui/sidebar";
 import { Wordmark } from "@/components/wordmark";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
@@ -72,12 +73,11 @@ const focusRing = "focus-visible:ring-3 focus-visible:ring-sidebar-ring focus-vi
 // in the top bar collapses and expands it, and shadcn's cookie keeps the choice. On a phone it is a drawer,
 // always open, closed from its own button.
 export function AdminSidebar({ account }: { account: Account }) {
-  const t = useTranslations("admin.shell");
   const { state, isMobile } = useSidebar();
   const rail = state === "collapsed" && !isMobile;
 
   return (
-    <Sidebar collapsible="icon" mobileTitle={t("sidebar.label")}>
+    <Sidebar collapsible="icon">
       {rail ? <Rail account={account} /> : <Full account={account} />}
     </Sidebar>
   );
@@ -128,7 +128,7 @@ function Full({ account }: { account: Account }) {
         {adminNavGroups.map((group) => (
           <div key={group} className="flex flex-col gap-0.5">
             {(group === "operations" || group === "users" || group === "marketing") && (
-              <h2 className="px-3 pt-1.5 pb-1 text-label-strong tracking-wide text-sidebar-muted-foreground uppercase">
+              <h2 className="px-3 pt-1.5 pb-1 text-label-strong tracking-wide text-sidebar-foreground uppercase">
                 {t(`groups.${group}`)}
               </h2>
             )}
@@ -247,7 +247,7 @@ function Rail({ account }: { account: Account }) {
                             "max-w-full truncate",
                             active
                               ? "text-label-strong"
-                              : "text-label text-sidebar-muted-foreground group-hover/rail:text-sidebar-foreground",
+                              : "text-label text-sidebar-foreground group-hover/rail:text-sidebar-foreground",
                           )}
                         >
                           {t(`pages.${key}.short`)}
@@ -267,13 +267,13 @@ function Rail({ account }: { account: Account }) {
         </nav>
       </div>
       <div className="flex flex-col items-center gap-4">
-        <LanguageLink className="flex flex-col items-center gap-1 rounded-xl px-1 pb-1 text-label text-sidebar-muted-foreground hover:text-sidebar-foreground">
+        <LanguageLink className="flex flex-col items-center gap-1 rounded-xl px-1 pb-1 text-label text-sidebar-foreground hover:text-sidebar-foreground">
           <span className="flex size-11 items-center justify-center rounded-xl text-sidebar-foreground">
             <GlobeIcon aria-hidden className="size-5" />
           </span>
         </LanguageLink>
         <DropdownMenu>
-          <DropdownMenuTrigger variant="sidebar">
+          <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
             <Avatar account={account} />
             <span className="sr-only">{t("sidebar.account", { email: account.email })}</span>
           </DropdownMenuTrigger>

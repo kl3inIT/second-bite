@@ -40,12 +40,12 @@ export function OfferSheet({
           <>
             <Link
               href={adminHref("sellerDetail", { sellerId: offer.sellerId })}
-              className={buttonVariants({ variant: "neutral" })}
+              className={buttonVariants({ variant: "outline" })}
             >
               {t("store")}
             </Link>
             {canRemove(offer.status) && (
-              <Button variant="destructive-outline" onClick={() => onRemove(offer)}>
+              <Button variant="destructive" onClick={() => onRemove(offer)}>
                 <BanIcon data-icon="inline-start" aria-hidden />
                 {t("remove")}
               </Button>

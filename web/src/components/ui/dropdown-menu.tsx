@@ -19,9 +19,7 @@ function DropdownMenuTrigger({
   className,
   variant = "plain",
   ...props
-}: MenuPrimitive.Trigger.Props & {
-  variant?: "plain" | "header" | "chip" | "inline" | "sidebar" | "icon";
-}) {
+}: MenuPrimitive.Trigger.Props & { variant?: "plain" | "header" | "chip" | "inline" }) {
   return (
     <MenuPrimitive.Trigger
       data-slot="dropdown-menu-trigger"
@@ -32,11 +30,6 @@ function DropdownMenuTrigger({
         "data-[variant=chip]:relative data-[variant=chip]:flex data-[variant=chip]:h-8.5 data-[variant=chip]:shrink-0 data-[variant=chip]:items-center data-[variant=chip]:gap-1.5 data-[variant=chip]:rounded-full data-[variant=chip]:bg-muted data-[variant=chip]:px-3.5 data-[variant=chip]:text-body-sm data-[variant=chip]:text-foreground data-[variant=chip]:transition-colors data-[variant=chip]:after:absolute data-[variant=chip]:after:inset-x-0 data-[variant=chip]:after:-inset-y-1.25 data-[variant=chip]:hover:bg-secondary data-[variant=chip]:focus-visible:ring-3 data-[variant=chip]:focus-visible:ring-ring/50 data-[variant=chip]:focus-visible:outline-none data-[variant=chip]:data-active:bg-secondary data-[variant=chip]:data-active:text-body-sm-strong data-[variant=chip]:data-active:text-primary",
         // Second Bite (Figma K2 tóm tắt): a menu opened from a short link in a line, such as "Gần nhất".
         "data-[variant=inline]:-my-3 data-[variant=inline]:flex data-[variant=inline]:min-h-11 data-[variant=inline]:items-center data-[variant=inline]:gap-1 data-[variant=inline]:text-label-strong data-[variant=inline]:text-link data-[variant=inline]:focus-visible:ring-3 data-[variant=inline]:focus-visible:ring-ring/50 data-[variant=inline]:focus-visible:outline-none",
-        // Second Bite (Figma Admin/Sidebar, collapsed): the account's avatar on the admin rail, a 44px round
-        // target with the sidebar's white focus ring.
-        "data-[variant=sidebar]:flex data-[variant=sidebar]:size-11 data-[variant=sidebar]:items-center data-[variant=sidebar]:justify-center data-[variant=sidebar]:rounded-full data-[variant=sidebar]:focus-visible:ring-3 data-[variant=sidebar]:focus-visible:ring-sidebar-ring data-[variant=sidebar]:focus-visible:outline-none",
-        // Second Bite (Figma Admin/IconButton): the admin's ⋯ at a row's end, 44px, the sky wash while open.
-        "data-[variant=icon]:flex data-[variant=icon]:size-11 data-[variant=icon]:items-center data-[variant=icon]:justify-center data-[variant=icon]:rounded-lg data-[variant=icon]:text-foreground data-[variant=icon]:transition-colors data-[variant=icon]:hover:bg-secondary data-[variant=icon]:focus-visible:ring-3 data-[variant=icon]:focus-visible:ring-ring/50 data-[variant=icon]:focus-visible:outline-none data-[variant=icon]:data-popup-open:bg-secondary data-[variant=icon]:[&_svg]:size-5",
         "data-[variant=header]:-my-1.5 data-[variant=header]:flex data-[variant=header]:h-11 data-[variant=header]:min-w-11 data-[variant=header]:items-center data-[variant=header]:justify-center data-[variant=header]:rounded-full data-[variant=header]:focus-visible:ring-3 data-[variant=header]:focus-visible:ring-ring data-[variant=header]:focus-visible:ring-offset-2 data-[variant=header]:focus-visible:ring-offset-card data-[variant=header]:focus-visible:outline-none",
         className,
       )}
@@ -51,13 +44,9 @@ function DropdownMenuContent({
   side = "bottom",
   sideOffset = 4,
   className,
-  size = "default",
   ...props
 }: MenuPrimitive.Popup.Props &
-  Pick<MenuPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset"> & {
-    /** Second Bite: `admin` is the admin's row menu (Figma Admin/ActionMenu): 6px around its 36px items. */
-    size?: "default" | "admin";
-  }) {
+  Pick<MenuPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset">) {
   return (
     <MenuPrimitive.Portal>
       <MenuPrimitive.Positioner
@@ -69,10 +58,8 @@ function DropdownMenuContent({
       >
         <MenuPrimitive.Popup
           data-slot="dropdown-menu-content"
-          data-size={size}
           className={cn(
             "z-50 max-h-(--available-height) w-(--anchor-width) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:overflow-hidden data-closed:fade-out-0 data-closed:zoom-out-95",
-            size === "admin" && "w-auto min-w-52 rounded-xl p-1.5 shadow-lg",
             className,
           )}
           {...props}
@@ -119,8 +106,6 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        // Second Bite: in the admin's row menu an item is 36px with its icon 18px (Figma Admin/ActionMenuItem).
-        "in-data-[size=admin]:min-h-9 in-data-[size=admin]:gap-2.5 in-data-[size=admin]:rounded-lg in-data-[size=admin]:text-body-sm-strong in-data-[size=admin]:[&_svg:not([class*='size-'])]:size-4.5",
         "group/dropdown-menu-item relative flex min-h-11 cursor-default items-center gap-1.5 rounded-md px-2.5 py-1 text-body-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-[variant=destructive]:*:[svg]:text-destructive",
         className,
       )}

@@ -10,9 +10,20 @@ import {
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
-import { Badge } from "@/components/ui/badge";
+import type { VariantProps } from "class-variance-authority";
+
+import { Badge, type badgeVariants } from "@/components/ui/badge";
 
 export type BadgeTone = "success" | "warning" | "error" | "info" | "neutral";
+
+// Each tone on the closest of the shared Badge's own variants; the icon and the words carry the status.
+const toneVariants: Record<BadgeTone, VariantProps<typeof badgeVariants>["variant"]> = {
+  success: "fresh",
+  warning: "outline",
+  error: "destructive",
+  info: "secondary",
+  neutral: "outline",
+};
 
 const toneIcons: Record<BadgeTone, LucideIcon> = {
   success: CircleCheckIcon,
@@ -37,7 +48,7 @@ export function AdminBadge({
 }) {
   const Icon = icon === undefined ? toneIcons[tone] : icon;
   return (
-    <Badge variant={tone}>
+    <Badge variant={toneVariants[tone]}>
       {Icon && <Icon aria-hidden />}
       {children}
     </Badge>

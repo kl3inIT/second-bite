@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 
 export type RowAction = {
@@ -37,10 +38,13 @@ export function RowActionMenu({ name, actions }: { name: string; actions: RowAct
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger variant="icon" aria-label={t("rowActions", { name })}>
+      <DropdownMenuTrigger
+        render={<Button variant="ghost" size="icon" />}
+        aria-label={t("rowActions", { name })}
+      >
         <EllipsisIcon aria-hidden />
       </DropdownMenuTrigger>
-      <DropdownMenuContent size="admin" align="end">
+      <DropdownMenuContent align="end">
         <DropdownMenuGroup>
           {actions.map(
             ({ label, icon: Icon, href, onSelect, destructive, disabled, title }, index) => {

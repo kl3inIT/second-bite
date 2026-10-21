@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -24,10 +23,9 @@ export function SideSheet({
   footer?: ReactNode;
   children: ReactNode;
 }) {
-  const t = useTranslations("admin.shell");
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" size="admin" closeLabel={t("sheetClose")}>
+      <SheetContent side="right">
         <SheetHeader variant="bar">
           <SheetTitle variant="headline">{title}</SheetTitle>
         </SheetHeader>

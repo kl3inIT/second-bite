@@ -10,7 +10,7 @@ import { Link } from "@/i18n/navigation";
 
 import { formatPrice } from "../../offers/format";
 import { AdminCrumb } from "../admin-crumbs";
-import { showAdminToast } from "../admin-toast";
+import { showAdminToast } from "../lib/toast";
 import { adminHref } from "../pages";
 import { InfoStrip } from "../ui/info-strip";
 import { StatusCard, type StatusLine } from "../ui/status-card";
@@ -73,18 +73,18 @@ export function OrderDetail({
           <OrderStatusBadge status={order.status} />
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Link href={sellerHref} className={buttonVariants({ variant: "neutral" })}>
+          <Link href={sellerHref} className={buttonVariants({ variant: "outline" })}>
             {t("detail.viewSeller")}
           </Link>
           {open && (
-            <Button variant="destructive-outline" onClick={() => setCancelling(true)}>
+            <Button variant="destructive" onClick={() => setCancelling(true)}>
               <BanIcon data-icon="inline-start" aria-hidden />
               {t("detail.cancel")}
             </Button>
           )}
           {order.status === "expired" && (
             <Button
-              variant="destructive-outline"
+              variant="destructive"
               disabled={!onRecordNoShow || recording}
               title={onRecordNoShow ? undefined : shell("soon")}
               onClick={() => void recordNoShow()}

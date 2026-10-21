@@ -20,16 +20,6 @@ const badgeVariants = cva(
         fresh: "h-auto bg-fresh px-2.5 py-1 text-fresh-foreground",
         soldOut: "h-auto bg-muted-foreground px-2.5 py-1 text-card",
         discount: "bg-fresh font-display text-figure-sm text-fresh-foreground",
-        // Second Bite (Figma Admin/Badge 228:21264, Admin/StatusBadge 228:5238): the admin's tones, each with
-        // its icon and words, never colour alone.
-        success: "h-auto gap-1.5 bg-fresh-muted py-1 pr-3 pl-2.5 text-success [&>svg]:size-3.5!",
-        warning:
-          "h-auto gap-1.5 bg-warning py-1 pr-3 pl-2.5 text-warning-foreground [&>svg]:size-3.5!",
-        error:
-          "h-auto gap-1.5 bg-destructive-muted py-1 pr-3 pl-2.5 text-destructive [&>svg]:size-3.5!",
-        info: "h-auto gap-1.5 bg-secondary py-1 pr-3 pl-2.5 text-primary [&>svg]:size-3.5!",
-        neutral:
-          "h-auto gap-1.5 border-border bg-muted py-1 pr-3 pl-2.5 text-muted-foreground [&>svg]:size-3.5!",
       },
     },
     defaultVariants: {

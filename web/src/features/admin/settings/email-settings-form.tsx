@@ -6,7 +6,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { type EmailSettingsBody, getEmailSettings, saveEmailSettings } from "@/lib/api/generated";
 
-import { showAdminToast } from "../admin-toast";
+import { showAdminToast } from "../lib/toast";
 import { AdminBadge } from "../ui/badge";
 import { SegmentedControl } from "../ui/segmented-control";
 import { FormFooter, SettingsCard } from "../ui/settings";

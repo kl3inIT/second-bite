@@ -88,14 +88,6 @@ const pairs = [
   ["fresh", "primary", MIN_TEXT_CONTRAST],
   ["inverse-muted", "primary", MIN_TEXT_CONTRAST],
   ["fresh-foreground", "fresh-muted", MIN_TEXT_CONTRAST],
-  // The admin sidebar's group labels, and its focus ring (SEC-62).
-  ["sidebar-muted-foreground", "sidebar", MIN_TEXT_CONTRAST],
-  ["sidebar-ring", "sidebar", 3],
-  ["fresh", "sidebar", MIN_TEXT_CONTRAST],
-  // The admin's badges: each tone's ink on its quiet surface.
-  ["success", "fresh-muted", MIN_TEXT_CONTRAST],
-  ["destructive", "destructive-muted", MIN_TEXT_CONTRAST],
-  ["warning-foreground", "warning", MIN_TEXT_CONTRAST],
   // Every seller avatar colour carries the one avatar ink.
   ...Object.keys(colors)
     .filter((name) => name.startsWith("avatar-") && name !== "avatar-foreground")

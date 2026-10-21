@@ -13,9 +13,6 @@ const alertVariants = cva(
         // Second Bite (DESIGN.md › Alert): a pale amber box with amber ink, its edge and an icon.
         warning:
           "border-warning-border bg-warning text-warning-foreground *:data-[slot=alert-description]:text-warning-foreground",
-        // Second Bite (Figma Admin/Alert tone=info): sky ground, a pale blue edge, ink words, the icon in Tasco blue.
-        // The admin's alerts have their one title line and no description.
-        info: "border-secondary-hover bg-muted text-foreground *:[svg]:text-primary",
       },
     },
     defaultVariants: {

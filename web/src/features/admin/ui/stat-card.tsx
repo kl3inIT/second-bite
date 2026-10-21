@@ -9,7 +9,7 @@ import type { BadgeTone } from "./badge";
 const tones: Record<BadgeTone, { tile: string; ink: string }> = {
   success: { tile: "bg-fresh-muted", ink: "text-success" },
   warning: { tile: "bg-warning", ink: "text-warning-foreground" },
-  error: { tile: "bg-destructive-muted", ink: "text-destructive" },
+  error: { tile: "bg-destructive/10", ink: "text-destructive" },
   info: { tile: "bg-secondary", ink: "text-primary" },
   neutral: { tile: "bg-muted", ink: "text-muted-foreground" },
 };

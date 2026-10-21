@@ -3,6 +3,7 @@
 import { ChevronDownIcon, CircleXIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -80,7 +81,7 @@ export function TextField({
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
-          <InputGroup surface="admin">
+          <InputGroup>
             <InputGroupInput
               id={id}
               type={type}
@@ -148,7 +149,11 @@ export function ManyPicker({
 }) {
   return (
     <Popover>
-      <PopoverTrigger variant="field" aria-describedby={labelledBy} className="w-full">
+      <PopoverTrigger
+        render={<Button variant="outline" />}
+        aria-describedby={labelledBy}
+        className="w-full"
+      >
         <span className="text-muted-foreground">{label}:</span>
         <span className="min-w-0 flex-1 truncate text-left text-body-sm-strong text-foreground">
           {value}

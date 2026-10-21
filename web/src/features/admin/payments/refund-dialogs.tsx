@@ -5,7 +5,7 @@ import { useId, useState } from "react";
 
 import { Textarea } from "@/components/ui/textarea";
 
-import { showAdminToast } from "../admin-toast";
+import { showAdminToast } from "../lib/toast";
 import { ConfirmDialog } from "../ui/confirm-dialog";
 import { NumberField } from "../ui/number-field";
 import { SegmentedControl } from "../ui/segmented-control";

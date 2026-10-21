@@ -105,7 +105,7 @@ export function ContentView({
             {t("collections")}
           </h2>
           <SoonBadge id={soonId} />
-          <Button variant="neutral" disabled title={tShell("soon")} aria-describedby={soonId}>
+          <Button variant="outline" disabled title={tShell("soon")} aria-describedby={soonId}>
             {t("addCollection")}
           </Button>
         </div>

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import type { BadgeTone } from "./badge";
 
 const surfaces: Record<BadgeTone, { card: string; title: string }> = {
-  error: { card: "bg-destructive-muted", title: "text-destructive" },
+  error: { card: "bg-destructive/10", title: "text-destructive" },
   warning: { card: "bg-warning", title: "text-warning-foreground" },
   success: { card: "bg-fresh-muted", title: "text-success" },
   info: { card: "bg-secondary", title: "text-primary" },

@@ -134,7 +134,7 @@ function Pager({
 }) {
   if (position === 0) return null;
   const step = (sellerId: string | undefined, label: string, Icon: typeof ChevronLeftIcon) => {
-    const className = buttonVariants({ variant: "neutral", size: "icon" });
+    const className = buttonVariants({ variant: "outline", size: "icon" });
     return sellerId ? (
       <Link href={adminHref("sellerDetail", { sellerId })} aria-label={label} className={className}>
         <Icon aria-hidden />

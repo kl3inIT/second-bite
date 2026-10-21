@@ -90,7 +90,7 @@ export function SellerHeader({
             return (
               <Button
                 key={action.kind}
-                variant={action.destructive ? "destructive-outline" : "default"}
+                variant={action.destructive ? "destructive" : "default"}
                 disabled={actions.locked || action.refusal !== undefined}
                 title={action.refusal}
                 onClick={() => actions.act(seller, action.kind)}

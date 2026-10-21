@@ -55,7 +55,7 @@ export function IssueDetail({ issue }: { issue: AdminIssue }) {
           <Handling issue={issue} onDone={() => setClosing(true)} />
           {issue.order && <RelatedOrder order={issue.order} />}
           <Soon>
-            <Button variant="neutral" disabled className="w-full">
+            <Button variant="outline" disabled className="w-full">
               <RotateCcwIcon data-icon="inline-start" aria-hidden />
               {t("detail.refund")}
             </Button>
@@ -278,7 +278,7 @@ function HandlingSelect({
         if (typeof next === "string") onChange?.(next);
       }}
     >
-      <SelectTrigger size="admin" aria-labelledby={labelId} className="w-full">
+      <SelectTrigger aria-labelledby={labelId} className="w-full">
         <span id={labelId} className="text-muted-foreground">
           {label}:
         </span>

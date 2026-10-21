@@ -62,12 +62,12 @@ export function Integrations({ email }: { email: EmailSettingsBody | null }) {
         <div className="flex flex-wrap gap-3">
           <Link
             href={adminHref("settingsEmail")}
-            className={buttonVariants({ variant: "neutral" })}
+            className={buttonVariants({ variant: "outline" })}
           >
             {t("openEmail")}
           </Link>
           {connected && (
-            <Button variant="destructive-outline" disabled title={soon}>
+            <Button variant="destructive" disabled title={soon}>
               {t("disconnect")}
             </Button>
           )}
@@ -96,7 +96,7 @@ export function Integrations({ email }: { email: EmailSettingsBody | null }) {
           <Button disabled title={soon}>
             {t("connect")}
           </Button>
-          <Button variant="neutral" disabled title={soon}>
+          <Button variant="outline" disabled title={soon}>
             {t("test")}
           </Button>
         </div>

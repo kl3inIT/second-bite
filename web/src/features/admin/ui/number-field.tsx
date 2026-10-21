@@ -48,7 +48,7 @@ export function NumberField({
       <label htmlFor={id} className="text-label-strong text-foreground">
         {label}
       </label>
-      <InputGroup surface="admin">
+      <InputGroup>
         <InputGroupInput
           id={id}
           inputMode="numeric"

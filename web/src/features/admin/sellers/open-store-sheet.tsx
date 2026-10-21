@@ -8,7 +8,7 @@ import { useId, useState, useTransition } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
-import { showAdminToast } from "@/features/admin/admin-toast";
+import { showAdminToast } from "@/features/admin/lib/toast";
 import { adminHref } from "@/features/admin/pages";
 import { FieldLabel, FieldProblem } from "@/features/admin/ui/form-fields";
 import { FilterSelect } from "@/features/admin/ui/filter-bar";
@@ -134,7 +134,7 @@ function OpenStoreSheet({
       title={t("title")}
       footer={
         <>
-          <Button variant="neutral" disabled={pending} onClick={() => onOpenChange(false)}>
+          <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
             {t("cancel")}
           </Button>
           <Button
@@ -240,7 +240,7 @@ export function OpenStoreFields({
             onChange={(floor) => onChange({ floor })}
           />
           <div className="min-w-48 flex-1">
-            <InputGroup surface="admin">
+            <InputGroup>
               <InputGroupInput id={`${id}-mall`} value={MALL_ADDRESS} disabled readOnly />
             </InputGroup>
           </div>
@@ -257,7 +257,7 @@ export function OpenStoreFields({
               <StoreIcon aria-hidden className="size-6" />
             )}
           </span>
-          <label className={buttonVariants({ variant: "neutral" })}>
+          <label className={buttonVariants({ variant: "outline" })}>
             {photoUrl ? t("changePhoto") : t("choosePhoto")}
             <input
               id={`${id}-photo`}
@@ -312,7 +312,7 @@ function Field({
   return (
     <div className="flex flex-col gap-1.5">
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <InputGroup surface="admin">
+      <InputGroup>
         <InputGroupInput
           id={id}
           type={type}

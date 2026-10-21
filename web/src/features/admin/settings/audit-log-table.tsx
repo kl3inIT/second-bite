@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Link } from "@/i18n/navigation";
 
-import { showAdminToast } from "../admin-toast";
+import { showAdminToast } from "../lib/toast";
 import { fromDay, toDay } from "../offers/offer";
 import { useListQuery } from "../use-list-query";
 import { AdminBadge } from "../ui/badge";
@@ -96,7 +96,7 @@ export function AuditLogTable({ query, page }: { query: AuditQuery; page: AuditP
         footer={
           shown.next ? (
             <div className="flex justify-center">
-              <Button variant="neutral" disabled={loading} onClick={() => void loadMore()}>
+              <Button variant="outline" disabled={loading} onClick={() => void loadMore()}>
                 {loading ? (
                   <Spinner data-icon="inline-start" />
                 ) : (

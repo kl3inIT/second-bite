@@ -63,7 +63,7 @@ export function PromotionSheet({
       title={editing ? t("editTitle") : t("createTitle")}
       footer={
         <>
-          <Button variant="neutral" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("cancel")}
           </Button>
           <SoonBadge id={`${id}-soon`} />

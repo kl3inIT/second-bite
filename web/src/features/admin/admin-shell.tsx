@@ -3,10 +3,10 @@
 import type { ReactNode } from "react";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/toast";
 
 import { AdminCrumbsProvider } from "./admin-crumbs";
 import { AdminSidebar } from "./admin-sidebar";
-import { AdminToaster } from "./admin-toast";
 import { AdminTopBar } from "./admin-top-bar";
 
 // The frame of every admin page (Figma AD-Q1, AD-Q2): the sidebar on the left, then the top bar over the page
@@ -22,7 +22,7 @@ export function AdminShell({
   children: ReactNode;
 }) {
   return (
-    <AdminToaster>
+    <Toaster>
       <AdminCrumbsProvider>
         <SidebarProvider defaultOpen={sidebarOpen} data-no-footer>
           <AdminSidebar account={account} />
@@ -35,6 +35,6 @@ export function AdminShell({
           </SidebarInset>
         </SidebarProvider>
       </AdminCrumbsProvider>
-    </AdminToaster>
+    </Toaster>
   );
 }
