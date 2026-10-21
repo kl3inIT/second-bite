@@ -51,7 +51,7 @@ test.describe("a dish, its seller and the cart", () => {
     await expect(page.getByText("3× Bánh Croissant Truyền Thống")).toBeVisible();
     await expect(page.getByText("1× Há cảo tôm")).toBeVisible();
     await expect(page.getByText("Tiền món (4 phần)")).toBeVisible();
-    await expect(page.getByRole("radio", { name: "Chuyển khoản tại quầy" })).toBeChecked();
+    await expect(page.getByRole("radio", { name: "Thanh toán tại quầy" })).toBeChecked();
     await expectNoSeriousA11yViolations(page);
   });
 
