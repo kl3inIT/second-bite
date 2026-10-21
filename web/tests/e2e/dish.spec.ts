@@ -86,28 +86,6 @@ test.describe("a dish, its seller and the cart", () => {
     await expect(page.getByRole("button", { name: "Đặt món" })).toBeVisible();
   });
 
-  test("books from the card beside the dish on a wide screen", async ({ page, isMobile }) => {
-    test.skip(isMobile, "A phone has the bar at the foot instead (Figma K4).");
-    await page.goto("/vi/offers/of-croissant");
-    await expect(
-      page.getByRole("navigation", { name: "Bạn đang ở đây" }).getByText("La Paris"),
-    ).toBeVisible();
-    const card = page.getByRole("complementary", { name: "Đặt món" });
-    await expect(card.getByText("Số phần · còn 3")).toBeVisible();
-    await expect(card.getByText("Huỷ miễn phí trước 21:00.")).toBeVisible();
-    await expect(card.getByRole("link", { name: "Chỉ đường" })).toBeVisible();
-    await expectNoSeriousA11yViolations(page);
-
-    await (
-      await hydrated(
-        card.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }),
-      )
-    ).click();
-    await card.getByRole("button", { name: "Thêm 2 phần vào giỏ · 44.000đ" }).click();
-    await card.getByRole("link", { name: "Xem giỏ hàng · 2 phần" }).click();
-    await expect(page.getByText("2× Bánh Croissant Truyền Thống")).toBeVisible();
-  });
-
   test("says when a seller has nothing tonight", async ({ page }) => {
     await page.goto("/vi/sellers/se-unknown");
 

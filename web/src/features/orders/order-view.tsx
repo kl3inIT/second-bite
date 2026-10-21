@@ -76,9 +76,11 @@ function StatusBand({
 function OrderBody({ main, aside }: { main: React.ReactNode; aside: React.ReactNode }) {
   return (
     <div className="relative -mt-6 rounded-t-3xl bg-background">
+      {/* grid-cols-1: a phone's one column may shrink, so a long seller's line that truncates does not widen
+          the page past the screen (SEC-99). */}
       <div
         className={cn(
-          "mx-auto grid w-full items-start gap-3 px-4 pt-4 pb-6 lg:grid-cols-3 lg:gap-6",
+          "mx-auto grid w-full grid-cols-1 items-start gap-3 px-4 pt-4 pb-6 lg:grid-cols-3 lg:gap-6",
           PAGE_WIDTH,
         )}
       >
