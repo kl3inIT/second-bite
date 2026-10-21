@@ -26,7 +26,7 @@ const letters = [
 
 // The Second Bite wordmark, "second bite" with a bite out of the "o" (Figma Brand › logo/wordmark, 7:5639),
 // drawn in the colour of the text around it. Each letter is its own path, numbered by --letter, so the splash
-// and the loading screen can move one of them. It is a picture of words, so the link or heading
+// and the loading screen can move them one after another. It is a picture of words, so the link or heading
 // around it carries those words for assistive technology.
 export function Wordmark({ className }: { className?: string }) {
   return (
