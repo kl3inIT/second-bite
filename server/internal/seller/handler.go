@@ -12,6 +12,12 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
+// addressInput is the point whose address is asked.
+type addressInput struct {
+	Latitude  float64 `query:"latitude"  required:"true" maximum:"90"  minimum:"-90"`
+	Longitude float64 `query:"longitude" required:"true" maximum:"180" minimum:"-180"`
+}
+
 // addressOutput is the address at a point.
 type addressOutput struct {
 	Body struct {
@@ -120,10 +126,7 @@ func registerOwnerOperations(api huma.API, s *Service) {
 		OperationID: "addressAt", Method: http.MethodGet, Path: "/sellers/address",
 		Summary: "The address at a point, to fill the form that opens a store; empty when it is not known",
 		Tags:    tagSellers, Security: security,
-	}, func(ctx context.Context, in *struct {
-		Latitude  float64 `query:"latitude"  required:"true" maximum:"90"  minimum:"-90"`
-		Longitude float64 `query:"longitude" required:"true" maximum:"180" minimum:"-180"`
-	}) (*addressOutput, error) {
+	}, func(ctx context.Context, in *addressInput) (*addressOutput, error) {
 		address, err := s.AddressAt(ctx, in.Latitude, in.Longitude)
 		if err != nil {
 			return nil, err

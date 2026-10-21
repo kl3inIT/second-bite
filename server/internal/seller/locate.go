@@ -52,7 +52,7 @@ func (g geocoder) reverse(ctx context.Context, latitude, longitude float64) (str
 	if err != nil {
 		return "", fmt.Errorf("asking the geocoder: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("the geocoder answered %d", resp.StatusCode)
