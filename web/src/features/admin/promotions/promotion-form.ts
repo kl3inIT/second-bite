@@ -1,4 +1,3 @@
-import { clamp } from "../ui/numbers";
 import type { PromotionRow } from "./promotion";
 import { addDays, endAfter, vietnamDateTime, vietnamDay } from "./schedule";
 
@@ -96,9 +95,37 @@ export function promotionFormOf(row: PromotionRow): PromotionForm {
   };
 }
 
+export type NumberBounds = { min: number; max: number };
+
+/**
+ * What a number field does with what was typed (Figma Admin/FormField + Admin/Input): it never holds a value
+ * outside its bounds (docs: admin-web-flow › Lỗi ở form). Digits over `max` become `max` at once; an empty field,
+ * or one under `min`, keeps what was typed as its `draft` until it is left (`leftNumber`). `value` is the number
+ * the form now holds, when it changed.
+ */
+export function typedNumber(
+  text: string,
+  bounds: NumberBounds,
+): { value?: number; draft?: string } {
+  const digits = text.replace(/\D/g, "").slice(0, 9);
+  if (digits === "") return { draft: "" };
+  const typed = Number(digits);
+  if (typed > bounds.max) return { value: bounds.max };
+  return { value: Math.max(typed, bounds.min), draft: typed < bounds.min ? digits : undefined };
+}
+
+/** The number a field holds once it is left with a draft: empty or under `min` becomes `min`. */
+export function leftNumber(draft: string, bounds: NumberBounds): number {
+  return Math.min(bounds.max, Math.max(bounds.min, Number(draft || bounds.min)));
+}
+
 /** The form after "Tổng số lượt" changed: "Mỗi người dùng" never goes over it. */
 export function withLimit(form: PromotionForm, limit: number): PromotionForm {
-  return { ...form, limit, perUser: clamp(form.perUser, promotionBounds.perUser.min, limit) };
+  return {
+    ...form,
+    limit,
+    perUser: Math.min(limit, Math.max(promotionBounds.perUser.min, form.perUser)),
+  };
 }
 
 /** The form after the start moved: an end before it moves with it. */
