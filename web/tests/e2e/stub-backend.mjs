@@ -1174,26 +1174,23 @@ async function adminSettingsRoutes(request, response, url) {
   return false;
 }
 // --- Admin settings: Quản trị viên (SEC-62) ---
-// GET /admin/admins, POST /admin/admins and POST /admin/admins/{accountId}/revoke, as the identity module answers
-// them (identity/admins.go). Each admin session has its own list, the viewer first, so tests running side by side
-// do not change each other's. An address starting with "chua." has never signed in with a code
+// POST /admin/admins and POST /admin/admins/{accountId}/revoke, as the identity module answers them
+// (identity/admins.go); GET /admin/admins is SEC-75's, in adminRoutes, and reads the same list. Each admin session
+// has its own list, the viewer and the admins the log names (stubAdmins), so tests running side by side do not
+// change each other's. An address starting with "chua." has never signed in with a code
 // (409 IDENTITY_ADDRESS_UNPROVEN); the viewer cannot revoke themselves, nor anyone the last admin.
 const adminsOf = new Map();
 
 function adminsFor(account) {
   if (!adminsOf.has(account.email)) {
-    adminsOf.set(account.email, [
-      account,
-      { id: "ac-admin-1", email: "quantri@example.com", displayName: "", role: "admin" },
-      { id: "ac-admin-2", email: "ngocmai@example.com", displayName: "Ngọc Mai", role: "admin" },
-    ]);
+    adminsOf.set(account.email, [account, ...stubAdmins.map((admin) => ({ ...admin }))]);
   }
   return adminsOf.get(account.email);
 }
 
 async function adminAdminsRoutes(request, response, url) {
   const revoke = /^\/admin\/admins\/([\w-]+)\/revoke$/.exec(url.pathname);
-  if (url.pathname !== "/admin/admins" && !revoke) return false;
+  if ((url.pathname !== "/admin/admins" || request.method !== "POST") && !revoke) return false;
   const account = accounts.get(tokenOf(request));
   if (!account) {
     problem(response, 401, "IDENTITY_SESSION_INVALID");
@@ -1217,12 +1214,6 @@ async function adminAdminsRoutes(request, response, url) {
     return true;
   }
   if (revoke) return false;
-  if (request.method === "GET") {
-    json(response, 200, {
-      admins: admins.toSorted((a, b) => a.email.localeCompare(b.email)),
-    });
-    return true;
-  }
   if (request.method === "POST") {
     const { email } = await readBody(request);
     const address = typeof email === "string" ? email.trim().toLowerCase() : "";
@@ -1729,7 +1720,8 @@ function adminRoutes(request, response, url) {
     return true;
   }
   if (request.method === "GET" && url.pathname === "/admin/admins") {
-    json(response, 200, { admins: stubAdmins });
+    // The session's own list, so the admins SEC-62 grants or revokes show here (adminsFor).
+    json(response, 200, { admins: adminsFor(account) });
     return true;
   }
   if (request.method === "GET" && url.pathname === "/admin/audit-events") {

@@ -90,7 +90,7 @@ test.describe("the admins", () => {
     const me = `admin.quantrivien.${testInfo.project.name}@example.com`;
     await expectSettingsPage(page, "Quản trị viên");
     await expect(page.getByText(`${me} (bạn)`)).toBeVisible();
-    await expect(page.getByText("ngocmai@example.com")).toBeVisible();
+    await expect(page.getByText("thu.admin@example.com")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
     // The viewer cannot revoke themselves.
@@ -124,17 +124,17 @@ test.describe("the admins", () => {
     ).toBeVisible();
 
     await (
-      await hydrated(page.getByRole("button", { name: "Thao tác với ngocmai@example.com" }))
+      await hydrated(page.getByRole("button", { name: "Thao tác với thu.admin@example.com" }))
     ).click();
     await page.getByRole("menuitem", { name: "Thu hồi quyền" }).click();
     const revoke = page.getByRole("alertdialog", { name: "Thu hồi quyền quản trị?" });
-    await expect(revoke).toContainText("ngocmai@example.com không dùng được trang quản trị");
+    await expect(revoke).toContainText("thu.admin@example.com không dùng được trang quản trị");
     await expectNoSeriousA11yViolations(page);
     await revoke.getByRole("button", { name: "Thu hồi quyền" }).click();
     await expect(revoke).toBeHidden();
-    await expect(page.getByText("Đã thu hồi quyền quản trị của ngocmai@example.com")).toBeVisible();
+    await expect(page.getByText("Đã thu hồi quyền quản trị của thu.admin@example.com")).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Thao tác với ngocmai@example.com" }),
+      page.getByRole("button", { name: "Thao tác với thu.admin@example.com" }),
     ).toBeHidden();
   });
 });
