@@ -355,7 +355,7 @@ export const listMyOrders = <ThrowOnError extends boolean = true>(options?: Opti
 /**
  * Order units of one seller's offers, collected at the counter
  *
- * Confirmed at once. Sending the same Idempotency-Key again returns the order placed first.
+ * Confirmed at once, signed in or not; for the account when someone is signed in. Sending the same Idempotency-Key again, without an account with the same phone number, returns the order placed first.
  */
 export const placeOrder = <ThrowOnError extends boolean = true>(options: Options<PlaceOrderData, ThrowOnError>): RequestResult<PlaceOrderResponses, PlaceOrderErrors, ThrowOnError> => (options.client ?? client).post<PlaceOrderResponses, PlaceOrderErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -374,7 +374,7 @@ export const placeOrder = <ThrowOnError extends boolean = true>(options: Options
 /**
  * An order
  *
- * To its customer, with the code once it may be shown, to the seller's people and to admins.
+ * To its customer, signed in or sending its access, with the code once it may be shown; to the seller's people and to admins.
  */
 export const getOrder = <ThrowOnError extends boolean = true>(options: Options<GetOrderData, ThrowOnError>): RequestResult<GetOrderResponses, GetOrderErrors, ThrowOnError> => (options.client ?? client).get<GetOrderResponses, GetOrderErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -389,7 +389,7 @@ export const getOrder = <ThrowOnError extends boolean = true>(options: Options<G
 /**
  * Cancel your order, free of charge until its window opens
  *
- * Its units go back on sale.
+ * By its customer, signed in or sending its access. Its units go back on sale.
  */
 export const cancelOrder = <ThrowOnError extends boolean = true>(options: Options<CancelOrderData, ThrowOnError>): RequestResult<CancelOrderResponses, CancelOrderErrors, ThrowOnError> => (options.client ?? client).post<CancelOrderResponses, CancelOrderErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {

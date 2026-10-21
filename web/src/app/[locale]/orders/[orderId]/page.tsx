@@ -48,7 +48,7 @@ async function Header({ returnTo }: { returnTo: Promise<string> }) {
 async function OrderView({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
   const read = await readOrderView(orderId);
-  if (!read.signedIn) {
+  if (!read.known) {
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-8">
         <SignInPrompt returnTo={`/orders/${orderId}`} />

@@ -18,7 +18,9 @@ type orderWantedBody struct {
 }
 
 type placeOrderBody struct {
-	Lines []orderWantedBody `json:"lines" doc:"One to ten different offers of one seller" maxItems:"10" minItems:"1"`
+	Lines []orderWantedBody `json:"lines" doc:"One to ten different offers of one seller"                            maxItems:"10" minItems:"1"`
+	Name  string            `json:"name"  doc:"The name the seller calls at the counter"                             maxLength:"50" minLength:"1"`
+	Phone string            `json:"phone" doc:"A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted" maxLength:"20" minLength:"1"`
 }
 
 type orderLinePhotoBody struct {
@@ -64,6 +66,9 @@ type orderBody struct {
 	RefuseNote       string          `json:"refuseNote,omitempty"`
 	CodeAttemptsLeft int             `json:"codeAttemptsLeft"       doc:"How many wrong codes staff may still enter"`
 	Code             string          `json:"code,omitempty"         doc:"The collection code, to its customer once the order is ready or its window has opened"`
+	CustomerName     string          `json:"customerName"           doc:"Who collects, as given with the order"`
+	CustomerPhone    string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits"`
+	Access           string          `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
 }
 
 func toBody(o Order) orderBody {
@@ -86,6 +91,7 @@ func toBody(o Order) orderBody {
 		ReadyAt: o.ReadyAt, CollectedAt: o.CollectedAt, CancelledAt: o.CancelledAt, RefusedAt: o.RefusedAt,
 		CancelReason: o.CancelReason, RefuseReason: o.RefuseReason, RefuseNote: o.RefuseNote,
 		CodeAttemptsLeft: o.CodeAttemptsLeft, Code: o.Code,
+		CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Access: o.Access,
 	}
 }
 
@@ -114,8 +120,16 @@ type orderPath struct {
 	OrderID uuid.UUID `path:"orderId"`
 }
 
+// customerPath names an order and, for a customer who did not sign in, its
+// access.
+type customerPath struct {
+	OrderID uuid.UUID `path:"orderId"`
+	Access  string    `doc:"The order's access, for its customer who did not sign in" header:"Order-Access" maxLength:"64"`
+}
+
 var (
 	security  = platform.SignedIn()
+	anyone    = platform.MaybeSignedIn()
 	tagOrders = []string{"Orders"}
 )
 
@@ -128,9 +142,10 @@ func RegisterOperations(api huma.API, s *Service) {
 func registerCustomerOperations(api huma.API, s *Service) {
 	huma.Register(api, huma.Operation{
 		OperationID: "placeOrder", Method: http.MethodPost, Path: "/orders",
-		Summary:     "Order units of one seller's offers, collected at the counter",
-		Description: "Confirmed at once. Sending the same Idempotency-Key again returns the order placed first.",
-		Tags:        tagOrders, Security: security, DefaultStatus: http.StatusCreated,
+		Summary: "Order units of one seller's offers, collected at the counter",
+		Description: "Confirmed at once, signed in or not; for the account when someone is signed in. Sending the same " +
+			"Idempotency-Key again, without an account with the same phone number, returns the order placed first.",
+		Tags: tagOrders, Security: anyone, DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, in *struct {
 		IdempotencyKey string `header:"Idempotency-Key" maxLength:"255" minLength:"1" required:"true"`
 		Body           placeOrderBody
@@ -141,7 +156,7 @@ func registerCustomerOperations(api huma.API, s *Service) {
 			wanted = append(wanted, Wanted(l))
 		}
 
-		o, err := s.Place(ctx, in.IdempotencyKey, wanted)
+		o, err := s.Place(ctx, in.IdempotencyKey, Contact{Name: in.Body.Name, Phone: in.Body.Phone}, wanted)
 		if err != nil {
 			return nil, err
 		}
@@ -168,11 +183,12 @@ func registerCustomerOperations(api huma.API, s *Service) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "getOrder", Method: http.MethodGet, Path: "/orders/{orderId}",
-		Summary:     "An order",
-		Description: "To its customer, with the code once it may be shown, to the seller's people and to admins.",
-		Tags:        tagOrders, Security: security,
-	}, func(ctx context.Context, in *orderPath) (*orderOutput, error) {
-		o, err := s.Get(ctx, in.OrderID)
+		Summary: "An order",
+		Description: "To its customer, signed in or sending its access, with the code once it may be shown; to the " +
+			"seller's people and to admins.",
+		Tags: tagOrders, Security: anyone,
+	}, func(ctx context.Context, in *customerPath) (*orderOutput, error) {
+		o, err := s.Get(ctx, in.OrderID, in.Access)
 		if err != nil {
 			return nil, err
 		}
@@ -183,16 +199,17 @@ func registerCustomerOperations(api huma.API, s *Service) {
 	huma.Register(api, huma.Operation{
 		OperationID: "cancelOrder", Method: http.MethodPost, Path: "/orders/{orderId}/cancel",
 		Summary:     "Cancel your order, free of charge until its window opens",
-		Description: "Its units go back on sale.",
-		Tags:        tagOrders, Security: security,
+		Description: "By its customer, signed in or sending its access. Its units go back on sale.",
+		Tags:        tagOrders, Security: anyone,
 	}, func(ctx context.Context, in *struct {
 		OrderID uuid.UUID `path:"orderId"`
+		Access  string    `doc:"The order's access, for its customer who did not sign in" header:"Order-Access" maxLength:"64"`
 		Body    struct {
 			Reason string `json:"reason,omitempty" maxLength:"200"`
 		}
 	},
 	) (*orderOutput, error) {
-		o, err := s.Cancel(ctx, in.OrderID, in.Body.Reason)
+		o, err := s.Cancel(ctx, in.OrderID, in.Access, in.Body.Reason)
 		if err != nil {
 			return nil, err
 		}

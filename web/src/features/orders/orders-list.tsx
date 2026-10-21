@@ -118,7 +118,7 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
     readMyOrders("open"),
     readMyOrders("ended"),
   ]);
-  if (!open.signedIn || !done.signedIn) return <SignInPrompt returnTo="/orders" />;
+  if (!open.known || !done.known) return <SignInPrompt returnTo="/orders" />;
 
   const collected = done.value.filter((order) => order.status === "collected");
   const saved = collected.reduce((sum, order) => sum + savingOf(order), 0);

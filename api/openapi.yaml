@@ -775,6 +775,9 @@ components:
     OrderBody:
       additionalProperties: false
       properties:
+        access:
+          description: "To its customer: proves the order is theirs without signing in, sent back as Order-Access"
+          type: string
         cancelReason:
           type: string
         cancelledAt:
@@ -792,6 +795,12 @@ components:
           type: string
         createdAt:
           format: date-time
+          type: string
+        customerName:
+          description: Who collects, as given with the order
+          type: string
+        customerPhone:
+          description: Their phone number, 0 and nine digits
           type: string
         id:
           type: string
@@ -850,6 +859,8 @@ components:
         - windowEnd
         - createdAt
         - codeAttemptsLeft
+        - customerName
+        - customerPhone
       type: object
     OrderLineBody:
       additionalProperties: false
@@ -977,8 +988,20 @@ components:
           type:
             - array
             - "null"
+        name:
+          description: The name the seller calls at the counter
+          maxLength: 50
+          minLength: 1
+          type: string
+        phone:
+          description: A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted
+          maxLength: 20
+          minLength: 1
+          type: string
       required:
         - lines
+        - name
+        - phone
       type: object
     Problem:
       additionalProperties: false
@@ -2067,7 +2090,7 @@ paths:
       tags:
         - Orders
     post:
-      description: Confirmed at once. Sending the same Idempotency-Key again returns the order placed first.
+      description: Confirmed at once, signed in or not; for the account when someone is signed in. Sending the same Idempotency-Key again, without an account with the same phone number, returns the order placed first.
       operationId: placeOrder
       parameters:
         - in: header
@@ -2097,6 +2120,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
           description: Error
       security:
+        - {}
         - bearer: []
         - cookie: []
       summary: Order units of one seller's offers, collected at the counter
@@ -2104,13 +2128,20 @@ paths:
         - Orders
   /orders/{orderId}:
     get:
-      description: To its customer, with the code once it may be shown, to the seller's people and to admins.
+      description: To its customer, signed in or sending its access, with the code once it may be shown; to the seller's people and to admins.
       operationId: getOrder
       parameters:
         - in: path
           name: orderId
           required: true
           schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
             type: string
       responses:
         "200":
@@ -2126,6 +2157,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
           description: Error
       security:
+        - {}
         - bearer: []
         - cookie: []
       summary: An order
@@ -2133,13 +2165,20 @@ paths:
         - Orders
   /orders/{orderId}/cancel:
     post:
-      description: Its units go back on sale.
+      description: By its customer, signed in or sending its access. Its units go back on sale.
       operationId: cancelOrder
       parameters:
         - in: path
           name: orderId
           required: true
           schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
             type: string
       requestBody:
         content:
@@ -2161,6 +2200,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
           description: Error
       security:
+        - {}
         - bearer: []
         - cookie: []
       summary: Cancel your order, free of charge until its window opens

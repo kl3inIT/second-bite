@@ -6,9 +6,13 @@ CREATE TABLE order_orders (
     -- What people read aloud and search for, shown as SB-<number>.
     number               bigint      GENERATED ALWAYS AS IDENTITY (START WITH 10001) UNIQUE,
     -- identity's account and seller's seller, without foreign keys across
-    -- modules.
-    customer_id          uuid        NOT NULL,
+    -- modules; no account when the order was placed without signing in.
+    customer_id          uuid,
     seller_id            uuid        NOT NULL,
+    -- Who collects: the name the seller calls and a Vietnamese phone number,
+    -- given with every order.
+    customer_name        text        NOT NULL CHECK (char_length(customer_name) BETWEEN 1 AND 50),
+    customer_phone       text        NOT NULL CHECK (customer_phone ~ '^0[0-9]{9}$'),
     -- Copied from the offers when ordered.
     seller_name          text        NOT NULL,
     latitude             double precision NOT NULL CHECK (latitude BETWEEN -90 AND 90),
@@ -37,6 +41,8 @@ CREATE TABLE order_orders (
 );
 
 CREATE INDEX order_orders_customer ON order_orders (customer_id, created_at DESC);
+-- Without an account, a key is unique to the phone number it came with.
+CREATE UNIQUE INDEX order_orders_guest_key ON order_orders (customer_phone, idempotency_key) WHERE customer_id IS NULL;
 CREATE INDEX order_orders_seller ON order_orders (seller_id, window_start);
 
 CREATE TABLE order_lines (
@@ -57,8 +63,9 @@ CREATE TABLE order_events (
     id          bigint      GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     order_id    uuid        NOT NULL REFERENCES order_orders ON DELETE CASCADE,
     kind        text        NOT NULL CHECK (kind IN ('placed', 'ready', 'collected', 'cancelled', 'refused', 'code_wrong')),
-    -- identity's account, without a foreign key across modules.
-    actor_id    uuid        NOT NULL,
+    -- identity's account, without a foreign key across modules; none for
+    -- a customer who did not sign in.
+    actor_id    uuid,
     at          timestamptz NOT NULL DEFAULT now()
 );
 

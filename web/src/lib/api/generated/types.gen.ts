@@ -335,6 +335,10 @@ export type OffersOutputBody = {
 };
 
 export type OrderBody = {
+    /**
+     * To its customer: proves the order is theirs without signing in, sent back as Order-Access
+     */
+    access?: string;
     cancelReason?: string;
     cancelledAt?: string;
     /**
@@ -347,6 +351,14 @@ export type OrderBody = {
     codeAttemptsLeft: number;
     collectedAt?: string;
     createdAt: string;
+    /**
+     * Who collects, as given with the order
+     */
+    customerName: string;
+    /**
+     * Their phone number, 0 and nine digits
+     */
+    customerPhone: string;
     id: string;
     lines: Array<OrderLineBody>;
     /**
@@ -428,6 +440,14 @@ export type PlaceOrderBody = {
      * One to ten different offers of one seller
      */
     lines: Array<OrderWantedBody> | null;
+    /**
+     * The name the seller calls at the counter
+     */
+    name: string;
+    /**
+     * A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted
+     */
+    phone: string;
 };
 
 export type Problem = {
@@ -1279,6 +1299,12 @@ export type PlaceOrderResponse = PlaceOrderResponses[keyof PlaceOrderResponses];
 
 export type GetOrderData = {
     body?: never;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
     path: {
         orderId: string;
     };
@@ -1306,6 +1332,12 @@ export type GetOrderResponse = GetOrderResponses[keyof GetOrderResponses];
 
 export type CancelOrderData = {
     body: CancelOrderRequest;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
     path: {
         orderId: string;
     };

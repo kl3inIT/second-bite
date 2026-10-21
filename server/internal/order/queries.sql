@@ -1,10 +1,10 @@
 -- name: InsertOrder :one
 INSERT INTO order_orders (
-    customer_id, seller_id, seller_name, latitude, longitude, address, window_start, window_end, total_vnd,
-    idempotency_key
+    customer_id, customer_name, customer_phone, seller_id, seller_name, latitude, longitude, address, window_start,
+    window_end, total_vnd, idempotency_key
 ) VALUES (
-    @customer_id, @seller_id, @seller_name, @latitude, @longitude, @address, @window_start, @window_end, @total_vnd,
-    @idempotency_key
+    @customer_id, @customer_name, @customer_phone, @seller_id, @seller_name, @latitude, @longitude, @address,
+    @window_start, @window_end, @total_vnd, @idempotency_key
 )
 RETURNING id;
 
@@ -16,20 +16,23 @@ VALUES (@order_id, @offer_id, @name, @unit, @price_vnd, @original_price_vnd, @ph
 INSERT INTO order_events (order_id, kind, actor_id) VALUES (@order_id, @kind, @actor_id);
 
 -- name: OrderOfKey :one
--- The order a customer already placed with this idempotency key.
-SELECT id FROM order_orders WHERE customer_id = @customer_id AND idempotency_key = @idempotency_key;
+-- The order a customer already placed with this idempotency key; without an
+-- account, only with the same phone number.
+SELECT id FROM order_orders
+WHERE customer_id IS NOT DISTINCT FROM sqlc.narg(customer_id)::uuid AND idempotency_key = @idempotency_key
+  AND (customer_id IS NOT NULL OR customer_phone = @customer_phone);
 
 -- name: GetOrder :one
-SELECT id, number, customer_id, seller_id, seller_name, latitude, longitude, address, state, window_start,
-       window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note, created_at, ready_at,
-       collected_at, cancelled_at, refused_at
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, seller_name, latitude, longitude, address,
+       state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders WHERE id = @id;
 
 -- name: LockOrder :one
 -- Serializes the transitions of one order until the transaction ends.
-SELECT id, number, customer_id, seller_id, seller_name, latitude, longitude, address, state, window_start,
-       window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note, created_at, ready_at,
-       collected_at, cancelled_at, refused_at
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, seller_name, latitude, longitude, address,
+       state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders WHERE id = @id FOR UPDATE;
 
 -- name: LinesOf :many
@@ -40,9 +43,9 @@ ORDER BY order_id, name, offer_id;
 -- name: CustomerOrders :many
 -- A customer's orders, newest first: open ones are confirmed or ready with
 -- their window not over; ended ones are every other.
-SELECT id, number, customer_id, seller_id, seller_name, latitude, longitude, address, state, window_start,
-       window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note, created_at, ready_at,
-       collected_at, cancelled_at, refused_at
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, seller_name, latitude, longitude, address,
+       state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders
 WHERE customer_id = @customer_id
   AND (@which::text = ''
@@ -54,9 +57,9 @@ LIMIT @max_rows OFFSET @skip_rows;
 -- name: SellerOrders :many
 -- A seller's orders whose window starts within [day_start, day_end), soonest
 -- first.
-SELECT id, number, customer_id, seller_id, seller_name, latitude, longitude, address, state, window_start,
-       window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note, created_at, ready_at,
-       collected_at, cancelled_at, refused_at
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, seller_name, latitude, longitude, address,
+       state, window_start, window_end, total_vnd, wrong_code_attempts, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
 FROM order_orders
 WHERE seller_id = @seller_id AND window_start >= @day_start AND window_start < @day_end
 ORDER BY window_start, number

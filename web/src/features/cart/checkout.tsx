@@ -15,15 +15,16 @@ import { Link } from "@/i18n/navigation";
 
 import { collectionWindow, totals, withBasket, type Basket, type Cart } from "./cart";
 import { saveCart, useCart } from "./cart-store";
+import type { Contact } from "./contact";
 import { GoneSheet } from "./gone-sheet";
 import { OrderButton } from "./order-button";
 import { usePlaceCart } from "./use-place-cart";
 
 // The cart's confirmation (Figma K5): where and when to collect at each seller, how to pay at the counter, the
-// dishes with "Sửa món", the totals with no fee from Second Bite, the cancellation policy, and "Đặt món", which
-// signs in and names the account first (L5, L6), then orders each seller's dishes and opens the order
-// (SEC-76); a dish someone else took first asks what to do with the rest (O7).
-export function Checkout(asking: Asking) {
+// dishes with "Sửa món", the totals, the cancellation policy, and "Đặt món", which
+// asks who collects in a sheet and checks the phone number once, then orders each seller's dishes and opens the order, signed
+// in or not (SEC-76); a dish someone else took first asks what to do with the rest (O7).
+export function Checkout() {
   const t = useTranslations("Cart");
   const cart = useCart();
 
@@ -42,15 +43,13 @@ export function Checkout(asking: Asking) {
     );
   }
 
-  return <Confirmation cart={cart} {...asking} />;
+  return <Confirmation cart={cart} />;
 }
 
-/** Who orders, and what "Đặt món" asks before ordering (SEC-76): see `OrderButton`. */
-type Asking = Omit<React.ComponentProps<typeof OrderButton>, "held" | "pending" | "onReady">;
-
-function Confirmation({ cart, ...asking }: { cart: Cart } & Asking) {
+function Confirmation({ cart }: { cart: Cart }) {
   const t = useTranslations("Cart");
   const [payment, setPayment] = useState("transfer");
+  const [contact, setContact] = useState<Contact>();
   const { place, pending, problem, dismiss } = usePlaceCart();
   const { units, priceVnd, originalPriceVnd } = totals(cart);
   const several = cart.baskets.length > 1;
@@ -92,17 +91,10 @@ function Confirmation({ cart, ...asking }: { cart: Cart } & Asking) {
               <dd className="font-display text-price-sm">{formatPrice(priceVnd)}</dd>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <dt>{t("thirdParty")}</dt>
-              <dd className="text-muted-foreground">{t("none")}</dd>
-            </div>
-            <div className="flex items-center justify-between gap-3">
               <dt className="text-title-lg">{t("total")}</dt>
               <dd className="font-display text-price">{formatPrice(priceVnd)}</dd>
             </div>
           </dl>
-          <p className="text-label text-muted-foreground">
-            {t(several ? "noCommissionMany" : "noCommission", { price: formatPrice(priceVnd) })}
-          </p>
         </section>
         <section aria-labelledby="cancel" className="flex flex-col gap-1">
           <h2 id="cancel" className="text-label-strong text-muted-foreground uppercase">
@@ -129,10 +121,11 @@ function Confirmation({ cart, ...asking }: { cart: Cart } & Asking) {
             </div>
             <div className="flex flex-1 *:w-full">
               <OrderButton
-                {...asking}
-                held={{ units, seller: cart.baskets.map(({ seller }) => seller.name).join(", ") }}
                 pending={pending}
-                onReady={() => place(cart)}
+                onConfirmed={(confirmed) => {
+                  setContact(confirmed);
+                  place(cart, confirmed);
+                }}
               />
             </div>
           </div>
@@ -158,7 +151,7 @@ function Confirmation({ cart, ...asking }: { cart: Cart } & Asking) {
           onOrderRest={(rest) => {
             const next = withBasket(cart, problem.sellerId, rest);
             saveCart(next);
-            if (next) place(next);
+            if (next && contact) place(next, contact);
           }}
         />
       )}

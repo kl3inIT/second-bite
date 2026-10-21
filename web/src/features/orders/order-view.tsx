@@ -118,6 +118,7 @@ export function OpenOrder({
               </div>
               <CancelOrder
                 orderId={order.id}
+                access={order.access}
                 number={order.number}
                 seller={order.seller.name}
                 units={unitsOf(order)}

@@ -57,9 +57,12 @@ var vietnam = time.FixedZone("Asia/Ho_Chi_Minh", 7*60*60)
 
 // Order is a customer's order.
 type Order struct {
-	ID         uuid.UUID
-	Number     int64
-	CustomerID uuid.UUID
+	ID     uuid.UUID
+	Number int64
+	// CustomerID is the account that placed the order; none when it was
+	// placed without signing in.
+	CustomerID uuid.NullUUID
+	Contact    Contact
 	SellerID   uuid.UUID
 	SellerName string
 	// CollectionPoint is copied from the offers when ordered.
@@ -82,6 +85,9 @@ type Order struct {
 	// Code is the collection code, set only for the order's customer once it
 	// may be shown.
 	Code string
+	// Access proves the order is theirs to whoever placed it, set only for
+	// them.
+	Access string
 }
 
 // Number is how people read an order's number aloud and search for it.
@@ -121,26 +127,36 @@ func NewService(pool *pgxpool.Pool, offers *offer.Service, sellers *seller.Servi
 	}, nil
 }
 
-// Get returns an order to its customer, the seller's people and admins; the
-// code only to its customer, once it may be shown.
-func (s *Service) Get(ctx context.Context, id uuid.UUID) (Order, error) {
-	caller, err := platform.RequireCaller(ctx)
-	if err != nil {
-		return Order{}, err
-	}
-
+// Get returns an order to its customer, signed in or holding its access, to
+// the seller's people and to admins; the code only to its customer, once it
+// may be shown.
+func (s *Service) Get(ctx context.Context, id uuid.UUID, access string) (Order, error) {
 	o, err := s.read(ctx, id)
 	if err != nil {
 		return Order{}, err
 	}
 
-	if o.CustomerID != caller.AccountID {
-		if _, err := s.sellers.Get(ctx, o.SellerID); err != nil {
-			return Order{}, ErrNotFound
-		}
+	if s.isCustomer(ctx, o, access) {
+		return s.shown(o, true), nil
 	}
 
-	return s.shown(o, caller), nil
+	if _, signedIn := platform.CallerFrom(ctx); !signedIn {
+		return Order{}, ErrNotFound
+	}
+
+	if _, err := s.sellers.Get(ctx, o.SellerID); err != nil {
+		return Order{}, ErrNotFound
+	}
+
+	return o, nil
+}
+
+// isCustomer tells whether the reader placed o: signed in to its account, or
+// holding its access.
+func (s *Service) isCustomer(ctx context.Context, o Order, access string) bool {
+	caller, signedIn := platform.CallerFrom(ctx)
+
+	return (signedIn && o.CustomerID.Valid && o.CustomerID.UUID == caller.AccountID) || s.accessMatches(o.ID, access)
 }
 
 // Which narrows a customer's orders: those still to collect, or those ended.
@@ -164,7 +180,7 @@ func (s *Service) Mine(ctx context.Context, which Which, limit, offset int) ([]O
 	}
 
 	rows, err := s.queries.CustomerOrders(ctx, db.CustomerOrdersParams{
-		CustomerID: caller.AccountID, Which: string(which),
+		CustomerID: uuid.NullUUID{UUID: caller.AccountID, Valid: true}, Which: string(which),
 		MaxRows: int32(min(max(limit, 1), maxListed)), SkipRows: int32(max(offset, 0)), //nolint:gosec // bounded above
 	})
 	if err != nil {
@@ -181,7 +197,7 @@ func (s *Service) Mine(ctx context.Context, which Which, limit, offset int) ([]O
 	}
 
 	for i := range orders {
-		orders[i] = s.shown(orders[i], caller)
+		orders[i] = s.shown(orders[i], true)
 	}
 
 	return orders, nil
@@ -265,10 +281,15 @@ func (s *Service) withLines(ctx context.Context, orders []Order) error {
 	return nil
 }
 
-// shown is what caller may see of o: the code only when caller is its
-// customer and the code may be shown.
-func (s *Service) shown(o Order, caller platform.Caller) Order {
-	if caller.AccountID == o.CustomerID && s.codeShown(o) {
+// shown is what a reader may see of o: to its customer, its access and, once
+// it may be shown, the code.
+func (s *Service) shown(o Order, customer bool) Order {
+	if !customer {
+		return o
+	}
+
+	o.Access = s.access(o.ID)
+	if s.codeShown(o) {
 		o.Code = s.code(o.ID)
 	}
 
@@ -283,7 +304,9 @@ func (s *Service) codeShown(o Order) bool {
 
 func (s *Service) fromRow(r db.GetOrderRow) Order {
 	o := Order{
-		ID: r.ID, Number: r.Number.Int64, CustomerID: r.CustomerID, SellerID: r.SellerID, SellerName: r.SellerName,
+		ID: r.ID, Number: r.Number.Int64, CustomerID: r.CustomerID,
+		Contact:  Contact{Name: r.CustomerName, Phone: r.CustomerPhone},
+		SellerID: r.SellerID, SellerName: r.SellerName,
 		CollectionPoint: seller.CollectionPoint{Latitude: r.Latitude, Longitude: r.Longitude, Address: r.Address},
 		Status:          Status(r.State), TotalVND: r.TotalVnd, WindowStart: r.WindowStart, WindowEnd: r.WindowEnd,
 		CreatedAt: r.CreatedAt, ReadyAt: r.ReadyAt, CollectedAt: r.CollectedAt, CancelledAt: r.CancelledAt,

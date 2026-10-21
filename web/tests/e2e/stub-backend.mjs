@@ -4,6 +4,7 @@
 // tonight's prices and windows are made up. Adapted from BeyondPilot's
 // web/tests/e2e/stub-backend.mjs.
 import { AsyncLocalStorage } from "node:async_hooks";
+import { randomUUID } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
@@ -947,12 +948,14 @@ async function sellerRoutes(request, response, url) {
   return false;
 }
 
-// Orders (SEC-15), as api/openapi.yaml describes them: placed by a signed-in account with an Idempotency-Key,
-// read and listed by it alone, and cancelled until the window opens. The stub takes no units away, so the
-// home's tests keep their counts.
-const ordersByEmail = new Map();
+// Orders (SEC-15, SEC-76), as api/openapi.yaml describes them: placed with a name, a phone number and an
+// Idempotency-Key, signed in or not; read and cancelled until the window opens by the account that placed them
+// or with the access answered to whoever placed them; listed for the account. The stub takes no units away,
+// so the home's tests keep their counts.
+const orders = [];
 const ordersByKey = new Map();
 let nextOrder = 10001;
+const PHONE = /^0[0-9]{9}$/;
 
 function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
@@ -965,8 +968,15 @@ function shown(order) {
   const codeShown =
     (status === "confirmed" || status === "ready") &&
     (status === "ready" || new Date(order.windowStart) <= new Date());
-  const { code, ...rest } = order;
+  const { code, owner: _owner, ...rest } = order;
   return { ...rest, status, ...(codeShown ? { code } : {}) };
+}
+
+/** Whether the request comes from whoever placed the order: its account, or its access. */
+function placedBy(request, account, order) {
+  return (
+    (account && order.owner === account.email) || request.headers["order-access"] === order.access
+  );
 }
 
 async function ordersApi(request, response, url) {
@@ -982,21 +992,23 @@ async function ordersApi(request, response, url) {
   }
   if (!url.pathname.startsWith("/orders")) return false;
   const account = accounts.get(tokenOf(request));
-  if (!account) {
-    problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
-    return true;
-  }
-  const mine = ordersByEmail.get(account.email) ?? [];
-  ordersByEmail.set(account.email, mine);
 
   if (request.method === "POST" && url.pathname === "/orders") {
-    const key = `${account.email} ${request.headers["idempotency-key"] ?? ""}`;
+    const { lines, name, phone } = await readBody(request);
+    const contact = {
+      name: typeof name === "string" ? name.trim() : "",
+      phone: typeof phone === "string" ? phone.replace(/[\s.-]/g, "").replace(/^\+84/, "0") : "",
+    };
+    if (!contact.name || contact.name.length > 50 || !PHONE.test(contact.phone)) {
+      problem(response, 400, "ORDER_CONTACT_INVALID");
+      return true;
+    }
+    const key = `${account?.email ?? contact.phone} ${request.headers["idempotency-key"] ?? ""}`;
     const earlier = ordersByKey.get(key);
     if (earlier) {
       json(response, 201, shown(earlier));
       return true;
     }
-    const { lines } = await readBody(request);
     const wanted = (Array.isArray(lines) ? lines : []).map((line) => ({
       ...line,
       offer: offerById(line.offerId),
@@ -1012,8 +1024,12 @@ async function ordersApi(request, response, url) {
     const { offer } = wanted[0];
     const number = nextOrder++;
     const order = {
-      id: `or-${number}`,
+      id: randomUUID(),
       number: `SB-${number}`,
+      owner: account?.email,
+      access: randomUUID().replaceAll("-", ""),
+      customerName: contact.name,
+      customerPhone: contact.phone,
       status: "confirmed",
       seller: {
         id: offer.seller.id,
@@ -1038,14 +1054,18 @@ async function ordersApi(request, response, url) {
       codeAttemptsLeft: 3,
       code: String(number % 10000).padStart(4, "0"),
     };
-    mine.unshift(order);
+    orders.unshift(order);
     ordersByKey.set(key, order);
     json(response, 201, shown(order));
     return true;
   }
   if (request.method === "GET" && url.pathname === "/orders") {
+    if (!account) {
+      problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+      return true;
+    }
     const state = url.searchParams.get("state");
-    const all = mine.map(shown);
+    const all = orders.filter((order) => order.owner === account.email).map(shown);
     const open = (order) => order.status === "confirmed" || order.status === "ready";
     json(response, 200, {
       orders: all.filter((order) => !state || (state === "open" ? open(order) : !open(order))),
@@ -1053,7 +1073,9 @@ async function ordersApi(request, response, url) {
     return true;
   }
   const orderMatch = /^\/orders\/([\w-]+)(\/cancel)?$/.exec(url.pathname);
-  const order = orderMatch ? mine.find((found) => found.id === orderMatch[1]) : undefined;
+  const order = orderMatch
+    ? orders.find((found) => found.id === orderMatch[1] && placedBy(request, account, found))
+    : undefined;
   if (orderMatch && !order) {
     problem(response, 404, "ORDER_NOT_FOUND");
     return true;

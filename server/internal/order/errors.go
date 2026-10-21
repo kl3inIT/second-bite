@@ -8,6 +8,10 @@ var (
 		VI: "Một đơn gồm một đến mười món khác nhau của một quán, mỗi món ít nhất một phần.",
 		EN: "An order holds one to ten different offers of one seller, each at least one unit.",
 	})
+	ErrContactInvalid = platform.NewFailure("ORDER_CONTACT_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Nhập tên từ 1 đến 50 ký tự và số điện thoại Việt Nam 10 số, bắt đầu bằng 0.",
+		EN: "Give a name of 1 to 50 characters and a 10-digit Vietnamese phone number starting with 0.",
+	})
 	ErrIdempotencyKeyInvalid = platform.NewFailure("ORDER_IDEMPOTENCY_KEY_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Gửi Idempotency-Key dài 1 đến 255 ký tự, và gửi lại đúng khoá đó khi đặt lại đơn.",
 		EN: "Send an Idempotency-Key of 1 to 255 characters, the same one when sending the order again.",

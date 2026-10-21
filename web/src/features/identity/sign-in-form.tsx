@@ -59,16 +59,13 @@ type Step =
 
 // The sign-in screen's form (SEC-29, Figma "Đăng nhập" L1–L4, from shadcn's login-05 block): Google's
 // button, or an address and the six-digit code emailed to it. Either way the session arrives as the
-// httpOnly cookie, and the person goes back to the page that sent them. In a sheet that titles it (Figma L5,
-// SEC-76) it is `untitled`: the first step leaves out its own heading.
+// httpOnly cookie, and the person goes back to the page that sent them.
 export function SignInForm({
   returnTo,
   googleClientId,
-  untitled = false,
 }: {
   returnTo: string;
   googleClientId?: string;
-  untitled?: boolean;
 }) {
   const t = useTranslations("SignIn");
   const router = useRouter();
@@ -231,7 +228,7 @@ export function SignInForm({
       }}
     >
       <FieldGroup>
-        {!untitled && <h1 className="text-page-title text-foreground">{t("heading")}</h1>}
+        <h1 className="text-page-title text-foreground">{t("heading")}</h1>
         {step.googleNeedsCode !== undefined && (
           <Alert variant="warning">
             <MailWarningIcon aria-hidden />
