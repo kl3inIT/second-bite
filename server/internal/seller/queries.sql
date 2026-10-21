@@ -127,3 +127,22 @@ SELECT m.account_id, m.role, s.id, s.name, s.status
 FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
 WHERE m.account_id = ANY (@account_ids::uuid[])
 ORDER BY m.account_id, m.role, s.name, s.id;
+
+-- name: InsertFollow :exec
+INSERT INTO seller_follows (account_id, seller_id)
+VALUES (@account_id, @seller_id)
+ON CONFLICT (account_id, seller_id) DO NOTHING;
+
+-- name: DeleteFollow :exec
+DELETE FROM seller_follows WHERE account_id = @account_id AND seller_id = @seller_id;
+
+-- name: FollowedSellers :many
+-- The active sellers an account follows, the latest followed first.
+SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.photo_id
+FROM seller_follows f JOIN seller_sellers s ON s.id = f.seller_id
+WHERE f.account_id = @account_id AND s.status = 'active'
+ORDER BY f.created_at DESC, s.id;
+
+-- name: DeleteFollowsOf :execrows
+-- Every favourite of an account, once the account is deleted (SEC-109).
+DELETE FROM seller_follows WHERE account_id = @account_id;

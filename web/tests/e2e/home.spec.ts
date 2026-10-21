@@ -101,20 +101,21 @@ test.describe("the customer home", () => {
     ).toBeHidden();
   });
 
-  test("keeps a hearted dish in this browser and opens the search from the chips", async ({
+  test("follows a dish's seller from its heart, in this browser, and opens the search from the chips", async ({
     page,
   }) => {
     await page.goto("/vi");
 
     const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
-    const heart = all.getByRole("button", { name: "Yêu thích Bánh Eclair Socola" });
+    const heart = all
+      .getByRole("article")
+      .filter({ hasText: "Bánh Eclair Socola" })
+      .getByRole("button", { name: /^Yêu thích / });
     await (await hydrated(heart)).click();
     await expect(heart).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByText("Đã thêm vào Yêu thích")).toBeVisible();
     await page.reload();
-    await expect(all.getByRole("button", { name: "Yêu thích Bánh Eclair Socola" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    await expect(await hydrated(heart)).toHaveAttribute("aria-pressed", "true");
 
     await (await hydrated(all.getByRole("button", { name: "Giờ nhận" }))).click();
     await page.getByLabel("Từ").selectOption("21:00");

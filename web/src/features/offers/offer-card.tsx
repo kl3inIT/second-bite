@@ -2,11 +2,11 @@ import { ClockIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
+import { FollowButton } from "@/features/favourites/follow-button";
 import { cn } from "@/lib/utils";
 
 import { DiscountLabel } from "./discount-label";
 import { DishLink, SellerLink } from "./dish-link";
-import { HeartButton } from "./heart-button";
 import { isAvailable, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
 import { Price } from "./price";
@@ -73,9 +73,10 @@ export function OfferCard({
           {!compact && rating !== undefined && <Rating rating={rating} className="ml-auto" />}
         </p>
         {(compact || showSeller) && (
-          <HeartButton
-            offerId={offer.id}
-            name={offer.name}
+          <FollowButton
+            sellerId={offer.sellerId}
+            name={offer.seller.name}
+            look="photo"
             className={compact ? "top-0 right-0" : "top-0.5 left-0.5"}
           />
         )}

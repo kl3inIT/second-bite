@@ -32,6 +32,7 @@ export 'models/dish_body.dart';
 export 'models/dish_change_body.dart';
 export 'models/dish_details_body.dart';
 export 'models/email_settings_body.dart';
+export 'models/followed_output_body.dart';
 export 'models/found_body.dart';
 export 'models/found_output_body.dart';
 export 'models/google_method_body.dart';
