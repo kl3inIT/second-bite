@@ -16,6 +16,7 @@ import { OrderLines } from "./order-lines";
 import { OrderTrack } from "./order-track";
 import { PhoneFootBar } from "./phone-foot-bar";
 import { requireStore } from "./require-store";
+import { dayOrNull, serializeOrderSearchParams } from "./search-params";
 import { nowMs, vietnamDay, vietnamToday } from "./store-day";
 import { endedBecause } from "./store-orders";
 
@@ -73,10 +74,7 @@ export async function StoreOrder({
 
   // Back to the list on the day the order is collected, which is today unless the seller came from another day.
   const day = vietnamDay.format(new Date(order.windowStart));
-  const list = {
-    pathname: `/stores/${sellerId}/orders`,
-    query: day === vietnamToday() ? {} : { day },
-  };
+  const list = `/stores/${sellerId}/orders${serializeOrderSearchParams({ day: dayOrNull(day, vietnamToday()) })}`;
 
   const [first] = order.lines;
   const muted = tracked ? "text-inverse-muted" : "text-muted-foreground";

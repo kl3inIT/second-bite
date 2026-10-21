@@ -19,7 +19,8 @@ import { OrderRow } from "./order-row";
 import { PostRow } from "./post-row";
 import { requireStore } from "./require-store";
 import { ShowDishButton } from "./show-dish-button";
-import { readDay, vietnamToday } from "./store-day";
+import { dayOrNull, loadHomeSearchParams, serializeOrderSearchParams } from "./search-params";
+import { vietnamToday } from "./store-day";
 import { offersOfDay } from "./store-offers";
 import { groupOrders, orderTabs, type OrderTab } from "./store-orders";
 import { StorePanel } from "./store-panel";
@@ -47,12 +48,11 @@ export async function StoreHome({
 }) {
   const sellerId = await pendingId;
   const query = await pendingQuery;
-  const one = (name: string) => (typeof query[name] === "string" ? query[name] : undefined);
 
   // The session is read before the clock, so the page is made for each request and never at build time.
   const store = await requireStore(sellerId, `/stores/${sellerId}`);
   const today = vietnamToday();
-  const day = readDay(one("day"), today);
+  const day = loadHomeSearchParams(query).day ?? today;
 
   const [t, n, format, offers, orders, dishes] = await Promise.all([
     getTranslations("StoreHome"),
@@ -69,10 +69,8 @@ export async function StoreHome({
   const summary = summarizeDay(orders, posts);
   const groups = groupOrders(orders);
   const postHref = `/stores/${sellerId}/offers/new`;
-  const ordersHref = (tab: OrderTab) => ({
-    pathname: `/stores/${sellerId}/orders`,
-    query: { ...(isToday ? {} : { day }), ...(tab === "preparing" ? {} : { tab }) },
-  });
+  const ordersHref = (tab: OrderTab) =>
+    `/stores/${sellerId}/orders${serializeOrderSearchParams({ day: dayOrNull(day, today), tab })}`;
 
   return (
     <>
@@ -101,14 +99,7 @@ export async function StoreHome({
           <h2 id="store-overview" className="text-card-title max-md:sr-only">
             {t("overview")}
           </h2>
-          <DayBar
-            pathname={`/stores/${sellerId}`}
-            day={day}
-            today={today}
-            tab=""
-            defaultTab=""
-            q=""
-          />
+          <DayBar pathname={`/stores/${sellerId}`} list="home" today={today} />
         </div>
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           <Figure
