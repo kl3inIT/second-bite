@@ -2,15 +2,14 @@
 
 import { CircleXIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
+import { refuse, useAppForm } from "@/components/form/app-form";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRouter } from "@/i18n/navigation";
-import { ApiError } from "@/lib/api/client";
 import { cancelOrder } from "@/lib/api/generated";
 
 const reasons = ["late", "mistake", "other"] as const;
@@ -23,7 +22,8 @@ const CHIP =
 // Cancelling an order from its page (Figma D2b, D4), asked once more first, in a sheet from the foot on a phone (Figma
 // D2c) and a dialog on a wider screen (Figma W2b): its units go back to the seller, nothing was paid, and a reason
 // may be chosen. The page reads the order again afterwards and shows it cancelled. An order placed without signing in
-// is cancelled with its access (SEC-76 › decision 7).
+// is cancelled with its access (SEC-76 › decision 7). The question is a form (docs/guidelines/web.md › Forms),
+// started again each time it opens; a refusal is said in the server's words above its buttons.
 export function CancelOrder({
   orderId,
   access,
@@ -38,75 +38,10 @@ export function CancelOrder({
   units: number;
 }) {
   const t = useTranslations("Orders.cancel");
-  const router = useRouter();
   const phone = useIsMobile();
   const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState<(typeof reasons)[number]>();
-  const [failure, setFailure] = useState<{ tooLate: boolean; reference?: string }>();
-  const [pending, startTransition] = useTransition();
-
-  function cancel() {
-    setFailure(undefined);
-    startTransition(async () => {
-      try {
-        await cancelOrder({
-          path: { orderId },
-          headers: access ? { "Order-Access": access } : undefined,
-          body: reason ? { reason: t(`reasons.${reason}`) } : {},
-        });
-        setOpen(false);
-        router.refresh();
-      } catch (error) {
-        const apiError = error instanceof ApiError ? error : undefined;
-        setFailure({
-          tooLate: apiError?.code === "ORDER_CANCEL_TOO_LATE",
-          reference: apiError?.requestId,
-        });
-      }
-    });
-  }
-
-  const form = (
-    <>
-      <fieldset className="flex min-w-0 flex-col gap-2">
-        <legend className="mb-2 text-note font-semibold text-muted-foreground">
-          {t("reason")}
-        </legend>
-        <div className="flex flex-wrap gap-2">
-          {reasons.map((key) => (
-            <button
-              key={key}
-              type="button"
-              aria-pressed={reason === key}
-              onClick={() => setReason(reason === key ? undefined : key)}
-              className={CHIP}
-            >
-              {t(`reasons.${key}`)}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      {failure ? (
-        <p role="alert" className="text-body-sm text-destructive">
-          {failure.tooLate ? t("tooLate") : t("failed", { reference: failure.reference ?? "—" })}
-        </p>
-      ) : null}
-      {/* A phone stacks the two; from 768px they sit side by side, "Giữ đơn" first (Figma W2b). */}
-      <div className="flex flex-col gap-2 pt-1.5 md:grid md:grid-cols-2 md:gap-3 md:pt-0">
-        <Button variant="danger" size="lg" disabled={pending} onClick={cancel}>
-          {pending ? <Spinner data-icon="inline-start" /> : null}
-          {t("confirm")}
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          className="md:order-first"
-          onClick={() => setOpen(false)}
-        >
-          {t("keep")}
-        </Button>
-      </div>
-    </>
+  const form = open && (
+    <CancelForm orderId={orderId} access={access} onDone={() => setOpen(false)} />
   );
 
   return (
@@ -152,5 +87,94 @@ export function CancelOrder({
       )}
       <p className="text-center text-label text-muted-foreground md:hidden">{t("note")}</p>
     </div>
+  );
+}
+
+function CancelForm({
+  orderId,
+  access,
+  onDone,
+}: {
+  orderId: string;
+  access?: string;
+  onDone: () => void;
+}) {
+  const t = useTranslations("Orders.cancel");
+  const router = useRouter();
+
+  const form = useAppForm({
+    defaultValues: { reason: undefined as (typeof reasons)[number] | undefined },
+    onSubmit: async ({ value, formApi }) => {
+      try {
+        await cancelOrder({
+          path: { orderId },
+          headers: access ? { "Order-Access": access } : undefined,
+          body: value.reason ? { reason: t(`reasons.${value.reason}`) } : {},
+        });
+      } catch (error) {
+        refuse(formApi, error);
+        return;
+      }
+      onDone();
+      router.refresh();
+    },
+  });
+
+  return (
+    <form
+      id={form.formId}
+      noValidate
+      className="flex flex-col gap-3.5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void form.handleSubmit();
+      }}
+    >
+      <form.AppField name="reason">
+        {(field) => (
+          <fieldset className="flex min-w-0 flex-col gap-2">
+            <legend className="mb-2 text-note font-semibold text-muted-foreground">
+              {t("reason")}
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {reasons.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={field.state.value === key}
+                  onClick={() => field.handleChange(field.state.value === key ? undefined : key)}
+                  className={CHIP}
+                >
+                  {t(`reasons.${key}`)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        )}
+      </form.AppField>
+      <form.AppForm>
+        <form.FormError fallback={t("failed")} />
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(submitting) => (
+            // A phone stacks the two; from 768px they sit side by side, "Giữ đơn" first (Figma W2b).
+            <div className="flex flex-col gap-2 pt-1.5 md:grid md:grid-cols-2 md:gap-3 md:pt-0">
+              <form.SubmitButton variant="danger" size="lg">
+                {t("confirm")}
+              </form.SubmitButton>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="md:order-first"
+                disabled={submitting}
+                onClick={onDone}
+              >
+                {t("keep")}
+              </Button>
+            </div>
+          )}
+        </form.Subscribe>
+      </form.AppForm>
+    </form>
   );
 }

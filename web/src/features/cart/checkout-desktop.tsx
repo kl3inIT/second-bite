@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 
 import { formatPrice } from "@/features/offers/format";
+import { FailureAlert } from "@/components/failure-alert";
 
 import { totals } from "./cart";
 import { PaymentChoice, SellerOrder, type CheckoutProps } from "./checkout-parts";
@@ -94,12 +95,7 @@ export function CheckoutDesktop({ cart, pending, problem, onConfirmed }: Checkou
             </div>
           </div>
           {problem?.kind === "failed" && (
-            <p role="alert" className="text-label text-destructive">
-              {problem.detail ??
-                (problem.reference
-                  ? t("orderFailed", { reference: problem.reference })
-                  : t("orderFailedPlain"))}
-            </p>
+            <FailureAlert failure={problem} fallback={t("orderFailedPlain")} />
           )}
         </div>
       </section>

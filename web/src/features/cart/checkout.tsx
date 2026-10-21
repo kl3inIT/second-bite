@@ -8,6 +8,7 @@ import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/em
 import { formatPrice } from "@/features/offers/format";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "@/i18n/navigation";
+import { FailureAlert } from "@/components/failure-alert";
 
 import { totals, withBasket, type Cart } from "./cart";
 import { saveCart, useCart } from "./cart-store";
@@ -154,12 +155,7 @@ function CheckoutPhone({ cart, pending, problem, onConfirmed }: CheckoutProps) {
             </div>
           </div>
           {problem?.kind === "failed" && (
-            <p role="alert" className="text-label text-destructive">
-              {problem.detail ??
-                (problem.reference
-                  ? t("orderFailed", { reference: problem.reference })
-                  : t("orderFailedPlain"))}
-            </p>
+            <FailureAlert failure={problem} fallback={t("orderFailedPlain")} />
           )}
         </div>
       </div>
