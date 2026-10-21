@@ -1,10 +1,14 @@
 import { ChevronRightIcon } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { getFormatter, getTimeZone, getTranslations } from "next-intl/server";
 
 import { BiteCorner } from "@/components/bite-corner";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
+import { listOffers } from "@/features/offers/list-offers";
+import { closingFirst, type OfferSummary } from "@/features/offers/offer";
+import { OfferCard } from "@/features/offers/offer-card";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -130,19 +134,44 @@ async function EndedOrderRow({ order }: { order: Order }) {
 }
 
 const days: Day[] = ["today", "week", "before"];
-// A phone's column, wider on a tablet, and the content width of the wide layout from 1024px.
-const LIST_WIDTH = "max-w-xl md:max-w-3xl lg:max-w-292";
+// A phone's column, wider on a tablet; from 1024px the page's grid sets the width, 1168px in all.
+const COLUMN_WIDTH = "max-w-xl md:max-w-3xl lg:max-w-none lg:px-0";
+// The offers beside the orders on a desktop (Figma D6 › cột phải).
+const TONIGHT_COUNT = 2;
+
+/** Tonight's offers in the right column of the wide layout, so the orders page leads back to ordering (Figma D6). */
+function TonightOffers({ offers }: { offers: OfferSummary[] }) {
+  const t = useTranslations("Orders");
+  if (offers.length === 0) return null;
+
+  return (
+    <section
+      aria-labelledby="orders-tonight"
+      className="hidden flex-col gap-4 lg:col-start-3 lg:row-span-2 lg:row-start-1 lg:flex"
+    >
+      <h2 id="orders-tonight" className="font-display text-headline">
+        {t("tonight")}
+      </h2>
+      {offers.map((offer) => (
+        <OfferCard key={offer.id} offer={offer} />
+      ))}
+    </section>
+  );
+}
 
 /**
- * "Đơn của tôi" (Figma K8): the two lists as a segmented control; each seller's order to collect as a card with the
- * way to it, two or three abreast on wider screens; the ended ones under their day.
+ * "Đơn của tôi" (Figma K8, D6): the two lists as a segmented control; each seller's order to collect as a card with
+ * the way to it, two abreast on a tablet; the ended ones under their day. From 1024px the lists take two thirds
+ * and tonight's offers the third beside them.
  */
 export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
   const which = await pending;
-  const [t, timeZone, lists] = await Promise.all([
+  const [t, timeZone, lists, offers] = await Promise.all([
     getTranslations("Orders"),
     getTimeZone(),
     readMyOrderLists(),
+    // The offers only suggest more to order, so the orders show without them if they cannot be read.
+    listOffers({}).catch(() => []),
   ]);
   if (!lists.known) return <SignInPrompt returnTo="/orders" />;
   const { open, ended, now } = lists.value;
@@ -156,9 +185,12 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
     .filter(({ orders }) => orders.length > 0);
 
   return (
-    <>
-      <div className="bg-card">
-        <nav aria-label={t("lists")} className={cn("mx-auto w-full px-4 py-3", LIST_WIDTH)}>
+    <div className="lg:mx-auto lg:grid lg:w-full lg:max-w-292 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-4 lg:px-4 lg:py-4">
+      <div className="bg-card lg:col-span-2 lg:bg-transparent">
+        <nav
+          aria-label={t("lists")}
+          className={cn("mx-auto w-full px-4 py-3 lg:p-0", COLUMN_WIDTH)}
+        >
           <div className="grid grid-cols-2 rounded-lg bg-secondary p-1">
             {(["open", "ended"] as const).map((tab) => (
               <Link
@@ -180,11 +212,16 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
           </div>
         </nav>
       </div>
-      <div className={cn("mx-auto flex w-full flex-col gap-4 px-4 py-4", LIST_WIDTH)}>
+      <div
+        className={cn(
+          "mx-auto flex w-full flex-col gap-4 px-4 py-4 lg:col-span-2 lg:py-0",
+          COLUMN_WIDTH,
+        )}
+      >
         {which === "open" ? (
           <>
             {open.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
                 {open.map((order) => (
                   <OpenOrderCard key={order.id} order={order} />
                 ))}
@@ -201,7 +238,7 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
               <h2 id={`orders-${day}`} className="text-title">
                 {t(`day.${day}`)}
               </h2>
-              <ul className="grid gap-2.5 md:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid gap-2.5 md:grid-cols-2 lg:grid-cols-1">
                 {orders.map((order) => (
                   <EndedOrderRow key={order.id} order={order} />
                 ))}
@@ -214,6 +251,7 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
           </p>
         )}
       </div>
-    </>
+      <TonightOffers offers={closingFirst(offers).slice(0, TONIGHT_COUNT)} />
+    </div>
   );
 }

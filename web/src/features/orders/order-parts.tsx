@@ -295,8 +295,126 @@ type StepState = "done" | "now" | "later";
 // (SEC-97 › decision 5).
 const stepOf: Partial<Record<Order["status"], number>> = { confirmed: 1, ready: 2, collected: 3 };
 
-/** The four steps of an order on the blue band: placed, preparing, ready, collected (Figma K6, K6b). */
-export function OrderSteps({ order }: { order: Order }) {
+/** The icon of a step (Figma W5 › icon/…): a lime check once done, a white one in a ring now, a dashed ring to come. */
+function StepIcon({ state }: { state: StepState }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "relative flex shrink-0 items-center justify-center rounded-full",
+        state === "now" ? "size-7.5" : "size-5.5",
+      )}
+    >
+      {state === "later" ? (
+        <span className="size-full rounded-full border-2 border-dashed border-inverse-faint" />
+      ) : (
+        <span
+          className={cn(
+            "flex size-full items-center justify-center rounded-full",
+            state === "done" ? "bg-fresh text-header" : "bg-primary-foreground/25",
+          )}
+        >
+          {state === "now" ? (
+            <span className="flex size-5.5 items-center justify-center rounded-full bg-primary-foreground text-header">
+              <CheckIcon className="size-3" strokeWidth={4} />
+            </span>
+          ) : (
+            <CheckIcon className="size-3" strokeWidth={4} />
+          )}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/**
+ * The four steps of an order on the blue band: placed, preparing, ready, collected (Figma W5, W6). Each is a round
+ * icon beside its name and time, joined by bars that stretch evenly. Shown from 768px; a phone has its own row.
+ */
+function WideOrderSteps({ order }: { order: Order }) {
+  const t = useTranslations("Orders.steps");
+  const format = useFormatter();
+  const current = stepOf[order.status] ?? 0;
+  const timeOf = (moment?: string) =>
+    moment ? format.dateTime(new Date(moment), "time") : undefined;
+  // The backend stamps no moment for preparing: an order is confirmed as it is placed.
+  const steps: { label: string; time?: string; note?: string; pending?: string }[] = [
+    { label: t("placed"), time: timeOf(order.createdAt) },
+    { label: t("preparing"), note: t("preparingNote") },
+    {
+      label: t("ready"),
+      time: timeOf(order.readyAt),
+      note: t("readyNote"),
+      pending: t("readyPending"),
+    },
+    {
+      label: t("received"),
+      time: timeOf(order.collectedAt),
+      note: t("collectedNote"),
+      pending: t("collectedPending"),
+    },
+  ];
+
+  return (
+    <ol aria-label={t("label")} className="flex items-center">
+      {steps.map(({ label, time, note, pending }, index) => {
+        const state: StepState = index < current ? "done" : index === current ? "now" : "later";
+        return (
+          <li
+            key={label}
+            aria-current={state === "now" ? "step" : undefined}
+            className={cn("relative flex min-w-0 flex-1 items-center", index === 0 && "flex-none")}
+          >
+            {index > 0 ? (
+              <span
+                aria-hidden
+                className={cn(
+                  "mr-3 h-0.5 flex-1",
+                  index <= current ? "bg-fresh" : "bg-inverse-faint/40",
+                )}
+              />
+            ) : null}
+            <span className="flex min-w-0 items-center gap-2">
+              <StepIcon state={state} />
+              <span className="flex min-w-0 flex-col">
+                <span
+                  className={cn(
+                    state === "now" ? "text-title text-primary-foreground" : "text-body-sm",
+                    state === "done" && "font-medium text-fresh",
+                    state === "later" && "text-inverse-muted",
+                  )}
+                >
+                  {label}
+                </span>
+                {state === "later" ? (
+                  <span className="text-label text-inverse-muted">{pending}</span>
+                ) : time || (state === "now" && note) ? (
+                  <span
+                    className={cn(
+                      "text-label text-inverse-muted",
+                      state === "now" && "font-medium",
+                    )}
+                  >
+                    {time}
+                    {state === "now" && note ? (
+                      <span>
+                        {time ? " · " : ""}
+                        {note}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : null}
+              </span>
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/** A phone's four steps on the blue band: placed, preparing, ready, collected (Figma K6, K6b). */
+function PhoneOrderSteps({ order }: { order: Order }) {
   const t = useTranslations("Orders.steps");
   const current = stepOf[order.status] ?? 0;
   const collected = order.status === "collected";
@@ -350,5 +468,22 @@ export function OrderSteps({ order }: { order: Order }) {
         </li>
       ))}
     </ol>
+  );
+}
+
+/**
+ * The order's four steps on the blue band: a phone keeps its own row of icons (Figma K6, K6b); from 768px the
+ * steps follow Figma W5 and W6. Only one is shown, so assistive technology reads one list.
+ */
+export function OrderSteps({ order }: { order: Order }) {
+  return (
+    <>
+      <div className="md:hidden">
+        <PhoneOrderSteps order={order} />
+      </div>
+      <div className="hidden md:block">
+        <WideOrderSteps order={order} />
+      </div>
+    </>
   );
 }

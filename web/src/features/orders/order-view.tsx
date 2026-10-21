@@ -45,18 +45,32 @@ function StatusBand({
   eyebrow,
   figure,
   line,
+  beside,
 }: {
   order: Order;
   eyebrow: string;
   figure: string;
   line: string;
+  /** Whether the ticket sits at the right of the band from 1024px (Figma D4), so the band leaves room for it. */
+  beside?: boolean;
 }) {
   const t = useTranslations("Orders");
 
   return (
-    <section className="relative overflow-hidden bg-header text-header-foreground">
+    <section
+      className={cn(
+        "relative overflow-hidden bg-header text-header-foreground",
+        beside && "lg:col-span-3 lg:col-start-1 lg:row-start-1 lg:rounded-4xl",
+      )}
+    >
       <span aria-hidden className="absolute -top-24 -right-20 size-64 rounded-full bg-sweep" />
-      <div className={cn("relative mx-auto flex w-full flex-col px-4 pb-10", PAGE_WIDTH)}>
+      <div
+        className={cn(
+          "relative mx-auto flex w-full flex-col px-4 pb-10",
+          PAGE_WIDTH,
+          beside && "lg:max-w-none lg:py-4 lg:pr-100 lg:pl-10",
+        )}
+      >
         <div className="flex h-16 items-center gap-3">
           <BackButton fallback="/orders" />
           <h1 className="text-bar-title">{t("orderNumber", { number: order.number })}</h1>
@@ -64,7 +78,7 @@ function StatusBand({
         <p className="mt-3 text-title text-fresh">{eyebrow}</p>
         <p className="font-display text-display">{figure}</p>
         <p className="mt-1 text-body-sm text-inverse-muted">{line}</p>
-        <div className="mt-5 lg:max-w-xl">
+        <div className="mt-5">
           <OrderSteps order={order} />
         </div>
       </div>
@@ -92,9 +106,11 @@ function OrderBody({ main, aside }: { main: React.ReactNode; aside: React.ReactN
 }
 
 /**
- * An order still to collect (Figma K6): the blue band with the window in large figures, how long until it opens
+ * An order still to collect (Figma K6, D4): the blue band with the window in large figures, how long until it opens
  * or closes and the steps; on the pale ground below, the ticket with the orders placed with it, how to collect
  * once it is ready, the way to the counter and cancelling while it is free; the dishes and totals beside them.
+ * From 1024px the article is a grid of three columns: the ticket at the right of the band, how to collect and
+ * cancelling under it in two, the dishes and totals and the way to the counter in the third.
  */
 export function OpenOrder({
   order,
@@ -115,8 +131,12 @@ export function OpenOrder({
   const ready = order.status === "ready";
 
   return (
-    <article aria-label={t("orderNumber", { number: order.number })}>
+    <article
+      aria-label={t("orderNumber", { number: order.number })}
+      className="lg:mx-auto lg:grid lg:w-full lg:max-w-292 lg:grid-cols-3 lg:items-start lg:gap-x-6 lg:gap-y-4 lg:pt-6"
+    >
       <StatusBand
+        beside
         order={order}
         eyebrow={t(`headline.${ready ? "ready" : "confirmed"}`)}
         figure={`${from} – ${until}`}
@@ -126,14 +146,28 @@ export function OpenOrder({
             : t("closesIn", { left: duration(Date.parse(order.windowEnd) - now) })
         }
       />
-      <OrderBody
-        main={
-          <>
-            <CollectTicket order={order} together={together} />
-            {ready ? <HowToCollect order={order} /> : null}
-            <Directions order={order} />
+      <div className="relative -mt-6 rounded-t-3xl bg-background lg:contents">
+        {/* grid-cols-1: see OrderBody. */}
+        <div
+          className={cn(
+            "mx-auto grid w-full grid-cols-1 items-start gap-3 px-4 pt-4 pb-6 lg:contents",
+            PAGE_WIDTH,
+          )}
+        >
+          <div className="flex flex-col gap-3 lg:contents">
+            <div className="lg:z-10 lg:col-start-3 lg:row-start-1 lg:m-8 lg:w-full lg:max-w-89.5 lg:self-center lg:justify-self-end">
+              <CollectTicket order={order} together={together} />
+            </div>
+            {ready ? (
+              <div className="lg:col-span-2 lg:col-start-1 lg:row-start-2">
+                <HowToCollect order={order} />
+              </div>
+            ) : null}
+            <div className="lg:col-start-3 lg:row-start-3">
+              <Directions order={order} />
+            </div>
             {cancellable ? (
-              <div className="flex justify-center">
+              <div className="flex justify-center lg:col-span-2 lg:col-start-1 lg:row-start-3 lg:justify-start">
                 <CancelOrder
                   orderId={order.id}
                   access={order.access}
@@ -144,17 +178,17 @@ export function OpenOrder({
                 />
               </div>
             ) : null}
-          </>
-        }
-        aside={
-          <section
-            aria-label={t("details")}
-            className="rounded-2xl bg-card p-4 text-card-foreground"
-          >
-            <OrderSummary order={order} />
-          </section>
-        }
-      />
+          </div>
+          <div className="flex flex-col gap-3 lg:contents">
+            <section
+              aria-label={t("details")}
+              className="rounded-2xl bg-card p-4 text-card-foreground lg:col-start-3 lg:row-start-2"
+            >
+              <OrderSummary order={order} />
+            </section>
+          </div>
+        </div>
+      </div>
     </article>
   );
 }

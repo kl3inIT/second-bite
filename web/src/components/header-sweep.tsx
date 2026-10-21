@@ -1,13 +1,13 @@
 // The light sweep across the header (Figma header › sweep, 390×325): two bands of the pale blue over the
-// header's own blue. Like Figma's vectors it scales with the header, so the pale ground always reaches the
-// header's foot instead of stopping at a drawn height.
+// header's own blue. On a phone, like Figma's vectors, it scales with the header, so the pale ground always
+// reaches the header's foot; from `md` it is a 390×260 corner at the right, and the header clips it.
 export function HeaderSweep() {
   return (
     <svg
       viewBox="0 0 390 325"
       preserveAspectRatio="none"
       aria-hidden
-      className="pointer-events-none absolute inset-0 size-full"
+      className="pointer-events-none absolute inset-0 size-full md:inset-auto md:top-0 md:right-0 md:h-65 md:w-97.5"
     >
       <path d="M390 0H0V325H390V0Z" className="fill-sweep" />
       <path

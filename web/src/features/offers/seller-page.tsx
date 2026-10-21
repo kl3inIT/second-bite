@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { CartBar } from "@/features/cart/cart-bar";
+import { CartSidebar } from "@/features/cart/cart-sidebar";
 import { FollowButton } from "@/features/favourites/follow-button";
 import { Link } from "@/i18n/navigation";
 import { plainText } from "@/lib/plain-text";
@@ -26,15 +27,16 @@ import { ShareButton } from "./share-button";
 import { useDistance } from "./window";
 
 const COVER_PHOTOS = 3;
-// The page's width: a phone's column, wider on a tablet and a desktop, where the dishes sit two and three abreast.
-const PAGE_WIDTH = "max-w-xl md:max-w-3xl lg:max-w-5xl";
+// A phone's column; from 768px the page is `md:max-w-292`, the content width of the wide layout (Figma WK3).
+const PHONE_WIDTH = "max-w-xl";
 const ONE_DECIMAL = { minimumFractionDigits: 1, maximumFractionDigits: 1 } as const;
 
 // A seller's dishes tonight (Figma K4b): their dishes' photographs side by side with back, the heart that follows them (SEC-109) and share; the seller's
 // logo, name, rating and floor; tonight's window, the counter and the way there; a search of their dishes; tabs by
 // kind when they sell more than one (the seller's own menu sections have no backend, SEC-49 decision 7); each dish
-// with its − and +, opening its sheet; and the cart's bar. `at` is the dish a link led to (K4), `q` the words
-// searched for. Figma's review count and seller category have no backend, so they are left out.
+// with its − and +, opening its sheet; and the cart's bar, which from 768px is the cart's sidebar beside the menu
+// (WK3). `at` is the dish a link led to (K4), `q` the words searched for. Figma's review count and seller
+// category have no backend, so they are left out.
 export function SellerPage({
   offers,
   kind,
@@ -60,74 +62,146 @@ export function SellerPage({
 
   if (!first || available.length === 0) return <NothingTonight />;
 
+  const kindLinks = [undefined, ...tabs.map((tab) => tab.kind)].map((each) => ({
+    each,
+    href: {
+      pathname: `/sellers/${first.sellerId}`,
+      query: { ...(each ? { kind: each } : {}), ...(near ? { near } : {}) },
+    },
+    label: each ? kinds(each) : t("onSale"),
+  }));
+
   return (
     <>
-      <main className={cn("mx-auto w-full flex-1 bg-card", PAGE_WIDTH)}>
-        <div className="relative flex h-50 bg-muted md:h-60">
-          {available.slice(0, COVER_PHOTOS).map((offer) => (
-            <div key={offer.id} className="relative flex-1">
-              <OfferPhoto offer={offer} sizes="(min-width: 576px) 192px, 33vw" />
-            </div>
-          ))}
-          <div className="absolute inset-x-0 top-0 h-30 bg-linear-to-b from-foreground/35 to-transparent" />
-          <div className="absolute inset-x-4 top-3 flex items-center justify-between">
-            <BackButton fallback="/" />
-            <div className="flex gap-2">
-              <FollowButton sellerId={first.sellerId} name={first.seller.name} look="float" />
-              <ShareButton title={first.seller.name} />
+      <main
+        className={cn(
+          "mx-auto w-full flex-1 bg-card md:max-w-none md:bg-transparent md:px-8",
+          PHONE_WIDTH,
+        )}
+      >
+        <div className="md:mx-auto md:flex md:max-w-292 md:flex-col md:gap-6 md:pt-6">
+          <nav
+            aria-label={t("breadcrumb")}
+            className="hidden text-label text-muted-foreground md:block"
+          >
+            <ol className="flex items-center gap-1.5">
+              <li>
+                <Link
+                  href="/"
+                  className="rounded-sm focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                  {t("crumbHome")}
+                </Link>
+              </li>
+              <li aria-hidden>›</li>
+              <li aria-current="page" className="text-foreground">
+                {first.seller.name}
+              </li>
+            </ol>
+          </nav>
+          <div className="relative flex h-50 bg-muted md:h-40 md:overflow-hidden md:rounded-3xl">
+            {available.slice(0, COVER_PHOTOS).map((offer) => (
+              <div key={offer.id} className="relative flex-1">
+                <OfferPhoto offer={offer} sizes="(min-width: 768px) 400px, 33vw" />
+              </div>
+            ))}
+            <div className="absolute inset-x-0 top-0 h-30 bg-linear-to-b from-foreground/35 to-transparent" />
+            <div className="absolute inset-x-4 top-3 flex items-center justify-between md:justify-end">
+              <div className="md:hidden">
+                <BackButton fallback="/" />
+              </div>
+              <div className="flex gap-2">
+                <FollowButton sellerId={first.sellerId} name={first.seller.name} look="float" />
+                <ShareButton title={first.seller.name} />
+              </div>
             </div>
           </div>
-        </div>
-        <div className="relative -mt-6 flex flex-col gap-3.5 rounded-t-3xl bg-card px-4 pt-4 pb-6">
-          <SellerHeading lead={first} />
-          <div className="flex flex-col gap-3.5 md:grid md:grid-cols-2 md:items-center">
-            <SellerFacts lead={first} offers={available} />
-            <SellerSearch lead={first} kind={kind} near={near} q={q} />
-          </div>
-          {tabs.length > 1 && (
-            <nav aria-label={t("kinds")} className="-mx-4 scrollbar-none overflow-x-auto px-4">
-              <ul className="flex min-w-max gap-6 border-b border-border">
-                {[undefined, ...tabs.map((tab) => tab.kind)].map((each) => (
-                  <li key={each ?? "all"}>
-                    <Link
-                      href={{
-                        pathname: `/sellers/${first.sellerId}`,
-                        query: { ...(each ? { kind: each } : {}), ...(near ? { near } : {}) },
-                      }}
-                      aria-current={each === kind ? "page" : undefined}
-                      className={cn(
-                        "-mb-px flex min-h-11 items-center border-b-3 text-title focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
-                        each === kind
-                          ? "border-primary text-primary"
-                          : "border-transparent text-muted-foreground",
-                      )}
+          <div className="relative -mt-6 rounded-t-3xl bg-card px-4 pt-4 pb-6 md:mt-0 md:rounded-none md:bg-transparent md:p-0 lg:flex lg:items-start lg:gap-8">
+            <div className="flex min-w-0 flex-1 flex-col gap-3.5 md:gap-5">
+              <SellerHeading lead={first} />
+              <SellerFacts lead={first} offers={available} />
+              <SellerFactsCard lead={first} offers={available} />
+              <SellerSearch lead={first} kind={kind} near={near} q={q} />
+              <div className="flex flex-col gap-3.5 md:flex-row md:gap-6">
+                {tabs.length > 1 && (
+                  <>
+                    <nav
+                      aria-label={t("kinds")}
+                      className="-mx-4 scrollbar-none overflow-x-auto px-4 md:hidden"
                     >
-                      {each ? kinds(each) : t("onSale")}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          )}
-          <section aria-labelledby="dishes" className="flex flex-col gap-3">
-            <h2 id="dishes" className="text-title-lg text-foreground">
-              {kind ? kinds(kind) : t("tonight")}
-            </h2>
-            {shown.length > 0 ? (
-              <ul className="grid gap-5 md:grid-cols-2 md:gap-x-6 lg:grid-cols-3">
-                {shown.map((offer) => (
-                  <li key={offer.id}>
-                    <SellerDish offer={offer} focused={offer.id === at} />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-body-sm text-muted-foreground">{t("noMatch", { q: q ?? "" })}</p>
-            )}
-          </section>
+                      <ul className="flex min-w-max gap-6 border-b border-border">
+                        {kindLinks.map(({ each, href, label }) => (
+                          <li key={each ?? "all"}>
+                            <Link
+                              href={href}
+                              aria-current={each === kind ? "page" : undefined}
+                              className={cn(
+                                "-mb-px flex min-h-11 items-center border-b-3 text-title focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
+                                each === kind
+                                  ? "border-primary text-primary"
+                                  : "border-transparent text-muted-foreground",
+                              )}
+                            >
+                              {label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </nav>
+                    {/* The menu's index (Figma WK3): the same kinds, down the side. */}
+                    <nav
+                      aria-label={t("kinds")}
+                      className="hidden w-37.5 shrink-0 flex-col gap-4 pt-1 md:sticky md:top-4 md:flex md:self-start"
+                    >
+                      <p className="text-label-strong text-muted-foreground uppercase">
+                        {t("index")}
+                      </p>
+                      <ul className="flex flex-col gap-1">
+                        {kindLinks.map(({ each, href, label }) => (
+                          <li key={each ?? "all"}>
+                            <Link
+                              href={href}
+                              aria-current={each === kind ? "page" : undefined}
+                              className={cn(
+                                "flex min-h-11 items-center rounded-full px-3.5 text-body-sm focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
+                                each === kind
+                                  ? "bg-secondary text-body-sm-strong text-primary"
+                                  : "text-muted-foreground hover:bg-muted",
+                              )}
+                            >
+                              {label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </nav>
+                  </>
+                )}
+                <section aria-labelledby="dishes" className="flex min-w-0 flex-1 flex-col gap-3">
+                  <h2 id="dishes" className="text-title-lg text-foreground">
+                    {kind ? kinds(kind) : t("tonight")}
+                  </h2>
+                  {shown.length > 0 ? (
+                    <ul className="grid grid-cols-1 gap-5">
+                      {shown.map((offer) => (
+                        <li key={offer.id}>
+                          <SellerDish offer={offer} focused={offer.id === at} />
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-body-sm text-muted-foreground">
+                      {t("noMatch", { q: q ?? "" })}
+                    </p>
+                  )}
+                </section>
+              </div>
+            </div>
+            <CartSidebar />
+          </div>
         </div>
       </main>
-      <CartBar width={PAGE_WIDTH} />
+      <CartBar width={PHONE_WIDTH} />
     </>
   );
 }
@@ -172,7 +246,7 @@ function SellerFacts({ lead, offers }: { lead: OfferSummary; offers: readonly Of
   const place = lead.collectionPoint.address;
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border px-3.5 py-3">
+    <div className="flex items-center gap-3 rounded-lg border border-border px-3.5 py-3 md:hidden">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <p className="text-title text-foreground">
           {t("window", {
@@ -193,6 +267,43 @@ function SellerFacts({ lead, offers }: { lead: OfferSummary; offers: readonly Of
         {t("directions")}
       </a>
     </div>
+  );
+}
+
+// The seller's rating, tonight's window and the counter's distance in equal cells on a card with a hairline, from
+// 768px (Figma WK3 "thông số quán"); a seller with no rating, or no distance known, has fewer cells.
+function SellerFactsCard({
+  lead,
+  offers,
+}: {
+  lead: OfferSummary;
+  offers: readonly OfferSummary[];
+}) {
+  const t = useTranslations("Seller");
+  const format = useFormatter();
+  const distance = useDistance(lead);
+  const rating = sellerRating(lead);
+  const opens = Math.min(...offers.map(({ windowStart }) => Date.parse(windowStart)));
+  const closes = Math.max(...offers.map(({ windowEnd }) => Date.parse(windowEnd)));
+  const cells: { label: string; value: string }[] = [];
+  if (rating !== undefined) {
+    cells.push({ label: t("rating"), value: format.number(rating, ONE_DECIMAL) });
+  }
+  cells.push({
+    label: t("pickup"),
+    value: `${format.dateTime(opens, "time")}–${format.dateTime(closes, "time")}`,
+  });
+  if (distance) cells.push({ label: t("distance"), value: distance });
+
+  return (
+    <dl className="hidden auto-cols-fr grid-flow-col rounded-lg border border-border bg-card px-3 py-2 md:grid">
+      {cells.map(({ label, value }) => (
+        <div key={label} className="flex flex-col items-center gap-0.5 py-1">
+          <dt className="order-2 text-label text-muted-foreground">{label}</dt>
+          <dd className="order-1 text-title text-foreground">{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 

@@ -94,6 +94,7 @@
     "dishesHere": "{count} món đang bán {place, select, near {quanh đây} other {ở Tasco Mall}}",
     "nothing": "Không tìm thấy món nào khớp.",
     "everything": "Xem tất cả món",
+    "resetFilters": "Đặt lại bộ lọc",
     "sortBy": "Sắp xếp",
     "from": "Từ",
     "to": "Đến",
@@ -368,6 +369,7 @@
     "orderTitle": "Đơn của bạn",
     "mine": "Đơn của tôi",
     "lists": "Danh sách đơn",
+    "tonight": "Còn món ngon",
     "tabOpen": "Đang chờ nhận ({count})",
     "tabEnded": "Đã xong",
     "noneOpen": "Bạn chưa có đơn nào đang chờ nhận.",
@@ -416,8 +418,14 @@
       "label": "Các bước của đơn",
       "placed": "Đã đặt",
       "preparing": "Chuẩn bị",
+      "preparingNote": "quán đang chuẩn bị",
       "ready": "Sẵn sàng",
-      "collected": "Hoàn tất"
+      "readyNote": "mời bạn tới quầy",
+      "readyPending": "Chưa sẵn sàng",
+      "collected": "Hoàn tất",
+      "received": "Đã nhận",
+      "collectedNote": "chúc ngon miệng",
+      "collectedPending": "Chưa nhận"
     },
     "timeline": {
       "title": "Trạng thái",
@@ -522,7 +530,13 @@
     "placeAway": "{place} · cách {distance}",
     "noMatch": "Không có món nào khớp “{q}”",
     "share": "Chia sẻ quán",
-    "copied": "Đã chép đường dẫn"
+    "copied": "Đã chép đường dẫn",
+    "breadcrumb": "Đường dẫn",
+    "crumbHome": "Trang chủ",
+    "index": "Thực đơn tối nay",
+    "rating": "Đánh giá",
+    "pickup": "Giờ nhận",
+    "distance": "Khoảng cách"
   },
   "Cart": {
     "title": "Xác nhận đơn",
@@ -572,7 +586,14 @@
     "orderFailed": "Chưa đặt được món. Thử lại, hoặc báo mã tham chiếu {reference}.",
     "orderFailedPlain": "Chưa đặt được món. Kiểm tra mạng rồi thử lại.",
     "sellerWindow": "{place} · Nhận {from} – {until}",
-    "cancelEach": "Huỷ miễn phí trước giờ nhận của từng đơn."
+    "cancelEach": "Huỷ miễn phí trước giờ nhận của từng đơn.",
+    "intro": "Mỗi quán một đơn, mỗi đơn có mã QR riêng. Kiểm tra món và giờ nhận trước khi đặt.",
+    "sellerUnits": "{seller} · {units} phần",
+    "sidebarTitle": "{sellers, plural, =0 {Giỏ của bạn} =1 {Giỏ của bạn} other {Giỏ của bạn · # quán}}",
+    "sidebarEmpty": "Chọn món để thêm vào giỏ.",
+    "orderFor": "{orders, plural, =1 {Đặt món} other {Đặt # đơn}} · {price}",
+    "orderWithout": "{orders, plural, =1 {Đặt món} other {Đặt # đơn}}, bỏ món hết · {price}",
+    "goneBodySeller": "Người khác vừa đặt phần cuối của {seller}. Bạn chưa bị tính tiền."
   },
   "AccountSettings": {
     "title": "Cài đặt tài khoản",

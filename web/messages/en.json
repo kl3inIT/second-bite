@@ -94,6 +94,7 @@
     "dishesHere": "{count, plural, one {# dish} other {# dishes}} on sale {place, select, near {nearby} other {at Tasco Mall}}",
     "nothing": "No dish matches.",
     "everything": "See every dish",
+    "resetFilters": "Reset filters",
     "sortBy": "Sort",
     "from": "From",
     "to": "To",
@@ -368,6 +369,7 @@
     "orderTitle": "Your order",
     "mine": "My orders",
     "lists": "Order lists",
+    "tonight": "Still on tonight",
     "tabOpen": "To collect ({count})",
     "tabEnded": "Done",
     "noneOpen": "You have no orders to collect.",
@@ -416,8 +418,14 @@
       "label": "Order steps",
       "placed": "Placed",
       "preparing": "Preparing",
+      "preparingNote": "the seller is preparing",
       "ready": "Ready",
-      "collected": "Done"
+      "readyNote": "come to the counter",
+      "readyPending": "Not ready yet",
+      "collected": "Done",
+      "received": "Collected",
+      "collectedNote": "enjoy your meal",
+      "collectedPending": "Not collected yet"
     },
     "timeline": {
       "title": "Status",
@@ -522,7 +530,13 @@
     "placeAway": "{place} · {distance} away",
     "noMatch": "No dish matches “{q}”",
     "share": "Share this shop",
-    "copied": "Link copied"
+    "copied": "Link copied",
+    "breadcrumb": "Breadcrumb",
+    "crumbHome": "Home",
+    "index": "Tonight's menu",
+    "rating": "Rating",
+    "pickup": "Collect",
+    "distance": "Distance"
   },
   "Cart": {
     "title": "Confirm order",
@@ -572,7 +586,14 @@
     "orderFailed": "The order did not go through. Try again, or quote the reference {reference}.",
     "orderFailedPlain": "The order did not go through. Check your connection and try again.",
     "sellerWindow": "{place} · Collect {from} – {until}",
-    "cancelEach": "Free cancellation before each order's collection time."
+    "cancelEach": "Free cancellation before each order's collection time.",
+    "intro": "One order per seller, each with its own QR code. Check the dishes and the collection time before you order.",
+    "sellerUnits": "{seller} · {units} portions",
+    "sidebarTitle": "{sellers, plural, =0 {Your cart} =1 {Your cart} other {Your cart · # sellers}}",
+    "sidebarEmpty": "Pick dishes to add them to your cart.",
+    "orderFor": "{orders, plural, =1 {Place order} other {Place # orders}} · {price}",
+    "orderWithout": "{orders, plural, =1 {Place order} other {Place # orders}}, without the sold-out dishes · {price}",
+    "goneBodySeller": "Someone else just ordered the last portions from {seller}. You have not been charged."
   },
   "AccountSettings": {
     "title": "Account settings",

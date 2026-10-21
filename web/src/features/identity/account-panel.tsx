@@ -21,7 +21,7 @@ export async function AccountPanel() {
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start">
       <section
         aria-labelledby="account-who"
         className="flex flex-col gap-4 rounded-2xl bg-card p-4 text-card-foreground"
