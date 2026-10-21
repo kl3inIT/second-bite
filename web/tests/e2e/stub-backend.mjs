@@ -949,16 +949,19 @@ async function ordersApi(request, response, url) {
       return true;
     }
     const { lines } = await readBody(request);
-    const wanted = Array.isArray(lines) ? lines[0] : undefined;
-    const offer = wanted ? offerById(wanted.offerId) : undefined;
-    if (!offer || offer.status !== "on_sale") {
+    const wanted = (Array.isArray(lines) ? lines : []).map((line) => ({
+      ...line,
+      offer: offerById(line.offerId),
+    }));
+    if (wanted.length === 0 || wanted.some(({ offer }) => !offer || offer.status !== "on_sale")) {
       problem(response, 409, "ORDER_OFFER_UNAVAILABLE");
       return true;
     }
-    if (wanted.units > offer.unitsLeft) {
+    if (wanted.some(({ units, offer }) => units > offer.unitsLeft)) {
       problem(response, 409, "ORDER_OFFER_SOLD_OUT");
       return true;
     }
+    const { offer } = wanted[0];
     const number = nextOrder++;
     const order = {
       id: `or-${number}`,
@@ -971,18 +974,16 @@ async function ordersApi(request, response, url) {
         latitude: 21.0565,
         longitude: 105.8964,
       },
-      lines: [
-        {
-          offerId: offer.id,
-          name: offer.name,
-          unit: offer.unit,
-          priceVnd: offer.priceVnd,
-          originalPriceVnd: offer.originalPriceVnd,
-          units: wanted.units,
-          photo: offer.photo,
-        },
-      ],
-      totalVnd: offer.priceVnd * wanted.units,
+      lines: wanted.map(({ units, offer: each }) => ({
+        offerId: each.id,
+        name: each.name,
+        unit: each.unit,
+        priceVnd: each.priceVnd,
+        originalPriceVnd: each.originalPriceVnd,
+        units,
+        photo: each.photo,
+      })),
+      totalVnd: wanted.reduce((sum, { units, offer: each }) => sum + each.priceVnd * units, 0),
       windowStart: offer.windowStart,
       windowEnd: offer.windowEnd,
       createdAt: new Date().toISOString(),

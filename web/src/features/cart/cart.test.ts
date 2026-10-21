@@ -6,6 +6,7 @@ import {
   addOne,
   collectionWindow,
   isCart,
+  keepLeft,
   quantityOf,
   removeOne,
   startWith,
@@ -110,5 +111,22 @@ describe("the cart", () => {
     expect(isCart(cartOf(offer("croissant")))).toBe(true);
     expect(isCart({ seller: { id: "s1" }, lines: [] })).toBe(false);
     expect(isCart("[]")).toBe(false);
+  });
+});
+
+describe("what is left after someone else ordered first", () => {
+  it("cuts each dish to its portions left and names the dishes it cut", () => {
+    const cart = cartOf(offer("croissant"), offer("croissant"), offer("eclair"))!;
+
+    const { cart: kept, cut } = keepLeft(cart, { croissant: 2, eclair: 0 });
+
+    expect(cut.map(({ id }) => id)).toEqual(["eclair"]);
+    expect(kept?.lines.map(({ id, quantity }) => [id, quantity])).toEqual([["croissant", 2]]);
+  });
+
+  it("leaves nothing when every dish is gone", () => {
+    const cart = cartOf(offer("croissant"))!;
+
+    expect(keepLeft(cart, {}).cart).toBeNull();
   });
 });

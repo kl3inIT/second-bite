@@ -14,14 +14,15 @@ import { useMeters } from "@/features/offers/window";
 import { Link } from "@/i18n/navigation";
 
 import { collectionWindow, totals, type Cart } from "./cart";
-import { useCart } from "./cart-store";
+import { saveCart, useCart } from "./cart-store";
+import { GoneSheet } from "./gone-sheet";
 import { OrderButton } from "./order-button";
-import { resumesReady } from "./order-steps";
+import { usePlaceCart } from "./use-place-cart";
 
 // The cart's confirmation (Figma K5): where and when to collect, how to pay at the counter, the dishes with
 // "Sửa món", the totals with no fee from Second Bite, the cancellation policy, and "Đặt món", which signs in
-// and names the account first (L5, L6). Ordering joins SEC-51's order pages once they are on main (SEC-76),
-// so until then "Đặt món" says so instead of sending.
+// and names the account first (L5, L6), then orders the cart and opens the order (SEC-76); a dish someone
+// else took first asks what to do with the rest (O7).
 export function Checkout(asking: Asking) {
   const t = useTranslations("Cart");
   const cart = useCart();
@@ -45,13 +46,13 @@ export function Checkout(asking: Asking) {
 }
 
 /** Who orders, and what "Đặt món" asks before ordering (SEC-76): see `OrderButton`. */
-type Asking = Omit<React.ComponentProps<typeof OrderButton>, "held" | "onReady">;
+type Asking = Omit<React.ComponentProps<typeof OrderButton>, "held" | "pending" | "onReady">;
 
 function Confirmation({ cart, ...asking }: { cart: Cart } & Asking) {
   const t = useTranslations("Cart");
   const format = useFormatter();
   const [payment, setPayment] = useState("transfer");
-  const [asked, setAsked] = useState(() => resumesReady(asking.account, asking.resumed));
+  const { place, pending, problem, dismiss } = usePlaceCart();
   const { windowStart, windowEnd } = collectionWindow(cart);
   const from = format.dateTime(new Date(windowStart), "time");
   const until = format.dateTime(new Date(windowEnd), "time");
@@ -171,13 +172,35 @@ function Confirmation({ cart, ...asking }: { cart: Cart } & Asking) {
               <OrderButton
                 {...asking}
                 held={{ units, seller: cart.seller.name }}
-                onReady={() => setAsked(true)}
+                pending={pending}
+                onReady={() => place(cart)}
               />
             </div>
           </div>
-          {asked && <output className="text-label text-muted-foreground">{t("orderSoon")}</output>}
+          {problem?.kind === "failed" && (
+            <p role="alert" className="text-label text-destructive">
+              {problem.reference
+                ? t("orderFailed", { reference: problem.reference })
+                : t("orderFailedPlain")}
+            </p>
+          )}
         </div>
       </div>
+      {problem?.kind === "gone" && (
+        <GoneSheet
+          cut={problem.cut}
+          rest={problem.rest}
+          sellerId={cart.seller.id}
+          onKeep={() => {
+            dismiss();
+            saveCart(problem.rest);
+          }}
+          onOrderRest={(rest) => {
+            saveCart(rest);
+            place(rest);
+          }}
+        />
+      )}
     </>
   );
 }

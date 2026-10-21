@@ -596,14 +596,21 @@
     "cancelBody": "Huỷ miễn phí trước {time}.",
     "totalSummary": "Tổng {units} phần · tiết kiệm {saved}",
     "order": "Đặt món",
-    "orderSoon": "Đặt món trên web sắp có. Giỏ của bạn vẫn được giữ trên máy này.",
     "signInTitle": "Đăng nhập để đặt món",
     "signInBody": "Đăng nhập xong, bạn quay lại đúng đơn này. Giỏ {units} phần của {seller} vẫn được giữ.",
     "nameTitle": "Quán gọi bạn là gì?",
     "nameBody": "Quán thấy tên này trên đơn và gọi khi bạn đến nhận. Chỉ hỏi lần đầu, sửa được trong Tài khoản.",
     "nameLabel": "Tên hiển thị",
     "nameSubmit": "Tiếp tục đặt món",
-    "nameFailed": "Chưa lưu được tên. Thử lại sau ít phút."
+    "nameFailed": "Chưa lưu được tên. Thử lại sau ít phút.",
+    "goneOne": "{name} vừa hết",
+    "goneMany": "{count} món vừa hết",
+    "goneBody": "Người khác vừa đặt phần cuối. Bạn chưa bị tính tiền.",
+    "orderRest": "Đặt {what} · {price}",
+    "restUnits": "{units} phần còn lại",
+    "otherDishes": "Xem món khác của quán",
+    "orderFailed": "Chưa đặt được món. Thử lại, hoặc báo mã tham chiếu {reference}.",
+    "orderFailedPlain": "Chưa đặt được món. Kiểm tra mạng rồi thử lại."
   },
   "AccountSettings": {
     "title": "Cài đặt tài khoản",

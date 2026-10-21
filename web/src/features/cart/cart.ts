@@ -112,3 +112,18 @@ function lineOf(offer: OfferSummary): Omit<CartLine, "quantity"> {
   const { id, name, priceVnd, originalPriceVnd, unitsLeft, windowStart, windowEnd } = offer;
   return { id, name, priceVnd, originalPriceVnd, unitsLeft, windowStart, windowEnd };
 }
+
+/**
+ * The cart cut down to the portions still left of each dish (Figma O7), and the dishes it cut: what someone
+ * else ordered first between the cart and "Đặt món". Null when nothing is left to order.
+ */
+export function keepLeft(
+  cart: Cart,
+  left: Record<string, number>,
+): { cart: Cart | null; cut: CartLine[] } {
+  const cut = cart.lines.filter((line) => (left[line.id] ?? 0) < line.quantity);
+  const lines = cart.lines
+    .map((line) => ({ ...line, quantity: Math.min(line.quantity, left[line.id] ?? 0) }))
+    .filter((line) => line.quantity > 0);
+  return { cart: lines.length > 0 ? { ...cart, lines } : null, cut };
+}

@@ -596,14 +596,21 @@
     "cancelBody": "Free cancellation before {time}.",
     "totalSummary": "{units} portions in all · save {saved}",
     "order": "Place order",
-    "orderSoon": "Ordering on the web is coming soon. Your cart stays on this device.",
     "signInTitle": "Sign in to order",
     "signInBody": "Once signed in, you come back to this order. Your cart of {units} portions from {seller} is kept.",
     "nameTitle": "What should the shop call you?",
     "nameBody": "The shop sees this name on the order and calls it when you collect. Asked only the first time; change it in your account.",
     "nameLabel": "Display name",
     "nameSubmit": "Continue to order",
-    "nameFailed": "The name was not saved. Try again in a few minutes."
+    "nameFailed": "The name was not saved. Try again in a few minutes.",
+    "goneOne": "{name} just sold out",
+    "goneMany": "{count} dishes just sold out",
+    "goneBody": "Someone else just ordered the last portions. You have not been charged.",
+    "orderRest": "Order {what} · {price}",
+    "restUnits": "the {units} portions left",
+    "otherDishes": "See the seller's other dishes",
+    "orderFailed": "The order did not go through. Try again, or quote the reference {reference}.",
+    "orderFailedPlain": "The order did not go through. Check your connection and try again."
   },
   "AccountSettings": {
     "title": "Account settings",

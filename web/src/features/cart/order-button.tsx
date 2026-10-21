@@ -2,7 +2,7 @@
 
 import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useEffectEvent, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +20,7 @@ import { useRouter } from "@/i18n/navigation";
 import { failureOf } from "@/lib/api/client";
 import { setMyDisplayName } from "@/lib/api/generated";
 
-import { nextStep, type Account, type Sheet } from "./order-steps";
+import { nextStep, resumesReady, type Account, type Sheet } from "./order-steps";
 
 /** As the server keeps it (server/internal/identity, maxDisplayNameLength). */
 const MAX_NAME_LENGTH = 50;
@@ -30,20 +30,22 @@ export const RESUME_HREF = "/cart?continue=1";
 /**
  * "Đặt món" on the confirmation (Figma K5) and what it asks first: someone signed out signs in in a sheet over
  * the cart (L5), and an account with no name yet gives the one the seller will call (L6). `onReady` runs once
- * nothing is left to ask. After signing in the cart comes back `resumed` and takes the next step by itself:
- * the name sheet here, or ordering, which the caller starts with `resumesReady`.
+ * nothing is left to ask, and `pending` holds the button while the order goes. After signing in the cart comes
+ * back `resumed` and takes the next step by itself: the name sheet, or ordering.
  */
 export function OrderButton({
   account,
   googleClientId,
   held,
   resumed,
+  pending,
   onReady,
 }: {
   account: Account;
   googleClientId?: string;
   held: { units: number; seller: string };
   resumed: boolean;
+  pending: boolean;
   onReady: () => void;
 }) {
   const t = useTranslations("Cart");
@@ -53,10 +55,14 @@ export function OrderButton({
     resumed && nextStep(account) === "name" ? "name" : undefined,
   );
 
-  // The address loses `continue`, so a reload does not take the step again.
+  const ready = useEffectEvent(onReady);
+  // The address loses `continue`, so a reload does not take the step again. An account that needs nothing
+  // more orders at once: "Đặt món" was pressed before signing in.
   useEffect(() => {
-    if (resumed) router.replace("/cart");
-  }, [resumed, router]);
+    if (!resumed) return;
+    router.replace("/cart");
+    if (resumesReady(account, resumed)) ready();
+  }, [resumed, router, account]);
 
   function order() {
     const step = nextStep(account);
@@ -66,7 +72,8 @@ export function OrderButton({
 
   return (
     <>
-      <Button size="lg" onClick={order}>
+      <Button size="lg" onClick={order} disabled={pending}>
+        {pending && <Spinner data-icon="inline-start" />}
         {t("order")}
       </Button>
       <Drawer open={sheet !== undefined} onOpenChange={(open) => !open && setSheet(undefined)}>
