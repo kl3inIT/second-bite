@@ -737,7 +737,7 @@
   "StoreOrders": {
     "title": "Đơn",
     "portions": "phần",
-    "summaryHolding": "Đang giữ {units} phần · {people} khách",
+    "summaryHolding": "Chuẩn bị {preparing} · sẵn sàng {ready}",
     "summaryDelivered": "Hôm nay {count} đơn · {amount}",
     "summaryCancelled": "Hôm nay {count} đơn hủy",
     "searchLabel": "Tìm đơn",
@@ -745,12 +745,14 @@
     "searchCount": "{count} kết quả",
     "tabs": "Nhóm đơn",
     "tab": {
-      "holding": "Đang giữ · {count}",
+      "preparing": "Chuẩn bị · {count}",
+      "ready": "Sẵn sàng · {count}",
       "delivered": "Đã giao · {count}",
       "cancelled": "Đã hủy · {count}"
     },
     "empty": {
-      "holding": "Chưa có ai giữ món ngày này. Khi khách giữ, tên và số điện thoại hiện ở đây.",
+      "preparing": "Chưa có đơn nào đang chuẩn bị ngày này. Khi khách đặt món, tên và số điện thoại hiện ở đây.",
+      "ready": "Chưa có đơn nào sẵn sàng ngày này. Món xong thì bấm Báo sẵn sàng.",
       "delivered": "Chưa giao đơn nào ngày này.",
       "cancelled": "Chưa có đơn nào bị hủy ngày này."
     },
@@ -759,6 +761,7 @@
     "units": "{count} {unit}",
     "copyPhone": "Sao chép số điện thoại {phone}",
     "copied": "Đã sao chép số điện thoại.",
+    "markReady": "Báo sẵn sàng",
     "deliver": "Đã giao",
     "cancel": "Hủy đơn",
     "reopen": "Hoàn tác",
@@ -787,6 +790,52 @@
       "note": "Ghi lý do",
       "back": "Quay lại",
       "confirm": "Hủy đơn"
+    },
+    "detail": {
+      "pushedTitle": "Chi tiết đơn",
+      "back": "Về danh sách đơn",
+      "customer": "Khách",
+      "meta": "Đơn #{number} · đặt lúc {time}",
+      "headline": {
+        "confirmed": "Đơn mới · đang chuẩn bị",
+        "ready": "Đã báo sẵn sàng · chờ khách đến",
+        "collected": "Đã giao cho khách",
+        "cancelled": "Khách đã hủy đơn",
+        "refused": "Quán đã hủy đơn",
+        "expired": "Quá giờ lấy"
+      },
+      "opensIn": "Khách nhận hôm nay · giờ nhận mở sau {left}",
+      "closesIn": "Khách nhận hôm nay · còn {left}",
+      "over": "Hết giờ nhận lúc {until}",
+      "collectedAt": "Đã giao lúc {time}",
+      "hoursMinutes": "{hours} giờ {minutes} phút",
+      "minutes": "{minutes} phút",
+      "units": "{count} phần",
+      "hint": {
+        "confirmed": "Món xong thì bấm Báo sẵn sàng để khách biết đến lấy.",
+        "ready": "Khách đến thì quét mã QR của họ hoặc đối chiếu tên và số điện thoại, rồi bấm Đã giao."
+      },
+      "lines": "Món đã đặt · {count} phần",
+      "saving": "Tiết kiệm",
+      "savingValue": "{amount} so với giá gốc",
+      "total": "Tổng",
+      "number": "Mã đơn",
+      "payment": "Thanh toán",
+      "atCounter": "Thu tại quầy",
+      "next": {
+        "title": "Việc cần làm",
+        "preparing": "Món xong thì báo cho khách đến lấy.",
+        "ready": "Giao món khi khách đến quầy.",
+        "undoTitle": "Nhầm tay?",
+        "undoBody": "Mở lại đơn để làm tiếp."
+      }
+    },
+    "track": {
+      "label": "Các bước của đơn",
+      "placed": "Đã đặt",
+      "preparing": "Chuẩn bị",
+      "ready": "Sẵn sàng",
+      "collected": "Hoàn tất"
     }
   },
   "DayFilter": {

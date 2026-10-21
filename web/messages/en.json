@@ -737,7 +737,7 @@
   "StoreOrders": {
     "title": "Orders",
     "portions": "portions",
-    "summaryHolding": "Holding {units} portions · {people} customers",
+    "summaryHolding": "Preparing {preparing} · ready {ready}",
     "summaryDelivered": "Today {count} orders · {amount}",
     "summaryCancelled": "Today {count} cancelled",
     "searchLabel": "Search orders",
@@ -745,12 +745,14 @@
     "searchCount": "{count} results",
     "tabs": "Order groups",
     "tab": {
-      "holding": "Holding · {count}",
+      "preparing": "Preparing · {count}",
+      "ready": "Ready · {count}",
       "delivered": "Delivered · {count}",
       "cancelled": "Cancelled · {count}"
     },
     "empty": {
-      "holding": "Nobody holds a dish on this day. When a customer does, their name and phone number show here.",
+      "preparing": "No order is being prepared on this day. When a customer orders, their name and phone number show here.",
+      "ready": "No order is ready on this day. When a dish is done, press Mark ready.",
       "delivered": "Nothing was delivered on this day.",
       "cancelled": "No order was cancelled on this day."
     },
@@ -759,6 +761,7 @@
     "units": "{count} {unit}",
     "copyPhone": "Copy the phone number {phone}",
     "copied": "Phone number copied.",
+    "markReady": "Mark ready",
     "deliver": "Delivered",
     "cancel": "Cancel order",
     "reopen": "Undo",
@@ -787,6 +790,52 @@
       "note": "Write the reason",
       "back": "Go back",
       "confirm": "Cancel order"
+    },
+    "detail": {
+      "pushedTitle": "Order",
+      "back": "Back to the orders",
+      "customer": "Customer",
+      "meta": "Order #{number} · placed at {time}",
+      "headline": {
+        "confirmed": "New order · being prepared",
+        "ready": "Marked ready · waiting for the customer",
+        "collected": "Handed over",
+        "cancelled": "Cancelled by the customer",
+        "refused": "Cancelled by the store",
+        "expired": "Pickup time passed"
+      },
+      "opensIn": "Customer collects today · the window opens in {left}",
+      "closesIn": "Customer collects today · {left} left",
+      "over": "The window ended at {until}",
+      "collectedAt": "Handed over at {time}",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "minutes": "{minutes} min",
+      "units": "{count} portions",
+      "hint": {
+        "confirmed": "When the dish is done, press Mark ready so the customer knows to come.",
+        "ready": "When the customer arrives, scan their QR code or match the name and phone number, then press Handed over."
+      },
+      "lines": "Ordered · {count} portions",
+      "saving": "Saved",
+      "savingValue": "{amount} off the original prices",
+      "total": "Total",
+      "number": "Order number",
+      "payment": "Payment",
+      "atCounter": "Cash at the counter",
+      "next": {
+        "title": "What to do",
+        "preparing": "When the dish is done, tell the customer to come.",
+        "ready": "Hand the dish over when the customer is at the counter.",
+        "undoTitle": "A mistake?",
+        "undoBody": "Open the order again to carry on."
+      }
+    },
+    "track": {
+      "label": "The order's steps",
+      "placed": "Placed",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "collected": "Done"
     }
   },
   "DayFilter": {

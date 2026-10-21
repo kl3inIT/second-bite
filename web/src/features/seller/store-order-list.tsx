@@ -15,15 +15,15 @@ import {
   type OrderTab,
   orderTabs,
   readOrderTab,
-  unitsOf,
 } from "./store-orders";
 import { readDay, vietnamToday } from "./store-day";
 import { StoreTitleRow } from "./store-title-row";
 import { UndoToast } from "./undo-toast";
 
 // The store's order tab (SEC-78, Figma Q5, Q5b to Q5g): the orders of one day, which customers hold with their
-// name and phone number, in three tabs — held, handed over, cancelled — with a search and a day to pick. The customer
-// pays the seller in cash at the counter, so "Đã giao" ends an order. It reads the session, so it renders inside Suspense.
+// name and phone number, in four tabs — preparing, ready, handed over, cancelled — with a search and a day to pick
+// (SEC-102 added the two steps). The customer pays the seller in cash at the counter, so "Đã giao" ends an order. It
+// reads the session, so it renders inside Suspense.
 export async function StoreOrders({
   sellerId: pendingId,
   query: pendingQuery,
@@ -57,11 +57,10 @@ export async function StoreOrders({
   const delivered = groups.delivered;
   let summary: string;
   if (searching) summary = t("searchCount", { count: found.length });
-  else if (tab === "holding") {
-    const holding = groups.holding;
+  else if (tab === "preparing" || tab === "ready") {
     summary = t("summaryHolding", {
-      units: holding.reduce((sum, order) => sum + unitsOf(order), 0),
-      people: new Set(holding.map((order) => order.customerPhone)).size,
+      preparing: groups.preparing.length,
+      ready: groups.ready.length,
     });
   } else if (tab === "delivered") {
     summary = t("summaryDelivered", {
@@ -78,7 +77,7 @@ export async function StoreOrders({
     pathname: `/stores/${sellerId}/orders`,
     query: {
       ...(day === today ? {} : { day }),
-      ...(name === "holding" ? {} : { tab: name }),
+      ...(name === "preparing" ? {} : { tab: name }),
       ...(searching ? { q: search } : {}),
     },
   });
@@ -101,7 +100,7 @@ export async function StoreOrders({
         day={day}
         today={today}
         tab={tab}
-        defaultTab="holding"
+        defaultTab="preparing"
         q={search}
         label={t("searchLabel")}
         placeholder={t("searchPlaceholder")}
