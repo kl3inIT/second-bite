@@ -244,41 +244,7 @@ func (s *Service) Change(ctx context.Context, id uuid.UUID, c Change) (Offer, er
 	}
 
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
-		q := s.queries.WithTx(tx)
-
-		row, err := q.LockOffer(ctx, id)
-		if err != nil {
-			return fmt.Errorf("locking the offer: %w", err)
-		}
-
-		o := s.fromRow(db.GetOfferRow(row))
-		if o.Status == StatusWithdrawn || o.Status == StatusClosed {
-			return ErrChangeNotAllowed
-		}
-
-		next, err := s.applyChange(ctx, o, c, set, caller.AccountID)
-		if err != nil {
-			return err
-		}
-
-		ordered := o.Units - o.UnitsLeft
-
-		if err := q.UpdateOffer(ctx, db.UpdateOfferParams{
-			ID: id, Name: next.Name, Description: next.Description, Kind: string(next.Kind), Unit: next.Unit,
-			Units: int32(next.Units), UnitsLeft: int32(next.Units - ordered), //nolint:gosec // at most 999
-			PriceVnd: next.PriceVND, OriginalPriceVnd: next.OriginalPriceVND, WeightGrams: weight(next.WeightGrams),
-			PhotoID: next.PhotoID, WindowStart: next.WindowStart, WindowEnd: next.WindowEnd,
-			SearchVector: Offer{Details: next, sellerName: o.sellerName}.searchText(),
-		}); err != nil {
-			return err
-		}
-
-		// The orders placed on the offer follow its window.
-		if ordered > 0 && (c.WindowStart != nil || c.WindowEnd != nil) {
-			return platform.Publish(ctx, tx, s.events, WindowChangedEvent{OfferID: id})
-		}
-
-		return nil
+		return s.changeIn(ctx, tx, id, c, set, caller.AccountID)
 	})
 	if err != nil {
 		return Offer{}, err
@@ -291,6 +257,48 @@ func (s *Service) Change(ctx context.Context, id uuid.UUID, c Change) (Offer, er
 	)
 
 	return s.read(ctx, id)
+}
+
+// changeIn applies c to the offer in tx, which locks it first, and tells the
+// other modules when the window of an offer with orders moved.
+func (s *Service) changeIn(
+	ctx context.Context, tx pgx.Tx, id uuid.UUID, c Change, set Settings, accountID uuid.UUID,
+) error {
+	q := s.queries.WithTx(tx)
+
+	row, err := q.LockOffer(ctx, id)
+	if err != nil {
+		return fmt.Errorf("locking the offer: %w", err)
+	}
+
+	o := s.fromRow(db.GetOfferRow(row))
+	if o.Status == StatusWithdrawn || o.Status == StatusClosed {
+		return ErrChangeNotAllowed
+	}
+
+	next, err := s.applyChange(ctx, o, c, set, accountID)
+	if err != nil {
+		return err
+	}
+
+	ordered := o.Units - o.UnitsLeft
+
+	if err := q.UpdateOffer(ctx, db.UpdateOfferParams{
+		ID: id, Name: next.Name, Description: next.Description, Kind: string(next.Kind), Unit: next.Unit,
+		Units: int32(next.Units), UnitsLeft: int32(next.Units - ordered), //nolint:gosec // at most 999
+		PriceVnd: next.PriceVND, OriginalPriceVnd: next.OriginalPriceVND, WeightGrams: weight(next.WeightGrams),
+		PhotoID: next.PhotoID, WindowStart: next.WindowStart, WindowEnd: next.WindowEnd,
+		SearchVector: Offer{Details: next, sellerName: o.sellerName}.searchText(),
+	}); err != nil {
+		return err
+	}
+
+	// The orders placed on the offer follow its window.
+	if ordered > 0 && (c.WindowStart != nil || c.WindowEnd != nil) {
+		return platform.Publish(ctx, tx, s.events, WindowChangedEvent{OfferID: id})
+	}
+
+	return nil
 }
 
 // touchesWhatOrdersKeep tells whether c changes what an order keeps from its
