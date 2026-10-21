@@ -99,6 +99,7 @@ function sample({
       largePath: `/photos/${photo}/1600.jpg`,
       smallPath: `/photos/${photo}/400.jpg`,
     },
+    photos: [photoBody(photo)],
     windowStart: from,
     windowEnd: until,
     collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
@@ -583,9 +584,23 @@ function problem(response, status, code) {
   );
 }
 
+/**
+ * A dish or an offer answers with its photos, the cover first (SEC-119): one the stub did not give is the cover alone.
+ * They are told by their kind, which a seller, an order's line and a photo do not have.
+ */
+function withPhotos(value) {
+  if (Array.isArray(value)) return value.map(withPhotos);
+  if (value === null || typeof value !== "object") return value;
+  const copy = Object.fromEntries(
+    Object.entries(value).map(([key, inner]) => [key, withPhotos(inner)]),
+  );
+  if (copy.kind && copy.photo?.smallPath && !copy.photos) copy.photos = [copy.photo];
+  return copy;
+}
+
 function json(response, status, body, headers = {}) {
   response.writeHead(status, { "content-type": "application/json", ...headers });
-  response.end(JSON.stringify(body));
+  response.end(JSON.stringify(withPhotos(body)));
 }
 
 async function readBody(request) {
@@ -947,6 +962,7 @@ function postsOf(seller) {
       largePath: `/photos/ph-${n}/1600.jpg`,
       smallPath: `/photos/ph-${n}/400.jpg`,
     },
+    photos: [photoBody(`ph-${n}`)],
     windowStart: tonight(...from),
     windowEnd: tonight(...until),
     collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
@@ -1157,6 +1173,7 @@ async function sellerRoutes(request, response, url) {
             largePath: `/photos/${body.photoId}/1600.jpg`,
             smallPath: `/photos/${body.photoId}/400.jpg`,
           },
+          photos: photosBody(body.photoId, body.morePhotoIds),
           hidden: Boolean(body.hidden),
           createdAt: now,
           updatedAt: now,
@@ -1180,7 +1197,7 @@ async function sellerRoutes(request, response, url) {
       dishes.splice(dishes.indexOf(dish), 1);
       response.writeHead(204).end();
     } else if (request.method === "PATCH") {
-      const { photoId, ...body } = await readBody(request);
+      const { photoId, morePhotoIds, ...body } = await readBody(request);
       Object.assign(dish, body, { updatedAt: new Date().toISOString() });
       // 0 takes the original price away.
       if (body.originalPriceVnd === 0) delete dish.originalPriceVnd;
@@ -1190,6 +1207,12 @@ async function sellerRoutes(request, response, url) {
           largePath: `/photos/${photoId}/1600.jpg`,
           smallPath: `/photos/${photoId}/400.jpg`,
         };
+      }
+      if (photoId || morePhotoIds) {
+        dish.photos = photosBody(
+          photoId ?? dish.photo.id,
+          morePhotoIds ?? (dish.photos ?? [dish.photo]).slice(1).map((p) => p.id),
+        );
       }
       json(response, 200, dish);
     }
@@ -1235,6 +1258,7 @@ async function sellerRoutes(request, response, url) {
           largePath: `/photos/${body.photoId}/1600.jpg`,
           smallPath: `/photos/${body.photoId}/400.jpg`,
         },
+        photos: photosBody(body.photoId, body.morePhotoIds),
         collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
         createdAt: now,
         updatedAt: now,
@@ -1313,6 +1337,14 @@ const ordersByKey = new Map();
 let nextOrder = 10001;
 const PHONE = /^0[0-9]{9}$/;
 const REVIEW_TAGS = ["fast_pickup", "good_quality", "good_variety", "fair_portions"];
+
+function photoBody(id) {
+  return { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` };
+}
+
+function photosBody(cover, more = []) {
+  return [cover, ...more].map(photoBody);
+}
 
 function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
