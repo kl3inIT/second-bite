@@ -56,6 +56,7 @@ func TestOrder(t *testing.T) {
 		"a mistake is taken back":                  testReopen,
 		"some orders are not reopened":             testReopenStaysShut,
 		"orders follow their offer's window":       testOrdersFollowTheWindow,
+		"ended orders expire in the table":         testEndedOrdersExpire,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
