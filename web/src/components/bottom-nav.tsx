@@ -25,7 +25,7 @@ type Tab = {
 // dimmed and cannot be pressed. A tab is also active on the pages under it, as an order under the orders. Every page has it, after a space as
 // tall as the bar so the bar never covers the page's end. From `md` the header and the footer take over,
 // and the bar is not shown.
-const screensOfTheirOwn = ["/search", "/offers", "/sellers", "/cart", "/stores"];
+const screensOfTheirOwn = ["/search", "/offers", "/sellers", "/cart", "/stores", "/open-store"];
 
 const tabs: Tab[] = [
   { key: "home", icon: HouseIcon, href: "/", within: ["/search"] },
