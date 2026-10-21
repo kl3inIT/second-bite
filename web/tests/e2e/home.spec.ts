@@ -46,6 +46,13 @@ test.describe("the customer home", () => {
       "Bạc Xỉu Đá",
       "Combo Nhóm 3 Tụ Tập",
       "Pizza Thập Cẩm",
+      "Bánh Croissant Hạnh Nhân",
+      "Bánh Croissant Kem Trứng",
+      "Bánh Macaron Vani",
+      "Choco Mille Feuille",
+      "Bánh Tiramisu Cà Phê",
+      "Bánh Basque Cheesecake",
+      "Bánh Quiche Gà Phô Mai",
       "Bánh mì mềm chà bông",
     ]);
     const croissant = all.getByRole("article").first();
@@ -134,6 +141,10 @@ test.describe("the customer home", () => {
     await expect(results.getByRole("heading", { level: 3 })).toHaveText([
       "Bánh Croissant Truyền Thống",
       "Bánh Eclair Socola",
+      "Bánh Croissant Hạnh Nhân",
+      "Bánh Croissant Kem Trứng",
+      "Bánh Macaron Vani",
+      "Choco Mille Feuille",
       "Bánh mì mềm chà bông",
     ]);
     await expect(page.getByRole("region", { name: "Sắp hết giờ nhận" })).toBeHidden();
