@@ -228,7 +228,7 @@ export function Directions({ order }: { order: Order }) {
         src={mapOf(order.seller, locale)}
         loading="lazy"
         referrerPolicy="no-referrer"
-        className="h-40 w-full border-0 bg-secondary"
+        className="h-18 w-full border-0 bg-secondary"
       />
       <div className="flex flex-col gap-3 p-4">
         <div>
