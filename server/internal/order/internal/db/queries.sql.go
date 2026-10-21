@@ -116,6 +116,25 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 	return items, nil
 }
 
+const expireEnded = `-- name: ExpireEnded :execrows
+WITH ended AS (
+    UPDATE order_orders SET state = 'expired'
+    WHERE state IN ('confirmed', 'ready') AND window_end <= now()
+    RETURNING id
+)
+INSERT INTO order_events (order_id, kind) SELECT id, 'expired' FROM ended
+`
+
+// Expires the orders still to collect whose window is over, each with an event.
+// Reads compare the window too.
+func (q *Queries) ExpireEnded(ctx context.Context) (int64, error) {
+	result, err := q.db.Exec(ctx, expireEnded)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getOrder = `-- name: GetOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
