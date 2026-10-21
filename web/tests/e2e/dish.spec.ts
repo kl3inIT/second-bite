@@ -57,7 +57,7 @@ test.describe("a dish, its seller and the cart", () => {
 
     await expect(page.getByLabel("3 phần Bánh Croissant Truyền Thống trong giỏ")).toHaveText("3");
     await expect(add).toBeDisabled();
-    await expect(page.getByText("-56% · đã chọn đủ 3 phần")).toBeVisible();
+    await expect(page.getByText("đã chọn đủ 3 phần")).toBeVisible();
     await expect(page.getByText("3 phần · tiết kiệm 84.000đ")).toBeVisible();
 
     // Another seller's dish joins the same cart, in its own basket.
@@ -71,13 +71,19 @@ test.describe("a dish, its seller and the cart", () => {
       page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }),
     ).toBeDisabled();
     await expect(page.getByText("Tiền món (4 phần)")).toBeVisible();
-    await expect(page.getByText("Thanh toán tại quầy")).toBeVisible();
+    // Figma K5: one card per seller's order, and one order button for both.
+    await expect(page.getByRole("heading", { level: 2, name: "La Paris" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Panda Chef" })).toBeVisible();
+    await expect(page.getByText("Thanh toán tại quầy", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Tổng cộng · 2 đơn" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Đặt 2 đơn" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
     // Figma K5: at one portion, − takes the dish out at once.
     await page.getByRole("button", { name: "Bớt một phần Há cảo tôm" }).click();
     await expect(page.getByText("Há cảo tôm", { exact: true })).toBeHidden();
     await expect(page.getByText("Tiền món (3 phần)")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Đặt món" })).toBeVisible();
   });
 
   test("books from the card beside the dish on a wide screen", async ({ page, isMobile }) => {

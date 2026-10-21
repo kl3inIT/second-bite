@@ -8,8 +8,7 @@ import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-import impact from "./impact.jpg";
-import { byCheckout, dayOf, isOpen, savingOf, type Day, type Order } from "./order";
+import { byCheckout, dayOf, isOpen, type Day, type Order } from "./order";
 import { readMyOrderLists } from "./read-orders";
 import { SignInPrompt } from "./sign-in-prompt";
 
@@ -160,34 +159,6 @@ async function EndedOrderRow({ orders }: { orders: Order[] }) {
   );
 }
 
-/** What the collected orders saved, over a photograph of fresh food (Figma D1 › impact). */
-async function Impact({ collected }: { collected: Order[] }) {
-  const t = await getTranslations("Orders");
-  const saved = collected.reduce((sum, order) => sum + savingOf(order), 0);
-
-  return (
-    <aside className="relative flex h-37.5 flex-col justify-between overflow-hidden rounded-2xl p-4 text-deal-foreground">
-      <Image
-        src={impact}
-        alt=""
-        fill
-        sizes="(min-width: 36rem) 36rem, 100vw"
-        className="object-cover"
-      />
-      <span aria-hidden className="absolute inset-0 bg-linear-to-b from-deal/45 to-deal/90" />
-      <svg viewBox="0 0 32 32" aria-hidden className="relative size-8 fill-current">
-        <path d="M17.95 2.13a3.36 3.36 0 0 0 4.4 3.97 3.36 3.36 0 0 0 3.55 3.55 3.36 3.36 0 0 0 3.97 4.4A14 14 0 1 1 17.95 2.13Z" />
-      </svg>
-      <div className="relative flex flex-col gap-1">
-        <p className="font-display text-price-lg">{t("impact", { meals: collected.length })}</p>
-        <p className="text-note text-inverse-muted">
-          {t("impactSaved", { saved: formatPrice(saved) })}
-        </p>
-      </div>
-    </aside>
-  );
-}
-
 const days: Day[] = ["today", "week", "before"];
 
 /**
@@ -208,7 +179,6 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
   const groups = byCheckout([...open, ...ended]);
   const openGroups = groups.filter((group) => group.some(isOpen));
   const endedGroups = groups.filter((group) => !group.some(isOpen));
-  const collected = ended.filter((order) => order.status === "collected");
   const endedByDay = days
     .map((day) => ({
       day,
@@ -251,7 +221,6 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
                 {t("noneOpen")}
               </p>
             )}
-            {collected.length > 0 ? <Impact collected={collected} /> : null}
           </>
         ) : endedByDay.length > 0 ? (
           endedByDay.map(({ day, groups: inDay }) => (

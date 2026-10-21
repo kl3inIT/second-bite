@@ -118,9 +118,6 @@ test.describe("ordering from the cart", () => {
     await expect(page.getByRole("heading", { name: "Trạng thái" })).toBeVisible();
     await expect(page.getByText("Bạn đã nhận món")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
-
-    await page.goto("/vi/orders");
-    await expect(page.getByText("1 bữa ngon, trọn đến miếng cuối")).toBeVisible();
   });
 
   // Figma O7: someone else ordered first. The cart holds a dish the stub no longer sells beside a croissant,
