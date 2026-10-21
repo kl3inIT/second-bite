@@ -64,6 +64,12 @@ abstract class OrdersClient {
     @Header('Order-Access') String? orderAccess,
   });
 
+  /// Hand an order over at the counter, where its customer pays in cash.
+  ///
+  /// No code is asked, and a customer may come before the window opens.
+  @POST('/orders/{orderId}/deliver')
+  Future<OrderBody> deliverOrder({@Path('orderId') required String orderId});
+
   /// Hand an order over against its collection code.
   ///
   /// Within the window. A wrong code is counted; the third locks the code.
@@ -83,6 +89,12 @@ abstract class OrdersClient {
     @Path('orderId') required String orderId,
     @Body() required RefuseOrderRequest body,
   });
+
+  /// Take a hand-over or a refusal back.
+  ///
+  /// The order is open again, and the units a refusal had returned are taken again, or it fails when they are gone. An order its customer cancelled, or whose window is over, stays as it is.
+  @POST('/orders/{orderId}/reopen')
+  Future<OrderBody> reopenOrder({@Path('orderId') required String orderId});
 
   /// A seller's orders of one day, soonest first, to its people and admins.
   ///

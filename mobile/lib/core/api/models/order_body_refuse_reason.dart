@@ -10,6 +10,16 @@ enum OrderBodyRefuseReason {
   notSuitable('not_suitable'),
   @JsonValue('wrong_items')
   wrongItems('wrong_items'),
+  @JsonValue('no_answer')
+  noAnswer('no_answer'),
+  @JsonValue('no_show')
+  noShow('no_show'),
+
+  /// The name has been replaced because it contains a keyword. Original name: `late`.
+  @JsonValue('late')
+  valueLate('late'),
+  @JsonValue('sold_out')
+  soldOut('sold_out'),
   @JsonValue('other')
   other('other'),
 
