@@ -147,7 +147,7 @@ function DayBar(view: View) {
               </li>
             ))}
           </ul>
-          <div className="flex justify-center [&_[data-slot=calendar]]:[--cell-size:--spacing(9)]">
+          <div className="flex justify-center">
             <Calendar
               mode="single"
               required
