@@ -22,7 +22,7 @@ part 'sellers_client.g.dart';
 abstract class SellersClient {
   factory SellersClient(Dio dio, {String? baseUrl}) = _SellersClient;
 
-  /// Open a seller; it waits for an admin to activate it
+  /// Open a seller, active at once, pinned inside Hanoi
   @POST('/sellers')
   Future<SellerBody> openSeller({@Body() required DetailsBody body});
 
@@ -47,7 +47,7 @@ abstract class SellersClient {
   @GET('/sellers/{sellerId}')
   Future<SellerBody> getSeller({@Path('sellerId') required String sellerId});
 
-  /// Change a seller's details; only its owner may
+  /// Change a seller's details; only its owner may. A moved pin or address moves its offers on sale and its orders still to collect
   @PUT('/sellers/{sellerId}')
   Future<SellerBody> updateSeller({
     @Path('sellerId') required String sellerId,
