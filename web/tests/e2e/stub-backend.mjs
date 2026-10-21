@@ -111,14 +111,49 @@ function announce({ estimatedUnits, ...fields }) {
   return { ...offer, status: "announced", estimatedUnits };
 }
 
+/** A seller's logo, served like the dishes' photographs (photoFiles below). */
+function logo(slug) {
+  const id = `ph-logo-${slug}`;
+  return { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` };
+}
+
 const sellers = {
-  laParis: { id: "se-la-paris", name: "La Paris", address: "Tầng 1", rating: 4.8 },
-  pandaChef: { id: "se-panda-chef", name: "Panda Chef", address: "Tầng 3", rating: 4.6 },
-  netHue: { id: "se-net-hue", name: "Nét Huế", address: "Tầng 3", rating: 4.7 },
-  phucLong: { id: "se-phuc-long", name: "Phúc Long", address: "Tầng 1", rating: 4.5 },
-  highlands: { id: "se-highlands", name: "Highlands Coffee", address: "Tầng 1" },
-  kfc: { id: "se-kfc", name: "KFC", address: "Tầng hầm" },
-  pizzaHut: { id: "se-pizza-hut", name: "Pizza Hut", address: "Tầng 3" },
+  laParis: {
+    id: "se-la-paris",
+    name: "La Paris",
+    address: "Tầng 1",
+    rating: 4.8,
+    photo: logo("la-paris"),
+  },
+  pandaChef: {
+    id: "se-panda-chef",
+    name: "Panda Chef",
+    address: "Tầng 3",
+    rating: 4.6,
+    photo: logo("panda-chef"),
+  },
+  netHue: {
+    id: "se-net-hue",
+    name: "Nét Huế",
+    address: "Tầng 3",
+    rating: 4.7,
+    photo: logo("net-hue"),
+  },
+  phucLong: {
+    id: "se-phuc-long",
+    name: "Phúc Long",
+    address: "Tầng 1",
+    rating: 4.5,
+    photo: logo("phuc-long"),
+  },
+  highlands: {
+    id: "se-highlands",
+    name: "Highlands Coffee",
+    address: "Tầng 1",
+    photo: logo("highlands"),
+  },
+  kfc: { id: "se-kfc", name: "KFC", address: "Tầng hầm", photo: logo("kfc") },
+  pizzaHut: { id: "se-pizza-hut", name: "Pizza Hut", address: "Tầng 3", photo: logo("pizza-hut") },
 };
 
 // Dishes from the shops' menus at Tasco Mall, at their menu price, with tonight's price and window made up.
@@ -323,8 +358,21 @@ const photoFiles = {
   "ph-com-bo": "net-hue/08-com-bo-rang-gion.jpg",
   "ph-xiu-mai": "panda-chef/02-xiu-mai-hap.png",
   "ph-ga-ran": "kfc/01-3-mieng-ga-ran.jpg",
+  // The sellers' logos, from the directory's list of shops.
+  "ph-logo-la-paris": "../quan-an/la-paris.png",
+  "ph-logo-panda-chef": "../quan-an/panda-chef.png",
+  "ph-logo-net-hue": "../quan-an/net-hue.png",
+  "ph-logo-kfc": "../quan-an/kfc.jpeg",
+  "ph-logo-pizza-hut": "../quan-an/pizza-hut.png",
+  "ph-logo-phuc-long": "../giai-khat/phuc-long.png",
+  "ph-logo-highlands": "../giai-khat/highlands-coffee-2.png",
 };
-const imageTypes = { ".jpg": "image/jpeg", ".png": "image/png", ".webp": "image/webp" };
+const imageTypes = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+};
 
 /** The dish's photograph when the directory is there, otherwise a placeholder. */
 async function photo(id) {

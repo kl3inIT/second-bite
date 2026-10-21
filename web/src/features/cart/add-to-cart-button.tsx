@@ -6,14 +6,14 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { isAvailable, type OfferSummary } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
 
-import { quantityOf, totals } from "./cart";
-import { useAddToCart } from "./use-add-to-cart";
+import { addOne, quantityOf, totals } from "./cart";
+import { saveCart, useCart } from "./cart-store";
 
 // The dish's button (Figma K4 "Thêm vào giỏ"): one portion into the cart, then the way to the cart; a dish
 // with nothing left cannot be added.
 export function AddToCartButton({ offer }: { offer: OfferSummary }) {
   const t = useTranslations("Cart");
-  const { cart, add, sheet } = useAddToCart();
+  const cart = useCart();
   const inCart = quantityOf(cart, offer.id) > 0;
 
   return (
@@ -27,11 +27,10 @@ export function AddToCartButton({ offer }: { offer: OfferSummary }) {
           {t("view", { units: totals(cart).units })}
         </Link>
       ) : (
-        <Button size="lg" onClick={() => add(offer)}>
+        <Button size="lg" onClick={() => saveCart(addOne(cart, offer))}>
           {t("addToCart")}
         </Button>
       )}
-      {sheet}
     </div>
   );
 }

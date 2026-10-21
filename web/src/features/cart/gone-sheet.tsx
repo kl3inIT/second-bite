@@ -7,7 +7,7 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 
-import { totals, type Cart, type CutLine } from "./cart";
+import { totals, type Basket, type CutLine } from "./cart";
 
 // The dishes someone else ordered first (Figma O7), gone or with fewer portions left than the cart held:
 // nothing was charged, then order what is left in one press
@@ -20,10 +20,10 @@ export function GoneSheet({
   onOrderRest,
 }: {
   cut: CutLine[];
-  rest: Cart | null;
+  rest: Basket | null;
   sellerId: string;
   onKeep: () => void;
-  onOrderRest: (rest: Cart) => void;
+  onOrderRest: (rest: Basket) => void;
 }) {
   const t = useTranslations("Cart");
   const gone = cut.filter(({ left }) => left === 0);

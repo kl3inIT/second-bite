@@ -437,7 +437,7 @@ A seller's dishes tonight (Figma K4b): up to three dish photographs side by side
 
 ### Stepper
 
-A lone 32px white + with the card shadow until the dish is in the cart; then a 96px by 32px pill on the sky fill (`muted`) holding a white − , the count (`title`) and a + in Tasco blue, which turns `secondary` with a muted icon once every portion left is chosen. Each button keeps a 44px target. Adding a dish of another seller asks first in a sheet (Figma K4c): "Bắt đầu giỏ mới?" (sheet title), why in muted `body-sm`, "Bắt đầu giỏ mới" over "Giữ giỏ hiện tại" (secondary).
+A lone 32px white + with the card shadow until the dish is in the cart; then a 96px by 32px pill on the sky fill (`muted`) holding a white − , the count (`title`) and a + in Tasco blue, which turns `secondary` with a muted icon once every portion left is chosen. Each button keeps a 44px target. A dish of another seller joins the same cart, in its seller's basket.
 
 ### Order confirmation
 

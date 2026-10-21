@@ -1,70 +1,78 @@
 import type { OfferSummary } from "@/features/offers/offer";
 
-// The cart until orders exist (SEC-49 decision 7): one seller's dishes, each never more than its portions
-// left, kept as the cards showed them so the confirmation (Figma K5) needs no request of its own.
+// The cart until orders exist (SEC-49 decision 7): dishes of any sellers, each never more than its portions
+// left, kept as the cards showed them so the confirmation (Figma K5) needs no request of its own. Each seller's
+// dishes are a basket, ordered on its own since an order holds one seller's dishes (SEC-15).
 
 export type CartLine = Pick<
   OfferSummary,
   "id" | "name" | "priceVnd" | "originalPriceVnd" | "unitsLeft" | "windowStart" | "windowEnd"
 > & { quantity: number };
 
-export type Cart = {
+/** One seller's dishes in the cart: one order. */
+export type Basket = {
   seller: Pick<OfferSummary["seller"], "id" | "name" | "address" | "photo">;
   collectionPoint: OfferSummary["collectionPoint"];
   distanceMeters?: number;
   lines: CartLine[];
 };
 
-/** One more portion of the dish, or the cart that stands in its way when it holds another seller's dishes. */
-export function addOne(
-  cart: Cart | null,
-  offer: OfferSummary,
-): { cart: Cart; conflict?: never } | { conflict: Cart; cart?: never } {
-  if (!cart) return { cart: startWith(offer) };
-  if (cart.seller.id !== offer.sellerId) return { conflict: cart };
-  const line = cart.lines.find(({ id }) => id === offer.id);
-  const quantity = Math.min((line?.quantity ?? 0) + 1, offer.unitsLeft);
-  const updated = { ...lineOf(offer), quantity };
-  return {
-    cart: {
-      ...cart,
-      lines: line
-        ? cart.lines.map((each) => (each.id === offer.id ? updated : each))
-        : [...cart.lines, updated],
-    },
+/** The baskets, in the order their sellers were first added; never empty. */
+export type Cart = { baskets: Basket[] };
+
+/** One more portion of the dish, in its seller's basket, never more than its portions left. */
+export function addOne(cart: Cart | null, offer: OfferSummary): Cart {
+  const baskets = cart?.baskets ?? [];
+  const basket = baskets.find(({ seller }) => seller.id === offer.sellerId);
+  if (!basket) return { baskets: [...baskets, basketOf(offer)] };
+  const line = basket.lines.find(({ id }) => id === offer.id);
+  const updated = {
+    ...lineOf(offer),
+    quantity: Math.min((line?.quantity ?? 0) + 1, offer.unitsLeft),
   };
+  const lines = line
+    ? basket.lines.map((each) => (each.id === offer.id ? updated : each))
+    : [...basket.lines, updated];
+  return { baskets: baskets.map((each) => (each === basket ? { ...basket, lines } : each)) };
 }
 
-/** A new cart holding one portion of the dish, in place of whatever was there. */
-export function startWith(offer: OfferSummary): Cart {
-  return {
-    seller: {
-      id: offer.seller.id,
-      name: offer.seller.name,
-      address: offer.seller.address,
-      photo: offer.seller.photo,
-    },
-    collectionPoint: offer.collectionPoint,
-    distanceMeters: offer.distanceMeters,
-    lines: [{ ...lineOf(offer), quantity: Math.min(1, offer.unitsLeft) }],
-  };
-}
-
-/** One portion fewer; the dish leaves at none and the cart is gone with its last dish. */
+/** One portion fewer; the dish leaves at none, its basket with its last dish, the cart with its last basket. */
 export function removeOne(cart: Cart, offerId: string): Cart | null {
-  const lines = cart.lines
-    .map((line) => (line.id === offerId ? { ...line, quantity: line.quantity - 1 } : line))
-    .filter((line) => line.quantity > 0);
-  return lines.length > 0 ? { ...cart, lines } : null;
+  const baskets = cart.baskets
+    .map((basket) => ({
+      ...basket,
+      lines: basket.lines
+        .map((line) => (line.id === offerId ? { ...line, quantity: line.quantity - 1 } : line))
+        .filter((line) => line.quantity > 0),
+    }))
+    .filter(({ lines }) => lines.length > 0);
+  return baskets.length > 0 ? { baskets } : null;
+}
+
+/** The cart with a seller's basket put in place of theirs, or taken out when null. */
+export function withBasket(cart: Cart, sellerId: string, basket: Basket | null): Cart | null {
+  const baskets = cart.baskets.flatMap((each) =>
+    each.seller.id !== sellerId ? [each] : basket ? [basket] : [],
+  );
+  return baskets.length > 0 ? { baskets } : null;
 }
 
 export function quantityOf(cart: Cart | null, offerId: string): number {
-  return cart?.lines.find(({ id }) => id === offerId)?.quantity ?? 0;
+  for (const basket of cart?.baskets ?? []) {
+    const line = basket.lines.find(({ id }) => id === offerId);
+    if (line) return line.quantity;
+  }
+  return 0;
 }
 
 /** The portions, what they cost tonight and what they would have cost: the bars of K4b and K5. */
-export function totals(cart: Cart): { units: number; priceVnd: number; originalPriceVnd: number } {
-  return cart.lines.reduce(
+export function totals(of: Cart | Basket): {
+  units: number;
+  priceVnd: number;
+  originalPriceVnd: number;
+} {
+  const lines = "baskets" in of ? of.baskets.flatMap((basket) => basket.lines) : of.lines;
+  return lines.reduce(
     (sum, line) => ({
       units: sum.units + line.quantity,
       priceVnd: sum.priceVnd + line.quantity * line.priceVnd,
@@ -74,25 +82,36 @@ export function totals(cart: Cart): { units: number; priceVnd: number; originalP
   );
 }
 
-/** When every dish in the cart can be collected, or the earliest window when they share no time. */
-export function collectionWindow(cart: Cart): { windowStart: string; windowEnd: string } {
-  const starts = cart.lines.map(({ windowStart }) => Date.parse(windowStart));
-  const ends = cart.lines.map(({ windowEnd }) => Date.parse(windowEnd));
+/** When every dish in the basket can be collected, or the earliest window when they share no time. */
+export function collectionWindow(basket: Basket): { windowStart: string; windowEnd: string } {
+  const starts = basket.lines.map(({ windowStart }) => Date.parse(windowStart));
+  const ends = basket.lines.map(({ windowEnd }) => Date.parse(windowEnd));
   const start = Math.max(...starts);
   const end = Math.min(...ends);
   if (start < end) {
     return { windowStart: new Date(start).toISOString(), windowEnd: new Date(end).toISOString() };
   }
-  const earliest = cart.lines.reduce((a, b) =>
+  const earliest = basket.lines.reduce((a, b) =>
     Date.parse(b.windowStart) < Date.parse(a.windowStart) ? b : a,
   );
   return { windowStart: earliest.windowStart, windowEnd: earliest.windowEnd };
 }
 
-/** Whether a value read back from storage is a cart, since anything may have written there. */
-export function isCart(value: unknown): value is Cart {
+/**
+ * The cart in a value read back from storage, since anything may have written there; null when it holds none.
+ * A cart saved while it held one seller is that seller's basket.
+ */
+export function readCart(value: unknown): Cart | null {
+  if (typeof value !== "object" || value === null) return null;
+  const baskets: unknown = "baskets" in value ? value.baskets : [value];
+  return Array.isArray(baskets) && baskets.length > 0 && baskets.every(isBasket)
+    ? { baskets }
+    : null;
+}
+
+function isBasket(value: unknown): value is Basket {
   if (typeof value !== "object" || value === null) return false;
-  const { seller, collectionPoint, lines } = value as Partial<Cart>;
+  const { seller, collectionPoint, lines } = value as Partial<Basket>;
   return (
     typeof seller?.id === "string" &&
     typeof seller.name === "string" &&
@@ -113,27 +132,41 @@ export function isCart(value: unknown): value is Cart {
   );
 }
 
+function basketOf(offer: OfferSummary): Basket {
+  return {
+    seller: {
+      id: offer.seller.id,
+      name: offer.seller.name,
+      address: offer.seller.address,
+      photo: offer.seller.photo,
+    },
+    collectionPoint: offer.collectionPoint,
+    distanceMeters: offer.distanceMeters,
+    lines: [{ ...lineOf(offer), quantity: Math.min(1, offer.unitsLeft) }],
+  };
+}
+
 function lineOf(offer: OfferSummary): Omit<CartLine, "quantity"> {
   const { id, name, priceVnd, originalPriceVnd, unitsLeft, windowStart, windowEnd } = offer;
   return { id, name, priceVnd, originalPriceVnd, unitsLeft, windowStart, windowEnd };
 }
 
-/** A dish of the cart with fewer portions left than it holds; none left when `left` is 0. */
+/** A dish of a basket with fewer portions left than it holds; none left when `left` is 0. */
 export type CutLine = CartLine & { left: number };
 
 /**
- * The cart cut down to the portions still left of each dish (Figma O7), and the dishes it cut: what someone
+ * A basket cut down to the portions still left of each dish (Figma O7), and the dishes it cut: what someone
  * else ordered first between the cart and "Đặt món". Null when nothing is left to order.
  */
 export function keepLeft(
-  cart: Cart,
+  basket: Basket,
   left: Record<string, number>,
-): { cart: Cart | null; cut: CutLine[] } {
-  const cut = cart.lines
+): { basket: Basket | null; cut: CutLine[] } {
+  const cut = basket.lines
     .map((line) => ({ ...line, left: left[line.id] ?? 0 }))
     .filter((line) => line.left < line.quantity);
-  const lines = cart.lines
+  const lines = basket.lines
     .map((line) => ({ ...line, quantity: Math.min(line.quantity, left[line.id] ?? 0) }))
     .filter((line) => line.quantity > 0);
-  return { cart: lines.length > 0 ? { ...cart, lines } : null, cut };
+  return { basket: lines.length > 0 ? { ...basket, lines } : null, cut };
 }

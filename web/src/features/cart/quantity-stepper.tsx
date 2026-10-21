@@ -6,9 +6,8 @@ import { useTranslations } from "next-intl";
 import { isAvailable, type OfferSummary } from "@/features/offers/offer";
 import { cn } from "@/lib/utils";
 
-import { quantityOf, removeOne } from "./cart";
-import { saveCart } from "./cart-store";
-import { useAddToCart } from "./use-add-to-cart";
+import { addOne, quantityOf, removeOne } from "./cart";
+import { saveCart, useCart } from "./cart-store";
 
 // A round 32px button with a 44px target around it.
 const round =
@@ -18,7 +17,8 @@ const round =
 // − count + on the sky fill, the + going pale once every portion left is chosen.
 export function QuantityStepper({ offer }: { offer: OfferSummary }) {
   const t = useTranslations("Cart");
-  const { cart, add, sheet } = useAddToCart();
+  const cart = useCart();
+  const add = (dish: OfferSummary) => saveCart(addOne(cart, dish));
   const quantity = quantityOf(cart, offer.id);
   const full = quantity >= offer.unitsLeft;
 
@@ -62,7 +62,6 @@ export function QuantityStepper({ offer }: { offer: OfferSummary }) {
           </button>
         </div>
       )}
-      {sheet}
     </>
   );
 }

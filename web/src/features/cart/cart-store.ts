@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import { isCart, type Cart } from "./cart";
+import { readCart, type Cart } from "./cart";
 
 // The cart in this browser's storage, so it outlives a closed tab (SEC-49 decision 7). Storage that is
 // blocked or full keeps nothing; another tab's change reaches this one through the `storage` event.
@@ -20,8 +20,7 @@ function read(): Cart | null {
   if (raw !== cache.raw) {
     let cart: Cart | null = null;
     try {
-      const parsed: unknown = JSON.parse(raw ?? "null");
-      if (isCart(parsed)) cart = parsed;
+      cart = readCart(JSON.parse(raw ?? "null"));
     } catch {
       // A value written by something else is ignored.
     }

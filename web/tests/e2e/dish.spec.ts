@@ -43,18 +43,14 @@ test.describe("a dish, its seller and the cart", () => {
     await expect(page.getByText("3 phần · tiết kiệm 84.000đ")).toBeVisible();
 
     await page.goto("/vi/offers/of-ha-cao");
+    // Another seller's dish joins the same cart, in its own basket.
     await (await hydrated(page.getByRole("button", { name: "Thêm vào giỏ" }))).click();
-    const sheet = page.getByRole("dialog", { name: "Bắt đầu giỏ mới?" });
-    await expect(
-      sheet.getByText("Giỏ của bạn đang có 3 phần của La Paris.", { exact: false }),
-    ).toBeVisible();
-    await sheet.getByRole("button", { name: "Giữ giỏ hiện tại" }).click();
-    await expect(sheet).toBeHidden();
+    await page.getByRole("link", { name: "Xem giỏ hàng · 4 phần" }).click();
 
-    await page.goto("/vi/cart");
     await expect(page.getByRole("heading", { level: 1, name: "Xác nhận đơn" })).toBeVisible();
     await expect(page.getByText("3× Bánh Croissant Truyền Thống")).toBeVisible();
-    await expect(page.getByText("Tiền món (3 phần)")).toBeVisible();
+    await expect(page.getByText("1× Há cảo tôm")).toBeVisible();
+    await expect(page.getByText("Tiền món (4 phần)")).toBeVisible();
     await expect(page.getByRole("radio", { name: "Chuyển khoản tại quầy" })).toBeChecked();
     await expectNoSeriousA11yViolations(page);
   });
