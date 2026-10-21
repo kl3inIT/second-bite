@@ -2,7 +2,7 @@
 
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { CircleAlertIcon, MailWarningIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -11,7 +11,7 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/c
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Spinner } from "@/components/ui/spinner";
-import { Link, useRouter } from "@/i18n/navigation";
+import { getPathname, Link } from "@/i18n/navigation";
 import { ApiError, failureOf } from "@/lib/api/client";
 import { requestSignInCode, signIn, signInWithGoogle } from "@/lib/api/generated";
 
@@ -68,7 +68,7 @@ export function SignInForm({
   googleClientId?: string;
 }) {
   const t = useTranslations("SignIn");
-  const router = useRouter();
+  const locale = useLocale();
   const [step, setStep] = useState<Step>({ name: "email" });
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -76,8 +76,11 @@ export function SignInForm({
   const [pending, startTransition] = useTransition();
 
   function signedIn() {
-    router.replace(returnTo);
-    router.refresh();
+    // A whole page load, not the router: what the router cached was fetched before the session existed. On a
+    // phone the top bar's back link prefetches `returnTo`, an admin page answers that with the proxy's redirect
+    // back here (SEC-75 › Guard), and `router.refresh()` does not drop that redirect, so a client navigation
+    // looped between this page and the redirect.
+    window.location.replace(getPathname({ href: returnTo, locale }));
   }
 
   function sendCode(to: string) {
