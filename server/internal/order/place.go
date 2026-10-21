@@ -73,7 +73,7 @@ func (s *Service) Place(ctx context.Context, key string, checkout uuid.UUID, con
 	})
 
 	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+	if errors.As(err, &pgErr) && pgErr.Code == uniqueViolation {
 		// The same key arrived twice at once; the first order stands.
 		earlier, err := s.queries.OrderOfKey(ctx, db.OrderOfKeyParams{
 			CustomerID: customer, IdempotencyKey: key, CustomerPhone: contact.Phone,
@@ -101,7 +101,7 @@ func (s *Service) placed(ctx context.Context, id uuid.UUID) (Order, error) {
 		return Order{}, err
 	}
 
-	return s.shown(o, true), nil
+	return s.readBy(ctx, s.shown(o, true), SideCustomer)
 }
 
 // takeFailure is an offer's failure to give units, as the order module says it.
@@ -176,6 +176,10 @@ func (s *Service) place(
 
 	if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "placed", ActorID: customer}); err != nil {
 		return uuid.Nil, fmt.Errorf("recording the order: %w", err)
+	}
+
+	if err := notifyOrder(ctx, tx, id, first.SellerID, StatusConfirmed); err != nil {
+		return uuid.Nil, err
 	}
 
 	return id, nil

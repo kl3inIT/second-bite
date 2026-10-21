@@ -226,6 +226,12 @@ func (a *app) serve(ctx context.Context) error {
 	registerOperations(platform.NewAPI(mux), a)
 	platform.RegisterHealth(mux, a.pool)
 
+	// The socket is no huma operation: huma cannot describe a WebSocket, and
+	// everything that needs authorization, the tickets included, stays in the
+	// contract.
+	live := platform.NewLive(a.pool, a.logger, a.order.RedeemLiveTicket)
+	mux.Handle("GET /live", live)
+
 	var lc net.ListenConfig
 
 	ln, err := lc.Listen(ctx, "tcp", a.cfg.HTTPAddr)
@@ -237,14 +243,27 @@ func (a *app) serve(ctx context.Context) error {
 		return err
 	}
 
+	// The hub closes its sockets with 1001 when ctx ends, as Shutdown does not
+	// track hijacked connections.
+	// The hub also stops when the server fails on its own, or the wait below
+	// would never end.
+	liveCtx, stopLive := context.WithCancel(ctx)
+	defer stopLive()
+
+	liveDone := make(chan error, 1)
+
+	go func() { liveDone <- live.Run(liveCtx) }()
+
 	serveErr := platform.Serve(ctx, ln, platform.NewHandler(mux, a.logger, a.identity.Authenticate), a.logger)
+
+	stopLive()
 
 	// The listeners stop after the requests that may publish, with time to
 	// finish what they run; what is left runs at the next start.
 	stopCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), eventsStopTimeout)
 	defer cancel()
 
-	return errors.Join(serveErr, a.events.Stop(stopCtx))
+	return errors.Join(serveErr, <-liveDone, a.events.Stop(stopCtx))
 }
 
 // eventsStopTimeout bounds how long serve waits for running listeners.

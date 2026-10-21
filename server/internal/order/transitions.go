@@ -49,9 +49,13 @@ func (s *Service) Cancel(ctx context.Context, id uuid.UUID, access, reason strin
 			}
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{
+		if err := q.InsertEvent(ctx, db.InsertEventParams{
 			OrderID: id, Kind: "cancelled", ActorID: uuid.NullUUID{UUID: caller.AccountID, Valid: signedIn},
-		})
+		}); err != nil {
+			return err
+		}
+
+		return notifyOrder(ctx, tx, id, o.SellerID, StatusCancelled)
 	})
 	if err != nil {
 		return Order{}, err
@@ -70,7 +74,7 @@ func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 		return Order{}, err
 	}
 
-	err = s.transition(ctx, id, func(q *db.Queries, _ pgx.Tx, o Order) error {
+	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
 		switch o.Status {
 		case StatusReady:
 			return nil
@@ -83,7 +87,11 @@ func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 			return fmt.Errorf("marking the order ready: %w", err)
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "ready", ActorID: actor(caller)})
+		if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "ready", ActorID: actor(caller)}); err != nil {
+			return err
+		}
+
+		return notifyOrder(ctx, tx, id, o.SellerID, StatusReady)
 	})
 	if err != nil {
 		return Order{}, err
@@ -102,7 +110,7 @@ func (s *Service) HandOver(ctx context.Context, id uuid.UUID) (Order, error) {
 		return Order{}, err
 	}
 
-	err = s.transition(ctx, id, func(q *db.Queries, _ pgx.Tx, o Order) error {
+	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
 		switch {
 		case !o.Status.open():
 			return ErrTransitionNotAllowed
@@ -114,7 +122,11 @@ func (s *Service) HandOver(ctx context.Context, id uuid.UUID) (Order, error) {
 			return fmt.Errorf("handing the order over: %w", err)
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "collected", ActorID: actor(caller)})
+		if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "collected", ActorID: actor(caller)}); err != nil {
+			return err
+		}
+
+		return notifyOrder(ctx, tx, id, o.SellerID, StatusCollected)
 	})
 	if err != nil {
 		return Order{}, err
@@ -158,7 +170,11 @@ func (s *Service) Reopen(ctx context.Context, id uuid.UUID) (Order, error) {
 			return fmt.Errorf("reopening the order: %w", err)
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "reopened", ActorID: actor(caller)})
+		if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "reopened", ActorID: actor(caller)}); err != nil {
+			return err
+		}
+
+		return notifyOrder(ctx, tx, id, o.SellerID, StatusConfirmed)
 	})
 	if err != nil {
 		return Order{}, err
@@ -201,7 +217,11 @@ func (s *Service) Refuse(ctx context.Context, id uuid.UUID, reason RefuseReason,
 			}
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "refused", ActorID: actor(caller)})
+		if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "refused", ActorID: actor(caller)}); err != nil {
+			return err
+		}
+
+		return notifyOrder(ctx, tx, id, o.SellerID, StatusRefused)
 	})
 	if err != nil {
 		return Order{}, err

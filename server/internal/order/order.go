@@ -108,6 +108,13 @@ type Order struct {
 	RefuseNote      string
 	// Review is the customer's rating, none until they rate the collected order.
 	Review *Review
+	// UnreadMessages is how many messages of its chat the reader has not read:
+	// from the seller for the customer, from the customer for the seller's
+	// people. None for admins, who do not read chats.
+	UnreadMessages *int
+	// MessageCount is how many messages its chat holds, set with
+	// UnreadMessages.
+	MessageCount *int
 	// Access proves the order is theirs to whoever placed it, set only for
 	// them.
 	Access string
@@ -153,18 +160,33 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID, access string) (Order, 
 	}
 
 	if s.isCustomer(ctx, o, access) {
-		return s.shown(o, true), nil
+		return s.readBy(ctx, s.shown(o, true), SideCustomer)
 	}
 
 	if _, signedIn := platform.CallerFrom(ctx); !signedIn {
 		return Order{}, ErrNotFound
 	}
 
-	if _, err := s.sellers.Get(ctx, o.SellerID); err != nil {
+	member, err := s.sellers.Get(ctx, o.SellerID)
+	if err != nil {
 		return Order{}, ErrNotFound
 	}
 
-	return o, nil
+	if member.MyRole == "" {
+		return o, nil
+	}
+
+	return s.readBy(ctx, o, SideSeller)
+}
+
+// readBy returns o with the unread messages of the side reading it.
+func (s *Service) readBy(ctx context.Context, o Order, side Side) (Order, error) {
+	orders := []Order{o}
+	if err := s.withUnread(ctx, orders, side); err != nil {
+		return Order{}, err
+	}
+
+	return orders[0], nil
 }
 
 // isCustomer tells whether the reader placed o: signed in to its account, or
@@ -218,6 +240,10 @@ func (s *Service) Mine(ctx context.Context, which Which, checkout uuid.UUID, lim
 		return nil, err
 	}
 
+	if err := s.withUnread(ctx, orders, SideCustomer); err != nil {
+		return nil, err
+	}
+
 	for i := range orders {
 		orders[i] = s.shown(orders[i], true)
 	}
@@ -228,7 +254,8 @@ func (s *Service) Mine(ctx context.Context, which Which, checkout uuid.UUID, lim
 // OfSeller lists a seller's orders whose window starts on day, in Vietnam
 // time, to its people and admins.
 func (s *Service) OfSeller(ctx context.Context, sellerID uuid.UUID, day time.Time) ([]Order, error) {
-	if _, err := s.sellers.Get(ctx, sellerID); err != nil {
+	member, err := s.sellers.Get(ctx, sellerID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -251,6 +278,12 @@ func (s *Service) OfSeller(ctx context.Context, sellerID uuid.UUID, day time.Tim
 
 	if err := s.withReviews(ctx, orders); err != nil {
 		return nil, err
+	}
+
+	if member.MyRole != "" {
+		if err := s.withUnread(ctx, orders, SideSeller); err != nil {
+			return nil, err
+		}
 	}
 
 	return orders, nil
