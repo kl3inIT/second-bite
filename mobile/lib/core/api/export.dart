@@ -55,6 +55,7 @@ export 'models/save_email_settings_input_body.dart';
 export 'models/seller_body.dart';
 export 'models/seller_photo_body.dart';
 export 'models/seller_profile_body.dart';
+export 'models/seller_status_day.dart';
 export 'models/sellers_output_body.dart';
 export 'models/sellers_summary_body.dart';
 export 'models/session_output_body.dart';

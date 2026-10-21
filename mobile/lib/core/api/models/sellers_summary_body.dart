@@ -5,6 +5,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'opened_seller_body.dart';
+import 'seller_status_day.dart';
 
 part 'sellers_summary_body.freezed.dart';
 part 'sellers_summary_body.g.dart';
@@ -26,6 +27,9 @@ abstract class SellersSummaryBody with _$SellersSummaryBody {
 
     /// Sellers pending now
     required int pending,
+
+    /// The sellers in each status at the end of every day of the range, in order. Rebuilt from each seller's status now and when it last changed, so right only when every seller changed status at most once
+    required List<SellerStatusDay> perDay,
 
     /// Sellers rejected now
     required int rejected,

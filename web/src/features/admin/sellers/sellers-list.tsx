@@ -8,7 +8,7 @@ import {
   EyeIcon,
   type LucideIcon,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { isFeatureOn } from "@/features/admin/features";
@@ -25,7 +25,8 @@ import {
 } from "@/features/admin/ui/filter-bar";
 import { Pagination } from "@/features/admin/ui/pagination";
 import { RowActionMenu } from "@/features/admin/ui/row-action-menu";
-import { StatCard } from "@/features/admin/ui/stat-card";
+import { dayToDate } from "@/features/admin/overview/days";
+import { Sparkline, StatCard } from "@/features/admin/ui/stat-card";
 import type { BadgeTone } from "@/features/admin/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +47,9 @@ import { sellerPhoto } from "./seller-photo";
 import { statusHref, useListQuery } from "./use-list-query";
 import { pageSizes } from "../list-query";
 
+/** The statuses the backend counts per day; the rejected card has no trend until SEC-64. */
+type TrendStatus = Exclude<SellerStatus, "rejected">;
+
 const cardLooks: Record<SellerStatus, { tone: BadgeTone; icon: LucideIcon }> = {
   active: { tone: "success", icon: CircleCheckIcon },
   pending: { tone: "warning", icon: ClockIcon },
@@ -57,8 +61,8 @@ const cardLooks: Record<SellerStatus, { tone: BadgeTone; icon: LucideIcon }> = {
  * The stores list (Figma AD-Q1, AD-Q2, AD-Q5 to AD-Q11, AD-TT1, AD-TT2): the three status cards, which filter
  * the list in place of tabs, the filter bar, the table with its row menu, and the numbered pages. `rows` are
  * every store in the status of the address; the search, the area, the change dates, the sort and the page are
- * applied here (seller-list.ts). The cards' 14-day trend waits for a history of status changes in `seller`, so
- * the cards draw none (design.md › What waits).
+ * applied here (seller-list.ts). Each card draws its status over the last 14 days (`counts.trend`), which the
+ * backend rebuilds from each store's last change of status (design.md › Sellers per day).
  *
  * With the `storeReview` flag (`review`, SEC-64) the list opens on the pending queue, a fourth card counts the
  * rejected stores ("—" until the backend counts them), and a pending store's menu offers "Từ chối…" (AD-DS1).
@@ -74,6 +78,7 @@ export function SellersList({
 }) {
   const t = useTranslations("admin.sellers");
   const status = useTranslations("admin.shell.status");
+  const format = useFormatter();
   const [query, update] = useListQuery(review);
   const actions = useSellerActions({ review });
   const shown = applyListQuery(rows, query);
@@ -95,6 +100,15 @@ export function SellersList({
               value={counts[card.status] ?? "—"}
               icon={card.icon}
               tone={card.tone}
+              chart={
+                card.status !== "rejected" &&
+                counts.trend && (
+                  <Sparkline
+                    points={counts.trend.map((day) => day[card.status as TrendStatus])}
+                    labels={counts.trend.map((day) => format.dateTime(dayToDate(day.date), "day"))}
+                  />
+                )
+              }
               href={statusHref(query, card.status, base, review)}
               selected={query.status === card.status}
             />

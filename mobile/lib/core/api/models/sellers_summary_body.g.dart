@@ -15,6 +15,9 @@ _SellersSummaryBody _$SellersSummaryBodyFromJson(Map<String, dynamic> json) =>
           .toList(),
       openedInRange: (json['openedInRange'] as num).toInt(),
       pending: (json['pending'] as num).toInt(),
+      perDay: (json['perDay'] as List<dynamic>)
+          .map((e) => SellerStatusDay.fromJson(e as Map<String, dynamic>))
+          .toList(),
       rejected: (json['rejected'] as num).toInt(),
     );
 
@@ -25,5 +28,6 @@ Map<String, dynamic> _$SellersSummaryBodyToJson(_SellersSummaryBody instance) =>
       'latest': instance.latest,
       'openedInRange': instance.openedInRange,
       'pending': instance.pending,
+      'perDay': instance.perDay,
       'rejected': instance.rejected,
     };

@@ -109,7 +109,7 @@ abstract class AdminClient {
 
   /// The figures of the admins' dashboard over a range of days.
   ///
-  /// Sellers by status now and opened in the range; offers posted in the range, per day and by seller, and open now; accounts in all and created in the range, per day. Days are in Vietnam time; the range is at most 90 days and the last 30 without one. Orders and payments are not counted yet.
+  /// Sellers by status now and at the end of each day, and opened in the range; offers posted in the range, per day and by seller, and open now; accounts in all and created in the range, per day. Days are in Vietnam time; the range is at most 90 days and the last 30 without one. Orders and payments are not counted yet.
   ///
   /// [from] - The range's first day in Vietnam time; 29 days before to when absent.
   ///

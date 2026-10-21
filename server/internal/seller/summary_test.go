@@ -34,10 +34,7 @@ func TestSummary(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Sellers are opened active, so one is put back to rejected by hand.
-	if _, err := pool.Exec(t.Context(), "UPDATE seller_sellers SET status = 'rejected', status_reason = $2 WHERE id = $1", ids[1], blockReason); err != nil {
-		t.Fatal(err)
-	}
+	changeStatuses(t, pool, ids)
 
 	// From 1 to 5 September, in Vietnam time.
 	from := time.Date(2026, 9, 1, 0, 0, 0, 0, platform.Vietnam)
@@ -48,9 +45,11 @@ func TestSummary(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if got.Active != 4 || got.Pending != 0 || got.Rejected != 1 || got.Blocked != 1 || got.Opened != 5 {
-		t.Errorf("counts %+v, want 4 active, 1 rejected, 1 blocked, 5 opened in the range", got)
+	if got.Active != 3 || got.Pending != 1 || got.Rejected != 1 || got.Blocked != 1 || got.Opened != 5 {
+		t.Errorf("counts %+v, want 3 active, 1 pending, 1 rejected, 1 blocked, 5 opened in the range", got)
 	}
+
+	checkStatusPerDay(t, got.PerDay, from)
 
 	want := seller.Opened{ID: ids[5], Name: shop.Name, OpenedAt: september9am(5)}
 	if len(got.Latest) != 5 || got.Latest[0].ID != want.ID || got.Latest[0].Name != want.Name ||
@@ -60,6 +59,57 @@ func TestSummary(t *testing.T) {
 
 	if _, err := f.sellers.Summary(f.as(t, "owner", platform.RoleCustomer), from, to); !errors.Is(err, platform.ErrAdminRequired) {
 		t.Errorf("an owner reading the summary: %v, want ErrAdminRequired", err)
+	}
+}
+
+// checkStatusPerDay checks the sellers in each status at the end of each day
+// from 1 to 5 September, after changeStatuses: the first seller active until
+// blocked on the 3rd; the second pending until approved on the 4th; the
+// third pending throughout; the fourth pending until rejected on the 4th; the
+// others active from the day they were opened.
+func checkStatusPerDay(t *testing.T, got []seller.StatusDay, from time.Time) {
+	t.Helper()
+
+	want := []seller.StatusDay{
+		{Day: from, Active: 1, Pending: 1},
+		{Day: from.AddDate(0, 0, 1), Active: 1, Pending: 2},
+		{Day: from.AddDate(0, 0, 2), Pending: 3, Blocked: 1},
+		{Day: from.AddDate(0, 0, 3), Active: 2, Pending: 1, Rejected: 1, Blocked: 1},
+		{Day: from.AddDate(0, 0, 4), Active: 3, Pending: 1, Rejected: 1, Blocked: 1},
+	}
+	if len(got) != len(want) {
+		t.Fatalf("per day %+v, want the five days of the range", got)
+	}
+
+	for i, w := range want {
+		if d := got[i]; !d.Day.Equal(w.Day) || d.Active != w.Active || d.Pending != w.Pending ||
+			d.Rejected != w.Rejected || d.Blocked != w.Blocked {
+			t.Errorf("day %d: %+v, want %+v", i, d, w)
+		}
+	}
+}
+
+// changeStatuses dates the block of the first seller to 3 September, and
+// makes the second one opened pending before SEC-57 and activated on 4
+// September, the third one opened pending and never approved, and the fourth
+// opened pending and rejected on 4 September.
+func changeStatuses(t *testing.T, pool *pgxpool.Pool, ids []uuid.UUID) {
+	t.Helper()
+
+	for _, change := range []struct {
+		id        uuid.UUID
+		status    string
+		changedAt *time.Time
+	}{
+		{ids[0], "blocked", new(time.Date(2026, 9, 3, 12, 0, 0, 0, platform.Vietnam))},
+		{ids[1], "active", new(time.Date(2026, 9, 4, 10, 0, 0, 0, platform.Vietnam))},
+		{ids[2], "pending", nil},
+		{ids[3], "rejected", new(time.Date(2026, 9, 4, 15, 0, 0, 0, platform.Vietnam))},
+	} {
+		if _, err := pool.Exec(t.Context(), "UPDATE seller_sellers SET status = $2, status_changed_at = $3 WHERE id = $1",
+			change.id, change.status, change.changedAt); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 

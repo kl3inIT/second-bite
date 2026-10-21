@@ -117,5 +117,49 @@ SELECT count(*) FILTER (WHERE status = 'active')::integer AS active,
        count(*) FILTER (WHERE created_at >= @range_start::timestamptz AND created_at < @range_end::timestamptz)::integer AS opened
 FROM seller_sellers;
 
+-- name: StatusPerDay :many
+-- The sellers in each status at the end of every day of a range in Vietnam
+-- time, rebuilt from what a seller keeps, since there is no history: a seller
+-- counts from the day it was opened, in the status it was opened in until its
+-- status last changed, and in its status now from then. The status it was
+-- opened in follows from the changes the code makes (SEC-75): one never
+-- changed is still in it; one blocked now was active (opened active since
+-- SEC-57, and only an active seller is blocked); one rejected now was pending
+-- (only a pending seller is rejected); one active now after a change was
+-- pending (opened pending before SEC-57, then approved). It is right only when
+-- every seller changed status at most once: one blocked and then approved
+-- again counts as pending before the approval. The audit trail records the
+-- admins' changes since SEC-75 only, and not a block for a deleted owner, and
+-- it is the audit module's, so the days are not read from it.
+WITH bounds AS (
+    SELECT @range_start::timestamptz AS range_start, @range_end::timestamptz AS range_end
+),
+sellers AS (
+    SELECT created_at, status, status_changed_at,
+           CASE
+               WHEN status_changed_at IS NULL THEN status
+               WHEN status = 'blocked' THEN 'active'
+               WHEN status IN ('active', 'rejected') THEN 'pending'
+               ELSE status
+           END AS opened_status
+    FROM seller_sellers
+),
+days AS (
+    SELECT day, day + interval '1 day' AS day_end
+    FROM bounds, generate_series(bounds.range_start, bounds.range_end - interval '1 day', interval '1 day') AS day
+)
+SELECT d.day::timestamptz AS day,
+       count(*) FILTER (WHERE on_day.status = 'active')::integer AS active,
+       count(*) FILTER (WHERE on_day.status = 'pending')::integer AS pending,
+       count(*) FILTER (WHERE on_day.status = 'rejected')::integer AS rejected,
+       count(*) FILTER (WHERE on_day.status = 'blocked')::integer AS blocked
+FROM days d
+LEFT JOIN sellers s ON s.created_at < d.day_end
+LEFT JOIN LATERAL (
+    SELECT CASE WHEN s.status_changed_at < d.day_end THEN s.status ELSE s.opened_status END AS status
+) on_day ON true
+GROUP BY d.day
+ORDER BY d.day;
+
 -- name: LatestSellers :many
 SELECT id, name, created_at FROM seller_sellers ORDER BY created_at DESC, id DESC LIMIT @max_rows;

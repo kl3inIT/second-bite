@@ -1,8 +1,10 @@
 import "server-only";
 
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 
+import { addDays, dayInVietnam } from "@/features/admin/overview/days";
 import { adminRead } from "@/features/admin/session";
 import { ApiError } from "@/lib/api/client";
 import {
@@ -14,6 +16,7 @@ import {
   type MemberBody,
   type OfferBody,
   type SellerBody,
+  type SellerStatusDay,
 } from "@/lib/api/generated";
 
 import { countRejectedSellers, listRejectedSellers } from "./review-source";
@@ -42,21 +45,40 @@ export const listSellers = cache(async (status: SellerStatus): Promise<AdminSell
   return all;
 });
 
-/** How many stores are in each status; no figure for the rejected ones until SEC-64 counts them. */
+/**
+ * How many stores are in each status now, and at the end of each of the last 14 days (`trend`, oldest first, the
+ * last day today); no figure and no trend for the rejected ones until SEC-64 counts them.
+ */
 export type SellerCounts = Record<Exclude<SellerStatus, "rejected">, number> & {
   rejected?: number;
+  trend?: SellerStatusDay[];
 };
 
+/** The days the cards' trend draws (Figma "Sparkline · 14 ngày"). */
+const TREND_DAYS = 14;
+
 /**
- * How many stores are in each status now, from `GET /admin/summary`, with the rejected ones only behind the
- * `storeReview` flag.
+ * How many stores are in each status now and over the last 14 days, from `GET /admin/summary`, with the rejected
+ * ones only behind the `storeReview` flag. The backend rebuilds the days from each store's last change of status
+ * (docs/specs/seller.md).
  */
 export async function countSellers(review: boolean): Promise<SellerCounts> {
+  // Today is the request's, never a prerender's.
+  await connection();
+  const to = dayInVietnam(new Date());
   const [{ sellers }, rejected] = await Promise.all([
-    adminRead((headers) => getAdminSummary({ headers })),
+    adminRead((headers) =>
+      getAdminSummary({ query: { from: addDays(to, 1 - TREND_DAYS), to }, headers }),
+    ),
     review ? countRejectedSellers() : undefined,
   ]);
-  return { active: sellers.active, pending: sellers.pending, blocked: sellers.blocked, rejected };
+  return {
+    active: sellers.active,
+    pending: sellers.pending,
+    blocked: sellers.blocked,
+    rejected,
+    trend: sellers.perDay,
+  };
 }
 
 /** One store; a store that does not exist is the admin's not-found page, in the admin's frame (AD-TT5). */

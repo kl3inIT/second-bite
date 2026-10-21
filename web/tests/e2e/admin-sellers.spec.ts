@@ -11,12 +11,17 @@ test.setTimeout(90_000);
 // The stub gives each admin session the same fourteen stores: eleven active, two waiting, one blocked
 // (stub-backend.mjs › Admin › Cửa hàng).
 function card(page: Page, name: string) {
-  return page.getByRole("link", { name: new RegExp(`^${name}\\s*\\d+$`) });
+  return page.getByRole("link", { name: new RegExp(`^${name}\\s*\\d+`) });
 }
 
-/** The figure on a status card: its name then its count, as a screen reader reads the link. */
+/**
+ * The figure on a status card: its name then its count, as a screen reader reads the link, and then the 14 days
+ * of its trend, the last of them today's count.
+ */
 async function expectCount(page: Page, name: string, count: number) {
-  await expect(card(page, name)).toHaveAccessibleName(new RegExp(`^${name}\\s*${count}$`));
+  await expect(card(page, name)).toHaveAccessibleName(
+    new RegExp(`^${name}\\s*${count}(\\D.*: ${count})?$`),
+  );
 }
 
 function table(page: Page) {
@@ -43,6 +48,14 @@ test("the stores list shows the active stores, ten to a page (AD-Q1)", async ({
   await expect(card(page, "Đang hoạt động")).toHaveAttribute("aria-current", "true");
   await expectCount(page, "Chờ duyệt", 2);
   await expectCount(page, "Bị chặn", 1);
+
+  // Each card draws its last 14 days: one value a day under the pointer, and the days for a screen reader. The
+  // blocked store was blocked yesterday, active before.
+  const blocked = card(page, "Bị chặn");
+  await expect(blocked.locator("svg title")).toHaveCount(14);
+  await expect(blocked.locator("svg title").last()).toHaveText(/: 1$/);
+  await expect(blocked.locator("svg title").first()).toHaveText(/: 0$/);
+  await expect(blocked.locator(".sr-only")).toHaveText(/^(.+: [01], ){13}.+: 1$/);
 
   // Newest change first; the address, the phone and the status on each row.
   await expect(table(page).getByRole("row")).toHaveCount(11);
