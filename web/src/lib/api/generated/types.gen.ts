@@ -519,6 +519,16 @@ export type SellerProfileBody = {
     photo?: SellerPhotoBody;
 };
 
+export type SellerStatusDay = {
+    active: number;
+    blocked: number;
+    /**
+     * A day in Vietnam time
+     */
+    date: string;
+    pending: number;
+};
+
 export type SellersOutputBody = {
     sellers: Array<SellerBody> | null;
 };
@@ -544,6 +554,10 @@ export type SellersSummaryBody = {
      * Sellers pending now
      */
     pending: number;
+    /**
+     * The sellers in each status at the end of every day of the range, in order. Rebuilt from each seller's status now and when it last changed, so right only when every seller changed status at most once
+     */
+    perDay: Array<SellerStatusDay>;
 };
 
 export type SessionOutputBody = {

@@ -34,6 +34,8 @@ func TestSummary(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	changeStatuses(t, pool, ids)
+
 	// From 1 to 5 September, in Vietnam time.
 	from := time.Date(2026, 9, 1, 0, 0, 0, 0, platform.Vietnam)
 	to := from.AddDate(0, 0, 5)
@@ -43,9 +45,11 @@ func TestSummary(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if got.Active != 5 || got.Pending != 0 || got.Blocked != 1 || got.Opened != 5 {
-		t.Errorf("counts %+v, want 5 active, 1 blocked, 5 opened in the range", got)
+	if got.Active != 4 || got.Pending != 1 || got.Blocked != 1 || got.Opened != 5 {
+		t.Errorf("counts %+v, want 4 active, 1 pending, 1 blocked, 5 opened in the range", got)
 	}
+
+	checkStatusPerDay(t, got.PerDay, from)
 
 	want := seller.Opened{ID: ids[5], Name: shop.Name, OpenedAt: september9am(5)}
 	if len(got.Latest) != 5 || got.Latest[0].ID != want.ID || got.Latest[0].Name != want.Name ||
@@ -55,6 +59,53 @@ func TestSummary(t *testing.T) {
 
 	if _, err := f.sellers.Summary(f.as(t, "owner", platform.RoleCustomer), from, to); !errors.Is(err, platform.ErrAdminRequired) {
 		t.Errorf("an owner reading the summary: %v, want ErrAdminRequired", err)
+	}
+}
+
+// checkStatusPerDay checks the sellers in each status at the end of each day
+// from 1 to 5 September, after changeStatuses: the first seller active until
+// blocked on the 3rd; the second pending until activated on the 4th; the
+// third pending throughout; the others active from the day they were opened.
+func checkStatusPerDay(t *testing.T, got []seller.StatusDay, from time.Time) {
+	t.Helper()
+
+	want := []seller.StatusDay{
+		{Day: from, Active: 1, Pending: 1},
+		{Day: from.AddDate(0, 0, 1), Active: 1, Pending: 2},
+		{Day: from.AddDate(0, 0, 2), Active: 1, Pending: 2, Blocked: 1},
+		{Day: from.AddDate(0, 0, 3), Active: 3, Pending: 1, Blocked: 1},
+		{Day: from.AddDate(0, 0, 4), Active: 4, Pending: 1, Blocked: 1},
+	}
+	if len(got) != len(want) {
+		t.Fatalf("per day %+v, want the five days of the range", got)
+	}
+
+	for i, w := range want {
+		if d := got[i]; !d.Day.Equal(w.Day) || d.Active != w.Active || d.Pending != w.Pending || d.Blocked != w.Blocked {
+			t.Errorf("day %d: %+v, want %+v", i, d, w)
+		}
+	}
+}
+
+// changeStatuses dates the block of the first seller to 3 September, and
+// makes the second one opened pending before SEC-57 and activated on 4
+// September, and the third one opened pending and never activated.
+func changeStatuses(t *testing.T, pool *pgxpool.Pool, ids []uuid.UUID) {
+	t.Helper()
+
+	for _, change := range []struct {
+		id        uuid.UUID
+		status    string
+		changedAt *time.Time
+	}{
+		{ids[0], "blocked", new(time.Date(2026, 9, 3, 12, 0, 0, 0, platform.Vietnam))},
+		{ids[1], "active", new(time.Date(2026, 9, 4, 10, 0, 0, 0, platform.Vietnam))},
+		{ids[2], "pending", nil},
+	} {
+		if _, err := pool.Exec(t.Context(), "UPDATE seller_sellers SET status = $2, status_changed_at = $3 WHERE id = $1",
+			change.id, change.status, change.changedAt); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 

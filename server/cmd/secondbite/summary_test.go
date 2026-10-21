@@ -37,6 +37,10 @@ func checkAdminSummary(t *testing.T, svc service) {
 			Latest []struct {
 				ID string `json:"id"`
 			} `json:"latest"`
+			PerDay []struct {
+				Date   string `json:"date"`
+				Active int    `json:"active"`
+			} `json:"perDay"`
 		} `json:"sellers"`
 		Offers struct {
 			PostedPerDay []dayCount `json:"postedPerDay"`
@@ -55,7 +59,8 @@ func checkAdminSummary(t *testing.T, svc service) {
 	today := time.Now().In(platform.Vietnam).Format(time.DateOnly)
 	if summary.To != today || len(summary.Offers.PostedPerDay) != 30 || len(summary.Accounts.NewPerDay) != 30 ||
 		summary.Offers.PostedPerDay[29].Date != today || summary.Accounts.NewPerDay[0].Date != summary.From ||
-		summary.Accounts.Total < 2 || summary.Sellers.Latest == nil || summary.Offers.TopSellers == nil {
+		summary.Accounts.Total < 2 || summary.Sellers.Latest == nil || summary.Offers.TopSellers == nil ||
+		len(summary.Sellers.PerDay) != 30 || summary.Sellers.PerDay[0].Date != summary.From || summary.Sellers.PerDay[29].Date != today {
 		t.Errorf("the default summary %+v, want the 30 days to %s", summary, today)
 	}
 

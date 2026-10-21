@@ -103,6 +103,14 @@ type sellersSummaryBody struct {
 	Blocked       int                `json:"blocked"       doc:"Sellers blocked now"`
 	OpenedInRange int                `json:"openedInRange" doc:"Sellers opened in the range, whatever their status"`
 	Latest        []openedSellerBody `json:"latest"        doc:"The five sellers opened last, newest first, whenever that was" nullable:"false"`
+	PerDay        []sellerStatusDay  `json:"perDay"        doc:"The sellers in each status at the end of every day of the range, in order. Rebuilt from each seller's status now and when it last changed, so right only when every seller changed status at most once" nullable:"false"`
+}
+
+type sellerStatusDay struct {
+	Date    string `json:"date"    doc:"A day in Vietnam time" format:"date"`
+	Active  int    `json:"active"`
+	Pending int    `json:"pending"`
+	Blocked int    `json:"blocked"`
 }
 
 type openedSellerBody struct {
@@ -145,9 +153,16 @@ func toSellersSummaryBody(s seller.Summary) sellersSummaryBody {
 	b := sellersSummaryBody{
 		Active: s.Active, Pending: s.Pending, Blocked: s.Blocked, OpenedInRange: s.Opened,
 		Latest: make([]openedSellerBody, 0, len(s.Latest)),
+		PerDay: make([]sellerStatusDay, 0, len(s.PerDay)),
 	}
 	for _, o := range s.Latest {
 		b.Latest = append(b.Latest, openedSellerBody(o))
+	}
+
+	for _, d := range s.PerDay {
+		b.PerDay = append(b.PerDay, sellerStatusDay{
+			Date: d.Day.Format(time.DateOnly), Active: d.Active, Pending: d.Pending, Blocked: d.Blocked,
+		})
 	}
 
 	return b
@@ -178,7 +193,7 @@ func registerSummaryOperations(api huma.API, s *Service, accounts *identity.Serv
 	huma.Register(api, huma.Operation{
 		OperationID: "getAdminSummary", Method: http.MethodGet, Path: "/admin/summary",
 		Summary: "The figures of the admins' dashboard over a range of days",
-		Description: "Sellers by status now and opened in the range; offers posted in the range, per day and by seller, " +
+		Description: "Sellers by status now and at the end of each day, and opened in the range; offers posted in the range, per day and by seller, " +
 			"and open now; accounts in all and created in the range, per day. Days are in Vietnam time; " +
 			"the range is at most 90 days and the last 30 without one. Orders and payments are not counted yet.",
 		Tags: tagAdmin, Security: security,

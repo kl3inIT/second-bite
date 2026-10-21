@@ -21,7 +21,8 @@ mixin _$SellersSummaryBody {
  int get blocked;/// The five sellers opened last, newest first, whenever that was
  List<OpenedSellerBody> get latest;/// Sellers opened in the range, whatever their status
  int get openedInRange;/// Sellers pending now
- int get pending;
+ int get pending;/// The sellers in each status at the end of every day of the range, in order. Rebuilt from each seller's status now and when it last changed, so right only when every seller changed status at most once
+ List<SellerStatusDay> get perDay;
 /// Create a copy of SellersSummaryBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -35,20 +36,20 @@ $SellersSummaryBodyCopyWith<SellersSummaryBody> get copyWith => _$SellersSummary
 @override
 bool operator ==(Object other) {
   final _this = this as SellersSummaryBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SellersSummaryBody&&(identical(other.active, _this.active) || other.active == _this.active)&&(identical(other.blocked, _this.blocked) || other.blocked == _this.blocked)&&const DeepCollectionEquality().equals(other.latest, _this.latest)&&(identical(other.openedInRange, _this.openedInRange) || other.openedInRange == _this.openedInRange)&&(identical(other.pending, _this.pending) || other.pending == _this.pending));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SellersSummaryBody&&(identical(other.active, _this.active) || other.active == _this.active)&&(identical(other.blocked, _this.blocked) || other.blocked == _this.blocked)&&const DeepCollectionEquality().equals(other.latest, _this.latest)&&(identical(other.openedInRange, _this.openedInRange) || other.openedInRange == _this.openedInRange)&&(identical(other.pending, _this.pending) || other.pending == _this.pending)&&const DeepCollectionEquality().equals(other.perDay, _this.perDay));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as SellersSummaryBody;
-  return Object.hash(runtimeType,_this.active,_this.blocked,const DeepCollectionEquality().hash(_this.latest),_this.openedInRange,_this.pending);
+  return Object.hash(runtimeType,_this.active,_this.blocked,const DeepCollectionEquality().hash(_this.latest),_this.openedInRange,_this.pending,const DeepCollectionEquality().hash(_this.perDay));
 }
 
 @override
 String toString() {
   final _this = this as SellersSummaryBody;
-  return 'SellersSummaryBody(active: ${_this.active}, blocked: ${_this.blocked}, latest: ${_this.latest}, openedInRange: ${_this.openedInRange}, pending: ${_this.pending})';
+  return 'SellersSummaryBody(active: ${_this.active}, blocked: ${_this.blocked}, latest: ${_this.latest}, openedInRange: ${_this.openedInRange}, pending: ${_this.pending}, perDay: ${_this.perDay})';
 }
 
 
@@ -59,7 +60,7 @@ abstract mixin class $SellersSummaryBodyCopyWith<$Res>  {
   factory $SellersSummaryBodyCopyWith(SellersSummaryBody value, $Res Function(SellersSummaryBody) _then) = _$SellersSummaryBodyCopyWithImpl;
 @useResult
 $Res call({
- int active, int blocked, List<OpenedSellerBody> latest, int openedInRange, int pending
+ int active, int blocked, List<OpenedSellerBody> latest, int openedInRange, int pending, List<SellerStatusDay> perDay
 });
 
 
@@ -76,14 +77,15 @@ class _$SellersSummaryBodyCopyWithImpl<$Res>
 
 /// Create a copy of SellersSummaryBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? active = null,Object? blocked = null,Object? latest = null,Object? openedInRange = null,Object? pending = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? active = null,Object? blocked = null,Object? latest = null,Object? openedInRange = null,Object? pending = null,Object? perDay = null,}) {
   return _then(SellersSummaryBody(
 active: null == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
 as int,blocked: null == blocked ? _self.blocked : blocked // ignore: cast_nullable_to_non_nullable
 as int,latest: null == latest ? _self.latest : latest // ignore: cast_nullable_to_non_nullable
 as List<OpenedSellerBody>,openedInRange: null == openedInRange ? _self.openedInRange : openedInRange // ignore: cast_nullable_to_non_nullable
 as int,pending: null == pending ? _self.pending : pending // ignore: cast_nullable_to_non_nullable
-as int,
+as int,perDay: null == perDay ? _self.perDay : perDay // ignore: cast_nullable_to_non_nullable
+as List<SellerStatusDay>,
   ));
 }
 
@@ -168,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int active,  int blocked,  List<OpenedSellerBody> latest,  int openedInRange,  int pending)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int active,  int blocked,  List<OpenedSellerBody> latest,  int openedInRange,  int pending,  List<SellerStatusDay> perDay)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SellersSummaryBody() when $default != null:
-return $default(_that.active,_that.blocked,_that.latest,_that.openedInRange,_that.pending);case _:
+return $default(_that.active,_that.blocked,_that.latest,_that.openedInRange,_that.pending,_that.perDay);case _:
   return orElse();
 
 }
@@ -189,10 +191,10 @@ return $default(_that.active,_that.blocked,_that.latest,_that.openedInRange,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int active,  int blocked,  List<OpenedSellerBody> latest,  int openedInRange,  int pending)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int active,  int blocked,  List<OpenedSellerBody> latest,  int openedInRange,  int pending,  List<SellerStatusDay> perDay)  $default,) {final _that = this;
 switch (_that) {
 case _SellersSummaryBody():
-return $default(_that.active,_that.blocked,_that.latest,_that.openedInRange,_that.pending);case _:
+return $default(_that.active,_that.blocked,_that.latest,_that.openedInRange,_that.pending,_that.perDay);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +211,10 @@ return $default(_that.active,_that.blocked,_that.latest,_that.openedInRange,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int active,  int blocked,  List<OpenedSellerBody> latest,  int openedInRange,  int pending)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int active,  int blocked,  List<OpenedSellerBody> latest,  int openedInRange,  int pending,  List<SellerStatusDay> perDay)?  $default,) {final _that = this;
 switch (_that) {
 case _SellersSummaryBody() when $default != null:
-return $default(_that.active,_that.blocked,_that.latest,_that.openedInRange,_that.pending);case _:
+return $default(_that.active,_that.blocked,_that.latest,_that.openedInRange,_that.pending,_that.perDay);case _:
   return null;
 
 }
@@ -224,7 +226,7 @@ return $default(_that.active,_that.blocked,_that.latest,_that.openedInRange,_tha
 @JsonSerializable()
 
 class _SellersSummaryBody implements SellersSummaryBody {
-  const _SellersSummaryBody({required this.active, required this.blocked, required  List<OpenedSellerBody> latest, required this.openedInRange, required this.pending}): _latest = latest;
+  const _SellersSummaryBody({required this.active, required this.blocked, required  List<OpenedSellerBody> latest, required this.openedInRange, required this.pending, required  List<SellerStatusDay> perDay}): _latest = latest,_perDay = perDay;
   factory _SellersSummaryBody.fromJson(Map<String, dynamic> json) => _$SellersSummaryBodyFromJson(json);
 
 /// Sellers active now
@@ -244,6 +246,15 @@ class _SellersSummaryBody implements SellersSummaryBody {
 @override final  int openedInRange;
 /// Sellers pending now
 @override final  int pending;
+/// The sellers in each status at the end of every day of the range, in order. Rebuilt from each seller's status now and when it last changed, so right only when every seller changed status at most once
+ final  List<SellerStatusDay> _perDay;
+/// The sellers in each status at the end of every day of the range, in order. Rebuilt from each seller's status now and when it last changed, so right only when every seller changed status at most once
+@override List<SellerStatusDay> get perDay {
+  if (_perDay is EqualUnmodifiableListView) return _perDay;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_perDay);
+}
+
 
 /// Create a copy of SellersSummaryBody
 /// with the given fields replaced by the non-null parameter values.
@@ -258,18 +269,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SellersSummaryBody&&(identical(other.active, active) || other.active == active)&&(identical(other.blocked, blocked) || other.blocked == blocked)&&const DeepCollectionEquality().equals(other.latest, _latest)&&(identical(other.openedInRange, openedInRange) || other.openedInRange == openedInRange)&&(identical(other.pending, pending) || other.pending == pending));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SellersSummaryBody&&(identical(other.active, active) || other.active == active)&&(identical(other.blocked, blocked) || other.blocked == blocked)&&const DeepCollectionEquality().equals(other.latest, _latest)&&(identical(other.openedInRange, openedInRange) || other.openedInRange == openedInRange)&&(identical(other.pending, pending) || other.pending == pending)&&const DeepCollectionEquality().equals(other.perDay, _perDay));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,active,blocked,const DeepCollectionEquality().hash(_latest),openedInRange,pending);
+    return Object.hash(runtimeType,active,blocked,const DeepCollectionEquality().hash(_latest),openedInRange,pending,const DeepCollectionEquality().hash(_perDay));
 }
 
 @override
 String toString() {
-    return 'SellersSummaryBody(active: $active, blocked: $blocked, latest: $latest, openedInRange: $openedInRange, pending: $pending)';
+    return 'SellersSummaryBody(active: $active, blocked: $blocked, latest: $latest, openedInRange: $openedInRange, pending: $pending, perDay: $perDay)';
 }
 
 
@@ -280,7 +291,7 @@ abstract mixin class _$SellersSummaryBodyCopyWith<$Res> implements $SellersSumma
   factory _$SellersSummaryBodyCopyWith(_SellersSummaryBody value, $Res Function(_SellersSummaryBody) _then) = __$SellersSummaryBodyCopyWithImpl;
 @override @useResult
 $Res call({
- int active, int blocked, List<OpenedSellerBody> latest, int openedInRange, int pending
+ int active, int blocked, List<OpenedSellerBody> latest, int openedInRange, int pending, List<SellerStatusDay> perDay
 });
 
 
@@ -297,14 +308,15 @@ class __$SellersSummaryBodyCopyWithImpl<$Res>
 
 /// Create a copy of SellersSummaryBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? active = null,Object? blocked = null,Object? latest = null,Object? openedInRange = null,Object? pending = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? active = null,Object? blocked = null,Object? latest = null,Object? openedInRange = null,Object? pending = null,Object? perDay = null,}) {
   return _then(_SellersSummaryBody(
 active: null == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
 as int,blocked: null == blocked ? _self.blocked : blocked // ignore: cast_nullable_to_non_nullable
 as int,latest: null == latest ? _self._latest : latest // ignore: cast_nullable_to_non_nullable
 as List<OpenedSellerBody>,openedInRange: null == openedInRange ? _self.openedInRange : openedInRange // ignore: cast_nullable_to_non_nullable
 as int,pending: null == pending ? _self.pending : pending // ignore: cast_nullable_to_non_nullable
-as int,
+as int,perDay: null == perDay ? _self._perDay : perDay // ignore: cast_nullable_to_non_nullable
+as List<SellerStatusDay>,
   ));
 }
 
