@@ -48,18 +48,10 @@ export function windowPhase(
   return now < Date.parse(order.windowEnd) ? "open" : "over";
 }
 
-/** A link that opens the way to the collection point in Google Maps. */
-export function directionsTo(seller: Pick<Order["seller"], "latitude" | "longitude">): string {
-  return `https://www.google.com/maps/dir/?api=1&destination=${seller.latitude},${seller.longitude}`;
-}
-
-/** Google Maps' embedded map of the collection point, its pin on the seller, in the page's language. */
-export function mapOf(
-  seller: Pick<Order["seller"], "latitude" | "longitude">,
-  locale: string,
-): string {
+/** Google Maps' embedded map of the collection point, its pin on the seller's address, in the page's language. */
+export function mapOf(seller: Pick<Order["seller"], "address">, locale: string): string {
   const query = new URLSearchParams({
-    q: `${seller.latitude},${seller.longitude}`,
+    q: seller.address,
     z: "17",
     hl: locale,
     output: "embed",

@@ -132,8 +132,8 @@ describe("the search's popular kinds", () => {
 
 describe("directions", () => {
   it("open the maps at the collection point", () => {
-    expect(directionsHref({ latitude: 21.0565, longitude: 105.8964, address: "Tầng 1" })).toBe(
-      "https://www.google.com/maps/dir/?api=1&destination=21.0565,105.8964",
+    expect(directionsHref({ address: "Tasco Mall, Long Biên" })).toBe(
+      "https://www.google.com/maps/dir/?api=1&destination=Tasco+Mall%2C+Long+Bi%C3%AAn",
     );
   });
 });

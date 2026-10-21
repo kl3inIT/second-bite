@@ -14,10 +14,11 @@ import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { BiteCorner } from "@/components/bite-corner";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
+import { directionsHref } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-import { directionsTo, isOpen, mapOf, savingOf, unitsOf, type Order } from "./order";
+import { isOpen, mapOf, savingOf, unitsOf, type Order } from "./order";
 import { OrderQr } from "./order-qr";
 
 // The pieces the order pages are built from (Figma K6, K6b, D5): the seller's row, the ticket, the orders placed
@@ -238,7 +239,7 @@ export function Directions({ order }: { order: Order }) {
           <p className="text-label text-muted-foreground">{t("placeHint")}</p>
         </div>
         <a
-          href={directionsTo(order.seller)}
+          href={directionsHref(order.seller)}
           target="_blank"
           rel="noopener noreferrer"
           className={buttonVariants()}

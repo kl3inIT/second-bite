@@ -77,7 +77,12 @@ export function dishHref({ id, sellerId }: Pick<OfferSummary, "id" | "sellerId">
   return `/sellers/${sellerId}?at=${encodeURIComponent(id)}#${dishAnchor(id)}`;
 }
 
-/** Directions to where the offer is collected, in the phone's maps (Figma K4b, K5 "Chỉ đường"). */
-export function directionsHref({ latitude, longitude }: OfferSummary["collectionPoint"]): string {
-  return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+/**
+ * Directions to where the offer is collected, in the phone's maps (Figma K4b, K5 "Chỉ đường"). Google Maps looks
+ * the seller's written address up: the stored point can sit off the store, the address is what the seller wrote.
+ */
+export function directionsHref({
+  address,
+}: Pick<OfferSummary["collectionPoint"], "address">): string {
+  return `https://www.google.com/maps/dir/?${new URLSearchParams({ api: "1", destination: address })}`;
 }
