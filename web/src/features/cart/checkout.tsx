@@ -130,7 +130,7 @@ function CheckoutPhone({ cart, pending, problem, onConfirmed }: CheckoutProps) {
           <h2 id="cancel" className="text-label-strong text-muted-foreground uppercase">
             {t("cancelTitle")}
           </h2>
-          <p className="text-label text-muted-foreground">{t("cancelEach")}</p>
+          <p className="text-label text-muted-foreground">{t("cancelBody")}</p>
         </section>
       </div>
       <div className="sticky bottom-0 z-40 border-t border-border bg-card">

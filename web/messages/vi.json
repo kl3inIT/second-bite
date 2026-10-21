@@ -462,7 +462,7 @@
       "summary": {
         "cancelled": "Bạn chưa trả tiền nên không có gì phải hoàn.",
         "refused": "Quán kiểm món trước khi giao và thấy món không còn đạt. Bạn không phải trả tiền.",
-        "expired": "Không ai đến nhận trước {until}. Lần sau nếu không kịp, hãy huỷ trước {opens} để món đến được người khác."
+        "expired": "Không ai đến nhận trước {until}. Lần sau nếu không kịp, hãy huỷ đơn để món đến được người khác."
       },
       "placedBody": "{date}, {time} · {units} phần · {total}",
       "confirmed": "Quán xác nhận đơn",
@@ -551,7 +551,9 @@
     "askSeller": "Hỏi quán về thành phần và dị ứng.",
     "count": "{count} phần {name} sẽ thêm",
     "add": "Thêm vào giỏ · {price}",
-    "allChosen": "Đã chọn đủ {units} phần"
+    "allChosen": "Đã chọn đủ {units} phần",
+    "photos": "Ảnh của món",
+    "photoNumber": "Xem ảnh {number} trên {total}"
   },
   "Seller": {
     "search": "Tìm trong thực đơn {seller}",
@@ -596,6 +598,7 @@
     "dishes": "Tiền món ({units} phần)",
     "total": "Tổng tiền",
     "cancelTitle": "Chính sách huỷ",
+    "cancelBody": "Huỷ được cho tới khi quán báo món sẵn sàng.",
     "totalSummary": "{orders, plural, =1 {Tổng {units} phần} other {# đơn · {units} phần}} · tiết kiệm {saved}",
     "order": "{orders, plural, =1 {Đặt món} other {Đặt # đơn}}",
     "contactTitle": "Người đến nhận",
@@ -620,7 +623,6 @@
     "orderFailed": "Chưa đặt được món. Thử lại, hoặc báo mã tham chiếu {reference}.",
     "orderFailedPlain": "Chưa đặt được món. Kiểm tra mạng rồi thử lại.",
     "sellerWindow": "{place} · Nhận {from} – {until}",
-    "cancelEach": "Huỷ được cho tới khi quán báo món sẵn sàng.",
     "intro": "Mỗi quán một đơn, mỗi đơn có mã QR riêng. Kiểm tra món và giờ nhận trước khi đặt.",
     "sellerUnits": "{seller} · {units} phần",
     "sidebarTitle": "{sellers, plural, =0 {Giỏ của bạn} =1 {Giỏ của bạn} other {Giỏ của bạn · # quán}}",
@@ -797,10 +799,10 @@
     "searchCount": "{count} kết quả",
     "tabs": "Nhóm đơn",
     "tab": {
-      "preparing": "Chuẩn bị · {count}",
-      "ready": "Sẵn sàng · {count}",
-      "delivered": "Đã giao · {count}",
-      "cancelled": "Đã hủy · {count}"
+      "preparing": "Chuẩn bị",
+      "ready": "Sẵn sàng",
+      "delivered": "Đã giao",
+      "cancelled": "Đã hủy"
     },
     "empty": {
       "preparing": "Chưa có đơn nào đang chuẩn bị ngày này. Khi khách đặt món, tên và số điện thoại hiện ở đây.",
@@ -1008,8 +1010,8 @@
     "editTitle": "Sửa món",
     "photo": "Ảnh món",
     "choosePhoto": "Chọn ảnh từ máy",
-    "changePhoto": "Đổi ảnh",
-    "photoHint": "Một ảnh giúp khách nhận ra món của bạn.",
+    "addPhoto": "Thêm ảnh",
+    "photoHint": "Tối đa 3 ảnh; ảnh đầu là ảnh đại diện.",
     "photoMissing": "Chọn một ảnh cho món.",
     "name": "Tên món",
     "namePlaceholder": "Ví dụ: Túi bánh mì và croissant, 4 chiếc",
@@ -1033,7 +1035,9 @@
     "reference": "Mã tham chiếu: {id}",
     "original": "Giá gốc (đồng, tùy chọn)",
     "originalPlaceholder": "Ví dụ: 95.000",
-    "originalInvalid": "Giá gốc từ 1.001đ trở lên, hoặc để trống."
+    "originalInvalid": "Giá gốc từ 1.001đ trở lên, hoặc để trống.",
+    "cover": "Ảnh đại diện",
+    "removePhoto": "Bỏ ảnh {number}"
   },
   "Admin": {
     "home": "Second Bite, trang quản trị",

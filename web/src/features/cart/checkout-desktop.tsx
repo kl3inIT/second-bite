@@ -41,7 +41,7 @@ export function CheckoutDesktop({ cart, pending, problem, onConfirmed }: Checkou
           <h2 id="cancel" className="text-title-lg text-foreground">
             {t("cancelTitle")}
           </h2>
-          <p className="text-label text-muted-foreground">{t("cancelEach")}</p>
+          <p className="text-label text-muted-foreground">{t("cancelBody")}</p>
         </section>
       </div>
       <section

@@ -407,7 +407,6 @@ function Timeline({ order }: { order: Order }) {
         <p className="text-body-sm">
           {t(`summary.${order.status}`, {
             until: at(order.windowEnd),
-            opens: at(order.windowStart),
           })}
         </p>
       ) : null}

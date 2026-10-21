@@ -21,11 +21,12 @@ type offerDetailsBody struct {
 	PriceVND    int64  `json:"priceVnd"              doc:"Price of one unit, in whole đồng" minimum:"1000"`
 	// OriginalPriceVND is checked against the minimum discount in the
 	// settings, which may change, so only its floor is in the contract.
-	OriginalPriceVND int64     `json:"originalPriceVnd"      doc:"What one unit normally sells for; the price must be the minimum discount below it" minimum:"1001"`
-	WeightGrams      *int      `json:"weightGrams,omitempty" doc:"Weight of one unit, to measure food saved" maximum:"100000" minimum:"1"`
-	PhotoID          uuid.UUID `json:"photoId"               doc:"From POST /photos, or the photo of an earlier offer of the seller"`
-	WindowStart      time.Time `json:"windowStart"           doc:"When the offer is ready to collect"`
-	WindowEnd        time.Time `json:"windowEnd"             doc:"The last handover"`
+	OriginalPriceVND int64       `json:"originalPriceVnd"      doc:"What one unit normally sells for; the price must be the minimum discount below it" minimum:"1001"`
+	WeightGrams      *int        `json:"weightGrams,omitempty" doc:"Weight of one unit, to measure food saved" maximum:"100000" minimum:"1"`
+	PhotoID          uuid.UUID   `json:"photoId"               doc:"The cover: from POST /photos, or the photo of an earlier offer of the seller"`
+	MorePhotoIDs     []uuid.UUID `json:"morePhotoIds,omitempty" doc:"Up to two more photos after the cover" maxItems:"2" nullable:"false"`
+	WindowStart      time.Time   `json:"windowStart"           doc:"When the offer is ready to collect"`
+	WindowEnd        time.Time   `json:"windowEnd"             doc:"The last handover"`
 }
 
 func (b offerDetailsBody) details() Details {
@@ -33,17 +34,18 @@ func (b offerDetailsBody) details() Details {
 }
 
 type offerChangeBody struct {
-	Name             *string    `json:"name,omitempty"             maxLength:"80"  minLength:"1"`
-	Description      *string    `json:"description,omitempty"      maxLength:"1000"`
-	Kind             *Kind      `json:"kind,omitempty"             enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
-	Unit             *string    `json:"unit,omitempty"             maxLength:"20"`
-	Units            *int       `json:"units,omitempty"            maximum:"999"   minimum:"1"`
-	PriceVND         *int64     `json:"priceVnd,omitempty"         minimum:"1000"`
-	OriginalPriceVND *int64     `json:"originalPriceVnd,omitempty" minimum:"1001"`
-	WeightGrams      *int       `json:"weightGrams,omitempty"      maximum:"100000" minimum:"1"`
-	PhotoID          *uuid.UUID `json:"photoId,omitempty"`
-	WindowStart      *time.Time `json:"windowStart,omitempty"`
-	WindowEnd        *time.Time `json:"windowEnd,omitempty"`
+	Name             *string      `json:"name,omitempty"             maxLength:"80"  minLength:"1"`
+	Description      *string      `json:"description,omitempty"      maxLength:"1000"`
+	Kind             *Kind        `json:"kind,omitempty"             enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Unit             *string      `json:"unit,omitempty"             maxLength:"20"`
+	Units            *int         `json:"units,omitempty"            maximum:"999"   minimum:"1"`
+	PriceVND         *int64       `json:"priceVnd,omitempty"         minimum:"1000"`
+	OriginalPriceVND *int64       `json:"originalPriceVnd,omitempty" minimum:"1001"`
+	WeightGrams      *int         `json:"weightGrams,omitempty"      maximum:"100000" minimum:"1"`
+	PhotoID          *uuid.UUID   `json:"photoId,omitempty"`
+	MorePhotoIDs     *[]uuid.UUID `json:"morePhotoIds,omitempty" doc:"Replaces the photos after the cover; at most two" maxItems:"2"`
+	WindowStart      *time.Time   `json:"windowStart,omitempty"`
+	WindowEnd        *time.Time   `json:"windowEnd,omitempty"`
 }
 
 func (b offerChangeBody) change() Change { return Change(b) }
@@ -74,7 +76,8 @@ type offerBody struct {
 	OriginalPriceVND int64               `json:"originalPriceVnd"`
 	DiscountPercent  int                 `json:"discountPercent"`
 	WeightGrams      *int                `json:"weightGrams,omitempty"`
-	Photo            offerPhotoBody      `json:"photo"`
+	Photo            offerPhotoBody      `json:"photo"                 doc:"The cover, which lists and orders show"`
+	Photos           []offerPhotoBody    `json:"photos"                doc:"Every photo, the cover first" nullable:"false"`
 	WindowStart      time.Time           `json:"windowStart"`
 	WindowEnd        time.Time           `json:"windowEnd"`
 	CollectionPoint  collectionPointBody `json:"collectionPoint"       doc:"Where the offer is collected, copied from the seller when it was posted"`
@@ -91,6 +94,7 @@ func toBody(o Offer) offerBody {
 		Photo: offerPhotoBody{
 			ID: o.PhotoID, LargePath: file.Path(o.PhotoID, file.SizeLarge), SmallPath: file.Path(o.PhotoID, file.SizeSmall),
 		},
+		Photos:      photosOf(o.PhotoID, o.MorePhotoIDs),
 		WindowStart: o.WindowStart, WindowEnd: o.WindowEnd,
 		CollectionPoint: collectionPointBody{
 			Latitude: o.CollectionPoint.Latitude, Longitude: o.CollectionPoint.Longitude, Address: o.CollectionPoint.Address,

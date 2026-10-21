@@ -391,6 +391,11 @@ components:
           type: integer
         photo:
           $ref: "#/components/schemas/OfferPhotoBody"
+        photos:
+          description: Every photo, the cover first
+          items:
+            $ref: "#/components/schemas/OfferPhotoBody"
+          type: array
         sellerId:
           type: string
         unit:
@@ -407,6 +412,7 @@ components:
         - description
         - ingredients
         - photo
+        - photos
         - hidden
         - createdAt
         - updatedAt
@@ -431,6 +437,12 @@ components:
             - mixed_box
             - other
           type: string
+        morePhotoIds:
+          description: Replaces the photos after the cover; at most two
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -467,6 +479,12 @@ components:
             - mixed_box
             - other
           type: string
+        morePhotoIds:
+          description: Up to two more photos after the cover
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -477,7 +495,7 @@ components:
           minimum: 1001
           type: integer
         photoId:
-          description: From POST /photos, or a photo the seller already shows
+          description: "The cover: from POST /photos, or a photo the seller already shows"
           type: string
         unit:
           description: What one unit is called; "suất" when empty
@@ -589,6 +607,12 @@ components:
           type: integer
         photo:
           $ref: "#/components/schemas/OfferPhotoBody"
+          description: The cover, which lists and orders show
+        photos:
+          description: Every photo, the cover first
+          items:
+            $ref: "#/components/schemas/OfferPhotoBody"
+          type: array
         priceVnd:
           format: int64
           type: integer
@@ -642,6 +666,7 @@ components:
         - originalPriceVnd
         - discountPercent
         - photo
+        - photos
         - windowStart
         - windowEnd
         - collectionPoint
@@ -847,6 +872,12 @@ components:
           type: integer
         photo:
           $ref: "#/components/schemas/OfferPhotoBody"
+          description: The cover, which lists and orders show
+        photos:
+          description: Every photo, the cover first
+          items:
+            $ref: "#/components/schemas/OfferPhotoBody"
+          type: array
         priceVnd:
           format: int64
           type: integer
@@ -897,6 +928,7 @@ components:
         - originalPriceVnd
         - discountPercent
         - photo
+        - photos
         - windowStart
         - windowEnd
         - collectionPoint
@@ -918,6 +950,12 @@ components:
             - mixed_box
             - other
           type: string
+        morePhotoIds:
+          description: Replaces the photos after the cover; at most two
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -968,6 +1006,12 @@ components:
             - mixed_box
             - other
           type: string
+        morePhotoIds:
+          description: Up to two more photos after the cover
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -978,7 +1022,7 @@ components:
           minimum: 1001
           type: integer
         photoId:
-          description: From POST /photos, or the photo of an earlier offer of the seller
+          description: "The cover: from POST /photos, or the photo of an earlier offer of the seller"
           type: string
         priceVnd:
           description: Price of one unit, in whole đồng
@@ -3208,7 +3252,7 @@ paths:
         - {}
         - bearer: []
         - cookie: []
-      summary: Cancel your order, free of charge until its window opens
+      summary: Cancel your order until the seller marks it ready
       tags:
         - Orders
   /orders/{orderId}/hand-over:
