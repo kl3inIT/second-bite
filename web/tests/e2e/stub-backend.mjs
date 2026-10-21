@@ -1089,7 +1089,11 @@ async function sellerRoutes(request, response, url) {
             latitude: 21.0543,
             longitude: 105.8962,
           },
-          { address: "Ngõ 139 Phố Hoa Lâm, Việt Hưng, Hà Nội", latitude: 21.0551, longitude: 105.8975 },
+          {
+            address: "Ngõ 139 Phố Hoa Lâm, Việt Hưng, Hà Nội",
+            latitude: 21.0551,
+            longitude: 105.8975,
+          },
         ]
       : [];
     json(response, 200, { places });
