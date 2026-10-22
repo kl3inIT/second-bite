@@ -1,12 +1,12 @@
 "use client";
 
-import { EyeIcon, LayoutGridIcon, ListIcon } from "lucide-react";
+import { LayoutGridIcon, ListIcon } from "lucide-react";
 import Image from "next/image";
 import { useFormatter, useTranslations } from "next-intl";
 import { parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useState } from "react";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/com
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
 import { ListFooter } from "@/features/admin/list-footer";
+import { OfferActions } from "@/features/admin-offers/offer-actions";
 import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import type { OfferBody } from "@/lib/api/generated";
@@ -124,6 +125,7 @@ function PostsTable({
   const format = useFormatter();
   const time = (at: string) => format.dateTime(new Date(at), "time");
 
+  const sellers = useTranslations("Admin.sellers");
   const columns: DataTableColumns<OfferBody> = [
     {
       id: "post",
@@ -140,23 +142,26 @@ function PostsTable({
               className="object-cover"
             />
           </span>
-          <span className="text-body-sm-strong">{row.original.name}</span>
+          <span className="truncate text-body-sm-strong">{row.original.name}</span>
         </span>
       ),
     },
     {
       id: "price",
       header: t("column.price"),
+      meta: { width: "w-24" },
       cell: ({ row }) => formatPrice(row.original.priceVnd),
     },
     {
       id: "discount",
       header: t("column.discount"),
+      meta: { width: "w-20" },
       cell: ({ row }) => t("discount", { discount: row.original.discountPercent }),
     },
     {
       id: "left",
       header: t("column.left"),
+      meta: { width: "w-28" },
       cell: ({ row }) =>
         t("unitsLeft", {
           left: row.original.unitsLeft,
@@ -167,24 +172,15 @@ function PostsTable({
     {
       id: "window",
       header: t("column.window"),
+      meta: { width: "w-28" },
       cell: ({ row }) =>
         t("window", { from: time(row.original.windowStart), until: time(row.original.windowEnd) }),
     },
     {
-      id: "open",
-      header: () => <span className="sr-only">{t("column.open")}</span>,
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={t("openPost", { name: row.original.name })}
-            onClick={() => onOpen(row.original)}
-          >
-            <EyeIcon aria-hidden />
-          </Button>
-        </div>
-      ),
+      id: "actions",
+      header: () => <span className="sr-only">{sellers("column.actions")}</span>,
+      meta: { width: "w-16" },
+      cell: ({ row }) => <OfferActions offer={row.original} onOpen={onOpen} />,
     },
   ];
 
