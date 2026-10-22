@@ -215,3 +215,16 @@ UPDATE offer_offers
 SET latitude = @latitude, longitude = @longitude, address = @address, updated_at = now()
 WHERE seller_id = @seller_id AND state = 'on_sale' AND window_end > now()
   AND (latitude, longitude, address) IS DISTINCT FROM (@latitude, @longitude, @address::text);
+
+-- name: PostDays :many
+-- The offers posted and their units, per collection day in Vietnam and seller, for the admin's report (SEC-80).
+SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
+       count(*) AS offers, sum(units)::bigint AS units
+FROM offer_offers
+WHERE window_start >= @since AND window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+GROUP BY 1, 2
+ORDER BY 1, 2;
+
+-- name: SellersOfOffers :many
+SELECT id, seller_id FROM offer_offers WHERE id = ANY(@ids::uuid[]);

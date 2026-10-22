@@ -70,6 +70,7 @@ func TestOrder(t *testing.T) {
 		"every change of an order notifies":        testEveryChangeNotifies,
 		"old chats are forgotten":                  testOldChatsAreForgotten,
 		"admins list every seller's orders":        testAdminsListOrders,
+		"the report counts the days":               testReportCounts,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

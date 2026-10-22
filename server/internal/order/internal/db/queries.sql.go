@@ -947,6 +947,80 @@ func (q *Queries) OpenOrdersOfOffer(ctx context.Context, offerID uuid.UUID) ([]u
 	return items, nil
 }
 
+const orderDays = `-- name: OrderDays :many
+WITH placed AS (
+    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
+    FROM order_orders o
+    WHERE o.window_start >= $1 AND o.window_start < $2
+      AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
+)
+SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
+       count(*) AS held,
+       sum(units)::bigint AS units_held,
+       count(*) FILTER (WHERE state = 'collected') AS collected,
+       coalesce(sum(units) FILTER (WHERE state = 'collected'), 0)::bigint AS units_collected,
+       coalesce(sum(total_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS collected_vnd,
+       count(*) FILTER (WHERE state = 'cancelled') AS cancelled,
+       count(*) FILTER (WHERE state = 'refused') AS refused,
+       count(*) FILTER (WHERE state = 'expired'
+                           OR (state IN ('confirmed', 'ready') AND window_end <= now())) AS expired
+FROM placed
+GROUP BY 1, 2
+ORDER BY 1, 2
+`
+
+type OrderDaysParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type OrderDaysRow struct {
+	Day            pgtype.Date
+	SellerID       uuid.UUID
+	Held           int64
+	UnitsHeld      int64
+	Collected      int64
+	UnitsCollected int64
+	CollectedVnd   int64
+	Cancelled      int64
+	Refused        int64
+	Expired        int64
+}
+
+// The orders per collection day in Vietnam and seller, by how they ended, for the admin's report (SEC-80). An order
+// confirmed or ready whose window is over counts as expired, as every read of an order reads it.
+func (q *Queries) OrderDays(ctx context.Context, arg OrderDaysParams) ([]OrderDaysRow, error) {
+	rows, err := q.db.Query(ctx, orderDays, arg.Since, arg.Until, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderDaysRow
+	for rows.Next() {
+		var i OrderDaysRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.SellerID,
+			&i.Held,
+			&i.UnitsHeld,
+			&i.Collected,
+			&i.UnitsCollected,
+			&i.CollectedVnd,
+			&i.Cancelled,
+			&i.Refused,
+			&i.Expired,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const orderOfKey = `-- name: OrderOfKey :one
 SELECT id FROM order_orders
 WHERE customer_id IS NOT DISTINCT FROM $1::uuid AND idempotency_key = $2

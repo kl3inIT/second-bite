@@ -24,7 +24,7 @@ The page is "Báo cáo" (`/admin/reports`), the menu's entry of that name. Figma
 
 Left out of Figma's drawing until there is data for it:
 
-- kilograms and CO₂ saved, since dishes carry no weight;
+- kilograms and CO₂ saved, since a dish's weight is optional and few give it;
 - new users;
 - the weekly chart, since the trial counts in evenings;
 - Excel files, since a CSV opens in Excel and Sheets.
