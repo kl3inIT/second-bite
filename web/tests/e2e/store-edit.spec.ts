@@ -48,7 +48,7 @@ test.describe("editing a store", () => {
     await expect(name).toHaveValue("Quán Cũ");
     await expect(phone).toHaveValue("0912345678");
     // The address and the pin are fields of the same form, as when the store was opened.
-    await expect(page.getByRole("textbox", { name: "Địa chỉ quán" })).not.toHaveValue("");
+    await expect(page.locator("form:visible").getByLabel("Địa chỉ quán")).not.toHaveValue("");
     await expectNoSeriousA11yViolations(page);
 
     // A phone number that is none is said under its field before anything is sent.
