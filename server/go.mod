@@ -23,6 +23,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5
 	golang.org/x/image v0.47.0
 	golang.org/x/text v0.43.0
+	zgo.at/isbot v1.1.0
 )
 
 require (
@@ -132,7 +133,6 @@ require (
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	zgo.at/isbot v1.1.0 // indirect
 )
 
 tool github.com/sqlc-dev/sqlc/cmd/sqlc
