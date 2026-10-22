@@ -75,6 +75,15 @@ Adapted from the Forms section of BeyondPilot's `docs/conventions.md` (revision 
 - A form in several steps is one form holding every step's values, with a zod schema per step. Fields that several forms draw the same way are a field group (`withFieldGroup`), added to the kit with the first form that needs it.
 - Not a form: a search box and list filters (they are the address, below), and a switch or a button that acts at once. The emailed code is a form field (`CodeField` in `src/features/identity/code-field.tsx`), whose sixth digit submits the sign-in form.
 
+## Data from outside
+
+The idea is anti-slop's ([dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop), studied in Comp AI's CRM): text from outside is parsed into a typed value once, where it arrives, so no file checks a shape by hand with `typeof`.
+
+- A value kept in browser storage is `stored(key, schema, fallback)` from `src/lib/stored.ts`, its schema in zod. It reads the fallback when storage is blocked, empty or holds something the schema refuses, and on the server and before hydration; another tab's change arrives through the `storage` event. zod and React's `useSyncExternalStore` already do the work, so no storage library is added.
+- Other JSON text from outside (a cookie, a token's claims) goes through `parseJson(text, schema)` from `src/lib/json.ts`.
+- Two rules of the repository's Oxlint plugin (`web/tools/oxlint/second-bite.mjs`) hold this: `no-raw-storage` and `no-raw-json-parse`. JSON that a module wrote itself and reads back is not from outside; the line says so beside an `oxlint-disable-next-line`.
+- Responses from the Go server are typed by the client generated from `api/openapi.yaml` and are not parsed again; `check:api` keeps the client in step with the contract.
+
 ## Lists and filters
 
 - A list's search, filters, sort and page are the address, written with nuqs: a `search-params.ts` beside the list declares the parsers, the server page reads them with `createLoader`, and the client changes them with `useQueryStates(parsers, { shallow: false, startTransition })`, so the server reads the list again. A value at its default stays out of the address; changing the search or a filter returns to page 1; a search waits 300 ms after the last keystroke (`limitUrlUpdates: debounce(300)`).

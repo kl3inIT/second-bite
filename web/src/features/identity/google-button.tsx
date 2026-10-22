@@ -4,6 +4,9 @@ import Image from "next/image";
 import Script from "next/script";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
+
+import { parseJson } from "@/lib/json";
 
 // Google's own button (Google Identity Services, SEC-29 › decision 3), drawn by Google's script. Google draws
 // it 40 px high and at most 400 px wide, and Figma L6 asks for 52 px across the form, so the button a person
@@ -153,15 +156,8 @@ export function emailInToken(idToken: string): string | undefined {
   try {
     const payload = idToken.split(".")[1] ?? "";
     const json = atob(payload.replaceAll("-", "+").replaceAll("_", "/"));
-    const claims: unknown = JSON.parse(
-      new TextDecoder().decode(Uint8Array.from(json, (c) => c.charCodeAt(0))),
-    );
-    return typeof claims === "object" &&
-      claims !== null &&
-      "email" in claims &&
-      typeof claims.email === "string"
-      ? claims.email
-      : undefined;
+    const claims = new TextDecoder().decode(Uint8Array.from(json, (c) => c.charCodeAt(0)));
+    return parseJson(claims, z.object({ email: z.string() }))?.email;
   } catch {
     return undefined;
   }

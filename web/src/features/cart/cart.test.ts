@@ -9,7 +9,7 @@ import {
   keepLeft,
   oneMore,
   quantityOf,
-  readCart,
+  storedCart,
   removeOne,
   totals,
   withBasket,
@@ -151,11 +151,11 @@ describe("the cart", () => {
   it("reads back only what is a cart, and a cart saved with one seller as that seller's basket", () => {
     const cart = cartOf(offer("croissant"))!;
 
-    expect(readCart(cart)).toEqual(cart);
-    expect(readCart(cart.baskets[0])).toEqual(cart);
-    expect(readCart({ seller: { id: "s1" }, lines: [] })).toBeNull();
-    expect(readCart({ baskets: [] })).toBeNull();
-    expect(readCart("[]")).toBeNull();
+    expect(storedCart.parse(cart)).toEqual(cart);
+    expect(storedCart.parse(cart.baskets[0])).toEqual(cart);
+    expect(storedCart.safeParse({ seller: { id: "s1" }, lines: [] }).success).toBe(false);
+    expect(storedCart.safeParse({ baskets: [] }).success).toBe(false);
+    expect(storedCart.safeParse("[]").success).toBe(false);
   });
 });
 
