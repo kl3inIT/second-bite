@@ -66,10 +66,10 @@ Failure paths: a view that does not arrive (closed page, no network) is lost and
 
 ## Contract
 
-| Call                                           | Who                | Used for                                                                                                                                             |
-| ---------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /stats/views` `{path, referrer, source}` | Anyone, no session | Keep one view; always `204`, also for a bot or a malformed body, so the page never sees an error                                                     |
-| `GET /admin/reports?from=&to=&sellerId=`       | Admins             | The cards, the orders per day, one row per store and one per day and store; `REPORT_RANGE_INVALID` (400) for a range longer than 92 days or reversed |
+| Call                                     | Who                | Used for                                                                                                                                             |
+| ---------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /stats/views` `{path, source}`     | Anyone, no session | Keep one view; `204` also for a bot or a prefetch. A body out of its contract is refused as any call is, and the page ignores the answer             |
+| `GET /admin/reports?from=&to=&sellerId=` | Admins             | The cards, the orders per day, one row per store and one per day and store; `REPORT_RANGE_INVALID` (400) for a range longer than 92 days or reversed |
 
 ## Not here
 
