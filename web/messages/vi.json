@@ -734,7 +734,8 @@
     "noneBody": "Mở quán để đăng món còn lại cuối ngày.",
     "create": "Tạo quán mới",
     "owner": "Chủ quán",
-    "staff": "Nhân viên"
+    "staff": "Nhân viên",
+    "edit": "Sửa quán {name}"
   },
   "StoreNav": {
     "label": "Quán",
@@ -745,6 +746,7 @@
   },
   "StoreMenu": {
     "shop": "Mua đồ",
+    "edit": "Sửa quán",
     "location": "Vị trí quán",
     "mine": "Quán của tôi",
     "create": "Tạo thêm quán"
@@ -1823,6 +1825,16 @@
     "save": "Lưu vị trí",
     "saved": "Đã lưu vị trí mới của quán.",
     "failed": "Chưa lưu được vị trí. Thử lại sau ít phút."
+  },
+  "StoreEditPage": {
+    "title": "Sửa quán",
+    "intro": "Khách thấy những thông tin này ở trang quán.",
+    "changePhoto": "Đổi ảnh",
+    "save": "Lưu thay đổi",
+    "saved": "Đã lưu thông tin quán.",
+    "failed": "Chưa lưu được. Thử lại sau ít phút.",
+    "photoFailed": "Quán đã tạo, nhưng chưa tải được ảnh. Hãy chọn ảnh và lưu lại.",
+    "location": "Đổi địa chỉ và vị trí quán"
   },
   "Failure": {
     "reference": "Mã tham chiếu: {reference}",
