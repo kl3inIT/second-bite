@@ -573,7 +573,9 @@
     "index": "Tonight's menu",
     "rating": "Rating",
     "pickup": "Collect today",
-    "distance": "Distance"
+    "distance": "Distance",
+    "mapLabel": "Where {seller} is on the map",
+    "mapOpen": "Open the way to the store"
   },
   "Cart": {
     "title": "Confirm order",

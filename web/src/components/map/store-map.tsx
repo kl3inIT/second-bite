@@ -15,19 +15,24 @@ const HanoiMap = dynamic(() => import("./hanoi-map"), {
 /**
  * A picture of where a store is pinned (SEC-66): the form's preview and the admin's store page. It does not move,
  * so it reads as a figure, named whether or not the map could be drawn; the owner moves the pin in the picker.
- * With `onOpen`, a press on it opens the picker, as people press a map to move it; the form's own button stays the
- * way in for a keyboard, so this one is left out of the tab order.
+ * With `onOpen`, a press on it opens the picker, as people press a map to move it; with `href`, it opens the way
+ * there in the phone's maps. Either way the page's own button stays the way in for a keyboard, so the map's is left
+ * out of the tab order.
  */
 export function StoreMap({
   point,
   label,
   onOpen,
   openLabel,
+  href,
 }: {
   point: Point;
   label: string;
   onOpen?: () => void;
+  /** What the press does, for a screen reader, with `onOpen` or `href`. */
   openLabel?: string;
+  /** Directions to the point, opened in a new tab. */
+  href?: string;
 }) {
   return (
     <figure
@@ -47,6 +52,16 @@ export function StoreMap({
           aria-label={openLabel}
           className="absolute inset-0 cursor-pointer"
           onClick={onOpen}
+        />
+      )}
+      {href && (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          tabIndex={-1}
+          aria-label={openLabel}
+          className="absolute inset-0"
         />
       )}
     </figure>
