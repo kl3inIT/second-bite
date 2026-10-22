@@ -8,6 +8,8 @@ import 'package:retrofit/retrofit.dart';
 import '../models/account_body.dart';
 import '../models/action.dart';
 import '../models/admin_accounts_output_body.dart';
+import '../models/admin_offers_output_body.dart';
+import '../models/admin_orders_output_body.dart';
 import '../models/admin_sellers_output_body.dart';
 import '../models/admins_output_body.dart';
 import '../models/audit_events_output_body.dart';
@@ -26,6 +28,8 @@ import '../models/send_test_email_input_body.dart';
 import '../models/sort.dart';
 import '../models/sort2.dart';
 import '../models/status.dart';
+import '../models/status2.dart';
+import '../models/status3.dart';
 
 part 'admin_client.g.dart';
 
@@ -150,6 +154,54 @@ abstract class AdminClient {
     @Body() required OfferSettingsBody body,
   });
 
+  /// Every seller's offers by status, words, seller and day posted, newest first.
+  ///
+  /// q matches the dish, the seller's name or the description, as customers search. counts holds the offers of each status matching the other filters. A page past the end is empty.
+  ///
+  /// [status] - Keep this status; every status when absent.
+  ///
+  /// [q] - Words of the dish, the seller's name or the description.
+  ///
+  /// [sellerId] - Keep this seller's offers.
+  ///
+  /// [postedSince] - Keep the offers posted at or after this time.
+  ///
+  /// [postedUntil] - Keep the offers posted before this time.
+  @GET('/admin/offers')
+  Future<AdminOffersOutputBody> listOffersForAdmins({
+    @Query('page') int? page = 1,
+    @Query('size') int? size = 25,
+    @Query('status') Status? status,
+    @Query('q') String? q,
+    @Query('sellerId') String? sellerId,
+    @Query('postedSince') DateTime? postedSince,
+    @Query('postedUntil') DateTime? postedUntil,
+  });
+
+  /// Every seller's orders by status, words, seller and day collected, the latest window first.
+  ///
+  /// q matches the number (SB-24831 or 24831), the customer's name or phone, or the seller's name, Vietnamese marks ignored. An order still to collect whose window is over is expired. counts holds the orders of each status matching the other filters. A page past the end is empty.
+  ///
+  /// [status] - Keep these statuses; every status when absent.
+  ///
+  /// [q] - The number, the customer's name or phone, or the seller's name.
+  ///
+  /// [sellerId] - Keep this seller's orders.
+  ///
+  /// [collectSince] - Keep the orders whose window starts at or after this time.
+  ///
+  /// [collectUntil] - Keep the orders whose window starts before this time.
+  @GET('/admin/orders')
+  Future<AdminOrdersOutputBody> listOrdersForAdmins({
+    @Query('page') int? page = 1,
+    @Query('size') int? size = 25,
+    @Query('status') List<Status2>? status,
+    @Query('q') String? q,
+    @Query('sellerId') String? sellerId,
+    @Query('collectSince') DateTime? collectSince,
+    @Query('collectUntil') DateTime? collectUntil,
+  });
+
   /// Sellers by status and words, pending ones first.
   ///
   /// Pending sellers come first, the oldest first; then the latest change first. q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.
@@ -167,14 +219,14 @@ abstract class AdminClient {
   Future<AdminSellersOutputBody> listSellersForAdmins({
     @Query('page') int? page = 1,
     @Query('size') int? size = 25,
-    @Query('status') List<Status>? status,
+    @Query('status') List<Status3>? status,
     @Query('q') String? q,
     @Query('sort') Sort2? sort,
     @Query('changedSince') DateTime? changedSince,
     @Query('changedUntil') DateTime? changedUntil,
   });
 
-  /// Let a pending, rejected or blocked seller publish; its owner is emailed
+  /// Let a pending, rejected or blocked seller publish; its owner is emailed. A seller whose owner deleted their account is refused
   @POST('/admin/sellers/{sellerId}/approve')
   Future<SellerBody> approveSeller({
     @Path('sellerId') required String sellerId,

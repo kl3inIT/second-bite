@@ -1,6 +1,9 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import { z } from "zod";
+
+import { parseJson } from "@/lib/json";
 
 /**
  * The orders this browser placed without signing in, each with the access that proves it is theirs
@@ -18,29 +21,14 @@ const ACCESS = /^[A-Za-z0-9_-]{16,64}$/;
 /** Order identifiers and their access, newest first. */
 type Kept = [orderId: string, access: string][];
 
-function isKept(value: unknown): value is Kept {
-  return (
-    Array.isArray(value) &&
-    value.every(
-      (entry) =>
-        Array.isArray(entry) &&
-        entry.length === 2 &&
-        ORDER_ID.test(String(entry[0])) &&
-        ACCESS.test(String(entry[1])),
-    )
-  );
-}
+const kept: z.ZodType<Kept> = z.array(
+  z.tuple([z.string().regex(ORDER_ID), z.string().regex(ACCESS)]),
+);
 
 /** The orders kept in this browser, newest first. It reads the request, so it renders inside Suspense. */
 export async function keptOrders(): Promise<Kept> {
   const value = (await cookies()).get(accessCookie)?.value;
-  if (!value) return [];
-  try {
-    const kept: unknown = JSON.parse(value);
-    return isKept(kept) ? kept : [];
-  } catch {
-    return [];
-  }
+  return (value && parseJson(value, kept)) || [];
 }
 
 /** The access this browser keeps for an order, if it placed it without signing in. */

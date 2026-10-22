@@ -56,16 +56,28 @@ func TestDeletedUploaderIsForgotten(t *testing.T) {
 		t.Errorf("the photo in use went with its uploader: %v", err)
 	}
 
-	var rows, blobs int
-	if err := pool.QueryRow(t.Context(),
-		"SELECT (SELECT count(*) FROM file_files WHERE uploaded_by = $1), (SELECT count(*) FROM file_blobs WHERE key LIKE '%' || $2 || '%')",
-		accountID, unused.ID.String(),
-	).Scan(&rows, &blobs); err != nil {
-		t.Fatal(err)
-	}
+	// The objects go before the row, so the photo stops being served a moment
+	// before its row is deleted: wait for both.
+	deadline := time.Now().Add(15 * time.Second)
 
-	if rows != 1 || blobs != 0 {
-		t.Errorf("%d files of the account and %d objects of the unused photo remain, want 1 and 0", rows, blobs)
+	for {
+		var rows, blobs int
+		if err := pool.QueryRow(t.Context(),
+			"SELECT (SELECT count(*) FROM file_files WHERE uploaded_by = $1), (SELECT count(*) FROM file_blobs WHERE key LIKE '%' || $2 || '%')",
+			accountID, unused.ID.String(),
+		).Scan(&rows, &blobs); err != nil {
+			t.Fatal(err)
+		}
+
+		if rows == 1 && blobs == 0 {
+			break
+		}
+
+		if time.Now().After(deadline) {
+			t.Fatalf("%d files of the account and %d objects of the unused photo remain, want 1 and 0", rows, blobs)
+		}
+
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 

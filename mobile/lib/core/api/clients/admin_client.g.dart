@@ -409,10 +409,98 @@ class _AdminClient implements AdminClient {
   }
 
   @override
+  Future<AdminOffersOutputBody> listOffersForAdmins({
+    int? page = 1,
+    int? size = 25,
+    Status? status,
+    String? q,
+    String? sellerId,
+    DateTime? postedSince,
+    DateTime? postedUntil,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'page': page,
+      r'size': size,
+      r'status': status,
+      r'q': q,
+      r'sellerId': sellerId,
+      r'postedSince': postedSince?.toIso8601String(),
+      r'postedUntil': postedUntil?.toIso8601String(),
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<AdminOffersOutputBody>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/admin/offers',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late AdminOffersOutputBody _value;
+    try {
+      _value = AdminOffersOutputBody.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<AdminOrdersOutputBody> listOrdersForAdmins({
+    int? page = 1,
+    int? size = 25,
+    List<Status2>? status,
+    String? q,
+    String? sellerId,
+    DateTime? collectSince,
+    DateTime? collectUntil,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'page': page,
+      r'size': size,
+      r'status': status,
+      r'q': q,
+      r'sellerId': sellerId,
+      r'collectSince': collectSince?.toIso8601String(),
+      r'collectUntil': collectUntil?.toIso8601String(),
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<AdminOrdersOutputBody>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/admin/orders',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late AdminOrdersOutputBody _value;
+    try {
+      _value = AdminOrdersOutputBody.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<AdminSellersOutputBody> listSellersForAdmins({
     int? page = 1,
     int? size = 25,
-    List<Status>? status,
+    List<Status3>? status,
     String? q,
     Sort2? sort,
     DateTime? changedSince,

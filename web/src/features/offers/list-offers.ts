@@ -65,7 +65,9 @@ function key(filters: OfferFilters): string {
 
 // React's cache compares arguments by identity, so the filters arrive as one string.
 const search = cache(async (filters: string) => {
-  // JSON writes an absent filter as null; the query leaves it out only when it is undefined.
+  // JSON writes an absent filter as null; the query leaves it out only when it is undefined. The text is this
+  // module's own key, not text from outside, so it is parsed here.
+  // oxlint-disable-next-line second-bite/no-raw-json-parse
   const values = (JSON.parse(filters) as unknown[]).map((value) => value ?? undefined);
   const [q, kind, collectNow, near, radiusKm, minPrice, maxPrice, from, to, sort, sellerId] =
     values as [

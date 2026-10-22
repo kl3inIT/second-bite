@@ -194,6 +194,8 @@ func checkTransitions(t *testing.T, pool *pgxpool.Pool, f fixture) {
 		})
 	}
 
+	checkOwnerless(admin, t, pool, f)
+
 	customer := f.as(t, "customer", platform.RoleCustomer)
 	if _, err := f.sellers.Approve(customer, sellerIn(t, pool, f, seller.StatusPending)); !errors.Is(err, platform.ErrAdminRequired) {
 		t.Errorf("a customer approving: %v", err)
@@ -201,6 +203,32 @@ func checkTransitions(t *testing.T, pool *pgxpool.Pool, f fixture) {
 
 	if _, err := f.sellers.Approve(admin, uuid.New()); !errors.Is(err, seller.ErrNotFound) {
 		t.Errorf("approving an unknown seller: %v", err)
+	}
+}
+
+// checkOwnerless: a seller whose owner deleted their account has no one to run
+// it, so approving it is refused from every status it may stand in, its status
+// kept and nothing recorded (SEC-65).
+func checkOwnerless(admin context.Context, t *testing.T, pool *pgxpool.Pool, f fixture) {
+	t.Helper()
+
+	for _, from := range []seller.Status{seller.StatusBlocked, seller.StatusPending, seller.StatusRejected} {
+		t.Run("approve an owner-less "+string(from)+" seller", func(t *testing.T) {
+			id := sellerIn(t, pool, f, from)
+			if _, err := pool.Exec(t.Context(), `DELETE FROM seller_members WHERE seller_id = $1`, id); err != nil {
+				t.Fatal(err)
+			}
+
+			if _, err := f.sellers.Approve(admin, id); !errors.Is(err, seller.ErrOwnerless) {
+				t.Fatalf("%v, want ErrOwnerless", err)
+			}
+
+			if s, err := f.sellers.Get(admin, id); err != nil || s.Status != from {
+				t.Errorf("after the refusal: %+v, %v; want %s", s.Status, err, from)
+			}
+
+			checkRecorded(t, pool, id, "", 0)
+		})
 	}
 }
 

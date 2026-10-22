@@ -78,11 +78,17 @@ export function dishHref({ id, sellerId }: Pick<OfferSummary, "id" | "sellerId">
 }
 
 /**
- * Directions to where the offer is collected, in the phone's maps (Figma K4b, K5 "Chỉ đường"). Google Maps looks
- * the seller's written address up: the stored point can sit off the store, the address is what the seller wrote.
+ * Directions to where the offer is collected, in the phone's maps (Figma K4b, K5 "Chỉ đường"), to the store's pin:
+ * the owner pins the store on a map (SEC-66), while Google looking up the written address can land elsewhere. A
+ * point without coordinates, as in a cart kept from before, falls back to the address.
  */
 export function directionsHref({
   address,
-}: Pick<OfferSummary["collectionPoint"], "address">): string {
-  return `https://www.google.com/maps/dir/?${new URLSearchParams({ api: "1", destination: address })}`;
+  latitude,
+  longitude,
+}: Pick<OfferSummary["collectionPoint"], "address"> &
+  Partial<Pick<OfferSummary["collectionPoint"], "latitude" | "longitude">>): string {
+  const pinned = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const destination = pinned ? `${latitude},${longitude}` : address;
+  return `https://www.google.com/maps/dir/?${new URLSearchParams({ api: "1", destination })}`;
 }

@@ -13,7 +13,7 @@ abstract class DetailsBody with _$DetailsBody {
     /// The address as people write it
     required String address,
 
-    /// Where the seller is, pinned on a map
+    /// Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE
     required double latitude,
     required double longitude,
     required String name,

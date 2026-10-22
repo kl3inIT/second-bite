@@ -120,8 +120,13 @@ SELECT
     coalesce(min(created_at) FILTER (WHERE failed_attempts > 0), 'epoch')::timestamptz AS oldest_wrong_last_day,
     now()::timestamptz AS checked_at
 FROM identity_sign_in_challenges
-WHERE email = $1 AND created_at > now() - interval '1 day'
+WHERE email = $1 AND purpose = $2 AND created_at > now() - interval '1 day'
 `
+
+type ChallengeUsageParams struct {
+	Email   string
+	Purpose string
+}
 
 type ChallengeUsageRow struct {
 	SentLastHour        int32
@@ -134,9 +139,10 @@ type ChallengeUsageRow struct {
 	CheckedAt           time.Time
 }
 
-// What the codes sent to an address in the last day have used, for its limits.
-func (q *Queries) ChallengeUsage(ctx context.Context, email string) (ChallengeUsageRow, error) {
-	row := q.db.QueryRow(ctx, challengeUsage, email)
+// What the codes of a purpose sent to an address in the last day have used,
+// for its limits; each purpose has its own (SEC-126).
+func (q *Queries) ChallengeUsage(ctx context.Context, arg ChallengeUsageParams) (ChallengeUsageRow, error) {
+	row := q.db.QueryRow(ctx, challengeUsage, arg.Email, arg.Purpose)
 	var i ChallengeUsageRow
 	err := row.Scan(
 		&i.SentLastHour,
@@ -301,12 +307,18 @@ func (q *Queries) DeleteUntrustedLogins(ctx context.Context, accountID uuid.UUID
 
 const endLiveChallenges = `-- name: EndLiveChallenges :exec
 UPDATE identity_sign_in_challenges SET expires_at = now()
-WHERE email = $1 AND expires_at > now()
+WHERE email = $1 AND purpose = $2 AND expires_at > now()
 `
 
-// A new code replaces the address's earlier ones; their wrong guesses still count.
-func (q *Queries) EndLiveChallenges(ctx context.Context, email string) error {
-	_, err := q.db.Exec(ctx, endLiveChallenges, email)
+type EndLiveChallengesParams struct {
+	Email   string
+	Purpose string
+}
+
+// A new code replaces the address's earlier ones of its purpose; their wrong
+// guesses still count. A code of the other purpose stays (SEC-126).
+func (q *Queries) EndLiveChallenges(ctx context.Context, arg EndLiveChallengesParams) error {
+	_, err := q.db.Exec(ctx, endLiveChallenges, arg.Email, arg.Purpose)
 	return err
 }
 

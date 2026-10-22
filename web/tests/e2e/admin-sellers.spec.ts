@@ -115,7 +115,7 @@ test.describe("the admin's stores", () => {
     const table = page.getByRole("table", { name: "Cửa hàng" });
 
     await (await hydrated(page.getByRole("button", { name: "Thao tác với La Paris" }))).click();
-    await page.getByRole("menuitem", { name: "Chặn cửa hàng…" }).click();
+    await page.getByRole("menuitem", { name: "Chặn cửa hàng" }).click();
     const dialog = page.getByRole("dialog", { name: "Chặn cửa hàng La Paris?" });
     await expect(dialog.getByText("Từ 10 đến 500 ký tự")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
@@ -154,11 +154,13 @@ test.describe("the admin's stores", () => {
     await expect(page.getByRole("tab", { name: "Thành viên · 2" })).toBeVisible();
     await expect(page.getByText("Túi bánh mì và croissant, 4 chiếc")).toBeVisible();
     await expect(page.getByText("Chủ cửa hàng", { exact: true })).toBeVisible();
+    // Where the owner pinned it (SEC-66), a map that does not move.
+    await expect(page.getByRole("figure", { name: "Vị trí quán trên bản đồ" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
     await page.getByRole("button", { name: "Thao tác với Tiệm bánh Pháp" }).click();
     await expect(page.getByRole("menuitem", { name: "Xem chi tiết" })).toHaveCount(0);
-    await page.getByRole("menuitem", { name: "Chặn cửa hàng…" }).click();
+    await page.getByRole("menuitem", { name: "Chặn cửa hàng" }).click();
     const dialog = page.getByRole("dialog", { name: "Chặn cửa hàng Tiệm bánh Pháp?" });
     await dialog.getByLabel("Lý do chặn").fill("Bán bánh đã quá hạn sử dụng cho khách.");
     await dialog.getByRole("button", { name: "Chặn cửa hàng" }).click();

@@ -36,6 +36,10 @@ var (
 		VI: "Kiểm tra lại tìm kiếm: một điểm trên bản đồ, khoảng thời gian kết thúc sau khi bắt đầu, giá thấp nhất không cao hơn giá cao nhất, loại món hợp lệ, và một điểm khi xếp theo khoảng cách.",
 		EN: "Check the search: a point on the map, a time range that ends after it starts, a lowest price no higher than the highest, known kinds, and a point to sort by distance.",
 	})
+	ErrAdminListInvalid = platform.NewFailure("OFFER_ADMIN_LIST_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Bộ lọc danh sách bài đăng không hợp lệ: kiểm tra trạng thái, từ khoá tối đa 100 ký tự, khoảng ngày đăng có ngày bắt đầu trước ngày kết thúc, trang từ 1 và cỡ trang từ 1 đến 100.",
+		EN: "The offer list's filters are not valid: check the status, a query of at most 100 characters, a range of days posted that starts before it ends, a page from 1 and a page size of 1 to 100.",
+	})
 	ErrSettingsInvalid = platform.NewFailure("OFFER_SETTINGS_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Cài đặt món đăng nằm ngoài giới hạn hoặc mâu thuẫn nhau.",
 		EN: "The offer settings are out of range or contradict each other.",

@@ -48,6 +48,7 @@ func TestSeller(t *testing.T) {
 		"the owner sets a photo they uploaded":     testOwnerSetsAPhoto,
 		"admins read who belongs to which seller":  testMembershipsForAdmins,
 		"customers follow sellers and list them":   testFollowing,
+		"the location is Hanoi and a move is told": testLocationIsHanoiAndAMoveIsTold,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatPrice } from "@/features/offers/format";
 import type { HistoryOutputBody, MembershipBody, OrderBody, RecordBody } from "@/lib/api/generated";
+import { photoUrl } from "@/lib/api/photo";
 
 import { AccountAvatar, nameOf, RoleBadge } from "./account-parts";
 import { linesOf, outcomeOf, pickupRate, type OrderOutcome } from "./order-outcome";
@@ -182,7 +183,7 @@ function RecentOrder({ order }: { order: OrderBody }) {
       {first && (
         <span className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
           <Image
-            src={`/api${first.photo.smallPath}`}
+            src={photoUrl(first.photo.smallPath)}
             alt=""
             fill
             sizes="40px"

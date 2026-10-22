@@ -1159,12 +1159,18 @@ async function favouriteRoutes(request, response, url) {
   return true;
 }
 
+/** Hanoi's box, as the server's servedArea (server/internal/seller/location.go). */
+function inHanoi(latitude, longitude) {
+  return latitude >= 20.53 && latitude <= 21.42 && longitude >= 105.25 && longitude <= 106.06;
+}
+
 async function sellerRoutes(request, response, url) {
   const token = tokenOf(request);
   const isSellerRoute =
     url.pathname === "/sellers" ||
     url.pathname === "/sellers/mine" ||
     url.pathname === "/sellers/address" ||
+    url.pathname === "/sellers/places" ||
     url.pathname === "/photos" ||
     /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
     (/^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse)$/.test(url.pathname) &&
@@ -1185,6 +1191,27 @@ async function sellerRoutes(request, response, url) {
     json(response, 200, { address: near ? "21 Phố Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội" : "" });
     return true;
   }
+  if (request.method === "GET" && url.pathname === "/sellers/places") {
+    // "hoa lam" finds the street, with a house number typed first put before it, as the server does (SEC-66).
+    const words = (url.searchParams.get("q") ?? "").toLowerCase();
+    const number = /^(\d\w*) /.exec(words)?.[1];
+    const places = words.includes("hoa lam")
+      ? [
+          {
+            address: `${number ? `${number} ` : ""}Phố Hoa Lâm, Việt Hưng, Hà Nội`,
+            latitude: 21.0543,
+            longitude: 105.8962,
+          },
+          {
+            address: "Ngõ 139 Phố Hoa Lâm, Việt Hưng, Hà Nội",
+            latitude: 21.0551,
+            longitude: 105.8975,
+          },
+        ]
+      : [];
+    json(response, 200, { places });
+    return true;
+  }
   if (request.method === "GET" && url.pathname === "/sellers/mine") {
     // An address starting with "ending." has its session end between the account and its sellers (SEC-69).
     if (accounts.get(token).email.startsWith("ending.")) {
@@ -1202,6 +1229,8 @@ async function sellerRoutes(request, response, url) {
       problem(response, 422, "SELLER_DETAILS_INVALID");
     } else if (digits.length < 9 || digits.length > 15) {
       problem(response, 422, "SELLER_PHONE_INVALID");
+    } else if (!inHanoi(body.latitude, body.longitude)) {
+      problem(response, 400, "SELLER_LOCATION_OUTSIDE");
     } else if (mine.length >= 5) {
       problem(response, 409, "SELLER_LIMIT_REACHED");
     } else {
@@ -1220,6 +1249,27 @@ async function sellerRoutes(request, response, url) {
       };
       storesOf.set(email, [...mine, seller]);
       json(response, 201, seller);
+    }
+    return true;
+  }
+  // The owner changes the store's details, its pin among them (SEC-66).
+  const changed = /^\/sellers\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "PUT" && changed) {
+    const seller = mine.find((candidate) => candidate.id === changed[1]);
+    const body = await readBody(request);
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else if (seller.myRole !== "owner") problem(response, 403, "SELLER_OWNER_REQUIRED");
+    else if (!String(body.address ?? "").trim()) problem(response, 422, "SELLER_DETAILS_INVALID");
+    else if (!inHanoi(body.latitude, body.longitude))
+      problem(response, 400, "SELLER_LOCATION_OUTSIDE");
+    else {
+      Object.assign(seller, {
+        address: body.address.trim(),
+        latitude: body.latitude,
+        longitude: body.longitude,
+        updatedAt: new Date().toISOString(),
+      });
+      json(response, 200, seller);
     }
     return true;
   }
@@ -1470,14 +1520,13 @@ function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
 }
 
+// An order keeps the status it was given: the stub does not expire one on the clock. The samples' windows are at
+// fixed evening hours (21:00 to 21:45 tonight), so a run after 21:45 in Vietnam would find every order placed from
+// them over and the customer's order tests failing.
 function shown(order) {
-  const open = order.status === "confirmed" || order.status === "ready";
-  const expired = open && new Date(order.windowEnd) <= new Date();
-  const status = expired ? "expired" : order.status;
   const { owner: _owner, ...rest } = order;
   return {
     ...rest,
-    status,
     unreadMessages: unreadOf(order.id, "customer"),
     messageCount: countOf(order.id),
   };
@@ -2068,6 +2117,182 @@ function storeDays(stores) {
   });
 }
 
+const offerStatuses = ["on_sale", "sold_out", "closed", "withdrawn"];
+
+/**
+ * GET /admin/offers (SEC-134), filtered and paged as server/internal/offer/queries.sql does: the posts of the
+ * stores without a logo, a post of each status each, posted a minute apart, the newest first.
+ */
+function listAdminOffers(response, url, stores) {
+  const status = url.searchParams.get("status");
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sellerId = url.searchParams.get("sellerId");
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const since = url.searchParams.get("postedSince");
+  const until = url.searchParams.get("postedUntil");
+  if (
+    (since && until && Date.parse(since) >= Date.parse(until)) ||
+    (status && !offerStatuses.includes(status)) ||
+    q.length > 100 ||
+    !(page >= 1) ||
+    !(size >= 1 && size <= 100)
+  ) {
+    problem(response, 400, "OFFER_ADMIN_LIST_INVALID");
+    return;
+  }
+  const start = Date.now();
+  const found = stores
+    .filter((store) => !store.photoId)
+    .flatMap((store, i) =>
+      postsOf(store).map((offer, n) => {
+        const posted = new Date(start - (i * 4 + n) * 60 * 1000).toISOString();
+        return {
+          offer: { ...offer, createdAt: posted, updatedAt: posted },
+          sellerName: store.name,
+        };
+      }),
+    )
+    .filter(
+      (item) =>
+        (!q || fold(`${item.offer.name} ${item.sellerName}`).includes(q)) &&
+        (!sellerId || item.offer.sellerId === sellerId) &&
+        (!since || Date.parse(item.offer.createdAt) >= Date.parse(since)) &&
+        (!until || Date.parse(item.offer.createdAt) < Date.parse(until)),
+    );
+  const countOf = (s) => found.filter((item) => item.offer.status === s).length;
+  const listed = found.filter((item) => !status || item.offer.status === status);
+  json(response, 200, {
+    items: listed.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: listed.length,
+    counts: {
+      onSale: countOf("on_sale"),
+      soldOut: countOf("sold_out"),
+      closed: countOf("closed"),
+      withdrawn: countOf("withdrawn"),
+    },
+  });
+}
+
+const orderStatuses = ["confirmed", "ready", "collected", "cancelled", "refused", "expired"];
+const adminCustomers = ["Minh Anh", "Quốc Bảo", "Thu Hà", "Đức Long"];
+
+/**
+ * Every store's orders as an admin reads them (SEC-135): twelve orders across the first four stores without a
+ * logo, two of each status, numbered down from SB-24831. Those still to collect end 38 minutes from now, the
+ * others ended earlier tonight; the first holds three lines, so its "Món" reads "+1 món".
+ */
+function adminOrdersOf(stores) {
+  const now = Date.now();
+  const at = (minutes) => new Date(now + minutes * 60 * 1000).toISOString();
+  const shops = stores.filter((store) => !store.photoId).slice(0, 4);
+  return Array.from({ length: 12 }, (_, i) => {
+    const store = shops[i % shops.length];
+    const status = orderStatuses[i % orderStatuses.length];
+    const open = status === "confirmed" || status === "ready";
+    const back = open ? 0 : 60 + i * 10;
+    const lines = postsOf(store)
+      .slice(0, i === 0 ? 3 : 1 + (i % 2))
+      .map((post, n) => ({
+        offerId: post.id,
+        name: post.name,
+        unit: post.unit,
+        priceVnd: post.priceVnd,
+        originalPriceVnd: post.originalPriceVnd,
+        units: n === 0 ? 2 : 1,
+        photo: post.photo,
+      }));
+    return {
+      id: `or-admin-${String(i).padStart(2, "0")}`,
+      number: `SB-${24831 - i}`,
+      status,
+      seller: {
+        id: store.id,
+        name: store.name,
+        address: store.address,
+        latitude: store.latitude,
+        longitude: store.longitude,
+      },
+      lines,
+      totalVnd: lines.reduce((sum, l) => sum + l.priceVnd * l.units, 0),
+      windowStart: at(-back - 22 - i),
+      windowEnd: at(-back + 38 - i),
+      createdAt: at(-back - 120 - i),
+      ...(status === "ready" || status === "collected" ? { readyAt: at(-back - 10 - i) } : {}),
+      ...(status === "collected" ? { collectedAt: at(-back - i) } : {}),
+      ...(status === "cancelled" ? { cancelledAt: at(-back - 60 - i) } : {}),
+      ...(status === "refused" ? { refusedAt: at(-back - i), refuseReason: "no_show" } : {}),
+      checkoutId: `co-admin-${i}`,
+      customerName: adminCustomers[i % adminCustomers.length],
+      customerPhone: `0900000${String(201 + i)}`,
+    };
+  });
+}
+
+/**
+ * GET /admin/orders (SEC-135), filtered and paged as server/internal/order/queries.sql does: the statuses, the
+ * number with or without SB-, the customer's name or phone or the store's name, a store and the days the
+ * window starts; the latest window first.
+ */
+function listAdminOrders(response, url, stores) {
+  const statuses = url.searchParams
+    .getAll("status")
+    .flatMap((s) => s.split(","))
+    .filter(Boolean);
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sellerId = url.searchParams.get("sellerId");
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const since = url.searchParams.get("collectSince");
+  const until = url.searchParams.get("collectUntil");
+  if (
+    (since && until && Date.parse(since) >= Date.parse(until)) ||
+    statuses.some((s) => !orderStatuses.includes(s)) ||
+    q.length > 100 ||
+    !(page >= 1) ||
+    !(size >= 1 && size <= 100)
+  ) {
+    problem(response, 400, "ORDER_ADMIN_LIST_INVALID");
+    return;
+  }
+  const found = adminOrdersOf(stores).filter(
+    (order) =>
+      (!q ||
+        fold(
+          `${order.number} ${order.number.slice(3)} ${order.customerName} ${order.customerPhone} ${order.seller.name}`,
+        ).includes(q)) &&
+      (!sellerId || order.seller.id === sellerId) &&
+      (!since || Date.parse(order.windowStart) >= Date.parse(since)) &&
+      (!until || Date.parse(order.windowStart) < Date.parse(until)),
+  );
+  const listed = found
+    .filter((order) => statuses.length === 0 || statuses.includes(order.status))
+    .sort((a, b) => b.windowStart.localeCompare(a.windowStart) || b.number.localeCompare(a.number));
+  json(response, 200, {
+    items: listed.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: listed.length,
+    counts: Object.fromEntries(
+      orderStatuses.map((status) => [status, found.filter((o) => o.status === status).length]),
+    ),
+  });
+}
+
+/** GET /orders/{id} for an admin, of the orders above (SEC-135); every other order goes on. */
+function adminOrderReads(request, response, url) {
+  const match = /^\/orders\/(or-admin-\d+)$/.exec(url.pathname);
+  if (request.method !== "GET" || !match) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account || account.role !== "admin") return false;
+  const order = adminOrdersOf(adminStoresOf(account)).find((o) => o.id === match[1]);
+  if (order) json(response, 200, order);
+  else problem(response, 404, "ORDER_NOT_FOUND");
+  return true;
+}
+
 /** POST /admin/sellers/{id}/approve | reject | block, each from the statuses it applies to. */
 async function changeAdminStore(request, response, stores, id, action) {
   const store = stores.find((s) => s.id === id);
@@ -2160,6 +2385,14 @@ async function adminRoutes(request, response, url) {
   }
   if (request.method === "GET" && url.pathname === "/admin/sellers") {
     listAdminStores(response, url, adminStoresOf(account));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/offers") {
+    listAdminOffers(response, url, adminStoresOf(account));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/orders") {
+    listAdminOrders(response, url, adminStoresOf(account));
     return true;
   }
   const storeAction = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block)$/.exec(url.pathname);
@@ -2387,6 +2620,7 @@ async function answer(request, response) {
   if (await chatRoutes(request, response, url)) return;
   if (await favouriteRoutes(request, response, url)) return;
   if (adminSellerReads(request, response, url)) return;
+  if (adminOrderReads(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await emailSettingsRoutes(request, response, url)) return;
   if (await adminRoutes(request, response, url)) return;

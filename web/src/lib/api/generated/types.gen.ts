@@ -39,6 +39,36 @@ export type AdminAccountsOutputBody = {
     total: number;
 };
 
+export type AdminOfferBody = {
+    offer: OfferBody;
+    /**
+     * Copied from the seller when the offer was posted
+     */
+    sellerName: string;
+};
+
+export type AdminOffersOutputBody = {
+    /**
+     * Offers of each status matching the other filters, whatever status asks
+     */
+    counts: OfferCountsBody;
+    items: Array<AdminOfferBody>;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
+export type AdminOrdersOutputBody = {
+    /**
+     * Orders of each status matching the other filters, whatever status asks
+     */
+    counts: OrderCountsBody;
+    items: Array<OrderBody>;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
 export type AdminSellerBody = {
     address: string;
     createdAt: string;
@@ -170,7 +200,7 @@ export type DetailsBody = {
      */
     address: string;
     /**
-     * Where the seller is, pinned on a map
+     * Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE
      */
     latitude: number;
     longitude: number;
@@ -487,6 +517,13 @@ export type OfferChangeBody = {
     windowStart?: string;
 };
 
+export type OfferCountsBody = {
+    closed: number;
+    onSale: number;
+    soldOut: number;
+    withdrawn: number;
+};
+
 export type OfferDetailsBody = {
     /**
      * Required for a mixed_box, which is described by what it may hold; allergens are written here
@@ -631,6 +668,15 @@ export type OrderBody = {
     windowStart: string;
 };
 
+export type OrderCountsBody = {
+    cancelled: number;
+    collected: number;
+    confirmed: number;
+    expired: number;
+    ready: number;
+    refused: number;
+};
+
 export type OrderLineBody = {
     name: string;
     offerId: string;
@@ -681,6 +727,15 @@ export type PhotoBody = {
     width: number;
 };
 
+export type PlaceBody = {
+    /**
+     * As people write it; a house number typed first goes before a street that has none
+     */
+    address: string;
+    latitude: number;
+    longitude: number;
+};
+
 export type PlaceOrderBody = {
     /**
      * Shared by the orders placed together from one cart, one per seller; a new one when omitted
@@ -698,6 +753,13 @@ export type PlaceOrderBody = {
      * A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted
      */
     phone: string;
+};
+
+export type PlacesOutputBody = {
+    /**
+     * Up to five places in Hanoi; none when nothing matches or the search does not answer
+     */
+    places: Array<PlaceBody> | null;
 };
 
 export type Problem = {
@@ -1458,6 +1520,102 @@ export type SaveOfferSettingsResponses = {
 };
 
 export type SaveOfferSettingsResponse = SaveOfferSettingsResponses[keyof SaveOfferSettingsResponses];
+
+export type ListOffersForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep this status; every status when absent
+         */
+        status?: 'on_sale' | 'sold_out' | 'closed' | 'withdrawn';
+        /**
+         * Words of the dish, the seller's name or the description
+         */
+        q?: string;
+        /**
+         * Keep this seller's offers
+         */
+        sellerId?: string;
+        page?: number;
+        size?: number;
+        /**
+         * Keep the offers posted at or after this time
+         */
+        postedSince?: string;
+        /**
+         * Keep the offers posted before this time
+         */
+        postedUntil?: string;
+    };
+    url: '/admin/offers';
+};
+
+export type ListOffersForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListOffersForAdminsError = ListOffersForAdminsErrors[keyof ListOffersForAdminsErrors];
+
+export type ListOffersForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: AdminOffersOutputBody;
+};
+
+export type ListOffersForAdminsResponse = ListOffersForAdminsResponses[keyof ListOffersForAdminsResponses];
+
+export type ListOrdersForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep these statuses; every status when absent
+         */
+        status?: Array<'confirmed' | 'ready' | 'collected' | 'cancelled' | 'refused' | 'expired'> | null;
+        /**
+         * The number, the customer's name or phone, or the seller's name
+         */
+        q?: string;
+        /**
+         * Keep this seller's orders
+         */
+        sellerId?: string;
+        page?: number;
+        size?: number;
+        /**
+         * Keep the orders whose window starts at or after this time
+         */
+        collectSince?: string;
+        /**
+         * Keep the orders whose window starts before this time
+         */
+        collectUntil?: string;
+    };
+    url: '/admin/orders';
+};
+
+export type ListOrdersForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListOrdersForAdminsError = ListOrdersForAdminsErrors[keyof ListOrdersForAdminsErrors];
+
+export type ListOrdersForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: AdminOrdersOutputBody;
+};
+
+export type ListOrdersForAdminsResponse = ListOrdersForAdminsResponses[keyof ListOrdersForAdminsResponses];
 
 export type ListSellersForAdminsData = {
     body?: never;
@@ -2480,6 +2638,36 @@ export type ListMySellersResponses = {
 };
 
 export type ListMySellersResponse = ListMySellersResponses[keyof ListMySellersResponses];
+
+export type SearchPlacesData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The words of the address, with or without Vietnamese marks
+         */
+        q: string;
+    };
+    url: '/sellers/places';
+};
+
+export type SearchPlacesErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SearchPlacesError = SearchPlacesErrors[keyof SearchPlacesErrors];
+
+export type SearchPlacesResponses = {
+    /**
+     * OK
+     */
+    200: PlacesOutputBody;
+};
+
+export type SearchPlacesResponse = SearchPlacesResponses[keyof SearchPlacesResponses];
 
 export type GetSellerData = {
     body?: never;

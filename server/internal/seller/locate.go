@@ -70,22 +70,25 @@ func (g geocoder) reverse(ctx context.Context, latitude, longitude float64) (str
 	return written(found.Address, found.DisplayName), nil
 }
 
-// written puts the parts of an address in the order Vietnamese write them. A point with none of them keeps the
-// service's own line, without the country and the postcode it ends with.
+// wardKeys are where OpenStreetMap puts a ward or a commune, which Vietnam's addresses name between the street and
+// the city since districts were abolished in July 2025: "Phường Phú Diễn" as a suburb, "Xã Bát Tràng" as a city
+// district. The same keys also hold named places inside a ward (Kẻ Diễn, a quarter of Phú Diễn), so a ward is the
+// first one named as a ward; only when none is does the first one stand for it.
+var wardKeys = []string{"suburb", "city_district", "town", "village", "county", "district", "quarter", "neighbourhood"}
+
+// wardPrefixes are how a ward, a commune or a special zone is named.
+var wardPrefixes = []string{"Phường ", "Xã ", "Thị trấn ", "Đặc khu "}
+
+// written puts the parts of an address in the order Vietnamese write them: the street, the ward, the city. A point
+// with none of them keeps the service's own line, without the country and the postcode it ends with.
 func written(parts map[string]string, display string) string {
 	street := strings.TrimSpace(parts["house_number"] + " " + parts["road"])
-	line := []string{street}
+	line := []string{street, ward(parts)}
 
-	for _, keys := range [][]string{
-		{"quarter", "suburb", "neighbourhood", "village"},
-		{"city_district", "district", "county", "town"},
-		{"city", "state", "province"},
-	} {
-		for _, key := range keys {
-			if parts[key] != "" {
-				line = append(line, parts[key])
-				break
-			}
+	for _, key := range []string{"city", "state", "province"} {
+		if parts[key] != "" {
+			line = append(line, parts[key])
+			break
 		}
 	}
 
@@ -107,6 +110,25 @@ func written(parts map[string]string, display string) string {
 	}
 
 	return strings.Join(pieces, ", ")
+}
+
+// ward is the ward or commune among the parts of an address, or the first place that stands for one.
+func ward(parts map[string]string) string {
+	for _, key := range wardKeys {
+		for _, prefix := range wardPrefixes {
+			if strings.HasPrefix(parts[key], prefix) {
+				return parts[key]
+			}
+		}
+	}
+
+	for _, key := range wardKeys {
+		if parts[key] != "" {
+			return parts[key]
+		}
+	}
+
+	return ""
 }
 
 // AddressAt is the address at a point, for the form that opens a store: the caller must be signed in, so the

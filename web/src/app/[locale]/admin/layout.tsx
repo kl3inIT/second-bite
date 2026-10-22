@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { Toaster } from "@/components/ui/toast";
 import { AdminSidebar } from "@/features/admin/admin-sidebar";
 import { getCurrentAccount } from "@/features/identity/current-account";
 
@@ -18,22 +16,15 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 export default function AdminLayout({ children }: LayoutProps<"/[locale]/admin">) {
   return (
     <div data-no-footer className="flex flex-1 flex-col">
-      {/* The lists keep their filters in the address (SEC-75 › Lists). */}
-      <NuqsAdapter>
-        <Suspense>
-          <AdminFrame>{children}</AdminFrame>
-        </Suspense>
-      </NuqsAdapter>
+      <Suspense>
+        <AdminFrame>{children}</AdminFrame>
+      </Suspense>
     </div>
   );
 }
 
 async function AdminFrame({ children }: { children: React.ReactNode }) {
-  const [account, jar, t] = await Promise.all([
-    getCurrentAccount(),
-    cookies(),
-    getTranslations("Admin"),
-  ]);
+  const [account, jar] = await Promise.all([getCurrentAccount(), cookies()]);
   if (account?.role !== "admin") return children;
 
   return (
@@ -45,8 +36,7 @@ async function AdminFrame({ children }: { children: React.ReactNode }) {
       <SkipLink />
       <AdminSidebar email={account.email} />
       <SidebarInset id="admin-main" className="min-w-0">
-        {/* What a change did, said at the foot of the page (Figma Admin/Toast). */}
-        <Toaster closeLabel={t("closeToast")}>{children}</Toaster>
+        {children}
       </SidebarInset>
     </SidebarProvider>
   );

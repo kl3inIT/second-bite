@@ -6,6 +6,7 @@ import { formatPrice } from "@/features/offers/format";
 import type { OrderBody } from "@/lib/api/generated";
 
 import { Link } from "@/i18n/navigation";
+import { photoUrl } from "@/lib/api/photo";
 
 import { CopyPhoneButton } from "./copy-phone-button";
 import { OrderActions, ReopenButton } from "./order-actions";
@@ -37,7 +38,7 @@ export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab
     <li className="relative flex flex-wrap items-center gap-x-3 gap-y-3 border-b border-border py-4 last:border-b-0 last:pb-0 md:gap-x-4">
       <span className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-muted md:size-18">
         <Image
-          src={`/api${first.photo.smallPath}`}
+          src={photoUrl(first.photo.smallPath)}
           alt=""
           fill
           sizes="72px"

@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
+
+import { parseJson } from "@/lib/json";
 
 import {
   LiveClient,
@@ -25,7 +28,7 @@ class FakeSocket implements LiveSocket {
   }
 
   send(data: string) {
-    this.sent.push(JSON.parse(data));
+    this.sent.push(parseJson(data, z.unknown()));
   }
 
   close() {

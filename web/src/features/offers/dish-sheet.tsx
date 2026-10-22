@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { DiscountBadge } from "./discount-label";
 import { formatPrice } from "./format";
 import type { OfferSummary } from "./offer";
-import { DishPhotos } from "./dish-photos";
+import { OfferPhoto } from "./offer-photo";
 
 // A dish's sheet over its seller's page (Figma K4a): its photograph with the discount on it, name, price over the
 // old one and the portions left, what the seller says of it with its weight, what to bring and ask; at the foot how many
@@ -73,9 +73,10 @@ function DishBody({
 
   return (
     <div className={cn("flex min-h-0 flex-col gap-4 overflow-y-auto", className)}>
-      <DishPhotos offer={offer} sizes="(min-width: 576px) 512px, 100vw">
+      <div className="relative h-50 shrink-0 overflow-hidden rounded-xl bg-muted">
+        <OfferPhoto offer={offer} large sizes="(min-width: 576px) 512px, 100vw" />
         <DiscountBadge percent={offer.discountPercent} />
-      </DishPhotos>
+      </div>
       <div className="flex flex-col gap-2">
         {title}
         <div className="flex flex-col gap-0.5">

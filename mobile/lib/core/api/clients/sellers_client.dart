@@ -11,6 +11,7 @@ import '../models/details_body.dart';
 import '../models/followed_output_body.dart';
 import '../models/member_body.dart';
 import '../models/members_output_body.dart';
+import '../models/places_output_body.dart';
 import '../models/seller_body.dart';
 import '../models/seller_profile_body.dart';
 import '../models/sellers_output_body.dart';
@@ -22,7 +23,7 @@ part 'sellers_client.g.dart';
 abstract class SellersClient {
   factory SellersClient(Dio dio, {String? baseUrl}) = _SellersClient;
 
-  /// Open a seller; it waits for an admin to activate it
+  /// Open a seller, active at once, pinned inside Hanoi
   @POST('/sellers')
   Future<SellerBody> openSeller({@Body() required DetailsBody body});
 
@@ -43,11 +44,17 @@ abstract class SellersClient {
   @GET('/sellers/mine')
   Future<SellersOutputBody> listMySellers();
 
+  /// Places in Hanoi for the words of a store's address, to pin it as it is typed.
+  ///
+  /// [q] - The words of the address, with or without Vietnamese marks.
+  @GET('/sellers/places')
+  Future<PlacesOutputBody> searchPlaces({@Query('q') required String q});
+
   /// A seller, to its members and admins
   @GET('/sellers/{sellerId}')
   Future<SellerBody> getSeller({@Path('sellerId') required String sellerId});
 
-  /// Change a seller's details; only its owner may
+  /// Change a seller's details; only its owner may. A moved pin or address moves its offers on sale and its orders still to collect
   @PUT('/sellers/{sellerId}')
   Future<SellerBody> updateSeller({
     @Path('sellerId') required String sellerId,

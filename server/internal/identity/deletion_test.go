@@ -18,7 +18,8 @@ import (
 // TestDeleteAccount checks the deletion's rules below the HTTP flow of
 // cmd/secondbite (SEC-37): a code sent to another address deletes nothing,
 // and a deletion takes the account's sessions, Google links and codes with
-// it and publishes AccountDeletedEvent in its transaction.
+// it and publishes AccountDeletedEvent in its transaction, twice: at once and
+// two minutes later.
 func TestDeleteAccount(t *testing.T) {
 	t.Parallel()
 
@@ -61,14 +62,18 @@ func TestDeleteAccount(t *testing.T) {
 	checkAuditForgot(t, pool, leave.Account, keep.Account)
 
 	var accounts, sessions, logins, codes, jobs int
+
+	var apart float64
 	if err := pool.QueryRow(t.Context(), `SELECT
 		(SELECT count(*) FROM identity_accounts WHERE id = $1),
 		(SELECT count(*) FROM identity_sessions WHERE account_id = $1),
 		(SELECT count(*) FROM identity_external_logins WHERE account_id = $1),
 		(SELECT count(*) FROM identity_sign_in_challenges WHERE email = $2),
-		(SELECT count(*) FROM river_job WHERE args->>'event' = 'identity.account_deleted')`,
+		(SELECT count(*) FROM river_job WHERE args->>'event' = 'identity.account_deleted'),
+		(SELECT coalesce(extract(epoch FROM max(scheduled_at) - min(scheduled_at)), 0)::float8
+			FROM river_job WHERE args->>'event' = 'identity.account_deleted')`,
 		leave.Account.ID, leave.Account.Email,
-	).Scan(&accounts, &sessions, &logins, &codes, &jobs); err != nil {
+	).Scan(&accounts, &sessions, &logins, &codes, &jobs, &apart); err != nil {
 		t.Fatal(err)
 	}
 
@@ -76,8 +81,10 @@ func TestDeleteAccount(t *testing.T) {
 		t.Errorf("left: %d accounts, %d sessions, %d links, %d codes", accounts, sessions, logins, codes)
 	}
 
-	if jobs != 1 {
-		t.Errorf("%d jobs carry the event to its one listener, want 1", jobs)
+	// Delivered at once and again two minutes later, for what a request
+	// still running wrote after the first delivery (SEC-126).
+	if jobs != 2 || apart < 115 || apart > 125 {
+		t.Errorf("%d jobs carry the event to its one listener, %.0f s apart; want 2, about 120 s apart", jobs, apart)
 	}
 
 	if _, err := s.Account(t.Context(), keep.Account.ID); err != nil {

@@ -75,6 +75,54 @@ WHERE seller_id = @seller_id AND window_start >= @day_start AND window_start < @
 ORDER BY window_start, number
 LIMIT 500;
 
+-- name: OrdersForAdmins :many
+-- One page of every seller's orders in the statuses given (all when empty),
+-- read as fromRow reads them: one still to collect whose window is over is
+-- expired. Matching the words folded by order_fold (any when empty), of the
+-- seller given and collected from a window starting in [collect_since,
+-- collect_until) when given; the latest window first. GetOrder's columns, so
+-- the rows convert to its row; CountOrdersForAdmins counts them all.
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
+FROM order_orders
+WHERE (cardinality(@statuses::text[]) = 0
+       OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
+          = ANY (@statuses::text[]))
+  AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
+  AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz)
+ORDER BY window_start DESC, number DESC
+LIMIT @max_rows OFFSET @skip_rows;
+
+-- name: CountOrdersForAdmins :one
+SELECT count(*) FROM order_orders
+WHERE (cardinality(@statuses::text[]) = 0
+       OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
+          = ANY (@statuses::text[]))
+  AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
+  AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz);
+
+-- name: CountOrdersByStatus :one
+-- How many orders of each status match the words, the seller and the day
+-- collected, whatever the statuses asked, for the cards above the admins'
+-- list.
+SELECT count(*) FILTER (WHERE state = 'confirmed' AND window_end > now()) AS confirmed,
+       count(*) FILTER (WHERE state = 'ready' AND window_end > now()) AS ready,
+       count(*) FILTER (WHERE state = 'collected') AS collected,
+       count(*) FILTER (WHERE state = 'cancelled') AS cancelled,
+       count(*) FILTER (WHERE state = 'refused') AS refused,
+       count(*) FILTER (WHERE state = 'expired' OR (state IN ('confirmed', 'ready') AND window_end <= now())) AS expired
+FROM order_orders
+WHERE true
+  AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
+  AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz);
+
 -- name: MarkReady :exec
 UPDATE order_orders SET state = 'ready', ready_at = now() WHERE id = @id;
 
@@ -235,3 +283,20 @@ WHERE order_id IN (SELECT id FROM order_orders WHERE customer_id = @customer_id)
 -- name: DeleteChatsEndedBefore :execrows
 DELETE FROM order_chats
 WHERE order_id IN (SELECT id FROM order_orders WHERE window_end < @before);
+
+-- name: MoveSellerOrders :execrows
+-- Copies a seller's collection point onto its orders still to collect, and
+-- tells the sockets following each (channel secondbite_live). Orders handed
+-- over, cancelled, refused or expired keep what they copied.
+WITH moved AS (
+    UPDATE order_orders
+    SET latitude = @latitude, longitude = @longitude, address = @address
+    WHERE seller_id = @seller_id AND state IN ('confirmed', 'ready')
+      AND (latitude, longitude, address) IS DISTINCT FROM (@latitude, @longitude, @address::text)
+    RETURNING id, seller_id, state
+)
+SELECT pg_notify('secondbite_live', json_build_object(
+    'topics', json_build_array('order:' || id::text, 'seller:' || seller_id::text),
+    'notice', json_build_object('type', 'order', 'orderId', id, 'status', state)
+)::text)
+FROM moved;

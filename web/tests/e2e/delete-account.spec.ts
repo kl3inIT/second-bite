@@ -59,7 +59,10 @@ test.describe("deleting an account on the web", () => {
     await (await hydrated(page.getByRole("button", { name: "Gửi mã xác nhận" }))).click();
     await expect(page.getByRole("heading", { name: "Nhập mã xác nhận" })).toBeVisible();
     const confirm = page.getByRole("button", { name: "Xoá vĩnh viễn tài khoản" });
-    await expect(confirm).toBeDisabled();
+    // A code not yet whole is said under it, which takes the focus.
+    await confirm.click();
+    await expect(page.getByText("Nhập đủ 6 số của mã trong email.")).toBeVisible();
+    await expect(page.getByLabel("Mã xác nhận 6 số")).toBeFocused();
 
     await page.getByLabel("Mã xác nhận 6 số").fill("111111");
     await confirm.click();

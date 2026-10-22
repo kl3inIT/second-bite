@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
@@ -95,6 +96,29 @@ func waitFor(t *testing.T, cond func() bool) {
 	}
 }
 
+// checkPublishAfter publishes an event to run two seconds later: no listener
+// hears it a second after, both do soon after the delay (SEC-126).
+func checkPublishAfter(t *testing.T, pool *pgxpool.Pool, events *platform.Events, first, second *heard) {
+	t.Helper()
+
+	id := uuid.New()
+
+	err := pgx.BeginFunc(t.Context(), pool, func(tx pgx.Tx) error {
+		return platform.PublishAfter(t.Context(), tx, events, thingDone{ID: id}, 2*time.Second)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	time.Sleep(time.Second)
+
+	if slices.Contains(first.got(), id) || slices.Contains(second.got(), id) {
+		t.Fatal("a listener ran before the delay passed")
+	}
+
+	waitFor(t, func() bool { return slices.Contains(first.got(), id) && slices.Contains(second.got(), id) })
+}
+
 func TestEvents(t *testing.T) {
 	t.Parallel()
 
@@ -140,6 +164,12 @@ func TestEvents(t *testing.T) {
 		}
 
 		waitFor(t, func() bool { return slices.Contains(first.got(), id) && slices.Contains(second.got(), id) })
+	})
+
+	t.Run("reaches every listener again once the delay has passed", func(t *testing.T) {
+		t.Parallel()
+
+		checkPublishAfter(t, pool, events, &first, &second)
 	})
 
 	t.Run("publishes nothing when the change rolls back", func(t *testing.T) {

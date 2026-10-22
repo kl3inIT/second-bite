@@ -1,27 +1,32 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
+import { toast } from "@/components/ui/toast";
 import { useRouter } from "@/i18n/navigation";
 
-const SHOWN_FOR_MS = 6000;
-
-// The line at the foot of the screen after a change (Figma P5, S1: "Đã đăng 3 suất. Khách đặt được ngay."): a
-// status the screen reader announces, which takes itself away, with the address it came with. `to` is the
-// address without it.
+// What a change did, said after it (Figma P5, S1: "Đã đăng 3 suất. Khách đặt được ngay."): the page that the
+// change led to carries `notice` in its address, and this raises the toast once; the notice leaves the address with
+// the toast, so a later reload does not say it again. `to` is the address without it.
 export function PostToast({ message, to }: { message: string; to: string }) {
   const router = useRouter();
+  const raised = useRef(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => router.replace(to, { scroll: false }), SHOWN_FOR_MS);
-    return () => clearTimeout(timer);
-  }, [router, to]);
+    if (raised.current) return;
+    raised.current = true;
+    toast.add({
+      type: "success",
+      title: message,
+      // Only while the page still says it: a person who has moved on is not brought back.
+      onClose: () => {
+        const here = window.location.pathname.endsWith(to.split("?")[0]);
+        if (here && new URLSearchParams(window.location.search).has("notice")) {
+          router.replace(to, { scroll: false });
+        }
+      },
+    });
+  }, [message, router, to]);
 
-  return (
-    <div className="pointer-events-none fixed inset-x-4 bottom-24 z-40 flex justify-center md:bottom-8">
-      <output className="rounded-xl bg-primary px-5 py-4 text-body-sm-strong text-primary-foreground shadow-lg">
-        {message}
-      </output>
-    </div>
-  );
+  return null;
 }

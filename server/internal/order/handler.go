@@ -504,6 +504,25 @@ type historyOutput struct {
 	}
 }
 
+type orderCountsBody struct {
+	Confirmed int `json:"confirmed"`
+	Ready     int `json:"ready"`
+	Collected int `json:"collected"`
+	Cancelled int `json:"cancelled"`
+	Refused   int `json:"refused"`
+	Expired   int `json:"expired"`
+}
+
+type adminOrdersOutput struct {
+	Body struct {
+		Items    []orderBody     `json:"items"    nullable:"false"`
+		Page     int             `json:"page"`
+		PageSize int             `json:"pageSize"`
+		Total    int             `json:"total"`
+		Counts   orderCountsBody `json:"counts"   doc:"Orders of each status matching the other filters, whatever status asks"`
+	}
+}
+
 // RegisterAdminOperations adds the module's admin operations to admin, the
 // group platform.NewAdminGroup returns; their paths omit its prefix.
 func RegisterAdminOperations(admin huma.API, s *Service) {
@@ -525,6 +544,53 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 
 		for _, o := range h.Recent {
 			out.Body.Recent = append(out.Body.Recent, toBody(o))
+		}
+
+		return out, nil
+	})
+
+	huma.Register(admin, huma.Operation{
+		OperationID: "listOrdersForAdmins", Method: http.MethodGet, Path: "/orders",
+		Summary: "Every seller's orders by status, words, seller and day collected, the latest window first",
+		Description: "q matches the number (SB-24831 or 24831), the customer's name or phone, or the seller's name, " +
+			"Vietnamese marks ignored. An order still to collect whose window is over is expired. " +
+			"counts holds the orders of each status matching the other filters. A page past the end is empty.",
+	}, func(ctx context.Context, in *struct {
+		Status   []Status  `query:"status"   doc:"Keep these statuses; every status when absent" enum:"confirmed,ready,collected,cancelled,refused,expired"`
+		Q        string    `query:"q"        doc:"The number, the customer's name or phone, or the seller's name" maxLength:"100"`
+		SellerID uuid.UUID `query:"sellerId" doc:"Keep this seller's orders"`
+		Page     int       `query:"page"     default:"1" minimum:"1"`
+		Size     int       `query:"size"     default:"25" maximum:"100" minimum:"1"`
+
+		CollectSince time.Time `query:"collectSince" doc:"Keep the orders whose window starts at or after this time"`
+		CollectUntil time.Time `query:"collectUntil" doc:"Keep the orders whose window starts before this time"`
+	},
+	) (*adminOrdersOutput, error) {
+		f := AdminFilter{Statuses: in.Status, Query: in.Q, SellerID: in.SellerID, Page: in.Page, Size: in.Size}
+		if !in.CollectSince.IsZero() {
+			f.CollectSince = &in.CollectSince
+		}
+
+		if !in.CollectUntil.IsZero() {
+			f.CollectUntil = &in.CollectUntil
+		}
+
+		page, err := s.ListForAdmins(ctx, f)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &adminOrdersOutput{}
+		out.Body.Items = make([]orderBody, 0, len(page.Orders))
+		out.Body.Page, out.Body.PageSize, out.Body.Total = in.Page, in.Size, page.Total
+		out.Body.Counts = orderCountsBody{
+			Confirmed: page.Counts[StatusConfirmed], Ready: page.Counts[StatusReady],
+			Collected: page.Counts[StatusCollected], Cancelled: page.Counts[StatusCancelled],
+			Refused: page.Counts[StatusRefused], Expired: page.Counts[StatusExpired],
+		}
+
+		for _, o := range page.Orders {
+			out.Body.Items = append(out.Body.Items, toBody(o))
 		}
 
 		return out, nil

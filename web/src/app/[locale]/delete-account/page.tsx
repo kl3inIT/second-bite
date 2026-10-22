@@ -13,6 +13,7 @@ import { DeleteAccountDone, DeleteAccountForm } from "@/features/identity/delete
 import { getOwnedSellerNames } from "@/features/identity/my-sellers";
 import { Link } from "@/i18n/navigation";
 import { pageMetadata } from "@/lib/seo";
+import { Panel } from "@/components/panel";
 
 export async function generateMetadata({
   params,
@@ -67,23 +68,20 @@ async function Content({ done: pending }: { done: Promise<boolean> }) {
 
   if (!account && done) {
     return (
-      <section className="rounded-2xl border border-border bg-card p-4 text-card-foreground md:px-7 md:py-6">
+      <Panel>
         <DeleteAccountDone />
-      </section>
+      </Panel>
     );
   }
 
   return (
     <>
       <p className="text-body-sm text-foreground">{t("intro")}</p>
-      <section
-        aria-label={t("title")}
-        className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-4 text-card-foreground md:px-7 md:py-6"
-      >
+      <Panel aria-label={t("title")} contentClassName="gap-5">
         <What title={t("deletedTitle")} items={t.raw("deleted") as string[]} />
         <What title={t("laterTitle")} items={t.raw("later") as string[]} />
         <What title={t("keptTitle")} items={t.raw("kept") as string[]} />
-      </section>
+      </Panel>
       <Action email={account?.email} />
     </>
   );
@@ -109,10 +107,7 @@ async function Action({ email }: { email?: string }) {
 
   if (!email) {
     return (
-      <section
-        aria-labelledby="delete-account-sign-in"
-        className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-4 text-card-foreground md:px-7 md:py-6"
-      >
+      <Panel aria-labelledby="delete-account-sign-in" contentClassName="items-start">
         <h2 id="delete-account-sign-in" className="text-title">
           {t("signedOutTitle")}
         </h2>
@@ -123,14 +118,14 @@ async function Action({ email }: { email?: string }) {
         >
           {t("signIn")}
         </Link>
-      </section>
+      </Panel>
     );
   }
 
   const owned = await getOwnedSellerNames();
 
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 text-card-foreground md:px-7 md:py-6">
+    <Panel contentClassName="gap-4">
       {owned.length > 0 && (
         <Alert variant="warning">
           <TriangleAlertIcon aria-hidden />
@@ -139,6 +134,6 @@ async function Action({ email }: { email?: string }) {
         </Alert>
       )}
       <DeleteAccountForm email={email} />
-    </section>
+    </Panel>
   );
 }

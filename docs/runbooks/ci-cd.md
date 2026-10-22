@@ -69,7 +69,7 @@ The site is down for the few seconds the server takes to restart and migrate. Th
 Staging runs on the host of BeyondPilot's staging, which also runs MemoryOS's production; `beyondpilot.vadan.app` resolves to it. Second Bite has its own:
 - directory;
 - Compose project, `secondbite-staging`;
-- containers, `secondbite-staging-{postgres,server,web,preview}`;
+- containers, `secondbite-staging-{postgres,server,web,preview,map}`;
 - volume and internal network.
 
 It shares the host's Nginx Proxy Manager, which it reaches through the existing external network `proxy-network`. Never change a container, file or setting of BeyondPilot or MemoryOS from here.
@@ -82,6 +82,7 @@ Under `/apps/secondbite-staging`:
 | `deployments` | root, `0700` | `lock`, `current.env`, `previous.env` |
 | `backups` | root, `0700` | Pre-deployment dumps (the five newest) and nightly dumps (the 14 newest) |
 | `secrets` | root, `0700` | `database-password`, `email-settings-key` and `sign-in-code-key`, each owned by uid 65532 (the server's distroless `nonroot` user) with mode `0400` |
+| `map` | root, `0755`, files world-readable | The map the web draws a store's pin on (SEC-66): `hanoi.pmtiles`, `fonts/` and `sprites/`, written by [`infrastructure/map/fetch.sh`](../../infrastructure/map/fetch.sh) and served read-only by `secondbite-staging-map` |
 | `.env.staging` | root, `0600` | The non-secret values of [`staging.env.example`](../../infrastructure/deployment/staging.env.example) |
 
 ### Provision the host once
@@ -131,6 +132,14 @@ What each secret does ([backend runbook](backend.md)):
 - Replacing `email-settings-key` makes the stored email provider key unreadable until an admin enters it again.
 - Replacing `sign-in-code-key` voids the codes sent in the last 15 minutes.
 
+**Email.** Staging sends real email through Brevo's API, from `noreply@vadan.app` as "Second Bite (staging)", since 21 October 2026. There is no Mailpit on staging: a sign-in code goes to the inbox that was typed, so test with an address you can read. The Brevo API key is sealed in the database under `email-settings-key`, never in a file or the environment. An admin changes the provider, the sender or the key on the site at `/vi/admin/settings/email` (`PUT /admin/email-settings`); from the host, the same is a command reading the key from standard input:
+
+```sh
+docker exec -i secondbite-staging-server secondbite email configure -provider brevo   -sender-address noreply@vadan.app -sender-name "Second Bite (staging)" -secret-stdin
+```
+
+Paste the key and press Ctrl-D, so it stays out of the shell's history.
+
 **The nightly backup.** Install it from a checkout of this repository:
 
 ```sh
@@ -159,6 +168,16 @@ sudo docker compose --project-name secondbite-staging --env-file "$root/.env.sta
 ```
 
 Later deployments read the same `.env.staging`, so the value stays. The client is of type "Web application", with `https://secondbite.vadan.app` among its authorised JavaScript origins and no redirect URI: the web takes Google's ID token in a popup. While its consent screen is in testing mode, only its test users can sign in. Its client secret is not used anywhere; keep it out of the host. An empty value leaves Google off, and `GET /api/auth/methods` then answers `{}`.
+
+**The map** (SEC-66). Before the first release that has the `map` service, fill `/apps/secondbite-staging/map`; run it again to refresh the map after the build named in the script changes. It needs the go-pmtiles CLI, a single binary from its releases, kept out of the PATH of other products:
+
+```sh
+curl -fsSL https://github.com/protomaps/go-pmtiles/releases/download/v1.31.2/go-pmtiles_1.31.2_Linux_x86_64.tar.gz |
+    sudo tar -xz -C /usr/local/lib --one-top-level=go-pmtiles pmtiles
+sudo PMTILES=/usr/local/lib/go-pmtiles/pmtiles bash infrastructure/map/fetch.sh /apps/secondbite-staging/map
+```
+
+The script comes from this repository at the release being deployed. The archive is about 43 MB. Without it the site works, and the map in the store forms says it cannot load.
 
 Then record the date of that first deployment in the [persistence guideline](../guidelines/persistence.md). From that date on, migrations are forward-only.
 
@@ -192,6 +211,17 @@ location /api/ {
     proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header Forwarded "";
     proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+The same advanced configuration serves the map (SEC-66) on the site's own origin, so MapLibre needs no CORS. The map is read by byte ranges, so the proxy must not compress it:
+
+```nginx
+location /map/ {
+    set $secondbite_map secondbite-staging-map;
+    proxy_pass http://$secondbite_map:8080;
+    gzip off;
+    proxy_set_header Host $host;
 }
 ```
 

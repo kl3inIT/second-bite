@@ -176,7 +176,7 @@ func (q *Queries) PutBlob(ctx context.Context, arg PutBlobParams) error {
 }
 
 const unusedFilesOf = `-- name: UnusedFilesOf :many
-SELECT id, store, object_key FROM file_files WHERE uploaded_by = $1 AND used_at IS NULL
+SELECT id, store, object_key FROM file_files WHERE uploaded_by = $1 AND used_at IS NULL ORDER BY id
 `
 
 type UnusedFilesOfRow struct {
@@ -186,7 +186,8 @@ type UnusedFilesOfRow struct {
 }
 
 // The files an account uploaded that no offer or seller uses, to delete once
-// the account is deleted (SEC-37).
+// the account is deleted (SEC-37), in a set order so a run that fails part-way
+// is retried from where it stopped.
 func (q *Queries) UnusedFilesOf(ctx context.Context, accountID uuid.UUID) ([]UnusedFilesOfRow, error) {
 	rows, err := q.db.Query(ctx, unusedFilesOf, accountID)
 	if err != nil {

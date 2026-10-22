@@ -60,6 +60,7 @@ func TestOffer(t *testing.T) {
 			"a post copies its dish":                      testPostsCopyTheirDish,
 			"a catalog holds a hundred dishes":            testCatalogHoldsAHundredDishes,
 			"orders take and return units":                testOrdersTakeAndReturnUnits,
+			"admins list every seller's offers":           testAdminsListOffers,
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()

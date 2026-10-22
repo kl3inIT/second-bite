@@ -9,8 +9,15 @@ import { getStoreOffers } from "./my-sellers";
 import { PostRow } from "./post-row";
 import { PostToast } from "./post-toast";
 import { requireStore } from "./require-store";
-import { readDay, vietnamToday } from "./store-day";
-import { groupByTab, matchesName, offersOfDay, postTabs, readPostTab } from "./store-offers";
+import {
+  dayOrNull,
+  loadPostSearchParams,
+  searchOf,
+  serializePostSearchParams,
+} from "./search-params";
+import { vietnamToday } from "./store-day";
+import { groupByTab, matchesName, offersOfDay, postTabs } from "./store-offers";
+import { StorePanel } from "./store-panel";
 import { StoreTitleRow, titleActionPhone } from "./store-title-row";
 
 /** The line at the foot for what was just done, or nothing when the address carries nothing known. */
@@ -46,10 +53,11 @@ export async function StorePosts({
   ]);
   // The session is read before the clock, so the page is made for each request and never at build time.
   const today = vietnamToday();
-  const day = readDay(one("day"), today);
-  const search = (one("q") ?? "").trim().slice(0, 80);
+  const filter = loadPostSearchParams(query);
+  const day = filter.day ?? today;
+  const { tab } = filter;
+  const search = searchOf(filter.q);
   const notice = one("notice");
-  const tab = readPostTab(one("tab"));
 
   // A store's posts are few in a day, so the day and the search read them here rather than asking the server again.
   const ofDay = offersOfDay(offers, day);
@@ -58,28 +66,19 @@ export async function StorePosts({
   const shown = groups[tab];
   const searching = search !== "";
   // The view in the address, without what is as the page opens: today, the first tab, no search.
-  const view = new URLSearchParams({
-    ...(day === today ? {} : { day }),
-    ...(tab === "on_sale" ? {} : { tab }),
-    ...(searching ? { q: search } : {}),
-  }).toString();
+  const view = serializePostSearchParams({ day: dayOrNull(day, today), tab, q: search });
   const title =
     day === today
       ? t("today")
       : t("onDay", {
-          date: format.dateTime(new Date(`${day}T12:00:00+07:00`), {
-            day: "2-digit",
-            month: "2-digit",
-          }),
+          date: format.dateTime(new Date(`${day}T12:00:00+07:00`), "dayMonth"),
         });
 
   const message = noticeMessage(notice, t);
 
   return (
     <>
-      {message && (
-        <PostToast message={message} to={`/stores/${sellerId}/offers${view && `?${view}`}`} />
-      )}
+      {message && <PostToast message={message} to={`/stores/${sellerId}/offers${view}`} />}
       <StoreTitleRow
         title={t("title")}
         aside={
@@ -94,19 +93,13 @@ export async function StorePosts({
 
       <DayFilter
         pathname={`/stores/${sellerId}/offers`}
-        day={day}
+        list="posts"
         today={today}
-        tab={tab}
-        defaultTab="on_sale"
-        q={search}
         label={t("searchLabel")}
         placeholder={t("searchPlaceholder")}
       />
 
-      <section
-        aria-labelledby="store-posts"
-        className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground"
-      >
+      <StorePanel labelledBy="store-posts">
         <h2 id="store-posts" className="text-card-title">
           {title}
         </h2>
@@ -115,14 +108,7 @@ export async function StorePosts({
             {postTabs.map((name) => (
               <li key={name}>
                 <Link
-                  href={{
-                    pathname: `/stores/${sellerId}/offers`,
-                    query: {
-                      ...(day === today ? {} : { day }),
-                      ...(name === "on_sale" ? {} : { tab: name }),
-                      ...(searching ? { q: search } : {}),
-                    },
-                  }}
+                  href={`/stores/${sellerId}/offers${serializePostSearchParams({ day: dayOrNull(day, today), tab: name, q: search })}`}
                   aria-current={name === tab ? "page" : undefined}
                   className="group/chip flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
                 >
@@ -180,7 +166,7 @@ export async function StorePosts({
             ))}
           </ul>
         )}
-      </section>
+      </StorePanel>
     </>
   );
 }

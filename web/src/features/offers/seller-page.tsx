@@ -1,6 +1,7 @@
 import { SearchIcon } from "lucide-react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 
+import { StoreMap } from "@/components/map/store-map";
 import { BackButton } from "@/components/back-button";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
@@ -188,6 +189,8 @@ export function SellerPage({
                   )}
                 </section>
               </div>
+              {/* Where the counter is, under the dishes, as Too Good To Go's store page keeps its address last. */}
+              <SellerMap lead={first} />
             </div>
             <CartSidebar />
           </div>
@@ -326,6 +329,19 @@ function SellerFactsCard({
         )}
       </div>
     </dl>
+  );
+}
+
+// Where the counter is, on the store's pin (SEC-137); a press opens the way there, as "Chỉ đường" does.
+function SellerMap({ lead }: { lead: OfferSummary }) {
+  const t = useTranslations("Seller");
+  return (
+    <StoreMap
+      point={lead.collectionPoint}
+      label={t("mapLabel", { seller: lead.seller.name })}
+      href={directionsHref(lead.collectionPoint)}
+      openLabel={t("mapOpen")}
+    />
   );
 }
 

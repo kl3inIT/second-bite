@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 
 import { BackButton } from "@/components/back-button";
 import {
@@ -10,9 +10,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { StoreMap } from "@/components/map/store-map";
 import { formatPrice } from "@/features/offers/format";
 import { directionsHref } from "@/features/offers/offer";
-import { dishesOf, mapOf, savingOf, unitsOf, type Order } from "@/features/orders/order";
+import { dishesOf, savingOf, unitsOf, type Order } from "@/features/orders/order";
 import { Photo } from "@/features/orders/order-parts";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -86,17 +87,14 @@ export function SellerDetails({ order }: { order: Order }) {
   const t = useTranslations("Chat");
   const orders = useTranslations("Orders");
   const format = useFormatter();
-  const locale = useLocale();
 
   return (
     <DetailsCard order={order}>
       <div className="flex items-center gap-3 rounded-lg border border-border px-3.5 py-3">
-        <iframe
-          title={orders("mapTitle", { seller: order.seller.name })}
-          src={mapOf(order.seller, locale)}
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          className="size-16 shrink-0 rounded-md border-0 bg-secondary"
+        <StoreMap
+          point={order.seller}
+          label={orders("mapTitle", { seller: order.seller.name })}
+          className="size-16 shrink-0 rounded-md"
         />
         <div className="flex min-w-0 flex-col gap-0.5">
           <p className="truncate text-title">{order.seller.name}</p>

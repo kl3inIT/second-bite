@@ -14,10 +14,12 @@ import {
 } from "@/components/ui/input-group";
 import { kindPictures } from "@/features/offers/kind-pictures";
 import type { OfferKind } from "@/features/offers/offer";
+import { homePath } from "@/features/home/home-query";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import { clearSearches, forgetSearch, rememberSearch, useRecentSearches } from "./recent-searches";
+import { searchHref } from "./search-query";
 
 // The search's top bar (Figma K2 đầu trang tìm kiếm): a plain back arrow and a fully rounded field on the
 // sky ground, a GET form over the address that keeps the place. While the field is focused and
@@ -44,7 +46,6 @@ export function SearchBar({
   const input = useRef<HTMLInputElement>(null);
   const [words, setWords] = useState(value ?? "");
   const [focused, setFocused] = useState(false);
-  const place = near ? { near } : {};
 
   // Whatever was searched, from here or from the home's field, joins the recent searches.
   useEffect(() => {
@@ -62,7 +63,7 @@ export function SearchBar({
       <div className={cn("flex items-center gap-1", !desktop && "px-2 py-2")}>
         {!desktop && (
           <Link
-            href={{ pathname: "/", query: place }}
+            href={homePath({ near })}
             aria-label={t("back")}
             className={buttonVariants({ variant: "ghost", size: "icon" })}
           >
@@ -130,7 +131,7 @@ export function SearchBar({
                 {recent.map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <Link
-                      href={{ pathname: "/search", query: { ...place, q: item } }}
+                      href={searchHref({ near, q: item })}
                       className="flex min-h-11 min-w-0 flex-1 items-center gap-3 text-body-sm text-foreground"
                     >
                       <HistoryIcon
@@ -161,7 +162,7 @@ export function SearchBar({
                 {popular.map(({ kind, count }) => (
                   <li key={kind}>
                     <Link
-                      href={{ pathname: "/search", query: { ...place, kind } }}
+                      href={searchHref({ near, kind })}
                       className="flex min-h-14 items-center gap-3 text-body-sm text-foreground"
                     >
                       <Image

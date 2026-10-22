@@ -93,6 +93,8 @@ test.describe("ordering from the cart", () => {
     await expect(page).toHaveURL(ORDER_URL);
     await expect(page.getByRole("heading", { name: /^Đơn #SB-\d+/, level: 1 })).toBeVisible();
     await expect(page.getByText("Đã xác nhận · quán đang chuẩn bị")).toBeVisible();
+    // The counter on the store's pin (SEC-137), where Google's embed looked the address up.
+    await expect(page.getByRole("figure", { name: /^Bản đồ chỗ nhận món của / })).toBeVisible();
     await expectSteps(page, 1);
     await expect(page.getByText(/^Mã QR hiện khi món sẵn sàng/)).toBeVisible();
     await expect(dishLine(page)).toBeVisible();
@@ -147,7 +149,10 @@ test.describe("ordering from the cart", () => {
     await expect(page.getByText("Tiết kiệm so với giá gốc · 1 phần không bị bỏ phí")).toBeVisible();
 
     const send = await hydrated(page.getByRole("button", { name: "Gửi đánh giá" }));
-    await expect(send).toBeDisabled();
+    // Sent without stars, the rating says so under them, and the first star takes the focus.
+    await send.click();
+    await expect(page.getByText("Chọn số sao cho đơn.")).toBeVisible();
+    await expect(page.getByRole("radio", { name: "1 sao" })).toBeFocused();
     await page.getByRole("radio", { name: "4 sao" }).click();
     await expect(page.getByText("Tốt", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Nhận hàng nhanh" }).click();

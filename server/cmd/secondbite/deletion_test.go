@@ -19,6 +19,10 @@ const (
 	codeSessionInvalid         = "IDENTITY_SESSION_INVALID"
 )
 
+// deletionAdminEmail is the admin who tries to bring back the seller left
+// without an owner, signed in apart from the other checks' admins.
+const deletionAdminEmail = "deletion.admin@example.com"
+
 // checkAccountDeletion has the owner of a seller delete their account through
 // the API as the clients will (SEC-37): the emailed code, kept apart from the
 // sign-in codes; the account, its sessions and the emails to its address gone
@@ -59,7 +63,7 @@ func checkAccountDeletion(t *testing.T, svc service) {
 
 	checkCodePurposesApart(t, svc, owner, ownerEmail)
 
-	deletionID, deletionCode := requestDeletionCode(t, svc, owner, ownerEmail)
+	deletionID, deletionCode := checkDeletionCodeLimit(t, svc, owner, ownerEmail)
 
 	if p := send(t, http.MethodPost, svc.base+"/accounts/me/deletion", owner, codeBody(deletionID, wrongCode(deletionCode))).
 		problem(t, http.StatusBadRequest); p.Code != "IDENTITY_CODE_INCORRECT" {
@@ -83,6 +87,7 @@ func checkAccountDeletion(t *testing.T, svc service) {
 
 	checkDeletedAtOnce(t, svc, ownerEmail, me.ID)
 	checkFollowed(t, svc, staff, sellerURL, me.ID, used, unused)
+	checkOwnerlessStaysBlocked(t, svc, staff, opened.ID)
 
 	// The address can sign in again, as a new account.
 	backdateCodes(t, svc, ownerEmail)
@@ -100,10 +105,12 @@ func checkAccountDeletion(t *testing.T, svc service) {
 }
 
 // checkCodePurposesApart checks that a deletion code cannot sign in and a
-// sign-in code cannot delete.
+// sign-in code cannot delete, and that each purpose keeps its own live code
+// (SEC-126): asking for a deletion code leaves the sign-in code working.
 func checkCodePurposesApart(t *testing.T, svc service, auth http.Header, address string) {
 	t.Helper()
 
+	signInID, signInCode := requestCode(t, svc, address)
 	deletionID, deletionCode := requestDeletionCode(t, svc, auth, address)
 
 	if p := send(t, http.MethodPost, svc.base+"/auth/sessions", nil, codeBody(deletionID, deletionCode)).
@@ -111,14 +118,40 @@ func checkCodePurposesApart(t *testing.T, svc service, auth http.Header, address
 		t.Errorf("signing in with a deletion code: %q", p.Code)
 	}
 
-	// The sign-in code also ends the deletion code: one live code per address.
-	backdateCodes(t, svc, address)
-	signInID, signInCode := requestCode(t, svc, address)
-
 	if p := send(t, http.MethodPost, svc.base+"/accounts/me/deletion", auth, codeBody(signInID, signInCode)).
 		problem(t, http.StatusGone); p.Code != codeChallengeGone {
 		t.Errorf("deleting with a sign-in code: %q", p.Code)
 	}
+
+	send(t, http.MethodPost, svc.base+"/auth/sessions", nil, codeBody(signInID, signInCode)).
+		decode(t, http.StatusCreated, &struct{}{})
+}
+
+// checkDeletionCodeLimit asks for deletion codes up to their own limit of
+// three an hour (SEC-126), the first one asked by checkCodePurposesApart: the
+// fourth is refused with a wait, while a sign-in code is still sent at once.
+// It answers the last deletion code, which is live.
+func checkDeletionCodeLimit(t *testing.T, svc service, auth http.Header, address string) (string, string) {
+	t.Helper()
+
+	requestDeletionCode(t, svc, auth, address)
+	id, code := requestDeletionCode(t, svc, auth, address)
+
+	backdateCodes(t, svc, address)
+
+	resp := send(t, http.MethodPost, svc.base+"/accounts/me/deletion-codes", auth, nil)
+	if p := resp.problem(t, http.StatusTooManyRequests); p.Code != "IDENTITY_CODE_LIMIT_EXCEEDED" {
+		t.Errorf("a fourth deletion code in the hour: %q", p.Code)
+	}
+
+	if resp.header.Get("Retry-After") == "" {
+		t.Error("the fourth deletion code: no Retry-After")
+	}
+
+	send(t, http.MethodPost, svc.base+"/auth/sign-in-codes", nil, emailBody(address)).
+		decode(t, http.StatusAccepted, &struct{}{})
+
+	return id, code
 }
 
 // checkDeletedAtOnce checks what the deletion removes in its own transaction.
@@ -165,6 +198,37 @@ func checkFollowed(t *testing.T, svc service, staff http.Header, sellerURL, acco
 
 	if got := send(t, http.MethodGet, svc.base+"/photos/"+unused+"/400.jpg", nil, nil); got.status != http.StatusNotFound {
 		t.Errorf("the unused photo after its uploader left: %d", got.status)
+	}
+}
+
+// checkOwnerlessStaysBlocked has an admin approve the seller the deletion
+// blocked (SEC-65): with no owner, nobody could run it, so it is refused in
+// the request's language and the seller stays blocked.
+func checkOwnerlessStaysBlocked(t *testing.T, svc service, staff http.Header, sellerID string) {
+	t.Helper()
+
+	admin := bearer(signIn(t, svc, deletionAdminEmail).Token)
+	approve := svc.base + "/admin/sellers/" + sellerID + "/approve"
+
+	p := send(t, http.MethodPost, approve, admin, nil).problem(t, http.StatusConflict)
+	if p.Code != "SELLER_OWNERLESS" || p.Detail != "Cửa hàng không còn chủ vì chủ đã xoá tài khoản, nên không duyệt lại được." {
+		t.Errorf("approving the owner-less seller: %q %q", p.Code, p.Detail)
+	}
+
+	inEnglish := admin.Clone()
+	inEnglish.Set("Accept-Language", "en")
+
+	want := "The seller has no owner, since its owner deleted their account, so it cannot be approved."
+	if p := send(t, http.MethodPost, approve, inEnglish, nil).problem(t, http.StatusConflict); p.Detail != want {
+		t.Errorf("approving the owner-less seller in English: %q", p.Detail)
+	}
+
+	var s sellerResponse
+
+	send(t, http.MethodGet, svc.base+"/sellers/"+sellerID, staff, nil).decode(t, http.StatusOK, &s)
+
+	if s.Status != "blocked" {
+		t.Errorf("the owner-less seller after the refusals: %s, want blocked", s.Status)
 	}
 }
 

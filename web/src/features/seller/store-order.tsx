@@ -10,6 +10,7 @@ import { hoursAndMinutes, unitsOf, windowPhase } from "@/features/orders/order";
 import { Link } from "@/i18n/navigation";
 import type { OrderBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
 import { CopyPhoneButton } from "./copy-phone-button";
 import { getStoreOrder } from "./my-sellers";
@@ -18,6 +19,7 @@ import { OrderLines } from "./order-lines";
 import { OrderTrack } from "./order-track";
 import { PhoneFootBar } from "./phone-foot-bar";
 import { requireStore } from "./require-store";
+import { dayOrNull, serializeOrderSearchParams } from "./search-params";
 import { nowMs, vietnamDay, vietnamToday } from "./store-day";
 import { endedBecause } from "./store-orders";
 
@@ -75,10 +77,7 @@ export async function StoreOrder({
 
   // Back to the list on the day the order is collected, which is today unless the seller came from another day.
   const day = vietnamDay.format(new Date(order.windowStart));
-  const list = {
-    pathname: `/stores/${sellerId}/orders`,
-    query: day === vietnamToday() ? {} : { day },
-  };
+  const list = `/stores/${sellerId}/orders${serializeOrderSearchParams({ day: dayOrNull(day, vietnamToday()) })}`;
 
   const [first] = order.lines;
   const muted = tracked ? "text-inverse-muted" : "text-muted-foreground";
@@ -137,7 +136,7 @@ export async function StoreOrder({
               <div className="flex items-center gap-3">
                 <span className="relative size-10 shrink-0 overflow-hidden rounded-full bg-muted">
                   <Image
-                    src={`/api${first.photo.smallPath}`}
+                    src={photoUrl(first.photo.smallPath)}
                     alt=""
                     fill
                     sizes="40px"

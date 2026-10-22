@@ -2,6 +2,10 @@
 // tab, which follows any topics the pages ask for and passes their notices on. It holds no React and reads no
 // global but the timers, so its reconnecting, its resubscribing and its fallback are tested in Node.
 
+import { z } from "zod";
+
+import { parseJson } from "@/lib/json";
+
 /** Who wrote or saw a message. */
 export type Side = "customer" | "seller";
 
@@ -50,41 +54,19 @@ const JITTER = 0.2;
 type Frame =
   { type: "subscribed"; topic: string } | { type: "refused" } | { type: "resync" } | LiveNotice;
 
-const sides: readonly unknown[] = ["customer", "seller"];
+const side = z.enum(["customer", "seller"]);
+const frame = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("subscribed"), topic: z.string() }),
+  z.object({ type: z.literal("refused") }),
+  z.object({ type: z.literal("resync") }),
+  z.object({ type: z.literal("order"), orderId: z.string(), status: z.string() }),
+  z.object({ type: z.literal("message"), orderId: z.string(), seq: z.number(), from: side }),
+  z.object({ type: z.literal("seen"), orderId: z.string(), seq: z.number(), by: side }),
+]);
 
 /** A frame the server sent, or nothing for text that is not one of the documented frames. */
 export function parseFrame(data: unknown): Frame | undefined {
-  if (typeof data !== "string") return undefined;
-  let frame: Record<string, unknown>;
-  try {
-    const parsed: unknown = JSON.parse(data);
-    if (typeof parsed !== "object" || parsed === null) return undefined;
-    frame = parsed as Record<string, unknown>;
-  } catch {
-    return undefined;
-  }
-  const { type, topic, orderId, status, seq, from, by } = frame;
-  switch (type) {
-    case "subscribed":
-      return typeof topic === "string" ? { type, topic } : undefined;
-    case "refused":
-    case "resync":
-      return { type };
-    case "order":
-      return typeof orderId === "string" && typeof status === "string"
-        ? { type, orderId, status }
-        : undefined;
-    case "message":
-      return typeof orderId === "string" && typeof seq === "number" && sides.includes(from)
-        ? { type, orderId, seq, from: from as Side }
-        : undefined;
-    case "seen":
-      return typeof orderId === "string" && typeof seq === "number" && sides.includes(by)
-        ? { type, orderId, seq, by: by as Side }
-        : undefined;
-    default:
-      return undefined;
-  }
+  return typeof data === "string" ? parseJson(data, frame) : undefined;
 }
 
 /** The wait before the next attempt after `failures` failures in a row, in milliseconds. */

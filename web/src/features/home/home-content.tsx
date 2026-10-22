@@ -17,8 +17,9 @@ import { OfferList } from "@/features/offers/offer-list";
 import { OfferRow } from "@/features/offers/offer-row";
 import { SearchFilters } from "@/features/search/search-filters";
 import { Link } from "@/i18n/navigation";
+import { searchHref } from "@/features/search/search-query";
 
-import { homeSearch, type HomeQuery } from "./home-query";
+import { homePath, type HomeQuery } from "./home-query";
 import { HowItWorks } from "./how-it-works";
 import { KindPicker } from "./kind-picker";
 import { RecommendedSection, UpcomingSection } from "./tonight-rows";
@@ -95,7 +96,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
 /** "Xem tất cả": every dish, by seller, on the search page (Figma K1f). */
 function SeeAll({ near, label }: { near?: string; label: string }) {
   return (
-    <Link href={{ pathname: "/search", query: homeSearch({ near }) }} className={seeAllClass}>
+    <Link href={searchHref({ near })} className={seeAllClass}>
       {label}
     </Link>
   );
@@ -105,7 +106,7 @@ function SeeAll({ near, label }: { near?: string; label: string }) {
 function FiltersLink({ near, label }: { near?: string; label: string }) {
   return (
     <Link
-      href={{ pathname: "/search", query: homeSearch({ near }) }}
+      href={searchHref({ near })}
       aria-label={label}
       className={buttonVariants({
         variant: "chip",
@@ -128,10 +129,7 @@ async function NothingFound({ filtered, near }: { filtered: boolean; near?: stri
       </EmptyHeader>
       {filtered && (
         <EmptyContent>
-          <Link
-            href={{ pathname: "/", query: homeSearch({ near }) }}
-            className={buttonVariants({ variant: "secondary" })}
-          >
+          <Link href={homePath({ near })} className={buttonVariants({ variant: "secondary" })}>
             {t("showAll")}
           </Link>
         </EmptyContent>

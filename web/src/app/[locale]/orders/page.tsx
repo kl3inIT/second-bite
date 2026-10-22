@@ -8,7 +8,7 @@ import { MyOrders, readWhich } from "@/features/orders/orders-list";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Orders");
-  return { title: `${t("mine")} · Second Bite`, robots: { index: false } };
+  return { title: t("mine"), robots: { index: false } };
 }
 
 // "Đơn của tôi" (SEC-51, Figma D1, D4): the orders still to collect and those that have ended. A tab of its

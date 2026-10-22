@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
+import { z } from "zod";
 
 import {
   followSeller,
@@ -8,12 +9,14 @@ import {
   unfollowSeller,
   type SellerProfileBody,
 } from "@/lib/api/generated";
+import { stored } from "@/lib/stored";
 
 // The sellers a person follows (SEC-109 › decisions 2 and 4): kept by their account once they are signed in,
 // and in this browser until then. The first use asks the server; an answer of 401 means no one is signed in.
 // Once someone is, the sellers kept in this browser are followed on the server and the browser forgets them.
 
-const LOCAL_KEY = "secondbite.follows";
+const none: readonly string[] = [];
+const local = stored<readonly string[]>("secondbite.follows", z.array(z.string()), none);
 
 type Follows =
   | { state: "loading" }
@@ -34,38 +37,25 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-function readLocal(): string[] {
-  try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? "[]");
-    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeLocal(ids: readonly string[]) {
-  try {
-    if (ids.length === 0) localStorage.removeItem(LOCAL_KEY);
-    else localStorage.setItem(LOCAL_KEY, JSON.stringify(ids));
-  } catch {
-    // Storage that is blocked or full keeps nothing.
-  }
+function keepLocal(ids: readonly string[]) {
+  if (ids.length === 0) local.clear();
+  else local.save(ids);
 }
 
 async function load() {
   try {
     let { data } = await listFollowedSellers();
-    const kept = readLocal();
+    const kept = local.read();
     if (kept.length > 0) {
       // Each seller kept here is followed by the account; one that is gone or not active is let go.
       await Promise.allSettled(kept.map((sellerId) => followSeller({ path: { sellerId } })));
-      writeLocal([]);
+      local.clear();
       ({ data } = await listFollowedSellers());
     }
     set({ state: "account", sellers: data.sellers ?? [] });
   } catch {
     // No one is signed in (401), or the server could not answer: the browser keeps them for now.
-    set({ state: "local", ids: readLocal() });
+    set({ state: "local", ids: local.read() });
   }
 }
 
@@ -99,9 +89,9 @@ export async function toggleFollow(sellerId: string): Promise<boolean> {
     const { data } = await listFollowedSellers();
     set({ state: "account", sellers: data.sellers ?? [] });
   } else {
-    const kept = readLocal().filter((id) => id !== sellerId);
+    const kept = local.read().filter((id) => id !== sellerId);
     const ids = following ? [sellerId, ...kept] : kept;
-    writeLocal(ids);
+    keepLocal(ids);
     set({ state: "local", ids });
   }
   return following;

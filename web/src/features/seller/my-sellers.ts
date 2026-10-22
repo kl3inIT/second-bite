@@ -1,8 +1,8 @@
 import "server-only";
 
-import { cookies } from "next/headers";
 import { cache } from "react";
 
+import { sessionHeaders } from "@/features/identity/session";
 import { ApiError } from "@/lib/api/client";
 import {
   type DishBody,
@@ -19,15 +19,6 @@ import {
 
 /** A person owns at most five stores (server/internal/seller, maxOwnedSellers). */
 export const MAX_OWNED = 5;
-
-/** The session cookie the Go server sets on sign-in (see identity/current-account.ts). */
-const sessionCookie = "secondbite_session";
-
-/** The request's session cookie, forwarded to the API; undefined when no one is signed in. */
-async function sessionHeaders(): Promise<{ cookie: string } | undefined> {
-  const session = (await cookies()).get(sessionCookie);
-  return session ? { cookie: `${sessionCookie}=${session.value}` } : undefined;
-}
 
 /**
  * The stores the signed-in person owns or works for, read on the server with the session cookie; one render

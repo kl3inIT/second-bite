@@ -177,6 +177,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		// serve.
 		file.RegisterListeners(events, files)
 		seller.RegisterListeners(events, sellers)
+		offer.RegisterListeners(events, offers)
 		order.RegisterListeners(events, orders)
 		offer.RegisterSchedules(events, offers)
 		order.RegisterSchedules(events, orders)

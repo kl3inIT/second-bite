@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import type { OfferSummary } from "@/features/offers/offer";
 
 // The cart until orders exist (SEC-49 decision 7): dishes of any sellers, each never more than its portions
@@ -126,40 +128,42 @@ export function collectionWindow(basket: Basket): { windowStart: string; windowE
   return { windowStart: earliest.windowStart, windowEnd: earliest.windowEnd };
 }
 
-/**
- * The cart in a value read back from storage, since anything may have written there; null when it holds none.
- * A cart saved while it held one seller is that seller's basket.
- */
-export function readCart(value: unknown): Cart | null {
-  if (typeof value !== "object" || value === null) return null;
-  const baskets: unknown = "baskets" in value ? value.baskets : [value];
-  return Array.isArray(baskets) && baskets.length > 0 && baskets.every(isBasket)
-    ? { baskets }
-    : null;
-}
+const photo = z.object({ id: z.string(), largePath: z.string(), smallPath: z.string() });
 
-function isBasket(value: unknown): value is Basket {
-  if (typeof value !== "object" || value === null) return false;
-  const { seller, collectionPoint, lines } = value as Partial<Basket>;
-  return (
-    typeof seller?.id === "string" &&
-    typeof seller.name === "string" &&
-    typeof collectionPoint?.latitude === "number" &&
-    Array.isArray(lines) &&
-    lines.length > 0 &&
-    lines.every(
-      (line) =>
-        typeof line?.id === "string" &&
-        typeof line.name === "string" &&
-        Number.isInteger(line.quantity) &&
-        line.quantity > 0 &&
-        typeof line.priceVnd === "number" &&
-        typeof line.originalPriceVnd === "number" &&
-        typeof line.windowStart === "string" &&
-        typeof line.windowEnd === "string",
+const storedBasket = z.object({
+  seller: z.object({
+    id: z.string(),
+    name: z.string(),
+    address: z.string(),
+    photo: photo.optional(),
+  }),
+  collectionPoint: z.object({ address: z.string(), latitude: z.number(), longitude: z.number() }),
+  distanceMeters: z.number().optional(),
+  lines: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        priceVnd: z.number(),
+        originalPriceVnd: z.number(),
+        unitsLeft: z.number(),
+        windowStart: z.string(),
+        windowEnd: z.string(),
+        quantity: z.int().positive(),
+        photo: photo.optional(),
+      }),
     )
-  );
-}
+    .min(1),
+}) satisfies z.ZodType<Basket>;
+
+/**
+ * The cart as kept in storage, read back through this since anything may have written there. A cart saved while
+ * it held one seller is that seller's basket.
+ */
+export const storedCart = z.union([
+  z.object({ baskets: z.array(storedBasket).min(1) }),
+  storedBasket.transform((basket) => ({ baskets: [basket] })),
+]) satisfies z.ZodType<Cart>;
 
 function basketOf(offer: OfferSummary, count: number): Basket {
   return {

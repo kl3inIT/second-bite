@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
 import type { OfferSummary } from "./offer";
 
@@ -22,7 +23,7 @@ export function OfferPhoto({
 }) {
   return (
     <Image
-      src={`/api${large ? offer.photo.largePath : offer.photo.smallPath}`}
+      src={photoUrl(large ? offer.photo.largePath : offer.photo.smallPath)}
       alt=""
       fill
       sizes={sizes}

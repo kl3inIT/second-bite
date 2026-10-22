@@ -17,7 +17,7 @@ T _$identity<T>(T value) => value;
 mixin _$DetailsBody {
 
 /// The address as people write it
- String get address;/// Where the seller is, pinned on a map
+ String get address;/// Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE
  double get latitude; double get longitude; String get name;/// Shown to the seller's members and admins
  String get phone;
 /// Create a copy of DetailsBody
@@ -227,7 +227,7 @@ class _DetailsBody implements DetailsBody {
 
 /// The address as people write it
 @override final  String address;
-/// Where the seller is, pinned on a map
+/// Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE
 @override final  double latitude;
 @override final  double longitude;
 @override final  String name;

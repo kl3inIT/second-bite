@@ -12,8 +12,9 @@ import sushi from "@/features/offers/kinds/sushi.jpg";
 import vegetables from "@/features/offers/kinds/vegetables.jpg";
 import type { OfferKind } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
+import { searchHref } from "@/features/search/search-query";
 
-import type { HomeQuery } from "./home-query";
+import { homePath, type HomeQuery } from "./home-query";
 
 // The round pictures at the top of the content (Figma K1 kind picker): first one per kind the API can filter
 // by, each a link over the address, the chosen one linking back to the whole list; then dishes people look
@@ -42,24 +43,21 @@ export function KindPicker({ query }: { query: HomeQuery }) {
   const t = useTranslations("Home");
   const kinds = useTranslations("OfferKind");
   // A kind narrows the place being shown; it does not move back to Tasco Mall.
-  const keep = query.near ? { near: query.near } : {};
+  const { near } = query;
   const items = [
     ...order.map((kind) => ({
       key: kind,
       label: kinds(kind),
       picture: pictures[kind],
       active: query.kind === kind,
-      href: {
-        pathname: "/" as const,
-        query: query.kind === kind ? keep : { ...keep, kind },
-      },
+      href: homePath({ near, kind: query.kind === kind ? undefined : kind }),
     })),
     ...dishes.map((dish) => ({
       key: dish.key,
       label: t(`dishes.${dish.key}`),
       picture: dish.picture,
       active: false,
-      href: { pathname: "/search" as const, query: { ...keep, q: dish.words } },
+      href: searchHref({ near, q: dish.words }),
     })),
   ];
 

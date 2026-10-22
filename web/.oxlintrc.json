@@ -5,6 +5,10 @@
     {
       "name": "shadcn",
       "specifier": "@shadcn/lint"
+    },
+    {
+      "name": "second-bite",
+      "specifier": "./tools/oxlint/second-bite.mjs"
     }
   ],
   "categories": {
@@ -44,6 +48,8 @@
         "caughtErrorsIgnorePattern": "^_"
       }
     ],
+    "second-bite/no-raw-storage": "error",
+    "second-bite/no-raw-json-parse": "error",
     "shadcn/no-raw-colors": "error",
     "shadcn/no-inline-styles": "error",
     "shadcn/no-arbitrary-values": "error",
@@ -57,6 +63,13 @@
     ]
   },
   "overrides": [
+    {
+      "files": ["src/lib/stored.ts", "src/lib/json.ts", "tests/**", "scripts/**", "tools/**"],
+      "rules": {
+        "second-bite/no-raw-storage": "off",
+        "second-bite/no-raw-json-parse": "off"
+      }
+    },
     {
       "files": ["src/components/ui/**"],
       "rules": {

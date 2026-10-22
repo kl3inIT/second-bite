@@ -19,7 +19,7 @@ import { SignInPrompt } from "@/features/orders/sign-in-prompt";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Orders");
-  return { title: `${t("orderTitle")} · Second Bite`, robots: { index: false } };
+  return { title: t("orderTitle"), robots: { index: false } };
 }
 
 // One seller's order, to its customer (Figma K6, K6b, D5): an open order under the blue band with its window, steps
