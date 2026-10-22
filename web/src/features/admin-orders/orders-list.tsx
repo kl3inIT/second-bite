@@ -231,12 +231,7 @@ function useColumns(): DataTableColumns<OrderBody> {
   const t = useTranslations("Admin.orders");
   const format = useFormatter();
   const time = (at: string) => format.dateTime(new Date(at), "time");
-  // What an order holds, as AD-DH1's "Món" reads it: its first two lines, then how many more.
-  const summary = (order: OrderBody) => {
-    const shown = order.lines.slice(0, 2).map((l) => t("line", { name: l.name, units: l.units }));
-    const more = order.lines.length - shown.length;
-    return (more > 0 ? [...shown, t("moreLines", { count: more })] : shown).join(", ");
-  };
+  const summary = useLinesSummary();
 
   return [
     {
@@ -300,4 +295,14 @@ function useColumns(): DataTableColumns<OrderBody> {
       ),
     },
   ];
+}
+
+/** What an order holds, as AD-DH1's "Món" reads it: its first two lines, then how many more. */
+export function useLinesSummary() {
+  const t = useTranslations("Admin.orders");
+  return (order: OrderBody) => {
+    const shown = order.lines.slice(0, 2).map((l) => t("line", { name: l.name, units: l.units }));
+    const more = order.lines.length - shown.length;
+    return (more > 0 ? [...shown, t("moreLines", { count: more })] : shown).join(", ");
+  };
 }

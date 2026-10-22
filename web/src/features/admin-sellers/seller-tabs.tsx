@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const tabs = ["overview", "posts", "members"] as const;
+const tabs = ["overview", "posts", "members", "orders"] as const;
 
 // A tab pressed with the pointer does not take focus, so Chrome does not ring it when a key such as Shift is
 // pressed next; the keyboard still moves focus between the tabs and rings them.
@@ -21,15 +21,20 @@ export const sellerTab = parseAsStringLiteral(tabs).withDefault("overview");
 export function SellerTabs({
   posts,
   members,
+  orders,
   overview,
   postsList,
   membersList,
+  ordersList,
 }: {
   posts: number;
   members: number;
+  /** The orders of the day the orders tab shows. */
+  orders: number;
   overview: React.ReactNode;
   postsList: React.ReactNode;
   membersList: React.ReactNode;
+  ordersList: React.ReactNode;
 }) {
   const t = useTranslations("Admin.sellers.detail");
   const [tab, setTab] = useQueryState("tab", sellerTab);
@@ -50,12 +55,18 @@ export function SellerTabs({
         <TabsTrigger value="members" className="min-h-11 flex-none" onMouseDown={keepFocus}>
           {t("members", { count: members })}
         </TabsTrigger>
+        <TabsTrigger value="orders" className="min-h-11 flex-none" onMouseDown={keepFocus}>
+          {t("orders", { count: orders })}
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="overview" className="mt-5 flex flex-col">
         {overview}
       </TabsContent>
       <TabsContent value="posts" className="mt-5">
         {postsList}
+      </TabsContent>
+      <TabsContent value="orders" className="mt-5">
+        {ordersList}
       </TabsContent>
       <TabsContent value="members" className="mt-5">
         {membersList}

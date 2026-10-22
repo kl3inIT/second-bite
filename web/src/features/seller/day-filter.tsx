@@ -24,6 +24,8 @@ type DayView = {
   pathname: string;
   list: DayList;
   today: string;
+  /** Another parameter of the page the steps keep, such as the admin's store tab: `tab=orders`. */
+  keep?: string;
 };
 
 type View = DayView & {
@@ -106,7 +108,7 @@ function Search({ list, label, placeholder }: View) {
 }
 
 /** The day alone, with its steps and its month, for a page with no search (the store's home, Figma Q1b). */
-export function DayBar({ pathname, list, today }: DayView) {
+export function DayBar({ pathname, list, today, keep }: DayView) {
   const t = useTranslations("DayFilter");
   const format = useFormatter();
   const language = useLocale();
@@ -115,8 +117,11 @@ export function DayBar({ pathname, list, today }: DayView) {
   const day = view.day ?? today;
   const serialize = createSerializer(listSearchParams[list]);
   // The address of the same view on another day.
-  const hrefFor = (other: string) =>
-    `${pathname}${serialize({ ...view, day: dayOrNull(other, today) })}`;
+  const hrefFor = (other: string) => {
+    const query = serialize({ ...view, day: dayOrNull(other, today) });
+    const kept = keep ? `${query ? "&" : "?"}${keep}` : "";
+    return `${pathname}${query}${kept}`;
+  };
 
   const written = format.dateTime(dateOf(day), "dayMonth");
   let label = written;

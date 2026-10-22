@@ -43,7 +43,11 @@ async function readSeller(
 // store, a strip of what it comes to, its lines and history, and who collects it, from which store and where.
 // It shows only what GET /orders/{orderId} answers, and the store's phone and status from its own record.
 // Admins read orders and never act for a store: cancelling is not offered.
-export default async function OrderPage({ params }: PageProps<"/[locale]/admin/orders/[orderId]">) {
+export default async function OrderPage({
+  params,
+  searchParams,
+}: PageProps<"/[locale]/admin/orders/[orderId]">) {
+  const fromStore = (await searchParams).from === "store";
   const { orderId } = await params;
   await requireAdmin(`/admin/orders/${orderId}`);
   const [t, format, headers] = await Promise.all([
@@ -140,11 +144,20 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/admin/o
   return (
     <>
       <AdminTopBar
-        crumbs={[
-          { label: t("group.operations") },
-          { label: t("orders.title"), href: "/admin/orders" },
-          { label: order.number },
-        ]}
+        crumbs={
+          // Opened from a store's orders tab (Figma AD-QD7), the crumbs lead back to that store.
+          fromStore
+            ? [
+                { label: t("sellers.title"), href: "/admin/sellers" },
+                { label: order.seller.name, href: `/admin/sellers/${order.seller.id}` },
+                { label: order.number },
+              ]
+            : [
+                { label: t("group.operations") },
+                { label: t("orders.title"), href: "/admin/orders" },
+                { label: order.number },
+              ]
+        }
       />
       <div className="flex flex-1 flex-col gap-5 px-4 py-6 md:px-8">
         <div className="flex flex-wrap items-center gap-3">

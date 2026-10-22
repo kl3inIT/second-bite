@@ -10,11 +10,14 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/componen
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { AdminTopBar } from "@/features/admin/admin-top-bar";
 import { OfferRow } from "@/features/admin-sellers/offer-row";
+import { SellerOrders } from "@/features/admin-sellers/seller-orders";
 import { SellerPosts } from "@/features/admin-sellers/seller-posts";
 import { SellerTabs } from "@/features/admin-sellers/seller-tabs";
 import { shownPhone, StatusBadge, StoreThumb } from "@/features/admin-sellers/seller-parts";
 import { StoreActions } from "@/features/admin-sellers/store-actions";
 import { requireAdmin } from "@/features/identity/current-account";
+import { loadOrderSearchParams } from "@/features/seller/search-params";
+import { readDay, vietnamToday } from "@/features/seller/store-day";
 import { sessionHeaders } from "@/features/identity/session";
 import { Link } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
@@ -22,6 +25,7 @@ import {
   getSeller,
   listSellerMembers,
   listSellerOffers,
+  listSellerOrders,
   type MemberBody,
   type OfferBody,
 } from "@/lib/api/generated";
@@ -50,8 +54,12 @@ function initialsOf(email: string) {
 // with every action on it behind its "⋯", the same menu as the list's, then its overview, posts and members.
 export default async function SellerPage({
   params,
+  searchParams,
 }: PageProps<"/[locale]/admin/sellers/[sellerId]">) {
   const { sellerId } = await params;
+  const today = vietnamToday();
+  // The orders tab's day is the seller's lists' own parameter, today when absent (web guideline › Lists).
+  const day = readDay(loadOrderSearchParams(await searchParams).day ?? undefined, today);
   await requireAdmin(`/admin/sellers/${sellerId}`);
   const [t, headers] = await Promise.all([getTranslations("Admin"), sessionHeaders()]);
 
@@ -61,12 +69,13 @@ export default async function SellerPage({
       getSeller({ headers, path: { sellerId } }),
       listSellerMembers({ headers, path: { sellerId } }),
       listSellerOffers({ headers, path: { sellerId }, query: { limit: 100 } }),
+      listSellerOrders({ headers, path: { sellerId }, query: { day } }),
     ]);
   } catch (error) {
     if (error instanceof ApiError && (error.status === 400 || error.status === 404)) notFound();
     throw error;
   }
-  const [{ data: seller }, { data: people }, { data: posted }] = read;
+  const [{ data: seller }, { data: people }, { data: posted }, { data: ordered }] = read;
   const members: MemberBody[] = people.members ?? [];
   const offers: OfferBody[] = posted.offers ?? [];
   const onSale = offers.filter((o) => o.status === "on_sale");
@@ -117,6 +126,8 @@ export default async function SellerPage({
         <SellerTabs
           posts={offers.length}
           members={members.length}
+          orders={ordered.orders.length}
+          ordersList={<SellerOrders sellerId={seller.id} orders={ordered.orders} today={today} />}
           overview={
             <div className="grid flex-1 gap-5 lg:grid-cols-3">
               <Card size="lg" className="lg:col-span-2">
