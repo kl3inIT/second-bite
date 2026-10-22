@@ -7,6 +7,7 @@ import { Suspense } from "react";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { JsonLd } from "@/components/json-ld";
+import { QueryProvider } from "@/components/query-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { Splash } from "@/components/splash";
 import { Toaster } from "@/components/ui/toast";
@@ -98,13 +99,15 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
               (docs/guidelines/web.md › Lists and filters, › Feedback). */}
           <NuqsAdapter>
             <Toaster closeLabel={failure("closeToast")}>
-              <Splash />
-              {children}
-              <SiteFooter />
-              {/* The bar reads the address, which a page with a dynamic segment knows only at request time. */}
-              <Suspense>
-                <BottomNav />
-              </Suspense>
+              <QueryProvider>
+                <Splash />
+                {children}
+                <SiteFooter />
+                {/* The bar reads the address, which a page with a dynamic segment knows only at request time. */}
+                <Suspense>
+                  <BottomNav />
+                </Suspense>
+              </QueryProvider>
             </Toaster>
           </NuqsAdapter>
         </NextIntlClientProvider>

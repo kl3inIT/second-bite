@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
+import { StoreUnreadPill } from "./store-unread-pill";
 import { isTabOpen, storeTabs } from "./store-tabs";
 
 // The store's four tabs in the header (Figma Q1: Trang chủ, Bài đăng, Danh mục, Đơn): the open one is a white
@@ -29,13 +30,16 @@ export function StoreNav({ sellerId }: { sellerId: string }) {
               >
                 <span
                   className={cn(
-                    "flex h-9 items-center rounded-full px-4 text-body-sm-strong whitespace-nowrap transition-colors",
+                    "relative flex h-9 items-center rounded-full px-4 text-body-sm-strong whitespace-nowrap transition-colors",
                     open
                       ? "bg-card text-primary"
                       : "text-header-foreground group-hover/tab:bg-header-raised/20",
                   )}
                 >
                   {t(key)}
+                  {key === "orders" ? (
+                    <StoreUnreadPill sellerId={sellerId} className="absolute -top-1 -right-1" />
+                  ) : null}
                 </span>
               </Link>
             </li>

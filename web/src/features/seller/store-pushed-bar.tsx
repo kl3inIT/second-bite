@@ -14,6 +14,8 @@ export function StorePushedBar() {
   const location = useTranslations("StoreLocationPage");
   const bar = useTranslations("TopBar");
   const pathname = usePathname();
+  // An order's chat draws its own blue bar with the customer's name (Figma Q7).
+  if (pathname.endsWith("/chat")) return null;
   const ofLocation = pathname.endsWith("/location");
   const parent = pathname
     .split("/")

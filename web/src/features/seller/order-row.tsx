@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
+import { UnreadPill } from "@/components/unread-pill";
 import { formatPrice } from "@/features/offers/format";
 import type { OrderBody } from "@/lib/api/generated";
 
@@ -59,6 +60,7 @@ export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab
               {names}
             </Link>
           </h3>
+          <UnreadPill count={order.unreadMessages ?? 0} />
           <span className="shrink-0 text-note font-semibold text-muted-foreground md:hidden">
             #{order.number}
           </span>

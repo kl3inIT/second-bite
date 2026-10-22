@@ -13,6 +13,7 @@ import { Fragment } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
+import { ChatEntry } from "@/features/chat/chat-entry";
 import { StoreMap } from "@/components/map/store-map";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
@@ -28,7 +29,15 @@ import { OrderQr } from "./order-qr";
 // together, the dishes and totals, the way to the counter, the steps on the blue band and how to collect.
 
 /** A photograph of a line, or the muted ground where it has none. */
-function Photo({ path, sizes, className }: { path?: string; sizes: string; className: string }) {
+export function Photo({
+  path,
+  sizes,
+  className,
+}: {
+  path?: string;
+  sizes: string;
+  className: string;
+}) {
   return (
     <span className={cn("relative shrink-0 overflow-hidden bg-muted", className)}>
       {path ? (
@@ -296,7 +305,7 @@ export function OrderFacts({ order }: { order: Order }) {
 
 /**
  * Where the counter is, on the store's pin (SEC-137: the map Second Bite serves, not Google's embed looking the
- * address up), and the way there in the phone's maps (Figma D2 › chỗ nhận).
+ * address up), and the way there in the phone's maps, and a message to the seller (Figma D2 › chỗ nhận, D2b, D4: "Chỉ đường" and "Nhắn quán" side by side).
  */
 export function Directions({ order }: { order: Order }) {
   const t = useTranslations("Orders");
@@ -319,15 +328,25 @@ export function Directions({ order }: { order: Order }) {
           </p>
           <p className="text-label text-muted-foreground">{t("placeHint")}</p>
         </div>
-        <a
-          href={directionsHref(order.seller)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={buttonVariants()}
-        >
-          {t("directions")}
-          <span className="sr-only">{t("opensMaps")}</span>
-        </a>
+        <div className="flex gap-2">
+          <a
+            href={directionsHref(order.seller)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(buttonVariants(), "flex-1")}
+          >
+            {t("directions")}
+            <span className="sr-only">{t("opensMaps")}</span>
+          </a>
+          <ChatEntry
+            order={order}
+            side="customer"
+            access={order.access}
+            href={`/orders/${order.id}/chat`}
+            variant="secondary"
+            className="flex-1"
+          />
+        </div>
       </div>
     </section>
   );

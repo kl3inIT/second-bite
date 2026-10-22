@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { UnreadPill } from "@/components/unread-pill";
+import { useOrdersUnread } from "@/features/orders/use-unread";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +27,8 @@ type Tab = {
 // tall as the bar so the bar never covers the page's end. From `md` the header and the footer take over,
 // and the bar is not shown. With a phone's large text a label may take two lines, so the bar is at least its
 // height rather than exactly it (SEC-107).
+// An order's chat takes the whole screen (Figma K7), its back arrow leading to the order.
+const ORDER_CHAT = /^\/orders\/[^/]+\/chat$/;
 const screensOfTheirOwn = ["/search", "/offers", "/sellers", "/cart", "/stores", "/open-store"];
 
 const tabs: Tab[] = [
@@ -39,15 +43,21 @@ const tabs: Tab[] = [
   },
 ];
 
+/** The count of messages the seller wrote that the reader has not read, at the top right of the orders icon. */
+function OrdersPill() {
+  return <UnreadPill count={useOrdersUnread()} className="absolute -top-1.5 -right-3" />;
+}
+
 export function BottomNav() {
   const t = useTranslations("BottomNav");
   const pathname = usePathname();
   // The admin's pages have their own sidebar instead (SEC-75 › Shell).
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
-  // The search, a dish, a seller and the cart are screens of their own, left by their back arrow, the last
+  // The search, a dish, a seller, the cart are screens of their own, left by their back arrow, the last
   // three with a bar of their own at the bottom (Figma K1f, K2, K4, K4b, K5). A store's pages have the store's bar.
   if (
-    screensOfTheirOwn.some((screen) => pathname === screen || pathname.startsWith(`${screen}/`))
+    screensOfTheirOwn.some((screen) => pathname === screen || pathname.startsWith(`${screen}/`)) ||
+    ORDER_CHAT.test(pathname)
   ) {
     return null;
   }
@@ -67,7 +77,10 @@ export function BottomNav() {
               (href !== "/" && pathname.startsWith(`${href}/`));
             const body = (
               <>
-                <Icon aria-hidden className="size-5" />
+                <span className="relative">
+                  <Icon aria-hidden className="size-5" />
+                  {key === "orders" ? <OrdersPill /> : null}
+                </span>
                 <span className={cn("text-center", active ? "text-label-strong" : "text-label")}>
                   {t(key)}
                 </span>

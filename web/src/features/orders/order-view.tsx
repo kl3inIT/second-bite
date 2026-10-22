@@ -4,6 +4,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { BackButton } from "@/components/back-button";
 import { PageBar } from "@/components/page-bar";
 import { buttonVariants } from "@/components/ui/button";
+import { ChatEntry } from "@/features/chat/chat-entry";
 import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -267,6 +268,13 @@ export function CollectedOrder({
               <div className="hidden md:block">
                 <OrderFacts order={order} />
               </div>
+              <ChatEntry
+                order={order}
+                side="customer"
+                access={order.access}
+                href={`/orders/${order.id}/chat`}
+                variant="secondary"
+              />
             </section>
           }
         />
@@ -281,6 +289,15 @@ export function CollectedOrder({
               date: date(when),
             })}
           />
+          <div className="px-4 pt-3.5">
+            <ChatEntry
+              order={order}
+              side="customer"
+              access={order.access}
+              href={`/orders/${order.id}/chat`}
+              variant="secondary"
+            />
+          </div>
         </div>
       ) : null}
     </article>
@@ -530,6 +547,15 @@ export function EndedOrder({ order, now }: { order: Order & { status: Ended }; n
         </div>
       </section>
       <Receipt order={order} look={look} badge={t(`ended.badge.${order.status}`)} />
+      <div className="px-4 md:px-0">
+        <ChatEntry
+          order={order}
+          side="customer"
+          access={order.access}
+          href={`/orders/${order.id}/chat`}
+          variant="secondary"
+        />
+      </div>
     </article>
   );
 }

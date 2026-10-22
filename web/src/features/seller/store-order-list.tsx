@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
 import { formatPrice } from "@/features/offers/format";
+import { LiveRefresh } from "@/features/orders/live-refresh";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -85,6 +86,7 @@ export async function StoreOrders({
 
   return (
     <>
+      <LiveRefresh topics={[`seller:${sellerId}`]} />
       {undone && undoMessage && <UndoToast orderId={undone.id} message={undoMessage} />}
       <StoreTitleRow
         title={t("title")}

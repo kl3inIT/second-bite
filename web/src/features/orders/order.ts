@@ -10,9 +10,19 @@ export function isOpen(order: Pick<Order, "status">): boolean {
   return order.status === "confirmed" || order.status === "ready";
 }
 
-/** Whether its customer may still cancel it, free of charge: until the seller marks it ready (SEC-121). */
+/** Whether its customer may still cancel it: until the seller marks it ready (SEC-121). */
 export function canCancel(order: Pick<Order, "status">): boolean {
   return order.status === "confirmed";
+}
+
+/** The dishes of an order on one line: "Croissant & bánh mì chà bông". */
+export function dishesOf(order: Pick<Order, "lines">): string {
+  return order.lines.map((line) => line.name).join(" & ");
+}
+
+/** The moment now, in milliseconds; read here and not in a page, which the purity rule keeps free of the clock. */
+export function nowMs(): number {
+  return Date.now();
 }
 
 /** How many units the order holds, across its lines. */
