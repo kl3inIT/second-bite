@@ -10,4 +10,4 @@ Design: [design.md](design.md). Tracked in Linear as SEC-126.
 | 4 | File: unused photos forgotten in a set order; the part-way failure tested | Done, 22 October 2026 |
 | 5 | Specs and test matrices | Done, 22 October 2026 |
 | 6 | Proof against the real service ([verification.md](verification.md)) | Done, 22 October 2026 |
-| 7 | Review, then merge through a pull request and move this increment to `completed/` | |
+| 7 | Review, then merge through a pull request and move this increment to `completed/` | Done, 22 October 2026 (PR #118) |
