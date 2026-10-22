@@ -21,6 +21,9 @@ abstract class PlaceOrderBody with _$PlaceOrderBody {
     /// A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted
     required String phone,
 
+    /// The customer agrees to be told about the order by Zalo once Second Bite sends there
+    bool? byZalo,
+
     /// Shared by the orders placed together from one cart, one per seller; a new one when omitted
     String? checkoutId,
   }) = _PlaceOrderBody;

@@ -45,6 +45,7 @@ const usage = `usage:
   secondbite admin grant EMAIL
   secondbite admin revoke EMAIL
   secondbite email configure [flags]   (secondbite email configure -h lists them)
+  secondbite push keys -private-key-file PATH
   secondbite health`
 
 var errUsage = errors.New(usage)
@@ -72,6 +73,12 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdin i
 	// serving process, in an image that has no shell or HTTP client.
 	if args[0] == "health" {
 		return health(ctx, args[1:], getenv)
+	}
+
+	// The keys are made before the service has them, so this needs no
+	// database either.
+	if args[0] == "push" {
+		return pushKeys(args[1:], stdout)
 	}
 
 	app, err := assemble(ctx, getenv, stdout)
@@ -148,7 +155,14 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 
 		trail := audit.NewService(pool, logger)
 
-		notifications, err := notification.NewService(pool, trail, notification.Config{SettingsKey: k.settings}, logger)
+		pushCfg, err := pushConfig(getenv)
+		if err != nil {
+			return nil, fmt.Errorf("configuration: %w", err)
+		}
+
+		notifications, err := notification.NewService(pool, trail, events, notification.Config{
+			SettingsKey: k.settings, Push: pushCfg,
+		}, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -173,7 +187,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		sellers := seller.NewService(pool, identities, files, notifications, events, trail, logger)
 		offers := offer.NewService(pool, sellers, files, events, trail, logger)
 
-		orders := order.NewService(pool, offers, sellers, logger)
+		orders := order.NewService(pool, offers, sellers, notifications, logger)
 		views := stats.NewService(pool, logger)
 
 		// The listeners are known before anything publishes; they run only in
@@ -182,8 +196,10 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		seller.RegisterListeners(events, sellers)
 		offer.RegisterListeners(events, offers)
 		order.RegisterListeners(events, orders)
+		notification.RegisterListeners(events, notifications)
 		offer.RegisterSchedules(events, offers)
 		order.RegisterSchedules(events, orders)
+		notification.RegisterSchedules(events, notifications)
 		stats.RegisterSchedules(events, views)
 
 		return &app{
@@ -282,6 +298,7 @@ func registerOperations(api huma.API, a *app) {
 	seller.RegisterOperations(api, a.seller)
 	offer.RegisterOperations(api, a.offer)
 	order.RegisterOperations(api, a.order)
+	notification.RegisterOperations(api, a.notification, a.order.RedeemLiveTicket)
 	stats.RegisterOperations(api, a.stats)
 
 	// Every admin operation is registered on one group, so the contract test

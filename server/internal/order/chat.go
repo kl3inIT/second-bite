@@ -272,6 +272,10 @@ func (s *Service) sendIn(ctx context.Context, tx pgx.Tx, id uuid.UUID, access, k
 		return Message{}, false, err
 	}
 
+	if err := s.pushMessage(ctx, tx, o, side); err != nil {
+		return Message{}, false, err
+	}
+
 	return Message{Seq: int(seq), From: side, Text: text, SentAt: now}, true, nil
 }
 

@@ -73,7 +73,7 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 
 	trail := audit.NewService(pool, platformtest.Logger())
 
-	notifications, err := notification.NewService(pool, trail, notification.Config{SettingsKey: make([]byte, 32)}, platformtest.Logger())
+	notifications, err := notification.NewService(pool, trail, nil, notification.Config{SettingsKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}

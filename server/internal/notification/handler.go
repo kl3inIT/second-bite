@@ -127,3 +127,84 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		return nil, s.SendTestEmail(ctx, to)
 	})
 }
+
+type pushKeyOutput struct {
+	Body struct {
+		PublicKey string `json:"publicKey" doc:"The VAPID public key, in base64url, for PushManager.subscribe's applicationServerKey"`
+	}
+}
+
+type pushSubscriptionBody struct {
+	Endpoint string `json:"endpoint" format:"uri" maxLength:"2048" doc:"The push service's address for this browser"`
+	Keys     struct {
+		P256dh string `json:"p256dh" maxLength:"255" minLength:"1"`
+		Auth   string `json:"auth"   maxLength:"255" minLength:"1"`
+	} `json:"keys"`
+}
+
+type subscribePushInput struct {
+	Body struct {
+		pushSubscriptionBody
+		Tickets []string `json:"tickets" maxItems:"20" minItems:"1" doc:"Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's"`
+	}
+}
+
+type unsubscribePushInput struct {
+	Body struct {
+		Endpoint string `json:"endpoint" format:"uri" maxLength:"2048"`
+	}
+}
+
+var tagNotifications = []string{"Notifications"}
+
+// RegisterOperations adds the module's Web Push operations to api. redeem is
+// the live socket's ticket redemption, which proves the topics a browser may
+// follow.
+func RegisterOperations(api huma.API, s *Service, redeem platform.RedeemTicket) {
+	huma.Register(api, huma.Operation{
+		OperationID: "getPushKey",
+		Tags:        tagNotifications,
+		Method:      http.MethodGet,
+		Path:        "/push/key",
+		Summary:     "Read the key a browser subscribes to Web Push with",
+		Description: "503 NOTIFICATION_PUSH_NOT_CONFIGURED while Web Push is off; the page then offers no notifications.",
+	}, func(context.Context, *struct{}) (*pushKeyOutput, error) {
+		key, err := s.PushKey()
+		if err != nil {
+			return nil, err
+		}
+
+		out := &pushKeyOutput{}
+		out.Body.PublicKey = key
+
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "subscribePush",
+		Tags:        tagNotifications,
+		Method:      http.MethodPost,
+		Path:        "/push/subscriptions",
+		Summary:     "Follow orders by Web Push in this browser",
+		Description: "Keeps the browser's subscription, in the language of Accept-Language, following the topic each " +
+			"live ticket proves for seven days. Subscribing again renews them. Each ticket is spent as the live socket " +
+			"spends it; a ticket spent or expired answers NOTIFICATION_PUSH_TICKET_INVALID.",
+		DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *subscribePushInput) (*struct{}, error) {
+		b := in.Body
+
+		return nil, s.Subscribe(ctx, Subscription{Endpoint: b.Endpoint, P256dh: b.Keys.P256dh, Auth: b.Keys.Auth}, b.Tickets, redeem)
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "unsubscribePush",
+		Tags:          tagNotifications,
+		Method:        http.MethodPost,
+		Path:          "/push/subscriptions/remove",
+		Summary:       "Stop Web Push to this browser",
+		Description:   "Forgets the subscription and every topic it follows; one not kept changes nothing.",
+		DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *unsubscribePushInput) (*struct{}, error) {
+		return nil, s.Unsubscribe(ctx, in.Body.Endpoint)
+	})
+}

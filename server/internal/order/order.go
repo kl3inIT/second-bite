@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/offer"
 	"github.com/kl3inIT/second-bite/server/internal/order/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
@@ -142,13 +143,17 @@ type Service struct {
 	queries *db.Queries
 	offers  *offer.Service
 	sellers *seller.Service
-	logger  *slog.Logger
-	now     func() time.Time
+	// pushes queues the Web Push of each change (SEC-25); nil sends none.
+	pushes *notification.Service
+	logger *slog.Logger
+	now    func() time.Time
 }
 
 // NewService assembles the module.
-func NewService(pool *pgxpool.Pool, offers *offer.Service, sellers *seller.Service, logger *slog.Logger) *Service {
-	return &Service{pool: pool, queries: db.New(pool), offers: offers, sellers: sellers, logger: logger, now: time.Now}
+func NewService(
+	pool *pgxpool.Pool, offers *offer.Service, sellers *seller.Service, pushes *notification.Service, logger *slog.Logger,
+) *Service {
+	return &Service{pool: pool, queries: db.New(pool), offers: offers, sellers: sellers, pushes: pushes, logger: logger, now: time.Now}
 }
 
 // Get returns an order to its customer, signed in or holding its access, to

@@ -159,7 +159,7 @@ func (s *Service) place(
 		CustomerID: customer, CustomerName: contact.Name, CustomerPhone: contact.Phone,
 		SellerID: first.SellerID, CheckoutID: checkout, SellerName: first.SellerName,
 		Latitude: first.CollectionPoint.Latitude, Longitude: first.CollectionPoint.Longitude, Address: first.CollectionPoint.Address,
-		WindowStart: start, WindowEnd: end, TotalVnd: total, IdempotencyKey: key,
+		WindowStart: start, WindowEnd: end, TotalVnd: total, IdempotencyKey: key, ZaloConsentAt: s.consentAt(contact),
 	})
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("storing the order: %w", err)
@@ -178,11 +178,33 @@ func (s *Service) place(
 		return uuid.Nil, fmt.Errorf("recording the order: %w", err)
 	}
 
-	if err := notifyOrder(ctx, tx, id, first.SellerID, StatusConfirmed); err != nil {
-		return uuid.Nil, err
+	return id, s.announcePlaced(ctx, tx, q, id)
+}
+
+// announcePlaced tells the sockets following the seller's orders, and the
+// seller's people by push, of a new order.
+func (s *Service) announcePlaced(ctx context.Context, tx pgx.Tx, q *db.Queries, id uuid.UUID) error {
+	placed, err := s.readIn(ctx, q, id)
+	if err != nil {
+		return err
 	}
 
-	return id, nil
+	if err := notifyOrder(ctx, tx, id, placed.SellerID, StatusConfirmed); err != nil {
+		return err
+	}
+
+	return s.pushPlaced(ctx, tx, placed)
+}
+
+// consentAt is when the customer agreed to Zalo, none when they did not.
+func (s *Service) consentAt(c Contact) *time.Time {
+	if !c.ByZalo {
+		return nil
+	}
+
+	now := s.now()
+
+	return &now
 }
 
 // sharedWindow is the time every taken offer is collected in, still to come;
