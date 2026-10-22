@@ -1122,7 +1122,8 @@
       "orders": "Orders",
       "audit": "Activity log",
       "settings": "Settings",
-      "accounts": "Accounts"
+      "accounts": "Accounts",
+      "reports": "Reports"
     },
     "notFound": {
       "crumb": "Not found",
@@ -1689,6 +1690,49 @@
       },
       "actions": "Actions for order {number}",
       "view": "View details"
+    },
+    "reports": {
+      "title": "Reports",
+      "days": "Days",
+      "lastWeek": "Last 7 days",
+      "store": "Store",
+      "anyStore": "All",
+      "export": "Export CSV",
+      "cards": "Totals for the days",
+      "card": {
+        "views": "Page views",
+        "viewsNote": "{people} people · {qr} from QR",
+        "held": "Orders held",
+        "heldNote": "{units} units",
+        "collected": "Units collected",
+        "collectedNote": "{orders} orders",
+        "share": "Collected",
+        "shareNote": "{collected}/{held} orders",
+        "expired": "No-shows",
+        "expiredNote": "{cancelled} cancelled · {refused} refused by the store"
+      },
+      "chart": "Orders held and collected by day",
+      "series": {
+        "held": "Held",
+        "collected": "Collected"
+      },
+      "table": "Numbers by store",
+      "column": {
+        "name": "Store",
+        "views": "Views",
+        "people": "People",
+        "offers": "Posts",
+        "held": "Held",
+        "collected": "Collected",
+        "cancelled": "Cancelled",
+        "expired": "No-shows",
+        "share": "Collected %",
+        "collectedVnd": "Taken in"
+      },
+      "none": "–",
+      "empty": {
+        "title": "No numbers for these days yet"
+      }
     }
   },
   "Review": {

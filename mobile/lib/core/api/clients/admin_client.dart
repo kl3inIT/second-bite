@@ -219,6 +219,22 @@ abstract class AdminClient {
     @Query('sellerId') String? sellerId,
   });
 
+  /// The report as a CSV file, one row per day and store.
+  ///
+  /// The same numbers as getReport, in Vietnamese, for the sponsor's sheet: a row for the whole site on each day when no store is chosen, a row per store and day, and the totals last. UTF-8 with a byte order mark.
+  ///
+  /// [since] - The first day in Vietnam, YYYY-MM-DD; six days before until when empty.
+  ///
+  /// [until] - The last day in Vietnam, YYYY-MM-DD, included; today when empty.
+  ///
+  /// [sellerId] - Keep one store's numbers; the views are then its page's and its dishes'.
+  @GET('/admin/reports/export')
+  Future<void> exportReport({
+    @Query('since') String? since,
+    @Query('until') String? until,
+    @Query('sellerId') String? sellerId,
+  });
+
   /// Sellers by status and words, pending ones first.
   ///
   /// Pending sellers come first, the oldest first; then the latest change first. q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.

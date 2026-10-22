@@ -4,12 +4,15 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'counts_body.dart';
+
 part 'report_store_day_body.freezed.dart';
 part 'report_store_day_body.g.dart';
 
 @Freezed()
 abstract class ReportStoreDayBody with _$ReportStoreDayBody {
   const factory ReportStoreDayBody({
+    required CountsBody counts,
     required DateTime day,
     required String name,
     required String sellerId,

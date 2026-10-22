@@ -7,7 +7,13 @@ part of 'report_day_body.dart';
 // **************************************************************************
 
 _ReportDayBody _$ReportDayBodyFromJson(Map<String, dynamic> json) =>
-    _ReportDayBody(day: DateTime.parse(json['day'] as String));
+    _ReportDayBody(
+      counts: CountsBody.fromJson(json['counts'] as Map<String, dynamic>),
+      day: DateTime.parse(json['day'] as String),
+    );
 
 Map<String, dynamic> _$ReportDayBodyToJson(_ReportDayBody instance) =>
-    <String, dynamic>{'day': instance.day.toIso8601String()};
+    <String, dynamic>{
+      'counts': instance.counts,
+      'day': instance.day.toIso8601String(),
+    };

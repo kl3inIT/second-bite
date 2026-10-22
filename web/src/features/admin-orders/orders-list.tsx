@@ -239,13 +239,14 @@ function useColumns(): DataTableColumns<OrderBody> {
     {
       id: "store",
       header: t("column.store"),
-      meta: { width: "w-56" },
-      // An order carries its store's name, not its photo, so the store shows as its initials (StoreThumb).
+      meta: { width: "w-52" },
+      // An order carries its store's name, not its photo, so the store shows as its initials (StoreThumb). The
+      // name opens the order, as every list's first column opens its item; the order's page leads to the store.
       cell: ({ row }) => (
         <div className="flex items-center gap-2.5">
           <StoreThumb seller={row.original.seller} />
           <Link
-            href={`/admin/sellers/${row.original.seller.id}`}
+            href={`/admin/orders/${row.original.id}`}
             className={cn("truncate text-body-sm-strong text-foreground", linkLook)}
           >
             {row.original.seller.name}
@@ -262,6 +263,7 @@ function useColumns(): DataTableColumns<OrderBody> {
     {
       id: "lines",
       header: t("column.lines"),
+      meta: { width: "w-52" },
       cell: ({ row }) => <span className="text-muted-foreground">{summary(row.original)}</span>,
     },
     {
@@ -288,7 +290,7 @@ function useColumns(): DataTableColumns<OrderBody> {
     {
       id: "status",
       header: t("column.status"),
-      meta: { width: "w-40" },
+      meta: { width: "w-48" },
       cell: ({ row }) => <OrderStatusBadge status={row.original.status} />,
     },
     {

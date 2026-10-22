@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 )
@@ -28,13 +30,13 @@ type reportResponse struct {
 		Day string `json:"day"`
 	} `json:"days"`
 	Stores []struct {
-		SellerID string `json:"sellerId"`
-		Name     string `json:"name"`
-		reportCounts
+		SellerID string       `json:"sellerId"`
+		Name     string       `json:"name"`
+		Counts   reportCounts `json:"counts"`
 	} `json:"stores"`
 	StoreDays []struct {
-		Day string `json:"day"`
-		reportCounts
+		Day    string       `json:"day"`
+		Counts reportCounts `json:"counts"`
 	} `json:"storeDays"`
 }
 
@@ -75,11 +77,32 @@ func checkReport(t *testing.T, svc service) {
 	switch {
 	case len(r.Days) != 7:
 		t.Errorf("%d days, want the last seven", len(r.Days))
-	case len(r.Stores) != 1 || r.Stores[0].Name != "Bếp Báo Cáo" || r.Stores[0].reportCounts != want:
+	case len(r.Stores) != 1 || r.Stores[0].Name != "Bếp Báo Cáo" || r.Stores[0].Counts != want:
 		t.Errorf("the store %+v, want %+v", r.Stores, want)
 	case r.Totals != want || len(r.StoreDays) != 1:
 		t.Errorf("totals %+v, store days %+v", r.Totals, r.StoreDays)
 	}
+
+	checkReportExport(t, svc, admin, sellerID)
+	checkReportRangeRefused(t, svc, admin)
+}
+
+// checkReportExport downloads the store's report as a file of CSV, which
+// starts with a byte order mark and names the store with its marks.
+func checkReportExport(t *testing.T, svc service, admin http.Header, sellerID string) {
+	t.Helper()
+
+	csv := send(t, http.MethodGet, svc.base+"/admin/reports/export?sellerId="+sellerID, admin, nil)
+	if csv.status != http.StatusOK || csv.header.Get("Content-Type") != "text/csv; charset=utf-8" ||
+		!strings.HasPrefix(csv.header.Get("Content-Disposition"), "attachment; filename=bao-cao-") ||
+		!bytes.HasPrefix(csv.body, []byte("\xEF\xBB\xBF")) || !bytes.Contains(csv.body, []byte("Bếp Báo Cáo")) {
+		t.Errorf("the export: %d %v %q", csv.status, csv.header, csv.body)
+	}
+}
+
+// checkReportRangeRefused refuses a reversed range and one of 93 days.
+func checkReportRangeRefused(t *testing.T, svc service, admin http.Header) {
+	t.Helper()
 
 	today := time.Now()
 	for name, query := range map[string]string{

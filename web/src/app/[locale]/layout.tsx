@@ -11,6 +11,7 @@ import { QueryProvider } from "@/components/query-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { Splash } from "@/components/splash";
 import { Toaster } from "@/components/ui/toast";
+import { CountView } from "@/features/stats/count-view";
 import { routing } from "@/i18n/routing";
 import { absoluteUrl, siteIds, siteOrigin } from "@/lib/seo";
 
@@ -109,6 +110,10 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
                 {/* The bar reads the address, which a page with a dynamic segment knows only at request time. */}
                 <Suspense>
                   <BottomNav />
+                </Suspense>
+                {/* Reads the address's utm_source, known only at request time, like the bar. */}
+                <Suspense>
+                  <CountView />
                 </Suspense>
               </QueryProvider>
             </Toaster>

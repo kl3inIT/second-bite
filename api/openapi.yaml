@@ -1810,11 +1810,14 @@ components:
     ReportDayBody:
       additionalProperties: false
       properties:
+        counts:
+          $ref: "#/components/schemas/CountsBody"
         day:
           format: date
           type: string
       required:
         - day
+        - counts
       type: object
     ReportOutputBody:
       additionalProperties: false
@@ -1859,6 +1862,8 @@ components:
     ReportStoreBody:
       additionalProperties: false
       properties:
+        counts:
+          $ref: "#/components/schemas/CountsBody"
         name:
           type: string
         sellerId:
@@ -1866,10 +1871,13 @@ components:
       required:
         - sellerId
         - name
+        - counts
       type: object
     ReportStoreDayBody:
       additionalProperties: false
       properties:
+        counts:
+          $ref: "#/components/schemas/CountsBody"
         day:
           format: date
           type: string
@@ -1881,6 +1889,7 @@ components:
         - day
         - sellerId
         - name
+        - counts
       type: object
     RequestCodeInputBody:
       additionalProperties: false
@@ -3151,6 +3160,61 @@ paths:
         - bearer: []
         - cookie: []
       summary: "The prototype's numbers per day and store: pages opened, posts and orders"
+      tags:
+        - Admin
+  /admin/reports/export:
+    get:
+      description: "The same numbers as getReport, in Vietnamese, for the sponsor's sheet: a row for the whole site on each day when no store is chosen, a row per store and day, and the totals last. UTF-8 with a byte order mark."
+      operationId: exportReport
+      parameters:
+        - description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+          explode: false
+          in: query
+          name: since
+          schema:
+            description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+          explode: false
+          in: query
+          name: until
+          schema:
+            description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: Keep one store's numbers; the views are then its page's and its dishes'
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep one store's numbers; the views are then its page's and its dishes'
+            type: string
+      responses:
+        "200":
+          content:
+            text/csv; charset=utf-8: {}
+          description: The report as CSV
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Disposition:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The report as a CSV file, one row per day and store
       tags:
         - Admin
   /admin/sellers:
