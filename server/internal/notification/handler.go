@@ -134,18 +134,20 @@ type pushKeyOutput struct {
 	}
 }
 
-type pushSubscriptionBody struct {
-	Endpoint string `json:"endpoint" format:"uri" maxLength:"2048" doc:"The push service's address for this browser"`
-	Keys     struct {
-		P256dh string `json:"p256dh" maxLength:"255" minLength:"1"`
-		Auth   string `json:"auth"   maxLength:"255" minLength:"1"`
-	} `json:"keys"`
+// pushKeys are the browser's keys that a push is encrypted to.
+type pushKeys struct {
+	P256dh string `json:"p256dh" maxLength:"255" minLength:"1"`
+	Auth   string `json:"auth"   maxLength:"255" minLength:"1"`
 }
 
+// The browser's PushSubscription as toJSON writes it, with the tickets. The
+// fields are written out here, not embedded: huma leaves an unexported embedded
+// struct out of the schema, and the schema refuses what it does not list.
 type subscribePushInput struct {
 	Body struct {
-		pushSubscriptionBody
-		Tickets []string `json:"tickets" maxItems:"20" minItems:"1" doc:"Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's"`
+		Endpoint string   `json:"endpoint" format:"uri" maxLength:"2048" doc:"The push service's address for this browser"`
+		Keys     pushKeys `json:"keys"`
+		Tickets  []string `json:"tickets" maxItems:"20" minItems:"1" doc:"Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's"`
 	}
 }
 

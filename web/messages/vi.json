@@ -1878,6 +1878,30 @@
     "photoFailed": "Quán đã tạo, nhưng chưa tải được ảnh. Hãy chọn ảnh và lưu lại.",
     "location": "Đổi địa chỉ và vị trí quán"
   },
+  "Push": {
+    "title": {
+      "customer": "Báo tôi khi món sẵn sàng",
+      "seller": "Bật thông báo đơn mới"
+    },
+    "body": {
+      "customer": "Máy sẽ báo khi món sẵn sàng, khi quán đổi giờ lấy hay nhắn bạn, kể cả lúc đã đóng trang này.",
+      "seller": "Có đơn mới, khách huỷ hay nhắn tin là máy báo ngay, không cần canh màn hình."
+    },
+    "turnOn": "Bật thông báo",
+    "failed": "Chưa bật được thông báo. Thử lại.",
+    "on": {
+      "customer": "Sẽ báo bạn khi món sẵn sàng.",
+      "seller": "Máy này đang nhận thông báo đơn mới."
+    },
+    "blockedTitle": "Trình duyệt đang chặn thông báo",
+    "blockedBody": "Để bật lại, bấm biểu tượng bên trái thanh địa chỉ, cho phép Thông báo trong quyền của trang, rồi tải lại trang.",
+    "install": {
+      "share": "Bấm nút Chia sẻ <icon></icon> của Safari.",
+      "shareIcon": "Chia sẻ",
+      "add": "Chọn “Thêm vào MH chính”.",
+      "open": "Mở Second Bite từ màn hình chính rồi bấm Bật thông báo."
+    }
+  },
   "Failure": {
     "reference": "Mã tham chiếu: {reference}",
     "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát.",

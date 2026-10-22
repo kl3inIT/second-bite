@@ -836,6 +836,11 @@ export type PushKeyOutputBody = {
     publicKey: string;
 };
 
+export type PushKeys = {
+    auth: string;
+    p256dh: string;
+};
+
 export type RecordBody = {
     createdAt: string;
     /**
@@ -1083,6 +1088,11 @@ export type StatusDayBody = {
 };
 
 export type SubscribePushInputBody = {
+    /**
+     * The push service's address for this browser
+     */
+    endpoint: string;
+    keys: PushKeys;
     /**
      * Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's
      */

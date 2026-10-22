@@ -1727,6 +1727,21 @@ components:
       required:
         - publicKey
       type: object
+    PushKeys:
+      additionalProperties: false
+      properties:
+        auth:
+          maxLength: 255
+          minLength: 1
+          type: string
+        p256dh:
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - p256dh
+        - auth
+      type: object
     RecordBody:
       additionalProperties: false
       properties:
@@ -2252,6 +2267,13 @@ components:
     SubscribePushInputBody:
       additionalProperties: false
       properties:
+        endpoint:
+          description: The push service's address for this browser
+          format: uri
+          maxLength: 2048
+          type: string
+        keys:
+          $ref: "#/components/schemas/PushKeys"
         tickets:
           description: "Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's"
           items:
@@ -2262,6 +2284,8 @@ components:
             - array
             - "null"
       required:
+        - endpoint
+        - keys
         - tickets
       type: object
     UnsubscribePushInputBody:

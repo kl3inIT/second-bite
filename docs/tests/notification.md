@@ -22,5 +22,8 @@ Requirements of [docs/specs/notification.md](../specs/notification.md) and the c
 | A push nobody follows, or one whose change rolled back, is not written | `TestPush` › a push nobody follows is not written |
 | The payload is Declarative Web Push in the subscription's language, opening the page on the site | `TestPush` › a push is written in the language asked |
 | Lapsed topics and the subscriptions left with none are purged, once | `TestPushesPurged` |
+| A browser subscribes through the HTTP API as the web sends it, with keys made by `secondbite push keys`; a spent ticket is refused | `TestService` › a browser follows an order by Web Push (`cmd/secondbite/push_test.go`) |
+| The order page offers notices from its button, then follows each later order without asking; a refusal says how to undo it; an iPhone in Safari gets the Home Screen steps | `web/tests/e2e/order.spec.ts` › notices of an order |
+| The Đơn tab turns on a store's notices and renews them at each visit | `web/tests/e2e/store-orders.spec.ts` › turns on notices of new orders |
 
 Not covered by a test: Brevo's real API (only a server answering as Brevo documents), and `NOTIFICATION_EMAIL_NOT_CONFIGURED` through the API.

@@ -2717,6 +2717,29 @@ async function emailSettingsRoutes(request, response, url) {
   return false;
 }
 
+// Web Push (SEC-25): the server's public key, a P-256 point made for the stub, and the subscriptions browsers
+// give, which a test reads back from /__stub/push/subscriptions.
+const PUSH_PUBLIC_KEY =
+  "BLExYV0XKmuSP7-CRH-tJewYHW4il8DyHpBzyswV18FE2SfsA1r2eurTeMKx9cVFY-pEpdvfMCIJ9-Q1EG2VUAs";
+const pushSubscriptions = [];
+
+async function pushRoutes(request, response, url) {
+  if (request.method === "GET" && url.pathname === "/push/key") {
+    json(response, 200, { publicKey: PUSH_PUBLIC_KEY });
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/push/subscriptions") {
+    pushSubscriptions.push(await readBody(request));
+    response.writeHead(204).end();
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/__stub/push/subscriptions") {
+    json(response, 200, { subscriptions: pushSubscriptions });
+    return true;
+  }
+  return false;
+}
+
 async function answer(request, response) {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
@@ -2749,6 +2772,7 @@ async function answer(request, response) {
   }
   if (await auth(request, response, url)) return;
   if (await chatRoutes(request, response, url)) return;
+  if (await pushRoutes(request, response, url)) return;
   if (await favouriteRoutes(request, response, url)) return;
   if (adminSellerReads(request, response, url)) return;
   if (adminOrderReads(request, response, url)) return;

@@ -70,6 +70,7 @@ func TestService(t *testing.T) {
 		"a person names their account":                               checkDisplayName,
 		"an order is placed, made ready and handed over":             checkOrderFlow,
 		"an order's live socket carries its changes":                 checkLiveSocket,
+		"a browser follows an order by Web Push":                     checkPushSubscribe,
 		"a page view is counted without a session":                   checkViewCounted,
 		"the report counts a store's views, posts and orders":        checkReport,
 	}
@@ -135,6 +136,15 @@ func startService(t *testing.T) (service, func() error) {
 			t.Fatalf("secondbite %s: %v", strings.Join(args, " "), err)
 		}
 	}
+
+	// Web Push on, with keys made by the command an installation uses.
+	var public bytes.Buffer
+	if err := run(ctx, []string{"push", "keys", "-private-key-file", filepath.Join(env["SECONDBITE_SECRETS_DIR"], "SECONDBITE_PUSH_PRIVATE_KEY")}, getenv, strings.NewReader(""), &public); err != nil {
+		t.Fatalf("secondbite push keys: %v", err)
+	}
+
+	env["SECONDBITE_PUSH_PUBLIC_KEY"] = strings.TrimSpace(public.String())
+	env["SECONDBITE_SITE_URL"] = "https://secondbite.test"
 
 	runCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
 	done := make(chan error, 1)

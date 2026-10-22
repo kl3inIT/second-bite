@@ -30,6 +30,40 @@ async function storeNamed(
   return page.url().split("/").pop() ?? "";
 }
 
+/**
+ * Stands in for what headless Chromium lacks: the browser's prompt, which it answers before a page asks, and a push
+ * service behind `PushManager`. Notifications start undecided and are allowed when the page asks; the tab
+ * remembers that, and the subscription, across its pages. The service worker is registered for real.
+ */
+async function browserAllowsPush(page: Page) {
+  await page.addInitScript(() => {
+    const allowed = "test.notifications";
+    const subscribed = "test.subscribed";
+    Object.defineProperty(Notification, "permission", {
+      get: () => sessionStorage.getItem(allowed) ?? "default",
+    });
+    Notification.requestPermission = async () => {
+      sessionStorage.setItem(allowed, "granted");
+      return "granted";
+    };
+    const subscription = {
+      endpoint: "https://fcm.googleapis.com/fcm/send/e2e",
+      options: {
+        applicationServerKey: null as PushSubscriptionOptionsInit["applicationServerKey"],
+      },
+      toJSON: () => ({ endpoint: subscription.endpoint, keys: { p256dh: "BTest", auth: "test" } }),
+      unsubscribe: async () => true,
+    };
+    PushManager.prototype.getSubscription = async () =>
+      (sessionStorage.getItem(subscribed) ? subscription : null) as PushSubscription | null;
+    PushManager.prototype.subscribe = async (options) => {
+      sessionStorage.setItem(subscribed, "1");
+      subscription.options.applicationServerKey = options?.applicationServerKey ?? null;
+      return subscription as unknown as PushSubscription;
+    };
+  });
+}
+
 const row = (page: Page, text: RegExp | string) =>
   page.getByRole("listitem").filter({ hasText: text });
 
@@ -51,6 +85,34 @@ test.describe("the order tab of a store", () => {
 
     await dialog.getByRole("button", { name: "Đóng" }).click();
     await expect(dialog).toHaveCount(0);
+  });
+
+  // SEC-25: the store's people turn on notices of new orders on the tab, and each visit renews them.
+  test("turns on notices of new orders", async ({ page }, testInfo) => {
+    await browserAllowsPush(page);
+    const store = await storeNamed(page, "nhi", testInfo, "Tiệm báo đơn");
+    await page.getByRole("link", { name: "Đơn", exact: true }).click();
+
+    const card = page.getByRole("region", { name: "Bật thông báo đơn mới" });
+    await expect(card).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await (await hydrated(card.getByRole("button", { name: "Bật thông báo" }))).click();
+    await expect(page.getByText("Máy này đang nhận thông báo đơn mới.")).toBeVisible();
+    const tickets = async () => {
+      const response = await page.request.get("/api/__stub/push/subscriptions");
+      const { subscriptions } = (await response.json()) as {
+        subscriptions: { tickets: string[] }[];
+      };
+      return subscriptions
+        .flatMap((each) => each.tickets)
+        .filter((each) => each === `tk-seller:${store}`);
+    };
+    await expect.poll(async () => (await tickets()).length).toBe(1);
+
+    await page.reload();
+    await expect(page.getByText("Máy này đang nhận thông báo đơn mới.")).toBeVisible();
+    await expect.poll(async () => (await tickets()).length).toBe(2);
   });
 
   test("lists the day's orders with who ordered them, in four tabs", async ({ page }, testInfo) => {
