@@ -214,4 +214,25 @@ test.describe("the admin's stores", () => {
     await page.goto("/vi/admin/sellers/se-admin-99");
     await expect(page.getByRole("heading", { name: "Không tìm thấy trang này" })).toBeVisible();
   });
+  test("a store's orders tab lists its orders of the day, each opening its page", async ({
+    page,
+  }) => {
+    await page.goto("/vi/admin/sellers?q=phap");
+    await (await hydrated(page.getByRole("link", { name: "Tiệm bánh Pháp" }))).click();
+    await (await hydrated(page.getByRole("tab", { name: /^Đơn hàng/ }))).click();
+    await expect(page).toHaveURL(/tab=orders/);
+    const table = page.getByRole("table", { name: "Đơn hàng của cửa hàng" });
+    await expect(table.getByRole("row").nth(1)).toBeVisible();
+    await expect(page.getByRole("link", { name: "Ngày trước" })).toHaveAttribute(
+      "href",
+      /tab=orders/,
+    );
+    const first = table.getByRole("row").nth(1);
+    await (await hydrated(first.getByRole("button", { name: /^Thao tác với đơn/ }))).click();
+    await expect(page.getByRole("menuitem", { name: "Xem chi tiết" })).toHaveAttribute(
+      "href",
+      /\/vi\/admin\/orders\/.+\?from=store$/,
+    );
+    await expectNoSeriousA11yViolations(page);
+  });
 });

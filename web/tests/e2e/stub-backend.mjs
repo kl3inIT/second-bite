@@ -2208,7 +2208,7 @@ async function changeAdminStore(request, response, stores, id, action) {
 const adminStorePosts = new Map();
 
 function adminSellerReads(request, response, url) {
-  const match = /^\/sellers\/(se-admin-\d+)(\/members|\/offers)?$/.exec(url.pathname);
+  const match = /^\/sellers\/(se-admin-\d+)(\/members|\/offers|\/orders)?$/.exec(url.pathname);
   if (request.method !== "GET" || !match) return false;
   const account = accounts.get(tokenOf(request));
   if (!account || account.role !== "admin") return false;
@@ -2229,6 +2229,12 @@ function adminSellerReads(request, response, url) {
           addedAt: store.createdAt,
         },
       ],
+    });
+  } else if (match[2] === "/orders") {
+    // A store's orders of the day (Figma AD-QD6): the six of a store with orders for "Tiệm bánh Pháp", none else.
+    json(response, 200, {
+      orders:
+        store.name === "Tiệm bánh Pháp" ? sellerOrdersFor({ ...seller, name: "Tiệm có đơn" }) : [],
     });
   } else if (match[2] === "/offers") {
     // The shops with a logo have posted nothing, so their page shows the logo as its cover (Figma AD-Q3); the

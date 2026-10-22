@@ -1485,6 +1485,7 @@
         "overview": "Overview",
         "posts": "Posts · {count}",
         "members": "Members · {count}",
+        "orders": "Orders · {count}",
         "onSale": "On sale",
         "seeAll": "See all",
         "noneOnSale": "Nothing on sale",
@@ -1548,7 +1549,12 @@
             "withdrawn": "Withdrawn"
           },
           "store": "See the store's page"
-        }
+        },
+        "ordersTable": "The store's orders",
+        "noOrders": "No order on this day",
+        "orderNoun": "orders",
+        "orderActions": "Actions for order {number}",
+        "viewOrder": "View details"
       },
       "reasonInvalid": "Write the owner a reason of 10 to 500 characters."
     },

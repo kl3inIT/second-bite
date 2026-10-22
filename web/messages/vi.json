@@ -1485,6 +1485,7 @@
         "overview": "Tổng quan",
         "posts": "Bài đăng · {count}",
         "members": "Thành viên · {count}",
+        "orders": "Đơn hàng · {count}",
         "onSale": "Bài đang bán",
         "seeAll": "Xem tất cả",
         "noneOnSale": "Chưa có bài đang bán",
@@ -1548,7 +1549,12 @@
             "withdrawn": "Đã gỡ"
           },
           "store": "Xem trang cửa hàng"
-        }
+        },
+        "ordersTable": "Đơn hàng của cửa hàng",
+        "noOrders": "Không có đơn nào trong ngày này",
+        "orderNoun": "đơn",
+        "orderActions": "Thao tác với đơn {number}",
+        "viewOrder": "Xem chi tiết"
       },
       "reasonInvalid": "Ghi lý do cho chủ cửa hàng, từ 10 đến 500 ký tự."
     },
