@@ -284,6 +284,7 @@ function useColumns(
     {
       id: "address",
       header: () => sortable("address", t("column.address")),
+      meta: { width: "w-72" },
       cell: ({ row }) => row.original.address,
     },
     {

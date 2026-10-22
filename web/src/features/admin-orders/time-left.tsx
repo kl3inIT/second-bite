@@ -44,7 +44,7 @@ export function TimeLeft({ order }: { order: OrderBody }) {
 
   return (
     <>
-      <dd suppressHydrationWarning className="font-display text-title text-foreground">
+      <dd suppressHydrationWarning className="text-title text-foreground">
         {figure}
       </dd>
       <dd suppressHydrationWarning className="text-body-sm text-muted-foreground">
