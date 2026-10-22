@@ -180,20 +180,20 @@ export default async function OrderPage({
                     ? t("orders.detail.totalNotTaken")
                     : t("orders.detail.total")}
                 </dt>
-                <dd className="font-display text-title text-foreground">
+                <dd className="font-display text-price-lg text-foreground">
                   {formatPrice(order.totalVnd)}
                 </dd>
               </div>
               <div className="flex flex-col gap-1">
                 <dt className="text-body-sm text-muted-foreground">{t("orders.detail.units")}</dt>
-                <dd className="font-display text-title text-foreground">{units}</dd>
+                <dd className="text-title text-foreground">{units}</dd>
                 <dd className="text-body-sm text-muted-foreground">
                   {t("orders.detail.unitsNote", { count: order.lines.length })}
                 </dd>
               </div>
               <div className="flex flex-col gap-1">
                 <dt className="text-body-sm text-muted-foreground">{t("orders.detail.window")}</dt>
-                <dd className="font-display text-title text-foreground">{window}</dd>
+                <dd className="text-title text-foreground">{window}</dd>
                 <dd className="text-body-sm text-muted-foreground">{day(order.windowStart)}</dd>
               </div>
               <div className="flex flex-col gap-1">
@@ -259,7 +259,7 @@ export default async function OrderPage({
                     <span className="text-body-sm-strong text-foreground">
                       {t("orders.detail.linesTotal")}
                     </span>
-                    <span className="font-display text-title text-foreground">
+                    <span className="font-display text-price-lg text-foreground">
                       {formatPrice(order.totalVnd)}
                     </span>
                   </div>

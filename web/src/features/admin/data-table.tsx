@@ -20,9 +20,10 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * A column's width, from the spacing scale (`w-32`); the one column without it takes what is left. Once a
- * column has one, the table lays its columns out fixed, so they stay put from one page to the next, and
- * scrolls sideways when narrower than `min-w-5xl`.
+ * A column's width, from the spacing scale (`w-32`), wide enough for its longest value in either language (a
+ * status badge is never cut). Once columns have one, the table lays them out fixed, so they stay put from one
+ * page to the next, shares the room left among them in proportion, and scrolls sideways when narrower than
+ * `min-w-5xl`.
  */
 type ColumnMeta = { width?: `w-${number}` };
 
