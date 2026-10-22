@@ -27,9 +27,17 @@ type AccountDeletedEvent struct {
 // EventKey names the event where it is stored, delivered and logged.
 func (AccountDeletedEvent) EventKey() string { return "identity.account_deleted" }
 
+// deletionSweep is how long after a deletion AccountDeletedEvent is delivered
+// again. A request authenticated just before the deletion committed can commit
+// after the first delivery (opening a store, uploading a photo); the second one
+// forgets what it wrote. No request lives that long: the server stops writing
+// an answer after 30 seconds (SEC-126).
+const deletionSweep = 2 * time.Minute
+
 // RequestDeletionCode emails the caller's address a code that confirms the
-// deletion of their account and nothing else. It shares the address's limits
-// and its one live code with the sign-in codes.
+// deletion of their account and nothing else. Deletion codes have limits of
+// their own and one live code of their own, so asking for one neither ends
+// the person's sign-in code nor spends its allowance (SEC-126).
 func (s *Service) RequestDeletionCode(ctx context.Context) (Challenge, error) {
 	caller, err := platform.RequireCaller(ctx)
 	if err != nil {
@@ -103,7 +111,8 @@ func (s *Service) DeleteAccount(ctx context.Context, challengeID uuid.UUID, code
 
 // deleteAccountIn uses the challenge and deletes the account in tx: its
 // address's codes, the account with its sessions and links, its name in the
-// audit trail; and writes AccountDeletedEvent.
+// audit trail; and writes AccountDeletedEvent, at once and again after
+// deletionSweep.
 func (s *Service) deleteAccountIn(ctx context.Context, tx pgx.Tx, account Account, challengeID uuid.UUID) error {
 	q := s.queries.WithTx(tx)
 
@@ -137,7 +146,12 @@ func (s *Service) deleteAccountIn(ctx context.Context, tx pgx.Tx, account Accoun
 		return err
 	}
 
-	return platform.Publish(ctx, tx, s.events, AccountDeletedEvent{AccountID: account.ID})
+	event := AccountDeletedEvent{AccountID: account.ID}
+	if err := platform.Publish(ctx, tx, s.events, event); err != nil {
+		return err
+	}
+
+	return platform.PublishAfter(ctx, tx, s.events, event, deletionSweep)
 }
 
 // checkCode spends a guess on the challenge of purpose and compares the code,

@@ -3,7 +3,8 @@
 SELECT pg_advisory_xact_lock(hashtextextended('identity:' || @email::text, 0));
 
 -- name: ChallengeUsage :one
--- What the codes sent to an address in the last day have used, for its limits.
+-- What the codes of a purpose sent to an address in the last day have used,
+-- for its limits; each purpose has its own (SEC-126).
 SELECT
     (count(*) FILTER (WHERE created_at > now() - interval '1 hour'))::integer AS sent_last_hour,
     coalesce(max(created_at), 'epoch')::timestamptz AS newest_sent_at,
@@ -14,15 +15,16 @@ SELECT
     coalesce(min(created_at) FILTER (WHERE failed_attempts > 0), 'epoch')::timestamptz AS oldest_wrong_last_day,
     now()::timestamptz AS checked_at
 FROM identity_sign_in_challenges
-WHERE email = @email AND created_at > now() - interval '1 day';
+WHERE email = @email AND purpose = @purpose AND created_at > now() - interval '1 day';
 
 -- name: DeleteOldChallenges :exec
 DELETE FROM identity_sign_in_challenges WHERE created_at < now() - interval '1 day';
 
 -- name: EndLiveChallenges :exec
--- A new code replaces the address's earlier ones; their wrong guesses still count.
+-- A new code replaces the address's earlier ones of its purpose; their wrong
+-- guesses still count. A code of the other purpose stays (SEC-126).
 UPDATE identity_sign_in_challenges SET expires_at = now()
-WHERE email = @email AND expires_at > now();
+WHERE email = @email AND purpose = @purpose AND expires_at > now();
 
 -- name: InsertChallenge :one
 INSERT INTO identity_sign_in_challenges (id, email, code_hash, purpose, expires_at)

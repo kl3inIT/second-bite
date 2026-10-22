@@ -66,7 +66,7 @@ Failures the platform answers itself:
 Introduced with SEC-37 ([design](../increments/completed/sec-37-account-deletion/design.md#the-outbox)).
 
 - River (v0.49) on the service's PostgreSQL carries events as a transactional outbox. Its tables are River's own, created by its migrations after goose at start-up while a session lock lets one instance migrate at a time.
-- `Publish` writes an event inside the publisher's transaction, one job per listener; a rolled-back change publishes nothing. `Listen` registers a listener under a stable name before the service runs.
+- `Publish` writes an event inside the publisher's transaction, one job per listener; a rolled-back change publishes nothing. `PublishAfter` writes it the same way to run once a delay has passed, for a publisher that delivers an event again later (SEC-126). `Listen` registers a listener under a stable name before the service runs.
 - Every event travels as one job kind, `platform.event`, with its key (`identity.account_deleted`) and its listener's name inside, since River binds one worker to a kind.
 - **Schedules** (SEC-96): `Events.Every(name, interval, run)` registers a periodic River job under a stable name; River's elected leader enqueues each run, so instances never double one, and a run that fails is not retried, as the next comes soon. The run must be idempotent. Registered when the service is assembled and run only in `serve`, as the listeners are.
 - `serve` runs the listeners, at most ten at once and each within a minute, retried with River's backoff; a job whose listener no longer exists is cancelled; they stop after the HTTP server, with ten seconds to finish. The command-line commands only write events.

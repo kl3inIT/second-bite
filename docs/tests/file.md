@@ -20,5 +20,6 @@ Requirements of [docs/specs/file.md](../specs/file.md) and the checks that hold 
 | Through the API: upload, set as a seller's photo, read without signing in with its headers; text refused; over 10 MB is 413; no upload without signing in | `TestService` › a photo is uploaded, set on a seller and served (`cmd/secondbite/photo_test.go`) |
 | The seller's owner sets only a photo they uploaded; staff cannot; the photo is removed | `TestSeller` › the owner sets a photo they uploaded (`internal/seller/seller_test.go`) |
 | When an account is deleted, the photos it uploaded that nothing uses are deleted, objects and rows, and the one in use is still served; delivered twice, nothing more changes | `TestDeletedUploaderIsForgotten` (`internal/file/listeners_test.go`) |
+| A run that fails on the second photo has deleted the first, objects and row, and kept the second's row; the next run deletes it (SEC-126) | `TestForgetUploaderFailsPartWay` (`internal/file/listeners_internal_test.go`) |
 
 Not covered by a test: a real AWS S3, R2 or Garage bucket (only a compatible gateway); the limit of unused photos under concurrent uploads (the lock is the one `seller` tests for its owners), and an iPhone sending its HEIC photo as JPEG, to be tried on a device.

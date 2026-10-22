@@ -43,6 +43,15 @@ const (
 	purposeDeleteAccount codePurpose = "delete_account"
 )
 
+// perHour is how many codes of the purpose an address gets an hour.
+func (p codePurpose) perHour() int32 {
+	if p == purposeDeleteAccount {
+		return deletionCodesPerHour
+	}
+
+	return codesPerHour
+}
+
 // RequestCode emails a six-digit code to address. Whether the address has an
 // account or not, the answer is the same, so it does not tell who has one.
 // The email is sent before the request is answered and the code never
@@ -66,9 +75,9 @@ func (s *Service) RequestCode(ctx context.Context, address string) (Challenge, e
 	return c, nil
 }
 
-// sendCode stores a code of purpose for email within the address's limits and
-// emails it with message. A code that could not be sent is deleted, so it
-// neither works nor counts toward the limits.
+// sendCode stores a code of purpose for email within the address's limits for
+// that purpose and emails it with message. A code that could not be sent is
+// deleted, so it neither works nor counts toward the limits.
 func (s *Service) sendCode(
 	ctx context.Context, email string, purpose codePurpose, message func(to, code string) notification.Email,
 ) (Challenge, error) {
@@ -93,12 +102,12 @@ func (s *Service) sendCode(
 			return fmt.Errorf("locking the address: %w", err)
 		}
 
-		usage, err := q.ChallengeUsage(ctx, email)
+		usage, err := q.ChallengeUsage(ctx, db.ChallengeUsageParams{Email: email, Purpose: string(purpose)})
 		if err != nil {
 			return fmt.Errorf("reading the address's limits: %w", err)
 		}
 
-		if wait := limitWait(usage); wait > 0 {
+		if wait := limitWait(usage, purpose.perHour()); wait > 0 {
 			return ErrCodeLimitExceeded.WithRetryAfter(wait)
 		}
 
@@ -106,9 +115,10 @@ func (s *Service) sendCode(
 			return fmt.Errorf("deleting old challenges: %w", err)
 		}
 
-		// One live code per address: otherwise codes asked for within the
-		// limits could each take five guesses, past the limits on wrong ones.
-		if err := q.EndLiveChallenges(ctx, email); err != nil {
+		// One live code per address and purpose: otherwise codes asked for
+		// within the limits could each take five guesses, past the limits on
+		// wrong ones.
+		if err := q.EndLiveChallenges(ctx, db.EndLiveChallengesParams{Email: email, Purpose: string(purpose)}); err != nil {
 			return fmt.Errorf("ending earlier codes: %w", err)
 		}
 
@@ -141,8 +151,9 @@ func (s *Service) sendCode(
 	return Challenge{ID: id, ExpiresAt: expiresAt}, nil
 }
 
-// limitWait returns how long the address must wait before another code, or 0.
-func limitWait(u db.ChallengeUsageRow) time.Duration {
+// limitWait returns how long the address must wait before another code of a
+// purpose allowed perHour codes an hour, or 0.
+func limitWait(u db.ChallengeUsageRow, perHour int32) time.Duration {
 	now := u.CheckedAt
 
 	var wait time.Duration
@@ -155,7 +166,7 @@ func limitWait(u db.ChallengeUsageRow) time.Duration {
 
 	until(u.NewestSentAt.Add(codeCooldown))
 
-	if u.SentLastHour >= codesPerHour {
+	if u.SentLastHour >= perHour {
 		until(u.OldestSentLastHour.Add(time.Hour))
 	}
 
