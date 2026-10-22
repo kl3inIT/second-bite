@@ -44,6 +44,23 @@ export function isPhone(raw: string) {
   return digits >= 9 && digits <= 15;
 }
 
+/**
+ * Writes the address at a point into the address field when it may be (SEC-110's rule 5): while the field still
+ * holds what a place last wrote, the next place may replace it; the person's own words are never replaced. The
+ * function answers what became of the address.
+ */
+export function useAddressFill(read: () => string, write: (address: string) => void) {
+  const lastFilled = useRef<string>(undefined);
+  return async function fillFrom(point: Point): Promise<Suggestion> {
+    const { outcome, fill } = await suggestAddress(point, read(), lastFilled.current);
+    if (fill) {
+      lastFilled.current = fill;
+      write(fill);
+    }
+    return outcome;
+  };
+}
+
 // The form that opens a store (SEC-57, Figma O1, O1b, O1c): name, phone, address, where it is on the map (SEC-66)
 // and a photo, then "Tạo quán".
 // The store is active at once and the person goes on to its home. The photo is a second step, so a store whose
@@ -53,9 +70,6 @@ function OpenStoreFormBody() {
   const t = useTranslations("OpenStore");
   const location = useTranslations("StoreLocation");
   const router = useRouter();
-  // What a place last wrote into the address: while the field still holds it, the next place may replace it.
-  const lastFilled = useRef<string>(undefined);
-
   const form = useAppForm({
     defaultValues: {
       name: "",
@@ -114,19 +128,10 @@ function OpenStoreFormBody() {
     },
   });
 
-  // The address at a point by SEC-110's rule 5, written into the address field when it may be.
-  async function fillFrom(point: Point): Promise<Suggestion> {
-    const { outcome, fill } = await suggestAddress(
-      point,
-      form.getFieldValue("address"),
-      lastFilled.current,
-    );
-    if (fill) {
-      lastFilled.current = fill;
-      form.setFieldValue("address", fill);
-    }
-    return outcome;
-  }
+  const fillFrom = useAddressFill(
+    () => form.getFieldValue("address"),
+    (address) => form.setFieldValue("address", address),
+  );
 
   const pin = useStore(form.store, (state) => state.values.location);
 
@@ -206,7 +211,7 @@ function OpenStoreFormBody() {
  * which the map then shows to adjust (SEC-66), and the server names the place to fill the address, unless the
  * person has written their own. Places are suggested as it is typed; picking one pins the store there.
  */
-function AddressField({
+export function AddressField({
   fillFrom,
   pin,
   onLocated,
@@ -308,7 +313,7 @@ function AddressField({
  * Where the store is on the map (SEC-66): a pin moved there names the place, which fills the address by the same
  * rule as the location button.
  */
-function PinField({ onPinned }: { onPinned: (point: Point) => Promise<unknown> }) {
+export function PinField({ onPinned }: { onPinned: (point: Point) => Promise<unknown> }) {
   const { field, invalid, errors, ids } = useFieldValidity<Point | undefined>();
 
   function pinned(point: Point) {

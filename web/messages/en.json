@@ -1940,8 +1940,7 @@
     "save": "Save changes",
     "saved": "The store's details are saved.",
     "failed": "Could not save. Try again in a few minutes.",
-    "photoFailed": "The store is open, but its photo did not upload. Choose a photo and save.",
-    "location": "Change the store's address and location"
+    "photoFailed": "The store is open, but its photo did not upload. Choose a photo and save."
   },
   "Push": {
     "title": {
