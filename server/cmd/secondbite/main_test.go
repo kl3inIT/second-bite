@@ -71,6 +71,7 @@ func TestService(t *testing.T) {
 		"an order is placed, made ready and handed over":             checkOrderFlow,
 		"an order's live socket carries its changes":                 checkLiveSocket,
 		"a page view is counted without a session":                   checkViewCounted,
+		"the report counts a store's views, posts and orders":        checkReport,
 	}
 
 	// The checks run in parallel with one another; this group returns when
@@ -125,7 +126,7 @@ func startService(t *testing.T) (service, func() error) {
 			"-smtp-host", smtpHost, "-smtp-port", smtpPort, "-smtp-security", "none",
 		},
 	}
-	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail, grantingAdminEmail, auditAdminEmail, deletionAdminEmail} {
+	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail, grantingAdminEmail, auditAdminEmail, deletionAdminEmail, reportAdminEmail} {
 		admin = append(admin, []string{commandAdmin, "grant", email})
 	}
 

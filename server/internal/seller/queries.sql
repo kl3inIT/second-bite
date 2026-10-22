@@ -188,3 +188,6 @@ ORDER BY f.created_at DESC, s.id;
 -- name: DeleteFollowsOf :execrows
 -- Every favourite of an account, once the account is deleted (SEC-109).
 DELETE FROM seller_follows WHERE account_id = @account_id;
+
+-- name: SellerNames :many
+SELECT id, name FROM seller_sellers WHERE id = ANY(@ids::uuid[]);

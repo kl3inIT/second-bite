@@ -624,6 +624,55 @@ func (q *Queries) OffersForAdmins(ctx context.Context, arg OffersForAdminsParams
 	return items, nil
 }
 
+const postDays = `-- name: PostDays :many
+SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
+       count(*) AS offers, sum(units)::bigint AS units
+FROM offer_offers
+WHERE window_start >= $1 AND window_start < $2
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+GROUP BY 1, 2
+ORDER BY 1, 2
+`
+
+type PostDaysParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type PostDaysRow struct {
+	Day      pgtype.Date
+	SellerID uuid.UUID
+	Offers   int64
+	Units    int64
+}
+
+// The offers posted and their units, per collection day in Vietnam and seller, for the admin's report (SEC-80).
+func (q *Queries) PostDays(ctx context.Context, arg PostDaysParams) ([]PostDaysRow, error) {
+	rows, err := q.db.Query(ctx, postDays, arg.Since, arg.Until, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PostDaysRow
+	for rows.Next() {
+		var i PostDaysRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.SellerID,
+			&i.Offers,
+			&i.Units,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const putSettings = `-- name: PutSettings :exec
 UPDATE offer_settings
 SET min_discount_percent = $1, default_radius_km = $2,
@@ -994,6 +1043,35 @@ func (q *Queries) SellerUsesPhoto(ctx context.Context, arg SellerUsesPhotoParams
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const sellersOfOffers = `-- name: SellersOfOffers :many
+SELECT id, seller_id FROM offer_offers WHERE id = ANY($1::uuid[])
+`
+
+type SellersOfOffersRow struct {
+	ID       uuid.UUID
+	SellerID uuid.UUID
+}
+
+func (q *Queries) SellersOfOffers(ctx context.Context, ids []uuid.UUID) ([]SellersOfOffersRow, error) {
+	rows, err := q.db.Query(ctx, sellersOfOffers, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SellersOfOffersRow
+	for rows.Next() {
+		var i SellersOfOffersRow
+		if err := rows.Scan(&i.ID, &i.SellerID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const takeUnits = `-- name: TakeUnits :one

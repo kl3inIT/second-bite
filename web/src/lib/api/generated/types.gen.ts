@@ -186,6 +186,47 @@ export type CollectionPointBody = {
     longitude: number;
 };
 
+export type CountsBody = {
+    cancelled: number;
+    collected: number;
+    /**
+     * What the collected orders came to at the counter
+     */
+    collectedVnd: number;
+    /**
+     * Orders the customer did not come for
+     */
+    expired: number;
+    /**
+     * Orders, however they ended
+     */
+    held: number;
+    /**
+     * Opens of the home; none for a store
+     */
+    homeViews: number;
+    /**
+     * Offers posted for the day
+     */
+    offers: number;
+    /**
+     * Browsers that opened them, each counted once a day
+     */
+    people: number;
+    /**
+     * Opens the poster's code brought (utm_source=qr)
+     */
+    qrViews: number;
+    refused: number;
+    unitsCollected: number;
+    unitsHeld: number;
+    unitsPosted: number;
+    /**
+     * Pages opened
+     */
+    views: number;
+};
+
 export type DeleteAccountInputBody = {
     challengeId: string;
     /**
@@ -824,6 +865,39 @@ export type RejectSellerRequest = {
      * What the owner is told, 10 to 500 characters
      */
     reason: string;
+};
+
+export type ReportDayBody = {
+    day: string;
+};
+
+export type ReportOutputBody = {
+    /**
+     * Every day of the range, in order
+     */
+    days: Array<ReportDayBody> | null;
+    since: string;
+    /**
+     * Each store on each day it has numbers, by day then name
+     */
+    storeDays: Array<ReportStoreDayBody> | null;
+    /**
+     * Each store with numbers in the range, the most orders first
+     */
+    stores: Array<ReportStoreBody> | null;
+    totals: CountsBody;
+    until: string;
+};
+
+export type ReportStoreBody = {
+    name: string;
+    sellerId: string;
+};
+
+export type ReportStoreDayBody = {
+    day: string;
+    name: string;
+    sellerId: string;
 };
 
 export type RequestCodeInputBody = {
@@ -1649,6 +1723,44 @@ export type ListOrdersForAdminsResponses = {
 };
 
 export type ListOrdersForAdminsResponse = ListOrdersForAdminsResponses[keyof ListOrdersForAdminsResponses];
+
+export type GetReportData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+         */
+        since?: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included; today when empty
+         */
+        until?: string;
+        /**
+         * Keep one store's numbers; the views are then its page's and its dishes'
+         */
+        sellerId?: string;
+    };
+    url: '/admin/reports';
+};
+
+export type GetReportErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetReportError = GetReportErrors[keyof GetReportErrors];
+
+export type GetReportResponses = {
+    /**
+     * OK
+     */
+    200: ReportOutputBody;
+};
+
+export type GetReportResponse = GetReportResponses[keyof GetReportResponses];
 
 export type ListSellersForAdminsData = {
     body?: never;

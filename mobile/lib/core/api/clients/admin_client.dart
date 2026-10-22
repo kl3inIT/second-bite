@@ -21,6 +21,7 @@ import '../models/memberships_output_body.dart';
 import '../models/offer_settings_body.dart';
 import '../models/record_body.dart';
 import '../models/reject_seller_request.dart';
+import '../models/report_output_body.dart';
 import '../models/role.dart';
 import '../models/save_email_settings_input_body.dart';
 import '../models/seller_body.dart';
@@ -200,6 +201,22 @@ abstract class AdminClient {
     @Query('sellerId') String? sellerId,
     @Query('collectSince') DateTime? collectSince,
     @Query('collectUntil') DateTime? collectUntil,
+  });
+
+  /// The prototype's numbers per day and store: pages opened, posts and orders.
+  ///
+  /// Days are Vietnam's; posts and orders count on their collection day. People add up over days, since a visitor is counted once a day.
+  ///
+  /// [since] - The first day in Vietnam, YYYY-MM-DD; six days before until when empty.
+  ///
+  /// [until] - The last day in Vietnam, YYYY-MM-DD, included; today when empty.
+  ///
+  /// [sellerId] - Keep one store's numbers; the views are then its page's and its dishes'.
+  @GET('/admin/reports')
+  Future<ReportOutputBody> getReport({
+    @Query('since') String? since,
+    @Query('until') String? until,
+    @Query('sellerId') String? sellerId,
   });
 
   /// Sellers by status and words, pending ones first.
