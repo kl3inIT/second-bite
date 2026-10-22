@@ -1523,13 +1523,11 @@
           "price": "Giá bán",
           "discount": "Giảm",
           "left": "Còn lại",
-          "window": "Khung nhận",
-          "open": "Xem"
+          "window": "Khung nhận"
         },
         "discount": "-{discount}%",
         "unitsLeft": "{left}/{units} {unit}",
         "window": "{from}–{until}",
-        "openPost": "Xem bài {name}",
         "panel": {
           "title": "Chi tiết bài đăng",
           "description": "Mô tả",
@@ -1554,9 +1552,7 @@
         },
         "ordersTable": "Đơn hàng của cửa hàng",
         "noOrders": "Không có đơn nào trong ngày này",
-        "orderNoun": "đơn",
-        "orderActions": "Thao tác với đơn {number}",
-        "viewOrder": "Xem chi tiết"
+        "orderNoun": "đơn"
       },
       "reasonInvalid": "Ghi lý do cho chủ cửa hàng, từ 10 đến 500 ký tự."
     },
@@ -1583,18 +1579,19 @@
         "left": "Còn",
         "window": "Khung nhận",
         "status": "Trạng thái",
-        "open": "Xem"
+        "actions": "Thao tác"
       },
       "unitsLeft": "{left}/{units} {unit}",
       "window": "{from}–{until}",
-      "openPost": "Xem bài {name}",
       "empty": {
         "title": "Chưa có bài đăng nào"
       },
       "noResults": {
         "title": "Không có bài đăng nào khớp bộ lọc",
         "clear": "Xoá bộ lọc"
-      }
+      },
+      "actions": "Thao tác với bài {name}",
+      "view": "Xem chi tiết"
     },
     "orders": {
       "title": "Đơn hàng",
@@ -1626,7 +1623,8 @@
         "number": "Mã đơn",
         "total": "Tổng tiền",
         "status": "Trạng thái",
-        "window": "Khung nhận"
+        "window": "Khung nhận",
+        "actions": "Thao tác"
       },
       "line": "{name} × {units}",
       "moreLines": "+{count} món",
@@ -1688,7 +1686,9 @@
         "place": "Nơi nhận",
         "payment": "Thanh toán",
         "atCounter": "Trả tại quầy"
-      }
+      },
+      "actions": "Thao tác với đơn {number}",
+      "view": "Xem chi tiết"
     }
   },
   "Review": {

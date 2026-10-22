@@ -19,11 +19,13 @@ import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
 import { DayRange } from "@/features/admin/day-range";
 import { ListFooter } from "@/features/admin/list-footer";
 import { SearchBox } from "@/features/admin/search-box";
+import { StoreThumb } from "@/features/admin-sellers/seller-parts";
 import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import type { OrderBody, OrderCountsBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
 
+import { OrderActions } from "./order-actions";
 import { OrderStatusBadge } from "./order-status";
 import {
   cardStates,
@@ -237,30 +239,35 @@ function useColumns(): DataTableColumns<OrderBody> {
     {
       id: "store",
       header: t("column.store"),
+      meta: { width: "w-56" },
+      // An order carries its store's name, not its photo, so the store shows as its initials (StoreThumb).
       cell: ({ row }) => (
-        <Link
-          href={`/admin/sellers/${row.original.seller.id}`}
-          className={cn("text-body-sm-strong", linkLook)}
-        >
-          {row.original.seller.name}
-        </Link>
+        <div className="flex items-center gap-2.5">
+          <StoreThumb seller={row.original.seller} />
+          <Link
+            href={`/admin/sellers/${row.original.seller.id}`}
+            className={cn("truncate text-body-sm-strong text-foreground", linkLook)}
+          >
+            {row.original.seller.name}
+          </Link>
+        </div>
       ),
     },
     {
       id: "customer",
       header: t("column.customer"),
+      meta: { width: "w-28" },
       cell: ({ row }) => row.original.customerName,
     },
     {
       id: "lines",
       header: t("column.lines"),
-      cell: ({ row }) => (
-        <span className="block min-w-48 text-muted-foreground">{summary(row.original)}</span>
-      ),
+      cell: ({ row }) => <span className="text-muted-foreground">{summary(row.original)}</span>,
     },
     {
       id: "number",
       header: t("column.number"),
+      meta: { width: "w-28" },
       cell: ({ row }) => (
         <Link
           href={`/admin/orders/${row.original.id}`}
@@ -273,6 +280,7 @@ function useColumns(): DataTableColumns<OrderBody> {
     {
       id: "total",
       header: t("column.total"),
+      meta: { width: "w-24" },
       cell: ({ row }) => (
         <span className="whitespace-nowrap">{formatPrice(row.original.totalVnd)}</span>
       ),
@@ -280,19 +288,21 @@ function useColumns(): DataTableColumns<OrderBody> {
     {
       id: "status",
       header: t("column.status"),
+      meta: { width: "w-40" },
       cell: ({ row }) => <OrderStatusBadge status={row.original.status} />,
     },
     {
       id: "window",
       header: t("column.window"),
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap">
-          {t("window", {
-            from: time(row.original.windowStart),
-            until: time(row.original.windowEnd),
-          })}
-        </span>
-      ),
+      meta: { width: "w-28" },
+      cell: ({ row }) =>
+        t("window", { from: time(row.original.windowStart), until: time(row.original.windowEnd) }),
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">{t("column.actions")}</span>,
+      meta: { width: "w-16" },
+      cell: ({ row }) => <OrderActions order={row.original} />,
     },
   ];
 }

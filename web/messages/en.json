@@ -1523,13 +1523,11 @@
           "price": "Price",
           "discount": "Discount",
           "left": "Left",
-          "window": "Pick-up",
-          "open": "View"
+          "window": "Pick-up"
         },
         "discount": "-{discount}%",
         "unitsLeft": "{left}/{units} {unit}",
         "window": "{from}–{until}",
-        "openPost": "View post {name}",
         "panel": {
           "title": "Post details",
           "description": "Description",
@@ -1554,9 +1552,7 @@
         },
         "ordersTable": "The store's orders",
         "noOrders": "No order on this day",
-        "orderNoun": "orders",
-        "orderActions": "Actions for order {number}",
-        "viewOrder": "View details"
+        "orderNoun": "orders"
       },
       "reasonInvalid": "Write the owner a reason of 10 to 500 characters."
     },
@@ -1583,18 +1579,19 @@
         "left": "Left",
         "window": "Window",
         "status": "Status",
-        "open": "Open"
+        "actions": "Actions"
       },
       "unitsLeft": "{left}/{units} {unit}",
       "window": "{from}–{until}",
-      "openPost": "Open the post {name}",
       "empty": {
         "title": "No posts yet"
       },
       "noResults": {
         "title": "No post matches the filters",
         "clear": "Clear the filters"
-      }
+      },
+      "actions": "Actions for post {name}",
+      "view": "View details"
     },
     "orders": {
       "title": "Orders",
@@ -1626,7 +1623,8 @@
         "number": "Order",
         "total": "Total",
         "status": "Status",
-        "window": "Pickup window"
+        "window": "Pickup window",
+        "actions": "Actions"
       },
       "line": "{name} × {units}",
       "moreLines": "+{count, plural, one {# item} other {# items}}",
@@ -1688,7 +1686,9 @@
         "place": "Pickup place",
         "payment": "Payment",
         "atCounter": "Pay at the counter"
-      }
+      },
+      "actions": "Actions for order {number}",
+      "view": "View details"
     }
   },
   "Review": {

@@ -268,12 +268,13 @@ function useColumns(
     {
       id: "name",
       header: () => sortable("name", t("column.store")),
+      meta: { width: "w-64" },
       cell: ({ row }) => (
-        <div className="flex min-w-48 items-center gap-2.5">
+        <div className="flex items-center gap-2.5">
           <StoreThumb seller={row.original} />
           <Link
             href={`/admin/sellers/${row.original.id}`}
-            className="text-body-sm-strong text-foreground hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+            className="truncate text-body-sm-strong text-foreground hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
           >
             {row.original.name}
           </Link>
@@ -283,23 +284,24 @@ function useColumns(
     {
       id: "address",
       header: () => sortable("address", t("column.address")),
-      cell: ({ row }) => <span className="min-w-48">{row.original.address}</span>,
+      cell: ({ row }) => row.original.address,
     },
     {
       id: "phone",
       header: t("column.phone"),
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap">{shownPhone(row.original.phone)}</span>
-      ),
+      meta: { width: "w-36" },
+      cell: ({ row }) => shownPhone(row.original.phone),
     },
     {
       id: "status",
       header: t("column.status"),
+      meta: { width: "w-40" },
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       id: "changed",
       header: () => sortable("changed", t("column.changed")),
+      meta: { width: "w-32" },
       cell: ({ row }) => (
         <time dateTime={row.original.updatedAt} className="whitespace-nowrap">
           {format.dateTime(new Date(row.original.updatedAt), "day")}
@@ -309,6 +311,7 @@ function useColumns(
     {
       id: "actions",
       header: () => <span className="sr-only">{t("column.actions")}</span>,
+      meta: { width: "w-16" },
       cell: ({ row }) => <StoreActions seller={row.original} />,
     },
   ];

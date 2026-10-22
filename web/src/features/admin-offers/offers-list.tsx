@@ -1,6 +1,5 @@
 "use client";
 
-import { EyeIcon } from "lucide-react";
 import Image from "next/image";
 import { debounce, useQueryStates } from "nuqs";
 import { useFormatter, useTranslations } from "next-intl";
@@ -27,6 +26,7 @@ import type { AdminOfferBody, OfferBody, OfferCountsBody } from "@/lib/api/gener
 import { photoUrl } from "@/lib/api/photo";
 import { cn } from "@/lib/utils";
 
+import { OfferActions } from "./offer-actions";
 import { OfferStatusBadge, statusLook } from "./offer-status";
 import {
   cardStatuses,
@@ -244,7 +244,7 @@ function useColumns(onOpen: (offer: OfferBody) => void): DataTableColumns<AdminO
       id: "dish",
       header: t("column.dish"),
       cell: ({ row }) => (
-        <span className="flex min-w-48 items-center gap-3">
+        <span className="flex items-center gap-3">
           <span className="relative size-9 shrink-0 overflow-hidden rounded-md bg-muted">
             <Image
               src={photoUrl(row.original.offer.photo.smallPath)}
@@ -255,13 +255,14 @@ function useColumns(onOpen: (offer: OfferBody) => void): DataTableColumns<AdminO
               className="object-cover"
             />
           </span>
-          <span className="text-body-sm-strong">{row.original.offer.name}</span>
+          <span className="truncate text-body-sm-strong">{row.original.offer.name}</span>
         </span>
       ),
     },
     {
       id: "store",
       header: t("column.store"),
+      meta: { width: "w-48" },
       cell: ({ row }) => (
         <Link
           href={`/admin/sellers/${row.original.offer.sellerId}`}
@@ -274,55 +275,41 @@ function useColumns(onOpen: (offer: OfferBody) => void): DataTableColumns<AdminO
     {
       id: "price",
       header: t("column.price"),
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap">{formatPrice(row.original.offer.priceVnd)}</span>
-      ),
+      meta: { width: "w-24" },
+      cell: ({ row }) => formatPrice(row.original.offer.priceVnd),
     },
     {
       id: "left",
       header: t("column.left"),
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap">
-          {t("unitsLeft", {
-            left: row.original.offer.unitsLeft,
-            units: row.original.offer.units,
-            unit: row.original.offer.unit,
-          })}
-        </span>
-      ),
-    },
-    {
-      id: "window",
-      header: t("column.window"),
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap">
-          {t("window", {
-            from: time(row.original.offer.windowStart),
-            until: time(row.original.offer.windowEnd),
-          })}
-        </span>
-      ),
+      meta: { width: "w-28" },
+      cell: ({ row }) =>
+        t("unitsLeft", {
+          left: row.original.offer.unitsLeft,
+          units: row.original.offer.units,
+          unit: row.original.offer.unit,
+        }),
     },
     {
       id: "status",
       header: t("column.status"),
+      meta: { width: "w-32" },
       cell: ({ row }) => <OfferStatusBadge status={row.original.offer.status} />,
     },
     {
-      id: "open",
-      header: () => <span className="sr-only">{t("column.open")}</span>,
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={t("openPost", { name: row.original.offer.name })}
-            onClick={() => onOpen(row.original.offer)}
-          >
-            <EyeIcon aria-hidden />
-          </Button>
-        </div>
-      ),
+      id: "window",
+      header: t("column.window"),
+      meta: { width: "w-28" },
+      cell: ({ row }) =>
+        t("window", {
+          from: time(row.original.offer.windowStart),
+          until: time(row.original.offer.windowEnd),
+        }),
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">{t("column.actions")}</span>,
+      meta: { width: "w-16" },
+      cell: ({ row }) => <OfferActions offer={row.original.offer} onOpen={onOpen} />,
     },
   ];
 }

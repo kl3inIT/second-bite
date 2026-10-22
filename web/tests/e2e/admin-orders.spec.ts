@@ -54,6 +54,15 @@ test.describe("the admin's orders", () => {
     await expect(first).toContainText("Tiệm bánh Pháp");
     await expect(first).toContainText("+1 món");
     await expectNoSeriousA11yViolations(page);
+
+    // Its "⋯" opens a menu whose "Xem chi tiết" leads to the order's page.
+    await (
+      await hydrated(first.getByRole("button", { name: "Thao tác với đơn SB-24831" }))
+    ).click();
+    await expect(page.getByRole("menuitem", { name: "Xem chi tiết" })).toHaveAttribute(
+      "href",
+      /\/vi\/admin\/orders\/or-admin-00$/,
+    );
   });
 
   test("a card filters its orders, and words find a store's", async ({ page }) => {
