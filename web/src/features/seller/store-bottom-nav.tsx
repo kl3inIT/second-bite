@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
+import { StoreUnreadPill } from "./store-unread-pill";
 import { isTabOpen, storeTabs } from "./store-tabs";
 
 const icons: Record<(typeof storeTabs)[number]["key"], LucideIcon> = {
@@ -52,7 +53,15 @@ export function StoreBottomNav() {
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <Icon aria-hidden className="size-5" />
+                  <span className="relative">
+                    <Icon aria-hidden className="size-5" />
+                    {key === "orders" ? (
+                      <StoreUnreadPill
+                        sellerId={pathname.split("/")[2]}
+                        className="absolute -top-1.5 -right-3"
+                      />
+                    ) : null}
+                  </span>
                   <span className={open ? "text-label-strong" : "text-label"}>{t(key)}</span>
                 </Link>
               </li>

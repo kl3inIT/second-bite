@@ -3,6 +3,9 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
+import { ChatEntry } from "@/features/chat/chat-entry";
+import { UnreadBanner } from "@/features/chat/unread-banner";
+import { LiveRefresh } from "@/features/orders/live-refresh";
 import { hoursAndMinutes, unitsOf, windowPhase } from "@/features/orders/order";
 import { Link } from "@/i18n/navigation";
 import type { OrderBody } from "@/lib/api/generated";
@@ -81,6 +84,11 @@ export async function StoreOrder({
 
   return (
     <>
+      <LiveRefresh
+        topics={[`seller:${sellerId}`]}
+        orderIds={[order.id]}
+        at={[order.windowStart, order.windowEnd]}
+      />
       <div className="flex flex-col gap-4 max-md:mb-28">
         <Link
           href={list}
@@ -89,6 +97,13 @@ export async function StoreOrder({
           <ChevronLeftIcon aria-hidden className="size-4" />
           {t("detail.back")}
         </Link>
+
+        <UnreadBanner
+          orderId={order.id}
+          side="seller"
+          unread={order.unreadMessages}
+          href={`/stores/${sellerId}/orders/${order.id}/chat`}
+        />
 
         <section
           aria-labelledby={`store-order-${order.id}`}
@@ -153,15 +168,23 @@ export async function StoreOrder({
           <div className="lg:col-span-3">
             <OrderLines order={order} />
           </div>
-          <Next order={order} list={`/stores/${sellerId}/orders`} />
+          <div className="flex flex-col gap-3 lg:col-span-2">
+            <Next order={order} list={`/stores/${sellerId}/orders`} />
+            <ChatEntry
+              order={order}
+              side="seller"
+              href={`/stores/${sellerId}/orders/${order.id}/chat`}
+              variant="outline"
+            />
+          </div>
         </div>
       </div>
     </>
   );
 }
 
-/** What the seller can do with the order now: the next step and cancelling, or taking a mistake back. */
-async function Next({ order, list }: { order: OrderBody; list: string }) {
+/** What the seller can do with the order now: the next step and cancelling, or taking a mistake back (Figma Q5j, Q5k). */
+export async function Next({ order, list }: { order: OrderBody; list: string }) {
   const t = await getTranslations("StoreOrders.detail");
   const stage =
     order.status === "confirmed" ? "preparing" : order.status === "ready" ? "ready" : undefined;
@@ -171,7 +194,7 @@ async function Next({ order, list }: { order: OrderBody; list: string }) {
   return (
     <section
       aria-labelledby={`order-next-${order.id}`}
-      className="flex flex-col gap-3 md:rounded-3xl md:bg-card md:p-5 md:text-card-foreground lg:col-span-2"
+      className="flex flex-col gap-3 md:rounded-3xl md:bg-card md:p-5 md:text-card-foreground"
     >
       <div className="flex flex-col max-md:hidden">
         <h2 id={`order-next-${order.id}`} className="text-body-sm-strong">

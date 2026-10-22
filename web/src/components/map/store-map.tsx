@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 import { STREET_ZOOM } from "./map-style";
 import type { Point } from "./location-picker";
@@ -25,6 +26,7 @@ export function StoreMap({
   onOpen,
   openLabel,
   href,
+  className,
 }: {
   point: Point;
   label: string;
@@ -33,11 +35,16 @@ export function StoreMap({
   openLabel?: string;
   /** Directions to the point, opened in a new tab. */
   href?: string;
+  /** Sizes the figure, as a card that holds it small does. */
+  className?: string;
 }) {
   return (
     <figure
       aria-label={label}
-      className="relative h-40 overflow-hidden rounded-xl border border-border bg-muted"
+      className={cn(
+        "relative h-40 overflow-hidden rounded-xl border border-border bg-muted",
+        className,
+      )}
     >
       <HanoiMap
         view={{ ...point, zoom: STREET_ZOOM }}

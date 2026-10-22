@@ -4,6 +4,7 @@ import { getFormatter, getTimeZone, getTranslations } from "next-intl/server";
 
 import { BiteCorner } from "@/components/bite-corner";
 import { buttonVariants } from "@/components/ui/button";
+import { UnreadPill } from "@/components/unread-pill";
 import { formatPrice } from "@/features/offers/format";
 import { listOffers } from "@/features/offers/list-offers";
 import { TonightOffers } from "@/features/offers/tonight-offers";
@@ -11,7 +12,8 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { photoUrl } from "@/lib/api/photo";
 
-import { dayOf, type Day, type Order } from "./order";
+import { LiveRefresh } from "./live-refresh";
+import { dayOf, dishesOf, type Day, type Order } from "./order";
 import { readMyOrderLists } from "./read-orders";
 import { SignInPrompt } from "./sign-in-prompt";
 
@@ -22,32 +24,31 @@ export function readWhich(value: unknown): Which {
   return value === "ended" ? "ended" : "open";
 }
 
+/** The order's first dish; the count of messages not read yet sits at its top right (SEC-117). */
 function Thumb({ order, size }: { order: Order; size: "md" | "sm" }) {
   const photo = order.lines[0]?.photo;
   return (
-    <span
-      className={cn(
-        "relative shrink-0 overflow-hidden bg-muted",
-        size === "md" ? "size-18 rounded-lg" : "size-13 rounded-md",
-      )}
-    >
-      {photo ? (
-        <Image
-          src={photoUrl(photo.smallPath)}
-          alt=""
-          fill
-          sizes={size === "md" ? "72px" : "52px"}
-          unoptimized
-          className="object-cover"
-        />
-      ) : null}
+    <span className="relative shrink-0">
+      <span
+        className={cn(
+          "relative block overflow-hidden bg-muted",
+          size === "md" ? "size-18 rounded-lg" : "size-13 rounded-md",
+        )}
+      >
+        {photo ? (
+          <Image
+            src={photoUrl(photo.smallPath)}
+            alt=""
+            fill
+            sizes={size === "md" ? "72px" : "52px"}
+            unoptimized
+            className="object-cover"
+          />
+        ) : null}
+      </span>
+      <UnreadPill count={order.unreadMessages ?? 0} className="absolute -top-1.5 -right-1.5" />
     </span>
   );
-}
-
-/** The dishes of an order on one line: "Croissant & bánh mì chà bông". */
-function dishesOf(order: Order): string {
-  return order.lines.map((line) => line.name).join(" & ");
 }
 
 /**
@@ -170,6 +171,10 @@ export async function MyOrders({ which: pending }: { which: Promise<Which> }) {
 
   return (
     <div className="lg:mx-auto lg:flex lg:w-full lg:max-w-300 lg:items-start lg:gap-6 lg:px-4 lg:py-4">
+      <LiveRefresh
+        topics={open.map((order) => `order:${order.id}`)}
+        at={open.map((order) => order.windowEnd)}
+      />
       <div className="lg:flex lg:min-w-0 lg:flex-1 lg:flex-col lg:gap-4">
         <nav
           aria-label={t("lists")}
