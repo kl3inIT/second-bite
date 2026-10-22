@@ -347,7 +347,7 @@
   },
   "Account": {
     "signIn": "Đăng nhập",
-    "openStore": "Quán của tôi",
+    "openStore": "Mở quán",
     "menu": "Tài khoản {email}",
     "signedInAs": "Đã đăng nhập: {email}",
     "signOut": "Đăng xuất",

@@ -175,7 +175,7 @@ test.describe("opening a store on the web", () => {
     }
 
     await page.goto("/vi");
-    await page.getByRole("link", { name: "Quán của tôi" }).click();
+    await page.getByRole("link", { name: "Mở quán" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Quán của tôi" })).toBeVisible();
     await expect(page.getByRole("link", { name: /Quán Một/ })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
