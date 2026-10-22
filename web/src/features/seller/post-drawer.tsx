@@ -3,7 +3,7 @@
 import { revalidateLogic } from "@tanstack/react-form";
 import Image from "next/image";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import { refuse, useAppForm } from "@/components/form/app-form";
@@ -111,6 +111,11 @@ function PostDrawerBody({
   const locked = ordered > 0;
 
   const [step, setStep] = useState<1 | 2 | 3>(base ? 3 : 1);
+  // The body scrolls, and keeps where it was when the step changes, so a step opens at its top, not where the one before ended.
+  const body = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    body.current?.scrollTo({ top: 0 });
+  }, [step]);
   const [source, setSource] = useState<"catalog" | "earlier" | "oneoff">(
     catalog.length > 0 ? "catalog" : dishes.length > 0 ? "earlier" : "oneoff",
   );
@@ -324,6 +329,7 @@ function PostDrawerBody({
         </SheetHeader>
 
         <form
+          ref={body}
           id={form.formId}
           noValidate
           className="flex min-w-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto px-4 pb-4 sm:px-6"
