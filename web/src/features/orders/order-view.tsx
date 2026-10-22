@@ -5,6 +5,7 @@ import { BackButton } from "@/components/back-button";
 import { PageBar } from "@/components/page-bar";
 import { buttonVariants } from "@/components/ui/button";
 import { ChatEntry } from "@/features/chat/chat-entry";
+import { PushCard } from "@/features/notification/push-card";
 import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -183,6 +184,13 @@ export function OpenOrder({
         )}
       >
         <div className="max-lg:contents lg:flex lg:min-w-0 lg:flex-1 lg:flex-col lg:gap-4">
+          {/* Notices of this order and the others of its cart still to collect (SEC-25). */}
+          <PushCard
+            side="customer"
+            topics={[order, ...together]
+              .filter((each) => each.status === "confirmed" || each.status === "ready")
+              .map((each) => `order:${each.id}`)}
+          />
           {/* Figma D2 has no steps to collect before the order is ready; D4 has them in both. */}
           <div className={cn(!ready && "max-md:hidden")}>
             <HowToCollect order={order} />

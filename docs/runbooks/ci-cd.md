@@ -81,7 +81,7 @@ Under `/apps/secondbite-staging`:
 | `incoming` | `secondbite-ci`, `0700` | One directory per uploaded release; `deploy.sh` keeps the current and previous ones |
 | `deployments` | root, `0700` | `lock`, `current.env`, `previous.env` |
 | `backups` | root, `0700` | Pre-deployment dumps (the five newest) and nightly dumps (the 14 newest) |
-| `secrets` | root, `0700` | `database-password`, `email-settings-key` and `sign-in-code-key`, each owned by uid 65532 (the server's distroless `nonroot` user) with mode `0400` |
+| `secrets` | root, `0700` | `database-password`, `email-settings-key`, `sign-in-code-key` and `push-private-key`, each owned by uid 65532 (the server's distroless `nonroot` user) with mode `0400` |
 | `map` | root, `0755`, files world-readable | The map the web draws a store's pin on (SEC-66): `hanoi.pmtiles`, `fonts/` and `sprites/`, written by [`infrastructure/map/fetch.sh`](../../infrastructure/map/fetch.sh) and served read-only by `secondbite-staging-map` |
 | `.env.staging` | root, `0600` | The non-secret values of [`staging.env.example`](../../infrastructure/deployment/staging.env.example) |
 
@@ -131,6 +131,18 @@ What each secret does ([backend runbook](backend.md)):
 - `database-password` sets the password only when PostgreSQL first creates its data directory. Changing the file later does not change the database.
 - Replacing `email-settings-key` makes the stored email provider key unreadable until an admin enters it again.
 - Replacing `sign-in-code-key` voids the codes sent in the last 15 minutes.
+
+**Web Push** (SEC-25). The VAPID key pair is made by the server's own command, in the running image, with no network. It writes the private key to the secrets and prints only the public key, which goes into `.env.staging`. Staging's was made on 22 October 2026.
+
+```sh
+root=/apps/secondbite-staging
+image=$(sudo docker inspect --format '{{.Config.Image}}' secondbite-staging-server)
+public=$(sudo docker run --rm --user 0 --network none -v $root/secrets:/out "$image" push keys -private-key-file /out/push-private-key)
+sudo chown 65532:65532 $root/secrets/push-private-key && sudo chmod 0400 $root/secrets/push-private-key
+printf 'SECONDBITE_PUSH_PUBLIC_KEY=%s\nSECONDBITE_SITE_URL=https://secondbite.vadan.app\n' "$public" | sudo tee -a $root/.env.staging >/dev/null
+```
+
+Replacing the pair voids every browser's subscription: each one subscribes again at its next visit to the order page or the Đơn tab.
 
 **Email.** Staging sends real email through Brevo's API, from `noreply@vadan.app` as "Second Bite (staging)", since 21 October 2026. There is no Mailpit on staging: a sign-in code goes to the inbox that was typed, so test with an address you can read. The Brevo API key is sealed in the database under `email-settings-key`, never in a file or the environment. An admin changes the provider, the sender or the key on the site at `/vi/admin/settings/email` (`PUT /admin/email-settings`); from the host, the same is a command reading the key from standard input:
 

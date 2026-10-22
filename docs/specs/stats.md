@@ -1,6 +1,6 @@
 # stats
 
-Owns the pages people open on the site, counted for the prototype's numbers (SEC-80, [design](../increments/active/sec-80-prototype-numbers/design.md)): one row per view, and the salt of each day (tables `stats_views` and `stats_salts`). No analytics service is used.
+Owns the pages people open on the site, counted for the prototype's numbers (SEC-80, [design](../increments/completed/sec-80-prototype-numbers/design.md)): one row per view, and the salt of each day (tables `stats_views` and `stats_salts`). No analytics service is used.
 
 ## Operations
 

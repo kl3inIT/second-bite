@@ -1785,11 +1785,9 @@
       "column": {
         "name": "Store",
         "views": "Views",
-        "people": "People",
         "offers": "Posts",
         "held": "Held",
         "collected": "Collected",
-        "cancelled": "Cancelled",
         "expired": "No-shows",
         "share": "Collected %",
         "collectedVnd": "Taken in"
@@ -1944,6 +1942,30 @@
     "failed": "Could not save. Try again in a few minutes.",
     "photoFailed": "The store is open, but its photo did not upload. Choose a photo and save.",
     "location": "Change the store's address and location"
+  },
+  "Push": {
+    "title": {
+      "customer": "Tell me when it's ready",
+      "seller": "Turn on new-order notifications"
+    },
+    "body": {
+      "customer": "Your phone tells you when the food is ready, when the store moves the collection time or writes to you, even with this page closed.",
+      "seller": "A new order, a cancellation or a message rings at once, with no need to watch the screen."
+    },
+    "turnOn": "Turn on notifications",
+    "failed": "Notifications could not be turned on. Try again.",
+    "on": {
+      "customer": "We'll tell you when it's ready.",
+      "seller": "This device gets new-order notifications."
+    },
+    "blockedTitle": "The browser blocks notifications",
+    "blockedBody": "To turn them back on, tap the icon left of the address bar, allow Notifications in the site's permissions, then reload the page.",
+    "install": {
+      "share": "Tap Safari's Share button <icon></icon>.",
+      "shareIcon": "Share",
+      "add": "Choose “Add to Home Screen”.",
+      "open": "Open Second Bite from the Home Screen, then tap Turn on notifications."
+    }
   },
   "Failure": {
     "reference": "Reference: {reference}",
