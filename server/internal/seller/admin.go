@@ -223,7 +223,8 @@ func (s *Service) ownerEmails(ctx context.Context, rows []db.SellersForAdminsRow
 }
 
 // Approve lets a pending, rejected or blocked seller publish, for an admin,
-// and tells its owner.
+// and tells its owner. A seller whose owner deleted their account has no one
+// to run it, so it stays as it is (ErrOwnerless).
 func (s *Service) Approve(ctx context.Context, id uuid.UUID) (Seller, error) {
 	return s.changeStatus(ctx, id, StatusActive, []Status{StatusPending, StatusRejected, StatusBlocked}, "",
 		func(was Status) audit.Action {
@@ -292,6 +293,12 @@ func (s *Service) changeStatus(
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		q := s.queries.WithTx(tx)
 
+		if status == StatusActive {
+			if err := ownerPresent(ctx, q, id); err != nil {
+				return err
+			}
+		}
+
 		left, err := q.ChangeStatus(ctx, db.ChangeStatusParams{
 			ID: id, Status: string(status), FromStatuses: fromStatuses,
 			Reason:    pgtype.Text{String: reason, Valid: reason != ""},
@@ -336,6 +343,36 @@ func (s *Service) changeStatus(
 	)
 
 	return s.Get(ctx, id)
+}
+
+// ownerPresent refuses to activate a seller left without an owner when the
+// owner deleted their account (SEC-65). It locks the seller's row first, so an
+// owner's deletion either commits before the owner is read or blocks the seller
+// again after this transaction.
+func ownerPresent(ctx context.Context, q *db.Queries, id uuid.UUID) error {
+	if err := q.LockSeller(ctx, id); err != nil {
+		return fmt.Errorf("locking the seller: %w", err)
+	}
+
+	has, err := q.HasOwner(ctx, id)
+	if err != nil {
+		return fmt.Errorf("reading the seller's owner: %w", err)
+	}
+
+	if has {
+		return nil
+	}
+
+	exists, err := q.SellerExists(ctx, id)
+	if err != nil {
+		return fmt.Errorf("reading the seller: %w", err)
+	}
+
+	if !exists {
+		return ErrNotFound
+	}
+
+	return ErrOwnerless
 }
 
 // refusedChange tells a seller that does not exist from one in another state.

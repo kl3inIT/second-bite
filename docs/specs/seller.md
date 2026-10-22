@@ -21,7 +21,7 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `GET /sellers/followed` | Anyone signed in | `200 {sellers}`: the active sellers they follow, as the public profile above, the latest followed first; one blocked since is left out (SEC-109) |
 | `GET /admin/sellers?status=&q=&changedSince=&changedUntil=&sort=&page=&size=` | Admins | `200 {items, page, pageSize, total, counts, days}`: sellers in the statuses given (every one when none) whose name, address or phone holds `q`, marks ignored, last changed in `[changedSince, changedUntil)` when given (SEC-62); by default pending ones first, the oldest first, then the latest change first, or sorted by `name`, `address` or `changed` (`-` descending); `counts` gives each status matching `q` and the time range, for the cards above the list; `days` gives how many sellers stood in each status on each of the last 14 days in Vietnam, whatever the filters, from the first day counted (SEC-62); each with its owner's address; `size` 1 to 100, 25 by default; a page past the end is empty (SEC-75) |
 | `GET /admin/memberships?accountId=` | Admins | `200 {memberships}`: the sellers each account given (1 to 100, the parameter repeated) owns or works at, owners first, with the seller's name and status, for the admins' accounts (SEC-75) |
-| `POST /admin/sellers/{sellerId}/approve` | Admins | `200` seller, `active`, from `pending`, `rejected` or `blocked`; its owner emailed |
+| `POST /admin/sellers/{sellerId}/approve` | Admins | `200` seller, `active`, from `pending`, `rejected` or `blocked`; its owner emailed; `409 SELLER_OWNERLESS` when the owner deleted their account (SEC-65) |
 | `POST /admin/sellers/{sellerId}/reject` `{reason}` | Admins | `200` seller, `rejected`, from `pending`; its owner emailed the reason |
 | `POST /admin/sellers/{sellerId}/block` `{reason}` | Admins | `200` seller, `blocked`, from `active`; its owner emailed the reason |
 
@@ -29,7 +29,7 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 
 ## Rules
 
-- Statuses (SEC-75): `pending`, `active`, `rejected`, `blocked`. A seller is `active` when opened (SEC-57); whether a store waits for an admin's approval is decided after the pilot (SEC-64). An admin approves a pending, rejected or blocked seller, rejects a pending one and blocks an active one; any other change answers `SELLER_STATUS_CHANGE_NOT_ALLOWED`. Each change is one conditional update, so two admins at once cannot both pass.
+- Statuses (SEC-75): `pending`, `active`, `rejected`, `blocked`. A seller is `active` when opened (SEC-57); whether a store waits for an admin's approval is decided after the pilot (SEC-64). An admin approves a pending, rejected or blocked seller, rejects a pending one and blocks an active one; any other change answers `SELLER_STATUS_CHANGE_NOT_ALLOWED`. Each change is one conditional update, so two admins at once cannot both pass. A seller left without an owner, once its owner deleted their account, is never approved: nobody could run it (SEC-65). The approval locks the seller before reading its owner, so a deletion at the same moment either is seen or blocks the seller again after it.
 - Rejecting and blocking take a reason, 10 to 500 characters once trimmed, line breaks kept, other control characters refused. The owner reads it on the seller and in the email; approving clears it. The seller keeps who set its status and when; the history is the audit trail's (`seller.approve`, `seller.reject`, `seller.block`, and `seller.unblock` for an approval of a blocked seller).
 - Each change writes `seller.StatusChangedEvent` (`seller.status_changed`, the seller and the status) in its transaction. Its listener `seller.tell_owner` emails the owner, in Vietnamese then English, unless the seller changed again, is gone or has no owner. Without an email provider it gives up rather than retry; a provider's failure is retried, so an owner may rarely get one email twice.
 - Admins find sellers by words without marks: a generated column folds the name, address and phone with `seller_fold` (NFC, lower case, Vietnamese marks removed, đ as d), and the query is folded by the same function. `%` and `_` are plain letters.
@@ -73,6 +73,7 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 | `SELLER_ALREADY_MEMBER` | 409 | The person already works for the seller |
 | `SELLER_OWNER_CANNOT_LEAVE` | 409 | The owner tries to leave |
 | `SELLER_STATUS_CHANGE_NOT_ALLOWED` | 409 | The action does not apply to the seller's status |
+| `SELLER_OWNERLESS` | 409 | Approving a seller whose owner deleted their account (SEC-65) |
 
 An address that is not one plain address answers `IDENTITY_EMAIL_INVALID`. Adding staff by an address whose account holds a Google link Google does not speak for answers `IDENTITY_ADDRESS_UNPROVEN` (409) until the address's owner has signed in once with the emailed code (SEC-39).
 

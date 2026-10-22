@@ -124,7 +124,7 @@ func startService(t *testing.T) (service, func() error) {
 			"-smtp-host", smtpHost, "-smtp-port", smtpPort, "-smtp-security", "none",
 		},
 	}
-	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail, grantingAdminEmail, auditAdminEmail} {
+	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail, grantingAdminEmail, auditAdminEmail, deletionAdminEmail} {
 		admin = append(admin, []string{commandAdmin, "grant", email})
 	}
 

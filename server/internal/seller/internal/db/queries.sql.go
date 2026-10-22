@@ -365,6 +365,17 @@ func (q *Queries) GetSeller(ctx context.Context, id uuid.UUID) (GetSellerRow, er
 	return i, err
 }
 
+const hasOwner = `-- name: HasOwner :one
+SELECT EXISTS (SELECT 1 FROM seller_members WHERE seller_id = $1 AND role = 'owner')
+`
+
+func (q *Queries) HasOwner(ctx context.Context, sellerID uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, hasOwner, sellerID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const insertFollow = `-- name: InsertFollow :exec
 INSERT INTO seller_follows (account_id, seller_id)
 VALUES ($1, $2)

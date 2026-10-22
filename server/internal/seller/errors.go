@@ -52,6 +52,10 @@ var (
 		VI: "Không đổi được trạng thái cửa hàng theo cách này: chỉ duyệt cửa hàng đang chờ, bị từ chối hoặc bị khoá; chỉ từ chối cửa hàng đang chờ; chỉ khoá cửa hàng đang hoạt động.",
 		EN: "The seller's status cannot change this way: only a pending, rejected or blocked seller is approved, only a pending one rejected, only an active one blocked.",
 	})
+	ErrOwnerless = platform.NewFailure("SELLER_OWNERLESS", platform.CategoryConflict, platform.Words{
+		VI: "Cửa hàng không còn chủ vì chủ đã xoá tài khoản, nên không duyệt lại được.",
+		EN: "The seller has no owner, since its owner deleted their account, so it cannot be approved.",
+	})
 	ErrReasonInvalid = platform.NewFailure("SELLER_REASON_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Ghi lý do cho chủ cửa hàng, từ 10 đến 500 ký tự.",
 		EN: "Write the owner a reason of 10 to 500 characters.",
