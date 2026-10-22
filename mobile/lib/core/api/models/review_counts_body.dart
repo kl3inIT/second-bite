@@ -12,6 +12,7 @@ abstract class ReviewCountsBody with _$ReviewCountsBody {
   const factory ReviewCountsBody({
     required int fiveStars,
     required int fourStars,
+
     /// Hidden reviews of the stars asked, whatever visibility asks
     required int hidden,
     required int oneStar,

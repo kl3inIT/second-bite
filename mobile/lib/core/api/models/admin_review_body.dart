@@ -12,10 +12,13 @@ abstract class AdminReviewBody with _$AdminReviewBody {
   const factory AdminReviewBody({
     /// When the customer rated the order
     required DateTime createdAt,
+
     /// Who collected, as given with the order
     required String customerName,
+
     /// The order reviewed, which names its review
     required String orderId,
+
     /// SB- and a number
     required String orderNumber,
     required String sellerId,
@@ -23,8 +26,10 @@ abstract class AdminReviewBody with _$AdminReviewBody {
     required int stars,
     required List<String> tags,
     String? comment,
+
     /// When an admin hid it; absent while it shows
     DateTime? hiddenAt,
+
     /// Why an admin hid it, when they said
     String? hiddenReason,
   }) = _AdminReviewBody;

@@ -19,6 +19,7 @@ abstract class AdminReviewsOutputBody with _$AdminReviewsOutputBody {
     required int page,
     required int pageSize,
     required int total,
+
     /// The mean stars of the shown reviews matching every filter; absent when none does
     double? average,
   }) = _AdminReviewsOutputBody;
