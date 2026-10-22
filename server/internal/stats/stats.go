@@ -22,7 +22,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"zgo.at/isbot"
 
+	"github.com/kl3inIT/second-bite/server/internal/offer"
+	"github.com/kl3inIT/second-bite/server/internal/order"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
+	"github.com/kl3inIT/second-bite/server/internal/seller"
 	"github.com/kl3inIT/second-bite/server/internal/stats/internal/db"
 )
 
@@ -47,9 +50,13 @@ var sourcePattern = regexp.MustCompile(`^[a-z0-9_-]{1,40}$`)
 // locales are the web's locale prefixes, which a path starts with.
 var locales = map[string]bool{"vi": true, "en": true}
 
-// Service keeps the views.
+// Service keeps the views and reads the admin's report, asking the posts, the
+// orders and the stores' names of the modules that own them.
 type Service struct {
 	queries *db.Queries
+	offers  *offer.Service
+	orders  *order.Service
+	sellers *seller.Service
 	logger  *slog.Logger
 	now     func() time.Time
 
@@ -58,8 +65,11 @@ type Service struct {
 }
 
 // NewService assembles the module.
-func NewService(pool *pgxpool.Pool, logger *slog.Logger) *Service {
-	return &Service{queries: db.New(pool), logger: logger, now: time.Now, salts: map[string][]byte{}}
+func NewService(pool *pgxpool.Pool, offers *offer.Service, orders *order.Service, sellers *seller.Service, logger *slog.Logger) *Service {
+	return &Service{
+		queries: db.New(pool), offers: offers, orders: orders, sellers: sellers, logger: logger,
+		now: time.Now, salts: map[string][]byte{},
+	}
 }
 
 // RegisterSchedules runs the module's nightly cleanup.

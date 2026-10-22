@@ -616,6 +616,35 @@ func (q *Queries) SellerExists(ctx context.Context, id uuid.UUID) (bool, error) 
 	return exists, err
 }
 
+const sellerNames = `-- name: SellerNames :many
+SELECT id, name FROM seller_sellers WHERE id = ANY($1::uuid[])
+`
+
+type SellerNamesRow struct {
+	ID   uuid.UUID
+	Name string
+}
+
+func (q *Queries) SellerNames(ctx context.Context, ids []uuid.UUID) ([]SellerNamesRow, error) {
+	rows, err := q.db.Query(ctx, sellerNames, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SellerNamesRow
+	for rows.Next() {
+		var i SellerNamesRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const sellersForAdmins = `-- name: SellersForAdmins :many
 SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id,
        count(*) OVER () AS total

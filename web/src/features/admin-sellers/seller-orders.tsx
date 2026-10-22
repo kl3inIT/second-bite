@@ -78,11 +78,19 @@ function useColumns(): DataTableColumns<OrderBody> {
       id: "customer",
       header: t("column.customer"),
       meta: { width: "w-36" },
-      cell: ({ row }) => <span className="text-body-sm-strong">{row.original.customerName}</span>,
+      cell: ({ row }) => (
+        <Link
+          href={`/admin/orders/${row.original.id}?from=store`}
+          className="text-body-sm-strong hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+        >
+          {row.original.customerName}
+        </Link>
+      ),
     },
     {
       id: "lines",
       header: t("column.lines"),
+      meta: { width: "w-56" },
       cell: ({ row }) => <span className="text-muted-foreground">{summary(row.original)}</span>,
     },
     {
@@ -107,7 +115,7 @@ function useColumns(): DataTableColumns<OrderBody> {
     {
       id: "status",
       header: t("column.status"),
-      meta: { width: "w-40" },
+      meta: { width: "w-48" },
       cell: ({ row }) => <OrderStatusBadge status={row.original.status} />,
     },
     {

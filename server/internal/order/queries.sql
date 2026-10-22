@@ -370,3 +370,26 @@ UPDATE order_orders SET due_soon_at = @now
 WHERE due_soon_at IS NULL AND state IN ('confirmed', 'ready')
   AND window_start > @now AND window_start <= @before
 RETURNING id, created_at, window_start;
+
+-- name: OrderDays :many
+-- The orders per collection day in Vietnam and seller, by how they ended, for the admin's report (SEC-80). An order
+-- confirmed or ready whose window is over counts as expired, as every read of an order reads it.
+WITH placed AS (
+    SELECT o.*, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
+    FROM order_orders o
+    WHERE o.window_start >= @since AND o.window_start < @until
+      AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+)
+SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
+       count(*) AS held,
+       sum(units)::bigint AS units_held,
+       count(*) FILTER (WHERE state = 'collected') AS collected,
+       coalesce(sum(units) FILTER (WHERE state = 'collected'), 0)::bigint AS units_collected,
+       coalesce(sum(total_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS collected_vnd,
+       count(*) FILTER (WHERE state = 'cancelled') AS cancelled,
+       count(*) FILTER (WHERE state = 'refused') AS refused,
+       count(*) FILTER (WHERE state = 'expired'
+                           OR (state IN ('confirmed', 'ready') AND window_end <= now())) AS expired
+FROM placed
+GROUP BY 1, 2
+ORDER BY 1, 2;

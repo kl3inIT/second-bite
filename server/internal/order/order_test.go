@@ -72,6 +72,7 @@ func TestOrder(t *testing.T) {
 		"old chats are forgotten":                  testOldChatsAreForgotten,
 		"admins list every seller's orders":        testAdminsListOrders,
 		"admins hide a review and show it again":   testAdminsHideReviews,
+		"the report counts the days":               testReportCounts,
 		"pushes tell of each change":               testPushesTellOfEachChange,
 		"pushes tell of time":                      testPushesTellOfTime,
 	} {

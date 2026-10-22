@@ -188,7 +188,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		offers := offer.NewService(pool, sellers, files, events, trail, logger)
 
 		orders := order.NewService(pool, offers, sellers, notifications, trail, logger)
-		views := stats.NewService(pool, logger)
+		views := stats.NewService(pool, offers, orders, sellers, logger)
 
 		// The listeners are known before anything publishes; they run only in
 		// serve.
@@ -310,6 +310,7 @@ func registerOperations(api huma.API, a *app) {
 	offer.RegisterAdminOperations(admin, a.offer)
 	audit.RegisterAdminOperations(admin, a.audit)
 	order.RegisterAdminOperations(admin, a.order)
+	stats.RegisterAdminOperations(admin, a.stats)
 }
 
 // fileConfig reads where files are kept: SECONDBITE_FILE_STORE (postgres by

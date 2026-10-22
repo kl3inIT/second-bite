@@ -130,6 +130,7 @@ function PostsTable({
     {
       id: "post",
       header: t("column.post"),
+      meta: { width: "w-72" },
       cell: ({ row }) => (
         <span className="flex items-center gap-3">
           <span className="relative size-9 shrink-0 overflow-hidden rounded-md bg-muted">
