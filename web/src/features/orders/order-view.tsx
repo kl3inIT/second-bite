@@ -252,7 +252,14 @@ export function CollectedOrder({
       </div>
       <div className={cn(rated && "max-md:hidden")}>
         <OrderBody
-          main={order.review ? <ReviewGiven review={order.review} /> : <ReviewForm order={order} />}
+          // An order rated and its review hidden by admins shows neither (SEC-145): it cannot be rated again.
+          main={
+            order.review ? (
+              <ReviewGiven review={order.review} />
+            ) : order.canReview ? (
+              <ReviewForm order={order} />
+            ) : undefined
+          }
           aside={
             <section
               aria-label={t("details")}

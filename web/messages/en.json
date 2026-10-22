@@ -1122,7 +1122,8 @@
       "orders": "Orders",
       "audit": "Activity log",
       "settings": "Settings",
-      "accounts": "Accounts"
+      "accounts": "Accounts",
+      "reviews": "Reviews"
     },
     "notFound": {
       "crumb": "Not found",
@@ -1164,13 +1165,16 @@
         "adminGrant": "Admin granted",
         "adminRevoke": "Admin revoked",
         "offerSettingsChange": "Post settings changed",
-        "emailSettingsChange": "Email settings changed"
+        "emailSettingsChange": "Email settings changed",
+        "reviewHide": "Hide review",
+        "reviewShow": "Show review"
       },
       "resource": {
         "seller": "Store",
         "account": "Account",
         "offer_settings": "Post settings",
-        "email_settings": "Email settings"
+        "email_settings": "Email settings",
+        "order": "Order"
       },
       "commandLine": "Command line",
       "deletedAccount": "Deleted account",
@@ -1689,6 +1693,67 @@
       },
       "actions": "Actions for order {number}",
       "view": "View details"
+    },
+    "reviews": {
+      "title": "Reviews",
+      "cards": "Reviews at a glance",
+      "card": {
+        "average": "Average",
+        "low": "1–2 stars",
+        "hidden": "Hidden"
+      },
+      "noAverage": "—",
+      "search": "Search comment, order, customer or store",
+      "stars": "Stars",
+      "anyStars": "All",
+      "starCount": "{count, plural, one {# star} other {# stars}}",
+      "store": "Store",
+      "anyStore": "All",
+      "reviewDay": "Reviewed",
+      "anytime": "Any time",
+      "size": "Rows",
+      "noun": "reviews",
+      "column": {
+        "store": "Store",
+        "customer": "Customer",
+        "comment": "Comment",
+        "number": "Order",
+        "stars": "Stars",
+        "status": "Status",
+        "reviewed": "Reviewed",
+        "actions": "Actions"
+      },
+      "noComment": "No comment",
+      "status": {
+        "visible": "Shown",
+        "hidden": "Hidden"
+      },
+      "empty": {
+        "title": "No reviews yet"
+      },
+      "noResults": {
+        "title": "No reviews found",
+        "clear": "Clear filters"
+      },
+      "actions": "Actions for {name}'s review",
+      "viewOrder": "View order",
+      "hide": {
+        "menu": "Hide review",
+        "title": "Hide {name}'s review?",
+        "reason": "Reason",
+        "hint": "Optional, up to 500 characters",
+        "length": "{length}/500",
+        "confirm": "Hide review",
+        "done": "Hid {name}'s review"
+      },
+      "show": {
+        "menu": "Show again",
+        "title": "Show {name}'s review again?",
+        "confirm": "Show again",
+        "done": "Showed {name}'s review again"
+      },
+      "cancel": "Cancel",
+      "unreachable": "The server could not be reached. Try again later."
     }
   },
   "Review": {

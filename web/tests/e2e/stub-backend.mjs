@@ -603,7 +603,22 @@ function withPhotos(value) {
 
 function json(response, status, body, headers = {}) {
   response.writeHead(status, { "content-type": "application/json", ...headers });
-  response.end(JSON.stringify(withPhotos(body)));
+  response.end(JSON.stringify(withPhotos(withCanReview(body))));
+}
+
+/** Every order answered says whether its customer may rate it (SEC-145): collected and never rated. */
+function withCanReview(body) {
+  if (Array.isArray(body)) return body.map(withCanReview);
+  if (!body || typeof body !== "object") return body;
+  const out = Object.fromEntries(Object.entries(body).map(([k, v]) => [k, withCanReview(v)]));
+  if (
+    typeof out.number === "string" &&
+    Array.isArray(out.lines) &&
+    typeof out.status === "string"
+  ) {
+    out.canReview = out.status === "collected" && !out.review;
+  }
+  return out;
 }
 
 async function readBody(request) {
@@ -2234,6 +2249,88 @@ function adminOrdersOf(stores) {
   });
 }
 
+// The reviews admins read (SEC-145): six of the stores' collected orders, two of them poor and one hidden.
+// Each admin gets a copy of their own, so tests side by side can hide and show without meeting.
+const adminReviewsByAccount = new Map();
+
+function adminReviewsOf(account, stores) {
+  if (!adminReviewsByAccount.has(account.email)) {
+    const shops = stores.filter((store) => !store.photoId).slice(0, 3);
+    const seed = [
+      [5, "Bánh còn ấm, túi đầy hơn mình nghĩ.", false],
+      [4, "Cơm ngon, lấy nhanh.", false],
+      [1, "Quán lừa đảo, đồ uống như nước lã.", true],
+      [3, "", false],
+      [2, "Đến đúng giờ mà phải chờ lâu.", false],
+      [5, "Xôi dẻo, hành phi thơm.", false],
+    ];
+    adminReviewsByAccount.set(
+      account.email,
+      seed.map(([stars, comment, hidden], i) => {
+        const store = shops[i % shops.length];
+        const at = new Date(Date.parse("2026-10-21T20:00:00+07:00") - i * 6 * 3600 * 1000);
+        return {
+          orderId: `or-review-${i}`,
+          orderNumber: `SB-${24900 - i}`,
+          sellerId: store.id,
+          sellerName: store.name,
+          customerName: adminCustomers[i % adminCustomers.length],
+          stars,
+          tags: stars >= 4 ? ["good_quality"] : [],
+          ...(comment ? { comment } : {}),
+          createdAt: at.toISOString(),
+          ...(hidden ? { hiddenAt: at.toISOString() } : {}),
+        };
+      }),
+    );
+  }
+  return adminReviewsByAccount.get(account.email);
+}
+
+/** GET /admin/reviews (SEC-145), filtered as server/internal/order/queries.sql does, the latest first. */
+function listAdminReviews(response, url, reviews) {
+  const stars = url.searchParams
+    .getAll("stars")
+    .flatMap((s) => s.split(","))
+    .map(Number);
+  const visibility = url.searchParams.get("visibility");
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sellerId = url.searchParams.get("sellerId");
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const matching = reviews.filter(
+    (r) =>
+      (!q ||
+        fold(`${r.comment ?? ""} ${r.orderNumber} ${r.customerName} ${r.sellerName}`).includes(
+          q,
+        )) &&
+      (!sellerId || r.sellerId === sellerId),
+  );
+  const ofStars = (r) => stars.length === 0 || stars.includes(r.stars);
+  const ofVisibility = (r) =>
+    !visibility || (visibility === "hidden") === (r.hiddenAt !== undefined);
+  const listed = matching.filter((r) => ofStars(r) && ofVisibility(r));
+  const count = (n) => matching.filter((r) => r.stars === n && ofVisibility(r)).length;
+  const shown = visibility === "hidden" ? [] : matching.filter((r) => ofStars(r) && !r.hiddenAt);
+  json(response, 200, {
+    items: listed.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: listed.length,
+    counts: {
+      oneStar: count(1),
+      twoStars: count(2),
+      threeStars: count(3),
+      fourStars: count(4),
+      fiveStars: count(5),
+      hidden: matching.filter((r) => r.hiddenAt && ofStars(r)).length,
+    },
+    ...(shown.length > 0
+      ? { average: shown.reduce((sum, r) => sum + r.stars, 0) / shown.length }
+      : {}),
+  });
+}
+
 /**
  * GET /admin/orders (SEC-135), filtered and paged as server/internal/order/queries.sql does: the statuses, the
  * number with or without SB-, the customer's name or phone or the store's name, a store and the days the
@@ -2402,6 +2499,32 @@ async function adminRoutes(request, response, url) {
   }
   if (request.method === "GET" && url.pathname === "/admin/orders") {
     listAdminOrders(response, url, adminStoresOf(account));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/reviews") {
+    listAdminReviews(response, url, adminReviewsOf(account, adminStoresOf(account)));
+    return true;
+  }
+  const reviewAction = /^\/admin\/reviews\/([\w-]+)\/(hide|show)$/.exec(url.pathname);
+  if (request.method === "POST" && reviewAction) {
+    const review = adminReviewsOf(account, adminStoresOf(account)).find(
+      (r) => r.orderId === reviewAction[1],
+    );
+    if (!review) return (problem(response, 404, "ORDER_NOT_REVIEWED"), true);
+    const hide = reviewAction[2] === "hide";
+    if (hide === (review.hiddenAt !== undefined)) {
+      problem(response, 409, hide ? "ORDER_REVIEW_ALREADY_HIDDEN" : "ORDER_REVIEW_NOT_HIDDEN");
+      return true;
+    }
+    if (hide) {
+      review.hiddenAt = new Date().toISOString();
+      const reason = String((await readBody(request)).reason ?? "").trim();
+      if (reason) review.hiddenReason = reason;
+    } else {
+      delete review.hiddenAt;
+      delete review.hiddenReason;
+    }
+    json(response, 200, review);
     return true;
   }
   const storeAction = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block)$/.exec(url.pathname);
