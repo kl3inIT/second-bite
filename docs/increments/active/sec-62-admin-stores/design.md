@@ -32,7 +32,7 @@ Status: started on 21 October 2026. Tracked in Linear as SEC-62. The screen is F
 
 ## A store's orders (AD-QD6, AD-QD7)
 
-A fourth tab, "Đơn hàng", lists the store's orders of one day, the soonest window first, as `GET /sellers/{id}/orders?day=` answers admins; the day is the seller's lists' `day` parameter, chosen with the app's `DayBar`, whose steps keep the page's `tab`. A row's "⋯" menu and its number open the order's page (SEC-135) with `?from=store`, whose crumbs then read Cửa hàng › the store › the number, each a link back. Admins read orders and never act on them.
+A fourth tab, "Đơn hàng", lists the store's orders of one day, the soonest window first, as `GET /sellers/{id}/orders?day=` answers admins; its count is that day's, not every order's. The day is chosen with the app's `DayBar`, as one more of its lists (`adminStore`: the `day` and the page's `tab`), so its steps keep the tab. A row's "⋯" menu and its number open the order's page (SEC-135) with `?from=store`, whose crumbs then read Cửa hàng › the store › the number, each a link back. Admins read orders and never act on them.
 
 ## Contract
 

@@ -5,14 +5,14 @@ import { useTranslations } from "next-intl";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const tabs = ["overview", "posts", "members", "orders"] as const;
+import { sellerTabs } from "./search-params";
 
 // A tab pressed with the pointer does not take focus, so Chrome does not ring it when a key such as Shift is
 // pressed next; the keyboard still moves focus between the tabs and rings them.
 const keepFocus = (event: React.MouseEvent) => event.preventDefault();
 
 /** The tab open on a store's page, kept in the address so "Xem tất cả" is a link to the posts. */
-export const sellerTab = parseAsStringLiteral(tabs).withDefault("overview");
+export const sellerTab = parseAsStringLiteral(sellerTabs).withDefault("overview");
 
 /**
  * A store's page under its header (Figma AD-Q3): Tổng quan, Bài đăng and Thành viên with their counts. The
@@ -65,11 +65,11 @@ export function SellerTabs({
       <TabsContent value="posts" className="mt-5">
         {postsList}
       </TabsContent>
-      <TabsContent value="orders" className="mt-5">
-        {ordersList}
-      </TabsContent>
       <TabsContent value="members" className="mt-5">
         {membersList}
+      </TabsContent>
+      <TabsContent value="orders" className="mt-5">
+        {ordersList}
       </TabsContent>
     </Tabs>
   );

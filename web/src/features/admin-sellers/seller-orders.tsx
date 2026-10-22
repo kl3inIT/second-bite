@@ -39,12 +39,7 @@ export function SellerOrders({
 
   return (
     <div className="flex flex-col gap-4">
-      <DayBar
-        pathname={`/admin/sellers/${sellerId}`}
-        list="orders"
-        today={today}
-        keep="tab=orders"
-      />
+      <DayBar pathname={`/admin/sellers/${sellerId}`} list="adminStore" today={today} />
       <DataTable
         label={t("ordersTable")}
         columns={columns}

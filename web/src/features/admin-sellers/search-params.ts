@@ -13,6 +13,9 @@ import type { AdminSellerBody } from "@/lib/api/generated";
 
 export type SellerStatus = AdminSellerBody["status"];
 
+/** The tabs of a store's page (Figma AD-Q3, AD-QD6), the first as it opens. */
+export const sellerTabs = ["overview", "posts", "members", "orders"] as const;
+
 /** The cards over the list, each a status it filters by (Figma AD-Q1); rejected stores have none. */
 export const cardStatuses = [
   "active",

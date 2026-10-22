@@ -6,6 +6,8 @@ import {
   parseAsStringLiteral,
 } from "nuqs/server";
 
+import { sellerTabs } from "@/features/admin-sellers/search-params";
+
 import { readDay } from "./store-day";
 import { postTabs } from "./store-offers";
 import { orderTabs } from "./store-orders";
@@ -46,15 +48,23 @@ export const homeSearchParams = {
   tab: parseAsStringLiteral(orderTabs).withDefault("preparing"),
 };
 
+/** The day of a store's orders on the admin's page of it (Figma AD-QD6), and the page's tab, overview first. */
+export const adminStoreSearchParams = {
+  day: parseAsDay,
+  tab: parseAsStringLiteral(sellerTabs).withDefault("overview"),
+};
+
 export const loadOrderSearchParams = createLoader(orderSearchParams);
 export const loadPostSearchParams = createLoader(postSearchParams);
 export const loadHomeSearchParams = createLoader(homeSearchParams);
+export const loadAdminStoreSearchParams = createLoader(adminStoreSearchParams);
 
 /** The lists that show a day, each with its own address. */
 export const listSearchParams = {
   orders: orderSearchParams,
   posts: postSearchParams,
   home: homeSearchParams,
+  adminStore: adminStoreSearchParams,
 };
 
 export type DayList = keyof typeof listSearchParams;

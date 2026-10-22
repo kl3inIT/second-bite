@@ -2348,10 +2348,9 @@ function adminSellerReads(request, response, url) {
       ],
     });
   } else if (match[2] === "/orders") {
-    // A store's orders of the day (Figma AD-QD6): the six of a store with orders for "Tiệm bánh Pháp", none else.
+    // A store's orders of the day (Figma AD-QD6): its own among every store's orders above, which open (SEC-135).
     json(response, 200, {
-      orders:
-        store.name === "Tiệm bánh Pháp" ? sellerOrdersFor({ ...seller, name: "Tiệm có đơn" }) : [],
+      orders: adminOrdersOf(adminStoresOf(account)).filter((o) => o.seller.id === store.id),
     });
   } else if (match[2] === "/offers") {
     // The shops with a logo have posted nothing, so their page shows the logo as its cover (Figma AD-Q3); the

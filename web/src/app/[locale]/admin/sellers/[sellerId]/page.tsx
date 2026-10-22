@@ -16,9 +16,9 @@ import { SellerTabs } from "@/features/admin-sellers/seller-tabs";
 import { shownPhone, StatusBadge, StoreThumb } from "@/features/admin-sellers/seller-parts";
 import { StoreActions } from "@/features/admin-sellers/store-actions";
 import { requireAdmin } from "@/features/identity/current-account";
-import { loadOrderSearchParams } from "@/features/seller/search-params";
-import { readDay, vietnamToday } from "@/features/seller/store-day";
 import { sessionHeaders } from "@/features/identity/session";
+import { loadAdminStoreSearchParams } from "@/features/seller/search-params";
+import { vietnamToday } from "@/features/seller/store-day";
 import { Link } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
 import {
@@ -57,11 +57,12 @@ export default async function SellerPage({
   searchParams,
 }: PageProps<"/[locale]/admin/sellers/[sellerId]">) {
   const { sellerId } = await params;
-  const today = vietnamToday();
-  // The orders tab's day is the seller's lists' own parameter, today when absent (web guideline › Lists).
-  const day = readDay(loadOrderSearchParams(await searchParams).day ?? undefined, today);
   await requireAdmin(`/admin/sellers/${sellerId}`);
   const [t, headers] = await Promise.all([getTranslations("Admin"), sessionHeaders()]);
+  // The orders tab's day, today when the address names none (web guideline › Lists and filters).
+  const today = vietnamToday();
+  const view = loadAdminStoreSearchParams(await searchParams);
+  const day = view.day ?? today;
 
   let read;
   try {

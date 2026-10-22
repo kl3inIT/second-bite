@@ -229,10 +229,19 @@ test.describe("the admin's stores", () => {
     );
     const first = table.getByRole("row").nth(1);
     await (await hydrated(first.getByRole("button", { name: /^Thao tác với đơn/ }))).click();
-    await expect(page.getByRole("menuitem", { name: "Xem chi tiết" })).toHaveAttribute(
-      "href",
-      /\/vi\/admin\/orders\/.+\?from=store$/,
-    );
     await expectNoSeriousA11yViolations(page);
+    await page.getByRole("menuitem", { name: "Xem chi tiết" }).click();
+    await expect(page).toHaveURL(/\/vi\/admin\/orders\/or-admin-\d+\?from=store$/);
+
+    // The order's crumbs lead back to the stores and to this store (Figma AD-QD7).
+    const crumbs = page.getByRole("navigation", { name: "Vị trí trang" });
+    await expect(crumbs.getByRole("link", { name: "Cửa hàng" })).toHaveAttribute(
+      "href",
+      /\/vi\/admin\/sellers$/,
+    );
+    await expect(crumbs.getByRole("link", { name: "Tiệm bánh Pháp" })).toHaveAttribute(
+      "href",
+      /\/vi\/admin\/sellers\/se-admin-\d+$/,
+    );
   });
 });

@@ -47,9 +47,9 @@ export default async function OrderPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/admin/orders/[orderId]">) {
-  const fromStore = (await searchParams).from === "store";
   const { orderId } = await params;
   await requireAdmin(`/admin/orders/${orderId}`);
+  const fromStore = (await searchParams).from === "store";
   const [t, format, headers] = await Promise.all([
     getTranslations("Admin"),
     getFormatter(),
