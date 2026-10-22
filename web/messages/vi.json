@@ -1875,8 +1875,7 @@
     "save": "Lưu thay đổi",
     "saved": "Đã lưu thông tin quán.",
     "failed": "Chưa lưu được. Thử lại sau ít phút.",
-    "photoFailed": "Quán đã tạo, nhưng chưa tải được ảnh. Hãy chọn ảnh và lưu lại.",
-    "location": "Đổi địa chỉ và vị trí quán"
+    "photoFailed": "Quán đã tạo, nhưng chưa tải được ảnh. Hãy chọn ảnh và lưu lại."
   },
   "Failure": {
     "reference": "Mã tham chiếu: {reference}",

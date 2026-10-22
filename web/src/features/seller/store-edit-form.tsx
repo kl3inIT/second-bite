@@ -1,6 +1,6 @@
 "use client";
 
-import { revalidateLogic } from "@tanstack/react-form";
+import { revalidateLogic, useStore } from "@tanstack/react-form";
 import { CircleAlertIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
@@ -10,17 +10,18 @@ import { z } from "zod";
 import { refuse, useAppForm } from "@/components/form/app-form";
 import { useFieldValidity } from "@/components/form/form-context";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import type { Point } from "@/components/map/location-picker";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "@/i18n/navigation";
 import { photoUrl } from "@/lib/api/photo";
 import { setSellerPhoto, updateSeller, uploadPhoto, type SellerBody } from "@/lib/api/generated";
 
-import { isPhone } from "./open-store-form";
+import { AddressField, isPhone, PinField, useAddressFill } from "./open-store-form";
 
-// The owner changes the store's name, phone number and photo (SEC-141, Figma O2). The address and the pin go
-// back as they are, since the API changes the details together; they have their own page. The details are saved
-// first and the photo after: a photo that does not arrive says so, and the details stay saved.
+// The owner changes the store's name, phone number, address, pin and photo (SEC-141, Figma O2), in the form that
+// opens a store: the same fields, with the same address and map. The details are saved together, since the API
+// changes them together, and the photo after: a photo that does not arrive says so, and the details stay saved.
 export function StoreEditForm({
   store,
   photoFailed,
@@ -31,34 +32,46 @@ export function StoreEditForm({
 }) {
   const t = useTranslations("StoreEditPage");
   const open = useTranslations("OpenStore");
+  const location = useTranslations("StoreLocation");
   const router = useRouter();
 
   const form = useAppForm({
-    defaultValues: { name: store.name, phone: store.phone, photo: undefined as File | undefined },
+    defaultValues: {
+      name: store.name,
+      phone: store.phone,
+      address: store.address,
+      location: { latitude: store.latitude, longitude: store.longitude } as Point | undefined,
+      photo: undefined as File | undefined,
+    },
     validationLogic: revalidateLogic(),
     validators: {
       onDynamic: z.object({
         name: z.string().trim().min(1, open("errors.name")),
         phone: z.string().refine(isPhone, open("errors.phone")),
+        address: z.string().trim().min(1, open("errors.address")),
+        location: z.custom<Point | undefined>((point) => point !== undefined, location("required")),
         photo: z.custom<File | undefined>(),
       }),
     },
     onSubmit: async ({ value, formApi }) => {
+      const place = value.location;
+      if (!place) return;
       try {
         await updateSeller({
           path: { sellerId: store.id },
           body: {
             name: value.name.trim(),
             phone: value.phone.trim(),
-            address: store.address,
-            latitude: store.latitude,
-            longitude: store.longitude,
+            address: value.address.trim(),
+            latitude: place.latitude,
+            longitude: place.longitude,
           },
         });
       } catch (error) {
         refuse(formApi, error, {
           SELLER_PHONE_INVALID: "phone",
           SELLER_DETAILS_INVALID: "name",
+          SELLER_LOCATION_OUTSIDE: "location",
         });
         return;
       }
@@ -77,6 +90,12 @@ export function StoreEditForm({
       router.refresh();
     },
   });
+
+  const fillFrom = useAddressFill(
+    () => form.getFieldValue("address"),
+    (address) => form.setFieldValue("address", address),
+  );
+  const pin = useStore(form.store, (state) => state.values.location);
 
   return (
     <form
@@ -121,6 +140,21 @@ export function StoreEditForm({
             />
           )}
         </form.AppField>
+
+        <form.AppField name="address">
+          {() => (
+            <AddressField
+              fillFrom={fillFrom}
+              pin={pin}
+              onLocated={({ latitude, longitude }) =>
+                form.setFieldValue("location", { latitude, longitude })
+              }
+              onPlace={(point) => form.setFieldValue("location", point)}
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="location">{() => <PinField onPinned={fillFrom} />}</form.AppField>
 
         <form.AppField name="photo">
           {() => (

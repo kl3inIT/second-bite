@@ -1,12 +1,12 @@
 import { getLocale, getTranslations } from "next-intl/server";
 
-import { Link, redirect } from "@/i18n/navigation";
+import { redirect } from "@/i18n/navigation";
 
 import { requireStore } from "./require-store";
 import { StoreEditForm } from "./store-edit-form";
 
-// The store's name, phone number and photo (SEC-141), which only the owner changes; staff are sent to the store's
-// home. The address and the pin have their own page. A store just opened whose photo did not arrive comes here to
+// The store's name, phone number, address, pin and photo (SEC-141), which only the owner changes; staff are sent
+// to the store's home. A store just opened whose photo did not arrive comes here to
 // choose it again (`?photo=failed`). It reads the session, so it renders inside Suspense.
 export async function StoreEdit({
   sellerId: pendingId,
@@ -34,14 +34,6 @@ export async function StoreEdit({
       <div className="rounded-2xl border border-border bg-card p-4 max-md:mb-24 sm:p-8">
         <StoreEditForm store={store} photoFailed={search.photo === "failed"} />
       </div>
-      <p className="text-body-sm text-muted-foreground">
-        <Link
-          href={`/stores/${sellerId}/location`}
-          className="rounded-sm text-link underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring"
-        >
-          {t("location")}
-        </Link>
-      </p>
     </div>
   );
 }
