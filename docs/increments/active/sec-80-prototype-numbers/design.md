@@ -37,7 +37,7 @@ The overview (AD-TQ, SEC-62) can later read the same views for its funnel.
 2. Once the page is on screen, the browser tells the server which page was opened, and from where (`utm_source`).
 3. The server drops the request when it comes from a bot or a prefetch, and keeps one view: the day, the page, the store or dish it is about, the source, and a visitor key that cannot be traced back to the person.
 4. The rest is already recorded by its owner: a seller posts a dish (`offer`); a customer holds it, and the order is collected, cancelled, refused or expires (`order`).
-5. An admin opens "Số liệu" and reads, per day and store, the views next to the posts and the orders.
+5. An admin opens "Báo cáo" and reads, per store and day, the views next to the posts and the orders.
 
 Failure paths: a view that does not arrive (closed page, no network) is lost and not retried; a broken stats request never affects the page, which neither waits for it nor shows an error.
 
@@ -66,10 +66,10 @@ Failure paths: a view that does not arrive (closed page, no network) is lost and
 
 ## Contract
 
-| Call                                           | Who                | Used for                                                                                                                                |
-| ---------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /stats/views` `{path, referrer, source}` | Anyone, no session | Keep one view; always `204`, also for a bot or a malformed body, so the page never sees an error                                        |
-| `GET /admin/stats?from=&to=&sellerId=`         | Admins             | Rows per day and store, the site's totals and the home's views; `STATS_RANGE_INVALID` (400) for a range longer than 92 days or reversed |
+| Call                                           | Who                | Used for                                                                                                                                             |
+| ---------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /stats/views` `{path, referrer, source}` | Anyone, no session | Keep one view; always `204`, also for a bot or a malformed body, so the page never sees an error                                                     |
+| `GET /admin/reports?from=&to=&sellerId=`       | Admins             | The cards, the orders per day, one row per store and one per day and store; `REPORT_RANGE_INVALID` (400) for a range longer than 92 days or reversed |
 
 ## Not here
 
