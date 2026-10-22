@@ -347,7 +347,7 @@
   },
   "Account": {
     "signIn": "Sign in",
-    "openStore": "Open a store",
+    "openStore": "My stores",
     "menu": "Account {email}",
     "signedInAs": "Signed in as {email}",
     "signOut": "Sign out",
@@ -744,7 +744,7 @@
     "orders": "Orders"
   },
   "StoreMenu": {
-    "shop": "Back to the customers' shop",
+    "shop": "Shop",
     "location": "Store location",
     "mine": "My stores",
     "create": "Open another store"

@@ -347,7 +347,7 @@
   },
   "Account": {
     "signIn": "Đăng nhập",
-    "openStore": "Mở quán",
+    "openStore": "Quán của tôi",
     "menu": "Tài khoản {email}",
     "signedInAs": "Đã đăng nhập: {email}",
     "signOut": "Đăng xuất",
@@ -744,7 +744,7 @@
     "orders": "Đơn"
   },
   "StoreMenu": {
-    "shop": "Về trang người mua",
+    "shop": "Mua đồ",
     "location": "Vị trí quán",
     "mine": "Quán của tôi",
     "create": "Tạo thêm quán"
