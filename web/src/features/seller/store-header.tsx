@@ -8,6 +8,7 @@ import { SellerAvatar } from "@/features/offers/seller-avatar";
 import { cn } from "@/lib/utils";
 import { getMySellers, MAX_OWNED } from "./my-sellers";
 import { requireStore } from "./require-store";
+import { ShopLink } from "./shop-link";
 import { StoreMenu } from "./store-menu";
 import { StoreNav } from "./store-nav";
 
@@ -28,9 +29,12 @@ export function StoreHeader({ sellerId }: { sellerId: Promise<string> }) {
             </Suspense>
           }
           account={
-            <Suspense fallback={<CapsulePlaceholder />}>
-              <StoreCapsule sellerId={sellerId} />
-            </Suspense>
+            <>
+              <Suspense fallback={<CapsulePlaceholder />}>
+                <StoreCapsule sellerId={sellerId} />
+              </Suspense>
+              <ShopLink />
+            </>
           }
         />
       </div>
@@ -42,9 +46,12 @@ export function StoreHeader({ sellerId }: { sellerId: Promise<string> }) {
             <Suspense fallback={<SwitcherPlaceholder />}>
               <StoreSwitcher sellerId={sellerId} />
             </Suspense>
-            <Suspense fallback={<span aria-hidden className="-my-1.5 block size-11" />}>
-              <LanguageSwitcher />
-            </Suspense>
+            <div className="flex items-center">
+              <ShopLink />
+              <Suspense fallback={<span aria-hidden className="-my-1.5 block size-11" />}>
+                <LanguageSwitcher />
+              </Suspense>
+            </div>
           </div>
           {/* The room for the page's title row, which the layout pulls up into it. */}
           <div aria-hidden className="h-13" />

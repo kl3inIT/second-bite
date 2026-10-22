@@ -205,7 +205,7 @@ test.describe("opening a store on the web", () => {
     await expect(photo).toHaveAttribute("src", /\/api\/photos\/ph-upload\/400\.jpg/);
   });
 
-  test("the store's name opens a menu to the shop, the stores and a new store", async ({
+  test("the store's name opens a menu to the stores and a new store, and the shop is beside the language", async ({
     page,
   }, testInfo) => {
     await signIn(page, `bich.${testInfo.project.name}@example.com`, "/open-store");
@@ -216,9 +216,12 @@ test.describe("opening a store on the web", () => {
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/, { timeout: 20_000 });
 
+    // The way back to the shop is a button of the header, not an item of the menu.
+    await expect(page.getByRole("link", { name: "Mua đồ" })).toHaveAttribute("href", /\/vi$/);
+
     // With one store the name still opens the menu, and does not reload the page.
     await page.getByRole("button", { name: "Quán Một", exact: true }).click();
-    await expect(page.getByRole("menuitem", { name: "Mua đồ" })).toHaveAttribute("href", /\/vi$/);
+    await expect(page.getByRole("menuitem", { name: "Mua đồ" })).toHaveCount(0);
     await expect(page.getByRole("menuitem", { name: "Quán Một" })).toHaveAttribute(
       "aria-current",
       "true",
