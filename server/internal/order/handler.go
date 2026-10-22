@@ -22,6 +22,7 @@ type placeOrderBody struct {
 	Lines      []orderWantedBody `json:"lines" doc:"One to ten different offers of one seller"                            maxItems:"10" minItems:"1"`
 	Name       string            `json:"name"  doc:"The name the seller calls at the counter"                             maxLength:"50" minLength:"1"`
 	Phone      string            `json:"phone" doc:"A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted" maxLength:"20" minLength:"1"`
+	ByZalo     bool              `json:"byZalo,omitempty" doc:"The customer agrees to be told about the order by Zalo once Second Bite sends there" required:"false"`
 }
 
 type orderLinePhotoBody struct {
@@ -172,7 +173,7 @@ func registerCustomerOperations(api huma.API, s *Service) {
 			wanted = append(wanted, Wanted(l))
 		}
 
-		o, err := s.Place(ctx, in.IdempotencyKey, in.Body.CheckoutID, Contact{Name: in.Body.Name, Phone: in.Body.Phone}, wanted)
+		o, err := s.Place(ctx, in.IdempotencyKey, in.Body.CheckoutID, Contact{Name: in.Body.Name, Phone: in.Body.Phone, ByZalo: in.Body.ByZalo}, wanted)
 		if err != nil {
 			return nil, err
 		}

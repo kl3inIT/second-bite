@@ -24,3 +24,15 @@ type NotificationEmailSetting struct {
 	UpdatedAt          time.Time
 	UpdatedBy          uuid.NullUUID
 }
+
+type NotificationPush struct {
+	ID        uuid.UUID
+	Topic     string
+	About     uuid.UUID
+	Path      string
+	TitleVi   string
+	TitleEn   string
+	BodyVi    string
+	BodyEn    string
+	CreatedAt time.Time
+}

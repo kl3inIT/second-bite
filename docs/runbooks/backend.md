@@ -94,6 +94,9 @@ The tests start the images `compose.yaml` names, so Dependabot's updates of that
 | `SECONDBITE_S3_ACCESS_KEY_ID` | required with a bucket | The access key's identifier |
 | `SECONDBITE_S3_SECRET_ACCESS_KEY` | required with a bucket, a secret | The access key's secret |
 | `SECONDBITE_S3_PATH_STYLE` | `true` | `false` addresses the bucket in the host name, as AWS prefers |
+| `SECONDBITE_PUSH_PUBLIC_KEY` | none | The VAPID public key that `secondbite push keys` prints; setting it turns Web Push on (SEC-25) |
+| `SECONDBITE_PUSH_PRIVATE_KEY` | required with the public key, a secret | The VAPID private key that `secondbite push keys -private-key-file` writes |
+| `SECONDBITE_SITE_URL` | required with the public key | The web's origin, such as `https://secondbite.vadan.app`: the pages a push opens, and who sends to the push services |
 | `SECONDBITE_SECRETS_DIR` | `/run/secrets` | Where secret files are read from |
 
 A secret is read from the file named after its variable in `SECONDBITE_SECRETS_DIR`, as deployed environments mount it. Only when no such file exists is the variable itself read, which is what local development does. The service refuses to start on a missing or malformed value.

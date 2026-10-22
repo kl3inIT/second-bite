@@ -25,12 +25,49 @@ Administrative command: `secondbite email configure` with `-provider`, `-sender-
 - Each email sent is recorded with its kind, recipient, provider and the provider's message id.
 - `ForgetRecipient` deletes the record of every email sent to an address, which identity calls when it deletes the address's account (SEC-37). The index `notification_emails_recipient` on `lower(recipient)` finds them (SEC-126).
 
+## Web Push
+
+Decided in the [SEC-25 design](../increments/active/sec-25-web-push/design.md).
+
+| Operation | Who | Answer |
+| --- | --- | --- |
+| `GET /push/key` | Anyone | `200` with the VAPID public key; `503 NOTIFICATION_PUSH_NOT_CONFIGURED` while Web Push is off |
+| `POST /push/subscriptions` | Anyone holding live tickets | `204`. The browser's subscription is saved by its endpoint, with its keys and the language of `Accept-Language`. It follows the topic each ticket proves (1 to 20 tickets) for seven days; subscribing again renews the topics. A spent or expired ticket answers `400 NOTIFICATION_PUSH_TICKET_INVALID` |
+| `POST /push/subscriptions/remove` | Anyone | `204`; the subscription and its topics are forgotten |
+
+Published to other modules: `QueuePush(ctx, tx, Push)`.
+
+- **Writing a push.** `QueuePush` writes a push in the caller's transaction, with its topic, what it is about, the page it opens and its title and body in Vietnamese and English. It also publishes `notification.push_queued`, so nothing is sent when the change rolls back. A push no browser follows, and every push while Web Push is off, is not written.
+- **Sending.** The module's own listener (`notification.deliver_push`) sends each push with `webpush-go`:
+  - the VAPID keys, with `SECONDBITE_SITE_URL` as the sender;
+  - Topic set to what the push is about, so a newer push replaces one still waiting on the device;
+  - Urgency `high` and a TTL of 30 minutes;
+  - one HTTP client, bounded to 10 seconds and following no redirect.
+- **The payload** is Declarative Web Push JSON (`web_push: 8030`) with the title, body, language, tag and `navigate`, the page at `SECONDBITE_SITE_URL/{language}{path}`.
+- **The push service's answer:**
+  - 2xx is delivered;
+  - 404 or 410 forgets the subscription;
+  - 429, 5xx or no answer fails the delivery, so River tries again, and the browsers already reached (`notification_push_deliveries`) are skipped;
+  - any other answer is logged and not tried again;
+  - a push older than 30 minutes is dropped.
+- **Endpoints** are HTTPS on the default port, at the push services of Chrome and Edge (`fcm.googleapis.com`), Firefox (`push.services.mozilla.com`), Apple (`push.apple.com`) and Windows (`notify.windows.com`), or a host under them. The server posts nowhere else.
+- **Logs** hold the push, the subscription's identifier and the status, never the endpoint.
+- **Purging.** `notification.purge_pushes`, every hour, deletes:
+  - lapsed topics;
+  - subscriptions that follow nothing, a day after they were made;
+  - pushes older than 30 minutes.
+- `secondbite push keys -private-key-file PATH` makes a VAPID key pair. It writes the private key to a new file that only its owner may read, and prints the public key.
+
 ## Data
 
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
 | `notification_email_settings` | One row: provider, sender, SMTP server and user, sealed secrets, who changed it and when | Replaced on save |
 | `notification_emails` | Kind, recipient, provider, provider's message id, time sent | Kept; retention not decided yet |
+| `notification_push_subscriptions` | A browser's endpoint (unique), its keys, its language, when made | Deleted when its push service says it is gone, when the browser unsubscribes, or a day after it follows nothing |
+| `notification_push_topics` | A subscription, a topic it follows, when that lapses | Deleted when lapsed |
+| `notification_pushes` | Topic, what it is about, the page, title and body in both languages, when written | Deleted once sent, or after 30 minutes |
+| `notification_push_deliveries` | The subscriptions a push reached | With the push |
 
 ## Failures
 
@@ -39,9 +76,13 @@ Administrative command: `secondbite email configure` with `-provider`, `-sender-
 | `NOTIFICATION_EMAIL_SETTINGS_INVALID` | 400 | Settings incomplete for the chosen provider, or a password with security `none` |
 | `NOTIFICATION_EMAIL_NOT_CONFIGURED` | 503 | No provider chosen yet; `Retry-After` 60 seconds |
 | `NOTIFICATION_EMAIL_UNAVAILABLE` | 503 | The provider refused or could not be reached; `Retry-After` 30 seconds, or the provider's wait |
+| `NOTIFICATION_PUSH_NOT_CONFIGURED` | 503 | Web Push is off |
+| `NOTIFICATION_PUSH_SUBSCRIPTION_INVALID` | 400 | The endpoint is not a known push service's HTTPS address, or no ticket was given |
+| `NOTIFICATION_PUSH_TICKET_INVALID` | 400 | A ticket was spent, expired or unknown |
 
 ## Not yet
 
 - Brevo's delivery reports and suppressed addresses (SEC-24).
 - Retention of the record of emails sent, which holds addresses.
 - Emails sent later through a job queue with retries, for everything but sign-in codes.
+- Push to the Flutter app through APNs and FCM; Zalo for customers once a legal entity exists (SEC-25).

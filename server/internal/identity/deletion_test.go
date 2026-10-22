@@ -117,7 +117,7 @@ func checkAuditForgot(t *testing.T, pool *pgxpool.Pool, gone, kept Account) {
 func newDeletionService(t *testing.T, pool *pgxpool.Pool) *Service {
 	t.Helper()
 
-	notifications, err := notification.NewService(pool, audit.NewService(pool, platformtest.Logger()), notification.Config{SettingsKey: make([]byte, 32)}, platformtest.Logger())
+	notifications, err := notification.NewService(pool, audit.NewService(pool, platformtest.Logger()), nil, notification.Config{SettingsKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
