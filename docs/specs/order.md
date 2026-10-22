@@ -1,6 +1,6 @@
 # order
 
-Owns what customers order: units of one seller's offers, collected at the counter within one window, by a named customer with a phone number, signed in or not (tables `order_*`). Decided in the [SEC-15 design](../increments/active/sec-15-order-module/design.md); ordering without an account in [SEC-76 decision 7](../increments/active/sec-76-web-customer-flow/design.md); collecting without a code in [SEC-86](../increments/active/sec-86-collect-without-code/design.md); the customer's review in SEC-97. The sources: the pilot domain model for confirming an order when it is placed, as Too Good To Go, Karrot and Open Food Network do; Open Food Network for copying the name and price onto the order line and logging every transition; foodpanda and Keeta for one cart per seller; offer's own rule of reading expiry from the window, so nothing waits for a job. Checks: [docs/tests/order.md](../tests/order.md).
+Owns what customers order: units of one seller's offers, collected at the counter within one window, by a named customer with a phone number, signed in or not (tables `order_*`). Decided in the [SEC-15 design](../increments/completed/sec-15-order-module/design.md); ordering without an account in [SEC-76 decision 7](../increments/active/sec-76-web-customer-flow/design.md); collecting without a code in [SEC-86](../increments/active/sec-86-collect-without-code/design.md); the customer's review in SEC-97. The sources: the pilot domain model for confirming an order when it is placed, as Too Good To Go, Karrot and Open Food Network do; Open Food Network for copying the name and price onto the order line and logging every transition; foodpanda and Keeta for one cart per seller; offer's own rule of reading expiry from the window, so nothing waits for a job. Checks: [docs/tests/order.md](../tests/order.md).
 
 During the pilot the customer pays the seller at the counter; the module records no payment.
 
@@ -107,4 +107,4 @@ It follows `seller.LocationChangedEvent` (listener `order.follow_seller_location
 
 ## Not yet
 
-Per the [plan](../increments/active/sec-15-order-module/plan.md): a limit of units per customer and day, and of orders per phone number, since a number is not verified; telling customers who have no push by Zalo, once a legal entity exists (SEC-25); paying online (SEC-18).
+Per the [plan](../increments/completed/sec-15-order-module/plan.md): a limit of units per customer and day, and of orders per phone number, since a number is not verified; telling customers who have no push by Zalo, once a legal entity exists (SEC-25); paying online (SEC-18).

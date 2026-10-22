@@ -12,6 +12,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 - [SEC-61 — Edit the display name](increments/completed/sec-61-display-name/design.md), 20 October 2026: a person names their account from account settings, on the web and in the app; a name they chose stays when they sign in with Google; a refused name reads in the server's words; proven against the real service (PR #39).
 - [SEC-75 — Admin foundation](increments/completed/sec-75-admin-foundation/design.md), 21 October 2026: every `/admin` operation behind one group, refused signed out and to customers, with an append-only audit trail of admin changes; settings saved at the version read; admins granted and revoked from the web and the command line; a store's states `pending`, `active`, `rejected`, `blocked` with the owner emailed; the admin web's shell, stores, a store's page, settings, the log, accounts and admins (PRs #42, #57, #67).
 - [SEC-66 — A store's real location, pinned on a map](increments/completed/sec-66-store-location-pin/design.md), 22 October 2026: the owner pins the store on a self-hosted map of Hanoi (MapLibre and a PMTiles extract served at `/map/`) when opening it, from a suggested address, the location button or the map, and moves it later; the server keeps every store in Hanoi, and a moved store moves its offers on sale and its orders still to collect; an admin sees the pin (PRs #107, #112, #113, #114).
+- [SEC-15 — The `order` module](increments/completed/sec-15-order-module/design.md), 22 October 2026: a customer orders units of a store's dishes with a name and a phone number, signed in or not, and pays at the counter; the store marks the order ready, hands it over by its QR or by name and phone, refuses it with a reason or reopens it; the customer cancels until it is ready and rates it once collected; orders expire with their window and follow a withdrawn dish or a moved store. On the web only; built through SEC-76, SEC-86, SEC-78, SEC-121, SEC-117 and SEC-25 (PRs #45, #49, #51, #95). The offer page with its order panel (SEC-45) is part of it; the app's screens moved to SEC-12, transfers to SEC-18.
 - [SEC-80 — The prototype's numbers](increments/completed/sec-80-prototype-numbers/design.md), 22 October 2026: the site counts the pages people open itself (no analytics service; bots, prefetches and driven browsers left out; a daily-salted visitor key, views kept 400 days); the admin's Báo cáo page shows views, orders held and collected, the share collected and what expired, per day and per store, and exports them as CSV; the poster's QR counts as `qr` (PRs #127, #132, #134, #137).
 - [SEC-33 — Staging](increments/completed/sec-33-staging/design.md), 18 October 2026: `secondbite.vadan.app` on the shared host as its own Compose project, deployed after every green `main`, with a database dump before each migration and nightly backups; from then on migrations are forward-only.
 - SEC-57's seller rules, 21 October 2026: [a post's hours may change with orders, and the orders follow](increments/completed/sec-91-change-hours-with-orders/design.md) (SEC-91, PR #56); [ended posts and orders closed by a scheduled job](increments/completed/sec-96-close-ended/design.md) (SEC-96, PR #63); [withdrawing a post ends its orders](increments/completed/sec-108-withdraw-with-orders/design.md) (SEC-108, PR #70); [the address filled from where the person stands](increments/completed/sec-110-address-from-location/design.md) (SEC-110, PR #74); [the Đơn tab scans the customer's order QR](increments/completed/sec-113-scan-order-qr/design.md) (SEC-113, PR #79).
@@ -30,15 +31,14 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 
 In the order the pilot needs them; each starts as an increment when it is taken.
 
-1. SEC-15 — `order`: ordering confirmed stock, collection with a one-use code, readiness, cancellation and expiry.
-2. SEC-18 — `payment`: cash at the counter and VietQR transfers confirmed through SePay, behind a provider registry; refunds decided by admins.
-3. SEC-17 — The web application in React for customers, sellers and admins.
-4. SEC-19 — `messaging`: one conversation per order between the customer and the seller's staff.
-5. SEC-16 — Offer drafts from a seller's words, voice or photo, reviewed by staff before they are posted.
-6. SEC-20 — AI search for customers in words or voice, answered in their language.
-7. SEC-13 — Problem reports, cancellation and refund requests handled by admins, and the reports they download.
-8. SEC-12 — The native mobile application, once its technology is chosen.
-9. SEC-14 — Distribution to testers through TestFlight and Google Play internal testing.
+1. SEC-18 — `payment`: cash at the counter and VietQR transfers confirmed through SePay, behind a provider registry; refunds decided by admins.
+2. SEC-17 — The web application in React for customers, sellers and admins.
+3. SEC-19 — `messaging`: one conversation per order between the customer and the seller's staff.
+4. SEC-16 — Offer drafts from a seller's words, voice or photo, reviewed by staff before they are posted.
+5. SEC-20 — AI search for customers in words or voice, answered in their language.
+6. SEC-13 — Problem reports, cancellation and refund requests handled by admins, and the reports they download.
+7. SEC-12 — The native mobile application, once its technology is chosen.
+8. SEC-14 — Distribution to testers through TestFlight and Google Play internal testing.
 
 Before the pilot opens: SEC-24 — Brevo's delivery reports and suppressed addresses, with the first deployment.
 
