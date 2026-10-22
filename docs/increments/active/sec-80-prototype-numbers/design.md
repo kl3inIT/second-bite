@@ -21,13 +21,13 @@ Failure paths: a view that does not arrive (closed page, no network) is lost and
 
 ## Glossary
 
-| Term | Meaning |
-| --- | --- |
-| View ("lượt mở") | One page on screen in a real browser. A reload is a new view. |
-| Visitor ("người mở") | One browser on one day, counted once per day. Two days are two visitors; the key cannot be linked across days. |
-| Store page view | A view of `/sellers/{id}` or of a dish of that store (`/offers/{id}`). |
-| Day | The calendar day in Vietnam (`Asia/Ho_Chi_Minh`). For views it is the day of the view; for posts and orders it is the collection day, the window's start, as the admin's orders list counts it ([SEC-135](../sec-135-admin-orders/design.md)). |
-| Source | `utm_source` of the address that opened the site, such as `qr` on the poster; empty for everything else. |
+| Term                 | Meaning                                                                                                                                                                                                                                        |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| View ("lượt mở")     | One page on screen in a real browser. A reload is a new view.                                                                                                                                                                                  |
+| Visitor ("người mở") | One browser on one day, counted once per day. Two days are two visitors; the key cannot be linked across days.                                                                                                                                 |
+| Store page view      | A view of `/sellers/{id}` or of a dish of that store (`/offers/{id}`).                                                                                                                                                                         |
+| Day                  | The calendar day in Vietnam (`Asia/Ho_Chi_Minh`). For views it is the day of the view; for posts and orders it is the collection day, the window's start, as the admin's orders list counts it ([SEC-135](../sec-135-admin-orders/design.md)). |
+| Source               | `utm_source` of the address that opened the site, such as `qr` on the poster; empty for everything else.                                                                                                                                       |
 
 ## Decisions
 
@@ -44,10 +44,10 @@ Failure paths: a view that does not arrive (closed page, no network) is lost and
 
 ## Contract
 
-| Call | Who | Used for |
-| --- | --- | --- |
-| `POST /stats/views` `{path, referrer, source}` | Anyone, no session | Keep one view; always `204`, also for a bot or a malformed body, so the page never sees an error |
-| `GET /admin/stats?from=&to=&sellerId=` | Admins | Rows per day and store, the site's totals and the home's views; `STATS_RANGE_INVALID` (400) for a range longer than 92 days or reversed |
+| Call                                           | Who                | Used for                                                                                                                                |
+| ---------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /stats/views` `{path, referrer, source}` | Anyone, no session | Keep one view; always `204`, also for a bot or a malformed body, so the page never sees an error                                        |
+| `GET /admin/stats?from=&to=&sellerId=`         | Admins             | Rows per day and store, the site's totals and the home's views; `STATS_RANGE_INVALID` (400) for a range longer than 92 days or reversed |
 
 ## Not here
 
