@@ -377,6 +377,9 @@ test.describe("posting a dish on the web", () => {
       ),
     });
     await drawer.getByLabel("Tên món").fill("Hộp bánh cuối ngày");
+    // The unit is chosen from a list, and "suất" is the first.
+    await expect(drawer.getByLabel("Đơn vị")).toHaveValue("suất");
+    await drawer.getByLabel("Đơn vị").selectOption("hộp");
     await drawer.getByRole("button", { name: "Hộp tổng hợp" }).click();
     await expect(drawer.getByLabel("Hộp gồm những gì")).toBeVisible();
     // "Tiếp tục" checks the step: what is missing is said under its field, which takes the focus.
