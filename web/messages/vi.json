@@ -1720,11 +1720,9 @@
       "column": {
         "name": "Cửa hàng",
         "views": "Lượt mở",
-        "people": "Người mở",
         "offers": "Món đăng",
         "held": "Đơn giữ",
         "collected": "Đã lấy",
-        "cancelled": "Huỷ",
         "expired": "Không đến",
         "share": "Tỉ lệ lấy",
         "collectedVnd": "Tiền thu"

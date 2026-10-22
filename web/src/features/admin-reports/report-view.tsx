@@ -252,10 +252,16 @@ function useColumns(
       onSort={(direction) => onSort(column, direction)}
     />
   );
-  const figure = (column: Exclude<ReportSort, "name" | "share" | "collectedVnd">) => ({
+  // Each column as wide as its head in the wider of the two languages, measured with its sort arrow, so the
+  // store's name keeps the rest (Figma AD-BC1 has no more figures than this). People and cancellations are on
+  // the cards and in the CSV.
+  const figure = (
+    column: "views" | "offers" | "held" | "collected" | "expired",
+    width: `w-${number}`,
+  ) => ({
     id: column,
     header: head(column),
-    meta: { width: "w-28" as const },
+    meta: { width },
     cell: ({ row }: { row: { original: ReportStoreBody } }) =>
       format.number(row.original.counts[column]),
   });
@@ -273,17 +279,15 @@ function useColumns(
         </Link>
       ),
     },
-    figure("views"),
-    figure("people"),
-    figure("offers"),
-    figure("held"),
-    figure("collected"),
-    figure("cancelled"),
-    figure("expired"),
+    figure("views", "w-26"),
+    figure("offers", "w-28"),
+    figure("held", "w-26"),
+    figure("collected", "w-28"),
+    figure("expired", "w-30"),
     {
       id: "share",
       header: head("share"),
-      meta: { width: "w-24" },
+      meta: { width: "w-32" },
       cell: ({ row }) => {
         const share = shareOf(row.original.counts);
         return share === null ? t("none") : `${share}%`;
@@ -292,7 +296,7 @@ function useColumns(
     {
       id: "collectedVnd",
       header: head("collectedVnd"),
-      meta: { width: "w-32" },
+      meta: { width: "w-28" },
       cell: ({ row }) => (
         <span className="whitespace-nowrap">{formatPrice(row.original.counts.collectedVnd)}</span>
       ),

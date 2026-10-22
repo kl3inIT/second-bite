@@ -1720,11 +1720,9 @@
       "column": {
         "name": "Store",
         "views": "Views",
-        "people": "People",
         "offers": "Posts",
         "held": "Held",
         "collected": "Collected",
-        "cancelled": "Cancelled",
         "expired": "No-shows",
         "share": "Collected %",
         "collectedVnd": "Taken in"
