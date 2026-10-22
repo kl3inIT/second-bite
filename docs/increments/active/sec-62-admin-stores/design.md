@@ -30,6 +30,10 @@ Status: started on 21 October 2026. Tracked in Linear as SEC-62. The screen is F
 
 `/admin/sellers/{id}`, opened from a row's "Xem chi tiết" or its name. The photos of its three latest posts over its photo, name and status, and its "⋯": every action on a store is in one menu, the list's (`StoreActions`), so a new one is added once (changed with the user on 21 October 2026 from Figma's separate "Chặn cửa hàng" button). Tabs: Tổng quan (the posts on sale, the address and phone, the members), Bài đăng and Thành viên, with their counts; the posts tab chooses a status (Đang bán, Hết hàng, Đã đóng, Đã gỡ, with counts) and a view, boxes or a table, both in the address, and a post opens a panel with its description, units, weight, window, place and times (AD-QD1 to AD-QD3), all from the posts the page already reads; the tab is in the address, so "Xem tất cả" is a link. A blocked store's photos fade (AD-Q4). It reads `GET /sellers/{id}`, `/members` and `/offers`, which answer admins; a post's row is the seller's own `PostRow`. An unknown store is the admin's not-found page.
 
+## A store's orders (AD-QD6, AD-QD7)
+
+A fourth tab, "Đơn hàng", lists the store's orders of one day, the soonest window first, as `GET /sellers/{id}/orders?day=` answers admins; the day is the seller's lists' `day` parameter, chosen with the app's `DayBar`, whose steps keep the page's `tab`. A row's "⋯" menu and its number open the order's page (SEC-135) with `?from=store`, whose crumbs then read Cửa hàng › the store › the number, each a link back. Admins read orders and never act on them.
+
 ## Contract
 
 No new operation. The list's item, `AdminSellerBody`, embedded the unexported `sellerBody`, which huma leaves out of the document, so the generated clients knew only `ownerEmail`. It now lists its own fields, as `recordBody` does since SEC-75; the JSON on the wire is unchanged.

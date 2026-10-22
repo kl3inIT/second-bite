@@ -16,6 +16,7 @@ import { SellerTabs } from "@/features/admin-sellers/seller-tabs";
 import { shownPhone, StatusBadge, StoreThumb } from "@/features/admin-sellers/seller-parts";
 import { StoreActions } from "@/features/admin-sellers/store-actions";
 import { requireAdmin } from "@/features/identity/current-account";
+import { loadOrderSearchParams } from "@/features/seller/search-params";
 import { readDay, vietnamToday } from "@/features/seller/store-day";
 import { sessionHeaders } from "@/features/identity/session";
 import { Link } from "@/i18n/navigation";
@@ -57,8 +58,8 @@ export default async function SellerPage({
 }: PageProps<"/[locale]/admin/sellers/[sellerId]">) {
   const { sellerId } = await params;
   const today = vietnamToday();
-  const { day: asked } = await searchParams;
-  const day = readDay(typeof asked === "string" ? asked : undefined, today);
+  // The orders tab's day is the seller's lists' own parameter, today when absent (web guideline › Lists).
+  const day = readDay(loadOrderSearchParams(await searchParams).day ?? undefined, today);
   await requireAdmin(`/admin/sellers/${sellerId}`);
   const [t, headers] = await Promise.all([getTranslations("Admin"), sessionHeaders()]);
 

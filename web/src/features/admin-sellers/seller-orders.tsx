@@ -14,6 +14,7 @@ import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
 import { ListFooter } from "@/features/admin/list-footer";
 import { OrderStatusBadge } from "@/features/admin-orders/order-status";
+import { useLinesSummary } from "@/features/admin-orders/orders-list";
 import { formatPrice } from "@/features/offers/format";
 import { DayBar } from "@/features/seller/day-filter";
 import { Link } from "@/i18n/navigation";
@@ -76,14 +77,10 @@ export function SellerOrders({
 function useColumns(): DataTableColumns<OrderBody> {
   const t = useTranslations("Admin.orders");
   const detail = useTranslations("Admin.sellers.detail");
+  const sellers = useTranslations("Admin.sellers");
   const format = useFormatter();
   const time = (at: string) => format.dateTime(new Date(at), "time");
-  // What an order holds, as AD-DH1's "Món" reads it: its first two lines, then how many more.
-  const summary = (order: OrderBody) => {
-    const shown = order.lines.slice(0, 2).map((l) => t("line", { name: l.name, units: l.units }));
-    const more = order.lines.length - shown.length;
-    return (more > 0 ? [...shown, t("moreLines", { count: more })] : shown).join(", ");
-  };
+  const summary = useLinesSummary();
 
   return [
     {
@@ -134,7 +131,7 @@ function useColumns(): DataTableColumns<OrderBody> {
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">{detail("orderActions", { number: "" })}</span>,
+      header: () => <span className="sr-only">{sellers("column.actions")}</span>,
       cell: ({ row }) => (
         <div className="flex justify-end">
           <DropdownMenu>
