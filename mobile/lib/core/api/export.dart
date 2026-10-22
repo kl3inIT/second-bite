@@ -12,6 +12,7 @@ export 'clients/orders_client.dart';
 export 'clients/photos_client.dart';
 export 'clients/notifications_client.dart';
 export 'clients/sellers_client.dart';
+export 'clients/stats_client.dart';
 // Data classes
 export 'models/account_body.dart';
 export 'models/add_seller_staff_request.dart';
@@ -98,6 +99,7 @@ export 'models/status_counts_body.dart';
 export 'models/status_day_body.dart';
 export 'models/subscribe_push_input_body.dart';
 export 'models/unsubscribe_push_input_body.dart';
+export 'models/view_input_body.dart';
 export 'models/violation.dart';
 export 'models/role.dart';
 export 'models/sort.dart';

@@ -36,6 +36,7 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/order"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller"
+	"github.com/kl3inIT/second-bite/server/internal/stats"
 	"github.com/kl3inIT/second-bite/server/migrations"
 )
 
@@ -119,6 +120,7 @@ type app struct {
 	seller       *seller.Service
 	offer        *offer.Service
 	order        *order.Service
+	stats        *stats.Service
 }
 
 // assemble reads the configuration, opens and migrates the database, and
@@ -186,6 +188,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		offers := offer.NewService(pool, sellers, files, events, trail, logger)
 
 		orders := order.NewService(pool, offers, sellers, notifications, logger)
+		views := stats.NewService(pool, logger)
 
 		// The listeners are known before anything publishes; they run only in
 		// serve.
@@ -197,10 +200,11 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		offer.RegisterSchedules(events, offers)
 		order.RegisterSchedules(events, orders)
 		notification.RegisterSchedules(events, notifications)
+		stats.RegisterSchedules(events, views)
 
 		return &app{
 			cfg: cfg, logger: logger, pool: pool, events: events, audit: trail, notification: notifications, identity: identities,
-			file: files, seller: sellers, offer: offers, order: orders,
+			file: files, seller: sellers, offer: offers, order: orders, stats: views,
 		}, nil
 	}()
 	if err != nil {
@@ -295,6 +299,7 @@ func registerOperations(api huma.API, a *app) {
 	offer.RegisterOperations(api, a.offer)
 	order.RegisterOperations(api, a.order)
 	notification.RegisterOperations(api, a.notification, a.order.RedeemLiveTicket)
+	stats.RegisterOperations(api, a.stats)
 
 	// Every admin operation is registered on one group, so the contract test
 	// finds them all under its prefix (SEC-75).

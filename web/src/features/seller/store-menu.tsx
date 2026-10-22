@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPinnedIcon, PlusIcon } from "lucide-react";
+import { MapPinnedIcon, PencilIcon, PlusIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -51,6 +51,10 @@ export function StoreMenu({
         {current.myRole === "owner" && (
           <>
             <DropdownMenuGroup>
+              <DropdownMenuItem render={<Link href={`/stores/${current.id}/edit`} />}>
+                <PencilIcon aria-hidden />
+                {t("edit")}
+              </DropdownMenuItem>
               <DropdownMenuItem render={<Link href={`/stores/${current.id}/location`} />}>
                 <MapPinnedIcon aria-hidden />
                 {t("location")}

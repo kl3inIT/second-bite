@@ -70,6 +70,7 @@ func TestService(t *testing.T) {
 		"a person names their account":                               checkDisplayName,
 		"an order is placed, made ready and handed over":             checkOrderFlow,
 		"an order's live socket carries its changes":                 checkLiveSocket,
+		"a page view is counted without a session":                   checkViewCounted,
 	}
 
 	// The checks run in parallel with one another; this group returns when
