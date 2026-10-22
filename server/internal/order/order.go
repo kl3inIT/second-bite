@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/offer"
 	"github.com/kl3inIT/second-bite/server/internal/order/internal/db"
@@ -107,8 +108,12 @@ type Order struct {
 	CancelReason    string
 	RefuseReason    RefuseReason
 	RefuseNote      string
-	// Review is the customer's rating, none until they rate the collected order.
+	// Review is the customer's rating, none until they rate the collected order
+	// and none while admins hide it (SEC-145).
 	Review *Review
+	// Reviewed tells the order was rated, its review shown or hidden; it is
+	// never rated again.
+	Reviewed bool
 	// UnreadMessages is how many messages of its chat the reader has not read:
 	// from the seller for the customer, from the customer for the seller's
 	// people. None for admins, who do not read chats.
@@ -145,15 +150,21 @@ type Service struct {
 	sellers *seller.Service
 	// pushes queues the Web Push of each change (SEC-25); nil sends none.
 	pushes *notification.Service
+	// trail records what admins do to reviews (SEC-145).
+	trail  *audit.Service
 	logger *slog.Logger
 	now    func() time.Time
 }
 
 // NewService assembles the module.
 func NewService(
-	pool *pgxpool.Pool, offers *offer.Service, sellers *seller.Service, pushes *notification.Service, logger *slog.Logger,
+	pool *pgxpool.Pool, offers *offer.Service, sellers *seller.Service, pushes *notification.Service,
+	trail *audit.Service, logger *slog.Logger,
 ) *Service {
-	return &Service{pool: pool, queries: db.New(pool), offers: offers, sellers: sellers, pushes: pushes, logger: logger, now: time.Now}
+	return &Service{
+		pool: pool, queries: db.New(pool), offers: offers, sellers: sellers, pushes: pushes, trail: trail,
+		logger: logger, now: time.Now,
+	}
 }
 
 // Get returns an order to its customer, signed in or holding its access, to

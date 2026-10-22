@@ -76,7 +76,8 @@ type orderBody struct {
 	CheckoutID    uuid.UUID       `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
 	CustomerName  string          `json:"customerName"           doc:"Who collects, as given with the order"`
 	CustomerPhone string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits"`
-	Review        *reviewBody     `json:"review,omitempty"       doc:"The customer's rating of the collected order; none until they rate it"`
+	Review        *reviewBody     `json:"review,omitempty"       doc:"The customer's rating of the collected order; none until they rate it, nor while admins hide it"`
+	CanReview     bool            `json:"canReview"              doc:"The order is collected and was never rated, so its customer may rate it"`
 	Unread        *int            `json:"unreadMessages,omitempty" doc:"Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins"`
 	Messages      *int            `json:"messageCount,omitempty" doc:"Messages its chat holds, with unreadMessages; none for admins"`
 	Access        string          `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
@@ -107,7 +108,8 @@ func toBody(o Order) orderBody {
 		ReadyAt: o.ReadyAt, CollectedAt: o.CollectedAt, CancelledAt: o.CancelledAt, RefusedAt: o.RefusedAt,
 		CancelReason: o.CancelReason, RefuseReason: o.RefuseReason, RefuseNote: o.RefuseNote,
 		CheckoutID: o.CheckoutID, CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Review: review, Access: o.Access,
-		Unread: o.UnreadMessages, Messages: o.MessageCount,
+		CanReview: o.Status == StatusCollected && !o.Reviewed,
+		Unread:    o.UnreadMessages, Messages: o.MessageCount,
 	}
 }
 
@@ -595,5 +597,140 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		}
 
 		return out, nil
+	})
+
+	registerAdminReviewOperations(admin, s)
+}
+
+type adminReviewBody struct {
+	OrderID      uuid.UUID  `json:"orderId"                doc:"The order reviewed, which names its review"`
+	OrderNumber  string     `json:"orderNumber"            doc:"SB- and a number"`
+	SellerID     uuid.UUID  `json:"sellerId"`
+	SellerName   string     `json:"sellerName"`
+	CustomerName string     `json:"customerName"           doc:"Who collected, as given with the order"`
+	Stars        int        `json:"stars"`
+	Tags         []Tag      `json:"tags"                   nullable:"false"`
+	Comment      string     `json:"comment,omitempty"`
+	CreatedAt    time.Time  `json:"createdAt"              doc:"When the customer rated the order"`
+	HiddenAt     *time.Time `json:"hiddenAt,omitempty"     doc:"When an admin hid it; absent while it shows"`
+	HiddenReason string     `json:"hiddenReason,omitempty" doc:"Why an admin hid it, when they said"`
+}
+
+func toAdminReviewBody(r AdminReview) adminReviewBody {
+	return adminReviewBody{
+		OrderID: r.OrderID, OrderNumber: Number(r.Number), SellerID: r.SellerID, SellerName: r.SellerName,
+		CustomerName: r.CustomerName, Stars: r.Stars, Tags: r.Tags, Comment: r.Comment, CreatedAt: r.CreatedAt,
+		HiddenAt: r.HiddenAt, HiddenReason: r.HiddenReason,
+	}
+}
+
+type adminReviewOutput struct {
+	Body adminReviewBody
+}
+
+type reviewCountsBody struct {
+	OneStar    int `json:"oneStar"`
+	TwoStars   int `json:"twoStars"`
+	ThreeStars int `json:"threeStars"`
+	FourStars  int `json:"fourStars"`
+	FiveStars  int `json:"fiveStars"`
+	Hidden     int `json:"hidden"     doc:"Hidden reviews of the stars asked, whatever visibility asks"`
+}
+
+type adminReviewsOutput struct {
+	Body struct {
+		Items    []adminReviewBody `json:"items"             nullable:"false"`
+		Page     int               `json:"page"`
+		PageSize int               `json:"pageSize"`
+		Total    int               `json:"total"`
+		Counts   reviewCountsBody  `json:"counts"            doc:"Reviews of each number of stars matching the other filters, whatever stars asks"`
+		Average  *float64          `json:"average,omitempty" doc:"The mean stars of the shown reviews matching every filter; absent when none does"`
+	}
+}
+
+// registerAdminReviewOperations adds the admins' list of reviews, and hiding
+// and showing one, to admin (SEC-145).
+func registerAdminReviewOperations(admin huma.API, s *Service) {
+	huma.Register(admin, huma.Operation{
+		OperationID: "listReviewsForAdmins", Method: http.MethodGet, Path: "/reviews",
+		Summary: "Every customer's review, hidden or not, by stars, words, seller, visibility and day, the latest first",
+		Description: "q matches the comment, the order's number (SB-24831 or 24831), the customer's name or phone, " +
+			"or the seller's name, Vietnamese marks ignored. A page past the end is empty.",
+	}, func(ctx context.Context, in *struct {
+		Stars      []int      `query:"stars"      doc:"Keep the reviews giving these stars; any when absent" maximum:"5" minimum:"1"`
+		Q          string     `query:"q"          doc:"The comment, the order's number, the customer's name or phone, or the seller's name" maxLength:"100"`
+		SellerID   uuid.UUID  `query:"sellerId"   doc:"Keep this seller's reviews"`
+		Visibility Visibility `query:"visibility" doc:"Keep the shown or the hidden reviews; both when absent" enum:"visible,hidden"`
+		Page       int        `query:"page"       default:"1" minimum:"1"`
+		Size       int        `query:"size"       default:"25" maximum:"100" minimum:"1"`
+
+		ReviewedSince time.Time `query:"reviewedSince" doc:"Keep the reviews given at or after this time"`
+		ReviewedUntil time.Time `query:"reviewedUntil" doc:"Keep the reviews given before this time"`
+	},
+	) (*adminReviewsOutput, error) {
+		f := ReviewFilter{Stars: in.Stars, Query: in.Q, SellerID: in.SellerID, Visibility: in.Visibility, Page: in.Page, Size: in.Size}
+		if !in.ReviewedSince.IsZero() {
+			f.ReviewedSince = &in.ReviewedSince
+		}
+
+		if !in.ReviewedUntil.IsZero() {
+			f.ReviewedUntil = &in.ReviewedUntil
+		}
+
+		page, err := s.ListReviewsForAdmins(ctx, f)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &adminReviewsOutput{}
+		out.Body.Items = make([]adminReviewBody, 0, len(page.Reviews))
+		out.Body.Page, out.Body.PageSize, out.Body.Total, out.Body.Average = in.Page, in.Size, page.Total, page.Average
+		out.Body.Counts = reviewCountsBody{
+			OneStar: page.Counts.Stars[0], TwoStars: page.Counts.Stars[1], ThreeStars: page.Counts.Stars[2],
+			FourStars: page.Counts.Stars[3], FiveStars: page.Counts.Stars[4], Hidden: page.Counts.Hidden,
+		}
+
+		for _, r := range page.Reviews {
+			out.Body.Items = append(out.Body.Items, toAdminReviewBody(r))
+		}
+
+		return out, nil
+	})
+
+	huma.Register(admin, huma.Operation{
+		OperationID: "hideReview", Method: http.MethodPost, Path: "/reviews/{orderId}/hide",
+		Summary: "Hide a review from every read but the admins'; its customer is not told",
+		Description: "The reason is optional, at most 500 characters, and kept in the audit only. " +
+			"The order cannot be rated again while its review is hidden.",
+	}, func(ctx context.Context, in *struct {
+		OrderID uuid.UUID `path:"orderId"`
+		Body    *struct {
+			Reason string `json:"reason,omitempty" doc:"Why it is hidden, at most 500 characters" required:"false"`
+		} `required:"false"`
+	},
+	) (*adminReviewOutput, error) {
+		var reason string
+		if in.Body != nil {
+			reason = in.Body.Reason
+		}
+
+		r, err := s.HideReview(ctx, in.OrderID, reason)
+		if err != nil {
+			return nil, err
+		}
+
+		return &adminReviewOutput{Body: toAdminReviewBody(r)}, nil
+	})
+
+	huma.Register(admin, huma.Operation{
+		OperationID: "showReview", Method: http.MethodPost, Path: "/reviews/{orderId}/show",
+		Summary: "Show a hidden review again everywhere",
+	}, func(ctx context.Context, in *orderPath) (*adminReviewOutput, error) {
+		r, err := s.ShowReview(ctx, in.OrderID)
+		if err != nil {
+			return nil, err
+		}
+
+		return &adminReviewOutput{Body: toAdminReviewBody(r)}, nil
 	})
 }

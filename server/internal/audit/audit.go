@@ -43,6 +43,7 @@ type Resource struct {
 const (
 	ResourceAccount = "account"
 	ResourceSeller  = "seller"
+	ResourceOrder   = "order"
 )
 
 // Service records admins' actions.

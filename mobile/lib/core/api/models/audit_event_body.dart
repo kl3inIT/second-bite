@@ -23,7 +23,7 @@ abstract class AuditEventBody with _$AuditEventBody {
     String? actorId,
     String? actorLabel,
 
-    /// The store's name or the account's address at the time; absent once that account is deleted
+    /// The store's name, the account's address or the order's number at the time; absent once that account is deleted
     String? resourceLabel,
   }) = _AuditEventBody;
 

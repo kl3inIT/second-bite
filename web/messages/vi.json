@@ -1123,6 +1123,7 @@
       "audit": "Nhật ký thao tác",
       "settings": "Cài đặt",
       "accounts": "Tài khoản",
+      "reviews": "Đánh giá",
       "reports": "Báo cáo"
     },
     "notFound": {
@@ -1165,13 +1166,16 @@
         "adminGrant": "Cấp quản trị viên",
         "adminRevoke": "Thu hồi quản trị viên",
         "offerSettingsChange": "Sửa cài đặt bài đăng",
-        "emailSettingsChange": "Sửa cài đặt email"
+        "emailSettingsChange": "Sửa cài đặt email",
+        "reviewHide": "Ẩn đánh giá",
+        "reviewShow": "Hiện lại đánh giá"
       },
       "resource": {
         "seller": "Cửa hàng",
         "account": "Tài khoản",
         "offer_settings": "Cài đặt bài đăng",
-        "email_settings": "Cài đặt email"
+        "email_settings": "Cài đặt email",
+        "order": "Đơn hàng"
       },
       "commandLine": "Dòng lệnh",
       "deletedAccount": "Tài khoản đã xoá",
@@ -1690,6 +1694,67 @@
       },
       "actions": "Thao tác với đơn {number}",
       "view": "Xem chi tiết"
+    },
+    "reviews": {
+      "title": "Đánh giá",
+      "cards": "Tổng quan đánh giá",
+      "card": {
+        "average": "Điểm trung bình",
+        "low": "1–2 sao",
+        "hidden": "Đã ẩn"
+      },
+      "noAverage": "—",
+      "search": "Tìm nội dung, mã đơn, khách hoặc cửa hàng",
+      "stars": "Số sao",
+      "anyStars": "Tất cả",
+      "starCount": "{count} sao",
+      "store": "Cửa hàng",
+      "anyStore": "Tất cả",
+      "reviewDay": "Ngày đánh giá",
+      "anytime": "Mọi lúc",
+      "size": "Số dòng",
+      "noun": "đánh giá",
+      "column": {
+        "store": "Cửa hàng",
+        "customer": "Khách",
+        "comment": "Nội dung",
+        "number": "Mã đơn",
+        "stars": "Số sao",
+        "status": "Trạng thái",
+        "reviewed": "Ngày đánh giá",
+        "actions": "Thao tác"
+      },
+      "noComment": "Không có bình luận",
+      "status": {
+        "visible": "Hiển thị",
+        "hidden": "Đã ẩn"
+      },
+      "empty": {
+        "title": "Chưa có đánh giá nào"
+      },
+      "noResults": {
+        "title": "Không tìm thấy đánh giá nào",
+        "clear": "Xoá bộ lọc"
+      },
+      "actions": "Thao tác với đánh giá của {name}",
+      "viewOrder": "Xem đơn",
+      "hide": {
+        "menu": "Ẩn đánh giá",
+        "title": "Ẩn đánh giá của {name}?",
+        "reason": "Lý do ẩn",
+        "hint": "Không bắt buộc, tối đa 500 ký tự",
+        "length": "{length}/500",
+        "confirm": "Ẩn đánh giá",
+        "done": "Đã ẩn đánh giá của {name}"
+      },
+      "show": {
+        "menu": "Hiện lại",
+        "title": "Hiện lại đánh giá của {name}?",
+        "confirm": "Hiện lại",
+        "done": "Đã hiện lại đánh giá của {name}"
+      },
+      "cancel": "Huỷ",
+      "unreachable": "Không kết nối được máy chủ. Thử lại sau."
     },
     "reports": {
       "title": "Báo cáo",

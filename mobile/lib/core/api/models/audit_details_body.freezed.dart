@@ -18,7 +18,7 @@ mixin _$AuditDetailsBody {
 
 /// The settings changed
  List<AuditChangeBody>? get changes;/// Who delivers email after the change
- AuditDetailsBodyProvider? get provider;/// What the owner was told, for a rejection or a block
+ AuditDetailsBodyProvider? get provider;/// What the owner was told, for a rejection or a block; the admin's reason, for a hidden review
  String? get reason;/// Where a change of admins came from
  AuditDetailsBodySource? get source;
 /// Create a copy of AuditDetailsBody
@@ -238,7 +238,7 @@ class _AuditDetailsBody implements AuditDetailsBody {
 
 /// Who delivers email after the change
 @override final  AuditDetailsBodyProvider? provider;
-/// What the owner was told, for a rejection or a block
+/// What the owner was told, for a rejection or a block; the admin's reason, for a hidden review
 @override final  String? reason;
 /// Where a change of admins came from
 @override final  AuditDetailsBodySource? source;

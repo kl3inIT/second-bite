@@ -90,6 +90,19 @@ type SellerUnblocked struct{}
 
 func (SellerUnblocked) action() string { return "seller.unblock" }
 
+// ReviewHidden is a customer's review of an order hidden from every read but
+// the admins', with the admin's reason when they gave one.
+type ReviewHidden struct {
+	Reason string `json:"reason,omitempty"`
+}
+
+func (ReviewHidden) action() string { return "review.hide" }
+
+// ReviewShown is a hidden review shown again.
+type ReviewShown struct{}
+
+func (ReviewShown) action() string { return "review.show" }
+
 // catalog is every action above; a type added there is added here, which
 // gives the names admins filter by.
 var catalog = []Action{
@@ -101,6 +114,8 @@ var catalog = []Action{
 	SellerRejected{},
 	SellerBlocked{},
 	SellerUnblocked{},
+	ReviewHidden{},
+	ReviewShown{},
 }
 
 // ActionNames are the names of the catalog, as events record them.
