@@ -3006,7 +3006,7 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Let a pending, rejected or blocked seller publish; its owner is emailed
+      summary: Let a pending, rejected or blocked seller publish; its owner is emailed. A seller whose owner deleted their account is refused
       tags:
         - Admin
   /admin/sellers/{sellerId}/block:

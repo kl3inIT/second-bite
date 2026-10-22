@@ -327,7 +327,7 @@ export const listSellersForAdmins = <ThrowOnError extends boolean = true>(option
 });
 
 /**
- * Let a pending, rejected or blocked seller publish; its owner is emailed
+ * Let a pending, rejected or blocked seller publish; its owner is emailed. A seller whose owner deleted their account is refused
  */
 export const approveSeller = <ThrowOnError extends boolean = true>(options: Options<ApproveSellerData, ThrowOnError>): RequestResult<ApproveSellerResponses, ApproveSellerErrors, ThrowOnError> => (options.client ?? client).post<ApproveSellerResponses, ApproveSellerErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {

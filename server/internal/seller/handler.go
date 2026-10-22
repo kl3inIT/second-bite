@@ -437,7 +437,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 
 	huma.Register(admin, huma.Operation{
 		OperationID: "approveSeller", Method: http.MethodPost, Path: "/sellers/{sellerId}/approve",
-		Summary: "Let a pending, rejected or blocked seller publish; its owner is emailed",
+		Summary: "Let a pending, rejected or blocked seller publish; its owner is emailed. A seller whose owner deleted their account is refused",
 	}, func(ctx context.Context, in *sellerPath) (*sellerOutput, error) {
 		seller, err := s.Approve(ctx, in.SellerID)
 		if err != nil {

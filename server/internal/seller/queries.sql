@@ -120,6 +120,9 @@ RETURNING was.status AS was;
 -- name: SellerExists :one
 SELECT EXISTS (SELECT 1 FROM seller_sellers WHERE id = @id);
 
+-- name: HasOwner :one
+SELECT EXISTS (SELECT 1 FROM seller_members WHERE seller_id = @seller_id AND role = 'owner');
+
 -- name: OwnersOf :many
 SELECT seller_id, account_id FROM seller_members WHERE seller_id = ANY (@seller_ids::uuid[]) AND role = 'owner';
 

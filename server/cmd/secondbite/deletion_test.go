@@ -19,6 +19,10 @@ const (
 	codeSessionInvalid         = "IDENTITY_SESSION_INVALID"
 )
 
+// deletionAdminEmail is the admin who tries to bring back the seller left
+// without an owner, signed in apart from the other checks' admins.
+const deletionAdminEmail = "deletion.admin@example.com"
+
 // checkAccountDeletion has the owner of a seller delete their account through
 // the API as the clients will (SEC-37): the emailed code, kept apart from the
 // sign-in codes; the account, its sessions and the emails to its address gone
@@ -83,6 +87,7 @@ func checkAccountDeletion(t *testing.T, svc service) {
 
 	checkDeletedAtOnce(t, svc, ownerEmail, me.ID)
 	checkFollowed(t, svc, staff, sellerURL, me.ID, used, unused)
+	checkOwnerlessStaysBlocked(t, svc, staff, opened.ID)
 
 	// The address can sign in again, as a new account.
 	backdateCodes(t, svc, ownerEmail)
@@ -165,6 +170,37 @@ func checkFollowed(t *testing.T, svc service, staff http.Header, sellerURL, acco
 
 	if got := send(t, http.MethodGet, svc.base+"/photos/"+unused+"/400.jpg", nil, nil); got.status != http.StatusNotFound {
 		t.Errorf("the unused photo after its uploader left: %d", got.status)
+	}
+}
+
+// checkOwnerlessStaysBlocked has an admin approve the seller the deletion
+// blocked (SEC-65): with no owner, nobody could run it, so it is refused in
+// the request's language and the seller stays blocked.
+func checkOwnerlessStaysBlocked(t *testing.T, svc service, staff http.Header, sellerID string) {
+	t.Helper()
+
+	admin := bearer(signIn(t, svc, deletionAdminEmail).Token)
+	approve := svc.base + "/admin/sellers/" + sellerID + "/approve"
+
+	p := send(t, http.MethodPost, approve, admin, nil).problem(t, http.StatusConflict)
+	if p.Code != "SELLER_OWNERLESS" || p.Detail != "Cửa hàng không còn chủ vì chủ đã xoá tài khoản, nên không duyệt lại được." {
+		t.Errorf("approving the owner-less seller: %q %q", p.Code, p.Detail)
+	}
+
+	inEnglish := admin.Clone()
+	inEnglish.Set("Accept-Language", "en")
+
+	want := "The seller has no owner, since its owner deleted their account, so it cannot be approved."
+	if p := send(t, http.MethodPost, approve, inEnglish, nil).problem(t, http.StatusConflict); p.Detail != want {
+		t.Errorf("approving the owner-less seller in English: %q", p.Detail)
+	}
+
+	var s sellerResponse
+
+	send(t, http.MethodGet, svc.base+"/sellers/"+sellerID, staff, nil).decode(t, http.StatusOK, &s)
+
+	if s.Status != "blocked" {
+		t.Errorf("the owner-less seller after the refusals: %s, want blocked", s.Status)
 	}
 }
 
