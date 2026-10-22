@@ -21,6 +21,8 @@ const (
 	photonTimeout = 4 * time.Second
 	// placesLimit is how many suggestions a query gets; a phone shows five without scrolling.
 	placesLimit = 5
+	// servedCity is the city Photon names for a place in Hanoi.
+	servedCity = "Hà Nội"
 )
 
 // Place is a suggestion for a store's address: the address as people write it and where it is.
@@ -94,7 +96,7 @@ func (p placeSearch) search(ctx context.Context, words string) ([]Place, error) 
 	return places(found.Features, leadingNumber(words)), nil
 }
 
-// places turns Photon's features into suggestions inside Hanoi, without repeats, at most five. A house number the
+// places turns Photon's features into suggestions in Hanoi, inside its box and naming it as its city, without repeats, at most five. A house number the
 // person typed first goes before a street that has none, since OpenStreetMap knows few house numbers in Vietnam.
 func places(features []photonFeature, number string) []Place {
 	seen := map[string]bool{}
@@ -106,7 +108,8 @@ func places(features []photonFeature, number string) []Place {
 		}
 
 		lng, lat := f.Geometry.Coordinates[0], f.Geometry.Coordinates[1]
-		if !served(lat, lng) {
+		// Hanoi's box reaches into Bắc Ninh and Hưng Yên; a place there is not one a store in Hanoi stands at.
+		if !served(lat, lng) || f.Properties.City != servedCity {
 			continue
 		}
 
