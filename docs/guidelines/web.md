@@ -97,6 +97,12 @@ Adapted from the Forms section of BeyondPilot's `docs/conventions.md` (revision 
 - A price is `formatPrice` (`src/features/offers/format.ts`); a date, a time or a number is a named format of `src/i18n/formats.ts` (`dayMonth`, `calendarDay`, `oneDecimal`…), added there when a screen needs a new one.
 - A helper or a component a second feature needs moves to `src/components` or the feature that owns it, and the copy is deleted.
 
+## The admin
+
+- Admin pages live under `src/app/[locale]/admin/` and their parts under `src/features/admin*`. Each page starts with `requireAdmin(returnTo)` (`src/features/identity/current-account.ts`): someone signed out signs in first, anyone else gets the site's not-found page. The layout only draws the frame for an admin; hiding a link is never the protection, the server's `/admin` group is (backend guideline).
+- The sidebar lists only screens that exist. An admin address no page answers shows the admin's not-found page (`admin/[...slug]`); no screen runs on made-up data.
+- Admins are one role with the same session as everyone. They are granted and revoked in Cài đặt › Quản trị viên or by `secondbite admin grant|revoke` ([backend runbook](../runbooks/backend.md#administrative-commands)); nobody revokes themselves or the last admin (SEC-75).
+
 ## Building and serving
 
 - `web/Dockerfile` builds the standalone output (`output: "standalone"`) on `node:24-slim`, pinned by digest and kept current by Dependabot, and runs it as the `node` user on port 3000. The image is built from `web/` alone: the API client and `tokens.css` are committed. `SECONDBITE_API_ORIGIN` is set where it runs; the reverse proxy in front routes `/api` to the Go server.

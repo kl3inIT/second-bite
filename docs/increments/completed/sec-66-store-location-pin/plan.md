@@ -28,3 +28,7 @@ Design: [design.md](design.md). One pull request from `main`, branch `dathip04/s
 ## Documents
 
 15. `ARCHITECTURE.md`, the web guideline if a rule for maps is worth keeping, and the roadmap's entry.
+
+## Status
+
+Every step done, 21 October 2026 (PR #107). Two changed while building: the worker is emitted by Next.js from `new URL(…, import.meta.url)` instead of copied into `public/` (step 7, design › The map), and the style uses Protomaps' own light colours, as the lint refuses colours outside DESIGN.md (step 9). Trying it on staging added decisions 12 to 16 (design), built on 21 and 22 October 2026 in PRs #112, #113 and #114; verification in [verification.md](verification.md).
