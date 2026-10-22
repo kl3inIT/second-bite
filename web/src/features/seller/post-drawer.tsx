@@ -38,6 +38,7 @@ import {
 } from "./post-draft";
 import { type Clock, LENGTHS, type StartKey, WindowChoices } from "./post-window";
 import { useRemountKey } from "./remount-key";
+import { UnitField } from "./unit-field";
 
 const kinds = [
   "bakery",
@@ -56,6 +57,8 @@ type Values = {
   photo: ChosenPhoto | undefined;
   name: string;
   kind: OfferBody["kind"];
+  /** What one unit is called, for a dish typed in the drawer; a dish chosen keeps its own. */
+  unit: string;
   description: string;
   units: string;
   original: string;
@@ -155,6 +158,7 @@ function PostDrawerBody({
     photo: undefined,
     name: "",
     kind: "bakery",
+    unit: "suất",
     description: "",
     units: base?.units ? String(base.units) : "",
     original: base?.originalPriceVnd ? String(base.originalPriceVnd) : "",
@@ -167,6 +171,7 @@ function PostDrawerBody({
     photo: z.custom<ChosenPhoto | undefined>(),
     name: z.string(),
     kind: z.enum(kinds),
+    unit: z.string(),
     description: z.string(),
     units: z.string(),
     original: z.string(),
@@ -253,7 +258,7 @@ function PostDrawerBody({
       body: {
         name: chosen?.name ?? value.name.trim(),
         kind: chosen?.kind ?? value.kind,
-        ...(chosen ? { unit: chosen.unit } : {}),
+        unit: chosen ? chosen.unit : value.unit,
         description: chosen ? chosen.description : value.description.trim(),
         photoId,
         units,
@@ -438,6 +443,9 @@ function PostDrawerBody({
                       </fieldset>
                     )}
                   </form.AppField>
+                  <div className="grid grid-cols-5 gap-3">
+                    <form.AppField name="unit">{() => <UnitField />}</form.AppField>
+                  </div>
                   <form.Subscribe selector={(state) => state.values.kind === "mixed_box"}>
                     {(mixedBox) =>
                       mixedBox && (

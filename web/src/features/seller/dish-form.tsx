@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Spinner } from "@/components/ui/spinner";
 import { Link, useRouter } from "@/i18n/navigation";
 import { failureOf } from "@/lib/api/client";
@@ -31,6 +30,7 @@ import { NumberInput } from "./number-input";
 import { PhoneFootBar } from "./phone-foot-bar";
 import { type ChosenPhoto, PhotoField } from "./photo-drop";
 import { useRemountKey } from "./remount-key";
+import { UnitField } from "./unit-field";
 
 const kinds = [
   "bakery",
@@ -40,11 +40,6 @@ const kinds = [
   "mixed_box",
   "other",
 ] as const satisfies readonly DishBody["kind"][];
-
-// What a dish is counted in, chosen rather than typed: a seller's own word would reach every card and order as it
-// was written. The unit is the dish's data, shown on cards and orders as it is saved, so the words stay Vietnamese
-// in both languages, as the dish's name does. A dish saved earlier with another word keeps it as one more choice.
-const units = ["suất", "phần", "cái", "chiếc", "túi", "hộp", "ổ", "ly", "chai"];
 
 type Values = {
   /** A photo just chosen; a dish that exists keeps its own until one is. */
@@ -290,30 +285,6 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
         </AlertDialogContent>
       </AlertDialog>
     </form>
-  );
-}
-
-/** What the dish is counted in, from the list, or the word it was saved with. */
-function UnitField() {
-  const t = useTranslations("DishForm");
-  const { field, ids } = useFieldValidity<string>();
-  const unit = field.state.value;
-  return (
-    <Field className="col-span-2">
-      <FieldLabel htmlFor={ids.control}>{t("unit")}</FieldLabel>
-      <NativeSelect
-        id={ids.control}
-        size="field"
-        value={unit}
-        onChange={(event) => field.handleChange(event.target.value)}
-      >
-        {(units.includes(unit) ? units : [...units, unit]).map((value) => (
-          <NativeSelectOption key={value} value={value}>
-            {value}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
-    </Field>
   );
 }
 

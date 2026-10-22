@@ -74,9 +74,12 @@ test.describe("the admin's posts", () => {
 
     await (
       await hydrated(
-        page.getByRole("button", { name: "Xem bài Túi bánh mì và croissant, 4 chiếc" }).first(),
+        page
+          .getByRole("button", { name: "Thao tác với bài Túi bánh mì và croissant, 4 chiếc" })
+          .first(),
       )
     ).click();
+    await page.getByRole("menuitem", { name: "Xem chi tiết" }).click();
     const panel = page.getByRole("dialog", { name: "Chi tiết bài đăng" });
     await expect(panel.getByText("Còn 3/3 suất", { exact: true })).toBeVisible();
     await expect(panel.getByRole("link", { name: "Xem trang cửa hàng" })).toHaveAttribute(

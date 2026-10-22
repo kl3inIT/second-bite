@@ -24,6 +24,12 @@
   html {
     @apply font-sans;
   }
+  /* Every area that scrolls, the page and a wide table too, shows a thin bar in the system's light blue on no
+     track; a row that scrolls sideways with its own hint still hides it (scrollbar-none). */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-secondary-hover) transparent;
+  }
   ::selection {
     @apply bg-secondary-hover text-foreground;
   }

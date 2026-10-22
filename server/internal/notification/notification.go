@@ -1,5 +1,7 @@
 // Package notification tells people what happened: it owns who delivers
-// email, chosen by admins while the service runs, and the emails sent.
+// email, chosen by admins while the service runs, and the emails sent; and the
+// browsers that asked for Web Push, the topics they follow and the pushes on
+// their way (SEC-25).
 package notification
 
 import (
@@ -17,6 +19,7 @@ import (
 
 	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/notification/internal/db"
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 // sendTimeout bounds one delivery, so a request that waits for an email (a
@@ -37,6 +40,8 @@ type Email struct {
 type Config struct {
 	// SettingsKey seals the secrets of the email settings: 32 bytes.
 	SettingsKey []byte
+	// Push is Web Push's keys and site; empty leaves it off.
+	Push PushConfig
 }
 
 // Service is the module's published API.
@@ -46,11 +51,18 @@ type Service struct {
 	senders emailSenders
 	aead    cipher.AEAD
 	trail   *audit.Service
-	logger  *slog.Logger
+	events  *platform.Events
+	push    PushConfig
+	// pushClient posts every push; pushHostAllowed, set only by tests, replaces
+	// the list of push services an endpoint may name.
+	pushClient      *http.Client
+	pushHostAllowed func(host string) bool
+	logger          *slog.Logger
+	now             func() time.Time
 }
 
 // NewService assembles the module and its registry of email providers.
-func NewService(pool *pgxpool.Pool, trail *audit.Service, cfg Config, logger *slog.Logger) (*Service, error) {
+func NewService(pool *pgxpool.Pool, trail *audit.Service, events *platform.Events, cfg Config, logger *slog.Logger) (*Service, error) {
 	block, err := aes.NewCipher(cfg.SettingsKey)
 	if err != nil {
 		return nil, fmt.Errorf("the email settings key: %w", err)
@@ -69,7 +81,10 @@ func NewService(pool *pgxpool.Pool, trail *audit.Service, cfg Config, logger *sl
 		return nil, err
 	}
 
-	return &Service{pool: pool, queries: db.New(pool), senders: senders, aead: aead, trail: trail, logger: logger}, nil
+	return &Service{
+		pool: pool, queries: db.New(pool), senders: senders, aead: aead, trail: trail, events: events,
+		push: cfg.Push, pushClient: newPushClient(), logger: logger, now: time.Now,
+	}, nil
 }
 
 // SendEmail delivers e through the provider admins chose and records it.

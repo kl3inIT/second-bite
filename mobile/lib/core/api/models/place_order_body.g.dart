@@ -13,6 +13,7 @@ _PlaceOrderBody _$PlaceOrderBodyFromJson(Map<String, dynamic> json) =>
           .toList(),
       name: json['name'] as String,
       phone: json['phone'] as String,
+      byZalo: json['byZalo'] as bool?,
       checkoutId: json['checkoutId'] as String?,
     );
 
@@ -21,5 +22,6 @@ Map<String, dynamic> _$PlaceOrderBodyToJson(_PlaceOrderBody instance) =>
       'lines': instance.lines,
       'name': instance.name,
       'phone': instance.phone,
+      'byZalo': instance.byZalo,
       'checkoutId': instance.checkoutId,
     };

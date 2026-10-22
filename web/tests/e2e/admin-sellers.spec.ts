@@ -199,7 +199,11 @@ test.describe("the admin's stores", () => {
     await expect(page.getByText("Hiển thị 1–1 trên 1 bài đăng")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
-    await table.getByRole("button", { name: "Xem bài Túi bánh mì và croissant, 4 chiếc" }).click();
+    // A row's "⋯" opens its menu, whose "Xem chi tiết" opens the post's panel.
+    await table
+      .getByRole("button", { name: "Thao tác với bài Túi bánh mì và croissant, 4 chiếc" })
+      .click();
+    await page.getByRole("menuitem", { name: "Xem chi tiết" }).click();
     const panel = page.getByRole("dialog", { name: "Chi tiết bài đăng" });
     await expect(panel.getByText("Bánh mì và croissant nướng trong ngày, còn mềm.")).toBeVisible();
     await expect(panel.getByText("400 g")).toBeVisible();

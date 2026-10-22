@@ -37,3 +37,5 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | A seller's moved point is copied onto its order to collect, not onto one handed over; delivered twice, nothing more changes; an unknown seller is ignored | `TestOrder` › orders and offers follow their seller |
 
 Not covered by a test: the same key arriving twice at once (held by the unique index, then read back), and two staff handing over at once (held by the row lock).
+| A new order, the customer's cancel and message push to the seller's topic; ready, a refusal with its reason and the store's message push to the order's topic; a hand-over pushes nothing | `TestOrder` › pushes tell of each change (`internal/order/push_test.go`) |
+| A customer is reminded once, 30 minutes before the window, unless they ordered within it; a moved window is told once however often its event arrives | `TestOrder` › pushes tell of time |

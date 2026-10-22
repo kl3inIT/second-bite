@@ -1,6 +1,12 @@
 "use client";
 
-import { tableFeatures, useTable, type ColumnDef, type RowData } from "@tanstack/react-table";
+import {
+  metaHelper,
+  tableFeatures,
+  useTable,
+  type ColumnDef,
+  type RowData,
+} from "@tanstack/react-table";
 import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from "lucide-react";
 
 import {
@@ -13,9 +19,16 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
+/**
+ * A column's width, from the spacing scale (`w-32`); the one column without it takes what is left. Once a
+ * column has one, the table lays its columns out fixed, so they stay put from one page to the next, and
+ * scrolls sideways when narrower than `min-w-5xl`.
+ */
+type ColumnMeta = { width?: `w-${number}` };
+
 // No feature of TanStack's own: the server filters, sorts and pages (SEC-75 › Lists), and the address holds
 // what is asked, so the table only lays out the page it is given.
-const features = tableFeatures({});
+const features = tableFeatures({ columnMeta: metaHelper<ColumnMeta>() });
 
 export type DataTableColumns<Row extends RowData> = Array<ColumnDef<typeof features, Row>>;
 
@@ -86,10 +99,18 @@ export function DataTable<Row extends RowData>({
   footer?: React.ReactNode;
 }) {
   const table = useTable({ features, columns, data: rows, getRowId: rowKey });
+  const fixed = columns.some((column) => column.meta?.width);
 
   return (
     <div className="overflow-hidden rounded-md border border-border bg-card">
-      <Table aria-label={label} aria-busy={busy}>
+      <Table aria-label={label} aria-busy={busy} className={cn(fixed && "min-w-5xl table-fixed")}>
+        {fixed && (
+          <colgroup>
+            {columns.map((column, index) => (
+              <col key={column.id ?? index} className={column.meta?.width} />
+            ))}
+          </colgroup>
+        )}
         <TableHeader>
           {table.getHeaderGroups().map((group) => (
             <TableRow key={group.id}>
@@ -98,7 +119,11 @@ export function DataTable<Row extends RowData>({
                   key={header.id}
                   aria-sort={sorted?.column === header.column.id ? sorted.direction : undefined}
                 >
-                  {header.isPlaceholder ? null : <table.FlexRender header={header} />}
+                  {header.isPlaceholder ? null : (
+                    <div className={cn(fixed && "truncate")}>
+                      <table.FlexRender header={header} />
+                    </div>
+                  )}
                 </TableHead>
               ))}
             </TableRow>
@@ -114,7 +139,10 @@ export function DataTable<Row extends RowData>({
               <TableRow key={row.id}>
                 {row.getAllCells().map((cell) => (
                   <TableCell key={cell.id}>
-                    <table.FlexRender cell={cell} />
+                    {/* In fixed columns what is too long ends in "…" rather than pushing the next one. */}
+                    <div className={cn(fixed && "truncate")}>
+                      <table.FlexRender cell={cell} />
+                    </div>
                   </TableCell>
                 ))}
               </TableRow>

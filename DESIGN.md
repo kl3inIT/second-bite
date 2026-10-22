@@ -511,6 +511,7 @@ Deal Blue, 20px radius, at the bottom of the header without a filter: the title 
 - **Do** keep the discount on the label and the portions left under the photograph, in the same place on every card.
 - **Do** use real photographs of real kinds of food, labelled as samples until the pilot has its own.
 - **Do** show the hand pointer over everything that can be pressed, and the arrow over what cannot.
+- **Do** let whatever scrolls show the one thin bar in `secondary-hover` on no track (`globals.css`); a row of cards that scrolls sideways shows its own short track instead.
 
 ### Don't:
 

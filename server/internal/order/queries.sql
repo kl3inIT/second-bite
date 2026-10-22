@@ -1,10 +1,10 @@
 -- name: InsertOrder :one
 INSERT INTO order_orders (
     customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude, longitude, address,
-    window_start, window_end, total_vnd, idempotency_key
+    window_start, window_end, total_vnd, idempotency_key, zalo_consent_at
 ) VALUES (
     @customer_id, @customer_name, @customer_phone, @seller_id, @checkout_id, @seller_name, @latitude, @longitude,
-    @address, @window_start, @window_end, @total_vnd, @idempotency_key
+    @address, @window_start, @window_end, @total_vnd, @idempotency_key, sqlc.narg('zalo_consent_at')
 )
 RETURNING id;
 
@@ -161,12 +161,14 @@ FROM order_orders AS o
 JOIN order_lines AS l ON l.order_id = o.id
 WHERE l.offer_id = @offer_id AND o.state IN ('confirmed', 'ready');
 
--- name: SetWindow :exec
+-- name: SetWindow :execrows
 -- Moves an order still to collect to a new window, and tells the sockets
--- following it (channel secondbite_live); one that ended stays as it was.
+-- following it (channel secondbite_live); one that ended, or already has that
+-- window, stays as it was. Returns whether it moved.
 WITH moved AS (
-    UPDATE order_orders SET window_start = @window_start, window_end = @window_end
+    UPDATE order_orders SET window_start = @window_start::timestamptz, window_end = @window_end::timestamptz
     WHERE id = @id AND state IN ('confirmed', 'ready')
+      AND (window_start, window_end) IS DISTINCT FROM (@window_start::timestamptz, @window_end::timestamptz)
     RETURNING id, seller_id, state
 )
 SELECT pg_notify('secondbite_live', json_build_object(
@@ -300,6 +302,14 @@ SELECT pg_notify('secondbite_live', json_build_object(
     'notice', json_build_object('type', 'order', 'orderId', id, 'status', state)
 )::text)
 FROM moved;
+
+-- name: MarkDueSoon :many
+-- Marks the orders still to collect whose window opens between now and before,
+-- once each, returning when each was placed and opens (SEC-25).
+UPDATE order_orders SET due_soon_at = @now
+WHERE due_soon_at IS NULL AND state IN ('confirmed', 'ready')
+  AND window_start > @now AND window_start <= @before
+RETURNING id, created_at, window_start;
 
 -- name: OrderDays :many
 -- The orders per collection day in Vietnam and seller, by how they ended, for the admin's report (SEC-80). An order
