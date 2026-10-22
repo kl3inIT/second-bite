@@ -175,7 +175,7 @@ test.describe("opening a store on the web", () => {
     }
 
     await page.goto("/vi");
-    await page.getByRole("link", { name: "Mở quán" }).click();
+    await page.getByRole("link", { name: "Quán của tôi" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Quán của tôi" })).toBeVisible();
     await expect(page.getByRole("link", { name: /Quán Một/ })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
@@ -218,10 +218,7 @@ test.describe("opening a store on the web", () => {
 
     // With one store the name still opens the menu, and does not reload the page.
     await page.getByRole("button", { name: "Quán Một", exact: true }).click();
-    await expect(page.getByRole("menuitem", { name: "Về trang người mua" })).toHaveAttribute(
-      "href",
-      /\/vi$/,
-    );
+    await expect(page.getByRole("menuitem", { name: "Mua đồ" })).toHaveAttribute("href", /\/vi$/);
     await expect(page.getByRole("menuitem", { name: "Quán Một" })).toHaveAttribute(
       "aria-current",
       "true",

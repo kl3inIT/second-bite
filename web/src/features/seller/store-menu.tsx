@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon, MapPinnedIcon, PlusIcon, StoreIcon } from "lucide-react";
+import { MapPinnedIcon, PlusIcon, StoreIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -19,11 +19,12 @@ type Store = {
   id: string;
   name: string;
   photo?: { smallPath: string };
+  photoId?: string;
   myRole?: "owner" | "staff";
 };
 
 // What the store's name in the header opens (Figma "Chủ quán · Mobile 390"): the way back to the shop the customers
-// use, the person's stores to move between with the one they are in marked, and a way to open another while they
+// use, the person's stores to move between with the one they are in standing out (filled, with a bar at its side), and a way to open another while they
 // have room for one. It opens on a store of one too, so the name always does something. The name, with its avatar,
 // is what the page puts inside; the menu does not know how it is drawn.
 export function StoreMenu({
@@ -66,6 +67,7 @@ export function StoreMenu({
           {stores.map((store) => (
             <DropdownMenuItem
               key={store.id}
+              variant={store.id === current.id ? "current" : "default"}
               render={
                 <Link
                   href={`/stores/${store.id}`}
@@ -75,7 +77,6 @@ export function StoreMenu({
             >
               <SellerAvatar seller={store} size="sm" />
               <span className="min-w-0 flex-1 truncate">{store.name}</span>
-              {store.id === current.id && <CheckIcon aria-hidden />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
