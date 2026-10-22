@@ -79,7 +79,7 @@ func placeTwice(t *testing.T, svc service, customer http.Header, offerID string)
 
 	twoUnits := cartOf(cartLine{offerID, 2})
 
-	if p := send(t, http.MethodPost, svc.base+"/orders", customer, twoUnits).problem(t, http.StatusBadRequest); p.Code != "PLATFORM_REQUEST_INVALID" {
+	if p := send(t, http.MethodPost, svc.base+"/orders", customer, twoUnits).problem(t, http.StatusBadRequest); p.Code != codeRequestInvalid {
 		t.Errorf("placing without an Idempotency-Key: %q", p.Code)
 	}
 

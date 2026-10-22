@@ -2084,6 +2084,21 @@ components:
         - rejected
         - blocked
       type: object
+    ViewInputBody:
+      additionalProperties: false
+      properties:
+        path:
+          description: The page's path, as the address bar shows it, such as /vi/sellers/{id}
+          maxLength: 300
+          minLength: 1
+          type: string
+        source:
+          description: utm_source of the address that opened the site, such as qr; anything else than 1 to 40 of a-z, 0-9, _ and - counts as none
+          maxLength: 100
+          type: string
+      required:
+        - path
+      type: object
     Violation:
       additionalProperties: false
       properties:
@@ -4746,3 +4761,25 @@ paths:
       summary: What anyone sees of an active seller
       tags:
         - Sellers
+  /stats/views:
+    post:
+      description: Sent by the web when a page is shown, without a session. A bot or a prefetch is not counted, and is answered the same.
+      operationId: recordView
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ViewInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Count a page on screen
+      tags:
+        - Stats

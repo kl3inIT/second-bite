@@ -994,6 +994,17 @@ export type StatusDayBody = {
     rejected: number;
 };
 
+export type ViewInputBody = {
+    /**
+     * The page's path, as the address bar shows it, such as /vi/sellers/{id}
+     */
+    path: string;
+    /**
+     * utm_source of the address that opened the site, such as qr; anything else than 1 to 40 of a-z, 0-9, _ and - counts as none
+     */
+    source?: string;
+};
+
 export type Violation = {
     code: string;
     detail: string;
@@ -3110,3 +3121,28 @@ export type GetSellerProfileResponses = {
 };
 
 export type GetSellerProfileResponse = GetSellerProfileResponses[keyof GetSellerProfileResponses];
+
+export type RecordViewData = {
+    body: ViewInputBody;
+    path?: never;
+    query?: never;
+    url: '/stats/views';
+};
+
+export type RecordViewErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RecordViewError = RecordViewErrors[keyof RecordViewErrors];
+
+export type RecordViewResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type RecordViewResponse = RecordViewResponses[keyof RecordViewResponses];

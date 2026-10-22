@@ -23,6 +23,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5
 	golang.org/x/image v0.47.0
 	golang.org/x/text v0.43.0
+	zgo.at/isbot v1.1.0
 )
 
 require (
