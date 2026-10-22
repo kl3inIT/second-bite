@@ -62,14 +62,15 @@ Failure paths: a view that does not arrive (closed page, no network) is lost and
 - **The page is read from its path.** The server keeps the path's kind (`home`, `seller`, `offer`, `other`) and the id in it. A dish's store is resolved when the numbers are read, through `offer`'s published API, so the web sends only the path.
 - **A new module, `stats`**, owns the views and the salts (tables `stats_*`) and answers the report. It reads posts from `offer` and orders from `order` through new published reads (counts by day and store), and store names from `seller`. It writes nothing of theirs and they do not know it: edges `stats` → `offer`, `order`, `seller`. Each module counts its own rows, so the numbers are exactly the ones the admin's other lists show.
 - **The real IP comes from the proxy.** The server is reached through the proxy and Next's `/api` rewrite; it reads the first address of `X-Forwarded-For` only on the stats call, since the proxy is the only way in.
-- **The CSV is made in the browser** from the same answer as the table, so there is no second endpoint.
+- **The CSV is the server's** (changed with the owner on 22 October 2026, after reading how Mattermost, Listmonk, GoatCounter, Spree and BeyondPilot export): Go's `encoding/csv`, its error read after the flush; a UTF-8 byte order mark so Excel keeps the marks; a name a spreadsheet would run as a formula (`= + - @`, a tab, a carriage return) written behind an apostrophe, as Spree's `FormulaSanitizer` and OWASP's CSV injection advise; rows that read like the screen, with names, a row for the whole site on each day, and the totals last; named by its days. No Excel workbook and no audit event: a CSV opens in Excel and Sheets, and the trail records changes, not reads.
 
 ## Contract
 
-| Call                                     | Who                | Used for                                                                                                                                             |
-| ---------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /stats/views` `{path, source}`     | Anyone, no session | Keep one view; `204` also for a bot or a prefetch. A body out of its contract is refused as any call is, and the page ignores the answer             |
-| `GET /admin/reports?from=&to=&sellerId=` | Admins             | The cards, the orders per day, one row per store and one per day and store; `REPORT_RANGE_INVALID` (400) for a range longer than 92 days or reversed |
+| Call                                                | Who                | Used for                                                                                                                                             |
+| --------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /stats/views` `{path, source}`                | Anyone, no session | Keep one view; `204` also for a bot or a prefetch. A body out of its contract is refused as any call is, and the page ignores the answer             |
+| `GET /admin/reports?since=&until=&sellerId=`        | Admins             | The cards, the orders per day, one row per store and one per day and store; `REPORT_RANGE_INVALID` (400) for a range longer than 92 days or reversed |
+| `GET /admin/reports/export?since=&until=&sellerId=` | Admins             | The same numbers as CSV, one row per day and store                                                                                                   |
 
 ## Not here
 

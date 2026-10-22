@@ -1122,7 +1122,8 @@
       "orders": "Đơn hàng",
       "audit": "Nhật ký thao tác",
       "settings": "Cài đặt",
-      "accounts": "Tài khoản"
+      "accounts": "Tài khoản",
+      "reports": "Báo cáo"
     },
     "notFound": {
       "crumb": "Không tìm thấy",
@@ -1689,6 +1690,49 @@
       },
       "actions": "Thao tác với đơn {number}",
       "view": "Xem chi tiết"
+    },
+    "reports": {
+      "title": "Báo cáo",
+      "days": "Khoảng ngày",
+      "lastWeek": "7 ngày gần nhất",
+      "store": "Cửa hàng",
+      "anyStore": "Tất cả",
+      "export": "Xuất CSV",
+      "cards": "Tổng của khoảng ngày",
+      "card": {
+        "views": "Lượt mở trang",
+        "viewsNote": "{people} người · {qr} từ QR",
+        "held": "Đơn giữ",
+        "heldNote": "{units} phần",
+        "collected": "Phần đã lấy",
+        "collectedNote": "{orders} đơn",
+        "share": "Tỉ lệ lấy",
+        "shareNote": "{collected}/{held} đơn",
+        "expired": "Khách không đến",
+        "expiredNote": "{cancelled} huỷ · {refused} quán từ chối"
+      },
+      "chart": "Đơn giữ và đơn đã lấy theo ngày",
+      "series": {
+        "held": "Đơn giữ",
+        "collected": "Đã lấy"
+      },
+      "table": "Số liệu theo cửa hàng",
+      "column": {
+        "name": "Cửa hàng",
+        "views": "Lượt mở",
+        "people": "Người mở",
+        "offers": "Món đăng",
+        "held": "Đơn giữ",
+        "collected": "Đã lấy",
+        "cancelled": "Huỷ",
+        "expired": "Không đến",
+        "share": "Tỉ lệ lấy",
+        "collectedVnd": "Tiền thu"
+      },
+      "none": "–",
+      "empty": {
+        "title": "Chưa có số liệu trong khoảng ngày này"
+      }
     }
   },
   "Review": {

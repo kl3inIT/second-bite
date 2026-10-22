@@ -2381,6 +2381,109 @@ function adminSellerReads(request, response, url) {
   return true;
 }
 
+// The admin's report (SEC-80): three stores' numbers on the last day of the range asked, the last seven days up
+// to today in Vietnam by default, every other day empty; one store's alone when `sellerId` names it. The stub
+// counts no real views or orders: the numbers are fixed, as api/openapi.yaml shapes them.
+const reportCountKeys = [
+  "views",
+  "people",
+  "homeViews",
+  "qrViews",
+  "offers",
+  "unitsPosted",
+  "held",
+  "unitsHeld",
+  "collected",
+  "unitsCollected",
+  "cancelled",
+  "refused",
+  "expired",
+  "collectedVnd",
+];
+
+function reportCounts(values = {}) {
+  return Object.fromEntries(reportCountKeys.map((key) => [key, values[key] ?? 0]));
+}
+
+function addCounts(into, more) {
+  for (const key of reportCountKeys) into[key] += more[key];
+}
+
+const reportStoreNumbers = [
+  {
+    views: 42,
+    people: 18,
+    qrViews: 6,
+    offers: 3,
+    unitsPosted: 15,
+    held: 9,
+    unitsHeld: 12,
+    collected: 8,
+    unitsCollected: 11,
+    cancelled: 1,
+    collectedVnd: 264000,
+  },
+  {
+    views: 25,
+    people: 11,
+    qrViews: 2,
+    offers: 2,
+    unitsPosted: 8,
+    held: 4,
+    unitsHeld: 4,
+    collected: 2,
+    unitsCollected: 2,
+    expired: 2,
+    collectedVnd: 70000,
+  },
+  { views: 7, people: 4, offers: 1, unitsPosted: 5 },
+];
+
+function vietnamToday() {
+  return new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+function adminReport(url, stores) {
+  const until = url.searchParams.get("until") ?? vietnamToday();
+  const untilTime = Date.parse(`${until}T00:00:00Z`);
+  const since =
+    url.searchParams.get("since") ??
+    new Date(untilTime - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const sellerId = url.searchParams.get("sellerId");
+  const days = [];
+  for (let t = Date.parse(`${since}T00:00:00Z`); t <= untilTime; t += 24 * 60 * 60 * 1000)
+    days.push({ day: new Date(t).toISOString().slice(0, 10), counts: reportCounts() });
+  const shown = stores
+    .filter((s) => s.status === "active")
+    .slice(0, reportStoreNumbers.length)
+    .map((s, i) => ({ sellerId: s.id, name: s.name, counts: reportCounts(reportStoreNumbers[i]) }))
+    .filter((s) => !sellerId || s.sellerId === sellerId);
+  const last = days.at(-1);
+  if (last) {
+    for (const store of shown) addCounts(last.counts, store.counts);
+    if (!sellerId) last.counts.views += 30;
+    if (!sellerId) last.counts.homeViews += 30;
+  }
+  const totals = reportCounts();
+  for (const day of days) addCounts(totals, day.counts);
+  return {
+    since,
+    until,
+    totals,
+    days,
+    stores: shown,
+    storeDays: last ? shown.map((store) => ({ day: last.day, ...store })) : [],
+  };
+}
+
+function adminReportCSV(report) {
+  const rows = [["Ngày", "Cửa hàng", "Lượt mở trang", "Đơn giữ", "Đơn đã lấy"]];
+  for (const row of report.storeDays)
+    rows.push([row.day, row.name, row.counts.views, row.counts.held, row.counts.collected]);
+  rows.push(["Tổng", "", report.totals.views, report.totals.held, report.totals.collected]);
+  return "\uFEFF" + rows.map((row) => row.join(",")).join("\r\n") + "\r\n";
+}
+
 async function adminRoutes(request, response, url) {
   if (!url.pathname.startsWith("/admin/")) return false;
   const account = accounts.get(tokenOf(request));
@@ -2402,6 +2505,19 @@ async function adminRoutes(request, response, url) {
   }
   if (request.method === "GET" && url.pathname === "/admin/orders") {
     listAdminOrders(response, url, adminStoresOf(account));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/reports") {
+    json(response, 200, adminReport(url, adminStoresOf(account)));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/reports/export") {
+    const report = adminReport(url, adminStoresOf(account));
+    response.writeHead(200, {
+      "content-type": "text/csv; charset=utf-8",
+      "content-disposition": `attachment; filename=bao-cao-${report.since}-den-${report.until}.csv`,
+    });
+    response.end(adminReportCSV(report));
     return true;
   }
   const storeAction = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block)$/.exec(url.pathname);
@@ -2624,6 +2740,12 @@ async function answer(request, response) {
     if (!found) return problem(response, 404, "OFFER_NOT_FOUND");
     const { seller: _seller, ...offer } = found;
     return json(response, 200, offer);
+  }
+  // A page on screen (SEC-80): counted by the server, answered alike whatever it is.
+  if (request.method === "POST" && url.pathname === "/stats/views") {
+    await readBody(request);
+    response.writeHead(204).end();
+    return;
   }
   if (await auth(request, response, url)) return;
   if (await chatRoutes(request, response, url)) return;

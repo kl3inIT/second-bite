@@ -2,6 +2,7 @@ package stats
 
 import (
 	"context"
+	"mime"
 	"net/http"
 	"time"
 
@@ -37,21 +38,21 @@ type countsBody struct {
 }
 
 type reportDayBody struct {
-	Day string `json:"day" format:"date"`
-	countsBody
+	Day    string     `json:"day"    format:"date"`
+	Counts countsBody `json:"counts"`
 }
 
 type reportStoreBody struct {
-	SellerID uuid.UUID `json:"sellerId"`
-	Name     string    `json:"name"`
-	countsBody
+	SellerID uuid.UUID  `json:"sellerId"`
+	Name     string     `json:"name"`
+	Counts   countsBody `json:"counts"`
 }
 
 type reportStoreDayBody struct {
-	Day      string    `json:"day"      format:"date"`
-	SellerID uuid.UUID `json:"sellerId"`
-	Name     string    `json:"name"`
-	countsBody
+	Day      string     `json:"day"      format:"date"`
+	SellerID uuid.UUID  `json:"sellerId"`
+	Name     string     `json:"name"`
+	Counts   countsBody `json:"counts"`
 }
 
 type reportOutput struct {
@@ -86,6 +87,47 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 
 		return reportOf(r), nil
 	})
+
+	huma.Register(admin, huma.Operation{
+		OperationID: "exportReport", Method: http.MethodGet, Path: "/reports/export",
+		Summary: "The report as a CSV file, one row per day and store",
+		Description: "The same numbers as getReport, in Vietnamese, for the sponsor's sheet: a row for the whole site " +
+			"on each day when no store is chosen, a row per store and day, and the totals last. UTF-8 with a byte order mark.",
+		Responses: map[string]*huma.Response{
+			"200": {Description: "The report as CSV", Content: map[string]*huma.MediaType{contentTypeCSV: {}}},
+		},
+	}, func(ctx context.Context, in *reportInput) (*csvOutput, error) {
+		f, err := reportFilter(in, dayOf(s.now()))
+		if err != nil {
+			return nil, err
+		}
+
+		r, err := s.Report(ctx, f)
+		if err != nil {
+			return nil, err
+		}
+
+		body, err := reportCSV(r, f.SellerID != nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return &csvOutput{
+			ContentType:        contentTypeCSV,
+			ContentDisposition: mime.FormatMediaType("attachment", map[string]string{"filename": csvName(r)}),
+			CacheControl:       "no-store",
+			Body:               body,
+		}, nil
+	})
+}
+
+const contentTypeCSV = "text/csv; charset=utf-8"
+
+type csvOutput struct {
+	ContentType        string `header:"Content-Type"`
+	ContentDisposition string `header:"Content-Disposition"`
+	CacheControl       string `header:"Cache-Control"`
+	Body               []byte
 }
 
 // reportFilter reads the range asked, the last week up to today by default.
@@ -126,18 +168,18 @@ func reportOf(r Report) *reportOutput {
 
 	out.Body.Days = make([]reportDayBody, len(r.Days))
 	for i, d := range r.Days {
-		out.Body.Days[i] = reportDayBody{Day: d.Day.Format(time.DateOnly), countsBody: countsOf(d.Counts)}
+		out.Body.Days[i] = reportDayBody{Day: d.Day.Format(time.DateOnly), Counts: countsOf(d.Counts)}
 	}
 
 	out.Body.Stores = make([]reportStoreBody, len(r.Stores))
 	for i, st := range r.Stores {
-		out.Body.Stores[i] = reportStoreBody{SellerID: st.SellerID, Name: st.Name, countsBody: countsOf(st.Counts)}
+		out.Body.Stores[i] = reportStoreBody{SellerID: st.SellerID, Name: st.Name, Counts: countsOf(st.Counts)}
 	}
 
 	out.Body.StoreDays = make([]reportStoreDayBody, len(r.StoreDays))
 	for i, sd := range r.StoreDays {
 		out.Body.StoreDays[i] = reportStoreDayBody{
-			Day: sd.Day.Format(time.DateOnly), SellerID: sd.SellerID, Name: sd.Name, countsBody: countsOf(sd.Counts),
+			Day: sd.Day.Format(time.DateOnly), SellerID: sd.SellerID, Name: sd.Name, Counts: countsOf(sd.Counts),
 		}
 	}
 
