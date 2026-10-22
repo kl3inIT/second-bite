@@ -37,7 +37,7 @@ type Located = {
 };
 
 /** A phone of 9 to 15 digits, a leading + allowed, spaces, dots, dashes and brackets between them: the server's rule. */
-function isPhone(raw: string) {
+export function isPhone(raw: string) {
   const value = raw.trim();
   if (!/^\+?[\d .\-()]+$/.test(value)) return false;
   const digits = value.replace(/\D/g, "").length;
@@ -103,7 +103,10 @@ function OpenStoreFormBody() {
           const { data } = await uploadPhoto({ body: value.photo });
           await setSellerPhoto({ path: { sellerId }, body: { photoId: data.id } });
         } catch {
-          // The store exists; its photo can be set again later.
+          // The store exists: the person goes on to the page that changes it, to choose the photo again.
+          router.replace(`/stores/${sellerId}/edit?photo=failed`);
+          router.refresh();
+          return;
         }
       }
       router.replace(`/stores/${sellerId}`);

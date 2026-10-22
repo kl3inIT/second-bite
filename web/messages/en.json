@@ -347,7 +347,7 @@
   },
   "Account": {
     "signIn": "Sign in",
-    "openStore": "My stores",
+    "openStore": "Open a store",
     "menu": "Account {email}",
     "signedInAs": "Signed in as {email}",
     "signOut": "Sign out",
@@ -734,7 +734,8 @@
     "noneBody": "Open a store to post what is left at the end of the day.",
     "create": "Open a new store",
     "owner": "Owner",
-    "staff": "Staff"
+    "staff": "Staff",
+    "edit": "Edit {name}"
   },
   "StoreNav": {
     "label": "Store",
@@ -745,6 +746,7 @@
   },
   "StoreMenu": {
     "shop": "Shop",
+    "edit": "Edit store",
     "location": "Store location",
     "mine": "My stores",
     "create": "Open another store"
@@ -1823,6 +1825,16 @@
     "save": "Save the location",
     "saved": "The store's new location is saved.",
     "failed": "The location could not be saved. Try again in a few minutes."
+  },
+  "StoreEditPage": {
+    "title": "Edit store",
+    "intro": "Customers see this on the store's page.",
+    "changePhoto": "Change photo",
+    "save": "Save changes",
+    "saved": "The store's details are saved.",
+    "failed": "Could not save. Try again in a few minutes.",
+    "photoFailed": "The store is open, but its photo did not upload. Choose a photo and save.",
+    "location": "Change the store's address and location"
   },
   "Failure": {
     "reference": "Reference: {reference}",

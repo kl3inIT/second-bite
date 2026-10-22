@@ -170,7 +170,7 @@ func checkAdminBlocksAndLifts(t *testing.T, svc service, admin http.Header, sell
 	}
 
 	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/block", admin, reasonBody("ngắn")).
-		problem(t, http.StatusBadRequest); p.Code != "PLATFORM_REQUEST_INVALID" {
+		problem(t, http.StatusBadRequest); p.Code != codeRequestInvalid {
 		t.Errorf("a reason too short: %q", p.Code)
 	}
 
@@ -228,7 +228,7 @@ func checkPlacesNeedACaller(t *testing.T, svc service, signedIn http.Header) {
 		t.Errorf("anonymous suggestions: %q", p.Code)
 	}
 
-	if p := send(t, http.MethodGet, places+"h", signedIn, nil).problem(t, http.StatusBadRequest); p.Code != "PLATFORM_REQUEST_INVALID" {
+	if p := send(t, http.MethodGet, places+"h", signedIn, nil).problem(t, http.StatusBadRequest); p.Code != codeRequestInvalid {
 		t.Errorf("one letter: %q", p.Code)
 	}
 }

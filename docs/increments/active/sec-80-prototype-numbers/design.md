@@ -4,10 +4,32 @@ Status: designed on 22 October 2026, waiting for the owner's review before any c
 
 ## What an admin can do
 
-- Open "Số liệu" from the admin menu, under "Vận hành", and see one row per day and store for the chosen days (the last 7 by default): how many times its page and its dishes' pages were opened and by how many people, the dishes and units posted, the orders held, collected, cancelled, refused and expired, and the share picked up.
-- See the same numbers for the whole site above the table: the home's opens and people, opens that came from the printed QR code, and the totals.
-- Choose the days and one store; every choice is in the address.
-- Press "Tải CSV" to download the table, to paste into the sponsor's sheet.
+The page is "Báo cáo" (`/admin/reports`), the menu's entry of that name. Figma's AD-BC1 and AD-BC2 (section "Quản trị · Web 1440") are its reference for layout only: the numbers and the rules are this design's, and the code may differ from the drawing (decided with the owner on 22 October 2026).
+
+- Choose a range of days (the last 7 by default, at most 92) and one store or all of them; every choice is in the address.
+- Read the cards for the range:
+  - views and people (with how many came from the printed QR code);
+  - orders held;
+  - units collected ("phần cứu");
+  - the share collected;
+  - the orders that expired without the customer coming ("không đến").
+- Read the orders held per day as bars, so the evenings of the trial compare at a glance ([NN/g](https://www.nngroup.com/articles/dashboards-preattentive/): length for quantities, no pies).
+- Read one row per store, sortable by each column:
+  - views and people;
+  - dishes and units posted;
+  - orders held, collected, cancelled, refused and expired;
+  - the share collected;
+  - what the collected orders came to at the counter.
+- Press "Xuất CSV" for the same numbers one row per day and store, to paste into the sponsor's sheet. The sheet asks for days, so the file goes by day even when the table sums the range.
+
+Left out of Figma's drawing until there is data for it:
+
+- kilograms and CO₂ saved, since dishes carry no weight;
+- new users;
+- the weekly chart, since the trial counts in evenings;
+- Excel files, since a CSV opens in Excel and Sheets.
+
+The overview (AD-TQ, SEC-62) can later read the same views for its funnel.
 
 ## Domain story
 
@@ -15,7 +37,7 @@ Status: designed on 22 October 2026, waiting for the owner's review before any c
 2. Once the page is on screen, the browser tells the server which page was opened, and from where (`utm_source`).
 3. The server drops the request when it comes from a bot or a prefetch, and keeps one view: the day, the page, the store or dish it is about, the source, and a visitor key that cannot be traced back to the person.
 4. The rest is already recorded by its owner: a seller posts a dish (`offer`); a customer holds it, and the order is collected, cancelled, refused or expires (`order`).
-5. An admin opens "Số liệu" and reads, per day and store, the views next to the posts and the orders.
+5. An admin opens "Báo cáo" and reads, per store and day, the views next to the posts and the orders.
 
 Failure paths: a view that does not arrive (closed page, no network) is lost and not retried; a broken stats request never affects the page, which neither waits for it nor shows an error.
 
@@ -38,16 +60,16 @@ Failure paths: a view that does not arrive (closed page, no network) is lost and
   - The visitor key is `sha256(daily salt ‖ IP ‖ User-Agent)`; the salt is random, stored for the day and deleted after it, so a key cannot be recomputed later (Plausible's daily salts; Umami's `uuid(website, ip, userAgent, salt)` in `src/app/api/send/route.ts`). No cookie, and no IP or User-Agent is stored.
 - **Raw views, aggregated when read.** A pilot of about 100 people makes a few thousand views a day at most; one row per view with an index on the day is enough, and the numbers can be re-cut later. Views older than 400 days are deleted by the nightly job that deletes old salts.
 - **The page is read from its path.** The server keeps the path's kind (`home`, `seller`, `offer`, `other`) and the id in it. A dish's store is resolved when the numbers are read, through `offer`'s published API, so the web sends only the path.
-- **A new module, `stats`**, owns the views and the salts (tables `stats_*`) and answers the admin's numbers. It reads posts from `offer` and orders from `order` through new published reads (counts by day and store), and store names from `seller`. It writes nothing of theirs and they do not know it: edges `stats` → `offer`, `order`, `seller`. Each module counts its own rows, so the numbers are exactly the ones the admin's other lists show.
+- **A new module, `stats`**, owns the views and the salts (tables `stats_*`) and answers the report. It reads posts from `offer` and orders from `order` through new published reads (counts by day and store), and store names from `seller`. It writes nothing of theirs and they do not know it: edges `stats` → `offer`, `order`, `seller`. Each module counts its own rows, so the numbers are exactly the ones the admin's other lists show.
 - **The real IP comes from the proxy.** The server is reached through the proxy and Next's `/api` rewrite; it reads the first address of `X-Forwarded-For` only on the stats call, since the proxy is the only way in.
 - **The CSV is made in the browser** from the same answer as the table, so there is no second endpoint.
 
 ## Contract
 
-| Call                                           | Who                | Used for                                                                                                                                |
-| ---------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /stats/views` `{path, referrer, source}` | Anyone, no session | Keep one view; always `204`, also for a bot or a malformed body, so the page never sees an error                                        |
-| `GET /admin/stats?from=&to=&sellerId=`         | Admins             | Rows per day and store, the site's totals and the home's views; `STATS_RANGE_INVALID` (400) for a range longer than 92 days or reversed |
+| Call                                     | Who                | Used for                                                                                                                                             |
+| ---------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /stats/views` `{path, source}`     | Anyone, no session | Keep one view; `204` also for a bot or a prefetch. A body out of its contract is refused as any call is, and the page ignores the answer             |
+| `GET /admin/reports?from=&to=&sellerId=` | Admins             | The cards, the orders per day, one row per store and one per day and store; `REPORT_RANGE_INVALID` (400) for a range longer than 92 days or reversed |
 
 ## Not here
 

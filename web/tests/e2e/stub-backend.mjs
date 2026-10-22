@@ -1264,6 +1264,9 @@ async function sellerRoutes(request, response, url) {
       problem(response, 400, "SELLER_LOCATION_OUTSIDE");
     else {
       Object.assign(seller, {
+        // The name and the phone number change with the rest, as the server's PUT does (SEC-144).
+        name: String(body.name ?? seller.name).trim() || seller.name,
+        phone: String(body.phone ?? seller.phone).trim(),
         address: body.address.trim(),
         latitude: body.latitude,
         longitude: body.longitude,
