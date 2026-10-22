@@ -44,6 +44,9 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: t("title"), template: `%s · ${t("title")}` },
     description: t("description"),
     applicationName: t("title"),
+    // Added to an iPhone's Home Screen, the site opens as an app, the only way it gets push there (SEC-25).
+    appleWebApp: { capable: true, title: t("title") },
+    icons: { apple: "/icons/apple-touch-icon.png" },
   };
 }
 

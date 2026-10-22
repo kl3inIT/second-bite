@@ -340,3 +340,114 @@ test.describe("ordering from the cart", () => {
     expect(widths.page).toBe(widths.screen);
   });
 });
+
+/**
+ * Stands in for what headless Chromium lacks: the browser's prompt, which it answers before a page asks, and a push
+ * service behind `PushManager`. Notifications start undecided and are allowed when the page asks; the tab
+ * remembers that, and the subscription, across its pages. The service worker is registered for real.
+ */
+async function browserAllowsPush(page: Page) {
+  await page.addInitScript(() => {
+    const allowed = "test.notifications";
+    const subscribed = "test.subscribed";
+    Object.defineProperty(Notification, "permission", {
+      get: () => sessionStorage.getItem(allowed) ?? "default",
+    });
+    Notification.requestPermission = async () => {
+      sessionStorage.setItem(allowed, "granted");
+      return "granted";
+    };
+    const subscription = {
+      endpoint: "https://fcm.googleapis.com/fcm/send/e2e",
+      options: {
+        applicationServerKey: null as PushSubscriptionOptionsInit["applicationServerKey"],
+      },
+      toJSON: () => ({ endpoint: subscription.endpoint, keys: { p256dh: "BTest", auth: "test" } }),
+      unsubscribe: async () => true,
+    };
+    PushManager.prototype.getSubscription = async () =>
+      (sessionStorage.getItem(subscribed) ? subscription : null) as PushSubscription | null;
+    PushManager.prototype.subscribe = async (options) => {
+      sessionStorage.setItem(subscribed, "1");
+      subscription.options.applicationServerKey = options?.applicationServerKey ?? null;
+      return subscription as unknown as PushSubscription;
+    };
+  });
+}
+
+/** What the stub was given at POST /push/subscriptions. */
+async function pushSubscriptions(page: Page): Promise<{ endpoint: string; tickets: string[] }[]> {
+  const response = await page.request.get("/api/__stub/push/subscriptions");
+  return (await response.json()).subscriptions;
+}
+
+// SEC-25 › decision 10: notifications are asked for only from the order page's button, after our sentence.
+test.describe("notices of an order", () => {
+  test("turns on from the button, then follows each later order without asking", async ({
+    page,
+  }) => {
+    await browserAllowsPush(page);
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    await orderAs(page, "Thu", "0900000025");
+    await expect(page).toHaveURL(ORDER_URL);
+    const orderId = page.url().split("/").at(-1);
+
+    const card = page.getByRole("region", { name: "Báo tôi khi món sẵn sàng" });
+    await expect(card).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await (await hydrated(card.getByRole("button", { name: "Bật thông báo" }))).click();
+    await expect(page.getByText("Sẽ báo bạn khi món sẵn sàng.")).toBeVisible();
+    await expect
+      .poll(async () => (await pushSubscriptions(page)).flatMap((each) => each.tickets))
+      .toContain(`tk-order:${orderId}`);
+
+    // Allowed once, the next order is followed as its page opens.
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    await orderAs(page, "Thu", "0900000025");
+    await expect(page).toHaveURL(ORDER_URL);
+    const nextId = page.url().split("/").at(-1);
+    await expect(page.getByText("Sẽ báo bạn khi món sẵn sàng.")).toBeVisible();
+    await expect
+      .poll(async () => (await pushSubscriptions(page)).flatMap((each) => each.tickets))
+      .toContain(`tk-order:${nextId}`);
+  });
+
+  test("says how to undo a refusal", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(Notification, "permission", { get: () => "denied" });
+    });
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    await orderAs(page, "Vy", "0900000026");
+    await expect(page).toHaveURL(ORDER_URL);
+    await expect(
+      page.getByRole("heading", { name: "Trình duyệt đang chặn thông báo" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Bật thông báo" })).toHaveCount(0);
+  });
+
+  test("shows an iPhone in Safari the steps to add the site to the Home Screen", async ({
+    page,
+  }) => {
+    // Safari in a tab: an iPhone's browser, without push until the site is opened from the Home Screen.
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "userAgent", {
+        get: () =>
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+      });
+      // @ts-expect-error -- taken away as Safari outside a Home Screen app lacks it
+      delete window.PushManager;
+    });
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    await orderAs(page, "Hà", "0900000027");
+    await expect(page).toHaveURL(ORDER_URL);
+    const card = page.getByRole("region", { name: "Báo tôi khi món sẵn sàng" });
+    await expect(card.getByText("Chọn “Thêm vào MH chính”.")).toBeVisible();
+    await expect(card.getByRole("button", { name: "Bật thông báo" })).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+  });
+});

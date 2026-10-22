@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
+import { PushCard } from "@/features/notification/push-card";
 import { formatPrice } from "@/features/offers/format";
 import { LiveRefresh } from "@/features/orders/live-refresh";
 import { Link } from "@/i18n/navigation";
@@ -97,6 +98,8 @@ export async function StoreOrders({
           </p>
         }
       />
+
+      <PushCard side="seller" topics={[`seller:${sellerId}`]} />
 
       <DayFilter
         pathname={`/stores/${sellerId}/orders`}
