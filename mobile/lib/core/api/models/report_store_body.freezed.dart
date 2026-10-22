@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ReportStoreBody {
 
- String get name; String get sellerId;
+ CountsBody get counts; String get name; String get sellerId;
 /// Create a copy of ReportStoreBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $ReportStoreBodyCopyWith<ReportStoreBody> get copyWith => _$ReportStoreBodyCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as ReportStoreBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportStoreBody&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.sellerId, _this.sellerId) || other.sellerId == _this.sellerId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportStoreBody&&(identical(other.counts, _this.counts) || other.counts == _this.counts)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.sellerId, _this.sellerId) || other.sellerId == _this.sellerId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ReportStoreBody;
-  return Object.hash(runtimeType,_this.name,_this.sellerId);
+  return Object.hash(runtimeType,_this.counts,_this.name,_this.sellerId);
 }
 
 @override
 String toString() {
   final _this = this as ReportStoreBody;
-  return 'ReportStoreBody(name: ${_this.name}, sellerId: ${_this.sellerId})';
+  return 'ReportStoreBody(counts: ${_this.counts}, name: ${_this.name}, sellerId: ${_this.sellerId})';
 }
 
 
@@ -54,11 +54,11 @@ abstract mixin class $ReportStoreBodyCopyWith<$Res>  {
   factory $ReportStoreBodyCopyWith(ReportStoreBody value, $Res Function(ReportStoreBody) _then) = _$ReportStoreBodyCopyWithImpl;
 @useResult
 $Res call({
- String name, String sellerId
+ CountsBody counts, String name, String sellerId
 });
 
 
-
+$CountsBodyCopyWith<$Res> get counts;
 
 }
 /// @nodoc
@@ -71,14 +71,24 @@ class _$ReportStoreBodyCopyWithImpl<$Res>
 
 /// Create a copy of ReportStoreBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? sellerId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? counts = null,Object? name = null,Object? sellerId = null,}) {
   return _then(ReportStoreBody(
-name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
+as CountsBody,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,sellerId: null == sellerId ? _self.sellerId : sellerId // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
-
+/// Create a copy of ReportStoreBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CountsBodyCopyWith<$Res> get counts {
+  
+  return $CountsBodyCopyWith<$Res>(_self.counts, (value) {
+    return _then(_self.copyWith(counts: value));
+  });
+}
 }
 
 
@@ -160,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String sellerId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CountsBody counts,  String name,  String sellerId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReportStoreBody() when $default != null:
-return $default(_that.name,_that.sellerId);case _:
+return $default(_that.counts,_that.name,_that.sellerId);case _:
   return orElse();
 
 }
@@ -181,10 +191,10 @@ return $default(_that.name,_that.sellerId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String sellerId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CountsBody counts,  String name,  String sellerId)  $default,) {final _that = this;
 switch (_that) {
 case _ReportStoreBody():
-return $default(_that.name,_that.sellerId);case _:
+return $default(_that.counts,_that.name,_that.sellerId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +211,10 @@ return $default(_that.name,_that.sellerId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String sellerId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CountsBody counts,  String name,  String sellerId)?  $default,) {final _that = this;
 switch (_that) {
 case _ReportStoreBody() when $default != null:
-return $default(_that.name,_that.sellerId);case _:
+return $default(_that.counts,_that.name,_that.sellerId);case _:
   return null;
 
 }
@@ -216,9 +226,10 @@ return $default(_that.name,_that.sellerId);case _:
 @JsonSerializable()
 
 class _ReportStoreBody implements ReportStoreBody {
-  const _ReportStoreBody({required this.name, required this.sellerId});
+  const _ReportStoreBody({required this.counts, required this.name, required this.sellerId});
   factory _ReportStoreBody.fromJson(Map<String, dynamic> json) => _$ReportStoreBodyFromJson(json);
 
+@override final  CountsBody counts;
 @override final  String name;
 @override final  String sellerId;
 
@@ -235,18 +246,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportStoreBody&&(identical(other.name, name) || other.name == name)&&(identical(other.sellerId, sellerId) || other.sellerId == sellerId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportStoreBody&&(identical(other.counts, counts) || other.counts == counts)&&(identical(other.name, name) || other.name == name)&&(identical(other.sellerId, sellerId) || other.sellerId == sellerId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,sellerId);
+    return Object.hash(runtimeType,counts,name,sellerId);
 }
 
 @override
 String toString() {
-    return 'ReportStoreBody(name: $name, sellerId: $sellerId)';
+    return 'ReportStoreBody(counts: $counts, name: $name, sellerId: $sellerId)';
 }
 
 
@@ -257,11 +268,11 @@ abstract mixin class _$ReportStoreBodyCopyWith<$Res> implements $ReportStoreBody
   factory _$ReportStoreBodyCopyWith(_ReportStoreBody value, $Res Function(_ReportStoreBody) _then) = __$ReportStoreBodyCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String sellerId
+ CountsBody counts, String name, String sellerId
 });
 
 
-
+@override $CountsBodyCopyWith<$Res> get counts;
 
 }
 /// @nodoc
@@ -274,15 +285,25 @@ class __$ReportStoreBodyCopyWithImpl<$Res>
 
 /// Create a copy of ReportStoreBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? sellerId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? counts = null,Object? name = null,Object? sellerId = null,}) {
   return _then(_ReportStoreBody(
-name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
+as CountsBody,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,sellerId: null == sellerId ? _self.sellerId : sellerId // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
 
-
+/// Create a copy of ReportStoreBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CountsBodyCopyWith<$Res> get counts {
+  
+  return $CountsBodyCopyWith<$Res>(_self.counts, (value) {
+    return _then(_self.copyWith(counts: value));
+  });
+}
 }
 
 // dart format on

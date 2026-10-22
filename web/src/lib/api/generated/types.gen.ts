@@ -868,6 +868,7 @@ export type RejectSellerRequest = {
 };
 
 export type ReportDayBody = {
+    counts: CountsBody;
     day: string;
 };
 
@@ -890,11 +891,13 @@ export type ReportOutputBody = {
 };
 
 export type ReportStoreBody = {
+    counts: CountsBody;
     name: string;
     sellerId: string;
 };
 
 export type ReportStoreDayBody = {
+    counts: CountsBody;
     day: string;
     name: string;
     sellerId: string;
@@ -1761,6 +1764,42 @@ export type GetReportResponses = {
 };
 
 export type GetReportResponse = GetReportResponses[keyof GetReportResponses];
+
+export type ExportReportData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+         */
+        since?: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included; today when empty
+         */
+        until?: string;
+        /**
+         * Keep one store's numbers; the views are then its page's and its dishes'
+         */
+        sellerId?: string;
+    };
+    url: '/admin/reports/export';
+};
+
+export type ExportReportErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ExportReportError = ExportReportErrors[keyof ExportReportErrors];
+
+export type ExportReportResponses = {
+    /**
+     * The report as CSV
+     */
+    200: unknown;
+};
 
 export type ListSellersForAdminsData = {
     body?: never;

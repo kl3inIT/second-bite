@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ReportDayBody {
 
- DateTime get day;
+ CountsBody get counts; DateTime get day;
 /// Create a copy of ReportDayBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $ReportDayBodyCopyWith<ReportDayBody> get copyWith => _$ReportDayBodyCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as ReportDayBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportDayBody&&(identical(other.day, _this.day) || other.day == _this.day));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportDayBody&&(identical(other.counts, _this.counts) || other.counts == _this.counts)&&(identical(other.day, _this.day) || other.day == _this.day));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ReportDayBody;
-  return Object.hash(runtimeType,_this.day);
+  return Object.hash(runtimeType,_this.counts,_this.day);
 }
 
 @override
 String toString() {
   final _this = this as ReportDayBody;
-  return 'ReportDayBody(day: ${_this.day})';
+  return 'ReportDayBody(counts: ${_this.counts}, day: ${_this.day})';
 }
 
 
@@ -54,11 +54,11 @@ abstract mixin class $ReportDayBodyCopyWith<$Res>  {
   factory $ReportDayBodyCopyWith(ReportDayBody value, $Res Function(ReportDayBody) _then) = _$ReportDayBodyCopyWithImpl;
 @useResult
 $Res call({
- DateTime day
+ CountsBody counts, DateTime day
 });
 
 
-
+$CountsBodyCopyWith<$Res> get counts;
 
 }
 /// @nodoc
@@ -71,13 +71,23 @@ class _$ReportDayBodyCopyWithImpl<$Res>
 
 /// Create a copy of ReportDayBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? day = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? counts = null,Object? day = null,}) {
   return _then(ReportDayBody(
-day: null == day ? _self.day : day // ignore: cast_nullable_to_non_nullable
+counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
+as CountsBody,day: null == day ? _self.day : day // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }
-
+/// Create a copy of ReportDayBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CountsBodyCopyWith<$Res> get counts {
+  
+  return $CountsBodyCopyWith<$Res>(_self.counts, (value) {
+    return _then(_self.copyWith(counts: value));
+  });
+}
 }
 
 
@@ -159,10 +169,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime day)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CountsBody counts,  DateTime day)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReportDayBody() when $default != null:
-return $default(_that.day);case _:
+return $default(_that.counts,_that.day);case _:
   return orElse();
 
 }
@@ -180,10 +190,10 @@ return $default(_that.day);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime day)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CountsBody counts,  DateTime day)  $default,) {final _that = this;
 switch (_that) {
 case _ReportDayBody():
-return $default(_that.day);case _:
+return $default(_that.counts,_that.day);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +210,10 @@ return $default(_that.day);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime day)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CountsBody counts,  DateTime day)?  $default,) {final _that = this;
 switch (_that) {
 case _ReportDayBody() when $default != null:
-return $default(_that.day);case _:
+return $default(_that.counts,_that.day);case _:
   return null;
 
 }
@@ -215,9 +225,10 @@ return $default(_that.day);case _:
 @JsonSerializable()
 
 class _ReportDayBody implements ReportDayBody {
-  const _ReportDayBody({required this.day});
+  const _ReportDayBody({required this.counts, required this.day});
   factory _ReportDayBody.fromJson(Map<String, dynamic> json) => _$ReportDayBodyFromJson(json);
 
+@override final  CountsBody counts;
 @override final  DateTime day;
 
 /// Create a copy of ReportDayBody
@@ -233,18 +244,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportDayBody&&(identical(other.day, day) || other.day == day));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportDayBody&&(identical(other.counts, counts) || other.counts == counts)&&(identical(other.day, day) || other.day == day));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,day);
+    return Object.hash(runtimeType,counts,day);
 }
 
 @override
 String toString() {
-    return 'ReportDayBody(day: $day)';
+    return 'ReportDayBody(counts: $counts, day: $day)';
 }
 
 
@@ -255,11 +266,11 @@ abstract mixin class _$ReportDayBodyCopyWith<$Res> implements $ReportDayBodyCopy
   factory _$ReportDayBodyCopyWith(_ReportDayBody value, $Res Function(_ReportDayBody) _then) = __$ReportDayBodyCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime day
+ CountsBody counts, DateTime day
 });
 
 
-
+@override $CountsBodyCopyWith<$Res> get counts;
 
 }
 /// @nodoc
@@ -272,14 +283,24 @@ class __$ReportDayBodyCopyWithImpl<$Res>
 
 /// Create a copy of ReportDayBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? day = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? counts = null,Object? day = null,}) {
   return _then(_ReportDayBody(
-day: null == day ? _self.day : day // ignore: cast_nullable_to_non_nullable
+counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
+as CountsBody,day: null == day ? _self.day : day // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }
 
-
+/// Create a copy of ReportDayBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CountsBodyCopyWith<$Res> get counts {
+  
+  return $CountsBodyCopyWith<$Res>(_self.counts, (value) {
+    return _then(_self.copyWith(counts: value));
+  });
+}
 }
 
 // dart format on
