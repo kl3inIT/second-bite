@@ -1,4 +1,4 @@
-import { UserRoundIcon } from "lucide-react";
+import { PencilIcon, UserRoundIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -35,10 +35,13 @@ export async function MyStores() {
           </h1>
           <ul className="flex flex-col">
             {sellers.map((seller) => (
-              <li key={seller.id} className="border-t border-border first:border-t-0">
+              <li
+                key={seller.id}
+                className="flex items-center gap-2 border-t border-border first:border-t-0"
+              >
                 <Link
                   href={`/stores/${seller.id}`}
-                  className="flex min-h-14 items-center gap-3 rounded-lg py-2 focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                  className="flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-lg py-2 focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   <SellerAvatar seller={seller} size="md" />
                   <span className="flex min-w-0 flex-col">
@@ -48,6 +51,16 @@ export async function MyStores() {
                     </span>
                   </span>
                 </Link>
+                {seller.myRole === "owner" && (
+                  <Link
+                    href={`/stores/${seller.id}/edit`}
+                    aria-label={t("edit", { name: seller.name })}
+                    title={t("edit", { name: seller.name })}
+                    className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-input bg-card text-foreground transition-colors outline-none hover:bg-secondary focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    <PencilIcon aria-hidden className="size-5" />
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
