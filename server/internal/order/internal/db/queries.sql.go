@@ -452,10 +452,10 @@ func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) er
 const insertOrder = `-- name: InsertOrder :one
 INSERT INTO order_orders (
     customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude, longitude, address,
-    window_start, window_end, total_vnd, idempotency_key
+    window_start, window_end, total_vnd, idempotency_key, zalo_consent_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8,
-    $9, $10, $11, $12, $13
+    $9, $10, $11, $12, $13, $14
 )
 RETURNING id
 `
@@ -474,6 +474,7 @@ type InsertOrderParams struct {
 	WindowEnd      time.Time
 	TotalVnd       int64
 	IdempotencyKey string
+	ZaloConsentAt  *time.Time
 }
 
 func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.UUID, error) {
@@ -491,6 +492,7 @@ func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.
 		arg.WindowEnd,
 		arg.TotalVnd,
 		arg.IdempotencyKey,
+		arg.ZaloConsentAt,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
@@ -759,6 +761,46 @@ UPDATE order_orders SET state = 'collected', collected_at = now() WHERE id = $1
 func (q *Queries) MarkCollected(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, markCollected, id)
 	return err
+}
+
+const markDueSoon = `-- name: MarkDueSoon :many
+UPDATE order_orders SET due_soon_at = $1
+WHERE due_soon_at IS NULL AND state IN ('confirmed', 'ready')
+  AND window_start > $1 AND window_start <= $2
+RETURNING id, created_at, window_start
+`
+
+type MarkDueSoonParams struct {
+	Now    *time.Time
+	Before time.Time
+}
+
+type MarkDueSoonRow struct {
+	ID          uuid.UUID
+	CreatedAt   time.Time
+	WindowStart time.Time
+}
+
+// Marks the orders still to collect whose window opens between now and before,
+// once each, returning when each was placed and opens (SEC-25).
+func (q *Queries) MarkDueSoon(ctx context.Context, arg MarkDueSoonParams) ([]MarkDueSoonRow, error) {
+	rows, err := q.db.Query(ctx, markDueSoon, arg.Now, arg.Before)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MarkDueSoonRow
+	for rows.Next() {
+		var i MarkDueSoonRow
+		if err := rows.Scan(&i.ID, &i.CreatedAt, &i.WindowStart); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const markReady = `-- name: MarkReady :exec
@@ -1256,10 +1298,11 @@ func (q *Queries) SellerOrders(ctx context.Context, arg SellerOrdersParams) ([]S
 	return items, nil
 }
 
-const setWindow = `-- name: SetWindow :exec
+const setWindow = `-- name: SetWindow :execrows
 WITH moved AS (
-    UPDATE order_orders SET window_start = $1, window_end = $2
+    UPDATE order_orders SET window_start = $1::timestamptz, window_end = $2::timestamptz
     WHERE id = $3 AND state IN ('confirmed', 'ready')
+      AND (window_start, window_end) IS DISTINCT FROM ($1::timestamptz, $2::timestamptz)
     RETURNING id, seller_id, state
 )
 SELECT pg_notify('secondbite_live', json_build_object(
@@ -1276,10 +1319,14 @@ type SetWindowParams struct {
 }
 
 // Moves an order still to collect to a new window, and tells the sockets
-// following it (channel secondbite_live); one that ended stays as it was.
-func (q *Queries) SetWindow(ctx context.Context, arg SetWindowParams) error {
-	_, err := q.db.Exec(ctx, setWindow, arg.WindowStart, arg.WindowEnd, arg.ID)
-	return err
+// following it (channel secondbite_live); one that ended, or already has that
+// window, stays as it was. Returns whether it moved.
+func (q *Queries) SetWindow(ctx context.Context, arg SetWindowParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setWindow, arg.WindowStart, arg.WindowEnd, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const unreadOf = `-- name: UnreadOf :many

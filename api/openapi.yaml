@@ -1574,6 +1574,9 @@ components:
     PlaceOrderBody:
       additionalProperties: false
       properties:
+        byZalo:
+          description: The customer agrees to be told about the order by Zalo once Second Bite sends there
+          type: boolean
         checkoutId:
           description: Shared by the orders placed together from one cart, one per seller; a new one when omitted
           type: string
@@ -1645,6 +1648,15 @@ components:
         - title
         - status
         - code
+      type: object
+    PushKeyOutputBody:
+      additionalProperties: false
+      properties:
+        publicKey:
+          description: The VAPID public key, in base64url, for PushManager.subscribe's applicationServerKey
+          type: string
+      required:
+        - publicKey
       type: object
     RecordBody:
       additionalProperties: false
@@ -2083,6 +2095,31 @@ components:
         - active
         - rejected
         - blocked
+      type: object
+    SubscribePushInputBody:
+      additionalProperties: false
+      properties:
+        tickets:
+          description: "Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's"
+          items:
+            type: string
+          maxItems: 20
+          minItems: 1
+          type:
+            - array
+            - "null"
+      required:
+        - tickets
+      type: object
+    UnsubscribePushInputBody:
+      additionalProperties: false
+      properties:
+        endpoint:
+          format: uri
+          maxLength: 2048
+          type: string
+      required:
+        - endpoint
       type: object
     Violation:
       additionalProperties: false
@@ -4095,6 +4132,70 @@ paths:
       summary: A photo in one of its sizes
       tags:
         - Photos
+  /push/key:
+    get:
+      description: 503 NOTIFICATION_PUSH_NOT_CONFIGURED while Web Push is off; the page then offers no notifications.
+      operationId: getPushKey
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushKeyOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Read the key a browser subscribes to Web Push with
+      tags:
+        - Notifications
+  /push/subscriptions:
+    post:
+      description: Keeps the browser's subscription, in the language of Accept-Language, following the topic each live ticket proves for seven days. Subscribing again renews them. Each ticket is spent as the live socket spends it; a ticket spent or expired answers NOTIFICATION_PUSH_TICKET_INVALID.
+      operationId: subscribePush
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscribePushInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Follow orders by Web Push in this browser
+      tags:
+        - Notifications
+  /push/subscriptions/remove:
+    post:
+      description: Forgets the subscription and every topic it follows; one not kept changes nothing.
+      operationId: unsubscribePush
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnsubscribePushInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Stop Web Push to this browser
+      tags:
+        - Notifications
   /sellers:
     post:
       operationId: openSeller

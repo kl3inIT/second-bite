@@ -63,6 +63,7 @@ func RegisterSchedules(events *platform.Events, s *Service) {
 	events.Every("order.expire_ended", time.Minute, s.ExpireEnded)
 	events.Every("order.purge_live_tickets", liveTicketPurgeEvery, s.PurgeLiveTickets)
 	events.Every("order.forget_old_chats", 24*time.Hour, s.ForgetOldChats)
+	events.Every("order.remind_due_soon", time.Minute, s.RemindDueSoon)
 }
 
 // liveTicketPurgeEvery is how often the tickets that expired unspent are deleted.
@@ -166,6 +167,10 @@ func (s *Service) RefuseWithdrawnOffer(ctx context.Context, e offer.WithdrawnEve
 				return err
 			}
 
+			if err := s.pushRefused(ctx, tx, o, RefuseWithdrawn); err != nil {
+				return err
+			}
+
 			return notifyOrder(ctx, tx, id, o.SellerID, StatusRefused)
 		})
 		if err != nil {
@@ -247,11 +252,14 @@ func (s *Service) FollowOfferWindow(ctx context.Context, e offer.WindowChangedEv
 			continue
 		}
 
-		if err := s.queries.SetWindow(ctx, db.SetWindowParams{ID: id, WindowStart: start.Start, WindowEnd: end.End}); err != nil {
-			return fmt.Errorf("moving the order's window: %w", err)
+		changed, err := s.moveWindow(ctx, id, start.Start, end.End)
+		if err != nil {
+			return err
 		}
 
-		moved++
+		if changed {
+			moved++
+		}
 	}
 
 	s.logger.InfoContext(ctx, "orders followed their offer's window",
@@ -261,4 +269,33 @@ func (s *Service) FollowOfferWindow(ctx context.Context, e offer.WindowChangedEv
 	)
 
 	return nil
+}
+
+// moveWindow moves one order to a new window and tells its customer the new
+// hours, in one transaction; an order that ended, or already has the window,
+// stays as it was and hears nothing.
+func (s *Service) moveWindow(ctx context.Context, id uuid.UUID, start, end time.Time) (bool, error) {
+	var changed bool
+
+	err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.queries.WithTx(tx)
+
+		n, err := q.SetWindow(ctx, db.SetWindowParams{ID: id, WindowStart: start, WindowEnd: end})
+		if err != nil {
+			return fmt.Errorf("moving the order's window: %w", err)
+		}
+
+		if changed = n > 0; !changed {
+			return nil
+		}
+
+		o, err := s.readIn(ctx, q, id)
+		if err != nil {
+			return err
+		}
+
+		return s.pushWindowMoved(ctx, tx, o)
+	})
+
+	return changed, err
 }

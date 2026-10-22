@@ -55,6 +55,10 @@ func (s *Service) Cancel(ctx context.Context, id uuid.UUID, access, reason strin
 			return err
 		}
 
+		if err := s.pushCancelled(ctx, tx, o); err != nil {
+			return err
+		}
+
 		return notifyOrder(ctx, tx, id, o.SellerID, StatusCancelled)
 	})
 	if err != nil {
@@ -88,6 +92,10 @@ func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 		}
 
 		if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "ready", ActorID: actor(caller)}); err != nil {
+			return err
+		}
+
+		if err := s.pushReady(ctx, tx, o); err != nil {
 			return err
 		}
 
@@ -218,6 +226,10 @@ func (s *Service) Refuse(ctx context.Context, id uuid.UUID, reason RefuseReason,
 		}
 
 		if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "refused", ActorID: actor(caller)}); err != nil {
+			return err
+		}
+
+		if err := s.pushRefused(ctx, tx, o, reason); err != nil {
 			return err
 		}
 

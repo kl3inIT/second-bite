@@ -738,6 +738,10 @@ export type PlaceBody = {
 
 export type PlaceOrderBody = {
     /**
+     * The customer agrees to be told about the order by Zalo once Second Bite sends there
+     */
+    byZalo?: boolean;
+    /**
      * Shared by the orders placed together from one cart, one per seller; a new one when omitted
      */
     checkoutId?: string;
@@ -782,6 +786,13 @@ export type Problem = {
      * urn:secondbite:failure:<code in kebab case>
      */
     type: string;
+};
+
+export type PushKeyOutputBody = {
+    /**
+     * The VAPID public key, in base64url, for PushManager.subscribe's applicationServerKey
+     */
+    publicKey: string;
 };
 
 export type RecordBody = {
@@ -992,6 +1003,17 @@ export type StatusDayBody = {
     day: string;
     pending: number;
     rejected: number;
+};
+
+export type SubscribePushInputBody = {
+    /**
+     * Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's
+     */
+    tickets: Array<string> | null;
+};
+
+export type UnsubscribePushInputBody = {
+    endpoint: string;
 };
 
 export type Violation = {
@@ -2535,6 +2557,81 @@ export type GetPhotoResponses = {
      */
     200: unknown;
 };
+
+export type GetPushKeyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/push/key';
+};
+
+export type GetPushKeyErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetPushKeyError = GetPushKeyErrors[keyof GetPushKeyErrors];
+
+export type GetPushKeyResponses = {
+    /**
+     * OK
+     */
+    200: PushKeyOutputBody;
+};
+
+export type GetPushKeyResponse = GetPushKeyResponses[keyof GetPushKeyResponses];
+
+export type SubscribePushData = {
+    body: SubscribePushInputBody;
+    path?: never;
+    query?: never;
+    url: '/push/subscriptions';
+};
+
+export type SubscribePushErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SubscribePushError = SubscribePushErrors[keyof SubscribePushErrors];
+
+export type SubscribePushResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type SubscribePushResponse = SubscribePushResponses[keyof SubscribePushResponses];
+
+export type UnsubscribePushData = {
+    body: UnsubscribePushInputBody;
+    path?: never;
+    query?: never;
+    url: '/push/subscriptions/remove';
+};
+
+export type UnsubscribePushErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type UnsubscribePushError = UnsubscribePushErrors[keyof UnsubscribePushErrors];
+
+export type UnsubscribePushResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type UnsubscribePushResponse = UnsubscribePushResponses[keyof UnsubscribePushResponses];
 
 export type OpenSellerData = {
     body: DetailsBody;
