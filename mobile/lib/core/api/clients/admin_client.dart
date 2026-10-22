@@ -10,12 +10,15 @@ import '../models/action.dart';
 import '../models/admin_accounts_output_body.dart';
 import '../models/admin_offers_output_body.dart';
 import '../models/admin_orders_output_body.dart';
+import '../models/admin_review_body.dart';
+import '../models/admin_reviews_output_body.dart';
 import '../models/admin_sellers_output_body.dart';
 import '../models/admins_output_body.dart';
 import '../models/audit_events_output_body.dart';
 import '../models/block_seller_request.dart';
 import '../models/email_settings_body.dart';
 import '../models/grant_admin_request.dart';
+import '../models/hide_review_request.dart';
 import '../models/history_output_body.dart';
 import '../models/memberships_output_body.dart';
 import '../models/offer_settings_body.dart';
@@ -31,6 +34,7 @@ import '../models/sort2.dart';
 import '../models/status.dart';
 import '../models/status2.dart';
 import '../models/status3.dart';
+import '../models/visibility.dart';
 
 part 'admin_client.g.dart';
 
@@ -233,6 +237,48 @@ abstract class AdminClient {
     @Query('since') String? since,
     @Query('until') String? until,
     @Query('sellerId') String? sellerId,
+  });
+
+  /// Every customer's review, hidden or not, by stars, words, seller, visibility and day, the latest first.
+  ///
+  /// q matches the comment, the order's number (SB-24831 or 24831), the customer's name or phone, or the seller's name, Vietnamese marks ignored. A page past the end is empty.
+  ///
+  /// [stars] - Keep the reviews giving these stars; any when absent.
+  ///
+  /// [q] - The comment, the order's number, the customer's name or phone, or the seller's name.
+  ///
+  /// [sellerId] - Keep this seller's reviews.
+  ///
+  /// [visibility] - Keep the shown or the hidden reviews; both when absent.
+  ///
+  /// [reviewedSince] - Keep the reviews given at or after this time.
+  ///
+  /// [reviewedUntil] - Keep the reviews given before this time.
+  @GET('/admin/reviews')
+  Future<AdminReviewsOutputBody> listReviewsForAdmins({
+    @Query('page') int? page = 1,
+    @Query('size') int? size = 25,
+    @Query('stars') List<int>? stars,
+    @Query('q') String? q,
+    @Query('sellerId') String? sellerId,
+    @Query('visibility') Visibility? visibility,
+    @Query('reviewedSince') DateTime? reviewedSince,
+    @Query('reviewedUntil') DateTime? reviewedUntil,
+  });
+
+  /// Hide a review from every read but the admins'; its customer is not told.
+  ///
+  /// The reason is optional, at most 500 characters, and kept in the audit only. The order cannot be rated again while its review is hidden.
+  @POST('/admin/reviews/{orderId}/hide')
+  Future<AdminReviewBody> hideReview({
+    @Path('orderId') required String orderId,
+    @Body() HideReviewRequest? body,
+  });
+
+  /// Show a hidden review again everywhere
+  @POST('/admin/reviews/{orderId}/show')
+  Future<AdminReviewBody> showReview({
+    @Path('orderId') required String orderId,
   });
 
   /// Sellers by status and words, pending ones first.

@@ -10,6 +10,8 @@ enum AuditEventBodyResourceType {
   account('account'),
   @JsonValue('seller')
   seller('seller'),
+  @JsonValue('order')
+  order('order'),
   @JsonValue('offer_settings')
   offerSettings('offer_settings'),
   @JsonValue('email_settings')

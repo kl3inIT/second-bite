@@ -16,6 +16,9 @@ part 'order_body.g.dart';
 @Freezed()
 abstract class OrderBody with _$OrderBody {
   const factory OrderBody({
+    /// The order is collected and was never rated, so its customer may rate it
+    required bool canReview,
+
     /// Shared by the orders placed together from one cart
     required String checkoutId,
     required DateTime createdAt,
@@ -55,7 +58,7 @@ abstract class OrderBody with _$OrderBody {
     OrderBodyRefuseReason? refuseReason,
     DateTime? refusedAt,
 
-    /// The customer's rating of the collected order; none until they rate it
+    /// The customer's rating of the collected order; none until they rate it, nor while admins hide it
     ReviewBody? review,
 
     /// Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins

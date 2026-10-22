@@ -7,6 +7,7 @@ part of 'order_body.dart';
 // **************************************************************************
 
 _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
+  canReview: json['canReview'] as bool,
   checkoutId: json['checkoutId'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
   customerName: json['customerName'] as String,
@@ -48,6 +49,7 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
 
 Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
     <String, dynamic>{
+      'canReview': instance.canReview,
       'checkoutId': instance.checkoutId,
       'createdAt': instance.createdAt.toIso8601String(),
       'customerName': instance.customerName,

@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuditEventBody {
 
- AuditEventBodyAction get action; AuditDetailsBody get details; String get id; DateTime get occurredAt; String get resourceId; AuditEventBodyResourceType get resourceType; String? get actorId; String? get actorLabel;/// The store's name or the account's address at the time; absent once that account is deleted
+ AuditEventBodyAction get action; AuditDetailsBody get details; String get id; DateTime get occurredAt; String get resourceId; AuditEventBodyResourceType get resourceType; String? get actorId; String? get actorLabel;/// The store's name, the account's address or the order's number at the time; absent once that account is deleted
  String? get resourceLabel;
 /// Create a copy of AuditEventBody
 /// with the given fields replaced by the non-null parameter values.
@@ -244,7 +244,7 @@ class _AuditEventBody implements AuditEventBody {
 @override final  AuditEventBodyResourceType resourceType;
 @override final  String? actorId;
 @override final  String? actorLabel;
-/// The store's name or the account's address at the time; absent once that account is deleted
+/// The store's name, the account's address or the order's number at the time; absent once that account is deleted
 @override final  String? resourceLabel;
 
 /// Create a copy of AuditEventBody
