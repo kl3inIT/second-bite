@@ -226,7 +226,7 @@ abstract class AdminClient {
     @Query('changedUntil') DateTime? changedUntil,
   });
 
-  /// Let a pending, rejected or blocked seller publish; its owner is emailed
+  /// Let a pending, rejected or blocked seller publish; its owner is emailed. A seller whose owner deleted their account is refused
   @POST('/admin/sellers/{sellerId}/approve')
   Future<SellerBody> approveSeller({
     @Path('sellerId') required String sellerId,
