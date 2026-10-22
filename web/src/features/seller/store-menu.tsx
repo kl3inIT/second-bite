@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPinnedIcon, PlusIcon, StoreIcon } from "lucide-react";
+import { MapPinnedIcon, PlusIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -23,8 +23,7 @@ type Store = {
   myRole?: "owner" | "staff";
 };
 
-// What the store's name in the header opens (Figma "Chủ quán · Mobile 390"): the way back to the shop the customers
-// use, the person's stores to move between with the one they are in standing out (filled, with a bar at its side), and a way to open another while they
+// What the store's name in the header opens (Figma "Chủ quán · Mobile 390"): the store's location, the person's stores to move between with the one they are in standing out (filled, with a bar at its side), and a way to open another while they
 // have room for one. It opens on a store of one too, so the name always does something. The name, with its avatar,
 // is what the page puts inside; the menu does not know how it is drawn.
 export function StoreMenu({
@@ -49,19 +48,17 @@ export function StoreMenu({
         {children}
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="min-w-64">
-        <DropdownMenuGroup>
-          <DropdownMenuItem render={<Link href="/" />}>
-            <StoreIcon aria-hidden />
-            {t("shop")}
-          </DropdownMenuItem>
-          {current.myRole === "owner" && (
-            <DropdownMenuItem render={<Link href={`/stores/${current.id}/location`} />}>
-              <MapPinnedIcon aria-hidden />
-              {t("location")}
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
+        {current.myRole === "owner" && (
+          <>
+            <DropdownMenuGroup>
+              <DropdownMenuItem render={<Link href={`/stores/${current.id}/location`} />}>
+                <MapPinnedIcon aria-hidden />
+                {t("location")}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuGroup>
           <DropdownMenuLabel>{t("mine")}</DropdownMenuLabel>
           {stores.map((store) => (
