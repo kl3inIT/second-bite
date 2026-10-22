@@ -32,10 +32,9 @@ import {
   groupedPhone,
   MAX_NAME_LENGTH,
   normalizedPhone,
-  readContact,
-  saveContact,
   type Contact,
 } from "./contact";
+import { readContact, saveContact } from "./last-contact";
 
 /**
  * "Đặt món" on the confirmation (Figma K5) and who collects (SEC-76 › decision 7): a sheet over the cart asks
