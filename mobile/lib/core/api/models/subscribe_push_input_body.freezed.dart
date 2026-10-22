@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SubscribePushInputBody {
 
-/// Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's
+/// The push service's address for this browser
+ String get endpoint; PushKeys get keys;/// Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's
  List<String>? get tickets;
 /// Create a copy of SubscribePushInputBody
 /// with the given fields replaced by the non-null parameter values.
@@ -31,20 +32,20 @@ $SubscribePushInputBodyCopyWith<SubscribePushInputBody> get copyWith => _$Subscr
 @override
 bool operator ==(Object other) {
   final _this = this as SubscribePushInputBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SubscribePushInputBody&&const DeepCollectionEquality().equals(other.tickets, _this.tickets));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SubscribePushInputBody&&(identical(other.endpoint, _this.endpoint) || other.endpoint == _this.endpoint)&&(identical(other.keys, _this.keys) || other.keys == _this.keys)&&const DeepCollectionEquality().equals(other.tickets, _this.tickets));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as SubscribePushInputBody;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.tickets));
+  return Object.hash(runtimeType,_this.endpoint,_this.keys,const DeepCollectionEquality().hash(_this.tickets));
 }
 
 @override
 String toString() {
   final _this = this as SubscribePushInputBody;
-  return 'SubscribePushInputBody(tickets: ${_this.tickets})';
+  return 'SubscribePushInputBody(endpoint: ${_this.endpoint}, keys: ${_this.keys}, tickets: ${_this.tickets})';
 }
 
 
@@ -55,11 +56,11 @@ abstract mixin class $SubscribePushInputBodyCopyWith<$Res>  {
   factory $SubscribePushInputBodyCopyWith(SubscribePushInputBody value, $Res Function(SubscribePushInputBody) _then) = _$SubscribePushInputBodyCopyWithImpl;
 @useResult
 $Res call({
- List<String>? tickets
+ String endpoint, PushKeys keys, List<String>? tickets
 });
 
 
-
+$PushKeysCopyWith<$Res> get keys;
 
 }
 /// @nodoc
@@ -72,13 +73,24 @@ class _$SubscribePushInputBodyCopyWithImpl<$Res>
 
 /// Create a copy of SubscribePushInputBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? tickets = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? endpoint = null,Object? keys = null,Object? tickets = freezed,}) {
   return _then(SubscribePushInputBody(
-tickets: freezed == tickets ? _self.tickets : tickets // ignore: cast_nullable_to_non_nullable
+endpoint: null == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
+as String,keys: null == keys ? _self.keys : keys // ignore: cast_nullable_to_non_nullable
+as PushKeys,tickets: freezed == tickets ? _self.tickets : tickets // ignore: cast_nullable_to_non_nullable
 as List<String>?,
   ));
 }
-
+/// Create a copy of SubscribePushInputBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PushKeysCopyWith<$Res> get keys {
+  
+  return $PushKeysCopyWith<$Res>(_self.keys, (value) {
+    return _then(_self.copyWith(keys: value));
+  });
+}
 }
 
 
@@ -160,10 +172,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<String>? tickets)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String endpoint,  PushKeys keys,  List<String>? tickets)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SubscribePushInputBody() when $default != null:
-return $default(_that.tickets);case _:
+return $default(_that.endpoint,_that.keys,_that.tickets);case _:
   return orElse();
 
 }
@@ -181,10 +193,10 @@ return $default(_that.tickets);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<String>? tickets)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String endpoint,  PushKeys keys,  List<String>? tickets)  $default,) {final _that = this;
 switch (_that) {
 case _SubscribePushInputBody():
-return $default(_that.tickets);case _:
+return $default(_that.endpoint,_that.keys,_that.tickets);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +213,10 @@ return $default(_that.tickets);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<String>? tickets)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String endpoint,  PushKeys keys,  List<String>? tickets)?  $default,) {final _that = this;
 switch (_that) {
 case _SubscribePushInputBody() when $default != null:
-return $default(_that.tickets);case _:
+return $default(_that.endpoint,_that.keys,_that.tickets);case _:
   return null;
 
 }
@@ -216,9 +228,12 @@ return $default(_that.tickets);case _:
 @JsonSerializable()
 
 class _SubscribePushInputBody implements SubscribePushInputBody {
-  const _SubscribePushInputBody({required  List<String>? tickets}): _tickets = tickets;
+  const _SubscribePushInputBody({required this.endpoint, required this.keys, required  List<String>? tickets}): _tickets = tickets;
   factory _SubscribePushInputBody.fromJson(Map<String, dynamic> json) => _$SubscribePushInputBodyFromJson(json);
 
+/// The push service's address for this browser
+@override final  String endpoint;
+@override final  PushKeys keys;
 /// Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's
  final  List<String>? _tickets;
 /// Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's
@@ -244,18 +259,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SubscribePushInputBody&&const DeepCollectionEquality().equals(other.tickets, _tickets));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SubscribePushInputBody&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.keys, keys) || other.keys == keys)&&const DeepCollectionEquality().equals(other.tickets, _tickets));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_tickets));
+    return Object.hash(runtimeType,endpoint,keys,const DeepCollectionEquality().hash(_tickets));
 }
 
 @override
 String toString() {
-    return 'SubscribePushInputBody(tickets: $tickets)';
+    return 'SubscribePushInputBody(endpoint: $endpoint, keys: $keys, tickets: $tickets)';
 }
 
 
@@ -266,11 +281,11 @@ abstract mixin class _$SubscribePushInputBodyCopyWith<$Res> implements $Subscrib
   factory _$SubscribePushInputBodyCopyWith(_SubscribePushInputBody value, $Res Function(_SubscribePushInputBody) _then) = __$SubscribePushInputBodyCopyWithImpl;
 @override @useResult
 $Res call({
- List<String>? tickets
+ String endpoint, PushKeys keys, List<String>? tickets
 });
 
 
-
+@override $PushKeysCopyWith<$Res> get keys;
 
 }
 /// @nodoc
@@ -283,14 +298,25 @@ class __$SubscribePushInputBodyCopyWithImpl<$Res>
 
 /// Create a copy of SubscribePushInputBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? tickets = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? endpoint = null,Object? keys = null,Object? tickets = freezed,}) {
   return _then(_SubscribePushInputBody(
-tickets: freezed == tickets ? _self._tickets : tickets // ignore: cast_nullable_to_non_nullable
+endpoint: null == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
+as String,keys: null == keys ? _self.keys : keys // ignore: cast_nullable_to_non_nullable
+as PushKeys,tickets: freezed == tickets ? _self._tickets : tickets // ignore: cast_nullable_to_non_nullable
 as List<String>?,
   ));
 }
 
-
+/// Create a copy of SubscribePushInputBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PushKeysCopyWith<$Res> get keys {
+  
+  return $PushKeysCopyWith<$Res>(_self.keys, (value) {
+    return _then(_self.copyWith(keys: value));
+  });
+}
 }
 
 // dart format on
