@@ -573,7 +573,9 @@
     "index": "Thực đơn tối nay",
     "rating": "Đánh giá",
     "pickup": "Giờ nhận hôm nay",
-    "distance": "Khoảng cách"
+    "distance": "Khoảng cách",
+    "mapLabel": "Vị trí {seller} trên bản đồ",
+    "mapOpen": "Mở đường đến quán"
   },
   "Cart": {
     "title": "Xác nhận đơn",

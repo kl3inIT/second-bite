@@ -10,9 +10,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { Fragment } from "react";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 
 import { BiteCorner } from "@/components/bite-corner";
+import { StoreMap } from "@/components/map/store-map";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
 import { directionsHref } from "@/features/offers/offer";
@@ -20,7 +21,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { photoUrl } from "@/lib/api/photo";
 
-import { isOpen, mapOf, savingOf, unitsOf, type Order } from "./order";
+import { isOpen, savingOf, unitsOf, type Order } from "./order";
 import { OrderQr } from "./order-qr";
 
 // The pieces the order pages are built from (Figma K6, K6b, D5): the seller's row, the ticket, the orders placed
@@ -293,24 +294,25 @@ export function OrderFacts({ order }: { order: Order }) {
   );
 }
 
-/** Where the counter is, and the way there in Google Maps (Figma D2 › chỗ nhận). */
+/**
+ * Where the counter is, on the store's pin (SEC-137: the map Second Bite serves, not Google's embed looking the
+ * address up), and the way there in the phone's maps (Figma D2 › chỗ nhận).
+ */
 export function Directions({ order }: { order: Order }) {
   const t = useTranslations("Orders");
-  const locale = useLocale();
 
   return (
     <section
       aria-label={t("directionsLabel")}
       className="flex flex-col overflow-hidden rounded-2xl bg-card text-card-foreground"
     >
-      <iframe
-        title={t("mapTitle", { seller: order.seller.name })}
-        src={mapOf(order.seller, locale)}
-        loading="lazy"
-        referrerPolicy="no-referrer"
-        className="h-18 w-full border-0 bg-secondary"
-      />
       <div className="flex flex-col gap-3 p-4">
+        <StoreMap
+          point={order.seller}
+          label={t("mapTitle", { seller: order.seller.name })}
+          href={directionsHref(order.seller)}
+          openLabel={t("directionsLabel")}
+        />
         <div>
           <p className="text-body-sm-strong">
             {t("placeLine", { seller: order.seller.name, address: order.seller.address })}

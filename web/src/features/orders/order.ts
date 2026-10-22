@@ -48,17 +48,6 @@ export function windowPhase(
   return now < Date.parse(order.windowEnd) ? "open" : "over";
 }
 
-/** Google Maps' embedded map of the collection point, its pin on the seller's address, in the page's language. */
-export function mapOf(seller: Pick<Order["seller"], "address">, locale: string): string {
-  const query = new URLSearchParams({
-    q: seller.address,
-    z: "17",
-    hl: locale,
-    output: "embed",
-  });
-  return `https://www.google.com/maps?${query}`;
-}
-
 /**
  * Orders placed together from one cart, one per seller (SEC-76 › decision 8), as one: each group in the order
  * its sellers' orders were placed, the groups newest first.

@@ -168,6 +168,19 @@ test.describe("a dish, its seller and the cart", () => {
     expect(await noSideways()).toBe(true);
   });
 
+  // SEC-137: the counter on the store's pin, and the way there to that pin, not to the address Google looks up.
+  test("shows the seller on a map, the way there leading to its pin", async ({ page }) => {
+    await page.goto("/vi/sellers/se-la-paris");
+    await expect(page.getByRole("figure", { name: /^Vị trí .+ trên bản đồ$/ })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Chỉ đường" }).filter({ visible: true }),
+    ).toHaveAttribute(
+      "href",
+      /^https:\/\/www\.google\.com\/maps\/dir\/\?api=1&destination=-?\d+\.\d+%2C-?\d+\.\d+$/,
+    );
+    await expectNoSeriousA11yViolations(page);
+  });
+
   test("says when a seller has nothing tonight", async ({ page }) => {
     await page.goto("/vi/sellers/se-unknown");
 
