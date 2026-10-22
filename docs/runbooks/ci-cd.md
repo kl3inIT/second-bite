@@ -6,7 +6,7 @@ Second Bite deploys the way BeyondPilot already deploys to the same host (its `d
 2. [Deploy staging](../../.github/workflows/deploy-staging.yml) calls the shared [Deploy](../../.github/workflows/deploy.yml) workflow.
 3. Deploy runs [`deploy.sh`](../../infrastructure/deployment/deploy.sh) on the host over SSH.
 
-The reasons, and the alternatives considered (Kamal, Docker contexts over SSH, Coolify), are in the [SEC-33 design](../increments/active/sec-33-staging/design.md).
+The reasons, and the alternatives considered (Kamal, Docker contexts over SSH, Coolify), are in the [SEC-33 design](../increments/completed/sec-33-staging/design.md).
 
 A green deployment means the release is running and healthy. It does not claim that the product works; the team checks that on the site.
 

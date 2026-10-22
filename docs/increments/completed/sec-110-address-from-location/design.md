@@ -1,6 +1,6 @@
 # SEC-110 — The open-store form fills the address from where the person stands: design
 
-Status: started on 21 October 2026. Tracked in Linear as SEC-110, a child of [SEC-57](../sec-57-seller-web/design.md); it follows SEC-100, which pinned a store where the person stands but left the address to be typed.
+Status: started on 21 October 2026; delivered the same day (PR #74). Tracked in Linear as SEC-110, a child of [SEC-57](../../active/sec-57-seller-web/design.md); it follows SEC-100, which pinned a store where the person stands but left the address to be typed.
 
 ## Why
 
