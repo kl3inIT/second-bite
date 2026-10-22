@@ -63,7 +63,7 @@ func checkAccountDeletion(t *testing.T, svc service) {
 
 	checkCodePurposesApart(t, svc, owner, ownerEmail)
 
-	deletionID, deletionCode := requestDeletionCode(t, svc, owner, ownerEmail)
+	deletionID, deletionCode := checkDeletionCodeLimit(t, svc, owner, ownerEmail)
 
 	if p := send(t, http.MethodPost, svc.base+"/accounts/me/deletion", owner, codeBody(deletionID, wrongCode(deletionCode))).
 		problem(t, http.StatusBadRequest); p.Code != "IDENTITY_CODE_INCORRECT" {
@@ -105,10 +105,12 @@ func checkAccountDeletion(t *testing.T, svc service) {
 }
 
 // checkCodePurposesApart checks that a deletion code cannot sign in and a
-// sign-in code cannot delete.
+// sign-in code cannot delete, and that each purpose keeps its own live code
+// (SEC-126): asking for a deletion code leaves the sign-in code working.
 func checkCodePurposesApart(t *testing.T, svc service, auth http.Header, address string) {
 	t.Helper()
 
+	signInID, signInCode := requestCode(t, svc, address)
 	deletionID, deletionCode := requestDeletionCode(t, svc, auth, address)
 
 	if p := send(t, http.MethodPost, svc.base+"/auth/sessions", nil, codeBody(deletionID, deletionCode)).
@@ -116,14 +118,40 @@ func checkCodePurposesApart(t *testing.T, svc service, auth http.Header, address
 		t.Errorf("signing in with a deletion code: %q", p.Code)
 	}
 
-	// The sign-in code also ends the deletion code: one live code per address.
-	backdateCodes(t, svc, address)
-	signInID, signInCode := requestCode(t, svc, address)
-
 	if p := send(t, http.MethodPost, svc.base+"/accounts/me/deletion", auth, codeBody(signInID, signInCode)).
 		problem(t, http.StatusGone); p.Code != codeChallengeGone {
 		t.Errorf("deleting with a sign-in code: %q", p.Code)
 	}
+
+	send(t, http.MethodPost, svc.base+"/auth/sessions", nil, codeBody(signInID, signInCode)).
+		decode(t, http.StatusCreated, &struct{}{})
+}
+
+// checkDeletionCodeLimit asks for deletion codes up to their own limit of
+// three an hour (SEC-126), the first one asked by checkCodePurposesApart: the
+// fourth is refused with a wait, while a sign-in code is still sent at once.
+// It answers the last deletion code, which is live.
+func checkDeletionCodeLimit(t *testing.T, svc service, auth http.Header, address string) (string, string) {
+	t.Helper()
+
+	requestDeletionCode(t, svc, auth, address)
+	id, code := requestDeletionCode(t, svc, auth, address)
+
+	backdateCodes(t, svc, address)
+
+	resp := send(t, http.MethodPost, svc.base+"/accounts/me/deletion-codes", auth, nil)
+	if p := resp.problem(t, http.StatusTooManyRequests); p.Code != "IDENTITY_CODE_LIMIT_EXCEEDED" {
+		t.Errorf("a fourth deletion code in the hour: %q", p.Code)
+	}
+
+	if resp.header.Get("Retry-After") == "" {
+		t.Error("the fourth deletion code: no Retry-After")
+	}
+
+	send(t, http.MethodPost, svc.base+"/auth/sign-in-codes", nil, emailBody(address)).
+		decode(t, http.StatusAccepted, &struct{}{})
+
+	return id, code
 }
 
 // checkDeletedAtOnce checks what the deletion removes in its own transaction.

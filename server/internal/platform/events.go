@@ -133,6 +133,19 @@ func (e *Events) Every(name string, every time.Duration, run func(context.Contex
 // Publish writes event in tx for each of its listeners. When tx rolls back,
 // nothing is published.
 func Publish[E Event](ctx context.Context, tx pgx.Tx, e *Events, event E) error {
+	return publish(ctx, tx, e, event, nil)
+}
+
+// PublishAfter writes event in tx for each of its listeners, to run once delay
+// has passed. A publisher writes it besides Publish to deliver the event again
+// later, sweeping up what a request still running when it was published wrote
+// after the first delivery (SEC-126); the listeners being idempotent, the
+// second run changes only that.
+func PublishAfter[E Event](ctx context.Context, tx pgx.Tx, e *Events, event E, delay time.Duration) error {
+	return publish(ctx, tx, e, event, &river.InsertOpts{ScheduledAt: time.Now().Add(delay)})
+}
+
+func publish[E Event](ctx context.Context, tx pgx.Tx, e *Events, event E, opts *river.InsertOpts) error {
 	payload, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("writing the event: %w", err)
@@ -140,7 +153,7 @@ func Publish[E Event](ctx context.Context, tx pgx.Tx, e *Events, event E) error 
 
 	key := event.EventKey()
 	for _, l := range e.listeners[key] {
-		if _, err := e.client.InsertTx(ctx, tx, eventJob{Event: key, Listener: l.name, Payload: payload}, nil); err != nil {
+		if _, err := e.client.InsertTx(ctx, tx, eventJob{Event: key, Listener: l.name, Payload: payload}, opts); err != nil {
 			return fmt.Errorf("publishing %s to %s: %w", key, l.name, err)
 		}
 	}

@@ -23,7 +23,7 @@ Administrative command: `secondbite email configure` with `-provider`, `-sender-
 - A send has a 10-second bound. A provider's failure is classified as refused, rate limited (with the wait it asks for) or unavailable; a provider's error text is never logged.
 - Each change of the settings is recorded in the audit trail with the provider and the names of the fields changed, never a value; from the command line it has no actor (SEC-75). A save that changes nothing writes nothing. A secret counts as changed when a new one is given or the stored one is dropped.
 - Each email sent is recorded with its kind, recipient, provider and the provider's message id.
-- `ForgetRecipient` deletes the record of every email sent to an address, which identity calls when it deletes the address's account (SEC-37).
+- `ForgetRecipient` deletes the record of every email sent to an address, which identity calls when it deletes the address's account (SEC-37). The index `notification_emails_recipient` on `lower(recipient)` finds them (SEC-126).
 
 ## Data
 
