@@ -109,7 +109,8 @@ func tagCodes(of []Tag) []string {
 	return codes
 }
 
-// withReviews reads the reviews of orders in one query.
+// withReviews reads the reviews of orders in one query; a hidden one marks
+// its order reviewed and is left out.
 func (s *Service) withReviews(ctx context.Context, orders []Order) error {
 	if len(orders) == 0 {
 		return nil
@@ -128,6 +129,11 @@ func (s *Service) withReviews(ctx context.Context, orders []Order) error {
 	}
 
 	for _, r := range rows {
+		orders[at[r.OrderID]].Reviewed = true
+		if r.HiddenAt != nil {
+			continue
+		}
+
 		review := Review{Stars: int(r.Stars), Tags: make([]Tag, 0, len(r.Tags)), Comment: r.Comment, CreatedAt: r.CreatedAt}
 		for _, t := range r.Tags {
 			review.Tags = append(review.Tags, Tag(t))

@@ -69,6 +69,53 @@ export type AdminOrdersOutputBody = {
     total: number;
 };
 
+export type AdminReviewBody = {
+    comment?: string;
+    /**
+     * When the customer rated the order
+     */
+    createdAt: string;
+    /**
+     * Who collected, as given with the order
+     */
+    customerName: string;
+    /**
+     * When an admin hid it; absent while it shows
+     */
+    hiddenAt?: string;
+    /**
+     * Why an admin hid it, when they said
+     */
+    hiddenReason?: string;
+    /**
+     * The order reviewed, which names its review
+     */
+    orderId: string;
+    /**
+     * SB- and a number
+     */
+    orderNumber: string;
+    sellerId: string;
+    sellerName: string;
+    stars: number;
+    tags: Array<string>;
+};
+
+export type AdminReviewsOutputBody = {
+    /**
+     * The mean stars of the shown reviews matching every filter; absent when none does
+     */
+    average?: number;
+    /**
+     * Reviews of each number of stars matching the other filters, whatever stars asks
+     */
+    counts: ReviewCountsBody;
+    items: Array<AdminReviewBody>;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
 export type AdminSellerBody = {
     address: string;
     createdAt: string;
@@ -138,7 +185,7 @@ export type AuditDetailsBody = {
      */
     provider?: 'smtp' | 'brevo';
     /**
-     * What the owner was told, for a rejection or a block
+     * What the owner was told, for a rejection or a block; the admin's reason, for a hidden review
      */
     reason?: string;
     /**
@@ -148,7 +195,7 @@ export type AuditDetailsBody = {
 };
 
 export type AuditEventBody = {
-    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock';
+    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'review.hide' | 'review.show';
     actorId?: string;
     actorLabel?: string;
     details: AuditDetailsBody;
@@ -156,10 +203,10 @@ export type AuditEventBody = {
     occurredAt: string;
     resourceId: string;
     /**
-     * The store's name or the account's address at the time; absent once that account is deleted
+     * The store's name, the account's address or the order's number at the time; absent once that account is deleted
      */
     resourceLabel?: string;
-    resourceType: 'account' | 'seller' | 'offer_settings' | 'email_settings';
+    resourceType: 'account' | 'seller' | 'order' | 'offer_settings' | 'email_settings';
 };
 
 export type AuditEventsOutputBody = {
@@ -370,6 +417,13 @@ export type GrantAdminRequest = {
      * The address of the account
      */
     email: string;
+};
+
+export type HideReviewRequest = {
+    /**
+     * Why it is hidden, at most 500 characters
+     */
+    reason?: string;
 };
 
 export type HistoryOutputBody = {
@@ -614,6 +668,10 @@ export type OrderBody = {
      * To its customer: proves the order is theirs without signing in, sent back as Order-Access
      */
     access?: string;
+    /**
+     * The order is collected and was never rated, so its customer may rate it
+     */
+    canReview: boolean;
     cancelReason?: string;
     cancelledAt?: string;
     /**
@@ -645,7 +703,7 @@ export type OrderBody = {
     refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other' | 'withdrawn';
     refusedAt?: string;
     /**
-     * The customer's rating of the collected order; none until they rate it
+     * The customer's rating of the collected order; none until they rate it, nor while admins hide it
      */
     review?: ReviewBody;
     /**
@@ -846,6 +904,18 @@ export type ReviewBody = {
     createdAt: string;
     stars: number;
     tags: Array<string>;
+};
+
+export type ReviewCountsBody = {
+    fiveStars: number;
+    fourStars: number;
+    /**
+     * Hidden reviews of the stars asked, whatever visibility asks
+     */
+    hidden: number;
+    oneStar: number;
+    threeStars: number;
+    twoStars: number;
 };
 
 export type ReviewOrderRequest = {
@@ -1342,7 +1412,7 @@ export type ListAuditEventsData = {
         /**
          * Keep these actions; every action when absent
          */
-        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock'> | null;
+        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'review.hide' | 'review.show'> | null;
         /**
          * Keep one admin's actions
          */
@@ -1649,6 +1719,112 @@ export type ListOrdersForAdminsResponses = {
 };
 
 export type ListOrdersForAdminsResponse = ListOrdersForAdminsResponses[keyof ListOrdersForAdminsResponses];
+
+export type ListReviewsForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep the reviews giving these stars; any when absent
+         */
+        stars?: Array<number> | null;
+        /**
+         * The comment, the order's number, the customer's name or phone, or the seller's name
+         */
+        q?: string;
+        /**
+         * Keep this seller's reviews
+         */
+        sellerId?: string;
+        /**
+         * Keep the shown or the hidden reviews; both when absent
+         */
+        visibility?: 'visible' | 'hidden';
+        page?: number;
+        size?: number;
+        /**
+         * Keep the reviews given at or after this time
+         */
+        reviewedSince?: string;
+        /**
+         * Keep the reviews given before this time
+         */
+        reviewedUntil?: string;
+    };
+    url: '/admin/reviews';
+};
+
+export type ListReviewsForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListReviewsForAdminsError = ListReviewsForAdminsErrors[keyof ListReviewsForAdminsErrors];
+
+export type ListReviewsForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: AdminReviewsOutputBody;
+};
+
+export type ListReviewsForAdminsResponse = ListReviewsForAdminsResponses[keyof ListReviewsForAdminsResponses];
+
+export type HideReviewData = {
+    body?: HideReviewRequest;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/admin/reviews/{orderId}/hide';
+};
+
+export type HideReviewErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type HideReviewError = HideReviewErrors[keyof HideReviewErrors];
+
+export type HideReviewResponses = {
+    /**
+     * OK
+     */
+    200: AdminReviewBody;
+};
+
+export type HideReviewResponse = HideReviewResponses[keyof HideReviewResponses];
+
+export type ShowReviewData = {
+    body?: never;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/admin/reviews/{orderId}/show';
+};
+
+export type ShowReviewErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ShowReviewError = ShowReviewErrors[keyof ShowReviewErrors];
+
+export type ShowReviewResponses = {
+    /**
+     * OK
+     */
+    200: AdminReviewBody;
+};
+
+export type ShowReviewResponse = ShowReviewResponses[keyof ShowReviewResponses];
 
 export type ListSellersForAdminsData = {
     body?: never;

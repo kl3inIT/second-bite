@@ -68,6 +68,10 @@ func (s *Service) HistoryForAdmins(ctx context.Context, accountID uuid.UUID) (Hi
 		return History{}, err
 	}
 
+	if err := s.withReviews(ctx, h.Recent); err != nil {
+		return History{}, err
+	}
+
 	return h, nil
 }
 
@@ -142,6 +146,10 @@ func (s *Service) ListForAdmins(ctx context.Context, f AdminFilter) (AdminPage, 
 	}
 
 	if err := s.withLines(ctx, s.queries, page.Orders); err != nil {
+		return AdminPage{}, err
+	}
+
+	if err := s.withReviews(ctx, page.Orders); err != nil {
 		return AdminPage{}, err
 	}
 

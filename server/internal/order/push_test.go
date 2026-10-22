@@ -179,7 +179,7 @@ func (f fixture) withPushes(t *testing.T) (*order.Service, func(topic string)) {
 	// in the live tickets' own test.
 	redeem := func(_ context.Context, ticket string) (string, bool, error) { return ticket, true, nil }
 
-	return order.NewService(f.pool, f.offers, f.sellers, pushes, platformtest.Logger()), func(topic string) {
+	return order.NewService(f.pool, f.offers, f.sellers, pushes, f.trail, platformtest.Logger()), func(topic string) {
 		if err := pushes.Subscribe(t.Context(), browser, []string{topic}, redeem); err != nil {
 			t.Fatal(err)
 		}

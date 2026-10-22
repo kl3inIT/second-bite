@@ -68,6 +68,26 @@ var (
 		VI: "Bộ lọc danh sách đơn không hợp lệ: kiểm tra trạng thái, từ khoá tối đa 100 ký tự, khoảng ngày nhận có ngày bắt đầu trước ngày kết thúc, trang từ 1 và cỡ trang từ 1 đến 100.",
 		EN: "The order list's filters are not valid: check the statuses, a query of at most 100 characters, a range of collection days that starts before it ends, a page from 1 and a page size of 1 to 100.",
 	})
+	ErrReviewListInvalid = platform.NewFailure("ORDER_REVIEW_LIST_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Bộ lọc danh sách đánh giá không hợp lệ: kiểm tra số sao từ 1 đến 5, trạng thái hiển thị, từ khoá tối đa 100 ký tự, khoảng ngày đánh giá có ngày bắt đầu trước ngày kết thúc, trang từ 1 và cỡ trang từ 1 đến 100.",
+		EN: "The review list's filters are not valid: check stars of 1 to 5, the visibility, a query of at most 100 characters, a range of review days that starts before it ends, a page from 1 and a page size of 1 to 100.",
+	})
+	ErrNotReviewed = platform.NewFailure("ORDER_NOT_REVIEWED", platform.CategoryNotFound, platform.Words{
+		VI: "Đơn này chưa có đánh giá.",
+		EN: "The order has no review.",
+	})
+	ErrReviewReasonInvalid = platform.NewFailure("ORDER_REVIEW_REASON_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Lý do ẩn đánh giá tối đa 500 ký tự.",
+		EN: "The reason for hiding a review is at most 500 characters.",
+	})
+	ErrReviewAlreadyHidden = platform.NewFailure("ORDER_REVIEW_ALREADY_HIDDEN", platform.CategoryConflict, platform.Words{
+		VI: "Đánh giá này đã bị ẩn.",
+		EN: "The review is already hidden.",
+	})
+	ErrReviewNotHidden = platform.NewFailure("ORDER_REVIEW_NOT_HIDDEN", platform.CategoryConflict, platform.Words{
+		VI: "Đánh giá này đang hiển thị.",
+		EN: "The review is already shown.",
+	})
 	ErrMessageInvalid = platform.NewFailure("ORDER_MESSAGE_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Tin nhắn dài từ 1 đến 1.000 ký tự.",
 		EN: "A message is 1 to 1,000 characters.",

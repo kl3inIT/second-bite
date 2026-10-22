@@ -30,6 +30,7 @@ type fixture struct {
 	sellers  *seller.Service
 	offers   *offer.Service
 	orders   *order.Service
+	trail    *audit.Service
 	prefix   string
 }
 
@@ -70,6 +71,7 @@ func TestOrder(t *testing.T) {
 		"every change of an order notifies":        testEveryChangeNotifies,
 		"old chats are forgotten":                  testOldChatsAreForgotten,
 		"admins list every seller's orders":        testAdminsListOrders,
+		"admins hide a review and show it again":   testAdminsHideReviews,
 		"pushes tell of each change":               testPushesTellOfEachChange,
 		"pushes tell of time":                      testPushesTellOfTime,
 	} {
@@ -103,10 +105,10 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 	sellers := seller.NewService(pool, accounts, files, nil, events, trail, platformtest.Logger()) // its listeners do not run here
 	offers := offer.NewService(pool, sellers, files, events, trail, platformtest.Logger())
 
-	orders := order.NewService(pool, offers, sellers, nil, platformtest.Logger())
+	orders := order.NewService(pool, offers, sellers, nil, trail, platformtest.Logger())
 
 	return fixture{
-		pool: pool, accounts: accounts, files: files, sellers: sellers, offers: offers, orders: orders,
+		pool: pool, accounts: accounts, files: files, sellers: sellers, offers: offers, orders: orders, trail: trail,
 		prefix: "order." + strings.ReplaceAll(uuid.NewString(), "-", ""),
 	}
 }

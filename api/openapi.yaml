@@ -133,6 +133,82 @@ components:
         - total
         - counts
       type: object
+    AdminReviewBody:
+      additionalProperties: false
+      properties:
+        comment:
+          type: string
+        createdAt:
+          description: When the customer rated the order
+          format: date-time
+          type: string
+        customerName:
+          description: Who collected, as given with the order
+          type: string
+        hiddenAt:
+          description: When an admin hid it; absent while it shows
+          format: date-time
+          type: string
+        hiddenReason:
+          description: Why an admin hid it, when they said
+          type: string
+        orderId:
+          description: The order reviewed, which names its review
+          type: string
+        orderNumber:
+          description: SB- and a number
+          type: string
+        sellerId:
+          type: string
+        sellerName:
+          type: string
+        stars:
+          format: int64
+          type: integer
+        tags:
+          items:
+            type: string
+          type: array
+      required:
+        - orderId
+        - orderNumber
+        - sellerId
+        - sellerName
+        - customerName
+        - stars
+        - tags
+        - createdAt
+      type: object
+    AdminReviewsOutputBody:
+      additionalProperties: false
+      properties:
+        average:
+          description: The mean stars of the shown reviews matching every filter; absent when none does
+          format: double
+          type: number
+        counts:
+          $ref: "#/components/schemas/ReviewCountsBody"
+          description: Reviews of each number of stars matching the other filters, whatever stars asks
+        items:
+          items:
+            $ref: "#/components/schemas/AdminReviewBody"
+          type: array
+        page:
+          format: int64
+          type: integer
+        pageSize:
+          format: int64
+          type: integer
+        total:
+          format: int64
+          type: integer
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+        - counts
+      type: object
     AdminSellerBody:
       additionalProperties: false
       properties:
@@ -266,7 +342,7 @@ components:
             - brevo
           type: string
         reason:
-          description: What the owner was told, for a rejection or a block
+          description: What the owner was told, for a rejection or a block; the admin's reason, for a hidden review
           type: string
         source:
           description: Where a change of admins came from
@@ -288,6 +364,8 @@ components:
             - seller.reject
             - seller.block
             - seller.unblock
+            - review.hide
+            - review.show
           type: string
         actorId:
           type: string
@@ -303,12 +381,13 @@ components:
         resourceId:
           type: string
         resourceLabel:
-          description: The store's name or the account's address at the time; absent once that account is deleted
+          description: The store's name, the account's address or the order's number at the time; absent once that account is deleted
           type: string
         resourceType:
           enum:
             - account
             - seller
+            - order
             - offer_settings
             - email_settings
           type: string
@@ -788,6 +867,13 @@ components:
           type: string
       required:
         - email
+      type: object
+    HideReviewRequest:
+      additionalProperties: false
+      properties:
+        reason:
+          description: Why it is hidden, at most 500 characters
+          type: string
       type: object
     HistoryOutputBody:
       additionalProperties: false
@@ -1315,6 +1401,9 @@ components:
         access:
           description: "To its customer: proves the order is theirs without signing in, sent back as Order-Access"
           type: string
+        canReview:
+          description: The order is collected and was never rated, so its customer may rate it
+          type: boolean
         cancelReason:
           type: string
         cancelledAt:
@@ -1369,7 +1458,7 @@ components:
           type: string
         review:
           $ref: "#/components/schemas/ReviewBody"
-          description: The customer's rating of the collected order; none until they rate it
+          description: The customer's rating of the collected order; none until they rate it, nor while admins hide it
         seller:
           $ref: "#/components/schemas/OrderSellerBody"
           description: Where the order is collected, copied when it was placed
@@ -1410,6 +1499,7 @@ components:
         - checkoutId
         - customerName
         - customerPhone
+        - canReview
       type: object
     OrderCountsBody:
       additionalProperties: false
@@ -1766,6 +1856,36 @@ components:
         - stars
         - tags
         - createdAt
+      type: object
+    ReviewCountsBody:
+      additionalProperties: false
+      properties:
+        fiveStars:
+          format: int64
+          type: integer
+        fourStars:
+          format: int64
+          type: integer
+        hidden:
+          description: Hidden reviews of the stars asked, whatever visibility asks
+          format: int64
+          type: integer
+        oneStar:
+          format: int64
+          type: integer
+        threeStars:
+          format: int64
+          type: integer
+        twoStars:
+          format: int64
+          type: integer
+      required:
+        - oneStar
+        - twoStars
+        - threeStars
+        - fourStars
+        - fiveStars
+        - hidden
       type: object
     ReviewOrderRequest:
       additionalProperties: false
@@ -2501,6 +2621,8 @@ paths:
                 - seller.reject
                 - seller.block
                 - seller.unblock
+                - review.hide
+                - review.show
               type: string
             type:
               - array
@@ -2936,6 +3058,164 @@ paths:
         - bearer: []
         - cookie: []
       summary: Every seller's orders by status, words, seller and day collected, the latest window first
+      tags:
+        - Admin
+  /admin/reviews:
+    get:
+      description: q matches the comment, the order's number (SB-24831 or 24831), the customer's name or phone, or the seller's name, Vietnamese marks ignored. A page past the end is empty.
+      operationId: listReviewsForAdmins
+      parameters:
+        - description: Keep the reviews giving these stars; any when absent
+          explode: false
+          in: query
+          name: stars
+          schema:
+            description: Keep the reviews giving these stars; any when absent
+            items:
+              format: int64
+              maximum: 5
+              minimum: 1
+              type: integer
+            type:
+              - array
+              - "null"
+        - description: The comment, the order's number, the customer's name or phone, or the seller's name
+          explode: false
+          in: query
+          name: q
+          schema:
+            description: The comment, the order's number, the customer's name or phone, or the seller's name
+            maxLength: 100
+            type: string
+        - description: Keep this seller's reviews
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep this seller's reviews
+            type: string
+        - description: Keep the shown or the hidden reviews; both when absent
+          explode: false
+          in: query
+          name: visibility
+          schema:
+            description: Keep the shown or the hidden reviews; both when absent
+            enum:
+              - visible
+              - hidden
+            type: string
+        - explode: false
+          in: query
+          name: page
+          schema:
+            default: 1
+            format: int64
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: size
+          schema:
+            default: 25
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+        - description: Keep the reviews given at or after this time
+          explode: false
+          in: query
+          name: reviewedSince
+          schema:
+            description: Keep the reviews given at or after this time
+            format: date-time
+            type: string
+        - description: Keep the reviews given before this time
+          explode: false
+          in: query
+          name: reviewedUntil
+          schema:
+            description: Keep the reviews given before this time
+            format: date-time
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminReviewsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Every customer's review, hidden or not, by stars, words, seller, visibility and day, the latest first
+      tags:
+        - Admin
+  /admin/reviews/{orderId}/hide:
+    post:
+      description: The reason is optional, at most 500 characters, and kept in the audit only. The order cannot be rated again while its review is hidden.
+      operationId: hideReview
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HideReviewRequest"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminReviewBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Hide a review from every read but the admins'; its customer is not told
+      tags:
+        - Admin
+  /admin/reviews/{orderId}/show:
+    post:
+      operationId: showReview
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminReviewBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Show a hidden review again everywhere
       tags:
         - Admin
   /admin/sellers:

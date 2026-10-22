@@ -114,6 +114,108 @@ func (q *Queries) CountOrdersForAdmins(ctx context.Context, arg CountOrdersForAd
 	return count, err
 }
 
+const countReviewsByStars = `-- name: CountReviewsByStars :one
+SELECT count(*) FILTER (WHERE r.stars = 1 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS one,
+       count(*) FILTER (WHERE r.stars = 2 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS two,
+       count(*) FILTER (WHERE r.stars = 3 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS three,
+       count(*) FILTER (WHERE r.stars = 4 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS four,
+       count(*) FILTER (WHERE r.stars = 5 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS five,
+       count(*) FILTER (WHERE r.hidden_at IS NOT NULL
+                          AND (cardinality($2::int[]) = 0 OR r.stars = ANY ($2::int[]))) AS hidden,
+       count(*) FILTER (WHERE r.hidden_at IS NULL AND $1::text <> 'hidden'
+                          AND (cardinality($2::int[]) = 0 OR r.stars = ANY ($2::int[]))) AS shown,
+       coalesce(sum(r.stars) FILTER (WHERE r.hidden_at IS NULL AND $1::text <> 'hidden'
+                                       AND (cardinality($2::int[]) = 0 OR r.stars = ANY ($2::int[]))), 0)::bigint
+           AS shown_stars
+FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
+WHERE ($3::text = '' OR o.search_text LIKE '%' || order_fold($3::text) || '%' ESCAPE ''
+       OR order_fold(r.comment) LIKE '%' || order_fold($3::text) || '%' ESCAPE '')
+  AND ($4::uuid IS NULL OR o.seller_id = $4::uuid)
+  AND ($5::timestamptz IS NULL OR r.created_at >= $5::timestamptz)
+  AND ($6::timestamptz IS NULL OR r.created_at < $6::timestamptz)
+`
+
+type CountReviewsByStarsParams struct {
+	Visibility    string
+	Stars         []int32
+	Query         string
+	SellerID      uuid.NullUUID
+	ReviewedSince *time.Time
+	ReviewedUntil *time.Time
+}
+
+type CountReviewsByStarsRow struct {
+	One        int64
+	Two        int64
+	Three      int64
+	Four       int64
+	Five       int64
+	Hidden     int64
+	Shown      int64
+	ShownStars int64
+}
+
+// For the cards above the admins' list, the reviews matching the words, the
+// seller and the days: how many give each number of stars, shown or hidden as
+// visibility asks; how many are hidden, of the stars asked; and how many are
+// shown matching every filter with their stars added up, for the mean.
+func (q *Queries) CountReviewsByStars(ctx context.Context, arg CountReviewsByStarsParams) (CountReviewsByStarsRow, error) {
+	row := q.db.QueryRow(ctx, countReviewsByStars,
+		arg.Visibility,
+		arg.Stars,
+		arg.Query,
+		arg.SellerID,
+		arg.ReviewedSince,
+		arg.ReviewedUntil,
+	)
+	var i CountReviewsByStarsRow
+	err := row.Scan(
+		&i.One,
+		&i.Two,
+		&i.Three,
+		&i.Four,
+		&i.Five,
+		&i.Hidden,
+		&i.Shown,
+		&i.ShownStars,
+	)
+	return i, err
+}
+
+const countReviewsForAdmins = `-- name: CountReviewsForAdmins :one
+SELECT count(*) FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
+WHERE (cardinality($1::int[]) = 0 OR r.stars = ANY ($1::int[]))
+  AND ($2::text = '' OR ($2::text = 'hidden') = (r.hidden_at IS NOT NULL))
+  AND ($3::text = '' OR o.search_text LIKE '%' || order_fold($3::text) || '%' ESCAPE ''
+       OR order_fold(r.comment) LIKE '%' || order_fold($3::text) || '%' ESCAPE '')
+  AND ($4::uuid IS NULL OR o.seller_id = $4::uuid)
+  AND ($5::timestamptz IS NULL OR r.created_at >= $5::timestamptz)
+  AND ($6::timestamptz IS NULL OR r.created_at < $6::timestamptz)
+`
+
+type CountReviewsForAdminsParams struct {
+	Stars         []int32
+	Visibility    string
+	Query         string
+	SellerID      uuid.NullUUID
+	ReviewedSince *time.Time
+	ReviewedUntil *time.Time
+}
+
+func (q *Queries) CountReviewsForAdmins(ctx context.Context, arg CountReviewsForAdminsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countReviewsForAdmins,
+		arg.Stars,
+		arg.Visibility,
+		arg.Query,
+		arg.SellerID,
+		arg.ReviewedSince,
+		arg.ReviewedUntil,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const customerOrderCounts = `-- name: CustomerOrderCounts :one
 SELECT count(*) AS placed,
        count(*) FILTER (WHERE state = 'collected') AS collected,
@@ -361,6 +463,25 @@ func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, erro
 		&i.RefusedAt,
 	)
 	return i, err
+}
+
+const hideReview = `-- name: HideReview :one
+UPDATE order_reviews SET hidden_at = now(), hidden_by = $1, hidden_reason = $2
+WHERE order_id = $3
+RETURNING hidden_at
+`
+
+type HideReviewParams struct {
+	HiddenBy     uuid.NullUUID
+	HiddenReason string
+	OrderID      uuid.UUID
+}
+
+func (q *Queries) HideReview(ctx context.Context, arg HideReviewParams) (*time.Time, error) {
+	row := q.db.QueryRow(ctx, hideReview, arg.HiddenBy, arg.HiddenReason, arg.OrderID)
+	var hidden_at *time.Time
+	err := row.Scan(&hidden_at)
+	return hidden_at, err
 }
 
 const insertEvent = `-- name: InsertEvent :exec
@@ -736,6 +857,48 @@ func (q *Queries) LockOrderShared(ctx context.Context, id uuid.UUID) (LockOrderS
 		&i.CollectedAt,
 		&i.CancelledAt,
 		&i.RefusedAt,
+	)
+	return i, err
+}
+
+const lockReviewForAdmins = `-- name: LockReviewForAdmins :one
+SELECT r.order_id, o.number, o.seller_id, o.seller_name, o.customer_name, r.stars, r.tags, r.comment, r.created_at,
+       r.hidden_at, r.hidden_reason
+FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
+WHERE r.order_id = $1
+FOR UPDATE OF r
+`
+
+type LockReviewForAdminsRow struct {
+	OrderID      uuid.UUID
+	Number       pgtype.Int8
+	SellerID     uuid.UUID
+	SellerName   string
+	CustomerName string
+	Stars        int16
+	Tags         []string
+	Comment      string
+	CreatedAt    time.Time
+	HiddenAt     *time.Time
+	HiddenReason string
+}
+
+// ReviewsForAdmins' columns for one order, locked until the transaction ends.
+func (q *Queries) LockReviewForAdmins(ctx context.Context, orderID uuid.UUID) (LockReviewForAdminsRow, error) {
+	row := q.db.QueryRow(ctx, lockReviewForAdmins, orderID)
+	var i LockReviewForAdminsRow
+	err := row.Scan(
+		&i.OrderID,
+		&i.Number,
+		&i.SellerID,
+		&i.SellerName,
+		&i.CustomerName,
+		&i.Stars,
+		&i.Tags,
+		&i.Comment,
+		&i.CreatedAt,
+		&i.HiddenAt,
+		&i.HiddenReason,
 	)
 	return i, err
 }
@@ -1177,26 +1340,123 @@ func (q *Queries) RedeemLiveTicket(ctx context.Context, arg RedeemLiveTicketPara
 	return topic, err
 }
 
+const reviewsForAdmins = `-- name: ReviewsForAdmins :many
+SELECT r.order_id, o.number, o.seller_id, o.seller_name, o.customer_name, r.stars, r.tags, r.comment, r.created_at,
+       r.hidden_at, r.hidden_reason
+FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
+WHERE (cardinality($1::int[]) = 0 OR r.stars = ANY ($1::int[]))
+  AND ($2::text = '' OR ($2::text = 'hidden') = (r.hidden_at IS NOT NULL))
+  AND ($3::text = '' OR o.search_text LIKE '%' || order_fold($3::text) || '%' ESCAPE ''
+       OR order_fold(r.comment) LIKE '%' || order_fold($3::text) || '%' ESCAPE '')
+  AND ($4::uuid IS NULL OR o.seller_id = $4::uuid)
+  AND ($5::timestamptz IS NULL OR r.created_at >= $5::timestamptz)
+  AND ($6::timestamptz IS NULL OR r.created_at < $6::timestamptz)
+ORDER BY r.created_at DESC, o.number DESC
+LIMIT $8 OFFSET $7
+`
+
+type ReviewsForAdminsParams struct {
+	Stars         []int32
+	Visibility    string
+	Query         string
+	SellerID      uuid.NullUUID
+	ReviewedSince *time.Time
+	ReviewedUntil *time.Time
+	SkipRows      int32
+	MaxRows       int32
+}
+
+type ReviewsForAdminsRow struct {
+	OrderID      uuid.UUID
+	Number       pgtype.Int8
+	SellerID     uuid.UUID
+	SellerName   string
+	CustomerName string
+	Stars        int16
+	Tags         []string
+	Comment      string
+	CreatedAt    time.Time
+	HiddenAt     *time.Time
+	HiddenReason string
+}
+
+// One page of every review, hidden or not, with its order: of the stars given
+// (any when empty), shown or hidden when visibility asks, matching the words
+// folded by order_fold in the order's search text or the comment (any when
+// empty), of the seller given and given in [reviewed_since, reviewed_until)
+// when given; the latest first. CountReviewsForAdmins counts them all.
+func (q *Queries) ReviewsForAdmins(ctx context.Context, arg ReviewsForAdminsParams) ([]ReviewsForAdminsRow, error) {
+	rows, err := q.db.Query(ctx, reviewsForAdmins,
+		arg.Stars,
+		arg.Visibility,
+		arg.Query,
+		arg.SellerID,
+		arg.ReviewedSince,
+		arg.ReviewedUntil,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReviewsForAdminsRow
+	for rows.Next() {
+		var i ReviewsForAdminsRow
+		if err := rows.Scan(
+			&i.OrderID,
+			&i.Number,
+			&i.SellerID,
+			&i.SellerName,
+			&i.CustomerName,
+			&i.Stars,
+			&i.Tags,
+			&i.Comment,
+			&i.CreatedAt,
+			&i.HiddenAt,
+			&i.HiddenReason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const reviewsOf = `-- name: ReviewsOf :many
-SELECT order_id, stars, tags, comment, created_at
+SELECT order_id, stars, tags, comment, created_at, hidden_at
 FROM order_reviews WHERE order_id = ANY ($1::uuid[])
 `
 
-func (q *Queries) ReviewsOf(ctx context.Context, orderIds []uuid.UUID) ([]OrderReview, error) {
+type ReviewsOfRow struct {
+	OrderID   uuid.UUID
+	Stars     int16
+	Tags      []string
+	Comment   string
+	CreatedAt time.Time
+	HiddenAt  *time.Time
+}
+
+// A hidden review is read too: its order was rated, and cannot be again.
+func (q *Queries) ReviewsOf(ctx context.Context, orderIds []uuid.UUID) ([]ReviewsOfRow, error) {
 	rows, err := q.db.Query(ctx, reviewsOf, orderIds)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []OrderReview
+	var items []ReviewsOfRow
 	for rows.Next() {
-		var i OrderReview
+		var i ReviewsOfRow
 		if err := rows.Scan(
 			&i.OrderID,
 			&i.Stars,
 			&i.Tags,
 			&i.Comment,
 			&i.CreatedAt,
+			&i.HiddenAt,
 		); err != nil {
 			return nil, err
 		}
@@ -1327,6 +1587,15 @@ func (q *Queries) SetWindow(ctx context.Context, arg SetWindowParams) (int64, er
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const showReview = `-- name: ShowReview :exec
+UPDATE order_reviews SET hidden_at = NULL, hidden_by = NULL, hidden_reason = '' WHERE order_id = $1
+`
+
+func (q *Queries) ShowReview(ctx context.Context, orderID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, showReview, orderID)
+	return err
 }
 
 const unreadOf = `-- name: UnreadOf :many
