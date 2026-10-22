@@ -9,7 +9,7 @@ Run on 22 October 2026 on Windows 11, on the branch before review.
 | Backend | `golangci-lint` 0 issues; every package's tests pass, among them `TestAdmin` › every action from every status › approve an owner-less blocked, pending and rejected seller, and `TestService` › an owner deletes their account; the others forget it; `go mod tidy -diff` and `sqlc diff` clean; the contract rewritten (`api/openapi.yaml`, the approve operation's summary) and the web's client generated from it |
 | The tests catch the bug | With the owner check switched off, the three new `TestAdmin` cases and the `TestService` deletion check fail |
 
-`govulncheck` reports GO-2026-6809 in `crypto/x509` of Go 1.27.2, fixed in 1.27.3. It comes from the Go version in `server/go.mod`, not from this change.
+Locally, `govulncheck` reports GO-2026-6809 in `crypto/x509` of the local Go 1.27.2, fixed in 1.27.3. CI's check runs on Go 1.27.3 and finds nothing.
 
 ## Against the real service
 
