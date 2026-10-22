@@ -50,6 +50,7 @@ test.describe("the admin's report", () => {
     const first = table.getByRole("row").nth(1);
     await expect(first).toContainText("La Paris");
     await expect(first).toContainText("89%");
+    await expect(first.getByRole("link", { name: "La Paris" })).toBeVisible();
     await expect(first).toContainText("264.000");
     await expectNoSeriousA11yViolations(page);
   });
