@@ -128,8 +128,8 @@ SELECT count(*) FILTER (WHERE r.stars = 1 AND ($1::text = '' OR ($1::text = 'hid
                                        AND (cardinality($2::int[]) = 0 OR r.stars = ANY ($2::int[]))), 0)::bigint
            AS shown_stars
 FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
-WHERE ($3::text = '' OR o.search_text LIKE '%' || order_fold($3::text) || '%' ESCAPE ''
-       OR order_fold(r.comment) LIKE '%' || order_fold($3::text) || '%' ESCAPE '')
+WHERE ($3::text = '' OR o.search_text LIKE '%' || order_fold($3::text) || '%' ESCAPE '\'
+       OR order_fold(r.comment) LIKE '%' || order_fold($3::text) || '%' ESCAPE '\')
   AND ($4::uuid IS NULL OR o.seller_id = $4::uuid)
   AND ($5::timestamptz IS NULL OR r.created_at >= $5::timestamptz)
   AND ($6::timestamptz IS NULL OR r.created_at < $6::timestamptz)
@@ -180,40 +180,6 @@ func (q *Queries) CountReviewsByStars(ctx context.Context, arg CountReviewsBySta
 		&i.ShownStars,
 	)
 	return i, err
-}
-
-const countReviewsForAdmins = `-- name: CountReviewsForAdmins :one
-SELECT count(*) FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
-WHERE (cardinality($1::int[]) = 0 OR r.stars = ANY ($1::int[]))
-  AND ($2::text = '' OR ($2::text = 'hidden') = (r.hidden_at IS NOT NULL))
-  AND ($3::text = '' OR o.search_text LIKE '%' || order_fold($3::text) || '%' ESCAPE ''
-       OR order_fold(r.comment) LIKE '%' || order_fold($3::text) || '%' ESCAPE '')
-  AND ($4::uuid IS NULL OR o.seller_id = $4::uuid)
-  AND ($5::timestamptz IS NULL OR r.created_at >= $5::timestamptz)
-  AND ($6::timestamptz IS NULL OR r.created_at < $6::timestamptz)
-`
-
-type CountReviewsForAdminsParams struct {
-	Stars         []int32
-	Visibility    string
-	Query         string
-	SellerID      uuid.NullUUID
-	ReviewedSince *time.Time
-	ReviewedUntil *time.Time
-}
-
-func (q *Queries) CountReviewsForAdmins(ctx context.Context, arg CountReviewsForAdminsParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countReviewsForAdmins,
-		arg.Stars,
-		arg.Visibility,
-		arg.Query,
-		arg.SellerID,
-		arg.ReviewedSince,
-		arg.ReviewedUntil,
-	)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
 }
 
 const customerOrderCounts = `-- name: CustomerOrderCounts :one
@@ -1346,8 +1312,8 @@ SELECT r.order_id, o.number, o.seller_id, o.seller_name, o.customer_name, r.star
 FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
 WHERE (cardinality($1::int[]) = 0 OR r.stars = ANY ($1::int[]))
   AND ($2::text = '' OR ($2::text = 'hidden') = (r.hidden_at IS NOT NULL))
-  AND ($3::text = '' OR o.search_text LIKE '%' || order_fold($3::text) || '%' ESCAPE ''
-       OR order_fold(r.comment) LIKE '%' || order_fold($3::text) || '%' ESCAPE '')
+  AND ($3::text = '' OR o.search_text LIKE '%' || order_fold($3::text) || '%' ESCAPE '\'
+       OR order_fold(r.comment) LIKE '%' || order_fold($3::text) || '%' ESCAPE '\')
   AND ($4::uuid IS NULL OR o.seller_id = $4::uuid)
   AND ($5::timestamptz IS NULL OR r.created_at >= $5::timestamptz)
   AND ($6::timestamptz IS NULL OR r.created_at < $6::timestamptz)
@@ -1384,7 +1350,7 @@ type ReviewsForAdminsRow struct {
 // (any when empty), shown or hidden when visibility asks, matching the words
 // folded by order_fold in the order's search text or the comment (any when
 // empty), of the seller given and given in [reviewed_since, reviewed_until)
-// when given; the latest first. CountReviewsForAdmins counts them all.
+// when given; the latest first. CountReviewsByStars counts them.
 func (q *Queries) ReviewsForAdmins(ctx context.Context, arg ReviewsForAdminsParams) ([]ReviewsForAdminsRow, error) {
 	rows, err := q.db.Query(ctx, reviewsForAdmins,
 		arg.Stars,

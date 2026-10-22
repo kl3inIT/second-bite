@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -100,14 +101,6 @@ func (s *Service) ListReviewsForAdmins(ctx context.Context, f ReviewFilter) (Rev
 		return ReviewPage{}, fmt.Errorf("listing the reviews: %w", err)
 	}
 
-	total, err := s.queries.CountReviewsForAdmins(ctx, db.CountReviewsForAdminsParams{
-		Stars: params.Stars, Visibility: params.Visibility, Query: params.Query, SellerID: params.SellerID,
-		ReviewedSince: params.ReviewedSince, ReviewedUntil: params.ReviewedUntil,
-	})
-	if err != nil {
-		return ReviewPage{}, fmt.Errorf("counting the reviews: %w", err)
-	}
-
 	counts, err := s.queries.CountReviewsByStars(ctx, db.CountReviewsByStarsParams{
 		Stars: params.Stars, Visibility: params.Visibility, Query: params.Query, SellerID: params.SellerID,
 		ReviewedSince: params.ReviewedSince, ReviewedUntil: params.ReviewedUntil,
@@ -117,11 +110,19 @@ func (s *Service) ListReviewsForAdmins(ctx context.Context, f ReviewFilter) (Rev
 	}
 
 	page := ReviewPage{
-		Reviews: make([]AdminReview, 0, len(rows)), Total: int(total),
+		Reviews: make([]AdminReview, 0, len(rows)),
 		Counts: ReviewCounts{
 			Stars:  [maxStars]int{int(counts.One), int(counts.Two), int(counts.Three), int(counts.Four), int(counts.Five)},
 			Hidden: int(counts.Hidden),
 		},
+	}
+
+	// The counts by stars already keep to every other filter, so the total
+	// is theirs for the stars asked.
+	for stars, n := range page.Counts.Stars {
+		if len(params.Stars) == 0 || slices.Contains(params.Stars, int32(stars+1)) {
+			page.Total += n
+		}
 	}
 
 	if counts.Shown > 0 {

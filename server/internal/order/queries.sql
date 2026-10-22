@@ -212,29 +212,19 @@ FROM order_reviews WHERE order_id = ANY (@order_ids::uuid[]);
 -- (any when empty), shown or hidden when visibility asks, matching the words
 -- folded by order_fold in the order's search text or the comment (any when
 -- empty), of the seller given and given in [reviewed_since, reviewed_until)
--- when given; the latest first. CountReviewsForAdmins counts them all.
+-- when given; the latest first. CountReviewsByStars counts them.
 SELECT r.order_id, o.number, o.seller_id, o.seller_name, o.customer_name, r.stars, r.tags, r.comment, r.created_at,
        r.hidden_at, r.hidden_reason
 FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
 WHERE (cardinality(@stars::int[]) = 0 OR r.stars = ANY (@stars::int[]))
   AND (@visibility::text = '' OR (@visibility::text = 'hidden') = (r.hidden_at IS NOT NULL))
-  AND (@query::text = '' OR o.search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE ''
-       OR order_fold(r.comment) LIKE '%' || order_fold(@query::text) || '%' ESCAPE '')
+  AND (@query::text = '' OR o.search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\'
+       OR order_fold(r.comment) LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
   AND (sqlc.narg(reviewed_since)::timestamptz IS NULL OR r.created_at >= sqlc.narg(reviewed_since)::timestamptz)
   AND (sqlc.narg(reviewed_until)::timestamptz IS NULL OR r.created_at < sqlc.narg(reviewed_until)::timestamptz)
 ORDER BY r.created_at DESC, o.number DESC
 LIMIT @max_rows OFFSET @skip_rows;
-
--- name: CountReviewsForAdmins :one
-SELECT count(*) FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
-WHERE (cardinality(@stars::int[]) = 0 OR r.stars = ANY (@stars::int[]))
-  AND (@visibility::text = '' OR (@visibility::text = 'hidden') = (r.hidden_at IS NOT NULL))
-  AND (@query::text = '' OR o.search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE ''
-       OR order_fold(r.comment) LIKE '%' || order_fold(@query::text) || '%' ESCAPE '')
-  AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
-  AND (sqlc.narg(reviewed_since)::timestamptz IS NULL OR r.created_at >= sqlc.narg(reviewed_since)::timestamptz)
-  AND (sqlc.narg(reviewed_until)::timestamptz IS NULL OR r.created_at < sqlc.narg(reviewed_until)::timestamptz);
 
 -- name: CountReviewsByStars :one
 -- For the cards above the admins' list, the reviews matching the words, the
@@ -254,8 +244,8 @@ SELECT count(*) FILTER (WHERE r.stars = 1 AND (@visibility::text = '' OR (@visib
                                        AND (cardinality(@stars::int[]) = 0 OR r.stars = ANY (@stars::int[]))), 0)::bigint
            AS shown_stars
 FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
-WHERE (@query::text = '' OR o.search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE ''
-       OR order_fold(r.comment) LIKE '%' || order_fold(@query::text) || '%' ESCAPE '')
+WHERE (@query::text = '' OR o.search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\'
+       OR order_fold(r.comment) LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
   AND (sqlc.narg(reviewed_since)::timestamptz IS NULL OR r.created_at >= sqlc.narg(reviewed_since)::timestamptz)
   AND (sqlc.narg(reviewed_until)::timestamptz IS NULL OR r.created_at < sqlc.narg(reviewed_until)::timestamptz);
