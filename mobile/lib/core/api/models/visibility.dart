@@ -4,6 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+/// Keep the shown or the hidden reviews; both when absent
 @JsonEnum()
 enum Visibility {
   @JsonValue('visible')
