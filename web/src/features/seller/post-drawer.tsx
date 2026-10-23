@@ -2,7 +2,7 @@
 
 import { revalidateLogic } from "@tanstack/react-form";
 import Image from "next/image";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
@@ -12,31 +12,29 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
 import { formatPrice } from "@/features/offers/format";
 import { useRouter } from "@/i18n/navigation";
 import { changeOffer, postOffer, type OfferBody, uploadPhoto } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
-import { cn } from "@/lib/utils";
 
 import { Chip } from "./chip";
 import { NumberInput } from "./number-input";
 import { type ChosenPhoto, PhotoField } from "./photo-drop";
+import { DiscountField } from "./post-discount";
 import {
   type Dish,
   discountPercent,
   type EditTarget,
   lengthIsAllowed,
-  MAX_WINDOW_MINUTES,
   maxPrice,
   MIN_DISCOUNT_PERCENT,
-  MIN_WINDOW_MINUTES,
   priceProblem,
   suggestedPrice,
-  type Start,
   windowIsOver,
   windowOf,
 } from "./post-draft";
-import { type Clock, LENGTHS, type StartKey, WindowChoices } from "./post-window";
+import { WindowChoices } from "./post-window";
 import { useRemountKey } from "./remount-key";
 import { UnitField } from "./unit-field";
 
@@ -49,9 +47,6 @@ const kinds = [
   "other",
 ] as const satisfies readonly OfferBody["kind"][];
 
-/** The usual hour of a store with nothing posted yet. */
-const DEFAULT_USUAL = { hour: 20, minute: 30 };
-
 /** What the drawer sends: a one-off dish of step 2, then how it sells, of step 3. */
 type Values = {
   photo: ChosenPhoto | undefined;
@@ -63,6 +58,7 @@ type Values = {
   units: string;
   original: string;
   price: string;
+  discount: string;
 };
 
 /** The moment of opening, read once; a function of its own so that rendering stays free of the clock. */
@@ -71,8 +67,8 @@ function currentTime(): Date {
 }
 
 /** The price a post starts from, as the form holds it: the suggested one for an original price, or empty. */
-function startingPrice(original: number | undefined): string {
-  const suggested = original ? suggestedPrice(original) : undefined;
+function startingPrice(original: number | undefined, percent = MIN_DISCOUNT_PERCENT): string {
+  const suggested = original ? suggestedPrice(original, percent) : undefined;
   return suggested ? String(suggested) : "";
 }
 
@@ -102,7 +98,6 @@ function PostDrawerBody({
 }) {
   const t = useTranslations("PostDrawer");
   const kindName = useTranslations("OfferKind");
-  const format = useFormatter();
   const router = useRouter();
   const [now] = useState(currentTime);
   const base = edit?.dish ?? again ?? fromDish;
@@ -120,44 +115,17 @@ function PostDrawerBody({
     catalog.length > 0 ? "catalog" : dishes.length > 0 ? "earlier" : "oneoff",
   );
   const [chosen, setChosen] = useState<Dish | undefined>(base);
-  // Until the person types a price, the one the platform's minimum discount allows follows the original price.
-  const [priceTouched, setPriceTouched] = useState(Boolean(base?.priceVnd) || Boolean(edit));
-  const [startKey, setStartKey] = useState<StartKey>("usual");
-  const [customStart, setCustomStart] = useState<Clock>(DEFAULT_USUAL);
-  const [length, setLength] = useState<number | "custom">(
-    edit && !(LENGTHS as readonly number[]).includes(edit.minutes)
-      ? "custom"
-      : (edit?.minutes ?? 60),
+  const [start, setStart] = useState(() =>
+    edit ? new Date(edit.windowStart) : windowOf({ kind: "now" }, 60, now).start,
   );
-  const [customLength, setCustomLength] = useState(
-    edit
-      ? Math.min(
-          MAX_WINDOW_MINUTES,
-          Math.max(MIN_WINDOW_MINUTES, Math.round(edit.minutes / 30) * 30),
-        )
-      : 90,
-  );
+  const [minutes, setMinutes] = useState(edit?.minutes ?? 60);
+  const [windowChanged, setWindowChanged] = useState(false);
   // A window found over or too long when the post was sent: said under the window until it is chosen again.
   const [windowRefused, setWindowRefused] = useState(false);
 
-  const usual = chosen?.usual ?? dishes[0]?.usual ?? DEFAULT_USUAL;
   const listed = source === "catalog" ? catalog : dishes;
-  const start: Start =
-    startKey === "now"
-      ? { kind: "now" }
-      : startKey === "usual"
-        ? { kind: "at", ...usual }
-        : startKey === "custom"
-          ? { kind: "at", ...customStart }
-          : {
-              kind: "at",
-              hour: Number(startKey.split(":")[0]),
-              minute: Number(startKey.split(":")[1]),
-            };
-  const minutes = length === "custom" ? customLength : length;
-  const window = windowOf(start, minutes, now);
+  const window = { start, end: new Date(start.getTime() + minutes * 60_000) };
   const over = windowIsOver(window, now);
-  const time = (at: Date) => format.dateTime(at, "time");
 
   const defaultValues: Values = {
     photo: undefined,
@@ -167,7 +135,12 @@ function PostDrawerBody({
     description: "",
     units: base?.units ? String(base.units) : "",
     original: base?.originalPriceVnd ? String(base.originalPriceVnd) : "",
-    price: base?.priceVnd ? String(base.priceVnd) : startingPrice(base?.originalPriceVnd),
+    price: edit && base?.priceVnd ? String(base.priceVnd) : startingPrice(base?.originalPriceVnd),
+    discount: String(
+      edit && base?.originalPriceVnd && base.priceVnd
+        ? discountPercent(base.originalPriceVnd, base.priceVnd)
+        : MIN_DISCOUNT_PERCENT,
+    ),
   };
 
   // Step 2 checks the one-off dish; step 3 the units and the price, which a post with orders no longer changes.
@@ -181,6 +154,7 @@ function PostDrawerBody({
     units: z.string(),
     original: z.string(),
     price: z.string(),
+    discount: z.string(),
   };
   const oneOffRules = z
     .object({
@@ -203,20 +177,28 @@ function PostDrawerBody({
     }
     if (locked) return;
     const original = Number(value.original);
+    const percent = Number(value.discount);
+    if (!Number.isInteger(percent) || percent < MIN_DISCOUNT_PERCENT || percent >= 100) {
+      context.addIssue({
+        code: "custom",
+        path: ["discount"],
+        message: t("discountInvalid", { min: MIN_DISCOUNT_PERCENT }),
+      });
+    }
     const issue = priceProblem(original, Number(value.price));
     if (issue === "missing" && value.original === "") {
       context.addIssue({ code: "custom", path: ["original"], message: t("priceMissing") });
     } else if (issue === "tooHigh") {
       context.addIssue({
         code: "custom",
-        path: ["price"],
+        path: ["discount"],
         message: t("priceTooHigh", {
           min: MIN_DISCOUNT_PERCENT,
           max: formatPrice(maxPrice(original)),
         }),
       });
     } else if (issue) {
-      context.addIssue({ code: "custom", path: ["price"], message: t("priceMissing") });
+      context.addIssue({ code: "custom", path: ["original"], message: t("priceForDiscount") });
     }
   });
 
@@ -227,8 +209,7 @@ function PostDrawerBody({
 
   async function send(value: Values) {
     const at = currentTime();
-    const finalWindow = windowOf(start, minutes, at);
-    const windowChanged = startKey !== "usual" || minutes !== edit?.minutes;
+    const finalWindow = window;
     // A change that leaves the hours as they were does not send them, so a post made on another day is not moved to today.
     if ((!edit || windowChanged) && (windowIsOver(finalWindow, at) || !lengthIsAllowed(minutes))) {
       setWindowRefused(true);
@@ -300,11 +281,8 @@ function PostDrawerBody({
     setChosen(dish);
     form.setFieldValue("units", dish.units ? String(dish.units) : "");
     form.setFieldValue("original", dish.originalPriceVnd ? String(dish.originalPriceVnd) : "");
-    form.setFieldValue(
-      "price",
-      dish.priceVnd ? String(dish.priceVnd) : startingPrice(dish.originalPriceVnd),
-    );
-    setPriceTouched(Boolean(dish.priceVnd));
+    form.setFieldValue("price", startingPrice(dish.originalPriceVnd));
+    form.setFieldValue("discount", String(MIN_DISCOUNT_PERCENT));
   }
 
   function pick(next: typeof source) {
@@ -492,7 +470,7 @@ function PostDrawerBody({
                         />
                       )}
                     </span>
-                    <span className="flex min-w-0 flex-col">
+                    <span className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate text-title-lg">
                         {chosen?.name ?? values.name.trim()}
                       </span>
@@ -502,97 +480,78 @@ function PostDrawerBody({
                           : `${t("sourceOneOff")} · ${kindName(values.kind)}`}
                       </span>
                     </span>
+                    {values.original !== "" && (
+                      <span className="flex shrink-0 flex-col items-end gap-1" aria-live="polite">
+                        <del className="text-body-sm text-muted-foreground">
+                          {formatPrice(Number(values.original))}
+                        </del>
+                        <output aria-label={t("price")} className="text-price-lg text-primary">
+                          {values.price ? formatPrice(Number(values.price)) : t("priceUnavailable")}
+                        </output>
+                      </span>
+                    )}
                   </div>
                 )}
               </form.Subscribe>
 
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <form.AppField name="units">
-                  {() => (
-                    <NumberField label={t("units")} digits={3} className="max-sm:col-span-2" />
-                  )}
-                </form.AppField>
+              <div className="grid grid-cols-2 gap-3">
                 <form.AppField name="original">
                   {() => (
                     <NumberField
                       label={t("original")}
                       grouped
                       disabled={locked}
-                      onValue={(next) => {
-                        if (!priceTouched) form.setFieldValue("price", startingPrice(Number(next)));
-                      }}
+                      onValue={(next) =>
+                        form.setFieldValue(
+                          "price",
+                          startingPrice(Number(next), Number(form.getFieldValue("discount"))),
+                        )
+                      }
                     />
                   )}
                 </form.AppField>
-                <form.AppField name="price">
-                  {() => (
-                    <NumberField
-                      label={t("price")}
-                      grouped
-                      disabled={locked}
-                      onValue={() => setPriceTouched(true)}
-                    />
-                  )}
+                <form.AppField name="units">
+                  {() => <NumberField label={t("units")} digits={3} />}
                 </form.AppField>
               </div>
-              <form.Subscribe
-                selector={(state) => [state.values.original, state.values.price] as const}
-              >
-                {([original, price]) => {
-                  const issue = priceProblem(Number(original), Number(price));
-                  return (
-                    <p className="-mt-2 text-note text-muted-foreground">
-                      {locked
-                        ? t("editLocked", { count: ordered })
-                        : `${edit && !issue ? `${t("editFree")} ` : ""}${
-                            issue
-                              ? t("discountHint", { min: MIN_DISCOUNT_PERCENT })
-                              : t("discount", {
-                                  percent: discountPercent(Number(original), Number(price)),
-                                  min: MIN_DISCOUNT_PERCENT,
-                                })
-                          }`}
-                    </p>
-                  );
-                }}
+              <form.Subscribe selector={(state) => state.values.original}>
+                {(original) => (
+                  <form.AppField name="discount">
+                    {() => (
+                      <DiscountField
+                        original={Number(original)}
+                        disabled={locked}
+                        onValue={(percent) =>
+                          form.setFieldValue("price", startingPrice(Number(original), percent))
+                        }
+                      />
+                    )}
+                  </form.AppField>
+                )}
               </form.Subscribe>
-
+              {edit && (
+                <p className="text-note text-muted-foreground">
+                  {locked ? t("editLocked", { count: ordered }) : t("editFree")}
+                </p>
+              )}
+              <Separator />
               <WindowChoices
-                usual={usual}
-                startKey={startKey}
-                onStartKey={(key) => {
-                  setStartKey(key);
+                now={now}
+                start={start}
+                minutes={minutes}
+                onStart={(next) => {
+                  setStart(next);
+                  setMinutes(60);
+                  setWindowChanged(true);
                   setWindowRefused(false);
                 }}
-                customStart={customStart}
-                onCustomStart={(next) => {
-                  setCustomStart(next);
-                  setWindowRefused(false);
-                }}
-                length={length}
-                onLength={(next) => {
-                  setLength(next);
-                  setWindowRefused(false);
-                }}
-                customLength={customLength}
-                onCustomLength={(next) => {
-                  setCustomLength(next);
+                onMinutes={(next) => {
+                  setMinutes(next);
+                  setWindowChanged(true);
                   setWindowRefused(false);
                 }}
               />
-
-              <output
-                className={cn(
-                  "rounded-xl px-4 py-3 text-title-lg",
-                  over
-                    ? "border border-warning-border bg-warning text-warning-foreground"
-                    : "bg-secondary text-secondary-foreground",
-                )}
-              >
-                {over
-                  ? t("windowOver")
-                  : t("window", { from: time(window.start), until: time(window.end) })}
-              </output>
+              {over && <FieldError>{t("windowOver")}</FieldError>}
               {windowRefused && <FieldError className="-mt-2">{t("windowOver")}</FieldError>}
               {edit && ordered > 0 && (
                 <p className="-mt-2 text-note text-muted-foreground">

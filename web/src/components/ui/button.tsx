@@ -7,6 +7,9 @@ const buttonStyles = cva(
   {
     variants: {
       variant: {
+        // Second Bite (Figma P3f–P3m): equal-width price/time choices, including popover triggers.
+        choice:
+          "border-border bg-card text-foreground hover:bg-secondary aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:hover:bg-primary-hover",
         // Second Bite: a solid action darkens under the pointer (primary-hover keeps 10:1), never fades.
         default: "bg-primary text-primary-foreground hover:bg-primary-hover",
         // Second Bite: a deep-leaf outline on a white card.
@@ -38,6 +41,7 @@ const buttonStyles = cva(
         danger: "bg-destructive text-destructive-foreground hover:bg-destructive-hover",
       },
       size: {
+        choice: "h-11 min-w-11 gap-0.5 px-1 text-body-sm",
         // Second Bite: 44px targets for one-handed use (PRODUCT.md › Accessibility).
         default:
           "h-11 gap-1.5 px-4 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",

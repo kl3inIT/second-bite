@@ -16,12 +16,21 @@ export function maxPrice(original: number, minDiscountPercent = MIN_DISCOUNT_PER
 
 /**
  * The price a post starts from once the original price is known: the dearest one that keeps the minimum
- * discount, in whole hundreds of đồng (76.000đ for 95.000đ, 7.900đ for 9.990đ, which is 20% off, not 29%); nothing
+ * discount, in whole đồng (76.000đ for 95.000đ, 7.992đ for 9.990đ at 20% off); nothing
  * while no price of at least 1.000đ keeps the discount.
  */
-export function suggestedPrice(original: number): number | undefined {
-  if (!Number.isFinite(original)) return undefined;
-  const price = Math.floor(maxPrice(original) / 100) * 100;
+export function suggestedPrice(
+  original: number,
+  percent = MIN_DISCOUNT_PERCENT,
+): number | undefined {
+  if (
+    !Number.isFinite(original) ||
+    !Number.isInteger(percent) ||
+    percent < MIN_DISCOUNT_PERCENT ||
+    percent >= 100
+  )
+    return undefined;
+  const price = maxPrice(original, percent);
   return price >= 1000 ? price : undefined;
 }
 
@@ -53,6 +62,35 @@ function two(n: number): string {
 /** "20:30". */
 export function clock(hour: number, minute: number): string {
   return `${two(hour)}:${two(minute)}`;
+}
+
+/** The next occurrence of a clock time, including this minute, within the next 24 hours. */
+export function nextStart(hour: number, minute: number, now: Date): Date {
+  const at = windowOf({ kind: "at", hour, minute }, 60, now).start;
+  const thisMinute = Math.floor(now.getTime() / 60_000) * 60_000;
+  if (at.getTime() < thisMinute) at.setTime(at.getTime() + 24 * 60 * 60_000);
+  return at;
+}
+
+/** The first end with this clock time after the start; it can be on the following day. */
+export function minutesUntil(start: Date, hour: number, minute: number): number {
+  const end = windowOf({ kind: "at", hour, minute }, 60, start).start;
+  const difference = (end.getTime() - start.getTime()) / 60_000;
+  return difference > 0 ? difference : difference + 24 * 60;
+}
+
+/** Current time and the next two whole hours, retaining dates across midnight. */
+export function startSuggestions(now: Date): Date[] {
+  const current = windowOf({ kind: "now" }, 60, now).start;
+  const nextHour = Math.floor(current.getTime() / 3_600_000) * 3_600_000 + 3_600_000;
+  return [current, new Date(nextHour), new Date(nextHour + 3_600_000)];
+}
+
+/** Hour/minute in Vietnam, independently of the browser's local timezone. */
+export function clockOf(at: Date): { hour: number; minute: number } {
+  const parts = hourInVietnam.formatToParts(at);
+  const part = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+  return { hour: part("hour"), minute: part("minute") };
 }
 
 /** The window of a post made at `now`: from `start`, for `minutes`. Times of the day are Vietnam's. */
@@ -137,6 +175,7 @@ export function orderedOf(offer: OfferBody): number {
 /** A live post being changed (Figma E1, E2): what the drawer starts from, and how far it may go. */
 export type EditTarget = {
   offerId: string;
+  windowStart: string;
   status: "on_sale" | "sold_out";
   /** Units ordered; the price and the hours are fixed once there are any, and the units cannot go below them. */
   ordered: number;
@@ -150,6 +189,7 @@ export function editTargetOf(offer: OfferBody): EditTarget | undefined {
   if (offer.status !== "on_sale" && offer.status !== "sold_out") return undefined;
   return {
     offerId: offer.id,
+    windowStart: offer.windowStart,
     status: offer.status,
     ordered: orderedOf(offer),
     minutes: Math.round((Date.parse(offer.windowEnd) - Date.parse(offer.windowStart)) / 60_000),
