@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { expectNoSeriousA11yViolations } from "./axe";
 import { hydrated } from "./hydration";
@@ -9,6 +9,22 @@ test.use({ locale: "vi-VN", permissions: ["geolocation"], geolocation: TASCO_MAL
 // A one-pixel PNG, the store's photo in the checks below.
 const onePixel =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+/** Scroll an actual wheel to its centred row; the editor exposes no text input. */
+async function pickTime(popup: Locator, hour: number, minute: number) {
+  for (const [name, value] of [
+    ["Giờ", hour],
+    ["Phút", minute],
+  ] as const) {
+    const wheel = popup.getByRole("spinbutton", { name, exact: true });
+    await wheel.evaluate((element, target) => {
+      const row = element.querySelector("[aria-hidden] > div")!;
+      const count = Number(element.getAttribute("aria-valuemax")) + 1;
+      element.scrollTop = (count + target) * row.getBoundingClientRect().height;
+    }, value);
+    await expect(wheel).toHaveAttribute("aria-valuenow", String(value));
+  }
+}
 // Each test signs in and opens a store first, which takes a while when the projects run side by side.
 test.setTimeout(90_000);
 
@@ -400,12 +416,19 @@ test.describe("posting a dish on the web", () => {
     await expect(drawer.getByRole("button", { name: /bây giờ/i })).toHaveCount(0);
     for (const [name, count] of [
       ["Giảm giá (%)", 5],
-      ["Bắt đầu", 4],
+      ["Bắt đầu", 5],
       ["Kết thúc", 5],
     ] as const) {
       const group = drawer.getByRole("group", { name, exact: true });
       const buttons = group.getByRole("button");
       await expect(buttons).toHaveCount(count);
+      await expect(buttons.nth(1)).toHaveCSS("border-top-width", "1.5px");
+      await expect(buttons.nth(1)).toHaveCSS(
+        "border-top-color",
+        await drawer
+          .getByLabel("Giá gốc (đồng)")
+          .evaluate((element) => getComputedStyle(element).borderTopColor),
+      );
       const boxes = await buttons.evaluateAll((elements) =>
         elements.map((element) => {
           const box = element.getBoundingClientRect();
@@ -452,18 +475,59 @@ test.describe("posting a dish on the web", () => {
     await expect(drawer.getByRole("button", { name: /^Mức giảm khác:/ })).toHaveText("35%");
     await startGroup.getByRole("button", { name: /^Giờ bắt đầu:/ }).click();
     popup = page.getByRole("dialog", { name: "Giờ bắt đầu", exact: true });
-    await popup.getByLabel("Giờ", { exact: true }).fill("08");
-    await popup.getByLabel("Phút", { exact: true }).fill("30");
+    await expect(popup.getByRole("textbox")).toHaveCount(0);
+    await expect(popup.getByRole("button")).toHaveCount(2);
+    await pickTime(popup, 8, 30);
     await popup.getByRole("button", { name: "Hủy", exact: true }).click();
     await expect(startGroup.getByRole("button").first()).toHaveAttribute("aria-pressed", "true");
     await startGroup.getByRole("button", { name: /^Giờ bắt đầu:/ }).click();
-    await popup.getByLabel("Giờ", { exact: true }).fill("24");
-    await popup.getByRole("button", { name: "Áp dụng", exact: true }).click();
-    await expect(popup.getByText("Nhập giờ từ 00 đến 23, phút từ 00 đến 59.")).toBeVisible();
-    await popup.getByLabel("Giờ", { exact: true }).fill("08");
-    await popup.getByLabel("Phút", { exact: true }).fill("29");
-    await popup.getByRole("button", { name: /^Tăng Phút:/ }).click();
-    await expect(popup.getByLabel("Phút", { exact: true })).toHaveValue("30");
+    const hourWheel = popup.getByRole("spinbutton", { name: "Giờ", exact: true });
+    const minuteWheel = popup.getByRole("spinbutton", { name: "Phút", exact: true });
+    await hourWheel.focus();
+    await hourWheel.press("End");
+    await hourWheel.press("ArrowUp");
+    await expect(hourWheel).toHaveAttribute("aria-valuenow", "0");
+    await pickTime(popup, 8, 59);
+    await minuteWheel.hover();
+    await page.mouse.wheel(0, 44);
+    await expect(minuteWheel).toHaveAttribute("aria-valuenow", "0");
+    await pickTime(popup, 8, 29);
+    const wheelBounds = (await minuteWheel.boundingBox())!;
+    if (isMobile) {
+      const session = await page.context().newCDPSession(page);
+      const x = wheelBounds.x + wheelBounds.width / 2;
+      const y = wheelBounds.y + wheelBounds.height / 2;
+      const before = await minuteWheel.evaluate((element) => element.scrollTop);
+      await session.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: [{ x, y }],
+      });
+      for (let by = 10; by <= 70; by += 10) {
+        await session.send("Input.dispatchTouchEvent", {
+          type: "touchMove",
+          touchPoints: [{ x, y: y - by }],
+        });
+      }
+      await expect
+        .poll(() => minuteWheel.evaluate((element) => element.scrollTop))
+        .toBeGreaterThan(before);
+      await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      await session.detach();
+    } else {
+      await page.mouse.move(
+        wheelBounds.x + wheelBounds.width / 2,
+        wheelBounds.y + wheelBounds.height / 2,
+      );
+      await page.mouse.down();
+      await page.mouse.move(
+        wheelBounds.x + wheelBounds.width / 2,
+        wheelBounds.y + wheelBounds.height / 2 - 44,
+        { steps: 8 },
+      );
+      await page.mouse.up();
+      await expect(minuteWheel).toHaveAttribute("aria-valuenow", "30");
+    }
+    await pickTime(popup, 8, 30);
     await expectNoSeriousA11yViolations(page);
     await page.screenshot({ path: testInfo.outputPath("custom-start.png") });
     const popupBounds = await popup.boundingBox();
@@ -476,20 +540,20 @@ test.describe("posting a dish on the web", () => {
     await expect(endGroup.getByRole("button").nth(3)).toHaveText("11:30");
     await endGroup.getByRole("button", { name: /^Giờ kết thúc:/ }).click();
     popup = page.getByRole("dialog", { name: "Giờ kết thúc", exact: true });
-    await popup.getByLabel("Giờ", { exact: true }).fill("08");
-    await popup.getByLabel("Phút", { exact: true }).fill("40");
+    await pickTime(popup, 8, 40);
     await popup.getByRole("button", { name: "Áp dụng", exact: true }).click();
     await expect(
       popup.getByText("Giờ kết thúc phải sau giờ bắt đầu từ 30 phút đến 6 giờ."),
     ).toBeVisible();
-    await popup.getByLabel("Giờ", { exact: true }).fill("10");
-    await popup.getByLabel("Phút", { exact: true }).fill("40");
+    await pickTime(popup, 10, 40);
     await popup.getByRole("button", { name: "Hủy", exact: true }).click();
     await expect(endGroup.getByRole("button").first()).toHaveAttribute("aria-pressed", "true");
     await endGroup.getByRole("button", { name: /^Giờ kết thúc:/ }).click();
-    await expect(popup.getByLabel("Giờ", { exact: true })).toHaveValue("09");
-    await popup.getByLabel("Giờ", { exact: true }).fill("10");
-    await popup.getByLabel("Phút", { exact: true }).fill("40");
+    await expect(popup.getByRole("spinbutton", { name: "Giờ", exact: true })).toHaveAttribute(
+      "aria-valuenow",
+      "9",
+    );
+    await pickTime(popup, 10, 40);
     await popup.getByRole("button", { name: "Áp dụng", exact: true }).click();
     await expect(drawer.getByRole("status", { name: "Thời gian nhận hàng" })).toHaveText(
       "08:30–10:40",
@@ -499,13 +563,11 @@ test.describe("posting a dish on the web", () => {
     await expect(endGroup.getByRole("button").first()).toHaveAttribute("aria-pressed", "true");
     await startGroup.getByRole("button", { name: /^Giờ bắt đầu:/ }).click();
     popup = page.getByRole("dialog", { name: "Giờ bắt đầu", exact: true });
-    await popup.getByLabel("Giờ", { exact: true }).fill("08");
-    await popup.getByLabel("Phút", { exact: true }).fill("30");
+    await pickTime(popup, 8, 30);
     await popup.getByRole("button", { name: "Áp dụng", exact: true }).click();
     await endGroup.getByRole("button", { name: /^Giờ kết thúc:/ }).click();
     popup = page.getByRole("dialog", { name: "Giờ kết thúc", exact: true });
-    await popup.getByLabel("Giờ", { exact: true }).fill("10");
-    await popup.getByLabel("Phút", { exact: true }).fill("40");
+    await pickTime(popup, 10, 40);
     await popup.getByRole("button", { name: "Áp dụng", exact: true }).click();
     await expect(sale).toHaveText("13.000đ");
     expect(

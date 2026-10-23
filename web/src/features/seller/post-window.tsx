@@ -1,13 +1,13 @@
 ﻿"use client";
 
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useEffect, useId, useRef, useState } from "react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
-import { Label } from "@/components/ui/label";
+import { WheelPicker } from "@/components/ui/wheel-picker";
 import {
   Popover,
   PopoverContent,
@@ -16,7 +16,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import { NumberInput } from "./number-input";
 import { clockOf, lengthIsAllowed, minutesUntil, nextStart, startSuggestions } from "./post-draft";
 import { vietnamDay } from "./store-day";
 
@@ -70,7 +69,7 @@ export function WindowChoices({
       )}
       <fieldset className="flex min-w-0 flex-col gap-2">
         <legend className="mb-2 text-title">{t("startLabel")}</legend>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-5 gap-2">
           {choices.map((at) => (
             <Button
               key={at.toISOString()}
@@ -180,35 +179,32 @@ function TimeEditor({
   onApply: (value: Clock) => void;
 }) {
   const t = useTranslations("PostDrawer");
-  const [hour, setHour] = useState(String(value.hour).padStart(2, "0"));
-  const [minute, setMinute] = useState(String(value.minute).padStart(2, "0"));
+  const [hour, setHour] = useState(value.hour);
+  const [minute, setMinute] = useState(value.minute);
   const [attempted, setAttempted] = useState(false);
-  const next = { hour: Number(hour), minute: Number(minute) };
-  const clockValid = hour !== "" && minute !== "" && next.hour < 24 && next.minute < 60;
-  const valid = clockValid && (!check || check(next));
+  const next = { hour, minute };
+  const valid = !check || check(next);
   return (
     <>
       <PopoverTitle>{title}</PopoverTitle>
       <div className="grid grid-cols-2 gap-3">
-        <TimeColumn
+        <WheelPicker
           label={t("hour")}
           value={hour}
-          onChange={setHour}
-          limit={24}
+          onValueChange={setHour}
+          count={24}
           invalid={attempted && !valid}
         />
-        <TimeColumn
+        <WheelPicker
           label={t("minute")}
           value={minute}
-          onChange={setMinute}
-          limit={60}
+          onValueChange={setMinute}
+          count={60}
           invalid={attempted && !valid}
         />
       </div>
       <PopoverDescription>{t("timeHint")}</PopoverDescription>
-      {attempted && !valid && (
-        <FieldError>{clockValid ? t("endInvalid") : t("clockInvalid")}</FieldError>
-      )}
+      {attempted && !valid && <FieldError>{t("endInvalid")}</FieldError>}
       <div className="grid grid-cols-2 gap-2 pt-1">
         <Button type="button" variant="outline" onClick={onCancel}>
           {t("cancel")}
@@ -224,80 +220,5 @@ function TimeEditor({
         </Button>
       </div>
     </>
-  );
-}
-
-/** Adjacent minutes/hours are real 44px step buttons; numeric input and keyboard arrows work too. */
-function TimeColumn({
-  label,
-  value,
-  onChange,
-  limit,
-  invalid,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  limit: number;
-  invalid: boolean;
-}) {
-  const t = useTranslations("PostDrawer");
-  const id = useId();
-  const column = useRef<HTMLDivElement>(null);
-  const adjacent = (by: number) => (Number(value) + by + limit) % limit;
-  const step = (by: number) => onChange(String(adjacent(by)).padStart(2, "0"));
-  useEffect(() => {
-    const element = column.current;
-    if (!element) return;
-    function wheel(event: WheelEvent) {
-      if (event.deltaY === 0) return;
-      event.preventDefault();
-      const by = event.deltaY > 0 ? 1 : -1;
-      onChange(String((Number(value) + by + limit) % limit).padStart(2, "0"));
-    }
-    element.addEventListener("wheel", wheel, { passive: false });
-    return () => element.removeEventListener("wheel", wheel);
-  }, [value, onChange, limit]);
-  return (
-    <div ref={column} className="flex min-w-0 flex-col items-center gap-1">
-      <Label htmlFor={id}>{label}</Label>
-      <Button
-        type="button"
-        variant="ghost"
-        className="w-full"
-        aria-label={t("previousTime", {
-          part: label,
-          value: String(adjacent(-1)).padStart(2, "0"),
-        })}
-        onClick={() => step(-1)}
-      >
-        <ChevronUp className="size-3" aria-hidden />
-        {String(adjacent(-1)).padStart(2, "0")}
-      </Button>
-      <NumberInput
-        id={id}
-        max={2}
-        value={value}
-        onValueChange={onChange}
-        aria-invalid={invalid || undefined}
-        className="text-center"
-        onKeyDown={(event) => {
-          if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-            event.preventDefault();
-            step(event.key === "ArrowUp" ? 1 : -1);
-          }
-        }}
-      />
-      <Button
-        type="button"
-        variant="ghost"
-        className="w-full"
-        aria-label={t("nextTime", { part: label, value: String(adjacent(1)).padStart(2, "0") })}
-        onClick={() => step(1)}
-      >
-        <ChevronDown className="size-3" aria-hidden />
-        {String(adjacent(1)).padStart(2, "0")}
-      </Button>
-    </div>
   );
 }

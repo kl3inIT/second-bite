@@ -1065,7 +1065,7 @@
     "timeRange": "{from}–{until}",
     "pickupDates": "Pickup from {from} to {until}.",
     "endHint": "End times follow the selected start time.",
-    "timeHint": "Scroll or type the hours and minutes.",
+    "timeHint": "Scroll to choose the hours and minutes.",
     "clockInvalid": "Enter an hour from 00 to 23 and minutes from 00 to 59.",
     "endInvalid": "Pickup must end between 30 minutes and 6 hours after it starts.",
     "previousTime": "Decrease {part}: {value}",
