@@ -8,6 +8,8 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
+        // Second Bite (Figma P3f): the pickup window beside the section heading.
+        pickup: "h-auto rounded-xl bg-secondary px-3 py-2 text-title text-secondary-foreground",
         default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
         secondary: "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
         destructive:

@@ -40,11 +40,14 @@ function PopoverContent({
   side = "bottom",
   sideOffset = 4,
   sheet = false,
+  variant = "default",
   ...props
 }: PopoverPrimitive.Popup.Props &
   Pick<PopoverPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset"> & {
     // Second Bite: "sheet" makes the popover a sheet from the bottom, over a scrim, below 640px (Figma Q5g, mobile).
     sheet?: boolean;
+    /** Compact anchored editors in the posting drawer (Figma P3g–P3j). */
+    variant?: "default" | "choices" | "editor";
   }) {
   return (
     <PopoverPrimitive.Portal>
@@ -66,6 +69,8 @@ function PopoverContent({
             "z-50 flex w-72 origin-(--transform-origin) flex-col gap-2.5 rounded-lg bg-popover p-2.5 text-body-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             sheet &&
               "max-sm:w-full max-sm:rounded-t-3xl max-sm:rounded-b-none max-sm:p-4 max-sm:pb-8",
+            variant === "choices" && "w-60 p-3",
+            variant === "editor" && "p-4",
             className,
           )}
           {...props}
