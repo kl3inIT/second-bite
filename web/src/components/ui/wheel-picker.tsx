@@ -1,5 +1,7 @@
 "use client";
 
+// oxlint-disable jsx-a11y/prefer-tag-over-role -- A native number input cannot contain the scrolling rows of this wheel.
+
 import { useEffect, useId, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
