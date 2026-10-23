@@ -91,12 +91,14 @@ describe("the window of a post", () => {
       { hour: 23, minute: 45 },
       { hour: 0, minute: 0 },
       { hour: 1, minute: 0 },
+      { hour: 2, minute: 0 },
     ]);
     expect(suggestions[1]?.toISOString()).toBe("2026-10-20T17:00:00.000Z");
     expect(startSuggestions(new Date("2026-10-20T07:00:00+07:00")).map(clockOf)).toEqual([
       { hour: 7, minute: 0 },
       { hour: 8, minute: 0 },
       { hour: 9, minute: 0 },
+      { hour: 10, minute: 0 },
     ]);
   });
 

@@ -1065,7 +1065,7 @@
     "timeRange": "{from}–{until}",
     "pickupDates": "Nhận từ ngày {from} đến ngày {until}.",
     "endHint": "Giờ kết thúc được gợi ý theo giờ bắt đầu.",
-    "timeHint": "Cuộn hoặc nhập giờ, phút.",
+    "timeHint": "Cuộn để chọn giờ và phút.",
     "clockInvalid": "Nhập giờ từ 00 đến 23, phút từ 00 đến 59.",
     "endInvalid": "Giờ kết thúc phải sau giờ bắt đầu từ 30 phút đến 6 giờ.",
     "previousTime": "Giảm {part}: {value}",

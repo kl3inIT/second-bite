@@ -9,7 +9,7 @@ const buttonStyles = cva(
       variant: {
         // Second Bite (Figma P3f–P3m): equal-width price/time choices, including popover triggers.
         choice:
-          "border-border bg-card text-foreground hover:bg-secondary aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:hover:bg-primary-hover",
+          "border-15 border-input bg-card text-foreground hover:bg-secondary aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:hover:bg-primary-hover",
         // Second Bite: a solid action darkens under the pointer (primary-hover keeps 10:1), never fades.
         default: "bg-primary text-primary-foreground hover:bg-primary-hover",
         // Second Bite: a deep-leaf outline on a white card.

@@ -79,11 +79,11 @@ export function minutesUntil(start: Date, hour: number, minute: number): number 
   return difference > 0 ? difference : difference + 24 * 60;
 }
 
-/** Current time and the next two whole hours, retaining dates across midnight. */
+/** Current time and the next three whole hours, retaining dates across midnight. */
 export function startSuggestions(now: Date): Date[] {
   const current = windowOf({ kind: "now" }, 60, now).start;
   const nextHour = Math.floor(current.getTime() / 3_600_000) * 3_600_000 + 3_600_000;
-  return [current, new Date(nextHour), new Date(nextHour + 3_600_000)];
+  return [current, ...[0, 1, 2].map((offset) => new Date(nextHour + offset * 3_600_000))];
 }
 
 /** Hour/minute in Vietnam, independently of the browser's local timezone. */

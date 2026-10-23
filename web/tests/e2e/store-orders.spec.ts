@@ -87,18 +87,26 @@ test.describe("the order tab of a store", () => {
     await expect(dialog).toHaveCount(0);
   });
 
-  // SEC-25: the store's people turn on notices of new orders on the tab, and each visit renews them.
-  test("turns on notices of new orders", async ({ page }, testInfo) => {
+  // The seller card stays hidden; a browser already allowed to notify still renews its topics.
+  test("hides the seller notification card and quietly renews allowed notices", async ({
+    page,
+  }, testInfo) => {
     await browserAllowsPush(page);
     const store = await storeNamed(page, "nhi", testInfo, "Tiệm báo đơn");
+    const publicKey = page.waitForResponse((response) =>
+      new URL(response.url()).pathname.endsWith("/push/key"),
+    );
     await page.getByRole("link", { name: "Đơn", exact: true }).click();
+    await (await publicKey).finished();
 
     const card = page.getByRole("region", { name: "Bật thông báo đơn mới" });
-    await expect(card).toBeVisible();
+    await expect(card).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Bật thông báo", exact: true })).toHaveCount(0);
     await expectNoSeriousA11yViolations(page);
 
-    await (await hydrated(card.getByRole("button", { name: "Bật thông báo" }))).click();
-    await expect(page.getByText("Máy này đang nhận thông báo đơn mới.")).toBeVisible();
+    // Simulate permission granted before this visit, without invoking a permission prompt on the page.
+    await page.evaluate(() => sessionStorage.setItem("test.notifications", "granted"));
+    await page.reload();
     const tickets = async () => {
       const response = await page.request.get("/api/__stub/push/subscriptions");
       const { subscriptions } = (await response.json()) as {
@@ -109,10 +117,12 @@ test.describe("the order tab of a store", () => {
         .filter((each) => each === `tk-seller:${store}`);
     };
     await expect.poll(async () => (await tickets()).length).toBe(1);
+    await expect(card).toHaveCount(0);
+    await expect(page.getByText("Máy này đang nhận thông báo đơn mới.")).toHaveCount(0);
 
     await page.reload();
-    await expect(page.getByText("Máy này đang nhận thông báo đơn mới.")).toBeVisible();
     await expect.poll(async () => (await tickets()).length).toBe(2);
+    await expect(card).toHaveCount(0);
   });
 
   test("lists the day's orders with who ordered them, in four tabs", async ({ page }, testInfo) => {
