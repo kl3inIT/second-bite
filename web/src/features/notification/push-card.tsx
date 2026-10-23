@@ -23,7 +23,8 @@ type Shown =
  * comes only from the button, after our sentence. Once notifications are allowed in this browser, every visit
  * follows the topics again without asking, which renews them for seven days. An iPhone outside a Home Screen
  * app is shown the steps to add it; a refusal, how to undo it. Without push, in the browser or on the server, it
- * draws nothing.
+ * draws nothing. The seller's card is hidden after the founder's phone review; existing permission still
+ * renews its topics quietly, without rendering a prompt, setup instructions, error or status.
  */
 export function PushCard({ topics, side }: { topics: string[]; side: "customer" | "seller" }) {
   const t = useTranslations("Push");
@@ -56,7 +57,7 @@ export function PushCard({ topics, side }: { topics: string[]; side: "customer" 
     };
   }, [topicsKey]);
 
-  if (shown.kind === "nothing") return null;
+  if (side === "seller" || shown.kind === "nothing") return null;
 
   if (shown.kind === "on") {
     return (

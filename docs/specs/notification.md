@@ -38,9 +38,9 @@ Decided in the [SEC-25 design](../increments/active/sec-25-web-push/design.md).
 Published to other modules: `QueuePush(ctx, tx, Push)`.
 
 - **On the web** (`web/src/features/notification`):
-  - **Where it is offered:** the order page of an order still to collect offers "Báo tôi khi món sẵn sàng" for it and the other orders of its cart; the store's Đơn tab offers "Bật thông báo đơn mới" for the store.
+  - **Where it is offered:** the order page of an order still to collect offers "Báo tôi khi món sẵn sàng" for it and the other orders of its cart. Following the founder's phone review on 23 October 2026, the store's Đơn tab hides the entire seller notification card, including setup instructions, errors and status. It still quietly renews the store's topics when the browser already allows notifications.
   - **Asking:** the browser's prompt comes only from that button. Once notifications are allowed in a browser, every visit to those pages follows their topics again without asking, which renews them for seven days.
-  - **What a person sees instead of the button:**
+  - **What a customer sees instead of the button:**
     - an iPhone or iPad outside a Home Screen app sees the three steps to add the site;
     - a browser that blocks notifications sees how to allow them again;
     - without push in the browser, or with Web Push off on the server, nothing is shown.
