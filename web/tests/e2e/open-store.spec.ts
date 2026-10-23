@@ -10,6 +10,25 @@ test.use({ locale: "vi-VN", permissions: ["geolocation"], geolocation: TASCO_MAL
 const onePixel =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 
+/** Let native inertia and the wheel's idle recenter finish before the next interaction. */
+async function settledWheel(wheel: Locator) {
+  let previous: number | undefined;
+  let unchangedSince = Date.now();
+  await expect
+    .poll(
+      async () => {
+        const top = await wheel.evaluate((element) => element.scrollTop);
+        if (top !== previous) {
+          previous = top;
+          unchangedSince = Date.now();
+        }
+        return Date.now() - unchangedSince;
+      },
+      { intervals: [100], timeout: 5_000 },
+    )
+    .toBeGreaterThanOrEqual(300);
+}
+
 /** Scroll an actual wheel to its centred row; the editor exposes no text input. */
 async function pickTime(popup: Locator, hour: number, minute: number) {
   for (const [name, value] of [
@@ -17,11 +36,14 @@ async function pickTime(popup: Locator, hour: number, minute: number) {
     ["Phút", minute],
   ] as const) {
     const wheel = popup.getByRole("spinbutton", { name, exact: true });
+    await settledWheel(wheel);
     await wheel.evaluate((element, target) => {
-      const row = element.querySelector("[aria-hidden] > div")!;
+      const row = element.querySelector<HTMLElement>("[aria-hidden] > div")!;
       const count = Number(element.getAttribute("aria-valuemax")) + 1;
-      element.scrollTop = (count + target) * row.getBoundingClientRect().height;
+      // Layout height stays fixed while the opening popover animation scales its painted bounds.
+      element.scrollTop = (count + target) * row.offsetHeight;
     }, value);
+    await settledWheel(wheel);
     await expect(wheel).toHaveAttribute("aria-valuenow", String(value));
   }
 }
