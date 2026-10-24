@@ -177,6 +177,44 @@ test.describe("ordering from the cart", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
+  // Figma D5, D6, D6b (SEC-84): a collected order's customer reports what went wrong, once, and waits for the store.
+  test("reports a problem with a collected order, then shows it waiting for the store", async ({
+    page,
+  }) => {
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    await orderAs(page, "Lan", "0900000004");
+    await expect(page).toHaveURL(ORDER_URL);
+    const orderId = page.url().split("/").at(-1);
+    await page.request.post(`/api/orders/${orderId}/hand-over`);
+    await page.goto(`/vi/orders/${orderId}`);
+
+    await (await hydrated(page.getByRole("button", { name: "Báo vấn đề với đơn" }))).click();
+    const form = page.getByRole("dialog", { name: /có vấn đề gì\?$/ });
+    await expect(
+      form.getByText("Chọn điều chưa ổn. Chúng tôi chuyển cho quán và trả lời bạn."),
+    ).toBeVisible();
+    // Sent without a kind, it says so under the chips.
+    await form.getByRole("button", { name: "Gửi cho quán" }).click();
+    await expect(form.getByText("Chọn điều chưa ổn với đơn.")).toBeVisible();
+    await form.getByRole("button", { name: "Thiếu món" }).click();
+    await expect(form.getByRole("button", { name: "Thiếu món" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await form.getByLabel("Ghi thêm (không bắt buộc)").fill("Thiếu 1 bánh croissant");
+    await expectNoSeriousA11yViolations(page);
+    await form.getByRole("button", { name: "Gửi cho quán" }).click();
+
+    const card = page.getByRole("region", { name: "Vấn đề bạn đã báo" }).filter({ visible: true });
+    await expect(card).toBeVisible();
+    await expect(card.getByText("Thiếu món")).toBeVisible();
+    await expect(card.getByText(/Thiếu 1 bánh croissant$/)).toBeVisible();
+    await expect(card.getByText("Quán sẽ trả lời bạn ở đây")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Báo vấn đề với đơn" })).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+  });
+
   // Figma K8, K6: a cart from two sellers places two orders, each its own card and page, linked to the other.
   test("lists each seller's order on its own, and links the orders placed together", async ({
     page,

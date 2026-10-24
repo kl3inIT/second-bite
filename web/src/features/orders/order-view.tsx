@@ -11,6 +11,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import { CancelOrder } from "./cancel-order";
+import { OrderProblem } from "./order-problem";
 import { hoursAndMinutes, savingOf, unitsOf, windowPhase, type Order } from "./order";
 import {
   CollectTicket,
@@ -291,6 +292,7 @@ export function CollectedOrder({
                 href={`/orders/${order.id}/chat`}
                 variant="secondary"
               />
+              <OrderProblem order={order} />
             </section>
           }
         />
@@ -501,6 +503,9 @@ function Receipt({
       <Link href="/" className={cn(buttonVariants({ size: "lg" }), "md:hidden")}>
         {t("seeOthers")}
       </Link>
+      {/* A collected or expired order's problem, or the way to report one (SEC-84, Figma D5, D6b, D6c). It
+          follows the way back to tonight's dishes, which stays clear of the phone's floating bar. */}
+      <OrderProblem order={order} />
     </div>
   );
 }

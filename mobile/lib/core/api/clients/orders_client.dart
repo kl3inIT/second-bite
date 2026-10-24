@@ -5,6 +5,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../models/answer_order_problem_request.dart';
 import '../models/cancel_order_request.dart';
 import '../models/live_ticket_output_body.dart';
 import '../models/mark_order_messages_seen_request.dart';
@@ -15,6 +16,7 @@ import '../models/orders_output_body.dart';
 import '../models/orders_state.dart';
 import '../models/place_order_body.dart';
 import '../models/refuse_order_request.dart';
+import '../models/report_order_problem_request.dart';
 import '../models/review_order_request.dart';
 import '../models/send_order_message_request.dart';
 
@@ -124,6 +126,27 @@ abstract class OrdersClient {
     @Path('orderId') required String orderId,
     @Body() required MarkOrderMessagesSeenRequest body,
     @Header('Order-Access') String? orderAccess,
+  });
+
+  /// Report what went wrong with your collected or expired order, once.
+  ///
+  /// By its customer, signed in or sending its access, within two days of collection or of the window's end; the store is told (SEC-84).
+  ///
+  /// [orderAccess] - The order's access, for its customer who did not sign in.
+  @POST('/orders/{orderId}/problem')
+  Future<OrderBody> reportOrderProblem({
+    @Path('orderId') required String orderId,
+    @Body() required ReportOrderProblemRequest body,
+    @Header('Order-Access') String? orderAccess,
+  });
+
+  /// Answer the problem a customer reported with one of your orders, once.
+  ///
+  /// By the seller's people; the customer is told (SEC-84).
+  @POST('/orders/{orderId}/problem/answer')
+  Future<OrderBody> answerOrderProblem({
+    @Path('orderId') required String orderId,
+    @Body() required AnswerOrderProblemRequest body,
   });
 
   /// Mark an order ready, which tells its customer to come

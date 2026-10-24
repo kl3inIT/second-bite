@@ -5,7 +5,10 @@
 package db
 
 import (
+	"time"
+
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type OrderLine struct {
@@ -17,4 +20,13 @@ type OrderLine struct {
 	OriginalPriceVnd int64
 	PhotoID          uuid.UUID
 	Units            int32
+}
+
+type OrderProblem struct {
+	OrderID    uuid.UUID
+	Kind       string
+	Note       string
+	ReportedAt time.Time
+	Answer     pgtype.Text
+	AnsweredAt *time.Time
 }

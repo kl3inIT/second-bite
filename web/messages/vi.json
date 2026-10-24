@@ -1850,6 +1850,50 @@
       "stars": "Chọn số sao cho đơn."
     }
   },
+  "OrderProblem": {
+    "open": "Báo vấn đề với đơn",
+    "title": "Đơn #{number} có vấn đề gì?",
+    "body": "Chọn điều chưa ổn. Chúng tôi chuyển cho quán và trả lời bạn.",
+    "kindLegend": "Điều chưa ổn",
+    "kind": {
+      "missing_item": "Thiếu món",
+      "wrong_item": "Sai món",
+      "poor_quality": "Món không đạt",
+      "store_closed": "Quán đóng cửa khi đến"
+    },
+    "note": "Ghi thêm (không bắt buộc)",
+    "notePlaceholder": "Ví dụ: thiếu 1 bánh mì chà bông",
+    "send": "Gửi cho quán",
+    "later": "Để sau",
+    "failed": "Chưa gửi được. Thử lại sau ít phút.",
+    "errors": {
+      "kind": "Chọn điều chưa ổn với đơn."
+    },
+    "reportedTitle": "Vấn đề bạn đã báo",
+    "noteAt": "{time} · {note}",
+    "sent": "Đã gửi cho {seller}",
+    "waiting": "Quán sẽ trả lời bạn ở đây",
+    "answered": "{seller} trả lời · {time}"
+  },
+  "StoreProblem": {
+    "title": "Khách báo: {kind}",
+    "kind": {
+      "missing_item": "Thiếu món",
+      "wrong_item": "Sai món",
+      "poor_quality": "Món không đạt",
+      "store_closed": "Quán đóng cửa khi đến"
+    },
+    "noteAt": "“{note}” · {time}",
+    "at": "Lúc {time}",
+    "answer": "Trả lời khách",
+    "answerPlaceholder": "Ví dụ: Xin lỗi bạn, lần tới quán gửi lại 1 bánh mì",
+    "send": "Gửi trả lời",
+    "failed": "Chưa gửi được câu trả lời. Thử lại sau ít phút.",
+    "answeredAt": "Quán đã trả lời lúc {time}",
+    "errors": {
+      "answer": "Viết câu trả lời cho khách, từ 1 đến 500 ký tự."
+    }
+  },
   "Favourites": {
     "title": "Yêu thích",
     "intro": "Quán bạn theo dõi",

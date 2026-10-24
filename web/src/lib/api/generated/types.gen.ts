@@ -163,6 +163,13 @@ export type AdminsOutputBody = {
     admins: Array<RecordBody> | null;
 };
 
+export type AnswerOrderProblemRequest = {
+    /**
+     * 1 to 500 characters, or ORDER_ANSWER_INVALID
+     */
+    answer: string;
+};
+
 export type AuditChangeBody = {
     field: string;
     /**
@@ -710,6 +717,10 @@ export type OrderBody = {
      */
     access?: string;
     /**
+     * The order is collected or expired, within two days, and no problem was reported yet
+     */
+    canReportProblem: boolean;
+    /**
      * The order is collected and was never rated, so its customer may rate it
      */
     canReview: boolean;
@@ -739,6 +750,10 @@ export type OrderBody = {
      * What people read aloud, SB- and a number
      */
     number: string;
+    /**
+     * What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
+     */
+    problem?: ProblemBody;
     readyAt?: string;
     refuseNote?: string;
     refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other' | 'withdrawn';
@@ -887,6 +902,17 @@ export type Problem = {
     type: string;
 };
 
+export type ProblemBody = {
+    /**
+     * The store's answer, none until it answers
+     */
+    answer?: string;
+    answeredAt?: string;
+    kind: 'missing_item' | 'wrong_item' | 'poor_quality' | 'store_closed';
+    note?: string;
+    reportedAt: string;
+};
+
 export type PushKeyOutputBody = {
     /**
      * The VAPID public key, in base64url, for PushManager.subscribe's applicationServerKey
@@ -933,6 +959,14 @@ export type RejectSellerRequest = {
 export type ReportDayBody = {
     counts: CountsBody;
     day: string;
+};
+
+export type ReportOrderProblemRequest = {
+    kind: 'missing_item' | 'wrong_item' | 'poor_quality' | 'store_closed';
+    /**
+     * Up to 500 characters, or ORDER_PROBLEM_INVALID
+     */
+    note?: string;
 };
 
 export type ReportOutputBody = {
@@ -2740,6 +2774,66 @@ export type MarkOrderMessagesSeenResponses = {
 };
 
 export type MarkOrderMessagesSeenResponse = MarkOrderMessagesSeenResponses[keyof MarkOrderMessagesSeenResponses];
+
+export type ReportOrderProblemData = {
+    body: ReportOrderProblemRequest;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/problem';
+};
+
+export type ReportOrderProblemErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ReportOrderProblemError = ReportOrderProblemErrors[keyof ReportOrderProblemErrors];
+
+export type ReportOrderProblemResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type ReportOrderProblemResponse = ReportOrderProblemResponses[keyof ReportOrderProblemResponses];
+
+export type AnswerOrderProblemData = {
+    body: AnswerOrderProblemRequest;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/problem/answer';
+};
+
+export type AnswerOrderProblemErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type AnswerOrderProblemError = AnswerOrderProblemErrors[keyof AnswerOrderProblemErrors];
+
+export type AnswerOrderProblemResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type AnswerOrderProblemResponse = AnswerOrderProblemResponses[keyof AnswerOrderProblemResponses];
 
 export type MarkOrderReadyData = {
     body?: never;

@@ -393,3 +393,20 @@ SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
 FROM placed
 GROUP BY 1, 2
 ORDER BY 1, 2;
+
+-- name: InsertProblem :execrows
+-- Nothing is inserted when the order was already reported (SEC-84).
+INSERT INTO order_problems (order_id, kind, note) VALUES (@order_id, @kind, @note)
+ON CONFLICT (order_id) DO NOTHING;
+
+-- name: AnswerProblem :execrows
+-- Nothing is answered when there is no report or it was answered already.
+UPDATE order_problems SET answer = @answer, answered_at = now()
+WHERE order_id = @order_id AND answer IS NULL;
+
+-- name: ProblemExists :one
+SELECT EXISTS (SELECT 1 FROM order_problems WHERE order_id = @order_id);
+
+-- name: ProblemsOf :many
+SELECT order_id, kind, note, reported_at, answer, answered_at
+FROM order_problems WHERE order_id = ANY (@order_ids::uuid[]);

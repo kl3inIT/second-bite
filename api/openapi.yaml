@@ -311,6 +311,16 @@ components:
       required:
         - admins
       type: object
+    AnswerOrderProblemRequest:
+      additionalProperties: false
+      properties:
+        answer:
+          description: 1 to 500 characters, or ORDER_ANSWER_INVALID
+          maxLength: 2000
+          type: string
+      required:
+        - answer
+      type: object
     AuditChangeBody:
       additionalProperties: false
       properties:
@@ -1470,6 +1480,9 @@ components:
         access:
           description: "To its customer: proves the order is theirs without signing in, sent back as Order-Access"
           type: string
+        canReportProblem:
+          description: The order is collected or expired, within two days, and no problem was reported yet
+          type: boolean
         canReview:
           description: The order is collected and was never rated, so its customer may rate it
           type: boolean
@@ -1506,6 +1519,9 @@ components:
         number:
           description: What people read aloud, SB- and a number
           type: string
+        problem:
+          $ref: "#/components/schemas/ProblemBody"
+          description: What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
         readyAt:
           format: date-time
           type: string
@@ -1569,6 +1585,7 @@ components:
         - customerName
         - customerPhone
         - canReview
+        - canReportProblem
       type: object
     OrderCountsBody:
       additionalProperties: false
@@ -1808,6 +1825,31 @@ components:
         - status
         - code
       type: object
+    ProblemBody:
+      additionalProperties: false
+      properties:
+        answer:
+          description: The store's answer, none until it answers
+          type: string
+        answeredAt:
+          format: date-time
+          type: string
+        kind:
+          enum:
+            - missing_item
+            - wrong_item
+            - poor_quality
+            - store_closed
+          type: string
+        note:
+          type: string
+        reportedAt:
+          format: date-time
+          type: string
+      required:
+        - kind
+        - reportedAt
+      type: object
     PushKeyOutputBody:
       additionalProperties: false
       properties:
@@ -1908,6 +1950,23 @@ components:
       required:
         - day
         - counts
+      type: object
+    ReportOrderProblemRequest:
+      additionalProperties: false
+      properties:
+        kind:
+          enum:
+            - missing_item
+            - wrong_item
+            - poor_quality
+            - store_closed
+          type: string
+        note:
+          description: Up to 500 characters, or ORDER_PROBLEM_INVALID
+          maxLength: 2000
+          type: string
+      required:
+        - kind
       type: object
     ReportOutputBody:
       additionalProperties: false
@@ -4495,6 +4554,84 @@ paths:
         - bearer: []
         - cookie: []
       summary: Say you have read an order's chat up to a message
+      tags:
+        - Orders
+  /orders/{orderId}/problem:
+    post:
+      description: By its customer, signed in or sending its access, within two days of collection or of the window's end; the store is told (SEC-84).
+      operationId: reportOrderProblem
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportOrderProblemRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Report what went wrong with your collected or expired order, once
+      tags:
+        - Orders
+  /orders/{orderId}/problem/answer:
+    post:
+      description: By the seller's people; the customer is told (SEC-84).
+      operationId: answerOrderProblem
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnswerOrderProblemRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Answer the problem a customer reported with one of your orders, once
       tags:
         - Orders
   /orders/{orderId}/ready:

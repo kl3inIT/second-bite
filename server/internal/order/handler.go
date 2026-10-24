@@ -57,36 +57,51 @@ type reviewBody struct {
 }
 
 type orderBody struct {
-	ID            uuid.UUID       `json:"id"`
-	Number        string          `json:"number"                 doc:"What people read aloud, SB- and a number"`
-	Status        Status          `json:"status"                 doc:"expired is read from the window's end" enum:"confirmed,ready,collected,cancelled,refused,expired"`
-	Seller        orderSellerBody `json:"seller"                 doc:"Where the order is collected, copied when it was placed"`
-	Lines         []orderLineBody `json:"lines"                  nullable:"false"`
-	TotalVND      int64           `json:"totalVnd"               doc:"Paid to the seller at the counter"`
-	WindowStart   time.Time       `json:"windowStart"`
-	WindowEnd     time.Time       `json:"windowEnd"`
-	CreatedAt     time.Time       `json:"createdAt"`
-	ReadyAt       *time.Time      `json:"readyAt,omitempty"`
-	CollectedAt   *time.Time      `json:"collectedAt,omitempty"`
-	CancelledAt   *time.Time      `json:"cancelledAt,omitempty"`
-	RefusedAt     *time.Time      `json:"refusedAt,omitempty"`
-	CancelReason  string          `json:"cancelReason,omitempty"`
-	RefuseReason  RefuseReason    `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other,withdrawn"`
-	RefuseNote    string          `json:"refuseNote,omitempty"`
-	CheckoutID    uuid.UUID       `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
-	CustomerName  string          `json:"customerName"           doc:"Who collects, as given with the order"`
-	CustomerPhone string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits"`
-	Review        *reviewBody     `json:"review,omitempty"       doc:"The customer's rating of the collected order; none until they rate it, nor while admins hide it"`
-	CanReview     bool            `json:"canReview"              doc:"The order is collected and was never rated, so its customer may rate it"`
-	Unread        *int            `json:"unreadMessages,omitempty" doc:"Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins"`
-	Messages      *int            `json:"messageCount,omitempty" doc:"Messages its chat holds, with unreadMessages; none for admins"`
-	Access        string          `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
+	ID               uuid.UUID       `json:"id"`
+	Number           string          `json:"number"                 doc:"What people read aloud, SB- and a number"`
+	Status           Status          `json:"status"                 doc:"expired is read from the window's end" enum:"confirmed,ready,collected,cancelled,refused,expired"`
+	Seller           orderSellerBody `json:"seller"                 doc:"Where the order is collected, copied when it was placed"`
+	Lines            []orderLineBody `json:"lines"                  nullable:"false"`
+	TotalVND         int64           `json:"totalVnd"               doc:"Paid to the seller at the counter"`
+	WindowStart      time.Time       `json:"windowStart"`
+	WindowEnd        time.Time       `json:"windowEnd"`
+	CreatedAt        time.Time       `json:"createdAt"`
+	ReadyAt          *time.Time      `json:"readyAt,omitempty"`
+	CollectedAt      *time.Time      `json:"collectedAt,omitempty"`
+	CancelledAt      *time.Time      `json:"cancelledAt,omitempty"`
+	RefusedAt        *time.Time      `json:"refusedAt,omitempty"`
+	CancelReason     string          `json:"cancelReason,omitempty"`
+	RefuseReason     RefuseReason    `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other,withdrawn"`
+	RefuseNote       string          `json:"refuseNote,omitempty"`
+	CheckoutID       uuid.UUID       `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
+	CustomerName     string          `json:"customerName"           doc:"Who collects, as given with the order"`
+	CustomerPhone    string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits"`
+	Review           *reviewBody     `json:"review,omitempty"       doc:"The customer's rating of the collected order; none until they rate it, nor while admins hide it"`
+	CanReview        bool            `json:"canReview"              doc:"The order is collected and was never rated, so its customer may rate it"`
+	Problem          *problemBody    `json:"problem,omitempty"      doc:"What its customer reported went wrong, with the store's answer; none until reported (SEC-84)"`
+	CanReportProblem bool            `json:"canReportProblem"       doc:"The order is collected or expired, within two days, and no problem was reported yet"`
+	Unread           *int            `json:"unreadMessages,omitempty" doc:"Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins"`
+	Messages         *int            `json:"messageCount,omitempty" doc:"Messages its chat holds, with unreadMessages; none for admins"`
+	Access           string          `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
+}
+
+type problemBody struct {
+	Kind       ProblemKind `json:"kind"                 enum:"missing_item,wrong_item,poor_quality,store_closed"`
+	Note       string      `json:"note,omitempty"`
+	ReportedAt time.Time   `json:"reportedAt"`
+	Answer     string      `json:"answer,omitempty"     doc:"The store's answer, none until it answers"`
+	AnsweredAt *time.Time  `json:"answeredAt,omitempty"`
 }
 
 func toBody(o Order) orderBody {
 	var review *reviewBody
 	if o.Review != nil {
 		review = &reviewBody{Stars: o.Review.Stars, Tags: o.Review.Tags, Comment: o.Review.Comment, CreatedAt: o.Review.CreatedAt}
+	}
+
+	var problem *problemBody
+	if p := o.Problem; p != nil {
+		problem = &problemBody{Kind: p.Kind, Note: p.Note, ReportedAt: p.ReportedAt, Answer: p.Answer, AnsweredAt: p.AnsweredAt}
 	}
 
 	lines := make([]orderLineBody, 0, len(o.Lines))
@@ -109,7 +124,8 @@ func toBody(o Order) orderBody {
 		CancelReason: o.CancelReason, RefuseReason: o.RefuseReason, RefuseNote: o.RefuseNote,
 		CheckoutID: o.CheckoutID, CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Review: review, Access: o.Access,
 		CanReview: o.Status == StatusCollected && !o.Reviewed,
-		Unread:    o.UnreadMessages, Messages: o.MessageCount,
+		Problem:   problem, CanReportProblem: o.CanReportProblem,
+		Unread: o.UnreadMessages, Messages: o.MessageCount,
 	}
 }
 
@@ -156,6 +172,53 @@ func RegisterOperations(api huma.API, s *Service) {
 	registerCustomerOperations(api, s)
 	registerChatOperations(api, s)
 	registerStaffOperations(api, s)
+	registerProblemOperations(api, s)
+}
+
+// registerProblemOperations adds a customer's report of a problem with an
+// order and the store's answer (SEC-84).
+func registerProblemOperations(api huma.API, s *Service) {
+	huma.Register(api, huma.Operation{
+		OperationID: "reportOrderProblem", Method: http.MethodPost, Path: "/orders/{orderId}/problem",
+		Summary:     "Report what went wrong with your collected or expired order, once",
+		Description: "By its customer, signed in or sending its access, within two days of collection or of the window's end; the store is told (SEC-84).",
+		Tags:        tagOrders, Security: anyone,
+	}, func(ctx context.Context, in *struct {
+		OrderID uuid.UUID `path:"orderId"`
+		Access  string    `doc:"The order's access, for its customer who did not sign in" header:"Order-Access" maxLength:"64"`
+		Body    struct {
+			Kind ProblemKind `json:"kind"           enum:"missing_item,wrong_item,poor_quality,store_closed"`
+			Note string      `json:"note,omitempty" doc:"Up to 500 characters, or ORDER_PROBLEM_INVALID" maxLength:"2000"`
+		}
+	},
+	) (*orderOutput, error) {
+		o, err := s.ReportProblem(ctx, in.OrderID, in.Access, in.Body.Kind, in.Body.Note)
+		if err != nil {
+			return nil, err
+		}
+
+		return &orderOutput{Body: toBody(o)}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "answerOrderProblem", Method: http.MethodPost, Path: "/orders/{orderId}/problem/answer",
+		Summary:     "Answer the problem a customer reported with one of your orders, once",
+		Description: "By the seller's people; the customer is told (SEC-84).",
+		Tags:        tagOrders, Security: security,
+	}, func(ctx context.Context, in *struct {
+		OrderID uuid.UUID `path:"orderId"`
+		Body    struct {
+			Answer string `json:"answer" doc:"1 to 500 characters, or ORDER_ANSWER_INVALID" maxLength:"2000"`
+		}
+	},
+	) (*orderOutput, error) {
+		o, err := s.AnswerProblem(ctx, in.OrderID, in.Body.Answer)
+		if err != nil {
+			return nil, err
+		}
+
+		return &orderOutput{Body: toBody(o)}, nil
+	})
 }
 
 func registerCustomerOperations(api huma.API, s *Service) {

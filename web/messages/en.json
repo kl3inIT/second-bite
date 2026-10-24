@@ -1850,6 +1850,50 @@
       "stars": "Choose how many stars to give."
     }
   },
+  "OrderProblem": {
+    "open": "Report a problem with the order",
+    "title": "What went wrong with order #{number}?",
+    "body": "Pick what was not right. We pass it to the store, which answers you.",
+    "kindLegend": "What was not right",
+    "kind": {
+      "missing_item": "A missing item",
+      "wrong_item": "A wrong item",
+      "poor_quality": "Poor quality",
+      "store_closed": "The store was closed"
+    },
+    "note": "Anything to add (optional)",
+    "notePlaceholder": "For example: one bread roll was missing",
+    "send": "Send to the store",
+    "later": "Later",
+    "failed": "It could not be sent. Try again in a few minutes.",
+    "errors": {
+      "kind": "Pick what went wrong with the order."
+    },
+    "reportedTitle": "The problem you reported",
+    "noteAt": "{time} · {note}",
+    "sent": "Sent to {seller}",
+    "waiting": "The store will answer you here",
+    "answered": "{seller} answered · {time}"
+  },
+  "StoreProblem": {
+    "title": "The customer reported: {kind}",
+    "kind": {
+      "missing_item": "A missing item",
+      "wrong_item": "A wrong item",
+      "poor_quality": "Poor quality",
+      "store_closed": "The store was closed"
+    },
+    "noteAt": "“{note}” · {time}",
+    "at": "At {time}",
+    "answer": "Answer the customer",
+    "answerPlaceholder": "For example: Sorry, we will give you a bread roll next time",
+    "send": "Send the answer",
+    "failed": "The answer could not be sent. Try again in a few minutes.",
+    "answeredAt": "You answered at {time}",
+    "errors": {
+      "answer": "Write the customer an answer of 1 to 500 characters."
+    }
+  },
   "Favourites": {
     "title": "Favourites",
     "intro": "Shops you follow",
