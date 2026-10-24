@@ -64,6 +64,30 @@ var (
 		VI: "Đơn này đã được đánh giá.",
 		EN: "The order was already reviewed.",
 	})
+	ErrProblemInvalid = platform.NewFailure("ORDER_PROBLEM_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Chọn điều chưa ổn (thiếu món, sai món, món không đạt hoặc quán đóng cửa khi đến) và ghi thêm tối đa 500 ký tự.",
+		EN: "Pick what went wrong (a missing item, a wrong item, poor quality or the store closed) and add at most 500 characters.",
+	})
+	ErrProblemNotAllowed = platform.NewFailure("ORDER_PROBLEM_NOT_ALLOWED", platform.CategoryConflict, platform.Words{
+		VI: "Chỉ báo vấn đề được với đơn đã nhận hoặc đã hết hạn, trong vòng 2 ngày.",
+		EN: "A problem can be reported only with a collected or expired order, within two days.",
+	})
+	ErrProblemAlreadyReported = platform.NewFailure("ORDER_PROBLEM_ALREADY_REPORTED", platform.CategoryConflict, platform.Words{
+		VI: "Bạn đã báo vấn đề với đơn này rồi.",
+		EN: "A problem was already reported with this order.",
+	})
+	ErrProblemNotFound = platform.NewFailure("ORDER_PROBLEM_NOT_FOUND", platform.CategoryNotFound, platform.Words{
+		VI: "Khách chưa báo vấn đề nào với đơn này.",
+		EN: "No problem was reported with this order.",
+	})
+	ErrProblemAlreadyAnswered = platform.NewFailure("ORDER_PROBLEM_ALREADY_ANSWERED", platform.CategoryConflict, platform.Words{
+		VI: "Quán đã trả lời vấn đề này rồi.",
+		EN: "The problem was already answered.",
+	})
+	ErrAnswerInvalid = platform.NewFailure("ORDER_ANSWER_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Viết câu trả lời cho khách, từ 1 đến 500 ký tự.",
+		EN: "Write the customer an answer of 1 to 500 characters.",
+	})
 	ErrAdminListInvalid = platform.NewFailure("ORDER_ADMIN_LIST_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Bộ lọc danh sách đơn không hợp lệ: kiểm tra trạng thái, từ khoá tối đa 100 ký tự, khoảng ngày nhận có ngày bắt đầu trước ngày kết thúc, trang từ 1 và cỡ trang từ 1 đến 100.",
 		EN: "The order list's filters are not valid: check the statuses, a query of at most 100 characters, a range of collection days that starts before it ends, a page from 1 and a page size of 1 to 100.",

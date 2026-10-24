@@ -75,6 +75,8 @@ func TestOrder(t *testing.T) {
 		"the report counts the days":               testReportCounts,
 		"pushes tell of each change":               testPushesTellOfEachChange,
 		"pushes tell of time":                      testPushesTellOfTime,
+		"a problem is reported and answered":       testProblemReportedAndAnswered,
+		"a problem is reported within two days":    testProblemWithinTwoDays,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

@@ -7,6 +7,7 @@ part of 'order_body.dart';
 // **************************************************************************
 
 _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
+  canReportProblem: json['canReportProblem'] as bool,
   canReview: json['canReview'] as bool,
   checkoutId: json['checkoutId'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
@@ -31,6 +32,9 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
       ? null
       : DateTime.parse(json['collectedAt'] as String),
   messageCount: (json['messageCount'] as num?)?.toInt(),
+  problem: json['problem'] == null
+      ? null
+      : ProblemBody.fromJson(json['problem'] as Map<String, dynamic>),
   readyAt: json['readyAt'] == null
       ? null
       : DateTime.parse(json['readyAt'] as String),
@@ -49,6 +53,7 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
 
 Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
     <String, dynamic>{
+      'canReportProblem': instance.canReportProblem,
       'canReview': instance.canReview,
       'checkoutId': instance.checkoutId,
       'createdAt': instance.createdAt.toIso8601String(),
@@ -67,6 +72,7 @@ Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
       'cancelledAt': instance.cancelledAt?.toIso8601String(),
       'collectedAt': instance.collectedAt?.toIso8601String(),
       'messageCount': instance.messageCount,
+      'problem': instance.problem,
       'readyAt': instance.readyAt?.toIso8601String(),
       'refuseNote': instance.refuseNote,
       'refuseReason': _$OrderBodyRefuseReasonEnumMap[instance.refuseReason],

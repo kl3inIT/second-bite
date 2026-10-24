@@ -13,6 +13,25 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const answerProblem = `-- name: AnswerProblem :execrows
+UPDATE order_problems SET answer = $1, answered_at = now()
+WHERE order_id = $2 AND answer IS NULL
+`
+
+type AnswerProblemParams struct {
+	Answer  pgtype.Text
+	OrderID uuid.UUID
+}
+
+// Nothing is answered when there is no report or it was answered already.
+func (q *Queries) AnswerProblem(ctx context.Context, arg AnswerProblemParams) (int64, error) {
+	result, err := q.db.Exec(ctx, answerProblem, arg.Answer, arg.OrderID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const chatSeen = `-- name: ChatSeen :one
 SELECT customer_seen_seq, seller_seen_seq FROM order_chats WHERE order_id = $1
 `
@@ -584,6 +603,26 @@ func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const insertProblem = `-- name: InsertProblem :execrows
+INSERT INTO order_problems (order_id, kind, note) VALUES ($1, $2, $3)
+ON CONFLICT (order_id) DO NOTHING
+`
+
+type InsertProblemParams struct {
+	OrderID uuid.UUID
+	Kind    string
+	Note    string
+}
+
+// Nothing is inserted when the order was already reported (SEC-84).
+func (q *Queries) InsertProblem(ctx context.Context, arg InsertProblemParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertProblem, arg.OrderID, arg.Kind, arg.Note)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const insertReview = `-- name: InsertReview :execrows
@@ -1314,6 +1353,49 @@ func (q *Queries) OrdersForAdmins(ctx context.Context, arg OrdersForAdminsParams
 			&i.CollectedAt,
 			&i.CancelledAt,
 			&i.RefusedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const problemExists = `-- name: ProblemExists :one
+SELECT EXISTS (SELECT 1 FROM order_problems WHERE order_id = $1)
+`
+
+func (q *Queries) ProblemExists(ctx context.Context, orderID uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, problemExists, orderID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const problemsOf = `-- name: ProblemsOf :many
+SELECT order_id, kind, note, reported_at, answer, answered_at
+FROM order_problems WHERE order_id = ANY ($1::uuid[])
+`
+
+func (q *Queries) ProblemsOf(ctx context.Context, orderIds []uuid.UUID) ([]OrderProblem, error) {
+	rows, err := q.db.Query(ctx, problemsOf, orderIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderProblem
+	for rows.Next() {
+		var i OrderProblem
+		if err := rows.Scan(
+			&i.OrderID,
+			&i.Kind,
+			&i.Note,
+			&i.ReportedAt,
+			&i.Answer,
+			&i.AnsweredAt,
 		); err != nil {
 			return nil, err
 		}
