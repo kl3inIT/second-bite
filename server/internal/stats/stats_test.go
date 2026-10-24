@@ -97,7 +97,6 @@ func TestService(t *testing.T) {
 	for name, check := range map[string]func(*testing.T, *pgxpool.Pool){
 		"a view keeps its page, store and source, and one browser is one visitor": checkRecord,
 		"a bot and a prefetch are not counted":                                    checkBotsDropped,
-		"old salts and views are forgotten":                                       checkForgetOld,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -222,9 +221,13 @@ func checkBotsDropped(t *testing.T, pool *pgxpool.Pool) {
 	}
 }
 
-func checkForgetOld(t *testing.T, pool *pgxpool.Pool) {
-	t.Helper()
+// TestForgetOld has a database of its own: forgetting deletes every salt before
+// today, so on TestService's it would delete the salts of the checks recording
+// views beside it (SEC-151).
+func TestForgetOld(t *testing.T) {
+	t.Parallel()
 
+	pool := platformtest.StartPostgres(t)
 	long := time.Date(2025, 1, 10, 12, 0, 0, 0, time.UTC)
 	yesterday := time.Date(2026, 3, 9, 12, 0, 0, 0, time.UTC)
 	today := yesterday.AddDate(0, 0, 1)
