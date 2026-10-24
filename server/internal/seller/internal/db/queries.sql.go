@@ -279,6 +279,63 @@ func (q *Queries) DeleteStaff(ctx context.Context, arg DeleteStaffParams) (int64
 	return result.RowsAffected(), nil
 }
 
+const feedbackForAdmins = `-- name: FeedbackForAdmins :many
+SELECT f.id, f.seller_id, s.name AS seller_name, f.body, f.created_at
+FROM seller_feedback f JOIN seller_sellers s ON s.id = f.seller_id
+WHERE f.created_at >= $1 AND f.created_at < $2
+  AND ($3::uuid IS NULL OR f.seller_id = $3::uuid)
+ORDER BY f.created_at DESC, f.id
+LIMIT $4
+`
+
+type FeedbackForAdminsParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+	MaxRows  int32
+}
+
+type FeedbackForAdminsRow struct {
+	ID         uuid.UUID
+	SellerID   uuid.UUID
+	SellerName string
+	Body       string
+	CreatedAt  time.Time
+}
+
+// The feedback sent in [since, until), of one seller when given, the latest
+// first, with the seller's name.
+func (q *Queries) FeedbackForAdmins(ctx context.Context, arg FeedbackForAdminsParams) ([]FeedbackForAdminsRow, error) {
+	rows, err := q.db.Query(ctx, feedbackForAdmins,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FeedbackForAdminsRow
+	for rows.Next() {
+		var i FeedbackForAdminsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SellerID,
+			&i.SellerName,
+			&i.Body,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const followedSellers = `-- name: FollowedSellers :many
 SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.photo_id
 FROM seller_follows f JOIN seller_sellers s ON s.id = f.seller_id
@@ -374,6 +431,20 @@ func (q *Queries) HasOwner(ctx context.Context, sellerID uuid.UUID) (bool, error
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const insertFeedback = `-- name: InsertFeedback :exec
+INSERT INTO seller_feedback (seller_id, body) VALUES ($1, $2)
+`
+
+type InsertFeedbackParams struct {
+	SellerID uuid.UUID
+	Body     string
+}
+
+func (q *Queries) InsertFeedback(ctx context.Context, arg InsertFeedbackParams) error {
+	_, err := q.db.Exec(ctx, insertFeedback, arg.SellerID, arg.Body)
+	return err
 }
 
 const insertFollow = `-- name: InsertFollow :exec
@@ -585,6 +656,19 @@ func (q *Queries) OwnersOf(ctx context.Context, sellerIds []uuid.UUID) ([]Owners
 		return nil, err
 	}
 	return items, nil
+}
+
+const recentFeedbackCount = `-- name: RecentFeedbackCount :one
+SELECT count(*)::integer FROM seller_feedback
+WHERE seller_id = $1 AND created_at > now() - interval '1 day'
+`
+
+// How many times the seller sent feedback in the last day (SEC-82).
+func (q *Queries) RecentFeedbackCount(ctx context.Context, sellerID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, recentFeedbackCount, sellerID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const recordStatusDay = `-- name: RecordStatusDay :exec

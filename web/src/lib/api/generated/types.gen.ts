@@ -389,6 +389,18 @@ export type EmailSettingsBody = {
     updatedAt: string;
 };
 
+export type FeedbackBody = {
+    id: string;
+    sellerId: string;
+    sellerName: string;
+    sentAt: string;
+    text: string;
+};
+
+export type FeedbackOutputBody = {
+    items: Array<FeedbackBody>;
+};
+
 export type FollowedOutputBody = {
     sellers: Array<SellerProfileBody> | null;
 };
@@ -1124,6 +1136,13 @@ export type SellersOutputBody = {
 export type SendOrderMessageRequest = {
     /**
      * Trimmed; 1 to 1,000 characters
+     */
+    text: string;
+};
+
+export type SendSellerFeedbackRequest = {
+    /**
+     * 1 to 1,000 characters, or SELLER_FEEDBACK_INVALID
      */
     text: string;
 };
@@ -2020,6 +2039,44 @@ export type ShowReviewResponses = {
 };
 
 export type ShowReviewResponse = ShowReviewResponses[keyof ShowReviewResponses];
+
+export type ListSellerFeedbackForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+         */
+        since?: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included; today when empty
+         */
+        until?: string;
+        /**
+         * Keep one store's feedback
+         */
+        sellerId?: string;
+    };
+    url: '/admin/seller-feedback';
+};
+
+export type ListSellerFeedbackForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListSellerFeedbackForAdminsError = ListSellerFeedbackForAdminsErrors[keyof ListSellerFeedbackForAdminsErrors];
+
+export type ListSellerFeedbackForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: FeedbackOutputBody;
+};
+
+export type ListSellerFeedbackForAdminsResponse = ListSellerFeedbackForAdminsResponses[keyof ListSellerFeedbackForAdminsResponses];
 
 export type ListSellersForAdminsData = {
     body?: never;
@@ -3315,6 +3372,33 @@ export type AddDishResponses = {
 };
 
 export type AddDishResponse = AddDishResponses[keyof AddDishResponses];
+
+export type SendSellerFeedbackData = {
+    body: SendSellerFeedbackRequest;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/feedback';
+};
+
+export type SendSellerFeedbackErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SendSellerFeedbackError = SendSellerFeedbackErrors[keyof SendSellerFeedbackErrors];
+
+export type SendSellerFeedbackResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type SendSellerFeedbackResponse = SendSellerFeedbackResponses[keyof SendSellerFeedbackResponses];
 
 export type UnfollowSellerData = {
     body?: never;

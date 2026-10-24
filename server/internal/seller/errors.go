@@ -60,6 +60,18 @@ var (
 		VI: "Ghi lý do cho chủ cửa hàng, từ 10 đến 500 ký tự.",
 		EN: "Write the owner a reason of 10 to 500 characters.",
 	})
+	ErrFeedbackInvalid = platform.NewFailure("SELLER_FEEDBACK_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Viết góp ý từ 1 đến 1.000 ký tự.",
+		EN: "Write feedback of 1 to 1,000 characters.",
+	})
+	ErrFeedbackLimitReached = platform.NewFailure("SELLER_FEEDBACK_LIMIT_REACHED", platform.CategoryConflict, platform.Words{
+		VI: "Hôm nay quán đã gửi 20 góp ý. Nhóm đang đọc, ngày mai quán gửi tiếp nhé.",
+		EN: "The store sent 20 pieces of feedback today. The team is reading them; send more tomorrow.",
+	})
+	ErrFeedbackListInvalid = platform.NewFailure("SELLER_FEEDBACK_LIST_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Khoảng ngày không hợp lệ: ngày bắt đầu phải trước ngày kết thúc.",
+		EN: "The range of days is not valid: it must start before it ends.",
+	})
 	ErrListInvalid = platform.NewFailure("SELLER_LIST_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Bộ lọc danh sách cửa hàng không hợp lệ: kiểm tra trạng thái, từ khoá tối đa 100 ký tự, khoảng ngày sửa đổi có ngày bắt đầu trước ngày kết thúc, trang từ 1 và cỡ trang từ 1 đến 100.",
 		EN: "The seller list's filters are not valid: check the statuses, a query of at most 100 characters, a range of last changes that starts before it ends, a page from 1 and a page size of 1 to 100.",

@@ -1,7 +1,8 @@
 "use client";
 
-import { MapPinnedIcon, PencilIcon, PlusIcon } from "lucide-react";
+import { MapPinnedIcon, MessageSquareTextIcon, PencilIcon, PlusIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 import {
   DropdownMenu,
@@ -14,6 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SellerAvatar } from "@/features/offers/seller-avatar";
 import { Link } from "@/i18n/navigation";
+
+import { StoreFeedback } from "./store-feedback";
 
 type Store = {
   id: string;
@@ -41,58 +44,70 @@ export function StoreMenu({
   children: React.ReactNode;
 }) {
   const t = useTranslations("StoreMenu");
+  const [feedback, setFeedback] = useState(false);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger variant="header" className="min-w-0 justify-start">
-        {children}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align={align} className="min-w-64">
-        {current.myRole === "owner" && (
-          <>
-            <DropdownMenuGroup>
-              <DropdownMenuItem render={<Link href={`/stores/${current.id}/edit`} />}>
-                <PencilIcon aria-hidden />
-                {t("edit")}
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger variant="header" className="min-w-0 justify-start">
+          {children}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align={align} className="min-w-64">
+          {current.myRole === "owner" && (
+            <>
+              <DropdownMenuGroup>
+                <DropdownMenuItem render={<Link href={`/stores/${current.id}/edit`} />}>
+                  <PencilIcon aria-hidden />
+                  {t("edit")}
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link href={`/stores/${current.id}/location`} />}>
+                  <MapPinnedIcon aria-hidden />
+                  {t("location")}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>{t("mine")}</DropdownMenuLabel>
+            {stores.map((store) => (
+              <DropdownMenuItem
+                key={store.id}
+                variant={store.id === current.id ? "current" : "default"}
+                render={
+                  <Link
+                    href={`/stores/${store.id}`}
+                    aria-current={store.id === current.id ? "true" : undefined}
+                  />
+                }
+              >
+                <SellerAvatar seller={store} size="sm" />
+                <span className="min-w-0 flex-1 truncate">{store.name}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem render={<Link href={`/stores/${current.id}/location`} />}>
-                <MapPinnedIcon aria-hidden />
-                {t("location")}
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-          </>
-        )}
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>{t("mine")}</DropdownMenuLabel>
-          {stores.map((store) => (
-            <DropdownMenuItem
-              key={store.id}
-              variant={store.id === current.id ? "current" : "default"}
-              render={
-                <Link
-                  href={`/stores/${store.id}`}
-                  aria-current={store.id === current.id ? "true" : undefined}
-                />
-              }
-            >
-              <SellerAvatar seller={store} size="sm" />
-              <span className="min-w-0 flex-1 truncate">{store.name}</span>
+            ))}
+          </DropdownMenuGroup>
+          {/* What is hard or missing, told to the team by any of the store's people (SEC-82, Figma G1). */}
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={() => setFeedback(true)}>
+              <MessageSquareTextIcon aria-hidden />
+              {t("feedback")}
             </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
-        {canCreate && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem render={<Link href="/open-store" />}>
-                <PlusIcon aria-hidden />
-                {t("create")}
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          </DropdownMenuGroup>
+          {canCreate && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem render={<Link href="/open-store" />}>
+                  <PlusIcon aria-hidden />
+                  {t("create")}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <StoreFeedback sellerId={current.id} open={feedback} onOpenChange={setFeedback} />
+    </>
   );
 }

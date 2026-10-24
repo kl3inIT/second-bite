@@ -271,6 +271,26 @@ test.describe("the order tab of a store", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
+  // Figma G1 (SEC-82): any of the store's people tells the team what is hard, from the store's menu.
+  test("sends the team feedback from the store's menu", async ({ page }, testInfo) => {
+    const store = await storeNamed(page, "gopy", testInfo, "Quán góp ý");
+    await page.goto(`/vi/stores/${store}`);
+
+    await (await hydrated(page.getByRole("button", { name: "Quán góp ý", exact: true }))).click();
+    await page.getByRole("menuitem", { name: "Góp ý cho Second Bite" }).click();
+    const box = page.getByRole("dialog", { name: "Góp ý cho Second Bite" });
+    await expect(box.getByText(/^Chỗ nào làm quán bị kẹt/)).toBeVisible();
+    // Sent blank, it says so at the field.
+    await box.getByRole("button", { name: "Gửi góp ý" }).click();
+    await expect(box.getByText("Viết góp ý từ 1 đến 1.000 ký tự.")).toBeVisible();
+    await box.getByLabel("Góp ý của quán").fill("Lúc đông khách khó tìm nút Đã giao.");
+    await expectNoSeriousA11yViolations(page);
+    await box.getByRole("button", { name: "Gửi góp ý" }).click();
+
+    await expect(page.getByText("Đã gửi góp ý. Cảm ơn quán!")).toBeVisible();
+    await expect(box).toHaveCount(0);
+  });
+
   test("cancels an order with a reason, which the cancelled tab shows", async ({
     page,
   }, testInfo) => {
