@@ -749,7 +749,8 @@
     "edit": "Edit store",
     "location": "Store location",
     "mine": "My stores",
-    "create": "Open another store"
+    "create": "Open another store",
+    "feedback": "Feedback for Second Bite"
   },
   "ScanOrder": {
     "open": "Scan an order's code",
@@ -1819,6 +1820,12 @@
       "none": "–",
       "empty": {
         "title": "No numbers for these days yet"
+      },
+      "feedback": {
+        "title": "The stores' feedback",
+        "count": "{count, plural, one {# note} other {# notes}}",
+        "empty": "No store sent feedback in these days.",
+        "when": "{date}, {time}"
       }
     }
   },
@@ -2038,5 +2045,18 @@
     "reference": "Reference: {reference}",
     "unreachable": "The server could not be reached. Try again in a moment.",
     "closeToast": "Close notification"
+  },
+  "StoreFeedback": {
+    "title": "Feedback for Second Bite",
+    "body": "Where does the store get stuck or lose time? The team reads every note and fixes what it can within the week.",
+    "label": "The store's feedback",
+    "placeholder": "For example: when it is busy, the Handed over button is hard to find",
+    "send": "Send feedback",
+    "later": "Later",
+    "thanks": "Feedback sent. Thank you!",
+    "failed": "The feedback could not be sent. Try again in a few minutes.",
+    "errors": {
+      "text": "Write feedback of 1 to 1,000 characters."
+    }
   }
 }

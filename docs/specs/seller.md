@@ -13,12 +13,14 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `GET /sellers/{sellerId}` | Its members; admins | `200` seller |
 | `PUT /sellers/{sellerId}` | Its owner | `200` seller |
 | `PUT /sellers/{sellerId}/photo` `{photoId}`, `DELETE` | Its owner | `200` seller with its `photoId`; `204` |
+| `POST /sellers/{sellerId}/feedback` `{text}` | Its owner and staff | `204`; what is hard or missing, told to the team, kept with the seller and not who wrote it; 1 to 1,000 characters, at most 20 a day for one seller (SEC-82) |
 | `GET /sellers/{sellerId}/members` | Its members; admins | `200` owner and staff with their addresses |
 | `POST /sellers/{sellerId}/members` `{email}` | Its owner | `201` the new staff member |
 | `DELETE /sellers/{sellerId}/members/{accountId}` | Its owner, or a staff member removing themself | `204` |
 | `GET /sellers/{sellerId}/profile` | Anyone | `200` an active seller's name, address, location and photo; `404` for one blocked |
 | `PUT /sellers/{sellerId}/follow`, `DELETE` | Anyone signed in | `204`; following again, or unfollowing a seller not followed, changes nothing; following a seller that is not active answers `404` (SEC-109) |
 | `GET /sellers/followed` | Anyone signed in | `200 {sellers}`: the active sellers they follow, as the public profile above, the latest followed first; one blocked since is left out (SEC-109) |
+| `GET /admin/seller-feedback?since=&until=&sellerId=` | Admins | `200 {items}`: the stores' feedback sent in the days given in Vietnam (the last week by default), of one store when given, the latest first, at most 200, each with its store's name; the report page shows it (SEC-82) |
 | `GET /admin/sellers?status=&q=&changedSince=&changedUntil=&sort=&page=&size=` | Admins | `200 {items, page, pageSize, total, counts, days}`: sellers in the statuses given (every one when none) whose name, address or phone holds `q`, marks ignored, last changed in `[changedSince, changedUntil)` when given (SEC-62); by default pending ones first, the oldest first, then the latest change first, or sorted by `name`, `address` or `changed` (`-` descending); `counts` gives each status matching `q` and the time range, for the cards above the list; `days` gives how many sellers stood in each status on each of the last 14 days in Vietnam, whatever the filters, from the first day counted (SEC-62); each with its owner's address; `size` 1 to 100, 25 by default; a page past the end is empty (SEC-75) |
 | `GET /admin/memberships?accountId=` | Admins | `200 {memberships}`: the sellers each account given (1 to 100, the parameter repeated) owns or works at, owners first, with the seller's name and status, for the admins' accounts (SEC-75) |
 | `POST /admin/sellers/{sellerId}/approve` | Admins | `200` seller, `active`, from `pending`, `rejected` or `blocked`; its owner emailed; `409 SELLER_OWNERLESS` when the owner deleted their account (SEC-65) |
@@ -52,6 +54,7 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 | --- | --- | --- |
 | `seller_sellers` | Name, address, latitude, longitude, generated location, phone, status, its reason, who set it and when, the photo (file's identifier, no foreign key), the generated folded words admins search | Kept |
 | `seller_status_days` | A day in Vietnam and how many sellers stood in each status at its last change; written in the transaction of each opening and status change, so a day with no row stands as the day before; counting started on 21 October 2026 (SEC-62) | Kept |
+| `seller_feedback` | Seller, text, when sent; no author (SEC-82) | Kept; deleted with its seller |
 | `seller_follows` | Identity's account identifier (no foreign key across modules), the seller, when followed | Deleted when the account unfollows, and every favourite of an account when identity deletes it |
 | `seller_members` | Seller, identity's account identifier (no foreign key across modules), role `owner` or `staff`, when added | Deleted when a staff member is removed or leaves, and every membership of an account when identity deletes it |
 
@@ -61,6 +64,9 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 | --- | --- | --- |
 | `SELLER_DETAILS_INVALID` | 400 | Blank name or address |
 | `SELLER_REASON_INVALID` | 400 | A reason under 10 or over 500 characters, or with a control character |
+| `SELLER_FEEDBACK_INVALID` | 400 | Feedback blank, over 1,000 characters, or with a control character but line breaks (SEC-82) |
+| `SELLER_FEEDBACK_LIMIT_REACHED` | 409 | The seller already sent 20 pieces of feedback in the last day |
+| `SELLER_FEEDBACK_LIST_INVALID` | 400 | A range of days that ends before it starts |
 | `SELLER_LIST_INVALID` | 400 | An unknown status, a query over 100 characters, a page under 1 or a size outside 1 to 100 |
 | `SELLER_PHONE_INVALID` | 400 | Not 9 to 15 digits |
 | `SELLER_LOCATION_OUTSIDE` | 400 | The pin falls outside Hanoi's box (SEC-66) |

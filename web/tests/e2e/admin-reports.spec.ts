@@ -55,6 +55,18 @@ test.describe("the admin's report", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
+  // Figma AD-BC4 (SEC-82): under the stores, what they told the team in the same days.
+  test("shows the stores' feedback under the table", async ({ page }) => {
+    await page.goto("/vi/admin/reports");
+    const feedback = page.getByRole("region", { name: /^Góp ý của quán/ });
+    await expect(feedback).toBeVisible();
+    await expect(feedback.getByText("Tiệm bánh Pháp")).toBeVisible();
+    await expect(
+      feedback.getByText("Khách hay hỏi giờ lấy, nên hiện giờ ngay trên mã QR."),
+    ).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+  });
+
   test("a store and a sort are kept in the address", async ({ page }) => {
     await page.goto("/vi/admin/reports");
     const table = page.getByRole("table", { name: "Số liệu theo cửa hàng" });

@@ -1063,6 +1063,19 @@ function chatState(order) {
   return { open: !ended && closesAt > new Date(), closesAt: closesAt.toISOString() };
 }
 
+// What the stores told the team (SEC-82): what tests send, the latest first, then one the admins' report shows
+// from the start.
+const storeFeedback = [];
+const seededFeedback = [
+  {
+    id: "fb-seeded",
+    sellerId: "se-admin-01",
+    sellerName: "Tiệm bánh Pháp",
+    text: "Khách hay hỏi giờ lấy, nên hiện giờ ngay trên mã QR.",
+    sentAt: "2026-10-23T14:10:00Z",
+  },
+];
+
 // The kinds of problem a customer reports (SEC-84).
 const PROBLEM_KINDS = ["missing_item", "wrong_item", "poor_quality", "store_closed"];
 
@@ -1201,7 +1214,7 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers/address" ||
     url.pathname === "/sellers/places" ||
     url.pathname === "/photos" ||
-    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
+    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders|\/feedback)?$/.test(url.pathname) ||
     (/^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse|problem\/answer)$/.test(url.pathname) &&
       !isCustomerOrder(url.pathname)) ||
     /^\/orders\/or-\d+-[\w-]+$/.test(url.pathname) ||
@@ -1361,6 +1374,25 @@ async function sellerRoutes(request, response, url) {
     );
     const day = url.searchParams.get("day") || today;
     json(response, 200, { orders: day === today ? sellerOrdersFor(seller) : [] });
+    return true;
+  }
+  const feedbackOf = /^\/sellers\/([\w-]+)\/feedback$/.exec(url.pathname);
+  if (request.method === "POST" && feedbackOf) {
+    const seller = mine.find((candidate) => candidate.id === feedbackOf[1]);
+    const text = String((await readBody(request)).text ?? "").trim();
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else if (text.length < 1 || text.length > 1000)
+      problem(response, 400, "SELLER_FEEDBACK_INVALID");
+    else {
+      storeFeedback.unshift({
+        id: `fb-${storeFeedback.length + 1}`,
+        sellerId: seller.id,
+        sellerName: seller.name,
+        text,
+        sentAt: new Date().toISOString(),
+      });
+      response.writeHead(204).end();
+    }
     return true;
   }
   const catalog = /^\/sellers\/([\w-]+)\/dishes$/.exec(url.pathname);
@@ -2676,6 +2708,13 @@ async function adminRoutes(request, response, url) {
       delete review.hiddenReason;
     }
     json(response, 200, review);
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/seller-feedback") {
+    const store = url.searchParams.get("sellerId");
+    json(response, 200, {
+      items: [...storeFeedback, ...seededFeedback].filter((f) => !store || f.sellerId === store),
+    });
     return true;
   }
   if (request.method === "GET" && url.pathname === "/admin/reports") {

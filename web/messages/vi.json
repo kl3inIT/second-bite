@@ -749,7 +749,8 @@
     "edit": "Sửa quán",
     "location": "Vị trí quán",
     "mine": "Quán của tôi",
-    "create": "Tạo thêm quán"
+    "create": "Tạo thêm quán",
+    "feedback": "Góp ý cho Second Bite"
   },
   "ScanOrder": {
     "open": "Quét mã đơn",
@@ -1819,6 +1820,12 @@
       "none": "–",
       "empty": {
         "title": "Chưa có số liệu trong khoảng ngày này"
+      },
+      "feedback": {
+        "title": "Góp ý của quán",
+        "count": "{count, plural, other {# góp ý}}",
+        "empty": "Chưa có quán nào góp ý trong khoảng ngày này.",
+        "when": "{date}, {time}"
       }
     }
   },
@@ -2038,5 +2045,18 @@
     "reference": "Mã tham chiếu: {reference}",
     "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát.",
     "closeToast": "Đóng thông báo"
+  },
+  "StoreFeedback": {
+    "title": "Góp ý cho Second Bite",
+    "body": "Chỗ nào làm quán bị kẹt hay mất thời gian? Nhóm đọc từng góp ý để sửa trong tuần.",
+    "label": "Góp ý của quán",
+    "placeholder": "Ví dụ: lúc đông khách khó tìm nút Đã giao",
+    "send": "Gửi góp ý",
+    "later": "Để sau",
+    "thanks": "Đã gửi góp ý. Cảm ơn quán!",
+    "failed": "Chưa gửi được góp ý. Thử lại sau ít phút.",
+    "errors": {
+      "text": "Viết góp ý từ 1 đến 1.000 ký tự."
+    }
   }
 }

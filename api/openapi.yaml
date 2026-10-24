@@ -781,6 +781,37 @@ components:
         - brevoApiKeySet
         - updatedAt
       type: object
+    FeedbackBody:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        sellerId:
+          type: string
+        sellerName:
+          type: string
+        sentAt:
+          format: date-time
+          type: string
+        text:
+          type: string
+      required:
+        - id
+        - sellerId
+        - sellerName
+        - text
+        - sentAt
+      type: object
+    FeedbackOutputBody:
+      additionalProperties: false
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/FeedbackBody"
+          type: array
+      required:
+        - items
+      type: object
     FollowedOutputBody:
       additionalProperties: false
       properties:
@@ -2332,6 +2363,16 @@ components:
       required:
         - text
       type: object
+    SendSellerFeedbackRequest:
+      additionalProperties: false
+      properties:
+        text:
+          description: 1 to 1,000 characters, or SELLER_FEEDBACK_INVALID
+          maxLength: 4000
+          type: string
+      required:
+        - text
+      type: object
     SendTestEmailInputBody:
       additionalProperties: false
       properties:
@@ -3554,6 +3595,53 @@ paths:
         - bearer: []
         - cookie: []
       summary: Show a hidden review again everywhere
+      tags:
+        - Admin
+  /admin/seller-feedback:
+    get:
+      description: At most 200; of one store when sellerId is given (SEC-82). The days are Vietnam's, as the report's.
+      operationId: listSellerFeedbackForAdmins
+      parameters:
+        - description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+          explode: false
+          in: query
+          name: since
+          schema:
+            description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+          explode: false
+          in: query
+          name: until
+          schema:
+            description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: Keep one store's feedback
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep one store's feedback
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: What the stores told the team, in a range of days, the latest first
       tags:
         - Admin
   /admin/sellers:
@@ -5178,6 +5266,37 @@ paths:
       summary: Add a dish to a seller's catalog
       tags:
         - Catalog
+  /sellers/{sellerId}/feedback:
+    post:
+      description: Kept with the seller, not who wrote it; at most 20 a day for one seller (SEC-82).
+      operationId: sendSellerFeedback
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendSellerFeedbackRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Tell the Second Bite team what is hard or missing, for the seller's people
+      tags:
+        - Sellers
   /sellers/{sellerId}/follow:
     delete:
       description: A seller I do not follow is left as it is.
