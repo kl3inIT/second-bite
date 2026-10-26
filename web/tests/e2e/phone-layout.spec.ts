@@ -40,6 +40,18 @@ for (const width of PHONE_WIDTHS) {
       });
     }
 
+    test("the search's field keeps 16px words, so Safari does not zoom the page into it", async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto("/vi/search");
+
+      await expect(page.getByRole("searchbox", { name: "Tìm món hoặc quán" })).toHaveCSS(
+        "font-size",
+        "16px",
+      );
+    });
+
     test("the search shows its back arrow, not the header's wordmark", async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
       await page.goto("/vi/search");

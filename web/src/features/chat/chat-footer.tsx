@@ -84,7 +84,7 @@ export function ChatFooter({
           enterKeyHint="send"
           aria-label={placeholder}
           placeholder={placeholder}
-          className="h-11 min-w-0 flex-1 rounded-full bg-background px-4.5 text-body-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          className="h-11 min-w-0 flex-1 rounded-full bg-background px-4.5 text-body text-foreground placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none md:text-body-sm"
         />
         <Button type="submit" size="icon" aria-label={t("send")} disabled={text.trim() === ""}>
           <SendIcon aria-hidden className="size-5" />
