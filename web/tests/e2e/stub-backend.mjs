@@ -820,6 +820,56 @@ function dishesFor(seller) {
 }
 
 /**
+ * A store's reviews (SEC-154), as GET /sellers/{id}/reviews answers: the store named "Tiệm có đơn" has three, giving
+ * five, four and two stars (Figma Q1b-3 to Q1b-5); any other has none, so no mean is answered.
+ */
+function sellerReviewsFor(seller, stars) {
+  const all =
+    seller.name === "Tiệm có đơn"
+      ? [
+          [
+            5,
+            "Bánh còn nóng, nhận nhanh.",
+            ["fast_pickup", "good_quality"],
+            "Lê Thu Hà",
+            "Cơm sườn nướng",
+            3,
+          ],
+          [4, "Suất cơm đầy đặn.", ["fair_portions"], "Nguyễn An", "Túi bánh mì và croissant", 2],
+          [2, "Đợi hơi lâu.", [], "Trần Minh", "Xôi thập cẩm", 1],
+        ].map(([n, comment, tags, customerName, dishes, daysAgo], i) => ({
+          orderId: `rv-${i}-${seller.id}`,
+          orderNumber: `SB-${10200 + i}`,
+          customerName,
+          dishes,
+          stars: n,
+          tags,
+          comment,
+          createdAt: new Date(Date.now() - daysAgo * 86_400_000).toISOString(),
+        }))
+      : [];
+  const shown = all.filter((review) => stars.length === 0 || stars.includes(review.stars));
+  const count = (n) => all.filter((review) => review.stars === n).length;
+  const body = {
+    items: shown,
+    page: 1,
+    pageSize: 25,
+    total: shown.length,
+    counts: {
+      oneStar: count(1),
+      twoStars: count(2),
+      threeStars: count(3),
+      fourStars: count(4),
+      fiveStars: count(5),
+    },
+  };
+  if (shown.length > 0) {
+    body.average = shown.reduce((sum, review) => sum + review.stars, 0) / shown.length;
+  }
+  return body;
+}
+
+/**
  * A store's orders (SEC-78, SEC-102), as GET /sellers/{id}/orders answers for today: a store named "Tiệm có đơn"
  * has three being prepared, one marked ready, one handed over and one cancelled by its customer (Figma Q5, Q5h,
  * Q5i, Q5e, Q5f); any other starts empty.
@@ -1214,7 +1264,9 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers/address" ||
     url.pathname === "/sellers/places" ||
     url.pathname === "/photos" ||
-    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders|\/feedback)?$/.test(url.pathname) ||
+    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders|\/feedback|\/reviews)?$/.test(
+      url.pathname,
+    ) ||
     (/^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse|problem\/answer)$/.test(url.pathname) &&
       !isCustomerOrder(url.pathname)) ||
     /^\/orders\/or-\d+-[\w-]+$/.test(url.pathname) ||
@@ -1393,6 +1445,16 @@ async function sellerRoutes(request, response, url) {
       });
       response.writeHead(204).end();
     }
+    return true;
+  }
+  const reviewsOfStore = /^\/sellers\/([\w-]+)\/reviews$/.exec(url.pathname);
+  if (request.method === "GET" && reviewsOfStore) {
+    const seller = mine.find((candidate) => candidate.id === reviewsOfStore[1]);
+    if (!seller) {
+      problem(response, 404, "SELLER_NOT_FOUND");
+      return true;
+    }
+    json(response, 200, sellerReviewsFor(seller, url.searchParams.getAll("stars").map(Number)));
     return true;
   }
   const catalog = /^\/sellers\/([\w-]+)\/dishes$/.exec(url.pathname);
