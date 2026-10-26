@@ -1129,6 +1129,50 @@ export type SellerProfileBody = {
     photo?: SellerPhotoBody;
 };
 
+export type SellerReviewBody = {
+    comment?: string;
+    /**
+     * When the customer rated the order
+     */
+    createdAt: string;
+    /**
+     * Who collected, as given with the order
+     */
+    customerName: string;
+    /**
+     * The names of the order's dishes, joined by commas
+     */
+    dishes?: string;
+    /**
+     * The order reviewed, which names its review
+     */
+    orderId: string;
+    /**
+     * SB- and a number
+     */
+    orderNumber: string;
+    stars: number;
+    tags: Array<string>;
+};
+
+export type SellerReviewsOutputBody = {
+    /**
+     * The mean stars of the reviews of the stars asked; absent when none
+     */
+    average?: number;
+    /**
+     * Reviews of each number of stars, whatever stars asks
+     */
+    counts: StarCountsBody;
+    items: Array<SellerReviewBody>;
+    page: number;
+    pageSize: number;
+    /**
+     * Reviews of the stars asked
+     */
+    total: number;
+};
+
 export type SellersOutputBody = {
     sellers: Array<SellerBody> | null;
 };
@@ -1190,6 +1234,14 @@ export type SignInInputBody = {
      * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
      */
     session?: 'token' | 'cookie';
+};
+
+export type StarCountsBody = {
+    fiveStars: number;
+    fourStars: number;
+    oneStar: number;
+    threeStars: number;
+    twoStars: number;
 };
 
 export type StatusCountsBody = {
@@ -3733,6 +3785,40 @@ export type GetSellerProfileResponses = {
 };
 
 export type GetSellerProfileResponse = GetSellerProfileResponses[keyof GetSellerProfileResponses];
+
+export type ListSellerReviewsData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: {
+        /**
+         * Keep the reviews giving these stars; any when absent
+         */
+        stars?: Array<number> | null;
+        page?: number;
+        size?: number;
+    };
+    url: '/sellers/{sellerId}/reviews';
+};
+
+export type ListSellerReviewsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListSellerReviewsError = ListSellerReviewsErrors[keyof ListSellerReviewsErrors];
+
+export type ListSellerReviewsResponses = {
+    /**
+     * OK
+     */
+    200: SellerReviewsOutputBody;
+};
+
+export type ListSellerReviewsResponse = ListSellerReviewsResponses[keyof ListSellerReviewsResponses];
 
 export type RecordViewData = {
     body: ViewInputBody;
