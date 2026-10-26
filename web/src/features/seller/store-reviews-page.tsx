@@ -65,7 +65,6 @@ export async function StoreReviewsPage({
           name,
           href: `/stores/${sellerId}/reviews${serializeReviewSearchParams({ filter: name })}`,
           label: t(`filter.${name}`),
-          accessibleLabel: t("filterCount", { name: t(`filter.${name}`), count: counts[name] }),
           count: counts[name],
         }))}
       />

@@ -2038,7 +2038,6 @@
       "four": "4 stars",
       "low": "3 or fewer"
     },
-    "filterCount": "{name} · {count}",
     "limit": "Showing the latest {shown} of {total}."
   },
   "Push": {

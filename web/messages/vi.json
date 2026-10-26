@@ -2038,7 +2038,6 @@
       "four": "4 sao",
       "low": "≤ 3 sao"
     },
-    "filterCount": "{name} · {count}",
     "limit": "Hiện {shown} đánh giá mới nhất trong {total}."
   },
   "Push": {
