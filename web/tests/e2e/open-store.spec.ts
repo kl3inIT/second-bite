@@ -959,6 +959,8 @@ test.describe("the catalog on the web", () => {
     const drawer = page.getByRole("dialog");
     await expect(drawer.getByText("Bước 3 / 3")).toBeVisible();
     await expect(drawer.getByText("Túi bánh mì và croissant, 4 chiếc")).toBeVisible();
+    // The price comes with the dish, so the cursor waits in the units, which the seller has to type.
+    await expect(drawer.getByLabel("Số lượng")).toBeFocused();
     // The dish brings its original price, and the price starts at the most the minimum discount allows.
     await expect(drawer.getByLabel("Giá gốc (đồng)")).toHaveValue("95.000");
     await expect(drawer.getByLabel("Giá bán (đồng)")).toHaveText("76.000đ");
