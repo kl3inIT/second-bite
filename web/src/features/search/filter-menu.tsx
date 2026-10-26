@@ -15,20 +15,17 @@ export type FilterOption = {
   current: boolean;
 };
 
-// One filter of the search (Figma K2 chip lọc) or its order ("Gần nhất ▾"): a chip or a short link that
-// opens its options, each a link over the address, so a filtered search can be shared and works with the
+// One filter of the search (Figma K2 chip lọc) or its order ("Sắp xếp ▾"): a chip that opens its options, each a link over the address, so a filtered search can be shared and works with the
 // back button. The trigger shows the chosen option once there is one.
 export function FilterMenu({
   name,
   options,
-  variant,
   raised,
 }: {
   /** What the menu filters by, shown until an option other than the first is chosen. */
   name: string;
   /** The first option is the one without a filter. */
   options: readonly FilterOption[];
-  variant: "chip" | "inline";
   raised?: boolean;
 }) {
   const chosen = options.slice(1).find((option) => option.current);
@@ -36,7 +33,7 @@ export function FilterMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        variant={variant}
+        variant="chip"
         raised={raised}
         data-active={chosen ? "" : undefined}
         // A chip showing its choice still says what it filters by.

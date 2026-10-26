@@ -110,7 +110,13 @@
     "lowest": "Lowest",
     "highest": "Highest",
     "popular": "Popular at Tasco Mall",
-    "onSale": "{count, plural, one {# dish} other {# dishes}} on sale"
+    "onSale": "{count, plural, one {# dish} other {# dishes}} on sale",
+    "view": {
+      "grid": "Show as a grid",
+      "list": "Show as a list"
+    },
+    "viewSeller": "View store",
+    "viewSellerNamed": "View {seller}"
   },
   "LanguageSwitcher": {
     "label": "Chuyển sang tiếng Việt"

@@ -15,9 +15,18 @@ import { OfferPhoto } from "./offer-photo";
 
 // One dish of the seller (Figma K4b "món"): its photograph, the dish, the price over the discount and the
 // portions left, and the − and +. The photograph and the name open the dish's sheet (K4a); the dish a link led
-// to is tinted, and the page scrolls to it by its anchor (K4). From 768px a dish is a row of 100px with the − and +
-// at its right end (Figma WK3).
-export function SellerDish({ offer, focused }: { offer: OfferSummary; focused: boolean }) {
+// to is tinted, and the page scrolls to it by its anchor (K4). The − and + sit at the row's right end, centred on
+// its 100px photograph (Figma K4, WK3). `compact` is the search list on a phone (Figma K2b): a 72px photograph, 14px
+// words and a tighter column, as on K4 again from 768px (WK2b).
+export function SellerDish({
+  offer,
+  focused,
+  compact = false,
+}: {
+  offer: OfferSummary;
+  focused: boolean;
+  compact?: boolean;
+}) {
   const t = useTranslations("OfferCard");
   const [open, setOpen] = useState(false);
   const original = formatPrice(offer.originalPriceVnd);
@@ -26,7 +35,8 @@ export function SellerDish({ offer, focused }: { offer: OfferSummary; focused: b
     <article
       id={dishAnchor(offer.id)}
       className={cn(
-        "flex scroll-mt-4 items-center gap-3.5 md:relative",
+        "flex scroll-mt-4 items-center",
+        compact ? "gap-3 md:gap-3.5" : "gap-3.5",
         focused && "-mx-2.5 rounded-xl bg-muted p-2.5",
       )}
     >
@@ -35,13 +45,23 @@ export function SellerDish({ offer, focused }: { offer: OfferSummary; focused: b
         tabIndex={-1}
         aria-hidden
         onClick={() => setOpen(true)}
-        className="relative size-25 shrink-0 overflow-hidden rounded-lg bg-muted"
+        className={cn(
+          "relative shrink-0 overflow-hidden rounded-lg bg-muted",
+          compact ? "size-18 md:size-25" : "size-25",
+        )}
       >
         <OfferPhoto offer={offer} sizes="100px" />
         <DiscountBadge percent={offer.discountPercent} />
       </button>
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5 md:pr-26">
-        <h3 className="line-clamp-2 text-title-lg text-foreground">
+      <div
+        className={cn("flex min-w-0 flex-1 flex-col", compact ? "gap-1.5 md:gap-2.5" : "gap-2.5")}
+      >
+        <h3
+          className={cn(
+            "line-clamp-2 text-foreground",
+            compact ? "text-body-sm-strong md:text-title-lg" : "text-title-lg",
+          )}
+        >
           <button
             type="button"
             onClick={() => setOpen(true)}
@@ -50,23 +70,26 @@ export function SellerDish({ offer, focused }: { offer: OfferSummary; focused: b
             {offer.name}
           </button>
         </h3>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <p className="flex items-baseline gap-1.25">
-              <span className="font-display text-price text-primary">
-                {formatPrice(offer.priceVnd)}
-              </span>
-              <s aria-hidden className="text-label text-muted-foreground">
-                {original}
-              </s>
-              <span className="sr-only">{t("originalPrice", { price: original })}</span>
-            </p>
-            <CartPortions offer={offer} />
-          </div>
-          <div className="shrink-0 md:absolute md:top-1/2 md:right-0 md:-translate-y-1/2">
-            <QuantityStepper offer={offer} />
-          </div>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <p className="flex items-baseline gap-1.25">
+            <span
+              className={cn(
+                "font-display text-primary",
+                compact ? "text-price-sm md:text-price" : "text-price",
+              )}
+            >
+              {formatPrice(offer.priceVnd)}
+            </span>
+            <s aria-hidden className="text-label text-muted-foreground">
+              {original}
+            </s>
+            <span className="sr-only">{t("originalPrice", { price: original })}</span>
+          </p>
+          <CartPortions offer={offer} />
         </div>
+      </div>
+      <div className="shrink-0">
+        <QuantityStepper offer={offer} />
       </div>
       <DishSheet offer={offer} open={open} onOpenChange={setOpen} />
     </article>

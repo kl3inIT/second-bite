@@ -22,7 +22,7 @@ function DropdownMenuTrigger({
   raised = false,
   ...props
 }: MenuPrimitive.Trigger.Props & {
-  variant?: "plain" | "header" | "chip" | "inline";
+  variant?: "plain" | "header" | "chip";
   /** A chip on the sky ground itself rather than on white: white with a pale edge (Figma K1b chip lọc). */
   raised?: boolean;
 }) {
@@ -33,8 +33,6 @@ function DropdownMenuTrigger({
       data-raised={raised ? "" : undefined}
       className={cn(
         chipTrigger,
-        // Second Bite (Figma K2 tóm tắt): a menu opened from a short link in a line, such as "Gần nhất".
-        "data-[variant=inline]:-my-3 data-[variant=inline]:flex data-[variant=inline]:min-h-11 data-[variant=inline]:items-center data-[variant=inline]:gap-1 data-[variant=inline]:text-label-strong data-[variant=inline]:text-link data-[variant=inline]:focus-visible:ring-3 data-[variant=inline]:focus-visible:ring-ring/50 data-[variant=inline]:focus-visible:outline-none",
         "data-[variant=header]:-my-1.5 data-[variant=header]:flex data-[variant=header]:h-11 data-[variant=header]:min-w-11 data-[variant=header]:items-center data-[variant=header]:justify-center data-[variant=header]:rounded-full data-[variant=header]:focus-visible:ring-3 data-[variant=header]:focus-visible:ring-ring data-[variant=header]:focus-visible:ring-offset-2 data-[variant=header]:focus-visible:ring-offset-card data-[variant=header]:focus-visible:outline-none",
         className,
       )}
