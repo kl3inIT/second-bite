@@ -2017,6 +2017,29 @@
     "failed": "Could not save. Try again in a few minutes.",
     "photoFailed": "The store is open, but its photo did not upload. Choose a photo and save."
   },
+  "StoreReviews": {
+    "title": "Store reviews",
+    "summary": "Review summary",
+    "list": "Reviews",
+    "seeAll": "See all",
+    "backToHome": "Home",
+    "empty": "No reviews yet. Customers rate an order after collecting it.",
+    "none": "No reviews yet.",
+    "noneOfThese": "No reviews with these stars.",
+    "outOf": "/ 5",
+    "average": "Average {count, number, ::.0} out of 5 stars",
+    "count": "{count, plural, one {# review} other {# reviews}}",
+    "starRow": "{count, plural, one {# star} other {# stars}}",
+    "stars": "{count} out of 5 stars",
+    "filters": "Filter by stars",
+    "filter": {
+      "all": "All",
+      "five": "5 stars",
+      "four": "4 stars",
+      "low": "3 or fewer"
+    },
+    "limit": "Showing the latest {shown} of {total}."
+  },
   "Push": {
     "title": {
       "customer": "Tell me when it's ready",

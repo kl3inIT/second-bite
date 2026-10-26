@@ -72,6 +72,7 @@ func TestOrder(t *testing.T) {
 		"old chats are forgotten":                  testOldChatsAreForgotten,
 		"admins list every seller's orders":        testAdminsListOrders,
 		"admins hide a review and show it again":   testAdminsHideReviews,
+		"sellers read the reviews of their store":  testSellerReadsReviews,
 		"the report counts the days":               testReportCounts,
 		"pushes tell of each change":               testPushesTellOfEachChange,
 		"pushes tell of time":                      testPushesTellOfTime,
@@ -203,6 +204,26 @@ func mustFail(t *testing.T, what string, err, want error) {
 	if !errors.Is(err, want) {
 		t.Errorf("%s: %v, want %v", what, err, want)
 	}
+}
+
+// rated places an order of one unit of o for customer, has owner hand it over and has customer rate it.
+func (f fixture) rated(owner, customer context.Context, t *testing.T, o offer.Offer, review order.Review) order.Order {
+	t.Helper()
+
+	placed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{o.ID, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.orders.HandOver(owner, placed.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.orders.Rate(customer, placed.ID, "", review); err != nil {
+		t.Fatal(err)
+	}
+
+	return placed
 }
 
 func key() string { return uuid.NewString() }

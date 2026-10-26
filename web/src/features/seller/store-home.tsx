@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { photoUrl } from "@/lib/api/photo";
 
 import { DayBar } from "./day-filter";
-import { getStoreDishes, getStoreOffers, getStoreOrders } from "./my-sellers";
+import { getStoreDishes, getStoreOffers, getStoreOrders, getStoreReviews } from "./my-sellers";
 import { OrderRow } from "./order-row";
 import { PostRow } from "./post-row";
 import { requireStore } from "./require-store";
@@ -30,11 +30,15 @@ import { offersOfDay } from "./store-offers";
 import { groupOrders, orderTabs, type OrderTab } from "./store-orders";
 import { StorePanel } from "./store-panel";
 import { StatusTabs } from "./status-tabs";
+import { StoreReviewsCard } from "./store-reviews-card";
 import { summarizeDay } from "./store-summary";
 import { StoreTitleRow } from "./store-title-row";
 
 /** How many orders, posts and dishes the home lists; each card's chips or title lead to the whole tab. */
 const SHOWN = 3;
+
+/** How many of the latest reviews the home's card reads; a phone shows the first. */
+const REVIEWS_SHOWN = 3;
 
 /** The column of a row's badge or button, as wide on every row so they stand on one axis (Figma Q1b). */
 const actionColumn = "flex w-31 shrink-0 justify-center";
@@ -62,13 +66,14 @@ export async function StoreHome({
   const day = view.day ?? today;
   const tab = view.tab;
 
-  const [t, n, format, offers, orders, dishes] = await Promise.all([
+  const [t, n, format, offers, orders, dishes, reviews] = await Promise.all([
     getTranslations("StoreHome"),
     getTranslations("StoreNav"),
     getFormatter(),
     getStoreOffers(sellerId),
     getStoreOrders(sellerId, day),
     getStoreDishes(sellerId),
+    getStoreReviews(sellerId, [], REVIEWS_SHOWN),
   ]);
 
   const isToday = day === today;
@@ -280,6 +285,8 @@ export async function StoreHome({
           )}
         </StorePanel>
       </div>
+
+      <StoreReviewsCard sellerId={sellerId} reviews={reviews} />
 
       <Link
         href={postHref}

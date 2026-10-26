@@ -2340,6 +2340,73 @@ components:
         - latitude
         - longitude
       type: object
+    SellerReviewBody:
+      additionalProperties: false
+      properties:
+        comment:
+          type: string
+        createdAt:
+          description: When the customer rated the order
+          format: date-time
+          type: string
+        customerName:
+          description: Who collected, as given with the order
+          type: string
+        dishes:
+          description: The names of the order's dishes, joined by commas
+          type: string
+        orderId:
+          description: The order reviewed, which names its review
+          type: string
+        orderNumber:
+          description: SB- and a number
+          type: string
+        stars:
+          format: int64
+          type: integer
+        tags:
+          items:
+            type: string
+          type: array
+      required:
+        - orderId
+        - orderNumber
+        - customerName
+        - stars
+        - tags
+        - createdAt
+      type: object
+    SellerReviewsOutputBody:
+      additionalProperties: false
+      properties:
+        average:
+          description: The mean stars of the reviews of the stars asked; absent when none
+          format: double
+          type: number
+        counts:
+          $ref: "#/components/schemas/StarCountsBody"
+          description: Reviews of each number of stars, whatever stars asks
+        items:
+          items:
+            $ref: "#/components/schemas/SellerReviewBody"
+          type: array
+        page:
+          format: int64
+          type: integer
+        pageSize:
+          format: int64
+          type: integer
+        total:
+          description: Reviews of the stars asked
+          format: int64
+          type: integer
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+        - counts
+      type: object
     SellersOutputBody:
       additionalProperties: false
       properties:
@@ -2436,6 +2503,31 @@ components:
       required:
         - challengeId
         - code
+      type: object
+    StarCountsBody:
+      additionalProperties: false
+      properties:
+        fiveStars:
+          format: int64
+          type: integer
+        fourStars:
+          format: int64
+          type: integer
+        oneStar:
+          format: int64
+          type: integer
+        threeStars:
+          format: int64
+          type: integer
+        twoStars:
+          format: int64
+          type: integer
+      required:
+        - oneStar
+        - twoStars
+        - threeStars
+        - fourStars
+        - fiveStars
       type: object
     StatusCountsBody:
       additionalProperties: false
@@ -5677,6 +5769,66 @@ paths:
       summary: What anyone sees of an active seller
       tags:
         - Sellers
+  /sellers/{sellerId}/reviews:
+    get:
+      description: A review an admin hid is left out. counts gives each number of stars whatever stars asks, and average the mean stars of the reviews of the stars asked, absent when there are none. A page past the end is empty.
+      operationId: listSellerReviews
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+        - description: Keep the reviews giving these stars; any when absent
+          explode: false
+          in: query
+          name: stars
+          schema:
+            description: Keep the reviews giving these stars; any when absent
+            items:
+              format: int64
+              maximum: 5
+              minimum: 1
+              type: integer
+            type:
+              - array
+              - "null"
+        - explode: false
+          in: query
+          name: page
+          schema:
+            default: 1
+            format: int64
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: size
+          schema:
+            default: 25
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerReviewsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The reviews of a seller's orders that show, by stars, the latest first, to its people and admins
+      tags:
+        - Orders
   /stats/views:
     post:
       description: Sent by the web when a page is shown, without a session. A bot or a prefetch is not counted, and is answered the same.

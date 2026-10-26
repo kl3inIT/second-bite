@@ -18,6 +18,7 @@ import '../models/place_order_body.dart';
 import '../models/refuse_order_request.dart';
 import '../models/report_order_problem_request.dart';
 import '../models/review_order_request.dart';
+import '../models/seller_reviews_output_body.dart';
 import '../models/send_order_message_request.dart';
 
 part 'orders_client.g.dart';
@@ -191,5 +192,18 @@ abstract class OrdersClient {
   @POST('/sellers/{sellerId}/orders/live-ticket')
   Future<LiveTicketOutputBody> createSellerLiveTicket({
     @Path('sellerId') required String sellerId,
+  });
+
+  /// The reviews of a seller's orders that show, by stars, the latest first, to its people and admins.
+  ///
+  /// A review an admin hid is left out. counts gives each number of stars whatever stars asks, and average the mean stars of the reviews of the stars asked, absent when there are none. A page past the end is empty.
+  ///
+  /// [stars] - Keep the reviews giving these stars; any when absent.
+  @GET('/sellers/{sellerId}/reviews')
+  Future<SellerReviewsOutputBody> listSellerReviews({
+    @Path('sellerId') required String sellerId,
+    @Query('page') int? page = 1,
+    @Query('size') int? size = 25,
+    @Query('stars') List<int>? stars,
   });
 }

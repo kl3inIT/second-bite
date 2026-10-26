@@ -2017,6 +2017,29 @@
     "failed": "Chưa lưu được. Thử lại sau ít phút.",
     "photoFailed": "Quán đã tạo, nhưng chưa tải được ảnh. Hãy chọn ảnh và lưu lại."
   },
+  "StoreReviews": {
+    "title": "Đánh giá của quán",
+    "summary": "Tóm tắt đánh giá",
+    "list": "Danh sách đánh giá",
+    "seeAll": "Xem tất cả",
+    "backToHome": "Trang chủ",
+    "empty": "Chưa có đánh giá nào. Khách đánh giá sau khi nhận món.",
+    "none": "Chưa có đánh giá nào.",
+    "noneOfThese": "Chưa có đánh giá nào ở mức sao này.",
+    "outOf": "/ 5",
+    "average": "Trung bình {count, number, ::.0} trên 5 sao",
+    "count": "{count} đánh giá",
+    "starRow": "{count} sao",
+    "stars": "{count} trên 5 sao",
+    "filters": "Lọc theo số sao",
+    "filter": {
+      "all": "Tất cả",
+      "five": "5 sao",
+      "four": "4 sao",
+      "low": "≤ 3 sao"
+    },
+    "limit": "Hiện {shown} đánh giá mới nhất trong {total}."
+  },
   "Push": {
     "title": {
       "customer": "Báo tôi khi món sẵn sàng",
