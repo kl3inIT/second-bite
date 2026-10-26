@@ -29,6 +29,7 @@ import { vietnamToday } from "./store-day";
 import { offersOfDay } from "./store-offers";
 import { groupOrders, orderTabs, type OrderTab } from "./store-orders";
 import { StorePanel } from "./store-panel";
+import { StatusTabs } from "./status-tabs";
 import { summarizeDay } from "./store-summary";
 import { StoreTitleRow } from "./store-title-row";
 
@@ -173,31 +174,17 @@ export async function StoreHome({
         <h2 id="store-orders" className="text-card-title">
           {isToday ? t("ordersToday") : t("ordersOn", { date })}
         </h2>
-        <nav aria-label={t("orderTabs")}>
-          <ul className="-my-1 flex flex-wrap gap-x-2">
-            {orderTabs.map((name) => (
-              <li key={name}>
-                <Link
-                  href={filterHref(name)}
-                  scroll={false}
-                  aria-current={name === tab ? "page" : undefined}
-                  className="group/chip flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-                >
-                  <span
-                    className={cn(
-                      "flex h-9.5 items-center rounded-full border px-4 whitespace-nowrap transition-colors",
-                      name === tab
-                        ? "border-primary bg-primary text-body-sm-strong text-primary-foreground"
-                        : "border-border bg-card text-body-sm text-foreground group-hover/chip:bg-secondary",
-                    )}
-                  >
-                    {t(`orderTab.${name}`, { count: groups[name].length })}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <StatusTabs
+          label={t("orderTabs")}
+          selected={tab}
+          scroll={false}
+          tabs={orderTabs.map((name) => ({
+            name,
+            href: filterHref(name),
+            label: t(`orderTabName.${name}`),
+            count: groups[name].length,
+          }))}
+        />
         {shown.length === 0 ? (
           <p className="border-t border-border pt-4 text-body-sm text-muted-foreground">
             {t(`ordersEmpty.${tab}`)}

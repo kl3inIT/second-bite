@@ -18,6 +18,7 @@ import {
 import { vietnamToday } from "./store-day";
 import { groupByTab, matchesName, offersOfDay, postTabs } from "./store-offers";
 import { StorePanel } from "./store-panel";
+import { StatusTabs } from "./status-tabs";
 import { StoreTitleRow, titleActionPhone } from "./store-title-row";
 
 /** The line at the foot for what was just done, or nothing when the address carries nothing known. */
@@ -103,30 +104,16 @@ export async function StorePosts({
         <h2 id="store-posts" className="text-card-title">
           {title}
         </h2>
-        <nav aria-label={t("tabs")}>
-          <ul className="-my-1 flex flex-wrap gap-x-2">
-            {postTabs.map((name) => (
-              <li key={name}>
-                <Link
-                  href={`/stores/${sellerId}/offers${serializePostSearchParams({ day: dayOrNull(day, today), tab: name, q: search })}`}
-                  aria-current={name === tab ? "page" : undefined}
-                  className="group/chip flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-                >
-                  <span
-                    className={cn(
-                      "flex h-9.5 items-center rounded-full border px-4 whitespace-nowrap transition-colors",
-                      name === tab
-                        ? "border-primary bg-primary text-body-sm-strong text-primary-foreground"
-                        : "border-border bg-card text-body-sm text-foreground group-hover/chip:bg-secondary",
-                    )}
-                  >
-                    {t(`tab.${name}`, { count: groups[name].length })}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <StatusTabs
+          label={t("tabs")}
+          selected={tab}
+          tabs={postTabs.map((name) => ({
+            name,
+            href: `/stores/${sellerId}/offers${serializePostSearchParams({ day: dayOrNull(day, today), tab: name, q: search })}`,
+            label: t(`tabName.${name}`),
+            count: groups[name].length,
+          }))}
+        />
 
         {shown.length === 0 ? (
           <p className="border-t border-border pt-4 text-body-sm text-muted-foreground">

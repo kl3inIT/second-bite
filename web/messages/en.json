@@ -781,11 +781,11 @@
     "ordersToday": "Today's orders",
     "ordersOn": "Orders on {date}",
     "orderTabs": "Order groups",
-    "orderTab": {
-      "preparing": "Preparing · {count}",
-      "ready": "Ready · {count}",
-      "delivered": "Delivered · {count}",
-      "cancelled": "Cancelled · {count}"
+    "orderTabName": {
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
     },
     "ordersEmpty": {
       "preparing": "No orders being prepared.",
@@ -828,10 +828,10 @@
     "post": "Post a dish",
     "today": "Today",
     "tabs": "Groups of posts",
-    "tab": {
-      "on_sale": "On sale · {count}",
-      "sold_out": "Sold out · {count}",
-      "closed": "Closed · {count}"
+    "tabName": {
+      "on_sale": "On sale",
+      "sold_out": "Sold out",
+      "closed": "Closed"
     },
     "emptyAll": "No posts yet. Press Post a dish to add one.",
     "empty": {
