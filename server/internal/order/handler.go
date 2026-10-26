@@ -471,6 +471,36 @@ func registerChatOperations(api huma.API, s *Service) {
 	})
 }
 
+type sellerReviewBody struct {
+	OrderID      uuid.UUID `json:"orderId"          doc:"The order reviewed, which names its review"`
+	OrderNumber  string    `json:"orderNumber"      doc:"SB- and a number"`
+	CustomerName string    `json:"customerName"     doc:"Who collected, as given with the order"`
+	Dishes       string    `json:"dishes,omitempty" doc:"The names of the order's dishes, joined by commas"`
+	Stars        int       `json:"stars"`
+	Tags         []Tag     `json:"tags"             nullable:"false"`
+	Comment      string    `json:"comment,omitempty"`
+	CreatedAt    time.Time `json:"createdAt"        doc:"When the customer rated the order"`
+}
+
+type starCountsBody struct {
+	OneStar    int `json:"oneStar"`
+	TwoStars   int `json:"twoStars"`
+	ThreeStars int `json:"threeStars"`
+	FourStars  int `json:"fourStars"`
+	FiveStars  int `json:"fiveStars"`
+}
+
+type sellerReviewsOutput struct {
+	Body struct {
+		Items    []sellerReviewBody `json:"items"             nullable:"false"`
+		Page     int                `json:"page"`
+		PageSize int                `json:"pageSize"`
+		Total    int                `json:"total"             doc:"Reviews of the stars asked"`
+		Counts   starCountsBody     `json:"counts"            doc:"Reviews of each number of stars, whatever stars asks"`
+		Average  *float64           `json:"average,omitempty" doc:"The mean stars of the reviews of the stars asked; absent when none"`
+	}
+}
+
 func registerStaffOperations(api huma.API, s *Service) {
 	huma.Register(api, huma.Operation{
 		OperationID: "listSellerOrders", Method: http.MethodGet, Path: "/sellers/{sellerId}/orders",
@@ -497,6 +527,41 @@ func registerStaffOperations(api huma.API, s *Service) {
 		}
 
 		return toOrders(orders), nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "listSellerReviews", Method: http.MethodGet, Path: "/sellers/{sellerId}/reviews",
+		Summary: "The reviews of a seller's orders that show, by stars, the latest first, to its people and admins",
+		Description: "A review an admin hid is left out. counts gives each number of stars whatever stars asks, " +
+			"and average the mean stars of the reviews of the stars asked, absent when there are none. A page past the end is empty.",
+		Tags: tagOrders, Security: security,
+	}, func(ctx context.Context, in *struct {
+		SellerID uuid.UUID `path:"sellerId"`
+		Stars    []int     `query:"stars" doc:"Keep the reviews giving these stars; any when absent" maximum:"5" minimum:"1"`
+		Page     int       `query:"page"  default:"1" minimum:"1"`
+		Size     int       `query:"size"  default:"25" maximum:"100" minimum:"1"`
+	},
+	) (*sellerReviewsOutput, error) {
+		page, err := s.ListReviewsOfSeller(ctx, in.SellerID, in.Stars, in.Page, in.Size)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &sellerReviewsOutput{}
+		out.Body.Items = make([]sellerReviewBody, 0, len(page.Reviews))
+		out.Body.Page, out.Body.PageSize, out.Body.Total, out.Body.Average = in.Page, in.Size, page.Total, page.Average
+		out.Body.Counts = starCountsBody{
+			OneStar: page.Stars[0], TwoStars: page.Stars[1], ThreeStars: page.Stars[2], FourStars: page.Stars[3], FiveStars: page.Stars[4],
+		}
+
+		for _, r := range page.Reviews {
+			out.Body.Items = append(out.Body.Items, sellerReviewBody{
+				OrderID: r.OrderID, OrderNumber: Number(r.Number), CustomerName: r.CustomerName, Dishes: r.Dishes,
+				Stars: r.Stars, Tags: r.Tags, Comment: r.Comment, CreatedAt: r.CreatedAt,
+			})
+		}
+
+		return out, nil
 	})
 
 	huma.Register(api, huma.Operation{
