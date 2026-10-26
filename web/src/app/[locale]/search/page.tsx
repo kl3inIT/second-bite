@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { AppHeader } from "@/components/app-header";
 import { BrandLoader } from "@/components/brand-loader";
+import { CartBar } from "@/features/cart/cart-bar";
 import { PlaceHeading } from "@/features/home/place-heading";
 import { AccountAction } from "@/features/identity/account-action";
 import { kindsByCount } from "@/features/offers/offer";
@@ -63,6 +64,8 @@ export default async function SearchPage({ searchParams }: PageProps<"/[locale]/
           <SearchResults query={query} />
         </Suspense>
       </main>
+      {/* The portions added with a dish's − and + show at once, with the way on to the cart. */}
+      <CartBar width={contentWidth} />
     </>
   );
 }
