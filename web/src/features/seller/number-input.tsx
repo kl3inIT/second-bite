@@ -27,7 +27,8 @@ function positionAfter(text: string, count: number): number {
   return position;
 }
 
-// A field for a whole number (units, a price in đồng), whose value is the digits, as a string. A price is
+// A field for a whole number (units, a price in đồng), whose value is the digits, as a string. It asks for a digit
+// keypad as a phone number does (`type="tel"` with `inputMode="numeric"`), not the letters' keyboard. A price is
 // shown with its dots ("95.000") all the time, so the text never changes under the person's hands when the field
 // is focused; the caret stays after the same digit when a dot is added or removed. A Vietnamese keyboard (Telex,
 // VNI) builds a letter from several keys, which a field that rewrites its text underneath breaks, so while a
@@ -66,7 +67,7 @@ export function NumberInput({
     <Input
       {...props}
       ref={field}
-      type="text"
+      type="tel"
       inputMode="numeric"
       autoComplete="off"
       value={shown}
