@@ -56,7 +56,6 @@ func checkSellerReviewsListed(owner context.Context, t *testing.T, f fixture, se
 	if all.Stars != [5]int{1, 0, 0, 0, 1} || all.Average == nil || *all.Average != 3 {
 		t.Errorf("the counts and the mean: %+v, %v", all.Stars, all.Average)
 	}
-
 }
 
 // checkSellerReviewsPaging: a page past the end is empty, and an admin reads the reviews too.
