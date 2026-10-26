@@ -16,8 +16,8 @@ import { OfferPhoto } from "./offer-photo";
 // One dish of the seller (Figma K4b "món"): its photograph, the dish, the price over the discount and the
 // portions left, and the − and +. The photograph and the name open the dish's sheet (K4a); the dish a link led
 // to is tinted, and the page scrolls to it by its anchor (K4). The − and + sit at the row's right end, centred on
-// its 100px photograph (Figma K4, WK3). `compact` is the search list on a phone (Figma K2b): a 72px photograph and
-// a tighter column, 100px again from 768px (WK2b).
+// its 100px photograph (Figma K4, WK3). `compact` is the search list on a phone (Figma K2b): a 72px photograph, 14px
+// words and a tighter column, as on K4 again from 768px (WK2b).
 export function SellerDish({
   offer,
   focused,
@@ -56,7 +56,12 @@ export function SellerDish({
       <div
         className={cn("flex min-w-0 flex-1 flex-col", compact ? "gap-1.5 md:gap-2.5" : "gap-2.5")}
       >
-        <h3 className="line-clamp-2 text-title-lg text-foreground">
+        <h3
+          className={cn(
+            "line-clamp-2 text-foreground",
+            compact ? "text-body-sm-strong md:text-title-lg" : "text-title-lg",
+          )}
+        >
           <button
             type="button"
             onClick={() => setOpen(true)}
@@ -67,7 +72,12 @@ export function SellerDish({
         </h3>
         <div className="flex min-w-0 flex-col gap-0.5">
           <p className="flex items-baseline gap-1.25">
-            <span className="font-display text-price text-primary">
+            <span
+              className={cn(
+                "font-display text-primary",
+                compact ? "text-price-sm md:text-price" : "text-price",
+              )}
+            >
               {formatPrice(offer.priceVnd)}
             </span>
             <s aria-hidden className="text-label text-muted-foreground">
