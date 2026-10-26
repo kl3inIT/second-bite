@@ -511,7 +511,7 @@ function PostDrawerBody({
                   )}
                 </form.AppField>
                 <form.AppField name="units">
-                  {() => <NumberField label={t("units")} digits={3} />}
+                  {() => <NumberField label={t("units")} digits={3} focusOnOpen={!edit} />}
                 </form.AppField>
               </div>
               <form.Subscribe selector={(state) => state.values.original}>
@@ -629,6 +629,7 @@ function NumberField({
   grouped,
   digits,
   disabled,
+  focusOnOpen,
   className,
   onValue,
 }: {
@@ -637,11 +638,17 @@ function NumberField({
   /** At most this many digits. */
   digits?: number;
   disabled?: boolean;
+  /** Takes the focus as it opens: the field the person has to fill, so the keyboard opens on it. */
+  focusOnOpen?: boolean;
   className?: string;
   /** Told of each change, after the field holds it. */
   onValue?: (value: string) => void;
 }) {
   const { field, invalid, errors, ids } = useFieldValidity<string>();
+  const control = ids.control;
+  useEffect(() => {
+    if (focusOnOpen) document.getElementById(control)?.focus();
+  }, [focusOnOpen, control]);
   return (
     <Field data-invalid={invalid || undefined} className={className}>
       <FieldLabel htmlFor={ids.control}>{label}</FieldLabel>
