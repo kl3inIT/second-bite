@@ -114,6 +114,11 @@ type Order struct {
 	// Reviewed tells the order was rated, its review shown or hidden; it is
 	// never rated again.
 	Reviewed bool
+	// Problem is what its customer reported went wrong, with the store's
+	// answer; none until they report one (SEC-84).
+	Problem *Problem
+	// CanReportProblem tells whether its customer may still report a problem.
+	CanReportProblem bool
 	// UnreadMessages is how many messages of its chat the reader has not read:
 	// from the seller for the customer, from the customer for the seller's
 	// people. None for admins, who do not read chats.
@@ -256,6 +261,10 @@ func (s *Service) Mine(ctx context.Context, which Which, checkout uuid.UUID, lim
 		return nil, err
 	}
 
+	if err := s.withProblems(ctx, orders); err != nil {
+		return nil, err
+	}
+
 	if err := s.withUnread(ctx, orders, SideCustomer); err != nil {
 		return nil, err
 	}
@@ -296,6 +305,10 @@ func (s *Service) OfSeller(ctx context.Context, sellerID uuid.UUID, day time.Tim
 		return nil, err
 	}
 
+	if err := s.withProblems(ctx, orders); err != nil {
+		return nil, err
+	}
+
 	if member.MyRole != "" {
 		if err := s.withUnread(ctx, orders, SideSeller); err != nil {
 			return nil, err
@@ -325,6 +338,10 @@ func (s *Service) read(ctx context.Context, id uuid.UUID) (Order, error) {
 	}
 
 	if err := s.withReviews(ctx, orders); err != nil {
+		return Order{}, err
+	}
+
+	if err := s.withProblems(ctx, orders); err != nil {
 		return Order{}, err
 	}
 

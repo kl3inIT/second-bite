@@ -17,6 +17,7 @@ import '../models/admins_output_body.dart';
 import '../models/audit_events_output_body.dart';
 import '../models/block_seller_request.dart';
 import '../models/email_settings_body.dart';
+import '../models/feedback_output_body.dart';
 import '../models/grant_admin_request.dart';
 import '../models/hide_review_request.dart';
 import '../models/history_output_body.dart';
@@ -279,6 +280,22 @@ abstract class AdminClient {
   @POST('/admin/reviews/{orderId}/show')
   Future<AdminReviewBody> showReview({
     @Path('orderId') required String orderId,
+  });
+
+  /// What the stores told the team, in a range of days, the latest first.
+  ///
+  /// At most 200; of one store when sellerId is given (SEC-82). The days are Vietnam's, as the report's.
+  ///
+  /// [since] - The first day in Vietnam, YYYY-MM-DD; six days before until when empty.
+  ///
+  /// [until] - The last day in Vietnam, YYYY-MM-DD, included; today when empty.
+  ///
+  /// [sellerId] - Keep one store's feedback.
+  @GET('/admin/seller-feedback')
+  Future<FeedbackOutputBody> listSellerFeedbackForAdmins({
+    @Query('since') String? since,
+    @Query('until') String? until,
+    @Query('sellerId') String? sellerId,
   });
 
   /// Sellers by status and words, pending ones first.

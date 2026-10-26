@@ -8,6 +8,7 @@ import 'order_body_refuse_reason.dart';
 import 'order_body_status.dart';
 import 'order_line_body.dart';
 import 'order_seller_body.dart';
+import 'problem_body.dart';
 import 'review_body.dart';
 
 part 'order_body.freezed.dart';
@@ -16,6 +17,9 @@ part 'order_body.g.dart';
 @Freezed()
 abstract class OrderBody with _$OrderBody {
   const factory OrderBody({
+    /// The order is collected or expired, within two days, and no problem was reported yet
+    required bool canReportProblem,
+
     /// The order is collected and was never rated, so its customer may rate it
     required bool canReview,
 
@@ -53,6 +57,9 @@ abstract class OrderBody with _$OrderBody {
 
     /// Messages its chat holds, with unreadMessages; none for admins
     int? messageCount,
+
+    /// What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
+    ProblemBody? problem,
     DateTime? readyAt,
     String? refuseNote,
     OrderBodyRefuseReason? refuseReason,

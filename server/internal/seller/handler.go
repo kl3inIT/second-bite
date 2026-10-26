@@ -129,6 +129,7 @@ func RegisterOperations(api huma.API, s *Service) {
 	registerPhotoOperations(api, s)
 	registerPublicOperations(api, s)
 	registerFollowOperations(api, s)
+	registerFeedbackOperations(api, s)
 }
 
 var (
@@ -358,6 +359,8 @@ func registerMemberOperations(api huma.API, s *Service) {
 // RegisterAdminOperations adds the module's admin operations to admin, the
 // group platform.NewAdminGroup returns; their paths omit its prefix.
 func RegisterAdminOperations(admin huma.API, s *Service) {
+	registerFeedbackAdminOperations(admin, s)
+
 	huma.Register(admin, huma.Operation{
 		OperationID: "listSellersForAdmins", Method: http.MethodGet, Path: "/sellers",
 		Summary: "Sellers by status and words, pending ones first",

@@ -617,6 +617,8 @@ function withCanReview(body) {
     typeof out.status === "string"
   ) {
     out.canReview = out.status === "collected" && !out.review;
+    // Collected or expired and not yet reported (SEC-84); the stub keeps no two-day bound.
+    out.canReportProblem = (out.status === "collected" || out.status === "expired") && !out.problem;
   }
   return out;
 }
@@ -1061,7 +1063,32 @@ function chatState(order) {
   return { open: !ended && closesAt > new Date(), closesAt: closesAt.toISOString() };
 }
 
+// What the stores told the team (SEC-82): what tests send, the latest first, then one the admins' report shows
+// from the start.
+const storeFeedback = [];
+const seededFeedback = [
+  {
+    id: "fb-seeded",
+    sellerId: "se-admin-01",
+    sellerName: "Tiệm bánh Pháp",
+    text: "Khách hay hỏi giờ lấy, nên hiện giờ ngay trên mã QR.",
+    sentAt: "2026-10-23T14:10:00Z",
+  },
+];
+
+// The kinds of problem a customer reports (SEC-84).
+const PROBLEM_KINDS = ["missing_item", "wrong_item", "poor_quality", "store_closed"];
+
 async function chatRoutes(request, response, url) {
+  // A test reports a problem on a store's order, as its customer would (SEC-84).
+  const reported = /^\/__stub\/problem\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "POST" && reported) {
+    const { kind, note } = await readBody(request);
+    const found = [...sellerOrdersBy.values()].flat().find((o) => o.id === reported[1]);
+    if (found) found.problem = { kind, note, reportedAt: new Date().toISOString() };
+    response.writeHead(found ? 204 : 404).end();
+    return true;
+  }
   const injected = /^\/__stub\/chat\/([\w-]+)$/.exec(url.pathname);
   if (request.method === "POST" && injected) {
     const { from, text } = await readBody(request);
@@ -1187,8 +1214,8 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers/address" ||
     url.pathname === "/sellers/places" ||
     url.pathname === "/photos" ||
-    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
-    (/^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse)$/.test(url.pathname) &&
+    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders|\/feedback)?$/.test(url.pathname) ||
+    (/^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse|problem\/answer)$/.test(url.pathname) &&
       !isCustomerOrder(url.pathname)) ||
     /^\/orders\/or-\d+-[\w-]+$/.test(url.pathname) ||
     /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname) ||
@@ -1316,6 +1343,24 @@ async function sellerRoutes(request, response, url) {
     await staffOrderAction(request, response, mine, staffAction[1], staffAction[2]);
     return true;
   }
+  const answered = /^\/orders\/([\w-]+)\/problem\/answer$/.exec(url.pathname);
+  if (request.method === "POST" && answered) {
+    const found = mine
+      .flatMap((seller) => sellerOrdersFor(seller))
+      .find((o) => o.id === answered[1]);
+    const { answer } = await readBody(request);
+    const words = String(answer ?? "").trim();
+    if (!found) problem(response, 404, "ORDER_NOT_FOUND");
+    else if (words.length < 1 || words.length > 500) problem(response, 400, "ORDER_ANSWER_INVALID");
+    else if (!found.problem) problem(response, 404, "ORDER_PROBLEM_NOT_FOUND");
+    else if (found.problem.answer) problem(response, 409, "ORDER_PROBLEM_ALREADY_ANSWERED");
+    else {
+      found.problem.answer = words;
+      found.problem.answeredAt = new Date().toISOString();
+      json(response, 200, found);
+    }
+    return true;
+  }
   const ordersOfStore = /^\/sellers\/([\w-]+)\/orders$/.exec(url.pathname);
   if (request.method === "GET" && ordersOfStore) {
     const seller = mine.find((candidate) => candidate.id === ordersOfStore[1]);
@@ -1329,6 +1374,25 @@ async function sellerRoutes(request, response, url) {
     );
     const day = url.searchParams.get("day") || today;
     json(response, 200, { orders: day === today ? sellerOrdersFor(seller) : [] });
+    return true;
+  }
+  const feedbackOf = /^\/sellers\/([\w-]+)\/feedback$/.exec(url.pathname);
+  if (request.method === "POST" && feedbackOf) {
+    const seller = mine.find((candidate) => candidate.id === feedbackOf[1]);
+    const text = String((await readBody(request)).text ?? "").trim();
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else if (text.length < 1 || text.length > 1000)
+      problem(response, 400, "SELLER_FEEDBACK_INVALID");
+    else {
+      storeFeedback.unshift({
+        id: `fb-${storeFeedback.length + 1}`,
+        sellerId: seller.id,
+        sellerName: seller.name,
+        text,
+        sentAt: new Date().toISOString(),
+      });
+      response.writeHead(204).end();
+    }
     return true;
   }
   const catalog = /^\/sellers\/([\w-]+)\/dishes$/.exec(url.pathname);
@@ -1672,7 +1736,7 @@ async function ordersApi(request, response, url) {
     json(response, 200, shown(handled));
     return true;
   }
-  const orderMatch = /^\/orders\/([\w-]+)(\/cancel|\/review)?$/.exec(url.pathname);
+  const orderMatch = /^\/orders\/([\w-]+)(\/cancel|\/review|\/problem)?$/.exec(url.pathname);
   const order = orderMatch
     ? orders.find((found) => found.id === orderMatch[1] && placedBy(request, account, found))
     : undefined;
@@ -1702,6 +1766,22 @@ async function ordersApi(request, response, url) {
     } else {
       order.review = { stars, tags, createdAt: new Date().toISOString() };
       if (comment?.trim()) order.review.comment = comment.trim();
+      json(response, 200, shown(order));
+    }
+    return true;
+  }
+  if (request.method === "POST" && orderMatch?.[2] === "/problem") {
+    const { kind, note } = await readBody(request);
+    const status = shown(order).status;
+    if (!PROBLEM_KINDS.includes(kind) || (note !== undefined && String(note).trim().length > 500)) {
+      problem(response, 400, "ORDER_PROBLEM_INVALID");
+    } else if (status !== "collected" && status !== "expired") {
+      problem(response, 409, "ORDER_PROBLEM_NOT_ALLOWED");
+    } else if (order.problem) {
+      problem(response, 409, "ORDER_PROBLEM_ALREADY_REPORTED");
+    } else {
+      order.problem = { kind, reportedAt: new Date().toISOString() };
+      if (String(note ?? "").trim()) order.problem.note = String(note).trim();
       json(response, 200, shown(order));
     }
     return true;
@@ -2628,6 +2708,13 @@ async function adminRoutes(request, response, url) {
       delete review.hiddenReason;
     }
     json(response, 200, review);
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/seller-feedback") {
+    const store = url.searchParams.get("sellerId");
+    json(response, 200, {
+      items: [...storeFeedback, ...seededFeedback].filter((f) => !store || f.sellerId === store),
+    });
     return true;
   }
   if (request.method === "GET" && url.pathname === "/admin/reports") {

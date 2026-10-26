@@ -749,7 +749,8 @@
     "edit": "Sửa quán",
     "location": "Vị trí quán",
     "mine": "Quán của tôi",
-    "create": "Tạo thêm quán"
+    "create": "Tạo thêm quán",
+    "feedback": "Góp ý cho Second Bite"
   },
   "ScanOrder": {
     "open": "Quét mã đơn",
@@ -1819,6 +1820,12 @@
       "none": "–",
       "empty": {
         "title": "Chưa có số liệu trong khoảng ngày này"
+      },
+      "feedback": {
+        "title": "Góp ý của quán",
+        "count": "{count, plural, other {# góp ý}}",
+        "empty": "Chưa có quán nào góp ý trong khoảng ngày này.",
+        "when": "{date}, {time}"
       }
     }
   },
@@ -1848,6 +1855,50 @@
     "thanks": "Cảm ơn bạn, quán sẽ đọc đánh giá này.",
     "errors": {
       "stars": "Chọn số sao cho đơn."
+    }
+  },
+  "OrderProblem": {
+    "open": "Báo vấn đề với đơn",
+    "title": "Đơn #{number} có vấn đề gì?",
+    "body": "Chọn điều chưa ổn. Chúng tôi chuyển cho quán và trả lời bạn.",
+    "kindLegend": "Điều chưa ổn",
+    "kind": {
+      "missing_item": "Thiếu món",
+      "wrong_item": "Sai món",
+      "poor_quality": "Món không đạt",
+      "store_closed": "Quán đóng cửa khi đến"
+    },
+    "note": "Ghi thêm (không bắt buộc)",
+    "notePlaceholder": "Ví dụ: thiếu 1 bánh mì chà bông",
+    "send": "Gửi cho quán",
+    "later": "Để sau",
+    "failed": "Chưa gửi được. Thử lại sau ít phút.",
+    "errors": {
+      "kind": "Chọn điều chưa ổn với đơn."
+    },
+    "reportedTitle": "Vấn đề bạn đã báo",
+    "noteAt": "{time} · {note}",
+    "sent": "Đã gửi cho {seller}",
+    "waiting": "Quán sẽ trả lời bạn ở đây",
+    "answered": "{seller} trả lời · {time}"
+  },
+  "StoreProblem": {
+    "title": "Khách báo: {kind}",
+    "kind": {
+      "missing_item": "Thiếu món",
+      "wrong_item": "Sai món",
+      "poor_quality": "Món không đạt",
+      "store_closed": "Quán đóng cửa khi đến"
+    },
+    "noteAt": "“{note}” · {time}",
+    "at": "Lúc {time}",
+    "answer": "Trả lời khách",
+    "answerPlaceholder": "Ví dụ: Xin lỗi bạn, lần tới quán gửi lại 1 bánh mì",
+    "send": "Gửi trả lời",
+    "failed": "Chưa gửi được câu trả lời. Thử lại sau ít phút.",
+    "answeredAt": "Quán đã trả lời lúc {time}",
+    "errors": {
+      "answer": "Viết câu trả lời cho khách, từ 1 đến 500 ký tự."
     }
   },
   "Favourites": {
@@ -1994,5 +2045,18 @@
     "reference": "Mã tham chiếu: {reference}",
     "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát.",
     "closeToast": "Đóng thông báo"
+  },
+  "StoreFeedback": {
+    "title": "Góp ý cho Second Bite",
+    "body": "Chỗ nào làm quán bị kẹt hay mất thời gian? Nhóm đọc từng góp ý để sửa trong tuần.",
+    "label": "Góp ý của quán",
+    "placeholder": "Ví dụ: lúc đông khách khó tìm nút Đã giao",
+    "send": "Gửi góp ý",
+    "later": "Để sau",
+    "thanks": "Đã gửi góp ý. Cảm ơn quán!",
+    "failed": "Chưa gửi được góp ý. Thử lại sau ít phút.",
+    "errors": {
+      "text": "Viết góp ý từ 1 đến 1.000 ký tự."
+    }
   }
 }

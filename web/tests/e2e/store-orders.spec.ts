@@ -243,6 +243,54 @@ test.describe("the order tab of a store", () => {
     await expect(page.getByText("Đã giao cho Lê Thu Hà")).toBeVisible();
   });
 
+  // Figma Q5p, O3p (SEC-84): the store reads the problem a customer reported and answers it once.
+  test("answers the problem a customer reported with a collected order", async ({
+    page,
+  }, testInfo) => {
+    const store = await storeNamed(page, "khiem", testInfo, "Tiệm có đơn");
+    const orderId = `or-4-${store}`;
+    await page.request.post(`/api/__stub/problem/${orderId}`, {
+      data: { kind: "missing_item", note: "Thiếu 1 bánh croissant" },
+    });
+    await page.goto(`/vi/stores/${store}/orders/${orderId}`);
+
+    const card = page.getByRole("region", { name: "Khách báo: Thiếu món" });
+    await expect(card).toBeVisible();
+    await expect(card.getByText(/^“Thiếu 1 bánh croissant” · /)).toBeVisible();
+    const send = await hydrated(card.getByRole("button", { name: "Gửi trả lời" }));
+    // A blank answer is said at its field.
+    await send.click();
+    await expect(card.getByText("Viết câu trả lời cho khách, từ 1 đến 500 ký tự.")).toBeVisible();
+    await card.getByLabel("Trả lời khách").fill("Xin lỗi bạn, lần tới quán gửi lại 1 bánh.");
+    await expectNoSeriousA11yViolations(page);
+    await send.click();
+
+    await expect(card.getByText("Xin lỗi bạn, lần tới quán gửi lại 1 bánh.")).toBeVisible();
+    await expect(card.getByText(/^Quán đã trả lời lúc /)).toBeVisible();
+    await expect(card.getByRole("button", { name: "Gửi trả lời" })).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  // Figma G1 (SEC-82): any of the store's people tells the team what is hard, from the store's menu.
+  test("sends the team feedback from the store's menu", async ({ page }, testInfo) => {
+    const store = await storeNamed(page, "gopy", testInfo, "Quán góp ý");
+    await page.goto(`/vi/stores/${store}`);
+
+    await (await hydrated(page.getByRole("button", { name: "Quán góp ý", exact: true }))).click();
+    await page.getByRole("menuitem", { name: "Góp ý cho Second Bite" }).click();
+    const box = page.getByRole("dialog", { name: "Góp ý cho Second Bite" });
+    await expect(box.getByText(/^Chỗ nào làm quán bị kẹt/)).toBeVisible();
+    // Sent blank, it says so at the field.
+    await box.getByRole("button", { name: "Gửi góp ý" }).click();
+    await expect(box.getByText("Viết góp ý từ 1 đến 1.000 ký tự.")).toBeVisible();
+    await box.getByLabel("Góp ý của quán").fill("Lúc đông khách khó tìm nút Đã giao.");
+    await expectNoSeriousA11yViolations(page);
+    await box.getByRole("button", { name: "Gửi góp ý" }).click();
+
+    await expect(page.getByText("Đã gửi góp ý. Cảm ơn quán!")).toBeVisible();
+    await expect(box).toHaveCount(0);
+  });
+
   test("cancels an order with a reason, which the cancelled tab shows", async ({
     page,
   }, testInfo) => {

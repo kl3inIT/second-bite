@@ -311,6 +311,16 @@ components:
       required:
         - admins
       type: object
+    AnswerOrderProblemRequest:
+      additionalProperties: false
+      properties:
+        answer:
+          description: 1 to 500 characters, or ORDER_ANSWER_INVALID
+          maxLength: 2000
+          type: string
+      required:
+        - answer
+      type: object
     AuditChangeBody:
       additionalProperties: false
       properties:
@@ -770,6 +780,37 @@ components:
         - smtpPasswordSet
         - brevoApiKeySet
         - updatedAt
+      type: object
+    FeedbackBody:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        sellerId:
+          type: string
+        sellerName:
+          type: string
+        sentAt:
+          format: date-time
+          type: string
+        text:
+          type: string
+      required:
+        - id
+        - sellerId
+        - sellerName
+        - text
+        - sentAt
+      type: object
+    FeedbackOutputBody:
+      additionalProperties: false
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/FeedbackBody"
+          type: array
+      required:
+        - items
       type: object
     FollowedOutputBody:
       additionalProperties: false
@@ -1470,6 +1511,9 @@ components:
         access:
           description: "To its customer: proves the order is theirs without signing in, sent back as Order-Access"
           type: string
+        canReportProblem:
+          description: The order is collected or expired, within two days, and no problem was reported yet
+          type: boolean
         canReview:
           description: The order is collected and was never rated, so its customer may rate it
           type: boolean
@@ -1506,6 +1550,9 @@ components:
         number:
           description: What people read aloud, SB- and a number
           type: string
+        problem:
+          $ref: "#/components/schemas/ProblemBody"
+          description: What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
         readyAt:
           format: date-time
           type: string
@@ -1569,6 +1616,7 @@ components:
         - customerName
         - customerPhone
         - canReview
+        - canReportProblem
       type: object
     OrderCountsBody:
       additionalProperties: false
@@ -1808,6 +1856,31 @@ components:
         - status
         - code
       type: object
+    ProblemBody:
+      additionalProperties: false
+      properties:
+        answer:
+          description: The store's answer, none until it answers
+          type: string
+        answeredAt:
+          format: date-time
+          type: string
+        kind:
+          enum:
+            - missing_item
+            - wrong_item
+            - poor_quality
+            - store_closed
+          type: string
+        note:
+          type: string
+        reportedAt:
+          format: date-time
+          type: string
+      required:
+        - kind
+        - reportedAt
+      type: object
     PushKeyOutputBody:
       additionalProperties: false
       properties:
@@ -1908,6 +1981,23 @@ components:
       required:
         - day
         - counts
+      type: object
+    ReportOrderProblemRequest:
+      additionalProperties: false
+      properties:
+        kind:
+          enum:
+            - missing_item
+            - wrong_item
+            - poor_quality
+            - store_closed
+          type: string
+        note:
+          description: Up to 500 characters, or ORDER_PROBLEM_INVALID
+          maxLength: 2000
+          type: string
+      required:
+        - kind
       type: object
     ReportOutputBody:
       additionalProperties: false
@@ -2269,6 +2359,16 @@ components:
           description: Trimmed; 1 to 1,000 characters
           maxLength: 1000
           minLength: 1
+          type: string
+      required:
+        - text
+      type: object
+    SendSellerFeedbackRequest:
+      additionalProperties: false
+      properties:
+        text:
+          description: 1 to 1,000 characters, or SELLER_FEEDBACK_INVALID
+          maxLength: 4000
           type: string
       required:
         - text
@@ -3497,6 +3597,53 @@ paths:
       summary: Show a hidden review again everywhere
       tags:
         - Admin
+  /admin/seller-feedback:
+    get:
+      description: At most 200; of one store when sellerId is given (SEC-82). The days are Vietnam's, as the report's.
+      operationId: listSellerFeedbackForAdmins
+      parameters:
+        - description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+          explode: false
+          in: query
+          name: since
+          schema:
+            description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+          explode: false
+          in: query
+          name: until
+          schema:
+            description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: Keep one store's feedback
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep one store's feedback
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: What the stores told the team, in a range of days, the latest first
+      tags:
+        - Admin
   /admin/sellers:
     get:
       description: Pending sellers come first, the oldest first; then the latest change first. q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.
@@ -4497,6 +4644,84 @@ paths:
       summary: Say you have read an order's chat up to a message
       tags:
         - Orders
+  /orders/{orderId}/problem:
+    post:
+      description: By its customer, signed in or sending its access, within two days of collection or of the window's end; the store is told (SEC-84).
+      operationId: reportOrderProblem
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportOrderProblemRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Report what went wrong with your collected or expired order, once
+      tags:
+        - Orders
+  /orders/{orderId}/problem/answer:
+    post:
+      description: By the seller's people; the customer is told (SEC-84).
+      operationId: answerOrderProblem
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnswerOrderProblemRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Answer the problem a customer reported with one of your orders, once
+      tags:
+        - Orders
   /orders/{orderId}/ready:
     post:
       operationId: markOrderReady
@@ -5041,6 +5266,37 @@ paths:
       summary: Add a dish to a seller's catalog
       tags:
         - Catalog
+  /sellers/{sellerId}/feedback:
+    post:
+      description: Kept with the seller, not who wrote it; at most 20 a day for one seller (SEC-82).
+      operationId: sendSellerFeedback
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendSellerFeedbackRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Tell the Second Bite team what is hard or missing, for the seller's people
+      tags:
+        - Sellers
   /sellers/{sellerId}/follow:
     delete:
       description: A seller I do not follow is left as it is.

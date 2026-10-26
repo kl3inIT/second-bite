@@ -19,6 +19,7 @@ import { OrderLines } from "./order-lines";
 import { OrderTrack } from "./order-track";
 import { PhoneFootBar } from "./phone-foot-bar";
 import { requireStore } from "./require-store";
+import { StoreProblem } from "./store-problem";
 import { dayOrNull, serializeOrderSearchParams } from "./search-params";
 import { nowMs, vietnamDay, vietnamToday } from "./store-day";
 import { endedBecause } from "./store-orders";
@@ -169,6 +170,7 @@ export async function StoreOrder({
             <OrderLines order={order} />
           </div>
           <div className="flex flex-col gap-3 lg:col-span-2">
+            <StoreProblem order={order} />
             <Next order={order} list={`/stores/${sellerId}/orders`} />
             <ChatEntry
               order={order}

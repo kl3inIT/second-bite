@@ -191,3 +191,21 @@ DELETE FROM seller_follows WHERE account_id = @account_id;
 
 -- name: SellerNames :many
 SELECT id, name FROM seller_sellers WHERE id = ANY(@ids::uuid[]);
+
+-- name: RecentFeedbackCount :one
+-- How many times the seller sent feedback in the last day (SEC-82).
+SELECT count(*)::integer FROM seller_feedback
+WHERE seller_id = @seller_id AND created_at > now() - interval '1 day';
+
+-- name: InsertFeedback :exec
+INSERT INTO seller_feedback (seller_id, body) VALUES (@seller_id, @body);
+
+-- name: FeedbackForAdmins :many
+-- The feedback sent in [since, until), of one seller when given, the latest
+-- first, with the seller's name.
+SELECT f.id, f.seller_id, s.name AS seller_name, f.body, f.created_at
+FROM seller_feedback f JOIN seller_sellers s ON s.id = f.seller_id
+WHERE f.created_at >= @since AND f.created_at < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR f.seller_id = sqlc.narg(seller_id)::uuid)
+ORDER BY f.created_at DESC, f.id
+LIMIT @max_rows;

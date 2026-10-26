@@ -15,6 +15,7 @@ import '../models/places_output_body.dart';
 import '../models/seller_body.dart';
 import '../models/seller_profile_body.dart';
 import '../models/sellers_output_body.dart';
+import '../models/send_seller_feedback_request.dart';
 import '../models/set_seller_photo_request.dart';
 
 part 'sellers_client.g.dart';
@@ -59,6 +60,15 @@ abstract class SellersClient {
   Future<SellerBody> updateSeller({
     @Path('sellerId') required String sellerId,
     @Body() required DetailsBody body,
+  });
+
+  /// Tell the Second Bite team what is hard or missing, for the seller's people.
+  ///
+  /// Kept with the seller, not who wrote it; at most 20 a day for one seller (SEC-82).
+  @POST('/sellers/{sellerId}/feedback')
+  Future<void> sendSellerFeedback({
+    @Path('sellerId') required String sellerId,
+    @Body() required SendSellerFeedbackRequest body,
   });
 
   /// Take a seller out of my favourites.
