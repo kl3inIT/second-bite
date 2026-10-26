@@ -17,6 +17,7 @@ export async function ChatEntry({
   access,
   href,
   variant,
+  size,
   className,
 }: {
   order: Entry;
@@ -25,6 +26,7 @@ export async function ChatEntry({
   access?: string;
   href: string;
   variant: "secondary" | "outline";
+  size?: "default" | "lg";
   className?: string;
 }) {
   const to = side === "customer" ? "store" : "customer";
@@ -35,6 +37,7 @@ export async function ChatEntry({
         href={href}
         unread={order.unreadMessages}
         variant={variant}
+        size={size}
         className={className}
       />
     );
@@ -49,6 +52,7 @@ export async function ChatEntry({
       href={href}
       unread={order.unreadMessages}
       variant={variant}
+      size={size}
       className={className}
     />
   );

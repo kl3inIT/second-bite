@@ -103,7 +103,7 @@ function ReportProblem({ order }: { order: Order }) {
 
   return (
     <>
-      <Button variant="link" className="min-h-11 self-center" onClick={() => setOpen(true)}>
+      <Button variant="outline" size="lg" onClick={() => setOpen(true)}>
         <MessageCircleWarningIcon aria-hidden data-icon="inline-start" />
         {t("open")}
       </Button>
