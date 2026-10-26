@@ -18,6 +18,13 @@ function laParis(page: Page) {
 test.use({ locale: "vi-VN" });
 
 test.describe("the search", () => {
+  // These read the grid; the list is the first view, so each starts from the grid as chosen before.
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() =>
+      localStorage.setItem("secondbite.search-view", JSON.stringify("grid")),
+    );
+  });
+
   test("finds dishes by words without accents, naming their seller, without tabs", async ({
     page,
   }) => {
@@ -56,28 +63,6 @@ test.describe("the search", () => {
     await expect(
       page.getByRole("article").filter({ hasText: "Quán Highlands Coffee" }),
     ).toBeHidden();
-  });
-
-  test("switches to a list grouped by seller, the order a chip, and keeps the list in this browser", async ({
-    page,
-  }) => {
-    await page.goto("/vi/search");
-    const chips = page.getByRole("list", { name: "Bộ lọc" }).filter({ visible: true });
-    await expect(chips.getByRole("button", { name: "Sắp xếp" })).toBeVisible();
-
-    const list = await hydrated(page.getByRole("button", { name: "Xem dạng danh sách" }));
-    await list.click();
-    await expect(list).toHaveAttribute("aria-pressed", "true");
-    const seller = page.getByRole("region", { name: "La Paris" });
-    await expect(seller.getByRole("link", { name: "Xem quán La Paris" })).toBeVisible();
-    await expect(seller.getByRole("button", { name: /Thêm/ }).first()).toBeVisible();
-    await expectNoSeriousA11yViolations(page);
-
-    await page.reload();
-    await expect(
-      await hydrated(page.getByRole("button", { name: "Xem dạng danh sách" })),
-    ).toHaveAttribute("aria-pressed", "true");
-    await expect(seller.getByRole("link", { name: "Xem quán La Paris" })).toBeVisible();
   });
 
   test("remembers recent searches in this browser until they are removed", async ({ page }) => {
@@ -161,5 +146,40 @@ test.describe("the search", () => {
     expect(box?.width).toBeCloseTo(Math.min(pageWidth, CONTENT_WIDTH) - 32, 0);
     expect(box?.x).toBeCloseTo((pageWidth - (box?.width ?? 0)) / 2, 0);
     await expect(page.getByRole("link", { name: "Xem tất cả món" })).toBeVisible();
+  });
+});
+
+test.describe("the search's list", () => {
+  test("lists the dishes by seller first, with the order a chip, adds one to the cart in view, and keeps the grid once chosen", async ({
+    page,
+  }) => {
+    await page.goto("/vi/search");
+    const chips = page.getByRole("list", { name: "Bộ lọc" }).filter({ visible: true });
+    await expect(chips.getByRole("button", { name: "Sắp xếp" })).toBeVisible();
+
+    const list = await hydrated(page.getByRole("button", { name: "Xem dạng danh sách" }));
+    await expect(list).toHaveAttribute("aria-pressed", "true");
+    const seller = page.getByRole("region", { name: "La Paris" });
+    await expect(seller.getByRole("link", { name: "Xem quán La Paris" })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    // The cart's bar comes up with the first portion, at every width.
+    const cart = page.getByRole("link", { name: "Xem giỏ hàng" });
+    await expect(cart).toBeHidden();
+    await seller
+      .getByRole("button", { name: /^Thêm một phần/ })
+      .first()
+      .click();
+    await expect(cart).toBeInViewport();
+
+    const grid = page.getByRole("button", { name: "Xem dạng ô" });
+    await grid.click();
+    await expect(grid).toHaveAttribute("aria-pressed", "true");
+    await page.reload();
+    await expect(await hydrated(page.getByRole("button", { name: "Xem dạng ô" }))).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(seller.getByRole("link", { name: "Xem quán La Paris" })).toBeHidden();
   });
 });

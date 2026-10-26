@@ -196,7 +196,7 @@ export function SellerPage({
           </div>
         </div>
       </main>
-      <CartBar width={PHONE_WIDTH} />
+      <CartBar width={PHONE_WIDTH} className="md:hidden" />
     </>
   );
 }

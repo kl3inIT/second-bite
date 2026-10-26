@@ -9,10 +9,10 @@ import { cn } from "@/lib/utils";
 
 // How the search lays out its results (Figma K2 "kiểu xem", as Careem switches them): a grid of cards, or a list
 // grouped by seller with a row for each dish. The choice is kept in this browser; the server and a first visit
-// show the grid.
+// show the list.
 const views = ["grid", "list"] as const;
 type View = (typeof views)[number];
-const chosen = stored<View>("secondbite.search-view", z.enum(views), "grid");
+const chosen = stored<View>("secondbite.search-view", z.enum(views), "list");
 const icons = { grid: LayoutGridIcon, list: ListIcon } as const;
 
 /** The results in the chosen view; only that one is drawn. */

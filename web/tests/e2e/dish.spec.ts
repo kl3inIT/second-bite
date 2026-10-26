@@ -12,6 +12,10 @@ function wide(page: Page) {
 
 test.describe("a dish, its seller and the cart", () => {
   test("opens a dish on its seller's page from the search, and its sheet", async ({ page }) => {
+    // The grid's card leads to the seller's page; the list, the search's first view, opens the dish's sheet.
+    await page.addInitScript(() =>
+      localStorage.setItem("secondbite.search-view", JSON.stringify("grid")),
+    );
     await page.goto("/vi/search?q=croissant");
     await (await hydrated(page.getByRole("link", { name: "Bánh Croissant Truyền Thống" }))).click();
 
