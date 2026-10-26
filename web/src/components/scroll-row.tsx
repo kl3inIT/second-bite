@@ -10,7 +10,8 @@ const DRAG_THRESHOLD_PX = 5;
 // A row that scrolls sideways to the screen's edge, 16px in from it, snapping to each item (Figma carousel,
 // categories). It shows no scrollbar, so a mouse drags it as a finger does, and `hint` puts the short track of
 // Figma's scroll hint under it: 36px of pale blue whose blue half follows the row, hidden when all fits. It
-// takes keyboard focus so a row without links can still be scrolled (WCAG 2.1.1).
+// takes keyboard focus so a row without links can still be scrolled (WCAG 2.1.1). It never scrolls up and down: a
+// sideways overflow would otherwise make the other axis scroll too, under tap areas that reach past the row.
 export function ScrollRow({
   label,
   hint = false,
@@ -95,7 +96,7 @@ export function ScrollRow({
         // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrollable region must be reachable by keyboard.
         tabIndex={0}
         className={cn(
-          "scrollbar-none flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+          "scrollbar-none flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overflow-y-hidden px-4 pb-2 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
           className,
         )}
       >
