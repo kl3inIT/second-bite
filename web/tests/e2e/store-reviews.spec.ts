@@ -35,7 +35,7 @@ test.describe("the reviews of a store", () => {
   test("shows the mean and the latest reviews on the home, and opens them all", async ({
     page,
   }, testInfo) => {
-    const store = await storeNamed(page, "lan", testInfo, "Tiệm có đơn");
+    const store = await storeNamed(page, "review.home", testInfo, "Tiệm có đơn");
 
     const card = page.getByRole("region", { name: "Đánh giá của quán" });
     await expect(card).toContainText("3 đánh giá");
@@ -50,7 +50,7 @@ test.describe("the reviews of a store", () => {
   });
 
   test("filters the list by stars, the choice in the address", async ({ page }, testInfo) => {
-    const store = await storeNamed(page, "hoa", testInfo, "Tiệm có đơn");
+    const store = await storeNamed(page, "review.filter", testInfo, "Tiệm có đơn");
     await page.goto(`/vi/stores/${store}/reviews`);
 
     const list = page.getByRole("region", { name: "Danh sách đánh giá" });
@@ -68,7 +68,7 @@ test.describe("the reviews of a store", () => {
   });
 
   test("says so when the store has no review yet", async ({ page }, testInfo) => {
-    const store = await storeNamed(page, "mai", testInfo, "Tiệm chưa có đánh giá");
+    const store = await storeNamed(page, "review.none", testInfo, "Tiệm chưa có đánh giá");
 
     await expect(
       page.getByRole("region", { name: "Đánh giá của quán" }).getByText("Chưa có đánh giá nào."),
