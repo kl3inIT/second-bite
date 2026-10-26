@@ -12,9 +12,11 @@ import {
   listMySellers,
   listSellerOffers,
   listSellerOrders,
+  listSellerReviews,
   type OfferBody,
   type OrderBody,
   type SellerBody,
+  type SellerReviewsOutputBody,
 } from "@/lib/api/generated";
 
 /** A person owns at most five stores (server/internal/seller, maxOwnedSellers). */
@@ -73,3 +75,15 @@ export const getStoreOrder = cache(async (orderId: string): Promise<OrderBody | 
     throw error;
   }
 });
+
+/** A store's shown reviews, the latest first, of the stars given (every review when none); at most `size` of them. */
+export const getStoreReviews = cache(
+  async (sellerId: string, stars: number[], size: number): Promise<SellerReviewsOutputBody> => {
+    const { data } = await listSellerReviews({
+      path: { sellerId },
+      query: { stars, size },
+      headers: await sessionHeaders(),
+    });
+    return data;
+  },
+);

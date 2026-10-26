@@ -13,6 +13,7 @@ export function StorePushedBar() {
   const order = useTranslations("StoreOrders.detail");
   const location = useTranslations("StoreLocationPage");
   const edit = useTranslations("StoreEditPage");
+  const reviews = useTranslations("StoreReviews");
   const bar = useTranslations("TopBar");
   const pathname = usePathname();
   // An order's chat draws its own blue bar with the customer's name (Figma Q7).
@@ -20,15 +21,17 @@ export function StorePushedBar() {
   // The pages that come straight under the store go back to its home; those under a tab go back to that tab.
   const ofLocation = pathname.endsWith("/location");
   const ofStore = /^\/stores\/[^/]+\/edit$/.test(pathname);
+  const ofReviews = /^\/stores\/[^/]+\/reviews$/.test(pathname);
   const parent = pathname
     .split("/")
-    .slice(0, ofLocation || ofStore ? 3 : 4)
+    .slice(0, ofLocation || ofStore || ofReviews ? 3 : 4)
     .join("/");
   const ofOrder = pathname.includes("/orders/");
   let title = pathname.endsWith("/new") ? t("addTitle") : t("editTitle");
   if (ofOrder) title = order("pushedTitle");
   if (ofLocation) title = location("title");
   if (ofStore) title = edit("title");
+  if (ofReviews) title = reviews("title");
 
   return (
     <div className="hidden group-has-[[data-pushed]]/store:max-md:block">
