@@ -15,19 +15,19 @@ Status: started on 26 October 2026. Tracked in Linear as SEC-154. The screens ar
 - **The same queries serve admins and sellers.** `ReviewsForAdmins` and `CountReviewsByStars` already take a seller, stars and a visibility; the seller's list fixes the seller to the path's and the visibility to `visible`. A review an admin hid (SEC-145) leaves the seller's reads, as SEC-145 decided for every read but the admins'.
 - **Stars are a list, as for admins.** "3 stars or fewer" is `stars=1&stars=2&stars=3`; no new parameter.
 - **The numbers are measured** (the Honest Number Rule): the mean is of the shown reviews, absent when there are none.
-- **The dish comes from the order's lines**, as the first line's name (an order holds one offer's lines in the pilot). A review whose order has no line reads without a dish.
+- **The dishes come from the order's lines**: their names, joined by commas (a cart holds several dishes of one seller). A review whose order has no line reads without a dish.
 
 ## Contract
 
 | Call | Who | Answers |
 | --- | --- | --- |
-| `GET /sellers/{sellerId}/reviews?stars=&page=&size=` | The seller's people; admins | `200 {items, page, pageSize, total, counts, average?}`: each item the order's identifier and number, the customer's name, the first dish's name, the stars, tags, comment and when rated; `counts` has each number of stars of the shown reviews, whatever `stars` asks; `average` the mean of the shown reviews of the stars asked |
+| `GET /sellers/{sellerId}/reviews?stars=&page=&size=` | The seller's people; admins | `200 {items, page, pageSize, total, counts, average?}`: each item the order's identifier and number, the customer's name, the dishes' names, the stars, tags, comment and when rated; `counts` has each number of stars of the shown reviews, whatever `stars` asks; `average` the mean of the shown reviews of the stars asked |
 
 Failures: `404 SELLER_NOT_FOUND` for a store the caller may not read (the answer sellers already give), `400 ORDER_REVIEW_LIST_INVALID` for stars outside 1 to 5 or a page out of range.
 
 ## Data
 
-No migration. The list reads `order_reviews` joined to `order_orders`, and the first dish's name from `order_lines`.
+No migration. The list reads `order_reviews` joined to `order_orders`, and the dishes' names from `order_lines`.
 
 ## Failure behavior
 
