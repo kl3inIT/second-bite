@@ -11,8 +11,9 @@ import { radiusChoices, searchHref, sortChoices, type SearchQuery } from "./sear
 // The search's chips (Figma K2 chip lọc), each a filter `GET /offers` takes: how far around the person's
 // place (only with one), the price from and to, the time to collect from and to (or now), and the kind.
 // Choosing one keeps the others.
-// `raised` sets them on the sky ground. The home shows them over "Tất cả món quanh đây" (Figma K1b) with the
-// order as a chip (`sort`) and `before` them a link to the search; each choice opens the search.
+// `raised` sets them on the sky ground and `sort` puts the order first, as Keeta and foodpanda do (Figma K2). The
+// home shows them over "Tất cả món quanh đây" (Figma K1b) with `before` them a link to the search; each choice
+// opens the search.
 export function SearchFilters({
   query,
   raised,
@@ -68,13 +69,12 @@ export function SearchFilters({
       {before && <li>{before}</li>}
       {sort && (
         <li>
-          <SearchOrder query={query} chip />
+          <SearchOrder query={query} raised={raised} />
         </li>
       )}
       {query.near && (
         <li>
           <FilterMenu
-            variant="chip"
             raised={raised}
             name={t("distance")}
             options={[
@@ -134,7 +134,6 @@ export function SearchFilters({
       </li>
       <li>
         <FilterMenu
-          variant="chip"
           raised={raised}
           name={t("kind")}
           options={[
@@ -147,11 +146,8 @@ export function SearchFilters({
   );
 }
 
-/**
- * The order of the results ("Gần nhất ▾"): the backend's own first, then each other one it takes. As a
- * `chip` it is the home's "Sắp xếp ▾".
- */
-export function SearchOrder({ query, chip = false }: { query: SearchQuery; chip?: boolean }) {
+/** The order of the results ("Sắp xếp ▾"): the backend's own first, then each other one it takes. */
+function SearchOrder({ query, raised }: { query: SearchQuery; raised?: boolean }) {
   const t = useTranslations("Search");
   const natural = query.q ? "relevance" : query.near ? "distance" : "ending_soon";
   const others = sortChoices.filter(
@@ -161,9 +157,8 @@ export function SearchOrder({ query, chip = false }: { query: SearchQuery; chip?
 
   return (
     <FilterMenu
-      variant={chip ? "chip" : "inline"}
-      raised={chip}
-      name={chip ? t("sortBy") : t(`sort.${natural}`)}
+      raised={raised}
+      name={t("sortBy")}
       options={[
         {
           label: t(`sort.${natural}`),

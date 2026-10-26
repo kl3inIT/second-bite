@@ -110,7 +110,13 @@
     "lowest": "Thấp nhất",
     "highest": "Cao nhất",
     "popular": "Món phổ biến ở Tasco Mall",
-    "onSale": "{count} món đang giảm"
+    "onSale": "{count} món đang giảm",
+    "view": {
+      "grid": "Xem dạng ô",
+      "list": "Xem dạng danh sách"
+    },
+    "viewSeller": "Xem quán",
+    "viewSellerNamed": "Xem quán {seller}"
   },
   "LanguageSwitcher": {
     "label": "Switch to English"

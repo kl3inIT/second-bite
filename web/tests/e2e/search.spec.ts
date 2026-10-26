@@ -58,6 +58,28 @@ test.describe("the search", () => {
     ).toBeHidden();
   });
 
+  test("switches to a list grouped by seller, the order a chip, and keeps the list in this browser", async ({
+    page,
+  }) => {
+    await page.goto("/vi/search");
+    const chips = page.getByRole("list", { name: "Bộ lọc" }).filter({ visible: true });
+    await expect(chips.getByRole("button", { name: "Sắp xếp" })).toBeVisible();
+
+    const list = await hydrated(page.getByRole("button", { name: "Xem dạng danh sách" }));
+    await list.click();
+    await expect(list).toHaveAttribute("aria-pressed", "true");
+    const seller = page.getByRole("region", { name: "La Paris" });
+    await expect(seller.getByRole("link", { name: "Xem quán La Paris" })).toBeVisible();
+    await expect(seller.getByRole("button", { name: /Thêm/ }).first()).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await page.reload();
+    await expect(
+      await hydrated(page.getByRole("button", { name: "Xem dạng danh sách" })),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(seller.getByRole("link", { name: "Xem quán La Paris" })).toBeVisible();
+  });
+
   test("remembers recent searches in this browser until they are removed", async ({ page }) => {
     await page.goto("/vi/search?q=banh+bao");
     const field = await hydrated(page.getByRole("searchbox", { name: "Tìm món hoặc quán" }));
