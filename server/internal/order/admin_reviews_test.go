@@ -25,8 +25,8 @@ func testAdminsHideReviews(t *testing.T, f fixture) {
 	sellerID := f.shop(owner, t, "Quán Phở Gà "+f.prefix)
 	croissant := f.post(owner, t, sellerID, "Croissant", 9, 20_000, time.Now())
 
-	bad := f.rated(t, owner, customer, croissant, order.Review{Stars: 1, Comment: "Bánh nguội quá"})
-	good := f.rated(t, owner, customer, croissant, order.Review{Stars: 5})
+	bad := f.rated(owner, customer, t, croissant, order.Review{Stars: 1, Comment: "Bánh nguội quá"})
+	good := f.rated(owner, customer, t, croissant, order.Review{Stars: 5})
 
 	checkReviewsListed(t, f, sellerID, bad, good)
 	checkHidingAReview(t, f, sellerID, bad)

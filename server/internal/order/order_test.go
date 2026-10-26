@@ -207,7 +207,7 @@ func mustFail(t *testing.T, what string, err, want error) {
 }
 
 // rated places an order of one unit of o for customer, has owner hand it over and has customer rate it.
-func (f fixture) rated(t *testing.T, owner, customer context.Context, o offer.Offer, review order.Review) order.Order {
+func (f fixture) rated(owner, customer context.Context, t *testing.T, o offer.Offer, review order.Review) order.Order {
 	t.Helper()
 
 	placed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{o.ID, 1}})

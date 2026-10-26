@@ -25,23 +25,23 @@ func testSellerReadsReviews(t *testing.T, f fixture) {
 	sellerID := f.shop(owner, t, "Quán Bún Chả "+f.prefix)
 	croissant := f.post(owner, t, sellerID, "Croissant", 9, 20_000, time.Now())
 
-	one := f.rated(t, owner, customer, croissant, order.Review{Stars: 1, Comment: "Bánh nguội"})
-	five := f.rated(t, owner, customer, croissant, order.Review{Stars: 5, Comment: "Rất ngon"})
-	rude := f.rated(t, owner, customer, croissant, order.Review{Stars: 2, Comment: "Lời lẽ xúc phạm"})
+	one := f.rated(owner, customer, t, croissant, order.Review{Stars: 1, Comment: "Bánh nguội"})
+	five := f.rated(owner, customer, t, croissant, order.Review{Stars: 5, Comment: "Rất ngon"})
+	rude := f.rated(owner, customer, t, croissant, order.Review{Stars: 2, Comment: "Lời lẽ xúc phạm"})
 
 	if _, err := f.orders.HideReview(admin, rude.ID, ""); err != nil {
 		t.Fatal(err)
 	}
 
-	checkSellerReviewsListed(t, f, owner, sellerID, one, five)
-	checkSellerReviewsByStars(t, f, owner, sellerID, one)
-	checkSellerReviewsRefused(t, f, owner, sellerID)
+	checkSellerReviewsListed(owner, t, f, sellerID, one, five)
+	checkSellerReviewsPaging(owner, t, f, sellerID)
+	checkSellerReviewsByStars(owner, t, f, sellerID, one)
+	checkSellerReviewsRefused(owner, t, f, sellerID)
 }
 
 // checkSellerReviewsListed: the two shown reviews, the latest first, without
-// the hidden one, counted by stars with their mean; a page past the end is
-// empty and an admin reads them too.
-func checkSellerReviewsListed(t *testing.T, f fixture, owner context.Context, sellerID uuid.UUID, one, five order.Order) {
+// the hidden one, counted by stars with their mean.
+func checkSellerReviewsListed(owner context.Context, t *testing.T, f fixture, sellerID uuid.UUID, one, five order.Order) {
 	t.Helper()
 
 	all, err := f.orders.ListReviewsOfSeller(owner, sellerID, nil, 1, 10)
@@ -57,6 +57,12 @@ func checkSellerReviewsListed(t *testing.T, f fixture, owner context.Context, se
 		t.Errorf("the counts and the mean: %+v, %v", all.Stars, all.Average)
 	}
 
+}
+
+// checkSellerReviewsPaging: a page past the end is empty, and an admin reads the reviews too.
+func checkSellerReviewsPaging(owner context.Context, t *testing.T, f fixture, sellerID uuid.UUID) {
+	t.Helper()
+
 	past, err := f.orders.ListReviewsOfSeller(owner, sellerID, nil, 2, 10)
 	if err != nil || len(past.Reviews) != 0 || past.Total != 2 {
 		t.Errorf("a page past the end: %+v, %v", past, err)
@@ -70,7 +76,7 @@ func checkSellerReviewsListed(t *testing.T, f fixture, owner context.Context, se
 
 // checkSellerReviewsByStars: three stars or fewer keeps the poor review, and
 // leaves the counts of every number of stars as they were.
-func checkSellerReviewsByStars(t *testing.T, f fixture, owner context.Context, sellerID uuid.UUID, one order.Order) {
+func checkSellerReviewsByStars(owner context.Context, t *testing.T, f fixture, sellerID uuid.UUID, one order.Order) {
 	t.Helper()
 
 	low, err := f.orders.ListReviewsOfSeller(owner, sellerID, []int{1, 2, 3}, 1, 10)
@@ -82,7 +88,7 @@ func checkSellerReviewsByStars(t *testing.T, f fixture, owner context.Context, s
 
 // checkSellerReviewsRefused: a stranger, stars out of range, a page of zero
 // and a size past 100.
-func checkSellerReviewsRefused(t *testing.T, f fixture, owner context.Context, sellerID uuid.UUID) {
+func checkSellerReviewsRefused(owner context.Context, t *testing.T, f fixture, sellerID uuid.UUID) {
 	t.Helper()
 
 	stranger := f.as(t, "stranger", platform.RoleCustomer)
