@@ -226,6 +226,18 @@ WHERE (cardinality(@stars::int[]) = 0 OR r.stars = ANY (@stars::int[]))
 ORDER BY r.created_at DESC, o.number DESC
 LIMIT @max_rows OFFSET @skip_rows;
 
+-- name: ReviewsOfSeller :many
+-- One page of the shown reviews of one seller's orders, of the stars given (any
+-- when empty), each with the names of its order's dishes; the latest first.
+-- CountReviewsByStars counts them.
+SELECT r.order_id, o.number, o.customer_name, r.stars, r.tags, r.comment, r.created_at,
+       coalesce((SELECT string_agg(l.name, ', ' ORDER BY l.name) FROM order_lines l WHERE l.order_id = o.id), '')::text AS dishes
+FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
+WHERE o.seller_id = @seller_id AND r.hidden_at IS NULL
+  AND (cardinality(@stars::int[]) = 0 OR r.stars = ANY (@stars::int[]))
+ORDER BY r.created_at DESC, o.number DESC
+LIMIT @max_rows OFFSET @skip_rows;
+
 -- name: CountReviewsByStars :one
 -- For the cards above the admins' list, the reviews matching the words, the
 -- seller and the days: how many give each number of stars, shown or hidden as

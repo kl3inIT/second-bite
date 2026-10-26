@@ -1590,6 +1590,71 @@ func (q *Queries) ReviewsOf(ctx context.Context, orderIds []uuid.UUID) ([]Review
 	return items, nil
 }
 
+const reviewsOfSeller = `-- name: ReviewsOfSeller :many
+SELECT r.order_id, o.number, o.customer_name, r.stars, r.tags, r.comment, r.created_at,
+       coalesce((SELECT string_agg(l.name, ', ' ORDER BY l.name) FROM order_lines l WHERE l.order_id = o.id), '')::text AS dishes
+FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
+WHERE o.seller_id = $1 AND r.hidden_at IS NULL
+  AND (cardinality($2::int[]) = 0 OR r.stars = ANY ($2::int[]))
+ORDER BY r.created_at DESC, o.number DESC
+LIMIT $4 OFFSET $3
+`
+
+type ReviewsOfSellerParams struct {
+	SellerID uuid.UUID
+	Stars    []int32
+	SkipRows int32
+	MaxRows  int32
+}
+
+type ReviewsOfSellerRow struct {
+	OrderID      uuid.UUID
+	Number       pgtype.Int8
+	CustomerName string
+	Stars        int16
+	Tags         []string
+	Comment      string
+	CreatedAt    time.Time
+	Dishes       string
+}
+
+// One page of the shown reviews of one seller's orders, of the stars given (any
+// when empty), each with the names of its order's dishes; the latest first.
+// CountReviewsByStars counts them.
+func (q *Queries) ReviewsOfSeller(ctx context.Context, arg ReviewsOfSellerParams) ([]ReviewsOfSellerRow, error) {
+	rows, err := q.db.Query(ctx, reviewsOfSeller,
+		arg.SellerID,
+		arg.Stars,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReviewsOfSellerRow
+	for rows.Next() {
+		var i ReviewsOfSellerRow
+		if err := rows.Scan(
+			&i.OrderID,
+			&i.Number,
+			&i.CustomerName,
+			&i.Stars,
+			&i.Tags,
+			&i.Comment,
+			&i.CreatedAt,
+			&i.Dishes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const sellerOrders = `-- name: SellerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
