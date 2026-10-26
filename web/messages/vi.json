@@ -786,6 +786,12 @@
       "delivered": "Đã giao · {count}",
       "cancelled": "Đã hủy · {count}"
     },
+    "orderTabName": {
+      "preparing": "Chuẩn bị",
+      "ready": "Sẵn sàng",
+      "delivered": "Đã giao",
+      "cancelled": "Đã hủy"
+    },
     "ordersEmpty": {
       "preparing": "Chưa có đơn nào đang chuẩn bị.",
       "ready": "Chưa có đơn nào sẵn sàng.",
@@ -831,6 +837,11 @@
       "on_sale": "Đang bán · {count}",
       "sold_out": "Đã hết · {count}",
       "closed": "Đã đóng · {count}"
+    },
+    "tabName": {
+      "on_sale": "Đang bán",
+      "sold_out": "Đã hết",
+      "closed": "Đã đóng"
     },
     "emptyAll": "Chưa có bài đăng nào. Bấm Đăng món để thêm.",
     "empty": {
