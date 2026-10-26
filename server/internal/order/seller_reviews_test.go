@@ -1,6 +1,7 @@
 package order_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -20,45 +21,40 @@ func testSellerReadsReviews(t *testing.T, f fixture) {
 
 	owner := f.as(t, "owner", platform.RoleCustomer)
 	customer := f.as(t, "customer", platform.RoleCustomer)
-	stranger := f.as(t, "stranger", platform.RoleCustomer)
 	admin := f.as(t, "admin", platform.RoleAdmin)
 	sellerID := f.shop(owner, t, "Quán Bún Chả "+f.prefix)
 	croissant := f.post(owner, t, sellerID, "Croissant", 9, 20_000, time.Now())
 
-	rated := func(stars int, comment string) order.Order {
-		placed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if _, err := f.orders.HandOver(owner, placed.ID); err != nil {
-			t.Fatal(err)
-		}
-
-		if _, err := f.orders.Rate(customer, placed.ID, "", order.Review{Stars: stars, Comment: comment}); err != nil {
-			t.Fatal(err)
-		}
-
-		return placed
-	}
-
-	one, five, rude := rated(1, "Bánh nguội"), rated(5, "Rất ngon"), rated(2, "Lời lẽ xúc phạm")
+	one := f.rated(t, owner, customer, croissant, order.Review{Stars: 1, Comment: "Bánh nguội"})
+	five := f.rated(t, owner, customer, croissant, order.Review{Stars: 5, Comment: "Rất ngon"})
+	rude := f.rated(t, owner, customer, croissant, order.Review{Stars: 2, Comment: "Lời lẽ xúc phạm"})
 
 	if _, err := f.orders.HideReview(admin, rude.ID, ""); err != nil {
 		t.Fatal(err)
 	}
 
+	checkSellerReviewsListed(t, f, owner, sellerID, one, five)
+	checkSellerReviewsByStars(t, f, owner, sellerID, one)
+	checkSellerReviewsRefused(t, f, owner, sellerID)
+}
+
+// checkSellerReviewsListed: the two shown reviews, the latest first, without
+// the hidden one, counted by stars with their mean; a page past the end is
+// empty and an admin reads them too.
+func checkSellerReviewsListed(t *testing.T, f fixture, owner context.Context, sellerID uuid.UUID, one, five order.Order) {
+	t.Helper()
+
 	all, err := f.orders.ListReviewsOfSeller(owner, sellerID, nil, 1, 10)
-	if err != nil || all.Total != 2 || len(all.Reviews) != 2 || all.Reviews[0].OrderID != five.ID ||
-		all.Reviews[0].CustomerName != someone.Name || all.Reviews[0].Dishes != "Croissant" ||
-		all.Stars != [5]int{1, 0, 0, 0, 1} || all.Average == nil || *all.Average != 3 {
+	if err != nil || all.Total != 2 || len(all.Reviews) != 2 || all.Reviews[0].OrderID != five.ID || all.Reviews[1].OrderID != one.ID {
 		t.Fatalf("the shown reviews, the latest first, without the hidden: %+v, %v", all, err)
 	}
 
-	low, err := f.orders.ListReviewsOfSeller(owner, sellerID, []int{1, 2, 3}, 1, 10)
-	if err != nil || low.Total != 1 || low.Reviews[0].OrderID != one.ID || low.Stars != all.Stars ||
-		low.Average == nil || *low.Average != 1 {
-		t.Errorf("three stars or fewer: %+v, %v", low, err)
+	if first := all.Reviews[0]; first.CustomerName != someone.Name || first.Dishes != "Croissant" {
+		t.Errorf("who collected and what: %+v", first)
+	}
+
+	if all.Stars != [5]int{1, 0, 0, 0, 1} || all.Average == nil || *all.Average != 3 {
+		t.Errorf("the counts and the mean: %+v, %v", all.Stars, all.Average)
 	}
 
 	past, err := f.orders.ListReviewsOfSeller(owner, sellerID, nil, 2, 10)
@@ -66,11 +62,32 @@ func testSellerReadsReviews(t *testing.T, f fixture) {
 		t.Errorf("a page past the end: %+v, %v", past, err)
 	}
 
+	admin := f.as(t, "admin", platform.RoleAdmin)
 	if byAdmin, err := f.orders.ListReviewsOfSeller(admin, sellerID, nil, 1, 10); err != nil || byAdmin.Total != 2 {
 		t.Errorf("an admin reads them too: %+v, %v", byAdmin, err)
 	}
+}
 
-	_, err = f.orders.ListReviewsOfSeller(stranger, sellerID, nil, 1, 10)
+// checkSellerReviewsByStars: three stars or fewer keeps the poor review, and
+// leaves the counts of every number of stars as they were.
+func checkSellerReviewsByStars(t *testing.T, f fixture, owner context.Context, sellerID uuid.UUID, one order.Order) {
+	t.Helper()
+
+	low, err := f.orders.ListReviewsOfSeller(owner, sellerID, []int{1, 2, 3}, 1, 10)
+	if err != nil || low.Total != 1 || low.Reviews[0].OrderID != one.ID || low.Stars != [5]int{1, 0, 0, 0, 1} ||
+		low.Average == nil || *low.Average != 1 {
+		t.Errorf("three stars or fewer: %+v, %v", low, err)
+	}
+}
+
+// checkSellerReviewsRefused: a stranger, stars out of range, a page of zero
+// and a size past 100.
+func checkSellerReviewsRefused(t *testing.T, f fixture, owner context.Context, sellerID uuid.UUID) {
+	t.Helper()
+
+	stranger := f.as(t, "stranger", platform.RoleCustomer)
+
+	_, err := f.orders.ListReviewsOfSeller(stranger, sellerID, nil, 1, 10)
 	mustFail(t, "a stranger", err, seller.ErrNotFound)
 
 	_, err = f.orders.ListReviewsOfSeller(owner, sellerID, []int{6}, 1, 10)

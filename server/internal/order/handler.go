@@ -501,34 +501,8 @@ type sellerReviewsOutput struct {
 	}
 }
 
-func registerStaffOperations(api huma.API, s *Service) {
-	huma.Register(api, huma.Operation{
-		OperationID: "listSellerOrders", Method: http.MethodGet, Path: "/sellers/{sellerId}/orders",
-		Summary: "A seller's orders of one day, soonest first, to its people and admins", Tags: tagOrders, Security: security,
-	}, func(ctx context.Context, in *struct {
-		SellerID uuid.UUID `path:"sellerId"`
-		Day      string    `doc:"A day in Vietnam time, YYYY-MM-DD; today when empty" pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$" query:"day"`
-	},
-	) (*ordersOutput, error) {
-		day := s.Today()
-
-		if in.Day != "" {
-			parsed, err := time.ParseInLocation(time.DateOnly, in.Day, vietnam)
-			if err != nil {
-				return nil, ErrDayInvalid
-			}
-
-			day = parsed
-		}
-
-		orders, err := s.OfSeller(ctx, in.SellerID, day)
-		if err != nil {
-			return nil, err
-		}
-
-		return toOrders(orders), nil
-	})
-
+// registerSellerReviewOperation adds the seller's list of the reviews of its orders to api (SEC-154).
+func registerSellerReviewOperation(api huma.API, s *Service) {
 	huma.Register(api, huma.Operation{
 		OperationID: "listSellerReviews", Method: http.MethodGet, Path: "/sellers/{sellerId}/reviews",
 		Summary: "The reviews of a seller's orders that show, by stars, the latest first, to its people and admins",
@@ -563,6 +537,37 @@ func registerStaffOperations(api huma.API, s *Service) {
 
 		return out, nil
 	})
+}
+
+func registerStaffOperations(api huma.API, s *Service) {
+	huma.Register(api, huma.Operation{
+		OperationID: "listSellerOrders", Method: http.MethodGet, Path: "/sellers/{sellerId}/orders",
+		Summary: "A seller's orders of one day, soonest first, to its people and admins", Tags: tagOrders, Security: security,
+	}, func(ctx context.Context, in *struct {
+		SellerID uuid.UUID `path:"sellerId"`
+		Day      string    `doc:"A day in Vietnam time, YYYY-MM-DD; today when empty" pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$" query:"day"`
+	},
+	) (*ordersOutput, error) {
+		day := s.Today()
+
+		if in.Day != "" {
+			parsed, err := time.ParseInLocation(time.DateOnly, in.Day, vietnam)
+			if err != nil {
+				return nil, ErrDayInvalid
+			}
+
+			day = parsed
+		}
+
+		orders, err := s.OfSeller(ctx, in.SellerID, day)
+		if err != nil {
+			return nil, err
+		}
+
+		return toOrders(orders), nil
+	})
+
+	registerSellerReviewOperation(api, s)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "markOrderReady", Method: http.MethodPost, Path: "/orders/{orderId}/ready",

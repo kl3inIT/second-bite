@@ -72,11 +72,7 @@ func (s *Service) ListReviewsOfSeller(ctx context.Context, sellerID uuid.UUID, s
 		Stars:   [maxStars]int{int(counts.One), int(counts.Two), int(counts.Three), int(counts.Four), int(counts.Five)},
 	}
 
-	for i, n := range out.Stars {
-		if len(asked) == 0 || slices.Contains(asked, int32(i+1)) {
-			out.Total += n
-		}
-	}
+	out.Total = starsTotal(out.Stars, asked)
 
 	if counts.Shown > 0 {
 		average := float64(counts.ShownStars) / float64(counts.Shown)
@@ -84,17 +80,35 @@ func (s *Service) ListReviewsOfSeller(ctx context.Context, sellerID uuid.UUID, s
 	}
 
 	for _, r := range rows {
-		review := SellerReview{
-			Review:  Review{Stars: int(r.Stars), Tags: make([]Tag, 0, len(r.Tags)), Comment: r.Comment, CreatedAt: r.CreatedAt},
-			OrderID: r.OrderID, Number: r.Number.Int64, CustomerName: r.CustomerName, Dishes: r.Dishes,
-		}
-
-		for _, t := range r.Tags {
-			review.Tags = append(review.Tags, Tag(t))
-		}
-
-		out.Reviews = append(out.Reviews, review)
+		out.Reviews = append(out.Reviews, fromSellerReviewRow(r))
 	}
 
 	return out, nil
+}
+
+// starsTotal adds up the reviews giving one of asked (all when it is empty),
+// from how many give each number of stars.
+func starsTotal(counts [maxStars]int, asked []int32) int {
+	total := 0
+
+	for i, n := range counts {
+		if len(asked) == 0 || slices.Contains(asked, int32(i+1)) {
+			total += n
+		}
+	}
+
+	return total
+}
+
+func fromSellerReviewRow(r db.ReviewsOfSellerRow) SellerReview {
+	review := SellerReview{
+		Stars: int(r.Stars), Tags: make([]Tag, 0, len(r.Tags)), Comment: r.Comment, CreatedAt: r.CreatedAt,
+		OrderID: r.OrderID, Number: r.Number.Int64, CustomerName: r.CustomerName, Dishes: r.Dishes,
+	}
+
+	for _, t := range r.Tags {
+		review.Tags = append(review.Tags, Tag(t))
+	}
+
+	return review
 }

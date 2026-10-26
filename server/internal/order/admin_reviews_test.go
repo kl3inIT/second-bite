@@ -25,24 +25,8 @@ func testAdminsHideReviews(t *testing.T, f fixture) {
 	sellerID := f.shop(owner, t, "Quán Phở Gà "+f.prefix)
 	croissant := f.post(owner, t, sellerID, "Croissant", 9, 20_000, time.Now())
 
-	rated := func(stars int, comment string) order.Order {
-		placed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if _, err := f.orders.HandOver(owner, placed.ID); err != nil {
-			t.Fatal(err)
-		}
-
-		if _, err := f.orders.Rate(customer, placed.ID, "", order.Review{Stars: stars, Comment: comment}); err != nil {
-			t.Fatal(err)
-		}
-
-		return placed
-	}
-
-	bad, good := rated(1, "Bánh nguội quá"), rated(5, "")
+	bad := f.rated(t, owner, customer, croissant, order.Review{Stars: 1, Comment: "Bánh nguội quá"})
+	good := f.rated(t, owner, customer, croissant, order.Review{Stars: 5})
 
 	checkReviewsListed(t, f, sellerID, bad, good)
 	checkHidingAReview(t, f, sellerID, bad)
