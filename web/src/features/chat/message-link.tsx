@@ -15,6 +15,7 @@ export function MessageLink({
   href,
   unread,
   variant,
+  size = "default",
   className,
 }: {
   to: "store" | "customer";
@@ -23,12 +24,13 @@ export function MessageLink({
   href: string;
   unread: number | undefined;
   variant: "secondary" | "outline";
+  size?: "default" | "lg";
   className?: string;
 }) {
   const t = useTranslations("Chat");
 
   return (
-    <Link href={href} className={cn(buttonVariants({ variant }), className)}>
+    <Link href={href} className={cn(buttonVariants({ variant, size }), className)}>
       {t(view ? "viewMessages" : to === "store" ? "messageStore" : "messageCustomer")}
       <UnreadPill count={unread ?? 0} />
     </Link>

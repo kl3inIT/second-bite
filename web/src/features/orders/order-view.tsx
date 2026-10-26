@@ -1,5 +1,6 @@
 import { CircleCheckIcon, CircleXIcon, ClockFadingIcon, type LucideIcon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
+import type { ReactNode } from "react";
 
 import { BackButton } from "@/components/back-button";
 import { PageBar } from "@/components/page-bar";
@@ -306,16 +307,17 @@ export function CollectedOrder({
               time: format.dateTime(new Date(when), "time"),
               date: date(when),
             })}
+            chat={
+              <ChatEntry
+                order={order}
+                side="customer"
+                access={order.access}
+                href={`/orders/${order.id}/chat`}
+                variant="secondary"
+                size="lg"
+              />
+            }
           />
-          <div className="px-4 pt-3.5">
-            <ChatEntry
-              order={order}
-              side="customer"
-              access={order.access}
-              href={`/orders/${order.id}/chat`}
-              variant="secondary"
-            />
-          </div>
         </div>
       ) : null}
     </article>
@@ -465,17 +467,20 @@ function Timeline({ order }: { order: Order }) {
 }
 
 /**
- * An order's receipt framed in the colour of what became of it, with what happened beside it from 1024px, and the
- * way back to tonight's dishes (Figma D5, O5, O6).
+ * An order's receipt framed in the colour of what became of it, with what happened beside it from 1024px, the way
+ * back to tonight's dishes, the way into its chat and, last, its problem (Figma D5, O5, O6).
  */
 function Receipt({
   order,
   look,
   badge,
+  chat,
 }: {
   order: Order;
   look: { icon?: LucideIcon; frame: string };
   badge: string;
+  /** The way into the order's chat, as wide as the buttons around it. */
+  chat: ReactNode;
 }) {
   const t = useTranslations("Orders");
   const Icon = look.icon;
@@ -503,8 +508,9 @@ function Receipt({
       <Link href="/" className={cn(buttonVariants({ size: "lg" }), "md:hidden")}>
         {t("seeOthers")}
       </Link>
+      {chat}
       {/* A collected or expired order's problem, or the way to report one (SEC-84, Figma D5, D6b, D6c). It
-          follows the way back to tonight's dishes, which stays clear of the phone's floating bar. */}
+          comes last, under the ways on, and stays clear of the phone's floating bar. */}
       <OrderProblem order={order} />
     </div>
   );
@@ -567,16 +573,21 @@ export function EndedOrder({ order, now }: { order: Order & { status: Ended }; n
           </Link>
         </div>
       </section>
-      <Receipt order={order} look={look} badge={t(`ended.badge.${order.status}`)} />
-      <div className="px-4 md:px-0">
-        <ChatEntry
-          order={order}
-          side="customer"
-          access={order.access}
-          href={`/orders/${order.id}/chat`}
-          variant="secondary"
-        />
-      </div>
+      <Receipt
+        order={order}
+        look={look}
+        badge={t(`ended.badge.${order.status}`)}
+        chat={
+          <ChatEntry
+            order={order}
+            side="customer"
+            access={order.access}
+            href={`/orders/${order.id}/chat`}
+            variant="secondary"
+            size="lg"
+          />
+        }
+      />
     </article>
   );
 }

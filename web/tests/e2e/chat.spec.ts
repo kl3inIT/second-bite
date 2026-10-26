@@ -184,6 +184,16 @@ for (const width of WIDTHS) {
       // Figma W6 and D5: the cancelled order's page offers its messages to read.
       const read = page.getByRole("link", { name: "Xem tin nhắn" }).filter({ visible: true });
       await expect(read).toBeVisible();
+      // On a phone it is as wide as "Xem món khác" above it.
+      if (width < 768) {
+        const others = await page
+          .getByRole("link", { name: "Xem món khác" })
+          .filter({ visible: true })
+          .boundingBox();
+        const box = await read.boundingBox();
+        expect(box?.width).toBeCloseTo(others?.width ?? 0, 0);
+        expect(box?.y).toBeGreaterThan(others?.y ?? 0);
+      }
       await read.click();
       await expect(page.getByRole("textbox")).toHaveCount(0);
       await expect(page.getByText("Đơn đã kết thúc, chỉ xem lại tin nhắn.")).toBeVisible();
