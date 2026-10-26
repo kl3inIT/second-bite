@@ -780,12 +780,6 @@
     "ordersToday": "Đơn hôm nay",
     "ordersOn": "Đơn ngày {date}",
     "orderTabs": "Nhóm đơn",
-    "orderTab": {
-      "preparing": "Chuẩn bị · {count}",
-      "ready": "Sẵn sàng · {count}",
-      "delivered": "Đã giao · {count}",
-      "cancelled": "Đã hủy · {count}"
-    },
     "orderTabName": {
       "preparing": "Chuẩn bị",
       "ready": "Sẵn sàng",
@@ -833,11 +827,6 @@
     "post": "Đăng món",
     "today": "Hôm nay",
     "tabs": "Nhóm bài đăng",
-    "tab": {
-      "on_sale": "Đang bán · {count}",
-      "sold_out": "Đã hết · {count}",
-      "closed": "Đã đóng · {count}"
-    },
     "tabName": {
       "on_sale": "Đang bán",
       "sold_out": "Đã hết",

@@ -6,14 +6,12 @@ type StatusTab = {
   href: string;
   /** The tab's visible name. */
   label: string;
-  /** The tab's name with its count, read by assistive technology. */
-  accessibleLabel: string;
   count: number;
 };
 
 /**
  * The status tabs of a seller's panel: one equal-width pill per status, its name over its count, the selected one
- * filled.
+ * filled. A screen reader hears the name, a dot and the count ("Chuẩn bị · 3"), which holds the visible words.
  */
 export function StatusTabs({
   label,
@@ -34,7 +32,6 @@ export function StatusTabs({
             <Link
               href={tab.href}
               scroll={scroll}
-              aria-label={tab.accessibleLabel}
               aria-current={tab.name === selected ? "page" : undefined}
               className={cn(
                 "flex flex-col items-center justify-center rounded-2xl border px-1 py-2 text-center whitespace-nowrap transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
@@ -44,6 +41,7 @@ export function StatusTabs({
               )}
             >
               <span className="text-label-strong">{tab.label}</span>
+              <span className="sr-only"> · </span>
               <span className="text-body-sm-strong">{tab.count}</span>
             </Link>
           </li>

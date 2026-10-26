@@ -182,7 +182,6 @@ export async function StoreHome({
             name,
             href: filterHref(name),
             label: t(`orderTabName.${name}`),
-            accessibleLabel: t(`orderTab.${name}`, { count: groups[name].length }),
             count: groups[name].length,
           }))}
         />

@@ -111,7 +111,6 @@ export async function StorePosts({
             name,
             href: `/stores/${sellerId}/offers${serializePostSearchParams({ day: dayOrNull(day, today), tab: name, q: search })}`,
             label: t(`tabName.${name}`),
-            accessibleLabel: t(`tab.${name}`, { count: groups[name].length }),
             count: groups[name].length,
           }))}
         />
