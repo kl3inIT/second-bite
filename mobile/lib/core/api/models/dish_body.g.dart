@@ -13,6 +13,7 @@ _DishBody _$DishBodyFromJson(Map<String, dynamic> json) => _DishBody(
   id: json['id'] as String,
   ingredients: json['ingredients'] as String,
   kind: DishBodyKind.fromJson(json['kind'] as String),
+  kindLabel: json['kindLabel'] as String,
   name: json['name'] as String,
   photo: OfferPhotoBody.fromJson(json['photo'] as Map<String, dynamic>),
   photos: (json['photos'] as List<dynamic>)
@@ -31,6 +32,7 @@ Map<String, dynamic> _$DishBodyToJson(_DishBody instance) => <String, dynamic>{
   'id': instance.id,
   'ingredients': instance.ingredients,
   'kind': _$DishBodyKindEnumMap[instance.kind]!,
+  'kindLabel': instance.kindLabel,
   'name': instance.name,
   'photo': instance.photo,
   'photos': instance.photos,
@@ -46,6 +48,9 @@ const _$DishBodyKindEnumMap = {
   DishBodyKind.ingredients: 'ingredients',
   DishBodyKind.drinks: 'drinks',
   DishBodyKind.mixedBox: 'mixed_box',
+  DishBodyKind.dessert: 'dessert',
+  DishBodyKind.snacks: 'snacks',
+  DishBodyKind.produce: 'produce',
   DishBodyKind.other: 'other',
   DishBodyKind.$unknown: r'$unknown',
 };

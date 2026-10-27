@@ -14,6 +14,7 @@ _DishChangeBody _$DishChangeBodyFromJson(Map<String, dynamic> json) =>
       kind: json['kind'] == null
           ? null
           : DishChangeBodyKind.fromJson(json['kind'] as String),
+      kindLabel: json['kindLabel'] as String?,
       morePhotoIds: (json['morePhotoIds'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -29,6 +30,7 @@ Map<String, dynamic> _$DishChangeBodyToJson(_DishChangeBody instance) =>
       'hidden': instance.hidden,
       'ingredients': instance.ingredients,
       'kind': _$DishChangeBodyKindEnumMap[instance.kind],
+      'kindLabel': instance.kindLabel,
       'morePhotoIds': instance.morePhotoIds,
       'name': instance.name,
       'originalPriceVnd': instance.originalPriceVnd,
@@ -42,6 +44,9 @@ const _$DishChangeBodyKindEnumMap = {
   DishChangeBodyKind.ingredients: 'ingredients',
   DishChangeBodyKind.drinks: 'drinks',
   DishChangeBodyKind.mixedBox: 'mixed_box',
+  DishChangeBodyKind.dessert: 'dessert',
+  DishChangeBodyKind.snacks: 'snacks',
+  DishChangeBodyKind.produce: 'produce',
   DishChangeBodyKind.other: 'other',
   DishChangeBodyKind.$unknown: r'$unknown',
 };

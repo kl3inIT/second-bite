@@ -16,6 +16,12 @@ enum DishBodyKind {
   drinks('drinks'),
   @JsonValue('mixed_box')
   mixedBox('mixed_box'),
+  @JsonValue('dessert')
+  dessert('dessert'),
+  @JsonValue('snacks')
+  snacks('snacks'),
+  @JsonValue('produce')
+  produce('produce'),
   @JsonValue('other')
   other('other'),
 

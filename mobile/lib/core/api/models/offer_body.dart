@@ -22,6 +22,9 @@ abstract class OfferBody with _$OfferBody {
     required int discountPercent,
     required String id,
     required OfferBodyKind kind,
+
+    /// What the seller calls a dish of the kind other; empty for any other kind
+    required String kindLabel,
     required String name,
     required int originalPriceVnd,
 
