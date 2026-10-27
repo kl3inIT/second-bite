@@ -236,7 +236,18 @@ func (s *Service) keep(ctx context.Context, uploader uuid.UUID, photo Photo, img
 // ErrPhotoNotFound, as for a photo that does not exist. Claiming again
 // succeeds.
 func (s *Service) Claim(ctx context.Context, photoID, accountID uuid.UUID) error {
-	n, err := s.queries.ClaimFile(ctx, db.ClaimFileParams{ID: photoID, Purpose: string(PurposePhoto), AccountID: accountID})
+	return claim(ctx, s.queries, photoID, accountID)
+}
+
+// ClaimIn claims a photo as Claim does, in tx, for a module that claims it
+// while it writes: the claim stands or falls with that write, and no second
+// connection is asked of the pool while tx holds one (SEC-128, SEC-159).
+func (s *Service) ClaimIn(ctx context.Context, tx pgx.Tx, photoID, accountID uuid.UUID) error {
+	return claim(ctx, s.queries.WithTx(tx), photoID, accountID)
+}
+
+func claim(ctx context.Context, q *db.Queries, photoID, accountID uuid.UUID) error {
+	n, err := q.ClaimFile(ctx, db.ClaimFileParams{ID: photoID, Purpose: string(PurposePhoto), AccountID: accountID})
 	if err != nil {
 		return fmt.Errorf("claiming the photo: %w", err)
 	}

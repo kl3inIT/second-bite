@@ -34,7 +34,7 @@ func TestLoadConfig(t *testing.T) {
 			check: func(t *testing.T, cfg platform.Config) {
 				t.Helper()
 
-				if cfg.HTTPAddr != ":8080" || cfg.LogFormat != "json" || cfg.Database.MaxConns != 10 {
+				if cfg.HTTPAddr != ":8080" || cfg.LogFormat != "json" || cfg.Database.MaxConns != 25 {
 					t.Errorf("defaults %+v", cfg)
 				}
 

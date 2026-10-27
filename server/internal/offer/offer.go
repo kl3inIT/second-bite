@@ -120,7 +120,7 @@ func (s *Service) Post(ctx context.Context, sellerID uuid.UUID, d Details) (Offe
 		return Offer{}, err
 	}
 
-	if err := s.usePhotos(ctx, sellerID, caller.AccountID, d.PhotoID, d.MorePhotoIDs, uuid.Nil, nil); err != nil {
+	if err := s.photosOnPool().useAll(ctx, sellerID, caller.AccountID, d.PhotoID, d.MorePhotoIDs, uuid.Nil, nil); err != nil {
 		return Offer{}, err
 	}
 
@@ -279,7 +279,7 @@ func (s *Service) changeIn(
 		return ErrChangeNotAllowed
 	}
 
-	next, err := s.applyChange(ctx, o, c, set, accountID)
+	next, err := s.applyChange(ctx, s.photosIn(tx), o, c, set, accountID)
 	if err != nil {
 		return err
 	}
@@ -405,7 +405,9 @@ func (c Change) appliedTo(d Details) Details {
 
 // applyChange returns the offer's details once c is applied, checking what
 // the change touches against its orders and the settings.
-func (s *Service) applyChange(ctx context.Context, o Offer, c Change, set Settings, accountID uuid.UUID) (Details, error) {
+func (s *Service) applyChange(
+	ctx context.Context, photos photoChecks, o Offer, c Change, set Settings, accountID uuid.UUID,
+) (Details, error) {
 	ordered := o.Units - o.UnitsLeft
 
 	// What an order keeps stays once units are ordered.
@@ -436,7 +438,7 @@ func (s *Service) applyChange(ctx context.Context, o Offer, c Change, set Settin
 		}
 	}
 
-	if err := s.usePhotos(ctx, o.SellerID, accountID, next.PhotoID, next.MorePhotoIDs, o.PhotoID, o.MorePhotoIDs); err != nil {
+	if err := photos.useAll(ctx, o.SellerID, accountID, next.PhotoID, next.MorePhotoIDs, o.PhotoID, o.MorePhotoIDs); err != nil {
 		return Details{}, err
 	}
 
@@ -492,11 +494,31 @@ func (s *Service) Withdraw(ctx context.Context, id uuid.UUID) (Offer, error) {
 	return s.read(ctx, id)
 }
 
-// usePhoto lets an offer of a seller show a photo: one an earlier offer of
-// the seller already shows, or one the caller uploaded, which file then
-// keeps.
-func (s *Service) usePhoto(ctx context.Context, sellerID, photoID, accountID uuid.UUID) error {
-	used, err := s.queries.SellerUsesPhoto(ctx, db.SellerUsesPhotoParams{SellerID: sellerID, PhotoID: photoID})
+// photoChecks reads a seller's photos and claims new ones on one connection:
+// the pool's, or a transaction's, so a write that holds a connection never asks
+// the pool for a second one and its claims stand or fall with it (SEC-159).
+type photoChecks struct {
+	queries *db.Queries
+	claim   func(ctx context.Context, photoID, accountID uuid.UUID) error
+}
+
+func (s *Service) photosOnPool() photoChecks {
+	return photoChecks{queries: s.queries, claim: s.files.Claim}
+}
+
+func (s *Service) photosIn(tx pgx.Tx) photoChecks {
+	return photoChecks{
+		queries: s.queries.WithTx(tx),
+		claim: func(ctx context.Context, photoID, accountID uuid.UUID) error {
+			return s.files.ClaimIn(ctx, tx, photoID, accountID)
+		},
+	}
+}
+
+// use lets an offer of a seller show a photo: one an earlier offer of the
+// seller already shows, or one the caller uploaded, which file then keeps.
+func (p photoChecks) use(ctx context.Context, sellerID, photoID, accountID uuid.UUID) error {
+	used, err := p.queries.SellerUsesPhoto(ctx, db.SellerUsesPhotoParams{SellerID: sellerID, PhotoID: photoID})
 	if err != nil {
 		return fmt.Errorf("reading the seller's photos: %w", err)
 	}
@@ -505,12 +527,12 @@ func (s *Service) usePhoto(ctx context.Context, sellerID, photoID, accountID uui
 		return nil
 	}
 
-	return s.files.Claim(ctx, photoID, accountID)
+	return p.claim(ctx, photoID, accountID)
 }
 
-// usePhotos lets a dish or an offer show a cover and up to two more photos, claiming each one it did not show
+// useAll lets a dish or an offer show a cover and up to two more photos, claiming each one it did not show
 // before (earlier is what it showed until now).
-func (s *Service) usePhotos(
+func (p photoChecks) useAll(
 	ctx context.Context, sellerID, accountID, cover uuid.UUID, more []uuid.UUID, earlierCover uuid.UUID, earlierMore []uuid.UUID,
 ) error {
 	for _, id := range append([]uuid.UUID{cover}, more...) {
@@ -518,7 +540,7 @@ func (s *Service) usePhotos(
 			continue
 		}
 
-		if err := s.usePhoto(ctx, sellerID, id, accountID); err != nil {
+		if err := p.use(ctx, sellerID, id, accountID); err != nil {
 			return err
 		}
 	}

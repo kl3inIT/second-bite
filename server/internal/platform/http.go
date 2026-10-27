@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -21,6 +22,10 @@ const (
 
 	readyTimeout    = 2 * time.Second
 	shutdownTimeout = 20 * time.Second
+
+	// writeTimeout is how long the server has to answer a request once its
+	// header is read; past it the answer can no longer be written.
+	writeTimeout = 30 * time.Second
 )
 
 // NewAPI returns the huma API on mux, whose OpenAPI 3.1 document is generated
@@ -77,7 +82,26 @@ func NewHandler(mux *http.ServeMux, logger *slog.Logger, wraps ...func(http.Hand
 		h = wrap(h)
 	}
 
-	return withRequest(logger, h)
+	return withRequest(logger, withDeadline(h))
+}
+
+// withDeadline ends a request's work when its answer could no longer be
+// written, so a request waiting for a database connection, or anything else,
+// gives up instead of waiting for ever and holding what it already took
+// (SEC-159). A live socket, which outlives any one answer, keeps its context.
+func withDeadline(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.EqualFold(r.Header.Get("Upgrade"), "websocket") {
+			next.ServeHTTP(w, r)
+
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(r.Context(), writeTimeout)
+		defer cancel()
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 // Serve runs the HTTP server on ln until ctx is cancelled, then stops taking
@@ -87,7 +111,7 @@ func Serve(ctx context.Context, ln net.Listener, handler http.Handler, logger *s
 		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
-		WriteTimeout:      30 * time.Second,
+		WriteTimeout:      writeTimeout,
 		IdleTimeout:       60 * time.Second,
 		ErrorLog:          slog.NewLogLogger(logger.Handler(), slog.LevelWarn),
 		BaseContext:       func(net.Listener) context.Context { return context.WithoutCancel(ctx) },

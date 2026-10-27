@@ -39,6 +39,12 @@ const (
 	logFormatJSON     = "json"
 	logFormatText     = "text"
 	keyLength         = 32
+
+	// defaultMaxConns sizes the pool for the requests, the outbox's workers
+	// (eventWorkers) and River's own leader and notifier, which all share it,
+	// with room for the photos read from PostgreSQL at the evening's peak
+	// (SEC-161).
+	defaultMaxConns = 25
 )
 
 // LoadConfig reads the configuration through getenv, so tests pass their own
@@ -52,7 +58,7 @@ func LoadConfig(getenv func(string) string) (Config, error) {
 		LogFormat: valueOr(getenv("SECONDBITE_LOG_FORMAT"), logFormatJSON),
 		Database: DatabaseConfig{
 			URL:               getenv("SECONDBITE_DATABASE_URL"),
-			MaxConns:          10,
+			MaxConns:          defaultMaxConns,
 			MaxConnLifetime:   30 * time.Minute,
 			AcquireTimeout:    5 * time.Second,
 			HealthCheckPeriod: time.Minute,
