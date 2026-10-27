@@ -399,16 +399,21 @@ function PostDrawerBody({
                   <form.AppField name="photo">
                     {() => <PhotoField label={t("photo")} />}
                   </form.AppField>
-                  <form.AppField name="name">
-                    {(field) => (
-                      <field.TextField
-                        label={t("name")}
-                        required
-                        maxLength={80}
-                        placeholder={t("namePlaceholder")}
-                      />
-                    )}
-                  </form.AppField>
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <form.AppField name="name">
+                        {(field) => (
+                          <field.TextField
+                            label={t("name")}
+                            required
+                            maxLength={80}
+                            placeholder={t("namePlaceholder")}
+                          />
+                        )}
+                      </form.AppField>
+                    </div>
+                    <form.AppField name="unit">{() => <UnitField />}</form.AppField>
+                  </div>
                   <form.AppField name="kind">
                     {(field) => (
                       <fieldset className="flex flex-col gap-2">
@@ -427,9 +432,6 @@ function PostDrawerBody({
                       </fieldset>
                     )}
                   </form.AppField>
-                  <div className="grid grid-cols-5 gap-3">
-                    <form.AppField name="unit">{() => <UnitField />}</form.AppField>
-                  </div>
                   <form.Subscribe selector={(state) => state.values.kind === "mixed_box"}>
                     {(mixedBox) =>
                       mixedBox && (
