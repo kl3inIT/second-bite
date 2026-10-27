@@ -9,10 +9,22 @@ export const offerKinds = [
   "ingredients",
   "drinks",
   "mixed_box",
+  "dessert",
+  "snacks",
+  "produce",
   "other",
 ] as const satisfies readonly FoundBody["kind"][];
 
 export type OfferKind = (typeof offerKinds)[number];
+
+/** What a dish's kind is called: the name its seller gave a dish of the kind "other", else the kind's own. */
+export function kindText(
+  name: (kind: OfferKind) => string,
+  kind: OfferKind,
+  label: string,
+): string {
+  return kind === "other" && label ? label : name(kind);
+}
 
 export type OfferSummary = FoundBody;
 

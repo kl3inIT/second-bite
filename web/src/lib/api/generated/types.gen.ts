@@ -312,7 +312,11 @@ export type DishBody = {
     hidden: boolean;
     id: string;
     ingredients: string;
-    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * What the seller calls a dish of the kind other; empty for any other kind
+     */
+    kindLabel: string;
     name: string;
     originalPriceVnd?: number;
     photo: OfferPhotoBody;
@@ -329,7 +333,11 @@ export type DishChangeBody = {
     description?: string;
     hidden?: boolean;
     ingredients?: string;
-    kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * Leaves it as it is when absent, and empties it when the kind is changed from other
+     */
+    kindLabel?: string;
     /**
      * Replaces the photos after the cover; at most two
      */
@@ -350,7 +358,11 @@ export type DishDetailsBody = {
      * What the dish is made of and may contain, allergens included
      */
     ingredients?: string;
-    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * What the seller calls a dish of the kind other; empty for any other kind
+     */
+    kindLabel?: string;
     /**
      * Up to two more photos after the cover
      */
@@ -418,7 +430,11 @@ export type FoundBody = {
      */
     distanceMeters?: number;
     id: string;
-    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * What the seller calls a dish of the kind other; empty for any other kind
+     */
+    kindLabel: string;
     name: string;
     originalPriceVnd: number;
     /**
@@ -586,7 +602,11 @@ export type OfferBody = {
     description: string;
     discountPercent: number;
     id: string;
-    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * What the seller calls a dish of the kind other; empty for any other kind
+     */
+    kindLabel: string;
     name: string;
     originalPriceVnd: number;
     /**
@@ -615,7 +635,11 @@ export type OfferBody = {
 
 export type OfferChangeBody = {
     description?: string;
-    kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * Leaves it as it is when absent, and empties it when the kind is changed from other
+     */
+    kindLabel?: string;
     /**
      * Replaces the photos after the cover; at most two
      */
@@ -643,7 +667,11 @@ export type OfferDetailsBody = {
      * Required for a mixed_box, which is described by what it may hold; allergens are written here
      */
     description?: string;
-    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * What the seller calls a dish of the kind other; empty for any other kind
+     */
+    kindLabel?: string;
     /**
      * Up to two more photos after the cover
      */
@@ -2457,7 +2485,7 @@ export type SearchOffersData = {
         /**
          * One or more kinds, comma-separated
          */
-        kind?: Array<'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other'> | null;
+        kind?: Array<'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other'> | null;
         /**
          * The lowest price of one unit, in đồng
          */

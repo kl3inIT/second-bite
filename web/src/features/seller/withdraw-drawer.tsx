@@ -8,6 +8,7 @@ import { FailureAlert } from "@/components/failure-alert";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
+import { kindText } from "@/features/offers/offer";
 import { useRouter } from "@/i18n/navigation";
 import { failureOf } from "@/lib/api/client";
 import { withdrawOffer } from "@/lib/api/generated";
@@ -75,7 +76,7 @@ export function WithdrawDrawer({ sellerId, target }: { sellerId: string; target:
             <span className="flex min-w-0 flex-col">
               <span className="truncate text-title-lg">{dish.name}</span>
               <span className="text-body-sm text-muted-foreground">
-                {kindName(dish.kind)} · {dish.unit}
+                {kindText(kindName, dish.kind, dish.kindLabel)} · {dish.unit}
               </span>
             </span>
           </div>

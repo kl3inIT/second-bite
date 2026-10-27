@@ -11,6 +11,7 @@ function offer(id: string, rating?: unknown, unitsLeft = 3): OfferSummary {
     name: id,
     description: "",
     kind: "bakery",
+    kindLabel: "",
     unit: "phần",
     units: 5,
     unitsLeft,

@@ -908,6 +908,28 @@ test.describe("the catalog on the web", () => {
     await expect(row(page, /Hộp bánh cuối ngày/)).toContainText("Hộp tổng hợp · 1 hộp");
   });
 
+  test("a dish of the kind Khác is named by its seller", async ({ page }, testInfo) => {
+    const store = await catalogStore(page, "che", testInfo);
+    await page.goto(`/vi/stores/${store}/catalog`);
+    await page.getByRole("link", { name: "Thêm món" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Thêm món" })).toBeVisible();
+
+    await (await hydrated(page.getByLabel("Tên món"))).fill("Chè đậu xanh");
+    // The kind is named only when it is Khác; three more kinds are there to choose.
+    await expect(page.getByLabel("Tên loại")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Tráng miệng" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Ăn vặt" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Rau củ quả" })).toBeVisible();
+    await page.getByRole("button", { name: "Khác" }).click();
+    await page.getByLabel("Tên loại").fill("Chè truyền thống");
+    await page
+      .getByLabel("Ảnh món")
+      .setInputFiles({ name: "che.png", mimeType: "image/png", buffer: png });
+    await page.getByRole("button", { name: "Lưu món" }).click();
+    await expect(page.getByText("Đã lưu món.")).toBeVisible({ timeout: 15_000 });
+    await expect(row(page, /Chè đậu xanh/)).toContainText("Chè truyền thống · 1 suất");
+  });
+
   test("changes a dish, shows a hidden one again, and deletes one after asking", async ({
     page,
   }, testInfo) => {

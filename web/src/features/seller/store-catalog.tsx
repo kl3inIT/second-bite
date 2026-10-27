@@ -2,6 +2,7 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import { buttonVariants } from "@/components/ui/button";
+import { kindText } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
 import type { DishBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
@@ -40,7 +41,7 @@ export async function StoreCatalog({
       : undefined;
 
   function meta(dish: DishBody) {
-    const line = `${kindName(dish.kind)} · 1 ${dish.unit}`;
+    const line = `${kindText(kindName, dish.kind, dish.kindLabel)} · 1 ${dish.unit}`;
     return dish.hidden ? `${line} · ${t("hidden")}` : line;
   }
 
