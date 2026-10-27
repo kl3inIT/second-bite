@@ -90,9 +90,15 @@ test.describe("the home of a store", () => {
       "Chưa có món nào trong danh mục.",
     );
     // A chip keeps the place on the page; checked from the top, as every page is, so a blue button scrolled
-    // behind the translucent bottom bar does not stand in for its ground.
+    // behind the translucent bottom bar does not stand in for its ground. A phone, which leaves "Việc cần làm"
+    // out, has an order's buttons under the bar even at the top, so it is read on a screen taller than the page.
     await page.evaluate(() => window.scrollTo(0, 0));
+    const screen = page.viewportSize();
+    if (testInfo.project.name === "mobile" && screen) {
+      await page.setViewportSize({ width: screen.width, height: 3000 });
+    }
     await expectNoSeriousA11yViolations(page);
+    if (screen) await page.setViewportSize(screen);
 
     // Another day has its own numbers and nothing left to do.
     await page.getByRole("link", { name: "Ngày trước" }).click();
@@ -114,9 +120,10 @@ test.describe("the home of a store", () => {
     );
     await expectNoSeriousA11yViolations(page);
 
-    // The smallest phone still holds every box and the orders' chips without a sideways page.
+    // The smallest phone the web is drawn for (360 px, as phone-layout.spec) still holds every box and the
+    // orders' chips without a sideways page.
     if (testInfo.project.name === "mobile") {
-      await page.setViewportSize({ width: 320, height: 720 });
+      await page.setViewportSize({ width: 360, height: 720 });
       await expect(catalog.getByRole("link", { name: "Đăng ngay" }).first()).toBeVisible();
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
