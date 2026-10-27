@@ -72,7 +72,7 @@ function DishBody({
   const original = formatPrice(offer.originalPriceVnd);
 
   return (
-    <div className={cn("flex min-h-0 flex-col gap-4 overflow-y-auto", className)}>
+    <div className={cn("flex min-h-0 flex-col gap-4 overflow-y-auto overscroll-contain", className)}>
       <div className="relative h-50 shrink-0 overflow-hidden rounded-xl bg-muted">
         <OfferPhoto offer={offer} large sizes="(min-width: 576px) 512px, 100vw" />
         <DiscountBadge percent={offer.discountPercent} />

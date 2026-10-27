@@ -33,6 +33,13 @@
   ::selection {
     @apply bg-secondary-hover text-foreground;
   }
+  /* A sheet open over the page holds the page still: a swipe on the sheet, or past the end of its list, must not
+     scroll what is behind it (iOS Safari lets it through unless the page itself cannot scroll). */
+  html:has([data-slot="drawer-viewport"][data-modal="true"]),
+  html:has([data-slot="drawer-viewport"][data-modal="true"]) body {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
   /* Whatever can be pressed shows the hand; Tailwind v4 leaves buttons with the arrow (DESIGN.md › Do's). */
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
