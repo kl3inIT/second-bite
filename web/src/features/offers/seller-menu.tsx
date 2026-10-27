@@ -14,7 +14,8 @@ import { formatPrice } from "./format";
 import { dishAnchor, kindsByCount, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
 
-const DEEPEST = 4;
+// How many dishes "Bán chạy" and "Giảm sâu" hold.
+const PICKED = 4;
 // Where a section counts as reached: the tabs' height and a little air above the section's heading.
 const REACHED_PX = 120;
 
@@ -27,9 +28,10 @@ type Section = { id: string; title: string; offers: readonly OfferSummary[] };
 
 // The seller's menu from 768px (Figma "01 · Trang quán & giỏ nhiều quán · đầy đủ"): a row of pill links, one for each
 // section, the one scrolled to filled in Tasco blue, over the sections, each a heading over its dishes' white cards
-// two abreast. "Giảm sâu" holds the four deepest discounts when there are more dishes than that; the kinds follow,
-// largest first. Figma's "Bán chạy" has no backend. A dish shows once, so its cart controls and anchor are unique:
-// the deep discounts leave their kind's section. The dish a link led to (`focused`) is ringed and scrolled to.
+// two abreast. Two sections are always there: "Bán chạy", the four dishes with the most portions ordered tonight, and
+// "Giảm sâu", the four deepest discounts; the kinds follow, largest first, each with all its dishes, as Figma repeats
+// a dish there. Only the kind section's card carries the dish's anchor. The dish a link led to (`focused`) is scrolled
+// to and ringed until the first press or key, then looks like the others.
 export function SellerMenu({
   offers,
   focused,
@@ -39,9 +41,21 @@ export function SellerMenu({
 }) {
   const t = useTranslations("Seller");
   const kinds = useTranslations("OfferKind");
-  const sections = menuSections(offers, t("deepDiscount"), (kind) => kinds(kind));
+  const sections = menuSections(offers, t("bestSellers"), t("deepDiscount"), (kind) => kinds(kind));
   const ids = sections.map(({ id }) => id).join(" ");
   const [active, setActive] = useState(sections[0]?.id);
+  const [ringed, setRinged] = useState(focused);
+
+  useEffect(() => {
+    if (!ringed) return;
+    const clear = () => setRinged(undefined);
+    document.addEventListener("pointerdown", clear, { once: true });
+    document.addEventListener("keydown", clear, { once: true });
+    return () => {
+      document.removeEventListener("pointerdown", clear);
+      document.removeEventListener("keydown", clear);
+    };
+  }, [ringed]);
 
   useEffect(() => {
     if (!window.matchMedia("(min-width: 768px)").matches) return;
@@ -100,7 +114,11 @@ export function SellerMenu({
             <ul className="grid grid-cols-2 gap-4">
               {section.offers.map((offer) => (
                 <li key={offer.id} className="min-w-0">
-                  <DishCard offer={offer} focused={offer.id === focused} />
+                  <DishCard
+                    offer={offer}
+                    anchored={section.id.startsWith("kind-")}
+                    ringed={section.id.startsWith("kind-") && offer.id === ringed}
+                  />
                 </li>
               ))}
             </ul>
@@ -113,39 +131,52 @@ export function SellerMenu({
 
 function menuSections(
   offers: readonly OfferSummary[],
+  bestTitle: string,
   deepTitle: string,
   kindTitle: (kind: OfferSummary["kind"]) => string,
 ): Section[] {
-  const deepest =
-    offers.length > DEEPEST
-      ? offers.toSorted((a, b) => b.discountPercent - a.discountPercent).slice(0, DEEPEST)
-      : [];
-  const deepIds = new Set(deepest.map(({ id }) => id));
-  const rest = offers.filter(({ id }) => !deepIds.has(id));
+  const ordered = (offer: OfferSummary) => offer.units - offer.unitsLeft;
   return [
-    ...(deepest.length > 0 ? [{ id: "deep-discount", title: deepTitle, offers: deepest }] : []),
-    ...kindsByCount(rest).map(({ kind }) => ({
+    {
+      id: "best-sellers",
+      title: bestTitle,
+      offers: offers.toSorted((a, b) => ordered(b) - ordered(a)).slice(0, PICKED),
+    },
+    {
+      id: "deep-discount",
+      title: deepTitle,
+      offers: offers.toSorted((a, b) => b.discountPercent - a.discountPercent).slice(0, PICKED),
+    },
+    ...kindsByCount(offers).map(({ kind }) => ({
       id: `kind-${kind}`,
       title: kindTitle(kind),
-      offers: rest.filter((offer) => offer.kind === kind),
+      offers: offers.filter((offer) => offer.kind === kind),
     })),
-  ];
+  ].filter((section) => section.offers.length > 0);
 }
 
 // A dish's white card (Figma "món", 144px high): its 112px photograph with the discount at the top left and the
 // portions left at the bottom left, the name over the price and the original price, and the − and + at the bottom
 // right. The photograph and the name open the dish's sheet.
-function DishCard({ offer, focused }: { offer: OfferSummary; focused: boolean }) {
+function DishCard({
+  offer,
+  anchored,
+  ringed,
+}: {
+  offer: OfferSummary;
+  anchored: boolean;
+  ringed: boolean;
+}) {
   const t = useTranslations("OfferCard");
   const [open, setOpen] = useState(false);
   const original = formatPrice(offer.originalPriceVnd);
 
   return (
     <article
-      id={wideDishAnchor(offer.id)}
+      id={anchored ? wideDishAnchor(offer.id) : undefined}
       className={cn(
         "flex h-36 scroll-mt-20 items-center gap-3 rounded-md bg-card p-4",
-        focused && "ring-2 ring-primary",
+        ringed && "ring-2 ring-primary",
       )}
     >
       <div className="relative size-28 shrink-0 overflow-hidden rounded-md bg-muted">

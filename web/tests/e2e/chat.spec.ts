@@ -61,7 +61,9 @@ async function refuseLive(page: Page) {
 async function placeOrder(page: Page, phone: string): Promise<string> {
   await page.goto("/vi/sellers/se-la-paris");
   await (
-    await hydrated(page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }))
+    await hydrated(
+      page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }).first(),
+    )
   ).click();
   await page.goto("/vi/cart");
   await (await hydrated(page.getByRole("button", { name: "Đặt món" }))).click();
