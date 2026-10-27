@@ -106,3 +106,63 @@ func TestOrdersAtOnceDoNotStarveThePool(t *testing.T) {
 		t.Errorf("croissants back after the cancellations: %d, want %d", got, customers)
 	}
 }
+
+// The store answering several chats at once: sending reads which side writes,
+// which asks the seller module, and must not ask the pool for a second
+// connection while the message's transaction holds one (SEC-159).
+func TestStoreMessagesAtOnceDoNotStarveThePool(t *testing.T) {
+	t.Parallel()
+
+	const connections, chats = 2, 6
+
+	shared := platformtest.StartPostgres(t)
+
+	cfg := shared.Config().Copy()
+	cfg.MaxConns = connections
+
+	pool, err := pgxpool.NewWithConfig(t.Context(), cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Cleanup(pool.Close)
+
+	f := newFixture(t, pool)
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", chats, 20_000, time.Now())
+
+	placed := make([]uuid.UUID, chats)
+
+	for i := range placed {
+		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{OfferID: croissant.ID, Units: 1}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		placed[i] = o.ID
+	}
+
+	var wg sync.WaitGroup
+
+	errs := make([]error, chats)
+
+	for i := range placed {
+		wg.Go(func() {
+			// A frozen pool waits for ever; the deadline turns it into a failure.
+			ctx, cancel := context.WithTimeout(owner, 20*time.Second)
+			defer cancel()
+
+			_, errs[i] = f.orders.SendMessage(ctx, placed[i], "", key(), "Món của bạn sắp xong")
+		})
+	}
+
+	wg.Wait()
+
+	for i, err := range errs {
+		if err != nil {
+			t.Fatalf("the store's message on order %d: %v", i, err)
+		}
+	}
+}

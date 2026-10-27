@@ -5,6 +5,7 @@ Requirements of [docs/specs/platform.md](../specs/platform.md) and the checks th
 | Requirement | Check |
 | --- | --- |
 | Missing or malformed configuration is reported at once; a URL with a password is refused | `TestLoadConfig` (`internal/platform/config_test.go`) |
+| A request's context ends when its answer could no longer be written; a live socket's does not (SEC-159) | `TestWithDeadline` (`internal/platform/deadline_internal_test.go`) |
 | Migrations apply at startup and follow the naming rule | `TestService` › migrations applied; `TestNames` (`migrations/migrations_test.go`) |
 | Probes answer and carry a request identifier | `TestService` › probes answer and carry a request id |
 | A well-formed request identifier from the caller is kept | `TestService` › a well-formed request id from the caller is kept |

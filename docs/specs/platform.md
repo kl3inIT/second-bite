@@ -14,6 +14,7 @@
 - Every request has an identifier: the caller's `X-Request-Id` when it is 1 to 64 characters of letters, digits, `.`, `_` or `-`, otherwise a new random one. It is returned in `X-Request-Id`, carried in every problem as `requestId` and logged as `request_id`.
 - One access record per request (`platform.request.completed`) holds the route pattern, the status, the duration and the failure's code; never a body, an address, a code or a token.
 - `/livez` answers while the process runs; `/readyz` while the database answers within 2 seconds.
+- A request's work ends 30 seconds after its header is read, when its answer could no longer be written (`WriteTimeout`): its context's deadline makes a wait for a database connection, or anything else, give up instead of waiting for ever. A live socket keeps its context (SEC-159).
 - The OpenAPI 3.1 contract is served by the API and kept in `api/openapi.yaml`.
 
 ## Problems
@@ -69,7 +70,7 @@ Introduced with SEC-37 ([design](../increments/completed/sec-37-account-deletion
 - `Publish` writes an event inside the publisher's transaction, one job per listener; a rolled-back change publishes nothing. `PublishAfter` writes it the same way to run once a delay has passed, for a publisher that delivers an event again later (SEC-126). `Listen` registers a listener under a stable name before the service runs.
 - Every event travels as one job kind, `platform.event`, with its key (`identity.account_deleted`) and its listener's name inside, since River binds one worker to a kind.
 - **Schedules** (SEC-96): `Events.Every(name, interval, run)` registers a periodic River job under a stable name; River's elected leader enqueues each run, so instances never double one, and a run that fails is not retried, as the next comes soon. The run must be idempotent. Registered when the service is assembled and run only in `serve`, as the listeners are.
-- `serve` runs the listeners, at most ten at once and each within a minute, retried with River's backoff; a job whose listener no longer exists is cancelled; they stop after the HTTP server, with ten seconds to finish. The command-line commands only write events.
+- `serve` runs the listeners, at most four at once and each within a minute, retried with River's backoff; a job whose listener no longer exists is cancelled; they stop after the HTTP server, with ten seconds to finish. The command-line commands only write events.
 
 ## The live socket
 

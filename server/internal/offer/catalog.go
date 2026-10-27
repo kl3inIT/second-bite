@@ -139,7 +139,7 @@ func (s *Service) AddDish(ctx context.Context, sellerID uuid.UUID, d DishDetails
 		return Dish{}, err
 	}
 
-	if err := s.usePhotos(ctx, sellerID, caller.AccountID, d.PhotoID, d.MorePhotoIDs, uuid.Nil, nil); err != nil {
+	if err := s.photosOnPool().useAll(ctx, sellerID, caller.AccountID, d.PhotoID, d.MorePhotoIDs, uuid.Nil, nil); err != nil {
 		return Dish{}, err
 	}
 
@@ -229,7 +229,7 @@ func (s *Service) ChangeDish(ctx context.Context, id uuid.UUID, c DishChange) (D
 		return Dish{}, err
 	}
 
-	err = s.usePhotos(
+	err = s.photosOnPool().useAll(
 		ctx, current.SellerID, caller.AccountID, next.PhotoID, next.MorePhotoIDs, current.PhotoID, current.MorePhotoIDs,
 	)
 	if err != nil {

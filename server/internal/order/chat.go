@@ -161,6 +161,21 @@ func (s *Service) SendMessage(ctx context.Context, id uuid.UUID, access, key, te
 		return Message{}, ErrMessageInvalid
 	}
 
+	// Which side writes is read before the transaction: it asks the seller
+	// module, on a connection of its own, which would wait for ever while the
+	// transaction holds one once as many people send at once as the pool has
+	// connections (SEC-128, SEC-159). The order's customer, access and seller
+	// never change, so the side read here still holds inside it.
+	header, err := s.readHeader(ctx, id)
+	if err != nil {
+		return Message{}, err
+	}
+
+	side, err := s.partyOf(ctx, header, access)
+	if err != nil {
+		return Message{}, err
+	}
+
 	var (
 		sent    Message
 		created bool
@@ -170,13 +185,13 @@ func (s *Service) SendMessage(ctx context.Context, id uuid.UUID, access, key, te
 		return pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 			var err error
 
-			sent, created, err = s.sendIn(ctx, tx, id, access, key, text)
+			sent, created, err = s.sendIn(ctx, tx, id, side, key, text)
 
 			return err
 		})
 	}
 
-	err := send()
+	err = send()
 
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == uniqueViolation {
@@ -209,9 +224,9 @@ func (s *Service) SendMessage(ctx context.Context, id uuid.UUID, access, key, te
 	return sent, nil
 }
 
-// sendIn writes the message inside tx, which holds the order against a
+// sendIn writes side's message inside tx, which holds the order against a
 // transition that would close the chat at the same moment.
-func (s *Service) sendIn(ctx context.Context, tx pgx.Tx, id uuid.UUID, access, key, text string) (Message, bool, error) {
+func (s *Service) sendIn(ctx context.Context, tx pgx.Tx, id uuid.UUID, side Side, key, text string) (Message, bool, error) {
 	q := s.queries.WithTx(tx)
 
 	row, err := q.LockOrderShared(ctx, id)
@@ -224,11 +239,6 @@ func (s *Service) sendIn(ctx context.Context, tx pgx.Tx, id uuid.UUID, access, k
 	}
 
 	o := s.fromRow(db.GetOrderRow(row))
-
-	side, err := s.partyOf(ctx, o, access)
-	if err != nil {
-		return Message{}, false, err
-	}
 
 	earlier, err := q.MessageOfKey(ctx, db.MessageOfKeyParams{OrderID: id, Sender: string(side), IdempotencyKey: key})
 	if err == nil {

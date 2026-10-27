@@ -21,5 +21,6 @@ Requirements of [docs/specs/offer.md](../specs/offer.md) and the checks that hol
 | Through the API: a pending seller cannot post; once active, an offer is posted, found by anyone near Tasco Mall by words without marks with its seller and distance; the seller's page; sorting by distance from no point refused | `TestService` › an offer is posted and found near Tasco Mall (`cmd/secondbite/offer_test.go`) |
 | The operations are in the contract | `TestOpenAPIDocumentIsCurrent` (`cmd/secondbite/openapi_test.go`) |
 | A seller's moved point is copied onto its offer on sale, not onto a withdrawn one; delivered twice, nothing more changes; an unknown seller is ignored | `TestOrder` › orders and offers follow their seller (`internal/order/order_test.go`), which holds offers and orders together |
+| More posts given a new photo at once than the pool has connections: each reads and claims it in its own transaction (SEC-159) | `TestChangesAtOnceDoNotStarveThePool` (`internal/offer/pool_test.go`) |
 
 Not covered by a test: two staff changing one offer at once (held by the row lock), and the cap of the radius at the settings' maximum.
