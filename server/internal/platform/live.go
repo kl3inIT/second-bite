@@ -102,8 +102,10 @@ type Live struct {
 	logger *slog.Logger
 	redeem RedeemTicket
 	timing LiveTiming
-	// maxConns caps the sockets the instance holds (SEC-160).
+	// maxConns caps the sockets the instance holds (SEC-160); held counts the
+	// places taken, from before the upgrade until the socket's handler returns.
 	maxConns int
+	held     int
 
 	mu      sync.Mutex
 	closing bool
@@ -340,12 +342,15 @@ func (l *Live) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// A cap on the sockets one instance holds, so a script opening them cannot
-	// take its memory (SEC-160); the client reconnects later, with backoff.
-	if l.full() {
+	// take its memory (SEC-160); the client reconnects later, with backoff. The
+	// place is taken before the upgrade, so upgrades arriving together cannot
+	// all pass a count that only registered sockets would make.
+	if !l.take() {
 		WriteFailure(w, r, ErrTooManyRequests.WithRetryAfter(liveFullRetry))
 
 		return
 	}
+	defer l.release()
 
 	ws, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		// Authority comes from the live ticket alone, never from a cookie or
@@ -403,12 +408,26 @@ func (l *Live) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-// full says whether the instance holds liveMaxConns sockets already.
-func (l *Live) full() bool {
+// take reserves a socket's place, false when the instance holds its cap.
+func (l *Live) take() bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	return len(l.conns) >= l.maxConns
+	if l.held >= l.maxConns {
+		return false
+	}
+
+	l.held++
+
+	return true
+}
+
+// release gives back the place take reserved.
+func (l *Live) release() {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	l.held--
 }
 
 func (l *Live) register(c *liveConn) bool {
