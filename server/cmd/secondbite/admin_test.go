@@ -413,7 +413,7 @@ func reviewedOrder(t *testing.T, svc service, who, name string) string {
 	_, offerID := postedOfferOf(t, svc, owner, name)
 
 	placing := customer.Clone()
-	placing.Set("Idempotency-Key", who)
+	placing.Set("Idempotency-Key", who+"-0123456789abcdef")
 
 	var placed orderResponse
 

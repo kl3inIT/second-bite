@@ -2877,6 +2877,7 @@ paths:
           schema:
             default: 1
             format: int64
+            maximum: 10000
             minimum: 1
             type: integer
         - explode: false
@@ -3107,6 +3108,7 @@ paths:
           schema:
             default: 1
             format: int64
+            maximum: 10000
             minimum: 1
             type: integer
         - explode: false
@@ -3367,6 +3369,7 @@ paths:
           schema:
             default: 1
             format: int64
+            maximum: 10000
             minimum: 1
             type: integer
         - explode: false
@@ -3457,6 +3460,7 @@ paths:
           schema:
             default: 1
             format: int64
+            maximum: 10000
             minimum: 1
             type: integer
         - explode: false
@@ -3655,6 +3659,7 @@ paths:
           schema:
             default: 1
             format: int64
+            maximum: 10000
             minimum: 1
             type: integer
         - explode: false
@@ -3859,6 +3864,7 @@ paths:
           schema:
             default: 1
             format: int64
+            maximum: 10000
             minimum: 1
             type: integer
         - explode: false
@@ -4350,6 +4356,7 @@ paths:
           schema:
             default: 0
             format: int64
+            maximum: 100000
             minimum: 0
             type: integer
       responses:
@@ -4500,6 +4507,7 @@ paths:
           schema:
             default: 0
             format: int64
+            maximum: 100000
             minimum: 0
             type: integer
       responses:
@@ -4530,7 +4538,7 @@ paths:
           required: true
           schema:
             maxLength: 255
-            minLength: 1
+            minLength: 16
             type: string
       requestBody:
         content:
@@ -5675,6 +5683,7 @@ paths:
           schema:
             default: 0
             format: int64
+            maximum: 100000
             minimum: 0
             type: integer
       responses:
@@ -5911,6 +5920,7 @@ paths:
           schema:
             default: 1
             format: int64
+            maximum: 10000
             minimum: 1
             type: integer
         - explode: false

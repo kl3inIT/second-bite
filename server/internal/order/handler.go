@@ -229,7 +229,7 @@ func registerCustomerOperations(api huma.API, s *Service) {
 			"Idempotency-Key again, without an account with the same phone number, returns the order placed first.",
 		Tags: tagOrders, Security: anyone, DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, in *struct {
-		IdempotencyKey string `header:"Idempotency-Key" maxLength:"255" minLength:"1" required:"true"`
+		IdempotencyKey string `header:"Idempotency-Key" maxLength:"255" minLength:"16" required:"true"`
 		Body           placeOrderBody
 	},
 	) (*orderOutput, error) {
@@ -253,7 +253,7 @@ func registerCustomerOperations(api huma.API, s *Service) {
 		State    Which     `doc:"open: still to collect; ended: every other" enum:"open,ended" query:"state"`
 		Checkout uuid.UUID `doc:"Only the orders placed together from this cart" query:"checkout" required:"false"`
 		Limit    int       `default:"20"                                     maximum:"50"      minimum:"1" query:"limit"`
-		Offset   int       `default:"0"                                      minimum:"0"       query:"offset"`
+		Offset   int       `default:"0"                                      maximum:"100000" minimum:"0"       query:"offset"`
 	},
 	) (*ordersOutput, error) {
 		orders, err := s.Mine(ctx, in.State, in.Checkout, in.Limit, in.Offset)
@@ -512,7 +512,7 @@ func registerSellerReviewOperation(api huma.API, s *Service) {
 	}, func(ctx context.Context, in *struct {
 		SellerID uuid.UUID `path:"sellerId"`
 		Stars    []int     `query:"stars" doc:"Keep the reviews giving these stars; any when absent" maximum:"5" minimum:"1"`
-		Page     int       `query:"page"  default:"1" minimum:"1"`
+		Page     int       `query:"page"  default:"1" maximum:"10000" minimum:"1"`
 		Size     int       `query:"size"  default:"25" maximum:"100" minimum:"1"`
 	},
 	) (*sellerReviewsOutput, error) {
@@ -695,7 +695,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		Status   []Status  `query:"status"   doc:"Keep these statuses; every status when absent" enum:"confirmed,ready,collected,cancelled,refused,expired"`
 		Q        string    `query:"q"        doc:"The number, the customer's name or phone, or the seller's name" maxLength:"100"`
 		SellerID uuid.UUID `query:"sellerId" doc:"Keep this seller's orders"`
-		Page     int       `query:"page"     default:"1" minimum:"1"`
+		Page     int       `query:"page"     default:"1" maximum:"10000" minimum:"1"`
 		Size     int       `query:"size"     default:"25" maximum:"100" minimum:"1"`
 
 		CollectSince time.Time `query:"collectSince" doc:"Keep the orders whose window starts at or after this time"`
@@ -794,7 +794,7 @@ func registerAdminReviewOperations(admin huma.API, s *Service) {
 		Q          string     `query:"q"          doc:"The comment, the order's number, the customer's name or phone, or the seller's name" maxLength:"100"`
 		SellerID   uuid.UUID  `query:"sellerId"   doc:"Keep this seller's reviews"`
 		Visibility Visibility `query:"visibility" doc:"Keep the shown or the hidden reviews; both when absent" enum:"visible,hidden"`
-		Page       int        `query:"page"       default:"1" minimum:"1"`
+		Page       int        `query:"page"       default:"1" maximum:"10000" minimum:"1"`
 		Size       int        `query:"size"       default:"25" maximum:"100" minimum:"1"`
 
 		ReviewedSince time.Time `query:"reviewedSince" doc:"Keep the reviews given at or after this time"`

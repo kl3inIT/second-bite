@@ -203,3 +203,7 @@ DELETE FROM identity_sign_in_challenges WHERE email = @email;
 -- name: DeleteAccount :execrows
 -- Its sessions and its external logins go with it (ON DELETE CASCADE).
 DELETE FROM identity_accounts WHERE id = @id;
+
+-- name: PurgeExpiredSessions :execrows
+-- Every account's sessions past their end, which signing in only clears for its own account.
+DELETE FROM identity_sessions WHERE expires_at <= now();

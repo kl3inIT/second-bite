@@ -17,7 +17,7 @@ type listInput struct {
 	Since   time.Time `query:"since"   doc:"Keep what happened at or after this time"`
 	Until   time.Time `query:"until"   doc:"Keep what happened before this time"`
 	Q       string    `query:"q"       doc:"Words of the admin's or the resource's label, or the resource's identifier" maxLength:"100"`
-	Page    int       `query:"page"    default:"1"  minimum:"1"`
+	Page    int       `query:"page"    default:"1"  maximum:"10000" minimum:"1"`
 	Size    int       `query:"size"    default:"25" minimum:"1" maximum:"100"`
 }
 

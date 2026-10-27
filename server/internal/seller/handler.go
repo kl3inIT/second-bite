@@ -378,7 +378,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		Status []Status `query:"status" doc:"Keep these statuses; every status when absent" enum:"pending,active,rejected,blocked"`
 		Q      string   `query:"q"            doc:"Words of the name, address or phone" maxLength:"100"`
 		Sort   string   `query:"sort"         doc:"name, address or changed; a leading - is descending; the queue order when absent" enum:"name,-name,address,-address,changed,-changed"`
-		Page   int      `query:"page"         default:"1" minimum:"1"`
+		Page   int      `query:"page"         default:"1" maximum:"10000" minimum:"1"`
 		Size   int      `query:"size"   default:"25"                                        maximum:"100" minimum:"1"`
 
 		ChangedSince time.Time `query:"changedSince" doc:"Keep the sellers last changed at or after this time"`

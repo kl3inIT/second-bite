@@ -14,6 +14,7 @@
 - Every request has an identifier: the caller's `X-Request-Id` when it is 1 to 64 characters of letters, digits, `.`, `_` or `-`, otherwise a new random one. It is returned in `X-Request-Id`, carried in every problem as `requestId` and logged as `request_id`.
 - One access record per request (`platform.request.completed`) holds the route pattern, the status, the duration and the failure's code; never a body, an address, a code or a token.
 - `/livez` answers while the process runs; `/readyz` while the database answers within 2 seconds.
+- A list's `offset` goes up to 100,000 and an admin list's `page` up to 10,000; past them the request is refused with `PLATFORM_REQUEST_INVALID` (400), where it once wrapped to a negative number and answered 500 (SEC-167).
 - A request's work ends 30 seconds after its header is read, when its answer could no longer be written (`WriteTimeout`): its context's deadline makes a wait for a database connection, or anything else, give up instead of waiting for ever. A live socket keeps its context (SEC-159).
 - The OpenAPI 3.1 contract is served by the API and kept in `api/openapi.yaml`.
 

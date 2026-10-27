@@ -13,6 +13,7 @@ Requirements of [docs/specs/identity.md](../specs/identity.md) and the checks th
 | Without client IDs the API offers no Google method and answers `IDENTITY_GOOGLE_NOT_CONFIGURED` | `TestService` › without client IDs Google is offered nowhere |
 | A wrong code spends a guess; the fifth ends the code | `TestService` › a wrong code spends a guess and the fifth ends the code |
 | A second code within a minute is refused with the wait | `TestService` › a second code within a minute is refused with a wait |
+| The daily purge deletes every account's sessions past their end and keeps the live ones; run again it changes nothing (SEC-167) | `TestPurgeExpiredSessions` (`internal/identity/sessions_purge_test.go`) |
 | A code works once | `TestService` › a code works once |
 | A new code ends the earlier one | `TestService` › a new code ends the earlier one (seen to fail with the rule taken out) |
 | An unknown or malformed token is refused with 401 and `WWW-Authenticate` | `TestService` › an unknown or malformed token is refused with 401 |

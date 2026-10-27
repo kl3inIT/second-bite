@@ -27,6 +27,9 @@ type Wanted struct {
 	Units   int
 }
 
+// minPlaceKey is the shortest Idempotency-Key placing an order takes.
+const minPlaceKey = 16
+
 // Place orders units of one seller's offers for contact, confirmed at once,
 // for the caller's account when someone is signed in. The units are taken
 // from each offer in the order's transaction, so when one offer has too few
@@ -39,7 +42,10 @@ func (s *Service) Place(ctx context.Context, key string, checkout uuid.UUID, con
 	caller, signedIn := platform.CallerFrom(ctx)
 	customer := uuid.NullUUID{UUID: caller.AccountID, Valid: signedIn}
 
-	if n := utf8.RuneCountInString(key); n < 1 || n > 255 {
+	// A key long enough not to be guessed: sent again, it answers the order with
+	// its access, so a short one would let someone with the phone number read it
+	// (SEC-167). The clients send a random UUID.
+	if n := utf8.RuneCountInString(key); n < minPlaceKey || n > 255 {
 		return Order{}, ErrIdempotencyKeyInvalid
 	}
 

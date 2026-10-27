@@ -739,6 +739,19 @@ func (q *Queries) LockSubject(ctx context.Context, arg LockSubjectParams) error 
 	return err
 }
 
+const purgeExpiredSessions = `-- name: PurgeExpiredSessions :execrows
+DELETE FROM identity_sessions WHERE expires_at <= now()
+`
+
+// Every account's sessions past their end, which signing in only clears for its own account.
+func (q *Queries) PurgeExpiredSessions(ctx context.Context) (int64, error) {
+	result, err := q.db.Exec(ctx, purgeExpiredSessions)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const recordSignIn = `-- name: RecordSignIn :exec
 UPDATE identity_accounts SET last_signed_in_at = now(), last_sign_in_method = $1::text WHERE id = $2
 `

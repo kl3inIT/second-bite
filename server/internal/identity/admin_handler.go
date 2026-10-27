@@ -89,7 +89,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		Role string `query:"role" doc:"Keep this role; every role when absent" enum:"customer,admin"`
 		Q    string `query:"q"    doc:"Words of the address or the name" maxLength:"100"`
 		Sort string `query:"sort" doc:"name, created or signedIn; a leading - is descending; the newest first when absent" enum:"name,-name,created,-created,signedIn,-signedIn"`
-		Page int    `query:"page" default:"1" minimum:"1"`
+		Page int    `query:"page" default:"1" maximum:"10000" minimum:"1"`
 		Size int    `query:"size" default:"25" maximum:"100" minimum:"1"`
 	},
 	) (*adminAccountsOutput, error) {

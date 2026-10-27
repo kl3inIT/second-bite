@@ -26,7 +26,7 @@ func checkPushSubscribe(t *testing.T, svc service) {
 	customer := bearer(signIn(t, svc, "push.customer@example.com").Token)
 
 	placing := customer.Clone()
-	placing.Set("Idempotency-Key", "push-1")
+	placing.Set("Idempotency-Key", "push-1-0123456789")
 
 	var placed orderResponse
 
