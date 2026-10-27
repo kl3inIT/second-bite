@@ -12,13 +12,16 @@ import { SiteFooter } from "@/components/site-footer";
 import { Splash } from "@/components/splash";
 import { Toaster } from "@/components/ui/toast";
 import { CountView } from "@/features/stats/count-view";
+import { clientMessages } from "@/i18n/client-messages";
 import { routing } from "@/i18n/routing";
 import { absoluteUrl, siteIds, siteOrigin } from "@/lib/seo";
 
 import "../globals.css";
 
 // The typefaces of DESIGN.md, served by next/font from our own origin, Latin and Vietnamese only:
-// Be Vietnam Pro for text, Bricolage Grotesque for prices and figures only.
+// Be Vietnam Pro for text, Bricolage Grotesque for prices and figures only. Only the text's files are preloaded:
+// Bricolage's variable file weighs about 41 KB a subset, and a page without a price never needs it, so it comes
+// when a price is drawn, over its size-adjusted fallback (SEC-166).
 const beVietnamPro = Be_Vietnam_Pro({
   weight: ["400", "600", "700"],
   subsets: ["latin", "vietnamese"],
@@ -27,6 +30,7 @@ const beVietnamPro = Be_Vietnam_Pro({
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin", "vietnamese"],
   variable: "--font-bricolage",
+  preload: false,
 });
 
 export function generateStaticParams() {
@@ -54,7 +58,11 @@ export async function generateMetadata(): Promise<Metadata> {
 // The root layout: every page lives under [locale], so the document's language is the page's.
 export default async function LocaleLayout({ children }: LayoutProps<"/[locale]">) {
   const locale = await getLocale();
-  const [t, failure] = await Promise.all([getTranslations("Metadata"), getTranslations("Failure")]);
+  const [t, failure, messages] = await Promise.all([
+    getTranslations("Metadata"),
+    getTranslations("Failure"),
+    clientMessages("site"),
+  ]);
   const lang = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
 
   return (
@@ -98,7 +106,8 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
             ],
           }}
         />
-        <NextIntlClientProvider>
+        {/* Only what client components read, never the whole catalog (SEC-166). */}
+        <NextIntlClientProvider messages={messages}>
           {/* Every page may keep a list's filters in the address and say what an action did in a toast
               (docs/guidelines/web.md › Lists and filters, › Feedback). */}
           <NuqsAdapter>

@@ -1,25 +1,30 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/features/admin/admin-sidebar";
 import { getCurrentAccount } from "@/features/identity/current-account";
+import { clientMessages } from "@/i18n/client-messages";
 
 // No admin page is for search engines.
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 // The admin's frame (SEC-75 › Shell): the sidebar beside the page, for an admin; anyone else gets the page
 // alone, which refuses them itself (`requireAdmin`). It has no site footer and no bottom bar. The account
-// and the sidebar's state are read from the request, so the frame renders inside Suspense.
-export default function AdminLayout({ children }: LayoutProps<"/[locale]/admin">) {
+// and the sidebar's state are read from the request, so the frame renders inside Suspense. Its client components
+// read the Admin messages, which the site's layout leaves out of every other page (SEC-166).
+export default async function AdminLayout({ children }: LayoutProps<"/[locale]/admin">) {
   return (
-    <div data-no-footer className="flex flex-1 flex-col">
-      <Suspense>
-        <AdminFrame>{children}</AdminFrame>
-      </Suspense>
-    </div>
+    <NextIntlClientProvider messages={await clientMessages("admin")}>
+      <div data-no-footer className="flex flex-1 flex-col">
+        <Suspense>
+          <AdminFrame>{children}</AdminFrame>
+        </Suspense>
+      </div>
+    </NextIntlClientProvider>
   );
 }
 

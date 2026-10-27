@@ -38,6 +38,7 @@ How the web application in `web/` realizes the [conventions](../conventions.md).
 - Every string a person reads is in both `messages/vi.json` and `messages/en.json`. `vi.json` is the reference for the types; `pnpm check:messages` fails on a key missing from one catalog or an empty message.
 - Times are in `Asia/Ho_Chi_Minh`, prices in đồng (`39.000đ`), windows on the 24-hour clock. A date is formatted by a named format of `src/i18n/formats.ts` (`format.dateTime(at, "time")`), never by options written on a page.
 - Links between pages use `Link` from `@/i18n/navigation`, which keeps the locale.
+- The browser gets only the messages client components read (`clientMessages` in `src/i18n/client-messages.ts`): a namespace that only server components read goes in `SERVER_ONLY`, and `Admin` is sent only under `/admin`. `client-messages.test.ts` fails when a client component reads a namespace left out (SEC-166).
 
 ## Search and answer engines
 
@@ -116,6 +117,7 @@ The idea is anti-slop's ([dmmulroy/anti-slop](https://github.com/dmmulroy/anti-s
 ## Building and serving
 
 - `web/Dockerfile` builds the standalone output (`output: "standalone"`) on `node:24-slim`, pinned by digest and kept current by Dependabot, and runs it as the `node` user on port 3000. The image is built from `web/` alone: the API client and `tokens.css` are committed. `SECONDBITE_API_ORIGIN` is set where it runs; the reverse proxy in front routes `/api` to the Go server.
+- What a cheap phone downloads counts (SEC-166): a heavy library a page shows below the fold or behind a tap waits until it is seen, as the store map does (`StoreMap` loads MapLibre once the figure has stayed on screen); a font that only some figures use is not preloaded (Bricolage Grotesque); a control's target is 44 px even where its drawing is smaller.
 - `next.config.ts` sets the baseline security headers on every page: `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` and a `Permissions-Policy` that leaves only the camera (the store's scanner) and location to this site. A Content Security Policy with nonces is a decision of its own.
 
 ## Quality gates

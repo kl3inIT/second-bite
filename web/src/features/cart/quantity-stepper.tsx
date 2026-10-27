@@ -44,7 +44,8 @@ export function QuantityStepper({ offer }: { offer: OfferSummary }) {
 }
 
 // − count + on the sky fill (Figma K4b, K4a, K5), for a quantity kept anywhere: the cart's on the seller's page and
-// the confirmation, the portions about to be added on the dish's sheet.
+// the confirmation, the portions about to be added on the dish's sheet. Its round buttons are drawn at 28px; each
+// reaches 8px past its edge, a 44px target, without meeting the other's across the count (SEC-166).
 export function Stepper({
   name,
   quantity,
@@ -72,7 +73,7 @@ export function Stepper({
         aria-label={t("remove", { name })}
         disabled={!canRemove}
         onClick={onRemove}
-        className={cn(round, "size-7 bg-card text-primary")}
+        className={cn(round, "size-7 bg-card text-primary after:-inset-2")}
       >
         <MinusIcon aria-hidden strokeWidth={2.4} className="size-4" />
       </button>
@@ -87,7 +88,10 @@ export function Stepper({
         aria-label={t("add", { name })}
         disabled={!canAdd}
         onClick={onAdd}
-        className={cn(round, "size-7 bg-primary text-primary-foreground disabled:bg-secondary")}
+        className={cn(
+          round,
+          "size-7 bg-primary text-primary-foreground after:-inset-2 disabled:bg-secondary",
+        )}
       >
         <PlusIcon aria-hidden strokeWidth={2.4} className="size-4" />
       </button>

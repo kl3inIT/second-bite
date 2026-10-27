@@ -58,6 +58,47 @@ function dishLine(page: Page) {
 // SEC-76 › Figma K5, O7; SEC-83 › Figma D1–D5: ordering needs no account, only a name and a phone number
 // checked once; the order is collected by its QR code or that name and number (SEC-86).
 test.describe("ordering from the cart", () => {
+  // SEC-166: the map of where to collect costs MapLibre and its tiles, so it is fetched once it shows, not before.
+  test("draws the map of where to collect only once it shows", async ({ page }) => {
+    const mapRequests: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname.startsWith("/map/")) mapRequests.push(request.url());
+    });
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    await orderAs(page, "Lan", "0900000003");
+    await expect(page).toHaveURL(ORDER_URL);
+
+    const map = page.getByRole("figure", { name: /^Bản đồ chỗ nhận món/ });
+    const shown = await map.evaluate((figure) => figure.getBoundingClientRect().top < innerHeight);
+    await page.waitForTimeout(1000);
+    if (!shown) expect(mapRequests).toEqual([]);
+
+    await map.scrollIntoViewIfNeeded();
+    await expect(map.locator("canvas")).toBeVisible();
+    await expect.poll(() => mapRequests.length).toBeGreaterThan(0);
+  });
+
+  // SEC-166: the stepper's buttons are drawn at 28px; a press up to 8px past each one's edge still reaches it.
+  test("gives the stepper's buttons 44 px targets", async ({ page }) => {
+    await addCroissant(page);
+    for (const name of [`Bớt một phần ${DISH}`, `Thêm một phần ${DISH}`]) {
+      const button = page.getByRole("button", { name }).first();
+      const box = (await button.boundingBox())!;
+      expect(Math.round(box.width)).toBe(28);
+      const reached = await button.evaluate((element, at) => {
+        const outside = [
+          [at.x - 7, at.y + at.height / 2],
+          [at.x + at.width + 7, at.y + at.height / 2],
+          [at.x + at.width / 2, at.y - 7],
+          [at.x + at.width / 2, at.y + at.height + 7],
+        ];
+        return outside.every(([x, y]) => element.contains(document.elementFromPoint(x, y)));
+      }, box);
+      expect(reached, name).toBe(true);
+    }
+  });
+
   test("orders with a name and a phone number, cancels, and finds the order among the ended ones", async ({
     page,
   }) => {
