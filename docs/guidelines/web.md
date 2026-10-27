@@ -116,7 +116,7 @@ The idea is anti-slop's ([dmmulroy/anti-slop](https://github.com/dmmulroy/anti-s
 ## Building and serving
 
 - `web/Dockerfile` builds the standalone output (`output: "standalone"`) on `node:24-slim`, pinned by digest and kept current by Dependabot, and runs it as the `node` user on port 3000. The image is built from `web/` alone: the API client and `tokens.css` are committed. `SECONDBITE_API_ORIGIN` is set where it runs; the reverse proxy in front routes `/api` to the Go server.
-- `next.config.ts` sets the baseline security headers on every page: `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` and a `Permissions-Policy` that leaves only location to this site. A Content Security Policy with nonces is a decision of its own.
+- `next.config.ts` sets the baseline security headers on every page: `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` and a `Permissions-Policy` that leaves only the camera (the store's scanner) and location to this site. A Content Security Policy with nonces is a decision of its own.
 
 ## Quality gates
 
