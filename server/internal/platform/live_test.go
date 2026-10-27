@@ -581,7 +581,7 @@ func testSocketCap(t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
 
 	s := startLive(t, pool, newTickets(), nil, platform.WithLiveMaxConns(1))
-	first := dial(t, s)
+	first := soleOfMany(t, s)
 
 	ctx, cancel := context.WithTimeout(t.Context(), frameWait)
 	defer cancel()
@@ -615,4 +615,49 @@ func testSocketCap(t *testing.T, pool *pgxpool.Pool) {
 
 		time.Sleep(50 * time.Millisecond)
 	}
+}
+
+// soleOfMany opens eight sockets at once on an instance capped at one: the
+// place is taken before the upgrade, so exactly one is accepted and the others
+// refused, where counting only registered sockets let several through.
+func soleOfMany(t *testing.T, s liveServer) *websocket.Conn {
+	t.Helper()
+
+	ctx, cancel := context.WithTimeout(t.Context(), frameWait)
+	defer cancel()
+
+	var (
+		mu       sync.Mutex
+		accepted []*websocket.Conn
+		refused  int
+		wg       sync.WaitGroup
+	)
+
+	for range 8 {
+		wg.Go(func() {
+			c, resp, err := websocket.Dial(ctx, s.url, nil) //nolint:bodyclose // the library owns the upgrade response
+
+			mu.Lock()
+			defer mu.Unlock()
+
+			switch {
+			case err == nil:
+				accepted = append(accepted, c)
+			case resp != nil && resp.StatusCode == http.StatusTooManyRequests:
+				refused++
+			}
+		})
+	}
+
+	wg.Wait()
+
+	if len(accepted) != 1 || refused != 7 {
+		for _, c := range accepted {
+			_ = c.CloseNow()
+		}
+
+		t.Fatalf("eight sockets at once on a cap of one: %d accepted, %d refused; want 1 and 7", len(accepted), refused)
+	}
+
+	return accepted[0]
 }
