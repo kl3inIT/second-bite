@@ -8,4 +8,4 @@ Design: [design.md](design.md). Tracked in Linear as SEC-162.
 | 2 | Server: `POST /admin/sellers/{sellerId}/owner`, its audit action and failures; tests | Done, 27 October 2026 |
 | 3 | Web: the staff page and the store menu's item; the admin's dialog; the audit log's name; Playwright with axe | Done, 27 October 2026 |
 | 4 | Spec, test matrix; proof against the real service ([verification.md](verification.md)) | Done, 27 October 2026 |
-| 5 | Review, then merge through a pull request, and move this increment to `completed/` | |
+| 5 | Review, then merge through a pull request, and move this increment to `completed/` | Done, 27 October 2026 (PR #166) |
