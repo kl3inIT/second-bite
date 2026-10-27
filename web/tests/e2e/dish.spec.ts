@@ -22,7 +22,10 @@ test.describe("a dish, its seller and the cart", () => {
     // Figma K4: the seller's page, scrolled to the dish's tinted row.
     await expect(page).toHaveURL(/\/vi\/sellers\/se-la-paris\?at=of-croissant#dish-of-croissant$/);
     await expect(page.getByRole("heading", { level: 1, name: "La Paris" })).toBeVisible();
-    await expect(page.locator("#dish-of-croissant")).toBeInViewport();
+    // A phone scrolls to the dish's row, a wider screen to its card in the menu's sections.
+    await expect(
+      page.locator(wide(page) ? "#wide-dish-of-croissant" : "#dish-of-croissant"),
+    ).toBeInViewport();
     await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toBeHidden();
     await expectNoSeriousA11yViolations(page);
 
@@ -77,7 +80,11 @@ test.describe("a dish, its seller and the cart", () => {
       page.getByLabel("3 phần Bánh Croissant Truyền Thống trong giỏ").first(),
     ).toHaveText("3");
     await expect(add).toBeDisabled();
-    await expect(page.getByText("đã chọn đủ 3 phần")).toBeVisible();
+    await expect(
+      page
+        .getByText(wide(page) ? "Đã chọn đủ 3" : "đã chọn đủ 3 phần", { exact: true })
+        .filter({ visible: true }),
+    ).toBeVisible();
     // A phone's bar at the foot, a wider screen's sidebar at the side.
     await expect(
       wide(page)
@@ -128,7 +135,8 @@ test.describe("a dish, its seller and the cart", () => {
       const sidebar = page.getByRole("complementary", { name: "Giỏ của bạn" });
       await expect(sidebar).toBeVisible();
       await expect(sidebar.getByText("Chọn món để thêm vào giỏ.")).toBeVisible();
-      // Figma WK3: the customer header, "Theo dõi" beside the seller and the menu's index at the left.
+      // Figma "01 · Trang quán & giỏ nhiều quán": the customer header, "Theo dõi" beside the seller and the menu's
+      // sections as a row of pills.
       await expect(page.getByRole("searchbox", { name: "Tìm món hoặc quán" })).toBeVisible();
       await expect(page.getByRole("button", { name: "Theo dõi La Paris" })).toBeVisible();
       await expect(page.getByRole("navigation", { name: "Loại món" })).toBeVisible();
@@ -176,8 +184,12 @@ test.describe("a dish, its seller and the cart", () => {
   test("shows the seller on a map, the way there leading to its pin", async ({ page }) => {
     await page.goto("/vi/sellers/se-la-paris");
     await expect(page.getByRole("figure", { name: /^Vị trí .+ trên bản đồ$/ })).toBeVisible();
+    // A phone's "Chỉ đường"; a wider screen's pin beside the seller's window.
     await expect(
-      page.getByRole("link", { name: "Chỉ đường" }).filter({ visible: true }),
+      page
+        .getByRole("link", { name: wide(page) ? "Mở đường đến quán" : "Chỉ đường" })
+        .filter({ visible: true })
+        .first(),
     ).toHaveAttribute(
       "href",
       /^https:\/\/www\.google\.com\/maps\/dir\/\?api=1&destination=-?\d+\.\d+%2C-?\d+\.\d+$/,

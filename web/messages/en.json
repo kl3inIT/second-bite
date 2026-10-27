@@ -579,12 +579,9 @@
     "copied": "Link copied",
     "breadcrumb": "Breadcrumb",
     "crumbHome": "Home",
-    "index": "Tonight's menu",
-    "rating": "Rating",
-    "pickup": "Collect today",
-    "distance": "Distance",
     "mapLabel": "Where {seller} is on the map",
-    "mapOpen": "Open the way to the store"
+    "mapOpen": "Open the way to the store",
+    "deepDiscount": "Deep discounts"
   },
   "Cart": {
     "title": "Confirm order",
@@ -640,7 +637,12 @@
     "sidebarEmpty": "Pick dishes to add them to your cart.",
     "orderFor": "{orders, plural, =1 {Place order} other {Place # orders}} · {price}",
     "orderWithout": "{orders, plural, =1 {Place order} other {Place # orders}}, without the sold-out dishes · {price}",
-    "goneBodySeller": "Someone else just ordered the last portions from {seller}. You have not been charged."
+    "goneBodySeller": "Someone else just ordered the last portions from {seller}. You have not been charged.",
+    "pickupWindow": "Pick up {from} – {until}",
+    "sellerTotal": "{seller} total",
+    "sellerMap": "Where {seller} is",
+    "stockLeft": "Only {units} left",
+    "stockChosen": "All {units} chosen"
   },
   "AccountSettings": {
     "title": "Account settings",
