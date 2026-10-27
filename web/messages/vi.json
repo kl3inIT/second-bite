@@ -764,7 +764,8 @@
     "location": "Vị trí quán",
     "mine": "Quán của tôi",
     "create": "Tạo thêm quán",
-    "feedback": "Góp ý cho Second Bite"
+    "feedback": "Góp ý cho Second Bite",
+    "staff": "Nhân viên"
   },
   "ScanOrder": {
     "open": "Quét mã đơn",
@@ -1212,7 +1213,8 @@
         "offerSettingsChange": "Sửa cài đặt bài đăng",
         "emailSettingsChange": "Sửa cài đặt email",
         "reviewHide": "Ẩn đánh giá",
-        "reviewShow": "Hiện lại đánh giá"
+        "reviewShow": "Hiện lại đánh giá",
+        "sellerChangeOwner": "Đổi chủ quán"
       },
       "resource": {
         "seller": "Cửa hàng",
@@ -1234,7 +1236,8 @@
         "reason": "Lý do: {reason}",
         "value": "{field}: {from} → {to}",
         "secret": "{field}: đã đổi",
-        "empty": "trống"
+        "empty": "trống",
+        "ownerChanged": "Chủ cũ → nhân viên, chủ mới nhận quán"
       },
       "field": {
         "minDiscountPercent": "Giảm tối thiểu",
@@ -1601,7 +1604,20 @@
         },
         "ordersTable": "Đơn hàng của cửa hàng",
         "noOrders": "Không có đơn nào trong ngày này",
-        "orderNoun": "đơn"
+        "orderNoun": "đơn",
+        "changeOwner": {
+          "open": "Đổi chủ quán",
+          "title": "Đổi chủ của {store}",
+          "body": "Chủ mới đăng nhập bằng email này để quản lý quán. Chủ cũ ở lại làm nhân viên, chủ mới có thể xoá họ.",
+          "email": "Email chủ mới",
+          "cancel": "Huỷ",
+          "confirm": "Đổi chủ quán",
+          "done": "{email} đã là chủ của {store}.",
+          "failed": "Chưa đổi được chủ quán. Thử lại sau ít phút.",
+          "errors": {
+            "email": "Nhập một địa chỉ email, ví dụ ten@example.com."
+          }
+        }
       },
       "reasonInvalid": "Ghi lý do cho chủ cửa hàng, từ 10 đến 500 ký tự."
     },
@@ -2099,6 +2115,33 @@
     "failed": "Chưa gửi được góp ý. Thử lại sau ít phút.",
     "errors": {
       "text": "Viết góp ý từ 1 đến 1.000 ký tự."
+    }
+  },
+  "StoreStaffPage": {
+    "title": "Nhân viên của quán",
+    "introOwner": "Nhân viên đăng món và giao đơn cùng bạn. Họ đăng nhập bằng email của mình.",
+    "introStaff": "Những người đăng món và giao đơn cho quán. Chỉ chủ quán thêm hay xoá được người.",
+    "email": "Email nhân viên",
+    "emailPlaceholder": "ten@example.com",
+    "add": "Thêm nhân viên",
+    "added": "Đã thêm {email} vào quán.",
+    "people": "Người trong quán · {count}",
+    "owner": "Chủ quán",
+    "you": "{email} (bạn)",
+    "remove": "Xoá",
+    "removeTitle": "Xoá {email} khỏi quán?",
+    "removeBody": "Người này không đăng món hay giao đơn cho quán được nữa. Bạn có thể thêm lại bất cứ lúc nào.",
+    "removeConfirm": "Xoá khỏi quán",
+    "removed": "Đã xoá {email} khỏi quán.",
+    "leave": "Rời quán",
+    "leaveTitle": "Rời {store}?",
+    "leaveBody": "Bạn sẽ không đăng món hay giao đơn cho quán này nữa. Chủ quán có thể thêm bạn lại.",
+    "leaveConfirm": "Rời quán",
+    "left": "Bạn đã rời {store}.",
+    "cancel": "Huỷ",
+    "failed": "Chưa làm được. Thử lại sau ít phút.",
+    "errors": {
+      "email": "Nhập một địa chỉ email, ví dụ ten@example.com."
     }
   }
 }

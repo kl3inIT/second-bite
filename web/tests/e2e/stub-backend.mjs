@@ -1257,6 +1257,77 @@ function inHanoi(latitude, longitude) {
   return latitude >= 20.53 && latitude <= 21.42 && longitude >= 105.25 && longitude <= 106.06;
 }
 
+// A store's people (SEC-162): the owner who opened it, then the staff it adds, who see the store as theirs.
+const storeMembers = new Map();
+const accountIdOf = (email) => `ac-${Buffer.from(email).toString("hex")}`;
+
+function membersOf(seller, ownerEmail) {
+  if (!storeMembers.has(seller.id))
+    storeMembers.set(seller.id, [
+      {
+        accountId: accountIdOf(ownerEmail),
+        email: ownerEmail,
+        role: "owner",
+        addedAt: seller.createdAt,
+      },
+    ]);
+  return storeMembers.get(seller.id);
+}
+
+/** GET and POST /sellers/{id}/members, DELETE /sellers/{id}/members/{accountId}, as the server answers them. */
+async function storeMemberRoutes(request, response, url, email, mine) {
+  const match = /^\/sellers\/([\w-]+)\/members(?:\/([\w-]+))?$/.exec(url.pathname);
+  if (!match) return false;
+  const seller = mine.find((candidate) => candidate.id === match[1]);
+  if (!seller) {
+    problem(response, 404, "SELLER_NOT_FOUND");
+    return true;
+  }
+  const owner = seller.myRole === "owner";
+  const members = membersOf(seller, owner ? email : (seller.ownerEmail ?? email));
+  if (request.method === "GET" && !match[2]) {
+    json(response, 200, { members });
+  } else if (request.method === "POST" && !match[2]) {
+    const added = String((await readBody(request)).email ?? "")
+      .trim()
+      .toLowerCase();
+    if (!owner) problem(response, 403, "SELLER_OWNER_REQUIRED");
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(added))
+      problem(response, 400, "IDENTITY_EMAIL_INVALID");
+    else if (members.some((m) => m.email === added))
+      problem(response, 409, "SELLER_ALREADY_MEMBER");
+    else {
+      const member = {
+        accountId: accountIdOf(added),
+        email: added,
+        role: "staff",
+        addedAt: new Date().toISOString(),
+      };
+      members.push(member);
+      // The person sees the store among theirs at their next sign-in, as staff.
+      storesOf.set(added, [
+        ...(storesOf.get(added) ?? []),
+        { ...seller, myRole: "staff", ownerEmail: email },
+      ]);
+      json(response, 201, member);
+    }
+  } else if (request.method === "DELETE" && match[2]) {
+    const member = members.find((m) => m.accountId === match[2]);
+    const self = match[2] === accountIdOf(email);
+    if (!member || member.role !== "staff") problem(response, 404, "SELLER_MEMBER_NOT_FOUND");
+    else if (!owner && !self) problem(response, 403, "SELLER_OWNER_REQUIRED");
+    else {
+      members.splice(members.indexOf(member), 1);
+      storesOf.set(
+        member.email,
+        (storesOf.get(member.email) ?? []).filter((candidate) => candidate.id !== seller.id),
+      );
+      response.writeHead(204).end();
+    }
+  } else return false;
+  return true;
+}
+
 async function sellerRoutes(request, response, url) {
   const token = tokenOf(request);
   const isSellerRoute =
@@ -1265,7 +1336,7 @@ async function sellerRoutes(request, response, url) {
     url.pathname === "/sellers/address" ||
     url.pathname === "/sellers/places" ||
     url.pathname === "/photos" ||
-    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders|\/feedback|\/reviews)?$/.test(
+    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders|\/feedback|\/reviews|\/members(\/[\w-]+)?)?$/.test(
       url.pathname,
     ) ||
     (/^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse|problem\/answer)$/.test(url.pathname) &&
@@ -1429,6 +1500,7 @@ async function sellerRoutes(request, response, url) {
     json(response, 200, { orders: day === today ? sellerOrdersFor(seller) : [] });
     return true;
   }
+  if (await storeMemberRoutes(request, response, url, email, mine)) return true;
   const feedbackOf = /^\/sellers\/([\w-]+)\/feedback$/.exec(url.pathname);
   if (request.method === "POST" && feedbackOf) {
     const seller = mine.find((candidate) => candidate.id === feedbackOf[1]);
@@ -2538,6 +2610,48 @@ function adminOrderReads(request, response, url) {
   return true;
 }
 
+// A store's people as admins read them, which an owner change rewrites (SEC-162); each admin's stores are their own.
+const adminMembers = new WeakMap();
+
+function adminMembersOf(store, ownerEmail) {
+  if (!adminMembers.has(store))
+    adminMembers.set(store, [
+      { accountId: "ac-owner", email: ownerEmail, role: "owner", addedAt: store.createdAt },
+      {
+        accountId: "ac-staff",
+        email: "nhan.vien@example.com",
+        role: "staff",
+        addedAt: store.createdAt,
+      },
+    ]);
+  return adminMembers.get(store);
+}
+
+/** POST /admin/sellers/{id}/owner: the account of the address owns the store, the previous owner stays as staff. */
+async function changeAdminOwner(request, response, stores, id) {
+  const store = stores.find((s) => s.id === id);
+  if (!store) return problem(response, 404, "SELLER_NOT_FOUND");
+  const email = String((await readBody(request)).email ?? "")
+    .trim()
+    .toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
+    return problem(response, 400, "IDENTITY_EMAIL_INVALID");
+  const members = adminMembersOf(store, store.ownerEmail);
+  if (store.ownerEmail === email) return problem(response, 409, "SELLER_ALREADY_OWNER");
+  for (const member of members) if (member.role === "owner") member.role = "staff";
+  const existing = members.find((m) => m.email === email);
+  if (existing) existing.role = "owner";
+  else
+    members.push({
+      accountId: accountIdOf(email),
+      email,
+      role: "owner",
+      addedAt: new Date().toISOString(),
+    });
+  store.ownerEmail = email;
+  json(response, 200, { members });
+}
+
 /** POST /admin/sellers/{id}/approve | reject | block, each from the statuses it applies to. */
 async function changeAdminStore(request, response, stores, id, action) {
   const store = stores.find((s) => s.id === id);
@@ -2581,17 +2695,7 @@ function adminSellerReads(request, response, url) {
   }
   const { ownerEmail, ...seller } = store;
   if (match[2] === "/members") {
-    json(response, 200, {
-      members: [
-        { accountId: "ac-owner", email: ownerEmail, role: "owner", addedAt: store.createdAt },
-        {
-          accountId: "ac-staff",
-          email: "nhan.vien@example.com",
-          role: "staff",
-          addedAt: store.createdAt,
-        },
-      ],
-    });
+    json(response, 200, { members: adminMembersOf(store, ownerEmail) });
   } else if (match[2] === "/orders") {
     // A store's orders of the day (Figma AD-QD6): the six of a store with orders for "Tiệm bánh Pháp", none else.
     json(response, 200, {
@@ -2793,6 +2897,11 @@ async function adminRoutes(request, response, url) {
       "content-disposition": `attachment; filename=bao-cao-${report.since}-den-${report.until}.csv`,
     });
     response.end(adminReportCSV(report));
+    return true;
+  }
+  const ownerChange = /^\/admin\/sellers\/([\w-]+)\/owner$/.exec(url.pathname);
+  if (request.method === "POST" && ownerChange) {
+    await changeAdminOwner(request, response, adminStoresOf(account), ownerChange[1]);
     return true;
   }
   const storeAction = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block)$/.exec(url.pathname);

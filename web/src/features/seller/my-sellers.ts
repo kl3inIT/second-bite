@@ -12,7 +12,9 @@ import {
   listMySellers,
   listSellerOffers,
   listSellerOrders,
+  listSellerMembers,
   listSellerReviews,
+  type MemberBody,
   type OfferBody,
   type OrderBody,
   type SellerBody,
@@ -87,3 +89,9 @@ export const getStoreReviews = cache(
     return data;
   },
 );
+
+/** A store's people, its owner and staff, to its members (SEC-162). */
+export const getStoreMembers = cache(async (sellerId: string): Promise<MemberBody[]> => {
+  const { data } = await listSellerMembers({ path: { sellerId }, headers: await sessionHeaders() });
+  return data.members ?? [];
+});

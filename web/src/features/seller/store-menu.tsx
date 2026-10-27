@@ -1,6 +1,12 @@
 "use client";
 
-import { MapPinnedIcon, MessageSquareTextIcon, PencilIcon, PlusIcon } from "lucide-react";
+import {
+  MapPinnedIcon,
+  MessageSquareTextIcon,
+  PencilIcon,
+  PlusIcon,
+  UsersIcon,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -86,9 +92,14 @@ export function StoreMenu({
               </DropdownMenuItem>
             ))}
           </DropdownMenuGroup>
-          {/* What is hard or missing, told to the team by any of the store's people (SEC-82, Figma G1). */}
+          {/* The store's people, which the owner manages and staff read (SEC-162, Figma N1, N3), and what is hard
+              or missing, told to the team by any of them (SEC-82, Figma G1). */}
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
+            <DropdownMenuItem render={<Link href={`/stores/${current.id}/staff`} />}>
+              <UsersIcon aria-hidden />
+              {t("staff")}
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setFeedback(true)}>
               <MessageSquareTextIcon aria-hidden />
               {t("feedback")}

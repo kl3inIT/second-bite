@@ -10,6 +10,7 @@ import {
   SettingsIcon,
   ShieldMinusIcon,
   ShieldPlusIcon,
+  UserRoundCogIcon,
   type LucideIcon,
 } from "lucide-react";
 import { debounce, useQueryStates } from "nuqs";
@@ -58,6 +59,7 @@ const actionLook: Record<
   "seller.reject": { variant: "danger", icon: CircleXIcon },
   "seller.block": { variant: "danger", icon: BanIcon },
   "seller.unblock": { variant: "success", icon: CircleCheckIcon },
+  "seller.change_owner": { variant: "info", icon: UserRoundCogIcon },
   "review.hide": { variant: "danger", icon: EyeOffIcon },
   "review.show": { variant: "success", icon: EyeIcon },
   "admin.grant": { variant: "info", icon: ShieldPlusIcon },

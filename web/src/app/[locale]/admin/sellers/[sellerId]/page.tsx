@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { AdminTopBar } from "@/features/admin/admin-top-bar";
+import { ChangeOwner } from "@/features/admin-sellers/change-owner";
 import { OfferRow } from "@/features/admin-sellers/offer-row";
 import { SellerOrders } from "@/features/admin-sellers/seller-orders";
 import { SellerPosts } from "@/features/admin-sellers/seller-posts";
@@ -209,11 +210,15 @@ export default async function SellerPage({
           membersList={
             <Card size="lg">
               <CardContent>
-                <Members
-                  members={members}
-                  owner={t("sellers.detail.owner")}
-                  staff={t("sellers.detail.staff")}
-                />
+                <div className="flex flex-col gap-4">
+                  <Members
+                    members={members}
+                    owner={t("sellers.detail.owner")}
+                    staff={t("sellers.detail.staff")}
+                  />
+                  {/* A store the team opened is handed to its owner here (SEC-162, Figma AD-QD4b). */}
+                  <ChangeOwner sellerId={sellerId} storeName={seller.name} />
+                </div>
               </CardContent>
             </Card>
           }
