@@ -60,8 +60,9 @@ type scheduleJob struct {
 
 func (scheduleJob) Kind() string { return "platform.schedule" }
 
-// eventWorkers bounds how many listeners run at once in one instance.
-const eventWorkers = 10
+// eventWorkers bounds how many listeners run at once in one instance; each
+// takes a connection of the pool the requests use while it runs (SEC-161).
+const eventWorkers = 4
 
 // eventTimeout bounds one listener's run; River retries it after.
 const eventTimeout = time.Minute
