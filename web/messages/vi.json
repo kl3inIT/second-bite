@@ -581,7 +581,8 @@
     "crumbHome": "Trang chủ",
     "mapLabel": "Vị trí {seller} trên bản đồ",
     "mapOpen": "Mở đường đến quán",
-    "deepDiscount": "Giảm sâu"
+    "deepDiscount": "Giảm sâu",
+    "bestSellers": "Bán chạy"
   },
   "Cart": {
     "title": "Xác nhận đơn",

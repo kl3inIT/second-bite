@@ -581,7 +581,8 @@
     "crumbHome": "Home",
     "mapLabel": "Where {seller} is on the map",
     "mapOpen": "Open the way to the store",
-    "deepDiscount": "Deep discounts"
+    "deepDiscount": "Deep discounts",
+    "bestSellers": "Best sellers"
   },
   "Cart": {
     "title": "Confirm order",

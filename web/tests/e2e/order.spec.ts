@@ -14,7 +14,9 @@ const isWide = (page: Page) => (page.viewportSize()?.width ?? 0) >= 768;
 async function addCroissant(page: Page) {
   await page.goto("/vi/sellers/se-la-paris");
   await (
-    await hydrated(page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }))
+    await hydrated(
+      page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }).first(),
+    )
   ).click();
 }
 
@@ -221,7 +223,9 @@ test.describe("ordering from the cart", () => {
   }) => {
     await addCroissant(page);
     await page.goto("/vi/sellers/se-panda-chef");
-    await (await hydrated(page.getByRole("button", { name: "Thêm một phần Há cảo tôm" }))).click();
+    await (
+      await hydrated(page.getByRole("button", { name: "Thêm một phần Há cảo tôm" }).first())
+    ).click();
     await page.goto("/vi/cart");
     await (await hydrated(page.getByRole("button", { name: "Đặt 2 đơn" }))).click();
     const sheet = page.getByRole("dialog", { name: "Người đến nhận" });

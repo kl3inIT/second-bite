@@ -31,7 +31,9 @@ test.describe("a dish, its seller and the cart", () => {
 
     // Figma K4a: the dish's sheet adds two portions at once.
     await (
-      await hydrated(page.getByRole("button", { name: "Bánh Croissant Truyền Thống", exact: true }))
+      await hydrated(
+        page.getByRole("button", { name: "Bánh Croissant Truyền Thống", exact: true }).first(),
+      )
     ).click();
     const sheet = page.getByRole("dialog", { name: "Bánh Croissant Truyền Thống" });
     await expect(
@@ -83,7 +85,8 @@ test.describe("a dish, its seller and the cart", () => {
     await expect(
       page
         .getByText(wide(page) ? "Đã chọn đủ 3" : "đã chọn đủ 3 phần", { exact: true })
-        .filter({ visible: true }),
+        .filter({ visible: true })
+        .first(),
     ).toBeVisible();
     // A phone's bar at the foot, a wider screen's sidebar at the side.
     await expect(
@@ -94,7 +97,9 @@ test.describe("a dish, its seller and the cart", () => {
 
     // Another seller's dish joins the same cart, in its own basket.
     await page.goto("/vi/sellers/se-panda-chef");
-    await (await hydrated(page.getByRole("button", { name: "Thêm một phần Há cảo tôm" }))).click();
+    await (
+      await hydrated(page.getByRole("button", { name: "Thêm một phần Há cảo tôm" }).first())
+    ).click();
     await page.getByRole("link", { name: wide(page) ? /^Đặt 2 đơn/ : "Xem giỏ hàng" }).click();
 
     await expect(page.getByRole("heading", { level: 1, name: "Xác nhận đơn" })).toBeVisible();
@@ -143,7 +148,7 @@ test.describe("a dish, its seller and the cart", () => {
 
       await (
         await hydrated(
-          page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }),
+          page.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }).first(),
         )
       ).click();
       await expect(sidebar.getByRole("heading", { name: "La Paris" })).toBeVisible();
@@ -181,9 +186,11 @@ test.describe("a dish, its seller and the cart", () => {
   });
 
   // SEC-137: the counter on the store's pin, and the way there to that pin, not to the address Google looks up.
+  // The web's page has no map (the owner's review, 27 October 2026), only the pin beside the seller's window.
   test("shows the seller on a map, the way there leading to its pin", async ({ page }) => {
     await page.goto("/vi/sellers/se-la-paris");
-    await expect(page.getByRole("figure", { name: /^Vị trí .+ trên bản đồ$/ })).toBeVisible();
+    const map = page.getByRole("figure", { name: /^Vị trí .+ trên bản đồ$/ });
+    await (wide(page) ? expect(map).toBeHidden() : expect(map).toBeVisible());
     // A phone's "Chỉ đường"; a wider screen's pin beside the seller's window.
     await expect(
       page

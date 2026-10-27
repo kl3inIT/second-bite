@@ -176,7 +176,10 @@ export function SellerPage({
               </div>
               <SellerMenu offers={shown} focused={at} />
               {/* Where the counter is, under the dishes, as Too Good To Go's store page keeps its address last. */}
-              <SellerMap lead={first} />
+              {/* The web's page has no map (the owner's review, 27 October 2026); a phone keeps it. */}
+              <div className="md:hidden">
+                <SellerMap lead={first} />
+              </div>
             </div>
             <CartSidebar />
           </div>
