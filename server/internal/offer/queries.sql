@@ -19,31 +19,31 @@ WHERE id = 1;
 
 -- name: InsertOffer :one
 INSERT INTO offer_offers (
-    seller_id, posted_by, name, description, kind, unit, units, units_left, price_vnd, original_price_vnd,
+    seller_id, posted_by, name, description, kind, kind_label, unit, units, units_left, price_vnd, original_price_vnd,
     weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address, seller_name, search_vector
 ) VALUES (
-    @seller_id, @posted_by, @name, @description, @kind, @unit, @units, @units, @price_vnd, @original_price_vnd,
+    @seller_id, @posted_by, @name, @description, @kind, @kind_label, @unit, @units, @units, @price_vnd, @original_price_vnd,
     @weight_grams, @photo_id, @more_photo_ids, @window_start, @window_end, @latitude, @longitude, @address, @seller_name,
     (sqlc.arg(search_vector)::text)::tsvector
 )
 RETURNING id;
 
 -- name: GetOffer :one
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers WHERE id = @id;
 
 -- name: LockOffer :one
 -- Serializes changes to one offer until the transaction ends.
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers WHERE id = @id FOR UPDATE;
 
 -- name: UpdateOffer :exec
 UPDATE offer_offers
-SET name = @name, description = @description, kind = @kind, unit = @unit, units = @units,
+SET name = @name, description = @description, kind = @kind, kind_label = @kind_label, unit = @unit, units = @units,
     units_left = @units_left, price_vnd = @price_vnd, original_price_vnd = @original_price_vnd,
     weight_grams = @weight_grams, photo_id = @photo_id, more_photo_ids = @more_photo_ids, window_start = @window_start, window_end = @window_end,
     search_vector = (sqlc.arg(search_vector)::text)::tsvector, updated_at = now()
@@ -68,7 +68,7 @@ SELECT (EXISTS (SELECT 1 FROM offer_offers AS o
                WHERE d.seller_id = @seller_id AND (d.photo_id = @photo_id OR @photo_id = ANY (d.more_photo_ids))))::boolean;
 
 -- name: SellerOffers :many
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers
@@ -86,7 +86,7 @@ LIMIT @max_rows OFFSET @skip_rows;
 -- matching the tsquery literal built by searchQuery (any when empty), of the
 -- seller given and posted in [posted_since, posted_until) when given, newest
 -- first; CountOffersForAdmins counts them all.
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers
@@ -131,7 +131,7 @@ WHERE (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
 -- Offers customers may order or see sold out: on sale, the window not over,
 -- the seller not blocked; filtered before they are ordered and paged. The
 -- query is a tsquery literal built by searchQuery, empty for none.
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name,
        COALESCE(distance_m, 0)::float8 AS distance_m, rank::float4 AS rank
@@ -172,22 +172,22 @@ SELECT pg_advisory_xact_lock(hashtextextended('offer:dishes:' || @seller_id::tex
 SELECT count(*)::integer FROM offer_dishes WHERE seller_id = @seller_id;
 
 -- name: InsertDish :one
-INSERT INTO offer_dishes (seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden)
-VALUES (@seller_id, @created_by, @name, @kind, @unit, @description, @ingredients, @original_price_vnd, @photo_id, @more_photo_ids, @hidden)
+INSERT INTO offer_dishes (seller_id, created_by, name, kind, kind_label, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden)
+VALUES (@seller_id, @created_by, @name, @kind, @kind_label, @unit, @description, @ingredients, @original_price_vnd, @photo_id, @more_photo_ids, @hidden)
 RETURNING id;
 
 -- name: GetDish :one
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, kind_label, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden, created_at, updated_at
 FROM offer_dishes WHERE id = @id;
 
 -- name: SellerDishes :many
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, kind_label, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden, created_at, updated_at
 FROM offer_dishes WHERE seller_id = @seller_id
 ORDER BY created_at DESC, id DESC;
 
 -- name: UpdateDish :exec
 UPDATE offer_dishes
-SET name = @name, kind = @kind, unit = @unit, description = @description, ingredients = @ingredients,
+SET name = @name, kind = @kind, kind_label = @kind_label, unit = @unit, description = @description, ingredients = @ingredients,
     original_price_vnd = @original_price_vnd, photo_id = @photo_id, more_photo_ids = @more_photo_ids, hidden = @hidden, updated_at = now()
 WHERE id = @id;
 

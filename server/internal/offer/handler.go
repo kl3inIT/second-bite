@@ -15,7 +15,8 @@ import (
 type offerDetailsBody struct {
 	Name        string `json:"name"                  maxLength:"80"  minLength:"1"`
 	Description string `json:"description,omitempty" doc:"Required for a mixed_box, which is described by what it may hold; allergens are written here" maxLength:"1000"`
-	Kind        Kind   `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Kind        Kind   `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other"`
+	KindLabel   string `json:"kindLabel,omitempty"   doc:"What the seller calls a dish of the kind other; empty for any other kind" maxLength:"30"`
 	Unit        string `json:"unit,omitempty"        doc:"What one unit is called; \"suất\" when empty" maxLength:"20"`
 	Units       int    `json:"units"                 maximum:"999"   minimum:"1"`
 	PriceVND    int64  `json:"priceVnd"              doc:"Price of one unit, in whole đồng" minimum:"1000"`
@@ -36,7 +37,8 @@ func (b offerDetailsBody) details() Details {
 type offerChangeBody struct {
 	Name             *string      `json:"name,omitempty"             maxLength:"80"  minLength:"1"`
 	Description      *string      `json:"description,omitempty"      maxLength:"1000"`
-	Kind             *Kind        `json:"kind,omitempty"             enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Kind             *Kind        `json:"kind,omitempty"             enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other"`
+	KindLabel        *string      `json:"kindLabel,omitempty"        doc:"Leaves it as it is when absent, and empties it when the kind is changed from other" maxLength:"30"`
 	Unit             *string      `json:"unit,omitempty"             maxLength:"20"`
 	Units            *int         `json:"units,omitempty"            maximum:"999"   minimum:"1"`
 	PriceVND         *int64       `json:"priceVnd,omitempty"         minimum:"1000"`
@@ -68,7 +70,8 @@ type offerBody struct {
 	Status           Status              `json:"status"                doc:"sold_out and closed are read from the units left and the window" enum:"on_sale,sold_out,closed,withdrawn"`
 	Name             string              `json:"name"`
 	Description      string              `json:"description"`
-	Kind             Kind                `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Kind             Kind                `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other"`
+	KindLabel        string              `json:"kindLabel"             doc:"What the seller calls a dish of the kind other; empty for any other kind"`
 	Unit             string              `json:"unit"`
 	Units            int                 `json:"units"`
 	UnitsLeft        int                 `json:"unitsLeft"`
@@ -88,7 +91,7 @@ type offerBody struct {
 
 func toBody(o Offer) offerBody {
 	return offerBody{
-		ID: o.ID, SellerID: o.SellerID, Status: o.Status, Name: o.Name, Description: o.Description, Kind: o.Kind,
+		ID: o.ID, SellerID: o.SellerID, Status: o.Status, Name: o.Name, Description: o.Description, Kind: o.Kind, KindLabel: o.KindLabel,
 		Unit: o.Unit, Units: o.Units, UnitsLeft: o.UnitsLeft, PriceVND: o.PriceVND, OriginalPriceVND: o.OriginalPriceVND,
 		DiscountPercent: o.DiscountPercent, WeightGrams: o.WeightGrams,
 		Photo: offerPhotoBody{

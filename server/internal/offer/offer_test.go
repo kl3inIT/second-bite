@@ -57,6 +57,7 @@ func TestOffer(t *testing.T) {
 			"a blocked seller's offers leave search":      testBlockedSellerLeavesSearch,
 			"a seller keeps its dishes in a catalog":      testCatalogKeepsTheStableBase,
 			"a catalog is private to its sellers people":  testCatalogIsPrivateToTheSellersPeople,
+			"sellers name the kind other":                 testSellersNameTheKindOther,
 			"a post copies its dish":                      testPostsCopyTheirDish,
 			"a catalog holds a hundred dishes":            testCatalogHoldsAHundredDishes,
 			"orders take and return units":                testOrdersTakeAndReturnUnits,
@@ -691,6 +692,58 @@ func testCatalogKeepsTheStableBase(t *testing.T, f fixture) {
 
 	if err := f.offers.RemoveDish(owner, priced.ID); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// testSellersNameTheKindOther: three more kinds hold a dish; the kind "other" holds a name the seller gives it, of
+// 30 letters at most, which no other kind holds, and which a change of kind takes away (SEC-175).
+func testSellersNameTheKindOther(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	w := newCatalogWorld(owner, t, f)
+
+	for _, kind := range []offer.Kind{offer.KindDessert, offer.KindSnacks, offer.KindProduce} {
+		if _, err := f.offers.AddDish(owner, w.sellerID, offer.DishDetails{Name: "Món", Kind: kind, PhotoID: w.photo}); err != nil {
+			t.Errorf("the kind %s: %v", kind, err)
+		}
+	}
+
+	for name, d := range map[string]offer.DishDetails{
+		"a name on another kind": {Name: "Xôi", Kind: offer.KindDessert, KindLabel: "Chè", PhotoID: w.photo},
+		"a name of 31 letters":   {Name: "Xôi", Kind: offer.KindOther, KindLabel: strings.Repeat("x", 31), PhotoID: w.photo},
+	} {
+		_, err := f.offers.AddDish(owner, w.sellerID, d)
+		mustFail(t, name, err, offer.ErrDetailsInvalid)
+	}
+
+	named, err := f.offers.AddDish(owner, w.sellerID, offer.DishDetails{
+		Name: "Chè", Kind: offer.KindOther, KindLabel: "  Chè truyền thống ", PhotoID: w.photo,
+	})
+	if err != nil || named.KindLabel != "Chè truyền thống" {
+		t.Fatalf("named %+v, %v", named, err)
+	}
+
+	name := "Chè đậu"
+
+	renamed, err := f.offers.ChangeDish(owner, named.ID, offer.DishChange{Name: &name})
+	if err != nil || renamed.KindLabel != "Chè truyền thống" {
+		t.Errorf("a change of the name leaves the kind's: %+v, %v", renamed, err)
+	}
+
+	kind := offer.KindDessert
+
+	moved, err := f.offers.ChangeDish(owner, named.ID, offer.DishChange{Kind: &kind})
+	if err != nil || moved.Kind != offer.KindDessert || moved.KindLabel != "" {
+		t.Errorf("a change of kind takes the name away: %+v, %v", moved, err)
+	}
+
+	d := bread(w.photo)
+	d.Kind, d.KindLabel = offer.KindOther, "Mứt tết"
+
+	posted, err := f.offers.Post(owner, w.sellerID, d)
+	if err != nil || posted.KindLabel != "Mứt tết" {
+		t.Errorf("a post of the kind other keeps the name: %+v, %v", posted, err)
 	}
 }
 
