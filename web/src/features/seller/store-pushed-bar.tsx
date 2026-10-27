@@ -6,7 +6,7 @@ import { TopBarView } from "@/components/top-bar";
 import { usePathname } from "@/i18n/navigation";
 
 // The top bar of a store's pushed screen on a phone (the dish form, Figma "Thêm món" and "Sửa món"; an order's
-// own page, O2 and O3; the store's location, SEC-66; its information, SEC-144): its name and a way back to the
+// own page, O2 and O3; the store's location, SEC-66; its information, SEC-144; its people, SEC-162): its name and a way back to the
 // catalog, to the orders, or to the store's home. The layout shows it only while a pushed screen is open.
 export function StorePushedBar() {
   const t = useTranslations("DishForm");
@@ -14,6 +14,7 @@ export function StorePushedBar() {
   const location = useTranslations("StoreLocationPage");
   const edit = useTranslations("StoreEditPage");
   const reviews = useTranslations("StoreReviews");
+  const staff = useTranslations("StoreMenu");
   const bar = useTranslations("TopBar");
   const pathname = usePathname();
   // An order's chat draws its own blue bar with the customer's name (Figma Q7).
@@ -22,9 +23,10 @@ export function StorePushedBar() {
   const ofLocation = pathname.endsWith("/location");
   const ofStore = /^\/stores\/[^/]+\/edit$/.test(pathname);
   const ofReviews = /^\/stores\/[^/]+\/reviews$/.test(pathname);
+  const ofStaff = /^\/stores\/[^/]+\/staff$/.test(pathname);
   const parent = pathname
     .split("/")
-    .slice(0, ofLocation || ofStore || ofReviews ? 3 : 4)
+    .slice(0, ofLocation || ofStore || ofReviews || ofStaff ? 3 : 4)
     .join("/");
   const ofOrder = pathname.includes("/orders/");
   let title = pathname.endsWith("/new") ? t("addTitle") : t("editTitle");
@@ -32,6 +34,7 @@ export function StorePushedBar() {
   if (ofLocation) title = location("title");
   if (ofStore) title = edit("title");
   if (ofReviews) title = reviews("title");
+  if (ofStaff) title = staff("staff");
 
   return (
     <div className="hidden group-has-[[data-pushed]]/store:max-md:block">

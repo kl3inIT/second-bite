@@ -764,7 +764,8 @@
     "location": "Store location",
     "mine": "My stores",
     "create": "Open another store",
-    "feedback": "Feedback for Second Bite"
+    "feedback": "Feedback for Second Bite",
+    "staff": "Staff"
   },
   "ScanOrder": {
     "open": "Scan an order's code",
@@ -1212,7 +1213,8 @@
         "offerSettingsChange": "Post settings changed",
         "emailSettingsChange": "Email settings changed",
         "reviewHide": "Hide review",
-        "reviewShow": "Show review"
+        "reviewShow": "Show review",
+        "sellerChangeOwner": "Store owner changed"
       },
       "resource": {
         "seller": "Store",
@@ -1234,7 +1236,8 @@
         "reason": "Reason: {reason}",
         "value": "{field}: {from} → {to}",
         "secret": "{field}: changed",
-        "empty": "empty"
+        "empty": "empty",
+        "ownerChanged": "Previous owner → staff; the new owner takes the store"
       },
       "field": {
         "minDiscountPercent": "Minimum discount",
@@ -1601,7 +1604,20 @@
         },
         "ordersTable": "The store's orders",
         "noOrders": "No order on this day",
-        "orderNoun": "orders"
+        "orderNoun": "orders",
+        "changeOwner": {
+          "open": "Change owner",
+          "title": "Change the owner of {store}",
+          "body": "The new owner signs in with this email to run the store. The previous owner stays on as staff, and the new owner can remove them.",
+          "email": "New owner's email",
+          "cancel": "Cancel",
+          "confirm": "Change owner",
+          "done": "{email} now owns {store}.",
+          "failed": "Could not change the owner. Try again in a few minutes.",
+          "errors": {
+            "email": "Enter an email address, such as name@example.com."
+          }
+        }
       },
       "reasonInvalid": "Write the owner a reason of 10 to 500 characters."
     },
@@ -2099,6 +2115,33 @@
     "failed": "The feedback could not be sent. Try again in a few minutes.",
     "errors": {
       "text": "Write feedback of 1 to 1,000 characters."
+    }
+  },
+  "StoreStaffPage": {
+    "title": "The store's staff",
+    "introOwner": "Staff post dishes and hand over orders with you. They sign in with their own email.",
+    "introStaff": "The people who post dishes and hand over orders for the store. Only the owner adds or removes people.",
+    "email": "Staff email",
+    "emailPlaceholder": "name@example.com",
+    "add": "Add staff",
+    "added": "{email} now works at the store.",
+    "people": "People in the store · {count}",
+    "owner": "Owner",
+    "you": "{email} (you)",
+    "remove": "Remove",
+    "removeTitle": "Remove {email} from the store?",
+    "removeBody": "They will no longer post dishes or hand over orders for the store. You can add them again at any time.",
+    "removeConfirm": "Remove from the store",
+    "removed": "{email} was removed from the store.",
+    "leave": "Leave the store",
+    "leaveTitle": "Leave {store}?",
+    "leaveBody": "You will no longer post dishes or hand over orders for this store. The owner can add you again.",
+    "leaveConfirm": "Leave the store",
+    "left": "You left {store}.",
+    "cancel": "Cancel",
+    "failed": "That did not work. Try again in a few minutes.",
+    "errors": {
+      "email": "Enter an email address, such as name@example.com."
     }
   }
 }

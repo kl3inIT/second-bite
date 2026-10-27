@@ -214,6 +214,25 @@ test.describe("the admin's stores", () => {
     await expect(page.getByText("nhan.vien@example.com")).toBeVisible();
   });
 
+  // SEC-162 › a store the team opened is handed to its owner (Figma AD-QD4b, AD-QD4c).
+  test("hands a store to a new owner from its members tab", async ({ page }) => {
+    await page.goto("/vi/admin/sellers/se-admin-07?tab=members");
+    await (await hydrated(page.getByRole("button", { name: "Đổi chủ quán" }))).click();
+    const dialog = page.getByRole("dialog", { name: /^Đổi chủ của / });
+    await expect(dialog.getByText(/Chủ cũ ở lại làm nhân viên/)).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await dialog.getByRole("button", { name: "Đổi chủ quán" }).click();
+    await expect(dialog.getByText("Nhập một địa chỉ email, ví dụ ten@example.com.")).toBeVisible();
+
+    await dialog.getByLabel("Email chủ mới").fill("chu.moi@example.com");
+    await dialog.getByRole("button", { name: "Đổi chủ quán" }).click();
+    await expect(page.getByText(/^chu\.moi@example\.com đã là chủ của /)).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Thành viên · 3" })).toBeVisible();
+    const owner = page.getByRole("listitem").filter({ hasText: "chu.moi@example.com" });
+    await expect(owner.getByText("Chủ cửa hàng")).toBeVisible();
+  });
+
   test("an unknown store is not found", async ({ page }) => {
     await page.goto("/vi/admin/sellers/se-admin-99");
     await expect(page.getByRole("heading", { name: "Không tìm thấy trang này" })).toBeVisible();

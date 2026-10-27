@@ -76,4 +76,12 @@ var (
 		VI: "Bộ lọc danh sách cửa hàng không hợp lệ: kiểm tra trạng thái, từ khoá tối đa 100 ký tự, khoảng ngày sửa đổi có ngày bắt đầu trước ngày kết thúc, trang từ 1 và cỡ trang từ 1 đến 100.",
 		EN: "The seller list's filters are not valid: check the statuses, a query of at most 100 characters, a range of last changes that starts before it ends, a page from 1 and a page size of 1 to 100.",
 	})
+	ErrAlreadyOwner = platform.NewFailure("SELLER_ALREADY_OWNER", platform.CategoryConflict, platform.Words{
+		VI: "Người này đã là chủ của quán.",
+		EN: "This person already owns the seller.",
+	})
+	ErrNewOwnerLimitReached = platform.NewFailure("SELLER_NEW_OWNER_LIMIT_REACHED", platform.CategoryConflict, platform.Words{
+		VI: "Người này đã là chủ của 5 quán, không nhận thêm quán được.",
+		EN: "This person already owns five sellers and cannot take another.",
+	})
 )

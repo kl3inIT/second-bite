@@ -26,6 +26,7 @@ Owns sellers, their status set by admins, and the people who act for them (table
 | `POST /admin/sellers/{sellerId}/approve` | Admins | `200` seller, `active`, from `pending`, `rejected` or `blocked`; its owner emailed; `409 SELLER_OWNERLESS` when the owner deleted their account (SEC-65) |
 | `POST /admin/sellers/{sellerId}/reject` `{reason}` | Admins | `200` seller, `rejected`, from `pending`; its owner emailed the reason |
 | `POST /admin/sellers/{sellerId}/block` `{reason}` | Admins | `200` seller, `blocked`, from `active`; its owner emailed the reason |
+| `POST /admin/sellers/{sellerId}/owner` `{email}` | Admins | `200 {members}`: the account of the address owns the seller, created when it never signed in; the previous owner, if any, stays on as staff; a seller left without an owner gets one this way (SEC-162) |
 
 Published to other modules: `Publishing(seller, account)`, which `offer` calls before posting or changing: the seller's name and collection point when the account is the owner or staff of an active seller, `SELLER_NOT_FOUND` when it is not a member, `SELLER_NOT_ACTIVE` when the seller is not active; `Publics(sellers)`, what customers see of the active ones among them; `IsActiveIn(tx, seller)`, whether a seller is active, read in the caller's transaction, which `order` checks while it places an order so that it never holds one connection and waits for another (SEC-128); `Blocked()`, the sellers whose offers search leaves out; `CollectionPointOf(seller)`, where its offers are collected as it stands, which `offer` and `order` read when they follow `LocationChangedEvent`; and the events `StatusChangedEvent` and `LocationChangedEvent` (SEC-66).
 
@@ -38,6 +39,7 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 - One owner per seller; at most 30 people per seller, the owner included; at most five sellers owned per account. Both limits hold under concurrency (a row lock on the seller, an advisory lock on the owner).
 - The photo is one the owner uploaded to `file`, which the seller claims; the seller answers `FILE_PHOTO_NOT_FOUND` for a photo someone else uploaded.
 - Staff are added by email in one step and are members at once; an address that has never signed in gets its account then. The owner cannot leave.
+- An admin hands a seller to another owner in one step (SEC-162): the seller's row is locked, then the new owner's advisory lock taken, so the five-sellers and 30-people limits hold under concurrency; the previous owner becomes staff before the new one becomes the owner, so one owner per seller holds at every statement; the change is recorded as `seller.change_owner`. The web's store menu opens `/stores/{id}/staff`, where the owner adds and removes staff and staff leave.
 - The role in a seller is read from the database at each request, never kept in the session, so a removed member loses access at once.
 - Publishing is for the owner or staff of an `active` seller.
 - A seller answers 404 to anyone who is neither its member nor an admin. Admins read and set the status; they do not change a seller's details.
@@ -80,11 +82,12 @@ Published to other modules: `Publishing(seller, account)`, which `offer` calls b
 | `SELLER_OWNER_CANNOT_LEAVE` | 409 | The owner tries to leave |
 | `SELLER_STATUS_CHANGE_NOT_ALLOWED` | 409 | The action does not apply to the seller's status |
 | `SELLER_OWNERLESS` | 409 | Approving a seller whose owner deleted their account (SEC-65) |
+| `SELLER_ALREADY_OWNER` | 409 | Handing a seller to the account that owns it (SEC-162) |
+| `SELLER_NEW_OWNER_LIMIT_REACHED` | 409 | Handing a seller to an account that already owns five (SEC-162) |
 
 An address that is not one plain address answers `IDENTITY_EMAIL_INVALID`. Adding staff by an address whose account holds a Google link Google does not speak for answers `IDENTITY_ADDRESS_UNPROVEN` (409) until the address's owner has signed in once with the emailed code (SEC-39).
 
 ## Not yet
 
 - An email to someone added as staff.
-- An admin changing a seller's owner.
 - The follower count on a seller's page (SEC-11, step 6).

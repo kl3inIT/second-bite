@@ -47,6 +47,7 @@ export function AuditChange({ event }: { event: AuditEventBody }) {
     "seller.reject": t("rejected"),
     "seller.block": t("blocked"),
     "seller.unblock": t("unblocked"),
+    "seller.change_owner": t("ownerChanged"),
     "admin.grant": t("granted"),
     "admin.revoke": t("revoked"),
   };

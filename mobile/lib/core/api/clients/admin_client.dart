@@ -8,6 +8,7 @@ import 'package:retrofit/retrofit.dart';
 import '../models/account_body.dart';
 import '../models/action.dart';
 import '../models/admin_accounts_output_body.dart';
+import '../models/admin_members_output_body.dart';
 import '../models/admin_offers_output_body.dart';
 import '../models/admin_orders_output_body.dart';
 import '../models/admin_review_body.dart';
@@ -16,6 +17,7 @@ import '../models/admin_sellers_output_body.dart';
 import '../models/admins_output_body.dart';
 import '../models/audit_events_output_body.dart';
 import '../models/block_seller_request.dart';
+import '../models/change_seller_owner_request.dart';
 import '../models/email_settings_body.dart';
 import '../models/feedback_output_body.dart';
 import '../models/grant_admin_request.dart';
@@ -333,6 +335,15 @@ abstract class AdminClient {
   Future<SellerBody> blockSeller({
     @Path('sellerId') required String sellerId,
     @Body() required BlockSellerRequest body,
+  });
+
+  /// Hand a seller to the account of an email; the previous owner stays on as staff.
+  ///
+  /// An address that never signed in gets its account at once. The new owner may own at most five sellers. A seller whose owner deleted their account gets an owner this way (SEC-162).
+  @POST('/admin/sellers/{sellerId}/owner')
+  Future<AdminMembersOutputBody> changeSellerOwner({
+    @Path('sellerId') required String sellerId,
+    @Body() required ChangeSellerOwnerRequest body,
   });
 
   /// Refuse a pending seller; its owner is emailed the reason

@@ -629,6 +629,17 @@ func (q *Queries) MembershipsOfAccounts(ctx context.Context, accountIds []uuid.U
 	return items, nil
 }
 
+const ownerOf = `-- name: OwnerOf :one
+SELECT account_id FROM seller_members WHERE seller_id = $1 AND role = 'owner'
+`
+
+func (q *Queries) OwnerOf(ctx context.Context, sellerID uuid.UUID) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, ownerOf, sellerID)
+	var account_id uuid.UUID
+	err := row.Scan(&account_id)
+	return account_id, err
+}
+
 const ownersOf = `-- name: OwnersOf :many
 SELECT seller_id, account_id FROM seller_members WHERE seller_id = ANY ($1::uuid[]) AND role = 'owner'
 `
@@ -920,6 +931,24 @@ type SetPhotoParams struct {
 func (q *Queries) SetPhoto(ctx context.Context, arg SetPhotoParams) error {
 	_, err := q.db.Exec(ctx, setPhoto, arg.PhotoID, arg.ID)
 	return err
+}
+
+const setRole = `-- name: SetRole :execrows
+UPDATE seller_members SET role = $1 WHERE seller_id = $2 AND account_id = $3
+`
+
+type SetRoleParams struct {
+	Role      string
+	SellerID  uuid.UUID
+	AccountID uuid.UUID
+}
+
+func (q *Queries) SetRole(ctx context.Context, arg SetRoleParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setRole, arg.Role, arg.SellerID, arg.AccountID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const statusDays = `-- name: StatusDays :many

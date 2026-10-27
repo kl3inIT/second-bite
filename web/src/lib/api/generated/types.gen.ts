@@ -39,6 +39,10 @@ export type AdminAccountsOutputBody = {
     total: number;
 };
 
+export type AdminMembersOutputBody = {
+    members: Array<MemberBody> | null;
+};
+
 export type AdminOfferBody = {
     offer: OfferBody;
     /**
@@ -202,7 +206,7 @@ export type AuditDetailsBody = {
 };
 
 export type AuditEventBody = {
-    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'review.hide' | 'review.show';
+    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.change_owner' | 'review.hide' | 'review.show';
     actorId?: string;
     actorLabel?: string;
     details: AuditDetailsBody;
@@ -232,6 +236,13 @@ export type BlockSellerRequest = {
 
 export type CancelOrderRequest = {
     reason?: string;
+};
+
+export type ChangeSellerOwnerRequest = {
+    /**
+     * The new owner's address
+     */
+    email: string;
 };
 
 export type CollectionPointBody = {
@@ -1632,7 +1643,7 @@ export type ListAuditEventsData = {
         /**
          * Keep these actions; every action when absent
          */
-        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'review.hide' | 'review.show'> | null;
+        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.change_owner' | 'review.hide' | 'review.show'> | null;
         /**
          * Keep one admin's actions
          */
@@ -2259,6 +2270,33 @@ export type BlockSellerResponses = {
 };
 
 export type BlockSellerResponse = BlockSellerResponses[keyof BlockSellerResponses];
+
+export type ChangeSellerOwnerData = {
+    body: ChangeSellerOwnerRequest;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/admin/sellers/{sellerId}/owner';
+};
+
+export type ChangeSellerOwnerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ChangeSellerOwnerError = ChangeSellerOwnerErrors[keyof ChangeSellerOwnerErrors];
+
+export type ChangeSellerOwnerResponses = {
+    /**
+     * OK
+     */
+    200: AdminMembersOutputBody;
+};
+
+export type ChangeSellerOwnerResponse = ChangeSellerOwnerResponses[keyof ChangeSellerOwnerResponses];
 
 export type RejectSellerData = {
     body: RejectSellerRequest;
