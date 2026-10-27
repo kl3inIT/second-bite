@@ -1,5 +1,6 @@
 "use client";
 
+import { FlameIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
@@ -26,10 +27,15 @@ function wideDishAnchor(offerId: string): string {
 
 type Section = { id: string; title: string; offers: readonly OfferSummary[] };
 
+/** The portions of tonight's post already ordered: what "Bán chạy" ranks by and "Đã bán" says. */
+function ordered(offer: OfferSummary): number {
+  return offer.units - offer.unitsLeft;
+}
+
 // The seller's menu from 768px (Figma "01 · Trang quán & giỏ nhiều quán · đầy đủ"): a row of pill links, one for each
 // section, the one scrolled to filled in Tasco blue, over the sections, each a heading over its dishes' white cards
-// two abreast. Two sections are always there: "Bán chạy", the four dishes with the most portions ordered tonight, and
-// "Giảm sâu", the four deepest discounts; the kinds follow, largest first, each with all its dishes, as Figma repeats
+// two abreast. Two sections lead: "Bán chạy", the four dishes with the most portions ordered tonight (only those with
+// one at least, so a store that has sold nothing yet has none), and "Giảm sâu", the four deepest discounts; the kinds follow, largest first, each with all its dishes, as Figma repeats
 // a dish there. Only the kind section's card carries the dish's anchor. The dish a link led to (`focused`) is scrolled
 // to and ringed until the first press or key, then looks like the others.
 export function SellerMenu({
@@ -135,12 +141,14 @@ function menuSections(
   deepTitle: string,
   kindTitle: (kind: OfferSummary["kind"]) => string,
 ): Section[] {
-  const ordered = (offer: OfferSummary) => offer.units - offer.unitsLeft;
   return [
     {
       id: "best-sellers",
       title: bestTitle,
-      offers: offers.toSorted((a, b) => ordered(b) - ordered(a)).slice(0, PICKED),
+      offers: offers
+        .filter((offer) => ordered(offer) > 0)
+        .toSorted((a, b) => ordered(b) - ordered(a))
+        .slice(0, PICKED),
     },
     {
       id: "deep-discount",
@@ -193,15 +201,18 @@ function DishCard({
         <StockLabel offer={offer} />
       </div>
       <div className="flex h-full min-w-0 flex-1 flex-col justify-between">
-        <h3 className="line-clamp-2 text-body-sm-strong text-foreground">
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="text-left focus-visible:underline focus-visible:outline-none"
-          >
-            {offer.name}
-          </button>
-        </h3>
+        <div className="flex min-w-0 flex-col gap-1">
+          <h3 className="line-clamp-2 text-body-sm-strong wrap-break-word text-foreground">
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="text-left focus-visible:underline focus-visible:outline-none"
+            >
+              {offer.name}
+            </button>
+          </h3>
+          <SoldLine offer={offer} />
+        </div>
         <div className="flex items-end justify-between gap-2">
           <p className="flex min-w-0 flex-col">
             <span className="font-display text-price-lg text-primary">
@@ -219,6 +230,20 @@ function DishCard({
       </div>
       <DishSheet offer={offer} open={open} onOpenChange={setOpen} />
     </article>
+  );
+}
+
+// "Đã bán 6" under the name, with a flame, once tonight's post has portions ordered; nothing before the first.
+function SoldLine({ offer }: { offer: OfferSummary }) {
+  const t = useTranslations("Seller");
+  const sold = ordered(offer);
+  if (sold < 1) return null;
+
+  return (
+    <p className="flex items-center gap-1 text-label-strong text-sale">
+      <FlameIcon aria-hidden className="size-3.5 shrink-0" />
+      {t("sold", { units: sold })}
+    </p>
   );
 }
 

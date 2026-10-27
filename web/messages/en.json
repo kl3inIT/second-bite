@@ -565,6 +565,8 @@
     "allChosen": "All {units} chosen"
   },
   "Seller": {
+    "sold": "{units} sold",
+    "windowTime": "{from}–{until}",
     "search": "Search the {seller} menu",
     "window": "Collect today {from}–{until}",
     "directions": "Directions ›",

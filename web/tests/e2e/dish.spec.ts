@@ -22,6 +22,8 @@ test.describe("a dish, its seller and the cart", () => {
     // Figma K4: the seller's page, scrolled to the dish's tinted row.
     await expect(page).toHaveURL(/\/vi\/sellers\/se-la-paris\?at=of-croissant#dish-of-croissant$/);
     await expect(page.getByRole("heading", { level: 1, name: "La Paris" })).toBeVisible();
+    // From 768px the line under the name is the floor, then tonight's hours alone at its end.
+    if (wide(page)) await expect(page.getByText("· 21:00–21:45")).toBeVisible();
     // A phone scrolls to the dish's row, a wider screen to its card in the menu's sections.
     await expect(
       page.locator(wide(page) ? "#wide-dish-of-croissant" : "#dish-of-croissant"),
