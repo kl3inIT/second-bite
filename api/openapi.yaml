@@ -69,6 +69,18 @@ components:
         - total
         - counts
       type: object
+    AdminMembersOutputBody:
+      additionalProperties: false
+      properties:
+        members:
+          items:
+            $ref: "#/components/schemas/MemberBody"
+          type:
+            - array
+            - "null"
+      required:
+        - members
+      type: object
     AdminOfferBody:
       additionalProperties: false
       properties:
@@ -374,6 +386,7 @@ components:
             - seller.reject
             - seller.block
             - seller.unblock
+            - seller.change_owner
             - review.hide
             - review.show
           type: string
@@ -450,6 +463,17 @@ components:
         reason:
           maxLength: 200
           type: string
+      type: object
+    ChangeSellerOwnerRequest:
+      additionalProperties: false
+      properties:
+        email:
+          description: The new owner's address
+          maxLength: 254
+          minLength: 3
+          type: string
+      required:
+        - email
       type: object
     CollectionPointBody:
       additionalProperties: false
@@ -3039,6 +3063,7 @@ paths:
                 - seller.reject
                 - seller.block
                 - seller.unblock
+                - seller.change_owner
                 - review.hide
                 - review.show
               type: string
@@ -3940,6 +3965,41 @@ paths:
         - bearer: []
         - cookie: []
       summary: Stop an active seller; its owner is emailed the reason
+      tags:
+        - Admin
+  /admin/sellers/{sellerId}/owner:
+    post:
+      description: An address that never signed in gets its account at once. The new owner may own at most five sellers. A seller whose owner deleted their account gets an owner this way (SEC-162).
+      operationId: changeSellerOwner
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeSellerOwnerRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMembersOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Hand a seller to the account of an email; the previous owner stays on as staff
       tags:
         - Admin
   /admin/sellers/{sellerId}/reject:

@@ -90,6 +90,15 @@ type SellerUnblocked struct{}
 
 func (SellerUnblocked) action() string { return "seller.unblock" }
 
+// SellerOwnerChanged is a seller handed to another owner, by account: the
+// previous owner, when there was one, stays on as staff (SEC-162).
+type SellerOwnerChanged struct {
+	From string `json:"from,omitempty"`
+	To   string `json:"to"`
+}
+
+func (SellerOwnerChanged) action() string { return "seller.change_owner" }
+
 // ReviewHidden is a customer's review of an order hidden from every read but
 // the admins', with the admin's reason when they gave one.
 type ReviewHidden struct {
@@ -114,6 +123,7 @@ var catalog = []Action{
 	SellerRejected{},
 	SellerBlocked{},
 	SellerUnblocked{},
+	SellerOwnerChanged{},
 	ReviewHidden{},
 	ReviewShown{},
 }

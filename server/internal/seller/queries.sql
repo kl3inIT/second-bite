@@ -209,3 +209,9 @@ WHERE f.created_at >= @since AND f.created_at < @until
   AND (sqlc.narg(seller_id)::uuid IS NULL OR f.seller_id = sqlc.narg(seller_id)::uuid)
 ORDER BY f.created_at DESC, f.id
 LIMIT @max_rows;
+
+-- name: OwnerOf :one
+SELECT account_id FROM seller_members WHERE seller_id = @seller_id AND role = 'owner';
+
+-- name: SetRole :execrows
+UPDATE seller_members SET role = @role WHERE seller_id = @seller_id AND account_id = @account_id;

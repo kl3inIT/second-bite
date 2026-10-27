@@ -297,6 +297,13 @@ func registerPhotoOperations(api huma.API, s *Service) {
 	})
 }
 
+// adminMembersOutput answers a seller's people after an admin changed them.
+type adminMembersOutput struct {
+	Body struct {
+		Members []memberBody `json:"members"`
+	}
+}
+
 func registerMemberOperations(api huma.API, s *Service) {
 	type membersOutput struct {
 		Body struct {
@@ -360,6 +367,7 @@ func registerMemberOperations(api huma.API, s *Service) {
 // group platform.NewAdminGroup returns; their paths omit its prefix.
 func RegisterAdminOperations(admin huma.API, s *Service) {
 	registerFeedbackAdminOperations(admin, s)
+	registerOwnerAdminOperation(admin, s)
 
 	huma.Register(admin, huma.Operation{
 		OperationID: "listSellersForAdmins", Method: http.MethodGet, Path: "/sellers",
@@ -587,6 +595,36 @@ func registerFollowOperations(api huma.API, s *Service) {
 
 		for _, p := range followed {
 			out.Body.Sellers = append(out.Body.Sellers, toProfileBody(p))
+		}
+
+		return out, nil
+	})
+}
+
+// registerOwnerAdminOperation lets admins hand a seller to its owner (SEC-162).
+func registerOwnerAdminOperation(admin huma.API, s *Service) {
+	huma.Register(admin, huma.Operation{
+		OperationID: "changeSellerOwner", Method: http.MethodPost, Path: "/sellers/{sellerId}/owner",
+		Summary: "Hand a seller to the account of an email; the previous owner stays on as staff",
+		Description: "An address that never signed in gets its account at once. The new owner may own at most five " +
+			"sellers. A seller whose owner deleted their account gets an owner this way (SEC-162).",
+	}, func(ctx context.Context, in *struct {
+		SellerID uuid.UUID `path:"sellerId"`
+		Body     struct {
+			Email string `json:"email" doc:"The new owner's address" maxLength:"254" minLength:"3"`
+		}
+	},
+	) (*adminMembersOutput, error) {
+		members, err := s.ChangeOwner(ctx, in.SellerID, in.Body.Email)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &adminMembersOutput{}
+		out.Body.Members = make([]memberBody, 0, len(members))
+
+		for _, m := range members {
+			out.Body.Members = append(out.Body.Members, toMemberBody(m))
 		}
 
 		return out, nil

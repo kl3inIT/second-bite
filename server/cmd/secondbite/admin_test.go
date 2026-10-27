@@ -180,6 +180,14 @@ var adminChanges = map[string]adminChange{
 
 		return send(t, http.MethodPost, svc.base+"/admin/sellers/"+id+"/reject", admin, reasonBody(testReason)), func() {}
 	}},
+	"changeSellerOwner": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		id := openSeller(t, svc, "audit.owner.before@example.com")
+
+		return send(t, http.MethodPost, svc.base+"/admin/sellers/"+id+"/owner", admin,
+			map[string]string{"email": "audit.owner.after@example.com"}), func() {}
+	}},
 	"blockSeller": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
 		t.Helper()
 
