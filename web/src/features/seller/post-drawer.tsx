@@ -319,7 +319,7 @@ function PostDrawerBody({
           ref={body}
           id={form.formId}
           noValidate
-          className="flex min-w-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto px-4 pb-4 sm:px-6"
+          className="flex min-w-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto overscroll-contain px-4 pb-4 sm:px-6"
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();
