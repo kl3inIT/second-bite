@@ -32,6 +32,7 @@ function offer(
     name: id,
     description: "",
     kind: "bakery",
+    kindLabel: "",
     unit: "chiếc",
     units: 5,
     unitsLeft,

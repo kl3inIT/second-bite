@@ -12,6 +12,7 @@ _OfferChangeBody _$OfferChangeBodyFromJson(Map<String, dynamic> json) =>
       kind: json['kind'] == null
           ? null
           : OfferChangeBodyKind.fromJson(json['kind'] as String),
+      kindLabel: json['kindLabel'] as String?,
       morePhotoIds: (json['morePhotoIds'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -34,6 +35,7 @@ Map<String, dynamic> _$OfferChangeBodyToJson(_OfferChangeBody instance) =>
     <String, dynamic>{
       'description': instance.description,
       'kind': _$OfferChangeBodyKindEnumMap[instance.kind],
+      'kindLabel': instance.kindLabel,
       'morePhotoIds': instance.morePhotoIds,
       'name': instance.name,
       'originalPriceVnd': instance.originalPriceVnd,
@@ -52,6 +54,9 @@ const _$OfferChangeBodyKindEnumMap = {
   OfferChangeBodyKind.ingredients: 'ingredients',
   OfferChangeBodyKind.drinks: 'drinks',
   OfferChangeBodyKind.mixedBox: 'mixed_box',
+  OfferChangeBodyKind.dessert: 'dessert',
+  OfferChangeBodyKind.snacks: 'snacks',
+  OfferChangeBodyKind.produce: 'produce',
   OfferChangeBodyKind.other: 'other',
   OfferChangeBodyKind.$unknown: r'$unknown',
 };

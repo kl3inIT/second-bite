@@ -66,7 +66,7 @@ type searchInput struct {
 	Near        string    `doc:"latitude,longitude, such as 21.0565,105.8964"                                               pattern:"^-?[0-9]+(\\.[0-9]+)?,-?[0-9]+(\\.[0-9]+)?$" query:"near"`
 	RadiusKm    int       `doc:"Around near; the settings' default when absent, never more than their maximum"             maximum:"100"                                         minimum:"0"   query:"radiusKm"`
 	Q           string    `doc:"Words; typed without marks they match any marks (\"ca\" finds cá and cà), with marks only those" maxLength:"200"                                   query:"q"`
-	Kind        []Kind    `doc:"One or more kinds, comma-separated"                                                        enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other" query:"kind"`
+	Kind        []Kind    `doc:"One or more kinds, comma-separated"                                                        enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other" query:"kind"`
 	MinPrice    int64     `doc:"The lowest price of one unit, in đồng"                                                     minimum:"0"                                           query:"minPrice"`
 	MaxPrice    int64     `doc:"The highest price of one unit, in đồng"                                                    minimum:"0"                                           query:"maxPrice"`
 	CollectFrom time.Time `doc:"Keep offers whose window overlaps collectFrom to collectTo; both at one moment keep what can be collected then" query:"collectFrom"`

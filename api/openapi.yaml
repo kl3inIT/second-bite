@@ -604,7 +604,13 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
+          type: string
+        kindLabel:
+          description: What the seller calls a dish of the kind other; empty for any other kind
           type: string
         name:
           type: string
@@ -630,6 +636,7 @@ components:
         - sellerId
         - name
         - kind
+        - kindLabel
         - unit
         - description
         - ingredients
@@ -657,7 +664,14 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
+          type: string
+        kindLabel:
+          description: Leaves it as it is when absent, and empties it when the kind is changed from other
+          maxLength: 30
           type: string
         morePhotoIds:
           description: Replaces the photos after the cover; at most two
@@ -699,7 +713,14 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
+          type: string
+        kindLabel:
+          description: What the seller calls a dish of the kind other; empty for any other kind
+          maxLength: 30
           type: string
         morePhotoIds:
           description: Up to two more photos after the cover
@@ -851,7 +872,13 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
+          type: string
+        kindLabel:
+          description: What the seller calls a dish of the kind other; empty for any other kind
           type: string
         name:
           type: string
@@ -912,6 +939,7 @@ components:
         - name
         - description
         - kind
+        - kindLabel
         - unit
         - units
         - unitsLeft
@@ -1192,7 +1220,13 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
+          type: string
+        kindLabel:
+          description: What the seller calls a dish of the kind other; empty for any other kind
           type: string
         name:
           type: string
@@ -1250,6 +1284,7 @@ components:
         - name
         - description
         - kind
+        - kindLabel
         - unit
         - units
         - unitsLeft
@@ -1277,7 +1312,14 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
+          type: string
+        kindLabel:
+          description: Leaves it as it is when absent, and empties it when the kind is changed from other
+          maxLength: 30
           type: string
         morePhotoIds:
           description: Replaces the photos after the cover; at most two
@@ -1354,7 +1396,14 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
+          type: string
+        kindLabel:
+          description: What the seller calls a dish of the kind other; empty for any other kind
+          maxLength: 30
           type: string
         morePhotoIds:
           description: Up to two more photos after the cover
@@ -4159,6 +4208,9 @@ paths:
                 - ingredients
                 - drinks
                 - mixed_box
+                - dessert
+                - snacks
+                - produce
                 - other
               type: string
             type:

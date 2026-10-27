@@ -15,6 +15,9 @@ abstract class OfferChangeBody with _$OfferChangeBody {
     String? description,
     OfferChangeBodyKind? kind,
 
+    /// Leaves it as it is when absent, and empties it when the kind is changed from other
+    String? kindLabel,
+
     /// Replaces the photos after the cover; at most two
     List<String>? morePhotoIds,
     String? name,

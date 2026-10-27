@@ -137,6 +137,9 @@
     "ingredients": "Nguyên liệu",
     "drinks": "Đồ uống",
     "mixed_box": "Hộp tổng hợp",
+    "dessert": "Tráng miệng",
+    "snacks": "Ăn vặt",
+    "produce": "Rau củ quả",
     "other": "Khác"
   },
   "OfferCard": {
@@ -999,6 +1002,8 @@
     "name": "Tên món",
     "namePlaceholder": "Ví dụ: Túi bánh mì và croissant, 4 chiếc",
     "kind": "Loại",
+    "kindLabel": "Tên loại",
+    "kindLabelPlaceholder": "Ví dụ: Chè, xôi, mứt",
     "description": "Hộp gồm những gì",
     "descriptionPlaceholder": "Ví dụ: bánh mì, bánh ngọt, có thể có trứng và sữa",
     "sellQuestion": "Giá bán & số lượng",
@@ -1119,6 +1124,8 @@
     "namePlaceholder": "Ví dụ: Túi bánh mì và croissant, 4 chiếc",
     "nameMissing": "Nhập tên món.",
     "kind": "Loại",
+    "kindLabel": "Tên loại",
+    "kindLabelPlaceholder": "Ví dụ: Chè, xôi, mứt",
     "unit": "Đơn vị",
     "description": "Mô tả (tùy chọn)",
     "descriptionRequired": "Mô tả",

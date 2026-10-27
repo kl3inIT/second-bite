@@ -126,7 +126,7 @@ func (s *Service) Post(ctx context.Context, sellerID uuid.UUID, d Details) (Offe
 
 	id, err := s.queries.InsertOffer(ctx, db.InsertOfferParams{
 		SellerID: sellerID, PostedBy: caller.AccountID, Name: d.Name, Description: d.Description,
-		Kind: string(d.Kind), Unit: d.Unit, Units: int32(d.Units), //nolint:gosec // at most 999
+		Kind: string(d.Kind), KindLabel: d.KindLabel, Unit: d.Unit, Units: int32(d.Units), //nolint:gosec // at most 999
 		PriceVnd: d.PriceVND, OriginalPriceVnd: d.OriginalPriceVND, WeightGrams: weight(d.WeightGrams),
 		PhotoID: d.PhotoID, MorePhotoIds: d.MorePhotoIDs, WindowStart: d.WindowStart, WindowEnd: d.WindowEnd,
 		Latitude: publisher.Latitude, Longitude: publisher.Longitude, Address: publisher.Address,
@@ -205,6 +205,7 @@ type Change struct {
 	Name             *string
 	Description      *string
 	Kind             *Kind
+	KindLabel        *string
 	Unit             *string
 	Units            *int
 	PriceVND         *int64
@@ -286,7 +287,7 @@ func (s *Service) changeIn(
 	ordered := o.Units - o.UnitsLeft
 
 	if err := q.UpdateOffer(ctx, db.UpdateOfferParams{
-		ID: id, Name: next.Name, Description: next.Description, Kind: string(next.Kind), Unit: next.Unit,
+		ID: id, Name: next.Name, Description: next.Description, Kind: string(next.Kind), KindLabel: next.KindLabel, Unit: next.Unit,
 		Units: int32(next.Units), UnitsLeft: int32(next.Units - ordered), //nolint:gosec // at most 999
 		PriceVnd: next.PriceVND, OriginalPriceVnd: next.OriginalPriceVND, WeightGrams: weight(next.WeightGrams),
 		PhotoID: next.PhotoID, MorePhotoIds: next.MorePhotoIDs, WindowStart: next.WindowStart, WindowEnd: next.WindowEnd,
@@ -307,7 +308,7 @@ func (s *Service) changeIn(
 // offer: everything but the description, the photo, the units and the window,
 // which orders follow.
 func (c Change) touchesWhatOrdersKeep() bool {
-	return c.Name != nil || c.Kind != nil || c.Unit != nil || c.PriceVND != nil || c.OriginalPriceVND != nil ||
+	return c.Name != nil || c.Kind != nil || c.KindLabel != nil || c.Unit != nil || c.PriceVND != nil || c.OriginalPriceVND != nil ||
 		c.WeightGrams != nil
 }
 
@@ -381,6 +382,7 @@ func (s *Service) WindowsOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID
 func (c Change) appliedTo(d Details) Details {
 	replace(&d.Name, c.Name)
 	replace(&d.Description, c.Description)
+	d.KindLabel = labelAfter(d.KindLabel, c.Kind, c.KindLabel)
 	replace(&d.Kind, c.Kind)
 	replace(&d.Unit, c.Unit)
 	replace(&d.Units, c.Units)
@@ -540,7 +542,7 @@ func (s *Service) read(ctx context.Context, id uuid.UUID) (Offer, error) {
 func (s *Service) fromRow(r db.GetOfferRow) Offer {
 	o := Offer{
 		ID: r.ID, SellerID: r.SellerID,
-		Name: r.Name, Description: r.Description, Kind: Kind(r.Kind), Unit: r.Unit, Units: int(r.Units),
+		Name: r.Name, Description: r.Description, Kind: Kind(r.Kind), KindLabel: r.KindLabel, Unit: r.Unit, Units: int(r.Units),
 		PriceVND: r.PriceVnd, OriginalPriceVND: r.OriginalPriceVnd, PhotoID: r.PhotoID, MorePhotoIDs: r.MorePhotoIds,
 		WindowStart: r.WindowStart, WindowEnd: r.WindowEnd,
 		UnitsLeft:       int(r.UnitsLeft),

@@ -118,6 +118,8 @@ export type Dish = {
   id: string;
   name: string;
   kind: OfferBody["kind"];
+  /** What the seller calls a dish of the kind "other". */
+  kindLabel: string;
   description: string;
   unit: string;
   /** What the last post of it had; a catalog dish has none, so the post form starts empty. */
@@ -144,6 +146,7 @@ export function dishOf(offer: OfferBody): Dish {
     id: offer.id,
     name: offer.name,
     kind: offer.kind,
+    kindLabel: offer.kindLabel,
     description: offer.description,
     unit: offer.unit,
     units: offer.units,
@@ -208,6 +211,7 @@ export function catalogDishOf(dish: DishBody): Dish {
     id: dish.id,
     name: dish.name,
     kind: dish.kind,
+    kindLabel: dish.kindLabel,
     description: describeDish(dish),
     unit: dish.unit,
     originalPriceVnd: dish.originalPriceVnd,

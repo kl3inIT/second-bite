@@ -23,6 +23,9 @@ abstract class FoundBody with _$FoundBody {
     required int discountPercent,
     required String id,
     required FoundBodyKind kind,
+
+    /// What the seller calls a dish of the kind other; empty for any other kind
+    required String kindLabel,
     required String name,
     required int originalPriceVnd,
 

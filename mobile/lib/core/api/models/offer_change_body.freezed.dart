@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$OfferChangeBody {
 
- String? get description; OfferChangeBodyKind? get kind;/// Replaces the photos after the cover; at most two
+ String? get description; OfferChangeBodyKind? get kind;/// Leaves it as it is when absent, and empties it when the kind is changed from other
+ String? get kindLabel;/// Replaces the photos after the cover; at most two
  List<String>? get morePhotoIds; String? get name; int? get originalPriceVnd; String? get photoId; int? get priceVnd; String? get unit; int? get units; int? get weightGrams; DateTime? get windowEnd; DateTime? get windowStart;
 /// Create a copy of OfferChangeBody
 /// with the given fields replaced by the non-null parameter values.
@@ -31,20 +32,20 @@ $OfferChangeBodyCopyWith<OfferChangeBody> get copyWith => _$OfferChangeBodyCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as OfferChangeBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OfferChangeBody&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&const DeepCollectionEquality().equals(other.morePhotoIds, _this.morePhotoIds)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.originalPriceVnd, _this.originalPriceVnd) || other.originalPriceVnd == _this.originalPriceVnd)&&(identical(other.photoId, _this.photoId) || other.photoId == _this.photoId)&&(identical(other.priceVnd, _this.priceVnd) || other.priceVnd == _this.priceVnd)&&(identical(other.unit, _this.unit) || other.unit == _this.unit)&&(identical(other.units, _this.units) || other.units == _this.units)&&(identical(other.weightGrams, _this.weightGrams) || other.weightGrams == _this.weightGrams)&&(identical(other.windowEnd, _this.windowEnd) || other.windowEnd == _this.windowEnd)&&(identical(other.windowStart, _this.windowStart) || other.windowStart == _this.windowStart));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OfferChangeBody&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.kindLabel, _this.kindLabel) || other.kindLabel == _this.kindLabel)&&const DeepCollectionEquality().equals(other.morePhotoIds, _this.morePhotoIds)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.originalPriceVnd, _this.originalPriceVnd) || other.originalPriceVnd == _this.originalPriceVnd)&&(identical(other.photoId, _this.photoId) || other.photoId == _this.photoId)&&(identical(other.priceVnd, _this.priceVnd) || other.priceVnd == _this.priceVnd)&&(identical(other.unit, _this.unit) || other.unit == _this.unit)&&(identical(other.units, _this.units) || other.units == _this.units)&&(identical(other.weightGrams, _this.weightGrams) || other.weightGrams == _this.weightGrams)&&(identical(other.windowEnd, _this.windowEnd) || other.windowEnd == _this.windowEnd)&&(identical(other.windowStart, _this.windowStart) || other.windowStart == _this.windowStart));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as OfferChangeBody;
-  return Object.hash(runtimeType,_this.description,_this.kind,const DeepCollectionEquality().hash(_this.morePhotoIds),_this.name,_this.originalPriceVnd,_this.photoId,_this.priceVnd,_this.unit,_this.units,_this.weightGrams,_this.windowEnd,_this.windowStart);
+  return Object.hash(runtimeType,_this.description,_this.kind,_this.kindLabel,const DeepCollectionEquality().hash(_this.morePhotoIds),_this.name,_this.originalPriceVnd,_this.photoId,_this.priceVnd,_this.unit,_this.units,_this.weightGrams,_this.windowEnd,_this.windowStart);
 }
 
 @override
 String toString() {
   final _this = this as OfferChangeBody;
-  return 'OfferChangeBody(description: ${_this.description}, kind: ${_this.kind}, morePhotoIds: ${_this.morePhotoIds}, name: ${_this.name}, originalPriceVnd: ${_this.originalPriceVnd}, photoId: ${_this.photoId}, priceVnd: ${_this.priceVnd}, unit: ${_this.unit}, units: ${_this.units}, weightGrams: ${_this.weightGrams}, windowEnd: ${_this.windowEnd}, windowStart: ${_this.windowStart})';
+  return 'OfferChangeBody(description: ${_this.description}, kind: ${_this.kind}, kindLabel: ${_this.kindLabel}, morePhotoIds: ${_this.morePhotoIds}, name: ${_this.name}, originalPriceVnd: ${_this.originalPriceVnd}, photoId: ${_this.photoId}, priceVnd: ${_this.priceVnd}, unit: ${_this.unit}, units: ${_this.units}, weightGrams: ${_this.weightGrams}, windowEnd: ${_this.windowEnd}, windowStart: ${_this.windowStart})';
 }
 
 
@@ -55,7 +56,7 @@ abstract mixin class $OfferChangeBodyCopyWith<$Res>  {
   factory $OfferChangeBodyCopyWith(OfferChangeBody value, $Res Function(OfferChangeBody) _then) = _$OfferChangeBodyCopyWithImpl;
 @useResult
 $Res call({
- String? description, OfferChangeBodyKind? kind, List<String>? morePhotoIds, String? name, int? originalPriceVnd, String? photoId, int? priceVnd, String? unit, int? units, int? weightGrams, DateTime? windowEnd, DateTime? windowStart
+ String? description, OfferChangeBodyKind? kind, String? kindLabel, List<String>? morePhotoIds, String? name, int? originalPriceVnd, String? photoId, int? priceVnd, String? unit, int? units, int? weightGrams, DateTime? windowEnd, DateTime? windowStart
 });
 
 
@@ -72,11 +73,12 @@ class _$OfferChangeBodyCopyWithImpl<$Res>
 
 /// Create a copy of OfferChangeBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? description = freezed,Object? kind = freezed,Object? morePhotoIds = freezed,Object? name = freezed,Object? originalPriceVnd = freezed,Object? photoId = freezed,Object? priceVnd = freezed,Object? unit = freezed,Object? units = freezed,Object? weightGrams = freezed,Object? windowEnd = freezed,Object? windowStart = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? description = freezed,Object? kind = freezed,Object? kindLabel = freezed,Object? morePhotoIds = freezed,Object? name = freezed,Object? originalPriceVnd = freezed,Object? photoId = freezed,Object? priceVnd = freezed,Object? unit = freezed,Object? units = freezed,Object? weightGrams = freezed,Object? windowEnd = freezed,Object? windowStart = freezed,}) {
   return _then(OfferChangeBody(
 description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,kind: freezed == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as OfferChangeBodyKind?,morePhotoIds: freezed == morePhotoIds ? _self.morePhotoIds : morePhotoIds // ignore: cast_nullable_to_non_nullable
+as OfferChangeBodyKind?,kindLabel: freezed == kindLabel ? _self.kindLabel : kindLabel // ignore: cast_nullable_to_non_nullable
+as String?,morePhotoIds: freezed == morePhotoIds ? _self.morePhotoIds : morePhotoIds // ignore: cast_nullable_to_non_nullable
 as List<String>?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,originalPriceVnd: freezed == originalPriceVnd ? _self.originalPriceVnd : originalPriceVnd // ignore: cast_nullable_to_non_nullable
 as int?,photoId: freezed == photoId ? _self.photoId : photoId // ignore: cast_nullable_to_non_nullable
@@ -171,10 +173,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? description,  OfferChangeBodyKind? kind,  List<String>? morePhotoIds,  String? name,  int? originalPriceVnd,  String? photoId,  int? priceVnd,  String? unit,  int? units,  int? weightGrams,  DateTime? windowEnd,  DateTime? windowStart)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? description,  OfferChangeBodyKind? kind,  String? kindLabel,  List<String>? morePhotoIds,  String? name,  int? originalPriceVnd,  String? photoId,  int? priceVnd,  String? unit,  int? units,  int? weightGrams,  DateTime? windowEnd,  DateTime? windowStart)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OfferChangeBody() when $default != null:
-return $default(_that.description,_that.kind,_that.morePhotoIds,_that.name,_that.originalPriceVnd,_that.photoId,_that.priceVnd,_that.unit,_that.units,_that.weightGrams,_that.windowEnd,_that.windowStart);case _:
+return $default(_that.description,_that.kind,_that.kindLabel,_that.morePhotoIds,_that.name,_that.originalPriceVnd,_that.photoId,_that.priceVnd,_that.unit,_that.units,_that.weightGrams,_that.windowEnd,_that.windowStart);case _:
   return orElse();
 
 }
@@ -192,10 +194,10 @@ return $default(_that.description,_that.kind,_that.morePhotoIds,_that.name,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? description,  OfferChangeBodyKind? kind,  List<String>? morePhotoIds,  String? name,  int? originalPriceVnd,  String? photoId,  int? priceVnd,  String? unit,  int? units,  int? weightGrams,  DateTime? windowEnd,  DateTime? windowStart)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? description,  OfferChangeBodyKind? kind,  String? kindLabel,  List<String>? morePhotoIds,  String? name,  int? originalPriceVnd,  String? photoId,  int? priceVnd,  String? unit,  int? units,  int? weightGrams,  DateTime? windowEnd,  DateTime? windowStart)  $default,) {final _that = this;
 switch (_that) {
 case _OfferChangeBody():
-return $default(_that.description,_that.kind,_that.morePhotoIds,_that.name,_that.originalPriceVnd,_that.photoId,_that.priceVnd,_that.unit,_that.units,_that.weightGrams,_that.windowEnd,_that.windowStart);case _:
+return $default(_that.description,_that.kind,_that.kindLabel,_that.morePhotoIds,_that.name,_that.originalPriceVnd,_that.photoId,_that.priceVnd,_that.unit,_that.units,_that.weightGrams,_that.windowEnd,_that.windowStart);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -212,10 +214,10 @@ return $default(_that.description,_that.kind,_that.morePhotoIds,_that.name,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? description,  OfferChangeBodyKind? kind,  List<String>? morePhotoIds,  String? name,  int? originalPriceVnd,  String? photoId,  int? priceVnd,  String? unit,  int? units,  int? weightGrams,  DateTime? windowEnd,  DateTime? windowStart)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? description,  OfferChangeBodyKind? kind,  String? kindLabel,  List<String>? morePhotoIds,  String? name,  int? originalPriceVnd,  String? photoId,  int? priceVnd,  String? unit,  int? units,  int? weightGrams,  DateTime? windowEnd,  DateTime? windowStart)?  $default,) {final _that = this;
 switch (_that) {
 case _OfferChangeBody() when $default != null:
-return $default(_that.description,_that.kind,_that.morePhotoIds,_that.name,_that.originalPriceVnd,_that.photoId,_that.priceVnd,_that.unit,_that.units,_that.weightGrams,_that.windowEnd,_that.windowStart);case _:
+return $default(_that.description,_that.kind,_that.kindLabel,_that.morePhotoIds,_that.name,_that.originalPriceVnd,_that.photoId,_that.priceVnd,_that.unit,_that.units,_that.weightGrams,_that.windowEnd,_that.windowStart);case _:
   return null;
 
 }
@@ -227,11 +229,13 @@ return $default(_that.description,_that.kind,_that.morePhotoIds,_that.name,_that
 @JsonSerializable()
 
 class _OfferChangeBody implements OfferChangeBody {
-  const _OfferChangeBody({this.description, this.kind,  List<String>? morePhotoIds, this.name, this.originalPriceVnd, this.photoId, this.priceVnd, this.unit, this.units, this.weightGrams, this.windowEnd, this.windowStart}): _morePhotoIds = morePhotoIds;
+  const _OfferChangeBody({this.description, this.kind, this.kindLabel,  List<String>? morePhotoIds, this.name, this.originalPriceVnd, this.photoId, this.priceVnd, this.unit, this.units, this.weightGrams, this.windowEnd, this.windowStart}): _morePhotoIds = morePhotoIds;
   factory _OfferChangeBody.fromJson(Map<String, dynamic> json) => _$OfferChangeBodyFromJson(json);
 
 @override final  String? description;
 @override final  OfferChangeBodyKind? kind;
+/// Leaves it as it is when absent, and empties it when the kind is changed from other
+@override final  String? kindLabel;
 /// Replaces the photos after the cover; at most two
  final  List<String>? _morePhotoIds;
 /// Replaces the photos after the cover; at most two
@@ -266,18 +270,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OfferChangeBody&&(identical(other.description, description) || other.description == description)&&(identical(other.kind, kind) || other.kind == kind)&&const DeepCollectionEquality().equals(other.morePhotoIds, _morePhotoIds)&&(identical(other.name, name) || other.name == name)&&(identical(other.originalPriceVnd, originalPriceVnd) || other.originalPriceVnd == originalPriceVnd)&&(identical(other.photoId, photoId) || other.photoId == photoId)&&(identical(other.priceVnd, priceVnd) || other.priceVnd == priceVnd)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.units, units) || other.units == units)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.windowEnd, windowEnd) || other.windowEnd == windowEnd)&&(identical(other.windowStart, windowStart) || other.windowStart == windowStart));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OfferChangeBody&&(identical(other.description, description) || other.description == description)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.kindLabel, kindLabel) || other.kindLabel == kindLabel)&&const DeepCollectionEquality().equals(other.morePhotoIds, _morePhotoIds)&&(identical(other.name, name) || other.name == name)&&(identical(other.originalPriceVnd, originalPriceVnd) || other.originalPriceVnd == originalPriceVnd)&&(identical(other.photoId, photoId) || other.photoId == photoId)&&(identical(other.priceVnd, priceVnd) || other.priceVnd == priceVnd)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.units, units) || other.units == units)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.windowEnd, windowEnd) || other.windowEnd == windowEnd)&&(identical(other.windowStart, windowStart) || other.windowStart == windowStart));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,description,kind,const DeepCollectionEquality().hash(_morePhotoIds),name,originalPriceVnd,photoId,priceVnd,unit,units,weightGrams,windowEnd,windowStart);
+    return Object.hash(runtimeType,description,kind,kindLabel,const DeepCollectionEquality().hash(_morePhotoIds),name,originalPriceVnd,photoId,priceVnd,unit,units,weightGrams,windowEnd,windowStart);
 }
 
 @override
 String toString() {
-    return 'OfferChangeBody(description: $description, kind: $kind, morePhotoIds: $morePhotoIds, name: $name, originalPriceVnd: $originalPriceVnd, photoId: $photoId, priceVnd: $priceVnd, unit: $unit, units: $units, weightGrams: $weightGrams, windowEnd: $windowEnd, windowStart: $windowStart)';
+    return 'OfferChangeBody(description: $description, kind: $kind, kindLabel: $kindLabel, morePhotoIds: $morePhotoIds, name: $name, originalPriceVnd: $originalPriceVnd, photoId: $photoId, priceVnd: $priceVnd, unit: $unit, units: $units, weightGrams: $weightGrams, windowEnd: $windowEnd, windowStart: $windowStart)';
 }
 
 
@@ -288,7 +292,7 @@ abstract mixin class _$OfferChangeBodyCopyWith<$Res> implements $OfferChangeBody
   factory _$OfferChangeBodyCopyWith(_OfferChangeBody value, $Res Function(_OfferChangeBody) _then) = __$OfferChangeBodyCopyWithImpl;
 @override @useResult
 $Res call({
- String? description, OfferChangeBodyKind? kind, List<String>? morePhotoIds, String? name, int? originalPriceVnd, String? photoId, int? priceVnd, String? unit, int? units, int? weightGrams, DateTime? windowEnd, DateTime? windowStart
+ String? description, OfferChangeBodyKind? kind, String? kindLabel, List<String>? morePhotoIds, String? name, int? originalPriceVnd, String? photoId, int? priceVnd, String? unit, int? units, int? weightGrams, DateTime? windowEnd, DateTime? windowStart
 });
 
 
@@ -305,11 +309,12 @@ class __$OfferChangeBodyCopyWithImpl<$Res>
 
 /// Create a copy of OfferChangeBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? description = freezed,Object? kind = freezed,Object? morePhotoIds = freezed,Object? name = freezed,Object? originalPriceVnd = freezed,Object? photoId = freezed,Object? priceVnd = freezed,Object? unit = freezed,Object? units = freezed,Object? weightGrams = freezed,Object? windowEnd = freezed,Object? windowStart = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? description = freezed,Object? kind = freezed,Object? kindLabel = freezed,Object? morePhotoIds = freezed,Object? name = freezed,Object? originalPriceVnd = freezed,Object? photoId = freezed,Object? priceVnd = freezed,Object? unit = freezed,Object? units = freezed,Object? weightGrams = freezed,Object? windowEnd = freezed,Object? windowStart = freezed,}) {
   return _then(_OfferChangeBody(
 description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,kind: freezed == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as OfferChangeBodyKind?,morePhotoIds: freezed == morePhotoIds ? _self._morePhotoIds : morePhotoIds // ignore: cast_nullable_to_non_nullable
+as OfferChangeBodyKind?,kindLabel: freezed == kindLabel ? _self.kindLabel : kindLabel // ignore: cast_nullable_to_non_nullable
+as String?,morePhotoIds: freezed == morePhotoIds ? _self._morePhotoIds : morePhotoIds // ignore: cast_nullable_to_non_nullable
 as List<String>?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,originalPriceVnd: freezed == originalPriceVnd ? _self.originalPriceVnd : originalPriceVnd // ignore: cast_nullable_to_non_nullable
 as int?,photoId: freezed == photoId ? _self.photoId : photoId // ignore: cast_nullable_to_non_nullable

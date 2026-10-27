@@ -14,6 +14,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { formatPrice } from "@/features/offers/format";
+import { kindText } from "@/features/offers/offer";
 import { useRouter } from "@/i18n/navigation";
 import { changeOffer, postOffer, type OfferBody, uploadPhoto } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
@@ -44,6 +45,9 @@ const kinds = [
   "ingredients",
   "drinks",
   "mixed_box",
+  "dessert",
+  "snacks",
+  "produce",
   "other",
 ] as const satisfies readonly OfferBody["kind"][];
 
@@ -52,6 +56,8 @@ type Values = {
   photo: ChosenPhoto | undefined;
   name: string;
   kind: OfferBody["kind"];
+  /** What the seller calls a dish of the kind "other". */
+  kindLabel: string;
   /** What one unit is called, for a dish typed in the drawer; a dish chosen keeps its own. */
   unit: string;
   description: string;
@@ -131,6 +137,7 @@ function PostDrawerBody({
     photo: undefined,
     name: "",
     kind: "bakery",
+    kindLabel: "",
     unit: "suất",
     description: "",
     units: base?.units ? String(base.units) : "",
@@ -149,6 +156,7 @@ function PostDrawerBody({
     photo: z.custom<ChosenPhoto | undefined>(),
     name: z.string(),
     kind: z.enum(kinds),
+    kindLabel: z.string(),
     unit: z.string(),
     description: z.string(),
     units: z.string(),
@@ -244,6 +252,7 @@ function PostDrawerBody({
       body: {
         name: chosen?.name ?? value.name.trim(),
         kind: chosen?.kind ?? value.kind,
+        kindLabel: chosen ? chosen.kindLabel : value.kind === "other" ? value.kindLabel.trim() : "",
         unit: chosen ? chosen.unit : value.unit,
         description: chosen ? chosen.description : value.description.trim(),
         photoId,
@@ -378,7 +387,7 @@ function PostDrawerBody({
                           <span className="flex min-w-0 flex-1 flex-col">
                             <span className="truncate text-title-lg">{dish.name}</span>
                             <span className="text-body-sm text-muted-foreground">
-                              {kindName(dish.kind)} · {dish.unit}
+                              {kindText(kindName, dish.kind, dish.kindLabel)} · {dish.unit}
                             </span>
                           </span>
                           <Button
@@ -399,16 +408,21 @@ function PostDrawerBody({
                   <form.AppField name="photo">
                     {() => <PhotoField label={t("photo")} />}
                   </form.AppField>
-                  <form.AppField name="name">
-                    {(field) => (
-                      <field.TextField
-                        label={t("name")}
-                        required
-                        maxLength={80}
-                        placeholder={t("namePlaceholder")}
-                      />
-                    )}
-                  </form.AppField>
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <form.AppField name="name">
+                        {(field) => (
+                          <field.TextField
+                            label={t("name")}
+                            required
+                            maxLength={80}
+                            placeholder={t("namePlaceholder")}
+                          />
+                        )}
+                      </form.AppField>
+                    </div>
+                    <form.AppField name="unit">{() => <UnitField />}</form.AppField>
+                  </div>
                   <form.AppField name="kind">
                     {(field) => (
                       <fieldset className="flex flex-col gap-2">
@@ -427,9 +441,21 @@ function PostDrawerBody({
                       </fieldset>
                     )}
                   </form.AppField>
-                  <div className="grid grid-cols-5 gap-3">
-                    <form.AppField name="unit">{() => <UnitField />}</form.AppField>
-                  </div>
+                  <form.Subscribe selector={(state) => state.values.kind === "other"}>
+                    {(other) =>
+                      other && (
+                        <form.AppField name="kindLabel">
+                          {(field) => (
+                            <field.TextField
+                              label={t("kindLabel")}
+                              maxLength={30}
+                              placeholder={t("kindLabelPlaceholder")}
+                            />
+                          )}
+                        </form.AppField>
+                      )
+                    }
+                  </form.Subscribe>
                   <form.Subscribe selector={(state) => state.values.kind === "mixed_box"}>
                     {(mixedBox) =>
                       mixedBox && (
@@ -476,8 +502,8 @@ function PostDrawerBody({
                       </span>
                       <span className="text-body-sm text-muted-foreground">
                         {chosen
-                          ? `${kindName(chosen.kind)} · ${chosen.unit}`
-                          : `${t("sourceOneOff")} · ${kindName(values.kind)}`}
+                          ? `${kindText(kindName, chosen.kind, chosen.kindLabel)} · ${chosen.unit}`
+                          : `${t("sourceOneOff")} · ${kindText(kindName, values.kind, values.kindLabel)}`}
                       </span>
                     </span>
                     {values.original !== "" && (

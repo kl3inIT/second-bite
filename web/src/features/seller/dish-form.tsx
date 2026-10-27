@@ -38,6 +38,9 @@ const kinds = [
   "ingredients",
   "drinks",
   "mixed_box",
+  "dessert",
+  "snacks",
+  "produce",
   "other",
 ] as const satisfies readonly DishBody["kind"][];
 
@@ -46,6 +49,7 @@ type Values = {
   photo: ChosenPhoto | undefined;
   name: string;
   kind: DishBody["kind"];
+  kindLabel: string;
   unit: string;
   original: string;
   description: string;
@@ -74,6 +78,7 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
     photo: undefined,
     name: dish?.name ?? "",
     kind: dish?.kind ?? "bakery",
+    kindLabel: dish?.kindLabel ?? "",
     unit: dish?.unit ?? "suất",
     original: dish?.originalPriceVnd ? String(dish.originalPriceVnd) : "",
     description: dish?.description ?? "",
@@ -91,6 +96,7 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
             .refine((photo) => dish !== undefined || photo !== undefined, t("photoMissing")),
           name: z.string().trim().min(1, t("nameMissing")),
           kind: z.enum(kinds),
+          kindLabel: z.string(),
           unit: z.string(),
           // The original price is optional; a price, when given, is from 1.001đ, as the backend asks.
           original: z.string().refine((value) => value === "" || Number(value) > 1000, {
@@ -116,6 +122,8 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
         const fields = {
           name: value.name.trim(),
           kind: value.kind,
+          // Only the kind "other" has a name of its own.
+          kindLabel: value.kind === "other" ? value.kindLabel.trim() : "",
           unit: value.unit.trim(),
           description: value.description.trim(),
           ingredients: value.ingredients.trim(),
@@ -186,16 +194,21 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
           )}
         </form.AppField>
 
-        <form.AppField name="name">
-          {(field) => (
-            <field.TextField
-              label={t("name")}
-              required
-              maxLength={80}
-              placeholder={t("namePlaceholder")}
-            />
-          )}
-        </form.AppField>
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <form.AppField name="name">
+              {(field) => (
+                <field.TextField
+                  label={t("name")}
+                  required
+                  maxLength={80}
+                  placeholder={t("namePlaceholder")}
+                />
+              )}
+            </form.AppField>
+          </div>
+          <form.AppField name="unit">{() => <UnitField />}</form.AppField>
+        </div>
 
         <form.AppField name="kind">
           {(field) => (
@@ -216,8 +229,23 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
           )}
         </form.AppField>
 
+        <form.Subscribe selector={(state) => state.values.kind === "other"}>
+          {(other) =>
+            other && (
+              <form.AppField name="kindLabel">
+                {(field) => (
+                  <field.TextField
+                    label={t("kindLabel")}
+                    maxLength={30}
+                    placeholder={t("kindLabelPlaceholder")}
+                  />
+                )}
+              </form.AppField>
+            )
+          }
+        </form.Subscribe>
+
         <div className="grid grid-cols-5 gap-3">
-          <form.AppField name="unit">{() => <UnitField />}</form.AppField>
           <form.AppField name="original">{() => <OriginalPriceField />}</form.AppField>
         </div>
 

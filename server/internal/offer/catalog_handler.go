@@ -11,7 +11,8 @@ import (
 
 type dishDetailsBody struct {
 	Name        string `json:"name"                  maxLength:"80"   minLength:"1"`
-	Kind        Kind   `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Kind        Kind   `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other"`
+	KindLabel   string `json:"kindLabel,omitempty"   doc:"What the seller calls a dish of the kind other; empty for any other kind" maxLength:"30"`
 	Unit        string `json:"unit,omitempty"        doc:"What one unit is called; \"suất\" when empty" maxLength:"20"`
 	Description string `json:"description,omitempty" maxLength:"1000"`
 	Ingredients string `json:"ingredients,omitempty" doc:"What the dish is made of and may contain, allergens included" maxLength:"500"`
@@ -26,7 +27,8 @@ func (b dishDetailsBody) details() DishDetails { return DishDetails(b) }
 
 type dishChangeBody struct {
 	Name        *string `json:"name,omitempty"        maxLength:"80" minLength:"1"`
-	Kind        *Kind   `json:"kind,omitempty"        enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Kind        *Kind   `json:"kind,omitempty"        enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other"`
+	KindLabel   *string `json:"kindLabel,omitempty"   doc:"Leaves it as it is when absent, and empties it when the kind is changed from other" maxLength:"30"`
 	Unit        *string `json:"unit,omitempty"        maxLength:"20"`
 	Description *string `json:"description,omitempty" maxLength:"1000"`
 	Ingredients *string `json:"ingredients,omitempty" maxLength:"500"`
@@ -43,7 +45,8 @@ type dishBody struct {
 	ID               uuid.UUID        `json:"id"`
 	SellerID         uuid.UUID        `json:"sellerId"`
 	Name             string           `json:"name"`
-	Kind             Kind             `json:"kind"        enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Kind             Kind             `json:"kind"        enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other"`
+	KindLabel        string           `json:"kindLabel"   doc:"What the seller calls a dish of the kind other; empty for any other kind"`
 	Unit             string           `json:"unit"`
 	Description      string           `json:"description"`
 	Ingredients      string           `json:"ingredients"`
@@ -57,7 +60,7 @@ type dishBody struct {
 
 func toDishBody(d Dish) dishBody {
 	return dishBody{
-		ID: d.ID, SellerID: d.SellerID, Name: d.Name, Kind: d.Kind, Unit: d.Unit, Description: d.Description,
+		ID: d.ID, SellerID: d.SellerID, Name: d.Name, Kind: d.Kind, KindLabel: d.KindLabel, Unit: d.Unit, Description: d.Description,
 		Ingredients: d.Ingredients, OriginalPriceVND: d.OriginalPriceVND, Photo: *photoOf(d.PhotoID), Photos: photosOf(d.PhotoID, d.MorePhotoIDs), Hidden: d.Hidden,
 		CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt,
 	}

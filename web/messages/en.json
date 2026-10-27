@@ -137,6 +137,9 @@
     "ingredients": "Ingredients",
     "drinks": "Drinks",
     "mixed_box": "Mixed box",
+    "dessert": "Dessert",
+    "snacks": "Snacks",
+    "produce": "Produce",
     "other": "Other"
   },
   "OfferCard": {
@@ -999,6 +1002,8 @@
     "name": "Dish name",
     "namePlaceholder": "For example: Bread and croissant bag, 4 pieces",
     "kind": "Kind",
+    "kindLabel": "Name of the kind",
+    "kindLabelPlaceholder": "For example: sweet soup, sticky rice, jam",
     "description": "What the box holds",
     "descriptionPlaceholder": "For example: bread and pastries, may contain egg and milk",
     "sellQuestion": "Price & quantity",
@@ -1119,6 +1124,8 @@
     "namePlaceholder": "For example: Bread and croissant bag, 4 pieces",
     "nameMissing": "Enter the dish's name.",
     "kind": "Kind",
+    "kindLabel": "Name of the kind",
+    "kindLabelPlaceholder": "For example: sweet soup, sticky rice, jam",
     "unit": "Unit",
     "description": "Description (optional)",
     "descriptionRequired": "Description",

@@ -25,6 +25,9 @@ abstract class DishDetailsBody with _$DishDetailsBody {
     /// What the dish is made of and may contain, allergens included
     String? ingredients,
 
+    /// What the seller calls a dish of the kind other; empty for any other kind
+    String? kindLabel,
+
     /// Up to two more photos after the cover
     List<String>? morePhotoIds,
 

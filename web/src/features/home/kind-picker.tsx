@@ -27,6 +27,9 @@ const order: readonly OfferKind[] = [
   "mixed_box",
   "ingredients",
   "drinks",
+  "dessert",
+  "snacks",
+  "produce",
   "other",
 ];
 // The words searched are the dishes' Vietnamese names, as the offers are named, whatever the language shown.

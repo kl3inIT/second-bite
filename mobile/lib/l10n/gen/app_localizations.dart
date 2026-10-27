@@ -269,7 +269,7 @@ abstract class AppLocalizations {
   /// A kind of food, by the API's name for it
   ///
   /// In vi, this message translates to:
-  /// **'{kind, select, bakery{Bánh} prepared_food{Món chín} ingredients{Nguyên liệu} drinks{Đồ uống} mixed_box{Hộp tổng hợp} other{Khác}}'**
+  /// **'{kind, select, bakery{Bánh} prepared_food{Món chín} ingredients{Nguyên liệu} drinks{Đồ uống} mixed_box{Hộp tổng hợp} dessert{Tráng miệng} snacks{Ăn vặt} produce{Rau củ quả} other{Khác}}'**
   String offerKind(String kind);
 
   /// Title of the introduction for a first visit

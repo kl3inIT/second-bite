@@ -18,7 +18,7 @@ export function UnitField({ className }: { className?: string }) {
   const { field, ids } = useFieldValidity<string>();
   const unit = field.state.value;
   return (
-    <Field className={cn("col-span-2", className)}>
+    <Field className={cn("w-fit shrink-0", className)}>
       <FieldLabel htmlFor={ids.control}>{t("unit")}</FieldLabel>
       <NativeSelect
         id={ids.control}

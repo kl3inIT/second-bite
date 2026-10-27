@@ -119,6 +119,9 @@ class AppLocalizationsVi extends AppLocalizations {
       'ingredients': 'Nguyên liệu',
       'drinks': 'Đồ uống',
       'mixed_box': 'Hộp tổng hợp',
+      'dessert': 'Tráng miệng',
+      'snacks': 'Ăn vặt',
+      'produce': 'Rau củ quả',
       'other': 'Khác',
     });
     return '$_temp0';

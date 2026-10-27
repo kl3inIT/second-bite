@@ -28,7 +28,7 @@
   "offerDiscount": "-{percent}%",
   "offerDiscountLabel": "{percent}% off",
   "offerOriginalPrice": "Was {price}",
-  "offerKind": "{kind, select, bakery{Bakery} prepared_food{Cooked food} ingredients{Ingredients} drinks{Drinks} mixed_box{Mixed box} other{Other}}",
+  "offerKind": "{kind, select, bakery{Bakery} prepared_food{Cooked food} ingredients{Ingredients} drinks{Drinks} mixed_box{Mixed box} dessert{Dessert} snacks{Snacks} produce{Produce} other{Other}}",
   "introTitle": "What is Second Bite?",
   "introBody": "Good food left at the end of the day by sellers in Tasco Mall, at a lower price. Order ahead, then collect it at the counter within the dish's window.",
   "introDismiss": "Close the introduction",
