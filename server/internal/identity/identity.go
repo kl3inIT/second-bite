@@ -73,7 +73,17 @@ type Service struct {
 	crossOrigin *http.CrossOriginProtection
 	// google verifies Google's ID tokens; nil when Google is off.
 	google *google
+	// codesByAddress bounds the codes one address asks for, whatever the email
+	// addresses, so a script cannot spend the provider's quota (SEC-160).
+	codesByAddress *platform.Limiter
 }
+
+// codesPerAddress codes may be asked for from one address in limitWindow:
+// enough for the people behind one mall's Wi-Fi, too few for a script (SEC-160).
+const (
+	codesPerAddress = 30
+	limitWindow     = 10 * time.Minute
+)
 
 // NewService assembles the module.
 func NewService(
@@ -86,8 +96,9 @@ func NewService(
 
 	s := &Service{
 		pool: pool, queries: db.New(pool), email: email, events: events, trail: trail, codeKey: cfg.CodeKey,
-		logger:      logger,
-		crossOrigin: http.NewCrossOriginProtection(),
+		logger:         logger,
+		crossOrigin:    http.NewCrossOriginProtection(),
+		codesByAddress: platform.NewLimiter(codesPerAddress, limitWindow),
 	}
 	if len(cfg.GoogleClientIDs) > 0 {
 		s.google = newGoogle(cfg.GoogleClientIDs, remoteGoogleKeys())

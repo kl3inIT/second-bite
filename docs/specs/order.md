@@ -124,6 +124,10 @@ It follows `seller.LocationChangedEvent` (listener `order.follow_seller_location
 | `ORDER_ADMIN_LIST_INVALID`      | 400    | The admins' list: an unknown status, a query over 100 characters, a range of collection days that does not start before it ends, a bad page or size |
 | `SELLER_NOT_FOUND`              | 404    | Listing the orders of a seller, or asking for its live ticket, when the caller is not one of its people                                                    |
 
+## Limits
+
+- One client address places at most 60 orders in ten minutes, signed in or not; past it `PLATFORM_TOO_MANY_REQUESTS` (429) with `Retry-After` (SEC-160). A limit per person is SEC-158.
+
 ## Not yet
 
 Per the [plan](../increments/completed/sec-15-order-module/plan.md): a limit of units per customer and day, and of orders per phone number, since a number is not verified; telling customers who have no push by Zalo, once a legal entity exists (SEC-25); paying online (SEC-18).

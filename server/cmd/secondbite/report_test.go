@@ -60,7 +60,11 @@ func checkReport(t *testing.T, svc service) {
 	send(t, http.MethodPost, svc.base+"/orders", placing, cartOf(cartLine{offerID, 2})).decode(t, http.StatusCreated, &placed)
 	handOver(t, svc, owner, placed)
 
-	phone := http.Header{"User-Agent": {"Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"}}
+	// One phone at one address: two pages, one person.
+	phone := http.Header{
+		"User-Agent":      {"Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"},
+		"X-Forwarded-For": {"113.161.10.30"},
+	}
 	for _, path := range []string{"/vi/sellers/" + sellerID, "/vi/offers/" + offerID} {
 		send(t, http.MethodPost, svc.base+"/stats/views", phone, map[string]string{"path": path})
 	}

@@ -86,6 +86,12 @@ func WithLiveTiming(t LiveTiming) LiveOption {
 	return func(l *Live) { l.timing = t.withDefaults() }
 }
 
+// WithLiveMaxConns caps the sockets the instance holds below liveMaxConns, as
+// a test needs.
+func WithLiveMaxConns(n int) LiveOption {
+	return func(l *Live) { l.maxConns = n }
+}
+
 // Live pushes notices to the browsers that follow a topic, over WebSocket. A
 // module notifies in the transaction that makes a change (Notify); PostgreSQL
 // delivers it on commit to every instance, which passes it to its own
@@ -96,6 +102,8 @@ type Live struct {
 	logger *slog.Logger
 	redeem RedeemTicket
 	timing LiveTiming
+	// maxConns caps the sockets the instance holds (SEC-160).
+	maxConns int
 
 	mu      sync.Mutex
 	closing bool
@@ -106,7 +114,7 @@ type Live struct {
 // NewLive prepares the hub on pool. It listens only once Run is called.
 func NewLive(pool *pgxpool.Pool, logger *slog.Logger, redeem RedeemTicket, opts ...LiveOption) *Live {
 	l := &Live{
-		pool: pool, logger: logger, redeem: redeem, timing: LiveTiming{}.withDefaults(),
+		pool: pool, logger: logger, redeem: redeem, timing: LiveTiming{}.withDefaults(), maxConns: liveMaxConns,
 		conns: map[*liveConn]struct{}{}, byTopic: map[string]map[*liveConn]struct{}{},
 	}
 
@@ -310,6 +318,13 @@ func (c *liveConn) close(code websocket.StatusCode, reason string) {
 	})
 }
 
+// liveMaxConns is how many sockets one instance holds at most, far above the
+// pilot's people; liveFullRetry is when a refused client may try again.
+const (
+	liveMaxConns  = 2000
+	liveFullRetry = 30 * time.Second
+)
+
 // ServeHTTP upgrades the request to a WebSocket and follows the topics its
 // client has tickets for. Mount it as GET /live.
 func (l *Live) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -322,6 +337,14 @@ func (l *Live) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			slog.String("event", "platform.live.deadlines_kept"),
 			slog.String("error_type", fmt.Sprintf("%T", err)),
 		)
+	}
+
+	// A cap on the sockets one instance holds, so a script opening them cannot
+	// take its memory (SEC-160); the client reconnects later, with backoff.
+	if l.full() {
+		WriteFailure(w, r, ErrTooManyRequests.WithRetryAfter(liveFullRetry))
+
+		return
 	}
 
 	ws, err := websocket.Accept(w, r, &websocket.AcceptOptions{
@@ -378,6 +401,14 @@ func (l *Live) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		slog.Int("topics", topics),
 		slog.Int64("duration_ms", time.Since(start).Milliseconds()),
 	)
+}
+
+// full says whether the instance holds liveMaxConns sockets already.
+func (l *Live) full() bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	return len(l.conns) >= l.maxConns
 }
 
 func (l *Live) register(c *liveConn) bool {

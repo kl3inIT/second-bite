@@ -34,6 +34,7 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 - One live code per address and purpose: asking for a new one ends the earlier ones of its purpose (SEC-126).
 - Each guess is counted before it is compared; after five wrong guesses the code no longer works, even when right. A right code works once.
 - Limits per address and purpose, checked under a lock so that requests arriving together cannot pass them: one code a minute, ten an hour (three for deletion codes), fifteen wrong guesses an hour and thirty a day. Each purpose counts only its own codes, so asking for deletion codes never holds back signing in (SEC-126).
+- In front of them, one client address asks for at most 30 codes in ten minutes, of any purpose and any email address, so a script cannot spend the email provider's quota; past it, `PLATFORM_TOO_MANY_REQUESTS` (429) with `Retry-After` (SEC-160). The bound is generous for the people behind one mall's Wi-Fi.
 - A session token is random (130 bits) and only its SHA-256 is stored. It is sent as `Authorization: Bearer` (the mobile application) or in the cookie `secondbite_session` (the web; `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/`, kept by the browser up to 400 days while the session's own end stays the server's). The header wins when both are sent. A cookie of an ended session is ignored, so the request goes on anonymously. A session lasts 30 days from its last use; the end moves at most once an hour. An account's expired sessions are deleted when it opens a new one.
 - A header with an unknown, ended or malformed token is refused at once; it does not fall back to an anonymous request.
 - Google's ID token is verified with go-oidc against Google's published keys (fetched within 5 seconds, then kept): the signature, an issuer of `https://accounts.google.com` or `accounts.google.com`, an audience among `SECONDBITE_GOOGLE_CLIENT_IDS` (comma-separated, the web's first) and the expiry. When a nonce is in the token or posted, the token's must be the hex SHA-256 of the one posted. Without client IDs Google is off.
@@ -77,5 +78,4 @@ A code that could not be emailed answers `notification`'s 503 ([notification](no
 
 ## Not yet
 
-- Limits per client address in front of those per email address, which today can be spent by someone else to hold an address back for up to a day; with the first deployment.
 - Linking Google from a signed-in session; when someone needs it.

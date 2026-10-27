@@ -2,12 +2,12 @@ package stats
 
 import (
 	"context"
-	"net"
 	"net/http"
-	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
 	"zgo.at/isbot"
+
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 // viewInput is a page the browser shows. The request's address and headers are
@@ -26,7 +26,7 @@ type viewInput struct {
 // the site is reached only through the proxy, else the connection's; the
 // browser; and whether it only fetched the page ahead.
 func (in *viewInput) Resolve(ctx huma.Context) []error {
-	in.address = clientAddress(ctx.Header("X-Forwarded-For"), ctx.RemoteAddr())
+	in.address = platform.ClientAddressOf(ctx.Header("X-Forwarded-For"), ctx.RemoteAddr())
 	in.userAgent = ctx.Header("User-Agent")
 
 	header := http.Header{}
@@ -40,19 +40,6 @@ func (in *viewInput) Resolve(ctx huma.Context) []error {
 	in.prefetch = isbot.Prefetch(header)
 
 	return nil
-}
-
-// clientAddress is the first address of forwarded, else remote's host.
-func clientAddress(forwarded, remote string) string {
-	if first, _, _ := strings.Cut(forwarded, ","); strings.TrimSpace(first) != "" {
-		return strings.TrimSpace(first)
-	}
-
-	if host, _, err := net.SplitHostPort(remote); err == nil {
-		return host
-	}
-
-	return remote
 }
 
 // RegisterOperations adds the module's operations to api.
