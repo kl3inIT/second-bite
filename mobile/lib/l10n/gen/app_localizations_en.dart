@@ -125,6 +125,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'ingredients': 'Ingredients',
       'drinks': 'Drinks',
       'mixed_box': 'Mixed box',
+      'dessert': 'Dessert',
+      'snacks': 'Snacks',
+      'produce': 'Produce',
       'other': 'Other',
     });
     return '$_temp0';
