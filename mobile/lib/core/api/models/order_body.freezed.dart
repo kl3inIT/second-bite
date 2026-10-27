@@ -19,8 +19,8 @@ mixin _$OrderBody {
 /// The order is collected or expired, within two days, and no problem was reported yet
  bool get canReportProblem;/// The order is collected and was never rated, so its customer may rate it
  bool get canReview;/// Shared by the orders placed together from one cart
- String get checkoutId; DateTime get createdAt;/// Who collects, as given with the order
- String get customerName;/// Their phone number, 0 and nine digits
+ String get checkoutId; DateTime get createdAt;/// Who collects, as given with the order; empty once the customer deleted their account
+ String get customerName;/// Their phone number, 0 and nine digits; empty once the customer deleted their account
  String get customerPhone; String get id; List<OrderLineBody> get lines;/// What people read aloud, SB- and a number
  String get number;/// Where the order is collected, copied when it was placed
  OrderSellerBody get seller;/// expired is read from the window's end
@@ -297,9 +297,9 @@ class _OrderBody implements OrderBody {
 /// Shared by the orders placed together from one cart
 @override final  String checkoutId;
 @override final  DateTime createdAt;
-/// Who collects, as given with the order
+/// Who collects, as given with the order; empty once the customer deleted their account
 @override final  String customerName;
-/// Their phone number, 0 and nine digits
+/// Their phone number, 0 and nine digits; empty once the customer deleted their account
 @override final  String customerPhone;
 @override final  String id;
  final  List<OrderLineBody> _lines;

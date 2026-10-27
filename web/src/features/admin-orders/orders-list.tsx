@@ -34,6 +34,7 @@ import {
   serializeOrderSearchParams,
   type CardState,
 } from "./search-params";
+import { customerOf } from "@/features/orders/order";
 
 const anyStore = "all";
 
@@ -231,6 +232,7 @@ export function OrdersList({
 
 function useColumns(): DataTableColumns<OrderBody> {
   const t = useTranslations("Admin.orders");
+  const gone = useTranslations("Orders")("customerGone");
   const format = useFormatter();
   const time = (at: string) => format.dateTime(new Date(at), "time");
   const summary = useLinesSummary();
@@ -258,7 +260,7 @@ function useColumns(): DataTableColumns<OrderBody> {
       id: "customer",
       header: t("column.customer"),
       meta: { width: "w-28" },
-      cell: ({ row }) => row.original.customerName,
+      cell: ({ row }) => customerOf(row.original, gone),
     },
     {
       id: "lines",

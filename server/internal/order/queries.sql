@@ -354,6 +354,13 @@ WHERE c.order_id = ANY (@order_ids::uuid[]);
 DELETE FROM order_chats
 WHERE order_id IN (SELECT id FROM order_orders WHERE customer_id = @customer_id);
 
+-- name: ForgetContactsOfCustomer :execrows
+-- Takes a deleted account's name and phone number, and its consent to Zalo, off its orders. The orders it already
+-- left alone are not counted, so running it again changes nothing.
+UPDATE order_orders
+SET customer_name = '', customer_phone = '', zalo_consent_at = NULL, contact_forgotten_at = now()
+WHERE customer_id = @customer_id AND contact_forgotten_at IS NULL;
+
 -- name: DeleteChatsEndedBefore :execrows
 DELETE FROM order_chats
 WHERE order_id IN (SELECT id FROM order_orders WHERE window_end < @before);

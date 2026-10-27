@@ -13,7 +13,7 @@ import {
 import { StoreMap } from "@/components/map/store-map";
 import { formatPrice } from "@/features/offers/format";
 import { directionsHref } from "@/features/offers/offer";
-import { dishesOf, savingOf, unitsOf, type Order } from "@/features/orders/order";
+import { customerOf, dishesOf, savingOf, unitsOf, type Order } from "@/features/orders/order";
 import { Photo } from "@/features/orders/order-parts";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -145,6 +145,7 @@ function initialsOf(name: string): string {
 /** The customer of an order beside the seller's chat (Figma Q5m): who, their number, where the order stands. */
 export function CustomerDetails({ order }: { order: Order }) {
   const t = useTranslations("Chat");
+  const customer = customerOf(order, useTranslations("Orders")("customerGone"));
   const format = useFormatter();
   const time = (value: string) => format.dateTime(new Date(value), "time");
   const open = order.status === "confirmed" || order.status === "ready";
@@ -156,14 +157,16 @@ export function CustomerDetails({ order }: { order: Order }) {
           aria-hidden
           className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-title-lg text-primary"
         >
-          {initialsOf(order.customerName)}
+          {initialsOf(customer)}
         </span>
         <div className="flex min-w-0 flex-col gap-0.5">
           <p className="truncate text-title">
-            {t("who", { name: order.customerName, units: unitsOf(order) })}
+            {t("who", { name: customer, units: unitsOf(order) })}
           </p>
           <p className="truncate text-note text-muted-foreground">
-            {t("placedAt", { phone: order.customerPhone, time: time(order.createdAt) })}
+            {order.customerPhone
+              ? t("placedAt", { phone: order.customerPhone, time: time(order.createdAt) })
+              : t("placedAtTime", { time: time(order.createdAt) })}
           </p>
           <p className="text-note font-medium">
             {open

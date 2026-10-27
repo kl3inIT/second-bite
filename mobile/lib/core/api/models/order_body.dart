@@ -27,10 +27,10 @@ abstract class OrderBody with _$OrderBody {
     required String checkoutId,
     required DateTime createdAt,
 
-    /// Who collects, as given with the order
+    /// Who collects, as given with the order; empty once the customer deleted their account
     required String customerName,
 
-    /// Their phone number, 0 and nine digits
+    /// Their phone number, 0 and nine digits; empty once the customer deleted their account
     required String customerPhone,
     required String id,
     required List<OrderLineBody> lines,

@@ -17,7 +17,7 @@ T _$identity<T>(T value) => value;
 mixin _$SellerReviewBody {
 
 /// When the customer rated the order
- DateTime get createdAt;/// Who collected, as given with the order
+ DateTime get createdAt;/// Who collected, as given with the order; empty once the customer deleted their account
  String get customerName;/// The order reviewed, which names its review
  String get orderId;/// SB- and a number
  String get orderNumber; int get stars; List<String> get tags; String? get comment;/// The names of the order's dishes, joined by commas
@@ -232,7 +232,7 @@ class _SellerReviewBody implements SellerReviewBody {
 
 /// When the customer rated the order
 @override final  DateTime createdAt;
-/// Who collected, as given with the order
+/// Who collected, as given with the order; empty once the customer deleted their account
 @override final  String customerName;
 /// The order reviewed, which names its review
 @override final  String orderId;

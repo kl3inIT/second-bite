@@ -4,12 +4,14 @@ import { isReviewTag } from "@/features/orders/review";
 import type { SellerReviewBody } from "@/lib/api/generated";
 
 import { ReviewStars } from "./review-stars";
+import { customerOf } from "@/features/orders/order";
 
 /** One review of the store (Figma Q1b-3, Q1b-5): its stars and who gave it, for which dishes and when, the comment and what pleased. */
 export async function ReviewItem({ review }: { review: SellerReviewBody }) {
-  const [t, tags, format] = await Promise.all([
+  const [t, tags, orders, format] = await Promise.all([
     getTranslations("StoreReviews"),
     getTranslations("Review.tag"),
+    getTranslations("Orders"),
     getFormatter(),
   ]);
   const when = format.dateTime(new Date(review.createdAt), "dayMonth");
@@ -23,7 +25,7 @@ export async function ReviewItem({ review }: { review: SellerReviewBody }) {
           label={t("stars", { count: review.stars })}
           className="size-4"
         />
-        <span className="text-body-sm-strong">{review.customerName}</span>
+        <span className="text-body-sm-strong">{customerOf(review, orders("customerGone"))}</span>
         <span className="text-body-sm text-muted-foreground">
           {review.dishes ? `· ${review.dishes} · ${when}` : `· ${when}`}
         </span>

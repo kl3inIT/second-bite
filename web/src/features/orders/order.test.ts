@@ -4,6 +4,7 @@ import {
   byCheckout,
   canCancel,
   clampUnits,
+  customerOf,
   dayOf,
   isOpen,
   savingOf,
@@ -90,5 +91,12 @@ describe("the day of an ended order", () => {
   it("falls in the week for six days, and before after that", () => {
     expect(dayOf("2026-10-14T20:00:00+07:00", now, timeZone)).toBe("week");
     expect(dayOf("2026-10-13T20:00:00+07:00", now, timeZone)).toBe("before");
+  });
+});
+
+describe("customerOf", () => {
+  it("shows the name given with the order, or the words for a customer who deleted their account", () => {
+    expect(customerOf({ customerName: "Lan" }, "gone")).toBe("Lan");
+    expect(customerOf({ customerName: "" }, "gone")).toBe("gone");
   });
 });

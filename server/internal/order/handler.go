@@ -74,8 +74,8 @@ type orderBody struct {
 	RefuseReason     RefuseReason    `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other,withdrawn"`
 	RefuseNote       string          `json:"refuseNote,omitempty"`
 	CheckoutID       uuid.UUID       `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
-	CustomerName     string          `json:"customerName"           doc:"Who collects, as given with the order"`
-	CustomerPhone    string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits"`
+	CustomerName     string          `json:"customerName"           doc:"Who collects, as given with the order; empty once the customer deleted their account"`
+	CustomerPhone    string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits; empty once the customer deleted their account"`
 	Review           *reviewBody     `json:"review,omitempty"       doc:"The customer's rating of the collected order; none until they rate it, nor while admins hide it"`
 	CanReview        bool            `json:"canReview"              doc:"The order is collected and was never rated, so its customer may rate it"`
 	Problem          *problemBody    `json:"problem,omitempty"      doc:"What its customer reported went wrong, with the store's answer; none until reported (SEC-84)"`
@@ -474,7 +474,7 @@ func registerChatOperations(api huma.API, s *Service) {
 type sellerReviewBody struct {
 	OrderID      uuid.UUID `json:"orderId"          doc:"The order reviewed, which names its review"`
 	OrderNumber  string    `json:"orderNumber"      doc:"SB- and a number"`
-	CustomerName string    `json:"customerName"     doc:"Who collected, as given with the order"`
+	CustomerName string    `json:"customerName"     doc:"Who collected, as given with the order; empty once the customer deleted their account"`
 	Dishes       string    `json:"dishes,omitempty" doc:"The names of the order's dishes, joined by commas"`
 	Stars        int       `json:"stars"`
 	Tags         []Tag     `json:"tags"             nullable:"false"`
@@ -740,7 +740,7 @@ type adminReviewBody struct {
 	OrderNumber  string     `json:"orderNumber"            doc:"SB- and a number"`
 	SellerID     uuid.UUID  `json:"sellerId"`
 	SellerName   string     `json:"sellerName"`
-	CustomerName string     `json:"customerName"           doc:"Who collected, as given with the order"`
+	CustomerName string     `json:"customerName"           doc:"Who collected, as given with the order; empty once the customer deleted their account"`
 	Stars        int        `json:"stars"`
 	Tags         []Tag      `json:"tags"                   nullable:"false"`
 	Comment      string     `json:"comment,omitempty"`

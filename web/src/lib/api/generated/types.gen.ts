@@ -80,7 +80,7 @@ export type AdminReviewBody = {
      */
     createdAt: string;
     /**
-     * Who collected, as given with the order
+     * Who collected, as given with the order; empty once the customer deleted their account
      */
     customerName: string;
     /**
@@ -784,11 +784,11 @@ export type OrderBody = {
     collectedAt?: string;
     createdAt: string;
     /**
-     * Who collects, as given with the order
+     * Who collects, as given with the order; empty once the customer deleted their account
      */
     customerName: string;
     /**
-     * Their phone number, 0 and nine digits
+     * Their phone number, 0 and nine digits; empty once the customer deleted their account
      */
     customerPhone: string;
     id: string;
@@ -1175,7 +1175,7 @@ export type SellerReviewBody = {
      */
     createdAt: string;
     /**
-     * Who collected, as given with the order
+     * Who collected, as given with the order; empty once the customer deleted their account
      */
     customerName: string;
     /**

@@ -17,6 +17,7 @@ import { Link } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
 import { getOrder, getSeller, type OrderBody, type SellerBody } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
+import { customerOf } from "@/features/orders/order";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Admin.orders");
@@ -50,8 +51,9 @@ export default async function OrderPage({
   const fromStore = (await searchParams).from === "store";
   const { orderId } = await params;
   await requireAdmin(`/admin/orders/${orderId}`);
-  const [t, format, headers] = await Promise.all([
+  const [t, words, format, headers] = await Promise.all([
     getTranslations("Admin"),
+    getTranslations("Orders"),
     getFormatter(),
     sessionHeaders(),
   ]);
@@ -291,8 +293,16 @@ export default async function OrderPage({
               </CardHeader>
               <CardContent>
                 <dl className="flex flex-col gap-2 text-body-sm">
-                  <Fact label={t("orders.detail.name")} value={order.customerName} />
-                  <Fact label={t("orders.detail.phone")} value={shownPhone(order.customerPhone)} />
+                  <Fact
+                    label={t("orders.detail.name")}
+                    value={customerOf(order, words("customerGone"))}
+                  />
+                  {order.customerPhone && (
+                    <Fact
+                      label={t("orders.detail.phone")}
+                      value={shownPhone(order.customerPhone)}
+                    />
+                  )}
                 </dl>
               </CardContent>
             </Card>

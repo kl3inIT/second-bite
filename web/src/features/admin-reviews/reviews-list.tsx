@@ -34,6 +34,7 @@ import {
   serializeReviewSearchParams,
   type ReviewCard,
 } from "./search-params";
+import { customerOf } from "@/features/orders/order";
 
 const any = "all";
 
@@ -288,6 +289,7 @@ export function ReviewsList({
 
 function useColumns(): DataTableColumns<AdminReviewBody> {
   const t = useTranslations("Admin.reviews");
+  const gone = useTranslations("Orders")("customerGone");
   const format = useFormatter();
 
   return [
@@ -311,7 +313,7 @@ function useColumns(): DataTableColumns<AdminReviewBody> {
       id: "customer",
       header: t("column.customer"),
       meta: { width: "w-28" },
-      cell: ({ row }) => row.original.customerName,
+      cell: ({ row }) => customerOf(row.original, gone),
     },
     {
       id: "comment",

@@ -155,7 +155,7 @@ components:
           format: date-time
           type: string
         customerName:
-          description: Who collected, as given with the order
+          description: Who collected, as given with the order; empty once the customer deleted their account
           type: string
         hiddenAt:
           description: When an admin hid it; absent while it shows
@@ -1605,10 +1605,10 @@ components:
           format: date-time
           type: string
         customerName:
-          description: Who collects, as given with the order
+          description: Who collects, as given with the order; empty once the customer deleted their account
           type: string
         customerPhone:
-          description: Their phone number, 0 and nine digits
+          description: Their phone number, 0 and nine digits; empty once the customer deleted their account
           type: string
         id:
           type: string
@@ -2423,7 +2423,7 @@ components:
           format: date-time
           type: string
         customerName:
-          description: Who collected, as given with the order
+          description: Who collected, as given with the order; empty once the customer deleted their account
           type: string
         dishes:
           description: The names of the order's dishes, joined by commas

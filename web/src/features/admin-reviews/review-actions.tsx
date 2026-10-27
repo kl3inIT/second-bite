@@ -37,6 +37,7 @@ import { toast } from "@/components/ui/toast";
 import { Link, useRouter } from "@/i18n/navigation";
 import { failureOf } from "@/lib/api/client";
 import { hideReview, showReview, type AdminReviewBody } from "@/lib/api/generated";
+import { customerOf } from "@/features/orders/order";
 
 /**
  * A review row's "⋯" (Figma AD-DG1, AD-DG2): open its order, and hide the review with an optional reason or
@@ -44,6 +45,7 @@ import { hideReview, showReview, type AdminReviewBody } from "@/lib/api/generate
  */
 export function ReviewActions({ review }: { review: AdminReviewBody }) {
   const t = useTranslations("Admin.reviews");
+  const gone = useTranslations("Orders")("customerGone");
   const [open, setOpen] = useState<"hide" | "show" | null>(null);
   const close = (next: boolean) => !next && setOpen(null);
   const hidden = review.hiddenAt !== undefined;
@@ -56,7 +58,7 @@ export function ReviewActions({ review }: { review: AdminReviewBody }) {
             <Button
               variant="ghost"
               size="icon"
-              aria-label={t("actions", { name: review.customerName })}
+              aria-label={t("actions", { name: customerOf(review, gone) })}
             />
           }
         >
@@ -94,6 +96,7 @@ export function ReviewActions({ review }: { review: AdminReviewBody }) {
 /** Runs hide or show, then tells how it went and reads the list again. */
 function useReviewAction(review: AdminReviewBody, action: "hide" | "show") {
   const t = useTranslations("Admin.reviews");
+  const gone = useTranslations("Orders")("customerGone");
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -103,7 +106,10 @@ function useReviewAction(review: AdminReviewBody, action: "hide" | "show") {
       const path = { orderId: review.orderId };
       if (action === "hide") await hideReview({ path, body: reason ? { reason } : {} });
       else await showReview({ path });
-      toast.add({ type: "success", title: t(`${action}.done`, { name: review.customerName }) });
+      toast.add({
+        type: "success",
+        title: t(`${action}.done`, { name: customerOf(review, gone) }),
+      });
     } catch (error) {
       const { detail, reference } = failureOf(error);
       toast.add({
@@ -132,6 +138,7 @@ function HideDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("Admin.reviews");
+  const gone = useTranslations("Orders")("customerGone");
   const id = useId();
   const [reason, setReason] = useState("");
   const { busy, run } = useReviewAction(review, "hide");
@@ -150,7 +157,7 @@ function HideDialog({
           }}
         >
           <DialogHeader>
-            <DialogTitle>{t("hide.title", { name: review.customerName })}</DialogTitle>
+            <DialogTitle>{t("hide.title", { name: customerOf(review, gone) })}</DialogTitle>
           </DialogHeader>
           <Field>
             <FieldLabel htmlFor={id}>{t("hide.reason")}</FieldLabel>
@@ -195,13 +202,14 @@ function ShowDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("Admin.reviews");
+  const gone = useTranslations("Orders")("customerGone");
   const { busy, run } = useReviewAction(review, "show");
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t("show.title", { name: review.customerName })}</AlertDialogTitle>
+          <AlertDialogTitle>{t("show.title", { name: customerOf(review, gone) })}</AlertDialogTitle>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>

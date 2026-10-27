@@ -384,6 +384,22 @@ func (q *Queries) ExpireEnded(ctx context.Context) (int64, error) {
 	return expired, err
 }
 
+const forgetContactsOfCustomer = `-- name: ForgetContactsOfCustomer :execrows
+UPDATE order_orders
+SET customer_name = '', customer_phone = '', zalo_consent_at = NULL, contact_forgotten_at = now()
+WHERE customer_id = $1 AND contact_forgotten_at IS NULL
+`
+
+// Takes a deleted account's name and phone number, and its consent to Zalo, off its orders. The orders it already
+// left alone are not counted, so running it again changes nothing.
+func (q *Queries) ForgetContactsOfCustomer(ctx context.Context, customerID uuid.NullUUID) (int64, error) {
+	result, err := q.db.Exec(ctx, forgetContactsOfCustomer, customerID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getOrder = `-- name: GetOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
@@ -1159,7 +1175,7 @@ func (q *Queries) OpenOrdersOfOffer(ctx context.Context, offerID uuid.UUID) ([]u
 
 const orderDays = `-- name: OrderDays :many
 WITH placed AS (
-    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
+    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, o.contact_forgotten_at, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
     FROM order_orders o
     WHERE o.window_start >= $1 AND o.window_start < $2
       AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)

@@ -211,6 +211,28 @@ test.describe("the order tab of a store", () => {
     await expect(row(page, "Lê Thu Hà · 0905111222")).toBeVisible();
   });
 
+  // Figma Q5p (SEC-165): an order whose customer deleted their account says so, with no phone to copy or show.
+  test("shows a customer who deleted their account without a name or phone", async ({
+    page,
+  }, testInfo) => {
+    const store = await storeNamed(page, "xoa", testInfo, "Tiệm có khách đã xoá");
+    await page.goto(`/vi/stores/${store}/orders?tab=delivered`);
+
+    const gone = row(page, "Khách đã xoá tài khoản");
+    await expect(gone).toContainText("Cơm sườn nướng");
+    await expect(gone.getByRole("button", { name: /Sao chép số điện thoại/ })).toHaveCount(0);
+    await expect(gone).not.toContainText(" · ");
+    await expectNoSeriousA11yViolations(page);
+
+    await (await hydrated(gone.getByRole("link"))).first().click();
+    await expect(page).toHaveURL(new RegExp(`/vi/stores/${store}/orders/or-7-`));
+    await expect(
+      page.getByRole("region", { name: "Khách", exact: true }).getByText("Khách đã xoá tài khoản"),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /Sao chép số điện thoại/ })).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+  });
+
   test("opens an order's own page, with its steps and the next one", async ({ page }, testInfo) => {
     const store = await storeNamed(page, "hong", testInfo, "Tiệm có đơn");
     await page.goto(`/vi/stores/${store}/orders`);

@@ -87,3 +87,11 @@ export function dayOf(at: string, now: number, timeZone: string): Day {
   if (daysAgo <= 0) return "today";
   return daysAgo < 7 ? "week" : "before";
 }
+
+/**
+ * Who an order shows as its customer: the name given with it, or gone, the words for a customer who deleted their
+ * account, since the server then takes their name and phone number off their orders (SEC-165).
+ */
+export function customerOf(order: Pick<Order, "customerName">, gone: string): string {
+  return order.customerName || gone;
+}

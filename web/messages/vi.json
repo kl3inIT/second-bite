@@ -206,7 +206,7 @@
           "Phiên đăng nhập: hết hạn sau 30 ngày không dùng; xóa khi bạn đăng xuất.",
           "Ảnh tải lên nhưng không dùng cho món hay quán nào: xóa sau một ngày.",
           "Tài khoản, quán, món đã đăng và đơn hàng: giữ cho tới khi bạn xóa tài khoản hoặc yêu cầu xóa, trừ phần pháp luật buộc phải giữ lâu hơn.",
-          "Khi bạn xóa tài khoản: tài khoản, phiên đăng nhập, liên kết Google, mã đăng nhập và bản ghi các email gửi cho bạn bị xóa ngay; tư cách thành viên ở các quán và ảnh chưa dùng bị xóa trong vài phút sau đó. Món đã đăng, ảnh món và ảnh quán thuộc về quán nên được giữ, không còn gắn với bạn; quán bạn là chủ sẽ bị đóng."
+          "Khi bạn xóa tài khoản: tài khoản, phiên đăng nhập, liên kết Google, mã đăng nhập và bản ghi các email gửi cho bạn bị xóa ngay; tư cách thành viên ở các quán và ảnh chưa dùng bị xóa trong vài phút sau đó. Món đã đăng, ảnh món và ảnh quán thuộc về quán nên được giữ, không còn gắn với bạn; quán bạn là chủ sẽ bị đóng. Đơn hàng của bạn: tên, số điện thoại và đồng ý nhận tin qua Zalo bị xóa khỏi đơn, cùng cuộc trò chuyện với quán; quán giữ lại số đơn, món, số tiền và trạng thái để đối soát, không còn gắn với bạn."
         ]
       },
       {
@@ -548,7 +548,8 @@
     "seeQr": "Xem mã QR nhận món",
     "subtitle": "Đang chờ nhận và đã xong",
     "savedLine": "Tiết kiệm so với giá gốc · {units} phần không bị bỏ phí",
-    "placedWith": "Cùng lần đặt: {seller}"
+    "placedWith": "Cùng lần đặt: {seller}",
+    "customerGone": "Khách đã xoá tài khoản"
   },
   "Splash": {
     "tagline": "Món ngon còn lại cuối ngày, giá tốt hơn",
@@ -688,7 +689,7 @@
     "keptTitle": "Được giữ lại, không còn gắn với bạn",
     "kept": [
       "Món đã đăng, ảnh món và ảnh quán: chúng thuộc về quán.",
-      "Đơn hàng và thanh toán mà pháp luật buộc phải giữ, khi tính năng đặt món mở; thời hạn giữ đang cập nhật."
+      "Đơn hàng: số đơn, món, số tiền và trạng thái, để quán đối soát; tên, số điện thoại và đồng ý nhận tin qua Zalo trên đơn bị xoá, cùng cuộc trò chuyện với quán."
     ],
     "ownerTitle": "Bạn đang là chủ quán",
     "ownerBody": "Xoá tài khoản sẽ đóng {sellers}: quán ngừng hiển thị với khách và nhân viên không quản lý được nữa, cho tới khi Second Bite xử lý.",
@@ -1994,6 +1995,7 @@
     "details": "Chi tiết đơn",
     "who": "{name} · {units} phần",
     "placedAt": "{phone} · đặt lúc {time}",
+    "placedAtTime": "Đặt lúc {time}",
     "state": {
       "confirmed": "Đang chuẩn bị",
       "ready": "Sẵn sàng",
