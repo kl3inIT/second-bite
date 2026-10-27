@@ -1,4 +1,4 @@
-import { SearchIcon } from "lucide-react";
+import { MapPinIcon, SearchIcon } from "lucide-react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 
 import { StoreMap } from "@/components/map/store-map";
@@ -24,6 +24,7 @@ import { OfferPhoto } from "./offer-photo";
 import { sellerRating } from "./proposed";
 import { SellerDish } from "./seller-dish";
 import { SellerLogo } from "./seller-logo";
+import { SellerMenu } from "./seller-menu";
 import { ShareButton } from "./share-button";
 import { useDistance } from "./window";
 
@@ -118,18 +119,18 @@ export function SellerPage({
           </div>
           <div className="relative -mt-6 rounded-t-3xl bg-card px-4 pt-4 pb-6 md:mt-0 md:rounded-none md:bg-transparent md:p-0 lg:flex lg:items-start lg:gap-8">
             <div className="flex min-w-0 flex-1 flex-col gap-3.5 md:gap-5">
-              <SellerHeading lead={first} />
+              <SellerHeading lead={first} offers={available} />
               <SellerFacts lead={first} offers={available} />
-              <SellerFactsCard lead={first} offers={available} />
               {/* Figma WK3 has no search in the menu; a phone keeps it (K4b). */}
               <div className="md:hidden">
                 <SellerSearch lead={first} kind={kind} near={near} q={q} />
               </div>
-              <div className="flex flex-col gap-3.5 md:flex-row md:gap-6">
+              {/* A phone's menu (Figma K4b): tabs by kind over tonight's rows. */}
+              <div className="flex flex-col gap-3.5 md:hidden">
                 {tabs.length > 1 && (
                   <nav
                     aria-label={t("kinds")}
-                    className="-mx-4 scrollbar-none overflow-x-auto px-4 md:hidden"
+                    className="-mx-4 scrollbar-none overflow-x-auto px-4"
                   >
                     <ul className="flex min-w-max gap-6 border-b border-border">
                       {kindLinks.map(({ each, href, label }) => (
@@ -151,27 +152,11 @@ export function SellerPage({
                     </ul>
                   </nav>
                 )}
-                {/* The menu's index (Figma WK3), a line for each section; the catalog has no dish groups yet
-                    (SEC-49 decision 7), so the one section is tonight's dishes. */}
-                <nav
-                  aria-label={t("kinds")}
-                  className="hidden w-37.5 shrink-0 flex-col gap-4 pt-1 md:sticky md:top-4 md:flex md:self-start"
+                <section
+                  aria-labelledby="phone-dishes"
+                  className="flex min-w-0 flex-1 flex-col gap-3"
                 >
-                  <p className="text-label-strong text-muted-foreground uppercase">{t("index")}</p>
-                  <ul className="flex flex-col gap-1">
-                    <li>
-                      <a
-                        href="#dishes"
-                        aria-current="location"
-                        className="flex min-h-11 items-center border-l-2 border-primary pl-3 text-body-sm-strong text-primary focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-                      >
-                        {t("tonight")}
-                      </a>
-                    </li>
-                  </ul>
-                </nav>
-                <section aria-labelledby="dishes" className="flex min-w-0 flex-1 flex-col gap-3">
-                  <h2 id="dishes" className="text-title-lg text-foreground">
+                  <h2 id="phone-dishes" className="text-title-lg text-foreground">
                     {kind ? kinds(kind) : t("tonight")}
                   </h2>
                   {shown.length > 0 ? (
@@ -189,6 +174,7 @@ export function SellerPage({
                   )}
                 </section>
               </div>
+              <SellerMenu offers={shown} focused={at} />
               {/* Where the counter is, under the dishes, as Too Good To Go's store page keeps its address last. */}
               <SellerMap lead={first} />
             </div>
@@ -202,18 +188,23 @@ export function SellerPage({
 }
 
 // The seller's logo beside their name, over their rating, when there is one, and their floor (Figma K4b "quán").
-function SellerHeading({ lead }: { lead: OfferSummary }) {
+// From 768px (Figma "01 · Trang quán & giỏ nhiều quán · đầy đủ") the line under the name is the floor and tonight's
+// window, with the way there as a pin, and "Theo dõi" at the right.
+function SellerHeading({ lead, offers }: { lead: OfferSummary; offers: readonly OfferSummary[] }) {
+  const t = useTranslations("Seller");
   const format = useFormatter();
   const rating = sellerRating(lead);
+  const opens = Math.min(...offers.map(({ windowStart }) => Date.parse(windowStart)));
+  const closes = Math.max(...offers.map(({ windowEnd }) => Date.parse(windowEnd)));
 
   return (
     <div className="flex items-center gap-3">
       <SellerLogo seller={lead.seller} size="lg" />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <h1 className="text-headline break-words text-foreground">{lead.seller.name}</h1>
-        <p className="flex items-center gap-1 text-body-sm text-muted-foreground">
+        <p className="flex items-center gap-1 text-body-sm text-muted-foreground md:hidden">
           {rating !== undefined && (
-            <span className="flex items-center gap-1 md:hidden">
+            <span className="flex items-center gap-1">
               <span aria-hidden className="text-rating">
                 ★
               </span>
@@ -225,6 +216,28 @@ function SellerHeading({ lead }: { lead: OfferSummary }) {
           )}
           {lead.seller.address}
         </p>
+        <div className="hidden min-w-0 items-center gap-1 md:flex">
+          <p className="min-w-0 truncate text-note text-muted-foreground">
+            {lead.seller.address} ·{" "}
+            {t("window", {
+              from: format.dateTime(opens, "time"),
+              until: format.dateTime(closes, "time"),
+            })}
+          </p>
+          <a
+            href={directionsHref(lead.collectionPoint)}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={t("mapOpen")}
+            className={buttonVariants({
+              variant: "ghost",
+              size: "icon",
+              className: "-my-2.5 text-primary hover:text-primary",
+            })}
+          >
+            <MapPinIcon aria-hidden className="size-5" />
+          </a>
+        </div>
       </div>
       <FollowButton
         sellerId={lead.sellerId}
@@ -268,67 +281,6 @@ function SellerFacts({ lead, offers }: { lead: OfferSummary; offers: readonly Of
         {t("directions")}
       </a>
     </div>
-  );
-}
-
-// The seller's rating, tonight's window and the counter's distance in equal cells on a card with a hairline, from
-// 768px (Figma WK3 "thông số quán"), each a value over its line; the third cell's line is the way there. A seller
-// with no rating has no first cell, and with no distance known the third cell is the way there alone.
-function SellerFactsCard({
-  lead,
-  offers,
-}: {
-  lead: OfferSummary;
-  offers: readonly OfferSummary[];
-}) {
-  const t = useTranslations("Seller");
-  const format = useFormatter();
-  const distance = useDistance(lead);
-  const rating = sellerRating(lead);
-  const opens = Math.min(...offers.map(({ windowStart }) => Date.parse(windowStart)));
-  const closes = Math.max(...offers.map(({ windowEnd }) => Date.parse(windowEnd)));
-  const directions = (
-    <a
-      href={directionsHref(lead.collectionPoint)}
-      target="_blank"
-      rel="noreferrer"
-      className="rounded-sm text-label text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-    >
-      {t("directions")}
-    </a>
-  );
-
-  return (
-    <dl className="hidden auto-cols-fr grid-flow-col rounded-lg border border-border bg-card px-3 py-2 md:grid">
-      {rating !== undefined && (
-        <div className="flex flex-col items-center gap-0.5 py-1">
-          <dd className="order-1 text-title text-foreground">
-            <span aria-hidden className="text-rating">
-              ★
-            </span>{" "}
-            {format.number(rating, ONE_DECIMAL)}
-          </dd>
-          <dt className="order-2 text-label text-muted-foreground">{t("rating")}</dt>
-        </div>
-      )}
-      <div className="flex flex-col items-center gap-0.5 py-1">
-        <dd className="order-1 text-title text-foreground">
-          {format.dateTime(opens, "time")}–{format.dateTime(closes, "time")}
-        </dd>
-        <dt className="order-2 text-label text-muted-foreground">{t("pickup")}</dt>
-      </div>
-      <div className="flex flex-col items-center gap-0.5 py-1">
-        {distance ? (
-          <>
-            <dd className="order-1 text-title text-foreground">{distance}</dd>
-            <dt className="sr-only">{t("distance")}</dt>
-            <dd className="order-2">{directions}</dd>
-          </>
-        ) : (
-          <dd className="py-2.5">{directions}</dd>
-        )}
-      </div>
-    </dl>
   );
 }
 

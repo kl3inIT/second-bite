@@ -579,12 +579,9 @@
     "copied": "Đã chép đường dẫn",
     "breadcrumb": "Đường dẫn",
     "crumbHome": "Trang chủ",
-    "index": "Thực đơn tối nay",
-    "rating": "Đánh giá",
-    "pickup": "Giờ nhận hôm nay",
-    "distance": "Khoảng cách",
     "mapLabel": "Vị trí {seller} trên bản đồ",
-    "mapOpen": "Mở đường đến quán"
+    "mapOpen": "Mở đường đến quán",
+    "deepDiscount": "Giảm sâu"
   },
   "Cart": {
     "title": "Xác nhận đơn",
@@ -640,7 +637,12 @@
     "sidebarEmpty": "Chọn món để thêm vào giỏ.",
     "orderFor": "{orders, plural, =1 {Đặt món} other {Đặt # đơn}} · {price}",
     "orderWithout": "{orders, plural, =1 {Đặt món} other {Đặt # đơn}}, bỏ món hết · {price}",
-    "goneBodySeller": "Người khác vừa đặt phần cuối của {seller}. Bạn chưa bị tính tiền."
+    "goneBodySeller": "Người khác vừa đặt phần cuối của {seller}. Bạn chưa bị tính tiền.",
+    "pickupWindow": "Nhận {from} – {until}",
+    "sellerTotal": "Tổng {seller}",
+    "sellerMap": "Vị trí {seller}",
+    "stockLeft": "Chỉ còn {units}",
+    "stockChosen": "Đã chọn đủ {units}"
   },
   "AccountSettings": {
     "title": "Cài đặt tài khoản",

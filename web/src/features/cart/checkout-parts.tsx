@@ -113,7 +113,7 @@ function LineRow({ cart, line }: { cart: Cart; line: CartLine }) {
   );
 }
 
-function useWindow(basket: Basket): { from: string; until: string } {
+export function useWindow(basket: Basket): { from: string; until: string } {
   const format = useFormatter();
   const { windowStart, windowEnd } = collectionWindow(basket);
   return {
