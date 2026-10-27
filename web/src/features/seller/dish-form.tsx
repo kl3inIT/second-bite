@@ -194,21 +194,16 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
           )}
         </form.AppField>
 
-        <div className="flex items-start gap-3">
-          <div className="min-w-0 flex-1">
-            <form.AppField name="name">
-              {(field) => (
-                <field.TextField
-                  label={t("name")}
-                  required
-                  maxLength={80}
-                  placeholder={t("namePlaceholder")}
-                />
-              )}
-            </form.AppField>
-          </div>
-          <form.AppField name="unit">{() => <UnitField />}</form.AppField>
-        </div>
+        <form.AppField name="name">
+          {(field) => (
+            <field.TextField
+              label={t("name")}
+              required
+              maxLength={80}
+              placeholder={t("namePlaceholder")}
+            />
+          )}
+        </form.AppField>
 
         <form.AppField name="kind">
           {(field) => (
@@ -245,8 +240,11 @@ function DishFormBody({ sellerId, dish }: { sellerId: string; dish?: DishBody })
           }
         </form.Subscribe>
 
-        <div className="grid grid-cols-5 gap-3">
-          <form.AppField name="original">{() => <OriginalPriceField />}</form.AppField>
+        <div className="flex items-end gap-3">
+          <div className="min-w-0 flex-1">
+            <form.AppField name="original">{() => <OriginalPriceField />}</form.AppField>
+          </div>
+          <form.AppField name="unit">{() => <UnitField />}</form.AppField>
         </div>
 
         <form.Subscribe selector={(state) => state.values.kind === "mixed_box"}>
@@ -321,7 +319,7 @@ function OriginalPriceField() {
   const t = useTranslations("DishForm");
   const { field, invalid, errors, ids } = useFieldValidity<string>();
   return (
-    <Field className="col-span-3" data-invalid={invalid || undefined}>
+    <Field data-invalid={invalid || undefined}>
       <FieldLabel htmlFor={ids.control}>{t("original")}</FieldLabel>
       <NumberInput
         id={ids.control}
