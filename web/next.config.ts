@@ -22,8 +22,9 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          // Location stays allowed for this site alone: finding offers near a point is designed (SEC-11).
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
+          // The camera and location stay allowed for this site alone: the store's scanner reads an order's QR
+          // (SEC-157), and finding offers near a point is designed (SEC-11).
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(self)" },
         ],
       },
       // The service worker (SEC-25), as the Next.js guide to PWAs serves it: never cached, so a change reaches every
