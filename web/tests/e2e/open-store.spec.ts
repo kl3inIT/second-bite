@@ -283,7 +283,10 @@ test.describe("opening a store on the web", () => {
     await page.getByRole("button", { name: "Tạo quán" }).click();
     await expect(page).toHaveURL(/\/vi\/stores\/se-1-/);
 
-    await expect(page.getByText("Túi bánh mì và croissant, 4 chiếc")).toBeVisible();
+    // The home draws its posts once for a phone and once for a computer; the one on screen is read.
+    await expect(
+      page.getByText("Túi bánh mì và croissant, 4 chiếc").filter({ visible: true }),
+    ).toBeVisible();
     await page.getByRole("link", { name: "Bài đăng" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Bài đăng" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Đang bán · 1" })).toHaveAttribute(

@@ -28,6 +28,7 @@ import {
 import { vietnamToday } from "./store-day";
 import { offersOfDay } from "./store-offers";
 import { groupOrders, orderTabs, type OrderTab } from "./store-orders";
+import { BoxSection, DishBox, PostBox } from "./store-home-boxes";
 import { StorePanel } from "./store-panel";
 import { StatusTabs } from "./status-tabs";
 import { StoreReviewsCard } from "./store-reviews-card";
@@ -142,37 +143,43 @@ export async function StoreHome({
         </ul>
       </section>
 
+      {/* A phone leaves it out: the orders card under it opens on the same orders (Figma Q1b-1). */}
       {isToday && groups.preparing.length > 0 && (
-        <StorePanel labelledBy="store-todo">
-          <h2 id="store-todo" className="text-card-title">
-            {t("todo")}
-          </h2>
-          <div className="flex items-center gap-3 border-t border-border pt-4 max-md:flex-wrap md:gap-4">
-            <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
-              <Image
-                src={photoUrl(groups.preparing[0].lines[0].photo.smallPath)}
-                alt=""
-                fill
-                sizes="56px"
-                unoptimized
-                className="object-cover"
-              />
-            </span>
-            <div className="flex min-w-0 flex-1 flex-col">
-              <h3 className="text-title-lg">
-                {t("toMarkReady", { count: groups.preparing.length })}
-              </h3>
-              <p className="text-body-sm text-muted-foreground">
-                {groups.preparing
-                  .map((order) => order.lines.map((line) => line.name).join(", "))
-                  .join(" · ")}
-              </p>
+        <div className="max-md:hidden">
+          <StorePanel labelledBy="store-todo">
+            <h2 id="store-todo" className="text-card-title">
+              {t("todo")}
+            </h2>
+            <div className="flex items-center gap-3 border-t border-border pt-4 max-md:flex-wrap md:gap-4">
+              <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
+                <Image
+                  src={photoUrl(groups.preparing[0].lines[0].photo.smallPath)}
+                  alt=""
+                  fill
+                  sizes="56px"
+                  unoptimized
+                  className="object-cover"
+                />
+              </span>
+              <div className="flex min-w-0 flex-1 flex-col">
+                <h3 className="text-title-lg">
+                  {t("toMarkReady", { count: groups.preparing.length })}
+                </h3>
+                <p className="text-body-sm text-muted-foreground">
+                  {groups.preparing
+                    .map((order) => order.lines.map((line) => line.name).join(", "))
+                    .join(" · ")}
+                </p>
+              </div>
+              <Link
+                href={ordersHref("preparing")}
+                className={cn(buttonVariants(), "max-md:w-full")}
+              >
+                {t("seeOrders")}
+              </Link>
             </div>
-            <Link href={ordersHref("preparing")} className={cn(buttonVariants(), "max-md:w-full")}>
-              {t("seeOrders")}
-            </Link>
-          </div>
-        </StorePanel>
+          </StorePanel>
+        </div>
       )}
 
       <StorePanel labelledBy="store-orders">
@@ -183,6 +190,7 @@ export async function StoreHome({
           label={t("orderTabs")}
           selected={tab}
           scroll={false}
+          nameOnly
           tabs={orderTabs.map((name) => ({
             name,
             href: filterHref(name),
@@ -203,7 +211,28 @@ export async function StoreHome({
         )}
       </StorePanel>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="flex flex-col gap-4 md:hidden">
+        <BoxSection
+          id="store-posts-phone"
+          title={isToday ? t("postsToday") : t("postsOn", { date })}
+          empty={posts.length === 0 ? t("postsEmpty") : undefined}
+        >
+          {posts.slice(0, SHOWN).map((offer) => (
+            <PostBox key={offer.id} offer={offer} />
+          ))}
+        </BoxSection>
+        <BoxSection
+          id="store-catalog-phone"
+          title={t("catalog", { count: dishes.length })}
+          empty={dishes.length === 0 ? t("catalogEmpty") : undefined}
+        >
+          {dishes.slice(0, SHOWN).map((dish) => (
+            <DishBox key={dish.id} dish={dish} sellerId={sellerId} />
+          ))}
+        </BoxSection>
+      </div>
+
+      <div className="grid gap-4 max-md:hidden md:grid-cols-2">
         <StorePanel labelledBy="store-posts">
           <h2 id="store-posts" className="text-card-title">
             {isToday ? t("postsToday") : t("postsOn", { date })}
