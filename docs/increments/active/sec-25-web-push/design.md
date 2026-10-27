@@ -4,7 +4,7 @@ Status: decided on 22 October 2026, not built ([plan](plan.md)). Tracked in Line
 
 ## Why
 
-- The order page and the seller's Đơn tab follow an order live ([SEC-117](../sec-117-order-chat-live/design.md)), but only while they are open.
+- The order page and the seller's Đơn tab follow an order live ([SEC-117](../../completed/sec-117-order-chat-live/design.md)), but only while they are open.
 - A customer who closed the page does not learn that their dish is ready, that the store cancelled, or that the collection hours moved. SEC-91, SEC-96 and SEC-108 each left "the customer is not told" for want of a channel.
 - A seller learns of a new order only while the Đơn tab is open.
 

@@ -1,6 +1,6 @@
 # SEC-134 — Every store's posts for admins: design
 
-Status: started on 22 October 2026. Tracked in Linear as SEC-134, under SEC-62. The screens are Figma AD-BD1 to AD-BD4 (section "Quản trị · Web 1440"), redrawn on 21 October 2026 with the project's components as the stores' screens are ([SEC-62 design](../sec-62-admin-stores/design.md)). The backend is the `offer` module ([spec](../../../specs/offer.md)).
+Status: started on 22 October 2026. Tracked in Linear as SEC-134, under SEC-62. The screens are Figma AD-BD1 to AD-BD4 (section "Quản trị · Web 1440"), redrawn on 21 October 2026 with the project's components as the stores' screens are ([SEC-62 design](../../active/sec-62-admin-stores/design.md)). The backend is the `offer` module ([spec](../../../specs/offer.md)).
 
 ## What an admin can do
 
@@ -15,7 +15,7 @@ Status: started on 22 October 2026. Tracked in Linear as SEC-134, under SEC-62. 
 - **Words are found as customers search**: the offer's own `search_vector` (dish, seller's name, description) with `searchQuery`, so the module keeps one way of reading Vietnamese.
 - **The item nests the offer.** `AdminOfferBody` is `{offer, sellerName}`: huma leaves an unexported embedded body out of the document (SEC-62 met the same), and nesting lets the web hand `offer` to the same panel as a store's page.
 - **An index on `created_at`.** The list runs across sellers, newest first, and by the day posted; the seller's index serves one seller only.
-- **Only what the backend allows** (as [SEC-57](../sec-57-seller-web/design.md) and SEC-62 did):
+- **Only what the backend allows** (as [SEC-57](../../active/sec-57-seller-web/design.md) and SEC-62 did):
 
   | In Figma | Why it is not on the web |
   | --- | --- |

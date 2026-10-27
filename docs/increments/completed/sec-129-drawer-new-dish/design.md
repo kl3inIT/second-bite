@@ -1,6 +1,6 @@
 # SEC-129 — The posting drawer's sources and "Món mới": design
 
-Status: started on 21 October 2026. Tracked in Linear as SEC-129. Asked by the founder on seeing the drawer on a phone ([SEC-57](../sec-57-seller-web/design.md), [SEC-55](../../completed/sec-55-seller-catalog/design.md)).
+Status: started on 21 October 2026. Tracked in Linear as SEC-129. Asked by the founder on seeing the drawer on a phone ([SEC-57](../../active/sec-57-seller-web/design.md), [SEC-55](../../completed/sec-55-seller-catalog/design.md)).
 
 ## Decision
 

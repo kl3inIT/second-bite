@@ -16,7 +16,7 @@ Status: started on 22 October 2026. Tracked in Linear as SEC-135, under SEC-62, 
 - **The module folds its own words.** A generated `search_text` holds the number with and without `SB-`, the customer's name and phone and the seller's name through `order_fold`, the same body as `seller_fold`; a module does not call another's function. A query is matched with `LIKE` and its pattern characters escaped. The list runs across sellers by the window, so the window's start is indexed; the seller's index serves one seller only.
 - **The items are the order as `GET /orders/{orderId}` answers it**, with its lines, so the list and the page read one body. The list selects `GetOrder`'s columns and converts each row to it.
 - **The page reads the existing calls.** `GET /orders/{orderId}` already answers admins; the store's phone and status come from `GET /sellers/{sellerId}`. The time left is counted on the reader's clock.
-- **Only what the backend allows** (as [SEC-57](../sec-57-seller-web/design.md), SEC-62 and SEC-134 did):
+- **Only what the backend allows** (as [SEC-57](../../active/sec-57-seller-web/design.md), SEC-62 and SEC-134 did):
 
   | In Figma | Why it is not on the web |
   | --- | --- |

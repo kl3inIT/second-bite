@@ -9,4 +9,4 @@ Design: [design.md](design.md). Tracked in Linear as SEC-76.
 | 3   | The seller's logo on K5; dishes of several sellers in one cart, one order per seller                          | Done          |
 | 5   | Ordering with a name and a phone number, checked once, signed in or not (decision 7)                          | Done          |
 | 6   | The orders of one cart shown as one order, each seller with its own code (decision 8)                         | Done          |
-| 4   | O4 (someone else collects) and K6b (stars once collected), once the order API has them                        | Blocked       |
+| 4   | O4 (someone else collects) and K6b (stars once collected), once the order API has them                        | Done: who collects is step 5's name and phone; the stars came with SEC-97 |

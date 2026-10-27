@@ -17,7 +17,7 @@ The stub sends no CORS headers, so the browser preview needs it behind the same 
 
 ## Signing in with Google
 
-The app signs in with Google on Android and iOS through `google_sign_in` ([SEC-43](../docs/increments/active/sec-43-app-sign-in/design.md)). The ID token is issued to the server's web client, which the app reads from `GET /auth/methods` and gives Google as `serverClientId`; the server accepts it because that client is in `SECONDBITE_GOOGLE_CLIENT_IDS`. No client ID is written in Git: they are public values, but each environment keeps its own.
+The app signs in with Google on Android and iOS through `google_sign_in` ([SEC-43](../docs/increments/completed/sec-43-app-sign-in/design.md)). The ID token is issued to the server's web client, which the app reads from `GET /auth/methods` and gives Google as `serverClientId`; the server accepts it because that client is in `SECONDBITE_GOOGLE_CLIENT_IDS`. No client ID is written in Git: they are public values, but each environment keeps its own.
 
 In the Google Cloud project of the web client (Google Auth Platform › Clients):
 

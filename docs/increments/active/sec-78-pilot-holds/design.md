@@ -35,7 +35,7 @@ The Figma frames were researched on Mobbin (Apple Music, Klaviyo and Vercel for 
 
 ## What the backend gives
 
-The `order` module as `main` has it: a customer holds with a name and a phone number, signed in or not ([SEC-76](../sec-76-web-customer-flow/design.md)); `GET /sellers/{id}/orders?day=` lists a seller's orders of a day with the customer's name and phone; and `POST /orders/{id}/hand-over` ends an order with no code ([SEC-86](../sec-86-collect-without-code/design.md)), which is the tab's "Đã giao". SEC-78 adds to it, in its own migration and operation (spec: [order](../../../specs/order.md)):
+The `order` module as `main` has it: a customer holds with a name and a phone number, signed in or not ([SEC-76](../../completed/sec-76-web-customer-flow/design.md)); `GET /sellers/{id}/orders?day=` lists a seller's orders of a day with the customer's name and phone; and `POST /orders/{id}/hand-over` ends an order with no code ([SEC-86](../../completed/sec-86-collect-without-code/design.md)), which is the tab's "Đã giao". SEC-78 adds to it, in its own migration and operation (spec: [order](../../../specs/order.md)):
 
 - **Refusal reasons** for a seller's cancelling: `no_answer`, `no_show`, `late`, `sold_out` and `other` (with a note) join `not_suitable` and `wrong_items`. For the first three the customer did not come, so the units go back to the offer; for `sold_out` and the others they do not.
 - **Reopen**: `POST /orders/{id}/reopen` takes a hand-over or a refusal back while the window is not over; the units a refusal had returned are taken again, and `ORDER_OFFER_SOLD_OUT` answers when they are gone. A customer's own cancelling is not taken back.

@@ -2,7 +2,7 @@
 
 Status: proposed on 20 October 2026, from the screens drawn in Figma (file Secondbite, sections Mobile v3 › 10–11 and `Đơn · SEC-15`); open questions below go to the founder. Tracked in Linear as SEC-15.
 
-The rules come from the [pilot domain model](../sec-6-pilot-domain-model/design.md), the founder's [requirements](../../../brief/second-bite-app-requirements-it.md) (slides 3, 4, 8, 9, 10), the [open-source pickup models](../../../research/2026-10-16-open-source-pickup-models.md) and the customer flows read on Mobbin ([customer flows](../../../research/2026-10-19-customer-flows.md)). A rule marked *ours* has no reference and is a working assumption.
+The rules come from the [pilot domain model](../../active/sec-6-pilot-domain-model/design.md), the founder's [requirements](../../../brief/second-bite-app-requirements-it.md) (slides 3, 4, 8, 9, 10), the [open-source pickup models](../../../research/2026-10-16-open-source-pickup-models.md) and the customer flows read on Mobbin ([customer flows](../../../research/2026-10-19-customer-flows.md)). A rule marked *ours* has no reference and is a working assumption.
 
 ## What a person can do
 

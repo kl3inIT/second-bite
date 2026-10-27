@@ -76,7 +76,7 @@ Introduced with SEC-37 ([design](../increments/completed/sec-37-account-deletion
 
 ## The live socket
 
-Introduced with SEC-117 ([design](../increments/active/sec-117-order-chat-live/design.md)).
+Introduced with SEC-117 ([design](../increments/completed/sec-117-order-chat-live/design.md)).
 
 - `GET /live` is a WebSocket, a plain route and not a huma operation. It reads no cookie or `Authorization`, and accepts any `Origin`: authority comes from a live ticket alone, minted by an operation of a module (`platform.RedeemTicket` is the function the module gives the hub). Library: `github.com/coder/websocket`.
 - Frames are JSON text. Client: `{"type":"subscribe","ticket":"…"}`. Server: `{"type":"subscribed","topic":"…"}`; `{"type":"refused"}` for an unknown, used or expired ticket or a 21st topic; the notices of the modules (`{"type":"order",…}`, `{"type":"message",…}`, `{"type":"seen",…}`); and `{"type":"resync"}`, which says notices may have been lost, so the client reads its state again.

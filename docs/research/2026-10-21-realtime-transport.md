@@ -1,6 +1,6 @@
 # How to push live changes: WebSocket or server-sent events
 
-Studied on 21 October 2026, after the live socket of SEC-117 was built. Its design chose WebSocket because the owner asked for it (decision 2 of [SEC-117](../increments/active/sec-117-order-chat-live/design.md)), without weighing server-sent events. This note weighs the two against what Second Bite sends, against the open-source projects nearest to it, and against the libraries.
+Studied on 21 October 2026, after the live socket of SEC-117 was built. Its design chose WebSocket because the owner asked for it (decision 2 of [SEC-117](../increments/completed/sec-117-order-chat-live/design.md)), without weighing server-sent events. This note weighs the two against what Second Bite sends, against the open-source projects nearest to it, and against the libraries.
 
 Each repository was cloned shallowly into the git-ignored `.tmp/` and read, not run; paths are relative to each repository. **Verified** means read in its code at the path given. **Not verified** means the sparse clone does not hold the file.
 

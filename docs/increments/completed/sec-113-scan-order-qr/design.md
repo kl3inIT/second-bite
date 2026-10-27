@@ -1,6 +1,6 @@
 # SEC-113 — Scanning the customer's order QR from the Đơn tab: design
 
-Status: started on 21 October 2026; delivered the same day (PR #79). Tracked in Linear as SEC-113, a child of [SEC-57](../../active/sec-57-seller-web/design.md). It reads the QR that [SEC-86](../../active/sec-86-collect-without-code/design.md) draws on the customer's order page and opens the order's own page ([SEC-102](../../active/sec-102-seller-order-steps/design.md)).
+Status: started on 21 October 2026; delivered the same day (PR #79). Tracked in Linear as SEC-113, a child of [SEC-57](../../active/sec-57-seller-web/design.md). It reads the QR that [SEC-86](../../completed/sec-86-collect-without-code/design.md) draws on the customer's order page and opens the order's own page ([SEC-102](../../completed/sec-102-seller-order-steps/design.md)).
 
 ## Why
 

@@ -1,6 +1,6 @@
 # SEC-124 — The store's home as a day's dashboard: design
 
-Status: started on 21 October 2026, tracked in Linear as SEC-124, a child of [SEC-57](../sec-57-seller-web/design.md). The screens are drawn in Figma: `Q1b-1` and `Q1b-2 · Web 1440 · Quán · Trang chủ · Dashboard` in `Chủ quán · Web 1440`, and `Q1b-1` to `Q1b-3 · Mobile 390` in `Chủ quán · Mobile 390` (page `Mobile · Khách`). They replace the earlier Q1b, the morning "Hôm nay có dư không?" card, which stays on the post tab (Q2d) with [SEC-54](../sec-57-seller-web/design.md#what-waits). Q1, the home of a store with no post yet, is unchanged.
+Status: started on 21 October 2026, tracked in Linear as SEC-124, a child of [SEC-57](../../active/sec-57-seller-web/design.md). The screens are drawn in Figma: `Q1b-1` and `Q1b-2 · Web 1440 · Quán · Trang chủ · Dashboard` in `Chủ quán · Web 1440`, and `Q1b-1` to `Q1b-3 · Mobile 390` in `Chủ quán · Mobile 390` (page `Mobile · Khách`). They replace the earlier Q1b, the morning "Hôm nay có dư không?" card, which stays on the post tab (Q2d) with [SEC-54](../../active/sec-57-seller-web/design.md#what-waits). Q1, the home of a store with no post yet, is unchanged.
 
 ## Decision
 

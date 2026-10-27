@@ -1,6 +1,6 @@
 # SEC-57 — The seller's web screens: design
 
-Status: started on 20 October 2026. Tracked in Linear as SEC-57; the screens are drawn in [SEC-53](../sec-53-seller-web-design/design.md) (Figma `Chủ quán · Web 1440`); the backend is the `seller` and `offer` modules ([seller](../../../specs/seller.md), [offer](../../../specs/offer.md)).
+Status: started on 20 October 2026. Tracked in Linear as SEC-57; the screens are drawn in [SEC-53](../../completed/sec-53-seller-web-design/design.md) (Figma `Chủ quán · Web 1440`); the backend is the `seller` and `offer` modules ([seller](../../../specs/seller.md), [offer](../../../specs/offer.md)).
 
 ## Decision
 
