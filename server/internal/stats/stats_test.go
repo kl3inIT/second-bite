@@ -61,20 +61,6 @@ func TestVisitorKey(t *testing.T) {
 	}
 }
 
-func TestClientAddress(t *testing.T) {
-	t.Parallel()
-
-	for _, tc := range []struct{ forwarded, remote, want string }{
-		{"113.161.10.20, 172.18.0.5", "172.18.0.6:41234", address},
-		{"", "172.18.0.6:41234", "172.18.0.6"},
-		{" ", "[::1]:8080", "::1"},
-	} {
-		if got := clientAddress(tc.forwarded, tc.remote); got != tc.want {
-			t.Errorf("clientAddress(%q, %q) = %q, want %q", tc.forwarded, tc.remote, got, tc.want)
-		}
-	}
-}
-
 func TestDayOf(t *testing.T) {
 	t.Parallel()
 

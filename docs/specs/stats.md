@@ -15,7 +15,7 @@ Published to other modules: nothing. It asks `offer.PostDays` and `SellersOf`, `
 
 ## Rules
 
-- A view is dropped, not refused, when its User-Agent is a bot's or missing, when it comes from a data centre's addresses, or when the browser only fetched the page ahead (`Purpose`, `Sec-Purpose`), as `zgo.at/isbot` reads them.
+- A view is dropped, not refused, when its User-Agent is a bot's or missing, when it comes from a data centre's addresses, or when the browser only fetched the page ahead (`Purpose`, `Sec-Purpose`), as `zgo.at/isbot` reads them; and past 600 views from one address in ten minutes (SEC-160).
 - The page is read from the path, with or without the locale: `/` is the home, `/sellers/{id}` a store and `/offers/{id}` a dish, with the id kept; anything else is `other`. A query string is ignored.
 - The source is `utm_source` as the web read it, lowercased: 1 to 40 of `a-z`, `0-9`, `_` and `-`, else none.
 - The day is the calendar day in Vietnam (UTC+7) when the view arrives.

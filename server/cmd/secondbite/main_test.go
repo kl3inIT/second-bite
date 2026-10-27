@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"maps"
 	"net"
@@ -13,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -74,6 +76,7 @@ func TestService(t *testing.T) {
 		"a page view is counted without a session":                   checkViewCounted,
 		"the report counts a store's views, posts and orders":        checkReport,
 		"an offset, a page or an order key out of bounds is a 400":   checkBounds,
+		"one address asking too often is refused with a wait":        checkLimitsPerAddress,
 	}
 
 	// The checks run in parallel with one another; this group returns when
@@ -421,6 +424,16 @@ func (r response) decode(t *testing.T, status int, out any) {
 }
 
 // send sends a request with an optional JSON body.
+// addresses numbers the callers send gives an address of their own.
+var addresses atomic.Uint32
+
+// nextAddress is a documentation address (198.51.0.0/16) no other request has.
+func nextAddress() string {
+	n := addresses.Add(1)
+
+	return fmt.Sprintf("198.51.%d.%d", n/250%250, n%250+1)
+}
+
 func send(t *testing.T, method, url string, header http.Header, body any) response {
 	t.Helper()
 
@@ -441,6 +454,13 @@ func send(t *testing.T, method, url string, header http.Header, body any) respon
 	}
 
 	maps.Copy(req.Header, header)
+
+	// Each request comes from an address of its own, as the people of the
+	// pilot do, unless a check names one: the limits per address (SEC-160)
+	// would otherwise count the whole suite as one caller.
+	if req.Header.Get("X-Forwarded-For") == "" {
+		req.Header.Set("X-Forwarded-For", nextAddress())
+	}
 
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")

@@ -14,6 +14,7 @@ Requirements of [docs/specs/identity.md](../specs/identity.md) and the checks th
 | A wrong code spends a guess; the fifth ends the code | `TestService` › a wrong code spends a guess and the fifth ends the code |
 | A second code within a minute is refused with the wait | `TestService` › a second code within a minute is refused with a wait |
 | The daily purge deletes every account's sessions past their end and keeps the live ones; run again it changes nothing (SEC-167) | `TestPurgeExpiredSessions` (`internal/identity/sessions_purge_test.go`) |
+| One address asking for a 31st code in ten minutes, for any email address, is refused with 429 and `Retry-After`; another address is not (SEC-160) | `TestService` › one address asking too often is refused with a wait |
 | A code works once | `TestService` › a code works once |
 | A new code ends the earlier one | `TestService` › a new code ends the earlier one (seen to fail with the rule taken out) |
 | An unknown or malformed token is refused with 401 and `WWW-Authenticate` | `TestService` › an unknown or malformed token is refused with 401 |

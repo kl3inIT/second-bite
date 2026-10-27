@@ -42,6 +42,7 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | The module depends only on the edges ARCHITECTURE.md allows | `TestModuleBoundaries` (`internal/boundaries_test.go`) |
 | The operations are in the contract | `TestOpenAPIDocumentIsCurrent` (`cmd/secondbite/openapi_test.go`) |
 | A seller's moved point is copied onto its order to collect, not onto one handed over; delivered twice, nothing more changes; an unknown seller is ignored | `TestOrder` › orders and offers follow their seller |
+| One address placing a 61st order in ten minutes is refused with 429 and `Retry-After` (SEC-160) | `TestService` › one address asking too often is refused with a wait |
 
 Not covered by a test: the same key arriving twice at once (held by the unique index, then read back), and two staff handing over at once (held by the row lock).
 | A new order, the customer's cancel and message push to the seller's topic; ready, a refusal with its reason and the store's message push to the order's topic; a hand-over pushes nothing | `TestOrder` › pushes tell of each change (`internal/order/push_test.go`) |

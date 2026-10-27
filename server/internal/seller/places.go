@@ -184,7 +184,17 @@ func ftoa(f float64) string { return strconv.FormatFloat(f, 'f', -1, 64) }
 // be signed in, so the public search is not an open door. A search that does not answer gives no suggestions, and
 // the person writes the address and pins it on the map.
 func (s *Service) Places(ctx context.Context, words string) ([]Place, error) {
-	if _, err := platform.RequireCaller(ctx); err != nil {
+	caller, err := platform.RequireCaller(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	key := strings.ToLower(strings.Join(strings.Fields(words), " "))
+	if found, ok := s.placeResults.get(key); ok {
+		return found, nil
+	}
+
+	if err := s.lookups.Take(caller.AccountID.String()); err != nil {
 		return nil, err
 	}
 
@@ -192,11 +202,13 @@ func (s *Service) Places(ctx context.Context, words string) ([]Place, error) {
 	if err != nil {
 		s.logger.WarnContext(ctx, "places not found",
 			slog.String("event", "seller.places.not_found"),
-			slog.String("error", err.Error()),
+			slog.String("error", lookupFailure(err)),
 		)
 
 		return []Place{}, nil
 	}
+
+	s.placeResults.put(key, found)
 
 	return found, nil
 }

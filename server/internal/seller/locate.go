@@ -26,10 +26,12 @@ const (
 type geocoder struct {
 	client  *http.Client
 	baseURL string
+	// pace keeps to Nominatim's one request a second; nil in tests.
+	pace *pacer
 }
 
 func newGeocoder() geocoder {
-	return geocoder{client: &http.Client{Timeout: nominatimTimeout}, baseURL: nominatimURL}
+	return geocoder{client: &http.Client{Timeout: nominatimTimeout}, baseURL: nominatimURL, pace: &pacer{every: nominatimEvery}}
 }
 
 // reverse is the address at a point, as a seller would write it: house number and street, then the ward, the
@@ -47,6 +49,10 @@ func (g geocoder) reverse(ctx context.Context, latitude, longitude float64) (str
 	}
 
 	req.Header.Set("User-Agent", userAgent)
+
+	if err := g.pace.wait(ctx); err != nil {
+		return "", fmt.Errorf("waiting for the geocoder's turn: %w", err)
+	}
 
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -135,7 +141,18 @@ func ward(parts map[string]string) string {
 // public geocoder is not an open door. A point it cannot name, or a geocoder that does not answer, gives an empty
 // address, and the person writes it themselves.
 func (s *Service) AddressAt(ctx context.Context, latitude, longitude float64) (string, error) {
-	if _, err := platform.RequireCaller(ctx); err != nil {
+	caller, err := platform.RequireCaller(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	// About a metre apart is the same point.
+	key := strconv.FormatFloat(latitude, 'f', 5, 64) + "," + strconv.FormatFloat(longitude, 'f', 5, 64)
+	if address, ok := s.addresses.get(key); ok {
+		return address, nil
+	}
+
+	if err := s.lookups.Take(caller.AccountID.String()); err != nil {
 		return "", err
 	}
 
@@ -143,11 +160,13 @@ func (s *Service) AddressAt(ctx context.Context, latitude, longitude float64) (s
 	if err != nil {
 		s.logger.WarnContext(ctx, "address not found",
 			slog.String("event", "seller.address.not_found"),
-			slog.String("error", err.Error()),
+			slog.String("error", lookupFailure(err)),
 		)
 
 		return "", nil
 	}
+
+	s.addresses.put(key, address)
 
 	return address, nil
 }

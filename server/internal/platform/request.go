@@ -24,6 +24,8 @@ type requestInfo struct {
 	language  Language
 	errorCode string
 	logger    *slog.Logger
+	// client is the caller's address, for the limits per address (SEC-160).
+	client string
 }
 
 // RequestID returns the identifier of the request ctx belongs to, or "".
@@ -101,7 +103,10 @@ func withRequest(logger *slog.Logger, next http.Handler) http.Handler {
 			id = rand.Text()
 		}
 
-		info := &requestInfo{id: id, language: languageOfHeader(r.Header.Get("Accept-Language")), logger: logger}
+		info := &requestInfo{
+			id: id, language: languageOfHeader(r.Header.Get("Accept-Language")), logger: logger,
+			client: ClientAddressOf(r.Header.Get("X-Forwarded-For"), r.RemoteAddr),
+		}
 		r = r.WithContext(context.WithValue(r.Context(), requestKey{}, info))
 
 		w.Header().Set(requestIDHeader, id)
