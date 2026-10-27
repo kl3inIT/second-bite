@@ -258,6 +258,7 @@ func TestLive(t *testing.T) { //nolint:paralleltest // the checks kill listening
 		"resync follows the listening connection being killed":         testResync,
 		"a socket outlives the server's read and write timeouts":       testOutlivesTimeouts,
 		"stopping closes every socket with 1001":                       testStopClosesWith1001,
+		"an instance holding its cap of sockets refuses the next":      testSocketCap,
 	} {
 		t.Run(name, func(t *testing.T) { check(t, pool) })
 	}
@@ -571,5 +572,47 @@ func testStopClosesWith1001(t *testing.T, pool *pgxpool.Pool) {
 
 	if got := closedWith(t, c); got != websocket.StatusGoingAway {
 		t.Errorf("closed with %d, want 1001", got)
+	}
+}
+
+// testSocketCap: an instance holding its cap of sockets refuses one more with
+// 429 and Retry-After, and takes it again once one closes (SEC-160).
+func testSocketCap(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+
+	s := startLive(t, pool, newTickets(), nil, platform.WithLiveMaxConns(1))
+	first := dial(t, s)
+
+	ctx, cancel := context.WithTimeout(t.Context(), frameWait)
+	defer cancel()
+
+	_, resp, err := websocket.Dial(ctx, s.url, nil) //nolint:bodyclose // the library closes a refused upgrade's body
+	if err == nil || resp == nil || resp.StatusCode != http.StatusTooManyRequests || resp.Header.Get("Retry-After") != "30" {
+		status := 0
+		if resp != nil {
+			status = resp.StatusCode
+		}
+
+		t.Fatalf("a socket past the cap: %v, status %d; want 429 with Retry-After 30", err, status)
+	}
+
+	_ = first.Close(websocket.StatusNormalClosure, "")
+
+	// The hub forgets the closed socket once its reader ends.
+	deadline := time.Now().Add(frameWait)
+
+	for {
+		c, _, err := websocket.Dial(ctx, s.url, nil) //nolint:bodyclose // the library owns the upgrade response
+		if err == nil {
+			_ = c.CloseNow()
+
+			return
+		}
+
+		if time.Now().After(deadline) {
+			t.Fatalf("after the first closed: %v", err)
+		}
+
+		time.Sleep(50 * time.Millisecond)
 	}
 }

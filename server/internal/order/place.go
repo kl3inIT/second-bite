@@ -43,6 +43,10 @@ func (s *Service) Place(ctx context.Context, key string, checkout uuid.UUID, con
 		return Order{}, ErrIdempotencyKeyInvalid
 	}
 
+	if err := s.placedByAddress.TakeFor(ctx); err != nil {
+		return Order{}, err
+	}
+
 	contact, err := contact.normalized()
 	if err != nil {
 		return Order{}, err

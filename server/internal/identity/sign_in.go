@@ -81,6 +81,10 @@ func (s *Service) RequestCode(ctx context.Context, address string) (Challenge, e
 func (s *Service) sendCode(
 	ctx context.Context, email string, purpose codePurpose, message func(to, code string) notification.Email,
 ) (Challenge, error) {
+	if err := s.codesByAddress.TakeFor(ctx); err != nil {
+		return Challenge{}, err
+	}
+
 	code, err := newCode()
 	if err != nil {
 		return Challenge{}, err

@@ -107,6 +107,11 @@ type Service struct {
 	logger   *slog.Logger
 	geocoder geocoder
 	places   placeSearch
+
+	// The bounds on the address lookups (SEC-160).
+	lookups      *platform.Limiter
+	addresses    *lookupCache[string]
+	placeResults *lookupCache[[]Place]
 }
 
 // NewService assembles the module.
@@ -117,6 +122,8 @@ func NewService(
 	return &Service{
 		pool: pool, queries: db.New(pool), accounts: accounts, photos: photos, mail: mail, events: events,
 		trail: trail, logger: logger, geocoder: newGeocoder(), places: newPlaceSearch(),
+		lookups:   platform.NewLimiter(lookupsPerAccount, lookupWindow),
+		addresses: newLookupCache[string](addressKept), placeResults: newLookupCache[[]Place](placesKept),
 	}
 }
 

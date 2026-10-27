@@ -159,7 +159,14 @@ type Service struct {
 	trail  *audit.Service
 	logger *slog.Logger
 	now    func() time.Time
+	// placedByAddress bounds the orders one address places, signed in or not
+	// (SEC-160).
+	placedByAddress *platform.Limiter
 }
+
+// ordersPerAddress orders may be placed from one address in ten minutes:
+// enough for the people behind one mall's Wi-Fi, too few for a script.
+const ordersPerAddress = 60
 
 // NewService assembles the module.
 func NewService(
@@ -168,7 +175,7 @@ func NewService(
 ) *Service {
 	return &Service{
 		pool: pool, queries: db.New(pool), offers: offers, sellers: sellers, pushes: pushes, trail: trail,
-		logger: logger, now: time.Now,
+		logger: logger, now: time.Now, placedByAddress: platform.NewLimiter(ordersPerAddress, 10*time.Minute),
 	}
 }
 

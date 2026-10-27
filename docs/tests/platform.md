@@ -6,6 +6,7 @@ Requirements of [docs/specs/platform.md](../specs/platform.md) and the checks th
 | --- | --- |
 | Missing or malformed configuration is reported at once; a URL with a password is refused | `TestLoadConfig` (`internal/platform/config_test.go`) |
 | A request's context ends when its answer could no longer be written; a live socket's does not (SEC-159) | `TestWithDeadline` (`internal/platform/deadline_internal_test.go`) |
+| A key makes its calls in a window and is refused after with the time left, another key counts apart, ended windows are forgotten; the client's address is the first of `X-Forwarded-For` else the connection's; an instance at its cap of sockets refuses the next with 429 and `Retry-After`, and takes it once one closes (SEC-160) | `TestLimiter`, `TestClientAddressOf` (`internal/platform/limit_internal_test.go`); `TestLive` › an instance holding its cap of sockets refuses the next |
 | Migrations apply at startup and follow the naming rule | `TestService` › migrations applied; `TestNames` (`migrations/migrations_test.go`) |
 | Probes answer and carry a request identifier | `TestService` › probes answer and carry a request id |
 | A well-formed request identifier from the caller is kept | `TestService` › a well-formed request id from the caller is kept |

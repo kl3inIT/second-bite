@@ -62,13 +62,21 @@ type Service struct {
 
 	mu    sync.Mutex
 	salts map[string][]byte // the day's salt, by day, so a view reads it once
+
+	// viewsByAddress bounds the views one address counts; past it they are
+	// dropped as a bot's are (SEC-160).
+	viewsByAddress *platform.Limiter
 }
+
+// viewsPerAddress views are counted from one address in ten minutes.
+const viewsPerAddress = 600
 
 // NewService assembles the module.
 func NewService(pool *pgxpool.Pool, offers *offer.Service, orders *order.Service, sellers *seller.Service, logger *slog.Logger) *Service {
 	return &Service{
 		queries: db.New(pool), offers: offers, orders: orders, sellers: sellers, logger: logger,
 		now: time.Now, salts: map[string][]byte{},
+		viewsByAddress: platform.NewLimiter(viewsPerAddress, 10*time.Minute),
 	}
 }
 
@@ -91,6 +99,10 @@ type Visit struct {
 // without an error: the page that sent it never hears of the count.
 func (s *Service) Record(ctx context.Context, v Visit) error {
 	if v.Prefetch || isbot.Is(isbot.UserAgent(v.UserAgent)) || isbot.Is(isbot.IPRange(v.Address)) {
+		return nil
+	}
+
+	if !s.counts(ctx) {
 		return nil
 	}
 
@@ -227,3 +239,9 @@ func dayOf(t time.Time) time.Time {
 }
 
 func date(day time.Time) pgtype.Date { return pgtype.Date{Time: day, Valid: true} }
+
+// counts says whether a view from the request's address is still counted: past
+// viewsPerAddress in ten minutes it is dropped, as a bot's is (SEC-160).
+func (s *Service) counts(ctx context.Context) bool {
+	return s.viewsByAddress.TakeFor(ctx) == nil
+}
