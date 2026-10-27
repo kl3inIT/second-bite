@@ -192,7 +192,8 @@ export function SellerPage({
 
 // The seller's logo beside their name, over their rating, when there is one, and their floor (Figma K4b "quán").
 // From 768px (Figma "01 · Trang quán & giỏ nhiều quán · đầy đủ") the line under the name is the floor and tonight's
-// window, with the way there as a pin, and "Theo dõi" at the right.
+// hours, with the way there as a pin, and "Theo dõi" at the right. The line stays one line: a long address ends in
+// "…" and the hours keep their place at its end.
 function SellerHeading({ lead, offers }: { lead: OfferSummary; offers: readonly OfferSummary[] }) {
   const t = useTranslations("Seller");
   const format = useFormatter();
@@ -220,12 +221,15 @@ function SellerHeading({ lead, offers }: { lead: OfferSummary; offers: readonly 
           {lead.seller.address}
         </p>
         <div className="hidden min-w-0 items-center gap-1 md:flex">
-          <p className="min-w-0 truncate text-note text-muted-foreground">
-            {lead.seller.address} ·{" "}
-            {t("window", {
-              from: format.dateTime(opens, "time"),
-              until: format.dateTime(closes, "time"),
-            })}
+          <p className="flex min-w-0 text-note text-muted-foreground">
+            <span className="min-w-0 truncate">{lead.seller.address}</span>
+            <span className="shrink-0 whitespace-nowrap">
+              {" · "}
+              {t("windowTime", {
+                from: format.dateTime(opens, "time"),
+                until: format.dateTime(closes, "time"),
+              })}
+            </span>
           </p>
           <a
             href={directionsHref(lead.collectionPoint)}
@@ -238,7 +242,7 @@ function SellerHeading({ lead, offers }: { lead: OfferSummary; offers: readonly 
               className: "-my-2.5 text-primary hover:text-primary",
             })}
           >
-            <MapPinIcon aria-hidden className="size-5" />
+            <MapPinIcon aria-hidden className="size-4" />
           </a>
         </div>
       </div>

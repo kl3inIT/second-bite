@@ -565,6 +565,8 @@
     "allChosen": "Đã chọn đủ {units} phần"
   },
   "Seller": {
+    "sold": "Đã bán {units}",
+    "windowTime": "{from}–{until}",
     "search": "Tìm trong thực đơn {seller}",
     "window": "Nhận hôm nay {from}–{until}",
     "directions": "Chỉ đường ›",
