@@ -206,7 +206,7 @@
           "Sessions: end after 30 days without use; deleted when you sign out.",
           "Photos uploaded but never used for a dish or a shop: deleted after a day.",
           "Accounts, shops, posted dishes and orders: kept until you delete your account or ask us to delete them, except what the law requires us to keep longer.",
-          "When you delete your account: the account, its sessions, its Google link, sign-in codes and the record of the emails we sent you are deleted at once; your place in shops and the photos you never used go within minutes. Posted dishes, their photos and shop photos belong to the shop and stay, no longer linked to you; a shop you own is closed."
+          "When you delete your account: the account, its sessions, its Google link, sign-in codes and the record of the emails we sent you are deleted at once; your place in shops and the photos you never used go within minutes. Posted dishes, their photos and shop photos belong to the shop and stay, no longer linked to you; a shop you own is closed. Your orders: your name, phone number and consent to Zalo are taken off them, and the chats with the shop are deleted; the shop keeps the order number, dishes, amount and status for its records, no longer linked to you."
         ]
       },
       {
@@ -548,7 +548,8 @@
     "seeQr": "Show the QR code",
     "subtitle": "To collect and done",
     "savedLine": "Saved against the original price · {units} portions not wasted",
-    "placedWith": "Ordered together: {seller}"
+    "placedWith": "Ordered together: {seller}",
+    "customerGone": "Customer deleted their account"
   },
   "Splash": {
     "tagline": "Good food left at the end of the day, for less",
@@ -688,7 +689,7 @@
     "keptTitle": "Kept, no longer linked to you",
     "kept": [
       "Dishes posted, their photos and sellers' photos: they belong to the seller.",
-      "Orders and payments the law requires us to keep, once ordering opens; how long is to be added."
+      "Orders: the number, dishes, amount and status, for the shop's records; your name, phone number and consent to Zalo are taken off them, and the chats with the shop are deleted."
     ],
     "ownerTitle": "You own a seller",
     "ownerBody": "Deleting your account closes {sellers}: it stops showing to customers and its staff can no longer manage it, until Second Bite steps in.",
@@ -1994,6 +1995,7 @@
     "details": "Order details",
     "who": "{name} · {units, plural, one {# portion} other {# portions}}",
     "placedAt": "{phone} · placed at {time}",
+    "placedAtTime": "Placed at {time}",
     "state": {
       "confirmed": "Being prepared",
       "ready": "Ready",

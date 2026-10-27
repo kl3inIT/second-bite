@@ -873,7 +873,8 @@ function sellerReviewsFor(seller, stars) {
 /**
  * A store's orders (SEC-78, SEC-102), as GET /sellers/{id}/orders answers for today: a store named "Tiệm có đơn"
  * has three being prepared, one marked ready, one handed over and one cancelled by its customer (Figma Q5, Q5h,
- * Q5i, Q5e, Q5f); any other starts empty.
+ * Q5i, Q5e, Q5f); one named "Tiệm có khách đã xoá" has one handed over to a customer who has since deleted their
+ * account (Figma Q5p, SEC-165); any other starts empty.
  * The windows run from an hour ago to three hours on, so none reads as expired.
  */
 const sellerOrdersBy = new Map();
@@ -958,7 +959,14 @@ function sellerOrdersFor(seller) {
               readyAt: new Date().toISOString(),
             }),
           ]
-        : [],
+        : seller.name === "Tiệm có khách đã xoá"
+          ? // A customer who deleted their account: the server took their name and phone off it (SEC-165).
+            [
+              order(7, "collected", "", "", "Cơm sườn nướng", "suất", 1, 30000, {
+                collectedAt: new Date().toISOString(),
+              }),
+            ]
+          : [],
     );
   }
   return sellerOrdersBy.get(seller.id);

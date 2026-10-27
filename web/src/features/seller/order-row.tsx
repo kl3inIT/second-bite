@@ -11,13 +11,18 @@ import { photoUrl } from "@/lib/api/photo";
 import { CopyPhoneButton } from "./copy-phone-button";
 import { OrderActions, ReopenButton } from "./order-actions";
 import { endedBecause, type OrderTab, unitsOf } from "./store-orders";
+import { customerOf } from "@/features/orders/order";
 
 // One order of a store (Figma Q5, Q5e, Q5f): the dish and who holds it with their phone to copy, the units in
 // the dish's own unit, the amount to collect at the counter, and what the seller can do with it. The row leads to
 // the order's own page (Figma Q5j, Q5k); its buttons and the phone's copy stay above that link. In the cancelled
 // tab a line says why it ended. A customer's own cancelling, and a window that ran out, are not taken back.
 export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab }) {
-  const t = await getTranslations("StoreOrders");
+  const [t, orders] = await Promise.all([
+    getTranslations("StoreOrders"),
+    getTranslations("Orders"),
+  ]);
+  const customer = customerOf(order, orders("customerGone"));
   const [first] = order.lines;
   const names = order.lines.map((line) => line.name).join(", ");
   const units =
@@ -66,12 +71,12 @@ export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab
           </span>
         </div>
         <p className="flex items-center gap-2 text-title-lg font-normal text-muted-foreground">
-          <span>
-            {order.customerName} · {order.customerPhone}
-          </span>
-          <span className="relative z-10 flex">
-            <CopyPhoneButton phone={order.customerPhone} />
-          </span>
+          <span>{order.customerPhone ? `${customer} · ${order.customerPhone}` : customer}</span>
+          {order.customerPhone && (
+            <span className="relative z-10 flex">
+              <CopyPhoneButton phone={order.customerPhone} />
+            </span>
+          )}
         </p>
         {ended && <p className="text-body-sm text-muted-foreground">{ended}</p>}
       </div>
@@ -86,7 +91,7 @@ export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab
         </p>
       </div>
       {(tab === "preparing" || tab === "ready") && (
-        <OrderActions orderId={order.id} name={order.customerName} stage={tab} />
+        <OrderActions orderId={order.id} name={customer} stage={tab} />
       )}
       {tab === "delivered" && <ReopenButton orderId={order.id} />}
       {tab === "cancelled" && why !== "customer" && why !== "expired" && (

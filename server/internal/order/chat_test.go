@@ -723,8 +723,9 @@ func (f fixture) messagesOf(t *testing.T, orderID uuid.UUID) int {
 
 // TestDeletedCustomerChatsAreForgotten delivers identity's AccountDeletedEvent
 // through the outbox, twice as a retry would (SEC-37): the chats of the orders
-// the account placed are deleted with their messages, and the chat of another
-// customer's order stays.
+// the account placed are deleted with their messages, the orders lose the
+// name, phone number and Zalo consent and keep the rest (SEC-165), and another
+// customer's order and chat stay.
 func TestDeletedCustomerChatsAreForgotten(t *testing.T) {
 	t.Parallel()
 
@@ -738,6 +739,10 @@ func TestDeletedCustomerChatsAreForgotten(t *testing.T) {
 	mustSend(sc.customer, t, f, "", sc.order.ID, "Xin chào")
 	mustSend(sc.staff, t, f, "", sc.order.ID, "Chào bạn")
 	mustSend(other, t, f, "", theirs.ID, "Xin chào")
+
+	if _, err := pool.Exec(t.Context(), `UPDATE order_orders SET zalo_consent_at = now() WHERE id = $1`, sc.order.ID); err != nil {
+		t.Fatal(err)
+	}
 
 	events, err := platform.NewEvents(pool, platformtest.Logger())
 	if err != nil {
@@ -782,4 +787,44 @@ func TestDeletedCustomerChatsAreForgotten(t *testing.T) {
 	if left := f.messagesOf(t, theirs.ID); left != 1 {
 		t.Errorf("%d messages remain of another customer's chat, want 1", left)
 	}
+
+	checkContactsForgotten(t, pool, deadline, sc.order.ID, theirs.ID)
+}
+
+// checkContactsForgotten waits until the deleted account's order holds no name,
+// phone or consent, keeping its total, and checks that another's kept them.
+func checkContactsForgotten(t *testing.T, pool *pgxpool.Pool, deadline time.Time, mine, theirs uuid.UUID) {
+	t.Helper()
+
+	for time.Now().Before(deadline) && contactOf(t, pool, mine).name != "" {
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	if c := contactOf(t, pool, mine); c.name != "" || c.phone != "" || c.zalo || !c.forgotten || c.total == 0 {
+		t.Errorf("the deleted account's order holds %+v, want no name, phone or consent, and its total", c)
+	}
+
+	if c := contactOf(t, pool, theirs); c.name == "" || c.phone == "" || c.forgotten {
+		t.Errorf("another customer's order lost its contact: %+v", c)
+	}
+}
+
+// contact is what an order holds of who placed it.
+type contact struct {
+	name, phone     string
+	zalo, forgotten bool
+	total           int64
+}
+
+func contactOf(t *testing.T, pool *pgxpool.Pool, id uuid.UUID) contact {
+	t.Helper()
+
+	var c contact
+	if err := pool.QueryRow(t.Context(), `SELECT customer_name, customer_phone, zalo_consent_at IS NOT NULL,
+		contact_forgotten_at IS NOT NULL, total_vnd FROM order_orders WHERE id = $1`, id).
+		Scan(&c.name, &c.phone, &c.zalo, &c.forgotten, &c.total); err != nil {
+		t.Fatal(err)
+	}
+
+	return c
 }

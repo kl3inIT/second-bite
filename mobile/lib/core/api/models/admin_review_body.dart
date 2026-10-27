@@ -13,7 +13,7 @@ abstract class AdminReviewBody with _$AdminReviewBody {
     /// When the customer rated the order
     required DateTime createdAt,
 
-    /// Who collected, as given with the order
+    /// Who collected, as given with the order; empty once the customer deleted their account
     required String customerName,
 
     /// The order reviewed, which names its review

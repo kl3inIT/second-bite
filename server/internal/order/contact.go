@@ -37,7 +37,7 @@ func (c Contact) normalized() (Contact, error) {
 		return Contact{}, ErrContactInvalid
 	}
 
-	return Contact{Name: name, Phone: phone}, nil
+	return Contact{Name: name, Phone: phone, ByZalo: c.ByZalo}, nil
 }
 
 // accessMatches compares what a reader sent with the order's access, which is

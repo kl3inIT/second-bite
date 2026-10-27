@@ -6,7 +6,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { ChatEntry } from "@/features/chat/chat-entry";
 import { UnreadBanner } from "@/features/chat/unread-banner";
 import { LiveRefresh } from "@/features/orders/live-refresh";
-import { hoursAndMinutes, unitsOf, windowPhase } from "@/features/orders/order";
+import { customerOf, hoursAndMinutes, unitsOf, windowPhase } from "@/features/orders/order";
 import { Link } from "@/i18n/navigation";
 import type { OrderBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
@@ -40,12 +40,14 @@ export async function StoreOrder({
 
   // The session is read before the clock, so the page is made for each request and never at build time.
   await requireStore(sellerId, `/stores/${sellerId}/orders/${orderId}`);
-  const [t, format, order] = await Promise.all([
+  const [t, orders, format, order] = await Promise.all([
     getTranslations("StoreOrders"),
+    getTranslations("Orders"),
     getFormatter(),
     getStoreOrder(orderId),
   ]);
   if (!order || order.seller.id !== sellerId) notFound();
+  const customer = customerOf(order, orders("customerGone"));
 
   const now = nowMs();
   const time = (value: string) => format.dateTime(new Date(value), "time");
@@ -146,11 +148,13 @@ export async function StoreOrder({
                   />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <p className="truncate text-body-sm-strong">{order.customerName}</p>
-                  <p className="flex items-center gap-2 text-label text-muted-foreground">
-                    <span>{order.customerPhone}</span>
-                    <CopyPhoneButton phone={order.customerPhone} />
-                  </p>
+                  <p className="truncate text-body-sm-strong">{customer}</p>
+                  {order.customerPhone && (
+                    <p className="flex items-center gap-2 text-label text-muted-foreground">
+                      <span>{order.customerPhone}</span>
+                      <CopyPhoneButton phone={order.customerPhone} />
+                    </p>
+                  )}
                 </div>
                 <span className="shrink-0 text-label-strong text-primary">
                   {t("detail.units", { count: unitsOf(order) })}
@@ -187,7 +191,10 @@ export async function StoreOrder({
 
 /** What the seller can do with the order now: the next step and cancelling, or taking a mistake back (Figma Q5j, Q5k). */
 export async function Next({ order, list }: { order: OrderBody; list: string }) {
-  const t = await getTranslations("StoreOrders.detail");
+  const [t, orders] = await Promise.all([
+    getTranslations("StoreOrders.detail"),
+    getTranslations("Orders"),
+  ]);
   const stage =
     order.status === "confirmed" ? "preparing" : order.status === "ready" ? "ready" : undefined;
   const takeBack = order.status === "collected" || order.status === "refused";
@@ -210,7 +217,7 @@ export async function Next({ order, list }: { order: OrderBody; list: string }) 
         {stage ? (
           <OrderActions
             orderId={order.id}
-            name={order.customerName}
+            name={customerOf(order, orders("customerGone"))}
             stage={stage}
             listPath={list}
             fill

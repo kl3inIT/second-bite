@@ -557,7 +557,7 @@ abstract class AppLocalizations {
   /// Section 3's paragraphs, one blank line apart, as the web's Privacy.sections[2].paragraphs
   ///
   /// In vi, this message translates to:
-  /// **'Mã đăng nhập: xóa khi dùng xong, khi bạn xin mã mới, hoặc muộn nhất một ngày sau khi gửi.\n\nPhiên đăng nhập: hết hạn sau 30 ngày không dùng; xóa khi bạn đăng xuất.\n\nẢnh tải lên nhưng không dùng cho món hay quán nào: xóa sau một ngày.\n\nTài khoản, quán, món đã đăng và đơn hàng: giữ cho tới khi bạn xóa tài khoản hoặc yêu cầu xóa, trừ phần pháp luật buộc phải giữ lâu hơn.\n\nKhi bạn xóa tài khoản: tài khoản, phiên đăng nhập, liên kết Google, mã đăng nhập và bản ghi các email gửi cho bạn bị xóa ngay; tư cách thành viên ở các quán và ảnh chưa dùng bị xóa trong vài phút sau đó. Món đã đăng, ảnh món và ảnh quán thuộc về quán nên được giữ, không còn gắn với bạn; quán bạn là chủ sẽ bị đóng.'**
+  /// **'Mã đăng nhập: xóa khi dùng xong, khi bạn xin mã mới, hoặc muộn nhất một ngày sau khi gửi.\n\nPhiên đăng nhập: hết hạn sau 30 ngày không dùng; xóa khi bạn đăng xuất.\n\nẢnh tải lên nhưng không dùng cho món hay quán nào: xóa sau một ngày.\n\nTài khoản, quán, món đã đăng và đơn hàng: giữ cho tới khi bạn xóa tài khoản hoặc yêu cầu xóa, trừ phần pháp luật buộc phải giữ lâu hơn.\n\nKhi bạn xóa tài khoản: tài khoản, phiên đăng nhập, liên kết Google, mã đăng nhập và bản ghi các email gửi cho bạn bị xóa ngay; tư cách thành viên ở các quán và ảnh chưa dùng bị xóa trong vài phút sau đó. Món đã đăng, ảnh món và ảnh quán thuộc về quán nên được giữ, không còn gắn với bạn; quán bạn là chủ sẽ bị đóng. Đơn hàng của bạn: tên, số điện thoại và đồng ý nhận tin qua Zalo bị xóa khỏi đơn, cùng cuộc trò chuyện với quán; quán giữ lại số đơn, món, số tiền và trạng thái để đối soát, không còn gắn với bạn.'**
   String get legalPrivacySection3Body;
 
   /// Section 4's heading, as the web's Privacy.sections[3].title
@@ -887,7 +887,7 @@ abstract class AppLocalizations {
   /// Something kept, no longer linked to the person
   ///
   /// In vi, this message translates to:
-  /// **'Đơn hàng và thanh toán mà pháp luật buộc phải giữ, khi tính năng đặt món mở; thời hạn giữ đang cập nhật.'**
+  /// **'Đơn hàng: số đơn, món, số tiền và trạng thái, để quán đối soát; tên, số điện thoại và đồng ý nhận tin qua Zalo trên đơn bị xoá, cùng cuộc trò chuyện với quán.'**
   String get deleteAccountKept2;
 
   /// The warning to the owner of a seller

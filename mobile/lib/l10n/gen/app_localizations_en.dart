@@ -299,7 +299,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get legalPrivacySection3Body =>
-      'Sign-in codes: deleted once used, when a newer one is requested, or a day after they were sent at the latest.\n\nSessions: end after 30 days without use; deleted when you sign out.\n\nPhotos uploaded but never used for a dish or a shop: deleted after a day.\n\nAccounts, shops, posted dishes and orders: kept until you delete your account or ask us to delete them, except what the law requires us to keep longer.\n\nWhen you delete your account: the account, its sessions, its Google link, sign-in codes and the record of the emails we sent you are deleted at once; your place in shops and the photos you never used go within minutes. Posted dishes, their photos and shop photos belong to the shop and stay, no longer linked to you; a shop you own is closed.';
+      'Sign-in codes: deleted once used, when a newer one is requested, or a day after they were sent at the latest.\n\nSessions: end after 30 days without use; deleted when you sign out.\n\nPhotos uploaded but never used for a dish or a shop: deleted after a day.\n\nAccounts, shops, posted dishes and orders: kept until you delete your account or ask us to delete them, except what the law requires us to keep longer.\n\nWhen you delete your account: the account, its sessions, its Google link, sign-in codes and the record of the emails we sent you are deleted at once; your place in shops and the photos you never used go within minutes. Posted dishes, their photos and shop photos belong to the shop and stay, no longer linked to you; a shop you own is closed. Your orders: your name, phone number and consent to Zalo are taken off them, and the chats with the shop are deleted; the shop keeps the order number, dishes, amount and status for its records, no longer linked to you.';
 
   @override
   String get legalPrivacySection4Title => '4. Who can see your data';
@@ -491,7 +491,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountKept2 =>
-      'Orders and payments the law requires us to keep, once ordering opens; how long is to be added.';
+      'Orders: the number, dishes, amount and status, for the shop\'s records; your name, phone number and consent to Zalo are taken off them, and the chats with the shop are deleted.';
 
   @override
   String get deleteAccountOwnerTitle => 'You own a seller';

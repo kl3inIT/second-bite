@@ -26,6 +26,7 @@ import {
 import { vietnamToday } from "./store-day";
 import { StoreTitleRow } from "./store-title-row";
 import { UndoToast } from "./undo-toast";
+import { customerOf } from "@/features/orders/order";
 
 // The store's order tab (SEC-78, Figma Q5, Q5b to Q5g): the orders of one day, which customers hold with their
 // name and phone number, in four tabs — preparing, ready, handed over, cancelled — with a search and a day to pick
@@ -51,8 +52,9 @@ export async function StoreOrders({
   const { tab } = filter;
   const search = searchOf(filter.q);
 
-  const [t, orders] = await Promise.all([
+  const [t, words, orders] = await Promise.all([
     getTranslations("StoreOrders"),
+    getTranslations("Orders"),
     getStoreOrders(sellerId, day),
   ]);
 
@@ -79,7 +81,9 @@ export async function StoreOrders({
 
   const undoId = one("undo");
   const undone = undoId ? orders.find((order) => order.id === undoId) : undefined;
-  const undoMessage = undone ? t("deliveredTo", { name: undone.customerName }) : undefined;
+  const undoMessage = undone
+    ? t("deliveredTo", { name: customerOf(undone, words("customerGone")) })
+    : undefined;
 
   const tabHref = (name: OrderTab) =>
     `/stores/${sellerId}/orders${serializeOrderSearchParams({ day: dayOrNull(day, today), tab: name, q: search })}`;

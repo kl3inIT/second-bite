@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getFormatter, getTimeZone, getTranslations } from "next-intl/server";
 
 import { LiveRefresh } from "@/features/orders/live-refresh";
-import { dayOf, isOpen, nowMs } from "@/features/orders/order";
+import { customerOf, dayOf, isOpen, nowMs } from "@/features/orders/order";
 import { getStoreOrder } from "@/features/seller/my-sellers";
 import { requireStore } from "@/features/seller/require-store";
 import { Next } from "@/features/seller/store-order";
@@ -25,10 +25,11 @@ export async function StoreChat({
 }) {
   const [sellerId, orderId] = await Promise.all([pendingId, pendingOrder]);
   await requireStore(sellerId, `/stores/${sellerId}/orders/${orderId}/chat`);
-  const [order, t, orders, format, timeZone, chat] = await Promise.all([
+  const [order, t, orders, words, format, timeZone, chat] = await Promise.all([
     getStoreOrder(orderId),
     getTranslations("Chat"),
     getTranslations("StoreOrders"),
+    getTranslations("Orders"),
     getFormatter(),
     getTimeZone(),
     readOrderChat(orderId),
@@ -58,11 +59,11 @@ export async function StoreChat({
         // The store's layout pads its pages and, on a phone, sits under a bar the chat does not have; the chat
         // takes that room back so it fits the screen.
         className="max-md:-mx-4 max-md:-mt-2 max-md:-mb-14"
-        header={<ChatBar title={order.customerName} back={page} />}
+        header={<ChatBar title={customerOf(order, words("customerGone"))} back={page} />}
         crumbs={[
           { label: orders("title"), href: list },
           { label: `#${order.number}`, href: page },
-          { label: t("withCustomer", { name: order.customerName }) },
+          { label: t("withCustomer", { name: customerOf(order, words("customerGone")) }) },
         ]}
         aside={
           <>

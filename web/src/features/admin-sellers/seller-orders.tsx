@@ -12,6 +12,7 @@ import { formatPrice } from "@/features/offers/format";
 import { DayBar } from "@/features/seller/day-filter";
 import { Link } from "@/i18n/navigation";
 import type { OrderBody } from "@/lib/api/generated";
+import { customerOf } from "@/features/orders/order";
 
 /**
  * The "Đơn hàng" tab of a store's page (Figma AD-QD6): the store's orders of one day, chosen with the app's
@@ -69,6 +70,7 @@ export function SellerOrders({
 
 function useColumns(): DataTableColumns<OrderBody> {
   const t = useTranslations("Admin.orders");
+  const gone = useTranslations("Orders")("customerGone");
   const format = useFormatter();
   const time = (at: string) => format.dateTime(new Date(at), "time");
   const summary = useLinesSummary();
@@ -83,7 +85,7 @@ function useColumns(): DataTableColumns<OrderBody> {
           href={`/admin/orders/${row.original.id}?from=store`}
           className="text-body-sm-strong hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
-          {row.original.customerName}
+          {customerOf(row.original, gone)}
         </Link>
       ),
     },

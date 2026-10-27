@@ -93,19 +93,29 @@ func (s *Service) ForgetOldChats(ctx context.Context) error {
 }
 
 // forgetAccount deletes the chats of the orders a deleted account placed, as
-// its favourites and memberships go with it (SEC-37). A message stores its side
-// and not the staff member who wrote it, so a staff account's deletion leaves
-// nothing to remove. Running it again changes nothing more.
+// its favourites and memberships go with it (SEC-37), and takes its name and
+// phone number off those orders, which the store and the reports keep without
+// them (SEC-165). A message stores its side and not the staff member who wrote
+// it, so a staff account's deletion leaves nothing to remove. Running it again
+// changes nothing more.
 func (s *Service) forgetAccount(ctx context.Context, e identity.AccountDeletedEvent) error {
-	forgotten, err := s.queries.DeleteChatsOfCustomer(ctx, uuid.NullUUID{UUID: e.AccountID, Valid: true})
+	customer := uuid.NullUUID{UUID: e.AccountID, Valid: true}
+
+	forgotten, err := s.queries.DeleteChatsOfCustomer(ctx, customer)
 	if err != nil {
 		return fmt.Errorf("forgetting the account's chats: %w", err)
 	}
 
-	s.logger.InfoContext(ctx, "deleted account's chats forgotten",
+	contacts, err := s.queries.ForgetContactsOfCustomer(ctx, customer)
+	if err != nil {
+		return fmt.Errorf("forgetting the account's name and phone number on its orders: %w", err)
+	}
+
+	s.logger.InfoContext(ctx, "deleted account's chats and contacts forgotten",
 		slog.String("event", "order.account.forgotten"),
 		slog.String("account_id", e.AccountID.String()),
 		slog.Int64("chats_forgotten", forgotten),
+		slog.Int64("contacts_forgotten", contacts),
 	)
 
 	return nil
