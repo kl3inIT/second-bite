@@ -5,6 +5,7 @@ Requirements of [docs/specs/offer.md](../specs/offer.md) and the checks that hol
 | Requirement | Check |
 | --- | --- |
 | A post is on sale with its units left, the default unit, its discount and the seller's collection point; each field's rule, the 20% discount and the window's bounds refuse a post; a mixed box needs what it holds | `TestOffer` › a post follows the rules of its fields |
+| The three newer kinds hold a dish; the kind other holds the name its seller gives it, trimmed and of 30 characters at most, which no other kind holds and a change of kind takes away; a post keeps it | `TestOffer` › sellers name the kind other |
 | Only the owner or staff of an active seller post; a pending or blocked seller, a stranger, an admin and nobody signed in are refused; a stranger does not list the seller's offers | `TestOffer` › only an active seller's people post |
 | A photo someone else uploaded is refused; staff post again with an earlier offer's photo; another seller cannot take it; the list is newest first | `TestOffer` › a photo is the poster's or the seller's |
 | Everything changes before an order; once units are ordered the price and the name do not, the units not below those ordered, the description and units do; a stranger gets 404; a withdrawn offer does not change | `TestOffer` › orders limit what changes |
