@@ -920,7 +920,7 @@ test.describe("the catalog on the web", () => {
     await expect(page.getByRole("button", { name: "Tráng miệng" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Ăn vặt" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Rau củ quả" })).toBeVisible();
-    await page.getByRole("button", { name: "Khác" }).click();
+    await page.getByRole("button", { name: "Khác", exact: true }).click();
     await page.getByLabel("Tên loại").fill("Chè truyền thống");
     await page
       .getByLabel("Ảnh món")

@@ -20,6 +20,7 @@ OfferSummary sampleOffer({
     name: name,
     description: '',
     kind: FoundBodyKind.bakery,
+    kindLabel: '',
     unit: 'túi',
     units: 5,
     unitsLeft: unitsLeft,

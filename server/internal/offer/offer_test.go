@@ -710,8 +710,8 @@ func testSellersNameTheKindOther(t *testing.T, f fixture) {
 	}
 
 	for name, d := range map[string]offer.DishDetails{
-		"a name on another kind": {Name: "Xôi", Kind: offer.KindDessert, KindLabel: "Chè", PhotoID: w.photo},
-		"a name of 31 letters":   {Name: "Xôi", Kind: offer.KindOther, KindLabel: strings.Repeat("x", 31), PhotoID: w.photo},
+		"a name on another kind": {Name: "Chè", Kind: offer.KindDessert, KindLabel: "Chè", PhotoID: w.photo},
+		"a name of 31 letters":   {Name: "Chè", Kind: offer.KindOther, KindLabel: strings.Repeat("x", 31), PhotoID: w.photo},
 	} {
 		_, err := f.offers.AddDish(owner, w.sellerID, d)
 		mustFail(t, name, err, offer.ErrDetailsInvalid)
