@@ -4,7 +4,7 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 
 | Requirement | Check |
 | --- | --- |
-| A cart of two offers is confirmed with its total, the window both offers share and its number; the units are taken; the same key returns the same order and takes nothing more; no key and nobody signed in are refused | `TestOrder` › placing takes units and confirms at once |
+| A cart of two offers is confirmed with its total, the window both offers share and its number; the units are taken; the same key returns the same order and takes nothing more; no key, a key under 16 characters (SEC-167) and nobody signed in are refused | `TestOrder` › placing takes units and confirms at once |
 | Too many units, two sellers, an offer twice, no unit, no line, windows that do not meet and an unknown offer are refused and take nothing; a withdrawn offer and a blocked seller cannot be ordered | `TestOrder` › a cart refused takes nothing |
 | Two customers ordering the last unit at once: one order | `TestOrder` › two customers race for the last unit |
 | More orders placed and cancelled, and more store messages sent, at once than the pool has connections: none waits for a second connection (SEC-128, SEC-159) | `TestOrdersAtOnceDoNotStarveThePool`, `TestStoreMessagesAtOnceDoNotStarveThePool` (`internal/order/pool_test.go`) |

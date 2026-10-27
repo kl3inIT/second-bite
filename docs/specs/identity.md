@@ -51,7 +51,7 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 | `identity_accounts` | Address (unique, lower case), role (`customer`, `admin`), display name, when and how it last signed in, its words folded for admins' search | Kept until its owner deletes it |
 | `identity_external_logins` | Provider (`google`), subject (unique with the provider), account, the address when linked and whether Google speaks for it, name and picture as last sent, when linked and last used | Deleted with the account, or by a sign-in with the emailed code when Google does not speak for its address |
 | `identity_sign_in_challenges` | Address, code hash, purpose (`sign_in` or `delete_account`), wrong guesses, expiry | Deleted when used, ended by a newer code, a day after it was sent, or with the address's account |
-| `identity_sessions` | Account, token hash, last use, expiry | Deleted on sign-out; expired ones when the account opens a new session |
+| `identity_sessions` | Account, token hash, last use, expiry | Deleted on sign-out; expired ones when the account opens a new session, and every account's each day by the schedule `identity.purge_sessions` (SEC-167) |
 
 ## Failures
 

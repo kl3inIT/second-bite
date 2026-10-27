@@ -75,6 +75,7 @@ func TestService(t *testing.T) {
 		"a browser follows an order by Web Push":                     checkPushSubscribe,
 		"a page view is counted without a session":                   checkViewCounted,
 		"the report counts a store's views, posts and orders":        checkReport,
+		"an offset, a page or an order key out of bounds is a 400":   checkBounds,
 		"one address asking too often is refused with a wait":        checkLimitsPerAddress,
 	}
 
@@ -130,7 +131,7 @@ func startService(t *testing.T) (service, func() error) {
 			"-smtp-host", smtpHost, "-smtp-port", smtpPort, "-smtp-security", "none",
 		},
 	}
-	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail, grantingAdminEmail, auditAdminEmail, deletionAdminEmail, reportAdminEmail} {
+	for _, email := range []string{adminEmail, sellerAdminEmail, offerAdminEmail, grantingAdminEmail, auditAdminEmail, deletionAdminEmail, reportAdminEmail, boundsAdminEmail} {
 		admin = append(admin, []string{commandAdmin, "grant", email})
 	}
 

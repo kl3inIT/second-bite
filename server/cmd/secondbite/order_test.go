@@ -51,7 +51,7 @@ func checkOrderFlow(t *testing.T, svc service) {
 	placed := placeTwice(t, svc, customer, offerID)
 
 	placing := customer.Clone()
-	placing.Set("Idempotency-Key", "order-flow-2")
+	placing.Set("Idempotency-Key", "order-flow-2-0123456789")
 
 	if p := send(t, http.MethodPost, svc.base+"/orders", placing, cartOf(cartLine{offerID, 4})).
 		problem(t, http.StatusConflict); p.Code != "ORDER_OFFER_SOLD_OUT" {
@@ -84,7 +84,7 @@ func placeTwice(t *testing.T, svc service, customer http.Header, offerID string)
 	}
 
 	placing := customer.Clone()
-	placing.Set("Idempotency-Key", "order-flow-1")
+	placing.Set("Idempotency-Key", "order-flow-1-0123456789")
 
 	var placed, again orderResponse
 

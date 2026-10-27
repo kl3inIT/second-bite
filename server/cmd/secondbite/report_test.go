@@ -53,7 +53,7 @@ func checkReport(t *testing.T, svc service) {
 	sellerID, offerID := postedOfferOf(t, svc, owner, "Bếp Báo Cáo")
 
 	placing := customer.Clone()
-	placing.Set("Idempotency-Key", "report-1")
+	placing.Set("Idempotency-Key", "report-1-0123456789")
 
 	var placed orderResponse
 

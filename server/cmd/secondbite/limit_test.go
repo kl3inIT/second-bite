@@ -35,14 +35,14 @@ func checkLimitsPerAddress(t *testing.T, svc service) {
 	placing := from("203.0.113.9")
 
 	for i := range 60 {
-		placing.Set("Idempotency-Key", "limit-"+strconv.Itoa(i))
+		placing.Set("Idempotency-Key", "limit-0123456789-"+strconv.Itoa(i))
 
 		if resp := send(t, http.MethodPost, svc.base+"/orders", placing, unknown); resp.status == http.StatusTooManyRequests {
 			t.Fatalf("order %d refused for its address", i+1)
 		}
 	}
 
-	placing.Set("Idempotency-Key", "limit-60")
+	placing.Set("Idempotency-Key", "limit-0123456789-60")
 	checkTooMany(t, "the 61st order", send(t, http.MethodPost, svc.base+"/orders", placing, unknown))
 }
 

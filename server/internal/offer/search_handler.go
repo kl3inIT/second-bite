@@ -75,7 +75,7 @@ type searchInput struct {
 	Available   bool      `doc:"Leave out what has sold out"                                                               query:"available"`
 	Sort        Sort      `doc:"relevance with q, distance with near, ending_soon otherwise, when absent"                 enum:"relevance,distance,ending_soon,price,discount" query:"sort"`
 	Limit       int       `default:"20"                                                                                    maximum:"50"                                          minimum:"1"   query:"limit"`
-	Offset      int       `default:"0"                                                                                     minimum:"0"                                           query:"offset"`
+	Offset      int       `default:"0"                                                                                     maximum:"100000" minimum:"0"                                           query:"offset"`
 }
 
 func (in searchInput) query() (Query, error) {

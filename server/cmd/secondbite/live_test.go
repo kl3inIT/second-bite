@@ -25,7 +25,7 @@ func checkLiveSocket(t *testing.T, svc service) {
 	stranger := bearer(signIn(t, svc, "live.stranger@example.com").Token)
 
 	placing := customer.Clone()
-	placing.Set("Idempotency-Key", "live-1")
+	placing.Set("Idempotency-Key", "live-1-0123456789")
 
 	var placed orderResponse
 

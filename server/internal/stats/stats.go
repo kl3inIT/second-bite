@@ -139,12 +139,16 @@ func (s *Service) salt(ctx context.Context, day time.Time) ([]byte, error) {
 	key := day.Format(time.DateOnly)
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
+	salt, ok := s.salts[key]
+	s.mu.Unlock()
 
-	if salt, ok := s.salts[key]; ok {
+	if ok {
 		return salt, nil
 	}
 
+	// The database is asked without the lock, so one slow call does not hold
+	// every view back (SEC-167); views racing here all read the salt stored
+	// first, as two instances do.
 	fresh := make([]byte, sha256.Size)
 	_, _ = rand.Read(fresh) // never fails, as documented
 
@@ -157,7 +161,9 @@ func (s *Service) salt(ctx context.Context, day time.Time) ([]byte, error) {
 		return nil, fmt.Errorf("reading the day's salt: %w", err)
 	}
 
+	s.mu.Lock()
 	s.salts = map[string][]byte{key: salt} // yesterday's is no longer needed
+	s.mu.Unlock()
 
 	return salt, nil
 }

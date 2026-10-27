@@ -241,7 +241,7 @@ func registerStaffOperations(api huma.API, s *Service) {
 		SellerID uuid.UUID `path:"sellerId"`
 		Status   Status    `enum:"on_sale,sold_out,closed,withdrawn" query:"status"`
 		Limit    int       `default:"20"                             maximum:"100" minimum:"1" query:"limit"`
-		Offset   int       `default:"0"                              minimum:"0"   query:"offset"`
+		Offset   int       `default:"0"                              maximum:"100000" minimum:"0"   query:"offset"`
 	},
 	) (*offersOutput, error) {
 		offers, err := s.OfSeller(ctx, in.SellerID, in.Status, in.Limit, in.Offset)
@@ -288,7 +288,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		Status   Status    `query:"status"      doc:"Keep this status; every status when absent" enum:"on_sale,sold_out,closed,withdrawn"`
 		Q        string    `query:"q"           doc:"Words of the dish, the seller's name or the description" maxLength:"100"`
 		SellerID uuid.UUID `query:"sellerId"    doc:"Keep this seller's offers"`
-		Page     int       `query:"page"        default:"1" minimum:"1"`
+		Page     int       `query:"page"        default:"1" maximum:"10000" minimum:"1"`
 		Size     int       `query:"size"        default:"25" maximum:"100" minimum:"1"`
 
 		PostedSince time.Time `query:"postedSince" doc:"Keep the offers posted at or after this time"`

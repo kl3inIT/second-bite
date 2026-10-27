@@ -278,11 +278,13 @@ func testPlacingTakesUnits(t *testing.T, f fixture) {
 func keyAndContactRequired(customer context.Context, t *testing.T, f fixture, offerID uuid.UUID) {
 	t.Helper()
 
-	_, err := f.orders.Place(customer, "", uuid.Nil, someone, []order.Wanted{{OfferID: offerID, Units: 1}})
-	mustFail(t, "no key", err, order.ErrIdempotencyKeyInvalid)
+	for _, k := range []string{"", "short-key-15chr"} {
+		_, err := f.orders.Place(customer, k, uuid.Nil, someone, []order.Wanted{{OfferID: offerID, Units: 1}})
+		mustFail(t, "the key "+k, err, order.ErrIdempotencyKeyInvalid)
+	}
 
 	for _, c := range []order.Contact{{Name: " ", Phone: "0900000000"}, {Name: "Minh Anh", Phone: "12345"}} {
-		_, err = f.orders.Place(customer, key(), uuid.Nil, c, []order.Wanted{{OfferID: offerID, Units: 1}})
+		_, err := f.orders.Place(customer, key(), uuid.Nil, c, []order.Wanted{{OfferID: offerID, Units: 1}})
 		mustFail(t, "contact "+c.Name+" "+c.Phone, err, order.ErrContactInvalid)
 	}
 }
