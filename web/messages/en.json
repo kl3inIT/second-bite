@@ -813,6 +813,7 @@
     "showDish": "Show dish",
     "postNow": "Post now",
     "left": "{count} left",
+    "portionsLeft": "{count, plural, one {# portion left} other {# portions left}}",
     "soldOut": "Sold out",
     "withdrawn": "Withdrawn",
     "closed": "Over",

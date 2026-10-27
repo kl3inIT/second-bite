@@ -813,6 +813,7 @@
     "showDish": "Hiện món",
     "postNow": "Đăng ngay",
     "left": "Còn {count}",
+    "portionsLeft": "Còn {count} phần",
     "soldOut": "Đã hết",
     "withdrawn": "Đã rút",
     "closed": "Hết giờ",

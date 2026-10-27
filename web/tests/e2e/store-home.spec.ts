@@ -49,12 +49,17 @@ test.describe("the home of a store", () => {
     await expect(figure(page, "Suất đã bán")).toContainText("2/3");
     await expect(figure(page, "Khách không đến")).toContainText("Trên 6 đơn");
 
+    // What to do now stands on a computer; a phone opens straight on the orders (Figma Q1b-1).
     const todo = page.getByRole("region", { name: "Việc cần làm" });
-    await expect(todo).toContainText("3 đơn chờ báo sẵn sàng");
-    await expect(todo.getByRole("link", { name: "Xem đơn" })).toHaveAttribute(
-      "href",
-      `/vi/stores/${store}/orders`,
-    );
+    if (testInfo.project.name === "mobile") {
+      await expect(todo).toHaveCount(0);
+    } else {
+      await expect(todo).toContainText("3 đơn chờ báo sẵn sàng");
+      await expect(todo.getByRole("link", { name: "Xem đơn" })).toHaveAttribute(
+        "href",
+        `/vi/stores/${store}/orders`,
+      );
+    }
 
     const orders = page.getByRole("region", { name: "Đơn hôm nay" });
     await expect(orders.getByRole("link", { name: "Chuẩn bị · 3" })).toHaveAttribute(
@@ -79,6 +84,8 @@ test.describe("the home of a store", () => {
     const posts = page.getByRole("region", { name: "Bài đăng hôm nay" });
     await expect(posts).toContainText("Bánh mì que, 3 chiếc");
     await expect(posts).toContainText("Còn 1");
+    // A phone draws each post as a box that says the portions left (Figma Q1b-1).
+    if (testInfo.project.name === "mobile") await expect(posts).toContainText("Còn 1 phần");
     await expect(page.getByRole("region", { name: "Danh mục · 0 món" })).toContainText(
       "Chưa có món nào trong danh mục.",
     );
@@ -106,5 +113,15 @@ test.describe("the home of a store", () => {
       new RegExp(`/vi/stores/${store}/catalog/di-1-.+/post`),
     );
     await expectNoSeriousA11yViolations(page);
+
+    // The smallest phone still holds every box and the orders' chips without a sideways page.
+    if (testInfo.project.name === "mobile") {
+      await page.setViewportSize({ width: 320, height: 720 });
+      await expect(catalog.getByRole("link", { name: "Đăng ngay" }).first()).toBeVisible();
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow).toBe(0);
+    }
   });
 });
