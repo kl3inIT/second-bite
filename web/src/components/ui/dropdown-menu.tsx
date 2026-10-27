@@ -22,7 +22,7 @@ function DropdownMenuTrigger({
   raised = false,
   ...props
 }: MenuPrimitive.Trigger.Props & {
-  variant?: "plain" | "header" | "chip" | "inline";
+  variant?: "plain" | "header" | "chip";
   /** A chip on the sky ground itself rather than on white: white with a pale edge (Figma K1b chip lọc). */
   raised?: boolean;
 }) {
@@ -33,8 +33,6 @@ function DropdownMenuTrigger({
       data-raised={raised ? "" : undefined}
       className={cn(
         chipTrigger,
-        // Second Bite (Figma K2 tóm tắt): a menu opened from a short link in a line, such as "Gần nhất".
-        "data-[variant=inline]:-my-3 data-[variant=inline]:flex data-[variant=inline]:min-h-11 data-[variant=inline]:items-center data-[variant=inline]:gap-1 data-[variant=inline]:text-label-strong data-[variant=inline]:text-link data-[variant=inline]:focus-visible:ring-3 data-[variant=inline]:focus-visible:ring-ring/50 data-[variant=inline]:focus-visible:outline-none",
         "data-[variant=header]:-my-1.5 data-[variant=header]:flex data-[variant=header]:h-11 data-[variant=header]:min-w-11 data-[variant=header]:items-center data-[variant=header]:justify-center data-[variant=header]:rounded-full data-[variant=header]:focus-visible:ring-3 data-[variant=header]:focus-visible:ring-ring data-[variant=header]:focus-visible:ring-offset-2 data-[variant=header]:focus-visible:ring-offset-card data-[variant=header]:focus-visible:outline-none",
         className,
       )}
@@ -95,7 +93,9 @@ function DropdownMenuLabel({
   );
 }
 
-// Second Bite: items are 44px high and set in body-sm (DESIGN.md, web guideline › targets).
+// Second Bite: items are 44px high and set in body-sm (DESIGN.md, web guideline › targets). "current" is the item for
+// where the person already is (the store they are in): filled, in the strong face, with a bar of the brand colour at
+// its side, so it stands out without a tick.
 function DropdownMenuItem({
   className,
   inset,
@@ -103,7 +103,7 @@ function DropdownMenuItem({
   ...props
 }: MenuPrimitive.Item.Props & {
   inset?: boolean;
-  variant?: "default" | "destructive";
+  variant?: "default" | "destructive" | "current";
 }) {
   return (
     <MenuPrimitive.Item
@@ -111,7 +111,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "group/dropdown-menu-item relative flex min-h-11 cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 text-body-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-[variant=destructive]:*:[svg]:text-destructive",
+        "group/dropdown-menu-item relative flex min-h-11 cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 text-body-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7 data-[variant=current]:bg-secondary data-[variant=current]:text-body-sm-strong data-[variant=current]:text-secondary-foreground data-[variant=current]:before:absolute data-[variant=current]:before:inset-y-1.5 data-[variant=current]:before:left-0 data-[variant=current]:before:w-1 data-[variant=current]:before:rounded-full data-[variant=current]:before:bg-primary data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-[variant=destructive]:*:[svg]:text-destructive",
         className,
       )}
       {...props}

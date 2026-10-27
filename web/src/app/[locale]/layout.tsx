@@ -2,12 +2,16 @@ import type { Metadata, Viewport } from "next";
 import { Be_Vietnam_Pro, Bricolage_Grotesque } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { JsonLd } from "@/components/json-ld";
+import { QueryProvider } from "@/components/query-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { Splash } from "@/components/splash";
+import { Toaster } from "@/components/ui/toast";
+import { CountView } from "@/features/stats/count-view";
 import { routing } from "@/i18n/routing";
 import { absoluteUrl, siteIds, siteOrigin } from "@/lib/seo";
 
@@ -41,13 +45,16 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: t("title"), template: `%s · ${t("title")}` },
     description: t("description"),
     applicationName: t("title"),
+    // Added to an iPhone's Home Screen, the site opens as an app, the only way it gets push there (SEC-25).
+    appleWebApp: { capable: true, title: t("title") },
+    icons: { apple: "/icons/apple-touch-icon.png" },
   };
 }
 
 // The root layout: every page lives under [locale], so the document's language is the page's.
 export default async function LocaleLayout({ children }: LayoutProps<"/[locale]">) {
   const locale = await getLocale();
-  const t = await getTranslations("Metadata");
+  const [t, failure] = await Promise.all([getTranslations("Metadata"), getTranslations("Failure")]);
   const lang = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
 
   return (
@@ -92,13 +99,25 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
           }}
         />
         <NextIntlClientProvider>
-          <Splash />
-          {children}
-          <SiteFooter />
-          {/* The bar reads the address, which a page with a dynamic segment knows only at request time. */}
-          <Suspense>
-            <BottomNav />
-          </Suspense>
+          {/* Every page may keep a list's filters in the address and say what an action did in a toast
+              (docs/guidelines/web.md › Lists and filters, › Feedback). */}
+          <NuqsAdapter>
+            <Toaster closeLabel={failure("closeToast")}>
+              <QueryProvider>
+                <Splash />
+                {children}
+                <SiteFooter />
+                {/* The bar reads the address, which a page with a dynamic segment knows only at request time. */}
+                <Suspense>
+                  <BottomNav />
+                </Suspense>
+                {/* Reads the address's utm_source, known only at request time, like the bar. */}
+                <Suspense>
+                  <CountView />
+                </Suspense>
+              </QueryProvider>
+            </Toaster>
+          </NuqsAdapter>
         </NextIntlClientProvider>
       </body>
     </html>

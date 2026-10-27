@@ -9,7 +9,7 @@ part of 'admins_output_body.dart';
 _AdminsOutputBody _$AdminsOutputBodyFromJson(Map<String, dynamic> json) =>
     _AdminsOutputBody(
       admins: (json['admins'] as List<dynamic>?)
-          ?.map((e) => AccountBody.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => RecordBody.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 

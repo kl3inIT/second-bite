@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
-import { BackButton } from "@/components/back-button";
+import { PageBar } from "@/components/page-bar";
 import { Checkout } from "@/features/cart/checkout";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Cart");
-  return { title: `${t("title")} · Second Bite`, robots: { index: false } };
+  return { title: t("title"), robots: { index: false } };
 }
 
 // The cart's confirmation (Figma K5) under the blue top bar with its white back button. The cart lives in
@@ -16,12 +16,7 @@ export default async function CartPage() {
 
   return (
     <>
-      <header className="bg-header text-header-foreground">
-        <div className="mx-auto flex h-16 w-full max-w-xl items-center gap-3 px-4">
-          <BackButton fallback="/" />
-          <h1 className="text-bar-title">{t("title")}</h1>
-        </div>
-      </header>
+      <PageBar title={t("title")} back="/" returnTo="/cart" />
       <main className="flex flex-1 flex-col">
         <Checkout />
       </main>

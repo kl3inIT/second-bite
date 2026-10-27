@@ -4,19 +4,21 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-/// relevance with q, distance with near, ending_soon otherwise, when absent
+/// name, address or changed; a leading - is descending; the queue order when absent
 @JsonEnum()
 enum Sort2 {
-  @JsonValue('relevance')
-  relevance('relevance'),
-  @JsonValue('distance')
-  distance('distance'),
-  @JsonValue('ending_soon')
-  endingSoon('ending_soon'),
-  @JsonValue('price')
-  price('price'),
-  @JsonValue('discount')
-  discount('discount'),
+  @JsonValue('name')
+  name('name'),
+  @JsonValue('-name')
+  minusName('-name'),
+  @JsonValue('address')
+  address('address'),
+  @JsonValue('-address')
+  minusAddress('-address'),
+  @JsonValue('changed')
+  changed('changed'),
+  @JsonValue('-changed')
+  minusChanged('-changed'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

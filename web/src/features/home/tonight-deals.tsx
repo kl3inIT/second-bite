@@ -16,7 +16,7 @@ const TICKET_COUNT = 8;
 // coupons on the deep blue deal card (Figma 105:2666): the discount, a dashed cut
 // with a notch at each edge, then the seller. Every figure comes from the offers; with nothing to order, it
 // does not show. A bowl of food sits in its corner (Figma bát món).
-// From 1024px it is Figma WK1 "hero ưu đãi": one row, kept on the deep blue to stand out from the header, the title large with a line under it, the
+// From 768px it is Figma WK1 "hero ưu đãi": one row, kept on the deep blue to stand out from the header, the title large with a line under it, the
 // biggest discount, then the tickets, each with the time it is collected from; the bowl stays on the phone.
 export async function TonightDeals({ query: pending }: { query: Promise<HomeQuery> }) {
   const query = await pending;
@@ -34,38 +34,38 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
   return (
     <section
       aria-labelledby="tonight-deals"
-      className="relative flex flex-col gap-2.5 overflow-hidden rounded-2xl bg-deal px-3.5 pt-3.5 pb-3 text-deal-foreground lg:flex-row lg:items-center lg:gap-7 lg:rounded-3xl lg:py-7 lg:pr-7 lg:pl-8"
+      className="relative flex flex-col gap-2.5 overflow-hidden rounded-2xl bg-deal px-3.5 pt-3.5 pb-3 text-deal-foreground md:flex-row md:items-center md:gap-7 md:rounded-3xl md:py-7 md:pr-7 md:pl-8"
     >
       <Image
         src={bowl}
         alt=""
         sizes="60px"
-        className="absolute top-1.5 right-3 size-15 lg:hidden"
+        className="absolute top-1.5 right-3 size-15 md:hidden"
       />
-      <div className="flex flex-col gap-2 lg:max-w-md lg:min-w-0 lg:flex-1">
+      <div className="flex flex-col gap-2 md:max-w-md md:min-w-0 md:flex-1">
         <h2
           id="tonight-deals"
-          className="text-body-sm-strong text-fresh lg:font-display lg:text-page-title lg:font-bold lg:text-deal-foreground"
+          className="pr-16 text-body-sm-strong text-fresh md:pr-0 md:font-display md:text-page-title md:font-bold md:text-deal-foreground"
         >
           {t("dealsTitle")}
         </h2>
-        <p className="hidden text-body-sm text-inverse-muted lg:block">
+        <p className="hidden text-body-sm text-inverse-muted md:block">
           {t("dealsLine", { percent: tickets[0].discountPercent })}
         </p>
       </div>
-      <div className="flex items-center gap-2.5 lg:contents">
+      <div className="flex items-center gap-2.5 md:contents">
         <p className="flex shrink-0 flex-col">
           <span className="text-label-strong text-deal-foreground uppercase">{t("upTo")}</span>
           <span className="font-display text-display text-fresh">
             {t("upToPercent", { percent: tickets[0].discountPercent })}
           </span>
         </p>
-        <div className="flex min-w-0 flex-1 sm:mr-16 lg:mr-0">
+        <div className="flex min-w-0 flex-1 sm:mr-16 md:mr-0">
           <Marquee label={t("dealsTitle")} count={tickets.length}>
             {tickets.map((offer) => (
               <li
                 key={offer.id}
-                className="relative flex h-18 w-36 shrink-0 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 text-card-foreground sm:w-44 lg:h-auto lg:gap-1 lg:px-3 lg:py-2.5"
+                className="relative flex min-h-18 w-36 shrink-0 flex-col justify-center gap-1.5 rounded-xl bg-card px-2 py-1.5 text-card-foreground sm:w-44 md:h-auto md:gap-1 md:px-3 md:py-2.5"
               >
                 <span className="font-display text-price-lg text-sale">
                   <span aria-hidden>{t("ticketDiscount", { percent: offer.discountPercent })}</span>
@@ -75,9 +75,9 @@ export async function TonightDeals({ query: pending }: { query: Promise<HomeQuer
                 </span>
                 <hr className="border-t border-dashed border-border" />
                 <span className="truncate text-body-sm-strong">
-                  <DishLink offerId={offer.id}>{offer.seller.name}</DishLink>
+                  <DishLink offer={offer}>{offer.seller.name}</DishLink>
                 </span>
-                <span className="hidden text-label text-muted-foreground lg:block">
+                <span className="hidden text-label text-muted-foreground md:block">
                   {t("ticketFrom", { time: format.dateTime(new Date(offer.windowStart), "time") })}
                 </span>
                 <span

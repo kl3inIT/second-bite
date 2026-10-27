@@ -17,14 +17,16 @@ import { OfferList } from "@/features/offers/offer-list";
 import { OfferRow } from "@/features/offers/offer-row";
 import { SearchFilters } from "@/features/search/search-filters";
 import { Link } from "@/i18n/navigation";
+import { searchHref } from "@/features/search/search-query";
 
-import { homeSearch, type HomeQuery } from "./home-query";
+import { homePath, type HomeQuery } from "./home-query";
 import { HowItWorks } from "./how-it-works";
 import { KindPicker } from "./kind-picker";
 import { RecommendedSection, UpcomingSection } from "./tonight-rows";
 
 const CLOSING_COUNT = 6;
-const seeAllClass = "-my-3 py-3 text-body-sm-strong text-link underline-offset-4 hover:underline";
+const seeAllClass =
+  "-my-3 shrink-0 py-3 text-body-sm-strong whitespace-nowrap text-link underline-offset-4 hover:underline";
 
 // Everything under the header for what the address asks (Figma Mobile v3 content). Without a filter: the
 // kinds, the windows closing first, what is coming tonight, the recommendations, then every offer in a grid
@@ -94,7 +96,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
 /** "Xem tất cả": every dish, by seller, on the search page (Figma K1f). */
 function SeeAll({ near, label }: { near?: string; label: string }) {
   return (
-    <Link href={{ pathname: "/search", query: homeSearch({ near }) }} className={seeAllClass}>
+    <Link href={searchHref({ near })} className={seeAllClass}>
       {label}
     </Link>
   );
@@ -104,12 +106,12 @@ function SeeAll({ near, label }: { near?: string; label: string }) {
 function FiltersLink({ near, label }: { near?: string; label: string }) {
   return (
     <Link
-      href={{ pathname: "/search", query: homeSearch({ near }) }}
+      href={searchHref({ near })}
       aria-label={label}
       className={buttonVariants({
         variant: "chip",
         size: "chip",
-        className: "bg-card ring-1 ring-secondary ring-inset",
+        className: "bg-card ring-1 ring-secondary ring-inset md:h-9",
       })}
     >
       <SlidersHorizontalIcon aria-hidden className="size-4.5 text-primary" />
@@ -127,10 +129,7 @@ async function NothingFound({ filtered, near }: { filtered: boolean; near?: stri
       </EmptyHeader>
       {filtered && (
         <EmptyContent>
-          <Link
-            href={{ pathname: "/", query: homeSearch({ near }) }}
-            className={buttonVariants({ variant: "secondary" })}
-          >
+          <Link href={homePath({ near })} className={buttonVariants({ variant: "secondary" })}>
             {t("showAll")}
           </Link>
         </EmptyContent>

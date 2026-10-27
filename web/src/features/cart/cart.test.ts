@@ -4,10 +4,12 @@ import type { OfferSummary } from "@/features/offers/offer";
 
 import {
   addOne,
+  addPortions,
   collectionWindow,
   keepLeft,
+  oneMore,
   quantityOf,
-  readCart,
+  storedCart,
   removeOne,
   totals,
   withBasket,
@@ -30,6 +32,7 @@ function offer(
     name: id,
     description: "",
     kind: "bakery",
+    kindLabel: "",
     unit: "chiếc",
     units: 5,
     unitsLeft,
@@ -37,6 +40,7 @@ function offer(
     originalPriceVnd: 50_000,
     discountPercent: 60,
     photo: { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` },
+    photos: [{ id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` }],
     windowStart: `2026-10-20T${window.start}:00+07:00`,
     windowEnd: `2026-10-20T${window.end}:00+07:00`,
     collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: "Tầng 1" },
@@ -94,6 +98,22 @@ describe("the cart", () => {
     expect(basketOf(offer("croissant"), later).seller.photo).toEqual(logo);
   });
 
+  it("adds several portions at once from the dish's sheet, never more than its portions left", () => {
+    const croissant = offer("croissant", { unitsLeft: 3 });
+    const cart = addPortions(null, croissant, 2);
+
+    expect(quantityOf(cart, "croissant")).toBe(2);
+    expect(quantityOf(addPortions(cart, croissant, 2), "croissant")).toBe(3);
+    expect(cart.baskets[0].lines[0].photo?.smallPath).toBe("/photos/croissant/400.jpg");
+  });
+
+  it("adds one more of a dish already in the cart, never more than its portions left", () => {
+    const cart = cartOf(offer("croissant", { unitsLeft: 2 }))!;
+
+    expect(quantityOf(oneMore(cart, "croissant"), "croissant")).toBe(2);
+    expect(quantityOf(oneMore(oneMore(cart, "croissant"), "croissant"), "croissant")).toBe(2);
+  });
+
   it("lets a dish go at none and is gone with its last dish", () => {
     const cart = cartOf(offer("croissant"), offer("croissant"), offer("eclair"))!;
 
@@ -132,11 +152,11 @@ describe("the cart", () => {
   it("reads back only what is a cart, and a cart saved with one seller as that seller's basket", () => {
     const cart = cartOf(offer("croissant"))!;
 
-    expect(readCart(cart)).toEqual(cart);
-    expect(readCart(cart.baskets[0])).toEqual(cart);
-    expect(readCart({ seller: { id: "s1" }, lines: [] })).toBeNull();
-    expect(readCart({ baskets: [] })).toBeNull();
-    expect(readCart("[]")).toBeNull();
+    expect(storedCart.parse(cart)).toEqual(cart);
+    expect(storedCart.parse(cart.baskets[0])).toEqual(cart);
+    expect(storedCart.safeParse({ seller: { id: "s1" }, lines: [] }).success).toBe(false);
+    expect(storedCart.safeParse({ baskets: [] }).success).toBe(false);
+    expect(storedCart.safeParse("[]").success).toBe(false);
   });
 });
 

@@ -32,8 +32,9 @@ describe("the home's path, which sign-in returns to", () => {
   it("is the root without a query, and keeps each filter", () => {
     expect(homePath({})).toBe("/");
     expect(homePath({ q: "bánh mì", kind: "bakery", now: true })).toBe(
-      "/?q=b%C3%A1nh+m%C3%AC&kind=bakery&now=1",
+      "/?q=bánh+mì&kind=bakery&now=1",
     );
-    expect(homePath({ near: "21.057,105.896" })).toBe("/?near=21.057%2C105.896");
+    expect(homePath({ near: "21.057,105.896" })).toBe("/?near=21.057,105.896");
+    expect(homePath({ now: false })).toBe("/");
   });
 });

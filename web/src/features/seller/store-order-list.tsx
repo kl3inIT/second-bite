@@ -1,12 +1,15 @@
 import { getTranslations } from "next-intl/server";
 
+import { PushCard } from "@/features/notification/push-card";
 import { formatPrice } from "@/features/offers/format";
+import { LiveRefresh } from "@/features/orders/live-refresh";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import { getStoreOrders } from "./my-sellers";
 import { OrderRow } from "./order-row";
-import { OrdersFilter } from "./orders-filter";
+import { DayFilter } from "./day-filter";
+import { ScanOrder } from "./scan-order";
 import { requireStore } from "./require-store";
 import {
   deliveredTotal,
@@ -14,17 +17,21 @@ import {
   matchesQuery,
   type OrderTab,
   orderTabs,
-  readDay,
-  readOrderTab,
-  unitsOf,
-  vietnamToday,
 } from "./store-orders";
+import {
+  dayOrNull,
+  loadOrderSearchParams,
+  searchOf,
+  serializeOrderSearchParams,
+} from "./search-params";
+import { vietnamToday } from "./store-day";
 import { StoreTitleRow } from "./store-title-row";
 import { UndoToast } from "./undo-toast";
 
 // The store's order tab (SEC-78, Figma Q5, Q5b to Q5g): the orders of one day, which customers hold with their
-// name and phone number, in three tabs — held, handed over, cancelled — with a search and a day to pick. The customer
-// pays the seller in cash at the counter, so "Đã giao" ends an order. It reads the session, so it renders inside Suspense.
+// name and phone number, in four tabs — preparing, ready, handed over, cancelled — with a search and a day to pick
+// (SEC-102 added the two steps). The customer pays the seller in cash at the counter, so "Đã giao" ends an order. It
+// reads the session, so it renders inside Suspense.
 export async function StoreOrders({
   sellerId: pendingId,
   query: pendingQuery,
@@ -40,9 +47,10 @@ export async function StoreOrders({
   await requireStore(sellerId, `/stores/${sellerId}/orders`);
 
   const today = vietnamToday();
-  const day = readDay(one("day"), today);
-  const tab = readOrderTab(one("tab"));
-  const search = (one("q") ?? "").trim().slice(0, 80);
+  const filter = loadOrderSearchParams(query);
+  const day = filter.day ?? today;
+  const { tab } = filter;
+  const search = searchOf(filter.q);
 
   const [t, orders] = await Promise.all([
     getTranslations("StoreOrders"),
@@ -58,11 +66,10 @@ export async function StoreOrders({
   const delivered = groups.delivered;
   let summary: string;
   if (searching) summary = t("searchCount", { count: found.length });
-  else if (tab === "holding") {
-    const holding = groups.holding;
+  else if (tab === "preparing" || tab === "ready") {
     summary = t("summaryHolding", {
-      units: holding.reduce((sum, order) => sum + unitsOf(order), 0),
-      people: new Set(holding.map((order) => order.customerPhone)).size,
+      preparing: groups.preparing.length,
+      ready: groups.ready.length,
     });
   } else if (tab === "delivered") {
     summary = t("summaryDelivered", {
@@ -75,17 +82,12 @@ export async function StoreOrders({
   const undone = undoId ? orders.find((order) => order.id === undoId) : undefined;
   const undoMessage = undone ? t("deliveredTo", { name: undone.customerName }) : undefined;
 
-  const tabHref = (name: OrderTab) => ({
-    pathname: `/stores/${sellerId}/orders`,
-    query: {
-      ...(day === today ? {} : { day }),
-      ...(name === "holding" ? {} : { tab: name }),
-      ...(searching ? { q: search } : {}),
-    },
-  });
+  const tabHref = (name: OrderTab) =>
+    `/stores/${sellerId}/orders${serializeOrderSearchParams({ day: dayOrNull(day, today), tab: name, q: search })}`;
 
   return (
     <>
+      <LiveRefresh topics={[`seller:${sellerId}`]} />
       {undone && undoMessage && <UndoToast orderId={undone.id} message={undoMessage} />}
       <StoreTitleRow
         title={t("title")}
@@ -97,30 +99,42 @@ export async function StoreOrders({
         }
       />
 
-      <OrdersFilter sellerId={sellerId} day={day} today={today} tab={tab} q={search} />
+      <PushCard side="seller" topics={[`seller:${sellerId}`]} />
+
+      <DayFilter
+        pathname={`/stores/${sellerId}/orders`}
+        list="orders"
+        today={today}
+        label={t("searchLabel")}
+        placeholder={t("searchPlaceholder")}
+        extra={<ScanOrder sellerId={sellerId} />}
+      />
 
       <section
         aria-label={t("title")}
         className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground"
       >
         <nav aria-label={t("tabs")}>
-          <ul className="-my-1 flex flex-wrap gap-x-2">
+          <ul className="-my-1 flex flex-wrap gap-x-2 max-md:grid max-md:grid-cols-4 max-md:gap-x-1.5">
             {orderTabs.map((name) => (
               <li key={name}>
                 <Link
                   href={tabHref(name)}
                   aria-current={name === tab ? "page" : undefined}
-                  className="group/chip flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                  className="group/chip flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none max-md:rounded-2xl"
                 >
                   <span
                     className={cn(
-                      "flex h-9.5 items-center rounded-full border px-4 whitespace-nowrap transition-colors",
+                      "flex h-9.5 items-center gap-1.5 rounded-full border px-4 whitespace-nowrap transition-colors max-md:h-auto max-md:min-h-11 max-md:w-full max-md:flex-col max-md:justify-center max-md:gap-0 max-md:rounded-2xl max-md:px-1 max-md:py-1",
                       name === tab
                         ? "border-primary bg-primary text-body-sm-strong text-primary-foreground"
                         : "border-border bg-card text-body-sm text-foreground group-hover/chip:bg-secondary",
                     )}
                   >
-                    {t(`tab.${name}`, { count: groups[name].length })}
+                    <span className="max-md:text-note">{t(`tab.${name}`)}</span>
+                    {/* The dot is read, so the name of the link is "Chuẩn bị · 3" as ever; a phone stacks the count under the word. */}
+                    <span className="max-md:sr-only">·</span>
+                    <span className="max-md:text-body-sm-strong">{groups[name].length}</span>
                   </span>
                 </Link>
               </li>

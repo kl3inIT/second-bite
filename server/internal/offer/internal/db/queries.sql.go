@@ -13,6 +13,20 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const closeEnded = `-- name: CloseEnded :execrows
+UPDATE offer_offers SET state = 'closed', updated_at = now()
+WHERE state = 'on_sale' AND window_end <= now()
+`
+
+// Closes the offers still on sale whose window is over. Reads compare the window too.
+func (q *Queries) CloseEnded(ctx context.Context) (int64, error) {
+	result, err := q.db.Exec(ctx, closeEnded)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const countDishes = `-- name: CountDishes :one
 SELECT count(*)::integer FROM offer_dishes WHERE seller_id = $1
 `
@@ -22,6 +36,85 @@ func (q *Queries) CountDishes(ctx context.Context, sellerID uuid.UUID) (int32, e
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const countOffersByStatus = `-- name: CountOffersByStatus :one
+SELECT count(*) FILTER (WHERE state = 'on_sale' AND window_end > now() AND units_left > 0) AS on_sale,
+       count(*) FILTER (WHERE state = 'on_sale' AND window_end > now() AND units_left = 0) AS sold_out,
+       count(*) FILTER (WHERE state = 'closed' OR (state = 'on_sale' AND window_end <= now())) AS closed,
+       count(*) FILTER (WHERE state = 'withdrawn') AS withdrawn
+FROM offer_offers
+WHERE ($1::text = '' OR search_vector @@ ($1::text)::tsquery)
+  AND ($2::uuid IS NULL OR seller_id = $2::uuid)
+  AND ($3::timestamptz IS NULL OR created_at >= $3::timestamptz)
+  AND ($4::timestamptz IS NULL OR created_at < $4::timestamptz)
+`
+
+type CountOffersByStatusParams struct {
+	Query       string
+	SellerID    uuid.NullUUID
+	PostedSince *time.Time
+	PostedUntil *time.Time
+}
+
+type CountOffersByStatusRow struct {
+	OnSale    int64
+	SoldOut   int64
+	Closed    int64
+	Withdrawn int64
+}
+
+// How many offers of each status match the words, the seller and the day
+// posted, whatever the status asked, for the cards above the admins' list.
+func (q *Queries) CountOffersByStatus(ctx context.Context, arg CountOffersByStatusParams) (CountOffersByStatusRow, error) {
+	row := q.db.QueryRow(ctx, countOffersByStatus,
+		arg.Query,
+		arg.SellerID,
+		arg.PostedSince,
+		arg.PostedUntil,
+	)
+	var i CountOffersByStatusRow
+	err := row.Scan(
+		&i.OnSale,
+		&i.SoldOut,
+		&i.Closed,
+		&i.Withdrawn,
+	)
+	return i, err
+}
+
+const countOffersForAdmins = `-- name: CountOffersForAdmins :one
+SELECT count(*) FROM offer_offers
+WHERE ($1::text = ''
+       OR ($1 = 'withdrawn' AND state = 'withdrawn')
+       OR ($1 = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
+       OR ($1 = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
+       OR ($1 = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
+  AND ($2::text = '' OR search_vector @@ ($2::text)::tsquery)
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::timestamptz IS NULL OR created_at >= $4::timestamptz)
+  AND ($5::timestamptz IS NULL OR created_at < $5::timestamptz)
+`
+
+type CountOffersForAdminsParams struct {
+	Status      string
+	Query       string
+	SellerID    uuid.NullUUID
+	PostedSince *time.Time
+	PostedUntil *time.Time
+}
+
+func (q *Queries) CountOffersForAdmins(ctx context.Context, arg CountOffersForAdminsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countOffersForAdmins,
+		arg.Status,
+		arg.Query,
+		arg.SellerID,
+		arg.PostedSince,
+		arg.PostedUntil,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const deleteDish = `-- name: DeleteDish :execrows
@@ -37,7 +130,7 @@ func (q *Queries) DeleteDish(ctx context.Context, id uuid.UUID) (int64, error) {
 }
 
 const getDish = `-- name: GetDish :one
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, kind_label, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden, created_at, updated_at
 FROM offer_dishes WHERE id = $1
 `
 
@@ -47,11 +140,13 @@ type GetDishRow struct {
 	CreatedBy        uuid.UUID
 	Name             string
 	Kind             string
+	KindLabel        string
 	Unit             string
 	Description      string
 	Ingredients      string
 	OriginalPriceVnd pgtype.Int8
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	Hidden           bool
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
@@ -66,11 +161,13 @@ func (q *Queries) GetDish(ctx context.Context, id uuid.UUID) (GetDishRow, error)
 		&i.CreatedBy,
 		&i.Name,
 		&i.Kind,
+		&i.KindLabel,
 		&i.Unit,
 		&i.Description,
 		&i.Ingredients,
 		&i.OriginalPriceVnd,
 		&i.PhotoID,
+		&i.MorePhotoIds,
 		&i.Hidden,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -79,8 +176,8 @@ func (q *Queries) GetDish(ctx context.Context, id uuid.UUID) (GetDishRow, error)
 }
 
 const getOffer = `-- name: GetOffer :one
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers WHERE id = $1
 `
@@ -93,6 +190,7 @@ type GetOfferRow struct {
 	Name             string
 	Description      string
 	Kind             string
+	KindLabel        string
 	Unit             string
 	Units            int32
 	UnitsLeft        int32
@@ -100,6 +198,7 @@ type GetOfferRow struct {
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	Latitude         float64
@@ -122,6 +221,7 @@ func (q *Queries) GetOffer(ctx context.Context, id uuid.UUID) (GetOfferRow, erro
 		&i.Name,
 		&i.Description,
 		&i.Kind,
+		&i.KindLabel,
 		&i.Unit,
 		&i.Units,
 		&i.UnitsLeft,
@@ -129,6 +229,7 @@ func (q *Queries) GetOffer(ctx context.Context, id uuid.UUID) (GetOfferRow, erro
 		&i.OriginalPriceVnd,
 		&i.WeightGrams,
 		&i.PhotoID,
+		&i.MorePhotoIds,
 		&i.WindowStart,
 		&i.WindowEnd,
 		&i.Latitude,
@@ -176,8 +277,8 @@ func (q *Queries) GetSettings(ctx context.Context) (GetSettingsRow, error) {
 }
 
 const insertDish = `-- name: InsertDish :one
-INSERT INTO offer_dishes (seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+INSERT INTO offer_dishes (seller_id, created_by, name, kind, kind_label, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 RETURNING id
 `
 
@@ -186,11 +287,13 @@ type InsertDishParams struct {
 	CreatedBy        uuid.UUID
 	Name             string
 	Kind             string
+	KindLabel        string
 	Unit             string
 	Description      string
 	Ingredients      string
 	OriginalPriceVnd pgtype.Int8
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	Hidden           bool
 }
 
@@ -200,11 +303,13 @@ func (q *Queries) InsertDish(ctx context.Context, arg InsertDishParams) (uuid.UU
 		arg.CreatedBy,
 		arg.Name,
 		arg.Kind,
+		arg.KindLabel,
 		arg.Unit,
 		arg.Description,
 		arg.Ingredients,
 		arg.OriginalPriceVnd,
 		arg.PhotoID,
+		arg.MorePhotoIds,
 		arg.Hidden,
 	)
 	var id uuid.UUID
@@ -214,12 +319,12 @@ func (q *Queries) InsertDish(ctx context.Context, arg InsertDishParams) (uuid.UU
 
 const insertOffer = `-- name: InsertOffer :one
 INSERT INTO offer_offers (
-    seller_id, posted_by, name, description, kind, unit, units, units_left, price_vnd, original_price_vnd,
-    weight_grams, photo_id, window_start, window_end, latitude, longitude, address, seller_name, search_vector
+    seller_id, posted_by, name, description, kind, kind_label, unit, units, units_left, price_vnd, original_price_vnd,
+    weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address, seller_name, search_vector
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $7, $8, $9,
-    $10, $11, $12, $13, $14, $15, $16, $17,
-    ($18::text)::tsvector
+    $1, $2, $3, $4, $5, $6, $7, $8, $8, $9, $10,
+    $11, $12, $13, $14, $15, $16, $17, $18, $19,
+    ($20::text)::tsvector
 )
 RETURNING id
 `
@@ -230,12 +335,14 @@ type InsertOfferParams struct {
 	Name             string
 	Description      string
 	Kind             string
+	KindLabel        string
 	Unit             string
 	Units            int32
 	PriceVnd         int64
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	Latitude         float64
@@ -252,12 +359,14 @@ func (q *Queries) InsertOffer(ctx context.Context, arg InsertOfferParams) (uuid.
 		arg.Name,
 		arg.Description,
 		arg.Kind,
+		arg.KindLabel,
 		arg.Unit,
 		arg.Units,
 		arg.PriceVnd,
 		arg.OriginalPriceVnd,
 		arg.WeightGrams,
 		arg.PhotoID,
+		arg.MorePhotoIds,
 		arg.WindowStart,
 		arg.WindowEnd,
 		arg.Latitude,
@@ -282,8 +391,8 @@ func (q *Queries) LockDishes(ctx context.Context, sellerID string) error {
 }
 
 const lockOffer = `-- name: LockOffer :one
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers WHERE id = $1 FOR UPDATE
 `
@@ -296,6 +405,7 @@ type LockOfferRow struct {
 	Name             string
 	Description      string
 	Kind             string
+	KindLabel        string
 	Unit             string
 	Units            int32
 	UnitsLeft        int32
@@ -303,6 +413,7 @@ type LockOfferRow struct {
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	Latitude         float64
@@ -326,6 +437,7 @@ func (q *Queries) LockOffer(ctx context.Context, id uuid.UUID) (LockOfferRow, er
 		&i.Name,
 		&i.Description,
 		&i.Kind,
+		&i.KindLabel,
 		&i.Unit,
 		&i.Units,
 		&i.UnitsLeft,
@@ -333,6 +445,7 @@ func (q *Queries) LockOffer(ctx context.Context, id uuid.UUID) (LockOfferRow, er
 		&i.OriginalPriceVnd,
 		&i.WeightGrams,
 		&i.PhotoID,
+		&i.MorePhotoIds,
 		&i.WindowStart,
 		&i.WindowEnd,
 		&i.Latitude,
@@ -378,6 +491,198 @@ func (q *Queries) LockSettings(ctx context.Context) (LockSettingsRow, error) {
 		&i.UpdatedBy,
 	)
 	return i, err
+}
+
+const moveSellerOffers = `-- name: MoveSellerOffers :execrows
+UPDATE offer_offers
+SET latitude = $1, longitude = $2, address = $3, updated_at = now()
+WHERE seller_id = $4 AND state = 'on_sale' AND window_end > now()
+  AND (latitude, longitude, address) IS DISTINCT FROM ($1, $2, $3::text)
+`
+
+type MoveSellerOffersParams struct {
+	Latitude  float64
+	Longitude float64
+	Address   string
+	SellerID  uuid.UUID
+}
+
+// Copies a seller's collection point onto its offers still to come: on sale
+// with a window not yet over. Offers withdrawn or ended keep what they copied.
+func (q *Queries) MoveSellerOffers(ctx context.Context, arg MoveSellerOffersParams) (int64, error) {
+	result, err := q.db.Exec(ctx, moveSellerOffers,
+		arg.Latitude,
+		arg.Longitude,
+		arg.Address,
+		arg.SellerID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const offersForAdmins = `-- name: OffersForAdmins :many
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
+       created_at, updated_at, withdrawn_at, seller_name
+FROM offer_offers
+WHERE ($1::text = ''
+       OR ($1 = 'withdrawn' AND state = 'withdrawn')
+       OR ($1 = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
+       OR ($1 = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
+       OR ($1 = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
+  AND ($2::text = '' OR search_vector @@ ($2::text)::tsquery)
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::timestamptz IS NULL OR created_at >= $4::timestamptz)
+  AND ($5::timestamptz IS NULL OR created_at < $5::timestamptz)
+ORDER BY created_at DESC, id
+LIMIT $7 OFFSET $6
+`
+
+type OffersForAdminsParams struct {
+	Status      string
+	Query       string
+	SellerID    uuid.NullUUID
+	PostedSince *time.Time
+	PostedUntil *time.Time
+	SkipRows    int32
+	MaxRows     int32
+}
+
+type OffersForAdminsRow struct {
+	ID               uuid.UUID
+	SellerID         uuid.UUID
+	PostedBy         uuid.UUID
+	State            string
+	Name             string
+	Description      string
+	Kind             string
+	KindLabel        string
+	Unit             string
+	Units            int32
+	UnitsLeft        int32
+	PriceVnd         int64
+	OriginalPriceVnd int64
+	WeightGrams      pgtype.Int4
+	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
+	WindowStart      time.Time
+	WindowEnd        time.Time
+	Latitude         float64
+	Longitude        float64
+	Address          string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	WithdrawnAt      *time.Time
+	SellerName       string
+}
+
+// One page of every seller's offers in the status given (all when empty),
+// matching the tsquery literal built by searchQuery (any when empty), of the
+// seller given and posted in [posted_since, posted_until) when given, newest
+// first; CountOffersForAdmins counts them all.
+func (q *Queries) OffersForAdmins(ctx context.Context, arg OffersForAdminsParams) ([]OffersForAdminsRow, error) {
+	rows, err := q.db.Query(ctx, offersForAdmins,
+		arg.Status,
+		arg.Query,
+		arg.SellerID,
+		arg.PostedSince,
+		arg.PostedUntil,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OffersForAdminsRow
+	for rows.Next() {
+		var i OffersForAdminsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SellerID,
+			&i.PostedBy,
+			&i.State,
+			&i.Name,
+			&i.Description,
+			&i.Kind,
+			&i.KindLabel,
+			&i.Unit,
+			&i.Units,
+			&i.UnitsLeft,
+			&i.PriceVnd,
+			&i.OriginalPriceVnd,
+			&i.WeightGrams,
+			&i.PhotoID,
+			&i.MorePhotoIds,
+			&i.WindowStart,
+			&i.WindowEnd,
+			&i.Latitude,
+			&i.Longitude,
+			&i.Address,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.WithdrawnAt,
+			&i.SellerName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const postDays = `-- name: PostDays :many
+SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
+       count(*) AS offers, sum(units)::bigint AS units
+FROM offer_offers
+WHERE window_start >= $1 AND window_start < $2
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+GROUP BY 1, 2
+ORDER BY 1, 2
+`
+
+type PostDaysParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type PostDaysRow struct {
+	Day      pgtype.Date
+	SellerID uuid.UUID
+	Offers   int64
+	Units    int64
+}
+
+// The offers posted and their units, per collection day in Vietnam and seller, for the admin's report (SEC-80).
+func (q *Queries) PostDays(ctx context.Context, arg PostDaysParams) ([]PostDaysRow, error) {
+	rows, err := q.db.Query(ctx, postDays, arg.Since, arg.Until, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PostDaysRow
+	for rows.Next() {
+		var i PostDaysRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.SellerID,
+			&i.Offers,
+			&i.Units,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const putSettings = `-- name: PutSettings :exec
@@ -429,12 +734,12 @@ func (q *Queries) ReturnUnits(ctx context.Context, arg ReturnUnitsParams) error 
 }
 
 const searchOffers = `-- name: SearchOffers :many
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name,
        COALESCE(distance_m, 0)::float8 AS distance_m, rank::float4 AS rank
 FROM (
-    SELECT o.id, o.seller_id, o.posted_by, o.state, o.name, o.description, o.kind, o.unit, o.units, o.units_left, o.price_vnd, o.original_price_vnd, o.weight_grams, o.photo_id, o.window_start, o.window_end, o.latitude, o.longitude, o.location, o.address, o.created_at, o.updated_at, o.withdrawn_at, o.seller_name, o.search_vector,
+    SELECT o.id, o.seller_id, o.posted_by, o.state, o.name, o.description, o.kind, o.unit, o.units, o.units_left, o.price_vnd, o.original_price_vnd, o.weight_grams, o.photo_id, o.window_start, o.window_end, o.latitude, o.longitude, o.location, o.address, o.created_at, o.updated_at, o.withdrawn_at, o.seller_name, o.search_vector, o.more_photo_ids, o.kind_label,
            CASE WHEN $1::float8 IS NULL THEN NULL
                 ELSE ST_Distance(o.location, ST_SetSRID(ST_MakePoint($2::float8, $1::float8), 4326)::geography)
            END AS distance_m,
@@ -489,6 +794,7 @@ type SearchOffersRow struct {
 	Name             string
 	Description      string
 	Kind             string
+	KindLabel        string
 	Unit             string
 	Units            int32
 	UnitsLeft        int32
@@ -496,6 +802,7 @@ type SearchOffersRow struct {
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	Latitude         float64
@@ -545,6 +852,7 @@ func (q *Queries) SearchOffers(ctx context.Context, arg SearchOffersParams) ([]S
 			&i.Name,
 			&i.Description,
 			&i.Kind,
+			&i.KindLabel,
 			&i.Unit,
 			&i.Units,
 			&i.UnitsLeft,
@@ -552,6 +860,7 @@ func (q *Queries) SearchOffers(ctx context.Context, arg SearchOffersParams) ([]S
 			&i.OriginalPriceVnd,
 			&i.WeightGrams,
 			&i.PhotoID,
+			&i.MorePhotoIds,
 			&i.WindowStart,
 			&i.WindowEnd,
 			&i.Latitude,
@@ -575,7 +884,7 @@ func (q *Queries) SearchOffers(ctx context.Context, arg SearchOffersParams) ([]S
 }
 
 const sellerDishes = `-- name: SellerDishes :many
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, kind_label, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden, created_at, updated_at
 FROM offer_dishes WHERE seller_id = $1
 ORDER BY created_at DESC, id DESC
 `
@@ -586,11 +895,13 @@ type SellerDishesRow struct {
 	CreatedBy        uuid.UUID
 	Name             string
 	Kind             string
+	KindLabel        string
 	Unit             string
 	Description      string
 	Ingredients      string
 	OriginalPriceVnd pgtype.Int8
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	Hidden           bool
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
@@ -611,11 +922,13 @@ func (q *Queries) SellerDishes(ctx context.Context, sellerID uuid.UUID) ([]Selle
 			&i.CreatedBy,
 			&i.Name,
 			&i.Kind,
+			&i.KindLabel,
 			&i.Unit,
 			&i.Description,
 			&i.Ingredients,
 			&i.OriginalPriceVnd,
 			&i.PhotoID,
+			&i.MorePhotoIds,
 			&i.Hidden,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -631,14 +944,14 @@ func (q *Queries) SellerDishes(ctx context.Context, sellerID uuid.UUID) ([]Selle
 }
 
 const sellerOffers = `-- name: SellerOffers :many
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers
 WHERE seller_id = $1
   AND ($2::text = ''
        OR ($2 = 'withdrawn' AND state = 'withdrawn')
-       OR ($2 = 'closed' AND state = 'on_sale' AND window_end <= now())
+       OR ($2 = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
        OR ($2 = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
        OR ($2 = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
 ORDER BY created_at DESC, id
@@ -660,6 +973,7 @@ type SellerOffersRow struct {
 	Name             string
 	Description      string
 	Kind             string
+	KindLabel        string
 	Unit             string
 	Units            int32
 	UnitsLeft        int32
@@ -667,6 +981,7 @@ type SellerOffersRow struct {
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	Latitude         float64
@@ -700,6 +1015,7 @@ func (q *Queries) SellerOffers(ctx context.Context, arg SellerOffersParams) ([]S
 			&i.Name,
 			&i.Description,
 			&i.Kind,
+			&i.KindLabel,
 			&i.Unit,
 			&i.Units,
 			&i.UnitsLeft,
@@ -707,6 +1023,7 @@ func (q *Queries) SellerOffers(ctx context.Context, arg SellerOffersParams) ([]S
 			&i.OriginalPriceVnd,
 			&i.WeightGrams,
 			&i.PhotoID,
+			&i.MorePhotoIds,
 			&i.WindowStart,
 			&i.WindowEnd,
 			&i.Latitude,
@@ -728,8 +1045,10 @@ func (q *Queries) SellerOffers(ctx context.Context, arg SellerOffersParams) ([]S
 }
 
 const sellerUsesPhoto = `-- name: SellerUsesPhoto :one
-SELECT (EXISTS (SELECT 1 FROM offer_offers AS o WHERE o.seller_id = $1 AND o.photo_id = $2)
-    OR EXISTS (SELECT 1 FROM offer_dishes AS d WHERE d.seller_id = $1 AND d.photo_id = $2))::boolean
+SELECT (EXISTS (SELECT 1 FROM offer_offers AS o
+                WHERE o.seller_id = $1 AND (o.photo_id = $2 OR $2 = ANY (o.more_photo_ids)))
+    OR EXISTS (SELECT 1 FROM offer_dishes AS d
+               WHERE d.seller_id = $1 AND (d.photo_id = $2 OR $2 = ANY (d.more_photo_ids))))::boolean
 `
 
 type SellerUsesPhotoParams struct {
@@ -742,6 +1061,35 @@ func (q *Queries) SellerUsesPhoto(ctx context.Context, arg SellerUsesPhotoParams
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const sellersOfOffers = `-- name: SellersOfOffers :many
+SELECT id, seller_id FROM offer_offers WHERE id = ANY($1::uuid[])
+`
+
+type SellersOfOffersRow struct {
+	ID       uuid.UUID
+	SellerID uuid.UUID
+}
+
+func (q *Queries) SellersOfOffers(ctx context.Context, ids []uuid.UUID) ([]SellersOfOffersRow, error) {
+	rows, err := q.db.Query(ctx, sellersOfOffers, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SellersOfOffersRow
+	for rows.Next() {
+		var i SellersOfOffersRow
+		if err := rows.Scan(&i.ID, &i.SellerID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const takeUnits = `-- name: TakeUnits :one
@@ -798,19 +1146,21 @@ func (q *Queries) TakeUnits(ctx context.Context, arg TakeUnitsParams) (TakeUnits
 
 const updateDish = `-- name: UpdateDish :exec
 UPDATE offer_dishes
-SET name = $1, kind = $2, unit = $3, description = $4, ingredients = $5,
-    original_price_vnd = $6, photo_id = $7, hidden = $8, updated_at = now()
-WHERE id = $9
+SET name = $1, kind = $2, kind_label = $3, unit = $4, description = $5, ingredients = $6,
+    original_price_vnd = $7, photo_id = $8, more_photo_ids = $9, hidden = $10, updated_at = now()
+WHERE id = $11
 `
 
 type UpdateDishParams struct {
 	Name             string
 	Kind             string
+	KindLabel        string
 	Unit             string
 	Description      string
 	Ingredients      string
 	OriginalPriceVnd pgtype.Int8
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	Hidden           bool
 	ID               uuid.UUID
 }
@@ -819,11 +1169,13 @@ func (q *Queries) UpdateDish(ctx context.Context, arg UpdateDishParams) error {
 	_, err := q.db.Exec(ctx, updateDish,
 		arg.Name,
 		arg.Kind,
+		arg.KindLabel,
 		arg.Unit,
 		arg.Description,
 		arg.Ingredients,
 		arg.OriginalPriceVnd,
 		arg.PhotoID,
+		arg.MorePhotoIds,
 		arg.Hidden,
 		arg.ID,
 	)
@@ -832,17 +1184,18 @@ func (q *Queries) UpdateDish(ctx context.Context, arg UpdateDishParams) error {
 
 const updateOffer = `-- name: UpdateOffer :exec
 UPDATE offer_offers
-SET name = $1, description = $2, kind = $3, unit = $4, units = $5,
-    units_left = $6, price_vnd = $7, original_price_vnd = $8,
-    weight_grams = $9, photo_id = $10, window_start = $11, window_end = $12,
-    search_vector = ($13::text)::tsvector, updated_at = now()
-WHERE id = $14
+SET name = $1, description = $2, kind = $3, kind_label = $4, unit = $5, units = $6,
+    units_left = $7, price_vnd = $8, original_price_vnd = $9,
+    weight_grams = $10, photo_id = $11, more_photo_ids = $12, window_start = $13, window_end = $14,
+    search_vector = ($15::text)::tsvector, updated_at = now()
+WHERE id = $16
 `
 
 type UpdateOfferParams struct {
 	Name             string
 	Description      string
 	Kind             string
+	KindLabel        string
 	Unit             string
 	Units            int32
 	UnitsLeft        int32
@@ -850,6 +1203,7 @@ type UpdateOfferParams struct {
 	OriginalPriceVnd int64
 	WeightGrams      pgtype.Int4
 	PhotoID          uuid.UUID
+	MorePhotoIds     []uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	SearchVector     string
@@ -861,6 +1215,7 @@ func (q *Queries) UpdateOffer(ctx context.Context, arg UpdateOfferParams) error 
 		arg.Name,
 		arg.Description,
 		arg.Kind,
+		arg.KindLabel,
 		arg.Unit,
 		arg.Units,
 		arg.UnitsLeft,
@@ -868,6 +1223,7 @@ func (q *Queries) UpdateOffer(ctx context.Context, arg UpdateOfferParams) error 
 		arg.OriginalPriceVnd,
 		arg.WeightGrams,
 		arg.PhotoID,
+		arg.MorePhotoIds,
 		arg.WindowStart,
 		arg.WindowEnd,
 		arg.SearchVector,

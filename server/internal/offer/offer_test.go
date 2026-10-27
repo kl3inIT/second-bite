@@ -46,17 +46,22 @@ func TestOffer(t *testing.T) {
 			"a post follows the rules of its fields":      testPostFollowsFieldRules,
 			"only an active seller's people post":         testOnlyActiveSellersPeoplePost,
 			"a photo is the poster's or the seller's":     testPhotoIsPostersOrSellers,
+			"a dish shows up to three photos":             testDishShowsUpToThreePhotos,
+			"an offer shows up to three photos":           testOfferShowsUpToThreePhotos,
 			"orders limit what changes":                   testOrdersLimitWhatChanges,
 			"orders let the window move":                  testOrdersLetTheWindowMove,
+			"ended offers are closed in the table":        testEndedOffersAreClosed,
 			"status follows units, window and withdrawal": testStatusFollowsUnitsWindowAndWithdrawal,
 			"search reads Vietnamese as it is typed":      testSearchReadsVietnamese,
 			"search keeps what is near and filtered":      testSearchNearAndFiltered,
 			"a blocked seller's offers leave search":      testBlockedSellerLeavesSearch,
 			"a seller keeps its dishes in a catalog":      testCatalogKeepsTheStableBase,
 			"a catalog is private to its sellers people":  testCatalogIsPrivateToTheSellersPeople,
+			"sellers name the kind other":                 testSellersNameTheKindOther,
 			"a post copies its dish":                      testPostsCopyTheirDish,
 			"a catalog holds a hundred dishes":            testCatalogHoldsAHundredDishes,
 			"orders take and return units":                testOrdersTakeAndReturnUnits,
+			"admins list every seller's offers":           testAdminsListOffers,
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
@@ -388,6 +393,69 @@ func testOrdersLetTheWindowMove(t *testing.T, f fixture) {
 	mustFail(t, "a window already over", err, offer.ErrWindowInvalid)
 }
 
+// expectState fails the check unless an offer is stored in the state, whatever it reads as.
+func (f fixture) expectState(t *testing.T, id uuid.UUID, want, what string) {
+	t.Helper()
+
+	var state string
+	if err := f.pool.QueryRow(t.Context(), "SELECT state FROM offer_offers WHERE id = $1", id).Scan(&state); err != nil {
+		t.Fatal(err)
+	}
+
+	if state != want {
+		t.Errorf("%s: stored %s, want %s", what, state, want)
+	}
+}
+
+func testEndedOffersAreClosed(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	sellerID := f.activeSeller(owner, t)
+
+	ended, err := f.offers.Post(owner, sellerID, bread(f.photo(owner, t)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	running, err := f.offers.Post(owner, sellerID, bread(f.photo(owner, t)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The window of the first ends, as time passing would end it.
+	if _, err := f.pool.Exec(t.Context(),
+		"UPDATE offer_offers SET window_start = now() - interval '3 hours', window_end = now() - interval '1 hour' WHERE id = $1",
+		ended.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	// Read as closed already, whatever the job has done.
+	before, err := f.offers.Get(owner, ended.ID)
+	if err != nil || before.Status != offer.StatusClosed {
+		t.Fatalf("read before the job: %+v, %v", before, err)
+	}
+
+	f.expectState(t, ended.ID, "on_sale", "before the job")
+
+	for range 2 { // run twice, it changes nothing more
+		if err := f.offers.CloseEnded(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	f.expectState(t, ended.ID, "closed", "the ended offer once the job ran")
+	f.expectState(t, running.ID, "on_sale", "an offer still running")
+
+	closed, err := f.offers.OfSeller(owner, sellerID, offer.StatusClosed, 20, 0)
+	if err != nil || len(closed) != 1 || closed[0].ID != ended.ID {
+		t.Errorf("the seller's closed offers: %+v, %v", closed, err)
+	}
+
+	_, err = f.offers.Withdraw(owner, ended.ID)
+	mustFail(t, "withdrawing a closed offer", err, offer.ErrChangeNotAllowed)
+}
+
 func testStatusFollowsUnitsWindowAndWithdrawal(t *testing.T, f fixture) {
 	t.Helper()
 
@@ -627,6 +695,58 @@ func testCatalogKeepsTheStableBase(t *testing.T, f fixture) {
 	}
 }
 
+// testSellersNameTheKindOther: three more kinds hold a dish; the kind "other" holds a name the seller gives it, of
+// 30 letters at most, which no other kind holds, and which a change of kind takes away (SEC-175).
+func testSellersNameTheKindOther(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	w := newCatalogWorld(owner, t, f)
+
+	for _, kind := range []offer.Kind{offer.KindDessert, offer.KindSnacks, offer.KindProduce} {
+		if _, err := f.offers.AddDish(owner, w.sellerID, offer.DishDetails{Name: "Món", Kind: kind, PhotoID: w.photo}); err != nil {
+			t.Errorf("the kind %s: %v", kind, err)
+		}
+	}
+
+	for name, d := range map[string]offer.DishDetails{
+		"a name on another kind": {Name: "Bánh", Kind: offer.KindDessert, KindLabel: "Mứt", PhotoID: w.photo},
+		"a name of 31 letters":   {Name: "Bánh", Kind: offer.KindOther, KindLabel: strings.Repeat("x", 31), PhotoID: w.photo},
+	} {
+		_, err := f.offers.AddDish(owner, w.sellerID, d)
+		mustFail(t, name, err, offer.ErrDetailsInvalid)
+	}
+
+	named, err := f.offers.AddDish(owner, w.sellerID, offer.DishDetails{
+		Name: "Chè đậu", Kind: offer.KindOther, KindLabel: "  Chè truyền thống ", PhotoID: w.photo,
+	})
+	if err != nil || named.KindLabel != "Chè truyền thống" {
+		t.Fatalf("named %+v, %v", named, err)
+	}
+
+	name := "Chè đậu"
+
+	renamed, err := f.offers.ChangeDish(owner, named.ID, offer.DishChange{Name: &name})
+	if err != nil || renamed.KindLabel != "Chè truyền thống" {
+		t.Errorf("a change of the name leaves the kind's: %+v, %v", renamed, err)
+	}
+
+	kind := offer.KindDessert
+
+	moved, err := f.offers.ChangeDish(owner, named.ID, offer.DishChange{Kind: &kind})
+	if err != nil || moved.Kind != offer.KindDessert || moved.KindLabel != "" {
+		t.Errorf("a change of kind takes the name away: %+v, %v", moved, err)
+	}
+
+	d := bread(w.photo)
+	d.Kind, d.KindLabel = offer.KindOther, "Mứt tết"
+
+	posted, err := f.offers.Post(owner, w.sellerID, d)
+	if err != nil || posted.KindLabel != "Mứt tết" {
+		t.Errorf("a post of the kind other keeps the name: %+v, %v", posted, err)
+	}
+}
+
 func testCatalogIsPrivateToTheSellersPeople(t *testing.T, f fixture) {
 	t.Helper()
 
@@ -711,4 +831,86 @@ func testCatalogHoldsAHundredDishes(t *testing.T, f fixture) {
 
 	_, err := f.offers.AddDish(owner, sellerID, offer.DishDetails{Name: "Một món nữa", Kind: offer.KindOther, PhotoID: photo})
 	mustFail(t, "the 101st dish", err, offer.ErrDishLimitReached)
+}
+
+// A dish shows up to three photos, the first being the cover (SEC-119).
+func testDishShowsUpToThreePhotos(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	other := f.as(t, "other", platform.RoleCustomer)
+	sellerID := f.activeSeller(owner, t)
+
+	cover, second, third, fourth := f.photo(owner, t), f.photo(owner, t), f.photo(owner, t), f.photo(owner, t)
+	dish := offer.DishDetails{Name: "Bánh xèo", Kind: offer.KindPreparedFood, PhotoID: cover}
+
+	for name, more := range map[string][]uuid.UUID{
+		"three photos after the cover": {second, third, fourth},
+		"the cover again":              {cover},
+		"a photo twice":                {second, second},
+		"no photo at all":              {uuid.Nil},
+	} {
+		d := dish
+		d.MorePhotoIDs = more
+		_, err := f.offers.AddDish(owner, sellerID, d)
+		mustFail(t, name, err, offer.ErrDetailsInvalid)
+	}
+
+	foreign := dish
+	foreign.MorePhotoIDs = []uuid.UUID{f.photo(other, t)}
+	_, err := f.offers.AddDish(owner, sellerID, foreign)
+	mustFail(t, "a photo someone else uploaded", err, file.ErrPhotoNotFound)
+
+	dish.MorePhotoIDs = []uuid.UUID{second, third}
+
+	kept, err := f.offers.AddDish(owner, sellerID, dish)
+	if err != nil || len(kept.MorePhotoIDs) != 2 || kept.MorePhotoIDs[0] != second || kept.PhotoID != cover {
+		t.Fatalf("a dish with three photos: %+v, %v", kept, err)
+	}
+
+	// A change replaces the photos after the cover, and an empty list takes them away.
+	none := []uuid.UUID{}
+
+	cleared, err := f.offers.ChangeDish(owner, kept.ID, offer.DishChange{MorePhotoIDs: &none})
+	if err != nil || len(cleared.MorePhotoIDs) != 0 {
+		t.Fatalf("a dish with only its cover: %+v, %v", cleared, err)
+	}
+}
+
+// An offer shows up to three photos, which its seller already shows or the poster uploaded (SEC-119).
+func testOfferShowsUpToThreePhotos(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	other := f.as(t, "other", platform.RoleCustomer)
+	sellerID := f.activeSeller(owner, t)
+	otherSeller := f.activeSeller(other, t)
+
+	cover, second, third := f.photo(owner, t), f.photo(owner, t), f.photo(owner, t)
+
+	d := bread(cover)
+	d.MorePhotoIDs = []uuid.UUID{second, third}
+
+	posted, err := f.offers.Post(owner, sellerID, d)
+	if err != nil || len(posted.MorePhotoIDs) != 2 {
+		t.Fatalf("an offer with three photos: %+v, %v", posted, err)
+	}
+
+	got, err := f.offers.Get(owner, posted.ID)
+	if err != nil || len(got.MorePhotoIDs) != 2 || got.MorePhotoIDs[1] != third {
+		t.Fatalf("the offer read again: %+v, %v", got, err)
+	}
+
+	// No other seller may show a photo the seller shows, extra or not.
+	stolen := bread(f.photo(other, t))
+	stolen.MorePhotoIDs = []uuid.UUID{second}
+	_, err = f.offers.Post(other, otherSeller, stolen)
+	mustFail(t, "another seller taking a seller's extra photo", err, file.ErrPhotoNotFound)
+
+	only := []uuid.UUID{third}
+
+	changed, err := f.offers.Change(owner, posted.ID, offer.Change{MorePhotoIDs: &only})
+	if err != nil || len(changed.MorePhotoIDs) != 1 {
+		t.Fatalf("an offer with two photos: %+v, %v", changed, err)
+	}
 }

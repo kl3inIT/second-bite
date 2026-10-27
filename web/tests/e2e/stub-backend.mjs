@@ -68,6 +68,7 @@ function sample({
   id,
   name,
   description = "",
+  weightGrams,
   kind,
   price,
   originalPrice,
@@ -85,7 +86,9 @@ function sample({
     status,
     name,
     description,
+    ...(weightGrams ? { weightGrams } : {}),
     kind,
+    kindLabel: "",
     unit,
     units: Math.max(unitsLeft, 1),
     unitsLeft,
@@ -97,6 +100,7 @@ function sample({
       largePath: `/photos/${photo}/1600.jpg`,
       smallPath: `/photos/${photo}/400.jpg`,
     },
+    photos: [photoBody(photo)],
     windowStart: from,
     windowEnd: until,
     collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
@@ -163,7 +167,8 @@ const offers = [
     id: "of-croissant",
     name: "Bánh Croissant Truyền Thống",
     description:
-      "Bánh làm trong ngày, ngon nhất khi dùng trước 24 giờ. Nếu bạn dị ứng món nào, hãy hỏi quán khi đến nhận.",
+      "Croissant bơ Pháp nướng sáng nay, vỏ nhiều lớp, ruột mềm. Hâm lò 3 phút cho giòn lại.",
+    weightGrams: 80,
     kind: "bakery",
     price: 22000,
     originalPrice: 50000,
@@ -188,6 +193,8 @@ const offers = [
   sample({
     id: "of-banh-mi",
     name: "Bánh mì mềm chà bông",
+    description: "Bánh mì mềm phủ chà bông và sốt bơ, làm sáng nay.",
+    weightGrams: 120,
     kind: "bakery",
     price: 35000,
     originalPrice: 75000,
@@ -200,6 +207,8 @@ const offers = [
   sample({
     id: "of-ha-cao",
     name: "Há cảo tôm",
+    description: "Há cảo tôm hấp, vỏ bột lọc mỏng. Hâm hấp lại 5 phút trước khi ăn.",
+    weightGrams: 150,
     kind: "prepared_food",
     price: 25000,
     originalPrice: 59000,
@@ -224,6 +233,9 @@ const offers = [
   sample({
     id: "of-com-thit-kho",
     name: "Cơm Thịt Kho Nước Dừa",
+    description:
+      "Cơm trắng với thịt ba chỉ kho nước dừa và trứng, kèm dưa leo. Hâm lò vi sóng 2 phút.",
+    weightGrams: 400,
     kind: "prepared_food",
     price: 30000,
     originalPrice: 68000,
@@ -318,6 +330,105 @@ const offers = [
     until: tonight(22, 15),
     seller: sellers.kfc,
   }),
+  // La Paris's longer list, for the seller's page with many dishes and three tabs (SEC-88).
+  sample({
+    id: "of-croissant-hanh-nhan",
+    name: "Bánh Croissant Hạnh Nhân",
+    description: "Croissant nhân kem hạnh nhân, phủ lát hạnh nhân nướng.",
+    weightGrams: 95,
+    kind: "bakery",
+    price: 36000,
+    originalPrice: 80000,
+    unitsLeft: 4,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-croissant-kem-trung",
+    name: "Bánh Croissant Kem Trứng",
+    description: "Croissant nhân kem trứng béo, nướng sáng nay.",
+    weightGrams: 90,
+    kind: "bakery",
+    price: 32000,
+    originalPrice: 70000,
+    unitsLeft: 3,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-macaron",
+    name: "Bánh Macaron Vani",
+    description: "Hộp ba chiếc macaron vani, để lạnh trước khi ăn.",
+    weightGrams: 45,
+    kind: "bakery",
+    price: 16000,
+    originalPrice: 35000,
+    unitsLeft: 6,
+    unit: "hộp",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-mille-feuille",
+    name: "Choco Mille Feuille",
+    description: "Bánh ngàn lớp kem sô-cô-la, dùng trong ngày.",
+    weightGrams: 120,
+    kind: "bakery",
+    price: 32000,
+    originalPrice: 70000,
+    unitsLeft: 2,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-tiramisu",
+    name: "Bánh Tiramisu Cà Phê",
+    description: "Tiramisu cà phê truyền thống, cắt miếng. Giữ lạnh.",
+    weightGrams: 150,
+    kind: "mixed_box",
+    price: 79000,
+    originalPrice: 170000,
+    unitsLeft: 2,
+    unit: "miếng",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-cheesecake",
+    name: "Bánh Basque Cheesecake",
+    description: "Cheesecake nướng cháy mặt kiểu Basque, cắt miếng. Giữ lạnh.",
+    weightGrams: 130,
+    kind: "mixed_box",
+    price: 52000,
+    originalPrice: 115000,
+    unitsLeft: 3,
+    unit: "miếng",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
+  sample({
+    id: "of-quiche",
+    name: "Bánh Quiche Gà Phô Mai",
+    description: "Quiche ngàn lớp nhân gà và phô mai. Hâm lò 5 phút.",
+    weightGrams: 180,
+    kind: "prepared_food",
+    price: 27000,
+    originalPrice: 60000,
+    unitsLeft: 5,
+    unit: "chiếc",
+    from: tonight(21, 15),
+    until: tonight(22, 0),
+    seller: sellers.laParis,
+  }),
 ];
 
 /** In hours from now, as RFC 3339: a window that has not opened yet, whatever the time of the test. */
@@ -359,6 +470,13 @@ const photoFiles = {
   "ph-com-bo": "net-hue/08-com-bo-rang-gion.jpg",
   "ph-xiu-mai": "panda-chef/02-xiu-mai-hap.png",
   "ph-ga-ran": "kfc/01-3-mieng-ga-ran.jpg",
+  "ph-croissant-hanh-nhan": "la-paris/02-banh-croissant-hanh-nhan.webp",
+  "ph-croissant-kem-trung": "la-paris/03-banh-croissant-kem-trung.png",
+  "ph-macaron": "la-paris/06-banh-macaron-vani.webp",
+  "ph-mille-feuille": "la-paris/10-choco-mille-feuille.webp",
+  "ph-tiramisu": "la-paris/04-banh-tiramisu-ca-phe-truyen-thong.webp",
+  "ph-cheesecake": "la-paris/07-banh-basque-burnt-original-cheesecake.webp",
+  "ph-quiche": "la-paris/08-banh-quiche-ngan-lop-nhan-ga-pho-mai.png",
   // The sellers' logos, from the directory's list of shops.
   "ph-logo-la-paris": "../quan-an/la-paris.png",
   "ph-logo-panda-chef": "../quan-an/panda-chef.png",
@@ -392,7 +510,7 @@ async function photo(id) {
 }
 
 function fold(text) {
-  return text.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").toLowerCase();
+  return text.toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
 const DEFAULT_RADIUS_KM = 5;
@@ -446,8 +564,11 @@ function search(url) {
 // asks for it ("session": "cookie"), and otherwise answers the token for the app's Bearer header, as the Go
 // server does; GET /accounts/me and sign-out read either, the header first. Google is off unless STUB_GOOGLE_CLIENT_ID is set.
 const sessionCookie = "secondbite_session";
-// One session per address, so tests running side by side do not sign each other out.
+// Each sign-in is a session of its own, as on the Go server: signing out, or deleting the account from one
+// session, ends only what it should, so two tests that use the same address side by side do not sign each
+// other out (SEC-125). The map goes from a session's token to its account.
 const accounts = new Map();
+let sessions = 0;
 
 function problem(response, status, code) {
   const language = requestLanguage.getStore() ?? "vi";
@@ -467,9 +588,40 @@ function problem(response, status, code) {
   );
 }
 
+/**
+ * A dish or an offer answers with its photos, the cover first (SEC-119): one the stub did not give is the cover alone.
+ * They are told by their kind, which a seller, an order's line and a photo do not have.
+ */
+function withPhotos(value) {
+  if (Array.isArray(value)) return value.map(withPhotos);
+  if (value === null || typeof value !== "object") return value;
+  const copy = Object.fromEntries(
+    Object.entries(value).map(([key, inner]) => [key, withPhotos(inner)]),
+  );
+  if (copy.kind && copy.photo?.smallPath && !copy.photos) copy.photos = [copy.photo];
+  return copy;
+}
+
 function json(response, status, body, headers = {}) {
   response.writeHead(status, { "content-type": "application/json", ...headers });
-  response.end(JSON.stringify(body));
+  response.end(JSON.stringify(withPhotos(withCanReview(body))));
+}
+
+/** Every order answered says whether its customer may rate it (SEC-145): collected and never rated. */
+function withCanReview(body) {
+  if (Array.isArray(body)) return body.map(withCanReview);
+  if (!body || typeof body !== "object") return body;
+  const out = Object.fromEntries(Object.entries(body).map(([k, v]) => [k, withCanReview(v)]));
+  if (
+    typeof out.number === "string" &&
+    Array.isArray(out.lines) &&
+    typeof out.status === "string"
+  ) {
+    out.canReview = out.status === "collected" && !out.review;
+    // Collected or expired and not yet reported (SEC-84); the stub keeps no two-day bound.
+    out.canReportProblem = (out.status === "collected" || out.status === "expired") && !out.problem;
+  }
+  return out;
 }
 
 async function readBody(request) {
@@ -516,8 +668,14 @@ async function auth(request, response, url) {
     const email = decodeURIComponent(String(challengeId).slice(3));
     // An address that starts with "admin" is an admin's, as `secondbite admin grant` makes one.
     const role = email.startsWith("admin") ? "admin" : "customer";
-    const account = { id: "ac-stub", email, displayName: "", role };
-    const token = `stub-${Buffer.from(email).toString("hex")}`;
+    const account = {
+      id: `ac-${Buffer.from(email).toString("hex")}`,
+      email,
+      displayName: "",
+      role,
+    };
+    sessions += 1;
+    const token = `stub-${Buffer.from(email).toString("hex")}-${sessions}`;
     accounts.set(token, account);
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     if (session === "cookie") {
@@ -589,7 +747,9 @@ async function deletion(request, response, url) {
       problem(response, 410, "IDENTITY_CHALLENGE_GONE");
     } else if (code !== "123456") problem(response, 422, "IDENTITY_CODE_INCORRECT");
     else {
-      accounts.delete(token);
+      for (const [other, signedIn] of accounts) {
+        if (signedIn.email === account.email) accounts.delete(other);
+      }
       response.writeHead(204, {
         "set-cookie": `${sessionCookie}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
       });
@@ -601,7 +761,7 @@ async function deletion(request, response, url) {
 }
 
 // The seller's side (SEC-57), as api/openapi.yaml describes it: a person opens stores, at most five, each active
-// at once, and reads the ones they own. Kept per session, like the accounts above.
+// at once, and reads the ones they own. Kept per address, so every session of a person sees the same stores.
 const storesOf = new Map();
 /** Each store's posts, the newest first: the sample ones of a store named like Figma's, then what it posts. */
 const postsBy = new Map();
@@ -661,8 +821,59 @@ function dishesFor(seller) {
 }
 
 /**
- * A store's orders (SEC-78), as GET /sellers/{id}/orders answers for today: a store named "Tiệm có đơn" holds
- * four and has handed over one and had one cancelled by its customer (Figma Q5, Q5e, Q5f); any other starts empty.
+ * A store's reviews (SEC-154), as GET /sellers/{id}/reviews answers: the store named "Tiệm có đơn" has three, giving
+ * five, four and two stars (Figma Q1b-3 to Q1b-5); any other has none, so no mean is answered.
+ */
+function sellerReviewsFor(seller, stars) {
+  const all =
+    seller.name === "Tiệm có đơn"
+      ? [
+          [
+            5,
+            "Bánh còn nóng, nhận nhanh.",
+            ["fast_pickup", "good_quality"],
+            "Lê Thu Hà",
+            "Cơm sườn nướng",
+            3,
+          ],
+          [4, "Suất cơm đầy đặn.", ["fair_portions"], "Nguyễn An", "Túi bánh mì và croissant", 2],
+          [2, "Đợi hơi lâu.", [], "Trần Minh", "Xôi thập cẩm", 1],
+        ].map(([n, comment, tags, customerName, dishes, daysAgo], i) => ({
+          orderId: `rv-${i}-${seller.id}`,
+          orderNumber: `SB-${10200 + i}`,
+          customerName,
+          dishes,
+          stars: n,
+          tags,
+          comment,
+          createdAt: new Date(Date.now() - daysAgo * 86_400_000).toISOString(),
+        }))
+      : [];
+  const shown = all.filter((review) => stars.length === 0 || stars.includes(review.stars));
+  const count = (n) => all.filter((review) => review.stars === n).length;
+  const body = {
+    items: shown,
+    page: 1,
+    pageSize: 25,
+    total: shown.length,
+    counts: {
+      oneStar: count(1),
+      twoStars: count(2),
+      threeStars: count(3),
+      fourStars: count(4),
+      fiveStars: count(5),
+    },
+  };
+  if (shown.length > 0) {
+    body.average = shown.reduce((sum, review) => sum + review.stars, 0) / shown.length;
+  }
+  return body;
+}
+
+/**
+ * A store's orders (SEC-78, SEC-102), as GET /sellers/{id}/orders answers for today: a store named "Tiệm có đơn"
+ * has three being prepared, one marked ready, one handed over and one cancelled by its customer (Figma Q5, Q5h,
+ * Q5i, Q5e, Q5f); any other starts empty.
  * The windows run from an hour ago to three hours on, so none reads as expired.
  */
 const sellerOrdersBy = new Map();
@@ -703,6 +914,12 @@ function sellerOrdersFor(seller) {
       windowStart: new Date(Date.now() - 3_600_000).toISOString(),
       windowEnd: new Date(Date.now() + 3 * 3_600_000).toISOString(),
       createdAt: new Date().toISOString(),
+      get unreadMessages() {
+        return unreadOf(this.id, "seller");
+      },
+      get messageCount() {
+        return countOf(this.id);
+      },
       ...extra,
     });
     sellerOrdersBy.set(
@@ -737,6 +954,9 @@ function sellerOrdersFor(seller) {
             order(5, "cancelled", "Võ Lan", "0900123456", "Xôi thập cẩm", "hộp", 1, 30000, {
               cancelledAt: new Date().toISOString(),
             }),
+            order(6, "ready", "Đỗ Hương", "0966333444", "Bánh mì mềm chà bông", "túi", 1, 30000, {
+              readyAt: new Date().toISOString(),
+            }),
           ]
         : [],
     );
@@ -744,7 +964,7 @@ function sellerOrdersFor(seller) {
   return sellerOrdersBy.get(seller.id);
 }
 
-/** What the seller's people do with an order: hand it over, refuse it with a reason, or take either back. */
+/** What the seller's people do with an order: mark it ready, hand it over, refuse it with a reason, or take either back. */
 const REFUSALS = [
   "not_suitable",
   "wrong_items",
@@ -768,6 +988,7 @@ async function staffOrderAction(request, response, mine, id, action) {
       return;
     }
     order.status = "confirmed";
+    delete order.readyAt;
     delete order.collectedAt;
     delete order.refusedAt;
     delete order.refuseReason;
@@ -775,6 +996,9 @@ async function staffOrderAction(request, response, mine, id, action) {
   } else if (!open) {
     problem(response, 409, "ORDER_TRANSITION_NOT_ALLOWED");
     return;
+  } else if (action === "ready") {
+    order.status = "ready";
+    order.readyAt = new Date().toISOString();
   } else if (action === "hand-over") {
     order.status = "collected";
     order.collectedAt = new Date().toISOString();
@@ -818,6 +1042,7 @@ function postsOf(seller) {
       largePath: `/photos/ph-${n}/1600.jpg`,
       smallPath: `/photos/ph-${n}/400.jpg`,
     },
+    photos: [photoBody(`ph-${n}`)],
     windowStart: tonight(...from),
     windowEnd: tonight(...until),
     collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
@@ -851,14 +1076,201 @@ function ownerSeller() {
   };
 }
 
+/** Whether the path names an order a customer placed through the stub, which ordersApi hands over instead. */
+function isCustomerOrder(pathname) {
+  return orders.some((order) => pathname.startsWith(`/orders/${order.id}/`));
+}
+
+// An order's chat and its live socket's tickets (SEC-117), as api/openapi.yaml describes them: the customer who
+// placed the order (account or access) and a signed-in seller's person write to it, each message gets the next
+// number, a sent message keyed twice is one, and the chat is writable until two hours after the window closes or
+// the order ends. A test plays the other side through POST /__stub/chat/{orderId}; the stub holds no socket
+// (the specs answer /api/live themselves). A ticket is "tk-" and the topic it opens, so they know which to confirm.
+const chats = new Map();
+const CHAT_GRACE_MS = 2 * 3_600_000;
+
+function chatOf(orderId) {
+  if (!chats.has(orderId)) {
+    chats.set(orderId, { messages: [], seen: { customer: 0, seller: 0 }, keys: new Map() });
+  }
+  return chats.get(orderId);
+}
+
+/** How many messages the chat holds; the orders carry it as `messageCount`. */
+function countOf(orderId) {
+  return chats.get(orderId)?.messages.length ?? 0;
+}
+
+/** How many messages of the other side the reader has not seen yet; the orders carry it as `unreadMessages`. */
+function unreadOf(orderId, side) {
+  const chat = chats.get(orderId);
+  if (!chat) return 0;
+  return chat.messages.filter((m) => m.from !== side && m.seq > chat.seen[side]).length;
+}
+
+function chatState(order) {
+  const ended = order.status === "cancelled" || order.status === "refused";
+  const closesAt = new Date(new Date(order.windowEnd).getTime() + CHAT_GRACE_MS);
+  return { open: !ended && closesAt > new Date(), closesAt: closesAt.toISOString() };
+}
+
+// What the stores told the team (SEC-82): what tests send, the latest first, then one the admins' report shows
+// from the start.
+const storeFeedback = [];
+const seededFeedback = [
+  {
+    id: "fb-seeded",
+    sellerId: "se-admin-01",
+    sellerName: "Tiệm bánh Pháp",
+    text: "Khách hay hỏi giờ lấy, nên hiện giờ ngay trên mã QR.",
+    sentAt: "2026-10-23T14:10:00Z",
+  },
+];
+
+// The kinds of problem a customer reports (SEC-84).
+const PROBLEM_KINDS = ["missing_item", "wrong_item", "poor_quality", "store_closed"];
+
+async function chatRoutes(request, response, url) {
+  // A test reports a problem on a store's order, as its customer would (SEC-84).
+  const reported = /^\/__stub\/problem\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "POST" && reported) {
+    const { kind, note } = await readBody(request);
+    const found = [...sellerOrdersBy.values()].flat().find((o) => o.id === reported[1]);
+    if (found) found.problem = { kind, note, reportedAt: new Date().toISOString() };
+    response.writeHead(found ? 204 : 404).end();
+    return true;
+  }
+  const injected = /^\/__stub\/chat\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "POST" && injected) {
+    const { from, text } = await readBody(request);
+    const chat = chatOf(injected[1]);
+    chat.messages.push({
+      seq: chat.messages.length + 1,
+      from,
+      text,
+      sentAt: new Date().toISOString(),
+    });
+    response.writeHead(204).end();
+    return true;
+  }
+  const sellerTicket = /^\/sellers\/([\w-]+)\/orders\/live-ticket$/.exec(url.pathname);
+  const route = /^\/orders\/([\w-]+)\/(live-ticket|messages(?:\/seen)?)$/.exec(url.pathname);
+  if (!sellerTicket && !route) return false;
+  const account = accounts.get(tokenOf(request));
+  const expiresAt = new Date(Date.now() + 30_000).toISOString();
+  if (sellerTicket) {
+    if (!account) problem(response, 401, "IDENTITY_SESSION_INVALID");
+    else json(response, 200, { ticket: `tk-seller:${sellerTicket[1]}`, expiresAt });
+    return true;
+  }
+  const customerOrder = orders.find((found) => found.id === route[1]);
+  const staffOrder = customerOrder
+    ? undefined
+    : [...sellerOrdersBy.values()].flat().find((found) => found.id === route[1]);
+  const found = customerOrder ?? staffOrder;
+  const side = customerOrder ? "customer" : "seller";
+  const allowed = customerOrder
+    ? placedBy(request, account, customerOrder)
+    : Boolean(account && staffOrder);
+  if (!found || !allowed) {
+    problem(response, 404, "ORDER_NOT_FOUND");
+    return true;
+  }
+  const chat = chatOf(found.id);
+  if (route[2] === "live-ticket") {
+    json(response, 200, { ticket: `tk-order:${found.id}`, expiresAt });
+  } else if (route[2] === "messages/seen") {
+    const { upTo } = await readBody(request);
+    chat.seen[side] = Math.max(chat.seen[side], Number(upTo) || 0);
+    response.writeHead(204).end();
+  } else if (request.method === "GET") {
+    const after = Number(url.searchParams.get("after") ?? 0);
+    json(response, 200, {
+      messages: chat.messages.filter((m) => m.seq > after),
+      seen: chat.seen,
+      ...chatState(found),
+    });
+  } else {
+    const key = request.headers["idempotency-key"];
+    const { text } = await readBody(request);
+    const sent = chat.keys.get(`${side}:${key}`);
+    if (sent) json(response, 200, sent);
+    else if (!chatState(found).open) problem(response, 409, "ORDER_CHAT_CLOSED");
+    else if (typeof text !== "string" || !text.trim() || text.length > 1000) {
+      problem(response, 400, "ORDER_MESSAGE_INVALID");
+    } else {
+      const message = {
+        seq: chat.messages.length + 1,
+        from: side,
+        text,
+        sentAt: new Date().toISOString(),
+      };
+      chat.messages.push(message);
+      chat.keys.set(`${side}:${key}`, message);
+      json(response, 201, message);
+    }
+  }
+  return true;
+}
+
+// Favourites (SEC-109), as api/openapi.yaml describes them: a signed-in person follows the active sellers of
+// the catalog above, idempotently, and lists the ones they follow, the latest first. Kept per address.
+const followsOf = new Map();
+/** Where the sample sellers are, as their public profile shows. */
+const SAMPLE_LOCATION = { latitude: 21.0565, longitude: 105.8964 };
+
+async function favouriteRoutes(request, response, url) {
+  const follow = /^\/sellers\/([\w-]+)\/follow$/.exec(url.pathname);
+  const isList = request.method === "GET" && url.pathname === "/sellers/followed";
+  if (!isList && !follow) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account) {
+    problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    return true;
+  }
+  const followed = followsOf.get(account.email) ?? [];
+  if (isList) {
+    const profiles = followed.map(({ rating: _rating, ...profile }) => ({
+      ...profile,
+      ...SAMPLE_LOCATION,
+    }));
+    json(response, 200, { sellers: profiles });
+  } else if (request.method === "DELETE") {
+    followsOf.set(
+      account.email,
+      followed.filter((seller) => seller.id !== follow[1]),
+    );
+    response.writeHead(204).end();
+  } else if (request.method === "PUT") {
+    const seller = Object.values(sellers).find((candidate) => candidate.id === follow[1]);
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else {
+      followsOf.set(account.email, [seller, ...followed.filter((found) => found !== seller)]);
+      response.writeHead(204).end();
+    }
+  } else return false;
+  return true;
+}
+
+/** Hanoi's box, as the server's servedArea (server/internal/seller/location.go). */
+function inHanoi(latitude, longitude) {
+  return latitude >= 20.53 && latitude <= 21.42 && longitude >= 105.25 && longitude <= 106.06;
+}
+
 async function sellerRoutes(request, response, url) {
   const token = tokenOf(request);
   const isSellerRoute =
     url.pathname === "/sellers" ||
     url.pathname === "/sellers/mine" ||
+    url.pathname === "/sellers/address" ||
+    url.pathname === "/sellers/places" ||
     url.pathname === "/photos" ||
-    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders)?$/.test(url.pathname) ||
-    /^\/orders\/[\w-]+\/(hand-over|reopen|refuse)$/.test(url.pathname) ||
+    /^\/sellers\/[\w-]+(\/photo|\/offers|\/dishes|\/orders|\/feedback|\/reviews)?$/.test(
+      url.pathname,
+    ) ||
+    (/^\/orders\/[\w-]+\/(ready|hand-over|reopen|refuse|problem\/answer)$/.test(url.pathname) &&
+      !isCustomerOrder(url.pathname)) ||
+    /^\/orders\/or-\d+-[\w-]+$/.test(url.pathname) ||
     /^\/offers\/[\w-]+(\/withdraw)?$/.test(url.pathname) ||
     /^\/dishes\/[\w-]+$/.test(url.pathname);
   if (!isSellerRoute) return false;
@@ -866,7 +1278,35 @@ async function sellerRoutes(request, response, url) {
     problem(response, 401, "IDENTITY_SESSION_INVALID");
     return true;
   }
-  const mine = storesOf.get(token) ?? [];
+  const email = accounts.get(token).email;
+  const mine = storesOf.get(email) ?? [];
+  if (request.method === "GET" && url.pathname === "/sellers/address") {
+    // A point in Cầu Giấy has an address; any other has none, as the geocoder knows nothing there.
+    const near = Math.abs(Number(url.searchParams.get("latitude")) - 21.0367) < 0.01;
+    json(response, 200, { address: near ? "21 Phố Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội" : "" });
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/sellers/places") {
+    // "hoa lam" finds the street, with a house number typed first put before it, as the server does (SEC-66).
+    const words = (url.searchParams.get("q") ?? "").toLowerCase();
+    const number = /^(\d\w*) /.exec(words)?.[1];
+    const places = words.includes("hoa lam")
+      ? [
+          {
+            address: `${number ? `${number} ` : ""}Phố Hoa Lâm, Việt Hưng, Hà Nội`,
+            latitude: 21.0543,
+            longitude: 105.8962,
+          },
+          {
+            address: "Ngõ 139 Phố Hoa Lâm, Việt Hưng, Hà Nội",
+            latitude: 21.0551,
+            longitude: 105.8975,
+          },
+        ]
+      : [];
+    json(response, 200, { places });
+    return true;
+  }
   if (request.method === "GET" && url.pathname === "/sellers/mine") {
     // An address starting with "ending." has its session end between the account and its sellers (SEC-69).
     if (accounts.get(token).email.startsWith("ending.")) {
@@ -884,6 +1324,8 @@ async function sellerRoutes(request, response, url) {
       problem(response, 422, "SELLER_DETAILS_INVALID");
     } else if (digits.length < 9 || digits.length > 15) {
       problem(response, 422, "SELLER_PHONE_INVALID");
+    } else if (!inHanoi(body.latitude, body.longitude)) {
+      problem(response, 400, "SELLER_LOCATION_OUTSIDE");
     } else if (mine.length >= 5) {
       problem(response, 409, "SELLER_LIMIT_REACHED");
     } else {
@@ -900,8 +1342,32 @@ async function sellerRoutes(request, response, url) {
         createdAt: now,
         updatedAt: now,
       };
-      storesOf.set(token, [...mine, seller]);
+      storesOf.set(email, [...mine, seller]);
       json(response, 201, seller);
+    }
+    return true;
+  }
+  // The owner changes the store's details, its pin among them (SEC-66).
+  const changed = /^\/sellers\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "PUT" && changed) {
+    const seller = mine.find((candidate) => candidate.id === changed[1]);
+    const body = await readBody(request);
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else if (seller.myRole !== "owner") problem(response, 403, "SELLER_OWNER_REQUIRED");
+    else if (!String(body.address ?? "").trim()) problem(response, 422, "SELLER_DETAILS_INVALID");
+    else if (!inHanoi(body.latitude, body.longitude))
+      problem(response, 400, "SELLER_LOCATION_OUTSIDE");
+    else {
+      Object.assign(seller, {
+        // The name and the phone number change with the rest, as the server's PUT does (SEC-144).
+        name: String(body.name ?? seller.name).trim() || seller.name,
+        phone: String(body.phone ?? seller.phone).trim(),
+        address: body.address.trim(),
+        latitude: body.latitude,
+        longitude: body.longitude,
+        updatedAt: new Date().toISOString(),
+      });
+      json(response, 200, seller);
     }
     return true;
   }
@@ -916,9 +1382,36 @@ async function sellerRoutes(request, response, url) {
     });
     return true;
   }
-  const staffAction = /^\/orders\/([\w-]+)\/(hand-over|reopen|refuse)$/.exec(url.pathname);
+  const staffAction = /^\/orders\/([\w-]+)\/(ready|hand-over|reopen|refuse)$/.exec(url.pathname);
+  const staffOrder = /^\/orders\/(or-\d+-[\w-]+)$/.exec(url.pathname);
+  if (request.method === "GET" && staffOrder) {
+    const found = mine
+      .flatMap((seller) => sellerOrdersFor(seller))
+      .find((o) => o.id === staffOrder[1]);
+    if (found) json(response, 200, found);
+    else problem(response, 404, "ORDER_NOT_FOUND");
+    return true;
+  }
   if (request.method === "POST" && staffAction) {
     await staffOrderAction(request, response, mine, staffAction[1], staffAction[2]);
+    return true;
+  }
+  const answered = /^\/orders\/([\w-]+)\/problem\/answer$/.exec(url.pathname);
+  if (request.method === "POST" && answered) {
+    const found = mine
+      .flatMap((seller) => sellerOrdersFor(seller))
+      .find((o) => o.id === answered[1]);
+    const { answer } = await readBody(request);
+    const words = String(answer ?? "").trim();
+    if (!found) problem(response, 404, "ORDER_NOT_FOUND");
+    else if (words.length < 1 || words.length > 500) problem(response, 400, "ORDER_ANSWER_INVALID");
+    else if (!found.problem) problem(response, 404, "ORDER_PROBLEM_NOT_FOUND");
+    else if (found.problem.answer) problem(response, 409, "ORDER_PROBLEM_ALREADY_ANSWERED");
+    else {
+      found.problem.answer = words;
+      found.problem.answeredAt = new Date().toISOString();
+      json(response, 200, found);
+    }
     return true;
   }
   const ordersOfStore = /^\/sellers\/([\w-]+)\/orders$/.exec(url.pathname);
@@ -934,6 +1427,35 @@ async function sellerRoutes(request, response, url) {
     );
     const day = url.searchParams.get("day") || today;
     json(response, 200, { orders: day === today ? sellerOrdersFor(seller) : [] });
+    return true;
+  }
+  const feedbackOf = /^\/sellers\/([\w-]+)\/feedback$/.exec(url.pathname);
+  if (request.method === "POST" && feedbackOf) {
+    const seller = mine.find((candidate) => candidate.id === feedbackOf[1]);
+    const text = String((await readBody(request)).text ?? "").trim();
+    if (!seller) problem(response, 404, "SELLER_NOT_FOUND");
+    else if (text.length < 1 || text.length > 1000)
+      problem(response, 400, "SELLER_FEEDBACK_INVALID");
+    else {
+      storeFeedback.unshift({
+        id: `fb-${storeFeedback.length + 1}`,
+        sellerId: seller.id,
+        sellerName: seller.name,
+        text,
+        sentAt: new Date().toISOString(),
+      });
+      response.writeHead(204).end();
+    }
+    return true;
+  }
+  const reviewsOfStore = /^\/sellers\/([\w-]+)\/reviews$/.exec(url.pathname);
+  if (request.method === "GET" && reviewsOfStore) {
+    const seller = mine.find((candidate) => candidate.id === reviewsOfStore[1]);
+    if (!seller) {
+      problem(response, 404, "SELLER_NOT_FOUND");
+      return true;
+    }
+    json(response, 200, sellerReviewsFor(seller, url.searchParams.getAll("stars").map(Number)));
     return true;
   }
   const catalog = /^\/sellers\/([\w-]+)\/dishes$/.exec(url.pathname);
@@ -957,6 +1479,7 @@ async function sellerRoutes(request, response, url) {
           sellerId: seller.id,
           name: body.name.trim(),
           kind: body.kind,
+          kindLabel: body.kindLabel ?? "",
           unit: body.unit || "suất",
           description: body.description ?? "",
           ingredients: body.ingredients ?? "",
@@ -966,6 +1489,7 @@ async function sellerRoutes(request, response, url) {
             largePath: `/photos/${body.photoId}/1600.jpg`,
             smallPath: `/photos/${body.photoId}/400.jpg`,
           },
+          photos: photosBody(body.photoId, body.morePhotoIds),
           hidden: Boolean(body.hidden),
           createdAt: now,
           updatedAt: now,
@@ -989,7 +1513,7 @@ async function sellerRoutes(request, response, url) {
       dishes.splice(dishes.indexOf(dish), 1);
       response.writeHead(204).end();
     } else if (request.method === "PATCH") {
-      const { photoId, ...body } = await readBody(request);
+      const { photoId, morePhotoIds, ...body } = await readBody(request);
       Object.assign(dish, body, { updatedAt: new Date().toISOString() });
       // 0 takes the original price away.
       if (body.originalPriceVnd === 0) delete dish.originalPriceVnd;
@@ -999,6 +1523,12 @@ async function sellerRoutes(request, response, url) {
           largePath: `/photos/${photoId}/1600.jpg`,
           smallPath: `/photos/${photoId}/400.jpg`,
         };
+      }
+      if (photoId || morePhotoIds) {
+        dish.photos = photosBody(
+          photoId ?? dish.photo.id,
+          morePhotoIds ?? (dish.photos ?? [dish.photo]).slice(1).map((p) => p.id),
+        );
       }
       json(response, 200, dish);
     }
@@ -1033,6 +1563,7 @@ async function sellerRoutes(request, response, url) {
         id: `of-new-${posted.length + 1}-${seller.id}`,
         sellerId: seller.id,
         status: "on_sale",
+        kindLabel: body.kindLabel ?? "",
         description: body.description ?? "",
         unit: body.unit || "suất",
         unitsLeft: body.units,
@@ -1044,6 +1575,7 @@ async function sellerRoutes(request, response, url) {
           largePath: `/photos/${body.photoId}/1600.jpg`,
           smallPath: `/photos/${body.photoId}/400.jpg`,
         },
+        photos: photosBody(body.photoId, body.morePhotoIds),
         collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: seller.address },
         createdAt: now,
         updatedAt: now,
@@ -1062,7 +1594,7 @@ async function sellerRoutes(request, response, url) {
     }
     const ordered = offer.units - offer.unitsLeft;
     if (request.method === "POST" && change[2]) {
-      if (ordered > 0 || offer.status === "closed") {
+      if (offer.status === "closed") {
         problem(response, 409, "OFFER_CHANGE_NOT_ALLOWED");
       } else {
         offer.status = "withdrawn";
@@ -1100,6 +1632,12 @@ async function sellerRoutes(request, response, url) {
       problem(response, 404, "SELLER_NOT_FOUND");
     } else {
       seller.photoId = (await readBody(request)).photoId;
+      // As the API answers: the photo's id and the paths it is served at.
+      seller.photo = {
+        id: seller.photoId,
+        largePath: `/photos/${seller.photoId}/1600.jpg`,
+        smallPath: `/photos/${seller.photoId}/400.jpg`,
+      };
       json(response, 200, seller);
     }
     return true;
@@ -1109,23 +1647,36 @@ async function sellerRoutes(request, response, url) {
 
 // Orders (SEC-15, SEC-76), as api/openapi.yaml describes them: placed with a name, a phone number and an
 // Idempotency-Key, signed in or not; read and cancelled until the window opens by the account that placed them
-// or with the access answered to whoever placed them; listed for the account. The stub takes no units away,
-// so the home's tests keep their counts.
+// or with the access answered to whoever placed them; rated once collected; listed for the account; marked ready and handed over
+// as a seller would. The stub takes no units away, so the home's tests keep their counts.
 const orders = [];
 const ordersByKey = new Map();
 let nextOrder = 10001;
 const PHONE = /^0[0-9]{9}$/;
+const REVIEW_TAGS = ["fast_pickup", "good_quality", "good_variety", "fair_portions"];
+
+function photoBody(id) {
+  return { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` };
+}
+
+function photosBody(cover, more = []) {
+  return [cover, ...more].map(photoBody);
+}
 
 function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
 }
 
+// An order keeps the status it was given: the stub does not expire one on the clock. The samples' windows are at
+// fixed evening hours (21:00 to 21:45 tonight), so a run after 21:45 in Vietnam would find every order placed from
+// them over and the customer's order tests failing.
 function shown(order) {
-  const open = order.status === "confirmed" || order.status === "ready";
-  const expired = open && new Date(order.windowEnd) <= new Date();
-  const status = expired ? "expired" : order.status;
   const { owner: _owner, ...rest } = order;
-  return { ...rest, status };
+  return {
+    ...rest,
+    unreadMessages: unreadOf(order.id, "customer"),
+    messageCount: countOf(order.id),
+  };
 }
 
 /** Whether the request comes from whoever placed the order: its account, or its access. */
@@ -1232,7 +1783,25 @@ async function ordersApi(request, response, url) {
     });
     return true;
   }
-  const orderMatch = /^\/orders\/([\w-]+)(\/cancel)?$/.exec(url.pathname);
+  // The seller's side, so a test can bring an order to ready and collected; the stub does not check who is staff.
+  const staffMatch = /^\/orders\/([\w-]+)\/(ready|hand-over)$/.exec(url.pathname);
+  if (request.method === "POST" && staffMatch) {
+    const handled = orders.find((found) => found.id === staffMatch[1]);
+    if (!handled) {
+      problem(response, 404, "ORDER_NOT_FOUND");
+      return true;
+    }
+    if (staffMatch[2] === "ready") {
+      handled.status = "ready";
+      handled.readyAt = new Date().toISOString();
+    } else {
+      handled.status = "collected";
+      handled.collectedAt = new Date().toISOString();
+    }
+    json(response, 200, shown(handled));
+    return true;
+  }
+  const orderMatch = /^\/orders\/([\w-]+)(\/cancel|\/review|\/problem)?$/.exec(url.pathname);
   const order = orderMatch
     ? orders.find((found) => found.id === orderMatch[1] && placedBy(request, account, found))
     : undefined;
@@ -1244,12 +1813,48 @@ async function ordersApi(request, response, url) {
     json(response, 200, shown(order));
     return true;
   }
+  if (request.method === "POST" && orderMatch?.[2] === "/review") {
+    const { stars, tags, comment } = await readBody(request);
+    if (
+      !Number.isInteger(stars) ||
+      stars < 1 ||
+      stars > 5 ||
+      !Array.isArray(tags) ||
+      !tags.every((tag, at) => REVIEW_TAGS.includes(tag) && tags.indexOf(tag) === at) ||
+      (comment !== undefined && (typeof comment !== "string" || comment.length > 500))
+    ) {
+      problem(response, 400, "ORDER_REVIEW_INVALID");
+    } else if (order.status !== "collected") {
+      problem(response, 409, "ORDER_NOT_COLLECTED");
+    } else if (order.review) {
+      problem(response, 409, "ORDER_ALREADY_REVIEWED");
+    } else {
+      order.review = { stars, tags, createdAt: new Date().toISOString() };
+      if (comment?.trim()) order.review.comment = comment.trim();
+      json(response, 200, shown(order));
+    }
+    return true;
+  }
+  if (request.method === "POST" && orderMatch?.[2] === "/problem") {
+    const { kind, note } = await readBody(request);
+    const status = shown(order).status;
+    if (!PROBLEM_KINDS.includes(kind) || (note !== undefined && String(note).trim().length > 500)) {
+      problem(response, 400, "ORDER_PROBLEM_INVALID");
+    } else if (status !== "collected" && status !== "expired") {
+      problem(response, 409, "ORDER_PROBLEM_NOT_ALLOWED");
+    } else if (order.problem) {
+      problem(response, 409, "ORDER_PROBLEM_ALREADY_REPORTED");
+    } else {
+      order.problem = { kind, reportedAt: new Date().toISOString() };
+      if (String(note ?? "").trim()) order.problem.note = String(note).trim();
+      json(response, 200, shown(order));
+    }
+    return true;
+  }
   if (request.method === "POST" && orderMatch?.[2]) {
     const status = shown(order).status;
-    if (
-      (status !== "confirmed" && status !== "ready") ||
-      new Date(order.windowStart) <= new Date()
-    ) {
+    // Until the seller marks it ready (SEC-121).
+    if (status !== "confirmed") {
       problem(response, 409, "ORDER_CANCEL_TOO_LATE");
       return true;
     }
@@ -1344,7 +1949,784 @@ function auditLog() {
   return events;
 }
 
-function adminRoutes(request, response, url) {
+// The accounts admins look up (SEC-75 › accounts): customers who signed in by code or Google, or never did;
+// two of them belong to a store. The admins are kept per signed-in admin, starting with that admin and the
+// two of the log, so a grant or a revoke in one test leaves the others alone.
+const stubCustomers = [
+  [
+    "ac-bao",
+    "bao@example.com",
+    "Quốc Bảo",
+    "2026-09-28T03:00:00Z",
+    "2026-10-20T14:40:00Z",
+    "google",
+  ],
+  ["ac-ha", "ha@example.com", "Thu Hà", "2026-09-30T03:00:00Z", "2026-10-21T00:55:00Z", "code"],
+  [
+    "ac-khang",
+    "khang@example.com",
+    "Đức Khang",
+    "2026-09-25T03:00:00Z",
+    "2026-10-18T09:00:00Z",
+    "google",
+  ],
+  [
+    "ac-ngoc",
+    "ngoc@example.com",
+    "Lan Ngọc",
+    "2026-10-08T03:00:00Z",
+    "2026-10-15T12:00:00Z",
+    "code",
+  ],
+  [
+    "ac-nam",
+    "nam@example.com",
+    "Hoàng Nam",
+    "2026-09-29T03:00:00Z",
+    "2026-10-20T23:30:00Z",
+    "code",
+  ],
+  [
+    "ac-trang",
+    "trang@example.com",
+    "Mai Trang",
+    "2026-10-12T03:00:00Z",
+    "2026-10-19T08:00:00Z",
+    "google",
+  ],
+  [
+    "ac-phong",
+    "phong@example.com",
+    "Tuấn Phong",
+    "2026-10-01T03:00:00Z",
+    "2026-10-20T11:05:00Z",
+    "code",
+  ],
+  ["ac-linh", "linh@example.com", "", "2026-10-19T03:00:00Z", undefined, undefined],
+].map(([id, email, displayName, createdAt, lastSignedInAt, lastSignInMethod]) => ({
+  id,
+  email,
+  displayName,
+  role: "customer",
+  createdAt,
+  lastSignedInAt,
+  lastSignInMethod,
+}));
+
+const stubMemberships = [
+  {
+    accountId: "ac-bao",
+    role: "owner",
+    sellerId: "se-la-paris",
+    sellerName: "La Paris",
+    sellerStatus: "active",
+  },
+  {
+    accountId: "ac-ha",
+    role: "staff",
+    sellerId: "se-la-paris",
+    sellerName: "La Paris",
+    sellerStatus: "active",
+  },
+];
+
+const adminsBy = new Map();
+
+function adminsOf(account) {
+  if (!adminsBy.has(account.email)) {
+    adminsBy.set(account.email, [
+      {
+        ...account,
+        createdAt: "2026-10-01T03:00:00Z",
+        lastSignedInAt: new Date().toISOString(),
+        lastSignInMethod: "code",
+      },
+      ...stubAdmins.map((admin) => ({ ...admin, createdAt: "2026-09-20T03:00:00Z" })),
+    ]);
+  }
+  return adminsBy.get(account.email);
+}
+
+/** The accounts as the signed-in admin sees them: a customer it made an admin is listed as an admin. */
+function directoryOf(account) {
+  const admins = adminsOf(account);
+  const ids = new Set(admins.map((admin) => admin.id));
+  return [...stubCustomers.filter((customer) => !ids.has(customer.id)), ...admins];
+}
+
+function accountsPage(account, url) {
+  const role = url.searchParams.get("role");
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sort = url.searchParams.get("sort") ?? "";
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const found = directoryOf(account).filter(
+    (a) => !q || fold(`${a.email} ${a.displayName}`).includes(q),
+  );
+  const matching = found.filter((a) => !role || a.role === role);
+  const column = sort.replace(/^-/, "");
+  const key = (a) =>
+    column === "name"
+      ? fold(a.displayName || a.email)
+      : column === "signedIn"
+        ? (a.lastSignedInAt ?? "")
+        : a.createdAt;
+  matching.sort((a, b) => {
+    // Those never signed in come last either way, as the server orders them.
+    if (column === "signedIn" && !a.lastSignedInAt !== !b.lastSignedInAt) {
+      return a.lastSignedInAt ? -1 : 1;
+    }
+    const order = key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0;
+    return sort === "" || sort.startsWith("-") ? -order : order;
+  });
+  return {
+    items: matching.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: matching.length,
+    counts: {
+      customer: found.filter((a) => a.role === "customer").length,
+      admin: found.filter((a) => a.role === "admin").length,
+    },
+  };
+}
+
+/** What Quốc Bảo ordered, made from the offers above; the others never ordered. */
+function historyOf(accountId) {
+  if (accountId !== "ac-bao") return { placed: 0, collected: 0, missed: 0, recent: [] };
+  const outcomes = [
+    ["confirmed", undefined],
+    ["collected", undefined],
+    ["refused", "no_show"],
+    ["collected", undefined],
+    ["cancelled", undefined],
+  ];
+  const recent = outcomes.map(([status, refuseReason], i) => {
+    const offer = offers[i % offers.length];
+    const units = i === 0 ? 2 : 1;
+    return {
+      id: `or-bao-${i}`,
+      number: `SB-${10100 + i}`,
+      status,
+      refuseReason,
+      seller: {
+        id: offer.seller.id,
+        name: offer.seller.name,
+        address: offer.seller.address,
+        latitude: 21.0565,
+        longitude: 105.8964,
+      },
+      lines: [
+        {
+          offerId: offer.id,
+          name: offer.name,
+          unit: offer.unit,
+          priceVnd: offer.priceVnd,
+          originalPriceVnd: offer.originalPriceVnd,
+          units,
+          photo: offer.photo,
+        },
+      ],
+      totalVnd: offer.priceVnd * units,
+      windowStart: offer.windowStart,
+      windowEnd: offer.windowEnd,
+      createdAt: new Date(Date.parse("2026-10-20T10:00:00Z") - i * 86_400_000).toISOString(),
+      checkoutId: `co-bao-${i}`,
+      customerName: "Quốc Bảo",
+      customerPhone: "0900000000",
+    };
+  });
+  return { placed: 12, collected: 10, missed: 2, recent };
+}
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// The stores as admins list them (SEC-62, Figma AD-Q1): the shops above with their logos, then more without a
+// photo, mostly active, with one pending, one rejected and two blocked. Each admin gets a copy of their own,
+// so tests side by side can block and unblock without meeting.
+const adminStoreNames = [
+  ["Tiệm bánh Pháp", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Cơm nhà Hạnh", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Trà sữa Mây", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Bún chả Phố Hàng", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Xôi xéo Bà Tư", "Tầng B1, Tasco Mall"],
+  ["Phở bò Gánh", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Bánh mì Hội An", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Nước ép Xanh", "Tầng 2, Tasco Mall"],
+  ["Cơm tấm Sài Gòn", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Rau củ sạch Việt Hưng", "Tầng B1, Tasco Mall"],
+  ["Bánh cuốn Thanh Trì", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Chè Thái Hà", "Tầng 2, Tasco Mall"],
+  ["Gà nướng Ò Ó O", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Bánh bao Thọ Phát", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Sữa chua Hạ Long", "Tầng 2, Tasco Mall"],
+  ["Mì vằn thắn Hồng Kông", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Bánh ngọt Hà Thành", "Tầng 1, Tasco Mall, Việt Hưng"],
+  ["Lẩu nấm Ashima", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Sushi Kei", "Tầng 3, khu ẩm thực, Tasco Mall"],
+  ["Cà phê Cộng", "Tầng 1, Tasco Mall, Việt Hưng"],
+];
+
+function adminStoresSeed() {
+  const start = Date.parse("2026-10-20T20:00:00+07:00");
+  const shops = Object.values(sellers).map((s) => [s.name, `${s.address}, Tasco Mall`, s.photo.id]);
+  return [...shops, ...adminStoreNames].map(([name, address, photoId], i) => {
+    const changed = new Date(start - i * 9 * 60 * 60 * 1000).toISOString();
+    const status =
+      i === 3 ? "pending" : i === 5 ? "rejected" : i === 8 || i === 12 ? "blocked" : "active";
+    return {
+      id: `se-admin-${String(i).padStart(2, "0")}`,
+      name,
+      address,
+      latitude: 21.0565,
+      longitude: 105.8964,
+      phone: `0900000${String(101 + i)}`,
+      status,
+      ...(status === "blocked" || status === "rejected"
+        ? {
+            statusReason: "Bán bánh đã quá hạn sử dụng cho khách ngày 19/10/2026.",
+            statusChangedAt: changed,
+          }
+        : {}),
+      createdAt: new Date(Date.parse(changed) - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: changed,
+      ...(photoId ? { photoId } : {}),
+      ownerEmail: `chu.quan${i}@example.com`,
+    };
+  });
+}
+
+const adminStores = new Map();
+
+function adminStoresOf(account) {
+  if (!adminStores.has(account.email)) adminStores.set(account.email, adminStoresSeed());
+  return adminStores.get(account.email);
+}
+
+const storeStatuses = ["pending", "active", "rejected", "blocked"];
+
+/** GET /admin/sellers, filtered, sorted and paged as server/internal/seller/queries.sql does. */
+function listAdminStores(response, url, stores) {
+  const statuses = url.searchParams
+    .getAll("status")
+    .flatMap((s) => s.split(","))
+    .filter(Boolean);
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sort = url.searchParams.get("sort");
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const since = url.searchParams.get("changedSince");
+  const until = url.searchParams.get("changedUntil");
+  if (
+    (since && until && Date.parse(since) >= Date.parse(until)) ||
+    statuses.some((s) => !storeStatuses.includes(s)) ||
+    q.length > 100 ||
+    !(page >= 1) ||
+    !(size >= 1 && size <= 100) ||
+    (sort && !/^-?(name|address|changed)$/.test(sort))
+  ) {
+    problem(response, 400, "SELLER_LIST_INVALID");
+    return;
+  }
+  const found = stores.filter(
+    (s) =>
+      (!q || fold(`${s.name} ${s.address} ${s.phone}`).includes(q)) &&
+      (!since || Date.parse(s.updatedAt) >= Date.parse(since)) &&
+      (!until || Date.parse(s.updatedAt) < Date.parse(until)),
+  );
+  const counts = Object.fromEntries(
+    storeStatuses.map((status) => [status, found.filter((s) => s.status === status).length]),
+  );
+  const listed = found.filter((s) => statuses.length === 0 || statuses.includes(s.status));
+  const key = { name: (s) => s.name, address: (s) => s.address, changed: (s) => s.updatedAt };
+  if (sort) {
+    const by = key[sort.replace("-", "")];
+    const way = sort.startsWith("-") ? -1 : 1;
+    listed.sort((a, b) => way * by(a).localeCompare(by(b), "vi"));
+  } else {
+    // Pending first, the oldest first, as a queue; then the latest change first.
+    listed.sort((a, b) =>
+      a.status === "pending" && b.status === "pending"
+        ? a.createdAt.localeCompare(b.createdAt)
+        : (b.status === "pending") - (a.status === "pending") ||
+          b.updatedAt.localeCompare(a.updatedAt),
+    );
+  }
+  json(response, 200, {
+    items: listed.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: listed.length,
+    counts,
+    days: storeDays(stores),
+  });
+}
+
+/** 14 made-up days of counts for the cards' lines, the last today's as the stores stand. */
+function storeDays(stores) {
+  const now = Object.fromEntries(
+    storeStatuses.map((status) => [status, stores.filter((s) => s.status === status).length]),
+  );
+  return Array.from({ length: 14 }, (_, i) => {
+    const back = 13 - i;
+    const day = new Date(Date.now() + 7 * 60 * 60 * 1000 - back * 24 * 60 * 60 * 1000);
+    return {
+      day: day.toISOString().slice(0, 10),
+      pending: now.pending + (back > 10 ? 2 : back > 7 ? 1 : 0),
+      active: Math.max(0, now.active - Math.floor(back / 2)),
+      rejected: now.rejected,
+      blocked: back > 8 ? Math.max(0, now.blocked - 1) : now.blocked,
+    };
+  });
+}
+
+const offerStatuses = ["on_sale", "sold_out", "closed", "withdrawn"];
+
+/**
+ * GET /admin/offers (SEC-134), filtered and paged as server/internal/offer/queries.sql does: the posts of the
+ * stores without a logo, a post of each status each, posted a minute apart, the newest first.
+ */
+function listAdminOffers(response, url, stores) {
+  const status = url.searchParams.get("status");
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sellerId = url.searchParams.get("sellerId");
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const since = url.searchParams.get("postedSince");
+  const until = url.searchParams.get("postedUntil");
+  if (
+    (since && until && Date.parse(since) >= Date.parse(until)) ||
+    (status && !offerStatuses.includes(status)) ||
+    q.length > 100 ||
+    !(page >= 1) ||
+    !(size >= 1 && size <= 100)
+  ) {
+    problem(response, 400, "OFFER_ADMIN_LIST_INVALID");
+    return;
+  }
+  const start = Date.now();
+  const found = stores
+    .filter((store) => !store.photoId)
+    .flatMap((store, i) =>
+      postsOf(store).map((offer, n) => {
+        const posted = new Date(start - (i * 4 + n) * 60 * 1000).toISOString();
+        return {
+          offer: { ...offer, createdAt: posted, updatedAt: posted },
+          sellerName: store.name,
+        };
+      }),
+    )
+    .filter(
+      (item) =>
+        (!q || fold(`${item.offer.name} ${item.sellerName}`).includes(q)) &&
+        (!sellerId || item.offer.sellerId === sellerId) &&
+        (!since || Date.parse(item.offer.createdAt) >= Date.parse(since)) &&
+        (!until || Date.parse(item.offer.createdAt) < Date.parse(until)),
+    );
+  const countOf = (s) => found.filter((item) => item.offer.status === s).length;
+  const listed = found.filter((item) => !status || item.offer.status === status);
+  json(response, 200, {
+    items: listed.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: listed.length,
+    counts: {
+      onSale: countOf("on_sale"),
+      soldOut: countOf("sold_out"),
+      closed: countOf("closed"),
+      withdrawn: countOf("withdrawn"),
+    },
+  });
+}
+
+const orderStatuses = ["confirmed", "ready", "collected", "cancelled", "refused", "expired"];
+const adminCustomers = ["Minh Anh", "Quốc Bảo", "Thu Hà", "Đức Long"];
+
+/**
+ * Every store's orders as an admin reads them (SEC-135): twelve orders across the first four stores without a
+ * logo, two of each status, numbered down from SB-24831. Those still to collect end 38 minutes from now, the
+ * others ended earlier tonight; the first holds three lines, so its "Món" reads "+1 món".
+ */
+function adminOrdersOf(stores) {
+  const now = Date.now();
+  const at = (minutes) => new Date(now + minutes * 60 * 1000).toISOString();
+  const shops = stores.filter((store) => !store.photoId).slice(0, 4);
+  return Array.from({ length: 12 }, (_, i) => {
+    const store = shops[i % shops.length];
+    const status = orderStatuses[i % orderStatuses.length];
+    const open = status === "confirmed" || status === "ready";
+    const back = open ? 0 : 60 + i * 10;
+    const lines = postsOf(store)
+      .slice(0, i === 0 ? 3 : 1 + (i % 2))
+      .map((post, n) => ({
+        offerId: post.id,
+        name: post.name,
+        unit: post.unit,
+        priceVnd: post.priceVnd,
+        originalPriceVnd: post.originalPriceVnd,
+        units: n === 0 ? 2 : 1,
+        photo: post.photo,
+      }));
+    return {
+      id: `or-admin-${String(i).padStart(2, "0")}`,
+      number: `SB-${24831 - i}`,
+      status,
+      seller: {
+        id: store.id,
+        name: store.name,
+        address: store.address,
+        latitude: store.latitude,
+        longitude: store.longitude,
+      },
+      lines,
+      totalVnd: lines.reduce((sum, l) => sum + l.priceVnd * l.units, 0),
+      windowStart: at(-back - 22 - i),
+      windowEnd: at(-back + 38 - i),
+      createdAt: at(-back - 120 - i),
+      ...(status === "ready" || status === "collected" ? { readyAt: at(-back - 10 - i) } : {}),
+      ...(status === "collected" ? { collectedAt: at(-back - i) } : {}),
+      ...(status === "cancelled" ? { cancelledAt: at(-back - 60 - i) } : {}),
+      ...(status === "refused" ? { refusedAt: at(-back - i), refuseReason: "no_show" } : {}),
+      checkoutId: `co-admin-${i}`,
+      customerName: adminCustomers[i % adminCustomers.length],
+      customerPhone: `0900000${String(201 + i)}`,
+    };
+  });
+}
+
+// The reviews admins read (SEC-145): six of the stores' collected orders, two of them poor and one hidden.
+// Each admin gets a copy of their own, so tests side by side can hide and show without meeting.
+const adminReviewsByAccount = new Map();
+
+function adminReviewsOf(account, stores) {
+  if (!adminReviewsByAccount.has(account.email)) {
+    const shops = stores.filter((store) => !store.photoId).slice(0, 3);
+    const seed = [
+      [5, "Bánh còn ấm, túi đầy hơn mình nghĩ.", false],
+      [4, "Cơm ngon, lấy nhanh.", false],
+      [1, "Quán lừa đảo, đồ uống như nước lã.", true],
+      [3, "", false],
+      [2, "Đến đúng giờ mà phải chờ lâu.", false],
+      [5, "Xôi dẻo, hành phi thơm.", false],
+    ];
+    adminReviewsByAccount.set(
+      account.email,
+      seed.map(([stars, comment, hidden], i) => {
+        const store = shops[i % shops.length];
+        const at = new Date(Date.parse("2026-10-21T20:00:00+07:00") - i * 6 * 3600 * 1000);
+        return {
+          orderId: `or-review-${i}`,
+          orderNumber: `SB-${24900 - i}`,
+          sellerId: store.id,
+          sellerName: store.name,
+          customerName: adminCustomers[i % adminCustomers.length],
+          stars,
+          tags: stars >= 4 ? ["good_quality"] : [],
+          ...(comment ? { comment } : {}),
+          createdAt: at.toISOString(),
+          ...(hidden ? { hiddenAt: at.toISOString() } : {}),
+        };
+      }),
+    );
+  }
+  return adminReviewsByAccount.get(account.email);
+}
+
+/** GET /admin/reviews (SEC-145), filtered as server/internal/order/queries.sql does, the latest first. */
+function listAdminReviews(response, url, reviews) {
+  const stars = url.searchParams
+    .getAll("stars")
+    .flatMap((s) => s.split(","))
+    .map(Number);
+  const visibility = url.searchParams.get("visibility");
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sellerId = url.searchParams.get("sellerId");
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const matching = reviews.filter(
+    (r) =>
+      (!q ||
+        fold(`${r.comment ?? ""} ${r.orderNumber} ${r.customerName} ${r.sellerName}`).includes(
+          q,
+        )) &&
+      (!sellerId || r.sellerId === sellerId),
+  );
+  const ofStars = (r) => stars.length === 0 || stars.includes(r.stars);
+  const ofVisibility = (r) =>
+    !visibility || (visibility === "hidden") === (r.hiddenAt !== undefined);
+  const listed = matching.filter((r) => ofStars(r) && ofVisibility(r));
+  const count = (n) => matching.filter((r) => r.stars === n && ofVisibility(r)).length;
+  const shown = visibility === "hidden" ? [] : matching.filter((r) => ofStars(r) && !r.hiddenAt);
+  json(response, 200, {
+    items: listed.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: listed.length,
+    counts: {
+      oneStar: count(1),
+      twoStars: count(2),
+      threeStars: count(3),
+      fourStars: count(4),
+      fiveStars: count(5),
+      hidden: matching.filter((r) => r.hiddenAt && ofStars(r)).length,
+    },
+    ...(shown.length > 0
+      ? { average: shown.reduce((sum, r) => sum + r.stars, 0) / shown.length }
+      : {}),
+  });
+}
+
+/**
+ * GET /admin/orders (SEC-135), filtered and paged as server/internal/order/queries.sql does: the statuses, the
+ * number with or without SB-, the customer's name or phone or the store's name, a store and the days the
+ * window starts; the latest window first.
+ */
+function listAdminOrders(response, url, stores) {
+  const statuses = url.searchParams
+    .getAll("status")
+    .flatMap((s) => s.split(","))
+    .filter(Boolean);
+  const q = fold(url.searchParams.get("q") ?? "");
+  const sellerId = url.searchParams.get("sellerId");
+  const page = Number(url.searchParams.get("page") ?? 1);
+  const size = Number(url.searchParams.get("size") ?? 25);
+  const since = url.searchParams.get("collectSince");
+  const until = url.searchParams.get("collectUntil");
+  if (
+    (since && until && Date.parse(since) >= Date.parse(until)) ||
+    statuses.some((s) => !orderStatuses.includes(s)) ||
+    q.length > 100 ||
+    !(page >= 1) ||
+    !(size >= 1 && size <= 100)
+  ) {
+    problem(response, 400, "ORDER_ADMIN_LIST_INVALID");
+    return;
+  }
+  const found = adminOrdersOf(stores).filter(
+    (order) =>
+      (!q ||
+        fold(
+          `${order.number} ${order.number.slice(3)} ${order.customerName} ${order.customerPhone} ${order.seller.name}`,
+        ).includes(q)) &&
+      (!sellerId || order.seller.id === sellerId) &&
+      (!since || Date.parse(order.windowStart) >= Date.parse(since)) &&
+      (!until || Date.parse(order.windowStart) < Date.parse(until)),
+  );
+  const listed = found
+    .filter((order) => statuses.length === 0 || statuses.includes(order.status))
+    .sort((a, b) => b.windowStart.localeCompare(a.windowStart) || b.number.localeCompare(a.number));
+  json(response, 200, {
+    items: listed.slice((page - 1) * size, page * size),
+    page,
+    pageSize: size,
+    total: listed.length,
+    counts: Object.fromEntries(
+      orderStatuses.map((status) => [status, found.filter((o) => o.status === status).length]),
+    ),
+  });
+}
+
+/** GET /orders/{id} for an admin, of the orders above (SEC-135); every other order goes on. */
+function adminOrderReads(request, response, url) {
+  const match = /^\/orders\/(or-admin-\d+)$/.exec(url.pathname);
+  if (request.method !== "GET" || !match) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account || account.role !== "admin") return false;
+  const order = adminOrdersOf(adminStoresOf(account)).find((o) => o.id === match[1]);
+  if (order) json(response, 200, order);
+  else problem(response, 404, "ORDER_NOT_FOUND");
+  return true;
+}
+
+/** POST /admin/sellers/{id}/approve | reject | block, each from the statuses it applies to. */
+async function changeAdminStore(request, response, stores, id, action) {
+  const store = stores.find((s) => s.id === id);
+  if (!store) return problem(response, 404, "SELLER_NOT_FOUND");
+  const from = {
+    approve: ["pending", "rejected", "blocked"],
+    reject: ["pending"],
+    block: ["active"],
+  };
+  let reason;
+  if (action !== "approve") {
+    reason = String((await readBody(request)).reason ?? "").trim();
+    if (reason.length < 10 || reason.length > 500)
+      return problem(response, 400, "SELLER_REASON_INVALID");
+  }
+  if (!from[action].includes(store.status))
+    return problem(response, 409, "SELLER_STATUS_CHANGE_NOT_ALLOWED");
+  const now = new Date().toISOString();
+  store.status = action === "approve" ? "active" : action === "reject" ? "rejected" : "blocked";
+  store.statusChangedAt = now;
+  store.updatedAt = now;
+  if (reason) store.statusReason = reason;
+  else delete store.statusReason;
+  const { ownerEmail: _owner, ...seller } = store;
+  json(response, 200, seller);
+}
+
+// What an admin reads of one store (SEC-62, Figma AD-Q3): the store, its people and its posts, as
+// GET /sellers/{id}, /members and /offers answer an admin who is not a member.
+const adminStorePosts = new Map();
+
+function adminSellerReads(request, response, url) {
+  const match = /^\/sellers\/(se-admin-\d+)(\/members|\/offers|\/orders)?$/.exec(url.pathname);
+  if (request.method !== "GET" || !match) return false;
+  const account = accounts.get(tokenOf(request));
+  if (!account || account.role !== "admin") return false;
+  const store = adminStoresOf(account).find((s) => s.id === match[1]);
+  if (!store) {
+    problem(response, 404, "SELLER_NOT_FOUND");
+    return true;
+  }
+  const { ownerEmail, ...seller } = store;
+  if (match[2] === "/members") {
+    json(response, 200, {
+      members: [
+        { accountId: "ac-owner", email: ownerEmail, role: "owner", addedAt: store.createdAt },
+        {
+          accountId: "ac-staff",
+          email: "nhan.vien@example.com",
+          role: "staff",
+          addedAt: store.createdAt,
+        },
+      ],
+    });
+  } else if (match[2] === "/orders") {
+    // A store's orders of the day (Figma AD-QD6): the six of a store with orders for "Tiệm bánh Pháp", none else.
+    json(response, 200, {
+      orders:
+        store.name === "Tiệm bánh Pháp" ? sellerOrdersFor({ ...seller, name: "Tiệm có đơn" }) : [],
+    });
+  } else if (match[2] === "/offers") {
+    // The shops with a logo have posted nothing, so their page shows the logo as its cover (Figma AD-Q3); the
+    // others have a post of each status, the first described and weighed as its panel shows it (AD-QD3).
+    if (!adminStorePosts.has(store.id))
+      adminStorePosts.set(
+        store.id,
+        store.photoId
+          ? []
+          : postsOf(store).map((post, i) =>
+              i === 0
+                ? {
+                    ...post,
+                    description: "Bánh mì và croissant nướng trong ngày, còn mềm.",
+                    weightGrams: 400,
+                  }
+                : post,
+            ),
+      );
+    json(response, 200, { offers: adminStorePosts.get(store.id) });
+  } else {
+    json(response, 200, seller);
+  }
+  return true;
+}
+
+// The admin's report (SEC-80): three stores' numbers on the last day of the range asked, the last seven days up
+// to today in Vietnam by default, every other day empty; one store's alone when `sellerId` names it. The stub
+// counts no real views or orders: the numbers are fixed, as api/openapi.yaml shapes them.
+const reportCountKeys = [
+  "views",
+  "people",
+  "homeViews",
+  "qrViews",
+  "offers",
+  "unitsPosted",
+  "held",
+  "unitsHeld",
+  "collected",
+  "unitsCollected",
+  "cancelled",
+  "refused",
+  "expired",
+  "collectedVnd",
+];
+
+function reportCounts(values = {}) {
+  return Object.fromEntries(reportCountKeys.map((key) => [key, values[key] ?? 0]));
+}
+
+function addCounts(into, more) {
+  for (const key of reportCountKeys) into[key] += more[key];
+}
+
+const reportStoreNumbers = [
+  {
+    views: 42,
+    people: 18,
+    qrViews: 6,
+    offers: 3,
+    unitsPosted: 15,
+    held: 9,
+    unitsHeld: 12,
+    collected: 8,
+    unitsCollected: 11,
+    cancelled: 1,
+    collectedVnd: 264000,
+  },
+  {
+    views: 25,
+    people: 11,
+    qrViews: 2,
+    offers: 2,
+    unitsPosted: 8,
+    held: 4,
+    unitsHeld: 4,
+    collected: 2,
+    unitsCollected: 2,
+    expired: 2,
+    collectedVnd: 70000,
+  },
+  { views: 7, people: 4, offers: 1, unitsPosted: 5 },
+];
+
+function vietnamToday() {
+  return new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+function adminReport(url, stores) {
+  const until = url.searchParams.get("until") ?? vietnamToday();
+  const untilTime = Date.parse(`${until}T00:00:00Z`);
+  const since =
+    url.searchParams.get("since") ??
+    new Date(untilTime - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const sellerId = url.searchParams.get("sellerId");
+  const days = [];
+  for (let t = Date.parse(`${since}T00:00:00Z`); t <= untilTime; t += 24 * 60 * 60 * 1000)
+    days.push({ day: new Date(t).toISOString().slice(0, 10), counts: reportCounts() });
+  const shown = stores
+    .filter((s) => s.status === "active")
+    .slice(0, reportStoreNumbers.length)
+    .map((s, i) => ({ sellerId: s.id, name: s.name, counts: reportCounts(reportStoreNumbers[i]) }))
+    .filter((s) => !sellerId || s.sellerId === sellerId);
+  const last = days.at(-1);
+  if (last) {
+    for (const store of shown) addCounts(last.counts, store.counts);
+    if (!sellerId) last.counts.views += 30;
+    if (!sellerId) last.counts.homeViews += 30;
+  }
+  const totals = reportCounts();
+  for (const day of days) addCounts(totals, day.counts);
+  return {
+    since,
+    until,
+    totals,
+    days,
+    stores: shown,
+    storeDays: last ? shown.map((store) => ({ day: last.day, ...store })) : [],
+  };
+}
+
+function adminReportCSV(report) {
+  const rows = [["Ngày", "Cửa hàng", "Lượt mở trang", "Đơn giữ", "Đơn đã lấy"]];
+  for (const row of report.storeDays)
+    rows.push([row.day, row.name, row.counts.views, row.counts.held, row.counts.collected]);
+  rows.push(["Tổng", "", report.totals.views, report.totals.held, report.totals.collected]);
+  return "\uFEFF" + rows.map((row) => row.join(",")).join("\r\n") + "\r\n";
+}
+
+async function adminRoutes(request, response, url) {
   if (!url.pathname.startsWith("/admin/")) return false;
   const account = accounts.get(tokenOf(request));
   if (!account) {
@@ -1355,8 +2737,141 @@ function adminRoutes(request, response, url) {
     problem(response, 403, "PLATFORM_ADMIN_REQUIRED");
     return true;
   }
+  if (request.method === "GET" && url.pathname === "/admin/sellers") {
+    listAdminStores(response, url, adminStoresOf(account));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/offers") {
+    listAdminOffers(response, url, adminStoresOf(account));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/orders") {
+    listAdminOrders(response, url, adminStoresOf(account));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/reviews") {
+    listAdminReviews(response, url, adminReviewsOf(account, adminStoresOf(account)));
+    return true;
+  }
+  const reviewAction = /^\/admin\/reviews\/([\w-]+)\/(hide|show)$/.exec(url.pathname);
+  if (request.method === "POST" && reviewAction) {
+    const review = adminReviewsOf(account, adminStoresOf(account)).find(
+      (r) => r.orderId === reviewAction[1],
+    );
+    if (!review) return (problem(response, 404, "ORDER_NOT_REVIEWED"), true);
+    const hide = reviewAction[2] === "hide";
+    if (hide === (review.hiddenAt !== undefined)) {
+      problem(response, 409, hide ? "ORDER_REVIEW_ALREADY_HIDDEN" : "ORDER_REVIEW_NOT_HIDDEN");
+      return true;
+    }
+    if (hide) {
+      review.hiddenAt = new Date().toISOString();
+      const reason = String((await readBody(request)).reason ?? "").trim();
+      if (reason) review.hiddenReason = reason;
+    } else {
+      delete review.hiddenAt;
+      delete review.hiddenReason;
+    }
+    json(response, 200, review);
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/seller-feedback") {
+    const store = url.searchParams.get("sellerId");
+    json(response, 200, {
+      items: [...storeFeedback, ...seededFeedback].filter((f) => !store || f.sellerId === store),
+    });
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/reports") {
+    json(response, 200, adminReport(url, adminStoresOf(account)));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/reports/export") {
+    const report = adminReport(url, adminStoresOf(account));
+    response.writeHead(200, {
+      "content-type": "text/csv; charset=utf-8",
+      "content-disposition": `attachment; filename=bao-cao-${report.since}-den-${report.until}.csv`,
+    });
+    response.end(adminReportCSV(report));
+    return true;
+  }
+  const storeAction = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block)$/.exec(url.pathname);
+  if (request.method === "POST" && storeAction) {
+    await changeAdminStore(
+      request,
+      response,
+      adminStoresOf(account),
+      storeAction[1],
+      storeAction[2],
+    );
+    return true;
+  }
   if (request.method === "GET" && url.pathname === "/admin/admins") {
-    json(response, 200, { admins: stubAdmins });
+    json(response, 200, { admins: adminsOf(account) });
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/admin/admins") {
+    const email = String((await readBody(request)).email ?? "")
+      .trim()
+      .toLowerCase();
+    if (!EMAIL.test(email)) {
+      problem(response, 400, "IDENTITY_EMAIL_INVALID");
+      return true;
+    }
+    const admins = adminsOf(account);
+    let granted = admins.find((admin) => admin.email === email);
+    const customer = stubCustomers.find((c) => c.email === email);
+    if (!granted && customer) {
+      granted = { ...customer, role: "admin" };
+      admins.push(granted);
+    }
+    if (!granted) {
+      granted = {
+        id: `ac-${Buffer.from(email).toString("hex")}`,
+        email,
+        displayName: "",
+        role: "admin",
+        createdAt: new Date().toISOString(),
+      };
+      admins.push(granted);
+    }
+    json(response, 200, granted);
+    return true;
+  }
+  const revokeMatch = /^\/admin\/admins\/([\w-]+)\/revoke$/.exec(url.pathname);
+  if (request.method === "POST" && revokeMatch) {
+    const admins = adminsOf(account);
+    const at = admins.findIndex((admin) => admin.id === revokeMatch[1]);
+    if (revokeMatch[1] === account.id) problem(response, 409, "IDENTITY_ADMIN_SELF");
+    else if (at < 0) problem(response, 404, "IDENTITY_ACCOUNT_NOT_FOUND");
+    else if (admins.length <= 1) problem(response, 409, "IDENTITY_LAST_ADMIN");
+    else {
+      const [revoked] = admins.splice(at, 1);
+      json(response, 200, { ...revoked, role: "customer" });
+    }
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/accounts") {
+    json(response, 200, accountsPage(account, url));
+    return true;
+  }
+  const historyMatch = /^\/admin\/accounts\/([\w-]+)\/orders$/.exec(url.pathname);
+  if (request.method === "GET" && historyMatch) {
+    json(response, 200, historyOf(historyMatch[1]));
+    return true;
+  }
+  const accountMatch = /^\/admin\/accounts\/([\w-]+)$/.exec(url.pathname);
+  if (request.method === "GET" && accountMatch) {
+    const found = directoryOf(account).find((a) => a.id === accountMatch[1]);
+    if (found) json(response, 200, found);
+    else problem(response, 404, "IDENTITY_ACCOUNT_NOT_FOUND");
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/memberships") {
+    const ids = url.searchParams.getAll("accountId").flatMap((id) => id.split(","));
+    json(response, 200, {
+      memberships: stubMemberships.filter((m) => ids.includes(m.accountId)),
+    });
     return true;
   }
   if (request.method === "GET" && url.pathname === "/admin/audit-events") {
@@ -1477,6 +2992,29 @@ async function emailSettingsRoutes(request, response, url) {
   return false;
 }
 
+// Web Push (SEC-25): the server's public key, a P-256 point made for the stub, and the subscriptions browsers
+// give, which a test reads back from /__stub/push/subscriptions.
+const PUSH_PUBLIC_KEY =
+  "BLExYV0XKmuSP7-CRH-tJewYHW4il8DyHpBzyswV18FE2SfsA1r2eurTeMKx9cVFY-pEpdvfMCIJ9-Q1EG2VUAs";
+const pushSubscriptions = [];
+
+async function pushRoutes(request, response, url) {
+  if (request.method === "GET" && url.pathname === "/push/key") {
+    json(response, 200, { publicKey: PUSH_PUBLIC_KEY });
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/push/subscriptions") {
+    pushSubscriptions.push(await readBody(request));
+    response.writeHead(204).end();
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/__stub/push/subscriptions") {
+    json(response, 200, { subscriptions: pushSubscriptions });
+    return true;
+  }
+  return false;
+}
+
 async function answer(request, response) {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   if (url.pathname === "/health") {
@@ -1501,10 +3039,21 @@ async function answer(request, response) {
     const { seller: _seller, ...offer } = found;
     return json(response, 200, offer);
   }
+  // A page on screen (SEC-80): counted by the server, answered alike whatever it is.
+  if (request.method === "POST" && url.pathname === "/stats/views") {
+    await readBody(request);
+    response.writeHead(204).end();
+    return;
+  }
   if (await auth(request, response, url)) return;
+  if (await chatRoutes(request, response, url)) return;
+  if (await pushRoutes(request, response, url)) return;
+  if (await favouriteRoutes(request, response, url)) return;
+  if (adminSellerReads(request, response, url)) return;
+  if (adminOrderReads(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await emailSettingsRoutes(request, response, url)) return;
-  if (adminRoutes(request, response, url)) return;
+  if (await adminRoutes(request, response, url)) return;
   if (await ordersApi(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);
   if (request.method === "GET" && photoMatch) {

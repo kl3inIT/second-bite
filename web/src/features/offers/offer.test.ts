@@ -25,6 +25,7 @@ function offer(
     name: id,
     description: "",
     kind: "bakery",
+    kindLabel: "",
     unit: "túi",
     units: 5,
     unitsLeft,
@@ -32,6 +33,7 @@ function offer(
     originalPriceVnd: 40_000,
     discountPercent,
     photo: { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` },
+    photos: [{ id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` }],
     windowStart: `2026-10-18T${window.start}:00+07:00`,
     windowEnd: `2026-10-18T${window.end}:00+07:00`,
     collectionPoint: { latitude: 21.0565, longitude: 105.8964, address: "Tầng 1, Tasco Mall" },
@@ -131,9 +133,15 @@ describe("the search's popular kinds", () => {
 });
 
 describe("directions", () => {
-  it("open the maps at the collection point", () => {
-    expect(directionsHref({ latitude: 21.0565, longitude: 105.8964, address: "Tầng 1" })).toBe(
-      "https://www.google.com/maps/dir/?api=1&destination=21.0565,105.8964",
+  it("lead to the store's pin", () => {
+    expect(
+      directionsHref({ address: "Tasco Mall, Long Biên", latitude: 21.0565, longitude: 105.8964 }),
+    ).toBe("https://www.google.com/maps/dir/?api=1&destination=21.0565%2C105.8964");
+  });
+
+  it("look the address up when the point has no coordinates", () => {
+    expect(directionsHref({ address: "Tasco Mall, Long Biên" })).toBe(
+      "https://www.google.com/maps/dir/?api=1&destination=Tasco+Mall%2C+Long+Bi%C3%AAn",
     );
   });
 });

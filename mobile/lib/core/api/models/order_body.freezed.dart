@@ -16,7 +16,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$OrderBody {
 
-/// Shared by the orders placed together from one cart
+/// The order is collected or expired, within two days, and no problem was reported yet
+ bool get canReportProblem;/// The order is collected and was never rated, so its customer may rate it
+ bool get canReview;/// Shared by the orders placed together from one cart
  String get checkoutId; DateTime get createdAt;/// Who collects, as given with the order
  String get customerName;/// Their phone number, 0 and nine digits
  String get customerPhone; String get id; List<OrderLineBody> get lines;/// What people read aloud, SB- and a number
@@ -24,7 +26,11 @@ mixin _$OrderBody {
  OrderSellerBody get seller;/// expired is read from the window's end
  OrderBodyStatus get status;/// Paid to the seller at the counter
  int get totalVnd; DateTime get windowEnd; DateTime get windowStart;/// To its customer: proves the order is theirs without signing in, sent back as Order-Access
- String? get access; String? get cancelReason; DateTime? get cancelledAt; DateTime? get collectedAt; DateTime? get readyAt; String? get refuseNote; OrderBodyRefuseReason? get refuseReason; DateTime? get refusedAt;
+ String? get access; String? get cancelReason; DateTime? get cancelledAt; DateTime? get collectedAt;/// Messages its chat holds, with unreadMessages; none for admins
+ int? get messageCount;/// What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
+ ProblemBody? get problem; DateTime? get readyAt; String? get refuseNote; OrderBodyRefuseReason? get refuseReason; DateTime? get refusedAt;/// The customer's rating of the collected order; none until they rate it, nor while admins hide it
+ ReviewBody? get review;/// Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins
+ int? get unreadMessages;
 /// Create a copy of OrderBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -38,20 +44,20 @@ $OrderBodyCopyWith<OrderBody> get copyWith => _$OrderBodyCopyWithImpl<OrderBody>
 @override
 bool operator ==(Object other) {
   final _this = this as OrderBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderBody&&(identical(other.checkoutId, _this.checkoutId) || other.checkoutId == _this.checkoutId)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.customerName, _this.customerName) || other.customerName == _this.customerName)&&(identical(other.customerPhone, _this.customerPhone) || other.customerPhone == _this.customerPhone)&&(identical(other.id, _this.id) || other.id == _this.id)&&const DeepCollectionEquality().equals(other.lines, _this.lines)&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.seller, _this.seller) || other.seller == _this.seller)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.totalVnd, _this.totalVnd) || other.totalVnd == _this.totalVnd)&&(identical(other.windowEnd, _this.windowEnd) || other.windowEnd == _this.windowEnd)&&(identical(other.windowStart, _this.windowStart) || other.windowStart == _this.windowStart)&&(identical(other.access, _this.access) || other.access == _this.access)&&(identical(other.cancelReason, _this.cancelReason) || other.cancelReason == _this.cancelReason)&&(identical(other.cancelledAt, _this.cancelledAt) || other.cancelledAt == _this.cancelledAt)&&(identical(other.collectedAt, _this.collectedAt) || other.collectedAt == _this.collectedAt)&&(identical(other.readyAt, _this.readyAt) || other.readyAt == _this.readyAt)&&(identical(other.refuseNote, _this.refuseNote) || other.refuseNote == _this.refuseNote)&&(identical(other.refuseReason, _this.refuseReason) || other.refuseReason == _this.refuseReason)&&(identical(other.refusedAt, _this.refusedAt) || other.refusedAt == _this.refusedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderBody&&(identical(other.canReportProblem, _this.canReportProblem) || other.canReportProblem == _this.canReportProblem)&&(identical(other.canReview, _this.canReview) || other.canReview == _this.canReview)&&(identical(other.checkoutId, _this.checkoutId) || other.checkoutId == _this.checkoutId)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.customerName, _this.customerName) || other.customerName == _this.customerName)&&(identical(other.customerPhone, _this.customerPhone) || other.customerPhone == _this.customerPhone)&&(identical(other.id, _this.id) || other.id == _this.id)&&const DeepCollectionEquality().equals(other.lines, _this.lines)&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.seller, _this.seller) || other.seller == _this.seller)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.totalVnd, _this.totalVnd) || other.totalVnd == _this.totalVnd)&&(identical(other.windowEnd, _this.windowEnd) || other.windowEnd == _this.windowEnd)&&(identical(other.windowStart, _this.windowStart) || other.windowStart == _this.windowStart)&&(identical(other.access, _this.access) || other.access == _this.access)&&(identical(other.cancelReason, _this.cancelReason) || other.cancelReason == _this.cancelReason)&&(identical(other.cancelledAt, _this.cancelledAt) || other.cancelledAt == _this.cancelledAt)&&(identical(other.collectedAt, _this.collectedAt) || other.collectedAt == _this.collectedAt)&&(identical(other.messageCount, _this.messageCount) || other.messageCount == _this.messageCount)&&(identical(other.problem, _this.problem) || other.problem == _this.problem)&&(identical(other.readyAt, _this.readyAt) || other.readyAt == _this.readyAt)&&(identical(other.refuseNote, _this.refuseNote) || other.refuseNote == _this.refuseNote)&&(identical(other.refuseReason, _this.refuseReason) || other.refuseReason == _this.refuseReason)&&(identical(other.refusedAt, _this.refusedAt) || other.refusedAt == _this.refusedAt)&&(identical(other.review, _this.review) || other.review == _this.review)&&(identical(other.unreadMessages, _this.unreadMessages) || other.unreadMessages == _this.unreadMessages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as OrderBody;
-  return Object.hashAll([runtimeType,_this.checkoutId,_this.createdAt,_this.customerName,_this.customerPhone,_this.id,const DeepCollectionEquality().hash(_this.lines),_this.number,_this.seller,_this.status,_this.totalVnd,_this.windowEnd,_this.windowStart,_this.access,_this.cancelReason,_this.cancelledAt,_this.collectedAt,_this.readyAt,_this.refuseNote,_this.refuseReason,_this.refusedAt]);
+  return Object.hashAll([runtimeType,_this.canReportProblem,_this.canReview,_this.checkoutId,_this.createdAt,_this.customerName,_this.customerPhone,_this.id,const DeepCollectionEquality().hash(_this.lines),_this.number,_this.seller,_this.status,_this.totalVnd,_this.windowEnd,_this.windowStart,_this.access,_this.cancelReason,_this.cancelledAt,_this.collectedAt,_this.messageCount,_this.problem,_this.readyAt,_this.refuseNote,_this.refuseReason,_this.refusedAt,_this.review,_this.unreadMessages]);
 }
 
 @override
 String toString() {
   final _this = this as OrderBody;
-  return 'OrderBody(checkoutId: ${_this.checkoutId}, createdAt: ${_this.createdAt}, customerName: ${_this.customerName}, customerPhone: ${_this.customerPhone}, id: ${_this.id}, lines: ${_this.lines}, number: ${_this.number}, seller: ${_this.seller}, status: ${_this.status}, totalVnd: ${_this.totalVnd}, windowEnd: ${_this.windowEnd}, windowStart: ${_this.windowStart}, access: ${_this.access}, cancelReason: ${_this.cancelReason}, cancelledAt: ${_this.cancelledAt}, collectedAt: ${_this.collectedAt}, readyAt: ${_this.readyAt}, refuseNote: ${_this.refuseNote}, refuseReason: ${_this.refuseReason}, refusedAt: ${_this.refusedAt})';
+  return 'OrderBody(canReportProblem: ${_this.canReportProblem}, canReview: ${_this.canReview}, checkoutId: ${_this.checkoutId}, createdAt: ${_this.createdAt}, customerName: ${_this.customerName}, customerPhone: ${_this.customerPhone}, id: ${_this.id}, lines: ${_this.lines}, number: ${_this.number}, seller: ${_this.seller}, status: ${_this.status}, totalVnd: ${_this.totalVnd}, windowEnd: ${_this.windowEnd}, windowStart: ${_this.windowStart}, access: ${_this.access}, cancelReason: ${_this.cancelReason}, cancelledAt: ${_this.cancelledAt}, collectedAt: ${_this.collectedAt}, messageCount: ${_this.messageCount}, problem: ${_this.problem}, readyAt: ${_this.readyAt}, refuseNote: ${_this.refuseNote}, refuseReason: ${_this.refuseReason}, refusedAt: ${_this.refusedAt}, review: ${_this.review}, unreadMessages: ${_this.unreadMessages})';
 }
 
 
@@ -62,11 +68,11 @@ abstract mixin class $OrderBodyCopyWith<$Res>  {
   factory $OrderBodyCopyWith(OrderBody value, $Res Function(OrderBody) _then) = _$OrderBodyCopyWithImpl;
 @useResult
 $Res call({
- String checkoutId, DateTime createdAt, String customerName, String customerPhone, String id, List<OrderLineBody> lines, String number, OrderSellerBody seller, OrderBodyStatus status, int totalVnd, DateTime windowEnd, DateTime windowStart, String? access, String? cancelReason, DateTime? cancelledAt, DateTime? collectedAt, DateTime? readyAt, String? refuseNote, OrderBodyRefuseReason? refuseReason, DateTime? refusedAt
+ bool canReportProblem, bool canReview, String checkoutId, DateTime createdAt, String customerName, String customerPhone, String id, List<OrderLineBody> lines, String number, OrderSellerBody seller, OrderBodyStatus status, int totalVnd, DateTime windowEnd, DateTime windowStart, String? access, String? cancelReason, DateTime? cancelledAt, DateTime? collectedAt, int? messageCount, ProblemBody? problem, DateTime? readyAt, String? refuseNote, OrderBodyRefuseReason? refuseReason, DateTime? refusedAt, ReviewBody? review, int? unreadMessages
 });
 
 
-$OrderSellerBodyCopyWith<$Res> get seller;
+$OrderSellerBodyCopyWith<$Res> get seller;$ProblemBodyCopyWith<$Res>? get problem;$ReviewBodyCopyWith<$Res>? get review;
 
 }
 /// @nodoc
@@ -79,9 +85,11 @@ class _$OrderBodyCopyWithImpl<$Res>
 
 /// Create a copy of OrderBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? checkoutId = null,Object? createdAt = null,Object? customerName = null,Object? customerPhone = null,Object? id = null,Object? lines = null,Object? number = null,Object? seller = null,Object? status = null,Object? totalVnd = null,Object? windowEnd = null,Object? windowStart = null,Object? access = freezed,Object? cancelReason = freezed,Object? cancelledAt = freezed,Object? collectedAt = freezed,Object? readyAt = freezed,Object? refuseNote = freezed,Object? refuseReason = freezed,Object? refusedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? canReportProblem = null,Object? canReview = null,Object? checkoutId = null,Object? createdAt = null,Object? customerName = null,Object? customerPhone = null,Object? id = null,Object? lines = null,Object? number = null,Object? seller = null,Object? status = null,Object? totalVnd = null,Object? windowEnd = null,Object? windowStart = null,Object? access = freezed,Object? cancelReason = freezed,Object? cancelledAt = freezed,Object? collectedAt = freezed,Object? messageCount = freezed,Object? problem = freezed,Object? readyAt = freezed,Object? refuseNote = freezed,Object? refuseReason = freezed,Object? refusedAt = freezed,Object? review = freezed,Object? unreadMessages = freezed,}) {
   return _then(OrderBody(
-checkoutId: null == checkoutId ? _self.checkoutId : checkoutId // ignore: cast_nullable_to_non_nullable
+canReportProblem: null == canReportProblem ? _self.canReportProblem : canReportProblem // ignore: cast_nullable_to_non_nullable
+as bool,canReview: null == canReview ? _self.canReview : canReview // ignore: cast_nullable_to_non_nullable
+as bool,checkoutId: null == checkoutId ? _self.checkoutId : checkoutId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,customerName: null == customerName ? _self.customerName : customerName // ignore: cast_nullable_to_non_nullable
 as String,customerPhone: null == customerPhone ? _self.customerPhone : customerPhone // ignore: cast_nullable_to_non_nullable
@@ -97,11 +105,15 @@ as DateTime,access: freezed == access ? _self.access : access // ignore: cast_nu
 as String?,cancelReason: freezed == cancelReason ? _self.cancelReason : cancelReason // ignore: cast_nullable_to_non_nullable
 as String?,cancelledAt: freezed == cancelledAt ? _self.cancelledAt : cancelledAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,collectedAt: freezed == collectedAt ? _self.collectedAt : collectedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,readyAt: freezed == readyAt ? _self.readyAt : readyAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,messageCount: freezed == messageCount ? _self.messageCount : messageCount // ignore: cast_nullable_to_non_nullable
+as int?,problem: freezed == problem ? _self.problem : problem // ignore: cast_nullable_to_non_nullable
+as ProblemBody?,readyAt: freezed == readyAt ? _self.readyAt : readyAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,refuseNote: freezed == refuseNote ? _self.refuseNote : refuseNote // ignore: cast_nullable_to_non_nullable
 as String?,refuseReason: freezed == refuseReason ? _self.refuseReason : refuseReason // ignore: cast_nullable_to_non_nullable
 as OrderBodyRefuseReason?,refusedAt: freezed == refusedAt ? _self.refusedAt : refusedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,review: freezed == review ? _self.review : review // ignore: cast_nullable_to_non_nullable
+as ReviewBody?,unreadMessages: freezed == unreadMessages ? _self.unreadMessages : unreadMessages // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 /// Create a copy of OrderBody
@@ -112,6 +124,30 @@ $OrderSellerBodyCopyWith<$Res> get seller {
   
   return $OrderSellerBodyCopyWith<$Res>(_self.seller, (value) {
     return _then(_self.copyWith(seller: value));
+  });
+}/// Create a copy of OrderBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ProblemBodyCopyWith<$Res>? get problem {
+    if (_self.problem == null) {
+    return null;
+  }
+
+  return $ProblemBodyCopyWith<$Res>(_self.problem!, (value) {
+    return _then(_self.copyWith(problem: value));
+  });
+}/// Create a copy of OrderBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ReviewBodyCopyWith<$Res>? get review {
+    if (_self.review == null) {
+    return null;
+  }
+
+  return $ReviewBodyCopyWith<$Res>(_self.review!, (value) {
+    return _then(_self.copyWith(review: value));
   });
 }
 }
@@ -195,10 +231,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool canReportProblem,  bool canReview,  String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  int? messageCount,  ProblemBody? problem,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt,  ReviewBody? review,  int? unreadMessages)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OrderBody() when $default != null:
-return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt);case _:
+return $default(_that.canReportProblem,_that.canReview,_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.messageCount,_that.problem,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt,_that.review,_that.unreadMessages);case _:
   return orElse();
 
 }
@@ -216,10 +252,10 @@ return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.custom
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool canReportProblem,  bool canReview,  String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  int? messageCount,  ProblemBody? problem,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt,  ReviewBody? review,  int? unreadMessages)  $default,) {final _that = this;
 switch (_that) {
 case _OrderBody():
-return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt);case _:
+return $default(_that.canReportProblem,_that.canReview,_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.messageCount,_that.problem,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt,_that.review,_that.unreadMessages);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -236,10 +272,10 @@ return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.custom
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool canReportProblem,  bool canReview,  String checkoutId,  DateTime createdAt,  String customerName,  String customerPhone,  String id,  List<OrderLineBody> lines,  String number,  OrderSellerBody seller,  OrderBodyStatus status,  int totalVnd,  DateTime windowEnd,  DateTime windowStart,  String? access,  String? cancelReason,  DateTime? cancelledAt,  DateTime? collectedAt,  int? messageCount,  ProblemBody? problem,  DateTime? readyAt,  String? refuseNote,  OrderBodyRefuseReason? refuseReason,  DateTime? refusedAt,  ReviewBody? review,  int? unreadMessages)?  $default,) {final _that = this;
 switch (_that) {
 case _OrderBody() when $default != null:
-return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt);case _:
+return $default(_that.canReportProblem,_that.canReview,_that.checkoutId,_that.createdAt,_that.customerName,_that.customerPhone,_that.id,_that.lines,_that.number,_that.seller,_that.status,_that.totalVnd,_that.windowEnd,_that.windowStart,_that.access,_that.cancelReason,_that.cancelledAt,_that.collectedAt,_that.messageCount,_that.problem,_that.readyAt,_that.refuseNote,_that.refuseReason,_that.refusedAt,_that.review,_that.unreadMessages);case _:
   return null;
 
 }
@@ -251,9 +287,13 @@ return $default(_that.checkoutId,_that.createdAt,_that.customerName,_that.custom
 @JsonSerializable()
 
 class _OrderBody implements OrderBody {
-  const _OrderBody({required this.checkoutId, required this.createdAt, required this.customerName, required this.customerPhone, required this.id, required  List<OrderLineBody> lines, required this.number, required this.seller, required this.status, required this.totalVnd, required this.windowEnd, required this.windowStart, this.access, this.cancelReason, this.cancelledAt, this.collectedAt, this.readyAt, this.refuseNote, this.refuseReason, this.refusedAt}): _lines = lines;
+  const _OrderBody({required this.canReportProblem, required this.canReview, required this.checkoutId, required this.createdAt, required this.customerName, required this.customerPhone, required this.id, required  List<OrderLineBody> lines, required this.number, required this.seller, required this.status, required this.totalVnd, required this.windowEnd, required this.windowStart, this.access, this.cancelReason, this.cancelledAt, this.collectedAt, this.messageCount, this.problem, this.readyAt, this.refuseNote, this.refuseReason, this.refusedAt, this.review, this.unreadMessages}): _lines = lines;
   factory _OrderBody.fromJson(Map<String, dynamic> json) => _$OrderBodyFromJson(json);
 
+/// The order is collected or expired, within two days, and no problem was reported yet
+@override final  bool canReportProblem;
+/// The order is collected and was never rated, so its customer may rate it
+@override final  bool canReview;
 /// Shared by the orders placed together from one cart
 @override final  String checkoutId;
 @override final  DateTime createdAt;
@@ -284,10 +324,18 @@ class _OrderBody implements OrderBody {
 @override final  String? cancelReason;
 @override final  DateTime? cancelledAt;
 @override final  DateTime? collectedAt;
+/// Messages its chat holds, with unreadMessages; none for admins
+@override final  int? messageCount;
+/// What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
+@override final  ProblemBody? problem;
 @override final  DateTime? readyAt;
 @override final  String? refuseNote;
 @override final  OrderBodyRefuseReason? refuseReason;
 @override final  DateTime? refusedAt;
+/// The customer's rating of the collected order; none until they rate it, nor while admins hide it
+@override final  ReviewBody? review;
+/// Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins
+@override final  int? unreadMessages;
 
 /// Create a copy of OrderBody
 /// with the given fields replaced by the non-null parameter values.
@@ -302,18 +350,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrderBody&&(identical(other.checkoutId, checkoutId) || other.checkoutId == checkoutId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.lines, _lines)&&(identical(other.number, number) || other.number == number)&&(identical(other.seller, seller) || other.seller == seller)&&(identical(other.status, status) || other.status == status)&&(identical(other.totalVnd, totalVnd) || other.totalVnd == totalVnd)&&(identical(other.windowEnd, windowEnd) || other.windowEnd == windowEnd)&&(identical(other.windowStart, windowStart) || other.windowStart == windowStart)&&(identical(other.access, access) || other.access == access)&&(identical(other.cancelReason, cancelReason) || other.cancelReason == cancelReason)&&(identical(other.cancelledAt, cancelledAt) || other.cancelledAt == cancelledAt)&&(identical(other.collectedAt, collectedAt) || other.collectedAt == collectedAt)&&(identical(other.readyAt, readyAt) || other.readyAt == readyAt)&&(identical(other.refuseNote, refuseNote) || other.refuseNote == refuseNote)&&(identical(other.refuseReason, refuseReason) || other.refuseReason == refuseReason)&&(identical(other.refusedAt, refusedAt) || other.refusedAt == refusedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrderBody&&(identical(other.canReportProblem, canReportProblem) || other.canReportProblem == canReportProblem)&&(identical(other.canReview, canReview) || other.canReview == canReview)&&(identical(other.checkoutId, checkoutId) || other.checkoutId == checkoutId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.lines, _lines)&&(identical(other.number, number) || other.number == number)&&(identical(other.seller, seller) || other.seller == seller)&&(identical(other.status, status) || other.status == status)&&(identical(other.totalVnd, totalVnd) || other.totalVnd == totalVnd)&&(identical(other.windowEnd, windowEnd) || other.windowEnd == windowEnd)&&(identical(other.windowStart, windowStart) || other.windowStart == windowStart)&&(identical(other.access, access) || other.access == access)&&(identical(other.cancelReason, cancelReason) || other.cancelReason == cancelReason)&&(identical(other.cancelledAt, cancelledAt) || other.cancelledAt == cancelledAt)&&(identical(other.collectedAt, collectedAt) || other.collectedAt == collectedAt)&&(identical(other.messageCount, messageCount) || other.messageCount == messageCount)&&(identical(other.problem, problem) || other.problem == problem)&&(identical(other.readyAt, readyAt) || other.readyAt == readyAt)&&(identical(other.refuseNote, refuseNote) || other.refuseNote == refuseNote)&&(identical(other.refuseReason, refuseReason) || other.refuseReason == refuseReason)&&(identical(other.refusedAt, refusedAt) || other.refusedAt == refusedAt)&&(identical(other.review, review) || other.review == review)&&(identical(other.unreadMessages, unreadMessages) || other.unreadMessages == unreadMessages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hashAll([runtimeType,checkoutId,createdAt,customerName,customerPhone,id,const DeepCollectionEquality().hash(_lines),number,seller,status,totalVnd,windowEnd,windowStart,access,cancelReason,cancelledAt,collectedAt,readyAt,refuseNote,refuseReason,refusedAt]);
+    return Object.hashAll([runtimeType,canReportProblem,canReview,checkoutId,createdAt,customerName,customerPhone,id,const DeepCollectionEquality().hash(_lines),number,seller,status,totalVnd,windowEnd,windowStart,access,cancelReason,cancelledAt,collectedAt,messageCount,problem,readyAt,refuseNote,refuseReason,refusedAt,review,unreadMessages]);
 }
 
 @override
 String toString() {
-    return 'OrderBody(checkoutId: $checkoutId, createdAt: $createdAt, customerName: $customerName, customerPhone: $customerPhone, id: $id, lines: $lines, number: $number, seller: $seller, status: $status, totalVnd: $totalVnd, windowEnd: $windowEnd, windowStart: $windowStart, access: $access, cancelReason: $cancelReason, cancelledAt: $cancelledAt, collectedAt: $collectedAt, readyAt: $readyAt, refuseNote: $refuseNote, refuseReason: $refuseReason, refusedAt: $refusedAt)';
+    return 'OrderBody(canReportProblem: $canReportProblem, canReview: $canReview, checkoutId: $checkoutId, createdAt: $createdAt, customerName: $customerName, customerPhone: $customerPhone, id: $id, lines: $lines, number: $number, seller: $seller, status: $status, totalVnd: $totalVnd, windowEnd: $windowEnd, windowStart: $windowStart, access: $access, cancelReason: $cancelReason, cancelledAt: $cancelledAt, collectedAt: $collectedAt, messageCount: $messageCount, problem: $problem, readyAt: $readyAt, refuseNote: $refuseNote, refuseReason: $refuseReason, refusedAt: $refusedAt, review: $review, unreadMessages: $unreadMessages)';
 }
 
 
@@ -324,11 +372,11 @@ abstract mixin class _$OrderBodyCopyWith<$Res> implements $OrderBodyCopyWith<$Re
   factory _$OrderBodyCopyWith(_OrderBody value, $Res Function(_OrderBody) _then) = __$OrderBodyCopyWithImpl;
 @override @useResult
 $Res call({
- String checkoutId, DateTime createdAt, String customerName, String customerPhone, String id, List<OrderLineBody> lines, String number, OrderSellerBody seller, OrderBodyStatus status, int totalVnd, DateTime windowEnd, DateTime windowStart, String? access, String? cancelReason, DateTime? cancelledAt, DateTime? collectedAt, DateTime? readyAt, String? refuseNote, OrderBodyRefuseReason? refuseReason, DateTime? refusedAt
+ bool canReportProblem, bool canReview, String checkoutId, DateTime createdAt, String customerName, String customerPhone, String id, List<OrderLineBody> lines, String number, OrderSellerBody seller, OrderBodyStatus status, int totalVnd, DateTime windowEnd, DateTime windowStart, String? access, String? cancelReason, DateTime? cancelledAt, DateTime? collectedAt, int? messageCount, ProblemBody? problem, DateTime? readyAt, String? refuseNote, OrderBodyRefuseReason? refuseReason, DateTime? refusedAt, ReviewBody? review, int? unreadMessages
 });
 
 
-@override $OrderSellerBodyCopyWith<$Res> get seller;
+@override $OrderSellerBodyCopyWith<$Res> get seller;@override $ProblemBodyCopyWith<$Res>? get problem;@override $ReviewBodyCopyWith<$Res>? get review;
 
 }
 /// @nodoc
@@ -341,9 +389,11 @@ class __$OrderBodyCopyWithImpl<$Res>
 
 /// Create a copy of OrderBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? checkoutId = null,Object? createdAt = null,Object? customerName = null,Object? customerPhone = null,Object? id = null,Object? lines = null,Object? number = null,Object? seller = null,Object? status = null,Object? totalVnd = null,Object? windowEnd = null,Object? windowStart = null,Object? access = freezed,Object? cancelReason = freezed,Object? cancelledAt = freezed,Object? collectedAt = freezed,Object? readyAt = freezed,Object? refuseNote = freezed,Object? refuseReason = freezed,Object? refusedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? canReportProblem = null,Object? canReview = null,Object? checkoutId = null,Object? createdAt = null,Object? customerName = null,Object? customerPhone = null,Object? id = null,Object? lines = null,Object? number = null,Object? seller = null,Object? status = null,Object? totalVnd = null,Object? windowEnd = null,Object? windowStart = null,Object? access = freezed,Object? cancelReason = freezed,Object? cancelledAt = freezed,Object? collectedAt = freezed,Object? messageCount = freezed,Object? problem = freezed,Object? readyAt = freezed,Object? refuseNote = freezed,Object? refuseReason = freezed,Object? refusedAt = freezed,Object? review = freezed,Object? unreadMessages = freezed,}) {
   return _then(_OrderBody(
-checkoutId: null == checkoutId ? _self.checkoutId : checkoutId // ignore: cast_nullable_to_non_nullable
+canReportProblem: null == canReportProblem ? _self.canReportProblem : canReportProblem // ignore: cast_nullable_to_non_nullable
+as bool,canReview: null == canReview ? _self.canReview : canReview // ignore: cast_nullable_to_non_nullable
+as bool,checkoutId: null == checkoutId ? _self.checkoutId : checkoutId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,customerName: null == customerName ? _self.customerName : customerName // ignore: cast_nullable_to_non_nullable
 as String,customerPhone: null == customerPhone ? _self.customerPhone : customerPhone // ignore: cast_nullable_to_non_nullable
@@ -359,11 +409,15 @@ as DateTime,access: freezed == access ? _self.access : access // ignore: cast_nu
 as String?,cancelReason: freezed == cancelReason ? _self.cancelReason : cancelReason // ignore: cast_nullable_to_non_nullable
 as String?,cancelledAt: freezed == cancelledAt ? _self.cancelledAt : cancelledAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,collectedAt: freezed == collectedAt ? _self.collectedAt : collectedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,readyAt: freezed == readyAt ? _self.readyAt : readyAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,messageCount: freezed == messageCount ? _self.messageCount : messageCount // ignore: cast_nullable_to_non_nullable
+as int?,problem: freezed == problem ? _self.problem : problem // ignore: cast_nullable_to_non_nullable
+as ProblemBody?,readyAt: freezed == readyAt ? _self.readyAt : readyAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,refuseNote: freezed == refuseNote ? _self.refuseNote : refuseNote // ignore: cast_nullable_to_non_nullable
 as String?,refuseReason: freezed == refuseReason ? _self.refuseReason : refuseReason // ignore: cast_nullable_to_non_nullable
 as OrderBodyRefuseReason?,refusedAt: freezed == refusedAt ? _self.refusedAt : refusedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,review: freezed == review ? _self.review : review // ignore: cast_nullable_to_non_nullable
+as ReviewBody?,unreadMessages: freezed == unreadMessages ? _self.unreadMessages : unreadMessages // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
@@ -375,6 +429,30 @@ $OrderSellerBodyCopyWith<$Res> get seller {
   
   return $OrderSellerBodyCopyWith<$Res>(_self.seller, (value) {
     return _then(_self.copyWith(seller: value));
+  });
+}/// Create a copy of OrderBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ProblemBodyCopyWith<$Res>? get problem {
+    if (_self.problem == null) {
+    return null;
+  }
+
+  return $ProblemBodyCopyWith<$Res>(_self.problem!, (value) {
+    return _then(_self.copyWith(problem: value));
+  });
+}/// Create a copy of OrderBody
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ReviewBodyCopyWith<$Res>? get review {
+    if (_self.review == null) {
+    return null;
+  }
+
+  return $ReviewBodyCopyWith<$Res>(_self.review!, (value) {
+    return _then(_self.copyWith(review: value));
   });
 }
 }

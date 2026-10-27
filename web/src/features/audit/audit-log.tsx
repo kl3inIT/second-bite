@@ -2,24 +2,22 @@
 
 import {
   BanIcon,
-  CalendarIcon,
   CircleCheckIcon,
   CircleXIcon,
+  EyeIcon,
+  EyeOffIcon,
   MailIcon,
-  SearchIcon,
   SettingsIcon,
   ShieldMinusIcon,
   ShieldPlusIcon,
   type LucideIcon,
 } from "lucide-react";
 import { debounce, useQueryStates } from "nuqs";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
-import { enUS, vi } from "react-day-picker/locale";
+import { useFormatter, useTranslations } from "next-intl";
+import { useTransition } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Empty,
   EmptyContent,
@@ -27,8 +25,6 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -38,6 +34,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
+import { SearchBox } from "@/features/admin/search-box";
+import { DayRange } from "@/features/admin/day-range";
 import { ListFooter } from "@/features/admin/list-footer";
 import type { AccountBody, AuditEventBody } from "@/lib/api/generated";
 
@@ -60,6 +58,8 @@ const actionLook: Record<
   "seller.reject": { variant: "danger", icon: CircleXIcon },
   "seller.block": { variant: "danger", icon: BanIcon },
   "seller.unblock": { variant: "success", icon: CircleCheckIcon },
+  "review.hide": { variant: "danger", icon: EyeOffIcon },
+  "review.show": { variant: "success", icon: EyeIcon },
   "admin.grant": { variant: "info", icon: ShieldPlusIcon },
   "admin.revoke": { variant: "warning", icon: ShieldMinusIcon },
   "offer_settings.change": { variant: "info", icon: SettingsIcon },
@@ -97,6 +97,8 @@ export function AuditLog({
     <section aria-label={t("title")} className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox
+          label={t("filter.search")}
+          className="sm:w-72"
           value={params.q}
           onChange={(q) =>
             void setParams(
@@ -159,6 +161,8 @@ export function AuditLog({
           </SelectContent>
         </Select>
         <DayRange
+          label={t("filter.days")}
+          anytime={t("filter.anytime")}
           from={params.from}
           to={params.to}
           onChange={(from, to) => void setParams({ from, to, page: null })}
@@ -211,76 +215,6 @@ export function AuditLog({
         }
       />
     </section>
-  );
-}
-
-function SearchBox({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const t = useTranslations("Admin.audit.filter");
-  const [text, setText] = useState(value);
-
-  return (
-    <InputGroup className="h-11 w-full sm:w-72">
-      <InputGroupAddon>
-        <SearchIcon aria-hidden />
-      </InputGroupAddon>
-      <InputGroupInput
-        type="search"
-        aria-label={t("search")}
-        placeholder={t("search")}
-        value={text}
-        maxLength={100}
-        onChange={(event) => {
-          setText(event.target.value);
-          onChange(event.target.value.trim());
-        }}
-      />
-    </InputGroup>
-  );
-}
-
-function DayRange({
-  from,
-  to,
-  onChange,
-}: {
-  from: Date | null;
-  to: Date | null;
-  onChange: (from: Date | null, to: Date | null) => void;
-}) {
-  const t = useTranslations("Admin.audit.filter");
-  const format = useFormatter();
-  const locale = useLocale();
-  const [today] = useState(() => new Date());
-  const day = (d: Date) =>
-    format.dateTime(d, { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" });
-
-  return (
-    <Popover>
-      <PopoverTrigger render={<Button variant="field" />}>
-        <CalendarIcon data-icon="inline-start" />
-        <span className="text-muted-foreground">{t("days")}:</span>
-        <span className="text-body-sm-strong">
-          {from ? `${day(from)} – ${day(to ?? from)}` : t("anytime")}
-        </span>
-      </PopoverTrigger>
-      <PopoverContent align="start">
-        <Calendar
-          mode="range"
-          locale={locale === "vi" ? vi : enUS}
-          timeZone="UTC"
-          selected={from ? { from, to: to ?? from } : undefined}
-          onSelect={(range) => onChange(range?.from ?? null, range?.to ?? range?.from ?? null)}
-          disabled={{ after: today }}
-        />
-        {from && (
-          <div className="border-t border-border p-2">
-            <Button variant="ghost" className="w-full" onClick={() => onChange(null, null)}>
-              {t("anytime")}
-            </Button>
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
   );
 }
 

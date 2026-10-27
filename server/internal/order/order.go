@@ -16,6 +16,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
+	"github.com/kl3inIT/second-bite/server/internal/notification"
 	"github.com/kl3inIT/second-bite/server/internal/offer"
 	"github.com/kl3inIT/second-bite/server/internal/order/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
@@ -53,6 +55,9 @@ const (
 	RefuseLate        RefuseReason = "late"
 	RefuseSoldOut     RefuseReason = "sold_out"
 	RefuseOther       RefuseReason = "other"
+	// RefuseWithdrawn is the reason the system gives when the seller withdraws
+	// an offer the order holds units of; staff never choose it (SEC-108).
+	RefuseWithdrawn RefuseReason = "withdrawn"
 )
 
 // valid tells whether staff may give r.
@@ -60,6 +65,8 @@ func (r RefuseReason) valid() bool {
 	switch r {
 	case RefuseNotSuitable, RefuseWrongItems, RefuseNoAnswer, RefuseNoShow, RefuseLate, RefuseSoldOut, RefuseOther:
 		return true
+	case RefuseWithdrawn:
+		return false
 	}
 
 	return false
@@ -101,6 +108,24 @@ type Order struct {
 	CancelReason    string
 	RefuseReason    RefuseReason
 	RefuseNote      string
+	// Review is the customer's rating, none until they rate the collected order
+	// and none while admins hide it (SEC-145).
+	Review *Review
+	// Reviewed tells the order was rated, its review shown or hidden; it is
+	// never rated again.
+	Reviewed bool
+	// Problem is what its customer reported went wrong, with the store's
+	// answer; none until they report one (SEC-84).
+	Problem *Problem
+	// CanReportProblem tells whether its customer may still report a problem.
+	CanReportProblem bool
+	// UnreadMessages is how many messages of its chat the reader has not read:
+	// from the seller for the customer, from the customer for the seller's
+	// people. None for admins, who do not read chats.
+	UnreadMessages *int
+	// MessageCount is how many messages its chat holds, set with
+	// UnreadMessages.
+	MessageCount *int
 	// Access proves the order is theirs to whoever placed it, set only for
 	// them.
 	Access string
@@ -128,13 +153,23 @@ type Service struct {
 	queries *db.Queries
 	offers  *offer.Service
 	sellers *seller.Service
-	logger  *slog.Logger
-	now     func() time.Time
+	// pushes queues the Web Push of each change (SEC-25); nil sends none.
+	pushes *notification.Service
+	// trail records what admins do to reviews (SEC-145).
+	trail  *audit.Service
+	logger *slog.Logger
+	now    func() time.Time
 }
 
 // NewService assembles the module.
-func NewService(pool *pgxpool.Pool, offers *offer.Service, sellers *seller.Service, logger *slog.Logger) *Service {
-	return &Service{pool: pool, queries: db.New(pool), offers: offers, sellers: sellers, logger: logger, now: time.Now}
+func NewService(
+	pool *pgxpool.Pool, offers *offer.Service, sellers *seller.Service, pushes *notification.Service,
+	trail *audit.Service, logger *slog.Logger,
+) *Service {
+	return &Service{
+		pool: pool, queries: db.New(pool), offers: offers, sellers: sellers, pushes: pushes, trail: trail,
+		logger: logger, now: time.Now,
+	}
 }
 
 // Get returns an order to its customer, signed in or holding its access, to
@@ -146,18 +181,33 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID, access string) (Order, 
 	}
 
 	if s.isCustomer(ctx, o, access) {
-		return s.shown(o, true), nil
+		return s.readBy(ctx, s.shown(o, true), SideCustomer)
 	}
 
 	if _, signedIn := platform.CallerFrom(ctx); !signedIn {
 		return Order{}, ErrNotFound
 	}
 
-	if _, err := s.sellers.Get(ctx, o.SellerID); err != nil {
+	member, err := s.sellers.Get(ctx, o.SellerID)
+	if err != nil {
 		return Order{}, ErrNotFound
 	}
 
-	return o, nil
+	if member.MyRole == "" {
+		return o, nil
+	}
+
+	return s.readBy(ctx, o, SideSeller)
+}
+
+// readBy returns o with the unread messages of the side reading it.
+func (s *Service) readBy(ctx context.Context, o Order, side Side) (Order, error) {
+	orders := []Order{o}
+	if err := s.withUnread(ctx, orders, side); err != nil {
+		return Order{}, err
+	}
+
+	return orders[0], nil
 }
 
 // isCustomer tells whether the reader placed o: signed in to its account, or
@@ -203,7 +253,19 @@ func (s *Service) Mine(ctx context.Context, which Which, checkout uuid.UUID, lim
 		orders = append(orders, s.fromRow(db.GetOrderRow(r)))
 	}
 
-	if err := s.withLines(ctx, orders); err != nil {
+	if err := s.withLines(ctx, s.queries, orders); err != nil {
+		return nil, err
+	}
+
+	if err := s.withReviews(ctx, orders); err != nil {
+		return nil, err
+	}
+
+	if err := s.withProblems(ctx, orders); err != nil {
+		return nil, err
+	}
+
+	if err := s.withUnread(ctx, orders, SideCustomer); err != nil {
 		return nil, err
 	}
 
@@ -217,7 +279,8 @@ func (s *Service) Mine(ctx context.Context, which Which, checkout uuid.UUID, lim
 // OfSeller lists a seller's orders whose window starts on day, in Vietnam
 // time, to its people and admins.
 func (s *Service) OfSeller(ctx context.Context, sellerID uuid.UUID, day time.Time) ([]Order, error) {
-	if _, err := s.sellers.Get(ctx, sellerID); err != nil {
+	member, err := s.sellers.Get(ctx, sellerID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -234,8 +297,22 @@ func (s *Service) OfSeller(ctx context.Context, sellerID uuid.UUID, day time.Tim
 		orders = append(orders, s.fromRow(db.GetOrderRow(r)))
 	}
 
-	if err := s.withLines(ctx, orders); err != nil {
+	if err := s.withLines(ctx, s.queries, orders); err != nil {
 		return nil, err
+	}
+
+	if err := s.withReviews(ctx, orders); err != nil {
+		return nil, err
+	}
+
+	if err := s.withProblems(ctx, orders); err != nil {
+		return nil, err
+	}
+
+	if member.MyRole != "" {
+		if err := s.withUnread(ctx, orders, SideSeller); err != nil {
+			return nil, err
+		}
 	}
 
 	return orders, nil
@@ -256,15 +333,24 @@ func (s *Service) read(ctx context.Context, id uuid.UUID) (Order, error) {
 	}
 
 	orders := []Order{s.fromRow(row)}
-	if err := s.withLines(ctx, orders); err != nil {
+	if err := s.withLines(ctx, s.queries, orders); err != nil {
+		return Order{}, err
+	}
+
+	if err := s.withReviews(ctx, orders); err != nil {
+		return Order{}, err
+	}
+
+	if err := s.withProblems(ctx, orders); err != nil {
 		return Order{}, err
 	}
 
 	return orders[0], nil
 }
 
-// withLines reads the lines of orders in one query.
-func (s *Service) withLines(ctx context.Context, orders []Order) error {
+// withLines reads the lines of orders in one query, with q: the pool's, or the
+// transaction's when the orders are read inside one.
+func (s *Service) withLines(ctx context.Context, q *db.Queries, orders []Order) error {
 	if len(orders) == 0 {
 		return nil
 	}
@@ -276,7 +362,7 @@ func (s *Service) withLines(ctx context.Context, orders []Order) error {
 		ids[i], at[o.ID] = o.ID, i
 	}
 
-	rows, err := s.queries.LinesOf(ctx, ids)
+	rows, err := q.LinesOf(ctx, ids)
 	if err != nil {
 		return fmt.Errorf("reading the orders' lines: %w", err)
 	}

@@ -12,8 +12,9 @@ import sushi from "@/features/offers/kinds/sushi.jpg";
 import vegetables from "@/features/offers/kinds/vegetables.jpg";
 import type { OfferKind } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
+import { searchHref } from "@/features/search/search-query";
 
-import type { HomeQuery } from "./home-query";
+import { homePath, type HomeQuery } from "./home-query";
 
 // The round pictures at the top of the content (Figma K1 kind picker): first one per kind the API can filter
 // by, each a link over the address, the chosen one linking back to the whole list; then dishes people look
@@ -26,6 +27,9 @@ const order: readonly OfferKind[] = [
   "mixed_box",
   "ingredients",
   "drinks",
+  "dessert",
+  "snacks",
+  "produce",
   "other",
 ];
 // The words searched are the dishes' Vietnamese names, as the offers are named, whatever the language shown.
@@ -42,24 +46,21 @@ export function KindPicker({ query }: { query: HomeQuery }) {
   const t = useTranslations("Home");
   const kinds = useTranslations("OfferKind");
   // A kind narrows the place being shown; it does not move back to Tasco Mall.
-  const keep = query.near ? { near: query.near } : {};
+  const { near } = query;
   const items = [
     ...order.map((kind) => ({
       key: kind,
       label: kinds(kind),
       picture: pictures[kind],
       active: query.kind === kind,
-      href: {
-        pathname: "/" as const,
-        query: query.kind === kind ? keep : { ...keep, kind },
-      },
+      href: homePath({ near, kind: query.kind === kind ? undefined : kind }),
     })),
     ...dishes.map((dish) => ({
       key: dish.key,
       label: t(`dishes.${dish.key}`),
       picture: dish.picture,
       active: false,
-      href: { pathname: "/search" as const, query: { ...keep, q: dish.words } },
+      href: searchHref({ near, q: dish.words }),
     })),
   ];
 
@@ -68,7 +69,7 @@ export function KindPicker({ query }: { query: HomeQuery }) {
       <Marquee
         label={t("kindsLabel")}
         count={items.length}
-        spacing={{ gap: "gap-2.5 lg:gap-6", seam: "pr-2.5 lg:pr-6" }}
+        spacing={{ gap: "gap-2.5 md:gap-6", seam: "pr-2.5 md:pr-6" }}
       >
         {items.map((item) => (
           <li key={item.key} className="shrink-0 py-1.5">
@@ -96,7 +97,7 @@ export function KindPicker({ query }: { query: HomeQuery }) {
 
 function KindPicture({ picture, active }: { picture: StaticImageData; active: boolean }) {
   const frame = cn(
-    "size-15 rounded-full transition-shadow lg:size-20 group-hover/kind:ring-2 group-hover/kind:ring-secondary-hover",
+    "size-15 rounded-full transition-shadow md:size-20 group-hover/kind:ring-2 group-hover/kind:ring-secondary-hover",
     active &&
       "ring-3 ring-primary ring-offset-2 ring-offset-background group-hover/kind:ring-primary",
   );

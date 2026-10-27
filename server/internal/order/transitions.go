@@ -19,7 +19,7 @@ import (
 )
 
 // Cancel cancels an order for its customer, signed in or holding its access,
-// free of charge until its window opens, and gives its units back to their
+// until the seller marks it ready, and gives its units back to their
 // offers in the same transaction.
 func (s *Service) Cancel(ctx context.Context, id uuid.UUID, access, reason string) (Order, error) {
 	caller, signedIn := platform.CallerFrom(ctx)
@@ -34,7 +34,8 @@ func (s *Service) Cancel(ctx context.Context, id uuid.UUID, access, reason strin
 			return ErrNotFound
 		}
 
-		if !o.Status.open() || !s.now().Before(o.WindowStart) {
+		// Until the seller marks it ready, even once the window has opened (SEC-121); an expired order reads as expired.
+		if o.Status != StatusConfirmed {
 			return ErrCancelTooLate
 		}
 
@@ -48,9 +49,17 @@ func (s *Service) Cancel(ctx context.Context, id uuid.UUID, access, reason strin
 			}
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{
+		if err := q.InsertEvent(ctx, db.InsertEventParams{
 			OrderID: id, Kind: "cancelled", ActorID: uuid.NullUUID{UUID: caller.AccountID, Valid: signedIn},
-		})
+		}); err != nil {
+			return err
+		}
+
+		if err := s.pushCancelled(ctx, tx, o); err != nil {
+			return err
+		}
+
+		return notifyOrder(ctx, tx, id, o.SellerID, StatusCancelled)
 	})
 	if err != nil {
 		return Order{}, err
@@ -69,7 +78,7 @@ func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 		return Order{}, err
 	}
 
-	err = s.transition(ctx, id, func(q *db.Queries, _ pgx.Tx, o Order) error {
+	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
 		switch o.Status {
 		case StatusReady:
 			return nil
@@ -82,7 +91,15 @@ func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 			return fmt.Errorf("marking the order ready: %w", err)
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "ready", ActorID: actor(caller)})
+		if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "ready", ActorID: actor(caller)}); err != nil {
+			return err
+		}
+
+		if err := s.pushReady(ctx, tx, o); err != nil {
+			return err
+		}
+
+		return notifyOrder(ctx, tx, id, o.SellerID, StatusReady)
 	})
 	if err != nil {
 		return Order{}, err
@@ -101,7 +118,7 @@ func (s *Service) HandOver(ctx context.Context, id uuid.UUID) (Order, error) {
 		return Order{}, err
 	}
 
-	err = s.transition(ctx, id, func(q *db.Queries, _ pgx.Tx, o Order) error {
+	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
 		switch {
 		case !o.Status.open():
 			return ErrTransitionNotAllowed
@@ -113,7 +130,11 @@ func (s *Service) HandOver(ctx context.Context, id uuid.UUID) (Order, error) {
 			return fmt.Errorf("handing the order over: %w", err)
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "collected", ActorID: actor(caller)})
+		if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "collected", ActorID: actor(caller)}); err != nil {
+			return err
+		}
+
+		return notifyOrder(ctx, tx, id, o.SellerID, StatusCollected)
 	})
 	if err != nil {
 		return Order{}, err
@@ -135,7 +156,8 @@ func (s *Service) Reopen(ctx context.Context, id uuid.UUID) (Order, error) {
 	}
 
 	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
-		if (o.Status != StatusCollected && o.Status != StatusRefused) || !o.WindowEnd.After(s.now()) {
+		if (o.Status != StatusCollected && o.Status != StatusRefused) || !o.WindowEnd.After(s.now()) ||
+			o.RefuseReason == RefuseWithdrawn {
 			return ErrTransitionNotAllowed
 		}
 
@@ -156,7 +178,11 @@ func (s *Service) Reopen(ctx context.Context, id uuid.UUID) (Order, error) {
 			return fmt.Errorf("reopening the order: %w", err)
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "reopened", ActorID: actor(caller)})
+		if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "reopened", ActorID: actor(caller)}); err != nil {
+			return err
+		}
+
+		return notifyOrder(ctx, tx, id, o.SellerID, StatusConfirmed)
 	})
 	if err != nil {
 		return Order{}, err
@@ -199,7 +225,15 @@ func (s *Service) Refuse(ctx context.Context, id uuid.UUID, reason RefuseReason,
 			}
 		}
 
-		return q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "refused", ActorID: actor(caller)})
+		if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "refused", ActorID: actor(caller)}); err != nil {
+			return err
+		}
+
+		if err := s.pushRefused(ctx, tx, o, reason); err != nil {
+			return err
+		}
+
+		return notifyOrder(ctx, tx, id, o.SellerID, StatusRefused)
 	})
 	if err != nil {
 		return Order{}, err
@@ -247,7 +281,9 @@ func (s *Service) transition(ctx context.Context, id uuid.UUID, change func(*db.
 		}
 
 		orders := []Order{s.fromRow(db.GetOrderRow(row))}
-		if err := s.withLines(ctx, orders); err != nil {
+		// Read in the transaction: a second connection from the pool while this one is
+		// held can wait for ever once the pool is full (SEC-128).
+		if err := s.withLines(ctx, q, orders); err != nil {
 			return err
 		}
 

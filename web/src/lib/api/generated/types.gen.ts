@@ -18,11 +18,127 @@ export type AddSellerStaffRequest = {
     email: string;
 };
 
+export type AddressOutputBody = {
+    /**
+     * As people write it; empty when the point has no known address
+     */
+    address: string;
+};
+
+export type AdminAccountsOutputBody = {
+    /**
+     * How many accounts of each role match the words, whatever the role asked
+     */
+    counts: RoleCountsBody;
+    items: Array<RecordBody> | null;
+    page: number;
+    pageSize: number;
+    /**
+     * How many accounts match the role and the words
+     */
+    total: number;
+};
+
+export type AdminOfferBody = {
+    offer: OfferBody;
+    /**
+     * Copied from the seller when the offer was posted
+     */
+    sellerName: string;
+};
+
+export type AdminOffersOutputBody = {
+    /**
+     * Offers of each status matching the other filters, whatever status asks
+     */
+    counts: OfferCountsBody;
+    items: Array<AdminOfferBody>;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
+export type AdminOrdersOutputBody = {
+    /**
+     * Orders of each status matching the other filters, whatever status asks
+     */
+    counts: OrderCountsBody;
+    items: Array<OrderBody>;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
+export type AdminReviewBody = {
+    comment?: string;
+    /**
+     * When the customer rated the order
+     */
+    createdAt: string;
+    /**
+     * Who collected, as given with the order
+     */
+    customerName: string;
+    /**
+     * When an admin hid it; absent while it shows
+     */
+    hiddenAt?: string;
+    /**
+     * Why an admin hid it, when they said
+     */
+    hiddenReason?: string;
+    /**
+     * The order reviewed, which names its review
+     */
+    orderId: string;
+    /**
+     * SB- and a number
+     */
+    orderNumber: string;
+    sellerId: string;
+    sellerName: string;
+    stars: number;
+    tags: Array<string>;
+};
+
+export type AdminReviewsOutputBody = {
+    /**
+     * The mean stars of the shown reviews matching every filter; absent when none does
+     */
+    average?: number;
+    /**
+     * Reviews of each number of stars matching the other filters, whatever stars asks
+     */
+    counts: ReviewCountsBody;
+    items: Array<AdminReviewBody>;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
 export type AdminSellerBody = {
+    address: string;
+    createdAt: string;
+    id: string;
+    latitude: number;
+    longitude: number;
+    name: string;
     /**
      * Absent when the owner deleted their account
      */
     ownerEmail?: string;
+    phone: string;
+    /**
+     * Served at /photos/{photoId}/1600.jpg and /400.jpg
+     */
+    photoId?: string;
+    status: 'pending' | 'active' | 'rejected' | 'blocked';
+    statusChangedAt?: string;
+    /**
+     * Why an admin rejected or blocked the seller, as the owner is told
+     */
+    statusReason?: string;
+    updatedAt: string;
 };
 
 export type AdminSellersOutputBody = {
@@ -30,6 +146,10 @@ export type AdminSellersOutputBody = {
      * Sellers of each status matching q, whatever status asks
      */
     counts: StatusCountsBody;
+    /**
+     * Sellers of each status on each of the last 14 days in Vietnam, the oldest first, whatever the filters; a day before counting started is absent
+     */
+    days: Array<StatusDayBody> | null;
     items: Array<AdminSellerBody> | null;
     page: number;
     pageSize: number;
@@ -40,7 +160,14 @@ export type AdminsOutputBody = {
     /**
      * Every admin, by address
      */
-    admins: Array<AccountBody> | null;
+    admins: Array<RecordBody> | null;
+};
+
+export type AnswerOrderProblemRequest = {
+    /**
+     * 1 to 500 characters, or ORDER_ANSWER_INVALID
+     */
+    answer: string;
 };
 
 export type AuditChangeBody = {
@@ -65,7 +192,7 @@ export type AuditDetailsBody = {
      */
     provider?: 'smtp' | 'brevo';
     /**
-     * What the owner was told, for a rejection or a block
+     * What the owner was told, for a rejection or a block; the admin's reason, for a hidden review
      */
     reason?: string;
     /**
@@ -75,7 +202,7 @@ export type AuditDetailsBody = {
 };
 
 export type AuditEventBody = {
-    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock';
+    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'review.hide' | 'review.show';
     actorId?: string;
     actorLabel?: string;
     details: AuditDetailsBody;
@@ -83,10 +210,10 @@ export type AuditEventBody = {
     occurredAt: string;
     resourceId: string;
     /**
-     * The store's name or the account's address at the time; absent once that account is deleted
+     * The store's name, the account's address or the order's number at the time; absent once that account is deleted
      */
     resourceLabel?: string;
-    resourceType: 'account' | 'seller' | 'offer_settings' | 'email_settings';
+    resourceType: 'account' | 'seller' | 'order' | 'offer_settings' | 'email_settings';
 };
 
 export type AuditEventsOutputBody = {
@@ -113,6 +240,47 @@ export type CollectionPointBody = {
     longitude: number;
 };
 
+export type CountsBody = {
+    cancelled: number;
+    collected: number;
+    /**
+     * What the collected orders came to at the counter
+     */
+    collectedVnd: number;
+    /**
+     * Orders the customer did not come for
+     */
+    expired: number;
+    /**
+     * Orders, however they ended
+     */
+    held: number;
+    /**
+     * Opens of the home; none for a store
+     */
+    homeViews: number;
+    /**
+     * Offers posted for the day
+     */
+    offers: number;
+    /**
+     * Browsers that opened them, each counted once a day
+     */
+    people: number;
+    /**
+     * Opens the poster's code brought (utm_source=qr)
+     */
+    qrViews: number;
+    refused: number;
+    unitsCollected: number;
+    unitsHeld: number;
+    unitsPosted: number;
+    /**
+     * Pages opened
+     */
+    views: number;
+};
+
 export type DeleteAccountInputBody = {
     challengeId: string;
     /**
@@ -127,7 +295,7 @@ export type DetailsBody = {
      */
     address: string;
     /**
-     * Where the seller is, pinned on a map
+     * Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE
      */
     latitude: number;
     longitude: number;
@@ -144,10 +312,18 @@ export type DishBody = {
     hidden: boolean;
     id: string;
     ingredients: string;
-    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * What the seller calls a dish of the kind other; empty for any other kind
+     */
+    kindLabel: string;
     name: string;
     originalPriceVnd?: number;
     photo: OfferPhotoBody;
+    /**
+     * Every photo, the cover first
+     */
+    photos: Array<OfferPhotoBody>;
     sellerId: string;
     unit: string;
     updatedAt: string;
@@ -157,7 +333,15 @@ export type DishChangeBody = {
     description?: string;
     hidden?: boolean;
     ingredients?: string;
-    kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * Leaves it as it is when absent, and empties it when the kind is changed from other
+     */
+    kindLabel?: string;
+    /**
+     * Replaces the photos after the cover; at most two
+     */
+    morePhotoIds?: Array<string>;
     name?: string;
     originalPriceVnd?: number;
     photoId?: string;
@@ -174,14 +358,22 @@ export type DishDetailsBody = {
      * What the dish is made of and may contain, allergens included
      */
     ingredients?: string;
-    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * What the seller calls a dish of the kind other; empty for any other kind
+     */
+    kindLabel?: string;
+    /**
+     * Up to two more photos after the cover
+     */
+    morePhotoIds?: Array<string>;
     name: string;
     /**
      * What one unit normally sells for; a post starts from it
      */
     originalPriceVnd?: number;
     /**
-     * From POST /photos, or a photo the seller already shows
+     * The cover: from POST /photos, or a photo the seller already shows
      */
     photoId: string;
     /**
@@ -209,6 +401,22 @@ export type EmailSettingsBody = {
     updatedAt: string;
 };
 
+export type FeedbackBody = {
+    id: string;
+    sellerId: string;
+    sellerName: string;
+    sentAt: string;
+    text: string;
+};
+
+export type FeedbackOutputBody = {
+    items: Array<FeedbackBody>;
+};
+
+export type FollowedOutputBody = {
+    sellers: Array<SellerProfileBody> | null;
+};
+
 export type FoundBody = {
     /**
      * Where the offer is collected, copied from the seller when it was posted
@@ -222,10 +430,21 @@ export type FoundBody = {
      */
     distanceMeters?: number;
     id: string;
-    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * What the seller calls a dish of the kind other; empty for any other kind
+     */
+    kindLabel: string;
     name: string;
     originalPriceVnd: number;
+    /**
+     * The cover, which lists and orders show
+     */
     photo: OfferPhotoBody;
+    /**
+     * Every photo, the cover first
+     */
+    photos: Array<OfferPhotoBody>;
     priceVnd: number;
     seller: OfferSellerBody;
     sellerId: string;
@@ -276,8 +495,46 @@ export type GrantAdminRequest = {
     email: string;
 };
 
+export type HideReviewRequest = {
+    /**
+     * Why it is hidden, at most 500 characters
+     */
+    reason?: string;
+};
+
+export type HistoryOutputBody = {
+    /**
+     * Orders handed over
+     */
+    collected: number;
+    /**
+     * Orders the customer did not come for: the window ended, or staff ended them as no answer, no show or late
+     */
+    missed: number;
+    placed: number;
+    /**
+     * The latest five, newest first
+     */
+    recent: Array<OrderBody>;
+};
+
 export type ListDishesResponse = {
     dishes: Array<DishBody>;
+};
+
+export type LiveTicketOutputBody = {
+    /**
+     * Thirty seconds after it was minted
+     */
+    expiresAt: string;
+    /**
+     * Sent once in a subscribe frame on GET /live; it works once
+     */
+    ticket: string;
+};
+
+export type MarkOrderMessagesSeenRequest = {
+    upTo: number;
 };
 
 export type MemberBody = {
@@ -289,6 +546,44 @@ export type MemberBody = {
 
 export type MembersOutputBody = {
     members: Array<MemberBody> | null;
+};
+
+export type MembershipBody = {
+    accountId: string;
+    role: 'owner' | 'staff';
+    sellerId: string;
+    sellerName: string;
+    sellerStatus: 'pending' | 'active' | 'rejected' | 'blocked';
+};
+
+export type MembershipsOutputBody = {
+    memberships: Array<MembershipBody> | null;
+};
+
+export type MessageBody = {
+    from: 'customer' | 'seller';
+    sentAt: string;
+    /**
+     * Its number in the chat, from 1
+     */
+    seq: number;
+    text: string;
+};
+
+export type MessagesOutputBody = {
+    /**
+     * Only once the order is collected: when its chat turns read-only
+     */
+    closesAt?: string;
+    /**
+     * Oldest first
+     */
+    messages: Array<MessageBody>;
+    /**
+     * Whether the chat takes messages
+     */
+    open: boolean;
+    seen: SeenBody;
 };
 
 export type MethodsOutputBody = {
@@ -307,10 +602,21 @@ export type OfferBody = {
     description: string;
     discountPercent: number;
     id: string;
-    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * What the seller calls a dish of the kind other; empty for any other kind
+     */
+    kindLabel: string;
     name: string;
     originalPriceVnd: number;
+    /**
+     * The cover, which lists and orders show
+     */
     photo: OfferPhotoBody;
+    /**
+     * Every photo, the cover first
+     */
+    photos: Array<OfferPhotoBody>;
     priceVnd: number;
     sellerId: string;
     /**
@@ -329,7 +635,15 @@ export type OfferBody = {
 
 export type OfferChangeBody = {
     description?: string;
-    kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind?: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * Leaves it as it is when absent, and empties it when the kind is changed from other
+     */
+    kindLabel?: string;
+    /**
+     * Replaces the photos after the cover; at most two
+     */
+    morePhotoIds?: Array<string>;
     name?: string;
     originalPriceVnd?: number;
     photoId?: string;
@@ -341,19 +655,34 @@ export type OfferChangeBody = {
     windowStart?: string;
 };
 
+export type OfferCountsBody = {
+    closed: number;
+    onSale: number;
+    soldOut: number;
+    withdrawn: number;
+};
+
 export type OfferDetailsBody = {
     /**
      * Required for a mixed_box, which is described by what it may hold; allergens are written here
      */
     description?: string;
-    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other';
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * What the seller calls a dish of the kind other; empty for any other kind
+     */
+    kindLabel?: string;
+    /**
+     * Up to two more photos after the cover
+     */
+    morePhotoIds?: Array<string>;
     name: string;
     /**
      * What one unit normally sells for; the price must be the minimum discount below it
      */
     originalPriceVnd: number;
     /**
-     * From POST /photos, or the photo of an earlier offer of the seller
+     * The cover: from POST /photos, or the photo of an earlier offer of the seller
      */
     photoId: string;
     /**
@@ -427,6 +756,14 @@ export type OrderBody = {
      * To its customer: proves the order is theirs without signing in, sent back as Order-Access
      */
     access?: string;
+    /**
+     * The order is collected or expired, within two days, and no problem was reported yet
+     */
+    canReportProblem: boolean;
+    /**
+     * The order is collected and was never rated, so its customer may rate it
+     */
+    canReview: boolean;
     cancelReason?: string;
     cancelledAt?: string;
     /**
@@ -446,13 +783,25 @@ export type OrderBody = {
     id: string;
     lines: Array<OrderLineBody>;
     /**
+     * Messages its chat holds, with unreadMessages; none for admins
+     */
+    messageCount?: number;
+    /**
      * What people read aloud, SB- and a number
      */
     number: string;
+    /**
+     * What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
+     */
+    problem?: ProblemBody;
     readyAt?: string;
     refuseNote?: string;
-    refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other';
+    refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other' | 'withdrawn';
     refusedAt?: string;
+    /**
+     * The customer's rating of the collected order; none until they rate it, nor while admins hide it
+     */
+    review?: ReviewBody;
     /**
      * Where the order is collected, copied when it was placed
      */
@@ -465,8 +814,21 @@ export type OrderBody = {
      * Paid to the seller at the counter
      */
     totalVnd: number;
+    /**
+     * Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins
+     */
+    unreadMessages?: number;
     windowEnd: string;
     windowStart: string;
+};
+
+export type OrderCountsBody = {
+    cancelled: number;
+    collected: number;
+    confirmed: number;
+    expired: number;
+    ready: number;
+    refused: number;
 };
 
 export type OrderLineBody = {
@@ -519,7 +881,20 @@ export type PhotoBody = {
     width: number;
 };
 
+export type PlaceBody = {
+    /**
+     * As people write it; a house number typed first goes before a street that has none
+     */
+    address: string;
+    latitude: number;
+    longitude: number;
+};
+
 export type PlaceOrderBody = {
+    /**
+     * The customer agrees to be told about the order by Zalo once Second Bite sends there
+     */
+    byZalo?: boolean;
     /**
      * Shared by the orders placed together from one cart, one per seller; a new one when omitted
      */
@@ -536,6 +911,13 @@ export type PlaceOrderBody = {
      * A Vietnamese phone number, 0 and nine digits; spaces, dots, dashes and +84 are accepted
      */
     phone: string;
+};
+
+export type PlacesOutputBody = {
+    /**
+     * Up to five places in Hanoi; none when nothing matches or the search does not answer
+     */
+    places: Array<PlaceBody> | null;
 };
 
 export type Problem = {
@@ -560,6 +942,48 @@ export type Problem = {
     type: string;
 };
 
+export type ProblemBody = {
+    /**
+     * The store's answer, none until it answers
+     */
+    answer?: string;
+    answeredAt?: string;
+    kind: 'missing_item' | 'wrong_item' | 'poor_quality' | 'store_closed';
+    note?: string;
+    reportedAt: string;
+};
+
+export type PushKeyOutputBody = {
+    /**
+     * The VAPID public key, in base64url, for PushManager.subscribe's applicationServerKey
+     */
+    publicKey: string;
+};
+
+export type PushKeys = {
+    auth: string;
+    p256dh: string;
+};
+
+export type RecordBody = {
+    createdAt: string;
+    /**
+     * Empty until Google gives one or the person sets it
+     */
+    displayName: string;
+    email: string;
+    id: string;
+    /**
+     * How it last signed in: an emailed code or Google
+     */
+    lastSignInMethod?: 'code' | 'google';
+    /**
+     * Absent until it signs in
+     */
+    lastSignedInAt?: string;
+    role: 'customer' | 'admin';
+};
+
 export type RefuseOrderRequest = {
     note?: string;
     reason: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other';
@@ -570,6 +994,50 @@ export type RejectSellerRequest = {
      * What the owner is told, 10 to 500 characters
      */
     reason: string;
+};
+
+export type ReportDayBody = {
+    counts: CountsBody;
+    day: string;
+};
+
+export type ReportOrderProblemRequest = {
+    kind: 'missing_item' | 'wrong_item' | 'poor_quality' | 'store_closed';
+    /**
+     * Up to 500 characters, or ORDER_PROBLEM_INVALID
+     */
+    note?: string;
+};
+
+export type ReportOutputBody = {
+    /**
+     * Every day of the range, in order
+     */
+    days: Array<ReportDayBody> | null;
+    since: string;
+    /**
+     * Each store on each day it has numbers, by day then name
+     */
+    storeDays: Array<ReportStoreDayBody> | null;
+    /**
+     * Each store with numbers in the range, the most orders first
+     */
+    stores: Array<ReportStoreBody> | null;
+    totals: CountsBody;
+    until: string;
+};
+
+export type ReportStoreBody = {
+    counts: CountsBody;
+    name: string;
+    sellerId: string;
+};
+
+export type ReportStoreDayBody = {
+    counts: CountsBody;
+    day: string;
+    name: string;
+    sellerId: string;
 };
 
 export type RequestCodeInputBody = {
@@ -585,6 +1053,39 @@ export type RequestCodeOutputBody = {
      */
     challengeId: string;
     expiresAt: string;
+};
+
+export type ReviewBody = {
+    comment?: string;
+    createdAt: string;
+    stars: number;
+    tags: Array<string>;
+};
+
+export type ReviewCountsBody = {
+    fiveStars: number;
+    fourStars: number;
+    /**
+     * Hidden reviews of the stars asked, whatever visibility asks
+     */
+    hidden: number;
+    oneStar: number;
+    threeStars: number;
+    twoStars: number;
+};
+
+export type ReviewOrderRequest = {
+    comment?: string;
+    stars: number;
+    /**
+     * What went well
+     */
+    tags: Array<'fast_pickup' | 'good_quality' | 'good_variety' | 'fair_portions'>;
+};
+
+export type RoleCountsBody = {
+    admin: number;
+    customer: number;
 };
 
 export type SaveEmailSettingsInputBody = {
@@ -603,6 +1104,17 @@ export type SaveEmailSettingsInputBody = {
     smtpPort?: number;
     smtpSecurity?: 'starttls' | 'tls' | 'none';
     smtpUsername?: string;
+};
+
+export type SeenBody = {
+    /**
+     * The highest message the customer has read
+     */
+    customer: number;
+    /**
+     * The highest message the seller's people have read
+     */
+    seller: number;
 };
 
 export type SellerBody = {
@@ -645,8 +1157,66 @@ export type SellerProfileBody = {
     photo?: SellerPhotoBody;
 };
 
+export type SellerReviewBody = {
+    comment?: string;
+    /**
+     * When the customer rated the order
+     */
+    createdAt: string;
+    /**
+     * Who collected, as given with the order
+     */
+    customerName: string;
+    /**
+     * The names of the order's dishes, joined by commas
+     */
+    dishes?: string;
+    /**
+     * The order reviewed, which names its review
+     */
+    orderId: string;
+    /**
+     * SB- and a number
+     */
+    orderNumber: string;
+    stars: number;
+    tags: Array<string>;
+};
+
+export type SellerReviewsOutputBody = {
+    /**
+     * The mean stars of the reviews of the stars asked; absent when none
+     */
+    average?: number;
+    /**
+     * Reviews of each number of stars, whatever stars asks
+     */
+    counts: StarCountsBody;
+    items: Array<SellerReviewBody>;
+    page: number;
+    pageSize: number;
+    /**
+     * Reviews of the stars asked
+     */
+    total: number;
+};
+
 export type SellersOutputBody = {
     sellers: Array<SellerBody> | null;
+};
+
+export type SendOrderMessageRequest = {
+    /**
+     * Trimmed; 1 to 1,000 characters
+     */
+    text: string;
+};
+
+export type SendSellerFeedbackRequest = {
+    /**
+     * 1 to 1,000 characters, or SELLER_FEEDBACK_INVALID
+     */
+    text: string;
 };
 
 export type SendTestEmailInputBody = {
@@ -694,11 +1264,57 @@ export type SignInInputBody = {
     session?: 'token' | 'cookie';
 };
 
+export type StarCountsBody = {
+    fiveStars: number;
+    fourStars: number;
+    oneStar: number;
+    threeStars: number;
+    twoStars: number;
+};
+
 export type StatusCountsBody = {
     active: number;
     blocked: number;
     pending: number;
     rejected: number;
+};
+
+export type StatusDayBody = {
+    active: number;
+    blocked: number;
+    /**
+     * The day in Vietnam, as YYYY-MM-DD
+     */
+    day: string;
+    pending: number;
+    rejected: number;
+};
+
+export type SubscribePushInputBody = {
+    /**
+     * The push service's address for this browser
+     */
+    endpoint: string;
+    keys: PushKeys;
+    /**
+     * Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's
+     */
+    tickets: Array<string> | null;
+};
+
+export type UnsubscribePushInputBody = {
+    endpoint: string;
+};
+
+export type ViewInputBody = {
+    /**
+     * The page's path, as the address bar shows it, such as /vi/sellers/{id}
+     */
+    path: string;
+    /**
+     * utm_source of the address that opened the site, such as qr; anything else than 1 to 40 of a-z, 0-9, _ and - counts as none
+     */
+    source?: string;
 };
 
 export type Violation = {
@@ -838,6 +1454,100 @@ export type RequestAccountDeletionCodeResponses = {
 
 export type RequestAccountDeletionCodeResponse = RequestAccountDeletionCodeResponses[keyof RequestAccountDeletionCodeResponses];
 
+export type ListAccountsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep this role; every role when absent
+         */
+        role?: 'customer' | 'admin';
+        /**
+         * Words of the address or the name
+         */
+        q?: string;
+        /**
+         * name, created or signedIn; a leading - is descending; the newest first when absent
+         */
+        sort?: 'name' | '-name' | 'created' | '-created' | 'signedIn' | '-signedIn';
+        page?: number;
+        size?: number;
+    };
+    url: '/admin/accounts';
+};
+
+export type ListAccountsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListAccountsError = ListAccountsErrors[keyof ListAccountsErrors];
+
+export type ListAccountsResponses = {
+    /**
+     * OK
+     */
+    200: AdminAccountsOutputBody;
+};
+
+export type ListAccountsResponse = ListAccountsResponses[keyof ListAccountsResponses];
+
+export type GetAccountForAdminsData = {
+    body?: never;
+    path: {
+        accountId: string;
+    };
+    query?: never;
+    url: '/admin/accounts/{accountId}';
+};
+
+export type GetAccountForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetAccountForAdminsError = GetAccountForAdminsErrors[keyof GetAccountForAdminsErrors];
+
+export type GetAccountForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: RecordBody;
+};
+
+export type GetAccountForAdminsResponse = GetAccountForAdminsResponses[keyof GetAccountForAdminsResponses];
+
+export type GetAccountOrderHistoryData = {
+    body?: never;
+    path: {
+        accountId: string;
+    };
+    query?: never;
+    url: '/admin/accounts/{accountId}/orders';
+};
+
+export type GetAccountOrderHistoryErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetAccountOrderHistoryError = GetAccountOrderHistoryErrors[keyof GetAccountOrderHistoryErrors];
+
+export type GetAccountOrderHistoryResponses = {
+    /**
+     * OK
+     */
+    200: HistoryOutputBody;
+};
+
+export type GetAccountOrderHistoryResponse = GetAccountOrderHistoryResponses[keyof GetAccountOrderHistoryResponses];
+
 export type ListAdminsData = {
     body?: never;
     path?: never;
@@ -922,7 +1632,7 @@ export type ListAuditEventsData = {
         /**
          * Keep these actions; every action when absent
          */
-        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock'> | null;
+        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'review.hide' | 'review.show'> | null;
         /**
          * Keep one admin's actions
          */
@@ -1048,6 +1758,36 @@ export type SendTestEmailResponses = {
 
 export type SendTestEmailResponse = SendTestEmailResponses[keyof SendTestEmailResponses];
 
+export type ListMembershipsForAdminsData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The accounts, at most 100
+         */
+        accountId: Array<string> | null;
+    };
+    url: '/admin/memberships';
+};
+
+export type ListMembershipsForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListMembershipsForAdminsError = ListMembershipsForAdminsErrors[keyof ListMembershipsForAdminsErrors];
+
+export type ListMembershipsForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: MembershipsOutputBody;
+};
+
+export type ListMembershipsForAdminsResponse = ListMembershipsForAdminsResponses[keyof ListMembershipsForAdminsResponses];
+
 export type GetOfferSettingsData = {
     body?: never;
     path?: never;
@@ -1104,6 +1844,320 @@ export type SaveOfferSettingsResponses = {
 
 export type SaveOfferSettingsResponse = SaveOfferSettingsResponses[keyof SaveOfferSettingsResponses];
 
+export type ListOffersForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep this status; every status when absent
+         */
+        status?: 'on_sale' | 'sold_out' | 'closed' | 'withdrawn';
+        /**
+         * Words of the dish, the seller's name or the description
+         */
+        q?: string;
+        /**
+         * Keep this seller's offers
+         */
+        sellerId?: string;
+        page?: number;
+        size?: number;
+        /**
+         * Keep the offers posted at or after this time
+         */
+        postedSince?: string;
+        /**
+         * Keep the offers posted before this time
+         */
+        postedUntil?: string;
+    };
+    url: '/admin/offers';
+};
+
+export type ListOffersForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListOffersForAdminsError = ListOffersForAdminsErrors[keyof ListOffersForAdminsErrors];
+
+export type ListOffersForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: AdminOffersOutputBody;
+};
+
+export type ListOffersForAdminsResponse = ListOffersForAdminsResponses[keyof ListOffersForAdminsResponses];
+
+export type ListOrdersForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep these statuses; every status when absent
+         */
+        status?: Array<'confirmed' | 'ready' | 'collected' | 'cancelled' | 'refused' | 'expired'> | null;
+        /**
+         * The number, the customer's name or phone, or the seller's name
+         */
+        q?: string;
+        /**
+         * Keep this seller's orders
+         */
+        sellerId?: string;
+        page?: number;
+        size?: number;
+        /**
+         * Keep the orders whose window starts at or after this time
+         */
+        collectSince?: string;
+        /**
+         * Keep the orders whose window starts before this time
+         */
+        collectUntil?: string;
+    };
+    url: '/admin/orders';
+};
+
+export type ListOrdersForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListOrdersForAdminsError = ListOrdersForAdminsErrors[keyof ListOrdersForAdminsErrors];
+
+export type ListOrdersForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: AdminOrdersOutputBody;
+};
+
+export type ListOrdersForAdminsResponse = ListOrdersForAdminsResponses[keyof ListOrdersForAdminsResponses];
+
+export type GetReportData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+         */
+        since?: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included; today when empty
+         */
+        until?: string;
+        /**
+         * Keep one store's numbers; the views are then its page's and its dishes'
+         */
+        sellerId?: string;
+    };
+    url: '/admin/reports';
+};
+
+export type GetReportErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetReportError = GetReportErrors[keyof GetReportErrors];
+
+export type GetReportResponses = {
+    /**
+     * OK
+     */
+    200: ReportOutputBody;
+};
+
+export type GetReportResponse = GetReportResponses[keyof GetReportResponses];
+
+export type ExportReportData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+         */
+        since?: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included; today when empty
+         */
+        until?: string;
+        /**
+         * Keep one store's numbers; the views are then its page's and its dishes'
+         */
+        sellerId?: string;
+    };
+    url: '/admin/reports/export';
+};
+
+export type ExportReportErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ExportReportError = ExportReportErrors[keyof ExportReportErrors];
+
+export type ExportReportResponses = {
+    /**
+     * The report as CSV
+     */
+    200: unknown;
+};
+
+export type ListReviewsForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep the reviews giving these stars; any when absent
+         */
+        stars?: Array<number> | null;
+        /**
+         * The comment, the order's number, the customer's name or phone, or the seller's name
+         */
+        q?: string;
+        /**
+         * Keep this seller's reviews
+         */
+        sellerId?: string;
+        /**
+         * Keep the shown or the hidden reviews; both when absent
+         */
+        visibility?: 'visible' | 'hidden';
+        page?: number;
+        size?: number;
+        /**
+         * Keep the reviews given at or after this time
+         */
+        reviewedSince?: string;
+        /**
+         * Keep the reviews given before this time
+         */
+        reviewedUntil?: string;
+    };
+    url: '/admin/reviews';
+};
+
+export type ListReviewsForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListReviewsForAdminsError = ListReviewsForAdminsErrors[keyof ListReviewsForAdminsErrors];
+
+export type ListReviewsForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: AdminReviewsOutputBody;
+};
+
+export type ListReviewsForAdminsResponse = ListReviewsForAdminsResponses[keyof ListReviewsForAdminsResponses];
+
+export type HideReviewData = {
+    body?: HideReviewRequest;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/admin/reviews/{orderId}/hide';
+};
+
+export type HideReviewErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type HideReviewError = HideReviewErrors[keyof HideReviewErrors];
+
+export type HideReviewResponses = {
+    /**
+     * OK
+     */
+    200: AdminReviewBody;
+};
+
+export type HideReviewResponse = HideReviewResponses[keyof HideReviewResponses];
+
+export type ShowReviewData = {
+    body?: never;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/admin/reviews/{orderId}/show';
+};
+
+export type ShowReviewErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ShowReviewError = ShowReviewErrors[keyof ShowReviewErrors];
+
+export type ShowReviewResponses = {
+    /**
+     * OK
+     */
+    200: AdminReviewBody;
+};
+
+export type ShowReviewResponse = ShowReviewResponses[keyof ShowReviewResponses];
+
+export type ListSellerFeedbackForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+         */
+        since?: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included; today when empty
+         */
+        until?: string;
+        /**
+         * Keep one store's feedback
+         */
+        sellerId?: string;
+    };
+    url: '/admin/seller-feedback';
+};
+
+export type ListSellerFeedbackForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListSellerFeedbackForAdminsError = ListSellerFeedbackForAdminsErrors[keyof ListSellerFeedbackForAdminsErrors];
+
+export type ListSellerFeedbackForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: FeedbackOutputBody;
+};
+
+export type ListSellerFeedbackForAdminsResponse = ListSellerFeedbackForAdminsResponses[keyof ListSellerFeedbackForAdminsResponses];
+
 export type ListSellersForAdminsData = {
     body?: never;
     path?: never;
@@ -1122,6 +2176,14 @@ export type ListSellersForAdminsData = {
         sort?: 'name' | '-name' | 'address' | '-address' | 'changed' | '-changed';
         page?: number;
         size?: number;
+        /**
+         * Keep the sellers last changed at or after this time
+         */
+        changedSince?: string;
+        /**
+         * Keep the sellers last changed before this time
+         */
+        changedUntil?: string;
     };
     url: '/admin/sellers';
 };
@@ -1423,7 +2485,7 @@ export type SearchOffersData = {
         /**
          * One or more kinds, comma-separated
          */
-        kind?: Array<'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'other'> | null;
+        kind?: Array<'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other'> | null;
         /**
          * The lowest price of one unit, in đồng
          */
@@ -1711,6 +2773,205 @@ export type HandOverOrderResponses = {
 
 export type HandOverOrderResponse = HandOverOrderResponses[keyof HandOverOrderResponses];
 
+export type CreateOrderLiveTicketData = {
+    body?: never;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/live-ticket';
+};
+
+export type CreateOrderLiveTicketErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type CreateOrderLiveTicketError = CreateOrderLiveTicketErrors[keyof CreateOrderLiveTicketErrors];
+
+export type CreateOrderLiveTicketResponses = {
+    /**
+     * OK
+     */
+    200: LiveTicketOutputBody;
+};
+
+export type CreateOrderLiveTicketResponse = CreateOrderLiveTicketResponses[keyof CreateOrderLiveTicketResponses];
+
+export type ListOrderMessagesData = {
+    body?: never;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: {
+        /**
+         * Only messages numbered after this one
+         */
+        after?: number;
+        limit?: number;
+    };
+    url: '/orders/{orderId}/messages';
+};
+
+export type ListOrderMessagesErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListOrderMessagesError = ListOrderMessagesErrors[keyof ListOrderMessagesErrors];
+
+export type ListOrderMessagesResponses = {
+    /**
+     * OK
+     */
+    200: MessagesOutputBody;
+};
+
+export type ListOrderMessagesResponse = ListOrderMessagesResponses[keyof ListOrderMessagesResponses];
+
+export type SendOrderMessageData = {
+    body: SendOrderMessageRequest;
+    headers: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+        'Idempotency-Key': string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/messages';
+};
+
+export type SendOrderMessageErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SendOrderMessageError = SendOrderMessageErrors[keyof SendOrderMessageErrors];
+
+export type SendOrderMessageResponses = {
+    /**
+     * Created
+     */
+    201: MessageBody;
+};
+
+export type SendOrderMessageResponse = SendOrderMessageResponses[keyof SendOrderMessageResponses];
+
+export type MarkOrderMessagesSeenData = {
+    body: MarkOrderMessagesSeenRequest;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/messages/seen';
+};
+
+export type MarkOrderMessagesSeenErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type MarkOrderMessagesSeenError = MarkOrderMessagesSeenErrors[keyof MarkOrderMessagesSeenErrors];
+
+export type MarkOrderMessagesSeenResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type MarkOrderMessagesSeenResponse = MarkOrderMessagesSeenResponses[keyof MarkOrderMessagesSeenResponses];
+
+export type ReportOrderProblemData = {
+    body: ReportOrderProblemRequest;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/problem';
+};
+
+export type ReportOrderProblemErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ReportOrderProblemError = ReportOrderProblemErrors[keyof ReportOrderProblemErrors];
+
+export type ReportOrderProblemResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type ReportOrderProblemResponse = ReportOrderProblemResponses[keyof ReportOrderProblemResponses];
+
+export type AnswerOrderProblemData = {
+    body: AnswerOrderProblemRequest;
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/problem/answer';
+};
+
+export type AnswerOrderProblemErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type AnswerOrderProblemError = AnswerOrderProblemErrors[keyof AnswerOrderProblemErrors];
+
+export type AnswerOrderProblemResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type AnswerOrderProblemResponse = AnswerOrderProblemResponses[keyof AnswerOrderProblemResponses];
+
 export type MarkOrderReadyData = {
     body?: never;
     path: {
@@ -1792,6 +3053,39 @@ export type ReopenOrderResponses = {
 
 export type ReopenOrderResponse = ReopenOrderResponses[keyof ReopenOrderResponses];
 
+export type ReviewOrderData = {
+    body: ReviewOrderRequest;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/review';
+};
+
+export type ReviewOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ReviewOrderError = ReviewOrderErrors[keyof ReviewOrderErrors];
+
+export type ReviewOrderResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type ReviewOrderResponse = ReviewOrderResponses[keyof ReviewOrderResponses];
+
 export type UploadPhotoData = {
     body: Blob | File;
     path?: never;
@@ -1843,6 +3137,81 @@ export type GetPhotoResponses = {
     200: unknown;
 };
 
+export type GetPushKeyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/push/key';
+};
+
+export type GetPushKeyErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetPushKeyError = GetPushKeyErrors[keyof GetPushKeyErrors];
+
+export type GetPushKeyResponses = {
+    /**
+     * OK
+     */
+    200: PushKeyOutputBody;
+};
+
+export type GetPushKeyResponse = GetPushKeyResponses[keyof GetPushKeyResponses];
+
+export type SubscribePushData = {
+    body: SubscribePushInputBody;
+    path?: never;
+    query?: never;
+    url: '/push/subscriptions';
+};
+
+export type SubscribePushErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SubscribePushError = SubscribePushErrors[keyof SubscribePushErrors];
+
+export type SubscribePushResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type SubscribePushResponse = SubscribePushResponses[keyof SubscribePushResponses];
+
+export type UnsubscribePushData = {
+    body: UnsubscribePushInputBody;
+    path?: never;
+    query?: never;
+    url: '/push/subscriptions/remove';
+};
+
+export type UnsubscribePushErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type UnsubscribePushError = UnsubscribePushErrors[keyof UnsubscribePushErrors];
+
+export type UnsubscribePushResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type UnsubscribePushResponse = UnsubscribePushResponses[keyof UnsubscribePushResponses];
+
 export type OpenSellerData = {
     body: DetailsBody;
     path?: never;
@@ -1868,6 +3237,59 @@ export type OpenSellerResponses = {
 
 export type OpenSellerResponse = OpenSellerResponses[keyof OpenSellerResponses];
 
+export type AddressAtData = {
+    body?: never;
+    path?: never;
+    query: {
+        latitude: number;
+        longitude: number;
+    };
+    url: '/sellers/address';
+};
+
+export type AddressAtErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type AddressAtError = AddressAtErrors[keyof AddressAtErrors];
+
+export type AddressAtResponses = {
+    /**
+     * OK
+     */
+    200: AddressOutputBody;
+};
+
+export type AddressAtResponse = AddressAtResponses[keyof AddressAtResponses];
+
+export type ListFollowedSellersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/sellers/followed';
+};
+
+export type ListFollowedSellersErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListFollowedSellersError = ListFollowedSellersErrors[keyof ListFollowedSellersErrors];
+
+export type ListFollowedSellersResponses = {
+    /**
+     * OK
+     */
+    200: FollowedOutputBody;
+};
+
+export type ListFollowedSellersResponse = ListFollowedSellersResponses[keyof ListFollowedSellersResponses];
+
 export type ListMySellersData = {
     body?: never;
     path?: never;
@@ -1892,6 +3314,36 @@ export type ListMySellersResponses = {
 };
 
 export type ListMySellersResponse = ListMySellersResponses[keyof ListMySellersResponses];
+
+export type SearchPlacesData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The words of the address, with or without Vietnamese marks
+         */
+        q: string;
+    };
+    url: '/sellers/places';
+};
+
+export type SearchPlacesErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SearchPlacesError = SearchPlacesErrors[keyof SearchPlacesErrors];
+
+export type SearchPlacesResponses = {
+    /**
+     * OK
+     */
+    200: PlacesOutputBody;
+};
+
+export type SearchPlacesResponse = SearchPlacesResponses[keyof SearchPlacesResponses];
 
 export type GetSellerData = {
     body?: never;
@@ -2000,6 +3452,87 @@ export type AddDishResponses = {
 };
 
 export type AddDishResponse = AddDishResponses[keyof AddDishResponses];
+
+export type SendSellerFeedbackData = {
+    body: SendSellerFeedbackRequest;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/feedback';
+};
+
+export type SendSellerFeedbackErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SendSellerFeedbackError = SendSellerFeedbackErrors[keyof SendSellerFeedbackErrors];
+
+export type SendSellerFeedbackResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type SendSellerFeedbackResponse = SendSellerFeedbackResponses[keyof SendSellerFeedbackResponses];
+
+export type UnfollowSellerData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/follow';
+};
+
+export type UnfollowSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type UnfollowSellerError = UnfollowSellerErrors[keyof UnfollowSellerErrors];
+
+export type UnfollowSellerResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type UnfollowSellerResponse = UnfollowSellerResponses[keyof UnfollowSellerResponses];
+
+export type FollowSellerData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/follow';
+};
+
+export type FollowSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type FollowSellerError = FollowSellerErrors[keyof FollowSellerErrors];
+
+export type FollowSellerResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type FollowSellerResponse = FollowSellerResponses[keyof FollowSellerResponses];
 
 export type ListSellerMembersData = {
     body?: never;
@@ -2173,6 +3706,33 @@ export type ListSellerOrdersResponses = {
 
 export type ListSellerOrdersResponse = ListSellerOrdersResponses[keyof ListSellerOrdersResponses];
 
+export type CreateSellerLiveTicketData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/sellers/{sellerId}/orders/live-ticket';
+};
+
+export type CreateSellerLiveTicketErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type CreateSellerLiveTicketError = CreateSellerLiveTicketErrors[keyof CreateSellerLiveTicketErrors];
+
+export type CreateSellerLiveTicketResponses = {
+    /**
+     * OK
+     */
+    200: LiveTicketOutputBody;
+};
+
+export type CreateSellerLiveTicketResponse = CreateSellerLiveTicketResponses[keyof CreateSellerLiveTicketResponses];
+
 export type RemoveSellerPhotoData = {
     body?: never;
     path: {
@@ -2253,3 +3813,62 @@ export type GetSellerProfileResponses = {
 };
 
 export type GetSellerProfileResponse = GetSellerProfileResponses[keyof GetSellerProfileResponses];
+
+export type ListSellerReviewsData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: {
+        /**
+         * Keep the reviews giving these stars; any when absent
+         */
+        stars?: Array<number> | null;
+        page?: number;
+        size?: number;
+    };
+    url: '/sellers/{sellerId}/reviews';
+};
+
+export type ListSellerReviewsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListSellerReviewsError = ListSellerReviewsErrors[keyof ListSellerReviewsErrors];
+
+export type ListSellerReviewsResponses = {
+    /**
+     * OK
+     */
+    200: SellerReviewsOutputBody;
+};
+
+export type ListSellerReviewsResponse = ListSellerReviewsResponses[keyof ListSellerReviewsResponses];
+
+export type RecordViewData = {
+    body: ViewInputBody;
+    path?: never;
+    query?: never;
+    url: '/stats/views';
+};
+
+export type RecordViewErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RecordViewError = RecordViewErrors[keyof RecordViewErrors];
+
+export type RecordViewResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type RecordViewResponse = RecordViewResponses[keyof RecordViewResponses];

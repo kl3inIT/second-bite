@@ -79,7 +79,7 @@ func placeTwice(t *testing.T, svc service, customer http.Header, offerID string)
 
 	twoUnits := cartOf(cartLine{offerID, 2})
 
-	if p := send(t, http.MethodPost, svc.base+"/orders", customer, twoUnits).problem(t, http.StatusBadRequest); p.Code != "PLATFORM_REQUEST_INVALID" {
+	if p := send(t, http.MethodPost, svc.base+"/orders", customer, twoUnits).problem(t, http.StatusBadRequest); p.Code != codeRequestInvalid {
 		t.Errorf("placing without an Idempotency-Key: %q", p.Code)
 	}
 
@@ -162,9 +162,19 @@ func handOver(t *testing.T, svc service, owner http.Header, placed orderResponse
 func postedOffer(t *testing.T, svc service, owner http.Header) string {
 	t.Helper()
 
+	_, offerID := postedOfferOf(t, svc, owner, "La Paris")
+
+	return offerID
+}
+
+// postedOfferOf is postedOffer for a seller of that name, and answers the
+// seller's identifier too.
+func postedOfferOf(t *testing.T, svc service, owner http.Header, name string) (sellerID, offerID string) {
+	t.Helper()
+
 	var opened sellerResponse
 
-	send(t, http.MethodPost, svc.base+"/sellers", owner, newSeller("La Paris", "0912 345 671")).decode(t, http.StatusCreated, &opened)
+	send(t, http.MethodPost, svc.base+"/sellers", owner, newSeller(name, "0912 345 671")).decode(t, http.StatusCreated, &opened)
 
 	var buf bytes.Buffer
 	if err := png.Encode(&buf, image.NewGray(image.Rect(0, 0, 64, 48))); err != nil {
@@ -192,5 +202,5 @@ func postedOffer(t *testing.T, svc service, owner http.Header) string {
 		"Croissant", "bakery", 5, 15_000, 30_000, photo.ID, now.Format(time.RFC3339), now.Add(2 * time.Hour).Format(time.RFC3339),
 	}).decode(t, http.StatusCreated, &posted)
 
-	return posted.ID
+	return opened.ID, posted.ID
 }

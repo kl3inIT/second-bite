@@ -9,10 +9,22 @@ export const offerKinds = [
   "ingredients",
   "drinks",
   "mixed_box",
+  "dessert",
+  "snacks",
+  "produce",
   "other",
 ] as const satisfies readonly FoundBody["kind"][];
 
 export type OfferKind = (typeof offerKinds)[number];
+
+/** What a dish's kind is called: the name its seller gave a dish of the kind "other", else the kind's own. */
+export function kindText(
+  name: (kind: OfferKind) => string,
+  kind: OfferKind,
+  label: string,
+): string {
+  return kind === "other" && label ? label : name(kind);
+}
 
 export type OfferSummary = FoundBody;
 
@@ -64,7 +76,31 @@ export function kindsByCount(
     .toSorted((a, b) => b.count - a.count);
 }
 
-/** Directions to where the offer is collected, in the phone's maps (Figma K4b, K5 "Chỉ đường"). */
-export function directionsHref({ latitude, longitude }: OfferSummary["collectionPoint"]): string {
-  return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+/** The anchor of a dish's row on its seller's page (Figma K4). */
+export function dishAnchor(offerId: string): string {
+  return `dish-${offerId}`;
+}
+
+/**
+ * Where a dish opens: its seller's page scrolled to its row, which is tinted (Figma K4). The dish has no page of
+ * its own; its row opens its sheet (K4a).
+ */
+export function dishHref({ id, sellerId }: Pick<OfferSummary, "id" | "sellerId">): string {
+  return `/sellers/${sellerId}?at=${encodeURIComponent(id)}#${dishAnchor(id)}`;
+}
+
+/**
+ * Directions to where the offer is collected, in the phone's maps (Figma K4b, K5 "Chỉ đường"), to the store's pin:
+ * the owner pins the store on a map (SEC-66), while Google looking up the written address can land elsewhere. A
+ * point without coordinates, as in a cart kept from before, falls back to the address.
+ */
+export function directionsHref({
+  address,
+  latitude,
+  longitude,
+}: Pick<OfferSummary["collectionPoint"], "address"> &
+  Partial<Pick<OfferSummary["collectionPoint"], "latitude" | "longitude">>): string {
+  const pinned = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const destination = pinned ? `${latitude},${longitude}` : address;
+  return `https://www.google.com/maps/dir/?${new URLSearchParams({ api: "1", destination })}`;
 }

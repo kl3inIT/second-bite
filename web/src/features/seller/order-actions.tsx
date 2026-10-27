@@ -1,10 +1,12 @@
 "use client";
 
-import { CircleAlertIcon } from "lucide-react";
+import { revalidateLogic } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
+import { z } from "zod";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FailureAlert, type Failure } from "@/components/failure-alert";
+import { refuse, useAppForm } from "@/components/form/app-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,16 +16,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { failureOf } from "@/lib/api/client";
-import { handOverOrder, refuseOrder, reopenOrder } from "@/lib/api/generated";
+import { handOverOrder, markOrderReady, refuseOrder, reopenOrder } from "@/lib/api/generated";
+
+import { cn } from "@/lib/utils";
 
 import { Chip } from "./chip";
 import { type CancelReason, cancelReasons } from "./store-orders";
-
-type Failure = { detail?: string; reference?: string };
 
 /** What the seller's buttons share: one request at a time, the list read again after it, and its failure said. */
 function useOrderAction() {
@@ -49,56 +50,82 @@ function useOrderAction() {
 
 function Failed({ failed }: { failed: Failure }) {
   const t = useTranslations("StoreOrders");
-
-  return (
-    <Alert variant="destructive">
-      <CircleAlertIcon aria-hidden />
-      <AlertDescription>
-        {failed.detail ?? t("failed")}
-        {failed.detail && failed.reference && <> {t("reference", { id: failed.reference })}</>}
-      </AlertDescription>
-    </Alert>
-  );
+  return <FailureAlert failure={failed} fallback={t("failed")} />;
 }
 
-// The two buttons of an order still held (Figma Q5): "Hủy đơn", which asks for a reason, and "Đã giao", which
-// ends the order at once — the customer pays the seller in cash at the counter — and leaves "Hoàn tác" on a
-// line at the foot (Q5d) for a tap by mistake.
-export function HoldingActions({ orderId, name }: { orderId: string; name: string }) {
+// The two buttons of an order still open (Figma Q5h, Q5i, Q5j, Q5k): "Hủy đơn", which asks for a reason, and
+// the next step. While the order is being prepared that is "Báo sẵn sàng", which tells the customer to come
+// (SEC-102); once it is ready it is "Đã giao", which ends the order at once — the customer pays the seller in
+// cash at the counter — and leaves "Hoàn tác" on a line at the foot (Q5d) for a tap by mistake. From an order's
+// own page the list it returns to is `listPath`; from the list it is the page itself.
+export function OrderActions({
+  orderId,
+  name,
+  stage,
+  listPath,
+  fill,
+}: {
+  orderId: string;
+  name: string;
+  stage: "preparing" | "ready";
+  listPath?: string;
+  /** The buttons share the width of their place, as on an order's own page. */
+  fill?: boolean;
+}) {
   const t = useTranslations("StoreOrders");
   const pathname = usePathname();
   const { pending, failed, run, router } = useOrderAction();
   const [asking, setAsking] = useState(false);
 
   return (
-    <div className="flex flex-col items-end gap-2 max-md:w-full max-md:items-stretch">
-      <div className="flex items-center gap-2">
+    <div
+      className={cn(
+        "relative z-10 flex flex-col items-end gap-2 max-md:w-full max-md:items-stretch",
+        fill && "w-full items-stretch",
+      )}
+    >
+      <div className={cn("flex items-center gap-2", fill && "w-full")}>
         <Button
           type="button"
           variant="outline"
-          className="max-md:flex-1"
+          className={cn("max-md:flex-1", fill && "flex-1")}
           disabled={pending}
           onClick={() => setAsking(true)}
         >
           {t("cancel")}
         </Button>
-        <Button
-          type="button"
-          className="max-md:flex-1"
-          disabled={pending}
-          onClick={() =>
-            run(
-              () => handOverOrder({ path: { orderId } }),
-              () => {
-                const query = Object.fromEntries(new URLSearchParams(window.location.search));
-                router.replace({ pathname, query: { ...query, undo: orderId } }, { scroll: false });
-              },
-            )
-          }
-        >
-          {pending && <Spinner data-icon="inline-start" />}
-          {t("deliver")}
-        </Button>
+        {stage === "preparing" ? (
+          <Button
+            type="button"
+            className={cn("max-md:flex-1", fill && "flex-1")}
+            disabled={pending}
+            onClick={() => run(() => markOrderReady({ path: { orderId } }))}
+          >
+            {pending && <Spinner data-icon="inline-start" />}
+            {t("markReady")}
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            className={cn("max-md:flex-1", fill && "flex-1")}
+            disabled={pending}
+            onClick={() =>
+              run(
+                () => handOverOrder({ path: { orderId } }),
+                () => {
+                  const query = Object.fromEntries(new URLSearchParams(window.location.search));
+                  router.replace(
+                    { pathname: listPath ?? pathname, query: { ...query, undo: orderId } },
+                    { scroll: false },
+                  );
+                },
+              )
+            }
+          >
+            {pending && <Spinner data-icon="inline-start" />}
+            {t("deliver")}
+          </Button>
+        )}
       </div>
       {failed && <Failed failed={failed} />}
       <CancelDialog open={asking} onOpenChange={setAsking} orderId={orderId} name={name} />
@@ -107,7 +134,8 @@ export function HoldingActions({ orderId, name }: { orderId: string; name: strin
 }
 
 // "Hủy đơn" (Figma Q5c): the reason is chosen from the few the pilot's counter meets, and "another reason" asks
-// for the words. Customers who did not come give their portions back; the server does that.
+// for the words. Customers who did not come give their portions back; the server does that. The dialog is a
+// form (docs/guidelines/web.md › Forms) that starts again each time it opens.
 function CancelDialog({
   open,
   onOpenChange,
@@ -119,71 +147,122 @@ function CancelDialog({
   orderId: string;
   name: string;
 }) {
-  const t = useTranslations("StoreOrders");
-  const [reason, setReason] = useState<CancelReason>("no_answer");
-  const [note, setNote] = useState("");
-  const { pending, failed, run } = useOrderAction();
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>{t("cancelDialog.title", { name })}</DialogTitle>
-          <DialogDescription>{t("cancelDialog.body")}</DialogDescription>
-        </DialogHeader>
-        <fieldset className="flex flex-col gap-2">
-          <legend className="sr-only">{t("reasonLabel")}</legend>
-          <div className="-my-1 flex flex-wrap gap-x-2">
-            {cancelReasons.map((value) => (
-              <Chip key={value} selected={reason === value} onClick={() => setReason(value)}>
-                {t(`reason.${value}`)}
-              </Chip>
-            ))}
-          </div>
-          {reason === "other" && (
-            <Input
-              aria-label={t("cancelDialog.note")}
-              placeholder={t("cancelDialog.note")}
-              value={note}
-              maxLength={200}
-              onChange={(event) => setNote(event.target.value)}
-            />
-          )}
-        </fieldset>
-        {failed && <Failed failed={failed} />}
-        <DialogFooter className="max-sm:flex-row">
-          <Button
-            type="button"
-            variant="outline"
-            className="max-sm:flex-1"
-            onClick={() => onOpenChange(false)}
-          >
-            {t("cancelDialog.back")}
-          </Button>
-          <Button
-            type="button"
-            className="max-sm:flex-1"
-            disabled={pending}
-            onClick={() =>
-              run(
-                () =>
-                  refuseOrder({
-                    path: { orderId },
-                    body: {
-                      reason,
-                      ...(reason === "other" && note.trim() ? { note: note.trim() } : {}),
-                    },
-                  }),
-                () => onOpenChange(false),
-              )
-            }
-          >
-            {pending && <Spinner data-icon="inline-start" />}
-            {t("cancelDialog.confirm")}
-          </Button>
-        </DialogFooter>
+        {open && (
+          <CancelOrderForm orderId={orderId} name={name} onDone={() => onOpenChange(false)} />
+        )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function CancelOrderForm({
+  orderId,
+  name,
+  onDone,
+}: {
+  orderId: string;
+  name: string;
+  onDone: () => void;
+}) {
+  const t = useTranslations("StoreOrders");
+  const router = useRouter();
+
+  const form = useAppForm({
+    defaultValues: { reason: "no_answer" as CancelReason, note: "" },
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: z.object({ reason: z.enum(cancelReasons), note: z.string().max(200) }),
+    },
+    onSubmit: async ({ value, formApi }) => {
+      try {
+        await refuseOrder({
+          path: { orderId },
+          body: {
+            reason: value.reason,
+            ...(value.reason === "other" && value.note.trim() ? { note: value.note.trim() } : {}),
+          },
+        });
+      } catch (error) {
+        refuse(formApi, error);
+        return;
+      }
+      onDone();
+      router.refresh();
+    },
+  });
+
+  return (
+    <form
+      id={form.formId}
+      noValidate
+      className="flex flex-col gap-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void form.handleSubmit();
+      }}
+    >
+      <DialogHeader>
+        <DialogTitle>{t("cancelDialog.title", { name })}</DialogTitle>
+        <DialogDescription>{t("cancelDialog.body")}</DialogDescription>
+      </DialogHeader>
+      <form.AppField name="reason">
+        {(field) => (
+          <fieldset className="flex flex-col gap-2">
+            <legend className="sr-only">{t("reasonLabel")}</legend>
+            <div className="-my-1 flex flex-wrap gap-x-2">
+              {cancelReasons.map((value) => (
+                <Chip
+                  key={value}
+                  selected={field.state.value === value}
+                  onClick={() => field.handleChange(value)}
+                >
+                  {t(`reason.${value}`)}
+                </Chip>
+              ))}
+            </div>
+          </fieldset>
+        )}
+      </form.AppField>
+      <form.Subscribe selector={(state) => state.values.reason === "other"}>
+        {(other) =>
+          other && (
+            <form.AppField name="note">
+              {(field) => (
+                <field.TextField
+                  label={t("cancelDialog.note")}
+                  placeholder={t("cancelDialog.note")}
+                  maxLength={200}
+                />
+              )}
+            </form.AppField>
+          )
+        }
+      </form.Subscribe>
+      <form.AppForm>
+        <form.FormError fallback={t("failed")} />
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(submitting) => (
+            <DialogFooter className="max-sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                className="max-sm:flex-1"
+                disabled={submitting}
+                onClick={onDone}
+              >
+                {t("cancelDialog.back")}
+              </Button>
+              <form.SubmitButton className="max-sm:flex-1">
+                {t("cancelDialog.confirm")}
+              </form.SubmitButton>
+            </DialogFooter>
+          )}
+        </form.Subscribe>
+      </form.AppForm>
+    </form>
   );
 }
 
@@ -194,7 +273,7 @@ export function ReopenButton({ orderId }: { orderId: string }) {
   const { pending, failed, run } = useOrderAction();
 
   return (
-    <div className="flex flex-col items-end gap-2 max-md:w-full max-md:items-stretch">
+    <div className="relative z-10 flex flex-col items-end gap-2 max-md:w-full max-md:items-stretch">
       <Button
         type="button"
         variant="outline"

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddDishData, AddDishErrors, AddDishResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, ApproveSellerData, ApproveSellerErrors, ApproveSellerResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, CancelOrderData, CancelOrderErrors, CancelOrderResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetOrderData, GetOrderErrors, GetOrderResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, GrantAdminData, GrantAdminErrors, GrantAdminResponses, HandOverOrderData, HandOverOrderErrors, HandOverOrderResponses, ListAdminsData, ListAdminsErrors, ListAdminsResponses, ListAuditEventsData, ListAuditEventsErrors, ListAuditEventsResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListMyOrdersData, ListMyOrdersErrors, ListMyOrdersResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellerOrdersData, ListSellerOrdersErrors, ListSellerOrdersResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, MarkOrderReadyData, MarkOrderReadyErrors, MarkOrderReadyResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PlaceOrderData, PlaceOrderErrors, PlaceOrderResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RefuseOrderData, RefuseOrderErrors, RefuseOrderResponses, RejectSellerData, RejectSellerErrors, RejectSellerResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, ReopenOrderData, ReopenOrderErrors, ReopenOrderResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, RevokeAdminData, RevokeAdminErrors, RevokeAdminResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SendTestEmailData, SendTestEmailErrors, SendTestEmailResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
+import type { AddDishData, AddDishErrors, AddDishResponses, AddressAtData, AddressAtErrors, AddressAtResponses, AddSellerStaffData, AddSellerStaffErrors, AddSellerStaffResponses, AnswerOrderProblemData, AnswerOrderProblemErrors, AnswerOrderProblemResponses, ApproveSellerData, ApproveSellerErrors, ApproveSellerResponses, BlockSellerData, BlockSellerErrors, BlockSellerResponses, CancelOrderData, CancelOrderErrors, CancelOrderResponses, ChangeDishData, ChangeDishErrors, ChangeDishResponses, ChangeOfferData, ChangeOfferErrors, ChangeOfferResponses, CreateOrderLiveTicketData, CreateOrderLiveTicketErrors, CreateOrderLiveTicketResponses, CreateSellerLiveTicketData, CreateSellerLiveTicketErrors, CreateSellerLiveTicketResponses, DeleteMyAccountData, DeleteMyAccountErrors, DeleteMyAccountResponses, ExportReportData, ExportReportErrors, ExportReportResponses, FollowSellerData, FollowSellerErrors, FollowSellerResponses, GetAccountForAdminsData, GetAccountForAdminsErrors, GetAccountForAdminsResponses, GetAccountOrderHistoryData, GetAccountOrderHistoryErrors, GetAccountOrderHistoryResponses, GetEmailSettingsData, GetEmailSettingsErrors, GetEmailSettingsResponses, GetMyAccountData, GetMyAccountErrors, GetMyAccountResponses, GetOfferData, GetOfferErrors, GetOfferResponses, GetOfferSettingsData, GetOfferSettingsErrors, GetOfferSettingsResponses, GetOrderData, GetOrderErrors, GetOrderResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetPushKeyData, GetPushKeyErrors, GetPushKeyResponses, GetReportData, GetReportErrors, GetReportResponses, GetSellerData, GetSellerErrors, GetSellerProfileData, GetSellerProfileErrors, GetSellerProfileResponses, GetSellerResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, GrantAdminData, GrantAdminErrors, GrantAdminResponses, HandOverOrderData, HandOverOrderErrors, HandOverOrderResponses, HideReviewData, HideReviewErrors, HideReviewResponses, ListAccountsData, ListAccountsErrors, ListAccountsResponses, ListAdminsData, ListAdminsErrors, ListAdminsResponses, ListAuditEventsData, ListAuditEventsErrors, ListAuditEventsResponses, ListDishesData, ListDishesErrors, ListDishesResponses, ListFollowedSellersData, ListFollowedSellersErrors, ListFollowedSellersResponses, ListMembershipsForAdminsData, ListMembershipsForAdminsErrors, ListMembershipsForAdminsResponses, ListMyOrdersData, ListMyOrdersErrors, ListMyOrdersResponses, ListMySellersData, ListMySellersErrors, ListMySellersResponses, ListOffersForAdminsData, ListOffersForAdminsErrors, ListOffersForAdminsResponses, ListOrderMessagesData, ListOrderMessagesErrors, ListOrderMessagesResponses, ListOrdersForAdminsData, ListOrdersForAdminsErrors, ListOrdersForAdminsResponses, ListReviewsForAdminsData, ListReviewsForAdminsErrors, ListReviewsForAdminsResponses, ListSellerFeedbackForAdminsData, ListSellerFeedbackForAdminsErrors, ListSellerFeedbackForAdminsResponses, ListSellerMembersData, ListSellerMembersErrors, ListSellerMembersResponses, ListSellerOffersData, ListSellerOffersErrors, ListSellerOffersResponses, ListSellerOrdersData, ListSellerOrdersErrors, ListSellerOrdersResponses, ListSellerReviewsData, ListSellerReviewsErrors, ListSellerReviewsResponses, ListSellersForAdminsData, ListSellersForAdminsErrors, ListSellersForAdminsResponses, MarkOrderMessagesSeenData, MarkOrderMessagesSeenErrors, MarkOrderMessagesSeenResponses, MarkOrderReadyData, MarkOrderReadyErrors, MarkOrderReadyResponses, OpenSellerData, OpenSellerErrors, OpenSellerResponses, PlaceOrderData, PlaceOrderErrors, PlaceOrderResponses, PostOfferData, PostOfferErrors, PostOfferResponses, RecordViewData, RecordViewErrors, RecordViewResponses, RefuseOrderData, RefuseOrderErrors, RefuseOrderResponses, RejectSellerData, RejectSellerErrors, RejectSellerResponses, RemoveDishData, RemoveDishErrors, RemoveDishResponses, RemoveSellerMemberData, RemoveSellerMemberErrors, RemoveSellerMemberResponses, RemoveSellerPhotoData, RemoveSellerPhotoErrors, RemoveSellerPhotoResponses, ReopenOrderData, ReopenOrderErrors, ReopenOrderResponses, ReportOrderProblemData, ReportOrderProblemErrors, ReportOrderProblemResponses, RequestAccountDeletionCodeData, RequestAccountDeletionCodeErrors, RequestAccountDeletionCodeResponses, RequestSignInCodeData, RequestSignInCodeErrors, RequestSignInCodeResponses, ReviewOrderData, ReviewOrderErrors, ReviewOrderResponses, RevokeAdminData, RevokeAdminErrors, RevokeAdminResponses, SaveEmailSettingsData, SaveEmailSettingsErrors, SaveEmailSettingsResponses, SaveOfferSettingsData, SaveOfferSettingsErrors, SaveOfferSettingsResponses, SearchOffersData, SearchOffersErrors, SearchOffersResponses, SearchPlacesData, SearchPlacesErrors, SearchPlacesResponses, SendOrderMessageData, SendOrderMessageErrors, SendOrderMessageResponses, SendSellerFeedbackData, SendSellerFeedbackErrors, SendSellerFeedbackResponses, SendTestEmailData, SendTestEmailErrors, SendTestEmailResponses, SetMyDisplayNameData, SetMyDisplayNameErrors, SetMyDisplayNameResponses, SetSellerPhotoData, SetSellerPhotoErrors, SetSellerPhotoResponses, ShowReviewData, ShowReviewErrors, ShowReviewResponses, SignInData, SignInErrors, SignInResponses, SignInWithGoogleData, SignInWithGoogleErrors, SignInWithGoogleResponses, SignOutData, SignOutErrors, SignOutResponses, SubscribePushData, SubscribePushErrors, SubscribePushResponses, UnfollowSellerData, UnfollowSellerErrors, UnfollowSellerResponses, UnsubscribePushData, UnsubscribePushErrors, UnsubscribePushResponses, UpdateSellerData, UpdateSellerErrors, UpdateSellerResponses, UploadPhotoData, UploadPhotoErrors, UploadPhotoResponses, WithdrawOfferData, WithdrawOfferErrors, WithdrawOfferResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -81,6 +81,47 @@ export const requestAccountDeletionCode = <ThrowOnError extends boolean = true>(
             type: 'apiKey'
         }],
     url: '/accounts/me/deletion-codes',
+    ...options
+});
+
+/**
+ * Accounts by role and words, the newest first
+ *
+ * q matches the address or the name, Vietnamese marks ignored. Sorted by last sign-in, those never signed in come last. A page past the end is empty.
+ */
+export const listAccounts = <ThrowOnError extends boolean = true>(options?: Options<ListAccountsData, ThrowOnError>): RequestResult<ListAccountsResponses, ListAccountsErrors, ThrowOnError> => (options?.client ?? client).get<ListAccountsResponses, ListAccountsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/accounts',
+    ...options
+});
+
+/**
+ * An account, with when and how it last signed in
+ */
+export const getAccountForAdmins = <ThrowOnError extends boolean = true>(options: Options<GetAccountForAdminsData, ThrowOnError>): RequestResult<GetAccountForAdminsResponses, GetAccountForAdminsErrors, ThrowOnError> => (options.client ?? client).get<GetAccountForAdminsResponses, GetAccountForAdminsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/accounts/{accountId}',
+    ...options
+});
+
+/**
+ * What an account ordered: counts and the latest five orders
+ */
+export const getAccountOrderHistory = <ThrowOnError extends boolean = true>(options: Options<GetAccountOrderHistoryData, ThrowOnError>): RequestResult<GetAccountOrderHistoryResponses, GetAccountOrderHistoryErrors, ThrowOnError> => (options.client ?? client).get<GetAccountOrderHistoryResponses, GetAccountOrderHistoryErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/accounts/{accountId}/orders',
     ...options
 });
 
@@ -196,6 +237,19 @@ export const sendTestEmail = <ThrowOnError extends boolean = true>(options?: Opt
 });
 
 /**
+ * The sellers some accounts own or work at, owners first
+ */
+export const listMembershipsForAdmins = <ThrowOnError extends boolean = true>(options: Options<ListMembershipsForAdminsData, ThrowOnError>): RequestResult<ListMembershipsForAdminsResponses, ListMembershipsForAdminsErrors, ThrowOnError> => (options.client ?? client).get<ListMembershipsForAdminsResponses, ListMembershipsForAdminsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/memberships',
+    ...options
+});
+
+/**
  * The rules every offer follows
  */
 export const getOfferSettings = <ThrowOnError extends boolean = true>(options?: Options<GetOfferSettingsData, ThrowOnError>): RequestResult<GetOfferSettingsResponses, GetOfferSettingsErrors, ThrowOnError> => (options?.client ?? client).get<GetOfferSettingsResponses, GetOfferSettingsErrors, ThrowOnError>({
@@ -228,6 +282,128 @@ export const saveOfferSettings = <ThrowOnError extends boolean = true>(options: 
 });
 
 /**
+ * Every seller's offers by status, words, seller and day posted, newest first
+ *
+ * q matches the dish, the seller's name or the description, as customers search. counts holds the offers of each status matching the other filters. A page past the end is empty.
+ */
+export const listOffersForAdmins = <ThrowOnError extends boolean = true>(options?: Options<ListOffersForAdminsData, ThrowOnError>): RequestResult<ListOffersForAdminsResponses, ListOffersForAdminsErrors, ThrowOnError> => (options?.client ?? client).get<ListOffersForAdminsResponses, ListOffersForAdminsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/offers',
+    ...options
+});
+
+/**
+ * Every seller's orders by status, words, seller and day collected, the latest window first
+ *
+ * q matches the number (SB-24831 or 24831), the customer's name or phone, or the seller's name, Vietnamese marks ignored. An order still to collect whose window is over is expired. counts holds the orders of each status matching the other filters. A page past the end is empty.
+ */
+export const listOrdersForAdmins = <ThrowOnError extends boolean = true>(options?: Options<ListOrdersForAdminsData, ThrowOnError>): RequestResult<ListOrdersForAdminsResponses, ListOrdersForAdminsErrors, ThrowOnError> => (options?.client ?? client).get<ListOrdersForAdminsResponses, ListOrdersForAdminsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/orders',
+    ...options
+});
+
+/**
+ * The prototype's numbers per day and store: pages opened, posts and orders
+ *
+ * Days are Vietnam's; posts and orders count on their collection day. People add up over days, since a visitor is counted once a day.
+ */
+export const getReport = <ThrowOnError extends boolean = true>(options?: Options<GetReportData, ThrowOnError>): RequestResult<GetReportResponses, GetReportErrors, ThrowOnError> => (options?.client ?? client).get<GetReportResponses, GetReportErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/reports',
+    ...options
+});
+
+/**
+ * The report as a CSV file, one row per day and store
+ *
+ * The same numbers as getReport, in Vietnamese, for the sponsor's sheet: a row for the whole site on each day when no store is chosen, a row per store and day, and the totals last. UTF-8 with a byte order mark.
+ */
+export const exportReport = <ThrowOnError extends boolean = true>(options?: Options<ExportReportData, ThrowOnError>): RequestResult<ExportReportResponses, ExportReportErrors, ThrowOnError> => (options?.client ?? client).get<ExportReportResponses, ExportReportErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/reports/export',
+    ...options
+});
+
+/**
+ * Every customer's review, hidden or not, by stars, words, seller, visibility and day, the latest first
+ *
+ * q matches the comment, the order's number (SB-24831 or 24831), the customer's name or phone, or the seller's name, Vietnamese marks ignored. A page past the end is empty.
+ */
+export const listReviewsForAdmins = <ThrowOnError extends boolean = true>(options?: Options<ListReviewsForAdminsData, ThrowOnError>): RequestResult<ListReviewsForAdminsResponses, ListReviewsForAdminsErrors, ThrowOnError> => (options?.client ?? client).get<ListReviewsForAdminsResponses, ListReviewsForAdminsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/reviews',
+    ...options
+});
+
+/**
+ * Hide a review from every read but the admins'; its customer is not told
+ *
+ * The reason is optional, at most 500 characters, and kept in the audit only. The order cannot be rated again while its review is hidden.
+ */
+export const hideReview = <ThrowOnError extends boolean = true>(options: Options<HideReviewData, ThrowOnError>): RequestResult<HideReviewResponses, HideReviewErrors, ThrowOnError> => (options.client ?? client).post<HideReviewResponses, HideReviewErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/reviews/{orderId}/hide',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Show a hidden review again everywhere
+ */
+export const showReview = <ThrowOnError extends boolean = true>(options: Options<ShowReviewData, ThrowOnError>): RequestResult<ShowReviewResponses, ShowReviewErrors, ThrowOnError> => (options.client ?? client).post<ShowReviewResponses, ShowReviewErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/reviews/{orderId}/show',
+    ...options
+});
+
+/**
+ * What the stores told the team, in a range of days, the latest first
+ *
+ * At most 200; of one store when sellerId is given (SEC-82). The days are Vietnam's, as the report's.
+ */
+export const listSellerFeedbackForAdmins = <ThrowOnError extends boolean = true>(options?: Options<ListSellerFeedbackForAdminsData, ThrowOnError>): RequestResult<ListSellerFeedbackForAdminsResponses, ListSellerFeedbackForAdminsErrors, ThrowOnError> => (options?.client ?? client).get<ListSellerFeedbackForAdminsResponses, ListSellerFeedbackForAdminsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/admin/seller-feedback',
+    ...options
+});
+
+/**
  * Sellers by status and words, pending ones first
  *
  * Pending sellers come first, the oldest first; then the latest change first. q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.
@@ -243,7 +419,7 @@ export const listSellersForAdmins = <ThrowOnError extends boolean = true>(option
 });
 
 /**
- * Let a pending, rejected or blocked seller publish; its owner is emailed
+ * Let a pending, rejected or blocked seller publish; its owner is emailed. A seller whose owner deleted their account is refused
  */
 export const approveSeller = <ThrowOnError extends boolean = true>(options: Options<ApproveSellerData, ThrowOnError>): RequestResult<ApproveSellerResponses, ApproveSellerErrors, ThrowOnError> => (options.client ?? client).post<ApproveSellerResponses, ApproveSellerErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -491,7 +667,7 @@ export const getOrder = <ThrowOnError extends boolean = true>(options: Options<G
 });
 
 /**
- * Cancel your order, free of charge until its window opens
+ * Cancel your order until the seller marks it ready
  *
  * By its customer, signed in or sending its access. Its units go back on sale.
  */
@@ -522,6 +698,112 @@ export const handOverOrder = <ThrowOnError extends boolean = true>(options: Opti
         }],
     url: '/orders/{orderId}/hand-over',
     ...options
+});
+
+/**
+ * A ticket to follow an order on the live socket
+ *
+ * To its customer, signed in or sending its access, and to the seller's people; admins are left out. The socket reads no cookie, so the ticket is what authorizes it.
+ */
+export const createOrderLiveTicket = <ThrowOnError extends boolean = true>(options: Options<CreateOrderLiveTicketData, ThrowOnError>): RequestResult<CreateOrderLiveTicketResponses, CreateOrderLiveTicketErrors, ThrowOnError> => (options.client ?? client).post<CreateOrderLiveTicketResponses, CreateOrderLiveTicketErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/live-ticket',
+    ...options
+});
+
+/**
+ * The messages of an order's chat, oldest first
+ *
+ * To its customer, signed in or sending its access, and to the seller's people; admins are left out.
+ */
+export const listOrderMessages = <ThrowOnError extends boolean = true>(options: Options<ListOrderMessagesData, ThrowOnError>): RequestResult<ListOrderMessagesResponses, ListOrderMessagesErrors, ThrowOnError> => (options.client ?? client).get<ListOrderMessagesResponses, ListOrderMessagesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/messages',
+    ...options
+});
+
+/**
+ * Write in an order's chat
+ *
+ * By its customer, signed in or sending its access, and by the seller's people, while the order is open and for two hours after it is collected. Sending the same Idempotency-Key again returns the message sent first.
+ */
+export const sendOrderMessage = <ThrowOnError extends boolean = true>(options: Options<SendOrderMessageData, ThrowOnError>): RequestResult<SendOrderMessageResponses, SendOrderMessageErrors, ThrowOnError> => (options.client ?? client).post<SendOrderMessageResponses, SendOrderMessageErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/messages',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Say you have read an order's chat up to a message
+ *
+ * Also once the chat is read-only. An upTo beyond the latest message counts as the latest.
+ */
+export const markOrderMessagesSeen = <ThrowOnError extends boolean = true>(options: Options<MarkOrderMessagesSeenData, ThrowOnError>): RequestResult<MarkOrderMessagesSeenResponses, MarkOrderMessagesSeenErrors, ThrowOnError> => (options.client ?? client).post<MarkOrderMessagesSeenResponses, MarkOrderMessagesSeenErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/messages/seen',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Report what went wrong with your collected or expired order, once
+ *
+ * By its customer, signed in or sending its access, within two days of collection or of the window's end; the store is told (SEC-84).
+ */
+export const reportOrderProblem = <ThrowOnError extends boolean = true>(options: Options<ReportOrderProblemData, ThrowOnError>): RequestResult<ReportOrderProblemResponses, ReportOrderProblemErrors, ThrowOnError> => (options.client ?? client).post<ReportOrderProblemResponses, ReportOrderProblemErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/problem',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Answer the problem a customer reported with one of your orders, once
+ *
+ * By the seller's people; the customer is told (SEC-84).
+ */
+export const answerOrderProblem = <ThrowOnError extends boolean = true>(options: Options<AnswerOrderProblemData, ThrowOnError>): RequestResult<AnswerOrderProblemResponses, AnswerOrderProblemErrors, ThrowOnError> => (options.client ?? client).post<AnswerOrderProblemResponses, AnswerOrderProblemErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/problem/answer',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**
@@ -570,6 +852,25 @@ export const reopenOrder = <ThrowOnError extends boolean = true>(options: Option
 });
 
 /**
+ * Rate your collected order, once
+ *
+ * By its customer, signed in or sending its access, after the order was handed over.
+ */
+export const reviewOrder = <ThrowOnError extends boolean = true>(options: Options<ReviewOrderData, ThrowOnError>): RequestResult<ReviewOrderResponses, ReviewOrderErrors, ThrowOnError> => (options.client ?? client).post<ReviewOrderResponses, ReviewOrderErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/orders/{orderId}/review',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Upload a photo for an offer or a seller
  *
  * The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG in two sizes, without its metadata. An unused photo is kept for a day.
@@ -595,7 +896,42 @@ export const uploadPhoto = <ThrowOnError extends boolean = true>(options: Option
 export const getPhoto = <ThrowOnError extends boolean = true>(options: Options<GetPhotoData, ThrowOnError>): RequestResult<GetPhotoResponses, GetPhotoErrors, ThrowOnError> => (options.client ?? client).get<GetPhotoResponses, GetPhotoErrors, ThrowOnError>({ url: '/photos/{photoId}/{file}', ...options });
 
 /**
- * Open a seller; it waits for an admin to activate it
+ * Read the key a browser subscribes to Web Push with
+ *
+ * 503 NOTIFICATION_PUSH_NOT_CONFIGURED while Web Push is off; the page then offers no notifications.
+ */
+export const getPushKey = <ThrowOnError extends boolean = true>(options?: Options<GetPushKeyData, ThrowOnError>): RequestResult<GetPushKeyResponses, GetPushKeyErrors, ThrowOnError> => (options?.client ?? client).get<GetPushKeyResponses, GetPushKeyErrors, ThrowOnError>({ url: '/push/key', ...options });
+
+/**
+ * Follow orders by Web Push in this browser
+ *
+ * Keeps the browser's subscription, in the language of Accept-Language, following the topic each live ticket proves for seven days. Subscribing again renews them. Each ticket is spent as the live socket spends it; a ticket spent or expired answers NOTIFICATION_PUSH_TICKET_INVALID.
+ */
+export const subscribePush = <ThrowOnError extends boolean = true>(options: Options<SubscribePushData, ThrowOnError>): RequestResult<SubscribePushResponses, SubscribePushErrors, ThrowOnError> => (options.client ?? client).post<SubscribePushResponses, SubscribePushErrors, ThrowOnError>({
+    url: '/push/subscriptions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Stop Web Push to this browser
+ *
+ * Forgets the subscription and every topic it follows; one not kept changes nothing.
+ */
+export const unsubscribePush = <ThrowOnError extends boolean = true>(options: Options<UnsubscribePushData, ThrowOnError>): RequestResult<UnsubscribePushResponses, UnsubscribePushErrors, ThrowOnError> => (options.client ?? client).post<UnsubscribePushResponses, UnsubscribePushErrors, ThrowOnError>({
+    url: '/push/subscriptions/remove',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Open a seller, active at once, pinned inside Hanoi
  */
 export const openSeller = <ThrowOnError extends boolean = true>(options: Options<OpenSellerData, ThrowOnError>): RequestResult<OpenSellerResponses, OpenSellerErrors, ThrowOnError> => (options.client ?? client).post<OpenSellerResponses, OpenSellerErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -612,6 +948,34 @@ export const openSeller = <ThrowOnError extends boolean = true>(options: Options
 });
 
 /**
+ * The address at a point, to fill the form that opens a store; empty when it is not known
+ */
+export const addressAt = <ThrowOnError extends boolean = true>(options: Options<AddressAtData, ThrowOnError>): RequestResult<AddressAtResponses, AddressAtErrors, ThrowOnError> => (options.client ?? client).get<AddressAtResponses, AddressAtErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/address',
+    ...options
+});
+
+/**
+ * The active sellers I follow, the latest followed first
+ *
+ * A seller blocked since is left out.
+ */
+export const listFollowedSellers = <ThrowOnError extends boolean = true>(options?: Options<ListFollowedSellersData, ThrowOnError>): RequestResult<ListFollowedSellersResponses, ListFollowedSellersErrors, ThrowOnError> => (options?.client ?? client).get<ListFollowedSellersResponses, ListFollowedSellersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/followed',
+    ...options
+});
+
+/**
  * The sellers I own or work for
  */
 export const listMySellers = <ThrowOnError extends boolean = true>(options?: Options<ListMySellersData, ThrowOnError>): RequestResult<ListMySellersResponses, ListMySellersErrors, ThrowOnError> => (options?.client ?? client).get<ListMySellersResponses, ListMySellersErrors, ThrowOnError>({
@@ -621,6 +985,19 @@ export const listMySellers = <ThrowOnError extends boolean = true>(options?: Opt
             type: 'apiKey'
         }],
     url: '/sellers/mine',
+    ...options
+});
+
+/**
+ * Places in Hanoi for the words of a store's address, to pin it as it is typed
+ */
+export const searchPlaces = <ThrowOnError extends boolean = true>(options: Options<SearchPlacesData, ThrowOnError>): RequestResult<SearchPlacesResponses, SearchPlacesErrors, ThrowOnError> => (options.client ?? client).get<SearchPlacesResponses, SearchPlacesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/places',
     ...options
 });
 
@@ -638,7 +1015,7 @@ export const getSeller = <ThrowOnError extends boolean = true>(options: Options<
 });
 
 /**
- * Change a seller's details; only its owner may
+ * Change a seller's details; only its owner may. A moved pin or address moves its offers on sale and its orders still to collect
  */
 export const updateSeller = <ThrowOnError extends boolean = true>(options: Options<UpdateSellerData, ThrowOnError>): RequestResult<UpdateSellerResponses, UpdateSellerErrors, ThrowOnError> => (options.client ?? client).put<UpdateSellerResponses, UpdateSellerErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }, {
@@ -686,6 +1063,55 @@ export const addDish = <ThrowOnError extends boolean = true>(options: Options<Ad
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Tell the Second Bite team what is hard or missing, for the seller's people
+ *
+ * Kept with the seller, not who wrote it; at most 20 a day for one seller (SEC-82).
+ */
+export const sendSellerFeedback = <ThrowOnError extends boolean = true>(options: Options<SendSellerFeedbackData, ThrowOnError>): RequestResult<SendSellerFeedbackResponses, SendSellerFeedbackErrors, ThrowOnError> => (options.client ?? client).post<SendSellerFeedbackResponses, SendSellerFeedbackErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/{sellerId}/feedback',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Take a seller out of my favourites
+ *
+ * A seller I do not follow is left as it is.
+ */
+export const unfollowSeller = <ThrowOnError extends boolean = true>(options: Options<UnfollowSellerData, ThrowOnError>): RequestResult<UnfollowSellerResponses, UnfollowSellerErrors, ThrowOnError> => (options.client ?? client).delete<UnfollowSellerResponses, UnfollowSellerErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/{sellerId}/follow',
+    ...options
+});
+
+/**
+ * Make an active seller one of my favourites
+ *
+ * Following again changes nothing. A seller pending or blocked answers 404.
+ */
+export const followSeller = <ThrowOnError extends boolean = true>(options: Options<FollowSellerData, ThrowOnError>): RequestResult<FollowSellerResponses, FollowSellerErrors, ThrowOnError> => (options.client ?? client).put<FollowSellerResponses, FollowSellerErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/{sellerId}/follow',
+    ...options
 });
 
 /**
@@ -779,6 +1205,19 @@ export const listSellerOrders = <ThrowOnError extends boolean = true>(options: O
 });
 
 /**
+ * A ticket to follow a seller's orders on the live socket
+ */
+export const createSellerLiveTicket = <ThrowOnError extends boolean = true>(options: Options<CreateSellerLiveTicketData, ThrowOnError>): RequestResult<CreateSellerLiveTicketResponses, CreateSellerLiveTicketErrors, ThrowOnError> => (options.client ?? client).post<CreateSellerLiveTicketResponses, CreateSellerLiveTicketErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/{sellerId}/orders/live-ticket',
+    ...options
+});
+
+/**
  * Remove the seller's photo; only the owner may
  */
 export const removeSellerPhoto = <ThrowOnError extends boolean = true>(options: Options<RemoveSellerPhotoData, ThrowOnError>): RequestResult<RemoveSellerPhotoResponses, RemoveSellerPhotoErrors, ThrowOnError> => (options.client ?? client).delete<RemoveSellerPhotoResponses, RemoveSellerPhotoErrors, ThrowOnError>({
@@ -821,4 +1260,33 @@ export const getSellerProfile = <ThrowOnError extends boolean = true>(options: O
         }],
     url: '/sellers/{sellerId}/profile',
     ...options
+});
+
+/**
+ * The reviews of a seller's orders that show, by stars, the latest first, to its people and admins
+ *
+ * A review an admin hid is left out. counts gives each number of stars whatever stars asks, and average the mean stars of the reviews of the stars asked, absent when there are none. A page past the end is empty.
+ */
+export const listSellerReviews = <ThrowOnError extends boolean = true>(options: Options<ListSellerReviewsData, ThrowOnError>): RequestResult<ListSellerReviewsResponses, ListSellerReviewsErrors, ThrowOnError> => (options.client ?? client).get<ListSellerReviewsResponses, ListSellerReviewsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, {
+            in: 'cookie',
+            name: 'secondbite_session',
+            type: 'apiKey'
+        }],
+    url: '/sellers/{sellerId}/reviews',
+    ...options
+});
+
+/**
+ * Count a page on screen
+ *
+ * Sent by the web when a page is shown, without a session. A bot or a prefetch is not counted, and is answered the same.
+ */
+export const recordView = <ThrowOnError extends boolean = true>(options: Options<RecordViewData, ThrowOnError>): RequestResult<RecordViewResponses, RecordViewErrors, ThrowOnError> => (options.client ?? client).post<RecordViewResponses, RecordViewErrors, ThrowOnError>({
+    url: '/stats/views',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });

@@ -13,7 +13,7 @@ var (
 		EN: "The price must be at least the minimum discount below the original price.",
 	})
 	ErrWindowInvalid = platform.NewFailure("OFFER_WINDOW_INVALID", platform.CategoryValidation, platform.Words{
-		VI: "Khung giờ lấy món quá ngắn, quá dài, đã qua, hoặc bắt đầu quá muộn.",
+		VI: "Khung giờ nhận món quá ngắn, quá dài, đã qua, hoặc bắt đầu quá muộn.",
 		EN: "The collection window is too short, too long, already over, or starts too late.",
 	})
 	ErrNotFound = platform.NewFailure("OFFER_NOT_FOUND", platform.CategoryNotFound, platform.Words{
@@ -21,7 +21,7 @@ var (
 		EN: "The offer does not exist.",
 	})
 	ErrChangeNotAllowed = platform.NewFailure("OFFER_CHANGE_NOT_ALLOWED", platform.CategoryConflict, platform.Words{
-		VI: "Món đăng này không sửa theo cách này được nữa: đã có người đặt (khi đó chỉ đổi được mô tả, ảnh, số suất và giờ lấy), đã hết giờ lấy, hoặc đã rút.",
+		VI: "Món đăng này không sửa theo cách này được nữa: đã có người đặt (khi đó chỉ đổi được mô tả, ảnh, số suất và giờ nhận), đã hết giờ nhận, hoặc đã rút.",
 		EN: "This offer can no longer be changed this way: units have been ordered (then only the description, the photo, the units and the collection window change), its window is over, or it was withdrawn.",
 	})
 	ErrDishNotFound = platform.NewFailure("OFFER_DISH_NOT_FOUND", platform.CategoryNotFound, platform.Words{
@@ -35,6 +35,10 @@ var (
 	ErrSearchInvalid = platform.NewFailure("OFFER_SEARCH_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Kiểm tra lại tìm kiếm: một điểm trên bản đồ, khoảng thời gian kết thúc sau khi bắt đầu, giá thấp nhất không cao hơn giá cao nhất, loại món hợp lệ, và một điểm khi xếp theo khoảng cách.",
 		EN: "Check the search: a point on the map, a time range that ends after it starts, a lowest price no higher than the highest, known kinds, and a point to sort by distance.",
+	})
+	ErrAdminListInvalid = platform.NewFailure("OFFER_ADMIN_LIST_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Bộ lọc danh sách bài đăng không hợp lệ: kiểm tra trạng thái, từ khoá tối đa 100 ký tự, khoảng ngày đăng có ngày bắt đầu trước ngày kết thúc, trang từ 1 và cỡ trang từ 1 đến 100.",
+		EN: "The offer list's filters are not valid: check the status, a query of at most 100 characters, a range of days posted that starts before it ends, a page from 1 and a page size of 1 to 100.",
 	})
 	ErrSettingsInvalid = platform.NewFailure("OFFER_SETTINGS_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Cài đặt món đăng nằm ngoài giới hạn hoặc mâu thuẫn nhau.",

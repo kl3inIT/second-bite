@@ -12,6 +12,10 @@ import {
   priceProblem,
   windowIsOver,
   windowOf,
+  nextStart,
+  minutesUntil,
+  startSuggestions,
+  clockOf,
 } from "./post-draft";
 
 describe("the price of a post", () => {
@@ -21,15 +25,21 @@ describe("the price of a post", () => {
     expect(priceProblem(95_000, 80_000)).toBe("tooHigh");
   });
 
-  it("suggests the dearest whole-hundred price within the minimum discount", () => {
+  it("calculates percentages in whole đồng without an extra hundred-đồng rounding", () => {
     expect(suggestedPrice(95_000)).toBe(76_000);
     expect(suggestedPrice(30_000)).toBe(24_000);
-    expect(suggestedPrice(9_990)).toBe(7_900);
+    expect(suggestedPrice(9_990)).toBe(7_992);
     expect(discountPercent(9_990, 7_900)).toBe(20);
     expect(suggestedPrice(1_500)).toBe(1_200);
     expect(suggestedPrice(1_200)).toBeUndefined();
     expect(suggestedPrice(Number.NaN)).toBeUndefined();
     expect(priceProblem(95_000, suggestedPrice(95_000) ?? 0)).toBeUndefined();
+    expect(suggestedPrice(20_000, 35)).toBe(13_000);
+    expect(suggestedPrice(9_999, 35)).toBe(6_499);
+    expect(suggestedPrice(20_000, 90)).toBe(2_000);
+    expect(suggestedPrice(20_000, 99)).toBeUndefined();
+    for (const percent of [19, 100, 35.5, Number.NaN])
+      expect(suggestedPrice(20_000, percent)).toBeUndefined();
   });
 
   it("asks for both prices, each at least 1.000đ", () => {
@@ -73,6 +83,38 @@ describe("the window of a post", () => {
 
   it("writes a clock time with two digits", () => {
     expect(clock(9, 5)).toBe("09:05");
+  });
+
+  it("suggests current time and future whole hours in Vietnam, across midnight", () => {
+    const suggestions = startSuggestions(new Date("2026-10-20T23:45:39+07:00"));
+    expect(suggestions.map(clockOf)).toEqual([
+      { hour: 23, minute: 45 },
+      { hour: 0, minute: 0 },
+      { hour: 1, minute: 0 },
+      { hour: 2, minute: 0 },
+    ]);
+    expect(suggestions[1]?.toISOString()).toBe("2026-10-20T17:00:00.000Z");
+    expect(startSuggestions(new Date("2026-10-20T07:00:00+07:00")).map(clockOf)).toEqual([
+      { hour: 7, minute: 0 },
+      { hour: 8, minute: 0 },
+      { hour: 9, minute: 0 },
+      { hour: 10, minute: 0 },
+    ]);
+  });
+
+  it("retains the day for a future custom start and advances past clock times to tomorrow", () => {
+    expect(nextStart(12, 0, now).toISOString()).toBe("2026-10-20T05:00:00.000Z");
+    expect(nextStart(13, 30, now).toISOString()).toBe("2026-10-20T06:30:00.000Z");
+    expect(nextStart(1, 5, now).toISOString()).toBe("2026-10-20T18:05:00.000Z");
+  });
+
+  it("reads a custom end relative to the start, including midnight and every minute", () => {
+    const start = new Date("2026-10-20T23:15:00+07:00");
+    expect(minutesUntil(start, 0, 45)).toBe(90);
+    expect(minutesUntil(start, 1, 7)).toBe(112);
+    expect(lengthIsAllowed(minutesUntil(start, 23, 20))).toBe(false);
+    expect(lengthIsAllowed(minutesUntil(start, 23, 0))).toBe(false);
+    expect(lengthIsAllowed(minutesUntil(start, 23, 15))).toBe(false);
   });
 });
 

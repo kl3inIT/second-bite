@@ -31,12 +31,236 @@ components:
       required:
         - email
       type: object
+    AddressOutputBody:
+      additionalProperties: false
+      properties:
+        address:
+          description: As people write it; empty when the point has no known address
+          type: string
+      required:
+        - address
+      type: object
+    AdminAccountsOutputBody:
+      additionalProperties: false
+      properties:
+        counts:
+          $ref: "#/components/schemas/RoleCountsBody"
+          description: How many accounts of each role match the words, whatever the role asked
+        items:
+          items:
+            $ref: "#/components/schemas/RecordBody"
+          type:
+            - array
+            - "null"
+        page:
+          format: int64
+          type: integer
+        pageSize:
+          format: int64
+          type: integer
+        total:
+          description: How many accounts match the role and the words
+          format: int64
+          type: integer
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+        - counts
+      type: object
+    AdminOfferBody:
+      additionalProperties: false
+      properties:
+        offer:
+          $ref: "#/components/schemas/OfferBody"
+        sellerName:
+          description: Copied from the seller when the offer was posted
+          type: string
+      required:
+        - offer
+        - sellerName
+      type: object
+    AdminOffersOutputBody:
+      additionalProperties: false
+      properties:
+        counts:
+          $ref: "#/components/schemas/OfferCountsBody"
+          description: Offers of each status matching the other filters, whatever status asks
+        items:
+          items:
+            $ref: "#/components/schemas/AdminOfferBody"
+          type: array
+        page:
+          format: int64
+          type: integer
+        pageSize:
+          format: int64
+          type: integer
+        total:
+          format: int64
+          type: integer
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+        - counts
+      type: object
+    AdminOrdersOutputBody:
+      additionalProperties: false
+      properties:
+        counts:
+          $ref: "#/components/schemas/OrderCountsBody"
+          description: Orders of each status matching the other filters, whatever status asks
+        items:
+          items:
+            $ref: "#/components/schemas/OrderBody"
+          type: array
+        page:
+          format: int64
+          type: integer
+        pageSize:
+          format: int64
+          type: integer
+        total:
+          format: int64
+          type: integer
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+        - counts
+      type: object
+    AdminReviewBody:
+      additionalProperties: false
+      properties:
+        comment:
+          type: string
+        createdAt:
+          description: When the customer rated the order
+          format: date-time
+          type: string
+        customerName:
+          description: Who collected, as given with the order
+          type: string
+        hiddenAt:
+          description: When an admin hid it; absent while it shows
+          format: date-time
+          type: string
+        hiddenReason:
+          description: Why an admin hid it, when they said
+          type: string
+        orderId:
+          description: The order reviewed, which names its review
+          type: string
+        orderNumber:
+          description: SB- and a number
+          type: string
+        sellerId:
+          type: string
+        sellerName:
+          type: string
+        stars:
+          format: int64
+          type: integer
+        tags:
+          items:
+            type: string
+          type: array
+      required:
+        - orderId
+        - orderNumber
+        - sellerId
+        - sellerName
+        - customerName
+        - stars
+        - tags
+        - createdAt
+      type: object
+    AdminReviewsOutputBody:
+      additionalProperties: false
+      properties:
+        average:
+          description: The mean stars of the shown reviews matching every filter; absent when none does
+          format: double
+          type: number
+        counts:
+          $ref: "#/components/schemas/ReviewCountsBody"
+          description: Reviews of each number of stars matching the other filters, whatever stars asks
+        items:
+          items:
+            $ref: "#/components/schemas/AdminReviewBody"
+          type: array
+        page:
+          format: int64
+          type: integer
+        pageSize:
+          format: int64
+          type: integer
+        total:
+          format: int64
+          type: integer
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+        - counts
+      type: object
     AdminSellerBody:
       additionalProperties: false
       properties:
+        address:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          type: string
+        latitude:
+          format: double
+          type: number
+        longitude:
+          format: double
+          type: number
+        name:
+          type: string
         ownerEmail:
           description: Absent when the owner deleted their account
           type: string
+        phone:
+          type: string
+        photoId:
+          description: Served at /photos/{photoId}/1600.jpg and /400.jpg
+          type: string
+        status:
+          enum:
+            - pending
+            - active
+            - rejected
+            - blocked
+          type: string
+        statusChangedAt:
+          format: date-time
+          type: string
+        statusReason:
+          description: Why an admin rejected or blocked the seller, as the owner is told
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - address
+        - latitude
+        - longitude
+        - phone
+        - status
+        - createdAt
+        - updatedAt
       type: object
     AdminSellersOutputBody:
       additionalProperties: false
@@ -44,6 +268,13 @@ components:
         counts:
           $ref: "#/components/schemas/StatusCountsBody"
           description: Sellers of each status matching q, whatever status asks
+        days:
+          description: Sellers of each status on each of the last 14 days in Vietnam, the oldest first, whatever the filters; a day before counting started is absent
+          items:
+            $ref: "#/components/schemas/StatusDayBody"
+          type:
+            - array
+            - "null"
         items:
           items:
             $ref: "#/components/schemas/AdminSellerBody"
@@ -65,6 +296,7 @@ components:
         - pageSize
         - total
         - counts
+        - days
       type: object
     AdminsOutputBody:
       additionalProperties: false
@@ -72,12 +304,22 @@ components:
         admins:
           description: Every admin, by address
           items:
-            $ref: "#/components/schemas/AccountBody"
+            $ref: "#/components/schemas/RecordBody"
           type:
             - array
             - "null"
       required:
         - admins
+      type: object
+    AnswerOrderProblemRequest:
+      additionalProperties: false
+      properties:
+        answer:
+          description: 1 to 500 characters, or ORDER_ANSWER_INVALID
+          maxLength: 2000
+          type: string
+      required:
+        - answer
       type: object
     AuditChangeBody:
       additionalProperties: false
@@ -110,7 +352,7 @@ components:
             - brevo
           type: string
         reason:
-          description: What the owner was told, for a rejection or a block
+          description: What the owner was told, for a rejection or a block; the admin's reason, for a hidden review
           type: string
         source:
           description: Where a change of admins came from
@@ -132,6 +374,8 @@ components:
             - seller.reject
             - seller.block
             - seller.unblock
+            - review.hide
+            - review.show
           type: string
         actorId:
           type: string
@@ -147,12 +391,13 @@ components:
         resourceId:
           type: string
         resourceLabel:
-          description: The store's name or the account's address at the time; absent once that account is deleted
+          description: The store's name, the account's address or the order's number at the time; absent once that account is deleted
           type: string
         resourceType:
           enum:
             - account
             - seller
+            - order
             - offer_settings
             - email_settings
           type: string
@@ -222,6 +467,75 @@ components:
         - longitude
         - address
       type: object
+    CountsBody:
+      additionalProperties: false
+      properties:
+        cancelled:
+          format: int64
+          type: integer
+        collected:
+          format: int64
+          type: integer
+        collectedVnd:
+          description: What the collected orders came to at the counter
+          format: int64
+          type: integer
+        expired:
+          description: Orders the customer did not come for
+          format: int64
+          type: integer
+        held:
+          description: Orders, however they ended
+          format: int64
+          type: integer
+        homeViews:
+          description: Opens of the home; none for a store
+          format: int64
+          type: integer
+        offers:
+          description: Offers posted for the day
+          format: int64
+          type: integer
+        people:
+          description: Browsers that opened them, each counted once a day
+          format: int64
+          type: integer
+        qrViews:
+          description: Opens the poster's code brought (utm_source=qr)
+          format: int64
+          type: integer
+        refused:
+          format: int64
+          type: integer
+        unitsCollected:
+          format: int64
+          type: integer
+        unitsHeld:
+          format: int64
+          type: integer
+        unitsPosted:
+          format: int64
+          type: integer
+        views:
+          description: Pages opened
+          format: int64
+          type: integer
+      required:
+        - views
+        - people
+        - homeViews
+        - qrViews
+        - offers
+        - unitsPosted
+        - held
+        - unitsHeld
+        - collected
+        - unitsCollected
+        - cancelled
+        - refused
+        - expired
+        - collectedVnd
+      type: object
     DeleteAccountInputBody:
       additionalProperties: false
       properties:
@@ -244,7 +558,7 @@ components:
           minLength: 1
           type: string
         latitude:
-          description: Where the seller is, pinned on a map
+          description: Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE
           format: double
           maximum: 90
           minimum: -90
@@ -290,7 +604,13 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
+          type: string
+        kindLabel:
+          description: What the seller calls a dish of the kind other; empty for any other kind
           type: string
         name:
           type: string
@@ -299,6 +619,11 @@ components:
           type: integer
         photo:
           $ref: "#/components/schemas/OfferPhotoBody"
+        photos:
+          description: Every photo, the cover first
+          items:
+            $ref: "#/components/schemas/OfferPhotoBody"
+          type: array
         sellerId:
           type: string
         unit:
@@ -311,10 +636,12 @@ components:
         - sellerId
         - name
         - kind
+        - kindLabel
         - unit
         - description
         - ingredients
         - photo
+        - photos
         - hidden
         - createdAt
         - updatedAt
@@ -337,8 +664,21 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
           type: string
+        kindLabel:
+          description: Leaves it as it is when absent, and empties it when the kind is changed from other
+          maxLength: 30
+          type: string
+        morePhotoIds:
+          description: Replaces the photos after the cover; at most two
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -373,8 +713,21 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
           type: string
+        kindLabel:
+          description: What the seller calls a dish of the kind other; empty for any other kind
+          maxLength: 30
+          type: string
+        morePhotoIds:
+          description: Up to two more photos after the cover
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -385,7 +738,7 @@ components:
           minimum: 1001
           type: integer
         photoId:
-          description: From POST /photos, or a photo the seller already shows
+          description: "The cover: from POST /photos, or a photo the seller already shows"
           type: string
         unit:
           description: What one unit is called; "suất" when empty
@@ -449,6 +802,49 @@ components:
         - brevoApiKeySet
         - updatedAt
       type: object
+    FeedbackBody:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        sellerId:
+          type: string
+        sellerName:
+          type: string
+        sentAt:
+          format: date-time
+          type: string
+        text:
+          type: string
+      required:
+        - id
+        - sellerId
+        - sellerName
+        - text
+        - sentAt
+      type: object
+    FeedbackOutputBody:
+      additionalProperties: false
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/FeedbackBody"
+          type: array
+      required:
+        - items
+      type: object
+    FollowedOutputBody:
+      additionalProperties: false
+      properties:
+        sellers:
+          items:
+            $ref: "#/components/schemas/SellerProfileBody"
+          type:
+            - array
+            - "null"
+      required:
+        - sellers
+      type: object
     FoundBody:
       additionalProperties: false
       properties:
@@ -476,7 +872,13 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
+          type: string
+        kindLabel:
+          description: What the seller calls a dish of the kind other; empty for any other kind
           type: string
         name:
           type: string
@@ -485,6 +887,12 @@ components:
           type: integer
         photo:
           $ref: "#/components/schemas/OfferPhotoBody"
+          description: The cover, which lists and orders show
+        photos:
+          description: Every photo, the cover first
+          items:
+            $ref: "#/components/schemas/OfferPhotoBody"
+          type: array
         priceVnd:
           format: int64
           type: integer
@@ -531,6 +939,7 @@ components:
         - name
         - description
         - kind
+        - kindLabel
         - unit
         - units
         - unitsLeft
@@ -538,6 +947,7 @@ components:
         - originalPriceVnd
         - discountPercent
         - photo
+        - photos
         - windowStart
         - windowEnd
         - collectionPoint
@@ -596,6 +1006,38 @@ components:
       required:
         - email
       type: object
+    HideReviewRequest:
+      additionalProperties: false
+      properties:
+        reason:
+          description: Why it is hidden, at most 500 characters
+          type: string
+      type: object
+    HistoryOutputBody:
+      additionalProperties: false
+      properties:
+        collected:
+          description: Orders handed over
+          format: int64
+          type: integer
+        missed:
+          description: "Orders the customer did not come for: the window ended, or staff ended them as no answer, no show or late"
+          format: int64
+          type: integer
+        placed:
+          format: int64
+          type: integer
+        recent:
+          description: The latest five, newest first
+          items:
+            $ref: "#/components/schemas/OrderBody"
+          type: array
+      required:
+        - placed
+        - collected
+        - missed
+        - recent
+      type: object
     ListDishesResponse:
       additionalProperties: false
       properties:
@@ -605,6 +1047,30 @@ components:
           type: array
       required:
         - dishes
+      type: object
+    LiveTicketOutputBody:
+      additionalProperties: false
+      properties:
+        expiresAt:
+          description: Thirty seconds after it was minted
+          format: date-time
+          type: string
+        ticket:
+          description: Sent once in a subscribe frame on GET /live; it works once
+          type: string
+      required:
+        - ticket
+        - expiresAt
+      type: object
+    MarkOrderMessagesSeenRequest:
+      additionalProperties: false
+      properties:
+        upTo:
+          format: int64
+          minimum: 0
+          type: integer
+      required:
+        - upTo
       type: object
     MemberBody:
       additionalProperties: false
@@ -639,6 +1105,91 @@ components:
       required:
         - members
       type: object
+    MembershipBody:
+      additionalProperties: false
+      properties:
+        accountId:
+          type: string
+        role:
+          enum:
+            - owner
+            - staff
+          type: string
+        sellerId:
+          type: string
+        sellerName:
+          type: string
+        sellerStatus:
+          enum:
+            - pending
+            - active
+            - rejected
+            - blocked
+          type: string
+      required:
+        - accountId
+        - role
+        - sellerId
+        - sellerName
+        - sellerStatus
+      type: object
+    MembershipsOutputBody:
+      additionalProperties: false
+      properties:
+        memberships:
+          items:
+            $ref: "#/components/schemas/MembershipBody"
+          type:
+            - array
+            - "null"
+      required:
+        - memberships
+      type: object
+    MessageBody:
+      additionalProperties: false
+      properties:
+        from:
+          enum:
+            - customer
+            - seller
+          type: string
+        sentAt:
+          format: date-time
+          type: string
+        seq:
+          description: Its number in the chat, from 1
+          format: int64
+          type: integer
+        text:
+          type: string
+      required:
+        - seq
+        - from
+        - text
+        - sentAt
+      type: object
+    MessagesOutputBody:
+      additionalProperties: false
+      properties:
+        closesAt:
+          description: "Only once the order is collected: when its chat turns read-only"
+          format: date-time
+          type: string
+        messages:
+          description: Oldest first
+          items:
+            $ref: "#/components/schemas/MessageBody"
+          type: array
+        open:
+          description: Whether the chat takes messages
+          type: boolean
+        seen:
+          $ref: "#/components/schemas/SeenBody"
+      required:
+        - messages
+        - seen
+        - open
+      type: object
     MethodsOutputBody:
       additionalProperties: false
       properties:
@@ -669,7 +1220,13 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
+          type: string
+        kindLabel:
+          description: What the seller calls a dish of the kind other; empty for any other kind
           type: string
         name:
           type: string
@@ -678,6 +1235,12 @@ components:
           type: integer
         photo:
           $ref: "#/components/schemas/OfferPhotoBody"
+          description: The cover, which lists and orders show
+        photos:
+          description: Every photo, the cover first
+          items:
+            $ref: "#/components/schemas/OfferPhotoBody"
+          type: array
         priceVnd:
           format: int64
           type: integer
@@ -721,6 +1284,7 @@ components:
         - name
         - description
         - kind
+        - kindLabel
         - unit
         - units
         - unitsLeft
@@ -728,6 +1292,7 @@ components:
         - originalPriceVnd
         - discountPercent
         - photo
+        - photos
         - windowStart
         - windowEnd
         - collectionPoint
@@ -747,8 +1312,21 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
           type: string
+        kindLabel:
+          description: Leaves it as it is when absent, and empties it when the kind is changed from other
+          maxLength: 30
+          type: string
+        morePhotoIds:
+          description: Replaces the photos after the cover; at most two
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -783,6 +1361,27 @@ components:
           format: date-time
           type: string
       type: object
+    OfferCountsBody:
+      additionalProperties: false
+      properties:
+        closed:
+          format: int64
+          type: integer
+        onSale:
+          format: int64
+          type: integer
+        soldOut:
+          format: int64
+          type: integer
+        withdrawn:
+          format: int64
+          type: integer
+      required:
+        - onSale
+        - soldOut
+        - closed
+        - withdrawn
+      type: object
     OfferDetailsBody:
       additionalProperties: false
       properties:
@@ -797,8 +1396,21 @@ components:
             - ingredients
             - drinks
             - mixed_box
+            - dessert
+            - snacks
+            - produce
             - other
           type: string
+        kindLabel:
+          description: What the seller calls a dish of the kind other; empty for any other kind
+          maxLength: 30
+          type: string
+        morePhotoIds:
+          description: Up to two more photos after the cover
+          items:
+            type: string
+          maxItems: 2
+          type: array
         name:
           maxLength: 80
           minLength: 1
@@ -809,7 +1421,7 @@ components:
           minimum: 1001
           type: integer
         photoId:
-          description: From POST /photos, or the photo of an earlier offer of the seller
+          description: "The cover: from POST /photos, or the photo of an earlier offer of the seller"
           type: string
         priceVnd:
           description: Price of one unit, in whole đồng
@@ -948,6 +1560,12 @@ components:
         access:
           description: "To its customer: proves the order is theirs without signing in, sent back as Order-Access"
           type: string
+        canReportProblem:
+          description: The order is collected or expired, within two days, and no problem was reported yet
+          type: boolean
+        canReview:
+          description: The order is collected and was never rated, so its customer may rate it
+          type: boolean
         cancelReason:
           type: string
         cancelledAt:
@@ -974,9 +1592,16 @@ components:
           items:
             $ref: "#/components/schemas/OrderLineBody"
           type: array
+        messageCount:
+          description: Messages its chat holds, with unreadMessages; none for admins
+          format: int64
+          type: integer
         number:
           description: What people read aloud, SB- and a number
           type: string
+        problem:
+          $ref: "#/components/schemas/ProblemBody"
+          description: What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
         readyAt:
           format: date-time
           type: string
@@ -991,10 +1616,14 @@ components:
             - late
             - sold_out
             - other
+            - withdrawn
           type: string
         refusedAt:
           format: date-time
           type: string
+        review:
+          $ref: "#/components/schemas/ReviewBody"
+          description: The customer's rating of the collected order; none until they rate it, nor while admins hide it
         seller:
           $ref: "#/components/schemas/OrderSellerBody"
           description: Where the order is collected, copied when it was placed
@@ -1010,6 +1639,10 @@ components:
           type: string
         totalVnd:
           description: Paid to the seller at the counter
+          format: int64
+          type: integer
+        unreadMessages:
+          description: "Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins"
           format: int64
           type: integer
         windowEnd:
@@ -1031,6 +1664,37 @@ components:
         - checkoutId
         - customerName
         - customerPhone
+        - canReview
+        - canReportProblem
+      type: object
+    OrderCountsBody:
+      additionalProperties: false
+      properties:
+        cancelled:
+          format: int64
+          type: integer
+        collected:
+          format: int64
+          type: integer
+        confirmed:
+          format: int64
+          type: integer
+        expired:
+          format: int64
+          type: integer
+        ready:
+          format: int64
+          type: integer
+        refused:
+          format: int64
+          type: integer
+      required:
+        - confirmed
+        - ready
+        - collected
+        - cancelled
+        - refused
+        - expired
       type: object
     OrderLineBody:
       additionalProperties: false
@@ -1146,9 +1810,29 @@ components:
         - largePath
         - smallPath
       type: object
+    PlaceBody:
+      additionalProperties: false
+      properties:
+        address:
+          description: As people write it; a house number typed first goes before a street that has none
+          type: string
+        latitude:
+          format: double
+          type: number
+        longitude:
+          format: double
+          type: number
+      required:
+        - address
+        - latitude
+        - longitude
+      type: object
     PlaceOrderBody:
       additionalProperties: false
       properties:
+        byZalo:
+          description: The customer agrees to be told about the order by Zalo once Second Bite sends there
+          type: boolean
         checkoutId:
           description: Shared by the orders placed together from one cart, one per seller; a new one when omitted
           type: string
@@ -1175,6 +1859,19 @@ components:
         - lines
         - name
         - phone
+      type: object
+    PlacesOutputBody:
+      additionalProperties: false
+      properties:
+        places:
+          description: Up to five places in Hanoi; none when nothing matches or the search does not answer
+          items:
+            $ref: "#/components/schemas/PlaceBody"
+          type:
+            - array
+            - "null"
+      required:
+        - places
       type: object
     Problem:
       additionalProperties: false
@@ -1208,6 +1905,90 @@ components:
         - status
         - code
       type: object
+    ProblemBody:
+      additionalProperties: false
+      properties:
+        answer:
+          description: The store's answer, none until it answers
+          type: string
+        answeredAt:
+          format: date-time
+          type: string
+        kind:
+          enum:
+            - missing_item
+            - wrong_item
+            - poor_quality
+            - store_closed
+          type: string
+        note:
+          type: string
+        reportedAt:
+          format: date-time
+          type: string
+      required:
+        - kind
+        - reportedAt
+      type: object
+    PushKeyOutputBody:
+      additionalProperties: false
+      properties:
+        publicKey:
+          description: The VAPID public key, in base64url, for PushManager.subscribe's applicationServerKey
+          type: string
+      required:
+        - publicKey
+      type: object
+    PushKeys:
+      additionalProperties: false
+      properties:
+        auth:
+          maxLength: 255
+          minLength: 1
+          type: string
+        p256dh:
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - p256dh
+        - auth
+      type: object
+    RecordBody:
+      additionalProperties: false
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        displayName:
+          description: Empty until Google gives one or the person sets it
+          type: string
+        email:
+          type: string
+        id:
+          type: string
+        lastSignInMethod:
+          description: "How it last signed in: an emailed code or Google"
+          enum:
+            - code
+            - google
+          type: string
+        lastSignedInAt:
+          description: Absent until it signs in
+          format: date-time
+          type: string
+        role:
+          enum:
+            - customer
+            - admin
+          type: string
+      required:
+        - id
+        - email
+        - role
+        - displayName
+        - createdAt
+      type: object
     RefuseOrderRequest:
       additionalProperties: false
       properties:
@@ -1238,6 +2019,107 @@ components:
       required:
         - reason
       type: object
+    ReportDayBody:
+      additionalProperties: false
+      properties:
+        counts:
+          $ref: "#/components/schemas/CountsBody"
+        day:
+          format: date
+          type: string
+      required:
+        - day
+        - counts
+      type: object
+    ReportOrderProblemRequest:
+      additionalProperties: false
+      properties:
+        kind:
+          enum:
+            - missing_item
+            - wrong_item
+            - poor_quality
+            - store_closed
+          type: string
+        note:
+          description: Up to 500 characters, or ORDER_PROBLEM_INVALID
+          maxLength: 2000
+          type: string
+      required:
+        - kind
+      type: object
+    ReportOutputBody:
+      additionalProperties: false
+      properties:
+        days:
+          description: Every day of the range, in order
+          items:
+            $ref: "#/components/schemas/ReportDayBody"
+          type:
+            - array
+            - "null"
+        since:
+          format: date
+          type: string
+        storeDays:
+          description: Each store on each day it has numbers, by day then name
+          items:
+            $ref: "#/components/schemas/ReportStoreDayBody"
+          type:
+            - array
+            - "null"
+        stores:
+          description: Each store with numbers in the range, the most orders first
+          items:
+            $ref: "#/components/schemas/ReportStoreBody"
+          type:
+            - array
+            - "null"
+        totals:
+          $ref: "#/components/schemas/CountsBody"
+        until:
+          format: date
+          type: string
+      required:
+        - since
+        - until
+        - totals
+        - days
+        - stores
+        - storeDays
+      type: object
+    ReportStoreBody:
+      additionalProperties: false
+      properties:
+        counts:
+          $ref: "#/components/schemas/CountsBody"
+        name:
+          type: string
+        sellerId:
+          type: string
+      required:
+        - sellerId
+        - name
+        - counts
+      type: object
+    ReportStoreDayBody:
+      additionalProperties: false
+      properties:
+        counts:
+          $ref: "#/components/schemas/CountsBody"
+        day:
+          format: date
+          type: string
+        name:
+          type: string
+        sellerId:
+          type: string
+      required:
+        - day
+        - sellerId
+        - name
+        - counts
+      type: object
     RequestCodeInputBody:
       additionalProperties: false
       properties:
@@ -1261,6 +2143,96 @@ components:
       required:
         - challengeId
         - expiresAt
+      type: object
+    ReviewBody:
+      additionalProperties: false
+      properties:
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        stars:
+          format: int64
+          type: integer
+        tags:
+          items:
+            type: string
+          type: array
+      required:
+        - stars
+        - tags
+        - createdAt
+      type: object
+    ReviewCountsBody:
+      additionalProperties: false
+      properties:
+        fiveStars:
+          format: int64
+          type: integer
+        fourStars:
+          format: int64
+          type: integer
+        hidden:
+          description: Hidden reviews of the stars asked, whatever visibility asks
+          format: int64
+          type: integer
+        oneStar:
+          format: int64
+          type: integer
+        threeStars:
+          format: int64
+          type: integer
+        twoStars:
+          format: int64
+          type: integer
+      required:
+        - oneStar
+        - twoStars
+        - threeStars
+        - fourStars
+        - fiveStars
+        - hidden
+      type: object
+    ReviewOrderRequest:
+      additionalProperties: false
+      properties:
+        comment:
+          maxLength: 500
+          type: string
+        stars:
+          format: int64
+          maximum: 5
+          minimum: 1
+          type: integer
+        tags:
+          description: What went well
+          items:
+            enum:
+              - fast_pickup
+              - good_quality
+              - good_variety
+              - fair_portions
+            type: string
+          maxItems: 4
+          type: array
+          uniqueItems: true
+      required:
+        - stars
+        - tags
+      type: object
+    RoleCountsBody:
+      additionalProperties: false
+      properties:
+        admin:
+          format: int64
+          type: integer
+        customer:
+          format: int64
+          type: integer
+      required:
+        - customer
+        - admin
       type: object
     SaveEmailSettingsInputBody:
       additionalProperties: false
@@ -1307,6 +2279,21 @@ components:
         - provider
         - senderAddress
         - senderName
+      type: object
+    SeenBody:
+      additionalProperties: false
+      properties:
+        customer:
+          description: The highest message the customer has read
+          format: int64
+          type: integer
+        seller:
+          description: The highest message the seller's people have read
+          format: int64
+          type: integer
+      required:
+        - customer
+        - seller
       type: object
     SellerBody:
       additionalProperties: false
@@ -1402,6 +2389,73 @@ components:
         - latitude
         - longitude
       type: object
+    SellerReviewBody:
+      additionalProperties: false
+      properties:
+        comment:
+          type: string
+        createdAt:
+          description: When the customer rated the order
+          format: date-time
+          type: string
+        customerName:
+          description: Who collected, as given with the order
+          type: string
+        dishes:
+          description: The names of the order's dishes, joined by commas
+          type: string
+        orderId:
+          description: The order reviewed, which names its review
+          type: string
+        orderNumber:
+          description: SB- and a number
+          type: string
+        stars:
+          format: int64
+          type: integer
+        tags:
+          items:
+            type: string
+          type: array
+      required:
+        - orderId
+        - orderNumber
+        - customerName
+        - stars
+        - tags
+        - createdAt
+      type: object
+    SellerReviewsOutputBody:
+      additionalProperties: false
+      properties:
+        average:
+          description: The mean stars of the reviews of the stars asked; absent when none
+          format: double
+          type: number
+        counts:
+          $ref: "#/components/schemas/StarCountsBody"
+          description: Reviews of each number of stars, whatever stars asks
+        items:
+          items:
+            $ref: "#/components/schemas/SellerReviewBody"
+          type: array
+        page:
+          format: int64
+          type: integer
+        pageSize:
+          format: int64
+          type: integer
+        total:
+          description: Reviews of the stars asked
+          format: int64
+          type: integer
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+        - counts
+      type: object
     SellersOutputBody:
       additionalProperties: false
       properties:
@@ -1413,6 +2467,27 @@ components:
             - "null"
       required:
         - sellers
+      type: object
+    SendOrderMessageRequest:
+      additionalProperties: false
+      properties:
+        text:
+          description: Trimmed; 1 to 1,000 characters
+          maxLength: 1000
+          minLength: 1
+          type: string
+      required:
+        - text
+      type: object
+    SendSellerFeedbackRequest:
+      additionalProperties: false
+      properties:
+        text:
+          description: 1 to 1,000 characters, or SELLER_FEEDBACK_INVALID
+          maxLength: 4000
+          type: string
+      required:
+        - text
       type: object
     SendTestEmailInputBody:
       additionalProperties: false
@@ -1478,6 +2553,31 @@ components:
         - challengeId
         - code
       type: object
+    StarCountsBody:
+      additionalProperties: false
+      properties:
+        fiveStars:
+          format: int64
+          type: integer
+        fourStars:
+          format: int64
+          type: integer
+        oneStar:
+          format: int64
+          type: integer
+        threeStars:
+          format: int64
+          type: integer
+        twoStars:
+          format: int64
+          type: integer
+      required:
+        - oneStar
+        - twoStars
+        - threeStars
+        - fourStars
+        - fiveStars
+      type: object
     StatusCountsBody:
       additionalProperties: false
       properties:
@@ -1498,6 +2598,81 @@ components:
         - active
         - rejected
         - blocked
+      type: object
+    StatusDayBody:
+      additionalProperties: false
+      properties:
+        active:
+          format: int64
+          type: integer
+        blocked:
+          format: int64
+          type: integer
+        day:
+          description: The day in Vietnam, as YYYY-MM-DD
+          format: date
+          type: string
+        pending:
+          format: int64
+          type: integer
+        rejected:
+          format: int64
+          type: integer
+      required:
+        - day
+        - pending
+        - active
+        - rejected
+        - blocked
+      type: object
+    SubscribePushInputBody:
+      additionalProperties: false
+      properties:
+        endpoint:
+          description: The push service's address for this browser
+          format: uri
+          maxLength: 2048
+          type: string
+        keys:
+          $ref: "#/components/schemas/PushKeys"
+        tickets:
+          description: "Live tickets, one per topic to follow: an order's (POST /orders/{id}/live-ticket) or a seller's"
+          items:
+            type: string
+          maxItems: 20
+          minItems: 1
+          type:
+            - array
+            - "null"
+      required:
+        - endpoint
+        - keys
+        - tickets
+      type: object
+    UnsubscribePushInputBody:
+      additionalProperties: false
+      properties:
+        endpoint:
+          format: uri
+          maxLength: 2048
+          type: string
+      required:
+        - endpoint
+      type: object
+    ViewInputBody:
+      additionalProperties: false
+      properties:
+        path:
+          description: The page's path, as the address bar shows it, such as /vi/sellers/{id}
+          maxLength: 300
+          minLength: 1
+          type: string
+        source:
+          description: utm_source of the address that opened the site, such as qr; anything else than 1 to 40 of a-z, 0-9, _ and - counts as none
+          maxLength: 100
+          type: string
+      required:
+        - path
       type: object
     Violation:
       additionalProperties: false
@@ -1635,6 +2810,135 @@ paths:
       summary: Email the signed-in account's address a code that confirms its deletion
       tags:
         - Accounts
+  /admin/accounts:
+    get:
+      description: q matches the address or the name, Vietnamese marks ignored. Sorted by last sign-in, those never signed in come last. A page past the end is empty.
+      operationId: listAccounts
+      parameters:
+        - description: Keep this role; every role when absent
+          explode: false
+          in: query
+          name: role
+          schema:
+            description: Keep this role; every role when absent
+            enum:
+              - customer
+              - admin
+            type: string
+        - description: Words of the address or the name
+          explode: false
+          in: query
+          name: q
+          schema:
+            description: Words of the address or the name
+            maxLength: 100
+            type: string
+        - description: name, created or signedIn; a leading - is descending; the newest first when absent
+          explode: false
+          in: query
+          name: sort
+          schema:
+            description: name, created or signedIn; a leading - is descending; the newest first when absent
+            enum:
+              - name
+              - -name
+              - created
+              - -created
+              - signedIn
+              - -signedIn
+            type: string
+        - explode: false
+          in: query
+          name: page
+          schema:
+            default: 1
+            format: int64
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: size
+          schema:
+            default: 25
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAccountsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Accounts by role and words, the newest first
+      tags:
+        - Admin
+  /admin/accounts/{accountId}:
+    get:
+      operationId: getAccountForAdmins
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: An account, with when and how it last signed in
+      tags:
+        - Admin
+  /admin/accounts/{accountId}/orders:
+    get:
+      operationId: getAccountOrderHistory
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: "What an account ordered: counts and the latest five orders"
+      tags:
+        - Admin
   /admin/admins:
     get:
       operationId: listAdmins
@@ -1735,6 +3039,8 @@ paths:
                 - seller.reject
                 - seller.block
                 - seller.unblock
+                - review.hide
+                - review.show
               type: string
             type:
               - array
@@ -1893,6 +3199,43 @@ paths:
       summary: Send one email through the settings saved, to an address or to oneself
       tags:
         - Admin
+  /admin/memberships:
+    get:
+      operationId: listMembershipsForAdmins
+      parameters:
+        - description: The accounts, at most 100
+          explode: true
+          in: query
+          name: accountId
+          required: true
+          schema:
+            description: The accounts, at most 100
+            items:
+              type: string
+            maxItems: 100
+            minItems: 1
+            type:
+              - array
+              - "null"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The sellers some accounts own or work at, owners first
+      tags:
+        - Admin
   /admin/offer-settings:
     get:
       operationId: getOfferSettings
@@ -1961,6 +3304,487 @@ paths:
       summary: Change the rules every offer follows
       tags:
         - Admin
+  /admin/offers:
+    get:
+      description: q matches the dish, the seller's name or the description, as customers search. counts holds the offers of each status matching the other filters. A page past the end is empty.
+      operationId: listOffersForAdmins
+      parameters:
+        - description: Keep this status; every status when absent
+          explode: false
+          in: query
+          name: status
+          schema:
+            description: Keep this status; every status when absent
+            enum:
+              - on_sale
+              - sold_out
+              - closed
+              - withdrawn
+            type: string
+        - description: Words of the dish, the seller's name or the description
+          explode: false
+          in: query
+          name: q
+          schema:
+            description: Words of the dish, the seller's name or the description
+            maxLength: 100
+            type: string
+        - description: Keep this seller's offers
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep this seller's offers
+            type: string
+        - explode: false
+          in: query
+          name: page
+          schema:
+            default: 1
+            format: int64
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: size
+          schema:
+            default: 25
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+        - description: Keep the offers posted at or after this time
+          explode: false
+          in: query
+          name: postedSince
+          schema:
+            description: Keep the offers posted at or after this time
+            format: date-time
+            type: string
+        - description: Keep the offers posted before this time
+          explode: false
+          in: query
+          name: postedUntil
+          schema:
+            description: Keep the offers posted before this time
+            format: date-time
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOffersOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Every seller's offers by status, words, seller and day posted, newest first
+      tags:
+        - Admin
+  /admin/orders:
+    get:
+      description: q matches the number (SB-24831 or 24831), the customer's name or phone, or the seller's name, Vietnamese marks ignored. An order still to collect whose window is over is expired. counts holds the orders of each status matching the other filters. A page past the end is empty.
+      operationId: listOrdersForAdmins
+      parameters:
+        - description: Keep these statuses; every status when absent
+          explode: false
+          in: query
+          name: status
+          schema:
+            description: Keep these statuses; every status when absent
+            items:
+              enum:
+                - confirmed
+                - ready
+                - collected
+                - cancelled
+                - refused
+                - expired
+              type: string
+            type:
+              - array
+              - "null"
+        - description: The number, the customer's name or phone, or the seller's name
+          explode: false
+          in: query
+          name: q
+          schema:
+            description: The number, the customer's name or phone, or the seller's name
+            maxLength: 100
+            type: string
+        - description: Keep this seller's orders
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep this seller's orders
+            type: string
+        - explode: false
+          in: query
+          name: page
+          schema:
+            default: 1
+            format: int64
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: size
+          schema:
+            default: 25
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+        - description: Keep the orders whose window starts at or after this time
+          explode: false
+          in: query
+          name: collectSince
+          schema:
+            description: Keep the orders whose window starts at or after this time
+            format: date-time
+            type: string
+        - description: Keep the orders whose window starts before this time
+          explode: false
+          in: query
+          name: collectUntil
+          schema:
+            description: Keep the orders whose window starts before this time
+            format: date-time
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrdersOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Every seller's orders by status, words, seller and day collected, the latest window first
+      tags:
+        - Admin
+  /admin/reports:
+    get:
+      description: Days are Vietnam's; posts and orders count on their collection day. People add up over days, since a visitor is counted once a day.
+      operationId: getReport
+      parameters:
+        - description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+          explode: false
+          in: query
+          name: since
+          schema:
+            description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+          explode: false
+          in: query
+          name: until
+          schema:
+            description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: Keep one store's numbers; the views are then its page's and its dishes'
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep one store's numbers; the views are then its page's and its dishes'
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: "The prototype's numbers per day and store: pages opened, posts and orders"
+      tags:
+        - Admin
+  /admin/reports/export:
+    get:
+      description: "The same numbers as getReport, in Vietnamese, for the sponsor's sheet: a row for the whole site on each day when no store is chosen, a row per store and day, and the totals last. UTF-8 with a byte order mark."
+      operationId: exportReport
+      parameters:
+        - description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+          explode: false
+          in: query
+          name: since
+          schema:
+            description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+          explode: false
+          in: query
+          name: until
+          schema:
+            description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: Keep one store's numbers; the views are then its page's and its dishes'
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep one store's numbers; the views are then its page's and its dishes'
+            type: string
+      responses:
+        "200":
+          content:
+            text/csv; charset=utf-8: {}
+          description: The report as CSV
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Disposition:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The report as a CSV file, one row per day and store
+      tags:
+        - Admin
+  /admin/reviews:
+    get:
+      description: q matches the comment, the order's number (SB-24831 or 24831), the customer's name or phone, or the seller's name, Vietnamese marks ignored. A page past the end is empty.
+      operationId: listReviewsForAdmins
+      parameters:
+        - description: Keep the reviews giving these stars; any when absent
+          explode: false
+          in: query
+          name: stars
+          schema:
+            description: Keep the reviews giving these stars; any when absent
+            items:
+              format: int64
+              maximum: 5
+              minimum: 1
+              type: integer
+            type:
+              - array
+              - "null"
+        - description: The comment, the order's number, the customer's name or phone, or the seller's name
+          explode: false
+          in: query
+          name: q
+          schema:
+            description: The comment, the order's number, the customer's name or phone, or the seller's name
+            maxLength: 100
+            type: string
+        - description: Keep this seller's reviews
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep this seller's reviews
+            type: string
+        - description: Keep the shown or the hidden reviews; both when absent
+          explode: false
+          in: query
+          name: visibility
+          schema:
+            description: Keep the shown or the hidden reviews; both when absent
+            enum:
+              - visible
+              - hidden
+            type: string
+        - explode: false
+          in: query
+          name: page
+          schema:
+            default: 1
+            format: int64
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: size
+          schema:
+            default: 25
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+        - description: Keep the reviews given at or after this time
+          explode: false
+          in: query
+          name: reviewedSince
+          schema:
+            description: Keep the reviews given at or after this time
+            format: date-time
+            type: string
+        - description: Keep the reviews given before this time
+          explode: false
+          in: query
+          name: reviewedUntil
+          schema:
+            description: Keep the reviews given before this time
+            format: date-time
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminReviewsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Every customer's review, hidden or not, by stars, words, seller, visibility and day, the latest first
+      tags:
+        - Admin
+  /admin/reviews/{orderId}/hide:
+    post:
+      description: The reason is optional, at most 500 characters, and kept in the audit only. The order cannot be rated again while its review is hidden.
+      operationId: hideReview
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HideReviewRequest"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminReviewBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Hide a review from every read but the admins'; its customer is not told
+      tags:
+        - Admin
+  /admin/reviews/{orderId}/show:
+    post:
+      operationId: showReview
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminReviewBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Show a hidden review again everywhere
+      tags:
+        - Admin
+  /admin/seller-feedback:
+    get:
+      description: At most 200; of one store when sellerId is given (SEC-82). The days are Vietnam's, as the report's.
+      operationId: listSellerFeedbackForAdmins
+      parameters:
+        - description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+          explode: false
+          in: query
+          name: since
+          schema:
+            description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+          explode: false
+          in: query
+          name: until
+          schema:
+            description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: Keep one store's feedback
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep one store's feedback
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: What the stores told the team, in a range of days, the latest first
+      tags:
+        - Admin
   /admin/sellers:
     get:
       description: Pending sellers come first, the oldest first; then the latest change first. q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.
@@ -2021,6 +3845,22 @@ paths:
             maximum: 100
             minimum: 1
             type: integer
+        - description: Keep the sellers last changed at or after this time
+          explode: false
+          in: query
+          name: changedSince
+          schema:
+            description: Keep the sellers last changed at or after this time
+            format: date-time
+            type: string
+        - description: Keep the sellers last changed before this time
+          explode: false
+          in: query
+          name: changedUntil
+          schema:
+            description: Keep the sellers last changed before this time
+            format: date-time
+            type: string
       responses:
         "200":
           content:
@@ -2065,7 +3905,7 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Let a pending, rejected or blocked seller publish; its owner is emailed
+      summary: Let a pending, rejected or blocked seller publish; its owner is emailed. A seller whose owner deleted their account is refused
       tags:
         - Admin
   /admin/sellers/{sellerId}/block:
@@ -2368,6 +4208,9 @@ paths:
                 - ingredients
                 - drinks
                 - mixed_box
+                - dessert
+                - snacks
+                - produce
                 - other
               type: string
             type:
@@ -2732,7 +4575,7 @@ paths:
         - {}
         - bearer: []
         - cookie: []
-      summary: Cancel your order, free of charge until its window opens
+      summary: Cancel your order until the seller marks it ready
       tags:
         - Orders
   /orders/{orderId}/hand-over:
@@ -2762,6 +4605,265 @@ paths:
         - bearer: []
         - cookie: []
       summary: Hand an order over
+      tags:
+        - Orders
+  /orders/{orderId}/live-ticket:
+    post:
+      description: To its customer, signed in or sending its access, and to the seller's people; admins are left out. The socket reads no cookie, so the ticket is what authorizes it.
+      operationId: createOrderLiveTicket
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveTicketOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: A ticket to follow an order on the live socket
+      tags:
+        - Orders
+  /orders/{orderId}/messages:
+    get:
+      description: To its customer, signed in or sending its access, and to the seller's people; admins are left out.
+      operationId: listOrderMessages
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+        - description: Only messages numbered after this one
+          explode: false
+          in: query
+          name: after
+          schema:
+            default: 0
+            description: Only messages numbered after this one
+            format: int64
+            minimum: 0
+            type: integer
+        - explode: false
+          in: query
+          name: limit
+          schema:
+            default: 50
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessagesOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: The messages of an order's chat, oldest first
+      tags:
+        - Orders
+    post:
+      description: By its customer, signed in or sending its access, and by the seller's people, while the order is open and for two hours after it is collected. Sending the same Idempotency-Key again returns the message sent first.
+      operationId: sendOrderMessage
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema:
+            maxLength: 255
+            minLength: 1
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOrderMessageRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageBody"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Write in an order's chat
+      tags:
+        - Orders
+  /orders/{orderId}/messages/seen:
+    post:
+      description: Also once the chat is read-only. An upTo beyond the latest message counts as the latest.
+      operationId: markOrderMessagesSeen
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkOrderMessagesSeenRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Say you have read an order's chat up to a message
+      tags:
+        - Orders
+  /orders/{orderId}/problem:
+    post:
+      description: By its customer, signed in or sending its access, within two days of collection or of the window's end; the store is told (SEC-84).
+      operationId: reportOrderProblem
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportOrderProblemRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Report what went wrong with your collected or expired order, once
+      tags:
+        - Orders
+  /orders/{orderId}/problem/answer:
+    post:
+      description: By the seller's people; the customer is told (SEC-84).
+      operationId: answerOrderProblem
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnswerOrderProblemRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Answer the problem a customer reported with one of your orders, once
       tags:
         - Orders
   /orders/{orderId}/ready:
@@ -2855,6 +4957,49 @@ paths:
       summary: Take a hand-over or a refusal back
       tags:
         - Orders
+  /orders/{orderId}/review:
+    post:
+      description: By its customer, signed in or sending its access, after the order was handed over.
+      operationId: reviewOrder
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewOrderRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Rate your collected order, once
+      tags:
+        - Orders
   /photos:
     post:
       description: "The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG in two sizes, without its metadata. An unused photo is kept for a day."
@@ -2930,6 +5075,70 @@ paths:
       summary: A photo in one of its sizes
       tags:
         - Photos
+  /push/key:
+    get:
+      description: 503 NOTIFICATION_PUSH_NOT_CONFIGURED while Web Push is off; the page then offers no notifications.
+      operationId: getPushKey
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushKeyOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Read the key a browser subscribes to Web Push with
+      tags:
+        - Notifications
+  /push/subscriptions:
+    post:
+      description: Keeps the browser's subscription, in the language of Accept-Language, following the topic each live ticket proves for seven days. Subscribing again renews them. Each ticket is spent as the live socket spends it; a ticket spent or expired answers NOTIFICATION_PUSH_TICKET_INVALID.
+      operationId: subscribePush
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscribePushInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Follow orders by Web Push in this browser
+      tags:
+        - Notifications
+  /push/subscriptions/remove:
+    post:
+      description: Forgets the subscription and every topic it follows; one not kept changes nothing.
+      operationId: unsubscribePush
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnsubscribePushInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Stop Web Push to this browser
+      tags:
+        - Notifications
   /sellers:
     post:
       operationId: openSeller
@@ -2955,7 +5164,71 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Open a seller; it waits for an admin to activate it
+      summary: Open a seller, active at once, pinned inside Hanoi
+      tags:
+        - Sellers
+  /sellers/address:
+    get:
+      operationId: addressAt
+      parameters:
+        - explode: false
+          in: query
+          name: latitude
+          required: true
+          schema:
+            format: double
+            maximum: 90
+            minimum: -90
+            type: number
+        - explode: false
+          in: query
+          name: longitude
+          required: true
+          schema:
+            format: double
+            maximum: 180
+            minimum: -180
+            type: number
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The address at a point, to fill the form that opens a store; empty when it is not known
+      tags:
+        - Sellers
+  /sellers/followed:
+    get:
+      description: A seller blocked since is left out.
+      operationId: listFollowedSellers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowedOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The active sellers I follow, the latest followed first
       tags:
         - Sellers
   /sellers/mine:
@@ -2978,6 +5251,39 @@ paths:
         - bearer: []
         - cookie: []
       summary: The sellers I own or work for
+      tags:
+        - Sellers
+  /sellers/places:
+    get:
+      operationId: searchPlaces
+      parameters:
+        - description: The words of the address, with or without Vietnamese marks
+          explode: false
+          in: query
+          name: q
+          required: true
+          schema:
+            description: The words of the address, with or without Vietnamese marks
+            maxLength: 200
+            minLength: 2
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlacesOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Places in Hanoi for the words of a store's address, to pin it as it is typed
       tags:
         - Sellers
   /sellers/{sellerId}:
@@ -3038,7 +5344,7 @@ paths:
       security:
         - bearer: []
         - cookie: []
-      summary: Change a seller's details; only its owner may
+      summary: Change a seller's details; only its owner may. A moved pin or address moves its offers on sale and its orders still to collect
       tags:
         - Sellers
   /sellers/{sellerId}/dishes:
@@ -3104,6 +5410,86 @@ paths:
       summary: Add a dish to a seller's catalog
       tags:
         - Catalog
+  /sellers/{sellerId}/feedback:
+    post:
+      description: Kept with the seller, not who wrote it; at most 20 a day for one seller (SEC-82).
+      operationId: sendSellerFeedback
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendSellerFeedbackRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Tell the Second Bite team what is hard or missing, for the seller's people
+      tags:
+        - Sellers
+  /sellers/{sellerId}/follow:
+    delete:
+      description: A seller I do not follow is left as it is.
+      operationId: unfollowSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Take a seller out of my favourites
+      tags:
+        - Sellers
+    put:
+      description: Following again changes nothing. A seller pending or blocked answers 404.
+      operationId: followSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Make an active seller one of my favourites
+      tags:
+        - Sellers
   /sellers/{sellerId}/members:
     get:
       operationId: listSellerMembers
@@ -3320,6 +5706,34 @@ paths:
       summary: A seller's orders of one day, soonest first, to its people and admins
       tags:
         - Orders
+  /sellers/{sellerId}/orders/live-ticket:
+    post:
+      operationId: createSellerLiveTicket
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveTicketOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: A ticket to follow a seller's orders on the live socket
+      tags:
+        - Orders
   /sellers/{sellerId}/photo:
     delete:
       operationId: removeSellerPhoto
@@ -3407,3 +5821,85 @@ paths:
       summary: What anyone sees of an active seller
       tags:
         - Sellers
+  /sellers/{sellerId}/reviews:
+    get:
+      description: A review an admin hid is left out. counts gives each number of stars whatever stars asks, and average the mean stars of the reviews of the stars asked, absent when there are none. A page past the end is empty.
+      operationId: listSellerReviews
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+        - description: Keep the reviews giving these stars; any when absent
+          explode: false
+          in: query
+          name: stars
+          schema:
+            description: Keep the reviews giving these stars; any when absent
+            items:
+              format: int64
+              maximum: 5
+              minimum: 1
+              type: integer
+            type:
+              - array
+              - "null"
+        - explode: false
+          in: query
+          name: page
+          schema:
+            default: 1
+            format: int64
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: size
+          schema:
+            default: 25
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerReviewsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The reviews of a seller's orders that show, by stars, the latest first, to its people and admins
+      tags:
+        - Orders
+  /stats/views:
+    post:
+      description: Sent by the web when a page is shown, without a session. A bot or a prefetch is not counted, and is answered the same.
+      operationId: recordView
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ViewInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Count a page on screen
+      tags:
+        - Stats

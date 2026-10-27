@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -39,6 +40,9 @@ type Filter struct {
 	// Query keeps the sellers whose name, address or phone holds it, marks
 	// ignored.
 	Query string
+	// ChangedSince and ChangedUntil keep the sellers last changed in
+	// [ChangedSince, ChangedUntil); either may be nil.
+	ChangedSince, ChangedUntil *time.Time
 	// Sort orders the page: one of sorts, empty for the queue order.
 	Sort string
 	// Page counts from 1; Size runs from 1 to 100.
@@ -55,12 +59,14 @@ type Listed struct {
 	OwnerEmail string
 }
 
-// Page is one page of the admins' list, how many sellers match in all, and
-// how many of each status match the words.
+// Page is one page of the admins' list, how many sellers match in all, how
+// many of each status match the words, and how many stood in each status on
+// each of the last days, whatever the filters.
 type Page struct {
 	Sellers []Listed
 	Total   int
 	Counts  map[Status]int
+	Days    []StatusDay
 }
 
 // List answers one page of the sellers matching f, to an admin: pending
@@ -88,6 +94,7 @@ func (s *Service) List(ctx context.Context, f Filter) (Page, error) {
 		// Past the end the window counts nothing; the total is still asked.
 		total, err := s.queries.CountSellersForAdmins(ctx, db.CountSellersForAdminsParams{
 			Statuses: params.Statuses, Query: params.Query,
+			ChangedSince: params.ChangedSince, ChangedUntil: params.ChangedUntil,
 		})
 		if err != nil {
 			return Page{}, fmt.Errorf("counting the sellers: %w", err)
@@ -97,6 +104,10 @@ func (s *Service) List(ctx context.Context, f Filter) (Page, error) {
 	}
 
 	if page.Counts, err = s.statusCounts(ctx, params); err != nil {
+		return Page{}, err
+	}
+
+	if page.Days, err = s.statusDays(ctx, trendDays); err != nil {
 		return Page{}, err
 	}
 
@@ -119,10 +130,12 @@ func (s *Service) List(ctx context.Context, f Filter) (Page, error) {
 	return page, nil
 }
 
-// statusCounts counts the sellers of each status matching the words of
-// params; a status none has counts 0.
+// statusCounts counts the sellers of each status matching the words and the
+// time of the last change of params; a status none has counts 0.
 func (s *Service) statusCounts(ctx context.Context, params db.SellersForAdminsParams) (map[Status]int, error) {
-	rows, err := s.queries.CountSellersByStatus(ctx, params.Query)
+	rows, err := s.queries.CountSellersByStatus(ctx, db.CountSellersByStatusParams{
+		Query: params.Query, ChangedSince: params.ChangedSince, ChangedUntil: params.ChangedUntil,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("counting the sellers by status: %w", err)
 	}
@@ -149,6 +162,10 @@ func (f Filter) params() (db.SellersForAdminsParams, error) {
 		return db.SellersForAdminsParams{}, ErrListInvalid
 	}
 
+	if f.ChangedSince != nil && f.ChangedUntil != nil && !f.ChangedSince.Before(*f.ChangedUntil) {
+		return db.SellersForAdminsParams{}, ErrListInvalid
+	}
+
 	wanted := make([]string, 0, len(f.Statuses))
 
 	for _, st := range f.Statuses {
@@ -160,11 +177,13 @@ func (f Filter) params() (db.SellersForAdminsParams, error) {
 	}
 
 	return db.SellersForAdminsParams{
-		Statuses: wanted,
-		Query:    escapeLike(query),
-		Sort:     f.Sort,
-		MaxRows:  int32(f.Size),
-		SkipRows: int32((f.Page - 1) * f.Size), //nolint:gosec // a page past int32 finds nothing anyway
+		Statuses:     wanted,
+		Query:        escapeLike(query),
+		ChangedSince: f.ChangedSince,
+		ChangedUntil: f.ChangedUntil,
+		Sort:         f.Sort,
+		MaxRows:      int32(f.Size),
+		SkipRows:     int32((f.Page - 1) * f.Size), //nolint:gosec // a page past int32 finds nothing anyway
 	}, nil
 }
 
@@ -204,7 +223,8 @@ func (s *Service) ownerEmails(ctx context.Context, rows []db.SellersForAdminsRow
 }
 
 // Approve lets a pending, rejected or blocked seller publish, for an admin,
-// and tells its owner.
+// and tells its owner. A seller whose owner deleted their account has no one
+// to run it, so it stays as it is (ErrOwnerless).
 func (s *Service) Approve(ctx context.Context, id uuid.UUID) (Seller, error) {
 	return s.changeStatus(ctx, id, StatusActive, []Status{StatusPending, StatusRejected, StatusBlocked}, "",
 		func(was Status) audit.Action {
@@ -273,6 +293,12 @@ func (s *Service) changeStatus(
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		q := s.queries.WithTx(tx)
 
+		if status == StatusActive {
+			if err := ownerPresent(ctx, q, id); err != nil {
+				return err
+			}
+		}
+
 		left, err := q.ChangeStatus(ctx, db.ChangeStatusParams{
 			ID: id, Status: string(status), FromStatuses: fromStatuses,
 			Reason:    pgtype.Text{String: reason, Valid: reason != ""},
@@ -298,6 +324,10 @@ func (s *Service) changeStatus(
 			return err
 		}
 
+		if err := recordStatusDay(ctx, q); err != nil {
+			return err
+		}
+
 		return platform.Publish(ctx, tx, s.events, StatusChangedEvent{SellerID: id, Status: status})
 	})
 	if err != nil {
@@ -315,6 +345,36 @@ func (s *Service) changeStatus(
 	return s.Get(ctx, id)
 }
 
+// ownerPresent refuses to activate a seller left without an owner when the
+// owner deleted their account (SEC-65). It locks the seller's row first, so an
+// owner's deletion either commits before the owner is read or blocks the seller
+// again after this transaction.
+func ownerPresent(ctx context.Context, q *db.Queries, id uuid.UUID) error {
+	if err := q.LockSeller(ctx, id); err != nil {
+		return fmt.Errorf("locking the seller: %w", err)
+	}
+
+	has, err := q.HasOwner(ctx, id)
+	if err != nil {
+		return fmt.Errorf("reading the seller's owner: %w", err)
+	}
+
+	if has {
+		return nil
+	}
+
+	exists, err := q.SellerExists(ctx, id)
+	if err != nil {
+		return fmt.Errorf("reading the seller: %w", err)
+	}
+
+	if !exists {
+		return ErrNotFound
+	}
+
+	return ErrOwnerless
+}
+
 // refusedChange tells a seller that does not exist from one in another state.
 func (s *Service) refusedChange(ctx context.Context, q *db.Queries, id uuid.UUID) error {
 	exists, err := q.SellerExists(ctx, id)
@@ -327,4 +387,39 @@ func (s *Service) refusedChange(ctx context.Context, q *db.Queries, id uuid.UUID
 	}
 
 	return ErrStatusChangeNotAllowed
+}
+
+// Membership is a seller an account owns or works at, as admins see it.
+type Membership struct {
+	AccountID    uuid.UUID
+	Role         Role
+	SellerID     uuid.UUID
+	SellerName   string
+	SellerStatus Status
+}
+
+// MembershipsForAdmins answers the sellers each account owns or works at,
+// owners first, to an admin; at most maxPageSize accounts at once.
+func (s *Service) MembershipsForAdmins(ctx context.Context, accountIDs []uuid.UUID) ([]Membership, error) {
+	if _, err := platform.RequireAdmin(ctx); err != nil {
+		return nil, err
+	}
+
+	if len(accountIDs) > maxPageSize {
+		return nil, ErrListInvalid
+	}
+
+	rows, err := s.queries.MembershipsOfAccounts(ctx, accountIDs)
+	if err != nil {
+		return nil, fmt.Errorf("reading the memberships: %w", err)
+	}
+
+	memberships := make([]Membership, 0, len(rows))
+	for _, r := range rows {
+		memberships = append(memberships, Membership{
+			AccountID: r.AccountID, Role: Role(r.Role), SellerID: r.ID, SellerName: r.Name, SellerStatus: Status(r.Status),
+		})
+	}
+
+	return memberships, nil
 }

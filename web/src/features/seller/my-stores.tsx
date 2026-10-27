@@ -1,14 +1,12 @@
-import { UserRoundIcon } from "lucide-react";
+import { PencilIcon, UserRoundIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { buttonVariants } from "@/components/ui/button";
 import { SellerAvatar } from "@/features/offers/seller-avatar";
 import { Link } from "@/i18n/navigation";
 
-import { getMySellers } from "./my-sellers";
-
-/** A person owns at most five stores (server/internal/seller, maxOwnedSellers). */
-const MAX_OWNED = 5;
+import { getMySellers, MAX_OWNED } from "./my-sellers";
+import { StorePanel } from "./store-panel";
 
 // The stores of the person signed in (Figma S0): a row per store, and "Tạo quán mới" while they own fewer than
 // five; with none, the card that says so. It reads the session, so it renders inside Suspense.
@@ -17,10 +15,7 @@ export async function MyStores() {
   const owned = sellers.filter((seller) => seller.myRole === "owner").length;
 
   return (
-    <section
-      aria-labelledby="my-stores"
-      className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 text-card-foreground"
-    >
+    <StorePanel labelledBy="my-stores" className="gap-4">
       {sellers.length === 0 ? (
         <div className="flex items-center gap-3">
           <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
@@ -40,10 +35,13 @@ export async function MyStores() {
           </h1>
           <ul className="flex flex-col">
             {sellers.map((seller) => (
-              <li key={seller.id} className="border-t border-border first:border-t-0">
+              <li
+                key={seller.id}
+                className="flex items-center gap-2 border-t border-border first:border-t-0"
+              >
                 <Link
                   href={`/stores/${seller.id}`}
-                  className="flex min-h-14 items-center gap-3 rounded-lg py-2 focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                  className="flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-lg py-2 focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   <SellerAvatar seller={seller} size="md" />
                   <span className="flex min-w-0 flex-col">
@@ -53,6 +51,16 @@ export async function MyStores() {
                     </span>
                   </span>
                 </Link>
+                {seller.myRole === "owner" && (
+                  <Link
+                    href={`/stores/${seller.id}/edit`}
+                    aria-label={t("edit", { name: seller.name })}
+                    title={t("edit", { name: seller.name })}
+                    className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-input bg-card text-foreground transition-colors outline-none hover:bg-secondary focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    <PencilIcon aria-hidden className="size-5" />
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
@@ -63,6 +71,6 @@ export async function MyStores() {
           {t("create")}
         </Link>
       )}
-    </section>
+    </StorePanel>
   );
 }

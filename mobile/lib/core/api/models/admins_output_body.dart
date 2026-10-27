@@ -4,7 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'account_body.dart';
+import 'record_body.dart';
 
 part 'admins_output_body.freezed.dart';
 part 'admins_output_body.g.dart';
@@ -13,7 +13,7 @@ part 'admins_output_body.g.dart';
 abstract class AdminsOutputBody with _$AdminsOutputBody {
   const factory AdminsOutputBody({
     /// Every admin, by address
-    required List<AccountBody>? admins,
+    required List<RecordBody>? admins,
   }) = _AdminsOutputBody;
 
   factory AdminsOutputBody.fromJson(Map<String, Object?> json) =>

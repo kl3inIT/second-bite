@@ -1,34 +1,51 @@
 import {
   CheckIcon,
-  CircleDotIcon,
-  CircleIcon,
+  ChevronRightIcon,
   MapPinIcon,
+  QrCodeIcon,
+  ReceiptTextIcon,
   ShoppingBagIcon,
-  UserRoundIcon,
+  StoreIcon,
+  type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
+import { Fragment } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 
+import { BiteCorner } from "@/components/bite-corner";
+import { ChatEntry } from "@/features/chat/chat-entry";
+import { StoreMap } from "@/components/map/store-map";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
+import { directionsHref } from "@/features/offers/offer";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { photoUrl } from "@/lib/api/photo";
 
-import { directionsTo, isOpen, unitsOf, type Order } from "./order";
+import { isOpen, savingOf, unitsOf, type Order } from "./order";
+import { OrderQr } from "./order-qr";
 
-// The pieces the order pages are built from (Figma W2–W6): the seller's row, who collects, the facts of the
-// order, the way to the counter and the steps of collecting.
+// The pieces the order pages are built from (Figma K6, K6b, D5): the seller's row, the ticket, the orders placed
+// together, the dishes and totals, the way to the counter, the steps on the blue band and how to collect.
 
-/** The first line's photograph, small and round, beside the seller's name. */
-function LinePhoto({ order }: { order: Order }) {
-  const photo = order.lines[0]?.photo;
+/** A photograph of a line, or the muted ground where it has none. */
+export function Photo({
+  path,
+  sizes,
+  className,
+}: {
+  path?: string;
+  sizes: string;
+  className: string;
+}) {
   return (
-    <span className="relative size-10 shrink-0 overflow-hidden rounded-full bg-muted">
-      {photo ? (
+    <span className={cn("relative shrink-0 overflow-hidden bg-muted", className)}>
+      {path ? (
         <Image
-          src={`/api${photo.smallPath}`}
+          src={photoUrl(path)}
           alt=""
           fill
-          sizes="40px"
+          sizes={sizes}
           unoptimized
           className="object-cover"
         />
@@ -37,16 +54,20 @@ function LinePhoto({ order }: { order: Order }) {
   );
 }
 
-/** The seller, its counter and the window today, and how many units the order holds. */
+/** The seller, its counter and the window today, and how many units the order holds (Figma D2 › store). */
 export function SellerRow({ order }: { order: Order }) {
   const t = useTranslations("Orders");
   const format = useFormatter();
 
   return (
     <div className="flex items-center gap-3">
-      <LinePhoto order={order} />
+      <Photo
+        path={order.lines[0]?.photo.smallPath}
+        sizes="40px"
+        className="size-10 rounded-full border-2 border-card"
+      />
       <div className="flex min-w-0 flex-1 flex-col">
-        <p className="truncate text-body-sm-strong">{order.seller.name}</p>
+        <p className="truncate text-title">{order.seller.name}</p>
         <p className="truncate text-label text-muted-foreground">
           {t("counterToday", {
             address: order.seller.address,
@@ -55,7 +76,7 @@ export function SellerRow({ order }: { order: Order }) {
           })}
         </p>
       </div>
-      <span className="shrink-0 text-label-strong text-primary">
+      <span className="shrink-0 text-body-sm-strong text-primary">
         {t("units", { units: unitsOf(order) })}
       </span>
     </div>
@@ -63,27 +84,64 @@ export function SellerRow({ order }: { order: Order }) {
 }
 
 /**
- * The ticket of an open order (Figma W2, W3): the seller, then the name and phone number the counter finds
- * the order by (SEC-86).
+ * The ticket of an open order (Figma K6): the seller above a torn edge, then the order's QR code once it is ready,
+ * or a pale one until then, beside how to collect it: the code, or the name and phone number read out (SEC-86);
+ * under them the other sellers' orders placed with it.
  */
-export function CollectTicket({ order }: { order: Order }) {
+export function CollectTicket({ order, together }: { order: Order; together: Order[] }) {
   const t = useTranslations("Orders");
+  const ready = order.status === "ready";
 
   return (
     <section
       aria-labelledby={`order-collect-${order.id}`}
-      className="flex flex-col gap-4 rounded-3xl bg-card p-5 text-card-foreground"
+      className="relative flex flex-col gap-3.5 overflow-hidden rounded-3xl bg-card p-5 text-card-foreground"
     >
+      <BiteCorner className="size-16" />
       <SellerRow order={order} />
-      <div className="flex flex-col gap-1 border-t border-dashed border-border pt-4">
-        <h2 id={`order-collect-${order.id}`} className="text-label text-muted-foreground">
-          {t("collectAs")}
-        </h2>
-        <p className="text-title">{order.customerName}</p>
-        <p className="text-body-sm-strong">{order.customerPhone}</p>
-        <p className="text-label text-muted-foreground">{t("collectHint")}</p>
+      <div aria-hidden className="relative border-t border-dashed border-border">
+        <span className="absolute -top-2.75 -left-7.75 size-5.5 rounded-full bg-background" />
+        <span className="absolute -top-2.75 -right-7.75 size-5.5 rounded-full bg-background" />
       </div>
+      <div className="flex items-center gap-5">
+        {ready ? (
+          <OrderQr orderId={order.id} />
+        ) : (
+          <span
+            aria-hidden
+            className="flex size-30 shrink-0 items-center justify-center rounded-md bg-muted text-border"
+          >
+            <QrCodeIcon className="size-20" strokeWidth={1.2} />
+          </span>
+        )}
+        <h2 id={`order-collect-${order.id}`} className="min-w-0 text-body-sm text-muted-foreground">
+          {ready ? t("collectReady") : t("collectLater")}
+        </h2>
+      </div>
+      <TogetherLinks together={together} />
     </section>
+  );
+}
+
+/** "Cùng lần đặt: Panda Chef ›", a link to each other seller's order placed from the same cart (SEC-97 › decision 4). */
+export function TogetherLinks({ together }: { together: Order[] }) {
+  const t = useTranslations("Orders");
+  if (together.length === 0) return null;
+
+  return (
+    <ul className="flex flex-col gap-1">
+      {together.map((other) => (
+        <li key={other.id}>
+          <Link
+            href={`/orders/${other.id}`}
+            className="inline-flex min-h-11 items-center gap-0.5 rounded-sm text-label-strong text-link focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+          >
+            {t("placedWith", { seller: other.seller.name })}
+            <ChevronRightIcon aria-hidden className="size-4" />
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -98,114 +156,275 @@ export function useOrderDate() {
     });
 }
 
-/** The facts of the order in two columns (Figma W2 › chi tiết): day, window, what, total, number, payment. */
-export function OrderFacts({ order, className }: { order: Order; className?: string }) {
-  const t = useTranslations("Orders.facts");
-  const date = useOrderDate();
-  const format = useFormatter();
-  const facts: [string, string][] = [
-    [t("day"), date(order.windowStart)],
-    [
-      t("window"),
-      `${format.dateTime(new Date(order.windowStart), "time")} – ${format.dateTime(new Date(order.windowEnd), "time")}`,
-    ],
-    [t("what"), order.lines.map((line) => `${line.units}× ${line.name}`).join(", ")],
-    [t("total"), formatPrice(order.totalVnd)],
-    [t("number"), order.number],
-    [t("payment"), isOpen(order) || order.status === "collected" ? t("atCounter") : t("nothing")],
-  ];
-
+/** A label above its value, at the start or the end of a row of two. */
+function Fact({ label, value, end }: { label: string; value: React.ReactNode; end?: boolean }) {
   return (
-    <dl className={cn("grid grid-cols-2 gap-x-4 gap-y-3", className)}>
-      {facts.map(([label, value], index) => (
-        <div key={label} className={cn("flex flex-col", index % 2 === 1 && "items-end text-right")}>
-          <dt className="text-label text-muted-foreground uppercase">{label}</dt>
-          <dd className="text-body-sm-strong">{value}</dd>
-        </div>
-      ))}
-    </dl>
+    <div className={cn("flex flex-col gap-0.5", end && "items-end text-right")}>
+      <dt className="text-label-strong text-muted-foreground uppercase">{label}</dt>
+      <dd>{value}</dd>
+    </div>
   );
 }
 
-/** The facts of an open order, on one card; the code ticket above names the seller. */
-export function OrderDetails({ order }: { order: Order }) {
+/**
+ * What was ordered and what it came to (Figma D2 › món trong đơn): each line with its photograph, price and
+ * original price, then the saving and the total, the number and how it is paid.
+ */
+export function OrderSummary({ order }: { order: Order }) {
   const t = useTranslations("Orders");
+  const paid = isOpen(order) || order.status === "collected";
 
   return (
-    <section
-      aria-label={t("details")}
-      className="flex flex-col gap-4 rounded-3xl bg-card p-5 text-card-foreground"
-    >
-      <OrderFacts order={order} />
-    </section>
+    <div className="flex flex-col gap-3.5">
+      <h3 className="text-label-strong text-muted-foreground uppercase">
+        {t("ordered", { units: unitsOf(order) })}
+      </h3>
+      <ul className="flex flex-col gap-3.5">
+        {order.lines.map((line) => (
+          <li key={line.offerId} className="flex items-center gap-2.5 py-0.5 pr-1">
+            <span className="w-5.5 shrink-0 font-display text-price">{line.units}×</span>
+            <Photo path={line.photo.smallPath} sizes="36px" className="size-9 rounded-md" />
+            <span className="line-clamp-2 min-w-0 flex-1 text-body-sm">{line.name}</span>
+            <span className="flex shrink-0 flex-col items-end">
+              <span className="font-display text-price text-primary">
+                {formatPrice(line.priceVnd * line.units)}
+              </span>
+              <s className="text-label text-muted-foreground">
+                <span className="sr-only">{t("originalPrice")}</span>
+                {formatPrice(line.originalPriceVnd * line.units)}
+              </s>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="flex flex-col gap-3.5 border-t border-border pt-3.5">
+        <dl className="flex justify-between gap-4">
+          <Fact
+            label={t("facts.saved")}
+            value={
+              <span className="text-body-sm">
+                {t("facts.savedValue", { saved: formatPrice(savingOf(order)) })}
+              </span>
+            }
+          />
+          <Fact
+            end
+            label={t("facts.total")}
+            value={<span className="font-display text-price">{formatPrice(order.totalVnd)}</span>}
+          />
+        </dl>
+        <dl className="flex justify-between gap-4">
+          <Fact
+            label={t("facts.number")}
+            // The number staff read at the counter stays on one line, even with a phone's large text (SEC-112).
+            value={<span className="text-body-sm whitespace-nowrap">#{order.number}</span>}
+          />
+          <Fact
+            end
+            label={t("facts.payment")}
+            value={
+              <span className="text-body-sm">
+                {paid ? t("facts.atCounter") : t("facts.nothing")}
+              </span>
+            }
+          />
+        </dl>
+      </div>
+    </div>
   );
 }
 
-/** Where the counter is, and the way there in Google Maps (Figma W2 › bản đồ). */
+/**
+ * The order's details as a wide screen's card holds them (Figma D4 › content card): the seller, then the day, the
+ * window, the dishes in one line, the total, the number and how it is paid, two to a row.
+ */
+export function OrderFacts({ order }: { order: Order }) {
+  const t = useTranslations("Orders");
+  const format = useFormatter();
+  const date = useOrderDate();
+  const paid = isOpen(order) || order.status === "collected";
+  const time = (value: string) => format.dateTime(new Date(value), "time");
+
+  return (
+    <div className="flex flex-col gap-3.5">
+      <SellerRow order={order} />
+      <div className="flex flex-col gap-3.5 border-t border-border pt-3.5">
+        <dl className="flex justify-between gap-4">
+          <Fact
+            label={t("facts.date")}
+            value={
+              <span className="text-body-sm">
+                {t("facts.today", { date: date(order.windowStart) })}
+              </span>
+            }
+          />
+          <Fact
+            end
+            label={t("facts.window")}
+            value={
+              <span className="text-body-sm">
+                {time(order.windowStart)} – {time(order.windowEnd)}
+              </span>
+            }
+          />
+        </dl>
+        <dl className="flex justify-between gap-4">
+          <Fact
+            label={t("facts.dishes")}
+            value={
+              <span className="text-body-sm">
+                {order.lines.map((line) => `${line.units}× ${line.name}`).join(", ")}
+              </span>
+            }
+          />
+          <Fact
+            end
+            label={t("facts.total")}
+            value={<span className="font-display text-price">{formatPrice(order.totalVnd)}</span>}
+          />
+        </dl>
+        <dl className="flex justify-between gap-4">
+          <Fact
+            label={t("facts.number")}
+            value={<span className="text-body-sm whitespace-nowrap">#{order.number}</span>}
+          />
+          <Fact
+            end
+            label={t("facts.payment")}
+            value={
+              <span className="text-body-sm">
+                {paid ? t("facts.atCounter") : t("facts.nothing")}
+              </span>
+            }
+          />
+        </dl>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Where the counter is, on the store's pin (SEC-137: the map Second Bite serves, not Google's embed looking the
+ * address up), and the way there in the phone's maps, and a message to the seller (Figma D2 › chỗ nhận, D2b, D4: "Chỉ đường" and "Nhắn quán" side by side).
+ */
 export function Directions({ order }: { order: Order }) {
   const t = useTranslations("Orders");
 
   return (
     <section
       aria-label={t("directionsLabel")}
-      className="flex flex-col overflow-hidden rounded-3xl bg-card text-card-foreground"
+      className="flex flex-col overflow-hidden rounded-2xl bg-card text-card-foreground"
     >
-      <div
-        aria-hidden
-        className="flex h-24 items-center justify-center bg-secondary text-secondary-foreground"
-      >
-        <MapPinIcon className="size-8" />
-      </div>
       <div className="flex flex-col gap-3 p-4">
+        <StoreMap
+          point={order.seller}
+          label={t("mapTitle", { seller: order.seller.name })}
+          href={directionsHref(order.seller)}
+          openLabel={t("directionsLabel")}
+        />
         <div>
           <p className="text-body-sm-strong">
             {t("placeLine", { seller: order.seller.name, address: order.seller.address })}
           </p>
           <p className="text-label text-muted-foreground">{t("placeHint")}</p>
         </div>
-        <a
-          href={directionsTo(order.seller)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={buttonVariants()}
-        >
-          {t("directions")}
-          <span className="sr-only">{t("opensMaps")}</span>
-        </a>
+        <div className="flex gap-2">
+          <a
+            href={directionsHref(order.seller)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(buttonVariants(), "flex-1")}
+          >
+            {t("directions")}
+            <span className="sr-only">{t("opensMaps")}</span>
+          </a>
+          <ChatEntry
+            order={order}
+            side="customer"
+            access={order.access}
+            href={`/orders/${order.id}/chat`}
+            variant="secondary"
+            className="flex-1"
+          />
+        </div>
       </div>
     </section>
   );
 }
 
-/** The three steps of collecting (Figma W2 › Cách nhận món). */
+/**
+ * The steps of collecting an order (Figma D3 › Cách nhận món, D4): on a phone three round icons in a row, joined
+ * by dashed lines; from 768px three tinted cards side by side, each numbered.
+ */
 export function HowToCollect({ order }: { order: Order }) {
   const t = useTranslations("Orders.how");
   const steps = [
-    { icon: MapPinIcon, title: t("goTitle"), body: t("goBody", { seller: order.seller.name }) },
-    { icon: UserRoundIcon, title: t("nameTitle"), body: t("nameBody") },
-    { icon: ShoppingBagIcon, title: t("payTitle"), body: t("payBody") },
+    {
+      icon: MapPinIcon,
+      title: t("goTitle"),
+      body: order.seller.address,
+      wideTitle: t("wideGo"),
+      wideBody: t("wideGoBody", { seller: order.seller.name, address: order.seller.address }),
+    },
+    {
+      icon: QrCodeIcon,
+      title: t("qrTitle"),
+      body: t("qrBody"),
+      wideTitle: t("wideQr"),
+      wideBody: t("wideQrBody"),
+    },
+    {
+      icon: ShoppingBagIcon,
+      title: t("takeTitle"),
+      body: t("takeBody"),
+      wideTitle: t("wideTake"),
+      wideBody: t("wideTakeBody"),
+    },
   ];
 
   return (
     <section
       aria-labelledby={`how-to-collect-${order.id}`}
-      className="flex flex-col gap-4 rounded-3xl bg-card p-5 text-card-foreground"
+      className="flex flex-col gap-3 rounded-2xl bg-card p-4 text-card-foreground md:gap-4.5 md:px-6 md:pt-5 md:pb-5.5"
     >
-      <h2 id={`how-to-collect-${order.id}`} className="text-title">
+      <h2
+        id={`how-to-collect-${order.id}`}
+        className="text-title md:font-display md:text-card-heading"
+      >
         {t("title")}
       </h2>
-      <ol className="grid gap-3 sm:grid-cols-3">
+      <ol className="flex items-start md:hidden">
         {steps.map(({ icon: Icon, title, body }, index) => (
-          <li key={title} className="flex items-start gap-3 rounded-2xl bg-background p-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-              <Icon aria-hidden className="size-4.5" />
-            </span>
-            <div className="flex flex-col">
-              <p className="text-body-sm-strong">
-                {index + 1}. {title}
-              </p>
+          <Fragment key={title}>
+            {index > 0 ? (
+              <li
+                aria-hidden
+                className="mt-4.5 w-4 shrink-0 border-t-2 border-dashed border-secondary-hover"
+              />
+            ) : null}
+            <li className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center">
+              <span className="flex size-9 items-center justify-center rounded-full bg-muted text-primary">
+                <Icon aria-hidden className="size-4" />
+              </span>
+              <p className="text-label-strong">{title}</p>
               <p className="text-label text-muted-foreground">{body}</p>
-            </div>
+            </li>
+          </Fragment>
+        ))}
+      </ol>
+      <ol className="hidden gap-3 md:flex">
+        {steps.map(({ icon: Icon, wideTitle, wideBody }) => (
+          <li
+            key={wideTitle}
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-xl bg-muted p-3"
+          >
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
+              <Icon aria-hidden className="size-4" />
+            </span>
+            <span className="flex min-w-0 flex-col">
+              <span className="text-body-sm-strong">{wideTitle}</span>
+              <span className="text-label text-muted-foreground">{wideBody}</span>
+            </span>
           </li>
         ))}
       </ol>
@@ -213,51 +432,201 @@ export function HowToCollect({ order }: { order: Order }) {
   );
 }
 
-type Step = { label: string; state: "done" | "now" | "later" };
+type StepState = "done" | "now" | "later";
 
-/** The steps of an open order on the blue card: placed, preparing, ready, collected (Figma W2, W3). */
-export function OrderSteps({ order }: { order: Order }) {
+// The step each status stands at: a confirmed order is being prepared, as the backend has no separate status
+// (SEC-97 › decision 5).
+const stepOf: Partial<Record<Order["status"], number>> = { confirmed: 1, ready: 2, collected: 3 };
+
+/** The icon of a step (Figma W5 › icon/…): a lime check once done, a white one in a ring now, a dashed ring to come. */
+function StepIcon({ state }: { state: StepState }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "relative flex shrink-0 items-center justify-center rounded-full",
+        state === "now" ? "size-7.5" : "size-5.5",
+      )}
+    >
+      {state === "later" ? (
+        <span className="size-full rounded-full border-2 border-dashed border-inverse-faint" />
+      ) : (
+        <span
+          className={cn(
+            "flex size-full items-center justify-center rounded-full",
+            state === "done" ? "bg-fresh text-header" : "bg-primary-foreground/25",
+          )}
+        >
+          {state === "now" ? (
+            <span className="flex size-5.5 items-center justify-center rounded-full bg-primary-foreground text-header">
+              <CheckIcon className="size-3" strokeWidth={4} />
+            </span>
+          ) : (
+            <CheckIcon className="size-3" strokeWidth={4} />
+          )}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/**
+ * The four steps of an order on the blue band: placed, preparing, ready, collected (Figma W5, W6). Each is a round
+ * icon beside its name and time, joined by bars that stretch evenly. Shown from 768px; a phone has its own row.
+ */
+function WideOrderSteps({ order }: { order: Order }) {
   const t = useTranslations("Orders.steps");
   const format = useFormatter();
-  const ready = order.status === "ready";
-  const steps: Step[] = [
+  const current = stepOf[order.status] ?? 0;
+  const timeOf = (moment?: string) =>
+    moment ? format.dateTime(new Date(moment), "time") : undefined;
+  // The backend stamps no moment for preparing: an order is confirmed as it is placed.
+  const steps: { label: string; time?: string; note?: string; pending?: string }[] = [
+    { label: t("placed"), time: timeOf(order.createdAt) },
+    { label: t("preparing"), note: t("preparingNote") },
     {
-      label: t("placed", { time: format.dateTime(new Date(order.createdAt), "time") }),
-      state: "done",
+      label: t("ready"),
+      time: timeOf(order.readyAt),
+      note: t("readyNote"),
+      pending: t("readyPending"),
     },
-    { label: t("preparing"), state: ready ? "done" : "now" },
     {
-      label: order.readyAt
-        ? t("readyAt", { time: format.dateTime(new Date(order.readyAt), "time") })
-        : t("ready"),
-      state: ready ? "now" : "later",
+      label: t("received"),
+      time: timeOf(order.collectedAt),
+      note: t("collectedNote"),
+      pending: t("collectedPending"),
     },
-    { label: t("collected"), state: "later" },
   ];
 
   return (
-    <ol
-      aria-label={t("label")}
-      className="grid grid-cols-2 gap-x-4 gap-y-1.5 sm:flex sm:flex-wrap sm:gap-x-5"
-    >
-      {steps.map(({ label, state }) => {
-        const Icon = state === "done" ? CheckIcon : state === "now" ? CircleDotIcon : CircleIcon;
+    <ol aria-label={t("label")} className="flex items-center">
+      {steps.map(({ label, time, note, pending }, index) => {
+        const state: StepState = index < current ? "done" : index === current ? "now" : "later";
         return (
           <li
             key={label}
             aria-current={state === "now" ? "step" : undefined}
-            className={cn(
-              "flex items-center gap-1.5 text-label",
-              state === "done" && "text-fresh",
-              state === "now" && "text-label-strong text-primary-foreground",
-              state === "later" && "text-inverse-muted",
-            )}
+            className={cn("flex items-center", index > 0 && "flex-auto")}
           >
-            <Icon aria-hidden className="size-3.5" />
-            {label}
+            {index > 0 ? (
+              <span
+                aria-hidden
+                className={cn(
+                  "mx-3 h-0.5 min-w-4 flex-1",
+                  index <= current ? "bg-fresh" : "bg-inverse-faint/40",
+                )}
+              />
+            ) : null}
+            <span className="flex shrink-0 items-center gap-2">
+              <StepIcon state={state} />
+              <span className="flex flex-col">
+                <span
+                  className={cn(
+                    state === "now" ? "text-title text-primary-foreground" : "text-body-sm",
+                    state === "done" && "font-medium text-fresh",
+                    state === "later" && "text-inverse-muted",
+                  )}
+                >
+                  {label}
+                </span>
+                {state === "later" ? (
+                  <span className="text-label text-inverse-muted">{pending}</span>
+                ) : time || (state === "now" && note) ? (
+                  <span
+                    className={cn(
+                      "text-label text-inverse-muted",
+                      state === "now" && "font-medium",
+                    )}
+                  >
+                    {time}
+                    {state === "now" && note ? (
+                      <span>
+                        {time ? " · " : ""}
+                        {note}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : null}
+              </span>
+            </span>
           </li>
         );
       })}
     </ol>
+  );
+}
+
+/** A phone's four steps on the blue band: placed, preparing, ready, collected (Figma K6, K6b). */
+function PhoneOrderSteps({ order }: { order: Order }) {
+  const t = useTranslations("Orders.steps");
+  const current = stepOf[order.status] ?? 0;
+  const collected = order.status === "collected";
+  const stateAt = (index: number): StepState => {
+    if (index < current || (collected && index === current)) return "done";
+    return index === current ? "now" : "later";
+  };
+  const steps: { icon: LucideIcon; label: string; state: StepState }[] = [
+    { icon: ReceiptTextIcon, label: t("placed"), state: stateAt(0) },
+    { icon: StoreIcon, label: t("preparing"), state: stateAt(1) },
+    { icon: ShoppingBagIcon, label: t("ready"), state: stateAt(2) },
+    { icon: CheckIcon, label: t("collected"), state: stateAt(3) },
+  ];
+
+  return (
+    <ol aria-label={t("label")} className="flex items-start">
+      {steps.map(({ icon: Icon, label, state }, index) => (
+        <li
+          key={label}
+          aria-current={index === current ? "step" : undefined}
+          className="relative flex flex-1 flex-col items-center gap-1.5"
+        >
+          {index > 0 ? (
+            <span
+              aria-hidden
+              className={cn(
+                "absolute top-3.5 right-1/2 h-0.75 w-full",
+                state === "later" ? "bg-primary-foreground/15" : "bg-fresh",
+              )}
+            />
+          ) : null}
+          <span
+            className={cn(
+              "relative flex size-8 items-center justify-center rounded-full",
+              state === "later"
+                ? "bg-primary-foreground/15 text-inverse-muted"
+                : "bg-fresh text-fresh-foreground",
+              state === "now" && "ring-3 ring-primary-foreground",
+            )}
+          >
+            <Icon aria-hidden className="size-4" />
+          </span>
+          <span
+            className={cn(
+              "text-label",
+              index === current ? "text-label-strong text-fresh" : "text-inverse-muted",
+            )}
+          >
+            {label}
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/**
+ * The order's four steps on the blue band: a phone keeps its own row of icons (Figma K6, K6b); from 768px the
+ * steps follow Figma W5 and W6. Only one is shown, so assistive technology reads one list.
+ */
+export function OrderSteps({ order }: { order: Order }) {
+  return (
+    <>
+      <div className="md:hidden">
+        <PhoneOrderSteps order={order} />
+      </div>
+      <div className="hidden md:block">
+        <WideOrderSteps order={order} />
+      </div>
+    </>
   );
 }

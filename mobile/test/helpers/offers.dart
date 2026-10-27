@@ -20,6 +20,7 @@ OfferSummary sampleOffer({
     name: name,
     description: '',
     kind: FoundBodyKind.bakery,
+    kindLabel: '',
     unit: 'túi',
     units: 5,
     unitsLeft: unitsLeft,
@@ -31,6 +32,13 @@ OfferSummary sampleOffer({
       largePath: '/photos/ph-bread/1600.jpg',
       smallPath: '/photos/ph-bread/400.jpg',
     ),
+    photos: const [
+      OfferPhotoBody(
+        id: 'ph-bread',
+        largePath: '/photos/ph-bread/1600.jpg',
+        smallPath: '/photos/ph-bread/400.jpg',
+      ),
+    ],
     windowStart: DateTime.parse(from),
     windowEnd: DateTime.parse(until),
     collectionPoint: const CollectionPointBody(

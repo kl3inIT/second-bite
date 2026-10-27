@@ -12,10 +12,14 @@ async function seriousViolations(page: Page, exclude: string[]) {
   ]);
   for (const selector of exclude) builder.exclude(selector);
   // A colour read halfway through a transition (a drawer fading in, a button turning blue) is no colour the
-  // person ends up seeing, so the scan waits until the page's animations are over.
+  // person ends up seeing, so the scan waits until the page's animations are over. One that repeats for ever,
+  // such as the caret blinking in a focused code field, never ends, so it is not waited for.
   await page.evaluate(() =>
     Promise.all(
-      document.getAnimations().map((animation) => animation.finished.catch(() => undefined)),
+      document
+        .getAnimations()
+        .filter((animation) => animation.effect?.getTiming().iterations !== Infinity)
+        .map((animation) => animation.finished.catch(() => undefined)),
     ),
   );
   const results = await builder.analyze();
@@ -39,6 +43,13 @@ export async function expectNoSeriousA11yViolations(
   // fails the wait.
   if (serious.some((violation) => violation.id === "document-title")) {
     await expect(page).toHaveTitle(/\S/);
+    serious = await seriousViolations(page, exclude);
+  }
+  // A finding of colour contrast is read once more too: a list that has just been filtered fades in after the
+  // first wait began, and 4.3:1 was measured on text at a fraction of its way to its colour. A colour that
+  // really falls short is still short at the second reading.
+  if (serious.some((violation) => violation.id === "color-contrast")) {
+    await page.waitForTimeout(500);
     serious = await seriousViolations(page, exclude);
   }
   expect(serious, serious.map((violation) => violation.id).join(", ")).toEqual([]);

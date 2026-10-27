@@ -53,18 +53,18 @@ export const readOrder = cache(async (orderId: string): Promise<Read<Order | nul
   }
 });
 
-/** An order with whether its customer may still cancel it. */
-export type OrderPart = { order: Order; cancellable: boolean };
+/**
+ * An order as its page shows it: whether its customer may still cancel it, decided when it is read (the page
+ * renders once per request, so the moment of reading is the moment that counts), and the other sellers' orders
+ * placed with it from the same cart, which it links to (SEC-97 › decision 4).
+ */
+export type OrderView = { order: Order; cancellable: boolean; together: Order[]; now: number };
 
 /**
- * One order with the others placed together from the same cart (SEC-76 › decision 8), and whether each may
- * still be cancelled, decided when it is read: the page renders once per request, so the moment of reading is
- * the moment that counts. The others are found only among the reader's own: the account's orders, or those
- * this browser placed.
+ * One order with the others placed together from the same cart. The others are found only among the reader's
+ * own: the account's orders, or those this browser placed.
  */
-export async function readOrderView(
-  orderId: string,
-): Promise<Read<{ parts: OrderPart[]; now: number } | null>> {
+export async function readOrderView(orderId: string): Promise<Read<OrderView | null>> {
   const read = await readOrder(orderId);
   if (!read.known) return read;
   if (!read.value) return { known: true, value: null };
@@ -74,7 +74,9 @@ export async function readOrderView(
   return {
     known: true,
     value: {
-      parts: together.map((part) => ({ order: part, cancellable: canCancel(part, now) })),
+      order,
+      cancellable: canCancel(order),
+      together: together.filter((other) => other.id !== order.id),
       now,
     },
   };
@@ -114,6 +116,15 @@ export const readMyOrders = cache(async (state: "open" | "ended"): Promise<Read<
   }
 });
 
+/** Both lists of the reader's orders, with the moment they were read, against which their days are told. */
+export async function readMyOrderLists(): Promise<
+  Read<{ open: Order[]; ended: Order[]; now: number }>
+> {
+  const [open, ended] = await Promise.all([readMyOrders("open"), readMyOrders("ended")]);
+  if (!open.known || !ended.known) return { known: false };
+  return { known: true, value: { open: open.value, ended: ended.value, now: Date.now() } };
+}
+
 const readAllKept = cache(async (): Promise<Order[] | null> => {
   const kept = await keptOrders();
   if (kept.length === 0) return null;
@@ -124,6 +135,28 @@ const readAllKept = cache(async (): Promise<Order[] | null> => {
     .filter((order) => order !== null)
     .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt));
 });
+
+/**
+ * What the bottom bar shows of the reader's orders: how many messages they have not read, across the newest
+ * orders, and which orders are open, to follow. Nothing when no one is signed in and this browser placed none.
+ */
+export async function readUnread(): Promise<{ unread: number; open: string[] }> {
+  const none = { unread: 0, open: [] };
+  const session = await sessionHeaders();
+  let orders: Order[];
+  try {
+    orders = session
+      ? (await listMyOrders({ query: { limit: 50 }, headers: session })).data.orders
+      : ((await readAllKept()) ?? []);
+  } catch (error) {
+    if (signedOut(error)) return none;
+    throw error;
+  }
+  return {
+    unread: orders.filter((order) => order.unreadMessages).length,
+    open: orders.filter(isOpen).map((order) => order.id),
+  };
+}
 
 async function readKeptOrders(state: "open" | "ended"): Promise<Read<Order[]>> {
   const orders = await readAllKept();

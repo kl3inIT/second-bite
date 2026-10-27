@@ -1,0 +1,97 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+
+import { CartPortions } from "@/features/cart/cart-portions";
+import { QuantityStepper } from "@/features/cart/quantity-stepper";
+import { cn } from "@/lib/utils";
+
+import { DiscountBadge } from "./discount-label";
+import { DishSheet } from "./dish-sheet";
+import { formatPrice } from "./format";
+import { dishAnchor, type OfferSummary } from "./offer";
+import { OfferPhoto } from "./offer-photo";
+
+// One dish of the seller (Figma K4b "món"): its photograph, the dish, the price over the discount and the
+// portions left, and the − and +. The photograph and the name open the dish's sheet (K4a); the dish a link led
+// to is tinted, and the page scrolls to it by its anchor (K4). The − and + sit at the row's right end, centred on
+// its 100px photograph (Figma K4, WK3). `compact` is the search list on a phone (Figma K2b): a 72px photograph, 14px
+// words and a tighter column, as on K4 again from 768px (WK2b).
+export function SellerDish({
+  offer,
+  focused,
+  compact = false,
+}: {
+  offer: OfferSummary;
+  focused: boolean;
+  compact?: boolean;
+}) {
+  const t = useTranslations("OfferCard");
+  const [open, setOpen] = useState(false);
+  const original = formatPrice(offer.originalPriceVnd);
+
+  return (
+    <article
+      id={dishAnchor(offer.id)}
+      className={cn(
+        "flex scroll-mt-4 items-center",
+        compact ? "gap-3 md:gap-3.5" : "gap-3.5",
+        focused && "-mx-2.5 rounded-xl bg-muted p-2.5",
+      )}
+    >
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-hidden
+        onClick={() => setOpen(true)}
+        className={cn(
+          "relative shrink-0 overflow-hidden rounded-lg bg-muted",
+          compact ? "size-18 md:size-25" : "size-25",
+        )}
+      >
+        <OfferPhoto offer={offer} sizes="100px" />
+        <DiscountBadge percent={offer.discountPercent} />
+      </button>
+      <div
+        className={cn("flex min-w-0 flex-1 flex-col", compact ? "gap-1.5 md:gap-2.5" : "gap-2.5")}
+      >
+        <h3
+          className={cn(
+            "line-clamp-2 text-foreground",
+            compact ? "text-body-sm-strong md:text-title-lg" : "text-title-lg",
+          )}
+        >
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="text-left focus-visible:underline focus-visible:outline-none"
+          >
+            {offer.name}
+          </button>
+        </h3>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <p className="flex items-baseline gap-1.25">
+            <span
+              className={cn(
+                "font-display text-primary",
+                compact ? "text-price-sm md:text-price" : "text-price",
+              )}
+            >
+              {formatPrice(offer.priceVnd)}
+            </span>
+            <s aria-hidden className="text-label text-muted-foreground">
+              {original}
+            </s>
+            <span className="sr-only">{t("originalPrice", { price: original })}</span>
+          </p>
+          <CartPortions offer={offer} />
+        </div>
+      </div>
+      <div className="shrink-0">
+        <QuantityStepper offer={offer} />
+      </div>
+      <DishSheet offer={offer} open={open} onOpenChange={setOpen} />
+    </article>
+  );
+}

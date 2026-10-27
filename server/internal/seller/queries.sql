@@ -28,7 +28,7 @@ ORDER BY s.created_at;
 
 -- name: SellersForAdmins :many
 -- One page of the sellers in the statuses given (all when none), whose
--- words, folded, hold the query's (any when empty), in the order sort names: by default pending ones first,
+-- words, folded, hold the query's (any when empty), last changed in [changed_since, changed_until) when given, in the order sort names: by default pending ones first,
 -- the oldest first, as a queue, then the latest change first; otherwise by
 -- name, address or last change, '-' first for descending. total counts them
 -- all; it is absent when the page is past the end.
@@ -37,6 +37,8 @@ SELECT id, name, address, latitude, longitude, phone, status, status_reason, sta
 FROM seller_sellers
 WHERE (cardinality(@statuses::text[]) = 0 OR status = ANY (@statuses::text[]))
   AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\')
+  AND (sqlc.narg(changed_since)::timestamptz IS NULL OR updated_at >= sqlc.narg(changed_since)::timestamptz)
+  AND (sqlc.narg(changed_until)::timestamptz IS NULL OR updated_at < sqlc.narg(changed_until)::timestamptz)
 ORDER BY CASE WHEN @sort::text = '' THEN status = 'pending' END DESC,
          CASE WHEN @sort::text = '' AND status = 'pending' THEN created_at END,
          CASE WHEN @sort::text = 'name' THEN seller_fold(name) END,
@@ -51,22 +53,59 @@ LIMIT @max_rows OFFSET @skip_rows;
 -- name: CountSellersForAdmins :one
 SELECT count(*) FROM seller_sellers
 WHERE (cardinality(@statuses::text[]) = 0 OR status = ANY (@statuses::text[]))
-  AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\');
+  AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\')
+  AND (sqlc.narg(changed_since)::timestamptz IS NULL OR updated_at >= sqlc.narg(changed_since)::timestamptz)
+  AND (sqlc.narg(changed_until)::timestamptz IS NULL OR updated_at < sqlc.narg(changed_until)::timestamptz);
 
 -- name: CountSellersByStatus :many
--- How many sellers of each status match the words, whatever the statuses
--- asked, for the counts above the list.
+-- How many sellers of each status match the words and the time of the
+-- last change, whatever the statuses asked, for the cards above
+-- the list.
 SELECT status, count(*) AS sellers FROM seller_sellers
 WHERE (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\')
+  AND (sqlc.narg(changed_since)::timestamptz IS NULL OR updated_at >= sqlc.narg(changed_since)::timestamptz)
+  AND (sqlc.narg(changed_until)::timestamptz IS NULL OR updated_at < sqlc.narg(changed_until)::timestamptz)
 GROUP BY status;
+
+-- name: LockStatusDays :exec
+-- Serializes the writes of the day's counts, so each reads the changes
+-- committed before it.
+SELECT pg_advisory_xact_lock(hashtextextended('seller:status_days', 0));
+
+-- name: RecordStatusDay :exec
+-- Keeps how many sellers stand in each status now as today's, in Vietnam.
+INSERT INTO seller_status_days (day, pending, active, rejected, blocked)
+SELECT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date,
+       count(*) FILTER (WHERE status = 'pending'),
+       count(*) FILTER (WHERE status = 'active'),
+       count(*) FILTER (WHERE status = 'rejected'),
+       count(*) FILTER (WHERE status = 'blocked')
+FROM seller_sellers
+ON CONFLICT (day) DO UPDATE
+SET pending = excluded.pending, active = excluded.active, rejected = excluded.rejected, blocked = excluded.blocked;
+
+-- name: StatusDays :many
+-- The days recorded from the last one on or before first, so the first day
+-- asked stands as it was, to today.
+SELECT day, pending, active, rejected, blocked FROM seller_status_days
+WHERE day >= coalesce((SELECT max(d.day) FROM seller_status_days d WHERE d.day <= @first::date), @first::date)
+ORDER BY day;
+
 
 -- name: MemberRole :one
 SELECT role FROM seller_members WHERE seller_id = @seller_id AND account_id = @account_id;
 
--- name: UpdateSeller :exec
-UPDATE seller_sellers
+-- name: UpdateSeller :one
+-- Changes a seller's details under a row lock, and answers whether its
+-- collection point (the point or the written address) moved.
+WITH old AS (
+    SELECT cur.id, cur.latitude, cur.longitude, cur.address FROM seller_sellers AS cur WHERE cur.id = @id FOR UPDATE
+)
+UPDATE seller_sellers AS s
 SET name = @name, address = @address, latitude = @latitude, longitude = @longitude, phone = @phone, updated_at = now()
-WHERE id = @id;
+FROM old
+WHERE s.id = old.id
+RETURNING (old.latitude, old.longitude, old.address) IS DISTINCT FROM (s.latitude, s.longitude, s.address) AS moved;
 
 -- name: ChangeStatus :one
 -- Moves the seller to status when it stands in one of from, and answers the
@@ -80,6 +119,9 @@ RETURNING was.status AS was;
 
 -- name: SellerExists :one
 SELECT EXISTS (SELECT 1 FROM seller_sellers WHERE id = @id);
+
+-- name: HasOwner :one
+SELECT EXISTS (SELECT 1 FROM seller_members WHERE seller_id = @seller_id AND role = 'owner');
 
 -- name: OwnersOf :many
 SELECT seller_id, account_id FROM seller_members WHERE seller_id = ANY (@seller_ids::uuid[]) AND role = 'owner';
@@ -120,3 +162,50 @@ DELETE FROM seller_members WHERE account_id = @account_id;
 UPDATE seller_sellers
 SET status = 'blocked', status_reason = @reason, status_changed_at = now(), status_changed_by = NULL, updated_at = now()
 WHERE id = ANY (sqlc.arg(ids)::uuid[]) AND status <> 'blocked';
+
+-- name: MembershipsOfAccounts :many
+-- The sellers the accounts own or work at, owners first, for admins.
+SELECT m.account_id, m.role, s.id, s.name, s.status
+FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
+WHERE m.account_id = ANY (@account_ids::uuid[])
+ORDER BY m.account_id, m.role, s.name, s.id;
+
+-- name: InsertFollow :exec
+INSERT INTO seller_follows (account_id, seller_id)
+VALUES (@account_id, @seller_id)
+ON CONFLICT (account_id, seller_id) DO NOTHING;
+
+-- name: DeleteFollow :exec
+DELETE FROM seller_follows WHERE account_id = @account_id AND seller_id = @seller_id;
+
+-- name: FollowedSellers :many
+-- The active sellers an account follows, the latest followed first.
+SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.photo_id
+FROM seller_follows f JOIN seller_sellers s ON s.id = f.seller_id
+WHERE f.account_id = @account_id AND s.status = 'active'
+ORDER BY f.created_at DESC, s.id;
+
+-- name: DeleteFollowsOf :execrows
+-- Every favourite of an account, once the account is deleted (SEC-109).
+DELETE FROM seller_follows WHERE account_id = @account_id;
+
+-- name: SellerNames :many
+SELECT id, name FROM seller_sellers WHERE id = ANY(@ids::uuid[]);
+
+-- name: RecentFeedbackCount :one
+-- How many times the seller sent feedback in the last day (SEC-82).
+SELECT count(*)::integer FROM seller_feedback
+WHERE seller_id = @seller_id AND created_at > now() - interval '1 day';
+
+-- name: InsertFeedback :exec
+INSERT INTO seller_feedback (seller_id, body) VALUES (@seller_id, @body);
+
+-- name: FeedbackForAdmins :many
+-- The feedback sent in [since, until), of one seller when given, the latest
+-- first, with the seller's name.
+SELECT f.id, f.seller_id, s.name AS seller_name, f.body, f.created_at
+FROM seller_feedback f JOIN seller_sellers s ON s.id = f.seller_id
+WHERE f.created_at >= @since AND f.created_at < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR f.seller_id = sqlc.narg(seller_id)::uuid)
+ORDER BY f.created_at DESC, f.id
+LIMIT @max_rows;

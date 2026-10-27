@@ -94,6 +94,7 @@
     "dishesHere": "{count, plural, one {# dish} other {# dishes}} on sale {place, select, near {nearby} other {at Tasco Mall}}",
     "nothing": "No dish matches.",
     "everything": "See every dish",
+    "resetFilters": "Reset filters",
     "sortBy": "Sort",
     "from": "From",
     "to": "To",
@@ -109,7 +110,13 @@
     "lowest": "Lowest",
     "highest": "Highest",
     "popular": "Popular at Tasco Mall",
-    "onSale": "{count, plural, one {# dish} other {# dishes}} on sale"
+    "onSale": "{count, plural, one {# dish} other {# dishes}} on sale",
+    "view": {
+      "grid": "Show as a grid",
+      "list": "Show as a list"
+    },
+    "viewSeller": "View store",
+    "viewSellerNamed": "View {seller}"
   },
   "LanguageSwitcher": {
     "label": "Chuyển sang tiếng Việt"
@@ -130,6 +137,9 @@
     "ingredients": "Ingredients",
     "drinks": "Drinks",
     "mixed_box": "Mixed box",
+    "dessert": "Dessert",
+    "snacks": "Snacks",
+    "produce": "Produce",
     "other": "Other"
   },
   "OfferCard": {
@@ -143,7 +153,7 @@
     "sellerAway": "{seller} · {distance} away",
     "windowAt": "{window} · {place}",
     "rating": "Seller rated {rating} out of 5",
-    "heart": "Favourite {name}"
+    "badge": "-{percent}%"
   },
   "Intro": {
     "tagline": "End-of-day food from the counters at Tasco Mall, for less.",
@@ -339,7 +349,10 @@
     "googleNeedsCodeBodyNoAddress": "This Google account's address already has a Second Bite account. Get a code by email to sign in.",
     "failed": "You could not be signed in. Please try again.",
     "notArrived": "No email yet? Check your spam folder.",
-    "reference": "Reference: {reference}"
+    "errors": {
+      "email": "Enter one email address, such as name@example.com.",
+      "code": "Enter the 6 digits of the code in the email."
+    }
   },
   "Account": {
     "signIn": "Sign in",
@@ -362,65 +375,32 @@
     "home": "Home",
     "orders": "My orders",
     "saved": "Saved",
-    "account": "Account",
-    "soon": "(coming soon)"
+    "account": "Account"
   },
   "Orders": {
     "orderTitle": "Your order",
-    "togetherTitle": "One order from {sellers} shops",
-    "togetherBody": "{names} · {total} in all. Each shop has its own collection code; pay at its counter.",
     "mine": "My orders",
-    "mineLead": "To collect and done",
     "lists": "Order lists",
+    "tonight": "Still on tonight",
     "tabOpen": "To collect ({count})",
-    "tabEnded": "Done ({count})",
+    "tabEnded": "Done",
     "noneOpen": "You have no orders to collect.",
     "noneEnded": "No finished orders yet.",
-    "before": "Earlier",
     "readyUntil": "Ready · until {until}",
-    "collectFrom": "Collect from {from}",
-    "payOnCollect": "Pay when you collect",
     "seeOrder": "See order",
-    "collectAs": "Collect with your name and phone number",
-    "collectHint": "Give your name and phone number at the counter.",
-    "impact": "{meals, plural, one {# good meal} other {# good meals}}, eaten to the last bite",
-    "impactSaved": "You saved {saved} on the original prices",
-    "status": {
-      "confirmed": "Confirmed",
-      "ready": "Ready",
-      "collected": "Collected",
-      "cancelled": "Cancelled",
-      "refused": "Refused",
-      "expired": "Expired"
-    },
-    "meta": "Order {number} · placed at {time} · {seller}, {address}",
     "hoursMinutes": "{hours} h {minutes} min",
     "minutes": "{minutes} min",
     "headline": {
       "confirmed": "Confirmed · the shop is preparing it",
       "ready": "Ready to collect"
     },
-    "opensIn": "Collect today at the {seller} counter · opens in {left}",
-    "closesIn": "Collect today at the {seller} counter · {left} left",
-    "changeOfMind": "Changed your mind?",
-    "changeOfMindBody": "Cancel free of charge before {from}. After that it cannot be cancelled: the food is set aside for you.",
-    "ended": {
-      "collected": "Collected",
-      "cancelled": "Order cancelled",
-      "refused": "Refused by the shop",
-      "expired": "Order expired"
-    },
-    "endedBody": {
-      "collected": "Thank you for saving {units, plural, one {# portion} other {# portions}} of good food.",
-      "cancelled": "No charge · {units, plural, one {# portion} other {# portions}} back with the shop",
-      "refused": "You pay nothing for this order.",
-      "expired": "Nobody came before {until} · recorded as not collected · no charge"
-    },
-    "tonightMore": "Plenty more tonight",
+    "opensIn": "Collect today · opens in {left}",
+    "closesIn": "Collect today · {left} left",
     "seeOthers": "See other offers",
     "details": "Order details",
     "counterToday": "{address} · {from}–{until} today",
     "units": "{units, plural, one {# portion} other {# portions}}",
+    "mapTitle": "Map of where to collect from {seller}",
     "directionsLabel": "The way to the counter",
     "placeLine": "{seller} · {address}",
     "placeHint": "Tasco Mall Long Biên",
@@ -430,42 +410,55 @@
     "signInBody": "No order was placed in this browser. If you ordered while signed in, sign in to see it.",
     "signIn": "Sign in",
     "facts": {
-      "day": "Day",
-      "window": "Collection window",
-      "what": "Food",
+      "saved": "Saved",
+      "savedValue": "{saved} on the original prices",
       "total": "Total",
       "number": "Order number",
       "payment": "Payment",
-      "atCounter": "At the counter",
-      "nothing": "No charge"
+      "atCounter": "Pay at the counter",
+      "nothing": "Nothing charged",
+      "date": "Day",
+      "today": "Today, {date}",
+      "window": "Collection window",
+      "dishes": "Dishes"
     },
     "how": {
       "title": "How to collect",
-      "goTitle": "Go to the counter",
-      "goBody": "The {seller} counter, Tasco Mall",
-      "nameTitle": "Give your name and number",
-      "nameBody": "The staff find your order",
-      "payTitle": "Check, then pay",
-      "payBody": "Cash or a transfer to the shop"
+      "wideGo": "1. Go to the till",
+      "wideGoBody": "{seller} · {address}",
+      "wideQr": "2. Show the QR code",
+      "wideQrBody": "Or give your name and phone number",
+      "wideTake": "3. Check the dishes, pay",
+      "wideTakeBody": "Cash or the shop's QR code",
+      "goTitle": "Go to the till",
+      "takeTitle": "Take your food",
+      "takeBody": "Bring your own bag",
+      "qrTitle": "Show the QR code",
+      "qrBody": "or give your name and number"
     },
     "steps": {
-      "label": "The order's steps",
-      "placed": "Placed {time}",
+      "label": "Order steps",
+      "placed": "Placed",
       "preparing": "Preparing",
+      "preparingNote": "the seller is making it",
       "ready": "Ready",
-      "readyAt": "Ready {time}",
-      "collected": "Collected"
+      "readyNote": "come to the counter",
+      "readyPending": "Not ready yet",
+      "collected": "Done",
+      "received": "Collected",
+      "collectedNote": "enjoy your meal",
+      "collectedPending": "Not collected yet"
     },
     "timeline": {
       "title": "Status",
       "placed": "You placed the order",
       "ready": "The food was ready",
-      "collected": "You collected it",
       "cancelled": "You cancelled the order",
       "withReason": "{time} · {reason}",
       "returned": "{units, plural, one {# portion} other {# portions}} back with the shop",
       "returnedBody": "Someone else can order them",
-      "refused": "The shop refused the order",
+      "refused": "The shop turned the order down",
+      "refusedBody": "{time} · reason: {reason}",
       "reason": {
         "not_suitable": "the food was no longer fit",
         "wrong_items": "the food did not match the order",
@@ -473,22 +466,30 @@
         "no_show": "you did not come to collect",
         "late": "the collection time had passed",
         "sold_out": "the food ran out",
-        "other": "another reason"
+        "other": "another reason",
+        "withdrawn": "the store withdrew this post"
       },
       "expired": "Collection time over",
       "expiredBody": "{until} · recorded as not collected",
       "summary": {
-        "collected": "You paid the shop when you collected.",
         "cancelled": "You had not paid, so there is nothing to refund.",
-        "refused": "You had not paid, so there is nothing to refund.",
-        "expired": "Next time, cancel before the window opens so the food reaches someone else."
-      }
+        "refused": "The shop could not hand over the order: {reason}. You do not pay.",
+        "expired": "Nobody came to collect before {until}. Next time, if you cannot make it, cancel the order so the food reaches someone else."
+      },
+      "placedBody": "{date}, {time} · {units} portions · {total}",
+      "confirmed": "The seller confirmed it",
+      "confirmedBody": "{time} · {units} portions kept for you",
+      "readyBody": "{time} · the seller says come and collect",
+      "toldBody": "{date}, {time} · the shop told you",
+      "collected": "You collected the food",
+      "collectedBody": "{time} · paid {total}",
+      "collectedRated": "{time} · paid {total} · you rated {stars, plural, one {# star} other {# stars}}"
     },
     "cancel": {
       "open": "Cancel order",
-      "title": "Cancel order {number}?",
-      "body": "{units, plural, one {# portion goes} other {# portions go}} back to {seller} for someone else. You have not paid, so nothing is charged. Choose a reason (optional):",
-      "reason": "Reason",
+      "title": "Cancel order #{number}?",
+      "body": "{units, plural, one {# portion goes} other {# portions go}} back to {seller} for someone else.",
+      "reason": "Reason (optional)",
       "reasons": {
         "late": "Cannot make it",
         "mistake": "Ordered by mistake",
@@ -496,45 +497,94 @@
       },
       "keep": "Keep order",
       "confirm": "Cancel order",
-      "tooLate": "Too late to cancel free of charge: the collection window has opened.",
-      "failed": "The order was not cancelled. Try again, or report the reference {reference}."
+      "failed": "The order could not be cancelled. Try again in a moment.",
+      "change": "Changed your mind?",
+      "note": "You can cancel until the seller says the food is ready.",
+      "after": "You can cancel until the seller says the food is ready. After that it cannot be cancelled."
     },
-    "date": "{day}/{month}"
+    "date": "{day}/{month}",
+    "ended": {
+      "title": {
+        "cancelled": "Order cancelled",
+        "refused": "The shop did not hand over the order",
+        "expired": "Order expired"
+      },
+      "refusedLine": "{time} · reason: {reason} · you do not pay",
+      "expiredLine": "Nobody came to collect before {until} · recorded as not collected · nothing charged",
+      "cancelledLine": "You cancelled at {time} · {units, plural, one {# portion goes} other {# portions go}} back to the shop",
+      "badge": {
+        "cancelled": "Order cancelled",
+        "refused": "The shop did not hand over this order",
+        "expired": "Order expired"
+      }
+    },
+    "orderNumber": "Order #{number}",
+    "metaToday": "Order #{number} · placed today {time} · {seller}, {address}",
+    "metaOn": "Order #{number} · placed {date} {time} · {seller}, {address}",
+    "cardMetaWindow": "#{number} · {total} · collect {from}–{until}",
+    "cardMetaReady": "#{number} · {total} · pay when you collect",
+    "day": {
+      "today": "Today",
+      "week": "This week",
+      "before": "Earlier"
+    },
+    "endedLine": {
+      "confirmed": "Confirmed",
+      "ready": "Ready",
+      "collected": "Collected",
+      "cancelled": "Cancelled · nothing charged",
+      "refused": "Turned down · nothing charged",
+      "expired": "Expired, not collected"
+    },
+    "ordered": "Ordered · {units} portions",
+    "originalPrice": "Original price",
+    "endedAt": {
+      "collected": "Collected at {time} · {date}"
+    },
+    "collectedAt": "Collected at {time}",
+    "collectLater": "The QR code shows once your food is ready. You can also give your name and phone number.",
+    "collectReady": "Show the QR code at the counter, or give your name and phone number.",
+    "preparing": "Preparing",
+    "seeQr": "Show the QR code",
+    "subtitle": "To collect and done",
+    "savedLine": "Saved against the original price · {units} portions not wasted",
+    "placedWith": "Ordered together: {seller}"
   },
   "Splash": {
     "tagline": "Good food left at the end of the day, for less",
     "loading": "Loading…"
   },
   "Dish": {
-    "seeSeller": "See shop",
-    "placeAway": "{place} · {distance}",
-    "portion": "{kind} · 1 {unit}",
-    "window": "Collect today {from} – {until}",
-    "rating": "Shop rated {rating} stars",
-    "more": "More on sale from this shop",
-    "other": "{name}, {price}",
-    "saving": "{percent}% off · {units} left",
-    "share": "Share this dish",
-    "copied": "Link copied",
-    "booking": "Order",
-    "portions": "Portions · {units} left",
-    "addUnits": "Add {units} to the cart · {price}",
-    "save": "Save",
-    "shareLabel": "Share",
-    "crumbs": "You are here",
-    "home": "Home"
+    "about": "About this dish",
+    "weight": "About {grams} g.",
+    "notes": "Good to know",
+    "bringBag": "Bring your own bag or box.",
+    "askSeller": "Ask the shop about ingredients and allergies.",
+    "count": "{count} {name} to add",
+    "add": "Add to cart · {price}",
+    "allChosen": "All {units} chosen"
   },
   "Seller": {
-    "search": "Search {seller}'s dishes",
-    "rating": "Shop rating",
-    "window": "Collect today",
-    "where": "Where to collect",
+    "search": "Search the {seller} menu",
+    "window": "Collect today {from}–{until}",
     "directions": "Directions ›",
     "kinds": "Kinds of dish",
     "onSale": "On sale",
     "tonight": "On sale tonight",
     "nothing": "This shop has nothing on sale tonight",
-    "home": "See other dishes"
+    "home": "See other dishes",
+    "placeAway": "{place} · {distance} away",
+    "noMatch": "No dish matches “{q}”",
+    "share": "Share this shop",
+    "copied": "Link copied",
+    "breadcrumb": "Breadcrumb",
+    "crumbHome": "Home",
+    "index": "Tonight's menu",
+    "rating": "Rating",
+    "pickup": "Collect today",
+    "distance": "Distance",
+    "mapLabel": "Where {seller} is on the map",
+    "mapOpen": "Open the way to the store"
   },
   "Cart": {
     "title": "Confirm order",
@@ -542,36 +592,27 @@
     "add": "Add one {name}",
     "remove": "Remove one {name}",
     "quantity": "{quantity} {name} in the cart",
-    "addToCart": "Add to cart",
-    "view": "View cart · {units}",
     "soldOut": "Sold out",
-    "portionsLeft": "-{percent}% · {units} left",
-    "portionsChosen": "-{percent}% · all {units} chosen",
+    "portionsLeft": "{units} left",
+    "portionsChosen": "all {units} chosen",
     "summary": "{units} portions · save {saved}",
     "open": "View cart",
     "empty": "Your cart is empty",
     "browse": "See tonight's dishes",
-    "collectAt": "Collect at",
-    "place": "{seller} · {place}",
-    "away": "{distance} from you",
     "window": "Collect today {from}–{until}",
     "directions": "Directions",
     "pay": "Payment",
     "counter": "Pay at the counter",
-    "counterHint": "In cash or by bank transfer when you collect",
-    "cash": "Cash",
-    "cashHint": "Pay when you collect",
-    "summaryTitle": "Order summary",
-    "edit": "Edit",
-    "editAt": "Edit the dishes from {seller}",
+    "transfer": "Bank transfer",
+    "soon": "(coming soon)",
+    "summaryTitle": "{orders, plural, =1 {Total} other {Total · # orders}}",
     "line": "{quantity}× {name}",
     "dishes": "Dishes ({units} portions)",
     "total": "Total",
     "cancelTitle": "Cancellation policy",
-    "cancelBody": "Free cancellation before {time}.",
-    "cancelAt": "{seller}: {body}",
-    "totalSummary": "{units} portions in all · save {saved}",
-    "order": "Place order",
+    "cancelBody": "You can cancel until the seller marks the food ready.",
+    "totalSummary": "{orders, plural, =1 {{units} portions in all} other {# orders · {units} portions}} · save {saved}",
+    "order": "{orders, plural, =1 {Place order} other {Place # orders}}",
     "contactTitle": "Who collects",
     "contactHint": "The seller calls this name when you arrive and rings this number if needed.",
     "nameLabel": "Name",
@@ -591,8 +632,15 @@
     "orderRest": "Order {what} · {price}",
     "restUnits": "the {units} portions left",
     "otherDishes": "See the seller's other dishes",
-    "orderFailed": "The order did not go through. Try again, or quote the reference {reference}.",
-    "orderFailedPlain": "The order did not go through. Check your connection and try again."
+    "orderFailedPlain": "The order did not go through. Check your connection and try again.",
+    "sellerWindow": "{place} · Collect {from} – {until}",
+    "intro": "One order per seller, each with its own QR code. Check the dishes and the collection time before you order.",
+    "sellerUnits": "{seller} · {units} portions",
+    "sidebarTitle": "{sellers, plural, =0 {Your cart} =1 {Your cart} other {Your cart · # sellers}}",
+    "sidebarEmpty": "Pick dishes to add them to your cart.",
+    "orderFor": "{orders, plural, =1 {Place order} other {Place # orders}} · {price}",
+    "orderWithout": "{orders, plural, =1 {Place order} other {Place # orders}}, without the sold-out dishes · {price}",
+    "goneBodySeller": "Someone else just ordered the last portions from {seller}. You have not been charged."
   },
   "AccountSettings": {
     "title": "Account settings",
@@ -614,7 +662,8 @@
     "save": "Save",
     "saving": "Saving…",
     "cancel": "Cancel",
-    "nameFailed": "The name was not saved. Try again in a few minutes."
+    "nameFailed": "The name was not saved. Try again in a few minutes.",
+    "nameInvalid": "Enter a display name of 1 to 50 characters."
   },
   "DeleteAccount": {
     "title": "Delete your account",
@@ -655,7 +704,9 @@
     "doneTitle": "Your account is deleted",
     "doneBody": "Your account and your personal data are deleted. You can still sign in with this address at any time, as a new account.",
     "home": "Back to home",
-    "reference": "Reference: {reference}"
+    "errors": {
+      "code": "Enter the 6 digits of the code in the email."
+    }
   },
   "OpenStore": {
     "title": "Open a store",
@@ -667,12 +718,24 @@
     "phonePlaceholder": "09xx xxx xxx",
     "address": "Store address",
     "addressPlaceholder": "Number, street, ward, district",
+    "locate": "Use my current location",
+    "located": {
+      "filled": "Current location taken, accurate to about {meters} m. You can edit the address.",
+      "kept": "The store is pinned where you are, accurate to about {meters} m. The address stays as you typed it.",
+      "unknown": "The store is pinned where you are, accurate to about {meters} m. No street name found, please type the address."
+    },
+    "locateDenied": "Could not get the location. Allow location in the browser, or type the address.",
+    "locateFailed": "Could not get the location right now. Type the address instead.",
     "photo": "Store photo",
     "choosePhoto": "Choose a photo",
     "photoHint": "A photo helps customers recognise your store.",
     "submit": "Create store",
     "failed": "The store was not created. Try again in a few minutes.",
-    "reference": "Reference: {id}"
+    "errors": {
+      "name": "Enter the store's name.",
+      "phone": "Enter a phone number of 9 to 15 digits, such as 0912 345 678.",
+      "address": "Enter the store's address."
+    }
   },
   "Stores": {
     "title": "My stores",
@@ -680,7 +743,8 @@
     "noneBody": "Open a store to post what is left at the end of the day.",
     "create": "Open a new store",
     "owner": "Owner",
-    "staff": "Staff"
+    "staff": "Staff",
+    "edit": "Edit {name}"
   },
   "StoreNav": {
     "label": "Store",
@@ -689,23 +753,94 @@
     "catalog": "Catalog",
     "orders": "Orders"
   },
+  "StoreMenu": {
+    "shop": "Shop",
+    "edit": "Edit store",
+    "location": "Store location",
+    "mine": "My stores",
+    "create": "Open another store",
+    "feedback": "Feedback for Second Bite"
+  },
+  "ScanOrder": {
+    "open": "Scan an order's code",
+    "title": "Scan an order's code",
+    "hint": "Hold the customer's QR code in the frame",
+    "close": "Close",
+    "noCamera": "Could not open the camera. Allow the camera in the browser.",
+    "notOurs": "This code is not an order of this store. Try another code."
+  },
   "StoreHome": {
     "title": "Store home",
     "startTitle": "Start selling",
     "startBody": "Post your first dish so customers see your store.",
     "post": "Post a dish",
-    "todayTitle": "Today's posts",
-    "todayEmpty": "No posts today yet."
+    "overview": "Today at a glance",
+    "held": "Orders held",
+    "heldNote": "{count} ready",
+    "collected": "Cash taken",
+    "collectedNote": "{amount} still to take",
+    "sold": "Portions sold",
+    "soldValue": "{sold}/{posted}",
+    "soldNote": "{count, plural, one {# portion} other {# portions}} left",
+    "missed": "No-shows",
+    "missedNote": "Of {count, plural, one {# order} other {# orders}}",
+    "todo": "To do",
+    "toMarkReady": "{count, plural, one {# order} other {# orders}} to mark ready",
+    "seeOrders": "See orders",
+    "ordersToday": "Today's orders",
+    "ordersOn": "Orders on {date}",
+    "orderTabs": "Order groups",
+    "orderTabName": {
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "ordersEmpty": {
+      "preparing": "No orders being prepared.",
+      "ready": "No orders ready.",
+      "delivered": "No orders handed over.",
+      "cancelled": "No cancelled orders."
+    },
+    "postsToday": "Today's posts",
+    "postsOn": "Posts on {date}",
+    "postsEmpty": "No posts on this day.",
+    "catalog": "Catalog · {count, plural, one {# dish} other {# dishes}}",
+    "catalogEmpty": "No dishes in the catalog yet.",
+    "dishHidden": "Hidden",
+    "showDish": "Show dish",
+    "postNow": "Post now",
+    "left": "{count} left",
+    "soldOut": "Sold out",
+    "withdrawn": "Withdrawn",
+    "closed": "Over",
+    "viewStore": "View store page",
+    "status": {
+      "active": "Open",
+      "pending": "Awaiting approval",
+      "rejected": "Rejected",
+      "blocked": "Blocked"
+    },
+    "statusTitle": {
+      "pending": "Your store is awaiting approval",
+      "rejected": "Your store was not approved",
+      "blocked": "Your store is blocked"
+    },
+    "statusBody": {
+      "pending": "An admin will look at it soon. Meanwhile you can still add dishes to the catalog.",
+      "rejected": "Contact an admin to learn more.",
+      "blocked": "It cannot post until it is opened again."
+    }
   },
   "StorePosts": {
     "title": "Posts",
     "post": "Post a dish",
-    "today": "Today and coming up",
+    "today": "Today",
     "tabs": "Groups of posts",
-    "tab": {
-      "on_sale": "On sale · {count}",
-      "sold_out": "Sold out · {count}",
-      "closed": "Closed · {count}"
+    "tabName": {
+      "on_sale": "On sale",
+      "sold_out": "Sold out",
+      "closed": "Closed"
     },
     "emptyAll": "No posts yet. Press Post a dish to add one.",
     "empty": {
@@ -717,7 +852,12 @@
     "postAgain": "Post again",
     "posted": "Posted {count, plural, one {# unit} other {# units}}. Customers can order now.",
     "saved": "Saved.",
-    "withdrawn": "Withdrawn. It is in Closed, and can be posted again."
+    "withdrawn": "Withdrawn. It is in Closed, and can be posted again.",
+    "searchPlaceholder": "Search by dish name",
+    "onDay": "Posts on {date}",
+    "emptyDay": "No post on this day. Press Post a dish to add one.",
+    "emptySearch": "No post matches “{query}”.",
+    "searchLabel": "Search posts"
   },
   "PostRow": {
     "onSale": "Pick-up {from}–{until} · {left}/{units} {unit} left · {price}",
@@ -728,7 +868,7 @@
   "StoreOrders": {
     "title": "Orders",
     "portions": "portions",
-    "summaryHolding": "Holding {units} portions · {people} customers",
+    "summaryHolding": "Preparing {preparing} · ready {ready}",
     "summaryDelivered": "Today {count} orders · {amount}",
     "summaryCancelled": "Today {count} cancelled",
     "searchLabel": "Search orders",
@@ -736,12 +876,14 @@
     "searchCount": "{count} results",
     "tabs": "Order groups",
     "tab": {
-      "holding": "Holding · {count}",
-      "delivered": "Delivered · {count}",
-      "cancelled": "Cancelled · {count}"
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
     },
     "empty": {
-      "holding": "Nobody holds a dish on this day. When a customer does, their name and phone number show here.",
+      "preparing": "No order is being prepared on this day. When a customer orders, their name and phone number show here.",
+      "ready": "No order is ready on this day. When a dish is done, press Mark ready.",
       "delivered": "Nothing was delivered on this day.",
       "cancelled": "No order was cancelled on this day."
     },
@@ -750,12 +892,12 @@
     "units": "{count} {unit}",
     "copyPhone": "Copy the phone number {phone}",
     "copied": "Phone number copied.",
+    "markReady": "Mark ready",
     "deliver": "Delivered",
     "cancel": "Cancel order",
     "reopen": "Undo",
     "deliveredTo": "Delivered to {name}",
     "failed": "That did not work. Try again.",
-    "reference": "Reference: {id}",
     "reasonLabel": "Reason for cancelling",
     "reason": {
       "no_answer": "No answer",
@@ -764,7 +906,8 @@
       "sold_out": "Out of food",
       "other": "Another reason",
       "not_suitable": "Food no longer suitable",
-      "wrong_items": "Wrong dish"
+      "wrong_items": "Wrong dish",
+      "withdrawn": "Post withdrawn"
     },
     "ended": {
       "customer": "Cancelled by the customer on the customer site",
@@ -779,16 +922,62 @@
       "back": "Go back",
       "confirm": "Cancel order"
     },
-    "day": {
-      "label": "Day shown",
-      "today": "Today",
-      "yesterday": "Yesterday",
-      "dayBefore": "Two days ago",
-      "previous": "Previous day",
-      "next": "Next day",
-      "pick": "Pick a day",
-      "quick": "Quick choice"
+    "detail": {
+      "pushedTitle": "Order",
+      "back": "Back to the orders",
+      "customer": "Customer",
+      "meta": "Order #{number} · placed at {time}",
+      "headline": {
+        "confirmed": "New order · being prepared",
+        "ready": "Marked ready · waiting for the customer",
+        "collected": "Handed over",
+        "cancelled": "Cancelled by the customer",
+        "refused": "Cancelled by the store",
+        "expired": "Pickup time passed"
+      },
+      "opensIn": "Customer collects today · the window opens in {left}",
+      "closesIn": "Customer collects today · {left} left",
+      "over": "The window ended at {until}",
+      "collectedAt": "Handed over at {time}",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "minutes": "{minutes} min",
+      "units": "{count} portions",
+      "hint": {
+        "confirmed": "When the dish is done, press Mark ready so the customer knows to come.",
+        "ready": "When the customer arrives, scan their QR code or match the name and phone number, then press Handed over."
+      },
+      "lines": "Ordered · {count} portions",
+      "saving": "Saved",
+      "savingValue": "{amount} off the original prices",
+      "total": "Total",
+      "number": "Order number",
+      "payment": "Payment",
+      "atCounter": "Cash at the counter",
+      "next": {
+        "title": "What to do",
+        "preparing": "When the dish is done, tell the customer to come.",
+        "ready": "Hand the dish over when the customer is at the counter.",
+        "undoTitle": "A mistake?",
+        "undoBody": "Open the order again to carry on."
+      }
+    },
+    "track": {
+      "label": "The order's steps",
+      "placed": "Placed",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "collected": "Done"
     }
+  },
+  "DayFilter": {
+    "label": "Day shown",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "dayBefore": "Two days ago",
+    "previous": "Previous day",
+    "next": "Next day",
+    "pick": "Pick a day",
+    "quick": "Quick choice"
   },
   "PostDrawer": {
     "title": "Post a dish",
@@ -802,9 +991,9 @@
     "expectedBody": "Not sure there will be any. Customers follow, and you confirm the units later.",
     "soon": "Coming soon",
     "sourceEarlier": "Earlier dishes",
-    "sourceOneOff": "One-off dish",
+    "sourceOneOff": "New dish",
     "chooseDish": "Choose a dish to post",
-    "noDishes": "No earlier dishes. Use One-off dish to post the first.",
+    "noDishes": "No earlier dishes. Use New dish to post the first.",
     "choose": "Choose",
     "chosen": "Chosen",
     "photo": "Dish photo",
@@ -813,17 +1002,19 @@
     "name": "Dish name",
     "namePlaceholder": "For example: Bread and croissant bag, 4 pieces",
     "kind": "Kind",
+    "kindLabel": "Name of the kind",
+    "kindLabelPlaceholder": "For example: sweet soup, sticky rice, jam",
     "description": "What the box holds",
     "descriptionPlaceholder": "For example: bread and pastries, may contain egg and milk",
-    "sellQuestion": "How does it sell?",
-    "againQuestion": "How does it sell again?",
+    "sellQuestion": "Price & quantity",
+    "againQuestion": "Price & quantity",
     "units": "Units",
     "original": "Original price (VND)",
     "price": "Price (VND)",
     "discount": "{percent}% off the original price. The minimum discount is {min}%.",
     "discountHint": "The minimum discount off the original price is {min}%.",
     "priceTooHigh": "The price must be at least {min}% below the original price, so at most {max}.",
-    "priceMissing": "Enter the original price and the price, each from 1.000đ.",
+    "priceMissing": "Enter an original price of at least 1,000đ.",
     "startQuestion": "From what time?",
     "usual": "Usual {time}",
     "now": "Right now",
@@ -842,7 +1033,6 @@
     "window": "Customers collect from {from} to {until} today",
     "windowOver": "That time has passed. Choose a time from now on.",
     "failed": "Could not post. Try again in a few minutes.",
-    "reference": "Reference: {id}",
     "cancel": "Cancel",
     "back": "Back",
     "next": "Next",
@@ -861,21 +1051,49 @@
     "withdraw": "Withdraw",
     "save": "Save changes",
     "sourceCatalog": "From the catalog",
-    "noCatalog": "No dish of the catalog is shown. Add one in the Catalog tab."
+    "noCatalog": "No dish of the catalog is shown. Add one in the Catalog tab.",
+    "errors": {
+      "photo": "Choose a photo of the dish.",
+      "name": "Enter the dish's name.",
+      "description": "A mixed box needs to say what it holds.",
+      "units": "Enter a number of portions from 1 to 999."
+    },
+    "priceForDiscount": "The discounted price must be at least 1,000đ. Increase the original price or choose a smaller discount.",
+    "discountLabel": "Discount (%)",
+    "percent": "{percent}%",
+    "other": "Other",
+    "otherDiscount": "Custom discount",
+    "enterDiscount": "Enter another discount…",
+    "discountRange": "At least {min}%, below 100%.",
+    "discountInvalid": "Enter a whole percentage from {min}% to 99%.",
+    "salePreview": "Sale price: {price}",
+    "priceUnavailable": "No sale price yet",
+    "apply": "Apply",
+    "pickupTitle": "Pickup time",
+    "startLabel": "Start",
+    "endLabel": "End",
+    "customStart": "Start time",
+    "customEnd": "End time",
+    "timeRange": "{from}–{until}",
+    "pickupDates": "Pickup from {from} to {until}.",
+    "endHint": "End times follow the selected start time.",
+    "timeHint": "Scroll to choose the hours and minutes.",
+    "clockInvalid": "Enter an hour from 00 to 23 and minutes from 00 to 59.",
+    "endInvalid": "Pickup must end between 30 minutes and 6 hours after it starts.",
+    "previousTime": "Decrease {part}: {value}",
+    "nextTime": "Increase {part}: {value}"
   },
   "WithdrawDrawer": {
     "title": "Withdraw",
     "question": "Withdraw this post?",
     "explain": "Only possible while nothing is ordered. A withdrawn post leaves customers' pages at once and stays in Closed.",
+    "explainOrders": "{count} units of this post are ordered. Withdrawing it cancels those orders at once; the customers read “Post withdrawn” and can order something else.",
     "keptNote": "A withdrawn post stays in Closed, and can be posted again.",
-    "blocked": "{count, plural, one {# unit is} other {# units are}} ordered, so this cannot be withdrawn. Cancel each order in Orders first.",
-    "blockedNote": "{count, plural, one {# unit is} other {# units are}} waiting to be collected.",
+    "ordersNote": "{count} units waiting to be collected will be cancelled.",
     "keep": "Keep",
-    "close": "Close",
     "withdraw": "Withdraw",
-    "toOrders": "Go to Orders",
-    "failed": "Could not withdraw. Try again in a few minutes.",
-    "reference": "Reference: {id}"
+    "withdrawAndCancel": "Withdraw and cancel orders",
+    "failed": "Could not withdraw. Try again in a few minutes."
   },
   "StoreCatalog": {
     "title": "Catalog",
@@ -891,19 +1109,23 @@
       "saved": "Dish saved.",
       "deleted": "Dish deleted from the catalog.",
       "shown": "The dish is shown again."
-    }
+    },
+    "showFailed": "The dish could not be shown again. Try again in a moment."
   },
   "DishForm": {
     "addTitle": "Add a dish",
     "editTitle": "Edit dish",
     "photo": "Dish photo",
     "choosePhoto": "Choose a photo",
+    "changePhoto": "Change the photo",
     "photoHint": "A photo helps customers recognise your dish.",
     "photoMissing": "Choose a photo for the dish.",
     "name": "Dish name",
     "namePlaceholder": "For example: Bread and croissant bag, 4 pieces",
     "nameMissing": "Enter the dish's name.",
     "kind": "Kind",
+    "kindLabel": "Name of the kind",
+    "kindLabelPlaceholder": "For example: sweet soup, sticky rice, jam",
     "unit": "Unit",
     "description": "Description (optional)",
     "descriptionRequired": "Description",
@@ -919,7 +1141,6 @@
     "deleteBody": "The dish is deleted from the catalog. Posts already made are not affected.",
     "keep": "Keep",
     "failed": "Could not save the dish. Try again in a few minutes.",
-    "reference": "Reference: {id}",
     "original": "Original price (VND, optional)",
     "originalPlaceholder": "For example: 95.000",
     "originalInvalid": "An original price from 1.001đ, or leave it empty."
@@ -934,8 +1155,14 @@
     "skip": "Skip the sidebar",
     "breadcrumb": "Where you are",
     "nav": {
+      "sellers": "Stores",
+      "offers": "Posts",
+      "orders": "Orders",
       "audit": "Activity log",
-      "settings": "Settings"
+      "settings": "Settings",
+      "accounts": "Accounts",
+      "reviews": "Reviews",
+      "reports": "Reports"
     },
     "notFound": {
       "crumb": "Not found",
@@ -977,13 +1204,16 @@
         "adminGrant": "Admin granted",
         "adminRevoke": "Admin revoked",
         "offerSettingsChange": "Post settings changed",
-        "emailSettingsChange": "Email settings changed"
+        "emailSettingsChange": "Email settings changed",
+        "reviewHide": "Hide review",
+        "reviewShow": "Show review"
       },
       "resource": {
         "seller": "Store",
         "account": "Account",
         "offer_settings": "Post settings",
-        "email_settings": "Email settings"
+        "email_settings": "Email settings",
+        "order": "Order"
       },
       "commandLine": "Command line",
       "deletedAccount": "Deleted account",
@@ -1033,7 +1263,6 @@
         "clear": "Clear the filters"
       }
     },
-    "closeToast": "Close notification",
     "settings": {
       "title": "Settings",
       "nav": "Settings pages",
@@ -1116,7 +1345,754 @@
       }
     },
     "group": {
+      "operations": "Operations",
       "users": "Users"
+    },
+    "accounts": {
+      "title": "Accounts",
+      "noun": "accounts",
+      "search": "Search by name or email",
+      "size": "Rows",
+      "tab": {
+        "label": "Role",
+        "all": "All",
+        "customer": "Customers",
+        "admin": "Admins"
+      },
+      "column": {
+        "account": "Account",
+        "role": "Role",
+        "sellers": "Stores",
+        "method": "Signs in with",
+        "created": "Created",
+        "signedIn": "Last sign-in",
+        "actions": "Actions"
+      },
+      "role": {
+        "customer": "Customer",
+        "admin": "Admin"
+      },
+      "method": {
+        "code": "Email code",
+        "google": "Google"
+      },
+      "sellerRole": "{seller} · {role, select, owner {Owner} other {Staff}}",
+      "neverSignedIn": "Never signed in",
+      "empty": {
+        "title": "No accounts yet",
+        "body": "An account appears here once someone signs in for the first time."
+      },
+      "noResults": {
+        "title": "No account found",
+        "body": "Try another name or email.",
+        "clear": "Clear the search"
+      },
+      "figure": {
+        "placed": "Orders placed",
+        "pickupRate": "Picked up",
+        "joined": "Joined",
+        "signedIn": "Last sign-in"
+      },
+      "recent": {
+        "title": "Recent orders",
+        "empty": "This account has not ordered yet."
+      },
+      "info": {
+        "title": "Account",
+        "method": "Signs in with",
+        "role": "Role"
+      },
+      "sellers": {
+        "title": "Stores",
+        "empty": "Neither owns nor works at a store.",
+        "owner": "Owner",
+        "staff": "Staff"
+      },
+      "outcome": {
+        "open": "Held",
+        "collected": "Picked up",
+        "missed": "No-show",
+        "cancelled": "Cancelled",
+        "refused": "Refused by the store"
+      },
+      "menu": {
+        "open": "Actions for {name}",
+        "tooltip": "Actions",
+        "view": "View details",
+        "grant": "Make admin…",
+        "revoke": "Revoke admin…"
+      }
+    },
+    "admins": {
+      "grant": {
+        "open": "Add an admin",
+        "title": "Add an admin",
+        "description": "Enter the email of the person who needs admin rights. An account is made if they have none; they sign in with a code sent to this address.",
+        "email": "Email",
+        "invalid": "Enter a valid email address.",
+        "cancel": "Cancel",
+        "submit": "Make admin",
+        "done": "{email} is now an admin",
+        "failed": "Could not make an admin",
+        "unreachable": "The server could not be reached. Try again shortly.",
+        "placeholder": "name@gmail.com"
+      },
+      "revoke": {
+        "open": "Revoke",
+        "title": "Revoke {name}'s admin rights?",
+        "description": "They become a customer from their next request. You can make them an admin again at any time.",
+        "cancel": "Cancel",
+        "confirm": "Revoke",
+        "done": "{name} is no longer an admin",
+        "failed": "Could not revoke {name}",
+        "unreachable": "The server could not be reached. Try again shortly.",
+        "self": "You cannot revoke yourself",
+        "last": "The last admin"
+      },
+      "promote": {
+        "open": "Make admin",
+        "title": "Make {name} an admin?",
+        "description": "They see and change everything in the admin pages from their next request. You can revoke it at any time.",
+        "cancel": "Cancel",
+        "confirm": "Make admin",
+        "done": "{email} is now an admin",
+        "failed": "Could not make {name} an admin",
+        "unreachable": "The server could not be reached. Try again shortly."
+      }
+    },
+    "sellers": {
+      "title": "Stores",
+      "noun": "stores",
+      "search": "Search stores by name or address",
+      "size": "Rows",
+      "area": "Area",
+      "anyArea": "All",
+      "changed": "Changed",
+      "anytime": "Any time",
+      "cards": "Filter by status",
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "blocked": "Blocked"
+      },
+      "column": {
+        "store": "Store",
+        "address": "Address",
+        "phone": "Phone",
+        "status": "Status",
+        "changed": "Last changed",
+        "actions": "Actions"
+      },
+      "empty": {
+        "title": "No stores yet"
+      },
+      "noResults": {
+        "title": "No store matches",
+        "clear": "Clear filters"
+      },
+      "menu": {
+        "open": "Actions for {name}",
+        "block": "Block store",
+        "unblock": "Unblock",
+        "approve": "Approve",
+        "reject": "Reject",
+        "view": "View details"
+      },
+      "block": {
+        "title": "Block {name}?",
+        "reason": "Reason for blocking",
+        "confirm": "Block store",
+        "done": "{name} is blocked"
+      },
+      "reject": {
+        "title": "Reject {name}?",
+        "reason": "Reason for rejecting",
+        "confirm": "Reject",
+        "done": "{name} is rejected"
+      },
+      "unblock": {
+        "title": "Unblock {name}?",
+        "confirm": "Unblock",
+        "done": "{name} is unblocked"
+      },
+      "approve": {
+        "title": "Approve {name}?",
+        "confirm": "Approve",
+        "done": "{name} is approved"
+      },
+      "cancel": "Cancel",
+      "reasonHint": "10 to 500 characters",
+      "reasonLength": "{length}/500",
+      "unreachable": "The server did not answer. Try again later.",
+      "detail": {
+        "tabs": "Store content",
+        "overview": "Overview",
+        "posts": "Posts · {count}",
+        "members": "Members · {count}",
+        "orders": "Orders · {count}",
+        "onSale": "On sale",
+        "seeAll": "See all",
+        "noneOnSale": "Nothing on sale",
+        "noPosts": "The store has posted nothing yet",
+        "info": "Details",
+        "address": "Address",
+        "phone": "Phone",
+        "map": "The store on the map",
+        "people": "Members",
+        "owner": "Owner",
+        "staff": "Staff",
+        "offerLeft": "-{discount}% · {left}/{units} {unit} left",
+        "offerWindow": "Pick-up {from}–{until}",
+        "offerUnits": "-{discount}% · {units} {unit}",
+        "offerWithdrawn": "Withdrawn {day}/{month} · {time}",
+        "postStatus": {
+          "label": "Post status",
+          "on_sale": "On sale · {count}",
+          "sold_out": "Sold out · {count}",
+          "closed": "Closed · {count}",
+          "withdrawn": "Withdrawn · {count}"
+        },
+        "view": {
+          "label": "View",
+          "list": "Table",
+          "grid": "Grid"
+        },
+        "noneInStatus": "No posts here",
+        "postsTable": "The store's posts",
+        "postNoun": "posts",
+        "column": {
+          "post": "Post",
+          "price": "Price",
+          "discount": "Discount",
+          "left": "Left",
+          "window": "Pick-up"
+        },
+        "discount": "-{discount}%",
+        "unitsLeft": "{left}/{units} {unit}",
+        "window": "{from}–{until}",
+        "panel": {
+          "title": "Post details",
+          "description": "Description",
+          "status": "Status",
+          "units": "Units",
+          "unitsLeft": "{left}/{units} {unit} left",
+          "weight": "Weight per unit",
+          "grams": "{grams} g",
+          "window": "Pick-up",
+          "windowDay": "{from}–{until}, {month}/{day}",
+          "place": "Pick-up place",
+          "created": "Posted",
+          "updated": "Last changed",
+          "at": "{day} · {time}",
+          "state": {
+            "on_sale": "On sale",
+            "sold_out": "Sold out",
+            "closed": "Closed",
+            "withdrawn": "Withdrawn"
+          },
+          "store": "See the store's page"
+        },
+        "ordersTable": "The store's orders",
+        "noOrders": "No order on this day",
+        "orderNoun": "orders"
+      },
+      "reasonInvalid": "Write the owner a reason of 10 to 500 characters."
+    },
+    "offers": {
+      "title": "Posts",
+      "cards": "Filter by status",
+      "status": {
+        "on_sale": "On sale",
+        "sold_out": "Sold out",
+        "closed": "Closed",
+        "withdrawn": "Withdrawn"
+      },
+      "search": "Search a dish or a store",
+      "store": "Store",
+      "anyStore": "All",
+      "posted": "Posted",
+      "anytime": "Any time",
+      "size": "Rows",
+      "noun": "posts",
+      "column": {
+        "dish": "Dish",
+        "store": "Store",
+        "price": "Price",
+        "left": "Left",
+        "window": "Window",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "unitsLeft": "{left}/{units} {unit}",
+      "window": "{from}–{until}",
+      "empty": {
+        "title": "No posts yet"
+      },
+      "noResults": {
+        "title": "No post matches the filters",
+        "clear": "Clear the filters"
+      },
+      "actions": "Actions for post {name}",
+      "view": "View details"
+    },
+    "orders": {
+      "title": "Orders",
+      "cards": "Filter by status",
+      "card": {
+        "collected": "Collected",
+        "waiting": "Waiting to collect",
+        "expired": "Expired"
+      },
+      "status": {
+        "confirmed": "Confirmed",
+        "ready": "Ready",
+        "collected": "Collected",
+        "cancelled": "Cancelled",
+        "refused": "Refused by the store",
+        "expired": "Expired"
+      },
+      "search": "Search an order number, customer or store",
+      "store": "Store",
+      "anyStore": "All",
+      "collectionDay": "Collection day",
+      "anytime": "Any time",
+      "size": "Rows",
+      "noun": "orders",
+      "column": {
+        "store": "Store",
+        "customer": "Customer",
+        "lines": "Items",
+        "number": "Order",
+        "total": "Total",
+        "status": "Status",
+        "window": "Pickup window",
+        "actions": "Actions"
+      },
+      "line": "{name} × {units}",
+      "moreLines": "+{count, plural, one {# item} other {# items}}",
+      "window": "{from}–{until}",
+      "empty": {
+        "title": "No orders yet"
+      },
+      "noResults": {
+        "title": "No orders match the filters",
+        "clear": "Clear filters"
+      },
+      "detail": {
+        "seeStore": "View store",
+        "strip": "Order summary",
+        "total": "Paid at the counter",
+        "totalNotTaken": "Total (not taken)",
+        "units": "Units",
+        "unitsNote": "{count, plural, one {# item} other {# items}}",
+        "window": "Pickup window",
+        "held": "Held",
+        "left": {
+          "minutes": "{minutes, plural, one {# minute} other {# minutes}} left",
+          "hours": "{hours} h{minutes, plural, =0 {} other { # min}} left",
+          "heldUntil": "Held until {time}",
+          "over": "Time is up",
+          "expiredAt": "Expired at {time}",
+          "collected": "Collected",
+          "collectedAt": "At {time}",
+          "cancelled": "Cancelled",
+          "refused": "Refused by the store",
+          "endedAt": "At {time}"
+        },
+        "lines": "Items in the order",
+        "linesCount": "{lines, plural, one {# item} other {# items}} · {units, plural, one {# unit} other {# units}}",
+        "originalPrice": "Original price",
+        "lineUnits": "× {units} {unit} · -{discount}%",
+        "linesTotal": "Total (paid at the counter)",
+        "history": "Order history",
+        "event": {
+          "placed": "Ordered",
+          "ready": "Store marked it ready",
+          "collected": "Customer collected it",
+          "due": "Expires if not collected",
+          "expired": "Expired",
+          "cancelled": "Cancelled",
+          "refused": "Refused by the store"
+        },
+        "notYet": "Not yet",
+        "never": "No",
+        "at": "{time} · {day}",
+        "customer": "Customer",
+        "name": "Name",
+        "phone": "Phone",
+        "store": "Store",
+        "address": "Address",
+        "storeStatus": "Status",
+        "pickup": "Pickup",
+        "windowOn": "{window} · {day}",
+        "place": "Pickup place",
+        "payment": "Payment",
+        "atCounter": "Pay at the counter"
+      },
+      "actions": "Actions for order {number}",
+      "view": "View details"
+    },
+    "reviews": {
+      "title": "Reviews",
+      "cards": "Reviews at a glance",
+      "card": {
+        "average": "Average",
+        "low": "1–2 stars",
+        "hidden": "Hidden"
+      },
+      "noAverage": "—",
+      "search": "Search comment, order, customer or store",
+      "stars": "Stars",
+      "anyStars": "All",
+      "starCount": "{count, plural, one {# star} other {# stars}}",
+      "store": "Store",
+      "anyStore": "All",
+      "reviewDay": "Reviewed",
+      "anytime": "Any time",
+      "size": "Rows",
+      "noun": "reviews",
+      "column": {
+        "store": "Store",
+        "customer": "Customer",
+        "comment": "Comment",
+        "number": "Order",
+        "stars": "Stars",
+        "status": "Status",
+        "reviewed": "Reviewed",
+        "actions": "Actions"
+      },
+      "noComment": "No comment",
+      "status": {
+        "visible": "Shown",
+        "hidden": "Hidden"
+      },
+      "empty": {
+        "title": "No reviews yet"
+      },
+      "noResults": {
+        "title": "No reviews found",
+        "clear": "Clear filters"
+      },
+      "actions": "Actions for {name}'s review",
+      "viewOrder": "View order",
+      "hide": {
+        "menu": "Hide review",
+        "title": "Hide {name}'s review?",
+        "reason": "Reason",
+        "hint": "Optional, up to 500 characters",
+        "length": "{length}/500",
+        "confirm": "Hide review",
+        "done": "Hid {name}'s review"
+      },
+      "show": {
+        "menu": "Show again",
+        "title": "Show {name}'s review again?",
+        "confirm": "Show again",
+        "done": "Showed {name}'s review again"
+      },
+      "cancel": "Cancel",
+      "unreachable": "The server could not be reached. Try again later."
+    },
+    "reports": {
+      "title": "Reports",
+      "days": "Days",
+      "lastWeek": "Last 7 days",
+      "store": "Store",
+      "anyStore": "All",
+      "export": "Export CSV",
+      "cards": "Totals for the days",
+      "card": {
+        "views": "Page views",
+        "viewsNote": "{people} people · {qr} from QR",
+        "held": "Orders held",
+        "heldNote": "{units} units",
+        "collected": "Units collected",
+        "collectedNote": "{orders} orders",
+        "share": "Collected",
+        "shareNote": "{collected}/{held} orders",
+        "expired": "No-shows",
+        "expiredNote": "{cancelled} cancelled · {refused} refused by the store"
+      },
+      "chart": "Orders held and collected by day",
+      "series": {
+        "held": "Held",
+        "collected": "Collected"
+      },
+      "table": "Numbers by store",
+      "column": {
+        "name": "Store",
+        "views": "Views",
+        "offers": "Posts",
+        "held": "Held",
+        "collected": "Collected",
+        "expired": "No-shows",
+        "share": "Collected %",
+        "collectedVnd": "Taken in"
+      },
+      "none": "–",
+      "empty": {
+        "title": "No numbers for these days yet"
+      },
+      "feedback": {
+        "title": "The stores' feedback",
+        "count": "{count, plural, one {# note} other {# notes}}",
+        "empty": "No store sent feedback in these days.",
+        "when": "{date}, {time}"
+      }
+    }
+  },
+  "Review": {
+    "title": "How was it today?",
+    "hint": "Your rating helps the shop and the next buyers.",
+    "starsLegend": "Stars",
+    "star": "{count, plural, one {# star} other {# stars}}",
+    "word": {
+      "1": "Bad",
+      "2": "Not great",
+      "3": "Okay",
+      "4": "Good",
+      "5": "Excellent"
+    },
+    "tagsTitle": "What did you like?",
+    "tag": {
+      "fast_pickup": "Quick pickup",
+      "good_quality": "Good quality",
+      "good_variety": "Good variety",
+      "fair_portions": "Fair portions"
+    },
+    "comment": "A few words for the shop (optional)",
+    "submit": "Send rating",
+    "failed": "The rating could not be sent. Try again in a moment.",
+    "given": "Your rating",
+    "thanks": "Thank you, the shop will read it.",
+    "errors": {
+      "stars": "Choose how many stars to give."
+    }
+  },
+  "OrderProblem": {
+    "open": "Report a problem with the order",
+    "title": "What went wrong with order #{number}?",
+    "body": "Pick what was not right. We pass it to the store, which answers you.",
+    "kindLegend": "What was not right",
+    "kind": {
+      "missing_item": "A missing item",
+      "wrong_item": "A wrong item",
+      "poor_quality": "Poor quality",
+      "store_closed": "The store was closed"
+    },
+    "note": "Anything to add (optional)",
+    "notePlaceholder": "For example: one bread roll was missing",
+    "send": "Send to the store",
+    "later": "Later",
+    "failed": "It could not be sent. Try again in a few minutes.",
+    "errors": {
+      "kind": "Pick what went wrong with the order."
+    },
+    "reportedTitle": "The problem you reported",
+    "noteAt": "{time} · {note}",
+    "sent": "Sent to {seller}",
+    "waiting": "The store will answer you here",
+    "answered": "{seller} answered · {time}"
+  },
+  "StoreProblem": {
+    "title": "The customer reported: {kind}",
+    "kind": {
+      "missing_item": "A missing item",
+      "wrong_item": "A wrong item",
+      "poor_quality": "Poor quality",
+      "store_closed": "The store was closed"
+    },
+    "noteAt": "“{note}” · {time}",
+    "at": "At {time}",
+    "answer": "Answer the customer",
+    "answerPlaceholder": "For example: Sorry, we will give you a bread roll next time",
+    "send": "Send the answer",
+    "failed": "The answer could not be sent. Try again in a few minutes.",
+    "answeredAt": "You answered at {time}",
+    "errors": {
+      "answer": "Write the customer an answer of 1 to 500 characters."
+    }
+  },
+  "Favourites": {
+    "title": "Favourites",
+    "intro": "Shops you follow",
+    "subtitle": "Shops you follow · we tell you when they have a deal",
+    "pickup": " · Collect {from} – {until}",
+    "follow": "Favourite {name}",
+    "followName": "Follow {name}",
+    "followLabel": "Follow",
+    "followingLabel": "Following",
+    "added": "Added to Favourites",
+    "removed": "Removed from Favourites",
+    "failed": "Not saved, try again later.",
+    "noneTonight": "Nothing on sale tonight",
+    "noneTonightMore": " · we tell you when there is",
+    "emptyTitle": "No favourite shops yet",
+    "emptyBody": "Tap ♡ on a shop's page to follow it.",
+    "emptyMore": "Shops with a deal will let you know.",
+    "explore": "Explore shops"
+  },
+  "Chat": {
+    "unread": "{count, plural, one {# unread message} other {# unread messages}}",
+    "messageStore": "Message the store",
+    "messageCustomer": "Message the customer",
+    "storeWrote": "The store just wrote",
+    "customerWrote": "The customer just wrote",
+    "quote": "“{text}”",
+    "seeMessage": "See message",
+    "reply": "Reply",
+    "title": "Messages",
+    "withStore": "Message {seller}",
+    "withCustomer": "Chat with {name}",
+    "cardMeta": "{units, plural, one {# portion} other {# portions}} · {from}–{until} today",
+    "confirmedToday": "Today · Order #{number} confirmed",
+    "confirmedOn": "{date} · Order #{number} confirmed",
+    "log": "Messages of the order",
+    "mine": "You",
+    "seen": "{time} · Seen",
+    "note": "Messages do not change the order's price, quantity or collection time.",
+    "placeholderToStore": "Message the store…",
+    "placeholderToCustomer": "Message the customer…",
+    "send": "Send message",
+    "retry": "Send again",
+    "failed": "Not sent",
+    "quickReplies": "Quick replies",
+    "customerReplies": {
+      "coming": "I'm on my way",
+      "late": "Let me collect 10 minutes late",
+      "stillHave": "Does the store still have the dishes?"
+    },
+    "sellerReplies": {
+      "ready": "Your order is ready",
+      "working": "We're still making it, one moment please",
+      "holding": "We'll hold your order until the window ends"
+    },
+    "locked": "This order has ended, so you can only read the messages.",
+    "details": "Order details",
+    "who": "{name} · {units, plural, one {# portion} other {# portions}}",
+    "placedAt": "{phone} · placed at {time}",
+    "state": {
+      "confirmed": "Being prepared",
+      "ready": "Ready",
+      "collected": "Handed over",
+      "cancelled": "Cancelled by the customer",
+      "refused": "Cancelled by the store",
+      "expired": "Pickup time passed"
+    },
+    "window": "collects {from}–{until}",
+    "seeOrder": "See order details",
+    "pickup": "Collect today {from}–{until}",
+    "orderTitle": "Order #{number}",
+    "breadcrumb": "Breadcrumb",
+    "viewMessages": "View messages"
+  },
+  "StoreLocation": {
+    "label": "Location on the map",
+    "hint": "Customers' distance and directions follow this pin.",
+    "empty": "The store is not pinned yet",
+    "pin": "Pin on the map",
+    "adjust": "Adjust the location",
+    "required": "Pin the store on the map so customers can find it.",
+    "previewLabel": "The store's location on the map",
+    "pickTitle": "Pin the store",
+    "pickHint": "Move the map until the pin's tip is on the store's door.",
+    "mapLabel": "Map of Hanoi. Drag the map, or use the arrow keys, to put the pin on the store.",
+    "looking": "Looking up the address…",
+    "unnamed": "No street name here yet",
+    "locate": "Go to where I am",
+    "locateDenied": "Your location is not available. Allow location in the browser, or move the map.",
+    "locateFailed": "Your location is not available right now. Move the map to the store.",
+    "zoomIn": "Zoom in to place the pin exactly.",
+    "confirm": "Confirm the location",
+    "unavailable": "This device cannot show the map. Use the current-location button in the address field.",
+    "tilesFailed": "Part of the map did not load. You can still move it and pin the store.",
+    "zoomInButton": "Zoom in",
+    "zoomOutButton": "Zoom out",
+    "openMap": "Open the large map",
+    "suggestions": "{count, plural, =0 {No suggestions} one {# suggestion} other {# suggestions}}"
+  },
+  "StoreLocationPage": {
+    "title": "Store location",
+    "intro": "Customers see the distance and the way to the store from this pin. Dishes on sale and orders still to collect follow the new place.",
+    "address": "Store address",
+    "addressRequired": "Enter the store's address.",
+    "save": "Save the location",
+    "saved": "The store's new location is saved.",
+    "failed": "The location could not be saved. Try again in a few minutes."
+  },
+  "StoreEditPage": {
+    "title": "Edit store",
+    "intro": "Customers see this on the store's page.",
+    "changePhoto": "Change photo",
+    "save": "Save changes",
+    "saved": "The store's details are saved.",
+    "failed": "Could not save. Try again in a few minutes.",
+    "photoFailed": "The store is open, but its photo did not upload. Choose a photo and save."
+  },
+  "StoreReviews": {
+    "title": "Store reviews",
+    "summary": "Review summary",
+    "list": "Reviews",
+    "seeAll": "See all",
+    "backToHome": "Home",
+    "empty": "No reviews yet. Customers rate an order after collecting it.",
+    "none": "No reviews yet.",
+    "noneOfThese": "No reviews with these stars.",
+    "outOf": "/ 5",
+    "average": "Average {count, number, ::.0} out of 5 stars",
+    "count": "{count, plural, one {# review} other {# reviews}}",
+    "starRow": "{count, plural, one {# star} other {# stars}}",
+    "stars": "{count} out of 5 stars",
+    "filters": "Filter by stars",
+    "filter": {
+      "all": "All",
+      "five": "5 stars",
+      "four": "4 stars",
+      "low": "3 or fewer"
+    },
+    "limit": "Showing the latest {shown} of {total}."
+  },
+  "Push": {
+    "title": {
+      "customer": "Tell me when it's ready",
+      "seller": "Turn on new-order notifications"
+    },
+    "body": {
+      "customer": "Your phone tells you when the food is ready, when the store moves the collection time or writes to you, even with this page closed.",
+      "seller": "A new order, a cancellation or a message rings at once, with no need to watch the screen."
+    },
+    "turnOn": "Turn on notifications",
+    "failed": "Notifications could not be turned on. Try again.",
+    "on": {
+      "customer": "We'll tell you when it's ready.",
+      "seller": "This device gets new-order notifications."
+    },
+    "blockedTitle": "The browser blocks notifications",
+    "blockedBody": "To turn them back on, tap the icon left of the address bar, allow Notifications in the site's permissions, then reload the page.",
+    "install": {
+      "share": "Tap Safari's Share button <icon></icon>.",
+      "shareIcon": "Share",
+      "add": "Choose “Add to Home Screen”.",
+      "open": "Open Second Bite from the Home Screen, then tap Turn on notifications."
+    }
+  },
+  "Failure": {
+    "reference": "Reference: {reference}",
+    "unreachable": "The server could not be reached. Try again in a moment.",
+    "closeToast": "Close notification"
+  },
+  "StoreFeedback": {
+    "title": "Feedback for Second Bite",
+    "body": "Where does the store get stuck or lose time? The team reads every note and fixes what it can within the week.",
+    "label": "The store's feedback",
+    "placeholder": "For example: when it is busy, the Handed over button is hard to find",
+    "send": "Send feedback",
+    "later": "Later",
+    "thanks": "Feedback sent. Thank you!",
+    "failed": "The feedback could not be sent. Try again in a few minutes.",
+    "errors": {
+      "text": "Write feedback of 1 to 1,000 characters."
     }
   }
 }

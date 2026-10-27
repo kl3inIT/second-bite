@@ -19,8 +19,14 @@ abstract class DishBody with _$DishBody {
     required String id,
     required String ingredients,
     required DishBodyKind kind,
+
+    /// What the seller calls a dish of the kind other; empty for any other kind
+    required String kindLabel,
     required String name,
     required OfferPhotoBody photo,
+
+    /// Every photo, the cover first
+    required List<OfferPhotoBody> photos,
     required String sellerId,
     required String unit,
     required DateTime updatedAt,

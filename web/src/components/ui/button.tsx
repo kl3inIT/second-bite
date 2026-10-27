@@ -7,6 +7,9 @@ const buttonStyles = cva(
   {
     variants: {
       variant: {
+        // Second Bite (Figma P3f–P3m): equal-width price/time choices, including popover triggers.
+        choice:
+          "border-15 border-input bg-card text-foreground hover:bg-secondary aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:hover:bg-primary-hover",
         // Second Bite: a solid action darkens under the pointer (primary-hover keeps 10:1), never fades.
         default: "bg-primary text-primary-foreground hover:bg-primary-hover",
         // Second Bite: a deep-leaf outline on a white card.
@@ -19,6 +22,9 @@ const buttonStyles = cva(
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+        // Second Bite (Figma D3, D4): "Huỷ đơn", white and edged in status/error on a phone, in Tasco blue from 768px.
+        cancel:
+          "border-15 border-destructive bg-card text-destructive hover:bg-destructive-muted md:border-primary md:text-primary md:hover:bg-secondary",
         link: "text-primary underline-offset-4 hover:underline",
         // Second Bite: an icon or text action on the white top bar.
         shell: "text-shell-foreground hover:bg-muted",
@@ -35,6 +41,7 @@ const buttonStyles = cva(
         danger: "bg-destructive text-destructive-foreground hover:bg-destructive-hover",
       },
       size: {
+        choice: "h-11 min-w-11 gap-0.5 px-1 text-body-sm",
         // Second Bite: 44px targets for one-handed use (PRODUCT.md › Accessibility).
         default:
           "h-11 gap-1.5 px-4 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
@@ -82,6 +89,8 @@ function buttonVariants(...args: Parameters<typeof buttonStyles>) {
 const chipTrigger = cn(
   "data-[variant=chip]:relative data-[variant=chip]:flex data-[variant=chip]:h-8.5 data-[variant=chip]:shrink-0 data-[variant=chip]:items-center data-[variant=chip]:gap-1.5 data-[variant=chip]:rounded-full data-[variant=chip]:bg-muted data-[variant=chip]:px-3.5 data-[variant=chip]:text-body-sm data-[variant=chip]:whitespace-nowrap data-[variant=chip]:text-foreground data-[variant=chip]:transition-colors data-[variant=chip]:after:absolute data-[variant=chip]:after:inset-x-0 data-[variant=chip]:after:-inset-y-1.25 data-[variant=chip]:hover:bg-secondary data-[variant=chip]:focus-visible:ring-3 data-[variant=chip]:focus-visible:ring-ring/50 data-[variant=chip]:focus-visible:outline-none data-[variant=chip]:data-active:bg-secondary data-[variant=chip]:data-active:text-body-sm-strong data-[variant=chip]:data-active:text-primary",
   "data-raised:data-[variant=chip]:bg-card data-raised:data-[variant=chip]:ring-1 data-raised:data-[variant=chip]:ring-secondary data-raised:data-[variant=chip]:ring-inset data-raised:data-[variant=chip]:hover:bg-secondary data-raised:data-[variant=chip]:data-active:bg-secondary",
+  // From `md` a chip on the sky ground is 36px with a pale 1px edge, and one chosen is Tasco blue with white words (Figma WK2).
+  "md:data-raised:data-[variant=chip]:h-9 md:data-raised:data-[variant=chip]:data-active:bg-primary md:data-raised:data-[variant=chip]:data-active:text-primary-foreground md:data-raised:data-[variant=chip]:data-active:ring-primary md:data-raised:data-[variant=chip]:data-active:hover:bg-primary-hover",
 );
 
 function Button({

@@ -1,14 +1,33 @@
-import { HistoryIcon, MailIcon, SettingsIcon, type LucideIcon } from "lucide-react";
+import {
+  ChartColumnIcon,
+  HistoryIcon,
+  MailIcon,
+  PackageIcon,
+  ReceiptTextIcon,
+  SettingsIcon,
+  StarIcon,
+  StoreIcon,
+  UsersIcon,
+  type LucideIcon,
+} from "lucide-react";
 
 export type AdminNavItem = {
-  key: "audit" | "settings";
-  href: "/admin/audit" | "/admin/settings";
+  key: "sellers" | "offers" | "orders" | "reviews" | "accounts" | "reports" | "audit" | "settings";
+  href:
+    | "/admin/sellers"
+    | "/admin/offers"
+    | "/admin/orders"
+    | "/admin/reviews"
+    | "/admin/accounts"
+    | "/admin/reports"
+    | "/admin/audit"
+    | "/admin/settings";
   icon: LucideIcon;
 };
 
 export type AdminNavGroup = {
   /** The group's name above its items; the last group of Figma's sidebar has none. */
-  key?: "users";
+  key?: "operations" | "users";
   items: AdminNavItem[];
 };
 
@@ -17,7 +36,21 @@ export type AdminNavGroup = {
 // not a page of the settings: it records far more than settings, and is read on its own.
 export const adminNav: AdminNavGroup[] = [
   {
+    key: "operations",
     items: [
+      { key: "sellers", href: "/admin/sellers", icon: StoreIcon },
+      { key: "offers", href: "/admin/offers", icon: PackageIcon },
+      { key: "orders", href: "/admin/orders", icon: ReceiptTextIcon },
+      { key: "reviews", href: "/admin/reviews", icon: StarIcon },
+    ],
+  },
+  {
+    key: "users",
+    items: [{ key: "accounts", href: "/admin/accounts", icon: UsersIcon }],
+  },
+  {
+    items: [
+      { key: "reports", href: "/admin/reports", icon: ChartColumnIcon },
       { key: "audit", href: "/admin/audit", icon: HistoryIcon },
       { key: "settings", href: "/admin/settings", icon: SettingsIcon },
     ],

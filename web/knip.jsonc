@@ -1,10 +1,11 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   // As BeyondPilot's web/knip.jsonc: shadcn primitives are installed ahead of their first screen, and
-  // lib/utils.ts is the `utils` alias in components.json that the shadcn CLI writes into new ones.
+  // lib/utils.ts is the `utils` alias in components.json that the shadcn CLI writes into new ones. public/sw.js is
+  // the service worker, which the browser loads by its address (SEC-25).
   "workspaces": {
     ".": {
-      "entry": ["src/components/ui/**/*.tsx", "src/lib/utils.ts", "scripts/*.mjs"],
+      "entry": ["src/components/ui/**/*.tsx", "src/lib/utils.ts", "scripts/*.mjs", "public/sw.js"],
     },
     "tools/openapi": {},
   },

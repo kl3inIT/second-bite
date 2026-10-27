@@ -10,7 +10,9 @@ import { AccountAction } from "@/features/identity/account-action";
 import { PlaceHeading } from "@/features/home/place-heading";
 import { SearchField } from "@/features/home/search-field";
 import { TonightDeals } from "@/features/home/tonight-deals";
+import { contentWidth } from "@/lib/layout";
 import { pageMetadata } from "@/lib/seo";
+import { cn } from "@/lib/utils";
 
 // The home keeps the site's title and description, with its canonical address and its other language for
 // search engines (SEC-52).
@@ -60,7 +62,7 @@ export default function Home({ searchParams }: PageProps<"/[locale]">) {
           <TonightDeals query={query} />
         </Suspense>
       </AppHeader>
-      <main className="mx-auto w-full max-w-5xl flex-1 xl:max-w-300">
+      <main className={cn(contentWidth, "flex-1")}>
         <Suspense fallback={<BrandLoader />}>
           <HomeContent query={query} />
         </Suspense>

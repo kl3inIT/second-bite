@@ -11,7 +11,9 @@ import 'clients/catalog_client.dart';
 import 'clients/offers_client.dart';
 import 'clients/orders_client.dart';
 import 'clients/photos_client.dart';
+import 'clients/notifications_client.dart';
 import 'clients/sellers_client.dart';
+import 'clients/stats_client.dart';
 
 /// Second Bite API `v0.1.0`.
 ///
@@ -31,7 +33,9 @@ class SecondBiteApi {
   OffersClient? _offers;
   OrdersClient? _orders;
   PhotosClient? _photos;
+  NotificationsClient? _notifications;
   SellersClient? _sellers;
+  StatsClient? _stats;
 
   AccountsClient get accounts =>
       _accounts ??= AccountsClient(_dio, baseUrl: _baseUrl);
@@ -49,6 +53,11 @@ class SecondBiteApi {
 
   PhotosClient get photos => _photos ??= PhotosClient(_dio, baseUrl: _baseUrl);
 
+  NotificationsClient get notifications =>
+      _notifications ??= NotificationsClient(_dio, baseUrl: _baseUrl);
+
   SellersClient get sellers =>
       _sellers ??= SellersClient(_dio, baseUrl: _baseUrl);
+
+  StatsClient get stats => _stats ??= StatsClient(_dio, baseUrl: _baseUrl);
 }

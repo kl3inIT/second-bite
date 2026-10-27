@@ -3,42 +3,47 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
+import { CustomerHeader } from "@/components/customer-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import { OrdersHeader } from "@/features/orders/orders-header";
-import { EndedOrder, hasEnded, OpenOrder } from "@/features/orders/order-view";
-import { formatPrice } from "@/features/offers/format";
-import type { Order } from "@/features/orders/order";
-import { readOrderView, type OrderPart } from "@/features/orders/read-orders";
+import { UnreadBanner } from "@/features/chat/unread-banner";
+import { LiveRefresh } from "@/features/orders/live-refresh";
+import {
+  CollectedOrder,
+  EndedOrder,
+  EndedOrderBar,
+  hasEnded,
+  OpenOrder,
+} from "@/features/orders/order-view";
+import { readOrderView } from "@/features/orders/read-orders";
 import { SignInPrompt } from "@/features/orders/sign-in-prompt";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Orders");
-  return { title: `${t("orderTitle")} · Second Bite`, robots: { index: false } };
+  return { title: t("orderTitle"), robots: { index: false } };
 }
 
-// One order, to its customer (SEC-51, Figma W2–W6): an open order on the blue band with its window, code and
-// steps; an ended one on a tinted band with what happened.
+// One seller's order, to its customer (Figma K6, K6b, D5): an open order under the blue band with its window, steps
+// and code; a collected one with what it saved and its rating; any other ended one as a receipt with what
+// happened. A phone's open or collected order draws its own bar in its band; from 768px they sit under the
+// customer header, and an ended order draws its own bar.
 export default function OrderPage({ params }: PageProps<"/[locale]/orders/[orderId]">) {
-  const returnTo = params.then(({ orderId }) => `/orders/${orderId}`);
-
   return (
-    <>
-      {/* The order's address is known only at request time: the account, which reads it to come back here
-          after signing in, streams in inside the header's static shell. */}
-      <OrdersHeader returnTo={returnTo} />
-      <main className="flex-1 pb-10">
-        <Suspense
-          fallback={
-            <div className="mx-auto w-full max-w-5xl px-4 py-8">
-              <Skeleton shape="card" className="h-64" />
-            </div>
-          }
-        >
-          <OrderView params={params} />
-        </Suspense>
-      </main>
-    </>
+    <Suspense
+      fallback={
+        <Main>
+          <div className="mx-auto w-full max-w-xl px-4 py-8">
+            <Skeleton shape="card" className="h-64" />
+          </div>
+        </Main>
+      }
+    >
+      <OrderView params={params} />
+    </Suspense>
   );
+}
+
+function Main({ children }: { children: React.ReactNode }) {
+  return <main className="flex flex-1 flex-col pb-10 md:pb-14">{children}</main>;
 }
 
 async function OrderView({ params }: { params: Promise<{ orderId: string }> }) {
@@ -46,52 +51,61 @@ async function OrderView({ params }: { params: Promise<{ orderId: string }> }) {
   const read = await readOrderView(orderId);
   if (!read.known) {
     return (
-      <div className="mx-auto w-full max-w-xl px-4 py-8">
-        <SignInPrompt returnTo={`/orders/${orderId}`} />
-      </div>
+      <Main>
+        <div className="mx-auto w-full max-w-xl px-4 py-8">
+          <SignInPrompt returnTo={`/orders/${orderId}`} />
+        </div>
+      </Main>
     );
   }
   if (!read.value) notFound();
-  const { parts, now } = read.value;
+  const { order, cancellable, together, now } = read.value;
 
-  if (parts.length === 1) return <Part {...parts[0]} now={now} level="page" />;
+  // The order follows its notices, and the moments its window opens and closes (SEC-117), whatever it shows.
+  const live = (
+    <LiveRefresh topics={[`order:${order.id}`]} at={[order.windowStart, order.windowEnd]} />
+  );
+  const banner = order.unreadMessages ? (
+    <div className="mx-auto w-full max-w-xl px-4 pt-4 md:max-w-3xl lg:max-w-300">
+      <UnreadBanner
+        orderId={order.id}
+        access={order.access}
+        side="customer"
+        unread={order.unreadMessages}
+        href={`/orders/${order.id}/chat`}
+      />
+    </div>
+  ) : null;
+
+  if (hasEnded(order)) {
+    return (
+      <>
+        {live}
+        <EndedOrderBar order={order} />
+        <Main>
+          {banner}
+          <EndedOrder order={order} now={now} />
+        </Main>
+      </>
+    );
+  }
+
   return (
     <>
-      <PlacedTogether orders={parts.map(({ order }) => order)} />
-      {parts.map((part) => (
-        <Part key={part.order.id} {...part} now={now} level="part" />
-      ))}
+      {live}
+      {order.status === "collected" && order.review ? (
+        <EndedOrderBar order={order} />
+      ) : (
+        <CustomerHeader returnTo={`/orders/${orderId}`} />
+      )}
+      <Main>
+        {banner}
+        {order.status === "collected" ? (
+          <CollectedOrder order={order} together={together} now={now} />
+        ) : (
+          <OpenOrder order={order} cancellable={cancellable} together={together} now={now} />
+        )}
+      </Main>
     </>
-  );
-}
-
-function Part({
-  order,
-  cancellable,
-  now,
-  level,
-}: OrderPart & { now: number; level: "page" | "part" }) {
-  return hasEnded(order) ? (
-    <EndedOrder order={order} level={level} />
-  ) : (
-    <OpenOrder order={order} cancellable={cancellable} now={now} level={level} />
-  );
-}
-
-/** The title of orders placed together from one cart: one per seller, each with its own code (SEC-76 › decision 8). */
-async function PlacedTogether({ orders }: { orders: Order[] }) {
-  const t = await getTranslations("Orders");
-  const total = orders.reduce((sum, order) => sum + order.totalVnd, 0);
-
-  return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 px-4 pt-6 xl:max-w-300">
-      <h1 className="text-headline">{t("togetherTitle", { sellers: orders.length })}</h1>
-      <p className="text-body-sm text-muted-foreground">
-        {t("togetherBody", {
-          names: orders.map((order) => order.seller.name).join(", "),
-          total: formatPrice(total),
-        })}
-      </p>
-    </div>
   );
 }

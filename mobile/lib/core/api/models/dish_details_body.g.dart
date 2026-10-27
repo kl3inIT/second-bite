@@ -14,6 +14,10 @@ _DishDetailsBody _$DishDetailsBodyFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String?,
       hidden: json['hidden'] as bool?,
       ingredients: json['ingredients'] as String?,
+      kindLabel: json['kindLabel'] as String?,
+      morePhotoIds: (json['morePhotoIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       originalPriceVnd: (json['originalPriceVnd'] as num?)?.toInt(),
       unit: json['unit'] as String?,
     );
@@ -26,6 +30,8 @@ Map<String, dynamic> _$DishDetailsBodyToJson(_DishDetailsBody instance) =>
       'description': instance.description,
       'hidden': instance.hidden,
       'ingredients': instance.ingredients,
+      'kindLabel': instance.kindLabel,
+      'morePhotoIds': instance.morePhotoIds,
       'originalPriceVnd': instance.originalPriceVnd,
       'unit': instance.unit,
     };
@@ -36,6 +42,9 @@ const _$DishDetailsBodyKindEnumMap = {
   DishDetailsBodyKind.ingredients: 'ingredients',
   DishDetailsBodyKind.drinks: 'drinks',
   DishDetailsBodyKind.mixedBox: 'mixed_box',
+  DishDetailsBodyKind.dessert: 'dessert',
+  DishDetailsBodyKind.snacks: 'snacks',
+  DishDetailsBodyKind.produce: 'produce',
   DishDetailsBodyKind.other: 'other',
   DishDetailsBodyKind.$unknown: r'$unknown',
 };

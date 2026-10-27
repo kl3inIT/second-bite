@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { byCheckout, canCancel, clampUnits, isOpen, savingOf, unitsOf, type Order } from "./order";
-
-const opensAt = Date.parse("2026-10-20T21:00:00+07:00");
-const windowStart = new Date(opensAt).toISOString();
+import {
+  byCheckout,
+  canCancel,
+  clampUnits,
+  dayOf,
+  isOpen,
+  savingOf,
+  unitsOf,
+  type Order,
+} from "./order";
 
 function line(units: number, priceVnd: number, originalPriceVnd: number): Order["lines"][number] {
   const photo = { id: "ph", largePath: "", smallPath: "" };
@@ -21,10 +27,10 @@ describe("an order", () => {
     }
   });
 
-  it("can be cancelled while open and before its window opens", () => {
-    expect(canCancel({ status: "confirmed", windowStart }, opensAt - 1)).toBe(true);
-    expect(canCancel({ status: "confirmed", windowStart }, opensAt)).toBe(false);
-    expect(canCancel({ status: "cancelled", windowStart }, opensAt - 1)).toBe(false);
+  it("can be cancelled until the seller marks it ready", () => {
+    expect(canCancel({ status: "confirmed" })).toBe(true);
+    expect(canCancel({ status: "ready" })).toBe(false);
+    expect(canCancel({ status: "cancelled" })).toBe(false);
   });
 
   it("counts its units and what the customer saves", () => {
@@ -68,5 +74,21 @@ describe("orders placed together", () => {
       ["laparis", "nethue"],
       ["alone"],
     ]);
+  });
+});
+
+describe("the day of an ended order", () => {
+  const timeZone = "Asia/Ho_Chi_Minh";
+  const now = Date.parse("2026-10-20T22:30:00+07:00");
+
+  it("is counted in the app's time zone", () => {
+    // 00:30 in Hà Nội is still the evening before in UTC.
+    expect(dayOf("2026-10-20T00:30:00+07:00", now, timeZone)).toBe("today");
+    expect(dayOf("2026-10-19T23:30:00+07:00", now, timeZone)).toBe("week");
+  });
+
+  it("falls in the week for six days, and before after that", () => {
+    expect(dayOf("2026-10-14T20:00:00+07:00", now, timeZone)).toBe("week");
+    expect(dayOf("2026-10-13T20:00:00+07:00", now, timeZone)).toBe("before");
   });
 });

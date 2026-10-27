@@ -20,7 +20,7 @@ abstract class AuditDetailsBody with _$AuditDetailsBody {
     /// Who delivers email after the change
     AuditDetailsBodyProvider? provider,
 
-    /// What the owner was told, for a rejection or a block
+    /// What the owner was told, for a rejection or a block; the admin's reason, for a hidden review
     String? reason,
 
     /// Where a change of admins came from

@@ -54,6 +54,17 @@ test.describe("signing in on the web", () => {
     await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
   });
 
+  test("says an address is not one before sending it, under the field", async ({ page }) => {
+    await page.goto("/vi/sign-in");
+    const field = await hydrated(page.getByLabel("Email"));
+    await field.fill("an@");
+    await page.getByRole("button", { name: "Gửi mã" }).click();
+    await expect(page.getByText("Nhập một địa chỉ email, ví dụ ten@gmail.com.")).toBeVisible();
+    await expect(field).toBeFocused();
+    await expect(field).toHaveAttribute("aria-invalid", "true");
+    await expect(page.getByRole("heading", { level: 1, name: "Đăng nhập" })).toBeVisible();
+  });
+
   test("says what is wrong with an address", async ({ page }) => {
     await page.goto("/vi/sign-in");
     await (await hydrated(page.getByLabel("Email"))).fill("limit@example.com");

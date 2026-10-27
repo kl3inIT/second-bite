@@ -6,12 +6,16 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/add_seller_staff_request.dart';
+import '../models/address_output_body.dart';
 import '../models/details_body.dart';
+import '../models/followed_output_body.dart';
 import '../models/member_body.dart';
 import '../models/members_output_body.dart';
+import '../models/places_output_body.dart';
 import '../models/seller_body.dart';
 import '../models/seller_profile_body.dart';
 import '../models/sellers_output_body.dart';
+import '../models/send_seller_feedback_request.dart';
 import '../models/set_seller_photo_request.dart';
 
 part 'sellers_client.g.dart';
@@ -20,24 +24,64 @@ part 'sellers_client.g.dart';
 abstract class SellersClient {
   factory SellersClient(Dio dio, {String? baseUrl}) = _SellersClient;
 
-  /// Open a seller; it waits for an admin to activate it
+  /// Open a seller, active at once, pinned inside Hanoi
   @POST('/sellers')
   Future<SellerBody> openSeller({@Body() required DetailsBody body});
+
+  /// The address at a point, to fill the form that opens a store; empty when it is not known
+  @GET('/sellers/address')
+  Future<AddressOutputBody> addressAt({
+    @Query('latitude') required double latitude,
+    @Query('longitude') required double longitude,
+  });
+
+  /// The active sellers I follow, the latest followed first.
+  ///
+  /// A seller blocked since is left out.
+  @GET('/sellers/followed')
+  Future<FollowedOutputBody> listFollowedSellers();
 
   /// The sellers I own or work for
   @GET('/sellers/mine')
   Future<SellersOutputBody> listMySellers();
 
+  /// Places in Hanoi for the words of a store's address, to pin it as it is typed.
+  ///
+  /// [q] - The words of the address, with or without Vietnamese marks.
+  @GET('/sellers/places')
+  Future<PlacesOutputBody> searchPlaces({@Query('q') required String q});
+
   /// A seller, to its members and admins
   @GET('/sellers/{sellerId}')
   Future<SellerBody> getSeller({@Path('sellerId') required String sellerId});
 
-  /// Change a seller's details; only its owner may
+  /// Change a seller's details; only its owner may. A moved pin or address moves its offers on sale and its orders still to collect
   @PUT('/sellers/{sellerId}')
   Future<SellerBody> updateSeller({
     @Path('sellerId') required String sellerId,
     @Body() required DetailsBody body,
   });
+
+  /// Tell the Second Bite team what is hard or missing, for the seller's people.
+  ///
+  /// Kept with the seller, not who wrote it; at most 20 a day for one seller (SEC-82).
+  @POST('/sellers/{sellerId}/feedback')
+  Future<void> sendSellerFeedback({
+    @Path('sellerId') required String sellerId,
+    @Body() required SendSellerFeedbackRequest body,
+  });
+
+  /// Take a seller out of my favourites.
+  ///
+  /// A seller I do not follow is left as it is.
+  @DELETE('/sellers/{sellerId}/follow')
+  Future<void> unfollowSeller({@Path('sellerId') required String sellerId});
+
+  /// Make an active seller one of my favourites.
+  ///
+  /// Following again changes nothing. A seller pending or blocked answers 404.
+  @PUT('/sellers/{sellerId}/follow')
+  Future<void> followSeller({@Path('sellerId') required String sellerId});
 
   /// The owner and staff of a seller
   @GET('/sellers/{sellerId}/members')

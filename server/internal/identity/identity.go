@@ -26,15 +26,18 @@ import (
 // Limits of sign-in, taken from BeyondPilot's running values and Ory Kratos's
 // defaults (five guesses per code).
 const (
-	codeLifetime       = 15 * time.Minute
-	codeAttempts       = 5
-	codeCooldown       = time.Minute
-	codesPerHour       = 10
-	wrongGuessesInHour = 15
-	wrongGuessesInDay  = 30
-	sessionLifetime    = 30 * 24 * time.Hour
-	sessionTouchEvery  = time.Hour
-	maxEmailLength     = 254
+	codeLifetime = 15 * time.Minute
+	codeAttempts = 5
+	codeCooldown = time.Minute
+	codesPerHour = 10
+	// A person needs one deletion code, a second if the first is lost; few
+	// enough that a stolen session asking for them achieves nothing (SEC-126).
+	deletionCodesPerHour = 3
+	wrongGuessesInHour   = 15
+	wrongGuessesInDay    = 30
+	sessionLifetime      = 30 * 24 * time.Hour
+	sessionTouchEvery    = time.Hour
+	maxEmailLength       = 254
 )
 
 // Config is what the module needs from the environment.

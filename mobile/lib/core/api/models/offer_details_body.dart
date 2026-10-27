@@ -18,7 +18,7 @@ abstract class OfferDetailsBody with _$OfferDetailsBody {
     /// What one unit normally sells for; the price must be the minimum discount below it
     required int originalPriceVnd,
 
-    /// From POST /photos, or the photo of an earlier offer of the seller
+    /// The cover: from POST /photos, or the photo of an earlier offer of the seller
     required String photoId,
 
     /// Price of one unit, in whole đồng
@@ -33,6 +33,12 @@ abstract class OfferDetailsBody with _$OfferDetailsBody {
 
     /// Required for a mixed_box, which is described by what it may hold; allergens are written here
     String? description,
+
+    /// What the seller calls a dish of the kind other; empty for any other kind
+    String? kindLabel,
+
+    /// Up to two more photos after the cover
+    List<String>? morePhotoIds,
 
     /// What one unit is called; "suất" when empty
     String? unit,

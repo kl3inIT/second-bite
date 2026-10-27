@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 
 import { AppHeader } from "@/components/app-header";
 import { JsonLd } from "@/components/json-ld";
+import { AccountAction } from "@/features/identity/account-action";
+import { contentWidth } from "@/lib/layout";
+import { cn } from "@/lib/utils";
 import { absoluteUrl, pageMetadata, siteIds } from "@/lib/seo";
+import { Panel } from "@/components/panel";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { legalUpdated } from "./legal";
 
@@ -39,18 +45,27 @@ export function LegalPage({ namespace }: { namespace: Namespace }) {
 
   return (
     <>
-      <AppHeader />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 pt-2 pb-12 md:gap-6 md:pt-6">
-        <header className="flex flex-col gap-4">
+      <AppHeader
+        account={
+          <Suspense>
+            <AccountAction returnTo={paths[namespace]} />
+          </Suspense>
+        }
+      />
+      <main
+        className={cn(contentWidth, "flex flex-1 flex-col gap-4 px-4 pt-2 pb-12 md:gap-6 md:pt-6")}
+      >
+        <header className="flex flex-col gap-4 md:w-full md:max-w-3xl md:self-center">
           <h1 className="text-headline text-foreground">{t("title")}</h1>
-          <p
-            role="note"
-            className="rounded-2xl border border-border bg-card p-4 text-body-sm text-card-foreground"
-          >
-            {legal("draft")}
-          </p>
+          <Card size="page" role="note">
+            <CardContent>{legal("draft")}</CardContent>
+          </Card>
         </header>
-        <article className="flex flex-col gap-6 rounded-2xl border border-border bg-card p-4 text-card-foreground md:px-7 md:py-6">
+        <Panel
+          as="article"
+          className="md:w-full md:max-w-3xl md:self-center"
+          contentClassName="gap-6"
+        >
           <div className="flex flex-col gap-3">
             <p className="text-label text-muted-foreground">
               {legal.rich("updated", {
@@ -94,7 +109,7 @@ export function LegalPage({ namespace }: { namespace: Namespace }) {
               ))}
             </section>
           ))}
-        </article>
+        </Panel>
         {/* The page, its place under the home, and its sections as parts an answer engine can cite. */}
         <JsonLd
           data={{

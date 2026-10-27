@@ -187,6 +187,21 @@ var adminChanges = map[string]adminChange{
 
 		return send(t, http.MethodPost, svc.base+"/admin/sellers/"+id+"/block", admin, reasonBody(testReason)), func() {}
 	}},
+	"hideReview": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		id := reviewedOrder(t, svc, "audit.hide", "Quán Ẩn")
+
+		return send(t, http.MethodPost, svc.base+"/admin/reviews/"+id+"/hide", admin, reasonBody(testReason)), func() {}
+	}},
+	"showReview": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		id := reviewedOrder(t, svc, "audit.show", "Quán Hiện")
+		execSQL(t, svc, "UPDATE order_reviews SET hidden_at = now() WHERE order_id = $1", id)
+
+		return send(t, http.MethodPost, svc.base+"/admin/reviews/"+id+"/show", admin, nil), func() {}
+	}},
 }
 
 // checkAdminChangesAreAudited makes every admin change through the API and
@@ -377,4 +392,28 @@ func checkAdminCommands(t *testing.T, svc service) {
 	if err := run(t.Context(), []string{commandAdmin, "demote", email}, svc.getenv, strings.NewReader(""), io.Discard); !errors.Is(err, errUsage) {
 		t.Errorf("an unknown admin command: %v, want the usage", err)
 	}
+}
+
+// reviewedOrder has a customer order from a new seller, collect the order and
+// rate it, answering the order's identifier; who names both accounts and
+// name the seller.
+func reviewedOrder(t *testing.T, svc service, who, name string) string {
+	t.Helper()
+
+	owner := bearer(signIn(t, svc, who+".owner@example.com").Token)
+	customer := bearer(signIn(t, svc, who+".customer@example.com").Token)
+	_, offerID := postedOfferOf(t, svc, owner, name)
+
+	placing := customer.Clone()
+	placing.Set("Idempotency-Key", who)
+
+	var placed orderResponse
+
+	send(t, http.MethodPost, svc.base+"/orders", placing, cartOf(cartLine{offerID, 1})).decode(t, http.StatusCreated, &placed)
+	handOver(t, svc, owner, placed)
+
+	send(t, http.MethodPost, svc.base+"/orders/"+placed.ID+"/review", customer, map[string]any{"stars": 2, "tags": []string{}}).
+		decode(t, http.StatusOK, &placed)
+
+	return placed.ID
 }

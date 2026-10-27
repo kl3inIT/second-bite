@@ -19,35 +19,40 @@ WHERE id = 1;
 
 -- name: InsertOffer :one
 INSERT INTO offer_offers (
-    seller_id, posted_by, name, description, kind, unit, units, units_left, price_vnd, original_price_vnd,
-    weight_grams, photo_id, window_start, window_end, latitude, longitude, address, seller_name, search_vector
+    seller_id, posted_by, name, description, kind, kind_label, unit, units, units_left, price_vnd, original_price_vnd,
+    weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address, seller_name, search_vector
 ) VALUES (
-    @seller_id, @posted_by, @name, @description, @kind, @unit, @units, @units, @price_vnd, @original_price_vnd,
-    @weight_grams, @photo_id, @window_start, @window_end, @latitude, @longitude, @address, @seller_name,
+    @seller_id, @posted_by, @name, @description, @kind, @kind_label, @unit, @units, @units, @price_vnd, @original_price_vnd,
+    @weight_grams, @photo_id, @more_photo_ids, @window_start, @window_end, @latitude, @longitude, @address, @seller_name,
     (sqlc.arg(search_vector)::text)::tsvector
 )
 RETURNING id;
 
 -- name: GetOffer :one
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers WHERE id = @id;
 
 -- name: LockOffer :one
 -- Serializes changes to one offer until the transaction ends.
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers WHERE id = @id FOR UPDATE;
 
 -- name: UpdateOffer :exec
 UPDATE offer_offers
-SET name = @name, description = @description, kind = @kind, unit = @unit, units = @units,
+SET name = @name, description = @description, kind = @kind, kind_label = @kind_label, unit = @unit, units = @units,
     units_left = @units_left, price_vnd = @price_vnd, original_price_vnd = @original_price_vnd,
-    weight_grams = @weight_grams, photo_id = @photo_id, window_start = @window_start, window_end = @window_end,
+    weight_grams = @weight_grams, photo_id = @photo_id, more_photo_ids = @more_photo_ids, window_start = @window_start, window_end = @window_end,
     search_vector = (sqlc.arg(search_vector)::text)::tsvector, updated_at = now()
 WHERE id = @id;
+
+-- name: CloseEnded :execrows
+-- Closes the offers still on sale whose window is over. Reads compare the window too.
+UPDATE offer_offers SET state = 'closed', updated_at = now()
+WHERE state = 'on_sale' AND window_end <= now();
 
 -- name: WindowsOf :many
 SELECT id, window_start, window_end FROM offer_offers WHERE id = ANY (@ids::uuid[]);
@@ -57,29 +62,77 @@ UPDATE offer_offers SET state = 'withdrawn', withdrawn_at = now(), updated_at = 
 WHERE id = @id AND state = 'on_sale';
 
 -- name: SellerUsesPhoto :one
-SELECT (EXISTS (SELECT 1 FROM offer_offers AS o WHERE o.seller_id = @seller_id AND o.photo_id = @photo_id)
-    OR EXISTS (SELECT 1 FROM offer_dishes AS d WHERE d.seller_id = @seller_id AND d.photo_id = @photo_id))::boolean;
+SELECT (EXISTS (SELECT 1 FROM offer_offers AS o
+                WHERE o.seller_id = @seller_id AND (o.photo_id = @photo_id OR @photo_id = ANY (o.more_photo_ids)))
+    OR EXISTS (SELECT 1 FROM offer_dishes AS d
+               WHERE d.seller_id = @seller_id AND (d.photo_id = @photo_id OR @photo_id = ANY (d.more_photo_ids))))::boolean;
 
 -- name: SellerOffers :many
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name
 FROM offer_offers
 WHERE seller_id = @seller_id
   AND (@status::text = ''
        OR (@status = 'withdrawn' AND state = 'withdrawn')
-       OR (@status = 'closed' AND state = 'on_sale' AND window_end <= now())
+       OR (@status = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
        OR (@status = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
        OR (@status = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
 ORDER BY created_at DESC, id
 LIMIT @max_rows OFFSET @skip_rows;
 
+-- name: OffersForAdmins :many
+-- One page of every seller's offers in the status given (all when empty),
+-- matching the tsquery literal built by searchQuery (any when empty), of the
+-- seller given and posted in [posted_since, posted_until) when given, newest
+-- first; CountOffersForAdmins counts them all.
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
+       created_at, updated_at, withdrawn_at, seller_name
+FROM offer_offers
+WHERE (@status::text = ''
+       OR (@status = 'withdrawn' AND state = 'withdrawn')
+       OR (@status = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
+       OR (@status = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
+       OR (@status = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
+  AND (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
+  AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz)
+ORDER BY created_at DESC, id
+LIMIT @max_rows OFFSET @skip_rows;
+
+-- name: CountOffersForAdmins :one
+SELECT count(*) FROM offer_offers
+WHERE (@status::text = ''
+       OR (@status = 'withdrawn' AND state = 'withdrawn')
+       OR (@status = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
+       OR (@status = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
+       OR (@status = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
+  AND (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
+  AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz);
+
+-- name: CountOffersByStatus :one
+-- How many offers of each status match the words, the seller and the day
+-- posted, whatever the status asked, for the cards above the admins' list.
+SELECT count(*) FILTER (WHERE state = 'on_sale' AND window_end > now() AND units_left > 0) AS on_sale,
+       count(*) FILTER (WHERE state = 'on_sale' AND window_end > now() AND units_left = 0) AS sold_out,
+       count(*) FILTER (WHERE state = 'closed' OR (state = 'on_sale' AND window_end <= now())) AS closed,
+       count(*) FILTER (WHERE state = 'withdrawn') AS withdrawn
+FROM offer_offers
+WHERE (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
+  AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz);
+
 -- name: SearchOffers :many
 -- Offers customers may order or see sold out: on sale, the window not over,
 -- the seller not blocked; filtered before they are ordered and paged. The
 -- query is a tsquery literal built by searchQuery, empty for none.
-SELECT id, seller_id, posted_by, state, name, description, kind, unit, units, units_left, price_vnd,
-       original_price_vnd, weight_grams, photo_id, window_start, window_end, latitude, longitude, address,
+SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
+       original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
        created_at, updated_at, withdrawn_at, seller_name,
        COALESCE(distance_m, 0)::float8 AS distance_m, rank::float4 AS rank
 FROM (
@@ -119,23 +172,23 @@ SELECT pg_advisory_xact_lock(hashtextextended('offer:dishes:' || @seller_id::tex
 SELECT count(*)::integer FROM offer_dishes WHERE seller_id = @seller_id;
 
 -- name: InsertDish :one
-INSERT INTO offer_dishes (seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden)
-VALUES (@seller_id, @created_by, @name, @kind, @unit, @description, @ingredients, @original_price_vnd, @photo_id, @hidden)
+INSERT INTO offer_dishes (seller_id, created_by, name, kind, kind_label, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden)
+VALUES (@seller_id, @created_by, @name, @kind, @kind_label, @unit, @description, @ingredients, @original_price_vnd, @photo_id, @more_photo_ids, @hidden)
 RETURNING id;
 
 -- name: GetDish :one
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, kind_label, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden, created_at, updated_at
 FROM offer_dishes WHERE id = @id;
 
 -- name: SellerDishes :many
-SELECT id, seller_id, created_by, name, kind, unit, description, ingredients, original_price_vnd, photo_id, hidden, created_at, updated_at
+SELECT id, seller_id, created_by, name, kind, kind_label, unit, description, ingredients, original_price_vnd, photo_id, more_photo_ids, hidden, created_at, updated_at
 FROM offer_dishes WHERE seller_id = @seller_id
 ORDER BY created_at DESC, id DESC;
 
 -- name: UpdateDish :exec
 UPDATE offer_dishes
-SET name = @name, kind = @kind, unit = @unit, description = @description, ingredients = @ingredients,
-    original_price_vnd = @original_price_vnd, photo_id = @photo_id, hidden = @hidden, updated_at = now()
+SET name = @name, kind = @kind, kind_label = @kind_label, unit = @unit, description = @description, ingredients = @ingredients,
+    original_price_vnd = @original_price_vnd, photo_id = @photo_id, more_photo_ids = @more_photo_ids, hidden = @hidden, updated_at = now()
 WHERE id = @id;
 
 -- name: DeleteDish :execrows
@@ -154,3 +207,24 @@ RETURNING id, seller_id, name, unit, price_vnd, original_price_vnd, photo_id, wi
 -- Gives back the units of a cancelled order, never above the offer's units.
 UPDATE offer_offers SET units_left = LEAST(units, units_left + @units), updated_at = now()
 WHERE id = @id;
+
+-- name: MoveSellerOffers :execrows
+-- Copies a seller's collection point onto its offers still to come: on sale
+-- with a window not yet over. Offers withdrawn or ended keep what they copied.
+UPDATE offer_offers
+SET latitude = @latitude, longitude = @longitude, address = @address, updated_at = now()
+WHERE seller_id = @seller_id AND state = 'on_sale' AND window_end > now()
+  AND (latitude, longitude, address) IS DISTINCT FROM (@latitude, @longitude, @address::text);
+
+-- name: PostDays :many
+-- The offers posted and their units, per collection day in Vietnam and seller, for the admin's report (SEC-80).
+SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
+       count(*) AS offers, sum(units)::bigint AS units
+FROM offer_offers
+WHERE window_start >= @since AND window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+GROUP BY 1, 2
+ORDER BY 1, 2;
+
+-- name: SellersOfOffers :many
+SELECT id, seller_id FROM offer_offers WHERE id = ANY(@ids::uuid[]);

@@ -41,7 +41,7 @@ A temporary runtime mode, command or endpoint is not a substitute for a missing 
 ## Schema evolution
 
 - **Until the first staging deployment holds data**, migrations may be rewritten and local databases recreated. A pull request that rewrites a merged migration says so, because every developer must recreate their local database.
-- **From the first staging deployment onward**, record its date here. Migrations are then forward-only and append-only: never edit an applied migration, and never reset, recreate or squash a database, schema or table to reach a cleaner model.
+- **From the first staging deployment onward** (18 October 2026, `secondbite.vadan.app`, SEC-33), migrations are then forward-only and append-only: never edit an applied migration, and never reset, recreate or squash a database, schema or table to reach a cleaner model.
 - A change to an existing shape transforms the existing rows in the migration, or in a bounded, idempotent backfill, and states what is kept, converted or deliberately lost. Losing data that people created needs a recorded owner decision.
 - A migration that the previous release cannot run against is called out in the pull request, because rollback is then a database restore.
 

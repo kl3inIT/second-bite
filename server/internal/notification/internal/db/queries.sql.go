@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -22,6 +23,54 @@ func (q *Queries) DeleteEmailsTo(ctx context.Context, recipient string) (int64, 
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const deletePush = `-- name: DeletePush :exec
+DELETE FROM notification_pushes WHERE id = $1
+`
+
+func (q *Queries) DeletePush(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deletePush, id)
+	return err
+}
+
+const deleteSubscription = `-- name: DeleteSubscription :execrows
+DELETE FROM notification_push_subscriptions WHERE endpoint = $1
+`
+
+func (q *Queries) DeleteSubscription(ctx context.Context, endpoint string) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteSubscription, endpoint)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteSubscriptionByID = `-- name: DeleteSubscriptionByID :exec
+DELETE FROM notification_push_subscriptions WHERE id = $1
+`
+
+func (q *Queries) DeleteSubscriptionByID(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteSubscriptionByID, id)
+	return err
+}
+
+const followTopic = `-- name: FollowTopic :exec
+INSERT INTO notification_push_topics (subscription_id, topic, expires_at)
+VALUES ($1, $2, $3)
+ON CONFLICT (subscription_id, topic) DO UPDATE SET expires_at = EXCLUDED.expires_at
+`
+
+type FollowTopicParams struct {
+	SubscriptionID uuid.UUID
+	Topic          string
+	ExpiresAt      time.Time
+}
+
+// The subscription follows topic until expires_at; following it again moves that later.
+func (q *Queries) FollowTopic(ctx context.Context, arg FollowTopicParams) error {
+	_, err := q.db.Exec(ctx, followTopic, arg.SubscriptionID, arg.Topic, arg.ExpiresAt)
+	return err
 }
 
 const getEmailSettings = `-- name: GetEmailSettings :one
@@ -48,6 +97,58 @@ func (q *Queries) GetEmailSettings(ctx context.Context) (NotificationEmailSettin
 	return i, err
 }
 
+const getPush = `-- name: GetPush :one
+SELECT id, topic, about, path, title_vi, title_en, body_vi, body_en, created_at FROM notification_pushes WHERE id = $1
+`
+
+func (q *Queries) GetPush(ctx context.Context, id uuid.UUID) (NotificationPush, error) {
+	row := q.db.QueryRow(ctx, getPush, id)
+	var i NotificationPush
+	err := row.Scan(
+		&i.ID,
+		&i.Topic,
+		&i.About,
+		&i.Path,
+		&i.TitleVi,
+		&i.TitleEn,
+		&i.BodyVi,
+		&i.BodyEn,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const insertPush = `-- name: InsertPush :one
+INSERT INTO notification_pushes (topic, about, path, title_vi, title_en, body_vi, body_en)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id
+`
+
+type InsertPushParams struct {
+	Topic   string
+	About   uuid.UUID
+	Path    string
+	TitleVi string
+	TitleEn string
+	BodyVi  string
+	BodyEn  string
+}
+
+func (q *Queries) InsertPush(ctx context.Context, arg InsertPushParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, insertPush,
+		arg.Topic,
+		arg.About,
+		arg.Path,
+		arg.TitleVi,
+		arg.TitleEn,
+		arg.BodyVi,
+		arg.BodyEn,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const lockEmailSettings = `-- name: LockEmailSettings :one
 SELECT id, provider, sender_address, sender_name, smtp_host, smtp_port, smtp_security, smtp_username, smtp_password_sealed, brevo_api_key_sealed, updated_at, updated_by FROM notification_email_settings WHERE id = 1 FOR UPDATE
 `
@@ -70,6 +171,97 @@ func (q *Queries) LockEmailSettings(ctx context.Context) (NotificationEmailSetti
 		&i.UpdatedAt,
 		&i.UpdatedBy,
 	)
+	return i, err
+}
+
+const pendingRecipients = `-- name: PendingRecipients :many
+SELECT s.id, s.endpoint, s.p256dh, s.auth, s.language
+FROM notification_push_topics AS t
+JOIN notification_push_subscriptions AS s ON s.id = t.subscription_id
+WHERE t.topic = $1 AND t.expires_at > $2
+  AND NOT EXISTS (
+      SELECT 1 FROM notification_push_deliveries AS d WHERE d.push_id = $3 AND d.subscription_id = s.id
+  )
+ORDER BY s.id
+`
+
+type PendingRecipientsParams struct {
+	Topic  string
+	Now    time.Time
+	PushID uuid.UUID
+}
+
+type PendingRecipientsRow struct {
+	ID       uuid.UUID
+	Endpoint string
+	P256dh   string
+	Auth     string
+	Language string
+}
+
+// The browsers following a push's topic now that it has not reached yet.
+func (q *Queries) PendingRecipients(ctx context.Context, arg PendingRecipientsParams) ([]PendingRecipientsRow, error) {
+	rows, err := q.db.Query(ctx, pendingRecipients, arg.Topic, arg.Now, arg.PushID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PendingRecipientsRow
+	for rows.Next() {
+		var i PendingRecipientsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Endpoint,
+			&i.P256dh,
+			&i.Auth,
+			&i.Language,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const purgePushes = `-- name: PurgePushes :one
+WITH topics AS (
+    DELETE FROM notification_push_topics AS lapsed WHERE lapsed.expires_at <= $1 RETURNING 1
+), subscriptions AS (
+    DELETE FROM notification_push_subscriptions AS s
+    WHERE s.created_at <= $2
+      AND NOT EXISTS (
+          SELECT 1 FROM notification_push_topics AS t WHERE t.subscription_id = s.id AND t.expires_at > $1
+      )
+    RETURNING 1
+), pushes AS (
+    DELETE FROM notification_pushes AS old WHERE old.created_at <= $3 RETURNING 1
+)
+SELECT (SELECT count(*) FROM topics) AS topics,
+       (SELECT count(*) FROM subscriptions) AS subscriptions,
+       (SELECT count(*) FROM pushes) AS pushes
+`
+
+type PurgePushesParams struct {
+	Now                time.Time
+	SubscriptionBefore time.Time
+	PushBefore         time.Time
+}
+
+type PurgePushesRow struct {
+	Topics        int64
+	Subscriptions int64
+	Pushes        int64
+}
+
+// Forgets the topics that lapsed, the subscriptions left with none a day after they were made, and the pushes too
+// old to matter; returns how many of each.
+func (q *Queries) PurgePushes(ctx context.Context, arg PurgePushesParams) (PurgePushesRow, error) {
+	row := q.db.QueryRow(ctx, purgePushes, arg.Now, arg.SubscriptionBefore, arg.PushBefore)
+	var i PurgePushesRow
+	err := row.Scan(&i.Topics, &i.Subscriptions, &i.Pushes)
 	return i, err
 }
 
@@ -126,6 +318,21 @@ func (q *Queries) PutEmailSettings(ctx context.Context, arg PutEmailSettingsPara
 	return err
 }
 
+const recordDelivery = `-- name: RecordDelivery :exec
+INSERT INTO notification_push_deliveries (push_id, subscription_id) VALUES ($1, $2)
+ON CONFLICT DO NOTHING
+`
+
+type RecordDeliveryParams struct {
+	PushID         uuid.UUID
+	SubscriptionID uuid.UUID
+}
+
+func (q *Queries) RecordDelivery(ctx context.Context, arg RecordDeliveryParams) error {
+	_, err := q.db.Exec(ctx, recordDelivery, arg.PushID, arg.SubscriptionID)
+	return err
+}
+
 const recordEmail = `-- name: RecordEmail :exec
 INSERT INTO notification_emails (kind, recipient, provider, provider_message_id)
 VALUES ($1, $2, $3, $4)
@@ -146,4 +353,48 @@ func (q *Queries) RecordEmail(ctx context.Context, arg RecordEmailParams) error 
 		arg.ProviderMessageID,
 	)
 	return err
+}
+
+const saveSubscription = `-- name: SaveSubscription :one
+INSERT INTO notification_push_subscriptions (endpoint, p256dh, auth, language)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (endpoint) DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth, language = EXCLUDED.language
+RETURNING id
+`
+
+type SaveSubscriptionParams struct {
+	Endpoint string
+	P256dh   string
+	Auth     string
+	Language string
+}
+
+// A browser's subscription, kept by its endpoint: subscribing again renews its keys and its language.
+func (q *Queries) SaveSubscription(ctx context.Context, arg SaveSubscriptionParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, saveSubscription,
+		arg.Endpoint,
+		arg.P256dh,
+		arg.Auth,
+		arg.Language,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const topicFollowed = `-- name: TopicFollowed :one
+SELECT EXISTS (SELECT 1 FROM notification_push_topics WHERE topic = $1 AND expires_at > $2) AS followed
+`
+
+type TopicFollowedParams struct {
+	Topic string
+	Now   time.Time
+}
+
+// Whether any browser follows topic now, so a push nobody would receive is not written.
+func (q *Queries) TopicFollowed(ctx context.Context, arg TopicFollowedParams) (bool, error) {
+	row := q.db.QueryRow(ctx, topicFollowed, arg.Topic, arg.Now)
+	var followed bool
+	err := row.Scan(&followed)
+	return followed, err
 }

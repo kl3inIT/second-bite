@@ -73,7 +73,7 @@ func (s *Service) Place(ctx context.Context, key string, checkout uuid.UUID, con
 	})
 
 	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+	if errors.As(err, &pgErr) && pgErr.Code == uniqueViolation {
 		// The same key arrived twice at once; the first order stands.
 		earlier, err := s.queries.OrderOfKey(ctx, db.OrderOfKeyParams{
 			CustomerID: customer, IdempotencyKey: key, CustomerPhone: contact.Phone,
@@ -101,7 +101,7 @@ func (s *Service) placed(ctx context.Context, id uuid.UUID) (Order, error) {
 		return Order{}, err
 	}
 
-	return s.shown(o, true), nil
+	return s.readBy(ctx, s.shown(o, true), SideCustomer)
 }
 
 // takeFailure is an offer's failure to give units, as the order module says it.
@@ -139,12 +139,12 @@ func (s *Service) place(
 
 	first := taken[0]
 
-	active, err := s.sellers.Publics(ctx, []uuid.UUID{first.SellerID})
+	active, err := s.sellers.IsActiveIn(ctx, tx, first.SellerID)
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	if _, ok := active[first.SellerID]; !ok {
+	if !active {
 		return uuid.Nil, ErrOfferUnavailable
 	}
 
@@ -159,7 +159,7 @@ func (s *Service) place(
 		CustomerID: customer, CustomerName: contact.Name, CustomerPhone: contact.Phone,
 		SellerID: first.SellerID, CheckoutID: checkout, SellerName: first.SellerName,
 		Latitude: first.CollectionPoint.Latitude, Longitude: first.CollectionPoint.Longitude, Address: first.CollectionPoint.Address,
-		WindowStart: start, WindowEnd: end, TotalVnd: total, IdempotencyKey: key,
+		WindowStart: start, WindowEnd: end, TotalVnd: total, IdempotencyKey: key, ZaloConsentAt: s.consentAt(contact),
 	})
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("storing the order: %w", err)
@@ -178,7 +178,33 @@ func (s *Service) place(
 		return uuid.Nil, fmt.Errorf("recording the order: %w", err)
 	}
 
-	return id, nil
+	return id, s.announcePlaced(ctx, tx, q, id)
+}
+
+// announcePlaced tells the sockets following the seller's orders, and the
+// seller's people by push, of a new order.
+func (s *Service) announcePlaced(ctx context.Context, tx pgx.Tx, q *db.Queries, id uuid.UUID) error {
+	placed, err := s.readIn(ctx, q, id)
+	if err != nil {
+		return err
+	}
+
+	if err := notifyOrder(ctx, tx, id, placed.SellerID, StatusConfirmed); err != nil {
+		return err
+	}
+
+	return s.pushPlaced(ctx, tx, placed)
+}
+
+// consentAt is when the customer agreed to Zalo, none when they did not.
+func (s *Service) consentAt(c Contact) *time.Time {
+	if !c.ByZalo {
+		return nil
+	}
+
+	now := s.now()
+
+	return &now
 }
 
 // sharedWindow is the time every taken offer is collected in, still to come;

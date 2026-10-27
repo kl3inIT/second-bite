@@ -36,6 +36,7 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/order"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/seller"
+	"github.com/kl3inIT/second-bite/server/internal/stats"
 	"github.com/kl3inIT/second-bite/server/migrations"
 )
 
@@ -44,6 +45,7 @@ const usage = `usage:
   secondbite admin grant EMAIL
   secondbite admin revoke EMAIL
   secondbite email configure [flags]   (secondbite email configure -h lists them)
+  secondbite push keys -private-key-file PATH
   secondbite health`
 
 var errUsage = errors.New(usage)
@@ -71,6 +73,12 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdin i
 	// serving process, in an image that has no shell or HTTP client.
 	if args[0] == "health" {
 		return health(ctx, args[1:], getenv)
+	}
+
+	// The keys are made before the service has them, so this needs no
+	// database either.
+	if args[0] == "push" {
+		return pushKeys(args[1:], stdout)
 	}
 
 	app, err := assemble(ctx, getenv, stdout)
@@ -112,6 +120,7 @@ type app struct {
 	seller       *seller.Service
 	offer        *offer.Service
 	order        *order.Service
+	stats        *stats.Service
 }
 
 // assemble reads the configuration, opens and migrates the database, and
@@ -146,7 +155,14 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 
 		trail := audit.NewService(pool, logger)
 
-		notifications, err := notification.NewService(pool, trail, notification.Config{SettingsKey: k.settings}, logger)
+		pushCfg, err := pushConfig(getenv)
+		if err != nil {
+			return nil, fmt.Errorf("configuration: %w", err)
+		}
+
+		notifications, err := notification.NewService(pool, trail, events, notification.Config{
+			SettingsKey: k.settings, Push: pushCfg,
+		}, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -171,17 +187,24 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		sellers := seller.NewService(pool, identities, files, notifications, events, trail, logger)
 		offers := offer.NewService(pool, sellers, files, events, trail, logger)
 
-		orders := order.NewService(pool, offers, sellers, logger)
+		orders := order.NewService(pool, offers, sellers, notifications, trail, logger)
+		views := stats.NewService(pool, offers, orders, sellers, logger)
 
 		// The listeners are known before anything publishes; they run only in
 		// serve.
 		file.RegisterListeners(events, files)
 		seller.RegisterListeners(events, sellers)
+		offer.RegisterListeners(events, offers)
 		order.RegisterListeners(events, orders)
+		notification.RegisterListeners(events, notifications)
+		offer.RegisterSchedules(events, offers)
+		order.RegisterSchedules(events, orders)
+		notification.RegisterSchedules(events, notifications)
+		stats.RegisterSchedules(events, views)
 
 		return &app{
 			cfg: cfg, logger: logger, pool: pool, events: events, audit: trail, notification: notifications, identity: identities,
-			file: files, seller: sellers, offer: offers, order: orders,
+			file: files, seller: sellers, offer: offers, order: orders, stats: views,
 		}, nil
 	}()
 	if err != nil {
@@ -224,6 +247,12 @@ func (a *app) serve(ctx context.Context) error {
 	registerOperations(platform.NewAPI(mux), a)
 	platform.RegisterHealth(mux, a.pool)
 
+	// The socket is no huma operation: huma cannot describe a WebSocket, and
+	// everything that needs authorization, the tickets included, stays in the
+	// contract.
+	live := platform.NewLive(a.pool, a.logger, a.order.RedeemLiveTicket)
+	mux.Handle("GET /live", live)
+
 	var lc net.ListenConfig
 
 	ln, err := lc.Listen(ctx, "tcp", a.cfg.HTTPAddr)
@@ -235,14 +264,27 @@ func (a *app) serve(ctx context.Context) error {
 		return err
 	}
 
+	// The hub closes its sockets with 1001 when ctx ends, as Shutdown does not
+	// track hijacked connections.
+	// The hub also stops when the server fails on its own, or the wait below
+	// would never end.
+	liveCtx, stopLive := context.WithCancel(ctx)
+	defer stopLive()
+
+	liveDone := make(chan error, 1)
+
+	go func() { liveDone <- live.Run(liveCtx) }()
+
 	serveErr := platform.Serve(ctx, ln, platform.NewHandler(mux, a.logger, a.identity.Authenticate), a.logger)
+
+	stopLive()
 
 	// The listeners stop after the requests that may publish, with time to
 	// finish what they run; what is left runs at the next start.
 	stopCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), eventsStopTimeout)
 	defer cancel()
 
-	return errors.Join(serveErr, a.events.Stop(stopCtx))
+	return errors.Join(serveErr, <-liveDone, a.events.Stop(stopCtx))
 }
 
 // eventsStopTimeout bounds how long serve waits for running listeners.
@@ -256,6 +298,8 @@ func registerOperations(api huma.API, a *app) {
 	seller.RegisterOperations(api, a.seller)
 	offer.RegisterOperations(api, a.offer)
 	order.RegisterOperations(api, a.order)
+	notification.RegisterOperations(api, a.notification, a.order.RedeemLiveTicket)
+	stats.RegisterOperations(api, a.stats)
 
 	// Every admin operation is registered on one group, so the contract test
 	// finds them all under its prefix (SEC-75).
@@ -265,6 +309,8 @@ func registerOperations(api huma.API, a *app) {
 	seller.RegisterAdminOperations(admin, a.seller)
 	offer.RegisterAdminOperations(admin, a.offer)
 	audit.RegisterAdminOperations(admin, a.audit)
+	order.RegisterAdminOperations(admin, a.order)
+	stats.RegisterAdminOperations(admin, a.stats)
 }
 
 // fileConfig reads where files are kept: SECONDBITE_FILE_STORE (postgres by

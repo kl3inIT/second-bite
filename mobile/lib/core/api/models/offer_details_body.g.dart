@@ -17,6 +17,10 @@ _OfferDetailsBody _$OfferDetailsBodyFromJson(Map<String, dynamic> json) =>
       windowEnd: DateTime.parse(json['windowEnd'] as String),
       windowStart: DateTime.parse(json['windowStart'] as String),
       description: json['description'] as String?,
+      kindLabel: json['kindLabel'] as String?,
+      morePhotoIds: (json['morePhotoIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       unit: json['unit'] as String?,
       weightGrams: (json['weightGrams'] as num?)?.toInt(),
     );
@@ -32,6 +36,8 @@ Map<String, dynamic> _$OfferDetailsBodyToJson(_OfferDetailsBody instance) =>
       'windowEnd': instance.windowEnd.toIso8601String(),
       'windowStart': instance.windowStart.toIso8601String(),
       'description': instance.description,
+      'kindLabel': instance.kindLabel,
+      'morePhotoIds': instance.morePhotoIds,
       'unit': instance.unit,
       'weightGrams': instance.weightGrams,
     };
@@ -42,6 +48,9 @@ const _$OfferDetailsBodyKindEnumMap = {
   OfferDetailsBodyKind.ingredients: 'ingredients',
   OfferDetailsBodyKind.drinks: 'drinks',
   OfferDetailsBodyKind.mixedBox: 'mixed_box',
+  OfferDetailsBodyKind.dessert: 'dessert',
+  OfferDetailsBodyKind.snacks: 'snacks',
+  OfferDetailsBodyKind.produce: 'produce',
   OfferDetailsBodyKind.other: 'other',
   OfferDetailsBodyKind.$unknown: r'$unknown',
 };

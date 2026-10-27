@@ -33,8 +33,8 @@ var (
 		EN: "The order does not exist.",
 	})
 	ErrCancelTooLate = platform.NewFailure("ORDER_CANCEL_TOO_LATE", platform.CategoryConflict, platform.Words{
-		VI: "Đơn không huỷ được nữa: đã đến giờ nhận, hoặc đơn đã kết thúc.",
-		EN: "The order can no longer be cancelled: its collection window has opened, or it has ended.",
+		VI: "Đơn không huỷ được nữa: quán đã báo món sẵn sàng, hoặc đơn đã kết thúc.",
+		EN: "The order can no longer be cancelled: the seller has marked it ready, or it has ended.",
 	})
 	ErrTransitionNotAllowed = platform.NewFailure("ORDER_TRANSITION_NOT_ALLOWED", platform.CategoryConflict, platform.Words{
 		VI: "Đơn đã kết thúc: đã nhận, đã huỷ, bị từ chối, hoặc đã hết giờ nhận.",
@@ -51,5 +51,81 @@ var (
 	ErrRefusalInvalid = platform.NewFailure("ORDER_REFUSAL_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Chọn một lý do có sẵn (not_suitable, wrong_items, no_answer, no_show, late, sold_out hoặc other), kèm ghi chú tối đa 200 ký tự.",
 		EN: "Give one of the reasons (not_suitable, wrong_items, no_answer, no_show, late, sold_out or other), and a note of at most 200 characters.",
+	})
+	ErrReviewInvalid = platform.NewFailure("ORDER_REVIEW_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Chọn từ 1 đến 5 sao, các thẻ có sẵn (fast_pickup, good_quality, good_variety hoặc fair_portions) không lặp lại, và nhận xét tối đa 500 ký tự.",
+		EN: "Give 1 to 5 stars, tags from the set (fast_pickup, good_quality, good_variety or fair_portions) none twice, and a comment of at most 500 characters.",
+	})
+	ErrNotCollected = platform.NewFailure("ORDER_NOT_COLLECTED", platform.CategoryConflict, platform.Words{
+		VI: "Chỉ đánh giá được đơn đã nhận.",
+		EN: "Only a collected order can be reviewed.",
+	})
+	ErrAlreadyReviewed = platform.NewFailure("ORDER_ALREADY_REVIEWED", platform.CategoryConflict, platform.Words{
+		VI: "Đơn này đã được đánh giá.",
+		EN: "The order was already reviewed.",
+	})
+	ErrProblemInvalid = platform.NewFailure("ORDER_PROBLEM_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Chọn điều chưa ổn (thiếu món, sai món, món không đạt hoặc quán đóng cửa khi đến) và ghi thêm tối đa 500 ký tự.",
+		EN: "Pick what went wrong (a missing item, a wrong item, poor quality or the store closed) and add at most 500 characters.",
+	})
+	ErrProblemNotAllowed = platform.NewFailure("ORDER_PROBLEM_NOT_ALLOWED", platform.CategoryConflict, platform.Words{
+		VI: "Chỉ báo vấn đề được với đơn đã nhận hoặc đã hết hạn, trong vòng 2 ngày.",
+		EN: "A problem can be reported only with a collected or expired order, within two days.",
+	})
+	ErrProblemAlreadyReported = platform.NewFailure("ORDER_PROBLEM_ALREADY_REPORTED", platform.CategoryConflict, platform.Words{
+		VI: "Bạn đã báo vấn đề với đơn này rồi.",
+		EN: "A problem was already reported with this order.",
+	})
+	ErrProblemNotFound = platform.NewFailure("ORDER_PROBLEM_NOT_FOUND", platform.CategoryNotFound, platform.Words{
+		VI: "Khách chưa báo vấn đề nào với đơn này.",
+		EN: "No problem was reported with this order.",
+	})
+	ErrProblemAlreadyAnswered = platform.NewFailure("ORDER_PROBLEM_ALREADY_ANSWERED", platform.CategoryConflict, platform.Words{
+		VI: "Quán đã trả lời vấn đề này rồi.",
+		EN: "The problem was already answered.",
+	})
+	ErrAnswerInvalid = platform.NewFailure("ORDER_ANSWER_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Viết câu trả lời cho khách, từ 1 đến 500 ký tự.",
+		EN: "Write the customer an answer of 1 to 500 characters.",
+	})
+	ErrAdminListInvalid = platform.NewFailure("ORDER_ADMIN_LIST_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Bộ lọc danh sách đơn không hợp lệ: kiểm tra trạng thái, từ khoá tối đa 100 ký tự, khoảng ngày nhận có ngày bắt đầu trước ngày kết thúc, trang từ 1 và cỡ trang từ 1 đến 100.",
+		EN: "The order list's filters are not valid: check the statuses, a query of at most 100 characters, a range of collection days that starts before it ends, a page from 1 and a page size of 1 to 100.",
+	})
+	ErrReviewListInvalid = platform.NewFailure("ORDER_REVIEW_LIST_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Bộ lọc danh sách đánh giá không hợp lệ: kiểm tra số sao từ 1 đến 5, trạng thái hiển thị, từ khoá tối đa 100 ký tự, khoảng ngày đánh giá có ngày bắt đầu trước ngày kết thúc, trang từ 1 và cỡ trang từ 1 đến 100.",
+		EN: "The review list's filters are not valid: check stars of 1 to 5, the visibility, a query of at most 100 characters, a range of review days that starts before it ends, a page from 1 and a page size of 1 to 100.",
+	})
+	ErrNotReviewed = platform.NewFailure("ORDER_NOT_REVIEWED", platform.CategoryNotFound, platform.Words{
+		VI: "Đơn này chưa có đánh giá.",
+		EN: "The order has no review.",
+	})
+	ErrReviewReasonInvalid = platform.NewFailure("ORDER_REVIEW_REASON_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Lý do ẩn đánh giá tối đa 500 ký tự.",
+		EN: "The reason for hiding a review is at most 500 characters.",
+	})
+	ErrReviewAlreadyHidden = platform.NewFailure("ORDER_REVIEW_ALREADY_HIDDEN", platform.CategoryConflict, platform.Words{
+		VI: "Đánh giá này đã bị ẩn.",
+		EN: "The review is already hidden.",
+	})
+	ErrReviewNotHidden = platform.NewFailure("ORDER_REVIEW_NOT_HIDDEN", platform.CategoryConflict, platform.Words{
+		VI: "Đánh giá này đang hiển thị.",
+		EN: "The review is already shown.",
+	})
+	ErrMessageInvalid = platform.NewFailure("ORDER_MESSAGE_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Tin nhắn dài từ 1 đến 1.000 ký tự.",
+		EN: "A message is 1 to 1,000 characters.",
+	})
+	ErrChatClosed = platform.NewFailure("ORDER_CHAT_CLOSED", platform.CategoryConflict, platform.Words{
+		VI: "Đơn đã kết thúc, chỉ xem lại tin nhắn.",
+		EN: "The order has ended; its messages can only be read.",
+	})
+	ErrChatFull = platform.NewFailure("ORDER_CHAT_FULL", platform.CategoryConflict, platform.Words{
+		VI: "Cuộc trò chuyện đã đủ 500 tin nhắn.",
+		EN: "The chat already holds 500 messages.",
+	})
+	ErrMessagesTooFast = platform.NewFailure("ORDER_MESSAGES_TOO_FAST", platform.CategoryLimitExceeded, platform.Words{
+		VI: "Bạn nhắn quá nhanh, hãy thử lại sau ít phút.",
+		EN: "You are sending messages too fast; try again shortly.",
 	})
 )

@@ -13,6 +13,219 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const answerProblem = `-- name: AnswerProblem :execrows
+UPDATE order_problems SET answer = $1, answered_at = now()
+WHERE order_id = $2 AND answer IS NULL
+`
+
+type AnswerProblemParams struct {
+	Answer  pgtype.Text
+	OrderID uuid.UUID
+}
+
+// Nothing is answered when there is no report or it was answered already.
+func (q *Queries) AnswerProblem(ctx context.Context, arg AnswerProblemParams) (int64, error) {
+	result, err := q.db.Exec(ctx, answerProblem, arg.Answer, arg.OrderID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const chatSeen = `-- name: ChatSeen :one
+SELECT customer_seen_seq, seller_seen_seq FROM order_chats WHERE order_id = $1
+`
+
+type ChatSeenRow struct {
+	CustomerSeenSeq int32
+	SellerSeenSeq   int32
+}
+
+func (q *Queries) ChatSeen(ctx context.Context, orderID uuid.UUID) (ChatSeenRow, error) {
+	row := q.db.QueryRow(ctx, chatSeen, orderID)
+	var i ChatSeenRow
+	err := row.Scan(&i.CustomerSeenSeq, &i.SellerSeenSeq)
+	return i, err
+}
+
+const countOrdersByStatus = `-- name: CountOrdersByStatus :one
+SELECT count(*) FILTER (WHERE state = 'confirmed' AND window_end > now()) AS confirmed,
+       count(*) FILTER (WHERE state = 'ready' AND window_end > now()) AS ready,
+       count(*) FILTER (WHERE state = 'collected') AS collected,
+       count(*) FILTER (WHERE state = 'cancelled') AS cancelled,
+       count(*) FILTER (WHERE state = 'refused') AS refused,
+       count(*) FILTER (WHERE state = 'expired' OR (state IN ('confirmed', 'ready') AND window_end <= now())) AS expired
+FROM order_orders
+WHERE true
+  AND ($1::text = '' OR search_text LIKE '%' || order_fold($1::text) || '%' ESCAPE '\')
+  AND ($2::uuid IS NULL OR seller_id = $2::uuid)
+  AND ($3::timestamptz IS NULL OR window_start >= $3::timestamptz)
+  AND ($4::timestamptz IS NULL OR window_start < $4::timestamptz)
+`
+
+type CountOrdersByStatusParams struct {
+	Query        string
+	SellerID     uuid.NullUUID
+	CollectSince *time.Time
+	CollectUntil *time.Time
+}
+
+type CountOrdersByStatusRow struct {
+	Confirmed int64
+	Ready     int64
+	Collected int64
+	Cancelled int64
+	Refused   int64
+	Expired   int64
+}
+
+// How many orders of each status match the words, the seller and the day
+// collected, whatever the statuses asked, for the cards above the admins'
+// list.
+func (q *Queries) CountOrdersByStatus(ctx context.Context, arg CountOrdersByStatusParams) (CountOrdersByStatusRow, error) {
+	row := q.db.QueryRow(ctx, countOrdersByStatus,
+		arg.Query,
+		arg.SellerID,
+		arg.CollectSince,
+		arg.CollectUntil,
+	)
+	var i CountOrdersByStatusRow
+	err := row.Scan(
+		&i.Confirmed,
+		&i.Ready,
+		&i.Collected,
+		&i.Cancelled,
+		&i.Refused,
+		&i.Expired,
+	)
+	return i, err
+}
+
+const countOrdersForAdmins = `-- name: CountOrdersForAdmins :one
+SELECT count(*) FROM order_orders
+WHERE (cardinality($1::text[]) = 0
+       OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
+          = ANY ($1::text[]))
+  AND ($2::text = '' OR search_text LIKE '%' || order_fold($2::text) || '%' ESCAPE '\')
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::timestamptz IS NULL OR window_start >= $4::timestamptz)
+  AND ($5::timestamptz IS NULL OR window_start < $5::timestamptz)
+`
+
+type CountOrdersForAdminsParams struct {
+	Statuses     []string
+	Query        string
+	SellerID     uuid.NullUUID
+	CollectSince *time.Time
+	CollectUntil *time.Time
+}
+
+func (q *Queries) CountOrdersForAdmins(ctx context.Context, arg CountOrdersForAdminsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countOrdersForAdmins,
+		arg.Statuses,
+		arg.Query,
+		arg.SellerID,
+		arg.CollectSince,
+		arg.CollectUntil,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countReviewsByStars = `-- name: CountReviewsByStars :one
+SELECT count(*) FILTER (WHERE r.stars = 1 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS one,
+       count(*) FILTER (WHERE r.stars = 2 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS two,
+       count(*) FILTER (WHERE r.stars = 3 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS three,
+       count(*) FILTER (WHERE r.stars = 4 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS four,
+       count(*) FILTER (WHERE r.stars = 5 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS five,
+       count(*) FILTER (WHERE r.hidden_at IS NOT NULL
+                          AND (cardinality($2::int[]) = 0 OR r.stars = ANY ($2::int[]))) AS hidden,
+       count(*) FILTER (WHERE r.hidden_at IS NULL AND $1::text <> 'hidden'
+                          AND (cardinality($2::int[]) = 0 OR r.stars = ANY ($2::int[]))) AS shown,
+       coalesce(sum(r.stars) FILTER (WHERE r.hidden_at IS NULL AND $1::text <> 'hidden'
+                                       AND (cardinality($2::int[]) = 0 OR r.stars = ANY ($2::int[]))), 0)::bigint
+           AS shown_stars
+FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
+WHERE ($3::text = '' OR o.search_text LIKE '%' || order_fold($3::text) || '%' ESCAPE '\'
+       OR order_fold(r.comment) LIKE '%' || order_fold($3::text) || '%' ESCAPE '\')
+  AND ($4::uuid IS NULL OR o.seller_id = $4::uuid)
+  AND ($5::timestamptz IS NULL OR r.created_at >= $5::timestamptz)
+  AND ($6::timestamptz IS NULL OR r.created_at < $6::timestamptz)
+`
+
+type CountReviewsByStarsParams struct {
+	Visibility    string
+	Stars         []int32
+	Query         string
+	SellerID      uuid.NullUUID
+	ReviewedSince *time.Time
+	ReviewedUntil *time.Time
+}
+
+type CountReviewsByStarsRow struct {
+	One        int64
+	Two        int64
+	Three      int64
+	Four       int64
+	Five       int64
+	Hidden     int64
+	Shown      int64
+	ShownStars int64
+}
+
+// For the cards above the admins' list, the reviews matching the words, the
+// seller and the days: how many give each number of stars, shown or hidden as
+// visibility asks; how many are hidden, of the stars asked; and how many are
+// shown matching every filter with their stars added up, for the mean.
+func (q *Queries) CountReviewsByStars(ctx context.Context, arg CountReviewsByStarsParams) (CountReviewsByStarsRow, error) {
+	row := q.db.QueryRow(ctx, countReviewsByStars,
+		arg.Visibility,
+		arg.Stars,
+		arg.Query,
+		arg.SellerID,
+		arg.ReviewedSince,
+		arg.ReviewedUntil,
+	)
+	var i CountReviewsByStarsRow
+	err := row.Scan(
+		&i.One,
+		&i.Two,
+		&i.Three,
+		&i.Four,
+		&i.Five,
+		&i.Hidden,
+		&i.Shown,
+		&i.ShownStars,
+	)
+	return i, err
+}
+
+const customerOrderCounts = `-- name: CustomerOrderCounts :one
+SELECT count(*) AS placed,
+       count(*) FILTER (WHERE state = 'collected') AS collected,
+       count(*) FILTER (WHERE state = 'expired'
+                           OR (state IN ('confirmed', 'ready') AND window_end <= now())
+                           OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late'))) AS missed
+FROM order_orders WHERE customer_id = $1
+`
+
+type CustomerOrderCountsRow struct {
+	Placed    int64
+	Collected int64
+	Missed    int64
+}
+
+// How many orders a customer placed, collected, and missed: their window
+// ended with no hand-over, whether ExpireEnded has marked them expired yet or
+// not, or staff ended them as no answer, no show or late.
+func (q *Queries) CustomerOrderCounts(ctx context.Context, customerID uuid.NullUUID) (CustomerOrderCountsRow, error) {
+	row := q.db.QueryRow(ctx, customerOrderCounts, customerID)
+	var i CustomerOrderCountsRow
+	err := row.Scan(&i.Placed, &i.Collected, &i.Missed)
+	return i, err
+}
+
 const customerOrders = `-- name: CustomerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
@@ -116,6 +329,61 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 	return items, nil
 }
 
+const deleteChatsEndedBefore = `-- name: DeleteChatsEndedBefore :execrows
+DELETE FROM order_chats
+WHERE order_id IN (SELECT id FROM order_orders WHERE window_end < $1)
+`
+
+func (q *Queries) DeleteChatsEndedBefore(ctx context.Context, before time.Time) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteChatsEndedBefore, before)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteChatsOfCustomer = `-- name: DeleteChatsOfCustomer :execrows
+DELETE FROM order_chats
+WHERE order_id IN (SELECT id FROM order_orders WHERE customer_id = $1)
+`
+
+// The messages go with their chat.
+func (q *Queries) DeleteChatsOfCustomer(ctx context.Context, customerID uuid.NullUUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteChatsOfCustomer, customerID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const expireEnded = `-- name: ExpireEnded :one
+WITH ended AS (
+    UPDATE order_orders SET state = 'expired'
+    WHERE state IN ('confirmed', 'ready') AND window_end <= now()
+    RETURNING id, seller_id
+), recorded AS (
+    INSERT INTO order_events (order_id, kind) SELECT id, 'expired' FROM ended
+)
+SELECT count(*) AS expired
+FROM (
+    SELECT pg_notify('secondbite_live', json_build_object(
+        'topics', json_build_array('order:' || id::text, 'seller:' || seller_id::text),
+        'notice', json_build_object('type', 'order', 'orderId', id, 'status', 'expired')
+    )::text)
+    FROM ended
+) AS notified
+`
+
+// Expires the orders still to collect whose window is over, each with an event
+// and a notice to the sockets following it (channel secondbite_live), and
+// returns how many. Reads compare the window too.
+func (q *Queries) ExpireEnded(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, expireEnded)
+	var expired int64
+	err := row.Scan(&expired)
+	return expired, err
+}
+
 const getOrder = `-- name: GetOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
@@ -182,6 +450,25 @@ func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, erro
 	return i, err
 }
 
+const hideReview = `-- name: HideReview :one
+UPDATE order_reviews SET hidden_at = now(), hidden_by = $1, hidden_reason = $2
+WHERE order_id = $3
+RETURNING hidden_at
+`
+
+type HideReviewParams struct {
+	HiddenBy     uuid.NullUUID
+	HiddenReason string
+	OrderID      uuid.UUID
+}
+
+func (q *Queries) HideReview(ctx context.Context, arg HideReviewParams) (*time.Time, error) {
+	row := q.db.QueryRow(ctx, hideReview, arg.HiddenBy, arg.HiddenReason, arg.OrderID)
+	var hidden_at *time.Time
+	err := row.Scan(&hidden_at)
+	return hidden_at, err
+}
+
 const insertEvent = `-- name: InsertEvent :exec
 INSERT INTO order_events (order_id, kind, actor_id) VALUES ($1, $2, $3)
 `
@@ -227,13 +514,54 @@ func (q *Queries) InsertLine(ctx context.Context, arg InsertLineParams) error {
 	return err
 }
 
+const insertLiveTicket = `-- name: InsertLiveTicket :exec
+INSERT INTO order_live_tickets (ticket_hash, topic, expires_at) VALUES ($1, $2, $3)
+`
+
+type InsertLiveTicketParams struct {
+	TicketHash []byte
+	Topic      string
+	ExpiresAt  time.Time
+}
+
+func (q *Queries) InsertLiveTicket(ctx context.Context, arg InsertLiveTicketParams) error {
+	_, err := q.db.Exec(ctx, insertLiveTicket, arg.TicketHash, arg.Topic, arg.ExpiresAt)
+	return err
+}
+
+const insertMessage = `-- name: InsertMessage :exec
+INSERT INTO order_messages (order_id, seq, sender, body, idempotency_key, sent_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+`
+
+type InsertMessageParams struct {
+	OrderID        uuid.UUID
+	Seq            int32
+	Sender         string
+	Body           string
+	IdempotencyKey string
+	SentAt         time.Time
+}
+
+func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) error {
+	_, err := q.db.Exec(ctx, insertMessage,
+		arg.OrderID,
+		arg.Seq,
+		arg.Sender,
+		arg.Body,
+		arg.IdempotencyKey,
+		arg.SentAt,
+	)
+	return err
+}
+
 const insertOrder = `-- name: InsertOrder :one
 INSERT INTO order_orders (
     customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude, longitude, address,
-    window_start, window_end, total_vnd, idempotency_key
+    window_start, window_end, total_vnd, idempotency_key, zalo_consent_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8,
-    $9, $10, $11, $12, $13
+    $9, $10, $11, $12, $13, $14
 )
 RETURNING id
 `
@@ -252,6 +580,7 @@ type InsertOrderParams struct {
 	WindowEnd      time.Time
 	TotalVnd       int64
 	IdempotencyKey string
+	ZaloConsentAt  *time.Time
 }
 
 func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.UUID, error) {
@@ -269,10 +598,57 @@ func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.
 		arg.WindowEnd,
 		arg.TotalVnd,
 		arg.IdempotencyKey,
+		arg.ZaloConsentAt,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const insertProblem = `-- name: InsertProblem :execrows
+INSERT INTO order_problems (order_id, kind, note) VALUES ($1, $2, $3)
+ON CONFLICT (order_id) DO NOTHING
+`
+
+type InsertProblemParams struct {
+	OrderID uuid.UUID
+	Kind    string
+	Note    string
+}
+
+// Nothing is inserted when the order was already reported (SEC-84).
+func (q *Queries) InsertProblem(ctx context.Context, arg InsertProblemParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertProblem, arg.OrderID, arg.Kind, arg.Note)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const insertReview = `-- name: InsertReview :execrows
+INSERT INTO order_reviews (order_id, stars, tags, comment) VALUES ($1, $2, $3, $4)
+ON CONFLICT (order_id) DO NOTHING
+`
+
+type InsertReviewParams struct {
+	OrderID uuid.UUID
+	Stars   int16
+	Tags    []string
+	Comment string
+}
+
+// Nothing is inserted when the order was already reviewed.
+func (q *Queries) InsertReview(ctx context.Context, arg InsertReviewParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertReview,
+		arg.OrderID,
+		arg.Stars,
+		arg.Tags,
+		arg.Comment,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const linesOf = `-- name: LinesOf :many
@@ -299,6 +675,51 @@ func (q *Queries) LinesOf(ctx context.Context, orderIds []uuid.UUID) ([]OrderLin
 			&i.OriginalPriceVnd,
 			&i.PhotoID,
 			&i.Units,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMessages = `-- name: ListMessages :many
+SELECT seq, sender, body, sent_at FROM order_messages
+WHERE order_id = $1 AND seq > $2
+ORDER BY seq
+LIMIT $3
+`
+
+type ListMessagesParams struct {
+	OrderID uuid.UUID
+	After   int32
+	MaxRows int32
+}
+
+type ListMessagesRow struct {
+	Seq    int32
+	Sender string
+	Body   string
+	SentAt time.Time
+}
+
+func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]ListMessagesRow, error) {
+	rows, err := q.db.Query(ctx, listMessages, arg.OrderID, arg.After, arg.MaxRows)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListMessagesRow
+	for rows.Next() {
+		var i ListMessagesRow
+		if err := rows.Scan(
+			&i.Seq,
+			&i.Sender,
+			&i.Body,
+			&i.SentAt,
 		); err != nil {
 			return nil, err
 		}
@@ -377,6 +798,116 @@ func (q *Queries) LockOrder(ctx context.Context, id uuid.UUID) (LockOrderRow, er
 	return i, err
 }
 
+const lockOrderShared = `-- name: LockOrderShared :one
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
+FROM order_orders WHERE id = $1 FOR SHARE
+`
+
+type LockOrderSharedRow struct {
+	ID            uuid.UUID
+	Number        pgtype.Int8
+	CustomerID    uuid.NullUUID
+	CustomerName  string
+	CustomerPhone string
+	SellerID      uuid.UUID
+	CheckoutID    uuid.UUID
+	SellerName    string
+	Latitude      float64
+	Longitude     float64
+	Address       string
+	State         string
+	WindowStart   time.Time
+	WindowEnd     time.Time
+	TotalVnd      int64
+	Access        string
+	CancelReason  string
+	RefuseReason  pgtype.Text
+	RefuseNote    string
+	CreatedAt     time.Time
+	ReadyAt       *time.Time
+	CollectedAt   *time.Time
+	CancelledAt   *time.Time
+	RefusedAt     *time.Time
+}
+
+// Holds an order against a transition (which locks it for update) until the
+// transaction ends, while other readers of it go on.
+func (q *Queries) LockOrderShared(ctx context.Context, id uuid.UUID) (LockOrderSharedRow, error) {
+	row := q.db.QueryRow(ctx, lockOrderShared, id)
+	var i LockOrderSharedRow
+	err := row.Scan(
+		&i.ID,
+		&i.Number,
+		&i.CustomerID,
+		&i.CustomerName,
+		&i.CustomerPhone,
+		&i.SellerID,
+		&i.CheckoutID,
+		&i.SellerName,
+		&i.Latitude,
+		&i.Longitude,
+		&i.Address,
+		&i.State,
+		&i.WindowStart,
+		&i.WindowEnd,
+		&i.TotalVnd,
+		&i.Access,
+		&i.CancelReason,
+		&i.RefuseReason,
+		&i.RefuseNote,
+		&i.CreatedAt,
+		&i.ReadyAt,
+		&i.CollectedAt,
+		&i.CancelledAt,
+		&i.RefusedAt,
+	)
+	return i, err
+}
+
+const lockReviewForAdmins = `-- name: LockReviewForAdmins :one
+SELECT r.order_id, o.number, o.seller_id, o.seller_name, o.customer_name, r.stars, r.tags, r.comment, r.created_at,
+       r.hidden_at, r.hidden_reason
+FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
+WHERE r.order_id = $1
+FOR UPDATE OF r
+`
+
+type LockReviewForAdminsRow struct {
+	OrderID      uuid.UUID
+	Number       pgtype.Int8
+	SellerID     uuid.UUID
+	SellerName   string
+	CustomerName string
+	Stars        int16
+	Tags         []string
+	Comment      string
+	CreatedAt    time.Time
+	HiddenAt     *time.Time
+	HiddenReason string
+}
+
+// ReviewsForAdmins' columns for one order, locked until the transaction ends.
+func (q *Queries) LockReviewForAdmins(ctx context.Context, orderID uuid.UUID) (LockReviewForAdminsRow, error) {
+	row := q.db.QueryRow(ctx, lockReviewForAdmins, orderID)
+	var i LockReviewForAdminsRow
+	err := row.Scan(
+		&i.OrderID,
+		&i.Number,
+		&i.SellerID,
+		&i.SellerName,
+		&i.CustomerName,
+		&i.Stars,
+		&i.Tags,
+		&i.Comment,
+		&i.CreatedAt,
+		&i.HiddenAt,
+		&i.HiddenReason,
+	)
+	return i, err
+}
+
 const markCancelled = `-- name: MarkCancelled :exec
 UPDATE order_orders SET state = 'cancelled', cancelled_at = now(), cancel_reason = $1 WHERE id = $2
 `
@@ -398,6 +929,46 @@ UPDATE order_orders SET state = 'collected', collected_at = now() WHERE id = $1
 func (q *Queries) MarkCollected(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, markCollected, id)
 	return err
+}
+
+const markDueSoon = `-- name: MarkDueSoon :many
+UPDATE order_orders SET due_soon_at = $1
+WHERE due_soon_at IS NULL AND state IN ('confirmed', 'ready')
+  AND window_start > $1 AND window_start <= $2
+RETURNING id, created_at, window_start
+`
+
+type MarkDueSoonParams struct {
+	Now    *time.Time
+	Before time.Time
+}
+
+type MarkDueSoonRow struct {
+	ID          uuid.UUID
+	CreatedAt   time.Time
+	WindowStart time.Time
+}
+
+// Marks the orders still to collect whose window opens between now and before,
+// once each, returning when each was placed and opens (SEC-25).
+func (q *Queries) MarkDueSoon(ctx context.Context, arg MarkDueSoonParams) ([]MarkDueSoonRow, error) {
+	rows, err := q.db.Query(ctx, markDueSoon, arg.Now, arg.Before)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MarkDueSoonRow
+	for rows.Next() {
+		var i MarkDueSoonRow
+		if err := rows.Scan(&i.ID, &i.CreatedAt, &i.WindowStart); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const markReady = `-- name: MarkReady :exec
@@ -438,6 +1009,126 @@ func (q *Queries) MarkReopened(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const messageOfKey = `-- name: MessageOfKey :one
+SELECT seq, sender, body, sent_at FROM order_messages
+WHERE order_id = $1 AND sender = $2 AND idempotency_key = $3
+`
+
+type MessageOfKeyParams struct {
+	OrderID        uuid.UUID
+	Sender         string
+	IdempotencyKey string
+}
+
+type MessageOfKeyRow struct {
+	Seq    int32
+	Sender string
+	Body   string
+	SentAt time.Time
+}
+
+// The message a side already sent with this idempotency key.
+func (q *Queries) MessageOfKey(ctx context.Context, arg MessageOfKeyParams) (MessageOfKeyRow, error) {
+	row := q.db.QueryRow(ctx, messageOfKey, arg.OrderID, arg.Sender, arg.IdempotencyKey)
+	var i MessageOfKeyRow
+	err := row.Scan(
+		&i.Seq,
+		&i.Sender,
+		&i.Body,
+		&i.SentAt,
+	)
+	return i, err
+}
+
+const moveSellerOrders = `-- name: MoveSellerOrders :execrows
+WITH moved AS (
+    UPDATE order_orders
+    SET latitude = $1, longitude = $2, address = $3
+    WHERE seller_id = $4 AND state IN ('confirmed', 'ready')
+      AND (latitude, longitude, address) IS DISTINCT FROM ($1, $2, $3::text)
+    RETURNING id, seller_id, state
+)
+SELECT pg_notify('secondbite_live', json_build_object(
+    'topics', json_build_array('order:' || id::text, 'seller:' || seller_id::text),
+    'notice', json_build_object('type', 'order', 'orderId', id, 'status', state)
+)::text)
+FROM moved
+`
+
+type MoveSellerOrdersParams struct {
+	Latitude  float64
+	Longitude float64
+	Address   string
+	SellerID  uuid.UUID
+}
+
+// Copies a seller's collection point onto its orders still to collect, and
+// tells the sockets following each (channel secondbite_live). Orders handed
+// over, cancelled, refused or expired keep what they copied.
+func (q *Queries) MoveSellerOrders(ctx context.Context, arg MoveSellerOrdersParams) (int64, error) {
+	result, err := q.db.Exec(ctx, moveSellerOrders,
+		arg.Latitude,
+		arg.Longitude,
+		arg.Address,
+		arg.SellerID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const nextChatSeq = `-- name: NextChatSeq :one
+INSERT INTO order_chats (order_id, last_seq) VALUES ($1, 1)
+ON CONFLICT (order_id) DO UPDATE SET last_seq = order_chats.last_seq + 1
+WHERE order_chats.last_seq < $2::int
+RETURNING last_seq
+`
+
+type NextChatSeqParams struct {
+	OrderID     uuid.UUID
+	MaxMessages int32
+}
+
+// Numbers the next message of an order's chat, creating the chat for its first.
+// The row lock it takes lasts until the transaction ends, so the messages of
+// one chat are numbered in the order they commit. Nothing is returned once the
+// chat holds max_messages.
+func (q *Queries) NextChatSeq(ctx context.Context, arg NextChatSeqParams) (int32, error) {
+	row := q.db.QueryRow(ctx, nextChatSeq, arg.OrderID, arg.MaxMessages)
+	var last_seq int32
+	err := row.Scan(&last_seq)
+	return last_seq, err
+}
+
+const nthRecentMessageTime = `-- name: NthRecentMessageTime :one
+SELECT sent_at FROM order_messages
+WHERE order_id = $1 AND sender = $2 AND sent_at > $3
+ORDER BY sent_at DESC
+LIMIT 1 OFFSET $4
+`
+
+type NthRecentMessageTimeParams struct {
+	OrderID  uuid.UUID
+	Sender   string
+	Since    time.Time
+	SkipRows int32
+}
+
+// When a side's message was sent that has skip_rows newer ones, among those
+// sent since a moment; nothing when the side sent fewer since.
+func (q *Queries) NthRecentMessageTime(ctx context.Context, arg NthRecentMessageTimeParams) (time.Time, error) {
+	row := q.db.QueryRow(ctx, nthRecentMessageTime,
+		arg.OrderID,
+		arg.Sender,
+		arg.Since,
+		arg.SkipRows,
+	)
+	var sent_at time.Time
+	err := row.Scan(&sent_at)
+	return sent_at, err
+}
+
 const openOrdersOfOffer = `-- name: OpenOrdersOfOffer :many
 SELECT DISTINCT o.id
 FROM order_orders AS o
@@ -466,6 +1157,80 @@ func (q *Queries) OpenOrdersOfOffer(ctx context.Context, offerID uuid.UUID) ([]u
 	return items, nil
 }
 
+const orderDays = `-- name: OrderDays :many
+WITH placed AS (
+    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
+    FROM order_orders o
+    WHERE o.window_start >= $1 AND o.window_start < $2
+      AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
+)
+SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
+       count(*) AS held,
+       sum(units)::bigint AS units_held,
+       count(*) FILTER (WHERE state = 'collected') AS collected,
+       coalesce(sum(units) FILTER (WHERE state = 'collected'), 0)::bigint AS units_collected,
+       coalesce(sum(total_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS collected_vnd,
+       count(*) FILTER (WHERE state = 'cancelled') AS cancelled,
+       count(*) FILTER (WHERE state = 'refused') AS refused,
+       count(*) FILTER (WHERE state = 'expired'
+                           OR (state IN ('confirmed', 'ready') AND window_end <= now())) AS expired
+FROM placed
+GROUP BY 1, 2
+ORDER BY 1, 2
+`
+
+type OrderDaysParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type OrderDaysRow struct {
+	Day            pgtype.Date
+	SellerID       uuid.UUID
+	Held           int64
+	UnitsHeld      int64
+	Collected      int64
+	UnitsCollected int64
+	CollectedVnd   int64
+	Cancelled      int64
+	Refused        int64
+	Expired        int64
+}
+
+// The orders per collection day in Vietnam and seller, by how they ended, for the admin's report (SEC-80). An order
+// confirmed or ready whose window is over counts as expired, as every read of an order reads it.
+func (q *Queries) OrderDays(ctx context.Context, arg OrderDaysParams) ([]OrderDaysRow, error) {
+	rows, err := q.db.Query(ctx, orderDays, arg.Since, arg.Until, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderDaysRow
+	for rows.Next() {
+		var i OrderDaysRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.SellerID,
+			&i.Held,
+			&i.UnitsHeld,
+			&i.Collected,
+			&i.UnitsCollected,
+			&i.CollectedVnd,
+			&i.Cancelled,
+			&i.Refused,
+			&i.Expired,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const orderOfKey = `-- name: OrderOfKey :one
 SELECT id FROM order_orders
 WHERE customer_id IS NOT DISTINCT FROM $1::uuid AND idempotency_key = $2
@@ -485,6 +1250,409 @@ func (q *Queries) OrderOfKey(ctx context.Context, arg OrderOfKeyParams) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const ordersForAdmins = `-- name: OrdersForAdmins :many
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at
+FROM order_orders
+WHERE (cardinality($1::text[]) = 0
+       OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
+          = ANY ($1::text[]))
+  AND ($2::text = '' OR search_text LIKE '%' || order_fold($2::text) || '%' ESCAPE '\')
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::timestamptz IS NULL OR window_start >= $4::timestamptz)
+  AND ($5::timestamptz IS NULL OR window_start < $5::timestamptz)
+ORDER BY window_start DESC, number DESC
+LIMIT $7 OFFSET $6
+`
+
+type OrdersForAdminsParams struct {
+	Statuses     []string
+	Query        string
+	SellerID     uuid.NullUUID
+	CollectSince *time.Time
+	CollectUntil *time.Time
+	SkipRows     int32
+	MaxRows      int32
+}
+
+type OrdersForAdminsRow struct {
+	ID            uuid.UUID
+	Number        pgtype.Int8
+	CustomerID    uuid.NullUUID
+	CustomerName  string
+	CustomerPhone string
+	SellerID      uuid.UUID
+	CheckoutID    uuid.UUID
+	SellerName    string
+	Latitude      float64
+	Longitude     float64
+	Address       string
+	State         string
+	WindowStart   time.Time
+	WindowEnd     time.Time
+	TotalVnd      int64
+	Access        string
+	CancelReason  string
+	RefuseReason  pgtype.Text
+	RefuseNote    string
+	CreatedAt     time.Time
+	ReadyAt       *time.Time
+	CollectedAt   *time.Time
+	CancelledAt   *time.Time
+	RefusedAt     *time.Time
+}
+
+// One page of every seller's orders in the statuses given (all when empty),
+// read as fromRow reads them: one still to collect whose window is over is
+// expired. Matching the words folded by order_fold (any when empty), of the
+// seller given and collected from a window starting in [collect_since,
+// collect_until) when given; the latest window first. GetOrder's columns, so
+// the rows convert to its row; CountOrdersForAdmins counts them all.
+func (q *Queries) OrdersForAdmins(ctx context.Context, arg OrdersForAdminsParams) ([]OrdersForAdminsRow, error) {
+	rows, err := q.db.Query(ctx, ordersForAdmins,
+		arg.Statuses,
+		arg.Query,
+		arg.SellerID,
+		arg.CollectSince,
+		arg.CollectUntil,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrdersForAdminsRow
+	for rows.Next() {
+		var i OrdersForAdminsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Number,
+			&i.CustomerID,
+			&i.CustomerName,
+			&i.CustomerPhone,
+			&i.SellerID,
+			&i.CheckoutID,
+			&i.SellerName,
+			&i.Latitude,
+			&i.Longitude,
+			&i.Address,
+			&i.State,
+			&i.WindowStart,
+			&i.WindowEnd,
+			&i.TotalVnd,
+			&i.Access,
+			&i.CancelReason,
+			&i.RefuseReason,
+			&i.RefuseNote,
+			&i.CreatedAt,
+			&i.ReadyAt,
+			&i.CollectedAt,
+			&i.CancelledAt,
+			&i.RefusedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const problemExists = `-- name: ProblemExists :one
+SELECT EXISTS (SELECT 1 FROM order_problems WHERE order_id = $1)
+`
+
+func (q *Queries) ProblemExists(ctx context.Context, orderID uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, problemExists, orderID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const problemsOf = `-- name: ProblemsOf :many
+SELECT order_id, kind, note, reported_at, answer, answered_at
+FROM order_problems WHERE order_id = ANY ($1::uuid[])
+`
+
+func (q *Queries) ProblemsOf(ctx context.Context, orderIds []uuid.UUID) ([]OrderProblem, error) {
+	rows, err := q.db.Query(ctx, problemsOf, orderIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderProblem
+	for rows.Next() {
+		var i OrderProblem
+		if err := rows.Scan(
+			&i.OrderID,
+			&i.Kind,
+			&i.Note,
+			&i.ReportedAt,
+			&i.Answer,
+			&i.AnsweredAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const purgeLiveTickets = `-- name: PurgeLiveTickets :execrows
+DELETE FROM order_live_tickets WHERE expires_at <= $1
+`
+
+func (q *Queries) PurgeLiveTickets(ctx context.Context, now time.Time) (int64, error) {
+	result, err := q.db.Exec(ctx, purgeLiveTickets, now)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const raiseSeen = `-- name: RaiseSeen :one
+UPDATE order_chats
+SET customer_seen_seq = CASE WHEN $1::text = 'customer' THEN LEAST($2::int, last_seq) ELSE customer_seen_seq END,
+    seller_seen_seq = CASE WHEN $1::text = 'seller' THEN LEAST($2::int, last_seq) ELSE seller_seen_seq END
+WHERE order_id = $3
+  AND CASE WHEN $1::text = 'customer' THEN customer_seen_seq ELSE seller_seen_seq END < LEAST($2::int, last_seq)
+RETURNING (CASE WHEN $1::text = 'customer' THEN customer_seen_seq ELSE seller_seen_seq END)::int AS seen_seq
+`
+
+type RaiseSeenParams struct {
+	Side    string
+	UpTo    int32
+	OrderID uuid.UUID
+}
+
+// Raises what a side has seen, never lowers it and never beyond the latest
+// message; nothing is returned when it did not rise.
+func (q *Queries) RaiseSeen(ctx context.Context, arg RaiseSeenParams) (int32, error) {
+	row := q.db.QueryRow(ctx, raiseSeen, arg.Side, arg.UpTo, arg.OrderID)
+	var seen_seq int32
+	err := row.Scan(&seen_seq)
+	return seen_seq, err
+}
+
+const redeemLiveTicket = `-- name: RedeemLiveTicket :one
+DELETE FROM order_live_tickets WHERE ticket_hash = $1 AND expires_at > $2
+RETURNING topic
+`
+
+type RedeemLiveTicketParams struct {
+	TicketHash []byte
+	Now        time.Time
+}
+
+// Spends a ticket: it is deleted as it is read, so it works once, and only
+// before it expires.
+func (q *Queries) RedeemLiveTicket(ctx context.Context, arg RedeemLiveTicketParams) (string, error) {
+	row := q.db.QueryRow(ctx, redeemLiveTicket, arg.TicketHash, arg.Now)
+	var topic string
+	err := row.Scan(&topic)
+	return topic, err
+}
+
+const reviewsForAdmins = `-- name: ReviewsForAdmins :many
+SELECT r.order_id, o.number, o.seller_id, o.seller_name, o.customer_name, r.stars, r.tags, r.comment, r.created_at,
+       r.hidden_at, r.hidden_reason
+FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
+WHERE (cardinality($1::int[]) = 0 OR r.stars = ANY ($1::int[]))
+  AND ($2::text = '' OR ($2::text = 'hidden') = (r.hidden_at IS NOT NULL))
+  AND ($3::text = '' OR o.search_text LIKE '%' || order_fold($3::text) || '%' ESCAPE '\'
+       OR order_fold(r.comment) LIKE '%' || order_fold($3::text) || '%' ESCAPE '\')
+  AND ($4::uuid IS NULL OR o.seller_id = $4::uuid)
+  AND ($5::timestamptz IS NULL OR r.created_at >= $5::timestamptz)
+  AND ($6::timestamptz IS NULL OR r.created_at < $6::timestamptz)
+ORDER BY r.created_at DESC, o.number DESC
+LIMIT $8 OFFSET $7
+`
+
+type ReviewsForAdminsParams struct {
+	Stars         []int32
+	Visibility    string
+	Query         string
+	SellerID      uuid.NullUUID
+	ReviewedSince *time.Time
+	ReviewedUntil *time.Time
+	SkipRows      int32
+	MaxRows       int32
+}
+
+type ReviewsForAdminsRow struct {
+	OrderID      uuid.UUID
+	Number       pgtype.Int8
+	SellerID     uuid.UUID
+	SellerName   string
+	CustomerName string
+	Stars        int16
+	Tags         []string
+	Comment      string
+	CreatedAt    time.Time
+	HiddenAt     *time.Time
+	HiddenReason string
+}
+
+// One page of every review, hidden or not, with its order: of the stars given
+// (any when empty), shown or hidden when visibility asks, matching the words
+// folded by order_fold in the order's search text or the comment (any when
+// empty), of the seller given and given in [reviewed_since, reviewed_until)
+// when given; the latest first. CountReviewsByStars counts them.
+func (q *Queries) ReviewsForAdmins(ctx context.Context, arg ReviewsForAdminsParams) ([]ReviewsForAdminsRow, error) {
+	rows, err := q.db.Query(ctx, reviewsForAdmins,
+		arg.Stars,
+		arg.Visibility,
+		arg.Query,
+		arg.SellerID,
+		arg.ReviewedSince,
+		arg.ReviewedUntil,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReviewsForAdminsRow
+	for rows.Next() {
+		var i ReviewsForAdminsRow
+		if err := rows.Scan(
+			&i.OrderID,
+			&i.Number,
+			&i.SellerID,
+			&i.SellerName,
+			&i.CustomerName,
+			&i.Stars,
+			&i.Tags,
+			&i.Comment,
+			&i.CreatedAt,
+			&i.HiddenAt,
+			&i.HiddenReason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const reviewsOf = `-- name: ReviewsOf :many
+SELECT order_id, stars, tags, comment, created_at, hidden_at
+FROM order_reviews WHERE order_id = ANY ($1::uuid[])
+`
+
+type ReviewsOfRow struct {
+	OrderID   uuid.UUID
+	Stars     int16
+	Tags      []string
+	Comment   string
+	CreatedAt time.Time
+	HiddenAt  *time.Time
+}
+
+// A hidden review is read too: its order was rated, and cannot be again.
+func (q *Queries) ReviewsOf(ctx context.Context, orderIds []uuid.UUID) ([]ReviewsOfRow, error) {
+	rows, err := q.db.Query(ctx, reviewsOf, orderIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReviewsOfRow
+	for rows.Next() {
+		var i ReviewsOfRow
+		if err := rows.Scan(
+			&i.OrderID,
+			&i.Stars,
+			&i.Tags,
+			&i.Comment,
+			&i.CreatedAt,
+			&i.HiddenAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const reviewsOfSeller = `-- name: ReviewsOfSeller :many
+SELECT r.order_id, o.number, o.customer_name, r.stars, r.tags, r.comment, r.created_at,
+       coalesce((SELECT string_agg(l.name, ', ' ORDER BY l.name) FROM order_lines l WHERE l.order_id = o.id), '')::text AS dishes
+FROM order_reviews r JOIN order_orders o ON o.id = r.order_id
+WHERE o.seller_id = $1 AND r.hidden_at IS NULL
+  AND (cardinality($2::int[]) = 0 OR r.stars = ANY ($2::int[]))
+ORDER BY r.created_at DESC, o.number DESC
+LIMIT $4 OFFSET $3
+`
+
+type ReviewsOfSellerParams struct {
+	SellerID uuid.UUID
+	Stars    []int32
+	SkipRows int32
+	MaxRows  int32
+}
+
+type ReviewsOfSellerRow struct {
+	OrderID      uuid.UUID
+	Number       pgtype.Int8
+	CustomerName string
+	Stars        int16
+	Tags         []string
+	Comment      string
+	CreatedAt    time.Time
+	Dishes       string
+}
+
+// One page of the shown reviews of one seller's orders, of the stars given (any
+// when empty), each with the names of its order's dishes; the latest first.
+// CountReviewsByStars counts them.
+func (q *Queries) ReviewsOfSeller(ctx context.Context, arg ReviewsOfSellerParams) ([]ReviewsOfSellerRow, error) {
+	rows, err := q.db.Query(ctx, reviewsOfSeller,
+		arg.SellerID,
+		arg.Stars,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReviewsOfSellerRow
+	for rows.Next() {
+		var i ReviewsOfSellerRow
+		if err := rows.Scan(
+			&i.OrderID,
+			&i.Number,
+			&i.CustomerName,
+			&i.Stars,
+			&i.Tags,
+			&i.Comment,
+			&i.CreatedAt,
+			&i.Dishes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const sellerOrders = `-- name: SellerOrders :many
@@ -577,9 +1745,18 @@ func (q *Queries) SellerOrders(ctx context.Context, arg SellerOrdersParams) ([]S
 	return items, nil
 }
 
-const setWindow = `-- name: SetWindow :exec
-UPDATE order_orders SET window_start = $1, window_end = $2
-WHERE id = $3 AND state IN ('confirmed', 'ready')
+const setWindow = `-- name: SetWindow :execrows
+WITH moved AS (
+    UPDATE order_orders SET window_start = $1::timestamptz, window_end = $2::timestamptz
+    WHERE id = $3 AND state IN ('confirmed', 'ready')
+      AND (window_start, window_end) IS DISTINCT FROM ($1::timestamptz, $2::timestamptz)
+    RETURNING id, seller_id, state
+)
+SELECT pg_notify('secondbite_live', json_build_object(
+    'topics', json_build_array('order:' || id::text, 'seller:' || seller_id::text),
+    'notice', json_build_object('type', 'order', 'orderId', id, 'status', state)
+)::text)
+FROM moved
 `
 
 type SetWindowParams struct {
@@ -588,8 +1765,68 @@ type SetWindowParams struct {
 	ID          uuid.UUID
 }
 
-// Moves an order still to collect to a new window; one that ended stays as it was.
-func (q *Queries) SetWindow(ctx context.Context, arg SetWindowParams) error {
-	_, err := q.db.Exec(ctx, setWindow, arg.WindowStart, arg.WindowEnd, arg.ID)
+// Moves an order still to collect to a new window, and tells the sockets
+// following it (channel secondbite_live); one that ended, or already has that
+// window, stays as it was. Returns whether it moved.
+func (q *Queries) SetWindow(ctx context.Context, arg SetWindowParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setWindow, arg.WindowStart, arg.WindowEnd, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const showReview = `-- name: ShowReview :exec
+UPDATE order_reviews SET hidden_at = NULL, hidden_by = NULL, hidden_reason = '' WHERE order_id = $1
+`
+
+func (q *Queries) ShowReview(ctx context.Context, orderID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, showReview, orderID)
 	return err
+}
+
+const unreadOf = `-- name: UnreadOf :many
+SELECT c.order_id,
+       c.last_seq AS messages,
+       (SELECT count(*) FROM order_messages AS m
+        WHERE m.order_id = c.order_id AND m.sender = 'seller' AND m.seq > c.customer_seen_seq) AS customer_unread,
+       (SELECT count(*) FROM order_messages AS m
+        WHERE m.order_id = c.order_id AND m.sender = 'customer' AND m.seq > c.seller_seen_seq) AS seller_unread
+FROM order_chats AS c
+WHERE c.order_id = ANY ($1::uuid[])
+`
+
+type UnreadOfRow struct {
+	OrderID        uuid.UUID
+	Messages       int32
+	CustomerUnread int64
+	SellerUnread   int64
+}
+
+// For each order with a chat: how many messages it holds, what its customer
+// has not read from the seller, and what its seller's people have not read
+// from the customer.
+func (q *Queries) UnreadOf(ctx context.Context, orderIds []uuid.UUID) ([]UnreadOfRow, error) {
+	rows, err := q.db.Query(ctx, unreadOf, orderIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UnreadOfRow
+	for rows.Next() {
+		var i UnreadOfRow
+		if err := rows.Scan(
+			&i.OrderID,
+			&i.Messages,
+			&i.CustomerUnread,
+			&i.SellerUnread,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

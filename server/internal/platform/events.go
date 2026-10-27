@@ -33,6 +33,8 @@ type Events struct {
 	// listeners by event key, registered when the service is assembled and
 	// read by the jobs once it runs.
 	listeners map[string][]listener
+	// schedules by name, run by the periodic jobs once the service runs.
+	schedules map[string]func(context.Context) error
 }
 
 type listener struct {
@@ -51,6 +53,13 @@ type eventJob struct {
 
 func (eventJob) Kind() string { return "platform.event" }
 
+// scheduleJob is one run of a schedule, which names what to run.
+type scheduleJob struct {
+	Name string `json:"name"`
+}
+
+func (scheduleJob) Kind() string { return "platform.schedule" }
+
 // eventWorkers bounds how many listeners run at once in one instance.
 const eventWorkers = 10
 
@@ -60,10 +69,11 @@ const eventTimeout = time.Minute
 // NewEvents prepares the outbox on pool. The listeners run once Start is
 // called; until then, and in the command-line commands, Publish only writes.
 func NewEvents(pool *pgxpool.Pool, logger *slog.Logger) (*Events, error) {
-	e := &Events{logger: logger, listeners: map[string][]listener{}}
+	e := &Events{logger: logger, listeners: map[string][]listener{}, schedules: map[string]func(context.Context) error{}}
 
 	workers := river.NewWorkers()
 	river.AddWorker(workers, &eventWorker{events: e})
+	river.AddWorker(workers, &scheduleWorker{events: e})
 
 	client, err := river.NewClient(riverpgxv5.New(pool), &river.Config{
 		Queues:     map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: eventWorkers}},
@@ -102,9 +112,40 @@ func Listen[E Event](e *Events, name string, handle func(context.Context, E) err
 	})
 }
 
+// Every runs run on the schedule of every, under name, which must stay the same
+// while jobs carrying it may exist. River's leader, one among the instances,
+// enqueues each run, so an instance's run is never doubled by another's; a run
+// that fails is not retried, since the next one comes soon, and run must be
+// idempotent. Like the listeners, schedules are registered when the service is
+// assembled and run only in serve.
+func (e *Events) Every(name string, every time.Duration, run func(context.Context) error) {
+	e.schedules[name] = run
+
+	e.client.PeriodicJobs().Add(river.NewPeriodicJob(
+		river.PeriodicInterval(every),
+		func() (river.JobArgs, *river.InsertOpts) {
+			return scheduleJob{Name: name}, &river.InsertOpts{MaxAttempts: 1}
+		},
+		&river.PeriodicJobOpts{ID: name, RunOnStart: true},
+	))
+}
+
 // Publish writes event in tx for each of its listeners. When tx rolls back,
 // nothing is published.
 func Publish[E Event](ctx context.Context, tx pgx.Tx, e *Events, event E) error {
+	return publish(ctx, tx, e, event, nil)
+}
+
+// PublishAfter writes event in tx for each of its listeners, to run once delay
+// has passed. A publisher writes it besides Publish to deliver the event again
+// later, sweeping up what a request still running when it was published wrote
+// after the first delivery (SEC-126); the listeners being idempotent, the
+// second run changes only that.
+func PublishAfter[E Event](ctx context.Context, tx pgx.Tx, e *Events, event E, delay time.Duration) error {
+	return publish(ctx, tx, e, event, &river.InsertOpts{ScheduledAt: time.Now().Add(delay)})
+}
+
+func publish[E Event](ctx context.Context, tx pgx.Tx, e *Events, event E, opts *river.InsertOpts) error {
 	payload, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("writing the event: %w", err)
@@ -112,7 +153,7 @@ func Publish[E Event](ctx context.Context, tx pgx.Tx, e *Events, event E) error 
 
 	key := event.EventKey()
 	for _, l := range e.listeners[key] {
-		if _, err := e.client.InsertTx(ctx, tx, eventJob{Event: key, Listener: l.name, Payload: payload}, nil); err != nil {
+		if _, err := e.client.InsertTx(ctx, tx, eventJob{Event: key, Listener: l.name, Payload: payload}, opts); err != nil {
 			return fmt.Errorf("publishing %s to %s: %w", key, l.name, err)
 		}
 	}
@@ -120,9 +161,12 @@ func Publish[E Event](ctx context.Context, tx pgx.Tx, e *Events, event E) error 
 	return nil
 }
 
-// Start runs the listeners until Stop.
+// Start runs the listeners until Stop. Cancelling ctx does not stop them:
+// River takes a cancelled start context as a hard stop that cancels the jobs
+// running, so a shutdown signal would cut a listener short before Stop gave it
+// time to finish (SEC-70). Stop alone ends them.
 func (e *Events) Start(ctx context.Context) error {
-	if err := e.client.Start(ctx); err != nil {
+	if err := e.client.Start(context.WithoutCancel(ctx)); err != nil {
 		return fmt.Errorf("starting the event listeners: %w", err)
 	}
 
@@ -151,13 +195,7 @@ func (w *eventWorker) Work(ctx context.Context, job *river.Job[eventJob]) error 
 		}
 
 		if err := l.handle(ctx, job.Args.Payload); err != nil {
-			w.events.logger.WarnContext(ctx, "event listener failed",
-				slog.String("event", "platform.event.failed"),
-				slog.String("event_key", job.Args.Event),
-				slog.String("listener", job.Args.Listener),
-				slog.Int("attempt", job.Attempt),
-				slog.String("error_type", fmt.Sprintf("%T", err)),
-			)
+			w.events.failed(ctx, job, "platform.event.failed", err)
 
 			return err
 		}
@@ -165,9 +203,86 @@ func (w *eventWorker) Work(ctx context.Context, job *river.Job[eventJob]) error 
 		return nil
 	}
 
-	// A listener renamed or removed while its jobs waited: retrying cannot
-	// help.
-	return river.JobCancel(fmt.Errorf("no listener %q for %s", job.Args.Listener, job.Args.Event))
+	// No listener of that name here. During a rolling deploy an instance of
+	// the old version can take a job published for a listener only the new
+	// version has: the job is retried, so an instance that knows the listener
+	// takes it, rather than cancelled for good (SEC-70). A listener truly
+	// renamed or removed runs out of attempts and is logged as discarded.
+	err := fmt.Errorf("%w: %q for %s", errNoListener, job.Args.Listener, job.Args.Event)
+	w.events.failed(ctx, job, "platform.event.unheard", err)
+
+	return err
+}
+
+// errNoListener is the failure of a job whose listener this instance does not
+// have.
+var errNoListener = errors.New("no listener")
+
+// failed logs a listener's job that did not succeed. While River will try it
+// again the record is a warning; on its last attempt the job is discarded and
+// the event is lost to that listener, which account deletion relies on to
+// forget a person's data, so the record is an error to alert on (SEC-70). The
+// error's text is never logged, since it can carry personal data or a third
+// party's words (docs/conventions.md › Logging): its type and its code are.
+func (e *Events) failed(ctx context.Context, job *river.Job[eventJob], event string, err error) {
+	level, message := slog.LevelWarn, "event listener failed"
+	if job.Attempt >= job.MaxAttempts {
+		level, message, event = slog.LevelError, "event listener gave up; the event is discarded", "platform.event.discarded"
+	}
+
+	attrs := []slog.Attr{
+		slog.String("event", event),
+		slog.String("event_key", job.Args.Event),
+		slog.String("listener", job.Args.Listener),
+		slog.Int("attempt", job.Attempt),
+		slog.Int("max_attempts", job.MaxAttempts),
+		slog.String("error_type", rootType(err)),
+	}
+
+	if failure, ok := errors.AsType[*FailureError](err); ok {
+		attrs = append(attrs, slog.String("error_code", failure.Code))
+	}
+
+	e.logger.LogAttrs(ctx, level, message, attrs...)
+}
+
+// rootType names the type of the innermost error err wraps, which says more
+// than the wrapper's *fmt.wrapError.
+func rootType(err error) string {
+	for {
+		next := errors.Unwrap(err)
+		if next == nil {
+			return fmt.Sprintf("%T", err)
+		}
+
+		err = next
+	}
+}
+
+type scheduleWorker struct {
+	river.WorkerDefaults[scheduleJob]
+
+	events *Events
+}
+
+func (w *scheduleWorker) Work(ctx context.Context, job *river.Job[scheduleJob]) error {
+	run, ok := w.events.schedules[job.Args.Name]
+	if !ok {
+		// A schedule renamed or removed while its job waited.
+		return river.JobCancel(fmt.Errorf("no schedule %q", job.Args.Name))
+	}
+
+	if err := run(ctx); err != nil {
+		w.events.logger.WarnContext(ctx, "schedule failed",
+			slog.String("event", "platform.schedule.failed"),
+			slog.String("schedule", job.Args.Name),
+			slog.String("error_type", fmt.Sprintf("%T", err)),
+		)
+
+		return err
+	}
+
+	return nil
 }
 
 // migrateEventsLock is the session lock one instance holds while it applies

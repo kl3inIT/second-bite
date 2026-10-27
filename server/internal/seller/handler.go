@@ -12,10 +12,52 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
+// addressInput is the point whose address is asked.
+type addressInput struct {
+	Latitude  float64 `query:"latitude"  required:"true" maximum:"90"  minimum:"-90"`
+	Longitude float64 `query:"longitude" required:"true" maximum:"180" minimum:"-180"`
+}
+
+// addressOutput is the address at a point.
+type addressOutput struct {
+	Body struct {
+		Address string `json:"address" doc:"As people write it; empty when the point has no known address"`
+	}
+}
+
+// placesInput is what someone typed in a store's address.
+type placesInput struct {
+	Query string `query:"q" required:"true" minLength:"2" maxLength:"200" doc:"The words of the address, with or without Vietnamese marks"`
+}
+
+// placeBody is a suggested place.
+type placeBody struct {
+	Address   string  `json:"address"   doc:"As people write it; a house number typed first goes before a street that has none"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+// toPlaceBodies is the suggestions as the API gives them, an empty list for none.
+func toPlaceBodies(found []Place) []placeBody {
+	out := make([]placeBody, len(found))
+	for i, p := range found {
+		out[i] = placeBody(p)
+	}
+
+	return out
+}
+
+// placesOutput is up to five suggestions.
+type placesOutput struct {
+	Body struct {
+		Places []placeBody `json:"places" doc:"Up to five places in Hanoi; none when nothing matches or the search does not answer"`
+	}
+}
+
 type detailsBody struct {
 	Name      string  `json:"name"      maxLength:"100" minLength:"1"`
 	Address   string  `json:"address"   maxLength:"300" minLength:"1" doc:"The address as people write it"`
-	Latitude  float64 `json:"latitude"  maximum:"90"    minimum:"-90" doc:"Where the seller is, pinned on a map"`
+	Latitude  float64 `json:"latitude"  maximum:"90"    minimum:"-90" doc:"Where the seller is, pinned on a map; inside Hanoi, or SELLER_LOCATION_OUTSIDE"`
 	Longitude float64 `json:"longitude" maximum:"180"   minimum:"-180"`
 	Phone     string  `json:"phone"     maxLength:"30" doc:"Shown to the seller's members and admins"`
 }
@@ -86,6 +128,8 @@ func RegisterOperations(api huma.API, s *Service) {
 	registerMemberOperations(api, s)
 	registerPhotoOperations(api, s)
 	registerPublicOperations(api, s)
+	registerFollowOperations(api, s)
+	registerFeedbackOperations(api, s)
 }
 
 var (
@@ -98,7 +142,7 @@ var (
 func registerOwnerOperations(api huma.API, s *Service) {
 	huma.Register(api, huma.Operation{
 		OperationID: "openSeller", Method: http.MethodPost, Path: "/sellers",
-		Summary: "Open a seller; it waits for an admin to activate it", Tags: tagSellers,
+		Summary: "Open a seller, active at once, pinned inside Hanoi", Tags: tagSellers,
 		Security: security, DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, in *struct{ Body detailsBody }) (*sellerOutput, error) {
 		seller, err := s.Open(ctx, in.Body.details())
@@ -107,6 +151,34 @@ func registerOwnerOperations(api huma.API, s *Service) {
 		}
 
 		return &sellerOutput{Body: toBody(seller)}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "addressAt", Method: http.MethodGet, Path: "/sellers/address",
+		Summary: "The address at a point, to fill the form that opens a store; empty when it is not known",
+		Tags:    tagSellers, Security: security,
+	}, func(ctx context.Context, in *addressInput) (*addressOutput, error) {
+		address, err := s.AddressAt(ctx, in.Latitude, in.Longitude)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &addressOutput{}
+		out.Body.Address = address
+
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "searchPlaces", Method: http.MethodGet, Path: "/sellers/places",
+		Summary: "Places in Hanoi for the words of a store's address, to pin it as it is typed",
+		Tags:    tagSellers, Security: security,
+	}, func(ctx context.Context, in *placesInput) (*placesOutput, error) {
+		found, err := s.Places(ctx, in.Query)
+		out := &placesOutput{}
+		out.Body.Places = toPlaceBodies(found)
+
+		return out, err
 	})
 
 	huma.Register(api, huma.Operation{
@@ -135,7 +207,7 @@ func registerOwnerOperations(api huma.API, s *Service) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "updateSeller", Method: http.MethodPut, Path: "/sellers/{sellerId}",
-		Summary: "Change a seller's details; only its owner may", Tags: tagSellers, Security: security,
+		Summary: "Change a seller's details; only its owner may. A moved pin or address moves its offers on sale and its orders still to collect", Tags: tagSellers, Security: security,
 	}, func(ctx context.Context, in *struct {
 		SellerID uuid.UUID `path:"sellerId"`
 		Body     detailsBody
@@ -287,6 +359,8 @@ func registerMemberOperations(api huma.API, s *Service) {
 // RegisterAdminOperations adds the module's admin operations to admin, the
 // group platform.NewAdminGroup returns; their paths omit its prefix.
 func RegisterAdminOperations(admin huma.API, s *Service) {
+	registerFeedbackAdminOperations(admin, s)
+
 	huma.Register(admin, huma.Operation{
 		OperationID: "listSellersForAdmins", Method: http.MethodGet, Path: "/sellers",
 		Summary: "Sellers by status and words, pending ones first",
@@ -298,9 +372,21 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		Sort   string   `query:"sort"         doc:"name, address or changed; a leading - is descending; the queue order when absent" enum:"name,-name,address,-address,changed,-changed"`
 		Page   int      `query:"page"         default:"1" minimum:"1"`
 		Size   int      `query:"size"   default:"25"                                        maximum:"100" minimum:"1"`
+
+		ChangedSince time.Time `query:"changedSince" doc:"Keep the sellers last changed at or after this time"`
+		ChangedUntil time.Time `query:"changedUntil" doc:"Keep the sellers last changed before this time"`
 	},
 	) (*adminSellersOutput, error) {
-		page, err := s.List(ctx, Filter{Statuses: in.Status, Query: in.Q, Sort: in.Sort, Page: in.Page, Size: in.Size})
+		f := Filter{Statuses: in.Status, Query: in.Q, Sort: in.Sort, Page: in.Page, Size: in.Size}
+		if !in.ChangedSince.IsZero() {
+			f.ChangedSince = &in.ChangedSince
+		}
+
+		if !in.ChangedUntil.IsZero() {
+			f.ChangedUntil = &in.ChangedUntil
+		}
+
+		page, err := s.List(ctx, f)
 		if err != nil {
 			return nil, err
 		}
@@ -314,7 +400,39 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		}
 
 		for _, l := range page.Sellers {
-			out.Body.Items = append(out.Body.Items, adminSellerBody{sellerBody: toBody(l.Seller), OwnerEmail: l.OwnerEmail})
+			out.Body.Items = append(out.Body.Items, toAdminSellerBody(l))
+		}
+
+		out.Body.Days = make([]statusDayBody, 0, len(page.Days))
+		for _, d := range page.Days {
+			out.Body.Days = append(out.Body.Days, statusDayBody{
+				Day:     d.Day.Format(time.DateOnly),
+				Pending: d.Counts[StatusPending], Active: d.Counts[StatusActive],
+				Rejected: d.Counts[StatusRejected], Blocked: d.Counts[StatusBlocked],
+			})
+		}
+
+		return out, nil
+	})
+
+	huma.Register(admin, huma.Operation{
+		OperationID: "listMembershipsForAdmins", Method: http.MethodGet, Path: "/memberships",
+		Summary: "The sellers some accounts own or work at, owners first",
+	}, func(ctx context.Context, in *struct {
+		// Exploded, as the generated clients send an array: accountId=a&accountId=b.
+		AccountID []uuid.UUID `query:"accountId,explode" doc:"The accounts, at most 100" maxItems:"100" minItems:"1" required:"true"`
+	},
+	) (*membershipsOutput, error) {
+		memberships, err := s.MembershipsForAdmins(ctx, in.AccountID)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &membershipsOutput{}
+		out.Body.Memberships = make([]membershipBody, 0, len(memberships))
+
+		for _, m := range memberships {
+			out.Body.Memberships = append(out.Body.Memberships, membershipBody(m))
 		}
 
 		return out, nil
@@ -322,7 +440,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 
 	huma.Register(admin, huma.Operation{
 		OperationID: "approveSeller", Method: http.MethodPost, Path: "/sellers/{sellerId}/approve",
-		Summary: "Let a pending, rejected or blocked seller publish; its owner is emailed",
+		Summary: "Let a pending, rejected or blocked seller publish; its owner is emailed. A seller whose owner deleted their account is refused",
 	}, func(ctx context.Context, in *sellerPath) (*sellerOutput, error) {
 		seller, err := s.Approve(ctx, in.SellerID)
 		if err != nil {
@@ -358,10 +476,46 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 	}
 }
 
+// adminSellerBody is a seller in the admins' list. It lists its own fields rather than embedding sellerBody,
+// which is unexported, so huma leaves it out of the contract.
 type adminSellerBody struct {
-	sellerBody
+	ID              uuid.UUID  `json:"id"`
+	Name            string     `json:"name"`
+	Address         string     `json:"address"`
+	Latitude        float64    `json:"latitude"`
+	Longitude       float64    `json:"longitude"`
+	Phone           string     `json:"phone"`
+	Status          Status     `json:"status"                    enum:"pending,active,rejected,blocked"`
+	StatusReason    string     `json:"statusReason,omitempty"    doc:"Why an admin rejected or blocked the seller, as the owner is told"`
+	StatusChangedAt *time.Time `json:"statusChangedAt,omitempty"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	PhotoID         *uuid.UUID `json:"photoId,omitempty"         doc:"Served at /photos/{photoId}/1600.jpg and /400.jpg"`
+	OwnerEmail      string     `json:"ownerEmail,omitempty"      doc:"Absent when the owner deleted their account"`
+}
 
-	OwnerEmail string `json:"ownerEmail,omitempty" doc:"Absent when the owner deleted their account"`
+func toAdminSellerBody(l Listed) adminSellerBody {
+	s := l.Seller
+
+	return adminSellerBody{
+		ID: s.ID, Name: s.Name, Address: s.Address, Latitude: s.Latitude, Longitude: s.Longitude, Phone: s.Phone,
+		Status: s.Status, StatusReason: s.StatusReason, StatusChangedAt: s.StatusChangedAt,
+		CreatedAt: s.CreatedAt, UpdatedAt: s.UpdatedAt, PhotoID: s.PhotoID, OwnerEmail: l.OwnerEmail,
+	}
+}
+
+type membershipBody struct {
+	AccountID    uuid.UUID `json:"accountId"`
+	Role         Role      `json:"role"         enum:"owner,staff"`
+	SellerID     uuid.UUID `json:"sellerId"`
+	SellerName   string    `json:"sellerName"`
+	SellerStatus Status    `json:"sellerStatus" enum:"pending,active,rejected,blocked"`
+}
+
+type membershipsOutput struct {
+	Body struct {
+		Memberships []membershipBody `json:"memberships"`
+	}
 }
 
 type adminSellersOutput struct {
@@ -371,7 +525,18 @@ type adminSellersOutput struct {
 		PageSize int               `json:"pageSize"`
 		Total    int               `json:"total"`
 		Counts   statusCountsBody  `json:"counts"   doc:"Sellers of each status matching q, whatever status asks"`
+		Days     []statusDayBody   `json:"days"     doc:"Sellers of each status on each of the last 14 days in Vietnam, the oldest first, whatever the filters; a day before counting started is absent"`
 	}
+}
+
+// statusDayBody lists its own fields, as huma leaves an embedded unexported
+// struct out of the contract.
+type statusDayBody struct {
+	Day      string `json:"day"      doc:"The day in Vietnam, as YYYY-MM-DD" format:"date"`
+	Pending  int    `json:"pending"`
+	Active   int    `json:"active"`
+	Rejected int    `json:"rejected"`
+	Blocked  int    `json:"blocked"`
 }
 
 type statusCountsBody struct {
@@ -379,4 +544,51 @@ type statusCountsBody struct {
 	Active   int `json:"active"`
 	Rejected int `json:"rejected"`
 	Blocked  int `json:"blocked"`
+}
+
+func registerFollowOperations(api huma.API, s *Service) {
+	type followedOutput struct {
+		Body struct {
+			Sellers []sellerProfileBody `json:"sellers"`
+		}
+	}
+
+	huma.Register(api, huma.Operation{
+		OperationID: "followSeller", Method: http.MethodPut, Path: "/sellers/{sellerId}/follow",
+		Summary:     "Make an active seller one of my favourites",
+		Description: "Following again changes nothing. A seller pending or blocked answers 404.",
+		Tags:        tagSellers, Security: security, DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *sellerPath) (*struct{}, error) {
+		return nil, s.Follow(ctx, in.SellerID)
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "unfollowSeller", Method: http.MethodDelete, Path: "/sellers/{sellerId}/follow",
+		Summary:     "Take a seller out of my favourites",
+		Description: "A seller I do not follow is left as it is.",
+		Tags:        tagSellers, Security: security, DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *sellerPath) (*struct{}, error) {
+		return nil, s.Unfollow(ctx, in.SellerID)
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "listFollowedSellers", Method: http.MethodGet, Path: "/sellers/followed",
+		Summary:     "The active sellers I follow, the latest followed first",
+		Description: "A seller blocked since is left out.",
+		Tags:        tagSellers, Security: security,
+	}, func(ctx context.Context, _ *struct{}) (*followedOutput, error) {
+		followed, err := s.Followed(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &followedOutput{}
+		out.Body.Sellers = make([]sellerProfileBody, 0, len(followed))
+
+		for _, p := range followed {
+			out.Body.Sellers = append(out.Body.Sellers, toProfileBody(p))
+		}
+
+		return out, nil
+	})
 }

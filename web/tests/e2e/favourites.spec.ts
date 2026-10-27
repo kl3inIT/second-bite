@@ -1,0 +1,50 @@
+import { expect, test } from "@playwright/test";
+
+import { expectNoSeriousA11yViolations } from "./axe";
+import { hydrated } from "./hydration";
+
+test.use({ locale: "vi-VN" });
+
+test.describe("the favourites", () => {
+  // Figma K9a, K9: nothing followed, then a seller followed from its page, kept in this browser (SEC-109).
+  test("follows a seller from its page and lists it with tonight's dishes, then lets it go", async ({
+    page,
+  }) => {
+    await page.goto("/vi/favourites");
+    await expect(page.getByText("Chưa có quán yêu thích", { exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Khám phá quán" })).toHaveAttribute("href", "/vi");
+    await expectNoSeriousA11yViolations(page);
+
+    await page.goto("/vi/sellers/se-la-paris");
+    const heart = await hydrated(
+      page.getByRole("button", { name: /^(Yêu thích|Theo dõi) La Paris$/ }),
+    );
+    await heart.click();
+    await expect(heart).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByText("Đã thêm vào Yêu thích")).toBeVisible();
+
+    await page.goto("/vi/favourites");
+    const card = page.getByRole("article").filter({ hasText: "La Paris" });
+    await expect(card.getByRole("heading", { name: "La Paris" })).toBeVisible();
+    await expect(card.getByText("Bánh Croissant Truyền Thống")).toBeVisible();
+    // Figma WK9: from 768px the title has its line, and from 1024px tonight's offers stand beside the sellers.
+    const width = page.viewportSize()?.width ?? 0;
+    if (width >= 768) {
+      await expect(page.getByText("Quán bạn theo dõi · có món giảm sẽ báo bạn")).toBeVisible();
+    }
+    if (width >= 1024) {
+      await expect(page.getByRole("heading", { name: "Còn món ngon" })).toBeVisible();
+    }
+    // The row of dishes scrolls inside the card; the page itself never scrolls sideways.
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      ),
+    ).toBe(0);
+    await expectNoSeriousA11yViolations(page);
+
+    await (await hydrated(card.getByRole("button", { name: "Yêu thích La Paris" }))).click();
+    await expect(page.getByText("Đã bỏ khỏi Yêu thích")).toBeVisible();
+    await expect(page.getByText("Chưa có quán yêu thích", { exact: true })).toBeVisible();
+  });
+});

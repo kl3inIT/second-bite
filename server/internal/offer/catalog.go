@@ -25,8 +25,10 @@ const maxDishes = 100
 // it from the daily post. A price, hours or units belong to a post, never
 // here.
 type DishDetails struct {
-	Name        string
-	Kind        Kind
+	Name string
+	Kind Kind
+	// KindLabel is what the seller calls a dish of the kind "other"; empty for any other kind.
+	KindLabel   string
 	Unit        string
 	Description string
 	// Ingredients is one text of what the dish is made of and what it may
@@ -36,6 +38,8 @@ type DishDetails struct {
 	// it, and still sets its own.
 	OriginalPriceVND *int64
 	PhotoID          uuid.UUID
+	// MorePhotoIDs are up to two more photos after the cover (SEC-119).
+	MorePhotoIDs []uuid.UUID
 	// Hidden keeps the dish out of the list a post is picked from, without
 	// deleting it.
 	Hidden bool
@@ -54,12 +58,14 @@ type Dish struct {
 type DishChange struct {
 	Name        *string
 	Kind        *Kind
+	KindLabel   *string
 	Unit        *string
 	Description *string
 	Ingredients *string
 	// OriginalPriceVND of 0 takes the price away.
 	OriginalPriceVND *int64
 	PhotoID          *uuid.UUID
+	MorePhotoIDs     *[]uuid.UUID
 	Hidden           *bool
 }
 
@@ -70,6 +76,7 @@ func (d DishDetails) normalized() (DishDetails, error) {
 	d.Unit = strings.TrimSpace(d.Unit)
 	d.Description = strings.TrimSpace(d.Description)
 	d.Ingredients = strings.TrimSpace(d.Ingredients)
+	d.KindLabel = strings.TrimSpace(d.KindLabel)
 
 	if d.Unit == "" {
 		d.Unit = defaultUnit
@@ -77,8 +84,13 @@ func (d DishDetails) normalized() (DishDetails, error) {
 
 	if !between(utf8.RuneCountInString(d.Name), 1, 80) || !between(utf8.RuneCountInString(d.Unit), 1, 20) ||
 		utf8.RuneCountInString(d.Description) > 1000 || utf8.RuneCountInString(d.Ingredients) > 500 ||
-		!knownKind(d.Kind) || d.PhotoID == uuid.Nil || (d.OriginalPriceVND != nil && *d.OriginalPriceVND <= 1000) {
+		!knownKind(d.Kind) || !kindLabelValid(d.Kind, d.KindLabel) || d.PhotoID == uuid.Nil || !morePhotosValid(d.PhotoID, d.MorePhotoIDs) ||
+		(d.OriginalPriceVND != nil && *d.OriginalPriceVND <= 1000) {
 		return DishDetails{}, ErrDetailsInvalid
+	}
+
+	if d.MorePhotoIDs == nil {
+		d.MorePhotoIDs = []uuid.UUID{}
 	}
 
 	return d, nil
@@ -87,6 +99,7 @@ func (d DishDetails) normalized() (DishDetails, error) {
 // apply returns the details once c is applied.
 func (d DishDetails) apply(c DishChange) DishDetails {
 	replace(&d.Name, c.Name)
+	d.KindLabel = labelAfter(d.KindLabel, c.Kind, c.KindLabel)
 	replace(&d.Kind, c.Kind)
 	replace(&d.Unit, c.Unit)
 	replace(&d.Description, c.Description)
@@ -101,6 +114,10 @@ func (d DishDetails) apply(c DishChange) DishDetails {
 
 	replace(&d.PhotoID, c.PhotoID)
 	replace(&d.Hidden, c.Hidden)
+
+	if c.MorePhotoIDs != nil {
+		d.MorePhotoIDs = *c.MorePhotoIDs
+	}
 
 	return d
 }
@@ -122,7 +139,7 @@ func (s *Service) AddDish(ctx context.Context, sellerID uuid.UUID, d DishDetails
 		return Dish{}, err
 	}
 
-	if err := s.usePhoto(ctx, sellerID, d.PhotoID, caller.AccountID); err != nil {
+	if err := s.usePhotos(ctx, sellerID, caller.AccountID, d.PhotoID, d.MorePhotoIDs, uuid.Nil, nil); err != nil {
 		return Dish{}, err
 	}
 
@@ -145,9 +162,9 @@ func (s *Service) AddDish(ctx context.Context, sellerID uuid.UUID, d DishDetails
 		}
 
 		id, err = q.InsertDish(ctx, db.InsertDishParams{
-			SellerID: sellerID, CreatedBy: caller.AccountID, Name: d.Name, Kind: string(d.Kind), Unit: d.Unit,
+			SellerID: sellerID, CreatedBy: caller.AccountID, Name: d.Name, Kind: string(d.Kind), KindLabel: d.KindLabel, Unit: d.Unit,
 			Description: d.Description, Ingredients: d.Ingredients, OriginalPriceVnd: originalPrice(d.OriginalPriceVND),
-			PhotoID: d.PhotoID, Hidden: d.Hidden,
+			PhotoID: d.PhotoID, MorePhotoIds: d.MorePhotoIDs, Hidden: d.Hidden,
 		})
 		if err != nil {
 			return fmt.Errorf("storing the dish: %w", err)
@@ -212,16 +229,17 @@ func (s *Service) ChangeDish(ctx context.Context, id uuid.UUID, c DishChange) (D
 		return Dish{}, err
 	}
 
-	if next.PhotoID != current.PhotoID {
-		if err := s.usePhoto(ctx, current.SellerID, next.PhotoID, caller.AccountID); err != nil {
-			return Dish{}, err
-		}
+	err = s.usePhotos(
+		ctx, current.SellerID, caller.AccountID, next.PhotoID, next.MorePhotoIDs, current.PhotoID, current.MorePhotoIDs,
+	)
+	if err != nil {
+		return Dish{}, err
 	}
 
 	err = s.queries.UpdateDish(ctx, db.UpdateDishParams{
-		ID: id, Name: next.Name, Kind: string(next.Kind), Unit: next.Unit, Description: next.Description,
+		ID: id, Name: next.Name, Kind: string(next.Kind), KindLabel: next.KindLabel, Unit: next.Unit, Description: next.Description,
 		Ingredients: next.Ingredients, OriginalPriceVnd: originalPrice(next.OriginalPriceVND), PhotoID: next.PhotoID,
-		Hidden: next.Hidden,
+		MorePhotoIds: next.MorePhotoIDs, Hidden: next.Hidden,
 	})
 	if err != nil {
 		return Dish{}, fmt.Errorf("storing the dish: %w", err)
@@ -291,9 +309,9 @@ func (s *Service) dish(ctx context.Context, id uuid.UUID) (Dish, error) {
 
 func dishFromRow(r db.GetDishRow) Dish {
 	return Dish{
-		ID: r.ID, SellerID: r.SellerID, Name: r.Name, Kind: Kind(r.Kind), Unit: r.Unit, Description: r.Description,
-		Ingredients: r.Ingredients, OriginalPriceVND: pricePtr(r.OriginalPriceVnd), PhotoID: r.PhotoID, Hidden: r.Hidden,
-		CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
+		ID: r.ID, SellerID: r.SellerID, Name: r.Name, Kind: Kind(r.Kind), KindLabel: r.KindLabel, Unit: r.Unit, Description: r.Description,
+		Ingredients: r.Ingredients, OriginalPriceVND: pricePtr(r.OriginalPriceVnd), PhotoID: r.PhotoID, MorePhotoIDs: r.MorePhotoIds,
+		Hidden: r.Hidden, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
 	}
 }
 

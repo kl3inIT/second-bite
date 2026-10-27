@@ -27,6 +27,20 @@ var (
 		VI: "Không kết nối được nhà cung cấp email. Kiểm tra host, port và bảo mật, rồi thử lại.",
 		EN: "The email provider could not be reached. Check the host, port and security, then try again.",
 	})
+	ErrPushNotConfigured = platform.NewFailure("NOTIFICATION_PUSH_NOT_CONFIGURED", platform.CategoryServiceUnavailable, platform.Words{
+		VI: "Chưa bật được thông báo lúc này.",
+		EN: "Notifications cannot be turned on yet.",
+	})
+	ErrPushSubscriptionInvalid = platform.NewFailure("NOTIFICATION_PUSH_SUBSCRIPTION_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Trình duyệt này không bật được thông báo.",
+		EN: "Notifications cannot be turned on in this browser.",
+	})
+	// A ticket is spent or expired: the page asks for another and subscribes
+	// again.
+	ErrPushTicketInvalid = platform.NewFailure("NOTIFICATION_PUSH_TICKET_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Phiên bật thông báo đã hết hạn. Thử lại.",
+		EN: "The request to turn on notifications expired. Try again.",
+	})
 	ErrEmailSettingsInvalid = platform.NewFailure("NOTIFICATION_EMAIL_SETTINGS_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Cấu hình gửi email chưa đủ hoặc chưa đúng.",
 		EN: "The email settings are incomplete or invalid.",

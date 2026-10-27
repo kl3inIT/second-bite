@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -119,15 +120,15 @@ func (s *Service) Post(ctx context.Context, sellerID uuid.UUID, d Details) (Offe
 		return Offer{}, err
 	}
 
-	if err := s.usePhoto(ctx, sellerID, d.PhotoID, caller.AccountID); err != nil {
+	if err := s.usePhotos(ctx, sellerID, caller.AccountID, d.PhotoID, d.MorePhotoIDs, uuid.Nil, nil); err != nil {
 		return Offer{}, err
 	}
 
 	id, err := s.queries.InsertOffer(ctx, db.InsertOfferParams{
 		SellerID: sellerID, PostedBy: caller.AccountID, Name: d.Name, Description: d.Description,
-		Kind: string(d.Kind), Unit: d.Unit, Units: int32(d.Units), //nolint:gosec // at most 999
+		Kind: string(d.Kind), KindLabel: d.KindLabel, Unit: d.Unit, Units: int32(d.Units), //nolint:gosec // at most 999
 		PriceVnd: d.PriceVND, OriginalPriceVnd: d.OriginalPriceVND, WeightGrams: weight(d.WeightGrams),
-		PhotoID: d.PhotoID, WindowStart: d.WindowStart, WindowEnd: d.WindowEnd,
+		PhotoID: d.PhotoID, MorePhotoIds: d.MorePhotoIDs, WindowStart: d.WindowStart, WindowEnd: d.WindowEnd,
 		Latitude: publisher.Latitude, Longitude: publisher.Longitude, Address: publisher.Address,
 		SellerName: publisher.Name, SearchVector: Offer{Details: d, sellerName: publisher.Name}.searchText(),
 	})
@@ -204,12 +205,14 @@ type Change struct {
 	Name             *string
 	Description      *string
 	Kind             *Kind
+	KindLabel        *string
 	Unit             *string
 	Units            *int
 	PriceVND         *int64
 	OriginalPriceVND *int64
 	WeightGrams      *int
 	PhotoID          *uuid.UUID
+	MorePhotoIDs     *[]uuid.UUID
 	WindowStart      *time.Time
 	WindowEnd        *time.Time
 }
@@ -284,10 +287,10 @@ func (s *Service) changeIn(
 	ordered := o.Units - o.UnitsLeft
 
 	if err := q.UpdateOffer(ctx, db.UpdateOfferParams{
-		ID: id, Name: next.Name, Description: next.Description, Kind: string(next.Kind), Unit: next.Unit,
+		ID: id, Name: next.Name, Description: next.Description, Kind: string(next.Kind), KindLabel: next.KindLabel, Unit: next.Unit,
 		Units: int32(next.Units), UnitsLeft: int32(next.Units - ordered), //nolint:gosec // at most 999
 		PriceVnd: next.PriceVND, OriginalPriceVnd: next.OriginalPriceVND, WeightGrams: weight(next.WeightGrams),
-		PhotoID: next.PhotoID, WindowStart: next.WindowStart, WindowEnd: next.WindowEnd,
+		PhotoID: next.PhotoID, MorePhotoIds: next.MorePhotoIDs, WindowStart: next.WindowStart, WindowEnd: next.WindowEnd,
 		SearchVector: Offer{Details: next, sellerName: o.sellerName}.searchText(),
 	}); err != nil {
 		return err
@@ -305,7 +308,7 @@ func (s *Service) changeIn(
 // offer: everything but the description, the photo, the units and the window,
 // which orders follow.
 func (c Change) touchesWhatOrdersKeep() bool {
-	return c.Name != nil || c.Kind != nil || c.Unit != nil || c.PriceVND != nil || c.OriginalPriceVND != nil ||
+	return c.Name != nil || c.Kind != nil || c.KindLabel != nil || c.Unit != nil || c.PriceVND != nil || c.OriginalPriceVND != nil ||
 		c.WeightGrams != nil
 }
 
@@ -318,9 +321,44 @@ type WindowChangedEvent struct {
 // EventKey names the event where it is stored, delivered and logged.
 func (WindowChangedEvent) EventKey() string { return "offer.window_changed" }
 
+// WithdrawnEvent tells the other modules that an offer was withdrawn, so the
+// orders still to collect on it cannot be served.
+type WithdrawnEvent struct {
+	OfferID uuid.UUID `json:"offerId"`
+}
+
+// EventKey names the event where it is stored, delivered and logged.
+func (WithdrawnEvent) EventKey() string { return "offer.withdrawn" }
+
 // Window is when an offer is collected.
 type Window struct {
 	Start, End time.Time
+}
+
+// RegisterSchedules makes the module run what it does on the clock.
+func RegisterSchedules(events *platform.Events, s *Service) {
+	events.Every("offer.close_ended", time.Minute, s.CloseEnded)
+}
+
+// CloseEnded closes the offers still on sale whose window is over (SEC-96). An
+// offer is closed to every read the moment its window ends, since reads compare
+// the window; this keeps the table in step, so a report on it, and later a
+// message, can follow. It changes nothing a second run would not, so it may
+// run twice.
+func (s *Service) CloseEnded(ctx context.Context) error {
+	closed, err := s.queries.CloseEnded(ctx)
+	if err != nil {
+		return fmt.Errorf("closing the ended offers: %w", err)
+	}
+
+	if closed > 0 {
+		s.logger.InfoContext(ctx, "ended offers closed",
+			slog.String("event", "offer.offers.closed"),
+			slog.Int64("offers_closed", closed),
+		)
+	}
+
+	return nil
 }
 
 // WindowsOf returns the collection windows of offers, whatever their status;
@@ -344,6 +382,7 @@ func (s *Service) WindowsOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID
 func (c Change) appliedTo(d Details) Details {
 	replace(&d.Name, c.Name)
 	replace(&d.Description, c.Description)
+	d.KindLabel = labelAfter(d.KindLabel, c.Kind, c.KindLabel)
 	replace(&d.Kind, c.Kind)
 	replace(&d.Unit, c.Unit)
 	replace(&d.Units, c.Units)
@@ -355,6 +394,10 @@ func (c Change) appliedTo(d Details) Details {
 
 	if c.WeightGrams != nil {
 		d.WeightGrams = c.WeightGrams
+	}
+
+	if c.MorePhotoIDs != nil {
+		d.MorePhotoIDs = *c.MorePhotoIDs
 	}
 
 	return d
@@ -393,18 +436,17 @@ func (s *Service) applyChange(ctx context.Context, o Offer, c Change, set Settin
 		}
 	}
 
-	if next.PhotoID != o.PhotoID {
-		if err := s.usePhoto(ctx, o.SellerID, next.PhotoID, accountID); err != nil {
-			return Details{}, err
-		}
+	if err := s.usePhotos(ctx, o.SellerID, accountID, next.PhotoID, next.MorePhotoIDs, o.PhotoID, o.MorePhotoIDs); err != nil {
+		return Details{}, err
 	}
 
 	return next, nil
 }
 
 // Withdraw takes an offer off sale for good; it keeps its row and leaves
-// every customer's read. Its seller's owner or staff may, even when the
-// seller has been blocked. Withdrawing again changes nothing.
+// every customer's read, and the orders still to collect on it end (SEC-108).
+// Its seller's owner or staff may, even when the seller has been blocked.
+// Withdrawing again changes nothing.
 func (s *Service) Withdraw(ctx context.Context, id uuid.UUID) (Offer, error) {
 	caller, err := platform.RequireCaller(ctx)
 	if err != nil {
@@ -429,8 +471,16 @@ func (s *Service) Withdraw(ctx context.Context, id uuid.UUID) (Offer, error) {
 	case StatusOnSale, StatusSoldOut:
 	}
 
-	if err := s.queries.WithdrawOffer(ctx, id); err != nil {
-		return Offer{}, fmt.Errorf("withdrawing the offer: %w", err)
+	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		if err := s.queries.WithTx(tx).WithdrawOffer(ctx, id); err != nil {
+			return fmt.Errorf("withdrawing the offer: %w", err)
+		}
+
+		// The orders still to collect end with it (SEC-108); the offer's own row keeps no order.
+		return platform.Publish(ctx, tx, s.events, WithdrawnEvent{OfferID: id})
+	})
+	if err != nil {
+		return Offer{}, err
 	}
 
 	s.logger.InfoContext(ctx, "offer withdrawn",
@@ -458,6 +508,24 @@ func (s *Service) usePhoto(ctx context.Context, sellerID, photoID, accountID uui
 	return s.files.Claim(ctx, photoID, accountID)
 }
 
+// usePhotos lets a dish or an offer show a cover and up to two more photos, claiming each one it did not show
+// before (earlier is what it showed until now).
+func (s *Service) usePhotos(
+	ctx context.Context, sellerID, accountID, cover uuid.UUID, more []uuid.UUID, earlierCover uuid.UUID, earlierMore []uuid.UUID,
+) error {
+	for _, id := range append([]uuid.UUID{cover}, more...) {
+		if id == earlierCover || slices.Contains(earlierMore, id) {
+			continue
+		}
+
+		if err := s.usePhoto(ctx, sellerID, id, accountID); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *Service) read(ctx context.Context, id uuid.UUID) (Offer, error) {
 	row, err := s.queries.GetOffer(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -474,8 +542,8 @@ func (s *Service) read(ctx context.Context, id uuid.UUID) (Offer, error) {
 func (s *Service) fromRow(r db.GetOfferRow) Offer {
 	o := Offer{
 		ID: r.ID, SellerID: r.SellerID,
-		Name: r.Name, Description: r.Description, Kind: Kind(r.Kind), Unit: r.Unit, Units: int(r.Units),
-		PriceVND: r.PriceVnd, OriginalPriceVND: r.OriginalPriceVnd, PhotoID: r.PhotoID,
+		Name: r.Name, Description: r.Description, Kind: Kind(r.Kind), KindLabel: r.KindLabel, Unit: r.Unit, Units: int(r.Units),
+		PriceVND: r.PriceVnd, OriginalPriceVND: r.OriginalPriceVnd, PhotoID: r.PhotoID, MorePhotoIDs: r.MorePhotoIds,
 		WindowStart: r.WindowStart, WindowEnd: r.WindowEnd,
 		UnitsLeft:       int(r.UnitsLeft),
 		DiscountPercent: discountPercent(r.PriceVnd, r.OriginalPriceVnd),
@@ -492,7 +560,7 @@ func (s *Service) fromRow(r db.GetOfferRow) Offer {
 	switch {
 	case r.State == string(StatusWithdrawn):
 		o.Status = StatusWithdrawn
-	case !r.WindowEnd.After(s.now()):
+	case r.State == string(StatusClosed), !r.WindowEnd.After(s.now()):
 		o.Status = StatusClosed
 	case r.UnitsLeft == 0:
 		o.Status = StatusSoldOut

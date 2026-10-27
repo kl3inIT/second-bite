@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -45,6 +46,9 @@ func TestSeller(t *testing.T) {
 		"details are checked":                      testDetailsAreChecked,
 		"additions arriving together keep the cap": testStaffCapUnderConcurrency,
 		"the owner sets a photo they uploaded":     testOwnerSetsAPhoto,
+		"admins read who belongs to which seller":  testMembershipsForAdmins,
+		"customers follow sellers and list them":   testFollowing,
+		"the location is Hanoi and a move is told": testLocationIsHanoiAndAMoveIsTold,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -69,7 +73,7 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 
 	trail := audit.NewService(pool, platformtest.Logger())
 
-	notifications, err := notification.NewService(pool, trail, notification.Config{SettingsKey: make([]byte, 32)}, platformtest.Logger())
+	notifications, err := notification.NewService(pool, trail, nil, notification.Config{SettingsKey: make([]byte, 32)}, platformtest.Logger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -364,4 +368,67 @@ func testOwnerSetsAPhoto(t *testing.T, pool *pgxpool.Pool) {
 	if err != nil || got.PhotoID != nil {
 		t.Fatalf("removed %+v, %v", got, err)
 	}
+}
+
+func testMembershipsForAdmins(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+
+	f := newFixture(t, pool)
+	owner := f.as(t, "owner@example.com", platform.RoleCustomer)
+	stranger := f.as(t, "stranger@example.com", platform.RoleCustomer)
+	admin := f.as(t, "admin@example.com", platform.RoleAdmin)
+
+	first, err := f.sellers.Open(owner, shop)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	second, err := f.sellers.Open(stranger, seller.Details{
+		Name: "Bánh mì Hội An", Address: shop.Address, Latitude: shop.Latitude, Longitude: shop.Longitude, Phone: shop.Phone,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.sellers.AddStaff(stranger, second.ID, f.mail("owner")); err != nil {
+		t.Fatal(err)
+	}
+
+	ownerID, strangerID := callerID(owner), callerID(stranger)
+
+	got, err := f.sellers.MembershipsForAdmins(admin, []uuid.UUID{ownerID, strangerID, uuid.New()})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Accounts in the order they were made, an account's owners first.
+	type held struct {
+		account uuid.UUID
+		role    seller.Role
+		seller  uuid.UUID
+	}
+
+	gotHeld := make([]held, 0, len(got))
+	for _, m := range got {
+		gotHeld = append(gotHeld, held{m.AccountID, m.Role, m.SellerID})
+	}
+
+	want := []held{{ownerID, seller.RoleOwner, first.ID}, {ownerID, seller.RoleStaff, second.ID}, {strangerID, seller.RoleOwner, second.ID}}
+	if !slices.Equal(gotHeld, want) || got[0].SellerName != first.Name || got[0].SellerStatus != seller.StatusActive {
+		t.Errorf("memberships: %+v; want %+v", got, want)
+	}
+
+	if _, err := f.sellers.MembershipsForAdmins(owner, []uuid.UUID{ownerID}); !errors.Is(err, platform.ErrAdminRequired) {
+		t.Errorf("a customer reading memberships: %v, want ErrAdminRequired", err)
+	}
+
+	if _, err := f.sellers.MembershipsForAdmins(admin, make([]uuid.UUID, 101)); !errors.Is(err, seller.ErrListInvalid) {
+		t.Errorf("101 accounts: %v, want ErrListInvalid", err)
+	}
+}
+
+func callerID(ctx context.Context) uuid.UUID {
+	c, _ := platform.CallerFrom(ctx)
+
+	return c.AccountID
 }

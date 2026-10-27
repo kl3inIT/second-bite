@@ -6,7 +6,7 @@ Second Bite deploys the way BeyondPilot already deploys to the same host (its `d
 2. [Deploy staging](../../.github/workflows/deploy-staging.yml) calls the shared [Deploy](../../.github/workflows/deploy.yml) workflow.
 3. Deploy runs [`deploy.sh`](../../infrastructure/deployment/deploy.sh) on the host over SSH.
 
-The reasons, and the alternatives considered (Kamal, Docker contexts over SSH, Coolify), are in the [SEC-33 design](../increments/active/sec-33-staging/design.md).
+The reasons, and the alternatives considered (Kamal, Docker contexts over SSH, Coolify), are in the [SEC-33 design](../increments/completed/sec-33-staging/design.md).
 
 A green deployment means the release is running and healthy. It does not claim that the product works; the team checks that on the site.
 
@@ -14,12 +14,12 @@ A green deployment means the release is running and healthy. It does not claim t
 
 `main` receives only commits whose checks passed on their branch. A `main` push that changes `server/`, `web/`, `mobile/` or `infrastructure/deployment/` starts Release:
 
-1. **Server image, Web image and Preview image** build side by side; the first two use the GitHub Actions layer cache, and the preview builds the Flutter app for the browser with the version `mobile/pubspec.yaml` pins. Each pushes to GHCR as `ghcr.io/kl3init/second-bite-{server,web,preview}:sha-<sha>-<run>-<attempt>`. A tag names one attempt and is never moved; there is no `latest`.
+1. **Server image, Web image and Preview image** build side by side; the first two use the GitHub Actions layer cache, and the preview builds the Flutter app for the browser with the version `mobile/pubspec.yaml` pins and `SECONDBITE_API_ORIGIN=https://preview.secondbite.vadan.app/api`, so it calls staging's API through its own origin. Each pushes to GHCR as `ghcr.io/kl3init/second-bite-{server,web,preview}:sha-<sha>-<run>-<attempt>`. A tag names one attempt and is never moved; there is no `latest`.
 2. **Start together and exercise the routes** pulls both images by digest and starts them with PostgreSQL behind the local proxy (`compose.local.yaml`, `--no-build`). It then checks:
    - `/vi` and `/robots.txt` answer 200;
    - `/api/readyz` answers 204;
    - `/api/offers` answers 200;
-   - the preview answers any path with the app and `X-Robots-Tag: noindex`;
+   - the preview answers `/` with the app, sends a screen's path such as `/offers/1` to `/#/offers/1`, and carries `X-Robots-Tag: noindex`;
    - each image's `revision` label is the commit.
 3. **Publish release** runs only after the step above passes. It uploads the artifact `release-<sha>`, kept 30 days, holding `images.env`: the source SHA and both images by digest.
 
@@ -69,7 +69,7 @@ The site is down for the few seconds the server takes to restart and migrate. Th
 Staging runs on the host of BeyondPilot's staging, which also runs MemoryOS's production; `beyondpilot.vadan.app` resolves to it. Second Bite has its own:
 - directory;
 - Compose project, `secondbite-staging`;
-- containers, `secondbite-staging-{postgres,server,web,preview}`;
+- containers, `secondbite-staging-{postgres,server,web,preview,map}`;
 - volume and internal network.
 
 It shares the host's Nginx Proxy Manager, which it reaches through the existing external network `proxy-network`. Never change a container, file or setting of BeyondPilot or MemoryOS from here.
@@ -81,7 +81,8 @@ Under `/apps/secondbite-staging`:
 | `incoming` | `secondbite-ci`, `0700` | One directory per uploaded release; `deploy.sh` keeps the current and previous ones |
 | `deployments` | root, `0700` | `lock`, `current.env`, `previous.env` |
 | `backups` | root, `0700` | Pre-deployment dumps (the five newest) and nightly dumps (the 14 newest) |
-| `secrets` | root, `0700` | `database-password`, `email-settings-key` and `sign-in-code-key`, each owned by uid 65532 (the server's distroless `nonroot` user) with mode `0400` |
+| `secrets` | root, `0700` | `database-password`, `email-settings-key`, `sign-in-code-key` and `push-private-key`, each owned by uid 65532 (the server's distroless `nonroot` user) with mode `0400` |
+| `map` | root, `0755`, files world-readable | The map the web draws a store's pin on (SEC-66): `hanoi.pmtiles`, `fonts/` and `sprites/`, written by [`infrastructure/map/fetch.sh`](../../infrastructure/map/fetch.sh) and served read-only by `secondbite-staging-map` |
 | `.env.staging` | root, `0600` | The non-secret values of [`staging.env.example`](../../infrastructure/deployment/staging.env.example) |
 
 ### Provision the host once
@@ -131,6 +132,26 @@ What each secret does ([backend runbook](backend.md)):
 - Replacing `email-settings-key` makes the stored email provider key unreadable until an admin enters it again.
 - Replacing `sign-in-code-key` voids the codes sent in the last 15 minutes.
 
+**Web Push** (SEC-25). The VAPID key pair is made by the server's own command, in the running image, with no network. It writes the private key to the secrets and prints only the public key, which goes into `.env.staging`. Staging's was made on 22 October 2026.
+
+```sh
+root=/apps/secondbite-staging
+image=$(sudo docker inspect --format '{{.Config.Image}}' secondbite-staging-server)
+public=$(sudo docker run --rm --user 0 --network none -v $root/secrets:/out "$image" push keys -private-key-file /out/push-private-key)
+sudo chown 65532:65532 $root/secrets/push-private-key && sudo chmod 0400 $root/secrets/push-private-key
+printf 'SECONDBITE_PUSH_PUBLIC_KEY=%s\nSECONDBITE_SITE_URL=https://secondbite.vadan.app\n' "$public" | sudo tee -a $root/.env.staging >/dev/null
+```
+
+Replacing the pair voids every browser's subscription: each one subscribes again at its next visit to the order page or the Đơn tab.
+
+**Email.** Staging sends real email through Brevo's API, from `noreply@vadan.app` as "Second Bite (staging)", since 21 October 2026. There is no Mailpit on staging: a sign-in code goes to the inbox that was typed, so test with an address you can read. The Brevo API key is sealed in the database under `email-settings-key`, never in a file or the environment. An admin changes the provider, the sender or the key on the site at `/vi/admin/settings/email` (`PUT /admin/email-settings`); from the host, the same is a command reading the key from standard input:
+
+```sh
+docker exec -i secondbite-staging-server secondbite email configure -provider brevo   -sender-address noreply@vadan.app -sender-name "Second Bite (staging)" -secret-stdin
+```
+
+Paste the key and press Ctrl-D, so it stays out of the shell's history.
+
 **The nightly backup.** Install it from a checkout of this repository:
 
 ```sh
@@ -160,6 +181,16 @@ sudo docker compose --project-name secondbite-staging --env-file "$root/.env.sta
 
 Later deployments read the same `.env.staging`, so the value stays. The client is of type "Web application", with `https://secondbite.vadan.app` among its authorised JavaScript origins and no redirect URI: the web takes Google's ID token in a popup. While its consent screen is in testing mode, only its test users can sign in. Its client secret is not used anywhere; keep it out of the host. An empty value leaves Google off, and `GET /api/auth/methods` then answers `{}`.
 
+**The map** (SEC-66). Before the first release that has the `map` service, fill `/apps/secondbite-staging/map`; run it again to refresh the map after the build named in the script changes. It needs the go-pmtiles CLI, a single binary from its releases, kept out of the PATH of other products:
+
+```sh
+curl -fsSL https://github.com/protomaps/go-pmtiles/releases/download/v1.31.2/go-pmtiles_1.31.2_Linux_x86_64.tar.gz |
+    sudo tar -xz -C /usr/local/lib --one-top-level=go-pmtiles pmtiles
+sudo PMTILES=/usr/local/lib/go-pmtiles/pmtiles bash infrastructure/map/fetch.sh /apps/secondbite-staging/map
+```
+
+The script comes from this repository at the release being deployed. The archive is about 43 MB. Without it the site works, and the map in the store forms says it cannot load.
+
 Then record the date of that first deployment in the [persistence guideline](../guidelines/persistence.md). From that date on, migrations are forward-only.
 
 ### The reverse proxy
@@ -180,6 +211,12 @@ location /api/ {
     set $secondbite_server secondbite-staging-server;
     rewrite ^/api/(.*)$ /$1 break;
     proxy_pass http://$secondbite_server:8080;
+    # GET /live is a WebSocket: the upgrade needs HTTP/1.1 and its two headers, and the server pings every 25
+    # seconds, well inside the read timeout.
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_read_timeout 75s;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host $host;
@@ -189,7 +226,39 @@ location /api/ {
 }
 ```
 
+The same advanced configuration serves the map (SEC-66) on the site's own origin, so MapLibre needs no CORS. The map is read by byte ranges, so the proxy must not compress it:
+
+```nginx
+location /map/ {
+    set $secondbite_map secondbite-staging-map;
+    proxy_pass http://$secondbite_map:8080;
+    gzip off;
+    proxy_set_header Host $host;
+}
+```
+
 Staging's proxy host is id 10, and its certificate is id 11, renewed by Nginx Proxy Manager.
+
+The preview's proxy host, `preview.secondbite.vadan.app`, forwards to `http://secondbite-staging-preview:8080` with the same certificate options. Its advanced configuration keeps the preview out of search even while the container is down, and gives it the same `location /api/` block as above, so the app reaches staging's API on its own origin and the server needs no CORS (SEC-94):
+
+```nginx
+# A preview for the team: never indexed, even when the container is down.
+add_header X-Robots-Tag "noindex, nofollow" always;
+
+location /api/ {
+    set $secondbite_server secondbite-staging-server;
+    rewrite ^/api/(.*)$ /$1 break;
+    proxy_pass http://$secondbite_server:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header Forwarded "";
+    proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+The preview's proxy host is id 11, and its certificate is id 12. Its `/api/` block was added on 21 October 2026 through the API, with a token signed inside the container as described below.
 
 Nginx Proxy Manager 2.13 takes the Let's Encrypt address from its own settings. A certificate requested through its API carries only `{"dns_challenge": false}` in `meta`; it refuses `letsencrypt_agree` or `letsencrypt_email`.
 

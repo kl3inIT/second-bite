@@ -27,7 +27,7 @@ func TestSettingsSaved(t *testing.T) {
 	pool := platformtest.StartPostgres(t)
 	logger := platformtest.Logger()
 
-	s, err := NewService(pool, audit.NewService(pool, logger), Config{SettingsKey: bytes.Repeat([]byte{7}, 32)}, logger)
+	s, err := NewService(pool, audit.NewService(pool, logger), nil, Config{SettingsKey: bytes.Repeat([]byte{7}, 32)}, logger)
 	if err != nil {
 		t.Fatal(err)
 	}

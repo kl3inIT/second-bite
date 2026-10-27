@@ -15,9 +15,10 @@ func TestLimitWait(t *testing.T) {
 	long := now.Add(-48 * time.Hour)
 
 	tests := []struct {
-		name  string
-		usage db.ChallengeUsageRow
-		want  time.Duration
+		name    string
+		usage   db.ChallengeUsageRow
+		purpose codePurpose
+		want    time.Duration
 	}{
 		{name: "first code", usage: db.ChallengeUsageRow{NewestSentAt: long}},
 		{name: "a minute after the last", usage: db.ChallengeUsageRow{NewestSentAt: now.Add(-time.Minute)}},
@@ -26,6 +27,16 @@ func TestLimitWait(t *testing.T) {
 			name:  "ten codes in the hour",
 			usage: db.ChallengeUsageRow{NewestSentAt: now.Add(-5 * time.Minute), SentLastHour: 10, OldestSentLastHour: now.Add(-50 * time.Minute)},
 			want:  10 * time.Minute,
+		},
+		{
+			name:    "three deletion codes in the hour",
+			usage:   db.ChallengeUsageRow{NewestSentAt: now.Add(-5 * time.Minute), SentLastHour: 3, OldestSentLastHour: now.Add(-40 * time.Minute)},
+			purpose: purposeDeleteAccount,
+			want:    20 * time.Minute,
+		},
+		{
+			name:  "three sign-in codes in the hour",
+			usage: db.ChallengeUsageRow{NewestSentAt: now.Add(-5 * time.Minute), SentLastHour: 3, OldestSentLastHour: now.Add(-40 * time.Minute)},
 		},
 		{
 			name:  "fifteen wrong guesses in the hour",
@@ -50,8 +61,12 @@ func TestLimitWait(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			if tt.purpose == "" {
+				tt.purpose = purposeSignIn
+			}
+
 			tt.usage.CheckedAt = now
-			if got := limitWait(tt.usage); got != tt.want {
+			if got := limitWait(tt.usage, tt.purpose.perHour()); got != tt.want {
 				t.Errorf("wait %v, want %v", got, tt.want)
 			}
 		})

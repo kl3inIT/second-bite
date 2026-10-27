@@ -23,10 +23,17 @@ const (
 	// KindMixedBox is a bag of several things, described by what it may hold,
 	// as Too Good To Go's Surprise Bag.
 	KindMixedBox Kind = "mixed_box"
-	KindOther    Kind = "other"
+	KindDessert  Kind = "dessert"
+	KindSnacks   Kind = "snacks"
+	KindProduce  Kind = "produce"
+	// KindOther is any other food; the seller may name it (SEC-175).
+	KindOther Kind = "other"
 )
 
-var kinds = []Kind{KindBakery, KindPreparedFood, KindIngredients, KindDrinks, KindMixedBox, KindOther}
+// maxKindLabel is how long the name of a dish of the kind "other" may be.
+const maxKindLabel = 30
+
+var kinds = []Kind{KindBakery, KindPreparedFood, KindIngredients, KindDrinks, KindMixedBox, KindDessert, KindSnacks, KindProduce, KindOther}
 
 // defaultUnit is what one unit is called when staff name none.
 const defaultUnit = "suất"
@@ -36,9 +43,11 @@ type Details struct {
 	Name        string
 	Description string
 	Kind        Kind
-	Unit        string
-	Units       int
-	PriceVND    int64
+	// KindLabel is what the seller calls a dish of the kind "other"; empty for any other kind.
+	KindLabel string
+	Unit      string
+	Units     int
+	PriceVND  int64
 	// OriginalPriceVND is what the food sells for normally; the price must be
 	// the minimum discount below it.
 	OriginalPriceVND int64
@@ -46,8 +55,25 @@ type Details struct {
 	// weight, not only in units.
 	WeightGrams *int
 	PhotoID     uuid.UUID
-	WindowStart time.Time
-	WindowEnd   time.Time
+	// MorePhotoIDs are up to two more photos after the cover (SEC-119).
+	MorePhotoIDs []uuid.UUID
+	WindowStart  time.Time
+	WindowEnd    time.Time
+}
+
+// morePhotosValid holds the photos after the cover to two, each real, none repeated and none the cover.
+func morePhotosValid(cover uuid.UUID, more []uuid.UUID) bool {
+	if len(more) > 2 {
+		return false
+	}
+
+	for i, id := range more {
+		if id == uuid.Nil || id == cover || slices.Contains(more[:i], id) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // normalized trims the details, names the unit when staff named none, and
@@ -56,13 +82,18 @@ func (d Details) normalized() (Details, error) {
 	d.Name = strings.TrimSpace(d.Name)
 	d.Description = strings.TrimSpace(d.Description)
 	d.Unit = strings.TrimSpace(d.Unit)
+	d.KindLabel = strings.TrimSpace(d.KindLabel)
 
 	if d.Unit == "" {
 		d.Unit = defaultUnit
 	}
 
-	if !d.textValid() || !d.amountsValid() || d.PhotoID == uuid.Nil {
+	if !d.textValid() || !d.amountsValid() || d.PhotoID == uuid.Nil || !morePhotosValid(d.PhotoID, d.MorePhotoIDs) {
 		return Details{}, ErrDetailsInvalid
+	}
+
+	if d.MorePhotoIDs == nil {
+		d.MorePhotoIDs = []uuid.UUID{}
 	}
 
 	return d, nil
@@ -74,7 +105,7 @@ func (d Details) textValid() bool {
 	return between(utf8.RuneCountInString(d.Name), 1, 80) &&
 		utf8.RuneCountInString(d.Description) <= 1000 &&
 		between(utf8.RuneCountInString(d.Unit), 1, 20) &&
-		knownKind(d.Kind) &&
+		knownKind(d.Kind) && kindLabelValid(d.Kind, d.KindLabel) &&
 		(d.Kind != KindMixedBox || d.Description != "")
 }
 
@@ -113,5 +144,24 @@ func discountPercent(price, original int64) int {
 }
 
 func knownKind(k Kind) bool { return slices.Contains(kinds, k) }
+
+// kindLabelValid holds the name of a dish to a short text, and to the kind "other".
+func kindLabelValid(k Kind, label string) bool {
+	return utf8.RuneCountInString(label) <= maxKindLabel && (k == KindOther || label == "")
+}
+
+// labelAfter is the name of a dish once a change is applied: the new one when the change gives it, none when the
+// change moves the dish to another kind without one, and the old one otherwise.
+func labelAfter(label string, kind *Kind, changed *string) string {
+	if changed != nil {
+		return *changed
+	}
+
+	if kind != nil && *kind != KindOther {
+		return ""
+	}
+
+	return label
+}
 
 func between(n, lo, hi int) bool { return n >= lo && n <= hi }

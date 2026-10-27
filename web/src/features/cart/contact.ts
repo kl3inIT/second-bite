@@ -8,7 +8,6 @@ export type Contact = { name: string; phone: string };
 export const MAX_NAME_LENGTH = 50;
 
 const PHONE = /^0[0-9]{9}$/;
-const STORAGE_KEY = "secondbite.contact";
 
 /** The number as stored: spaces, dots and dashes taken out, +84 written as 0. */
 export function normalizedPhone(value: string): string {
@@ -29,25 +28,4 @@ export function contactProblems({ name, phone }: Contact): { name?: true; phone?
 /** A stored number grouped to be read back at a glance: 0900 000 000. */
 export function groupedPhone(phone: string): string {
   return `${phone.slice(0, 4)} ${phone.slice(4, 7)} ${phone.slice(7)}`;
-}
-
-/** The contact given last in this browser, so the next order needs only a check. */
-export function readContact(): Contact {
-  try {
-    const value: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-    if (value && typeof value === "object" && "name" in value && "phone" in value) {
-      return { name: String(value.name), phone: String(value.phone) };
-    }
-  } catch {
-    // Storage blocked or the value unreadable: start with empty fields.
-  }
-  return { name: "", phone: "" };
-}
-
-export function saveContact(contact: Contact): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(contact));
-  } catch {
-    // Storage blocked: the fields are asked again next time.
-  }
 }

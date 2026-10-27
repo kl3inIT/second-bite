@@ -30,7 +30,8 @@ func newSeller(name, phone string) map[string]any {
 func checkSellerFlow(t *testing.T, svc service) {
 	t.Helper()
 
-	owner := bearer(signIn(t, svc, "seller.owner@example.com").Token)
+	ownerSession := signIn(t, svc, "seller.owner@example.com")
+	owner := bearer(ownerSession.Token)
 
 	var opened sellerResponse
 
@@ -61,7 +62,8 @@ func checkSellerFlow(t *testing.T, svc service) {
 		decode(t, http.StatusCreated, &struct{}{})
 
 	// The staff member had no account; they sign in like anyone and find the seller.
-	staff := bearer(signIn(t, svc, "seller.staff@example.com").Token)
+	staffSession := signIn(t, svc, "seller.staff@example.com")
+	staff := bearer(staffSession.Token)
 
 	var mine struct {
 		Sellers []sellerResponse `json:"sellers"`
@@ -73,10 +75,19 @@ func checkSellerFlow(t *testing.T, svc service) {
 		t.Fatalf("staff's sellers %+v", mine)
 	}
 
-	body := map[string]any{"name": "Renamed", "address": "x", "latitude": 21, "longitude": 105, "phone": "0912345678"}
+	body := newSeller("Renamed", "0912345678")
 	if p := send(t, http.MethodPut, sellerURL, staff, body).problem(t, http.StatusForbidden); p.Code != "SELLER_OWNER_REQUIRED" {
 		t.Errorf("staff changing the seller: %q", p.Code)
 	}
+
+	outside := newSeller("Renamed", "0912345678")
+	outside["latitude"], outside["longitude"] = 10.7769, 106.7009 // Ho Chi Minh City
+
+	if p := send(t, http.MethodPut, sellerURL, owner, outside).problem(t, http.StatusBadRequest); p.Code != "SELLER_LOCATION_OUTSIDE" {
+		t.Errorf("the owner moving the seller out of Hanoi: %q", p.Code)
+	}
+
+	checkPlacesNeedACaller(t, svc, owner)
 
 	stranger := bearer(signIn(t, svc, "seller.stranger@example.com").Token)
 	if p := send(t, http.MethodGet, sellerURL, stranger, nil).problem(t, http.StatusNotFound); p.Code != "SELLER_NOT_FOUND" {
@@ -88,7 +99,34 @@ func checkSellerFlow(t *testing.T, svc service) {
 	}
 
 	admin := bearer(signIn(t, svc, sellerAdminEmail).Token)
+	checkMembershipsOfAccounts(t, svc, admin, ownerSession.Account.ID, staffSession.Account.ID)
 	checkAdminBlocksAndLifts(t, svc, admin, opened.ID)
+}
+
+// checkMembershipsOfAccounts has an admin read the sellers of two accounts at
+// once, the ids repeated in the query as the generated clients send an array
+// (SEC-75).
+func checkMembershipsOfAccounts(t *testing.T, svc service, admin http.Header, ownerID, staffID string) {
+	t.Helper()
+
+	var held struct {
+		Memberships []struct {
+			AccountID string `json:"accountId"`
+			Role      string `json:"role"`
+		} `json:"memberships"`
+	}
+
+	send(t, http.MethodGet, svc.base+"/admin/memberships?accountId="+ownerID+"&accountId="+staffID, admin, nil).
+		decode(t, http.StatusOK, &held)
+
+	roles := map[string]string{}
+	for _, m := range held.Memberships {
+		roles[m.AccountID] = m.Role
+	}
+
+	if len(held.Memberships) != 2 || roles[ownerID] != "owner" || roles[staffID] != "staff" {
+		t.Errorf("the memberships of the owner and the staff member: %+v", held)
+	}
 }
 
 // checkAdminBlocksAndLifts has an admin block the seller with a reason, find
@@ -132,7 +170,7 @@ func checkAdminBlocksAndLifts(t *testing.T, svc service, admin http.Header, sell
 	}
 
 	if p := send(t, http.MethodPost, svc.base+"/admin/sellers/"+sellerID+"/block", admin, reasonBody("ngắn")).
-		problem(t, http.StatusBadRequest); p.Code != "PLATFORM_REQUEST_INVALID" {
+		problem(t, http.StatusBadRequest); p.Code != codeRequestInvalid {
 		t.Errorf("a reason too short: %q", p.Code)
 	}
 
@@ -179,4 +217,18 @@ func waitEmail(t *testing.T, svc service, address, subject string) string {
 	t.Fatalf("no email to %s about %q", address, subject)
 
 	return ""
+}
+
+// checkPlacesNeedACaller: suggestions for an address are for someone signed in, from two letters typed.
+func checkPlacesNeedACaller(t *testing.T, svc service, signedIn http.Header) {
+	t.Helper()
+
+	places := svc.base + "/sellers/places?q="
+	if p := send(t, http.MethodGet, places+"hoa+lam", nil, nil).problem(t, http.StatusUnauthorized); p.Code != codeAuthenticationRequired {
+		t.Errorf("anonymous suggestions: %q", p.Code)
+	}
+
+	if p := send(t, http.MethodGet, places+"h", signedIn, nil).problem(t, http.StatusBadRequest); p.Code != codeRequestInvalid {
+		t.Errorf("one letter: %q", p.Code)
+	}
 }

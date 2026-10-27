@@ -3,7 +3,8 @@
 SELECT pg_advisory_xact_lock(hashtextextended('identity:' || @email::text, 0));
 
 -- name: ChallengeUsage :one
--- What the codes sent to an address in the last day have used, for its limits.
+-- What the codes of a purpose sent to an address in the last day have used,
+-- for its limits; each purpose has its own (SEC-126).
 SELECT
     (count(*) FILTER (WHERE created_at > now() - interval '1 hour'))::integer AS sent_last_hour,
     coalesce(max(created_at), 'epoch')::timestamptz AS newest_sent_at,
@@ -14,15 +15,16 @@ SELECT
     coalesce(min(created_at) FILTER (WHERE failed_attempts > 0), 'epoch')::timestamptz AS oldest_wrong_last_day,
     now()::timestamptz AS checked_at
 FROM identity_sign_in_challenges
-WHERE email = @email AND created_at > now() - interval '1 day';
+WHERE email = @email AND purpose = @purpose AND created_at > now() - interval '1 day';
 
 -- name: DeleteOldChallenges :exec
 DELETE FROM identity_sign_in_challenges WHERE created_at < now() - interval '1 day';
 
 -- name: EndLiveChallenges :exec
--- A new code replaces the address's earlier ones; their wrong guesses still count.
+-- A new code replaces the address's earlier ones of its purpose; their wrong
+-- guesses still count. A code of the other purpose stays (SEC-126).
 UPDATE identity_sign_in_challenges SET expires_at = now()
-WHERE email = @email AND expires_at > now();
+WHERE email = @email AND purpose = @purpose AND expires_at > now();
 
 -- name: InsertChallenge :one
 INSERT INTO identity_sign_in_challenges (id, email, code_hash, purpose, expires_at)
@@ -65,7 +67,48 @@ SELECT pg_advisory_xact_lock(hashtextextended('identity:admins', 0));
 SELECT count(*) FROM identity_accounts WHERE role = 'admin';
 
 -- name: ListAdmins :many
-SELECT id, email, role, display_name FROM identity_accounts WHERE role = 'admin' ORDER BY email;
+SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method
+FROM identity_accounts WHERE role = 'admin' ORDER BY email;
+
+-- name: RecordSignIn :exec
+UPDATE identity_accounts SET last_signed_in_at = now(), last_sign_in_method = @method::text WHERE id = @id;
+
+-- name: AccountsForAdmins :many
+-- One page of the accounts of the role given (any when empty) whose address
+-- or name, folded, holds the query's (any when empty), in the order sort
+-- names: by default the newest first; otherwise by name (the address when
+-- there is none), creation or last sign-in, '-' first for descending, those
+-- never signed in last. total counts them all; it is absent when the page is
+-- past the end.
+SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method,
+       count(*) OVER () AS total
+FROM identity_accounts
+WHERE (@role::text = '' OR role = @role)
+  AND (@query::text = '' OR search_text LIKE '%' || identity_fold(@query::text) || '%' ESCAPE '\')
+ORDER BY CASE WHEN @sort::text = 'name' THEN identity_fold(coalesce(nullif(display_name, ''), email)) END,
+         CASE WHEN @sort::text = '-name' THEN identity_fold(coalesce(nullif(display_name, ''), email)) END DESC,
+         CASE WHEN @sort::text = 'signedIn' THEN last_signed_in_at END NULLS LAST,
+         CASE WHEN @sort::text = '-signedIn' THEN last_signed_in_at END DESC NULLS LAST,
+         CASE WHEN @sort::text = 'created' THEN created_at END,
+         created_at DESC,
+         id
+LIMIT @max_rows OFFSET @skip_rows;
+
+-- name: CountAccountsForAdmins :one
+SELECT count(*) FROM identity_accounts
+WHERE (@role::text = '' OR role = @role)
+  AND (@query::text = '' OR search_text LIKE '%' || identity_fold(@query::text) || '%' ESCAPE '\');
+
+-- name: CountAccountsByRole :many
+-- How many accounts of each role match the words, whatever the role asked,
+-- for the counts above the list.
+SELECT role, count(*) AS accounts FROM identity_accounts
+WHERE (@query::text = '' OR search_text LIKE '%' || identity_fold(@query::text) || '%' ESCAPE '\')
+GROUP BY role;
+
+-- name: GetAccountForAdmins :one
+SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method
+FROM identity_accounts WHERE id = @id;
 
 -- name: SetRole :one
 UPDATE identity_accounts SET role = @role WHERE id = @id

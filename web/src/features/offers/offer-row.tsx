@@ -9,11 +9,11 @@ export function OfferRow({ label, offers }: { label: string; offers: readonly Of
   return (
     <ScrollRow
       label={label}
-      className="lg:grid lg:snap-none lg:grid-cols-3 lg:overflow-visible lg:pb-0 xl:grid-cols-4"
+      className="md:grid md:snap-none md:grid-cols-3 md:overflow-visible md:pb-0 lg:grid-cols-4"
     >
       {offers.map((offer) => (
-        <li key={offer.id} className="flex shrink-0 snap-start lg:shrink xl:nth-[n+5]:hidden">
-          <OfferCard offer={offer} className="w-66 lg:w-full" />
+        <li key={offer.id} className="flex shrink-0 snap-start md:shrink lg:nth-[n+5]:hidden">
+          <OfferCard offer={offer} className="w-66 md:w-full" />
         </li>
       ))}
     </ScrollRow>

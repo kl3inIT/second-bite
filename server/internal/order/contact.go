@@ -12,6 +12,9 @@ import (
 type Contact struct {
 	Name  string
 	Phone string
+	// ByZalo is the customer's consent, asked at checkout, to be told about
+	// the order by Zalo once Second Bite can send there (SEC-25 decision 12).
+	ByZalo bool
 }
 
 // maxNameLength is as long as an account's display name may be.

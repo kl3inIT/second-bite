@@ -1,14 +1,24 @@
-import { getTranslations } from "next-intl/server";
+import { getFormatter, getTranslations } from "next-intl/server";
 
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
+import { DayFilter } from "./day-filter";
 import { getStoreOffers } from "./my-sellers";
 import { PostRow } from "./post-row";
 import { PostToast } from "./post-toast";
 import { requireStore } from "./require-store";
-import { groupByTab, postTabs, readPostTab } from "./store-offers";
+import {
+  dayOrNull,
+  loadPostSearchParams,
+  searchOf,
+  serializePostSearchParams,
+} from "./search-params";
+import { vietnamToday } from "./store-day";
+import { groupByTab, matchesName, offersOfDay, postTabs } from "./store-offers";
+import { StorePanel } from "./store-panel";
+import { StatusTabs } from "./status-tabs";
 import { StoreTitleRow, titleActionPhone } from "./store-title-row";
 
 /** The line at the foot for what was just done, or nothing when the address carries nothing known. */
@@ -27,35 +37,49 @@ function noticeMessage(
 // with it: change it, or post it again once it is over. It reads the session, so it renders inside Suspense.
 export async function StorePosts({
   sellerId: pendingId,
-  tab: pendingTab,
-  notice: pendingNotice,
+  query: pendingQuery,
 }: {
   sellerId: Promise<string>;
-  tab: Promise<string | undefined>;
-  /** What was just done, from the address (`posted:3`, `saved`, `withdrawn`); the line at the foot says so once. */
-  notice?: Promise<string | undefined>;
+  /** The address's query: the tab, the day, the search, and what was just done (`posted:3`, `saved`, `withdrawn`), which the line at the foot says once. */
+  query: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sellerId = await pendingId;
-  const [t, tabName, notice, offers] = await Promise.all([
+  const query = await pendingQuery;
+  const one = (name: string) => (typeof query[name] === "string" ? query[name] : undefined);
+
+  const [t, format, offers] = await Promise.all([
     getTranslations("StorePosts"),
-    pendingTab,
-    pendingNotice,
+    getFormatter(),
     requireStore(sellerId, `/stores/${sellerId}/offers`).then(() => getStoreOffers(sellerId)),
   ]);
-  const tab = readPostTab(tabName);
-  const groups = groupByTab(offers);
+  // The session is read before the clock, so the page is made for each request and never at build time.
+  const today = vietnamToday();
+  const filter = loadPostSearchParams(query);
+  const day = filter.day ?? today;
+  const { tab } = filter;
+  const search = searchOf(filter.q);
+  const notice = one("notice");
+
+  // A store's posts are few in a day, so the day and the search read them here rather than asking the server again.
+  const ofDay = offersOfDay(offers, day);
+  const found = ofDay.filter((offer) => matchesName(offer, search));
+  const groups = groupByTab(found);
   const shown = groups[tab];
+  const searching = search !== "";
+  // The view in the address, without what is as the page opens: today, the first tab, no search.
+  const view = serializePostSearchParams({ day: dayOrNull(day, today), tab, q: search });
+  const title =
+    day === today
+      ? t("today")
+      : t("onDay", {
+          date: format.dateTime(new Date(`${day}T12:00:00+07:00`), "dayMonth"),
+        });
 
   const message = noticeMessage(notice, t);
 
   return (
     <>
-      {message && (
-        <PostToast
-          message={message}
-          to={`/stores/${sellerId}/offers${tab === "on_sale" ? "" : `?tab=${tab}`}`}
-        />
-      )}
+      {message && <PostToast message={message} to={`/stores/${sellerId}/offers${view}`} />}
       <StoreTitleRow
         title={t("title")}
         aside={
@@ -68,44 +92,36 @@ export async function StorePosts({
         }
       />
 
-      <section
-        aria-labelledby="store-posts"
-        className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground"
-      >
+      <DayFilter
+        pathname={`/stores/${sellerId}/offers`}
+        list="posts"
+        today={today}
+        label={t("searchLabel")}
+        placeholder={t("searchPlaceholder")}
+      />
+
+      <StorePanel labelledBy="store-posts">
         <h2 id="store-posts" className="text-card-title">
-          {t("today")}
+          {title}
         </h2>
-        <nav aria-label={t("tabs")}>
-          <ul className="-my-1 flex flex-wrap gap-x-2">
-            {postTabs.map((name) => (
-              <li key={name}>
-                <Link
-                  href={{
-                    pathname: `/stores/${sellerId}/offers`,
-                    query: name === "on_sale" ? {} : { tab: name },
-                  }}
-                  aria-current={name === tab ? "page" : undefined}
-                  className="group/chip flex min-h-11 items-center rounded-full focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
-                >
-                  <span
-                    className={cn(
-                      "flex h-9.5 items-center rounded-full border px-4 whitespace-nowrap transition-colors",
-                      name === tab
-                        ? "border-primary bg-primary text-body-sm-strong text-primary-foreground"
-                        : "border-border bg-card text-body-sm text-foreground group-hover/chip:bg-secondary",
-                    )}
-                  >
-                    {t(`tab.${name}`, { count: groups[name].length })}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <StatusTabs
+          label={t("tabs")}
+          selected={tab}
+          tabs={postTabs.map((name) => ({
+            name,
+            href: `/stores/${sellerId}/offers${serializePostSearchParams({ day: dayOrNull(day, today), tab: name, q: search })}`,
+            label: t(`tabName.${name}`),
+            count: groups[name].length,
+          }))}
+        />
 
         {shown.length === 0 ? (
           <p className="border-t border-border pt-4 text-body-sm text-muted-foreground">
-            {offers.length === 0 ? t("emptyAll") : t(`empty.${tab}`)}
+            {searching
+              ? t("emptySearch", { query: search })
+              : ofDay.length === 0
+                ? t(day === today ? "emptyAll" : "emptyDay")
+                : t(`empty.${tab}`)}
           </p>
         ) : (
           <ul className="flex flex-col border-t border-border">
@@ -137,7 +153,7 @@ export async function StorePosts({
             ))}
           </ul>
         )}
-      </section>
+      </StorePanel>
     </>
   );
 }

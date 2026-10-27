@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { contentWidth } from "@/lib/layout";
+import { cn } from "@/lib/utils";
+
 // Once the header's own row has scrolled away, a slim copy of it stays at the top of the screen (NN/g: a
 // sticky header helps on a long page; ShopeeFood and GrabFood keep theirs). The header itself holds
 // tonight's deals and is too tall to stick. On a phone the copy keeps only what the page leaves visible
@@ -25,10 +28,8 @@ export function StickyHeader({ children }: { children: React.ReactNode }) {
     <>
       <div ref={marker} aria-hidden className="absolute top-20 size-px" />
       {shown && (
-        <div className="fixed inset-x-0 top-0 z-40 rounded-b-3xl bg-header pt-4 pb-3 text-header-foreground shadow-sheet lg:rounded-none lg:border-b lg:border-header-border lg:py-0">
-          <div className="mx-auto flex w-full max-w-5xl items-center gap-6 px-4 lg:h-16 xl:max-w-300">
-            {children}
-          </div>
+        <div className="fixed inset-x-0 top-0 z-40 rounded-b-3xl bg-header pt-4 pb-3 text-header-foreground shadow-sheet md:rounded-none md:border-b md:border-header-border md:py-0">
+          <div className={cn(contentWidth, "flex items-center gap-6 px-4 md:h-16")}>{children}</div>
         </div>
       )}
     </>

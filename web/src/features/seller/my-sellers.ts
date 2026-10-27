@@ -1,28 +1,26 @@
 import "server-only";
 
-import { cookies } from "next/headers";
 import { cache } from "react";
 
+import { sessionHeaders } from "@/features/identity/session";
+import { ApiError } from "@/lib/api/client";
 import {
   type DishBody,
+  getOrder,
   getSeller,
   listDishes,
   listMySellers,
   listSellerOffers,
   listSellerOrders,
+  listSellerReviews,
   type OfferBody,
   type OrderBody,
   type SellerBody,
+  type SellerReviewsOutputBody,
 } from "@/lib/api/generated";
 
-/** The session cookie the Go server sets on sign-in (see identity/current-account.ts). */
-const sessionCookie = "secondbite_session";
-
-/** The request's session cookie, forwarded to the API; undefined when no one is signed in. */
-async function sessionHeaders(): Promise<{ cookie: string } | undefined> {
-  const session = (await cookies()).get(sessionCookie);
-  return session ? { cookie: `${sessionCookie}=${session.value}` } : undefined;
-}
+/** A person owns at most five stores (server/internal/seller, maxOwnedSellers). */
+export const MAX_OWNED = 5;
 
 /**
  * The stores the signed-in person owns or works for, read on the server with the session cookie; one render
@@ -66,3 +64,26 @@ export const getStoreDishes = cache(async (sellerId: string): Promise<DishBody[]
   const { data } = await listDishes({ path: { sellerId }, headers: await sessionHeaders() });
   return data.dishes;
 });
+
+/** One order of a store, which the seller's people may read; null when there is no such order or it is not theirs to see. */
+export const getStoreOrder = cache(async (orderId: string): Promise<OrderBody | null> => {
+  try {
+    const { data } = await getOrder({ path: { orderId }, headers: await sessionHeaders() });
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
+});
+
+/** A store's shown reviews, the latest first, of the stars given (every review when none); at most `size` of them. */
+export const getStoreReviews = cache(
+  async (sellerId: string, stars: number[], size: number): Promise<SellerReviewsOutputBody> => {
+    const { data } = await listSellerReviews({
+      path: { sellerId },
+      query: { stars, size },
+      headers: await sessionHeaders(),
+    });
+    return data;
+  },
+);

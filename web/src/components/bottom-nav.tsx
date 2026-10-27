@@ -9,28 +9,32 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { UnreadPill } from "@/components/unread-pill";
+import { useOrdersUnread } from "@/features/orders/use-unread";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 type Tab = {
   key: "home" | "orders" | "saved" | "account";
   icon: LucideIcon;
-  href?: "/" | "/orders" | "/account";
+  href: "/" | "/orders" | "/favourites" | "/account";
   // Other pages that belong to the tab, as the search belongs to the home.
   within?: readonly string[];
 };
 
 // The four tabs of the customer screens on a phone (DESIGN.md › Bottom bar, Figma "Bottom nav", 105:2515),
-// floating 16px from the sides and the bottom. Saved sellers have no screen yet, so their tab is shown
-// dimmed and cannot be pressed. A tab is also active on the pages under it, as an order under the orders. Every page has it, after a space as
+// floating 16px from the sides and the bottom. A tab is also active on the pages under it, as an order under the orders. Every page has it, after a space as
 // tall as the bar so the bar never covers the page's end. From `md` the header and the footer take over,
-// and the bar is not shown.
+// and the bar is not shown. With a phone's large text a label may take two lines, so the bar is at least its
+// height rather than exactly it (SEC-107).
+// An order's chat takes the whole screen (Figma K7), its back arrow leading to the order.
+const ORDER_CHAT = /^\/orders\/[^/]+\/chat$/;
 const screensOfTheirOwn = ["/search", "/offers", "/sellers", "/cart", "/stores", "/open-store"];
 
 const tabs: Tab[] = [
   { key: "home", icon: HouseIcon, href: "/", within: ["/search"] },
   { key: "orders", icon: ReceiptTextIcon, href: "/orders" },
-  { key: "saved", icon: HeartIcon },
+  { key: "saved", icon: HeartIcon, href: "/favourites" },
   {
     key: "account",
     icon: UserRoundIcon,
@@ -39,15 +43,21 @@ const tabs: Tab[] = [
   },
 ];
 
+/** The count of messages the seller wrote that the reader has not read, at the top right of the orders icon. */
+function OrdersPill() {
+  return <UnreadPill count={useOrdersUnread()} className="absolute -top-1.5 -right-3" />;
+}
+
 export function BottomNav() {
   const t = useTranslations("BottomNav");
   const pathname = usePathname();
   // The admin's pages have their own sidebar instead (SEC-75 › Shell).
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
-  // The search, a dish, a seller and the cart are screens of their own, left by their back arrow, the last
+  // The search, a dish, a seller, the cart are screens of their own, left by their back arrow, the last
   // three with a bar of their own at the bottom (Figma K1f, K2, K4, K4b, K5). A store's pages have the store's bar.
   if (
-    screensOfTheirOwn.some((screen) => pathname === screen || pathname.startsWith(`${screen}/`))
+    screensOfTheirOwn.some((screen) => pathname === screen || pathname.startsWith(`${screen}/`)) ||
+    ORDER_CHAT.test(pathname)
   ) {
     return null;
   }
@@ -59,42 +69,37 @@ export function BottomNav() {
         aria-label={t("label")}
         className="fixed inset-x-4 bottom-safe-4 z-40 mx-auto max-w-md rounded-full border border-card/60 bg-card/45 p-1.25 text-shell-foreground shadow-nav backdrop-blur-xl backdrop-saturate-180 md:hidden"
       >
-        <ul className="grid h-13.5 grid-cols-4">
+        <ul className="grid min-h-13.5 grid-cols-4">
           {tabs.map(({ key, icon: Icon, href, within = [] }) => {
             const active =
               href === pathname ||
               within.includes(pathname) ||
-              (href !== undefined && href !== "/" && pathname.startsWith(`${href}/`));
+              (href !== "/" && pathname.startsWith(`${href}/`));
             const body = (
               <>
-                <Icon aria-hidden className="size-5" />
-                <span className={active ? "text-label-strong" : "text-label"}>{t(key)}</span>
+                <span className="relative">
+                  <Icon aria-hidden className="size-5" />
+                  {key === "orders" ? <OrdersPill /> : null}
+                </span>
+                <span className={cn("text-center", active ? "text-label-strong" : "text-label")}>
+                  {t(key)}
+                </span>
               </>
             );
             return (
-              <li key={key} className="flex">
-                {href ? (
-                  <Link
-                    href={href}
-                    aria-current={href === pathname ? "page" : active ? "true" : undefined}
-                    className={cn(
-                      "flex flex-1 flex-col items-center justify-center gap-1 rounded-full transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset",
-                      active
-                        ? "bg-secondary text-primary"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {body}
-                  </Link>
-                ) : (
-                  <span
-                    aria-disabled="true"
-                    className="flex flex-1 cursor-not-allowed flex-col items-center justify-center gap-1 text-muted-foreground opacity-85"
-                  >
-                    {body}
-                    <span className="sr-only">{t("soon")}</span>
-                  </span>
-                )}
+              <li key={key} className="flex min-w-0">
+                <Link
+                  href={href}
+                  aria-current={href === pathname ? "page" : active ? "true" : undefined}
+                  className={cn(
+                    "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-full px-1 py-1.5 transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset",
+                    active
+                      ? "bg-secondary text-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {body}
+                </Link>
               </li>
             );
           })}

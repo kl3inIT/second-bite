@@ -15,17 +15,19 @@ import (
 type offerDetailsBody struct {
 	Name        string `json:"name"                  maxLength:"80"  minLength:"1"`
 	Description string `json:"description,omitempty" doc:"Required for a mixed_box, which is described by what it may hold; allergens are written here" maxLength:"1000"`
-	Kind        Kind   `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Kind        Kind   `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other"`
+	KindLabel   string `json:"kindLabel,omitempty"   doc:"What the seller calls a dish of the kind other; empty for any other kind" maxLength:"30"`
 	Unit        string `json:"unit,omitempty"        doc:"What one unit is called; \"suất\" when empty" maxLength:"20"`
 	Units       int    `json:"units"                 maximum:"999"   minimum:"1"`
 	PriceVND    int64  `json:"priceVnd"              doc:"Price of one unit, in whole đồng" minimum:"1000"`
 	// OriginalPriceVND is checked against the minimum discount in the
 	// settings, which may change, so only its floor is in the contract.
-	OriginalPriceVND int64     `json:"originalPriceVnd"      doc:"What one unit normally sells for; the price must be the minimum discount below it" minimum:"1001"`
-	WeightGrams      *int      `json:"weightGrams,omitempty" doc:"Weight of one unit, to measure food saved" maximum:"100000" minimum:"1"`
-	PhotoID          uuid.UUID `json:"photoId"               doc:"From POST /photos, or the photo of an earlier offer of the seller"`
-	WindowStart      time.Time `json:"windowStart"           doc:"When the offer is ready to collect"`
-	WindowEnd        time.Time `json:"windowEnd"             doc:"The last handover"`
+	OriginalPriceVND int64       `json:"originalPriceVnd"      doc:"What one unit normally sells for; the price must be the minimum discount below it" minimum:"1001"`
+	WeightGrams      *int        `json:"weightGrams,omitempty" doc:"Weight of one unit, to measure food saved" maximum:"100000" minimum:"1"`
+	PhotoID          uuid.UUID   `json:"photoId"               doc:"The cover: from POST /photos, or the photo of an earlier offer of the seller"`
+	MorePhotoIDs     []uuid.UUID `json:"morePhotoIds,omitempty" doc:"Up to two more photos after the cover" maxItems:"2" nullable:"false"`
+	WindowStart      time.Time   `json:"windowStart"           doc:"When the offer is ready to collect"`
+	WindowEnd        time.Time   `json:"windowEnd"             doc:"The last handover"`
 }
 
 func (b offerDetailsBody) details() Details {
@@ -33,17 +35,19 @@ func (b offerDetailsBody) details() Details {
 }
 
 type offerChangeBody struct {
-	Name             *string    `json:"name,omitempty"             maxLength:"80"  minLength:"1"`
-	Description      *string    `json:"description,omitempty"      maxLength:"1000"`
-	Kind             *Kind      `json:"kind,omitempty"             enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
-	Unit             *string    `json:"unit,omitempty"             maxLength:"20"`
-	Units            *int       `json:"units,omitempty"            maximum:"999"   minimum:"1"`
-	PriceVND         *int64     `json:"priceVnd,omitempty"         minimum:"1000"`
-	OriginalPriceVND *int64     `json:"originalPriceVnd,omitempty" minimum:"1001"`
-	WeightGrams      *int       `json:"weightGrams,omitempty"      maximum:"100000" minimum:"1"`
-	PhotoID          *uuid.UUID `json:"photoId,omitempty"`
-	WindowStart      *time.Time `json:"windowStart,omitempty"`
-	WindowEnd        *time.Time `json:"windowEnd,omitempty"`
+	Name             *string      `json:"name,omitempty"             maxLength:"80"  minLength:"1"`
+	Description      *string      `json:"description,omitempty"      maxLength:"1000"`
+	Kind             *Kind        `json:"kind,omitempty"             enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other"`
+	KindLabel        *string      `json:"kindLabel,omitempty"        doc:"Leaves it as it is when absent, and empties it when the kind is changed from other" maxLength:"30"`
+	Unit             *string      `json:"unit,omitempty"             maxLength:"20"`
+	Units            *int         `json:"units,omitempty"            maximum:"999"   minimum:"1"`
+	PriceVND         *int64       `json:"priceVnd,omitempty"         minimum:"1000"`
+	OriginalPriceVND *int64       `json:"originalPriceVnd,omitempty" minimum:"1001"`
+	WeightGrams      *int         `json:"weightGrams,omitempty"      maximum:"100000" minimum:"1"`
+	PhotoID          *uuid.UUID   `json:"photoId,omitempty"`
+	MorePhotoIDs     *[]uuid.UUID `json:"morePhotoIds,omitempty" doc:"Replaces the photos after the cover; at most two" maxItems:"2"`
+	WindowStart      *time.Time   `json:"windowStart,omitempty"`
+	WindowEnd        *time.Time   `json:"windowEnd,omitempty"`
 }
 
 func (b offerChangeBody) change() Change { return Change(b) }
@@ -66,7 +70,8 @@ type offerBody struct {
 	Status           Status              `json:"status"                doc:"sold_out and closed are read from the units left and the window" enum:"on_sale,sold_out,closed,withdrawn"`
 	Name             string              `json:"name"`
 	Description      string              `json:"description"`
-	Kind             Kind                `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,other"`
+	Kind             Kind                `json:"kind"                  enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other"`
+	KindLabel        string              `json:"kindLabel"             doc:"What the seller calls a dish of the kind other; empty for any other kind"`
 	Unit             string              `json:"unit"`
 	Units            int                 `json:"units"`
 	UnitsLeft        int                 `json:"unitsLeft"`
@@ -74,7 +79,8 @@ type offerBody struct {
 	OriginalPriceVND int64               `json:"originalPriceVnd"`
 	DiscountPercent  int                 `json:"discountPercent"`
 	WeightGrams      *int                `json:"weightGrams,omitempty"`
-	Photo            offerPhotoBody      `json:"photo"`
+	Photo            offerPhotoBody      `json:"photo"                 doc:"The cover, which lists and orders show"`
+	Photos           []offerPhotoBody    `json:"photos"                doc:"Every photo, the cover first" nullable:"false"`
 	WindowStart      time.Time           `json:"windowStart"`
 	WindowEnd        time.Time           `json:"windowEnd"`
 	CollectionPoint  collectionPointBody `json:"collectionPoint"       doc:"Where the offer is collected, copied from the seller when it was posted"`
@@ -85,12 +91,13 @@ type offerBody struct {
 
 func toBody(o Offer) offerBody {
 	return offerBody{
-		ID: o.ID, SellerID: o.SellerID, Status: o.Status, Name: o.Name, Description: o.Description, Kind: o.Kind,
+		ID: o.ID, SellerID: o.SellerID, Status: o.Status, Name: o.Name, Description: o.Description, Kind: o.Kind, KindLabel: o.KindLabel,
 		Unit: o.Unit, Units: o.Units, UnitsLeft: o.UnitsLeft, PriceVND: o.PriceVND, OriginalPriceVND: o.OriginalPriceVND,
 		DiscountPercent: o.DiscountPercent, WeightGrams: o.WeightGrams,
 		Photo: offerPhotoBody{
 			ID: o.PhotoID, LargePath: file.Path(o.PhotoID, file.SizeLarge), SmallPath: file.Path(o.PhotoID, file.SizeSmall),
 		},
+		Photos:      photosOf(o.PhotoID, o.MorePhotoIDs),
 		WindowStart: o.WindowStart, WindowEnd: o.WindowEnd,
 		CollectionPoint: collectionPointBody{
 			Latitude: o.CollectionPoint.Latitude, Longitude: o.CollectionPoint.Longitude, Address: o.CollectionPoint.Address,
@@ -101,6 +108,29 @@ func toBody(o Offer) offerBody {
 
 type offerOutput struct {
 	Body offerBody
+}
+
+// adminOfferBody is an offer as admins list it, with its seller's name.
+type adminOfferBody struct {
+	Offer      offerBody `json:"offer"`
+	SellerName string    `json:"sellerName" doc:"Copied from the seller when the offer was posted"`
+}
+
+type offerCountsBody struct {
+	OnSale    int `json:"onSale"`
+	SoldOut   int `json:"soldOut"`
+	Closed    int `json:"closed"`
+	Withdrawn int `json:"withdrawn"`
+}
+
+type adminOffersOutput struct {
+	Body struct {
+		Items    []adminOfferBody `json:"items"    nullable:"false"`
+		Page     int              `json:"page"`
+		PageSize int              `json:"pageSize"`
+		Total    int              `json:"total"`
+		Counts   offerCountsBody  `json:"counts"   doc:"Offers of each status matching the other filters, whatever status asks"`
+	}
 }
 
 type offerPath struct {
@@ -249,6 +279,51 @@ func registerReadOperations(api huma.API, s *Service) {
 // RegisterAdminOperations adds the module's admin operations to admin, the
 // group platform.NewAdminGroup returns; their paths omit its prefix.
 func RegisterAdminOperations(admin huma.API, s *Service) {
+	huma.Register(admin, huma.Operation{
+		OperationID: "listOffersForAdmins", Method: http.MethodGet, Path: "/offers",
+		Summary: "Every seller's offers by status, words, seller and day posted, newest first",
+		Description: "q matches the dish, the seller's name or the description, as customers search. " +
+			"counts holds the offers of each status matching the other filters. A page past the end is empty.",
+	}, func(ctx context.Context, in *struct {
+		Status   Status    `query:"status"      doc:"Keep this status; every status when absent" enum:"on_sale,sold_out,closed,withdrawn"`
+		Q        string    `query:"q"           doc:"Words of the dish, the seller's name or the description" maxLength:"100"`
+		SellerID uuid.UUID `query:"sellerId"    doc:"Keep this seller's offers"`
+		Page     int       `query:"page"        default:"1" minimum:"1"`
+		Size     int       `query:"size"        default:"25" maximum:"100" minimum:"1"`
+
+		PostedSince time.Time `query:"postedSince" doc:"Keep the offers posted at or after this time"`
+		PostedUntil time.Time `query:"postedUntil" doc:"Keep the offers posted before this time"`
+	},
+	) (*adminOffersOutput, error) {
+		f := AdminFilter{Status: in.Status, Query: in.Q, SellerID: in.SellerID, Page: in.Page, Size: in.Size}
+		if !in.PostedSince.IsZero() {
+			f.PostedSince = &in.PostedSince
+		}
+
+		if !in.PostedUntil.IsZero() {
+			f.PostedUntil = &in.PostedUntil
+		}
+
+		page, err := s.ListForAdmins(ctx, f)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &adminOffersOutput{}
+		out.Body.Items = make([]adminOfferBody, 0, len(page.Offers))
+		out.Body.Page, out.Body.PageSize, out.Body.Total = in.Page, in.Size, page.Total
+		out.Body.Counts = offerCountsBody{
+			OnSale: page.Counts[StatusOnSale], SoldOut: page.Counts[StatusSoldOut],
+			Closed: page.Counts[StatusClosed], Withdrawn: page.Counts[StatusWithdrawn],
+		}
+
+		for _, l := range page.Offers {
+			out.Body.Items = append(out.Body.Items, adminOfferBody{Offer: toBody(l.Offer), SellerName: l.SellerName})
+		}
+
+		return out, nil
+	})
+
 	huma.Register(admin, huma.Operation{
 		OperationID: "getOfferSettings", Method: http.MethodGet, Path: "/offer-settings",
 		Summary: "The rules every offer follows",

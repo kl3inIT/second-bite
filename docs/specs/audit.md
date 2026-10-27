@@ -1,6 +1,6 @@
 # audit
 
-Owns the trail of what admins did, which admin did what to which store, account or setting, when and why (table `audit_events`). Decided in SEC-75 ([design](../increments/active/sec-75-admin-foundation/design.md#the-audit-trail)). The log is for developers; this trail is for whoever answers a complaint.
+Owns the trail of what admins did, which admin did what to which store, account or setting, when and why (table `audit_events`). Decided in SEC-75 ([design](../increments/completed/sec-75-admin-foundation/design.md#the-audit-trail)). The log is for developers; this trail is for whoever answers a complaint.
 
 ## Operations
 

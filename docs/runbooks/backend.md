@@ -83,7 +83,7 @@ The tests start the images `compose.yaml` names, so Dependabot's updates of that
 | `SECONDBITE_DATABASE_PASSWORD` | required, a secret | The database password |
 | `SECONDBITE_EMAIL_SETTINGS_KEY` | required, a secret | 32 bytes in standard base64 that seal the email provider's password or API key in the database. Replacing it makes them unreadable: an admin enters them again |
 | `SECONDBITE_SIGN_IN_CODE_KEY` | required, a secret | 32 bytes in standard base64 that key the HMAC of stored sign-in codes. Replacing it voids the codes sent in the last 15 minutes |
-| `SECONDBITE_DATABASE_MAX_CONNS` | `10` | The size of the connection pool |
+| `SECONDBITE_DATABASE_MAX_CONNS` | `10` | The size of the connection pool. Each instance also holds one listening connection for the live socket, outside it: count `SECONDBITE_DATABASE_MAX_CONNS + 1` for each instance against PostgreSQL's `max_connections` |
 | `SECONDBITE_HTTP_ADDR` | `:8080` | Where the API listens |
 | `SECONDBITE_LOG_FORMAT` | `json` | `json`, or `text` for local development |
 | `SECONDBITE_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` |
@@ -94,6 +94,9 @@ The tests start the images `compose.yaml` names, so Dependabot's updates of that
 | `SECONDBITE_S3_ACCESS_KEY_ID` | required with a bucket | The access key's identifier |
 | `SECONDBITE_S3_SECRET_ACCESS_KEY` | required with a bucket, a secret | The access key's secret |
 | `SECONDBITE_S3_PATH_STYLE` | `true` | `false` addresses the bucket in the host name, as AWS prefers |
+| `SECONDBITE_PUSH_PUBLIC_KEY` | none | The VAPID public key that `secondbite push keys` prints; setting it turns Web Push on (SEC-25) |
+| `SECONDBITE_PUSH_PRIVATE_KEY` | required with the public key, a secret | The VAPID private key that `secondbite push keys -private-key-file` writes |
+| `SECONDBITE_SITE_URL` | required with the public key | The web's origin, such as `https://secondbite.vadan.app`: the pages a push opens, and who sends to the push services |
 | `SECONDBITE_SECRETS_DIR` | `/run/secrets` | Where secret files are read from |
 
 A secret is read from the file named after its variable in `SECONDBITE_SECRETS_DIR`, as deployed environments mount it. Only when no such file exists is the variable itself read, which is what local development does. The service refuses to start on a missing or malformed value.
