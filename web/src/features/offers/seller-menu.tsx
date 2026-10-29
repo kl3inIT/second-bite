@@ -2,7 +2,7 @@
 
 import { FlameIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { quantityOf } from "@/features/cart/cart";
 import { useCart } from "@/features/cart/cart-store";
@@ -51,6 +51,9 @@ export function SellerMenu({
   const ids = sections.map(({ id }) => id).join(" ");
   const [active, setActive] = useState(sections[0]?.id);
   const [ringed, setRinged] = useState(focused);
+  // The section whose pill was just pressed: it stays filled while the page scrolls to it, even when the page ends
+  // before its heading reaches the tabs, until the buyer scrolls on their own.
+  const pressed = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (!ringed) return;
@@ -71,14 +74,27 @@ export function SellerMenu({
   useEffect(() => {
     const order = ids.split(" ");
     function onScroll() {
+      if (pressed.current) return;
       const reached = order.filter(
         (id) =>
           (document.getElementById(id)?.getBoundingClientRect().top ?? Infinity) <= REACHED_PX,
       );
       setActive(reached.at(-1) ?? order[0]);
     }
+    function release() {
+      pressed.current = undefined;
+    }
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    for (const type of ["wheel", "touchstart", "keydown"]) {
+      window.addEventListener(type, release, { passive: true });
+    }
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      for (const type of ["wheel", "touchstart", "keydown"]) {
+        window.removeEventListener(type, release);
+      }
+    };
   }, [ids]);
 
   return (
@@ -90,7 +106,10 @@ export function SellerMenu({
               <li key={id} className="flex-1">
                 <a
                   href={`#${id}`}
-                  onClick={() => setActive(id)}
+                  onClick={() => {
+                    pressed.current = id;
+                    setActive(id);
+                  }}
                   aria-current={id === active ? "location" : undefined}
                   className={cn(
                     "flex h-11 items-center justify-center rounded-full px-4 text-body-sm-strong whitespace-nowrap focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
