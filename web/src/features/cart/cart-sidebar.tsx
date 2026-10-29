@@ -10,15 +10,16 @@ import { OfferPhoto } from "@/features/offers/offer-photo";
 import { SellerLogo } from "@/features/offers/seller-logo";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 
-import { oneMore, removeOne, totals, type Basket, type Cart, type CartLine } from "./cart";
-import { saveCart, useCart } from "./cart-store";
-import { useWindow } from "./checkout-parts";
-import { Stepper } from "./quantity-stepper";
+import { isOver, orderable, totals, type Basket, type Cart, type CartLine } from "./cart";
+import { useCart } from "./cart-store";
+import { LineAction, LinePrice, useCartNow, useWindow } from "./checkout-parts";
 
 // The cart beside the seller's menu from 768px (Figma WK3, and "01 · Trang quán & giỏ nhiều quán · đầy đủ"), standing for the bottom bar a phone has: one card for
 // each seller the cart holds, the dishes' price, the total, and the way on to "Đặt món". From 1024px it stays in
-// view as the menu scrolls; below it, it sits under the menu. It says so while the cart is empty.
+// view as the menu scrolls; below it, it sits under the menu. It says so while the cart is empty. A dish whose window
+// has closed is marked and left out of the totals until it is taken out.
 export function CartSidebar() {
   const t = useTranslations("Cart");
   const cart = useCart();
@@ -45,13 +46,15 @@ export function CartSidebar() {
 
 function Filled({ cart }: { cart: Cart }) {
   const t = useTranslations("Cart");
-  const { units, priceVnd } = totals(cart);
+  const now = useCartNow();
+  const live = orderable(cart, now);
+  const { units, priceVnd } = totals(live ?? { baskets: [] });
 
   return (
     <>
       <div className="flex flex-col gap-3">
         {cart.baskets.map((basket) => (
-          <SidebarOrder key={basket.seller.id} cart={cart} basket={basket} />
+          <SidebarOrder key={basket.seller.id} cart={cart} basket={basket} now={now} />
         ))}
       </div>
       <dl className="flex flex-col gap-2 border-t border-border pt-3 text-body-sm text-foreground">
@@ -65,7 +68,10 @@ function Filled({ cart }: { cart: Cart }) {
         </div>
       </dl>
       <Link href="/cart" className={buttonVariants({ size: "lg" })}>
-        {t("orderFor", { orders: cart.baskets.length, price: formatPrice(priceVnd) })}
+        {t("orderFor", {
+          orders: Math.max(live?.baskets.length ?? 0, 1),
+          price: formatPrice(priceVnd),
+        })}
       </Link>
     </>
   );
@@ -74,11 +80,13 @@ function Filled({ cart }: { cart: Cart }) {
 // One seller's dishes in the sidebar (Figma "01 · Trang quán & giỏ nhiều quán · đầy đủ", "đơn · quán"): the logo and
 // name over tonight's window in Tasco blue, the way there as a pin, the dishes with their − and +, and what this
 // seller's dishes come to.
-function SidebarOrder({ cart, basket }: { cart: Cart; basket: Basket }) {
+function SidebarOrder({ cart, basket, now }: { cart: Cart; basket: Basket; now: number }) {
   const t = useTranslations("Cart");
-  const { from, until } = useWindow(basket);
+  const { from, until } = useWindow(basket, now);
   const heading = `sidebar-seller-${basket.seller.id}`;
-  const subtotal = basket.lines.reduce((sum, line) => sum + line.quantity * line.priceVnd, 0);
+  const subtotal = basket.lines
+    .filter((line) => !isOver(line, now))
+    .reduce((sum, line) => sum + line.quantity * line.priceVnd, 0);
 
   return (
     <section
@@ -110,7 +118,7 @@ function SidebarOrder({ cart, basket }: { cart: Cart; basket: Basket }) {
       <ul className="flex flex-col gap-3 border-t border-border pt-3">
         {basket.lines.map((line) => (
           <li key={line.id}>
-            <SidebarLine cart={cart} line={line} />
+            <SidebarLine cart={cart} line={line} over={isOver(line, now)} />
           </li>
         ))}
       </ul>
@@ -124,26 +132,31 @@ function SidebarOrder({ cart, basket }: { cart: Cart; basket: Basket }) {
   );
 }
 
-// A dish in the sidebar: its photograph, its whole name over what its portions cost, and its − and +.
-function SidebarLine({ cart, line }: { cart: Cart; line: CartLine }) {
+// A dish in the sidebar: its photograph, its whole name over what its portions cost, and its − and +; once its
+// window has closed, "Hết giờ nhận" and "Bỏ".
+function SidebarLine({ cart, line, over }: { cart: Cart; line: CartLine; over: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="relative size-13 shrink-0 overflow-hidden rounded-md bg-muted">
+      <div
+        className={cn(
+          "relative size-13 shrink-0 overflow-hidden rounded-md bg-muted",
+          over && "opacity-50",
+        )}
+      >
         {line.photo && <OfferPhoto offer={{ photo: line.photo }} sizes="52px" />}
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <p className="text-body-sm break-words text-foreground">{line.name}</p>
-        <p className="font-display text-price-sm text-foreground">
-          {formatPrice(line.quantity * line.priceVnd)}
+        <p
+          className={cn(
+            "text-body-sm break-words text-foreground",
+            over && "text-muted-foreground",
+          )}
+        >
+          {line.name}
         </p>
+        <LinePrice line={line} over={over} />
       </div>
-      <Stepper
-        name={line.name}
-        quantity={line.quantity}
-        canAdd={line.quantity < line.unitsLeft}
-        onAdd={() => saveCart(oneMore(cart, line.id))}
-        onRemove={() => saveCart(removeOne(cart, line.id))}
-      />
+      <LineAction cart={cart} line={line} over={over} />
     </div>
   );
 }

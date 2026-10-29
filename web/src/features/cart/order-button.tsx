@@ -42,6 +42,7 @@ import { readContact, saveContact } from "./last-contact";
  * `onConfirmed` orders. Nothing is sent to the phone; the seller only calls it if needed. "Sửa" goes back to
  * the sheet. From 768px the same two fields are in a dialog in the middle of the page, not a sheet from the foot.
  * The two fields are a form (docs/guidelines/web.md › Forms) whose rules are `contactProblems`, the server's.
+ * With no order to place (every dish's window has closed) it cannot be pressed.
  */
 export function OrderButton({
   orders,
@@ -125,9 +126,9 @@ export function OrderButton({
 
   return (
     <>
-      <Button size="lg" onClick={() => setStep("contact")} disabled={pending}>
+      <Button size="lg" onClick={() => setStep("contact")} disabled={pending || orders === 0}>
         {pending && <Spinner data-icon="inline-start" />}
-        {t("order", { orders })}
+        {t("order", { orders: Math.max(orders, 1) })}
       </Button>
       {phone ? (
         <Drawer open={step === "contact"} onOpenChange={(open) => !open && setStep(undefined)}>

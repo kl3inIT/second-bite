@@ -10,10 +10,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "@/i18n/navigation";
 import { FailureAlert } from "@/components/failure-alert";
 
-import { totals, withBasket, type Cart } from "./cart";
+import { orderable, totals, withBasket, type Cart } from "./cart";
 import { saveCart, useCart } from "./cart-store";
 import { CheckoutDesktop } from "./checkout-desktop";
-import { PaymentChoice, SellerOrder, type CheckoutProps } from "./checkout-parts";
+import { PaymentChoice, SellerOrder, useCartNow, type CheckoutProps } from "./checkout-parts";
 import type { Contact } from "./contact";
 import { GoneSheet } from "./gone-sheet";
 import { OrderButton } from "./order-button";
@@ -23,7 +23,8 @@ import { usePlaceCart } from "./use-place-cart";
 // each with its − and +, how to pay at the counter, the totals, the cancellation policy, and "Đặt món" ("Đặt 2 đơn"
 // for two sellers), which
 // asks who collects in a sheet and checks the phone number once, then orders each seller's dishes and opens the order, signed
-// in or not (SEC-76); a dish someone else took first asks what to do with the rest (O7). From 768px the
+// in or not (SEC-76); a dish someone else took first asks what to do with the rest (O7). A dish whose window has
+// closed is marked, left out of the totals and the orders, and taken out with "Bỏ". From 768px the
 // confirmation is `CheckoutDesktop` (Figma WK5, WK5b).
 export function Checkout() {
   const t = useTranslations("Cart");
@@ -51,17 +52,21 @@ function Confirmation({ cart }: { cart: Cart }) {
   const phone = useIsMobile();
   const [contact, setContact] = useState<Contact>();
   const { place, pending, problem, dismiss } = usePlaceCart();
+  const now = useCartNow();
+  const live = orderable(cart, now);
   const seller =
     problem?.kind === "gone"
       ? cart.baskets.find((basket) => basket.seller.id === problem.sellerId)?.seller
       : undefined;
   const props = {
     cart,
+    live,
+    now,
     pending,
     problem,
     onConfirmed: (confirmed: Contact) => {
       setContact(confirmed);
-      place(cart, confirmed);
+      if (live) place(live, confirmed);
     },
   };
 
@@ -82,7 +87,8 @@ function Confirmation({ cart }: { cart: Cart }) {
           onOrderRest={(rest) => {
             const next = withBasket(cart, problem.sellerId, rest);
             saveCart(next);
-            if (next && contact) place(next, contact);
+            const ordered = next && orderable(next, Date.now());
+            if (ordered && contact) place(ordered, contact);
           }}
         />
       )}
@@ -91,16 +97,16 @@ function Confirmation({ cart }: { cart: Cart }) {
 }
 
 // The confirmation on a phone: the cards, payment, the summary and the policy in one column, with the bar at the foot.
-function CheckoutPhone({ cart, pending, problem, onConfirmed }: CheckoutProps) {
+function CheckoutPhone({ cart, live, now, pending, problem, onConfirmed }: CheckoutProps) {
   const t = useTranslations("Cart");
-  const { units, priceVnd, originalPriceVnd } = totals(cart);
-  const orders = cart.baskets.length;
+  const { units, priceVnd, originalPriceVnd } = totals(live ?? { baskets: [] });
+  const orders = live?.baskets.length ?? 0;
 
   return (
     <>
       <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-5 bg-card px-4 pt-4 pb-6">
         {cart.baskets.map((basket) => (
-          <SellerOrder key={basket.seller.id} cart={cart} basket={basket} />
+          <SellerOrder key={basket.seller.id} cart={cart} basket={basket} now={now} />
         ))}
         <section aria-labelledby="pay" className="flex flex-col gap-3">
           <h2 id="pay" className="text-title-lg text-foreground">

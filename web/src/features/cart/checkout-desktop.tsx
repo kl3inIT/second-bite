@@ -13,10 +13,10 @@ import { OrderButton } from "./order-button";
 // to pay at the counter (a line, the only way) and the cancellation policy; at the right the summary with each
 // seller's portions, the total, the price over what it would have been and "Đặt món", which asks who collects in a
 // dialog (SEC-76). The two columns stack below 1024px, the summary under the cards.
-export function CheckoutDesktop({ cart, pending, problem, onConfirmed }: CheckoutProps) {
+export function CheckoutDesktop({ cart, live, now, pending, problem, onConfirmed }: CheckoutProps) {
   const t = useTranslations("Cart");
-  const { units, priceVnd, originalPriceVnd } = totals(cart);
-  const orders = cart.baskets.length;
+  const { units, priceVnd, originalPriceVnd } = totals(live ?? { baskets: [] });
+  const orders = live?.baskets.length ?? 0;
 
   return (
     <div className="mx-auto flex w-full max-w-292 flex-col gap-6 px-8 py-8 lg:flex-row lg:items-start lg:px-0">
@@ -26,7 +26,7 @@ export function CheckoutDesktop({ cart, pending, problem, onConfirmed }: Checkou
           <p className="text-body text-muted-foreground">{t("intro")}</p>
         </div>
         {cart.baskets.map((basket) => (
-          <SellerOrder key={basket.seller.id} cart={cart} basket={basket} />
+          <SellerOrder key={basket.seller.id} cart={cart} basket={basket} now={now} />
         ))}
         <section aria-labelledby="pay" className="flex flex-col gap-3">
           <h2 id="pay" className="text-title-lg text-foreground">
@@ -49,7 +49,7 @@ export function CheckoutDesktop({ cart, pending, problem, onConfirmed }: Checkou
           {t("summaryTitle", { orders })}
         </h2>
         <ul className="flex flex-col gap-3 text-body-sm text-foreground">
-          {cart.baskets.map((basket) => {
+          {(live?.baskets ?? []).map((basket) => {
             const own = totals(basket);
             return (
               <li key={basket.seller.id} className="flex items-baseline justify-between gap-3">

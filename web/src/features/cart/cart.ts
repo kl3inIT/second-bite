@@ -80,6 +80,30 @@ export function removeOne(cart: Cart, offerId: string): Cart | null {
   return baskets.length > 0 ? { baskets } : null;
 }
 
+/** The dish and all its portions out of the cart; its basket leaves with its last dish, the cart with its last basket. */
+export function removeLine(cart: Cart, offerId: string): Cart | null {
+  const baskets = cart.baskets
+    .map((basket) => ({ ...basket, lines: basket.lines.filter(({ id }) => id !== offerId) }))
+    .filter(({ lines }) => lines.length > 0);
+  return baskets.length > 0 ? { baskets } : null;
+}
+
+/** Whether the dish's window to collect it has closed at `now`: it can no longer be ordered, only taken out. */
+export function isOver(line: CartLine, now: number): boolean {
+  return Date.parse(line.windowEnd) <= now;
+}
+
+/**
+ * The cart without the dishes whose window has closed at `now`: what "Đặt món" orders and the totals count, while
+ * the closed ones stay in the cart, marked, until they are taken out. Null when nothing is left to order.
+ */
+export function orderable(cart: Cart, now: number): Cart | null {
+  const baskets = cart.baskets
+    .map((basket) => ({ ...basket, lines: basket.lines.filter((line) => !isOver(line, now)) }))
+    .filter(({ lines }) => lines.length > 0);
+  return baskets.length > 0 ? { baskets } : null;
+}
+
 /** The cart with a seller's basket put in place of theirs, or taken out when null. */
 export function withBasket(cart: Cart, sellerId: string, basket: Basket | null): Cart | null {
   const baskets = cart.baskets.flatMap((each) =>

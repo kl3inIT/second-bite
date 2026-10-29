@@ -7,18 +7,20 @@ import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-import { totals } from "./cart";
+import { orderable, totals } from "./cart";
 import { useCart } from "./cart-store";
+import { useCartNow } from "./checkout-parts";
 
 // The cart's bar at the bottom of the page (Figma K4b footer): what the portions cost tonight over what they would
 // have cost, how many and how much is saved, and "Xem giỏ hàng", within the page's `width`. The seller's page hides
 // it from 768px through `className`, where the sidebar shows the cart; the search keeps it at every width. Hidden
-// while the cart is empty.
+// while the cart is empty. The dishes whose window has closed are not counted.
 export function CartBar({ width, className }: { width: string; className?: string }) {
   const t = useTranslations("Cart");
   const cart = useCart();
+  const now = useCartNow();
   if (!cart) return null;
-  const { units, priceVnd, originalPriceVnd } = totals(cart);
+  const { units, priceVnd, originalPriceVnd } = totals(orderable(cart, now) ?? { baskets: [] });
 
   return (
     <div className={cn("sticky bottom-0 z-40 border-t border-border bg-card", className)}>
