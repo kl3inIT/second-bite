@@ -646,7 +646,10 @@
     "sellerTotal": "Tổng {seller}",
     "sellerMap": "Vị trí {seller}",
     "stockLeft": "Chỉ còn {units}",
-    "stockChosen": "Đã chọn đủ {units}"
+    "stockChosen": "Đã chọn đủ {units}",
+    "over": "Hết giờ nhận",
+    "drop": "Bỏ",
+    "dropLabel": "Bỏ {name} khỏi giỏ"
   },
   "AccountSettings": {
     "title": "Cài đặt tài khoản",

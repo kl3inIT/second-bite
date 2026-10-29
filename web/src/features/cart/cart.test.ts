@@ -6,10 +6,13 @@ import {
   addOne,
   addPortions,
   collectionWindow,
+  isOver,
   keepLeft,
   oneMore,
+  orderable,
   quantityOf,
   storedCart,
+  removeLine,
   removeOne,
   totals,
   withBasket,
@@ -178,5 +181,38 @@ describe("what is left after someone else ordered first", () => {
 
   it("leaves nothing when every dish is gone", () => {
     expect(keepLeft(basketOf(offer("croissant")), {}).basket).toBeNull();
+  });
+});
+
+describe("dishes whose window has closed", () => {
+  const at = (time: string) => Date.parse(`2026-10-20T${time}:00+07:00`);
+  const cart = cartOf(
+    offer("croissant", { window: { start: "20:00", end: "20:30" } }),
+    offer("eclair"),
+    offer("tart", { sellerId: "s2", window: { start: "20:00", end: "20:30" } }),
+  )!;
+
+  it("counts a dish as over from the end of its window", () => {
+    const [croissant] = cart.baskets[0].lines;
+
+    expect(isOver(croissant, at("20:29"))).toBe(false);
+    expect(isOver(croissant, at("20:30"))).toBe(true);
+  });
+
+  it("orders only the dishes still open, dropping a seller left with none", () => {
+    const live = orderable(cart, at("20:45"))!;
+
+    expect(live.baskets.map(({ seller, lines }) => [seller.id, lines.map(({ id }) => id)])).toEqual(
+      [["s1", ["eclair"]]],
+    );
+    expect(totals(live).units).toBe(1);
+    expect(orderable(cart, at("21:45"))).toBeNull();
+  });
+
+  it("takes a dish out with all its portions", () => {
+    const twice = addOne(cart, offer("eclair"));
+
+    expect(quantityOf(removeLine(twice, "eclair"), "eclair")).toBe(0);
+    expect(removeLine(removeLine(cart, "croissant")!, "eclair")!.baskets).toHaveLength(1);
   });
 });
