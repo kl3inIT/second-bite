@@ -648,7 +648,6 @@
     "stockLeft": "Only {units} left",
     "stockChosen": "All {units} chosen",
     "over": "Pickup time is over",
-    "drop": "Remove",
     "dropLabel": "Remove {name} from the cart"
   },
   "AccountSettings": {

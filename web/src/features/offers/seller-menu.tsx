@@ -75,10 +75,13 @@ export function SellerMenu({
     const order = ids.split(" ");
     function onScroll() {
       if (pressed.current) return;
-      const reached = order.filter(
-        (id) =>
-          (document.getElementById(id)?.getBoundingClientRect().top ?? Infinity) <= REACHED_PX,
-      );
+      // At the foot of the page the last sections can no longer rise to the tabs: one whose heading is in view counts.
+      const atFoot =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 1;
+      const reached = order.filter((id) => {
+        const top = document.getElementById(id)?.getBoundingClientRect().top ?? Infinity;
+        return top <= (atFoot ? window.innerHeight : REACHED_PX);
+      });
       setActive(reached.at(-1) ?? order[0]);
     }
     function release() {

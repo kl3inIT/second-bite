@@ -1,5 +1,6 @@
 "use client";
 
+import { Trash2Icon } from "lucide-react";
 import { useFormatter, useNow, useTranslations } from "next-intl";
 
 import { ChoiceOption } from "@/components/choice-option";
@@ -132,18 +133,19 @@ export function LinePrice({ line, over }: { line: CartLine; over: boolean }) {
   );
 }
 
-/** A dish's − and +, or "Bỏ", which takes it out of the cart at once, once its window has closed. */
+/** A dish's − and +, or a red bin, which takes it out of the cart at once, once its window has closed. */
 export function LineAction({ cart, line, over }: { cart: Cart; line: CartLine; over: boolean }) {
   const t = useTranslations("Cart");
 
   return over ? (
     <Button
       variant="ghost"
+      size="icon"
       aria-label={t("dropLabel", { name: line.name })}
       onClick={() => saveCart(removeLine(cart, line.id))}
-      className="-mr-2 shrink-0"
+      className="-mr-2.5"
     >
-      {t("drop")}
+      <Trash2Icon aria-hidden className="size-5 text-destructive" />
     </Button>
   ) : (
     <Stepper
