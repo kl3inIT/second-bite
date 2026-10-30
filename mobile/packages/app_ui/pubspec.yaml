@@ -14,7 +14,7 @@ dependencies:
   # Lucide, the web's icon set (lucide-react). Held at one release and moved by
   # hand with the web's lucide-react, so a glyph renamed upstream changes in
   # both apps at once.
-  lucide_icons_flutter: 4.0.0
+  lucide_icons_flutter: 4.0.1
   material_ui: ^1.1.1
 
 dev_dependencies:
