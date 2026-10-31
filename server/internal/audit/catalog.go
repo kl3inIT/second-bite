@@ -90,6 +90,19 @@ type SellerUnblocked struct{}
 
 func (SellerUnblocked) action() string { return "seller.unblock" }
 
+// SellerDeleted is a seller an admin deleted, with what the owner is told: it
+// is blocked at once and deleted once its orders still to finish are done.
+type SellerDeleted struct {
+	Reason string `json:"reason"`
+}
+
+func (SellerDeleted) action() string { return "seller.delete" }
+
+// SellerRestored is a deleted seller, or one waiting to be, brought back blocked.
+type SellerRestored struct{}
+
+func (SellerRestored) action() string { return "seller.restore" }
+
 // SellerOwnerChanged is a seller handed to another owner, by account: the
 // previous owner, when there was one, stays on as staff (SEC-162).
 type SellerOwnerChanged struct {
@@ -123,6 +136,8 @@ var catalog = []Action{
 	SellerRejected{},
 	SellerBlocked{},
 	SellerUnblocked{},
+	SellerDeleted{},
+	SellerRestored{},
 	SellerOwnerChanged{},
 	ReviewHidden{},
 	ReviewShown{},

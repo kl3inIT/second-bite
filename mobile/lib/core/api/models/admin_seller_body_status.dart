@@ -14,6 +14,8 @@ enum AdminSellerBodyStatus {
   rejected('rejected'),
   @JsonValue('blocked')
   blocked('blocked'),
+  @JsonValue('deleted')
+  deleted('deleted'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

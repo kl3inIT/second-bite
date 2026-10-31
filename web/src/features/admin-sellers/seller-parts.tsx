@@ -1,4 +1,11 @@
-import { BanIcon, CircleCheckIcon, CircleXIcon, ClockIcon, type LucideIcon } from "lucide-react";
+import {
+  BanIcon,
+  CircleCheckIcon,
+  CircleXIcon,
+  ClockIcon,
+  Trash2Icon,
+  type LucideIcon,
+} from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
@@ -19,6 +26,7 @@ export const statusLook: Record<
   pending: { variant: "warning", icon: ClockIcon },
   rejected: { variant: "neutral", icon: CircleXIcon },
   blocked: { variant: "danger", icon: BanIcon },
+  deleted: { variant: "neutral", icon: Trash2Icon },
 };
 
 /** A store's number as Figma AD-Q1 shows it, "0900 000 101"; a number of another shape stays as stored. */
@@ -26,14 +34,23 @@ export function shownPhone(phone: string): string {
   return /^0\d{9}$/.test(phone) ? groupedPhone(phone) : phone;
 }
 
-export function StatusBadge({ status }: { status: SellerStatus }) {
+/** A store's status; a blocked one an admin deleted, waiting for its orders still to finish, says so. */
+export function StatusBadge({
+  status,
+  deleting = false,
+}: {
+  status: SellerStatus;
+  deleting?: boolean;
+}) {
   const t = useTranslations("Admin.sellers.status");
-  const { variant, icon: Icon } = statusLook[status];
+  const { variant, icon: Icon } = deleting
+    ? { variant: "danger" as const, icon: Trash2Icon }
+    : statusLook[status];
 
   return (
     <Badge variant={variant}>
       <Icon data-icon="inline-start" aria-hidden />
-      {t(status)}
+      {deleting ? t("deleting") : t(status)}
     </Badge>
   );
 }

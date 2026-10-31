@@ -119,7 +119,7 @@ export default async function SellerPage({
         <div className="flex flex-wrap items-center gap-3">
           <StoreThumb seller={seller} large />
           <h1 className="text-headline text-foreground">{seller.name}</h1>
-          <StatusBadge status={seller.status} />
+          <StatusBadge status={seller.status} deleting={seller.deletionRequestedAt !== undefined} />
           <div className="ms-auto">
             <StoreActions seller={seller} onPage />
           </div>

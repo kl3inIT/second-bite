@@ -16,6 +16,9 @@ _SellerBody _$SellerBodyFromJson(Map<String, dynamic> json) => _SellerBody(
   phone: json['phone'] as String,
   status: SellerBodyStatus.fromJson(json['status'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
+  deletionRequestedAt: json['deletionRequestedAt'] == null
+      ? null
+      : DateTime.parse(json['deletionRequestedAt'] as String),
   myRole: json['myRole'] == null
       ? null
       : SellerBodyMyRole.fromJson(json['myRole'] as String),
@@ -37,6 +40,7 @@ Map<String, dynamic> _$SellerBodyToJson(_SellerBody instance) =>
       'phone': instance.phone,
       'status': _$SellerBodyStatusEnumMap[instance.status]!,
       'updatedAt': instance.updatedAt.toIso8601String(),
+      'deletionRequestedAt': instance.deletionRequestedAt?.toIso8601String(),
       'myRole': _$SellerBodyMyRoleEnumMap[instance.myRole],
       'photoId': instance.photoId,
       'statusChangedAt': instance.statusChangedAt?.toIso8601String(),
@@ -48,6 +52,7 @@ const _$SellerBodyStatusEnumMap = {
   SellerBodyStatus.active: 'active',
   SellerBodyStatus.rejected: 'rejected',
   SellerBodyStatus.blocked: 'blocked',
+  SellerBodyStatus.deleted: 'deleted',
   SellerBodyStatus.$unknown: r'$unknown',
 };
 

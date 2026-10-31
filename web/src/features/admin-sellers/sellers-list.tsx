@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, Trash2Icon } from "lucide-react";
 import { debounce, useQueryStates } from "nuqs";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
@@ -162,6 +162,13 @@ export function SellersList({
           to={params.to}
           onChange={(from, to) => void setParams({ from, to, page: null })}
         />
+        <DeletedToggle
+          count={counts.deleted}
+          pressed={params.status === "deleted"}
+          onPressedChange={(pressed) =>
+            void setParams({ status: pressed ? "deleted" : null, page: null })
+          }
+        />
         <Select
           value={String(params.size)}
           items={sellerPageSizes.map((size) => ({ value: String(size), label: String(size) }))}
@@ -297,7 +304,12 @@ function useColumns(
       id: "status",
       header: t("column.status"),
       meta: { width: "w-40" },
-      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      cell: ({ row }) => (
+        <StatusBadge
+          status={row.original.status}
+          deleting={row.original.deletionRequestedAt !== undefined}
+        />
+      ),
     },
     {
       id: "changed",
@@ -316,4 +328,29 @@ function useColumns(
       cell: ({ row }) => <StoreActions seller={row.original} />,
     },
   ];
+}
+
+/** The deleted stores, which no card counts: pressed, the list shows them alone, as a card would. */
+function DeletedToggle({
+  count,
+  pressed,
+  onPressedChange,
+}: {
+  count: number;
+  pressed: boolean;
+  onPressedChange: (pressed: boolean) => void;
+}) {
+  const t = useTranslations("Admin.sellers");
+  return (
+    <Button
+      type="button"
+      variant={pressed ? "secondary" : "outline"}
+      size="lg"
+      aria-pressed={pressed}
+      onClick={() => onPressedChange(!pressed)}
+    >
+      <Trash2Icon data-icon="inline-start" aria-hidden />
+      {t("deletedFilter", { count })}
+    </Button>
+  );
 }

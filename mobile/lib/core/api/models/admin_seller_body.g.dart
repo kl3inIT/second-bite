@@ -17,6 +17,9 @@ _AdminSellerBody _$AdminSellerBodyFromJson(Map<String, dynamic> json) =>
       phone: json['phone'] as String,
       status: AdminSellerBodyStatus.fromJson(json['status'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      deletionRequestedAt: json['deletionRequestedAt'] == null
+          ? null
+          : DateTime.parse(json['deletionRequestedAt'] as String),
       ownerEmail: json['ownerEmail'] as String?,
       photoId: json['photoId'] as String?,
       statusChangedAt: json['statusChangedAt'] == null
@@ -36,6 +39,7 @@ Map<String, dynamic> _$AdminSellerBodyToJson(_AdminSellerBody instance) =>
       'phone': instance.phone,
       'status': _$AdminSellerBodyStatusEnumMap[instance.status]!,
       'updatedAt': instance.updatedAt.toIso8601String(),
+      'deletionRequestedAt': instance.deletionRequestedAt?.toIso8601String(),
       'ownerEmail': instance.ownerEmail,
       'photoId': instance.photoId,
       'statusChangedAt': instance.statusChangedAt?.toIso8601String(),
@@ -47,5 +51,6 @@ const _$AdminSellerBodyStatusEnumMap = {
   AdminSellerBodyStatus.active: 'active',
   AdminSellerBodyStatus.rejected: 'rejected',
   AdminSellerBodyStatus.blocked: 'blocked',
+  AdminSellerBodyStatus.deleted: 'deleted',
   AdminSellerBodyStatus.$unknown: r'$unknown',
 };

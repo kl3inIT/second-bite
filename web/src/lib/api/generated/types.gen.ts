@@ -123,6 +123,10 @@ export type AdminReviewsOutputBody = {
 export type AdminSellerBody = {
     address: string;
     createdAt: string;
+    /**
+     * When an admin deleted the seller, blocked, which waits for its orders still to finish; absent when it does not wait
+     */
+    deletionRequestedAt?: string;
     id: string;
     latitude: number;
     longitude: number;
@@ -136,7 +140,7 @@ export type AdminSellerBody = {
      * Served at /photos/{photoId}/1600.jpg and /400.jpg
      */
     photoId?: string;
-    status: 'pending' | 'active' | 'rejected' | 'blocked';
+    status: 'pending' | 'active' | 'rejected' | 'blocked' | 'deleted';
     statusChangedAt?: string;
     /**
      * Why an admin rejected or blocked the seller, as the owner is told
@@ -206,7 +210,7 @@ export type AuditDetailsBody = {
 };
 
 export type AuditEventBody = {
-    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.change_owner' | 'review.hide' | 'review.show';
+    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show';
     actorId?: string;
     actorLabel?: string;
     details: AuditDetailsBody;
@@ -298,6 +302,13 @@ export type DeleteAccountInputBody = {
      * The six digits of the deletion email
      */
     code: string;
+};
+
+export type DeleteSellerRequest = {
+    /**
+     * What the owner is told, 10 to 500 characters
+     */
+    reason: string;
 };
 
 export type DetailsBody = {
@@ -564,7 +575,7 @@ export type MembershipBody = {
     role: 'owner' | 'staff';
     sellerId: string;
     sellerName: string;
-    sellerStatus: 'pending' | 'active' | 'rejected' | 'blocked';
+    sellerStatus: 'pending' | 'active' | 'rejected' | 'blocked' | 'deleted';
 };
 
 export type MembershipsOutputBody = {
@@ -1131,6 +1142,10 @@ export type SeenBody = {
 export type SellerBody = {
     address: string;
     createdAt: string;
+    /**
+     * When an admin deleted the seller, blocked, which waits for its orders still to finish; absent when it does not wait
+     */
+    deletionRequestedAt?: string;
     id: string;
     latitude: number;
     longitude: number;
@@ -1144,7 +1159,7 @@ export type SellerBody = {
      * Served at /photos/{photoId}/1600.jpg and /400.jpg
      */
     photoId?: string;
-    status: 'pending' | 'active' | 'rejected' | 'blocked';
+    status: 'pending' | 'active' | 'rejected' | 'blocked' | 'deleted';
     statusChangedAt?: string;
     /**
      * Why an admin rejected or blocked the seller, as the owner is told
@@ -1286,6 +1301,7 @@ export type StarCountsBody = {
 export type StatusCountsBody = {
     active: number;
     blocked: number;
+    deleted: number;
     pending: number;
     rejected: number;
 };
@@ -1297,6 +1313,7 @@ export type StatusDayBody = {
      * The day in Vietnam, as YYYY-MM-DD
      */
     day: string;
+    deleted: number;
     pending: number;
     rejected: number;
 };
@@ -1643,7 +1660,7 @@ export type ListAuditEventsData = {
         /**
          * Keep these actions; every action when absent
          */
-        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.change_owner' | 'review.hide' | 'review.show'> | null;
+        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show'> | null;
         /**
          * Keep one admin's actions
          */
@@ -2174,9 +2191,9 @@ export type ListSellersForAdminsData = {
     path?: never;
     query?: {
         /**
-         * Keep these statuses; every status when absent
+         * Keep these statuses; every status but deleted when absent
          */
-        status?: Array<'pending' | 'active' | 'rejected' | 'blocked'> | null;
+        status?: Array<'pending' | 'active' | 'rejected' | 'blocked' | 'deleted'> | null;
         /**
          * Words of the name, address or phone
          */
@@ -2271,6 +2288,33 @@ export type BlockSellerResponses = {
 
 export type BlockSellerResponse = BlockSellerResponses[keyof BlockSellerResponses];
 
+export type DeleteSellerData = {
+    body: DeleteSellerRequest;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/admin/sellers/{sellerId}/delete';
+};
+
+export type DeleteSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type DeleteSellerError = DeleteSellerErrors[keyof DeleteSellerErrors];
+
+export type DeleteSellerResponses = {
+    /**
+     * OK
+     */
+    200: SellerBody;
+};
+
+export type DeleteSellerResponse = DeleteSellerResponses[keyof DeleteSellerResponses];
+
 export type ChangeSellerOwnerData = {
     body: ChangeSellerOwnerRequest;
     path: {
@@ -2324,6 +2368,33 @@ export type RejectSellerResponses = {
 };
 
 export type RejectSellerResponse = RejectSellerResponses[keyof RejectSellerResponses];
+
+export type RestoreSellerData = {
+    body?: never;
+    path: {
+        sellerId: string;
+    };
+    query?: never;
+    url: '/admin/sellers/{sellerId}/restore';
+};
+
+export type RestoreSellerErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RestoreSellerError = RestoreSellerErrors[keyof RestoreSellerErrors];
+
+export type RestoreSellerResponses = {
+    /**
+     * OK
+     */
+    200: SellerBody;
+};
+
+export type RestoreSellerResponse = RestoreSellerResponses[keyof RestoreSellerResponses];
 
 export type SignInWithGoogleData = {
     body: GoogleSignInInputBody;

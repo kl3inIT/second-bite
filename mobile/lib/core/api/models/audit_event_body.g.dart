@@ -46,9 +46,11 @@ const _$AuditEventBodyActionEnumMap = {
   AuditEventBodyAction.undefined5: 'seller.reject',
   AuditEventBodyAction.undefined6: 'seller.block',
   AuditEventBodyAction.undefined7: 'seller.unblock',
-  AuditEventBodyAction.undefined8: 'seller.change_owner',
-  AuditEventBodyAction.undefined9: 'review.hide',
-  AuditEventBodyAction.undefined10: 'review.show',
+  AuditEventBodyAction.undefined8: 'seller.delete',
+  AuditEventBodyAction.undefined9: 'seller.restore',
+  AuditEventBodyAction.undefined10: 'seller.change_owner',
+  AuditEventBodyAction.undefined11: 'review.hide',
+  AuditEventBodyAction.undefined12: 'review.show',
   AuditEventBodyAction.$unknown: r'$unknown',
 };
 

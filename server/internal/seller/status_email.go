@@ -15,11 +15,13 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/notification"
 )
 
-// StatusChangedEvent tells that an admin approved, rejected or blocked a
-// seller (SEC-75). It carries identifiers and the status only.
+// StatusChangedEvent tells that an admin approved, rejected, blocked or
+// deleted a seller (SEC-75). It carries identifiers and the status only;
+// Deleting tells a deletion from a block.
 type StatusChangedEvent struct {
 	SellerID uuid.UUID `json:"sellerId"`
 	Status   Status    `json:"status"`
+	Deleting bool      `json:"deleting,omitempty"`
 }
 
 // EventKey names the event where it is stored, delivered and logged.
@@ -40,7 +42,7 @@ func (s *Service) tellOwner(ctx context.Context, e StatusChangedEvent) error {
 		return fmt.Errorf("reading the seller: %w", err)
 	}
 
-	if Status(row.Status) != e.Status {
+	if Status(row.Status) != e.Status || e.Deleting != (row.DeletionRequestedAt != nil) {
 		return nil
 	}
 
@@ -63,7 +65,12 @@ func (s *Service) tellOwner(ctx context.Context, e StatusChangedEvent) error {
 		return nil
 	}
 
-	email, ok := statusEmail(owner.Email, row.Name, e.Status, row.StatusReason.String)
+	status := e.Status
+	if e.Deleting {
+		status = StatusDeleted
+	}
+
+	email, ok := statusEmail(owner.Email, row.Name, status, row.StatusReason.String)
 	if !ok {
 		return nil
 	}
@@ -84,7 +91,8 @@ func (s *Service) tellOwner(ctx context.Context, e StatusChangedEvent) error {
 
 // statusEmail is the email that tells an owner their seller's new status,
 // in Vietnamese then English, as every email of the service is; none for a
-// seller waiting for an admin.
+// seller waiting for an admin. StatusDeleted is the deletion an admin asked,
+// sent while the seller waits for its orders still to finish.
 func statusEmail(to, name string, status Status, reason string) (notification.Email, bool) {
 	name = oneLine(name)
 
@@ -103,6 +111,14 @@ func statusEmail(to, name string, status Status, reason string) (notification.Em
 		vi, en = "Cửa hàng "+name+" đã bị tạm khoá", name+" is blocked on Second Bite"
 		viBody = "Cửa hàng của bạn đã bị tạm khoá: món đăng không còn hiện với khách, và chưa đăng thêm được. Lý do quản trị viên ghi lại:"
 		enBody = "Your seller is blocked: its offers no longer show to customers, and none can be posted. The reason the admin gave:"
+	case StatusDeleted:
+		vi, en = "Cửa hàng "+name+" sẽ bị xoá khỏi Second Bite", name+" will be deleted from Second Bite"
+		viBody = "Cửa hàng của bạn đã bị khoá và sẽ bị xoá khỏi Second Bite: khách không còn thấy cửa hàng " +
+			"và không đặt thêm được. Các đơn đang chờ khách lấy vẫn giao như thường; khi các đơn này xong, " +
+			"cửa hàng bị xoá. Lý do quản trị viên ghi lại:"
+		enBody = "Your seller is blocked and will be deleted from Second Bite: customers no longer see it " +
+			"and cannot order. The orders still to collect are handed over as usual; once they are done, " +
+			"the seller is deleted. The reason the admin gave:"
 	case StatusPending:
 		return notification.Email{}, false
 	}

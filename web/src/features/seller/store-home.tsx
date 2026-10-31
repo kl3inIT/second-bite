@@ -395,6 +395,7 @@ const statusBadge = {
   pending: "warning",
   rejected: "danger",
   blocked: "danger",
+  deleted: "danger",
 } as const satisfies Record<SellerBody["status"], "success" | "warning" | "danger">;
 
 /** What a store that is not open is told, with the reason an admin gave (SEC-64, SEC-71). */
@@ -403,7 +404,11 @@ async function StoreStatus({ store }: { store: SellerBody }) {
   const t = await getTranslations("StoreHome");
   return (
     <Alert variant={store.status === "pending" ? "warning" : "destructive"}>
-      <AlertTitle>{t(`statusTitle.${store.status}`)}</AlertTitle>
+      <AlertTitle>
+        {store.deletionRequestedAt === undefined
+          ? t(`statusTitle.${store.status}`)
+          : t("statusTitle.deleting")}
+      </AlertTitle>
       <AlertDescription>{store.statusReason ?? t(`statusBody.${store.status}`)}</AlertDescription>
     </Alert>
   );

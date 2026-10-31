@@ -39,12 +39,15 @@ type Status string
 
 // The statuses of a seller (SEC-75). An admin approves a pending seller or
 // rejects it, blocks an active one, and approves a rejected or blocked one
-// again.
+// again. An admin deletes any seller softly: it is blocked at once and
+// deleted once its orders still to finish are done; restoring it, then, or
+// while it waits, leaves it blocked.
 const (
 	StatusPending  Status = "pending"
 	StatusActive   Status = "active"
 	StatusRejected Status = "rejected"
 	StatusBlocked  Status = "blocked"
+	StatusDeleted  Status = "deleted"
 )
 
 // Role is what an account is to one seller.
@@ -69,8 +72,11 @@ type Seller struct {
 	// blocking the seller; empty otherwise.
 	StatusReason    string
 	StatusChangedAt *time.Time
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	// DeletionRequestedAt is when an admin deleted the blocked seller, which
+	// waits for its orders still to finish; nil when it does not wait.
+	DeletionRequestedAt *time.Time
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
 	// PhotoID is the seller's photo, kept by media; nil when it has none.
 	PhotoID *uuid.UUID
 	// MyRole is the caller's role in the seller; empty for an admin who is
@@ -372,7 +378,8 @@ func fromRow(r db.GetSellerRow, role Role) Seller {
 	return Seller{
 		ID: r.ID, Name: r.Name, Address: r.Address, Latitude: r.Latitude, Longitude: r.Longitude, Phone: r.Phone,
 		Status: Status(r.Status), StatusReason: r.StatusReason.String, StatusChangedAt: r.StatusChangedAt,
-		CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt, PhotoID: nullUUID(r.PhotoID), MyRole: role,
+		DeletionRequestedAt: r.DeletionRequestedAt,
+		CreatedAt:           r.CreatedAt, UpdatedAt: r.UpdatedAt, PhotoID: nullUUID(r.PhotoID), MyRole: role,
 	}
 }
 

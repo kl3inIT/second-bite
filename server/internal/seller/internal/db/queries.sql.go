@@ -57,7 +57,7 @@ func (q *Queries) ActiveSellers(ctx context.Context, ids []uuid.UUID) ([]ActiveS
 const blockOwnerless = `-- name: BlockOwnerless :execrows
 UPDATE seller_sellers
 SET status = 'blocked', status_reason = $1, status_changed_at = now(), status_changed_by = NULL, updated_at = now()
-WHERE id = ANY ($2::uuid[]) AND status <> 'blocked'
+WHERE id = ANY ($2::uuid[]) AND status NOT IN ('blocked', 'deleted')
 `
 
 type BlockOwnerlessParams struct {
@@ -66,7 +66,7 @@ type BlockOwnerlessParams struct {
 }
 
 // A seller whose owner's account was deleted stops showing until admins decide;
-// no one set the status, so it names no one.
+// no one set the status, so it names no one. A deleted seller stays deleted.
 func (q *Queries) BlockOwnerless(ctx context.Context, arg BlockOwnerlessParams) (int64, error) {
 	result, err := q.db.Exec(ctx, blockOwnerless, arg.Reason, arg.Ids)
 	if err != nil {
@@ -76,9 +76,10 @@ func (q *Queries) BlockOwnerless(ctx context.Context, arg BlockOwnerlessParams) 
 }
 
 const blockedSellers = `-- name: BlockedSellers :many
-SELECT id FROM seller_sellers WHERE status = 'blocked'
+SELECT id FROM seller_sellers WHERE status IN ('blocked', 'deleted')
 `
 
+// The blocked sellers and the deleted ones, whose offers customers no longer see.
 func (q *Queries) BlockedSellers(ctx context.Context) ([]uuid.UUID, error) {
 	rows, err := q.db.Query(ctx, blockedSellers)
 	if err != nil {
@@ -102,9 +103,11 @@ func (q *Queries) BlockedSellers(ctx context.Context) ([]uuid.UUID, error) {
 const changeStatus = `-- name: ChangeStatus :one
 UPDATE seller_sellers s
 SET status = $1, status_reason = $2, status_changed_at = now(),
-    status_changed_by = $3, updated_at = now()
-FROM (SELECT x.id, x.status FROM seller_sellers x WHERE x.id = $5 FOR UPDATE) was
-WHERE s.id = was.id AND was.status = ANY ($4::text[])
+    status_changed_by = $3, updated_at = now(),
+    deletion_requested_at = CASE WHEN $4::boolean THEN now() END
+FROM (SELECT x.id, x.status, x.deletion_requested_at FROM seller_sellers x WHERE x.id = $6 FOR UPDATE) was
+WHERE s.id = was.id AND was.status = ANY ($5::text[])
+  AND NOT ($4::boolean AND was.deletion_requested_at IS NOT NULL)
 RETURNING was.status AS was
 `
 
@@ -112,17 +115,21 @@ type ChangeStatusParams struct {
 	Status       string
 	Reason       pgtype.Text
 	ChangedBy    uuid.NullUUID
+	Deleting     bool
 	FromStatuses []string
 	ID           uuid.UUID
 }
 
 // Moves the seller to status when it stands in one of from, and answers the
-// status it left; no row when it does not.
+// status it left; no row when it does not. deleting marks the seller, blocked,
+// as waiting to be deleted, and is refused for one already waiting; any other
+// change ends the wait.
 func (q *Queries) ChangeStatus(ctx context.Context, arg ChangeStatusParams) (string, error) {
 	row := q.db.QueryRow(ctx, changeStatus,
 		arg.Status,
 		arg.Reason,
 		arg.ChangedBy,
+		arg.Deleting,
 		arg.FromStatuses,
 		arg.ID,
 	)
@@ -143,9 +150,11 @@ func (q *Queries) CountMembers(ctx context.Context, sellerID uuid.UUID) (int32, 
 }
 
 const countOwnedSellers = `-- name: CountOwnedSellers :one
-SELECT count(*)::integer FROM seller_members WHERE account_id = $1 AND role = 'owner'
+SELECT count(*)::integer FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
+WHERE m.account_id = $1 AND m.role = 'owner' AND s.status <> 'deleted'
 `
 
+// A deleted seller no longer counts.
 func (q *Queries) CountOwnedSellers(ctx context.Context, accountID uuid.UUID) (int32, error) {
 	row := q.db.QueryRow(ctx, countOwnedSellers, accountID)
 	var column_1 int32
@@ -197,7 +206,7 @@ func (q *Queries) CountSellersByStatus(ctx context.Context, arg CountSellersBySt
 
 const countSellersForAdmins = `-- name: CountSellersForAdmins :one
 SELECT count(*) FROM seller_sellers
-WHERE (cardinality($1::text[]) = 0 OR status = ANY ($1::text[]))
+WHERE (cardinality($1::text[]) = 0 AND status <> 'deleted' OR status = ANY ($1::text[]))
   AND ($2::text = '' OR search_text LIKE '%' || seller_fold($2::text) || '%' ESCAPE '\')
   AND ($3::timestamptz IS NULL OR updated_at >= $3::timestamptz)
   AND ($4::timestamptz IS NULL OR updated_at < $4::timestamptz)
@@ -336,6 +345,21 @@ func (q *Queries) FeedbackForAdmins(ctx context.Context, arg FeedbackForAdminsPa
 	return items, nil
 }
 
+const finishDeletion = `-- name: FinishDeletion :one
+UPDATE seller_sellers
+SET status = 'deleted', deletion_requested_at = NULL, status_changed_at = now(), updated_at = now()
+WHERE id = $1 AND deletion_requested_at IS NOT NULL
+RETURNING name
+`
+
+// Deletes a seller still waiting for it; no row when it no longer waits.
+func (q *Queries) FinishDeletion(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, finishDeletion, id)
+	var name string
+	err := row.Scan(&name)
+	return name, err
+}
+
 const followedSellers = `-- name: FollowedSellers :many
 SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.photo_id
 FROM seller_follows f JOIN seller_sellers s ON s.id = f.seller_id
@@ -381,24 +405,26 @@ func (q *Queries) FollowedSellers(ctx context.Context, accountID uuid.UUID) ([]F
 }
 
 const getSeller = `-- name: GetSeller :one
-SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id
+SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id,
+       deletion_requested_at
 FROM seller_sellers WHERE id = $1
 `
 
 type GetSellerRow struct {
-	ID              uuid.UUID
-	Name            string
-	Address         string
-	Latitude        float64
-	Longitude       float64
-	Phone           string
-	Status          string
-	StatusReason    pgtype.Text
-	StatusChangedAt *time.Time
-	StatusChangedBy uuid.NullUUID
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	PhotoID         uuid.NullUUID
+	ID                  uuid.UUID
+	Name                string
+	Address             string
+	Latitude            float64
+	Longitude           float64
+	Phone               string
+	Status              string
+	StatusReason        pgtype.Text
+	StatusChangedAt     *time.Time
+	StatusChangedBy     uuid.NullUUID
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	PhotoID             uuid.NullUUID
+	DeletionRequestedAt *time.Time
 }
 
 func (q *Queries) GetSeller(ctx context.Context, id uuid.UUID) (GetSellerRow, error) {
@@ -418,6 +444,7 @@ func (q *Queries) GetSeller(ctx context.Context, id uuid.UUID) (GetSellerRow, er
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.PhotoID,
+		&i.DeletionRequestedAt,
 	)
 	return i, err
 }
@@ -542,7 +569,8 @@ func (q *Queries) LockStatusDays(ctx context.Context) error {
 }
 
 const memberRole = `-- name: MemberRole :one
-SELECT role FROM seller_members WHERE seller_id = $1 AND account_id = $2
+SELECT m.role FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
+WHERE m.seller_id = $1 AND m.account_id = $2 AND s.status <> 'deleted'
 `
 
 type MemberRoleParams struct {
@@ -550,6 +578,7 @@ type MemberRoleParams struct {
 	AccountID uuid.UUID
 }
 
+// The members of a deleted seller have no role in it any more.
 func (q *Queries) MemberRole(ctx context.Context, arg MemberRoleParams) (string, error) {
 	row := q.db.QueryRow(ctx, memberRole, arg.SellerID, arg.AccountID)
 	var role string
@@ -683,21 +712,46 @@ func (q *Queries) RecentFeedbackCount(ctx context.Context, sellerID uuid.UUID) (
 }
 
 const recordStatusDay = `-- name: RecordStatusDay :exec
-INSERT INTO seller_status_days (day, pending, active, rejected, blocked)
+INSERT INTO seller_status_days (day, pending, active, rejected, blocked, deleted)
 SELECT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date,
        count(*) FILTER (WHERE status = 'pending'),
        count(*) FILTER (WHERE status = 'active'),
        count(*) FILTER (WHERE status = 'rejected'),
-       count(*) FILTER (WHERE status = 'blocked')
+       count(*) FILTER (WHERE status = 'blocked'),
+       count(*) FILTER (WHERE status = 'deleted')
 FROM seller_sellers
 ON CONFLICT (day) DO UPDATE
-SET pending = excluded.pending, active = excluded.active, rejected = excluded.rejected, blocked = excluded.blocked
+SET pending = excluded.pending, active = excluded.active, rejected = excluded.rejected, blocked = excluded.blocked,
+    deleted = excluded.deleted
 `
 
 // Keeps how many sellers stand in each status now as today's, in Vietnam.
 func (q *Queries) RecordStatusDay(ctx context.Context) error {
 	_, err := q.db.Exec(ctx, recordStatusDay)
 	return err
+}
+
+const restoreSeller = `-- name: RestoreSeller :one
+UPDATE seller_sellers s
+SET status = 'blocked', deletion_requested_at = NULL, status_changed_at = now(),
+    status_changed_by = $1, updated_at = now()
+FROM (SELECT x.id, x.status, x.deletion_requested_at FROM seller_sellers x WHERE x.id = $2 FOR UPDATE) was
+WHERE s.id = was.id AND (was.status = 'deleted' OR was.deletion_requested_at IS NOT NULL)
+RETURNING was.status AS was
+`
+
+type RestoreSellerParams struct {
+	ChangedBy uuid.NullUUID
+	ID        uuid.UUID
+}
+
+// Brings back a deleted seller, or one waiting to be deleted, blocked as it
+// was, and answers the status it left; no row when it is neither.
+func (q *Queries) RestoreSeller(ctx context.Context, arg RestoreSellerParams) (string, error) {
+	row := q.db.QueryRow(ctx, restoreSeller, arg.ChangedBy, arg.ID)
+	var was string
+	err := row.Scan(&was)
+	return was, err
 }
 
 const sellerExists = `-- name: SellerExists :one
@@ -740,11 +794,35 @@ func (q *Queries) SellerNames(ctx context.Context, ids []uuid.UUID) ([]SellerNam
 	return items, nil
 }
 
+const sellersAwaitingDeletion = `-- name: SellersAwaitingDeletion :many
+SELECT id FROM seller_sellers WHERE deletion_requested_at IS NOT NULL ORDER BY deletion_requested_at
+`
+
+func (q *Queries) SellersAwaitingDeletion(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, sellersAwaitingDeletion)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const sellersForAdmins = `-- name: SellersForAdmins :many
 SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id,
-       count(*) OVER () AS total
+       deletion_requested_at, count(*) OVER () AS total
 FROM seller_sellers
-WHERE (cardinality($1::text[]) = 0 OR status = ANY ($1::text[]))
+WHERE (cardinality($1::text[]) = 0 AND status <> 'deleted' OR status = ANY ($1::text[]))
   AND ($2::text = '' OR search_text LIKE '%' || seller_fold($2::text) || '%' ESCAPE '\')
   AND ($3::timestamptz IS NULL OR updated_at >= $3::timestamptz)
   AND ($4::timestamptz IS NULL OR updated_at < $4::timestamptz)
@@ -771,23 +849,24 @@ type SellersForAdminsParams struct {
 }
 
 type SellersForAdminsRow struct {
-	ID              uuid.UUID
-	Name            string
-	Address         string
-	Latitude        float64
-	Longitude       float64
-	Phone           string
-	Status          string
-	StatusReason    pgtype.Text
-	StatusChangedAt *time.Time
-	StatusChangedBy uuid.NullUUID
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	PhotoID         uuid.NullUUID
-	Total           int64
+	ID                  uuid.UUID
+	Name                string
+	Address             string
+	Latitude            float64
+	Longitude           float64
+	Phone               string
+	Status              string
+	StatusReason        pgtype.Text
+	StatusChangedAt     *time.Time
+	StatusChangedBy     uuid.NullUUID
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	PhotoID             uuid.NullUUID
+	DeletionRequestedAt *time.Time
+	Total               int64
 }
 
-// One page of the sellers in the statuses given (all when none), whose
+// One page of the sellers in the statuses given (all but the deleted when none), whose
 // words, folded, hold the query's (any when empty), last changed in [changed_since, changed_until) when given, in the order sort names: by default pending ones first,
 // the oldest first, as a queue, then the latest change first; otherwise by
 // name, address or last change, '-' first for descending. total counts them
@@ -823,6 +902,7 @@ func (q *Queries) SellersForAdmins(ctx context.Context, arg SellersForAdminsPara
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.PhotoID,
+			&i.DeletionRequestedAt,
 			&i.Total,
 		); err != nil {
 			return nil, err
@@ -839,7 +919,7 @@ const sellersOfAccount = `-- name: SellersOfAccount :many
 SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.phone, s.status, s.status_reason, s.status_changed_at,
        s.status_changed_by, s.created_at, s.updated_at, s.photo_id, m.role
 FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
-WHERE m.account_id = $1
+WHERE m.account_id = $1 AND s.status <> 'deleted'
 ORDER BY s.created_at
 `
 
@@ -860,6 +940,7 @@ type SellersOfAccountRow struct {
 	Role            string
 }
 
+// A deleted seller is gone for its members.
 func (q *Queries) SellersOfAccount(ctx context.Context, accountID uuid.UUID) ([]SellersOfAccountRow, error) {
 	rows, err := q.db.Query(ctx, sellersOfAccount, accountID)
 	if err != nil {
@@ -952,7 +1033,7 @@ func (q *Queries) SetRole(ctx context.Context, arg SetRoleParams) (int64, error)
 }
 
 const statusDays = `-- name: StatusDays :many
-SELECT day, pending, active, rejected, blocked FROM seller_status_days
+SELECT day, pending, active, rejected, blocked, deleted FROM seller_status_days
 WHERE day >= coalesce((SELECT max(d.day) FROM seller_status_days d WHERE d.day <= $1::date), $1::date)
 ORDER BY day
 `
@@ -974,6 +1055,7 @@ func (q *Queries) StatusDays(ctx context.Context, first pgtype.Date) ([]SellerSt
 			&i.Active,
 			&i.Rejected,
 			&i.Blocked,
+			&i.Deleted,
 		); err != nil {
 			return nil, err
 		}

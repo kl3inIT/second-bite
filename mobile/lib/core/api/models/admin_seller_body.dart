@@ -22,6 +22,9 @@ abstract class AdminSellerBody with _$AdminSellerBody {
     required AdminSellerBodyStatus status,
     required DateTime updatedAt,
 
+    /// When an admin deleted the seller, blocked, which waits for its orders still to finish; absent when it does not wait
+    DateTime? deletionRequestedAt,
+
     /// Absent when the owner deleted their account
     String? ownerEmail,
 

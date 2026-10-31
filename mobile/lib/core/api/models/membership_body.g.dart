@@ -38,5 +38,6 @@ const _$MembershipBodySellerStatusEnumMap = {
   MembershipBodySellerStatus.active: 'active',
   MembershipBodySellerStatus.rejected: 'rejected',
   MembershipBodySellerStatus.blocked: 'blocked',
+  MembershipBodySellerStatus.deleted: 'deleted',
   MembershipBodySellerStatus.$unknown: r'$unknown',
 };

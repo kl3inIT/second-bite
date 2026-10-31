@@ -19,6 +19,7 @@ func TestStatusEmail(t *testing.T) {
 		{StatusActive, "", "Cửa hàng Bếp Cô Ba đã được duyệt · Bếp Cô Ba is approved on Second Bite", false},
 		{StatusRejected, reason, "Cửa hàng Bếp Cô Ba chưa được duyệt · Bếp Cô Ba was not approved on Second Bite", true},
 		{StatusBlocked, reason, "Cửa hàng Bếp Cô Ba đã bị tạm khoá · Bếp Cô Ba is blocked on Second Bite", true},
+		{StatusDeleted, reason, "Cửa hàng Bếp Cô Ba sẽ bị xoá khỏi Second Bite · Bếp Cô Ba will be deleted from Second Bite", true},
 	} {
 		t.Run(string(tt.status), func(t *testing.T) {
 			t.Parallel()

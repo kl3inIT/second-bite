@@ -32,6 +32,8 @@ Published to other modules: `Record(ctx, tx, resource, action)`, which writes on
 | `seller.reject` | `seller`, its identifier, its name | `reason` | `seller` |
 | `seller.block` | `seller`, its identifier, its name | `reason` | `seller` |
 | `seller.unblock` | `seller`, its identifier, its name | none | `seller` |
+| `seller.delete` | `seller`, its identifier, its name | `reason` | `seller` |
+| `seller.restore` | `seller`, its identifier, its name | none | `seller` |
 | `seller.change_owner` | `seller`, its identifier, its name | `from`: the previous owner's account, when there was one; `to`: the new owner's (SEC-162) | `seller` |
 | `admin.grant` | `account`, its identifier, its address | `source`: `admin` or `command_line` | `identity` |
 | `admin.revoke` | `account`, its identifier, its address | `source`: `admin` or `command_line` | `identity` |

@@ -195,6 +195,20 @@ var adminChanges = map[string]adminChange{
 
 		return send(t, http.MethodPost, svc.base+"/admin/sellers/"+id+"/block", admin, reasonBody(testReason)), func() {}
 	}},
+	"deleteSeller": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		id := sellerInStatus(t, svc, "audit.delete.owner@example.com", "active")
+
+		return send(t, http.MethodPost, svc.base+"/admin/sellers/"+id+"/delete", admin, reasonBody(testReason)), func() {}
+	}},
+	"restoreSeller": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		id := sellerInStatus(t, svc, "audit.restore.owner@example.com", "deleted")
+
+		return send(t, http.MethodPost, svc.base+"/admin/sellers/"+id+"/restore", admin, nil), func() {}
+	}},
 	"hideReview": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
 		t.Helper()
 

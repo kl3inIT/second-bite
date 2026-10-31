@@ -64,6 +64,36 @@ func RegisterSchedules(events *platform.Events, s *Service) {
 	events.Every("order.purge_live_tickets", liveTicketPurgeEvery, s.PurgeLiveTickets)
 	events.Every("order.forget_old_chats", 24*time.Hour, s.ForgetOldChats)
 	events.Every("order.remind_due_soon", time.Minute, s.RemindDueSoon)
+	events.Every("order.finish_seller_deletions", time.Minute, s.FinishSellerDeletions)
+}
+
+// FinishSellerDeletions deletes the sellers admins deleted once none of their
+// orders is left to finish: while one may still be handed over or opened again,
+// the seller, blocked, waits, so its customers still collect what they ordered.
+// A seller restored meanwhile no longer waits; running it twice changes nothing
+// more.
+func (s *Service) FinishSellerDeletions(ctx context.Context) error {
+	ids, err := s.sellers.AwaitingDeletion(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, id := range ids {
+		busy, err := s.queries.SellerHasOrdersToFinish(ctx, id)
+		if err != nil {
+			return fmt.Errorf("reading the seller's orders: %w", err)
+		}
+
+		if busy {
+			continue
+		}
+
+		if err := s.sellers.FinishDeletion(ctx, id); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // liveTicketPurgeEvery is how often the tickets that expired unspent are deleted.
