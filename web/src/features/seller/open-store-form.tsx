@@ -15,6 +15,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 import { openSeller, setSellerPhoto, uploadPhoto } from "@/lib/api/generated";
 
 import { PhoneFootBar } from "./phone-foot-bar";
@@ -145,7 +146,8 @@ function OpenStoreFormBody() {
       }}
     >
       <FieldGroup>
-        <header className="flex flex-col gap-1">
+        {/* From `lg` the page's left column carries the heading (Figma O1-B). */}
+        <header className="flex flex-col gap-1 lg:hidden">
           <h1 className="text-card-title text-foreground">{t("heading")}</h1>
           <p className="text-body-sm text-muted-foreground">{t("intro")}</p>
         </header>
@@ -333,7 +335,10 @@ export function PinField({ onPinned }: { onPinned: (point: Point) => Promise<unk
   );
 }
 
-/** The store's photo, chosen from the device and shown before it is sent. */
+/**
+ * The store's photo, chosen from the device and shown before it is sent: a small preview over its name on a phone,
+ * the whole box from `lg` (Figma O1-B2).
+ */
 function PhotoField() {
   const t = useTranslations("OpenStore");
   const { field, ids } = useFieldValidity<File | undefined>();
@@ -351,7 +356,10 @@ function PhotoField() {
       <FieldLabel htmlFor={ids.control}>{t("photo")}</FieldLabel>
       <label
         htmlFor={ids.control}
-        className="flex min-h-21 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-primary/30 bg-background px-4 py-5 text-center transition-colors focus-within:ring-3 focus-within:ring-ring/50 hover:bg-secondary"
+        className={cn(
+          "flex min-h-21 cursor-pointer flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border border-dashed border-primary/30 bg-background px-4 py-5 text-center transition-colors focus-within:ring-3 focus-within:ring-ring/50 hover:bg-secondary",
+          preview && "lg:h-50 lg:border-solid lg:border-border lg:p-0",
+        )}
       >
         {preview && (
           <Image
@@ -360,13 +368,15 @@ function PhotoField() {
             width={64}
             height={64}
             unoptimized
-            className="size-16 rounded-lg object-cover"
+            className="size-16 rounded-lg object-cover lg:size-full lg:rounded-none"
           />
         )}
-        <span className="text-body-sm-strong text-link">
+        <span className={cn("text-body-sm-strong text-link", preview && "lg:sr-only")}>
           {photo ? photo.name : t("choosePhoto")}
         </span>
-        <span className="text-note text-muted-foreground">{t("photoHint")}</span>
+        <span className={cn("text-note text-muted-foreground", preview && "lg:hidden")}>
+          {t("photoHint")}
+        </span>
         <input
           id={ids.control}
           type="file"
