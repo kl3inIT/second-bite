@@ -5,8 +5,8 @@
 #
 #   sudo -n bash <root>/incoming/<release>/deploy.sh <environment> <release> <actor>   (registry token on standard input)
 #
-# <environment> is staging, the only environment so far; it selects the directory, the Compose project, the
-# containers, the environment file and the overlay, so environments never touch each other. <release> is
+# <environment> is staging or production; it selects the directory, the Compose project, the containers, the
+# environment file and the overlay, so environments never touch each other. Only staging runs the preview. <release> is
 # <source SHA>-<Release run>-<attempt>. Adapted from BeyondPilot's deploy.sh, which runs on the same host.
 # Nothing here rolls back on its own: a failure leaves the database backup and the previous release recorded for an
 # operator.
@@ -22,7 +22,8 @@ fail() {
 environment=$1
 case "$environment" in
     staging) project=secondbite-staging ;;
-    *) fail "environment must be staging" ;;
+    production) project=secondbite-production ;;
+    *) fail "environment must be staging or production" ;;
 esac
 readonly environment project
 readonly root="/apps/$project"
@@ -68,6 +69,12 @@ preview_image=$(release_value SECONDBITE_PREVIEW_IMAGE)
 [[ "$server_image" =~ ^ghcr\.io/kl3init/second-bite-server@sha256:[0-9a-f]{64}$ ]] || fail "unexpected server image"
 [[ "$web_image" =~ ^ghcr\.io/kl3init/second-bite-web@sha256:[0-9a-f]{64}$ ]] || fail "unexpected web image"
 [[ "$preview_image" =~ ^ghcr\.io/kl3init/second-bite-preview@sha256:[0-9a-f]{64}$ ]] || fail "unexpected preview image"
+images=("$server_image" "$web_image")
+containers=("$project-server" "$project-web")
+if [[ "$environment" == staging ]]; then
+    images+=("$preview_image")
+    containers+=("$project-preview")
+fi
 
 # The workflow's short-lived token pulls the private images; its credential file goes when this script exits.
 registry_token=$(cat)
@@ -77,7 +84,7 @@ export DOCKER_CONFIG
 trap 'rm -rf -- "$DOCKER_CONFIG"' EXIT
 printf '%s' "$registry_token" | docker login ghcr.io --username "$actor" --password-stdin >/dev/null
 unset registry_token
-for image in "$server_image" "$web_image" "$preview_image"; do
+for image in "${images[@]}"; do
     docker pull --quiet "$image" >/dev/null
     revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
     [[ "$revision" == "$sha" ]] || fail "$image was built from $revision, not $sha"
@@ -101,7 +108,7 @@ fi
 # PostgreSQL first, then the server (it migrates as it starts), then the web once the server is healthy.
 "${compose[@]}" up --detach --wait --wait-timeout 300 --remove-orphans
 
-for container in "$project-server" "$project-web" "$project-preview"; do
+for container in "${containers[@]}"; do
     revision=$(docker inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$container")
     [[ "$revision" == "$sha" ]] || fail "$container runs $revision, not $sha"
 done
@@ -131,9 +138,11 @@ done
 find "$backups" -maxdepth 1 -name 'pre-deploy-*.dump' -printf '%T@ %p\n' | sort --numeric-sort --reverse |
     tail --lines=+6 | cut --delimiter=' ' --fields=2- | xargs --no-run-if-empty rm -f --
 
-# Keep the images of the current and previous releases and remove older Second Bite images. Only images of this
-# repository are named: never prune, which would act on the other products of the host.
-keep_images=$(sed --quiet 's/^SECONDBITE_\(SERVER\|WEB\|PREVIEW\)_IMAGE=//p' "$deployments/current.env" "$deployments/previous.env" 2>/dev/null || true)
+# Keep the images of the current and previous releases of every environment on the host, since staging and production
+# share its images, and remove older Second Bite images. Only images of this repository are named: never prune,
+# which would act on the other products of the host.
+keep_images=$(sed --quiet 's/^SECONDBITE_\(SERVER\|WEB\|PREVIEW\)_IMAGE=//p' \
+    /apps/secondbite-*/deployments/current.env /apps/secondbite-*/deployments/previous.env 2>/dev/null || true)
 docker image ls --digests --format '{{.Repository}}@{{.Digest}} {{.ID}}' |
     grep --extended-regexp '^ghcr\.io/kl3init/second-bite-(server|web|preview)@sha256:' |
     while read -r reference id; do

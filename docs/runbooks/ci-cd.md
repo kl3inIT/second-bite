@@ -1,9 +1,9 @@
-# Releases and delivery to staging
+# Releases and delivery to staging and production
 
 Second Bite deploys the way BeyondPilot already deploys to the same host (its `docs/runbooks/ci-cd.md`). The flow:
 
 1. [Release](../../.github/workflows/release.yml) turns a `main` push into a release.
-2. [Deploy staging](../../.github/workflows/deploy-staging.yml) calls the shared [Deploy](../../.github/workflows/deploy.yml) workflow.
+2. [Deploy staging](../../.github/workflows/deploy-staging.yml) and, by hand, [Deploy production](../../.github/workflows/deploy-production.yml) call the shared [Deploy](../../.github/workflows/deploy.yml) workflow.
 3. Deploy runs [`deploy.sh`](../../infrastructure/deployment/deploy.sh) on the host over SSH.
 
 The reasons, and the alternatives considered (Kamal, Docker contexts over SSH, Coolify), are in the [SEC-33 design](../increments/completed/sec-33-staging/design.md).
@@ -29,25 +29,29 @@ A green deployment means the release is running and healthy. It does not claim t
 
 | Environment | Address | Deployed |
 | --- | --- | --- |
-| Staging | `https://secondbite.vadan.app`; the Flutter browser preview at `https://preview.secondbite.vadan.app` | After every successful Release run when the repository variable `STAGING_AUTO_DEPLOY` is `true`, and by hand at any time |
+| Production | `https://secondbite.vadan.app`, the address sellers and buyers use | By hand only, with the approval of the GitHub environment `production`'s reviewer |
+| Staging | `https://staging.secondbite.vadan.app`; the Flutter browser preview at `https://preview.secondbite.vadan.app` | After every successful Release run when the repository variable `STAGING_AUTO_DEPLOY` is `true`, and by hand at any time |
 
-There is no production yet; it is added when its address and host are chosen ([vision](../vision.md)).
+Until 31 October 2026 the composition at `secondbite.vadan.app` was staging. That day it became production, with its data (SEC-185); staging then had no composition until it is provisioned again at its own address, and `STAGING_AUTO_DEPLOY` is `false` meanwhile.
 
-To deploy by hand:
+Production takes a release that has already run on staging. To deploy by hand:
 
 ```text
 gh workflow run deploy-staging.yml --ref main -f ci_run_id=<successful main Release run>
+gh workflow run deploy-production.yml --ref main -f ci_run_id=<the same run, once checked on staging>
 gh run watch <deployment run> --exit-status
 ```
+
+The production run waits until its reviewer approves it in the run's page or with `gh run`.
 
 Deploy does the following:
 
 1. **Checks the run.** The Release run must be a successful push to `main` of this repository, and its `Publish release` job must have passed. An automatic run stops there if a newer Release run of `main` exists, because that release deploys after its own run.
-2. **Uploads the release.** It checks out that commit and downloads its `images.env`. It copies that file, `deploy.sh`, `compose.base.yaml` and `compose.staging.yaml` to `/apps/secondbite-staging/incoming/<release>/` over SSH, with:
+2. **Uploads the release.** It checks out that commit and downloads its `images.env`. It copies that file, `deploy.sh`, `compose.base.yaml` and `compose.<environment>.yaml` to `/apps/secondbite-<environment>/incoming/<release>/` over SSH, with:
    - a pinned host key;
-   - the staging deployment key, which exists only for the duration of the job;
+   - the environment's own deployment key and user, which exist only for the duration of the job, so staging's key cannot roll out production;
    - the runner's own `ssh`, not a third-party SSH action.
-3. **Runs the script.** It runs `deploy.sh staging <release> <actor>` under the deployment user's one sudo rule, and passes the job's package-read token on standard input.
+3. **Runs the script.** It runs `deploy.sh <environment> <release> <actor>` under the deployment user's one sudo rule, and passes the job's package-read token on standard input.
 
 `deploy.sh` does the following:
 
@@ -56,39 +60,45 @@ Deploy does the following:
   - refuses a malformed release;
   - refuses an environment file that is not root's with mode `0600`;
   - refuses a missing secret file.
-- **Checks the images:** pulls both images and checks that their `revision` label is the release's SHA.
+- **Checks the images:** pulls the server and web images, and on staging the preview's, and checks that their `revision` label is the release's SHA.
 - **Saves the database:** when a database is running, stops the server and saves a `pg_dump` that `pg_restore --list` can read, to `backups/pre-deploy-<release>.dump`.
 - **Starts the composition** with `up --wait`: PostgreSQL first, then the server, which migrates as it starts, then the web once the server is healthy.
 - **Records the release:** checks the running revisions and writes the release to `deployments/current.env`, and the one before it to `previous.env`.
-- **Removes old images:** removes every Second Bite image except those of the current and previous releases. It never prunes, which would remove BeyondPilot's and MemoryOS's images too.
+- **Removes old images:** removes every Second Bite image except those of the current and previous releases of every environment on the host, since staging and production share images. It never prunes, which would remove BeyondPilot's and MemoryOS's images too.
 
 The site is down for the few seconds the server takes to restart and migrate. There is no zero-downtime rollout.
 
 ## The host
 
-Staging runs on the host of BeyondPilot's staging, which also runs MemoryOS's production; `beyondpilot.vadan.app` resolves to it. Second Bite has its own:
-- directory;
-- Compose project, `secondbite-staging`;
-- containers, `secondbite-staging-{postgres,server,web,preview,map}`;
-- volume and internal network.
+Production and staging run on the host of BeyondPilot's staging, which also runs MemoryOS's production; `beyondpilot.vadan.app` resolves to it. Each Second Bite environment has its own:
+- directory, `/apps/secondbite-<environment>`;
+- Compose project, `secondbite-production` or `secondbite-staging`;
+- containers, `secondbite-production-{postgres,server,web,map}` and `secondbite-staging-{postgres,server,web,preview,map}`;
+- volume and internal network;
+- deployment user, `secondbite-prod-ci` or `secondbite-ci`, whose one sudo rule runs only its own environment's `deploy.sh`.
+
+Every service keeps at most three log files of 20 MB (`compose.base.yaml`), since the host sets no limit of its own.
 
 It shares the host's Nginx Proxy Manager, which it reaches through the existing external network `proxy-network`. Never change a container, file or setting of BeyondPilot or MemoryOS from here.
 
-Under `/apps/secondbite-staging`:
+Under `/apps/secondbite-<environment>`:
 
 | Path | Owner, mode | Holds |
 | --- | --- | --- |
-| `incoming` | `secondbite-ci`, `0700` | One directory per uploaded release; `deploy.sh` keeps the current and previous ones |
+| `incoming` | the environment's deployment user, `0700` | One directory per uploaded release; `deploy.sh` keeps the current and previous ones |
 | `deployments` | root, `0700` | `lock`, `current.env`, `previous.env` |
 | `backups` | root, `0700` | Pre-deployment dumps (the five newest) and nightly dumps (the 14 newest) |
 | `secrets` | root, `0700` | `database-password`, `email-settings-key`, `sign-in-code-key` and `push-private-key`, each owned by uid 65532 (the server's distroless `nonroot` user) with mode `0400` |
-| `map` | root, `0755`, files world-readable | The map the web draws a store's pin on (SEC-66): `hanoi.pmtiles`, `fonts/` and `sprites/`, written by [`infrastructure/map/fetch.sh`](../../infrastructure/map/fetch.sh) and served read-only by `secondbite-staging-map` |
-| `.env.staging` | root, `0600` | The non-secret values of [`staging.env.example`](../../infrastructure/deployment/staging.env.example) |
+| `map` | root, `0755`, files world-readable | The map the web draws a store's pin on (SEC-66): `hanoi.pmtiles`, `fonts/` and `sprites/`, written by [`infrastructure/map/fetch.sh`](../../infrastructure/map/fetch.sh) and served read-only by the environment's `map` container |
+| `.env.<environment>` | root, `0600` | The non-secret values of [`staging.env.example`](../../infrastructure/deployment/staging.env.example) |
 
 ### Provision the host once
 
+The commands below provision staging. Production is provisioned the same way under `/apps/secondbite-production`, with its own user `secondbite-prod-ci`, its own key and sudo rule, `.env.production` and `secondbite-production-*` containers.
+
 **DNS.** In the `vadan.app` zone, which is managed at Hostinger:
-- `A secondbite` points to the host;
+- `A secondbite` points to the host, for production;
+- `A staging.secondbite` points to the host, for staging;
 - `A preview.secondbite` points to the host too, for the Flutter browser preview (SEC-35).
 
 **The host.** In a session as an administrator of the host, create the deployment user and the directories. The user has no password, is not in the `docker` group, and has one sudo rule. It needs a home directory: `--system` alone gives it `/nonexistent`, and SSH then finds no `authorized_keys`.
@@ -144,7 +154,7 @@ printf 'SECONDBITE_PUSH_PUBLIC_KEY=%s\nSECONDBITE_SITE_URL=https://secondbite.va
 
 Replacing the pair voids every browser's subscription: each one subscribes again at its next visit to the order page or the Đơn tab.
 
-**Email.** Staging sends real email through Brevo's API, from `noreply@vadan.app` as "Second Bite (staging)", since 21 October 2026. There is no Mailpit on staging: a sign-in code goes to the inbox that was typed, so test with an address you can read. The Brevo API key is sealed in the database under `email-settings-key`, never in a file or the environment. An admin changes the provider, the sender or the key on the site at `/vi/admin/settings/email` (`PUT /admin/email-settings`); from the host, the same is a command reading the key from standard input:
+**Email.** Both environments send real email through Brevo's API from `noreply@vadan.app`: production as "Second Bite" (set on 31 October 2026), staging as "Second Bite (staging)", since 21 October 2026. There is no Mailpit on staging: a sign-in code goes to the inbox that was typed, so test with an address you can read. The Brevo API key is sealed in the database under `email-settings-key`, never in a file or the environment. An admin changes the provider, the sender or the key on the site at `/vi/admin/settings/email` (`PUT /admin/email-settings`); from the host, the same is a command reading the key from standard input:
 
 ```sh
 docker exec -i secondbite-staging-server secondbite email configure -provider brevo   -sender-address noreply@vadan.app -sender-name "Second Bite (staging)" -secret-stdin
@@ -160,7 +170,7 @@ sudo install -m 0644 infrastructure/backup/systemd/secondbite-backup.{service,ti
 sudo systemctl daemon-reload && sudo systemctl enable --now secondbite-backup.timer
 ```
 
-It dumps the database, which also holds the stored files, at 01:55 UTC+7. That is between BeyondPilot's backup (01:40) and MemoryOS's (02:10). The dumps stay on this host until an off-host backup target is chosen.
+It dumps production's database, which also holds the stored files, then staging's when staging runs, at 01:55 UTC+7. That is between BeyondPilot's backup (01:40) and MemoryOS's (02:10). The dumps stay on this host until an off-host backup target is chosen.
 
 **After the first deployment.** Make the first admin and choose who delivers email with the server's own commands ([backend runbook](backend.md)):
 
@@ -195,8 +205,8 @@ Then record the date of that first deployment in the [persistence guideline](../
 
 ### The reverse proxy
 
-Create a proxy host in Nginx Proxy Manager with these settings:
-- domain `secondbite.vadan.app`;
+Create a proxy host in Nginx Proxy Manager for each environment with these settings, shown for staging; production's names `secondbite.vadan.app` and the `secondbite-production-*` containers:
+- domain `staging.secondbite.vadan.app`;
 - forwards to `http://secondbite-staging-web:3000`;
 - a Let's Encrypt certificate, Force SSL, HTTP/2 and Block Common Exploits.
 
@@ -237,7 +247,7 @@ location /map/ {
 }
 ```
 
-Staging's proxy host is id 10, and its certificate is id 11, renewed by Nginx Proxy Manager.
+Production's proxy host is id 10, and its certificate is id 11, renewed by Nginx Proxy Manager. Staging's host also sends `X-Robots-Tag: noindex, nofollow`, as the preview's does.
 
 The preview's proxy host, `preview.secondbite.vadan.app`, forwards to `http://secondbite-staging-preview:8080` with the same certificate options. Its advanced configuration keeps the preview out of search even while the container is down, and gives it the same `location /api/` block as above, so the app reaches staging's API on its own origin and the server needs no CORS (SEC-94):
 
@@ -264,7 +274,9 @@ Nginx Proxy Manager 2.13 takes the Let's Encrypt address from its own settings. 
 
 The admin credentials kept at `/apps/proxy/admin-credentials.txt` were out of date on 18 October 2026. Staging's host was therefore created through the API, with an admin token valid ten minutes and signed inside the container with the proxy's own key (`/data/keys.json`). The token was never printed, and no password was changed.
 
-Staging is never indexed: the web answers `robots.txt` with `Disallow: /`.
+Only production is indexed. Its composition sets `SECONDBITE_INDEXABLE=true`, and the web then answers `robots.txt` with `Allow: /`; everywhere else, staging included, it answers `Disallow: /` (`web/src/app/robots.ts`).
+
+Production's proxy host is id 10, the one staging used until 31 October 2026: it forwards to `secondbite-production-web`, its advanced configuration names `secondbite-production-server` and `secondbite-production-map`, and HSTS is on (without subdomains, which belong to other products). The change was made through the API with a token signed inside the container, as described above.
 
 ### GitHub configuration
 
@@ -274,25 +286,34 @@ Staging is never indexed: the web answers `robots.txt` with `Disallow: /`.
 | | variable `STAGING_USER` | `secondbite-ci` |
 | | variable `STAGING_KNOWN_HOSTS` | The host's `ssh-ed25519` key, read over an SSH connection already trusted |
 | | secret `STAGING_SSH_KEY` | The private half of the staging deployment key |
+| Environment `production`, deployment branches limited to `main`, a required reviewer | variable `PRODUCTION_HOST` | The same host |
+| | variable `PRODUCTION_USER` | `secondbite-prod-ci` |
+| | variable `PRODUCTION_KNOWN_HOSTS` | The same host key |
+| | secret `PRODUCTION_SSH_KEY` | The private half of the production deployment key, made on 31 October 2026 and kept nowhere else |
 | Repository | variable `STAGING_AUTO_DEPLOY` | `true` to deploy after every successful Release run; unset for manual deployment only |
+
+## Watching production
+
+[Uptime](../../.github/workflows/uptime.yml) asks production every five minutes for `/vi`, `/api/readyz`, `/api/offers` and the first bytes of the map. A failed run is the alert: GitHub emails it to whoever last changed the schedule. GitHub may start a scheduled run some minutes late, so it finds an outage rather than a short blip.
 
 ## Failure and recovery
 
 A failed or cancelled deployment rolls nothing back. The job summary says it did not finish; the host keeps the pre-deployment dump and `deployments/previous.env`. Read the state as root:
 
 ```sh
-cd /apps/secondbite-staging
+env=production   # or staging
+cd /apps/secondbite-$env
 cat deployments/current.env deployments/previous.env
-docker compose --project-name secondbite-staging ps
-docker logs --tail 200 secondbite-staging-server
+docker compose --project-name secondbite-$env ps
+docker logs --tail 200 secondbite-$env-server
 ```
 
-- **The release is bad, and its migrations changed nothing:** deploy the previous release again. Dispatch Deploy staging with the Release run named in `previous.env` (`SECONDBITE_RELEASE` is `<sha>-<run>-<attempt>`).
+- **The release is bad, and its migrations changed nothing:** deploy the previous release again. Dispatch the environment's Deploy workflow with the Release run named in `previous.env` (`SECONDBITE_RELEASE` is `<sha>-<run>-<attempt>`).
 - **A migration ran:** fix forward with a new release. Or restore the dump taken before the deployment, then deploy the previous release. Restoring discards every write made after the dump.
 
   ```sh
-  docker compose --project-name secondbite-staging stop server web
-  docker exec --interactive secondbite-staging-postgres pg_restore --username=secondbite --dbname=secondbite --clean --if-exists \
+  docker compose --project-name secondbite-$env stop server web
+  docker exec --interactive secondbite-$env-postgres pg_restore --username=secondbite --dbname=secondbite --clean --if-exists \
     < backups/pre-deploy-<release>.dump
   ```
 

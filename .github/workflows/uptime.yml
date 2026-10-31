@@ -1,0 +1,42 @@
+name: Uptime
+
+# Asks production every five minutes whether the site, the API and the map answer. A failed run is the alert: GitHub
+# emails it to whoever last changed this schedule, with no monitoring service to pay or host (docs/runbooks/ci-cd.md).
+# GitHub may start a scheduled run some minutes late, so this finds an outage, not a short blip.
+"on":
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Production answers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Ask the site, the API and the map
+        run: |
+          # A path is asked again for a while before its answer counts as wrong, so a deployment's restart passes.
+          answers() {
+            local code=000
+            for _ in 1 2 3 4 5 6; do
+              code=$(curl --silent --output /dev/null --max-time 10 --write-out '%{http_code}' ${3:-} "https://secondbite.vadan.app$1" || true)
+              [ "$code" = "$2" ] && return 0
+              sleep 10
+            done
+            echo "::error::https://secondbite.vadan.app$1 answered $code, not $2"
+            return 1
+          }
+          status=0
+          answers /vi 200 || status=1
+          answers /api/readyz 204 || status=1
+          answers /api/offers 200 || status=1
+          # The map archive is large: only its first bytes are read, as MapLibre reads it by ranges.
+          answers /map/hanoi.pmtiles 206 -r0-1023 || status=1
+          exit $status

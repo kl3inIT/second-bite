@@ -54,6 +54,11 @@ services:
     container_name: secondbite-staging-preview
     image: ${SECONDBITE_PREVIEW_IMAGE:?the preview image is named by deploy.sh}
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "3"
     networks:
       - proxy
 
