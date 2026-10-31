@@ -2,7 +2,7 @@
 
 ## Where to look
 
-- Product scope from the founder: the [requirements for the IT team](docs/brief/second-bite-app-requirements-it.md) (newest) and the [project brief](docs/brief/second-bite-project-brief.md); the sponsor's plan to 31 October is the [tracking sheet snapshot](docs/brief/2026-10-20-sponsor-tracking-sheet.md).
+- Product scope from the founder: the [requirements for the IT team](docs/brief/second-bite-app-requirements-it.md) (newest) and the [project brief](docs/brief/second-bite-project-brief.md); the sponsor's plan to 31 October is the [tracking sheet snapshot](docs/brief/2026-10-20-sponsor-tracking-sheet.md). What was said in the meetings with them: the transcripts under [docs/brief/meetings/](docs/brief/meetings/).
 - Intended outcomes and stable principles: [docs/vision.md](docs/vision.md); delivered, active and candidate work: [docs/roadmap.md](docs/roadmap.md).
 - Engineering rules for all code, whatever the language: [docs/conventions.md](docs/conventions.md); topic guidelines under [docs/guidelines/](docs/guidelines/).
 - What exists today: [ARCHITECTURE.md](ARCHITECTURE.md) and the module specs under `docs/specs/`.

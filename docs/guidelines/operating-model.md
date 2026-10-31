@@ -18,6 +18,7 @@ Second Bite uses the repository as its durable system of record. The model is ad
 | `README.md` | Entry points and basic commands |
 | `ARCHITECTURE.md` | The system structure and runtime flows as implemented |
 | `docs/brief/` | The founder's product brief, kept as received |
+| `docs/brief/meetings/` | Transcripts of the meetings with the founder and the sponsor, one file per meeting named by its date, kept as received |
 | `docs/vision.md` | Product outcomes and stable principles |
 | `docs/roadmap.md` | Delivered, active and candidate increments |
 | `docs/conventions.md` | Cross-cutting engineering conventions, independent of language |
