@@ -476,11 +476,11 @@ test.describe("notices of an order", () => {
     await expect(page).toHaveURL(ORDER_URL);
     const orderId = page.url().split("/").at(-1);
 
-    const card = page.getByRole("region", { name: "Báo tôi khi món sẵn sàng" });
+    const card = page.getByRole("region", { name: "Báo khi món sẵn sàng" });
     await expect(card).toBeVisible();
     await expectNoSeriousA11yViolations(page);
 
-    await (await hydrated(card.getByRole("button", { name: "Bật thông báo" }))).click();
+    await (await hydrated(card.getByRole("button", { name: "Bật", exact: true }))).click();
     await expect(page.getByText("Sẽ báo bạn khi món sẵn sàng.")).toBeVisible();
     await expect
       .poll(async () => (await pushSubscriptions(page)).flatMap((each) => each.tickets))
@@ -498,6 +498,7 @@ test.describe("notices of an order", () => {
       .toContain(`tk-order:${nextId}`);
   });
 
+  // SEC-189: a refusal is one quiet line; how to undo it opens from it.
   test("says how to undo a refusal", async ({ page }) => {
     await page.addInitScript(() => {
       Object.defineProperty(Notification, "permission", { get: () => "denied" });
@@ -506,10 +507,33 @@ test.describe("notices of an order", () => {
     await page.goto("/vi/cart");
     await orderAs(page, "Vy", "0900000026");
     await expect(page).toHaveURL(ORDER_URL);
-    await expect(
-      page.getByRole("heading", { name: "Trình duyệt đang chặn thông báo" }),
-    ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Bật thông báo" })).toHaveCount(0);
+    await expect(page.getByText("Thông báo đang tắt trong trình duyệt.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Bật", exact: true })).toHaveCount(0);
+    const undo = page.getByText(/^Để bật lại, bấm biểu tượng/);
+    await expect(undo).toBeHidden();
+    await (await hydrated(page.getByRole("button", { name: "Cách bật lại" }))).click();
+    await expect(undo).toBeVisible();
+  });
+
+  // SEC-189: "Để sau" puts the offer away in this browser, and the next order does not offer it.
+  test("puts the offer away for later orders", async ({ page }) => {
+    await browserAllowsPush(page);
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    await orderAs(page, "Mai", "0900000028");
+    await expect(page).toHaveURL(ORDER_URL);
+    const card = page.getByRole("region", { name: "Báo khi món sẵn sàng" });
+    await (await hydrated(card.getByRole("button", { name: "Để sau" }))).click();
+    await expect(card).toBeHidden();
+
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    // The offer is decided once the key has come back; asked for after that, it is still away.
+    const key = page.waitForResponse((response) => response.url().endsWith("/push/key"));
+    await orderAs(page, "Mai", "0900000028");
+    await expect(page).toHaveURL(ORDER_URL);
+    await key;
+    await expect(card).toHaveCount(0);
   });
 
   test("shows an iPhone in Safari the steps to add the site to the Home Screen", async ({
@@ -528,9 +552,16 @@ test.describe("notices of an order", () => {
     await page.goto("/vi/cart");
     await orderAs(page, "Hà", "0900000027");
     await expect(page).toHaveURL(ORDER_URL);
-    const card = page.getByRole("region", { name: "Báo tôi khi món sẵn sàng" });
-    await expect(card.getByText("Chọn “Thêm vào MH chính”.")).toBeVisible();
-    await expect(card.getByRole("button", { name: "Bật thông báo" })).toHaveCount(0);
+    const card = page.getByRole("region", { name: "Báo khi món sẵn sàng" });
+    await expect(
+      card.getByText("Trên iPhone, cần thêm Second Bite vào màn hình chính"),
+    ).toBeVisible();
+    await expect(card.getByRole("button", { name: "Bật", exact: true })).toHaveCount(0);
+    // SEC-189: the steps open from "Xem cách", not before.
+    const step = card.getByText("Chọn “Thêm vào MH chính”.");
+    await expect(step).toBeHidden();
+    await (await hydrated(card.getByRole("button", { name: "Xem cách" }))).click();
+    await expect(step).toBeVisible();
     await expectNoSeriousA11yViolations(page);
   });
 });
