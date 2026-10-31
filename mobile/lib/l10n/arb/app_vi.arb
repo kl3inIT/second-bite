@@ -309,7 +309,7 @@
   "@legalTermsSection2Title": {
     "description": "Section 2's heading, as the web's Terms.sections[1].title"
   },
-  "legalTermsSection2Body": "Bạn xem và tìm món mà không cần tài khoản. Bạn cần đăng nhập để đặt món, theo dõi quán, hoặc đăng món cho một quán.\n\nHãy giữ an toàn hộp thư và tài khoản Google bạn dùng để đăng nhập, và không đăng nhập thay người khác.",
+  "legalTermsSection2Body": "Bạn xem, tìm và đặt món mà không cần tài khoản; khi đặt, bạn cho quán tên và số điện thoại của người đến lấy. Bạn cần đăng nhập để theo dõi quán hoặc đăng món cho một quán.\n\nHãy giữ an toàn hộp thư và tài khoản Google bạn dùng để đăng nhập, và không đăng nhập thay người khác.",
   "@legalTermsSection2Body": {
     "description": "Section 2's paragraphs, one blank line apart, as the web's Terms.sections[1].paragraphs"
   },
