@@ -35,6 +35,10 @@ services:
   web:
     container_name: secondbite-staging-web
     image: ${SECONDBITE_WEB_IMAGE:?the web image is named by deploy.sh}
+    environment:
+      # The server by its container name: on the shared proxy-network both environments' servers answer to the
+      # service name `server`, so that name would reach either.
+      SECONDBITE_API_ORIGIN: http://secondbite-staging-server:8080
     networks:
       - internal
       - proxy
