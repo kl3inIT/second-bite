@@ -46,6 +46,14 @@ test.describe("a dish, its seller and the cart", () => {
       sheet.getByText(/^Croissant bơ Pháp nướng sáng nay.* Khoảng 80 g\.$/),
     ).toBeVisible();
     await expect(sheet.getByText("Hỏi quán về thành phần và dị ứng.")).toBeVisible();
+    // The Terms' line on who answers for the food, where a buyer reads about it (SEC-188).
+    await expect(
+      sheet.getByText(/^Second Bite chỉ kết nối bạn với quán; quán chịu trách nhiệm về chất lượng/),
+    ).toBeVisible();
+    await expect(sheet.getByRole("link", { name: "Điều khoản" })).toHaveAttribute(
+      "href",
+      "/vi/terms",
+    );
     await expectNoSeriousA11yViolations(page);
     await sheet.getByRole("button", { name: "Thêm một phần Bánh Croissant Truyền Thống" }).click();
     await sheet.getByRole("button", { name: "Thêm vào giỏ · 44.000đ" }).click();

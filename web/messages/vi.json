@@ -573,6 +573,7 @@
     "notes": "Lưu ý",
     "bringBag": "Nên mang túi hoặc hộp riêng.",
     "askSeller": "Hỏi quán về thành phần và dị ứng.",
+    "sellerAnswers": "Second Bite chỉ kết nối bạn với quán; quán chịu trách nhiệm về chất lượng và vệ sinh an toàn thực phẩm của món. <terms>Điều khoản</terms>",
     "count": "{count} phần {name} sẽ thêm",
     "add": "Thêm vào giỏ · {price}",
     "allChosen": "Đã chọn đủ {units} phần"
