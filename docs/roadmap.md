@@ -29,6 +29,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 - [SEC-62 — The admin's stores](increments/completed/sec-62-admin-stores/design.md), 22 October 2026: the list, a store's page with its posts, members and orders; admins [delete a store softly and restore it](increments/completed/seller-soft-delete/design.md) since 31 October (SEC-187, PR #192).
 - [Customer place](increments/completed/customer-place/design.md), 31 October 2026: the home shows every shop until a customer chooses a place, by location, a typed place or Tasco Mall, remembers it, and names "Gần tôi" by its street (PRs #185, #188, #189).
 - SEC-185 — Production, 31 October 2026: `secondbite.vadan.app` is production, deployed by hand after an approval, indexed by search engines; staging moved to `preview.secondbite.vadan.app`, with the app's web preview at `/mobile/` ([runbook](runbooks/ci-cd.md)).
+- [SEC-192 — The report's three numbers](increments/completed/sec-192-report-three-numbers/design.md), 31 October 2026: the admin opens on yesterday's report, led by new users, orders and visitors, each against the period before; "Hôm qua", "7 ngày" and "30 ngày" in one tap; "Sao chép báo cáo" copies the three numbers as a message; the CSV gains new accounts and first-time customers (PR #197).
 
 ## Active
 

@@ -1,6 +1,6 @@
 # The report's three numbers
 
-Status: started on 31 October 2026. Tracked in Linear as SEC-192. It changes the admin's report of [SEC-80](../../completed/sec-80-prototype-numbers/design.md), owned by `stats` ([spec](../../../specs/stats.md)).
+Status: delivered on 31 October 2026, on production the same day (PR #197). Tracked in Linear as SEC-192. It changes the admin's report of [SEC-80](../../completed/sec-80-prototype-numbers/design.md), owned by `stats` ([spec](../../../specs/stats.md)).
 
 ## What an admin can do
 
