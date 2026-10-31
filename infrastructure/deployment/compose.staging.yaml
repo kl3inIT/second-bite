@@ -48,7 +48,7 @@ services:
       - internal
       - proxy
 
-  # The Flutter app in a browser, for the team only, at preview.secondbite.vadan.app (docs/guidelines/mobile.md).
+  # The Flutter app in a browser, for the team only, at preview.secondbite.vadan.app/mobile/ (docs/guidelines/mobile.md).
   # Its image carries its own health check; it reaches nothing but the proxy.
   preview:
     container_name: secondbite-staging-preview

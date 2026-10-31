@@ -105,13 +105,13 @@ jobs:
           channel: stable
           flutter-version-file: mobile/pubspec.yaml
           cache: true
-      # The preview calls staging's API through its own origin: the host's proxy sends /api/ to the server, so no
-      # CORS is needed (docs/runbooks/ci-cd.md, The reverse proxy).
+      # The preview is staging's /mobile/ and calls staging's API on the same origin: the host's proxy sends /api/ to
+      # the server and /mobile/ to the preview without its prefix, so no CORS is needed (docs/runbooks/ci-cd.md).
       - name: Build the app for the browser
         working-directory: mobile
         run: |
           flutter pub get
-          flutter build web --dart-define=SECONDBITE_API_ORIGIN=https://preview.secondbite.vadan.app/api
+          flutter build web --base-href /mobile/ --dart-define=SECONDBITE_API_ORIGIN=https://preview.secondbite.vadan.app/api
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
@@ -194,7 +194,7 @@ jobs:
             sleep 2
           done
           grep --quiet --ignore-case '^x-robots-tag: noindex' <<<"$headers"
-          grep --quiet --ignore-case '^location: /#/offers/1' <<<"$headers"
+          grep --quiet --ignore-case '^location: /mobile/#/offers/1' <<<"$headers"
           grep --quiet --ignore-case '^x-robots-tag: noindex' <<<"$(curl --silent --fail --head http://127.0.0.1:8100/)"
           for image in "$SECONDBITE_SERVER_IMAGE" "$SECONDBITE_WEB_IMAGE" "$SECONDBITE_PREVIEW_IMAGE"; do
             test "$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")" = "$GITHUB_SHA"

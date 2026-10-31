@@ -14,12 +14,12 @@ A green deployment means the release is running and healthy. It does not claim t
 
 `main` receives only commits whose checks passed on their branch. A `main` push that changes `server/`, `web/`, `mobile/` or `infrastructure/deployment/` starts Release:
 
-1. **Server image, Web image and Preview image** build side by side; the first two use the GitHub Actions layer cache, and the preview builds the Flutter app for the browser with the version `mobile/pubspec.yaml` pins and `SECONDBITE_API_ORIGIN=https://preview.secondbite.vadan.app/api`, so it calls staging's API through its own origin. Each pushes to GHCR as `ghcr.io/kl3init/second-bite-{server,web,preview}:sha-<sha>-<run>-<attempt>`. A tag names one attempt and is never moved; there is no `latest`.
+1. **Server image, Web image and Preview image** build side by side; the first two use the GitHub Actions layer cache, and the preview builds the Flutter app for the browser with the version `mobile/pubspec.yaml` pins, `--base-href /mobile/` and `SECONDBITE_API_ORIGIN=https://preview.secondbite.vadan.app/api`, so it runs at staging's `/mobile/` and calls staging's API on the same origin. Each pushes to GHCR as `ghcr.io/kl3init/second-bite-{server,web,preview}:sha-<sha>-<run>-<attempt>`. A tag names one attempt and is never moved; there is no `latest`.
 2. **Start together and exercise the routes** pulls both images by digest and starts them with PostgreSQL behind the local proxy (`compose.local.yaml`, `--no-build`). It then checks:
    - `/vi` and `/robots.txt` answer 200;
    - `/api/readyz` answers 204;
    - `/api/offers` answers 200;
-   - the preview answers `/` with the app, sends a screen's path such as `/offers/1` to `/#/offers/1`, and carries `X-Robots-Tag: noindex`;
+   - the preview answers `/` with the app, sends a screen's path such as `/offers/1` to `/mobile/#/offers/1`, and carries `X-Robots-Tag: noindex`;
    - each image's `revision` label is the commit.
 3. **Publish release** runs only after the step above passes. It uploads the artifact `release-<sha>`, kept 30 days, holding `images.env`: the source SHA and both images by digest.
 
@@ -30,9 +30,9 @@ A green deployment means the release is running and healthy. It does not claim t
 | Environment | Address | Deployed |
 | --- | --- | --- |
 | Production | `https://secondbite.vadan.app`, the address sellers and buyers use | By hand only, with the approval of the GitHub environment `production`'s reviewer |
-| Staging | `https://staging.secondbite.vadan.app`; the Flutter browser preview at `https://preview.secondbite.vadan.app` | After every successful Release run when the repository variable `STAGING_AUTO_DEPLOY` is `true`, and by hand at any time |
+| Staging | `https://preview.secondbite.vadan.app`, and the Flutter app in a browser at `https://preview.secondbite.vadan.app/mobile/` | After every successful Release run when the repository variable `STAGING_AUTO_DEPLOY` is `true`, and by hand at any time |
 
-Until 31 October 2026 the composition at `secondbite.vadan.app` was staging. That day it became production, with its data (SEC-185); staging then had no composition until it is provisioned again at its own address, and `STAGING_AUTO_DEPLOY` is `false` meanwhile.
+Until 31 October 2026 the composition at `secondbite.vadan.app` was staging. That day it became production, with its data (SEC-185); staging was provisioned again, with an empty database, at `preview.secondbite.vadan.app`, the address that had served only the app's preview.
 
 Production takes a release that has already run on staging. To deploy by hand:
 
@@ -98,8 +98,7 @@ The commands below provision staging. Production is provisioned the same way und
 
 **DNS.** In the `vadan.app` zone, which is managed at Hostinger:
 - `A secondbite` points to the host, for production;
-- `A staging.secondbite` points to the host, for staging;
-- `A preview.secondbite` points to the host too, for the Flutter browser preview (SEC-35).
+- `A preview.secondbite` points to the host too, for staging and the Flutter app in a browser (SEC-35, SEC-185).
 
 **The host.** In a session as an administrator of the host, create the deployment user and the directories. The user has no password, is not in the `docker` group, and has one sudo rule. It needs a home directory: `--system` alone gives it `/nonexistent`, and SSH then finds no `authorized_keys`.
 
@@ -154,7 +153,7 @@ printf 'SECONDBITE_PUSH_PUBLIC_KEY=%s\nSECONDBITE_SITE_URL=https://secondbite.va
 
 Replacing the pair voids every browser's subscription: each one subscribes again at its next visit to the order page or the Đơn tab.
 
-**Email.** Both environments send real email through Brevo's API from `noreply@vadan.app`: production as "Second Bite" (set on 31 October 2026), staging as "Second Bite (staging)", since 21 October 2026. There is no Mailpit on staging: a sign-in code goes to the inbox that was typed, so test with an address you can read. The Brevo API key is sealed in the database under `email-settings-key`, never in a file or the environment. An admin changes the provider, the sender or the key on the site at `/vi/admin/settings/email` (`PUT /admin/email-settings`); from the host, the same is a command reading the key from standard input:
+**Email.** Both environments send real email through Brevo's API from `noreply@vadan.app`: production as "Second Bite" (set on 31 October 2026), staging as "Second Bite (staging)", since 21 October 2026. Staging's `email-settings-key` is a copy of production's, so that its email settings could be copied from production's database with the Brevo key still sealed when staging was provisioned again; replacing either key later asks for the Brevo key on that environment only. There is no Mailpit on staging: a sign-in code goes to the inbox that was typed, so test with an address you can read. The Brevo API key is sealed in the database under `email-settings-key`, never in a file or the environment. An admin changes the provider, the sender or the key on the site at `/vi/admin/settings/email` (`PUT /admin/email-settings`); from the host, the same is a command reading the key from standard input:
 
 ```sh
 docker exec -i secondbite-staging-server secondbite email configure -provider brevo   -sender-address noreply@vadan.app -sender-name "Second Bite (staging)" -secret-stdin
@@ -206,7 +205,7 @@ Then record the date of that first deployment in the [persistence guideline](../
 ### The reverse proxy
 
 Create a proxy host in Nginx Proxy Manager for each environment with these settings, shown for staging; production's names `secondbite.vadan.app` and the `secondbite-production-*` containers:
-- domain `staging.secondbite.vadan.app`;
+- domain `preview.secondbite.vadan.app`;
 - forwards to `http://secondbite-staging-web:3000`;
 - a Let's Encrypt certificate, Force SSL, HTTP/2 and Block Common Exploits.
 
@@ -247,18 +246,25 @@ location /map/ {
 }
 ```
 
-Production's proxy host is id 10, and its certificate is id 11, renewed by Nginx Proxy Manager. Staging's host also sends `X-Robots-Tag: noindex, nofollow`, as the preview's does.
+Production's proxy host is id 10, and its certificate is id 11, renewed by Nginx Proxy Manager.
 
-The preview's proxy host, `preview.secondbite.vadan.app`, forwards to `http://secondbite-staging-preview:8080` with the same certificate options. Its advanced configuration keeps the preview out of search even while the container is down, and gives it the same `location /api/` block as above, so the app reaches staging's API on its own origin and the server needs no CORS (SEC-94):
+Staging's proxy host, `preview.secondbite.vadan.app`, is id 11, with certificate id 12; the address served only the app's preview until 31 October 2026, and then became staging's (SEC-185). It forwards to `http://secondbite-staging-web:3000` with the same certificate options, and its advanced configuration serves the API, the map and the app's preview at `/mobile/` on the same origin, so neither the web nor the app needs CORS, and keeps all of it out of search even while a container is down:
 
 ```nginx
-# A preview for the team: never indexed, even when the container is down.
+client_max_body_size 12m;
+
+# Staging and the app's preview are for the team: never indexed, even when a container is down.
 add_header X-Robots-Tag "noindex, nofollow" always;
 
 location /api/ {
     set $secondbite_server secondbite-staging-server;
     rewrite ^/api/(.*)$ /$1 break;
     proxy_pass http://$secondbite_server:8080;
+    # GET /live is a WebSocket: the upgrade needs HTTP/1.1 and its two headers.
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_read_timeout 75s;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host $host;
@@ -266,9 +272,29 @@ location /api/ {
     proxy_set_header Forwarded "";
     proxy_set_header X-Real-IP $remote_addr;
 }
+
+location /map/ {
+    set $secondbite_map secondbite-staging-map;
+    proxy_pass http://$secondbite_map:8080;
+    gzip off;
+    proxy_set_header Host $host;
+}
+
+# The Flutter app in a browser, built with --base-href /mobile/; its container serves it at / and puts the prefix
+# back when it sends a screen's path to its route after "#".
+location = /mobile {
+    return 301 /mobile/;
+}
+
+location /mobile/ {
+    set $secondbite_preview secondbite-staging-preview;
+    rewrite ^/mobile/(.*)$ /$1 break;
+    proxy_pass http://$secondbite_preview:8080;
+    proxy_set_header Host $host;
+}
 ```
 
-The preview's proxy host is id 11, and its certificate is id 12. Its `/api/` block was added on 21 October 2026 through the API, with a token signed inside the container as described below.
+It was written through the API on 31 October 2026, with a token signed inside the container as described below.
 
 Nginx Proxy Manager 2.13 takes the Let's Encrypt address from its own settings. A certificate requested through its API carries only `{"dns_challenge": false}` in `meta`; it refuses `letsencrypt_agree` or `letsencrypt_email`.
 
