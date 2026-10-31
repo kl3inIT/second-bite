@@ -71,10 +71,17 @@ export function CodeField({
         disabled={disabled}
         aria-invalid={invalid || undefined}
         aria-describedby={invalid ? ids.error : undefined}
+        containerClassName="w-full"
       >
-        <InputOTPGroup>
+        {/* Six 56 px boxes and their gaps need 386 px; on a narrower phone they share the width (SEC-188). */}
+        <InputOTPGroup className="w-full">
           {Array.from({ length: CODE_LENGTH }, (_, index) => (
-            <InputOTPSlot key={index} index={index} aria-invalid={invalid || undefined} />
+            <InputOTPSlot
+              key={index}
+              index={index}
+              aria-invalid={invalid || undefined}
+              className="w-auto max-w-14 min-w-0 flex-1"
+            />
           ))}
         </InputOTPGroup>
       </InputOTP>

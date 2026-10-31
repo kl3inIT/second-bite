@@ -11,6 +11,7 @@ import { CartPortions } from "@/features/cart/cart-portions";
 import { saveCart, useCart } from "@/features/cart/cart-store";
 import { Stepper } from "@/features/cart/quantity-stepper";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import { DiscountBadge } from "./discount-label";
@@ -100,6 +101,16 @@ function DishBody({
         <ul className="list-inside list-disc text-body-sm text-muted-foreground">
           <li>{t("bringBag")}</li>
           <li>{t("askSeller")}</li>
+          {/* The Terms say so in full; this is their one line where a buyer reads about the food (SEC-188). */}
+          <li>
+            {t.rich("sellerAnswers", {
+              terms: (chunks) => (
+                <Link href="/terms" className="text-link underline underline-offset-4">
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </li>
         </ul>
       </section>
     </div>
