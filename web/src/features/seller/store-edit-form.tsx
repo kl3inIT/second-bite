@@ -123,7 +123,7 @@ export function StoreEditForm({
             <field.TextField
               label={open("name")}
               required
-              autoComplete="organization"
+              autoComplete="store-name"
               maxLength={80}
             />
           )}
@@ -136,7 +136,9 @@ export function StoreEditForm({
               required
               type="tel"
               inputMode="tel"
-              autoComplete="tel"
+              // The store's, not the person's: a token Chrome does not know keeps it from filling the person's
+              // saved address here and across the form, which it does for "tel" and ignores "off" for (SEC-191).
+              autoComplete="store-phone"
             />
           )}
         </form.AppField>

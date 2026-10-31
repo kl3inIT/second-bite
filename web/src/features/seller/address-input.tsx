@@ -80,7 +80,9 @@ export function AddressInput({
           name={name}
           onBlur={onBlur}
           placeholder={placeholder}
-          autoComplete="off"
+          // Chrome ignores "off" for an address and fills the person's saved one; a token it does not know stops it,
+          // so only the places suggested here fill the store's address (SEC-191).
+          autoComplete="store-address"
           aria-required
           aria-invalid={invalid || undefined}
           aria-describedby={describedBy}
