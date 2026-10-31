@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">): Prom
   return pageMetadata({ locale: (await params).locale, description: t("description") });
 }
 
-// The customer home: tonight's offers at Tasco Mall, with no landing page in front (SEC-23), drawn as the
+// The customer home: tonight's offers of every shop, or around a place, with no landing page in front (SEC-23), drawn as the
 // Figma home (Secondbite › Mobile v3 › K1 · Trang chủ).
 export default function Home({ searchParams }: PageProps<"/[locale]">) {
   const query = searchParams.then(readHomeQuery);

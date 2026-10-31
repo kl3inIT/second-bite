@@ -12,10 +12,10 @@ test.describe("the customer home", () => {
     await page.goto("/vi");
 
     await expect(
-      page.getByRole("heading", { level: 1, name: "Tối nay ở Tasco Mall" }),
+      page.getByRole("heading", { level: 1, name: "Tối nay: Tất cả quán" }),
     ).toBeVisible();
 
-    const deals = page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" });
+    const deals = page.getByRole("region", { name: "Món ngon tối nay" });
     await expect(deals.getByText("59%", { exact: true })).toBeVisible();
     // Up to eight tickets; the copy that keeps a running row seamless is hidden from assistive technology.
     await expect(deals.getByRole("listitem")).toHaveCount(8);
@@ -35,7 +35,7 @@ test.describe("the customer home", () => {
       await expect(closing.getByRole("heading", { level: 3 }).nth(index)).toHaveText(name);
     }
 
-    const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
+    const all = page.getByRole("region", { name: "Tất cả món" });
     await expect(all.getByRole("heading", { level: 3 })).toHaveText([
       "Bánh Croissant Truyền Thống",
       "Bánh Eclair Socola",
@@ -97,7 +97,7 @@ test.describe("the customer home", () => {
     await expect(best.getByText("Quán được chấm 4,8 trên 5")).toBeAttached();
     // Announcements are followed, never listed among what can be ordered.
     await expect(
-      page.getByRole("region", { name: "Tất cả món quanh đây" }).getByText("Cơm Bò Rang Giòn"),
+      page.getByRole("region", { name: "Tất cả món" }).getByText("Cơm Bò Rang Giòn"),
     ).toBeHidden();
   });
 
@@ -106,7 +106,7 @@ test.describe("the customer home", () => {
   }) => {
     await page.goto("/vi");
 
-    const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
+    const all = page.getByRole("region", { name: "Tất cả món" });
     const heart = all
       .getByRole("article")
       .filter({ hasText: "Bánh Eclair Socola" })
@@ -149,7 +149,7 @@ test.describe("the customer home", () => {
       "Bánh mì mềm chà bông",
     ]);
     await expect(page.getByRole("region", { name: "Sắp hết giờ nhận" })).toBeHidden();
-    await expect(page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" })).toBeHidden();
+    await expect(page.getByRole("region", { name: "Món ngon tối nay" })).toBeHidden();
 
     await (await hydrated(page.getByRole("link", { name: "Bánh", exact: true }))).click();
     await expect(page).toHaveURL(/\/vi$/);
@@ -176,7 +176,7 @@ test.describe("the customer home", () => {
     await expect(page).toHaveURL(/\/vi\/search\?q=banh\+bao$/);
   });
 
-  test("shows the dishes around the person's place, nearest first, and Tasco Mall's when there are none", async ({
+  test("shows the dishes around the person's place, nearest first, and every shop's when there are none", async ({
     page,
     context,
   }) => {
@@ -192,17 +192,17 @@ test.describe("the customer home", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Tối nay quanh Vị trí của tôi" }),
     ).toBeVisible();
-    await expect(page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" })).toBeHidden();
+    await expect(page.getByRole("region", { name: "Món ngon tối nay" })).toBeHidden();
     const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
     await expect(all.getByText(/^21:00–21:45 · \d+ m$/).first()).toBeVisible();
 
     await page.goto("/vi?near=10.762,106.660");
     await expect(page.getByText("Chưa có món nào quanh đây")).toBeVisible();
-    const mall = page.getByRole("region", { name: "Đang bán ở Tasco Mall" });
-    await expect(mall.getByRole("heading", { level: 3 }).first()).toHaveText(
+    const elsewhere = page.getByRole("region", { name: "Đang bán ở các quán khác" });
+    await expect(elsewhere.getByRole("heading", { level: 3 }).first()).toHaveText(
       "Cơm Thịt Kho Nước Dừa",
     );
-    await expect(mall.getByText("Bánh mì mềm chà bông")).toBeHidden();
+    await expect(elsewhere.getByText("Bánh mì mềm chà bông")).toBeHidden();
     await expectNoSeriousA11yViolations(page);
   });
 
@@ -212,7 +212,7 @@ test.describe("the customer home", () => {
   }) => {
     test.skip(isMobile, "A phone follows Figma K1, without the line and the steps.");
     await page.goto("/vi");
-    const line = "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.";
+    const line = "Món ngon cuối ngày của các quán quanh bạn, giá thấp hơn.";
     await expect(page.getByRole("heading", { name: line })).toBeVisible();
     await expect(page.getByText("Đến quầy trong giờ nhận")).toBeVisible();
   });
@@ -229,7 +229,7 @@ test.describe("the customer home", () => {
     // as a scroll made while the list is still streaming in can leave the row on screen.
     await hydrated(search);
     await expect(async () => {
-      await page.getByRole("heading", { name: "Tất cả món quanh đây" }).scrollIntoViewIfNeeded();
+      await page.getByRole("heading", { name: "Tất cả món" }).scrollIntoViewIfNeeded();
       await page.mouse.wheel(0, 400);
       await expect(search).toHaveCount(2, { timeout: 1000 });
     }).toPass();

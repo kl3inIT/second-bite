@@ -1,9 +1,9 @@
 {
   "Metadata": {
     "title": "Second Bite",
-    "description": "Món ngon còn dư cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Đặt trước, đến quầy nhận trong khung giờ. Phi lợi nhuận, không thu hoa hồng.",
+    "description": "Món ngon còn dư cuối ngày của các quán quanh bạn, giá thấp hơn. Đặt trước, đến quầy nhận trong khung giờ. Phi lợi nhuận, không thu hoa hồng.",
     "organization": "Nền tảng phi lợi nhuận giúp các quán bán món ngon còn dư cuối ngày với giá thấp hơn, không thu hoa hồng của quán.",
-    "area": "Tasco Mall, Long Biên, Hà Nội"
+    "area": "Hà Nội"
   },
   "Home": {
     "searchLabel": "Tìm món hoặc quán",
@@ -17,14 +17,15 @@
       "vegetables": "Rau củ",
       "fruit": "Trái cây"
     },
-    "dealsTitle": "Món ngon tối nay ở Tasco Mall",
+    "dealsTitle": "Món ngon tối nay",
     "upTo": "Giảm đến",
     "upToPercent": "{percent}%",
-    "title": "<hidden>Tối nay ở </hidden>Tasco Mall",
-    "area": "Long Biên, Hà Nội",
+    "title": "<hidden>Tối nay: </hidden>Tất cả quán",
+    "area": "Hà Nội",
     "closingSoon": "Sắp hết giờ nhận",
     "seeAll": "Xem tất cả ›",
-    "allOffers": "Tất cả món quanh đây",
+    "allOffers": "Tất cả món",
+    "allOffersNearby": "Tất cả món quanh đây",
     "results": "Kết quả",
     "empty": "Tối nay chưa có món nào.",
     "emptyFiltered": "Không có món nào khớp bộ lọc này.",
@@ -34,9 +35,9 @@
     "titleNearby": "<hidden>Tối nay quanh </hidden>Vị trí của tôi",
     "areaNearby": "Các quán gần bạn",
     "nearbyEmpty": "Chưa có món nào quanh đây",
-    "nearbyEmptyHint": "Quán gần bạn thường đăng món còn lại từ 18:00. Theo dõi món sắp có bên dưới, hoặc xem Tasco Mall.",
-    "seeMall": "Xem món ở Tasco Mall",
-    "mallOffers": "Đang bán ở Tasco Mall",
+    "nearbyEmptyHint": "Quán gần bạn thường đăng món còn lại từ 18:00. Theo dõi món sắp có bên dưới, hoặc xem tất cả quán.",
+    "seeEverywhere": "Xem món ở tất cả quán",
+    "elsewhereOffers": "Đang bán ở các quán khác",
     "filters": "Lọc món",
     "upcoming": "Sắp có tối nay",
     "recommended": "Gợi ý cho bạn",
@@ -54,21 +55,21 @@
   "Area": {
     "open": "Chọn nơi xem món",
     "title": "Xem món ở đâu?",
-    "description": "Xem món ở Tasco Mall hoặc quanh vị trí của bạn.",
+    "description": "Xem món ở tất cả quán hoặc quanh vị trí của bạn.",
     "close": "Đóng",
-    "mall": "Tasco Mall Long Biên",
-    "mallHint": "Mặc định · các quán trong trung tâm",
+    "all": "Tất cả quán",
+    "allHint": "Mặc định · món sắp hết giờ lên trước",
     "nearby": "Dùng vị trí của tôi",
     "nearbyHint": "Cho phép định vị để thấy quán gần bạn",
     "apply": "Xem món quanh đây",
     "locating": "Đang tìm vị trí của bạn…",
-    "denied": "Trình duyệt đang chặn định vị. Bật lại trong cài đặt của trang, hoặc xem món ở Tasco Mall.",
-    "failed": "Chưa tìm được vị trí của bạn. Thử lại sau, hoặc xem món ở Tasco Mall."
+    "denied": "Trình duyệt đang chặn định vị. Bật lại trong cài đặt của trang, hoặc xem món ở tất cả quán.",
+    "failed": "Chưa tìm được vị trí của bạn. Thử lại sau, hoặc xem món ở tất cả quán."
   },
   "Search": {
     "title": "Tìm món",
     "label": "Tìm món hoặc quán",
-    "placeholder": "Tìm món, quán ở Tasco Mall",
+    "placeholder": "Tìm món, quán",
     "back": "Về trang chủ",
     "clear": "Xoá chữ đã gõ",
     "recent": "Tìm gần đây",
@@ -91,7 +92,7 @@
       "discount": "Giảm nhiều nhất"
     },
     "dishesFor": "{count} món cho “{q}”",
-    "dishesHere": "{count} món đang bán {place, select, near {quanh đây} other {ở Tasco Mall}}",
+    "dishesHere": "{count} món đang bán{place, select, near { quanh đây} other {}}",
     "nothing": "Không tìm thấy món nào khớp.",
     "everything": "Xem tất cả món",
     "resetFilters": "Đặt lại bộ lọc",
@@ -109,7 +110,7 @@
     "anyTime": "Bất kỳ",
     "lowest": "Thấp nhất",
     "highest": "Cao nhất",
-    "popular": "Món phổ biến ở Tasco Mall",
+    "popular": "Món phổ biến",
     "onSale": "{count} món đang giảm",
     "view": {
       "grid": "Xem dạng ô",
@@ -156,7 +157,7 @@
     "badge": "-{percent}%"
   },
   "Intro": {
-    "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
+    "tagline": "Món ngon cuối ngày của các quán quanh bạn, giá thấp hơn.",
     "step1": "Chọn món, đặt trước",
     "step2": "Đến quầy trong giờ nhận",
     "step3": "Nhận món"
@@ -165,7 +166,7 @@
     "label": "Thông tin pháp lý",
     "terms": "Điều khoản sử dụng",
     "privacy": "Chính sách quyền riêng tư",
-    "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
+    "tagline": "Món ngon cuối ngày của các quán quanh bạn, giá thấp hơn.",
     "help": "Hỗ trợ",
     "home": "Second Bite, về trang chủ"
   },
@@ -403,7 +404,6 @@
     "mapTitle": "Bản đồ chỗ nhận món của {seller}",
     "directionsLabel": "Đường đến quầy",
     "placeLine": "{seller} · {address}",
-    "placeHint": "Tasco Mall Long Biên",
     "directions": "Chỉ đường",
     "opensMaps": "(mở Google Maps)",
     "signInTitle": "Chưa thấy đơn nào",

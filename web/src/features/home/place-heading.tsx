@@ -5,8 +5,8 @@ import { AreaSheet } from "./area-sheet";
 import type { HomeQuery } from "./home-query";
 
 // The page's title on the header (Figma header › location): a lime pin, the place in bold and its district
-// below in the soft text for Tasco blue, Tasco Mall or the person's own place. The whole of it opens the
-// area sheet. A reader hears "Tối nay ở Tasco Mall"; the first words are only for them. A page with a heading
+// below in the soft text for Tasco blue, every shop or the person's own place. The whole of it opens the
+// area sheet. A reader hears "Tối nay: Tất cả quán"; the first words are only for them. A page with a heading
 // of its own (the order pages) shows the place without making it the page's heading.
 export function PlaceHeading({
   query = {},

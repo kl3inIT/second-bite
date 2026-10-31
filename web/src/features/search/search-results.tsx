@@ -34,7 +34,7 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
   ]);
   const offers = inShowingOrder(found);
   const groups = groupBySeller(offers);
-  const place = query.near ? "near" : "mall";
+  const place = query.near ? "near" : "all";
   const count = offers.length;
   const summary = query.q
     ? t("dishesFor", { count, q: query.q })

@@ -45,7 +45,7 @@ const dishes = [
 export function KindPicker({ query }: { query: HomeQuery }) {
   const t = useTranslations("Home");
   const kinds = useTranslations("OfferKind");
-  // A kind narrows the place being shown; it does not move back to Tasco Mall.
+  // A kind narrows the place being shown; it does not move back to every shop.
   const { near } = query;
   const items = [
     ...order.map((kind) => ({

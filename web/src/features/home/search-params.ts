@@ -25,7 +25,7 @@ const parseAsPoint = createParser({
 
 /**
  * What the home's address asks for (docs/guidelines/web.md › Lists and filters): `?q=` words, `?kind=` one kind,
- * `?now=1` collectable now, and `?near=21.057,105.896` the person's own place instead of Tasco Mall (Figma K1a).
+ * `?now=1` collectable now, and `?near=21.057,105.896` the person's own place instead of every shop (Figma K1a).
  * The search reads the same keys and more.
  */
 export const homeSearchParams = {

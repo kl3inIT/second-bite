@@ -9,7 +9,7 @@ import {
 
 /**
  * What the home's address asks for: `?q=` words, `?kind=` one kind, `?now=1` collectable now, and
- * `?near=21.057,105.896` the person's own place instead of Tasco Mall (Figma K1a). The keys are read and written
+ * `?near=21.057,105.896` the person's own place instead of every shop (Figma K1a). The keys are read and written
  * with nuqs (`search-params.ts`).
  */
 export type HomeQuery = { q?: string; kind?: OfferKind; now?: boolean; near?: string };
