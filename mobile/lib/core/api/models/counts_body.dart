@@ -25,6 +25,12 @@ abstract class CountsBody with _$CountsBody {
     /// Opens of the home; none for a store
     required int homeViews,
 
+    /// Accounts created, the site's whatever store is chosen; none on a store's numbers
+    required int newAccounts,
+
+    /// Customers whose first order, by phone number, is collected then; the site's, as newAccounts
+    required int newCustomers,
+
     /// Offers posted for the day
     required int offers,
 

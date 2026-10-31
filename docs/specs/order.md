@@ -34,7 +34,7 @@ During the pilot the customer pays the seller at the counter; the module records
 
 An order carries its number (`SB-` and a number), status, seller (name, address, collection point), lines (offer, name, unit, price, original price, units, photo), total, window, the time of each transition, the cancel or refusal reason, its checkout, who collects (name and phone number), its review once rated (stars, tags, comment, time) and, to its customer, the access.
 
-Published to other modules: `Service` alone.
+Published to other modules: `Service` alone. The admin's report (`stats`) reads `OrderDays`, and `FirstOrderDays`, the customers whose first order, by phone number, is collected each day (SEC-192).
 
 It follows `seller.LocationChangedEvent` (listener `order.follow_seller_location`): the orders still to collect (`confirmed`, `ready`) copy the seller's collection point as it stands and tell the sockets following them, so a customer on the way reads where the seller now is; orders handed over, cancelled, refused or expired keep theirs, and the same event twice changes nothing more (SEC-66). The customers are not told otherwise.
 

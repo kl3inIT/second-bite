@@ -438,3 +438,18 @@ SELECT EXISTS (
     SELECT 1 FROM order_orders
     WHERE seller_id = @seller_id AND state IN ('confirmed', 'ready', 'collected', 'refused') AND window_end > now()
 );
+
+-- name: FirstOrderDays :many
+-- The customers whose first order, told apart by phone number, is collected on each day in Vietnam, for the admin's
+-- report (SEC-192): a customer orders with a name and a phone number, signed in or not. An order whose contact was
+-- forgotten has no number and counts for nobody.
+SELECT firsts.day, count(*) AS customers
+FROM (
+    SELECT (min(window_start) AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day
+    FROM order_orders
+    WHERE customer_phone <> ''
+    GROUP BY customer_phone
+    HAVING min(window_start) >= @since AND min(window_start) < @until
+) AS firsts
+GROUP BY firsts.day
+ORDER BY firsts.day;

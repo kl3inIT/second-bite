@@ -21,7 +21,7 @@ Owns accounts and their role, emailed sign-in codes, Google sign-in and sessions
 | `POST /admin/admins` `{email}` | Admins | `200` the account, an admin; created when the address has never signed in; again, the same, recording nothing |
 | `POST /admin/admins/{accountId}/revoke` | Admins, never for themselves | `200` the account, a customer; a customer again, the same; refused for the last admin |
 
-Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantAdmin`, `RevokeAdmin` and their command-line forms, and the event `AccountDeletedEvent` (`identity.account_deleted`, the account's identifier only), which `seller`, `file` and `order` follow.
+Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantAdmin`, `RevokeAdmin` and their command-line forms, `AccountDays` (the accounts created per day and those there are, for the admin's report, SEC-192), and the event `AccountDeletedEvent` (`identity.account_deleted`, the account's identifier only), which `seller`, `file` and `order` follow.
 
 Administrative commands: `secondbite admin grant EMAIL` makes an account an admin, creating it if needed; `secondbite admin revoke EMAIL` makes it a customer again, never the last admin.
 

@@ -23,9 +23,8 @@ test.describe("the admin's stores", () => {
     await signInAsAdmin(page, `stores.${testInfo.project.name}.${testInfo.title.length}`);
   });
 
-  test("the admin's home opens the stores, with a card per status", async ({ page }) => {
-    await page.goto("/vi/admin");
-    await expect(page).toHaveURL(/\/vi\/admin\/sellers$/);
+  test("the stores open with a card per status", async ({ page }) => {
+    await page.goto("/vi/admin/sellers");
 
     await expect(page.getByRole("heading", { level: 1, name: "Cửa hàng" })).toBeVisible();
     await expect(page.getByRole("combobox", { name: "Khu vực" })).toContainText("Tất cả");

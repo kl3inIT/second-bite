@@ -35,6 +35,11 @@ type Counts struct {
 	Held, UnitsHeld, Collected, UnitsCollected, Cancelled, Refused, Expired int
 	// CollectedVND is what the collected orders came to at the counter.
 	CollectedVND int64
+	// NewAccounts and NewCustomers are the site's, whatever store is chosen,
+	// and none on a store's numbers (SEC-192): the accounts created on the
+	// day, and the customers whose first order, by phone number, is collected
+	// on it.
+	NewAccounts, NewCustomers int
 }
 
 func (c *Counts) addViews(o Counts) {
@@ -42,6 +47,11 @@ func (c *Counts) addViews(o Counts) {
 	c.People += o.People
 	c.HomeViews += o.HomeViews
 	c.QRViews += o.QRViews
+}
+
+func (c *Counts) addUsers(o Counts) {
+	c.NewAccounts += o.NewAccounts
+	c.NewCustomers += o.NewCustomers
 }
 
 func (c *Counts) addTrade(o Counts) {
@@ -87,10 +97,12 @@ type StoreDayCounts struct {
 
 // Report is the admin's report (SEC-80): the totals, every day of the range,
 // each store over the range, and each store on each day it has numbers.
-// People add up over days, since a visitor's key changes every day.
+// People add up over days, since a visitor's key changes every day. Accounts
+// are those there are at the end of the range (SEC-192).
 type Report struct {
 	Since, Until time.Time
 	Totals       Counts
+	Accounts     int
 	Days         []DayCounts
 	Stores       []StoreCounts
 	StoreDays    []StoreDayCounts
@@ -146,7 +158,52 @@ func (s *Service) Report(ctx context.Context, f ReportFilter) (Report, error) {
 		}
 	}
 
-	return s.assemble(ctx, f, days, cells)
+	accounts, err := s.newUsers(ctx, f, days)
+	if err != nil {
+		return Report{}, err
+	}
+
+	r, err := s.assemble(ctx, f, days, cells)
+	if err != nil {
+		return Report{}, err
+	}
+
+	r.Accounts = accounts
+
+	return r, nil
+}
+
+// newUsers adds the site's new accounts and first-time customers to days, and
+// answers the accounts there are at the end of the range (SEC-192). They are
+// the site's whatever store is chosen: an account and a customer belong to no
+// store.
+func (s *Service) newUsers(ctx context.Context, f ReportFilter, days map[time.Time]*Counts) (int, error) {
+	since := time.Date(f.Since.Year(), f.Since.Month(), f.Since.Day(), 0, 0, 0, 0, vietnam)
+	until := time.Date(f.Until.Year(), f.Until.Month(), f.Until.Day()+1, 0, 0, 0, 0, vietnam)
+
+	accounts, total, err := s.identities.AccountDays(ctx, since, until)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, a := range accounts {
+		if day, ok := days[a.Day]; ok {
+			day.NewAccounts += a.Accounts
+		}
+	}
+
+	customers, err := s.orders.FirstOrderDays(ctx, since, until)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, c := range customers {
+		if day, ok := days[c.Day]; ok {
+			day.NewCustomers += c.Customers
+		}
+	}
+
+	return total, nil
 }
 
 // storeDays merges the views, the posts and the orders of each store and day.
@@ -235,6 +292,7 @@ func (s *Service) assemble(ctx context.Context, f ReportFilter, days map[time.Ti
 		r.Days = append(r.Days, DayCounts{Day: day, Counts: *c})
 		r.Totals.addViews(*c)
 		r.Totals.addTrade(*c)
+		r.Totals.addUsers(*c)
 	}
 
 	slices.SortFunc(r.Days, func(a, b DayCounts) int { return a.Day.Compare(b.Day) })

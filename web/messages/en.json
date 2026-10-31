@@ -1869,23 +1869,41 @@
       "store": "Store",
       "anyStore": "All",
       "export": "Export CSV",
-      "cards": "Totals for the days",
       "card": {
-        "views": "Page views",
-        "viewsNote": "{people} people · {qr} from QR",
-        "held": "Orders held",
-        "heldNote": "{units} units",
         "collected": "Units collected",
         "collectedNote": "{orders} orders",
         "share": "Collected",
         "shareNote": "{collected}/{held} orders",
         "expired": "No-shows",
-        "expiredNote": "{cancelled} cancelled · {refused} refused by the store"
+        "expiredNote": "{cancelled} cancelled · {refused} refused by the store",
+        "newUsers": "New users",
+        "newUsersNote": "{customers} first-time customers · {accounts} accounts in all",
+        "site": "whole site",
+        "orders": "Orders",
+        "ordersNote": "{collected} collected · {units} units",
+        "people": "Visitors",
+        "peopleNote": "{views} page views · {qr} from QR",
+        "collectedVnd": "Taken at the counter",
+        "collectedVndNote": "{orders} orders collected",
+        "change": "{change, select, 0 {Same as} other {{change} on}} {days, plural, =1 {the day before} other {the # days before}}"
       },
-      "chart": "Orders held and collected by day",
+      "chart": {
+        "label": "Chart by day",
+        "orders": "Orders held and collected by day",
+        "people": "Visitors by day",
+        "users": "New users by day",
+        "tab": {
+          "orders": "Orders",
+          "people": "Visitors",
+          "users": "New users"
+        }
+      },
       "series": {
         "held": "Held",
-        "collected": "Collected"
+        "collected": "Collected",
+        "people": "Visitors",
+        "newAccounts": "New accounts",
+        "newCustomers": "First-time customers"
       },
       "table": "Numbers by store",
       "column": {
@@ -1896,7 +1914,8 @@
         "collected": "Collected",
         "expired": "No-shows",
         "share": "Collected %",
-        "collectedVnd": "Taken in"
+        "collectedVnd": "Taken in",
+        "people": "Visitors"
       },
       "none": "–",
       "empty": {
@@ -1907,6 +1926,26 @@
         "count": "{count, plural, one {# note} other {# notes}}",
         "empty": "No store sent feedback in these days.",
         "when": "{date}, {time}"
+      },
+      "presets": {
+        "label": "Quick ranges",
+        "yesterday": "Yesterday",
+        "week": "7 days",
+        "month": "30 days"
+      },
+      "headline": "The three main numbers",
+      "detail": "How the orders ended",
+      "copy": {
+        "action": "Copy report",
+        "done": "Report copied; paste it in a message to send it.",
+        "failed": "The report could not be copied. Try again.",
+        "title": "Second Bite, {range}:",
+        "titleStore": "Second Bite, {range} · {store}:",
+        "users": "- New users: {accounts} accounts{change}, {customers} first-time customers; {total} accounts in all",
+        "orders": "- Orders: {held}{change}, {collected} collected",
+        "people": "- Visitors: {people}{change}, {views} page views",
+        "change": " ({change})",
+        "compared": "The figures in brackets are the change on {days, plural, =1 {the day before} other {the # days before}}."
       }
     }
   },

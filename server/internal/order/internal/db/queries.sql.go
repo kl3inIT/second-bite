@@ -384,6 +384,52 @@ func (q *Queries) ExpireEnded(ctx context.Context) (int64, error) {
 	return expired, err
 }
 
+const firstOrderDays = `-- name: FirstOrderDays :many
+SELECT firsts.day, count(*) AS customers
+FROM (
+    SELECT (min(window_start) AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day
+    FROM order_orders
+    WHERE customer_phone <> ''
+    GROUP BY customer_phone
+    HAVING min(window_start) >= $1 AND min(window_start) < $2
+) AS firsts
+GROUP BY firsts.day
+ORDER BY firsts.day
+`
+
+type FirstOrderDaysParams struct {
+	Since time.Time
+	Until time.Time
+}
+
+type FirstOrderDaysRow struct {
+	Day       pgtype.Date
+	Customers int64
+}
+
+// The customers whose first order, told apart by phone number, is collected on each day in Vietnam, for the admin's
+// report (SEC-192): a customer orders with a name and a phone number, signed in or not. An order whose contact was
+// forgotten has no number and counts for nobody.
+func (q *Queries) FirstOrderDays(ctx context.Context, arg FirstOrderDaysParams) ([]FirstOrderDaysRow, error) {
+	rows, err := q.db.Query(ctx, firstOrderDays, arg.Since, arg.Until)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FirstOrderDaysRow
+	for rows.Next() {
+		var i FirstOrderDaysRow
+		if err := rows.Scan(&i.Day, &i.Customers); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const forgetContactsOfCustomer = `-- name: ForgetContactsOfCustomer :execrows
 UPDATE order_orders
 SET customer_name = '', customer_phone = '', zalo_consent_at = NULL, contact_forgotten_at = now()

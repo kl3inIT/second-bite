@@ -15,6 +15,9 @@ part 'report_output_body.g.dart';
 @Freezed()
 abstract class ReportOutputBody with _$ReportOutputBody {
   const factory ReportOutputBody({
+    /// The accounts there are at the end of the range
+    required int accounts,
+
     /// Every day of the range, in order
     required List<ReportDayBody>? days,
     required DateTime since,

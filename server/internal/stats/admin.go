@@ -35,6 +35,8 @@ type countsBody struct {
 	Refused        int   `json:"refused"`
 	Expired        int   `json:"expired"        doc:"Orders the customer did not come for"`
 	CollectedVND   int64 `json:"collectedVnd"   doc:"What the collected orders came to at the counter"`
+	NewAccounts    int   `json:"newAccounts"    doc:"Accounts created, the site's whatever store is chosen; none on a store's numbers"`
+	NewCustomers   int   `json:"newCustomers"   doc:"Customers whose first order, by phone number, is collected then; the site's, as newAccounts"`
 }
 
 type reportDayBody struct {
@@ -60,6 +62,7 @@ type reportOutput struct {
 		Since     string               `json:"since"     format:"date"`
 		Until     string               `json:"until"     format:"date"`
 		Totals    countsBody           `json:"totals"`
+		Accounts  int                  `json:"accounts"  doc:"The accounts there are at the end of the range"`
 		Days      []reportDayBody      `json:"days"      doc:"Every day of the range, in order"`
 		Stores    []reportStoreBody    `json:"stores"    doc:"Each store with numbers in the range, the most orders first"`
 		StoreDays []reportStoreDayBody `json:"storeDays" doc:"Each store on each day it has numbers, by day then name"`
@@ -165,6 +168,7 @@ func reportOf(r Report) *reportOutput {
 	out := &reportOutput{}
 	out.Body.Since, out.Body.Until = r.Since.Format(time.DateOnly), r.Until.Format(time.DateOnly)
 	out.Body.Totals = countsOf(r.Totals)
+	out.Body.Accounts = r.Accounts
 
 	out.Body.Days = make([]reportDayBody, len(r.Days))
 	for i, d := range r.Days {

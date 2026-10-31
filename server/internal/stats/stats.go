@@ -22,6 +22,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"zgo.at/isbot"
 
+	"github.com/kl3inIT/second-bite/server/internal/identity"
 	"github.com/kl3inIT/second-bite/server/internal/offer"
 	"github.com/kl3inIT/second-bite/server/internal/order"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
@@ -50,15 +51,16 @@ var sourcePattern = regexp.MustCompile(`^[a-z0-9_-]{1,40}$`)
 // locales are the web's locale prefixes, which a path starts with.
 var locales = map[string]bool{"vi": true, "en": true}
 
-// Service keeps the views and reads the admin's report, asking the posts, the
-// orders and the stores' names of the modules that own them.
+// Service keeps the views and reads the admin's report, asking the accounts,
+// the posts, the orders and the stores' names of the modules that own them.
 type Service struct {
-	queries *db.Queries
-	offers  *offer.Service
-	orders  *order.Service
-	sellers *seller.Service
-	logger  *slog.Logger
-	now     func() time.Time
+	queries    *db.Queries
+	identities *identity.Service
+	offers     *offer.Service
+	orders     *order.Service
+	sellers    *seller.Service
+	logger     *slog.Logger
+	now        func() time.Time
 
 	mu    sync.Mutex
 	salts map[string][]byte // the day's salt, by day, so a view reads it once
@@ -72,9 +74,12 @@ type Service struct {
 const viewsPerAddress = 600
 
 // NewService assembles the module.
-func NewService(pool *pgxpool.Pool, offers *offer.Service, orders *order.Service, sellers *seller.Service, logger *slog.Logger) *Service {
+func NewService(
+	pool *pgxpool.Pool, identities *identity.Service, offers *offer.Service, orders *order.Service,
+	sellers *seller.Service, logger *slog.Logger,
+) *Service {
 	return &Service{
-		queries: db.New(pool), offers: offers, orders: orders, sellers: sellers, logger: logger,
+		queries: db.New(pool), identities: identities, offers: offers, orders: orders, sellers: sellers, logger: logger,
 		now: time.Now, salts: map[string][]byte{},
 		viewsByAddress: platform.NewLimiter(viewsPerAddress, 10*time.Minute),
 	}

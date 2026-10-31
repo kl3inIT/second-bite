@@ -207,3 +207,15 @@ DELETE FROM identity_accounts WHERE id = @id;
 -- name: PurgeExpiredSessions :execrows
 -- Every account's sessions past their end, which signing in only clears for its own account.
 DELETE FROM identity_sessions WHERE expires_at <= now();
+
+-- name: AccountDays :many
+-- The accounts created per day in Vietnam, for the admin's report (SEC-192).
+SELECT (created_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, count(*) AS accounts
+FROM identity_accounts
+WHERE created_at >= @since AND created_at < @until
+GROUP BY 1
+ORDER BY 1;
+
+-- name: CountAccountsBefore :one
+-- The accounts that exist and were created before the instant, for the report's total.
+SELECT count(*) FROM identity_accounts WHERE created_at < @until;

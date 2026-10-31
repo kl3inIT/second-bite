@@ -188,7 +188,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		offers := offer.NewService(pool, sellers, files, events, trail, logger)
 
 		orders := order.NewService(pool, offers, sellers, notifications, trail, logger)
-		views := stats.NewService(pool, offers, orders, sellers, logger)
+		views := stats.NewService(pool, identities, offers, orders, sellers, logger)
 
 		// The listeners are known before anything publishes; they run only in
 		// serve.

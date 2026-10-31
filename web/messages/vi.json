@@ -1869,23 +1869,41 @@
       "store": "Cửa hàng",
       "anyStore": "Tất cả",
       "export": "Xuất CSV",
-      "cards": "Tổng của khoảng ngày",
       "card": {
-        "views": "Lượt mở trang",
-        "viewsNote": "{people} người · {qr} từ QR",
-        "held": "Đơn giữ",
-        "heldNote": "{units} phần",
         "collected": "Phần đã lấy",
         "collectedNote": "{orders} đơn",
         "share": "Tỉ lệ lấy",
         "shareNote": "{collected}/{held} đơn",
         "expired": "Khách không đến",
-        "expiredNote": "{cancelled} huỷ · {refused} quán từ chối"
+        "expiredNote": "{cancelled} huỷ · {refused} quán từ chối",
+        "newUsers": "Người dùng mới",
+        "newUsersNote": "{customers} khách đặt món lần đầu · tổng {accounts} tài khoản",
+        "site": "toàn trang",
+        "orders": "Giao dịch",
+        "ordersNote": "{collected} đơn đã lấy · {units} phần",
+        "people": "Người truy cập",
+        "peopleNote": "{views} lượt mở trang · {qr} từ QR",
+        "collectedVnd": "Tiền thu tại quầy",
+        "collectedVndNote": "{orders} đơn đã lấy",
+        "change": "{change, select, 0 {Bằng} other {{change} so với}} {days, plural, =1 {hôm trước} other {# ngày trước đó}}"
       },
-      "chart": "Đơn giữ và đơn đã lấy theo ngày",
+      "chart": {
+        "label": "Biểu đồ theo ngày",
+        "orders": "Đơn giữ và đơn đã lấy theo ngày",
+        "people": "Người truy cập theo ngày",
+        "users": "Người dùng mới theo ngày",
+        "tab": {
+          "orders": "Giao dịch",
+          "people": "Người truy cập",
+          "users": "Người dùng mới"
+        }
+      },
       "series": {
         "held": "Đơn giữ",
-        "collected": "Đã lấy"
+        "collected": "Đã lấy",
+        "people": "Người truy cập",
+        "newAccounts": "Tài khoản mới",
+        "newCustomers": "Khách đặt lần đầu"
       },
       "table": "Số liệu theo cửa hàng",
       "column": {
@@ -1896,7 +1914,8 @@
         "collected": "Đã lấy",
         "expired": "Không đến",
         "share": "Tỉ lệ lấy",
-        "collectedVnd": "Tiền thu"
+        "collectedVnd": "Tiền thu",
+        "people": "Người truy cập"
       },
       "none": "–",
       "empty": {
@@ -1907,6 +1926,26 @@
         "count": "{count, plural, other {# góp ý}}",
         "empty": "Chưa có quán nào góp ý trong khoảng ngày này.",
         "when": "{date}, {time}"
+      },
+      "presets": {
+        "label": "Chọn nhanh",
+        "yesterday": "Hôm qua",
+        "week": "7 ngày",
+        "month": "30 ngày"
+      },
+      "headline": "Ba chỉ số chính",
+      "detail": "Chi tiết đơn",
+      "copy": {
+        "action": "Sao chép báo cáo",
+        "done": "Đã sao chép báo cáo, dán vào tin nhắn để gửi.",
+        "failed": "Chưa sao chép được. Thử lại.",
+        "title": "Second Bite, {range}:",
+        "titleStore": "Second Bite, {range} · {store}:",
+        "users": "- Người dùng mới: {accounts} tài khoản{change}, {customers} khách đặt món lần đầu; tổng {total} tài khoản",
+        "orders": "- Giao dịch: {held} đơn{change}, {collected} đơn đã lấy",
+        "people": "- Người truy cập: {people}{change}, {views} lượt mở trang",
+        "change": " ({change})",
+        "compared": "Số trong ngoặc là chênh lệch so với {days, plural, =1 {hôm trước} other {# ngày trước đó}}."
       }
     }
   },

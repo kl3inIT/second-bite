@@ -1,6 +1,8 @@
 package order_test
 
 import (
+	"fmt"
+	"math/rand/v2"
 	"testing"
 	"time"
 
@@ -117,4 +119,54 @@ func checkReportReads(t *testing.T, f fixture, since, until time.Time, bread, sh
 	if err != nil || names[shop] != "Bếp Báo Cáo" || names[other] != "Quán Bên Cạnh" {
 		t.Errorf("the names %v, %v", names, err)
 	}
+}
+
+// testFirstOrders counts each phone number once, on the day of its first
+// order (SEC-192). The orders are moved 500 days back, where no other check
+// places any, so the day holds only these.
+func testFirstOrders(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "Bếp Khách Mới")
+	bread := f.post(owner, t, shop, "Bánh mì", 6, 20_000, time.Now().Add(-time.Minute))
+
+	first, second := order.Contact{Name: "An", Phone: phoneOf(t)}, order.Contact{Name: "Bình", Phone: phoneOf(t)}
+	back := -500 * 24 * time.Hour
+
+	place := func(who order.Contact, d time.Duration) {
+		t.Helper()
+
+		o, err := f.orders.Place(customer, key(), uuid.Nil, who, []order.Wanted{{bread.ID, 1}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		f.shift(t, o.ID, d)
+	}
+
+	place(first, back)
+	place(first, back) // the same customer again on the same day
+	place(second, back)
+	place(second, back+24*time.Hour) // a later order is not a first
+
+	day := time.Now().Add(back).In(time.FixedZone("", 7*60*60))
+	since := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, day.Location())
+
+	days, err := f.orders.FirstOrderDays(t.Context(), since, since.AddDate(0, 0, 2))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(days) != 1 || days[0].Customers != 2 || !days[0].Day.Equal(time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, time.UTC)) {
+		t.Errorf("first orders %+v, want two customers on %s", days, since.Format(time.DateOnly))
+	}
+}
+
+// phoneOf is a Vietnamese phone number no other check uses.
+func phoneOf(t *testing.T) string {
+	t.Helper()
+
+	return fmt.Sprintf("09%08d", rand.IntN(100_000_000))
 }

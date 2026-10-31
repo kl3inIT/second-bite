@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ReportOutputBody {
 
-/// Every day of the range, in order
+/// The accounts there are at the end of the range
+ int get accounts;/// Every day of the range, in order
  List<ReportDayBody>? get days; DateTime get since;/// Each store on each day it has numbers, by day then name
  List<ReportStoreDayBody>? get storeDays;/// Each store with numbers in the range, the most orders first
  List<ReportStoreBody>? get stores; CountsBody get totals; DateTime get until;
@@ -33,20 +34,20 @@ $ReportOutputBodyCopyWith<ReportOutputBody> get copyWith => _$ReportOutputBodyCo
 @override
 bool operator ==(Object other) {
   final _this = this as ReportOutputBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportOutputBody&&const DeepCollectionEquality().equals(other.days, _this.days)&&(identical(other.since, _this.since) || other.since == _this.since)&&const DeepCollectionEquality().equals(other.storeDays, _this.storeDays)&&const DeepCollectionEquality().equals(other.stores, _this.stores)&&(identical(other.totals, _this.totals) || other.totals == _this.totals)&&(identical(other.until, _this.until) || other.until == _this.until));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportOutputBody&&(identical(other.accounts, _this.accounts) || other.accounts == _this.accounts)&&const DeepCollectionEquality().equals(other.days, _this.days)&&(identical(other.since, _this.since) || other.since == _this.since)&&const DeepCollectionEquality().equals(other.storeDays, _this.storeDays)&&const DeepCollectionEquality().equals(other.stores, _this.stores)&&(identical(other.totals, _this.totals) || other.totals == _this.totals)&&(identical(other.until, _this.until) || other.until == _this.until));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ReportOutputBody;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.days),_this.since,const DeepCollectionEquality().hash(_this.storeDays),const DeepCollectionEquality().hash(_this.stores),_this.totals,_this.until);
+  return Object.hash(runtimeType,_this.accounts,const DeepCollectionEquality().hash(_this.days),_this.since,const DeepCollectionEquality().hash(_this.storeDays),const DeepCollectionEquality().hash(_this.stores),_this.totals,_this.until);
 }
 
 @override
 String toString() {
   final _this = this as ReportOutputBody;
-  return 'ReportOutputBody(days: ${_this.days}, since: ${_this.since}, storeDays: ${_this.storeDays}, stores: ${_this.stores}, totals: ${_this.totals}, until: ${_this.until})';
+  return 'ReportOutputBody(accounts: ${_this.accounts}, days: ${_this.days}, since: ${_this.since}, storeDays: ${_this.storeDays}, stores: ${_this.stores}, totals: ${_this.totals}, until: ${_this.until})';
 }
 
 
@@ -57,7 +58,7 @@ abstract mixin class $ReportOutputBodyCopyWith<$Res>  {
   factory $ReportOutputBodyCopyWith(ReportOutputBody value, $Res Function(ReportOutputBody) _then) = _$ReportOutputBodyCopyWithImpl;
 @useResult
 $Res call({
- List<ReportDayBody>? days, DateTime since, List<ReportStoreDayBody>? storeDays, List<ReportStoreBody>? stores, CountsBody totals, DateTime until
+ int accounts, List<ReportDayBody>? days, DateTime since, List<ReportStoreDayBody>? storeDays, List<ReportStoreBody>? stores, CountsBody totals, DateTime until
 });
 
 
@@ -74,9 +75,10 @@ class _$ReportOutputBodyCopyWithImpl<$Res>
 
 /// Create a copy of ReportOutputBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? days = freezed,Object? since = null,Object? storeDays = freezed,Object? stores = freezed,Object? totals = null,Object? until = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? accounts = null,Object? days = freezed,Object? since = null,Object? storeDays = freezed,Object? stores = freezed,Object? totals = null,Object? until = null,}) {
   return _then(ReportOutputBody(
-days: freezed == days ? _self.days : days // ignore: cast_nullable_to_non_nullable
+accounts: null == accounts ? _self.accounts : accounts // ignore: cast_nullable_to_non_nullable
+as int,days: freezed == days ? _self.days : days // ignore: cast_nullable_to_non_nullable
 as List<ReportDayBody>?,since: null == since ? _self.since : since // ignore: cast_nullable_to_non_nullable
 as DateTime,storeDays: freezed == storeDays ? _self.storeDays : storeDays // ignore: cast_nullable_to_non_nullable
 as List<ReportStoreDayBody>?,stores: freezed == stores ? _self.stores : stores // ignore: cast_nullable_to_non_nullable
@@ -176,10 +178,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<ReportDayBody>? days,  DateTime since,  List<ReportStoreDayBody>? storeDays,  List<ReportStoreBody>? stores,  CountsBody totals,  DateTime until)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int accounts,  List<ReportDayBody>? days,  DateTime since,  List<ReportStoreDayBody>? storeDays,  List<ReportStoreBody>? stores,  CountsBody totals,  DateTime until)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReportOutputBody() when $default != null:
-return $default(_that.days,_that.since,_that.storeDays,_that.stores,_that.totals,_that.until);case _:
+return $default(_that.accounts,_that.days,_that.since,_that.storeDays,_that.stores,_that.totals,_that.until);case _:
   return orElse();
 
 }
@@ -197,10 +199,10 @@ return $default(_that.days,_that.since,_that.storeDays,_that.stores,_that.totals
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<ReportDayBody>? days,  DateTime since,  List<ReportStoreDayBody>? storeDays,  List<ReportStoreBody>? stores,  CountsBody totals,  DateTime until)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int accounts,  List<ReportDayBody>? days,  DateTime since,  List<ReportStoreDayBody>? storeDays,  List<ReportStoreBody>? stores,  CountsBody totals,  DateTime until)  $default,) {final _that = this;
 switch (_that) {
 case _ReportOutputBody():
-return $default(_that.days,_that.since,_that.storeDays,_that.stores,_that.totals,_that.until);case _:
+return $default(_that.accounts,_that.days,_that.since,_that.storeDays,_that.stores,_that.totals,_that.until);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -217,10 +219,10 @@ return $default(_that.days,_that.since,_that.storeDays,_that.stores,_that.totals
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<ReportDayBody>? days,  DateTime since,  List<ReportStoreDayBody>? storeDays,  List<ReportStoreBody>? stores,  CountsBody totals,  DateTime until)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int accounts,  List<ReportDayBody>? days,  DateTime since,  List<ReportStoreDayBody>? storeDays,  List<ReportStoreBody>? stores,  CountsBody totals,  DateTime until)?  $default,) {final _that = this;
 switch (_that) {
 case _ReportOutputBody() when $default != null:
-return $default(_that.days,_that.since,_that.storeDays,_that.stores,_that.totals,_that.until);case _:
+return $default(_that.accounts,_that.days,_that.since,_that.storeDays,_that.stores,_that.totals,_that.until);case _:
   return null;
 
 }
@@ -232,9 +234,11 @@ return $default(_that.days,_that.since,_that.storeDays,_that.stores,_that.totals
 @JsonSerializable()
 
 class _ReportOutputBody implements ReportOutputBody {
-  const _ReportOutputBody({required  List<ReportDayBody>? days, required this.since, required  List<ReportStoreDayBody>? storeDays, required  List<ReportStoreBody>? stores, required this.totals, required this.until}): _days = days,_storeDays = storeDays,_stores = stores;
+  const _ReportOutputBody({required this.accounts, required  List<ReportDayBody>? days, required this.since, required  List<ReportStoreDayBody>? storeDays, required  List<ReportStoreBody>? stores, required this.totals, required this.until}): _days = days,_storeDays = storeDays,_stores = stores;
   factory _ReportOutputBody.fromJson(Map<String, dynamic> json) => _$ReportOutputBodyFromJson(json);
 
+/// The accounts there are at the end of the range
+@override final  int accounts;
 /// Every day of the range, in order
  final  List<ReportDayBody>? _days;
 /// Every day of the range, in order
@@ -285,18 +289,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportOutputBody&&const DeepCollectionEquality().equals(other.days, _days)&&(identical(other.since, since) || other.since == since)&&const DeepCollectionEquality().equals(other.storeDays, _storeDays)&&const DeepCollectionEquality().equals(other.stores, _stores)&&(identical(other.totals, totals) || other.totals == totals)&&(identical(other.until, until) || other.until == until));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportOutputBody&&(identical(other.accounts, accounts) || other.accounts == accounts)&&const DeepCollectionEquality().equals(other.days, _days)&&(identical(other.since, since) || other.since == since)&&const DeepCollectionEquality().equals(other.storeDays, _storeDays)&&const DeepCollectionEquality().equals(other.stores, _stores)&&(identical(other.totals, totals) || other.totals == totals)&&(identical(other.until, until) || other.until == until));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_days),since,const DeepCollectionEquality().hash(_storeDays),const DeepCollectionEquality().hash(_stores),totals,until);
+    return Object.hash(runtimeType,accounts,const DeepCollectionEquality().hash(_days),since,const DeepCollectionEquality().hash(_storeDays),const DeepCollectionEquality().hash(_stores),totals,until);
 }
 
 @override
 String toString() {
-    return 'ReportOutputBody(days: $days, since: $since, storeDays: $storeDays, stores: $stores, totals: $totals, until: $until)';
+    return 'ReportOutputBody(accounts: $accounts, days: $days, since: $since, storeDays: $storeDays, stores: $stores, totals: $totals, until: $until)';
 }
 
 
@@ -307,7 +311,7 @@ abstract mixin class _$ReportOutputBodyCopyWith<$Res> implements $ReportOutputBo
   factory _$ReportOutputBodyCopyWith(_ReportOutputBody value, $Res Function(_ReportOutputBody) _then) = __$ReportOutputBodyCopyWithImpl;
 @override @useResult
 $Res call({
- List<ReportDayBody>? days, DateTime since, List<ReportStoreDayBody>? storeDays, List<ReportStoreBody>? stores, CountsBody totals, DateTime until
+ int accounts, List<ReportDayBody>? days, DateTime since, List<ReportStoreDayBody>? storeDays, List<ReportStoreBody>? stores, CountsBody totals, DateTime until
 });
 
 
@@ -324,9 +328,10 @@ class __$ReportOutputBodyCopyWithImpl<$Res>
 
 /// Create a copy of ReportOutputBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? days = freezed,Object? since = null,Object? storeDays = freezed,Object? stores = freezed,Object? totals = null,Object? until = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? accounts = null,Object? days = freezed,Object? since = null,Object? storeDays = freezed,Object? stores = freezed,Object? totals = null,Object? until = null,}) {
   return _then(_ReportOutputBody(
-days: freezed == days ? _self._days : days // ignore: cast_nullable_to_non_nullable
+accounts: null == accounts ? _self.accounts : accounts // ignore: cast_nullable_to_non_nullable
+as int,days: freezed == days ? _self._days : days // ignore: cast_nullable_to_non_nullable
 as List<ReportDayBody>?,since: null == since ? _self.since : since // ignore: cast_nullable_to_non_nullable
 as DateTime,storeDays: freezed == storeDays ? _self._storeDays : storeDays // ignore: cast_nullable_to_non_nullable
 as List<ReportStoreDayBody>?,stores: freezed == stores ? _self._stores : stores // ignore: cast_nullable_to_non_nullable

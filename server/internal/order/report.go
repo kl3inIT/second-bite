@@ -49,3 +49,29 @@ func (s *Service) OrderDays(ctx context.Context, since, until time.Time, sellerI
 
 	return days, nil
 }
+
+// CustomerDay is how many customers placed their first order for a
+// collection day, for the admin's report (SEC-192).
+type CustomerDay struct {
+	// Day is the collection day in Vietnam, as midnight UTC of that date.
+	Day       time.Time
+	Customers int
+}
+
+// FirstOrderDays counts the customers whose first order, told apart by phone
+// number, starts its window in [since, until), per collection day. A customer
+// orders with a name and a phone number, signed in or not; an order whose
+// contact was forgotten counts for nobody.
+func (s *Service) FirstOrderDays(ctx context.Context, since, until time.Time) ([]CustomerDay, error) {
+	rows, err := s.queries.FirstOrderDays(ctx, db.FirstOrderDaysParams{Since: since, Until: until})
+	if err != nil {
+		return nil, fmt.Errorf("counting the first orders: %w", err)
+	}
+
+	days := make([]CustomerDay, len(rows))
+	for i, r := range rows {
+		days[i] = CustomerDay{Day: r.Day.Time, Customers: int(r.Customers)}
+	}
+
+	return days, nil
+}
