@@ -56,15 +56,15 @@ jobs:
         run: pnpm build
 
   e2e:
-    # Four shards side by side: each builds the site (about 30 s) and runs a quarter of the tests, which
-    # otherwise take over three minutes on one runner.
-    name: End-to-end (${{ matrix.shard }}/4)
+    # Six shards side by side: each builds the site (about 30 s) and runs a sixth of the tests. The tests, not the
+    # build, are most of a shard's time: with four shards each spent about 160 s on its quarter.
+    name: End-to-end (${{ matrix.shard }}/6)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     # Microsoft's image of the Playwright version web/pnpm-lock.yaml locks carries Chromium and its
     # system libraries, as in BeyondPilot's CI. Bump the tag and digest with @playwright/test.
     container:
@@ -88,7 +88,7 @@ jobs:
           cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - name: Build and test in a phone and a desktop browser
-        run: pnpm test:e2e --shard=${{ matrix.shard }}/4
+        run: pnpm test:e2e --shard=${{ matrix.shard }}/6
       - name: Upload the Playwright report
         if: ${{ failure() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
