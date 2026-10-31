@@ -2,7 +2,7 @@
 # Nightly backup of one environment, run by secondbite-backup.service (docs/runbooks/ci-cd.md), adapted from
 # BeyondPilot's on the same host:
 #
-#   secondbite-backup <environment>     (staging, the only environment so far)
+#   secondbite-backup <environment>     (staging or production)
 #
 # It dumps the database, which also holds the stored files, and keeps the 14 newest dumps on the host; copying them
 # off the host waits for a backup target.
@@ -17,7 +17,8 @@ fail() {
 [[ $# -eq 1 ]] || fail "usage: secondbite-backup <environment>"
 case "$1" in
     staging) project=secondbite-staging ;;
-    *) fail "environment must be staging" ;;
+    production) project=secondbite-production ;;
+    *) fail "environment must be staging or production" ;;
 esac
 readonly project
 readonly root="/apps/$project"

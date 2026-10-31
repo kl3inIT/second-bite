@@ -6,7 +6,7 @@ name: Deploy
   workflow_call:
     inputs:
       environment:
-        description: staging, the only environment so far; selects the GitHub environment, the server directory and the overlay
+        description: staging or production; selects the GitHub environment, the server directory and the overlay
         required: true
         type: string
       ci_run_id:
@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 30
     environment:
       name: ${{ inputs.environment }}
-      url: https://secondbite.vadan.app
+      url: ${{ inputs.environment == 'production' && 'https://secondbite.vadan.app' || 'https://staging.secondbite.vadan.app' }}
     steps:
       - name: Resolve a successful main release
         id: release
@@ -84,11 +84,12 @@ jobs:
       - name: Prepare the deployment identity and the trusted host key
         if: steps.release.outputs.ready == 'true'
         env:
-          # A caller cannot read the values of the environment it enters, so they are chosen here, inside it.
-          DEPLOY_HOST: ${{ vars.STAGING_HOST }}
-          DEPLOY_USER: ${{ vars.STAGING_USER }}
-          KNOWN_HOSTS: ${{ vars.STAGING_KNOWN_HOSTS }}
-          DEPLOY_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          # A caller cannot read the values of the environment it enters, so they are chosen here, inside it. Each
+          # environment has its own deployment user and key, so staging's key cannot roll out production.
+          DEPLOY_HOST: ${{ inputs.environment == 'production' && vars.PRODUCTION_HOST || vars.STAGING_HOST }}
+          DEPLOY_USER: ${{ inputs.environment == 'production' && vars.PRODUCTION_USER || vars.STAGING_USER }}
+          KNOWN_HOSTS: ${{ inputs.environment == 'production' && vars.PRODUCTION_KNOWN_HOSTS || vars.STAGING_KNOWN_HOSTS }}
+          DEPLOY_KEY: ${{ inputs.environment == 'production' && secrets.PRODUCTION_SSH_KEY || secrets.STAGING_SSH_KEY }}
         run: |
           [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]+$ ]]
           [[ "$DEPLOY_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
@@ -120,7 +121,8 @@ jobs:
           DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
         run: |
           case "$DEPLOY_ENVIRONMENT" in
-            staging) root=/apps/secondbite-staging url=https://secondbite.vadan.app ;;
+            staging) root=/apps/secondbite-staging url=https://staging.secondbite.vadan.app ;;
+            production) root=/apps/secondbite-production url=https://secondbite.vadan.app ;;
             *) echo "unknown environment $DEPLOY_ENVIRONMENT" >&2; exit 1 ;;
           esac
           ssh_config="$RUNNER_TEMP/deploy-ssh/config"
