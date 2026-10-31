@@ -154,7 +154,7 @@ test.describe("the admin's stores", () => {
     await expectNoSeriousA11yViolations(page);
 
     await dialog.getByLabel("Lý do xóa").fill("Quán dừng hợp tác với Second Bite.");
-    await dialog.getByRole("button", { name: "Xóa cửa hàng" }).click();
+    await dialog.getByRole("button", { name: "Xóa cửa hàng", exact: true }).click();
     await expect(page.getByText(/Đã xóa La Paris/)).toBeVisible();
     await expect(table.getByText("Chờ xóa")).toBeVisible();
 

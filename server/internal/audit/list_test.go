@@ -152,7 +152,7 @@ func checkListRefused(t *testing.T, _ *pgxpool.Pool, s *Service) {
 	now := time.Now()
 
 	for name, f := range map[string]Filter{
-		"an action not in the catalog": {Actions: []string{"seller.delete"}, Page: 1, Size: 10},
+		"an action not in the catalog": {Actions: []string{"seller.erase"}, Page: 1, Size: 10},
 		"page 0":                       {Page: 0, Size: 10},
 		"a page of 101":                {Page: 1, Size: 101},
 		"a query of 101 characters":    {Query: strings.Repeat("a", 101), Page: 1, Size: 10},
