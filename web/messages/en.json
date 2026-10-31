@@ -35,7 +35,7 @@
     "titleNearby": "<hidden>Tonight around </hidden>My location",
     "areaNearby": "Sellers near you",
     "titlePlace": "<hidden>Tonight around </hidden>{place}",
-    "areaPlace": "Sellers near there",
+    "areaPlace": "Sellers around here",
     "nearbyEmpty": "Nothing around here yet",
     "nearbyEmptyHint": "Shops near you usually post what is left from 18:00. Follow what is coming below, or see all shops.",
     "seeEverywhere": "See dishes at all shops",

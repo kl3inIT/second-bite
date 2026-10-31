@@ -5173,6 +5173,44 @@ paths:
       summary: Places in Hanoi for the words a customer typed, to look for dishes around; signed in or not
       tags:
         - Places
+  /places/at:
+    get:
+      operationId: customerAddressAt
+      parameters:
+        - explode: false
+          in: query
+          name: latitude
+          required: true
+          schema:
+            format: double
+            maximum: 90
+            minimum: -90
+            type: number
+        - explode: false
+          in: query
+          name: longitude
+          required: true
+          schema:
+            format: double
+            maximum: 180
+            minimum: -180
+            type: number
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: The address at the point a customer's browser gave, to name the place dishes are shown around; signed in or not, empty when it is not known
+      tags:
+        - Places
   /push/key:
     get:
       description: 503 NOTIFICATION_PUSH_NOT_CONFIGURED while Web Push is off; the page then offers no notifications.

@@ -183,6 +183,23 @@ func registerOwnerOperations(api huma.API, s *Service) {
 	})
 
 	huma.Register(api, huma.Operation{
+		OperationID: "customerAddressAt", Method: http.MethodGet, Path: "/places/at",
+		Summary: "The address at the point a customer's browser gave, to name the place dishes are shown around; " +
+			"signed in or not, empty when it is not known",
+		Tags: tagPlaces,
+	}, func(ctx context.Context, in *addressInput) (*addressOutput, error) {
+		address, err := s.AddressForCustomer(ctx, in.Latitude, in.Longitude)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &addressOutput{}
+		out.Body.Address = address
+
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
 		OperationID: "searchCustomerPlaces", Method: http.MethodGet, Path: "/places",
 		Summary: "Places in Hanoi for the words a customer typed, to look for dishes around; signed in or not",
 		Tags:    tagPlaces,

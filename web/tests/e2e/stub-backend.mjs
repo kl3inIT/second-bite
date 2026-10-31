@@ -3162,6 +3162,11 @@ async function answer(request, response) {
     response.writeHead(204).end();
     return;
   }
+  // The address at a customer's point (GET /places/at, anyone): beside Tasco Mall a street, elsewhere none.
+  if (request.method === "GET" && url.pathname === "/places/at") {
+    const near = Math.abs(Number(url.searchParams.get("latitude")) - 21.057) < 0.01;
+    return json(response, 200, { address: near ? "Phố Hoa Lâm, Phường Việt Hưng, Hà Nội" : "" });
+  }
   // A customer's place (GET /places, anyone): "viet hung" finds the ward beside Tasco Mall and its market,
   // anything else nothing, as Photon finds nothing for words it does not know.
   if (request.method === "GET" && url.pathname === "/places") {
