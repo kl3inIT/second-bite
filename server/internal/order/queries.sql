@@ -1,10 +1,12 @@
 -- name: InsertOrder :one
 INSERT INTO order_orders (
     customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude, longitude, address,
-    window_start, window_end, total_vnd, idempotency_key, zalo_consent_at
+    window_start, window_end, total_vnd, idempotency_key, zalo_consent_at, promotion_id, promotion_name, promotion_rule,
+    promotion_new, discount_vnd
 ) VALUES (
     @customer_id, @customer_name, @customer_phone, @seller_id, @checkout_id, @seller_name, @latitude, @longitude,
-    @address, @window_start, @window_end, @total_vnd, @idempotency_key, sqlc.narg('zalo_consent_at')
+    @address, @window_start, @window_end, @total_vnd, @idempotency_key, sqlc.narg('zalo_consent_at'),
+    sqlc.narg('promotion_id'), @promotion_name, @promotion_rule, @promotion_new, @discount_vnd
 )
 RETURNING id;
 
@@ -25,14 +27,16 @@ WHERE customer_id IS NOT DISTINCT FROM sqlc.narg(customer_id)::uuid AND idempote
 -- name: GetOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders WHERE id = @id;
 
 -- name: LockOrder :one
 -- Serializes the transitions of one order until the transaction ends.
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders WHERE id = @id FOR UPDATE;
 
 -- name: LockOrderShared :one
@@ -40,7 +44,8 @@ FROM order_orders WHERE id = @id FOR UPDATE;
 -- transaction ends, while other readers of it go on.
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders WHERE id = @id FOR SHARE;
 
 -- name: LinesOf :many
@@ -54,7 +59,8 @@ ORDER BY order_id, name, offer_id;
 -- when it is given.
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders
 WHERE customer_id = @customer_id
   AND (sqlc.narg(checkout_id)::uuid IS NULL OR checkout_id = sqlc.narg(checkout_id))
@@ -69,7 +75,8 @@ LIMIT @max_rows OFFSET @skip_rows;
 -- first.
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders
 WHERE seller_id = @seller_id AND window_start >= @day_start AND window_start < @day_end
 ORDER BY window_start, number
@@ -84,7 +91,8 @@ LIMIT 500;
 -- the rows convert to its row; CountOrdersForAdmins counts them all.
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders
 WHERE (cardinality(@statuses::text[]) = 0
        OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
@@ -438,3 +446,141 @@ SELECT EXISTS (
     SELECT 1 FROM order_orders
     WHERE seller_id = @seller_id AND state IN ('confirmed', 'ready', 'collected', 'refused') AND window_end > now()
 );
+
+-- name: LockRunningPromotions :many
+-- The promotions running at now for a seller, locked until the transaction
+-- ends in one order of identifiers, so two orders never spend the same last
+-- part of a budget and an admin's change waits for them.
+SELECT id, name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules, created_at, updated_at
+FROM order_promotions p
+WHERE enabled AND starts_at <= @now AND ends_at > @now
+  AND (all_sellers OR EXISTS (
+      SELECT 1 FROM order_promotion_sellers s WHERE s.promotion_id = p.id AND s.seller_id = @seller_id))
+ORDER BY id
+FOR UPDATE;
+
+-- name: PhoneHasCollected :one
+-- Whether a phone number has had an order handed over: one that has not is a
+-- new customer's.
+SELECT EXISTS (SELECT 1 FROM order_orders WHERE customer_phone = @customer_phone AND state = 'collected');
+
+-- name: PhoneDiscountsBetween :one
+-- How many of a promotion's discounts a phone number holds among the orders
+-- placed in [day_start, day_end): those still to collect and those handed over.
+SELECT count(*) FROM order_orders
+WHERE promotion_id = @promotion_id AND customer_phone = @customer_phone
+  AND created_at >= @day_start AND created_at < @day_end
+  AND (state = 'collected' OR (state IN ('confirmed', 'ready') AND window_end > now()));
+
+-- name: PromotionUses :many
+-- What each promotion's discounts come to: spent on the orders handed over,
+-- held by those still to collect, with how many orders, new customers and
+-- sellers took one.
+SELECT promotion_id::uuid AS promotion_id,
+       coalesce(sum(discount_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS spent_vnd,
+       coalesce(sum(discount_vnd) FILTER (WHERE state IN ('confirmed', 'ready') AND window_end > now()), 0)::bigint
+           AS held_vnd,
+       count(*) AS orders,
+       count(*) FILTER (WHERE promotion_new) AS new_customers,
+       count(DISTINCT seller_id) AS sellers
+FROM order_orders
+WHERE promotion_id = ANY (@promotion_ids::uuid[])
+  AND (state = 'collected' OR (state IN ('confirmed', 'ready') AND window_end > now()))
+GROUP BY promotion_id;
+
+-- name: InsertPromotion :one
+INSERT INTO order_promotions (name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules)
+VALUES (@name, @starts_at, @ends_at, @all_sellers, @budget_vnd, @per_phone_per_day, @enabled, @rules)
+RETURNING id;
+
+-- name: UpdatePromotion :exec
+UPDATE order_promotions
+SET name = @name, starts_at = @starts_at, ends_at = @ends_at, all_sellers = @all_sellers, budget_vnd = @budget_vnd,
+    per_phone_per_day = @per_phone_per_day, enabled = @enabled, rules = @rules, updated_at = now()
+WHERE id = @id;
+
+-- name: LockPromotion :one
+SELECT id, name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules, created_at, updated_at
+FROM order_promotions WHERE id = @id FOR UPDATE;
+
+-- name: GetPromotion :one
+SELECT id, name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules, created_at, updated_at
+FROM order_promotions WHERE id = @id;
+
+-- name: DeletePromotionSellers :exec
+DELETE FROM order_promotion_sellers WHERE promotion_id = @promotion_id;
+
+-- name: InsertPromotionSellers :exec
+INSERT INTO order_promotion_sellers (promotion_id, seller_id)
+SELECT @promotion_id, unnest(@seller_ids::uuid[])
+ON CONFLICT DO NOTHING;
+
+-- name: PromotionSellers :many
+SELECT promotion_id, seller_id FROM order_promotion_sellers
+WHERE promotion_id = ANY (@promotion_ids::uuid[])
+ORDER BY promotion_id, seller_id;
+
+-- name: ListPromotions :many
+-- One page of the promotions in a status (any when empty), whose name holds
+-- the words and that apply to a seller when one is given, the latest start
+-- first. A promotion has ended once its end passed, is scheduled until its
+-- start, and runs or is paused in between as it is enabled or not.
+SELECT id, name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules, created_at, updated_at
+FROM order_promotions p
+WHERE (@status::text = ''
+       OR (CASE WHEN ends_at <= now() THEN 'ended' WHEN starts_at > now() THEN 'scheduled'
+                WHEN enabled THEN 'running' ELSE 'paused' END) = @status)
+  AND (@query::text = '' OR lower(name) LIKE '%' || lower(@query::text) || '%')
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR all_sellers OR EXISTS (
+      SELECT 1 FROM order_promotion_sellers s WHERE s.promotion_id = p.id AND s.seller_id = sqlc.narg(seller_id)::uuid))
+ORDER BY starts_at DESC, id
+LIMIT @max_rows OFFSET @skip_rows;
+
+-- name: CountPromotions :one
+-- How many promotions of each status hold the words and apply to the seller,
+-- whatever the status asked, and how many match every filter.
+SELECT count(*) FILTER (WHERE ends_at > now() AND starts_at <= now() AND enabled) AS running,
+       count(*) FILTER (WHERE starts_at > now() AND ends_at > now()) AS scheduled,
+       count(*) FILTER (WHERE ends_at > now() AND starts_at <= now() AND NOT enabled) AS paused,
+       count(*) FILTER (WHERE ends_at <= now()) AS ended,
+       count(*) FILTER (WHERE @status::text = ''
+           OR (CASE WHEN ends_at <= now() THEN 'ended' WHEN starts_at > now() THEN 'scheduled'
+                    WHEN enabled THEN 'running' ELSE 'paused' END) = @status) AS matching
+FROM order_promotions p
+WHERE (@query::text = '' OR lower(name) LIKE '%' || lower(@query::text) || '%')
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR all_sellers OR EXISTS (
+      SELECT 1 FROM order_promotion_sellers s WHERE s.promotion_id = p.id AND s.seller_id = sqlc.narg(seller_id)::uuid));
+
+-- name: PromotionsRunningFor :many
+-- The promotions running now for any of the sellers given, soonest to end
+-- first.
+SELECT id, name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules, created_at, updated_at
+FROM order_promotions p
+WHERE enabled AND starts_at <= now() AND ends_at > now()
+  AND (all_sellers OR EXISTS (
+      SELECT 1 FROM order_promotion_sellers s
+      WHERE s.promotion_id = p.id AND s.seller_id = ANY (@seller_ids::uuid[])))
+ORDER BY ends_at, id
+LIMIT 20;
+
+-- name: PayoutsBetween :many
+-- What each seller is owed for the discounts of its orders handed over in
+-- [since, until), with how many orders and new customers, and the payout
+-- marked for week_start when there is one.
+SELECT o.seller_id,
+       (array_agg(o.seller_name ORDER BY o.collected_at DESC))[1]::text AS seller_name,
+       sum(o.discount_vnd)::bigint AS amount_vnd,
+       count(*) AS orders,
+       count(*) FILTER (WHERE o.promotion_new) AS new_customers,
+       p.paid_at, p.amount_vnd AS paid_vnd
+FROM order_orders o
+LEFT JOIN order_promotion_payouts p ON p.seller_id = o.seller_id AND p.week_start = @week_start
+WHERE o.promotion_id IS NOT NULL AND o.state = 'collected' AND o.collected_at >= @since AND o.collected_at < @until
+  AND (sqlc.narg(promotion_id)::uuid IS NULL OR o.promotion_id = sqlc.narg(promotion_id)::uuid)
+GROUP BY o.seller_id, p.paid_at, p.amount_vnd
+ORDER BY amount_vnd DESC, o.seller_id;
+
+-- name: InsertPayout :execrows
+INSERT INTO order_promotion_payouts (seller_id, week_start, amount_vnd, paid_by)
+VALUES (@seller_id, @week_start, @amount_vnd, @paid_by)
+ON CONFLICT DO NOTHING;

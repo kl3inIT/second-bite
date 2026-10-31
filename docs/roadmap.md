@@ -32,6 +32,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 
 ## Active
 
+- [Buyer discount](increments/active/buyer-discount/design.md) — promotions an admin runs, taken off an order when it is placed, for the two-week support programme from 2 November 2026; the server first, then the web, the store's app and the programme's figures.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
 - [SEC-25 — Web Push for orders](increments/active/sec-25-web-push/design.md): built and on production since 22 October 2026; the proof on real phones (Android Chrome, an iPhone added to the Home Screen, a desktop browser) is the step left.
 

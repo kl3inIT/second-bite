@@ -58,6 +58,18 @@ enum AuditEventBodyAction {
   @JsonValue('review.show')
   undefined12('review.show'),
 
+  /// Incorrect name has been replaced. Original name: `promotion.create`.
+  @JsonValue('promotion.create')
+  undefined13('promotion.create'),
+
+  /// Incorrect name has been replaced. Original name: `promotion.change`.
+  @JsonValue('promotion.change')
+  undefined14('promotion.change'),
+
+  /// Incorrect name has been replaced. Original name: `seller.mark_payout`.
+  @JsonValue('seller.mark_payout')
+  undefined15('seller.mark_payout'),
+
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);
 

@@ -8,9 +8,11 @@ part of 'audit_details_body.dart';
 
 _AuditDetailsBody _$AuditDetailsBodyFromJson(Map<String, dynamic> json) =>
     _AuditDetailsBody(
+      amountVnd: (json['amountVnd'] as num?)?.toInt(),
       changes: (json['changes'] as List<dynamic>?)
           ?.map((e) => AuditChangeBody.fromJson(e as Map<String, dynamic>))
           .toList(),
+      name: json['name'] as String?,
       provider: json['provider'] == null
           ? null
           : AuditDetailsBodyProvider.fromJson(json['provider'] as String),
@@ -18,14 +20,18 @@ _AuditDetailsBody _$AuditDetailsBodyFromJson(Map<String, dynamic> json) =>
       source: json['source'] == null
           ? null
           : AuditDetailsBodySource.fromJson(json['source'] as String),
+      weekStart: json['weekStart'] as String?,
     );
 
 Map<String, dynamic> _$AuditDetailsBodyToJson(_AuditDetailsBody instance) =>
     <String, dynamic>{
+      'amountVnd': instance.amountVnd,
       'changes': instance.changes,
+      'name': instance.name,
       'provider': _$AuditDetailsBodyProviderEnumMap[instance.provider],
       'reason': instance.reason,
       'source': _$AuditDetailsBodySourceEnumMap[instance.source],
+      'weekStart': instance.weekStart,
     };
 
 const _$AuditDetailsBodyProviderEnumMap = {

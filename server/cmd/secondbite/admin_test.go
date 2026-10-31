@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
@@ -224,6 +225,85 @@ var adminChanges = map[string]adminChange{
 
 		return send(t, http.MethodPost, svc.base+"/admin/reviews/"+id+"/show", admin, nil), func() {}
 	}},
+	"createPromotion": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		// Scheduled for tomorrow, for a seller of its own, so no order of the other checks takes it.
+		return send(t, http.MethodPost, svc.base+"/admin/promotions", admin, promotionOf(uuid.NewString(), 24*time.Hour)), func() {}
+	}},
+	"changePromotion": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		id := createdPromotion(t, svc, admin, promotionOf(uuid.NewString(), 24*time.Hour))
+		changed := promotionOf(uuid.NewString(), 24*time.Hour)
+		changed.BudgetVND = 2_000_000
+
+		return send(t, http.MethodPut, svc.base+"/admin/promotions/"+id, admin, changed), func() {}
+	}},
+	"markPayoutPaid": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		owner := bearer(signIn(t, svc, "audit.payout.owner@example.com").Token)
+		customer := bearer(signIn(t, svc, "audit.payout.customer@example.com").Token)
+		sellerID, offerID := postedOfferOf(t, svc, owner, "Quán Được Bù")
+		createdPromotion(t, svc, admin, promotionOf(sellerID, -time.Hour))
+
+		placing := customer.Clone()
+		placing.Set("Idempotency-Key", "audit.payout-0123456789abcdef")
+
+		var placed orderResponse
+
+		send(t, http.MethodPost, svc.base+"/orders", placing, cartOf(cartLine{offerID, 1})).decode(t, http.StatusCreated, &placed)
+		handOver(t, svc, owner, placed)
+
+		y, m, d := time.Now().In(time.FixedZone("ICT", 7*3600)).Date()
+		today := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+		monday := today.AddDate(0, 0, -((int(today.Weekday()) + 6) % 7)).Format(time.DateOnly)
+
+		return send(t, http.MethodPost, svc.base+"/admin/promotion-payouts/"+sellerID+"/"+monday+"/paid", admin, nil), func() {}
+	}},
+}
+
+type promotionRule struct {
+	Name       string         `json:"name"`
+	Conditions []any          `json:"conditions"`
+	Reward     map[string]any `json:"reward"`
+}
+
+type promotionInput struct {
+	Name           string          `json:"name"`
+	StartsAt       time.Time       `json:"startsAt"`
+	EndsAt         time.Time       `json:"endsAt"`
+	AllSellers     bool            `json:"allSellers"`
+	SellerIDs      []string        `json:"sellerIds"`
+	BudgetVND      int64           `json:"budgetVnd"`
+	PerPhonePerDay int             `json:"perPhonePerDay"`
+	Enabled        bool            `json:"enabled"`
+	Rules          []promotionRule `json:"rules"`
+}
+
+// promotionOf is a promotion for one seller taking 1,000 VND off every order,
+// starting a while from now (before now when the while is negative).
+func promotionOf(sellerID string, while time.Duration) promotionInput {
+	start := time.Now().Add(while)
+
+	return promotionInput{
+		Name: "Kiểm tra", StartsAt: start, EndsAt: start.Add(48 * time.Hour), SellerIDs: []string{sellerID},
+		BudgetVND: 1_000_000, Enabled: true,
+		Rules: []promotionRule{{Name: "Mọi đơn", Conditions: []any{}, Reward: map[string]any{"type": "fixed", "value": 1_000}}},
+	}
+}
+
+func createdPromotion(t *testing.T, svc service, admin http.Header, body promotionInput) string {
+	t.Helper()
+
+	var created struct {
+		ID string `json:"id"`
+	}
+
+	send(t, http.MethodPost, svc.base+"/admin/promotions", admin, body).decode(t, http.StatusCreated, &created)
+
+	return created.ID
 }
 
 // checkAdminChangesAreAudited makes every admin change through the API and

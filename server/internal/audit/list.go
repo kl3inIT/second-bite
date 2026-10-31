@@ -65,6 +65,11 @@ type Details struct {
 	Source   string   `json:"source,omitempty"`
 	Provider string   `json:"provider,omitempty"`
 	Changes  []Change `json:"changes,omitempty"`
+	// Name is a promotion's, when it was set up.
+	Name string `json:"name,omitempty"`
+	// WeekStart and AmountVND are a payout's, when it was marked.
+	WeekStart string `json:"weekStart,omitempty"`
+	AmountVND int64  `json:"amountVnd,omitempty"`
 }
 
 // Page is one page of the trail and how many events match in all.

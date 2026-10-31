@@ -97,17 +97,22 @@ type Order struct {
 	CollectionPoint seller.CollectionPoint
 	Status          Status
 	Lines           []Line
-	TotalVND        int64
-	WindowStart     time.Time
-	WindowEnd       time.Time
-	CreatedAt       time.Time
-	ReadyAt         *time.Time
-	CollectedAt     *time.Time
-	CancelledAt     *time.Time
-	RefusedAt       *time.Time
-	CancelReason    string
-	RefuseReason    RefuseReason
-	RefuseNote      string
+	// TotalVND is what the dishes cost; the customer pays it less the
+	// discount, which Second Bite pays the seller back.
+	TotalVND int64
+	// Discount is what a promotion took off when the order was placed; none
+	// when nothing did.
+	Discount     *Discount
+	WindowStart  time.Time
+	WindowEnd    time.Time
+	CreatedAt    time.Time
+	ReadyAt      *time.Time
+	CollectedAt  *time.Time
+	CancelledAt  *time.Time
+	RefusedAt    *time.Time
+	CancelReason string
+	RefuseReason RefuseReason
+	RefuseNote   string
 	// Review is the customer's rating, none until they rate the collected order
 	// and none while admins hide it (SEC-145).
 	Review *Review
@@ -131,6 +136,25 @@ type Order struct {
 	Access string
 	// access is the order's stored access, whoever reads it.
 	access string
+}
+
+// Discount is what a promotion took off an order, copied when it was placed.
+type Discount struct {
+	PromotionID uuid.UUID
+	Promotion   string
+	Rule        string
+	// NewCustomer tells the phone number had no order handed over then.
+	NewCustomer bool
+	AmountVND   int64
+}
+
+// PayVND is what the customer pays the seller at the counter.
+func (o Order) PayVND() int64 {
+	if o.Discount == nil {
+		return o.TotalVND
+	}
+
+	return o.TotalVND - o.Discount.AmountVND
 }
 
 // Number is how people read an order's number aloud and search for it.
@@ -404,6 +428,13 @@ func (s *Service) fromRow(r db.GetOrderRow) Order {
 		CreatedAt: r.CreatedAt, ReadyAt: r.ReadyAt, CollectedAt: r.CollectedAt, CancelledAt: r.CancelledAt,
 		RefusedAt: r.RefusedAt, CancelReason: r.CancelReason, RefuseReason: RefuseReason(r.RefuseReason.String),
 		RefuseNote: r.RefuseNote, access: r.Access,
+	}
+
+	if r.PromotionID.Valid {
+		o.Discount = &Discount{
+			PromotionID: r.PromotionID.UUID, Promotion: r.PromotionName, Rule: r.PromotionRule, NewCustomer: r.PromotionNew,
+			AmountVND: r.DiscountVnd,
+		}
 	}
 
 	if o.Status.open() && !o.WindowEnd.After(s.now()) {

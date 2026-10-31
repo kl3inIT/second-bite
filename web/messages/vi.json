@@ -1241,14 +1241,18 @@
         "emailSettingsChange": "Sửa cài đặt email",
         "reviewHide": "Ẩn đánh giá",
         "reviewShow": "Hiện lại đánh giá",
-        "sellerChangeOwner": "Đổi chủ quán"
+        "sellerChangeOwner": "Đổi chủ quán",
+        "promotionCreate": "Tạo chương trình khuyến mãi",
+        "promotionChange": "Sửa chương trình khuyến mãi",
+        "sellerMarkPayout": "Đã chuyển tiền bù"
       },
       "resource": {
         "seller": "Cửa hàng",
         "account": "Tài khoản",
         "offer_settings": "Cài đặt bài đăng",
         "email_settings": "Cài đặt email",
-        "order": "Đơn hàng"
+        "order": "Đơn hàng",
+        "promotion": "Chương trình khuyến mãi"
       },
       "commandLine": "Dòng lệnh",
       "deletedAccount": "Tài khoản đã xoá",
@@ -1264,7 +1268,11 @@
         "value": "{field}: {from} → {to}",
         "secret": "{field}: đã đổi",
         "empty": "trống",
-        "ownerChanged": "Chủ cũ → nhân viên, chủ mới nhận quán"
+        "ownerChanged": "Chủ cũ → nhân viên, chủ mới nhận quán",
+        "promotionCreated": "Tạo “{name}”",
+        "payoutMarked": "Tuần từ {week}: {amount}",
+        "yes": "có",
+        "no": "không"
       },
       "field": {
         "minDiscountPercent": "Giảm tối thiểu",
@@ -1281,13 +1289,23 @@
         "smtpSecurity": "Bảo mật SMTP",
         "smtpUsername": "User SMTP",
         "smtpPassword": "Mật khẩu SMTP",
-        "brevoApiKey": "Khoá API Brevo"
+        "brevoApiKey": "Khoá API Brevo",
+        "name": "Tên",
+        "startsAt": "Bắt đầu",
+        "endsAt": "Kết thúc",
+        "allSellers": "Tất cả cửa hàng",
+        "sellerIds": "Cửa hàng áp dụng",
+        "budgetVnd": "Ngân sách",
+        "perPhonePerDay": "Lượt mỗi số điện thoại mỗi ngày",
+        "enabled": "Đang bật",
+        "rules": "Ưu đãi"
       },
       "unit": {
         "percent": "{value}%",
         "km": "{value} km",
         "minutes": "{value} phút",
-        "hours": "{value} giờ"
+        "hours": "{value} giờ",
+        "vnd": "{value}đ"
       },
       "empty": {
         "title": "Chưa có thao tác nào",

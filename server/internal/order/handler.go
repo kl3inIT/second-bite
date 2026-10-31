@@ -57,32 +57,42 @@ type reviewBody struct {
 }
 
 type orderBody struct {
-	ID               uuid.UUID       `json:"id"`
-	Number           string          `json:"number"                 doc:"What people read aloud, SB- and a number"`
-	Status           Status          `json:"status"                 doc:"expired is read from the window's end" enum:"confirmed,ready,collected,cancelled,refused,expired"`
-	Seller           orderSellerBody `json:"seller"                 doc:"Where the order is collected, copied when it was placed"`
-	Lines            []orderLineBody `json:"lines"                  nullable:"false"`
-	TotalVND         int64           `json:"totalVnd"               doc:"Paid to the seller at the counter"`
-	WindowStart      time.Time       `json:"windowStart"`
-	WindowEnd        time.Time       `json:"windowEnd"`
-	CreatedAt        time.Time       `json:"createdAt"`
-	ReadyAt          *time.Time      `json:"readyAt,omitempty"`
-	CollectedAt      *time.Time      `json:"collectedAt,omitempty"`
-	CancelledAt      *time.Time      `json:"cancelledAt,omitempty"`
-	RefusedAt        *time.Time      `json:"refusedAt,omitempty"`
-	CancelReason     string          `json:"cancelReason,omitempty"`
-	RefuseReason     RefuseReason    `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other,withdrawn"`
-	RefuseNote       string          `json:"refuseNote,omitempty"`
-	CheckoutID       uuid.UUID       `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
-	CustomerName     string          `json:"customerName"           doc:"Who collects, as given with the order; empty once the customer deleted their account"`
-	CustomerPhone    string          `json:"customerPhone"          doc:"Their phone number, 0 and nine digits; empty once the customer deleted their account"`
-	Review           *reviewBody     `json:"review,omitempty"       doc:"The customer's rating of the collected order; none until they rate it, nor while admins hide it"`
-	CanReview        bool            `json:"canReview"              doc:"The order is collected and was never rated, so its customer may rate it"`
-	Problem          *problemBody    `json:"problem,omitempty"      doc:"What its customer reported went wrong, with the store's answer; none until reported (SEC-84)"`
-	CanReportProblem bool            `json:"canReportProblem"       doc:"The order is collected or expired, within two days, and no problem was reported yet"`
-	Unread           *int            `json:"unreadMessages,omitempty" doc:"Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins"`
-	Messages         *int            `json:"messageCount,omitempty" doc:"Messages its chat holds, with unreadMessages; none for admins"`
-	Access           string          `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
+	ID               uuid.UUID           `json:"id"`
+	Number           string              `json:"number"                 doc:"What people read aloud, SB- and a number"`
+	Status           Status              `json:"status"                 doc:"expired is read from the window's end" enum:"confirmed,ready,collected,cancelled,refused,expired"`
+	Seller           orderSellerBody     `json:"seller"                 doc:"Where the order is collected, copied when it was placed"`
+	Lines            []orderLineBody     `json:"lines"                  nullable:"false"`
+	TotalVND         int64               `json:"totalVnd"               doc:"What the dishes cost"`
+	DiscountVND      int64               `json:"discountVnd"            doc:"What a promotion took off when the order was placed; Second Bite pays it back to the seller"`
+	PayVND           int64               `json:"payVnd"                 doc:"Paid to the seller at the counter: totalVnd less discountVnd"`
+	Promotion        *orderPromotionBody `json:"promotion,omitempty" doc:"The promotion and rule the discount came from; none without a discount"`
+	WindowStart      time.Time           `json:"windowStart"`
+	WindowEnd        time.Time           `json:"windowEnd"`
+	CreatedAt        time.Time           `json:"createdAt"`
+	ReadyAt          *time.Time          `json:"readyAt,omitempty"`
+	CollectedAt      *time.Time          `json:"collectedAt,omitempty"`
+	CancelledAt      *time.Time          `json:"cancelledAt,omitempty"`
+	RefusedAt        *time.Time          `json:"refusedAt,omitempty"`
+	CancelReason     string              `json:"cancelReason,omitempty"`
+	RefuseReason     RefuseReason        `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other,withdrawn"`
+	RefuseNote       string              `json:"refuseNote,omitempty"`
+	CheckoutID       uuid.UUID           `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
+	CustomerName     string              `json:"customerName"           doc:"Who collects, as given with the order; empty once the customer deleted their account"`
+	CustomerPhone    string              `json:"customerPhone"          doc:"Their phone number, 0 and nine digits; empty once the customer deleted their account"`
+	Review           *reviewBody         `json:"review,omitempty"       doc:"The customer's rating of the collected order; none until they rate it, nor while admins hide it"`
+	CanReview        bool                `json:"canReview"              doc:"The order is collected and was never rated, so its customer may rate it"`
+	Problem          *problemBody        `json:"problem,omitempty"      doc:"What its customer reported went wrong, with the store's answer; none until reported (SEC-84)"`
+	CanReportProblem bool                `json:"canReportProblem"       doc:"The order is collected or expired, within two days, and no problem was reported yet"`
+	Unread           *int                `json:"unreadMessages,omitempty" doc:"Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins"`
+	Messages         *int                `json:"messageCount,omitempty" doc:"Messages its chat holds, with unreadMessages; none for admins"`
+	Access           string              `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
+}
+
+type orderPromotionBody struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"        doc:"The promotion's name when the order was placed"`
+	Rule        string    `json:"rule"        doc:"The rule's name when the order was placed"`
+	NewCustomer bool      `json:"newCustomer" doc:"The phone number had no order handed over when this one was placed"`
 }
 
 type problemBody struct {
@@ -113,8 +123,17 @@ func toBody(o Order) orderBody {
 		})
 	}
 
+	var promotion *orderPromotionBody
+
+	var discount int64
+
+	if d := o.Discount; d != nil {
+		promotion = &orderPromotionBody{ID: d.PromotionID, Name: d.Promotion, Rule: d.Rule, NewCustomer: d.NewCustomer}
+		discount = d.AmountVND
+	}
+
 	return orderBody{
-		ID: o.ID, Number: Number(o.Number), Status: o.Status,
+		ID: o.ID, Number: Number(o.Number), Status: o.Status, DiscountVND: discount, PayVND: o.PayVND(), Promotion: promotion,
 		Seller: orderSellerBody{
 			ID: o.SellerID, Name: o.SellerName, Address: o.CollectionPoint.Address,
 			Latitude: o.CollectionPoint.Latitude, Longitude: o.CollectionPoint.Longitude,
@@ -173,6 +192,7 @@ func RegisterOperations(api huma.API, s *Service) {
 	registerChatOperations(api, s)
 	registerStaffOperations(api, s)
 	registerProblemOperations(api, s)
+	registerPromotionOperations(api, s)
 }
 
 // registerProblemOperations adds a customer's report of a problem with an
@@ -733,6 +753,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 	})
 
 	registerAdminReviewOperations(admin, s)
+	registerAdminPromotionOperations(admin, s)
 }
 
 type adminReviewBody struct {

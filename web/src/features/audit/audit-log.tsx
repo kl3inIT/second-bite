@@ -2,6 +2,7 @@
 
 import {
   BanIcon,
+  BanknoteIcon,
   CircleCheckIcon,
   CircleXIcon,
   EyeIcon,
@@ -10,6 +11,7 @@ import {
   SettingsIcon,
   ShieldMinusIcon,
   ShieldPlusIcon,
+  TagIcon,
   Trash2Icon,
   UndoIcon,
   UserRoundCogIcon,
@@ -70,6 +72,9 @@ const actionLook: Record<
   "admin.revoke": { variant: "warning", icon: ShieldMinusIcon },
   "offer_settings.change": { variant: "info", icon: SettingsIcon },
   "email_settings.change": { variant: "info", icon: MailIcon },
+  "promotion.create": { variant: "success", icon: TagIcon },
+  "promotion.change": { variant: "info", icon: TagIcon },
+  "seller.mark_payout": { variant: "success", icon: BanknoteIcon },
 };
 
 const all = "all";
