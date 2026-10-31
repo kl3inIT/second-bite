@@ -10,6 +10,7 @@ import { AccountAction } from "@/features/identity/account-action";
 import { kindsByCount } from "@/features/offers/offer";
 import { listOffers } from "@/features/offers/list-offers";
 import { SearchBar } from "@/features/search/search-bar";
+import { withRememberedPlace } from "@/features/home/remembered-place";
 import { readSearchQuery, searchHref, type SearchQuery } from "@/features/search/search-query";
 import { SearchResults } from "@/features/search/search-results";
 import { contentWidth } from "@/lib/layout";
@@ -29,7 +30,8 @@ export async function generateMetadata({
 // (Figma WK2).
 export default async function SearchPage({ searchParams }: PageProps<"/[locale]/search">) {
   const t = await getTranslations("Search");
-  const query = searchParams.then(readSearchQuery);
+  // The address's place, or the one this browser kept (customer place, step 3).
+  const query = searchParams.then(readSearchQuery).then(withRememberedPlace);
 
   return (
     <>

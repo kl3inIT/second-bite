@@ -593,7 +593,7 @@ abstract class AppLocalizations {
   /// Section 6's paragraphs, one blank line apart, as the web's Privacy.sections[5].paragraphs
   ///
   /// In vi, this message translates to:
-  /// **'Cookie phiên đăng nhập (sắp có), để giữ bạn đăng nhập.\n\nCookie ngôn ngữ, nhớ bạn chọn tiếng Việt hay tiếng Anh trong một năm.\n\nMột dấu trong bộ nhớ trình duyệt, nhớ bạn đã đóng phần giới thiệu.\n\nChúng tôi không dùng cookie quảng cáo hay công cụ theo dõi của bên thứ ba.'**
+  /// **'Cookie phiên đăng nhập (sắp có), để giữ bạn đăng nhập.\n\nCookie ngôn ngữ, nhớ bạn chọn tiếng Việt hay tiếng Anh trong một năm.\n\nCookie nơi xem món, nhớ khu bạn đã chọn (một điểm làm tròn khoảng 100 m và tên khu) trong 180 ngày; chọn “Tất cả quán” để xoá.\n\nMột dấu trong bộ nhớ trình duyệt, nhớ bạn đã đóng phần giới thiệu.\n\nChúng tôi không dùng cookie quảng cáo hay công cụ theo dõi của bên thứ ba.'**
   String get legalPrivacySection6Body;
 
   /// Section 7's heading, as the web's Privacy.sections[6].title
