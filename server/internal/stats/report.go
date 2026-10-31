@@ -146,15 +146,8 @@ func (s *Service) Report(ctx context.Context, f ReportFilter) (Report, error) {
 	}
 
 	if f.SellerID == nil {
-		views, err := s.queries.ViewDays(ctx, db.ViewDaysParams{Since: date(f.Since), Until: date(f.Until)})
-		if err != nil {
-			return Report{}, fmt.Errorf("counting the views: %w", err)
-		}
-
-		for _, v := range views {
-			if day, ok := days[v.Day.Time]; ok {
-				day.addViews(Counts{Views: int(v.Views), People: int(v.People), HomeViews: int(v.HomeViews), QRViews: int(v.QrViews)})
-			}
+		if err := s.siteViews(ctx, f, days); err != nil {
+			return Report{}, err
 		}
 	}
 
@@ -171,6 +164,22 @@ func (s *Service) Report(ctx context.Context, f ReportFilter) (Report, error) {
 	r.Accounts = accounts
 
 	return r, nil
+}
+
+// siteViews adds every view of the site to days, for a report of every store.
+func (s *Service) siteViews(ctx context.Context, f ReportFilter, days map[time.Time]*Counts) error {
+	views, err := s.queries.ViewDays(ctx, db.ViewDaysParams{Since: date(f.Since), Until: date(f.Until)})
+	if err != nil {
+		return fmt.Errorf("counting the views: %w", err)
+	}
+
+	for _, v := range views {
+		if day, ok := days[v.Day.Time]; ok {
+			day.addViews(Counts{Views: int(v.Views), People: int(v.People), HomeViews: int(v.HomeViews), QRViews: int(v.QrViews)})
+		}
+	}
+
+	return nil
 }
 
 // newUsers adds the site's new accounts and first-time customers to days, and

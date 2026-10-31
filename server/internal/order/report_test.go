@@ -2,7 +2,6 @@ package order_test
 
 import (
 	"fmt"
-	"math/rand/v2"
 	"testing"
 	"time"
 
@@ -164,9 +163,10 @@ func testFirstOrders(t *testing.T, f fixture) {
 	}
 }
 
-// phoneOf is a Vietnamese phone number no other check uses.
+// phoneOf is a Vietnamese phone number no other check uses, drawn from a new
+// identifier.
 func phoneOf(t *testing.T) string {
 	t.Helper()
 
-	return fmt.Sprintf("09%08d", rand.IntN(100_000_000))
+	return fmt.Sprintf("09%08d", uuid.New().ID()%100_000_000)
 }
