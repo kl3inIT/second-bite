@@ -40,6 +40,9 @@ services:
     environment:
       # The one environment search engines may index (web/src/app/robots.ts).
       SECONDBITE_INDEXABLE: "true"
+      # The server by its container name: on the shared proxy-network both environments' servers answer to the
+      # service name `server`, so that name would reach either.
+      SECONDBITE_API_ORIGIN: http://secondbite-production-server:8080
     networks:
       - internal
       - proxy
