@@ -30,6 +30,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 - [SEC-11 — The `offer` module](increments/active/sec-11-offer-module/design.md): sellers post surplus with a photo and post it again in two fields, announce expected surplus by hand or by a weekly schedule and confirm it; customers find offers near them and follow sellers and announcements by email; photos in a new `file` module. Flow decided on 18 October 2026; steps 2 to 4 built.
 - [SEC-29 — Signing in on the web](increments/active/sec-29-web-sign-in/design.md), with SEC-27: the session in an httpOnly cookie, the sign-in page with the emailed code and Google, linking by Google's authoritative addresses. Proposed on 18 October 2026.
 - [SEC-57 — The seller's web screens](increments/active/sec-57-seller-web/design.md): open a store, my stores, the store's tabs, posting, editing and withdrawing, for what the backend does today; expected surplus, the catalog and orders wait for their issues.
+- [Customer place](increments/active/customer-place/design.md): the home shows every shop until a customer chooses a place, by location, a typed place or Tasco Mall, and remembers it. Started on 31 October 2026.
 
 ## Candidates
 

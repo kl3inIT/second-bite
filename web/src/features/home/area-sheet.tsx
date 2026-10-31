@@ -20,14 +20,14 @@ import { cn } from "@/lib/utils";
 
 import { homePath, type HomeQuery } from "./home-query";
 
-type Area = "mall" | "nearby";
+type Area = "all" | "nearby";
 
 // Three decimals of a degree, about 110 m: enough for "350 m" on a card, without the exact spot in the address.
 const POINT_DECIMALS = 3;
 const LOCATION_TIMEOUT_MS = 10_000;
 const LOCATION_MAX_AGE_MS = 5 * 60_000;
 
-// Where to look for dishes (Figma K1a "Xem món ở đâu?"): Tasco Mall, the default, or the person's own place,
+// Where to look for dishes (Figma K1a "Xem món ở đâu?"): every shop, the default, or the person's own place,
 // which the browser asks permission for itself (K1c is the phone's own prompt). The choice becomes `near` in
 // the address, beside the filters in `keep`; the whole place on the header opens it.
 export function AreaSheet({
@@ -42,7 +42,7 @@ export function AreaSheet({
   const t = useTranslations("Area");
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [area, setArea] = useState<Area>(nearby ? "nearby" : "mall");
+  const [area, setArea] = useState<Area>(nearby ? "nearby" : "all");
   const [locating, setLocating] = useState(false);
   const [failure, setFailure] = useState<"denied" | "failed">();
 
@@ -53,7 +53,7 @@ export function AreaSheet({
 
   function apply() {
     setFailure(undefined);
-    if (area === "mall") {
+    if (area === "all") {
       show(keep);
       return;
     }
@@ -104,7 +104,7 @@ export function AreaSheet({
             onValueChange={(value) => setArea(value as Area)}
             aria-label={t("title")}
           >
-            <ChoiceOption value="mall" icon={StoreIcon} title={t("mall")} hint={t("mallHint")} />
+            <ChoiceOption value="all" icon={StoreIcon} title={t("all")} hint={t("allHint")} />
             <ChoiceOption
               value="nearby"
               icon={LocateFixedIcon}

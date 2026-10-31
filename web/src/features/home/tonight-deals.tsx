@@ -20,7 +20,7 @@ const TICKET_COUNT = 8;
 // biggest discount, then the tickets, each with the time it is collected from; the bowl stays on the phone.
 export async function TonightDeals({ query: pending }: { query: Promise<HomeQuery> }) {
   const query = await pending;
-  // Tonight's deals are Tasco Mall's, so they are not shown around the person's own place (Figma K1e).
+  // Tonight's deals are every shop's, so they are not shown around the person's own place (Figma K1e).
   if (query.q || query.kind || query.now || query.near) return null;
 
   const [t, format, offers] = await Promise.all([
