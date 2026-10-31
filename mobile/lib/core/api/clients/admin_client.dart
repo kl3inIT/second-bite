@@ -24,8 +24,13 @@ import '../models/feedback_output_body.dart';
 import '../models/grant_admin_request.dart';
 import '../models/hide_review_request.dart';
 import '../models/history_output_body.dart';
+import '../models/list_payouts_response.dart';
+import '../models/list_promotions_response.dart';
 import '../models/memberships_output_body.dart';
 import '../models/offer_settings_body.dart';
+import '../models/payout_body.dart';
+import '../models/promotion_body.dart';
+import '../models/promotion_input_body.dart';
 import '../models/record_body.dart';
 import '../models/reject_seller_request.dart';
 import '../models/report_output_body.dart';
@@ -38,6 +43,7 @@ import '../models/sort2.dart';
 import '../models/status.dart';
 import '../models/status2.dart';
 import '../models/status3.dart';
+import '../models/status4.dart';
 import '../models/visibility.dart';
 
 part 'admin_client.g.dart';
@@ -211,6 +217,67 @@ abstract class AdminClient {
     @Query('collectUntil') DateTime? collectUntil,
   });
 
+  /// What Second Bite owes each seller for a week's discounts, the most owed first.
+  ///
+  /// The discounts of each seller's orders handed over in the week, Monday to Sunday in Vietnam time.
+  ///
+  /// [weekStart] - The week's Monday.
+  ///
+  /// [promotionId] - Only this promotion's discounts.
+  @GET('/admin/promotion-payouts')
+  Future<ListPayoutsResponse> listPayouts({
+    @Query('weekStart') required String weekStart,
+    @Query('promotionId') String? promotionId,
+  });
+
+  /// Mark a seller's week of discounts as paid back to it; recorded in the audit.
+  ///
+  /// The amount owed now is kept. A week is marked once.
+  ///
+  /// [weekStart] - The week's Monday.
+  @POST('/admin/promotion-payouts/{sellerId}/{weekStart}/paid')
+  Future<PayoutBody> markPayoutPaid({
+    @Path('sellerId') required String sellerId,
+    @Path('weekStart') required String weekStart,
+  });
+
+  /// The promotions by status, name and seller, the latest start first, with what each spent.
+  ///
+  /// counts holds the promotions of each status matching the other filters. A page past the end is empty.
+  ///
+  /// [q] - Words of the name.
+  ///
+  /// [sellerId] - Keep the promotions that apply to this seller.
+  @GET('/admin/promotions')
+  Future<ListPromotionsResponse> listPromotions({
+    @Query('page') int? page = 1,
+    @Query('size') int? size = 25,
+    @Query('status') Status3? status,
+    @Query('q') String? q,
+    @Query('sellerId') String? sellerId,
+  });
+
+  /// Set up a promotion; recorded in the audit
+  @POST('/admin/promotions')
+  Future<PromotionBody> createPromotion({
+    @Body() required PromotionInputBody body,
+  });
+
+  /// A promotion with what it spent
+  @GET('/admin/promotions/{promotionId}')
+  Future<PromotionBody> getPromotion({
+    @Path('promotionId') required String promotionId,
+  });
+
+  /// Replace a promotion; recorded in the audit with what changed.
+  ///
+  /// The orders placed before keep the discount they took.
+  @PUT('/admin/promotions/{promotionId}')
+  Future<PromotionBody> changePromotion({
+    @Path('promotionId') required String promotionId,
+    @Body() required PromotionInputBody body,
+  });
+
   /// The prototype's numbers per day and store: pages opened, posts and orders.
   ///
   /// Days are Vietnam's; posts and orders count on their collection day. People add up over days, since a visitor is counted once a day.
@@ -318,7 +385,7 @@ abstract class AdminClient {
   Future<AdminSellersOutputBody> listSellersForAdmins({
     @Query('page') int? page = 1,
     @Query('size') int? size = 25,
-    @Query('status') List<Status3>? status,
+    @Query('status') List<Status4>? status,
     @Query('q') String? q,
     @Query('sort') Sort2? sort,
     @Query('changedSince') DateTime? changedSince,

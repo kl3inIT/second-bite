@@ -6,16 +6,14 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 @JsonEnum()
 enum Status3 {
-  @JsonValue('pending')
-  pending('pending'),
-  @JsonValue('active')
-  active('active'),
-  @JsonValue('rejected')
-  rejected('rejected'),
-  @JsonValue('blocked')
-  blocked('blocked'),
-  @JsonValue('deleted')
-  deleted('deleted'),
+  @JsonValue('running')
+  running('running'),
+  @JsonValue('scheduled')
+  scheduled('scheduled'),
+  @JsonValue('paused')
+  paused('paused'),
+  @JsonValue('ended')
+  ended('ended'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

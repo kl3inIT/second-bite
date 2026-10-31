@@ -14,8 +14,14 @@ part 'audit_details_body.g.dart';
 @Freezed()
 abstract class AuditDetailsBody with _$AuditDetailsBody {
   const factory AuditDetailsBody({
+    /// The amount marked paid
+    int? amountVnd,
+
     /// The settings changed
     List<AuditChangeBody>? changes,
+
+    /// The name of a promotion set up
+    String? name,
 
     /// Who delivers email after the change
     AuditDetailsBodyProvider? provider,
@@ -25,6 +31,9 @@ abstract class AuditDetailsBody with _$AuditDetailsBody {
 
     /// Where a change of admins came from
     AuditDetailsBodySource? source,
+
+    /// The Monday of a week of discounts marked paid
+    String? weekStart,
   }) = _AuditDetailsBody;
 
   factory AuditDetailsBody.fromJson(Map<String, Object?> json) =>

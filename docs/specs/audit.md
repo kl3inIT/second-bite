@@ -8,7 +8,7 @@ Owns the trail of what admins did, which admin did what to which store, account 
 | --- | --- | --- |
 | `GET /admin/audit-events?action=&actorId=&since=&until=&q=&page=&size=` | Admin | One page of events, the latest first, with `total`. `action` keeps names of the catalog (repeatable); `actorId` one admin; `since` and `until` bound the time, `until` excluded; `q` matches the admin's or the resource's label, any case, or is the resource's identifier. A page past the end is empty. A filter out of bounds answers `AUDIT_LIST_INVALID` (400). |
 
-Each event answers its `details` as typed fields: `reason`, `source`, `provider` and `changes`, each present only for the actions that have it. The API's lists of actions are the catalog's, which a test keeps the same.
+Each event answers its `details` as typed fields: `reason`, `source`, `provider`, `changes`, `name`, `weekStart` and `amountVnd`, each present only for the actions that have it. The API's lists of actions are the catalog's, which a test keeps the same.
 
 Published to other modules: `Record(ctx, tx, resource, action)`, which writes one event in the transaction of the change it records, and `ForgetAccount(ctx, tx, account)`, which `identity` calls in the transaction that deletes an account.
 
@@ -37,6 +37,9 @@ Published to other modules: `Record(ctx, tx, resource, action)`, which writes on
 | `seller.change_owner` | `seller`, its identifier, its name | `from`: the previous owner's account, when there was one; `to`: the new owner's (SEC-162) | `seller` |
 | `admin.grant` | `account`, its identifier, its address | `source`: `admin` or `command_line` | `identity` |
 | `admin.revoke` | `account`, its identifier, its address | `source`: `admin` or `command_line` | `identity` |
+| `promotion.create` | `promotion`, its identifier, its name | `name` | `order` |
+| `promotion.change` | `promotion`, its identifier, its name | `changes`: its name, times, budget, limit per phone and whether it is enabled with their values; its sellers and rules by name only | `order` |
+| `seller.mark_payout` | `seller`, its identifier, its name | `weekStart`: the week's Monday; `amountVnd`: the discounts paid back | `order` |
 
 ## Data
 
