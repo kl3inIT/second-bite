@@ -120,12 +120,7 @@ export function StoreEditForm({
 
         <form.AppField name="name">
           {(field) => (
-            <field.TextField
-              label={open("name")}
-              required
-              autoComplete="organization"
-              maxLength={80}
-            />
+            <field.TextField label={open("name")} required autoComplete="off" maxLength={80} />
           )}
         </form.AppField>
 
@@ -136,7 +131,9 @@ export function StoreEditForm({
               required
               type="tel"
               inputMode="tel"
-              autoComplete="tel"
+              // The store's number, not the person's: "tel" made Chrome offer the person's saved addresses here and fill
+              // the whole form from one (SEC-191).
+              autoComplete="off"
             />
           )}
         </form.AppField>
