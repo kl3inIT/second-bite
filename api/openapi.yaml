@@ -5240,6 +5240,74 @@ paths:
       summary: A photo in one of its sizes
       tags:
         - Photos
+  /places:
+    get:
+      operationId: searchCustomerPlaces
+      parameters:
+        - description: The words of an address or a place, with or without Vietnamese marks
+          explode: false
+          in: query
+          name: q
+          required: true
+          schema:
+            description: The words of an address or a place, with or without Vietnamese marks
+            maxLength: 200
+            minLength: 2
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlacesOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Places in Hanoi for the words a customer typed, to look for dishes around; signed in or not
+      tags:
+        - Places
+  /places/at:
+    get:
+      operationId: customerAddressAt
+      parameters:
+        - explode: false
+          in: query
+          name: latitude
+          required: true
+          schema:
+            format: double
+            maximum: 90
+            minimum: -90
+            type: number
+        - explode: false
+          in: query
+          name: longitude
+          required: true
+          schema:
+            format: double
+            maximum: 180
+            minimum: -180
+            type: number
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: The address at the point a customer's browser gave, to name the place dishes are shown around; signed in or not, empty when it is not known
+      tags:
+        - Places
   /push/key:
     get:
       description: 503 NOTIFICATION_PUSH_NOT_CONFIGURED while Web Push is off; the page then offers no notifications.
@@ -5422,13 +5490,13 @@ paths:
     get:
       operationId: searchPlaces
       parameters:
-        - description: The words of the address, with or without Vietnamese marks
+        - description: The words of an address or a place, with or without Vietnamese marks
           explode: false
           in: query
           name: q
           required: true
           schema:
-            description: The words of the address, with or without Vietnamese marks
+            description: The words of an address or a place, with or without Vietnamese marks
             maxLength: 200
             minLength: 2
             type: string

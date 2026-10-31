@@ -6,6 +6,7 @@ import { BrandLoader } from "@/components/brand-loader";
 import { CustomerHeader } from "@/components/customer-header";
 
 import { readHomeQuery } from "@/features/home/home-query";
+import { withRememberedPlace } from "@/features/home/remembered-place";
 import { listOffers } from "@/features/offers/list-offers";
 import { inShowingOrder } from "@/features/offers/offer";
 import { SellerPage } from "@/features/offers/seller-page";
@@ -37,13 +38,13 @@ export default function SellerRoute(props: PageProps<"/[locale]/sellers/[id]">) 
 
 async function Seller({ params, searchParams }: PageProps<"/[locale]/sellers/[id]">) {
   const [{ id }, search] = await Promise.all([params, searchParams]);
-  const { near, kind, q } = readHomeQuery(search);
+  const { near, place, kind, q } = await withRememberedPlace(readHomeQuery(search));
   const offers = inShowingOrder(await listOffers({ sellerId: id, near }));
   const at = typeof search.at === "string" ? search.at : undefined;
 
   return (
     <>
-      <CustomerHeader returnTo={`/sellers/${id}`} near={near} />
+      <CustomerHeader returnTo={`/sellers/${id}`} near={near} place={place} />
       <SellerPage offers={offers} kind={kind} near={near} at={at} q={q} />
     </>
   );

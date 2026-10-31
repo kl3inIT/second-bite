@@ -189,12 +189,23 @@ func (s *Service) Places(ctx context.Context, words string) ([]Place, error) {
 		return nil, err
 	}
 
+	return s.placesCounted(ctx, words, func() error { return s.lookups.Take(caller.AccountID.String()) })
+}
+
+// PlacesForCustomer suggests a place a customer looks for dishes around, from what they typed, signed in or not:
+// each client address makes placesPerAddress searches in ten minutes, an answer already kept costing none.
+func (s *Service) PlacesForCustomer(ctx context.Context, words string) ([]Place, error) {
+	return s.placesCounted(ctx, words, func() error { return s.placesByAddress.TakeFor(ctx) })
+}
+
+// placesCounted answers from the kept places, or counts the search with take before asking the search.
+func (s *Service) placesCounted(ctx context.Context, words string, take func() error) ([]Place, error) {
 	key := strings.ToLower(strings.Join(strings.Fields(words), " "))
 	if found, ok := s.placeResults.get(key); ok {
 		return found, nil
 	}
 
-	if err := s.lookups.Take(caller.AccountID.String()); err != nil {
+	if err := take(); err != nil {
 		return nil, err
 	}
 

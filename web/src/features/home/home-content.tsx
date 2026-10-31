@@ -60,7 +60,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
               <SectionHeader
                 id="closing-soon"
                 title={t("closingSoon")}
-                action={<SeeAll near={query.near} label={t("seeAll")} />}
+                action={<SeeAll near={query.near} place={query.place} label={t("seeAll")} />}
               />
               <OfferRow label={t("closingSoon")} offers={closing} />
             </section>
@@ -78,16 +78,16 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
             />
             {!filtered && offers.length > 1 && (
               <SearchFilters
-                query={{ near: query.near }}
+                query={{ near: query.near, place: query.place }}
                 raised
                 sort
-                before={<FiltersLink near={query.near} label={t("filters")} />}
+                before={<FiltersLink near={query.near} place={query.place} label={t("filters")} />}
               />
             )}
             {offers.length > 0 ? (
               <OfferList offers={inShowingOrder(offers)} compact />
             ) : (
-              <NothingFound filtered={filtered} near={query.near} />
+              <NothingFound filtered={filtered} near={query.near} place={query.place} />
             )}
           </section>
         </>
@@ -97,19 +97,19 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
 }
 
 /** "Xem tất cả": every dish, by seller, on the search page (Figma K1f). */
-function SeeAll({ near, label }: { near?: string; label: string }) {
+function SeeAll({ near, place, label }: { near?: string; place?: string; label: string }) {
   return (
-    <Link href={searchHref({ near })} className={seeAllClass}>
+    <Link href={searchHref({ near, place })} className={seeAllClass}>
       {label}
     </Link>
   );
 }
 
 /** The chips' leading button: the search, where every filter is (Figma K1b "nút lọc"). */
-function FiltersLink({ near, label }: { near?: string; label: string }) {
+function FiltersLink({ near, place, label }: { near?: string; place?: string; label: string }) {
   return (
     <Link
-      href={searchHref({ near })}
+      href={searchHref({ near, place })}
       aria-label={label}
       className={buttonVariants({
         variant: "chip",
@@ -122,7 +122,15 @@ function FiltersLink({ near, label }: { near?: string; label: string }) {
   );
 }
 
-async function NothingFound({ filtered, near }: { filtered: boolean; near?: string }) {
+async function NothingFound({
+  filtered,
+  near,
+  place,
+}: {
+  filtered: boolean;
+  near?: string;
+  place?: string;
+}) {
   const t = await getTranslations("Home");
 
   return (
@@ -132,7 +140,10 @@ async function NothingFound({ filtered, near }: { filtered: boolean; near?: stri
       </EmptyHeader>
       {filtered && (
         <EmptyContent>
-          <Link href={homePath({ near })} className={buttonVariants({ variant: "secondary" })}>
+          <Link
+            href={homePath({ near, place })}
+            className={buttonVariants({ variant: "secondary" })}
+          >
             {t("showAll")}
           </Link>
         </EmptyContent>

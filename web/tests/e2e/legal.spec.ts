@@ -40,7 +40,7 @@ test.describe("the terms and the privacy policy", () => {
       "content",
       /trách nhiệm của người bán/,
     );
-    await expect(page.locator("time")).toHaveAttribute("datetime", "2026-10-20");
+    await expect(page.locator("time")).toHaveAttribute("datetime", "2026-10-31");
 
     const structured = await page
       .locator('script[type="application/ld+json"]')
@@ -49,7 +49,7 @@ test.describe("the terms and the privacy policy", () => {
     expect(webPage).toMatchObject({
       name: "Điều khoản sử dụng",
       inLanguage: "vi",
-      dateModified: "2026-10-20",
+      dateModified: "2026-10-31",
     });
     expect(webPage.hasPart).toHaveLength(8);
     expect(webPage.hasPart[0].url).toMatch(/\/vi\/terms#section-1$/);

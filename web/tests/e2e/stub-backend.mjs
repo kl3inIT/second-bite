@@ -3207,6 +3207,31 @@ async function answer(request, response) {
     response.writeHead(204).end();
     return;
   }
+  // The address at a customer's point (GET /places/at, anyone): beside Tasco Mall a street, elsewhere none.
+  if (request.method === "GET" && url.pathname === "/places/at") {
+    const near = Math.abs(Number(url.searchParams.get("latitude")) - 21.057) < 0.01;
+    return json(response, 200, { address: near ? "Phố Hoa Lâm, Phường Việt Hưng, Hà Nội" : "" });
+  }
+  // A customer's place (GET /places, anyone): "viet hung" finds the ward beside Tasco Mall and its market,
+  // anything else nothing, as Photon finds nothing for words it does not know.
+  if (request.method === "GET" && url.pathname === "/places") {
+    const words = (url.searchParams.get("q") ?? "").toLowerCase();
+    const places = words.includes("viet hung")
+      ? [
+          {
+            address: "Phường Việt Hưng, Long Biên, Hà Nội",
+            latitude: 21.0591,
+            longitude: 105.8942,
+          },
+          {
+            address: "Chợ Việt Hưng, Đoàn Khuê, Long Biên, Hà Nội",
+            latitude: 21.0612,
+            longitude: 105.8991,
+          },
+        ]
+      : [];
+    return json(response, 200, { places });
+  }
   if (await auth(request, response, url)) return;
   if (await chatRoutes(request, response, url)) return;
   if (await pushRoutes(request, response, url)) return;
