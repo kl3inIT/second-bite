@@ -3175,6 +3175,36 @@ export type GetPhotoResponses = {
     200: unknown;
 };
 
+export type SearchCustomerPlacesData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The words of an address or a place, with or without Vietnamese marks
+         */
+        q: string;
+    };
+    url: '/places';
+};
+
+export type SearchCustomerPlacesErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SearchCustomerPlacesError = SearchCustomerPlacesErrors[keyof SearchCustomerPlacesErrors];
+
+export type SearchCustomerPlacesResponses = {
+    /**
+     * OK
+     */
+    200: PlacesOutputBody;
+};
+
+export type SearchCustomerPlacesResponse = SearchCustomerPlacesResponses[keyof SearchCustomerPlacesResponses];
+
 export type GetPushKeyData = {
     body?: never;
     path?: never;
@@ -3358,7 +3388,7 @@ export type SearchPlacesData = {
     path?: never;
     query: {
         /**
-         * The words of the address, with or without Vietnamese marks
+         * The words of an address or a place, with or without Vietnamese marks
          */
         q: string;
     };

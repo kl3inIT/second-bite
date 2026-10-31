@@ -29,11 +29,14 @@ import { searchHref } from "./search-query";
 export function SearchBar({
   value,
   near,
+  place,
   kinds: popular = [],
   desktop = false,
 }: {
   value?: string;
   near?: string;
+  /** The name of the place `near` is, kept with it. */
+  place?: string;
   /** The kinds on sale here, the most first. */
   kinds?: readonly { kind: OfferKind; count: number }[];
   desktop?: boolean;
@@ -63,7 +66,7 @@ export function SearchBar({
       <div className={cn("flex items-center gap-1", !desktop && "px-2 py-2")}>
         {!desktop && (
           <Link
-            href={homePath({ near })}
+            href={homePath({ near, place })}
             aria-label={t("back")}
             className={buttonVariants({ variant: "ghost", size: "icon" })}
           >
@@ -73,6 +76,7 @@ export function SearchBar({
         <search className="min-w-0 flex-1 search-cancel-none">
           <form>
             {near && <input type="hidden" name="near" value={near} />}
+            {near && place && <input type="hidden" name="place" value={place} />}
             <InputGroup surface={desktop ? "header" : "sky"}>
               <InputGroupAddon>
                 <SearchIcon aria-hidden className="size-5" />
@@ -131,7 +135,7 @@ export function SearchBar({
                 {recent.map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <Link
-                      href={searchHref({ near, q: item })}
+                      href={searchHref({ near, place, q: item })}
                       className="flex min-h-11 min-w-0 flex-1 items-center gap-3 text-body-sm text-foreground"
                     >
                       <HistoryIcon
@@ -162,7 +166,7 @@ export function SearchBar({
                 {popular.map(({ kind, count }) => (
                   <li key={kind}>
                     <Link
-                      href={searchHref({ near, kind })}
+                      href={searchHref({ near, place, kind })}
                       className="flex min-h-14 items-center gap-3 text-body-sm text-foreground"
                     >
                       <Image

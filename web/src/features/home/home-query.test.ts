@@ -9,6 +9,7 @@ describe("the home's address", () => {
       kind: "bakery",
       now: true,
       near: undefined,
+      place: undefined,
     });
   });
 
@@ -18,12 +19,21 @@ describe("the home's address", () => {
     expect(readHomeQuery({ near: "21.057" }).near).toBeUndefined();
   });
 
+  it("keeps a place's name only with its point, and drops one too long", () => {
+    expect(readHomeQuery({ near: "21.059,105.894", place: " Phường Việt Hưng " }).place).toBe(
+      "Phường Việt Hưng",
+    );
+    expect(readHomeQuery({ place: "Phường Việt Hưng" }).place).toBeUndefined();
+    expect(readHomeQuery({ near: "21.059,105.894", place: "x".repeat(81) }).place).toBeUndefined();
+  });
+
   it("drops an unknown kind and empty words instead of sending them to the backend", () => {
     expect(readHomeQuery({ q: "  ", kind: "pizza", now: "yes" })).toEqual({
       q: undefined,
       kind: undefined,
       now: undefined,
       near: undefined,
+      place: undefined,
     });
   });
 });

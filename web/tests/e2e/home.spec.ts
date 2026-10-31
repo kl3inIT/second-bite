@@ -185,8 +185,7 @@ test.describe("the customer home", () => {
     await page.goto("/vi");
     await (await hydrated(page.getByRole("button", { name: "Chọn nơi xem món" }))).click();
     await expectNoSeriousA11yViolations(page);
-    await page.getByText("Dùng vị trí của tôi").click();
-    await page.getByRole("button", { name: "Xem món quanh đây" }).click();
+    await page.getByRole("button", { name: /^Gần tôi/ }).click();
 
     await expect(page).toHaveURL(/\/vi\?near=21\.057,105\.897$/);
     await expect(
@@ -204,6 +203,56 @@ test.describe("the customer home", () => {
     );
     await expect(elsewhere.getByText("Bánh mì mềm chà bông")).toBeHidden();
     await expectNoSeriousA11yViolations(page);
+  });
+
+  test("shows the dishes around a place typed in the area sheet, or around Tasco Mall, and keeps its name", async ({
+    page,
+  }) => {
+    await page.goto("/vi");
+    await (await hydrated(page.getByRole("button", { name: "Chọn nơi xem món" }))).click();
+    const field = page.getByRole("searchbox", { name: "Tìm nơi xem món" });
+    await field.fill("viet hung");
+    const suggested = page.getByRole("list", { name: "Nơi gợi ý" });
+    await expect(suggested.getByRole("button")).toHaveText([
+      "Phường Việt HưngLong Biên, Hà Nội",
+      "Chợ Việt HưngĐoàn Khuê, Long Biên, Hà Nội",
+    ]);
+    await expectNoSeriousA11yViolations(page);
+    await suggested.getByRole("button", { name: /^Phường Việt Hưng/ }).click();
+
+    await expect(page).toHaveURL(/\/vi\?near=21\.059,105\.894&place=/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay quanh Phường Việt Hưng" }),
+    ).toBeVisible();
+    await expect(page.getByText("Các quán gần đó")).toBeVisible();
+    const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
+    await expect(all.getByText(/^21:00–21:45 · \d+ m$/).first()).toBeVisible();
+
+    // A kind keeps the place and its name.
+    await (await hydrated(page.getByRole("link", { name: "Bánh", exact: true }))).click();
+    await expect(page).toHaveURL(/kind=bakery/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay quanh Phường Việt Hưng" }),
+    ).toBeVisible();
+
+    await (await hydrated(page.getByRole("button", { name: "Chọn nơi xem món" }))).click();
+    await page.getByRole("searchbox", { name: "Tìm nơi xem món" }).fill("abcxyz");
+    await expect(page.getByText("Không tìm thấy nơi này.", { exact: false })).toBeVisible();
+    await page.getByText("Tasco Mall Long Biên").click();
+    await page.getByRole("button", { name: "Xem món", exact: true }).click();
+
+    await expect(page).toHaveURL(/\/vi\?kind=bakery&near=21\.05\d,105\.896&place=/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay quanh Tasco Mall Long Biên" }),
+    ).toBeVisible();
+
+    await (await hydrated(page.getByRole("button", { name: "Chọn nơi xem món" }))).click();
+    await page.getByText("Tất cả quán", { exact: true }).click();
+    await page.getByRole("button", { name: "Xem món", exact: true }).click();
+    await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay: Tất cả quán" }),
+    ).toBeVisible();
   });
 
   test("says what Second Bite is on a wide screen, where a phone goes straight to the dishes", async ({
