@@ -40,9 +40,11 @@ Published to other modules: `QueuePush(ctx, tx, Push)`.
 - **On the web** (`web/src/features/notification`):
   - **Where it is offered:** the order page of an order still to collect offers "Báo tôi khi món sẵn sàng" for it and the other orders of its cart. Following the founder's phone review on 23 October 2026, the store's Đơn tab hides the entire seller notification card, including setup instructions, errors and status. It still quietly renews the store's topics when the browser already allows notifications.
   - **Asking:** the browser's prompt comes only from that button. Once notifications are allowed in a browser, every visit to those pages follows their topics again without asking, which renews them for seven days.
-  - **What a customer sees instead of the button:**
-    - an iPhone or iPad outside a Home Screen app sees the three steps to add the site;
-    - a browser that blocks notifications sees how to allow them again;
+  - **What a customer sees:** one row under the ticket, "Báo khi món sẵn sàng" with "Để sau" and "Bật" (SEC-189):
+    - an iPhone or iPad outside a Home Screen app is told the site must be added first, and the three steps open from "Xem cách" in place of "Bật";
+    - a browser that blocks notifications shows one quiet line, whose "Cách bật lại" opens how to allow them again;
+    - once on, one quiet line says so;
+    - "Để sau" is kept in this browser (`secondbite.push-later`), and later orders offer nothing; a browser that already allows notifications still renews its topics;
     - without push in the browser, or with Web Push off on the server, nothing is shown.
   - **The service worker,** `public/sw.js`, served uncached, shows a push on browsers that do not read Declarative Web Push themselves. A tap opens the push's page on this site, in a tab already showing it or led there.
   - **Installing:** the manifest (`app/manifest.ts`) and the icons in `public/icons` let a phone add the site to its Home Screen.
