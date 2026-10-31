@@ -133,6 +133,49 @@ func (q *Queries) CountOrdersForAdmins(ctx context.Context, arg CountOrdersForAd
 	return count, err
 }
 
+const countPromotions = `-- name: CountPromotions :one
+SELECT count(*) FILTER (WHERE ends_at > now() AND starts_at <= now() AND enabled) AS running,
+       count(*) FILTER (WHERE starts_at > now() AND ends_at > now()) AS scheduled,
+       count(*) FILTER (WHERE ends_at > now() AND starts_at <= now() AND NOT enabled) AS paused,
+       count(*) FILTER (WHERE ends_at <= now()) AS ended,
+       count(*) FILTER (WHERE $1::text = ''
+           OR (CASE WHEN ends_at <= now() THEN 'ended' WHEN starts_at > now() THEN 'scheduled'
+                    WHEN enabled THEN 'running' ELSE 'paused' END) = $1) AS matching
+FROM order_promotions p
+WHERE ($2::text = '' OR lower(name) LIKE '%' || lower($2::text) || '%')
+  AND ($3::uuid IS NULL OR all_sellers OR EXISTS (
+      SELECT 1 FROM order_promotion_sellers s WHERE s.promotion_id = p.id AND s.seller_id = $3::uuid))
+`
+
+type CountPromotionsParams struct {
+	Status   string
+	Query    string
+	SellerID uuid.NullUUID
+}
+
+type CountPromotionsRow struct {
+	Running   int64
+	Scheduled int64
+	Paused    int64
+	Ended     int64
+	Matching  int64
+}
+
+// How many promotions of each status hold the words and apply to the seller,
+// whatever the status asked, and how many match every filter.
+func (q *Queries) CountPromotions(ctx context.Context, arg CountPromotionsParams) (CountPromotionsRow, error) {
+	row := q.db.QueryRow(ctx, countPromotions, arg.Status, arg.Query, arg.SellerID)
+	var i CountPromotionsRow
+	err := row.Scan(
+		&i.Running,
+		&i.Scheduled,
+		&i.Paused,
+		&i.Ended,
+		&i.Matching,
+	)
+	return i, err
+}
+
 const countReviewsByStars = `-- name: CountReviewsByStars :one
 SELECT count(*) FILTER (WHERE r.stars = 1 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS one,
        count(*) FILTER (WHERE r.stars = 2 AND ($1::text = '' OR ($1::text = 'hidden') = (r.hidden_at IS NOT NULL))) AS two,
@@ -229,7 +272,8 @@ func (q *Queries) CustomerOrderCounts(ctx context.Context, customerID uuid.NullU
 const customerOrders = `-- name: CustomerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders
 WHERE customer_id = $1
   AND ($2::uuid IS NULL OR checkout_id = $2)
@@ -273,6 +317,11 @@ type CustomerOrdersRow struct {
 	CollectedAt   *time.Time
 	CancelledAt   *time.Time
 	RefusedAt     *time.Time
+	PromotionID   uuid.NullUUID
+	PromotionName string
+	PromotionRule string
+	PromotionNew  bool
+	DiscountVnd   int64
 }
 
 // A customer's orders, newest first: open ones are confirmed or ready with
@@ -318,6 +367,11 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 			&i.CollectedAt,
 			&i.CancelledAt,
 			&i.RefusedAt,
+			&i.PromotionID,
+			&i.PromotionName,
+			&i.PromotionRule,
+			&i.PromotionNew,
+			&i.DiscountVnd,
 		); err != nil {
 			return nil, err
 		}
@@ -354,6 +408,15 @@ func (q *Queries) DeleteChatsOfCustomer(ctx context.Context, customerID uuid.Nul
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const deletePromotionSellers = `-- name: DeletePromotionSellers :exec
+DELETE FROM order_promotion_sellers WHERE promotion_id = $1
+`
+
+func (q *Queries) DeletePromotionSellers(ctx context.Context, promotionID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deletePromotionSellers, promotionID)
+	return err
 }
 
 const expireEnded = `-- name: ExpireEnded :one
@@ -449,7 +512,8 @@ func (q *Queries) ForgetContactsOfCustomer(ctx context.Context, customerID uuid.
 const getOrder = `-- name: GetOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders WHERE id = $1
 `
 
@@ -478,6 +542,11 @@ type GetOrderRow struct {
 	CollectedAt   *time.Time
 	CancelledAt   *time.Time
 	RefusedAt     *time.Time
+	PromotionID   uuid.NullUUID
+	PromotionName string
+	PromotionRule string
+	PromotionNew  bool
+	DiscountVnd   int64
 }
 
 func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, error) {
@@ -508,6 +577,35 @@ func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, erro
 		&i.CollectedAt,
 		&i.CancelledAt,
 		&i.RefusedAt,
+		&i.PromotionID,
+		&i.PromotionName,
+		&i.PromotionRule,
+		&i.PromotionNew,
+		&i.DiscountVnd,
+	)
+	return i, err
+}
+
+const getPromotion = `-- name: GetPromotion :one
+SELECT id, name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules, created_at, updated_at
+FROM order_promotions WHERE id = $1
+`
+
+func (q *Queries) GetPromotion(ctx context.Context, id uuid.UUID) (OrderPromotion, error) {
+	row := q.db.QueryRow(ctx, getPromotion, id)
+	var i OrderPromotion
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.StartsAt,
+		&i.EndsAt,
+		&i.AllSellers,
+		&i.BudgetVnd,
+		&i.PerPhonePerDay,
+		&i.Enabled,
+		&i.Rules,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -620,10 +718,12 @@ func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) er
 const insertOrder = `-- name: InsertOrder :one
 INSERT INTO order_orders (
     customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude, longitude, address,
-    window_start, window_end, total_vnd, idempotency_key, zalo_consent_at
+    window_start, window_end, total_vnd, idempotency_key, zalo_consent_at, promotion_id, promotion_name, promotion_rule,
+    promotion_new, discount_vnd
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8,
-    $9, $10, $11, $12, $13, $14
+    $9, $10, $11, $12, $13, $14,
+    $15, $16, $17, $18, $19
 )
 RETURNING id
 `
@@ -643,6 +743,11 @@ type InsertOrderParams struct {
 	TotalVnd       int64
 	IdempotencyKey string
 	ZaloConsentAt  *time.Time
+	PromotionID    uuid.NullUUID
+	PromotionName  string
+	PromotionRule  string
+	PromotionNew   bool
+	DiscountVnd    int64
 }
 
 func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.UUID, error) {
@@ -661,10 +766,41 @@ func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.
 		arg.TotalVnd,
 		arg.IdempotencyKey,
 		arg.ZaloConsentAt,
+		arg.PromotionID,
+		arg.PromotionName,
+		arg.PromotionRule,
+		arg.PromotionNew,
+		arg.DiscountVnd,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const insertPayout = `-- name: InsertPayout :execrows
+INSERT INTO order_promotion_payouts (seller_id, week_start, amount_vnd, paid_by)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT DO NOTHING
+`
+
+type InsertPayoutParams struct {
+	SellerID  uuid.UUID
+	WeekStart pgtype.Date
+	AmountVnd int64
+	PaidBy    uuid.NullUUID
+}
+
+func (q *Queries) InsertPayout(ctx context.Context, arg InsertPayoutParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertPayout,
+		arg.SellerID,
+		arg.WeekStart,
+		arg.AmountVnd,
+		arg.PaidBy,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const insertProblem = `-- name: InsertProblem :execrows
@@ -685,6 +821,55 @@ func (q *Queries) InsertProblem(ctx context.Context, arg InsertProblemParams) (i
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const insertPromotion = `-- name: InsertPromotion :one
+INSERT INTO order_promotions (name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id
+`
+
+type InsertPromotionParams struct {
+	Name           string
+	StartsAt       time.Time
+	EndsAt         time.Time
+	AllSellers     bool
+	BudgetVnd      int64
+	PerPhonePerDay int32
+	Enabled        bool
+	Rules          []byte
+}
+
+func (q *Queries) InsertPromotion(ctx context.Context, arg InsertPromotionParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, insertPromotion,
+		arg.Name,
+		arg.StartsAt,
+		arg.EndsAt,
+		arg.AllSellers,
+		arg.BudgetVnd,
+		arg.PerPhonePerDay,
+		arg.Enabled,
+		arg.Rules,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const insertPromotionSellers = `-- name: InsertPromotionSellers :exec
+INSERT INTO order_promotion_sellers (promotion_id, seller_id)
+SELECT $1, unnest($2::uuid[])
+ON CONFLICT DO NOTHING
+`
+
+type InsertPromotionSellersParams struct {
+	PromotionID uuid.UUID
+	SellerIds   []uuid.UUID
+}
+
+func (q *Queries) InsertPromotionSellers(ctx context.Context, arg InsertPromotionSellersParams) error {
+	_, err := q.db.Exec(ctx, insertPromotionSellers, arg.PromotionID, arg.SellerIds)
+	return err
 }
 
 const insertReview = `-- name: InsertReview :execrows
@@ -793,10 +978,74 @@ func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]L
 	return items, nil
 }
 
+const listPromotions = `-- name: ListPromotions :many
+SELECT id, name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules, created_at, updated_at
+FROM order_promotions p
+WHERE ($1::text = ''
+       OR (CASE WHEN ends_at <= now() THEN 'ended' WHEN starts_at > now() THEN 'scheduled'
+                WHEN enabled THEN 'running' ELSE 'paused' END) = $1)
+  AND ($2::text = '' OR lower(name) LIKE '%' || lower($2::text) || '%')
+  AND ($3::uuid IS NULL OR all_sellers OR EXISTS (
+      SELECT 1 FROM order_promotion_sellers s WHERE s.promotion_id = p.id AND s.seller_id = $3::uuid))
+ORDER BY starts_at DESC, id
+LIMIT $5 OFFSET $4
+`
+
+type ListPromotionsParams struct {
+	Status   string
+	Query    string
+	SellerID uuid.NullUUID
+	SkipRows int32
+	MaxRows  int32
+}
+
+// One page of the promotions in a status (any when empty), whose name holds
+// the words and that apply to a seller when one is given, the latest start
+// first. A promotion has ended once its end passed, is scheduled until its
+// start, and runs or is paused in between as it is enabled or not.
+func (q *Queries) ListPromotions(ctx context.Context, arg ListPromotionsParams) ([]OrderPromotion, error) {
+	rows, err := q.db.Query(ctx, listPromotions,
+		arg.Status,
+		arg.Query,
+		arg.SellerID,
+		arg.SkipRows,
+		arg.MaxRows,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderPromotion
+	for rows.Next() {
+		var i OrderPromotion
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.StartsAt,
+			&i.EndsAt,
+			&i.AllSellers,
+			&i.BudgetVnd,
+			&i.PerPhonePerDay,
+			&i.Enabled,
+			&i.Rules,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockOrder = `-- name: LockOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders WHERE id = $1 FOR UPDATE
 `
 
@@ -825,6 +1074,11 @@ type LockOrderRow struct {
 	CollectedAt   *time.Time
 	CancelledAt   *time.Time
 	RefusedAt     *time.Time
+	PromotionID   uuid.NullUUID
+	PromotionName string
+	PromotionRule string
+	PromotionNew  bool
+	DiscountVnd   int64
 }
 
 // Serializes the transitions of one order until the transaction ends.
@@ -856,6 +1110,11 @@ func (q *Queries) LockOrder(ctx context.Context, id uuid.UUID) (LockOrderRow, er
 		&i.CollectedAt,
 		&i.CancelledAt,
 		&i.RefusedAt,
+		&i.PromotionID,
+		&i.PromotionName,
+		&i.PromotionRule,
+		&i.PromotionNew,
+		&i.DiscountVnd,
 	)
 	return i, err
 }
@@ -863,7 +1122,8 @@ func (q *Queries) LockOrder(ctx context.Context, id uuid.UUID) (LockOrderRow, er
 const lockOrderShared = `-- name: LockOrderShared :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders WHERE id = $1 FOR SHARE
 `
 
@@ -892,6 +1152,11 @@ type LockOrderSharedRow struct {
 	CollectedAt   *time.Time
 	CancelledAt   *time.Time
 	RefusedAt     *time.Time
+	PromotionID   uuid.NullUUID
+	PromotionName string
+	PromotionRule string
+	PromotionNew  bool
+	DiscountVnd   int64
 }
 
 // Holds an order against a transition (which locks it for update) until the
@@ -924,6 +1189,35 @@ func (q *Queries) LockOrderShared(ctx context.Context, id uuid.UUID) (LockOrderS
 		&i.CollectedAt,
 		&i.CancelledAt,
 		&i.RefusedAt,
+		&i.PromotionID,
+		&i.PromotionName,
+		&i.PromotionRule,
+		&i.PromotionNew,
+		&i.DiscountVnd,
+	)
+	return i, err
+}
+
+const lockPromotion = `-- name: LockPromotion :one
+SELECT id, name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules, created_at, updated_at
+FROM order_promotions WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) LockPromotion(ctx context.Context, id uuid.UUID) (OrderPromotion, error) {
+	row := q.db.QueryRow(ctx, lockPromotion, id)
+	var i OrderPromotion
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.StartsAt,
+		&i.EndsAt,
+		&i.AllSellers,
+		&i.BudgetVnd,
+		&i.PerPhonePerDay,
+		&i.Enabled,
+		&i.Rules,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -968,6 +1262,56 @@ func (q *Queries) LockReviewForAdmins(ctx context.Context, orderID uuid.UUID) (L
 		&i.HiddenReason,
 	)
 	return i, err
+}
+
+const lockRunningPromotions = `-- name: LockRunningPromotions :many
+SELECT id, name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules, created_at, updated_at
+FROM order_promotions p
+WHERE enabled AND starts_at <= $1 AND ends_at > $1
+  AND (all_sellers OR EXISTS (
+      SELECT 1 FROM order_promotion_sellers s WHERE s.promotion_id = p.id AND s.seller_id = $2))
+ORDER BY id
+FOR UPDATE
+`
+
+type LockRunningPromotionsParams struct {
+	Now      time.Time
+	SellerID uuid.UUID
+}
+
+// The promotions running at now for a seller, locked until the transaction
+// ends in one order of identifiers, so two orders never spend the same last
+// part of a budget and an admin's change waits for them.
+func (q *Queries) LockRunningPromotions(ctx context.Context, arg LockRunningPromotionsParams) ([]OrderPromotion, error) {
+	rows, err := q.db.Query(ctx, lockRunningPromotions, arg.Now, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderPromotion
+	for rows.Next() {
+		var i OrderPromotion
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.StartsAt,
+			&i.EndsAt,
+			&i.AllSellers,
+			&i.BudgetVnd,
+			&i.PerPhonePerDay,
+			&i.Enabled,
+			&i.Rules,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const markCancelled = `-- name: MarkCancelled :exec
@@ -1221,7 +1565,7 @@ func (q *Queries) OpenOrdersOfOffer(ctx context.Context, offerID uuid.UUID) ([]u
 
 const orderDays = `-- name: OrderDays :many
 WITH placed AS (
-    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, o.contact_forgotten_at, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
+    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, o.contact_forgotten_at, o.promotion_id, o.promotion_name, o.promotion_rule, o.promotion_new, o.discount_vnd, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
     FROM order_orders o
     WHERE o.window_start >= $1 AND o.window_start < $2
       AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
@@ -1317,7 +1661,8 @@ func (q *Queries) OrderOfKey(ctx context.Context, arg OrderOfKeyParams) (uuid.UU
 const ordersForAdmins = `-- name: OrdersForAdmins :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders
 WHERE (cardinality($1::text[]) = 0
        OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
@@ -1365,6 +1710,11 @@ type OrdersForAdminsRow struct {
 	CollectedAt   *time.Time
 	CancelledAt   *time.Time
 	RefusedAt     *time.Time
+	PromotionID   uuid.NullUUID
+	PromotionName string
+	PromotionRule string
+	PromotionNew  bool
+	DiscountVnd   int64
 }
 
 // One page of every seller's orders in the statuses given (all when empty),
@@ -1415,6 +1765,11 @@ func (q *Queries) OrdersForAdmins(ctx context.Context, arg OrdersForAdminsParams
 			&i.CollectedAt,
 			&i.CancelledAt,
 			&i.RefusedAt,
+			&i.PromotionID,
+			&i.PromotionName,
+			&i.PromotionRule,
+			&i.PromotionNew,
+			&i.DiscountVnd,
 		); err != nil {
 			return nil, err
 		}
@@ -1424,6 +1779,115 @@ func (q *Queries) OrdersForAdmins(ctx context.Context, arg OrdersForAdminsParams
 		return nil, err
 	}
 	return items, nil
+}
+
+const payoutsBetween = `-- name: PayoutsBetween :many
+SELECT o.seller_id,
+       (array_agg(o.seller_name ORDER BY o.collected_at DESC))[1]::text AS seller_name,
+       sum(o.discount_vnd)::bigint AS amount_vnd,
+       count(*) AS orders,
+       count(*) FILTER (WHERE o.promotion_new) AS new_customers,
+       p.paid_at, p.amount_vnd AS paid_vnd
+FROM order_orders o
+LEFT JOIN order_promotion_payouts p ON p.seller_id = o.seller_id AND p.week_start = $1
+WHERE o.promotion_id IS NOT NULL AND o.state = 'collected' AND o.collected_at >= $2 AND o.collected_at < $3
+  AND ($4::uuid IS NULL OR o.promotion_id = $4::uuid)
+GROUP BY o.seller_id, p.paid_at, p.amount_vnd
+ORDER BY amount_vnd DESC, o.seller_id
+`
+
+type PayoutsBetweenParams struct {
+	WeekStart   pgtype.Date
+	Since       *time.Time
+	Until       *time.Time
+	PromotionID uuid.NullUUID
+}
+
+type PayoutsBetweenRow struct {
+	SellerID     uuid.UUID
+	SellerName   string
+	AmountVnd    int64
+	Orders       int64
+	NewCustomers int64
+	PaidAt       *time.Time
+	PaidVnd      pgtype.Int8
+}
+
+// What each seller is owed for the discounts of its orders handed over in
+// [since, until), with how many orders and new customers, and the payout
+// marked for week_start when there is one.
+func (q *Queries) PayoutsBetween(ctx context.Context, arg PayoutsBetweenParams) ([]PayoutsBetweenRow, error) {
+	rows, err := q.db.Query(ctx, payoutsBetween,
+		arg.WeekStart,
+		arg.Since,
+		arg.Until,
+		arg.PromotionID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PayoutsBetweenRow
+	for rows.Next() {
+		var i PayoutsBetweenRow
+		if err := rows.Scan(
+			&i.SellerID,
+			&i.SellerName,
+			&i.AmountVnd,
+			&i.Orders,
+			&i.NewCustomers,
+			&i.PaidAt,
+			&i.PaidVnd,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const phoneDiscountsBetween = `-- name: PhoneDiscountsBetween :one
+SELECT count(*) FROM order_orders
+WHERE promotion_id = $1 AND customer_phone = $2
+  AND created_at >= $3 AND created_at < $4
+  AND (state = 'collected' OR (state IN ('confirmed', 'ready') AND window_end > now()))
+`
+
+type PhoneDiscountsBetweenParams struct {
+	PromotionID   uuid.NullUUID
+	CustomerPhone string
+	DayStart      time.Time
+	DayEnd        time.Time
+}
+
+// How many of a promotion's discounts a phone number holds among the orders
+// placed in [day_start, day_end): those still to collect and those handed over.
+func (q *Queries) PhoneDiscountsBetween(ctx context.Context, arg PhoneDiscountsBetweenParams) (int64, error) {
+	row := q.db.QueryRow(ctx, phoneDiscountsBetween,
+		arg.PromotionID,
+		arg.CustomerPhone,
+		arg.DayStart,
+		arg.DayEnd,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const phoneHasCollected = `-- name: PhoneHasCollected :one
+SELECT EXISTS (SELECT 1 FROM order_orders WHERE customer_phone = $1 AND state = 'collected')
+`
+
+// Whether a phone number has had an order handed over: one that has not is a
+// new customer's.
+func (q *Queries) PhoneHasCollected(ctx context.Context, customerPhone string) (bool, error) {
+	row := q.db.QueryRow(ctx, phoneHasCollected, customerPhone)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const problemExists = `-- name: ProblemExists :one
@@ -1458,6 +1922,130 @@ func (q *Queries) ProblemsOf(ctx context.Context, orderIds []uuid.UUID) ([]Order
 			&i.ReportedAt,
 			&i.Answer,
 			&i.AnsweredAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const promotionSellers = `-- name: PromotionSellers :many
+SELECT promotion_id, seller_id FROM order_promotion_sellers
+WHERE promotion_id = ANY ($1::uuid[])
+ORDER BY promotion_id, seller_id
+`
+
+func (q *Queries) PromotionSellers(ctx context.Context, promotionIds []uuid.UUID) ([]OrderPromotionSeller, error) {
+	rows, err := q.db.Query(ctx, promotionSellers, promotionIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderPromotionSeller
+	for rows.Next() {
+		var i OrderPromotionSeller
+		if err := rows.Scan(&i.PromotionID, &i.SellerID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const promotionUses = `-- name: PromotionUses :many
+SELECT promotion_id::uuid AS promotion_id,
+       coalesce(sum(discount_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS spent_vnd,
+       coalesce(sum(discount_vnd) FILTER (WHERE state IN ('confirmed', 'ready') AND window_end > now()), 0)::bigint
+           AS held_vnd,
+       count(*) AS orders,
+       count(*) FILTER (WHERE promotion_new) AS new_customers,
+       count(DISTINCT seller_id) AS sellers
+FROM order_orders
+WHERE promotion_id = ANY ($1::uuid[])
+  AND (state = 'collected' OR (state IN ('confirmed', 'ready') AND window_end > now()))
+GROUP BY promotion_id
+`
+
+type PromotionUsesRow struct {
+	PromotionID  uuid.UUID
+	SpentVnd     int64
+	HeldVnd      int64
+	Orders       int64
+	NewCustomers int64
+	Sellers      int64
+}
+
+// What each promotion's discounts come to: spent on the orders handed over,
+// held by those still to collect, with how many orders, new customers and
+// sellers took one.
+func (q *Queries) PromotionUses(ctx context.Context, promotionIds []uuid.UUID) ([]PromotionUsesRow, error) {
+	rows, err := q.db.Query(ctx, promotionUses, promotionIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PromotionUsesRow
+	for rows.Next() {
+		var i PromotionUsesRow
+		if err := rows.Scan(
+			&i.PromotionID,
+			&i.SpentVnd,
+			&i.HeldVnd,
+			&i.Orders,
+			&i.NewCustomers,
+			&i.Sellers,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const promotionsRunningFor = `-- name: PromotionsRunningFor :many
+SELECT id, name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules, created_at, updated_at
+FROM order_promotions p
+WHERE enabled AND starts_at <= now() AND ends_at > now()
+  AND (all_sellers OR EXISTS (
+      SELECT 1 FROM order_promotion_sellers s
+      WHERE s.promotion_id = p.id AND s.seller_id = ANY ($1::uuid[])))
+ORDER BY ends_at, id
+LIMIT 20
+`
+
+// The promotions running now for any of the sellers given, soonest to end
+// first.
+func (q *Queries) PromotionsRunningFor(ctx context.Context, sellerIds []uuid.UUID) ([]OrderPromotion, error) {
+	rows, err := q.db.Query(ctx, promotionsRunningFor, sellerIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderPromotion
+	for rows.Next() {
+		var i OrderPromotion
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.StartsAt,
+			&i.EndsAt,
+			&i.AllSellers,
+			&i.BudgetVnd,
+			&i.PerPhonePerDay,
+			&i.Enabled,
+			&i.Rules,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -1737,7 +2325,8 @@ func (q *Queries) SellerHasOrdersToFinish(ctx context.Context, sellerID uuid.UUI
 const sellerOrders = `-- name: SellerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
-       created_at, ready_at, collected_at, cancelled_at, refused_at
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd
 FROM order_orders
 WHERE seller_id = $1 AND window_start >= $2 AND window_start < $3
 ORDER BY window_start, number
@@ -1775,6 +2364,11 @@ type SellerOrdersRow struct {
 	CollectedAt   *time.Time
 	CancelledAt   *time.Time
 	RefusedAt     *time.Time
+	PromotionID   uuid.NullUUID
+	PromotionName string
+	PromotionRule string
+	PromotionNew  bool
+	DiscountVnd   int64
 }
 
 // A seller's orders whose window starts within [day_start, day_end), soonest
@@ -1813,6 +2407,11 @@ func (q *Queries) SellerOrders(ctx context.Context, arg SellerOrdersParams) ([]S
 			&i.CollectedAt,
 			&i.CancelledAt,
 			&i.RefusedAt,
+			&i.PromotionID,
+			&i.PromotionName,
+			&i.PromotionRule,
+			&i.PromotionNew,
+			&i.DiscountVnd,
 		); err != nil {
 			return nil, err
 		}
@@ -1908,4 +2507,38 @@ func (q *Queries) UnreadOf(ctx context.Context, orderIds []uuid.UUID) ([]UnreadO
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePromotion = `-- name: UpdatePromotion :exec
+UPDATE order_promotions
+SET name = $1, starts_at = $2, ends_at = $3, all_sellers = $4, budget_vnd = $5,
+    per_phone_per_day = $6, enabled = $7, rules = $8, updated_at = now()
+WHERE id = $9
+`
+
+type UpdatePromotionParams struct {
+	Name           string
+	StartsAt       time.Time
+	EndsAt         time.Time
+	AllSellers     bool
+	BudgetVnd      int64
+	PerPhonePerDay int32
+	Enabled        bool
+	Rules          []byte
+	ID             uuid.UUID
+}
+
+func (q *Queries) UpdatePromotion(ctx context.Context, arg UpdatePromotionParams) error {
+	_, err := q.db.Exec(ctx, updatePromotion,
+		arg.Name,
+		arg.StartsAt,
+		arg.EndsAt,
+		arg.AllSellers,
+		arg.BudgetVnd,
+		arg.PerPhonePerDay,
+		arg.Enabled,
+		arg.Rules,
+		arg.ID,
+	)
+	return err
 }

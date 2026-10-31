@@ -165,11 +165,20 @@ func (s *Service) place(
 
 	q := s.queries.WithTx(tx)
 
+	// After the offers and the seller, as every order places them, so locking the promotions never deadlocks.
+	discount, discounted, err := s.discountFor(ctx, q, first.SellerID, contact.Phone, total)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
 	id, err := q.InsertOrder(ctx, db.InsertOrderParams{
 		CustomerID: customer, CustomerName: contact.Name, CustomerPhone: contact.Phone,
 		SellerID: first.SellerID, CheckoutID: checkout, SellerName: first.SellerName,
 		Latitude: first.CollectionPoint.Latitude, Longitude: first.CollectionPoint.Longitude, Address: first.CollectionPoint.Address,
 		WindowStart: start, WindowEnd: end, TotalVnd: total, IdempotencyKey: key, ZaloConsentAt: s.consentAt(contact),
+		PromotionID:   uuid.NullUUID{UUID: discount.promotion.ID, Valid: discounted},
+		PromotionName: discount.promotion.Name, PromotionRule: discount.rule, PromotionNew: discount.newCustomer,
+		DiscountVnd: discount.amountVND,
 	})
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("storing the order: %w", err)

@@ -80,6 +80,10 @@ func TestOrder(t *testing.T) {
 		"a problem is reported and answered":       testProblemReportedAndAnswered,
 		"a problem is reported within two days":    testProblemWithinTwoDays,
 		"a seller deleted waits for its orders":    testSellerDeletionWaitsForOrders,
+		"a promotion takes its discounts":          testPromotionDiscounts,
+		"a promotion stops at its budget":          testPromotionBudget,
+		"an order takes the best promotion":        testPromotionBestRule,
+		"admins run promotions and pay sellers":    testPromotionsForAdmins,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

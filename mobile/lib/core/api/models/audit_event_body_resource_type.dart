@@ -16,6 +16,8 @@ enum AuditEventBodyResourceType {
   offerSettings('offer_settings'),
   @JsonValue('email_settings')
   emailSettings('email_settings'),
+  @JsonValue('promotion')
+  promotion('promotion'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

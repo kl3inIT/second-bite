@@ -355,6 +355,10 @@ components:
     AuditDetailsBody:
       additionalProperties: false
       properties:
+        amountVnd:
+          description: The amount marked paid
+          format: int64
+          type: integer
         changes:
           description: The settings changed
           items:
@@ -362,6 +366,9 @@ components:
           type:
             - array
             - "null"
+        name:
+          description: The name of a promotion set up
+          type: string
         provider:
           description: Who delivers email after the change
           enum:
@@ -376,6 +383,9 @@ components:
           enum:
             - admin
             - command_line
+          type: string
+        weekStart:
+          description: The Monday of a week of discounts marked paid
           type: string
       type: object
     AuditEventBody:
@@ -396,6 +406,9 @@ components:
             - seller.change_owner
             - review.hide
             - review.show
+            - promotion.create
+            - promotion.change
+            - seller.mark_payout
           type: string
         actorId:
           type: string
@@ -420,6 +433,7 @@ components:
             - order
             - offer_settings
             - email_settings
+            - promotion
           type: string
       required:
         - id
@@ -1100,6 +1114,51 @@ components:
       required:
         - dishes
       type: object
+    ListPayoutsResponse:
+      additionalProperties: false
+      properties:
+        payouts:
+          items:
+            $ref: "#/components/schemas/PayoutBody"
+          type: array
+      required:
+        - payouts
+      type: object
+    ListPromotionsResponse:
+      additionalProperties: false
+      properties:
+        counts:
+          $ref: "#/components/schemas/PromotionCountsBody"
+        items:
+          items:
+            $ref: "#/components/schemas/PromotionBody"
+          type: array
+        page:
+          format: int64
+          type: integer
+        pageSize:
+          format: int64
+          type: integer
+        total:
+          format: int64
+          type: integer
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+        - counts
+      type: object
+    ListRunningPromotionsResponse:
+      additionalProperties: false
+      properties:
+        promotions:
+          items:
+            $ref: "#/components/schemas/RunningPromotionBody"
+          type: array
+      required:
+        - promotions
+      type: object
     LiveTicketOutputBody:
       additionalProperties: false
       properties:
@@ -1639,6 +1698,10 @@ components:
         customerPhone:
           description: Their phone number, 0 and nine digits; empty once the customer deleted their account
           type: string
+        discountVnd:
+          description: What a promotion took off when the order was placed; Second Bite pays it back to the seller
+          format: int64
+          type: integer
         id:
           type: string
         lines:
@@ -1652,9 +1715,16 @@ components:
         number:
           description: What people read aloud, SB- and a number
           type: string
+        payVnd:
+          description: "Paid to the seller at the counter: totalVnd less discountVnd"
+          format: int64
+          type: integer
         problem:
           $ref: "#/components/schemas/ProblemBody"
           description: What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
+        promotion:
+          $ref: "#/components/schemas/OrderPromotionBody"
+          description: The promotion and rule the discount came from; none without a discount
         readyAt:
           format: date-time
           type: string
@@ -1691,7 +1761,7 @@ components:
             - expired
           type: string
         totalVnd:
-          description: Paid to the seller at the counter
+          description: What the dishes cost
           format: int64
           type: integer
         unreadMessages:
@@ -1711,6 +1781,8 @@ components:
         - seller
         - lines
         - totalVnd
+        - discountVnd
+        - payVnd
         - windowStart
         - windowEnd
         - createdAt
@@ -1792,6 +1864,26 @@ components:
         - largePath
         - smallPath
       type: object
+    OrderPromotionBody:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        name:
+          description: The promotion's name when the order was placed
+          type: string
+        newCustomer:
+          description: The phone number had no order handed over when this one was placed
+          type: boolean
+        rule:
+          description: The rule's name when the order was placed
+          type: string
+      required:
+        - id
+        - name
+        - rule
+        - newCustomer
+      type: object
     OrderSellerBody:
       additionalProperties: false
       properties:
@@ -1837,6 +1929,38 @@ components:
           type: array
       required:
         - orders
+      type: object
+    PayoutBody:
+      additionalProperties: false
+      properties:
+        amountVnd:
+          description: Discounts of its orders handed over in the week
+          format: int64
+          type: integer
+        newCustomers:
+          format: int64
+          type: integer
+        orders:
+          format: int64
+          type: integer
+        paidAt:
+          description: When an admin marked the week paid; absent until then
+          format: date-time
+          type: string
+        paidVnd:
+          description: The amount marked paid then
+          format: int64
+          type: integer
+        sellerId:
+          type: string
+        sellerName:
+          type: string
+      required:
+        - sellerId
+        - sellerName
+        - amountVnd
+        - orders
+        - newCustomers
       type: object
     PhotoBody:
       additionalProperties: false
@@ -1982,6 +2106,251 @@ components:
       required:
         - kind
         - reportedAt
+      type: object
+    PromotionBody:
+      additionalProperties: false
+      properties:
+        allSellers:
+          type: boolean
+        budgetVnd:
+          format: int64
+          type: integer
+        createdAt:
+          format: date-time
+          type: string
+        enabled:
+          type: boolean
+        endsAt:
+          format: date-time
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        perPhonePerDay:
+          format: int64
+          type: integer
+        rules:
+          items:
+            $ref: "#/components/schemas/PromotionRuleBody"
+          type: array
+        sellerIds:
+          items:
+            type: string
+          type: array
+        startsAt:
+          format: date-time
+          type: string
+        status:
+          description: Read from its times and whether it is enabled
+          enum:
+            - running
+            - scheduled
+            - paused
+            - ended
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+        use:
+          $ref: "#/components/schemas/PromotionUseBody"
+      required:
+        - id
+        - name
+        - status
+        - startsAt
+        - endsAt
+        - allSellers
+        - sellerIds
+        - budgetVnd
+        - perPhonePerDay
+        - enabled
+        - rules
+        - use
+        - createdAt
+        - updatedAt
+      type: object
+    PromotionConditionBody:
+      additionalProperties: false
+      properties:
+        attribute:
+          enum:
+            - customer
+            - seller
+            - subtotal
+          type: string
+        operator:
+          description: eq for customer; in or not_in for seller; gte or lt for subtotal
+          enum:
+            - eq
+            - in
+            - not_in
+            - gte
+            - lt
+          type: string
+        values:
+          description: new or returning for customer; seller identifiers; one amount in VND for subtotal
+          items:
+            type: string
+          maxItems: 200
+          minItems: 1
+          type: array
+      required:
+        - attribute
+        - operator
+        - values
+      type: object
+    PromotionCountsBody:
+      additionalProperties: false
+      properties:
+        ended:
+          format: int64
+          type: integer
+        paused:
+          format: int64
+          type: integer
+        running:
+          format: int64
+          type: integer
+        scheduled:
+          format: int64
+          type: integer
+      required:
+        - running
+        - scheduled
+        - paused
+        - ended
+      type: object
+    PromotionInputBody:
+      additionalProperties: false
+      properties:
+        allSellers:
+          description: Runs for every seller; otherwise for sellerIds
+          type: boolean
+        budgetVnd:
+          description: Bounds the discounts of its orders still to collect and handed over
+          format: int64
+          maximum: 10000000000
+          minimum: 1
+          type: integer
+        enabled:
+          description: false pauses it
+          type: boolean
+        endsAt:
+          description: After startsAt
+          format: date-time
+          type: string
+        name:
+          maxLength: 80
+          minLength: 1
+          type: string
+        perPhonePerDay:
+          description: Discounts one phone number takes in a day, Vietnam time; 0 for no limit
+          format: int64
+          maximum: 100
+          minimum: 0
+          type: integer
+        rules:
+          description: Each an alternative; an order takes the one taking the most off
+          items:
+            $ref: "#/components/schemas/PromotionRuleBody"
+          maxItems: 10
+          minItems: 1
+          type: array
+        sellerIds:
+          items:
+            type: string
+          maxItems: 200
+          type: array
+        startsAt:
+          format: date-time
+          type: string
+      required:
+        - name
+        - startsAt
+        - endsAt
+        - allSellers
+        - budgetVnd
+        - perPhonePerDay
+        - enabled
+        - rules
+      type: object
+    PromotionRewardBody:
+      additionalProperties: false
+      properties:
+        maxVnd:
+          description: The most a percentage takes off, in VND; required with a percentage
+          format: int64
+          type: integer
+        type:
+          enum:
+            - fixed
+            - percentage
+          type: string
+        value:
+          description: VND for fixed, 1 to 100 for percentage
+          format: int64
+          minimum: 1
+          type: integer
+      required:
+        - type
+        - value
+      type: object
+    PromotionRuleBody:
+      additionalProperties: false
+      properties:
+        conditions:
+          description: All must hold; none means every order
+          items:
+            $ref: "#/components/schemas/PromotionConditionBody"
+          maxItems: 5
+          type: array
+        name:
+          maxLength: 60
+          minLength: 1
+          type: string
+        reward:
+          $ref: "#/components/schemas/PromotionRewardBody"
+          description: Taken off the order's dishes, never more than they cost
+      required:
+        - name
+        - conditions
+        - reward
+      type: object
+    PromotionUseBody:
+      additionalProperties: false
+      properties:
+        heldVnd:
+          description: Discounts of the orders still to collect; given back when they are cancelled, refused or expire
+          format: int64
+          type: integer
+        leftVnd:
+          description: budgetVnd less spentVnd and heldVnd
+          format: int64
+          type: integer
+        newCustomers:
+          description: Of those, the orders of a new customer
+          format: int64
+          type: integer
+        orders:
+          description: Orders still to collect or handed over that took a discount
+          format: int64
+          type: integer
+        sellers:
+          description: Sellers whose orders took a discount
+          format: int64
+          type: integer
+        spentVnd:
+          description: Discounts of the orders handed over
+          format: int64
+          type: integer
+      required:
+        - spentVnd
+        - heldVnd
+        - leftVnd
+        - orders
+        - newCustomers
+        - sellers
       type: object
     PushKeyOutputBody:
       additionalProperties: false
@@ -2291,6 +2660,39 @@ components:
       required:
         - customer
         - admin
+      type: object
+    RunningPromotionBody:
+      additionalProperties: false
+      properties:
+        allSellers:
+          type: boolean
+        endsAt:
+          format: date-time
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        perPhonePerDay:
+          description: 0 for no limit
+          format: int64
+          type: integer
+        rules:
+          items:
+            $ref: "#/components/schemas/PromotionRuleBody"
+          type: array
+        sellerIds:
+          items:
+            type: string
+          type: array
+      required:
+        - id
+        - name
+        - endsAt
+        - allSellers
+        - sellerIds
+        - perPhonePerDay
+        - rules
       type: object
     SaveEmailSettingsInputBody:
       additionalProperties: false
@@ -3116,6 +3518,9 @@ paths:
                 - seller.change_owner
                 - review.hide
                 - review.show
+                - promotion.create
+                - promotion.change
+                - seller.mark_payout
               type: string
             type:
               - array
@@ -3554,6 +3959,239 @@ paths:
         - bearer: []
         - cookie: []
       summary: Every seller's orders by status, words, seller and day collected, the latest window first
+      tags:
+        - Admin
+  /admin/promotion-payouts:
+    get:
+      description: The discounts of each seller's orders handed over in the week, Monday to Sunday in Vietnam time.
+      operationId: listPayouts
+      parameters:
+        - description: The week's Monday
+          explode: false
+          in: query
+          name: weekStart
+          required: true
+          schema:
+            description: The week's Monday
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: Only this promotion's discounts
+          explode: false
+          in: query
+          name: promotionId
+          schema:
+            description: Only this promotion's discounts
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListPayoutsResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: What Second Bite owes each seller for a week's discounts, the most owed first
+      tags:
+        - Admin
+  /admin/promotion-payouts/{sellerId}/{weekStart}/paid:
+    post:
+      description: The amount owed now is kept. A week is marked once.
+      operationId: markPayoutPaid
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+        - description: The week's Monday
+          in: path
+          name: weekStart
+          required: true
+          schema:
+            description: The week's Monday
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayoutBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Mark a seller's week of discounts as paid back to it; recorded in the audit
+      tags:
+        - Admin
+  /admin/promotions:
+    get:
+      description: counts holds the promotions of each status matching the other filters. A page past the end is empty.
+      operationId: listPromotions
+      parameters:
+        - explode: false
+          in: query
+          name: status
+          schema:
+            enum:
+              - running
+              - scheduled
+              - paused
+              - ended
+            type: string
+        - description: Words of the name
+          explode: false
+          in: query
+          name: q
+          schema:
+            description: Words of the name
+            maxLength: 100
+            type: string
+        - description: Keep the promotions that apply to this seller
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep the promotions that apply to this seller
+            type: string
+        - explode: false
+          in: query
+          name: page
+          schema:
+            default: 1
+            format: int64
+            maximum: 10000
+            minimum: 1
+            type: integer
+        - explode: false
+          in: query
+          name: size
+          schema:
+            default: 25
+            format: int64
+            maximum: 100
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListPromotionsResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The promotions by status, name and seller, the latest start first, with what each spent
+      tags:
+        - Admin
+    post:
+      operationId: createPromotion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromotionInputBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromotionBody"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Set up a promotion; recorded in the audit
+      tags:
+        - Admin
+  /admin/promotions/{promotionId}:
+    get:
+      operationId: getPromotion
+      parameters:
+        - in: path
+          name: promotionId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromotionBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: A promotion with what it spent
+      tags:
+        - Admin
+    put:
+      description: The orders placed before keep the discount they took.
+      operationId: changePromotion
+      parameters:
+        - in: path
+          name: promotionId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromotionInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromotionBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Replace a promotion; recorded in the audit with what changed
       tags:
         - Admin
   /admin/reports:
@@ -5323,6 +5961,43 @@ paths:
       summary: The address at the point a customer's browser gave, to name the place dishes are shown around; signed in or not, empty when it is not known
       tags:
         - Places
+  /promotions/running:
+    get:
+      description: What a cart may take off, signed in or not. What one phone number gets is never told before the order is placed; the order says the discount it took.
+      operationId: listRunningPromotions
+      parameters:
+        - description: The sellers of the cart
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: The sellers of the cart
+            items:
+              type: string
+            maxItems: 20
+            type:
+              - array
+              - "null"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListRunningPromotionsResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: The promotions running now for any of some sellers, soonest to end first
+      tags:
+        - Promotions
   /push/key:
     get:
       description: 503 NOTIFICATION_PUSH_NOT_CONFIGURED while Web Push is off; the page then offers no notifications.

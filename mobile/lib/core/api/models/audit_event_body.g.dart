@@ -51,6 +51,9 @@ const _$AuditEventBodyActionEnumMap = {
   AuditEventBodyAction.undefined10: 'seller.change_owner',
   AuditEventBodyAction.undefined11: 'review.hide',
   AuditEventBodyAction.undefined12: 'review.show',
+  AuditEventBodyAction.undefined13: 'promotion.create',
+  AuditEventBodyAction.undefined14: 'promotion.change',
+  AuditEventBodyAction.undefined15: 'seller.mark_payout',
   AuditEventBodyAction.$unknown: r'$unknown',
 };
 
@@ -60,5 +63,6 @@ const _$AuditEventBodyResourceTypeEnumMap = {
   AuditEventBodyResourceType.order: 'order',
   AuditEventBodyResourceType.offerSettings: 'offer_settings',
   AuditEventBodyResourceType.emailSettings: 'email_settings',
+  AuditEventBodyResourceType.promotion: 'promotion',
   AuditEventBodyResourceType.$unknown: r'$unknown',
 };
