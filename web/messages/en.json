@@ -829,17 +829,21 @@
       "active": "Open",
       "pending": "Awaiting approval",
       "rejected": "Rejected",
-      "blocked": "Blocked"
+      "blocked": "Blocked",
+      "deleted": "Deleted"
     },
     "statusTitle": {
       "pending": "Your store is awaiting approval",
       "rejected": "Your store was not approved",
-      "blocked": "Your store is blocked"
+      "blocked": "Your store is blocked",
+      "deleted": "The store is deleted",
+      "deleting": "The store is being deleted"
     },
     "statusBody": {
       "pending": "An admin will look at it soon. Meanwhile you can still add dishes to the catalog.",
       "rejected": "Contact an admin to learn more.",
-      "blocked": "It cannot post until it is opened again."
+      "blocked": "It cannot post until it is opened again.",
+      "deleted": "Contact an admin to learn more."
     }
   },
   "StorePosts": {
@@ -1211,6 +1215,8 @@
         "sellerReject": "Store rejected",
         "sellerBlock": "Store blocked",
         "sellerUnblock": "Store unblocked",
+        "sellerDelete": "Delete store",
+        "sellerRestore": "Restore store",
         "adminGrant": "Admin granted",
         "adminRevoke": "Admin revoked",
         "offerSettingsChange": "Post settings changed",
@@ -1481,12 +1487,15 @@
       "anyArea": "All",
       "changed": "Changed",
       "anytime": "Any time",
+      "deletedFilter": "Deleted · {count}",
       "cards": "Filter by status",
       "status": {
         "active": "Active",
         "pending": "Pending",
         "rejected": "Rejected",
-        "blocked": "Blocked"
+        "blocked": "Blocked",
+        "deleted": "Deleted",
+        "deleting": "Waiting to be deleted"
       },
       "column": {
         "store": "Store",
@@ -1509,6 +1518,8 @@
         "unblock": "Unblock",
         "approve": "Approve",
         "reject": "Reject",
+        "delete": "Delete store",
+        "restore": "Restore",
         "view": "View details"
       },
       "block": {
@@ -1527,6 +1538,20 @@
         "title": "Unblock {name}?",
         "confirm": "Unblock",
         "done": "{name} is unblocked"
+      },
+      "delete": {
+        "title": "Delete {name}?",
+        "about": "What deleting a store does",
+        "body": "The store is blocked at once: customers no longer see it and cannot order. The orders still to collect are handed over as usual; once they are done, the store is deleted. You can restore it.",
+        "reason": "Reason for deleting",
+        "confirm": "Delete store",
+        "done": "{name} is deleted. It goes once its remaining orders are done."
+      },
+      "restore": {
+        "title": "Restore {name}?",
+        "body": "The store comes back blocked. Unblock it to let it sell again.",
+        "confirm": "Restore",
+        "done": "{name} is restored"
       },
       "approve": {
         "title": "Approve {name}?",

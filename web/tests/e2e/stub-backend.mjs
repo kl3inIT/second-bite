@@ -2283,10 +2283,32 @@ function adminStoresOf(account) {
   return adminStores.get(account.email);
 }
 
-const storeStatuses = ["pending", "active", "rejected", "blocked"];
+const storeStatuses = ["pending", "active", "rejected", "blocked", "deleted"];
+
+/**
+ * How long a store deleted here waits for its orders before it is deleted: the server waits until none is left to
+ * finish (order.finish_seller_deletions), which the stub, holding no orders of these stores, plays as a minute.
+ */
+const DELETION_WAIT_MS = 60 * 1000;
+
+/** Deletes the stores whose wait is over, as the server's job does each minute. */
+function finishDeletions(stores) {
+  for (const store of stores) {
+    if (
+      store.deletionRequestedAt &&
+      Date.now() - Date.parse(store.deletionRequestedAt) >= DELETION_WAIT_MS
+    ) {
+      store.status = "deleted";
+      store.statusChangedAt = new Date().toISOString();
+      store.updatedAt = store.statusChangedAt;
+      delete store.deletionRequestedAt;
+    }
+  }
+}
 
 /** GET /admin/sellers, filtered, sorted and paged as server/internal/seller/queries.sql does. */
 function listAdminStores(response, url, stores) {
+  finishDeletions(stores);
   const statuses = url.searchParams
     .getAll("status")
     .flatMap((s) => s.split(","))
@@ -2317,7 +2339,10 @@ function listAdminStores(response, url, stores) {
   const counts = Object.fromEntries(
     storeStatuses.map((status) => [status, found.filter((s) => s.status === status).length]),
   );
-  const listed = found.filter((s) => statuses.length === 0 || statuses.includes(s.status));
+  // Asking no status lists every store but the deleted ones.
+  const listed = found.filter((s) =>
+    statuses.length === 0 ? s.status !== "deleted" : statuses.includes(s.status),
+  );
   const key = { name: (s) => s.name, address: (s) => s.address, changed: (s) => s.updatedAt };
   if (sort) {
     const by = key[sort.replace("-", "")];
@@ -2356,6 +2381,7 @@ function storeDays(stores) {
       active: Math.max(0, now.active - Math.floor(back / 2)),
       rejected: now.rejected,
       blocked: back > 8 ? Math.max(0, now.blocked - 1) : now.blocked,
+      deleted: now.deleted,
     };
   });
 }
@@ -2660,14 +2686,29 @@ async function changeAdminOwner(request, response, stores, id) {
   json(response, 200, { members });
 }
 
-/** POST /admin/sellers/{id}/approve | reject | block, each from the statuses it applies to. */
+/**
+ * POST /admin/sellers/{id}/approve | reject | block | delete | restore, each from the statuses it applies to. A
+ * deleted store is blocked and waits (deletionRequestedAt); restoring it, then or once deleted, leaves it blocked.
+ */
 async function changeAdminStore(request, response, stores, id, action) {
   const store = stores.find((s) => s.id === id);
   if (!store) return problem(response, 404, "SELLER_NOT_FOUND");
+  finishDeletions(stores);
+  if (action === "restore") {
+    if (store.status !== "deleted" && !store.deletionRequestedAt)
+      return problem(response, 409, "SELLER_STATUS_CHANGE_NOT_ALLOWED");
+    store.status = "blocked";
+    store.statusChangedAt = new Date().toISOString();
+    store.updatedAt = store.statusChangedAt;
+    delete store.deletionRequestedAt;
+    const { ownerEmail: _owner, ...seller } = store;
+    return json(response, 200, seller);
+  }
   const from = {
     approve: ["pending", "rejected", "blocked"],
     reject: ["pending"],
     block: ["active"],
+    delete: ["pending", "active", "rejected", "blocked"],
   };
   let reason;
   if (action !== "approve") {
@@ -2675,10 +2716,12 @@ async function changeAdminStore(request, response, stores, id, action) {
     if (reason.length < 10 || reason.length > 500)
       return problem(response, 400, "SELLER_REASON_INVALID");
   }
-  if (!from[action].includes(store.status))
+  if (!from[action].includes(store.status) || (action === "delete" && store.deletionRequestedAt))
     return problem(response, 409, "SELLER_STATUS_CHANGE_NOT_ALLOWED");
   const now = new Date().toISOString();
   store.status = action === "approve" ? "active" : action === "reject" ? "rejected" : "blocked";
+  if (action === "delete") store.deletionRequestedAt = now;
+  else delete store.deletionRequestedAt;
   store.statusChangedAt = now;
   store.updatedAt = now;
   if (reason) store.statusReason = reason;
@@ -2912,7 +2955,9 @@ async function adminRoutes(request, response, url) {
     await changeAdminOwner(request, response, adminStoresOf(account), ownerChange[1]);
     return true;
   }
-  const storeAction = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block)$/.exec(url.pathname);
+  const storeAction = /^\/admin\/sellers\/([\w-]+)\/(approve|reject|block|delete|restore)$/.exec(
+    url.pathname,
+  );
   if (request.method === "POST" && storeAction) {
     await changeAdminStore(
       request,

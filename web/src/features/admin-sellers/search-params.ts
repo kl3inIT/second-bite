@@ -20,6 +20,12 @@ export const cardStatuses = [
   "blocked",
 ] as const satisfies readonly SellerStatus[];
 
+/**
+ * The statuses the list filters by: a card's, or the deleted stores, which the server leaves out of a list that
+ * asks no status, so a button beside the filters asks for them.
+ */
+const listedStatuses = [...cardStatuses, "deleted"] as const satisfies readonly SellerStatus[];
+
 /** The columns the list sorts by, as the API names them; a leading '-' is descending. */
 export const sellerSortColumns = ["name", "address", "changed"] as const;
 export type SellerSortColumn = (typeof sellerSortColumns)[number];
@@ -35,7 +41,7 @@ export const sellerPageSizes = [10, 25, 50] as const;
  * as Figma AD-Q1 draws it.
  */
 export const sellerSearchParams = {
-  status: parseAsStringLiteral(cardStatuses),
+  status: parseAsStringLiteral(listedStatuses),
   q: parseAsString.withDefault(""),
   province: parseAsInteger,
   from: parseAsIsoDate,

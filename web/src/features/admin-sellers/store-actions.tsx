@@ -6,7 +6,10 @@ import {
   CircleXIcon,
   EllipsisIcon,
   EyeIcon,
+  InfoIcon,
   RotateCcwIcon,
+  Trash2Icon,
+  UndoIcon,
   type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -22,6 +25,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -46,34 +50,49 @@ import {
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/toast";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError, failureOf } from "@/lib/api/client";
 import {
   approveSeller,
   blockSeller,
+  deleteSeller,
   rejectSeller,
+  restoreSeller,
   type AdminSellerBody,
 } from "@/lib/api/generated";
 
-type Action = "block" | "reject" | "unblock" | "approve";
+type Action = "block" | "reject" | "unblock" | "approve" | "delete" | "restore";
 
 /** What the actions need of a store: the list's row and the store's page both give it. */
-type Store = Pick<AdminSellerBody, "id" | "name" | "status">;
+type Store = Pick<AdminSellerBody, "id" | "name" | "status" | "deletionRequestedAt">;
 
-/** What a status allows (SEC-75 › A store's states): the server refuses the rest with a 409. */
+/**
+ * What a status allows (SEC-75 › A store's states): the server refuses the rest with a 409. Any store but a deleted
+ * one is deleted softly; a store waiting for its orders before it is deleted, or deleted, is restored, blocked.
+ */
 const actionsFor: Record<AdminSellerBody["status"], Action[]> = {
-  active: ["block"],
-  blocked: ["unblock"],
-  pending: ["approve", "reject"],
-  rejected: ["approve"],
+  active: ["block", "delete"],
+  blocked: ["unblock", "delete"],
+  pending: ["approve", "reject", "delete"],
+  rejected: ["approve", "delete"],
+  deleted: ["restore"],
 };
+
+function actionsOf(seller: Store): Action[] {
+  return seller.deletionRequestedAt === undefined ? actionsFor[seller.status] : ["restore"];
+}
+
+const destructive = new Set<Action>(["block", "reject", "delete"]);
 
 const actionIcon: Record<Action, LucideIcon> = {
   block: BanIcon,
   reject: CircleXIcon,
   unblock: RotateCcwIcon,
   approve: CircleCheckIcon,
+  delete: Trash2Icon,
+  restore: UndoIcon,
 };
 
 /**
@@ -109,12 +128,12 @@ export function StoreActions({ seller, onPage = false }: { seller: Store; onPage
             </>
           )}
           <DropdownMenuGroup>
-            {actionsFor[seller.status].map((action) => {
+            {actionsOf(seller).map((action) => {
               const Icon = actionIcon[action];
               return (
                 <DropdownMenuItem
                   key={action}
-                  variant={action === "block" || action === "reject" ? "destructive" : "default"}
+                  variant={destructive.has(action) ? "destructive" : "default"}
                   onClick={() => setOpen(action)}
                 >
                   <Icon aria-hidden />
@@ -127,6 +146,7 @@ export function StoreActions({ seller, onPage = false }: { seller: Store; onPage
       </DropdownMenu>
       <ReasonDialog action="block" seller={seller} open={open === "block"} onOpenChange={close} />
       <ReasonDialog action="reject" seller={seller} open={open === "reject"} onOpenChange={close} />
+      <ReasonDialog action="delete" seller={seller} open={open === "delete"} onOpenChange={close} />
       <ConfirmDialog
         action="unblock"
         seller={seller}
@@ -137,6 +157,12 @@ export function StoreActions({ seller, onPage = false }: { seller: Store; onPage
         action="approve"
         seller={seller}
         open={open === "approve"}
+        onOpenChange={close}
+      />
+      <ConfirmDialog
+        action="restore"
+        seller={seller}
+        open={open === "restore"}
         onOpenChange={close}
       />
     </>
@@ -174,7 +200,7 @@ function ReasonDialog({
   open,
   onOpenChange,
 }: {
-  action: "block" | "reject";
+  action: "block" | "reject" | "delete";
   seller: Store;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -188,14 +214,15 @@ function ReasonDialog({
   );
 }
 
-// Blocking and rejecting ask the owner a reason (docs/guidelines/web.md › Forms), under the server's rule. A reason
-// the server refuses stays at its field; any other failure is said in a toast, and the dialog closes.
+// Blocking, rejecting and deleting ask the owner a reason (docs/guidelines/web.md › Forms), under the server's rule.
+// A reason the server refuses stays at its field; any other failure is said in a toast, and the dialog closes.
+// Deleting says first what becomes of the store's orders.
 function ReasonForm({
   action,
   seller,
   onDone,
 }: {
-  action: "block" | "reject";
+  action: "block" | "reject" | "delete";
   seller: Store;
   onDone: () => void;
 }) {
@@ -223,6 +250,7 @@ function ReasonForm({
       const body = { reason: value.reason.trim() };
       try {
         if (action === "block") await blockSeller({ path, body });
+        else if (action === "delete") await deleteSeller({ path, body });
         else await rejectSeller({ path, body });
       } catch (error) {
         if (error instanceof ApiError && error.code === "SELLER_REASON_INVALID") {
@@ -249,7 +277,10 @@ function ReasonForm({
       }}
     >
       <DialogHeader>
-        <DialogTitle>{t(`${action}.title`, { name: seller.name })}</DialogTitle>
+        <div className="flex items-center gap-1">
+          <DialogTitle>{t(`${action}.title`, { name: seller.name })}</DialogTitle>
+          {action === "delete" && <DeleteHint />}
+        </div>
       </DialogHeader>
       <form.AppField name="reason">
         {() => <ReasonField label={t(`${action}.reason`)} />}
@@ -280,6 +311,21 @@ function ReasonForm({
         </DialogFooter>
       </form.AppForm>
     </form>
+  );
+}
+
+/** What becomes of a store deleted and its orders, behind an icon beside the dialog's title. */
+function DeleteHint() {
+  const t = useTranslations("Admin.sellers.delete");
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={<Button type="button" variant="ghost" size="icon-sm" aria-label={t("about")} />}
+      >
+        <InfoIcon aria-hidden />
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs">{t("body")}</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -320,7 +366,7 @@ function ConfirmDialog({
   open,
   onOpenChange,
 }: {
-  action: "unblock" | "approve";
+  action: "unblock" | "approve" | "restore";
   seller: Store;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -329,11 +375,13 @@ function ConfirmDialog({
   const { succeeded, failed } = useStoreAction(seller, action);
   const [busy, startTransition] = useTransition();
 
-  // Unblocking sets the store active again, as approving does.
+  // Unblocking sets the store active again, as approving does; restoring leaves it blocked.
   const run = () =>
     startTransition(async () => {
       try {
-        await approveSeller({ path: { sellerId: seller.id } });
+        const path = { sellerId: seller.id };
+        if (action === "restore") await restoreSeller({ path });
+        else await approveSeller({ path });
         succeeded();
       } catch (error) {
         failed(error);
@@ -346,6 +394,9 @@ function ConfirmDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{t(`${action}.title`, { name: seller.name })}</AlertDialogTitle>
+          {action === "restore" && (
+            <AlertDialogDescription>{t("restore.body")}</AlertDialogDescription>
+          )}
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>

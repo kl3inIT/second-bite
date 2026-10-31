@@ -140,6 +140,33 @@ test.describe("the admin's stores", () => {
     await expect(table.getByText("Đang hoạt động")).toBeVisible();
   });
 
+  // A store deleted waits for its orders, blocked, and comes back blocked when restored.
+  test("deletes a store softly, then restores it blocked", async ({ page }) => {
+    await page.goto("/vi/admin/sellers?q=La%20Paris");
+    const table = page.getByRole("table", { name: "Cửa hàng" });
+
+    await (await hydrated(page.getByRole("button", { name: "Thao tác với La Paris" }))).click();
+    await page.getByRole("menuitem", { name: "Xóa cửa hàng" }).click();
+    const dialog = page.getByRole("dialog", { name: "Xóa cửa hàng La Paris?" });
+    await expect(
+      dialog.getByRole("button", { name: "Điều gì xảy ra khi xóa cửa hàng" }),
+    ).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await dialog.getByLabel("Lý do xóa").fill("Quán dừng hợp tác với Second Bite.");
+    await dialog.getByRole("button", { name: "Xóa cửa hàng" }).click();
+    await expect(page.getByText(/Đã xóa La Paris/)).toBeVisible();
+    await expect(table.getByText("Chờ xóa")).toBeVisible();
+
+    await page.getByRole("button", { name: "Thao tác với La Paris" }).click();
+    await expect(page.getByRole("menuitem", { name: "Gỡ chặn" })).toHaveCount(0);
+    await page.getByRole("menuitem", { name: "Khôi phục" }).click();
+    const confirm = page.getByRole("alertdialog", { name: "Khôi phục cửa hàng La Paris?" });
+    await confirm.getByRole("button", { name: "Khôi phục" }).click();
+    await expect(page.getByText("Đã khôi phục La Paris")).toBeVisible();
+    await expect(table.getByText("Bị chặn")).toBeVisible();
+  });
+
   test("a store's page shows its posts and members, and blocks it as Figma AD-Q3 to AD-Q4", async ({
     page,
   }) => {
