@@ -28,7 +28,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/in
 import { RadioGroup } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "@/i18n/navigation";
-import { searchCustomerPlaces, type PlaceBody } from "@/lib/api/generated";
+import { customerAddressAt, searchCustomerPlaces, type PlaceBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
 
 import { homePath, type HomeQuery } from "./home-query";
@@ -40,6 +40,8 @@ type Area = "all" | "mall";
 const POINT_DECIMALS = 3;
 const LOCATION_TIMEOUT_MS = 10_000;
 const LOCATION_MAX_AGE_MS = 5 * 60_000;
+/** How long the address of the person's place is waited for before the place is shown without it. */
+const ADDRESS_TIMEOUT_MS = 4_000;
 
 /** A point as `near` takes it. */
 function nearOf(latitude: number, longitude: number): string {
@@ -48,15 +50,25 @@ function nearOf(latitude: number, longitude: number): string {
 
 const MALL_NEAR = nearOf(TASCO_MALL.latitude, TASCO_MALL.longitude);
 
-/** A suggested place's name, the first part of its address, over the rest. */
-function partsOf(place: PlaceBody): { name: string; rest: string } {
-  const [name = place.address, ...rest] = place.address.split(",").map((part) => part.trim());
+/** An address's first part, "Phố Hoa Lâm" of "Phố Hoa Lâm, Phường Việt Hưng, Hà Nội", over the rest. */
+function partsOfAddress(address: string): { name: string; rest: string } {
+  const [name = address, ...rest] = address.split(",").map((part) => part.trim());
   return { name, rest: rest.join(", ") };
+}
+
+/** The name a place is shown under: its address's first part. */
+function nameOf(address: string): string {
+  return partsOfAddress(address).name;
+}
+
+/** A suggested place's name over the rest of its address. */
+function partsOf(place: PlaceBody): { name: string; rest: string } {
+  return partsOfAddress(place.address);
 }
 
 // Where to look for dishes (Figma K1a "Xem món ở đâu?", redrawn for the customer place increment): a place typed,
 // its suggestions chosen with one tap; "Gần tôi", which only then asks the browser for the person's place (K1c is the
-// phone's own prompt), as web.dev and Apple ask; then every shop, the default, or Tasco Mall as a suggestion. A
+// phone's own prompt), as web.dev and Apple ask, and names it by its street; then every shop, the default, or Tasco Mall as a suggestion. A
 // place becomes `near` and `place` in the address, beside the filters in `keep`, and is kept for the next visit
 // (`remembered-place.ts`); the whole place on the header opens it.
 export function AreaSheet({
@@ -111,8 +123,20 @@ export function AreaSheet({
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setLocating(false);
-        void show({ ...keep, near: nearOf(coords.latitude, coords.longitude) });
+        const near = nearOf(coords.latitude, coords.longitude);
+        const [latitude, longitude] = near.split(",").map(Number);
+        // The street the rounded point is on names the place, as Grab and ShopeeFood show where you are; without
+        // an answer in time the place is still shown, as "Vị trí của tôi".
+        void customerAddressAt({
+          query: { latitude, longitude },
+          signal: AbortSignal.timeout(ADDRESS_TIMEOUT_MS),
+        })
+          .then(({ data }) => (data.address ? nameOf(data.address) : undefined))
+          .catch(() => undefined)
+          .then((place) => {
+            setLocating(false);
+            return show({ ...keep, near, place });
+          });
       },
       (error) => {
         setLocating(false);

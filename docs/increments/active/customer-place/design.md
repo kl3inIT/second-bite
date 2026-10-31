@@ -7,7 +7,7 @@ Status: started on 31 October 2026, decided with the team the same day. Stores o
 Until a customer chooses a place, the home shows **every shop**, the windows closing first, as it already does; nothing asks for the device's location when the page opens (web.dev, Apple; foodsharing, Karrot and Open Food Network do not either). The area sheet offers three ways to choose a place:
 
 1. **A typed place** at the top: an address or the name of an area, answered with up to five places in Hanoi, one tap choosing one, for people who block location or want to look around where they work (web.dev; Too Good To Go, foodsharing, Karrot, Open Food Network).
-2. **Gần tôi** just under it, which only then asks the browser and shows the place at once, as Grab's and ShopeeFood's address pickers put "use my location" under the field (decided on 31 October 2026, over the earlier "Dùng vị trí của tôi" among the radio choices).
+2. **Gần tôi** just under it, which only then asks the browser and shows the place at once, named by the street of its rounded point (`GET /places/at`, Nominatim) or "Vị trí của tôi" when that is not known within four seconds, as Grab's and ShopeeFood's address pickers put "use my location" under the field (decided on 31 October 2026, over the earlier "Dùng vị trí của tôi" among the radio choices).
 3. **Tất cả quán**, the default, or **Tasco Mall** as a suggested place, chosen and then shown with "Xem món".
 
 A chosen place lists the offers within the search radius around it, nearest first, under "Quanh <place>". The browser remembers it, so the next visit opens on it; "Tất cả quán" forgets it.

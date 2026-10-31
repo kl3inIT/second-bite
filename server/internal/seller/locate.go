@@ -146,13 +146,25 @@ func (s *Service) AddressAt(ctx context.Context, latitude, longitude float64) (s
 		return "", err
 	}
 
+	return s.addressCounted(ctx, latitude, longitude, func() error { return s.lookups.Take(caller.AccountID.String()) })
+}
+
+// AddressForCustomer is the address at the point a customer's browser gave for "Gần tôi", to name the place the
+// home shows, signed in or not: it counts against the client address's place searches, an address already kept
+// costing none.
+func (s *Service) AddressForCustomer(ctx context.Context, latitude, longitude float64) (string, error) {
+	return s.addressCounted(ctx, latitude, longitude, func() error { return s.placesByAddress.TakeFor(ctx) })
+}
+
+// addressCounted answers from the kept addresses, or counts the lookup with take before asking the geocoder.
+func (s *Service) addressCounted(ctx context.Context, latitude, longitude float64, take func() error) (string, error) {
 	// About a metre apart is the same point.
 	key := strconv.FormatFloat(latitude, 'f', 5, 64) + "," + strconv.FormatFloat(longitude, 'f', 5, 64)
 	if address, ok := s.addresses.get(key); ok {
 		return address, nil
 	}
 
-	if err := s.lookups.Take(caller.AccountID.String()); err != nil {
+	if err := take(); err != nil {
 		return "", err
 	}
 

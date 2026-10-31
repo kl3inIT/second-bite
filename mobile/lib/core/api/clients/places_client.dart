@@ -5,6 +5,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../models/address_output_body.dart';
 import '../models/places_output_body.dart';
 
 part 'places_client.g.dart';
@@ -19,5 +20,12 @@ abstract class PlacesClient {
   @GET('/places')
   Future<PlacesOutputBody> searchCustomerPlaces({
     @Query('q') required String q,
+  });
+
+  /// The address at the point a customer's browser gave, to name the place dishes are shown around; signed in or not, empty when it is not known
+  @GET('/places/at')
+  Future<AddressOutputBody> customerAddressAt({
+    @Query('latitude') required double latitude,
+    @Query('longitude') required double longitude,
   });
 }

@@ -3205,6 +3205,34 @@ export type SearchCustomerPlacesResponses = {
 
 export type SearchCustomerPlacesResponse = SearchCustomerPlacesResponses[keyof SearchCustomerPlacesResponses];
 
+export type CustomerAddressAtData = {
+    body?: never;
+    path?: never;
+    query: {
+        latitude: number;
+        longitude: number;
+    };
+    url: '/places/at';
+};
+
+export type CustomerAddressAtErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type CustomerAddressAtError = CustomerAddressAtErrors[keyof CustomerAddressAtErrors];
+
+export type CustomerAddressAtResponses = {
+    /**
+     * OK
+     */
+    200: AddressOutputBody;
+};
+
+export type CustomerAddressAtResponse = CustomerAddressAtResponses[keyof CustomerAddressAtResponses];
+
 export type GetPushKeyData = {
     body?: never;
     path?: never;

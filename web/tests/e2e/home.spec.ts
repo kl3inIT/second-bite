@@ -187,9 +187,10 @@ test.describe("the customer home", () => {
     await expectNoSeriousA11yViolations(page);
     await page.getByRole("button", { name: /^Gần tôi/ }).click();
 
-    await expect(page).toHaveURL(/\/vi\?near=21\.057,105\.897$/);
+    // The place is named by the street its point is on.
+    await expect(page).toHaveURL(/\/vi\?near=21\.057,105\.897&place=/);
     await expect(
-      page.getByRole("heading", { level: 1, name: "Tối nay quanh Vị trí của tôi" }),
+      page.getByRole("heading", { level: 1, name: "Tối nay quanh Phố Hoa Lâm" }),
     ).toBeVisible();
     await expect(page.getByRole("region", { name: "Món ngon tối nay" })).toBeHidden();
     const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
@@ -224,7 +225,7 @@ test.describe("the customer home", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Tối nay quanh Phường Việt Hưng" }),
     ).toBeVisible();
-    await expect(page.getByText("Các quán gần đó")).toBeVisible();
+    await expect(page.getByText("Các quán quanh đây")).toBeVisible();
     const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
     await expect(all.getByText(/^21:00–21:45 · \d+ m$/).first()).toBeVisible();
 

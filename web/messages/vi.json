@@ -35,7 +35,7 @@
     "titleNearby": "<hidden>Tối nay quanh </hidden>Vị trí của tôi",
     "areaNearby": "Các quán gần bạn",
     "titlePlace": "<hidden>Tối nay quanh </hidden>{place}",
-    "areaPlace": "Các quán gần đó",
+    "areaPlace": "Các quán quanh đây",
     "nearbyEmpty": "Chưa có món nào quanh đây",
     "nearbyEmptyHint": "Quán gần bạn thường đăng món còn lại từ 18:00. Theo dõi món sắp có bên dưới, hoặc xem tất cả quán.",
     "seeEverywhere": "Xem món ở tất cả quán",
