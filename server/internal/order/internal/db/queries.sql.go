@@ -1671,6 +1671,23 @@ func (q *Queries) ReviewsOfSeller(ctx context.Context, arg ReviewsOfSellerParams
 	return items, nil
 }
 
+const sellerHasOrdersToFinish = `-- name: SellerHasOrdersToFinish :one
+SELECT EXISTS (
+    SELECT 1 FROM order_orders
+    WHERE seller_id = $1 AND state IN ('confirmed', 'ready', 'collected', 'refused') AND window_end > now()
+)
+`
+
+// Whether the seller may still hand over an order or open one again: one still
+// to collect, handed over or refused, whose window is not over. An order whose
+// window is over is expired as reads read it, and none can be reopened.
+func (q *Queries) SellerHasOrdersToFinish(ctx context.Context, sellerID uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, sellerHasOrdersToFinish, sellerID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const sellerOrders = `-- name: SellerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,

@@ -46,6 +46,9 @@ func TestAdmin(t *testing.T) {
 	t.Run("the list counts each day", func(t *testing.T) { //nolint:paralleltest // see above
 		checkDays(t, pool, f)
 	})
+	t.Run("a seller is deleted softly and restored", func(t *testing.T) { //nolint:paralleltest // see above
+		checkDeletion(t, pool, f)
+	})
 }
 
 // checkChanged: a seller last changed on 10 January 2026 is kept by a range

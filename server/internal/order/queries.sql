@@ -429,3 +429,12 @@ SELECT EXISTS (SELECT 1 FROM order_problems WHERE order_id = @order_id);
 -- name: ProblemsOf :many
 SELECT order_id, kind, note, reported_at, answer, answered_at
 FROM order_problems WHERE order_id = ANY (@order_ids::uuid[]);
+
+-- name: SellerHasOrdersToFinish :one
+-- Whether the seller may still hand over an order or open one again: one still
+-- to collect, handed over or refused, whose window is not over. An order whose
+-- window is over is expired as reads read it, and none can be reopened.
+SELECT EXISTS (
+    SELECT 1 FROM order_orders
+    WHERE seller_id = @seller_id AND state IN ('confirmed', 'ready', 'collected', 'refused') AND window_end > now()
+);

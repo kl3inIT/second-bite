@@ -78,6 +78,7 @@ func TestOrder(t *testing.T) {
 		"pushes tell of time":                      testPushesTellOfTime,
 		"a problem is reported and answered":       testProblemReportedAndAnswered,
 		"a problem is reported within two days":    testProblemWithinTwoDays,
+		"a seller deleted waits for its orders":    testSellerDeletionWaitsForOrders,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
