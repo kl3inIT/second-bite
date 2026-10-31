@@ -271,7 +271,7 @@
       {
         "title": "2. Accounts",
         "paragraphs": [
-          "You can browse and search without an account. You sign in to order, to follow a shop, or to post for a shop.",
+          "You can browse, search and order without an account; when you order, you give the shop the name and phone number of whoever collects. You sign in to follow a shop or to post for a shop.",
           "Keep the mailbox and Google account you sign in with secure, and do not sign in for someone else."
         ]
       },
@@ -362,7 +362,7 @@
     "signOut": "Sign out",
     "title": "Account",
     "guestTitle": "You are not signed in",
-    "guestBody": "Sign in to order and follow your orders.",
+    "guestBody": "You can order without signing in, with just a name and a phone number. Sign in to keep your orders in your account and see them on another device.",
     "signedIn": "Signed in",
     "settings": "Account settings"
   },

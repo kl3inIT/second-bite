@@ -443,7 +443,7 @@ abstract class AppLocalizations {
   /// Section 2's paragraphs, one blank line apart, as the web's Terms.sections[1].paragraphs
   ///
   /// In vi, this message translates to:
-  /// **'Bạn xem và tìm món mà không cần tài khoản. Bạn cần đăng nhập để đặt món, theo dõi quán, hoặc đăng món cho một quán.\n\nHãy giữ an toàn hộp thư và tài khoản Google bạn dùng để đăng nhập, và không đăng nhập thay người khác.'**
+  /// **'Bạn xem, tìm và đặt món mà không cần tài khoản; khi đặt, bạn cho quán tên và số điện thoại của người đến lấy. Bạn cần đăng nhập để theo dõi quán hoặc đăng món cho một quán.\n\nHãy giữ an toàn hộp thư và tài khoản Google bạn dùng để đăng nhập, và không đăng nhập thay người khác.'**
   String get legalTermsSection2Body;
 
   /// Section 3's heading, as the web's Terms.sections[2].title

@@ -271,7 +271,7 @@
       {
         "title": "2. Tài khoản",
         "paragraphs": [
-          "Bạn xem và tìm món mà không cần tài khoản. Bạn cần đăng nhập để đặt món, theo dõi quán, hoặc đăng món cho một quán.",
+          "Bạn xem, tìm và đặt món mà không cần tài khoản; khi đặt, bạn cho quán tên và số điện thoại của người đến lấy. Bạn cần đăng nhập để theo dõi quán hoặc đăng món cho một quán.",
           "Hãy giữ an toàn hộp thư và tài khoản Google bạn dùng để đăng nhập, và không đăng nhập thay người khác."
         ]
       },
@@ -362,7 +362,7 @@
     "signOut": "Đăng xuất",
     "title": "Tài khoản",
     "guestTitle": "Bạn chưa đăng nhập",
-    "guestBody": "Đăng nhập để đặt món và theo dõi đơn.",
+    "guestBody": "Đặt món không cần đăng nhập, chỉ cần tên và số điện thoại. Đăng nhập để giữ đơn trong tài khoản và xem trên máy khác.",
     "signedIn": "Đã đăng nhập",
     "settings": "Cài đặt tài khoản"
   },
