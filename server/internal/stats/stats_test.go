@@ -93,7 +93,7 @@ func TestService(t *testing.T) {
 
 // newService is a service whose clock reads at.
 func newService(pool *pgxpool.Pool, at time.Time) *Service {
-	s := NewService(pool, nil, nil, nil, platformtest.Logger()) // views only
+	s := NewService(pool, nil, nil, nil, nil, platformtest.Logger()) // views only
 	s.now = func() time.Time { return at }
 
 	return s

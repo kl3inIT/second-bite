@@ -287,6 +287,14 @@ export type CountsBody = {
      */
     homeViews: number;
     /**
+     * Accounts created, the site's whatever store is chosen; none on a store's numbers
+     */
+    newAccounts: number;
+    /**
+     * Customers whose first order, by phone number, is collected then; the site's, as newAccounts
+     */
+    newCustomers: number;
+    /**
      * Offers posted for the day
      */
     offers: number;
@@ -1227,6 +1235,10 @@ export type ReportOrderProblemRequest = {
 };
 
 export type ReportOutputBody = {
+    /**
+     * The accounts there are at the end of the range
+     */
+    accounts: number;
     /**
      * Every day of the range, in order
      */

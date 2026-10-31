@@ -16,7 +16,7 @@ const bom = "\xEF\xBB\xBF"
 var csvHeader = []string{
 	"Ngày", "Cửa hàng", "Lượt mở trang", "Người mở", "Lượt vào từ QR", "Món đăng", "Phần đăng",
 	"Đơn giữ", "Phần giữ", "Đơn đã lấy", "Phần đã lấy", "Đơn huỷ", "Quán từ chối", "Khách không đến",
-	"Tỉ lệ lấy (%)", "Tiền thu tại quầy (đồng)",
+	"Tỉ lệ lấy (%)", "Tiền thu tại quầy (đồng)", "Tài khoản mới", "Khách đặt lần đầu",
 }
 
 const (
@@ -43,17 +43,17 @@ func reportCSV(r Report, oneStore bool) ([]byte, error) {
 		day := d.Day.Format(time.DateOnly)
 
 		if !oneStore {
-			rows = append(rows, csvRow(day, csvSite, d.Counts))
+			rows = append(rows, csvRow(day, csvSite, d.Counts, true))
 		}
 
 		for _, sd := range r.StoreDays {
 			if sd.Day.Equal(d.Day) {
-				rows = append(rows, csvRow(day, safe(sd.Name), sd.Counts))
+				rows = append(rows, csvRow(day, safe(sd.Name), sd.Counts, false))
 			}
 		}
 	}
 
-	rows = append(rows, csvRow(csvTotal, "", r.Totals))
+	rows = append(rows, csvRow(csvTotal, "", r.Totals, !oneStore))
 
 	if err := w.WriteAll(rows); err != nil { // WriteAll flushes and reports the writer's error
 		return nil, fmt.Errorf("writing the report as CSV: %w", err)
@@ -62,10 +62,17 @@ func reportCSV(r Report, oneStore bool) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func csvRow(day, name string, c Counts) []string {
+// csvRow writes c; the new accounts and customers only on a row of the whole
+// site, as a store has none of its own (SEC-192).
+func csvRow(day, name string, c Counts, site bool) []string {
 	share := ""
 	if c.Held > 0 {
 		share = strconv.Itoa((c.Collected*100 + c.Held/2) / c.Held)
+	}
+
+	accounts, customers := "", ""
+	if site {
+		accounts, customers = strconv.Itoa(c.NewAccounts), strconv.Itoa(c.NewCustomers)
 	}
 
 	return []string{
@@ -75,6 +82,7 @@ func csvRow(day, name string, c Counts) []string {
 		strconv.Itoa(c.Held), strconv.Itoa(c.UnitsHeld), strconv.Itoa(c.Collected), strconv.Itoa(c.UnitsCollected),
 		strconv.Itoa(c.Cancelled), strconv.Itoa(c.Refused), strconv.Itoa(c.Expired),
 		share, strconv.FormatInt(c.CollectedVND, 10),
+		accounts, customers,
 	}
 }
 

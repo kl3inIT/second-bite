@@ -537,6 +537,14 @@ components:
           description: Opens of the home; none for a store
           format: int64
           type: integer
+        newAccounts:
+          description: Accounts created, the site's whatever store is chosen; none on a store's numbers
+          format: int64
+          type: integer
+        newCustomers:
+          description: Customers whose first order, by phone number, is collected then; the site's, as newAccounts
+          format: int64
+          type: integer
         offers:
           description: Offers posted for the day
           format: int64
@@ -580,6 +588,8 @@ components:
         - refused
         - expired
         - collectedVnd
+        - newAccounts
+        - newCustomers
       type: object
     DeleteAccountInputBody:
       additionalProperties: false
@@ -2463,6 +2473,10 @@ components:
     ReportOutputBody:
       additionalProperties: false
       properties:
+        accounts:
+          description: The accounts there are at the end of the range
+          format: int64
+          type: integer
         days:
           description: Every day of the range, in order
           items:
@@ -2496,6 +2510,7 @@ components:
         - since
         - until
         - totals
+        - accounts
         - days
         - stores
         - storeDays

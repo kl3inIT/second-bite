@@ -2796,6 +2796,8 @@ const reportCountKeys = [
   "refused",
   "expired",
   "collectedVnd",
+  "newAccounts",
+  "newCustomers",
 ];
 
 function reportCounts(values = {}) {
@@ -2855,21 +2857,33 @@ function adminReport(url, stores) {
     .slice(0, reportStoreNumbers.length)
     .map((s, i) => ({ sellerId: s.id, name: s.name, counts: reportCounts(reportStoreNumbers[i]) }))
     .filter((s) => !sellerId || s.sellerId === sellerId);
+  // The stores' numbers fall on today; a range that ends before it, as the period a report is compared with
+  // (SEC-192), has fewer, on its last day and for the whole site.
   const last = days.at(-1);
-  if (last) {
+  const current = until >= vietnamToday();
+  if (last && current) {
     for (const store of shown) addCounts(last.counts, store.counts);
     if (!sellerId) last.counts.views += 30;
     if (!sellerId) last.counts.homeViews += 30;
   }
+  if (last && !current)
+    addCounts(last.counts, reportCounts({ views: 40, people: 21, held: 9, collected: 7 }));
+  // New users are the site's, whatever store is chosen.
+  if (last)
+    addCounts(
+      last.counts,
+      reportCounts(current ? { newAccounts: 2, newCustomers: 3 } : { newAccounts: 2 }),
+    );
   const totals = reportCounts();
   for (const day of days) addCounts(totals, day.counts);
   return {
     since,
     until,
     totals,
+    accounts: 23,
     days,
-    stores: shown,
-    storeDays: last ? shown.map((store) => ({ day: last.day, ...store })) : [],
+    stores: current ? shown : [],
+    storeDays: last && current ? shown.map((store) => ({ day: last.day, ...store })) : [],
   };
 }
 

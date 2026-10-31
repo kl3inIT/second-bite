@@ -87,8 +87,30 @@ func checkReport(t *testing.T, svc service) {
 		t.Errorf("totals %+v, store days %+v", r.Totals, r.StoreDays)
 	}
 
+	checkReportNewUsers(t, svc, admin)
 	checkReportExport(t, svc, admin, sellerID)
 	checkReportRangeRefused(t, svc, admin)
+}
+
+// checkReportNewUsers reads the site's new users (SEC-192): at least the
+// three accounts signed in above and the customer who ordered today, other
+// checks adding theirs, and the accounts there are at least as many.
+func checkReportNewUsers(t *testing.T, svc service, admin http.Header) {
+	t.Helper()
+
+	var r struct {
+		Accounts int `json:"accounts"`
+		Totals   struct {
+			NewAccounts  int `json:"newAccounts"`
+			NewCustomers int `json:"newCustomers"`
+		} `json:"totals"`
+	}
+
+	send(t, http.MethodGet, svc.base+"/admin/reports", admin, nil).decode(t, http.StatusOK, &r)
+
+	if r.Totals.NewAccounts < 3 || r.Totals.NewCustomers < 1 || r.Accounts < r.Totals.NewAccounts {
+		t.Errorf("new users %+v, accounts %d", r.Totals, r.Accounts)
+	}
 }
 
 // checkReportExport downloads the store's report as a file of CSV, which

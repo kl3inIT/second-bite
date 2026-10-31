@@ -1,12 +1,12 @@
 "use client";
 
-import { DownloadIcon } from "lucide-react";
+import { CopyIcon, DownloadIcon } from "lucide-react";
 import { useQueryStates } from "nuqs";
 import { useFormatter, useTranslations } from "next-intl";
-import { useMemo, useTransition } from "react";
+import { useId, useMemo, useState, useTransition } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   ChartContainer,
   ChartLegend,
@@ -24,6 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/toast";
 import {
   DataTable,
   SortHeader,
@@ -36,6 +38,14 @@ import { Link } from "@/i18n/navigation";
 import type { CountsBody, ReportOutputBody, ReportStoreBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
 
+import {
+  periodBefore,
+  presetOf,
+  presetRange,
+  presets,
+  signed,
+  vietnamToday,
+} from "./report-numbers";
 import { reportSearchParams, type ReportSort } from "./search-params";
 
 const anyStore = "all";
@@ -55,16 +65,20 @@ function sortValue(store: ReportStoreBody, sort: ReportSort): number | string {
 }
 
 /**
- * The prototype's numbers (SEC-80): the days and a store in the address, the totals as cards, the orders held
- * and collected per day as bars (NN/g: length for quantities), and a row per store, sorted in the browser by
- * any column as the stores are few. "Xuất CSV" downloads the same numbers per day and store from the server.
+ * The prototype's numbers (SEC-80): the days and a store in the address, the totals as cards, the days as bars,
+ * and a row per store, sorted in the browser by any column as the stores are few. "Xuất CSV" downloads the same
+ * numbers per day and store from the server. Since SEC-192 the three numbers the sponsor reads each day come
+ * first, against `previous`, the report of the period before; "Hôm qua", "7 ngày" and "30 ngày" choose the days
+ * in one tap, and "Sao chép báo cáo" copies the three as a message.
  */
 export function ReportView({
   report,
+  previous,
   stores,
   exportHref,
 }: {
   report: ReportOutputBody;
+  previous: CountsBody | null;
   stores: Array<{ id: string; name: string }>;
   exportHref: string;
 }) {
@@ -87,9 +101,35 @@ export function ReportView({
     });
   }, [report.stores, params.sort, params.dir]);
 
+  const [today] = useState(() => vietnamToday());
+  const chosen = presetOf(params.from, params.to, today);
+  const { days } = periodBefore(report.since, report.until);
+  const copy = useCopyReport(
+    report,
+    previous,
+    days,
+    stores.find((s) => s.id === params.store)?.name,
+  );
+
   return (
     <section aria-label={t("title")} className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center gap-3">
+        <fieldset aria-label={t("presets.label")} className="flex gap-2">
+          {presets.map((preset) => (
+            <Button
+              key={preset}
+              variant="choice"
+              size="default"
+              aria-pressed={chosen === preset}
+              onClick={() => {
+                const range = presetRange(preset, today);
+                void setParams({ from: range?.from ?? null, to: range?.to ?? null });
+              }}
+            >
+              {t(`presets.${preset}`)}
+            </Button>
+          ))}
+        </fieldset>
         <DayRange
           label={t("days")}
           anytime={t("lastWeek")}
@@ -120,13 +160,20 @@ export function ReportView({
             </SelectGroup>
           </SelectContent>
         </Select>
-        {/* A plain download: the server answers the file and its name, under the session's cookie. */}
-        <a href={exportHref} download className={cn(buttonVariants({ size: "lg" }), "sm:ms-auto")}>
-          <DownloadIcon data-icon="inline-start" />
-          {t("export")}
-        </a>
+        {/* The two actions keep together, at the row's end, or on a line of their own when it is full. */}
+        <div className="flex flex-wrap gap-3 sm:ms-auto">
+          <Button variant="secondary" size="lg" onClick={copy}>
+            <CopyIcon data-icon="inline-start" />
+            {t("copy.action")}
+          </Button>
+          {/* A plain download: the server answers the file and its name, under the session's cookie. */}
+          <a href={exportHref} download className={buttonVariants({ size: "lg" })}>
+            <DownloadIcon data-icon="inline-start" />
+            {t("export")}
+          </a>
+        </div>
       </div>
-      <Cards totals={report.totals} />
+      <Cards totals={report.totals} previous={previous} accounts={report.accounts} days={days} />
       <DayBars days={report.days ?? []} />
       <DataTable
         label={t("table")}
@@ -147,75 +194,180 @@ export function ReportView({
   );
 }
 
-/** The range's totals, each with what explains it under the figure. */
-function Cards({ totals }: { totals: CountsBody }) {
+/** How a figure moved against the period before, as a chip beside it. */
+function Change({ now, before, days }: { now: number; before: number | undefined; days: number }) {
   const t = useTranslations("Admin.reports.card");
+  if (before === undefined) return null;
+  const tone =
+    now > before
+      ? "bg-fresh-muted text-success"
+      : now < before
+        ? "bg-destructive/10 text-destructive"
+        : "bg-muted text-muted-foreground";
+  return (
+    <span className={cn("rounded-full px-2 py-0.5 text-body-sm-strong", tone)}>
+      {t("change", { change: signed(now, before), days })}
+    </span>
+  );
+}
+
+/**
+ * The three numbers the sponsor reads each day (SEC-192), each against the period before of the same length:
+ * new users, for the whole site whatever store is chosen, with the customers who ordered for the first time;
+ * orders held; and people. Under them, how the orders ended.
+ */
+function Cards({
+  totals,
+  previous,
+  accounts,
+  days,
+}: {
+  totals: CountsBody;
+  previous: CountsBody | null;
+  accounts: number;
+  days: number;
+}) {
+  const t = useTranslations("Admin.reports");
+  const card = useTranslations("Admin.reports.card");
   const format = useFormatter();
   const share = shareOf(totals);
-  const cards = [
+  const headline = [
     {
-      key: "views",
-      figure: format.number(totals.views),
-      note: t("viewsNote", { people: totals.people, qr: totals.qrViews }),
+      key: "newUsers",
+      figure: totals.newAccounts,
+      before: previous?.newAccounts,
+      note: card("newUsersNote", { customers: totals.newCustomers, accounts }),
+      site: true,
     },
     {
-      key: "held",
-      figure: format.number(totals.held),
-      note: t("heldNote", { units: totals.unitsHeld }),
+      key: "orders",
+      figure: totals.held,
+      before: previous?.held,
+      note: card("ordersNote", { collected: totals.collected, units: totals.unitsHeld }),
+      site: false,
     },
+    {
+      key: "people",
+      figure: totals.people,
+      before: previous?.people,
+      note: card("peopleNote", { views: totals.views, qr: totals.qrViews }),
+      site: false,
+    },
+  ] as const;
+  const detail = [
     {
       key: "collected",
       figure: format.number(totals.unitsCollected),
-      note: t("collectedNote", { orders: totals.collected }),
+      note: card("collectedNote", { orders: totals.collected }),
     },
     {
       key: "share",
       figure: share === null ? "–" : `${share}%`,
-      note: t("shareNote", { collected: totals.collected, held: totals.held }),
+      note: card("shareNote", { collected: totals.collected, held: totals.held }),
     },
     {
       key: "expired",
       figure: format.number(totals.expired),
-      note: t("expiredNote", { cancelled: totals.cancelled, refused: totals.refused }),
+      note: card("expiredNote", { cancelled: totals.cancelled, refused: totals.refused }),
+    },
+    {
+      key: "collectedVnd",
+      figure: formatPrice(totals.collectedVnd),
+      note: card("collectedVndNote", { orders: totals.collected }),
     },
   ] as const;
 
   return (
-    <dl
-      aria-label={useTranslations("Admin.reports")("cards")}
-      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
-    >
-      {cards.map((card) => (
-        <div
-          key={card.key}
-          className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-4"
-        >
-          <dt className="text-body-sm-strong text-muted-foreground">{t(card.key)}</dt>
-          <dd className="font-display text-display text-foreground">{card.figure}</dd>
-          <dd className="text-body-sm text-muted-foreground">{card.note}</dd>
-        </div>
-      ))}
-    </dl>
+    <>
+      <dl aria-label={t("headline")} className="grid gap-4 md:grid-cols-3">
+        {headline.map((c) => (
+          <div
+            key={c.key}
+            className="flex flex-col gap-1 rounded-2xl border border-secondary bg-card p-4"
+          >
+            <dt className="flex items-center gap-2 text-body-sm-strong text-muted-foreground">
+              {card(c.key)}
+              {c.site && (
+                <span className="rounded-full border border-border px-2 text-label text-muted-foreground">
+                  {card("site")}
+                </span>
+              )}
+            </dt>
+            <dd className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="font-display text-display text-foreground">
+                {format.number(c.figure)}
+              </span>
+              <Change now={c.figure} before={c.before} days={days} />
+            </dd>
+            <dd className="text-body-sm text-muted-foreground">{c.note}</dd>
+          </div>
+        ))}
+      </dl>
+      <dl aria-label={t("detail")} className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+        {detail.map((c) => (
+          <div
+            key={c.key}
+            className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-4"
+          >
+            <dt className="text-body-sm-strong text-muted-foreground">{card(c.key)}</dt>
+            <dd className="font-display text-headline text-foreground">{c.figure}</dd>
+            <dd className="text-body-sm text-muted-foreground">{c.note}</dd>
+          </div>
+        ))}
+      </dl>
+    </>
   );
 }
 
-/** The orders held and collected each day of the range, as bars side by side. */
+const charts = ["orders", "people", "users"] as const;
+type Chart = (typeof charts)[number];
+
+/**
+ * The days of the range as bars (NN/g: length for quantities), one of three charts chosen by its tab: the
+ * orders held and collected, the people, or the new accounts and first-time customers (SEC-192).
+ */
 function DayBars({ days }: { days: ReportOutputBody["days"] & object }) {
   const t = useTranslations("Admin.reports");
   const format = useFormatter();
-  const config = {
-    held: { label: t("series.held"), color: "var(--primary)" },
-    collected: { label: t("series.collected"), color: "var(--success)" },
-  } satisfies ChartConfig;
+  const [chart, setChart] = useState<Chart>("orders");
+  const caption = useId();
+  const series = {
+    orders: {
+      held: { label: t("series.held"), color: "var(--primary)" },
+      collected: { label: t("series.collected"), color: "var(--success)" },
+    },
+    people: { people: { label: t("series.people"), color: "var(--primary)" } },
+    users: {
+      newAccounts: { label: t("series.newAccounts"), color: "var(--primary)" },
+      newCustomers: { label: t("series.newCustomers"), color: "var(--success)" },
+    },
+  } satisfies Record<Chart, ChartConfig>;
+  const config = series[chart];
   const data = days.map((d) => ({
     day: format.dateTime(new Date(d.day), { day: "numeric", month: "numeric", timeZone: "UTC" }),
-    held: d.counts.held,
-    collected: d.counts.collected,
+    ...d.counts,
   }));
 
   return (
-    <figure className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4">
-      <figcaption className="text-title-lg text-foreground">{t("chart")}</figcaption>
+    // Named by its heading: the tabs share its row, so it cannot be the figure's caption.
+    <figure
+      aria-labelledby={caption}
+      className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id={caption} className="text-title-lg text-foreground">
+          {t(`chart.${chart}`)}
+        </h2>
+        <Tabs value={chart} onValueChange={(value) => setChart(value as Chart)}>
+          <TabsList variant="line" aria-label={t("chart.label")}>
+            {charts.map((c) => (
+              <TabsTrigger key={c} value={c}>
+                {t(`chart.tab.${c}`)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
       <ChartContainer config={config} className="aspect-auto h-60 w-full">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
           <CartesianGrid vertical={false} />
@@ -223,17 +375,70 @@ function DayBars({ days }: { days: ReportOutputBody["days"] & object }) {
           <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
           <ChartTooltip content={<ChartTooltipContent />} />
           <ChartLegend content={<ChartLegendContent />} />
-          <Bar dataKey="held" fill="var(--color-held)" radius={4} isAnimationActive={false} />
-          <Bar
-            dataKey="collected"
-            fill="var(--color-collected)"
-            radius={4}
-            isAnimationActive={false}
-          />
+          {Object.keys(config).map((key) => (
+            <Bar
+              key={key}
+              dataKey={key}
+              fill={`var(--color-${key})`}
+              radius={4}
+              isAnimationActive={false}
+            />
+          ))}
         </BarChart>
       </ChartContainer>
     </figure>
   );
+}
+
+/**
+ * Copies the three numbers as a short message to paste in a chat (SEC-192): the days, each number with its
+ * change against the period before, and the store when one is chosen.
+ */
+function useCopyReport(
+  report: ReportOutputBody,
+  previous: CountsBody | null,
+  days: number,
+  store: string | undefined,
+) {
+  const t = useTranslations("Admin.reports.copy");
+  const format = useFormatter();
+  const { totals } = report;
+  const change = (now: number, before: number | undefined) =>
+    before === undefined ? "" : t("change", { change: signed(now, before) });
+  const day = (iso: string) =>
+    format.dateTime(new Date(iso), { day: "numeric", month: "numeric", timeZone: "UTC" });
+  const range =
+    report.since === report.until
+      ? day(report.since)
+      : `${day(report.since)} – ${day(report.until)}`;
+
+  const text = [
+    store ? t("titleStore", { range, store }) : t("title", { range }),
+    t("users", {
+      accounts: totals.newAccounts,
+      change: change(totals.newAccounts, previous?.newAccounts),
+      customers: totals.newCustomers,
+      total: report.accounts,
+    }),
+    t("orders", {
+      held: totals.held,
+      change: change(totals.held, previous?.held),
+      collected: totals.collected,
+    }),
+    t("people", {
+      people: totals.people,
+      change: change(totals.people, previous?.people),
+      views: totals.views,
+    }),
+    ...(previous ? [t("compared", { days })] : []),
+  ].join("\n");
+
+  return () => {
+    navigator.clipboard.writeText(text).then(
+      () => toast.add({ type: "success", title: t("done") }),
+      () => toast.add({ type: "error", title: t("failed") }),
+    );
+  };
 }
 
 function useColumns(
@@ -253,10 +458,9 @@ function useColumns(
     />
   );
   // Each column as wide as its head in the wider of the two languages, measured with its sort arrow, so the
-  // store's name keeps the rest (Figma AD-BC1 has no more figures than this). People and cancellations are on
-  // the cards and in the CSV.
+  // store's name keeps the rest. Cancellations are on the cards and in the CSV.
   const figure = (
-    column: "views" | "offers" | "held" | "collected" | "expired",
+    column: "views" | "people" | "offers" | "held" | "collected" | "expired",
     width: `w-${number}`,
   ) => ({
     id: column,
@@ -280,6 +484,7 @@ function useColumns(
       ),
     },
     figure("views", "w-26"),
+    figure("people", "w-36"),
     figure("offers", "w-28"),
     figure("held", "w-26"),
     figure("collected", "w-28"),

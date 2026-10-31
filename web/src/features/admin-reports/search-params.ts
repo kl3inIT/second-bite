@@ -4,6 +4,7 @@ import { createLoader, parseAsIsoDate, parseAsString, parseAsStringLiteral } fro
 export const reportSorts = [
   "name",
   "views",
+  "people",
   "offers",
   "held",
   "collected",

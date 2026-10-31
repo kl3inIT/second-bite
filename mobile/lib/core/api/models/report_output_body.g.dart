@@ -8,6 +8,7 @@ part of 'report_output_body.dart';
 
 _ReportOutputBody _$ReportOutputBodyFromJson(Map<String, dynamic> json) =>
     _ReportOutputBody(
+      accounts: (json['accounts'] as num).toInt(),
       days: (json['days'] as List<dynamic>?)
           ?.map((e) => ReportDayBody.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -24,6 +25,7 @@ _ReportOutputBody _$ReportOutputBodyFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ReportOutputBodyToJson(_ReportOutputBody instance) =>
     <String, dynamic>{
+      'accounts': instance.accounts,
       'days': instance.days,
       'since': instance.since.toIso8601String(),
       'storeDays': instance.storeDays,

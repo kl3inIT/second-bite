@@ -13,6 +13,45 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const accountDays = `-- name: AccountDays :many
+SELECT (created_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, count(*) AS accounts
+FROM identity_accounts
+WHERE created_at >= $1 AND created_at < $2
+GROUP BY 1
+ORDER BY 1
+`
+
+type AccountDaysParams struct {
+	Since time.Time
+	Until time.Time
+}
+
+type AccountDaysRow struct {
+	Day      pgtype.Date
+	Accounts int64
+}
+
+// The accounts created per day in Vietnam, for the admin's report (SEC-192).
+func (q *Queries) AccountDays(ctx context.Context, arg AccountDaysParams) ([]AccountDaysRow, error) {
+	rows, err := q.db.Query(ctx, accountDays, arg.Since, arg.Until)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AccountDaysRow
+	for rows.Next() {
+		var i AccountDaysRow
+		if err := rows.Scan(&i.Day, &i.Accounts); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const accountsForAdmins = `-- name: AccountsForAdmins :many
 SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method,
        count(*) OVER () AS total
@@ -155,6 +194,18 @@ func (q *Queries) ChallengeUsage(ctx context.Context, arg ChallengeUsageParams) 
 		&i.CheckedAt,
 	)
 	return i, err
+}
+
+const countAccountsBefore = `-- name: CountAccountsBefore :one
+SELECT count(*) FROM identity_accounts WHERE created_at < $1
+`
+
+// The accounts that exist and were created before the instant, for the report's total.
+func (q *Queries) CountAccountsBefore(ctx context.Context, until time.Time) (int64, error) {
+	row := q.db.QueryRow(ctx, countAccountsBefore, until)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const countAccountsByRole = `-- name: CountAccountsByRole :many
