@@ -162,7 +162,7 @@ function OpenStoreFormBody() {
               label={t("name")}
               required
               placeholder={t("namePlaceholder")}
-              autoComplete="store-name"
+              autoComplete="off"
               maxLength={80}
             />
           )}
@@ -175,9 +175,9 @@ function OpenStoreFormBody() {
               required
               type="tel"
               inputMode="tel"
-              // The store's, not the person's: a token Chrome does not know keeps it from filling the person's
-              // saved address here and across the form, which it does for "tel" and ignores "off" for (SEC-191).
-              autoComplete="store-phone"
+              // The store's number, not the person's: "tel" made Chrome offer the person's saved addresses here and fill
+              // the whole form from one (SEC-191).
+              autoComplete="off"
               placeholder={t("phonePlaceholder")}
             />
           )}
