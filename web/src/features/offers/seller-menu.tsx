@@ -49,11 +49,15 @@ export function SellerMenu({
   const kinds = useTranslations("OfferKind");
   const sections = menuSections(offers, t("bestSellers"), t("deepDiscount"), (kind) => kinds(kind));
   const ids = sections.map(({ id }) => id).join(" ");
-  const [active, setActive] = useState(sections[0]?.id);
+  // A page opened on a dish fills the pill of the dish's kind, whose card carries the anchor, as a press would,
+  // rather than one worked out from where the page stands while its photos and fonts still move it.
+  const kind = offers.find(({ id }) => id === focused)?.kind;
+  const linked = sections.find(({ id }) => id === `kind-${kind}`)?.id;
+  const [active, setActive] = useState(linked ?? sections[0]?.id);
   const [ringed, setRinged] = useState(focused);
   // The section whose pill was just pressed: it stays filled while the page scrolls to it, even when the page ends
   // before its heading reaches the tabs, until the buyer scrolls on their own.
-  const pressed = useRef<string | undefined>(undefined);
+  const pressed = useRef<string | undefined>(linked);
 
   useEffect(() => {
     if (!ringed) return;
@@ -74,7 +78,10 @@ export function SellerMenu({
   useEffect(() => {
     const order = ids.split(" ");
     function onScroll() {
-      if (pressed.current) return;
+      if (pressed.current) {
+        setActive(pressed.current);
+        return;
+      }
       // At the foot of the page the last sections can no longer rise to the tabs: one whose heading is in view counts.
       const atFoot =
         window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 1;
@@ -87,6 +94,9 @@ export function SellerMenu({
     function release() {
       pressed.current = undefined;
     }
+    // A page opened on a section (`#kind-bakery`) holds that section's pill the same way.
+    const hash = decodeURIComponent(location.hash.slice(1));
+    if (!pressed.current && order.includes(hash)) pressed.current = hash;
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     for (const type of ["wheel", "touchstart", "keydown"]) {
