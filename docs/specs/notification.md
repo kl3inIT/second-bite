@@ -27,7 +27,7 @@ Administrative command: `secondbite email configure` with `-provider`, `-sender-
 
 ## Web Push
 
-Decided in the [SEC-25 design](../increments/active/sec-25-web-push/design.md).
+Decided in the [SEC-25 design](../increments/completed/sec-25-web-push/design.md).
 
 | Operation | Who | Answer |
 | --- | --- | --- |

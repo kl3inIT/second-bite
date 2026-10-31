@@ -30,12 +30,12 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 - [Customer place](increments/completed/customer-place/design.md), 31 October 2026: the home shows every shop until a customer chooses a place, by location, a typed place or Tasco Mall, remembers it, and names "Gần tôi" by its street (PRs #185, #188, #189).
 - SEC-185 — Production, 31 October 2026: `secondbite.vadan.app` is production, deployed by hand after an approval, indexed by search engines; staging moved to `preview.secondbite.vadan.app`, with the app's web preview at `/mobile/` ([runbook](runbooks/ci-cd.md)).
 - [SEC-192 — The report's three numbers](increments/completed/sec-192-report-three-numbers/design.md), 31 October 2026: the admin opens on yesterday's report, led by new users, orders and visitors, each against the period before; "Hôm qua", "7 ngày" and "30 ngày" in one tap; "Sao chép báo cáo" copies the three numbers as a message; the CSV gains new accounts and first-time customers (PR #197).
+- [SEC-25 — Web Push for orders](increments/completed/sec-25-web-push/design.md), 31 October 2026: customers and sellers are told of an order's events by Web Push, on production since 22 October 2026 and proved on real phones on 31 October; the offer on the order page made quieter in SEC-189.
 
 ## Active
 
 - [Buyer discount](increments/active/buyer-discount/design.md) — promotions an admin runs, taken off an order when it is placed, for the two-week support programme from 2 November 2026; the server first, then the web, the store's app and the programme's figures.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
-- [SEC-25 — Web Push for orders](increments/active/sec-25-web-push/design.md): built and on production since 22 October 2026; the proof on real phones (Android Chrome, an iPhone added to the Home Screen, a desktop browser) is the step left.
 
 ## Candidates
 

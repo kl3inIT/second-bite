@@ -1,6 +1,6 @@
 # SEC-25 — Web Push for orders, to customers and to sellers: design
 
-Status: decided on 22 October 2026, not built ([plan](plan.md)). Tracked in Linear as SEC-25. The research is [Telling customers and sellers about an order](../../../research/2026-10-22-order-notifications.md).
+Status: delivered; on production since 22 October 2026, and proved on real phones on 31 October 2026 ([plan](plan.md)). Tracked in Linear as SEC-25. The research is [Telling customers and sellers about an order](../../../research/2026-10-22-order-notifications.md).
 
 ## Why
 
