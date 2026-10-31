@@ -19,6 +19,8 @@ export type SearchQuery = {
   kind?: OfferKind;
   now?: boolean;
   near?: string;
+  /** The name of the place `near` is, when it has one. */
+  place?: string;
   radiusKm?: (typeof radiusChoices)[number];
   /** The price of one portion from and to, in đồng. */
   minPrice?: number;
@@ -44,6 +46,7 @@ export function readSearchQuery(
     kind: read.kind,
     now: time.from || time.to ? undefined : read.now,
     near: read.near,
+    place: read.near ? read.place : undefined,
     radiusKm: read.near ? read.radiusKm : undefined,
     minPrice: price.from,
     maxPrice: price.to,

@@ -9,11 +9,13 @@ import (
 )
 
 // The bounds on the address lookups, which pass to free public services
-// (SEC-160): an account makes lookupsPerAccount in ten minutes, answers are
-// kept for a while so the same point or words do not ask again, and Nominatim
-// is asked at most once a second, as its policy says.
+// (SEC-160): an account makes lookupsPerAccount in ten minutes, and a client
+// address placesPerAddress searches for a customer's place; answers are kept
+// for a while so the same point or words do not ask again, and Nominatim is
+// asked at most once a second, as its policy says.
 const (
 	lookupsPerAccount = 60
+	placesPerAddress  = 30
 	lookupWindow      = 10 * time.Minute
 	addressKept       = 24 * time.Hour
 	placesKept        = time.Hour

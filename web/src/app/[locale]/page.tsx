@@ -80,6 +80,6 @@ async function HomeAccount({ query }: { query: Promise<HomeQuery> }) {
 }
 
 async function AddressSearchField({ query, id }: { query: Promise<HomeQuery>; id?: string }) {
-  const { q, near } = await query;
-  return <SearchField value={q} near={near} id={id} />;
+  const { q, near, place } = await query;
+  return <SearchField value={q} near={near} place={place} id={id} />;
 }

@@ -10,6 +10,7 @@ export 'clients/catalog_client.dart';
 export 'clients/offers_client.dart';
 export 'clients/orders_client.dart';
 export 'clients/photos_client.dart';
+export 'clients/places_client.dart';
 export 'clients/notifications_client.dart';
 export 'clients/sellers_client.dart';
 export 'clients/stats_client.dart';

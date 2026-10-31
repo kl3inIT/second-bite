@@ -23,16 +23,29 @@ const parseAsPoint = createParser({
   serialize: (value: string) => value,
 });
 
+/** A place's name is at most this long; a longer one is ignored. */
+const PLACE_NAME_LIMIT = 80;
+
+/** The name of a place someone chose, "Phường Việt Hưng", trimmed. */
+const parseAsPlaceName = createParser({
+  parse: (value) => {
+    const name = value.trim();
+    return name && name.length <= PLACE_NAME_LIMIT ? name : null;
+  },
+  serialize: (value: string) => value,
+});
+
 /**
  * What the home's address asks for (docs/guidelines/web.md › Lists and filters): `?q=` words, `?kind=` one kind,
- * `?now=1` collectable now, and `?near=21.057,105.896` the person's own place instead of every shop (Figma K1a).
- * The search reads the same keys and more.
+ * `?now=1` collectable now, `?near=21.057,105.896` a place instead of every shop (Figma K1a), and `?place=` its
+ * name when it was chosen by name or as a suggestion. The search reads the same keys and more.
  */
 export const homeSearchParams = {
   q: parseAsWords,
   kind: parseAsStringLiteral(offerKinds),
   now: parseAsSwitch,
   near: parseAsPoint,
+  place: parseAsPlaceName,
 };
 
 export const loadHomeSearchParams = createLoader(homeSearchParams);

@@ -71,8 +71,8 @@ export default async function SearchPage({ searchParams }: PageProps<"/[locale]/
 }
 
 async function AddressPlaceHeading({ query }: { query: Promise<SearchQuery> }) {
-  const { near } = await query;
-  return <PlaceHeading query={{ near }} asHeading={false} />;
+  const { near, place } = await query;
+  return <PlaceHeading query={{ near, place }} asHeading={false} />;
 }
 
 async function SearchAccount({ query }: { query: Promise<SearchQuery> }) {
@@ -86,11 +86,18 @@ async function AddressSearchBar({
   query: Promise<SearchQuery>;
   desktop?: boolean;
 }) {
-  const { q, near } = await query;
+  const { q, near, place } = await query;
   // The suggestions are a convenience: without the offers the field still searches.
   const offers = await listOffers({ near }).catch(() => []);
   // A new address starts the field afresh, with its own words.
   return (
-    <SearchBar key={q ?? ""} value={q} near={near} kinds={kindsByCount(offers)} desktop={desktop} />
+    <SearchBar
+      key={q ?? ""}
+      value={q}
+      near={near}
+      place={place}
+      kinds={kindsByCount(offers)}
+      desktop={desktop}
+    />
   );
 }

@@ -25,9 +25,9 @@ type addressOutput struct {
 	}
 }
 
-// placesInput is what someone typed in a store's address.
+// placesInput is what someone typed: a store's address, or where a customer looks for dishes.
 type placesInput struct {
-	Query string `query:"q" required:"true" minLength:"2" maxLength:"200" doc:"The words of the address, with or without Vietnamese marks"`
+	Query string `query:"q" required:"true" minLength:"2" maxLength:"200" doc:"The words of an address or a place, with or without Vietnamese marks"`
 }
 
 // placeBody is a suggested place.
@@ -137,6 +137,7 @@ var (
 	// optional is for reads anyone may make.
 	optional   = platform.MaybeSignedIn()
 	tagSellers = []string{"Sellers"}
+	tagPlaces  = []string{"Places"}
 )
 
 func registerOwnerOperations(api huma.API, s *Service) {
@@ -175,6 +176,18 @@ func registerOwnerOperations(api huma.API, s *Service) {
 		Tags:    tagSellers, Security: security,
 	}, func(ctx context.Context, in *placesInput) (*placesOutput, error) {
 		found, err := s.Places(ctx, in.Query)
+		out := &placesOutput{}
+		out.Body.Places = toPlaceBodies(found)
+
+		return out, err
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "searchCustomerPlaces", Method: http.MethodGet, Path: "/places",
+		Summary: "Places in Hanoi for the words a customer typed, to look for dishes around; signed in or not",
+		Tags:    tagPlaces,
+	}, func(ctx context.Context, in *placesInput) (*placesOutput, error) {
+		found, err := s.PlacesForCustomer(ctx, in.Query)
 		out := &placesOutput{}
 		out.Body.Places = toPlaceBodies(found)
 
