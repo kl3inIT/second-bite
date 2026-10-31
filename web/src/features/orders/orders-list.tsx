@@ -79,10 +79,10 @@ async function OpenOrderCard({ order }: { order: Order }) {
           <h3 className="line-clamp-2 text-title">{dishesOf(order)}</h3>
           <p className="text-label text-muted-foreground">
             {order.status === "ready"
-              ? t("cardMetaReady", { number: order.number, total: formatPrice(order.totalVnd) })
+              ? t("cardMetaReady", { number: order.number, total: formatPrice(order.payVnd) })
               : t("cardMetaWindow", {
                   number: order.number,
-                  total: formatPrice(order.totalVnd),
+                  total: formatPrice(order.payVnd),
                   from,
                   until,
                 })}
@@ -121,7 +121,7 @@ async function EndedOrderRow({ order }: { order: Order }) {
     ...(order.status === "collected" ? [order.seller.name] : []),
     date,
     t(`endedLine.${order.status}`),
-    ...(order.status === "collected" ? [formatPrice(order.totalVnd)] : []),
+    ...(order.status === "collected" ? [formatPrice(order.payVnd)] : []),
   ];
 
   return (

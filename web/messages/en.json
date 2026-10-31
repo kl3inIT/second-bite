@@ -432,7 +432,10 @@
       "date": "Day",
       "today": "Today, {date}",
       "window": "Collection window",
-      "dishes": "Dishes"
+      "dishes": "Dishes",
+      "payAtCounter": "Pay at the counter",
+      "beforeDiscount": "Price before the discount",
+      "discount": "{promotion} · {rule}"
     },
     "how": {
       "title": "How to collect",
@@ -661,7 +664,13 @@
     "stockLeft": "Only {units} left",
     "stockChosen": "All {units} chosen",
     "over": "Pickup time is over",
-    "dropLabel": "Remove {name} from the cart"
+    "dropLabel": "Remove {name} from the cart",
+    "promotion": {
+      "rule": "{rule}: {amount} off{from, select, none {} other { orders from {from}}}",
+      "percent": "{value}% (up to {max})",
+      "perDay": "Each phone number gets it {count, plural, one {once} other {# times}} a day.",
+      "after": "The order shows what was taken off once you place it; you pay less at the counter."
+    }
   },
   "AccountSettings": {
     "title": "Account settings",
@@ -991,7 +1000,10 @@
         "ready": "Hand the dish over when the customer is at the counter.",
         "undoTitle": "A mistake?",
         "undoBody": "Open the order again to carry on."
-      }
+      },
+      "collect": "Collect from the customer",
+      "instead": "instead of {total}",
+      "payback": "The customer got {amount} off ({promotion}). Second Bite pays the store {amount} back at the end of the week."
     },
     "track": {
       "label": "The order's steps",
@@ -1194,7 +1206,8 @@
       "settings": "Settings",
       "accounts": "Accounts",
       "reviews": "Reviews",
-      "reports": "Reports"
+      "reports": "Reports",
+      "promotions": "Discounts"
     },
     "notFound": {
       "crumb": "Not found",
@@ -1814,7 +1827,9 @@
         "windowOn": "{window} · {day}",
         "place": "Pickup place",
         "payment": "Payment",
-        "atCounter": "Pay at the counter"
+        "atCounter": "Pay at the counter",
+        "discount": "Off · {promotion} · {rule}",
+        "payVnd": "Paid at the counter"
       },
       "actions": "Actions for order {number}",
       "view": "View details"
@@ -1964,6 +1979,198 @@
         "people": "- Visitors: {people}{change}, {views} page views",
         "change": " ({change})",
         "compared": "The figures in brackets are the change on {days, plural, =1 {the day before} other {the # days before}}."
+      }
+    },
+    "promotions": {
+      "title": "Discounts",
+      "payouts": "Pay the stores",
+      "create": "Create programme",
+      "cards": "Filter by status",
+      "status": {
+        "running": "Running",
+        "scheduled": "Scheduled",
+        "paused": "Paused",
+        "ended": "Ended"
+      },
+      "search": "Search by programme name",
+      "anyStore": "All",
+      "store": "Store",
+      "size": "Rows",
+      "noResults": {
+        "title": "No programme matches",
+        "clear": "Clear filters"
+      },
+      "empty": {
+        "title": "No discount programme yet"
+      },
+      "noun": "programmes",
+      "column": {
+        "name": "Programme",
+        "stores": "Applies to",
+        "time": "Dates",
+        "rules": "Offers",
+        "budget": "Budget used",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "allStores": "Every store",
+      "someStores": "{count, plural, one {# store} other {# stores}}",
+      "range": "{from} – {until}",
+      "ruleCount": "{count, plural, one {# offer} other {# offers}}",
+      "used": "{used} / {budget}",
+      "usedLabel": "Budget used by {name}",
+      "actions": "Actions for {name}",
+      "view": "View and edit",
+      "form": {
+        "newTitle": "Create a discount programme",
+        "errors": {
+          "name": "Enter a name, at most 80 characters",
+          "endsAt": "The end must be after the start",
+          "sellers": "Choose at least one store",
+          "budget": "Enter a budget of at least 1đ",
+          "perDay": "Enter a number from 0 to 100",
+          "rules": "Add at least one offer, at most 10"
+        },
+        "saved": "Programme saved",
+        "created": "Programme created",
+        "refused": "Not saved",
+        "failed": "Could not save; try again later",
+        "general": "General",
+        "name": "Programme name",
+        "nameHint": "Customers see this name on their order, e.g. “Second Bite support programme”.",
+        "startsAt": "Starts",
+        "endsAt": "Ends",
+        "timeHint": "Vietnam time. Only orders placed in this window get a discount.",
+        "scope": "Applies to",
+        "allStores": "Every store",
+        "someStores": "Some stores",
+        "stores": "Stores with the discount",
+        "limits": "Limits",
+        "budget": "Budget (đ)",
+        "budgetHint": "Discounts stop when the budget runs out. Cancelled or expired orders give it back.",
+        "perDay": "Discounts per phone number per day",
+        "perDayHint": "0 means no limit.",
+        "rules": "Offers",
+        "addRule": "Add offer",
+        "rulesHint": "Each order gets one offer: the largest it qualifies for. Offers never add up.",
+        "dirty": "Unsaved changes",
+        "updated": "Last saved at {time}, {day}",
+        "never": "Not saved yet",
+        "cancel": "Discard changes",
+        "save": "Save",
+        "create": "Create programme",
+        "aside": "Budget and status",
+        "state": "Status",
+        "enabled": "On",
+        "enabledHint": "Turn off to stop at once. Orders already placed keep their discount.",
+        "perOrder": "per order",
+        "everyOrder": "Every order",
+        "editRule": "Edit {name}",
+        "removeRule": "Remove {name}",
+        "percentOff": "−{value}%",
+        "condition": {
+          "new": "New customer",
+          "returning": "Returning customer",
+          "from": "Order from {amount}",
+          "under": "Order under {amount}",
+          "at": "At {names}",
+          "notAt": "Except {names}"
+        }
+      },
+      "budget": {
+        "title": "Budget",
+        "leftOf": "left of {budget}",
+        "usedLabel": "Budget used",
+        "spent": "Discounted (handed over)",
+        "held": "Held (to collect)",
+        "orders": "Discounted orders",
+        "newCustomers": "Orders by new customers",
+        "stores": "Stores with discounted orders",
+        "hint": "Orders still to collect hold their discount. Cancelled, refused or expired orders give it back.",
+        "payouts": "See what the stores are owed"
+      },
+      "rule": {
+        "editTitle": "Edit offer",
+        "addTitle": "Add offer",
+        "description": "An order that meets every condition gets the discount. Save the programme to apply it.",
+        "name": "Offer name",
+        "namePlaceholder": "E.g. New customers 10,000đ off",
+        "conditions": "Conditions",
+        "allMustHold": "All must hold",
+        "noConditions": "No conditions: every order gets the discount.",
+        "and": "AND",
+        "addCondition": "Add condition",
+        "clearConditions": "Clear conditions",
+        "reward": "Discount",
+        "rewardType": "Discount type",
+        "fixed": "Amount",
+        "percentage": "Percentage",
+        "valueVnd": "Off (đ)",
+        "valuePercent": "Off (%)",
+        "maxVnd": "At most (đ)",
+        "rewardHint": "Never more than the order's dishes.",
+        "cancel": "Cancel",
+        "save": "Save offer",
+        "errors": {
+          "name": "Enter a name, at most 60 characters",
+          "value": "Enter an amount from 1đ to 10,000,000đ",
+          "percent": "Enter a percentage from 1 to 100",
+          "maxVnd": "Enter a cap from 1đ to 10,000,000đ",
+          "amount": "Enter an amount",
+          "stores": "Choose at least one store"
+        },
+        "attributeLabel": "Condition {index}: based on",
+        "operatorLabel": "Condition {index}: comparison",
+        "valueLabel": "Condition {index}: value",
+        "removeCondition": "Remove condition {index}",
+        "attribute": {
+          "customer": "Customer",
+          "subtotal": "Dishes total",
+          "seller": "Store"
+        },
+        "operator": {
+          "eq": "is",
+          "gte": "from",
+          "lt": "under",
+          "in": "is one of",
+          "not_in": "is not"
+        },
+        "customer": {
+          "new": "New (no order handed over)",
+          "returning": "Returning (has an order handed over)"
+        },
+        "amountPlaceholder": "30,000"
+      }
+    },
+    "payouts": {
+      "title": "Pay the stores",
+      "previous": "Previous week",
+      "next": "Next week",
+      "week": "Week {from} – {until}",
+      "anyPromotion": "All",
+      "promotion": "Programme",
+      "owed": "unpaid, of {total} in all",
+      "hint": "The discounts of the orders the stores handed over in the week, Monday to Sunday. Mark a store paid once the transfer is made.",
+      "empty": "No discounted order was handed over this week",
+      "column": {
+        "store": "Store",
+        "orders": "Orders",
+        "amount": "Owed",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "orders": "{count, plural, one {# order} other {# orders}}, {fresh} new",
+      "unpaid": "Unpaid",
+      "paid": "Paid {day}",
+      "more": "{amount} more from later orders",
+      "mark": "Mark paid",
+      "marked": "Marked {name} paid",
+      "failed": "Could not mark it; try again later",
+      "confirm": {
+        "title": "Transferred {amount} to {name}?",
+        "body": "Records the payment for {week}. The transfer happens outside the app; this only records it and cannot be undone.",
+        "cancel": "Cancel",
+        "action": "Transferred"
       }
     }
   },

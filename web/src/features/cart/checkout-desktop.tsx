@@ -7,6 +7,7 @@ import { FailureAlert } from "@/components/failure-alert";
 
 import { totals } from "./cart";
 import { PaymentChoice, SellerOrder, type CheckoutProps } from "./checkout-parts";
+import { PromotionNotice } from "./promotion-notice";
 import { OrderButton } from "./order-button";
 
 // The cart's confirmation from 768px (Figma WK5): the page's intro, then at the left one card per seller's order, how
@@ -73,6 +74,7 @@ export function CheckoutDesktop({ cart, live, now, pending, problem, onConfirmed
             <dd className="font-display text-price">{formatPrice(priceVnd)}</dd>
           </div>
         </dl>
+        <PromotionNotice sellerIds={(live?.baskets ?? []).map((b) => b.seller.id)} />
         <div className="flex flex-col gap-2 border-t border-border pt-3">
           <div className="flex items-center gap-4">
             <div className="flex flex-col">

@@ -14,6 +14,7 @@ import { orderable, totals, withBasket, type Cart } from "./cart";
 import { saveCart, useCart } from "./cart-store";
 import { CheckoutDesktop } from "./checkout-desktop";
 import { PaymentChoice, SellerOrder, useCartNow, type CheckoutProps } from "./checkout-parts";
+import { PromotionNotice } from "./promotion-notice";
 import type { Contact } from "./contact";
 import { GoneSheet } from "./gone-sheet";
 import { OrderButton } from "./order-button";
@@ -128,6 +129,7 @@ function CheckoutPhone({ cart, live, now, pending, problem, onConfirmed }: Check
               <dd className="font-display text-price">{formatPrice(priceVnd)}</dd>
             </div>
           </dl>
+          <PromotionNotice sellerIds={(live?.baskets ?? []).map((b) => b.seller.id)} />
         </section>
         <section aria-labelledby="cancel" className="flex flex-col gap-1">
           <h2 id="cancel" className="text-label-strong text-muted-foreground uppercase">

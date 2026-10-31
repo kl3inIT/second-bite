@@ -30,10 +30,13 @@ export function unitsOf(order: Pick<Order, "lines">): number {
   return order.lines.reduce((sum, line) => sum + line.units, 0);
 }
 
-/** What the order would have cost at the original prices, less what it costs: the customer's saving. */
-export function savingOf(order: Pick<Order, "lines" | "totalVnd">): number {
+/**
+ * What the order would have cost at the original prices, less what its customer pays: the saving, a promotion's
+ * discount included.
+ */
+export function savingOf(order: Pick<Order, "lines" | "payVnd">): number {
   const original = order.lines.reduce((sum, line) => sum + line.originalPriceVnd * line.units, 0);
-  return Math.max(original - order.totalVnd, 0);
+  return Math.max(original - order.payVnd, 0);
 }
 
 /** The units the order page lets a customer ask for: at least one, at most what is left. */

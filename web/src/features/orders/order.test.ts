@@ -36,7 +36,7 @@ describe("an order", () => {
 
   it("counts its units and what the customer saves", () => {
     expect(unitsOf({ lines })).toBe(3);
-    expect(savingOf({ lines, totalVnd: 70000 })).toBe(105000);
+    expect(savingOf({ lines, payVnd: 70000 })).toBe(105000);
   });
 });
 
