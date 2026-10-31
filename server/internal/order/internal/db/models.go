@@ -30,3 +30,22 @@ type OrderProblem struct {
 	Answer     pgtype.Text
 	AnsweredAt *time.Time
 }
+
+type OrderPromotion struct {
+	ID             uuid.UUID
+	Name           string
+	StartsAt       time.Time
+	EndsAt         time.Time
+	AllSellers     bool
+	BudgetVnd      int64
+	PerPhonePerDay int32
+	Enabled        bool
+	Rules          []byte
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+type OrderPromotionSeller struct {
+	PromotionID uuid.UUID
+	SellerID    uuid.UUID
+}

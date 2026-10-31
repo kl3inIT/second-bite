@@ -192,9 +192,17 @@ export type AuditChangeBody = {
 
 export type AuditDetailsBody = {
     /**
+     * The amount marked paid
+     */
+    amountVnd?: number;
+    /**
      * The settings changed
      */
     changes?: Array<AuditChangeBody> | null;
+    /**
+     * The name of a promotion set up
+     */
+    name?: string;
     /**
      * Who delivers email after the change
      */
@@ -207,10 +215,14 @@ export type AuditDetailsBody = {
      * Where a change of admins came from
      */
     source?: 'admin' | 'command_line';
+    /**
+     * The Monday of a week of discounts marked paid
+     */
+    weekStart?: string;
 };
 
 export type AuditEventBody = {
-    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show';
+    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show' | 'promotion.create' | 'promotion.change' | 'seller.mark_payout';
     actorId?: string;
     actorLabel?: string;
     details: AuditDetailsBody;
@@ -221,7 +233,7 @@ export type AuditEventBody = {
      * The store's name, the account's address or the order's number at the time; absent once that account is deleted
      */
     resourceLabel?: string;
-    resourceType: 'account' | 'seller' | 'order' | 'offer_settings' | 'email_settings';
+    resourceType: 'account' | 'seller' | 'order' | 'offer_settings' | 'email_settings' | 'promotion';
 };
 
 export type AuditEventsOutputBody = {
@@ -544,6 +556,22 @@ export type ListDishesResponse = {
     dishes: Array<DishBody>;
 };
 
+export type ListPayoutsResponse = {
+    payouts: Array<PayoutBody>;
+};
+
+export type ListPromotionsResponse = {
+    counts: PromotionCountsBody;
+    items: Array<PromotionBody>;
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
+export type ListRunningPromotionsResponse = {
+    promotions: Array<RunningPromotionBody>;
+};
+
 export type LiveTicketOutputBody = {
     /**
      * Thirty seconds after it was minted
@@ -802,6 +830,10 @@ export type OrderBody = {
      * Their phone number, 0 and nine digits; empty once the customer deleted their account
      */
     customerPhone: string;
+    /**
+     * What a promotion took off when the order was placed; Second Bite pays it back to the seller
+     */
+    discountVnd: number;
     id: string;
     lines: Array<OrderLineBody>;
     /**
@@ -813,9 +845,17 @@ export type OrderBody = {
      */
     number: string;
     /**
+     * Paid to the seller at the counter: totalVnd less discountVnd
+     */
+    payVnd: number;
+    /**
      * What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
      */
     problem?: ProblemBody;
+    /**
+     * The promotion and rule the discount came from; none without a discount
+     */
+    promotion?: OrderPromotionBody;
     readyAt?: string;
     refuseNote?: string;
     refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other' | 'withdrawn';
@@ -833,7 +873,7 @@ export type OrderBody = {
      */
     status: 'confirmed' | 'ready' | 'collected' | 'cancelled' | 'refused' | 'expired';
     /**
-     * Paid to the seller at the counter
+     * What the dishes cost
      */
     totalVnd: number;
     /**
@@ -869,6 +909,22 @@ export type OrderLinePhotoBody = {
     smallPath: string;
 };
 
+export type OrderPromotionBody = {
+    id: string;
+    /**
+     * The promotion's name when the order was placed
+     */
+    name: string;
+    /**
+     * The phone number had no order handed over when this one was placed
+     */
+    newCustomer: boolean;
+    /**
+     * The rule's name when the order was placed
+     */
+    rule: string;
+};
+
 export type OrderSellerBody = {
     address: string;
     id: string;
@@ -884,6 +940,25 @@ export type OrderWantedBody = {
 
 export type OrdersOutputBody = {
     orders: Array<OrderBody>;
+};
+
+export type PayoutBody = {
+    /**
+     * Discounts of its orders handed over in the week
+     */
+    amountVnd: number;
+    newCustomers: number;
+    orders: number;
+    /**
+     * When an admin marked the week paid; absent until then
+     */
+    paidAt?: string;
+    /**
+     * The amount marked paid then
+     */
+    paidVnd?: number;
+    sellerId: string;
+    sellerName: string;
 };
 
 export type PhotoBody = {
@@ -973,6 +1048,126 @@ export type ProblemBody = {
     kind: 'missing_item' | 'wrong_item' | 'poor_quality' | 'store_closed';
     note?: string;
     reportedAt: string;
+};
+
+export type PromotionBody = {
+    allSellers: boolean;
+    budgetVnd: number;
+    createdAt: string;
+    enabled: boolean;
+    endsAt: string;
+    id: string;
+    name: string;
+    perPhonePerDay: number;
+    rules: Array<PromotionRuleBody>;
+    sellerIds: Array<string>;
+    startsAt: string;
+    /**
+     * Read from its times and whether it is enabled
+     */
+    status: 'running' | 'scheduled' | 'paused' | 'ended';
+    updatedAt: string;
+    use: PromotionUseBody;
+};
+
+export type PromotionConditionBody = {
+    attribute: 'customer' | 'seller' | 'subtotal';
+    /**
+     * eq for customer; in or not_in for seller; gte or lt for subtotal
+     */
+    operator: 'eq' | 'in' | 'not_in' | 'gte' | 'lt';
+    /**
+     * new or returning for customer; seller identifiers; one amount in VND for subtotal
+     */
+    values: Array<string>;
+};
+
+export type PromotionCountsBody = {
+    ended: number;
+    paused: number;
+    running: number;
+    scheduled: number;
+};
+
+export type PromotionInputBody = {
+    /**
+     * Runs for every seller; otherwise for sellerIds
+     */
+    allSellers: boolean;
+    /**
+     * Bounds the discounts of its orders still to collect and handed over
+     */
+    budgetVnd: number;
+    /**
+     * false pauses it
+     */
+    enabled: boolean;
+    /**
+     * After startsAt
+     */
+    endsAt: string;
+    name: string;
+    /**
+     * Discounts one phone number takes in a day, Vietnam time; 0 for no limit
+     */
+    perPhonePerDay: number;
+    /**
+     * Each an alternative; an order takes the one taking the most off
+     */
+    rules: Array<PromotionRuleBody>;
+    sellerIds?: Array<string>;
+    startsAt: string;
+};
+
+export type PromotionRewardBody = {
+    /**
+     * The most a percentage takes off, in VND; required with a percentage
+     */
+    maxVnd?: number;
+    type: 'fixed' | 'percentage';
+    /**
+     * VND for fixed, 1 to 100 for percentage
+     */
+    value: number;
+};
+
+export type PromotionRuleBody = {
+    /**
+     * All must hold; none means every order
+     */
+    conditions: Array<PromotionConditionBody>;
+    name: string;
+    /**
+     * Taken off the order's dishes, never more than they cost
+     */
+    reward: PromotionRewardBody;
+};
+
+export type PromotionUseBody = {
+    /**
+     * Discounts of the orders still to collect; given back when they are cancelled, refused or expire
+     */
+    heldVnd: number;
+    /**
+     * budgetVnd less spentVnd and heldVnd
+     */
+    leftVnd: number;
+    /**
+     * Of those, the orders of a new customer
+     */
+    newCustomers: number;
+    /**
+     * Orders still to collect or handed over that took a discount
+     */
+    orders: number;
+    /**
+     * Sellers whose orders took a discount
+     */
+    sellers: number;
+    /**
+     * Discounts of the orders handed over
+     */
+    spentVnd: number;
 };
 
 export type PushKeyOutputBody = {
@@ -1108,6 +1303,19 @@ export type ReviewOrderRequest = {
 export type RoleCountsBody = {
     admin: number;
     customer: number;
+};
+
+export type RunningPromotionBody = {
+    allSellers: boolean;
+    endsAt: string;
+    id: string;
+    name: string;
+    /**
+     * 0 for no limit
+     */
+    perPhonePerDay: number;
+    rules: Array<PromotionRuleBody>;
+    sellerIds: Array<string>;
 };
 
 export type SaveEmailSettingsInputBody = {
@@ -1660,7 +1868,7 @@ export type ListAuditEventsData = {
         /**
          * Keep these actions; every action when absent
          */
-        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show'> | null;
+        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show' | 'promotion.create' | 'promotion.change' | 'seller.mark_payout'> | null;
         /**
          * Keep one admin's actions
          */
@@ -1967,6 +2175,187 @@ export type ListOrdersForAdminsResponses = {
 };
 
 export type ListOrdersForAdminsResponse = ListOrdersForAdminsResponses[keyof ListOrdersForAdminsResponses];
+
+export type ListPayoutsData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The week's Monday
+         */
+        weekStart: string;
+        /**
+         * Only this promotion's discounts
+         */
+        promotionId?: string;
+    };
+    url: '/admin/promotion-payouts';
+};
+
+export type ListPayoutsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListPayoutsError = ListPayoutsErrors[keyof ListPayoutsErrors];
+
+export type ListPayoutsResponses = {
+    /**
+     * OK
+     */
+    200: ListPayoutsResponse;
+};
+
+export type ListPayoutsResponse2 = ListPayoutsResponses[keyof ListPayoutsResponses];
+
+export type MarkPayoutPaidData = {
+    body?: never;
+    path: {
+        sellerId: string;
+        /**
+         * The week's Monday
+         */
+        weekStart: string;
+    };
+    query?: never;
+    url: '/admin/promotion-payouts/{sellerId}/{weekStart}/paid';
+};
+
+export type MarkPayoutPaidErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type MarkPayoutPaidError = MarkPayoutPaidErrors[keyof MarkPayoutPaidErrors];
+
+export type MarkPayoutPaidResponses = {
+    /**
+     * OK
+     */
+    200: PayoutBody;
+};
+
+export type MarkPayoutPaidResponse = MarkPayoutPaidResponses[keyof MarkPayoutPaidResponses];
+
+export type ListPromotionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        status?: 'running' | 'scheduled' | 'paused' | 'ended';
+        /**
+         * Words of the name
+         */
+        q?: string;
+        /**
+         * Keep the promotions that apply to this seller
+         */
+        sellerId?: string;
+        page?: number;
+        size?: number;
+    };
+    url: '/admin/promotions';
+};
+
+export type ListPromotionsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListPromotionsError = ListPromotionsErrors[keyof ListPromotionsErrors];
+
+export type ListPromotionsResponses = {
+    /**
+     * OK
+     */
+    200: ListPromotionsResponse;
+};
+
+export type ListPromotionsResponse2 = ListPromotionsResponses[keyof ListPromotionsResponses];
+
+export type CreatePromotionData = {
+    body: PromotionInputBody;
+    path?: never;
+    query?: never;
+    url: '/admin/promotions';
+};
+
+export type CreatePromotionErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type CreatePromotionError = CreatePromotionErrors[keyof CreatePromotionErrors];
+
+export type CreatePromotionResponses = {
+    /**
+     * Created
+     */
+    201: PromotionBody;
+};
+
+export type CreatePromotionResponse = CreatePromotionResponses[keyof CreatePromotionResponses];
+
+export type GetPromotionData = {
+    body?: never;
+    path: {
+        promotionId: string;
+    };
+    query?: never;
+    url: '/admin/promotions/{promotionId}';
+};
+
+export type GetPromotionErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetPromotionError = GetPromotionErrors[keyof GetPromotionErrors];
+
+export type GetPromotionResponses = {
+    /**
+     * OK
+     */
+    200: PromotionBody;
+};
+
+export type GetPromotionResponse = GetPromotionResponses[keyof GetPromotionResponses];
+
+export type ChangePromotionData = {
+    body: PromotionInputBody;
+    path: {
+        promotionId: string;
+    };
+    query?: never;
+    url: '/admin/promotions/{promotionId}';
+};
+
+export type ChangePromotionErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ChangePromotionError = ChangePromotionErrors[keyof ChangePromotionErrors];
+
+export type ChangePromotionResponses = {
+    /**
+     * OK
+     */
+    200: PromotionBody;
+};
+
+export type ChangePromotionResponse = ChangePromotionResponses[keyof ChangePromotionResponses];
 
 export type GetReportData = {
     body?: never;
@@ -3303,6 +3692,36 @@ export type CustomerAddressAtResponses = {
 };
 
 export type CustomerAddressAtResponse = CustomerAddressAtResponses[keyof CustomerAddressAtResponses];
+
+export type ListRunningPromotionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The sellers of the cart
+         */
+        sellerId?: Array<string> | null;
+    };
+    url: '/promotions/running';
+};
+
+export type ListRunningPromotionsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ListRunningPromotionsError = ListRunningPromotionsErrors[keyof ListRunningPromotionsErrors];
+
+export type ListRunningPromotionsResponses = {
+    /**
+     * OK
+     */
+    200: ListRunningPromotionsResponse;
+};
+
+export type ListRunningPromotionsResponse2 = ListRunningPromotionsResponses[keyof ListRunningPromotionsResponses];
 
 export type GetPushKeyData = {
     body?: never;

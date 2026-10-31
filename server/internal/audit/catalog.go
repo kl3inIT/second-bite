@@ -8,6 +8,7 @@ package audit
 const (
 	ResourceOfferSettings = "offer_settings"
 	ResourceEmailSettings = "email_settings"
+	ResourcePromotion     = "promotion"
 	SingletonID           = "current"
 )
 
@@ -125,6 +126,31 @@ type ReviewShown struct{}
 
 func (ReviewShown) action() string { return "review.show" }
 
+// PromotionCreated is a promotion an admin set up, by name.
+type PromotionCreated struct {
+	Name string `json:"name"`
+}
+
+func (PromotionCreated) action() string { return "promotion.create" }
+
+// PromotionChanged is a promotion an admin changed: its times, budget, limit
+// and whether it runs with their values; its sellers and rules only that they
+// changed.
+type PromotionChanged struct {
+	Changes []Change `json:"changes"`
+}
+
+func (PromotionChanged) action() string { return "promotion.change" }
+
+// PayoutMarked is a seller's week of discounts marked as paid back to it,
+// with the week's Monday and the amount.
+type PayoutMarked struct {
+	WeekStart string `json:"weekStart"`
+	AmountVND int64  `json:"amountVnd"`
+}
+
+func (PayoutMarked) action() string { return "seller.mark_payout" }
+
 // catalog is every action above; a type added there is added here, which
 // gives the names admins filter by.
 var catalog = []Action{
@@ -141,6 +167,9 @@ var catalog = []Action{
 	SellerOwnerChanged{},
 	ReviewHidden{},
 	ReviewShown{},
+	PromotionCreated{},
+	PromotionChanged{},
+	PayoutMarked{},
 }
 
 // ActionNames are the names of the catalog, as events record them.

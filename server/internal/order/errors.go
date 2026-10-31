@@ -1,6 +1,10 @@
 package order
 
-import "github.com/kl3inIT/second-bite/server/internal/platform"
+import (
+	"fmt"
+
+	"github.com/kl3inIT/second-bite/server/internal/platform"
+)
 
 // The module's failures.
 var (
@@ -128,4 +132,30 @@ var (
 		VI: "Bạn nhắn quá nhanh, hãy thử lại sau ít phút.",
 		EN: "You are sending messages too fast; try again shortly.",
 	})
+	ErrPromotionInvalid = platform.NewFailure("ORDER_PROMOTION_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Chương trình chưa hợp lệ: kiểm tra tên, thời gian, ngân sách, cửa hàng và từng ưu đãi.",
+		EN: "The promotion is not valid: check its name, times, budget, sellers and each rule.",
+	})
+	ErrPromotionNotFound = platform.NewFailure("ORDER_PROMOTION_NOT_FOUND", platform.CategoryNotFound, platform.Words{
+		VI: "Không tìm thấy chương trình này.",
+		EN: "The promotion does not exist.",
+	})
+	ErrPayoutWeekInvalid = platform.NewFailure("ORDER_PAYOUT_WEEK_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Tuần phải bắt đầu vào thứ Hai.",
+		EN: "A week starts on a Monday.",
+	})
+	ErrPayoutAlreadyMarked = platform.NewFailure("ORDER_PAYOUT_ALREADY_MARKED", platform.CategoryConflict, platform.Words{
+		VI: "Tuần này của cửa hàng đã được đánh dấu đã chuyển.",
+		EN: "This week of the seller is already marked paid.",
+	})
+	ErrPayoutNothingOwed = platform.NewFailure("ORDER_PAYOUT_NOTHING_OWED", platform.CategoryConflict, platform.Words{
+		VI: "Tuần này cửa hàng không có tiền giảm nào cần bù.",
+		EN: "The seller is owed nothing for this week.",
+	})
 )
+
+// invalidPromotion is ErrPromotionInvalid, telling the log which field is
+// wrong and what it takes.
+func invalidPromotion(field, want string) error {
+	return ErrPromotionInvalid.WithCause(fmt.Errorf("%s: %s", field, want))
+}

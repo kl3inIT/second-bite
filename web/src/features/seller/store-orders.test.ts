@@ -39,6 +39,8 @@ function order(overrides: Partial<OrderBody> = {}): OrderBody {
     ],
     seller: { id: "se-1", name: "Quán", address: "Tasco Mall", latitude: 21, longitude: 105 },
     totalVnd: 30000,
+    discountVnd: 0,
+    payVnd: 30000,
     windowStart: "2026-10-21T12:00:00Z",
     windowEnd: "2026-10-21T14:00:00Z",
     ...overrides,

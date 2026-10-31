@@ -12,7 +12,7 @@ import (
 // listInput is what the trail is read by. The action enum is the catalog's
 // names; a test keeps the two the same.
 type listInput struct {
-	Action  []string  `query:"action"  doc:"Keep these actions; every action when absent" enum:"offer_settings.change,email_settings.change,admin.grant,admin.revoke,seller.approve,seller.reject,seller.block,seller.unblock,seller.delete,seller.restore,seller.change_owner,review.hide,review.show"`
+	Action  []string  `query:"action"  doc:"Keep these actions; every action when absent" enum:"offer_settings.change,email_settings.change,admin.grant,admin.revoke,seller.approve,seller.reject,seller.block,seller.unblock,seller.delete,seller.restore,seller.change_owner,review.hide,review.show,promotion.create,promotion.change,seller.mark_payout"`
 	ActorID uuid.UUID `query:"actorId" doc:"Keep one admin's actions"`
 	Since   time.Time `query:"since"   doc:"Keep what happened at or after this time"`
 	Until   time.Time `query:"until"   doc:"Keep what happened before this time"`
@@ -33,22 +33,25 @@ type auditEventsOutput struct {
 type auditEventBody struct {
 	ID         uuid.UUID `json:"id"`
 	OccurredAt time.Time `json:"occurredAt"`
-	Action     string    `json:"action"               enum:"offer_settings.change,email_settings.change,admin.grant,admin.revoke,seller.approve,seller.reject,seller.block,seller.unblock,seller.delete,seller.restore,seller.change_owner,review.hide,review.show"`
+	Action     string    `json:"action"               enum:"offer_settings.change,email_settings.change,admin.grant,admin.revoke,seller.approve,seller.reject,seller.block,seller.unblock,seller.delete,seller.restore,seller.change_owner,review.hide,review.show,promotion.create,promotion.change,seller.mark_payout"`
 	// ActorID is absent for the command line; the label also when the
 	// admin's account was deleted.
 	ActorID       *uuid.UUID       `json:"actorId,omitempty"`
 	ActorLabel    string           `json:"actorLabel,omitempty"`
-	ResourceType  string           `json:"resourceType"         enum:"account,seller,order,offer_settings,email_settings"`
+	ResourceType  string           `json:"resourceType"         enum:"account,seller,order,offer_settings,email_settings,promotion"`
 	ResourceID    string           `json:"resourceId"`
 	ResourceLabel string           `json:"resourceLabel,omitempty" doc:"The store's name, the account's address or the order's number at the time; absent once that account is deleted"`
 	Details       auditDetailsBody `json:"details"`
 }
 
 type auditDetailsBody struct {
-	Reason   string            `json:"reason,omitempty"   doc:"What the owner was told, for a rejection or a block; the admin's reason, for a hidden review"`
-	Source   string            `json:"source,omitempty"   doc:"Where a change of admins came from" enum:"admin,command_line"`
-	Provider string            `json:"provider,omitempty" doc:"Who delivers email after the change" enum:"smtp,brevo"`
-	Changes  []auditChangeBody `json:"changes,omitempty"  doc:"The settings changed"`
+	Reason    string            `json:"reason,omitempty"   doc:"What the owner was told, for a rejection or a block; the admin's reason, for a hidden review"`
+	Source    string            `json:"source,omitempty"   doc:"Where a change of admins came from" enum:"admin,command_line"`
+	Provider  string            `json:"provider,omitempty" doc:"Who delivers email after the change" enum:"smtp,brevo"`
+	Changes   []auditChangeBody `json:"changes,omitempty"  doc:"The settings changed"`
+	Name      string            `json:"name,omitempty"      doc:"The name of a promotion set up"`
+	WeekStart string            `json:"weekStart,omitempty" doc:"The Monday of a week of discounts marked paid"`
+	AmountVND int64             `json:"amountVnd,omitempty" doc:"The amount marked paid"`
 }
 
 type auditChangeBody struct {
@@ -99,7 +102,10 @@ func toBody(e Event) auditEventBody {
 	body := auditEventBody{
 		ID: e.ID, OccurredAt: e.OccurredAt, Action: e.Action, ActorID: e.ActorID, ActorLabel: e.ActorLabel,
 		ResourceType: e.ResourceType, ResourceID: e.ResourceID, ResourceLabel: e.ResourceLabel,
-		Details: auditDetailsBody{Reason: e.Details.Reason, Source: e.Details.Source, Provider: e.Details.Provider},
+		Details: auditDetailsBody{
+			Reason: e.Details.Reason, Source: e.Details.Source, Provider: e.Details.Provider, Name: e.Details.Name,
+			WeekStart: e.Details.WeekStart, AmountVND: e.Details.AmountVND,
+		},
 	}
 
 	for _, c := range e.Details.Changes {

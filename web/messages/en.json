@@ -1241,14 +1241,18 @@
         "emailSettingsChange": "Email settings changed",
         "reviewHide": "Hide review",
         "reviewShow": "Show review",
-        "sellerChangeOwner": "Store owner changed"
+        "sellerChangeOwner": "Store owner changed",
+        "promotionCreate": "Promotion set up",
+        "promotionChange": "Promotion changed",
+        "sellerMarkPayout": "Payback marked paid"
       },
       "resource": {
         "seller": "Store",
         "account": "Account",
         "offer_settings": "Post settings",
         "email_settings": "Email settings",
-        "order": "Order"
+        "order": "Order",
+        "promotion": "Promotion"
       },
       "commandLine": "Command line",
       "deletedAccount": "Deleted account",
@@ -1264,7 +1268,11 @@
         "value": "{field}: {from} → {to}",
         "secret": "{field}: changed",
         "empty": "empty",
-        "ownerChanged": "Previous owner → staff; the new owner takes the store"
+        "ownerChanged": "Previous owner → staff; the new owner takes the store",
+        "promotionCreated": "Set up “{name}”",
+        "payoutMarked": "Week from {week}: {amount}",
+        "yes": "yes",
+        "no": "no"
       },
       "field": {
         "minDiscountPercent": "Minimum discount",
@@ -1281,13 +1289,23 @@
         "smtpSecurity": "SMTP security",
         "smtpUsername": "SMTP user",
         "smtpPassword": "SMTP password",
-        "brevoApiKey": "Brevo API key"
+        "brevoApiKey": "Brevo API key",
+        "name": "Name",
+        "startsAt": "Starts",
+        "endsAt": "Ends",
+        "allSellers": "Every store",
+        "sellerIds": "Stores",
+        "budgetVnd": "Budget",
+        "perPhonePerDay": "Discounts per phone a day",
+        "enabled": "Enabled",
+        "rules": "Rules"
       },
       "unit": {
         "percent": "{value}%",
         "km": "{value} km",
         "minutes": "{value} min",
-        "hours": "{value} h"
+        "hours": "{value} h",
+        "vnd": "{value} VND"
       },
       "empty": {
         "title": "No actions yet",

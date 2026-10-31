@@ -13,11 +13,13 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
   createdAt: DateTime.parse(json['createdAt'] as String),
   customerName: json['customerName'] as String,
   customerPhone: json['customerPhone'] as String,
+  discountVnd: (json['discountVnd'] as num).toInt(),
   id: json['id'] as String,
   lines: (json['lines'] as List<dynamic>)
       .map((e) => OrderLineBody.fromJson(e as Map<String, dynamic>))
       .toList(),
   number: json['number'] as String,
+  payVnd: (json['payVnd'] as num).toInt(),
   seller: OrderSellerBody.fromJson(json['seller'] as Map<String, dynamic>),
   status: OrderBodyStatus.fromJson(json['status'] as String),
   totalVnd: (json['totalVnd'] as num).toInt(),
@@ -35,6 +37,9 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
   problem: json['problem'] == null
       ? null
       : ProblemBody.fromJson(json['problem'] as Map<String, dynamic>),
+  promotion: json['promotion'] == null
+      ? null
+      : OrderPromotionBody.fromJson(json['promotion'] as Map<String, dynamic>),
   readyAt: json['readyAt'] == null
       ? null
       : DateTime.parse(json['readyAt'] as String),
@@ -59,9 +64,11 @@ Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'customerName': instance.customerName,
       'customerPhone': instance.customerPhone,
+      'discountVnd': instance.discountVnd,
       'id': instance.id,
       'lines': instance.lines,
       'number': instance.number,
+      'payVnd': instance.payVnd,
       'seller': instance.seller,
       'status': _$OrderBodyStatusEnumMap[instance.status]!,
       'totalVnd': instance.totalVnd,
@@ -73,6 +80,7 @@ Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
       'collectedAt': instance.collectedAt?.toIso8601String(),
       'messageCount': instance.messageCount,
       'problem': instance.problem,
+      'promotion': instance.promotion,
       'readyAt': instance.readyAt?.toIso8601String(),
       'refuseNote': instance.refuseNote,
       'refuseReason': _$OrderBodyRefuseReasonEnumMap[instance.refuseReason],
