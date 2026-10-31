@@ -24,12 +24,45 @@ export default function OpenStorePage() {
       <Suspense fallback={null}>
         <PushedScreenHeader namespace="OpenStore" back="/stores" />
       </Suspense>
-      <main className="mx-auto flex w-full max-w-130 flex-1 flex-col px-4 pt-2 pb-14 md:pt-8">
-        <Suspense fallback={<Skeleton shape="card" className="h-130" />}>
-          <OpenStore />
+      <main className="mx-auto flex w-full max-w-130 flex-1 flex-col px-4 pt-2 pb-14 md:pt-8 lg:max-w-256 lg:flex-row lg:items-start lg:gap-16">
+        <Suspense fallback={null}>
+          <OpenStoreIntro />
         </Suspense>
+        <div className="lg:w-130 lg:shrink-0">
+          <Suspense fallback={<Skeleton shape="card" className="h-130" />}>
+            <OpenStore />
+          </Suspense>
+        </div>
       </main>
     </>
+  );
+}
+
+// The wide screen's left column (Figma O1-B): the heading, the line under it and the three steps of the form,
+// beside the card. On a phone and a tablet the heading stays at the top of the card as before.
+async function OpenStoreIntro() {
+  const t = await getTranslations("OpenStore");
+  const steps = [t("steps.details"), t("steps.pin"), t("steps.photo")];
+  return (
+    <section className="flex flex-1 flex-col gap-8 pt-8 max-lg:hidden">
+      <header className="flex flex-col gap-3">
+        <h1 className="text-display text-foreground">{t("heading")}</h1>
+        <p className="text-body text-muted-foreground">{t("intro")}</p>
+      </header>
+      <ol className="flex flex-col gap-4">
+        {steps.map((step, index) => (
+          <li key={step} className="flex items-center gap-3 text-body-sm-strong text-foreground">
+            <span
+              aria-hidden
+              className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-card text-primary"
+            >
+              {index + 1}
+            </span>
+            {step}
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
