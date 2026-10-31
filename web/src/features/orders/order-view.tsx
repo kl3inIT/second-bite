@@ -370,7 +370,7 @@ function Timeline({ order }: { order: Order }) {
           date: date(order.createdAt),
           time: at(order.createdAt),
           units,
-          total: formatPrice(order.totalVnd),
+          total: formatPrice(order.payVnd),
         }),
       },
       // An order is confirmed when it is placed; staff never accept one (docs/specs/order.md).
@@ -388,7 +388,7 @@ function Timeline({ order }: { order: Order }) {
   }
   if (order.status === "collected") {
     const collectedAt = order.collectedAt ?? order.windowEnd;
-    const paid = { time: at(collectedAt), total: formatPrice(order.totalVnd) };
+    const paid = { time: at(collectedAt), total: formatPrice(order.payVnd) };
     moments.push(
       {
         title: t("placed"),
@@ -396,7 +396,7 @@ function Timeline({ order }: { order: Order }) {
           date: date(order.createdAt),
           time: at(order.createdAt),
           units,
-          total: formatPrice(order.totalVnd),
+          total: formatPrice(order.payVnd),
         }),
       },
       { title: t("confirmed"), body: t("confirmedBody", { time: at(order.createdAt), units }) },

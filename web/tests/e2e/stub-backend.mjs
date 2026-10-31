@@ -912,6 +912,10 @@ function sellerOrdersFor(seller) {
         },
       ],
       totalVnd: price * units,
+      discountVnd: 0,
+      get payVnd() {
+        return this.totalVnd - this.discountVnd;
+      },
       windowStart: new Date(Date.now() - 3_600_000).toISOString(),
       windowEnd: new Date(Date.now() + 3 * 3_600_000).toISOString(),
       createdAt: new Date().toISOString(),
@@ -1836,6 +1840,10 @@ async function ordersApi(request, response, url) {
         photo: each.photo,
       })),
       totalVnd: wanted.reduce((sum, { units, offer: each }) => sum + each.priceVnd * units, 0),
+      discountVnd: 0,
+      get payVnd() {
+        return this.totalVnd - this.discountVnd;
+      },
       windowStart: offer.windowStart,
       windowEnd: offer.windowEnd,
       createdAt: new Date().toISOString(),
@@ -2208,6 +2216,10 @@ function historyOf(accountId) {
         },
       ],
       totalVnd: offer.priceVnd * units,
+      discountVnd: 0,
+      get payVnd() {
+        return this.totalVnd - this.discountVnd;
+      },
       windowStart: offer.windowStart,
       windowEnd: offer.windowEnd,
       createdAt: new Date(Date.parse("2026-10-20T10:00:00Z") - i * 86_400_000).toISOString(),
@@ -2486,6 +2498,10 @@ function adminOrdersOf(stores) {
       },
       lines,
       totalVnd: lines.reduce((sum, l) => sum + l.priceVnd * l.units, 0),
+      discountVnd: 0,
+      get payVnd() {
+        return this.totalVnd - this.discountVnd;
+      },
       windowStart: at(-back - 22 - i),
       windowEnd: at(-back + 38 - i),
       createdAt: at(-back - 120 - i),
@@ -2881,6 +2897,194 @@ function adminReportCSV(report) {
   return "\uFEFF" + rows.map((row) => row.join(",")).join("\r\n") + "\r\n";
 }
 
+/**
+ * The buyer-discount increment's promotions, an admin's own as the stores are: one running since 26/10 with two
+ * rules, which the list, the form and the payouts read. Status and use are read as server/internal/order does,
+ * from the times and whether it is enabled; the use is fixed, the stub placing no discounted order.
+ */
+const adminPromotions = new Map();
+
+function adminPromotionsOf(account) {
+  if (!adminPromotions.has(account.email)) {
+    adminPromotions.set(account.email, [
+      {
+        id: "pr-support",
+        name: "Chương trình hỗ trợ Second Bite",
+        startsAt: "2026-10-26T00:00:00+07:00",
+        endsAt: "2099-11-29T23:59:00+07:00",
+        allSellers: true,
+        sellerIds: [],
+        budgetVnd: 5_000_000,
+        perPhonePerDay: 1,
+        enabled: true,
+        rules: [
+          {
+            name: "Khách mới giảm 20.000đ",
+            conditions: [
+              { attribute: "customer", operator: "eq", values: ["new"] },
+              { attribute: "subtotal", operator: "gte", values: ["30000"] },
+            ],
+            reward: { type: "fixed", value: 20_000 },
+          },
+          {
+            name: "Khách cũ giảm 10.000đ",
+            conditions: [
+              { attribute: "customer", operator: "eq", values: ["returning"] },
+              { attribute: "subtotal", operator: "gte", values: ["30000"] },
+            ],
+            reward: { type: "fixed", value: 10_000 },
+          },
+        ],
+        createdAt: "2026-10-25T09:00:00Z",
+        updatedAt: "2026-10-25T09:00:00Z",
+        use: { spentVnd: 600_000, heldVnd: 40_000, orders: 42, newCustomers: 30, sellers: 3 },
+        payouts: new Map(),
+      },
+    ]);
+  }
+  return adminPromotions.get(account.email);
+}
+
+function promotionStatusOf(p, now = Date.now()) {
+  if (Date.parse(p.endsAt) <= now) return "ended";
+  if (!p.enabled) return "paused";
+  return Date.parse(p.startsAt) > now ? "scheduled" : "running";
+}
+
+function promotionBodyOf(p) {
+  const { payouts: _payouts, use, ...rest } = p;
+  return {
+    ...rest,
+    status: promotionStatusOf(p),
+    use: { ...use, leftVnd: Math.max(0, p.budgetVnd - use.spentVnd - use.heldVnd) },
+  };
+}
+
+/** The input's bounds, as server/internal/order/promotion.go checks them. */
+function promotionInputValid(input) {
+  const name = String(input.name ?? "").trim();
+  return (
+    name.length >= 1 &&
+    name.length <= 80 &&
+    Date.parse(input.endsAt) > Date.parse(input.startsAt) &&
+    (input.allSellers || (input.sellerIds ?? []).length > 0) &&
+    input.budgetVnd >= 1 &&
+    input.perPhonePerDay >= 0 &&
+    Array.isArray(input.rules) &&
+    input.rules.length >= 1 &&
+    input.rules.length <= 10
+  );
+}
+
+async function adminPromotionRoutes(request, response, url, account) {
+  const promotions = adminPromotionsOf(account);
+  if (request.method === "GET" && url.pathname === "/admin/promotions") {
+    const status = url.searchParams.get("status");
+    const q = fold(url.searchParams.get("q") ?? "");
+    const sellerId = url.searchParams.get("sellerId");
+    const page = Number(url.searchParams.get("page") ?? 1);
+    const size = Number(url.searchParams.get("size") ?? 25);
+    const all = promotions.map(promotionBodyOf);
+    const counts = { running: 0, scheduled: 0, paused: 0, ended: 0 };
+    for (const p of all) counts[p.status] += 1;
+    const shown = all
+      .filter((p) => !status || p.status === status)
+      .filter((p) => !q || fold(p.name).includes(q))
+      .filter((p) => !sellerId || p.allSellers || p.sellerIds.includes(sellerId))
+      .sort((a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt));
+    json(response, 200, {
+      items: shown.slice((page - 1) * size, page * size),
+      total: shown.length,
+      page,
+      pageSize: size,
+      counts,
+    });
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/admin/promotions") {
+    const input = await readBody(request);
+    if (!promotionInputValid(input)) {
+      problem(response, 422, "ORDER_PROMOTION_INVALID");
+      return true;
+    }
+    const now = new Date().toISOString();
+    const created = {
+      ...input,
+      id: `pr-${promotions.length + 1}`,
+      createdAt: now,
+      updatedAt: now,
+      use: { spentVnd: 0, heldVnd: 0, orders: 0, newCustomers: 0, sellers: 0 },
+      payouts: new Map(),
+    };
+    promotions.push(created);
+    json(response, 201, promotionBodyOf(created));
+    return true;
+  }
+  const one = /^\/admin\/promotions\/([\w-]+)$/.exec(url.pathname);
+  if (one && (request.method === "GET" || request.method === "PUT")) {
+    const promotion = promotions.find((p) => p.id === one[1]);
+    if (!promotion) {
+      problem(response, 404, "ORDER_PROMOTION_NOT_FOUND");
+      return true;
+    }
+    if (request.method === "PUT") {
+      const input = await readBody(request);
+      if (!promotionInputValid(input)) {
+        problem(response, 422, "ORDER_PROMOTION_INVALID");
+        return true;
+      }
+      Object.assign(promotion, input, { updatedAt: new Date().toISOString() });
+    }
+    json(response, 200, promotionBodyOf(promotion));
+    return true;
+  }
+  // The week's payouts: the seeded promotion owes the first two active stores for any week it ran.
+  if (request.method === "GET" && url.pathname === "/admin/promotion-payouts") {
+    const week = url.searchParams.get("weekStart") ?? "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(week) || new Date(`${week}T00:00:00Z`).getUTCDay() !== 1) {
+      problem(response, 422, "ORDER_PAYOUT_WEEK_INVALID");
+      return true;
+    }
+    json(response, 200, { payouts: payoutsOf(account, week, url.searchParams.get("promotionId")) });
+    return true;
+  }
+  const paid = /^\/admin\/promotion-payouts\/([\w-]+)\/(\d{4}-\d{2}-\d{2})\/paid$/.exec(
+    url.pathname,
+  );
+  if (request.method === "POST" && paid) {
+    const [, sellerId, week] = paid;
+    const owed = payoutsOf(account, week, null).find((p) => p.sellerId === sellerId);
+    if (!owed) {
+      problem(response, 422, "ORDER_PAYOUT_NOTHING_OWED");
+      return true;
+    }
+    if (owed.paidAt) {
+      problem(response, 409, "ORDER_PAYOUT_ALREADY_MARKED");
+      return true;
+    }
+    const marked = { paidAt: new Date().toISOString(), paidVnd: owed.amountVnd };
+    promotions[0].payouts.set(`${sellerId}/${week}`, marked);
+    json(response, 200, { ...owed, ...marked });
+    return true;
+  }
+  return false;
+}
+
+function payoutsOf(account, week, promotionId) {
+  const seeded = adminPromotionsOf(account)[0];
+  if (promotionId && promotionId !== seeded.id) return [];
+  if (Date.parse(`${week}T00:00:00+07:00`) < Date.parse("2026-10-26T00:00:00+07:00")) return [];
+  const active = adminStoresOf(account).filter((s) => s.status === "active");
+  return active.slice(0, 2).map((store, i) => ({
+    sellerId: store.id,
+    sellerName: store.name,
+    orders: 6 - i * 2,
+    newCustomers: 4 - i,
+    amountVnd: 100_000 - i * 30_000,
+    ...seeded.payouts.get(`${store.id}/${week}`),
+  }));
+}
+
 async function adminRoutes(request, response, url) {
   if (!url.pathname.startsWith("/admin/")) return false;
   const account = accounts.get(tokenOf(request));
@@ -2892,6 +3096,7 @@ async function adminRoutes(request, response, url) {
     problem(response, 403, "PLATFORM_ADMIN_REQUIRED");
     return true;
   }
+  if (await adminPromotionRoutes(request, response, url, account)) return true;
   if (request.method === "GET" && url.pathname === "/admin/sellers") {
     listAdminStores(response, url, adminStoresOf(account));
     return true;
@@ -3231,6 +3436,10 @@ async function answer(request, response) {
         ]
       : [];
     return json(response, 200, { places });
+  }
+  // The promotions running (GET /promotions/running, anyone): none, the stub placing no discounted order.
+  if (request.method === "GET" && url.pathname === "/promotions/running") {
+    return json(response, 200, { promotions: [] });
   }
   if (await auth(request, response, url)) return;
   if (await chatRoutes(request, response, url)) return;

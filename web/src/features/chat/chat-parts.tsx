@@ -54,10 +54,10 @@ export function ChatOrderCard({ order, phoneTitle }: { order: Order; phoneTitle?
         </p>
       </div>
       <p className="flex shrink-0 flex-col items-end">
-        <span className="font-display text-price">{formatPrice(order.totalVnd)}</span>
+        <span className="font-display text-price">{formatPrice(order.payVnd)}</span>
         <s className="text-label text-muted-foreground">
           <span className="sr-only">{orders("originalPrice")}</span>
-          {formatPrice(order.totalVnd + savingOf(order))}
+          {formatPrice(order.payVnd + savingOf(order))}
         </s>
       </p>
     </div>

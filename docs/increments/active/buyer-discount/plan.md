@@ -8,6 +8,6 @@ The [design](design.md) holds the decisions. The screens were agreed on an HTML 
    - The order answers `discountVnd`, `payVnd` and its `promotion`; `GET /promotions/running` gives the cart what runs for some stores.
    - Admins: list, read, create and change promotions with their use; the payouts of a week and marking one paid; each change in the audit.
    - Tests for each case of the preview's table; `docs/specs/order.md`; the API document and the generated web and mobile clients.
-2. **Web**: Admin → Khuyến mãi (list, one promotion, the rule dialog, payouts); the cart's notice; the customer's and the store's order showing the discount and what is collected; the terms.
-3. **Mobile**: the store's order shows what is collected and what Second Bite pays back.
+2. **Web**: Admin → Giảm giá (list, one promotion, the rule dialog, payouts); the cart's notice; the customer's and the store's order showing the discount and what is collected.
+3. **Mobile**: the store's order shows what is collected and what Second Bite pays back; the terms on web and mobile together, which keep the same text.
 4. **Rewards for stores and the programme's figures**, previewed in HTML first.

@@ -1,6 +1,7 @@
 import {
   CheckIcon,
   ChevronRightIcon,
+  GiftIcon,
   MapPinIcon,
   QrCodeIcon,
   ReceiptTextIcon,
@@ -156,6 +157,49 @@ export function useOrderDate() {
     });
 }
 
+/** The total's label: what is paid at the counter once a promotion took something off. */
+function totalLabel(order: Order, t: ReturnType<typeof useTranslations<"Orders">>) {
+  return order.discountVnd > 0 ? t("facts.payAtCounter") : t("facts.total");
+}
+
+/** What the customer pays, beside the dishes' price struck through when a promotion took something off. */
+function PayValue({ order }: { order: Order }) {
+  const t = useTranslations("Orders");
+  return (
+    <span className="flex items-baseline gap-1.5">
+      {order.discountVnd > 0 && (
+        <s className="text-label text-muted-foreground">
+          <span className="sr-only">{t("facts.beforeDiscount")}</span>
+          {formatPrice(order.totalVnd)}
+        </s>
+      )}
+      <span className="font-display text-price">{formatPrice(order.payVnd)}</span>
+    </span>
+  );
+}
+
+/**
+ * What a promotion took off the order, on a line of its own under the dishes (buyer-discount increment): the
+ * promotion and its rule as they were when the order was placed. Nothing without a discount.
+ */
+function DiscountLine({ order }: { order: Order }) {
+  const t = useTranslations("Orders");
+  if (!order.promotion || order.discountVnd === 0) return null;
+  return (
+    <p className="flex items-center justify-between gap-3 rounded-xl bg-fresh-muted px-3 py-2.5 text-body-sm text-fresh-foreground">
+      <span className="flex min-w-0 items-center gap-2">
+        <GiftIcon aria-hidden className="size-4 shrink-0" />
+        <span>
+          {t("facts.discount", { promotion: order.promotion.name, rule: order.promotion.rule })}
+        </span>
+      </span>
+      <span className="shrink-0 font-display text-price text-sale">
+        −{formatPrice(order.discountVnd)}
+      </span>
+    </p>
+  );
+}
+
 /** A label above its value, at the start or the end of a row of two. */
 function Fact({ label, value, end }: { label: string; value: React.ReactNode; end?: boolean }) {
   return (
@@ -197,6 +241,7 @@ export function OrderSummary({ order }: { order: Order }) {
           </li>
         ))}
       </ul>
+      <DiscountLine order={order} />
       <div className="flex flex-col gap-3.5 border-t border-border pt-3.5">
         <dl className="flex justify-between gap-4">
           <Fact
@@ -207,11 +252,7 @@ export function OrderSummary({ order }: { order: Order }) {
               </span>
             }
           />
-          <Fact
-            end
-            label={t("facts.total")}
-            value={<span className="font-display text-price">{formatPrice(order.totalVnd)}</span>}
-          />
+          <Fact end label={totalLabel(order, t)} value={<PayValue order={order} />} />
         </dl>
         <dl className="flex justify-between gap-4">
           <Fact
@@ -277,12 +318,9 @@ export function OrderFacts({ order }: { order: Order }) {
               </span>
             }
           />
-          <Fact
-            end
-            label={t("facts.total")}
-            value={<span className="font-display text-price">{formatPrice(order.totalVnd)}</span>}
-          />
+          <Fact end label={totalLabel(order, t)} value={<PayValue order={order} />} />
         </dl>
+        <DiscountLine order={order} />
         <dl className="flex justify-between gap-4">
           <Fact
             label={t("facts.number")}

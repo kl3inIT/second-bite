@@ -265,6 +265,29 @@ export default async function OrderPage({
                       {formatPrice(order.totalVnd)}
                     </span>
                   </div>
+                  {order.promotion && order.discountVnd > 0 && (
+                    <>
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-body-sm text-foreground">
+                          {t("orders.detail.discount", {
+                            promotion: order.promotion.name,
+                            rule: order.promotion.rule,
+                          })}
+                        </span>
+                        <span className="text-body-sm-strong whitespace-nowrap text-sale">
+                          −{formatPrice(order.discountVnd)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-body-sm-strong text-foreground">
+                          {t("orders.detail.payVnd")}
+                        </span>
+                        <span className="font-display text-price-lg text-foreground">
+                          {formatPrice(order.payVnd)}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>

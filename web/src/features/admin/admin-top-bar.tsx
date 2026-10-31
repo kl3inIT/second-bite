@@ -19,6 +19,7 @@ export type Crumb = {
     | "/admin/sellers"
     | `/admin/sellers/${string}`
     | "/admin/orders"
+    | "/admin/promotions"
     | "/admin/accounts"
     | "/admin/audit"
     | "/admin/settings";

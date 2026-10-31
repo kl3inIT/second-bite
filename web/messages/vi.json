@@ -432,7 +432,10 @@
       "date": "Ngày",
       "today": "Hôm nay, {date}",
       "window": "Khung giờ nhận",
-      "dishes": "Món"
+      "dishes": "Món",
+      "payAtCounter": "Trả tại quầy",
+      "beforeDiscount": "Giá trước khi giảm",
+      "discount": "{promotion} · {rule}"
     },
     "how": {
       "title": "Cách nhận món",
@@ -661,7 +664,13 @@
     "stockLeft": "Chỉ còn {units}",
     "stockChosen": "Đã chọn đủ {units}",
     "over": "Hết giờ nhận",
-    "dropLabel": "Bỏ {name} khỏi giỏ"
+    "dropLabel": "Bỏ {name} khỏi giỏ",
+    "promotion": {
+      "rule": "{rule}: giảm {amount}{from, select, none {} other { cho đơn từ {from}}}",
+      "percent": "{value}% (tối đa {max})",
+      "perDay": "Mỗi số điện thoại được giảm {count} lần mỗi ngày.",
+      "after": "Số tiền giảm hiện trên đơn ngay sau khi đặt; bạn trả ít hơn tại quầy."
+    }
   },
   "AccountSettings": {
     "title": "Cài đặt tài khoản",
@@ -991,7 +1000,10 @@
         "ready": "Giao món khi khách đến quầy.",
         "undoTitle": "Nhầm tay?",
         "undoBody": "Mở lại đơn để làm tiếp."
-      }
+      },
+      "collect": "Thu của khách",
+      "instead": "thay vì {total}",
+      "payback": "Khách được giảm {amount} ({promotion}). Second Bite bù quán {amount}, chuyển vào cuối tuần."
     },
     "track": {
       "label": "Các bước của đơn",
@@ -1194,7 +1206,8 @@
       "settings": "Cài đặt",
       "accounts": "Tài khoản",
       "reviews": "Đánh giá",
-      "reports": "Báo cáo"
+      "reports": "Báo cáo",
+      "promotions": "Giảm giá"
     },
     "notFound": {
       "crumb": "Không tìm thấy",
@@ -1814,7 +1827,9 @@
         "windowOn": "{window} · {day}",
         "place": "Nơi nhận",
         "payment": "Thanh toán",
-        "atCounter": "Trả tại quầy"
+        "atCounter": "Trả tại quầy",
+        "discount": "Giảm · {promotion} · {rule}",
+        "payVnd": "Khách trả tại quầy"
       },
       "actions": "Thao tác với đơn {number}",
       "view": "Xem chi tiết"
@@ -1925,6 +1940,198 @@
         "count": "{count, plural, other {# góp ý}}",
         "empty": "Chưa có quán nào góp ý trong khoảng ngày này.",
         "when": "{date}, {time}"
+      }
+    },
+    "promotions": {
+      "title": "Giảm giá",
+      "payouts": "Trả tiền cho quán",
+      "create": "Tạo chương trình",
+      "cards": "Lọc theo trạng thái",
+      "status": {
+        "running": "Đang chạy",
+        "scheduled": "Sắp chạy",
+        "paused": "Tạm dừng",
+        "ended": "Đã kết thúc"
+      },
+      "search": "Tìm theo tên chương trình",
+      "anyStore": "Tất cả",
+      "store": "Cửa hàng",
+      "size": "Số dòng",
+      "noResults": {
+        "title": "Không có chương trình nào khớp",
+        "clear": "Xoá bộ lọc"
+      },
+      "empty": {
+        "title": "Chưa có chương trình giảm giá nào"
+      },
+      "noun": "chương trình",
+      "column": {
+        "name": "Chương trình",
+        "stores": "Áp dụng",
+        "time": "Thời gian",
+        "rules": "Ưu đãi",
+        "budget": "Ngân sách đã dùng",
+        "status": "Trạng thái",
+        "actions": "Thao tác"
+      },
+      "allStores": "Mọi cửa hàng",
+      "someStores": "{count} cửa hàng",
+      "range": "{from} – {until}",
+      "ruleCount": "{count} ưu đãi",
+      "used": "{used} / {budget}",
+      "usedLabel": "Ngân sách đã dùng của {name}",
+      "actions": "Thao tác với {name}",
+      "view": "Xem và sửa",
+      "form": {
+        "newTitle": "Tạo chương trình giảm giá",
+        "errors": {
+          "name": "Nhập tên chương trình, tối đa 80 ký tự",
+          "endsAt": "Giờ kết thúc phải sau giờ bắt đầu",
+          "sellers": "Chọn ít nhất một cửa hàng",
+          "budget": "Nhập ngân sách, ít nhất 1đ",
+          "perDay": "Nhập số từ 0 đến 100",
+          "rules": "Thêm ít nhất một ưu đãi, tối đa 10"
+        },
+        "saved": "Đã lưu chương trình",
+        "created": "Đã tạo chương trình",
+        "refused": "Chưa lưu được",
+        "failed": "Không lưu được, thử lại sau",
+        "general": "Thông tin chung",
+        "name": "Tên chương trình",
+        "nameHint": "Khách thấy tên này trên đơn, ví dụ “Chương trình hỗ trợ Second Bite”.",
+        "startsAt": "Bắt đầu",
+        "endsAt": "Kết thúc",
+        "timeHint": "Theo giờ Việt Nam. Đơn đặt trong khoảng này mới được giảm.",
+        "scope": "Áp dụng cho",
+        "allStores": "Mọi cửa hàng",
+        "someStores": "Một số cửa hàng",
+        "stores": "Cửa hàng được giảm",
+        "limits": "Giới hạn",
+        "budget": "Ngân sách (đ)",
+        "budgetHint": "Hết ngân sách thì tự ngừng giảm. Đơn huỷ hoặc hết hạn trả lại tiền vào ngân sách.",
+        "perDay": "Số lần giảm mỗi số điện thoại mỗi ngày",
+        "perDayHint": "0 là không giới hạn.",
+        "rules": "Ưu đãi",
+        "addRule": "Thêm ưu đãi",
+        "rulesHint": "Mỗi đơn chỉ nhận một ưu đãi: ưu đãi giảm nhiều nhất trong số đơn đủ điều kiện. Các ưu đãi không cộng dồn.",
+        "dirty": "Có thay đổi chưa lưu",
+        "updated": "Lưu lần cuối lúc {time}, {day}",
+        "never": "Chưa lưu",
+        "cancel": "Huỷ thay đổi",
+        "save": "Lưu",
+        "create": "Tạo chương trình",
+        "aside": "Ngân sách và trạng thái",
+        "state": "Trạng thái",
+        "enabled": "Đang bật",
+        "enabledHint": "Tắt để dừng ngay. Đơn đã đặt vẫn giữ mức giảm.",
+        "perOrder": "mỗi đơn",
+        "everyOrder": "Mọi đơn",
+        "editRule": "Sửa {name}",
+        "removeRule": "Xoá {name}",
+        "percentOff": "−{value}%",
+        "condition": {
+          "new": "Khách mới",
+          "returning": "Khách cũ",
+          "from": "Đơn từ {amount}",
+          "under": "Đơn dưới {amount}",
+          "at": "Tại {names}",
+          "notAt": "Trừ {names}"
+        }
+      },
+      "budget": {
+        "title": "Ngân sách",
+        "leftOf": "còn lại trong {budget}",
+        "usedLabel": "Ngân sách đã dùng",
+        "spent": "Đã giảm (đơn đã giao)",
+        "held": "Đang giữ (đơn chờ lấy)",
+        "orders": "Đơn được giảm",
+        "newCustomers": "Đơn của khách mới",
+        "stores": "Cửa hàng có đơn giảm",
+        "hint": "Đơn chờ lấy giữ chỗ trong ngân sách. Đơn huỷ, bị từ chối hoặc hết hạn thì trả lại.",
+        "payouts": "Xem tiền trả cho quán"
+      },
+      "rule": {
+        "editTitle": "Sửa ưu đãi",
+        "addTitle": "Thêm ưu đãi",
+        "description": "Đơn thoả mọi điều kiện thì được giảm. Bấm Lưu chương trình để áp dụng.",
+        "name": "Tên ưu đãi",
+        "namePlaceholder": "Ví dụ: Khách mới giảm 10.000đ",
+        "conditions": "Điều kiện",
+        "allMustHold": "Phải thoả tất cả",
+        "noConditions": "Không có điều kiện: mọi đơn đều được giảm.",
+        "and": "VÀ",
+        "addCondition": "Thêm điều kiện",
+        "clearConditions": "Xoá hết điều kiện",
+        "reward": "Mức giảm",
+        "rewardType": "Kiểu giảm",
+        "fixed": "Số tiền",
+        "percentage": "Phần trăm",
+        "valueVnd": "Giảm (đ)",
+        "valuePercent": "Giảm (%)",
+        "maxVnd": "Giảm tối đa (đ)",
+        "rewardHint": "Không bao giờ giảm quá tiền món của đơn.",
+        "cancel": "Huỷ",
+        "save": "Lưu ưu đãi",
+        "errors": {
+          "name": "Nhập tên ưu đãi, tối đa 60 ký tự",
+          "value": "Nhập số tiền từ 1đ đến 10.000.000đ",
+          "percent": "Nhập phần trăm từ 1 đến 100",
+          "maxVnd": "Nhập mức giảm tối đa từ 1đ đến 10.000.000đ",
+          "amount": "Nhập số tiền",
+          "stores": "Chọn ít nhất một cửa hàng"
+        },
+        "attributeLabel": "Điều kiện {index}: xét theo",
+        "operatorLabel": "Điều kiện {index}: so sánh",
+        "valueLabel": "Điều kiện {index}: giá trị",
+        "removeCondition": "Xoá điều kiện {index}",
+        "attribute": {
+          "customer": "Khách hàng",
+          "subtotal": "Tiền món",
+          "seller": "Cửa hàng"
+        },
+        "operator": {
+          "eq": "là",
+          "gte": "từ",
+          "lt": "dưới",
+          "in": "là một trong",
+          "not_in": "không phải"
+        },
+        "customer": {
+          "new": "Khách mới (chưa nhận đơn nào)",
+          "returning": "Khách cũ (đã nhận đơn)"
+        },
+        "amountPlaceholder": "30.000"
+      }
+    },
+    "payouts": {
+      "title": "Trả tiền cho quán",
+      "previous": "Tuần trước",
+      "next": "Tuần sau",
+      "week": "Tuần {from} – {until}",
+      "anyPromotion": "Tất cả",
+      "promotion": "Chương trình",
+      "owed": "chưa trả, trong tổng {total}",
+      "hint": "Tiền giảm của các đơn quán đã giao cho khách trong tuần, từ thứ Hai đến Chủ nhật. Chuyển khoản cho quán xong thì đánh dấu đã trả.",
+      "empty": "Tuần này chưa có đơn giảm giá nào được giao",
+      "column": {
+        "store": "Cửa hàng",
+        "orders": "Đơn",
+        "amount": "Cần trả",
+        "status": "Trạng thái",
+        "actions": "Thao tác"
+      },
+      "orders": "{count} đơn, {fresh} khách mới",
+      "unpaid": "Chưa trả",
+      "paid": "Đã trả {day}",
+      "more": "Còn {amount} từ đơn giao sau",
+      "mark": "Đánh dấu đã trả",
+      "marked": "Đã đánh dấu trả cho {name}",
+      "failed": "Không đánh dấu được, thử lại sau",
+      "confirm": {
+        "title": "Đã chuyển {amount} cho {name}?",
+        "body": "Ghi nhận khoản trả cho {week}. Việc chuyển tiền làm ngoài ứng dụng; bước này chỉ ghi lại và không hoàn tác được.",
+        "cancel": "Huỷ",
+        "action": "Đã chuyển"
       }
     }
   },
