@@ -2,7 +2,7 @@
 
 Status: proposed on 19 October 2026; built on the branch of SEC-43 ([plan](plan.md)). Tracked in Linear as SEC-43.
 
-The app is a second client of what SEC-29 built for the web ([SEC-29 design](../../active/sec-29-web-sign-in/design.md)); the server and the contract do not change. Everything the person sees follows the web: the screens, their words, their order, the problems and what each one does, the resend wait, the paste rule and `returnTo` ([sign-in research](../../../research/2026-10-19-sign-in-and-code.md)). This document records only where the app differs.
+The app is a second client of what SEC-29 built for the web ([SEC-29 design](../sec-29-web-sign-in/design.md)); the server and the contract do not change. Everything the person sees follows the web: the screens, their words, their order, the problems and what each one does, the resend wait, the paste rule and `returnTo` ([sign-in research](../../../research/2026-10-19-sign-in-and-code.md)). This document records only where the app differs.
 
 ## What a person can do
 

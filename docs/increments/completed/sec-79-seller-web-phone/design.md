@@ -1,6 +1,6 @@
 # SEC-79 — The seller's web on a phone: design
 
-Status: started on 21 October 2026. Tracked in Linear as SEC-79, a child of [SEC-57](../../active/sec-57-seller-web/design.md). The screens are drawn in Figma `Chủ quán · Mobile 390` (page `Mobile · Khách`), derived from `Chủ quán · Web 1440` ([SEC-53](../sec-53-seller-web-design/design.md)); the 1440 frames are unchanged.
+Status: started on 21 October 2026. Tracked in Linear as SEC-79, a child of [SEC-57](../sec-57-seller-web/design.md). The screens are drawn in Figma `Chủ quán · Mobile 390` (page `Mobile · Khách`), derived from `Chủ quán · Web 1440` ([SEC-53](../sec-53-seller-web-design/design.md)); the 1440 frames are unchanged.
 
 ## Decision
 
@@ -30,7 +30,7 @@ Touch targets stay 44 px or more; the bottom bar and its labels follow `DESIGN.m
 
 ## What is built
 
-The screens `main` already has: sign-in, open a store, my stores, the store's header and tabs, home, posts (Đang bán, Đã hết, Đã đóng), posting, editing and withdrawing, the catalog and the Đơn tab with its cancel dialog and day calendar. The frames that need the backend of [SEC-54](../../active/sec-57-seller-web/design.md#what-waits) (expected surplus: P4, P7 to P9, Q1b, Q2c, Q2d, D2, D3, E4, R2) are drawn but not built, as on the desktop; they follow the desktop.
+The screens `main` already has: sign-in, open a store, my stores, the store's header and tabs, home, posts (Đang bán, Đã hết, Đã đóng), posting, editing and withdrawing, the catalog and the Đơn tab with its cancel dialog and day calendar. The frames that need the backend of [SEC-54](../sec-57-seller-web/design.md#what-waits) (expected surplus: P4, P7 to P9, Q1b, Q2c, Q2d, D2, D3, E4, R2) are drawn but not built, as on the desktop; they follow the desktop.
 
 ## Not done here
 

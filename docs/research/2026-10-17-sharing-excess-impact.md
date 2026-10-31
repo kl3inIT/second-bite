@@ -31,7 +31,7 @@ Sharing Excess is logistics between organizations: drivers collect from donors, 
 
 ## What Second Bite can take
 
-- **Count what was collected, not what was offered.** The measure of food saved is the units of collected orders. Units offered, ordered and expired are recorded too, as the [pilot domain model](../increments/active/sec-6-pilot-domain-model/design.md) already assumes (assumption 9), but they are not food saved.
+- **Count what was collected, not what was offered.** The measure of food saved is the units of collected orders. Units offered, ordered and expired are recorded too, as the [pilot domain model](../increments/completed/sec-6-pilot-domain-model/design.md) already assumes (assumption 9), but they are not food saved.
 - **An offer needs a weight per unit and a category from a fixed list** for any measure beyond units. The domain model keeps the weight optional; Sharing Excess shows that every measure people understand (meals, value, emissions) is derived from weight and category. Whether the weight becomes required is a question for the `offer` design.
 - **A measure states its formula and its source.** The pilot's report to the sponsor can publish its factors as Sharing Excess does, rather than a number without a method.
 - **The factors are American.** Feeding America's meal, USDA prices and EPA's landfill model describe the United States. Before the report uses one, a Vietnamese or international source is looked for (for example, a published factor for landfills in Vietnam); until then, units and kilograms are reported without conversion.

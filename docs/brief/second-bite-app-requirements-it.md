@@ -1,6 +1,6 @@
 # Second Bite — project requirements for the IT team
 
-Kept as received from the founder on 16 October 2026, a deck of twelve slides in Vietnamese (`Second_Bite_App_Requirements_IT.pptx`). The text of each slide is below; the deck's own link to its storage is not kept. Where it differs from the [project brief](second-bite-project-brief.md) and the kickoff, this deck is the newer statement; the decisions taken from it are in the [pilot domain model](../increments/active/sec-6-pilot-domain-model/design.md).
+Kept as received from the founder on 16 October 2026, a deck of twelve slides in Vietnamese (`Second_Bite_App_Requirements_IT.pptx`). The text of each slide is below; the deck's own link to its storage is not kept. Where it differs from the [project brief](second-bite-project-brief.md) and the kickoff, this deck is the newer statement; the decisions taken from it are in the [pilot domain model](../increments/completed/sec-6-pilot-domain-model/design.md).
 
 ## 1. Project requirements dành cho đội IT
 

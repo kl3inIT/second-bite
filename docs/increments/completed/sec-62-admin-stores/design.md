@@ -1,6 +1,6 @@
 # SEC-62 — The admin's list of stores: design
 
-Status: started on 21 October 2026. Tracked in Linear as SEC-62. The screen is Figma AD-Q1 (section "Quản trị · Web 1440", frame `220:3331`), with its menu (AD-Q2, AD-Q8) and the block dialog with a reason (AD-DS4). The rules are SEC-75's ([design](../../completed/sec-75-admin-foundation/design.md)): the states, the list API and the admin web's lists and actions; the backend is the `seller` module ([spec](../../../specs/seller.md)).
+Status: completed, 22 October 2026: every step done; the rest of the admin web stays on SEC-62. Earlier: started on 21 October 2026. Tracked in Linear as SEC-62. The screen is Figma AD-Q1 (section "Quản trị · Web 1440", frame `220:3331`), with its menu (AD-Q2, AD-Q8) and the block dialog with a reason (AD-DS4). The rules are SEC-75's ([design](../../completed/sec-75-admin-foundation/design.md)): the states, the list API and the admin web's lists and actions; the backend is the `seller` module ([spec](../../../specs/seller.md)).
 
 ## What an admin can do
 

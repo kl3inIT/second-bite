@@ -1,6 +1,6 @@
 # SEC-102 — The seller's order steps and an order's own page: design
 
-Status: started on 21 October 2026. Tracked in Linear as SEC-102, a child of [SEC-78](../../active/sec-78-pilot-holds/design.md), which drew the order tab with one "Đã giao" button. The screens are drawn in Figma: `Chủ quán · Web 1440` Q5h to Q5k and `Chủ quán · Mobile 390` O1 to O3 (page `Mobile · Khách`). The founder reviewed them on 21 October 2026.
+Status: started on 21 October 2026. Tracked in Linear as SEC-102, a child of [SEC-78](../sec-78-pilot-holds/design.md), which drew the order tab with one "Đã giao" button. The screens are drawn in Figma: `Chủ quán · Web 1440` Q5h to Q5k and `Chủ quán · Mobile 390` O1 to O3 (page `Mobile · Khách`). The founder reviewed them on 21 October 2026.
 
 ## Decision
 

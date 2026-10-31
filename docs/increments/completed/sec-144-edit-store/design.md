@@ -1,6 +1,6 @@
 # SEC-144 — The owner edits a store's name, phone number and photo: design
 
-Status: started on 22 October 2026. Tracked in Linear as SEC-144, a child of [SEC-57](../../active/sec-57-seller-web/design.md). The API (`PUT /sellers/{id}`, `PUT /sellers/{id}/photo`) already changes a store; the web had no screen for it beyond the address and the pin ([SEC-66](../sec-66-store-location-pin/design.md)).
+Status: started on 22 October 2026. Tracked in Linear as SEC-144, a child of [SEC-57](../sec-57-seller-web/design.md). The API (`PUT /sellers/{id}`, `PUT /sellers/{id}/photo`) already changes a store; the web had no screen for it beyond the address and the pin ([SEC-66](../sec-66-store-location-pin/design.md)).
 
 ## Why
 

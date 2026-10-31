@@ -1,6 +1,6 @@
 # SEC-119 — Up to three photos on a dish and a post: design
 
-Status: started on 21 October 2026. Tracked in Linear as SEC-119. The founder asked for it on seeing the posting drawer on a phone: a dish takes up to three photos, shown as three empty places to fill, the photo preview across the whole width, and the first photo being the cover. It changes the SEC-11 rule "one photo, required" ([SEC-11 design](../../active/sec-11-offer-module/design.md)).
+Status: started on 21 October 2026. Tracked in Linear as SEC-119. The founder asked for it on seeing the posting drawer on a phone: a dish takes up to three photos, shown as three empty places to fill, the photo preview across the whole width, and the first photo being the cover. It changes the SEC-11 rule "one photo, required" ([SEC-11 design](../sec-11-offer-module/design.md)).
 
 ## Outcome
 

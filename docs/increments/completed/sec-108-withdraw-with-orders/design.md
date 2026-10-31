@@ -1,6 +1,6 @@
 # SEC-108 — Withdrawing a post that has orders: design
 
-Status: started on 21 October 2026; delivered the same day (PR #70). Tracked in Linear as SEC-108, a child of [SEC-57](../../active/sec-57-seller-web/design.md). It supersedes the rule in [SEC-57 › What waits](../../active/sec-57-seller-web/design.md) and in the [order spec](../../../specs/order.md) that withdrawing a post leaves its orders standing.
+Status: started on 21 October 2026; delivered the same day (PR #70). Tracked in Linear as SEC-108, a child of [SEC-57](../sec-57-seller-web/design.md). It supersedes the rule in [SEC-57 › What waits](../sec-57-seller-web/design.md) and in the [order spec](../../../specs/order.md) that withdrawing a post leaves its orders standing.
 
 ## Why
 

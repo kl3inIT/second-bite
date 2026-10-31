@@ -54,7 +54,7 @@ No open-source project models what Second Bite sells: a count of units at a pric
 - Expiry in the query, with a job as a sweep, not the job alone (foodsharing).
 - The order copies the offer's price, name and window; an offer with orders is never deleted, only withdrawn (Open Food Network).
 - Sold-out offers stay visible; favourites and alerts come later (Too Good To Go).
-- A shop withdrawing its offer cancels the orders at once and tells the customers (Too Good To Go; the [pilot domain model](../increments/active/sec-6-pilot-domain-model/design.md)).
+- A shop withdrawing its offer cancels the orders at once and tells the customers (Too Good To Go; the [pilot domain model](../increments/completed/sec-6-pilot-domain-model/design.md)).
 - A weight per unit and a category from a fixed list for measuring food saved ([Sharing Excess](2026-10-17-sharing-excess-impact.md)).
 
 What does not transfer: the owner choosing among requests (a sale is first come, first served), lifetimes in days, a phone number on the listing, and free-text states.

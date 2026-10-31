@@ -17,7 +17,7 @@ Studied on 31 October 2026, when the pilot was to take stores outside Tasco Mall
 
 ## What Second Bite does with it
 
-The home shows every shop until a place is chosen, asks for the device's location only from "Dùng vị trí của tôi", adds a typed place and remembers the choice; the map waits until stores are spread over several areas. The design is the [customer place increment](../increments/active/customer-place/design.md). Guessing the place from the request's address, as Karrot does, is left out: Vietnamese mobile networks share addresses through the carrier, so the guess would be far off (the team's judgement, not measured).
+The home shows every shop until a place is chosen, asks for the device's location only from "Dùng vị trí của tôi", adds a typed place and remembers the choice; the map waits until stores are spread over several areas. The design is the [customer place increment](../increments/completed/customer-place/design.md). Guessing the place from the request's address, as Karrot does, is left out: Vietnamese mobile networks share addresses through the carrier, so the guess would be far off (the team's judgement, not measured).
 
 ## Sources
 

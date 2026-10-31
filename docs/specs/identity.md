@@ -1,6 +1,6 @@
 # identity
 
-Owns accounts and their role, emailed sign-in codes, Google sign-in and sessions (tables `identity_*`). Decided in the [SEC-10 design](../increments/completed/sec-10-backend-foundation/design.md#identity) and the [SEC-29 design](../increments/active/sec-29-web-sign-in/design.md). Checks: [docs/tests/identity.md](../tests/identity.md).
+Owns accounts and their role, emailed sign-in codes, Google sign-in and sessions (tables `identity_*`). Decided in the [SEC-10 design](../increments/completed/sec-10-backend-foundation/design.md#identity) and the [SEC-29 design](../increments/completed/sec-29-web-sign-in/design.md). Checks: [docs/tests/identity.md](../tests/identity.md).
 
 ## Operations
 

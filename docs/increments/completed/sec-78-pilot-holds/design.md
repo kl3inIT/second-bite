@@ -1,6 +1,6 @@
 # SEC-78 — Pilot phase 1 holds, the seller's Đơn tab: design
 
-Status: started on 21 October 2026. Tracked in Linear as SEC-78, a child of [SEC-57](../sec-57-seller-web/design.md). The screens are drawn in Figma `Chủ quán · Web 1440`, section Đơn (Q5, Q5b to Q5g) and the same search and day filter on Bài đăng (Q2, Q2c, Q2d). The sponsor's task is S-03 of the [tracking sheet](../../../brief/2026-10-20-sponsor-tracking-sheet.md): who holds a dish.
+Status: completed, 21 October 2026: merged; the phone layout came with SEC-79. Earlier: started on 21 October 2026. Tracked in Linear as SEC-78, a child of [SEC-57](../sec-57-seller-web/design.md). The screens are drawn in Figma `Chủ quán · Web 1440`, section Đơn (Q5, Q5b to Q5g) and the same search and day filter on Bài đăng (Q2, Q2c, Q2d). The sponsor's task is S-03 of the [tracking sheet](../../../brief/2026-10-20-sponsor-tracking-sheet.md): who holds a dish.
 
 ## Decision
 

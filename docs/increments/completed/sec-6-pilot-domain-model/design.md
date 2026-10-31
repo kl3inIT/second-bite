@@ -1,6 +1,6 @@
 # Pilot domain model
 
-Status: draft for review, 16 October 2026. No code exists. Tracked in Linear as SEC-6; the remaining question is SEC-7, the reading of comparable projects SEC-8.
+Status: completed, 31 October 2026: every module it proposed was taken by an increment of its own. Earlier: draft for review, 16 October 2026. No code exists. Tracked in Linear as SEC-6; the remaining question is SEC-7, the reading of comparable projects SEC-8.
 
 This increment works the pilot's journey through [boundary discovery](../../../conventions.md#boundary-discovery), steps 1 to 5, and proposes the modules the backend starts with. Each module is then built in an increment of its own, which narrows this model to what its first consumer needs.
 

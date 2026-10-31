@@ -4,7 +4,7 @@ Status: started on 21 October 2026. Tracked in Linear as SEC-86. It changes the 
 
 ## Why
 
-The staging deployment of 21 October 2026 failed: the server needs `SECONDBITE_COLLECTION_CODE_KEY`, whose secret file was never created on the host. The owner chose to drop the code rather than add the secret. The sponsor's tracking sheet already questioned it ([row 12](../../../brief/2026-10-20-sponsor-tracking-sheet.md)), and the seller's Đơn tab of [SEC-78](../../active/sec-78-pilot-holds/design.md) ends an order with one "Đã giao" button and no code. Figma section 16 (D2, D3) shows a QR code and says the customer may give their name and phone number instead.
+The staging deployment of 21 October 2026 failed: the server needs `SECONDBITE_COLLECTION_CODE_KEY`, whose secret file was never created on the host. The owner chose to drop the code rather than add the secret. The sponsor's tracking sheet already questioned it ([row 12](../../../brief/2026-10-20-sponsor-tracking-sheet.md)), and the seller's Đơn tab of [SEC-78](../sec-78-pilot-holds/design.md) ends an order with one "Đã giao" button and no code. Figma section 16 (D2, D3) shows a QR code and says the customer may give their name and phone number instead.
 
 ## Decisions
 

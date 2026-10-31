@@ -1,6 +1,6 @@
 # SEC-96 — Closing what has ended, in the table: design
 
-Status: started on 21 October 2026; delivered the same day (PR #63). Tracked in Linear as SEC-96, a child of [SEC-57](../../active/sec-57-seller-web/design.md).
+Status: started on 21 October 2026; delivered the same day (PR #63). Tracked in Linear as SEC-96, a child of [SEC-57](../sec-57-seller-web/design.md).
 
 ## Why
 

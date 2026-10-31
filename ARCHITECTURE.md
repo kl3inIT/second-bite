@@ -23,7 +23,7 @@ The backend and the web application run on a developer's machine, in tests, and 
 
 ## Code and capability boundaries
 
-The modules under `server/internal/`, found through the [pilot domain model](docs/increments/active/sec-6-pilot-domain-model/design.md); each root package is the module's published API.
+The modules under `server/internal/`, found through the [pilot domain model](docs/increments/completed/sec-6-pilot-domain-model/design.md); each root package is the module's published API.
 
 | Module                                       | Owns                                                                                                                                                                                                          | Published API                                                                                                                                                                                                                                                                                                                                               |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

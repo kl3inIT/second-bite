@@ -1,6 +1,6 @@
 # Customer place: every shop by default, a typed place, remembered
 
-Status: started on 31 October 2026, decided with the team the same day. Stores open outside Tasco Mall from November ([meeting of 30 October](../../../brief/meetings/2026-10-30-trials-meeting.md)), while the home called its default "Tasco Mall" and listed every shop's offers under it. The research is [customer location and the stores' map](../../../research/2026-10-31-customer-location-and-map.md).
+Status: completed, 31 October 2026: every step merged and on production. Earlier: started on 31 October 2026, decided with the team the same day. Stores open outside Tasco Mall from November ([meeting of 30 October](../../../brief/meetings/2026-10-30-trials-meeting.md)), while the home called its default "Tasco Mall" and listed every shop's offers under it. The research is [customer location and the stores' map](../../../research/2026-10-31-customer-location-and-map.md).
 
 ## Decision
 

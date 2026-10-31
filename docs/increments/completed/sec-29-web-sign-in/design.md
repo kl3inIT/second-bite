@@ -1,6 +1,6 @@
 # SEC-29 — Signing in on the web, with the emailed code and Google: design
 
-Status: proposed on 18 October 2026; decisions taken with the team the same day ([Decisions](#decisions)); not built ([plan](plan.md)). Tracked in Linear as SEC-29, with SEC-27 (the web session in a cookie), which it needs.
+Status: completed, 19 October 2026: built and in use on production. Earlier: proposed on 18 October 2026; decisions taken with the team the same day ([Decisions](#decisions)); not built ([plan](plan.md)). Tracked in Linear as SEC-29, with SEC-27 (the web session in a cookie), which it needs.
 
 ## What a person can do
 

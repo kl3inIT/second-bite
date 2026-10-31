@@ -1,6 +1,6 @@
 # Deleting a store softly: design
 
-Status: started on 31 October 2026, at the user's request; tracked in Linear as SEC-187, where the contract below waits for the tech lead to agree it. The backend is the `seller` module ([spec](../../../specs/seller.md)), with a job in `order` ([spec](../../../specs/order.md)); the screens are the admin's stores ([SEC-62](../sec-62-admin-stores/design.md)).
+Status: completed, 31 October 2026: merged with pull request 192 and on production. Earlier: started on 31 October 2026, at the user's request; tracked in Linear as SEC-187, where the contract below waits for the tech lead to agree it. The backend is the `seller` module ([spec](../../../specs/seller.md)), with a job in `order` ([spec](../../../specs/order.md)); the screens are the admin's stores ([SEC-62](../sec-62-admin-stores/design.md)).
 
 ## What an admin can do
 

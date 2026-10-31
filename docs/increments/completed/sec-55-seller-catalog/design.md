@@ -1,6 +1,6 @@
 # SEC-55 — The seller's catalog: design
 
-Status: delivered on 20 October 2026 (#34). Tracked in Linear as SEC-55; the screens are drawn in [SEC-53](../../completed/sec-53-seller-web-design/design.md) (Figma Q3, Q3b, Q3c, C1, C2, D1, and the dish step of P2); the web around it is [SEC-57](../../active/sec-57-seller-web/design.md).
+Status: delivered on 20 October 2026 (#34). Tracked in Linear as SEC-55; the screens are drawn in [SEC-53](../../completed/sec-53-seller-web-design/design.md) (Figma Q3, Q3b, Q3c, C1, C2, D1, and the dish step of P2); the web around it is [SEC-57](../sec-57-seller-web/design.md).
 
 ## Decisions
 

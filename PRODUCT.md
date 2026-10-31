@@ -2,7 +2,7 @@
 
 <!-- impeccable:product-schema 1 -->
 
-> Written on 17 October 2026 with the team, from the [vision](docs/vision.md), the [pilot domain model](docs/increments/active/sec-6-pilot-domain-model/design.md) and the founder's [requirements](docs/brief/second-bite-app-requirements-it.md). This file keeps what design work needs; outcomes and principles stay canonical in the vision. Tracked in SEC-22.
+> Written on 17 October 2026 with the team, from the [vision](docs/vision.md), the [pilot domain model](docs/increments/completed/sec-6-pilot-domain-model/design.md) and the founder's [requirements](docs/brief/second-bite-app-requirements-it.md). This file keeps what design work needs; outcomes and principles stay canonical in the vision. Tracked in SEC-22.
 
 ## Platform
 

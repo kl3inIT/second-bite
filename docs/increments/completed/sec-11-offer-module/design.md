@@ -1,6 +1,6 @@
 # SEC-11 — The `offer` module: design
 
-Status: business flow decided with the team on 18 October 2026; steps 2 to 4 built ([plan](plan.md)). Tracked in Linear as SEC-11.
+Status: completed, 31 October 2026, for posting, finding and photos; announcements moved to SEC-54, weekly schedules and followers' emails to SEC-190. Earlier: business flow decided with the team on 18 October 2026; steps 2 to 4 built ([plan](plan.md)). Tracked in Linear as SEC-11.
 
 The flow below was worked out one part at a time from the products read for the [offer models](../../../research/2026-10-17-offer-models.md) note, the [pilot domain model](../sec-6-pilot-domain-model/design.md) and the founder's requirements. Each rule names its source; a rule marked *ours* has none and is a working assumption.
 

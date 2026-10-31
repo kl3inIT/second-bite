@@ -1,6 +1,6 @@
 # How open-source food projects model pickups, stock and collection
 
-Studied on 16 October 2026 for the [pilot domain model](../increments/active/sec-6-pilot-domain-model/design.md) (SEC-8). Each repository was cloned shallowly into the git-ignored `.tmp/` and read, not run. Paths are relative to each repository.
+Studied on 16 October 2026 for the [pilot domain model](../increments/completed/sec-6-pilot-domain-model/design.md) (SEC-8). Each repository was cloned shallowly into the git-ignored `.tmp/` and read, not run. Paths are relative to each repository.
 
 | Repository | Revision | What it is |
 | --- | --- | --- |

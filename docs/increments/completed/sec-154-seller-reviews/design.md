@@ -1,6 +1,6 @@
 # SEC-154 — The store's reviews for its sellers: design
 
-Status: started on 26 October 2026. Tracked in Linear as SEC-154. The screens are Figma `Q1b-3` (web 1440) and `Q1b-4`, `Q1b-5` (phone 390), in the sections "Chủ quán · Web 1440" and "Chủ quán · Mobile 390". The reviews belong to the `order` module ([spec](../../../specs/order.md)), where SEC-97 stores them and SEC-145 lets admins hide them.
+Status: completed, 26 October 2026: merged with pull request 149. Earlier: started on 26 October 2026. Tracked in Linear as SEC-154. The screens are Figma `Q1b-3` (web 1440) and `Q1b-4`, `Q1b-5` (phone 390), in the sections "Chủ quán · Web 1440" and "Chủ quán · Mobile 390". The reviews belong to the `order` module ([spec](../../../specs/order.md)), where SEC-97 stores them and SEC-145 lets admins hide them.
 
 ## What a seller can do
 

@@ -1,5 +1,7 @@
 # Posting prices and pickup times
 
+Status: completed, 23 October 2026: merged, checks recorded in the plan.
+
 Accepted by the founder on 23 October 2026 in the Figma review, including P3f–P3m in `Secondbite`. Linear recording is deferred to the next session at the founder's request; this increment has no issue number yet.
 
 The subsequent [phone review](../pickup-time-wheels/design.md) replaces the numeric time editor with scrolling wheels, gives both time rows five cells and strengthens the choice outlines.
