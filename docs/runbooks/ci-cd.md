@@ -188,7 +188,7 @@ release=$(sudo sed --quiet 's/^SECONDBITE_RELEASE=//p' "$root/deployments/curren
 sudo docker compose --project-name secondbite-staging --env-file "$root/.env.staging"   --env-file "$root/incoming/$release/images.env" --file "$root/incoming/$release/compose.base.yaml"   --file "$root/incoming/$release/compose.staging.yaml" up --detach --wait server
 ```
 
-Later deployments read the same `.env.staging`, so the value stays. The client is of type "Web application", with `https://secondbite.vadan.app` among its authorised JavaScript origins and no redirect URI: the web takes Google's ID token in a popup. While its consent screen is in testing mode, only its test users can sign in. Its client secret is not used anywhere; keep it out of the host. An empty value leaves Google off, and `GET /api/auth/methods` then answers `{}`.
+Later deployments read the same `.env.staging`, so the value stays. The client is of type "Web application", with `https://secondbite.vadan.app` and `https://preview.secondbite.vadan.app` among its authorised JavaScript origins and no redirect URI: the web takes Google's ID token in a popup. Production and staging use the same client. Its consent screen is published, so anyone with a Google account can sign in (confirmed by the project's owner on 31 October 2026). Its client secret is not used anywhere; keep it out of the host. An empty value leaves Google off, and `GET /api/auth/methods` then answers `{}`.
 
 **The map** (SEC-66). Before the first release that has the `map` service, fill `/apps/secondbite-staging/map`; run it again to refresh the map after the build named in the script changes. It needs the go-pmtiles CLI, a single binary from its releases, kept out of the PATH of other products:
 
