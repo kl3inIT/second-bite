@@ -573,6 +573,7 @@
     "notes": "Good to know",
     "bringBag": "Bring your own bag or box.",
     "askSeller": "Ask the shop about ingredients and allergies.",
+    "sellerAnswers": "Second Bite only connects you with the shop; the shop is responsible for the quality and food safety of the dish. <terms>Terms</terms>",
     "count": "{count} {name} to add",
     "add": "Add to cart · {price}",
     "allChosen": "All {units} chosen"
@@ -732,6 +733,11 @@
     "title": "Open a store",
     "heading": "Open your store",
     "intro": "Just a few details. You can change them later.",
+    "steps": {
+      "details": "Enter the store's name and phone number",
+      "pin": "Pin the store on the map so customers can find it",
+      "photo": "Add a photo so customers recognise the store"
+    },
     "name": "Store name",
     "namePlaceholder": "For example: Tiệm bánh Pháp",
     "phone": "Phone number",

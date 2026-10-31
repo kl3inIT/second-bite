@@ -573,6 +573,7 @@
     "notes": "Lưu ý",
     "bringBag": "Nên mang túi hoặc hộp riêng.",
     "askSeller": "Hỏi quán về thành phần và dị ứng.",
+    "sellerAnswers": "Second Bite chỉ kết nối bạn với quán; quán chịu trách nhiệm về chất lượng và vệ sinh an toàn thực phẩm của món. <terms>Điều khoản</terms>",
     "count": "{count} phần {name} sẽ thêm",
     "add": "Thêm vào giỏ · {price}",
     "allChosen": "Đã chọn đủ {units} phần"
@@ -732,6 +733,11 @@
     "title": "Mở quán",
     "heading": "Mở quán của bạn",
     "intro": "Chỉ cần vài thông tin. Bạn có thể sửa sau.",
+    "steps": {
+      "details": "Điền tên quán và số điện thoại",
+      "pin": "Ghim quán trên bản đồ để khách tìm đến",
+      "photo": "Thêm một ảnh để khách nhận ra quán"
+    },
     "name": "Tên quán",
     "namePlaceholder": "Ví dụ: Tiệm bánh Pháp",
     "phone": "Số điện thoại",
