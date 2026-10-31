@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StatusCountsBody {
 
- int get active; int get blocked; int get pending; int get rejected;
+ int get active; int get blocked; int get deleted; int get pending; int get rejected;
 /// Create a copy of StatusCountsBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $StatusCountsBodyCopyWith<StatusCountsBody> get copyWith => _$StatusCountsBodyCo
 @override
 bool operator ==(Object other) {
   final _this = this as StatusCountsBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StatusCountsBody&&(identical(other.active, _this.active) || other.active == _this.active)&&(identical(other.blocked, _this.blocked) || other.blocked == _this.blocked)&&(identical(other.pending, _this.pending) || other.pending == _this.pending)&&(identical(other.rejected, _this.rejected) || other.rejected == _this.rejected));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StatusCountsBody&&(identical(other.active, _this.active) || other.active == _this.active)&&(identical(other.blocked, _this.blocked) || other.blocked == _this.blocked)&&(identical(other.deleted, _this.deleted) || other.deleted == _this.deleted)&&(identical(other.pending, _this.pending) || other.pending == _this.pending)&&(identical(other.rejected, _this.rejected) || other.rejected == _this.rejected));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as StatusCountsBody;
-  return Object.hash(runtimeType,_this.active,_this.blocked,_this.pending,_this.rejected);
+  return Object.hash(runtimeType,_this.active,_this.blocked,_this.deleted,_this.pending,_this.rejected);
 }
 
 @override
 String toString() {
   final _this = this as StatusCountsBody;
-  return 'StatusCountsBody(active: ${_this.active}, blocked: ${_this.blocked}, pending: ${_this.pending}, rejected: ${_this.rejected})';
+  return 'StatusCountsBody(active: ${_this.active}, blocked: ${_this.blocked}, deleted: ${_this.deleted}, pending: ${_this.pending}, rejected: ${_this.rejected})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $StatusCountsBodyCopyWith<$Res>  {
   factory $StatusCountsBodyCopyWith(StatusCountsBody value, $Res Function(StatusCountsBody) _then) = _$StatusCountsBodyCopyWithImpl;
 @useResult
 $Res call({
- int active, int blocked, int pending, int rejected
+ int active, int blocked, int deleted, int pending, int rejected
 });
 
 
@@ -71,10 +71,11 @@ class _$StatusCountsBodyCopyWithImpl<$Res>
 
 /// Create a copy of StatusCountsBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? active = null,Object? blocked = null,Object? pending = null,Object? rejected = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? active = null,Object? blocked = null,Object? deleted = null,Object? pending = null,Object? rejected = null,}) {
   return _then(StatusCountsBody(
 active: null == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
 as int,blocked: null == blocked ? _self.blocked : blocked // ignore: cast_nullable_to_non_nullable
+as int,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
 as int,pending: null == pending ? _self.pending : pending // ignore: cast_nullable_to_non_nullable
 as int,rejected: null == rejected ? _self.rejected : rejected // ignore: cast_nullable_to_non_nullable
 as int,
@@ -162,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int active,  int blocked,  int pending,  int rejected)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int active,  int blocked,  int deleted,  int pending,  int rejected)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StatusCountsBody() when $default != null:
-return $default(_that.active,_that.blocked,_that.pending,_that.rejected);case _:
+return $default(_that.active,_that.blocked,_that.deleted,_that.pending,_that.rejected);case _:
   return orElse();
 
 }
@@ -183,10 +184,10 @@ return $default(_that.active,_that.blocked,_that.pending,_that.rejected);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int active,  int blocked,  int pending,  int rejected)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int active,  int blocked,  int deleted,  int pending,  int rejected)  $default,) {final _that = this;
 switch (_that) {
 case _StatusCountsBody():
-return $default(_that.active,_that.blocked,_that.pending,_that.rejected);case _:
+return $default(_that.active,_that.blocked,_that.deleted,_that.pending,_that.rejected);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +204,10 @@ return $default(_that.active,_that.blocked,_that.pending,_that.rejected);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int active,  int blocked,  int pending,  int rejected)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int active,  int blocked,  int deleted,  int pending,  int rejected)?  $default,) {final _that = this;
 switch (_that) {
 case _StatusCountsBody() when $default != null:
-return $default(_that.active,_that.blocked,_that.pending,_that.rejected);case _:
+return $default(_that.active,_that.blocked,_that.deleted,_that.pending,_that.rejected);case _:
   return null;
 
 }
@@ -218,11 +219,12 @@ return $default(_that.active,_that.blocked,_that.pending,_that.rejected);case _:
 @JsonSerializable()
 
 class _StatusCountsBody implements StatusCountsBody {
-  const _StatusCountsBody({required this.active, required this.blocked, required this.pending, required this.rejected});
+  const _StatusCountsBody({required this.active, required this.blocked, required this.deleted, required this.pending, required this.rejected});
   factory _StatusCountsBody.fromJson(Map<String, dynamic> json) => _$StatusCountsBodyFromJson(json);
 
 @override final  int active;
 @override final  int blocked;
+@override final  int deleted;
 @override final  int pending;
 @override final  int rejected;
 
@@ -239,18 +241,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StatusCountsBody&&(identical(other.active, active) || other.active == active)&&(identical(other.blocked, blocked) || other.blocked == blocked)&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.rejected, rejected) || other.rejected == rejected));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StatusCountsBody&&(identical(other.active, active) || other.active == active)&&(identical(other.blocked, blocked) || other.blocked == blocked)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.rejected, rejected) || other.rejected == rejected));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,active,blocked,pending,rejected);
+    return Object.hash(runtimeType,active,blocked,deleted,pending,rejected);
 }
 
 @override
 String toString() {
-    return 'StatusCountsBody(active: $active, blocked: $blocked, pending: $pending, rejected: $rejected)';
+    return 'StatusCountsBody(active: $active, blocked: $blocked, deleted: $deleted, pending: $pending, rejected: $rejected)';
 }
 
 
@@ -261,7 +263,7 @@ abstract mixin class _$StatusCountsBodyCopyWith<$Res> implements $StatusCountsBo
   factory _$StatusCountsBodyCopyWith(_StatusCountsBody value, $Res Function(_StatusCountsBody) _then) = __$StatusCountsBodyCopyWithImpl;
 @override @useResult
 $Res call({
- int active, int blocked, int pending, int rejected
+ int active, int blocked, int deleted, int pending, int rejected
 });
 
 
@@ -278,10 +280,11 @@ class __$StatusCountsBodyCopyWithImpl<$Res>
 
 /// Create a copy of StatusCountsBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? active = null,Object? blocked = null,Object? pending = null,Object? rejected = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? active = null,Object? blocked = null,Object? deleted = null,Object? pending = null,Object? rejected = null,}) {
   return _then(_StatusCountsBody(
 active: null == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
 as int,blocked: null == blocked ? _self.blocked : blocked // ignore: cast_nullable_to_non_nullable
+as int,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
 as int,pending: null == pending ? _self.pending : pending // ignore: cast_nullable_to_non_nullable
 as int,rejected: null == rejected ? _self.rejected : rejected // ignore: cast_nullable_to_non_nullable
 as int,

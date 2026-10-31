@@ -23,6 +23,9 @@ abstract class SellerBody with _$SellerBody {
     required SellerBodyStatus status,
     required DateTime updatedAt,
 
+    /// When an admin deleted the seller, blocked, which waits for its orders still to finish; absent when it does not wait
+    DateTime? deletionRequestedAt,
+
     /// The caller's role; absent for an admin who is not a member
     SellerBodyMyRole? myRole,
 

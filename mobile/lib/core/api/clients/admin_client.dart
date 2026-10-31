@@ -18,6 +18,7 @@ import '../models/admins_output_body.dart';
 import '../models/audit_events_output_body.dart';
 import '../models/block_seller_request.dart';
 import '../models/change_seller_owner_request.dart';
+import '../models/delete_seller_request.dart';
 import '../models/email_settings_body.dart';
 import '../models/feedback_output_body.dart';
 import '../models/grant_admin_request.dart';
@@ -304,7 +305,7 @@ abstract class AdminClient {
   ///
   /// Pending sellers come first, the oldest first; then the latest change first. q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.
   ///
-  /// [status] - Keep these statuses; every status when absent.
+  /// [status] - Keep these statuses; every status but deleted when absent.
   ///
   /// [q] - Words of the name, address or phone.
   ///
@@ -337,6 +338,13 @@ abstract class AdminClient {
     @Body() required BlockSellerRequest body,
   });
 
+  /// Delete a seller softly: blocked at once, deleted once its orders still to finish are done; its owner is emailed the reason
+  @POST('/admin/sellers/{sellerId}/delete')
+  Future<SellerBody> deleteSeller({
+    @Path('sellerId') required String sellerId,
+    @Body() required DeleteSellerRequest body,
+  });
+
   /// Hand a seller to the account of an email; the previous owner stays on as staff.
   ///
   /// An address that never signed in gets its account at once. The new owner may own at most five sellers. A seller whose owner deleted their account gets an owner this way (SEC-162).
@@ -351,5 +359,11 @@ abstract class AdminClient {
   Future<SellerBody> rejectSeller({
     @Path('sellerId') required String sellerId,
     @Body() required RejectSellerRequest body,
+  });
+
+  /// Bring back a deleted seller, or one waiting to be deleted, blocked; its owner is not emailed
+  @POST('/admin/sellers/{sellerId}/restore')
+  Future<SellerBody> restoreSeller({
+    @Path('sellerId') required String sellerId,
   });
 }

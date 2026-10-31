@@ -39,6 +39,7 @@ export 'models/change_seller_owner_request.dart';
 export 'models/collection_point_body.dart';
 export 'models/counts_body.dart';
 export 'models/delete_account_input_body.dart';
+export 'models/delete_seller_request.dart';
 export 'models/details_body.dart';
 export 'models/dish_body.dart';
 export 'models/dish_change_body.dart';

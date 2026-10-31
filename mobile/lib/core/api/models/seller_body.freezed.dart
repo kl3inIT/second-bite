@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SellerBody {
 
- String get address; DateTime get createdAt; String get id; double get latitude; double get longitude; String get name; String get phone; SellerBodyStatus get status; DateTime get updatedAt;/// The caller's role; absent for an admin who is not a member
+ String get address; DateTime get createdAt; String get id; double get latitude; double get longitude; String get name; String get phone; SellerBodyStatus get status; DateTime get updatedAt;/// When an admin deleted the seller, blocked, which waits for its orders still to finish; absent when it does not wait
+ DateTime? get deletionRequestedAt;/// The caller's role; absent for an admin who is not a member
  SellerBodyMyRole? get myRole;/// Served at /photos/{photoId}/1600.jpg and /400.jpg
  String? get photoId; DateTime? get statusChangedAt;/// Why an admin rejected or blocked the seller, as the owner is told
  String? get statusReason;
@@ -33,20 +34,20 @@ $SellerBodyCopyWith<SellerBody> get copyWith => _$SellerBodyCopyWithImpl<SellerB
 @override
 bool operator ==(Object other) {
   final _this = this as SellerBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SellerBody&&(identical(other.address, _this.address) || other.address == _this.address)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.latitude, _this.latitude) || other.latitude == _this.latitude)&&(identical(other.longitude, _this.longitude) || other.longitude == _this.longitude)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.phone, _this.phone) || other.phone == _this.phone)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.myRole, _this.myRole) || other.myRole == _this.myRole)&&(identical(other.photoId, _this.photoId) || other.photoId == _this.photoId)&&(identical(other.statusChangedAt, _this.statusChangedAt) || other.statusChangedAt == _this.statusChangedAt)&&(identical(other.statusReason, _this.statusReason) || other.statusReason == _this.statusReason));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SellerBody&&(identical(other.address, _this.address) || other.address == _this.address)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.latitude, _this.latitude) || other.latitude == _this.latitude)&&(identical(other.longitude, _this.longitude) || other.longitude == _this.longitude)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.phone, _this.phone) || other.phone == _this.phone)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.deletionRequestedAt, _this.deletionRequestedAt) || other.deletionRequestedAt == _this.deletionRequestedAt)&&(identical(other.myRole, _this.myRole) || other.myRole == _this.myRole)&&(identical(other.photoId, _this.photoId) || other.photoId == _this.photoId)&&(identical(other.statusChangedAt, _this.statusChangedAt) || other.statusChangedAt == _this.statusChangedAt)&&(identical(other.statusReason, _this.statusReason) || other.statusReason == _this.statusReason));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as SellerBody;
-  return Object.hash(runtimeType,_this.address,_this.createdAt,_this.id,_this.latitude,_this.longitude,_this.name,_this.phone,_this.status,_this.updatedAt,_this.myRole,_this.photoId,_this.statusChangedAt,_this.statusReason);
+  return Object.hash(runtimeType,_this.address,_this.createdAt,_this.id,_this.latitude,_this.longitude,_this.name,_this.phone,_this.status,_this.updatedAt,_this.deletionRequestedAt,_this.myRole,_this.photoId,_this.statusChangedAt,_this.statusReason);
 }
 
 @override
 String toString() {
   final _this = this as SellerBody;
-  return 'SellerBody(address: ${_this.address}, createdAt: ${_this.createdAt}, id: ${_this.id}, latitude: ${_this.latitude}, longitude: ${_this.longitude}, name: ${_this.name}, phone: ${_this.phone}, status: ${_this.status}, updatedAt: ${_this.updatedAt}, myRole: ${_this.myRole}, photoId: ${_this.photoId}, statusChangedAt: ${_this.statusChangedAt}, statusReason: ${_this.statusReason})';
+  return 'SellerBody(address: ${_this.address}, createdAt: ${_this.createdAt}, id: ${_this.id}, latitude: ${_this.latitude}, longitude: ${_this.longitude}, name: ${_this.name}, phone: ${_this.phone}, status: ${_this.status}, updatedAt: ${_this.updatedAt}, deletionRequestedAt: ${_this.deletionRequestedAt}, myRole: ${_this.myRole}, photoId: ${_this.photoId}, statusChangedAt: ${_this.statusChangedAt}, statusReason: ${_this.statusReason})';
 }
 
 
@@ -57,7 +58,7 @@ abstract mixin class $SellerBodyCopyWith<$Res>  {
   factory $SellerBodyCopyWith(SellerBody value, $Res Function(SellerBody) _then) = _$SellerBodyCopyWithImpl;
 @useResult
 $Res call({
- String address, DateTime createdAt, String id, double latitude, double longitude, String name, String phone, SellerBodyStatus status, DateTime updatedAt, SellerBodyMyRole? myRole, String? photoId, DateTime? statusChangedAt, String? statusReason
+ String address, DateTime createdAt, String id, double latitude, double longitude, String name, String phone, SellerBodyStatus status, DateTime updatedAt, DateTime? deletionRequestedAt, SellerBodyMyRole? myRole, String? photoId, DateTime? statusChangedAt, String? statusReason
 });
 
 
@@ -74,7 +75,7 @@ class _$SellerBodyCopyWithImpl<$Res>
 
 /// Create a copy of SellerBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? address = null,Object? createdAt = null,Object? id = null,Object? latitude = null,Object? longitude = null,Object? name = null,Object? phone = null,Object? status = null,Object? updatedAt = null,Object? myRole = freezed,Object? photoId = freezed,Object? statusChangedAt = freezed,Object? statusReason = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? address = null,Object? createdAt = null,Object? id = null,Object? latitude = null,Object? longitude = null,Object? name = null,Object? phone = null,Object? status = null,Object? updatedAt = null,Object? deletionRequestedAt = freezed,Object? myRole = freezed,Object? photoId = freezed,Object? statusChangedAt = freezed,Object? statusReason = freezed,}) {
   return _then(SellerBody(
 address: null == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -85,7 +86,8 @@ as double,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SellerBodyStatus,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,myRole: freezed == myRole ? _self.myRole : myRole // ignore: cast_nullable_to_non_nullable
+as DateTime,deletionRequestedAt: freezed == deletionRequestedAt ? _self.deletionRequestedAt : deletionRequestedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,myRole: freezed == myRole ? _self.myRole : myRole // ignore: cast_nullable_to_non_nullable
 as SellerBodyMyRole?,photoId: freezed == photoId ? _self.photoId : photoId // ignore: cast_nullable_to_non_nullable
 as String?,statusChangedAt: freezed == statusChangedAt ? _self.statusChangedAt : statusChangedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,statusReason: freezed == statusReason ? _self.statusReason : statusReason // ignore: cast_nullable_to_non_nullable
@@ -174,10 +176,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String address,  DateTime createdAt,  String id,  double latitude,  double longitude,  String name,  String phone,  SellerBodyStatus status,  DateTime updatedAt,  SellerBodyMyRole? myRole,  String? photoId,  DateTime? statusChangedAt,  String? statusReason)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String address,  DateTime createdAt,  String id,  double latitude,  double longitude,  String name,  String phone,  SellerBodyStatus status,  DateTime updatedAt,  DateTime? deletionRequestedAt,  SellerBodyMyRole? myRole,  String? photoId,  DateTime? statusChangedAt,  String? statusReason)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SellerBody() when $default != null:
-return $default(_that.address,_that.createdAt,_that.id,_that.latitude,_that.longitude,_that.name,_that.phone,_that.status,_that.updatedAt,_that.myRole,_that.photoId,_that.statusChangedAt,_that.statusReason);case _:
+return $default(_that.address,_that.createdAt,_that.id,_that.latitude,_that.longitude,_that.name,_that.phone,_that.status,_that.updatedAt,_that.deletionRequestedAt,_that.myRole,_that.photoId,_that.statusChangedAt,_that.statusReason);case _:
   return orElse();
 
 }
@@ -195,10 +197,10 @@ return $default(_that.address,_that.createdAt,_that.id,_that.latitude,_that.long
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String address,  DateTime createdAt,  String id,  double latitude,  double longitude,  String name,  String phone,  SellerBodyStatus status,  DateTime updatedAt,  SellerBodyMyRole? myRole,  String? photoId,  DateTime? statusChangedAt,  String? statusReason)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String address,  DateTime createdAt,  String id,  double latitude,  double longitude,  String name,  String phone,  SellerBodyStatus status,  DateTime updatedAt,  DateTime? deletionRequestedAt,  SellerBodyMyRole? myRole,  String? photoId,  DateTime? statusChangedAt,  String? statusReason)  $default,) {final _that = this;
 switch (_that) {
 case _SellerBody():
-return $default(_that.address,_that.createdAt,_that.id,_that.latitude,_that.longitude,_that.name,_that.phone,_that.status,_that.updatedAt,_that.myRole,_that.photoId,_that.statusChangedAt,_that.statusReason);case _:
+return $default(_that.address,_that.createdAt,_that.id,_that.latitude,_that.longitude,_that.name,_that.phone,_that.status,_that.updatedAt,_that.deletionRequestedAt,_that.myRole,_that.photoId,_that.statusChangedAt,_that.statusReason);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -215,10 +217,10 @@ return $default(_that.address,_that.createdAt,_that.id,_that.latitude,_that.long
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String address,  DateTime createdAt,  String id,  double latitude,  double longitude,  String name,  String phone,  SellerBodyStatus status,  DateTime updatedAt,  SellerBodyMyRole? myRole,  String? photoId,  DateTime? statusChangedAt,  String? statusReason)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String address,  DateTime createdAt,  String id,  double latitude,  double longitude,  String name,  String phone,  SellerBodyStatus status,  DateTime updatedAt,  DateTime? deletionRequestedAt,  SellerBodyMyRole? myRole,  String? photoId,  DateTime? statusChangedAt,  String? statusReason)?  $default,) {final _that = this;
 switch (_that) {
 case _SellerBody() when $default != null:
-return $default(_that.address,_that.createdAt,_that.id,_that.latitude,_that.longitude,_that.name,_that.phone,_that.status,_that.updatedAt,_that.myRole,_that.photoId,_that.statusChangedAt,_that.statusReason);case _:
+return $default(_that.address,_that.createdAt,_that.id,_that.latitude,_that.longitude,_that.name,_that.phone,_that.status,_that.updatedAt,_that.deletionRequestedAt,_that.myRole,_that.photoId,_that.statusChangedAt,_that.statusReason);case _:
   return null;
 
 }
@@ -230,7 +232,7 @@ return $default(_that.address,_that.createdAt,_that.id,_that.latitude,_that.long
 @JsonSerializable()
 
 class _SellerBody implements SellerBody {
-  const _SellerBody({required this.address, required this.createdAt, required this.id, required this.latitude, required this.longitude, required this.name, required this.phone, required this.status, required this.updatedAt, this.myRole, this.photoId, this.statusChangedAt, this.statusReason});
+  const _SellerBody({required this.address, required this.createdAt, required this.id, required this.latitude, required this.longitude, required this.name, required this.phone, required this.status, required this.updatedAt, this.deletionRequestedAt, this.myRole, this.photoId, this.statusChangedAt, this.statusReason});
   factory _SellerBody.fromJson(Map<String, dynamic> json) => _$SellerBodyFromJson(json);
 
 @override final  String address;
@@ -242,6 +244,8 @@ class _SellerBody implements SellerBody {
 @override final  String phone;
 @override final  SellerBodyStatus status;
 @override final  DateTime updatedAt;
+/// When an admin deleted the seller, blocked, which waits for its orders still to finish; absent when it does not wait
+@override final  DateTime? deletionRequestedAt;
 /// The caller's role; absent for an admin who is not a member
 @override final  SellerBodyMyRole? myRole;
 /// Served at /photos/{photoId}/1600.jpg and /400.jpg
@@ -263,18 +267,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SellerBody&&(identical(other.address, address) || other.address == address)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.name, name) || other.name == name)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.status, status) || other.status == status)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.myRole, myRole) || other.myRole == myRole)&&(identical(other.photoId, photoId) || other.photoId == photoId)&&(identical(other.statusChangedAt, statusChangedAt) || other.statusChangedAt == statusChangedAt)&&(identical(other.statusReason, statusReason) || other.statusReason == statusReason));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SellerBody&&(identical(other.address, address) || other.address == address)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.name, name) || other.name == name)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.status, status) || other.status == status)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletionRequestedAt, deletionRequestedAt) || other.deletionRequestedAt == deletionRequestedAt)&&(identical(other.myRole, myRole) || other.myRole == myRole)&&(identical(other.photoId, photoId) || other.photoId == photoId)&&(identical(other.statusChangedAt, statusChangedAt) || other.statusChangedAt == statusChangedAt)&&(identical(other.statusReason, statusReason) || other.statusReason == statusReason));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,address,createdAt,id,latitude,longitude,name,phone,status,updatedAt,myRole,photoId,statusChangedAt,statusReason);
+    return Object.hash(runtimeType,address,createdAt,id,latitude,longitude,name,phone,status,updatedAt,deletionRequestedAt,myRole,photoId,statusChangedAt,statusReason);
 }
 
 @override
 String toString() {
-    return 'SellerBody(address: $address, createdAt: $createdAt, id: $id, latitude: $latitude, longitude: $longitude, name: $name, phone: $phone, status: $status, updatedAt: $updatedAt, myRole: $myRole, photoId: $photoId, statusChangedAt: $statusChangedAt, statusReason: $statusReason)';
+    return 'SellerBody(address: $address, createdAt: $createdAt, id: $id, latitude: $latitude, longitude: $longitude, name: $name, phone: $phone, status: $status, updatedAt: $updatedAt, deletionRequestedAt: $deletionRequestedAt, myRole: $myRole, photoId: $photoId, statusChangedAt: $statusChangedAt, statusReason: $statusReason)';
 }
 
 
@@ -285,7 +289,7 @@ abstract mixin class _$SellerBodyCopyWith<$Res> implements $SellerBodyCopyWith<$
   factory _$SellerBodyCopyWith(_SellerBody value, $Res Function(_SellerBody) _then) = __$SellerBodyCopyWithImpl;
 @override @useResult
 $Res call({
- String address, DateTime createdAt, String id, double latitude, double longitude, String name, String phone, SellerBodyStatus status, DateTime updatedAt, SellerBodyMyRole? myRole, String? photoId, DateTime? statusChangedAt, String? statusReason
+ String address, DateTime createdAt, String id, double latitude, double longitude, String name, String phone, SellerBodyStatus status, DateTime updatedAt, DateTime? deletionRequestedAt, SellerBodyMyRole? myRole, String? photoId, DateTime? statusChangedAt, String? statusReason
 });
 
 
@@ -302,7 +306,7 @@ class __$SellerBodyCopyWithImpl<$Res>
 
 /// Create a copy of SellerBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? address = null,Object? createdAt = null,Object? id = null,Object? latitude = null,Object? longitude = null,Object? name = null,Object? phone = null,Object? status = null,Object? updatedAt = null,Object? myRole = freezed,Object? photoId = freezed,Object? statusChangedAt = freezed,Object? statusReason = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? address = null,Object? createdAt = null,Object? id = null,Object? latitude = null,Object? longitude = null,Object? name = null,Object? phone = null,Object? status = null,Object? updatedAt = null,Object? deletionRequestedAt = freezed,Object? myRole = freezed,Object? photoId = freezed,Object? statusChangedAt = freezed,Object? statusReason = freezed,}) {
   return _then(_SellerBody(
 address: null == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -313,7 +317,8 @@ as double,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SellerBodyStatus,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,myRole: freezed == myRole ? _self.myRole : myRole // ignore: cast_nullable_to_non_nullable
+as DateTime,deletionRequestedAt: freezed == deletionRequestedAt ? _self.deletionRequestedAt : deletionRequestedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,myRole: freezed == myRole ? _self.myRole : myRole // ignore: cast_nullable_to_non_nullable
 as SellerBodyMyRole?,photoId: freezed == photoId ? _self.photoId : photoId // ignore: cast_nullable_to_non_nullable
 as String?,statusChangedAt: freezed == statusChangedAt ? _self.statusChangedAt : statusChangedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,statusReason: freezed == statusReason ? _self.statusReason : statusReason // ignore: cast_nullable_to_non_nullable
