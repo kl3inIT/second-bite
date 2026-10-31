@@ -32,6 +32,7 @@ import { searchCustomerPlaces, type PlaceBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
 
 import { homePath, type HomeQuery } from "./home-query";
+import { rememberPlace } from "./remember-place";
 
 type Area = "all" | "mall";
 
@@ -56,8 +57,8 @@ function partsOf(place: PlaceBody): { name: string; rest: string } {
 // Where to look for dishes (Figma K1a "Xem món ở đâu?", redrawn for the customer place increment): a place typed,
 // its suggestions chosen with one tap; "Gần tôi", which only then asks the browser for the person's place (K1c is the
 // phone's own prompt), as web.dev and Apple ask; then every shop, the default, or Tasco Mall as a suggestion. A
-// place becomes `near` and `place` in the address, beside the filters in `keep`; the whole place on the header
-// opens it.
+// place becomes `near` and `place` in the address, beside the filters in `keep`, and is kept for the next visit
+// (`remembered-place.ts`); the whole place on the header opens it.
 export function AreaSheet({
   near,
   keep,
@@ -81,18 +82,24 @@ export function AreaSheet({
     searchCustomerPlaces({ query: { q } }).then(({ data }) => data.places ?? []),
   );
 
-  function show(query: HomeQuery) {
+  // The place is kept for the next visit before the page asks for it; every shop forgets it.
+  async function show(query: HomeQuery) {
+    await rememberPlace(query.near, query.place);
     router.push(homePath(query));
     setOpen(false);
   }
 
   function choosePlace(place: PlaceBody) {
-    show({ ...keep, near: nearOf(place.latitude, place.longitude), place: partsOf(place).name });
+    void show({
+      ...keep,
+      near: nearOf(place.latitude, place.longitude),
+      place: partsOf(place).name,
+    });
   }
 
   function apply() {
-    if (area === "all") show(keep);
-    if (area === "mall") show({ ...keep, near: MALL_NEAR, place: t("mall") });
+    if (area === "all") void show(keep);
+    if (area === "mall") void show({ ...keep, near: MALL_NEAR, place: t("mall") });
   }
 
   function locate() {
@@ -105,7 +112,7 @@ export function AreaSheet({
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         setLocating(false);
-        show({ ...keep, near: nearOf(coords.latitude, coords.longitude) });
+        void show({ ...keep, near: nearOf(coords.latitude, coords.longitude) });
       },
       (error) => {
         setLocating(false);

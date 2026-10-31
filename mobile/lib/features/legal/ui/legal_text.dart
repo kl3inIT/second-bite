@@ -80,4 +80,4 @@ enum LegalDocument {
 }
 
 /// The day the drafts last changed, as the web's `legalUpdated`.
-final legalUpdated = DateTime(2026, 10, 20);
+final legalUpdated = DateTime(2026, 10, 31);

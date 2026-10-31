@@ -205,7 +205,7 @@ test.describe("the customer home", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
-  test("shows the dishes around a place typed in the area sheet, or around Tasco Mall, and keeps its name", async ({
+  test("shows the dishes around a place typed in the area sheet, or around Tasco Mall, and keeps it for the next visit", async ({
     page,
   }) => {
     await page.goto("/vi");
@@ -227,6 +227,12 @@ test.describe("the customer home", () => {
     await expect(page.getByText("Các quán gần đó")).toBeVisible();
     const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
     await expect(all.getByText(/^21:00–21:45 · \d+ m$/).first()).toBeVisible();
+
+    // The next visit opens on the place this browser kept.
+    await page.goto("/vi");
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay quanh Phường Việt Hưng" }),
+    ).toBeVisible();
 
     // A kind keeps the place and its name.
     await (await hydrated(page.getByRole("link", { name: "Bánh", exact: true }))).click();
@@ -250,6 +256,12 @@ test.describe("the customer home", () => {
     await page.getByText("Tất cả quán", { exact: true }).click();
     await page.getByRole("button", { name: "Xem món", exact: true }).click();
     await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay: Tất cả quán" }),
+    ).toBeVisible();
+
+    // Every shop forgets the kept place.
+    await page.goto("/vi");
     await expect(
       page.getByRole("heading", { level: 1, name: "Tối nay: Tất cả quán" }),
     ).toBeVisible();

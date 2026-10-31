@@ -243,6 +243,7 @@
         "paragraphs": [
           "A session cookie (coming soon), to keep you signed in.",
           "A language cookie, remembering Vietnamese or English for a year.",
+          "A place cookie, remembering the area you chose (a point rounded to about 100 m and its name) for 180 days; choose “All shops” to clear it.",
           "A mark in the browser's storage, remembering that you closed the introduction.",
           "We use no advertising cookies and no third-party tracking."
         ]
