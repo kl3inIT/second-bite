@@ -1,9 +1,9 @@
 {
   "Metadata": {
     "title": "Second Bite",
-    "description": "Món ngon còn dư cuối ngày của các quán ở Tasco Mall, giá thấp hơn. Đặt trước, đến quầy nhận trong khung giờ. Phi lợi nhuận, không thu hoa hồng.",
+    "description": "Món ngon còn dư cuối ngày của các quán quanh bạn, giá thấp hơn. Đặt trước, đến quầy nhận trong khung giờ. Phi lợi nhuận, không thu hoa hồng.",
     "organization": "Nền tảng phi lợi nhuận giúp các quán bán món ngon còn dư cuối ngày với giá thấp hơn, không thu hoa hồng của quán.",
-    "area": "Tasco Mall, Long Biên, Hà Nội"
+    "area": "Hà Nội"
   },
   "Home": {
     "searchLabel": "Tìm món hoặc quán",
@@ -17,14 +17,15 @@
       "vegetables": "Rau củ",
       "fruit": "Trái cây"
     },
-    "dealsTitle": "Món ngon tối nay ở Tasco Mall",
+    "dealsTitle": "Món ngon tối nay",
     "upTo": "Giảm đến",
     "upToPercent": "{percent}%",
-    "title": "<hidden>Tối nay ở </hidden>Tasco Mall",
-    "area": "Long Biên, Hà Nội",
+    "title": "<hidden>Tối nay: </hidden>Tất cả quán",
+    "area": "Hà Nội",
     "closingSoon": "Sắp hết giờ nhận",
     "seeAll": "Xem tất cả ›",
-    "allOffers": "Tất cả món quanh đây",
+    "allOffers": "Tất cả món",
+    "allOffersNearby": "Tất cả món quanh đây",
     "results": "Kết quả",
     "empty": "Tối nay chưa có món nào.",
     "emptyFiltered": "Không có món nào khớp bộ lọc này.",
@@ -33,10 +34,12 @@
     "ticketDiscountLabel": "Giảm {percent}%",
     "titleNearby": "<hidden>Tối nay quanh </hidden>Vị trí của tôi",
     "areaNearby": "Các quán gần bạn",
+    "titlePlace": "<hidden>Tối nay quanh </hidden>{place}",
+    "areaPlace": "Các quán quanh đây",
     "nearbyEmpty": "Chưa có món nào quanh đây",
-    "nearbyEmptyHint": "Quán gần bạn thường đăng món còn lại từ 18:00. Theo dõi món sắp có bên dưới, hoặc xem Tasco Mall.",
-    "seeMall": "Xem món ở Tasco Mall",
-    "mallOffers": "Đang bán ở Tasco Mall",
+    "nearbyEmptyHint": "Quán gần bạn thường đăng món còn lại từ 18:00. Theo dõi món sắp có bên dưới, hoặc xem tất cả quán.",
+    "seeEverywhere": "Xem món ở tất cả quán",
+    "elsewhereOffers": "Đang bán ở các quán khác",
     "filters": "Lọc món",
     "upcoming": "Sắp có tối nay",
     "recommended": "Gợi ý cho bạn",
@@ -48,27 +51,36 @@
     "followOn": "Bật thông báo",
     "followLater": "Để sau",
     "close": "Đóng",
-    "dealsLine": "Các quán trong trung tâm bán nốt món cuối ngày, giảm đến {percent}%. Đặt trước, đến quầy nhận trong khung giờ.",
+    "dealsLine": "Các quán bán nốt món cuối ngày, giảm đến {percent}%. Đặt trước, đến quầy nhận trong khung giờ.",
     "ticketFrom": "Nhận {time}"
   },
   "Area": {
     "open": "Chọn nơi xem món",
     "title": "Xem món ở đâu?",
-    "description": "Xem món ở Tasco Mall hoặc quanh vị trí của bạn.",
+    "description": "Gõ một nơi, xem món gần bạn, ở tất cả quán hoặc ở Tasco Mall.",
     "close": "Đóng",
+    "field": "Tìm nơi xem món",
+    "fieldPlaceholder": "Gõ địa chỉ, tên khu…",
+    "clear": "Xoá chữ đã gõ",
+    "suggestionsLabel": "Nơi gợi ý",
+    "suggestions": "{count, plural, =0 {Không có nơi nào} other {# nơi gợi ý}}",
+    "noPlace": "Không tìm thấy nơi này. Thử tên phường, đường hoặc toà nhà khác, hoặc dùng vị trí của bạn.",
+    "areas": "Khu vực",
+    "all": "Tất cả quán",
+    "allHint": "Mặc định · món sắp hết giờ lên trước",
     "mall": "Tasco Mall Long Biên",
-    "mallHint": "Mặc định · các quán trong trung tâm",
-    "nearby": "Dùng vị trí của tôi",
+    "mallHint": "Gợi ý · các quán trong trung tâm",
+    "nearby": "Gần tôi",
     "nearbyHint": "Cho phép định vị để thấy quán gần bạn",
-    "apply": "Xem món quanh đây",
+    "apply": "Xem món",
     "locating": "Đang tìm vị trí của bạn…",
-    "denied": "Trình duyệt đang chặn định vị. Bật lại trong cài đặt của trang, hoặc xem món ở Tasco Mall.",
-    "failed": "Chưa tìm được vị trí của bạn. Thử lại sau, hoặc xem món ở Tasco Mall."
+    "denied": "Trình duyệt đang chặn định vị. Bật lại trong cài đặt của trang, hoặc xem món ở tất cả quán.",
+    "failed": "Chưa tìm được vị trí của bạn. Thử lại sau, hoặc xem món ở tất cả quán."
   },
   "Search": {
     "title": "Tìm món",
     "label": "Tìm món hoặc quán",
-    "placeholder": "Tìm món, quán ở Tasco Mall",
+    "placeholder": "Tìm món, quán",
     "back": "Về trang chủ",
     "clear": "Xoá chữ đã gõ",
     "recent": "Tìm gần đây",
@@ -91,7 +103,7 @@
       "discount": "Giảm nhiều nhất"
     },
     "dishesFor": "{count} món cho “{q}”",
-    "dishesHere": "{count} món đang bán {place, select, near {quanh đây} other {ở Tasco Mall}}",
+    "dishesHere": "{count} món đang bán{place, select, near { quanh đây} other {}}",
     "nothing": "Không tìm thấy món nào khớp.",
     "everything": "Xem tất cả món",
     "resetFilters": "Đặt lại bộ lọc",
@@ -109,7 +121,7 @@
     "anyTime": "Bất kỳ",
     "lowest": "Thấp nhất",
     "highest": "Cao nhất",
-    "popular": "Món phổ biến ở Tasco Mall",
+    "popular": "Món phổ biến",
     "onSale": "{count} món đang giảm",
     "view": {
       "grid": "Xem dạng ô",
@@ -156,7 +168,7 @@
     "badge": "-{percent}%"
   },
   "Intro": {
-    "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
+    "tagline": "Món ngon cuối ngày của các quán quanh bạn, giá thấp hơn.",
     "step1": "Chọn món, đặt trước",
     "step2": "Đến quầy trong giờ nhận",
     "step3": "Nhận món"
@@ -165,7 +177,7 @@
     "label": "Thông tin pháp lý",
     "terms": "Điều khoản sử dụng",
     "privacy": "Chính sách quyền riêng tư",
-    "tagline": "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.",
+    "tagline": "Món ngon cuối ngày của các quán quanh bạn, giá thấp hơn.",
     "help": "Hỗ trợ",
     "home": "Second Bite, về trang chủ"
   },
@@ -231,6 +243,7 @@
         "paragraphs": [
           "Cookie phiên đăng nhập (sắp có), để giữ bạn đăng nhập.",
           "Cookie ngôn ngữ, nhớ bạn chọn tiếng Việt hay tiếng Anh trong một năm.",
+          "Cookie nơi xem món, nhớ khu bạn đã chọn (một điểm làm tròn khoảng 100 m và tên khu) trong 180 ngày; chọn “Tất cả quán” để xoá.",
           "Một dấu trong bộ nhớ trình duyệt, nhớ bạn đã đóng phần giới thiệu.",
           "Chúng tôi không dùng cookie quảng cáo hay công cụ theo dõi của bên thứ ba."
         ]
@@ -271,7 +284,7 @@
       {
         "title": "2. Tài khoản",
         "paragraphs": [
-          "Bạn xem và tìm món mà không cần tài khoản. Bạn cần đăng nhập để đặt món, theo dõi quán, hoặc đăng món cho một quán.",
+          "Bạn xem, tìm và đặt món mà không cần tài khoản; khi đặt, bạn cho quán tên và số điện thoại của người đến lấy. Bạn cần đăng nhập để theo dõi quán hoặc đăng món cho một quán.",
           "Hãy giữ an toàn hộp thư và tài khoản Google bạn dùng để đăng nhập, và không đăng nhập thay người khác."
         ]
       },
@@ -362,7 +375,7 @@
     "signOut": "Đăng xuất",
     "title": "Tài khoản",
     "guestTitle": "Bạn chưa đăng nhập",
-    "guestBody": "Đăng nhập để đặt món và theo dõi đơn.",
+    "guestBody": "Đặt món không cần đăng nhập, chỉ cần tên và số điện thoại. Đăng nhập để giữ đơn trong tài khoản và xem trên máy khác.",
     "signedIn": "Đã đăng nhập",
     "settings": "Cài đặt tài khoản"
   },
@@ -403,7 +416,6 @@
     "mapTitle": "Bản đồ chỗ nhận món của {seller}",
     "directionsLabel": "Đường đến quầy",
     "placeLine": "{seller} · {address}",
-    "placeHint": "Tasco Mall Long Biên",
     "directions": "Chỉ đường",
     "opensMaps": "(mở Google Maps)",
     "signInTitle": "Chưa thấy đơn nào",
@@ -561,6 +573,7 @@
     "notes": "Lưu ý",
     "bringBag": "Nên mang túi hoặc hộp riêng.",
     "askSeller": "Hỏi quán về thành phần và dị ứng.",
+    "sellerAnswers": "Second Bite chỉ kết nối bạn với quán; quán chịu trách nhiệm về chất lượng và vệ sinh an toàn thực phẩm của món. <terms>Điều khoản</terms>",
     "count": "{count} phần {name} sẽ thêm",
     "add": "Thêm vào giỏ · {price}",
     "allChosen": "Đã chọn đủ {units} phần"
@@ -720,6 +733,11 @@
     "title": "Mở quán",
     "heading": "Mở quán của bạn",
     "intro": "Chỉ cần vài thông tin. Bạn có thể sửa sau.",
+    "steps": {
+      "details": "Điền tên quán và số điện thoại",
+      "pin": "Ghim quán trên bản đồ để khách tìm đến",
+      "photo": "Thêm một ảnh để khách nhận ra quán"
+    },
     "name": "Tên quán",
     "namePlaceholder": "Ví dụ: Tiệm bánh Pháp",
     "phone": "Số điện thoại",
@@ -829,17 +847,21 @@
       "active": "Đang mở",
       "pending": "Chờ duyệt",
       "rejected": "Bị từ chối",
-      "blocked": "Bị khóa"
+      "blocked": "Bị khóa",
+      "deleted": "Đã xóa"
     },
     "statusTitle": {
       "pending": "Quán đang chờ duyệt",
       "rejected": "Quán chưa được duyệt",
-      "blocked": "Quán đang bị khóa"
+      "blocked": "Quán đang bị khóa",
+      "deleted": "Quán đã bị xóa",
+      "deleting": "Quán sắp bị xóa"
     },
     "statusBody": {
       "pending": "Quản trị viên sẽ xem quán sớm. Trong lúc chờ, bạn vẫn thêm món vào danh mục được.",
       "rejected": "Liên hệ quản trị viên để biết thêm.",
-      "blocked": "Quán chưa đăng bài được cho đến khi được mở lại."
+      "blocked": "Quán chưa đăng bài được cho đến khi được mở lại.",
+      "deleted": "Liên hệ quản trị viên để biết thêm."
     }
   },
   "StorePosts": {
@@ -1211,6 +1233,8 @@
         "sellerReject": "Từ chối cửa hàng",
         "sellerBlock": "Chặn cửa hàng",
         "sellerUnblock": "Gỡ chặn",
+        "sellerDelete": "Xóa cửa hàng",
+        "sellerRestore": "Khôi phục cửa hàng",
         "adminGrant": "Cấp quản trị viên",
         "adminRevoke": "Thu hồi quản trị viên",
         "offerSettingsChange": "Sửa cài đặt bài đăng",
@@ -1481,12 +1505,15 @@
       "anyArea": "Tất cả",
       "changed": "Sửa đổi",
       "anytime": "Mọi lúc",
+      "deletedFilter": "Đã xóa · {count}",
       "cards": "Lọc theo trạng thái",
       "status": {
         "active": "Đang hoạt động",
         "pending": "Chờ duyệt",
         "rejected": "Bị từ chối",
-        "blocked": "Bị chặn"
+        "blocked": "Bị chặn",
+        "deleted": "Đã xóa",
+        "deleting": "Chờ xóa"
       },
       "column": {
         "store": "Cửa hàng",
@@ -1509,6 +1536,8 @@
         "unblock": "Gỡ chặn",
         "approve": "Duyệt",
         "reject": "Từ chối",
+        "delete": "Xóa cửa hàng",
+        "restore": "Khôi phục",
         "view": "Xem chi tiết"
       },
       "block": {
@@ -1527,6 +1556,20 @@
         "title": "Gỡ chặn cửa hàng {name}?",
         "confirm": "Gỡ chặn",
         "done": "Đã gỡ chặn {name}"
+      },
+      "delete": {
+        "title": "Xóa cửa hàng {name}?",
+        "about": "Điều gì xảy ra khi xóa cửa hàng",
+        "body": "Cửa hàng bị chặn ngay: khách không còn thấy và không đặt thêm được. Các đơn đang chờ khách lấy vẫn giao như thường; khi các đơn này xong, cửa hàng bị xóa. Bạn khôi phục lại được.",
+        "reason": "Lý do xóa",
+        "confirm": "Xóa cửa hàng",
+        "done": "Đã xóa {name}. Cửa hàng sẽ bị xóa hẳn khi các đơn còn lại xong."
+      },
+      "restore": {
+        "title": "Khôi phục cửa hàng {name}?",
+        "body": "Cửa hàng quay lại trạng thái bị chặn. Gỡ chặn để cửa hàng bán lại.",
+        "confirm": "Khôi phục",
+        "done": "Đã khôi phục {name}"
       },
       "approve": {
         "title": "Duyệt cửa hàng {name}?",

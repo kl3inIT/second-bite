@@ -15,6 +15,7 @@ abstract class StatusDayBody with _$StatusDayBody {
 
     /// The day in Vietnam, as YYYY-MM-DD
     required DateTime day,
+    required int deleted,
     required int pending,
     required int rejected,
   }) = _StatusDayBody;

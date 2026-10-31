@@ -6,7 +6,7 @@ test.use({ locale: "vi-VN" });
 // bar and the bottom navigation, never the desktop header, and nothing scrolls sideways.
 const PHONE_WIDTHS = [360, 412];
 const pages = [
-  { path: "/vi", top: { role: "heading", name: "Tối nay ở Tasco Mall" }, bar: true },
+  { path: "/vi", top: { role: "heading", name: "Tối nay: Tất cả quán" }, bar: true },
   // The search is a screen of its own, left by its back arrow, so it has no bottom bar.
   { path: "/vi/search", top: { role: "searchbox", name: "Tìm món hoặc quán" }, bar: false },
   { path: "/vi/favourites", top: { role: "heading", name: "Yêu thích" }, bar: true },

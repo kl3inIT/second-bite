@@ -226,7 +226,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get legalTermsSection2Body =>
-      'Bạn xem và tìm món mà không cần tài khoản. Bạn cần đăng nhập để đặt món, theo dõi quán, hoặc đăng món cho một quán.\n\nHãy giữ an toàn hộp thư và tài khoản Google bạn dùng để đăng nhập, và không đăng nhập thay người khác.';
+      'Bạn xem, tìm và đặt món mà không cần tài khoản; khi đặt, bạn cho quán tên và số điện thoại của người đến lấy. Bạn cần đăng nhập để theo dõi quán hoặc đăng món cho một quán.\n\nHãy giữ an toàn hộp thư và tài khoản Google bạn dùng để đăng nhập, và không đăng nhập thay người khác.';
 
   @override
   String get legalTermsSection3Title => '3. Trách nhiệm của người bán';
@@ -318,7 +318,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get legalPrivacySection6Body =>
-      'Cookie phiên đăng nhập (sắp có), để giữ bạn đăng nhập.\n\nCookie ngôn ngữ, nhớ bạn chọn tiếng Việt hay tiếng Anh trong một năm.\n\nMột dấu trong bộ nhớ trình duyệt, nhớ bạn đã đóng phần giới thiệu.\n\nChúng tôi không dùng cookie quảng cáo hay công cụ theo dõi của bên thứ ba.';
+      'Cookie phiên đăng nhập (sắp có), để giữ bạn đăng nhập.\n\nCookie ngôn ngữ, nhớ bạn chọn tiếng Việt hay tiếng Anh trong một năm.\n\nCookie nơi xem món, nhớ khu bạn đã chọn (một điểm làm tròn khoảng 100 m và tên khu) trong 180 ngày; chọn “Tất cả quán” để xoá.\n\nMột dấu trong bộ nhớ trình duyệt, nhớ bạn đã đóng phần giới thiệu.\n\nChúng tôi không dùng cookie quảng cáo hay công cụ theo dõi của bên thứ ba.';
 
   @override
   String get legalPrivacySection7Title => '7. Bảo vệ dữ liệu';

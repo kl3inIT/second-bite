@@ -322,12 +322,9 @@ export function Directions({ order }: { order: Order }) {
           href={directionsHref(order.seller)}
           openLabel={t("directionsLabel")}
         />
-        <div>
-          <p className="text-body-sm-strong">
-            {t("placeLine", { seller: order.seller.name, address: order.seller.address })}
-          </p>
-          <p className="text-label text-muted-foreground">{t("placeHint")}</p>
-        </div>
+        <p className="text-body-sm-strong">
+          {t("placeLine", { seller: order.seller.name, address: order.seller.address })}
+        </p>
         <div className="flex gap-2">
           <a
             href={directionsHref(order.seller)}

@@ -34,7 +34,7 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
   ]);
   const offers = inShowingOrder(found);
   const groups = groupBySeller(offers);
-  const place = query.near ? "near" : "mall";
+  const place = query.near ? "near" : "all";
   const count = offers.length;
   const summary = query.q
     ? t("dishesFor", { count, q: query.q })
@@ -57,7 +57,7 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
         </output>
         {filtered && (
           <Link
-            href={searchHref({ q: query.q, near: query.near })}
+            href={searchHref({ q: query.q, near: query.near, place: query.place })}
             className="text-body-sm-strong text-link underline-offset-4 hover:underline max-md:hidden"
           >
             {t("resetFilters")}
@@ -90,7 +90,7 @@ export async function SearchResults({ query: pending }: { query: Promise<SearchQ
           </EmptyHeader>
           <EmptyContent>
             <Link
-              href={searchHref({ near: query.near })}
+              href={searchHref({ near: query.near, place: query.place })}
               className={buttonVariants({ variant: "secondary" })}
             >
               {t("everything")}

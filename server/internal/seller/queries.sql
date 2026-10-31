@@ -3,7 +3,9 @@
 SELECT pg_advisory_xact_lock(hashtextextended('seller:owner:' || @account_id::text, 0));
 
 -- name: CountOwnedSellers :one
-SELECT count(*)::integer FROM seller_members WHERE account_id = @account_id AND role = 'owner';
+-- A deleted seller no longer counts.
+SELECT count(*)::integer FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
+WHERE m.account_id = @account_id AND m.role = 'owner' AND s.status <> 'deleted';
 
 -- name: InsertSeller :one
 INSERT INTO seller_sellers (name, address, latitude, longitude, phone, status)
@@ -16,26 +18,28 @@ VALUES (@seller_id, @account_id, @role)
 ON CONFLICT (seller_id, account_id) DO NOTHING;
 
 -- name: GetSeller :one
-SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id
+SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id,
+       deletion_requested_at
 FROM seller_sellers WHERE id = @id;
 
 -- name: SellersOfAccount :many
+-- A deleted seller is gone for its members.
 SELECT s.id, s.name, s.address, s.latitude, s.longitude, s.phone, s.status, s.status_reason, s.status_changed_at,
        s.status_changed_by, s.created_at, s.updated_at, s.photo_id, m.role
 FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
-WHERE m.account_id = @account_id
+WHERE m.account_id = @account_id AND s.status <> 'deleted'
 ORDER BY s.created_at;
 
 -- name: SellersForAdmins :many
--- One page of the sellers in the statuses given (all when none), whose
+-- One page of the sellers in the statuses given (all but the deleted when none), whose
 -- words, folded, hold the query's (any when empty), last changed in [changed_since, changed_until) when given, in the order sort names: by default pending ones first,
 -- the oldest first, as a queue, then the latest change first; otherwise by
 -- name, address or last change, '-' first for descending. total counts them
 -- all; it is absent when the page is past the end.
 SELECT id, name, address, latitude, longitude, phone, status, status_reason, status_changed_at, status_changed_by, created_at, updated_at, photo_id,
-       count(*) OVER () AS total
+       deletion_requested_at, count(*) OVER () AS total
 FROM seller_sellers
-WHERE (cardinality(@statuses::text[]) = 0 OR status = ANY (@statuses::text[]))
+WHERE (cardinality(@statuses::text[]) = 0 AND status <> 'deleted' OR status = ANY (@statuses::text[]))
   AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(changed_since)::timestamptz IS NULL OR updated_at >= sqlc.narg(changed_since)::timestamptz)
   AND (sqlc.narg(changed_until)::timestamptz IS NULL OR updated_at < sqlc.narg(changed_until)::timestamptz)
@@ -52,7 +56,7 @@ LIMIT @max_rows OFFSET @skip_rows;
 
 -- name: CountSellersForAdmins :one
 SELECT count(*) FROM seller_sellers
-WHERE (cardinality(@statuses::text[]) = 0 OR status = ANY (@statuses::text[]))
+WHERE (cardinality(@statuses::text[]) = 0 AND status <> 'deleted' OR status = ANY (@statuses::text[]))
   AND (@query::text = '' OR search_text LIKE '%' || seller_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(changed_since)::timestamptz IS NULL OR updated_at >= sqlc.narg(changed_since)::timestamptz)
   AND (sqlc.narg(changed_until)::timestamptz IS NULL OR updated_at < sqlc.narg(changed_until)::timestamptz);
@@ -74,26 +78,30 @@ SELECT pg_advisory_xact_lock(hashtextextended('seller:status_days', 0));
 
 -- name: RecordStatusDay :exec
 -- Keeps how many sellers stand in each status now as today's, in Vietnam.
-INSERT INTO seller_status_days (day, pending, active, rejected, blocked)
+INSERT INTO seller_status_days (day, pending, active, rejected, blocked, deleted)
 SELECT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date,
        count(*) FILTER (WHERE status = 'pending'),
        count(*) FILTER (WHERE status = 'active'),
        count(*) FILTER (WHERE status = 'rejected'),
-       count(*) FILTER (WHERE status = 'blocked')
+       count(*) FILTER (WHERE status = 'blocked'),
+       count(*) FILTER (WHERE status = 'deleted')
 FROM seller_sellers
 ON CONFLICT (day) DO UPDATE
-SET pending = excluded.pending, active = excluded.active, rejected = excluded.rejected, blocked = excluded.blocked;
+SET pending = excluded.pending, active = excluded.active, rejected = excluded.rejected, blocked = excluded.blocked,
+    deleted = excluded.deleted;
 
 -- name: StatusDays :many
 -- The days recorded from the last one on or before first, so the first day
 -- asked stands as it was, to today.
-SELECT day, pending, active, rejected, blocked FROM seller_status_days
+SELECT day, pending, active, rejected, blocked, deleted FROM seller_status_days
 WHERE day >= coalesce((SELECT max(d.day) FROM seller_status_days d WHERE d.day <= @first::date), @first::date)
 ORDER BY day;
 
 
 -- name: MemberRole :one
-SELECT role FROM seller_members WHERE seller_id = @seller_id AND account_id = @account_id;
+-- The members of a deleted seller have no role in it any more.
+SELECT m.role FROM seller_members m JOIN seller_sellers s ON s.id = m.seller_id
+WHERE m.seller_id = @seller_id AND m.account_id = @account_id AND s.status <> 'deleted';
 
 -- name: UpdateSeller :one
 -- Changes a seller's details under a row lock, and answers whether its
@@ -109,13 +117,37 @@ RETURNING (old.latitude, old.longitude, old.address) IS DISTINCT FROM (s.latitud
 
 -- name: ChangeStatus :one
 -- Moves the seller to status when it stands in one of from, and answers the
--- status it left; no row when it does not.
+-- status it left; no row when it does not. deleting marks the seller, blocked,
+-- as waiting to be deleted, and is refused for one already waiting; any other
+-- change ends the wait.
 UPDATE seller_sellers s
 SET status = @status, status_reason = sqlc.narg(reason), status_changed_at = now(),
-    status_changed_by = @changed_by, updated_at = now()
-FROM (SELECT x.id, x.status FROM seller_sellers x WHERE x.id = @id FOR UPDATE) was
+    status_changed_by = @changed_by, updated_at = now(),
+    deletion_requested_at = CASE WHEN @deleting::boolean THEN now() END
+FROM (SELECT x.id, x.status, x.deletion_requested_at FROM seller_sellers x WHERE x.id = @id FOR UPDATE) was
 WHERE s.id = was.id AND was.status = ANY (@from_statuses::text[])
+  AND NOT (@deleting::boolean AND was.deletion_requested_at IS NOT NULL)
 RETURNING was.status AS was;
+
+-- name: RestoreSeller :one
+-- Brings back a deleted seller, or one waiting to be deleted, blocked as it
+-- was, and answers the status it left; no row when it is neither.
+UPDATE seller_sellers s
+SET status = 'blocked', deletion_requested_at = NULL, status_changed_at = now(),
+    status_changed_by = @changed_by, updated_at = now()
+FROM (SELECT x.id, x.status, x.deletion_requested_at FROM seller_sellers x WHERE x.id = @id FOR UPDATE) was
+WHERE s.id = was.id AND (was.status = 'deleted' OR was.deletion_requested_at IS NOT NULL)
+RETURNING was.status AS was;
+
+-- name: SellersAwaitingDeletion :many
+SELECT id FROM seller_sellers WHERE deletion_requested_at IS NOT NULL ORDER BY deletion_requested_at;
+
+-- name: FinishDeletion :one
+-- Deletes a seller still waiting for it; no row when it no longer waits.
+UPDATE seller_sellers
+SET status = 'deleted', deletion_requested_at = NULL, status_changed_at = now(), updated_at = now()
+WHERE id = @id AND deletion_requested_at IS NOT NULL
+RETURNING name;
 
 -- name: SellerExists :one
 SELECT EXISTS (SELECT 1 FROM seller_sellers WHERE id = @id);
@@ -147,7 +179,8 @@ SELECT id, name, address, latitude, longitude, photo_id
 FROM seller_sellers WHERE id = ANY (sqlc.arg(ids)::uuid[]) AND status = 'active';
 
 -- name: BlockedSellers :many
-SELECT id FROM seller_sellers WHERE status = 'blocked';
+-- The blocked sellers and the deleted ones, whose offers customers no longer see.
+SELECT id FROM seller_sellers WHERE status IN ('blocked', 'deleted');
 
 -- name: SellersOwnedBy :many
 SELECT seller_id FROM seller_members WHERE account_id = @account_id AND role = 'owner';
@@ -158,10 +191,10 @@ DELETE FROM seller_members WHERE account_id = @account_id;
 
 -- name: BlockOwnerless :execrows
 -- A seller whose owner's account was deleted stops showing until admins decide;
--- no one set the status, so it names no one.
+-- no one set the status, so it names no one. A deleted seller stays deleted.
 UPDATE seller_sellers
 SET status = 'blocked', status_reason = @reason, status_changed_at = now(), status_changed_by = NULL, updated_at = now()
-WHERE id = ANY (sqlc.arg(ids)::uuid[]) AND status <> 'blocked';
+WHERE id = ANY (sqlc.arg(ids)::uuid[]) AND status NOT IN ('blocked', 'deleted');
 
 -- name: MembershipsOfAccounts :many
 -- The sellers the accounts own or work at, owners first, for admins.

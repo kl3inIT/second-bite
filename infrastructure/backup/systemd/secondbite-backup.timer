@@ -1,5 +1,5 @@
 [Unit]
-Description=Dump the Second Bite staging database every night
+Description=Dump the Second Bite databases every night
 
 [Timer]
 # 01:55 in UTC+7: after BeyondPilot's backup at 01:40 and before MemoryOS's at 02:10 on the same host.

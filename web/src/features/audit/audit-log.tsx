@@ -10,6 +10,8 @@ import {
   SettingsIcon,
   ShieldMinusIcon,
   ShieldPlusIcon,
+  Trash2Icon,
+  UndoIcon,
   UserRoundCogIcon,
   type LucideIcon,
 } from "lucide-react";
@@ -59,6 +61,8 @@ const actionLook: Record<
   "seller.reject": { variant: "danger", icon: CircleXIcon },
   "seller.block": { variant: "danger", icon: BanIcon },
   "seller.unblock": { variant: "success", icon: CircleCheckIcon },
+  "seller.delete": { variant: "danger", icon: Trash2Icon },
+  "seller.restore": { variant: "info", icon: UndoIcon },
   "seller.change_owner": { variant: "info", icon: UserRoundCogIcon },
   "review.hide": { variant: "danger", icon: EyeOffIcon },
   "review.show": { variant: "success", icon: EyeIcon },

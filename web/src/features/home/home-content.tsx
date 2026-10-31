@@ -31,7 +31,7 @@ const seeAllClass =
 // Everything under the header for what the address asks (Figma Mobile v3 content). Without a filter: the
 // kinds, the windows closing first, what is coming tonight, the recommendations, then every offer in a grid
 // under the search's chips (Figma K1, K1b). With one: the kinds and the matching offers. Around the person's
-// own place with nothing posted: what is coming and what Tasco Mall has instead (Figma K1e).
+// own place with nothing posted: what is coming and what every shop has instead (Figma K1e).
 export async function HomeContent({ query: pending }: { query: Promise<HomeQuery> }) {
   const query = await pending;
   const filters = { q: query.q, kind: query.kind, collectNow: query.now, near: query.near };
@@ -60,7 +60,7 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
               <SectionHeader
                 id="closing-soon"
                 title={t("closingSoon")}
-                action={<SeeAll near={query.near} label={t("seeAll")} />}
+                action={<SeeAll near={query.near} place={query.place} label={t("seeAll")} />}
               />
               <OfferRow label={t("closingSoon")} offers={closing} />
             </section>
@@ -72,19 +72,22 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
             </>
           )}
           <section aria-labelledby="all-offers" className="flex flex-col gap-3">
-            <SectionHeader id="all-offers" title={filtered ? t("results") : t("allOffers")} />
+            <SectionHeader
+              id="all-offers"
+              title={filtered ? t("results") : t(query.near ? "allOffersNearby" : "allOffers")}
+            />
             {!filtered && offers.length > 1 && (
               <SearchFilters
-                query={{ near: query.near }}
+                query={{ near: query.near, place: query.place }}
                 raised
                 sort
-                before={<FiltersLink near={query.near} label={t("filters")} />}
+                before={<FiltersLink near={query.near} place={query.place} label={t("filters")} />}
               />
             )}
             {offers.length > 0 ? (
               <OfferList offers={inShowingOrder(offers)} compact />
             ) : (
-              <NothingFound filtered={filtered} near={query.near} />
+              <NothingFound filtered={filtered} near={query.near} place={query.place} />
             )}
           </section>
         </>
@@ -94,19 +97,19 @@ export async function HomeContent({ query: pending }: { query: Promise<HomeQuery
 }
 
 /** "Xem tất cả": every dish, by seller, on the search page (Figma K1f). */
-function SeeAll({ near, label }: { near?: string; label: string }) {
+function SeeAll({ near, place, label }: { near?: string; place?: string; label: string }) {
   return (
-    <Link href={searchHref({ near })} className={seeAllClass}>
+    <Link href={searchHref({ near, place })} className={seeAllClass}>
       {label}
     </Link>
   );
 }
 
 /** The chips' leading button: the search, where every filter is (Figma K1b "nút lọc"). */
-function FiltersLink({ near, label }: { near?: string; label: string }) {
+function FiltersLink({ near, place, label }: { near?: string; place?: string; label: string }) {
   return (
     <Link
-      href={searchHref({ near })}
+      href={searchHref({ near, place })}
       aria-label={label}
       className={buttonVariants({
         variant: "chip",
@@ -119,7 +122,15 @@ function FiltersLink({ near, label }: { near?: string; label: string }) {
   );
 }
 
-async function NothingFound({ filtered, near }: { filtered: boolean; near?: string }) {
+async function NothingFound({
+  filtered,
+  near,
+  place,
+}: {
+  filtered: boolean;
+  near?: string;
+  place?: string;
+}) {
   const t = await getTranslations("Home");
 
   return (
@@ -129,7 +140,10 @@ async function NothingFound({ filtered, near }: { filtered: boolean; near?: stri
       </EmptyHeader>
       {filtered && (
         <EmptyContent>
-          <Link href={homePath({ near })} className={buttonVariants({ variant: "secondary" })}>
+          <Link
+            href={homePath({ near, place })}
+            className={buttonVariants({ variant: "secondary" })}
+          >
             {t("showAll")}
           </Link>
         </EmptyContent>
@@ -138,15 +152,15 @@ async function NothingFound({ filtered, near }: { filtered: boolean; near?: stri
   );
 }
 
-// Nothing posted around the person's own place (Figma K1e): say so, offer Tasco Mall, and show what it has.
+// Nothing posted around the person's own place (Figma K1e): say so, offer every shop, and show what they have.
 async function NearbyEmpty() {
-  // What Tasco Mall expects tonight, since nothing around the person's place is expected either.
-  const [t, mall, mallAnnouncements] = await Promise.all([
+  // What every shop expects tonight, since nothing around the person's place is expected either.
+  const [t, everywhere, everywhereAnnouncements] = await Promise.all([
     getTranslations("Home"),
     listOffers({}),
     listAnnouncements({}),
   ]);
-  const onSale = closingFirst(mall);
+  const onSale = closingFirst(everywhere);
 
   return (
     <>
@@ -163,19 +177,19 @@ async function NearbyEmpty() {
             href="/"
             className={buttonVariants({ variant: "secondary", size: "lg", className: "w-full" })}
           >
-            {t("seeMall")}
+            {t("seeEverywhere")}
           </Link>
         </EmptyContent>
       </Empty>
-      <UpcomingSection announcements={mallAnnouncements} />
+      <UpcomingSection announcements={everywhereAnnouncements} />
       {onSale.length > 0 && (
-        <section aria-labelledby="mall-offers" className="flex flex-col gap-3">
+        <section aria-labelledby="elsewhere-offers" className="flex flex-col gap-3">
           <SectionHeader
-            id="mall-offers"
-            title={t("mallOffers")}
+            id="elsewhere-offers"
+            title={t("elsewhereOffers")}
             action={<SeeAll label={t("seeAll")} />}
           />
-          <OfferRow label={t("mallOffers")} offers={onSale} />
+          <OfferRow label={t("elsewhereOffers")} offers={onSale} />
         </section>
       )}
     </>

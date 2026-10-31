@@ -68,7 +68,7 @@ func (s *Service) statusDays(ctx context.Context, days int) ([]StatusDay, error)
 
 		out = append(out, StatusDay{Day: day, Counts: map[Status]int{
 			StatusPending: int(last.Pending), StatusActive: int(last.Active),
-			StatusRejected: int(last.Rejected), StatusBlocked: int(last.Blocked),
+			StatusRejected: int(last.Rejected), StatusBlocked: int(last.Blocked), StatusDeleted: int(last.Deleted),
 		}})
 	}
 

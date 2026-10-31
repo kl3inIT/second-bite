@@ -94,4 +94,24 @@ test.describe("signing in on the web", () => {
     await page.getByLabel("Mã đăng nhập 6 số").fill("123456");
     await expect(page).toHaveURL(/\/vi$/);
   });
+
+  // SEC-188: six 56 px boxes do not fit a 390 px iPhone's form; on a narrow phone they share its width.
+  test("fits the code's six boxes on a narrow phone", async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await page.goto("/vi/sign-in");
+    await (
+      await hydrated(page.getByLabel("Email"))
+    ).fill(`chi.${testInfo.project.name}@example.com`);
+    await page.getByRole("button", { name: "Gửi mã" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Nhập mã" })).toBeVisible();
+
+    const slots = page.locator('[data-slot="input-otp-slot"]');
+    await expect(slots).toHaveCount(6);
+    const last = await slots.last().boundingBox();
+    expect((last?.x ?? 0) + (last?.width ?? 0)).toBeLessThanOrEqual(360 - 16);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
 });

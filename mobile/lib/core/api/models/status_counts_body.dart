@@ -12,6 +12,7 @@ abstract class StatusCountsBody with _$StatusCountsBody {
   const factory StatusCountsBody({
     required int active,
     required int blocked,
+    required int deleted,
     required int pending,
     required int rejected,
   }) = _StatusCountsBody;

@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   cacheComponents: true,
   partialPrefetching: true,
+  // Nothing tells a visitor which framework serves the site.
+  poweredByHeader: false,
   // Baseline headers, as BeyondPilot sets them; a Content Security Policy with nonces is a decision of its own.
   async headers() {
     return [

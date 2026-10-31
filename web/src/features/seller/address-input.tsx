@@ -2,9 +2,10 @@
 
 import { MapPinIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
 import type { Point } from "@/components/map/location-picker";
+import { usePlaceSuggestions } from "@/components/map/use-place-suggestions";
 import {
   Autocomplete,
   AutocompleteContent,
@@ -15,11 +16,6 @@ import {
 } from "@/components/ui/autocomplete";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { searchPlaces, type PlaceBody } from "@/lib/api/generated";
-
-/** How long typing rests before the places are asked, as Photon asks callers to keep to a request at a time. */
-const SEARCH_DELAY_MS = 300;
-/** Fewer letters than this find too much to help. */
-const MIN_LETTERS = 3;
 
 /**
  * A store's address with places suggested as it is typed (SEC-66), as Grab and ShopeeFood suggest one: picking a
@@ -52,34 +48,12 @@ export function AddressInput({
   children?: ReactNode;
 }) {
   const t = useTranslations("StoreLocation");
-  const [places, setPlaces] = useState<PlaceBody[]>([]);
+  // No suggestions: the person writes the address and pins it on the map.
+  const { places, search, clear } = usePlaceSuggestions((q) =>
+    searchPlaces({ query: { q } }).then(({ data }) => data.places ?? []),
+  );
   const [open, setOpen] = useState(false);
   const group = useRef<HTMLDivElement>(null);
-  const asked = useRef(0);
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  useEffect(() => () => clearTimeout(timer.current), []);
-
-  // The places for what was typed once typing rests; an answer to older words is dropped.
-  function search(words: string) {
-    clearTimeout(timer.current);
-    const ask = ++asked.current;
-    if (words.trim().length < MIN_LETTERS) {
-      setPlaces([]);
-      return;
-    }
-    timer.current = setTimeout(() => {
-      searchPlaces({ query: { q: words.trim() } }).then(
-        ({ data }) => {
-          if (ask === asked.current) setPlaces(data.places ?? []);
-        },
-        () => {
-          // No suggestions: the person writes the address and pins it on the map.
-          if (ask === asked.current) setPlaces([]);
-        },
-      );
-    }, SEARCH_DELAY_MS);
-  }
 
   return (
     <Autocomplete
@@ -92,8 +66,7 @@ export function AddressInput({
         if (details.reason === "item-press") {
           const place = places.find((p) => p.address === next);
           if (place) onPlace({ latitude: place.latitude, longitude: place.longitude });
-          asked.current++;
-          setPlaces([]);
+          clear();
           return;
         }
         if (details.reason === "input-change") search(next);

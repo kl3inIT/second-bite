@@ -229,6 +229,10 @@ components:
         createdAt:
           format: date-time
           type: string
+        deletionRequestedAt:
+          description: When an admin deleted the seller, blocked, which waits for its orders still to finish; absent when it does not wait
+          format: date-time
+          type: string
         id:
           type: string
         latitude:
@@ -253,6 +257,7 @@ components:
             - active
             - rejected
             - blocked
+            - deleted
           type: string
         statusChangedAt:
           format: date-time
@@ -386,6 +391,8 @@ components:
             - seller.reject
             - seller.block
             - seller.unblock
+            - seller.delete
+            - seller.restore
             - seller.change_owner
             - review.hide
             - review.show
@@ -572,6 +579,17 @@ components:
       required:
         - challengeId
         - code
+      type: object
+    DeleteSellerRequest:
+      additionalProperties: false
+      properties:
+        reason:
+          description: What the owner is told, 10 to 500 characters
+          maxLength: 500
+          minLength: 10
+          type: string
+      required:
+        - reason
       type: object
     DetailsBody:
       additionalProperties: false
@@ -1149,6 +1167,7 @@ components:
             - active
             - rejected
             - blocked
+            - deleted
           type: string
       required:
         - accountId
@@ -2327,6 +2346,10 @@ components:
         createdAt:
           format: date-time
           type: string
+        deletionRequestedAt:
+          description: When an admin deleted the seller, blocked, which waits for its orders still to finish; absent when it does not wait
+          format: date-time
+          type: string
         id:
           type: string
         latitude:
@@ -2354,6 +2377,7 @@ components:
             - active
             - rejected
             - blocked
+            - deleted
           type: string
         statusChangedAt:
           format: date-time
@@ -2611,6 +2635,9 @@ components:
         blocked:
           format: int64
           type: integer
+        deleted:
+          format: int64
+          type: integer
         pending:
           format: int64
           type: integer
@@ -2622,6 +2649,7 @@ components:
         - active
         - rejected
         - blocked
+        - deleted
       type: object
     StatusDayBody:
       additionalProperties: false
@@ -2636,6 +2664,9 @@ components:
           description: The day in Vietnam, as YYYY-MM-DD
           format: date
           type: string
+        deleted:
+          format: int64
+          type: integer
         pending:
           format: int64
           type: integer
@@ -2648,6 +2679,7 @@ components:
         - active
         - rejected
         - blocked
+        - deleted
       type: object
     SubscribePushInputBody:
       additionalProperties: false
@@ -3064,6 +3096,8 @@ paths:
                 - seller.reject
                 - seller.block
                 - seller.unblock
+                - seller.delete
+                - seller.restore
                 - seller.change_owner
                 - review.hide
                 - review.show
@@ -3820,18 +3854,19 @@ paths:
       description: Pending sellers come first, the oldest first; then the latest change first. q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.
       operationId: listSellersForAdmins
       parameters:
-        - description: Keep these statuses; every status when absent
+        - description: Keep these statuses; every status but deleted when absent
           explode: false
           in: query
           name: status
           schema:
-            description: Keep these statuses; every status when absent
+            description: Keep these statuses; every status but deleted when absent
             items:
               enum:
                 - pending
                 - active
                 - rejected
                 - blocked
+                - deleted
               type: string
             type:
               - array
@@ -3973,6 +4008,40 @@ paths:
       summary: Stop an active seller; its owner is emailed the reason
       tags:
         - Admin
+  /admin/sellers/{sellerId}/delete:
+    post:
+      operationId: deleteSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteSellerRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: "Delete a seller softly: blocked at once, deleted once its orders still to finish are done; its owner is emailed the reason"
+      tags:
+        - Admin
   /admin/sellers/{sellerId}/owner:
     post:
       description: An address that never signed in gets its account at once. The new owner may own at most five sellers. A seller whose owner deleted their account gets an owner this way (SEC-162).
@@ -4040,6 +4109,34 @@ paths:
         - bearer: []
         - cookie: []
       summary: Refuse a pending seller; its owner is emailed the reason
+      tags:
+        - Admin
+  /admin/sellers/{sellerId}/restore:
+    post:
+      operationId: restoreSeller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Bring back a deleted seller, or one waiting to be deleted, blocked; its owner is not emailed
       tags:
         - Admin
   /auth/google:
@@ -5143,6 +5240,74 @@ paths:
       summary: A photo in one of its sizes
       tags:
         - Photos
+  /places:
+    get:
+      operationId: searchCustomerPlaces
+      parameters:
+        - description: The words of an address or a place, with or without Vietnamese marks
+          explode: false
+          in: query
+          name: q
+          required: true
+          schema:
+            description: The words of an address or a place, with or without Vietnamese marks
+            maxLength: 200
+            minLength: 2
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlacesOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Places in Hanoi for the words a customer typed, to look for dishes around; signed in or not
+      tags:
+        - Places
+  /places/at:
+    get:
+      operationId: customerAddressAt
+      parameters:
+        - explode: false
+          in: query
+          name: latitude
+          required: true
+          schema:
+            format: double
+            maximum: 90
+            minimum: -90
+            type: number
+        - explode: false
+          in: query
+          name: longitude
+          required: true
+          schema:
+            format: double
+            maximum: 180
+            minimum: -180
+            type: number
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: The address at the point a customer's browser gave, to name the place dishes are shown around; signed in or not, empty when it is not known
+      tags:
+        - Places
   /push/key:
     get:
       description: 503 NOTIFICATION_PUSH_NOT_CONFIGURED while Web Push is off; the page then offers no notifications.
@@ -5325,13 +5490,13 @@ paths:
     get:
       operationId: searchPlaces
       parameters:
-        - description: The words of the address, with or without Vietnamese marks
+        - description: The words of an address or a place, with or without Vietnamese marks
           explode: false
           in: query
           name: q
           required: true
           schema:
-            description: The words of the address, with or without Vietnamese marks
+            description: The words of an address or a place, with or without Vietnamese marks
             maxLength: 200
             minLength: 2
             type: string

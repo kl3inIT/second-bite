@@ -45,22 +45,22 @@ const dishes = [
 export function KindPicker({ query }: { query: HomeQuery }) {
   const t = useTranslations("Home");
   const kinds = useTranslations("OfferKind");
-  // A kind narrows the place being shown; it does not move back to Tasco Mall.
-  const { near } = query;
+  // A kind narrows the place being shown; it does not move back to every shop.
+  const { near, place } = query;
   const items = [
     ...order.map((kind) => ({
       key: kind,
       label: kinds(kind),
       picture: pictures[kind],
       active: query.kind === kind,
-      href: homePath({ near, kind: query.kind === kind ? undefined : kind }),
+      href: homePath({ near, place, kind: query.kind === kind ? undefined : kind }),
     })),
     ...dishes.map((dish) => ({
       key: dish.key,
       label: t(`dishes.${dish.key}`),
       picture: dish.picture,
       active: false,
-      href: searchHref({ near, q: dish.words }),
+      href: searchHref({ near, place, q: dish.words }),
     })),
   ];
 

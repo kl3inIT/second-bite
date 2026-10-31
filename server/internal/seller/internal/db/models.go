@@ -14,4 +14,5 @@ type SellerStatusDay struct {
 	Active   int32
 	Rejected int32
 	Blocked  int32
+	Deleted  int32
 }

@@ -8,6 +8,7 @@ import { HomeContent } from "@/features/home/home-content";
 import { homePath, readHomeQuery, type HomeQuery } from "@/features/home/home-query";
 import { AccountAction } from "@/features/identity/account-action";
 import { PlaceHeading } from "@/features/home/place-heading";
+import { withRememberedPlace } from "@/features/home/remembered-place";
 import { SearchField } from "@/features/home/search-field";
 import { TonightDeals } from "@/features/home/tonight-deals";
 import { contentWidth } from "@/lib/layout";
@@ -21,10 +22,11 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">): Prom
   return pageMetadata({ locale: (await params).locale, description: t("description") });
 }
 
-// The customer home: tonight's offers at Tasco Mall, with no landing page in front (SEC-23), drawn as the
+// The customer home: tonight's offers of every shop, or around a place, with no landing page in front (SEC-23), drawn as the
 // Figma home (Secondbite › Mobile v3 › K1 · Trang chủ).
 export default function Home({ searchParams }: PageProps<"/[locale]">) {
-  const query = searchParams.then(readHomeQuery);
+  // The address's place, or the one this browser kept (customer place, step 3).
+  const query = searchParams.then(readHomeQuery).then(withRememberedPlace);
 
   return (
     <>
@@ -80,6 +82,6 @@ async function HomeAccount({ query }: { query: Promise<HomeQuery> }) {
 }
 
 async function AddressSearchField({ query, id }: { query: Promise<HomeQuery>; id?: string }) {
-  const { q, near } = await query;
-  return <SearchField value={q} near={near} id={id} />;
+  const { q, near, place } = await query;
+  return <SearchField value={q} near={near} place={place} id={id} />;
 }

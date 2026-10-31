@@ -30,8 +30,8 @@ const (
 	maxReasonRunes = 500
 )
 
-// The statuses an admin may list.
-var statuses = []Status{StatusPending, StatusActive, StatusRejected, StatusBlocked}
+// The statuses an admin may list; the deleted sellers only when asked.
+var statuses = []Status{StatusPending, StatusActive, StatusRejected, StatusBlocked, StatusDeleted}
 
 // Filter is what an admin lists sellers by.
 type Filter struct {
@@ -122,6 +122,7 @@ func (s *Service) List(ctx context.Context, f Filter) (Page, error) {
 				ID: r.ID, Name: r.Name, Address: r.Address, Latitude: r.Latitude, Longitude: r.Longitude, Phone: r.Phone,
 				Status: r.Status, StatusReason: r.StatusReason, StatusChangedAt: r.StatusChangedAt,
 				StatusChangedBy: r.StatusChangedBy, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt, PhotoID: r.PhotoID,
+				DeletionRequestedAt: r.DeletionRequestedAt,
 			}, ""),
 			OwnerEmail: owners[r.ID],
 		})
@@ -226,7 +227,7 @@ func (s *Service) ownerEmails(ctx context.Context, rows []db.SellersForAdminsRow
 // and tells its owner. A seller whose owner deleted their account has no one
 // to run it, so it stays as it is (ErrOwnerless).
 func (s *Service) Approve(ctx context.Context, id uuid.UUID) (Seller, error) {
-	return s.changeStatus(ctx, id, StatusActive, []Status{StatusPending, StatusRejected, StatusBlocked}, "",
+	return s.changeStatus(ctx, id, StatusActive, []Status{StatusPending, StatusRejected, StatusBlocked}, "", false,
 		func(was Status) audit.Action {
 			if was == StatusBlocked {
 				return audit.SellerUnblocked{}
@@ -243,7 +244,7 @@ func (s *Service) Reject(ctx context.Context, id uuid.UUID, reason string) (Sell
 		return Seller{}, err
 	}
 
-	return s.changeStatus(ctx, id, StatusRejected, []Status{StatusPending}, reason,
+	return s.changeStatus(ctx, id, StatusRejected, []Status{StatusPending}, reason, false,
 		func(Status) audit.Action { return audit.SellerRejected{Reason: reason} })
 }
 
@@ -255,8 +256,124 @@ func (s *Service) Block(ctx context.Context, id uuid.UUID, reason string) (Selle
 		return Seller{}, err
 	}
 
-	return s.changeStatus(ctx, id, StatusBlocked, []Status{StatusActive}, reason,
+	return s.changeStatus(ctx, id, StatusBlocked, []Status{StatusActive}, reason, false,
 		func(Status) audit.Action { return audit.SellerBlocked{Reason: reason} })
+}
+
+// Delete deletes a seller softly, for an admin, telling its owner why: it is
+// blocked at once, so it no longer shows and takes no order, and waits until
+// its orders still to finish are done (FinishDeletion). A seller already
+// waiting or deleted answers ErrStatusChangeNotAllowed.
+func (s *Service) Delete(ctx context.Context, id uuid.UUID, reason string) (Seller, error) {
+	reason, err := normalizedReason(reason)
+	if err != nil {
+		return Seller{}, err
+	}
+
+	return s.changeStatus(ctx, id, StatusBlocked, []Status{StatusPending, StatusActive, StatusRejected, StatusBlocked},
+		reason, true, func(Status) audit.Action { return audit.SellerDeleted{Reason: reason} })
+}
+
+// Restore brings back a deleted seller, or one waiting to be deleted, for an
+// admin. It stays blocked, with the reason it was deleted for, until an admin
+// approves it again; the owner is not emailed.
+func (s *Service) Restore(ctx context.Context, id uuid.UUID) (Seller, error) {
+	caller, err := platform.RequireAdmin(ctx)
+	if err != nil {
+		return Seller{}, err
+	}
+
+	var was Status
+
+	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.queries.WithTx(tx)
+
+		left, err := q.RestoreSeller(ctx, db.RestoreSellerParams{
+			ID: id, ChangedBy: uuid.NullUUID{UUID: caller.AccountID, Valid: true},
+		})
+		if errors.Is(err, pgx.ErrNoRows) {
+			return s.refusedChange(ctx, q, id)
+		}
+
+		if err != nil {
+			return fmt.Errorf("restoring the seller: %w", err)
+		}
+
+		was = Status(left)
+
+		row, err := q.GetSeller(ctx, id)
+		if err != nil {
+			return fmt.Errorf("reading the seller: %w", err)
+		}
+
+		if err := s.trail.Record(ctx, tx,
+			audit.Resource{Type: audit.ResourceSeller, ID: id.String(), Label: row.Name}, audit.SellerRestored{}); err != nil {
+			return err
+		}
+
+		return recordStatusDay(ctx, q)
+	})
+	if err != nil {
+		return Seller{}, err
+	}
+
+	s.logger.InfoContext(ctx, "seller restored",
+		slog.String("event", "seller.restored"),
+		slog.String("seller_id", id.String()),
+		slog.String("from", string(was)),
+		slog.String("by_account_id", caller.AccountID.String()),
+	)
+
+	return s.Get(ctx, id)
+}
+
+// AwaitingDeletion answers the sellers admins deleted that still wait for
+// their orders, the earliest deleted first, for order, which knows when they
+// are done.
+func (s *Service) AwaitingDeletion(ctx context.Context) ([]uuid.UUID, error) {
+	ids, err := s.queries.SellersAwaitingDeletion(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("reading the sellers awaiting deletion: %w", err)
+	}
+
+	return ids, nil
+}
+
+// FinishDeletion deletes a seller that waited for its orders, once order has
+// none of them left to finish. A seller restored or approved since no longer
+// waits and is left as it is; the deletion is in the trail from the admin's
+// request, so the end of the wait is only logged.
+func (s *Service) FinishDeletion(ctx context.Context, id uuid.UUID) error {
+	var deleted bool
+
+	err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.queries.WithTx(tx)
+
+		_, err := q.FinishDeletion(ctx, id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		}
+
+		if err != nil {
+			return fmt.Errorf("deleting the seller: %w", err)
+		}
+
+		deleted = true
+
+		return recordStatusDay(ctx, q)
+	})
+	if err != nil {
+		return err
+	}
+
+	if deleted {
+		s.logger.InfoContext(ctx, "seller deleted",
+			slog.String("event", "seller.deleted"),
+			slog.String("seller_id", id.String()),
+		)
+	}
+
+	return nil
 }
 
 // normalizedReason trims a reason and checks its length; line breaks are
@@ -274,9 +391,11 @@ func normalizedReason(reason string) (string, error) {
 }
 
 // changeStatus moves the seller to status when it stands in one of from, in
-// one transaction with its audit event and the event that tells its owner.
+// one transaction with its audit event and the event that tells its owner;
+// deleting marks it as waiting to be deleted.
 func (s *Service) changeStatus(
-	ctx context.Context, id uuid.UUID, status Status, from []Status, reason string, action func(was Status) audit.Action,
+	ctx context.Context, id uuid.UUID, status Status, from []Status, reason string, deleting bool,
+	action func(was Status) audit.Action,
 ) (Seller, error) {
 	caller, err := platform.RequireAdmin(ctx)
 	if err != nil {
@@ -303,6 +422,7 @@ func (s *Service) changeStatus(
 			ID: id, Status: string(status), FromStatuses: fromStatuses,
 			Reason:    pgtype.Text{String: reason, Valid: reason != ""},
 			ChangedBy: uuid.NullUUID{UUID: caller.AccountID, Valid: true},
+			Deleting:  deleting,
 		})
 		if errors.Is(err, pgx.ErrNoRows) {
 			return s.refusedChange(ctx, q, id)
@@ -328,7 +448,7 @@ func (s *Service) changeStatus(
 			return err
 		}
 
-		return platform.Publish(ctx, tx, s.events, StatusChangedEvent{SellerID: id, Status: status})
+		return platform.Publish(ctx, tx, s.events, StatusChangedEvent{SellerID: id, Status: status, Deleting: deleting})
 	})
 	if err != nil {
 		return Seller{}, err

@@ -47,7 +47,7 @@ abstract class SellersClient {
 
   /// Places in Hanoi for the words of a store's address, to pin it as it is typed.
   ///
-  /// [q] - The words of the address, with or without Vietnamese marks.
+  /// [q] - The words of an address or a place, with or without Vietnamese marks.
   @GET('/sellers/places')
   Future<PlacesOutputBody> searchPlaces({@Query('q') required String q});
 

@@ -10,6 +10,7 @@ import { AccountAction } from "@/features/identity/account-action";
 import { kindsByCount } from "@/features/offers/offer";
 import { listOffers } from "@/features/offers/list-offers";
 import { SearchBar } from "@/features/search/search-bar";
+import { withRememberedPlace } from "@/features/home/remembered-place";
 import { readSearchQuery, searchHref, type SearchQuery } from "@/features/search/search-query";
 import { SearchResults } from "@/features/search/search-results";
 import { contentWidth } from "@/lib/layout";
@@ -29,7 +30,8 @@ export async function generateMetadata({
 // (Figma WK2).
 export default async function SearchPage({ searchParams }: PageProps<"/[locale]/search">) {
   const t = await getTranslations("Search");
-  const query = searchParams.then(readSearchQuery);
+  // The address's place, or the one this browser kept (customer place, step 3).
+  const query = searchParams.then(readSearchQuery).then(withRememberedPlace);
 
   return (
     <>
@@ -71,8 +73,8 @@ export default async function SearchPage({ searchParams }: PageProps<"/[locale]/
 }
 
 async function AddressPlaceHeading({ query }: { query: Promise<SearchQuery> }) {
-  const { near } = await query;
-  return <PlaceHeading query={{ near }} asHeading={false} />;
+  const { near, place } = await query;
+  return <PlaceHeading query={{ near, place }} asHeading={false} />;
 }
 
 async function SearchAccount({ query }: { query: Promise<SearchQuery> }) {
@@ -86,11 +88,18 @@ async function AddressSearchBar({
   query: Promise<SearchQuery>;
   desktop?: boolean;
 }) {
-  const { q, near } = await query;
+  const { q, near, place } = await query;
   // The suggestions are a convenience: without the offers the field still searches.
   const offers = await listOffers({ near }).catch(() => []);
   // A new address starts the field afresh, with its own words.
   return (
-    <SearchBar key={q ?? ""} value={q} near={near} kinds={kindsByCount(offers)} desktop={desktop} />
+    <SearchBar
+      key={q ?? ""}
+      value={q}
+      near={near}
+      place={place}
+      kinds={kindsByCount(offers)}
+      desktop={desktop}
+    />
   );
 }

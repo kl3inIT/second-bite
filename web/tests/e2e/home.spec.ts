@@ -12,10 +12,10 @@ test.describe("the customer home", () => {
     await page.goto("/vi");
 
     await expect(
-      page.getByRole("heading", { level: 1, name: "Tối nay ở Tasco Mall" }),
+      page.getByRole("heading", { level: 1, name: "Tối nay: Tất cả quán" }),
     ).toBeVisible();
 
-    const deals = page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" });
+    const deals = page.getByRole("region", { name: "Món ngon tối nay" });
     await expect(deals.getByText("59%", { exact: true })).toBeVisible();
     // Up to eight tickets; the copy that keeps a running row seamless is hidden from assistive technology.
     await expect(deals.getByRole("listitem")).toHaveCount(8);
@@ -35,7 +35,7 @@ test.describe("the customer home", () => {
       await expect(closing.getByRole("heading", { level: 3 }).nth(index)).toHaveText(name);
     }
 
-    const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
+    const all = page.getByRole("region", { name: "Tất cả món" });
     await expect(all.getByRole("heading", { level: 3 })).toHaveText([
       "Bánh Croissant Truyền Thống",
       "Bánh Eclair Socola",
@@ -97,7 +97,7 @@ test.describe("the customer home", () => {
     await expect(best.getByText("Quán được chấm 4,8 trên 5")).toBeAttached();
     // Announcements are followed, never listed among what can be ordered.
     await expect(
-      page.getByRole("region", { name: "Tất cả món quanh đây" }).getByText("Cơm Bò Rang Giòn"),
+      page.getByRole("region", { name: "Tất cả món" }).getByText("Cơm Bò Rang Giòn"),
     ).toBeHidden();
   });
 
@@ -106,7 +106,7 @@ test.describe("the customer home", () => {
   }) => {
     await page.goto("/vi");
 
-    const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
+    const all = page.getByRole("region", { name: "Tất cả món" });
     const heart = all
       .getByRole("article")
       .filter({ hasText: "Bánh Eclair Socola" })
@@ -149,7 +149,7 @@ test.describe("the customer home", () => {
       "Bánh mì mềm chà bông",
     ]);
     await expect(page.getByRole("region", { name: "Sắp hết giờ nhận" })).toBeHidden();
-    await expect(page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" })).toBeHidden();
+    await expect(page.getByRole("region", { name: "Món ngon tối nay" })).toBeHidden();
 
     await (await hydrated(page.getByRole("link", { name: "Bánh", exact: true }))).click();
     await expect(page).toHaveURL(/\/vi$/);
@@ -176,7 +176,7 @@ test.describe("the customer home", () => {
     await expect(page).toHaveURL(/\/vi\/search\?q=banh\+bao$/);
   });
 
-  test("shows the dishes around the person's place, nearest first, and Tasco Mall's when there are none", async ({
+  test("shows the dishes around the person's place, nearest first, and every shop's when there are none", async ({
     page,
     context,
   }) => {
@@ -185,25 +185,87 @@ test.describe("the customer home", () => {
     await page.goto("/vi");
     await (await hydrated(page.getByRole("button", { name: "Chọn nơi xem món" }))).click();
     await expectNoSeriousA11yViolations(page);
-    await page.getByText("Dùng vị trí của tôi").click();
-    await page.getByRole("button", { name: "Xem món quanh đây" }).click();
+    await page.getByRole("button", { name: /^Gần tôi/ }).click();
 
-    await expect(page).toHaveURL(/\/vi\?near=21\.057,105\.897$/);
+    // The place is named by the street its point is on.
+    await expect(page).toHaveURL(/\/vi\?near=21\.057,105\.897&place=/);
     await expect(
-      page.getByRole("heading", { level: 1, name: "Tối nay quanh Vị trí của tôi" }),
+      page.getByRole("heading", { level: 1, name: "Tối nay quanh Phố Hoa Lâm" }),
     ).toBeVisible();
-    await expect(page.getByRole("region", { name: "Món ngon tối nay ở Tasco Mall" })).toBeHidden();
+    await expect(page.getByRole("region", { name: "Món ngon tối nay" })).toBeHidden();
     const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
     await expect(all.getByText(/^21:00–21:45 · \d+ m$/).first()).toBeVisible();
 
     await page.goto("/vi?near=10.762,106.660");
     await expect(page.getByText("Chưa có món nào quanh đây")).toBeVisible();
-    const mall = page.getByRole("region", { name: "Đang bán ở Tasco Mall" });
-    await expect(mall.getByRole("heading", { level: 3 }).first()).toHaveText(
+    const elsewhere = page.getByRole("region", { name: "Đang bán ở các quán khác" });
+    await expect(elsewhere.getByRole("heading", { level: 3 }).first()).toHaveText(
       "Cơm Thịt Kho Nước Dừa",
     );
-    await expect(mall.getByText("Bánh mì mềm chà bông")).toBeHidden();
+    await expect(elsewhere.getByText("Bánh mì mềm chà bông")).toBeHidden();
     await expectNoSeriousA11yViolations(page);
+  });
+
+  test("shows the dishes around a place typed in the area sheet, or around Tasco Mall, and keeps it for the next visit", async ({
+    page,
+  }) => {
+    await page.goto("/vi");
+    await (await hydrated(page.getByRole("button", { name: "Chọn nơi xem món" }))).click();
+    const field = page.getByRole("searchbox", { name: "Tìm nơi xem món" });
+    await field.fill("viet hung");
+    const suggested = page.getByRole("list", { name: "Nơi gợi ý" });
+    await expect(suggested.getByRole("button")).toHaveText([
+      "Phường Việt HưngLong Biên, Hà Nội",
+      "Chợ Việt HưngĐoàn Khuê, Long Biên, Hà Nội",
+    ]);
+    await expectNoSeriousA11yViolations(page);
+    await suggested.getByRole("button", { name: /^Phường Việt Hưng/ }).click();
+
+    await expect(page).toHaveURL(/\/vi\?near=21\.059,105\.894&place=/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay quanh Phường Việt Hưng" }),
+    ).toBeVisible();
+    await expect(page.getByText("Các quán quanh đây")).toBeVisible();
+    const all = page.getByRole("region", { name: "Tất cả món quanh đây" });
+    await expect(all.getByText(/^21:00–21:45 · \d+ m$/).first()).toBeVisible();
+
+    // The next visit opens on the place this browser kept.
+    await page.goto("/vi");
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay quanh Phường Việt Hưng" }),
+    ).toBeVisible();
+
+    // A kind keeps the place and its name.
+    await (await hydrated(page.getByRole("link", { name: "Bánh", exact: true }))).click();
+    await expect(page).toHaveURL(/kind=bakery/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay quanh Phường Việt Hưng" }),
+    ).toBeVisible();
+
+    await (await hydrated(page.getByRole("button", { name: "Chọn nơi xem món" }))).click();
+    await page.getByRole("searchbox", { name: "Tìm nơi xem món" }).fill("abcxyz");
+    await expect(page.getByText("Không tìm thấy nơi này.", { exact: false })).toBeVisible();
+    await page.getByText("Tasco Mall Long Biên").click();
+    await page.getByRole("button", { name: "Xem món", exact: true }).click();
+
+    await expect(page).toHaveURL(/\/vi\?kind=bakery&near=21\.05\d,105\.896&place=/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay quanh Tasco Mall Long Biên" }),
+    ).toBeVisible();
+
+    await (await hydrated(page.getByRole("button", { name: "Chọn nơi xem món" }))).click();
+    await page.getByText("Tất cả quán", { exact: true }).click();
+    await page.getByRole("button", { name: "Xem món", exact: true }).click();
+    await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay: Tất cả quán" }),
+    ).toBeVisible();
+
+    // Every shop forgets the kept place.
+    await page.goto("/vi");
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tối nay: Tất cả quán" }),
+    ).toBeVisible();
   });
 
   test("says what Second Bite is on a wide screen, where a phone goes straight to the dishes", async ({
@@ -212,7 +274,7 @@ test.describe("the customer home", () => {
   }) => {
     test.skip(isMobile, "A phone follows Figma K1, without the line and the steps.");
     await page.goto("/vi");
-    const line = "Món ngon cuối ngày của các quán ở Tasco Mall, giá thấp hơn.";
+    const line = "Món ngon cuối ngày của các quán quanh bạn, giá thấp hơn.";
     await expect(page.getByRole("heading", { name: line })).toBeVisible();
     await expect(page.getByText("Đến quầy trong giờ nhận")).toBeVisible();
   });
@@ -229,7 +291,7 @@ test.describe("the customer home", () => {
     // as a scroll made while the list is still streaming in can leave the row on screen.
     await hydrated(search);
     await expect(async () => {
-      await page.getByRole("heading", { name: "Tất cả món quanh đây" }).scrollIntoViewIfNeeded();
+      await page.getByRole("heading", { name: "Tất cả món" }).scrollIntoViewIfNeeded();
       await page.mouse.wheel(0, 400);
       await expect(search).toHaveCount(2, { timeout: 1000 });
     }).toPass();

@@ -1,0 +1,31 @@
+name: Deploy production
+
+# Production takes a release by hand only: the release a successful main Release run published, after it has run on
+# staging. The GitHub environment production asks its reviewer before the job starts. The delivery itself is the shared
+# Deploy workflow (docs/runbooks/ci-cd.md).
+"on":
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: Successful main Release run whose release to deploy, one already running on staging
+        required: true
+        type: string
+
+permissions:
+  contents: read # Check out the deployment files of the release.
+  actions: read # Verify the Release run and download its release.
+  packages: read # Let the server pull the private images.
+
+# A running deployment always finishes; the next one waits behind it.
+concurrency:
+  group: secondbite-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+      ci_run_id: ${{ inputs.ci_run_id }}
+    secrets: inherit

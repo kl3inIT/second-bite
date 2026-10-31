@@ -9,11 +9,13 @@ import { Link } from "@/i18n/navigation";
 export function SearchField({
   value,
   near,
+  place,
   id = "offer-search",
 }: {
   value?: string;
-  /** The place the home is showing, kept by the search. */
+  /** The place the home is showing, and its name, kept by the search. */
   near?: string;
+  place?: string;
   id?: string;
 }) {
   const t = useTranslations("Home");
@@ -23,6 +25,7 @@ export function SearchField({
     <search>
       <form action={`/${locale}/search`}>
         {near && <input type="hidden" name="near" value={near} />}
+        {near && place && <input type="hidden" name="place" value={place} />}
         <InputGroup surface="header">
           <InputGroupInput
             id={id}
@@ -37,7 +40,10 @@ export function SearchField({
           </InputGroupAddon>
           <InputGroupAddon align="inline-end">
             <Link
-              href={{ pathname: "/search", query: near ? { near } : {} }}
+              href={{
+                pathname: "/search",
+                query: near ? (place ? { near, place } : { near }) : {},
+              }}
               aria-label={t("filters")}
               className="flex size-9 items-center justify-center rounded-full bg-secondary text-primary transition-colors hover:bg-secondary-hover focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
             >

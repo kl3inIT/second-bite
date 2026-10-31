@@ -25,9 +25,9 @@ type addressOutput struct {
 	}
 }
 
-// placesInput is what someone typed in a store's address.
+// placesInput is what someone typed: a store's address, or where a customer looks for dishes.
 type placesInput struct {
-	Query string `query:"q" required:"true" minLength:"2" maxLength:"200" doc:"The words of the address, with or without Vietnamese marks"`
+	Query string `query:"q" required:"true" minLength:"2" maxLength:"200" doc:"The words of an address or a place, with or without Vietnamese marks"`
 }
 
 // placeBody is a suggested place.
@@ -73,13 +73,15 @@ type sellerBody struct {
 	Latitude        float64    `json:"latitude"`
 	Longitude       float64    `json:"longitude"`
 	Phone           string     `json:"phone"`
-	Status          Status     `json:"status"                    enum:"pending,active,rejected,blocked"`
+	Status          Status     `json:"status"                    enum:"pending,active,rejected,blocked,deleted"`
 	StatusReason    string     `json:"statusReason,omitempty"    doc:"Why an admin rejected or blocked the seller, as the owner is told"`
 	StatusChangedAt *time.Time `json:"statusChangedAt,omitempty"`
-	CreatedAt       time.Time  `json:"createdAt"`
-	UpdatedAt       time.Time  `json:"updatedAt"`
-	PhotoID         *uuid.UUID `json:"photoId,omitempty"         doc:"Served at /photos/{photoId}/1600.jpg and /400.jpg"`
-	MyRole          Role       `json:"myRole,omitempty"          enum:"owner,staff" doc:"The caller's role; absent for an admin who is not a member"`
+	//nolint:lll // one field's tags
+	DeletionRequestedAt *time.Time `json:"deletionRequestedAt,omitempty" doc:"When an admin deleted the seller, blocked, which waits for its orders still to finish; absent when it does not wait"`
+	CreatedAt           time.Time  `json:"createdAt"`
+	UpdatedAt           time.Time  `json:"updatedAt"`
+	PhotoID             *uuid.UUID `json:"photoId,omitempty"         doc:"Served at /photos/{photoId}/1600.jpg and /400.jpg"`
+	MyRole              Role       `json:"myRole,omitempty"          enum:"owner,staff" doc:"The caller's role; absent for an admin who is not a member"`
 }
 
 func toBody(s Seller) sellerBody {
@@ -137,6 +139,7 @@ var (
 	// optional is for reads anyone may make.
 	optional   = platform.MaybeSignedIn()
 	tagSellers = []string{"Sellers"}
+	tagPlaces  = []string{"Places"}
 )
 
 func registerOwnerOperations(api huma.API, s *Service) {
@@ -175,6 +178,35 @@ func registerOwnerOperations(api huma.API, s *Service) {
 		Tags:    tagSellers, Security: security,
 	}, func(ctx context.Context, in *placesInput) (*placesOutput, error) {
 		found, err := s.Places(ctx, in.Query)
+		out := &placesOutput{}
+		out.Body.Places = toPlaceBodies(found)
+
+		return out, err
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "customerAddressAt", Method: http.MethodGet, Path: "/places/at",
+		Summary: "The address at the point a customer's browser gave, to name the place dishes are shown around; " +
+			"signed in or not, empty when it is not known",
+		Tags: tagPlaces,
+	}, func(ctx context.Context, in *addressInput) (*addressOutput, error) {
+		address, err := s.AddressForCustomer(ctx, in.Latitude, in.Longitude)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &addressOutput{}
+		out.Body.Address = address
+
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "searchCustomerPlaces", Method: http.MethodGet, Path: "/places",
+		Summary: "Places in Hanoi for the words a customer typed, to look for dishes around; signed in or not",
+		Tags:    tagPlaces,
+	}, func(ctx context.Context, in *placesInput) (*placesOutput, error) {
+		found, err := s.PlacesForCustomer(ctx, in.Query)
 		out := &placesOutput{}
 		out.Body.Places = toPlaceBodies(found)
 
@@ -375,7 +407,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		Description: "Pending sellers come first, the oldest first; then the latest change first. " +
 			"q matches the name, address or phone, Vietnamese marks ignored. A page past the end is empty.",
 	}, func(ctx context.Context, in *struct {
-		Status []Status `query:"status" doc:"Keep these statuses; every status when absent" enum:"pending,active,rejected,blocked"`
+		Status []Status `query:"status" doc:"Keep these statuses; every status but deleted when absent" enum:"pending,active,rejected,blocked,deleted"`
 		Q      string   `query:"q"            doc:"Words of the name, address or phone" maxLength:"100"`
 		Sort   string   `query:"sort"         doc:"name, address or changed; a leading - is descending; the queue order when absent" enum:"name,-name,address,-address,changed,-changed"`
 		Page   int      `query:"page"         default:"1" maximum:"10000" minimum:"1"`
@@ -405,6 +437,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		out.Body.Counts = statusCountsBody{
 			Pending: page.Counts[StatusPending], Active: page.Counts[StatusActive],
 			Rejected: page.Counts[StatusRejected], Blocked: page.Counts[StatusBlocked],
+			Deleted: page.Counts[StatusDeleted],
 		}
 
 		for _, l := range page.Sellers {
@@ -417,6 +450,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 				Day:     d.Day.Format(time.DateOnly),
 				Pending: d.Counts[StatusPending], Active: d.Counts[StatusActive],
 				Rejected: d.Counts[StatusRejected], Blocked: d.Counts[StatusBlocked],
+				Deleted: d.Counts[StatusDeleted],
 			})
 		}
 
@@ -446,6 +480,11 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		return out, nil
 	})
 
+	registerStatusOperations(admin, s)
+}
+
+// registerStatusOperations registers what admins do to a seller's status.
+func registerStatusOperations(admin huma.API, s *Service) {
 	huma.Register(admin, huma.Operation{
 		OperationID: "approveSeller", Method: http.MethodPost, Path: "/sellers/{sellerId}/approve",
 		Summary: "Let a pending, rejected or blocked seller publish; its owner is emailed. A seller whose owner deleted their account is refused",
@@ -464,6 +503,12 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 	}{
 		{"rejectSeller", "/sellers/{sellerId}/reject", "Refuse a pending seller; its owner is emailed the reason", s.Reject},
 		{"blockSeller", "/sellers/{sellerId}/block", "Stop an active seller; its owner is emailed the reason", s.Block},
+		{
+			"deleteSeller", "/sellers/{sellerId}/delete",
+			"Delete a seller softly: blocked at once, deleted once its orders still to finish are done; " +
+				"its owner is emailed the reason",
+			s.Delete,
+		},
 	} {
 		huma.Register(admin, huma.Operation{
 			OperationID: action.id, Method: http.MethodPost, Path: action.path, Summary: action.summary,
@@ -482,6 +527,18 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 			return &sellerOutput{Body: toBody(seller)}, nil
 		})
 	}
+
+	huma.Register(admin, huma.Operation{
+		OperationID: "restoreSeller", Method: http.MethodPost, Path: "/sellers/{sellerId}/restore",
+		Summary: "Bring back a deleted seller, or one waiting to be deleted, blocked; its owner is not emailed",
+	}, func(ctx context.Context, in *sellerPath) (*sellerOutput, error) {
+		seller, err := s.Restore(ctx, in.SellerID)
+		if err != nil {
+			return nil, err
+		}
+
+		return &sellerOutput{Body: toBody(seller)}, nil
+	})
 }
 
 // adminSellerBody is a seller in the admins' list. It lists its own fields rather than embedding sellerBody,
@@ -493,13 +550,15 @@ type adminSellerBody struct {
 	Latitude        float64    `json:"latitude"`
 	Longitude       float64    `json:"longitude"`
 	Phone           string     `json:"phone"`
-	Status          Status     `json:"status"                    enum:"pending,active,rejected,blocked"`
+	Status          Status     `json:"status"                    enum:"pending,active,rejected,blocked,deleted"`
 	StatusReason    string     `json:"statusReason,omitempty"    doc:"Why an admin rejected or blocked the seller, as the owner is told"`
 	StatusChangedAt *time.Time `json:"statusChangedAt,omitempty"`
-	CreatedAt       time.Time  `json:"createdAt"`
-	UpdatedAt       time.Time  `json:"updatedAt"`
-	PhotoID         *uuid.UUID `json:"photoId,omitempty"         doc:"Served at /photos/{photoId}/1600.jpg and /400.jpg"`
-	OwnerEmail      string     `json:"ownerEmail,omitempty"      doc:"Absent when the owner deleted their account"`
+	//nolint:lll // one field's tags
+	DeletionRequestedAt *time.Time `json:"deletionRequestedAt,omitempty" doc:"When an admin deleted the seller, blocked, which waits for its orders still to finish; absent when it does not wait"`
+	CreatedAt           time.Time  `json:"createdAt"`
+	UpdatedAt           time.Time  `json:"updatedAt"`
+	PhotoID             *uuid.UUID `json:"photoId,omitempty"         doc:"Served at /photos/{photoId}/1600.jpg and /400.jpg"`
+	OwnerEmail          string     `json:"ownerEmail,omitempty"      doc:"Absent when the owner deleted their account"`
 }
 
 func toAdminSellerBody(l Listed) adminSellerBody {
@@ -508,7 +567,7 @@ func toAdminSellerBody(l Listed) adminSellerBody {
 	return adminSellerBody{
 		ID: s.ID, Name: s.Name, Address: s.Address, Latitude: s.Latitude, Longitude: s.Longitude, Phone: s.Phone,
 		Status: s.Status, StatusReason: s.StatusReason, StatusChangedAt: s.StatusChangedAt,
-		CreatedAt: s.CreatedAt, UpdatedAt: s.UpdatedAt, PhotoID: s.PhotoID, OwnerEmail: l.OwnerEmail,
+		DeletionRequestedAt: s.DeletionRequestedAt, CreatedAt: s.CreatedAt, UpdatedAt: s.UpdatedAt, PhotoID: s.PhotoID, OwnerEmail: l.OwnerEmail,
 	}
 }
 
@@ -517,7 +576,7 @@ type membershipBody struct {
 	Role         Role      `json:"role"         enum:"owner,staff"`
 	SellerID     uuid.UUID `json:"sellerId"`
 	SellerName   string    `json:"sellerName"`
-	SellerStatus Status    `json:"sellerStatus" enum:"pending,active,rejected,blocked"`
+	SellerStatus Status    `json:"sellerStatus" enum:"pending,active,rejected,blocked,deleted"`
 }
 
 type membershipsOutput struct {
@@ -545,6 +604,7 @@ type statusDayBody struct {
 	Active   int    `json:"active"`
 	Rejected int    `json:"rejected"`
 	Blocked  int    `json:"blocked"`
+	Deleted  int    `json:"deleted"`
 }
 
 type statusCountsBody struct {
@@ -552,6 +612,7 @@ type statusCountsBody struct {
 	Active   int `json:"active"`
 	Rejected int `json:"rejected"`
 	Blocked  int `json:"blocked"`
+	Deleted  int `json:"deleted"`
 }
 
 func registerFollowOperations(api huma.API, s *Service) {

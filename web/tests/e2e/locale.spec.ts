@@ -12,7 +12,7 @@ test.describe("on a Vietnamese device", () => {
     await expect(page).toHaveURL(/\/vi$/);
     await expect(page.locator("html")).toHaveAttribute("lang", "vi");
     await expect(
-      page.getByRole("heading", { level: 1, name: "Tối nay ở Tasco Mall" }),
+      page.getByRole("heading", { level: 1, name: "Tối nay: Tất cả quán" }),
     ).toBeVisible();
     await expectNoSeriousA11yViolations(page);
   });
@@ -23,9 +23,7 @@ test.describe("on a Vietnamese device", () => {
 
     await expect(page).toHaveURL(/\/en$/);
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
-    await expect(
-      page.getByRole("heading", { level: 1, name: "Tonight at Tasco Mall" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Tonight: All shops" })).toBeVisible();
 
     await page.goto("/");
     await expect(page).toHaveURL(/\/en$/);

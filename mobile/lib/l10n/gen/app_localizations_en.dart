@@ -232,7 +232,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get legalTermsSection2Body =>
-      'You can browse and search without an account. You sign in to order, to follow a shop, or to post for a shop.\n\nKeep the mailbox and Google account you sign in with secure, and do not sign in for someone else.';
+      'You can browse, search and order without an account; when you order, you give the shop the name and phone number of whoever collects. You sign in to follow a shop or to post for a shop.\n\nKeep the mailbox and Google account you sign in with secure, and do not sign in for someone else.';
 
   @override
   String get legalTermsSection3Title => '3. Sellers\' responsibilities';
@@ -320,7 +320,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get legalPrivacySection6Body =>
-      'A session cookie (coming soon), to keep you signed in.\n\nA language cookie, remembering Vietnamese or English for a year.\n\nA mark in the browser\'s storage, remembering that you closed the introduction.\n\nWe use no advertising cookies and no third-party tracking.';
+      'A session cookie (coming soon), to keep you signed in.\n\nA language cookie, remembering Vietnamese or English for a year.\n\nA place cookie, remembering the area you chose (a point rounded to about 100 m and its name) for 180 days; choose “All shops” to clear it.\n\nA mark in the browser\'s storage, remembering that you closed the introduction.\n\nWe use no advertising cookies and no third-party tracking.';
 
   @override
   String get legalPrivacySection7Title => '7. Protecting your data';

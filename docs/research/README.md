@@ -22,6 +22,7 @@ What the team studied before designing Second Bite, kept so that a later reader 
 | File | Holds |
 | --- | --- |
 | [sources/2026-10-16-kickoff-meeting-transcript.md](sources/2026-10-16-kickoff-meeting-transcript.md) | The automatic transcript of the kickoff with the founder and the sponsor's side, in Vietnamese and English, with phone numbers and personal small talk removed |
+| [Customer location and the stores' map](2026-10-31-customer-location-and-map.md) | When web.dev and Apple say to ask for location, how foodsharing, Karrot, Open Food Network and Umi Feeds place a customer without asking, Too Good To Go's and ShopeeFood's choice of place, and how list and map views of stores work |
 
 ## Rules for this folder
 

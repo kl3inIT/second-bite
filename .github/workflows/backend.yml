@@ -33,10 +33,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # golangci-lint keeps its own cache. The Go cache is Test's alone: jobs sharing one key race to save it, and Lint,
+      # finishing first, saved one without the race build or sqlc, which Test then compiled again on every run.
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: server/go.mod
-          cache-dependency-path: server/go.sum
+          cache: false
       - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
           version: v2.15.0
@@ -50,7 +52,10 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: server/go.mod
-          cache-dependency-path: server/go.sum
+          # This file is in the key so that a change to what Test builds saves a new cache, as no job can replace one.
+          cache-dependency-path: |
+            server/go.sum
+            .github/workflows/backend.yml
       - name: Check that go.mod and go.sum are tidy
         run: go mod tidy -diff
       - name: Check that the code sqlc generates is current
