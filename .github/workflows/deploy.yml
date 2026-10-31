@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 30
     environment:
       name: ${{ inputs.environment }}
-      url: ${{ inputs.environment == 'production' && 'https://secondbite.vadan.app' || 'https://staging.secondbite.vadan.app' }}
+      url: ${{ inputs.environment == 'production' && 'https://secondbite.vadan.app' || 'https://preview.secondbite.vadan.app' }}
     steps:
       - name: Resolve a successful main release
         id: release
@@ -121,7 +121,7 @@ jobs:
           DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
         run: |
           case "$DEPLOY_ENVIRONMENT" in
-            staging) root=/apps/secondbite-staging url=https://staging.secondbite.vadan.app ;;
+            staging) root=/apps/secondbite-staging url=https://preview.secondbite.vadan.app ;;
             production) root=/apps/secondbite-production url=https://secondbite.vadan.app ;;
             *) echo "unknown environment $DEPLOY_ENVIRONMENT" >&2; exit 1 ;;
           esac
