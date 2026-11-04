@@ -190,7 +190,7 @@ test.describe("deleting an account made with a username", () => {
     await page.goto("/vi/delete-account");
     // Signed in without an address is still signed in: the page asks for the password, not to sign in.
     await expect(page.getByText("Đăng nhập để xoá tài khoản")).toHaveCount(0);
-    await expect(page.getByText(username)).toBeVisible();
+    await expect(page.locator("strong", { hasText: username })).toBeVisible();
     await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
 
     const confirm = page.getByRole("button", { name: "Xoá vĩnh viễn tài khoản" });
