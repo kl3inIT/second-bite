@@ -1,6 +1,6 @@
 # identity
 
-Owns accounts and their role, emailed sign-in codes, Google sign-in and sessions (tables `identity_*`). Decided in the [SEC-10 design](../increments/completed/sec-10-backend-foundation/design.md#identity) and the [SEC-29 design](../increments/completed/sec-29-web-sign-in/design.md). Checks: [docs/tests/identity.md](../tests/identity.md).
+Owns accounts and their role, emailed sign-in codes, Google sign-in, sign-in with a username and a password, and sessions (tables `identity_*`). Decided in the [SEC-10 design](../increments/completed/sec-10-backend-foundation/design.md#identity), the [SEC-29 design](../increments/completed/sec-29-web-sign-in/design.md) and the [SEC-193 design](../increments/active/sec-193-username-sign-in/design.md). Checks: [docs/tests/identity.md](../tests/identity.md).
 
 ## Operations
 
@@ -9,11 +9,14 @@ Owns accounts and their role, emailed sign-in codes, Google sign-in and sessions
 | `POST /auth/sign-in-codes` `{email}` | Anyone | `202 {challengeId, expiresAt}`, whether or not the address has an account |
 | `POST /auth/sessions` `{challengeId, code, session}` | Anyone holding a challenge | `201 {token, expiresAt, account}`; the token is shown only here. With `"session": "cookie"` (the web) the token is in the session cookie instead of the body |
 | `POST /auth/google` `{idToken, nonce, session}` | Anyone | `201 {token, expiresAt, account}`, the session handed over as for the code |
+| `POST /auth/accounts` `{username, password, session}` | Anyone | `201 {token, expiresAt, account}`: an account with that username and no email is made and signed in, the session handed over as for the code (SEC-193) |
+| `POST /auth/password-sessions` `{username, password, session}` | Anyone | `201 {token, expiresAt, account}`, the same; an unknown username and a wrong password answer alike (SEC-193) |
 | `GET /auth/methods` | Anyone | `200 {google: {clientId}}` when Google is configured, `200 {}` otherwise |
 | `DELETE /auth/sessions/current` | A signed-in caller | `204`; the session ends and its cookie is cleared |
-| `GET /accounts/me` | A signed-in caller | `200 {id, email, role, displayName}` |
+| `GET /accounts/me` | A signed-in caller | `200 {id, email, username, role, displayName}`; `email` is empty for an account made with a username, `username` for one that signs in by email or Google |
 | `PUT /accounts/me` `{displayName}` | A signed-in caller | `200` the account, its name trimmed (SEC-61) |
 | `POST /accounts/me/deletion-codes` | A signed-in caller | `202 {challengeId, expiresAt}`; a code that only confirms the deletion is emailed to the account's address (SEC-37) |
+| `POST /accounts/me/password-deletion` `{password}` | A signed-in caller whose account has a password | `204`; the account is deleted as with the code and the session cookie cleared (SEC-193) |
 | `POST /accounts/me/deletion` `{challengeId, code}` | A signed-in caller holding a deletion code of their own address | `204`; the account is deleted and the session cookie cleared |
 | `GET /admin/admins` | Admins | `200 {admins}`, by address, each with its creation and last sign-in (SEC-75) |
 | `GET /admin/accounts?role=&q=&sort=&page=&size=` | Admins | `200 {items, page, pageSize, total, counts}`: accounts of the role given (every one when none) whose address or name holds `q`, marks ignored; the newest first, or sorted by `name` (the address when there is none), `created` or `signedIn` (`-` descending), those never signed in last either way; `counts` gives each role matching `q`, for the tabs; `size` 1 to 100, 25 by default; a page past the end is empty (SEC-75) |
@@ -21,7 +24,7 @@ Owns accounts and their role, emailed sign-in codes, Google sign-in and sessions
 | `POST /admin/admins` `{email}` | Admins | `200` the account, an admin; created when the address has never signed in; again, the same, recording nothing |
 | `POST /admin/admins/{accountId}/revoke` | Admins, never for themselves | `200` the account, a customer; a customer again, the same; refused for the last admin |
 
-Published to other modules: `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantAdmin`, `RevokeAdmin` and their command-line forms, `AccountDays` (the accounts created per day and those there are, for the admin's report, SEC-192), and the event `AccountDeletedEvent` (`identity.account_deleted`, the account's identifier only), which `seller`, `file` and `order` follow.
+Published to other modules: `Account.Label` (the address, or the username when there is none), `Authenticate` (the middleware that sets the caller), `EnsureAccount` (an account for an address, created if absent), `Accounts` (accounts by identifier), `GrantAdmin`, `RevokeAdmin` and their command-line forms, `AccountDays` (the accounts created per day and those there are, for the admin's report, SEC-192), and the event `AccountDeletedEvent` (`identity.account_deleted`, the account's identifier only), which `seller`, `file` and `order` follow.
 
 Administrative commands: `secondbite admin grant EMAIL` makes an account an admin, creating it if needed; `secondbite admin revoke EMAIL` makes it a customer again, never the last admin.
 
@@ -29,6 +32,10 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 
 ## Rules
 
+- A username and a password (SEC-193): a username is 3 to 30 characters, lower case letters, digits, `.`, `_` and `-`, the first and the last a letter or a digit, lower-cased by the server so that case never tells two apart. A password is 8 to 128 characters, valid UTF-8, not the username; it is kept only as an argon2id PHC string (19 MiB, 2 passes, 1 lane, a random 16-byte salt) that carries its parameters, so a later change still verifies the old hashes. At most four argon2 computations run at once.
+- An account has an address, or a username with its password hash, or both; the database checks it. An account made with a username has no address: nothing is emailed to it (a store's status email is not sent to its owner), it cannot be made an admin or given a seller membership, which are given by address, and the admins' list shows its username and finds it by words.
+- Guessing a password is bounded twice, in this instance's memory like SEC-160's limit: one client address makes at most 30 registrations and password sign-ins in ten minutes; one username gets five tries in fifteen minutes, counted before the password is compared, given back when it was right, and counted for a username that does not exist too. The sixth try is refused with `IDENTITY_SIGN_IN_LIMIT_EXCEEDED` and `Retry-After` without comparing the password, a right one included. A sign-in for a username that does not exist is compared with a hash that matches nothing, so it takes as long and answers as a wrong password does.
+- An account made with a username is deleted with its password instead of an emailed code; a wrong password there counts with the same tries as signing in, and an account without a password, or a deletion code asked for by an account without an address, is refused.
 - An address is one plain address, kept in lower case; every table keys on that form. An account is created at its first sign-in, or when `EnsureAccount` is called for it (a seller adding staff).
 - A code is six random digits, emailed before the request is answered, and lives 15 minutes. Only HMAC-SHA-256 of the challenge and the code under `SECONDBITE_SIGN_IN_CODE_KEY` is stored. A code that could not be sent is deleted, so it neither works nor counts toward the limits.
 - One live code per address and purpose: asking for a new one ends the earlier ones of its purpose (SEC-126).
@@ -48,7 +55,7 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
-| `identity_accounts` | Address (unique, lower case), role (`customer`, `admin`), display name, when and how it last signed in, its words folded for admins' search | Kept until its owner deletes it |
+| `identity_accounts` | Address (unique, lower case, absent for an account made with a username), username (unique, absent for the others), password hash, role (`customer`, `admin`), display name, when and how it last signed in, its words folded for admins' search | Kept until its owner deletes it |
 | `identity_external_logins` | Provider (`google`), subject (unique with the provider), account, the address when linked and whether Google speaks for it, name and picture as last sent, when linked and last used | Deleted with the account, or by a sign-in with the emailed code when Google does not speak for its address |
 | `identity_sign_in_challenges` | Address, code hash, purpose (`sign_in` or `delete_account`), wrong guesses, expiry | Deleted when used, ended by a newer code, a day after it was sent, or with the address's account |
 | `identity_sessions` | Account, token hash, last use, expiry | Deleted on sign-out; expired ones when the account opens a new session, and every account's each day by the schedule `identity.purge_sessions` (SEC-167) |
@@ -63,6 +70,14 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 | `IDENTITY_GOOGLE_TOKEN_INVALID` | 401 | Google's token fails its signature, issuer, audience, expiry or nonce, or Google's keys cannot be fetched |
 | `IDENTITY_EMAIL_NOT_VERIFIED` | 403 | A first Google sign-in whose address Google has not verified |
 | `IDENTITY_GOOGLE_LINK_REQUIRED` | 409 | The address has an account and Google does not speak for it |
+| `IDENTITY_USERNAME_INVALID` | 400 | A username that is not 3 to 30 allowed characters (SEC-193) |
+| `IDENTITY_PASSWORD_INVALID` | 400 | A password shorter than 8 or longer than 128 characters, or the username |
+| `IDENTITY_USERNAME_TAKEN` | 409 | The username is another account's, in any case |
+| `IDENTITY_CREDENTIALS_INCORRECT` | 400 | An unknown username or a wrong password, alike; 400 like a wrong code so that a client does not read it as an ended session |
+| `IDENTITY_SIGN_IN_LIMIT_EXCEEDED` | 429 | The username has used its five tries in the window; `Retry-After` gives the wait |
+| `IDENTITY_PASSWORD_INCORRECT` | 400 | A wrong password confirming a deletion |
+| `IDENTITY_NO_EMAIL` | 409 | A deletion code asked for, or used, by an account that has no address |
+| `IDENTITY_NO_PASSWORD` | 409 | A deletion by password asked for by an account that has none |
 | `IDENTITY_ADDRESS_UNPROVEN` | 409 | A role or a seller membership is given by address while the address's account holds a Google link Google does not speak for; the owner signs in once with the emailed code, then it succeeds (SEC-39) |
 | `IDENTITY_DISPLAY_NAME_INVALID` | 400 | A display name empty once trimmed, longer than 50 characters, or holding a control character |
 | `IDENTITY_ACCOUNT_NOT_FOUND` | 404 | The account does not exist |
@@ -79,3 +94,5 @@ A code that could not be emailed answers `notification`'s 503 ([notification](no
 ## Not yet
 
 - Linking Google from a signed-in session; when someone needs it.
+- Recovering a forgotten password, and adding an address to an account made with a username: both need an address, which the register form does not ask for (SEC-193).
+- The wrong-try counts live in one instance's memory, so several instances each count their own.

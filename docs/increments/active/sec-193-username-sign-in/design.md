@@ -25,7 +25,7 @@ Tracked in Linear as SEC-193. Asked for on 3 November 2026 by the person who run
 
 ## 3. Username and password
 
-- **Username:** 3 to 30 characters, lower case letters `a`–`z`, digits, `.`, `_` and `-`; the first and the last a letter or a digit; unique, kept as typed in lower case (the form lower-cases it, so `Lan` and `lan` are one name). The web lower-cases it before sending, the server refuses the rest.
+- **Username:** 3 to 30 characters, lower case letters `a`–`z`, digits, `.`, `_` and `-`; the first and the last a letter or a digit; unique. The server lower-cases it, so `Lan` and `lan` are one name, and refuses what is left that does not fit.
 - **Password:** 8 to 128 characters, anything, spaces included; not equal to the username. No composition rules and no forced changes, as NIST SP 800-63B advises; length is what protects it. A list of breached passwords is not checked: it needs a call to another service on every registration, and the throttles below bound guessing.
 - **Storage:** argon2id (`golang.org/x/crypto/argon2`, already in the module graph), memory 19 MiB, 2 passes, 1 lane, a 16-byte random salt, a 32-byte hash: OWASP's minimum set. Kept as one PHC string, parameters included, so a later change of parameters verifies old hashes and can rehash on sign-in. The password is never logged, never in an error, and not in the audit trail.
 - **Both answers alike:** an unknown username and a wrong password get the same failure, `IDENTITY_CREDENTIALS_INCORRECT`, and the same time: an unknown username is checked against a fixed hash so that the answer does not come sooner.
