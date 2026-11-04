@@ -67,6 +67,14 @@ func TestRegisterAndSignInWithPassword(t *testing.T) {
 		t.Fatalf("SignInWithPassword: %+v, %v", again, err)
 	}
 
+	checkSignInRefusals(t, s)
+}
+
+// checkSignInRefusals checks that a wrong, an empty, an unknown and a too long try
+// are all the one answer.
+func checkSignInRefusals(t *testing.T, s *Service) {
+	t.Helper()
+
 	for _, c := range []struct{ username, password string }{
 		{lanAnh, lanPassword + "x"},
 		{lanAnh, ""},
@@ -207,7 +215,7 @@ func TestDeleteAccountWithPassword(t *testing.T) {
 
 	// The event goes out at once and again two minutes later, as for any deletion.
 	if accounts != 0 || sessions != 0 || jobs != 2 {
-		t.Errorf("left: %d accounts, %d sessions, %d event jobs; want none, none, 2", accounts, sessions, jobs)
+		t.Errorf("left: %d accounts, %d sessions, %d event jobs; want no account, no session and 2 jobs", accounts, sessions, jobs)
 	}
 
 	// The username is free again.

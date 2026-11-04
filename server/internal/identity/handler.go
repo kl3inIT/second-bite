@@ -181,45 +181,7 @@ func RegisterOperations(api huma.API, s *Service) {
 		return out, nil
 	})
 
-	huma.Register(api, huma.Operation{
-		OperationID:   "registerWithPassword",
-		Method:        http.MethodPost,
-		Path:          "/auth/accounts",
-		Summary:       "Register with a username and a password",
-		Description:   "Makes an account that has no email and signs it in. A username that is taken is refused, whatever its case. The web asks for the session in a cookie.",
-		Tags:          tagSignIn,
-		DefaultStatus: http.StatusCreated,
-	}, func(ctx context.Context, in *registerInput) (*sessionOutput, error) {
-		session, err := s.Register(ctx, in.Body.Username, in.Body.Password)
-		if err != nil {
-			return nil, err
-		}
-
-		out := &sessionOutput{}
-		handOver(out, session, in.Body.Session)
-
-		return out, nil
-	})
-
-	huma.Register(api, huma.Operation{
-		OperationID:   "signInWithPassword",
-		Method:        http.MethodPost,
-		Path:          "/auth/password-sessions",
-		Summary:       "Sign in with a username and a password",
-		Description:   "An unknown username and a wrong password get the same answer. Five wrong tries of a username in fifteen minutes refuse its next ones, a right password included, until the window ends.",
-		Tags:          tagSignIn,
-		DefaultStatus: http.StatusCreated,
-	}, func(ctx context.Context, in *passwordSignInInput) (*sessionOutput, error) {
-		session, err := s.SignInWithPassword(ctx, in.Body.Username, in.Body.Password)
-		if err != nil {
-			return nil, err
-		}
-
-		out := &sessionOutput{}
-		handOver(out, session, in.Body.Session)
-
-		return out, nil
-	})
+	registerPasswordOperations(api, s)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "signInWithGoogle",
@@ -274,30 +236,9 @@ func RegisterOperations(api huma.API, s *Service) {
 	})
 
 	registerAccountOperations(api, s, security)
-
-	huma.Register(api, huma.Operation{
-		OperationID: "getMyAccount",
-		Method:      http.MethodGet,
-		Path:        "/accounts/me",
-		Summary:     "The signed-in account",
-		Tags:        tagAccounts,
-		Security:    security,
-	}, func(ctx context.Context, _ *struct{}) (*accountOutput, error) {
-		caller, err := platform.RequireCaller(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		a, err := s.Account(ctx, caller.AccountID)
-		if err != nil {
-			return nil, err
-		}
-
-		return &accountOutput{Body: toAccountBody(a)}, nil
-	})
 }
 
-// registerAccountOperations adds the operations that name (SEC-61) and delete
+// registerAccountOperations adds the operations that read, name (SEC-61) and delete
 // (SEC-37) the signed-in account.
 func registerAccountOperations(api huma.API, s *Service, security []map[string][]string) {
 	huma.Register(api, huma.Operation{
@@ -376,5 +317,70 @@ func registerAccountOperations(api huma.API, s *Service, security []map[string][
 		}
 
 		return &signOutOutput{SetCookie: []http.Cookie{clearedCookie()}}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "getMyAccount",
+		Method:      http.MethodGet,
+		Path:        "/accounts/me",
+		Summary:     "The signed-in account",
+		Tags:        tagAccounts,
+		Security:    security,
+	}, func(ctx context.Context, _ *struct{}) (*accountOutput, error) {
+		caller, err := platform.RequireCaller(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		a, err := s.Account(ctx, caller.AccountID)
+		if err != nil {
+			return nil, err
+		}
+
+		return &accountOutput{Body: toAccountBody(a)}, nil
+	})
+}
+
+// registerPasswordOperations adds the operations that register with a username and a password and sign in with
+// them (SEC-193).
+func registerPasswordOperations(api huma.API, s *Service) {
+	huma.Register(api, huma.Operation{
+		OperationID:   "registerWithPassword",
+		Method:        http.MethodPost,
+		Path:          "/auth/accounts",
+		Summary:       "Register with a username and a password",
+		Description:   "Makes an account that has no email and signs it in. A username that is taken is refused, whatever its case. The web asks for the session in a cookie.",
+		Tags:          tagSignIn,
+		DefaultStatus: http.StatusCreated,
+	}, func(ctx context.Context, in *registerInput) (*sessionOutput, error) {
+		session, err := s.Register(ctx, in.Body.Username, in.Body.Password)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &sessionOutput{}
+		handOver(out, session, in.Body.Session)
+
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "signInWithPassword",
+		Method:        http.MethodPost,
+		Path:          "/auth/password-sessions",
+		Summary:       "Sign in with a username and a password",
+		Description:   "An unknown username and a wrong password get the same answer. Five wrong tries of a username in fifteen minutes refuse its next ones, a right password included, until the window ends.",
+		Tags:          tagSignIn,
+		DefaultStatus: http.StatusCreated,
+	}, func(ctx context.Context, in *passwordSignInInput) (*sessionOutput, error) {
+		session, err := s.SignInWithPassword(ctx, in.Body.Username, in.Body.Password)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &sessionOutput{}
+		handOver(out, session, in.Body.Session)
+
+		return out, nil
 	})
 }

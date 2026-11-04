@@ -97,6 +97,7 @@ func TestGuessLimitSweepsEndedWindows(t *testing.T) {
 	l.take("b")
 
 	now = now.Add(2 * time.Minute)
+
 	l.take("c")
 
 	if len(l.seen) != 1 {

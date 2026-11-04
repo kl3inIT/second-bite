@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	lanUser = "lan"
+	lanUser  = "lan"
+	lanAnh99 = "lan.anh_99"
 )
 
 func TestNormalizeUsername(t *testing.T) {
@@ -22,7 +23,7 @@ func TestNormalizeUsername(t *testing.T) {
 		ok        bool
 	}{
 		{lanUser, lanUser, true},
-		{"Lan.Anh_99", "lan.anh_99", true},
+		{"Lan.Anh_99", lanAnh99, true},
 		{"a-b", "a-b", true},
 		{"abc", "abc", true},
 		{strings.Repeat("a", 30), strings.Repeat("a", 30), true},
@@ -66,8 +67,8 @@ func TestCheckPassword(t *testing.T) {
 		{strings.Repeat("ă", 129), lanUser, false},
 		{"1234567", lanUser, false},
 		{"", lanUser, false},
-		{"lan.anh_99", "lan.anh_99", false},
-		{"LAN.ANH_99", "lan.anh_99", false},
+		{lanAnh99, lanAnh99, false},
+		{"LAN.ANH_99", lanAnh99, false},
 		{"\xff\xfe\xfd\xfc\xfb\xfa\xf9\xf8", lanUser, false},
 	}
 
