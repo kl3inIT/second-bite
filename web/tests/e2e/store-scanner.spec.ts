@@ -23,7 +23,7 @@ const HAVE_CURRENT_DATA = 2;
 
 /** Signs in with the stub's right code and opens a store of that name. */
 async function openStore(page: Page, who: string, project: string, name: string) {
-  await page.goto(`/vi/sign-in?returnTo=${encodeURIComponent("/open-store")}`);
+  await page.goto(`/vi/sign-in/email?returnTo=${encodeURIComponent("/open-store")}`);
   await (await hydrated(page.getByLabel("Email"))).fill(`${who}.${project}@example.com`);
   await page.getByRole("button", { name: "Gửi mã" }).click();
   await page.getByLabel("Mã đăng nhập 6 số").fill("123456");

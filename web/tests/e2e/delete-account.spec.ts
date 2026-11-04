@@ -176,3 +176,32 @@ test.describe("deleting an account on the web", () => {
     ).toBeVisible();
   });
 });
+
+// SEC-193 › Verification plan › Web: an account made with a username has no address to email a code to, so its
+// password confirms the deletion. The stub backend keeps the passwords of the accounts it makes.
+test.describe("deleting an account made with a username", () => {
+  test("asks for the password, refuses a wrong one, then deletes", async ({ page }) => {
+    const username = `xoa.${Date.now().toString(36)}`;
+    const made = await page.request.post("/api/auth/accounts", {
+      data: { username, password: "a long password", session: "cookie" },
+    });
+    expect(made.status()).toBe(201);
+
+    await page.goto("/vi/delete-account");
+    // Signed in without an address is still signed in: the page asks for the password, not to sign in.
+    await expect(page.getByText("Đăng nhập để xoá tài khoản")).toHaveCount(0);
+    await expect(page.getByText(username)).toBeVisible();
+    await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
+
+    const confirm = page.getByRole("button", { name: "Xoá vĩnh viễn tài khoản" });
+    await (await hydrated(page.getByLabel("Mật khẩu"))).fill("not the password");
+    await confirm.click();
+    await expect(page.getByText("Mật khẩu chưa đúng.")).toBeVisible();
+    await expect(page.getByLabel("Mật khẩu")).toHaveValue("");
+
+    await page.getByLabel("Mật khẩu").fill("a long password");
+    await confirm.click();
+    await expect(page).toHaveURL(/\/vi\/delete-account\?done=1$/);
+    await expect(page.getByRole("heading", { name: "Đã xoá tài khoản" })).toBeVisible();
+  });
+});

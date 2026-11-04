@@ -15,7 +15,7 @@ async function storeNamed(
   testInfo: { project: { name: string } },
   name: string,
 ) {
-  await page.goto(`/vi/sign-in?returnTo=${encodeURIComponent("/open-store")}`);
+  await page.goto(`/vi/sign-in/email?returnTo=${encodeURIComponent("/open-store")}`);
   await (
     await hydrated(page.getByLabel("Email"))
   ).fill(`${who}.${testInfo.project.name}@example.com`);

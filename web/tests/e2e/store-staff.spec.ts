@@ -10,7 +10,7 @@ test.setTimeout(90_000);
 
 /** Signs in with the stub's right code and opens a store of that name; answers its identifier. */
 async function openStore(page: Page, email: string, name: string) {
-  await page.goto(`/vi/sign-in?returnTo=${encodeURIComponent("/open-store")}`);
+  await page.goto(`/vi/sign-in/email?returnTo=${encodeURIComponent("/open-store")}`);
   await (await hydrated(page.getByLabel("Email"))).fill(email);
   await page.getByRole("button", { name: "Gửi mã" }).click();
   await page.getByLabel("Mã đăng nhập 6 số").fill("123456");
@@ -74,7 +74,7 @@ test("staff see who works at the store and leave it", async ({ page, browser }, 
 
   const context = await browser.newContext({ ...testInfo.project.use, locale: "vi-VN" });
   const other = await context.newPage();
-  await other.goto(`/vi/sign-in?returnTo=${encodeURIComponent(`/stores/${storeId}/staff`)}`);
+  await other.goto(`/vi/sign-in/email?returnTo=${encodeURIComponent(`/stores/${storeId}/staff`)}`);
   await (await hydrated(other.getByLabel("Email"))).fill(staff);
   await other.getByRole("button", { name: "Gửi mã" }).click();
   await other.getByLabel("Mã đăng nhập 6 số").fill("123456");
