@@ -11,6 +11,6 @@ Design: [design.md](design.md). Tracked in Linear as SEC-193. The app follows in
 | 5 | `identity`: accounts without an email (the body, deleting with the password, no deletion code, the admins' list); `seller` sends no status email to them | Done, 4 November 2026 |
 | 6 | Contract `api/openapi.yaml` and the web's generated client, the module spec and its test matrix, `ARCHITECTURE.md` | Done, 4 November 2026 |
 | 6b | The app's generated client (swagger_parser, build_runner): no Flutter on this machine, so it comes from the CI's diff | To do |
-| 7 | Web: the clients generated, the sign-in page, the emailed-code page and the register page, the strings in both catalogs | To do |
+| 7 | Web: the client generated, the sign-in page, the emailed-code page and the register page, the strings in both catalogs, the account shown by its username, deleting with the password, and the specs | Done, 4 November 2026 |
 | 8 | Proof against the real service ([verification.md](verification.md)) | To do |
 | 9 | Review, then merge through a pull request and move this increment to `completed/` | To do |
