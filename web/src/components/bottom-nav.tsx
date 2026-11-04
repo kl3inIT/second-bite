@@ -29,7 +29,17 @@ type Tab = {
 // height rather than exactly it (SEC-107).
 // An order's chat takes the whole screen (Figma K7), its back arrow leading to the order.
 const ORDER_CHAT = /^\/orders\/[^/]+\/chat$/;
-const screensOfTheirOwn = ["/search", "/offers", "/sellers", "/cart", "/stores", "/open-store"];
+const screensOfTheirOwn = [
+  "/search",
+  "/offers",
+  "/sellers",
+  "/cart",
+  "/stores",
+  "/open-store",
+  // Signing in and registering fill the screen under their own top bar (Figma L6, L10, L11, L12).
+  "/sign-in",
+  "/register",
+];
 
 const tabs: Tab[] = [
   { key: "home", icon: HouseIcon, href: "/", within: ["/search"] },
