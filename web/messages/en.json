@@ -338,15 +338,26 @@
   },
   "SignIn": {
     "title": "Sign in",
+    "emailTitle": "Sign in with email",
     "heading": "Sign in",
+    "emailHeading": "Sign in with email",
     "heroLine1": "LOG IN",
     "heroLine2": "TO SECOND BITE",
-    "or": "or use your email",
+    "or": "or",
     "google": "Continue with Google",
     "emailLabel": "Email",
     "emailPlaceholder": "name@gmail.com",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "emailSignIn": "Sign in with email",
+    "noAccount": "No account yet?",
+    "register": "Register",
+    "usePassword": "Sign in with a username",
     "sendCode": "Send code",
-    "sendCodeHere": "Send a code to this address",
     "sending": "Sending the code…",
     "legal": "By continuing, you agree to the <terms>Terms of use</terms><br></br>and the <privacy>Privacy policy</privacy>.",
     "codeHeading": "Enter the code",
@@ -364,7 +375,31 @@
     "notArrived": "No email yet? Check your spam folder.",
     "errors": {
       "email": "Enter one email address, such as name@example.com.",
-      "code": "Enter the 6 digits of the code in the email."
+      "code": "Enter the 6 digits of the code in the email.",
+      "username": "Enter your username.",
+      "password": "Enter your password."
+    }
+  },
+  "Register": {
+    "title": "Create an account",
+    "heading": "Create an account",
+    "heroLine1": "SIGN UP",
+    "heroLine2": "TO SECOND BITE",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Enter a username",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter a password",
+    "confirmLabel": "Confirm the password",
+    "confirmPlaceholder": "Enter the password again",
+    "submit": "Create account",
+    "submitting": "Creating the account…",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "failed": "Your account could not be created. Please try again.",
+    "errors": {
+      "username": "A username has 3 to 30 characters: letters without marks, digits, dots, underscores or hyphens.",
+      "password": "A password has 8 to 128 characters.",
+      "mismatch": "The two passwords do not match."
     }
   },
   "Account": {
@@ -693,7 +728,8 @@
     "saving": "Saving…",
     "cancel": "Cancel",
     "nameFailed": "The name was not saved. Try again in a few minutes.",
-    "nameInvalid": "Enter a display name of 1 to 50 characters."
+    "nameInvalid": "Enter a display name of 1 to 50 characters.",
+    "username": "Username"
   },
   "DeleteAccount": {
     "title": "Delete your account",
@@ -735,8 +771,12 @@
     "doneBody": "Your account and your personal data are deleted. You can still sign in with this address at any time, as a new account.",
     "home": "Back to home",
     "errors": {
-      "code": "Enter the 6 digits of the code in the email."
-    }
+      "code": "Enter the 6 digits of the code in the email.",
+      "password": "Enter your password."
+    },
+    "passwordBody": "Enter the password of <strong>{username}</strong> to confirm that you want to delete your account.",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password"
   },
   "OpenStore": {
     "title": "Open a store",
@@ -1441,7 +1481,8 @@
       },
       "method": {
         "code": "Email code",
-        "google": "Google"
+        "google": "Google",
+        "password": "Password"
       },
       "sellerRole": "{seller} · {role, select, owner {Owner} other {Staff}}",
       "neverSignedIn": "Never signed in",
@@ -1514,7 +1555,8 @@
         "failed": "Could not revoke {name}",
         "unreachable": "The server could not be reached. Try again shortly.",
         "self": "You cannot revoke yourself",
-        "last": "The last admin"
+        "last": "The last admin",
+        "noEmail": "This account signs in with a username and has no email, so it cannot be made an admin."
       },
       "promote": {
         "open": "Make admin",
