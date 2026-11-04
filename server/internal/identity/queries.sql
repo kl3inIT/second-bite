@@ -49,14 +49,14 @@ SELECT EXISTS (
 );
 
 -- name: UpsertAccount :one
-INSERT INTO identity_accounts (email) VALUES (@email)
+INSERT INTO identity_accounts (email) VALUES (@email::text)
 ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
-RETURNING id, email, role, display_name;
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name;
 
 -- name: GrantRole :one
-INSERT INTO identity_accounts (email, role) VALUES (@email, @role)
+INSERT INTO identity_accounts (email, role) VALUES (@email::text, @role)
 ON CONFLICT (email) DO UPDATE SET role = EXCLUDED.role
-RETURNING id, email, role, display_name;
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name;
 
 -- name: LockAdmins :exec
 -- Serializes the changes of who is an admin until the transaction ends, so
@@ -67,8 +67,8 @@ SELECT pg_advisory_xact_lock(hashtextextended('identity:admins', 0));
 SELECT count(*) FROM identity_accounts WHERE role = 'admin';
 
 -- name: ListAdmins :many
-SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method
-FROM identity_accounts WHERE role = 'admin' ORDER BY email;
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name, created_at, last_signed_in_at, last_sign_in_method
+FROM identity_accounts WHERE role = 'admin' ORDER BY coalesce(email, username);
 
 -- name: RecordSignIn :exec
 UPDATE identity_accounts SET last_signed_in_at = now(), last_sign_in_method = @method::text WHERE id = @id;
@@ -80,13 +80,13 @@ UPDATE identity_accounts SET last_signed_in_at = now(), last_sign_in_method = @m
 -- there is none), creation or last sign-in, '-' first for descending, those
 -- never signed in last. total counts them all; it is absent when the page is
 -- past the end.
-SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method,
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name, created_at, last_signed_in_at, last_sign_in_method,
        count(*) OVER () AS total
 FROM identity_accounts
 WHERE (@role::text = '' OR role = @role)
   AND (@query::text = '' OR search_text LIKE '%' || identity_fold(@query::text) || '%' ESCAPE '\')
-ORDER BY CASE WHEN @sort::text = 'name' THEN identity_fold(coalesce(nullif(display_name, ''), email)) END,
-         CASE WHEN @sort::text = '-name' THEN identity_fold(coalesce(nullif(display_name, ''), email)) END DESC,
+ORDER BY CASE WHEN @sort::text = 'name' THEN identity_fold(coalesce(nullif(display_name, ''), email, username)) END,
+         CASE WHEN @sort::text = '-name' THEN identity_fold(coalesce(nullif(display_name, ''), email, username)) END DESC,
          CASE WHEN @sort::text = 'signedIn' THEN last_signed_in_at END NULLS LAST,
          CASE WHEN @sort::text = '-signedIn' THEN last_signed_in_at END DESC NULLS LAST,
          CASE WHEN @sort::text = 'created' THEN created_at END,
@@ -107,18 +107,18 @@ WHERE (@query::text = '' OR search_text LIKE '%' || identity_fold(@query::text) 
 GROUP BY role;
 
 -- name: GetAccountForAdmins :one
-SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name, created_at, last_signed_in_at, last_sign_in_method
 FROM identity_accounts WHERE id = @id;
 
 -- name: SetRole :one
 UPDATE identity_accounts SET role = @role WHERE id = @id
-RETURNING id, email, role, display_name;
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name;
 
 -- name: GetAccounts :many
-SELECT id, email, role, display_name FROM identity_accounts WHERE id = ANY(@ids::uuid[]);
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name FROM identity_accounts WHERE id = ANY(@ids::uuid[]);
 
 -- name: GetAccount :one
-SELECT id, email, role, display_name FROM identity_accounts WHERE id = @id;
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name FROM identity_accounts WHERE id = @id;
 
 -- name: InsertSession :one
 INSERT INTO identity_sessions (account_id, token_hash, expires_at)
@@ -126,7 +126,7 @@ VALUES (@account_id, @token_hash, now() + make_interval(secs => @lifetime_second
 RETURNING id, expires_at;
 
 -- name: FindSession :one
-SELECT s.id, s.account_id, s.last_seen_at, a.role, a.email
+SELECT s.id, s.account_id, s.last_seen_at, a.role, coalesce(a.email, a.username, '')::text AS email
 FROM identity_sessions s JOIN identity_accounts a ON a.id = s.account_id
 WHERE s.token_hash = @token_hash AND s.expires_at > now();
 
@@ -171,30 +171,30 @@ DELETE FROM identity_external_logins WHERE account_id = @account_id AND NOT emai
 SELECT EXISTS (
     SELECT 1 FROM identity_external_logins l
     JOIN identity_accounts a ON a.id = l.account_id
-    WHERE a.email = @email AND NOT l.email_trusted
+    WHERE a.email = @email::text AND NOT l.email_trusted
 );
 
 -- name: DeleteAccountSessions :exec
 DELETE FROM identity_sessions WHERE account_id = @account_id;
 
 -- name: FindAccountByEmail :one
-SELECT id, email, role, display_name FROM identity_accounts WHERE email = @email;
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name FROM identity_accounts WHERE email = @email::text;
 
 -- name: InsertAccount :one
-INSERT INTO identity_accounts (email) VALUES (@email)
-RETURNING id, email, role, display_name;
+INSERT INTO identity_accounts (email) VALUES (@email::text)
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name;
 
 -- name: FillDisplayName :one
 -- Gives the account a name when it has none; one the person chose is kept.
 UPDATE identity_accounts
 SET display_name = CASE WHEN display_name = '' THEN @display_name ELSE display_name END
 WHERE id = @id
-RETURNING id, email, role, display_name;
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name;
 
 -- name: SetDisplayName :one
 -- The name the person chose (SEC-61).
 UPDATE identity_accounts SET display_name = @display_name WHERE id = @id
-RETURNING id, email, role, display_name;
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name;
 
 -- name: DeleteChallengesOf :exec
 -- Every code sent to the address, once its account is deleted.
@@ -219,3 +219,19 @@ ORDER BY 1;
 -- name: CountAccountsBefore :one
 -- The accounts that exist and were created before the instant, for the report's total.
 SELECT count(*) FROM identity_accounts WHERE created_at < @until;
+
+-- name: InsertPasswordAccount :one
+-- A person registers with a username and no email (SEC-193). A name already
+-- taken gives no row; names are kept in lower case, so case does not tell two apart.
+INSERT INTO identity_accounts (username, password_hash) VALUES (@username, @password_hash)
+ON CONFLICT (username) DO NOTHING
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name;
+
+-- name: FindAccountForPassword :one
+-- The account of a username and the hash its password is checked against.
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name, coalesce(password_hash, '')::text AS password_hash
+FROM identity_accounts WHERE username = @username;
+
+-- name: GetPasswordHash :one
+-- The hash a signed-in account confirms its deletion against; empty when it has no password.
+SELECT coalesce(password_hash, '')::text AS password_hash FROM identity_accounts WHERE id = @id;

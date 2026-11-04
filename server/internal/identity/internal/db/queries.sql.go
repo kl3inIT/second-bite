@@ -53,13 +53,13 @@ func (q *Queries) AccountDays(ctx context.Context, arg AccountDaysParams) ([]Acc
 }
 
 const accountsForAdmins = `-- name: AccountsForAdmins :many
-SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method,
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name, created_at, last_signed_in_at, last_sign_in_method,
        count(*) OVER () AS total
 FROM identity_accounts
 WHERE ($1::text = '' OR role = $1)
   AND ($2::text = '' OR search_text LIKE '%' || identity_fold($2::text) || '%' ESCAPE '\')
-ORDER BY CASE WHEN $3::text = 'name' THEN identity_fold(coalesce(nullif(display_name, ''), email)) END,
-         CASE WHEN $3::text = '-name' THEN identity_fold(coalesce(nullif(display_name, ''), email)) END DESC,
+ORDER BY CASE WHEN $3::text = 'name' THEN identity_fold(coalesce(nullif(display_name, ''), email, username)) END,
+         CASE WHEN $3::text = '-name' THEN identity_fold(coalesce(nullif(display_name, ''), email, username)) END DESC,
          CASE WHEN $3::text = 'signedIn' THEN last_signed_in_at END NULLS LAST,
          CASE WHEN $3::text = '-signedIn' THEN last_signed_in_at END DESC NULLS LAST,
          CASE WHEN $3::text = 'created' THEN created_at END,
@@ -79,6 +79,7 @@ type AccountsForAdminsParams struct {
 type AccountsForAdminsRow struct {
 	ID               uuid.UUID
 	Email            string
+	Username         string
 	Role             string
 	DisplayName      string
 	CreatedAt        time.Time
@@ -111,6 +112,7 @@ func (q *Queries) AccountsForAdmins(ctx context.Context, arg AccountsForAdminsPa
 		if err := rows.Scan(
 			&i.ID,
 			&i.Email,
+			&i.Username,
 			&i.Role,
 			&i.DisplayName,
 			&i.CreatedAt,
@@ -377,7 +379,7 @@ const fillDisplayName = `-- name: FillDisplayName :one
 UPDATE identity_accounts
 SET display_name = CASE WHEN display_name = '' THEN $1 ELSE display_name END
 WHERE id = $2
-RETURNING id, email, role, display_name
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name
 `
 
 type FillDisplayNameParams struct {
@@ -388,6 +390,7 @@ type FillDisplayNameParams struct {
 type FillDisplayNameRow struct {
 	ID          uuid.UUID
 	Email       string
+	Username    string
 	Role        string
 	DisplayName string
 }
@@ -399,6 +402,7 @@ func (q *Queries) FillDisplayName(ctx context.Context, arg FillDisplayNameParams
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Username,
 		&i.Role,
 		&i.DisplayName,
 	)
@@ -406,12 +410,13 @@ func (q *Queries) FillDisplayName(ctx context.Context, arg FillDisplayNameParams
 }
 
 const findAccountByEmail = `-- name: FindAccountByEmail :one
-SELECT id, email, role, display_name FROM identity_accounts WHERE email = $1
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name FROM identity_accounts WHERE email = $1::text
 `
 
 type FindAccountByEmailRow struct {
 	ID          uuid.UUID
 	Email       string
+	Username    string
 	Role        string
 	DisplayName string
 }
@@ -422,8 +427,38 @@ func (q *Queries) FindAccountByEmail(ctx context.Context, email string) (FindAcc
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Username,
 		&i.Role,
 		&i.DisplayName,
+	)
+	return i, err
+}
+
+const findAccountForPassword = `-- name: FindAccountForPassword :one
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name, coalesce(password_hash, '')::text AS password_hash
+FROM identity_accounts WHERE username = $1
+`
+
+type FindAccountForPasswordRow struct {
+	ID           uuid.UUID
+	Email        string
+	Username     string
+	Role         string
+	DisplayName  string
+	PasswordHash string
+}
+
+// The account of a username and the hash its password is checked against.
+func (q *Queries) FindAccountForPassword(ctx context.Context, username pgtype.Text) (FindAccountForPasswordRow, error) {
+	row := q.db.QueryRow(ctx, findAccountForPassword, username)
+	var i FindAccountForPasswordRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Username,
+		&i.Role,
+		&i.DisplayName,
+		&i.PasswordHash,
 	)
 	return i, err
 }
@@ -445,7 +480,7 @@ func (q *Queries) FindExternalLogin(ctx context.Context, arg FindExternalLoginPa
 }
 
 const findSession = `-- name: FindSession :one
-SELECT s.id, s.account_id, s.last_seen_at, a.role, a.email
+SELECT s.id, s.account_id, s.last_seen_at, a.role, coalesce(a.email, a.username, '')::text AS email
 FROM identity_sessions s JOIN identity_accounts a ON a.id = s.account_id
 WHERE s.token_hash = $1 AND s.expires_at > now()
 `
@@ -472,12 +507,13 @@ func (q *Queries) FindSession(ctx context.Context, tokenHash []byte) (FindSessio
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, email, role, display_name FROM identity_accounts WHERE id = $1
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name FROM identity_accounts WHERE id = $1
 `
 
 type GetAccountRow struct {
 	ID          uuid.UUID
 	Email       string
+	Username    string
 	Role        string
 	DisplayName string
 }
@@ -488,6 +524,7 @@ func (q *Queries) GetAccount(ctx context.Context, id uuid.UUID) (GetAccountRow, 
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Username,
 		&i.Role,
 		&i.DisplayName,
 	)
@@ -495,13 +532,14 @@ func (q *Queries) GetAccount(ctx context.Context, id uuid.UUID) (GetAccountRow, 
 }
 
 const getAccountForAdmins = `-- name: GetAccountForAdmins :one
-SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name, created_at, last_signed_in_at, last_sign_in_method
 FROM identity_accounts WHERE id = $1
 `
 
 type GetAccountForAdminsRow struct {
 	ID               uuid.UUID
 	Email            string
+	Username         string
 	Role             string
 	DisplayName      string
 	CreatedAt        time.Time
@@ -515,6 +553,7 @@ func (q *Queries) GetAccountForAdmins(ctx context.Context, id uuid.UUID) (GetAcc
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Username,
 		&i.Role,
 		&i.DisplayName,
 		&i.CreatedAt,
@@ -525,12 +564,13 @@ func (q *Queries) GetAccountForAdmins(ctx context.Context, id uuid.UUID) (GetAcc
 }
 
 const getAccounts = `-- name: GetAccounts :many
-SELECT id, email, role, display_name FROM identity_accounts WHERE id = ANY($1::uuid[])
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name FROM identity_accounts WHERE id = ANY($1::uuid[])
 `
 
 type GetAccountsRow struct {
 	ID          uuid.UUID
 	Email       string
+	Username    string
 	Role        string
 	DisplayName string
 }
@@ -547,6 +587,7 @@ func (q *Queries) GetAccounts(ctx context.Context, ids []uuid.UUID) ([]GetAccoun
 		if err := rows.Scan(
 			&i.ID,
 			&i.Email,
+			&i.Username,
 			&i.Role,
 			&i.DisplayName,
 		); err != nil {
@@ -560,10 +601,22 @@ func (q *Queries) GetAccounts(ctx context.Context, ids []uuid.UUID) ([]GetAccoun
 	return items, nil
 }
 
+const getPasswordHash = `-- name: GetPasswordHash :one
+SELECT coalesce(password_hash, '')::text AS password_hash FROM identity_accounts WHERE id = $1
+`
+
+// The hash a signed-in account confirms its deletion against; empty when it has no password.
+func (q *Queries) GetPasswordHash(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, getPasswordHash, id)
+	var password_hash string
+	err := row.Scan(&password_hash)
+	return password_hash, err
+}
+
 const grantRole = `-- name: GrantRole :one
-INSERT INTO identity_accounts (email, role) VALUES ($1, $2)
+INSERT INTO identity_accounts (email, role) VALUES ($1::text, $2)
 ON CONFLICT (email) DO UPDATE SET role = EXCLUDED.role
-RETURNING id, email, role, display_name
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name
 `
 
 type GrantRoleParams struct {
@@ -574,6 +627,7 @@ type GrantRoleParams struct {
 type GrantRoleRow struct {
 	ID          uuid.UUID
 	Email       string
+	Username    string
 	Role        string
 	DisplayName string
 }
@@ -584,6 +638,7 @@ func (q *Queries) GrantRole(ctx context.Context, arg GrantRoleParams) (GrantRole
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Username,
 		&i.Role,
 		&i.DisplayName,
 	)
@@ -594,7 +649,7 @@ const hasUntrustedLogin = `-- name: HasUntrustedLogin :one
 SELECT EXISTS (
     SELECT 1 FROM identity_external_logins l
     JOIN identity_accounts a ON a.id = l.account_id
-    WHERE a.email = $1 AND NOT l.email_trusted
+    WHERE a.email = $1::text AND NOT l.email_trusted
 )
 `
 
@@ -609,13 +664,14 @@ func (q *Queries) HasUntrustedLogin(ctx context.Context, email string) (bool, er
 }
 
 const insertAccount = `-- name: InsertAccount :one
-INSERT INTO identity_accounts (email) VALUES ($1)
-RETURNING id, email, role, display_name
+INSERT INTO identity_accounts (email) VALUES ($1::text)
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name
 `
 
 type InsertAccountRow struct {
 	ID          uuid.UUID
 	Email       string
+	Username    string
 	Role        string
 	DisplayName string
 }
@@ -626,6 +682,7 @@ func (q *Queries) InsertAccount(ctx context.Context, email string) (InsertAccoun
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Username,
 		&i.Role,
 		&i.DisplayName,
 	)
@@ -687,6 +744,40 @@ func (q *Queries) InsertExternalLogin(ctx context.Context, arg InsertExternalLog
 	return err
 }
 
+const insertPasswordAccount = `-- name: InsertPasswordAccount :one
+INSERT INTO identity_accounts (username, password_hash) VALUES ($1, $2)
+ON CONFLICT (username) DO NOTHING
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name
+`
+
+type InsertPasswordAccountParams struct {
+	Username     pgtype.Text
+	PasswordHash pgtype.Text
+}
+
+type InsertPasswordAccountRow struct {
+	ID          uuid.UUID
+	Email       string
+	Username    string
+	Role        string
+	DisplayName string
+}
+
+// A person registers with a username and no email (SEC-193). A name already
+// taken gives no row; names are kept in lower case, so case does not tell two apart.
+func (q *Queries) InsertPasswordAccount(ctx context.Context, arg InsertPasswordAccountParams) (InsertPasswordAccountRow, error) {
+	row := q.db.QueryRow(ctx, insertPasswordAccount, arg.Username, arg.PasswordHash)
+	var i InsertPasswordAccountRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Username,
+		&i.Role,
+		&i.DisplayName,
+	)
+	return i, err
+}
+
 const insertSession = `-- name: InsertSession :one
 INSERT INTO identity_sessions (account_id, token_hash, expires_at)
 VALUES ($1, $2, now() + make_interval(secs => $3::integer))
@@ -712,13 +803,14 @@ func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) (I
 }
 
 const listAdmins = `-- name: ListAdmins :many
-SELECT id, email, role, display_name, created_at, last_signed_in_at, last_sign_in_method
-FROM identity_accounts WHERE role = 'admin' ORDER BY email
+SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name, created_at, last_signed_in_at, last_sign_in_method
+FROM identity_accounts WHERE role = 'admin' ORDER BY coalesce(email, username)
 `
 
 type ListAdminsRow struct {
 	ID               uuid.UUID
 	Email            string
+	Username         string
 	Role             string
 	DisplayName      string
 	CreatedAt        time.Time
@@ -738,6 +830,7 @@ func (q *Queries) ListAdmins(ctx context.Context) ([]ListAdminsRow, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Email,
+			&i.Username,
 			&i.Role,
 			&i.DisplayName,
 			&i.CreatedAt,
@@ -846,7 +939,7 @@ func (q *Queries) RefreshExternalLogin(ctx context.Context, arg RefreshExternalL
 
 const setDisplayName = `-- name: SetDisplayName :one
 UPDATE identity_accounts SET display_name = $1 WHERE id = $2
-RETURNING id, email, role, display_name
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name
 `
 
 type SetDisplayNameParams struct {
@@ -857,6 +950,7 @@ type SetDisplayNameParams struct {
 type SetDisplayNameRow struct {
 	ID          uuid.UUID
 	Email       string
+	Username    string
 	Role        string
 	DisplayName string
 }
@@ -868,6 +962,7 @@ func (q *Queries) SetDisplayName(ctx context.Context, arg SetDisplayNameParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Username,
 		&i.Role,
 		&i.DisplayName,
 	)
@@ -876,7 +971,7 @@ func (q *Queries) SetDisplayName(ctx context.Context, arg SetDisplayNameParams) 
 
 const setRole = `-- name: SetRole :one
 UPDATE identity_accounts SET role = $1 WHERE id = $2
-RETURNING id, email, role, display_name
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name
 `
 
 type SetRoleParams struct {
@@ -887,6 +982,7 @@ type SetRoleParams struct {
 type SetRoleRow struct {
 	ID          uuid.UUID
 	Email       string
+	Username    string
 	Role        string
 	DisplayName string
 }
@@ -897,6 +993,7 @@ func (q *Queries) SetRole(ctx context.Context, arg SetRoleParams) (SetRoleRow, e
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Username,
 		&i.Role,
 		&i.DisplayName,
 	)
@@ -947,14 +1044,15 @@ func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) erro
 }
 
 const upsertAccount = `-- name: UpsertAccount :one
-INSERT INTO identity_accounts (email) VALUES ($1)
+INSERT INTO identity_accounts (email) VALUES ($1::text)
 ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
-RETURNING id, email, role, display_name
+RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name
 `
 
 type UpsertAccountRow struct {
 	ID          uuid.UUID
 	Email       string
+	Username    string
 	Role        string
 	DisplayName string
 }
@@ -965,6 +1063,7 @@ func (q *Queries) UpsertAccount(ctx context.Context, email string) (UpsertAccoun
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Username,
 		&i.Role,
 		&i.DisplayName,
 	)
