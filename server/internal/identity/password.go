@@ -32,20 +32,19 @@ const (
 	argonKeyBytes  = 32
 )
 
-// usernamePattern is the form of a username: 3 to 30 characters, lower case
-// letters, digits, '.', '_' and '-', the first and the last a letter or a digit.
+// usernamePattern is the form of a username: 3 to 30 characters, letters without
+// marks, digits, '.', '_' and '-', the first and the last a letter or a digit.
 // It matches the check of identity_accounts.
-var usernamePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{1,28}[a-z0-9]$`)
+var usernamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{1,28}[A-Za-z0-9]$`)
 
-// normalizeUsername lower-cases raw, so that two names differing in case are
-// one, and checks its form.
-func normalizeUsername(raw string) (string, error) {
-	name := strings.ToLower(raw)
+// checkUsername reports whether name is one a person may choose. A username is
+// kept as it was typed and matched exactly: Lan and lan are two names.
+func checkUsername(name string) error {
 	if !usernamePattern.MatchString(name) {
-		return "", ErrUsernameInvalid
+		return ErrUsernameInvalid
 	}
 
-	return name, nil
+	return nil
 }
 
 // checkPassword reports whether password is one a person may choose for

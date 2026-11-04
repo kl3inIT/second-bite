@@ -156,9 +156,11 @@ test.describe("signing in with a username and a password on the web", () => {
     );
     // Google is not configured in the stub, so its button is not shown.
     await expect(page.getByText("Tiếp tục với Google")).toHaveCount(0);
+    // The screen fills the phone under its own top bar: the bottom bar of the shop is not there.
+    await expect(page.getByRole("link", { name: "Đơn của tôi" })).toHaveCount(0);
     await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
 
-    await (await hydrated(page.getByLabel("Tên đăng nhập"))).fill("Lan.Anh");
+    await (await hydrated(page.getByLabel("Tên đăng nhập"))).fill("lan.anh");
     await page.getByLabel("Mật khẩu").fill("correct horse");
     await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
 
@@ -185,6 +187,15 @@ test.describe("signing in with a username and a password on the web", () => {
     // A name nobody has gets the same sentence, so it does not say which was wrong.
     await page.getByLabel("Tên đăng nhập").fill("nobody.here");
     await page.getByLabel("Mật khẩu").fill("wrong password");
+    await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+    await expect(page.getByText("Tên đăng nhập hoặc mật khẩu chưa đúng.")).toBeVisible();
+  });
+
+  // A username is matched exactly: the account is lan.anh, not Lan.Anh.
+  test("does not take a name in other capitals for the account", async ({ page }) => {
+    await page.goto("/vi/sign-in");
+    await (await hydrated(page.getByLabel("Tên đăng nhập"))).fill("Lan.Anh");
+    await page.getByLabel("Mật khẩu").fill("correct horse");
     await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
     await expect(page.getByText("Tên đăng nhập hoặc mật khẩu chưa đúng.")).toBeVisible();
   });
@@ -232,7 +243,8 @@ test.describe("making an account on the web", () => {
   test("a username and a password twice, signed in at once and back to the page that asked", async ({
     page,
   }) => {
-    const username = newUsername("moi");
+    // Capitals are kept as typed: the account is named by them.
+    const username = newUsername("Moi");
     await page.goto("/vi/register?returnTo=%2F%3Fkind%3Dbakery");
 
     await expect(page.getByRole("heading", { level: 1, name: "Tạo tài khoản" })).toBeVisible();
@@ -280,7 +292,7 @@ test.describe("making an account on the web", () => {
   test("says a username is taken, under the username, in the server's words", async ({ page }) => {
     await page.goto("/vi/register");
     const username = await hydrated(page.getByLabel("Tên đăng nhập"));
-    await username.fill("Lan.Anh");
+    await username.fill("lan.anh");
     await page.getByLabel("Mật khẩu", { exact: true }).fill("a long password");
     await page.getByLabel("Nhập lại mật khẩu").fill("a long password");
     await page.getByRole("button", { name: "Tạo tài khoản" }).click();

@@ -630,7 +630,7 @@ export const restoreSeller = <ThrowOnError extends boolean = true>(options: Opti
 /**
  * Register with a username and a password
  *
- * Makes an account that has no email and signs it in. A username that is taken is refused, whatever its case. The web asks for the session in a cookie.
+ * Makes an account that has no email and signs it in. A username that is taken is refused; capitals count, so Lan and lan are two names. The web asks for the session in a cookie.
  */
 export const registerWithPassword = <ThrowOnError extends boolean = true>(options: Options<RegisterWithPasswordData, ThrowOnError>): RequestResult<RegisterWithPasswordResponses, RegisterWithPasswordErrors, ThrowOnError> => (options.client ?? client).post<RegisterWithPasswordResponses, RegisterWithPasswordErrors, ThrowOnError>({
     url: '/auth/accounts',

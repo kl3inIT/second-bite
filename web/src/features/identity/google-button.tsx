@@ -122,7 +122,7 @@ export function GoogleButton({
       <Script src="https://accounts.google.com/gsi/client" onReady={() => setLoaded(true)} />
       <div
         data-ready={stretch !== undefined || undefined}
-        className="group relative h-13 w-full overflow-hidden rounded-full border border-border bg-card focus-within:ring-3 focus-within:ring-ring data-ready:cursor-pointer"
+        className="group relative h-13 w-full overflow-hidden rounded-full border border-input bg-card focus-within:ring-3 focus-within:ring-ring data-ready:cursor-pointer"
       >
         <div
           ref={slot}

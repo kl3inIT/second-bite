@@ -32,7 +32,7 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 
 ## Rules
 
-- A username and a password (SEC-193): a username is 3 to 30 characters, lower case letters, digits, `.`, `_` and `-`, the first and the last a letter or a digit, lower-cased by the server so that case never tells two apart. A password is 8 to 128 characters, valid UTF-8, not the username; it is kept only as an argon2id PHC string (19 MiB, 2 passes, 1 lane, a random 16-byte salt) that carries its parameters, so a later change still verifies the old hashes. At most four argon2 computations run at once.
+- A username and a password (SEC-193): a username is 3 to 30 characters, letters without marks (capitals count), digits, `.`, `_` and `-`, the first and the last a letter or a digit, kept as it was typed and matched exactly, so `Lan` and `lan` are two accounts and a sign-in must give the name as it was made (migration 0046). A password is 8 to 128 characters, valid UTF-8, not the username; it is kept only as an argon2id PHC string (19 MiB, 2 passes, 1 lane, a random 16-byte salt) that carries its parameters, so a later change still verifies the old hashes. At most four argon2 computations run at once.
 - An account has an address, or a username with its password hash, or both; the database checks it. An account made with a username has no address: nothing is emailed to it (a store's status email is not sent to its owner), it cannot be made an admin or given a seller membership, which are given by address, and the admins' list shows its username and finds it by words.
 - Guessing a password is bounded twice, in this instance's memory like SEC-160's limit: one client address makes at most 30 registrations and password sign-ins in ten minutes; one username gets five tries in fifteen minutes, counted before the password is compared, given back when it was right, and counted for a username that does not exist too. The sixth try is refused with `IDENTITY_SIGN_IN_LIMIT_EXCEEDED` and `Retry-After` without comparing the password, a right one included. A sign-in for a username that does not exist is compared with a hash that matches nothing, so it takes as long and answers as a wrong password does.
 - An account made with a username is deleted with its password instead of an emailed code; a wrong password there counts with the same tries as signing in, and an account without a password, or a deletion code asked for by an account without an address, is refused.
@@ -72,7 +72,7 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 | `IDENTITY_GOOGLE_LINK_REQUIRED` | 409 | The address has an account and Google does not speak for it |
 | `IDENTITY_USERNAME_INVALID` | 400 | A username that is not 3 to 30 allowed characters (SEC-193) |
 | `IDENTITY_PASSWORD_INVALID` | 400 | A password shorter than 8 or longer than 128 characters, or the username |
-| `IDENTITY_USERNAME_TAKEN` | 409 | The username is another account's, in any case |
+| `IDENTITY_USERNAME_TAKEN` | 409 | The username is another account's, exactly as typed |
 | `IDENTITY_CREDENTIALS_INCORRECT` | 400 | An unknown username or a wrong password, alike; 400 like a wrong code so that a client does not read it as an ended session |
 | `IDENTITY_SIGN_IN_LIMIT_EXCEEDED` | 429 | The username has used its five tries in the window; `Retry-After` gives the wait |
 | `IDENTITY_PASSWORD_INCORRECT` | 400 | A wrong password confirming a deletion |

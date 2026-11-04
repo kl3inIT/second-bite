@@ -17,7 +17,7 @@ T _$identity<T>(T value) => value;
 mixin _$RegisterInputBody {
 
 /// 8 to 128 characters, not the username
- String get password;/// 3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; kept in lower case
+ String get password;/// 3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; capitals count, so Lan and lan are two names
  String get username;/// token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
  RegisterInputBodySession get session;
 /// Create a copy of RegisterInputBody
@@ -225,7 +225,7 @@ class _RegisterInputBody implements RegisterInputBody {
 
 /// 8 to 128 characters, not the username
 @override final  String password;
-/// 3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; kept in lower case
+/// 3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; capitals count, so Lan and lan are two names
 @override final  String username;
 /// token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
 @override@JsonKey() final  RegisterInputBodySession session;

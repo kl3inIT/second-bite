@@ -25,7 +25,7 @@ Tracked in Linear as SEC-193. Asked for on 3 November 2026 by the person who run
 
 ## 3. Username and password
 
-- **Username:** 3 to 30 characters, lower case letters `a`–`z`, digits, `.`, `_` and `-`; the first and the last a letter or a digit; unique. The server lower-cases it, so `Lan` and `lan` are one name, and refuses what is left that does not fit.
+- **Username:** 3 to 30 characters, lower case letters `a`–`z`, digits, `.`, `_` and `-`; the first and the last a letter or a digit; unique and matched exactly: `Lan` and `lan` are two names, and the server keeps what was typed (first built the other way, lower-cased, and turned round on 4 November when the person who runs the web saw `Nhatnhu` and `nhatnhu` both sign in with one password; migration 0046). Two names that differ only in case look alike, which is the cost.
 - **Password:** 8 to 128 characters, anything, spaces included; not equal to the username. No composition rules and no forced changes, as NIST SP 800-63B advises; length is what protects it. A list of breached passwords is not checked: it needs a call to another service on every registration, and the throttles below bound guessing.
 - **Storage:** argon2id (`golang.org/x/crypto/argon2`, already in the module graph), memory 19 MiB, 2 passes, 1 lane, a 16-byte random salt, a 32-byte hash: OWASP's minimum set. Kept as one PHC string, parameters included, so a later change of parameters verifies old hashes and can rehash on sign-in. The password is never logged, never in an error, and not in the audit trail.
 - **Both answers alike:** an unknown username and a wrong password get the same failure, `IDENTITY_CREDENTIALS_INCORRECT`, and the same time: an unknown username is checked against a fixed hash so that the answer does not come sooner.
@@ -78,7 +78,7 @@ The three screens as drawn: the sign-in page of `L11` at the address of today's 
 
 ## Verification plan
 
-- **Go:** username and password rules; hash and verify, including a hash made with other parameters; registering signs in, a taken username (any case) is refused, the sixth wrong password in the window is refused even with the right one, an unknown username is refused the same way and counted, the address limit; a username account is deleted with the password and refused a deletion code; no email is sent to it (the status email of a store it owns); the admins' list shows the username and finds it by words.
+- **Go:** username and password rules; hash and verify, including a hash made with other parameters; registering signs in, a taken username is refused, `Lan` and `lan` are two accounts, the sixth wrong password in the window is refused even with the right one, an unknown username is refused the same way and counted, the address limit; a username account is deleted with the password and refused a deletion code; no email is sent to it (the status email of a store it owns); the admins' list shows the username and finds it by words.
 - **Migration:** the checks (`both or none`, `email or username`) hold; the existing accounts are untouched; applied to a copy of staging's data.
 - **Through the API** (`TestService`) and **against the real service:** register with the cookie and with the token, sign in, `GET /accounts/me`, wrong passwords until the limit with `Retry-After`, delete with the password.
 - **Web:** Playwright with axe on the three screens at 390 and 1440 (the CI runs the suite; it is not run on a developer's machine).
