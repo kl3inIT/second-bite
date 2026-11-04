@@ -1,0 +1,44 @@
+# TEMPORARY (SEC-193): makes the app's generated API client on GitHub, since it cannot be made on the author's machine,
+# and hands it over as an artifact. Deleted in the commit that adds the client.
+name: Generate the app's client (temporary)
+
+on:
+  push:
+    branches:
+      - nhudinhnhat2004/sec-193-sign-in-and-register-with-a-username-and-a-password-api-web
+    paths:
+      - ".github/workflows/gen-mobile-client.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version-file: mobile/pubspec.yaml
+          cache: true
+      - run: flutter pub get
+      - run: flutter pub get
+        working-directory: mobile/packages/app_ui
+      - name: Generate the client as the Mobile workflow checks it
+        run: |
+          flutter gen-l10n
+          dart run swagger_parser
+          dart run build_runner build --delete-conflicting-outputs
+          dart format lib/core/api
+          git status --short -- . | head -50
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mobile-api-client
+          path: mobile/lib/core/api/
+          if-no-files-found: error
