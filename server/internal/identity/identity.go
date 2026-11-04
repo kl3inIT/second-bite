@@ -62,6 +62,16 @@ type Account struct {
 	DisplayName string
 }
 
+// Label names the account where people must tell accounts apart: its address,
+// or its username when it has no address.
+func (a Account) Label() string {
+	if a.Email != "" {
+		return a.Email
+	}
+
+	return a.Username
+}
+
 // Service is the module's published API.
 type Service struct {
 	pool    *pgxpool.Pool

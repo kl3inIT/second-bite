@@ -14,7 +14,8 @@ import (
 // recordBody is an account as admins see it.
 type recordBody struct {
 	ID               uuid.UUID     `json:"id"`
-	Email            string        `json:"email"`
+	Email            string        `json:"email"                      doc:"Empty for an account made with a username"`
+	Username         string        `json:"username"                   doc:"Empty for an account that signs in by email or Google"`
 	Role             platform.Role `json:"role"                       enum:"customer,admin"`
 	DisplayName      string        `json:"displayName"                doc:"Empty until Google gives one or the person sets it"`
 	CreatedAt        time.Time     `json:"createdAt"`
@@ -24,7 +25,7 @@ type recordBody struct {
 
 func toRecordBody(r Record) recordBody {
 	return recordBody{
-		ID: r.ID, Email: r.Email, Role: r.Role, DisplayName: r.DisplayName, CreatedAt: r.CreatedAt,
+		ID: r.ID, Email: r.Email, Username: r.Username, Role: r.Role, DisplayName: r.DisplayName, CreatedAt: r.CreatedAt,
 		LastSignedInAt: r.LastSignedInAt, LastSignInMethod: r.LastSignInMethod,
 	}
 }

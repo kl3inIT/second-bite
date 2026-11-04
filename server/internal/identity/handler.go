@@ -65,6 +65,12 @@ type deleteAccountInput struct {
 	}
 }
 
+type deleteAccountWithPasswordInput struct {
+	Body struct {
+		Password string `json:"password" doc:"The account's password, which confirms the deletion"`
+	}
+}
+
 type setDisplayNameInput struct {
 	Body struct {
 		DisplayName string `json:"displayName" maxLength:"200" doc:"1 to 50 characters once trimmed; Google never replaces it"`
@@ -347,6 +353,25 @@ func registerAccountOperations(api huma.API, s *Service, security []map[string][
 		DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, in *deleteAccountInput) (*signOutOutput, error) {
 		if err := s.DeleteAccount(ctx, in.Body.ChallengeID, in.Body.Code); err != nil {
+			return nil, err
+		}
+
+		return &signOutOutput{SetCookie: []http.Cookie{clearedCookie()}}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "deleteMyAccountWithPassword",
+		Method:      http.MethodPost,
+		Path:        "/accounts/me/password-deletion",
+		Summary:     "Delete the signed-in account with its password",
+		Description: "For an account made with a username, which has no address to email a code to. Deletes the account and its sessions at once; " +
+			"its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. " +
+			"A seller the account owned is blocked. The session cookie is cleared. A wrong password counts with the tries to sign in.",
+		Tags:          tagAccounts,
+		Security:      security,
+		DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *deleteAccountWithPasswordInput) (*signOutOutput, error) {
+		if err := s.DeleteAccountWithPassword(ctx, in.Body.Password); err != nil {
 			return nil, err
 		}
 

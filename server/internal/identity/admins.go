@@ -193,5 +193,5 @@ func accountOf(r db.GetAccountRow) Account {
 
 // accountResource is the account as the audit trail names it.
 func accountResource(a Account) audit.Resource {
-	return audit.Resource{Type: audit.ResourceAccount, ID: a.ID.String(), Label: a.Email}
+	return audit.Resource{Type: audit.ResourceAccount, ID: a.ID.String(), Label: a.Label()}
 }

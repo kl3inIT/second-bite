@@ -92,6 +92,10 @@ var (
 		VI: "Tài khoản này không có email, nên không gửi mã được. Xoá tài khoản bằng mật khẩu.",
 		EN: "This account has no email, so no code can be sent. Delete the account with its password.",
 	})
+	ErrNoPassword = platform.NewFailure("IDENTITY_NO_PASSWORD", platform.CategoryConflict, platform.Words{
+		VI: "Tài khoản này đăng nhập bằng email hoặc Google, không có mật khẩu. Xoá tài khoản bằng mã gửi qua email.",
+		EN: "This account signs in by email or Google and has no password. Delete it with the emailed code.",
+	})
 	ErrPasswordIncorrect = platform.NewFailure("IDENTITY_PASSWORD_INCORRECT", platform.CategoryValidation, platform.Words{
 		VI: "Mật khẩu chưa đúng.",
 		EN: "The password is not right.",
