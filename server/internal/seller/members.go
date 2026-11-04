@@ -44,7 +44,7 @@ func (s *Service) Members(ctx context.Context, sellerID uuid.UUID) ([]Member, er
 	members := make([]Member, 0, len(rows))
 	for _, r := range rows {
 		members = append(members, Member{
-			AccountID: r.AccountID, Email: accounts[r.AccountID].Email, Role: Role(r.Role), AddedAt: r.CreatedAt,
+			AccountID: r.AccountID, Email: accounts[r.AccountID].Label(), Role: Role(r.Role), AddedAt: r.CreatedAt,
 		})
 	}
 

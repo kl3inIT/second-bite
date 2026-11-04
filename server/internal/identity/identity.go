@@ -54,9 +54,22 @@ type Config struct {
 type Account struct {
 	ID    uuid.UUID
 	Email string
-	Role  platform.Role
+	// Username is empty for an account that signs in by email or Google; such an
+	// account has no password (SEC-193). An account made with a username has no email.
+	Username string
+	Role     platform.Role
 	// DisplayName is empty until Google gives one or the person sets it.
 	DisplayName string
+}
+
+// Label names the account where people must tell accounts apart: its address,
+// or its username when it has no address.
+func (a Account) Label() string {
+	if a.Email != "" {
+		return a.Email
+	}
+
+	return a.Username
 }
 
 // Service is the module's published API.
@@ -76,6 +89,14 @@ type Service struct {
 	// codesByAddress bounds the codes one address asks for, whatever the email
 	// addresses, so a script cannot spend the provider's quota (SEC-160).
 	codesByAddress *platform.Limiter
+	// credentialsByAddress bounds the registrations and password sign-ins one
+	// address makes, so a script cannot try passwords or fill the table (SEC-193).
+	credentialsByAddress *platform.Limiter
+	// wrongPasswords bounds the tries a username gets in a window, whether or not
+	// it exists.
+	wrongPasswords *guessLimit
+	// hashing holds a place for each argon2 computation running at once.
+	hashing chan struct{}
 }
 
 // codesPerAddress codes may be asked for from one address in limitWindow:
@@ -83,6 +104,14 @@ type Service struct {
 const (
 	codesPerAddress = 30
 	limitWindow     = 10 * time.Minute
+)
+
+// A username gets five tries in fifteen minutes; four argon2 computations (19 MiB
+// each) run at once (design of SEC-193, sections 3 and 4).
+const (
+	wrongPasswordsPerWindow = 5
+	wrongPasswordWindow     = 15 * time.Minute
+	maxConcurrentHashes     = 4
 )
 
 // NewService assembles the module.
@@ -96,9 +125,12 @@ func NewService(
 
 	s := &Service{
 		pool: pool, queries: db.New(pool), email: email, events: events, trail: trail, codeKey: cfg.CodeKey,
-		logger:         logger,
-		crossOrigin:    http.NewCrossOriginProtection(),
-		codesByAddress: platform.NewLimiter(codesPerAddress, limitWindow),
+		logger:               logger,
+		crossOrigin:          http.NewCrossOriginProtection(),
+		codesByAddress:       platform.NewLimiter(codesPerAddress, limitWindow),
+		credentialsByAddress: platform.NewLimiter(codesPerAddress, limitWindow),
+		wrongPasswords:       newGuessLimit(wrongPasswordsPerWindow, wrongPasswordWindow),
+		hashing:              make(chan struct{}, maxConcurrentHashes),
 	}
 	if len(cfg.GoogleClientIDs) > 0 {
 		s.google = newGoogle(cfg.GoogleClientIDs, remoteGoogleKeys())
@@ -118,7 +150,7 @@ func (s *Service) Account(ctx context.Context, id uuid.UUID) (Account, error) {
 		return Account{}, fmt.Errorf("reading the account: %w", err)
 	}
 
-	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
+	return Account{ID: row.ID, Email: row.Email, Username: row.Username, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
 }
 
 // Accounts returns the accounts of ids that exist, keyed by id.
@@ -130,7 +162,7 @@ func (s *Service) Accounts(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]
 
 	accounts := make(map[uuid.UUID]Account, len(rows))
 	for _, r := range rows {
-		accounts[r.ID] = Account{ID: r.ID, Email: r.Email, Role: platform.Role(r.Role), DisplayName: r.DisplayName}
+		accounts[r.ID] = Account{ID: r.ID, Email: r.Email, Username: r.Username, Role: platform.Role(r.Role), DisplayName: r.DisplayName}
 	}
 
 	return accounts, nil
@@ -147,7 +179,7 @@ func (s *Service) EnsureAccount(ctx context.Context, email string) (Account, err
 			return Account{}, fmt.Errorf("finding the account: %w", err)
 		}
 
-		return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
+		return Account{ID: row.ID, Email: row.Email, Username: row.Username, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
 	})
 }
 

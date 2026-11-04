@@ -217,7 +217,7 @@ func (s *Service) ownerEmails(ctx context.Context, rows []db.SellersForAdminsRow
 
 	emails := make(map[uuid.UUID]string, len(owners))
 	for _, o := range owners {
-		emails[o.SellerID] = accounts[o.AccountID].Email
+		emails[o.SellerID] = accounts[o.AccountID].Label()
 	}
 
 	return emails, nil

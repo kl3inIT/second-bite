@@ -13,6 +13,8 @@ import { sessionHeaders } from "./session";
 export type CurrentAccount = {
   id: string;
   email: string;
+  /** Empty for an account that signs in by email or Google; such an account has no username (SEC-193). */
+  username: string;
   displayName: string;
   role: AccountBody["role"];
 };
@@ -27,7 +29,13 @@ export const getCurrentAccount = cache(async (): Promise<CurrentAccount | null> 
   if (!headers) return null;
   try {
     const { data } = await getMyAccount({ headers });
-    return { id: data.id, email: data.email, displayName: data.displayName, role: data.role };
+    return {
+      id: data.id,
+      email: data.email,
+      username: data.username,
+      displayName: data.displayName,
+      role: data.role,
+    };
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) return null;
     throw error;

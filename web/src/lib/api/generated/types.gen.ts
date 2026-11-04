@@ -9,9 +9,16 @@ export type AccountBody = {
      * Empty until Google gives one or the person sets it
      */
     displayName: string;
+    /**
+     * Empty for an account made with a username
+     */
     email: string;
     id: string;
     role: 'customer' | 'admin';
+    /**
+     * Empty for an account that signs in by email or Google
+     */
+    username: string;
 };
 
 export type AddSellerStaffRequest = {
@@ -322,6 +329,13 @@ export type DeleteAccountInputBody = {
      * The six digits of the deletion email
      */
     code: string;
+};
+
+export type DeleteAccountWithPasswordInputBody = {
+    /**
+     * The account's password, which confirms the deletion
+     */
+    password: string;
 };
 
 export type DeleteSellerRequest = {
@@ -950,6 +964,15 @@ export type OrdersOutputBody = {
     orders: Array<OrderBody>;
 };
 
+export type PasswordSignInInputBody = {
+    password: string;
+    /**
+     * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
+     */
+    session?: 'token' | 'cookie';
+    username: string;
+};
+
 export type PayoutBody = {
     /**
      * Discounts of its orders handed over in the week
@@ -1196,22 +1219,44 @@ export type RecordBody = {
      * Empty until Google gives one or the person sets it
      */
     displayName: string;
+    /**
+     * Empty for an account made with a username
+     */
     email: string;
     id: string;
     /**
-     * How it last signed in: an emailed code or Google
+     * How it last signed in: an emailed code, Google or a password
      */
-    lastSignInMethod?: 'code' | 'google';
+    lastSignInMethod?: 'code' | 'google' | 'password';
     /**
      * Absent until it signs in
      */
     lastSignedInAt?: string;
     role: 'customer' | 'admin';
+    /**
+     * Empty for an account that signs in by email or Google
+     */
+    username: string;
 };
 
 export type RefuseOrderRequest = {
     note?: string;
     reason: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other';
+};
+
+export type RegisterInputBody = {
+    /**
+     * 8 to 128 characters, not the username
+     */
+    password: string;
+    /**
+     * token: the token in the body (the mobile application); cookie: the session cookie instead (the web)
+     */
+    session?: 'token' | 'cookie';
+    /**
+     * 3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; kept in lower case
+     */
+    username: string;
 };
 
 export type RejectSellerRequest = {
@@ -1701,6 +1746,31 @@ export type RequestAccountDeletionCodeResponses = {
 };
 
 export type RequestAccountDeletionCodeResponse = RequestAccountDeletionCodeResponses[keyof RequestAccountDeletionCodeResponses];
+
+export type DeleteMyAccountWithPasswordData = {
+    body: DeleteAccountWithPasswordInputBody;
+    path?: never;
+    query?: never;
+    url: '/accounts/me/password-deletion';
+};
+
+export type DeleteMyAccountWithPasswordErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type DeleteMyAccountWithPasswordError = DeleteMyAccountWithPasswordErrors[keyof DeleteMyAccountWithPasswordErrors];
+
+export type DeleteMyAccountWithPasswordResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type DeleteMyAccountWithPasswordResponse = DeleteMyAccountWithPasswordResponses[keyof DeleteMyAccountWithPasswordResponses];
 
 export type ListAccountsData = {
     body?: never;
@@ -2797,6 +2867,31 @@ export type RestoreSellerResponses = {
 
 export type RestoreSellerResponse = RestoreSellerResponses[keyof RestoreSellerResponses];
 
+export type RegisterWithPasswordData = {
+    body: RegisterInputBody;
+    path?: never;
+    query?: never;
+    url: '/auth/accounts';
+};
+
+export type RegisterWithPasswordErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type RegisterWithPasswordError = RegisterWithPasswordErrors[keyof RegisterWithPasswordErrors];
+
+export type RegisterWithPasswordResponses = {
+    /**
+     * Created
+     */
+    201: SessionOutputBody;
+};
+
+export type RegisterWithPasswordResponse = RegisterWithPasswordResponses[keyof RegisterWithPasswordResponses];
+
 export type SignInWithGoogleData = {
     body: GoogleSignInInputBody;
     path?: never;
@@ -2846,6 +2941,31 @@ export type GetSignInMethodsResponses = {
 };
 
 export type GetSignInMethodsResponse = GetSignInMethodsResponses[keyof GetSignInMethodsResponses];
+
+export type SignInWithPasswordData = {
+    body: PasswordSignInInputBody;
+    path?: never;
+    query?: never;
+    url: '/auth/password-sessions';
+};
+
+export type SignInWithPasswordErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SignInWithPasswordError = SignInWithPasswordErrors[keyof SignInWithPasswordErrors];
+
+export type SignInWithPasswordResponses = {
+    /**
+     * Created
+     */
+    201: SessionOutputBody;
+};
+
+export type SignInWithPasswordResponse = SignInWithPasswordResponses[keyof SignInWithPasswordResponses];
 
 export type SignInData = {
     body: SignInInputBody;

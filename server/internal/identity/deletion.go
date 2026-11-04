@@ -8,6 +8,7 @@ import (
 	"html"
 	"log/slog"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -49,6 +50,11 @@ func (s *Service) RequestDeletionCode(ctx context.Context) (Challenge, error) {
 		return Challenge{}, err
 	}
 
+	// An account made with a username has no address to email (SEC-193).
+	if account.Email == "" {
+		return Challenge{}, ErrNoEmail
+	}
+
 	c, err := s.sendCode(ctx, account.Email, purposeDeleteAccount, deletionCodeEmail)
 	if err != nil {
 		return Challenge{}, err
@@ -76,6 +82,10 @@ func (s *Service) DeleteAccount(ctx context.Context, challengeID uuid.UUID, code
 	account, err := s.Account(ctx, caller.AccountID)
 	if err != nil {
 		return err
+	}
+
+	if account.Email == "" {
+		return ErrNoEmail
 	}
 
 	email, err := s.checkCode(ctx, challengeID, code, purposeDeleteAccount)
@@ -132,6 +142,15 @@ func (s *Service) deleteAccountIn(ctx context.Context, tx pgx.Tx, account Accoun
 	if err := q.DeleteChallengesOf(ctx, account.Email); err != nil {
 		return fmt.Errorf("deleting the address's codes: %w", err)
 	}
+
+	return s.removeAccountIn(ctx, tx, account)
+}
+
+// removeAccountIn deletes the account in tx with its sessions and links, forgets
+// its name in the audit trail and writes AccountDeletedEvent, at once and again
+// after deletionSweep.
+func (s *Service) removeAccountIn(ctx context.Context, tx pgx.Tx, account Account) error {
+	q := s.queries.WithTx(tx)
 
 	deleted, err := q.DeleteAccount(ctx, account.ID)
 	if err != nil {
@@ -214,4 +233,84 @@ func deletionCodeEmail(to, code string) notification.Email {
 			`If you did not ask to delete your account, ignore this email and it stays as it is.</p>`,
 			html.EscapeString(code), minutes),
 	}
+}
+
+// DeleteAccountWithPassword deletes the caller's account when the password is
+// right, for an account made with a username, which has no address to email a
+// code to (SEC-193). Its wrong tries are counted with the username's tries to
+// sign in, so a stolen session cannot be used to guess the password.
+func (s *Service) DeleteAccountWithPassword(ctx context.Context, password string) error {
+	caller, err := platform.RequireCaller(ctx)
+	if err != nil {
+		return err
+	}
+
+	account, err := s.Account(ctx, caller.AccountID)
+	if err != nil {
+		return err
+	}
+
+	if account.Username == "" {
+		return ErrNoPassword
+	}
+
+	if err := s.confirmPassword(ctx, account, password); err != nil {
+		return err
+	}
+
+	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		return s.removeAccountIn(ctx, tx, account)
+	})
+	if err != nil {
+		return err
+	}
+
+	s.logger.InfoContext(ctx, "account deleted",
+		slog.String("event", "identity.account.deleted"),
+		slog.String("account_id", account.ID.String()),
+	)
+
+	return nil
+}
+
+// confirmPassword checks the password an account made with a username confirms
+// its deletion with. A try is counted before the password is compared and given
+// back when it was right or could not be judged; a wrong one keeps its count.
+func (s *Service) confirmPassword(ctx context.Context, account Account, password string) error {
+	if utf8.RuneCountInString(password) > maxPasswordLength {
+		return ErrPasswordIncorrect
+	}
+
+	start, wait := s.wrongPasswords.take(account.Username)
+	if wait > 0 {
+		return ErrSignInLimitExceeded.WithRetryAfter(wait)
+	}
+
+	hash, err := s.queries.GetPasswordHash(ctx, account.ID)
+	if err != nil {
+		s.wrongPasswords.refund(account.Username, start)
+
+		return fmt.Errorf("reading the password: %w", err)
+	}
+
+	right, err := s.verify(ctx, password, hash)
+	if err != nil {
+		s.wrongPasswords.refund(account.Username, start)
+
+		return err
+	}
+
+	if !right {
+		s.logger.InfoContext(ctx, "account deletion password wrong",
+			slog.String("event", "identity.delete_account.failed"),
+			slog.String("account_id", account.ID.String()),
+			slog.String("error_code", ErrPasswordIncorrect.Code),
+		)
+
+		return ErrPasswordIncorrect
+	}
+
+	s.wrongPasswords.refund(account.Username, start)
+
+	return nil
 }

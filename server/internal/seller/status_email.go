@@ -65,6 +65,16 @@ func (s *Service) tellOwner(ctx context.Context, e StatusChangedEvent) error {
 		return nil
 	}
 
+	// An owner who registered with a username has no address to tell (SEC-193).
+	if owner.Email == "" {
+		s.logger.InfoContext(ctx, "owner not told: no email",
+			slog.String("event", "seller.owner.not_told"),
+			slog.String("seller_id", e.SellerID.String()),
+		)
+
+		return nil
+	}
+
 	status := e.Status
 	if e.Deleting {
 		status = StatusDeleted

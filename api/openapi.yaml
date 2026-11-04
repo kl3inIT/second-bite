@@ -7,6 +7,7 @@ components:
           description: Empty until Google gives one or the person sets it
           type: string
         email:
+          description: Empty for an account made with a username
           type: string
         id:
           type: string
@@ -15,9 +16,13 @@ components:
             - customer
             - admin
           type: string
+        username:
+          description: Empty for an account that signs in by email or Google
+          type: string
       required:
         - id
         - email
+        - username
         - role
         - displayName
       type: object
@@ -603,6 +608,15 @@ components:
       required:
         - challengeId
         - code
+      type: object
+    DeleteAccountWithPasswordInputBody:
+      additionalProperties: false
+      properties:
+        password:
+          description: The account's password, which confirms the deletion
+          type: string
+      required:
+        - password
       type: object
     DeleteSellerRequest:
       additionalProperties: false
@@ -1930,6 +1944,24 @@ components:
       required:
         - orders
       type: object
+    PasswordSignInInputBody:
+      additionalProperties: false
+      properties:
+        password:
+          type: string
+        session:
+          default: token
+          description: "token: the token in the body (the mobile application); cookie: the session cookie instead (the web)"
+          enum:
+            - token
+            - cookie
+          type: string
+        username:
+          type: string
+      required:
+        - username
+        - password
+      type: object
     PayoutBody:
       additionalProperties: false
       properties:
@@ -2386,14 +2418,16 @@ components:
           description: Empty until Google gives one or the person sets it
           type: string
         email:
+          description: Empty for an account made with a username
           type: string
         id:
           type: string
         lastSignInMethod:
-          description: "How it last signed in: an emailed code or Google"
+          description: "How it last signed in: an emailed code, Google or a password"
           enum:
             - code
             - google
+            - password
           type: string
         lastSignedInAt:
           description: Absent until it signs in
@@ -2404,9 +2438,13 @@ components:
             - customer
             - admin
           type: string
+        username:
+          description: Empty for an account that signs in by email or Google
+          type: string
       required:
         - id
         - email
+        - username
         - role
         - displayName
         - createdAt
@@ -2429,6 +2467,26 @@ components:
           type: string
       required:
         - reason
+      type: object
+    RegisterInputBody:
+      additionalProperties: false
+      properties:
+        password:
+          description: 8 to 128 characters, not the username
+          type: string
+        session:
+          default: token
+          description: "token: the token in the body (the mobile application); cookie: the session cookie instead (the web)"
+          enum:
+            - token
+            - cookie
+          type: string
+        username:
+          description: "3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; kept in lower case"
+          type: string
+      required:
+        - username
+        - password
       type: object
     RejectSellerRequest:
       additionalProperties: false
@@ -3281,6 +3339,36 @@ paths:
         - bearer: []
         - cookie: []
       summary: Email the signed-in account's address a code that confirms its deletion
+      tags:
+        - Accounts
+  /accounts/me/password-deletion:
+    post:
+      description: For an account made with a username, which has no address to email a code to. Deletes the account and its sessions at once; its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. A seller the account owned is blocked. The session cookie is cleared. A wrong password counts with the tries to sign in.
+      operationId: deleteMyAccountWithPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteAccountWithPasswordInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+          headers:
+            Set-Cookie:
+              schema:
+                description: Clears the session cookie
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Delete the signed-in account with its password
       tags:
         - Accounts
   /admin/accounts:
@@ -4792,6 +4880,37 @@ paths:
       summary: Bring back a deleted seller, or one waiting to be deleted, blocked; its owner is not emailed
       tags:
         - Admin
+  /auth/accounts:
+    post:
+      description: Makes an account that has no email and signs it in. A username that is taken is refused, whatever its case. The web asks for the session in a cookie.
+      operationId: registerWithPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInputBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionOutputBody"
+          description: Created
+          headers:
+            Set-Cookie:
+              schema:
+                description: The session cookie, when it was asked for
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Register with a username and a password
+      tags:
+        - Sign-in
   /auth/google:
     post:
       description: Creates the account on a first sign-in with a verified address, or links an account with the address when Google speaks for it (gmail.com or a Google Workspace account); otherwise the person signs in with an emailed code.
@@ -4840,6 +4959,37 @@ paths:
                 $ref: "#/components/schemas/Problem"
           description: Error
       summary: The ways to sign in besides the emailed code
+      tags:
+        - Sign-in
+  /auth/password-sessions:
+    post:
+      description: An unknown username and a wrong password get the same answer. Five wrong tries of a username in fifteen minutes refuse its next ones, a right password included, until the window ends.
+      operationId: signInWithPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordSignInInputBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionOutputBody"
+          description: Created
+          headers:
+            Set-Cookie:
+              schema:
+                description: The session cookie, when it was asked for
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      summary: Sign in with a username and a password
       tags:
         - Sign-in
   /auth/sessions:

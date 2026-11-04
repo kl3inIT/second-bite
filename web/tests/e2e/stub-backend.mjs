@@ -569,6 +569,29 @@ const sessionCookie = "secondbite_session";
 // other out (SEC-125). The map goes from a session's token to its account.
 const accounts = new Map();
 let sessions = 0;
+// The accounts made with a username (SEC-193) and their passwords, by username. lan.anh is there from the start.
+// "limit.user" has used its tries, so every sign-in for it is refused with a wait.
+const passwords = new Map([["lan.anh", "correct horse"]]);
+
+/** Opens a session for account, handing it over as the web (a cookie) or the app (a token) asked. */
+function startSession(response, account, session) {
+  sessions += 1;
+  const token = `stub-${Buffer.from(account.email || account.username).toString("hex")}-${sessions}`;
+  accounts.set(token, account);
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  if (session === "cookie") {
+    json(
+      response,
+      201,
+      { account, expiresAt },
+      {
+        "set-cookie": `${sessionCookie}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=34560000`,
+      },
+    );
+  } else {
+    json(response, 201, { account, expiresAt, token });
+  }
+}
 
 function problem(response, status, code) {
   const language = requestLanguage.getStore() ?? "vi";
@@ -641,6 +664,17 @@ function tokenOf(request) {
   return new RegExp(`(?:^|; )${sessionCookie}=([^;]+)`).exec(cookie)?.[1];
 }
 
+/** The account of a username: it has no email, and a customer's role. */
+function passwordAccount(username) {
+  return {
+    id: `ac-un-${Buffer.from(username).toString("hex")}`,
+    email: "",
+    username,
+    displayName: "",
+    role: "customer",
+  };
+}
+
 async function auth(request, response, url) {
   if (request.method === "GET" && url.pathname === "/auth/methods") {
     const clientId = process.env.STUB_GOOGLE_CLIENT_ID;
@@ -671,24 +705,42 @@ async function auth(request, response, url) {
     const account = {
       id: `ac-${Buffer.from(email).toString("hex")}`,
       email,
+      username: "",
       displayName: "",
       role,
     };
-    sessions += 1;
-    const token = `stub-${Buffer.from(email).toString("hex")}-${sessions}`;
-    accounts.set(token, account);
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    if (session === "cookie") {
-      json(
-        response,
-        201,
-        { account, expiresAt },
-        {
-          "set-cookie": `${sessionCookie}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=34560000`,
-        },
-      );
+    startSession(response, account, session);
+    return true;
+  }
+  // Registering and signing in with a username and a password (SEC-193), as the server answers them: a username
+  // is 3 to 30 letters, digits, '.', '_' and '-' and one whatever its case, a password 8 to 128 characters and not
+  // the username; a taken username is refused, a wrong password and an unknown username alike, and "limit.user"
+  // has used its tries.
+  if (request.method === "POST" && url.pathname === "/auth/accounts") {
+    const { username, password, session } = await readBody(request);
+    const name = String(username ?? "").toLowerCase();
+    const length = Array.from(String(password ?? "")).length;
+    if (!/^[a-z0-9][a-z0-9._-]{1,28}[a-z0-9]$/.test(name)) {
+      problem(response, 400, "IDENTITY_USERNAME_INVALID");
+    } else if (length < 8 || length > 128 || password === name) {
+      problem(response, 400, "IDENTITY_PASSWORD_INVALID");
+    } else if (passwords.has(name)) {
+      problem(response, 409, "IDENTITY_USERNAME_TAKEN");
     } else {
-      json(response, 201, { account, expiresAt, token });
+      passwords.set(name, password);
+      startSession(response, passwordAccount(name), session);
+    }
+    return true;
+  }
+  if (request.method === "POST" && url.pathname === "/auth/password-sessions") {
+    const { username, password, session } = await readBody(request);
+    const name = String(username ?? "").toLowerCase();
+    if (name === "limit.user") {
+      problem(response, 429, "IDENTITY_SIGN_IN_LIMIT_EXCEEDED");
+    } else if (!passwords.has(name) || passwords.get(name) !== password) {
+      problem(response, 400, "IDENTITY_CREDENTIALS_INCORRECT");
+    } else {
+      startSession(response, passwordAccount(name), session);
     }
     return true;
   }
@@ -725,6 +777,25 @@ async function auth(request, response, url) {
   return deletion(request, response, url);
 }
 
+// Deleting an account made with a username (SEC-193) asks for its password; a wrong one deletes nothing.
+async function passwordDeletion(request, response, account) {
+  const { password } = await readBody(request);
+  if (!account) problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+  else if (!account.username) problem(response, 409, "IDENTITY_NO_PASSWORD");
+  else if (passwords.get(account.username) !== password) {
+    problem(response, 400, "IDENTITY_PASSWORD_INCORRECT");
+  } else {
+    for (const [other, signedIn] of accounts) {
+      if (signedIn.username === account.username) accounts.delete(other);
+    }
+    passwords.delete(account.username);
+    response.writeHead(204, {
+      "set-cookie": `${sessionCookie}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
+    });
+    response.end();
+  }
+}
+
 // Deleting an account (SEC-37): the deletion code goes to the signed-in account's address; 123456 is right and
 // any other is not, and a sign-in challenge cannot delete. A right code ends the session and clears the cookie.
 // An address starting with "owner." owns a seller besides those it opened (sellerRoutes), for the warning
@@ -732,8 +803,13 @@ async function auth(request, response, url) {
 async function deletion(request, response, url) {
   const token = tokenOf(request);
   const account = accounts.get(token);
+  if (request.method === "POST" && url.pathname === "/accounts/me/password-deletion") {
+    await passwordDeletion(request, response, account);
+    return true;
+  }
   if (request.method === "POST" && url.pathname === "/accounts/me/deletion-codes") {
     if (!account) problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+    else if (!account.email) problem(response, 409, "IDENTITY_NO_EMAIL");
     else {
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
       json(response, 202, { challengeId: `del-${encodeURIComponent(account.email)}`, expiresAt });

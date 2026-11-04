@@ -2,11 +2,11 @@ import { getTranslations } from "next-intl/server";
 
 import { Wordmark } from "@/components/wordmark";
 
-// The panel beside the sign-in form on a wide screen (Figma L6, L9): the wordmark, a headline and the
+// The panel beside the sign-in and register forms on a wide screen (Figma L6, L9, L10, L11, L12): the wordmark, a headline and the
 // copyright line on the sky blue (decorative only: white holds 2.4:1 on it). It repeats what the form's heading says, so it is hidden from assistive
 // technology; below 1024 px it is not drawn at all.
-export async function SignInHero() {
-  const t = await getTranslations("SignIn");
+export async function SignInHero({ register = false }: { register?: boolean }) {
+  const t = await getTranslations(register ? "Register" : "SignIn");
   return (
     <aside
       aria-hidden

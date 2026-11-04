@@ -38,6 +38,7 @@ test.describe("the bottom bar and the account tab", () => {
     await expectNoSeriousA11yViolations(page);
 
     await page.getByRole("link", { name: "Đăng nhập", exact: true }).click();
+    await (await hydrated(page.getByRole("link", { name: "Đăng nhập bằng email" }))).click();
     await (await hydrated(page.getByLabel("Email"))).fill(email);
     await page.getByRole("button", { name: "Gửi mã" }).click();
     await page.getByLabel("Mã đăng nhập 6 số").fill("123456");

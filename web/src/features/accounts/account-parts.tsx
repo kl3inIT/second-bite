@@ -5,16 +5,18 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { RecordBody } from "@/lib/api/generated";
 
-/** What an account is called in the admin's lists: its name, or its address until it has one. */
-export function nameOf(account: Pick<RecordBody, "displayName" | "email">): string {
-  return account.displayName || account.email;
+/** What an account is called in the admin's lists: its name, or its address, or its username until it has a name. */
+export function nameOf(account: Pick<RecordBody, "displayName" | "email" | "username">): string {
+  return account.displayName || account.email || account.username;
 }
 
 /** Up to two letters for the account's avatar: the first and last words of its name, or its address. */
-export function initialsOf(account: Pick<RecordBody, "displayName" | "email">): string {
+export function initialsOf(
+  account: Pick<RecordBody, "displayName" | "email" | "username">,
+): string {
   // A note in brackets, as "(HE182328)" or "(K18 HL)" after a student's name, is not part of the name, and
   // a word that starts with no letter gives none.
-  const words = (account.displayName || account.email.split("@")[0])
+  const words = (account.displayName || account.email.split("@")[0] || account.username)
     .replace(/[([{][^)\]}]*[)\]}]?/gu, " ")
     .split(/[\s._-]+/)
     .filter((word) => /^\p{L}/u.test(word));
@@ -29,7 +31,7 @@ export function AccountAvatar({
   account,
   size = "lg",
 }: {
-  account: Pick<RecordBody, "displayName" | "email">;
+  account: Pick<RecordBody, "displayName" | "email" | "username">;
   size?: "lg" | "default";
 }) {
   return (

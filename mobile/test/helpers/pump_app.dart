@@ -24,6 +24,7 @@ AuthRepository signedInAs(AccountBody? account) {
 const sampleAccount = AccountBody(
   id: 'ac-1',
   email: 'lan@gmail.com',
+  username: '',
   displayName: '',
   role: AccountBodyRole.customer,
 );

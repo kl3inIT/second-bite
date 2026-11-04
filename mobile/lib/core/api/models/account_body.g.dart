@@ -11,6 +11,7 @@ _AccountBody _$AccountBodyFromJson(Map<String, dynamic> json) => _AccountBody(
   email: json['email'] as String,
   id: json['id'] as String,
   role: AccountBodyRole.fromJson(json['role'] as String),
+  username: json['username'] as String,
 );
 
 Map<String, dynamic> _$AccountBodyToJson(_AccountBody instance) =>
@@ -19,6 +20,7 @@ Map<String, dynamic> _$AccountBodyToJson(_AccountBody instance) =>
       'email': instance.email,
       'id': instance.id,
       'role': _$AccountBodyRoleEnumMap[instance.role]!,
+      'username': instance.username,
     };
 
 const _$AccountBodyRoleEnumMap = {

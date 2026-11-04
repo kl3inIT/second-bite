@@ -17,7 +17,9 @@ T _$identity<T>(T value) => value;
 mixin _$RecordBody {
 
  DateTime get createdAt;/// Empty until Google gives one or the person sets it
- String get displayName; String get email; String get id; RecordBodyRole get role;/// How it last signed in: an emailed code or Google
+ String get displayName;/// Empty for an account made with a username
+ String get email; String get id; RecordBodyRole get role;/// Empty for an account that signs in by email or Google
+ String get username;/// How it last signed in: an emailed code, Google or a password
  RecordBodyLastSignInMethod? get lastSignInMethod;/// Absent until it signs in
  DateTime? get lastSignedInAt;
 /// Create a copy of RecordBody
@@ -33,20 +35,20 @@ $RecordBodyCopyWith<RecordBody> get copyWith => _$RecordBodyCopyWithImpl<RecordB
 @override
 bool operator ==(Object other) {
   final _this = this as RecordBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecordBody&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.role, _this.role) || other.role == _this.role)&&(identical(other.lastSignInMethod, _this.lastSignInMethod) || other.lastSignInMethod == _this.lastSignInMethod)&&(identical(other.lastSignedInAt, _this.lastSignedInAt) || other.lastSignedInAt == _this.lastSignedInAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecordBody&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.role, _this.role) || other.role == _this.role)&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.lastSignInMethod, _this.lastSignInMethod) || other.lastSignInMethod == _this.lastSignInMethod)&&(identical(other.lastSignedInAt, _this.lastSignedInAt) || other.lastSignedInAt == _this.lastSignedInAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as RecordBody;
-  return Object.hash(runtimeType,_this.createdAt,_this.displayName,_this.email,_this.id,_this.role,_this.lastSignInMethod,_this.lastSignedInAt);
+  return Object.hash(runtimeType,_this.createdAt,_this.displayName,_this.email,_this.id,_this.role,_this.username,_this.lastSignInMethod,_this.lastSignedInAt);
 }
 
 @override
 String toString() {
   final _this = this as RecordBody;
-  return 'RecordBody(createdAt: ${_this.createdAt}, displayName: ${_this.displayName}, email: ${_this.email}, id: ${_this.id}, role: ${_this.role}, lastSignInMethod: ${_this.lastSignInMethod}, lastSignedInAt: ${_this.lastSignedInAt})';
+  return 'RecordBody(createdAt: ${_this.createdAt}, displayName: ${_this.displayName}, email: ${_this.email}, id: ${_this.id}, role: ${_this.role}, username: ${_this.username}, lastSignInMethod: ${_this.lastSignInMethod}, lastSignedInAt: ${_this.lastSignedInAt})';
 }
 
 
@@ -57,7 +59,7 @@ abstract mixin class $RecordBodyCopyWith<$Res>  {
   factory $RecordBodyCopyWith(RecordBody value, $Res Function(RecordBody) _then) = _$RecordBodyCopyWithImpl;
 @useResult
 $Res call({
- DateTime createdAt, String displayName, String email, String id, RecordBodyRole role, RecordBodyLastSignInMethod? lastSignInMethod, DateTime? lastSignedInAt
+ DateTime createdAt, String displayName, String email, String id, RecordBodyRole role, String username, RecordBodyLastSignInMethod? lastSignInMethod, DateTime? lastSignedInAt
 });
 
 
@@ -74,14 +76,15 @@ class _$RecordBodyCopyWithImpl<$Res>
 
 /// Create a copy of RecordBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? displayName = null,Object? email = null,Object? id = null,Object? role = null,Object? lastSignInMethod = freezed,Object? lastSignedInAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? displayName = null,Object? email = null,Object? id = null,Object? role = null,Object? username = null,Object? lastSignInMethod = freezed,Object? lastSignedInAt = freezed,}) {
   return _then(RecordBody(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as RecordBodyRole,lastSignInMethod: freezed == lastSignInMethod ? _self.lastSignInMethod : lastSignInMethod // ignore: cast_nullable_to_non_nullable
+as RecordBodyRole,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+as String,lastSignInMethod: freezed == lastSignInMethod ? _self.lastSignInMethod : lastSignInMethod // ignore: cast_nullable_to_non_nullable
 as RecordBodyLastSignInMethod?,lastSignedInAt: freezed == lastSignedInAt ? _self.lastSignedInAt : lastSignedInAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -168,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  String displayName,  String email,  String id,  RecordBodyRole role,  RecordBodyLastSignInMethod? lastSignInMethod,  DateTime? lastSignedInAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  String displayName,  String email,  String id,  RecordBodyRole role,  String username,  RecordBodyLastSignInMethod? lastSignInMethod,  DateTime? lastSignedInAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RecordBody() when $default != null:
-return $default(_that.createdAt,_that.displayName,_that.email,_that.id,_that.role,_that.lastSignInMethod,_that.lastSignedInAt);case _:
+return $default(_that.createdAt,_that.displayName,_that.email,_that.id,_that.role,_that.username,_that.lastSignInMethod,_that.lastSignedInAt);case _:
   return orElse();
 
 }
@@ -189,10 +192,10 @@ return $default(_that.createdAt,_that.displayName,_that.email,_that.id,_that.rol
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  String displayName,  String email,  String id,  RecordBodyRole role,  RecordBodyLastSignInMethod? lastSignInMethod,  DateTime? lastSignedInAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  String displayName,  String email,  String id,  RecordBodyRole role,  String username,  RecordBodyLastSignInMethod? lastSignInMethod,  DateTime? lastSignedInAt)  $default,) {final _that = this;
 switch (_that) {
 case _RecordBody():
-return $default(_that.createdAt,_that.displayName,_that.email,_that.id,_that.role,_that.lastSignInMethod,_that.lastSignedInAt);case _:
+return $default(_that.createdAt,_that.displayName,_that.email,_that.id,_that.role,_that.username,_that.lastSignInMethod,_that.lastSignedInAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +212,10 @@ return $default(_that.createdAt,_that.displayName,_that.email,_that.id,_that.rol
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  String displayName,  String email,  String id,  RecordBodyRole role,  RecordBodyLastSignInMethod? lastSignInMethod,  DateTime? lastSignedInAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  String displayName,  String email,  String id,  RecordBodyRole role,  String username,  RecordBodyLastSignInMethod? lastSignInMethod,  DateTime? lastSignedInAt)?  $default,) {final _that = this;
 switch (_that) {
 case _RecordBody() when $default != null:
-return $default(_that.createdAt,_that.displayName,_that.email,_that.id,_that.role,_that.lastSignInMethod,_that.lastSignedInAt);case _:
+return $default(_that.createdAt,_that.displayName,_that.email,_that.id,_that.role,_that.username,_that.lastSignInMethod,_that.lastSignedInAt);case _:
   return null;
 
 }
@@ -224,16 +227,19 @@ return $default(_that.createdAt,_that.displayName,_that.email,_that.id,_that.rol
 @JsonSerializable()
 
 class _RecordBody implements RecordBody {
-  const _RecordBody({required this.createdAt, required this.displayName, required this.email, required this.id, required this.role, this.lastSignInMethod, this.lastSignedInAt});
+  const _RecordBody({required this.createdAt, required this.displayName, required this.email, required this.id, required this.role, required this.username, this.lastSignInMethod, this.lastSignedInAt});
   factory _RecordBody.fromJson(Map<String, dynamic> json) => _$RecordBodyFromJson(json);
 
 @override final  DateTime createdAt;
 /// Empty until Google gives one or the person sets it
 @override final  String displayName;
+/// Empty for an account made with a username
 @override final  String email;
 @override final  String id;
 @override final  RecordBodyRole role;
-/// How it last signed in: an emailed code or Google
+/// Empty for an account that signs in by email or Google
+@override final  String username;
+/// How it last signed in: an emailed code, Google or a password
 @override final  RecordBodyLastSignInMethod? lastSignInMethod;
 /// Absent until it signs in
 @override final  DateTime? lastSignedInAt;
@@ -251,18 +257,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecordBody&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.id, id) || other.id == id)&&(identical(other.role, role) || other.role == role)&&(identical(other.lastSignInMethod, lastSignInMethod) || other.lastSignInMethod == lastSignInMethod)&&(identical(other.lastSignedInAt, lastSignedInAt) || other.lastSignedInAt == lastSignedInAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecordBody&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.id, id) || other.id == id)&&(identical(other.role, role) || other.role == role)&&(identical(other.username, username) || other.username == username)&&(identical(other.lastSignInMethod, lastSignInMethod) || other.lastSignInMethod == lastSignInMethod)&&(identical(other.lastSignedInAt, lastSignedInAt) || other.lastSignedInAt == lastSignedInAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,createdAt,displayName,email,id,role,lastSignInMethod,lastSignedInAt);
+    return Object.hash(runtimeType,createdAt,displayName,email,id,role,username,lastSignInMethod,lastSignedInAt);
 }
 
 @override
 String toString() {
-    return 'RecordBody(createdAt: $createdAt, displayName: $displayName, email: $email, id: $id, role: $role, lastSignInMethod: $lastSignInMethod, lastSignedInAt: $lastSignedInAt)';
+    return 'RecordBody(createdAt: $createdAt, displayName: $displayName, email: $email, id: $id, role: $role, username: $username, lastSignInMethod: $lastSignInMethod, lastSignedInAt: $lastSignedInAt)';
 }
 
 
@@ -273,7 +279,7 @@ abstract mixin class _$RecordBodyCopyWith<$Res> implements $RecordBodyCopyWith<$
   factory _$RecordBodyCopyWith(_RecordBody value, $Res Function(_RecordBody) _then) = __$RecordBodyCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime createdAt, String displayName, String email, String id, RecordBodyRole role, RecordBodyLastSignInMethod? lastSignInMethod, DateTime? lastSignedInAt
+ DateTime createdAt, String displayName, String email, String id, RecordBodyRole role, String username, RecordBodyLastSignInMethod? lastSignInMethod, DateTime? lastSignedInAt
 });
 
 
@@ -290,14 +296,15 @@ class __$RecordBodyCopyWithImpl<$Res>
 
 /// Create a copy of RecordBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = null,Object? displayName = null,Object? email = null,Object? id = null,Object? role = null,Object? lastSignInMethod = freezed,Object? lastSignedInAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = null,Object? displayName = null,Object? email = null,Object? id = null,Object? role = null,Object? username = null,Object? lastSignInMethod = freezed,Object? lastSignedInAt = freezed,}) {
   return _then(_RecordBody(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as RecordBodyRole,lastSignInMethod: freezed == lastSignInMethod ? _self.lastSignInMethod : lastSignInMethod // ignore: cast_nullable_to_non_nullable
+as RecordBodyRole,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+as String,lastSignInMethod: freezed == lastSignInMethod ? _self.lastSignInMethod : lastSignInMethod // ignore: cast_nullable_to_non_nullable
 as RecordBodyLastSignInMethod?,lastSignedInAt: freezed == lastSignedInAt ? _self.lastSignedInAt : lastSignedInAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

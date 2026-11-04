@@ -36,6 +36,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 
 - [Buyer discount](increments/active/buyer-discount/design.md) — promotions an admin runs, taken off an order when it is placed, for the two-week support programme from 2 November 2026; the server first, then the web, the store's app and the programme's figures.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
+- [SEC-193 — Sign in and register with a username and a password](increments/active/sec-193-username-sign-in/design.md): a third way in beside the emailed code and Google, which the sign-in screen opens on; an account made so has no email. The API and the web first, the app after.
 
 ## Candidates
 

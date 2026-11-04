@@ -42,10 +42,32 @@ type signInInput struct {
 	}
 }
 
+type registerInput struct {
+	Body struct {
+		Username string `json:"username" doc:"3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; kept in lower case"`
+		Password string `json:"password" doc:"8 to 128 characters, not the username"`
+		Session  string `json:"session,omitempty" enum:"token,cookie" default:"token" doc:"token: the token in the body (the mobile application); cookie: the session cookie instead (the web)"`
+	}
+}
+
+type passwordSignInInput struct {
+	Body struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Session  string `json:"session,omitempty" enum:"token,cookie" default:"token" doc:"token: the token in the body (the mobile application); cookie: the session cookie instead (the web)"`
+	}
+}
+
 type deleteAccountInput struct {
 	Body struct {
 		ChallengeID uuid.UUID `json:"challengeId"`
 		Code        string    `json:"code"        pattern:"^[0-9]{6}$" doc:"The six digits of the deletion email"`
+	}
+}
+
+type deleteAccountWithPasswordInput struct {
+	Body struct {
+		Password string `json:"password" doc:"The account's password, which confirms the deletion"`
 	}
 }
 
@@ -57,7 +79,8 @@ type setDisplayNameInput struct {
 
 type accountBody struct {
 	ID          uuid.UUID     `json:"id"`
-	Email       string        `json:"email"`
+	Email       string        `json:"email"       doc:"Empty for an account made with a username"`
+	Username    string        `json:"username"    doc:"Empty for an account that signs in by email or Google"`
 	Role        platform.Role `json:"role"        enum:"customer,admin"`
 	DisplayName string        `json:"displayName" doc:"Empty until Google gives one or the person sets it"`
 }
@@ -158,6 +181,8 @@ func RegisterOperations(api huma.API, s *Service) {
 		return out, nil
 	})
 
+	registerPasswordOperations(api, s)
+
 	huma.Register(api, huma.Operation{
 		OperationID: "signInWithGoogle",
 		Method:      http.MethodPost,
@@ -211,30 +236,9 @@ func RegisterOperations(api huma.API, s *Service) {
 	})
 
 	registerAccountOperations(api, s, security)
-
-	huma.Register(api, huma.Operation{
-		OperationID: "getMyAccount",
-		Method:      http.MethodGet,
-		Path:        "/accounts/me",
-		Summary:     "The signed-in account",
-		Tags:        tagAccounts,
-		Security:    security,
-	}, func(ctx context.Context, _ *struct{}) (*accountOutput, error) {
-		caller, err := platform.RequireCaller(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		a, err := s.Account(ctx, caller.AccountID)
-		if err != nil {
-			return nil, err
-		}
-
-		return &accountOutput{Body: toAccountBody(a)}, nil
-	})
 }
 
-// registerAccountOperations adds the operations that name (SEC-61) and delete
+// registerAccountOperations adds the operations that read, name (SEC-61) and delete
 // (SEC-37) the signed-in account.
 func registerAccountOperations(api huma.API, s *Service, security []map[string][]string) {
 	huma.Register(api, huma.Operation{
@@ -294,5 +298,89 @@ func registerAccountOperations(api huma.API, s *Service, security []map[string][
 		}
 
 		return &signOutOutput{SetCookie: []http.Cookie{clearedCookie()}}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "deleteMyAccountWithPassword",
+		Method:      http.MethodPost,
+		Path:        "/accounts/me/password-deletion",
+		Summary:     "Delete the signed-in account with its password",
+		Description: "For an account made with a username, which has no address to email a code to. Deletes the account and its sessions at once; " +
+			"its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. " +
+			"A seller the account owned is blocked. The session cookie is cleared. A wrong password counts with the tries to sign in.",
+		Tags:          tagAccounts,
+		Security:      security,
+		DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *deleteAccountWithPasswordInput) (*signOutOutput, error) {
+		if err := s.DeleteAccountWithPassword(ctx, in.Body.Password); err != nil {
+			return nil, err
+		}
+
+		return &signOutOutput{SetCookie: []http.Cookie{clearedCookie()}}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "getMyAccount",
+		Method:      http.MethodGet,
+		Path:        "/accounts/me",
+		Summary:     "The signed-in account",
+		Tags:        tagAccounts,
+		Security:    security,
+	}, func(ctx context.Context, _ *struct{}) (*accountOutput, error) {
+		caller, err := platform.RequireCaller(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		a, err := s.Account(ctx, caller.AccountID)
+		if err != nil {
+			return nil, err
+		}
+
+		return &accountOutput{Body: toAccountBody(a)}, nil
+	})
+}
+
+// registerPasswordOperations adds the operations that register with a username and a password and sign in with
+// them (SEC-193).
+func registerPasswordOperations(api huma.API, s *Service) {
+	huma.Register(api, huma.Operation{
+		OperationID:   "registerWithPassword",
+		Method:        http.MethodPost,
+		Path:          "/auth/accounts",
+		Summary:       "Register with a username and a password",
+		Description:   "Makes an account that has no email and signs it in. A username that is taken is refused, whatever its case. The web asks for the session in a cookie.",
+		Tags:          tagSignIn,
+		DefaultStatus: http.StatusCreated,
+	}, func(ctx context.Context, in *registerInput) (*sessionOutput, error) {
+		session, err := s.Register(ctx, in.Body.Username, in.Body.Password)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &sessionOutput{}
+		handOver(out, session, in.Body.Session)
+
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "signInWithPassword",
+		Method:        http.MethodPost,
+		Path:          "/auth/password-sessions",
+		Summary:       "Sign in with a username and a password",
+		Description:   "An unknown username and a wrong password get the same answer. Five wrong tries of a username in fifteen minutes refuse its next ones, a right password included, until the window ends.",
+		Tags:          tagSignIn,
+		DefaultStatus: http.StatusCreated,
+	}, func(ctx context.Context, in *passwordSignInInput) (*sessionOutput, error) {
+		session, err := s.SignInWithPassword(ctx, in.Body.Username, in.Body.Password)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &sessionOutput{}
+		handOver(out, session, in.Body.Session)
+
+		return out, nil
 	})
 }

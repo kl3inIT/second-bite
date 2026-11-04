@@ -338,15 +338,26 @@
   },
   "SignIn": {
     "title": "Đăng nhập",
+    "emailTitle": "Đăng nhập bằng email",
     "heading": "Đăng nhập",
+    "emailHeading": "Đăng nhập bằng email",
     "heroLine1": "LOG IN",
     "heroLine2": "TO SECOND BITE",
-    "or": "hoặc dùng email",
+    "or": "hoặc",
     "google": "Tiếp tục với Google",
     "emailLabel": "Email",
     "emailPlaceholder": "ten@gmail.com",
+    "usernameLabel": "Tên đăng nhập",
+    "usernamePlaceholder": "Nhập tên đăng nhập",
+    "passwordLabel": "Mật khẩu",
+    "passwordPlaceholder": "Nhập mật khẩu",
+    "signIn": "Đăng nhập",
+    "signingIn": "Đang đăng nhập…",
+    "emailSignIn": "Đăng nhập bằng email",
+    "noAccount": "Chưa có tài khoản?",
+    "register": "Đăng ký",
+    "usePassword": "Đăng nhập bằng tên đăng nhập",
     "sendCode": "Gửi mã",
-    "sendCodeHere": "Gửi mã đến email này",
     "sending": "Đang gửi mã…",
     "legal": "Khi tiếp tục, bạn đồng ý với <terms>Điều khoản sử dụng</terms><br></br>và <privacy>Chính sách quyền riêng tư</privacy>.",
     "codeHeading": "Nhập mã",
@@ -364,7 +375,31 @@
     "notArrived": "Chưa thấy email? Xem trong thư rác (Spam).",
     "errors": {
       "email": "Nhập một địa chỉ email, ví dụ ten@gmail.com.",
-      "code": "Nhập đủ 6 số của mã trong email."
+      "code": "Nhập đủ 6 số của mã trong email.",
+      "username": "Nhập tên đăng nhập.",
+      "password": "Nhập mật khẩu."
+    }
+  },
+  "Register": {
+    "title": "Tạo tài khoản",
+    "heading": "Tạo tài khoản",
+    "heroLine1": "SIGN UP",
+    "heroLine2": "TO SECOND BITE",
+    "usernameLabel": "Tên đăng nhập",
+    "usernamePlaceholder": "Nhập tên đăng nhập",
+    "passwordLabel": "Mật khẩu",
+    "passwordPlaceholder": "Nhập mật khẩu",
+    "confirmLabel": "Nhập lại mật khẩu",
+    "confirmPlaceholder": "Nhập lại mật khẩu",
+    "submit": "Tạo tài khoản",
+    "submitting": "Đang tạo tài khoản…",
+    "haveAccount": "Đã có tài khoản?",
+    "signIn": "Đăng nhập",
+    "failed": "Chưa tạo được tài khoản. Vui lòng thử lại.",
+    "errors": {
+      "username": "Tên đăng nhập gồm 3 đến 30 ký tự: chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.",
+      "password": "Mật khẩu gồm 8 đến 128 ký tự.",
+      "mismatch": "Mật khẩu nhập lại chưa khớp."
     }
   },
   "Account": {
@@ -693,7 +728,8 @@
     "saving": "Đang lưu…",
     "cancel": "Huỷ",
     "nameFailed": "Chưa lưu được tên. Thử lại sau ít phút.",
-    "nameInvalid": "Nhập tên hiển thị từ 1 đến 50 ký tự."
+    "nameInvalid": "Nhập tên hiển thị từ 1 đến 50 ký tự.",
+    "username": "Tên đăng nhập"
   },
   "DeleteAccount": {
     "title": "Xoá tài khoản",
@@ -735,8 +771,12 @@
     "doneBody": "Tài khoản và dữ liệu cá nhân của bạn đã được xoá. Bạn vẫn có thể đăng nhập lại bằng email này bất cứ lúc nào, như một tài khoản mới.",
     "home": "Về trang chủ",
     "errors": {
-      "code": "Nhập đủ 6 số của mã trong email."
-    }
+      "code": "Nhập đủ 6 số của mã trong email.",
+      "password": "Nhập mật khẩu của bạn."
+    },
+    "passwordBody": "Nhập mật khẩu của tài khoản <strong>{username}</strong> để xác nhận bạn muốn xoá tài khoản.",
+    "passwordLabel": "Mật khẩu",
+    "passwordPlaceholder": "Nhập mật khẩu"
   },
   "OpenStore": {
     "title": "Mở quán",
@@ -1441,7 +1481,8 @@
       },
       "method": {
         "code": "Mã email",
-        "google": "Google"
+        "google": "Google",
+        "password": "Mật khẩu"
       },
       "sellerRole": "{seller} · {role, select, owner {Chủ} other {Nhân viên}}",
       "neverSignedIn": "Chưa đăng nhập",
@@ -1514,7 +1555,8 @@
         "failed": "Chưa thu quyền của {name} được",
         "unreachable": "Chưa kết nối được máy chủ. Thử lại sau giây lát.",
         "self": "Không tự thu quyền của mình",
-        "last": "Quản trị viên cuối cùng"
+        "last": "Quản trị viên cuối cùng",
+        "noEmail": "Tài khoản này đăng nhập bằng tên đăng nhập, không có email, nên không cấp quyền quản trị được."
       },
       "promote": {
         "open": "Cấp quyền quản trị",

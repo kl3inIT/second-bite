@@ -76,7 +76,9 @@ export function AccountDetail({
                 <RoleBadge role={account.role} />
               </div>
               {account.displayName && (
-                <p className="text-body-sm break-all text-muted-foreground">{account.email}</p>
+                <p className="text-body-sm break-all text-muted-foreground">
+                  {account.email || account.username}
+                </p>
               )}
             </div>
             {action}

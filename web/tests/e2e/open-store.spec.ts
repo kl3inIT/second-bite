@@ -52,7 +52,7 @@ test.setTimeout(90_000);
 
 /** Signs in with the stub's right code and lands on `returnTo`. */
 async function signIn(page: Page, email: string, returnTo: string) {
-  await page.goto(`/vi/sign-in?returnTo=${encodeURIComponent(returnTo)}`);
+  await page.goto(`/vi/sign-in/email?returnTo=${encodeURIComponent(returnTo)}`);
   await (await hydrated(page.getByLabel("Email"))).fill(email);
   await page.getByRole("button", { name: "Gửi mã" }).click();
   await page.getByLabel("Mã đăng nhập 6 số").fill("123456");
@@ -66,6 +66,8 @@ test.describe("opening a store on the web", () => {
   }, testInfo) => {
     await page.goto("/vi/open-store");
     await expect(page).toHaveURL(/\/vi\/sign-in\?returnTo=%2Fopen-store$/);
+    await (await hydrated(page.getByRole("link", { name: "Đăng nhập bằng email" }))).click();
+    await expect(page).toHaveURL(/\/vi\/sign-in\/email\?returnTo=%2Fopen-store$/);
 
     await (
       await hydrated(page.getByLabel("Email"))

@@ -1,18 +1,17 @@
 "use client";
 
 import { revalidateLogic } from "@tanstack/react-form";
-import { MailWarningIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { z } from "zod";
 
 import { refuse, useAppForm } from "@/components/form/app-form";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
-import { requestSignInCode, signIn, signInWithGoogle } from "@/lib/api/generated";
+import { requestSignInCode, signIn } from "@/lib/api/generated";
+import { cn } from "@/lib/utils";
 
 import {
   CodeField,
@@ -22,26 +21,19 @@ import {
   RESEND_AFTER_SECONDS,
   ResendCode,
 } from "./code-field";
-import { emailInToken, GoogleButton } from "./google-button";
 
 /** One plain address, as the server's rule reads it (server/internal/identity, normalizeEmail) at its simplest. */
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 type Step =
-  | { name: "email"; googleNeedsCode?: string }
-  | { name: "code"; email: string; challengeId: string; resendAt: number };
+  { name: "email" } | { name: "code"; email: string; challengeId: string; resendAt: number };
 
-// The sign-in screen's form (SEC-29, Figma "Đăng nhập" L1–L4, from shadcn's login-05 block): Google's button, or
-// an address and the six-digit code emailed to it. Either way the session arrives as the httpOnly cookie, and the
+// The emailed-code sign-in (SEC-29, Figma "Đăng nhập bằng email" L12 and "Nhập mã" L9, from shadcn's login-05
+// block), on a screen of its own since SEC-193 made the username and the password the way in the sign-in screen
+// opens on: an address and the six-digit code emailed to it. The session arrives as the httpOnly cookie, and the
 // person goes back to the page that sent them. Each step is a form of its own (docs/guidelines/web.md › Forms); the
 // server's words for a refusal go under the field they concern, or above the button (SEC-28).
-export function SignInForm({
-  returnTo,
-  googleClientId,
-}: {
-  returnTo: string;
-  googleClientId?: string;
-}) {
+export function SignInForm({ returnTo }: { returnTo: string }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>({ name: "email" });
   const [email, setEmail] = useState("");
@@ -71,37 +63,19 @@ export function SignInForm({
       />
     );
   }
-  return (
-    <EmailStep
-      // An address Google named starts the form again with it.
-      key={step.googleNeedsCode ?? ""}
-      email={step.googleNeedsCode || email}
-      googleNeedsCode={step.googleNeedsCode}
-      googleClientId={googleClientId}
-      onSent={sent}
-      onGoogleNeedsCode={(address) => setStep({ name: "email", googleNeedsCode: address })}
-      onSignedIn={signedIn}
-    />
-  );
+  return <EmailStep email={email} returnTo={returnTo} onSent={sent} />;
 }
 
 function EmailStep({
   email,
-  googleNeedsCode,
-  googleClientId,
+  returnTo,
   onSent,
-  onGoogleNeedsCode,
-  onSignedIn,
 }: {
   email: string;
-  googleNeedsCode?: string;
-  googleClientId?: string;
+  returnTo: string;
   onSent: (email: string, challengeId: string) => void;
-  onGoogleNeedsCode: (address: string) => void;
-  onSignedIn: () => void;
 }) {
   const t = useTranslations("SignIn");
-  const [google, startGoogle] = useTransition();
 
   const form = useAppForm({
     defaultValues: { email },
@@ -122,23 +96,6 @@ function EmailStep({
     },
   });
 
-  function continueWithGoogle(idToken: string, nonce: string) {
-    startGoogle(async () => {
-      try {
-        await signInWithGoogle({ body: { idToken, nonce, session: "cookie" } });
-        onSignedIn();
-      } catch (error) {
-        if (error instanceof ApiError && error.code === "IDENTITY_GOOGLE_LINK_REQUIRED") {
-          // The address already has an account and Google does not speak for it: the emailed code proves it
-          // today (SEC-29 › decision 4).
-          onGoogleNeedsCode(emailInToken(idToken) ?? "");
-          return;
-        }
-        refuse(form, error);
-      }
-    });
-  }
-
   return (
     <form
       id={form.formId}
@@ -149,28 +106,7 @@ function EmailStep({
       }}
     >
       <FieldGroup>
-        <h1 className="text-page-title text-foreground">{t("heading")}</h1>
-        {googleNeedsCode !== undefined && (
-          <Alert variant="warning">
-            <MailWarningIcon aria-hidden />
-            <AlertTitle>{t("googleNeedsCodeTitle")}</AlertTitle>
-            <AlertDescription>
-              {googleNeedsCode
-                ? t("googleNeedsCodeBody", { email: googleNeedsCode })
-                : t("googleNeedsCodeBodyNoAddress")}
-            </AlertDescription>
-          </Alert>
-        )}
-        {googleClientId && googleNeedsCode === undefined && (
-          <>
-            <GoogleButton clientId={googleClientId} onCredential={continueWithGoogle} />
-            <div className="flex items-center gap-3 text-label text-muted-foreground">
-              <span aria-hidden className="h-px flex-1 bg-border" />
-              {t("or")}
-              <span aria-hidden className="h-px flex-1 bg-border" />
-            </div>
-          </>
-        )}
+        <h1 className="text-page-title text-foreground">{t("emailHeading")}</h1>
         <form.AppField name="email">
           {(field) => (
             <field.TextField
@@ -188,10 +124,16 @@ function EmailStep({
         </form.AppField>
         <form.AppForm>
           <form.FormError fallback={t("failed")} />
-          <form.SubmitButton size="lg" disabled={google} pendingLabel={t("sending")}>
-            {googleNeedsCode !== undefined ? t("sendCodeHere") : t("sendCode")}
+          <form.SubmitButton size="lg" pendingLabel={t("sending")}>
+            {t("sendCode")}
           </form.SubmitButton>
         </form.AppForm>
+        <Link
+          href={{ pathname: "/sign-in", query: { returnTo } }}
+          className={cn(buttonVariants({ variant: "link", size: "inline" }), "self-center")}
+        >
+          {t("usePassword")}
+        </Link>
         <FieldDescription className="text-center">
           {t.rich("legal", {
             terms: (chunks) => (

@@ -12,7 +12,11 @@ import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
-import { deleteMyAccount, requestAccountDeletionCode } from "@/lib/api/generated";
+import {
+  deleteMyAccount,
+  deleteMyAccountWithPassword,
+  requestAccountDeletionCode,
+} from "@/lib/api/generated";
 
 import {
   CodeField,
@@ -205,6 +209,76 @@ function CodeStep({
             </>
           )}
         </form.Subscribe>
+      </FieldGroup>
+    </form>
+  );
+}
+
+// Deleting an account made with a username (SEC-193), which has no address to email a code to: the password confirms
+// it. The deletion is final, so it waits for the button. A wrong password counts with the tries to sign in, and the
+// server's words say so under the field.
+export function DeleteAccountWithPasswordForm({ username }: { username: string }) {
+  const t = useTranslations("DeleteAccount");
+  const router = useRouter();
+
+  const form = useAppForm({
+    defaultValues: { password: "" },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: z.object({ password: z.string().min(1, t("errors.password")) }) },
+    onSubmit: async ({ value, formApi }) => {
+      try {
+        await deleteMyAccountWithPassword({ body: { password: value.password } });
+      } catch (error) {
+        formApi.setFieldValue("password", "");
+        refuse(formApi, error, { IDENTITY_PASSWORD_INCORRECT: "password" });
+        return;
+      }
+      router.replace({ pathname: "/delete-account", query: { done: "1" } });
+    },
+  });
+
+  return (
+    <form
+      id={form.formId}
+      noValidate
+      onSubmit={(event) => {
+        event.preventDefault();
+        void form.handleSubmit();
+      }}
+    >
+      <FieldGroup>
+        <p className="text-body-sm">
+          {t.rich("passwordBody", {
+            username,
+            strong: (chunks) => <strong className="text-body-sm-strong">{chunks}</strong>,
+          })}
+        </p>
+        <form.AppField name="password">
+          {(field) => (
+            <field.TextField
+              label={t("passwordLabel")}
+              type="password"
+              autoComplete="current-password"
+              required
+              placeholder={t("passwordPlaceholder")}
+            />
+          )}
+        </form.AppField>
+        <p className="text-body-sm-strong">{t("final")}</p>
+        <form.AppForm>
+          <form.FormError fallback={t("failed")} />
+          <div className="flex flex-col gap-2">
+            <form.SubmitButton size="lg" variant="danger" pendingLabel={t("deleting")}>
+              {t("confirm")}
+            </form.SubmitButton>
+            <Link
+              href="/account/settings"
+              className={buttonVariants({ variant: "outline", size: "lg" })}
+            >
+              {t("cancel")}
+            </Link>
+          </div>
+        </form.AppForm>
       </FieldGroup>
     </form>
   );

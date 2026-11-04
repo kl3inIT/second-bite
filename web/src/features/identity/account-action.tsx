@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 
+import { accountHandle } from "./account-label";
 import { AccountMenu } from "./account-menu";
 import { getCurrentAccount } from "./current-account";
 
@@ -21,7 +22,7 @@ export async function AccountAction({ returnTo }: { returnTo: string }) {
             {t("openStore")}
           </span>
         </Link>
-        <AccountMenu email={account.email} displayName={account.displayName} />
+        <AccountMenu email={accountHandle(account)} displayName={account.displayName} />
       </div>
     );
   }

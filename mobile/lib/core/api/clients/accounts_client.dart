@@ -7,6 +7,7 @@ import 'package:retrofit/retrofit.dart';
 
 import '../models/account_body.dart';
 import '../models/delete_account_input_body.dart';
+import '../models/delete_account_with_password_input_body.dart';
 import '../models/request_code_output_body.dart';
 import '../models/set_display_name_input_body.dart';
 
@@ -39,4 +40,12 @@ abstract class AccountsClient {
   /// The code confirms the deletion only; it cannot sign in. It shares the address's limits with the sign-in codes.
   @POST('/accounts/me/deletion-codes')
   Future<RequestCodeOutputBody> requestAccountDeletionCode();
+
+  /// Delete the signed-in account with its password.
+  ///
+  /// For an account made with a username, which has no address to email a code to. Deletes the account and its sessions at once; its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. A seller the account owned is blocked. The session cookie is cleared. A wrong password counts with the tries to sign in.
+  @POST('/accounts/me/password-deletion')
+  Future<void> deleteMyAccountWithPassword({
+    @Body() required DeleteAccountWithPasswordInputBody body,
+  });
 }

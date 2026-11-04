@@ -217,7 +217,7 @@ func (s *Service) SignIn(ctx context.Context, challengeID uuid.UUID, code string
 			return err
 		}
 
-		session, err = s.openSession(ctx, q, Account{ID: account.ID, Email: account.Email, Role: platform.Role(account.Role), DisplayName: account.DisplayName}, methodCode)
+		session, err = s.openSession(ctx, q, Account{ID: account.ID, Email: account.Email, Username: account.Username, Role: platform.Role(account.Role), DisplayName: account.DisplayName}, methodCode)
 
 		return err
 	})
@@ -264,8 +264,9 @@ func (s *Service) dropUntrustedLogins(ctx context.Context, q *db.Queries, accoun
 
 // The ways to sign in, as an account's last sign-in records them.
 const (
-	methodCode   = "code"
-	methodGoogle = "google"
+	methodCode     = "code"
+	methodGoogle   = "google"
+	methodPassword = "password"
 )
 
 // openSession opens a session for a, which signed in by method, and records

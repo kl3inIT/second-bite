@@ -13,7 +13,7 @@ const onePixel =
 
 /** Signs in with the stub's right code and lands on the form that opens a store. */
 async function signIn(page: Page, email: string) {
-  await page.goto(`/vi/sign-in?returnTo=${encodeURIComponent("/open-store")}`);
+  await page.goto(`/vi/sign-in/email?returnTo=${encodeURIComponent("/open-store")}`);
   await (await hydrated(page.getByLabel("Email"))).fill(email);
   await page.getByRole("button", { name: "Gửi mã" }).click();
   await page.getByLabel("Mã đăng nhập 6 số").fill("123456");

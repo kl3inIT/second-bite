@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/app-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AccountAction } from "@/features/identity/account-action";
+import { accountHandle, accountLabel } from "@/features/identity/account-label";
 import { getCurrentAccount } from "@/features/identity/current-account";
 import { DisplayNameRow } from "@/features/identity/display-name-row";
 import { getMySellers } from "@/features/identity/my-sellers";
@@ -73,10 +74,10 @@ async function Settings() {
         </span>
         <div className="flex min-w-0 flex-col">
           <h2 id="settings-who" className="truncate text-title">
-            {account.displayName || account.email}
+            {accountLabel(account)}
           </h2>
           {account.displayName && (
-            <p className="truncate text-body-sm text-muted-foreground">{account.email}</p>
+            <p className="truncate text-body-sm text-muted-foreground">{accountHandle(account)}</p>
           )}
         </div>
       </section>
@@ -89,7 +90,11 @@ async function Settings() {
           {t("details")}
         </h2>
         <dl className="flex flex-col">
-          <Row label={t("email")}>{account.email}</Row>
+          {account.email ? (
+            <Row label={t("email")}>{account.email}</Row>
+          ) : (
+            <Row label={t("username")}>{account.username}</Row>
+          )}
           <DisplayNameRow name={account.displayName} />
           {sellers.length > 0 && (
             <Row label={t("sellers")}>
