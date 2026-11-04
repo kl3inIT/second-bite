@@ -713,14 +713,14 @@ async function auth(request, response, url) {
     return true;
   }
   // Registering and signing in with a username and a password (SEC-193), as the server answers them: a username
-  // is 3 to 30 letters, digits, '.', '_' and '-' and one whatever its case, a password 8 to 128 characters and not
-  // the username; a taken username is refused, a wrong password and an unknown username alike, and "limit.user"
+  // is 3 to 30 letters, digits, '.', '_' and '-', kept as typed and matched exactly (Lan and lan are two names), a
+  // password 8 to 128 characters and not the username; a taken username is refused, a wrong password and an unknown username alike, and "limit.user"
   // has used its tries.
   if (request.method === "POST" && url.pathname === "/auth/accounts") {
     const { username, password, session } = await readBody(request);
-    const name = String(username ?? "").toLowerCase();
+    const name = String(username ?? "");
     const length = Array.from(String(password ?? "")).length;
-    if (!/^[a-z0-9][a-z0-9._-]{1,28}[a-z0-9]$/.test(name)) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9._-]{1,28}[A-Za-z0-9]$/.test(name)) {
       problem(response, 400, "IDENTITY_USERNAME_INVALID");
     } else if (length < 8 || length > 128 || password === name) {
       problem(response, 400, "IDENTITY_PASSWORD_INVALID");
@@ -734,7 +734,7 @@ async function auth(request, response, url) {
   }
   if (request.method === "POST" && url.pathname === "/auth/password-sessions") {
     const { username, password, session } = await readBody(request);
-    const name = String(username ?? "").toLowerCase();
+    const name = String(username ?? "");
     if (name === "limit.user") {
       problem(response, 429, "IDENTITY_SIGN_IN_LIMIT_EXCEEDED");
     } else if (!passwords.has(name) || passwords.get(name) !== password) {
