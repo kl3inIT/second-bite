@@ -280,5 +280,5 @@ func fillName(ctx context.Context, q *db.Queries, id uuid.UUID, name string) (Ac
 		return Account{}, fmt.Errorf("naming the account: %w", err)
 	}
 
-	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
+	return Account{ID: row.ID, Email: row.Email, Username: row.Username, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
 }

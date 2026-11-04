@@ -41,7 +41,7 @@ func (s *Service) SetDisplayName(ctx context.Context, name string) (Account, err
 		return Account{}, fmt.Errorf("setting the display name: %w", err)
 	}
 
-	return Account{ID: row.ID, Email: row.Email, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
+	return Account{ID: row.ID, Email: row.Email, Username: row.Username, Role: platform.Role(row.Role), DisplayName: row.DisplayName}, nil
 }
 
 // normalizeDisplayName trims raw and reports whether it is a name a person

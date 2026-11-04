@@ -436,7 +436,7 @@ func (q *Queries) FindAccountByEmail(ctx context.Context, email string) (FindAcc
 
 const findAccountForPassword = `-- name: FindAccountForPassword :one
 SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name, coalesce(password_hash, '')::text AS password_hash
-FROM identity_accounts WHERE username = $1
+FROM identity_accounts WHERE username = $1::text
 `
 
 type FindAccountForPasswordRow struct {
@@ -449,7 +449,7 @@ type FindAccountForPasswordRow struct {
 }
 
 // The account of a username and the hash its password is checked against.
-func (q *Queries) FindAccountForPassword(ctx context.Context, username pgtype.Text) (FindAccountForPasswordRow, error) {
+func (q *Queries) FindAccountForPassword(ctx context.Context, username string) (FindAccountForPasswordRow, error) {
 	row := q.db.QueryRow(ctx, findAccountForPassword, username)
 	var i FindAccountForPasswordRow
 	err := row.Scan(
@@ -745,14 +745,14 @@ func (q *Queries) InsertExternalLogin(ctx context.Context, arg InsertExternalLog
 }
 
 const insertPasswordAccount = `-- name: InsertPasswordAccount :one
-INSERT INTO identity_accounts (username, password_hash) VALUES ($1, $2)
+INSERT INTO identity_accounts (username, password_hash) VALUES ($1::text, $2::text)
 ON CONFLICT (username) DO NOTHING
 RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name
 `
 
 type InsertPasswordAccountParams struct {
-	Username     pgtype.Text
-	PasswordHash pgtype.Text
+	Username     string
+	PasswordHash string
 }
 
 type InsertPasswordAccountRow struct {

@@ -19,7 +19,7 @@ type recordBody struct {
 	DisplayName      string        `json:"displayName"                doc:"Empty until Google gives one or the person sets it"`
 	CreatedAt        time.Time     `json:"createdAt"`
 	LastSignedInAt   *time.Time    `json:"lastSignedInAt,omitempty"   doc:"Absent until it signs in"`
-	LastSignInMethod string        `json:"lastSignInMethod,omitempty" doc:"How it last signed in: an emailed code or Google" enum:"code,google"`
+	LastSignInMethod string        `json:"lastSignInMethod,omitempty" doc:"How it last signed in: an emailed code, Google or a password" enum:"code,google,password"`
 }
 
 func toRecordBody(r Record) recordBody {

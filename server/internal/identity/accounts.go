@@ -102,7 +102,7 @@ func (s *Service) ListAccounts(ctx context.Context, f AccountFilter) (AccountPag
 
 	for _, r := range rows {
 		page.Accounts = append(page.Accounts, recordOf(db.GetAccountForAdminsRow{
-			ID: r.ID, Email: r.Email, Role: r.Role, DisplayName: r.DisplayName, CreatedAt: r.CreatedAt,
+			ID: r.ID, Email: r.Email, Username: r.Username, Role: r.Role, DisplayName: r.DisplayName, CreatedAt: r.CreatedAt,
 			LastSignedInAt: r.LastSignedInAt, LastSignInMethod: r.LastSignInMethod,
 		}))
 	}
@@ -155,7 +155,7 @@ func escapeLike(s string) string {
 
 func recordOf(r db.GetAccountForAdminsRow) Record {
 	return Record{
-		ID: r.ID, Email: r.Email, Role: platform.Role(r.Role), DisplayName: r.DisplayName,
+		ID: r.ID, Email: r.Email, Username: r.Username, Role: platform.Role(r.Role), DisplayName: r.DisplayName,
 		CreatedAt:        r.CreatedAt,
 		LastSignedInAt:   r.LastSignedInAt,
 		LastSignInMethod: textOf(r.LastSignInMethod),

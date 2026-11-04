@@ -223,14 +223,14 @@ SELECT count(*) FROM identity_accounts WHERE created_at < @until;
 -- name: InsertPasswordAccount :one
 -- A person registers with a username and no email (SEC-193). A name already
 -- taken gives no row; names are kept in lower case, so case does not tell two apart.
-INSERT INTO identity_accounts (username, password_hash) VALUES (@username, @password_hash)
+INSERT INTO identity_accounts (username, password_hash) VALUES (@username::text, @password_hash::text)
 ON CONFLICT (username) DO NOTHING
 RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name;
 
 -- name: FindAccountForPassword :one
 -- The account of a username and the hash its password is checked against.
 SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name, coalesce(password_hash, '')::text AS password_hash
-FROM identity_accounts WHERE username = @username;
+FROM identity_accounts WHERE username = @username::text;
 
 -- name: GetPasswordHash :one
 -- The hash a signed-in account confirms its deletion against; empty when it has no password.

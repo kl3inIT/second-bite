@@ -188,7 +188,7 @@ func (s *Service) revokeAdmin(
 }
 
 func accountOf(r db.GetAccountRow) Account {
-	return Account{ID: r.ID, Email: r.Email, Role: platform.Role(r.Role), DisplayName: r.DisplayName}
+	return Account{ID: r.ID, Email: r.Email, Username: r.Username, Role: platform.Role(r.Role), DisplayName: r.DisplayName}
 }
 
 // accountResource is the account as the audit trail names it.
