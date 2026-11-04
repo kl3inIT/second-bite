@@ -254,6 +254,29 @@ func (s *Service) DeleteAccountWithPassword(ctx context.Context, password string
 		return ErrNoPassword
 	}
 
+	if err := s.confirmPassword(ctx, account, password); err != nil {
+		return err
+	}
+
+	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		return s.removeAccountIn(ctx, tx, account)
+	})
+	if err != nil {
+		return err
+	}
+
+	s.logger.InfoContext(ctx, "account deleted",
+		slog.String("event", "identity.account.deleted"),
+		slog.String("account_id", account.ID.String()),
+	)
+
+	return nil
+}
+
+// confirmPassword checks the password an account made with a username confirms
+// its deletion with. A try is counted before the password is compared and given
+// back when it was right or could not be judged; a wrong one keeps its count.
+func (s *Service) confirmPassword(ctx context.Context, account Account, password string) error {
 	if utf8.RuneCountInString(password) > maxPasswordLength {
 		return ErrPasswordIncorrect
 	}
@@ -288,18 +311,6 @@ func (s *Service) DeleteAccountWithPassword(ctx context.Context, password string
 	}
 
 	s.wrongPasswords.refund(account.Username, start)
-
-	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
-		return s.removeAccountIn(ctx, tx, account)
-	})
-	if err != nil {
-		return err
-	}
-
-	s.logger.InfoContext(ctx, "account deleted",
-		slog.String("event", "identity.account.deleted"),
-		slog.String("account_id", account.ID.String()),
-	)
 
 	return nil
 }

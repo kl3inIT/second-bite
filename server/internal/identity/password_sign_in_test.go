@@ -12,7 +12,15 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
 )
 
-const lanPassword = "correct horse battery"
+const (
+	lanPassword   = "correct horse battery"
+	wrongPassword = "wrong password"
+	lanAnh        = "lan.anh"
+	limitUser     = "limit.user"
+	nobodyHere    = "nobody.here"
+	minhTran      = "minh.tran"
+	guessUser     = "guess.user"
+)
 
 // TestRegisterAndSignInWithPassword checks the rules below the HTTP flow of
 // cmd/secondbite (SEC-193): an account made with a username has no email, is
@@ -29,13 +37,13 @@ func TestRegisterAndSignInWithPassword(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if a := session.Account; a.Username != "lan.anh" || a.Email != "" || a.Role != platform.RoleCustomer || a.Label() != "lan.anh" {
+	if a := session.Account; a.Username != lanAnh || a.Email != "" || a.Role != platform.RoleCustomer || a.Label() != lanAnh {
 		t.Errorf("account %+v: want the username lan.anh, no email, a customer", a)
 	}
 
 	// The session works: it finds its caller, named by the username.
 	caller, err := s.findCaller(t.Context(), session.Token)
-	if err != nil || caller.AccountID != session.Account.ID || caller.Label != "lan.anh" {
+	if err != nil || caller.AccountID != session.Account.ID || caller.Label != lanAnh {
 		t.Errorf("findCaller: %+v, %v", caller, err)
 	}
 
@@ -60,11 +68,11 @@ func TestRegisterAndSignInWithPassword(t *testing.T) {
 	}
 
 	for _, c := range []struct{ username, password string }{
-		{"lan.anh", lanPassword + "x"},
-		{"lan.anh", ""},
-		{"nobody.here", lanPassword},
+		{lanAnh, lanPassword + "x"},
+		{lanAnh, ""},
+		{nobodyHere, lanPassword},
 		{strings.Repeat("a", 31), lanPassword},
-		{"lan.anh", strings.Repeat("a", 129)},
+		{lanAnh, strings.Repeat("a", 129)},
 	} {
 		if _, err := s.SignInWithPassword(t.Context(), c.username, c.password); !errors.Is(err, ErrCredentialsIncorrect) {
 			t.Errorf("SignInWithPassword(%q, %d characters): %v, want ErrCredentialsIncorrect", c.username, len(c.password), err)
@@ -80,11 +88,11 @@ func checkRegisterRefusals(t *testing.T, s *Service) {
 		want               error
 	}{
 		{"LAN.ANH", lanPassword, ErrUsernameTaken},
-		{"lan.anh", "another password", ErrUsernameTaken},
+		{lanAnh, "another password", ErrUsernameTaken},
 		{"ab", lanPassword, ErrUsernameInvalid},
 		{"lan anh", lanPassword, ErrUsernameInvalid},
-		{"minh.tran", "short", ErrPasswordInvalid},
-		{"minh.tran", "minh.tran", ErrPasswordInvalid},
+		{minhTran, "short", ErrPasswordInvalid},
+		{minhTran, minhTran, ErrPasswordInvalid},
 	} {
 		if _, err := s.Register(t.Context(), c.username, c.password); !errors.Is(err, c.want) {
 			t.Errorf("Register(%q, %q): %v, want %v", c.username, c.password, err, c.want)
@@ -102,42 +110,42 @@ func TestPasswordTriesAreLimited(t *testing.T) {
 	pool := platformtest.StartPostgres(t)
 	s := newDeletionService(t, pool)
 
-	if _, err := s.Register(t.Context(), "limit.user", lanPassword); err != nil {
+	if _, err := s.Register(t.Context(), limitUser, lanPassword); err != nil {
 		t.Fatal(err)
 	}
 
 	wrong := func(username string) {
 		t.Helper()
 
-		if _, err := s.SignInWithPassword(t.Context(), username, "wrong password"); !errors.Is(err, ErrCredentialsIncorrect) {
+		if _, err := s.SignInWithPassword(t.Context(), username, wrongPassword); !errors.Is(err, ErrCredentialsIncorrect) {
 			t.Fatalf("a wrong password for %s: %v, want ErrCredentialsIncorrect", username, err)
 		}
 	}
 
 	// Three wrong, one right (given back), two wrong: five wrong in all.
 	for range 3 {
-		wrong("limit.user")
+		wrong(limitUser)
 	}
 
-	if _, err := s.SignInWithPassword(t.Context(), "limit.user", lanPassword); err != nil {
+	if _, err := s.SignInWithPassword(t.Context(), limitUser, lanPassword); err != nil {
 		t.Fatalf("the right password after three wrong ones: %v", err)
 	}
 
-	wrong("limit.user")
-	wrong("limit.user")
+	wrong(limitUser)
+	wrong(limitUser)
 
 	// The sixth try is refused, the right password included, and says when.
-	_, err := s.SignInWithPassword(t.Context(), "limit.user", lanPassword)
+	_, err := s.SignInWithPassword(t.Context(), limitUser, lanPassword)
 	if f, ok := platform.AsFailure(err); !ok || f.Code != ErrSignInLimitExceeded.Code || f.RetryAfter <= 0 {
 		t.Fatalf("the sixth try: %v, want ErrSignInLimitExceeded with a wait", err)
 	}
 
 	// A name nobody has is counted too, so the refusal tells nothing about it.
 	for range 5 {
-		wrong("nobody.here")
+		wrong(nobodyHere)
 	}
 
-	_, err = s.SignInWithPassword(t.Context(), "nobody.here", "wrong password")
+	_, err = s.SignInWithPassword(t.Context(), nobodyHere, wrongPassword)
 	if f, ok := platform.AsFailure(err); !ok || f.Code != ErrSignInLimitExceeded.Code {
 		t.Errorf("the sixth try for an unknown username: %v, want ErrSignInLimitExceeded", err)
 	}
@@ -173,7 +181,7 @@ func TestDeleteAccountWithPassword(t *testing.T) {
 		t.Errorf("deleting with a code without an address: %v, want ErrNoEmail", err)
 	}
 
-	if err := s.DeleteAccountWithPassword(ctx, "wrong password"); !errors.Is(err, ErrPasswordIncorrect) {
+	if err := s.DeleteAccountWithPassword(ctx, wrongPassword); !errors.Is(err, ErrPasswordIncorrect) {
 		t.Fatalf("deleting with a wrong password: %v, want ErrPasswordIncorrect", err)
 	}
 
@@ -225,13 +233,13 @@ func TestDeletionPasswordTriesCountWithSignIn(t *testing.T) {
 	pool := platformtest.StartPostgres(t)
 	s := newDeletionService(t, pool)
 
-	session, err := s.Register(t.Context(), "guess.user", lanPassword)
+	session, err := s.Register(t.Context(), guessUser, lanPassword)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	for range 3 {
-		if _, err := s.SignInWithPassword(t.Context(), "guess.user", "wrong password"); !errors.Is(err, ErrCredentialsIncorrect) {
+		if _, err := s.SignInWithPassword(t.Context(), guessUser, wrongPassword); !errors.Is(err, ErrCredentialsIncorrect) {
 			t.Fatal(err)
 		}
 	}
@@ -239,7 +247,7 @@ func TestDeletionPasswordTriesCountWithSignIn(t *testing.T) {
 	ctx := callerCtx(t, session)
 
 	for range 2 {
-		if err := s.DeleteAccountWithPassword(ctx, "wrong password"); !errors.Is(err, ErrPasswordIncorrect) {
+		if err := s.DeleteAccountWithPassword(ctx, wrongPassword); !errors.Is(err, ErrPasswordIncorrect) {
 			t.Fatal(err)
 		}
 	}
@@ -250,7 +258,7 @@ func TestDeletionPasswordTriesCountWithSignIn(t *testing.T) {
 		t.Errorf("deleting after five wrong tries: %v, want ErrSignInLimitExceeded", err)
 	}
 
-	_, err = s.SignInWithPassword(t.Context(), "guess.user", lanPassword)
+	_, err = s.SignInWithPassword(t.Context(), guessUser, lanPassword)
 	if f, ok := platform.AsFailure(err); !ok || f.Code != ErrSignInLimitExceeded.Code {
 		t.Errorf("signing in after five wrong tries: %v, want ErrSignInLimitExceeded", err)
 	}

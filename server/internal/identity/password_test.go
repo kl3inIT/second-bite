@@ -10,6 +10,10 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
+const (
+	lanUser = "lan"
+)
+
 func TestNormalizeUsername(t *testing.T) {
 	t.Parallel()
 
@@ -17,7 +21,7 @@ func TestNormalizeUsername(t *testing.T) {
 		raw, want string
 		ok        bool
 	}{
-		{"lan", "lan", true},
+		{lanUser, lanUser, true},
 		{"Lan.Anh_99", "lan.anh_99", true},
 		{"a-b", "a-b", true},
 		{"abc", "abc", true},
@@ -55,16 +59,16 @@ func TestCheckPassword(t *testing.T) {
 		password, username string
 		ok                 bool
 	}{
-		{"correct horse", "lan", true},
-		{"12345678", "lan", true},
-		{"mật khẩu dài", "lan", true},
-		{strings.Repeat("ă", 128), "lan", true},
-		{strings.Repeat("ă", 129), "lan", false},
-		{"1234567", "lan", false},
-		{"", "lan", false},
+		{"correct horse", lanUser, true},
+		{"12345678", lanUser, true},
+		{"mật khẩu dài", lanUser, true},
+		{strings.Repeat("ă", 128), lanUser, true},
+		{strings.Repeat("ă", 129), lanUser, false},
+		{"1234567", lanUser, false},
+		{"", lanUser, false},
 		{"lan.anh_99", "lan.anh_99", false},
 		{"LAN.ANH_99", "lan.anh_99", false},
-		{"\xff\xfe\xfd\xfc\xfb\xfa\xf9\xf8", "lan", false},
+		{"\xff\xfe\xfd\xfc\xfb\xfa\xf9\xf8", lanUser, false},
 	}
 
 	for _, c := range cases {
