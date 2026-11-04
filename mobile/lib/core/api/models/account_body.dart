@@ -14,9 +14,14 @@ abstract class AccountBody with _$AccountBody {
   const factory AccountBody({
     /// Empty until Google gives one or the person sets it
     required String displayName,
+
+    /// Empty for an account made with a username
     required String email,
     required String id,
     required AccountBodyRole role,
+
+    /// Empty for an account that signs in by email or Google
+    required String username,
   }) = _AccountBody;
 
   factory AccountBody.fromJson(Map<String, Object?> json) =>

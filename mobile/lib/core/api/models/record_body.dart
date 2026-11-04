@@ -17,11 +17,16 @@ abstract class RecordBody with _$RecordBody {
 
     /// Empty until Google gives one or the person sets it
     required String displayName,
+
+    /// Empty for an account made with a username
     required String email,
     required String id,
     required RecordBodyRole role,
 
-    /// How it last signed in: an emailed code or Google
+    /// Empty for an account that signs in by email or Google
+    required String username,
+
+    /// How it last signed in: an emailed code, Google or a password
     RecordBodyLastSignInMethod? lastSignInMethod,
 
     /// Absent until it signs in

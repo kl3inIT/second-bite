@@ -4,13 +4,15 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-/// How it last signed in: an emailed code or Google
+/// How it last signed in: an emailed code, Google or a password
 @JsonEnum()
 enum RecordBodyLastSignInMethod {
   @JsonValue('code')
   code('code'),
   @JsonValue('google')
   google('google'),
+  @JsonValue('password')
+  password('password'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

@@ -17,7 +17,9 @@ T _$identity<T>(T value) => value;
 mixin _$AccountBody {
 
 /// Empty until Google gives one or the person sets it
- String get displayName; String get email; String get id; AccountBodyRole get role;
+ String get displayName;/// Empty for an account made with a username
+ String get email; String get id; AccountBodyRole get role;/// Empty for an account that signs in by email or Google
+ String get username;
 /// Create a copy of AccountBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -31,20 +33,20 @@ $AccountBodyCopyWith<AccountBody> get copyWith => _$AccountBodyCopyWithImpl<Acco
 @override
 bool operator ==(Object other) {
   final _this = this as AccountBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AccountBody&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.role, _this.role) || other.role == _this.role));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AccountBody&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.role, _this.role) || other.role == _this.role)&&(identical(other.username, _this.username) || other.username == _this.username));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as AccountBody;
-  return Object.hash(runtimeType,_this.displayName,_this.email,_this.id,_this.role);
+  return Object.hash(runtimeType,_this.displayName,_this.email,_this.id,_this.role,_this.username);
 }
 
 @override
 String toString() {
   final _this = this as AccountBody;
-  return 'AccountBody(displayName: ${_this.displayName}, email: ${_this.email}, id: ${_this.id}, role: ${_this.role})';
+  return 'AccountBody(displayName: ${_this.displayName}, email: ${_this.email}, id: ${_this.id}, role: ${_this.role}, username: ${_this.username})';
 }
 
 
@@ -55,7 +57,7 @@ abstract mixin class $AccountBodyCopyWith<$Res>  {
   factory $AccountBodyCopyWith(AccountBody value, $Res Function(AccountBody) _then) = _$AccountBodyCopyWithImpl;
 @useResult
 $Res call({
- String displayName, String email, String id, AccountBodyRole role
+ String displayName, String email, String id, AccountBodyRole role, String username
 });
 
 
@@ -72,13 +74,14 @@ class _$AccountBodyCopyWithImpl<$Res>
 
 /// Create a copy of AccountBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? displayName = null,Object? email = null,Object? id = null,Object? role = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? displayName = null,Object? email = null,Object? id = null,Object? role = null,Object? username = null,}) {
   return _then(AccountBody(
 displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as AccountBodyRole,
+as AccountBodyRole,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -163,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String displayName,  String email,  String id,  AccountBodyRole role)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String displayName,  String email,  String id,  AccountBodyRole role,  String username)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AccountBody() when $default != null:
-return $default(_that.displayName,_that.email,_that.id,_that.role);case _:
+return $default(_that.displayName,_that.email,_that.id,_that.role,_that.username);case _:
   return orElse();
 
 }
@@ -184,10 +187,10 @@ return $default(_that.displayName,_that.email,_that.id,_that.role);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String displayName,  String email,  String id,  AccountBodyRole role)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String displayName,  String email,  String id,  AccountBodyRole role,  String username)  $default,) {final _that = this;
 switch (_that) {
 case _AccountBody():
-return $default(_that.displayName,_that.email,_that.id,_that.role);case _:
+return $default(_that.displayName,_that.email,_that.id,_that.role,_that.username);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +207,10 @@ return $default(_that.displayName,_that.email,_that.id,_that.role);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String displayName,  String email,  String id,  AccountBodyRole role)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String displayName,  String email,  String id,  AccountBodyRole role,  String username)?  $default,) {final _that = this;
 switch (_that) {
 case _AccountBody() when $default != null:
-return $default(_that.displayName,_that.email,_that.id,_that.role);case _:
+return $default(_that.displayName,_that.email,_that.id,_that.role,_that.username);case _:
   return null;
 
 }
@@ -219,14 +222,17 @@ return $default(_that.displayName,_that.email,_that.id,_that.role);case _:
 @JsonSerializable()
 
 class _AccountBody implements AccountBody {
-  const _AccountBody({required this.displayName, required this.email, required this.id, required this.role});
+  const _AccountBody({required this.displayName, required this.email, required this.id, required this.role, required this.username});
   factory _AccountBody.fromJson(Map<String, dynamic> json) => _$AccountBodyFromJson(json);
 
 /// Empty until Google gives one or the person sets it
 @override final  String displayName;
+/// Empty for an account made with a username
 @override final  String email;
 @override final  String id;
 @override final  AccountBodyRole role;
+/// Empty for an account that signs in by email or Google
+@override final  String username;
 
 /// Create a copy of AccountBody
 /// with the given fields replaced by the non-null parameter values.
@@ -241,18 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountBody&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.id, id) || other.id == id)&&(identical(other.role, role) || other.role == role));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountBody&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.id, id) || other.id == id)&&(identical(other.role, role) || other.role == role)&&(identical(other.username, username) || other.username == username));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,displayName,email,id,role);
+    return Object.hash(runtimeType,displayName,email,id,role,username);
 }
 
 @override
 String toString() {
-    return 'AccountBody(displayName: $displayName, email: $email, id: $id, role: $role)';
+    return 'AccountBody(displayName: $displayName, email: $email, id: $id, role: $role, username: $username)';
 }
 
 
@@ -263,7 +269,7 @@ abstract mixin class _$AccountBodyCopyWith<$Res> implements $AccountBodyCopyWith
   factory _$AccountBodyCopyWith(_AccountBody value, $Res Function(_AccountBody) _then) = __$AccountBodyCopyWithImpl;
 @override @useResult
 $Res call({
- String displayName, String email, String id, AccountBodyRole role
+ String displayName, String email, String id, AccountBodyRole role, String username
 });
 
 
@@ -280,13 +286,14 @@ class __$AccountBodyCopyWithImpl<$Res>
 
 /// Create a copy of AccountBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? displayName = null,Object? email = null,Object? id = null,Object? role = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? displayName = null,Object? email = null,Object? id = null,Object? role = null,Object? username = null,}) {
   return _then(_AccountBody(
 displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as AccountBodyRole,
+as AccountBodyRole,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

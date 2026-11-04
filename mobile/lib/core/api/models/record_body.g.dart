@@ -12,6 +12,7 @@ _RecordBody _$RecordBodyFromJson(Map<String, dynamic> json) => _RecordBody(
   email: json['email'] as String,
   id: json['id'] as String,
   role: RecordBodyRole.fromJson(json['role'] as String),
+  username: json['username'] as String,
   lastSignInMethod: json['lastSignInMethod'] == null
       ? null
       : RecordBodyLastSignInMethod.fromJson(json['lastSignInMethod'] as String),
@@ -27,6 +28,7 @@ Map<String, dynamic> _$RecordBodyToJson(_RecordBody instance) =>
       'email': instance.email,
       'id': instance.id,
       'role': _$RecordBodyRoleEnumMap[instance.role]!,
+      'username': instance.username,
       'lastSignInMethod':
           _$RecordBodyLastSignInMethodEnumMap[instance.lastSignInMethod],
       'lastSignedInAt': instance.lastSignedInAt?.toIso8601String(),
@@ -41,5 +43,6 @@ const _$RecordBodyRoleEnumMap = {
 const _$RecordBodyLastSignInMethodEnumMap = {
   RecordBodyLastSignInMethod.code: 'code',
   RecordBodyLastSignInMethod.google: 'google',
+  RecordBodyLastSignInMethod.password: 'password',
   RecordBodyLastSignInMethod.$unknown: r'$unknown',
 };

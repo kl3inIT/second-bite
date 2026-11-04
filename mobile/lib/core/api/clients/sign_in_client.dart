@@ -7,6 +7,8 @@ import 'package:retrofit/retrofit.dart';
 
 import '../models/google_sign_in_input_body.dart';
 import '../models/methods_output_body.dart';
+import '../models/password_sign_in_input_body.dart';
+import '../models/register_input_body.dart';
 import '../models/request_code_input_body.dart';
 import '../models/request_code_output_body.dart';
 import '../models/session_output_body.dart';
@@ -17,6 +19,14 @@ part 'sign_in_client.g.dart';
 @RestApi()
 abstract class SignInClient {
   factory SignInClient(Dio dio, {String? baseUrl}) = _SignInClient;
+
+  /// Register with a username and a password.
+  ///
+  /// Makes an account that has no email and signs it in. A username that is taken is refused, whatever its case. The web asks for the session in a cookie.
+  @POST('/auth/accounts')
+  Future<SessionOutputBody> registerWithPassword({
+    @Body() required RegisterInputBody body,
+  });
 
   /// Sign in with Google's ID token.
   ///
@@ -29,6 +39,14 @@ abstract class SignInClient {
   /// The ways to sign in besides the emailed code
   @GET('/auth/methods')
   Future<MethodsOutputBody> getSignInMethods();
+
+  /// Sign in with a username and a password.
+  ///
+  /// An unknown username and a wrong password get the same answer. Five wrong tries of a username in fifteen minutes refuse its next ones, a right password included, until the window ends.
+  @POST('/auth/password-sessions')
+  Future<SessionOutputBody> signInWithPassword({
+    @Body() required PasswordSignInInputBody body,
+  });
 
   /// Sign in with the emailed code.
   ///
