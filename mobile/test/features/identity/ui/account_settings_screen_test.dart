@@ -84,6 +84,7 @@ void main() {
         (_) async => const AccountBody(
           id: 'ac-1',
           email: 'lan@gmail.com',
+          username: '',
           displayName: 'Trần Thị Lan',
           role: AccountBodyRole.customer,
         ),

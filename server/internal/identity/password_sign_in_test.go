@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/platform/platformtest"
@@ -37,17 +38,33 @@ func TestRegisterAndSignInWithPassword(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	checkRegisteredAccount(t, s, pool, session)
+	checkRegisterRefusals(t, s)
+
+	// Signing in, in any case, opens another session of the same account.
+	again, err := s.SignInWithPassword(t.Context(), "LAN.ANH", lanPassword)
+	if err != nil || again.Account.ID != session.Account.ID || again.Token == session.Token {
+		t.Fatalf("SignInWithPassword: %+v, %v", again, err)
+	}
+
+	checkSignInRefusals(t, s)
+}
+
+// checkRegisteredAccount checks what a registration made: an account with the
+// username, no email and a customer's role, a session that finds its caller named
+// by the username, and only a hash of the password.
+func checkRegisteredAccount(t *testing.T, s *Service, pool *pgxpool.Pool, session Session) {
+	t.Helper()
+
 	if a := session.Account; a.Username != lanAnh || a.Email != "" || a.Role != platform.RoleCustomer || a.Label() != lanAnh {
 		t.Errorf("account %+v: want the username lan.anh, no email, a customer", a)
 	}
 
-	// The session works: it finds its caller, named by the username.
 	caller, err := s.findCaller(t.Context(), session.Token)
 	if err != nil || caller.AccountID != session.Account.ID || caller.Label != lanAnh {
 		t.Errorf("findCaller: %+v, %v", caller, err)
 	}
 
-	// Only a hash is kept.
 	var hash, method string
 	if err := pool.QueryRow(t.Context(),
 		`SELECT password_hash, last_sign_in_method FROM identity_accounts WHERE id = $1`, session.Account.ID,
@@ -58,16 +75,6 @@ func TestRegisterAndSignInWithPassword(t *testing.T) {
 	if !strings.HasPrefix(hash, "$argon2id$") || strings.Contains(hash, lanPassword) || method != "password" {
 		t.Errorf("stored %q, last sign-in by %q: want an argon2id hash and the password method", hash, method)
 	}
-
-	checkRegisterRefusals(t, s)
-
-	// Signing in, in any case, opens another session of the same account.
-	again, err := s.SignInWithPassword(t.Context(), "LAN.ANH", lanPassword)
-	if err != nil || again.Account.ID != session.Account.ID || again.Token == session.Token {
-		t.Fatalf("SignInWithPassword: %+v, %v", again, err)
-	}
-
-	checkSignInRefusals(t, s)
 }
 
 // checkSignInRefusals checks that a wrong, an empty, an unknown and a too long try
