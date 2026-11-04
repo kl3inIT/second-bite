@@ -68,6 +68,34 @@ var (
 		VI: "Không tìm thấy tài khoản này.",
 		EN: "The account does not exist.",
 	})
+	ErrUsernameInvalid = platform.NewFailure("IDENTITY_USERNAME_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Tên đăng nhập gồm 3 đến 30 ký tự: chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang, bắt đầu và kết thúc bằng chữ hoặc số.",
+		EN: "A username has 3 to 30 characters: letters without marks, digits, dots, underscores or hyphens, starting and ending with a letter or a digit.",
+	})
+	ErrPasswordInvalid = platform.NewFailure("IDENTITY_PASSWORD_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Mật khẩu gồm 8 đến 128 ký tự và không trùng tên đăng nhập.",
+		EN: "A password has 8 to 128 characters and is not the username.",
+	})
+	ErrUsernameTaken = platform.NewFailure("IDENTITY_USERNAME_TAKEN", platform.CategoryConflict, platform.Words{
+		VI: "Tên đăng nhập này đã có người dùng. Chọn một tên khác.",
+		EN: "This username is taken. Choose another.",
+	})
+	ErrCredentialsIncorrect = platform.NewFailure("IDENTITY_CREDENTIALS_INCORRECT", platform.CategoryValidation, platform.Words{
+		VI: "Tên đăng nhập hoặc mật khẩu chưa đúng.",
+		EN: "The username or the password is not right.",
+	})
+	ErrSignInLimitExceeded = platform.NewFailure("IDENTITY_SIGN_IN_LIMIT_EXCEEDED", platform.CategoryLimitExceeded, platform.Words{
+		VI: "Bạn đã nhập sai quá nhiều lần. Đợi một lúc rồi thử lại.",
+		EN: "Too many wrong attempts. Wait before trying again.",
+	})
+	ErrNoEmail = platform.NewFailure("IDENTITY_NO_EMAIL", platform.CategoryConflict, platform.Words{
+		VI: "Tài khoản này không có email, nên không gửi mã được. Xoá tài khoản bằng mật khẩu.",
+		EN: "This account has no email, so no code can be sent. Delete the account with its password.",
+	})
+	ErrPasswordIncorrect = platform.NewFailure("IDENTITY_PASSWORD_INCORRECT", platform.CategoryValidation, platform.Words{
+		VI: "Mật khẩu chưa đúng.",
+		EN: "The password is not right.",
+	})
 	ErrAdminSelf = platform.NewFailure("IDENTITY_ADMIN_SELF", platform.CategoryConflict, platform.Words{
 		VI: "Bạn không tự thu hồi quyền quản trị của mình được. Nhờ một quản trị viên khác làm việc này.",
 		EN: "You cannot revoke your own admin rights. Ask another admin to.",
