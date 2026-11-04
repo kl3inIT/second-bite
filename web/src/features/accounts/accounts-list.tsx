@@ -209,7 +209,7 @@ function useColumns(
             </Link>
             {row.original.displayName && (
               <span className="truncate text-label text-muted-foreground">
-                {row.original.email}
+                {row.original.email || row.original.username}
               </span>
             )}
           </div>

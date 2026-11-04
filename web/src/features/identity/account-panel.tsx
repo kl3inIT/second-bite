@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Item, ItemActions, ItemContent, ItemTitle } from "@/components/ui/item";
 import { Link } from "@/i18n/navigation";
 
+import { accountHandle, accountLabel } from "./account-label";
 import { getCurrentAccount } from "./current-account";
 import { SignOutButton } from "./sign-out-button";
 
@@ -32,7 +33,7 @@ export async function AccountPanel() {
           </span>
           <div className="flex min-w-0 flex-col">
             <h2 id="account-who" className="truncate text-title">
-              {account ? account.displayName || account.email : t("guestTitle")}
+              {account ? accountLabel(account) : t("guestTitle")}
             </h2>
             <p
               className={
@@ -41,7 +42,11 @@ export async function AccountPanel() {
                   : "text-body-sm text-muted-foreground"
               }
             >
-              {account ? (account.displayName ? account.email : t("signedIn")) : t("guestBody")}
+              {account
+                ? account.displayName
+                  ? accountHandle(account)
+                  : t("signedIn")
+                : t("guestBody")}
             </p>
           </div>
         </div>

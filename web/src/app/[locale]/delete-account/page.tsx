@@ -8,8 +8,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AccountAction } from "@/features/identity/account-action";
-import { getCurrentAccount } from "@/features/identity/current-account";
-import { DeleteAccountDone, DeleteAccountForm } from "@/features/identity/delete-account-form";
+import { getCurrentAccount, type CurrentAccount } from "@/features/identity/current-account";
+import {
+  DeleteAccountDone,
+  DeleteAccountForm,
+  DeleteAccountWithPasswordForm,
+} from "@/features/identity/delete-account-form";
 import { getOwnedSellerNames } from "@/features/identity/my-sellers";
 import { Link } from "@/i18n/navigation";
 import { pageMetadata } from "@/lib/seo";
@@ -82,7 +86,7 @@ async function Content({ done: pending }: { done: Promise<boolean> }) {
         <What title={t("laterTitle")} items={t.raw("later") as string[]} />
         <What title={t("keptTitle")} items={t.raw("kept") as string[]} />
       </Panel>
-      <Action email={account?.email} />
+      <Action account={account} />
     </>
   );
 }
@@ -100,12 +104,13 @@ function What({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-// The deletion for the signed-in person (their address), warned first when they own a seller; otherwise the
+// The deletion for the signed-in person, warned first when they own a seller: with a code emailed to their
+// address, or, for an account made with a username that has none (SEC-193), with its password; otherwise the
 // way to sign in, back to this page.
-async function Action({ email }: { email?: string }) {
+async function Action({ account }: { account: CurrentAccount | null }) {
   const t = await getTranslations("DeleteAccount");
 
-  if (!email) {
+  if (!account) {
     return (
       <Panel aria-labelledby="delete-account-sign-in" contentClassName="items-start">
         <h2 id="delete-account-sign-in" className="text-title">
@@ -133,7 +138,11 @@ async function Action({ email }: { email?: string }) {
           <AlertDescription>{t("ownerBody", { sellers: owned.join(", ") })}</AlertDescription>
         </Alert>
       )}
-      <DeleteAccountForm email={email} />
+      {account.email ? (
+        <DeleteAccountForm email={account.email} />
+      ) : (
+        <DeleteAccountWithPasswordForm username={account.username} />
+      )}
     </Panel>
   );
 }

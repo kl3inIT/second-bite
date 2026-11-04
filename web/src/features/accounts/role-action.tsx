@@ -33,8 +33,10 @@ export function roleChangeOf(
   account: RecordBody,
   myId: string,
   adminCount: number,
-): { change: RoleChange } | { refused: "self" | "last" } {
-  if (account.role === "customer") return { change: "grant" };
+): { change: RoleChange } | { refused: "self" | "last" | "noEmail" } {
+  // An admin is made by address, so an account made with a username (SEC-193) cannot be.
+  if (account.role === "customer")
+    return account.email ? { change: "grant" } : { refused: "noEmail" };
   if (account.id === myId) return { refused: "self" };
   if (adminCount <= 1) return { refused: "last" };
   return { change: "revoke" };
