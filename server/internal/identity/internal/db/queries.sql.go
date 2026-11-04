@@ -764,7 +764,7 @@ type InsertPasswordAccountRow struct {
 }
 
 // A person registers with a username and no email (SEC-193). A name already
-// taken gives no row; names are kept in lower case, so case does not tell two apart.
+// taken gives no row; names are matched exactly, so Lan and lan are two names.
 func (q *Queries) InsertPasswordAccount(ctx context.Context, arg InsertPasswordAccountParams) (InsertPasswordAccountRow, error) {
 	row := q.db.QueryRow(ctx, insertPasswordAccount, arg.Username, arg.PasswordHash)
 	var i InsertPasswordAccountRow

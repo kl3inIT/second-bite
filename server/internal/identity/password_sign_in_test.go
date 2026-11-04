@@ -21,19 +21,21 @@ const (
 	nobodyHere    = "nobody.here"
 	minhTran      = "minh.tran"
 	guessUser     = "guess.user"
+	capitalName   = "Nhatnhu"
+	smallName     = "nhatnhu"
 )
 
 // TestRegisterAndSignInWithPassword checks the rules below the HTTP flow of
 // cmd/secondbite (SEC-193): an account made with a username has no email, is
 // signed in at once, keeps only a hash of its password, and a username is one
-// whatever the case it is typed in.
+// matched exactly, so Lan and lan are two names.
 func TestRegisterAndSignInWithPassword(t *testing.T) {
 	t.Parallel()
 
 	pool := platformtest.StartPostgres(t)
 	s := newDeletionService(t, pool)
 
-	session, err := s.Register(t.Context(), "Lan.Anh", lanPassword)
+	session, err := s.Register(t.Context(), lanAnh, lanPassword)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,8 +43,8 @@ func TestRegisterAndSignInWithPassword(t *testing.T) {
 	checkRegisteredAccount(t, s, pool, session)
 	checkRegisterRefusals(t, s)
 
-	// Signing in, in any case, opens another session of the same account.
-	again, err := s.SignInWithPassword(t.Context(), "LAN.ANH", lanPassword)
+	// Signing in opens another session of the same account.
+	again, err := s.SignInWithPassword(t.Context(), lanAnh, lanPassword)
 	if err != nil || again.Account.ID != session.Account.ID || again.Token == session.Token {
 		t.Fatalf("SignInWithPassword: %+v, %v", again, err)
 	}
@@ -77,14 +79,15 @@ func checkRegisteredAccount(t *testing.T, s *Service, pool *pgxpool.Pool, sessio
 	}
 }
 
-// checkSignInRefusals checks that a wrong, an empty, an unknown and a too long try
-// are all the one answer.
+// checkSignInRefusals checks that a wrong, an empty, an unknown, a differently
+// capitalised and a too long try are all the one answer.
 func checkSignInRefusals(t *testing.T, s *Service) {
 	t.Helper()
 
 	for _, c := range []struct{ username, password string }{
 		{lanAnh, lanPassword + "x"},
 		{lanAnh, ""},
+		{"LAN.ANH", lanPassword},
 		{nobodyHere, lanPassword},
 		{strings.Repeat("a", 31), lanPassword},
 		{lanAnh, strings.Repeat("a", 129)},
@@ -102,7 +105,6 @@ func checkRegisterRefusals(t *testing.T, s *Service) {
 		username, password string
 		want               error
 	}{
-		{"LAN.ANH", lanPassword, ErrUsernameTaken},
 		{lanAnh, "another password", ErrUsernameTaken},
 		{"ab", lanPassword, ErrUsernameInvalid},
 		{"lan anh", lanPassword, ErrUsernameInvalid},
@@ -300,7 +302,7 @@ func TestAdminsSeeAccountsWithoutEmail(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(page.Accounts) != 1 || page.Accounts[0].Username != "thu.ha_88" || page.Accounts[0].Email != "" ||
+	if len(page.Accounts) != 1 || page.Accounts[0].Username != "Thu.Ha_88" || page.Accounts[0].Email != "" ||
 		page.Accounts[0].LastSignInMethod != "password" {
 		t.Fatalf("searching for the username: %+v", page.Accounts)
 	}
@@ -308,5 +310,46 @@ func TestAdminsSeeAccountsWithoutEmail(t *testing.T) {
 	all, err := s.ListAccounts(admin, AccountFilter{Page: 1, Size: 25})
 	if err != nil || all.Total != 2 {
 		t.Errorf("every account: %d, %v; want 2", all.Total, err)
+	}
+}
+
+// TestUsernamesAreCaseSensitive checks that two names differing only in case are
+// two accounts, each signed into only by its own name even with one password.
+func TestUsernamesAreCaseSensitive(t *testing.T) {
+	t.Parallel()
+
+	pool := platformtest.StartPostgres(t)
+	s := newDeletionService(t, pool)
+
+	capital, err := s.Register(t.Context(), capitalName, lanPassword)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	small, err := s.Register(t.Context(), smallName, lanPassword)
+	if err != nil {
+		t.Fatalf("registering the same name in lower case: %v", err)
+	}
+
+	if capital.Account.ID == small.Account.ID || capital.Account.Username != capitalName || small.Account.Username != smallName {
+		t.Fatalf("accounts %+v and %+v: want two, named as they were typed", capital.Account, small.Account)
+	}
+
+	// Each name, with the one password, opens its own account and no other.
+	for name, want := range map[string]Account{capitalName: capital.Account, smallName: small.Account} {
+		got, err := s.SignInWithPassword(t.Context(), name, lanPassword)
+		if err != nil || got.Account.ID != want.ID {
+			t.Errorf("SignInWithPassword(%q): %+v, %v; want the account %s", name, got.Account, err, want.ID)
+		}
+	}
+
+	// A third way of typing it is no one's.
+	if _, err := s.SignInWithPassword(t.Context(), "NHATNHU", lanPassword); !errors.Is(err, ErrCredentialsIncorrect) {
+		t.Errorf("SignInWithPassword(NHATNHU): %v, want ErrCredentialsIncorrect", err)
+	}
+
+	// A name already taken is taken in the very capitals it was typed.
+	if _, err := s.Register(t.Context(), capitalName, lanPassword); !errors.Is(err, ErrUsernameTaken) {
+		t.Errorf("registering Nhatnhu again: %v, want ErrUsernameTaken", err)
 	}
 }

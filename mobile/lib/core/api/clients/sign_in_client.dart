@@ -22,7 +22,7 @@ abstract class SignInClient {
 
   /// Register with a username and a password.
   ///
-  /// Makes an account that has no email and signs it in. A username that is taken is refused, whatever its case. The web asks for the session in a cookie.
+  /// Makes an account that has no email and signs it in. A username that is taken is refused; capitals count, so Lan and lan are two names. The web asks for the session in a cookie.
   @POST('/auth/accounts')
   Future<SessionOutputBody> registerWithPassword({
     @Body() required RegisterInputBody body,

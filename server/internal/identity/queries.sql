@@ -222,7 +222,7 @@ SELECT count(*) FROM identity_accounts WHERE created_at < @until;
 
 -- name: InsertPasswordAccount :one
 -- A person registers with a username and no email (SEC-193). A name already
--- taken gives no row; names are kept in lower case, so case does not tell two apart.
+-- taken gives no row; names are matched exactly, so Lan and lan are two names.
 INSERT INTO identity_accounts (username, password_hash) VALUES (@username::text, @password_hash::text)
 ON CONFLICT (username) DO NOTHING
 RETURNING id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name;

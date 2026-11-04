@@ -2482,7 +2482,7 @@ components:
             - cookie
           type: string
         username:
-          description: "3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; kept in lower case"
+          description: "3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; capitals count, so Lan and lan are two names"
           type: string
       required:
         - username
@@ -4882,7 +4882,7 @@ paths:
         - Admin
   /auth/accounts:
     post:
-      description: Makes an account that has no email and signs it in. A username that is taken is refused, whatever its case. The web asks for the session in a cookie.
+      description: Makes an account that has no email and signs it in. A username that is taken is refused; capitals count, so Lan and lan are two names. The web asks for the session in a cookie.
       operationId: registerWithPassword
       requestBody:
         content:

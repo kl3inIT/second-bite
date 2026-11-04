@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5"
@@ -20,18 +19,18 @@ const maxUsernameLength = 30
 
 // Register makes an account of a username and a password and signs it in, the
 // session handed over like any other. The account has no email (SEC-193).
-// A username that is taken is refused, whatever the case it was typed in.
+// A username is kept as it was typed and matched exactly, so Lan and lan are two
+// accounts; one that is taken is refused.
 func (s *Service) Register(ctx context.Context, username, password string) (Session, error) {
 	if err := s.credentialsByAddress.TakeFor(ctx); err != nil {
 		return Session{}, err
 	}
 
-	name, err := normalizeUsername(username)
-	if err != nil {
+	if err := checkUsername(username); err != nil {
 		return Session{}, err
 	}
 
-	if err := checkPassword(password, name); err != nil {
+	if err := checkPassword(password, username); err != nil {
 		return Session{}, err
 	}
 
@@ -45,7 +44,7 @@ func (s *Service) Register(ctx context.Context, username, password string) (Sess
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		q := s.queries.WithTx(tx)
 
-		row, err := q.InsertPasswordAccount(ctx, db.InsertPasswordAccountParams{Username: name, PasswordHash: hash})
+		row, err := q.InsertPasswordAccount(ctx, db.InsertPasswordAccountParams{Username: username, PasswordHash: hash})
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ErrUsernameTaken
 		}
@@ -85,7 +84,7 @@ func (s *Service) SignInWithPassword(ctx context.Context, username, password str
 		return Session{}, err
 	}
 
-	name := strings.ToLower(username)
+	name := username
 	if len(name) > maxUsernameLength || utf8.RuneCountInString(password) > maxPasswordLength {
 		// Neither can belong to an account: nothing to look up, count or hash.
 		return Session{}, ErrCredentialsIncorrect

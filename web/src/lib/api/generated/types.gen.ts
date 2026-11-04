@@ -1254,7 +1254,7 @@ export type RegisterInputBody = {
      */
     session?: 'token' | 'cookie';
     /**
-     * 3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; kept in lower case
+     * 3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; capitals count, so Lan and lan are two names
      */
     username: string;
 };

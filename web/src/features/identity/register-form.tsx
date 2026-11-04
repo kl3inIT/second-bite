@@ -11,11 +11,11 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { registerWithPassword } from "@/lib/api/generated";
 
 /**
- * A username as the server's rule reads it (server/internal/identity, usernamePattern) once lower-cased: 3 to 30
- * letters without marks, digits, `.`, `_` and `-`, the first and the last a letter or a digit. The server lower-cases
- * it, so the form accepts capitals.
+ * A username as the server's rule reads it (server/internal/identity, usernamePattern): 3 to 30 letters without
+ * marks, digits, `.`, `_` and `-`, the first and the last a letter or a digit. Capitals count: Lan and lan are two
+ * names, and the server keeps what was typed.
  */
-const USERNAME = /^[a-z0-9][a-z0-9._-]{1,28}[a-z0-9]$/i;
+const USERNAME = /^[A-Za-z0-9][A-Za-z0-9._-]{1,28}[A-Za-z0-9]$/;
 
 /** The most characters a password has; the server counts them the same way (minPasswordLength, maxPasswordLength). */
 const PASSWORD_LENGTH = { min: 8, max: 128 } as const;

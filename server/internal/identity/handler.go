@@ -44,7 +44,7 @@ type signInInput struct {
 
 type registerInput struct {
 	Body struct {
-		Username string `json:"username" doc:"3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; kept in lower case"`
+		Username string `json:"username" doc:"3 to 30 characters: letters without marks, digits, dots, underscores and hyphens, the first and the last a letter or a digit; capitals count, so Lan and lan are two names"`
 		Password string `json:"password" doc:"8 to 128 characters, not the username"`
 		Session  string `json:"session,omitempty" enum:"token,cookie" default:"token" doc:"token: the token in the body (the mobile application); cookie: the session cookie instead (the web)"`
 	}
@@ -349,7 +349,7 @@ func registerPasswordOperations(api huma.API, s *Service) {
 		Method:        http.MethodPost,
 		Path:          "/auth/accounts",
 		Summary:       "Register with a username and a password",
-		Description:   "Makes an account that has no email and signs it in. A username that is taken is refused, whatever its case. The web asks for the session in a cookie.",
+		Description:   "Makes an account that has no email and signs it in. A username that is taken is refused; capitals count, so Lan and lan are two names. The web asks for the session in a cookie.",
 		Tags:          tagSignIn,
 		DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, in *registerInput) (*sessionOutput, error) {

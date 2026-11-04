@@ -15,40 +15,42 @@ const (
 	lanAnh99 = "lan.anh_99"
 )
 
-func TestNormalizeUsername(t *testing.T) {
+func TestCheckUsername(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		raw, want string
-		ok        bool
+		name string
+		ok   bool
 	}{
-		{lanUser, lanUser, true},
-		{"Lan.Anh_99", lanAnh99, true},
-		{"a-b", "a-b", true},
-		{"abc", "abc", true},
-		{strings.Repeat("a", 30), strings.Repeat("a", 30), true},
-		{strings.Repeat("a", 31), "", false},
-		{"ab", "", false},
-		{"", "", false},
-		{".lan", "", false},
-		{"lan.", "", false},
-		{"-lan", "", false},
-		{"lan_", "", false},
-		{"lan anh", "", false},
-		{" lan", "", false},
-		{"lan@example.com", "", false},
-		{"lân", "", false},
-		{"lan\n", "", false},
+		{lanUser, true},
+		{"Lan.Anh_99", true},
+		{"NHATNHU", true},
+		{"a-b", true},
+		{"abc", true},
+		{strings.Repeat("a", 30), true},
+		{strings.Repeat("A", 30), true},
+		{strings.Repeat("a", 31), false},
+		{"ab", false},
+		{"", false},
+		{".lan", false},
+		{"lan.", false},
+		{"-lan", false},
+		{"lan_", false},
+		{"lan anh", false},
+		{" lan", false},
+		{"lan@example.com", false},
+		{"lân", false},
+		{"lan\n", false},
 	}
 
 	for _, c := range cases {
-		got, err := normalizeUsername(c.raw)
-		if (err == nil) != c.ok || got != c.want {
-			t.Errorf("normalizeUsername(%q) = %q, %v; want %q, ok %v", c.raw, got, err, c.want, c.ok)
+		err := checkUsername(c.name)
+		if (err == nil) != c.ok {
+			t.Errorf("checkUsername(%q) = %v; want ok %v", c.name, err, c.ok)
 		}
 
 		if err != nil && !errors.Is(err, ErrUsernameInvalid) {
-			t.Errorf("normalizeUsername(%q): %v is not ErrUsernameInvalid", c.raw, err)
+			t.Errorf("checkUsername(%q): %v is not ErrUsernameInvalid", c.name, err)
 		}
 	}
 }
