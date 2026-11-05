@@ -88,8 +88,20 @@ func TestReportCSV(t *testing.T) {
 	if empty := rows[1]; empty[14] != "" {
 		t.Errorf("a day without orders has a share %q", empty[14])
 	}
+}
 
-	// SEC-200: the customers on the site's total, the days on each store's.
+// TestReportCSVProgrammeFigures reads the support programme's figures
+// (SEC-200): the customers on the site's total, the days on each store's.
+func TestReportCSVProgrammeFigures(t *testing.T) {
+	t.Parallel()
+
+	body, err := reportCSV(twoDays(), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rows := readCSV(t, body)
+
 	if site := rows[5]; site[20] != "5" || site[21] != "2" || site[18] != "" {
 		t.Errorf("the site's total %q, want 5 customers and 2 returning", site)
 	}

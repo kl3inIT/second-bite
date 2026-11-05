@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/kl3inIT/second-bite/server/internal/order"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/stats/internal/db"
 )
@@ -162,7 +163,7 @@ func (s *Service) Report(ctx context.Context, f ReportFilter) (Report, error) {
 		}
 	}
 
-	accounts, err := s.newUsers(ctx, f, days)
+	accounts, customers, err := s.newUsers(ctx, f, days)
 	if err != nil {
 		return Report{}, err
 	}
@@ -173,20 +174,9 @@ func (s *Service) Report(ctx context.Context, f ReportFilter) (Report, error) {
 	}
 
 	r.Accounts = accounts
-
-	customers, err := s.orders.CollectedCustomers(ctx, vietnamDay(f.Since), vietnamDay(f.Until).AddDate(0, 0, 1))
-	if err != nil {
-		return Report{}, err
-	}
-
 	r.Customers, r.Returning = customers.Customers, customers.Returning
 
 	return r, nil
-}
-
-// vietnamDay is the start of day's date in Vietnam.
-func vietnamDay(day time.Time) time.Time {
-	return time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, vietnam)
 }
 
 // siteViews adds every view of the site to days, for a report of every store.
@@ -206,16 +196,16 @@ func (s *Service) siteViews(ctx context.Context, f ReportFilter, days map[time.T
 }
 
 // newUsers adds the site's new accounts and first-time customers to days, and
-// answers the accounts there are at the end of the range (SEC-192). They are
-// the site's whatever store is chosen: an account and a customer belong to no
-// store.
-func (s *Service) newUsers(ctx context.Context, f ReportFilter, days map[time.Time]*Counts) (int, error) {
+// answers the accounts there are at the end of the range (SEC-192) and the
+// range's customers with those who came back (SEC-200). They are the site's
+// whatever store is chosen: an account and a customer belong to no store.
+func (s *Service) newUsers(ctx context.Context, f ReportFilter, days map[time.Time]*Counts) (int, order.Customers, error) {
 	since := time.Date(f.Since.Year(), f.Since.Month(), f.Since.Day(), 0, 0, 0, 0, vietnam)
 	until := time.Date(f.Until.Year(), f.Until.Month(), f.Until.Day()+1, 0, 0, 0, 0, vietnam)
 
 	accounts, total, err := s.identities.AccountDays(ctx, since, until)
 	if err != nil {
-		return 0, err
+		return 0, order.Customers{}, err
 	}
 
 	for _, a := range accounts {
@@ -224,18 +214,23 @@ func (s *Service) newUsers(ctx context.Context, f ReportFilter, days map[time.Ti
 		}
 	}
 
-	customers, err := s.orders.FirstOrderDays(ctx, since, until)
+	firsts, err := s.orders.FirstOrderDays(ctx, since, until)
 	if err != nil {
-		return 0, err
+		return 0, order.Customers{}, err
 	}
 
-	for _, c := range customers {
+	for _, c := range firsts {
 		if day, ok := days[c.Day]; ok {
 			day.NewCustomers += c.Customers
 		}
 	}
 
-	return total, nil
+	customers, err := s.orders.CollectedCustomers(ctx, since, until)
+	if err != nil {
+		return 0, order.Customers{}, err
+	}
+
+	return total, customers, nil
 }
 
 // storeDays merges the views, the posts and the orders of each store and day.
