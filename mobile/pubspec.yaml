@@ -11,7 +11,7 @@ environment:
 dependencies:
   app_ui:
     path: packages/app_ui
-  crypto: ^3.0.7
+  crypto: ^3.0.8
   dio: ^5.11.1
   flutter:
     sdk: flutter
@@ -31,10 +31,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   freezed: ^4.0.3
-  go_router_builder: ^4.5.2
+  go_router_builder: ^4.5.3
   json_serializable: ^6.15.2
   mocktail: ^1.0.5
-  retrofit_generator: ^10.3.2
+  retrofit_generator: ^10.3.3
   riverpod_generator: ^4.0.9
   swagger_parser: ^1.45.0
   very_good_analysis: ^11.0.0
