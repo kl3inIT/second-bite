@@ -60,6 +60,11 @@ test.describe("the admin's report", () => {
     await expect(first).toContainText("89%");
     await expect(first.getByRole("link", { name: "La Paris" })).toBeVisible();
     await expect(first).toContainText("264.000");
+    // SEC-200: the support programme's figures, returning customers and each store's days and portions.
+    await expect(page.getByRole("definition").filter({ hasText: "40%" })).toBeVisible();
+    await expect(page.getByText("4/10 khách đã lấy đơn quay lại")).toBeVisible();
+    await expect(table.getByRole("columnheader", { name: "Ngày đủ 7 phần" })).toBeVisible();
+    await expect(table.getByRole("columnheader", { name: "Phần đã lấy" })).toBeVisible();
     await expectNoSeriousA11yViolations(page);
   });
 

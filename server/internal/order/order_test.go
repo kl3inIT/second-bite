@@ -75,6 +75,7 @@ func TestOrder(t *testing.T) {
 		"sellers read the reviews of their store":  testSellerReadsReviews,
 		"the report counts the days":               testReportCounts,
 		"the report counts first orders":           testFirstOrders,
+		"the report counts returning customers":    testReturningCustomers,
 		"pushes tell of each change":               testPushesTellOfEachChange,
 		"pushes tell of time":                      testPushesTellOfTime,
 		"a problem is reported and answered":       testProblemReportedAndAnswered,

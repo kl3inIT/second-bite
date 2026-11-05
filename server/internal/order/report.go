@@ -75,3 +75,27 @@ func (s *Service) FirstOrderDays(ctx context.Context, since, until time.Time) ([
 
 	return days, nil
 }
+
+// Customers are the customers of a range and those of them who came back, for
+// the admin's report (SEC-200).
+type Customers struct {
+	// Customers have an order handed over whose collection day is in the
+	// range, told apart by phone number.
+	Customers int
+	// Returning are those of them with orders handed over on at least two
+	// collection days up to the range's end, earlier days included.
+	Returning int
+}
+
+// CollectedCustomers counts the customers with an order handed over whose
+// window starts in [since, until), and those of them who also had one handed
+// over on another collection day before until. An order whose contact was
+// forgotten counts for nobody.
+func (s *Service) CollectedCustomers(ctx context.Context, since, until time.Time) (Customers, error) {
+	row, err := s.queries.CollectedCustomers(ctx, db.CollectedCustomersParams{Since: since, Until: until})
+	if err != nil {
+		return Customers{}, fmt.Errorf("counting the customers: %w", err)
+	}
+
+	return Customers{Customers: int(row.Customers), Returning: int(row.ReturningCustomers)}, nil
+}

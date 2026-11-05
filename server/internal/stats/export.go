@@ -17,6 +17,7 @@ var csvHeader = []string{
 	"Ngày", "Cửa hàng", "Lượt mở trang", "Người mở", "Lượt vào từ QR", "Món đăng", "Phần đăng",
 	"Đơn giữ", "Phần giữ", "Đơn đã lấy", "Phần đã lấy", "Đơn huỷ", "Quán từ chối", "Khách không đến",
 	"Tỉ lệ lấy (%)", "Tiền thu tại quầy (đồng)", "Tài khoản mới", "Khách đặt lần đầu",
+	"Ngày có đăng", "Ngày đăng đủ 7 phần", "Khách nhận đơn", "Khách mua lại",
 }
 
 const (
@@ -25,8 +26,8 @@ const (
 )
 
 // reportCSV writes r as one row per day and store, under a row for the whole
-// site on each day when no store was chosen, and a row of the range's totals
-// last; the rows read like the screen, with names, never identifiers (Spree's
+// site on each day when no store was chosen, a row of the range's totals, and
+// a total row per store with its days posted and full days (SEC-200); the rows read like the screen, with names, never identifiers (Spree's
 // exports). It starts with a byte order mark, and a name a spreadsheet would
 // run as a formula is written as text (OWASP's CSV injection).
 func reportCSV(r Report, oneStore bool) ([]byte, error) {
@@ -43,17 +44,27 @@ func reportCSV(r Report, oneStore bool) ([]byte, error) {
 		day := d.Day.Format(time.DateOnly)
 
 		if !oneStore {
-			rows = append(rows, csvRow(day, csvSite, d.Counts, true))
+			rows = append(rows, append(csvRow(day, csvSite, d.Counts, true), "", "", "", ""))
 		}
 
 		for _, sd := range r.StoreDays {
 			if sd.Day.Equal(d.Day) {
-				rows = append(rows, csvRow(day, safe(sd.Name), sd.Counts, false))
+				rows = append(rows, append(csvRow(day, safe(sd.Name), sd.Counts, false), "", "", "", ""))
 			}
 		}
 	}
 
-	rows = append(rows, csvRow(csvTotal, "", r.Totals, !oneStore))
+	customers, returning := "", ""
+	if !oneStore {
+		customers, returning = strconv.Itoa(r.Customers), strconv.Itoa(r.Returning)
+	}
+
+	rows = append(rows, append(csvRow(csvTotal, "", r.Totals, !oneStore), "", "", customers, returning))
+
+	for _, st := range r.Stores {
+		rows = append(rows, append(csvRow(csvTotal, safe(st.Name), st.Counts, false),
+			strconv.Itoa(st.DaysPosted), strconv.Itoa(st.FullDays), "", ""))
+	}
 
 	if err := w.WriteAll(rows); err != nil { // WriteAll flushes and reports the writer's error
 		return nil, fmt.Errorf("writing the report as CSV: %w", err)

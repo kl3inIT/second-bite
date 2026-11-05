@@ -30,9 +30,11 @@ type reportResponse struct {
 		Day string `json:"day"`
 	} `json:"days"`
 	Stores []struct {
-		SellerID string       `json:"sellerId"`
-		Name     string       `json:"name"`
-		Counts   reportCounts `json:"counts"`
+		SellerID   string       `json:"sellerId"`
+		Name       string       `json:"name"`
+		Counts     reportCounts `json:"counts"`
+		DaysPosted int          `json:"daysPosted"`
+		FullDays   int          `json:"fullDays"`
 	} `json:"stores"`
 	StoreDays []struct {
 		Day    string       `json:"day"`
@@ -83,6 +85,9 @@ func checkReport(t *testing.T, svc service) {
 		t.Errorf("%d days, want the last seven", len(r.Days))
 	case len(r.Stores) != 1 || r.Stores[0].Name != "Bếp Báo Cáo" || r.Stores[0].Counts != want:
 		t.Errorf("the store %+v, want %+v", r.Stores, want)
+	case r.Stores[0].DaysPosted != 1 || r.Stores[0].FullDays != 0:
+		t.Errorf("the store posted on %d days, %d full, want 1 and none: 5 portions are under 7 (SEC-200)",
+			r.Stores[0].DaysPosted, r.Stores[0].FullDays)
 	case r.Totals != want || len(r.StoreDays) != 1:
 		t.Errorf("totals %+v, store days %+v", r.Totals, r.StoreDays)
 	}
@@ -99,8 +104,10 @@ func checkReportNewUsers(t *testing.T, svc service, admin http.Header) {
 	t.Helper()
 
 	var r struct {
-		Accounts int `json:"accounts"`
-		Totals   struct {
+		Accounts  int `json:"accounts"`
+		Customers int `json:"customers"`
+		Returning int `json:"returningCustomers"`
+		Totals    struct {
 			NewAccounts  int `json:"newAccounts"`
 			NewCustomers int `json:"newCustomers"`
 		} `json:"totals"`
@@ -110,6 +117,11 @@ func checkReportNewUsers(t *testing.T, svc service, admin http.Header) {
 
 	if r.Totals.NewAccounts < 3 || r.Totals.NewCustomers < 1 || r.Accounts < r.Totals.NewAccounts {
 		t.Errorf("new users %+v, accounts %d", r.Totals, r.Accounts)
+	}
+
+	// SEC-200: the customer whose order was handed over today, other checks adding theirs.
+	if r.Customers < 1 || r.Returning > r.Customers {
+		t.Errorf("customers %d, returning %d", r.Customers, r.Returning)
 	}
 }
 

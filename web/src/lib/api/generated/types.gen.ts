@@ -1285,9 +1285,17 @@ export type ReportOutputBody = {
      */
     accounts: number;
     /**
+     * Customers, by phone number, with an order handed over in the range; the site's whatever store is chosen
+     */
+    customers: number;
+    /**
      * Every day of the range, in order
      */
     days: Array<ReportDayBody> | null;
+    /**
+     * Those of the customers with orders handed over on at least two days up to the range's end
+     */
+    returningCustomers: number;
     since: string;
     /**
      * Each store on each day it has numbers, by day then name
@@ -1303,6 +1311,14 @@ export type ReportOutputBody = {
 
 export type ReportStoreBody = {
     counts: CountsBody;
+    /**
+     * Days of the range the store has a post on, whatever became of it
+     */
+    daysPosted: number;
+    /**
+     * Days it posted at least 7 portions on, the support programme's full day
+     */
+    fullDays: number;
     name: string;
     sellerId: string;
 };

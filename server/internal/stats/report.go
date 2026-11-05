@@ -16,6 +16,10 @@ import (
 // maxReportDays bounds the days one report reads.
 const maxReportDays = 92
 
+// fullDayUnits are the portions a store posts on a day for the support
+// programme to count it full: "7 to 10 portions a day" (SEC-200).
+const fullDayUnits = 7
+
 // ErrReportRangeInvalid refuses a range that ends before it starts or is too long.
 var ErrReportRangeInvalid = platform.NewFailure("REPORT_RANGE_INVALID", platform.CategoryValidation, platform.Words{
 	VI: "Khoảng ngày không hợp lệ: ngày bắt đầu không sau ngày kết thúc, và tối đa 92 ngày.",
@@ -85,6 +89,9 @@ type StoreCounts struct {
 	SellerID uuid.UUID
 	Name     string
 	Counts
+	// DaysPosted are the days the store has a post on, and FullDays those it
+	// posted at least fullDayUnits portions on (SEC-200).
+	DaysPosted, FullDays int
 }
 
 // StoreDayCounts are a store's numbers on a day.
@@ -103,9 +110,13 @@ type Report struct {
 	Since, Until time.Time
 	Totals       Counts
 	Accounts     int
-	Days         []DayCounts
-	Stores       []StoreCounts
-	StoreDays    []StoreDayCounts
+	// Customers had an order handed over in the range, and Returning of them
+	// had one on another day too, up to its end; the site's, whatever store is
+	// chosen (SEC-200).
+	Customers, Returning int
+	Days                 []DayCounts
+	Stores               []StoreCounts
+	StoreDays            []StoreDayCounts
 }
 
 type storeDay struct {
@@ -163,7 +174,19 @@ func (s *Service) Report(ctx context.Context, f ReportFilter) (Report, error) {
 
 	r.Accounts = accounts
 
+	customers, err := s.orders.CollectedCustomers(ctx, vietnamDay(f.Since), vietnamDay(f.Until).AddDate(0, 0, 1))
+	if err != nil {
+		return Report{}, err
+	}
+
+	r.Customers, r.Returning = customers.Customers, customers.Returning
+
 	return r, nil
+}
+
+// vietnamDay is the start of day's date in Vietnam.
+func vietnamDay(day time.Time) time.Time {
+	return time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, vietnam)
 }
 
 // siteViews adds every view of the site to days, for a report of every store.
@@ -306,15 +329,24 @@ func (s *Service) assemble(ctx context.Context, f ReportFilter, days map[time.Ti
 
 	slices.SortFunc(r.Days, func(a, b DayCounts) int { return a.Day.Compare(b.Day) })
 
-	stores := map[uuid.UUID]*Counts{}
+	stores := map[uuid.UUID]*StoreCounts{}
 
 	for key, c := range cells {
 		if stores[key.seller] == nil {
-			stores[key.seller] = &Counts{}
+			stores[key.seller] = &StoreCounts{SellerID: key.seller}
 		}
 
-		stores[key.seller].addViews(*c)
-		stores[key.seller].addTrade(*c)
+		st := stores[key.seller]
+		st.addViews(*c)
+		st.addTrade(*c)
+
+		if c.Offers > 0 {
+			st.DaysPosted++
+		}
+
+		if c.UnitsPosted >= fullDayUnits {
+			st.FullDays++
+		}
 	}
 
 	ids := make([]uuid.UUID, 0, len(stores))
@@ -327,8 +359,9 @@ func (s *Service) assemble(ctx context.Context, f ReportFilter, days map[time.Ti
 		return Report{}, err
 	}
 
-	for id, c := range stores {
-		r.Stores = append(r.Stores, StoreCounts{SellerID: id, Name: names[id], Counts: *c})
+	for id, st := range stores {
+		st.Name = names[id]
+		r.Stores = append(r.Stores, *st)
 	}
 
 	slices.SortFunc(r.Stores, func(a, b StoreCounts) int {

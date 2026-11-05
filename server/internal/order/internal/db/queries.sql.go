@@ -48,6 +48,38 @@ func (q *Queries) ChatSeen(ctx context.Context, orderID uuid.UUID) (ChatSeenRow,
 	return i, err
 }
 
+const collectedCustomers = `-- name: CollectedCustomers :one
+SELECT count(*) AS customers, count(*) FILTER (WHERE days >= 2) AS returning_customers
+FROM (
+    SELECT count(DISTINCT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date) AS days
+    FROM order_orders
+    WHERE customer_phone <> '' AND state = 'collected' AND window_start < $1
+    GROUP BY customer_phone
+    HAVING max(window_start) >= $2
+) AS c
+`
+
+type CollectedCustomersParams struct {
+	Until time.Time
+	Since time.Time
+}
+
+type CollectedCustomersRow struct {
+	Customers          int64
+	ReturningCustomers int64
+}
+
+// The customers, told apart by phone number, with an order handed over whose collection day is in [since, until), and
+// those of them with orders handed over on at least two collection days in Vietnam up to until, earlier ones included:
+// the support programme's returning customers (SEC-200). Days, not orders, so one checkout across two stores is one
+// purchase.
+func (q *Queries) CollectedCustomers(ctx context.Context, arg CollectedCustomersParams) (CollectedCustomersRow, error) {
+	row := q.db.QueryRow(ctx, collectedCustomers, arg.Until, arg.Since)
+	var i CollectedCustomersRow
+	err := row.Scan(&i.Customers, &i.ReturningCustomers)
+	return i, err
+}
+
 const countOrdersByStatus = `-- name: CountOrdersByStatus :one
 SELECT count(*) FILTER (WHERE state = 'confirmed' AND window_end > now()) AS confirmed,
        count(*) FILTER (WHERE state = 'ready' AND window_end > now()) AS ready,

@@ -163,6 +163,63 @@ func testFirstOrders(t *testing.T, f fixture) {
 	}
 }
 
+// testReturningCustomers counts the customers of a day by phone number, and
+// as returning those with orders handed over on another day before it
+// (SEC-200). The orders are moved 600 days back, where no other check places
+// any.
+func testReturningCustomers(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "Bếp Khách Quen")
+	bread := f.post(owner, t, shop, "Bánh mì", 20, 20_000, time.Now().Add(-time.Minute))
+
+	back := -600 * 24 * time.Hour
+	returning, once, twiceOneDay, cancelled, before := order.Contact{Name: "An", Phone: phoneOf(t)},
+		order.Contact{Name: "Bình", Phone: phoneOf(t)}, order.Contact{Name: "Chi", Phone: phoneOf(t)},
+		order.Contact{Name: "Dũng", Phone: phoneOf(t)}, order.Contact{Name: "Em", Phone: phoneOf(t)}
+
+	place := func(who order.Contact, d time.Duration, collect bool) {
+		t.Helper()
+
+		o, err := f.orders.Place(customer, key(), uuid.Nil, who, []order.Wanted{{bread.ID, 1}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if collect {
+			if _, err := f.orders.HandOver(owner, o.ID); err != nil {
+				t.Fatal(err)
+			}
+		} else if _, err := f.orders.Cancel(customer, o.ID, "", "Đặt nhầm"); err != nil {
+			t.Fatal(err)
+		}
+
+		f.shift(t, o.ID, d)
+	}
+
+	place(returning, back, true)
+	place(returning, back-3*24*time.Hour, true) // came three days before: returning
+	place(once, back, true)
+	place(twiceOneDay, back, true)
+	place(twiceOneDay, back, true)           // twice on one day is one purchase
+	place(cancelled, back, false)            // nothing handed over: no customer
+	place(before, back-3*24*time.Hour, true) // only before the range
+
+	day := time.Now().Add(back).In(time.FixedZone("", 7*60*60))
+	since := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, day.Location())
+
+	got, err := f.orders.CollectedCustomers(t.Context(), since, since.AddDate(0, 0, 1))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if want := (order.Customers{Customers: 3, Returning: 1}); got != want {
+		t.Errorf("customers %+v, want %+v", got, want)
+	}
+}
+
 // phoneOf is a Vietnamese phone number no other check uses, drawn from a new
 // identifier.
 func phoneOf(t *testing.T) string {
