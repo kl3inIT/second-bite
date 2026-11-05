@@ -37,6 +37,8 @@ Published to other modules: `Record(ctx, tx, resource, action)`, which writes on
 | `seller.change_owner` | `seller`, its identifier, its name | `from`: the previous owner's account, when there was one; `to`: the new owner's (SEC-162) | `seller` |
 | `admin.grant` | `account`, its identifier, its address | `source`: `admin` or `command_line` | `identity` |
 | `admin.revoke` | `account`, its identifier, its address | `source`: `admin` or `command_line` | `identity` |
+| `review.hide` | `review`, its order's identifier, labelled with the order's number | `reason`, when the admin gave one | `order` |
+| `review.show` | `review`, its order's identifier, labelled with the order's number | None | `order` |
 | `promotion.create` | `promotion`, its identifier, its name | `name` | `order` |
 | `promotion.change` | `promotion`, its identifier, its name | `changes`: its name, times, budget, limit per phone and whether it is enabled with their values; its sellers and rules by name only | `order` |
 | `seller.mark_payout` | `seller`, its identifier, its name | `weekStart`: the week's Monday; `amountVnd`: the discounts paid back | `order` |

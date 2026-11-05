@@ -8,6 +8,6 @@ Design: [design.md](design.md). Tracked in Linear as SEC-88.
 | 2 | The seller's page after K4b and K4, with its search | Done, 21 October 2026 |
 | 3 | The dish's sheet after K4a | Done, 21 October 2026 |
 | 4 | The confirmation's lines after K5 | Done, 21 October 2026 |
-| 5 | Compare each screen with Figma's values once Figwright is connected again | To do |
+| 5 | Compare each screen with Figma's values once Figwright is connected again | Dropped, 5 November 2026: the code is the frontend's source of truth, Figma only a sketch |
 
 One pull request, after SEC-83's (#55).

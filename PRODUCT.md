@@ -58,7 +58,7 @@ Second Bite connects sellers that have genuine edible surplus with nearby people
 
 ## Evidence on Hand
 
-- No real sellers, customers, orders, ratings, photos or impact figures exist yet. Pages must not show invented statistics, testimonials, partner logos or "people saved X meals" counters until the pilot produces them.
+- Real stores and customers have used production since the trials of late October 2026, but no impact figure has been measured yet. Pages must not show invented statistics, testimonials, partner logos or "people saved X meals" counters until the pilot produces them.
 - The founder's prototype: https://second-bite-demo.trung1223.chatgpt.site/ (features and roles only).
 - Research: [similar products](docs/research/2026-10-16-similar-products.md), [open-source pickup models](docs/research/2026-10-16-open-source-pickup-models.md), and the design research of SEC-22.
 

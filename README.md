@@ -2,11 +2,11 @@
 
 *A second chance for good food.*
 
-Second Bite is a non-profit, bilingual (Vietnamese and English) platform for genuine food surplus in Vietnam. Shops and restaurants offer edible food and ingredients they would otherwise throw away, at a lower price and without paying any commission; nearby customers order confirmed stock, pay in cash or by transfer, and collect it from the seller with a one-use code. The first pilot runs with the food and beverage outlets of Tasco Mall in Việt Hưng ward, Hanoi.
+Second Bite is a non-profit, bilingual (Vietnamese and English) platform for genuine food surplus in Vietnam. Shops and restaurants offer edible food and ingredients they would otherwise throw away, at a lower price and without paying any commission; nearby customers order confirmed stock, pay the seller at the counter during the pilot, and collect it there, the seller's staff matching the order by its QR code or by name and phone number. The first pilot runs with the food and beverage outlets of Tasco Mall in Việt Hưng ward, Hanoi.
 
 ## State of the repository
 
-The backend's foundation exists: a Go service that migrates its PostgreSQL database and serves an API with no business operation yet ([how to run it](docs/runbooks/backend.md)). The repository also holds the product brief, the vision and roadmap, the engineering conventions, the research done before design, and the pilot's domain model.
+The pilot runs on production at `secondbite.vadan.app`, with staging at `preview.secondbite.vadan.app`: a Go service over PostgreSQL ([how to run it](docs/runbooks/backend.md)), the Next.js web for customers, stores and admins, and a Flutter app still short of its ordering and store screens; [ARCHITECTURE.md](ARCHITECTURE.md) says what each does. The repository also holds the product brief, the vision and roadmap, the engineering conventions, the research done before design, and the pilot's domain model.
 
 | Start here | For |
 | --- | --- |

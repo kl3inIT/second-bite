@@ -38,7 +38,6 @@ The file in use today is `Secondbite`, with the pages `Mobile · Khách` (the cu
 - A Figma component exists only for a component that exists, or is being added, in code. Its name is the code component's name, and its variant properties are the component's props with the same names and values.
 - Interaction states (`hover`, `focus-visible`, `disabled`, `pending`, `invalid`) are a `state` property for review only; code derives them.
 - Screens use instances only. A detached instance becomes regenerated markup.
-- Confirmed Figma-to-code pairs are recorded in `docs/figma-component-map.md` once the first components exist.
 
 ## Layout
 

@@ -47,7 +47,7 @@ To offer signing in with Google, set the OAuth client IDs whose tokens are accep
 export SECONDBITE_GOOGLE_CLIENT_IDS="<the web client's ID>"
 ```
 
-Every email the service sends appears in Mailpit at <http://127.0.0.1:8025>. To sign in, `POST /auth/sign-in-codes` with `{"email": "you@example.com"}`, read the code in Mailpit, `POST /auth/sessions` with the `challengeId` and the `code`, and send the `token` it answers as `Authorization: Bearer <token>`.
+Every email the service sends appears in Mailpit at <http://127.0.0.1:8025>. To sign in, `POST /auth/sign-in-codes` with `{"email": "you@example.com"}`, read the code in Mailpit, `POST /auth/sessions` with the `challengeId` and the `code`, and send the `token` it answers as `Authorization: Bearer <token>`. Without email, `POST /auth/accounts` with `{"username": "lan", "password": "â€¦"}` registers an account and signs it in, and `POST /auth/password-sessions` with the same fields signs in again.
 
 The service migrates the database at every command, then `serve` listens on `:8080`:
 
@@ -128,7 +128,7 @@ The tests include:
 
 ## Administrative commands
 
-A fresh installation needs an email provider and a first admin before anyone can sign in, so both are commands of the binary, run where the service runs, with its environment:
+A fresh installation needs an email provider before anyone can sign in by an emailed code, and a first admin before anyone can run it; anyone may register with a username and a password without either (`POST /auth/accounts`). Both are commands of the binary, run where the service runs, with its environment:
 
 | Command | Does |
 | --- | --- |

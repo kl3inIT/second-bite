@@ -12,4 +12,4 @@ Design: [design.md](design.md). Tracked in Linear as SEC-79. Each step is one co
 | 6 | Slice 3, the sheets: the posting, editing and withdrawing drawers, the dialogs and the calendar as bottom sheets | Built: the drawers (the posting and withdrawing ones share `SheetContent size="wide"`), and the order day's calendar as a popover "sheet" |
 | 7 | Slice 4, the pushed screens: open a store, my stores, add and edit a dish, with the app's Top bar | Built: the dish forms (a top bar of the store's own, `StorePushedBar`), my stores and open a store, the form buttons fixed at the foot |
 | 8 | Slice 5, sign-in, and the "Mở quán" entry on the account screen | The "Mở quán" row is built; sign-in needed no change (see the design) |
-| 9 | Review on staging on a phone; consolidate into `docs/specs` and `ARCHITECTURE.md`; move the increment to `completed` | To do |
+| 9 | Review on staging on a phone; consolidate into `docs/specs` and `ARCHITECTURE.md`; move the increment to `completed` | Done: accepted by the user without a separate recorded check, 5 November 2026 |

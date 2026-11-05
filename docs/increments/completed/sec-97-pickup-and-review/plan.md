@@ -9,6 +9,6 @@ Design: [design.md](design.md). Tracked in Linear as SEC-97.
 | 3 | The open order after K6, with the orders placed together | Done, 21 October 2026 |
 | 4 | The collected order after K6b, with the review form and the review given | Done, 21 October 2026 |
 | 5 | E2E specs and screenshots at 390, 768 and 1440 | Specs written; to run |
-| 6 | Regenerate the mobile client from the new OpenAPI document | To do: needs Dart |
+| 6 | Regenerate the mobile client from the new OpenAPI document | Done: the Mobile CI fails on a stale generated client, and it is green on `main` |
 
 One pull request, after SEC-88's.

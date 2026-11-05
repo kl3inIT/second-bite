@@ -1,6 +1,6 @@
 # Backend guideline
 
-How the backend realizes the [conventions](../conventions.md) in Go. It is policy for the backend from its first line of code; nothing here exists yet ([ARCHITECTURE.md](../../ARCHITECTURE.md)).
+How the backend realizes the [conventions](../conventions.md) in Go. It is policy for the backend; what exists is in [ARCHITECTURE.md](../../ARCHITECTURE.md).
 
 ## Shape
 
@@ -88,7 +88,7 @@ Infrastructure the team runs itself in Docker Compose is preferred over managed 
 | --- | --- | --- |
 | PostgreSQL with PostGIS (`postgis/postgis:18-3.6`) | The backend foundation | — |
 | pgvector, in an image built from the PostGIS one | Search by meaning (SEC-20) | Full text with `unaccent` and `pg_trgm` |
-| MinIO or another S3-compatible store | The first stored image (SEC-11) | A local directory in development |
+| An S3-compatible store | When configured; files are kept in PostgreSQL by default (SEC-11) | VersityGW under the `s3` profile of `compose.yaml` in development |
 | Redis | Realtime fan-out across several instances, rate limits PostgreSQL cannot carry, or a cache justified by a measured slow read | Jobs in River, counts and sessions in PostgreSQL, in-process fan-out on one instance, `LISTEN/NOTIFY` across instances |
 | A reverse proxy | The first deployment; on the temporary host it is that host's existing proxy ([vision](../vision.md#target-architecture)) | — |
 

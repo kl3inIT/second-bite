@@ -31,26 +31,27 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 - SEC-185 — Production, 31 October 2026: `secondbite.vadan.app` is production, deployed by hand after an approval, indexed by search engines; staging moved to `preview.secondbite.vadan.app`, with the app's web preview at `/mobile/` ([runbook](runbooks/ci-cd.md)).
 - [SEC-192 — The report's three numbers](increments/completed/sec-192-report-three-numbers/design.md), 31 October 2026: the admin opens on yesterday's report, led by new users, orders and visitors, each against the period before; "Hôm qua", "7 ngày" and "30 ngày" in one tap; "Sao chép báo cáo" copies the three numbers as a message; the CSV gains new accounts and first-time customers (PR #197).
 - [SEC-25 — Web Push for orders](increments/completed/sec-25-web-push/design.md), 31 October 2026: customers and sellers are told of an order's events by Web Push, on production since 22 October 2026 and proved on real phones on 31 October; the offer on the order page made quieter in SEC-189.
+- [SEC-193 — Sign in and register with a username and a password](increments/completed/sec-193-username-sign-in/design.md), 4 November 2026: a third way in beside the emailed code and Google, which the web's sign-in screen opens on; an account made so has no email, is named by its username and deleted with its password (PRs #200, #204). The app's screens follow in their own issue.
+
+- The customer's web, through October 2026: [SEC-49 — looking around](increments/completed/sec-49-web-flow-1/design.md), [SEC-76 — the flow end to end](increments/completed/sec-76-web-customer-flow/design.md), [SEC-88 — the seller's page holds the dishes](increments/completed/sec-88-web-seller-page-dish-sheet/design.md), [SEC-83 — the orders list and an order's page](increments/completed/sec-83-web-orders-figma/design.md), [SEC-97 — pickup and review](increments/completed/sec-97-pickup-and-review/design.md), [SEC-109 — favourites](increments/completed/sec-109-favourites/design.md), [SEC-117 — chat on each order and live status](increments/completed/sec-117-order-chat-live/design.md), [SEC-175 — more kinds of dish](increments/completed/sec-175-dish-kinds/design.md) and [SEC-101 — responsive pages](increments/completed/sec-101-responsive/design.md), whose seller page, cart and audit at three widths were left undone.
+- Stores and admins, through October 2026: [SEC-55 — the seller's catalog](increments/completed/sec-55-seller-catalog/design.md), [SEC-65 — an owner-less seller cannot be approved](increments/completed/sec-65-ownerless-approval/design.md), [SEC-126 — account deletion's follow-ups](increments/completed/sec-126-deletion-follow-ups/design.md), and every post, order and review for admins ([SEC-134](increments/completed/sec-134-admin-posts/design.md), [SEC-135](increments/completed/sec-135-admin-orders/design.md), [SEC-145](increments/completed/sec-145-admin-reviews/design.md)).
 
 ## Active
 
 - [Buyer discount](increments/active/buyer-discount/design.md) — promotions an admin runs, taken off an order when it is placed, for the two-week support programme from 2 November 2026; the server first, then the web, the store's app and the programme's figures.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
-- [SEC-193 — Sign in and register with a username and a password](increments/active/sec-193-username-sign-in/design.md): a third way in beside the emailed code and Google, which the sign-in screen opens on; an account made so has no email. The API and the web first, the app after.
 
 ## Candidates
 
 In the order the pilot needs them; each starts as an increment when it is taken.
 
 1. SEC-18 — `payment`: cash at the counter and VietQR transfers confirmed through SePay, behind a provider registry; refunds decided by admins.
-2. SEC-17 — The web application in React for customers, sellers and admins.
-3. SEC-19 — `messaging`: one conversation per order between the customer and the seller's staff.
-4. SEC-16 — Offer drafts from a seller's words, voice or photo, reviewed by staff before they are posted.
-5. SEC-20 — AI search for customers in words or voice, answered in their language.
-6. SEC-13 — Problem reports, cancellation and refund requests handled by admins, and the reports they download.
-7. SEC-12 — The native mobile application, once its technology is chosen.
-8. SEC-14 — Distribution to testers through TestFlight and Google Play internal testing.
+2. SEC-16 — Offer drafts from a seller's words, voice or photo, reviewed by staff before they are posted.
+3. SEC-20 — AI search for customers in words or voice, answered in their language.
+4. SEC-13 — Admins handling the problems customers report, cancellation and refund requests.
+5. SEC-12 — The Flutter app's ordering and store screens, after the beta of 16 November 2026 as the sponsor's plan has it.
+6. SEC-14 — Distribution to testers through TestFlight and Google Play internal testing.
 
-Before the pilot opens: SEC-24 — Brevo's delivery reports and suppressed addresses, with the first deployment.
+Before the beta of 16 November 2026: SEC-24 — Brevo's delivery reports and suppressed addresses.
 
 After the pilot: delivery through Grab or Xanh SM with courier tracking (SEC-21), sellers outside food and beverage.

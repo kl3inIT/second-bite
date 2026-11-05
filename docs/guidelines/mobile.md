@@ -5,7 +5,7 @@ How the Flutter application in `mobile/` realizes the [conventions](../conventio
 ## Stack
 
 - Flutter on its newest stable release, Dart 3, with every package at its newest release; Dependabot proposes `pub` updates weekly. A package held back records why next to it and when it can move.
-- Material 3 through the `material_ui` package, the Material library split out of the framework, themed entirely by our tokens; `cupertino_ui` for the iOS behaviour people notice (swipe back, action sheets, pickers). No shadcn port: the shadcn-style kits are all before 1.0.
+- Material 3 through the `material_ui` package, the Material library split out of the framework, themed entirely by our tokens; `cupertino_ui` for the iOS behaviour people notice (swipe back, action sheets, pickers), added with the first screen that needs it. No shadcn port: the shadcn-style kits are all before 1.0.
 - State is Riverpod 3 with code generation (`@riverpod`). Routing is go_router with go_router_builder, every route typed (`@TypedGoRoute`).
 - The API client is generated from `api/openapi.yaml` by swagger_parser: a dio and retrofit client with freezed models. It is never written by hand or edited.
 - The session's Bearer tokens (SEC-27) live in the Keychain or Keystore through `flutter_secure_storage`, never in `shared_preferences`.
@@ -37,7 +37,7 @@ mobile/
 │  │  └─ ui/                 screens, their widgets and their Riverpod notifiers
 │  └─ l10n/                  arb/app_vi.arb and app_en.arb; gen/ is written by gen-l10n
 ├─ packages/app_ui/          the design system: tokens, ThemeData, shared widgets
-├─ test/  integration_test/
+├─ test/
 └─ AGENTS.md                 the checklist before finishing a change
 ```
 
@@ -56,12 +56,12 @@ mobile/
 ## Data, session and language
 
 - Repositories call the generated client; the client is configured once in `core/` with the API's address and the session's token. A failure's words are the server's `detail` (SEC-28); the app branches on its `code` only where the screen does something different.
-- Vietnamese and English through gen-l10n (`flutter_localizations`, `intl`, ARB files), read as `context.l10n`. The first language follows the device; a choice made in the app is kept in `shared_preferences` and sent as `Accept-Language` on every call. Every key is in both catalogs.
+- Vietnamese and English through gen-l10n (`flutter_localizations`, `intl`, ARB files), read as `context.l10n`. The first language follows the device; a choice made in the app is kept for the session only and sent as `Accept-Language` on every call. Every key is in both catalogs.
 - Times are shown in `Asia/Ho_Chi_Minh` on the 24-hour clock, prices in đồng (`39.000đ`), as on the web.
 - The terms and the privacy policy are read inside the app from a copy of the web's text in the ARB catalogs (`legalTerms*`, `legalPrivacy*`); `test/features/legal/legal_text_test.dart` reads `web/messages` and fails when the two differ, so a change to the legal text is made on the web and copied here in the same change (SEC-52).
 
 ## Quality gates
 
 - Lint is `very_good_analysis` with `riverpod_lint`; a warning fails the build.
-- Unit and widget tests with `flutter_test`, mocks with `mocktail`, goldens for `app_ui`'s widgets, integration tests with `integration_test`. There is no coverage threshold.
+- Unit and widget tests with `flutter_test`, mocks with `mocktail`; goldens for `app_ui`'s widgets and integration tests with `integration_test` arrive with their first test. There is no coverage threshold.
 - The Flutter version is pinned once, as `environment.flutter` in `pubspec.yaml`, which every workflow reads. CI runs, on every pull request, the analyzer, the formatter, the tests, the catalog check, the generated-client and token drift checks and an Android build; on `main`, an iOS build on macOS. The Flutter version is pinned there.

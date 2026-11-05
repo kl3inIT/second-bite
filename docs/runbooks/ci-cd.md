@@ -141,14 +141,14 @@ What each secret does ([backend runbook](backend.md)):
 - Replacing `email-settings-key` makes the stored email provider key unreadable until an admin enters it again.
 - Replacing `sign-in-code-key` voids the codes sent in the last 15 minutes.
 
-**Web Push** (SEC-25). The VAPID key pair is made by the server's own command, in the running image, with no network. It writes the private key to the secrets and prints only the public key, which goes into `.env.staging`. Staging's was made on 22 October 2026.
+**Web Push** (SEC-25). The VAPID key pair is made by the server's own command, in the running image, with no network. It writes the private key to the secrets and prints only the public key, which goes into `.env.staging`. Production's pair was made on 22 October 2026, when it was still staging's, and staging's own on 31 October 2026; each environment's `SECONDBITE_SITE_URL` is its own origin, checked on the host on 5 November 2026.
 
 ```sh
 root=/apps/secondbite-staging
 image=$(sudo docker inspect --format '{{.Config.Image}}' secondbite-staging-server)
 public=$(sudo docker run --rm --user 0 --network none -v $root/secrets:/out "$image" push keys -private-key-file /out/push-private-key)
 sudo chown 65532:65532 $root/secrets/push-private-key && sudo chmod 0400 $root/secrets/push-private-key
-printf 'SECONDBITE_PUSH_PUBLIC_KEY=%s\nSECONDBITE_SITE_URL=https://secondbite.vadan.app\n' "$public" | sudo tee -a $root/.env.staging >/dev/null
+printf 'SECONDBITE_PUSH_PUBLIC_KEY=%s\nSECONDBITE_SITE_URL=https://preview.secondbite.vadan.app\n' "$public" | sudo tee -a $root/.env.staging >/dev/null
 ```
 
 Replacing the pair voids every browser's subscription: each one subscribes again at its next visit to the order page or the Đơn tab.
