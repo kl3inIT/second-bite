@@ -16,7 +16,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ReportStoreBody {
 
- CountsBody get counts; String get name; String get sellerId;
+ CountsBody get counts;/// Days of the range the store has a post on, whatever became of it
+ int get daysPosted;/// Days it posted at least 7 portions on, the support programme's full day
+ int get fullDays; String get name; String get sellerId;
 /// Create a copy of ReportStoreBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +32,20 @@ $ReportStoreBodyCopyWith<ReportStoreBody> get copyWith => _$ReportStoreBodyCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as ReportStoreBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportStoreBody&&(identical(other.counts, _this.counts) || other.counts == _this.counts)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.sellerId, _this.sellerId) || other.sellerId == _this.sellerId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportStoreBody&&(identical(other.counts, _this.counts) || other.counts == _this.counts)&&(identical(other.daysPosted, _this.daysPosted) || other.daysPosted == _this.daysPosted)&&(identical(other.fullDays, _this.fullDays) || other.fullDays == _this.fullDays)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.sellerId, _this.sellerId) || other.sellerId == _this.sellerId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ReportStoreBody;
-  return Object.hash(runtimeType,_this.counts,_this.name,_this.sellerId);
+  return Object.hash(runtimeType,_this.counts,_this.daysPosted,_this.fullDays,_this.name,_this.sellerId);
 }
 
 @override
 String toString() {
   final _this = this as ReportStoreBody;
-  return 'ReportStoreBody(counts: ${_this.counts}, name: ${_this.name}, sellerId: ${_this.sellerId})';
+  return 'ReportStoreBody(counts: ${_this.counts}, daysPosted: ${_this.daysPosted}, fullDays: ${_this.fullDays}, name: ${_this.name}, sellerId: ${_this.sellerId})';
 }
 
 
@@ -54,7 +56,7 @@ abstract mixin class $ReportStoreBodyCopyWith<$Res>  {
   factory $ReportStoreBodyCopyWith(ReportStoreBody value, $Res Function(ReportStoreBody) _then) = _$ReportStoreBodyCopyWithImpl;
 @useResult
 $Res call({
- CountsBody counts, String name, String sellerId
+ CountsBody counts, int daysPosted, int fullDays, String name, String sellerId
 });
 
 
@@ -71,10 +73,12 @@ class _$ReportStoreBodyCopyWithImpl<$Res>
 
 /// Create a copy of ReportStoreBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? counts = null,Object? name = null,Object? sellerId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? counts = null,Object? daysPosted = null,Object? fullDays = null,Object? name = null,Object? sellerId = null,}) {
   return _then(ReportStoreBody(
 counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
-as CountsBody,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as CountsBody,daysPosted: null == daysPosted ? _self.daysPosted : daysPosted // ignore: cast_nullable_to_non_nullable
+as int,fullDays: null == fullDays ? _self.fullDays : fullDays // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,sellerId: null == sellerId ? _self.sellerId : sellerId // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -170,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CountsBody counts,  String name,  String sellerId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CountsBody counts,  int daysPosted,  int fullDays,  String name,  String sellerId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReportStoreBody() when $default != null:
-return $default(_that.counts,_that.name,_that.sellerId);case _:
+return $default(_that.counts,_that.daysPosted,_that.fullDays,_that.name,_that.sellerId);case _:
   return orElse();
 
 }
@@ -191,10 +195,10 @@ return $default(_that.counts,_that.name,_that.sellerId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CountsBody counts,  String name,  String sellerId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CountsBody counts,  int daysPosted,  int fullDays,  String name,  String sellerId)  $default,) {final _that = this;
 switch (_that) {
 case _ReportStoreBody():
-return $default(_that.counts,_that.name,_that.sellerId);case _:
+return $default(_that.counts,_that.daysPosted,_that.fullDays,_that.name,_that.sellerId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -211,10 +215,10 @@ return $default(_that.counts,_that.name,_that.sellerId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CountsBody counts,  String name,  String sellerId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CountsBody counts,  int daysPosted,  int fullDays,  String name,  String sellerId)?  $default,) {final _that = this;
 switch (_that) {
 case _ReportStoreBody() when $default != null:
-return $default(_that.counts,_that.name,_that.sellerId);case _:
+return $default(_that.counts,_that.daysPosted,_that.fullDays,_that.name,_that.sellerId);case _:
   return null;
 
 }
@@ -226,10 +230,14 @@ return $default(_that.counts,_that.name,_that.sellerId);case _:
 @JsonSerializable()
 
 class _ReportStoreBody implements ReportStoreBody {
-  const _ReportStoreBody({required this.counts, required this.name, required this.sellerId});
+  const _ReportStoreBody({required this.counts, required this.daysPosted, required this.fullDays, required this.name, required this.sellerId});
   factory _ReportStoreBody.fromJson(Map<String, dynamic> json) => _$ReportStoreBodyFromJson(json);
 
 @override final  CountsBody counts;
+/// Days of the range the store has a post on, whatever became of it
+@override final  int daysPosted;
+/// Days it posted at least 7 portions on, the support programme's full day
+@override final  int fullDays;
 @override final  String name;
 @override final  String sellerId;
 
@@ -246,18 +254,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportStoreBody&&(identical(other.counts, counts) || other.counts == counts)&&(identical(other.name, name) || other.name == name)&&(identical(other.sellerId, sellerId) || other.sellerId == sellerId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportStoreBody&&(identical(other.counts, counts) || other.counts == counts)&&(identical(other.daysPosted, daysPosted) || other.daysPosted == daysPosted)&&(identical(other.fullDays, fullDays) || other.fullDays == fullDays)&&(identical(other.name, name) || other.name == name)&&(identical(other.sellerId, sellerId) || other.sellerId == sellerId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,counts,name,sellerId);
+    return Object.hash(runtimeType,counts,daysPosted,fullDays,name,sellerId);
 }
 
 @override
 String toString() {
-    return 'ReportStoreBody(counts: $counts, name: $name, sellerId: $sellerId)';
+    return 'ReportStoreBody(counts: $counts, daysPosted: $daysPosted, fullDays: $fullDays, name: $name, sellerId: $sellerId)';
 }
 
 
@@ -268,7 +276,7 @@ abstract mixin class _$ReportStoreBodyCopyWith<$Res> implements $ReportStoreBody
   factory _$ReportStoreBodyCopyWith(_ReportStoreBody value, $Res Function(_ReportStoreBody) _then) = __$ReportStoreBodyCopyWithImpl;
 @override @useResult
 $Res call({
- CountsBody counts, String name, String sellerId
+ CountsBody counts, int daysPosted, int fullDays, String name, String sellerId
 });
 
 
@@ -285,10 +293,12 @@ class __$ReportStoreBodyCopyWithImpl<$Res>
 
 /// Create a copy of ReportStoreBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? counts = null,Object? name = null,Object? sellerId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? counts = null,Object? daysPosted = null,Object? fullDays = null,Object? name = null,Object? sellerId = null,}) {
   return _then(_ReportStoreBody(
 counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
-as CountsBody,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as CountsBody,daysPosted: null == daysPosted ? _self.daysPosted : daysPosted // ignore: cast_nullable_to_non_nullable
+as int,fullDays: null == fullDays ? _self.fullDays : fullDays // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,sellerId: null == sellerId ? _self.sellerId : sellerId // ignore: cast_nullable_to_non_nullable
 as String,
   ));

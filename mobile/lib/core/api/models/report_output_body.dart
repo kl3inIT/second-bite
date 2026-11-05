@@ -18,8 +18,14 @@ abstract class ReportOutputBody with _$ReportOutputBody {
     /// The accounts there are at the end of the range
     required int accounts,
 
+    /// Customers, by phone number, with an order handed over in the range; the site's whatever store is chosen
+    required int customers,
+
     /// Every day of the range, in order
     required List<ReportDayBody>? days,
+
+    /// Those of the customers with orders handed over on at least two days up to the range's end
+    required int returningCustomers,
     required DateTime since,
 
     /// Each store on each day it has numbers, by day then name

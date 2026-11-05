@@ -61,7 +61,15 @@ function shareOf(c: CountsBody): number | null {
 function sortValue(store: ReportStoreBody, sort: ReportSort): number | string {
   if (sort === "name") return store.name;
   if (sort === "share") return shareOf(store.counts) ?? -1;
+  if (sort === "daysPosted" || sort === "fullDays") return store[sort];
   return store.counts[sort];
+}
+
+/** The share of the customers who came back, in whole percent; none without customers (SEC-200). */
+function returningShareOf(report: ReportOutputBody): number | null {
+  return report.customers > 0
+    ? Math.round((report.returningCustomers * 100) / report.customers)
+    : null;
 }
 
 /**
@@ -173,7 +181,7 @@ export function ReportView({
           </a>
         </div>
       </div>
-      <Cards totals={report.totals} previous={previous} accounts={report.accounts} days={days} />
+      <Cards report={report} previous={previous} days={days} />
       <DayBars days={report.days ?? []} />
       <DataTable
         label={t("table")}
@@ -217,20 +225,20 @@ function Change({ now, before, days }: { now: number; before: number | undefined
  * orders held; and people. Under them, how the orders ended.
  */
 function Cards({
-  totals,
+  report,
   previous,
-  accounts,
   days,
 }: {
-  totals: CountsBody;
+  report: ReportOutputBody;
   previous: CountsBody | null;
-  accounts: number;
   days: number;
 }) {
   const t = useTranslations("Admin.reports");
   const card = useTranslations("Admin.reports.card");
   const format = useFormatter();
+  const { totals, accounts } = report;
   const share = shareOf(totals);
+  const returning = returningShareOf(report);
   const headline = [
     {
       key: "newUsers",
@@ -275,6 +283,14 @@ function Cards({
       figure: formatPrice(totals.collectedVnd),
       note: card("collectedVndNote", { orders: totals.collected }),
     },
+    {
+      key: "returning",
+      figure: returning === null ? "–" : `${returning}%`,
+      note: card("returningNote", {
+        returning: report.returningCustomers,
+        customers: report.customers,
+      }),
+    },
   ] as const;
 
   return (
@@ -303,7 +319,10 @@ function Cards({
           </div>
         ))}
       </dl>
-      <dl aria-label={t("detail")} className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+      <dl
+        aria-label={t("detail")}
+        className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-5"
+      >
         {detail.map((c) => (
           <div
             key={c.key}
@@ -488,6 +507,12 @@ function useColumns(
     figure("offers", "w-28"),
     figure("held", "w-26"),
     figure("collected", "w-28"),
+    {
+      id: "unitsCollected",
+      header: head("unitsCollected"),
+      meta: { width: "w-32" },
+      cell: ({ row }) => format.number(row.original.counts.unitsCollected),
+    },
     figure("expired", "w-30"),
     {
       id: "share",
@@ -505,6 +530,18 @@ function useColumns(
       cell: ({ row }) => (
         <span className="whitespace-nowrap">{formatPrice(row.original.counts.collectedVnd)}</span>
       ),
+    },
+    {
+      id: "daysPosted",
+      header: head("daysPosted"),
+      meta: { width: "w-30" },
+      cell: ({ row }) => format.number(row.original.daysPosted),
+    },
+    {
+      id: "fullDays",
+      header: head("fullDays"),
+      meta: { width: "w-36" },
+      cell: ({ row }) => format.number(row.original.fullDays),
     },
   ];
 }

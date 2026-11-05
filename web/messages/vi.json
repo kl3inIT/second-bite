@@ -1960,7 +1960,9 @@
         "peopleNote": "{views} lượt mở trang · {qr} từ QR",
         "collectedVnd": "Tiền thu tại quầy",
         "collectedVndNote": "{orders} đơn đã lấy",
-        "change": "{change, select, 0 {Bằng} other {{change} so với}} {days, plural, =1 {hôm trước} other {# ngày trước đó}}"
+        "change": "{change, select, 0 {Bằng} other {{change} so với}} {days, plural, =1 {hôm trước} other {# ngày trước đó}}",
+        "returning": "Khách mua lại",
+        "returningNote": "{returning}/{customers} khách đã lấy đơn quay lại"
       },
       "chart": {
         "label": "Biểu đồ theo ngày",
@@ -1990,7 +1992,10 @@
         "expired": "Không đến",
         "share": "Tỉ lệ lấy",
         "collectedVnd": "Tiền thu",
-        "people": "Người truy cập"
+        "people": "Người truy cập",
+        "unitsCollected": "Phần đã lấy",
+        "daysPosted": "Ngày đăng",
+        "fullDays": "Ngày đủ 7 phần"
       },
       "none": "–",
       "empty": {

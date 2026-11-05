@@ -45,9 +45,11 @@ type reportDayBody struct {
 }
 
 type reportStoreBody struct {
-	SellerID uuid.UUID  `json:"sellerId"`
-	Name     string     `json:"name"`
-	Counts   countsBody `json:"counts"`
+	SellerID   uuid.UUID  `json:"sellerId"`
+	Name       string     `json:"name"`
+	Counts     countsBody `json:"counts"`
+	DaysPosted int        `json:"daysPosted" doc:"Days of the range the store has a post on, whatever became of it"`
+	FullDays   int        `json:"fullDays"   doc:"Days it posted at least 7 portions on, the support programme's full day"`
 }
 
 type reportStoreDayBody struct {
@@ -63,6 +65,8 @@ type reportOutput struct {
 		Until     string               `json:"until"     format:"date"`
 		Totals    countsBody           `json:"totals"`
 		Accounts  int                  `json:"accounts"  doc:"The accounts there are at the end of the range"`
+		Customers int                  `json:"customers" doc:"Customers, by phone number, with an order handed over in the range; the site's whatever store is chosen"`
+		Returning int                  `json:"returningCustomers" doc:"Those of the customers with orders handed over on at least two days up to the range's end"`
 		Days      []reportDayBody      `json:"days"      doc:"Every day of the range, in order"`
 		Stores    []reportStoreBody    `json:"stores"    doc:"Each store with numbers in the range, the most orders first"`
 		StoreDays []reportStoreDayBody `json:"storeDays" doc:"Each store on each day it has numbers, by day then name"`
@@ -169,6 +173,7 @@ func reportOf(r Report) *reportOutput {
 	out.Body.Since, out.Body.Until = r.Since.Format(time.DateOnly), r.Until.Format(time.DateOnly)
 	out.Body.Totals = countsOf(r.Totals)
 	out.Body.Accounts = r.Accounts
+	out.Body.Customers, out.Body.Returning = r.Customers, r.Returning
 
 	out.Body.Days = make([]reportDayBody, len(r.Days))
 	for i, d := range r.Days {
@@ -177,7 +182,9 @@ func reportOf(r Report) *reportOutput {
 
 	out.Body.Stores = make([]reportStoreBody, len(r.Stores))
 	for i, st := range r.Stores {
-		out.Body.Stores[i] = reportStoreBody{SellerID: st.SellerID, Name: st.Name, Counts: countsOf(st.Counts)}
+		out.Body.Stores[i] = reportStoreBody{
+			SellerID: st.SellerID, Name: st.Name, Counts: countsOf(st.Counts), DaysPosted: st.DaysPosted, FullDays: st.FullDays,
+		}
 	}
 
 	out.Body.StoreDays = make([]reportStoreDayBody, len(r.StoreDays))

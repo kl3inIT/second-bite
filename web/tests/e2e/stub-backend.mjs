@@ -2947,7 +2947,17 @@ function adminReport(url, stores) {
   const shown = stores
     .filter((s) => s.status === "active")
     .slice(0, reportStoreNumbers.length)
-    .map((s, i) => ({ sellerId: s.id, name: s.name, counts: reportCounts(reportStoreNumbers[i]) }))
+    .map((s, i) => {
+      const counts = reportCounts(reportStoreNumbers[i]);
+      // SEC-200: the stores' numbers fall on one day, a day posted, full with 7 portions or more.
+      return {
+        sellerId: s.id,
+        name: s.name,
+        counts,
+        daysPosted: counts.offers > 0 ? 1 : 0,
+        fullDays: counts.unitsPosted >= 7 ? 1 : 0,
+      };
+    })
     .filter((s) => !sellerId || s.sellerId === sellerId);
   // The stores' numbers fall on today; a range that ends before it, as the period a report is compared with
   // (SEC-192), has fewer, on its last day and for the whole site.
@@ -2973,6 +2983,9 @@ function adminReport(url, stores) {
     until,
     totals,
     accounts: 23,
+    // SEC-200: 4 of 10 customers who collected came back, the site's whatever store is chosen.
+    customers: 10,
+    returningCustomers: 4,
     days,
     stores: current ? shown : [],
     storeDays: last && current ? shown.map((store) => ({ day: last.day, ...store })) : [],

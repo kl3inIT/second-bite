@@ -2535,6 +2535,10 @@ components:
           description: The accounts there are at the end of the range
           format: int64
           type: integer
+        customers:
+          description: Customers, by phone number, with an order handed over in the range; the site's whatever store is chosen
+          format: int64
+          type: integer
         days:
           description: Every day of the range, in order
           items:
@@ -2542,6 +2546,10 @@ components:
           type:
             - array
             - "null"
+        returningCustomers:
+          description: Those of the customers with orders handed over on at least two days up to the range's end
+          format: int64
+          type: integer
         since:
           format: date
           type: string
@@ -2569,6 +2577,8 @@ components:
         - until
         - totals
         - accounts
+        - customers
+        - returningCustomers
         - days
         - stores
         - storeDays
@@ -2578,6 +2588,14 @@ components:
       properties:
         counts:
           $ref: "#/components/schemas/CountsBody"
+        daysPosted:
+          description: Days of the range the store has a post on, whatever became of it
+          format: int64
+          type: integer
+        fullDays:
+          description: Days it posted at least 7 portions on, the support programme's full day
+          format: int64
+          type: integer
         name:
           type: string
         sellerId:
@@ -2586,6 +2604,8 @@ components:
         - sellerId
         - name
         - counts
+        - daysPosted
+        - fullDays
       type: object
     ReportStoreDayBody:
       additionalProperties: false

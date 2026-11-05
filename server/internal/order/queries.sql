@@ -462,6 +462,20 @@ FROM (
 GROUP BY firsts.day
 ORDER BY firsts.day;
 
+-- name: CollectedCustomers :one
+-- The customers, told apart by phone number, with an order handed over whose collection day is in [since, until), and
+-- those of them with orders handed over on at least two collection days in Vietnam up to until, earlier ones included:
+-- the support programme's returning customers (SEC-200). Days, not orders, so one checkout across two stores is one
+-- purchase.
+SELECT count(*) AS customers, count(*) FILTER (WHERE days >= 2) AS returning_customers
+FROM (
+    SELECT count(DISTINCT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date) AS days
+    FROM order_orders
+    WHERE customer_phone <> '' AND state = 'collected' AND window_start < @until
+    GROUP BY customer_phone
+    HAVING max(window_start) >= @since
+) AS c;
+
 -- name: LockRunningPromotions :many
 -- The promotions running at now for a seller, locked until the transaction
 -- ends in one order of identifiers, so two orders never spend the same last

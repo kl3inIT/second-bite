@@ -26,11 +26,14 @@ func twoDays() Report {
 	total := sold
 	total.addViews(quiet)
 
+	coBaID := uuid.New()
+
 	return Report{
-		Since: monday, Until: tuesday, Totals: total,
-		Days: []DayCounts{{Day: monday, Counts: quiet}, {Day: tuesday, Counts: sold}},
+		Since: monday, Until: tuesday, Totals: total, Customers: 5, Returning: 2,
+		Days:   []DayCounts{{Day: monday, Counts: quiet}, {Day: tuesday, Counts: sold}},
+		Stores: []StoreCounts{{SellerID: coBaID, Name: coBa, Counts: sold, DaysPosted: 1, FullDays: 0}},
 		StoreDays: []StoreDayCounts{
-			{Day: tuesday, SellerID: uuid.New(), Name: coBa, Counts: sold},
+			{Day: tuesday, SellerID: coBaID, Name: coBa, Counts: sold},
 			{Day: tuesday, SellerID: uuid.New(), Name: "=HYPERLINK(\"http://x\")"},
 		},
 	}
@@ -72,7 +75,7 @@ func TestReportCSV(t *testing.T) {
 
 	want := []string{
 		"Ngày Cửa hàng", "2026-10-19 Cả trang", "2026-10-20 Cả trang", "2026-10-20 " + coBa,
-		"2026-10-20 '=HYPERLINK(\"http://x\")", "Tổng ",
+		"2026-10-20 '=HYPERLINK(\"http://x\")", "Tổng ", "Tổng " + coBa,
 	}
 	if !slices.Equal(names, want) {
 		t.Fatalf("rows %q, want %q", names, want)
@@ -87,6 +90,33 @@ func TestReportCSV(t *testing.T) {
 	}
 }
 
+// TestReportCSVProgrammeFigures reads the support programme's figures
+// (SEC-200): the customers on the site's total, the days on each store's.
+func TestReportCSVProgrammeFigures(t *testing.T) {
+	t.Parallel()
+
+	body, err := reportCSV(twoDays(), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rows := readCSV(t, body)
+
+	if site := rows[5]; site[20] != "5" || site[21] != "2" || site[18] != "" {
+		t.Errorf("the site's total %q, want 5 customers and 2 returning", site)
+	}
+
+	if store := rows[6]; store[18] != "1" || store[19] != "0" || store[10] != "3" || store[20] != "" {
+		t.Errorf("the store's total %q, want 1 day posted, none full and 3 portions sold", store)
+	}
+
+	for _, row := range rows {
+		if len(row) != len(csvHeader) {
+			t.Errorf("a row of %d fields, want %d: %q", len(row), len(csvHeader), row)
+		}
+	}
+}
+
 func TestReportCSVOfOneStore(t *testing.T) {
 	t.Parallel()
 
@@ -97,7 +127,7 @@ func TestReportCSVOfOneStore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if rows := readCSV(t, alone); len(rows) != 4 || rows[1][1] != coBa {
+	if rows := readCSV(t, alone); len(rows) != 5 || rows[1][1] != coBa || rows[3][20] != "" {
 		t.Errorf("one store's file %q, want its rows and the totals without the whole site's", rows)
 	}
 

@@ -13,6 +13,12 @@ part 'report_store_body.g.dart';
 abstract class ReportStoreBody with _$ReportStoreBody {
   const factory ReportStoreBody({
     required CountsBody counts,
+
+    /// Days of the range the store has a post on, whatever became of it
+    required int daysPosted,
+
+    /// Days it posted at least 7 portions on, the support programme's full day
+    required int fullDays,
     required String name,
     required String sellerId,
   }) = _ReportStoreBody;

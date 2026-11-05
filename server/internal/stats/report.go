@@ -9,12 +9,17 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/kl3inIT/second-bite/server/internal/order"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 	"github.com/kl3inIT/second-bite/server/internal/stats/internal/db"
 )
 
 // maxReportDays bounds the days one report reads.
 const maxReportDays = 92
+
+// fullDayUnits are the portions a store posts on a day for the support
+// programme to count it full: "7 to 10 portions a day" (SEC-200).
+const fullDayUnits = 7
 
 // ErrReportRangeInvalid refuses a range that ends before it starts or is too long.
 var ErrReportRangeInvalid = platform.NewFailure("REPORT_RANGE_INVALID", platform.CategoryValidation, platform.Words{
@@ -85,6 +90,9 @@ type StoreCounts struct {
 	SellerID uuid.UUID
 	Name     string
 	Counts
+	// DaysPosted are the days the store has a post on, and FullDays those it
+	// posted at least fullDayUnits portions on (SEC-200).
+	DaysPosted, FullDays int
 }
 
 // StoreDayCounts are a store's numbers on a day.
@@ -103,9 +111,13 @@ type Report struct {
 	Since, Until time.Time
 	Totals       Counts
 	Accounts     int
-	Days         []DayCounts
-	Stores       []StoreCounts
-	StoreDays    []StoreDayCounts
+	// Customers had an order handed over in the range, and Returning of them
+	// had one on another day too, up to its end; the site's, whatever store is
+	// chosen (SEC-200).
+	Customers, Returning int
+	Days                 []DayCounts
+	Stores               []StoreCounts
+	StoreDays            []StoreDayCounts
 }
 
 type storeDay struct {
@@ -151,7 +163,7 @@ func (s *Service) Report(ctx context.Context, f ReportFilter) (Report, error) {
 		}
 	}
 
-	accounts, err := s.newUsers(ctx, f, days)
+	accounts, customers, err := s.newUsers(ctx, f, days)
 	if err != nil {
 		return Report{}, err
 	}
@@ -162,6 +174,7 @@ func (s *Service) Report(ctx context.Context, f ReportFilter) (Report, error) {
 	}
 
 	r.Accounts = accounts
+	r.Customers, r.Returning = customers.Customers, customers.Returning
 
 	return r, nil
 }
@@ -183,16 +196,16 @@ func (s *Service) siteViews(ctx context.Context, f ReportFilter, days map[time.T
 }
 
 // newUsers adds the site's new accounts and first-time customers to days, and
-// answers the accounts there are at the end of the range (SEC-192). They are
-// the site's whatever store is chosen: an account and a customer belong to no
-// store.
-func (s *Service) newUsers(ctx context.Context, f ReportFilter, days map[time.Time]*Counts) (int, error) {
+// answers the accounts there are at the end of the range (SEC-192) and the
+// range's customers with those who came back (SEC-200). They are the site's
+// whatever store is chosen: an account and a customer belong to no store.
+func (s *Service) newUsers(ctx context.Context, f ReportFilter, days map[time.Time]*Counts) (int, order.Customers, error) {
 	since := time.Date(f.Since.Year(), f.Since.Month(), f.Since.Day(), 0, 0, 0, 0, vietnam)
 	until := time.Date(f.Until.Year(), f.Until.Month(), f.Until.Day()+1, 0, 0, 0, 0, vietnam)
 
 	accounts, total, err := s.identities.AccountDays(ctx, since, until)
 	if err != nil {
-		return 0, err
+		return 0, order.Customers{}, err
 	}
 
 	for _, a := range accounts {
@@ -201,18 +214,23 @@ func (s *Service) newUsers(ctx context.Context, f ReportFilter, days map[time.Ti
 		}
 	}
 
-	customers, err := s.orders.FirstOrderDays(ctx, since, until)
+	firsts, err := s.orders.FirstOrderDays(ctx, since, until)
 	if err != nil {
-		return 0, err
+		return 0, order.Customers{}, err
 	}
 
-	for _, c := range customers {
+	for _, c := range firsts {
 		if day, ok := days[c.Day]; ok {
 			day.NewCustomers += c.Customers
 		}
 	}
 
-	return total, nil
+	customers, err := s.orders.CollectedCustomers(ctx, since, until)
+	if err != nil {
+		return 0, order.Customers{}, err
+	}
+
+	return total, customers, nil
 }
 
 // storeDays merges the views, the posts and the orders of each store and day.
@@ -306,15 +324,24 @@ func (s *Service) assemble(ctx context.Context, f ReportFilter, days map[time.Ti
 
 	slices.SortFunc(r.Days, func(a, b DayCounts) int { return a.Day.Compare(b.Day) })
 
-	stores := map[uuid.UUID]*Counts{}
+	stores := map[uuid.UUID]*StoreCounts{}
 
 	for key, c := range cells {
 		if stores[key.seller] == nil {
-			stores[key.seller] = &Counts{}
+			stores[key.seller] = &StoreCounts{SellerID: key.seller}
 		}
 
-		stores[key.seller].addViews(*c)
-		stores[key.seller].addTrade(*c)
+		st := stores[key.seller]
+		st.addViews(*c)
+		st.addTrade(*c)
+
+		if c.Offers > 0 {
+			st.DaysPosted++
+		}
+
+		if c.UnitsPosted >= fullDayUnits {
+			st.FullDays++
+		}
 	}
 
 	ids := make([]uuid.UUID, 0, len(stores))
@@ -327,8 +354,9 @@ func (s *Service) assemble(ctx context.Context, f ReportFilter, days map[time.Ti
 		return Report{}, err
 	}
 
-	for id, c := range stores {
-		r.Stores = append(r.Stores, StoreCounts{SellerID: id, Name: names[id], Counts: *c})
+	for id, st := range stores {
+		st.Name = names[id]
+		r.Stores = append(r.Stores, *st)
 	}
 
 	slices.SortFunc(r.Stores, func(a, b StoreCounts) int {

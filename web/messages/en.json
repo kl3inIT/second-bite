@@ -1960,7 +1960,9 @@
         "peopleNote": "{views} page views · {qr} from QR",
         "collectedVnd": "Taken at the counter",
         "collectedVndNote": "{orders} orders collected",
-        "change": "{change, select, 0 {Same as} other {{change} on}} {days, plural, =1 {the day before} other {the # days before}}"
+        "change": "{change, select, 0 {Same as} other {{change} on}} {days, plural, =1 {the day before} other {the # days before}}",
+        "returning": "Returning customers",
+        "returningNote": "{returning} of {customers} customers who collected came back"
       },
       "chart": {
         "label": "Chart by day",
@@ -1990,7 +1992,10 @@
         "expired": "No-shows",
         "share": "Collected %",
         "collectedVnd": "Taken in",
-        "people": "Visitors"
+        "people": "Visitors",
+        "unitsCollected": "Units collected",
+        "daysPosted": "Days posted",
+        "fullDays": "Days with 7+"
       },
       "none": "–",
       "empty": {

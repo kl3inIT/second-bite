@@ -28,6 +28,17 @@ The discount belongs to the order: it is decided in the transaction that places 
 
 Placing locks the promotions running for the store (`FOR UPDATE`, in order of identifier), after the offers and the seller, so two orders never take the same last part of a budget, and an admin's change waits for them.
 
+## The programme's figures (step 4, SEC-200)
+
+Decided on 5 November 2026: the stores' rewards and the programme's targets are read from the admin's report (SEC-80, SEC-192) over the days the admin chooses, not from a page of their own. The programme lasts 14 days and has about 15 stores. The team works the rewards out from the numbers and checks the Facebook or Zalo introduction by eye, so the server holds no reward. The rules, against the sponsor's message of 31 October 2026:
+
+1. **A day posted** is a collection day in Vietnam on which the store has at least one post, whatever became of it, as the report already counts posts. Reward: "posting on at least 10 of the 14 days".
+2. **A full day** is a day posted with at least 7 portions posted that day. Reward: "7 to 10 portions a day". The upper figure is what the sponsor expects, not a limit. 7 is the programme's figure, kept as a constant of the report beside its rule.
+3. **Portions sold** are the portions of the orders handed over (`unitsCollected`): the customer pays at the counter on handover, so an order held and never collected sells nothing. Rewards: "about 50 portions over the two weeks" and "the store that sells the most portions each week". The admin chooses Monday to Sunday and sorts the stores by it. A tie is shown as it is, and the team decides.
+4. **A customer** is a phone number with an order handed over whose collection day is in the range, as new customers are told apart by phone (SEC-192). **A returning customer** is one of them who had orders handed over on at least two different collection days up to the range's end, earlier days included. This follows Shopify's returning customer rate, customers of the period who have ordered more than once (its help centre's definition, not read in code). Days, not orders, so that one checkout across two stores is one purchase. Target: "at least 30% of customers buying a second time". Both are the site's, whatever store is chosen, like new users.
+
+The screen adds three columns to the stores' table ("Ngày đăng", "Ngày đủ 7 phần", "Phần đã lấy") and a card "Khách mua lại" with its share. The CSV adds the same three columns, filled on a total row per store after the site's total, and the customers and returning customers on the site's total.
+
 ## Out of scope
 
 Codes a customer types, discounts on one dish, gifts, buy X get Y: none of the team needs them; a reward type or a condition attribute is added when one does. Paying the stores in the app.
