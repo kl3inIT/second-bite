@@ -31,7 +31,7 @@ func RegisterOperations(api huma.API, s *Service) {
 		OperationID: "uploadPhoto", Method: http.MethodPost, Path: "/photos",
 		Summary: "Upload a photo for an offer or a seller",
 		Description: "The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG " +
-			"in two sizes, without its metadata. An unused photo is kept for a day.",
+			"in two sizes, without its metadata. An account holds at most 20 unused photos.",
 		Tags: tags, Security: platform.SignedIn(),
 		DefaultStatus: http.StatusCreated, MaxBodyBytes: MaxUploadBytes, BodyReadTimeout: uploadReadTimeout,
 	}, func(ctx context.Context, in *struct {

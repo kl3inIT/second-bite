@@ -32,7 +32,8 @@ type Record struct {
 	// LastSignedInAt is nil until its first sign-in since SEC-75 recorded
 	// them, or when every session it had ended before.
 	LastSignedInAt *time.Time
-	// LastSignInMethod is "code" or "google", empty with LastSignedInAt.
+	// LastSignInMethod is "code", "google" or "password", empty with
+	// LastSignedInAt.
 	LastSignInMethod string
 }
 

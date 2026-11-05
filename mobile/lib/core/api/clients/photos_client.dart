@@ -18,7 +18,7 @@ abstract class PhotosClient {
 
   /// Upload a photo for an offer or a seller.
   ///
-  /// The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG in two sizes, without its metadata. An unused photo is kept for a day.
+  /// The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG in two sizes, without its metadata. An account holds at most 20 unused photos.
   @POST('/photos')
   Future<PhotoBody> uploadPhoto({@Body() required File body});
 

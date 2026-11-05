@@ -5970,7 +5970,7 @@ paths:
         - Orders
   /photos:
     post:
-      description: "The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG in two sizes, without its metadata. An unused photo is kept for a day."
+      description: "The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG in two sizes, without its metadata. An account holds at most 20 unused photos."
       operationId: uploadPhoto
       requestBody:
         content:
