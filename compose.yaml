@@ -33,7 +33,7 @@ services:
   s3:
     # VersityGW, an S3 gateway over a directory, standing in for R2, Garage or
     # AWS S3. The keys are local placeholders, like the password above.
-    image: versity/versitygw:v1.9.0
+    image: versity/versitygw:v1.10.0
     profiles: ["s3"]
     command: ["--access", "secondbite-local", "--secret", "secondbite-local-secret", "--port", ":7070", "posix", "/data"]
     ports:
