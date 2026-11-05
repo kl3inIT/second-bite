@@ -1063,7 +1063,7 @@ export const reviewOrder = <ThrowOnError extends boolean = true>(options: Option
 /**
  * Upload a photo for an offer or a seller
  *
- * The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG in two sizes, without its metadata. An unused photo is kept for a day.
+ * The body is the image itself: JPEG, PNG or WebP, at most 10 MB. It is written again as JPEG in two sizes, without its metadata. An account holds at most 20 unused photos.
  */
 export const uploadPhoto = <ThrowOnError extends boolean = true>(options: Options<UploadPhotoData, ThrowOnError>): RequestResult<UploadPhotoResponses, UploadPhotoErrors, ThrowOnError> => (options.client ?? client).post<UploadPhotoResponses, UploadPhotoErrors, ThrowOnError>({
     bodySerializer: null,
