@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # Build from server/: docker build -t second-bite-server server. The migrations are embedded in the binary.
 
-FROM golang:1.27.2-trixie@sha256:47667934874913a449b96faa7ef4777fa285d9ec29126ee80ed61c45b7cccf0e AS build
+FROM golang:1.27.3-trixie@sha256:d9fa6e7ba43678ee1e5d1617007db9a134612032a74e2d86b44a9f582f1564cc AS build
 
 WORKDIR /workspace/server
 COPY go.mod go.sum ./
@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
     CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/secondbite ./cmd/secondbite
 
 # Distroless: no shell and no package manager; the health check is the binary's own command.
-FROM gcr.io/distroless/static-debian13:nonroot@sha256:d62067879de890a1def9da0e7766b7d20810a5e5555cef8506b752437d7a3e88
+FROM gcr.io/distroless/static-debian13:nonroot@sha256:25ac8f0c3b2334a9eb05452266bd4697864a8c8ef0ef71e5e6480d7f92868329
 
 ARG VCS_REF=unknown
 LABEL org.opencontainers.image.title="Second Bite Server" \

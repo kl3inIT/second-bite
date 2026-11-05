@@ -9,3 +9,8 @@ allowBuilds:
 # Windows too. knip's script needs it: oxc-parser's raw transfer reserves one buffer of several GB,
 # which a Windows machine with little free memory refuses, and the plain parser is fast enough here.
 shellEmulator: true
+
+# @hey-api/json-schema-ref-parser pins js-yaml 4.2.0, which has known advisories; the code generator reads our own
+# contract only, and 4.3.2 keeps the same API.
+overrides:
+  js-yaml: ^4.3.2
