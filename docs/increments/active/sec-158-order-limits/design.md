@@ -1,6 +1,6 @@
 # Order limits
 
-Status: design, decided with the user on 6 November 2026. Tracked in Linear as SEC-158. It changes `order` ([spec](../../../specs/order.md)) and `offer` ([spec](../../../specs/offer.md)).
+Status: built on 6 November 2026, proved on the local stack; waiting for its pull request. Decided with the user on 6 November 2026. Tracked in Linear as SEC-158. It changes `order` ([spec](../../../specs/order.md)) and `offer` ([spec](../../../specs/offer.md)).
 
 ## The problem
 
