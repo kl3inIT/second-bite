@@ -126,6 +126,10 @@ export type Dish = {
   units?: number;
   originalPriceVnd?: number;
   priceVnd?: number;
+  /** The post's own cap per order (SEC-158); none when the settings' default applies. */
+  maxPerOrder?: number;
+  /** The cap that applied to the post, its own or the default, which a post without its own shows as its default. */
+  perOrderMax?: number;
   photoId: string;
   photoPath: string;
   /** The hour of day it was last put on sale, "the usual time" of Figma P3. */
@@ -152,6 +156,8 @@ export function dishOf(offer: OfferBody): Dish {
     units: offer.units,
     originalPriceVnd: offer.originalPriceVnd,
     priceVnd: offer.priceVnd,
+    maxPerOrder: offer.maxPerOrder,
+    perOrderMax: offer.perOrderMax,
     photoId: offer.photo.id,
     photoPath: offer.photo.smallPath,
     usual: { hour: part("hour"), minute: part("minute") },

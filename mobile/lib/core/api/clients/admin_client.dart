@@ -28,6 +28,7 @@ import '../models/list_payouts_response.dart';
 import '../models/list_promotions_response.dart';
 import '../models/memberships_output_body.dart';
 import '../models/offer_settings_body.dart';
+import '../models/order_settings_body.dart';
 import '../models/payout_body.dart';
 import '../models/promotion_body.dart';
 import '../models/promotion_input_body.dart';
@@ -191,6 +192,21 @@ abstract class AdminClient {
     @Query('sellerId') String? sellerId,
     @Query('postedSince') DateTime? postedSince,
     @Query('postedUntil') DateTime? postedUntil,
+  });
+
+  /// The limits on the orders one person holds
+  @GET('/admin/order-settings')
+  Future<OrderSettingsBody> getOrderSettings();
+
+  /// Change the limits on the orders one person holds.
+  ///
+  /// New limits apply to orders placed after they are saved. If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes.
+  ///
+  /// [ifMatch] - The ETag of the settings read.
+  @PUT('/admin/order-settings')
+  Future<OrderSettingsBody> saveOrderSettings({
+    @Header('If-Match') required String ifMatch,
+    @Body() required OrderSettingsBody body,
   });
 
   /// Every seller's orders by status, words, seller and day collected, the latest window first.

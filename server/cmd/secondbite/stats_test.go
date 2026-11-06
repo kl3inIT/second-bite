@@ -22,8 +22,8 @@ func checkViewCounted(t *testing.T, svc service) {
 	path := "/vi/sellers/" + seller.String()
 
 	phone := http.Header{
-		"User-Agent":      {"Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"},
-		"X-Forwarded-For": {"113.161.10.20, 172.18.0.5"},
+		"User-Agent": {"Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"},
+		forwardedFor: {"113.161.10.20, 172.18.0.5"},
 	}
 	bot := http.Header{"User-Agent": {"Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"}}
 

@@ -18,11 +18,13 @@ mixin _$FoundBody {
 
 /// Where the offer is collected, copied from the seller when it was posted
  CollectionPointBody get collectionPoint; DateTime get createdAt; String get description; int get discountPercent; String get id; FoundBodyKind get kind;/// What the seller calls a dish of the kind other; empty for any other kind
- String get kindLabel; String get name; int get originalPriceVnd;/// The cover, which lists and orders show
+ String get kindLabel; String get name; int get originalPriceVnd;/// How many units one order may take: the seller's cap, else the settings' default
+ int get perOrderMax;/// The cover, which lists and orders show
  OfferPhotoBody get photo;/// Every photo, the cover first
  List<OfferPhotoBody> get photos; int get priceVnd; OfferSellerBody get seller; String get sellerId;/// sold_out and closed are read from the units left and the window
  FoundBodyStatus get status; String get unit; int get units; int get unitsLeft; DateTime get updatedAt; DateTime get windowEnd; DateTime get windowStart;/// From the point searched near; absent without one
- double? get distanceMeters; int? get weightGrams; DateTime? get withdrawnAt;
+ double? get distanceMeters;/// The seller's own cap per order; none when the settings' default applies
+ int? get maxPerOrder; int? get weightGrams; DateTime? get withdrawnAt;
 /// Create a copy of FoundBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -36,20 +38,20 @@ $FoundBodyCopyWith<FoundBody> get copyWith => _$FoundBodyCopyWithImpl<FoundBody>
 @override
 bool operator ==(Object other) {
   final _this = this as FoundBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FoundBody&&(identical(other.collectionPoint, _this.collectionPoint) || other.collectionPoint == _this.collectionPoint)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.discountPercent, _this.discountPercent) || other.discountPercent == _this.discountPercent)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.kindLabel, _this.kindLabel) || other.kindLabel == _this.kindLabel)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.originalPriceVnd, _this.originalPriceVnd) || other.originalPriceVnd == _this.originalPriceVnd)&&(identical(other.photo, _this.photo) || other.photo == _this.photo)&&const DeepCollectionEquality().equals(other.photos, _this.photos)&&(identical(other.priceVnd, _this.priceVnd) || other.priceVnd == _this.priceVnd)&&(identical(other.seller, _this.seller) || other.seller == _this.seller)&&(identical(other.sellerId, _this.sellerId) || other.sellerId == _this.sellerId)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.unit, _this.unit) || other.unit == _this.unit)&&(identical(other.units, _this.units) || other.units == _this.units)&&(identical(other.unitsLeft, _this.unitsLeft) || other.unitsLeft == _this.unitsLeft)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.windowEnd, _this.windowEnd) || other.windowEnd == _this.windowEnd)&&(identical(other.windowStart, _this.windowStart) || other.windowStart == _this.windowStart)&&(identical(other.distanceMeters, _this.distanceMeters) || other.distanceMeters == _this.distanceMeters)&&(identical(other.weightGrams, _this.weightGrams) || other.weightGrams == _this.weightGrams)&&(identical(other.withdrawnAt, _this.withdrawnAt) || other.withdrawnAt == _this.withdrawnAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FoundBody&&(identical(other.collectionPoint, _this.collectionPoint) || other.collectionPoint == _this.collectionPoint)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.discountPercent, _this.discountPercent) || other.discountPercent == _this.discountPercent)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.kindLabel, _this.kindLabel) || other.kindLabel == _this.kindLabel)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.originalPriceVnd, _this.originalPriceVnd) || other.originalPriceVnd == _this.originalPriceVnd)&&(identical(other.perOrderMax, _this.perOrderMax) || other.perOrderMax == _this.perOrderMax)&&(identical(other.photo, _this.photo) || other.photo == _this.photo)&&const DeepCollectionEquality().equals(other.photos, _this.photos)&&(identical(other.priceVnd, _this.priceVnd) || other.priceVnd == _this.priceVnd)&&(identical(other.seller, _this.seller) || other.seller == _this.seller)&&(identical(other.sellerId, _this.sellerId) || other.sellerId == _this.sellerId)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.unit, _this.unit) || other.unit == _this.unit)&&(identical(other.units, _this.units) || other.units == _this.units)&&(identical(other.unitsLeft, _this.unitsLeft) || other.unitsLeft == _this.unitsLeft)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.windowEnd, _this.windowEnd) || other.windowEnd == _this.windowEnd)&&(identical(other.windowStart, _this.windowStart) || other.windowStart == _this.windowStart)&&(identical(other.distanceMeters, _this.distanceMeters) || other.distanceMeters == _this.distanceMeters)&&(identical(other.maxPerOrder, _this.maxPerOrder) || other.maxPerOrder == _this.maxPerOrder)&&(identical(other.weightGrams, _this.weightGrams) || other.weightGrams == _this.weightGrams)&&(identical(other.withdrawnAt, _this.withdrawnAt) || other.withdrawnAt == _this.withdrawnAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as FoundBody;
-  return Object.hashAll([runtimeType,_this.collectionPoint,_this.createdAt,_this.description,_this.discountPercent,_this.id,_this.kind,_this.kindLabel,_this.name,_this.originalPriceVnd,_this.photo,const DeepCollectionEquality().hash(_this.photos),_this.priceVnd,_this.seller,_this.sellerId,_this.status,_this.unit,_this.units,_this.unitsLeft,_this.updatedAt,_this.windowEnd,_this.windowStart,_this.distanceMeters,_this.weightGrams,_this.withdrawnAt]);
+  return Object.hashAll([runtimeType,_this.collectionPoint,_this.createdAt,_this.description,_this.discountPercent,_this.id,_this.kind,_this.kindLabel,_this.name,_this.originalPriceVnd,_this.perOrderMax,_this.photo,const DeepCollectionEquality().hash(_this.photos),_this.priceVnd,_this.seller,_this.sellerId,_this.status,_this.unit,_this.units,_this.unitsLeft,_this.updatedAt,_this.windowEnd,_this.windowStart,_this.distanceMeters,_this.maxPerOrder,_this.weightGrams,_this.withdrawnAt]);
 }
 
 @override
 String toString() {
   final _this = this as FoundBody;
-  return 'FoundBody(collectionPoint: ${_this.collectionPoint}, createdAt: ${_this.createdAt}, description: ${_this.description}, discountPercent: ${_this.discountPercent}, id: ${_this.id}, kind: ${_this.kind}, kindLabel: ${_this.kindLabel}, name: ${_this.name}, originalPriceVnd: ${_this.originalPriceVnd}, photo: ${_this.photo}, photos: ${_this.photos}, priceVnd: ${_this.priceVnd}, seller: ${_this.seller}, sellerId: ${_this.sellerId}, status: ${_this.status}, unit: ${_this.unit}, units: ${_this.units}, unitsLeft: ${_this.unitsLeft}, updatedAt: ${_this.updatedAt}, windowEnd: ${_this.windowEnd}, windowStart: ${_this.windowStart}, distanceMeters: ${_this.distanceMeters}, weightGrams: ${_this.weightGrams}, withdrawnAt: ${_this.withdrawnAt})';
+  return 'FoundBody(collectionPoint: ${_this.collectionPoint}, createdAt: ${_this.createdAt}, description: ${_this.description}, discountPercent: ${_this.discountPercent}, id: ${_this.id}, kind: ${_this.kind}, kindLabel: ${_this.kindLabel}, name: ${_this.name}, originalPriceVnd: ${_this.originalPriceVnd}, perOrderMax: ${_this.perOrderMax}, photo: ${_this.photo}, photos: ${_this.photos}, priceVnd: ${_this.priceVnd}, seller: ${_this.seller}, sellerId: ${_this.sellerId}, status: ${_this.status}, unit: ${_this.unit}, units: ${_this.units}, unitsLeft: ${_this.unitsLeft}, updatedAt: ${_this.updatedAt}, windowEnd: ${_this.windowEnd}, windowStart: ${_this.windowStart}, distanceMeters: ${_this.distanceMeters}, maxPerOrder: ${_this.maxPerOrder}, weightGrams: ${_this.weightGrams}, withdrawnAt: ${_this.withdrawnAt})';
 }
 
 
@@ -60,7 +62,7 @@ abstract mixin class $FoundBodyCopyWith<$Res>  {
   factory $FoundBodyCopyWith(FoundBody value, $Res Function(FoundBody) _then) = _$FoundBodyCopyWithImpl;
 @useResult
 $Res call({
- CollectionPointBody collectionPoint, DateTime createdAt, String description, int discountPercent, String id, FoundBodyKind kind, String kindLabel, String name, int originalPriceVnd, OfferPhotoBody photo, List<OfferPhotoBody> photos, int priceVnd, OfferSellerBody seller, String sellerId, FoundBodyStatus status, String unit, int units, int unitsLeft, DateTime updatedAt, DateTime windowEnd, DateTime windowStart, double? distanceMeters, int? weightGrams, DateTime? withdrawnAt
+ CollectionPointBody collectionPoint, DateTime createdAt, String description, int discountPercent, String id, FoundBodyKind kind, String kindLabel, String name, int originalPriceVnd, int perOrderMax, OfferPhotoBody photo, List<OfferPhotoBody> photos, int priceVnd, OfferSellerBody seller, String sellerId, FoundBodyStatus status, String unit, int units, int unitsLeft, DateTime updatedAt, DateTime windowEnd, DateTime windowStart, double? distanceMeters, int? maxPerOrder, int? weightGrams, DateTime? withdrawnAt
 });
 
 
@@ -77,7 +79,7 @@ class _$FoundBodyCopyWithImpl<$Res>
 
 /// Create a copy of FoundBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? collectionPoint = null,Object? createdAt = null,Object? description = null,Object? discountPercent = null,Object? id = null,Object? kind = null,Object? kindLabel = null,Object? name = null,Object? originalPriceVnd = null,Object? photo = null,Object? photos = null,Object? priceVnd = null,Object? seller = null,Object? sellerId = null,Object? status = null,Object? unit = null,Object? units = null,Object? unitsLeft = null,Object? updatedAt = null,Object? windowEnd = null,Object? windowStart = null,Object? distanceMeters = freezed,Object? weightGrams = freezed,Object? withdrawnAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? collectionPoint = null,Object? createdAt = null,Object? description = null,Object? discountPercent = null,Object? id = null,Object? kind = null,Object? kindLabel = null,Object? name = null,Object? originalPriceVnd = null,Object? perOrderMax = null,Object? photo = null,Object? photos = null,Object? priceVnd = null,Object? seller = null,Object? sellerId = null,Object? status = null,Object? unit = null,Object? units = null,Object? unitsLeft = null,Object? updatedAt = null,Object? windowEnd = null,Object? windowStart = null,Object? distanceMeters = freezed,Object? maxPerOrder = freezed,Object? weightGrams = freezed,Object? withdrawnAt = freezed,}) {
   return _then(FoundBody(
 collectionPoint: null == collectionPoint ? _self.collectionPoint : collectionPoint // ignore: cast_nullable_to_non_nullable
 as CollectionPointBody,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -88,6 +90,7 @@ as String,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non
 as FoundBodyKind,kindLabel: null == kindLabel ? _self.kindLabel : kindLabel // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,originalPriceVnd: null == originalPriceVnd ? _self.originalPriceVnd : originalPriceVnd // ignore: cast_nullable_to_non_nullable
+as int,perOrderMax: null == perOrderMax ? _self.perOrderMax : perOrderMax // ignore: cast_nullable_to_non_nullable
 as int,photo: null == photo ? _self.photo : photo // ignore: cast_nullable_to_non_nullable
 as OfferPhotoBody,photos: null == photos ? _self.photos : photos // ignore: cast_nullable_to_non_nullable
 as List<OfferPhotoBody>,priceVnd: null == priceVnd ? _self.priceVnd : priceVnd // ignore: cast_nullable_to_non_nullable
@@ -101,7 +104,8 @@ as int,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cas
 as DateTime,windowEnd: null == windowEnd ? _self.windowEnd : windowEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,windowStart: null == windowStart ? _self.windowStart : windowStart // ignore: cast_nullable_to_non_nullable
 as DateTime,distanceMeters: freezed == distanceMeters ? _self.distanceMeters : distanceMeters // ignore: cast_nullable_to_non_nullable
-as double?,weightGrams: freezed == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
+as double?,maxPerOrder: freezed == maxPerOrder ? _self.maxPerOrder : maxPerOrder // ignore: cast_nullable_to_non_nullable
+as int?,weightGrams: freezed == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
 as int?,withdrawnAt: freezed == withdrawnAt ? _self.withdrawnAt : withdrawnAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -215,10 +219,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CollectionPointBody collectionPoint,  DateTime createdAt,  String description,  int discountPercent,  String id,  FoundBodyKind kind,  String kindLabel,  String name,  int originalPriceVnd,  OfferPhotoBody photo,  List<OfferPhotoBody> photos,  int priceVnd,  OfferSellerBody seller,  String sellerId,  FoundBodyStatus status,  String unit,  int units,  int unitsLeft,  DateTime updatedAt,  DateTime windowEnd,  DateTime windowStart,  double? distanceMeters,  int? weightGrams,  DateTime? withdrawnAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CollectionPointBody collectionPoint,  DateTime createdAt,  String description,  int discountPercent,  String id,  FoundBodyKind kind,  String kindLabel,  String name,  int originalPriceVnd,  int perOrderMax,  OfferPhotoBody photo,  List<OfferPhotoBody> photos,  int priceVnd,  OfferSellerBody seller,  String sellerId,  FoundBodyStatus status,  String unit,  int units,  int unitsLeft,  DateTime updatedAt,  DateTime windowEnd,  DateTime windowStart,  double? distanceMeters,  int? maxPerOrder,  int? weightGrams,  DateTime? withdrawnAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FoundBody() when $default != null:
-return $default(_that.collectionPoint,_that.createdAt,_that.description,_that.discountPercent,_that.id,_that.kind,_that.kindLabel,_that.name,_that.originalPriceVnd,_that.photo,_that.photos,_that.priceVnd,_that.seller,_that.sellerId,_that.status,_that.unit,_that.units,_that.unitsLeft,_that.updatedAt,_that.windowEnd,_that.windowStart,_that.distanceMeters,_that.weightGrams,_that.withdrawnAt);case _:
+return $default(_that.collectionPoint,_that.createdAt,_that.description,_that.discountPercent,_that.id,_that.kind,_that.kindLabel,_that.name,_that.originalPriceVnd,_that.perOrderMax,_that.photo,_that.photos,_that.priceVnd,_that.seller,_that.sellerId,_that.status,_that.unit,_that.units,_that.unitsLeft,_that.updatedAt,_that.windowEnd,_that.windowStart,_that.distanceMeters,_that.maxPerOrder,_that.weightGrams,_that.withdrawnAt);case _:
   return orElse();
 
 }
@@ -236,10 +240,10 @@ return $default(_that.collectionPoint,_that.createdAt,_that.description,_that.di
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CollectionPointBody collectionPoint,  DateTime createdAt,  String description,  int discountPercent,  String id,  FoundBodyKind kind,  String kindLabel,  String name,  int originalPriceVnd,  OfferPhotoBody photo,  List<OfferPhotoBody> photos,  int priceVnd,  OfferSellerBody seller,  String sellerId,  FoundBodyStatus status,  String unit,  int units,  int unitsLeft,  DateTime updatedAt,  DateTime windowEnd,  DateTime windowStart,  double? distanceMeters,  int? weightGrams,  DateTime? withdrawnAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CollectionPointBody collectionPoint,  DateTime createdAt,  String description,  int discountPercent,  String id,  FoundBodyKind kind,  String kindLabel,  String name,  int originalPriceVnd,  int perOrderMax,  OfferPhotoBody photo,  List<OfferPhotoBody> photos,  int priceVnd,  OfferSellerBody seller,  String sellerId,  FoundBodyStatus status,  String unit,  int units,  int unitsLeft,  DateTime updatedAt,  DateTime windowEnd,  DateTime windowStart,  double? distanceMeters,  int? maxPerOrder,  int? weightGrams,  DateTime? withdrawnAt)  $default,) {final _that = this;
 switch (_that) {
 case _FoundBody():
-return $default(_that.collectionPoint,_that.createdAt,_that.description,_that.discountPercent,_that.id,_that.kind,_that.kindLabel,_that.name,_that.originalPriceVnd,_that.photo,_that.photos,_that.priceVnd,_that.seller,_that.sellerId,_that.status,_that.unit,_that.units,_that.unitsLeft,_that.updatedAt,_that.windowEnd,_that.windowStart,_that.distanceMeters,_that.weightGrams,_that.withdrawnAt);case _:
+return $default(_that.collectionPoint,_that.createdAt,_that.description,_that.discountPercent,_that.id,_that.kind,_that.kindLabel,_that.name,_that.originalPriceVnd,_that.perOrderMax,_that.photo,_that.photos,_that.priceVnd,_that.seller,_that.sellerId,_that.status,_that.unit,_that.units,_that.unitsLeft,_that.updatedAt,_that.windowEnd,_that.windowStart,_that.distanceMeters,_that.maxPerOrder,_that.weightGrams,_that.withdrawnAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -256,10 +260,10 @@ return $default(_that.collectionPoint,_that.createdAt,_that.description,_that.di
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CollectionPointBody collectionPoint,  DateTime createdAt,  String description,  int discountPercent,  String id,  FoundBodyKind kind,  String kindLabel,  String name,  int originalPriceVnd,  OfferPhotoBody photo,  List<OfferPhotoBody> photos,  int priceVnd,  OfferSellerBody seller,  String sellerId,  FoundBodyStatus status,  String unit,  int units,  int unitsLeft,  DateTime updatedAt,  DateTime windowEnd,  DateTime windowStart,  double? distanceMeters,  int? weightGrams,  DateTime? withdrawnAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CollectionPointBody collectionPoint,  DateTime createdAt,  String description,  int discountPercent,  String id,  FoundBodyKind kind,  String kindLabel,  String name,  int originalPriceVnd,  int perOrderMax,  OfferPhotoBody photo,  List<OfferPhotoBody> photos,  int priceVnd,  OfferSellerBody seller,  String sellerId,  FoundBodyStatus status,  String unit,  int units,  int unitsLeft,  DateTime updatedAt,  DateTime windowEnd,  DateTime windowStart,  double? distanceMeters,  int? maxPerOrder,  int? weightGrams,  DateTime? withdrawnAt)?  $default,) {final _that = this;
 switch (_that) {
 case _FoundBody() when $default != null:
-return $default(_that.collectionPoint,_that.createdAt,_that.description,_that.discountPercent,_that.id,_that.kind,_that.kindLabel,_that.name,_that.originalPriceVnd,_that.photo,_that.photos,_that.priceVnd,_that.seller,_that.sellerId,_that.status,_that.unit,_that.units,_that.unitsLeft,_that.updatedAt,_that.windowEnd,_that.windowStart,_that.distanceMeters,_that.weightGrams,_that.withdrawnAt);case _:
+return $default(_that.collectionPoint,_that.createdAt,_that.description,_that.discountPercent,_that.id,_that.kind,_that.kindLabel,_that.name,_that.originalPriceVnd,_that.perOrderMax,_that.photo,_that.photos,_that.priceVnd,_that.seller,_that.sellerId,_that.status,_that.unit,_that.units,_that.unitsLeft,_that.updatedAt,_that.windowEnd,_that.windowStart,_that.distanceMeters,_that.maxPerOrder,_that.weightGrams,_that.withdrawnAt);case _:
   return null;
 
 }
@@ -271,7 +275,7 @@ return $default(_that.collectionPoint,_that.createdAt,_that.description,_that.di
 @JsonSerializable()
 
 class _FoundBody implements FoundBody {
-  const _FoundBody({required this.collectionPoint, required this.createdAt, required this.description, required this.discountPercent, required this.id, required this.kind, required this.kindLabel, required this.name, required this.originalPriceVnd, required this.photo, required  List<OfferPhotoBody> photos, required this.priceVnd, required this.seller, required this.sellerId, required this.status, required this.unit, required this.units, required this.unitsLeft, required this.updatedAt, required this.windowEnd, required this.windowStart, this.distanceMeters, this.weightGrams, this.withdrawnAt}): _photos = photos;
+  const _FoundBody({required this.collectionPoint, required this.createdAt, required this.description, required this.discountPercent, required this.id, required this.kind, required this.kindLabel, required this.name, required this.originalPriceVnd, required this.perOrderMax, required this.photo, required  List<OfferPhotoBody> photos, required this.priceVnd, required this.seller, required this.sellerId, required this.status, required this.unit, required this.units, required this.unitsLeft, required this.updatedAt, required this.windowEnd, required this.windowStart, this.distanceMeters, this.maxPerOrder, this.weightGrams, this.withdrawnAt}): _photos = photos;
   factory _FoundBody.fromJson(Map<String, dynamic> json) => _$FoundBodyFromJson(json);
 
 /// Where the offer is collected, copied from the seller when it was posted
@@ -285,6 +289,8 @@ class _FoundBody implements FoundBody {
 @override final  String kindLabel;
 @override final  String name;
 @override final  int originalPriceVnd;
+/// How many units one order may take: the seller's cap, else the settings' default
+@override final  int perOrderMax;
 /// The cover, which lists and orders show
 @override final  OfferPhotoBody photo;
 /// Every photo, the cover first
@@ -309,6 +315,8 @@ class _FoundBody implements FoundBody {
 @override final  DateTime windowStart;
 /// From the point searched near; absent without one
 @override final  double? distanceMeters;
+/// The seller's own cap per order; none when the settings' default applies
+@override final  int? maxPerOrder;
 @override final  int? weightGrams;
 @override final  DateTime? withdrawnAt;
 
@@ -325,18 +333,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FoundBody&&(identical(other.collectionPoint, collectionPoint) || other.collectionPoint == collectionPoint)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.description, description) || other.description == description)&&(identical(other.discountPercent, discountPercent) || other.discountPercent == discountPercent)&&(identical(other.id, id) || other.id == id)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.kindLabel, kindLabel) || other.kindLabel == kindLabel)&&(identical(other.name, name) || other.name == name)&&(identical(other.originalPriceVnd, originalPriceVnd) || other.originalPriceVnd == originalPriceVnd)&&(identical(other.photo, photo) || other.photo == photo)&&const DeepCollectionEquality().equals(other.photos, _photos)&&(identical(other.priceVnd, priceVnd) || other.priceVnd == priceVnd)&&(identical(other.seller, seller) || other.seller == seller)&&(identical(other.sellerId, sellerId) || other.sellerId == sellerId)&&(identical(other.status, status) || other.status == status)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.units, units) || other.units == units)&&(identical(other.unitsLeft, unitsLeft) || other.unitsLeft == unitsLeft)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.windowEnd, windowEnd) || other.windowEnd == windowEnd)&&(identical(other.windowStart, windowStart) || other.windowStart == windowStart)&&(identical(other.distanceMeters, distanceMeters) || other.distanceMeters == distanceMeters)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.withdrawnAt, withdrawnAt) || other.withdrawnAt == withdrawnAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FoundBody&&(identical(other.collectionPoint, collectionPoint) || other.collectionPoint == collectionPoint)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.description, description) || other.description == description)&&(identical(other.discountPercent, discountPercent) || other.discountPercent == discountPercent)&&(identical(other.id, id) || other.id == id)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.kindLabel, kindLabel) || other.kindLabel == kindLabel)&&(identical(other.name, name) || other.name == name)&&(identical(other.originalPriceVnd, originalPriceVnd) || other.originalPriceVnd == originalPriceVnd)&&(identical(other.perOrderMax, perOrderMax) || other.perOrderMax == perOrderMax)&&(identical(other.photo, photo) || other.photo == photo)&&const DeepCollectionEquality().equals(other.photos, _photos)&&(identical(other.priceVnd, priceVnd) || other.priceVnd == priceVnd)&&(identical(other.seller, seller) || other.seller == seller)&&(identical(other.sellerId, sellerId) || other.sellerId == sellerId)&&(identical(other.status, status) || other.status == status)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.units, units) || other.units == units)&&(identical(other.unitsLeft, unitsLeft) || other.unitsLeft == unitsLeft)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.windowEnd, windowEnd) || other.windowEnd == windowEnd)&&(identical(other.windowStart, windowStart) || other.windowStart == windowStart)&&(identical(other.distanceMeters, distanceMeters) || other.distanceMeters == distanceMeters)&&(identical(other.maxPerOrder, maxPerOrder) || other.maxPerOrder == maxPerOrder)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.withdrawnAt, withdrawnAt) || other.withdrawnAt == withdrawnAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hashAll([runtimeType,collectionPoint,createdAt,description,discountPercent,id,kind,kindLabel,name,originalPriceVnd,photo,const DeepCollectionEquality().hash(_photos),priceVnd,seller,sellerId,status,unit,units,unitsLeft,updatedAt,windowEnd,windowStart,distanceMeters,weightGrams,withdrawnAt]);
+    return Object.hashAll([runtimeType,collectionPoint,createdAt,description,discountPercent,id,kind,kindLabel,name,originalPriceVnd,perOrderMax,photo,const DeepCollectionEquality().hash(_photos),priceVnd,seller,sellerId,status,unit,units,unitsLeft,updatedAt,windowEnd,windowStart,distanceMeters,maxPerOrder,weightGrams,withdrawnAt]);
 }
 
 @override
 String toString() {
-    return 'FoundBody(collectionPoint: $collectionPoint, createdAt: $createdAt, description: $description, discountPercent: $discountPercent, id: $id, kind: $kind, kindLabel: $kindLabel, name: $name, originalPriceVnd: $originalPriceVnd, photo: $photo, photos: $photos, priceVnd: $priceVnd, seller: $seller, sellerId: $sellerId, status: $status, unit: $unit, units: $units, unitsLeft: $unitsLeft, updatedAt: $updatedAt, windowEnd: $windowEnd, windowStart: $windowStart, distanceMeters: $distanceMeters, weightGrams: $weightGrams, withdrawnAt: $withdrawnAt)';
+    return 'FoundBody(collectionPoint: $collectionPoint, createdAt: $createdAt, description: $description, discountPercent: $discountPercent, id: $id, kind: $kind, kindLabel: $kindLabel, name: $name, originalPriceVnd: $originalPriceVnd, perOrderMax: $perOrderMax, photo: $photo, photos: $photos, priceVnd: $priceVnd, seller: $seller, sellerId: $sellerId, status: $status, unit: $unit, units: $units, unitsLeft: $unitsLeft, updatedAt: $updatedAt, windowEnd: $windowEnd, windowStart: $windowStart, distanceMeters: $distanceMeters, maxPerOrder: $maxPerOrder, weightGrams: $weightGrams, withdrawnAt: $withdrawnAt)';
 }
 
 
@@ -347,7 +355,7 @@ abstract mixin class _$FoundBodyCopyWith<$Res> implements $FoundBodyCopyWith<$Re
   factory _$FoundBodyCopyWith(_FoundBody value, $Res Function(_FoundBody) _then) = __$FoundBodyCopyWithImpl;
 @override @useResult
 $Res call({
- CollectionPointBody collectionPoint, DateTime createdAt, String description, int discountPercent, String id, FoundBodyKind kind, String kindLabel, String name, int originalPriceVnd, OfferPhotoBody photo, List<OfferPhotoBody> photos, int priceVnd, OfferSellerBody seller, String sellerId, FoundBodyStatus status, String unit, int units, int unitsLeft, DateTime updatedAt, DateTime windowEnd, DateTime windowStart, double? distanceMeters, int? weightGrams, DateTime? withdrawnAt
+ CollectionPointBody collectionPoint, DateTime createdAt, String description, int discountPercent, String id, FoundBodyKind kind, String kindLabel, String name, int originalPriceVnd, int perOrderMax, OfferPhotoBody photo, List<OfferPhotoBody> photos, int priceVnd, OfferSellerBody seller, String sellerId, FoundBodyStatus status, String unit, int units, int unitsLeft, DateTime updatedAt, DateTime windowEnd, DateTime windowStart, double? distanceMeters, int? maxPerOrder, int? weightGrams, DateTime? withdrawnAt
 });
 
 
@@ -364,7 +372,7 @@ class __$FoundBodyCopyWithImpl<$Res>
 
 /// Create a copy of FoundBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? collectionPoint = null,Object? createdAt = null,Object? description = null,Object? discountPercent = null,Object? id = null,Object? kind = null,Object? kindLabel = null,Object? name = null,Object? originalPriceVnd = null,Object? photo = null,Object? photos = null,Object? priceVnd = null,Object? seller = null,Object? sellerId = null,Object? status = null,Object? unit = null,Object? units = null,Object? unitsLeft = null,Object? updatedAt = null,Object? windowEnd = null,Object? windowStart = null,Object? distanceMeters = freezed,Object? weightGrams = freezed,Object? withdrawnAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? collectionPoint = null,Object? createdAt = null,Object? description = null,Object? discountPercent = null,Object? id = null,Object? kind = null,Object? kindLabel = null,Object? name = null,Object? originalPriceVnd = null,Object? perOrderMax = null,Object? photo = null,Object? photos = null,Object? priceVnd = null,Object? seller = null,Object? sellerId = null,Object? status = null,Object? unit = null,Object? units = null,Object? unitsLeft = null,Object? updatedAt = null,Object? windowEnd = null,Object? windowStart = null,Object? distanceMeters = freezed,Object? maxPerOrder = freezed,Object? weightGrams = freezed,Object? withdrawnAt = freezed,}) {
   return _then(_FoundBody(
 collectionPoint: null == collectionPoint ? _self.collectionPoint : collectionPoint // ignore: cast_nullable_to_non_nullable
 as CollectionPointBody,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -375,6 +383,7 @@ as String,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non
 as FoundBodyKind,kindLabel: null == kindLabel ? _self.kindLabel : kindLabel // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,originalPriceVnd: null == originalPriceVnd ? _self.originalPriceVnd : originalPriceVnd // ignore: cast_nullable_to_non_nullable
+as int,perOrderMax: null == perOrderMax ? _self.perOrderMax : perOrderMax // ignore: cast_nullable_to_non_nullable
 as int,photo: null == photo ? _self.photo : photo // ignore: cast_nullable_to_non_nullable
 as OfferPhotoBody,photos: null == photos ? _self._photos : photos // ignore: cast_nullable_to_non_nullable
 as List<OfferPhotoBody>,priceVnd: null == priceVnd ? _self.priceVnd : priceVnd // ignore: cast_nullable_to_non_nullable
@@ -388,7 +397,8 @@ as int,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cas
 as DateTime,windowEnd: null == windowEnd ? _self.windowEnd : windowEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,windowStart: null == windowStart ? _self.windowStart : windowStart // ignore: cast_nullable_to_non_nullable
 as DateTime,distanceMeters: freezed == distanceMeters ? _self.distanceMeters : distanceMeters // ignore: cast_nullable_to_non_nullable
-as double?,weightGrams: freezed == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
+as double?,maxPerOrder: freezed == maxPerOrder ? _self.maxPerOrder : maxPerOrder // ignore: cast_nullable_to_non_nullable
+as int?,weightGrams: freezed == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
 as int?,withdrawnAt: freezed == withdrawnAt ? _self.withdrawnAt : withdrawnAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

@@ -232,6 +232,6 @@ func searchedRow(r db.SearchOffersRow) db.GetOfferRow {
 		OriginalPriceVnd: r.OriginalPriceVnd, WeightGrams: r.WeightGrams, PhotoID: r.PhotoID, MorePhotoIds: r.MorePhotoIds,
 		WindowStart: r.WindowStart, WindowEnd: r.WindowEnd, Latitude: r.Latitude, Longitude: r.Longitude,
 		Address: r.Address, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt, WithdrawnAt: r.WithdrawnAt,
-		SellerName: r.SellerName,
+		SellerName: r.SellerName, MaxPerOrder: r.MaxPerOrder, PerOrderMax: r.PerOrderMax,
 	}
 }

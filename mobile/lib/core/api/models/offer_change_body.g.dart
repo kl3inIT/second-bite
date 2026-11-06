@@ -13,6 +13,7 @@ _OfferChangeBody _$OfferChangeBodyFromJson(Map<String, dynamic> json) =>
           ? null
           : OfferChangeBodyKind.fromJson(json['kind'] as String),
       kindLabel: json['kindLabel'] as String?,
+      maxPerOrder: (json['maxPerOrder'] as num?)?.toInt(),
       morePhotoIds: (json['morePhotoIds'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -36,6 +37,7 @@ Map<String, dynamic> _$OfferChangeBodyToJson(_OfferChangeBody instance) =>
       'description': instance.description,
       'kind': _$OfferChangeBodyKindEnumMap[instance.kind],
       'kindLabel': instance.kindLabel,
+      'maxPerOrder': instance.maxPerOrder,
       'morePhotoIds': instance.morePhotoIds,
       'name': instance.name,
       'originalPriceVnd': instance.originalPriceVnd,

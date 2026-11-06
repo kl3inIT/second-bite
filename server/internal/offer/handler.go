@@ -28,6 +28,7 @@ type offerDetailsBody struct {
 	MorePhotoIDs     []uuid.UUID `json:"morePhotoIds,omitempty" doc:"Up to two more photos after the cover" maxItems:"2" nullable:"false"`
 	WindowStart      time.Time   `json:"windowStart"           doc:"When the offer is ready to collect"`
 	WindowEnd        time.Time   `json:"windowEnd"             doc:"The last handover"`
+	MaxPerOrder      *int        `json:"maxPerOrder,omitempty" doc:"How many units one order may take; the settings' default when absent" maximum:"999" minimum:"1"`
 }
 
 func (b offerDetailsBody) details() Details {
@@ -48,6 +49,7 @@ type offerChangeBody struct {
 	MorePhotoIDs     *[]uuid.UUID `json:"morePhotoIds,omitempty" doc:"Replaces the photos after the cover; at most two" maxItems:"2"`
 	WindowStart      *time.Time   `json:"windowStart,omitempty"`
 	WindowEnd        *time.Time   `json:"windowEnd,omitempty"`
+	MaxPerOrder      *int         `json:"maxPerOrder,omitempty"      doc:"How many units one order may take; 0 takes the cap away, so the settings' default applies" maximum:"999" minimum:"0"`
 }
 
 func (b offerChangeBody) change() Change { return Change(b) }
@@ -78,6 +80,8 @@ type offerBody struct {
 	PriceVND         int64               `json:"priceVnd"`
 	OriginalPriceVND int64               `json:"originalPriceVnd"`
 	DiscountPercent  int                 `json:"discountPercent"`
+	PerOrderMax      int                 `json:"perOrderMax"           doc:"How many units one order may take: the seller's cap, else the settings' default"`
+	MaxPerOrder      *int                `json:"maxPerOrder,omitempty" doc:"The seller's own cap per order; none when the settings' default applies"`
 	WeightGrams      *int                `json:"weightGrams,omitempty"`
 	Photo            offerPhotoBody      `json:"photo"                 doc:"The cover, which lists and orders show"`
 	Photos           []offerPhotoBody    `json:"photos"                doc:"Every photo, the cover first" nullable:"false"`
@@ -93,7 +97,7 @@ func toBody(o Offer) offerBody {
 	return offerBody{
 		ID: o.ID, SellerID: o.SellerID, Status: o.Status, Name: o.Name, Description: o.Description, Kind: o.Kind, KindLabel: o.KindLabel,
 		Unit: o.Unit, Units: o.Units, UnitsLeft: o.UnitsLeft, PriceVND: o.PriceVND, OriginalPriceVND: o.OriginalPriceVND,
-		DiscountPercent: o.DiscountPercent, WeightGrams: o.WeightGrams,
+		DiscountPercent: o.DiscountPercent, PerOrderMax: o.PerOrderMax, MaxPerOrder: o.MaxPerOrder, WeightGrams: o.WeightGrams,
 		Photo: offerPhotoBody{
 			ID: o.PhotoID, LargePath: file.Path(o.PhotoID, file.SizeLarge), SmallPath: file.Path(o.PhotoID, file.SizeSmall),
 		},
@@ -144,6 +148,7 @@ type offerSettingsBody struct {
 	WindowMinMinutes   int        `json:"windowMinMinutes"   doc:"The shortest collection window"                  maximum:"1440" minimum:"15"`
 	WindowMaxMinutes   int        `json:"windowMaxMinutes"   doc:"The longest collection window"                   maximum:"1440" minimum:"15"`
 	StartsWithinHours  int        `json:"startsWithinHours"  doc:"How far ahead of posting a window may start"     maximum:"72"   minimum:"1"`
+	DefaultMaxPerOrder int        `json:"defaultMaxPerOrder" doc:"How many units of a post one order may take when the seller set no cap" maximum:"999" minimum:"1"`
 	UpdatedAt          *time.Time `json:"updatedAt,omitempty" readOnly:"true"`
 	UpdatedBy          *uuid.UUID `json:"updatedBy,omitempty" readOnly:"true"`
 }
@@ -152,7 +157,8 @@ func toOfferSettingsBody(s Settings) offerSettingsBody {
 	return offerSettingsBody{
 		MinDiscountPercent: s.MinDiscountPercent, DefaultRadiusKm: s.DefaultRadiusKm, MaxRadiusKm: s.MaxRadiusKm,
 		WindowMinMinutes: int(s.WindowMin.Minutes()), WindowMaxMinutes: int(s.WindowMax.Minutes()),
-		StartsWithinHours: int(s.StartsWithin.Hours()), UpdatedAt: &s.UpdatedAt, UpdatedBy: s.UpdatedBy,
+		StartsWithinHours: int(s.StartsWithin.Hours()), DefaultMaxPerOrder: s.DefaultMaxPerOrder,
+		UpdatedAt: &s.UpdatedAt, UpdatedBy: s.UpdatedBy,
 	}
 }
 
@@ -160,7 +166,8 @@ func (b offerSettingsBody) settings() Settings {
 	return Settings{
 		MinDiscountPercent: b.MinDiscountPercent, DefaultRadiusKm: b.DefaultRadiusKm, MaxRadiusKm: b.MaxRadiusKm,
 		WindowMin: time.Duration(b.WindowMinMinutes) * time.Minute, WindowMax: time.Duration(b.WindowMaxMinutes) * time.Minute,
-		StartsWithin: time.Duration(b.StartsWithinHours) * time.Hour,
+		StartsWithin:       time.Duration(b.StartsWithinHours) * time.Hour,
+		DefaultMaxPerOrder: b.DefaultMaxPerOrder,
 	}
 }
 

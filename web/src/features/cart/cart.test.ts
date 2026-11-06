@@ -42,6 +42,7 @@ function offer(
     priceVnd: 20_000,
     originalPriceVnd: 50_000,
     discountPercent: 60,
+    perOrderMax: 5,
     photo: { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` },
     photos: [{ id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` }],
     windowStart: `2026-10-20T${window.start}:00+07:00`,
@@ -108,6 +109,17 @@ describe("the cart", () => {
     expect(quantityOf(cart, "croissant")).toBe(2);
     expect(quantityOf(addPortions(cart, croissant, 2), "croissant")).toBe(3);
     expect(cart.baskets[0].lines[0].photo?.smallPath).toBe("/photos/croissant/400.jpg");
+  });
+
+  it("never holds more of a dish than one order may take under its cap (SEC-158)", () => {
+    const croissant = { ...offer("croissant", { unitsLeft: 10 }), perOrderMax: 3 };
+    const cart = addPortions(null, croissant, 5);
+
+    expect(quantityOf(cart, "croissant")).toBe(3);
+    expect(quantityOf(oneMore(cart, "croissant"), "croissant")).toBe(3);
+    expect(
+      quantityOf(addPortions(addPortions(null, croissant, 2), croissant, 2), "croissant"),
+    ).toBe(3);
   });
 
   it("adds one more of a dish already in the cart, never more than its portions left", () => {

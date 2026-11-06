@@ -14,6 +14,8 @@ enum AuditEventBodyResourceType {
   order('order'),
   @JsonValue('offer_settings')
   offerSettings('offer_settings'),
+  @JsonValue('order_settings')
+  orderSettings('order_settings'),
   @JsonValue('email_settings')
   emailSettings('email_settings'),
   @JsonValue('promotion')

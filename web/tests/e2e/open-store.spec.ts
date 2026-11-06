@@ -680,6 +680,45 @@ test.describe("posting a dish on the web", () => {
     });
   });
 
+  test("caps a post per order, with the drawer's hints behind info icons (SEC-158)", async ({
+    page,
+  }, testInfo) => {
+    const store = await sampleStore(page, "cap", testInfo);
+    await page.goto(`/vi/stores/${store}/offers/new`);
+    const drawer = page.getByRole("dialog", { name: "Đăng món", exact: true });
+    await (await hydrated(drawer.getByRole("button", { name: "Tiếp tục" }))).click();
+    await drawer
+      .getByRole("listitem")
+      .filter({ hasText: "Túi bánh mì và croissant, 4 chiếc" })
+      .getByRole("button", { name: "Chọn", exact: true })
+      .click();
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+
+    // The hints left their lines under the fields for an info icon each (Figma L1).
+    await expect(drawer.getByText("Mức giảm tối thiểu so với giá gốc là 20%.")).toHaveCount(0);
+    await expect(drawer.getByText("Giờ kết thúc được gợi ý theo giờ bắt đầu.")).toHaveCount(0);
+    const cap = drawer.getByLabel("Tối đa mỗi đơn", { exact: true });
+    // The dish was posted before under the default of 5, which the empty field shows.
+    await expect(cap).toHaveAttribute("placeholder", "Mặc định 5");
+    await drawer.getByRole("button", { name: "Giải thích: Tối đa mỗi đơn" }).click();
+    await expect(
+      page.getByText(
+        "Khách đặt quá số này trong một đơn sẽ bị chặn. Để trống thì theo mức chung của Second Bite.",
+      ),
+    ).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+    await page.keyboard.press("Escape");
+
+    await cap.fill("0");
+    await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
+    await expect(drawer.getByText("Nhập số từ 1 đến 999, hoặc để trống.")).toBeVisible();
+    await cap.fill("3");
+    await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
+    await expect(page.getByText(/^Đã đăng \d+ suất\. Khách đặt được ngay\.$/)).toBeVisible({
+      timeout: 15_000,
+    });
+  });
+
   test("posts a closed post again, from the last step", async ({ page }, testInfo) => {
     const store = await sampleStore(page, "uyen", testInfo);
     await page.goto(`/vi/stores/${store}/offers?tab=closed`);

@@ -9,6 +9,7 @@ const (
 	ResourceOfferSettings = "offer_settings"
 	ResourceEmailSettings = "email_settings"
 	ResourcePromotion     = "promotion"
+	ResourceOrderSettings = "order_settings"
 	SingletonID           = "current"
 )
 
@@ -37,6 +38,14 @@ type OfferSettingsChanged struct {
 }
 
 func (OfferSettingsChanged) action() string { return "offer_settings.change" }
+
+// OrderSettingsChanged is a change of the limits on the orders one person
+// holds (SEC-158).
+type OrderSettingsChanged struct {
+	Changes []Change `json:"changes"`
+}
+
+func (OrderSettingsChanged) action() string { return "order_settings.change" }
 
 // EmailSettingsChanged is a change of who delivers email. A password, a key
 // and the SMTP user are kept without their values.
@@ -155,6 +164,7 @@ func (PayoutMarked) action() string { return "seller.mark_payout" }
 // gives the names admins filter by.
 var catalog = []Action{
 	OfferSettingsChanged{},
+	OrderSettingsChanged{},
 	EmailSettingsChanged{},
 	AdminGranted{},
 	AdminRevoked{},

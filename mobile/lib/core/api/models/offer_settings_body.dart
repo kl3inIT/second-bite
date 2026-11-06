@@ -10,6 +10,9 @@ part 'offer_settings_body.g.dart';
 @Freezed()
 abstract class OfferSettingsBody with _$OfferSettingsBody {
   const factory OfferSettingsBody({
+    /// How many units of a post one order may take when the seller set no cap
+    required int defaultMaxPerOrder,
+
     /// The search radius when a customer names none
     required int defaultRadiusKm,
     required int maxRadiusKm,

@@ -39,6 +39,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 ## Active
 
 - [Buyer discount](increments/active/buyer-discount/design.md) — promotions an admin runs, taken off an order when it is placed, for the two-week support programme from 2 November 2026; the server first, then the web, the store's app and the programme's figures.
+- [SEC-158 — Order limits](increments/active/sec-158-order-limits/design.md) — a cap per dish in one order that the store sets, open orders per phone number and address, missed orders blocking a number for some days, and large orders marked for the store to refuse.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
 
 ## Candidates

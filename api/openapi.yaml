@@ -399,6 +399,7 @@ components:
         action:
           enum:
             - offer_settings.change
+            - order_settings.change
             - email_settings.change
             - admin.grant
             - admin.revoke
@@ -437,6 +438,7 @@ components:
             - seller
             - order
             - offer_settings
+            - order_settings
             - email_settings
             - promotion
           type: string
@@ -960,9 +962,17 @@ components:
         kindLabel:
           description: What the seller calls a dish of the kind other; empty for any other kind
           type: string
+        maxPerOrder:
+          description: The seller's own cap per order; none when the settings' default applies
+          format: int64
+          type: integer
         name:
           type: string
         originalPriceVnd:
+          format: int64
+          type: integer
+        perOrderMax:
+          description: "How many units one order may take: the seller's cap, else the settings' default"
           format: int64
           type: integer
         photo:
@@ -1026,6 +1036,7 @@ components:
         - priceVnd
         - originalPriceVnd
         - discountPercent
+        - perOrderMax
         - photo
         - photos
         - windowStart
@@ -1354,9 +1365,17 @@ components:
         kindLabel:
           description: What the seller calls a dish of the kind other; empty for any other kind
           type: string
+        maxPerOrder:
+          description: The seller's own cap per order; none when the settings' default applies
+          format: int64
+          type: integer
         name:
           type: string
         originalPriceVnd:
+          format: int64
+          type: integer
+        perOrderMax:
+          description: "How many units one order may take: the seller's cap, else the settings' default"
           format: int64
           type: integer
         photo:
@@ -1417,6 +1436,7 @@ components:
         - priceVnd
         - originalPriceVnd
         - discountPercent
+        - perOrderMax
         - photo
         - photos
         - windowStart
@@ -1447,6 +1467,12 @@ components:
           description: Leaves it as it is when absent, and empties it when the kind is changed from other
           maxLength: 30
           type: string
+        maxPerOrder:
+          description: How many units one order may take; 0 takes the cap away, so the settings' default applies
+          format: int64
+          maximum: 999
+          minimum: 0
+          type: integer
         morePhotoIds:
           description: Replaces the photos after the cover; at most two
           items:
@@ -1531,6 +1557,12 @@ components:
           description: What the seller calls a dish of the kind other; empty for any other kind
           maxLength: 30
           type: string
+        maxPerOrder:
+          description: How many units one order may take; the settings' default when absent
+          format: int64
+          maximum: 999
+          minimum: 1
+          type: integer
         morePhotoIds:
           description: Up to two more photos after the cover
           items:
@@ -1620,6 +1652,12 @@ components:
     OfferSettingsBody:
       additionalProperties: false
       properties:
+        defaultMaxPerOrder:
+          description: How many units of a post one order may take when the seller set no cap
+          format: int64
+          maximum: 999
+          minimum: 1
+          type: integer
         defaultRadiusKm:
           description: The search radius when a customer names none
           format: int64
@@ -1669,6 +1707,7 @@ components:
         - windowMinMinutes
         - windowMaxMinutes
         - startsWithinHours
+        - defaultMaxPerOrder
       type: object
     OffersOutputBody:
       additionalProperties: false
@@ -1718,6 +1757,9 @@ components:
           type: integer
         id:
           type: string
+        large:
+          description: "To the seller's people and admins: a line reached its dish's cap or took more than half the units posted (SEC-158); false to its customer"
+          type: boolean
         lines:
           items:
             $ref: "#/components/schemas/OrderLineBody"
@@ -1733,6 +1775,9 @@ components:
           description: "Paid to the seller at the counter: totalVnd less discountVnd"
           format: int64
           type: integer
+        phone:
+          $ref: "#/components/schemas/PhoneHistoryBody"
+          description: "To the seller's people and admins, on its page and the seller's list: what its phone number holds and missed; none to its customer"
         problem:
           $ref: "#/components/schemas/ProblemBody"
           description: What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
@@ -1754,6 +1799,7 @@ components:
             - sold_out
             - other
             - withdrawn
+            - suspected
           type: string
         refusedAt:
           format: date-time
@@ -1805,6 +1851,7 @@ components:
         - customerPhone
         - canReview
         - canReportProblem
+        - large
       type: object
     OrderCountsBody:
       additionalProperties: false
@@ -1920,6 +1967,46 @@ components:
         - latitude
         - longitude
       type: object
+    OrderSettingsBody:
+      additionalProperties: false
+      properties:
+        missedDays:
+          description: The days missed orders are counted over; the block lifts as they pass
+          format: int64
+          maximum: 60
+          minimum: 1
+          type: integer
+        missedLimit:
+          description: Orders missed within missedDays that stop a phone number ordering
+          format: int64
+          maximum: 20
+          minimum: 1
+          type: integer
+        openPerAddress:
+          description: Orders still to collect that may have been placed from one address; loose, as a mall's Wi-Fi is shared
+          format: int64
+          maximum: 500
+          minimum: 1
+          type: integer
+        openPerPhonePerSeller:
+          description: Orders still to collect one phone number may hold at a store
+          format: int64
+          maximum: 20
+          minimum: 1
+          type: integer
+        updatedAt:
+          format: date-time
+          readOnly: true
+          type: string
+        updatedBy:
+          readOnly: true
+          type: string
+      required:
+        - openPerPhonePerSeller
+        - openPerAddress
+        - missedLimit
+        - missedDays
+      type: object
     OrderWantedBody:
       additionalProperties: false
       properties:
@@ -1993,6 +2080,21 @@ components:
         - amountVnd
         - orders
         - newCustomers
+      type: object
+    PhoneHistoryBody:
+      additionalProperties: false
+      properties:
+        missed:
+          description: "Orders it missed at any seller in the order settings' missedDays: no hand-over by the window's end, or refused as no answer, no show, late or suspected"
+          format: int64
+          type: integer
+        open:
+          description: Orders the phone number holds at this seller still to collect, this one included
+          format: int64
+          type: integer
+      required:
+        - open
+        - missed
       type: object
     PhotoBody:
       additionalProperties: false
@@ -2464,6 +2566,7 @@ components:
             - late
             - sold_out
             - other
+            - suspected
           type: string
       required:
         - reason
@@ -3614,6 +3717,7 @@ paths:
             items:
               enum:
                 - offer_settings.change
+                - order_settings.change
                 - email_settings.change
                 - admin.grant
                 - admin.revoke
@@ -3976,6 +4080,74 @@ paths:
         - bearer: []
         - cookie: []
       summary: Every seller's offers by status, words, seller and day posted, newest first
+      tags:
+        - Admin
+  /admin/order-settings:
+    get:
+      operationId: getOrderSettings
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderSettingsBody"
+          description: OK
+          headers:
+            ETag:
+              schema:
+                description: The settings' version, sent back in If-Match to save them
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The limits on the orders one person holds
+      tags:
+        - Admin
+    put:
+      description: New limits apply to orders placed after they are saved. If-Match carries the ETag read; when someone saved since, the answer is 412 and nothing changes.
+      operationId: saveOrderSettings
+      parameters:
+        - description: The ETag of the settings read
+          in: header
+          name: If-Match
+          required: true
+          schema:
+            description: The ETag of the settings read
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderSettingsBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderSettingsBody"
+          description: OK
+          headers:
+            ETag:
+              schema:
+                description: The settings' version, sent back in If-Match to save them
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Change the limits on the orders one person holds
       tags:
         - Admin
   /admin/orders:

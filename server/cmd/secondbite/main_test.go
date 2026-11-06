@@ -98,6 +98,10 @@ func TestService(t *testing.T) {
 		checkAdminChangesAreAudited(t, svc)
 	})
 
+	t.Run("one address holds a bounded number of open orders", func(t *testing.T) { //nolint:paralleltest // it lowers the order settings the other checks place under
+		checkOpenOrdersPerAddress(t, svc)
+	})
+
 	// Cleanups run after the checks, and before the containers'.
 	t.Cleanup(func() {
 		if err := stop(); err != nil {
@@ -458,8 +462,8 @@ func send(t *testing.T, method, url string, header http.Header, body any) respon
 	// Each request comes from an address of its own, as the people of the
 	// pilot do, unless a check names one: the limits per address (SEC-160)
 	// would otherwise count the whole suite as one caller.
-	if req.Header.Get("X-Forwarded-For") == "" {
-		req.Header.Set("X-Forwarded-For", nextAddress())
+	if req.Header.Get(forwardedFor) == "" {
+		req.Header.Set(forwardedFor, nextAddress())
 	}
 
 	if body != nil {

@@ -27,6 +27,7 @@ OfferSummary sampleOffer({
     priceVnd: 39000,
     originalPriceVnd: 95000,
     discountPercent: discountPercent,
+    perOrderMax: 5,
     photo: const OfferPhotoBody(
       id: 'ph-bread',
       largePath: '/photos/ph-bread/1600.jpg',

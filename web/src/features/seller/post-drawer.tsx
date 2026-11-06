@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
+import { InfoTip } from "@/components/info-tip";
 import { refuse, useAppForm } from "@/components/form/app-form";
 import { useFieldValidity } from "@/components/form/form-context";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +63,8 @@ type Values = {
   unit: string;
   description: string;
   units: string;
+  /** The post's own cap per order, empty for the settings' default (SEC-158). */
+  maxPerOrder: string;
   original: string;
   price: string;
   discount: string;
@@ -141,6 +144,7 @@ function PostDrawerBody({
     unit: "suất",
     description: "",
     units: base?.units ? String(base.units) : "",
+    maxPerOrder: base?.maxPerOrder ? String(base.maxPerOrder) : "",
     original: base?.originalPriceVnd ? String(base.originalPriceVnd) : "",
     price: edit && base?.priceVnd ? String(base.priceVnd) : startingPrice(base?.originalPriceVnd),
     discount: String(
@@ -160,6 +164,7 @@ function PostDrawerBody({
     unit: z.string(),
     description: z.string(),
     units: z.string(),
+    maxPerOrder: z.string(),
     original: z.string(),
     price: z.string(),
     discount: z.string(),
@@ -182,6 +187,10 @@ function PostDrawerBody({
         path: ["units"],
         message: ordered > 0 ? t("unitsBelowOrdered", { count: ordered }) : t("errors.units"),
       });
+    }
+    const cap = Number(value.maxPerOrder);
+    if (value.maxPerOrder !== "" && (!Number.isInteger(cap) || cap < 1 || cap > 999)) {
+      context.addIssue({ code: "custom", path: ["maxPerOrder"], message: t("errors.maxPerOrder") });
     }
     if (locked) return;
     const original = Number(value.original);
@@ -225,11 +234,18 @@ function PostDrawerBody({
     }
     const units = Number(value.units);
     const prices = { originalPriceVnd: Number(value.original), priceVnd: Number(value.price) };
+    // An empty cap is the settings' default: a new post sends none, a change sends 0 to take the post's own away.
+    const cap = value.maxPerOrder === "" ? undefined : Number(value.maxPerOrder);
     if (edit) {
       await changeOffer({
         path: { offerId: edit.offerId },
         body: {
           units,
+          ...(cap !== undefined
+            ? { maxPerOrder: cap }
+            : base?.maxPerOrder
+              ? { maxPerOrder: 0 }
+              : {}),
           ...(locked ? {} : prices),
           ...(windowChanged
             ? {
@@ -257,6 +273,7 @@ function PostDrawerBody({
         description: chosen ? chosen.description : value.description.trim(),
         photoId,
         units,
+        ...(cap !== undefined ? { maxPerOrder: cap } : {}),
         ...prices,
         windowStart: finalWindow.start.toISOString(),
         windowEnd: finalWindow.end.toISOString(),
@@ -289,6 +306,7 @@ function PostDrawerBody({
   function choose(dish: Dish) {
     setChosen(dish);
     form.setFieldValue("units", dish.units ? String(dish.units) : "");
+    form.setFieldValue("maxPerOrder", dish.maxPerOrder ? String(dish.maxPerOrder) : "");
     form.setFieldValue("original", dish.originalPriceVnd ? String(dish.originalPriceVnd) : "");
     form.setFieldValue("price", startingPrice(dish.originalPriceVnd));
     form.setFieldValue("discount", String(MIN_DISCOUNT_PERCENT));
@@ -539,6 +557,21 @@ function PostDrawerBody({
                 <form.AppField name="units">
                   {() => <NumberField label={t("units")} digits={3} focusOnOpen={!edit} />}
                 </form.AppField>
+                <form.AppField name="maxPerOrder">
+                  {() => (
+                    <NumberField
+                      label={t("maxPerOrder")}
+                      hint={t("maxPerOrderHint")}
+                      digits={3}
+                      placeholder={
+                        // A dish posted before shows the default it sold under; a new one, the usual limit.
+                        chosen?.perOrderMax && !chosen.maxPerOrder
+                          ? t("maxPerOrderDefault", { count: chosen.perOrderMax })
+                          : t("maxPerOrderPlaceholder")
+                      }
+                    />
+                  )}
+                </form.AppField>
               </div>
               <form.Subscribe selector={(state) => state.values.original}>
                 {(original) => (
@@ -652,14 +685,19 @@ function PostDrawerBody({
 /** A count or an amount in đồng, typed as digits, grouped as it is typed when `grouped`. */
 function NumberField({
   label,
+  hint,
   grouped,
   digits,
   disabled,
   focusOnOpen,
+  placeholder,
   className,
   onValue,
 }: {
   label: string;
+  /** What the field means, behind an info icon beside its label (Figma L1). */
+  hint?: string;
+  placeholder?: string;
   grouped?: boolean;
   /** At most this many digits. */
   digits?: number;
@@ -670,6 +708,7 @@ function NumberField({
   /** Told of each change, after the field holds it. */
   onValue?: (value: string) => void;
 }) {
+  const t = useTranslations("PostDrawer");
   const { field, invalid, errors, ids } = useFieldValidity<string>();
   const control = ids.control;
   useEffect(() => {
@@ -677,10 +716,14 @@ function NumberField({
   }, [focusOnOpen, control]);
   return (
     <Field data-invalid={invalid || undefined} className={className}>
-      <FieldLabel htmlFor={ids.control}>{label}</FieldLabel>
+      <span className="flex items-center gap-1.5">
+        <FieldLabel htmlFor={ids.control}>{label}</FieldLabel>
+        {hint && <InfoTip label={t("hintFor", { label })}>{hint}</InfoTip>}
+      </span>
       <NumberInput
         id={ids.control}
         value={field.state.value}
+        placeholder={placeholder}
         grouped={grouped}
         max={digits}
         disabled={disabled}

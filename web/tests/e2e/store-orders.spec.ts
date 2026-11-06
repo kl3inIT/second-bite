@@ -130,7 +130,8 @@ test.describe("the order tab of a store", () => {
     await page.getByRole("link", { name: "Đơn", exact: true }).click();
 
     await expect(page.getByRole("heading", { level: 1, name: "Đơn" })).toBeVisible();
-    await expect(page.getByText("Chuẩn bị 3 · sẵn sàng 1")).toBeVisible();
+    // The tabs count the orders; the title no longer repeats them (Figma L2, SEC-158).
+    await expect(page.getByText("Chuẩn bị 3 · sẵn sàng 1")).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Chuẩn bị · 3" })).toHaveAttribute(
       "aria-current",
       "page",
@@ -313,6 +314,48 @@ test.describe("the order tab of a store", () => {
     await expect(box).toHaveCount(0);
   });
 
+  test("marks a large order for the store, which cancels it as a suspected fake (SEC-158)", async ({
+    page,
+  }, testInfo) => {
+    const store = await storeNamed(page, "an", testInfo, "Tiệm có đơn");
+    await page.goto(`/vi/stores/${store}/orders`);
+
+    // Figma L2: the badge and the phone number's orders under the customer.
+    const large = row(page, "Nguyễn An · 0912345678");
+    await expect(large.getByText("Đơn lớn")).toBeVisible();
+    await expect(large.getByText("Số này giữ 2 đơn, bỏ 1 đơn")).toBeVisible();
+    await expect(row(page, "Lê Thu Hà · 0905111222").getByText("Đơn lớn")).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+
+    // Figma L3: the order's page says so above its actions, with a call to the customer.
+    await (await hydrated(large.getByRole("link"))).first().click();
+    await expect(page).toHaveURL(new RegExp(`/vi/stores/${store}/orders/or-2-`));
+    const alert = page.getByRole("alert").filter({ hasText: "Đơn lớn" });
+    await expect(alert).toContainText("Khách đặt 2 túi Túi bánh mì và croissant.");
+    await expect(alert).toContainText("Số này đang giữ 2 đơn ở quán, bỏ 1 đơn gần đây.");
+    await expect(alert.getByRole("link", { name: "Gọi khách · 0912345678" })).toHaveAttribute(
+      "href",
+      "tel:0912345678",
+    );
+    await expectNoSeriousA11yViolations(page);
+
+    // Figma L4: "Nghi đặt ảo" gives the portions back and counts as a missed order.
+    await page.goto(`/vi/stores/${store}/orders`);
+    await (
+      await hydrated(row(page, "Nguyễn An · 0912345678").getByRole("button", { name: "Hủy đơn" }))
+    ).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Nghi đặt ảo" }).click();
+    await expect(
+      dialog.getByText(/^Đơn hủy vì nghi đặt ảo được tính là một lần bỏ đơn/),
+    ).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+    await dialog.getByRole("button", { name: "Hủy đơn", exact: true }).click();
+
+    await page.getByRole("link", { name: "Đã hủy · 2" }).click();
+    await expect(row(page, "Nguyễn An · 0912345678")).toContainText("Lý do: Nghi đặt ảo");
+  });
+
   test("cancels an order with a reason, which the cancelled tab shows", async ({
     page,
   }, testInfo) => {
@@ -369,6 +412,6 @@ test.describe("the order tab of a store", () => {
     await expect(page.getByRole("grid")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
     await page.getByRole("link", { name: "Hôm nay" }).click();
-    await expect(page.getByText("Chuẩn bị 3 · sẵn sàng 1")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Chuẩn bị · 3" })).toBeVisible();
   });
 });

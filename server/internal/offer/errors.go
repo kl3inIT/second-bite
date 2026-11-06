@@ -48,6 +48,11 @@ var (
 		VI: "Món này còn ít phần hơn số bạn chọn.",
 		EN: "The offer has fewer units left than were asked for.",
 	})
+	// ErrOverOrderLimit is an order asking more units than one order may take of an offer (SEC-158).
+	ErrOverOrderLimit = platform.NewFailure("OFFER_OVER_ORDER_LIMIT", platform.CategoryConflict, platform.Words{
+		VI: "Món này chỉ được đặt tối đa một số suất mỗi đơn. Giảm số suất rồi đặt lại.",
+		EN: "This dish can only be ordered up to a number of units per order. Lower the units and order again.",
+	})
 	ErrUnavailable = platform.NewFailure("OFFER_UNAVAILABLE", platform.CategoryConflict, platform.Words{
 		VI: "Món này không còn bán: quán đã rút hoặc đã hết giờ nhận.",
 		EN: "The offer is no longer on sale: it was withdrawn or its window is over.",

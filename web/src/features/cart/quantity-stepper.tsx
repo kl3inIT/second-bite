@@ -3,7 +3,7 @@
 import { MinusIcon, PlusIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-import { isAvailable, type OfferSummary } from "@/features/offers/offer";
+import { isAvailable, mostPerOrder, type OfferSummary } from "@/features/offers/offer";
 import { cn } from "@/lib/utils";
 
 import { addOne, quantityOf, removeOne } from "./cart";
@@ -36,7 +36,7 @@ export function QuantityStepper({ offer }: { offer: OfferSummary }) {
     <Stepper
       name={offer.name}
       quantity={quantity}
-      canAdd={quantity < offer.unitsLeft}
+      canAdd={quantity < mostPerOrder(offer)}
       onAdd={add}
       onRemove={() => cart && saveCart(removeOne(cart, offer.id))}
     />

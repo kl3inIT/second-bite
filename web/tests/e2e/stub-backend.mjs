@@ -95,6 +95,7 @@ function sample({
     priceVnd: price,
     originalPriceVnd: originalPrice,
     discountPercent: Math.floor(((originalPrice - price) * 100) / originalPrice),
+    perOrderMax: 5,
     photo: {
       id: photo,
       largePath: `/photos/${photo}/1600.jpg`,
@@ -995,6 +996,8 @@ function sellerOrdersFor(seller) {
       windowStart: new Date(Date.now() - 3_600_000).toISOString(),
       windowEnd: new Date(Date.now() + 3 * 3_600_000).toISOString(),
       createdAt: new Date().toISOString(),
+      large: false,
+      phone: { open: 1, missed: 0 },
       get unreadMessages() {
         return unreadOf(this.id, "seller");
       },
@@ -1017,6 +1020,7 @@ function sellerOrdersFor(seller) {
               "túi",
               2,
               57000,
+              { large: true, phone: { open: 2, missed: 1 } },
             ),
             order(3, "confirmed", "Trần Minh", "0987654321", "Xôi thập cẩm", "hộp", 1, 30000),
             order(
@@ -1060,6 +1064,7 @@ const REFUSALS = [
   "no_show",
   "late",
   "sold_out",
+  "suspected",
   "other",
 ];
 
@@ -1125,6 +1130,7 @@ function postsOf(seller) {
     priceVnd: 57000,
     originalPriceVnd: 95000,
     discountPercent: 40,
+    perOrderMax: 5,
     photo: {
       id: `ph-${n}`,
       largePath: `/photos/ph-${n}/1600.jpg`,
@@ -1730,6 +1736,7 @@ async function sellerRoutes(request, response, url) {
         discountPercent: Math.floor(
           ((body.originalPriceVnd - body.priceVnd) * 100) / body.originalPriceVnd,
         ),
+        perOrderMax: body.maxPerOrder ?? FIRST_LIMITS.offer.defaultMaxPerOrder,
         photo: {
           id: body.photoId,
           largePath: `/photos/${body.photoId}/1600.jpg`,
@@ -1779,6 +1786,11 @@ async function sellerRoutes(request, response, url) {
       } else {
         Object.assign(offer, body, { updatedAt: new Date().toISOString() });
         if (body.units !== undefined) offer.unitsLeft = body.units - ordered;
+        // A cap of 0 takes the post's own away, and the settings' default applies (SEC-158).
+        if (body.maxPerOrder === 0) delete offer.maxPerOrder;
+        if (body.maxPerOrder !== undefined) {
+          offer.perOrderMax = offer.maxPerOrder ?? FIRST_LIMITS.offer.defaultMaxPerOrder;
+        }
         if (offer.unitsLeft > 0 && offer.status === "sold_out") offer.status = "on_sale";
         json(response, 200, offer);
       }
@@ -1831,9 +1843,11 @@ function offerById(id) {
 // fixed evening hours (21:00 to 21:45 tonight), so a run after 21:45 in Vietnam would find every order placed from
 // them over and the customer's order tests failing.
 function shown(order) {
-  const { owner: _owner, ...rest } = order;
+  // What the store judges an order by is not its customer's (SEC-158).
+  const { owner: _owner, phone: _phone, ...rest } = order;
   return {
     ...rest,
+    large: false,
     unreadMessages: unreadOf(order.id, "customer"),
     messageCount: countOf(order.id),
   };
@@ -1886,6 +1900,15 @@ async function ordersApi(request, response, url) {
     }
     if (wanted.some(({ units, offer }) => units > offer.unitsLeft)) {
       problem(response, 409, "ORDER_OFFER_SOLD_OUT");
+      return true;
+    }
+    if (wanted.some(({ units, offer }) => units > (offer.perOrderMax ?? 999))) {
+      problem(response, 409, "ORDER_OVER_DISH_LIMIT");
+      return true;
+    }
+    // The stub's number that holds two orders still to collect at every store (SEC-158).
+    if (contact.phone === HOLDING_PHONE) {
+      problem(response, 409, "ORDER_PHONE_HOLDS_ORDERS");
       return true;
     }
     const { offer } = wanted[0];
@@ -3403,6 +3426,61 @@ function emailSettingsOf(account) {
 
 const etagOf = (settings) => `"${settings.updatedAt}"`;
 
+/** The phone number the stub treats as already holding two orders at every store (SEC-158). */
+const HOLDING_PHONE = "0911111158";
+
+/** The offer settings and the order settings, as the server first holds them (SEC-158). */
+const FIRST_LIMITS = {
+  offer: {
+    minDiscountPercent: 20,
+    defaultRadiusKm: 5,
+    maxRadiusKm: 30,
+    windowMinMinutes: 30,
+    windowMaxMinutes: 360,
+    startsWithinHours: 24,
+    defaultMaxPerOrder: 5,
+    updatedAt: "2026-11-06T02:15:00Z",
+  },
+  order: {
+    openPerPhonePerSeller: 2,
+    openPerAddress: 20,
+    missedLimit: 2,
+    missedDays: 7,
+    updatedAt: "2026-11-06T02:15:00Z",
+  },
+};
+
+/** Each admin's own copy of them, so tests running side by side never save over each other. */
+const orderLimitsBy = new Map();
+
+async function orderLimitRoutes(request, response, url) {
+  const which = { "/admin/offer-settings": "offer", "/admin/order-settings": "order" }[
+    url.pathname
+  ];
+  if (!which) return false;
+  const account = accounts.get(tokenOf(request));
+  if (account?.role !== "admin") return false;
+  if (!orderLimitsBy.has(account.email))
+    orderLimitsBy.set(account.email, structuredClone(FIRST_LIMITS));
+  const orderLimits = orderLimitsBy.get(account.email);
+  const current = orderLimits[which];
+  if (request.method === "GET") {
+    json(response, 200, current, { etag: etagOf(current) });
+    return true;
+  }
+  if (request.method === "PUT") {
+    if (request.headers["if-match"] !== etagOf(current)) {
+      problem(response, 412, "PLATFORM_CHANGED_SINCE_READ");
+      return true;
+    }
+    const body = await readBody(request);
+    orderLimits[which] = { ...current, ...body, updatedAt: new Date().toISOString() };
+    json(response, 200, orderLimits[which], { etag: etagOf(orderLimits[which]) });
+    return true;
+  }
+  return false;
+}
+
 async function emailSettingsRoutes(request, response, url) {
   if (!url.pathname.startsWith("/admin/email-settings")) return false;
   const account = accounts.get(tokenOf(request));
@@ -3552,6 +3630,7 @@ async function answer(request, response) {
   if (adminOrderReads(request, response, url)) return;
   if (await sellerRoutes(request, response, url)) return;
   if (await emailSettingsRoutes(request, response, url)) return;
+  if (await orderLimitRoutes(request, response, url)) return;
   if (await adminRoutes(request, response, url)) return;
   if (await ordersApi(request, response, url)) return;
   const photoMatch = /^\/photos\/([\w-]+)\/(400|1600)\.jpg$/.exec(url.pathname);

@@ -129,6 +129,18 @@ var adminChanges = map[string]adminChange{
 			s["maxRadiusKm"] = radius - 1
 		})
 	}},
+	"saveOrderSettings": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
+		t.Helper()
+
+		return changeSettings(t, svc, admin, "/admin/order-settings", func(s map[string]any) {
+			days, ok := s["missedDays"].(float64)
+			if !ok {
+				t.Fatalf("missedDays is %T", s["missedDays"])
+			}
+
+			s["missedDays"] = days + 1
+		})
+	}},
 	"saveEmailSettings": {call: func(t *testing.T, svc service, admin http.Header) (response, func()) {
 		t.Helper()
 

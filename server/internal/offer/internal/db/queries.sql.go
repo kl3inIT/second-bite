@@ -178,8 +178,9 @@ func (q *Queries) GetDish(ctx context.Context, id uuid.UUID) (GetDishRow, error)
 const getOffer = `-- name: GetOffer :one
 SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at, seller_name
-FROM offer_offers WHERE id = $1
+       created_at, updated_at, withdrawn_at, seller_name, max_per_order,
+       COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max
+FROM offer_offers WHERE offer_offers.id = $1
 `
 
 type GetOfferRow struct {
@@ -208,6 +209,8 @@ type GetOfferRow struct {
 	UpdatedAt        time.Time
 	WithdrawnAt      *time.Time
 	SellerName       string
+	MaxPerOrder      pgtype.Int4
+	PerOrderMax      int32
 }
 
 func (q *Queries) GetOffer(ctx context.Context, id uuid.UUID) (GetOfferRow, error) {
@@ -239,13 +242,15 @@ func (q *Queries) GetOffer(ctx context.Context, id uuid.UUID) (GetOfferRow, erro
 		&i.UpdatedAt,
 		&i.WithdrawnAt,
 		&i.SellerName,
+		&i.MaxPerOrder,
+		&i.PerOrderMax,
 	)
 	return i, err
 }
 
 const getSettings = `-- name: GetSettings :one
 SELECT min_discount_percent, default_radius_km, max_radius_km, window_min_minutes, window_max_minutes,
-       starts_within_hours, updated_at, updated_by
+       starts_within_hours, default_max_per_order, updated_at, updated_by
 FROM offer_settings WHERE id = 1
 `
 
@@ -256,6 +261,7 @@ type GetSettingsRow struct {
 	WindowMinMinutes   int32
 	WindowMaxMinutes   int32
 	StartsWithinHours  int32
+	DefaultMaxPerOrder int32
 	UpdatedAt          time.Time
 	UpdatedBy          uuid.NullUUID
 }
@@ -270,6 +276,7 @@ func (q *Queries) GetSettings(ctx context.Context) (GetSettingsRow, error) {
 		&i.WindowMinMinutes,
 		&i.WindowMaxMinutes,
 		&i.StartsWithinHours,
+		&i.DefaultMaxPerOrder,
 		&i.UpdatedAt,
 		&i.UpdatedBy,
 	)
@@ -320,11 +327,12 @@ func (q *Queries) InsertDish(ctx context.Context, arg InsertDishParams) (uuid.UU
 const insertOffer = `-- name: InsertOffer :one
 INSERT INTO offer_offers (
     seller_id, posted_by, name, description, kind, kind_label, unit, units, units_left, price_vnd, original_price_vnd,
-    weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address, seller_name, search_vector
+    weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address, seller_name, search_vector,
+    max_per_order
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $8, $9, $10,
     $11, $12, $13, $14, $15, $16, $17, $18, $19,
-    ($20::text)::tsvector
+    ($20::text)::tsvector, $21
 )
 RETURNING id
 `
@@ -350,6 +358,7 @@ type InsertOfferParams struct {
 	Address          string
 	SellerName       string
 	SearchVector     string
+	MaxPerOrder      pgtype.Int4
 }
 
 func (q *Queries) InsertOffer(ctx context.Context, arg InsertOfferParams) (uuid.UUID, error) {
@@ -374,6 +383,7 @@ func (q *Queries) InsertOffer(ctx context.Context, arg InsertOfferParams) (uuid.
 		arg.Address,
 		arg.SellerName,
 		arg.SearchVector,
+		arg.MaxPerOrder,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
@@ -393,8 +403,9 @@ func (q *Queries) LockDishes(ctx context.Context, sellerID string) error {
 const lockOffer = `-- name: LockOffer :one
 SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at, seller_name
-FROM offer_offers WHERE id = $1 FOR UPDATE
+       created_at, updated_at, withdrawn_at, seller_name, max_per_order,
+       COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max
+FROM offer_offers WHERE offer_offers.id = $1 FOR UPDATE
 `
 
 type LockOfferRow struct {
@@ -423,6 +434,8 @@ type LockOfferRow struct {
 	UpdatedAt        time.Time
 	WithdrawnAt      *time.Time
 	SellerName       string
+	MaxPerOrder      pgtype.Int4
+	PerOrderMax      int32
 }
 
 // Serializes changes to one offer until the transaction ends.
@@ -455,13 +468,15 @@ func (q *Queries) LockOffer(ctx context.Context, id uuid.UUID) (LockOfferRow, er
 		&i.UpdatedAt,
 		&i.WithdrawnAt,
 		&i.SellerName,
+		&i.MaxPerOrder,
+		&i.PerOrderMax,
 	)
 	return i, err
 }
 
 const lockSettings = `-- name: LockSettings :one
 SELECT min_discount_percent, default_radius_km, max_radius_km, window_min_minutes, window_max_minutes,
-       starts_within_hours, updated_at, updated_by
+       starts_within_hours, default_max_per_order, updated_at, updated_by
 FROM offer_settings WHERE id = 1 FOR UPDATE
 `
 
@@ -472,6 +487,7 @@ type LockSettingsRow struct {
 	WindowMinMinutes   int32
 	WindowMaxMinutes   int32
 	StartsWithinHours  int32
+	DefaultMaxPerOrder int32
 	UpdatedAt          time.Time
 	UpdatedBy          uuid.NullUUID
 }
@@ -487,6 +503,7 @@ func (q *Queries) LockSettings(ctx context.Context) (LockSettingsRow, error) {
 		&i.WindowMinMinutes,
 		&i.WindowMaxMinutes,
 		&i.StartsWithinHours,
+		&i.DefaultMaxPerOrder,
 		&i.UpdatedAt,
 		&i.UpdatedBy,
 	)
@@ -525,7 +542,8 @@ func (q *Queries) MoveSellerOffers(ctx context.Context, arg MoveSellerOffersPara
 const offersForAdmins = `-- name: OffersForAdmins :many
 SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at, seller_name
+       created_at, updated_at, withdrawn_at, seller_name, max_per_order,
+       COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max
 FROM offer_offers
 WHERE ($1::text = ''
        OR ($1 = 'withdrawn' AND state = 'withdrawn')
@@ -576,6 +594,8 @@ type OffersForAdminsRow struct {
 	UpdatedAt        time.Time
 	WithdrawnAt      *time.Time
 	SellerName       string
+	MaxPerOrder      pgtype.Int4
+	PerOrderMax      int32
 }
 
 // One page of every seller's offers in the status given (all when empty),
@@ -625,6 +645,8 @@ func (q *Queries) OffersForAdmins(ctx context.Context, arg OffersForAdminsParams
 			&i.UpdatedAt,
 			&i.WithdrawnAt,
 			&i.SellerName,
+			&i.MaxPerOrder,
+			&i.PerOrderMax,
 		); err != nil {
 			return nil, err
 		}
@@ -690,7 +712,7 @@ UPDATE offer_settings
 SET min_discount_percent = $1, default_radius_km = $2,
     max_radius_km = $3, window_min_minutes = $4,
     window_max_minutes = $5, starts_within_hours = $6,
-    updated_at = now(), updated_by = $7
+    default_max_per_order = $7, updated_at = now(), updated_by = $8
 WHERE id = 1
 `
 
@@ -701,6 +723,7 @@ type PutSettingsParams struct {
 	WindowMinMinutes   int32
 	WindowMaxMinutes   int32
 	StartsWithinHours  int32
+	DefaultMaxPerOrder int32
 	UpdatedBy          uuid.NullUUID
 }
 
@@ -712,6 +735,7 @@ func (q *Queries) PutSettings(ctx context.Context, arg PutSettingsParams) error 
 		arg.WindowMinMinutes,
 		arg.WindowMaxMinutes,
 		arg.StartsWithinHours,
+		arg.DefaultMaxPerOrder,
 		arg.UpdatedBy,
 	)
 	return err
@@ -736,10 +760,11 @@ func (q *Queries) ReturnUnits(ctx context.Context, arg ReturnUnitsParams) error 
 const searchOffers = `-- name: SearchOffers :many
 SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at, seller_name,
+       created_at, updated_at, withdrawn_at, seller_name, max_per_order,
+       COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max,
        COALESCE(distance_m, 0)::float8 AS distance_m, rank::float4 AS rank
 FROM (
-    SELECT o.id, o.seller_id, o.posted_by, o.state, o.name, o.description, o.kind, o.unit, o.units, o.units_left, o.price_vnd, o.original_price_vnd, o.weight_grams, o.photo_id, o.window_start, o.window_end, o.latitude, o.longitude, o.location, o.address, o.created_at, o.updated_at, o.withdrawn_at, o.seller_name, o.search_vector, o.more_photo_ids, o.kind_label,
+    SELECT o.id, o.seller_id, o.posted_by, o.state, o.name, o.description, o.kind, o.unit, o.units, o.units_left, o.price_vnd, o.original_price_vnd, o.weight_grams, o.photo_id, o.window_start, o.window_end, o.latitude, o.longitude, o.location, o.address, o.created_at, o.updated_at, o.withdrawn_at, o.seller_name, o.search_vector, o.more_photo_ids, o.kind_label, o.max_per_order,
            CASE WHEN $1::float8 IS NULL THEN NULL
                 ELSE ST_Distance(o.location, ST_SetSRID(ST_MakePoint($2::float8, $1::float8), 4326)::geography)
            END AS distance_m,
@@ -812,6 +837,8 @@ type SearchOffersRow struct {
 	UpdatedAt        time.Time
 	WithdrawnAt      *time.Time
 	SellerName       string
+	MaxPerOrder      pgtype.Int4
+	PerOrderMax      int32
 	DistanceM        float64
 	Rank             float32
 }
@@ -870,6 +897,8 @@ func (q *Queries) SearchOffers(ctx context.Context, arg SearchOffersParams) ([]S
 			&i.UpdatedAt,
 			&i.WithdrawnAt,
 			&i.SellerName,
+			&i.MaxPerOrder,
+			&i.PerOrderMax,
 			&i.DistanceM,
 			&i.Rank,
 		); err != nil {
@@ -946,7 +975,8 @@ func (q *Queries) SellerDishes(ctx context.Context, sellerID uuid.UUID) ([]Selle
 const sellerOffers = `-- name: SellerOffers :many
 SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at, seller_name
+       created_at, updated_at, withdrawn_at, seller_name, max_per_order,
+       COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max
 FROM offer_offers
 WHERE seller_id = $1
   AND ($2::text = ''
@@ -991,6 +1021,8 @@ type SellerOffersRow struct {
 	UpdatedAt        time.Time
 	WithdrawnAt      *time.Time
 	SellerName       string
+	MaxPerOrder      pgtype.Int4
+	PerOrderMax      int32
 }
 
 func (q *Queries) SellerOffers(ctx context.Context, arg SellerOffersParams) ([]SellerOffersRow, error) {
@@ -1033,6 +1065,8 @@ func (q *Queries) SellerOffers(ctx context.Context, arg SellerOffersParams) ([]S
 			&i.UpdatedAt,
 			&i.WithdrawnAt,
 			&i.SellerName,
+			&i.MaxPerOrder,
+			&i.PerOrderMax,
 		); err != nil {
 			return nil, err
 		}
@@ -1094,9 +1128,11 @@ func (q *Queries) SellersOfOffers(ctx context.Context, ids []uuid.UUID) ([]Selle
 
 const takeUnits = `-- name: TakeUnits :one
 UPDATE offer_offers SET units_left = units_left - $1, updated_at = now()
-WHERE id = $2 AND state = 'on_sale' AND window_end > now() AND units_left >= $1
+WHERE offer_offers.id = $2 AND state = 'on_sale' AND window_end > now() AND units_left >= $1
+  AND $1 <= COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))
 RETURNING id, seller_id, name, unit, price_vnd, original_price_vnd, photo_id, window_start, window_end,
-          latitude, longitude, address, seller_name
+          latitude, longitude, address, seller_name, units,
+          COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max
 `
 
 type TakeUnitsParams struct {
@@ -1118,11 +1154,13 @@ type TakeUnitsRow struct {
 	Longitude        float64
 	Address          string
 	SellerName       string
+	Units            int32
+	PerOrderMax      int32
 }
 
 // Takes units for an order in the order's transaction: only from an offer on
 // sale whose window is not over and that has them, so the last unit goes to
-// one order.
+// one order, and no more than one order may take of it (SEC-158).
 func (q *Queries) TakeUnits(ctx context.Context, arg TakeUnitsParams) (TakeUnitsRow, error) {
 	row := q.db.QueryRow(ctx, takeUnits, arg.Units, arg.ID)
 	var i TakeUnitsRow
@@ -1140,6 +1178,8 @@ func (q *Queries) TakeUnits(ctx context.Context, arg TakeUnitsParams) (TakeUnits
 		&i.Longitude,
 		&i.Address,
 		&i.SellerName,
+		&i.Units,
+		&i.PerOrderMax,
 	)
 	return i, err
 }
@@ -1187,8 +1227,8 @@ UPDATE offer_offers
 SET name = $1, description = $2, kind = $3, kind_label = $4, unit = $5, units = $6,
     units_left = $7, price_vnd = $8, original_price_vnd = $9,
     weight_grams = $10, photo_id = $11, more_photo_ids = $12, window_start = $13, window_end = $14,
-    search_vector = ($15::text)::tsvector, updated_at = now()
-WHERE id = $16
+    search_vector = ($15::text)::tsvector, max_per_order = $16, updated_at = now()
+WHERE id = $17
 `
 
 type UpdateOfferParams struct {
@@ -1207,6 +1247,7 @@ type UpdateOfferParams struct {
 	WindowStart      time.Time
 	WindowEnd        time.Time
 	SearchVector     string
+	MaxPerOrder      pgtype.Int4
 	ID               uuid.UUID
 }
 
@@ -1227,6 +1268,7 @@ func (q *Queries) UpdateOffer(ctx context.Context, arg UpdateOfferParams) error 
 		arg.WindowStart,
 		arg.WindowEnd,
 		arg.SearchVector,
+		arg.MaxPerOrder,
 		arg.ID,
 	)
 	return err

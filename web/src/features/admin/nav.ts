@@ -5,6 +5,7 @@ import {
   PackageIcon,
   ReceiptTextIcon,
   SettingsIcon,
+  ShoppingBasketIcon,
   StarIcon,
   StoreIcon,
   TagIcon,
@@ -72,10 +73,13 @@ export const adminNav: AdminNavGroup[] = [
 /** The settings' pages, in the order of Figma's Admin/SettingsNav; a page joins with its screen. */
 // Kept here, outside the client menu, so a server page can read it too.
 export const settingsPages: Array<{
-  key: "email";
-  href: "/admin/settings/email";
+  key: "orderLimits" | "email";
+  href: "/admin/settings/order-limits" | "/admin/settings/email";
   icon: LucideIcon;
-}> = [{ key: "email", href: "/admin/settings/email", icon: MailIcon }];
+}> = [
+  { key: "orderLimits", href: "/admin/settings/order-limits", icon: ShoppingBasketIcon },
+  { key: "email", href: "/admin/settings/email", icon: MailIcon },
+];
 
 /** Whether an entry is the page open: its own address or one under it. */
 export function isWithin(pathname: string, href: string) {
