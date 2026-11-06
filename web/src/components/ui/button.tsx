@@ -60,6 +60,8 @@ const buttonStyles = cva(
         // Second Bite: a 40px round button with a 44px target around it (Figma K4 back, share, heart).
         float:
           "relative size-10 after:absolute after:-inset-0.5 [&_svg:not([class*='size-'])]:size-5",
+        // Second Bite: a 16px hint icon beside a label, with a 44px target around it (Figma L1, SEC-158).
+        hint: "relative size-5 after:absolute after:-inset-3 [&_svg:not([class*='size-'])]:size-4",
         // Second Bite: a 34px chip with a 44px target around it.
         chip: "relative h-8.5 px-3.5 text-body-sm after:absolute after:inset-x-0 after:-inset-y-1.25",
         // Second Bite: a quick choice in a small panel, 28px with 12px text, still a 44px target.

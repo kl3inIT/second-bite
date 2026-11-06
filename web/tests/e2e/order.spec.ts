@@ -299,6 +299,23 @@ test.describe("ordering from the cart", () => {
 
   // Figma O7: someone else ordered first. The cart holds a dish the stub no longer sells beside a croissant,
   // as a cart written before the last portions went would.
+  test("says in the server's words why a phone number cannot order (SEC-158)", async ({ page }) => {
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    // The stub's number that already holds two orders at the store.
+    await orderAs(page, "Hà", "0911111158");
+
+    await expect(
+      page
+        .getByText(
+          "Số điện thoại này đang có đơn chưa lấy ở quán. Lấy hoặc huỷ đơn đó rồi đặt tiếp.",
+        )
+        .filter({ visible: true }),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/vi\/cart$/);
+    await expectNoSeriousA11yViolations(page);
+  });
+
   test("says which dish ran out and orders what is left", async ({ page }) => {
     await addCroissant(page);
     await page.evaluate(() => {

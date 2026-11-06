@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   biggestDiscountFirst,
+  cappedPerOrder,
   closingFirst,
   directionsHref,
   groupBySeller,
   inShowingOrder,
   isAvailable,
   kindsByCount,
+  mostPerOrder,
   type OfferSummary,
 } from "./offer";
 
@@ -32,6 +34,7 @@ function offer(
     priceVnd: 20_000,
     originalPriceVnd: 40_000,
     discountPercent,
+    perOrderMax: 5,
     photo: { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` },
     photos: [{ id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` }],
     windowStart: `2026-10-18T${window.start}:00+07:00`,
@@ -143,5 +146,14 @@ describe("directions", () => {
     expect(directionsHref({ address: "Tasco Mall, Long Biên" })).toBe(
       "https://www.google.com/maps/dir/?api=1&destination=Tasco+Mall%2C+Long+Bi%C3%AAn",
     );
+  });
+});
+
+describe("the most one order may hold (SEC-158)", () => {
+  it("is the units left, or fewer under the cap per order", () => {
+    expect(mostPerOrder({ unitsLeft: 10, perOrderMax: 5 })).toBe(5);
+    expect(mostPerOrder({ unitsLeft: 3, perOrderMax: 5 })).toBe(3);
+    expect(cappedPerOrder({ unitsLeft: 10, perOrderMax: 5 })).toBe(true);
+    expect(cappedPerOrder({ unitsLeft: 5, perOrderMax: 5 })).toBe(false);
   });
 });

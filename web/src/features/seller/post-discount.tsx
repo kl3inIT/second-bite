@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { useFieldValidity } from "@/components/form/form-context";
+import { InfoTip } from "@/components/info-tip";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
@@ -37,81 +38,91 @@ export function DiscountField({
     setOpen(false);
   }
   return (
-    <fieldset className="flex min-w-0 flex-col gap-2" disabled={disabled}>
-      <legend id={ids.control} className="mb-2 text-title">
-        {t("discountLabel")}
-      </legend>
-      <div className="grid grid-cols-5 gap-2" aria-labelledby={ids.control}>
-        {PRESETS.map((value) => (
-          <Button
-            key={value}
-            type="button"
-            variant="choice"
-            size="choice"
-            aria-pressed={percent === value}
-            disabled={disabled}
-            aria-invalid={invalid || undefined}
-            aria-describedby={invalid ? ids.error : undefined}
-            onClick={() => choose(value)}
+    // The label and its hint sit above the group, which takes its name from the label alone: a hint inside a
+    // legend would join the group's name and its buttons (Figma L1, SEC-158).
+    <div className="flex min-w-0 flex-col gap-2">
+      <span className="mb-2 flex items-center gap-1.5">
+        <span id={ids.control} className="text-title">
+          {t("discountLabel")}
+        </span>
+        <InfoTip label={t("hintFor", { label: t("discountLabel") })}>
+          {t("discountHint", { min: MIN_DISCOUNT_PERCENT })}
+        </InfoTip>
+      </span>
+      <fieldset
+        aria-labelledby={ids.control}
+        className="flex min-w-0 flex-col gap-2"
+        disabled={disabled}
+      >
+        <div className="grid grid-cols-5 gap-2" aria-labelledby={ids.control}>
+          {PRESETS.map((value) => (
+            <Button
+              key={value}
+              type="button"
+              variant="choice"
+              size="choice"
+              aria-pressed={percent === value}
+              disabled={disabled}
+              aria-invalid={invalid || undefined}
+              aria-describedby={invalid ? ids.error : undefined}
+              onClick={() => choose(value)}
+            >
+              {t("percent", { percent: value })}
+            </Button>
+          ))}
+          <Popover
+            open={open}
+            onOpenChange={(next) => {
+              setOpen(next);
+              if (next) setCustom(false);
+            }}
           >
-            {t("percent", { percent: value })}
-          </Button>
-        ))}
-        <Popover
-          open={open}
-          onOpenChange={(next) => {
-            setOpen(next);
-            if (next) setCustom(false);
-          }}
-        >
-          <PopoverTrigger
-            disabled={disabled}
-            render={<Button type="button" variant="choice" size="choice" />}
-            aria-label={`${t("otherDiscount")}: ${PRESETS.includes(percent) ? t("other") : t("percent", { percent })}`}
-            aria-pressed={!PRESETS.includes(percent)}
-          >
-            {PRESETS.includes(percent) ? t("other") : t("percent", { percent })}
-          </PopoverTrigger>
-          <PopoverContent align="end" variant="choices">
-            {custom ? (
-              <CustomDiscount
-                key={percent}
-                original={original}
-                percent={percent}
-                onCancel={() => setOpen(false)}
-                onApply={choose}
-              />
-            ) : (
-              <>
-                <PopoverTitle>{t("otherDiscount")}</PopoverTitle>
-                <div className="flex flex-col">
-                  {[60, 70, 80, 90].map((value) => (
-                    <Button
-                      key={value}
-                      type="button"
-                      variant="choice"
-                      size="choice"
-                      aria-pressed={percent === value}
-                      onClick={() => choose(value)}
-                    >
-                      {t("percent", { percent: value })}
-                    </Button>
-                  ))}
-                </div>
-                <Separator />
-                <Button type="button" variant="ghost" onClick={() => setCustom(true)}>
-                  {t("enterDiscount")}
-                </Button>
-              </>
-            )}
-          </PopoverContent>
-        </Popover>
-      </div>
-      <p className="text-note text-muted-foreground">
-        {t("discountHint", { min: MIN_DISCOUNT_PERCENT })}
-      </p>
-      {invalid && <FieldError id={ids.error} errors={errors} />}
-    </fieldset>
+            <PopoverTrigger
+              disabled={disabled}
+              render={<Button type="button" variant="choice" size="choice" />}
+              aria-label={`${t("otherDiscount")}: ${PRESETS.includes(percent) ? t("other") : t("percent", { percent })}`}
+              aria-pressed={!PRESETS.includes(percent)}
+            >
+              {PRESETS.includes(percent) ? t("other") : t("percent", { percent })}
+            </PopoverTrigger>
+            <PopoverContent align="end" variant="choices">
+              {custom ? (
+                <CustomDiscount
+                  key={percent}
+                  original={original}
+                  percent={percent}
+                  onCancel={() => setOpen(false)}
+                  onApply={choose}
+                />
+              ) : (
+                <>
+                  <PopoverTitle>{t("otherDiscount")}</PopoverTitle>
+                  <div className="flex flex-col">
+                    {[60, 70, 80, 90].map((value) => (
+                      <Button
+                        key={value}
+                        type="button"
+                        variant="choice"
+                        size="choice"
+                        aria-pressed={percent === value}
+                        onClick={() => choose(value)}
+                      >
+                        {t("percent", { percent: value })}
+                      </Button>
+                    ))}
+                  </div>
+                  <Separator />
+                  <Button type="button" variant="ghost" onClick={() => setCustom(true)}>
+                    {t("enterDiscount")}
+                  </Button>
+                </>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
+        {invalid && <FieldError id={ids.error} errors={errors} />}
+      </fieldset>
+    </div>
   );
 }
 

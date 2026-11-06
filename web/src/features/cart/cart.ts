@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { OfferSummary } from "@/features/offers/offer";
+import { mostPerOrder, type OfferSummary } from "@/features/offers/offer";
 
 // The cart until orders exist (SEC-49 decision 7): dishes of any sellers, each never more than its portions
 // left, kept as the cards showed them so the confirmation (Figma K5) needs no request of its own. Each seller's
@@ -39,7 +39,7 @@ export function addPortions(cart: Cart | null, offer: OfferSummary, count: numbe
   const line = basket.lines.find(({ id }) => id === offer.id);
   const updated = {
     ...lineOf(offer),
-    quantity: Math.min((line?.quantity ?? 0) + count, offer.unitsLeft),
+    quantity: Math.min((line?.quantity ?? 0) + count, mostPerOrder(offer)),
   };
   const lines = line
     ? basket.lines.map((each) => (each.id === offer.id ? updated : each))
@@ -199,13 +199,24 @@ function basketOf(offer: OfferSummary, count: number): Basket {
     },
     collectionPoint: offer.collectionPoint,
     distanceMeters: offer.distanceMeters,
-    lines: [{ ...lineOf(offer), quantity: Math.min(count, offer.unitsLeft) }],
+    lines: [{ ...lineOf(offer), quantity: Math.min(count, mostPerOrder(offer)) }],
   };
 }
 
+// A line keeps as `unitsLeft` the most of the dish one order may hold, the cap per order included (SEC-158), so the
+// confirmation's + stops where the server would refuse; the name stays, as carts kept in browsers carry it.
 function lineOf(offer: OfferSummary): Omit<CartLine, "quantity"> {
-  const { id, name, priceVnd, originalPriceVnd, unitsLeft, windowStart, windowEnd, photo } = offer;
-  return { id, name, priceVnd, originalPriceVnd, unitsLeft, windowStart, windowEnd, photo };
+  const { id, name, priceVnd, originalPriceVnd, windowStart, windowEnd, photo } = offer;
+  return {
+    id,
+    name,
+    priceVnd,
+    originalPriceVnd,
+    unitsLeft: mostPerOrder(offer),
+    windowStart,
+    windowEnd,
+    photo,
+  };
 }
 
 /** A dish of a basket with fewer portions left than it holds; none left when `left` is 0. */

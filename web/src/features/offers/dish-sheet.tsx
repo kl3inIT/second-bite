@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 import { DiscountBadge } from "./discount-label";
 import { formatPrice } from "./format";
-import type { OfferSummary } from "./offer";
+import { cappedPerOrder, mostPerOrder, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
 
 // A dish's sheet over its seller's page (Figma K4a): its photograph with the discount on it, name, price over the
@@ -145,7 +145,8 @@ function AddBar({
 }) {
   const t = useTranslations("Dish");
   const cart = useCart();
-  const room = offer.unitsLeft - quantityOf(cart, offer.id);
+  const room = mostPerOrder(offer) - quantityOf(cart, offer.id);
+  const capped = cappedPerOrder(offer);
   const [count, setCount] = useState(1);
 
   return (
@@ -177,8 +178,13 @@ function AddBar({
       >
         {room > 0
           ? t("add", { price: formatPrice(count * offer.priceVnd) })
-          : t("allChosen", { units: offer.unitsLeft })}
+          : t(capped ? "capChosen" : "allChosen", { units: mostPerOrder(offer) })}
       </Button>
+      {capped && (
+        <p className="w-full text-label text-warning-foreground">
+          {t("perOrder", { units: offer.perOrderMax })}
+        </p>
+      )}
     </div>
   );
 }

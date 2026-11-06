@@ -16,6 +16,7 @@ function order(overrides: Partial<OrderBody> = {}): OrderBody {
     id: "or-1",
     number: "SB-10001",
     status: "confirmed",
+    large: false,
     canReview: false,
     canReportProblem: false,
     checkoutId: "ch-1",

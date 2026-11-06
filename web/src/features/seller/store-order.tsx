@@ -14,6 +14,7 @@ import { photoUrl } from "@/lib/api/photo";
 
 import { CopyPhoneButton } from "./copy-phone-button";
 import { getStoreOrder } from "./my-sellers";
+import { LargeOrderAlert } from "./large-order";
 import { OrderActions, ReopenButton } from "./order-actions";
 import { OrderLines } from "./order-lines";
 import { OrderTrack } from "./order-track";
@@ -213,6 +214,7 @@ export async function Next({ order, list }: { order: OrderBody; list: string }) 
           {t(stage ? `next.${stage}` : "next.undoBody")}
         </p>
       </div>
+      {stage && <LargeOrderAlert order={order} />}
       <PhoneFootBar>
         {stage ? (
           <OrderActions

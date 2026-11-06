@@ -9,6 +9,7 @@ import { Link } from "@/i18n/navigation";
 import { photoUrl } from "@/lib/api/photo";
 
 import { CopyPhoneButton } from "./copy-phone-button";
+import { LargeOrderLine } from "./large-order";
 import { OrderActions, ReopenButton } from "./order-actions";
 import { endedBecause, type OrderTab, unitsOf } from "./store-orders";
 import { customerOf } from "@/features/orders/order";
@@ -78,6 +79,7 @@ export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab
             </span>
           )}
         </p>
+        {(tab === "preparing" || tab === "ready") && <LargeOrderLine order={order} />}
         {ended && <p className="text-body-sm text-muted-foreground">{ended}</p>}
       </div>
       <div className="flex items-center gap-6 max-md:w-full max-md:justify-between">

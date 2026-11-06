@@ -517,7 +517,8 @@
         "late": "đã quá giờ nhận",
         "sold_out": "món đã hết",
         "other": "lý do khác",
-        "withdrawn": "quán đã rút bài này"
+        "withdrawn": "quán đã rút bài này",
+        "suspected": "quán nghi đơn không có người đến lấy"
       },
       "expired": "Hết giờ nhận",
       "expiredBody": "{until} · đơn ghi là không nhận",
@@ -614,7 +615,9 @@
     "sellerAnswers": "Second Bite chỉ kết nối bạn với quán; quán chịu trách nhiệm về chất lượng và vệ sinh an toàn thực phẩm của món. <terms>Điều khoản</terms>",
     "count": "{count} phần {name} sẽ thêm",
     "add": "Thêm vào giỏ · {price}",
-    "allChosen": "Đã chọn đủ {units} phần"
+    "allChosen": "Đã chọn đủ {units} phần",
+    "capChosen": "Đã chọn tối đa {units} phần mỗi đơn",
+    "perOrder": "Tối đa {units} phần mỗi đơn"
   },
   "Seller": {
     "sold": "Đã bán {units}",
@@ -705,7 +708,9 @@
       "percent": "{value}% (tối đa {max})",
       "perDay": "Mỗi số điện thoại được giảm {count} lần mỗi ngày.",
       "after": "Số tiền giảm hiện trên đơn ngay sau khi đặt; bạn trả ít hơn tại quầy."
-    }
+    },
+    "portionsCapped": "tối đa {units} phần mỗi đơn",
+    "stockCapped": "Tối đa {units} mỗi đơn"
   },
   "AccountSettings": {
     "title": "Cài đặt tài khoản",
@@ -949,9 +954,7 @@
   "StoreOrders": {
     "title": "Đơn",
     "portions": "phần",
-    "summaryHolding": "Chuẩn bị {preparing} · sẵn sàng {ready}",
     "summaryDelivered": "Hôm nay {count} đơn · {amount}",
-    "summaryCancelled": "Hôm nay {count} đơn hủy",
     "searchLabel": "Tìm đơn",
     "searchPlaceholder": "Tìm theo tên, số điện thoại hoặc món",
     "searchCount": "{count} kết quả",
@@ -988,7 +991,8 @@
       "other": "Lý do khác",
       "not_suitable": "Món không còn phù hợp",
       "wrong_items": "Sai món",
-      "withdrawn": "Quán đã rút bài"
+      "withdrawn": "Quán đã rút bài",
+      "suspected": "Nghi đặt ảo"
     },
     "ended": {
       "customer": "Khách tự hủy trên trang người dùng",
@@ -1001,7 +1005,8 @@
       "body": "Chọn lý do. Khi khách không đến, phần món được trả lại để bán.",
       "note": "Ghi lý do",
       "back": "Quay lại",
-      "confirm": "Hủy đơn"
+      "confirm": "Hủy đơn",
+      "suspected": "Đơn hủy vì nghi đặt ảo được tính là một lần bỏ đơn của số điện thoại này. Phần món được trả lại để bán."
     },
     "detail": {
       "pushedTitle": "Chi tiết đơn",
@@ -1051,6 +1056,15 @@
       "preparing": "Chuẩn bị",
       "ready": "Sẵn sàng",
       "collected": "Hoàn tất"
+    },
+    "large": {
+      "badge": "Đơn lớn",
+      "title": "Số này đang có đơn khác",
+      "history": "{missed, plural, =0 {Số này giữ {open} đơn} other {Số này giữ {open} đơn, bỏ {missed} đơn}}",
+      "historyLong": "{missed, plural, =0 {Số này đang giữ {open} đơn ở quán.} other {Số này đang giữ {open} đơn ở quán, bỏ {missed} đơn gần đây.}}",
+      "units": "Khách đặt {count} {unit} {name}.",
+      "advice": "Nếu nghi đặt ảo, hãy gọi hỏi khách, hoặc bấm Hủy đơn và chọn Nghi đặt ảo để món được bán lại.",
+      "call": "Gọi khách · {phone}"
     }
   },
   "DayFilter": {
@@ -1140,7 +1154,8 @@
       "photo": "Chọn một ảnh cho món.",
       "name": "Nhập tên món.",
       "description": "Hộp tổng hợp cần nói hộp gồm những gì.",
-      "units": "Nhập số suất từ 1 đến 999."
+      "units": "Nhập số suất từ 1 đến 999.",
+      "maxPerOrder": "Nhập số từ 1 đến 999, hoặc để trống."
     },
     "priceForDiscount": "Giá bán sau giảm phải từ 1.000đ. Tăng giá gốc hoặc chọn mức giảm thấp hơn.",
     "discountLabel": "Giảm giá (%)",
@@ -1165,7 +1180,12 @@
     "clockInvalid": "Nhập giờ từ 00 đến 23, phút từ 00 đến 59.",
     "endInvalid": "Giờ kết thúc phải sau giờ bắt đầu từ 30 phút đến 6 giờ.",
     "previousTime": "Giảm {part}: {value}",
-    "nextTime": "Tăng {part}: {value}"
+    "nextTime": "Tăng {part}: {value}",
+    "maxPerOrder": "Tối đa mỗi đơn",
+    "maxPerOrderPlaceholder": "Theo mức chung",
+    "maxPerOrderDefault": "Mặc định {count}",
+    "maxPerOrderHint": "Khách đặt quá số này trong một đơn sẽ bị chặn. Để trống thì theo mức chung của Second Bite.",
+    "hintFor": "Giải thích: {label}"
   },
   "WithdrawDrawer": {
     "title": "Rút bài",
@@ -1297,7 +1317,8 @@
         "sellerChangeOwner": "Đổi chủ quán",
         "promotionCreate": "Tạo chương trình khuyến mãi",
         "promotionChange": "Sửa chương trình khuyến mãi",
-        "sellerMarkPayout": "Đã chuyển tiền bù"
+        "sellerMarkPayout": "Đã chuyển tiền bù",
+        "orderSettingsChange": "Sửa giới hạn đặt món"
       },
       "resource": {
         "seller": "Cửa hàng",
@@ -1305,7 +1326,8 @@
         "offer_settings": "Cài đặt bài đăng",
         "email_settings": "Cài đặt email",
         "order": "Đơn hàng",
-        "promotion": "Chương trình khuyến mãi"
+        "promotion": "Chương trình khuyến mãi",
+        "order_settings": "Giới hạn đặt món"
       },
       "commandLine": "Dòng lệnh",
       "deletedAccount": "Tài khoản đã xoá",
@@ -1351,7 +1373,12 @@
         "budgetVnd": "Ngân sách",
         "perPhonePerDay": "Lượt mỗi số điện thoại mỗi ngày",
         "enabled": "Đang bật",
-        "rules": "Ưu đãi"
+        "rules": "Ưu đãi",
+        "defaultMaxPerOrder": "Tối đa mỗi đơn mặc định",
+        "openPerPhonePerSeller": "Đơn chưa lấy mỗi số ở một quán",
+        "openPerAddress": "Đơn chưa lấy mỗi mạng",
+        "missedLimit": "Số đơn bỏ thì chặn",
+        "missedDays": "Số ngày tính đơn bỏ"
       },
       "unit": {
         "percent": "{value}%",
@@ -1373,7 +1400,8 @@
     "settings": {
       "title": "Cài đặt",
       "nav": "Mục cài đặt",
-      "email": "Email"
+      "email": "Email",
+      "orderLimits": "Đặt món"
     },
     "email": {
       "title": "Email",
@@ -2219,6 +2247,44 @@
         "cancel": "Huỷ",
         "action": "Đã chuyển"
       }
+    },
+    "orderLimits": {
+      "title": "Đặt món",
+      "perDish": {
+        "title": "Mỗi món trong một đơn",
+        "default": "Tối đa mặc định (phần)",
+        "defaultHint": "Dùng cho bài đăng mà quán để trống ô Tối đa mỗi đơn. Quán đặt số khác thì theo quán."
+      },
+      "open": {
+        "title": "Đơn chưa lấy",
+        "perPhone": "Mỗi số điện thoại ở một quán (đơn)",
+        "perPhoneHint": "Từ 1 đến 20.",
+        "perAddress": "Mỗi mạng (IP) (đơn)",
+        "perAddressHint": "Từ 1 đến 500. Đặt rộng tay, vì nhiều khách dùng chung wifi của mall."
+      },
+      "missed": {
+        "title": "Khách bỏ đơn",
+        "limit": "Chặn khi số điện thoại bỏ (đơn)",
+        "limitHint": "Đơn hết giờ mà không ai lấy, hoặc quán hủy vì không nghe máy, không đến, quá giờ, nghi đặt ảo.",
+        "days": "Trong vòng (ngày)",
+        "daysHint": "Từ 1 đến 60. Qua số ngày này thì số được đặt lại."
+      },
+      "conflict": {
+        "title": "Có người vừa lưu cài đặt này",
+        "body": "Tải lại để xem cài đặt mới nhất rồi sửa tiếp.",
+        "reload": "Tải lại"
+      },
+      "errors": {
+        "range": "Nhập số nguyên từ {min} đến {max}."
+      },
+      "failed": "Chưa lưu được. Thử lại sau ít phút.",
+      "dirty": "Bạn có thay đổi chưa lưu",
+      "updated": "Cập nhật lần cuối lúc {time}, {day}",
+      "never": "Chưa lưu lần nào",
+      "cancel": "Huỷ",
+      "save": "Lưu thay đổi",
+      "saved": "Đã lưu giới hạn đặt món",
+      "savedHint": "Đơn đặt sau đây theo giới hạn mới."
     }
   },
   "Review": {

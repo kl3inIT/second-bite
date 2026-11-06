@@ -2,8 +2,9 @@
 
 import { ChevronDown } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useId, useState } from "react";
 
+import { InfoTip } from "@/components/info-tip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
@@ -38,6 +39,7 @@ export function WindowChoices({
 }) {
   const t = useTranslations("PostDrawer");
   const format = useFormatter();
+  const endLabel = useId();
   const choices = startSuggestions(now);
   const customStart = !choices.some((at) => at.getTime() === start.getTime());
   const end = new Date(start.getTime() + minutes * 60_000);
@@ -91,32 +93,39 @@ export function WindowChoices({
           />
         </div>
       </fieldset>
-      <fieldset className="flex min-w-0 flex-col gap-2">
-        <legend className="mb-2 text-title">{t("endLabel")}</legend>
-        <div className="grid grid-cols-5 gap-2">
-          {LENGTHS.map((length) => (
-            <Button
-              key={length}
-              type="button"
-              variant="choice"
-              size="choice"
-              aria-pressed={minutes === length}
-              onClick={() => onMinutes(length)}
-            >
-              {time(new Date(start.getTime() + length * 60_000))}
-            </Button>
-          ))}
-          <TimeChoice
-            title={t("customEnd")}
-            selected={!LENGTHS.includes(minutes)}
-            label={!LENGTHS.includes(minutes) ? time(end) : t("other")}
-            value={clockOf(end)}
-            check={(value) => lengthIsAllowed(minutesUntil(start, value.hour, value.minute))}
-            onApply={(value) => onMinutes(minutesUntil(start, value.hour, value.minute))}
-          />
-        </div>
-      </fieldset>
-      <p className="text-note text-muted-foreground">{t("endHint")}</p>
+      {/* The hint sits beside the label, outside the group, so the group's name and buttons stay its own (Figma L1). */}
+      <div className="flex min-w-0 flex-col gap-2">
+        <span className="mb-2 flex items-center gap-1.5">
+          <span id={endLabel} className="text-title">
+            {t("endLabel")}
+          </span>
+          <InfoTip label={t("hintFor", { label: t("endLabel") })}>{t("endHint")}</InfoTip>
+        </span>
+        <fieldset aria-labelledby={endLabel} className="flex min-w-0 flex-col gap-2">
+          <div className="grid grid-cols-5 gap-2">
+            {LENGTHS.map((length) => (
+              <Button
+                key={length}
+                type="button"
+                variant="choice"
+                size="choice"
+                aria-pressed={minutes === length}
+                onClick={() => onMinutes(length)}
+              >
+                {time(new Date(start.getTime() + length * 60_000))}
+              </Button>
+            ))}
+            <TimeChoice
+              title={t("customEnd")}
+              selected={!LENGTHS.includes(minutes)}
+              label={!LENGTHS.includes(minutes) ? time(end) : t("other")}
+              value={clockOf(end)}
+              check={(value) => lengthIsAllowed(minutesUntil(start, value.hour, value.minute))}
+              onApply={(value) => onMinutes(minutesUntil(start, value.hour, value.minute))}
+            />
+          </div>
+        </fieldset>
+      </div>
     </section>
   );
 }
