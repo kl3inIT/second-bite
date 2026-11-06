@@ -23,7 +23,7 @@ func testSellerDeletionWaitsForOrders(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "Quán Sắp Xoá")
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
-	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func testSellerDeletionWaitsForOrders(t *testing.T, f fixture) {
 		t.Fatal(err)
 	}
 
-	_, err = f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	_, err = f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	mustFail(t, "ordering from a seller being deleted", err, order.ErrOfferUnavailable)
 
 	finish := func(want seller.Status, what string) {

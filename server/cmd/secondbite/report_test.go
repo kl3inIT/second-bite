@@ -64,8 +64,8 @@ func checkReport(t *testing.T, svc service) {
 
 	// One phone at one address: two pages, one person.
 	phone := http.Header{
-		"User-Agent":      {"Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"},
-		"X-Forwarded-For": {"113.161.10.30"},
+		"User-Agent": {"Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"},
+		forwardedFor: {"113.161.10.30"},
 	}
 	for _, path := range []string{"/vi/sellers/" + sellerID, "/vi/offers/" + offerID} {
 		send(t, http.MethodPost, svc.base+"/stats/views", phone, map[string]string{"path": path})

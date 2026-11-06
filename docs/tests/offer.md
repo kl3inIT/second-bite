@@ -24,3 +24,4 @@ Requirements of [docs/specs/offer.md](../specs/offer.md) and the checks that hol
 | More posts given a new photo at once than the pool has connections: each reads and claims it in its own transaction (SEC-159) | `TestChangesAtOnceDoNotStarveThePool` (`internal/offer/pool_test.go`) |
 
 Not covered by a test: two staff changing one offer at once (held by the row lock), and the cap of the radius at the settings' maximum.
+| A cap per order of 0 or 1,000 is refused; a post without a cap follows the settings' default as it changes, one with its own keeps it; the default is a setting admins change, audited (SEC-158) | `TestOffer` › a post follows the rules of its fields; `TestOffer` › the settings bound every post |

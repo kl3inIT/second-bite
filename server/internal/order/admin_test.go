@@ -56,7 +56,7 @@ func placeThreeWays(t *testing.T, f fixture) adminOrders {
 	croissant := f.post(owner, t, sellerID, "Croissant", 9, 20_000, time.Now())
 
 	place := func() order.Order {
-		placed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+		placed, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 		if err != nil {
 			t.Fatal(err)
 		}

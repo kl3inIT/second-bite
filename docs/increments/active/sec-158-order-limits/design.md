@@ -12,7 +12,7 @@ Ordering needs no account and no verified phone number (SEC-76). One order takes
 - **An address is a weak key.** Customers behind the mall's Wi-Fi or a carrier's CGNAT share one public address, and turning mobile data off and on gives a new one. So the address gets a loose cap, and the rules that matter count units and phone numbers.
 - **Three layers**, chosen by the user:
   1. **Units per dish in one order.** The store sets "at most N per order" on each post. A post left without one uses the admin's default, 5 to start. The store's value wins, above or below the default: it knows its dishes and buyers ("admin đặt trần mà quán đặt cao hơn thì cần theo ý quán").
-  2. **Open orders**, those confirmed or ready whose window is not over. At most 2 per phone number at one store, and at most 20 from one address across stores. A phone number that missed 2 orders in the last 7 days cannot order until the older of those leaves the 7 days, so the block lifts by itself. A missed order is what the admin's account page already counts (SEC-75): its window ended with no hand-over, or the store refused it as no answer, no show or late. A refusal as suspected (below) counts too.
+  2. **Open orders**, those confirmed or ready whose window is not over. At most 2 per phone number at one store, and at most 20 from one address across stores. A phone number that missed 2 orders in the last 7 days cannot order until the older of those leaves the 7 days, so the block lifts by itself. A missed order is what the admin's account page already counts (SEC-75): its window ended with no hand-over, or the store refused it as no answer, no show or late. A refusal as suspected (below) counts too. A window counts in the days it ended in, and a refusal in the days it was made, so a suspected order stops the number at once rather than when its window ends.
   3. **A warning to the store, which decides.** An order is large when one of its lines, of 2 units or more, reaches that dish's cap or takes more than half the units posted. It is confirmed at once like any other. The store sees it marked on its list and its page, with how many open orders the phone number holds at the store and how many it missed in the last 7 days, and a button to call. A store that suspects it refuses it as "Nghi đặt ảo", and the units go back on sale.
 - **Ruled out: the store confirming each large order before it holds** (asked by the user, then dropped). A guest leaves only a name and a phone number, so the store would have to phone, at closing time when it is busiest. The units would stay held while it waits, and a deadline would cancel real customers whenever the store is busy. It also reverses SEC-15's decision that an order is confirmed when placed.
 - **Every number is an admin setting.** The default cap sits with the offer settings, since `offer` serves each post's cap. The open-order and missed rules sit in new order settings. One admin page, "Đặt món", holds both.
@@ -30,10 +30,10 @@ Ordering needs no account and no verified phone number (SEC-76). One order takes
 
 ## Contract
 
-- `POST /sellers/{sellerId}/offers` and `PATCH /offers/{offerId}` take `maxPerOrder`, 1 to 999, optional; `0` in a change takes it away. An offer answers `maxPerOrder`, the cap that applies, its own or the default, and `ownMaxPerOrder` to its members when the store set one. A change applies to orders placed after it.
+- `POST /sellers/{sellerId}/offers` and `PATCH /offers/{offerId}` take `maxPerOrder`, 1 to 999, optional; `0` in a change takes it away. It may change after units are ordered. An offer answers `perOrderMax`, the cap that applies, its own or the default, and `maxPerOrder` when the store set one. A change applies to orders placed after it. `offer.Take` refuses more units than the cap with `OFFER_OVER_ORDER_LIMIT`, in the same conditional update that takes them, which `order` answers as `ORDER_OVER_DISH_LIMIT`.
 - `GET /admin/offer-settings` and `PUT` gain `defaultMaxPerOrder`, 1 to 999.
 - `GET /admin/order-settings` and `PUT` with `If-Match`, as the offer settings work: `{openPerPhonePerSeller, openPerAddress, missedLimit, missedDays}`, recorded in the audit as `order_settings.change`.
-- An order answers its seller's people and admins `large` and `phone: {open, missed}`: the phone number's open orders at the store, this one included, and its missed orders in the last `missedDays`. Neither is answered to the customer.
+- An order answers its seller's people and admins `large`, and on its page and the seller's list `phone: {open, missed}`: the phone number's open orders at the store, this one included, and its missed orders in the last `missedDays`. Its customer reads `large` false and no `phone`.
 - `POST /orders/{orderId}/refuse` takes the reason `suspected`; the units go back to their offers.
 - `POST /orders` answers:
 
@@ -51,7 +51,8 @@ An earlier order sent again with the same `Idempotency-Key` still answers that o
 - `offer_offers.max_per_order`, null or 1 to 999.
 - `offer_settings.default_max_per_order`, 1 to 999, 5 to start.
 - `order_settings`, one row: `open_per_phone_per_seller` (2, from 1 to 20), `open_per_address` (20, from 1 to 500), `missed_limit` (2, from 1 to 20), `missed_days` (7, from 1 to 60), who changed them and when.
-- `order_orders.large` (false for every order placed before) and `order_orders.placed_from` (`inet`, null once the order leaves open). Partial indexes on the open orders by seller and phone number and by address.
+- `order_orders.large` (false for every order placed before) and `order_orders.placed_from` (the address as text, null once the order is handed over, cancelled, refused or expired; an order reopened after that is no longer counted by address). Partial indexes on the open orders by seller and phone number and by address, and an index on a phone number's orders by the end of their window.
+- Migrations `0047_offer_add_max_per_order` and `0048_order_add_limits`; `0048` also lets `refuse_reason` be `suspected`.
 
 ## Failure behavior
 

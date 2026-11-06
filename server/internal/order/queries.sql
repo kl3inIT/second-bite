@@ -2,11 +2,12 @@
 INSERT INTO order_orders (
     customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude, longitude, address,
     window_start, window_end, total_vnd, idempotency_key, zalo_consent_at, promotion_id, promotion_name, promotion_rule,
-    promotion_new, discount_vnd
+    promotion_new, discount_vnd, large, placed_from
 ) VALUES (
     @customer_id, @customer_name, @customer_phone, @seller_id, @checkout_id, @seller_name, @latitude, @longitude,
     @address, @window_start, @window_end, @total_vnd, @idempotency_key, sqlc.narg('zalo_consent_at'),
-    sqlc.narg('promotion_id'), @promotion_name, @promotion_rule, @promotion_new, @discount_vnd
+    sqlc.narg('promotion_id'), @promotion_name, @promotion_rule, @promotion_new, @discount_vnd, @large,
+    sqlc.narg('placed_from')
 )
 RETURNING id;
 
@@ -28,7 +29,7 @@ WHERE customer_id IS NOT DISTINCT FROM sqlc.narg(customer_id)::uuid AND idempote
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, large
 FROM order_orders WHERE id = @id;
 
 -- name: LockOrder :one
@@ -36,7 +37,7 @@ FROM order_orders WHERE id = @id;
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, large
 FROM order_orders WHERE id = @id FOR UPDATE;
 
 -- name: LockOrderShared :one
@@ -45,7 +46,7 @@ FROM order_orders WHERE id = @id FOR UPDATE;
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, large
 FROM order_orders WHERE id = @id FOR SHARE;
 
 -- name: LinesOf :many
@@ -60,7 +61,7 @@ ORDER BY order_id, name, offer_id;
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, large
 FROM order_orders
 WHERE customer_id = @customer_id
   AND (sqlc.narg(checkout_id)::uuid IS NULL OR checkout_id = sqlc.narg(checkout_id))
@@ -76,7 +77,7 @@ LIMIT @max_rows OFFSET @skip_rows;
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, large
 FROM order_orders
 WHERE seller_id = @seller_id AND window_start >= @day_start AND window_start < @day_end
 ORDER BY window_start, number
@@ -92,7 +93,7 @@ LIMIT 500;
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, large
 FROM order_orders
 WHERE (cardinality(@statuses::text[]) = 0
        OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
@@ -135,10 +136,11 @@ WHERE true
 UPDATE order_orders SET state = 'ready', ready_at = now() WHERE id = @id;
 
 -- name: MarkCollected :exec
-UPDATE order_orders SET state = 'collected', collected_at = now() WHERE id = @id;
+UPDATE order_orders SET state = 'collected', collected_at = now(), placed_from = NULL WHERE id = @id;
 
 -- name: MarkCancelled :exec
-UPDATE order_orders SET state = 'cancelled', cancelled_at = now(), cancel_reason = @cancel_reason WHERE id = @id;
+UPDATE order_orders SET state = 'cancelled', cancelled_at = now(), cancel_reason = @cancel_reason, placed_from = NULL
+WHERE id = @id;
 
 -- name: MarkReopened :exec
 -- Takes a hand-over or a refusal back: the order is open again.
@@ -148,7 +150,7 @@ WHERE id = @id;
 
 -- name: MarkRefused :exec
 UPDATE order_orders
-SET state = 'refused', refused_at = now(), refuse_reason = @refuse_reason, refuse_note = @refuse_note
+SET state = 'refused', refused_at = now(), refuse_reason = @refuse_reason, refuse_note = @refuse_note, placed_from = NULL
 WHERE id = @id;
 
 -- name: CustomerOrderCounts :one
@@ -159,7 +161,7 @@ SELECT count(*) AS placed,
        count(*) FILTER (WHERE state = 'collected') AS collected,
        count(*) FILTER (WHERE state = 'expired'
                            OR (state IN ('confirmed', 'ready') AND window_end <= now())
-                           OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late'))) AS missed
+                           OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late', 'suspected'))) AS missed
 FROM order_orders WHERE customer_id = @customer_id;
 
 -- name: OpenOrdersOfOffer :many
@@ -190,7 +192,7 @@ FROM moved;
 -- and a notice to the sockets following it (channel secondbite_live), and
 -- returns how many. Reads compare the window too.
 WITH ended AS (
-    UPDATE order_orders SET state = 'expired'
+    UPDATE order_orders SET state = 'expired', placed_from = NULL
     WHERE state IN ('confirmed', 'ready') AND window_end <= now()
     RETURNING id, seller_id
 ), recorded AS (
@@ -613,3 +615,61 @@ ORDER BY amount_vnd DESC, o.seller_id;
 INSERT INTO order_promotion_payouts (seller_id, week_start, amount_vnd, paid_by)
 VALUES (@seller_id, @week_start, @amount_vnd, @paid_by)
 ON CONFLICT DO NOTHING;
+
+-- name: GetOrderSettings :one
+SELECT open_per_phone_per_seller, open_per_address, missed_limit, missed_days, updated_at, updated_by
+FROM order_settings WHERE id = 1;
+
+-- name: LockOrderSettings :one
+-- The settings, locked until the transaction saving them ends.
+SELECT open_per_phone_per_seller, open_per_address, missed_limit, missed_days, updated_at, updated_by
+FROM order_settings WHERE id = 1 FOR UPDATE;
+
+-- name: PutOrderSettings :exec
+UPDATE order_settings
+SET open_per_phone_per_seller = @open_per_phone_per_seller, open_per_address = @open_per_address,
+    missed_limit = @missed_limit, missed_days = @missed_days, updated_at = now(), updated_by = @updated_by
+WHERE id = 1;
+
+-- name: LockPlacing :exec
+-- Serializes the orders placed for one key, a phone number or an address,
+-- until the transaction ends, so two placed at once cannot both pass a limit
+-- (SEC-158).
+SELECT pg_advisory_xact_lock(hashtextextended('order.placing:' || @key::text, 0));
+
+-- name: MissedOfPhone :one
+-- How many orders a phone number missed in the last days: no hand-over by the
+-- end of a window that ended then, or refused then as no answer, no show, late
+-- or suspected (SEC-158).
+SELECT count(*) FROM order_orders
+WHERE customer_phone = @phone
+  AND ((state IN ('expired', 'confirmed', 'ready') AND window_end <= now()
+        AND window_end > now() - make_interval(days => @days::int))
+       OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late', 'suspected')
+           AND refused_at > now() - make_interval(days => @days::int)));
+
+-- name: OpenOfPhoneAtSeller :one
+-- The orders a phone number holds at a seller, still to collect.
+SELECT count(*) FROM order_orders
+WHERE seller_id = @seller_id AND customer_phone = @phone AND state IN ('confirmed', 'ready') AND window_end > now();
+
+-- name: OpenFromAddress :one
+-- The orders still to collect placed from an address.
+SELECT count(*) FROM order_orders
+WHERE placed_from = @address AND state IN ('confirmed', 'ready') AND window_end > now();
+
+-- name: PhoneHistories :many
+-- For each phone number, the orders it holds at a seller still to collect and
+-- those it missed at any seller in the last days, for the seller to read
+-- beside an order (SEC-158).
+SELECT p.phone::text AS phone,
+       (SELECT count(*) FROM order_orders AS o
+        WHERE o.seller_id = @seller_id AND o.customer_phone = p.phone AND o.state IN ('confirmed', 'ready')
+          AND o.window_end > now()) AS open,
+       (SELECT count(*) FROM order_orders AS o
+        WHERE o.customer_phone = p.phone
+          AND ((o.state IN ('expired', 'confirmed', 'ready') AND o.window_end <= now()
+                AND o.window_end > now() - make_interval(days => @days::int))
+               OR (o.state = 'refused' AND o.refuse_reason IN ('no_answer', 'no_show', 'late', 'suspected')
+                   AND o.refused_at > now() - make_interval(days => @days::int)))) AS missed
+FROM unnest(@phones::text[]) AS p (phone);

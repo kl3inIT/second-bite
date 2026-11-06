@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/kl3inIT/second-bite/server/internal/offer"
 	"github.com/kl3inIT/second-bite/server/internal/order/internal/db"
@@ -121,6 +122,8 @@ func takeFailure(err error) error {
 		return ErrOfferSoldOut
 	case errors.Is(err, offer.ErrUnavailable), errors.Is(err, offer.ErrNotFound):
 		return ErrOfferUnavailable
+	case errors.Is(err, offer.ErrOverOrderLimit):
+		return ErrOverDishLimit
 	}
 
 	return err
@@ -131,15 +134,17 @@ func (s *Service) place(
 	ctx context.Context, tx pgx.Tx, customer uuid.NullUUID, checkout uuid.UUID, contact Contact, key string,
 	wanted []Wanted,
 ) (uuid.UUID, error) {
-	taken := make([]offer.Taken, 0, len(wanted))
+	q := s.queries.WithTx(tx)
+	address := platform.ClientAddress(ctx)
 
-	for _, w := range wanted {
-		t, err := s.offers.Take(ctx, tx, w.OfferID, w.Units)
-		if err != nil {
-			return uuid.Nil, takeFailure(err)
-		}
+	set, err := s.lockPlacing(ctx, q, contact.Phone, address)
+	if err != nil {
+		return uuid.Nil, err
+	}
 
-		taken = append(taken, t)
+	taken, err := s.takeAll(ctx, tx, wanted)
+	if err != nil {
+		return uuid.Nil, err
 	}
 
 	start, end, err := s.sharedWindow(taken)
@@ -158,12 +163,14 @@ func (s *Service) place(
 		return uuid.Nil, ErrOfferUnavailable
 	}
 
+	if err := s.checkOpen(ctx, q, set, first.SellerID, contact.Phone, address); err != nil {
+		return uuid.Nil, err
+	}
+
 	var total int64
 	for i, t := range taken {
 		total += t.PriceVND * int64(wanted[i].Units)
 	}
-
-	q := s.queries.WithTx(tx)
 
 	// After the offers and the seller, as every order places them, so locking the promotions never deadlocks.
 	discount, discounted, err := s.discountFor(ctx, q, first.SellerID, contact.Phone, total)
@@ -178,7 +185,8 @@ func (s *Service) place(
 		WindowStart: start, WindowEnd: end, TotalVnd: total, IdempotencyKey: key, ZaloConsentAt: s.consentAt(contact),
 		PromotionID:   uuid.NullUUID{UUID: discount.promotion.ID, Valid: discounted},
 		PromotionName: discount.promotion.Name, PromotionRule: discount.rule, PromotionNew: discount.newCustomer,
-		DiscountVnd: discount.amountVND,
+		DiscountVnd: discount.amountVND, Large: large(taken, wanted),
+		PlacedFrom: pgtype.Text{String: address, Valid: address != ""},
 	})
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("storing the order: %w", err)
@@ -198,6 +206,22 @@ func (s *Service) place(
 	}
 
 	return id, s.announcePlaced(ctx, tx, q, id)
+}
+
+// takeAll takes the units of every line inside tx, in the order given.
+func (s *Service) takeAll(ctx context.Context, tx pgx.Tx, wanted []Wanted) ([]offer.Taken, error) {
+	taken := make([]offer.Taken, 0, len(wanted))
+
+	for _, w := range wanted {
+		t, err := s.offers.Take(ctx, tx, w.OfferID, w.Units)
+		if err != nil {
+			return nil, takeFailure(err)
+		}
+
+		taken = append(taken, t)
+	}
+
+	return taken, nil
 }
 
 // announcePlaced tells the sockets following the seller's orders, and the
