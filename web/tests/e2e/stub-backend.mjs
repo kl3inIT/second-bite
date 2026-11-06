@@ -3454,11 +3454,14 @@ const FIRST_LIMITS = {
 const orderLimitsBy = new Map();
 
 async function orderLimitRoutes(request, response, url) {
-  const which = { "/admin/offer-settings": "offer", "/admin/order-settings": "order" }[url.pathname];
+  const which = { "/admin/offer-settings": "offer", "/admin/order-settings": "order" }[
+    url.pathname
+  ];
   if (!which) return false;
   const account = accounts.get(tokenOf(request));
   if (account?.role !== "admin") return false;
-  if (!orderLimitsBy.has(account.email)) orderLimitsBy.set(account.email, structuredClone(FIRST_LIMITS));
+  if (!orderLimitsBy.has(account.email))
+    orderLimitsBy.set(account.email, structuredClone(FIRST_LIMITS));
   const orderLimits = orderLimitsBy.get(account.email);
   const current = orderLimits[which];
   if (request.method === "GET") {
