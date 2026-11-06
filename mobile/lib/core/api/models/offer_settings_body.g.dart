@@ -8,6 +8,7 @@ part of 'offer_settings_body.dart';
 
 _OfferSettingsBody _$OfferSettingsBodyFromJson(Map<String, dynamic> json) =>
     _OfferSettingsBody(
+      defaultMaxPerOrder: (json['defaultMaxPerOrder'] as num).toInt(),
       defaultRadiusKm: (json['defaultRadiusKm'] as num).toInt(),
       maxRadiusKm: (json['maxRadiusKm'] as num).toInt(),
       minDiscountPercent: (json['minDiscountPercent'] as num).toInt(),
@@ -22,6 +23,7 @@ _OfferSettingsBody _$OfferSettingsBodyFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$OfferSettingsBodyToJson(_OfferSettingsBody instance) =>
     <String, dynamic>{
+      'defaultMaxPerOrder': instance.defaultMaxPerOrder,
       'defaultRadiusKm': instance.defaultRadiusKm,
       'maxRadiusKm': instance.maxRadiusKm,
       'minDiscountPercent': instance.minDiscountPercent,

@@ -18,6 +18,9 @@ abstract class OfferChangeBody with _$OfferChangeBody {
     /// Leaves it as it is when absent, and empties it when the kind is changed from other
     String? kindLabel,
 
+    /// How many units one order may take; 0 takes the cap away, so the settings' default applies
+    int? maxPerOrder,
+
     /// Replaces the photos after the cover; at most two
     List<String>? morePhotoIds,
     String? name,

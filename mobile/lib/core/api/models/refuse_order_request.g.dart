@@ -26,5 +26,6 @@ const _$RefuseOrderRequestReasonEnumMap = {
   RefuseOrderRequestReason.valueLate: 'late',
   RefuseOrderRequestReason.soldOut: 'sold_out',
   RefuseOrderRequestReason.other: 'other',
+  RefuseOrderRequestReason.suspected: 'suspected',
   RefuseOrderRequestReason.$unknown: r'$unknown',
 };

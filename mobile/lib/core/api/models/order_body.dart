@@ -9,6 +9,7 @@ import 'order_body_status.dart';
 import 'order_line_body.dart';
 import 'order_promotion_body.dart';
 import 'order_seller_body.dart';
+import 'phone_history_body.dart';
 import 'problem_body.dart';
 import 'review_body.dart';
 
@@ -37,6 +38,9 @@ abstract class OrderBody with _$OrderBody {
     /// What a promotion took off when the order was placed; Second Bite pays it back to the seller
     required int discountVnd,
     required String id,
+
+    /// To the seller's people and admins: a line reached its dish's cap or took more than half the units posted (SEC-158); false to its customer
+    required bool large,
     required List<OrderLineBody> lines,
 
     /// What people read aloud, SB- and a number
@@ -64,6 +68,9 @@ abstract class OrderBody with _$OrderBody {
 
     /// Messages its chat holds, with unreadMessages; none for admins
     int? messageCount,
+
+    /// To the seller's people and admins, on its page and the seller's list: what its phone number holds and missed; none to its customer
+    PhoneHistoryBody? phone,
 
     /// What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
     ProblemBody? problem,

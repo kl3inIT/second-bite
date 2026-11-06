@@ -24,6 +24,8 @@ enum OrderBodyRefuseReason {
   other('other'),
   @JsonValue('withdrawn')
   withdrawn('withdrawn'),
+  @JsonValue('suspected')
+  suspected('suspected'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);
