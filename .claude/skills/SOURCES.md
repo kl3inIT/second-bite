@@ -33,3 +33,12 @@ Khi skill nói khác quyết định của repo, repo thắng:
 - Danh sách delegate mà gen-l10n sinh ra lấy `GlobalMaterialLocalizations` của `flutter_localizations`, không có tiếng Việt cho Material của `material_ui`: dùng `GlobalMaterialLocalizations.delegates` của `material_ui` (README của material_ui, bước 2).
 - ui-package và testing gọi Very Good CLI (`very_good create app_ui_package`, `mcp__very-good-cli__*`): không bắt buộc; dùng `flutter test` và cấu trúc `mobile/` do SEC-12 phần 7 chốt.
 Cập nhật: clone lại repo nguồn và chép đè các thư mục trên.
+
+# Skill đưa app lên App Store và Google Play — nguồn
+
+- rorkai/app-store-connect-cli-skills @ 266d7ad (2026-11-07), MIT, do tác giả CLI `asc` (rorkai/App-Store-Connect-CLI) duy trì: asc-cli-usage, asc-signing-setup, asc-xcode-build, asc-build-lifecycle, asc-testflight-orchestration, asc-metadata-sync, asc-submission-health, asc-release-flow, asc-id-resolver, asc-workflow.
+- tamtom/gplay-cli-skills @ 10301b2 (2026-07-26), MIT, do tác giả CLI `gplay` (tamtom/play-console-cli) duy trì: gplay-cli-usage, gplay-gradle-build, gplay-preflight, gplay-testers-orchestration, gplay-metadata-sync, gplay-submission-checks, gplay-release-flow, gplay-rollout-management.
+
+Chép ngày 8/11/2026 cho SEC-14. Đội Flutter và Very Good Ventures chưa có skill phát hành. Bỏ qua có chủ ý: quảng cáo Apple Ads, mua trong app và gói thuê bao, RevenueCat, định giá theo vùng, báo cáo và analytics, ảnh chụp màn hình tự động, macOS notarization, in-app events, Wall of Apps; phía Google bỏ iap-setup, purchase-verification, ppp-pricing, reports-download, review-management, vitals-monitoring, screenshot-automation, user-management, migrate-fastlane. Không chép greenstevester/fastlane-skill hay gaitco/mobile-publish vì người viết không phải tác giả công cụ.
+Khi skill nói khác quyết định của repo, repo thắng: app build bằng Flutter (`flutter build ipa`, `flutter build appbundle`) theo [hướng dẫn mobile](../../docs/guidelines/mobile.md); khóa ký app, khóa App Store Connect API và service account của Google Play không bao giờ vào Git, chỉ ghi nơi quản lý chúng.
+Cập nhật: clone lại repo nguồn và chép đè các thư mục trên.
