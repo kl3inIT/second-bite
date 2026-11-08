@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:second_bite/core/api.dart';
 import 'package:second_bite/features/order/data/kept_orders.dart';
+import 'package:second_bite/features/order/domain/chat.dart';
 import 'package:second_bite/features/order/domain/order_facts.dart';
 
 part 'order_reader.g.dart';
@@ -11,8 +12,8 @@ part 'order_reader.g.dart';
 /// web/src/features/orders/read-orders.ts reads them (SEC-204 › design 3):
 /// the account's when someone is signed in, otherwise those placed on this
 /// phone, each read with its access; and what a customer does to one:
-/// cancel it, rate it, report a problem. The access goes as `Order-Access`
-/// with every call about an order that has one.
+/// cancel it, rate it, report a problem, write in its chat. The access goes
+/// as `Order-Access` with every call about an order that has one.
 /// {@endtemplate}
 class OrderReader {
   /// {@macro order_reader}
@@ -93,6 +94,54 @@ class OrderReader {
     body: ReportOrderProblemRequest(kind: kind, note: note),
     orderAccess: order.access,
   );
+
+  /// The messages of [orderId]'s chat after [after], all the pages of
+  /// them, with what each side has seen and whether the chat is open, as
+  /// the web's chat-api.ts reads them: at most [chatMaxPages] pages of
+  /// [chatPageSize]. [access] goes when the order was placed without an
+  /// account.
+  Future<MessagesOutputBody> readChat(
+    String orderId, {
+    String? access,
+    int after = 0,
+  }) async {
+    MessagesOutputBody? chat;
+    var cursor = after;
+    for (var page = 0; page < chatMaxPages; page++) {
+      final read = await _orders.listOrderMessages(
+        orderId: orderId,
+        after: cursor,
+        limit: chatPageSize,
+        orderAccess: access,
+      );
+      chat = mergeChat(chat, read);
+      if (read.messages.length < chatPageSize) break;
+      cursor = lastSeq(read);
+    }
+    return chat!;
+  }
+
+  /// Sends [text] in [orderId]'s chat under [key], so a message sent twice
+  /// on a poor connection is one message.
+  Future<MessageBody> sendMessage(
+    String orderId,
+    String text, {
+    required String key,
+    String? access,
+  }) => _orders.sendOrderMessage(
+    orderId: orderId,
+    idempotencyKey: key,
+    body: SendOrderMessageRequest(text: text),
+    orderAccess: access,
+  );
+
+  /// Marks [orderId]'s chat read up to message [upTo].
+  Future<void> markSeen(String orderId, int upTo, {String? access}) =>
+      _orders.markOrderMessagesSeen(
+        orderId: orderId,
+        body: MarkOrderMessagesSeenRequest(upTo: upTo),
+        orderAccess: access,
+      );
 
   Future<OrderBody?> _fetch(String orderId, String? access) async {
     try {

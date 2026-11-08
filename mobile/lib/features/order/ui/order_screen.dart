@@ -11,6 +11,7 @@ import 'package:second_bite/features/offer/ui/offer_format.dart';
 import 'package:second_bite/features/order/data/order_reader.dart';
 import 'package:second_bite/features/order/domain/order_facts.dart';
 import 'package:second_bite/features/order/ui/order_actions.dart';
+import 'package:second_bite/features/order/ui/order_chat.dart';
 import 'package:second_bite/features/order/ui/order_parts.dart';
 import 'package:second_bite/features/order/ui/order_reads.dart';
 import 'package:second_bite/l10n/l10n.dart';
@@ -24,8 +25,8 @@ import 'package:second_bite/l10n/l10n.dart';
 /// A collected order leads with what it saved and asks for a rating; a
 /// rated one, and one that ended otherwise, shows as a receipt in the
 /// colour of what became of it, with what happened. It is read again when
-/// pulled down, when the app comes back and as its window opens and closes
-/// (SEC-204 › design 5, until the live socket).
+/// pulled down, on each of its notices on the live socket, when the app
+/// comes back and as its window opens and closes (SEC-204 › design 5).
 /// {@endtemplate}
 class OrderScreen extends ConsumerStatefulWidget {
   /// {@macro order_screen}
@@ -84,7 +85,8 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
 
     return switch (view) {
       AsyncData(value: null) => const NotFoundScreen(),
-      AsyncData(value: final OrderView found) => OrderRefresh(
+      AsyncData(value: final OrderView found) => LiveRefresh(
+        orderIds: [found.order.id],
         moments: [found.order.windowStart, found.order.windowEnd],
         onRefresh: reload,
         child: _OrderPage(view: found, onBack: _back, now: DateTime.now()),
@@ -311,11 +313,13 @@ class _OrderPage extends ConsumerWidget {
   List<Widget> _openParts(BuildContext context) {
     final order = view.order;
     return [
+      UnreadBanner(order: order),
       OrderTicket(order: order, together: view.together),
       if (order.status == OrderBodyStatus.ready)
         OrderHowToCollect(order: order),
       _card(OrderSummary(order: order)),
       OrderDirections(order: order),
+      ChatEntry(order: order),
       if (canCancel(order)) CancelOrder(order: order),
     ];
   }
@@ -326,6 +330,7 @@ class _OrderPage extends ConsumerWidget {
     final order = view.order;
     final scheme = Theme.of(context).colorScheme;
     return [
+      UnreadBanner(order: order),
       if (order.canReview) ReviewForm(order: order),
       _card(
         Column(
@@ -340,6 +345,7 @@ class _OrderPage extends ConsumerWidget {
           ],
         ),
       ),
+      ChatEntry(order: order),
     ];
   }
 
@@ -444,6 +450,7 @@ class _OrderPage extends ConsumerWidget {
         onPressed: () => const HomeRoute().go(context),
         child: Text(l10n.orderSeeOthers),
       ),
+      ChatEntry(order: order),
       OrderProblemSection(order: order),
     ];
   }

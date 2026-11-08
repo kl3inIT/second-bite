@@ -1479,4 +1479,83 @@ class AppLocalizationsVi extends AppLocalizations {
   String orderProblemAnswered(String seller, String time) {
     return '$seller trả lời · $time';
   }
+
+  @override
+  String chatUnread(int count) {
+    return '$count tin nhắn chưa đọc';
+  }
+
+  @override
+  String get chatMessageStore => 'Nhắn quán';
+
+  @override
+  String get chatViewMessages => 'Xem tin nhắn';
+
+  @override
+  String get chatStoreWrote => 'Quán vừa nhắn';
+
+  @override
+  String chatQuote(String text) {
+    return '“$text”';
+  }
+
+  @override
+  String get chatSeeMessage => 'Xem tin';
+
+  @override
+  String chatCardMeta(int units, String from, String until) {
+    return '$units phần · $from–$until hôm nay';
+  }
+
+  @override
+  String chatConfirmedToday(String number) {
+    return 'Hôm nay · Đơn #$number đã xác nhận';
+  }
+
+  @override
+  String chatConfirmedOn(String date, String number) {
+    return '$date · Đơn #$number đã xác nhận';
+  }
+
+  @override
+  String get chatLog => 'Tin nhắn của đơn';
+
+  @override
+  String get chatMine => 'Bạn';
+
+  @override
+  String chatSeen(String time) {
+    return '$time · Đã xem';
+  }
+
+  @override
+  String get chatNote =>
+      'Tin nhắn không đổi giá, số lượng hay giờ nhận của đơn.';
+
+  @override
+  String get chatPlaceholderToStore => 'Nhắn cho quán…';
+
+  @override
+  String get chatSend => 'Gửi tin nhắn';
+
+  @override
+  String get chatRetry => 'Gửi lại';
+
+  @override
+  String get chatFailed => 'Chưa gửi được';
+
+  @override
+  String get chatQuickReplies => 'Trả lời nhanh';
+
+  @override
+  String get chatReplyComing => 'Mình đang tới';
+
+  @override
+  String get chatReplyLate => 'Cho mình nhận trễ 10 phút';
+
+  @override
+  String get chatReplyStillHave => 'Quán còn món không?';
+
+  @override
+  String get chatLocked => 'Đơn đã kết thúc, chỉ xem lại tin nhắn.';
 }

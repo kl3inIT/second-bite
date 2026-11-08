@@ -14,8 +14,9 @@ import 'package:second_bite/l10n/l10n.dart';
 /// collect as a card with the way to it; the ended ones under their day.
 /// The account's orders when signed in, those placed on this phone
 /// otherwise, and a prompt to sign in when there are neither. Pulled down,
-/// they are read again, as they are when the app comes back and when an
-/// order's window ends (SEC-204 › design 5, until the live socket).
+/// they are read again, as they are on a notice about an open order on the
+/// live socket, when the app comes back and when an order's window ends
+/// (SEC-204 › design 5).
 /// {@endtemplate}
 class OrdersScreen extends ConsumerWidget {
   /// {@macro orders_screen}
@@ -34,7 +35,8 @@ class OrdersScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.ordersTitle)),
       body: switch (orders) {
         AsyncData(value: null) => const OrdersSignInPrompt(returnTo: '/orders'),
-        AsyncData(value: final MyOrders lists) => OrderRefresh(
+        AsyncData(value: final MyOrders lists) => LiveRefresh(
+          orderIds: [for (final order in lists.open) order.id],
           moments: [for (final order in lists.open) order.windowEnd],
           onRefresh: () => ref.invalidate(myOrdersProvider),
           child: RefreshIndicator(
@@ -244,7 +246,20 @@ class _OpenOrderCard extends StatelessWidget {
                 Row(
                   spacing: SpacingTokens.space3,
                   children: [
-                    OrderThumb(order: order, size: 72),
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        OrderThumb(order: order, size: 72),
+                        PositionedDirectional(
+                          top: -6,
+                          end: -6,
+                          child: AppUnreadPill(
+                            count: order.unreadMessages ?? 0,
+                            label: l10n.chatUnread(order.unreadMessages ?? 0),
+                          ),
+                        ),
+                      ],
+                    ),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

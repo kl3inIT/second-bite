@@ -2205,5 +2205,132 @@
         "type": "String"
       }
     }
+  },
+  "chatUnread": "{count} tin nhắn chưa đọc",
+  "@chatUnread": {
+    "description": "What a screen reader says of the unread count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatMessageStore": "Nhắn quán",
+  "@chatMessageStore": {
+    "description": "The way into an order's chat while it can be written in"
+  },
+  "chatViewMessages": "Xem tin nhắn",
+  "@chatViewMessages": {
+    "description": "The way into an order's chat once it can only be read"
+  },
+  "chatStoreWrote": "Quán vừa nhắn",
+  "@chatStoreWrote": {
+    "description": "The unread banner's title on an order's page"
+  },
+  "chatQuote": "“{text}”",
+  "@chatQuote": {
+    "description": "The store's latest message, quoted",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSeeMessage": "Xem tin",
+  "@chatSeeMessage": {
+    "description": "The unread banner's way to the chat"
+  },
+  "chatCardMeta": "{units} phần · {from}–{until} hôm nay",
+  "@chatCardMeta": {
+    "description": "The order's card at the head of the chat",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      },
+      "from": {
+        "type": "String"
+      },
+      "until": {
+        "type": "String"
+      }
+    }
+  },
+  "chatConfirmedToday": "Hôm nay · Đơn #{number} đã xác nhận",
+  "@chatConfirmedToday": {
+    "description": "The day line under the order's card",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "chatConfirmedOn": "{date} · Đơn #{number} đã xác nhận",
+  "@chatConfirmedOn": {
+    "description": "The day line of an order placed another day",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "chatLog": "Tin nhắn của đơn",
+  "@chatLog": {
+    "description": "The chat's messages, for screen readers"
+  },
+  "chatMine": "Bạn",
+  "@chatMine": {
+    "description": "Said before the reader's own message"
+  },
+  "chatSeen": "{time} · Đã xem",
+  "@chatSeen": {
+    "description": "Under the reader's message once the store read it",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "chatNote": "Tin nhắn không đổi giá, số lượng hay giờ nhận của đơn.",
+  "@chatNote": {
+    "description": "The note above the field"
+  },
+  "chatPlaceholderToStore": "Nhắn cho quán…",
+  "@chatPlaceholderToStore": {
+    "description": "The chat's field"
+  },
+  "chatSend": "Gửi tin nhắn",
+  "@chatSend": {
+    "description": "The send button, for screen readers"
+  },
+  "chatRetry": "Gửi lại",
+  "@chatRetry": {
+    "description": "Sends a message that failed again"
+  },
+  "chatFailed": "Chưa gửi được",
+  "@chatFailed": {
+    "description": "Under a message that failed to send"
+  },
+  "chatQuickReplies": "Trả lời nhanh",
+  "@chatQuickReplies": {
+    "description": "The row of quick replies, for screen readers"
+  },
+  "chatReplyComing": "Mình đang tới",
+  "@chatReplyComing": {
+    "description": "A quick reply"
+  },
+  "chatReplyLate": "Cho mình nhận trễ 10 phút",
+  "@chatReplyLate": {
+    "description": "A quick reply"
+  },
+  "chatReplyStillHave": "Quán còn món không?",
+  "@chatReplyStillHave": {
+    "description": "A quick reply"
+  },
+  "chatLocked": "Đơn đã kết thúc, chỉ xem lại tin nhắn.",
+  "@chatLocked": {
+    "description": "The foot of a chat that can only be read"
   }
 }

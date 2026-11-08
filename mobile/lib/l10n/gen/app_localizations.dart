@@ -2477,6 +2477,138 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'{seller} trả lời · {time}'**
   String orderProblemAnswered(String seller, String time);
+
+  /// What a screen reader says of the unread count
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} tin nhắn chưa đọc'**
+  String chatUnread(int count);
+
+  /// The way into an order's chat while it can be written in
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhắn quán'**
+  String get chatMessageStore;
+
+  /// The way into an order's chat once it can only be read
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem tin nhắn'**
+  String get chatViewMessages;
+
+  /// The unread banner's title on an order's page
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán vừa nhắn'**
+  String get chatStoreWrote;
+
+  /// The store's latest message, quoted
+  ///
+  /// In vi, this message translates to:
+  /// **'“{text}”'**
+  String chatQuote(String text);
+
+  /// The unread banner's way to the chat
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem tin'**
+  String get chatSeeMessage;
+
+  /// The order's card at the head of the chat
+  ///
+  /// In vi, this message translates to:
+  /// **'{units} phần · {from}–{until} hôm nay'**
+  String chatCardMeta(int units, String from, String until);
+
+  /// The day line under the order's card
+  ///
+  /// In vi, this message translates to:
+  /// **'Hôm nay · Đơn #{number} đã xác nhận'**
+  String chatConfirmedToday(String number);
+
+  /// The day line of an order placed another day
+  ///
+  /// In vi, this message translates to:
+  /// **'{date} · Đơn #{number} đã xác nhận'**
+  String chatConfirmedOn(String date, String number);
+
+  /// The chat's messages, for screen readers
+  ///
+  /// In vi, this message translates to:
+  /// **'Tin nhắn của đơn'**
+  String get chatLog;
+
+  /// Said before the reader's own message
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn'**
+  String get chatMine;
+
+  /// Under the reader's message once the store read it
+  ///
+  /// In vi, this message translates to:
+  /// **'{time} · Đã xem'**
+  String chatSeen(String time);
+
+  /// The note above the field
+  ///
+  /// In vi, this message translates to:
+  /// **'Tin nhắn không đổi giá, số lượng hay giờ nhận của đơn.'**
+  String get chatNote;
+
+  /// The chat's field
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhắn cho quán…'**
+  String get chatPlaceholderToStore;
+
+  /// The send button, for screen readers
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi tin nhắn'**
+  String get chatSend;
+
+  /// Sends a message that failed again
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi lại'**
+  String get chatRetry;
+
+  /// Under a message that failed to send
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa gửi được'**
+  String get chatFailed;
+
+  /// The row of quick replies, for screen readers
+  ///
+  /// In vi, this message translates to:
+  /// **'Trả lời nhanh'**
+  String get chatQuickReplies;
+
+  /// A quick reply
+  ///
+  /// In vi, this message translates to:
+  /// **'Mình đang tới'**
+  String get chatReplyComing;
+
+  /// A quick reply
+  ///
+  /// In vi, this message translates to:
+  /// **'Cho mình nhận trễ 10 phút'**
+  String get chatReplyLate;
+
+  /// A quick reply
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán còn món không?'**
+  String get chatReplyStillHave;
+
+  /// The foot of a chat that can only be read
+  ///
+  /// In vi, this message translates to:
+  /// **'Đơn đã kết thúc, chỉ xem lại tin nhắn.'**
+  String get chatLocked;
 }
 
 class _AppLocalizationsDelegate

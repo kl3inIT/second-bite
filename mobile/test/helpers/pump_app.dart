@@ -5,8 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:second_bite/core/api.dart';
+import 'package:second_bite/core/live_client.dart';
 import 'package:second_bite/features/identity/data/auth_repository.dart';
+import 'package:second_bite/features/order/data/order_live.dart';
 import 'package:second_bite/l10n/l10n.dart';
+
+import 'live.dart';
 
 /// An [AuthRepository] that answers nothing until a test says what.
 class MockAuthRepository extends Mock implements AuthRepository;
@@ -35,17 +39,20 @@ extension PumpApp on WidgetTester {
   /// Pumps [widget] with [AppTheme.light], both catalogs and [locale]
   /// (Vietnamese unless given), under a [ProviderScope] with [overrides]
   /// that never retries a failed provider, so a failure shows at once. The
-  /// session comes from [auth], signed out unless given.
+  /// session comes from [auth], signed out unless given; the live socket
+  /// is [live], a [TestLiveClient] that opens nothing unless given.
   Future<void> pumpApp(
     Widget widget, {
     Locale locale = const Locale('vi'),
     List<Override> overrides = const [],
     AuthRepository? auth,
+    LiveClient? live,
   }) {
     return pumpWidget(
       ProviderScope(
         overrides: [
           authRepositoryProvider.overrideWithValue(auth ?? signedInAs(null)),
+          liveClientProvider.overrideWithValue(live ?? TestLiveClient()),
           ...overrides,
         ],
         retry: (_, _) => null,
@@ -66,12 +73,14 @@ extension PumpApp on WidgetTester {
     Locale locale = const Locale('vi'),
     List<Override> overrides = const [],
     AuthRepository? auth,
+    LiveClient? live,
   }) {
     addTearDown(router.dispose);
     return pumpWidget(
       ProviderScope(
         overrides: [
           authRepositoryProvider.overrideWithValue(auth ?? signedInAs(null)),
+          liveClientProvider.overrideWithValue(live ?? TestLiveClient()),
           ...overrides,
         ],
         retry: (_, _) => null,

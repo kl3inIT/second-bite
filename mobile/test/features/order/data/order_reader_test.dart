@@ -144,5 +144,59 @@ void main() {
         expect([for (final o in view.together) o.seller.name], ['Quán kem']);
       });
     });
+
+    group('readChat', () {
+      MessageBody message(int seq) => MessageBody(
+        seq: seq,
+        from: MessageBodyFrom.seller,
+        text: 'm$seq',
+        sentAt: DateTime.utc(2026, 10, 19, 14),
+      );
+
+      test(
+        'reads every page after the given message, with the access',
+        () async {
+          const seen = SeenBody(customer: 0, seller: 0);
+          when(
+            () => client.listOrderMessages(
+              orderId: _a,
+              after: 4,
+              limit: 100,
+              orderAccess: 'access-of-a-1234567',
+            ),
+          ).thenAnswer(
+            (_) async => MessagesOutputBody(
+              messages: [for (var seq = 5; seq < 105; seq++) message(seq)],
+              seen: seen,
+              open: true,
+            ),
+          );
+          when(
+            () => client.listOrderMessages(
+              orderId: _a,
+              after: 104,
+              limit: 100,
+              orderAccess: 'access-of-a-1234567',
+            ),
+          ).thenAnswer(
+            (_) async => MessagesOutputBody(
+              messages: [message(105)],
+              seen: seen,
+              open: false,
+            ),
+          );
+
+          final chat = await subject.readChat(
+            _a,
+            access: 'access-of-a-1234567',
+            after: 4,
+          );
+
+          expect(chat.messages, hasLength(101));
+          expect(chat.messages.last.seq, 105);
+          expect(chat.open, isFalse);
+        },
+      );
+    });
   });
 }
