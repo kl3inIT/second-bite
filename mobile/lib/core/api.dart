@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:second_bite/core/api/export.dart';
 import 'package:second_bite/core/app_locale.dart';
@@ -11,12 +10,16 @@ export 'package:second_bite/core/api/export.dart';
 part 'api.g.dart';
 
 /// Where the API answers, given at build time with
-/// `--dart-define=SECONDBITE_API_ORIGIN=…`. The default is the stub backend
-/// (`pnpm stub:backend` in web/) as an Android emulator reaches the
+/// `--dart-define=SECONDBITE_API_ORIGIN=…`. Without it, a release build
+/// calls production, so a build for the stores never ships pointing at a
+/// developer's computer (SEC-201); a debug or profile build calls the stub
+/// backend (`pnpm stub:backend` in web/) as an Android emulator reaches the
 /// computer it runs on.
 const apiOrigin = String.fromEnvironment(
   'SECONDBITE_API_ORIGIN',
-  defaultValue: 'http://10.0.2.2:3190',
+  defaultValue: kReleaseMode
+      ? 'https://secondbite.vadan.app/api'
+      : 'http://10.0.2.2:3190',
 );
 
 /// The generated client of `api/openapi.yaml`, configured once: the origin,
