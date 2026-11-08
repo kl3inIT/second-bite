@@ -76,7 +76,7 @@ final class PlaceCartProvider extends $NotifierProvider<PlaceCart, PlaceState> {
   }
 }
 
-String _$placeCartHash() => r'b7fa37ea3f10b91f5ff2784aa15fc33851ee2b8d';
+String _$placeCartHash() => r'91d5f25ca301afd221d03debe400c41a981e7d78';
 
 /// {@template place_cart}
 /// Orders the cart one store at a time, since an order holds one store's
