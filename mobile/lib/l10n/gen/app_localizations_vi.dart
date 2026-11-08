@@ -39,11 +39,6 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String homeTicketWindow(String from) {
-    return 'Nhận $from';
-  }
-
-  @override
   String homeOpenBags(int bags, String last) {
     return '$bags túi đang mở · túi cuối lúc $last';
   }

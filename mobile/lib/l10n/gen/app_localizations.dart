@@ -152,12 +152,6 @@ abstract class AppLocalizations {
   /// **'{percent}%'**
   String homeUpToPercent(int percent);
 
-  /// When collection opens, on a ticket of the deal card
-  ///
-  /// In vi, this message translates to:
-  /// **'Nhận {from}'**
-  String homeTicketWindow(String from);
-
   /// The strip under the deal card: bags still open and when the last window closes
   ///
   /// In vi, this message translates to:
