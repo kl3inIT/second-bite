@@ -7,7 +7,7 @@ The rules are in the [mobile guideline](../docs/guidelines/mobile.md) and the ch
 ```sh
 # in web/: sample offers at http://localhost:3190
 STUB_BACKEND_PORT=3190 node tests/e2e/stub-backend.mjs
-# here: an Android emulator reaches the computer at 10.0.2.2, the default origin
+# here: an Android emulator reaches the computer at 10.0.2.2, a debug build's default origin
 flutter run
 # the browser preview needs an origin the browser can reach
 flutter run -d chrome --dart-define=SECONDBITE_API_ORIGIN=http://localhost:3190
@@ -32,6 +32,16 @@ In the Google Cloud project of the web client (Google Auth Platform › Clients)
 - **Server**: add the Android and iOS client IDs to `SECONDBITE_GOOGLE_CLIENT_IDS` after the web's, which stays first because `GET /auth/methods` names it.
 
 The browser preview offers no Google button (Google allows only its own rendered button there), and the App Store asks for Sign in with Apple beside Google before the iOS app is released (guideline 4.8, SEC-38). Signing in, the kept session and the keyboard's code suggestion are checked on a device, never only in the preview.
+
+## Ready for the stores
+
+What the App Store and Google Play check in the app itself (SEC-201):
+
+- A release build calls production (`https://secondbite.vadan.app/api`) unless `SECONDBITE_API_ORIGIN` says otherwise; a debug or profile build calls the stub backend.
+- The iOS app runs on iPhone only (`TARGETED_DEVICE_FAMILY = 1`), in portrait, and declares `ITSAppUsesNonExemptEncryption` as `false`: it calls its API over HTTPS only. Android keeps the screen's orientation free.
+- The launcher icons come from `assets/launcher/`: `app-icon.svg` is the web's icon drawn as circles, and `icon.png` (iOS, 1024 px) and `foreground.png` (Android's adaptive and monochrome icon) are drawn from it. After changing them, run `dart run flutter_launcher_icons`, then put back `ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json` and `ios/Runner.xcodeproj/project.pbxproj` with `git checkout`: the tool rewrites both, adding icon sizes for old iPads and breaking an asset-catalogue setting.
+
+Release signing and uploading to TestFlight and Google Play are SEC-14.
 
 ## Generated code
 

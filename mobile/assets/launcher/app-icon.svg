@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- The app icon: the web's public/icons/icon-512.png redrawn as circles (SEC-201), a white
+       circle with three bites on DESIGN.md's primary (palette brand-800). -->
+  <defs>
+    <mask id="bites">
+      <rect width="512" height="512" fill="#fff"/>
+      <circle cx="264.2" cy="93.2" r="66" fill="#000"/>
+      <circle cx="387.3" cy="124.8" r="96.2" fill="#000"/>
+      <circle cx="417.9" cy="248" r="65.2" fill="#000"/>
+    </mask>
+  </defs>
+  <rect width="512" height="512" fill="#0061AF"/>
+  <circle cx="256" cy="256" r="153.7" fill="#fff" mask="url(#bites)"/>
+</svg>

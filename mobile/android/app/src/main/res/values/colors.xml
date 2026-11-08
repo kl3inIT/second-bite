@@ -3,4 +3,6 @@
     <!-- DESIGN.md `primary` (palette brand-800). Native resources cannot read the generated tokens:
          change it here and in ios/Runner/Base.lproj/LaunchScreen.storyboard with DESIGN.md. -->
     <color name="launch_background">#0061AF</color>
+    <!-- The adaptive launcher icon's background, written by flutter_launcher_icons (pubspec.yaml). -->
+    <color name="ic_launcher_background">#0061AF</color>
 </resources>
