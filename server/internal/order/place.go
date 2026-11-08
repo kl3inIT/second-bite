@@ -72,10 +72,13 @@ func (s *Service) Place(ctx context.Context, key string, checkout uuid.UUID, con
 	// offers never wait on each other's rows.
 	wanted = slices.SortedFunc(slices.Values(wanted), func(a, b Wanted) int { return cmp.Compare(a.OfferID.String(), b.OfferID.String()) })
 
-	var id uuid.UUID
+	var (
+		id      uuid.UUID
+		created bool
+	)
 
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
-		id, err = s.place(ctx, tx, customer, cmp.Or(checkout, uuid.New()), contact, key, wanted)
+		id, created, err = s.place(ctx, tx, customer, cmp.Or(checkout, uuid.New()), contact, key, wanted)
 
 		return err
 	})
@@ -97,7 +100,10 @@ func (s *Service) Place(ctx context.Context, key string, checkout uuid.UUID, con
 		return Order{}, err
 	}
 
-	s.logged(ctx, "order placed", "order.order.placed", id, caller)
+	// An order the same key placed meanwhile was logged when it was placed.
+	if created {
+		s.logged(ctx, "order placed", "order.order.placed", id, caller)
+	}
 
 	return s.placed(ctx, id)
 }
@@ -126,43 +132,39 @@ func takeFailure(err error) error {
 	return err
 }
 
-// place takes the units and writes the order inside tx.
+// place takes the units and writes the order inside tx, and tells whether it
+// did: an order the same key placed meanwhile is answered instead.
 func (s *Service) place(
 	ctx context.Context, tx pgx.Tx, customer uuid.NullUUID, checkout uuid.UUID, contact Contact, key string,
 	wanted []Wanted,
-) (uuid.UUID, error) {
+) (id uuid.UUID, created bool, err error) {
 	q := s.queries.WithTx(tx)
 
-	set, err := s.lockPlacing(ctx, q, contact.Phone)
-	if err != nil {
-		return uuid.Nil, err
-	}
-
 	// The same key may have placed its order while this one waited for the
-	// phone number's lock; that order stands, and the limits are not counted
-	// against it again (SEC-205).
-	if earlier, found, err := orderOfKey(ctx, q, customer, key, contact.Phone); err != nil || found {
-		return earlier, err
+	// phone number's lock; that order stands, and is not placed again.
+	set, earlier, err := s.lockPlacing(ctx, q, customer, key, contact.Phone)
+	if err != nil || earlier != uuid.Nil {
+		return earlier, false, err
 	}
 
 	taken, err := s.takeAll(ctx, tx, wanted)
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, false, err
 	}
 
 	start, end, err := s.sharedWindow(taken)
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, false, err
 	}
 
 	first := taken[0]
 
 	if err := s.checkActive(ctx, tx, first.SellerID); err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, false, err
 	}
 
 	if err := s.checkOpen(ctx, q, set, first.SellerID, contact.Phone); err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, false, err
 	}
 
 	total := totalOf(taken, wanted)
@@ -170,10 +172,10 @@ func (s *Service) place(
 	// After the offers and the seller, as every order places them, so locking the promotions never deadlocks.
 	discount, discounted, err := s.discountFor(ctx, q, first.SellerID, contact.Phone, total)
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, false, err
 	}
 
-	id, err := q.InsertOrder(ctx, db.InsertOrderParams{
+	id, err = q.InsertOrder(ctx, db.InsertOrderParams{
 		CustomerID: customer, CustomerName: contact.Name, CustomerPhone: contact.Phone,
 		SellerID: first.SellerID, CheckoutID: checkout, SellerName: first.SellerName,
 		Latitude: first.CollectionPoint.Latitude, Longitude: first.CollectionPoint.Longitude, Address: first.CollectionPoint.Address,
@@ -183,7 +185,7 @@ func (s *Service) place(
 		DiscountVnd: discount.amountVND,
 	})
 	if err != nil {
-		return uuid.Nil, fmt.Errorf("storing the order: %w", err)
+		return uuid.Nil, false, fmt.Errorf("storing the order: %w", err)
 	}
 
 	for i, t := range taken {
@@ -191,15 +193,15 @@ func (s *Service) place(
 			OrderID: id, OfferID: t.OfferID, Name: t.Name, Unit: t.Unit, PriceVnd: t.PriceVND,
 			OriginalPriceVnd: t.OriginalPriceVND, PhotoID: t.PhotoID, Units: int32(wanted[i].Units), //nolint:gosec // at most 999
 		}); err != nil {
-			return uuid.Nil, fmt.Errorf("storing the order's lines: %w", err)
+			return uuid.Nil, false, fmt.Errorf("storing the order's lines: %w", err)
 		}
 	}
 
 	if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "placed", ActorID: customer}); err != nil {
-		return uuid.Nil, fmt.Errorf("recording the order: %w", err)
+		return uuid.Nil, false, fmt.Errorf("recording the order: %w", err)
 	}
 
-	return id, s.announcePlaced(ctx, tx, q, id)
+	return id, true, s.announcePlaced(ctx, tx, q, id)
 }
 
 // checkActive refuses an order from a seller no longer active, as it would
