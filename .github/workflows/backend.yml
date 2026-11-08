@@ -67,10 +67,34 @@ jobs:
     name: Vulnerabilities
     runs-on: ubuntu-24.04
     steps:
-      - uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # govulncheck is a tool in go.mod, so CI runs the version every machine runs; govulncheck-action installs
+      # @latest. go.sum alone keys this cache, apart from Test's.
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: server/go.mod
-          work-dir: server
+          cache-dependency-path: server/go.sum
+      - name: Known vulnerabilities that the code reaches
+        run: go tool govulncheck ./...
+
+  migrations:
+    name: Migrations
+    # A migration on main has run in staging and production: a pull request may add one, never change, rename or
+    # remove one (docs/guidelines/persistence.md). The merge commit's first parent is the base the pull request targets.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Released migrations are unchanged
+        run: |
+          changed="$(git diff --name-status --no-renames --diff-filter=a HEAD^1 HEAD -- 'migrations/*.sql')"
+          if [ -n "$changed" ]; then
+            printf 'A migration already on the base branch must not change; add a new one instead:\n%s\n' "$changed"
+            exit 1
+          fi
 
   image:
     name: Image

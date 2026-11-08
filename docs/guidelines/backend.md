@@ -108,8 +108,8 @@ Infrastructure the team runs itself in Docker Compose is preferred over managed 
   | golangci-lint | `version` in `.github/workflows/backend.yml`, and each developer's own install | [its releases](https://github.com/golangci/golangci-lint/releases) |
   | pnpm | `packageManager` in `web/package.json` | `npm view pnpm version` |
   | Node, its major version | `node-version` in `.github/workflows/web.yml` and `engines` in `web/package.json`; CI takes the newest release of that major version | [the LTS schedule](https://nodejs.org/en/about/previous-releases); 24 until the team moves |
-- The Go version is pinned in `go.mod`. Code generators (`sqlc`) are pinned with `tool` directives so every machine runs the same version; goose runs as a library inside the binary. golangci-lint is pinned by version in CI and the runbook instead, because its maintainers advise against installing it through `go tool`.
+- The Go version is pinned in `go.mod`. Code generators (`sqlc`) and `govulncheck` are pinned with `tool` directives so every machine and CI run the same version, which Dependabot raises; goose runs as a library inside the binary. golangci-lint is pinned by version in CI and the runbook instead, because its maintainers advise against installing it through `go tool`.
 - golangci-lint runs the recommended configuration of the vendored `golang-lint` skill (`server/.golangci.yml`). A `//nolint` names its linter and says why.
-- Before pushing: formatting, golangci-lint, the tests (the boundary check, the contract check and the PostgreSQL tests, which need Docker) and `govulncheck`, as the [backend runbook](../runbooks/backend.md) lists.
+- Before pushing: formatting, golangci-lint, the tests (the boundary check, the contract check and the PostgreSQL tests, which need Docker) and `go tool govulncheck`, as the [backend runbook](../runbooks/backend.md) lists. On a pull request, CI also fails when a migration already on `main` is changed, renamed or removed.
 
 These library choices come from the [backend stack research](../research/2026-10-16-backend-stack.md); a change of one is an ADR once the backend exists.
