@@ -11,6 +11,7 @@ import 'package:second_bite/features/offer/ui/offer_format.dart';
 import 'package:second_bite/features/order/data/order_reader.dart';
 import 'package:second_bite/features/order/domain/order_facts.dart';
 import 'package:second_bite/features/order/ui/order_actions.dart';
+import 'package:second_bite/features/order/ui/order_chat.dart';
 import 'package:second_bite/features/order/ui/order_parts.dart';
 import 'package:second_bite/features/order/ui/order_reads.dart';
 import 'package:second_bite/l10n/l10n.dart';
@@ -312,11 +313,13 @@ class _OrderPage extends ConsumerWidget {
   List<Widget> _openParts(BuildContext context) {
     final order = view.order;
     return [
+      UnreadBanner(order: order),
       OrderTicket(order: order, together: view.together),
       if (order.status == OrderBodyStatus.ready)
         OrderHowToCollect(order: order),
       _card(OrderSummary(order: order)),
       OrderDirections(order: order),
+      ChatEntry(order: order),
       if (canCancel(order)) CancelOrder(order: order),
     ];
   }
@@ -327,6 +330,7 @@ class _OrderPage extends ConsumerWidget {
     final order = view.order;
     final scheme = Theme.of(context).colorScheme;
     return [
+      UnreadBanner(order: order),
       if (order.canReview) ReviewForm(order: order),
       _card(
         Column(
@@ -341,6 +345,7 @@ class _OrderPage extends ConsumerWidget {
           ],
         ),
       ),
+      ChatEntry(order: order),
     ];
   }
 
@@ -445,6 +450,7 @@ class _OrderPage extends ConsumerWidget {
         onPressed: () => const HomeRoute().go(context),
         child: Text(l10n.orderSeeOthers),
       ),
+      ChatEntry(order: order),
       OrderProblemSection(order: order),
     ];
   }

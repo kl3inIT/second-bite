@@ -246,7 +246,20 @@ class _OpenOrderCard extends StatelessWidget {
                 Row(
                   spacing: SpacingTokens.space3,
                   children: [
-                    OrderThumb(order: order, size: 72),
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        OrderThumb(order: order, size: 72),
+                        PositionedDirectional(
+                          top: -6,
+                          end: -6,
+                          child: AppUnreadPill(
+                            count: order.unreadMessages ?? 0,
+                            label: l10n.chatUnread(order.unreadMessages ?? 0),
+                          ),
+                        ),
+                      ],
+                    ),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

@@ -14,6 +14,7 @@ import 'package:second_bite/features/offer/ui/home_screen.dart';
 import 'package:second_bite/features/offer/ui/offer_link_screen.dart';
 import 'package:second_bite/features/offer/ui/seller_screen.dart';
 import 'package:second_bite/features/order/ui/cart_screen.dart';
+import 'package:second_bite/features/order/ui/chat_screen.dart';
 import 'package:second_bite/features/order/ui/order_screen.dart';
 import 'package:second_bite/features/order/ui/orders_screen.dart';
 
@@ -35,7 +36,12 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
       routes: [
         TypedGoRoute<OrdersRoute>(
           path: '/orders',
-          routes: [TypedGoRoute<OrderRoute>(path: ':orderId')],
+          routes: [
+            TypedGoRoute<OrderRoute>(
+              path: ':orderId',
+              routes: [TypedGoRoute<OrderChatRoute>(path: 'chat')],
+            ),
+          ],
         ),
       ],
     ),
@@ -129,6 +135,23 @@ class OrderRoute extends GoRouteData with $OrderRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       OrderScreen(orderId: orderId);
+}
+
+/// An order's chat with its store at `/orders/:orderId/chat`, as on the web
+/// (SEC-204): over the tabs, from the order's page.
+class OrderChatRoute extends GoRouteData with $OrderChatRoute {
+  /// The route to [orderId]'s chat.
+  const new({required this.orderId});
+
+  /// The order.
+  final String orderId;
+
+  /// Opens over the tabs.
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      ChatScreen(orderId: orderId);
 }
 
 /// The account tab at `/account`, as on the web.

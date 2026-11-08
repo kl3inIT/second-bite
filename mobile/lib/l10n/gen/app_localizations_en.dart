@@ -1524,4 +1524,96 @@ class AppLocalizationsEn extends AppLocalizations {
   String orderProblemAnswered(String seller, String time) {
     return '$seller answered · $time';
   }
+
+  @override
+  String chatUnread(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unread messages',
+      one: '1 unread message',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatMessageStore => 'Message the store';
+
+  @override
+  String get chatViewMessages => 'View messages';
+
+  @override
+  String get chatStoreWrote => 'The store just wrote';
+
+  @override
+  String chatQuote(String text) {
+    return '“$text”';
+  }
+
+  @override
+  String get chatSeeMessage => 'See message';
+
+  @override
+  String chatCardMeta(int units, String from, String until) {
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    return '$_temp0 · $from–$until today';
+  }
+
+  @override
+  String chatConfirmedToday(String number) {
+    return 'Today · Order #$number confirmed';
+  }
+
+  @override
+  String chatConfirmedOn(String date, String number) {
+    return '$date · Order #$number confirmed';
+  }
+
+  @override
+  String get chatLog => 'Messages of the order';
+
+  @override
+  String get chatMine => 'You';
+
+  @override
+  String chatSeen(String time) {
+    return '$time · Seen';
+  }
+
+  @override
+  String get chatNote =>
+      'Messages do not change the order\'s price, quantity or collection time.';
+
+  @override
+  String get chatPlaceholderToStore => 'Message the store…';
+
+  @override
+  String get chatSend => 'Send message';
+
+  @override
+  String get chatRetry => 'Send again';
+
+  @override
+  String get chatFailed => 'Not sent';
+
+  @override
+  String get chatQuickReplies => 'Quick replies';
+
+  @override
+  String get chatReplyComing => 'I\'m on my way';
+
+  @override
+  String get chatReplyLate => 'Let me collect 10 minutes late';
+
+  @override
+  String get chatReplyStillHave => 'Does the store still have the dishes?';
+
+  @override
+  String get chatLocked =>
+      'This order has ended, so you can only read the messages.';
 }

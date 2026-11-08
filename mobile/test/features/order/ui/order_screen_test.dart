@@ -7,6 +7,7 @@ import 'package:second_bite/core/api.dart';
 import 'package:second_bite/core/live_client.dart';
 import 'package:second_bite/features/order/data/order_reader.dart';
 import 'package:second_bite/features/order/ui/order_actions.dart';
+import 'package:second_bite/features/order/ui/order_chat.dart';
 import 'package:second_bite/features/order/ui/order_parts.dart';
 import 'package:second_bite/features/order/ui/order_reads.dart';
 import 'package:second_bite/features/order/ui/order_screen.dart';
@@ -215,6 +216,55 @@ void main() {
         await pumpOrder(tester, () async => throw const OrderUnknown());
 
         expect(find.byType(OrdersSignInPrompt), findsOneWidget);
+      });
+
+      testWidgets("the store's unread message and the way to the chat", (
+        tester,
+      ) async {
+        when(() => reader.readChat(_id, access: 'abcdefghijklmnopqrstuv'))
+            .thenAnswer(
+              (_) async => MessagesOutputBody(
+                messages: [
+                  MessageBody(
+                    seq: 1,
+                    from: MessageBodyFrom.seller,
+                    text: 'Quán giữ món tới 21:45 nhé',
+                    sentAt: DateTime.parse('2026-10-19T21:05:00+07:00'),
+                  ),
+                ],
+                seen: const SeenBody(customer: 0, seller: 0),
+                open: true,
+              ),
+            );
+        await pumpOrder(
+          tester,
+          () async => (
+            order: order().copyWith(unreadMessages: 1, messageCount: 1),
+            together: const <OrderBody>[],
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('Quán vừa nhắn'), findsOneWidget);
+        expect(find.text('“Quán giữ món tới 21:45 nhé”'), findsOneWidget);
+        expect(find.byType(ChatEntry), findsOneWidget);
+        expect(find.text('Nhắn quán'), findsOneWidget);
+        expect(find.byType(AppUnreadPill), findsOneWidget);
+      });
+
+      testWidgets('the way to read the messages of an ended order', (
+        tester,
+      ) async {
+        await pumpOrder(
+          tester,
+          () async => (
+            order: order(status: OrderBodyStatus.expired)
+                .copyWith(messageCount: 2),
+            together: const <OrderBody>[],
+          ),
+        );
+
+        expect(find.text('Xem tin nhắn'), findsOneWidget);
       });
     });
 

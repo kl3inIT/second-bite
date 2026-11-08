@@ -41,6 +41,14 @@ RouteBase get $appShellRoute => StatefulShellRouteData.$route(
               hasOverriddenOnExit: false,
               parentNavigatorKey: OrderRoute.$parentNavigatorKey,
               factory: $OrderRoute._fromState,
+              routes: [
+                GoRouteData.$route(
+                  path: 'chat',
+                  hasOverriddenOnExit: false,
+                  parentNavigatorKey: OrderChatRoute.$parentNavigatorKey,
+                  factory: $OrderChatRoute._fromState,
+                ),
+              ],
             ),
           ],
         ),
@@ -138,6 +146,31 @@ mixin $OrderRoute on GoRouteData {
   @override
   String get location =>
       GoRouteData.$location('/orders/${Uri.encodeComponent(_self.orderId)}');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $OrderChatRoute on GoRouteData {
+  static OrderChatRoute _fromState(GoRouterState state) =>
+      OrderChatRoute(orderId: state.pathParameters['orderId']!);
+
+  OrderChatRoute get _self => this as OrderChatRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/orders/${Uri.encodeComponent(_self.orderId)}/chat',
+  );
 
   @override
   void go(BuildContext context) => context.go(location);
