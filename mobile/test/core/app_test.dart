@@ -9,10 +9,15 @@ import 'package:second_bite/features/identity/ui/sign_in_screen.dart';
 import 'package:second_bite/features/offer/data/offer_repository.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/home_screen.dart';
+import 'package:second_bite/features/order/data/kept_orders.dart';
+import 'package:second_bite/features/order/ui/order_parts.dart';
+import 'package:second_bite/features/order/ui/orders_screen.dart';
 
 import '../helpers/helpers.dart';
 
 class _MockOfferRepository extends Mock implements OfferRepository;
+
+class _MockKeptOrders extends Mock implements KeptOrders;
 
 void main() {
   group(App, () {
@@ -86,8 +91,8 @@ void main() {
         await tester.pump();
         final destinations = find.byType(NavigationDestination);
 
-        // Orders and saved sellers have no screen yet.
-        await tester.tap(destinations.at(1), warnIfMissed: false);
+        // Saved sellers have no screen yet.
+        await tester.tap(destinations.at(2), warnIfMissed: false);
         await tester.pumpAndSettle();
         expect(find.byType(HomeScreen), findsOneWidget);
         expect(find.byType(AccountScreen), findsNothing);
@@ -95,6 +100,29 @@ void main() {
         await tester.tap(destinations.at(3));
         await tester.pumpAndSettle();
         expect(find.byType(AccountScreen), findsOneWidget);
+      });
+
+      testWidgets('to $OrdersScreen from the bottom bar', (tester) async {
+        final kept = _MockKeptOrders();
+        when(kept.read).thenAnswer((_) async => const []);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              offerRepositoryProvider.overrideWithValue(repository),
+              authRepositoryProvider.overrideWithValue(signedInAs(null)),
+              keptOrdersProvider.overrideWithValue(kept),
+            ],
+            child: const App(),
+          ),
+        );
+        await tester.pump();
+
+        await tester.tap(find.byType(NavigationDestination).at(1));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(OrdersScreen), findsOneWidget);
+        // Signed out, and nothing ordered on this phone: the way to sign in.
+        expect(find.byType(OrdersSignInPrompt), findsOneWidget);
       });
 
       testWidgets('to $SignInScreen from the header, and back home', (

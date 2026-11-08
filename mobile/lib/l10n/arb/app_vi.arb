@@ -1338,35 +1338,71 @@
   "@cartPromotionAfter": {
     "description": "Under the running promotions"
   },
-  "cartPlacedTitle": "{orders, plural, =1{Đã đặt món} other{Đã đặt {orders} đơn}}",
-  "@cartPlacedTitle": {
-    "description": "The cart page once its orders are placed",
+  "ordersTitle": "Đơn của tôi",
+  "@ordersTitle": {
+    "description": "The Orders tab's title"
+  },
+  "ordersLists": "Danh sách đơn",
+  "@ordersLists": {
+    "description": "The label of the two lists of orders"
+  },
+  "ordersTabOpen": "Đang chờ nhận ({count})",
+  "@ordersTabOpen": {
+    "description": "The list of orders still to collect, with how many",
     "placeholders": {
-      "orders": {
+      "count": {
         "type": "int"
       }
     }
   },
-  "cartPlacedLine": "{number} · {seller}",
-  "@cartPlacedLine": {
-    "description": "An order placed: its number and store",
+  "ordersTabEnded": "Đã xong",
+  "@ordersTabEnded": {
+    "description": "The list of orders that ended"
+  },
+  "ordersNoneOpen": "Bạn chưa có đơn nào đang chờ nhận.",
+  "@ordersNoneOpen": {
+    "description": "No order still to collect"
+  },
+  "ordersNoneEnded": "Chưa có đơn nào đã xong.",
+  "@ordersNoneEnded": {
+    "description": "No ended order"
+  },
+  "ordersReadyUntil": "Sẵn sàng · đến {until}",
+  "@ordersReadyUntil": {
+    "description": "A ready order, until when to collect it",
     "placeholders": {
-      "number": {
-        "type": "String"
-      },
-      "seller": {
+      "until": {
         "type": "String"
       }
     }
   },
-  "cartPlacedWindow": "Nhận {from} – {until} · {total}",
-  "@cartPlacedWindow": {
-    "description": "An order placed: when to collect and what to pay",
+  "ordersPreparing": "Đang chuẩn bị",
+  "@ordersPreparing": {
+    "description": "An order the store is preparing"
+  },
+  "ordersCardMetaWindow": "#{number} · {total} · nhận {from}–{until}",
+  "@ordersCardMetaWindow": {
+    "description": "An open order's number, what to pay and its window",
     "placeholders": {
+      "number": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
       "from": {
         "type": "String"
       },
       "until": {
+        "type": "String"
+      }
+    }
+  },
+  "ordersCardMetaReady": "#{number} · {total} · trả khi nhận",
+  "@ordersCardMetaReady": {
+    "description": "A ready order's number and what to pay",
+    "placeholders": {
+      "number": {
         "type": "String"
       },
       "total": {
@@ -1374,8 +1410,800 @@
       }
     }
   },
-  "cartPlacedHint": "Đọc mã đơn, tên và số điện thoại ở quầy để nhận món. Thanh toán tại quầy.",
-  "@cartPlacedHint": {
-    "description": "How to collect an order just placed"
+  "ordersSeeQr": "Xem mã QR nhận món",
+  "@ordersSeeQr": {
+    "description": "Opens a ready order's QR code"
+  },
+  "ordersSeeOrder": "Xem đơn",
+  "@ordersSeeOrder": {
+    "description": "Opens an order"
+  },
+  "ordersDayToday": "Hôm nay",
+  "@ordersDayToday": {
+    "description": "Ended orders of today"
+  },
+  "ordersDayWeek": "Tuần này",
+  "@ordersDayWeek": {
+    "description": "Ended orders of the six days before"
+  },
+  "ordersDayBefore": "Trước đó",
+  "@ordersDayBefore": {
+    "description": "Ended orders before that"
+  },
+  "ordersDate": "{day}/{month}",
+  "@ordersDate": {
+    "description": "A day and month",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      }
+    }
+  },
+  "ordersEndedLineConfirmed": "Đã xác nhận",
+  "@ordersEndedLineConfirmed": {
+    "description": "An order confirmed"
+  },
+  "ordersEndedLineReady": "Sẵn sàng",
+  "@ordersEndedLineReady": {
+    "description": "An order ready"
+  },
+  "ordersEndedLineCollected": "Đã nhận",
+  "@ordersEndedLineCollected": {
+    "description": "An order collected"
+  },
+  "ordersEndedLineCancelled": "Đã huỷ · không thu tiền",
+  "@ordersEndedLineCancelled": {
+    "description": "An order cancelled"
+  },
+  "ordersEndedLineRefused": "Quán không giao · không thu tiền",
+  "@ordersEndedLineRefused": {
+    "description": "An order the store refused"
+  },
+  "ordersEndedLineExpired": "Hết hạn, không đến nhận",
+  "@ordersEndedLineExpired": {
+    "description": "An order nobody collected"
+  },
+  "ordersSignInTitle": "Chưa thấy đơn nào",
+  "@ordersSignInTitle": {
+    "description": "No order known to this phone"
+  },
+  "ordersSignInBody": "Chưa có đơn nào đặt trên ứng dụng này. Nếu bạn đặt khi đã đăng nhập, đăng nhập để xem.",
+  "@ordersSignInBody": {
+    "description": "Why to sign in to see orders"
+  },
+  "orderNumber": "Đơn #{number}",
+  "@orderNumber": {
+    "description": "An order's title",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "orderHeadlineConfirmed": "Đã xác nhận · quán đang chuẩn bị",
+  "@orderHeadlineConfirmed": {
+    "description": "A confirmed order, on the blue band"
+  },
+  "orderHeadlineReady": "Món đã sẵn sàng",
+  "@orderHeadlineReady": {
+    "description": "A ready order, on the blue band"
+  },
+  "orderOpensIn": "Nhận hôm nay · mở sau {left}",
+  "@orderOpensIn": {
+    "description": "How long until the window opens",
+    "placeholders": {
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "orderClosesIn": "Nhận hôm nay · còn {left}",
+  "@orderClosesIn": {
+    "description": "How long until the window closes",
+    "placeholders": {
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "orderHoursMinutes": "{hours} giờ {minutes} phút",
+  "@orderHoursMinutes": {
+    "description": "A span in hours and minutes",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "orderMinutes": "{minutes} phút",
+  "@orderMinutes": {
+    "description": "A span in minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "orderCounterToday": "{address} · {from}–{until} hôm nay",
+  "@orderCounterToday": {
+    "description": "The store's counter and today's window",
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "until": {
+        "type": "String"
+      }
+    }
+  },
+  "orderUnits": "{units} phần",
+  "@orderUnits": {
+    "description": "How many portions an order holds",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "orderCollectReady": "Đưa mã QR cho quầy quét hoặc đọc tên, số điện thoại để nhận món.",
+  "@orderCollectReady": {
+    "description": "How to collect a ready order"
+  },
+  "orderCollectLater": "Mã QR hiện khi món sẵn sàng. Có thể đọc tên, số điện thoại để nhận món.",
+  "@orderCollectLater": {
+    "description": "How to collect an order not ready yet"
+  },
+  "orderQrLabel": "Mã QR nhận đơn #{number}",
+  "@orderQrLabel": {
+    "description": "What a screen reader says of the QR code",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "orderPlacedWith": "Cùng lần đặt: {seller}",
+  "@orderPlacedWith": {
+    "description": "Another store's order placed from the same cart",
+    "placeholders": {
+      "seller": {
+        "type": "String"
+      }
+    }
+  },
+  "orderHowTitle": "Cách nhận món",
+  "@orderHowTitle": {
+    "description": "How to collect an order"
+  },
+  "orderHowGoTitle": "Đến quầy thu ngân",
+  "@orderHowGoTitle": {
+    "description": "First step of collecting"
+  },
+  "orderHowQrTitle": "Đưa mã QR",
+  "@orderHowQrTitle": {
+    "description": "Second step of collecting"
+  },
+  "orderHowQrBody": "hoặc đọc tên, số ĐT",
+  "@orderHowQrBody": {
+    "description": "Second step of collecting, its line"
+  },
+  "orderHowTakeTitle": "Nhận món",
+  "@orderHowTakeTitle": {
+    "description": "Third step of collecting"
+  },
+  "orderHowTakeBody": "Nhớ mang túi riêng",
+  "@orderHowTakeBody": {
+    "description": "Third step of collecting, its line"
+  },
+  "orderStepsLabel": "Các bước của đơn",
+  "@orderStepsLabel": {
+    "description": "The order's four steps"
+  },
+  "orderStepPlaced": "Đã đặt",
+  "@orderStepPlaced": {
+    "description": "Step: placed"
+  },
+  "orderStepPreparing": "Chuẩn bị",
+  "@orderStepPreparing": {
+    "description": "Step: preparing"
+  },
+  "orderStepReady": "Sẵn sàng",
+  "@orderStepReady": {
+    "description": "Step: ready"
+  },
+  "orderStepCollected": "Hoàn tất",
+  "@orderStepCollected": {
+    "description": "Step: collected"
+  },
+  "orderOrdered": "Món đã đặt · {units} phần",
+  "@orderOrdered": {
+    "description": "The order's dishes, with how many portions",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "orderOriginalPrice": "Giá gốc",
+  "@orderOriginalPrice": {
+    "description": "A price struck through, for a screen reader"
+  },
+  "orderFactSaved": "Tiết kiệm",
+  "@orderFactSaved": {
+    "description": "What the order saved"
+  },
+  "orderFactSavedValue": "{saved} so với giá gốc",
+  "@orderFactSavedValue": {
+    "description": "What the order saved, its amount",
+    "placeholders": {
+      "saved": {
+        "type": "String"
+      }
+    }
+  },
+  "orderFactTotal": "Tổng",
+  "@orderFactTotal": {
+    "description": "The order's total"
+  },
+  "orderFactPayAtCounter": "Trả tại quầy",
+  "@orderFactPayAtCounter": {
+    "description": "What is paid at the counter after a discount"
+  },
+  "orderFactBeforeDiscount": "Giá trước khi giảm",
+  "@orderFactBeforeDiscount": {
+    "description": "A total struck through, for a screen reader"
+  },
+  "orderFactNumber": "Mã đơn",
+  "@orderFactNumber": {
+    "description": "The order's number"
+  },
+  "orderFactPayment": "Thanh toán",
+  "@orderFactPayment": {
+    "description": "How the order is paid"
+  },
+  "orderFactAtCounter": "Thanh toán tại quầy",
+  "@orderFactAtCounter": {
+    "description": "Paid at the counter"
+  },
+  "orderFactNothing": "Không thu tiền",
+  "@orderFactNothing": {
+    "description": "Nothing charged for an order that ended"
+  },
+  "orderFactDiscount": "{promotion} · {rule}",
+  "@orderFactDiscount": {
+    "description": "The promotion and rule that took something off",
+    "placeholders": {
+      "promotion": {
+        "type": "String"
+      },
+      "rule": {
+        "type": "String"
+      }
+    }
+  },
+  "orderDirectionsLabel": "Đường đến quầy",
+  "@orderDirectionsLabel": {
+    "description": "The way to the counter"
+  },
+  "orderPlaceLine": "{seller} · {address}",
+  "@orderPlaceLine": {
+    "description": "The store and its counter",
+    "placeholders": {
+      "seller": {
+        "type": "String"
+      },
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "orderDirections": "Chỉ đường",
+  "@orderDirections": {
+    "description": "Opens the way in the phone's maps"
+  },
+  "orderSeeOthers": "Xem món khác",
+  "@orderSeeOthers": {
+    "description": "Back to tonight's dishes"
+  },
+  "orderCollectedAt": "Đã nhận món lúc {time}",
+  "@orderCollectedAt": {
+    "description": "When a collected order was collected",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "orderSavedLine": "Tiết kiệm so với giá gốc · {units} phần không bị bỏ phí",
+  "@orderSavedLine": {
+    "description": "What a collected order saved",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "orderEndedAtCollected": "Đã nhận món lúc {time} · {date}",
+  "@orderEndedAtCollected": {
+    "description": "A rated order's receipt badge",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "orderEndedBadgeCancelled": "Đơn đã huỷ",
+  "@orderEndedBadgeCancelled": {
+    "description": "A cancelled order's receipt badge"
+  },
+  "orderEndedBadgeRefused": "Quán không giao đơn này",
+  "@orderEndedBadgeRefused": {
+    "description": "A refused order's receipt badge"
+  },
+  "orderEndedBadgeExpired": "Đơn đã hết hạn",
+  "@orderEndedBadgeExpired": {
+    "description": "An expired order's receipt badge"
+  },
+  "orderTimelineTitle": "Trạng thái",
+  "@orderTimelineTitle": {
+    "description": "What happened to an order"
+  },
+  "orderTimelinePlaced": "Bạn đã đặt đơn",
+  "@orderTimelinePlaced": {
+    "description": "Moment: placed"
+  },
+  "orderTimelinePlacedBody": "{date}, {time} · {units} phần · {total}",
+  "@orderTimelinePlacedBody": {
+    "description": "Moment: placed, its line",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "units": {
+        "type": "int"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "orderTimelineConfirmed": "Quán xác nhận đơn",
+  "@orderTimelineConfirmed": {
+    "description": "Moment: confirmed"
+  },
+  "orderTimelineConfirmedBody": "{time} · giữ {units} phần cho bạn",
+  "@orderTimelineConfirmedBody": {
+    "description": "Moment: confirmed, its line",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "orderTimelineCancelled": "Bạn đã huỷ đơn",
+  "@orderTimelineCancelled": {
+    "description": "Moment: cancelled"
+  },
+  "orderTimelineWithReason": "{time} · {reason}",
+  "@orderTimelineWithReason": {
+    "description": "A moment with its reason",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "orderTimelineReturned": "{units} phần đã trả lại cho quán",
+  "@orderTimelineReturned": {
+    "description": "Moment: portions returned",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "orderTimelineReturnedBody": "Người khác có thể đặt",
+  "@orderTimelineReturnedBody": {
+    "description": "Moment: portions returned, its line"
+  },
+  "orderTimelineReady": "Món đã sẵn sàng",
+  "@orderTimelineReady": {
+    "description": "Moment: ready"
+  },
+  "orderTimelineReadyBody": "{time} · quán báo bạn đến nhận",
+  "@orderTimelineReadyBody": {
+    "description": "Moment: ready, its line",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "orderTimelineToldBody": "{date}, {time} · đã báo cho bạn",
+  "@orderTimelineToldBody": {
+    "description": "Moment: ready, of an expired order",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "orderTimelineCollected": "Bạn đã nhận món",
+  "@orderTimelineCollected": {
+    "description": "Moment: collected"
+  },
+  "orderTimelineCollectedBody": "{time} · đã trả {total}",
+  "@orderTimelineCollectedBody": {
+    "description": "Moment: collected, its line",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "orderTimelineCollectedRated": "{time} · đã trả {total} · bạn chấm {stars} sao",
+  "@orderTimelineCollectedRated": {
+    "description": "Moment: collected and rated",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "stars": {
+        "type": "int"
+      }
+    }
+  },
+  "orderTimelineRefused": "Quán từ chối giao",
+  "@orderTimelineRefused": {
+    "description": "Moment: refused"
+  },
+  "orderTimelineRefusedBody": "{time} · lý do: {reason}",
+  "@orderTimelineRefusedBody": {
+    "description": "Moment: refused, its line",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "orderTimelineExpired": "Hết giờ nhận",
+  "@orderTimelineExpired": {
+    "description": "Moment: expired"
+  },
+  "orderTimelineExpiredBody": "{until} · đơn ghi là không nhận",
+  "@orderTimelineExpiredBody": {
+    "description": "Moment: expired, its line",
+    "placeholders": {
+      "until": {
+        "type": "String"
+      }
+    }
+  },
+  "orderTimelineSummaryCancelled": "Bạn chưa trả tiền nên không có gì phải hoàn.",
+  "@orderTimelineSummaryCancelled": {
+    "description": "What a cancelled order means"
+  },
+  "orderTimelineSummaryRefused": "Quán không giao được đơn: {reason}. Bạn không phải trả tiền.",
+  "@orderTimelineSummaryRefused": {
+    "description": "What a refused order means",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "orderTimelineSummaryExpired": "Không ai đến nhận trước {until}. Lần sau nếu không kịp, hãy huỷ đơn để món đến được người khác.",
+  "@orderTimelineSummaryExpired": {
+    "description": "What an expired order means",
+    "placeholders": {
+      "until": {
+        "type": "String"
+      }
+    }
+  },
+  "orderRefuseReasonNotSuitable": "món không còn phù hợp",
+  "@orderRefuseReasonNotSuitable": {
+    "description": "Why the store refused an order"
+  },
+  "orderRefuseReasonWrongItems": "món không đúng với đơn",
+  "@orderRefuseReasonWrongItems": {
+    "description": "Why the store refused an order"
+  },
+  "orderRefuseReasonNoAnswer": "quán không gọi được cho bạn",
+  "@orderRefuseReasonNoAnswer": {
+    "description": "Why the store refused an order"
+  },
+  "orderRefuseReasonNoShow": "bạn chưa đến nhận",
+  "@orderRefuseReasonNoShow": {
+    "description": "Why the store refused an order"
+  },
+  "orderRefuseReasonLate": "đã quá giờ nhận",
+  "@orderRefuseReasonLate": {
+    "description": "Why the store refused an order"
+  },
+  "orderRefuseReasonSoldOut": "món đã hết",
+  "@orderRefuseReasonSoldOut": {
+    "description": "Why the store refused an order"
+  },
+  "orderRefuseReasonOther": "lý do khác",
+  "@orderRefuseReasonOther": {
+    "description": "Why the store refused an order"
+  },
+  "orderRefuseReasonWithdrawn": "quán đã rút bài này",
+  "@orderRefuseReasonWithdrawn": {
+    "description": "Why the store refused an order"
+  },
+  "orderCancelOpen": "Huỷ đơn",
+  "@orderCancelOpen": {
+    "description": "Opens cancelling"
+  },
+  "orderCancelTitle": "Huỷ đơn #{number}?",
+  "@orderCancelTitle": {
+    "description": "The cancel sheet's title",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "orderCancelBody": "{units} phần sẽ trả lại cho {seller} để người khác đặt.",
+  "@orderCancelBody": {
+    "description": "What cancelling does",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      },
+      "seller": {
+        "type": "String"
+      }
+    }
+  },
+  "orderCancelReason": "Lý do huỷ (không bắt buộc)",
+  "@orderCancelReason": {
+    "description": "The reasons to cancel"
+  },
+  "orderCancelReasonLate": "Không đến kịp",
+  "@orderCancelReasonLate": {
+    "description": "A reason to cancel"
+  },
+  "orderCancelReasonMistake": "Đặt nhầm",
+  "@orderCancelReasonMistake": {
+    "description": "A reason to cancel"
+  },
+  "orderCancelReasonOther": "Lý do khác",
+  "@orderCancelReasonOther": {
+    "description": "A reason to cancel"
+  },
+  "orderCancelKeep": "Giữ đơn",
+  "@orderCancelKeep": {
+    "description": "Closes the cancel sheet"
+  },
+  "orderCancelConfirm": "Huỷ đơn",
+  "@orderCancelConfirm": {
+    "description": "Cancels the order"
+  },
+  "orderCancelFailed": "Chưa huỷ được đơn. Thử lại sau ít phút.",
+  "@orderCancelFailed": {
+    "description": "Cancelling failed without an answer"
+  },
+  "reviewTitle": "Món hôm nay thế nào?",
+  "@reviewTitle": {
+    "description": "The rating's title"
+  },
+  "reviewHint": "Đánh giá giúp quán và người mua sau.",
+  "@reviewHint": {
+    "description": "Why to rate"
+  },
+  "reviewStarsLegend": "Số sao",
+  "@reviewStarsLegend": {
+    "description": "The stars to choose"
+  },
+  "reviewStar": "{count} sao",
+  "@reviewStar": {
+    "description": "A number of stars",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewWord1": "Tệ",
+  "@reviewWord1": {
+    "description": "The word for 1 stars"
+  },
+  "reviewWord2": "Chưa ổn",
+  "@reviewWord2": {
+    "description": "The word for 2 stars"
+  },
+  "reviewWord3": "Bình thường",
+  "@reviewWord3": {
+    "description": "The word for 3 stars"
+  },
+  "reviewWord4": "Tốt",
+  "@reviewWord4": {
+    "description": "The word for 4 stars"
+  },
+  "reviewWord5": "Tuyệt vời",
+  "@reviewWord5": {
+    "description": "The word for 5 stars"
+  },
+  "reviewTagsTitle": "Điều gì làm bạn hài lòng?",
+  "@reviewTagsTitle": {
+    "description": "What went well"
+  },
+  "reviewTagFastPickup": "Nhận hàng nhanh",
+  "@reviewTagFastPickup": {
+    "description": "What went well"
+  },
+  "reviewTagGoodQuality": "Chất lượng tốt",
+  "@reviewTagGoodQuality": {
+    "description": "What went well"
+  },
+  "reviewTagGoodVariety": "Đa dạng món",
+  "@reviewTagGoodVariety": {
+    "description": "What went well"
+  },
+  "reviewTagFairPortions": "Đủ số lượng",
+  "@reviewTagFairPortions": {
+    "description": "What went well"
+  },
+  "reviewComment": "Viết vài dòng cho quán (không bắt buộc)",
+  "@reviewComment": {
+    "description": "The rating's comment"
+  },
+  "reviewSubmit": "Gửi đánh giá",
+  "@reviewSubmit": {
+    "description": "Sends the rating"
+  },
+  "reviewFailed": "Chưa gửi được đánh giá. Thử lại sau ít phút.",
+  "@reviewFailed": {
+    "description": "Rating failed without an answer"
+  },
+  "reviewGiven": "Bạn đã đánh giá",
+  "@reviewGiven": {
+    "description": "The rating given"
+  },
+  "reviewThanks": "Cảm ơn bạn, quán sẽ đọc đánh giá này.",
+  "@reviewThanks": {
+    "description": "Thanks for rating"
+  },
+  "reviewErrorStars": "Chọn số sao cho đơn.",
+  "@reviewErrorStars": {
+    "description": "No star chosen"
+  },
+  "orderProblemOpen": "Báo vấn đề với đơn",
+  "@orderProblemOpen": {
+    "description": "Opens the problem report"
+  },
+  "orderProblemTitle": "Đơn #{number} có vấn đề gì?",
+  "@orderProblemTitle": {
+    "description": "The problem sheet's title",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "orderProblemBody": "Chọn điều chưa ổn. Chúng tôi chuyển cho quán và trả lời bạn.",
+  "@orderProblemBody": {
+    "description": "What reporting does"
+  },
+  "orderProblemKindLegend": "Điều chưa ổn",
+  "@orderProblemKindLegend": {
+    "description": "The kinds of problem"
+  },
+  "orderProblemKindMissingItem": "Thiếu món",
+  "@orderProblemKindMissingItem": {
+    "description": "A kind of problem"
+  },
+  "orderProblemKindWrongItem": "Sai món",
+  "@orderProblemKindWrongItem": {
+    "description": "A kind of problem"
+  },
+  "orderProblemKindPoorQuality": "Món không đạt",
+  "@orderProblemKindPoorQuality": {
+    "description": "A kind of problem"
+  },
+  "orderProblemKindStoreClosed": "Quán đóng cửa khi đến",
+  "@orderProblemKindStoreClosed": {
+    "description": "A kind of problem"
+  },
+  "orderProblemNote": "Ghi thêm (không bắt buộc)",
+  "@orderProblemNote": {
+    "description": "The problem's note"
+  },
+  "orderProblemNotePlaceholder": "Ví dụ: thiếu 1 bánh mì chà bông",
+  "@orderProblemNotePlaceholder": {
+    "description": "An example note"
+  },
+  "orderProblemSend": "Gửi cho quán",
+  "@orderProblemSend": {
+    "description": "Sends the report"
+  },
+  "orderProblemLater": "Để sau",
+  "@orderProblemLater": {
+    "description": "Closes the problem sheet"
+  },
+  "orderProblemFailed": "Chưa gửi được. Thử lại sau ít phút.",
+  "@orderProblemFailed": {
+    "description": "Reporting failed without an answer"
+  },
+  "orderProblemErrorKind": "Chọn điều chưa ổn với đơn.",
+  "@orderProblemErrorKind": {
+    "description": "No kind chosen"
+  },
+  "orderProblemReportedTitle": "Vấn đề bạn đã báo",
+  "@orderProblemReportedTitle": {
+    "description": "The problem reported"
+  },
+  "orderProblemNoteAt": "{time} · {note}",
+  "@orderProblemNoteAt": {
+    "description": "When the problem was reported, and its note",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "orderProblemSent": "Đã gửi cho {seller}",
+  "@orderProblemSent": {
+    "description": "The report went to the store",
+    "placeholders": {
+      "seller": {
+        "type": "String"
+      }
+    }
+  },
+  "orderProblemWaiting": "Quán sẽ trả lời bạn ở đây",
+  "@orderProblemWaiting": {
+    "description": "No answer yet"
+  },
+  "orderProblemAnswered": "{seller} trả lời · {time}",
+  "@orderProblemAnswered": {
+    "description": "The store's answer",
+    "placeholders": {
+      "seller": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

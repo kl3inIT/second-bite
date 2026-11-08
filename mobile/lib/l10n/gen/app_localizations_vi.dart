@@ -939,27 +939,544 @@ class AppLocalizationsVi extends AppLocalizations {
       'Số tiền giảm hiện trên đơn ngay sau khi đặt; bạn trả ít hơn tại quầy.';
 
   @override
-  String cartPlacedTitle(int orders) {
-    String _temp0 = intl.Intl.pluralLogic(
-      orders,
-      locale: localeName,
-      other: 'Đã đặt $orders đơn',
-      one: 'Đã đặt món',
-    );
-    return '$_temp0';
+  String get ordersTitle => 'Đơn của tôi';
+
+  @override
+  String get ordersLists => 'Danh sách đơn';
+
+  @override
+  String ordersTabOpen(int count) {
+    return 'Đang chờ nhận ($count)';
   }
 
   @override
-  String cartPlacedLine(String number, String seller) {
-    return '$number · $seller';
+  String get ordersTabEnded => 'Đã xong';
+
+  @override
+  String get ordersNoneOpen => 'Bạn chưa có đơn nào đang chờ nhận.';
+
+  @override
+  String get ordersNoneEnded => 'Chưa có đơn nào đã xong.';
+
+  @override
+  String ordersReadyUntil(String until) {
+    return 'Sẵn sàng · đến $until';
   }
 
   @override
-  String cartPlacedWindow(String from, String until, String total) {
-    return 'Nhận $from – $until · $total';
+  String get ordersPreparing => 'Đang chuẩn bị';
+
+  @override
+  String ordersCardMetaWindow(
+    String number,
+    String total,
+    String from,
+    String until,
+  ) {
+    return '#$number · $total · nhận $from–$until';
   }
 
   @override
-  String get cartPlacedHint =>
-      'Đọc mã đơn, tên và số điện thoại ở quầy để nhận món. Thanh toán tại quầy.';
+  String ordersCardMetaReady(String number, String total) {
+    return '#$number · $total · trả khi nhận';
+  }
+
+  @override
+  String get ordersSeeQr => 'Xem mã QR nhận món';
+
+  @override
+  String get ordersSeeOrder => 'Xem đơn';
+
+  @override
+  String get ordersDayToday => 'Hôm nay';
+
+  @override
+  String get ordersDayWeek => 'Tuần này';
+
+  @override
+  String get ordersDayBefore => 'Trước đó';
+
+  @override
+  String ordersDate(int day, int month) {
+    return '$day/$month';
+  }
+
+  @override
+  String get ordersEndedLineConfirmed => 'Đã xác nhận';
+
+  @override
+  String get ordersEndedLineReady => 'Sẵn sàng';
+
+  @override
+  String get ordersEndedLineCollected => 'Đã nhận';
+
+  @override
+  String get ordersEndedLineCancelled => 'Đã huỷ · không thu tiền';
+
+  @override
+  String get ordersEndedLineRefused => 'Quán không giao · không thu tiền';
+
+  @override
+  String get ordersEndedLineExpired => 'Hết hạn, không đến nhận';
+
+  @override
+  String get ordersSignInTitle => 'Chưa thấy đơn nào';
+
+  @override
+  String get ordersSignInBody =>
+      'Chưa có đơn nào đặt trên ứng dụng này. Nếu bạn đặt khi đã đăng nhập, đăng nhập để xem.';
+
+  @override
+  String orderNumber(String number) {
+    return 'Đơn #$number';
+  }
+
+  @override
+  String get orderHeadlineConfirmed => 'Đã xác nhận · quán đang chuẩn bị';
+
+  @override
+  String get orderHeadlineReady => 'Món đã sẵn sàng';
+
+  @override
+  String orderOpensIn(String left) {
+    return 'Nhận hôm nay · mở sau $left';
+  }
+
+  @override
+  String orderClosesIn(String left) {
+    return 'Nhận hôm nay · còn $left';
+  }
+
+  @override
+  String orderHoursMinutes(int hours, int minutes) {
+    return '$hours giờ $minutes phút';
+  }
+
+  @override
+  String orderMinutes(int minutes) {
+    return '$minutes phút';
+  }
+
+  @override
+  String orderCounterToday(String address, String from, String until) {
+    return '$address · $from–$until hôm nay';
+  }
+
+  @override
+  String orderUnits(int units) {
+    return '$units phần';
+  }
+
+  @override
+  String get orderCollectReady =>
+      'Đưa mã QR cho quầy quét hoặc đọc tên, số điện thoại để nhận món.';
+
+  @override
+  String get orderCollectLater =>
+      'Mã QR hiện khi món sẵn sàng. Có thể đọc tên, số điện thoại để nhận món.';
+
+  @override
+  String orderQrLabel(String number) {
+    return 'Mã QR nhận đơn #$number';
+  }
+
+  @override
+  String orderPlacedWith(String seller) {
+    return 'Cùng lần đặt: $seller';
+  }
+
+  @override
+  String get orderHowTitle => 'Cách nhận món';
+
+  @override
+  String get orderHowGoTitle => 'Đến quầy thu ngân';
+
+  @override
+  String get orderHowQrTitle => 'Đưa mã QR';
+
+  @override
+  String get orderHowQrBody => 'hoặc đọc tên, số ĐT';
+
+  @override
+  String get orderHowTakeTitle => 'Nhận món';
+
+  @override
+  String get orderHowTakeBody => 'Nhớ mang túi riêng';
+
+  @override
+  String get orderStepsLabel => 'Các bước của đơn';
+
+  @override
+  String get orderStepPlaced => 'Đã đặt';
+
+  @override
+  String get orderStepPreparing => 'Chuẩn bị';
+
+  @override
+  String get orderStepReady => 'Sẵn sàng';
+
+  @override
+  String get orderStepCollected => 'Hoàn tất';
+
+  @override
+  String orderOrdered(int units) {
+    return 'Món đã đặt · $units phần';
+  }
+
+  @override
+  String get orderOriginalPrice => 'Giá gốc';
+
+  @override
+  String get orderFactSaved => 'Tiết kiệm';
+
+  @override
+  String orderFactSavedValue(String saved) {
+    return '$saved so với giá gốc';
+  }
+
+  @override
+  String get orderFactTotal => 'Tổng';
+
+  @override
+  String get orderFactPayAtCounter => 'Trả tại quầy';
+
+  @override
+  String get orderFactBeforeDiscount => 'Giá trước khi giảm';
+
+  @override
+  String get orderFactNumber => 'Mã đơn';
+
+  @override
+  String get orderFactPayment => 'Thanh toán';
+
+  @override
+  String get orderFactAtCounter => 'Thanh toán tại quầy';
+
+  @override
+  String get orderFactNothing => 'Không thu tiền';
+
+  @override
+  String orderFactDiscount(String promotion, String rule) {
+    return '$promotion · $rule';
+  }
+
+  @override
+  String get orderDirectionsLabel => 'Đường đến quầy';
+
+  @override
+  String orderPlaceLine(String seller, String address) {
+    return '$seller · $address';
+  }
+
+  @override
+  String get orderDirections => 'Chỉ đường';
+
+  @override
+  String get orderSeeOthers => 'Xem món khác';
+
+  @override
+  String orderCollectedAt(String time) {
+    return 'Đã nhận món lúc $time';
+  }
+
+  @override
+  String orderSavedLine(int units) {
+    return 'Tiết kiệm so với giá gốc · $units phần không bị bỏ phí';
+  }
+
+  @override
+  String orderEndedAtCollected(String time, String date) {
+    return 'Đã nhận món lúc $time · $date';
+  }
+
+  @override
+  String get orderEndedBadgeCancelled => 'Đơn đã huỷ';
+
+  @override
+  String get orderEndedBadgeRefused => 'Quán không giao đơn này';
+
+  @override
+  String get orderEndedBadgeExpired => 'Đơn đã hết hạn';
+
+  @override
+  String get orderTimelineTitle => 'Trạng thái';
+
+  @override
+  String get orderTimelinePlaced => 'Bạn đã đặt đơn';
+
+  @override
+  String orderTimelinePlacedBody(
+    String date,
+    String time,
+    int units,
+    String total,
+  ) {
+    return '$date, $time · $units phần · $total';
+  }
+
+  @override
+  String get orderTimelineConfirmed => 'Quán xác nhận đơn';
+
+  @override
+  String orderTimelineConfirmedBody(String time, int units) {
+    return '$time · giữ $units phần cho bạn';
+  }
+
+  @override
+  String get orderTimelineCancelled => 'Bạn đã huỷ đơn';
+
+  @override
+  String orderTimelineWithReason(String time, String reason) {
+    return '$time · $reason';
+  }
+
+  @override
+  String orderTimelineReturned(int units) {
+    return '$units phần đã trả lại cho quán';
+  }
+
+  @override
+  String get orderTimelineReturnedBody => 'Người khác có thể đặt';
+
+  @override
+  String get orderTimelineReady => 'Món đã sẵn sàng';
+
+  @override
+  String orderTimelineReadyBody(String time) {
+    return '$time · quán báo bạn đến nhận';
+  }
+
+  @override
+  String orderTimelineToldBody(String date, String time) {
+    return '$date, $time · đã báo cho bạn';
+  }
+
+  @override
+  String get orderTimelineCollected => 'Bạn đã nhận món';
+
+  @override
+  String orderTimelineCollectedBody(String time, String total) {
+    return '$time · đã trả $total';
+  }
+
+  @override
+  String orderTimelineCollectedRated(String time, String total, int stars) {
+    return '$time · đã trả $total · bạn chấm $stars sao';
+  }
+
+  @override
+  String get orderTimelineRefused => 'Quán từ chối giao';
+
+  @override
+  String orderTimelineRefusedBody(String time, String reason) {
+    return '$time · lý do: $reason';
+  }
+
+  @override
+  String get orderTimelineExpired => 'Hết giờ nhận';
+
+  @override
+  String orderTimelineExpiredBody(String until) {
+    return '$until · đơn ghi là không nhận';
+  }
+
+  @override
+  String get orderTimelineSummaryCancelled =>
+      'Bạn chưa trả tiền nên không có gì phải hoàn.';
+
+  @override
+  String orderTimelineSummaryRefused(String reason) {
+    return 'Quán không giao được đơn: $reason. Bạn không phải trả tiền.';
+  }
+
+  @override
+  String orderTimelineSummaryExpired(String until) {
+    return 'Không ai đến nhận trước $until. Lần sau nếu không kịp, hãy huỷ đơn để món đến được người khác.';
+  }
+
+  @override
+  String get orderRefuseReasonNotSuitable => 'món không còn phù hợp';
+
+  @override
+  String get orderRefuseReasonWrongItems => 'món không đúng với đơn';
+
+  @override
+  String get orderRefuseReasonNoAnswer => 'quán không gọi được cho bạn';
+
+  @override
+  String get orderRefuseReasonNoShow => 'bạn chưa đến nhận';
+
+  @override
+  String get orderRefuseReasonLate => 'đã quá giờ nhận';
+
+  @override
+  String get orderRefuseReasonSoldOut => 'món đã hết';
+
+  @override
+  String get orderRefuseReasonOther => 'lý do khác';
+
+  @override
+  String get orderRefuseReasonWithdrawn => 'quán đã rút bài này';
+
+  @override
+  String get orderCancelOpen => 'Huỷ đơn';
+
+  @override
+  String orderCancelTitle(String number) {
+    return 'Huỷ đơn #$number?';
+  }
+
+  @override
+  String orderCancelBody(int units, String seller) {
+    return '$units phần sẽ trả lại cho $seller để người khác đặt.';
+  }
+
+  @override
+  String get orderCancelReason => 'Lý do huỷ (không bắt buộc)';
+
+  @override
+  String get orderCancelReasonLate => 'Không đến kịp';
+
+  @override
+  String get orderCancelReasonMistake => 'Đặt nhầm';
+
+  @override
+  String get orderCancelReasonOther => 'Lý do khác';
+
+  @override
+  String get orderCancelKeep => 'Giữ đơn';
+
+  @override
+  String get orderCancelConfirm => 'Huỷ đơn';
+
+  @override
+  String get orderCancelFailed => 'Chưa huỷ được đơn. Thử lại sau ít phút.';
+
+  @override
+  String get reviewTitle => 'Món hôm nay thế nào?';
+
+  @override
+  String get reviewHint => 'Đánh giá giúp quán và người mua sau.';
+
+  @override
+  String get reviewStarsLegend => 'Số sao';
+
+  @override
+  String reviewStar(int count) {
+    return '$count sao';
+  }
+
+  @override
+  String get reviewWord1 => 'Tệ';
+
+  @override
+  String get reviewWord2 => 'Chưa ổn';
+
+  @override
+  String get reviewWord3 => 'Bình thường';
+
+  @override
+  String get reviewWord4 => 'Tốt';
+
+  @override
+  String get reviewWord5 => 'Tuyệt vời';
+
+  @override
+  String get reviewTagsTitle => 'Điều gì làm bạn hài lòng?';
+
+  @override
+  String get reviewTagFastPickup => 'Nhận hàng nhanh';
+
+  @override
+  String get reviewTagGoodQuality => 'Chất lượng tốt';
+
+  @override
+  String get reviewTagGoodVariety => 'Đa dạng món';
+
+  @override
+  String get reviewTagFairPortions => 'Đủ số lượng';
+
+  @override
+  String get reviewComment => 'Viết vài dòng cho quán (không bắt buộc)';
+
+  @override
+  String get reviewSubmit => 'Gửi đánh giá';
+
+  @override
+  String get reviewFailed => 'Chưa gửi được đánh giá. Thử lại sau ít phút.';
+
+  @override
+  String get reviewGiven => 'Bạn đã đánh giá';
+
+  @override
+  String get reviewThanks => 'Cảm ơn bạn, quán sẽ đọc đánh giá này.';
+
+  @override
+  String get reviewErrorStars => 'Chọn số sao cho đơn.';
+
+  @override
+  String get orderProblemOpen => 'Báo vấn đề với đơn';
+
+  @override
+  String orderProblemTitle(String number) {
+    return 'Đơn #$number có vấn đề gì?';
+  }
+
+  @override
+  String get orderProblemBody =>
+      'Chọn điều chưa ổn. Chúng tôi chuyển cho quán và trả lời bạn.';
+
+  @override
+  String get orderProblemKindLegend => 'Điều chưa ổn';
+
+  @override
+  String get orderProblemKindMissingItem => 'Thiếu món';
+
+  @override
+  String get orderProblemKindWrongItem => 'Sai món';
+
+  @override
+  String get orderProblemKindPoorQuality => 'Món không đạt';
+
+  @override
+  String get orderProblemKindStoreClosed => 'Quán đóng cửa khi đến';
+
+  @override
+  String get orderProblemNote => 'Ghi thêm (không bắt buộc)';
+
+  @override
+  String get orderProblemNotePlaceholder => 'Ví dụ: thiếu 1 bánh mì chà bông';
+
+  @override
+  String get orderProblemSend => 'Gửi cho quán';
+
+  @override
+  String get orderProblemLater => 'Để sau';
+
+  @override
+  String get orderProblemFailed => 'Chưa gửi được. Thử lại sau ít phút.';
+
+  @override
+  String get orderProblemErrorKind => 'Chọn điều chưa ổn với đơn.';
+
+  @override
+  String get orderProblemReportedTitle => 'Vấn đề bạn đã báo';
+
+  @override
+  String orderProblemNoteAt(String time, String note) {
+    return '$time · $note';
+  }
+
+  @override
+  String orderProblemSent(String seller) {
+    return 'Đã gửi cho $seller';
+  }
+
+  @override
+  String get orderProblemWaiting => 'Quán sẽ trả lời bạn ở đây';
+
+  @override
+  String orderProblemAnswered(String seller, String time) {
+    return '$seller trả lời · $time';
+  }
 }

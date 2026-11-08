@@ -1574,29 +1574,909 @@ abstract class AppLocalizations {
   /// **'Số tiền giảm hiện trên đơn ngay sau khi đặt; bạn trả ít hơn tại quầy.'**
   String get cartPromotionAfter;
 
-  /// The cart page once its orders are placed
+  /// The Orders tab's title
   ///
   /// In vi, this message translates to:
-  /// **'{orders, plural, =1{Đã đặt món} other{Đã đặt {orders} đơn}}'**
-  String cartPlacedTitle(int orders);
+  /// **'Đơn của tôi'**
+  String get ordersTitle;
 
-  /// An order placed: its number and store
+  /// The label of the two lists of orders
   ///
   /// In vi, this message translates to:
-  /// **'{number} · {seller}'**
-  String cartPlacedLine(String number, String seller);
+  /// **'Danh sách đơn'**
+  String get ordersLists;
 
-  /// An order placed: when to collect and what to pay
+  /// The list of orders still to collect, with how many
   ///
   /// In vi, this message translates to:
-  /// **'Nhận {from} – {until} · {total}'**
-  String cartPlacedWindow(String from, String until, String total);
+  /// **'Đang chờ nhận ({count})'**
+  String ordersTabOpen(int count);
 
-  /// How to collect an order just placed
+  /// The list of orders that ended
   ///
   /// In vi, this message translates to:
-  /// **'Đọc mã đơn, tên và số điện thoại ở quầy để nhận món. Thanh toán tại quầy.'**
-  String get cartPlacedHint;
+  /// **'Đã xong'**
+  String get ordersTabEnded;
+
+  /// No order still to collect
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn chưa có đơn nào đang chờ nhận.'**
+  String get ordersNoneOpen;
+
+  /// No ended order
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có đơn nào đã xong.'**
+  String get ordersNoneEnded;
+
+  /// A ready order, until when to collect it
+  ///
+  /// In vi, this message translates to:
+  /// **'Sẵn sàng · đến {until}'**
+  String ordersReadyUntil(String until);
+
+  /// An order the store is preparing
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang chuẩn bị'**
+  String get ordersPreparing;
+
+  /// An open order's number, what to pay and its window
+  ///
+  /// In vi, this message translates to:
+  /// **'#{number} · {total} · nhận {from}–{until}'**
+  String ordersCardMetaWindow(
+    String number,
+    String total,
+    String from,
+    String until,
+  );
+
+  /// A ready order's number and what to pay
+  ///
+  /// In vi, this message translates to:
+  /// **'#{number} · {total} · trả khi nhận'**
+  String ordersCardMetaReady(String number, String total);
+
+  /// Opens a ready order's QR code
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem mã QR nhận món'**
+  String get ordersSeeQr;
+
+  /// Opens an order
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem đơn'**
+  String get ordersSeeOrder;
+
+  /// Ended orders of today
+  ///
+  /// In vi, this message translates to:
+  /// **'Hôm nay'**
+  String get ordersDayToday;
+
+  /// Ended orders of the six days before
+  ///
+  /// In vi, this message translates to:
+  /// **'Tuần này'**
+  String get ordersDayWeek;
+
+  /// Ended orders before that
+  ///
+  /// In vi, this message translates to:
+  /// **'Trước đó'**
+  String get ordersDayBefore;
+
+  /// A day and month
+  ///
+  /// In vi, this message translates to:
+  /// **'{day}/{month}'**
+  String ordersDate(int day, int month);
+
+  /// An order confirmed
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã xác nhận'**
+  String get ordersEndedLineConfirmed;
+
+  /// An order ready
+  ///
+  /// In vi, this message translates to:
+  /// **'Sẵn sàng'**
+  String get ordersEndedLineReady;
+
+  /// An order collected
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã nhận'**
+  String get ordersEndedLineCollected;
+
+  /// An order cancelled
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã huỷ · không thu tiền'**
+  String get ordersEndedLineCancelled;
+
+  /// An order the store refused
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán không giao · không thu tiền'**
+  String get ordersEndedLineRefused;
+
+  /// An order nobody collected
+  ///
+  /// In vi, this message translates to:
+  /// **'Hết hạn, không đến nhận'**
+  String get ordersEndedLineExpired;
+
+  /// No order known to this phone
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa thấy đơn nào'**
+  String get ordersSignInTitle;
+
+  /// Why to sign in to see orders
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có đơn nào đặt trên ứng dụng này. Nếu bạn đặt khi đã đăng nhập, đăng nhập để xem.'**
+  String get ordersSignInBody;
+
+  /// An order's title
+  ///
+  /// In vi, this message translates to:
+  /// **'Đơn #{number}'**
+  String orderNumber(String number);
+
+  /// A confirmed order, on the blue band
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã xác nhận · quán đang chuẩn bị'**
+  String get orderHeadlineConfirmed;
+
+  /// A ready order, on the blue band
+  ///
+  /// In vi, this message translates to:
+  /// **'Món đã sẵn sàng'**
+  String get orderHeadlineReady;
+
+  /// How long until the window opens
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhận hôm nay · mở sau {left}'**
+  String orderOpensIn(String left);
+
+  /// How long until the window closes
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhận hôm nay · còn {left}'**
+  String orderClosesIn(String left);
+
+  /// A span in hours and minutes
+  ///
+  /// In vi, this message translates to:
+  /// **'{hours} giờ {minutes} phút'**
+  String orderHoursMinutes(int hours, int minutes);
+
+  /// A span in minutes
+  ///
+  /// In vi, this message translates to:
+  /// **'{minutes} phút'**
+  String orderMinutes(int minutes);
+
+  /// The store's counter and today's window
+  ///
+  /// In vi, this message translates to:
+  /// **'{address} · {from}–{until} hôm nay'**
+  String orderCounterToday(String address, String from, String until);
+
+  /// How many portions an order holds
+  ///
+  /// In vi, this message translates to:
+  /// **'{units} phần'**
+  String orderUnits(int units);
+
+  /// How to collect a ready order
+  ///
+  /// In vi, this message translates to:
+  /// **'Đưa mã QR cho quầy quét hoặc đọc tên, số điện thoại để nhận món.'**
+  String get orderCollectReady;
+
+  /// How to collect an order not ready yet
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã QR hiện khi món sẵn sàng. Có thể đọc tên, số điện thoại để nhận món.'**
+  String get orderCollectLater;
+
+  /// What a screen reader says of the QR code
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã QR nhận đơn #{number}'**
+  String orderQrLabel(String number);
+
+  /// Another store's order placed from the same cart
+  ///
+  /// In vi, this message translates to:
+  /// **'Cùng lần đặt: {seller}'**
+  String orderPlacedWith(String seller);
+
+  /// How to collect an order
+  ///
+  /// In vi, this message translates to:
+  /// **'Cách nhận món'**
+  String get orderHowTitle;
+
+  /// First step of collecting
+  ///
+  /// In vi, this message translates to:
+  /// **'Đến quầy thu ngân'**
+  String get orderHowGoTitle;
+
+  /// Second step of collecting
+  ///
+  /// In vi, this message translates to:
+  /// **'Đưa mã QR'**
+  String get orderHowQrTitle;
+
+  /// Second step of collecting, its line
+  ///
+  /// In vi, this message translates to:
+  /// **'hoặc đọc tên, số ĐT'**
+  String get orderHowQrBody;
+
+  /// Third step of collecting
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhận món'**
+  String get orderHowTakeTitle;
+
+  /// Third step of collecting, its line
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhớ mang túi riêng'**
+  String get orderHowTakeBody;
+
+  /// The order's four steps
+  ///
+  /// In vi, this message translates to:
+  /// **'Các bước của đơn'**
+  String get orderStepsLabel;
+
+  /// Step: placed
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã đặt'**
+  String get orderStepPlaced;
+
+  /// Step: preparing
+  ///
+  /// In vi, this message translates to:
+  /// **'Chuẩn bị'**
+  String get orderStepPreparing;
+
+  /// Step: ready
+  ///
+  /// In vi, this message translates to:
+  /// **'Sẵn sàng'**
+  String get orderStepReady;
+
+  /// Step: collected
+  ///
+  /// In vi, this message translates to:
+  /// **'Hoàn tất'**
+  String get orderStepCollected;
+
+  /// The order's dishes, with how many portions
+  ///
+  /// In vi, this message translates to:
+  /// **'Món đã đặt · {units} phần'**
+  String orderOrdered(int units);
+
+  /// A price struck through, for a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Giá gốc'**
+  String get orderOriginalPrice;
+
+  /// What the order saved
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiết kiệm'**
+  String get orderFactSaved;
+
+  /// What the order saved, its amount
+  ///
+  /// In vi, this message translates to:
+  /// **'{saved} so với giá gốc'**
+  String orderFactSavedValue(String saved);
+
+  /// The order's total
+  ///
+  /// In vi, this message translates to:
+  /// **'Tổng'**
+  String get orderFactTotal;
+
+  /// What is paid at the counter after a discount
+  ///
+  /// In vi, this message translates to:
+  /// **'Trả tại quầy'**
+  String get orderFactPayAtCounter;
+
+  /// A total struck through, for a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Giá trước khi giảm'**
+  String get orderFactBeforeDiscount;
+
+  /// The order's number
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã đơn'**
+  String get orderFactNumber;
+
+  /// How the order is paid
+  ///
+  /// In vi, this message translates to:
+  /// **'Thanh toán'**
+  String get orderFactPayment;
+
+  /// Paid at the counter
+  ///
+  /// In vi, this message translates to:
+  /// **'Thanh toán tại quầy'**
+  String get orderFactAtCounter;
+
+  /// Nothing charged for an order that ended
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thu tiền'**
+  String get orderFactNothing;
+
+  /// The promotion and rule that took something off
+  ///
+  /// In vi, this message translates to:
+  /// **'{promotion} · {rule}'**
+  String orderFactDiscount(String promotion, String rule);
+
+  /// The way to the counter
+  ///
+  /// In vi, this message translates to:
+  /// **'Đường đến quầy'**
+  String get orderDirectionsLabel;
+
+  /// The store and its counter
+  ///
+  /// In vi, this message translates to:
+  /// **'{seller} · {address}'**
+  String orderPlaceLine(String seller, String address);
+
+  /// Opens the way in the phone's maps
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ đường'**
+  String get orderDirections;
+
+  /// Back to tonight's dishes
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem món khác'**
+  String get orderSeeOthers;
+
+  /// When a collected order was collected
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã nhận món lúc {time}'**
+  String orderCollectedAt(String time);
+
+  /// What a collected order saved
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiết kiệm so với giá gốc · {units} phần không bị bỏ phí'**
+  String orderSavedLine(int units);
+
+  /// A rated order's receipt badge
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã nhận món lúc {time} · {date}'**
+  String orderEndedAtCollected(String time, String date);
+
+  /// A cancelled order's receipt badge
+  ///
+  /// In vi, this message translates to:
+  /// **'Đơn đã huỷ'**
+  String get orderEndedBadgeCancelled;
+
+  /// A refused order's receipt badge
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán không giao đơn này'**
+  String get orderEndedBadgeRefused;
+
+  /// An expired order's receipt badge
+  ///
+  /// In vi, this message translates to:
+  /// **'Đơn đã hết hạn'**
+  String get orderEndedBadgeExpired;
+
+  /// What happened to an order
+  ///
+  /// In vi, this message translates to:
+  /// **'Trạng thái'**
+  String get orderTimelineTitle;
+
+  /// Moment: placed
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã đặt đơn'**
+  String get orderTimelinePlaced;
+
+  /// Moment: placed, its line
+  ///
+  /// In vi, this message translates to:
+  /// **'{date}, {time} · {units} phần · {total}'**
+  String orderTimelinePlacedBody(
+    String date,
+    String time,
+    int units,
+    String total,
+  );
+
+  /// Moment: confirmed
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán xác nhận đơn'**
+  String get orderTimelineConfirmed;
+
+  /// Moment: confirmed, its line
+  ///
+  /// In vi, this message translates to:
+  /// **'{time} · giữ {units} phần cho bạn'**
+  String orderTimelineConfirmedBody(String time, int units);
+
+  /// Moment: cancelled
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã huỷ đơn'**
+  String get orderTimelineCancelled;
+
+  /// A moment with its reason
+  ///
+  /// In vi, this message translates to:
+  /// **'{time} · {reason}'**
+  String orderTimelineWithReason(String time, String reason);
+
+  /// Moment: portions returned
+  ///
+  /// In vi, this message translates to:
+  /// **'{units} phần đã trả lại cho quán'**
+  String orderTimelineReturned(int units);
+
+  /// Moment: portions returned, its line
+  ///
+  /// In vi, this message translates to:
+  /// **'Người khác có thể đặt'**
+  String get orderTimelineReturnedBody;
+
+  /// Moment: ready
+  ///
+  /// In vi, this message translates to:
+  /// **'Món đã sẵn sàng'**
+  String get orderTimelineReady;
+
+  /// Moment: ready, its line
+  ///
+  /// In vi, this message translates to:
+  /// **'{time} · quán báo bạn đến nhận'**
+  String orderTimelineReadyBody(String time);
+
+  /// Moment: ready, of an expired order
+  ///
+  /// In vi, this message translates to:
+  /// **'{date}, {time} · đã báo cho bạn'**
+  String orderTimelineToldBody(String date, String time);
+
+  /// Moment: collected
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã nhận món'**
+  String get orderTimelineCollected;
+
+  /// Moment: collected, its line
+  ///
+  /// In vi, this message translates to:
+  /// **'{time} · đã trả {total}'**
+  String orderTimelineCollectedBody(String time, String total);
+
+  /// Moment: collected and rated
+  ///
+  /// In vi, this message translates to:
+  /// **'{time} · đã trả {total} · bạn chấm {stars} sao'**
+  String orderTimelineCollectedRated(String time, String total, int stars);
+
+  /// Moment: refused
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán từ chối giao'**
+  String get orderTimelineRefused;
+
+  /// Moment: refused, its line
+  ///
+  /// In vi, this message translates to:
+  /// **'{time} · lý do: {reason}'**
+  String orderTimelineRefusedBody(String time, String reason);
+
+  /// Moment: expired
+  ///
+  /// In vi, this message translates to:
+  /// **'Hết giờ nhận'**
+  String get orderTimelineExpired;
+
+  /// Moment: expired, its line
+  ///
+  /// In vi, this message translates to:
+  /// **'{until} · đơn ghi là không nhận'**
+  String orderTimelineExpiredBody(String until);
+
+  /// What a cancelled order means
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn chưa trả tiền nên không có gì phải hoàn.'**
+  String get orderTimelineSummaryCancelled;
+
+  /// What a refused order means
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán không giao được đơn: {reason}. Bạn không phải trả tiền.'**
+  String orderTimelineSummaryRefused(String reason);
+
+  /// What an expired order means
+  ///
+  /// In vi, this message translates to:
+  /// **'Không ai đến nhận trước {until}. Lần sau nếu không kịp, hãy huỷ đơn để món đến được người khác.'**
+  String orderTimelineSummaryExpired(String until);
+
+  /// Why the store refused an order
+  ///
+  /// In vi, this message translates to:
+  /// **'món không còn phù hợp'**
+  String get orderRefuseReasonNotSuitable;
+
+  /// Why the store refused an order
+  ///
+  /// In vi, this message translates to:
+  /// **'món không đúng với đơn'**
+  String get orderRefuseReasonWrongItems;
+
+  /// Why the store refused an order
+  ///
+  /// In vi, this message translates to:
+  /// **'quán không gọi được cho bạn'**
+  String get orderRefuseReasonNoAnswer;
+
+  /// Why the store refused an order
+  ///
+  /// In vi, this message translates to:
+  /// **'bạn chưa đến nhận'**
+  String get orderRefuseReasonNoShow;
+
+  /// Why the store refused an order
+  ///
+  /// In vi, this message translates to:
+  /// **'đã quá giờ nhận'**
+  String get orderRefuseReasonLate;
+
+  /// Why the store refused an order
+  ///
+  /// In vi, this message translates to:
+  /// **'món đã hết'**
+  String get orderRefuseReasonSoldOut;
+
+  /// Why the store refused an order
+  ///
+  /// In vi, this message translates to:
+  /// **'lý do khác'**
+  String get orderRefuseReasonOther;
+
+  /// Why the store refused an order
+  ///
+  /// In vi, this message translates to:
+  /// **'quán đã rút bài này'**
+  String get orderRefuseReasonWithdrawn;
+
+  /// Opens cancelling
+  ///
+  /// In vi, this message translates to:
+  /// **'Huỷ đơn'**
+  String get orderCancelOpen;
+
+  /// The cancel sheet's title
+  ///
+  /// In vi, this message translates to:
+  /// **'Huỷ đơn #{number}?'**
+  String orderCancelTitle(String number);
+
+  /// What cancelling does
+  ///
+  /// In vi, this message translates to:
+  /// **'{units} phần sẽ trả lại cho {seller} để người khác đặt.'**
+  String orderCancelBody(int units, String seller);
+
+  /// The reasons to cancel
+  ///
+  /// In vi, this message translates to:
+  /// **'Lý do huỷ (không bắt buộc)'**
+  String get orderCancelReason;
+
+  /// A reason to cancel
+  ///
+  /// In vi, this message translates to:
+  /// **'Không đến kịp'**
+  String get orderCancelReasonLate;
+
+  /// A reason to cancel
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt nhầm'**
+  String get orderCancelReasonMistake;
+
+  /// A reason to cancel
+  ///
+  /// In vi, this message translates to:
+  /// **'Lý do khác'**
+  String get orderCancelReasonOther;
+
+  /// Closes the cancel sheet
+  ///
+  /// In vi, this message translates to:
+  /// **'Giữ đơn'**
+  String get orderCancelKeep;
+
+  /// Cancels the order
+  ///
+  /// In vi, this message translates to:
+  /// **'Huỷ đơn'**
+  String get orderCancelConfirm;
+
+  /// Cancelling failed without an answer
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa huỷ được đơn. Thử lại sau ít phút.'**
+  String get orderCancelFailed;
+
+  /// The rating's title
+  ///
+  /// In vi, this message translates to:
+  /// **'Món hôm nay thế nào?'**
+  String get reviewTitle;
+
+  /// Why to rate
+  ///
+  /// In vi, this message translates to:
+  /// **'Đánh giá giúp quán và người mua sau.'**
+  String get reviewHint;
+
+  /// The stars to choose
+  ///
+  /// In vi, this message translates to:
+  /// **'Số sao'**
+  String get reviewStarsLegend;
+
+  /// A number of stars
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} sao'**
+  String reviewStar(int count);
+
+  /// The word for 1 stars
+  ///
+  /// In vi, this message translates to:
+  /// **'Tệ'**
+  String get reviewWord1;
+
+  /// The word for 2 stars
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa ổn'**
+  String get reviewWord2;
+
+  /// The word for 3 stars
+  ///
+  /// In vi, this message translates to:
+  /// **'Bình thường'**
+  String get reviewWord3;
+
+  /// The word for 4 stars
+  ///
+  /// In vi, this message translates to:
+  /// **'Tốt'**
+  String get reviewWord4;
+
+  /// The word for 5 stars
+  ///
+  /// In vi, this message translates to:
+  /// **'Tuyệt vời'**
+  String get reviewWord5;
+
+  /// What went well
+  ///
+  /// In vi, this message translates to:
+  /// **'Điều gì làm bạn hài lòng?'**
+  String get reviewTagsTitle;
+
+  /// What went well
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhận hàng nhanh'**
+  String get reviewTagFastPickup;
+
+  /// What went well
+  ///
+  /// In vi, this message translates to:
+  /// **'Chất lượng tốt'**
+  String get reviewTagGoodQuality;
+
+  /// What went well
+  ///
+  /// In vi, this message translates to:
+  /// **'Đa dạng món'**
+  String get reviewTagGoodVariety;
+
+  /// What went well
+  ///
+  /// In vi, this message translates to:
+  /// **'Đủ số lượng'**
+  String get reviewTagFairPortions;
+
+  /// The rating's comment
+  ///
+  /// In vi, this message translates to:
+  /// **'Viết vài dòng cho quán (không bắt buộc)'**
+  String get reviewComment;
+
+  /// Sends the rating
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi đánh giá'**
+  String get reviewSubmit;
+
+  /// Rating failed without an answer
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa gửi được đánh giá. Thử lại sau ít phút.'**
+  String get reviewFailed;
+
+  /// The rating given
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã đánh giá'**
+  String get reviewGiven;
+
+  /// Thanks for rating
+  ///
+  /// In vi, this message translates to:
+  /// **'Cảm ơn bạn, quán sẽ đọc đánh giá này.'**
+  String get reviewThanks;
+
+  /// No star chosen
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn số sao cho đơn.'**
+  String get reviewErrorStars;
+
+  /// Opens the problem report
+  ///
+  /// In vi, this message translates to:
+  /// **'Báo vấn đề với đơn'**
+  String get orderProblemOpen;
+
+  /// The problem sheet's title
+  ///
+  /// In vi, this message translates to:
+  /// **'Đơn #{number} có vấn đề gì?'**
+  String orderProblemTitle(String number);
+
+  /// What reporting does
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn điều chưa ổn. Chúng tôi chuyển cho quán và trả lời bạn.'**
+  String get orderProblemBody;
+
+  /// The kinds of problem
+  ///
+  /// In vi, this message translates to:
+  /// **'Điều chưa ổn'**
+  String get orderProblemKindLegend;
+
+  /// A kind of problem
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiếu món'**
+  String get orderProblemKindMissingItem;
+
+  /// A kind of problem
+  ///
+  /// In vi, this message translates to:
+  /// **'Sai món'**
+  String get orderProblemKindWrongItem;
+
+  /// A kind of problem
+  ///
+  /// In vi, this message translates to:
+  /// **'Món không đạt'**
+  String get orderProblemKindPoorQuality;
+
+  /// A kind of problem
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán đóng cửa khi đến'**
+  String get orderProblemKindStoreClosed;
+
+  /// The problem's note
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghi thêm (không bắt buộc)'**
+  String get orderProblemNote;
+
+  /// An example note
+  ///
+  /// In vi, this message translates to:
+  /// **'Ví dụ: thiếu 1 bánh mì chà bông'**
+  String get orderProblemNotePlaceholder;
+
+  /// Sends the report
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi cho quán'**
+  String get orderProblemSend;
+
+  /// Closes the problem sheet
+  ///
+  /// In vi, this message translates to:
+  /// **'Để sau'**
+  String get orderProblemLater;
+
+  /// Reporting failed without an answer
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa gửi được. Thử lại sau ít phút.'**
+  String get orderProblemFailed;
+
+  /// No kind chosen
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn điều chưa ổn với đơn.'**
+  String get orderProblemErrorKind;
+
+  /// The problem reported
+  ///
+  /// In vi, this message translates to:
+  /// **'Vấn đề bạn đã báo'**
+  String get orderProblemReportedTitle;
+
+  /// When the problem was reported, and its note
+  ///
+  /// In vi, this message translates to:
+  /// **'{time} · {note}'**
+  String orderProblemNoteAt(String time, String note);
+
+  /// The report went to the store
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi cho {seller}'**
+  String orderProblemSent(String seller);
+
+  /// No answer yet
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán sẽ trả lời bạn ở đây'**
+  String get orderProblemWaiting;
+
+  /// The store's answer
+  ///
+  /// In vi, this message translates to:
+  /// **'{seller} trả lời · {time}'**
+  String orderProblemAnswered(String seller, String time);
 }
 
 class _AppLocalizationsDelegate

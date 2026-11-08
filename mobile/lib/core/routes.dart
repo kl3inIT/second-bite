@@ -14,6 +14,8 @@ import 'package:second_bite/features/offer/ui/home_screen.dart';
 import 'package:second_bite/features/offer/ui/offer_link_screen.dart';
 import 'package:second_bite/features/offer/ui/seller_screen.dart';
 import 'package:second_bite/features/order/ui/cart_screen.dart';
+import 'package:second_bite/features/order/ui/order_screen.dart';
+import 'package:second_bite/features/order/ui/orders_screen.dart';
 
 part 'routes.g.dart';
 
@@ -28,6 +30,14 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
   branches: [
     TypedStatefulShellBranch<HomeBranch>(
       routes: [TypedGoRoute<HomeRoute>(path: '/')],
+    ),
+    TypedStatefulShellBranch<OrdersBranch>(
+      routes: [
+        TypedGoRoute<OrdersRoute>(
+          path: '/orders',
+          routes: [TypedGoRoute<OrderRoute>(path: ':orderId')],
+        ),
+      ],
     ),
     TypedStatefulShellBranch<AccountBranch>(
       routes: [
@@ -57,6 +67,12 @@ class HomeBranch extends StatefulShellBranchData {
   const new();
 }
 
+/// The orders tab.
+class OrdersBranch extends StatefulShellBranchData {
+  /// The orders tab.
+  const new();
+}
+
 /// The account tab.
 class AccountBranch extends StatefulShellBranchData {
   /// The account tab.
@@ -82,6 +98,37 @@ class HomeRoute extends GoRouteData with $HomeRoute {
   Widget build(BuildContext context, GoRouterState state) => HomeScreen(
     query: readHomeQuery(q: q, kind: kind, now: now),
   );
+}
+
+/// The orders tab at `/orders`, as on the web (SEC-204): the orders still to
+/// collect, or with `?state=ended` those that ended.
+class OrdersRoute extends GoRouteData with $OrdersRoute {
+  /// The route to the orders tab, on [state]'s list.
+  const new({this.state});
+
+  /// `ended` for the orders that ended; the others otherwise.
+  final String? state;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      OrdersScreen(ended: this.state == 'ended');
+}
+
+/// An order's page at `/orders/:orderId`, as on the web (SEC-204): over the
+/// tabs, with its own blue band.
+class OrderRoute extends GoRouteData with $OrderRoute {
+  /// The route to [orderId]'s page.
+  const new({required this.orderId});
+
+  /// The order.
+  final String orderId;
+
+  /// Opens over the tabs.
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      OrderScreen(orderId: orderId);
 }
 
 /// The account tab at `/account`, as on the web.
