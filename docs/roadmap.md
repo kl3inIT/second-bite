@@ -39,6 +39,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 ## Active
 
 - [Buyer discount](increments/active/buyer-discount/design.md) — promotions an admin runs, taken off an order when it is placed, for the two-week support programme from 2 November 2026; the server first, then the web, the store's app and the programme's figures.
+- [SEC-204 — Ordering in the app for customers](increments/active/sec-204-app-ordering/design.md): the web's customer flow in the Flutter app, from a store's page to an order's live page and its chat; stores keep the web (decided 8 November 2026).
 - [SEC-158 — Order limits](increments/active/sec-158-order-limits/design.md) — a cap per dish in one order that the store may set, open orders per phone number at a store, and missed orders blocking a number for some days.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
 
@@ -50,7 +51,7 @@ In the order the pilot needs them; each starts as an increment when it is taken.
 2. SEC-16 — Offer drafts from a seller's words, voice or photo, reviewed by staff before they are posted.
 3. SEC-20 — AI search for customers in words or voice, answered in their language.
 4. SEC-13 — Admins handling the problems customers report, cancellation and refund requests.
-5. SEC-12 — The Flutter app's ordering and store screens, after the beta of 16 November 2026 as the sponsor's plan has it.
+5. SEC-12 — The Flutter app: the customer's ordering is SEC-204; push and opening shared links in the app follow it. Stores keep the web.
 6. SEC-14 — Distribution to testers through TestFlight and Google Play internal testing.
 
 Before the beta of 16 November 2026: SEC-24 — Brevo's delivery reports and suppressed addresses.
