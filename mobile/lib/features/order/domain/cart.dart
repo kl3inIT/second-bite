@@ -12,10 +12,10 @@ part 'cart.g.dart';
 
 // The cart until it is ordered, as the web's (web/src/features/cart/cart.ts,
 // SEC-49 decision 7): dishes of any stores, each never more than its
-// portions left, kept as the cards showed them so the confirmation needs no
-// request of its own. Each store's dishes are a basket, ordered on its own
-// since an order holds one store's dishes (SEC-15). The JSON is the web's,
-// so the two read the same shape.
+// portions left or its cap per order (SEC-158), kept as the cards showed
+// them so the confirmation needs no request of its own. Each store's dishes
+// are a basket, ordered on its own since an order holds one store's dishes
+// (SEC-15). The JSON is the web's, so the two read the same shape.
 
 /// {@template cart_line}
 /// A dish in the cart: what its card showed, and how many portions.
@@ -72,12 +72,12 @@ abstract class Cart with _$Cart {
 /// The portions, what they cost tonight and what they would have cost.
 typedef CartTotals = ({int units, int priceVnd, int originalPriceVnd});
 
-/// One more portion of [offer], in its store's basket, never more than its
-/// portions left.
+/// One more portion of [offer], in its store's basket, never more than one
+/// order may hold of it.
 Cart addOne(Cart? cart, OfferSummary offer) => addPortions(cart, offer, 1);
 
 /// [count] more portions of [offer], as the dish's sheet adds them, never
-/// more than its portions left.
+/// more than one order may hold of it: its portions left, or its cap.
 Cart addPortions(Cart? cart, OfferSummary offer, int count) {
   final baskets = cart?.baskets ?? const <Basket>[];
   final basket = baskets
@@ -89,7 +89,7 @@ Cart addPortions(Cart? cart, OfferSummary offer, int count) {
   final line = basket.lines.where((each) => each.id == offer.id).firstOrNull;
   final updated = _lineOf(
     offer,
-    math.min((line?.quantity ?? 0) + count, offer.unitsLeft),
+    math.min((line?.quantity ?? 0) + count, offer.mostPerOrder),
   );
   final lines = [
     for (final each in basket.lines)
@@ -272,7 +272,7 @@ Basket _basketOf(OfferSummary offer, int count) => Basket(
   seller: offer.seller,
   collectionPoint: offer.collectionPoint,
   distanceMeters: offer.distanceMeters,
-  lines: [_lineOf(offer, math.min(count, offer.unitsLeft))],
+  lines: [_lineOf(offer, math.min(count, offer.mostPerOrder))],
 );
 
 CartLine _lineOf(OfferSummary offer, int quantity) => CartLine(
@@ -280,7 +280,9 @@ CartLine _lineOf(OfferSummary offer, int quantity) => CartLine(
   name: offer.name,
   priceVnd: offer.priceVnd,
   originalPriceVnd: offer.originalPriceVnd,
-  unitsLeft: offer.unitsLeft,
+  // As the web keeps it: the most one order may hold, so the cart's own −
+  // and + stop at the cap too.
+  unitsLeft: offer.mostPerOrder,
   windowStart: offer.windowStart,
   windowEnd: offer.windowEnd,
   quantity: quantity,

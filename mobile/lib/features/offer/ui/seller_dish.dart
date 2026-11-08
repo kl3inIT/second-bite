@@ -126,7 +126,7 @@ class _DishSheetState extends ConsumerState<DishSheet> {
     final scheme = Theme.of(context).colorScheme;
     final muted = text.bodySm.copyWith(color: scheme.onSurfaceVariant);
     final room =
-        offer.unitsLeft -
+        offer.mostPerOrder -
         quantityOf(ref.watch(keptCartProvider).value, offer.id);
     final original = formatPrice(offer.originalPriceVnd);
     final weight = offer.weightGrams;
@@ -247,10 +247,24 @@ class _DishSheetState extends ConsumerState<DishSheet> {
                       child: Text(
                         room > 0
                             ? l10n.dishAdd(formatPrice(_count * offer.priceVnd))
-                            : l10n.dishAllChosen(offer.unitsLeft),
+                            : offer.cappedPerOrder
+                            ? l10n.dishCapChosen(offer.mostPerOrder)
+                            : l10n.dishAllChosen(offer.mostPerOrder),
                       ),
                     ),
                   ),
+                  // The cap is said under the button, so a customer knows
+                  // why the + stops before the portions left (SEC-158).
+                  if (offer.cappedPerOrder)
+                    SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        l10n.dishPerOrder(offer.perOrderMax),
+                        style: text.label.copyWith(
+                          color: context.appColors.warningForeground,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

@@ -196,5 +196,8 @@
   "cartQuantity": "{quantity} {name} in the cart",
   "cartSummary": "{units} portions · save {saved}",
   "cartPortionsLeft": "{units} left",
-  "cartPortionsChosen": "all {units} chosen"
+  "cartPortionsChosen": "all {units} chosen",
+  "cartPortionsCapped": "at most {units} per order",
+  "dishCapChosen": "Chosen the most per order: {units} portions",
+  "dishPerOrder": "At most {units} portions per order"
 }

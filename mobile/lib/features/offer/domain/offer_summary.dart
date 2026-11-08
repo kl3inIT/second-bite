@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:second_bite/core/api.dart';
 
 /// An offer as `GET /offers` returns it (SEC-11 › Finding offers), with its
@@ -33,6 +35,15 @@ extension HomeQueryRules on HomeQuery {
 extension OfferSummaryRules on OfferSummary {
   /// Whether the offer can still be ordered: on sale with units left.
   bool get isAvailable => status == FoundBodyStatus.onSale && unitsLeft > 0;
+
+  /// The most portions one order may hold: the portions left, or fewer
+  /// under the dish's cap per order (SEC-158), as the web's `mostPerOrder`.
+  int get mostPerOrder => math.min(unitsLeft, perOrderMax);
+
+  /// Whether the dish's cap per order is below its portions left, so the
+  /// customer is told why they cannot add more, as the web's
+  /// `cappedPerOrder`.
+  bool get cappedPerOrder => perOrderMax < unitsLeft;
 }
 
 /// The list in the order the home shows it: what can be ordered, then what

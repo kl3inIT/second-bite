@@ -729,4 +729,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String cartPortionsChosen(int units) {
     return 'all $units chosen';
   }
+
+  @override
+  String cartPortionsCapped(int units) {
+    return 'at most $units per order';
+  }
+
+  @override
+  String dishCapChosen(int units) {
+    return 'Chosen the most per order: $units portions';
+  }
+
+  @override
+  String dishPerOrder(int units) {
+    return 'At most $units portions per order';
+  }
 }

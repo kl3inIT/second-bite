@@ -1008,5 +1008,32 @@
         "type": "int"
       }
     }
+  },
+  "cartPortionsCapped": "tối đa {units} phần mỗi đơn",
+  "@cartPortionsCapped": {
+    "description": "Under a dish once the cart holds the most one order may (SEC-158)",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "dishCapChosen": "Đã chọn tối đa {units} phần mỗi đơn",
+  "@dishCapChosen": {
+    "description": "The dish sheet's button once the cart holds the most one order may",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "dishPerOrder": "Tối đa {units} phần mỗi đơn",
+  "@dishPerOrder": {
+    "description": "Under the dish sheet's button when the dish has a cap below its portions left",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -727,4 +727,19 @@ class AppLocalizationsVi extends AppLocalizations {
   String cartPortionsChosen(int units) {
     return 'đã chọn đủ $units phần';
   }
+
+  @override
+  String cartPortionsCapped(int units) {
+    return 'tối đa $units phần mỗi đơn';
+  }
+
+  @override
+  String dishCapChosen(int units) {
+    return 'Đã chọn tối đa $units phần mỗi đơn';
+  }
+
+  @override
+  String dishPerOrder(int units) {
+    return 'Tối đa $units phần mỗi đơn';
+  }
 }

@@ -1279,6 +1279,24 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'đã chọn đủ {units} phần'**
   String cartPortionsChosen(int units);
+
+  /// Under a dish once the cart holds the most one order may (SEC-158)
+  ///
+  /// In vi, this message translates to:
+  /// **'tối đa {units} phần mỗi đơn'**
+  String cartPortionsCapped(int units);
+
+  /// The dish sheet's button once the cart holds the most one order may
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chọn tối đa {units} phần mỗi đơn'**
+  String dishCapChosen(int units);
+
+  /// Under the dish sheet's button when the dish has a cap below its portions left
+  ///
+  /// In vi, this message translates to:
+  /// **'Tối đa {units} phần mỗi đơn'**
+  String dishPerOrder(int units);
 }
 
 class _AppLocalizationsDelegate

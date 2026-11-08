@@ -8,8 +8,9 @@ import 'package:second_bite/l10n/l10n.dart';
 
 /// {@template cart_stepper}
 /// A dish's − and + on its store's page, on the cart: a lone + until the dish
-/// is in the cart, then − count +, the + stopping at the portions left, as
-/// the web's `QuantityStepper`. Nothing for a dish that cannot be ordered.
+/// is in the cart, then − count +, the + stopping at the portions left or the
+/// dish's cap per order, as the web's `QuantityStepper`. Nothing for a dish
+/// that cannot be ordered.
 /// {@endtemplate}
 class CartStepper extends ConsumerWidget {
   /// {@macro cart_stepper}
@@ -30,7 +31,7 @@ class CartStepper extends ConsumerWidget {
       addLabel: l10n.cartAdd(offer.name),
       removeLabel: l10n.cartRemove(offer.name),
       quantityLabel: l10n.cartQuantity(quantity, offer.name),
-      onAdd: quantity < offer.unitsLeft ? () => cart.addOne(offer) : null,
+      onAdd: quantity < offer.mostPerOrder ? () => cart.addOne(offer) : null,
       onRemove: () => cart.removeOne(offer.id),
     );
   }
@@ -38,7 +39,8 @@ class CartStepper extends ConsumerWidget {
 
 /// {@template cart_portions}
 /// "còn 3 phần" under a dish, "đã chọn đủ 3 phần" once the cart holds every
-/// portion left, as the web's `CartPortions`.
+/// portion left, or "tối đa 2 phần mỗi đơn" once it holds the most one order
+/// may (SEC-158), as the web's `CartPortions`.
 /// {@endtemplate}
 class CartPortions extends ConsumerWidget {
   /// {@macro cart_portions}
@@ -50,14 +52,16 @@ class CartPortions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final most = offer.mostPerOrder;
     final full =
-        quantityOf(ref.watch(keptCartProvider).value, offer.id) >=
-        offer.unitsLeft;
+        quantityOf(ref.watch(keptCartProvider).value, offer.id) >= most;
 
     return Text(
-      full
-          ? l10n.cartPortionsChosen(offer.unitsLeft)
-          : l10n.cartPortionsLeft(offer.unitsLeft),
+      !full
+          ? l10n.cartPortionsLeft(offer.unitsLeft)
+          : offer.cappedPerOrder
+          ? l10n.cartPortionsCapped(most)
+          : l10n.cartPortionsChosen(most),
       style: context.appTextStyles.label.copyWith(
         color: Theme.of(context).colorScheme.error,
       ),
