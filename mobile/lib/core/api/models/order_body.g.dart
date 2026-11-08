@@ -15,7 +15,6 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
   customerPhone: json['customerPhone'] as String,
   discountVnd: (json['discountVnd'] as num).toInt(),
   id: json['id'] as String,
-  large: json['large'] as bool,
   lines: (json['lines'] as List<dynamic>)
       .map((e) => OrderLineBody.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -35,9 +34,6 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
       ? null
       : DateTime.parse(json['collectedAt'] as String),
   messageCount: (json['messageCount'] as num?)?.toInt(),
-  phone: json['phone'] == null
-      ? null
-      : PhoneHistoryBody.fromJson(json['phone'] as Map<String, dynamic>),
   problem: json['problem'] == null
       ? null
       : ProblemBody.fromJson(json['problem'] as Map<String, dynamic>),
@@ -70,7 +66,6 @@ Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
       'customerPhone': instance.customerPhone,
       'discountVnd': instance.discountVnd,
       'id': instance.id,
-      'large': instance.large,
       'lines': instance.lines,
       'number': instance.number,
       'payVnd': instance.payVnd,
@@ -84,7 +79,6 @@ Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
       'cancelledAt': instance.cancelledAt?.toIso8601String(),
       'collectedAt': instance.collectedAt?.toIso8601String(),
       'messageCount': instance.messageCount,
-      'phone': instance.phone,
       'problem': instance.problem,
       'promotion': instance.promotion,
       'readyAt': instance.readyAt?.toIso8601String(),
@@ -114,6 +108,5 @@ const _$OrderBodyRefuseReasonEnumMap = {
   OrderBodyRefuseReason.soldOut: 'sold_out',
   OrderBodyRefuseReason.other: 'other',
   OrderBodyRefuseReason.withdrawn: 'withdrawn',
-  OrderBodyRefuseReason.suspected: 'suspected',
   OrderBodyRefuseReason.$unknown: r'$unknown',
 };

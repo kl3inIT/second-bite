@@ -226,13 +226,6 @@ function CancelOrderForm({
           </fieldset>
         )}
       </form.AppField>
-      <form.Subscribe selector={(state) => state.values.reason === "suspected"}>
-        {(suspected) =>
-          suspected && (
-            <p className="text-body-sm text-muted-foreground">{t("cancelDialog.suspected")}</p>
-          )
-        }
-      </form.Subscribe>
       <form.Subscribe selector={(state) => state.values.reason === "other"}>
         {(other) =>
           other && (

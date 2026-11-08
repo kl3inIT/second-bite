@@ -1757,9 +1757,6 @@ components:
           type: integer
         id:
           type: string
-        large:
-          description: "To the seller's people and admins: a line reached its dish's cap or took more than half the units posted (SEC-158); false to its customer"
-          type: boolean
         lines:
           items:
             $ref: "#/components/schemas/OrderLineBody"
@@ -1775,9 +1772,6 @@ components:
           description: "Paid to the seller at the counter: totalVnd less discountVnd"
           format: int64
           type: integer
-        phone:
-          $ref: "#/components/schemas/PhoneHistoryBody"
-          description: "To the seller's people and admins, on its page and the seller's list: what its phone number holds and missed; none to its customer"
         problem:
           $ref: "#/components/schemas/ProblemBody"
           description: What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
@@ -1799,7 +1793,6 @@ components:
             - sold_out
             - other
             - withdrawn
-            - suspected
           type: string
         refusedAt:
           format: date-time
@@ -1851,7 +1844,6 @@ components:
         - customerPhone
         - canReview
         - canReportProblem
-        - large
       type: object
     OrderCountsBody:
       additionalProperties: false
@@ -1982,12 +1974,6 @@ components:
           maximum: 20
           minimum: 1
           type: integer
-        openPerAddress:
-          description: Orders still to collect that may have been placed from one address; loose, as a mall's Wi-Fi is shared
-          format: int64
-          maximum: 500
-          minimum: 1
-          type: integer
         openPerPhonePerSeller:
           description: Orders still to collect one phone number may hold at a store
           format: int64
@@ -2003,7 +1989,6 @@ components:
           type: string
       required:
         - openPerPhonePerSeller
-        - openPerAddress
         - missedLimit
         - missedDays
       type: object
@@ -2080,21 +2065,6 @@ components:
         - amountVnd
         - orders
         - newCustomers
-      type: object
-    PhoneHistoryBody:
-      additionalProperties: false
-      properties:
-        missed:
-          description: "Orders it missed at any seller in the order settings' missedDays: no hand-over by the window's end, or refused as no answer, no show, late or suspected"
-          format: int64
-          type: integer
-        open:
-          description: Orders the phone number holds at this seller still to collect, this one included
-          format: int64
-          type: integer
-      required:
-        - open
-        - missed
       type: object
     PhotoBody:
       additionalProperties: false
@@ -2566,7 +2536,6 @@ components:
             - late
             - sold_out
             - other
-            - suspected
           type: string
       required:
         - reason

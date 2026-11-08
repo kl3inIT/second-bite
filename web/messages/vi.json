@@ -517,8 +517,7 @@
         "late": "đã quá giờ nhận",
         "sold_out": "món đã hết",
         "other": "lý do khác",
-        "withdrawn": "quán đã rút bài này",
-        "suspected": "quán nghi đơn không có người đến lấy"
+        "withdrawn": "quán đã rút bài này"
       },
       "expired": "Hết giờ nhận",
       "expiredBody": "{until} · đơn ghi là không nhận",
@@ -991,8 +990,7 @@
       "other": "Lý do khác",
       "not_suitable": "Món không còn phù hợp",
       "wrong_items": "Sai món",
-      "withdrawn": "Quán đã rút bài",
-      "suspected": "Nghi đặt ảo"
+      "withdrawn": "Quán đã rút bài"
     },
     "ended": {
       "customer": "Khách tự hủy trên trang người dùng",
@@ -1005,8 +1003,7 @@
       "body": "Chọn lý do. Khi khách không đến, phần món được trả lại để bán.",
       "note": "Ghi lý do",
       "back": "Quay lại",
-      "confirm": "Hủy đơn",
-      "suspected": "Đơn hủy vì nghi đặt ảo được tính là một lần bỏ đơn của số điện thoại này. Phần món được trả lại để bán."
+      "confirm": "Hủy đơn"
     },
     "detail": {
       "pushedTitle": "Chi tiết đơn",
@@ -1056,15 +1053,6 @@
       "preparing": "Chuẩn bị",
       "ready": "Sẵn sàng",
       "collected": "Hoàn tất"
-    },
-    "large": {
-      "badge": "Đơn lớn",
-      "title": "Số này đang có đơn khác",
-      "history": "{missed, plural, =0 {Số này giữ {open} đơn} other {Số này giữ {open} đơn, bỏ {missed} đơn}}",
-      "historyLong": "{missed, plural, =0 {Số này đang giữ {open} đơn ở quán.} other {Số này đang giữ {open} đơn ở quán, bỏ {missed} đơn gần đây.}}",
-      "units": "Khách đặt {count} {unit} {name}.",
-      "advice": "Nếu nghi đặt ảo, hãy gọi hỏi khách, hoặc bấm Hủy đơn và chọn Nghi đặt ảo để món được bán lại.",
-      "call": "Gọi khách · {phone}"
     }
   },
   "DayFilter": {
@@ -1376,7 +1364,6 @@
         "rules": "Ưu đãi",
         "defaultMaxPerOrder": "Tối đa mỗi đơn mặc định",
         "openPerPhonePerSeller": "Đơn chưa lấy mỗi số ở một quán",
-        "openPerAddress": "Đơn chưa lấy mỗi mạng",
         "missedLimit": "Số đơn bỏ thì chặn",
         "missedDays": "Số ngày tính đơn bỏ"
       },
@@ -2258,14 +2245,12 @@
       "open": {
         "title": "Đơn chưa lấy",
         "perPhone": "Mỗi số điện thoại ở một quán (đơn)",
-        "perPhoneHint": "Từ 1 đến 20.",
-        "perAddress": "Mỗi mạng (IP) (đơn)",
-        "perAddressHint": "Từ 1 đến 500. Đặt rộng tay, vì nhiều khách dùng chung wifi của mall."
+        "perPhoneHint": "Từ 1 đến 20."
       },
       "missed": {
         "title": "Khách bỏ đơn",
         "limit": "Chặn khi số điện thoại bỏ (đơn)",
-        "limitHint": "Đơn hết giờ mà không ai lấy, hoặc quán hủy vì không nghe máy, không đến, quá giờ, nghi đặt ảo.",
+        "limitHint": "Đơn hết giờ mà không ai lấy, hoặc quán hủy vì không nghe máy, không đến, quá giờ.",
         "days": "Trong vòng (ngày)",
         "daysHint": "Từ 1 đến 60. Qua số ngày này thì số được đặt lại."
       },

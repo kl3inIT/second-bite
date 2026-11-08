@@ -16,9 +16,6 @@ abstract class OrderSettingsBody with _$OrderSettingsBody {
     /// Orders missed within missedDays that stop a phone number ordering
     required int missedLimit,
 
-    /// Orders still to collect that may have been placed from one address; loose, as a mall's Wi-Fi is shared
-    required int openPerAddress,
-
     /// Orders still to collect one phone number may hold at a store
     required int openPerPhonePerSeller,
     DateTime? updatedAt,

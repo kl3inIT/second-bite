@@ -517,8 +517,7 @@
         "late": "the collection time had passed",
         "sold_out": "the food ran out",
         "other": "another reason",
-        "withdrawn": "the store withdrew this post",
-        "suspected": "the store doubted anyone would collect it"
+        "withdrawn": "the store withdrew this post"
       },
       "expired": "Collection time over",
       "expiredBody": "{until} · recorded as not collected",
@@ -991,8 +990,7 @@
       "other": "Another reason",
       "not_suitable": "Food no longer suitable",
       "wrong_items": "Wrong dish",
-      "withdrawn": "Post withdrawn",
-      "suspected": "Suspected fake order"
+      "withdrawn": "Post withdrawn"
     },
     "ended": {
       "customer": "Cancelled by the customer on the customer site",
@@ -1005,8 +1003,7 @@
       "body": "Choose a reason. When the customer did not come, the portions go back on sale.",
       "note": "Write the reason",
       "back": "Go back",
-      "confirm": "Cancel order",
-      "suspected": "An order cancelled as a suspected fake counts as one missed by this phone number. Its portions go back on sale."
+      "confirm": "Cancel order"
     },
     "detail": {
       "pushedTitle": "Order",
@@ -1056,15 +1053,6 @@
       "preparing": "Preparing",
       "ready": "Ready",
       "collected": "Done"
-    },
-    "large": {
-      "badge": "Large order",
-      "title": "This number has other orders",
-      "history": "{missed, plural, =0 {This number holds {open} orders} other {This number holds {open} orders, missed {missed}}}",
-      "historyLong": "{missed, plural, =0 {This number holds {open} orders at your store.} other {This number holds {open} orders at your store and missed {missed} lately.}}",
-      "units": "{count} {unit} of {name} ordered.",
-      "advice": "If you doubt it, call the customer, or cancel it as a suspected fake order so the food goes back on sale.",
-      "call": "Call · {phone}"
     }
   },
   "DayFilter": {
@@ -1376,7 +1364,6 @@
         "rules": "Rules",
         "defaultMaxPerOrder": "Default most per order",
         "openPerPhonePerSeller": "Open orders per number at a store",
-        "openPerAddress": "Open orders per network",
         "missedLimit": "Missed orders that stop a number",
         "missedDays": "Days missed orders count"
       },
@@ -2258,14 +2245,12 @@
       "open": {
         "title": "Orders still to collect",
         "perPhone": "Per phone number at one store (orders)",
-        "perPhoneHint": "From 1 to 20.",
-        "perAddress": "Per network (IP) (orders)",
-        "perAddressHint": "From 1 to 500. Keep it wide: many customers share the mall's Wi-Fi."
+        "perPhoneHint": "From 1 to 20."
       },
       "missed": {
         "title": "Missed orders",
         "limit": "Stop a phone number after missing (orders)",
-        "limitHint": "An order nobody collected in time, or one the store cancelled as no answer, no show, too late or a suspected fake.",
+        "limitHint": "An order nobody collected in time, or one the store cancelled as no answer, no show or too late.",
         "days": "Within (days)",
         "daysHint": "From 1 to 60. Once these days pass, the number may order again."
       },

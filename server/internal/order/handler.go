@@ -74,7 +74,7 @@ type orderBody struct {
 	CancelledAt      *time.Time          `json:"cancelledAt,omitempty"`
 	RefusedAt        *time.Time          `json:"refusedAt,omitempty"`
 	CancelReason     string              `json:"cancelReason,omitempty"`
-	RefuseReason     RefuseReason        `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other,withdrawn,suspected"`
+	RefuseReason     RefuseReason        `json:"refuseReason,omitempty" enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other,withdrawn"`
 	RefuseNote       string              `json:"refuseNote,omitempty"`
 	CheckoutID       uuid.UUID           `json:"checkoutId"             doc:"Shared by the orders placed together from one cart"`
 	CustomerName     string              `json:"customerName"           doc:"Who collects, as given with the order; empty once the customer deleted their account"`
@@ -85,14 +85,7 @@ type orderBody struct {
 	CanReportProblem bool                `json:"canReportProblem"       doc:"The order is collected or expired, within two days, and no problem was reported yet"`
 	Unread           *int                `json:"unreadMessages,omitempty" doc:"Messages of its chat the reader has not read: from the seller for the customer, from the customer for the seller's people; none for admins"`
 	Messages         *int                `json:"messageCount,omitempty" doc:"Messages its chat holds, with unreadMessages; none for admins"`
-	Large            bool                `json:"large"                  doc:"To the seller's people and admins: a line reached its dish's cap or took more than half the units posted (SEC-158); false to its customer"`
-	Phone            *phoneHistoryBody   `json:"phone,omitempty"        doc:"To the seller's people and admins, on its page and the seller's list: what its phone number holds and missed; none to its customer"`
 	Access           string              `json:"access,omitempty"       doc:"To its customer: proves the order is theirs without signing in, sent back as Order-Access"`
-}
-
-type phoneHistoryBody struct {
-	Open   int `json:"open"   doc:"Orders the phone number holds at this seller still to collect, this one included"`
-	Missed int `json:"missed" doc:"Orders it missed at any seller in the order settings' missedDays: no hand-over by the window's end, or refused as no answer, no show, late or suspected"`
 }
 
 type orderPromotionBody struct {
@@ -130,11 +123,6 @@ func toBody(o Order) orderBody {
 		})
 	}
 
-	var phone *phoneHistoryBody
-	if h := o.Phone; h != nil {
-		phone = &phoneHistoryBody{Open: h.Open, Missed: h.Missed}
-	}
-
 	var promotion *orderPromotionBody
 
 	var discount int64
@@ -156,7 +144,7 @@ func toBody(o Order) orderBody {
 		CheckoutID: o.CheckoutID, CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Review: review, Access: o.Access,
 		CanReview: o.Status == StatusCollected && !o.Reviewed,
 		Problem:   problem, CanReportProblem: o.CanReportProblem,
-		Unread: o.UnreadMessages, Messages: o.MessageCount, Large: o.Large, Phone: phone,
+		Unread: o.UnreadMessages, Messages: o.MessageCount,
 	}
 }
 
@@ -649,7 +637,7 @@ func registerStaffOperations(api huma.API, s *Service) {
 	}, func(ctx context.Context, in *struct {
 		OrderID uuid.UUID `path:"orderId"`
 		Body    struct {
-			Reason RefuseReason `json:"reason"         enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other,suspected"`
+			Reason RefuseReason `json:"reason"         enum:"not_suitable,wrong_items,no_answer,no_show,late,sold_out,other"`
 			Note   string       `json:"note,omitempty" maxLength:"200"`
 		}
 	},

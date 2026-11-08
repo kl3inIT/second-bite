@@ -1131,8 +1131,7 @@ UPDATE offer_offers SET units_left = units_left - $1, updated_at = now()
 WHERE offer_offers.id = $2 AND state = 'on_sale' AND window_end > now() AND units_left >= $1
   AND $1 <= COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))
 RETURNING id, seller_id, name, unit, price_vnd, original_price_vnd, photo_id, window_start, window_end,
-          latitude, longitude, address, seller_name, units,
-          COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max
+          latitude, longitude, address, seller_name
 `
 
 type TakeUnitsParams struct {
@@ -1154,8 +1153,6 @@ type TakeUnitsRow struct {
 	Longitude        float64
 	Address          string
 	SellerName       string
-	Units            int32
-	PerOrderMax      int32
 }
 
 // Takes units for an order in the order's transaction: only from an offer on
@@ -1178,8 +1175,6 @@ func (q *Queries) TakeUnits(ctx context.Context, arg TakeUnitsParams) (TakeUnits
 		&i.Longitude,
 		&i.Address,
 		&i.SellerName,
-		&i.Units,
-		&i.PerOrderMax,
 	)
 	return i, err
 }

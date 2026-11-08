@@ -28,10 +28,6 @@ type Taken struct {
 	PhotoID          uuid.UUID
 	WindowStart      time.Time
 	WindowEnd        time.Time
-	// Units is how many units the offer was posted with, and PerOrderMax how
-	// many one order may take; order marks a large order by them (SEC-158).
-	Units       int
-	PerOrderMax int
 }
 
 // Take takes units of an offer inside tx, the transaction of the order that
@@ -57,7 +53,6 @@ func (s *Service) Take(ctx context.Context, tx pgx.Tx, offerID uuid.UUID, units 
 		CollectionPoint: seller.CollectionPoint{Latitude: row.Latitude, Longitude: row.Longitude, Address: row.Address},
 		Name:            row.Name, Unit: row.Unit, PriceVND: row.PriceVnd, OriginalPriceVND: row.OriginalPriceVnd,
 		PhotoID: row.PhotoID, WindowStart: row.WindowStart, WindowEnd: row.WindowEnd,
-		Units: int(row.Units), PerOrderMax: int(row.PerOrderMax),
 	}, nil
 }
 

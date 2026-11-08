@@ -16,15 +16,11 @@ import (
 )
 
 // Settings bound what one person holds (SEC-158), kept in one row. The
-// first values are the user's of 6 November 2026.
+// first values are Đạt's of 8 November 2026.
 type Settings struct {
 	// OpenPerPhonePerSeller is how many orders still to collect one phone
 	// number may hold at a store.
 	OpenPerPhonePerSeller int
-	// OpenPerAddress is how many orders still to collect may have been placed
-	// from one address. Many customers share one behind a mall's Wi-Fi or a
-	// carrier's NAT, so it is loose.
-	OpenPerAddress int
 	// MissedLimit orders missed within MissedDays refuse a phone number until
 	// the older of them leaves those days.
 	MissedLimit int
@@ -71,7 +67,6 @@ func (s *Service) SaveSettings(ctx context.Context, in Settings, version time.Ti
 
 		next := db.PutOrderSettingsParams{
 			OpenPerPhonePerSeller: int32(in.OpenPerPhonePerSeller), //nolint:gosec // bounded by valid
-			OpenPerAddress:        int32(in.OpenPerAddress),        //nolint:gosec // likewise
 			MissedLimit:           int32(in.MissedLimit),           //nolint:gosec // likewise
 			MissedDays:            int32(in.MissedDays),            //nolint:gosec // likewise
 			UpdatedBy:             uuid.NullUUID{UUID: caller.AccountID, Valid: true},
@@ -113,7 +108,6 @@ func changedSettings(current db.LockOrderSettingsRow, next db.PutOrderSettingsPa
 		was, now int32
 	}{
 		{"openPerPhonePerSeller", current.OpenPerPhonePerSeller, next.OpenPerPhonePerSeller},
-		{"openPerAddress", current.OpenPerAddress, next.OpenPerAddress},
 		{"missedLimit", current.MissedLimit, next.MissedLimit},
 		{"missedDays", current.MissedDays, next.MissedDays},
 	} {
@@ -129,7 +123,6 @@ func changedSettings(current db.LockOrderSettingsRow, next db.PutOrderSettingsPa
 // validation failure rather than a database error.
 func (in Settings) valid() bool {
 	return in.OpenPerPhonePerSeller >= 1 && in.OpenPerPhonePerSeller <= 20 &&
-		in.OpenPerAddress >= 1 && in.OpenPerAddress <= 500 &&
 		in.MissedLimit >= 1 && in.MissedLimit <= 20 &&
 		in.MissedDays >= 1 && in.MissedDays <= 60
 }
@@ -142,8 +135,8 @@ func (s *Service) settings(ctx context.Context, q *db.Queries) (Settings, error)
 	}
 
 	out := Settings{
-		OpenPerPhonePerSeller: int(row.OpenPerPhonePerSeller), OpenPerAddress: int(row.OpenPerAddress),
-		MissedLimit: int(row.MissedLimit), MissedDays: int(row.MissedDays), UpdatedAt: row.UpdatedAt,
+		OpenPerPhonePerSeller: int(row.OpenPerPhonePerSeller), MissedLimit: int(row.MissedLimit),
+		MissedDays: int(row.MissedDays), UpdatedAt: row.UpdatedAt,
 	}
 
 	if row.UpdatedBy.Valid {

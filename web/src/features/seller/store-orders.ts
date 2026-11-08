@@ -37,14 +37,7 @@ export function groupOrders(orders: readonly OrderBody[]): Record<OrderTab, Orde
 }
 
 /** The reasons the seller may give for "Hủy đơn" (Figma Q5c), in the order the dialog shows them. */
-export const cancelReasons = [
-  "no_answer",
-  "no_show",
-  "late",
-  "sold_out",
-  "suspected",
-  "other",
-] as const;
+export const cancelReasons = ["no_answer", "no_show", "late", "sold_out", "other"] as const;
 
 export type CancelReason = (typeof cancelReasons)[number];
 

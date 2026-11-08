@@ -29,9 +29,8 @@ test.describe("the ordering limits", () => {
     ).toHaveAttribute("aria-current", "page");
     await expect(page.getByLabel("Tối đa mặc định (phần)")).toHaveValue("5");
     await expect(page.getByLabel("Mỗi số điện thoại ở một quán (đơn)")).toHaveValue("2");
-    await expect(page.getByLabel("Mỗi mạng (IP) (đơn)")).toHaveValue("20");
-    await expect(page.getByLabel("Chặn khi số điện thoại bỏ (đơn)")).toHaveValue("2");
-    await expect(page.getByLabel("Trong vòng (ngày)")).toHaveValue("7");
+    await expect(page.getByLabel("Chặn khi số điện thoại bỏ (đơn)")).toHaveValue("3");
+    await expect(page.getByLabel("Trong vòng (ngày)")).toHaveValue("30");
     const save = page.getByRole("button", { name: "Lưu thay đổi" });
     await expect(save).toBeDisabled();
     await expectNoSeriousA11yViolations(page);

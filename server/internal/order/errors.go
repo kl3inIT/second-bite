@@ -40,13 +40,9 @@ var (
 		VI: "Số điện thoại này đang có đơn chưa lấy ở quán. Lấy hoặc huỷ đơn đó rồi đặt tiếp.",
 		EN: "This phone number already holds orders at this store still to collect. Collect or cancel one, then order again.",
 	})
-	ErrAddressHoldsOrders = platform.NewFailure("ORDER_ADDRESS_HOLDS_ORDERS", platform.CategoryLimitExceeded, platform.Words{
-		VI: "Mạng bạn đang dùng có quá nhiều đơn chưa lấy. Thử lại sau.",
-		EN: "Too many orders still to collect were placed from your network. Try again later.",
-	})
 	ErrPhoneMissedOrders = platform.NewFailure("ORDER_PHONE_MISSED_ORDERS", platform.CategoryNotPermitted, platform.Words{
-		VI: "Số điện thoại này đã bỏ không lấy nhiều đơn gần đây nên tạm chưa đặt được. Thử lại sau vài ngày.",
-		EN: "This phone number missed several orders lately, so it cannot order for now. Try again in a few days.",
+		VI: "Số điện thoại này đã bỏ không lấy nhiều đơn gần đây nên tạm chưa đặt được. Thử lại sau.",
+		EN: "This phone number missed several orders lately, so it cannot order for now. Try again later.",
 	})
 	ErrSettingsInvalid = platform.NewFailure("ORDER_SETTINGS_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Giới hạn đặt món nằm ngoài khoảng cho phép.",
@@ -73,8 +69,8 @@ var (
 		EN: "Name a day that exists, as YYYY-MM-DD.",
 	})
 	ErrRefusalInvalid = platform.NewFailure("ORDER_REFUSAL_INVALID", platform.CategoryValidation, platform.Words{
-		VI: "Chọn một lý do có sẵn (not_suitable, wrong_items, no_answer, no_show, late, sold_out, suspected hoặc other), kèm ghi chú tối đa 200 ký tự.",
-		EN: "Give one of the reasons (not_suitable, wrong_items, no_answer, no_show, late, sold_out, suspected or other), and a note of at most 200 characters.",
+		VI: "Chọn một lý do có sẵn (not_suitable, wrong_items, no_answer, no_show, late, sold_out hoặc other), kèm ghi chú tối đa 200 ký tự.",
+		EN: "Give one of the reasons (not_suitable, wrong_items, no_answer, no_show, late, sold_out or other), and a note of at most 200 characters.",
 	})
 	ErrReviewInvalid = platform.NewFailure("ORDER_REVIEW_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Chọn từ 1 đến 5 sao, các thẻ có sẵn (fast_pickup, good_quality, good_variety hoặc fair_portions) không lặp lại, và nhận xét tối đa 500 ký tự.",

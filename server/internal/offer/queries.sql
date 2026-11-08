@@ -208,8 +208,7 @@ UPDATE offer_offers SET units_left = units_left - @units, updated_at = now()
 WHERE offer_offers.id = @id AND state = 'on_sale' AND window_end > now() AND units_left >= @units
   AND @units <= COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))
 RETURNING id, seller_id, name, unit, price_vnd, original_price_vnd, photo_id, window_start, window_end,
-          latitude, longitude, address, seller_name, units,
-          COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max;
+          latitude, longitude, address, seller_name;
 
 -- name: ReturnUnits :exec
 -- Gives back the units of a cancelled order, never above the offer's units.

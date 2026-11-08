@@ -18,8 +18,7 @@ mixin _$OrderSettingsBody {
 
 /// The days missed orders are counted over; the block lifts as they pass
  int get missedDays;/// Orders missed within missedDays that stop a phone number ordering
- int get missedLimit;/// Orders still to collect that may have been placed from one address; loose, as a mall's Wi-Fi is shared
- int get openPerAddress;/// Orders still to collect one phone number may hold at a store
+ int get missedLimit;/// Orders still to collect one phone number may hold at a store
  int get openPerPhonePerSeller; DateTime? get updatedAt; String? get updatedBy;
 /// Create a copy of OrderSettingsBody
 /// with the given fields replaced by the non-null parameter values.
@@ -34,20 +33,20 @@ $OrderSettingsBodyCopyWith<OrderSettingsBody> get copyWith => _$OrderSettingsBod
 @override
 bool operator ==(Object other) {
   final _this = this as OrderSettingsBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderSettingsBody&&(identical(other.missedDays, _this.missedDays) || other.missedDays == _this.missedDays)&&(identical(other.missedLimit, _this.missedLimit) || other.missedLimit == _this.missedLimit)&&(identical(other.openPerAddress, _this.openPerAddress) || other.openPerAddress == _this.openPerAddress)&&(identical(other.openPerPhonePerSeller, _this.openPerPhonePerSeller) || other.openPerPhonePerSeller == _this.openPerPhonePerSeller)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.updatedBy, _this.updatedBy) || other.updatedBy == _this.updatedBy));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderSettingsBody&&(identical(other.missedDays, _this.missedDays) || other.missedDays == _this.missedDays)&&(identical(other.missedLimit, _this.missedLimit) || other.missedLimit == _this.missedLimit)&&(identical(other.openPerPhonePerSeller, _this.openPerPhonePerSeller) || other.openPerPhonePerSeller == _this.openPerPhonePerSeller)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.updatedBy, _this.updatedBy) || other.updatedBy == _this.updatedBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as OrderSettingsBody;
-  return Object.hash(runtimeType,_this.missedDays,_this.missedLimit,_this.openPerAddress,_this.openPerPhonePerSeller,_this.updatedAt,_this.updatedBy);
+  return Object.hash(runtimeType,_this.missedDays,_this.missedLimit,_this.openPerPhonePerSeller,_this.updatedAt,_this.updatedBy);
 }
 
 @override
 String toString() {
   final _this = this as OrderSettingsBody;
-  return 'OrderSettingsBody(missedDays: ${_this.missedDays}, missedLimit: ${_this.missedLimit}, openPerAddress: ${_this.openPerAddress}, openPerPhonePerSeller: ${_this.openPerPhonePerSeller}, updatedAt: ${_this.updatedAt}, updatedBy: ${_this.updatedBy})';
+  return 'OrderSettingsBody(missedDays: ${_this.missedDays}, missedLimit: ${_this.missedLimit}, openPerPhonePerSeller: ${_this.openPerPhonePerSeller}, updatedAt: ${_this.updatedAt}, updatedBy: ${_this.updatedBy})';
 }
 
 
@@ -58,7 +57,7 @@ abstract mixin class $OrderSettingsBodyCopyWith<$Res>  {
   factory $OrderSettingsBodyCopyWith(OrderSettingsBody value, $Res Function(OrderSettingsBody) _then) = _$OrderSettingsBodyCopyWithImpl;
 @useResult
 $Res call({
- int missedDays, int missedLimit, int openPerAddress, int openPerPhonePerSeller, DateTime? updatedAt, String? updatedBy
+ int missedDays, int missedLimit, int openPerPhonePerSeller, DateTime? updatedAt, String? updatedBy
 });
 
 
@@ -75,11 +74,10 @@ class _$OrderSettingsBodyCopyWithImpl<$Res>
 
 /// Create a copy of OrderSettingsBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? missedDays = null,Object? missedLimit = null,Object? openPerAddress = null,Object? openPerPhonePerSeller = null,Object? updatedAt = freezed,Object? updatedBy = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? missedDays = null,Object? missedLimit = null,Object? openPerPhonePerSeller = null,Object? updatedAt = freezed,Object? updatedBy = freezed,}) {
   return _then(OrderSettingsBody(
 missedDays: null == missedDays ? _self.missedDays : missedDays // ignore: cast_nullable_to_non_nullable
 as int,missedLimit: null == missedLimit ? _self.missedLimit : missedLimit // ignore: cast_nullable_to_non_nullable
-as int,openPerAddress: null == openPerAddress ? _self.openPerAddress : openPerAddress // ignore: cast_nullable_to_non_nullable
 as int,openPerPhonePerSeller: null == openPerPhonePerSeller ? _self.openPerPhonePerSeller : openPerPhonePerSeller // ignore: cast_nullable_to_non_nullable
 as int,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedBy: freezed == updatedBy ? _self.updatedBy : updatedBy // ignore: cast_nullable_to_non_nullable
@@ -168,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int missedDays,  int missedLimit,  int openPerAddress,  int openPerPhonePerSeller,  DateTime? updatedAt,  String? updatedBy)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int missedDays,  int missedLimit,  int openPerPhonePerSeller,  DateTime? updatedAt,  String? updatedBy)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OrderSettingsBody() when $default != null:
-return $default(_that.missedDays,_that.missedLimit,_that.openPerAddress,_that.openPerPhonePerSeller,_that.updatedAt,_that.updatedBy);case _:
+return $default(_that.missedDays,_that.missedLimit,_that.openPerPhonePerSeller,_that.updatedAt,_that.updatedBy);case _:
   return orElse();
 
 }
@@ -189,10 +187,10 @@ return $default(_that.missedDays,_that.missedLimit,_that.openPerAddress,_that.op
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int missedDays,  int missedLimit,  int openPerAddress,  int openPerPhonePerSeller,  DateTime? updatedAt,  String? updatedBy)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int missedDays,  int missedLimit,  int openPerPhonePerSeller,  DateTime? updatedAt,  String? updatedBy)  $default,) {final _that = this;
 switch (_that) {
 case _OrderSettingsBody():
-return $default(_that.missedDays,_that.missedLimit,_that.openPerAddress,_that.openPerPhonePerSeller,_that.updatedAt,_that.updatedBy);case _:
+return $default(_that.missedDays,_that.missedLimit,_that.openPerPhonePerSeller,_that.updatedAt,_that.updatedBy);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +207,10 @@ return $default(_that.missedDays,_that.missedLimit,_that.openPerAddress,_that.op
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int missedDays,  int missedLimit,  int openPerAddress,  int openPerPhonePerSeller,  DateTime? updatedAt,  String? updatedBy)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int missedDays,  int missedLimit,  int openPerPhonePerSeller,  DateTime? updatedAt,  String? updatedBy)?  $default,) {final _that = this;
 switch (_that) {
 case _OrderSettingsBody() when $default != null:
-return $default(_that.missedDays,_that.missedLimit,_that.openPerAddress,_that.openPerPhonePerSeller,_that.updatedAt,_that.updatedBy);case _:
+return $default(_that.missedDays,_that.missedLimit,_that.openPerPhonePerSeller,_that.updatedAt,_that.updatedBy);case _:
   return null;
 
 }
@@ -224,15 +222,13 @@ return $default(_that.missedDays,_that.missedLimit,_that.openPerAddress,_that.op
 @JsonSerializable()
 
 class _OrderSettingsBody implements OrderSettingsBody {
-  const _OrderSettingsBody({required this.missedDays, required this.missedLimit, required this.openPerAddress, required this.openPerPhonePerSeller, this.updatedAt, this.updatedBy});
+  const _OrderSettingsBody({required this.missedDays, required this.missedLimit, required this.openPerPhonePerSeller, this.updatedAt, this.updatedBy});
   factory _OrderSettingsBody.fromJson(Map<String, dynamic> json) => _$OrderSettingsBodyFromJson(json);
 
 /// The days missed orders are counted over; the block lifts as they pass
 @override final  int missedDays;
 /// Orders missed within missedDays that stop a phone number ordering
 @override final  int missedLimit;
-/// Orders still to collect that may have been placed from one address; loose, as a mall's Wi-Fi is shared
-@override final  int openPerAddress;
 /// Orders still to collect one phone number may hold at a store
 @override final  int openPerPhonePerSeller;
 @override final  DateTime? updatedAt;
@@ -251,18 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrderSettingsBody&&(identical(other.missedDays, missedDays) || other.missedDays == missedDays)&&(identical(other.missedLimit, missedLimit) || other.missedLimit == missedLimit)&&(identical(other.openPerAddress, openPerAddress) || other.openPerAddress == openPerAddress)&&(identical(other.openPerPhonePerSeller, openPerPhonePerSeller) || other.openPerPhonePerSeller == openPerPhonePerSeller)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.updatedBy, updatedBy) || other.updatedBy == updatedBy));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrderSettingsBody&&(identical(other.missedDays, missedDays) || other.missedDays == missedDays)&&(identical(other.missedLimit, missedLimit) || other.missedLimit == missedLimit)&&(identical(other.openPerPhonePerSeller, openPerPhonePerSeller) || other.openPerPhonePerSeller == openPerPhonePerSeller)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.updatedBy, updatedBy) || other.updatedBy == updatedBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,missedDays,missedLimit,openPerAddress,openPerPhonePerSeller,updatedAt,updatedBy);
+    return Object.hash(runtimeType,missedDays,missedLimit,openPerPhonePerSeller,updatedAt,updatedBy);
 }
 
 @override
 String toString() {
-    return 'OrderSettingsBody(missedDays: $missedDays, missedLimit: $missedLimit, openPerAddress: $openPerAddress, openPerPhonePerSeller: $openPerPhonePerSeller, updatedAt: $updatedAt, updatedBy: $updatedBy)';
+    return 'OrderSettingsBody(missedDays: $missedDays, missedLimit: $missedLimit, openPerPhonePerSeller: $openPerPhonePerSeller, updatedAt: $updatedAt, updatedBy: $updatedBy)';
 }
 
 
@@ -273,7 +269,7 @@ abstract mixin class _$OrderSettingsBodyCopyWith<$Res> implements $OrderSettings
   factory _$OrderSettingsBodyCopyWith(_OrderSettingsBody value, $Res Function(_OrderSettingsBody) _then) = __$OrderSettingsBodyCopyWithImpl;
 @override @useResult
 $Res call({
- int missedDays, int missedLimit, int openPerAddress, int openPerPhonePerSeller, DateTime? updatedAt, String? updatedBy
+ int missedDays, int missedLimit, int openPerPhonePerSeller, DateTime? updatedAt, String? updatedBy
 });
 
 
@@ -290,11 +286,10 @@ class __$OrderSettingsBodyCopyWithImpl<$Res>
 
 /// Create a copy of OrderSettingsBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? missedDays = null,Object? missedLimit = null,Object? openPerAddress = null,Object? openPerPhonePerSeller = null,Object? updatedAt = freezed,Object? updatedBy = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? missedDays = null,Object? missedLimit = null,Object? openPerPhonePerSeller = null,Object? updatedAt = freezed,Object? updatedBy = freezed,}) {
   return _then(_OrderSettingsBody(
 missedDays: null == missedDays ? _self.missedDays : missedDays // ignore: cast_nullable_to_non_nullable
 as int,missedLimit: null == missedLimit ? _self.missedLimit : missedLimit // ignore: cast_nullable_to_non_nullable
-as int,openPerAddress: null == openPerAddress ? _self.openPerAddress : openPerAddress // ignore: cast_nullable_to_non_nullable
 as int,openPerPhonePerSeller: null == openPerPhonePerSeller ? _self.openPerPhonePerSeller : openPerPhonePerSeller // ignore: cast_nullable_to_non_nullable
 as int,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedBy: freezed == updatedBy ? _self.updatedBy : updatedBy // ignore: cast_nullable_to_non_nullable

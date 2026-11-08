@@ -996,8 +996,6 @@ function sellerOrdersFor(seller) {
       windowStart: new Date(Date.now() - 3_600_000).toISOString(),
       windowEnd: new Date(Date.now() + 3 * 3_600_000).toISOString(),
       createdAt: new Date().toISOString(),
-      large: false,
-      phone: { open: 1, missed: 0 },
       get unreadMessages() {
         return unreadOf(this.id, "seller");
       },
@@ -1020,7 +1018,6 @@ function sellerOrdersFor(seller) {
               "túi",
               2,
               57000,
-              { large: true, phone: { open: 2, missed: 1 } },
             ),
             order(3, "confirmed", "Trần Minh", "0987654321", "Xôi thập cẩm", "hộp", 1, 30000),
             order(
@@ -1064,7 +1061,6 @@ const REFUSALS = [
   "no_show",
   "late",
   "sold_out",
-  "suspected",
   "other",
 ];
 
@@ -1843,11 +1839,9 @@ function offerById(id) {
 // fixed evening hours (21:00 to 21:45 tonight), so a run after 21:45 in Vietnam would find every order placed from
 // them over and the customer's order tests failing.
 function shown(order) {
-  // What the store judges an order by is not its customer's (SEC-158).
-  const { owner: _owner, phone: _phone, ...rest } = order;
+  const { owner: _owner, ...rest } = order;
   return {
     ...rest,
-    large: false,
     unreadMessages: unreadOf(order.id, "customer"),
     messageCount: countOf(order.id),
   };
@@ -3443,9 +3437,8 @@ const FIRST_LIMITS = {
   },
   order: {
     openPerPhonePerSeller: 2,
-    openPerAddress: 20,
-    missedLimit: 2,
-    missedDays: 7,
+    missedLimit: 3,
+    missedDays: 30,
     updatedAt: "2026-11-06T02:15:00Z",
   },
 };

@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/kl3inIT/second-bite/server/internal/offer"
 	"github.com/kl3inIT/second-bite/server/internal/order/internal/db"
@@ -135,9 +134,8 @@ func (s *Service) place(
 	wanted []Wanted,
 ) (uuid.UUID, error) {
 	q := s.queries.WithTx(tx)
-	address := platform.ClientAddress(ctx)
 
-	set, err := s.lockPlacing(ctx, q, contact.Phone, address)
+	set, err := s.lockPlacing(ctx, q, contact.Phone)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -163,7 +161,7 @@ func (s *Service) place(
 		return uuid.Nil, ErrOfferUnavailable
 	}
 
-	if err := s.checkOpen(ctx, q, set, first.SellerID, contact.Phone, address); err != nil {
+	if err := s.checkOpen(ctx, q, set, first.SellerID, contact.Phone); err != nil {
 		return uuid.Nil, err
 	}
 
@@ -185,8 +183,7 @@ func (s *Service) place(
 		WindowStart: start, WindowEnd: end, TotalVnd: total, IdempotencyKey: key, ZaloConsentAt: s.consentAt(contact),
 		PromotionID:   uuid.NullUUID{UUID: discount.promotion.ID, Valid: discounted},
 		PromotionName: discount.promotion.Name, PromotionRule: discount.rule, PromotionNew: discount.newCustomer,
-		DiscountVnd: discount.amountVND, Large: large(taken, wanted),
-		PlacedFrom: pgtype.Text{String: address, Valid: address != ""},
+		DiscountVnd: discount.amountVND,
 	})
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("storing the order: %w", err)

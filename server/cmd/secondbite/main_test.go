@@ -98,10 +98,6 @@ func TestService(t *testing.T) {
 		checkAdminChangesAreAudited(t, svc)
 	})
 
-	t.Run("one address holds a bounded number of open orders", func(t *testing.T) { //nolint:paralleltest // it lowers the order settings the other checks place under
-		checkOpenOrdersPerAddress(t, svc)
-	})
-
 	// Cleanups run after the checks, and before the containers'.
 	t.Cleanup(func() {
 		if err := stop(); err != nil {

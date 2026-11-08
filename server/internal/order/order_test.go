@@ -137,7 +137,7 @@ func relaxLimits(t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
 
 	for _, q := range []string{
-		`UPDATE order_settings SET open_per_phone_per_seller = 20, open_per_address = 500, missed_limit = 20, missed_days = 1`,
+		`UPDATE order_settings SET open_per_phone_per_seller = 20, missed_limit = 20, missed_days = 1`,
 		`UPDATE offer_settings SET default_max_per_order = 999`,
 	} {
 		if _, err := pool.Exec(t.Context(), q); err != nil {
@@ -623,7 +623,7 @@ func testNoShowGivesUnitsBack(t *testing.T, f fixture) {
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
 	for reason, back := range map[order.RefuseReason]bool{
-		order.RefuseNoAnswer: true, order.RefuseNoShow: true, order.RefuseLate: true, order.RefuseSuspected: true,
+		order.RefuseNoAnswer: true, order.RefuseNoShow: true, order.RefuseLate: true,
 		order.RefuseSoldOut: false, order.RefuseOther: false,
 	} {
 		o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})

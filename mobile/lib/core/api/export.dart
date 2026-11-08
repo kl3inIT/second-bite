@@ -89,7 +89,6 @@ export 'models/order_wanted_body.dart';
 export 'models/orders_output_body.dart';
 export 'models/password_sign_in_input_body.dart';
 export 'models/payout_body.dart';
-export 'models/phone_history_body.dart';
 export 'models/photo_body.dart';
 export 'models/place_body.dart';
 export 'models/place_order_body.dart';

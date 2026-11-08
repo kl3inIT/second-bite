@@ -13,7 +13,6 @@ import (
 
 type orderSettingsBody struct {
 	OpenPerPhonePerSeller int        `json:"openPerPhonePerSeller" doc:"Orders still to collect one phone number may hold at a store" maximum:"20" minimum:"1"`
-	OpenPerAddress        int        `json:"openPerAddress"        doc:"Orders still to collect that may have been placed from one address; loose, as a mall's Wi-Fi is shared" maximum:"500" minimum:"1"`
 	MissedLimit           int        `json:"missedLimit"           doc:"Orders missed within missedDays that stop a phone number ordering" maximum:"20" minimum:"1"`
 	MissedDays            int        `json:"missedDays"            doc:"The days missed orders are counted over; the block lifts as they pass" maximum:"60" minimum:"1"`
 	UpdatedAt             *time.Time `json:"updatedAt,omitempty"   readOnly:"true"`
@@ -32,8 +31,8 @@ type saveOrderSettingsInput struct {
 
 func toOrderSettingsOutput(set Settings) *orderSettingsOutput {
 	return &orderSettingsOutput{ETag: platform.ETag(set.UpdatedAt), Body: orderSettingsBody{
-		OpenPerPhonePerSeller: set.OpenPerPhonePerSeller, OpenPerAddress: set.OpenPerAddress,
-		MissedLimit: set.MissedLimit, MissedDays: set.MissedDays, UpdatedAt: &set.UpdatedAt, UpdatedBy: set.UpdatedBy,
+		OpenPerPhonePerSeller: set.OpenPerPhonePerSeller, MissedLimit: set.MissedLimit, MissedDays: set.MissedDays,
+		UpdatedAt: &set.UpdatedAt, UpdatedBy: set.UpdatedBy,
 	}}
 }
 
@@ -64,8 +63,8 @@ func registerAdminSettingsOperations(admin huma.API, s *Service) {
 		}
 
 		set, err := s.SaveSettings(ctx, Settings{
-			OpenPerPhonePerSeller: in.Body.OpenPerPhonePerSeller, OpenPerAddress: in.Body.OpenPerAddress,
-			MissedLimit: in.Body.MissedLimit, MissedDays: in.Body.MissedDays,
+			OpenPerPhonePerSeller: in.Body.OpenPerPhonePerSeller, MissedLimit: in.Body.MissedLimit,
+			MissedDays: in.Body.MissedDays,
 		}, version)
 		if err != nil {
 			return nil, err

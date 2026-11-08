@@ -14,7 +14,6 @@ const fields = [
   "startsWithinHours",
   "defaultMaxPerOrder",
   "openPerPhonePerSeller",
-  "openPerAddress",
   "missedLimit",
   "missedDays",
   "provider",

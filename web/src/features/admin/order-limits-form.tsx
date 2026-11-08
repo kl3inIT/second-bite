@@ -24,7 +24,6 @@ import {
 type Values = {
   defaultMaxPerOrder: string;
   openPerPhonePerSeller: string;
-  openPerAddress: string;
   missedLimit: string;
   missedDays: string;
 };
@@ -61,7 +60,6 @@ export function OrderLimitsForm({
   const schema = z.object({
     defaultMaxPerOrder: wholeBetween(1, 999, range(1, 999)),
     openPerPhonePerSeller: wholeBetween(1, 20, range(1, 20)),
-    openPerAddress: wholeBetween(1, 500, range(1, 500)),
     missedLimit: wholeBetween(1, 20, range(1, 20)),
     missedDays: wholeBetween(1, 60, range(1, 60)),
   });
@@ -69,7 +67,6 @@ export function OrderLimitsForm({
   const defaultValues: Values = {
     defaultMaxPerOrder: String(offer.body.defaultMaxPerOrder),
     openPerPhonePerSeller: String(order.openPerPhonePerSeller),
-    openPerAddress: String(order.openPerAddress),
     missedLimit: String(order.missedLimit),
     missedDays: String(order.missedDays),
   };
@@ -87,14 +84,13 @@ export function OrderLimitsForm({
             headers: { "If-Match": offer.version },
           });
         }
-        const orderChanged = (
-          ["openPerPhonePerSeller", "openPerAddress", "missedLimit", "missedDays"] as const
-        ).some((key) => value[key] !== defaultValues[key]);
+        const orderChanged = (["openPerPhonePerSeller", "missedLimit", "missedDays"] as const).some(
+          (key) => value[key] !== defaultValues[key],
+        );
         if (orderChanged) {
           await saveOrderSettings({
             body: {
               openPerPhonePerSeller: Number(value.openPerPhonePerSeller),
-              openPerAddress: Number(value.openPerAddress),
               missedLimit: Number(value.missedLimit),
               missedDays: Number(value.missedDays),
             },
@@ -188,16 +184,6 @@ export function OrderLimitsForm({
                     inputMode="numeric"
                     autoComplete="off"
                     description={t("open.perPhoneHint")}
-                  />
-                )}
-              </form.AppField>
-              <form.AppField name="openPerAddress">
-                {(field) => (
-                  <field.TextField
-                    label={t("open.perAddress")}
-                    inputMode="numeric"
-                    autoComplete="off"
-                    description={t("open.perAddressHint")}
                   />
                 )}
               </form.AppField>

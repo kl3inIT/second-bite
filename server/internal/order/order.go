@@ -58,16 +58,12 @@ const (
 	// RefuseWithdrawn is the reason the system gives when the seller withdraws
 	// an offer the order holds units of; staff never choose it (SEC-108).
 	RefuseWithdrawn RefuseReason = "withdrawn"
-	// RefuseSuspected is a store's refusal of an order it believes was placed
-	// to hold its food, not to collect it (SEC-158); it counts as missed.
-	RefuseSuspected RefuseReason = "suspected"
 )
 
 // valid tells whether staff may give r.
 func (r RefuseReason) valid() bool {
 	switch r {
-	case RefuseNotSuitable, RefuseWrongItems, RefuseNoAnswer, RefuseNoShow, RefuseLate, RefuseSoldOut, RefuseOther,
-		RefuseSuspected:
+	case RefuseNotSuitable, RefuseWrongItems, RefuseNoAnswer, RefuseNoShow, RefuseLate, RefuseSoldOut, RefuseOther:
 		return true
 	case RefuseWithdrawn:
 		return false
@@ -77,10 +73,9 @@ func (r RefuseReason) valid() bool {
 }
 
 // foodKept tells whether the food of an order refused for r is still fit to
-// sell: the customer did not come, or the order was not meant to be
-// collected, so its units go back to the offer.
+// sell: the customer did not come, so its units go back to the offer.
 func (r RefuseReason) foodKept() bool {
-	return r == RefuseNoAnswer || r == RefuseNoShow || r == RefuseLate || r == RefuseSuspected
+	return r == RefuseNoAnswer || r == RefuseNoShow || r == RefuseLate
 }
 
 // vietnam is the pilot's time zone, which keeps no daylight saving time.
@@ -136,26 +131,11 @@ type Order struct {
 	// MessageCount is how many messages its chat holds, set with
 	// UnreadMessages.
 	MessageCount *int
-	// Large tells a line of it reached its dish's cap or took more than half
-	// the units posted, so its store may look at it (SEC-158).
-	Large bool
-	// Phone is what the order's phone number holds and missed, to the
-	// seller's people and admins; none to its customer.
-	Phone *PhoneHistory
 	// Access proves the order is theirs to whoever placed it, set only for
 	// them.
 	Access string
 	// access is the order's stored access, whoever reads it.
 	access string
-}
-
-// PhoneHistory is what a phone number holds at a store and missed lately,
-// read beside an order of it (SEC-158).
-type PhoneHistory struct {
-	// Open is the orders it holds at the order's store still to collect.
-	Open int
-	// Missed is the orders it missed at any store in the settings' days.
-	Missed int
 }
 
 // Discount is what a promotion took off an order, copied when it was placed.
@@ -244,16 +224,11 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID, access string) (Order, 
 		return Order{}, ErrNotFound
 	}
 
-	orders := []Order{o}
-	if err := s.withPhoneHistory(ctx, o.SellerID, orders); err != nil {
-		return Order{}, err
-	}
-
 	if member.MyRole == "" {
-		return orders[0], nil
+		return o, nil
 	}
 
-	return s.readBy(ctx, orders[0], SideSeller)
+	return s.readBy(ctx, o, SideSeller)
 }
 
 // readBy returns o with the unread messages of the side reading it.
@@ -365,10 +340,6 @@ func (s *Service) OfSeller(ctx context.Context, sellerID uuid.UUID, day time.Tim
 		return nil, err
 	}
 
-	if err := s.withPhoneHistory(ctx, sellerID, orders); err != nil {
-		return nil, err
-	}
-
 	if member.MyRole != "" {
 		if err := s.withUnread(ctx, orders, SideSeller); err != nil {
 			return nil, err
@@ -442,8 +413,6 @@ func (s *Service) withLines(ctx context.Context, q *db.Queries, orders []Order) 
 func (s *Service) shown(o Order, customer bool) Order {
 	if customer {
 		o.Access = o.access
-		// What the store judges the order by is not the customer's (SEC-158).
-		o.Large, o.Phone = false, nil
 	}
 
 	return o
@@ -458,7 +427,7 @@ func (s *Service) fromRow(r db.GetOrderRow) Order {
 		Status:          Status(r.State), TotalVND: r.TotalVnd, WindowStart: r.WindowStart, WindowEnd: r.WindowEnd,
 		CreatedAt: r.CreatedAt, ReadyAt: r.ReadyAt, CollectedAt: r.CollectedAt, CancelledAt: r.CancelledAt,
 		RefusedAt: r.RefusedAt, CancelReason: r.CancelReason, RefuseReason: RefuseReason(r.RefuseReason.String),
-		RefuseNote: r.RefuseNote, Large: r.Large, access: r.Access,
+		RefuseNote: r.RefuseNote, access: r.Access,
 	}
 
 	if r.PromotionID.Valid {

@@ -1,7 +1,6 @@
 package order_test
 
 import (
-	"context"
 	"errors"
 	"sync"
 	"testing"
@@ -19,8 +18,7 @@ import (
 // TestOrderLimits checks the limits on what one person holds (SEC-158) with
 // the settings' first values, in a database of its own: TestOrder widens them
 // for its checks. The checks run one after another, as one changes the
-// settings. The limit by address is checked over HTTP, where a request has
-// one (cmd/secondbite).
+// settings.
 func TestOrderLimits(t *testing.T) {
 	t.Parallel()
 
@@ -34,8 +32,6 @@ func TestOrderLimits(t *testing.T) {
 		{"a phone number holds two orders at a store", testOpenPerPhone},
 		{"two orders at once cannot pass the cap", testOpenPerPhoneAtOnce},
 		{"missed orders stop a phone number for some days", testMissedOrders},
-		{"a suspected order gives its units back and counts as missed", testSuspected},
-		{"a large order is marked for its store", testLargeOrder},
 		{"admins change the limits", testOrderSettings},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -165,7 +161,7 @@ func testMissedOrders(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris")
 	croissant := f.post(owner, t, shop, "Croissant", 10, 20_000, time.Now())
 
-	missed := make([]uuid.UUID, 2)
+	missed := make([]uuid.UUID, 3)
 
 	for i := range missed {
 		o, err := f.orders.Place(t.Context(), key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
@@ -179,111 +175,13 @@ func testMissedOrders(t *testing.T, f fixture) {
 	}
 
 	_, err := f.orders.Place(t.Context(), key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
-	mustFail(t, "two orders missed in seven days", err, order.ErrPhoneMissedOrders)
+	mustFail(t, "three orders missed in thirty days", err, order.ErrPhoneMissedOrders)
 
-	// A week on, the older of the two leaves the seven days.
-	f.shift(t, missed[0], -7*24*time.Hour)
+	// A month on, the oldest of the three leaves the thirty days.
+	f.shift(t, missed[0], -30*24*time.Hour)
 
 	if _, err := f.orders.Place(t.Context(), key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}}); err != nil {
-		t.Errorf("one order missed in seven days: %v", err)
-	}
-}
-
-func testSuspected(t *testing.T, f fixture) {
-	t.Helper()
-
-	owner := f.as(t, "owner", platform.RoleCustomer)
-	shop := f.shop(owner, t, "La Paris")
-	croissant := f.post(owner, t, shop, "Croissant", 10, 20_000, time.Now())
-
-	for range 2 {
-		o, err := f.orders.Place(t.Context(), key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 4}})
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		refused, err := f.orders.Refuse(owner, o.ID, order.RefuseSuspected, "")
-		if err != nil || refused.RefuseReason != order.RefuseSuspected {
-			t.Fatalf("refused as suspected: %+v, %v", refused, err)
-		}
-	}
-
-	if got := f.unitsLeft(owner, t, croissant.ID); got != 10 {
-		t.Errorf("units left after two suspected orders: %d, want 10", got)
-	}
-
-	_, err := f.orders.Place(t.Context(), key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
-	mustFail(t, "a phone number with two suspected orders", err, order.ErrPhoneMissedOrders)
-}
-
-func testLargeOrder(t *testing.T, f fixture) {
-	t.Helper()
-
-	owner := f.as(t, "owner", platform.RoleCustomer)
-	shop := f.shop(owner, t, "La Paris")
-	now := time.Now()
-	croissant := f.post(owner, t, shop, "Croissant", 20, 20_000, now)
-	bread := f.post(owner, t, shop, "Bánh mì", 3, 15_000, now)
-	cake := f.post(owner, t, shop, "Bánh bông lan", 1, 30_000, now)
-
-	for _, c := range []struct {
-		what   string
-		wanted []order.Wanted
-		large  bool
-	}{
-		{"two of twenty, under the cap", []order.Wanted{{croissant.ID, 2}}, false},
-		{"five of twenty, the cap", []order.Wanted{{croissant.ID, 5}}, true},
-		{"two of three, more than half", []order.Wanted{{bread.ID, 2}}, true},
-		{"the only one, a single unit", []order.Wanted{{cake.ID, 1}}, false},
-	} {
-		who := order.Contact{Name: "Ngọc", Phone: phoneOf(t)}
-
-		placed, err := f.orders.Place(t.Context(), key(), uuid.Nil, who, c.wanted)
-		if err != nil {
-			t.Fatalf("%s: %v", c.what, err)
-		}
-
-		if placed.Large || placed.Phone != nil {
-			t.Errorf("%s: the customer reads large %v, phone %+v", c.what, placed.Large, placed.Phone)
-		}
-
-		read, err := f.orders.Get(owner, placed.ID, "")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if read.Large != c.large || read.Phone == nil || read.Phone.Open != 1 || read.Phone.Missed != 0 {
-			t.Errorf("%s: the store reads large %v, phone %+v, want large %v", c.what, read.Large, read.Phone, c.large)
-		}
-	}
-
-	checkLargeListed(owner, t, f, shop, now)
-}
-
-// checkLargeListed checks the store's list of the day carries each order's
-// phone number history and marks the two large orders of testLargeOrder.
-func checkLargeListed(owner context.Context, t *testing.T, f fixture, shop uuid.UUID, day time.Time) {
-	t.Helper()
-
-	orders, err := f.orders.OfSeller(owner, shop, day)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	large := 0
-
-	for _, o := range orders {
-		if o.Phone == nil {
-			t.Errorf("listed without its phone number's orders: %s", order.Number(o.Number))
-		}
-
-		if o.Large {
-			large++
-		}
-	}
-
-	if large != 2 {
-		t.Errorf("large orders on the store's list: %d, want 2", large)
+		t.Errorf("two orders missed in thirty days: %v", err)
 	}
 }
 
@@ -298,7 +196,7 @@ func testOrderSettings(t *testing.T, f fixture) {
 	}
 
 	set, err := f.orders.Settings(admin)
-	if err != nil || set.OpenPerPhonePerSeller != 2 || set.OpenPerAddress != 20 || set.MissedLimit != 2 || set.MissedDays != 7 {
+	if err != nil || set.OpenPerPhonePerSeller != 2 || set.MissedLimit != 3 || set.MissedDays != 30 {
 		t.Fatalf("the first settings: %+v, %v", set, err)
 	}
 

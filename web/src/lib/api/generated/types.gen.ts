@@ -885,10 +885,6 @@ export type OrderBody = {
      */
     discountVnd: number;
     id: string;
-    /**
-     * To the seller's people and admins: a line reached its dish's cap or took more than half the units posted (SEC-158); false to its customer
-     */
-    large: boolean;
     lines: Array<OrderLineBody>;
     /**
      * Messages its chat holds, with unreadMessages; none for admins
@@ -903,10 +899,6 @@ export type OrderBody = {
      */
     payVnd: number;
     /**
-     * To the seller's people and admins, on its page and the seller's list: what its phone number holds and missed; none to its customer
-     */
-    phone?: PhoneHistoryBody;
-    /**
      * What its customer reported went wrong, with the store's answer; none until reported (SEC-84)
      */
     problem?: ProblemBody;
@@ -916,7 +908,7 @@ export type OrderBody = {
     promotion?: OrderPromotionBody;
     readyAt?: string;
     refuseNote?: string;
-    refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other' | 'withdrawn' | 'suspected';
+    refuseReason?: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other' | 'withdrawn';
     refusedAt?: string;
     /**
      * The customer's rating of the collected order; none until they rate it, nor while admins hide it
@@ -1001,10 +993,6 @@ export type OrderSettingsBody = {
      */
     missedLimit: number;
     /**
-     * Orders still to collect that may have been placed from one address; loose, as a mall's Wi-Fi is shared
-     */
-    openPerAddress: number;
-    /**
      * Orders still to collect one phone number may hold at a store
      */
     openPerPhonePerSeller: number;
@@ -1047,17 +1035,6 @@ export type PayoutBody = {
     paidVnd?: number;
     sellerId: string;
     sellerName: string;
-};
-
-export type PhoneHistoryBody = {
-    /**
-     * Orders it missed at any seller in the order settings' missedDays: no hand-over by the window's end, or refused as no answer, no show, late or suspected
-     */
-    missed: number;
-    /**
-     * Orders the phone number holds at this seller still to collect, this one included
-     */
-    open: number;
 };
 
 export type PhotoBody = {
@@ -1309,7 +1286,7 @@ export type RecordBody = {
 
 export type RefuseOrderRequest = {
     note?: string;
-    reason: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other' | 'suspected';
+    reason: 'not_suitable' | 'wrong_items' | 'no_answer' | 'no_show' | 'late' | 'sold_out' | 'other';
 };
 
 export type RegisterInputBody = {
@@ -1744,10 +1721,6 @@ export type OrderSettingsBodyWritable = {
      * Orders missed within missedDays that stop a phone number ordering
      */
     missedLimit: number;
-    /**
-     * Orders still to collect that may have been placed from one address; loose, as a mall's Wi-Fi is shared
-     */
-    openPerAddress: number;
     /**
      * Orders still to collect one phone number may hold at a store
      */

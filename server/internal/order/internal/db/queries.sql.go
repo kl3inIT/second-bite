@@ -281,7 +281,7 @@ SELECT count(*) AS placed,
        count(*) FILTER (WHERE state = 'collected') AS collected,
        count(*) FILTER (WHERE state = 'expired'
                            OR (state IN ('confirmed', 'ready') AND window_end <= now())
-                           OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late', 'suspected'))) AS missed
+                           OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late'))) AS missed
 FROM order_orders WHERE customer_id = $1
 `
 
@@ -305,7 +305,7 @@ const customerOrders = `-- name: CustomerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd, large
+       promotion_new, discount_vnd
 FROM order_orders
 WHERE customer_id = $1
   AND ($2::uuid IS NULL OR checkout_id = $2)
@@ -354,7 +354,6 @@ type CustomerOrdersRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
-	Large         bool
 }
 
 // A customer's orders, newest first: open ones are confirmed or ready with
@@ -405,7 +404,6 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 			&i.PromotionRule,
 			&i.PromotionNew,
 			&i.DiscountVnd,
-			&i.Large,
 		); err != nil {
 			return nil, err
 		}
@@ -455,7 +453,7 @@ func (q *Queries) DeletePromotionSellers(ctx context.Context, promotionID uuid.U
 
 const expireEnded = `-- name: ExpireEnded :one
 WITH ended AS (
-    UPDATE order_orders SET state = 'expired', placed_from = NULL
+    UPDATE order_orders SET state = 'expired'
     WHERE state IN ('confirmed', 'ready') AND window_end <= now()
     RETURNING id, seller_id
 ), recorded AS (
@@ -547,7 +545,7 @@ const getOrder = `-- name: GetOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd, large
+       promotion_new, discount_vnd
 FROM order_orders WHERE id = $1
 `
 
@@ -581,7 +579,6 @@ type GetOrderRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
-	Large         bool
 }
 
 func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, error) {
@@ -617,19 +614,17 @@ func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, erro
 		&i.PromotionRule,
 		&i.PromotionNew,
 		&i.DiscountVnd,
-		&i.Large,
 	)
 	return i, err
 }
 
 const getOrderSettings = `-- name: GetOrderSettings :one
-SELECT open_per_phone_per_seller, open_per_address, missed_limit, missed_days, updated_at, updated_by
+SELECT open_per_phone_per_seller, missed_limit, missed_days, updated_at, updated_by
 FROM order_settings WHERE id = 1
 `
 
 type GetOrderSettingsRow struct {
 	OpenPerPhonePerSeller int32
-	OpenPerAddress        int32
 	MissedLimit           int32
 	MissedDays            int32
 	UpdatedAt             time.Time
@@ -641,7 +636,6 @@ func (q *Queries) GetOrderSettings(ctx context.Context) (GetOrderSettingsRow, er
 	var i GetOrderSettingsRow
 	err := row.Scan(
 		&i.OpenPerPhonePerSeller,
-		&i.OpenPerAddress,
 		&i.MissedLimit,
 		&i.MissedDays,
 		&i.UpdatedAt,
@@ -783,12 +777,11 @@ const insertOrder = `-- name: InsertOrder :one
 INSERT INTO order_orders (
     customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude, longitude, address,
     window_start, window_end, total_vnd, idempotency_key, zalo_consent_at, promotion_id, promotion_name, promotion_rule,
-    promotion_new, discount_vnd, large, placed_from
+    promotion_new, discount_vnd
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8,
     $9, $10, $11, $12, $13, $14,
-    $15, $16, $17, $18, $19, $20,
-    $21
+    $15, $16, $17, $18, $19
 )
 RETURNING id
 `
@@ -813,8 +806,6 @@ type InsertOrderParams struct {
 	PromotionRule  string
 	PromotionNew   bool
 	DiscountVnd    int64
-	Large          bool
-	PlacedFrom     pgtype.Text
 }
 
 func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.UUID, error) {
@@ -838,8 +829,6 @@ func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (uuid.
 		arg.PromotionRule,
 		arg.PromotionNew,
 		arg.DiscountVnd,
-		arg.Large,
-		arg.PlacedFrom,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
@@ -1114,7 +1103,7 @@ const lockOrder = `-- name: LockOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd, large
+       promotion_new, discount_vnd
 FROM order_orders WHERE id = $1 FOR UPDATE
 `
 
@@ -1148,7 +1137,6 @@ type LockOrderRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
-	Large         bool
 }
 
 // Serializes the transitions of one order until the transaction ends.
@@ -1185,19 +1173,17 @@ func (q *Queries) LockOrder(ctx context.Context, id uuid.UUID) (LockOrderRow, er
 		&i.PromotionRule,
 		&i.PromotionNew,
 		&i.DiscountVnd,
-		&i.Large,
 	)
 	return i, err
 }
 
 const lockOrderSettings = `-- name: LockOrderSettings :one
-SELECT open_per_phone_per_seller, open_per_address, missed_limit, missed_days, updated_at, updated_by
+SELECT open_per_phone_per_seller, missed_limit, missed_days, updated_at, updated_by
 FROM order_settings WHERE id = 1 FOR UPDATE
 `
 
 type LockOrderSettingsRow struct {
 	OpenPerPhonePerSeller int32
-	OpenPerAddress        int32
 	MissedLimit           int32
 	MissedDays            int32
 	UpdatedAt             time.Time
@@ -1210,7 +1196,6 @@ func (q *Queries) LockOrderSettings(ctx context.Context) (LockOrderSettingsRow, 
 	var i LockOrderSettingsRow
 	err := row.Scan(
 		&i.OpenPerPhonePerSeller,
-		&i.OpenPerAddress,
 		&i.MissedLimit,
 		&i.MissedDays,
 		&i.UpdatedAt,
@@ -1223,7 +1208,7 @@ const lockOrderShared = `-- name: LockOrderShared :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd, large
+       promotion_new, discount_vnd
 FROM order_orders WHERE id = $1 FOR SHARE
 `
 
@@ -1257,7 +1242,6 @@ type LockOrderSharedRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
-	Large         bool
 }
 
 // Holds an order against a transition (which locks it for update) until the
@@ -1295,7 +1279,6 @@ func (q *Queries) LockOrderShared(ctx context.Context, id uuid.UUID) (LockOrderS
 		&i.PromotionRule,
 		&i.PromotionNew,
 		&i.DiscountVnd,
-		&i.Large,
 	)
 	return i, err
 }
@@ -1304,11 +1287,10 @@ const lockPlacing = `-- name: LockPlacing :exec
 SELECT pg_advisory_xact_lock(hashtextextended('order.placing:' || $1::text, 0))
 `
 
-// Serializes the orders placed for one key, a phone number or an address,
-// until the transaction ends, so two placed at once cannot both pass a limit
-// (SEC-158).
-func (q *Queries) LockPlacing(ctx context.Context, key string) error {
-	_, err := q.db.Exec(ctx, lockPlacing, key)
+// Serializes the orders placed for one phone number until the transaction
+// ends, so two placed at once cannot both pass a limit (SEC-158).
+func (q *Queries) LockPlacing(ctx context.Context, phone string) error {
+	_, err := q.db.Exec(ctx, lockPlacing, phone)
 	return err
 }
 
@@ -1429,8 +1411,7 @@ func (q *Queries) LockRunningPromotions(ctx context.Context, arg LockRunningProm
 }
 
 const markCancelled = `-- name: MarkCancelled :exec
-UPDATE order_orders SET state = 'cancelled', cancelled_at = now(), cancel_reason = $1, placed_from = NULL
-WHERE id = $2
+UPDATE order_orders SET state = 'cancelled', cancelled_at = now(), cancel_reason = $1 WHERE id = $2
 `
 
 type MarkCancelledParams struct {
@@ -1444,7 +1425,7 @@ func (q *Queries) MarkCancelled(ctx context.Context, arg MarkCancelledParams) er
 }
 
 const markCollected = `-- name: MarkCollected :exec
-UPDATE order_orders SET state = 'collected', collected_at = now(), placed_from = NULL WHERE id = $1
+UPDATE order_orders SET state = 'collected', collected_at = now() WHERE id = $1
 `
 
 func (q *Queries) MarkCollected(ctx context.Context, id uuid.UUID) error {
@@ -1503,7 +1484,7 @@ func (q *Queries) MarkReady(ctx context.Context, id uuid.UUID) error {
 
 const markRefused = `-- name: MarkRefused :exec
 UPDATE order_orders
-SET state = 'refused', refused_at = now(), refuse_reason = $1, refuse_note = $2, placed_from = NULL
+SET state = 'refused', refused_at = now(), refuse_reason = $1, refuse_note = $2
 WHERE id = $3
 `
 
@@ -1566,7 +1547,7 @@ SELECT count(*) FROM order_orders
 WHERE customer_phone = $1
   AND ((state IN ('expired', 'confirmed', 'ready') AND window_end <= now()
         AND window_end > now() - make_interval(days => $2::int))
-       OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late', 'suspected')
+       OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late')
            AND refused_at > now() - make_interval(days => $2::int)))
 `
 
@@ -1576,8 +1557,8 @@ type MissedOfPhoneParams struct {
 }
 
 // How many orders a phone number missed in the last days: no hand-over by the
-// end of a window that ended then, or refused then as no answer, no show, late
-// or suspected (SEC-158).
+// end of a window that ended then, or refused then as no answer, no show or
+// late (SEC-158).
 func (q *Queries) MissedOfPhone(ctx context.Context, arg MissedOfPhoneParams) (int64, error) {
 	row := q.db.QueryRow(ctx, missedOfPhone, arg.Phone, arg.Days)
 	var count int64
@@ -1674,19 +1655,6 @@ func (q *Queries) NthRecentMessageTime(ctx context.Context, arg NthRecentMessage
 	return sent_at, err
 }
 
-const openFromAddress = `-- name: OpenFromAddress :one
-SELECT count(*) FROM order_orders
-WHERE placed_from = $1 AND state IN ('confirmed', 'ready') AND window_end > now()
-`
-
-// The orders still to collect placed from an address.
-func (q *Queries) OpenFromAddress(ctx context.Context, address pgtype.Text) (int64, error) {
-	row := q.db.QueryRow(ctx, openFromAddress, address)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
 const openOfPhoneAtSeller = `-- name: OpenOfPhoneAtSeller :one
 SELECT count(*) FROM order_orders
 WHERE seller_id = $1 AND customer_phone = $2 AND state IN ('confirmed', 'ready') AND window_end > now()
@@ -1735,7 +1703,7 @@ func (q *Queries) OpenOrdersOfOffer(ctx context.Context, offerID uuid.UUID) ([]u
 
 const orderDays = `-- name: OrderDays :many
 WITH placed AS (
-    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, o.contact_forgotten_at, o.promotion_id, o.promotion_name, o.promotion_rule, o.promotion_new, o.discount_vnd, o.large, o.placed_from, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
+    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, o.contact_forgotten_at, o.promotion_id, o.promotion_name, o.promotion_rule, o.promotion_new, o.discount_vnd, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
     FROM order_orders o
     WHERE o.window_start >= $1 AND o.window_start < $2
       AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
@@ -1832,7 +1800,7 @@ const ordersForAdmins = `-- name: OrdersForAdmins :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd, large
+       promotion_new, discount_vnd
 FROM order_orders
 WHERE (cardinality($1::text[]) = 0
        OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
@@ -1885,7 +1853,6 @@ type OrdersForAdminsRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
-	Large         bool
 }
 
 // One page of every seller's orders in the statuses given (all when empty),
@@ -1941,7 +1908,6 @@ func (q *Queries) OrdersForAdmins(ctx context.Context, arg OrdersForAdminsParams
 			&i.PromotionRule,
 			&i.PromotionNew,
 			&i.DiscountVnd,
-			&i.Large,
 		); err != nil {
 			return nil, err
 		}
@@ -2060,55 +2026,6 @@ func (q *Queries) PhoneHasCollected(ctx context.Context, customerPhone string) (
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
-}
-
-const phoneHistories = `-- name: PhoneHistories :many
-SELECT p.phone::text AS phone,
-       (SELECT count(*) FROM order_orders AS o
-        WHERE o.seller_id = $1 AND o.customer_phone = p.phone AND o.state IN ('confirmed', 'ready')
-          AND o.window_end > now()) AS open,
-       (SELECT count(*) FROM order_orders AS o
-        WHERE o.customer_phone = p.phone
-          AND ((o.state IN ('expired', 'confirmed', 'ready') AND o.window_end <= now()
-                AND o.window_end > now() - make_interval(days => $2::int))
-               OR (o.state = 'refused' AND o.refuse_reason IN ('no_answer', 'no_show', 'late', 'suspected')
-                   AND o.refused_at > now() - make_interval(days => $2::int)))) AS missed
-FROM unnest($3::text[]) AS p (phone)
-`
-
-type PhoneHistoriesParams struct {
-	SellerID uuid.UUID
-	Days     int32
-	Phones   []string
-}
-
-type PhoneHistoriesRow struct {
-	Phone  string
-	Open   int64
-	Missed int64
-}
-
-// For each phone number, the orders it holds at a seller still to collect and
-// those it missed at any seller in the last days, for the seller to read
-// beside an order (SEC-158).
-func (q *Queries) PhoneHistories(ctx context.Context, arg PhoneHistoriesParams) ([]PhoneHistoriesRow, error) {
-	rows, err := q.db.Query(ctx, phoneHistories, arg.SellerID, arg.Days, arg.Phones)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []PhoneHistoriesRow
-	for rows.Next() {
-		var i PhoneHistoriesRow
-		if err := rows.Scan(&i.Phone, &i.Open, &i.Missed); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const problemExists = `-- name: ProblemExists :one
@@ -2292,14 +2209,13 @@ func (q *Queries) PurgeLiveTickets(ctx context.Context, now time.Time) (int64, e
 
 const putOrderSettings = `-- name: PutOrderSettings :exec
 UPDATE order_settings
-SET open_per_phone_per_seller = $1, open_per_address = $2,
-    missed_limit = $3, missed_days = $4, updated_at = now(), updated_by = $5
+SET open_per_phone_per_seller = $1, missed_limit = $2, missed_days = $3,
+    updated_at = now(), updated_by = $4
 WHERE id = 1
 `
 
 type PutOrderSettingsParams struct {
 	OpenPerPhonePerSeller int32
-	OpenPerAddress        int32
 	MissedLimit           int32
 	MissedDays            int32
 	UpdatedBy             uuid.NullUUID
@@ -2308,7 +2224,6 @@ type PutOrderSettingsParams struct {
 func (q *Queries) PutOrderSettings(ctx context.Context, arg PutOrderSettingsParams) error {
 	_, err := q.db.Exec(ctx, putOrderSettings,
 		arg.OpenPerPhonePerSeller,
-		arg.OpenPerAddress,
 		arg.MissedLimit,
 		arg.MissedDays,
 		arg.UpdatedBy,
@@ -2573,7 +2488,7 @@ const sellerOrders = `-- name: SellerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd, large
+       promotion_new, discount_vnd
 FROM order_orders
 WHERE seller_id = $1 AND window_start >= $2 AND window_start < $3
 ORDER BY window_start, number
@@ -2616,7 +2531,6 @@ type SellerOrdersRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
-	Large         bool
 }
 
 // A seller's orders whose window starts within [day_start, day_end), soonest
@@ -2660,7 +2574,6 @@ func (q *Queries) SellerOrders(ctx context.Context, arg SellerOrdersParams) ([]S
 			&i.PromotionRule,
 			&i.PromotionNew,
 			&i.DiscountVnd,
-			&i.Large,
 		); err != nil {
 			return nil, err
 		}
