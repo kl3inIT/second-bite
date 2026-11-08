@@ -1,0 +1,2 @@
+/* Why the app asks for the phone's location: only when "Near me" is tapped. */
+"NSLocationWhenInUseUsageDescription" = "Second Bite dùng vị trí của bạn khi bạn bấm “Gần tôi”, để xếp các quán và món theo khoảng cách. Vị trí không được lưu lại.";

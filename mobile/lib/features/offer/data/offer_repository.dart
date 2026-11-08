@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:second_bite/core/api.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
+import 'package:second_bite/features/offer/domain/search_query.dart';
 
 part 'offer_repository.g.dart';
 
@@ -15,9 +16,10 @@ class OfferRepository {
 
   final OffersClient _offers;
 
-  /// The offers [query] asks for, at most 50, as the web lists them. A
+  /// The offers [query] asks for, at most 50, as the web lists them,
+  /// around [near] when a place is chosen, each then with its distance. A
   /// failure is the client's `DioException`.
-  Future<List<OfferSummary>> search(HomeQuery query) async {
+  Future<List<OfferSummary>> search(HomeQuery query, {String? near}) async {
     final now = query.now ? DateTime.now().toUtc() : null;
     final kind = query.kind;
     final found = await _offers.searchOffers(
@@ -25,15 +27,41 @@ class OfferRepository {
       kind: kind == null ? null : [kind],
       collectFrom: now,
       collectTo: now,
+      near: near,
+      limit: 50,
+    );
+    return found.offers;
+  }
+
+  /// What the search at `/search` asks for, at most 50, as the web's
+  /// `SearchResults` lists them: the chips' filters and order, around
+  /// [near] when a place is chosen.
+  Future<List<OfferSummary>> find(SearchQuery query, {String? near}) async {
+    final now = query.now ? DateTime.now().toUtc() : null;
+    final kind = query.kind;
+    final found = await _offers.searchOffers(
+      q: query.q,
+      kind: kind == null ? null : [kind],
+      collectFrom: now ?? tonightAt(query.from),
+      collectTo: now ?? tonightAt(query.to),
+      near: near,
+      radiusKm: near == null ? null : query.radiusKm,
+      minPrice: query.minPrice,
+      maxPrice: query.maxPrice,
+      sort: query.sort,
       limit: 50,
     );
     return found.offers;
   }
 
   /// A store's offers tonight, at most 50, as its page lists them on the
-  /// web (`listOffers({sellerId})`).
-  Future<List<OfferSummary>> ofSeller(String sellerId) async {
-    final found = await _offers.searchOffers(sellerId: sellerId, limit: 50);
+  /// web (`listOffers({sellerId, near})`), with their distance from [near].
+  Future<List<OfferSummary>> ofSeller(String sellerId, {String? near}) async {
+    final found = await _offers.searchOffers(
+      sellerId: sellerId,
+      near: near,
+      limit: 50,
+    );
     return found.offers;
   }
 

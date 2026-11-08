@@ -26,10 +26,12 @@ class OfferCard extends StatelessWidget {
       dishName: offer.name,
       stockLabel: _stock(l10n, offer),
       soldOut: !offer.isAvailable,
+      // How far the store is from the chosen place, or its floor without
+      // one, as the web's card.
       windowLabel: l10n.offerWindowAt(
         formatTime(offer.windowStart),
         formatTime(offer.windowEnd),
-        offer.seller.address,
+        _distance(context, offer) ?? offer.seller.address,
       ),
       discountLabel: l10n.offerDiscount(offer.discountPercent),
       discountSemanticLabel: l10n.offerDiscountLabel(offer.discountPercent),
@@ -63,10 +65,17 @@ class OfferTile extends StatelessWidget {
       dishName: offer.name,
       stockLabel: _stock(l10n, offer),
       soldOut: !offer.isAvailable,
-      windowLabel: l10n.offerWindow(
-        formatTime(offer.windowStart),
-        formatTime(offer.windowEnd),
-      ),
+      windowLabel: switch (_distance(context, offer)) {
+        final String distance => l10n.offerWindowAt(
+          formatTime(offer.windowStart),
+          formatTime(offer.windowEnd),
+          distance,
+        ),
+        null => l10n.offerWindow(
+          formatTime(offer.windowStart),
+          formatTime(offer.windowEnd),
+        ),
+      },
       discountLabel: l10n.offerDiscount(offer.discountPercent),
       discountSemanticLabel: l10n.offerDiscountLabel(offer.discountPercent),
       price: formatPrice(offer.priceVnd),
@@ -76,6 +85,13 @@ class OfferTile extends StatelessWidget {
       onTap: () => SellerRoute(id: offer.sellerId, at: offer.id).go(context),
     );
   }
+}
+
+String? _distance(BuildContext context, OfferSummary offer) {
+  final meters = offer.distanceMeters;
+  return meters == null
+      ? null
+      : formatDistance(meters, Localizations.localeOf(context).languageCode);
 }
 
 String _stock(AppLocalizations l10n, OfferSummary offer) =>

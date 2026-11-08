@@ -10,13 +10,16 @@ import 'package:second_bite/features/identity/ui/sign_in_screen.dart';
 import 'package:second_bite/features/legal/ui/legal_screen.dart';
 import 'package:second_bite/features/legal/ui/legal_text.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
+import 'package:second_bite/features/offer/domain/search_query.dart';
 import 'package:second_bite/features/offer/ui/home_screen.dart';
 import 'package:second_bite/features/offer/ui/offer_link_screen.dart';
+import 'package:second_bite/features/offer/ui/search_screen.dart';
 import 'package:second_bite/features/offer/ui/seller_screen.dart';
 import 'package:second_bite/features/order/ui/cart_screen.dart';
 import 'package:second_bite/features/order/ui/chat_screen.dart';
 import 'package:second_bite/features/order/ui/order_screen.dart';
 import 'package:second_bite/features/order/ui/orders_screen.dart';
+import 'package:second_bite/features/seller/ui/favourites_screen.dart';
 
 part 'routes.g.dart';
 
@@ -44,6 +47,9 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
           ],
         ),
       ],
+    ),
+    TypedStatefulShellBranch<FavouritesBranch>(
+      routes: [TypedGoRoute<FavouritesRoute>(path: '/favourites')],
     ),
     TypedStatefulShellBranch<AccountBranch>(
       routes: [
@@ -79,6 +85,12 @@ class OrdersBranch extends StatefulShellBranchData {
   const new();
 }
 
+/// The saved stores' tab.
+class FavouritesBranch extends StatefulShellBranchData {
+  /// The saved stores' tab.
+  const new();
+}
+
 /// The account tab.
 class AccountBranch extends StatefulShellBranchData {
   /// The account tab.
@@ -104,6 +116,17 @@ class HomeRoute extends GoRouteData with $HomeRoute {
   Widget build(BuildContext context, GoRouterState state) => HomeScreen(
     query: readHomeQuery(q: q, kind: kind, now: now),
   );
+}
+
+/// "Yêu thích" at `/favourites`, as on the web (SEC-204 step 13): the stores
+/// this person follows.
+class FavouritesRoute extends GoRouteData with $FavouritesRoute {
+  /// The route to the saved stores.
+  const new();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const FavouritesScreen();
 }
 
 /// The orders tab at `/orders`, as on the web (SEC-204): the orders still to
@@ -234,6 +257,81 @@ class OfferRoute extends GoRouteData with $OfferRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       OfferLinkScreen(offerId: id);
+}
+
+/// The search at `/search`, as on the web (SEC-204 step 14): over the tabs,
+/// with the web's keys. The place is the one kept on the phone, so `near`
+/// and `place` are not in the address.
+@TypedGoRoute<SearchRoute>(path: '/search')
+class SearchRoute extends GoRouteData with $SearchRoute {
+  /// The route to the search, filtered by what is given.
+  const new({
+    this.q,
+    this.kind,
+    this.now,
+    @TypedQueryParameter(name: 'radiusKm') this.radiusKm,
+    @TypedQueryParameter(name: 'minPrice') this.minPrice,
+    @TypedQueryParameter(name: 'maxPrice') this.maxPrice,
+    this.from,
+    this.to,
+    this.sort,
+  });
+
+  /// The route to [query].
+  new of(SearchQuery query)
+    : this(
+        q: query.q,
+        kind: query.kind?.json,
+        now: query.now ? '1' : null,
+        radiusKm: query.radiusKm?.toString(),
+        minPrice: query.minPrice?.toString(),
+        maxPrice: query.maxPrice?.toString(),
+        from: query.from,
+        to: query.to,
+        sort: query.sort?.json,
+      );
+
+  /// Words searched.
+  final String? q;
+
+  /// One kind, as the API names it.
+  final String? kind;
+
+  /// `1` for what can be collected now.
+  final String? now;
+
+  /// How far around the place, `1`, `2` or `5`.
+  final String? radiusKm;
+
+  /// The price of one portion from, in đồng.
+  final String? minPrice;
+
+  /// The price of one portion to, in đồng.
+  final String? maxPrice;
+
+  /// Collected from tonight, `20:00`.
+  final String? from;
+
+  /// Collected until tonight, `21:30`.
+  final String? to;
+
+  /// The order, as the API names it.
+  final String? sort;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => SearchScreen(
+    params: (
+      q: q,
+      kind: kind,
+      now: now,
+      radiusKm: radiusKm,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+      from: from,
+      to: to,
+      sort: sort,
+    ),
+  );
 }
 
 /// The cart's confirmation at `/cart`, as on the web (SEC-204): over the

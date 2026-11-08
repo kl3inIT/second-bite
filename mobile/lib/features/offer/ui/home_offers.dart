@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:second_bite/features/offer/data/kept_place.dart';
 import 'package:second_bite/features/offer/data/offer_repository.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 
@@ -10,12 +11,17 @@ Duration? _never(int retryCount, Object error) => null;
 
 /// The home's view model: the offers a [HomeQuery] asks for, loading,
 /// loaded or failed. The deal card asks for the unfiltered list and the
-/// grid for the filtered one; the same query is fetched once.
+/// grid for the filtered one; the same query is fetched once. They are
+/// around the place the customer chose, or at every shop.
 @Riverpod(retry: _never)
 class HomeOffers extends _$HomeOffers {
   @override
-  Future<List<OfferSummary>> build(HomeQuery query) =>
-      ref.watch(offerRepositoryProvider).search(query);
+  Future<List<OfferSummary>> build(HomeQuery query) async {
+    final place = await ref.watch(keptPlaceProvider.future);
+    return await ref
+        .watch(offerRepositoryProvider)
+        .search(query, near: place?.near);
+  }
 
   /// Asks for the offers again, after a failure or a pull to refresh, and
   /// completes when they have arrived or failed again; a failure is in the

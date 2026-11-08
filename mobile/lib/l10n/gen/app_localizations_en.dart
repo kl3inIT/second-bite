@@ -13,19 +13,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Second Bite';
 
   @override
-  String get homeTitle => 'Tonight at Tasco Mall';
-
-  @override
-  String get homePlace => 'Tasco Mall';
-
-  @override
   String get homeArea => 'Long Biên, Hanoi';
 
   @override
   String get homeSearchLabel => 'Search dishes or sellers';
 
   @override
-  String get homeSearchPlaceholder => 'Search pastries, rolls, vegetables…';
+  String get homeSearchPlaceholder => 'Search pastries, fried chicken, pizza…';
 
   @override
   String get homeKindsLabel => 'Kinds of food';
@@ -179,9 +173,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navAccount => 'Account';
-
-  @override
-  String get navSoon => '(coming soon)';
 
   @override
   String get accountTitle => 'Account';
@@ -1616,4 +1607,307 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chatLocked =>
       'This order has ended, so you can only read the messages.';
+
+  @override
+  String get homePlaceAll => 'All shops';
+
+  @override
+  String get homePlaceNearby => 'My location';
+
+  @override
+  String get homeHeadingAll => 'Tonight: All shops';
+
+  @override
+  String homeHeadingAround(String place) {
+    return 'Tonight around $place';
+  }
+
+  @override
+  String get homeAreaPlace => 'Sellers around here';
+
+  @override
+  String get homeAreaNearby => 'Sellers near you';
+
+  @override
+  String get homeFilters => 'Filter dishes';
+
+  @override
+  String get areaOpen => 'Choose where to look';
+
+  @override
+  String get areaTitle => 'Where should we look?';
+
+  @override
+  String get areaClose => 'Close';
+
+  @override
+  String get areaField => 'Find a place to look around';
+
+  @override
+  String get areaFieldPlaceholder => 'Type an address or an area…';
+
+  @override
+  String get areaClear => 'Clear what you typed';
+
+  @override
+  String areaSuggestions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count suggested places',
+      one: '1 suggested place',
+      zero: 'No places',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get areaNoPlace =>
+      'We could not find this place. Try another ward, street or building, or use your location.';
+
+  @override
+  String get areaAreas => 'Areas';
+
+  @override
+  String get areaAll => 'All shops';
+
+  @override
+  String get areaAllHint => 'Default · ending soonest first';
+
+  @override
+  String get areaMall => 'Tasco Mall Long Biên';
+
+  @override
+  String get areaMallHint => 'Suggested · the shops in the mall';
+
+  @override
+  String get areaNearby => 'Near me';
+
+  @override
+  String get areaNearbyHint => 'Allow location to see sellers near you';
+
+  @override
+  String get areaApply => 'Show dishes';
+
+  @override
+  String get areaLocating => 'Finding where you are…';
+
+  @override
+  String get areaDenied =>
+      'The app is not allowed to use your location. Allow it in your phone\'s Settings, or see dishes at all shops.';
+
+  @override
+  String get areaFailed =>
+      'We could not find where you are. Try again later, or see dishes at all shops.';
+
+  @override
+  String get searchTitle => 'Search';
+
+  @override
+  String get searchLabel => 'Search dishes or sellers';
+
+  @override
+  String get searchPlaceholder => 'Search dishes and sellers';
+
+  @override
+  String get searchBack => 'Back to home';
+
+  @override
+  String get searchClear => 'Clear the words';
+
+  @override
+  String get searchRecent => 'Recent searches';
+
+  @override
+  String get searchClearRecent => 'Clear';
+
+  @override
+  String searchForget(String words) {
+    return 'Remove “$words” from recent searches';
+  }
+
+  @override
+  String get searchFilters => 'Filters';
+
+  @override
+  String get searchDistance => 'Distance';
+
+  @override
+  String get searchAnyDistance => 'Any distance';
+
+  @override
+  String searchWithin(String distance) {
+    return 'Within $distance';
+  }
+
+  @override
+  String get searchPrice => 'Price';
+
+  @override
+  String get searchWhen => 'Collection time';
+
+  @override
+  String get searchNow => 'Collect now';
+
+  @override
+  String get searchKind => 'Kind';
+
+  @override
+  String get searchAnyKind => 'Any kind';
+
+  @override
+  String searchSort(String sort) {
+    String _temp0 = intl.Intl.selectLogic(sort, {
+      'relevance': 'Best match',
+      'distance': 'Nearest',
+      'ending_soon': 'Closing soon',
+      'price': 'Lowest price',
+      'discount': 'Biggest discount',
+      'other': 'Best match',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get searchSortBy => 'Sort';
+
+  @override
+  String searchDishesFor(int count, String q) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dishes',
+      one: '1 dish',
+    );
+    return '$_temp0 for “$q”';
+  }
+
+  @override
+  String searchDishesHere(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dishes',
+      one: '1 dish',
+    );
+    String _temp1 = intl.Intl.selectLogic(place, {
+      'near': ' nearby',
+      'other': '',
+    });
+    return '$_temp0 on sale$_temp1';
+  }
+
+  @override
+  String get searchNothing => 'No dish matches.';
+
+  @override
+  String get searchEverything => 'See every dish';
+
+  @override
+  String get searchResetFilters => 'Reset filters';
+
+  @override
+  String get searchFrom => 'From';
+
+  @override
+  String get searchTo => 'To';
+
+  @override
+  String searchRange(String from, String to) {
+    return '$from–$to';
+  }
+
+  @override
+  String searchRangeFrom(String from) {
+    return 'From $from';
+  }
+
+  @override
+  String searchRangeTo(String to) {
+    return 'Up to $to';
+  }
+
+  @override
+  String get searchPriceOrder => 'The lowest price must be below the highest.';
+
+  @override
+  String get searchTimeOrder => 'The start must be before the end.';
+
+  @override
+  String get searchApply => 'Apply';
+
+  @override
+  String get searchClearFilter => 'Clear';
+
+  @override
+  String get searchQuick => 'Quick picks';
+
+  @override
+  String get searchAnyTime => 'Any time';
+
+  @override
+  String get searchLowest => 'Lowest';
+
+  @override
+  String get searchHighest => 'Highest';
+
+  @override
+  String get searchPopular => 'Popular dishes';
+
+  @override
+  String searchOnSale(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dishes',
+      one: '1 dish',
+    );
+    return '$_temp0 on sale';
+  }
+
+  @override
+  String get searchViewGrid => 'Show as a grid';
+
+  @override
+  String get searchViewList => 'Show as a list';
+
+  @override
+  String get searchViewSeller => 'View store';
+
+  @override
+  String searchViewSellerNamed(String seller) {
+    return 'View $seller';
+  }
+
+  @override
+  String get favouritesTitle => 'Favourites';
+
+  @override
+  String get favouritesIntro => 'Shops you follow';
+
+  @override
+  String favouritesFollow(String name) {
+    return 'Favourite $name';
+  }
+
+  @override
+  String get favouritesAdded => 'Added to Favourites';
+
+  @override
+  String get favouritesRemoved => 'Removed from Favourites';
+
+  @override
+  String get favouritesFailed => 'Not saved, try again later.';
+
+  @override
+  String get favouritesNoneTonight => 'Nothing on sale tonight';
+
+  @override
+  String get favouritesEmptyTitle => 'No favourite shops yet';
+
+  @override
+  String get favouritesEmptyBody => 'Tap ♡ on a shop\'s page to follow it.';
+
+  @override
+  String get favouritesExplore => 'Explore shops';
 }

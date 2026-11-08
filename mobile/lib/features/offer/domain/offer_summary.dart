@@ -53,6 +53,38 @@ List<OfferSummary> inShowingOrder(List<OfferSummary> offers) => [
   ...offers.where((offer) => !offer.isAvailable),
 ];
 
+/// The offers grouped by store, each store at its first offer's place, as
+/// the web's `groupBySeller`: the search's list.
+List<({OfferSellerBody seller, List<OfferSummary> offers})> groupBySeller(
+  List<OfferSummary> offers,
+) {
+  final groups =
+      <String, ({OfferSellerBody seller, List<OfferSummary> offers})>{};
+  for (final offer in offers) {
+    groups
+        .putIfAbsent(offer.sellerId, () => (seller: offer.seller, offers: []))
+        .offers
+        .add(offer);
+  }
+  return groups.values.toList();
+}
+
+/// The kinds on sale, the most dishes first, with how many, as the web's
+/// `kindsByCount`: the search's popular kinds.
+List<({Kind kind, int count})> kindCounts(List<OfferSummary> offers) {
+  final counts = <Kind, int>{};
+  for (final offer in offers.where((offer) => offer.isAvailable)) {
+    final kind = Kind.$valuesDefined
+        .where((known) => known.json == offer.kind.json)
+        .firstOrNull;
+    if (kind != null) counts[kind] = (counts[kind] ?? 0) + 1;
+  }
+  return [
+    for (final MapEntry(:key, :value) in counts.entries)
+      (kind: key, count: value),
+  ]..sort((a, b) => b.count.compareTo(a.count));
+}
+
 /// What can still be ordered, the window that closes first at the top: the
 /// home's "Sắp hết giờ nhận".
 List<OfferSummary> closingFirst(List<OfferSummary> offers) =>

@@ -78,5 +78,12 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Second Bite dùng vị trí của bạn khi bạn bấm “Gần tôi”, để xếp các quán và món theo khoảng cách. Vị trí không được lưu lại.</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>vi</string>
+		<string>en</string>
+	</array>
 </dict>
 </plist>

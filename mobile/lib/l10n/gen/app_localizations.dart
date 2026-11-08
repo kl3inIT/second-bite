@@ -104,22 +104,10 @@ abstract class AppLocalizations {
   /// **'Second Bite'**
   String get appTitle;
 
-  /// The home's heading as a screen reader hears it; on screen only the place shows
+  /// The area under the header's place while every shop is shown
   ///
   /// In vi, this message translates to:
-  /// **'Tối nay ở Tasco Mall'**
-  String get homeTitle;
-
-  /// The place on the home's header
-  ///
-  /// In vi, this message translates to:
-  /// **'Tasco Mall'**
-  String get homePlace;
-
-  /// The district under the place on the header
-  ///
-  /// In vi, this message translates to:
-  /// **'Long Biên, Hà Nội'**
+  /// **'Hà Nội'**
   String get homeArea;
 
   /// What the search field is for, read by a screen reader
@@ -131,7 +119,7 @@ abstract class AppLocalizations {
   /// Hint in the empty search field
   ///
   /// In vi, this message translates to:
-  /// **'Tìm bánh, gỏi cuốn, rau củ…'**
+  /// **'Tìm bánh, gà rán, pizza…'**
   String get homeSearchPlaceholder;
 
   /// Name of the row of kinds of food
@@ -355,12 +343,6 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Tài khoản'**
   String get navAccount;
-
-  /// Read after a tab that has no screen yet
-  ///
-  /// In vi, this message translates to:
-  /// **'(sắp có)'**
-  String get navSoon;
 
   /// The account tab's title
   ///
@@ -2609,6 +2591,480 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Đơn đã kết thúc, chỉ xem lại tin nhắn.'**
   String get chatLocked;
+
+  /// The header's place while every shop is shown
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả quán'**
+  String get homePlaceAll;
+
+  /// The header's place when it is the phone's own, without a street
+  ///
+  /// In vi, this message translates to:
+  /// **'Vị trí của tôi'**
+  String get homePlaceNearby;
+
+  /// The home's heading as a screen reader hears it, at every shop
+  ///
+  /// In vi, this message translates to:
+  /// **'Tối nay: Tất cả quán'**
+  String get homeHeadingAll;
+
+  /// The home's heading as a screen reader hears it, around a place
+  ///
+  /// In vi, this message translates to:
+  /// **'Tối nay quanh {place}'**
+  String homeHeadingAround(String place);
+
+  /// Under a place chosen by name on the header
+  ///
+  /// In vi, this message translates to:
+  /// **'Các quán quanh đây'**
+  String get homeAreaPlace;
+
+  /// Under the phone's own place on the header
+  ///
+  /// In vi, this message translates to:
+  /// **'Các quán gần bạn'**
+  String get homeAreaNearby;
+
+  /// The search field's round button that opens the search with its filters
+  ///
+  /// In vi, this message translates to:
+  /// **'Lọc món'**
+  String get homeFilters;
+
+  /// What tapping the header's place does, read by a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn nơi xem món'**
+  String get areaOpen;
+
+  /// Title of the area sheet
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem món ở đâu?'**
+  String get areaTitle;
+
+  /// Closes the area sheet
+  ///
+  /// In vi, this message translates to:
+  /// **'Đóng'**
+  String get areaClose;
+
+  /// The area sheet's field, read by a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm nơi xem món'**
+  String get areaField;
+
+  /// Hint in the area sheet's field
+  ///
+  /// In vi, this message translates to:
+  /// **'Gõ địa chỉ, tên khu…'**
+  String get areaFieldPlaceholder;
+
+  /// Clears the area sheet's field
+  ///
+  /// In vi, this message translates to:
+  /// **'Xoá chữ đã gõ'**
+  String get areaClear;
+
+  /// How many places were suggested, for a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'{count, plural, =0{Không có nơi nào} other{{count} nơi gợi ý}}'**
+  String areaSuggestions(int count);
+
+  /// No place matches the words typed
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy nơi này. Thử tên phường, đường hoặc toà nhà khác, hoặc dùng vị trí của bạn.'**
+  String get areaNoPlace;
+
+  /// Name of the area sheet's choices
+  ///
+  /// In vi, this message translates to:
+  /// **'Khu vực'**
+  String get areaAreas;
+
+  /// Every shop, the default
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả quán'**
+  String get areaAll;
+
+  /// Under every shop
+  ///
+  /// In vi, this message translates to:
+  /// **'Mặc định · món sắp hết giờ lên trước'**
+  String get areaAllHint;
+
+  /// The mall, suggested
+  ///
+  /// In vi, this message translates to:
+  /// **'Tasco Mall Long Biên'**
+  String get areaMall;
+
+  /// Under the mall
+  ///
+  /// In vi, this message translates to:
+  /// **'Gợi ý · các quán trong trung tâm'**
+  String get areaMallHint;
+
+  /// Uses the phone's own place
+  ///
+  /// In vi, this message translates to:
+  /// **'Gần tôi'**
+  String get areaNearby;
+
+  /// Under near me
+  ///
+  /// In vi, this message translates to:
+  /// **'Cho phép định vị để thấy quán gần bạn'**
+  String get areaNearbyHint;
+
+  /// Shows the dishes of the chosen area
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem món'**
+  String get areaApply;
+
+  /// While the phone's place is read
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang tìm vị trí của bạn…'**
+  String get areaLocating;
+
+  /// Location is refused for the app; the web's words, for a phone
+  ///
+  /// In vi, this message translates to:
+  /// **'Ứng dụng chưa được phép định vị. Bật lại trong Cài đặt của máy, hoặc xem món ở tất cả quán.'**
+  String get areaDenied;
+
+  /// The phone could not find its place
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa tìm được vị trí của bạn. Thử lại sau, hoặc xem món ở tất cả quán.'**
+  String get areaFailed;
+
+  /// The search, read by a screen reader while it loads
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm món'**
+  String get searchTitle;
+
+  /// The search field, read by a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm món hoặc quán'**
+  String get searchLabel;
+
+  /// Hint in the search field
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm món, quán'**
+  String get searchPlaceholder;
+
+  /// The search's back arrow
+  ///
+  /// In vi, this message translates to:
+  /// **'Về trang chủ'**
+  String get searchBack;
+
+  /// Clears the search field
+  ///
+  /// In vi, this message translates to:
+  /// **'Xoá chữ đã gõ'**
+  String get searchClear;
+
+  /// Heading of the recent searches
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm gần đây'**
+  String get searchRecent;
+
+  /// Forgets every recent search
+  ///
+  /// In vi, this message translates to:
+  /// **'Xoá'**
+  String get searchClearRecent;
+
+  /// Forgets one recent search
+  ///
+  /// In vi, this message translates to:
+  /// **'Xoá “{words}” khỏi tìm gần đây'**
+  String searchForget(String words);
+
+  /// Name of the row of chips
+  ///
+  /// In vi, this message translates to:
+  /// **'Bộ lọc'**
+  String get searchFilters;
+
+  /// The distance chip
+  ///
+  /// In vi, this message translates to:
+  /// **'Khoảng cách'**
+  String get searchDistance;
+
+  /// No distance filter
+  ///
+  /// In vi, this message translates to:
+  /// **'Mọi khoảng cách'**
+  String get searchAnyDistance;
+
+  /// A distance choice
+  ///
+  /// In vi, this message translates to:
+  /// **'Trong {distance}'**
+  String searchWithin(String distance);
+
+  /// The price chip
+  ///
+  /// In vi, this message translates to:
+  /// **'Giá'**
+  String get searchPrice;
+
+  /// The collection time chip
+  ///
+  /// In vi, this message translates to:
+  /// **'Giờ nhận'**
+  String get searchWhen;
+
+  /// What can be collected now
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhận ngay'**
+  String get searchNow;
+
+  /// The kind chip
+  ///
+  /// In vi, this message translates to:
+  /// **'Loại món'**
+  String get searchKind;
+
+  /// No kind filter
+  ///
+  /// In vi, this message translates to:
+  /// **'Mọi loại'**
+  String get searchAnyKind;
+
+  /// An order of the results, by the API's name for it
+  ///
+  /// In vi, this message translates to:
+  /// **'{sort, select, relevance{Phù hợp nhất} distance{Gần nhất} ending_soon{Sắp hết giờ} price{Giá thấp nhất} discount{Giảm nhiều nhất} other{Phù hợp nhất}}'**
+  String searchSort(String sort);
+
+  /// The order chip
+  ///
+  /// In vi, this message translates to:
+  /// **'Sắp xếp'**
+  String get searchSortBy;
+
+  /// How many dishes match the words
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} món cho “{q}”'**
+  String searchDishesFor(int count, String q);
+
+  /// How many dishes are on sale, near a place or at every shop
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} món đang bán{place, select, near{ quanh đây} other{}}'**
+  String searchDishesHere(int count, String place);
+
+  /// Nothing matches the search
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy món nào khớp.'**
+  String get searchNothing;
+
+  /// Opens the search without filters
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem tất cả món'**
+  String get searchEverything;
+
+  /// Drops every chip, keeping the words
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt lại bộ lọc'**
+  String get searchResetFilters;
+
+  /// The start of a range
+  ///
+  /// In vi, this message translates to:
+  /// **'Từ'**
+  String get searchFrom;
+
+  /// The end of a range
+  ///
+  /// In vi, this message translates to:
+  /// **'Đến'**
+  String get searchTo;
+
+  /// A range chosen
+  ///
+  /// In vi, this message translates to:
+  /// **'{from}–{to}'**
+  String searchRange(String from, String to);
+
+  /// A range with a start only
+  ///
+  /// In vi, this message translates to:
+  /// **'Từ {from}'**
+  String searchRangeFrom(String from);
+
+  /// A range with an end only
+  ///
+  /// In vi, this message translates to:
+  /// **'Đến {to}'**
+  String searchRangeTo(String to);
+
+  /// A price range out of order
+  ///
+  /// In vi, this message translates to:
+  /// **'Giá “từ” cần thấp hơn giá “đến”.'**
+  String get searchPriceOrder;
+
+  /// A time range out of order
+  ///
+  /// In vi, this message translates to:
+  /// **'Giờ “từ” cần sớm hơn giờ “đến”.'**
+  String get searchTimeOrder;
+
+  /// Applies a range
+  ///
+  /// In vi, this message translates to:
+  /// **'Áp dụng'**
+  String get searchApply;
+
+  /// Drops a range
+  ///
+  /// In vi, this message translates to:
+  /// **'Bỏ lọc'**
+  String get searchClearFilter;
+
+  /// Name of a range's quick choices
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn nhanh'**
+  String get searchQuick;
+
+  /// No time at that end
+  ///
+  /// In vi, this message translates to:
+  /// **'Bất kỳ'**
+  String get searchAnyTime;
+
+  /// Hint for the lowest price
+  ///
+  /// In vi, this message translates to:
+  /// **'Thấp nhất'**
+  String get searchLowest;
+
+  /// Hint for the highest price
+  ///
+  /// In vi, this message translates to:
+  /// **'Cao nhất'**
+  String get searchHighest;
+
+  /// Heading of the popular kinds
+  ///
+  /// In vi, this message translates to:
+  /// **'Món phổ biến'**
+  String get searchPopular;
+
+  /// How many dishes of a kind are on sale
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} món đang giảm'**
+  String searchOnSale(int count);
+
+  /// Shows the results as a grid
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem dạng ô'**
+  String get searchViewGrid;
+
+  /// Shows the results as a list by store
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem dạng danh sách'**
+  String get searchViewList;
+
+  /// Opens a store from the list
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem quán'**
+  String get searchViewSeller;
+
+  /// Opens a store from the list, read by a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem quán {seller}'**
+  String searchViewSellerNamed(String seller);
+
+  /// Title of the saved stores
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu thích'**
+  String get favouritesTitle;
+
+  /// Above the followed stores
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán bạn theo dõi'**
+  String get favouritesIntro;
+
+  /// The heart that follows a store, read by a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu thích {name}'**
+  String favouritesFollow(String name);
+
+  /// A store was followed
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã thêm vào Yêu thích'**
+  String get favouritesAdded;
+
+  /// A store was let go
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã bỏ khỏi Yêu thích'**
+  String get favouritesRemoved;
+
+  /// Following or letting go failed
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa lưu được, thử lại sau.'**
+  String get favouritesFailed;
+
+  /// A followed store with no dish tonight
+  ///
+  /// In vi, this message translates to:
+  /// **'Tối nay chưa có món giảm'**
+  String get favouritesNoneTonight;
+
+  /// No store followed yet
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có quán yêu thích'**
+  String get favouritesEmptyTitle;
+
+  /// How to follow a store
+  ///
+  /// In vi, this message translates to:
+  /// **'Bấm ♡ ở trang quán để theo dõi.'**
+  String get favouritesEmptyBody;
+
+  /// Opens the home from the empty saved stores
+  ///
+  /// In vi, this message translates to:
+  /// **'Khám phá quán'**
+  String get favouritesExplore;
 }
 
 class _AppLocalizationsDelegate

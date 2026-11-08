@@ -9,17 +9,20 @@ part of 'seller_offers.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// A store's page's view model: its offers tonight, what can be ordered
-/// first, as the web's page lists them.
+/// first, as the web's page lists them, with their distance from the place
+/// the customer chose.
 
 @ProviderFor(SellerOffers)
 final sellerOffersProvider = SellerOffersFamily._();
 
 /// A store's page's view model: its offers tonight, what can be ordered
-/// first, as the web's page lists them.
+/// first, as the web's page lists them, with their distance from the place
+/// the customer chose.
 final class SellerOffersProvider
     extends $AsyncNotifierProvider<SellerOffers, List<OfferSummary>> {
   /// A store's page's view model: its offers tonight, what can be ordered
-  /// first, as the web's page lists them.
+  /// first, as the web's page lists them, with their distance from the place
+  /// the customer chose.
   SellerOffersProvider._({
     required SellerOffersFamily super.from,
     required String super.argument,
@@ -56,10 +59,11 @@ final class SellerOffersProvider
   }
 }
 
-String _$sellerOffersHash() => r'9fd5f61359706837eaeb85301fbd10ce54d8e98e';
+String _$sellerOffersHash() => r'232190dd391d0cd699bd4bf8b4c502d5a27229f5';
 
 /// A store's page's view model: its offers tonight, what can be ordered
-/// first, as the web's page lists them.
+/// first, as the web's page lists them, with their distance from the place
+/// the customer chose.
 
 final class SellerOffersFamily extends $Family
     with
@@ -80,7 +84,8 @@ final class SellerOffersFamily extends $Family
       );
 
   /// A store's page's view model: its offers tonight, what can be ordered
-  /// first, as the web's page lists them.
+  /// first, as the web's page lists them, with their distance from the place
+  /// the customer chose.
 
   SellerOffersProvider call(String sellerId) =>
       SellerOffersProvider._(argument: sellerId, from: this);
@@ -90,7 +95,8 @@ final class SellerOffersFamily extends $Family
 }
 
 /// A store's page's view model: its offers tonight, what can be ordered
-/// first, as the web's page lists them.
+/// first, as the web's page lists them, with their distance from the place
+/// the customer chose.
 
 abstract class _$SellerOffers extends $AsyncNotifier<List<OfferSummary>> {
   late final _$args = ref.$arg as String;

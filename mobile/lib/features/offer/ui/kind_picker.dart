@@ -4,6 +4,16 @@ import 'package:second_bite/core/routes.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
+/// The round picture of each kind, the web's `kindPictures`; a kind without
+/// one shows its icon.
+const Map<Kind, String> kindPictures = {
+  Kind.bakery: 'assets/kinds/bakery.jpg',
+  Kind.preparedFood: 'assets/kinds/prepared-food.jpg',
+  Kind.ingredients: 'assets/kinds/ingredients.jpg',
+  Kind.drinks: 'assets/kinds/drinks.jpg',
+  Kind.mixedBox: 'assets/kinds/mixed-box.jpg',
+};
+
 /// {@template kind_picker}
 /// The round pictures under the header: "collect now" and one per kind the
 /// API filters by. Each opens the home filtered at the web's address; the
@@ -15,14 +25,6 @@ class KindPicker extends StatelessWidget {
 
   /// What the home shows now.
   final HomeQuery query;
-
-  static const Map<Kind, String> _pictures = {
-    Kind.bakery: 'assets/kinds/bakery.jpg',
-    Kind.preparedFood: 'assets/kinds/prepared-food.jpg',
-    Kind.ingredients: 'assets/kinds/ingredients.jpg',
-    Kind.drinks: 'assets/kinds/drinks.jpg',
-    Kind.mixedBox: 'assets/kinds/mixed-box.jpg',
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +51,7 @@ class KindPicker extends StatelessWidget {
             for (final kind in Kind.$valuesDefined)
               _KindItem(
                 label: l10n.offerKind(kind.json!),
-                picture: _pictures[kind],
+                picture: kindPictures[kind],
                 icon: LucideIcons.utensilsCrossed,
                 active: query.kind == kind,
                 onTap: () =>

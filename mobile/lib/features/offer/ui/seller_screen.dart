@@ -9,6 +9,7 @@ import 'package:second_bite/features/offer/ui/offer_format.dart';
 import 'package:second_bite/features/offer/ui/seller_dish.dart';
 import 'package:second_bite/features/offer/ui/seller_offers.dart';
 import 'package:second_bite/features/order/ui/cart_parts.dart';
+import 'package:second_bite/features/seller/ui/follow_button.dart';
 import 'package:second_bite/l10n/l10n.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -271,13 +272,22 @@ class _Cover extends StatelessWidget {
               child: Align(
                 alignment: Alignment.topCenter,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  spacing: SpacingTokens.space2,
                   children: [
                     _FloatButton(
                       icon: LucideIcons.chevronLeft,
                       label: l10n.topBarBack,
                       onPressed: onBack,
                     ),
+                    const Spacer(),
+                    // The heart that follows the store (SEC-109), between
+                    // back and share as on the web.
+                    if (offers.firstOrNull?.seller case final seller?)
+                      FollowButton(
+                        sellerId: seller.id,
+                        name: seller.name,
+                        look: FollowLook.float,
+                      ),
                     _FloatButton(
                       icon: LucideIcons.share2,
                       label: l10n.sellerShare,

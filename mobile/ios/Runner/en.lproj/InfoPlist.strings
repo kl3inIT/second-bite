@@ -1,0 +1,2 @@
+/* Why the app asks for the phone's location: only when "Near me" is tapped. */
+"NSLocationWhenInUseUsageDescription" = "Second Bite uses your location when you tap “Near me”, to sort shops and dishes by distance. Your location is not stored.";

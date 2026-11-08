@@ -11,6 +11,7 @@ List<RouteBase> get $appRoutes => [
   $deleteAccountRoute,
   $sellerRoute,
   $offerRoute,
+  $searchRoute,
   $cartRoute,
   $termsRoute,
   $privacyRoute,
@@ -51,6 +52,15 @@ RouteBase get $appShellRoute => StatefulShellRouteData.$route(
               ],
             ),
           ],
+        ),
+      ],
+    ),
+    StatefulShellBranchData.$branch(
+      routes: [
+        GoRouteData.$route(
+          path: '/favourites',
+          hasOverriddenOnExit: false,
+          factory: $FavouritesRoute._fromState,
         ),
       ],
     ),
@@ -171,6 +181,27 @@ mixin $OrderChatRoute on GoRouteData {
   String get location => GoRouteData.$location(
     '/orders/${Uri.encodeComponent(_self.orderId)}/chat',
   );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $FavouritesRoute on GoRouteData {
+  static FavouritesRoute _fromState(GoRouterState state) =>
+      const FavouritesRoute();
+
+  @override
+  String get location => GoRouteData.$location('/favourites');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -309,6 +340,57 @@ mixin $OfferRoute on GoRouteData {
   @override
   String get location =>
       GoRouteData.$location('/offers/${Uri.encodeComponent(_self.id)}');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $searchRoute => GoRouteData.$route(
+  path: '/search',
+  hasOverriddenOnExit: false,
+  factory: $SearchRoute._fromState,
+);
+
+mixin $SearchRoute on GoRouteData {
+  static SearchRoute _fromState(GoRouterState state) => SearchRoute(
+    q: state.uri.queryParameters['q'],
+    kind: state.uri.queryParameters['kind'],
+    now: state.uri.queryParameters['now'],
+    radiusKm: state.uri.queryParameters['radiusKm'],
+    minPrice: state.uri.queryParameters['minPrice'],
+    maxPrice: state.uri.queryParameters['maxPrice'],
+    from: state.uri.queryParameters['from'],
+    to: state.uri.queryParameters['to'],
+    sort: state.uri.queryParameters['sort'],
+  );
+
+  SearchRoute get _self => this as SearchRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/search',
+    queryParams: {
+      if (_self.q != null) 'q': _self.q,
+      if (_self.kind != null) 'kind': _self.kind,
+      if (_self.now != null) 'now': _self.now,
+      if (_self.radiusKm != null) 'radiusKm': _self.radiusKm,
+      if (_self.minPrice != null) 'minPrice': _self.minPrice,
+      if (_self.maxPrice != null) 'maxPrice': _self.maxPrice,
+      if (_self.from != null) 'from': _self.from,
+      if (_self.to != null) 'to': _self.to,
+      if (_self.sort != null) 'sort': _self.sort,
+    },
+  );
 
   @override
   void go(BuildContext context) => context.go(location);
