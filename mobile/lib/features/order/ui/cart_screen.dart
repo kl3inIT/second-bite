@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:second_bite/core/api.dart';
 import 'package:second_bite/core/routes.dart';
 import 'package:second_bite/features/offer/ui/offer_format.dart';
 import 'package:second_bite/features/order/data/kept_cart.dart';
@@ -24,8 +23,7 @@ import 'package:second_bite/l10n/l10n.dart';
 /// món" ("Đặt 2 đơn" for two stores), which asks who collects, checks the
 /// number once, then orders each store's dishes (SEC-204 › design 4). A
 /// dish someone else took first asks what to do with the rest. Once every
-/// order is placed, the page says which, until the order's page arrives in
-/// the app (SEC-204 step 9).
+/// order is placed, the first opens, as on the web.
 /// {@endtemplate}
 class CartScreen extends ConsumerStatefulWidget {
   /// {@macro cart_screen}
@@ -88,13 +86,15 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final cart = ref.watch(keptCartProvider).value;
     final placing = ref.watch(placeCartProvider);
     final now = ref.watch(cartNowProvider).value ?? DateTime.now();
-    ref.listen(placeCartProvider.select((state) => state.problem), (_, next) {
-      if (next is PlaceGone && cart != null) unawaited(_showGone(cart, next));
-    });
-    final placedAll =
-        placing.placed.isNotEmpty &&
-        !placing.pending &&
-        placing.problem == null;
+    ref
+      ..listen(placeCartProvider.select((state) => state.problem), (_, next) {
+        if (next is PlaceGone && cart != null) unawaited(_showGone(cart, next));
+      })
+      ..listen(placeCartProvider, (_, next) {
+        if (next.placed.isNotEmpty && !next.pending && next.problem == null) {
+          OrderRoute(orderId: next.placed.first.id).go(context);
+        }
+      });
 
     return Scaffold(
       appBar: AppBar(
@@ -105,12 +105,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         ),
         title: Text(l10n.cartTitle),
       ),
-      body: placedAll
-          ? _Placed(orders: placing.placed)
-          : cart == null
-          ? const _Empty()
-          : _Confirmation(cart: cart, now: now),
-      bottomNavigationBar: placedAll || cart == null
+      body: cart == null ? const _Empty() : _Confirmation(cart: cart, now: now),
+      bottomNavigationBar: cart == null
           ? null
           : _OrderBar(
               live: orderable(cart, now),
@@ -325,71 +321,6 @@ class _Failed extends StatelessWidget {
             : detail,
         description: reference == null ? '' : l10n.problemReference(reference),
       ),
-    );
-  }
-}
-
-/// The orders just placed: their numbers, stores, windows and what to pay
-/// at the counter.
-class _Placed extends StatelessWidget {
-  const new({required this.orders});
-
-  final List<OrderBody> orders;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final text = context.appTextStyles;
-    final scheme = Theme.of(context).colorScheme;
-
-    return ListView(
-      padding: const EdgeInsets.all(SpacingTokens.space4),
-      children: [
-        Semantics(
-          header: true,
-          liveRegion: true,
-          child: Text(
-            l10n.cartPlacedTitle(orders.length),
-            style: text.headline,
-          ),
-        ),
-        const SizedBox(height: SpacingTokens.space2),
-        Text(
-          l10n.cartPlacedHint,
-          style: text.bodySm.copyWith(color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: SpacingTokens.space4),
-        for (final order in orders)
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 2,
-                children: [
-                  Text(
-                    l10n.cartPlacedLine(order.number, order.seller.name),
-                    style: text.title,
-                  ),
-                  Text(
-                    l10n.cartPlacedWindow(
-                      formatTime(order.windowStart),
-                      formatTime(order.windowEnd),
-                      formatPrice(order.payVnd),
-                    ),
-                    style: text.label.copyWith(color: scheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        const SizedBox(height: SpacingTokens.space4),
-        AppButton(
-          variant: AppButtonVariant.secondary,
-          onPressed: () => const HomeRoute().go(context),
-          child: Text(l10n.cartBrowse),
-        ),
-      ],
     );
   }
 }

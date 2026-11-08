@@ -949,27 +949,579 @@ class AppLocalizationsEn extends AppLocalizations {
       'The order shows what was taken off once you place it; you pay less at the counter.';
 
   @override
-  String cartPlacedTitle(int orders) {
+  String get ordersTitle => 'My orders';
+
+  @override
+  String get ordersLists => 'Order lists';
+
+  @override
+  String ordersTabOpen(int count) {
+    return 'To collect ($count)';
+  }
+
+  @override
+  String get ordersTabEnded => 'Done';
+
+  @override
+  String get ordersNoneOpen => 'You have no orders to collect.';
+
+  @override
+  String get ordersNoneEnded => 'No finished orders yet.';
+
+  @override
+  String ordersReadyUntil(String until) {
+    return 'Ready · until $until';
+  }
+
+  @override
+  String get ordersPreparing => 'Preparing';
+
+  @override
+  String ordersCardMetaWindow(
+    String number,
+    String total,
+    String from,
+    String until,
+  ) {
+    return '#$number · $total · collect $from–$until';
+  }
+
+  @override
+  String ordersCardMetaReady(String number, String total) {
+    return '#$number · $total · pay when you collect';
+  }
+
+  @override
+  String get ordersSeeQr => 'Show the QR code';
+
+  @override
+  String get ordersSeeOrder => 'See order';
+
+  @override
+  String get ordersDayToday => 'Today';
+
+  @override
+  String get ordersDayWeek => 'This week';
+
+  @override
+  String get ordersDayBefore => 'Earlier';
+
+  @override
+  String ordersDate(int day, int month) {
+    return '$day/$month';
+  }
+
+  @override
+  String get ordersEndedLineConfirmed => 'Confirmed';
+
+  @override
+  String get ordersEndedLineReady => 'Ready';
+
+  @override
+  String get ordersEndedLineCollected => 'Collected';
+
+  @override
+  String get ordersEndedLineCancelled => 'Cancelled · nothing charged';
+
+  @override
+  String get ordersEndedLineRefused => 'Turned down · nothing charged';
+
+  @override
+  String get ordersEndedLineExpired => 'Expired, not collected';
+
+  @override
+  String get ordersSignInTitle => 'No orders here yet';
+
+  @override
+  String get ordersSignInBody =>
+      'No order was placed in this app. If you ordered while signed in, sign in to see it.';
+
+  @override
+  String orderNumber(String number) {
+    return 'Order #$number';
+  }
+
+  @override
+  String get orderHeadlineConfirmed => 'Confirmed · the shop is preparing it';
+
+  @override
+  String get orderHeadlineReady => 'Ready to collect';
+
+  @override
+  String orderOpensIn(String left) {
+    return 'Collect today · opens in $left';
+  }
+
+  @override
+  String orderClosesIn(String left) {
+    return 'Collect today · $left left';
+  }
+
+  @override
+  String orderHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String orderMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String orderCounterToday(String address, String from, String until) {
+    return '$address · $from–$until today';
+  }
+
+  @override
+  String orderUnits(int units) {
     String _temp0 = intl.Intl.pluralLogic(
-      orders,
+      units,
       locale: localeName,
-      other: '$orders orders placed',
-      one: 'Order placed',
+      other: '$units portions',
+      one: '1 portion',
     );
     return '$_temp0';
   }
 
   @override
-  String cartPlacedLine(String number, String seller) {
-    return '$number · $seller';
+  String get orderCollectReady =>
+      'Show the QR code at the counter, or give your name and phone number.';
+
+  @override
+  String get orderCollectLater =>
+      'The QR code shows once your food is ready. You can also give your name and phone number.';
+
+  @override
+  String orderQrLabel(String number) {
+    return 'QR code to collect order #$number';
   }
 
   @override
-  String cartPlacedWindow(String from, String until, String total) {
-    return 'Collect $from – $until · $total';
+  String orderPlacedWith(String seller) {
+    return 'Ordered together: $seller';
   }
 
   @override
-  String get cartPlacedHint =>
-      'Give the order number, your name and phone number at the counter to collect. Pay at the counter.';
+  String get orderHowTitle => 'How to collect';
+
+  @override
+  String get orderHowGoTitle => 'Go to the till';
+
+  @override
+  String get orderHowQrTitle => 'Show the QR code';
+
+  @override
+  String get orderHowQrBody => 'or give your name and number';
+
+  @override
+  String get orderHowTakeTitle => 'Take your food';
+
+  @override
+  String get orderHowTakeBody => 'Bring your own bag';
+
+  @override
+  String get orderStepsLabel => 'Order steps';
+
+  @override
+  String get orderStepPlaced => 'Placed';
+
+  @override
+  String get orderStepPreparing => 'Preparing';
+
+  @override
+  String get orderStepReady => 'Ready';
+
+  @override
+  String get orderStepCollected => 'Done';
+
+  @override
+  String orderOrdered(int units) {
+    return 'Ordered · $units portions';
+  }
+
+  @override
+  String get orderOriginalPrice => 'Original price';
+
+  @override
+  String get orderFactSaved => 'Saved';
+
+  @override
+  String orderFactSavedValue(String saved) {
+    return '$saved on the original prices';
+  }
+
+  @override
+  String get orderFactTotal => 'Total';
+
+  @override
+  String get orderFactPayAtCounter => 'Pay at the counter';
+
+  @override
+  String get orderFactBeforeDiscount => 'Price before the discount';
+
+  @override
+  String get orderFactNumber => 'Order number';
+
+  @override
+  String get orderFactPayment => 'Payment';
+
+  @override
+  String get orderFactAtCounter => 'Pay at the counter';
+
+  @override
+  String get orderFactNothing => 'Nothing charged';
+
+  @override
+  String orderFactDiscount(String promotion, String rule) {
+    return '$promotion · $rule';
+  }
+
+  @override
+  String get orderDirectionsLabel => 'The way to the counter';
+
+  @override
+  String orderPlaceLine(String seller, String address) {
+    return '$seller · $address';
+  }
+
+  @override
+  String get orderDirections => 'Directions';
+
+  @override
+  String get orderSeeOthers => 'See other offers';
+
+  @override
+  String orderCollectedAt(String time) {
+    return 'Collected at $time';
+  }
+
+  @override
+  String orderSavedLine(int units) {
+    return 'Saved against the original price · $units portions not wasted';
+  }
+
+  @override
+  String orderEndedAtCollected(String time, String date) {
+    return 'Collected at $time · $date';
+  }
+
+  @override
+  String get orderEndedBadgeCancelled => 'Order cancelled';
+
+  @override
+  String get orderEndedBadgeRefused => 'The shop did not hand over this order';
+
+  @override
+  String get orderEndedBadgeExpired => 'Order expired';
+
+  @override
+  String get orderTimelineTitle => 'Status';
+
+  @override
+  String get orderTimelinePlaced => 'You placed the order';
+
+  @override
+  String orderTimelinePlacedBody(
+    String date,
+    String time,
+    int units,
+    String total,
+  ) {
+    return '$date, $time · $units portions · $total';
+  }
+
+  @override
+  String get orderTimelineConfirmed => 'The seller confirmed it';
+
+  @override
+  String orderTimelineConfirmedBody(String time, int units) {
+    return '$time · $units portions kept for you';
+  }
+
+  @override
+  String get orderTimelineCancelled => 'You cancelled the order';
+
+  @override
+  String orderTimelineWithReason(String time, String reason) {
+    return '$time · $reason';
+  }
+
+  @override
+  String orderTimelineReturned(int units) {
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    return '$_temp0 back with the shop';
+  }
+
+  @override
+  String get orderTimelineReturnedBody => 'Someone else can order them';
+
+  @override
+  String get orderTimelineReady => 'The food was ready';
+
+  @override
+  String orderTimelineReadyBody(String time) {
+    return '$time · the seller says come and collect';
+  }
+
+  @override
+  String orderTimelineToldBody(String date, String time) {
+    return '$date, $time · the shop told you';
+  }
+
+  @override
+  String get orderTimelineCollected => 'You collected the food';
+
+  @override
+  String orderTimelineCollectedBody(String time, String total) {
+    return '$time · paid $total';
+  }
+
+  @override
+  String orderTimelineCollectedRated(String time, String total, int stars) {
+    String _temp0 = intl.Intl.pluralLogic(
+      stars,
+      locale: localeName,
+      other: '$stars stars',
+      one: '1 star',
+    );
+    return '$time · paid $total · you rated $_temp0';
+  }
+
+  @override
+  String get orderTimelineRefused => 'The shop turned the order down';
+
+  @override
+  String orderTimelineRefusedBody(String time, String reason) {
+    return '$time · reason: $reason';
+  }
+
+  @override
+  String get orderTimelineExpired => 'Collection time over';
+
+  @override
+  String orderTimelineExpiredBody(String until) {
+    return '$until · recorded as not collected';
+  }
+
+  @override
+  String get orderTimelineSummaryCancelled =>
+      'You had not paid, so there is nothing to refund.';
+
+  @override
+  String orderTimelineSummaryRefused(String reason) {
+    return 'The shop could not hand over the order: $reason. You do not pay.';
+  }
+
+  @override
+  String orderTimelineSummaryExpired(String until) {
+    return 'Nobody came to collect before $until. Next time, if you cannot make it, cancel the order so the food reaches someone else.';
+  }
+
+  @override
+  String get orderRefuseReasonNotSuitable => 'the food was no longer fit';
+
+  @override
+  String get orderRefuseReasonWrongItems => 'the food did not match the order';
+
+  @override
+  String get orderRefuseReasonNoAnswer =>
+      'the shop could not reach you by phone';
+
+  @override
+  String get orderRefuseReasonNoShow => 'you did not come to collect';
+
+  @override
+  String get orderRefuseReasonLate => 'the collection time had passed';
+
+  @override
+  String get orderRefuseReasonSoldOut => 'the food ran out';
+
+  @override
+  String get orderRefuseReasonOther => 'another reason';
+
+  @override
+  String get orderRefuseReasonWithdrawn => 'the store withdrew this post';
+
+  @override
+  String get orderCancelOpen => 'Cancel order';
+
+  @override
+  String orderCancelTitle(String number) {
+    return 'Cancel order #$number?';
+  }
+
+  @override
+  String orderCancelBody(int units, String seller) {
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions go',
+      one: '1 portion goes',
+    );
+    return '$_temp0 back to $seller for someone else.';
+  }
+
+  @override
+  String get orderCancelReason => 'Reason (optional)';
+
+  @override
+  String get orderCancelReasonLate => 'Cannot make it';
+
+  @override
+  String get orderCancelReasonMistake => 'Ordered by mistake';
+
+  @override
+  String get orderCancelReasonOther => 'Another reason';
+
+  @override
+  String get orderCancelKeep => 'Keep order';
+
+  @override
+  String get orderCancelConfirm => 'Cancel order';
+
+  @override
+  String get orderCancelFailed =>
+      'The order could not be cancelled. Try again in a moment.';
+
+  @override
+  String get reviewTitle => 'How was it today?';
+
+  @override
+  String get reviewHint => 'Your rating helps the shop and the next buyers.';
+
+  @override
+  String get reviewStarsLegend => 'Stars';
+
+  @override
+  String reviewStar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stars',
+      one: '1 star',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewWord1 => 'Bad';
+
+  @override
+  String get reviewWord2 => 'Not great';
+
+  @override
+  String get reviewWord3 => 'Okay';
+
+  @override
+  String get reviewWord4 => 'Good';
+
+  @override
+  String get reviewWord5 => 'Excellent';
+
+  @override
+  String get reviewTagsTitle => 'What did you like?';
+
+  @override
+  String get reviewTagFastPickup => 'Quick pickup';
+
+  @override
+  String get reviewTagGoodQuality => 'Good quality';
+
+  @override
+  String get reviewTagGoodVariety => 'Good variety';
+
+  @override
+  String get reviewTagFairPortions => 'Fair portions';
+
+  @override
+  String get reviewComment => 'A few words for the shop (optional)';
+
+  @override
+  String get reviewSubmit => 'Send rating';
+
+  @override
+  String get reviewFailed =>
+      'The rating could not be sent. Try again in a moment.';
+
+  @override
+  String get reviewGiven => 'Your rating';
+
+  @override
+  String get reviewThanks => 'Thank you, the shop will read it.';
+
+  @override
+  String get reviewErrorStars => 'Choose how many stars to give.';
+
+  @override
+  String get orderProblemOpen => 'Report a problem with the order';
+
+  @override
+  String orderProblemTitle(String number) {
+    return 'What went wrong with order #$number?';
+  }
+
+  @override
+  String get orderProblemBody =>
+      'Pick what was not right. We pass it to the store, which answers you.';
+
+  @override
+  String get orderProblemKindLegend => 'What was not right';
+
+  @override
+  String get orderProblemKindMissingItem => 'A missing item';
+
+  @override
+  String get orderProblemKindWrongItem => 'A wrong item';
+
+  @override
+  String get orderProblemKindPoorQuality => 'Poor quality';
+
+  @override
+  String get orderProblemKindStoreClosed => 'The store was closed';
+
+  @override
+  String get orderProblemNote => 'Anything to add (optional)';
+
+  @override
+  String get orderProblemNotePlaceholder =>
+      'For example: one bread roll was missing';
+
+  @override
+  String get orderProblemSend => 'Send to the store';
+
+  @override
+  String get orderProblemLater => 'Later';
+
+  @override
+  String get orderProblemFailed =>
+      'It could not be sent. Try again in a few minutes.';
+
+  @override
+  String get orderProblemErrorKind => 'Pick what went wrong with the order.';
+
+  @override
+  String get orderProblemReportedTitle => 'The problem you reported';
+
+  @override
+  String orderProblemNoteAt(String time, String note) {
+    return '$time · $note';
+  }
+
+  @override
+  String orderProblemSent(String seller) {
+    return 'Sent to $seller';
+  }
+
+  @override
+  String get orderProblemWaiting => 'The store will answer you here';
+
+  @override
+  String orderProblemAnswered(String seller, String time) {
+    return '$seller answered · $time';
+  }
 }

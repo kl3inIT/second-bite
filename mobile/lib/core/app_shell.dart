@@ -4,9 +4,9 @@ import 'package:second_bite/l10n/l10n.dart';
 
 /// {@template app_shell}
 /// The customer screens with the floating bottom bar, as the web's on a
-/// phone (DESIGN.md › Bottom bar): home, orders, saved and account. Orders
-/// and saved sellers have no screen yet (SEC-15), so their tabs are shown
-/// but cannot be pressed, and a screen reader hears that they are coming.
+/// phone (DESIGN.md › Bottom bar): home, orders, saved and account. Saved
+/// sellers have no screen yet (SEC-204 step 13), so their tab is shown but
+/// cannot be pressed, and a screen reader hears that it is coming.
 /// {@endtemplate}
 class AppShell extends StatelessWidget {
   /// {@macro app_shell}
@@ -17,7 +17,7 @@ class AppShell extends StatelessWidget {
 
   // The bar's tabs by position, and the shell branch each one opens; null for
   // a tab without a screen yet.
-  static const List<int?> _branches = [0, null, null, 1];
+  static const List<int?> _branches = [0, 1, null, 2];
 
   @override
   Widget build(BuildContext context) {
@@ -49,12 +49,9 @@ class AppShell extends StatelessWidget {
                 icon: const Icon(LucideIcons.house),
                 label: l10n.navHome,
               ),
-              soon(
-                NavigationDestination(
-                  icon: const Icon(LucideIcons.receiptText),
-                  label: l10n.navOrders,
-                  enabled: false,
-                ),
+              NavigationDestination(
+                icon: const Icon(LucideIcons.receiptText),
+                label: l10n.navOrders,
               ),
               soon(
                 NavigationDestination(

@@ -35,3 +35,24 @@ OrderBody sampleOrder({
     windowEnd: DateTime.parse('2026-10-19T21:45:00+07:00'),
   );
 }
+
+/// A line of an order: [units] of a dish at 15.000đ, 39.000đ before.
+OrderLineBody sampleOrderLine({
+  String name = 'Bánh mì bơ tỏi',
+  int units = 2,
+  String offerId = 'of-bread',
+}) {
+  return OrderLineBody(
+    name: name,
+    offerId: offerId,
+    originalPriceVnd: 39000,
+    priceVnd: 15000,
+    unit: 'cái',
+    units: units,
+    photo: const OrderLinePhotoBody(
+      id: 'ph-bread',
+      largePath: '/photos/ph-bread/1200.jpg',
+      smallPath: '/photos/ph-bread/400.jpg',
+    ),
+  );
+}

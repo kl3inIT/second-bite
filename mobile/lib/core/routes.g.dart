@@ -32,6 +32,23 @@ RouteBase get $appShellRoute => StatefulShellRouteData.$route(
     StatefulShellBranchData.$branch(
       routes: [
         GoRouteData.$route(
+          path: '/orders',
+          hasOverriddenOnExit: false,
+          factory: $OrdersRoute._fromState,
+          routes: [
+            GoRouteData.$route(
+              path: ':orderId',
+              hasOverriddenOnExit: false,
+              parentNavigatorKey: OrderRoute.$parentNavigatorKey,
+              factory: $OrderRoute._fromState,
+            ),
+          ],
+        ),
+      ],
+    ),
+    StatefulShellBranchData.$branch(
+      routes: [
+        GoRouteData.$route(
           path: '/account',
           hasOverriddenOnExit: false,
           factory: $AccountRoute._fromState,
@@ -71,6 +88,56 @@ mixin $HomeRoute on GoRouteData {
       if (_self.now != null) 'now': _self.now,
     },
   );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $OrdersRoute on GoRouteData {
+  static OrdersRoute _fromState(GoRouterState state) =>
+      OrdersRoute(state: state.uri.queryParameters['state']);
+
+  OrdersRoute get _self => this as OrdersRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/orders',
+    queryParams: {if (_self.state != null) 'state': _self.state},
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $OrderRoute on GoRouteData {
+  static OrderRoute _fromState(GoRouterState state) =>
+      OrderRoute(orderId: state.pathParameters['orderId']!);
+
+  OrderRoute get _self => this as OrderRoute;
+
+  @override
+  String get location =>
+      GoRouteData.$location('/orders/${Uri.encodeComponent(_self.orderId)}');
 
   @override
   void go(BuildContext context) => context.go(location);

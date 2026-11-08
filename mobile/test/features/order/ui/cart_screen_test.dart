@@ -4,6 +4,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:second_bite/core/api.dart';
 import 'package:second_bite/features/order/data/kept_cart.dart';
@@ -68,8 +69,21 @@ void main() {
       tester.view.physicalSize = const Size(1170, 4000);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
-      await tester.pumpApp(
-        const CartScreen(),
+      // Placed, the cart opens the first order's page.
+      final router = GoRouter(
+        initialLocation: '/cart',
+        routes: [
+          GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
+          GoRoute(
+            path: '/orders/:orderId',
+            builder: (_, state) =>
+                Text('order ${state.pathParameters['orderId']}'),
+          ),
+          GoRoute(path: '/', builder: (_, _) => const Text('home')),
+        ],
+      );
+      await tester.pumpRouterApp(
+        router,
         overrides: [
           orderRepositoryProvider.overrideWithValue(orders),
           keptOrdersProvider.overrideWithValue(kept),
@@ -189,7 +203,9 @@ void main() {
         );
       });
 
-      testWidgets('places the order and says which was placed', (tester) async {
+      testWidgets("places the order and opens the order's page", (
+        tester,
+      ) async {
         placing((basket) async => sampleOrder(sellerId: basket.seller.id));
         keepCart(addOne(null, bread));
         await pumpCart(tester);
@@ -197,8 +213,10 @@ void main() {
         await tester.pumpAndSettle();
         await confirmContact(tester);
 
-        expect(find.text('Đã đặt món'), findsOneWidget);
-        expect(find.text('SB-1001 · Tiệm bánh Pháp'), findsOneWidget);
+        expect(
+          find.text('order 00000000-0000-4000-8000-000000000001'),
+          findsOneWidget,
+        );
         verify(
           () => kept.keep(
             '00000000-0000-4000-8000-000000000001',
