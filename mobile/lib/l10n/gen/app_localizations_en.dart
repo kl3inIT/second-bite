@@ -39,11 +39,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String homeTicketWindow(String from) {
-    return 'Collect $from';
-  }
-
-  @override
   String homeOpenBags(int bags, String last) {
     String _temp0 = intl.Intl.pluralLogic(
       bags,
@@ -708,7 +703,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cartSummary(int units, String saved) {
-    return '$units portions · save $saved';
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    return '$_temp0 · save $saved';
   }
 
   @override
@@ -728,12 +729,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dishCapChosen(int units) {
-    return 'Chosen the most per order: $units portions';
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    return 'Chosen the most per order: $_temp0';
   }
 
   @override
   String dishPerOrder(int units) {
-    return 'At most $units portions per order';
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    return 'At most $_temp0 per order';
   }
 
   @override
@@ -792,7 +805,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cartDishes(int units) {
-    return 'Dishes ($units portions)';
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    return 'Dishes ($_temp0)';
   }
 
   @override
@@ -808,12 +827,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String cartTotalSummary(int orders, int units, String saved) {
     String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
       orders,
       locale: localeName,
-      other: '$orders orders · $units portions',
-      one: '$units portions in all',
+      other: '$orders orders · $_temp0',
+      one: '$_temp1 in all',
     );
-    return '$_temp0 · save $saved';
+    return '$_temp2 · save $saved';
   }
 
   @override
@@ -899,7 +930,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cartRestUnits(int units) {
-    return 'the $units portions left';
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: 'the $units portions left',
+      one: 'the 1 portion left',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1127,7 +1164,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String orderOrdered(int units) {
-    return 'Ordered · $units portions';
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    return 'Ordered · $_temp0';
   }
 
   @override
@@ -1188,7 +1231,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String orderSavedLine(int units) {
-    return 'Saved against the original price · $units portions not wasted';
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    return 'Saved against the original price · $_temp0 not wasted';
   }
 
   @override
@@ -1218,7 +1267,13 @@ class AppLocalizationsEn extends AppLocalizations {
     int units,
     String total,
   ) {
-    return '$date, $time · $units portions · $total';
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    return '$date, $time · $_temp0 · $total';
   }
 
   @override
@@ -1226,7 +1281,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String orderTimelineConfirmedBody(String time, int units) {
-    return '$time · $units portions kept for you';
+    String _temp0 = intl.Intl.pluralLogic(
+      units,
+      locale: localeName,
+      other: '$units portions',
+      one: '1 portion',
+    );
+    return '$time · $_temp0 kept for you';
   }
 
   @override

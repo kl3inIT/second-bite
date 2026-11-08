@@ -119,87 +119,94 @@ class _SellerScreenState extends ConsumerState<SellerScreen> {
           ref.read(sellerOffersProvider(widget.sellerId).notifier).reload(),
       child: CustomScrollView(
         slivers: [
+          // One sliver for the cover and the sheet over it: a viewport paints
+          // its leading slivers on top, which hid the sheet's rounded top and
+          // the store's name under the cover; in a column the sheet comes last
+          // and is painted over the cover, as the web's -mt-6.
           SliverToBoxAdapter(
-            child: _Cover(
-              offers: available.take(_coverPhotos).toList(),
-              onBack: _back,
-              onShare: () => SharePlus.instance.share(
-                ShareParams(
-                  title: lead.seller.name,
-                  uri: Uri.parse('$siteOrigin/sellers/${lead.sellerId}'),
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Transform.translate(
-              offset: const Offset(0, -24),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: scheme.surface,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(RadiusTokens.radius3xl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _Cover(
+                  offers: available.take(_coverPhotos).toList(),
+                  onBack: _back,
+                  onShare: () => SharePlus.instance.share(
+                    ShareParams(
+                      title: lead.seller.name,
+                      uri: Uri.parse('$siteOrigin/sellers/${lead.sellerId}'),
+                    ),
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    SpacingTokens.space4,
-                    SpacingTokens.space4,
-                    SpacingTokens.space4,
-                    0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 14,
-                    children: [
-                      _Heading(lead: lead),
-                      _Facts(lead: lead, offers: available),
-                      _Search(
-                        seller: lead.seller.name,
-                        initial: widget.q,
-                        onSubmitted: (q) => SellerRoute(
-                          id: widget.sellerId,
-                          kind: kind?.json,
-                          q: q.trim().isEmpty ? null : q.trim(),
-                        ).go(context),
+                Transform.translate(
+                  offset: const Offset(0, -24),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: scheme.surface,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(RadiusTokens.radius3xl),
                       ),
-                      if (tabs.length > 1)
-                        _KindTabs(
-                          tabs: tabs,
-                          current: kind,
-                          onSelected: (each) => SellerRoute(
-                            id: widget.sellerId,
-                            kind: each?.json,
-                          ).go(context),
-                        ),
-                      Semantics(
-                        header: true,
-                        child: Text(
-                          kind == null
-                              ? l10n.sellerTonight
-                              : l10n.offerKind(kind.json ?? ''),
-                          style: text.headline,
-                        ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        SpacingTokens.space4,
+                        SpacingTokens.space4,
+                        SpacingTokens.space4,
+                        0,
                       ),
-                      if (shown.isEmpty)
-                        Text(
-                          l10n.sellerNoMatch(widget.q ?? ''),
-                          style: text.bodySm.copyWith(
-                            color: scheme.onSurfaceVariant,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        spacing: 14,
+                        children: [
+                          _Heading(lead: lead),
+                          _Facts(lead: lead, offers: available),
+                          _Search(
+                            seller: lead.seller.name,
+                            initial: widget.q,
+                            onSubmitted: (q) => SellerRoute(
+                              id: widget.sellerId,
+                              kind: kind?.json,
+                              q: q.trim().isEmpty ? null : q.trim(),
+                            ).go(context),
                           ),
-                        )
-                      else
-                        for (final offer in shown)
-                          SellerDish(
-                            offer,
-                            focused: offer.id == widget.at,
-                            key: offer.id == widget.at ? _focused : null,
+                          if (tabs.length > 1)
+                            _KindTabs(
+                              tabs: tabs,
+                              current: kind,
+                              onSelected: (each) => SellerRoute(
+                                id: widget.sellerId,
+                                kind: each?.json,
+                              ).go(context),
+                            ),
+                          Semantics(
+                            header: true,
+                            child: Text(
+                              kind == null
+                                  ? l10n.sellerTonight
+                                  : l10n.offerKind(kind.json ?? ''),
+                              style: text.headline,
+                            ),
                           ),
-                      const SizedBox(height: SpacingTokens.space4),
-                    ],
+                          if (shown.isEmpty)
+                            Text(
+                              l10n.sellerNoMatch(widget.q ?? ''),
+                              style: text.bodySm.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            )
+                          else
+                            for (final offer in shown)
+                              SellerDish(
+                                offer,
+                                focused: offer.id == widget.at,
+                                key: offer.id == widget.at ? _focused : null,
+                              ),
+                          const SizedBox(height: SpacingTokens.space4),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ],

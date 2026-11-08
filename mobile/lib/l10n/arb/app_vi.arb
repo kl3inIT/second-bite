@@ -41,16 +41,6 @@
       }
     }
   },
-  "homeTicketWindow": "Nhận {from}",
-  "@homeTicketWindow": {
-    "description": "When collection opens, on a ticket of the deal card",
-    "placeholders": {
-      "from": {
-        "type": "String",
-        "example": "21:00"
-      }
-    }
-  },
   "homeOpenBags": "{bags} túi đang mở · túi cuối lúc {last}",
   "@homeOpenBags": {
     "description": "The strip under the deal card: bags still open and when the last window closes",
