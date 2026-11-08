@@ -56,6 +56,30 @@ func (s *Service) Take(ctx context.Context, tx pgx.Tx, offerID uuid.UUID, units 
 	}, nil
 }
 
+// TakeBack takes again, inside tx, the units of an order a store reopens: as
+// Take, from an offer on sale whose window is not over and that has them, but
+// without the cap per order, which the order met when it was placed and which
+// may have been lowered since (SEC-205). It answers ErrUnavailable or
+// ErrSoldOut as Take does.
+func (s *Service) TakeBack(ctx context.Context, tx pgx.Tx, offerID uuid.UUID, units int) error {
+	q := s.queries.WithTx(tx)
+
+	n, err := q.TakeBackUnits(ctx, db.TakeBackUnitsParams{ID: offerID, Units: int32(units)}) //nolint:gosec // an order line holds at most 999
+	if err != nil {
+		return fmt.Errorf("taking the offer's units back: %w", err)
+	}
+
+	if n == 1 {
+		return nil
+	}
+
+	if err := s.whyNotTaken(ctx, q, offerID, units); !errors.Is(err, ErrOverOrderLimit) {
+		return err
+	}
+
+	return ErrSoldOut
+}
+
 // whyNotTaken tells why an offer gave no units: it does not exist, it is
 // withdrawn or closed, units asks more than one order may take, or it has too
 // few left.

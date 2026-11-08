@@ -433,9 +433,13 @@ func testRaceForTheLastUnit(t *testing.T, f fixture) {
 
 	errs := make(chan error, 2)
 
+	// Each customer gives a number of their own, so the phone number's lock
+	// does not line the two up before the offer's row does (SEC-205).
 	for _, customer := range []context.Context{first, second} {
+		contact := order.Contact{Name: "Minh Anh", Phone: phoneOf(t)}
+
 		go func() {
-			_, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{last.ID, 1}})
+			_, err := f.orders.Place(customer, key(), uuid.Nil, contact, []order.Wanted{{last.ID, 1}})
 			errs <- err
 		}()
 	}

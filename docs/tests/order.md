@@ -6,7 +6,7 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | --- | --- |
 | A cart of two offers is confirmed with its total, the window both offers share and its number; the units are taken; the same key returns the same order and takes nothing more; no key, a key under 16 characters (SEC-167) and nobody signed in are refused | `TestOrder` › placing takes units and confirms at once |
 | Too many units, two sellers, an offer twice, no unit, no line, windows that do not meet and an unknown offer are refused and take nothing; a withdrawn offer and a blocked seller cannot be ordered | `TestOrder` › a cart refused takes nothing |
-| Two customers ordering the last unit at once: one order | `TestOrder` › two customers race for the last unit |
+| Two customers ordering the last unit at once, each with a phone number of their own: one order | `TestOrder` › two customers race for the last unit |
 | More orders placed and cancelled, and more store messages sent, at once than the pool has connections: none waits for a second connection (SEC-128, SEC-159) | `TestOrdersAtOnceDoNotStarveThePool`, `TestStoreMessagesAtOnceDoNotStarveThePool` (`internal/order/pool_test.go`) |
 | The customer reads the order with its access; staff and admins read it without the access; a stranger gets 404; an admin does not act for the seller | `TestOrder` › who reads an order |
 | The customer cancels and the units return; the seller cannot cancel; not twice; still once the window has opened; not once ready | `TestOrder` › cancelling until the order is ready |
@@ -46,7 +46,7 @@ Requirements of [docs/specs/order.md](../specs/order.md) and the checks that hol
 | A seller's moved point is copied onto its order to collect, not onto one handed over; delivered twice, nothing more changes; an unknown seller is ignored | `TestOrder` › orders and offers follow their seller |
 | One address placing a 61st order in ten minutes is refused with 429 and `Retry-After` (SEC-160) | `TestService` › one address asking too often is refused with a wait |
 
-Not covered by a test: the same key arriving twice at once (held by the unique index, then read back), and two staff handing over at once (held by the row lock).
+Not covered by a test: two staff handing over at once (held by the row lock).
 | A new order, the customer's cancel and message push to the seller's topic; ready, a refusal with its reason and the store's message push to the order's topic; a hand-over pushes nothing | `TestOrder` › pushes tell of each change (`internal/order/push_test.go`) |
 | A customer is reminded once, 30 minutes before the window, unless they ordered within it; a moved window is told once however often its event arrives | `TestOrder` › pushes tell of time |
 | A promotion takes its discount off a new customer's order, keeps to its limit per phone and day, leaves an order too small alone, gives the discount back when the order is cancelled, and treats the customer as returning the next day | `TestOrder` › a promotion takes its discounts (`internal/order/promotion_test.go`) |
@@ -57,5 +57,8 @@ Not covered by a test: the same key arriving twice at once (held by the unique i
 | A line over its dish's cap is refused and takes nothing; the store's cap above the default lets more through and bounds the next order; a cap taken away falls back to the default (SEC-158) | `TestOrderLimits` › a dish's cap bounds one order (`internal/order/limits_test.go`) |
 | A phone number holds two open orders at one store, not a third; it still orders at another store, and again once one is cancelled | `TestOrderLimits` › a phone number holds two orders at a store |
 | Four orders placed at once by a phone number that holds one: one placed, three refused | `TestOrderLimits` › two orders at once cannot pass the cap |
+| Four orders of four dishes of one store placed at once by one phone number: two placed, two refused, so the phone number's lock alone keeps the cap (SEC-205) | `TestOrderLimits` › orders of different dishes at once cannot pass the cap |
+| One key sent twice at once by a phone number that holds one open order: both answer the one order placed, and its units are taken once (SEC-205) | `TestOrderLimits` › one key sent twice at once answers its order |
+| A refused order of eight is reopened after the dish's cap fell to five, once its units are back; while they are gone it answers sold out (SEC-205) | `TestOrderLimits` › a reopened order is not held to a lowered cap |
 | Three orders whose window ended in the last thirty days with no hand-over stop the phone number; it orders again once the oldest leaves the thirty days | `TestOrderLimits` › missed orders stop a phone number for some days |
 | Only admins read and change the order settings; a value out of range and a save at a stale version are refused; a change is audited as `order_settings.change` | `TestOrderLimits` › admins change the limits; `TestService` › every admin change is audited (`cmd/secondbite`) |

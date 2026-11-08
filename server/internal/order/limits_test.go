@@ -31,6 +31,9 @@ func TestOrderLimits(t *testing.T) {
 		{"a dish's cap bounds one order", testDishCap},
 		{"a phone number holds two orders at a store", testOpenPerPhone},
 		{"two orders at once cannot pass the cap", testOpenPerPhoneAtOnce},
+		{"orders of different dishes at once cannot pass the cap", testOpenPerPhoneAtOnceAcrossDishes},
+		{"one key sent twice at once answers its order", testSameKeyAtOnce},
+		{"a reopened order is not held to a lowered cap", testReopenAboveCap},
 		{"missed orders stop a phone number for some days", testMissedOrders},
 		{"admins change the limits", testOrderSettings},
 	} {
@@ -151,6 +154,136 @@ func testOpenPerPhoneAtOnce(t *testing.T, f fixture) {
 
 	if placed != 1 {
 		t.Errorf("%d of four orders placed at once beside one open, want 1", placed)
+	}
+}
+
+// testOpenPerPhoneAtOnceAcrossDishes places at once orders of different
+// dishes of one store, so no offer's row lines them up and only the phone
+// number's lock keeps them under the cap (SEC-205).
+func testOpenPerPhoneAtOnceAcrossDishes(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	dishes := make([]offer.Offer, 4)
+
+	for i, name := range []string{"Croissant", "Bánh mì", "Pain au chocolat", "Brioche"} {
+		dishes[i] = f.post(owner, t, shop, name, 10, 20_000, time.Now())
+	}
+
+	errs := make([]error, len(dishes))
+
+	var wg sync.WaitGroup
+
+	for i, dish := range dishes {
+		wg.Go(func() {
+			_, errs[i] = f.orders.Place(t.Context(), key(), uuid.Nil, f.someone, []order.Wanted{{dish.ID, 1}})
+		})
+	}
+
+	wg.Wait()
+
+	placed := 0
+
+	for _, err := range errs {
+		switch {
+		case err == nil:
+			placed++
+		case !errors.Is(err, order.ErrPhoneHoldsOrders):
+			t.Errorf("placing at once: %v", err)
+		}
+	}
+
+	if placed != 2 {
+		t.Errorf("%d of four orders of different dishes placed at once, want 2", placed)
+	}
+}
+
+// testSameKeyAtOnce sends one key twice at once for a phone number that holds
+// one open order: both answer the one order placed, and neither is refused
+// for the cap the first one filled (SEC-205).
+func testSameKeyAtOnce(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 10, 20_000, time.Now())
+
+	if _, err := f.orders.Place(t.Context(), key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}}); err != nil {
+		t.Fatal(err)
+	}
+
+	k := key()
+	ids := make([]uuid.UUID, 2)
+	errs := make([]error, 2)
+
+	var wg sync.WaitGroup
+
+	for i := range ids {
+		wg.Go(func() {
+			var o order.Order
+
+			o, errs[i] = f.orders.Place(t.Context(), k, uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
+			ids[i] = o.ID
+		})
+	}
+
+	wg.Wait()
+
+	if errs[0] != nil || errs[1] != nil || ids[0] != ids[1] {
+		t.Errorf("one key sent twice at once: %v, %v; orders %s and %s", errs[0], errs[1], ids[0], ids[1])
+	}
+
+	if got := f.unitsLeft(owner, t, croissant.ID); got != 8 {
+		t.Errorf("units left after one key sent twice: %d, want 8", got)
+	}
+}
+
+// testReopenAboveCap reopens a refused order larger than the dish's cap of
+// today: the order met the cap of its day, and a reopening corrects the
+// store's refusal; it still needs the units (SEC-205).
+func testReopenAboveCap(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	shop := f.shop(owner, t, "La Paris")
+	croissant := f.post(owner, t, shop, "Croissant", 10, 20_000, time.Now())
+	eight, five := 8, 5
+
+	if _, err := f.offers.Change(owner, croissant.ID, offer.Change{MaxPerOrder: &eight}); err != nil {
+		t.Fatal(err)
+	}
+
+	o, err := f.orders.Place(t.Context(), key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 8}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.orders.Refuse(owner, o.ID, order.RefuseNoShow, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.offers.Change(owner, croissant.ID, offer.Change{MaxPerOrder: &five}); err != nil {
+		t.Fatal(err)
+	}
+
+	other := order.Contact{Name: "Hoa", Phone: phoneOf(t)}
+
+	taken, err := f.orders.Place(t.Context(), key(), uuid.Nil, other, []order.Wanted{{croissant.ID, 5}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.orders.Reopen(owner, o.ID)
+	mustFail(t, "reopening when the units are gone", err, order.ErrOfferSoldOut)
+
+	if _, err := f.orders.Cancel(t.Context(), taken.ID, taken.Access, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	back, err := f.orders.Reopen(owner, o.ID)
+	if err != nil || back.Status != order.StatusConfirmed {
+		t.Fatalf("eight reopened under a cap of five: %+v, %v", back, err)
 	}
 }
 

@@ -1126,6 +1126,27 @@ func (q *Queries) SellersOfOffers(ctx context.Context, ids []uuid.UUID) ([]Selle
 	return items, nil
 }
 
+const takeBackUnits = `-- name: TakeBackUnits :execrows
+UPDATE offer_offers SET units_left = units_left - $1, updated_at = now()
+WHERE offer_offers.id = $2 AND state = 'on_sale' AND window_end > now() AND units_left >= $1
+`
+
+type TakeBackUnitsParams struct {
+	Units int32
+	ID    uuid.UUID
+}
+
+// Takes again the units of an order a store reopens, as TakeUnits but without
+// the cap per order: the order was placed under the cap of its day, and a
+// reopening corrects the store's own refusal (SEC-205).
+func (q *Queries) TakeBackUnits(ctx context.Context, arg TakeBackUnitsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, takeBackUnits, arg.Units, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const takeUnits = `-- name: TakeUnits :one
 UPDATE offer_offers SET units_left = units_left - $1, updated_at = now()
 WHERE offer_offers.id = $2 AND state = 'on_sale' AND window_end > now() AND units_left >= $1

@@ -210,6 +210,13 @@ WHERE offer_offers.id = @id AND state = 'on_sale' AND window_end > now() AND uni
 RETURNING id, seller_id, name, unit, price_vnd, original_price_vnd, photo_id, window_start, window_end,
           latitude, longitude, address, seller_name;
 
+-- name: TakeBackUnits :execrows
+-- Takes again the units of an order a store reopens, as TakeUnits but without
+-- the cap per order: the order was placed under the cap of its day, and a
+-- reopening corrects the store's own refusal (SEC-205).
+UPDATE offer_offers SET units_left = units_left - @units, updated_at = now()
+WHERE offer_offers.id = @id AND state = 'on_sale' AND window_end > now() AND units_left >= @units;
+
 -- name: ReturnUnits :exec
 -- Gives back the units of a cancelled order, never above the offer's units.
 UPDATE offer_offers SET units_left = LEAST(units, units_left + @units), updated_at = now()

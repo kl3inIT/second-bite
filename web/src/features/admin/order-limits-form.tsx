@@ -3,7 +3,7 @@
 import { revalidateLogic } from "@tanstack/react-form";
 import { TriangleAlertIcon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { z } from "zod";
 
 import { refuse, useAppForm } from "@/components/form/app-form";
@@ -71,6 +71,14 @@ export function OrderLimitsForm({
     missedDays: String(order.missedDays),
   };
 
+  // What the offer settings hold once saved by this form: when the order settings then fail, a retry saves only
+  // them, and the offer settings again only at the version that save answered (SEC-205).
+  const savedOffer = useRef({
+    value: defaultValues.defaultMaxPerOrder,
+    body: offer.body,
+    version: offer.version,
+  });
+
   const form = useAppForm({
     defaultValues,
     validationLogic: revalidateLogic(),
@@ -78,11 +86,20 @@ export function OrderLimitsForm({
     onSubmit: async ({ value, formApi }) => {
       setConflict(false);
       try {
-        if (value.defaultMaxPerOrder !== defaultValues.defaultMaxPerOrder) {
-          await saveOfferSettings({
-            body: { ...offer.body, defaultMaxPerOrder: Number(value.defaultMaxPerOrder) },
-            headers: { "If-Match": offer.version },
+        if (value.defaultMaxPerOrder !== savedOffer.current.value) {
+          const { data, response } = await saveOfferSettings({
+            body: {
+              ...savedOffer.current.body,
+              defaultMaxPerOrder: Number(value.defaultMaxPerOrder),
+            },
+            headers: { "If-Match": savedOffer.current.version },
           });
+          const { updatedAt: _at, updatedBy: _by, ...body } = data;
+          savedOffer.current = {
+            value: value.defaultMaxPerOrder,
+            body,
+            version: response.headers.get("etag") ?? savedOffer.current.version,
+          };
         }
         const orderChanged = (["openPerPhonePerSeller", "missedLimit", "missedDays"] as const).some(
           (key) => value[key] !== defaultValues[key],
