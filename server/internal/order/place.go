@@ -58,12 +58,10 @@ func (s *Service) Place(ctx context.Context, key string, checkout uuid.UUID, con
 		return Order{}, err
 	}
 
-	if id, err := s.queries.OrderOfKey(ctx, db.OrderOfKeyParams{
-		CustomerID: customer, IdempotencyKey: key, CustomerPhone: contact.Phone,
-	}); err == nil {
+	if id, found, err := orderOfKey(ctx, s.queries, customer, key, contact.Phone); err != nil {
+		return Order{}, err
+	} else if found {
 		return s.placed(ctx, id)
-	} else if !errors.Is(err, pgx.ErrNoRows) {
-		return Order{}, fmt.Errorf("reading an earlier order: %w", err)
 	}
 
 	if err := checkWanted(wanted); err != nil {
@@ -140,6 +138,13 @@ func (s *Service) place(
 		return uuid.Nil, err
 	}
 
+	// The same key may have placed its order while this one waited for the
+	// phone number's lock; that order stands, and the limits are not counted
+	// against it again (SEC-205).
+	if earlier, found, err := orderOfKey(ctx, q, customer, key, contact.Phone); err != nil || found {
+		return earlier, err
+	}
+
 	taken, err := s.takeAll(ctx, tx, wanted)
 	if err != nil {
 		return uuid.Nil, err
@@ -152,23 +157,15 @@ func (s *Service) place(
 
 	first := taken[0]
 
-	active, err := s.sellers.IsActiveIn(ctx, tx, first.SellerID)
-	if err != nil {
+	if err := s.checkActive(ctx, tx, first.SellerID); err != nil {
 		return uuid.Nil, err
-	}
-
-	if !active {
-		return uuid.Nil, ErrOfferUnavailable
 	}
 
 	if err := s.checkOpen(ctx, q, set, first.SellerID, contact.Phone); err != nil {
 		return uuid.Nil, err
 	}
 
-	var total int64
-	for i, t := range taken {
-		total += t.PriceVND * int64(wanted[i].Units)
-	}
+	total := totalOf(taken, wanted)
 
 	// After the offers and the seller, as every order places them, so locking the promotions never deadlocks.
 	discount, discounted, err := s.discountFor(ctx, q, first.SellerID, contact.Phone, total)
@@ -203,6 +200,46 @@ func (s *Service) place(
 	}
 
 	return id, s.announcePlaced(ctx, tx, q, id)
+}
+
+// checkActive refuses an order from a seller no longer active, as it would
+// refuse its offers.
+func (s *Service) checkActive(ctx context.Context, tx pgx.Tx, sellerID uuid.UUID) error {
+	active, err := s.sellers.IsActiveIn(ctx, tx, sellerID)
+	if err != nil {
+		return err
+	}
+
+	if !active {
+		return ErrOfferUnavailable
+	}
+
+	return nil
+}
+
+// totalOf is what the lines cost at the prices taken.
+func totalOf(taken []offer.Taken, wanted []Wanted) int64 {
+	var total int64
+	for i, t := range taken {
+		total += t.PriceVND * int64(wanted[i].Units)
+	}
+
+	return total
+}
+
+// orderOfKey reads the order placed with key by the account, or without one
+// by the phone number, when there is one.
+func orderOfKey(ctx context.Context, q *db.Queries, customer uuid.NullUUID, key, phone string) (uuid.UUID, bool, error) {
+	id, err := q.OrderOfKey(ctx, db.OrderOfKeyParams{CustomerID: customer, IdempotencyKey: key, CustomerPhone: phone})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return uuid.Nil, false, nil
+	}
+
+	if err != nil {
+		return uuid.Nil, false, fmt.Errorf("reading an earlier order: %w", err)
+	}
+
+	return id, true, nil
 }
 
 // takeAll takes the units of every line inside tx, in the order given.

@@ -168,7 +168,9 @@ func (s *Service) Reopen(ctx context.Context, id uuid.UUID) (Order, error) {
 			})
 
 			for _, l := range lines {
-				if _, err := s.offers.Take(ctx, tx, l.OfferID, l.Units); err != nil {
+				// Without the cap per order: the order met it when placed, and a
+				// reopening corrects the store's refusal (SEC-205).
+				if err := s.offers.TakeBack(ctx, tx, l.OfferID, l.Units); err != nil {
 					return takeFailure(err)
 				}
 			}
