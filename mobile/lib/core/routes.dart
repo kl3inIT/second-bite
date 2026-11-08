@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:second_bite/core/api.dart';
 import 'package:second_bite/core/app_shell.dart';
 import 'package:second_bite/features/identity/domain/return_to.dart';
 import 'package:second_bite/features/identity/ui/account_screen.dart';
@@ -10,6 +11,8 @@ import 'package:second_bite/features/legal/ui/legal_screen.dart';
 import 'package:second_bite/features/legal/ui/legal_text.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/home_screen.dart';
+import 'package:second_bite/features/offer/ui/offer_link_screen.dart';
+import 'package:second_bite/features/offer/ui/seller_screen.dart';
 
 part 'routes.g.dart';
 
@@ -115,6 +118,51 @@ class DeleteAccountRoute extends GoRouteData with $DeleteAccountRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const DeleteAccountScreen();
+}
+
+/// A store's dishes tonight at `/sellers/:id`, as on the web (SEC-204): over
+/// the tabs, `?kind=` one tab, `?q=` words among its dishes, `?at=` the dish
+/// a link led to.
+@TypedGoRoute<SellerRoute>(path: '/sellers/:id')
+class SellerRoute extends GoRouteData with $SellerRoute {
+  /// The route to a store's page.
+  const new({required this.id, this.kind, this.q, this.at});
+
+  /// The store.
+  final String id;
+
+  /// One kind, as the API names it; an unknown kind is every kind.
+  final String? kind;
+
+  /// Words to look for among its dishes.
+  final String? q;
+
+  /// The dish a link led to.
+  final String? at;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => SellerScreen(
+    sellerId: id,
+    kind: FoundBodyKind.values
+        .where((known) => known.json == kind && known != FoundBodyKind.$unknown)
+        .firstOrNull,
+    q: q,
+    at: at,
+  );
+}
+
+/// One dish at `/offers/:id`, as on the web: its store's page at the dish.
+@TypedGoRoute<OfferRoute>(path: '/offers/:id')
+class OfferRoute extends GoRouteData with $OfferRoute {
+  /// The route to a dish.
+  const new({required this.id});
+
+  /// The dish.
+  final String id;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      OfferLinkScreen(offerId: id);
 }
 
 /// The terms of use at `/terms`, as on the web: over the tabs, read inside

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:second_bite/core/api.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
@@ -27,6 +28,24 @@ class OfferRepository {
       limit: 50,
     );
     return found.offers;
+  }
+
+  /// A store's offers tonight, at most 50, as its page lists them on the
+  /// web (`listOffers({sellerId})`).
+  Future<List<OfferSummary>> ofSeller(String sellerId) async {
+    final found = await _offers.searchOffers(sellerId: sellerId, limit: 50);
+    return found.offers;
+  }
+
+  /// The store an offer is sold by, which a link to the offer opens: null
+  /// when the server does not know the offer (`404`).
+  Future<String?> sellerOf(String offerId) async {
+    try {
+      return (await _offers.getOffer(offerId: offerId)).sellerId;
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 404) return null;
+      rethrow;
+    }
   }
 }
 

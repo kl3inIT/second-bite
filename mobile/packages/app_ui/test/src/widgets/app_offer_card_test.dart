@@ -5,7 +5,11 @@ import '../../helpers/helpers.dart';
 
 const window = '21:00–21:45 · Tầng 1';
 
-AppOfferCard _subject({String stock = 'Còn 3', bool soldOut = false}) {
+AppOfferCard _subject({
+  String stock = 'Còn 3',
+  bool soldOut = false,
+  VoidCallback? onTap,
+}) {
   return AppOfferCard(
     sellerName: 'Tiệm bánh Pháp',
     sellerSeed: 'se-bakery',
@@ -18,11 +22,23 @@ AppOfferCard _subject({String stock = 'Còn 3', bool soldOut = false}) {
     originalPrice: '95.000đ',
     originalPriceLabel: 'Giá gốc 95.000đ',
     soldOut: soldOut,
+    onTap: onTap,
   );
 }
 
 void main() {
   group(AppOfferCard, () {
+    group('calls', () {
+      testWidgets('onTap when the card is pressed', (tester) async {
+        var taps = 0;
+        await tester.pumpApp(Center(child: _subject(onTap: () => taps++)));
+
+        await tester.tap(find.text('Túi bánh mì và croissant, 4 chiếc'));
+
+        expect(taps, 1);
+      });
+    });
+
     group('renders', () {
       testWidgets('the seller, the dish, the window and the prices', (
         tester,

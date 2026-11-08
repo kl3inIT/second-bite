@@ -622,4 +622,109 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get accountSettingsNameFailed =>
       'Chưa lưu được tên. Thử lại sau ít phút.';
+
+  @override
+  String sellerWindow(String from, String until) {
+    return 'Nhận hôm nay $from–$until';
+  }
+
+  @override
+  String get sellerDirections => 'Chỉ đường ›';
+
+  @override
+  String get sellerKinds => 'Loại món';
+
+  @override
+  String get sellerOnSale => 'Đang giảm';
+
+  @override
+  String get sellerTonight => 'Đang giảm tối nay';
+
+  @override
+  String get sellerNothing => 'Quán chưa có món tối nay';
+
+  @override
+  String get sellerHome => 'Xem món khác';
+
+  @override
+  String sellerNoMatch(String q) {
+    return 'Không có món nào khớp “$q”';
+  }
+
+  @override
+  String get sellerShare => 'Chia sẻ quán';
+
+  @override
+  String sellerSearch(String seller) {
+    return 'Tìm trong thực đơn $seller';
+  }
+
+  @override
+  String get dishAbout => 'Về món này';
+
+  @override
+  String dishWeight(int grams) {
+    return 'Khoảng $grams g.';
+  }
+
+  @override
+  String get dishNotes => 'Lưu ý';
+
+  @override
+  String get dishBringBag => 'Nên mang túi hoặc hộp riêng.';
+
+  @override
+  String get dishAskSeller => 'Hỏi quán về thành phần và dị ứng.';
+
+  @override
+  String get dishSellerAnswers =>
+      'Second Bite chỉ kết nối bạn với quán; quán chịu trách nhiệm về chất lượng và vệ sinh an toàn thực phẩm của món.';
+
+  @override
+  String get dishTerms => 'Điều khoản';
+
+  @override
+  String dishCount(int count, String name) {
+    return '$count phần $name sẽ thêm';
+  }
+
+  @override
+  String dishAdd(String price) {
+    return 'Thêm vào giỏ · $price';
+  }
+
+  @override
+  String dishAllChosen(int units) {
+    return 'Đã chọn đủ $units phần';
+  }
+
+  @override
+  String cartAdd(String name) {
+    return 'Thêm một phần $name';
+  }
+
+  @override
+  String cartRemove(String name) {
+    return 'Bớt một phần $name';
+  }
+
+  @override
+  String cartQuantity(int quantity, String name) {
+    return '$quantity phần $name trong giỏ';
+  }
+
+  @override
+  String cartSummary(int units, String saved) {
+    return '$units phần · tiết kiệm $saved';
+  }
+
+  @override
+  String cartPortionsLeft(int units) {
+    return 'còn $units phần';
+  }
+
+  @override
+  String cartPortionsChosen(int units) {
+    return 'đã chọn đủ $units phần';
+  }
 }

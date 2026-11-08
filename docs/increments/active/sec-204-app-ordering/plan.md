@@ -5,9 +5,9 @@ Design: [design.md](design.md). Tracked in Linear as SEC-204. Each pull request 
 | # | Step | Pull request | State |
 | --- | --- | --- | --- |
 | 1 | Design and plan | docs, on `main` | Written, 8 November 2026 |
-| 2 | Cards open their store: `/sellers/:id` and `/offers/:id` routes, the store's page (cover, facts, kind tabs, search, dishes, empty states), share, directions | A | Not started |
-| 3 | The cart: the model and its rules with tests, kept in `shared_preferences`; the stepper and the dish sheet; the sticky cart bar | A | Not started |
-| 4 | The store's map from the self-hosted style | A | Not started |
+| 2 | Cards open their store: `/sellers/:id` and `/offers/:id` routes, the store's page (cover, facts, kind tabs, search, dishes, empty states), share, directions | A | Built, 8 November 2026. The distance waits for the place (step 14), the rating for the backend that sends one |
+| 3 | The cart: the model and its rules with tests, kept in `shared_preferences`; the stepper and the dish sheet; the sticky cart bar | A | Built, 8 November 2026. The bar's "Xem giỏ hàng" arrives with `/cart` in step 5 |
+| 4 | The store's map from the self-hosted style | — | Not done in A: the web builds the map's style in JavaScript (`@protomaps/basemaps` in `web/src/components/map/map-style.ts`) over a PMTiles archive; the app needs that style as a JSON file served beside the archive, which is a change to the map service, and `maplibre_gl` in the browser preview needs MapLibre's script on the page. To decide with that change |
 | 5 | `/cart`: a card per store, payment at the counter, totals, the running promotions, the cancel policy | B | Not started |
 | 6 | Who collects: the contact sheet, the number's confirmation, the remembered contact; placing per store with the idempotency key and checkout id; the kept accesses in secure storage | B | Not started |
 | 7 | The sold-out sheet and every placing failure in the server's words | B | Not started |

@@ -67,3 +67,46 @@ List<OfferSummary> biggestDiscountFirst(List<OfferSummary> offers) =>
         .reduce((last, end) => end.isAfter(last) ? end : last),
   );
 }
+
+/// The kinds a store sells tonight, the most dishes first, as the web's
+/// `kindsByCount`: the tabs of its page.
+List<FoundBodyKind> kindsByCount(List<OfferSummary> offers) {
+  final counts = <FoundBodyKind, int>{};
+  for (final offer in offers.where((offer) => offer.isAvailable)) {
+    counts[offer.kind] = (counts[offer.kind] ?? 0) + 1;
+  }
+  return counts.keys.toList()..sort((a, b) => counts[b]!.compareTo(counts[a]!));
+}
+
+/// Lower case without accents, as the web's `plainText`, so "Bánh" is found
+/// by "banh" and "Đạt" by "dat".
+String plainText(String text) {
+  final buffer = StringBuffer();
+  for (final rune in text.toLowerCase().runes) {
+    final char = String.fromCharCode(rune);
+    buffer.write(_unaccented[char] ?? char);
+  }
+  return buffer.toString();
+}
+
+/// Directions to where [point] is collected, in the phone's maps, to the
+/// store's pin, as the web's `directionsHref`.
+Uri directionsUri(CollectionPointBody point) => Uri.https(
+  'www.google.com',
+  '/maps/dir/',
+  {'api': '1', 'destination': '${point.latitude},${point.longitude}'},
+);
+
+// Vietnamese letters with their marks, lowered, mapped to the plain letter.
+final Map<String, String> _unaccented = {
+  for (final (plain, marked) in const [
+    ('a', 'àáạảãâầấậẩẫăằắặẳẵ'),
+    ('e', 'èéẹẻẽêềếệểễ'),
+    ('i', 'ìíịỉĩ'),
+    ('o', 'òóọỏõôồốộổỗơờớợởỡ'),
+    ('u', 'ùúụủũưừứựửữ'),
+    ('y', 'ỳýỵỷỹ'),
+    ('d', 'đ'),
+  ])
+    for (final char in marked.split('')) char: plain,
+};

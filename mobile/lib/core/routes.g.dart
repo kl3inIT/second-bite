@@ -9,6 +9,8 @@ part of 'routes.dart';
 List<RouteBase> get $appRoutes => [
   $appShellRoute,
   $deleteAccountRoute,
+  $sellerRoute,
+  $offerRoute,
   $termsRoute,
   $privacyRoute,
   $signInRoute,
@@ -136,6 +138,76 @@ mixin $DeleteAccountRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/delete-account');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $sellerRoute => GoRouteData.$route(
+  path: '/sellers/:id',
+  hasOverriddenOnExit: false,
+  factory: $SellerRoute._fromState,
+);
+
+mixin $SellerRoute on GoRouteData {
+  static SellerRoute _fromState(GoRouterState state) => SellerRoute(
+    id: state.pathParameters['id']!,
+    kind: state.uri.queryParameters['kind'],
+    q: state.uri.queryParameters['q'],
+    at: state.uri.queryParameters['at'],
+  );
+
+  SellerRoute get _self => this as SellerRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/sellers/${Uri.encodeComponent(_self.id)}',
+    queryParams: {
+      if (_self.kind != null) 'kind': _self.kind,
+      if (_self.q != null) 'q': _self.q,
+      if (_self.at != null) 'at': _self.at,
+    },
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $offerRoute => GoRouteData.$route(
+  path: '/offers/:id',
+  hasOverriddenOnExit: false,
+  factory: $OfferRoute._fromState,
+);
+
+mixin $OfferRoute on GoRouteData {
+  static OfferRoute _fromState(GoRouterState state) =>
+      OfferRoute(id: state.pathParameters['id']!);
+
+  OfferRoute get _self => this as OfferRoute;
+
+  @override
+  String get location =>
+      GoRouteData.$location('/offers/${Uri.encodeComponent(_self.id)}');
 
   @override
   void go(BuildContext context) => context.go(location);
