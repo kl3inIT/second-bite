@@ -21,6 +21,7 @@ class AppOfferTile extends StatelessWidget {
     required this.originalPriceLabel,
     this.soldOut = false,
     this.photo,
+    this.onTap,
     super.key,
   });
 
@@ -64,6 +65,9 @@ class AppOfferTile extends StatelessWidget {
   /// The dish's photograph; a pale blue wash without one.
   final ImageProvider? photo;
 
+  /// Opens the dish, such as its store's page at it.
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final text = context.appTextStyles;
@@ -73,7 +77,7 @@ class AppOfferTile extends StatelessWidget {
       color: Theme.of(context).colorScheme.secondary,
     );
 
-    return Card(
+    final card = Card(
       child: Stack(
         children: [
           Column(
@@ -176,6 +180,24 @@ class AppOfferTile extends StatelessWidget {
           const Positioned(top: 0, right: 0, child: AppBiteCorner(size: 44)),
         ],
       ),
+    );
+    final tap = onTap;
+    if (tap == null) return card;
+    // The whole card is one target over its words, as the web's stretched
+    // link is.
+    return Stack(
+      children: [
+        card,
+        Positioned.fill(
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: tap,
+              borderRadius: BorderRadius.circular(RadiusTokens.xl),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -21,6 +21,7 @@ class AppOfferCard extends StatelessWidget {
     required this.originalPriceLabel,
     this.soldOut = false,
     this.photo,
+    this.onTap,
     super.key,
   });
 
@@ -66,6 +67,9 @@ class AppOfferCard extends StatelessWidget {
   /// The dish's photograph; a pale blue wash without one.
   final ImageProvider? photo;
 
+  /// Opens the dish, such as its store's page at it.
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
@@ -78,7 +82,7 @@ class AppOfferCard extends StatelessWidget {
       color: Theme.of(context).colorScheme.secondary,
     );
 
-    return SizedBox(
+    final card = SizedBox(
       width: width,
       child: Card(
         child: Stack(
@@ -210,6 +214,24 @@ class AppOfferCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+    final tap = onTap;
+    if (tap == null) return card;
+    // The whole card is one target over its words, as the web's stretched
+    // link is.
+    return Stack(
+      children: [
+        card,
+        Positioned.fill(
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: tap,
+              borderRadius: BorderRadius.circular(RadiusTokens.xl),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:second_bite/core/api.dart';
+import 'package:second_bite/core/routes.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/offer_format.dart';
 import 'package:second_bite/l10n/l10n.dart';
@@ -36,6 +37,7 @@ class OfferCard extends StatelessWidget {
       originalPrice: original,
       originalPriceLabel: l10n.offerOriginalPrice(original),
       photo: NetworkImage(photoUri(offer.photo.smallPath).toString()),
+      onTap: () => SellerRoute(id: offer.sellerId, at: offer.id).go(context),
     );
   }
 }
@@ -71,6 +73,7 @@ class OfferTile extends StatelessWidget {
       originalPrice: original,
       originalPriceLabel: l10n.offerOriginalPrice(original),
       photo: NetworkImage(photoUri(offer.photo.smallPath).toString()),
+      onTap: () => SellerRoute(id: offer.sellerId, at: offer.id).go(context),
     );
   }
 }
