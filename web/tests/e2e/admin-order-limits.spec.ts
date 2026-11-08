@@ -49,4 +49,37 @@ test.describe("the ordering limits", () => {
     await expect(page.getByLabel("Tối đa mặc định (phần)")).toHaveValue("4");
     await expect(save).toBeDisabled();
   });
+
+  // SEC-205: the offer settings saved and the order settings not; a retry saves only what is left, and the offer
+  // settings at the version their save answered, so it is not taken for someone else's save.
+  test("a save that failed half way is finished by saving again", async ({ page }, testInfo) => {
+    await signInAsAdmin(page, testInfo);
+    await page.goto("/vi/admin/settings/order-limits");
+
+    let failOnce = true;
+    await page.route("**/api/admin/order-settings", async (route) => {
+      if (route.request().method() === "PUT" && failOnce) {
+        failOnce = false;
+        await route.fulfill({
+          status: 500,
+          contentType: "application/problem+json",
+          body: JSON.stringify({ status: 500, code: "PLATFORM_INTERNAL", detail: "Lỗi máy chủ." }),
+        });
+        return;
+      }
+      await route.fallback();
+    });
+
+    await (await hydrated(page.getByLabel("Tối đa mặc định (phần)"))).fill("6");
+    await page.getByLabel("Trong vòng (ngày)").fill("20");
+    const save = page.getByRole("button", { name: "Lưu thay đổi" });
+    await save.click();
+    await expect(page.getByText("Đã lưu giới hạn đặt món")).toBeHidden();
+
+    await save.click();
+    await expect(page.getByText("Đã lưu giới hạn đặt món")).toBeVisible();
+    await expect(page.getByText("Có người vừa lưu cài đặt này")).toBeHidden();
+    await expect(page.getByLabel("Tối đa mặc định (phần)")).toHaveValue("6");
+    await expect(page.getByLabel("Trong vòng (ngày)")).toHaveValue("20");
+  });
 });
